@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { TrendingUp, Zap, Trophy, Calendar, Target } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { ProgressRing } from '../components/ProgressRing';
@@ -26,133 +27,203 @@ const SKILLS = [
 ];
 
 const SKILL_TREE = [
-  { id: 'basics', label: 'Basics', icon: '🌱', unlocked: true, mastery: 100, children: ['greetings', 'numbers'] },
-  { id: 'greetings', label: 'Greetings', icon: '👋', unlocked: true, mastery: 90, children: [] },
-  { id: 'numbers', label: 'Numbers', icon: '🔢', unlocked: true, mastery: 75, children: [] },
-  { id: 'daily', label: 'Daily Life', icon: '🏠', unlocked: true, mastery: 60, children: ['school', 'food'] },
-  { id: 'school', label: 'School', icon: '🎓', unlocked: true, mastery: 72, children: [] },
-  { id: 'food', label: 'Food', icon: '🥐', unlocked: true, mastery: 55, children: [] },
-  { id: 'society', label: 'Society', icon: '🌍', unlocked: true, mastery: 40, children: ['environment', 'tech'] },
-  { id: 'environment', label: 'Environment', icon: '🌿', unlocked: false, mastery: 0, children: [] },
-  { id: 'tech', label: 'Technology', icon: '💻', unlocked: false, mastery: 0, children: [] },
-  { id: 'mastery', label: 'Mastery', icon: '👑', unlocked: false, mastery: 0, children: [] },
+  { id: 'basics', label: 'Basics', icon: '🌱', unlocked: true, mastery: 100 },
+  { id: 'greetings', label: 'Greetings', icon: '👋', unlocked: true, mastery: 90 },
+  { id: 'numbers', label: 'Numbers', icon: '🔢', unlocked: true, mastery: 75 },
+  { id: 'daily', label: 'Daily Life', icon: '🏠', unlocked: true, mastery: 60 },
+  { id: 'school', label: 'School', icon: '🎓', unlocked: true, mastery: 72 },
+  { id: 'food', label: 'Food', icon: '🥐', unlocked: true, mastery: 55 },
+  { id: 'society', label: 'Society', icon: '🌍', unlocked: true, mastery: 40 },
+  { id: 'environment', label: 'Environment', icon: '🌿', unlocked: false, mastery: 0 },
+  { id: 'tech', label: 'Technology', icon: '💻', unlocked: false, mastery: 0 },
+  { id: 'mastery', label: 'Mastery', icon: '👑', unlocked: false, mastery: 0 },
 ];
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 16 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.4, 0, 0.2, 1] as const } },
+};
 
 export function Progress() {
   const { state } = useApp();
   const { profile } = state;
   const { current, progress } = getLevelInfo(profile.total_xp);
   const [activeTab, setActiveTab] = useState<'overview' | 'skills' | 'tree' | 'history'>('overview');
+  const maxScore = Math.max(...MOCK_DAILY.map(d => d.score));
 
   return (
     <div className="min-h-screen pb-24 md:pb-8">
-      <div className="max-w-5xl mx-auto px-4 md:px-6 pt-6 md:pt-8 space-y-6">
+      <motion.div
+        className="max-w-5xl mx-auto px-4 md:px-6 pt-6 md:pt-8 space-y-5"
+        initial="hidden"
+        animate="show"
+        variants={{ hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.08 } } }}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <motion.div variants={fadeUp} className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl md:text-3xl font-black text-white">Progress</h1>
             <p className="text-sm text-slate-500 mt-1">Track your improvement</p>
           </div>
-          <div className="flex gap-1.5">
+          <div className="flex gap-1">
             {(['overview', 'skills', 'tree', 'history'] as const).map(tab => (
-              <button key={tab} onClick={() => setActiveTab(tab)} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold capitalize transition-all duration-200 ${activeTab === tab ? 'bg-blue-500/15 text-blue-400 border border-blue-500/25' : 'text-slate-500 hover:text-white border border-transparent'}`}>{tab}</button>
+              <motion.button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold capitalize transition-all duration-200 ${
+                  activeTab === tab ? 'bg-violet-electric/10 text-violet-400 border border-violet-electric/20' : 'text-slate-600 hover:text-white border border-transparent'
+                }`}
+                whileTap={{ scale: 0.95 }}
+              >
+                {tab}
+              </motion.button>
             ))}
           </div>
-        </div>
+        </motion.div>
 
         {activeTab === 'overview' && (
-          <div className="space-y-6">
+          <>
             {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <MiniStat icon={<Zap size={16} className="text-blue-400" />} value={profile.total_xp.toLocaleString()} label="Total XP" />
-              <MiniStat icon={<span className="text-base">🔥</span>} value={profile.streak_days} label="Day Streak" />
-              <MiniStat icon={<span className="text-base">📚</span>} value={profile.sessions_count} label="Sessions" />
-              <MiniStat icon={<span className="text-base">💬</span>} value={profile.total_words_spoken.toLocaleString()} label="Words" />
-            </div>
+            <motion.div variants={fadeUp} className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+              {[
+                { icon: <Zap size={15} className="text-violet-400" />, value: profile.total_xp.toLocaleString(), label: 'Total XP' },
+                { icon: <span className="text-sm">🔥</span>, value: profile.streak_days, label: 'Day Streak' },
+                { icon: <span className="text-sm">📚</span>, value: profile.sessions_count, label: 'Sessions' },
+                { icon: <span className="text-sm">💬</span>, value: profile.total_words_spoken.toLocaleString(), label: 'Words' },
+              ].map(s => (
+                <div key={s.label} className="rounded-xl glass p-3.5">
+                  <div className="mb-1.5">{s.icon}</div>
+                  <p className="text-lg font-black text-white">{s.value}</p>
+                  <p className="text-[9px] text-slate-600 font-medium">{s.label}</p>
+                </div>
+              ))}
+            </motion.div>
 
             {/* Level */}
-            <div className="rounded-2xl border border-white/[0.06] bg-slate-900/60 p-6">
+            <motion.div variants={fadeUp} className="rounded-xl glass-elevated p-5">
               <div className="flex items-center gap-2 mb-4">
-                <Trophy size={16} className="text-amber-400" />
+                <Trophy size={14} className="text-amber-400" />
                 <h3 className="font-bold text-white text-sm">Level Progress</h3>
-                <span className="ml-auto text-xs font-bold text-amber-400">{current.icon} {current.level}</span>
+                <span className="ml-auto text-[10px] font-bold text-amber-400">{current.icon} {current.level}</span>
               </div>
               <div className="flex items-center gap-6">
-                <ProgressRing value={progress} size={90} strokeWidth={8} color="#f59e0b" label={`${Math.round(progress)}%`} sublabel="to next" />
-                <div className="flex-1 space-y-2">
+                <ProgressRing value={progress} size={85} strokeWidth={7} color="#F59E0B" label={`${Math.round(progress)}%`} sublabel="to next" />
+                <div className="flex-1 space-y-1.5">
                   {LEVELS.map(lvl => {
                     const isCurrent = lvl.level === current.level;
                     const isPast = profile.total_xp >= lvl.minXP && !isCurrent;
                     return (
                       <div key={lvl.level} className="flex items-center gap-2">
-                        <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] border ${isPast ? 'bg-emerald-500 border-emerald-500' : isCurrent ? 'bg-blue-500 border-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.5)]' : 'bg-slate-800 border-slate-700'}`}>
+                        <div className={`w-4 h-4 rounded-full flex items-center justify-center text-[8px] border ${
+                          isPast ? 'bg-emerald-500 border-emerald-500' : isCurrent ? 'bg-violet-electric border-violet-electric shadow-[0_0_6px_rgba(124,58,237,0.5)]' : 'bg-navy-300 border-navy-400'
+                        }`}>
                           {isPast ? '✓' : isCurrent ? '★' : ''}
                         </div>
-                        <span className={`text-xs ${isCurrent ? 'text-white font-bold' : isPast ? 'text-slate-400' : 'text-slate-600'}`}>{lvl.icon} {lvl.level}</span>
-                        <span className="text-[10px] text-slate-600 ml-auto">{lvl.minXP.toLocaleString()} XP</span>
+                        <span className={`text-[10px] ${isCurrent ? 'text-white font-bold' : isPast ? 'text-slate-500' : 'text-slate-700'}`}>{lvl.icon} {lvl.level}</span>
+                        <span className="text-[9px] text-slate-700 ml-auto">{lvl.minXP.toLocaleString()} XP</span>
                       </div>
                     );
                   })}
                 </div>
               </div>
-            </div>
+            </motion.div>
 
-            {/* 7-Day Chart */}
-            <div className="rounded-2xl border border-white/[0.06] bg-slate-900/60 p-6">
-              <div className="flex items-center justify-between mb-5">
-                <div className="flex items-center gap-2"><TrendingUp size={16} className="text-blue-400" /><h3 className="font-bold text-white text-sm">7-Day Performance</h3></div>
-                <span className="text-[10px] text-slate-500">Avg: {(MOCK_DAILY.reduce((s, d) => s + d.score, 0) / MOCK_DAILY.length).toFixed(1)}</span>
+            {/* 7-Day Chart with smooth curves */}
+            <motion.div variants={fadeUp} className="rounded-xl glass-elevated p-5">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2"><TrendingUp size={14} className="text-violet-400" /><h3 className="font-bold text-white text-sm">7-Day Performance</h3></div>
+                <span className="text-[9px] text-slate-600">Avg: {(MOCK_DAILY.reduce((s, d) => s + d.score, 0) / MOCK_DAILY.length).toFixed(1)}</span>
               </div>
-              <div className="flex items-end gap-2 h-32">
-                {MOCK_DAILY.map((day, idx) => (
-                  <div key={day.day} className="flex-1 flex flex-col items-center gap-1.5">
-                    <div className="relative w-full flex items-end justify-center h-24">
-                      <div className="w-full rounded-t-md transition-all duration-500 relative group cursor-pointer" style={{ height: `${(day.score / 10) * 100}%`, background: 'linear-gradient(to top, rgba(59,130,246,0.7), rgba(6,182,212,0.5))', boxShadow: '0 0 6px rgba(59,130,246,0.2)', animationDelay: `${idx * 80}ms` }}>
-                        <div className="absolute -top-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-800 border border-white/10 rounded-md px-1.5 py-0.5 text-[10px] text-white whitespace-nowrap">{day.score}</div>
-                      </div>
-                    </div>
-                    <span className="text-[10px] text-slate-600">{day.day}</span>
-                  </div>
-                ))}
+              <div className="relative h-28">
+                <svg className="w-full h-full" viewBox="0 0 700 112" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="progGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#7C3AED" stopOpacity="0.25" />
+                      <stop offset="100%" stopColor="#7C3AED" stopOpacity="0" />
+                    </linearGradient>
+                    <linearGradient id="progLine" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="#7C3AED" />
+                      <stop offset="100%" stopColor="#818CF8" />
+                    </linearGradient>
+                  </defs>
+                  <path
+                    d={MOCK_DAILY.map((d, i) => {
+                      const x = (i / (MOCK_DAILY.length - 1)) * 700;
+                      const y = 112 - (d.score / maxScore) * 100;
+                      return i === 0 ? `M${x},${y}` : `C${x - 50},${y} ${x - 25},${y} ${x},${y}`;
+                    }).join(' ') + ` L700,112 L0,112 Z`}
+                    fill="url(#progGrad)"
+                  />
+                  <path
+                    d={MOCK_DAILY.map((d, i) => {
+                      const x = (i / (MOCK_DAILY.length - 1)) * 700;
+                      const y = 112 - (d.score / maxScore) * 100;
+                      return i === 0 ? `M${x},${y}` : `C${x - 50},${y} ${x - 25},${y} ${x},${y}`;
+                    }).join(' ')}
+                    fill="none" stroke="url(#progLine)" strokeWidth="2.5" strokeLinecap="round"
+                    style={{ filter: 'drop-shadow(0 0 4px rgba(124, 58, 237, 0.4))' }}
+                  />
+                  {MOCK_DAILY.map((d, i) => {
+                    const x = (i / (MOCK_DAILY.length - 1)) * 700;
+                    const y = 112 - (d.score / maxScore) * 100;
+                    return <circle key={i} cx={x} cy={y} r="3" fill="#7C3AED" style={{ filter: 'drop-shadow(0 0 3px rgba(124, 58, 237, 0.6))' }} />;
+                  })}
+                </svg>
+                <div className="absolute bottom-0 left-0 right-0 flex justify-between px-1 translate-y-5">
+                  {MOCK_DAILY.map(d => <span key={d.day} className="text-[8px] text-slate-700">{d.day}</span>)}
+                </div>
               </div>
-            </div>
+            </motion.div>
 
-            {/* Core Skills */}
-            <div className="rounded-2xl border border-white/[0.06] bg-slate-900/60 p-6">
-              <div className="flex items-center gap-2 mb-5"><Target size={16} className="text-emerald-400" /><h3 className="font-bold text-white text-sm">Core Skills</h3></div>
+            {/* Core Skills with rings */}
+            <motion.div variants={fadeUp} className="rounded-xl glass-elevated p-5">
+              <div className="flex items-center gap-2 mb-4"><Target size={14} className="text-emerald-400" /><h3 className="font-bold text-white text-sm">Core Skills</h3></div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 justify-items-center">
-                {[{ label: 'Grammar', value: 72, color: '#0ea5e9' }, { label: 'Vocabulary', value: 65, color: '#f59e0b' }, { label: 'Fluency', value: 81, color: '#10b981' }, { label: 'Communication', value: 58, color: '#ec4899' }].map(skill => (
+                {[
+                  { label: 'Grammar', value: 72, color: '#7C3AED' },
+                  { label: 'Vocabulary', value: 65, color: '#F59E0B' },
+                  { label: 'Fluency', value: 81, color: '#10B981' },
+                  { label: 'Communication', value: 58, color: '#EC4899' },
+                ].map(skill => (
                   <div key={skill.label} className="flex flex-col items-center gap-1.5">
-                    <ProgressRing value={skill.value} size={70} strokeWidth={7} color={skill.color} label={`${skill.value}%`} />
-                    <span className="text-[10px] text-slate-500 font-medium">{skill.label}</span>
+                    <ProgressRing value={skill.value} size={65} strokeWidth={6} color={skill.color} label={`${skill.value}%`} />
+                    <span className="text-[9px] text-slate-600 font-medium">{skill.label}</span>
                   </div>
                 ))}
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </>
         )}
 
         {activeTab === 'skills' && (
-          <div className="space-y-4">
+          <motion.div variants={fadeUp} className="space-y-3">
             {['Grammar', 'Vocabulary', 'Fluency'].map(category => {
               const categorySkills = SKILLS.filter(s => s.category === category);
               return (
-                <div key={category} className="rounded-2xl border border-white/[0.06] bg-slate-900/60 p-5">
-                  <h3 className="font-bold text-white text-xs uppercase tracking-wider mb-4">{category}</h3>
-                  <div className="space-y-3">
+                <div key={category} className="rounded-xl glass p-4">
+                  <h3 className="font-bold text-white text-[10px] uppercase tracking-wider mb-3">{category}</h3>
+                  <div className="space-y-2.5">
                     {categorySkills.map(skill => (
                       <div key={skill.label}>
                         <div className="flex justify-between mb-1">
-                          <span className="text-xs text-slate-300">{skill.label}</span>
+                          <span className="text-[10px] text-slate-400">{skill.label}</span>
                           <div className="flex items-center gap-1.5">
-                            <span className="text-xs font-bold text-white">{skill.mastery}%</span>
-                            <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${skill.mastery >= 70 ? 'bg-emerald-500/15 text-emerald-400' : skill.mastery >= 50 ? 'bg-amber-500/15 text-amber-400' : 'bg-red-500/15 text-red-400'}`}>
+                            <span className="text-[10px] font-bold text-white">{skill.mastery}%</span>
+                            <span className={`text-[8px] px-1.5 py-0.5 rounded-full font-bold ${
+                              skill.mastery >= 70 ? 'bg-emerald-500/10 text-emerald-400' : skill.mastery >= 50 ? 'bg-amber-500/10 text-amber-400' : 'bg-red-500/10 text-red-400'
+                            }`}>
                               {skill.mastery >= 70 ? 'Strong' : skill.mastery >= 50 ? 'Improving' : 'Focus'}
                             </span>
                           </div>
                         </div>
-                        <div className="h-2 bg-slate-800/50 rounded-full overflow-hidden">
-                          <div className="h-full rounded-full transition-all duration-700" style={{ width: `${skill.mastery}%`, background: skill.mastery >= 70 ? '#10b981' : skill.mastery >= 50 ? '#f59e0b' : '#ef4444', boxShadow: `0 0 4px ${skill.mastery >= 70 ? '#10b98150' : skill.mastery >= 50 ? '#f59e0b50' : '#ef444450'}` }} />
+                        <div className="h-1.5 bg-navy-300 rounded-full overflow-hidden">
+                          <motion.div
+                            className="h-full rounded-full shimmer-bar"
+                            style={{ background: skill.mastery >= 70 ? '#10B981' : skill.mastery >= 50 ? '#F59E0B' : '#EF4444' }}
+                            initial={{ width: 0 }}
+                            animate={{ width: `${skill.mastery}%` }}
+                            transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
+                          />
                         </div>
                       </div>
                     ))}
@@ -160,66 +231,72 @@ export function Progress() {
                 </div>
               );
             })}
-          </div>
+          </motion.div>
         )}
 
         {activeTab === 'tree' && (
-          <div className="rounded-2xl border border-white/[0.06] bg-slate-900/60 p-6">
-            <h3 className="font-bold text-white text-sm mb-6">Skill Tree</h3>
-            <div className="space-y-3">
+          <motion.div variants={fadeUp} className="rounded-xl glass-elevated p-5">
+            <h3 className="font-bold text-white text-sm mb-5">Skill Tree</h3>
+            <div className="space-y-2">
               {SKILL_TREE.map((node) => (
-                <div key={node.id} className="flex items-center gap-3" style={{ paddingLeft: `${(node.id.split('.').length - 1) * 24}px` }}>
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg border transition-all ${node.unlocked ? 'bg-blue-500/10 border-blue-500/20' : 'bg-slate-800/50 border-white/5 opacity-40'}`}>
+                <motion.div
+                  key={node.id}
+                  className="flex items-center gap-3"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center text-base border transition-all ${
+                    node.unlocked ? 'bg-violet-electric/8 border-violet-electric/15' : 'bg-navy-300 border-white/[0.03] opacity-35'
+                  }`}>
                     {node.icon}
                   </div>
                   <div className="flex-1">
-                    <p className={`text-sm font-semibold ${node.unlocked ? 'text-white' : 'text-slate-600'}`}>{node.label}</p>
+                    <p className={`text-xs font-semibold ${node.unlocked ? 'text-white' : 'text-slate-700'}`}>{node.label}</p>
                     {node.unlocked && node.mastery > 0 && (
-                      <div className="mt-1 h-1 bg-slate-800 rounded-full overflow-hidden w-32">
-                        <div className="h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-400" style={{ width: `${node.mastery}%` }} />
+                      <div className="mt-1 h-0.5 bg-navy-300 rounded-full overflow-hidden w-28">
+                        <div className="h-full rounded-full bg-gradient-to-r from-violet-electric to-indigo-400" style={{ width: `${node.mastery}%` }} />
                       </div>
                     )}
                   </div>
-                  {node.unlocked && <span className="text-xs font-bold text-blue-400">{node.mastery}%</span>}
-                </div>
+                  {node.unlocked && <span className="text-[10px] font-bold text-violet-400">{node.mastery}%</span>}
+                </motion.div>
               ))}
             </div>
-          </div>
+          </motion.div>
         )}
 
         {activeTab === 'history' && (
-          <div className="rounded-2xl border border-white/[0.06] bg-slate-900/60 p-5">
-            <div className="flex items-center gap-2 mb-5"><Calendar size={16} className="text-blue-400" /><h3 className="font-bold text-white text-sm">Session History</h3></div>
-            <div className="space-y-2">
+          <motion.div variants={fadeUp} className="rounded-xl glass p-4">
+            <div className="flex items-center gap-2 mb-4"><Calendar size={14} className="text-violet-400" /><h3 className="font-bold text-white text-sm">Session History</h3></div>
+            <div className="space-y-1.5">
               {state.recentSessions.map(session => (
-                <div key={session.id} className="flex items-center gap-3 p-3 rounded-xl bg-slate-800/30 border border-white/[0.04] hover:border-white/10 transition-all">
-                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center text-sm flex-shrink-0 ${session.mode === 'practice' ? 'bg-blue-500/10 border border-blue-500/20' : session.mode === 'exam' ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-emerald-500/10 border border-emerald-500/20'}`}>
+                <motion.div
+                  key={session.id}
+                  className="flex items-center gap-3 p-2.5 rounded-lg glass-subtle hover:bg-white/[0.02] transition-all cursor-pointer"
+                  whileHover={{ x: 4 }}
+                >
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm flex-shrink-0 ${
+                    session.mode === 'practice' ? 'bg-violet-electric/8 border border-violet-electric/15' :
+                    session.mode === 'exam' ? 'bg-amber-500/8 border border-amber-500/15' :
+                    'bg-emerald-500/8 border border-emerald-500/15'
+                  }`}>
                     {session.mode === 'practice' ? '📚' : session.mode === 'exam' ? '📝' : '💬'}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-white capitalize">{session.mode}</p>
-                    <p className="text-[10px] text-slate-600">{session.wordCount} words / {Math.floor(session.durationSec / 60)}m</p>
+                    <p className="text-[10px] font-semibold text-white capitalize">{session.mode}</p>
+                    <p className="text-[9px] text-slate-700">{session.wordCount} words / {Math.floor(session.durationSec / 60)}m</p>
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <p className="text-xs font-bold text-white">{session.score.toFixed(1)}<span className="text-[10px] text-slate-500">/10</span></p>
-                    <p className="text-[10px] text-emerald-400 font-semibold">+{session.xpEarned} XP</p>
+                    <p className="text-[10px] font-bold text-white">{session.score.toFixed(1)}<span className="text-[8px] text-slate-700">/10</span></p>
+                    <p className="text-[9px] text-emerald-400 font-semibold">+{session.xpEarned} XP</p>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
-          </div>
+          </motion.div>
         )}
-      </div>
-    </div>
-  );
-}
-
-function MiniStat({ icon, value, label }: { icon: React.ReactNode; value: string | number; label: string }) {
-  return (
-    <div className="rounded-2xl border border-white/[0.06] bg-slate-900/60 p-4">
-      <div className="mb-2">{icon}</div>
-      <p className="text-xl font-black text-white">{value}</p>
-      <p className="text-[10px] text-slate-500 font-medium">{label}</p>
+      </motion.div>
     </div>
   );
 }

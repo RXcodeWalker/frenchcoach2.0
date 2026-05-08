@@ -1,3 +1,5 @@
+import { motion } from 'framer-motion';
+
 interface ProgressRingProps {
   value: number;
   max?: number;
@@ -14,7 +16,7 @@ export function ProgressRing({
   max = 100,
   size = 100,
   strokeWidth = 8,
-  color = '#0ea5e9',
+  color = '#7C3AED',
   label,
   sublabel,
   glow = true,
@@ -27,15 +29,17 @@ export function ProgressRing({
   return (
     <div className="relative inline-flex items-center justify-center">
       <svg width={size} height={size} className="-rotate-90">
+        {/* Background track */}
         <circle
           cx={size / 2}
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="rgba(255,255,255,0.06)"
+          stroke="rgba(255,255,255,0.04)"
           strokeWidth={strokeWidth}
         />
-        <circle
+        {/* Progress arc */}
+        <motion.circle
           cx={size / 2}
           cy={size / 2}
           r={radius}
@@ -43,21 +47,29 @@ export function ProgressRing({
           stroke={color}
           strokeWidth={strokeWidth}
           strokeDasharray={circumference}
-          strokeDashoffset={strokeDashoffset}
           strokeLinecap="round"
+          initial={{ strokeDashoffset: circumference }}
+          animate={{ strokeDashoffset }}
+          transition={{ duration: 1.2, ease: [0.4, 0, 0.2, 1] }}
           style={{
-            transition: 'stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1)',
-            filter: glow ? `drop-shadow(0 0 6px ${color})` : undefined,
+            filter: glow ? `drop-shadow(0 0 8px ${color})` : undefined,
           }}
         />
       </svg>
       {(label !== undefined || sublabel !== undefined) && (
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           {label !== undefined && (
-            <span className="text-white font-black text-lg leading-none">{label}</span>
+            <motion.span
+              className="text-white font-black text-lg leading-none"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.5, duration: 0.3 }}
+            >
+              {label}
+            </motion.span>
           )}
           {sublabel && (
-            <span className="text-slate-400 text-xs mt-0.5">{sublabel}</span>
+            <span className="text-slate-500 text-[10px] mt-0.5">{sublabel}</span>
           )}
         </div>
       )}

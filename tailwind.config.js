@@ -7,8 +7,27 @@ export default {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
       },
       colors: {
-        slate: {
-          950: '#020617',
+        navy: {
+          DEFAULT: '#0A0C10',
+          50: '#0E1117',
+          100: '#12151C',
+          200: '#161A23',
+          300: '#1C2029',
+          400: '#232730',
+          500: '#2A2E38',
+          600: '#343842',
+          700: '#42464F',
+          800: '#52565F',
+          900: '#6B6F78',
+        },
+        violet: {
+          electric: '#7C3AED',
+        },
+        emerald: {
+          fluency: '#10B981',
+        },
+        gold: {
+          achievement: '#F59E0B',
         },
       },
       animation: {
@@ -16,6 +35,8 @@ export default {
         'fade-in': 'fadeIn 0.4s ease-out forwards',
         shake: 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
         'glow-pulse': 'glowPulse 2s ease-in-out infinite',
+        shimmer: 'shimmer 2s linear infinite',
+        'wave-pulse': 'wavePulse 1.2s ease-in-out infinite',
       },
       keyframes: {
         blob: {
@@ -35,8 +56,16 @@ export default {
           '40%, 60%': { transform: 'translate3d(4px, 0, 0)' },
         },
         glowPulse: {
-          '0%, 100%': { boxShadow: '0 0 12px rgba(59, 130, 246, 0.3)' },
-          '50%': { boxShadow: '0 0 24px rgba(59, 130, 246, 0.6)' },
+          '0%, 100%': { boxShadow: '0 0 12px rgba(124, 58, 237, 0.3)' },
+          '50%': { boxShadow: '0 0 24px rgba(124, 58, 237, 0.6)' },
+        },
+        shimmer: {
+          '0%': { backgroundPosition: '-200% 0' },
+          '100%': { backgroundPosition: '200% 0' },
+        },
+        wavePulse: {
+          '0%, 100%': { transform: 'scaleY(0.3)' },
+          '50%': { transform: 'scaleY(1)' },
         },
       },
       backdropBlur: {

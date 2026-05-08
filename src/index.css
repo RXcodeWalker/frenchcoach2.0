@@ -3,13 +3,12 @@
 @tailwind utilities;
 
 /* ============================================================
-   FRENCH COACH v3 — Premium Design System
+   FRENCH COACH v3 — Apple-Level Premium Design System
+   Deep Navy (#0A0C10) + Glassmorphism
    ============================================================ */
 
 @layer base {
-  *, *::before, *::after {
-    box-sizing: border-box;
-  }
+  *, *::before, *::after { box-sizing: border-box; }
 
   html {
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
@@ -18,42 +17,69 @@
   }
 
   body {
-    @apply bg-slate-950 text-white;
+    background: #0A0C10;
+    color: #fff;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
 
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.08); border-radius: 99px; }
-  ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.15); }
-  * { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.08) transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.06); border-radius: 99px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.12); }
+  * { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.06) transparent; }
 }
 
 @layer components {
-  .glass-card {
-    background: rgba(15, 23, 42, 0.6);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+  /* Glassmorphism Card — Primary */
+  .glass {
+    background: rgba(14, 17, 23, 0.65);
+    backdrop-filter: blur(24px) saturate(1.2);
+    -webkit-backdrop-filter: blur(24px) saturate(1.2);
     border: 1px solid rgba(255, 255, 255, 0.06);
   }
 
+  /* Glassmorphism Card — Elevated */
+  .glass-elevated {
+    background: rgba(18, 21, 28, 0.75);
+    backdrop-filter: blur(32px) saturate(1.3);
+    -webkit-backdrop-filter: blur(32px) saturate(1.3);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Glassmorphism Card — Subtle */
+  .glass-subtle {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+  }
+
+  /* Primary Button */
   .btn-primary {
     @apply flex items-center justify-center gap-2;
-    background: linear-gradient(135deg, #2563eb, #0891b2);
+    background: linear-gradient(135deg, #7C3AED, #6366F1);
     color: white;
     font-weight: 700;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 0 16px rgba(37, 99, 235, 0.25);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 16px rgba(124, 58, 237, 0.25);
   }
 
   .btn-primary:hover {
-    background: linear-gradient(135deg, #3b82f6, #06b6d4);
-    box-shadow: 0 0 24px rgba(59, 130, 246, 0.4);
+    background: linear-gradient(135deg, #8B5CF6, #818CF8);
+    box-shadow: 0 0 28px rgba(124, 58, 237, 0.45);
     transform: scale(1.02);
   }
 
   .btn-primary:active {
     transform: scale(0.98);
+  }
+
+  /* Shimmer Progress Bar */
+  .shimmer-bar {
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 50%, transparent 100%);
+    background-size: 200% 100%;
+    animation: shimmer 2s linear infinite;
   }
 }
 
@@ -65,9 +91,9 @@
   .xp-toast { animation: toastIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards, toastOut 0.3s ease-in 2.5s forwards; }
   .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
   .animate-shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
-  .animate-correct { animation: correctFlash 0.6s ease-out forwards; }
   .animate-glow-pulse { animation: glowPulse 2s ease-in-out infinite; }
   .animate-slide-in { animation: slideIn 0.3s ease-out forwards; }
+  .animate-shimmer { animation: shimmer 2s linear infinite; }
 }
 
 /* Keyframes */
@@ -108,15 +134,14 @@
   40%, 60% { transform: translate3d(4px, 0, 0); }
 }
 
-@keyframes correctFlash {
-  0% { background-color: transparent; }
-  30% { background-color: rgba(16, 185, 129, 0.2); }
-  100% { background-color: transparent; }
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 12px rgba(124, 58, 237, 0.3); }
+  50% { box-shadow: 0 0 24px rgba(124, 58, 237, 0.6); }
 }
 
-@keyframes glowPulse {
-  0%, 100% { box-shadow: 0 0 12px rgba(59, 130, 246, 0.3); }
-  50% { box-shadow: 0 0 24px rgba(59, 130, 246, 0.6); }
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
 @keyframes ping {
@@ -134,16 +159,6 @@
   100% { opacity: 0; transform: scale(1.5) rotate(360deg); }
 }
 
-@keyframes confetti {
-  0% { transform: translateY(0) rotateZ(0deg); opacity: 1; }
-  100% { transform: translateY(400px) rotateZ(720deg); opacity: 0; }
-}
-
-@keyframes particleBurst {
-  0% { transform: translate(0, 0) scale(1); opacity: 1; }
-  100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
-}
-
 .celebration-modal { animation: modalIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
 @keyframes modalIn {
@@ -152,18 +167,8 @@
 }
 
 @keyframes pulseGlow {
-  0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.4), 0 0 40px rgba(59, 130, 246, 0.2); }
-  50% { box-shadow: 0 0 30px rgba(59, 130, 246, 0.6), 0 0 60px rgba(59, 130, 246, 0.3); }
+  0%, 100% { box-shadow: 0 0 20px rgba(124, 58, 237, 0.4), 0 0 40px rgba(124, 58, 237, 0.2); }
+  50% { box-shadow: 0 0 30px rgba(124, 58, 237, 0.6), 0 0 60px rgba(124, 58, 237, 0.3); }
 }
 
-@keyframes shimmer {
-  0% { background-position: -1000px 0; }
-  100% { background-position: 1000px 0; }
-}
-
-@keyframes floatUp {
-  0% { opacity: 1; transform: translateY(0); }
-  100% { opacity: 0; transform: translateY(-30px); }
-}
-
-::selection { background: rgba(59, 130, 246, 0.3); color: white; }
+::selection { background: rgba(124, 58, 237, 0.3); color: white; }
