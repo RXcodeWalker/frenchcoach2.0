@@ -1,4 +1,4 @@
-export type Screen = 'dashboard' | 'practice' | 'exam' | 'progress' | 'settings' | 'roleplay';
+export type Screen = 'home' | 'learn' | 'exam' | 'progress' | 'profile' | 'explore';
 
 export type Level = 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert' | 'Beast Mode';
 

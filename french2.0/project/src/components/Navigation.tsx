@@ -1,98 +1,87 @@
-import { LayoutDashboard, BookOpen, GraduationCap, TrendingUp, Settings, MessageSquare, Zap } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import type { Screen } from '../types';
-import { getLevelInfo } from '../data/gameData';
+import { Hop as Home, BookOpen, GraduationCap, ChartBar as BarChart3, User, Compass, Flame } from 'lucide-react';
 
-const NAV_ITEMS: { screen: Screen; label: string; icon: React.ReactNode }[] = [
-  { screen: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
-  { screen: 'practice', label: 'Practice', icon: <BookOpen size={20} /> },
-  { screen: 'exam', label: 'Exam Mode', icon: <GraduationCap size={20} /> },
-  { screen: 'roleplay', label: 'Roleplay', icon: <MessageSquare size={20} /> },
-  { screen: 'progress', label: 'Progress', icon: <TrendingUp size={20} /> },
-  { screen: 'settings', label: 'Settings', icon: <Settings size={20} /> },
+const NAV_ITEMS: { id: Screen; label: string; icon: React.ReactNode }[] = [
+  { id: 'home', label: 'Home', icon: <Home size={20} /> },
+  { id: 'learn', label: 'Learn', icon: <BookOpen size={20} /> },
+  { id: 'exam', label: 'Exam', icon: <GraduationCap size={20} /> },
+  { id: 'explore', label: 'Explore', icon: <Compass size={20} /> },
+  { id: 'progress', label: 'Progress', icon: <BarChart3 size={20} /> },
+  { id: 'profile', label: 'Profile', icon: <User size={20} /> },
 ];
 
-export function Navigation() {
+export function SideRail() {
   const { state, dispatch } = useApp();
-  const { current, progress } = getLevelInfo(state.profile.total_xp);
 
   return (
-    <nav className="fixed left-0 top-0 h-full w-64 bg-slate-900/95 backdrop-blur-xl border-r border-white/5 flex flex-col z-50 nav-panel">
-      {/* Logo */}
-      <div className="p-6 border-b border-white/5">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center shadow-[0_0_20px_rgba(59,130,246,0.4)]">
-            <span className="text-xl">🇫🇷</span>
-          </div>
-          <div>
-            <h1 className="font-black text-white text-lg leading-none">FrenchCoach</h1>
-            <p className="text-xs text-slate-400 mt-0.5">IGCSE Prep Platform</p>
-          </div>
+    <>
+      {/* Desktop Side Rail */}
+      <nav className="fixed left-0 top-0 bottom-0 w-[72px] bg-slate-950/80 backdrop-blur-2xl border-r border-white/[0.04] z-50 hidden md:flex flex-col items-center py-4 gap-1">
+        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center mb-6 shadow-[0_0_20px_rgba(59,130,246,0.3)]">
+          <span className="text-lg font-black text-white">F</span>
         </div>
-      </div>
 
-      {/* User XP Card */}
-      <div className="mx-4 mt-4 p-4 rounded-2xl bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20">
-        <div className="flex items-center justify-between mb-2">
-          <div>
-            <p className="text-sm font-semibold text-white">{state.profile.username}</p>
-            <p className="text-xs text-slate-400">{current.icon} {current.level}</p>
-          </div>
-          <div className="flex items-center gap-1 bg-amber-400/15 px-2 py-1 rounded-lg border border-amber-400/20">
-            <Zap size={12} className="text-amber-400" />
-            <span className="text-xs font-bold text-amber-400">{state.profile.total_xp.toLocaleString()}</span>
-          </div>
-        </div>
-        <div className="relative h-2 bg-slate-700/50 rounded-full overflow-hidden">
-          <div
-            className="absolute left-0 top-0 h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-400 transition-all duration-700 shadow-[0_0_8px_rgba(59,130,246,0.6)]"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-        <p className="text-xs text-slate-500 mt-1.5">{Math.round(progress)}% to next level</p>
-      </div>
-
-      {/* Streak */}
-      <div className="mx-4 mt-3 p-3 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center gap-3">
-        <div className="text-2xl">🔥</div>
-        <div>
-          <p className="text-sm font-bold text-white">{state.profile.streak_days} Day Streak</p>
-          <p className="text-xs text-slate-400">Best: {state.profile.longest_streak} days</p>
-        </div>
-      </div>
-
-      {/* Nav Items */}
-      <div className="flex-1 p-4 space-y-1 mt-2">
-        {NAV_ITEMS.map(item => {
-          const active = state.screen === item.screen;
-          return (
-            <button
-              key={item.screen}
-              onClick={() => dispatch({ type: 'SET_SCREEN', screen: item.screen })}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group ${
-                active
-                  ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30 shadow-[0_0_12px_rgba(59,130,246,0.15)]'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'
-              }`}
-            >
-              <span className={`transition-transform duration-200 group-hover:scale-110 ${active ? 'text-blue-400' : ''}`}>
+        <div className="flex-1 flex flex-col items-center gap-1">
+          {NAV_ITEMS.map(item => {
+            const active = state.screen === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => dispatch({ type: 'SET_SCREEN', screen: item.id })}
+                className={`group relative w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-200 ${
+                  active
+                    ? 'bg-blue-500/15 text-blue-400 shadow-[0_0_12px_rgba(59,130,246,0.15)]'
+                    : 'text-slate-500 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                {active && (
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-blue-400 rounded-r-full shadow-[0_0_8px_rgba(59,130,246,0.6)]" />
+                )}
                 {item.icon}
-              </span>
-              {item.label}
-              {item.screen === 'exam' && (
-                <span className="ml-auto text-xs bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full border border-amber-500/20 font-semibold">
-                  IGCSE
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
+                <div className="absolute left-full ml-3 px-2.5 py-1.5 bg-slate-800 border border-white/10 rounded-lg text-xs font-semibold text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl z-50">
+                  {item.label}
+                </div>
+              </button>
+            );
+          })}
+        </div>
 
-      {/* Bottom */}
-      <div className="p-4 border-t border-white/5">
-        <p className="text-xs text-slate-600 text-center">French Coach v2.0</p>
-      </div>
-    </nav>
+        <div className="flex flex-col items-center gap-2 mb-2">
+          <div className="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
+            <Flame size={16} className="text-orange-400" />
+          </div>
+          <span className="text-[10px] font-bold text-orange-400">{state.profile.streak_days}</span>
+        </div>
+      </nav>
+
+      {/* Mobile Bottom Dock */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
+        <div className="mx-3 mb-3 px-2 py-2 bg-slate-900/90 backdrop-blur-2xl border border-white/[0.06] rounded-2xl shadow-[0_-8px_32px_rgba(0,0,0,0.4)]">
+          <div className="flex items-center justify-around">
+            {NAV_ITEMS.slice(0, 5).map(item => {
+              const active = state.screen === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => dispatch({ type: 'SET_SCREEN', screen: item.id })}
+                  className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl transition-all duration-200 ${
+                    active ? 'text-blue-400' : 'text-slate-500'
+                  }`}
+                >
+                  <div className={`transition-transform duration-200 ${active ? 'scale-110' : ''}`}>
+                    {item.icon}
+                  </div>
+                  <span className="text-[10px] font-semibold">{item.label}</span>
+                  {active && (
+                    <div className="w-1 h-1 rounded-full bg-blue-400 shadow-[0_0_6px_rgba(59,130,246,0.8)]" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </nav>
+    </>
   );
 }
