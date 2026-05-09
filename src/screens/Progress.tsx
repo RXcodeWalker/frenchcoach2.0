@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { TrendingUp, Zap, Trophy, Calendar, Target } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { ProgressRing } from '../components/ProgressRing';
@@ -218,11 +218,14 @@ export function Progress() {
                         </div>
                         <div className="h-1.5 bg-navy-300 rounded-full overflow-hidden">
                           <motion.div
-                            className="h-full rounded-full shimmer-bar"
-                            style={{ background: skill.mastery >= 70 ? '#10B981' : skill.mastery >= 50 ? '#F59E0B' : '#EF4444' }}
+                            className="h-full rounded-full liquid-wave"
+                            style={{
+                              background: skill.mastery >= 70 ? 'linear-gradient(90deg, rgba(16, 185, 129, 0.3) 0%, rgba(16, 185, 129, 0.6) 50%, rgba(16, 185, 129, 0.3) 100%)' : skill.mastery >= 50 ? 'linear-gradient(90deg, rgba(245, 158, 11, 0.3) 0%, rgba(245, 158, 11, 0.6) 50%, rgba(245, 158, 11, 0.3) 100%)' : 'linear-gradient(90deg, rgba(239, 68, 68, 0.3) 0%, rgba(239, 68, 68, 0.6) 50%, rgba(239, 68, 68, 0.3) 100%)',
+                              backgroundSize: '200% 100%',
+                            }}
                             initial={{ width: 0 }}
                             animate={{ width: `${skill.mastery}%` }}
-                            transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
+                            transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] as const }}
                           />
                         </div>
                       </div>

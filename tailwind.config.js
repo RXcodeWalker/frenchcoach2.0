@@ -37,6 +37,9 @@ export default {
         'glow-pulse': 'glowPulse 2s ease-in-out infinite',
         shimmer: 'shimmer 2s linear infinite',
         'wave-pulse': 'wavePulse 1.2s ease-in-out infinite',
+        'liquid-wave': 'liquidWave 2s ease-in-out infinite',
+        'aurora-shift': 'auroraShift 12s ease-in-out infinite',
+        'icon-glow': 'iconGlow 2s ease-in-out infinite',
       },
       keyframes: {
         blob: {
@@ -66,6 +69,19 @@ export default {
         wavePulse: {
           '0%, 100%': { transform: 'scaleY(0.3)' },
           '50%': { transform: 'scaleY(1)' },
+        },
+        liquidWave: {
+          '0%, 100%': { backgroundPosition: '0% 0' },
+          '50%': { backgroundPosition: '100% 0' },
+        },
+        auroraShift: {
+          '0%': { backgroundPosition: '0% 0%' },
+          '50%': { backgroundPosition: '100% 100%' },
+          '100%': { backgroundPosition: '0% 0%' },
+        },
+        iconGlow: {
+          '0%, 100%': { filter: 'drop-shadow(0 0 4px currentColor) drop-shadow(0 0 8px currentColor)' },
+          '50%': { filter: 'drop-shadow(0 0 8px currentColor) drop-shadow(0 0 16px currentColor)' },
         },
       },
       backdropBlur: {

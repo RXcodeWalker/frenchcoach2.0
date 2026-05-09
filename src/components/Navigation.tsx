@@ -3,13 +3,13 @@ import { useApp } from '../context/AppContext';
 import type { Screen } from '../types';
 import { Home, BookOpen, GraduationCap, BarChart3, User, Compass, Flame } from 'lucide-react';
 
-const NAV_ITEMS: { id: Screen; label: string; icon: React.ReactNode }[] = [
-  { id: 'home', label: 'Home', icon: <Home size={18} /> },
-  { id: 'learn', label: 'Learn', icon: <BookOpen size={18} /> },
-  { id: 'exam', label: 'Exam', icon: <GraduationCap size={18} /> },
-  { id: 'explore', label: 'Explore', icon: <Compass size={18} /> },
-  { id: 'progress', label: 'Progress', icon: <BarChart3 size={18} /> },
-  { id: 'profile', label: 'Profile', icon: <User size={18} /> },
+const NAV_ITEMS: { id: Screen; label: string; icon: React.ReactNode; glowColor: string }[] = [
+  { id: 'home', label: 'Home', icon: <Home size={18} />, glowColor: '#7C3AED' },
+  { id: 'learn', label: 'Learn', icon: <BookOpen size={18} />, glowColor: '#0EA5E9' },
+  { id: 'exam', label: 'Exam', icon: <GraduationCap size={18} />, glowColor: '#F59E0B' },
+  { id: 'explore', label: 'Explore', icon: <Compass size={18} />, glowColor: '#06B6D4' },
+  { id: 'progress', label: 'Progress', icon: <BarChart3 size={18} />, glowColor: '#10B981' },
+  { id: 'profile', label: 'Profile', icon: <User size={18} />, glowColor: '#EC4899' },
 ];
 
 export function SideRail() {
@@ -21,7 +21,7 @@ export function SideRail() {
       <nav className="fixed left-0 top-0 bottom-0 w-[64px] glass border-r border-white/[0.04] z-50 hidden md:flex flex-col items-center py-5 gap-1">
         {/* Logo */}
         <motion.div
-          className="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-electric to-indigo-500 flex items-center justify-center mb-8"
+          className="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-electric to-indigo-500 flex items-center justify-center mb-8 animate-icon-glow"
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
           style={{ boxShadow: '0 0 20px rgba(124, 58, 237, 0.35)' }}
@@ -63,7 +63,15 @@ export function SideRail() {
                     transition={{ type: 'spring', stiffness: 350, damping: 30 }}
                   />
                 )}
-                <span className="relative z-10">{item.icon}</span>
+                <span
+                  className="relative z-10"
+                  style={{
+                    color: active ? item.glowColor : undefined,
+                    filter: active ? `drop-shadow(0 0 6px ${item.glowColor})` : undefined,
+                  }}
+                >
+                  {item.icon}
+                </span>
                 {/* Tooltip */}
                 <div className="absolute left-full ml-2.5 px-2 py-1 bg-navy-200 border border-white/10 rounded-md text-[10px] font-semibold text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl z-50">
                   {item.label}
@@ -107,7 +115,15 @@ export function SideRail() {
                       transition={{ type: 'spring', stiffness: 350, damping: 30 }}
                     />
                   )}
-                  <div className="relative z-10">{item.icon}</div>
+                  <div
+                    className="relative z-10"
+                    style={{
+                      color: active ? item.glowColor : undefined,
+                      filter: active ? `drop-shadow(0 0 4px ${item.glowColor})` : undefined,
+                    }}
+                  >
+                    {item.icon}
+                  </div>
                   <span className="text-[9px] font-semibold relative z-10">{item.label}</span>
                   {active && (
                     <motion.div

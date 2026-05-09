@@ -89,7 +89,27 @@ export function Learn() {
   };
 
   const triggerConfetti = () => {
-    confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 }, colors: ['#7C3AED', '#818CF8', '#10B981', '#F59E0B'] });
+    // Neon sparkles confetti
+    confetti({
+      particleCount: 120,
+      spread: 80,
+      origin: { y: 0.6 },
+      colors: ['#06B6D4', '#0EA5E9', '#6366F1', '#A855F7', '#EC4899', '#F59E0B'],
+      ticks: 500,
+      gravity: 0.8,
+      shapes: ['circle', 'square'],
+    });
+    // Secondary burst with more sparkle
+    setTimeout(() => {
+      confetti({
+        particleCount: 60,
+        spread: 120,
+        origin: { y: 0.5, x: 0.5 },
+        colors: ['#06B6D4', '#06FFF0', '#7C3AED'],
+        ticks: 400,
+        gravity: 1.2,
+      });
+    }, 150);
   };
 
   const formatTime = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
@@ -114,12 +134,13 @@ export function Learn() {
               <motion.button
                 key={topic.key}
                 onClick={() => selectTopic(topic)}
-                className="group relative overflow-hidden rounded-xl glass p-5 text-left hover:border-white/10 transition-all duration-300"
+                className="group relative overflow-hidden rounded-xl glass p-5 text-left hover:border-white/10 transition-all duration-300 perspective"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.05, duration: 0.4 }}
-                whileHover={{ scale: 1.03, y: -3 }}
+                whileHover={{ scale: 1.03, y: -3, rotateX: 5, rotateY: -5 }}
                 whileTap={{ scale: 0.97 }}
+                style={{ transformStyle: 'preserve-3d' }}
               >
                 <div
                   className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
@@ -331,24 +352,35 @@ export function Learn() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
           >
-            {/* Live CSS-animated waveform */}
-            <div className="flex items-end justify-center gap-[2px] h-16 mb-5">
-              {waveData.map((h, i) => (
-                <motion.div
-                  key={i}
-                  className="w-[3px] rounded-full"
-                  animate={{
-                    height: isRecording ? `${h}px` : '4px',
-                    backgroundColor: isRecording
-                      ? `hsl(${260 + (i / WAVE_BARS) * 40}, 80%, ${55 + (h / 48) * 20}%)`
-                      : 'rgba(255,255,255,0.04)',
-                  }}
-                  transition={isRecording ? { duration: 0.08 } : { duration: 0.3 }}
-                  style={{
-                    boxShadow: isRecording ? `0 0 4px hsl(${260 + (i / WAVE_BARS) * 40}, 80%, 60%)` : 'none',
-                  }}
-                />
-              ))}
+            {/* Reactive Glowing Waveform (Cyan to Purple) */}
+            <div className="flex items-end justify-center gap-[2px] h-20 mb-5 px-2">
+              {waveData.map((h, i) => {
+                const hueStart = 180; // Cyan
+                const hueEnd = 280; // Purple
+                const hueProgress = i / WAVE_BARS;
+                const currentHue = hueStart + (hueEnd - hueStart) * hueProgress;
+                const saturation = isRecording ? 85 : 0;
+                const lightness = isRecording ? 50 + (h / 48) * 15 : 8;
+
+                return (
+                  <motion.div
+                    key={i}
+                    className="flex-1 rounded-full origin-bottom"
+                    animate={{
+                      height: isRecording ? `${Math.max(h, 4)}px` : '3px',
+                      backgroundColor: isRecording
+                        ? `hsl(${currentHue}, ${saturation}%, ${lightness}%)`
+                        : 'rgba(255,255,255,0.03)',
+                    }}
+                    transition={isRecording ? { duration: 0.06 } : { duration: 0.35, type: 'spring', stiffness: 100, damping: 20 }}
+                    style={{
+                      boxShadow: isRecording
+                        ? `0 0 8px hsl(${currentHue}, 90%, 55%), 0 0 16px hsl(${currentHue}, 80%, 45%), inset 0 0 4px hsl(${currentHue}, 100%, 60%)`
+                        : 'none',
+                    }}
+                  />
+                );
+              })}
             </div>
 
             <AnimatePresence>
