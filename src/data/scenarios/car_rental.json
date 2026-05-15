@@ -1,0 +1,395 @@
+{
+  "start": {
+    "prompt": [
+      "Bonjour ! Bienvenue chez Auto-Rent. Vous avez une réservation ?",
+      "Bonjour, comment puis-je vous aider aujourd'hui ? Location ou retour ?",
+      "Bienvenue ! Souhaitez-vous louer un véhicule ou nous signaler un incident ?"
+    ],
+    "intents": {
+      "reservation": "ask_res_number",
+      "no_res": "ask_car_type",
+      "return": "return_vehicle_start",
+      "incident": "report_incident_start",
+      "cancel": "cancel_reservation_flow",
+      "toll": "toll_tag_info",
+      "invoice": "business_invoice_request",
+      "cleaning": "cleaning_policy_info",
+      "assistance_info": "roadside_assistance_details",
+      "toilets": "toilets_location_start",
+      "wifi": "wifi_access_start",
+      "hours": "agency_hours_start",
+      "contactless": "contactless_payment_start",
+      "gas_station": "gas_station_location_start"
+    }
+  },
+
+  "toilets_location_start": {
+    "prompt": [
+      "Les toilettes pour les clients sont situées au fond du couloir, juste après le bureau de la direction.",
+      "Bien sûr, c'est la porte bleue sur votre gauche, près de la fontaine à eau."
+    ],
+    "next": "end_session"
+  },
+
+  "wifi_access_start": {
+    "prompt": [
+      "Vous pouvez utiliser notre Wi-Fi gratuit 'AutoRent-Guest'. Le mot de passe est affiché sur le petit panneau à l'entrée.",
+      "Le mot de passe du Wi-Fi est 'evasion2024'. Cela peut vous aider pour charger votre itinéraire sur votre GPS."
+    ],
+    "next": "end_session"
+  },
+
+  "agency_hours_start": {
+    "prompt": [
+      "L'agence est ouverte du lundi au samedi de 8h à 19h. Nous sommes fermés le dimanche.",
+      "Pour les retours en dehors des horaires d'ouverture, vous pouvez laisser les clés dans la boîte sécurisée à l'entrée."
+    ],
+    "next": "end_session"
+  },
+
+  "contactless_payment_start": {
+    "prompt": [
+      "Nous acceptons le paiement sans contact pour les petits montants, mais pour la caution, il faudra insérer la carte et taper votre code.",
+      "Oui, vous pouvez payer les options supplémentaires (siège bébé, GPS) par sans contact ou Apple Pay."
+    ],
+    "next": "end_session"
+  },
+
+  "gas_station_location_start": {
+    "prompt": [
+      "La station-service la plus proche est une TotalEnergies, située à 500 mètres en sortant du parking sur votre droite.",
+      "Il y a une station service de supermarché un peu moins chère à environ 2 kilomètres d'ici, au rond-point suivant."
+    ],
+    "next": "end_session"
+  },
+
+  "toll_tag_info": {
+    "prompt": [
+      "Tous nos véhicules sont équipés d'un badge de télépéage. Les frais de péage seront facturés directement sur votre carte après la location.",
+      "C'est très pratique, vous n'avez pas besoin de vous arrêter aux barrières de péage. Souhaitez-vous activer cette option pour 5€ par jour ?"
+    ],
+    "intents": {
+      "yes": "ask_car_type",
+      "no": "ask_car_type"
+    }
+  },
+  "business_invoice_request": {
+    "prompt": [
+      "Bien sûr. J'aurai besoin du nom de votre entreprise, de son adresse et de son numéro de TVA intracommunautaire.",
+      "Voulez-vous que la facture soit envoyée directement à votre service comptabilité par e-mail ?"
+    ],
+    "capture": "business_info",
+    "next": "end_session"
+  },
+  "cleaning_policy_info": {
+    "prompt": [
+      "Le véhicule doit être rendu dans un état de propreté normal. Si l'intérieur est excessivement sale, un forfait nettoyage de 50€ sera appliqué.",
+      "Il n'est pas nécessaire de laver l'extérieur, sauf s'il est très boueux. Est-ce que cela répond à votre question ?"
+    ],
+    "next": "end_session"
+  },
+  "roadside_assistance_details": {
+    "prompt": [
+      "Notre assistance 24/7 couvre les pannes mécaniques et les accidents. En cas de crevaison ou de perte de clés, des frais peuvent s'appliquer si vous n'avez pas pris l'option Sérénité.",
+      "Le numéro d'assistance est collé sur le pare-brise et inscrit sur votre contrat de location."
+    ],
+    "next": "end_session"
+  },
+  "cancel_reservation_flow": {
+    "prompt": [
+      "Je comprends. Puis-je avoir votre numéro de réservation pour procéder à l'annulation ?",
+      "Souhaitez-vous annuler votre réservation ? Attention, des frais peuvent s'appliquer selon le délai."
+    ],
+    "capture": "cancel_info",
+    "next": "end_session"
+  },
+  "ask_res_number": {
+    "prompt": ["Pouvez-vous me donner votre numéro de réservation ou votre nom, s'il vous plaît ?"],
+    "capture": "res_info",
+    "next": "verify_docs"
+  },
+  "ask_car_type": {
+    "prompt": [
+      "Nous avons des citadines, des berlines, des SUV ou même des véhicules électriques. Qu'est-ce qui vous conviendrait le mieux ?",
+      "Quel type de véhicule recherchez-vous ? Compact, familial ou électrique ?"
+    ],
+    "capture": "car_category",
+    "intents": {
+      "van": "special_request_van"
+    },
+    "next": "ask_duration"
+  },
+  "special_request_van": {
+    "prompt": [
+      "Vous avez besoin d'un utilitaire ? Nous avons plusieurs tailles disponibles, du 3m3 au 20m3. Quel volume cherchez-vous ?",
+      "Pour un déménagement, je vous recommande nos fourgons. En voulez-vous un avec hayon ?"
+    ],
+    "capture": "van_details",
+    "next": "ask_duration"
+  },
+  "ask_duration": {
+    "prompt": ["Pour combien de jours en avez-vous besoin ? Et où comptez-vous rendre le véhicule ?"],
+    "capture": "rental_details",
+    "intents": {
+      "different_city": "drop_off_elsewhere"
+    },
+    "next": "ask_extras"
+  },
+  "drop_off_elsewhere": {
+    "prompt": [
+      "Vous souhaitez rendre la voiture dans une autre ville ? C'est possible, mais des frais d'abandon de 150€ s'appliquent. Quelle est la ville de retour ?",
+      "L'option 'aller simple' est disponible. Dans quelle agence comptez-vous laisser le véhicule ?"
+    ],
+    "capture": "return_city",
+    "next": "ask_extras"
+  },
+  "ask_extras": {
+    "prompt": [
+      "Souhaitez-vous ajouter des options comme un GPS, un siège bébé ou un porte-vélo ?",
+      "Avez-vous besoin d'équipements supplémentaires ? Siège enfant, GPS ou conducteur additionnel ?"
+    ],
+    "intents": {
+      "snow": "snow_chains_request",
+      "prepay_fuel": "prepay_fuel_info",
+      "roof_rack": "roof_rack_request"
+    },
+    "next": "check_electric"
+  },
+  "roof_rack_request": {
+    "prompt": [
+      "Nous pouvons installer des barres de toit ou un coffre de toit pour 15€ par jour. Quel type de matériel allez-vous transporter ?",
+      "C'est possible sur certains modèles de SUV. Voulez-vous que je vérifie la disponibilité pour vos dates ?"
+    ],
+    "capture": "roof_rack_details",
+    "next": "check_electric"
+  },
+  "prepay_fuel_info": {
+    "prompt": [
+      "Nous proposons l'option 'Plein payé d'avance'. Vous payez le réservoir maintenant au prix du marché et vous pouvez rendre la voiture vide sans frais supplémentaires.",
+      "Voulez-vous acheter le plein dès maintenant pour ne pas avoir à chercher une station-service avant de rendre la voiture ?"
+    ],
+    "intents": {
+      "yes": "check_electric",
+      "no": "check_electric"
+    }
+  },
+  "snow_chains_request": {
+    "prompt": [
+      "Vous comptez aller en montagne ? Nous proposons des chaînes ou des chaussettes à neige. C'est 20€ pour la location.",
+      "Voulez-vous aussi des pneus neige ou seulement les chaînes ?"
+    ],
+    "capture": "snow_gear_pref",
+    "next": "check_electric"
+  },
+  "check_electric": {
+    "prompt": ["Si vous choisissez un véhicule électrique, préférez-vous avoir les cartes de recharge incluses ou gérez-vous cela vous-même ?"],
+    "capture": "ev_preference",
+    "next": "verify_docs"
+  },
+  "verify_docs": {
+    "prompt": ["J'ai besoin de votre permis de conduire et d'une pièce d'identité pour établir le contrat."],
+    "intents": {
+      "foreign": "foreign_license_check",
+      "abroad": "cross_border_travel_info",
+      "age": "young_driver_fee_check"
+    },
+    "next": "ask_insurance"
+  },
+  "young_driver_fee_check": {
+    "prompt": [
+      "Avez-vous moins de 25 ans ? Si oui, une surcharge 'Jeune Conducteur' de 30€ par jour s'applique pour des raisons d'assurance.",
+      "Depuis combien de temps avez-vous votre permis ? Il faut au moins 2 ans de permis pour certaines catégories."
+    ],
+    "next": "ask_insurance"
+  },
+  "cross_border_travel_info": {
+    "prompt": [
+      "Comptez-vous sortir du territoire français avec le véhicule ? Nous devons le signaler pour que l'assurance soit valide dans les pays limitrophes.",
+      "Quels pays comptez-vous traverser ? Certains pays hors Union Européenne nécessitent une extension de garantie."
+    ],
+    "capture": "countries_to_visit",
+    "next": "ask_insurance"
+  },
+  "foreign_license_check": {
+    "prompt": [
+      "Votre permis est hors Union Européenne. Avez-vous une traduction officielle ou un permis international ?",
+      "Pour les permis étrangers, nous avons besoin d'une preuve de résidence ou du tampon d'entrée sur le territoire."
+    ],
+    "capture": "foreign_docs_info",
+    "next": "ask_insurance"
+  },
+  "ask_insurance": {
+    "prompt": ["Souhaitez-vous souscrire à l'assurance tous risques pour supprimer la franchise en cas d'accident ? C'est 15€ par jour."],
+    "intents": {
+      "yes": "set_full_insurance",
+      "no": "set_basic_insurance",
+      "own": "own_insurance_validation"
+    }
+  },
+  "own_insurance_validation": {
+    "prompt": [
+      "Vous utilisez l'assurance de votre carte bancaire ? Très bien, notez que la franchise sera débitée en cas de sinistre puis vous devrez vous faire rembourser par votre banque.",
+      "D'accord, mais nous bloquerons une caution plus élevée sur votre carte. Est-ce que cela vous convient ?"
+    ],
+    "intents": {
+      "yes": "set_basic_insurance",
+      "no": "ask_insurance"
+    }
+  },
+  "set_full_insurance": {
+    "prompt": ["C'est plus prudent. Vous êtes couvert pour tout, y compris le bris de glace."],
+    "memory": { "insurance": "Tous risques" },
+    "next": "show_total"
+  },
+  "set_basic_insurance": {
+    "prompt": ["D'accord, on reste sur l'assurance de base avec franchise."],
+    "memory": { "insurance": "Standard" },
+    "next": "show_total"
+  },
+  "show_total": {
+    "prompt": ["Alors, avec la location, les options et l'assurance, ça fera un total de {price} euros. Une caution de 800€ sera bloquée sur votre carte."],
+    "next": "ask_payment"
+  },
+  "ask_payment": {
+    "prompt": ["On procède au paiement par carte bancaire ?"],
+    "intents": {
+      "yes": "provide_keys",
+      "no": "end_session_fail",
+      "upgrade": "luxury_car_upgrade"
+    }
+  },
+  "luxury_car_upgrade": {
+    "prompt": [
+      "Pour seulement 20€ de plus par jour, vous pouvez avoir une Tesla Model 3 ou une BMW Série 5. Ça vous tente ?",
+      "Souhaitez-vous passer à la catégorie supérieure pour plus de confort ?"
+    ],
+    "intents": {
+      "yes": "show_total",
+      "no": "ask_payment"
+    }
+  },
+  "provide_keys": {
+    "prompt": [
+      "Voici les clés. La voiture est sur le parking, place 104. Elle a le plein, merci de la rendre avec le plein également.",
+      "Si c'est un véhicule électrique, n'oubliez pas de le rapporter avec au moins 80% de batterie. Bonne route !"
+    ],
+    "intents": {
+      "missing_item": "check_vehicle_inventory",
+      "question": "car_features_explanation"
+    },
+    "next": "end_session"
+  },
+  "car_features_explanation": {
+    "prompt": [
+      "C'est une hybride. Pour démarrer, appuyez sur le frein et sur le bouton 'Start'. Le moteur thermique ne se lancera que si nécessaire.",
+      "Le frein à main est automatique. Vous avez aussi Apple CarPlay et Android Auto disponibles via le port USB central."
+    ],
+    "next": "end_session"
+  },
+  "check_vehicle_inventory": {
+    "prompt": [
+      "Il manque le gilet jaune ou le triangle ? Je vais vérifier cela tout de suite.",
+      "Le plein n'est pas tout à fait complet ? Je vais noter cela sur le contrat avant que vous ne partiez."
+    ],
+    "next": "end_session"
+  },
+  "return_vehicle_start": {
+    "prompt": [
+      "Très bien. Vous nous rapportez quel véhicule ? Pouvons-nous procéder à l'état des lieux ?",
+      "Bonjour, j'espère que votre trajet s'est bien passé. On vérifie le véhicule ensemble ?"
+    ],
+    "next": "check_fuel_ev"
+  },
+  "check_fuel_ev": {
+    "prompt": [
+      "Le plein de carburant a-t-i été fait ? Ou pour l'électrique, le niveau de charge est-il suffisant ?",
+      "Qu'en est-il du niveau de carburant ou de la batterie ?"
+    ],
+    "capture": "return_fuel_status",
+    "next": "check_damage"
+  },
+  "check_damage": {
+    "prompt": [
+      "Y a-t-il eu des chocs ou des rayures à signaler pendant la location ?",
+      "Avez-vous remarqué de nouveaux dommages sur la carrosserie ?"
+    ],
+    "intents": {
+      "yes": "damage_report",
+      "no": "return_final",
+      "dirty": "dirty_interior_charge"
+    }
+  },
+  "dirty_interior_charge": {
+    "prompt": [
+      "L'intérieur nécessite un nettoyage professionnel (poils d'animaux, taches). Des frais de 50€ seront appliqués.",
+      "Le véhicule est très sale à l'intérieur. Nous devons appliquer un forfait nettoyage."
+    ],
+    "next": "return_final"
+  },
+  "damage_report": {
+    "prompt": ["Je vais noter cela. Nous devrons consulter le barème des dommages pour la franchise. Un technicien va passer."],
+    "capture": "damage_details",
+    "next": "return_final"
+  },
+  "return_final": {
+    "prompt": ["C'est noté. Je libère la caution dès maintenant. Vous recevrez la facture par e-mail. Merci et à bientôt !"],
+    "intents": {
+      "forgotten": "forgotten_object_report"
+    },
+    "next": "end_session"
+  },
+  "forgotten_object_report": {
+    "prompt": [
+      "Vous avez oublié quelque chose ? Un téléphone, des lunettes ? Allons voir si c'est encore dans la voiture.",
+      "Je vais vérifier avec l'équipe de nettoyage si un objet a été trouvé dans le véhicule."
+    ],
+    "capture": "object_details",
+    "next": "end_session"
+  },
+  "report_incident_start": {
+    "prompt": ["Oh, je suis désolé d'entendre ça. Est-ce un accident ou une panne mécanique ?"],
+    "intents": {
+      "accident": "accident_steps",
+      "breakdown": "breakdown_steps",
+      "lost_keys": "lost_keys_procedure"
+    }
+  },
+  "lost_keys_procedure": {
+    "prompt": [
+      "Avez-vous égaré les clés ou ont-elles été volées ? Dans tous les cas, nous devons faire appel à un serrurier agréé et les frais de remplacement sont à votre charge.",
+      "Ne paniquez pas. Nous allons envoyer un double des clés par coursier, but cela prendra quelques heures. Où vous situez-vous ?"
+    ],
+    "capture": "location_info",
+    "next": "assistance_call"
+  },
+  "accident_steps": {
+    "prompt": [
+      "L'essentiel est que vous soyez en sécurité. Avez-vous rempli le constat amiable ?",
+      "Avez-vous pu identifier le tiers impliqué ? Nous avons besoin du constat pour l'assurance."
+    ],
+    "capture": "accident_info",
+    "next": "assistance_call"
+  },
+  "breakdown_steps": {
+    "prompt": [
+      "Quel semble être le problème ? Un voyant s'est allumé ou le moteur s'est arrêté ?",
+      "Pouvez-vous me décrire les symptômes de la panne ?"
+    ],
+    "capture": "breakdown_info",
+    "next": "assistance_call"
+  },
+  "assistance_call": {
+    "prompt": ["Je vous mets en relation immédiatement avec notre service d'assistance 24/7. Ils vont vous envoyer une dépanneuse."],
+    "next": "end_session"
+  },
+  "end_session": {
+    "prompt": [
+      "Bonne route et soyez prudent !",
+      "Merci de votre confiance. À bientôt !",
+      "Bonne journée, à la prochaine."
+    ]
+  },
+  "end_session_fail": {
+    "prompt": ["Sans paiement ou caution, nous ne pouvons pas vous louer de véhicule. Désolé. Au revoir."]
+  }
+}

@@ -1,0 +1,114 @@
+{
+  "start": {
+    "prompt": [
+      "Bonjour ! C'est pour offrir ou pour vous ?",
+      "Bienvenue ! Vous cherchez un bouquet déjà prêt ou vous voulez en composer un ?",
+      "Bonjour. Quelle est l'occasion ? Un anniversaire, un mariage ou juste pour le plaisir ?",
+      "Bonjour ! Nos roses arrivent tout juste du marché ce matin."
+    ],
+    "intents": {
+      "bouquet": "bouquet_start",
+      "plant": "plant_start",
+      "occasion": "occasion_start",
+      "roses": "roses_selection_start",
+      "dried": "dried_flowers_start",
+      "care": "plant_care_inquiry_start",
+      "delivery": "delivery_request_start",
+      "subscription": "flower_subscription_start",
+      "event": "event_decoration_start",
+      "card": "message_card_start"
+    }
+  },
+
+  "roses_selection_start": {
+    "prompt": [
+      "On a de magnifiques roses rouges à longue tige, ou des roses branchues plus champêtres. Combien en voulez-vous ?",
+      "Pour un message passionné, je vous conseille les rouges. Pour l'amitié, les jaunes sont parfaites. Quelle couleur préférez-vous ?"
+    ],
+    "next": "ask_budget"
+  },
+
+  "dried_flowers_start": {
+    "prompt": [
+      "Les fleurs séchées sont très à la mode ! Elles durent des années. On a des cloches en verre ou des bouquets liés avec du raphia.",
+      "Voulez-vous une couronne de fleurs séchées pour accrocher à une porte ?"
+    ],
+    "next": "ask_budget"
+  },
+
+  "plant_care_inquiry_start": {
+    "prompt": [
+      "C'est une plante d'intérieur. Elle a besoin de beaucoup de lumière mais pas de soleil direct. Il faut l'arroser une fois par semaine.",
+      "Attention à ne pas laisser d'eau stagner dans la coupelle, ça fait pourrir les racines."
+    ],
+    "next": "end_session"
+  },
+
+  "delivery_request_start": {
+    "prompt": [
+      "On livre dans tout l'arrondissement. C'est pour quel jour et quel créneau horaire ?",
+      "Il me faudra l'adresse exacte et un numéro de téléphone pour le destinataire. Les frais de livraison sont de 8 euros."
+    ],
+    "capture": "delivery_details",
+    "next": "message_card_start"
+  },
+
+  "flower_subscription_start": {
+    "prompt": [
+      "On propose un abonnement floral : un bouquet de saison livré chez vous chaque lundi. Ça vous intéresse ?",
+      "Vous pouvez choisir la taille du bouquet et la fréquence. C'est sans engagement."
+    ],
+    "next": "end_session"
+  },
+
+  "event_decoration_start": {
+    "prompt": [
+      "Pour un grand événement ? Je peux vous faire un devis personnalisé. On peut s'occuper des centres de table et de la décoration de la salle.",
+      "Avez-vous déjà choisi un thème de couleurs ?"
+    ],
+    "next": "ask_colors"
+  },
+
+  "message_card_start": {
+    "prompt": [
+      "Voulez-vous écrire un petit mot sur une carte ? Je peux la glisser dans le bouquet.",
+      "On a des cartes d'anniversaire ou des cartes blanches plus sobres. Que voulez-vous noter ?"
+    ],
+    "capture": "card_message",
+    "next": "go_to_cashier"
+  },
+
+  "bouquet_start": {
+    "prompt": ["Plutôt des tons pastel ou des couleurs vives ?"],
+    "next": "ask_colors"
+  },
+
+  "plant_start": {
+    "prompt": ["Une plante verte ou une plante fleurie comme une orchidée ?"],
+    "next": "ask_budget"
+  },
+
+  "occasion_start": {
+    "prompt": ["Dites-moi tout, on va trouver la composition parfaite."],
+    "next": "ask_colors"
+  },
+
+  "ask_colors": {
+    "prompt": ["Quelles couleurs préférez-vous ?"],
+    "next": "ask_budget"
+  },
+
+  "ask_budget": {
+    "prompt": ["Quel budget avez-vous prévu ?"],
+    "next": "go_to_cashier"
+  },
+
+  "go_to_cashier": {
+    "prompt": ["Voilà, c'est prêt ! Ça fera 35 euros."],
+    "next": "end_session"
+  },
+
+  "end_session": {
+    "prompt": ["Passez une excellente journée !", "Au revoir !"]
+  }
+}

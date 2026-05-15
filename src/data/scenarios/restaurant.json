@@ -1,0 +1,283 @@
+{
+  "start": {
+    "prompt": [
+      "Bonjour ! Bienvenue au restaurant 'Le Gourmet'. Vous avez une réservation ?",
+      "Bonsoir ! Soyez les bienvenus. Est-ce que vous avez réservé une table ?",
+      "Bienvenue ! Comment puis-je vous aider ? Table, commande à emporter ou réservation ?"
+    ],
+    "intents": {
+      "yes": "ask_name",
+      "no": "check_availability",
+      "birthday": "birthday_surprise_start",
+      "kids": "kids_needs_start",
+      "hurry": "fast_service_start",
+      "complaint": "cleanliness_complaint_start",
+      "water": "tap_water_request_start",
+      "charger": "phone_charger_request_start",
+      "lost": "lost_item_restaurant_start",
+      "future": "booking_future_start",
+      "bill_error": "bill_error_complaint_start",
+      "doggy_bag": "leftovers_doggy_bag_start",
+      "condiments": "extra_condiments_request_start",
+      "toothpick": "toothpick_request_start",
+      "chef_feedback": "feedback_for_chef_start",
+      "salt_pepper": "salt_pepper_request_start",
+      "wifi": "wifi_code_request_start",
+      "restroom": "restroom_location_start",
+      "recommendation": "dish_recommendation_start",
+      "daily_special": "daily_special_inquiry_start",
+      "specific_table": "specific_table_request_start"
+    }
+  },
+
+  "wifi_code_request_start": {
+    "prompt": [
+      "Bien sûr, le Wi-Fi est gratuit. Le code est 'GOURMET2026'. C'est en majuscules.",
+      "Le code est affiché sur la première page de la carte des vins. Voulez-vous que je vous l'apporte ?"
+    ],
+    "next": "menu_intro"
+  },
+
+  "restroom_location_start": {
+    "prompt": [
+      "Les toilettes sont au fond de la salle, juste à gauche de la cuisine.",
+      "C'est à l'étage, l'escalier est juste derrière vous."
+    ],
+    "next": "menu_intro"
+  },
+
+  "dish_recommendation_start": {
+    "prompt": [
+      "Si vous aimez la viande, je vous conseille vivement notre entrecôte. Elle est excellente aujourd'hui !",
+      "Notre plat signature est le bar grillé au fenouil. C'est très léger et parfumé. Ça vous tente ?"
+    ],
+    "capture": "recommendation_pref",
+    "next": "menu_intro"
+  },
+
+  "daily_special_inquiry_start": {
+    "prompt": [
+      "Aujourd'hui, le plat du jour est une blanquette de veau traditionnelle servie avec du riz pilaf.",
+      "La suggestion du chef est un risotto aux Saint-Jacques et pointes d'asperges fraîches."
+    ],
+    "next": "menu_intro"
+  },
+
+  "specific_table_request_start": {
+    "prompt": [
+      "La table numéro 5 dans le coin ? Laissez-moi vérifier... Oui, elle est libre ! Suivez-moi.",
+      "Désolé, cette table est déjà réservée pour 20h. Je peux vous proposer celle juste à côté ?"
+    ],
+    "next": "menu_intro"
+  },
+
+  "leftovers_doggy_bag_start": {
+    "prompt": [
+      "Bien sûr ! Pas de gaspillage — je vous emballe ça proprement.",
+      "Pas de problème, je vous prépare une belle boîte."
+    ],
+    "next": "end_session"
+  },
+
+  "extra_condiments_request_start": {
+    "prompt": [
+      "Bien sûr ! Vous préférez de la moutarde ou du ketchup ?",
+      "Je vous apporte ça tout de suite. Moutarde, ketchup ou les deux ?"
+    ],
+    "next": "meal_wait"
+  },
+
+  "toothpick_request_start": {
+    "prompt": [
+      "Bien sûr, voilà !",
+      "Tenez, je vous en donne plusieurs au cas où !"
+    ],
+    "next": "end_session"
+  },
+
+  "feedback_for_chef_start": {
+    "prompt": [
+      "C'est très gentil de votre part ! Je transmettrai vos compliments au chef.",
+      "Il sera vraiment ravi de l'entendre. Merci beaucoup pour ce retour !"
+    ],
+    "next": "end_session"
+  },
+
+  "salt_pepper_request_start": {
+    "prompt": [
+      "Voilà le sel et le poivre !",
+      "Bien sûr, je vous les apporte immédiatement."
+    ],
+    "next": "meal_wait"
+  },
+
+  "tap_water_request_start": {
+    "prompt": [
+      "Bien sûr, une carafe d'eau fraîche tout de suite !",
+      "Avec plaisir ! Une belle carafe pour accompagner votre repas."
+    ],
+    "next": "menu_intro"
+  },
+
+  "phone_charger_request_start": {
+    "prompt": [
+      "Pour un chargeur, adressez-vous au bar juste là-bas — ils en ont plusieurs.",
+      "Il y a des prises disponibles au bar, à votre droite. Ils pourront vous aider !"
+    ],
+    "next": "menu_intro"
+  },
+
+  "lost_item_restaurant_start": {
+    "prompt": [
+      "Oh non ! Qu'est-ce que vous avez perdu exactement ?",
+      "Je suis désolé ! De quoi s'agit-il ? Je vais vérifier tout de suite."
+    ],
+    "next": "end_session"
+  },
+
+  "booking_future_start": {
+    "prompt": [
+      "Bien sûr ! Pour quelle date et à quelle heure souhaitez-vous réserver ?",
+      "Je vérifie nos disponibilités. C'est pour quel jour ?"
+    ],
+    "next": "end_session"
+  },
+
+  "bill_error_complaint_start": {
+    "prompt": [
+      "Je suis vraiment désolé pour cette erreur ! Laissez-moi vérifier et corriger votre addition.",
+      "Mille excuses ! Je reprends votre addition immédiatement."
+    ],
+    "next": "ask_payment"
+  },
+
+  "birthday_surprise_start": {
+    "prompt": [
+      "C'est pour un anniversaire, quelle belle occasion ! Souhaitez-vous des bougies sur un dessert ?",
+      "Ah, joyeux anniversaire ! On peut préparer une petite surprise. Des bougies sur le gâteau ?"
+    ],
+    "next": "check_availability"
+  },
+
+  "kids_needs_start": {
+    "prompt": [
+      "Bien sûr ! Vous avez besoin d'une chaise haute pour les enfants ?",
+      "Pas de problème ! On va s'occuper des petits. Une chaise haute ?"
+    ],
+    "next": "check_availability"
+  },
+
+  "fast_service_start": {
+    "prompt": [
+      "Pas de problème, je vais tout accélérer ! Vous avez l'air pressé(e).",
+      "Je comprends, on va faire ça rapidement. Suivez-moi tout de suite !"
+    ],
+    "next": "check_availability"
+  },
+
+  "cleanliness_complaint_start": {
+    "prompt": [
+      "Je suis vraiment désolé pour ça ! Nous allons régler ça immédiatement.",
+      "Je vous présente mes excuses — c'est inacceptable. Un instant, s'il vous plaît."
+    ],
+    "next": "check_availability"
+  },
+
+  "ask_name": {
+    "prompt": [
+      "Très bien ! C'est à quel nom la réservation, s'il vous plaît ?",
+      "Et la réservation, c'est sous quel nom ?"
+    ],
+    "next": "confirm_reservation"
+  },
+
+  "confirm_reservation": {
+    "prompt": [
+      "Bonjour, {name|cher client} ! Votre table vous attend. Par ici, s'il vous plaît !",
+      "Parfait, j'ai bien votre réservation, {name|cher client} ! Suivez-moi, je vous accompagne à votre table."
+    ],
+    "next": "menu_intro"
+  },
+
+  "check_availability": {
+    "prompt": [
+      "Pas de problème, nous avons de la place ! Vous êtes combien de personnes ce soir ?",
+      "Je vais vérifier nos disponibilités. C'est pour combien de couverts ?"
+    ],
+    "next": "offer_table"
+  },
+
+  "offer_table": {
+    "prompt": [
+      "Je vous propose une belle table près de la fenêtre. Ça vous convient ?",
+      "J'ai une table parfaite pour vous dans un coin calme. Elle vous plaît ?"
+    ],
+    "next": "menu_intro"
+  },
+
+  "menu_intro": {
+    "prompt": [
+      "Voici notre menu ! Prenez le temps de regarder, je reviens dans un moment.",
+      "Je vous apporte la carte tout de suite. Vous avez des allergies alimentaires à me signaler ?"
+    ],
+    "next": "ask_food_ready"
+  },
+
+  "ask_food_ready": {
+    "prompt": [
+      "Avez-vous fait votre choix, ou souhaitez-vous encore un peu de temps ?",
+      "Êtes-vous prêts à commander ?",
+      "Puis-je prendre votre commande ?"
+    ],
+    "next": "order_main"
+  },
+
+  "order_main": {
+    "prompt": [
+      "Et comme plat principal, qu'est-ce que vous avez choisi ?",
+      "Qu'est-ce que vous prenez comme plat ?",
+      "Très bien ! Et pour le plat ?"
+    ],
+    "next": "confirm_order"
+  },
+
+  "confirm_order": {
+    "prompt": [
+      "Très bon choix ! Je transmets votre commande en cuisine tout de suite.",
+      "Parfait, c'est noté ! Ce sera prêt dans quelques minutes."
+    ],
+    "next": "meal_wait"
+  },
+
+  "meal_wait": {
+    "prompt": [
+      "Tout se passe bien ? Le repas est à votre goût ?",
+      "Est-ce que vous avez besoin de quelque chose d'autre ?"
+    ],
+    "next": "ask_bill"
+  },
+
+  "ask_bill": {
+    "prompt": [
+      "Vous désirez l'addition ?",
+      "Je vous apporte l'addition tout de suite !"
+    ],
+    "next": "ask_payment"
+  },
+
+  "ask_payment": {
+    "prompt": [
+      "Comment souhaitez-vous régler ? Carte bancaire ou espèces ?",
+      "Vous payez par carte ou en liquide ?"
+    ],
+    "next": "end_session"
+  },
+
+  "end_session": {
+    "prompt": [
+      "Merci et bonne soirée ! À bientôt chez Le Gourmet.",
+      "Au revoir et à très bientôt ! C'était un plaisir de vous accueillir.",
+      "Merci de votre visite. Bonne continuation !"
+    ]
+  }
+}

@@ -1,0 +1,248 @@
+{
+  "start": {
+    "prompt": [
+      "Bonjour ! Bienvenue à l'Hôtel de la Plage. Vous avez une réservation ?",
+      "Bonsoir. Soyez les bienvenus. Comment puis-je vous aider ?",
+      "Bonjour, c'est pour un check-in, un check-out ou un service particulier ?"
+    ],
+    "intents": {
+      "yes": "ask_reservation_name",
+      "no": "check_availability",
+      "checkout": "early_checkout_start",
+      "noise": "noise_complaint_start",
+      "laundry": "laundry_service_start",
+      "spa": "spa_booking_start",
+      "iron": "ironing_board_request_start",
+      "map": "local_map_request_start",
+      "safe": "safe_usage_help_start",
+      "towels": "extra_towels_request_start",
+      "taxi": "taxi_booking_request_start",
+      "late_checkout": "late_checkout_request_start",
+      "gym": "gym_pool_access_start",
+      "breakfast_loc": "breakfast_room_location_start",
+      "hairdryer": "hair_dryer_help_start",
+      "safe_reset": "safe_code_reset_start",
+      "checkout_time": "checkout_time_inquiry_start",
+      "blanket": "extra_blanket_request_start",
+      "pharmacy": "nearest_pharmacy_inquiry_start",
+      "adapter": "plug_adapter_request_start",
+      "quiet_room": "quiet_room_request_start"
+    }
+  },
+
+  "checkout_time_inquiry_start": {
+    "prompt": [
+      "L'heure limite de départ est 11h du matin. Voulez-vous que nous gardions vos bagages après ?",
+      "Vous devez libérer la chambre avant 11h. Si vous avez besoin de plus de temps, demandez un late checkout."
+    ],
+    "next": "end_session"
+  },
+
+  "extra_blanket_request_start": {
+    "prompt": [
+      "Bien sûr, vous avez froid ? Je demande à la femme de chambre de vous en apporter une tout de suite.",
+      "Une couverture supplémentaire, entendu. Elle sera sur votre lit dans 10 minutes."
+    ],
+    "next": "end_session"
+  },
+
+  "nearest_pharmacy_inquiry_start": {
+    "prompt": [
+      "La pharmacie la plus proche est à 5 minutes à pied, juste en face de l'église.",
+      "Voulez-vous que je vous note l'adresse et les horaires de la pharmacie de garde ?"
+    ],
+    "next": "end_session"
+  },
+
+  "plug_adapter_request_start": {
+    "prompt": [
+      "Oui, nous en avons quelques-uns à la réception contre une caution de 10 euros. Quel type de prise avez-vous ?",
+      "Je peux vous prêter un adaptateur universel. N'oubliez pas de nous le rendre à votre départ !"
+    ],
+    "next": "end_session"
+  },
+
+  "quiet_room_request_start": {
+    "prompt": [
+      "Je comprends. Je vais essayer de vous mettre une chambre qui donne sur le jardin plutôt que sur la rue.",
+      "Toutes nos chambres sont bien isolées, mais l'étage 4 est généralement le plus calme."
+    ],
+    "next": "check_availability"
+  },
+
+  "late_checkout_request_start": {
+    "prompt": [
+      "Pas de problème ! Un départ tardif est possible jusqu'à 14h. Je vérifie la disponibilité tout de suite.",
+      "Bien sûr, je regarde si la chambre n'est pas réservée pour ce soir. Jusqu'à quelle heure avez-vous besoin ?"
+    ],
+    "next": "end_session"
+  },
+
+  "gym_pool_access_start": {
+    "prompt": [
+      "La salle de sport et la piscine sont au sous-sol, ouvertes de 7h à 22h. C'est inclus dans votre séjour !",
+      "Vous trouverez le spa et la piscine au niveau -1. Avez-vous besoin d'un peignoir ou de serviettes ?"
+    ],
+    "next": "end_session"
+  },
+
+  "breakfast_room_location_start": {
+    "prompt": [
+      "Le petit-déjeuner est servi au premier étage de 7h à 10h30. Bon appétit !",
+      "La salle de restaurant est au 1er étage. Le buffet est ouvert jusqu'à 10h30 en semaine."
+    ],
+    "next": "end_session"
+  },
+
+  "hair_dryer_help_start": {
+    "prompt": [
+      "Le sèche-cheveux est rangé sous le lavabo dans la salle de bains. Avez-vous besoin d'autre chose ?",
+      "Il est dans le tiroir du meuble de la salle de bains. Si vous ne le trouvez pas, je vous en apporte un !"
+    ],
+    "next": "end_session"
+  },
+
+  "safe_code_reset_start": {
+    "prompt": [
+      "Pour réinitialiser le coffre, je vais envoyer quelqu'un de la sécurité vous aider. Un instant s'il vous plaît !",
+      "Pas de souci, notre agent de sécurité peut réinitialiser votre coffre. Il sera là dans 5 minutes."
+    ],
+    "next": "end_session"
+  },
+
+  "ironing_board_request_start": {
+    "prompt": [
+      "Je vous envoie le fer à repasser et la planche tout de suite. Ils seront dans votre chambre dans 10 minutes !",
+      "Bien sûr ! Un groom va vous monter l'équipement immédiatement. Autre chose ?"
+    ],
+    "next": "end_session"
+  },
+
+  "local_map_request_start": {
+    "prompt": [
+      "Tenez, voici un plan du quartier ! J'ai entouré quelques bonnes adresses pour vous.",
+      "Voici notre carte de la ville avec nos recommandations. Je vous conseille particulièrement le marché le matin."
+    ],
+    "next": "end_session"
+  },
+
+  "safe_usage_help_start": {
+    "prompt": [
+      "Je vais vous expliquer ! Tapez votre code à 4 chiffres, puis appuyez sur la touche étoile. Le coffre se verrouille. Vous voulez un mode d'emploi papier ?",
+      "C'est très simple : code à 4 chiffres + validation, et c'est tout. Voulez-vous que je vienne vous montrer directement ?"
+    ],
+    "next": "end_session"
+  },
+
+  "extra_towels_request_start": {
+    "prompt": [
+      "Bien sûr ! Combien de serviettes souhaitez-vous ? Je vous les apporte tout de suite.",
+      "Pas de problème ! Dites-moi combien il vous en faut, elles seront là dans quelques minutes."
+    ],
+    "next": "end_session"
+  },
+
+  "taxi_booking_request_start": {
+    "prompt": [
+      "Je vous réserve un taxi tout de suite. Il sera devant l'hôtel dans environ 10 minutes. C'est pour quelle destination ?",
+      "Bien sûr ! Je contacte notre taxi partenaire immédiatement. Vous partez à quelle heure ?"
+    ],
+    "next": "end_session"
+  },
+
+  "early_checkout_start": {
+    "prompt": [
+      "Je suis désolé de vous voir partir si tôt ! Je prépare votre note de frais tout de suite.",
+      "Bien sûr, pas de souci ! Je vais établir votre facture finale. Tout s'est bien passé pendant votre séjour ?"
+    ],
+    "next": "ask_bill_payment"
+  },
+
+  "noise_complaint_start": {
+    "prompt": [
+      "Je suis vraiment désolé pour ce dérangement ! Je vais immédiatement contacter la chambre voisine.",
+      "Toutes mes excuses ! Je vais intervenir tout de suite pour que vous puissiez vous reposer."
+    ],
+    "next": "end_session"
+  },
+
+  "laundry_service_start": {
+    "prompt": [
+      "Bien sûr ! Laissez vos vêtements dans le sac à linge du placard. Ils seront prêts demain matin.",
+      "Notre service de blanchisserie est disponible. Je récupère votre linge maintenant si vous voulez ?"
+    ],
+    "next": "end_session"
+  },
+
+  "spa_booking_start": {
+    "prompt": [
+      "Notre spa propose plusieurs soins : massage, soin du visage ou enveloppement. Lequel vous tente ?",
+      "Bien sûr, je consulte les disponibilités. Quel type de soin souhaitez-vous ?"
+    ],
+    "next": "end_session"
+  },
+
+  "ask_reservation_name": {
+    "prompt": [
+      "Très bien ! C'est à quel nom la réservation, s'il vous plaît ?",
+      "Et la réservation est au nom de... ?"
+    ],
+    "next": "confirm_reservation"
+  },
+
+  "confirm_reservation": {
+    "prompt": [
+      "Parfait, j'ai bien votre dossier ! Voici votre clé. Votre chambre est prête, par ici s'il vous plaît !",
+      "Très bien, je vous ai trouvé ! Bienvenue à l'hôtel. Voici votre carte-clé, chambre au 3ème étage."
+    ],
+    "next": "end_session"
+  },
+
+  "check_availability": {
+    "prompt": [
+      "Pas de problème, nous avons des chambres disponibles ! Pour combien de nuits souhaitez-vous rester ?",
+      "Voyons ce qu'on a de libre. C'est pour combien de nuits ?"
+    ],
+    "next": "offer_room"
+  },
+
+  "offer_room": {
+    "prompt": [
+      "Parfait ! Souhaitez-vous une chambre simple, une chambre double ou une suite ?",
+      "J'ai plusieurs types de chambres disponibles. Vous préférez une vue sur la mer ou sur le jardin ?"
+    ],
+    "next": "ask_id"
+  },
+
+  "ask_id": {
+    "prompt": [
+      "Pourriez-vous me présenter votre passeport ou une pièce d'identité, s'il vous plaît ?",
+      "J'ai juste besoin d'une pièce d'identité pour compléter l'enregistrement. Vous l'avez sur vous ?"
+    ],
+    "next": "give_key"
+  },
+
+  "give_key": {
+    "prompt": [
+      "Voici votre clé ! L'ascenseur est sur votre gauche. Excellente nuit et n'hésitez pas si vous avez besoin de quoi que ce soit.",
+      "Et voilà votre carte magnétique ! L'équipe reste disponible 24h/24 pour vous aider."
+    ],
+    "next": "end_session"
+  },
+
+  "ask_bill_payment": {
+    "prompt": [
+      "Comment souhaitez-vous régler votre séjour ? Carte bancaire ou espèces ?",
+      "Pour le règlement, vous préférez payer par carte ou en liquide ?"
+    ],
+    "next": "end_session"
+  },
+
+  "end_session": {
+    "prompt": [
+      "Merci de votre visite et à très bientôt à l'Hôtel de la Plage !",
+      "Bon voyage et à bientôt ! Nous espérons vous revoir très vite.",
+      "Au revoir et merci pour votre confiance !"
+    ]
+  }
+}

@@ -1,0 +1,167 @@
+{
+  "start": {
+    "prompt": [
+      "Bonjour, je peux vous aider ? C'est pour un billet de train ?",
+      "Bonjour ! Quelle est votre destination ?",
+      "Bienvenue à la gare ! Enregistrement, objets trouvés ou informations de quai ?"
+    ],
+    "intents": {
+      "ticket": "ask_destination",
+      "lost": "lost_found_start",
+      "taxi": "taxi_stand_start",
+      "machine": "ticket_machine_start",
+      "missed": "missed_connection_start",
+      "locker": "luggage_locker_start",
+      "platform": "platform_change_info_start",
+      "refund": "ticket_refund_request_start",
+      "delay_cert": "delay_certificate_request_start",
+      "animal": "animal_ticket_request_start",
+      "outlet": "power_outlet_location_start",
+      "seat_change": "seat_reservation_change_start",
+      "luggage_weight": "luggage_weight_limit_start",
+      "language": "machine_language_help_start",
+      "train_food": "food_onboard_check_start",
+      "station_map": "station_map_request_start"
+    }
+  },
+
+  "seat_reservation_change_start": {
+    "prompt": [
+      "Désolé, une fois le train parti, je ne peux plus changer votre place sur le système. Essayez de voir avec le contrôleur.",
+      "Voulez-vous que je regarde s'il reste une place en sens de la marche ou côté fenêtre pour votre prochain voyage ?"
+    ],
+    "next": "end_session"
+  },
+
+  "luggage_weight_limit_start": {
+    "prompt": [
+      "Contrairement à l'avion, il n'y a pas de limite de poids stricte, mais vous devez être capable de porter vos bagages seul.",
+      "Sur certains trains (OUIGO), vous devez payer un supplément si votre valise dépasse la taille standard. C'est votre cas ?"
+    ],
+    "next": "end_session"
+  },
+
+  "machine_language_help_start": {
+    "prompt": [
+      "Appuyez sur le drapeau en bas à gauche de l'écran pour changer la langue en anglais, espagnol ou allemand.",
+      "Voulez-vous que je vous aide à faire la manipulation ? C'est parfois un peu complexe pour les touristes."
+    ],
+    "next": "end_session"
+  },
+
+  "food_onboard_check_start": {
+    "prompt": [
+      "Il y a une voiture-bar sur ce train. Elle se trouve en voiture 4. Ils vendent des plats chauds et froids.",
+      "Attention, il n'y a pas de service de restauration sur les trains régionaux. Il vaut mieux acheter un sandwich ici."
+    ],
+    "next": "end_session"
+  },
+
+  "station_map_request_start": {
+    "prompt": [
+      "Voici un plan de la gare. Vous êtes ici. Le quai pour votre train est tout au fond de la galerie marchande.",
+      "Voulez-vous que je vous indique le chemin pour aller à la station de métro la plus proche ?"
+    ],
+    "next": "end_session"
+  },
+
+  "platform_change_info_start": {
+    "prompt": [
+      "Votre train vient d'être déplacé au quai G ! Dépêchez-vous, il part dans 8 minutes.",
+      "Le quai a changé, c'est maintenant le quai G. Vous voyez les panneaux d'affichage ? C'est bien indiqué."
+    ],
+    "next": "end_session"
+  },
+
+  "ticket_refund_request_start": {
+    "prompt": [
+      "Tout dépend du type de billet que vous avez acheté. Un billet Prem's n'est pas remboursable, mais un billet Flex l'est.",
+      "Vous avez votre billet avec vous ? Je regarde les conditions de remboursement applicables à votre tarif."
+    ],
+    "next": "end_session"
+  },
+
+  "delay_certificate_request_start": {
+    "prompt": [
+      "Pour une attestation de retard, rendez-vous à la borne blanche en bout de quai ou à l'accueil voyageurs.",
+      "Je peux vous faire une attestation ici si le retard est supérieur à 30 minutes. Vous avez votre billet ?"
+    ],
+    "next": "end_session"
+  },
+
+  "animal_ticket_request_start": {
+    "prompt": [
+      "Un billet pour votre animal, c'est 7 euros pour les petits animaux en sac et la moitié du prix enfant pour les chiens.",
+      "Pour les animaux, le billet est à 7 euros. Votre chien devra rester tenu en laisse ou dans une cage de transport."
+    ],
+    "next": "show_total"
+  },
+
+  "power_outlet_location_start": {
+    "prompt": [
+      "Il y a des prises électriques près du Relay, dans la salle d'attente. Elles sont très demandées !",
+      "Les prises sont juste à côté de la librairie Relay. Si elles sont toutes prises, il y en a aussi en voiture TGV."
+    ],
+    "next": "end_session"
+  },
+
+  "lost_found_start": {
+    "prompt": [
+      "Qu'avez-vous perdu et dans quel train ou à quel endroit ? Je vais essayer de vous aider.",
+      "Je suis désolé pour ça ! Décrivez-moi l'objet. Le bureau des objets trouvés est au guichet B."
+    ],
+    "next": "end_session"
+  },
+
+  "taxi_stand_start": {
+    "prompt": [
+      "La station de taxi est à la Sortie Nord, juste en face. Il y a généralement peu d'attente.",
+      "Prenez la Sortie Nord, traversez le parvis et vous verrez la file de taxis sur votre droite."
+    ],
+    "next": "end_session"
+  },
+
+  "ticket_machine_start": {
+    "prompt": [
+      "Vous avez besoin d'aide avec la borne automatique ? Je peux vous guider pas à pas, c'est simple !",
+      "Bien sûr, les bornes peuvent être un peu confuses. Quel type de billet cherchez-vous à acheter ?"
+    ],
+    "next": "end_session"
+  },
+
+  "missed_connection_start": {
+    "prompt": [
+      "Ah, vous avez raté votre correspondance ! Pas de panique — regardons le prochain train ensemble.",
+      "Je suis désolé pour ça. Regardons le prochain train disponible pour votre destination. Il y en a un dans 40 minutes."
+    ],
+    "next": "end_session"
+  },
+
+  "luggage_locker_start": {
+    "prompt": [
+      "Les consignes automatiques sont au sous-sol, accessibles par l'escalator près de l'entrée principale.",
+      "C'est au niveau -1, vous ne pouvez pas les rater. Il faut une pièce de 2 euros pour la consigne."
+    ],
+    "next": "end_session"
+  },
+
+  "ask_destination": {
+    "prompt": [
+      "Quelle est votre destination ? Et vous partez aujourd'hui ou pour une autre date ?",
+      "Vous allez où ? Je cherche les meilleurs horaires et tarifs disponibles pour vous."
+    ],
+    "next": "show_total"
+  },
+
+  "show_total": {
+    "prompt": [
+      "J'ai trouvé un billet à 45 euros pour ce trajet. Vous le prenez ?",
+      "Le billet vous coûtera 45 euros en tarif normal. Il y a aussi une offre Prem's à 25 euros si vous avez une carte !"
+    ],
+    "next": "end_session"
+  },
+
+  "end_session": {
+    "prompt": ["Bon voyage ! Profitez du trajet.", "Au revoir et bon voyage !"]
+  }
+}

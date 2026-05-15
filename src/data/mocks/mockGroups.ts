@@ -1,0 +1,96 @@
+import { StudyGroup, StudyGroupMember } from '../../types';
+
+export const MOCK_MY_GROUPS: StudyGroup[] = [
+  {
+    id: 'g1',
+    name: 'French Cinema Enthusiasts',
+    description: 'Discussing French films and learning vocabulary related to cinema.',
+    memberCount: 12,
+    maxMembers: 20,
+    totalXP: 45000,
+    weeklyXPGoal: 5000,
+    weeklyXPProgress: 3200,
+    level: 5,
+    isPrivate: false,
+    tags: ['Culture', 'B2', 'Vocabulary'],
+  },
+  {
+    id: 'g2',
+    name: 'DELF B1 Prep Squad',
+    description: 'Working together to ace the DELF B1 exam. Weekly mock tests!',
+    memberCount: 8,
+    maxMembers: 10,
+    totalXP: 28000,
+    weeklyXPGoal: 3000,
+    weeklyXPProgress: 1200,
+    level: 3,
+    isPrivate: true,
+    tags: ['Exam Prep', 'B1', 'Structured'],
+  },
+];
+
+export const MOCK_DISCOVER_GROUPS: StudyGroup[] = [
+  {
+    id: 'g3',
+    name: 'Parisian Coffee Chat',
+    description: 'Casual conversation practice for intermediate learners.',
+    memberCount: 45,
+    maxMembers: 50,
+    totalXP: 120000,
+    weeklyXPGoal: 10000,
+    weeklyXPProgress: 8500,
+    level: 12,
+    isPrivate: false,
+    tags: ['Conversation', 'Casual', 'A2-B1'],
+  },
+  {
+    id: 'g4',
+    name: 'Business French Pro',
+    description: 'Master professional French for your career.',
+    memberCount: 15,
+    maxMembers: 30,
+    totalXP: 65000,
+    weeklyXPGoal: 6000,
+    weeklyXPProgress: 2400,
+    level: 7,
+    isPrivate: false,
+    tags: ['Business', 'Professional', 'C1'],
+  },
+  {
+    id: 'g5',
+    name: 'Literature Lovers',
+    description: 'Reading and discussing classic French literature.',
+    memberCount: 5,
+    maxMembers: 15,
+    totalXP: 12000,
+    weeklyXPGoal: 2000,
+    weeklyXPProgress: 400,
+    level: 2,
+    isPrivate: false,
+    tags: ['Literature', 'Reading', 'B2-C2'],
+  },
+];
+
+export const MOCK_GROUP_MEMBERS: StudyGroupMember[] = [
+  {
+    id: 'm1',
+    username: 'Marie_FR',
+    role: 'admin',
+    joinedAt: '2024-01-15T10:00:00Z',
+    xpContributed: 12500,
+  },
+  {
+    id: 'm2',
+    username: 'Thomas88',
+    role: 'member',
+    joinedAt: '2024-02-01T14:30:00Z',
+    xpContributed: 8200,
+  },
+  {
+    id: 'm3',
+    username: 'Sophie_Lingua',
+    role: 'member',
+    joinedAt: '2024-03-10T09:15:00Z',
+    xpContributed: 4500,
+  },
+];

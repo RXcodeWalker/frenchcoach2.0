@@ -1,0 +1,343 @@
+{
+  "start": {
+    "prompt": [
+      "Bonjour ! Bienvenue chez Immo-Sud. Souhaitez-vous louer, acheter ou vendre un bien ?",
+      "Bonjour, je peux vous accompagner dans votre projet immobilier ? Location, achat, ou peut-être une recherche de colocation ?",
+      "Bienvenue ! Cherchez-vous un logement pour vous-même ou des bureaux pour une activité professionnelle ?"
+    ],
+    "intents": {
+      "rent": "ask_rent_criteria",
+      "buy": "ask_buy_criteria",
+      "sell": "ask_sell_info",
+      "commercial": "ask_commercial_criteria",
+      "colocation": "ask_colocation_details",
+      "guarantor": "ask_guarantor_info",
+      "renovations_dpe": "ask_dpe_info",
+      "short_term": "ask_short_term_details",
+      "investment": "discuss_investment_strategy",
+      "property_management": "explain_management_services"
+    }
+  },
+  "ask_short_term_details": {
+    "prompt": ["Cherchez-vous une location saisonnière pour les vacances ou un bail mobilité pour un déplacement professionnel de quelques mois ?"],
+    "intents": {
+      "seasonal": "provide_seasonal_info",
+      "mobility": "provide_mobility_info"
+    }
+  },
+  "provide_seasonal_info": {
+    "prompt": ["Nous avons de superbes villas avec piscine et des appartements vue mer. Quel est votre budget à la semaine ?"],
+    "next": "ask_location"
+  },
+  "provide_mobility_info": {
+    "prompt": ["Le bail mobilité est très flexible (1 à 10 mois) et sans dépôt de garantie. Je vous montre nos studios meublés ?"],
+    "next": "ask_location"
+  },
+  "discuss_investment_strategy": {
+    "prompt": ["Vous visez du locatif classique, de la location courte durée type Airbnb, ou un investissement en loi Pinel pour défiscaliser ?"],
+    "next": "ask_buy_criteria"
+  },
+  "explain_management_services": {
+    "prompt": ["Nous gérons plus de 200 biens. Nous nous occupons de tout : recherche du locataire, encaissement des loyers et gestion des travaux. Souhaitez-vous un devis ?"],
+    "next": "end_session"
+  },
+  "ask_rent_criteria": {
+    "prompt": [
+      "Très bien. Quel type de bien cherchez-vous ? Un studio, un appartement T2/T3 ou une maison de ville ?",
+      "C'est for une personne seule, un couple ou une famille ?"
+    ],
+    "intents": {
+      "pet_friendly": "check_pet_policy",
+      "exterieur": "check_exterior_space",
+      "parking": "check_parking_availability"
+    },
+    "capture": "property_type",
+    "next": "ask_location"
+  },
+  "check_exterior_space": {
+    "prompt": [
+      "La plupart de nos T3 disposent d'un balcon ou d'une petite terrasse. C'est un critère indispensable pour vous ?",
+      "Nous avons aussi quelques rez-de-chaussée avec jardin privatif dans des résidences sécurisées.",
+      "Un espace extérieur est effectivement très demandé. Le budget sera un peu plus élevé.",
+      "Voulez-vous que je filtre les résultats pour n'inclure que les biens avec balcon ?"
+    ],
+    "next": "ask_location"
+  },
+  "check_parking_availability": {
+    "prompt": [
+      "Certains appartements sont loués avec une place de parking en sous-sol ou un garage fermé.",
+      "En centre-ville, le stationnement est difficile. Je vous conseille vivement de prendre un bien avec garage.",
+      "Avez-vous besoin d'une place simple ou d'un box double pour du stockage supplémentaire ?",
+      "Il y a aussi des parkings publics avec abonnement résident à proximité si le bien n'en a pas."
+    ],
+    "next": "ask_location"
+  },
+  "check_pet_policy": {
+    "prompt": ["En France, un propriétaire ne peut pas interdire les animaux familiers (sauf chiens dangereux). Nous filtrons les biens avec jardin pour votre confort."],
+    "next": "ask_location"
+  },
+  "ask_buy_criteria": {
+    "prompt": [
+      "Un beau projet d'acquisition ! Quel est votre budget maximum (frais d'agence inclus) ?",
+      "Avez-vous déjà un accord de principe de votre banque ou cherchez-vous d'abord à évaluer le marché ?"
+    ],
+    "intents": {
+      "fixer_upper": "discuss_renovation_potential"
+    },
+    "capture": "buy_details",
+    "next": "ask_location"
+  },
+  "discuss_renovation_potential": {
+    "prompt": ["Les biens à rénover permettent souvent de faire de bonnes affaires. Êtes-vous prêt à faire de gros travaux ou juste du rafraîchissement ?"],
+    "next": "ask_location"
+  },
+  "ask_sell_info": {
+    "prompt": [
+      "Vous souhaitez mettre votre bien en vente ? Pourriez-vous me décrire brièvement le type de bien et sa localisation ?",
+      "Souhaitez-vous une estimation gratuite réalisée par l'un de nos conseillers sous 48h ?"
+    ],
+    "intents": {
+      "estimation": "set_estimation_visit",
+      "mandate": "ask_mandate_type"
+    }
+  },
+  "set_estimation_visit": {
+    "prompt": ["Entendu. Je vous propose un rendez-vous demain à 10h pour que notre expert puisse visiter votre bien. Cela vous convient ?"],
+    "next": "ask_location"
+  },
+  "ask_mandate_type": {
+    "prompt": ["Préférez-vous un mandat exclusif (plus de visibilité) ou un mandat simple pour garder plus de liberté ?"],
+    "intents": {
+      "exclusive": "set_exclusive_mandate",
+      "simple": "set_simple_mandate"
+    }
+  },
+  "set_exclusive_mandate": {
+    "prompt": ["C'est le meilleur choix pour vendre rapidement. Nous prenons en charge les photos professionnelles et les diagnostics."],
+    "next": "end_session"
+  },
+  "set_simple_mandate": {
+    "prompt": ["D'accord. Nous allons préparer le dossier de mise en vente. J'aurai besoin du titre de propriété."],
+    "next": "end_session"
+  },
+  "ask_commercial_criteria": {
+    "prompt": [
+      "Vous cherchez un bail commercial (3/6/9) ou un bail professionnel ?",
+      "Quelle surface minimale vous faut-il pour votre activité ? Avez-vous besoin d'une vitrine ou de bureaux ?"
+    ],
+    "capture": "commercial_needs",
+    "next": "ask_location"
+  },
+  "ask_colocation_details": {
+    "prompt": [
+      "Nous avons plusieurs appartements partagés disponibles. Cherchez-vous à rejoindre une colocation existante ou à en créer une avec des amis ?",
+      "Quel est votre budget par chambre, charges comprises ?"
+    ],
+    "intents": {
+      "join": "provide_coloc_options",
+      "create": "ask_rent_criteria"
+    }
+  },
+  "provide_coloc_options": {
+    "prompt": ["J'ai une chambre qui se libère dans une colocation de 3 personnes près de l'université. Ambiance calme et studieuse. Ça pourrait vous aller ?"],
+    "next": "schedule_visit"
+  },
+  "ask_guarantor_info": {
+    "prompt": [
+      "Pour la location, disposez-vous d'un garant physique (famille, amis) ou passez-vous par un organisme comme la garantie Visale ?",
+      "Si vous n'avez pas de garant, nous acceptons aussi la caution bancaire dans certains cas."
+    ],
+    "intents": {
+      "visale": "set_visale_info",
+      "physical": "set_physical_guarantor",
+      "none": "explain_guarantor_options"
+    }
+  },
+  "set_visale_info": {
+    "prompt": ["C'est parfait, de nombreux propriétaires acceptent Visale car c'est une garantie d'État fiable."],
+    "next": "ask_rent_criteria"
+  },
+  "set_physical_guarantor": {
+    "prompt": ["Très bien. Il nous faudra les mêmes pièces justificatives pour votre garant que pour vous (revenus, identité)."],
+    "next": "ask_rent_criteria"
+  },
+  "explain_guarantor_options": {
+    "prompt": ["Sans garant, le dossier est plus difficile mais pas impossible. Avez-vous des revenus supérieurs à 3 fois le montant du loyer ?"],
+    "next": "ask_rent_criteria"
+  },
+  "ask_dpe_info": {
+    "prompt": [
+      "Le Diagnostic de Performance Énergétique (DPE) est devenu crucial. Cherchez-vous un bien classé A ou B pour limiter les charges ?",
+      "Sachez que les biens classés G ne pourront bientôt plus être loués sans rénovation énergétique."
+    ],
+    "intents": {
+      "info": "provide_dpe_details",
+      "renov": "ask_renov_help"
+    }
+  },
+  "provide_dpe_details": {
+    "prompt": ["Un bon DPE vous garantit un confort thermique et des factures d'énergie maîtrisées. C'est un point que nous vérifions systématiquement."],
+    "next": "ask_location"
+  },
+  "ask_renov_help": {
+    "prompt": ["Nous pouvons vous mettre en relation avec des artisans partenaires pour des travaux d'isolation ou de changement de chauffage. Cela vous intéresse ?"],
+    "next": "end_session"
+  },
+  "ask_location": {
+    "prompt": ["Dans quel secteur géographique souhaitez-vous concentrer vos recherches ? Centre-ville, périphérie, ou un quartier précis ?"],
+    "intents": {
+      "commute_check": "analyze_commute_time"
+    },
+    "capture": "location_preference",
+    "next": "ask_budget_rent"
+  },
+  "analyze_commute_time": {
+    "prompt": ["Si vous travaillez au centre, privilégiez le quartier Est qui est à 10 minutes en tramway. Voulez-vous que je calcule le trajet précis ?"],
+    "next": "ask_budget_rent"
+  },
+  "ask_budget_rent": {
+    "prompt": ["Quel est votre budget mensuel maximum, charges comprises ? (En tenant compte de vos APL éventuelles)"],
+    "capture": "budget",
+    "next": "check_listings"
+  },
+  "check_listings": {
+    "prompt": ["Je consulte notre base de données... J'ai un bien qui correspond à {property_type} à {location_preference}. Voulez-vous consulter la fiche détaillée ?"],
+    "intents": {
+      "yes": "provide_details",
+      "no": "ask_other_listings",
+      "neighborhood_info": "provide_neighborhood_vibe"
+    }
+  },
+  "provide_neighborhood_vibe": {
+    "prompt": ["C'est un quartier très vivant avec beaucoup de commerces de proximité et un marché bio le dimanche. Très prisé par les jeunes actifs."],
+    "intents": {
+      "ecoles": "ask_local_amenities"
+    },
+    "next": "provide_details"
+  },
+  "ask_local_amenities": {
+    "prompt": [
+      "Il y a deux écoles primaires et une crèche à moins de 500 mètres. C'est idéal pour une famille.",
+      "Le quartier est très bien desservi par les lignes de bus 12 et 15. Vous avez aussi une station de vélos en libre-service.",
+      "Pour vos courses, vous avez un supermarché ouvert jusqu'à 21h et plusieurs boulangeries artisanales.",
+      "C'est un secteur très dynamique avec de nombreux parcs pour enfants à proximité."
+    ],
+    "next": "provide_details"
+  },
+  "provide_details": {
+    "prompt": ["C'est un bien très lumineux, rénové récemment, avec un DPE classé C. Le prix est de {budget} euros. Une visite s'impose ?"],
+    "intents": {
+      "yes": "schedule_visit",
+      "no": "ask_other_listings",
+      "plan": "ask_floor_plan",
+      "taxes": "ask_property_taxes",
+      "concierge": "concierge_inquiry_start",
+      "parking_nearby": "nearby_parking_info",
+      "noise": "noise_level_inquiry",
+      "furnished": "furnished_inquiry",
+      "security": "security_system_info"
+    }
+  },
+  "concierge_inquiry_start": {
+    "prompt": [
+      "Oui, cet immeuble dispose d'un concierge résident qui s'occupe de la réception des colis et du ménage des parties communes.",
+      "Non, il n'y a pas de concierge, mais une société de nettoyage passe deux fois par semaine pour l'entretien."
+    ],
+    "next": "schedule_visit"
+  },
+  "nearby_parking_info": {
+    "prompt": [
+      "Si le bien n'a pas de parking, il y a un parking public couvert à 200 mètres avec des tarifs préférentiels pour les résidents.",
+      "Le stationnement est gratuit dans les rues adjacentes, mais c'est souvent complet en soirée. Je vous conseille de vérifier sur place."
+    ],
+    "next": "schedule_visit"
+  },
+  "noise_level_inquiry": {
+    "prompt": [
+      "Les fenêtres sont en double vitrage récent, ce qui isole très bien du bruit de la rue. C'est très calme à l'intérieur.",
+      "C'est une rue piétonne, donc il n'y a pas de bruit de voiture, juste l'animation des passants en journée."
+    ],
+    "next": "schedule_visit"
+  },
+  "furnished_inquiry": {
+    "prompt": [
+      "Ce bien est loué vide, mais la cuisine est entièrement équipée (plaques, four, frigo).",
+      "C'est une location meublée de standing avec tout le nécessaire : canapé, lit, vaisselle et même le lave-linge."
+    ],
+    "next": "schedule_visit"
+  },
+  "security_system_info": {
+    "prompt": [
+      "La sécurité est assurée par un digicode à l'entrée et un interphone avec caméra (vidéophone) dans l'appartement.",
+      "L'accès à l'immeuble se fait par badge magnétique et il y a des caméras de surveillance dans le hall et le parking."
+    ],
+    "next": "schedule_visit"
+  },
+  "ask_floor_plan": {
+    "prompt": [
+      "Bien sûr, je peux vous envoyer le plan détaillé par e-mail. Les pièces sont bien agencées et sans perte d'espace.",
+      "La surface Carrez est de 65m². Je peux aussi vous donner les dimensions exactes de chaque pièce si vous voulez.",
+      "Le séjour fait 25m² et les deux chambres font environ 12m² chacune. Voulez-vous voir le plan ?",
+      "J'ai également une visite virtuelle qui montre bien la disposition des pièces. Je vous envoie le lien ?"
+    ],
+    "next": "schedule_visit"
+  },
+  "ask_property_taxes": {
+    "prompt": [
+      "La taxe foncière s'élève à environ 1200 euros par an pour ce bien. C'est dans la moyenne du quartier.",
+      "Les charges de copropriété incluent l'eau froide et l'entretien des parties communes. C'est environ 100 euros par mois.",
+      "C'est une information importante pour calculer votre budget global. Voulez-vous d'autres précisions financières ?",
+      "Notez que le ravalement de façade a été voté et payé par l'actuel propriétaire, c'est un point positif."
+    ],
+    "next": "schedule_visit"
+  },
+  "schedule_visit": {
+    "prompt": ["Nous avons des créneaux de visite en fin de journée pour accommoder les horaires de travail. 18h30 jeudi, ça vous irait ?"],
+    "intents": {
+      "virtual_tour": "offer_virtual_tour"
+    },
+    "capture": "visit_time",
+    "next": "ask_documents"
+  },
+  "offer_virtual_tour": {
+    "prompt": ["Si vous ne pouvez pas vous déplacer, je peux vous envoyer un lien pour une visite virtuelle à 360°. Voulez-vous le recevoir ?"],
+    "next": "ask_documents"
+  },
+  "ask_documents": {
+    "prompt": ["Pour monter le dossier, préparez : contrat de travail, 3 derniers bulletins de salaire, et dernier avis d'imposition. Vous pouvez les envoyer par mail ?"],
+    "intents": {
+      "yes": "confirm_visit",
+      "no": "remind_documents",
+      "international_student": "explain_international_file"
+    }
+  },
+  "explain_international_file": {
+    "prompt": ["Pour les étudiants étrangers, nous acceptons le passeport et le certificat de scolarité. Pour le garant, Visale est souvent la meilleure option."],
+    "next": "confirm_visit"
+  },
+  "confirm_visit": {
+    "prompt": ["Parfait. Dossier en cours, visite confirmée pour {visit_time}. À très bientôt devant l'immeuble !"],
+    "next": "end_session"
+  },
+  "remind_documents": {
+    "prompt": ["N'attendez pas trop, les bons biens partent vite. Essayez de nous les transmettre avant la visite si possible."],
+    "next": "end_session"
+  },
+  "ask_other_listings": {
+    "prompt": ["Je vais paramétrer une alerte mail pour vous. Dès qu'un nouveau bien correspondant à vos critères rentre, vous serez le premier averti."],
+    "intents": {
+      "callback": "set_callback_time"
+    },
+    "next": "end_session"
+  },
+  "set_callback_time": {
+    "prompt": ["Entendu. Je demande à un conseiller de vous rappeler. Demain matin à 9h, cela vous convient ?"],
+    "next": "end_session"
+  },
+  "end_session": {
+    "prompt": [
+      "Merci de votre confiance. Nous ferons le maximum pour concrétiser votre projet. À bientôt !",
+      "Bonne continuation dans vos recherches. L'équipe d'Immo-Sud reste à votre écoute."
+    ]
+  }
+}

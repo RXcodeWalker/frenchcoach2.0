@@ -1,0 +1,821 @@
+{
+  "start": {
+    "prompt": [
+      "Bienvenue à la bibliothèque ! Comment puis-je vous aider aujourd'hui ?",
+      "Bonjour ! Que cherchez-vous ? Un livre, un DVD ou peut-être un espace de travail ?",
+      "Bonjour, bienvenue ! Est-ce pour un emprunt, un retour ou une inscription ?",
+      "Ravi de vous voir ! Souhaitez-vous consulter notre catalogue ou participer à une activité ?",
+      "Bonjour ! Avez-vous besoin d'aide pour trouver un document ou pour utiliser nos services numériques ?",
+      "Bienvenue ! Nous avons de nouvelles acquisitions. Voulez-vous les découvrir ?",
+      "Bonjour ! C'est pour une recherche précise ou simplement pour flâner dans les rayons ?",
+      "Bonjour, puis-je vous renseigner sur nos horaires ou nos événements à venir ?",
+      "Bienvenue ! Cherchez-vous la section jeunesse, le coin presse ou les liseuses ?",
+      "Bonjour ! Comment se passe votre visite ? Avez-vous besoin d'un renseignement ?"
+    ],
+    "intents": {
+      "search": "ask_book_details",
+      "return": "ask_return_card",
+      "register": "ask_registration_info",
+      "digital": "ask_digital_services",
+      "study": "ask_study_room",
+      "events": "ask_event_info",
+      "hours": "ask_opening_hours",
+      "donation": "ask_donation_policy",
+      "staff_pick": "ask_staff_pick",
+      "renewal": "ask_membership_renewal",
+      "magazines": "ask_magazines",
+      "language": "ask_language_learning",
+      "games": "ask_game_section",
+      "extension": "ask_extension_details",
+      "lost_item": "handle_lost_item",
+      "toilets": "ask_toilets_location",
+      "quiet": "ask_quiet_enforcement",
+      "charging": "ask_charging_station",
+      "new_items": "ask_new_acquisitions",
+      "water": "ask_drinking_fountain"
+    }
+  },
+  "ask_toilets_location": {
+    "prompt": [
+      "Les toilettes se trouvent au rez-de-chaussée, juste à côté de l'ascenseur. Voulez-vous que je vous montre ?",
+      "Il y a des sanitaires à chaque étage, au fond du couloir principal. Suivez les panneaux.",
+      "Les toilettes sont actuellement en travaux, il faut utiliser celles du bâtiment voisin. Désolé !",
+      "Oui, les WC sont accessibles librement. Ils sont situés derrière la section jeunesse.",
+      "Vous trouverez les toilettes juste après l'espace café, sur votre droite.",
+      "Les sanitaires pour handicapés se trouvent près de l'entrée principale, au rez-de-chaussée.",
+      "Il y a une table à langer dans les toilettes du premier étage si vous en avez besoin.",
+      "Les toilettes sont juste là, à gauche après les escaliers. On ne peut pas les rater.",
+      "Avez-vous trouvé les sanitaires ou souhaitez-vous que je vous y accompagne ?",
+      "Les WC ferment 15 minutes avant la bibliothèque. Ne tardez pas trop !"
+    ],
+    "next": "ask_other_needs"
+  },
+  "ask_quiet_enforcement": {
+    "prompt": [
+      "Je suis désolé pour le dérangement. Je vais aller voir ce groupe tout de suite pour leur demander de se taire.",
+      "Vous avez raison, le niveau sonore est trop élevé. Je vais faire une annonce au micro pour rappeler les règles.",
+      "Je vais demander à mon collègue de faire une ronde dans la salle d'étude pour calmer les bavardages.",
+      "Le silence est d'or ici ! Je vais intervenir immédiatement auprès des personnes bruyantes.",
+      "Merci de m'avoir prévenu. On essaie de maintenir un environnement calme pour tout le monde.",
+      "Si le bruit persiste, n'hésitez pas à revenir me voir. Je peux aussi vous proposer une autre salle.",
+      "Je vais rappeler à ces usagers que les appels téléphoniques doivent se passer à l'extérieur.",
+      "C'est vrai que c'est un peu agité aujourd'hui. Je vais m'assurer que le calme revienne rapidement.",
+      "Je vais demander aux étudiants de baisser d'un ton. Merci de votre patience.",
+      "Le calme est revenu ? Sinon, je peux demander à la sécurité d'intervenir discrètement."
+    ],
+    "next": "ask_other_needs"
+  },
+  "ask_charging_station": {
+    "prompt": [
+      "Toutes les tables de la salle d'étude sont équipées de prises électriques. Installez-vous où vous voulez !",
+      "Nous avons une borne de recharge pour smartphones près de l'accueil. C'est gratuit et sécurisé.",
+      "Vous pouvez brancher votre ordinateur sur les prises situées le long du mur bleu, là-bas.",
+      "Désolé, toutes les places avec prises sont occupées pour le moment. Voulez-vous attendre qu'une se libère ?",
+      "Nous prêtons des batteries externes à l'accueil contre le dépôt de votre carte de bibliothèque.",
+      "La zone de recharge se trouve au deuxième étage, dans l'espace numérique.",
+      "Attention, n'utilisez que les prises autorisées pour éviter de faire sauter les plombs !",
+      "Voulez-vous un câble USB ? On en a quelques-uns en prêt si vous avez oublié le vôtre.",
+      "Les prises de courant sont situées sous les tables circulaires dans le hall principal.",
+      "C'est possible de charger votre appareil, mais ne le laissez pas sans surveillance, s'il vous plaît."
+    ],
+    "next": "ask_other_needs"
+  },
+  "ask_new_acquisitions": {
+    "prompt": [
+      "Le rayon des nouveautés est juste ici, devant le guichet d'accueil. On vient de les installer !",
+      "Toutes nos dernières acquisitions sont présentées sur les étagères à l'entrée de chaque section.",
+      "Voulez-vous la liste des nouveaux titres que nous avons reçus ce mois-ci ? Elle est sur ce dépliant.",
+      "Les nouveaux DVD sont exposés dans le présentoir central au premier étage. On y va ?",
+      "Nous avons un espace 'Nouveautés' spécifique pour la littérature étrangère. C'est ce que vous cherchez ?",
+      "On reçoit des nouveautés tous les mardis. Revenez nous voir régulièrement pour ne rien rater !",
+      "Le coin des nouvelles acquisitions jeunesse est situé juste à l'entrée de leur espace dédié.",
+      "Vous pouvez aussi consulter les nouveautés directement sur notre catalogue en ligne. Pratique, non ?",
+      "Voulez-vous que je vous montre les coups de cœur des bibliothécaires parmi les nouveautés ?",
+      "Les livres avec une pastille rouge sont nos acquisitions les plus récentes. Servez-vous !"
+    ],
+    "next": "ask_other_needs"
+  },
+  "ask_drinking_fountain": {
+    "prompt": [
+      "Il y a une fontaine à eau potable au rez-de-chaussée, près des toilettes. Elle est en libre-service.",
+      "Vous pouvez remplir votre gourde au point d'eau situé dans l'espace détente, au premier étage.",
+      "Désolé, la fontaine est en panne, mais vous pouvez acheter des bouteilles au distributeur automatique.",
+      "L'eau de la fontaine est bien fraîche ! Elle se trouve juste derrière le grand pilier central.",
+      "Oui, nous avons une fontaine à eau filtrée à disposition des usagers. Voulez-vous un gobelet ?",
+      "La fontaine à eau est située à côté de l'ascenseur, à chaque étage du bâtiment.",
+      "C'est important de s'hydrater ! La fontaine est juste là, à gauche de l'entrée de la salle d'étude.",
+      "Voulez-vous que je vous indique le chemin vers la fontaine la plus proche ?",
+      "L'eau est gratuite pour tous. La fontaine se trouve près de la machine à café.",
+      "N'oubliez pas de bien vider votre gobelet avant de le jeter dans la poubelle de tri. Merci !"
+    ],
+    "next": "ask_other_needs"
+  },
+  "ask_opening_hours": {
+    "prompt": [
+      "Nos horaires sont : du mardi au vendredi de 10h à 19h, et le samedi jusqu'à 18h. Cela vous convient-il ?",
+      "Nous sommes ouverts en nocturne le jeudi jusqu'à 21h pour les étudiants. Voulez-vous les horaires du week-end ?",
+      "La bibliothèque est fermée le lundi et les jours fériés. Avez-vous besoin de plus de précisions ?",
+      "Voici nos heures d'ouverture habituelles : 10h-19h en semaine. Souhaitez-vous connaître les horaires d'été ?",
+      "Nous accueillons le public dès 10h le matin. Voulez-vous savoir si nous sommes ouverts demain ?",
+      "Attention, nous fermons exceptionnellement plus tôt vendredi prochain. Voulez-vous noter la date ?",
+      "Les horaires varient selon les sections, mais le hall principal ferme à 19h. Autre chose ?",
+      "Pendant les vacances scolaires, nous ouvrons un peu plus tard le matin. Voulez-vous le planning ?",
+      "Le dimanche, seule la salle d'étude est ouverte de 14h à 18h. Est-ce ce que vous cherchiez ?",
+      "Vous pouvez retrouver tous nos horaires sur le site web ou sur ce dépliant. D'autres questions ?"
+    ],
+    "next": "ask_other_needs"
+  },
+  "ask_donation_policy": {
+    "prompt": [
+      "Nous acceptons les dons de livres récents et en bon état. En avez-vous apporté ?",
+      "Vos livres doivent dater de moins de 5 ans pour être intégrés à notre fonds. Est-ce le cas ?",
+      "Nous ne prenons pas les encyclopédies ni les manuels scolaires périmés. Qu'avez-vous à proposer ?",
+      "Les dons sont soumis à l'approbation des bibliothécaires. Voulez-vous remplir ce formulaire ?",
+      "Nous acceptons volontiers les romans et les BD s'ils ne sont pas jaunis. Combien en avez-vous ?",
+      "Merci de penser à nous ! Les livres seront soit intégrés, soit donnés à des associations. D'accord ?",
+      "Nous ne pouvons pas accepter les livres dont les pages sont déchirées ou tachées. Sont-ils impeccables ?",
+      "Pour les dons importants, merci de nous envoyer une liste par mail. Voulez-vous l'adresse ?",
+      "Si nous ne pouvons pas les garder, ils iront dans la 'boîte à livres' libre-service. Cela vous va ?",
+      "Avez-vous des documents locaux ou d'histoire régionale ? Nous en cherchons particulièrement."
+    ],
+    "next": "ask_other_needs"
+  },
+  "ask_book_details": {
+    "prompt": [
+      "Bien sûr ! Avez-vous le titre exact ou le nom de l'auteur en tête ?",
+      "Je peux chercher pour vous. C'est quel genre de livre ? Un roman, un essai ?",
+      "Cherchez-vous ce livre pour le plaisir ou pour un projet scolaire/professionnel ?",
+      "Est-ce une nouveauté ou un ouvrage plus ancien ? Ça m'aidera pour la recherche.",
+      "Dites-moi tout : titre, auteur, ou même juste le sujet si vous avez un doute.",
+      "Voulez-vous que nous regardions ensemble sur l'ordinateur de consultation ?",
+      "C'est pour vous ou pour offrir ? Nous avons aussi une section jeunesse très fournie.",
+      "Si vous avez l'ISBN, c'est encore plus rapide ! Sinon, le titre suffira.",
+      "Cherchez-vous un auteur particulier en ce moment ? On vient de recevoir des polars.",
+      "Avez-vous vu ce livre sur notre site internet ou dans une critique littéraire ?"
+    ],
+    "capture": "book_query",
+    "intents": {
+      "manga": "ask_manga_section"
+    },
+    "next": "check_availability"
+  },
+  "ask_manga_section": {
+    "prompt": [
+      "Ah, les mangas ! Vous préférez les Shonen, les Shojo ou plutôt les Seinen ?",
+      "Notre rayon manga est très populaire. Cherchez-vous une série en particulier ?",
+      "Nous avons les derniers One Piece et Naruto. Voulez-vous voir les nouveautés ?",
+      "Cherchez-vous un titre spécifique ou voulez-vous que je vous conseille une série ?",
+      "La section manga est au premier étage, juste à côté des BD. On y va ?",
+      "Voulez-vous savoir si le tome que vous cherchez est disponible ou déjà emprunté ?",
+      "Nous avons aussi des adaptations en anime en DVD. Ça vous intéresse ?",
+      "Préférez-vous les classiques ou les séries plus récentes comme Spy x Family ?",
+      "Cherchez-vous des mangas en version originale japonaise ou en français ?",
+      "Avez-vous une préférence de genre : aventure, romance, horreur ou sport ?"
+    ],
+    "capture": "manga_pref",
+    "next": "check_availability"
+  },
+  "check_availability": {
+    "prompt": [
+      "Je vérifie sur l'ordinateur... Un instant s'il vous plaît.",
+      "Alors, voyons voir si nous l'avons en rayon ou s'il est déjà emprunté.",
+      "Le système indique qu'il est disponible ! Il devrait être au rayon littérature.",
+      "Ah, il semble qu'il soit en transit depuis une autre bibliothèque. Voulez-vous le réserver ?",
+      "Le livre est actuellement prêté. Il doit revenir dans deux semaines. Voulez-vous être prévenu ?",
+      "Bonne nouvelle, il nous en reste un exemplaire en réserve. Je vais le chercher ?",
+      "Désolé, cet ouvrage est uniquement consultable sur place. Voulez-vous vous installer ?",
+      "Il est marqué comme 'disponible' mais je ne le vois pas en rayon. Je fais une recherche ?",
+      "Nous avons ce titre, mais dans une édition différente. Est-ce que cela vous convient ?",
+      "Il est dans notre réserve centrale. Si vous le commandez, il sera là demain. D'accord ?"
+    ],
+    "next": "provide_assistance"
+  },
+  "ask_staff_pick": {
+    "prompt": [
+      "Nos bibliothécaires ont adoré le dernier prix Goncourt ! Voulez-vous le feuilleter ?",
+      "Si vous aimez les thrillers, j'ai un coup de cœur personnel à vous proposer. Tenté ?",
+      "Voici nos sélections du mois. Il y a un peu de tout, de la poésie à la science-fiction.",
+      "Voulez-vous découvrir l'auteur qui fait fureur dans notre club de lecture ?",
+      "J'ai justement mis de côté quelques pépites méconnues. Voulez-vous y jeter un œil ?",
+      "On nous demande beaucoup ce roman historique en ce moment. C'est passionnant !",
+      "Si vous voulez quelque chose de léger pour les vacances, j'ai exactement ce qu'il vous faut.",
+      "Voici la liste de nos lectures préférées de l'année. Un titre vous inspire ?",
+      "Nous avons un nouveau rayon 'pépites' avec des livres choisis par l'équipe. On regarde ?",
+      "C'est un classique, mais il reste indémodable. Voulez-vous redécouvrir cet auteur ?"
+    ],
+    "next": "provide_assistance"
+  },
+  "provide_assistance": {
+    "prompt": [
+      "Suivez-moi, je vais vous montrer exactement où il se trouve dans les rayons.",
+      "Il est classé à la lettre R, dans la section des policiers. On y va ensemble ?",
+      "Je vous accompagne jusqu'à l'étagère pour être sûr que vous le trouviez.",
+      "C'est juste derrière ce pilier, au troisième niveau. Je vous aide à l'attraper ?",
+      "Voulez-vous que je vous montre comment utiliser le code de classement sur la tranche ?",
+      "On va chercher ensemble, les rayons ont été un peu réorganisés récemment.",
+      "Le voilà ! C'est bien cette édition que vous cherchiez, n'est-ce pas ?",
+      "N'hésitez pas si vous avez besoin d'un autre livre, je reste dans le secteur.",
+      "Voulez-vous que je vérifie si nous avons d'autres titres du même auteur à côté ?",
+      "Je vous laisse le feuilleter tranquillement. Si c'est le bon, on passe à l'emprunt ?"
+    ],
+    "next": "ask_loan"
+  },
+  "ask_loan": {
+    "prompt": [
+      "Souhaitez-vous emprunter ce livre ou simplement le consulter sur place ?",
+      "Voulez-vous prendre d'autres documents avec celui-ci ? Des DVD ou des revues ?",
+      "Avez-vous votre carte de bibliothèque avec vous pour finaliser l'emprunt ?",
+      "C'est un excellent choix ! Voulez-vous l'ajouter à votre compte pour 4 semaines ?",
+      "Souhaitez-vous également prendre un livre audio pour vos trajets ?",
+      "Pour emprunter, il suffit de passer à l'automate ou de rester ici avec moi. Qu'allez-vous faire ?",
+      "Rappel : vous pouvez prendre jusqu'à 10 livres à la fois. Voulez-vous en prendre plus ?",
+      "N'oubliez pas que les nouveautés sont limitées à 2 semaines d'emprunt. C'est bon ?",
+      "Avez-vous pensé à prendre la suite de la série pour ne pas être coupé dans votre lecture ?",
+      "Voulez-vous que je vous mette ce livre de côté le temps que vous fassiez un tour ?"
+    ],
+    "intents": {
+      "yes": "check_card"
+    }
+  },
+  "ask_return_card": {
+    "prompt": [
+      "Bonjour ! Vous venez rendre des documents ? Puis-je avoir votre carte, s'il vous plaît ?",
+      "C'est pour un retour ? Vous pouvez utiliser la machine automatique ou me les donner.",
+      "Avez-vous fini vos lectures ? Je vais scanner les livres pour les retirer de votre compte.",
+      "Bonjour ! Est-ce que tout s'est bien passé avec ces livres ? Pas de souci particulier ?",
+      "Voulez-vous que je vérifie l'état des documents avec vous avant de valider le retour ?",
+      "Avez-vous d'autres livres à rendre qui seraient restés dans votre sac ou votre voiture ?",
+      "C'est pour rendre ces DVD ? J'espère qu'ils vous ont plu ! Votre carte, s'il vous plaît.",
+      "Je scanne votre carte d'abord pour voir la liste de vos emprunts en cours.",
+      "Souhaitez-vous un reçu papier après avoir rendu vos documents ?",
+      "Les livres sont-ils complets ? Pas de CD ou de supplément manquant à l'intérieur ?"
+    ],
+    "next": "check_card"
+  },
+  "confirm_return": {
+    "prompt": [
+      "C'est fait ! Les documents ont bien été retournés et votre compte est à jour.",
+      "Voilà, j'ai enregistré le retour de vos 3 livres. Tout est en ordre.",
+      "Merci ! Voulez-vous que j'imprime une preuve de retour pour votre dossier ?",
+      "Le retour a été validé. Vous pouvez maintenant emprunter de nouveaux livres.",
+      "C'est bon, le système a bien pris en compte vos retours. Bonne journée !",
+      "J'ai bien récupéré les DVD, merci de les avoir remis dans leurs boîtes.",
+      "Tout est parfait. Votre compte est libre pour de nouvelles aventures littéraires !",
+      "Merci pour votre ponctualité ! Les livres vont être remis en rayon rapidement.",
+      "Voilà, c'est enregistré. Souhaitez-vous une autre aide avant de partir ?",
+      "Vos retours sont validés. N'oubliez pas de jeter un œil aux nouveautés en partant !"
+    ],
+    "next": "ask_other_needs"
+  },
+  "handle_late_fees": {
+    "prompt": [
+      "Il semble que vous ayez un peu de retard sur vos derniers emprunts. Vous le saviez ?",
+      "Le système indique des pénalités de retard d'un montant de 5 euros. Voulez-vous régler ?",
+      "Votre compte est actuellement bloqué à cause de livres non rendus à temps. Que s'est-il passé ?",
+      "Il y a des frais accumulés sur votre carte. Souhaitez-vous avoir le détail des titres concernés ?",
+      "Malheureusement, je ne peux pas valider de nouveaux emprunts avant le règlement des frais.",
+      "Vous avez 3 jours de retard, ce qui fait une petite amende. Voulez-vous payer maintenant ?",
+      "Les frais s'élèvent à 2 euros par semaine de retard. Voulez-vous une facilité de paiement ?",
+      "C'est la troisième relance pour ce livre. Les frais commencent à monter, on s'en occupe ?",
+      "Votre accès aux ordinateurs est suspendu tant que les frais ne sont pas payés. D'accord ?",
+      "Voulez-vous contester ces frais ou préférez-vous les régler tout de suite par carte ?"
+    ],
+    "next": "process_fee"
+  },
+  "process_fee": {
+    "prompt": [
+      "Merci pour le règlement. Votre compte est désormais réactivé et prêt à l'emploi.",
+      "J'ai bien reçu votre paiement. Vous pouvez de nouveau emprunter dès maintenant.",
+      "Le paiement a été validé. Voulez-vous votre ticket de caisse par mail ou en papier ?",
+      "Voilà, les frais ont été effacés de votre dossier. Plus de soucis !",
+      "Merci. Je réinitialise votre accès aux services numériques immédiatement.",
+      "Tout est en règle. Faites attention aux dates de retour la prochaine fois !",
+      "Le paiement par carte bancaire a bien fonctionné. Voici votre reçu.",
+      "J'ai mis à jour votre statut. Vous avez de nouveau droit à 10 emprunts simultanés.",
+      "C'est tout bon ! Votre compte est 'vert' dans notre système désormais.",
+      "Merci. Souhaitez-vous que je vous montre comment prolonger vos livres en ligne ?"
+    ],
+    "next": "ask_other_needs"
+  },
+  "handle_damaged_book": {
+    "prompt": [
+      "Oh, on dirait que ce livre a pris l'eau. Que s'est-il passé exactement ?",
+      "La couverture est assez abîmée sur cet exemplaire. Était-ce déjà comme ça ?",
+      "Il manque quelques pages à la fin de ce roman. L'aviez-vous remarqué ?",
+      "Ce DVD est tout rayé, il risque de ne plus fonctionner. Vous avez eu des soucis de lecture ?",
+      "Malheureusement, nous devons facturer le remplacement si le livre est irréparable. D'accord ?",
+      "Je vais devoir demander l'avis du conservateur pour ce dégât. Pouvez-vous patienter ?",
+      "On dirait que quelqu'un a écrit sur les pages. C'est dommage pour les prochains lecteurs.",
+      "Le livre est très taché, nous ne pouvons pas le remettre en rayon ainsi. Une explication ?",
+      "Voulez-vous essayer de le réparer vous-même ou préférez-vous payer les frais de remise en état ?",
+      "C'est un ouvrage rare, les dégâts sont assez graves. Je dois remplir un constat, d'accord ?"
+    ],
+    "next": "process_fee"
+  },
+  "ask_registration_info": {
+    "prompt": [
+      "C'est votre première fois chez nous ? Voulez-vous vous inscrire pour emprunter ?",
+      "Pour créer votre carte, j'aurai besoin d'une pièce d'identité. L'avez-vous sur vous ?",
+      "Avez-vous un justificatif de domicile de moins de 3 mois pour votre dossier ?",
+      "Êtes-vous résident de la commune ? Le tarif est différent pour les extérieurs.",
+      "C'est pour une inscription individuelle ou pour toute la famille ?",
+      "J'ai besoin de votre nom, prénom et d'une adresse email valide. On commence ?",
+      "Souhaitez-vous également inscrire vos enfants ? C'est gratuit pour les mineurs.",
+      "Voulez-vous que je vous explique les différentes formules d'abonnement disponibles ?",
+      "Il me faut aussi un numéro de téléphone pour vous prévenir quand vos réservations arrivent.",
+      "Avez-vous une photo d'identité ou préférez-vous que j'utilise votre nom sur la carte ?"
+    ],
+    "next": "confirm_registration"
+  },
+  "confirm_registration": {
+    "prompt": [
+      "Félicitations ! Votre carte est prête. Vous pouvez emprunter jusqu'à 10 documents.",
+      "Voilà votre nouvelle carte de bibliothèque. Elle est valable dans tout le réseau !",
+      "Votre compte est créé. La durée d'emprunt est de 4 semaines, renouvelable une fois.",
+      "C'est fait ! Vous avez désormais accès à tous nos services, y compris en ligne.",
+      "Bienvenue parmi nos abonnés ! Voici un petit guide pour vos premières visites.",
+      "Votre abonnement est actif pour un an. On vous enverra un mail de rappel à l'échéance.",
+      "Tout est en ordre. Voulez-vous que je vous montre comment vous connecter au portail ?",
+      "Vous pouvez commencer à emprunter dès aujourd'hui. Un livre vous tente déjà ?",
+      "Votre carte vous permet aussi d'accéder gratuitement aux ordinateurs de la salle numérique.",
+      "Voilà ! N'oubliez pas de signer votre carte au dos. Bonne découverte de nos rayons !"
+    ],
+    "next": "ask_other_needs"
+  },
+  "ask_membership_renewal": {
+    "prompt": [
+      "Votre abonnement arrive à expiration. Souhaitez-vous le renouveler aujourd'hui ?",
+      "La carte est expirée depuis quelques jours. Voulez-vous prolonger votre adhésion ?",
+      "Pour renouveler, j'ai juste besoin de vérifier si vous habitez toujours à la même adresse.",
+      "Voulez-vous repartir pour une année de lecture avec nous ? Le tarif n'a pas changé.",
+      "Votre compte est inactif. Souhaitez-vous payer la cotisation annuelle pour le réactiver ?",
+      "C'est le moment de la reconduction annuelle. Avez-vous vos documents justificatifs ?",
+      "Votre carte ne passe plus à l'automate car elle est périmée. On s'en occupe ?",
+      "Voulez-vous passer d'un abonnement individuel à un abonnement famille cette année ?",
+      "Le renouvellement se fait en quelques minutes. Voulez-vous que je m'en charge ?",
+      "Pensez à renouveler pour continuer à profiter de nos ressources numériques à distance."
+    ],
+    "next": "confirm_registration"
+  },
+  "handle_lost_card": {
+    "prompt": [
+      "Oh mince, vous avez perdu votre carte ? Je vais la désactiver immédiatement par sécurité.",
+      "Ne vous inquiétez pas, on peut vous en refaire une. Il y a juste des frais de 2 euros.",
+      "Voulez-vous que je cherche si elle a été rapportée à l'accueil par un autre usager ?",
+      "Je bloque votre ancien compte pour éviter que quelqu'un d'autre ne l'utilise. D'accord ?",
+      "Pour une nouvelle carte, j'ai besoin de revoir votre pièce d'identité. Vous l'avez ?",
+      "C'est la deuxième fois cette année, essayez de faire attention la prochaine fois !",
+      "La nouvelle carte aura un nouveau numéro. Voulez-vous que je mette à jour vos codes ?",
+      "Une fois la nouvelle carte émise, l'ancienne ne fonctionnera plus si vous la retrouvez.",
+      "Voulez-vous régler les frais de remplacement par carte ou en espèces ?",
+      "Je vous imprime une carte provisoire le temps de fabriquer la carte définitive ?"
+    ],
+    "next": "process_fee"
+  },
+  "handle_lost_item": {
+    "prompt": [
+      "Avez-vous perdu quelque chose dans la bibliothèque ? Un sac, des clés, un téléphone ?",
+      "Nous avons une boîte aux objets trouvés. Voulez-vous que j'aille regarder ?",
+      "Où étiez-vous installé précisément ? Je peux aller faire un tour dans les rayons.",
+      "Pouvez-vous me décrire l'objet que vous avez égaré ? Sa couleur, sa taille ?",
+      "Depuis quand avez-vous remarqué sa disparition ? Aujourd'hui ou plus tôt ?",
+      "On nous a rapporté une paire de lunettes ce matin. Est-ce que ce sont les vôtres ?",
+      "Je vais noter votre nom et vos coordonnées au cas où on le retrouverait plus tard.",
+      "Avez-vous regardé près des photocopieurs ? C'est souvent là qu'on oublie des choses.",
+      "Voulez-vous que je demande à mes collègues s'ils ont vu passer votre parapluie ?",
+      "Rien n'a été rapporté pour l'instant. Souhaitez-vous remplir un rapport de perte ?"
+    ],
+    "next": "ask_lost_item_report"
+  },
+  "ask_lost_item_report": {
+    "prompt": [
+      "Voulez-vous remplir ce petit formulaire pour que nous puissions vous contacter ?",
+      "Je note le détail de votre perte dans notre registre interne. Quel est votre numéro ?",
+      "Si quelqu'un rapporte l'objet, préférez-vous être prévenu par téléphone ou par mail ?",
+      "Je vais faire une annonce au micro, on ne sait jamais. Quelle est la marque de l'objet ?",
+      "Est-ce un objet de grande valeur ? Nous devrons peut-être prévenir la police municipale.",
+      "Voulez-vous laisser une description précise pour mes collègues de l'après-midi ?",
+      "Je vérifie une dernière fois sous les tables de la salle de travail. Attendez ici.",
+      "Si c'est un portefeuille, je vous conseille de faire opposition tout de suite. D'accord ?",
+      "Voulez-vous que je vous donne le numéro des objets trouvés de la mairie ?",
+      "On garde les objets 3 mois ici avant de les envoyer au service central. C'est noté ?"
+    ],
+    "next": "ask_other_needs"
+  },
+  "check_card": {
+    "prompt": [
+      "Je scanne votre carte... Voilà, le système est en train de charger votre dossier.",
+      "Pouvez-vous passer votre code-barres devant le lecteur rouge, juste ici ?",
+      "Un instant, je vérifie s'il n'y a pas de message ou de réservation sur votre compte.",
+      "Le système est un peu lent aujourd'hui, merci de votre patience pendant le scan.",
+      "Ah, je vois que vous avez déjà 8 livres. Il ne vous reste que 2 places. Ça va ?",
+      "Votre carte semble ne plus être lisible. Voulez-vous que je saisisse le code à la main ?",
+      "Le scan a fonctionné. Oh, vous avez un livre qui attend au guichet des réservations !",
+      "Tout est en ordre sur votre profil. Prêt pour l'enregistrement des nouveaux prêts ?",
+      "Est-ce bien votre adresse actuelle qui s'affiche à l'écran ? 12 rue des Fleurs ?",
+      "Votre carte est valide jusqu'au mois prochain. Pensez à la renouveler bientôt."
+    ],
+    "next": "confirm_loan"
+  },
+  "confirm_loan": {
+    "prompt": [
+      "C'est tout bon ! Vos livres sont enregistrés. Ils sont à rendre pour le 15 du mois prochain.",
+      "Voilà, l'emprunt est validé. Vous recevrez un mail de rappel 3 jours avant l'échéance.",
+      "C'est enregistré ! Profitez bien de vos lectures. Avez-vous besoin d'un sac ?",
+      "Tout est en règle. N'oubliez pas que vous pouvez prolonger la durée sur le site web.",
+      "Le prêt est fini. Voulez-vous que je vous imprime la liste des dates de retour ?",
+      "Merci ! Les documents sont maintenant sur votre compte pour une durée de 28 jours.",
+      "Voilà vos livres. Attention à ne pas les oublier dans le bus, ça arrive souvent !",
+      "C'est validé. Bonne lecture et à bientôt à la bibliothèque !",
+      "J'ai bien compté 5 livres. C'est bien ce que vous avez avec vous ?",
+      "L'emprunt est terminé. N'hésitez pas à nous donner votre avis à votre retour !"
+    ],
+    "next": "ask_other_needs"
+  },
+  "ask_digital_services": {
+    "prompt": [
+      "Souhaitez-vous utiliser un de nos ordinateurs ou préférez-vous emprunter une tablette ?",
+      "Nous proposons aussi des liseuses avec des centaines de classiques. Ça vous tente ?",
+      "Avez-vous besoin d'accéder au Wi-Fi avec votre propre ordinateur portable ?",
+      "Voulez-vous découvrir notre catalogue de films et de musique en streaming gratuit ?",
+      "Nos services numériques incluent l'apprentissage des langues en ligne. Intéressé ?",
+      "Avez-vous besoin d'aide pour imprimer un document ou scanner une photo ?",
+      "Voulez-vous utiliser notre salle de jeu vidéo au deuxième étage ?",
+      "Connaissez-vous notre application mobile pour réserver des livres à distance ?",
+      "Nous avons des postes dédiés à la recherche généalogique. Voulez-vous essayer ?",
+      "Souhaitez-vous une initiation informatique pour apprendre à utiliser les outils bureautiques ?"
+    ],
+    "intents": {
+      "wifi": "ask_wifi_password",
+      "printer": "ask_printer_help",
+      "confirm": "confirm_digital_service"
+    }
+  },
+  "confirm_digital_service": {
+    "prompt": [
+      "C'est parti ! Votre session est ouverte sur le poste numéro 4 pour une heure.",
+      "Voici vos codes d'accès pour la plateforme de streaming. Ils sont valables un mois.",
+      "La tablette est prête. N'oubliez pas de nous la rendre 15 minutes avant la fermeture.",
+      "Je vous ai réservé un créneau pour l'atelier informatique de samedi. C'est noté ?",
+      "Votre compte numérique est activé. Vous pouvez maintenant télécharger des ebooks.",
+      "La session sur l'ordinateur est gratuite mais limitée. Voulez-vous un prolongement ?",
+      "Voilà, vous êtes connecté. Avez-vous besoin d'un casque audio pour votre travail ?",
+      "Le scan est envoyé directement sur votre adresse email. Vérifiez vos spams !",
+      "Tout fonctionne. Si l'ordinateur plante, n'hésitez pas à venir me voir.",
+      "Votre réservation pour la liseuse est confirmée. Vous pouvez passer la prendre demain."
+    ],
+    "next": "ask_other_needs"
+  },
+  "ask_wifi_password": {
+    "prompt": [
+      "Le mot de passe du Wi-Fi est affiché sur le grand panneau bleu à l'entrée.",
+      "Il n'y a pas de mot de passe, il suffit de valider les conditions sur la page qui s'ouvre.",
+      "Le réseau s'appelle 'BIBLIO-PUBLIC'. Voulez-vous que je vous aide à vous connecter ?",
+      "Le code change tous les lundis. Voici celui de cette semaine, écrit sur ce papier.",
+      "Avez-vous réussi à trouver le réseau sur votre smartphone ? Il est assez puissant ici.",
+      "C'est gratuit pour tous, abonnés ou non. Pas besoin de vos identifiants de carte.",
+      "Attention, le Wi-Fi se coupe automatiquement 10 minutes avant la fermeture globale.",
+      "Le débit est limité pour le téléchargement, mais parfait pour la navigation simple.",
+      "Si vous ne voyez pas le réseau, essayez de vous rapprocher de la borne près de l'accueil.",
+      "Voulez-vous que je vous montre comment accéder au portail une fois connecté ?"
+    ],
+    "next": "ask_other_needs"
+  },
+  "ask_printer_help": {
+    "prompt": [
+      "Il semble y avoir un bourrage papier dans l'imprimante. Un instant, je vais l'ouvrir.",
+      "Avez-vous bien sélectionné l'imprimante 'ETAGE-1' sur votre écran d'ordinateur ?",
+      "L'encre est presque épuisée, le rendu est un peu clair. Voulez-vous que je change la cartouche ?",
+      "Avez-vous crédité votre compte pour les impressions ? C'est 10 centimes la page.",
+      "Voulez-vous imprimer en noir et blanc ou avez-vous besoin de la couleur ?",
+      "Je vous montre comment lancer l'impression depuis votre clé USB. C'est très simple.",
+      "L'imprimante est occupée par un gros dossier. Voulez-vous attendre quelques minutes ?",
+      "Avez-vous pensé à cliquer sur 'valider' sur l'écran de contrôle de l'imprimante ?",
+      "Le format papier est-il bien en A4 ? On peut aussi faire du A3 si vous voulez.",
+      "Si le PDF ne s'imprime pas, essayez de le convertir en image. Je vous aide ?"
+    ],
+    "next": "ask_other_needs"
+  },
+  "ask_audiobooks": {
+    "prompt": [
+      "Nous avons des livres audio en CD mais aussi des versions MP3 à télécharger.",
+      "Cherchez-vous un titre en particulier ou voulez-vous parcourir le rayon 'Audio' ?",
+      "C'est idéal pour écouter dans la voiture ! Vous préférez quel genre d'histoire ?",
+      "Voulez-vous savoir si ce roman existe en version lue par un comédien ?",
+      "Nous avons beaucoup de classiques lus pour les étudiants. Ça vous intéresse ?",
+      "Le prêt des livres audio est le même que pour les livres papier : 4 semaines.",
+      "Avez-vous déjà testé nos lecteurs 'Daisy' pour les personnes malvoyantes ?",
+      "Voulez-vous que je vous montre comment transférer les fichiers sur votre téléphone ?",
+      "On vient de recevoir les derniers prix du livre audio. Voulez-vous la liste ?",
+      "Cherchez-vous des histoires pour enfants à écouter le soir avant de dormir ?"
+    ],
+    "next": "ask_loan"
+  },
+  "ask_magazines": {
+    "prompt": [
+      "Notre coin presse est au rez-de-chaussée. Cherchez-vous un titre spécifique ?",
+      "Les derniers numéros sont consultables uniquement sur place. Est-ce un souci ?",
+      "Voulez-vous savoir si nous sommes abonnés à ce magazine de mode ou de sport ?",
+      "On peut emprunter les anciens numéros des revues. Voulez-vous que je regarde ?",
+      "Cherchez-vous des quotidiens nationaux ou plutôt de la presse régionale ?",
+      "Nous avons aussi accès à des milliers de journaux en ligne. Voulez-vous le lien ?",
+      "La section décoration et jardinage est très appréciée. Voulez-vous y aller ?",
+      "Avez-vous besoin d'aide pour retrouver un article paru il y a quelques mois ?",
+      "Voulez-vous savoir quand arrive le prochain numéro de votre revue préférée ?",
+      "Nous recevons la presse internationale tous les matins. Vous parlez anglais ou espagnol ?"
+    ],
+    "next": "ask_loan"
+  },
+  "ask_study_room": {
+    "prompt": [
+      "Cherchez-vous un bureau individuel ou une salle pour travailler en groupe ?",
+      "Les salles de groupe doivent être réservées à l'avance. Voulez-vous voir le planning ?",
+      "Avez-vous besoin d'un tableau blanc ou d'un vidéoprojecteur pour votre réunion ?",
+      "Combien de personnes serez-vous dans la salle ? Nous avons des jauges différentes.",
+      "La salle d'étude est très calme le matin, c'est idéal pour réviser. On y va ?",
+      "Voulez-vous réserver un créneau de 2 heures pour cet après-midi ?",
+      "Est-ce pour un travail scolaire ou une association ? On a des tarifs différents.",
+      "Toutes nos salles sont équipées de prises électriques pour vos ordinateurs. Pratique, non ?",
+      "Souhaitez-vous être dans la zone de silence absolu ou une zone de travail partagé ?",
+      "La réservation est gratuite pour les abonnés. Voulez-vous que je valide votre créneau ?"
+    ],
+    "intents": {
+      "group": "reserve_group_room",
+      "quiet": "show_quiet_zone"
+    }
+  },
+  "reserve_group_room": {
+    "prompt": [
+      "C'est noté, la salle B est à vous de 14h à 16h. Voici la clé à rendre à la fin.",
+      "Votre réservation est confirmée. Merci de respecter le calme pour vos voisins.",
+      "J'ai enregistré votre groupe. N'oubliez pas de libérer la salle à l'heure exacte.",
+      "Voilà, tout est prêt. La salle est située au fond du couloir à gauche. Bonne séance !",
+      "Voulez-vous que je vous ouvre la salle maintenant ou vous attendez vos amis ?",
+      "Merci de ne pas manger ou boire à l'intérieur de la salle de travail. C'est d'accord ?",
+      "Si vous avez besoin de plus de temps, repassez me voir pour prolonger s'il n'y a personne.",
+      "Avez-vous besoin des codes Wi-Fi spécifiques pour la salle de conférence ?",
+      "Je vous laisse vous installer. Le code de la porte est le 1234 pour aujourd'hui.",
+      "Tout est en ordre. J'espère que vous serez productifs dans cet espace !"
+    ],
+    "next": "ask_other_needs"
+  },
+  "show_quiet_zone": {
+    "prompt": [
+      "La zone de silence se trouve au deuxième étage. C'est l'endroit le plus calme.",
+      "Suivez les flèches bleues au sol, elles vous mèneront directement à la zone calme.",
+      "C'est ici. Merci de mettre votre téléphone sur vibreur et de ne pas parler fort.",
+      "La zone est un peu plus fraîche que le reste du bâtiment. Ça vous va ?",
+      "Il y a encore quelques places près de la fenêtre, c'est très lumineux pour lire.",
+      "Voulez-vous que je vous montre où se trouvent les prises de courant dans cette zone ?",
+      "Si quelqu'un fait trop de bruit, n'hésitez pas à venir nous prévenir à l'accueil.",
+      "C'est parfait pour la concentration. Voulez-vous une lampe de bureau supplémentaire ?",
+      "On évite aussi de grignoter ici pour préserver la propreté des tables. Merci !",
+      "Je vous laisse vous installer. C'est vraiment le coin préféré des étudiants."
+    ],
+    "next": "ask_quiet_zone_rules"
+  },
+  "ask_quiet_zone_rules": {
+    "prompt": [
+      "Puis-je vous rappeler les règles de silence ? On ne parle pas, même à voix basse.",
+      "Les appels téléphoniques doivent être passés à l'extérieur de la zone. C'est compris ?",
+      "Merci de régler vos écouteurs pour que le son ne s'entende pas à l'extérieur.",
+      "L'usage des claviers d'ordinateur est toléré s'ils sont silencieux. Est-ce le cas ?",
+      "Voulez-vous savoir pourquoi nous sommes si stricts sur le calme dans cette salle ?",
+      "On demande d'éteindre complètement les sonneries de portable. C'est fait ?",
+      "Le non-respect du silence peut entraîner une exclusion temporaire de la zone. D'accord ?",
+      "C'est un espace de respect mutuel. Voulez-vous que je vous explique pourquoi ?",
+      "Si vous devez discuter d'un projet, la cafétéria est plus adaptée. On y va ?",
+      "On essaie de limiter les déplacements incessants pour ne pas déranger les autres. Merci !"
+    ],
+    "next": "ask_other_needs"
+  },
+  "ask_event_info": {
+    "prompt": [
+      "Nous organisons souvent des contes pour enfants le mercredi. Ça vous intéresse ?",
+      "Il y a une exposition de photos locales en ce moment dans le hall. Voulez-vous la voir ?",
+      "Connaissez-vous nos 'Heures du Conte' pour les tout-petits ? C'est très mignon.",
+      "Nous avons une rencontre avec un auteur de polars samedi prochain. Voulez-vous réserver ?",
+      "Le programme culturel du mois est disponible ici. Voulez-vous que je vous l'explique ?",
+      "Voulez-vous participer à notre prochain atelier d'écriture créative ?",
+      "Nous diffusons un film documentaire ce soir à 18h. L'entrée est libre et gratuite !",
+      "Voulez-vous savoir s'il reste des places pour le concert de jazz de la semaine prochaine ?",
+      "Nos événements sont variés : conférences, jeux de société, débats... Un thème vous tente ?",
+      "Souhaitez-vous recevoir notre lettre d'information par mail pour ne rien rater ?"
+    ],
+    "intents": {
+      "club": "ask_book_club",
+      "talk": "ask_author_talk",
+      "workshop": "ask_workshop"
+    }
+  },
+  "ask_book_club": {
+    "prompt": [
+      "Notre club de lecture se réunit tous les premiers samedis du mois. Voulez-vous venir ?",
+      "On discute d'un livre différent à chaque séance. Pour la prochaine, c'est un roman russe.",
+      "C'est une ambiance très conviviale avec café et biscuits. Ça vous tente d'essayer ?",
+      "Le club est ouvert à tous, quel que soit votre niveau de lecture. Intéressé ?",
+      "Voulez-vous la liste des livres que nous avons déjà lus et critiqués cette année ?",
+      "On cherche justement de nouveaux membres pour animer les débats. Vous seriez partant ?",
+      "Il faut juste s'inscrire pour que nous puissions prévoir assez de chaises. On le fait ?",
+      "Le thème de la rentrée sera la littérature africaine contemporaine. Un avis ?",
+      "Vous n'êtes pas obligé d'avoir fini le livre pour participer à la discussion. C'est bien non ?",
+      "Voulez-vous que je vous mette en contact avec l'animatrice du club ?"
+    ],
+    "next": "ask_other_needs"
+  },
+  "ask_author_talk": {
+    "prompt": [
+      "Un auteur local vient présenter son nouveau roman demain soir. Vous le connaissez ?",
+      "C'est l'occasion de poser vos questions et de faire dédicacer votre livre. Tenté ?",
+      "La rencontre dure environ une heure et finit par un petit verre. On vous inscrit ?",
+      "Voulez-vous savoir quels auteurs ont déjà confirmé leur présence pour le festival ?",
+      "C'est toujours un moment d'échange privilégié et très enrichissant. Ça vous dit ?",
+      "L'entrée est gratuite mais le nombre de places est limité. Je vous en garde une ?",
+      "Avez-vous déjà lu les œuvres de cet auteur ou voulez-vous les découvrir ?",
+      "On organise aussi des tables rondes avec plusieurs écrivains. Voulez-vous le programme ?",
+      "L'auteur parlera de son processus d'écriture et de ses sources d'inspiration. Passionnant !",
+      "Voulez-vous que je vous montre où se trouvent ses livres dans nos rayons ?"
+    ],
+    "next": "ask_other_needs"
+  },
+  "ask_workshop": {
+    "prompt": [
+      "Nous proposons des ateliers d'initiation au codage pour les jeunes. Ça vous intéresse ?",
+      "Samedi, c'est atelier travaux manuels et recyclage créatif. Voulez-vous participer ?",
+      "On apprend aussi à utiliser les imprimantes 3D dans notre FabLab. Tenté par l'expérience ?",
+      "Voulez-vous vous inscrire à l'atelier de généalogie pour retrouver vos ancêtres ?",
+      "C'est un atelier limité à 8 personnes pour un meilleur accompagnement. On y va ?",
+      "Il y a aussi des ateliers philo pour les enfants le dimanche matin. Ça vous parle ?",
+      "Voulez-vous apprendre à réparer vos propres livres lors de notre séance 'Clinique du livre' ?",
+      "Avez-vous besoin de conseils pour utiliser votre nouvelle liseuse ? On a un atelier pour ça.",
+      "Les ateliers sont gratuits pour les abonnés de la bibliothèque. Voulez-vous en profiter ?",
+      "Voulez-vous savoir quel matériel il faut apporter pour l'atelier de dessin ?"
+    ],
+    "next": "ask_other_needs"
+  },
+  "ask_language_learning": {
+    "prompt": [
+      "Nous avons une section entière dédiée à l'apprentissage du français (FLE). Ça vous aide ?",
+      "Cherchez-vous des méthodes de langue avec des CD ou des exercices en ligne ?",
+      "Nous organisons des 'cafés polyglottes' pour pratiquer l'oral. Voulez-vous venir ?",
+      "On a aussi des romans en 'français facile' pour progresser en lisant. Tenté ?",
+      "Voulez-vous savoir si nous avons des dictionnaires ou des livres de grammaire ?",
+      "On propose des méthodes pour plus de 50 langues différentes. Quelle langue apprenez-vous ?",
+      "Avez-vous besoin de préparer un examen comme le DELF ou le TOEFL ? On a les annales.",
+      "Voulez-vous tester notre logiciel de langue sur les ordinateurs de la salle numérique ?",
+      "Cherchez-vous des livres bilingues pour comparer les textes original et traduit ?",
+      "On a aussi des magazines en langues étrangères : anglais, espagnol, allemand. Un choix ?"
+    ],
+    "next": "ask_other_needs"
+  },
+  "ask_local_history": {
+    "prompt": [
+      "Notre fonds local contient des archives passionnantes sur l'histoire de la ville. Intéressé ?",
+      "Cherchez-vous des cartes anciennes ou des photos d'époque de votre quartier ?",
+      "Nous avons des registres paroissiaux numérisés pour vos recherches. Voulez-vous voir ?",
+      "L'histoire régionale est au troisième étage, dans une salle climatisée. On y monte ?",
+      "Voulez-vous consulter la presse locale du siècle dernier sur microfilms ?",
+      "On a des livres écrits par des historiens du coin sur les légendes locales. Ça vous dit ?",
+      "Avez-vous besoin d'aide pour déchiffrer d'vieux documents manuscrits ?",
+      "C'est une section très précieuse, certains documents ne sortent pas de la salle. D'accord ?",
+      "Voulez-vous savoir si nous avons des informations sur une famille précise de la région ?",
+      "On organise aussi des balades historiques dans la ville. Voulez-vous les dates ?"
+    ],
+    "next": "ask_other_needs"
+  },
+  "ask_game_section": {
+    "prompt": [
+      "Saviez-vous que nous avons une ludothèque avec des centaines de jeux de société ?",
+      "Voulez-vous emprunter un jeu pour votre soirée en famille ou y jouer sur place ?",
+      "On a aussi des consoles de jeux vidéo : Switch, PS5... Voulez-vous réserver un créneau ?",
+      "Cherchez-vous un jeu de stratégie, d'ambiance ou plutôt un casse-tête ?",
+      "La section jeux est ouverte à tous les âges. Voulez-vous voir les nouveautés ?",
+      "On organise des tournois de jeux vidéo une fois par mois. Vous êtes bon joueur ?",
+      "Avez-vous besoin qu'on vous explique les règles d'un jeu avant de le prendre ?",
+      "Voulez-vous savoir si ce jeu de plateau est complet avant de l'emprunter ?",
+      "Nous avons des jeux en bois géants pour les événements en extérieur. Intéressé ?",
+      "Le prêt de jeux est limité à 2 par carte pour une durée de 2 semaines. Ça vous va ?"
+    ],
+    "next": "ask_loan"
+  },
+  "ask_suggestion_box": {
+    "prompt": [
+      "Vous ne trouvez pas le livre que vous cherchez ? Voulez-vous suggérer un achat ?",
+      "On a un cahier de suggestions à l'accueil. Voulez-vous y noter votre idée ?",
+      "Si le livre correspond à notre politique d'acquisition, on le commandera. D'accord ?",
+      "Avez-vous le titre et l'auteur de l'ouvrage que vous aimeriez voir dans nos rayons ?",
+      "On étudie toutes les propositions des usagers avec attention. Un titre en tête ?",
+      "Voulez-vous être prévenu personnellement si nous décidons d'acheter ce livre ?",
+      "C'est une excellente idée ! On manque justement de documents sur ce sujet particulier.",
+      "Souhaitez-vous faire cette suggestion directement sur notre site internet ?",
+      "Avez-vous vu ce livre récemment en librairie ou à la télévision ? Parlez-moi en.",
+      "On achète environ 20% des suggestions des lecteurs chaque année. Vous tentez votre chance ?"
+    ],
+    "next": "ask_other_needs"
+  },
+  "ask_inter_library_loan": {
+    "prompt": [
+      "Le livre n'est pas chez nous, mais il est dans une autre bibliothèque du réseau. On le fait venir ?",
+      "Cela prend environ 2 à 3 jours pour recevoir un ouvrage d'une autre ville. Ça vous va ?",
+      "Le service de navette entre les bibliothèques est totalement gratuit. Voulez-vous en profiter ?",
+      "Voulez-vous que je regarde s'il est disponible dans la bibliothèque départementale ?",
+      "Une fois arrivé ici, on vous enverra un petit SMS. C'est pratique, non ?",
+      "On peut aussi commander des documents dans toute la France avec le prêt entre bibliothèques. Intéressé ?",
+      "Attention, le prêt national peut parfois être payant pour les frais d'envoi. D'accord ?",
+      "Voulez-vous réserver ce titre pour qu'il arrive directement dans votre bibliothèque de quartier ?",
+      "C'est un service très utile pour les chercheurs et les étudiants. Voulez-vous tester ?",
+      "Désolé, ce document est trop fragile pour voyager par navette. Il faudra aller le voir sur place."
+    ],
+    "next": "ask_other_needs"
+  },
+  "ask_extension_details": {
+    "prompt": [
+      "Voulez-vous prolonger la durée d'emprunt de vos livres pour 15 jours de plus ?",
+      "Avez-vous besoin d'un peu plus de temps pour finir votre lecture ? C'est possible !",
+      "Je peux renouveler vos prêts si les documents ne sont pas réservés par quelqu'un d'autre.",
+      "Voulez-vous que je vérifie la nouvelle date de retour pour vos 3 romans ?",
+      "La prolongation se fait en un clic sur votre compte en ligne, ou ici avec moi. On le fait ?",
+      "Attention, on ne peut prolonger un livre qu'une seule fois. Voulez-vous l'utiliser maintenant ?",
+      "Est-ce que vous avez votre carte pour que je puisse accéder à la liste de vos emprunts ?",
+      "Voulez-vous prolonger tout votre compte ou seulement un livre en particulier ?",
+      "Le système accepte les prolongations même si vous avez un petit jour de retard. On essaye ?",
+      "Si le livre est une nouveauté, la prolongation n'est malheureusement pas autorisée. D'accord ?"
+    ],
+    "next": "confirm_extension"
+  },
+  "confirm_extension": {
+    "prompt": [
+      "C'est fait ! La nouvelle date de retour est fixée au 30 du mois. Ça vous laisse du temps.",
+      "Voilà, j'ai rajouté 15 jours à votre emprunt. Bonne fin de lecture !",
+      "La prolongation a bien été enregistrée. Vous recevrez une confirmation par mail.",
+      "Tout est en ordre. Vos livres sont maintenant attendus pour la fin du mois.",
+      "C'est validé ! Profitez bien de ce rabais de temps pour savourer votre livre.",
+      "J'ai pu prolonger 4 livres sur 5. Le dernier est réservé, il faudra le rendre. D'accord ?",
+      "Voilà, votre compte est à jour avec les nouvelles échéances. Autre chose ?",
+      "Merci ! N'oubliez pas de les ramener à temps cette fois-ci pour éviter les frais.",
+      "C'est bon, le système a validé le renouvellement immédiat de vos prêts.",
+      "Les 15 jours supplémentaires ont été ajoutés à partir d'aujourd'hui. C'est parfait ?"
+    ],
+    "next": "ask_other_needs"
+  },
+  "ask_other_needs": {
+    "prompt": [
+      "Avez-vous besoin d'autre chose avant de nous quitter ? Un autre renseignement ?",
+      "Puis-je vous aider pour autre chose ? Une recherche, une réservation, un conseil ?",
+      "Est-ce que tout est clair pour vous ou avez-vous une dernière question ?",
+      "N'hésitez pas si vous avez besoin d'aide pour porter vos livres jusqu'à la sortie.",
+      "Voulez-vous connaître les dates de nos prochaines fermetures exceptionnelles ?",
+      "Souhaitez-vous prendre un marque-page ou un dépliant sur nos services numériques ?",
+      "Avez-vous trouvé tout ce que vous cherchiez aujourd'hui ? Pas de déception ?",
+      "Je reste à votre disposition si vous avez un doute sur le fonctionnement de l'automate.",
+      "Voulez-vous que je vous indique où se trouve l'arrêt de bus le plus proche ?",
+      "C'est tout pour aujourd'hui ? Je vous souhaite une excellente journée de lecture !"
+    ],
+    "intents": {
+      "yes": "start",
+      "no": "end_session"
+    }
+  },
+  "end_session": {
+    "prompt": [
+      "Merci de votre visite et à très bientôt à la bibliothèque ! Bonne lecture !",
+      "Au revoir ! J'espère que vous passerez un bon moment avec vos nouveaux livres.",
+      "Excellente journée à vous. N'oubliez pas de revenir nous voir pour les nouveautés !",
+      "Bonne continuation et à la prochaine ! On se voit pour le prochain club de lecture ?",
+      "Ravi d'avoir pu vous aider. À bientôt dans nos rayons !",
+      "Merci, au revoir ! N'hésitez pas à nous suivre sur les réseaux sociaux.",
+      "Bonne lecture ! On attend votre avis sur ce roman avec impatience.",
+      "Passez une belle après-midi. Attention à la pluie en sortant !",
+      "Merci pour votre gentillesse. Au plaisir de vous revoir bientôt !",
+      "Au revoir et merci d'utiliser les services de votre bibliothèque municipale !"
+    ]
+  },
+  "end_session_fail": {
+    "prompt": [
+      "Désolé, nous ne pouvons pas finaliser votre inscription sans tous les documents. À bientôt !",
+      "Il manque votre justificatif de domicile. Je ne peux pas créer la carte aujourd'hui.",
+      "Malheureusement, sans pièce d'identité originale, le dossier est incomplet. Revenez demain !",
+      "Je ne peux pas valider votre compte car vous n'êtes pas résident de la zone. Désolé.",
+      "Le système refuse votre inscription car vous avez déjà un compte actif ailleurs. Étrange.",
+      "Sans la signature de vos parents, je ne peux pas inscrire un mineur. À la prochaine !",
+      "Le document que vous avez apporté est trop vieux. Il en faut un de moins de 3 mois.",
+      "Désolé, on ne peut pas finir aujourd'hui. Notez bien ce qu'il vous manque pour la suite.",
+      "La procédure est stricte, je ne peux pas faire d'exception pour le règlement. Au revoir !",
+      "Dommage, on y était presque ! Revenez avec les papiers manquants dès que possible."
+    ]
+  },
+  "end_session_warning": {
+    "prompt": [
+      "Attention, vous avez des frais en attente. Pensez à les régler lors de votre prochaine visite.",
+      "N'oubliez pas que votre livre est déjà en retard. Merci de le rapporter rapidement !",
+      "Votre abonnement finit demain. Pensez à le renouveler pour ne pas être bloqué.",
+      "Petit rappel : vous avez atteint votre limite d'emprunts. Rendez des livres bientôt !",
+      "Attention, la bibliothèque ferme dans 5 minutes. Merci de vous diriger vers la sortie.",
+      "Votre compte présente une anomalie, merci de passer voir un responsable la prochaine fois.",
+      "N'oubliez pas votre parapluie à l'entrée ! Bonne fin de journée.",
+      "Rappel amical : les DVD se rendent dans la boîte spécifique, pas avec les livres.",
+      "Votre réservation expire bientôt, venez la chercher avant samedi soir !",
+      "Faites attention aux dates de retour pour éviter les pénalités. À bientôt !"
+    ]
+  }
+}

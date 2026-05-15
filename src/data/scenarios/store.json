@@ -1,0 +1,200 @@
+{
+  "start": {
+    "prompt": [
+      "Bonjour ! Je peux vous aider à trouver quelque chose ?",
+      "Bonjour. Vous cherchez un article particulier ?",
+      "Bienvenue ! C'est pour un achat, un retour d'article ou une carte cadeau ?"
+    ],
+    "intents": {
+      "clothing": "ask_clothing_type",
+      "shoes": "ask_shoe_size",
+      "return": "return_item_start",
+      "gift_card": "gift_card_start",
+      "brand": "brand_check_start",
+      "mannequin": "mannequin_request_start",
+      "toilets": "find_toilets_start",
+      "branch": "other_branch_check_start",
+      "wrap": "gift_wrap_start",
+      "price_match": "price_match_start",
+      "queue": "fitting_room_queue_start",
+      "loyalty": "join_loyalty_start",
+      "tag_check": "missing_price_tag_start",
+      "receipt": "gift_receipt_request_start",
+      "store_hours": "store_closing_time_start",
+      "delivery": "home_delivery_option_start",
+      "alteration": "tailor_alteration_service_start"
+    }
+  },
+
+  "missing_price_tag_start": {
+    "prompt": [
+      "Oh, l'étiquette a dû tomber. Laissez-moi scanner le code-barres sur ma petite machine... Voilà, il est à 29 euros.",
+      "C'est une nouvelle collection, le prix n'est pas encore affiché. Voulez-vous que je demande à ma responsable ?"
+    ],
+    "next": "ask_size"
+  },
+
+  "gift_receipt_request_start": {
+    "prompt": [
+      "Bien sûr ! Je vous fais un ticket cadeau sans le prix. La personne aura un mois pour faire un échange.",
+      "Voulez-vous aussi un emballage cadeau avec le petit sac de la boutique ?"
+    ],
+    "next": "go_to_cashier"
+  },
+
+  "store_closing_time_start": {
+    "prompt": [
+      "Nous fermons exceptionnellement à 20h ce soir pour les soldes. Vous avez encore le temps !",
+      "Attention, le magasin ferme dans 10 minutes. Les caisses vont bientôt être bloquées."
+    ],
+    "next": "end_session"
+  },
+
+  "home_delivery_option_start": {
+    "prompt": [
+      "C'est trop lourd à porter ? Nous pouvons vous livrer à domicile dès demain matin pour 5 euros de frais de port.",
+      "Si vous achetez pour plus de 100 euros, la livraison par coursier est gratuite dans tout le centre-ville."
+    ],
+    "next": "go_to_cashier"
+  },
+
+  "tailor_alteration_service_start": {
+    "prompt": [
+      "Le pantalon est trop long ? Notre couturière peut vous faire l'ourlet pour samedi prochain. C'est 8 euros.",
+      "Voulez-vous épingler la longueur maintenant pour que nous puissions noter les mesures ?"
+    ],
+    "next": "go_to_cashier"
+  },
+
+  "other_branch_check_start": {
+    "prompt": [
+      "Vous cherchez dans une autre ville ? Je peux regarder les stocks sur notre système en ligne.",
+      "Je contacte notre autre boutique pour savoir si elle a votre article. Vous avez une minute ?"
+    ],
+    "next": "end_session"
+  },
+
+  "gift_wrap_start": {
+    "prompt": [
+      "C'est pour un cadeau ? Je peux vous faire un joli emballage avec du papier de soie et un ruban !",
+      "Avec plaisir ! Vous voulez du papier cadeau classique ou quelque chose de plus festif ?"
+    ],
+    "next": "go_to_cashier"
+  },
+
+  "price_match_start": {
+    "prompt": [
+      "Vous avez vu moins cher ailleurs ? Montrez-moi sur votre téléphone, je vérifie ce qu'on peut faire.",
+      "Nous faisons parfois le geste commercial sur présentation d'une preuve écrite. Vous avez la pub ?"
+    ],
+    "next": "go_to_cashier"
+  },
+
+  "fitting_room_queue_start": {
+    "prompt": [
+      "Il y a environ 10 minutes d'attente pour les cabines en ce moment. Voulez-vous qu'on garde votre sélection ?",
+      "Les cabines d'essayage sont très demandées. Je vous mets un numéro et je vous appelle dès qu'une se libère !"
+    ],
+    "next": "end_session"
+  },
+
+  "join_loyalty_start": {
+    "prompt": [
+      "Très bien ! Pour créer votre carte de fidélité, j'ai besoin de votre adresse e-mail. Vous voulez bien me la donner ?",
+      "La carte est gratuite et vous donne 10% de remise dès la prochaine visite. C'est votre e-mail ?"
+    ],
+    "next": "end_session"
+  },
+
+  "return_item_start": {
+    "prompt": [
+      "Bien sûr ! Vous avez votre ticket de caisse avec vous ? Je vais regarder ce qu'on peut faire.",
+      "Pas de problème pour le retour. Vous avez le reçu d'achat ? L'article est dans son état d'origine ?"
+    ],
+    "next": "end_session"
+  },
+
+  "gift_card_start": {
+    "prompt": [
+      "Vous souhaitez une carte cadeau ! Quel montant voulez-vous mettre dessus — 20, 50 ou 100 euros ?",
+      "Bonne idée comme cadeau ! Je peux l'emballer joliment aussi. Quel montant ça vous convient ?"
+    ],
+    "next": "go_to_cashier"
+  },
+
+  "brand_check_start": {
+    "prompt": [
+      "Oui, cette marque est bien au fond du magasin, rayon 3. Je vous y accompagne si vous voulez !",
+      "C'est au fond à droite, après le rayon accessoires. Vous trouverez facilement avec les panneaux."
+    ],
+    "next": "end_session"
+  },
+
+  "mannequin_request_start": {
+    "prompt": [
+      "Ce vêtement sur le mannequin ? Je vais voir si on a votre taille en réserve, un instant !",
+      "Oui, je peux retirer ça du mannequin pour vous. Quelle taille vous faut-il ?"
+    ],
+    "next": "ask_size"
+  },
+
+  "find_toilets_start": {
+    "prompt": [
+      "Les toilettes sont au 2ème étage, juste à côté de l'escalator. Prenez l'ascenseur si vous voulez.",
+      "C'est au 2ème, vous tournez à gauche en sortant de l'escalator. Vous ne pouvez pas les rater !"
+    ],
+    "next": "end_session"
+  },
+
+  "ask_clothing_type": {
+    "prompt": [
+      "Quel type de vêtement cherchez-vous — manteau, pull, pantalon, robe ? Je vais vous guider.",
+      "C'est pour s'habiller comment — casual, habillé ou sportif ? Je peux vous montrer les nouvelles collections."
+    ],
+    "next": "ask_size"
+  },
+
+  "ask_shoe_size": {
+    "prompt": [
+      "Vous faites quelle pointure ? Je vais vérifier si on a votre taille en stock.",
+      "C'est pour quel type de chaussures — baskets, escarpins, bottines ? Et quelle pointure ?"
+    ],
+    "next": "check_stock"
+  },
+
+  "ask_size": {
+    "prompt": [
+      "Vous faites quelle taille — S, M, L ou XL ? Je regarde ce qu'on a en stock.",
+      "C'est pour vous ou pour offrir ? Vous connaissez la taille ? Je vérifie en réserve."
+    ],
+    "next": "check_stock"
+  },
+
+  "check_stock": {
+    "prompt": [
+      "Bonne nouvelle, on a votre taille en stock ! Je vous l'apporte tout de suite.",
+      "Oui, on l'a ! Je vais chercher en réserve. Vous voulez aussi essayer d'autres coloris ?"
+    ],
+    "next": "go_to_cashier"
+  },
+
+  "go_to_cashier": {
+    "prompt": [
+      "Parfait, suivez-moi à la caisse ! Je vous accompagne.",
+      "On passe en caisse ? C'est par là, je vous montre le chemin."
+    ],
+    "next": "ask_payment"
+  },
+
+  "ask_payment": {
+    "prompt": [
+      "Comment souhaitez-vous régler ? Carte bancaire, espèces ou chèque cadeau ?",
+      "Vous payez par carte ou en liquide ? On accepte aussi les chèques cadeaux de notre enseigne."
+    ],
+    "next": "end_session"
+  },
+
+  "end_session": {
+    "prompt": ["Au revoir et bonne journée ! Merci pour votre visite.", "Bonne journée ! À bientôt chez nous !"]
+  }
+}

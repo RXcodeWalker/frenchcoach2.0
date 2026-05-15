@@ -1,0 +1,169 @@
+{
+  "start": {
+    "prompt": [
+      "Bonjour. C'est pour un colis ou des timbres ?",
+      "Bonjour, que puis-je faire pour vous ?",
+      "Bienvenue ! C'est pour un envoi, acheter des cartons ou faire un transfert d'argent ?",
+      "Bonjour ! C'est pour retirer un recommandé ?"
+    ],
+    "intents": {
+      "package": "ask_destination",
+      "stamps": "ask_stamp_count",
+      "box": "packaging_material_start",
+      "registered": "registered_letter_start",
+      "fine": "pay_fine_bill_start",
+      "transfer": "money_transfer_start",
+      "abroad": "stamps_for_abroad_start",
+      "envelopes": "envelope_purchase_start",
+      "customs": "customs_form_help_start",
+      "certified": "certified_mail_start",
+      "tracking": "tracking_issue_start",
+      "postcards": "postcards_purchase_start",
+      "change": "change_request_start",
+      "opening": "opening_hours_info",
+      "weight": "weigh_package_start",
+      "pen": "pen_purchase_start"
+    }
+  },
+
+  "postcards_purchase_start": {
+    "prompt": [
+      "Nous avons des cartes postales de la ville et de la région. Elles sont sur le présentoir là-bas.",
+      "Voulez-vous aussi les timbres qui vont avec pour l'envoi ?"
+    ],
+    "next": "show_total"
+  },
+
+  "change_request_start": {
+    "prompt": [
+      "Désolé, nous ne faisons pas de change pur, mais si vous achetez un carnet de timbres, je peux vous rendre la monnaie sur votre billet.",
+      "Un instant, je regarde dans ma caisse si j'ai assez de petite monnaie pour vous dépanner."
+    ],
+    "next": "end_session"
+  },
+
+  "opening_hours_info": {
+    "prompt": [
+      "Nous sommes ouverts du lundi au vendredi de 9h à 18h sans interruption, et le samedi matin de 9h à 12h.",
+      "Attention, le bureau est fermé les jours fériés. Voulez-vous que je vous donne un dépliant avec tous les horaires ?"
+    ],
+    "next": "end_session"
+  },
+
+  "weigh_package_start": {
+    "prompt": [
+      "Posez votre colis sur la balance, s'il vous plaît. Voyons... il fait 1,2 kilo.",
+      "C'est un peu lourd ! Pour ce poids, le tarif Colissimo est le plus avantageux."
+    ],
+    "next": "ask_destination"
+  },
+
+  "pen_purchase_start": {
+    "prompt": [
+      "Bien sûr, nous vendons des stylos à bille noirs ou bleus. Ils sont à 1,50 euro l'unité.",
+      "En voici un. Vous en avez besoin pour remplir un bordereau ?"
+    ],
+    "next": "show_total"
+  },
+
+  "stamps_for_abroad_start": {
+    "prompt": [
+      "C'est pour l'Europe ou pour le reste du monde ? Le tarif monde est de 1,96 euro par lettre.",
+      "Voulez-vous des timbres de collection ou des timbres classiques pour vos lettres à l'étranger ?"
+    ],
+    "next": "show_total"
+  },
+
+  "envelope_purchase_start": {
+    "prompt": [
+      "Nous avons des enveloppes blanches classiques, des enveloppes à bulles et des pochettes cartonnées.",
+      "Il existe aussi des enveloppes 'Prêt-à-poster' déjà timbrées. C'est plus simple !"
+    ],
+    "next": "show_total"
+  },
+
+  "customs_form_help_start": {
+    "prompt": [
+      "Pour envoyer un colis hors de l'Union Européenne, vous devez remplir ce formulaire de douane CN23.",
+      "Indiquez bien la nature de la marchandise et sa valeur en euros. C'est un cadeau ?"
+    ],
+    "next": "show_total"
+  },
+
+  "certified_mail_start": {
+    "prompt": [
+      "Vous voulez un envoi en recommandé avec avis de réception ? C'est la preuve juridique la plus sûre.",
+      "Remplissez le volet rose pour recevoir la preuve de distribution chez vous par courrier."
+    ],
+    "next": "show_total"
+  },
+
+  "tracking_issue_start": {
+    "prompt": [
+      "Donnez-moi votre numéro de suivi à 13 chiffres. Je vais regarder où se trouve votre colis.",
+      "Il est actuellement en cours de distribution. Il devrait arriver avant 18h chez vous."
+    ],
+    "capture": "tracking_number",
+    "next": "end_session"
+  },
+
+  "packaging_material_start": {
+    "prompt": [
+      "Quelle taille de boîte vous faut-il — petite, moyenne ou grande ? J'ai aussi du papier bulle.",
+      "Pour protéger votre envoi, je vous recommande la boîte cartonnée avec du papier bulle à l'intérieur."
+    ],
+    "next": "show_total"
+  },
+
+  "registered_letter_start": {
+    "prompt": [
+      "Vous voulez l'envoyer avec un accusé de réception ? C'est fortement conseillé pour les documents importants.",
+      "Recommandé simple ou avec avis de réception ? L'avis de réception vous donne une preuve de remise."
+    ],
+    "next": "show_total"
+  },
+
+  "pay_fine_bill_start": {
+    "prompt": [
+      "Je peux encaisser votre amende ou votre facture. Donnez-moi le numéro de référence, s'il vous plaît.",
+      "Bien sûr, je traite les paiements de factures et d'amendes ici. Vous avez le numéro du document ?"
+    ],
+    "next": "show_total"
+  },
+
+  "money_transfer_start": {
+    "prompt": [
+      "Un virement ou un mandat postal ? Quelle somme souhaitez-vous envoyer et vers quel pays ?",
+      "Je peux effectuer un transfert d'argent. Quelle somme voulez-vous envoyer et à qui ?"
+    ],
+    "next": "show_total"
+  },
+
+  "ask_destination": {
+    "prompt": [
+      "Quelle est la destination de votre colis — en France, en Europe ou à l'international ?",
+      "C'est pour envoyer où exactement ? Le tarif change selon la destination et le délai souhaité."
+    ],
+    "next": "show_total"
+  },
+
+  "ask_stamp_count": {
+    "prompt": [
+      "Vous souhaitez combien de timbres — un carnet de 12 ou juste quelques-uns ?",
+      "Combien de timbres voulez-vous ? Je peux aussi vous proposer des carnets pour économiser."
+    ],
+    "next": "show_total"
+  },
+
+  "show_total": {
+    "prompt": [
+      "Ça vous fera 15 euros en tout, s'il vous plaît. Carte ou espèces ?",
+      "Le total est de 15 euros. Comment souhaitez-vous régler ?"
+    ],
+    "next": "end_session"
+  },
+
+  "end_session": {
+    "prompt": ["Merci, au revoir et bonne journée !", "Bonne journée ! N'hésitez pas à revenir."]
+  }
+}

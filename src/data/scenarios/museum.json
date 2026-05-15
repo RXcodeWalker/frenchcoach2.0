@@ -1,0 +1,408 @@
+{
+  "start": {
+    "prompt": [
+      "Bonjour ! Bienvenue au Musée des Beaux-Arts. C'est pour une visite individuelle ou faites-vous partie d'un groupe ?",
+      "Bonjour. Souhaitez-vous visiter la collection permanente, l'exposition temporaire sur Monet, ou êtes-vous ici pour un atelier ?",
+      "Bienvenue ! Avez-vous déjà vos billets, souhaitez-vous en acheter ou vous renseigner sur nos abonnements ?"
+    ],
+    "intents": {
+      "buy_tickets": "ask_ticket_type",
+      "have_tickets": "ask_audio_guide",
+      "group_tour": "ask_group_details",
+      "membership": "ask_membership_info",
+      "workshop": "ask_workshop_type",
+      "shop": "ask_shop_info",
+      "accessibility": "ask_accessibility_needs",
+      "info": "ask_general_info",
+      "lost_item": "find_lost_item",
+      "emergency": "evacuation_procedure",
+      "press": "press_inquiry",
+      "guided_tour": "guided_tour_info",
+      "lost_child": "lost_child_start",
+      "special_event": "special_event_start"
+    }
+  },
+  "lost_child_start": {
+    "prompt": [
+      "Restez calme, nous allons vous aider. Pouvez-vous me décrire l'enfant et ce qu'il portait aujourd'hui ?",
+      "Je préviens immédiatement tous nos agents de surveillance par radio. Dans quelle salle l'avez-vous vu pour la dernière fois ?"
+    ],
+    "capture": "child_description",
+    "next": "emergency_action"
+  },
+  "emergency_action": {
+    "prompt": [
+      "Nos agents sécurisent actuellement les sorties. Restez avec moi à l'accueil, c'est ici que nous centralisons les recherches."
+    ],
+    "next": "provide_info"
+  },
+  "special_event_start": {
+    "prompt": [
+      "Ce soir, nous organisons une conférence sur l'influence de Monet à 19h dans l'auditorium. Souhaitez-vous réserver une place ?",
+      "Il y a une nocturne musicale prévue ce vendredi avec un concert de quatuor à cordes dans la grande galerie. Les billets sont en vente ici."
+    ],
+    "intents": {
+      "yes": "ask_payment",
+      "no": "start"
+    }
+  },
+  "guided_tour_info": {
+    "prompt": [
+      "Nous proposons des visites guidées tous les jours à 11h et 15h. Souhaitez-vous vous inscrire pour la prochaine séance ?",
+      "Il reste quelques places pour la visite thématique sur l'impressionnisme de cet après-midi. Ça vous tente ?"
+    ],
+    "intents": {
+      "yes": "set_group_guide",
+      "no": "start"
+    }
+  },
+  "find_lost_item": {
+    "prompt": [
+      "Oh, je suis désolé d'apprendre cela. Pourriez-vous me décrire l'objet perdu et me dire dans quelle salle vous l'avez vu pour la dernière fois ?",
+      "Ne vous inquiétez pas, nous centralisons tous les objets trouvés à l'accueil. De quoi s'agit-il ?"
+    ],
+    "capture": "lost_item_description",
+    "next": "check_lost_property"
+  },
+  "check_lost_property": {
+    "prompt": ["Je contacte immédiatement notre équipe de sécurité par radio. Restez ici quelques instants, nous vérifions si l'objet a été rapporté."],
+    "next": "provide_info"
+  },
+  "evacuation_procedure": {
+    "prompt": ["Veuillez garder votre calme. Suivez les flèches lumineuses vertes vers la sortie la plus proche. Ne prenez pas les ascenseurs."],
+    "next": "end_session"
+  },
+  "press_inquiry": {
+    "prompt": ["Pour les journalistes, nous avons un dossier de presse numérique. Souhaitez-vous aussi prendre rendez-vous avec notre responsable communication ?"],
+    "intents": {
+      "yes": "set_press_meeting",
+      "no": "provide_press_kit"
+    }
+  },
+  "set_press_meeting": {
+    "prompt": ["C'est entendu. Mme Lefebvre peut vous recevoir dans 15 minutes dans le petit salon. Je vous y accompagne ?"],
+    "next": "end_session"
+  },
+  "provide_press_kit": {
+    "prompt": ["Voici le QR code pour télécharger les visuels haute définition et le communiqué de presse. Bonne rédaction !"],
+    "next": "provide_info"
+  },
+  "ask_ticket_type": {
+    "prompt": [
+      "Très bien. Nous avons des tarifs plein (15€), étudiant (8€) ou senior (10€). Quel tarif vous correspond ?",
+      "C'est pour combien d'adultes et d'enfants ?"
+    ],
+    "intents": {
+      "free_admission": "verify_free_admission",
+      "student": "verify_student"
+    },
+    "capture": "ticket_details",
+    "next": "ask_expo_type"
+  },
+  "verify_student": {
+    "prompt": [
+      "Pour le tarif étudiant, j'ai besoin de voir votre carte d'étudiant en cours de validité. Vous l'avez sur vous ?",
+      "Votre carte doit comporter une photo et une date de fin de validité."
+    ],
+    "intents": {
+      "yes": "set_standard_ticket",
+      "no": "ask_ticket_type"
+    }
+  },
+  "verify_free_admission": {
+    "prompt": ["L'entrée est gratuite pour les moins de 18 ans, les demandeurs d'emploi et les personnes en situation de handicap. Avez-vous un justificatif ?"],
+    "intents": {
+      "yes": "set_free_ticket",
+      "no": "ask_ticket_type"
+    }
+  },
+  "set_free_ticket": {
+    "prompt": ["Parfait, votre billet gratuit est validé. Il vous donne accès à toutes les collections."],
+    "memory": { "ticket_type": "Gratuit" },
+    "next": "ask_audio_guide"
+  },
+  "ask_expo_type": {
+    "prompt": ["Voulez-vous le billet combiné avec l'exposition temporaire pour 5 euros de plus ?"],
+    "intents": {
+      "yes": "set_combined_ticket",
+      "no": "set_standard_ticket",
+      "dates": "expo_dates"
+    }
+  },
+  "expo_dates": {
+    "prompt": [
+      "L'exposition Monet se termine le 15 du mois prochain. Elle rencontre un grand succès, il y a souvent du monde le week-end.",
+      "Voulez-vous savoir quelles sont les prochaines expositions prévues pour la saison ?"
+    ],
+    "next": "ask_expo_type"
+  },
+  "set_combined_ticket": {
+    "prompt": ["Parfait, c'est noté pour le billet combiné."],
+    "memory": { "ticket_type": "Combiné" },
+    "next": "ask_audio_guide"
+  },
+  "set_standard_ticket": {
+    "prompt": ["Entendu, juste la collection permanente."],
+    "memory": { "ticket_type": "Standard" },
+    "next": "ask_audio_guide"
+  },
+  "ask_group_details": {
+    "prompt": [
+      "Pour les groupes de plus de 10 personnes, nous proposons des tarifs préférentiels. Combien êtes-vous exactement ?",
+      "Avez-vous réservé un créneau avec un guide conférencier ou souhaitez-vous une visite libre ?"
+    ],
+    "capture": "group_size",
+    "next": "ask_group_guide"
+  },
+  "ask_group_guide": {
+    "prompt": ["Souhaitez-vous qu'un guide du musée vous accompagne pour une visite commentée d'une heure et demie ?"],
+    "intents": {
+      "yes": "set_group_guide",
+      "no": "show_total_group"
+    }
+  },
+  "set_group_guide": {
+    "prompt": ["Très bien. Un guide vous rejoindra dans le hall d'accueil à l'heure convenue."],
+    "memory": { "group_guide": "Oui" },
+    "next": "show_total_group"
+  },
+  "show_total_group": {
+    "prompt": ["Le tarif de groupe s'élève à 12€ par personne. Pour votre groupe, cela fera un total de {price} euros."],
+    "next": "ask_payment"
+  },
+  "ask_membership_info": {
+    "prompt": [
+      "Nous proposons la carte 'Ami du Musée' à 45€ par an. Elle donne un accès illimité aux collections et des réductions à la boutique. Cela vous intéresse ?",
+      "Souhaitez-vous un abonnement individuel ou un pass duo pour venir accompagné ?"
+    ],
+    "intents": {
+      "individual": "set_membership_indiv",
+      "duo": "set_membership_duo",
+      "info_more": "membership_benefits"
+    }
+  },
+  "set_membership_indiv": {
+    "prompt": ["Excellent choix. J'aurai besoin d'une pièce d'identité et d'une photo pour créer votre carte."],
+    "memory": { "membership": "Individuel" },
+    "next": "ask_payment"
+  },
+  "set_membership_duo": {
+    "prompt": ["Le Pass Duo est à 75€ et permet d'inviter la personne de votre choix à chaque visite. Voulez-vous le prendre maintenant ?"],
+    "memory": { "membership": "Duo" },
+    "next": "ask_payment"
+  },
+  "membership_benefits": {
+    "prompt": ["En plus de l'accès illimité, vous recevrez notre gazette trimestrielle et des invitations aux vernissages privés. Voulez-vous souscrire ?"],
+    "intents": {
+      "yes": "ask_membership_info",
+      "no": "start"
+    }
+  },
+  "ask_workshop_type": {
+    "prompt": [
+      "Nous avons plusieurs ateliers cette semaine : 'Initiation à l'Aquarelle', 'Sculpture sur Argile' ou 'Analyse d'Œuvres'. Lequel vous tente ?",
+      "Cherchez-vous un atelier pour adultes ou une activité 'Famille' pour les enfants ?"
+    ],
+    "intents": {
+      "adult": "workshop_adult_list",
+      "kids": "workshop_kids_list"
+    }
+  },
+  "workshop_adult_list": {
+    "prompt": ["L'atelier aquarelle a lieu le samedi à 14h. Il reste 3 places. Voulez-vous réserver ? (Tarif : 25€ matériel inclus)"],
+    "intents": {
+      "yes": "set_workshop",
+      "no": "start"
+    }
+  },
+  "workshop_kids_list": {
+    "prompt": ["Nous avons le parcours 'Petit Détective' mercredi à 15h pour les 6-10 ans. C'est 10€ par enfant. Je vous inscris ?"],
+    "intents": {
+      "yes": "set_workshop",
+      "no": "start"
+    }
+  },
+  "set_workshop": {
+    "prompt": ["C'est réservé ! Le point de rendez-vous est à l'Espace Pédagogique au rez-de-chaussée."],
+    "memory": { "activity": "Atelier" },
+    "next": "ask_payment"
+  },
+  "ask_shop_info": {
+    "prompt": [
+      "La boutique du musée propose des catalogues d'exposition, des reproductions et des objets de créateurs. Elle est ouverte de 10h à 18h15. Cherchez-vous quelque chose de précis ?",
+      "Souhaitez-vous consulter les derniers ouvrages sur Monet ou nos articles de papeterie ?"
+    ],
+    "intents": {
+      "catalog": "shop_catalog",
+      "gift": "shop_gifts",
+      "hours": "provide_info"
+    }
+  },
+  "shop_catalog": {
+    "prompt": ["Le catalogue de l'exposition Monet est disponible à 39€. Vous pouvez aussi le commander en ligne sur notre site."],
+    "next": "provide_info"
+  },
+  "shop_gifts": {
+    "prompt": ["Nous avons une belle sélection de foulards en soie et de bijoux inspirés de nos collections. La boutique se situe après le contrôle des billets."],
+    "next": "provide_info"
+  },
+  "ask_accessibility_needs": {
+    "prompt": [
+      "Le musée est entièrement accessible. Avez-vous besoin d'un fauteuil roulant en prêt ou d'informations sur les boucles magnétiques ?",
+      "Souhaitez-vous connaître le parcours PMR ou nos services pour les personnes malvoyantes ?"
+    ],
+    "intents": {
+      "wheelchair": "provide_wheelchair",
+      "elevator": "provide_elevator_info",
+      "sensory": "provide_sensory_info"
+    }
+  },
+  "provide_wheelchair": {
+    "prompt": ["Nous pouvons vous prêter un fauteuil roulant contre le dépôt d'une pièce d'identité. Je demande à un agent de vous l'apporter ?"],
+    "intents": {
+      "yes": "set_wheelchair",
+      "no": "provide_elevator_info"
+    }
+  },
+  "set_wheelchair": {
+    "prompt": ["Entendu, un agent arrive. Les ascenseurs vous permettent d'accéder à tous les étages."],
+    "next": "start"
+  },
+  "provide_elevator_info": {
+    "prompt": ["Tous nos étages sont desservis par de larges ascenseurs. Des plans adaptés sont disponibles à l'accueil."],
+    "next": "start"
+  },
+  "provide_sensory_info": {
+    "prompt": ["Nous proposons des livrets en braille et des parcours tactiles pour certaines sculptures. Voulez-vous qu'on vous accompagne vers le premier point tactile ?"],
+    "next": "start"
+  },
+  "ask_audio_guide": {
+    "prompt": ["Désirez-vous un audioguide pour accompagner votre visite ? Il est disponible en français, anglais et espagnol."],
+    "intents": {
+      "yes": "set_audio_guide",
+      "no": "ask_cloakroom",
+      "personal_headphones": "audio_guide_compatibility",
+      "app": "museum_app_info"
+    }
+  },
+  "museum_app_info": {
+    "prompt": [
+      "Nous avons une application gratuite avec des parcours audioguidés et des explications interactives. Voulez-vous le QR code pour la télécharger ?",
+      "L'application propose également une carte interactive du musée pour vous repérer facilement dans les salles."
+    ],
+    "next": "ask_cloakroom"
+  },
+  "audio_guide_compatibility": {
+    "prompt": ["Nos audioguides sont équipés de prises jack standard. Si vous avez vos propres écouteurs filaires, vous pouvez les utiliser sans problème."],
+    "next": "set_audio_guide"
+  },
+  "set_audio_guide": {
+    "prompt": ["Très bien. Voici votre appareil. N'oubliez pas de le rendre à la sortie."],
+    "memory": { "audio_guide": "Oui" },
+    "next": "ask_cloakroom"
+  },
+  "ask_cloakroom": {
+    "prompt": ["Avez-vous des sacs volumineux ou des manteaux à laisser au vestiaire ? C'est gratuit."],
+    "intents": {
+      "yes": "show_cloakroom",
+      "no": "show_total",
+      "prohibited_item": "handle_prohibited_item"
+    }
+  },
+  "handle_prohibited_item": {
+    "prompt": ["Je suis navré, mais les trépieds et les grands parapluies ne sont pas autorisés dans les salles. Vous devez impérativement les déposer ici au vestiaire."],
+    "next": "show_cloakroom"
+  },
+  "show_cloakroom": {
+    "prompt": ["Le vestiaire se trouve juste là-bas sur votre gauche. Voici votre ticket de dépôt."],
+    "next": "show_total"
+  },
+  "show_total": {
+    "prompt": ["Alors, cela fera un total de {price} euros, s'il vous plaît."],
+    "next": "ask_payment"
+  },
+  "ask_payment": {
+    "prompt": ["Vous réglez par carte ou en espèces ?"],
+    "intents": {
+      "card": "end_session",
+      "cash": "end_session",
+      "payment_failed": "payment_troubleshooting"
+    }
+  },
+  "payment_troubleshooting": {
+    "prompt": ["La transaction a été refusée. Voulez-vous réessayer avec une autre carte ou préféreriez-vous payer en espèces ?"],
+    "intents": {
+      "card": "ask_payment",
+      "cash": "ask_payment",
+      "cancel": "start"
+    }
+  },
+  "ask_general_info": {
+    "prompt": ["Je vous écoute. Que voulez-vous savoir sur le musée, nos horaires ou nos événements à venir ?"],
+    "capture": "question",
+    "intents": {
+      "artwork_location": "find_artwork"
+    },
+    "next": "provide_info"
+  },
+  "find_artwork": {
+    "prompt": [
+      "Je cherche 'La Pie' de Monet. Dans quelle salle se trouve-t-elle ?",
+      "Pourriez-vous m'indiquer où se situent les peintures flamandes ?"
+    ],
+    "next": "provide_info"
+  },
+  "provide_info": {
+    "prompt": ["Nous sommes ouverts jusqu'à 18h aujourd'hui. Les photos sans flash sont autorisées. Autre chose ?"],
+    "intents": {
+      "yes": "start",
+      "no": "end_session",
+      "restaurant": "ask_restaurant_info",
+      "wifi": "provide_wifi_info",
+      "feedback": "collect_feedback",
+      "photography": "photography_rules",
+      "sketching": "sketching_rules",
+      "re_entry": "re_entry_policy"
+    }
+  },
+  "sketching_rules": {
+    "prompt": [
+      "Le dessin au crayon est autorisé dans toutes les salles. En revanche, l'usage de la peinture ou du fusain nécessite une autorisation spéciale. Voulez-vous connaître la procédure ?",
+      "Nous organisons des séances de dessin collectif certains jeudis soirs. Cela vous intéresserait-il ?"
+    ],
+    "next": "provide_info"
+  },
+  "re_entry_policy": {
+    "prompt": [
+      "Oui, votre billet est valable pour toute la journée. Si vous sortez, n'oubliez pas de demander un tampon à l'accueil pour pouvoir rentrer à nouveau.",
+      "Vous pouvez aller déjeuner à l'extérieur et revenir terminer votre visite cet après-midi sans problème."
+    ],
+    "next": "provide_info"
+  },
+  "photography_rules": {
+    "prompt": [
+      "Quelles sont les règles précises pour la photographie ? Peut-on utiliser un trépied ?",
+      "Les vidéos sont-elles autorisées dans l'exposition temporaire ?"
+    ],
+    "next": "provide_info"
+  },
+  "ask_restaurant_info": {
+    "prompt": ["Le café du musée, 'L'Entracte', se situe au deuxième étage. Il propose des déjeuners légers et des pâtisseries avec vue sur le jardin."],
+    "next": "provide_info"
+  },
+  "provide_wifi_info": {
+    "prompt": ["Le Wi-Fi gratuit est disponible dans tout le hall et au café. Le réseau s'appelle 'Musee_Free_Wifi' et ne nécessite pas de mot de passe."],
+    "next": "provide_info"
+  },
+  "collect_feedback": {
+    "prompt": ["Votre avis nous intéresse beaucoup ! Sur une échelle de 1 à 5, comment évalueriez-vous votre accueil aujourd'hui ?"],
+    "capture": "rating",
+    "next": "end_session"
+  },
+  "end_session": {
+    "prompt": [
+      "Merci, voici vos billets. Bonne visite au musée !",
+      "Passez un excellent moment parmi nos collections. Au revoir !"
+    ]
+  }
+}

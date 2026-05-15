@@ -1,0 +1,106 @@
+{
+  "start": {
+    "prompt": [
+      "Bonjour. C'est pour un contrôle de routine ou vous avez une douleur ?",
+      "Bonjour ! Je peux vous aider ? Vous avez rendez-vous ?",
+      "Bienvenue. Est-ce une urgence dentaire ?",
+      "Bonjour. Installez-vous. Qu'est-ce qui vous amène ?"
+    ],
+    "intents": {
+      "pain": "pain_start",
+      "checkup": "checkup_start",
+      "emergency": "emergency_start",
+      "cleaning": "cleaning_start",
+      "appointment": "appointment_check",
+      "wisdom_teeth": "wisdom_teeth_start",
+      "braces": "orthodontics_start",
+      "bleeding": "gum_problem_start",
+      "broken": "broken_tooth_start",
+      "xray": "xray_request_start"
+    }
+  },
+
+  "wisdom_teeth_start": {
+    "prompt": [
+      "Elles commencent à vous faire mal au fond de la mâchoire ? On va faire une radio panoramique pour voir si elles manquent de place.",
+      "C'est souvent vers votre âge qu'elles posent problème. On va vérifier leur position."
+    ],
+    "next": "xray_request_start"
+  },
+
+  "orthodontics_start": {
+    "prompt": [
+      "Vous voulez aligner vos dents ? Je fais un premier bilan, mais il faudra peut-être voir un spécialiste orthodontiste.",
+      "On peut envisager des bagues ou des gouttières invisibles. Est-ce pour une raison esthétique ou fonctionnelle ?"
+    ],
+    "next": "checkup_start"
+  },
+
+  "gum_problem_start": {
+    "prompt": [
+      "Vos gencives saignent quand vous vous brossez les dents ? C'est peut-être un début de gingivite.",
+      "On va regarder ça de près. Est-ce que vos gencives sont gonflées ou douloureuses ?"
+    ],
+    "next": "cleaning_start"
+  },
+
+  "broken_tooth_start": {
+    "prompt": [
+      "Oh, comment est-ce arrivé ? Un choc ou en mangeant quelque chose de dur ?",
+      "Apportez-moi le morceau si vous l'avez retrouvé. Je vais voir si on peut la reconstruire."
+    ],
+    "next": "emergency_start"
+  },
+
+  "xray_request_start": {
+    "prompt": [
+      "Je vais vous demander de passer dans la pièce d'à côté pour une radio. Mettez ce tablier de plomb, s'il vous plaît.",
+      "La radio va nous permettre de voir ce qui se passe sous la gencive. Ne bougez pas pendant le cliché."
+    ],
+    "next": "diagnosis"
+  },
+
+  "pain_start": {
+    "prompt": ["Où avez-vous mal exactement ?"],
+    "next": "ask_how_long"
+  },
+
+  "checkup_start": {
+    "prompt": ["D'accord, ouvrez grand la bouche."],
+    "next": "diagnosis"
+  },
+
+  "emergency_start": {
+    "prompt": ["Je vais vous examiner tout de suite."],
+    "next": "diagnosis"
+  },
+
+  "cleaning_start": {
+    "prompt": ["On va faire un détartrage complet."],
+    "next": "diagnosis"
+  },
+
+  "appointment_check": {
+    "prompt": ["À quel nom est le rendez-vous ?"],
+    "next": "checkup_start"
+  },
+
+  "ask_how_long": {
+    "prompt": ["Depuis combien de temps avez-vous cette douleur ?"],
+    "next": "diagnosis"
+  },
+
+  "diagnosis": {
+    "prompt": ["Je vois une petite carie. Il va falloir soigner ça.", "Tout va bien, vos dents sont en parfaite santé !"],
+    "next": "appointment"
+  },
+
+  "appointment": {
+    "prompt": ["Voulez-vous reprendre rendez-vous dans six mois ?"],
+    "next": "end_session"
+  },
+
+  "end_session": {
+    "prompt": ["N'oubliez pas de bien vous brosser les dents !", "Au revoir !"]
+  }
+}

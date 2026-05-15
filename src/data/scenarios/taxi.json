@@ -1,0 +1,159 @@
+{
+  "start": {
+    "prompt": [
+      "Bonjour ! Où est-ce que je vous emmène ?",
+      "Bonjour. Quelle est l'adresse ?",
+      "Bonjour, je vous dépose en centre-ville ou à la gare ?"
+    ],
+    "intents": {
+      "destination": "estimate_trip",
+      "atm": "atm_stop_start",
+      "change": "change_dest_start",
+      "receipt": "business_receipt_start",
+      "landmark": "landmark_inquiry_start",
+      "comfort": "window_air_start",
+      "heavy": "heavy_luggage_help_start",
+      "ac": "ac_adjustment_request_start",
+      "music": "music_choice_request_start",
+      "fast": "speed_up_request_start",
+      "scenic": "scenic_route_request_start",
+      "radio_vol": "radio_volume_request_start",
+      "silent": "silent_ride_request_start",
+      "business_card": "driver_business_card_start",
+      "child_seat": "child_seat_verify_start",
+      "tip": "tip_inquiry_start"
+    }
+  },
+
+  "radio_volume_request_start": {
+    "prompt": [
+      "Désolé, c'est trop fort ? Je baisse le volume immédiatement. Je peux même l'éteindre si vous préférez.",
+      "Est-ce que la musique vous plaît ou voulez-vous que je change de station ?"
+    ],
+    "next": "estimate_trip"
+  },
+
+  "silent_ride_request_start": {
+    "prompt": [
+      "Aucun problème, je comprends tout à fait. On va faire la route au calme. Bonne détente.",
+      "C'est entendu. Je coupe la radio également pour que vous puissiez vous reposer."
+    ],
+    "next": "estimate_trip"
+  },
+
+  "driver_business_card_start": {
+    "prompt": [
+      "Tenez, voici ma carte. Vous pouvez m'appeler directement si vous avez besoin d'un chauffeur pour votre retour.",
+      "Je fais aussi des trajets longue distance ou vers l'aéroport sur réservation. N'hésitez pas !"
+    ],
+    "next": "estimate_trip"
+  },
+
+  "child_seat_verify_start": {
+    "prompt": [
+      "Oui, j'ai un siège auto groupe 1-2-3 dans le coffre. Je l'installe en deux minutes, attendez.",
+      "Est-ce que votre enfant a besoin d'un réhausseur simple ou d'un siège complet avec harnais ?"
+    ],
+    "next": "estimate_trip"
+  },
+
+  "tip_inquiry_start": {
+    "prompt": [
+      "Le pourboire n'est pas obligatoire, mais c'est toujours très apprécié si vous avez aimé la course.",
+      "Vous pouvez l'ajouter directement sur le terminal de carte bleue si vous le souhaitez."
+    ],
+    "next": "estimate_trip"
+  },
+
+  "heavy_luggage_help_start": {
+    "prompt": [
+      "Permettez-moi de vous aider avec vos bagages, je m'en occupe tout de suite !",
+      "Laissez-moi mettre ça dans le coffre pour vous. Vous avez d'autres valises ?"
+    ],
+    "next": "estimate_trip"
+  },
+
+  "ac_adjustment_request_start": {
+    "prompt": [
+      "Bien sûr, il fait trop chaud ? Je baisse la climatisation tout de suite.",
+      "Je règle la température à votre convenance. Vous voulez qu'il fasse plus frais ou plus chaud ?"
+    ],
+    "next": "estimate_trip"
+  },
+
+  "music_choice_request_start": {
+    "prompt": [
+      "Quelle radio vous ferait plaisir ? France Info, NRJ, ou vous préférez un style en particulier ?",
+      "Je peux mettre la radio de votre choix. Vous aimez quel genre de musique ?"
+    ],
+    "next": "estimate_trip"
+  },
+
+  "speed_up_request_start": {
+    "prompt": [
+      "Vous êtes pressé(e) ? Je vais faire de mon mieux pour aller vite, dans le respect du code de la route bien sûr !",
+      "Je prends le chemin le plus rapide. Vous avez un rendez-vous à quelle heure ?"
+    ],
+    "next": "estimate_trip"
+  },
+
+  "scenic_route_request_start": {
+    "prompt": [
+      "Bonne idée ! On va longer les quais, c'est le plus beau chemin. Ça prend juste 5 minutes de plus.",
+      "Par les quais, avec plaisir ! La vue sur le fleuve est magnifique à cette heure-ci."
+    ],
+    "next": "estimate_trip"
+  },
+
+  "atm_stop_start": {
+    "prompt": [
+      "Pas de problème, je m'arrête au prochain distributeur automatique. Il y en a un juste là-bas.",
+      "D'accord, je coupe le compteur pendant que vous retirez de l'argent. Prenez votre temps."
+    ],
+    "next": "estimate_trip"
+  },
+
+  "change_dest_start": {
+    "prompt": [
+      "Pas de souci ! Où souhaitez-vous aller à la place ? Je mets à jour le GPS.",
+      "Vous avez changé d'avis ? Dites-moi la nouvelle adresse, je recalcule l'itinéraire."
+    ],
+    "next": "estimate_trip"
+  },
+
+  "business_receipt_start": {
+    "prompt": [
+      "Bien sûr, je vous fais un reçu détaillé à votre arrivée. C'est pour les notes de frais ?",
+      "Oui, je vous imprime un reçu avec le détail du trajet. Vous avez besoin du numéro de TVA aussi ?"
+    ],
+    "next": "estimate_trip"
+  },
+
+  "landmark_inquiry_start": {
+    "prompt": [
+      "La Tour Eiffel est à environ 10 minutes d'ici par ce chemin. C'est votre première fois à Paris ?",
+      "Je passe volontiers devant les monuments si vous voulez admirer la ville en route !"
+    ],
+    "next": "estimate_trip"
+  },
+
+  "window_air_start": {
+    "prompt": [
+      "Je règle la fenêtre pour vous. Vous voulez un peu d'air frais ou je ferme complètement ?",
+      "Bien sûr, j'ouvre ma fenêtre un peu. Dites-moi si c'est trop de courant d'air."
+    ],
+    "next": "estimate_trip"
+  },
+
+  "estimate_trip": {
+    "prompt": [
+      "Pour ce trajet, ça devrait faire environ 25 euros. Ça vous convient ?",
+      "D'après le compteur et la distance, on est sur environ 25 euros. On y va ?"
+    ],
+    "next": "end_session"
+  },
+
+  "end_session": {
+    "prompt": ["Bonne journée ! Merci pour la course.", "Au revoir et bonne continuation !"]
+  }
+}

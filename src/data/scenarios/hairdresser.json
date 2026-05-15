@@ -1,0 +1,378 @@
+{
+  "start": {
+    "prompt": [
+      "Bonjour ! Bienvenue chez Salon Elégance. Vous avez rendez-vous pour une prestation aujourd'hui ?",
+      "Bonjour, installez-vous. Qu'est-ce qu'on fait aujourd'hui ? Une coupe, une couleur, ou peut-être un soin profond ?",
+      "Bienvenue ! Souhaitez-vous rafraîchir votre coupe habituelle ou partir sur un changement de look complet ?"
+    ],
+    "intents": {
+      "appointment": "check_appointment",
+      "no_appointment": "check_availability",
+      "cut": "ask_cut_details",
+      "color": "ask_color_details",
+      "beard": "ask_beard_details",
+      "treatment": "ask_treatment_details",
+      "reschedule": "ask_reschedule_info",
+      "student_discount": "ask_student_id",
+      "wedding": "wedding_consultation",
+      "emergency_repair": "emergency_color_repair",
+      "gift_card": "process_gift_card",
+      "child_cut": "ask_child_age",
+      "refund": "request_refund",
+      "drink": "offer_drink_start",
+      "shampoo_brushing": "shampoo_brushing_only_start",
+      "massage_info": "head_massage_benefits_start",
+      "hair_loss": "hair_loss_advice_start",
+      "hours": "salon_opening_hours_start"
+    }
+  },
+
+  "offer_drink_start": {
+    "prompt": [
+      "Souhaitez-vous un café, un thé ou un verre d'eau en attendant votre tour ?",
+      "Nous avons aussi des jus de fruits frais aujourd'hui si vous préférez."
+    ],
+    "next": "check_appointment"
+  },
+
+  "shampoo_brushing_only_start": {
+    "prompt": [
+      "Bien sûr, nous pouvons faire uniquement un shampoing et un brushing. C'est pour une occasion particulière ?",
+      "Voulez-vous un brushing lisse, souple ou avec des boucles pour finir ?"
+    ],
+    "next": "ask_shampoo"
+  },
+
+  "head_massage_benefits_start": {
+    "prompt": [
+      "Le massage crânien stimule la microcirculation sanguine, ce qui favorise la pousse des cheveux et procure une détente profonde.",
+      "C'est aussi excellent pour évacuer le stress de la journée. Souhaitez-vous que je l'ajoute à votre shampoing ?"
+    ],
+    "next": "ask_massage_extension"
+  },
+
+  "hair_loss_advice_start": {
+    "prompt": [
+      "La perte de cheveux peut être saisonnière ou due au stress. Nous avons une cure d'ampoules à la kératine très efficace.",
+      "Je vous conseille aussi de masser votre cuir chevelu régulièrement pour stimuler les racines. Voulez-vous essayer un shampoing fortifiant ?"
+    ],
+    "next": "ask_treatment_details"
+  },
+
+  "salon_opening_hours_start": {
+    "prompt": [
+      "Nous sommes ouverts du mardi au samedi, de 9h à 19h sans interruption.",
+      "Nous sommes fermés le dimanche et le lundi. Voulez-vous prendre rendez-vous pour un autre jour ?"
+    ],
+    "next": "check_availability"
+  },
+
+  "ask_child_age": {
+    "prompt": ["Bien sûr, nous coiffons aussi les enfants. Quel âge a-t-il / elle ?"],
+    "capture": "child_age",
+    "next": "ask_cut_details"
+  },
+  "request_refund": {
+    "prompt": ["Vous n'êtes pas satisfait d'un produit acheté ? Si le flacon n'a pas été ouvert, nous pouvons procéder à un échange ou un remboursement. Avez-vous votre ticket ?"],
+    "next": "check_receipt"
+  },
+  "check_receipt": {
+    "prompt": ["Parfait, le ticket est bien là. Je vous fais le remboursement sur votre carte bancaire immédiatement."],
+    "next": "end_session"
+  },
+  "ask_student_id": {
+    "prompt": ["Nous proposons un forfait étudiant à -20% les mardis et mercredis. Avez-vous votre carte d'étudiant avec vous ?"],
+    "intents": {
+      "yes": "set_student_discount",
+      "no": "start"
+    }
+  },
+  "set_student_discount": {
+    "prompt": ["Parfait, la réduction sera appliquée en caisse. On part sur quelle prestation ?"],
+    "memory": { "discount": "Etudiant" },
+    "next": "ask_cut_details"
+  },
+  "wedding_consultation": {
+    "prompt": ["Félicitations ! Pour un mariage, nous conseillons un essai un mois avant. Souhaitez-vous qu'on discute du chignon et des accessoires aujourd'hui ?"],
+    "intents": {
+      "yes": "discuss_wedding_style",
+      "no": "start"
+    }
+  },
+  "discuss_wedding_style": {
+    "prompt": ["Plutôt bohème avec des fleurs, ou un chignon classique très travaillé ? N'hésitez pas à me montrer des photos."],
+    "capture": "wedding_style",
+    "next": "end_session"
+  },
+  "emergency_color_repair": {
+    "prompt": ["Oh là là, une coloration maison qui a viré ? Ne paniquez pas, on va essayer de neutraliser ces reflets indésirables avec une patine."],
+    "next": "ask_shampoo"
+  },
+  "process_gift_card": {
+    "prompt": ["C'est une excellente idée de cadeau ! Pour quel montant souhaitez-vous créditer la carte ?"],
+    "capture": "gift_amount",
+    "next": "go_to_cashier"
+  },
+  "check_appointment": {
+    "prompt": ["À quel nom est le rendez-vous ?"],
+    "capture": "client_name",
+    "next": "verify_service"
+  },
+  "verify_service": {
+    "prompt": ["Oui, je vous trouve. C'était bien pour une coupe-shampoing ou souhaitiez-vous ajouter une couleur ?"],
+    "intents": {
+      "cut": "ask_cut_details",
+      "color": "ask_color_details"
+    }
+  },
+  "check_availability": {
+    "prompt": ["Laissez-moi regarder le planning... J'ai une petite place dans 15 minutes pour une coupe rapide, ça vous irait ?"],
+    "intents": {
+      "yes": "ask_cut_details",
+      "no": "end_session_fail"
+    }
+  },
+  "ask_cut_details": {
+    "prompt": [
+      "Alors, on coupe beaucoup ? Juste les pointes ou un changement de style radical ?",
+      "Quelle longueur souhaitez-vous garder ? On dégage bien les oreilles ?"
+    ],
+    "intents": {
+      "fringe_bangs": "discuss_bangs",
+      "donation": "discuss_hair_donation"
+    },
+    "capture": "cut_style",
+    "next": "ask_shampoo"
+  },
+  "discuss_hair_donation": {
+    "prompt": ["Vous voulez donner vos cheveux ? C'est une magnifique initiative ! Si nous coupons plus de 10 cm, nous pouvons les envoyer à une association. On valide ?"],
+    "next": "ask_shampoo"
+  },
+  "discuss_bangs": {
+    "prompt": ["Une frange rideau ou une frange droite bien nette ? Attention, cela demande un entretien régulier !"],
+    "next": "ask_shampoo"
+  },
+  "ask_color_details": {
+    "prompt": [
+      "Pour la couleur, vous aimeriez quelque chose de naturel, un balayage lumineux ou une coloration totale ?",
+      "On part on des tons chauds, cuivrés, ou plutôt un blond polaire ?"
+    ],
+    "intents": {
+      "balayage": "set_balayage",
+      "total": "set_color_total",
+      "roots": "set_color_roots",
+      "allergy_test": "safety_check_allergy"
+    }
+  },
+  "safety_check_allergy": {
+    "prompt": ["C'est votre première coloration chez nous ? Par sécurité, je préfère faire une touche d'essai derrière l'oreille pour vérifier qu'il n'y a pas de réaction."],
+    "next": "ask_color_details"
+  },
+  "set_balayage": {
+    "prompt": ["Très bien, un balayage effet 'retour de vacances' pour donner du relief. On commence par le shampoing ?"],
+    "memory": { "service": "Balayage" },
+    "next": "ask_shampoo"
+  },
+  "set_color_total": {
+    "prompt": ["Entendu, une coloration complète. Je vais préparer le mélange. Quelle nuance avez-vous choisie sur le nuancier ?"],
+    "capture": "color_shade",
+    "next": "ask_shampoo"
+  },
+  "set_color_roots": {
+    "prompt": ["Juste les racines pour couvrir les cheveux blancs, c'est noté."],
+    "memory": { "service": "Racines" },
+    "next": "ask_shampoo"
+  },
+  "ask_beard_details": {
+    "prompt": [
+      "Pour la barbe, on part sur une taille complète avec traçage des contours ou juste un rafraîchissement ?",
+      "Voulez-vous aussi un soin à l'huile chaude et une serviette chaude pour finir ?"
+    ],
+    "intents": {
+      "full_trim": "set_beard_full",
+      "simple_trim": "set_beard_simple"
+    }
+  },
+  "set_beard_full": {
+    "prompt": ["La totale : taille, contours au rasoir et soin apaisant. Installez-vous confortablement."],
+    "memory": { "service": "Barbe complète" },
+    "next": "during_cut"
+  },
+  "set_beard_simple": {
+    "prompt": ["Entendu, on égalise juste la longueur à la tondeuse."],
+    "memory": { "service": "Barbe simple" },
+    "next": "during_cut"
+  },
+  "ask_treatment_details": {
+    "prompt": [
+      "Nous proposons plusieurs soins profonds : le protocole à la kératine pour la brillance, ou un soin détox pour le cuir chevelu. Lequel préférez-vous ?",
+      "Vos cheveux me semblent un peu secs, un masque nourrissant intense vous conviendrait ?"
+    ],
+    "intents": {
+      "keratin": "set_treatment_keratin",
+      "detox": "set_treatment_detox",
+      "moisturizing": "set_treatment_moist"
+    }
+  },
+  "set_treatment_keratin": {
+    "prompt": ["Le soin kératine va lisser la fibre et apporter beaucoup de brillance. C'est un excellent choix."],
+    "memory": { "treatment": "Kératine" },
+    "next": "ask_shampoo"
+  },
+  "set_treatment_detox": {
+    "prompt": ["Parfait pour purifier le cuir chevelu. Je vais accompagner cela d'un massage crânien de 5 minutes."],
+    "memory": { "treatment": "Détox" },
+    "next": "ask_shampoo"
+  },
+  "set_treatment_moist": {
+    "prompt": ["Un masque hydratant posé sous chaleur pour une efficacité maximale. Entendu."],
+    "memory": { "treatment": "Hydratant" },
+    "next": "ask_shampoo"
+  },
+  "ask_shampoo": {
+    "prompt": ["On passe au bac. L'eau est à la bonne température ?"],
+    "intents": {
+      "yes": "ask_massage_extension",
+      "too_hot": "adjust_water",
+      "too_cold": "adjust_water",
+      "scalp_problem": "scalp_analysis"
+    }
+  },
+  "ask_massage_extension": {
+    "prompt": ["Souhaitez-vous prolonger le massage crânien de 10 minutes pour un moment de détente absolue ? C'est un supplément de 15 euros."],
+    "intents": {
+      "yes": "set_massage_long",
+      "no": "set_shampoo_ok"
+    }
+  },
+  "set_massage_long": {
+    "prompt": ["Excellent choix, détendez-vous complètement..."],
+    "next": "set_shampoo_ok"
+  },
+  "scalp_analysis": {
+    "prompt": ["Je remarque quelques irritations. Je vais utiliser un shampoing apaisant à l'aloe vera plutôt que le shampoing habituel, d'accord ?"],
+    "next": "set_shampoo_ok"
+  },
+  "adjust_water": {
+    "prompt": ["Désolé, je règle ça tout de suite... Voilà, c'est mieux comme ça ?"],
+    "next": "set_shampoo_ok"
+  },
+  "set_shampoo_ok": {
+    "prompt": ["Parfait. Je vous fais un petit massage pendant le soin, détendez-vous."],
+    "next": "during_cut"
+  },
+  "during_cut": {
+    "prompt": ["(Le travail avance) Ça vous convient comme ça sur les côtés ? On dégage encore un peu ou on laisse de la longueur ?"],
+    "intents": {
+      "good": "finish_cut",
+      "shorter": "adjust_shorter",
+      "longer_fail": "explain_cut",
+      "magazine": "offer_magazine"
+    }
+  },
+  "offer_magazine": {
+    "prompt": ["Voulez-vous un magazine pour patienter ? Nous avons la presse people, de la mode ou de la décoration."],
+    "next": "during_cut"
+  },
+  "adjust_shorter": {
+    "prompt": ["Pas de souci, je raccourcis encore un peu. Dites-moi quand la longueur vous semble parfaite."],
+    "next": "finish_cut"
+  },
+  "explain_cut": {
+    "prompt": ["Malheureusement on ne peut pas rallonger ce qui a été coupé, mais on peut ajuster la forme pour que ça paraisse plus dense. Qu'en pensez-vous ?"],
+    "next": "finish_cut"
+  },
+  "finish_cut": {
+    "prompt": ["On finit avec quel type de coiffage ? Un brushing souple, lisse, ou on laisse sécher naturellement avec un peu de cire ?"],
+    "capture": "finishing",
+    "next": "show_result"
+  },
+  "show_result": {
+    "prompt": ["Et voilà ! Je vous montre l'arrière avec le miroir... Qu'est-ce que vous en dites ?"],
+    "intents": {
+      "happy": "product_recommendation",
+      "unhappy": "handle_dissatisfaction",
+      "change_mind": "re_evaluate_cut"
+    }
+  },
+  "re_evaluate_cut": {
+    "prompt": ["Finalement vous trouvez ça un peu trop long ? Pas de problème, on peut encore ajuster la mèche de devant pour donner plus de mouvement."],
+    "next": "during_cut"
+  },
+  "handle_dissatisfaction": {
+    "prompt": ["Oh, je suis navré que ça ne vous plaise pas totalement. Dites-moi ce qui ne va pas : est-ce le volume, la mèche, ou la longueur ?"],
+    "capture": "complaint",
+    "next": "attempt_fix"
+  },
+  "attempt_fix": {
+    "prompt": ["Je vois, je vais essayer d'alléger un peu la masse ici pour que ça tombe mieux. Regardez, c'est mieux ainsi ?"],
+    "intents": {
+      "yes": "product_recommendation",
+      "no": "commercial_gesture"
+    }
+  },
+  "commercial_gesture": {
+    "prompt": ["Je m'excuse encore. Exceptionnellement, je vous fais une remise de 20% sur la prestation d'aujourd'hui. Est-ce que cela vous convient ?"],
+    "next": "go_to_cashier"
+  },
+  "product_recommendation": {
+    "prompt": ["Pour entretenir votre couleur à la maison, je vous conseille ce shampoing sans sulfate et ce masque protecteur. Souhaitez-vous les prendre ?"],
+    "intents": {
+      "yes": "set_products",
+      "no": "go_to_cashier"
+    }
+  },
+  "set_products": {
+    "prompt": ["Très bien, je vous mets ça de côté pour le passage en caisse."],
+    "memory": { "products": "Oui" },
+    "next": "go_to_cashier"
+  },
+  "ask_reschedule_info": {
+    "prompt": ["Vous aviez rendez-vous et vous souhaitez le déplacer ? À quel nom était la réservation ?"],
+    "capture": "reschedule_name",
+    "next": "provide_new_slots"
+  },
+  "provide_new_slots": {
+    "prompt": ["J'ai de la place mardi prochain à 14h ou jeudi à 10h. Quel créneau vous arrangerait ?"],
+    "capture": "new_slot",
+    "next": "confirm_reschedule"
+  },
+  "confirm_reschedule": {
+    "prompt": ["C'est noté, votre rendez-vous est déplacé. Vous recevrez un SMS de confirmation. À bientôt !"],
+    "next": "end_session"
+  },
+  "go_to_cashier": {
+    "prompt": ["Parfait. On passe en caisse. Ça nous fera un total de {price} euros avec les soins."],
+    "intents": {
+      "loyalty_card": "check_loyalty_points"
+    },
+    "next": "ask_payment"
+  },
+  "check_loyalty_points": {
+    "prompt": ["Voyons voir... Vous avez accumulé 100 points ! Cela vous donne droit à un soin offert aujourd'hui. Je le déduis de la note."],
+    "next": "ask_payment"
+  },
+  "ask_payment": {
+    "prompt": ["Vous payez par carte, en espèces ou via l'application ?"],
+    "intents": {
+      "card": "end_session",
+      "cash": "end_session",
+      "app": "end_session",
+      "tip": "process_tip"
+    }
+  },
+  "process_tip": {
+    "prompt": ["C'est très gentil à vous ! Quel montant souhaitez-vous ajouter pour le pourboire ?"],
+    "capture": "tip_amount",
+    "next": "end_session"
+  },
+  "end_session": {
+    "prompt": [
+      "Merci beaucoup ! Bonne journée avec votre nouvelle tête.",
+      "C'était un plaisir, à très bientôt au salon Salon Elégance !"
+    ]
+  },
+  "end_session_fail": {
+    "prompt": ["Désolé, nous sommes vraiment complets. N'hésitez pas à réserver en ligne sur notre site pour demain. Bonne journée !"]
+  }
+}

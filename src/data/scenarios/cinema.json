@@ -1,0 +1,168 @@
+{
+  "start": {
+    "prompt": [
+      "Bonjour ! Pour quel film voulez-vous des places ?",
+      "Bonjour. Bienvenue au Ciné-Club. Quel film souhaitez-vous voir ?",
+      "Bienvenue ! C'est pour une séance, un souci technique ou une information sur un film ?",
+      "Bonjour ! Avez-vous votre carte de fidélité ?"
+    ],
+    "intents": {
+      "movie": "ask_time",
+      "glasses": "three_d_glasses_start",
+      "subtitle": "subtitle_check_start",
+      "technical": "hall_issue_start",
+      "booster": "booster_seat_start",
+      "runtime": "runtime_inquiry_start",
+      "poster": "movie_poster_request_start",
+      "lost_ticket": "lost_ticket_problem_start",
+      "membership": "membership_benefits_start",
+      "seat": "specific_seat_request_start",
+      "trailer": "trailer_loop_start",
+      "toilets": "toilet_inquiry_start",
+      "wifi": "wifi_inquiry_start",
+      "hours": "opening_hours_start",
+      "payment": "payment_method_start",
+      "snacks": "snack_location_start"
+    }
+  },
+
+  "toilet_inquiry_start": {
+    "prompt": [
+      "Les toilettes se trouvent au fond du couloir, juste après la salle 3.",
+      "Vous trouverez les toilettes à gauche de l'entrée principale, derrière le stand de pop-corn."
+    ],
+    "next": "end_session"
+  },
+
+  "wifi_inquiry_start": {
+    "prompt": [
+      "Oui, nous avons un accès Wi-Fi gratuit. Le réseau s'appelle 'CineClub-Guest'. Il n'y a pas de mot de passe.",
+      "Le Wi-Fi est disponible dans le hall. Une fois connecté, vous devez simplement accepter les conditions sur la page qui s'affiche."
+    ],
+    "next": "end_session"
+  },
+
+  "opening_hours_start": {
+    "prompt": [
+      "Nous sommes ouverts tous les jours de 10h30 à minuit. La dernière séance commence généralement vers 22h15.",
+      "Le cinéma ouvre ses portes 30 minutes avant la première séance de la journée."
+    ],
+    "next": "end_session"
+  },
+
+  "payment_method_start": {
+    "prompt": [
+      "Nous acceptons les cartes bancaires, les espèces et les chèques culture. Vous pouvez aussi payer via notre application.",
+      "Le paiement sans contact est disponible à toutes nos caisses et aux bornes automatiques."
+    ],
+    "next": "ask_time"
+  },
+
+  "snack_location_start": {
+    "prompt": [
+      "Le comptoir des confiseries est juste ici, dans le hall principal. Vous y trouverez du pop-corn, des bonbons et des boissons fraîches.",
+      "Vous pouvez acheter vos snacks directement à la caisse en même temps que vos billets pour gagner du temps."
+    ],
+    "next": "ask_time"
+  },
+
+  "movie_poster_request_start": {
+    "prompt": [
+      "Désolé, nous n'avons plus d'affiches de ce film à donner. Elles sont toutes réservées.",
+      "Revenez la semaine prochaine, quand le film ne sera plus à l'affiche, je pourrai vous en donner une !"
+    ],
+    "next": "end_session"
+  },
+
+  "lost_ticket_problem_start": {
+    "prompt": [
+      "Vous avez perdu votre billet ? Si vous l'avez acheté sur Internet, je peux le retrouver avec votre nom.",
+      "Pas de souci, montrez-moi votre confirmation par e-mail sur votre téléphone et je vous laisse passer."
+    ],
+    "next": "end_session"
+  },
+
+  "membership_benefits_start": {
+    "prompt": [
+      "La carte d'abonnement coûte 30 euros pour 5 places. C'est valable un an dans tous nos cinémas.",
+      "Avec la carte, vous avez aussi -10% sur tout le rayon confiserie (pop-corn et boissons)."
+    ],
+    "next": "end_session"
+  },
+
+  "specific_seat_request_start": {
+    "prompt": [
+      "Vous voulez être au milieu du rang 10 ? C'est la meilleure vue ! Je regarde s'il reste de la place.",
+      "Désolé, le placement est libre aujourd'hui. Il vaut mieux entrer dans la salle dès maintenant."
+    ],
+    "next": "ask_time"
+  },
+
+  "trailer_loop_start": {
+    "prompt": [
+      "Les bandes-annonces durent environ 10 minutes avant le début du film. Vous avez encore le temps !",
+      "Le film commence précisément à 21h10 après les publicités. Voulez-vous que je vous l'indique ?"
+    ],
+    "next": "end_session"
+  },
+
+  "three_d_glasses_start": {
+    "prompt": [
+      "Oui, il vous faut des lunettes 3D ! Elles sont incluses dans le prix du billet pour ce film.",
+      "Voici vos lunettes 3D. Si vous portez des lunettes de vue, on a aussi des modèles qui s'adaptent."
+    ],
+    "next": "ask_time"
+  },
+
+  "subtitle_check_start": {
+    "prompt": [
+      "Ce film est disponible en Version Française ou en Version Originale sous-titrée. Vous préférez laquelle ?",
+      "La séance de 19h est en VF, celle de 21h30 est en VOSTFR. Laquelle vous convient mieux ?"
+    ],
+    "next": "ask_time"
+  },
+
+  "hall_issue_start": {
+    "prompt": [
+      "Oh, il y a un problème technique dans la salle ? Je préviens le technicien immédiatement. Toutes mes excuses !",
+      "Je suis vraiment désolé pour ce désagrément. Le technicien va intervenir de suite et on va régler ça."
+    ],
+    "next": "end_session"
+  },
+
+  "booster_seat_start": {
+    "prompt": [
+      "Les rehausseurs pour enfants sont en libre-service dans le couloir, devant les salles 1, 2 et 3.",
+      "Prenez un rehausseur dans le couloir, il y en a plusieurs de disponibles. C'est gratuit bien sûr !"
+    ],
+    "next": "ask_time"
+  },
+
+  "runtime_inquiry_start": {
+    "prompt": [
+      "Ce film dure 2 heures et 15 minutes, sans compter les bandes-annonces. Ça finit vers 23h environ.",
+      "La durée est de 2h15. Vous avez le temps de prendre quelque chose à grignoter avant !"
+    ],
+    "next": "ask_time"
+  },
+
+  "ask_time": {
+    "prompt": [
+      "Pour quelle séance souhaitez-vous des billets ? On a du monde à 19h et 21h30 ce soir.",
+      "Quelle heure vous conviendrait le mieux — la séance de 19h ou celle de 21h30 ?"
+    ],
+    "next": "show_total"
+  },
+
+  "show_total": {
+    "prompt": [
+      "Ça vous fera 24 euros pour deux places. Vous payez par carte ou en liquide ?",
+      "Le total est de 24 euros. Je vous imprime vos billets et bonne séance !"
+    ],
+    "next": "end_session"
+  },
+
+  "end_session": {
+    "prompt": ["Bon film ! Profitez bien de la séance.", "Merci et bonne séance !"]
+  }
+}

@@ -11,6 +11,12 @@
     <meta property="og:image" content="https://bolt.new/static/og_default.png" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content="https://bolt.new/static/og_default.png" />
+  <script>
+    (function() {
+      var dark = localStorage.getItem('frenchCoach_darkMode');
+      if (dark === null || dark === 'true') document.documentElement.classList.add('dark');
+    })();
+  </script>
   </head>
   <body>
     <div id="root"></div>

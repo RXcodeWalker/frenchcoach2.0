@@ -1,0 +1,109 @@
+{
+  "start": {
+    "prompt": [
+      "Bonjour ! Vous cherchez un livre en particulier ?",
+      "Bienvenue ! Puis-je vous aider à trouver une section ?",
+      "Bonjour. C'est pour un cadeau ou pour vous ?",
+      "Bonjour ! On vient de recevoir les nouveautés de la semaine."
+    ],
+    "intents": {
+      "fiction": "fiction_start",
+      "nonfiction": "nonfiction_start",
+      "comics": "comics_start",
+      "search": "search_start",
+      "author": "author_search_start",
+      "gift": "gift_recommendation_start",
+      "kids": "children_books_start",
+      "school": "school_textbooks_start",
+      "rare": "rare_books_start",
+      "order": "order_book_start"
+    }
+  },
+
+  "author_search_start": {
+    "prompt": [
+      "Quel auteur cherchez-vous ? On a tout un rayon dédié à la littérature classique et contemporaine.",
+      "C'est un auteur français ou étranger ? Je peux regarder dans notre base de données."
+    ],
+    "capture": "author_name",
+    "next": "check_stock"
+  },
+
+  "gift_recommendation_start": {
+    "prompt": [
+      "C'est pour qui ? Si c'est pour un amateur de suspense, je vous conseille ce nouveau polar.",
+      "Voulez-vous que je vous fasse un beau paquet cadeau avec un marque-page offert ?"
+    ],
+    "next": "go_to_cashier"
+  },
+
+  "children_books_start": {
+    "prompt": [
+      "Le rayon jeunesse est juste là-bas, au fond à droite. Quel âge a l'enfant ?",
+      "On a des livres tactiles pour les petits et des premiers romans pour les plus grands."
+    ],
+    "next": "fiction_start"
+  },
+
+  "school_textbooks_start": {
+    "prompt": [
+      "Vous avez la liste des fournitures ? On a souvent les classiques étudiés au lycée en stock.",
+      "C'est pour quelle matière ? Les dictionnaires et les méthodes de langue sont dans l'allée 4."
+    ],
+    "next": "search_start"
+  },
+
+  "rare_books_start": {
+    "prompt": [
+      "Nous avons une petite section de livres anciens et d'éditions limitées sous vitrine. Vous voulez y jeter un œil ?",
+      "Ce sont des exemplaires de collection. Merci de manipuler les livres avec précaution."
+    ],
+    "next": "fiction_start"
+  },
+
+  "order_book_start": {
+    "prompt": [
+      "Nous ne l'avons plus en rayon, mais je peux vous le commander. Il arrivera d'ici 48 heures. Cela vous convient ?",
+      "Laissez-moi vos coordonnées, je vous enverrai un SMS dès que le livre sera disponible en magasin."
+    ],
+    "capture": "contact_info",
+    "next": "end_session"
+  },
+
+  "fiction_start": {
+    "prompt": ["Plutôt roman policier, science-fiction ou classique ?"],
+    "next": "check_stock"
+  },
+
+  "nonfiction_start": {
+    "prompt": ["Histoire, cuisine ou psychologie ?"],
+    "next": "check_stock"
+  },
+
+  "comics_start": {
+    "prompt": ["BD franco-belge, mangas ou comics américains ?"],
+    "next": "check_stock"
+  },
+
+  "search_start": {
+    "prompt": ["Donnez-moi le titre, je regarde sur l'ordinateur."],
+    "next": "check_stock"
+  },
+
+  "check_stock": {
+    "prompt": ["Oui, il m'en reste un exemplaire en rayon.", "Désolé, il est en rupture de stock pour le moment."],
+    "intents": {
+      "buy": "go_to_cashier",
+      "browse": "start"
+    }
+  },
+
+  "go_to_cashier": {
+    "prompt": ["Ça fera 15 euros 90, s'il vous plaît."],
+    "next": "end_session"
+  },
+
+  "end_session": {
+    "prompt": ["Bonne lecture !", "À bientôt !"]
+  }
+}

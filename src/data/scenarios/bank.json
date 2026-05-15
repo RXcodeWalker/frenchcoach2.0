@@ -1,0 +1,160 @@
+{
+  "start": {
+    "prompt": [
+      "Bonjour. Comment puis-je vous aider ?",
+      "Bonjour, bienvenue à la banque. Vous avez rendez-vous ?",
+      "Bienvenue ! Souhaitez-vous gérer votre compte, parler d'un prêt ou mettre à jour vos infos ?",
+      "Bonjour ! C'est pour une opération de change ?"
+    ],
+    "intents": {
+      "account": "ask_account",
+      "loan": "mortgage_deep_dive_start",
+      "address": "change_details_start",
+      "checks": "lost_checkbook_start",
+      "statement": "bank_statement_start",
+      "insurance": "insurance_inquiry_start",
+      "card_limit": "card_limit_increase_start",
+      "app_help": "mobile_app_troubleshoot_start",
+      "safe_deposit": "safe_deposit_inquiry_start",
+      "direct_debit": "direct_debit_setup_start",
+      "savings": "savings_rate_inquiry_start",
+      "toilets": "toilets_location_start",
+      "wifi": "wifi_access_start",
+      "hours": "bank_hours_start",
+      "contactless": "contactless_info_start",
+      "atm": "atm_location_start"
+    }
+  },
+
+  "toilets_location_start": {
+    "prompt": [
+      "Nos toilettes ne sont pas accessibles au public, elles sont réservées au personnel.",
+      "Il y a des toilettes publiques dans le centre commercial juste en face si vous voulez."
+    ],
+    "next": "end_session"
+  },
+
+  "wifi_access_start": {
+    "prompt": [
+      "Oui, nous avons un Wi-Fi 'Visiteurs'. Vous pouvez vous connecter sans mot de passe, mais il faut valider l'accès sur notre portail.",
+      "Le réseau s'appelle 'MaBanque-Guest'. Cela peut vous aider pour configurer l'application mobile."
+    ],
+    "next": "end_session"
+  },
+
+  "bank_hours_start": {
+    "prompt": [
+      "L'agence est ouverte du mardi au vendredi de 9h à 18h, et le samedi matin jusqu'à 12h30.",
+      "Nous sommes fermés le lundi. En revanche, nos automates extérieurs sont accessibles 24h/24."
+    ],
+    "next": "end_session"
+  },
+
+  "contactless_info_start": {
+    "prompt": [
+      "Vous souhaitez activer le paiement sans contact sur votre carte ou configurer Apple Pay / Google Pay ?",
+      "C'est très simple, je peux le faire pour vous tout de suite ou vous montrer comment faire sur l'application."
+    ],
+    "next": "end_session"
+  },
+
+  "atm_location_start": {
+    "prompt": [
+      "Vous trouverez deux distributeurs à l'extérieur, sur la gauche de l'entrée principale.",
+      "Il y a aussi un automate à l'intérieur pour les retraits et les dépôts de chèques, juste derrière vous."
+    ],
+    "next": "end_session"
+  },
+
+  "card_limit_increase_start": {
+    "prompt": [
+      "C'est pour un achat ponctuel ou vous voulez augmenter votre plafond de façon permanente ?",
+      "D'accord, je peux augmenter votre limite de paiement à 2000 euros par mois. Ça vous suffit ?"
+    ],
+    "next": "end_session"
+  },
+
+  "mobile_app_troubleshoot_start": {
+    "prompt": [
+      "Vous avez perdu votre mot de passe ? Je vais vous renvoyer un code de réinitialisation par SMS.",
+      "L'application est bloquée ? Essayez de la mettre à jour sur l'App Store ou Google Play."
+    ],
+    "next": "end_session"
+  },
+
+  "safe_deposit_inquiry_start": {
+    "prompt": [
+      "Nous avons plusieurs tailles de coffres-forts. C'est pour des bijoux ou des documents importants ?",
+      "La location d'un petit coffre coûte 100 euros par an. Voulez-vous voir le contrat ?"
+    ],
+    "next": "end_session"
+  },
+
+  "direct_debit_setup_start": {
+    "prompt": [
+      "Pour mettre en place un prélèvement automatique, j'ai besoin du numéro d'émetteur de l'organisme.",
+      "Voulez-vous que je vous imprime un RIB (Relevé d'Identité Bancaire) pour le donner à votre club de sport ?"
+    ],
+    "next": "end_session"
+  },
+
+  "savings_rate_inquiry_start": {
+    "prompt": [
+      "Le taux du Livret A est actuellement de 3% net d'impôts. C'est le placement le plus sûr en ce moment.",
+      "Nous avons aussi des comptes à terme avec des taux plus élevés si vous bloquez l'argent pendant un an."
+    ],
+    "next": "end_session"
+  },
+
+  "mortgage_deep_dive_start": {
+    "prompt": [
+      "Vous cherchez un prêt immobilier ? C'est pour l'achat d'un appartement ou d'une maison ?",
+      "Je serais ravi de vous présenter nos offres de crédit immobilier. Quel est votre projet — résidence principale ou investissement ?"
+    ],
+    "next": "end_session"
+  },
+
+  "change_details_start": {
+    "prompt": [
+      "Bien sûr, je mets à jour votre adresse. Quelle est votre nouvelle adresse complète, s'il vous plaît ?",
+      "Pour changer vos coordonnées, j'ai besoin de votre nouvelle adresse et d'un justificatif de domicile récent."
+    ],
+    "next": "end_session"
+  },
+
+  "lost_checkbook_start": {
+    "prompt": [
+      "Pas de panique ! Je bloque immédiatement tous les chèques de ce carnet pour éviter toute fraude.",
+      "Je fais opposition sur le chéquier tout de suite. Avez-vous le numéro de votre carnet, ou juste votre numéro de compte ?"
+    ],
+    "next": "end_session"
+  },
+
+  "bank_statement_start": {
+    "prompt": [
+      "Un relevé de compte papier coûte 2 euros. Mais saviez-vous que vous pouvez le télécharger gratuitement sur l'application ?",
+      "Je vous fais un relevé tout de suite. C'est pour quelle période — le mois dernier ou les trois derniers mois ?"
+    ],
+    "next": "end_session"
+  },
+
+  "insurance_inquiry_start": {
+    "prompt": [
+      "Quel type d'assurance vous intéresse — habitation, auto, santé ou prévoyance ?",
+      "Nous proposons plusieurs formules d'assurance. Dites-moi ce que vous cherchez à protéger et je vous oriente."
+    ],
+    "next": "end_session"
+  },
+
+  "ask_account": {
+    "prompt": [
+      "Vous souhaitez ouvrir quel type de compte — courant, épargne ou professionnel ?",
+      "Je vais vous présenter nos différents types de comptes. C'est pour une utilisation personnelle ou professionnelle ?"
+    ],
+    "next": "end_session"
+  },
+
+  "end_session": {
+    "prompt": ["Merci de votre visite, au revoir et bonne journée !", "Bonne journée ! N'hésitez pas à revenir pour toute question."]
+  }
+}

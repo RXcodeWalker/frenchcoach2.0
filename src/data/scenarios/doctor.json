@@ -1,0 +1,124 @@
+{
+  "start": {
+    "prompt": [
+      "Bonjour. Qu'est-ce qui vous amène aujourd'hui ?",
+      "Bonjour. Dites-moi, qu'est-ce qui ne va pas ?",
+      "Bienvenue. C'est pour une consultation, un certificat ou un suivi de traitement ?",
+      "Bonjour ! Avez-vous votre carte vitale et votre carnet de santé ?"
+    ],
+    "intents": {
+      "sick": "ask_symptoms",
+      "certificate": "medical_certificate_start",
+      "blood": "blood_test_start",
+      "vaccine": "vaccination_update_start",
+      "side_effects": "medication_side_effects_start",
+      "specialist": "specialist_recommendation_start",
+      "note": "sick_note_request_start",
+      "pressure": "blood_pressure_check_start",
+      "lab": "lab_location_inquiry_start",
+      "home_visit": "home_visit_request_start",
+      "insurance": "health_insurance_check_start"
+    }
+  },
+
+  "sick_note_request_start": {
+    "prompt": [
+      "Vous avez besoin d'un arrêt de travail pour votre employeur ? Je vais vous faire ça pour trois jours.",
+      "D'accord, je vais remplir le formulaire de la Sécurité Sociale. Quel est votre métier ?"
+    ],
+    "capture": "job_details",
+    "next": "ask_symptoms"
+  },
+
+  "blood_pressure_check_start": {
+    "prompt": [
+      "On va vérifier ça tout de suite. Détendez-vous et posez votre bras sur la table.",
+      "Votre tension est un peu élevée, 15/9. Est-ce que vous fumez ou êtes stressé en ce moment ?"
+    ],
+    "next": "ask_symptoms"
+  },
+
+  "lab_location_inquiry_start": {
+    "prompt": [
+      "Le laboratoire d'analyses le plus proche est dans la rue Gambetta, juste à côté de la mairie.",
+      "Voulez-vous que je vous note l'adresse sur le dos de votre ordonnance ?"
+    ],
+    "next": "end_session"
+  },
+
+  "home_visit_request_start": {
+    "prompt": [
+      "Je ne fais des visites à domicile que pour les personnes âgées qui ne peuvent pas se déplacer.",
+      "Si c'est une urgence et que vous ne pouvez pas venir, appelez le 15 ou SOS Médecins."
+    ],
+    "next": "end_session"
+  },
+
+  "health_insurance_check_start": {
+    "prompt": [
+      "Oui, je prends la carte vitale et je pratique le tiers payant si vous avez une mutuelle.",
+      "Désolé, ma machine est en panne. Je vais vous faire une feuille de soins papier pour le remboursement."
+    ],
+    "next": "end_session"
+  },
+
+  "medical_certificate_start": {
+    "prompt": [
+      "Bien sûr. C'est un certificat pour quel usage — sport, école, travail ou assurance ?",
+      "Je vous prépare ce certificat. Vous en avez besoin pour quelle activité exactement ?"
+    ],
+    "next": "ask_symptoms"
+  },
+
+  "blood_test_start": {
+    "prompt": [
+      "D'accord, je vous prépare l'ordonnance pour les analyses. Vous êtes à jeun depuis ce matin ?",
+      "Je fais la prescription de prise de sang tout de suite. Le laboratoire vous accueille sans rendez-vous le matin."
+    ],
+    "next": "ask_symptoms"
+  },
+
+  "vaccination_update_start": {
+    "prompt": [
+      "Je vais vérifier vos vaccinations. Vous avez votre carnet de santé ou de vaccination sur vous ?",
+      "Montrez-moi votre carnet de santé. On va regarder ce qui est à jour et ce qui doit être renouvelé."
+    ],
+    "next": "ask_symptoms"
+  },
+
+  "medication_side_effects_start": {
+    "prompt": [
+      "Quels effets secondaires est-ce que vous ressentez exactement ? Depuis quand cela dure-t-il ?",
+      "Je vous écoute. Décrivez-moi précisément ces effets et dans quel contexte ils apparaissent."
+    ],
+    "next": "ask_symptoms"
+  },
+
+  "specialist_recommendation_start": {
+    "prompt": [
+      "Quel type de spécialiste cherchez-vous ? Cardiologue, dermatologue, rhumatologue ou autre ?",
+      "Je peux vous orienter vers un spécialiste. Quel est votre problème de santé principal ?"
+    ],
+    "next": "ask_symptoms"
+  },
+
+  "ask_symptoms": {
+    "prompt": [
+      "Décrivez-moi vos symptômes, s'il vous plaît. Depuis quand vous sentez-vous comme ça ?",
+      "Qu'est-ce qui ne va pas exactement ? Prenez votre temps, je vous écoute attentivement."
+    ],
+    "next": "diagnosis"
+  },
+
+  "diagnosis": {
+    "prompt": [
+      "D'après ce que vous me décrivez, voici mon diagnostic. Je vais vous faire une ordonnance adaptée.",
+      "Je pense savoir ce que c'est. Je vous prescris un traitement et on se revoit dans une semaine si ça ne va pas mieux."
+    ],
+    "next": "end_session"
+  },
+
+  "end_session": {
+    "prompt": ["Soignez-vous bien et n'hésitez pas à rappeler si les symptômes s'aggravent !", "Au revoir, bon rétablissement !"]
+  }
+}

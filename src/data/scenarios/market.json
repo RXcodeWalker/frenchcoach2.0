@@ -1,0 +1,247 @@
+{
+  "start": {
+    "prompt": [
+      "Bonjour ! Regardez mes beaux fruits et légumes ! Vous désirez quelque chose ?",
+      "Approchez, approchez ! C'est tout frais du matin. Qu'est-ce qu'il vous faut ?",
+      "Bienvenue au marché ! C'est pour une envie précise, une recette ou un petit souci sur un achat ?"
+    ],
+    "intents": {
+      "fruit": "ask_fruit_type",
+      "vegetable": "ask_veg_type",
+      "recipe": "recipe_advice_start",
+      "bio": "organic_check_start",
+      "discount": "bulk_discount_start",
+      "complaint": "rotten_item_start",
+      "origin": "origin_inquiry_start",
+      "seasonal": "unavailable_seasonal_start",
+      "party": "large_party_order_start",
+      "hours": "opening_hours_start",
+      "tasting": "cheese_fruit_tasting_start",
+      "bag_weight": "bag_weight_check_start",
+      "large_bill": "large_bill_payment_start",
+      "brand": "specific_brand_search_start",
+      "ripeness": "ripeness_inquiry_start",
+      "organic_diff": "organic_vs_regular_start",
+      "plastic_bag": "bag_request_start",
+      "total_weight": "total_weight_inquiry_start",
+      "price_kilo": "price_per_kilo_check_start",
+      "variety": "specific_variety_check_start",
+      "specialty": "local_specialty_inquiry_start"
+    }
+  },
+
+  "bag_request_start": {
+    "prompt": [
+      "Voulez-vous un sac en papier ou préférez-vous un sac en plastique biodégradable ?",
+      "C'est 10 centimes pour le grand sac cabas. Ça vous va ?"
+    ],
+    "next": "ask_general"
+  },
+
+  "total_weight_inquiry_start": {
+    "prompt": [
+      "Attendez, je pèse votre panier... Ça fait exactement 3 kilos et 200 grammes.",
+      "C'est lourd ! Voulez-vous que je retire une ou deux pommes pour alléger ?"
+    ],
+    "next": "ask_general"
+  },
+
+  "price_per_kilo_check_start": {
+    "prompt": [
+      "Les tomates sont à 3 euros 50 le kilo aujourd'hui.",
+      "C'est plus cher que la semaine dernière car c'est le début de la récolte."
+    ],
+    "next": "ask_general"
+  },
+
+  "specific_variety_check_start": {
+    "prompt": [
+      "Oui, j'ai de la 'Pink Lady' et de la 'Golden'. Laquelle préférez-vous ?",
+      "Désolé, je n'ai plus de 'Cœur de bœuf', elles sont parties très vite ce matin."
+    ],
+    "next": "ask_general"
+  },
+
+  "local_specialty_inquiry_start": {
+    "prompt": [
+      "Il faut absolument goûter notre miel de lavande, il est typique de la région.",
+      "Connaissez-vous le saucisson aux noisettes ? C'est notre grande spécialité locale."
+    ],
+    "next": "end_session"
+  },
+
+  "bag_weight_check_start": {
+    "prompt": [
+      "Attendez, je mets votre sac sur la balance. Vous voulez qu'on arrive à un kilo pile ?",
+      "Je pèse ça tout de suite pour vous. On en est à combien environ ?"
+    ],
+    "next": "ask_general"
+  },
+
+  "large_bill_payment_start": {
+    "prompt": [
+      "Un billet de 100 euros ? Je vais voir si j'ai assez de monnaie dans ma caisse.",
+      "Je peux vous rendre la monnaie sur un billet de 100, mais je vérifie d'abord. Un instant !"
+    ],
+    "next": "ask_payment"
+  },
+
+  "specific_brand_search_start": {
+    "prompt": [
+      "Vous cherchez une marque en particulier ? Je ne vends que des producteurs locaux ici.",
+      "Dites-moi ce que vous recherchez, j'essaierai de vous orienter vers le bon stand."
+    ],
+    "next": "end_session"
+  },
+
+  "ripeness_inquiry_start": {
+    "prompt": [
+      "Vous voulez les manger aujourd'hui ou dans quelques jours ? Je vous choisis en conséquence !",
+      "Celles-ci sont mûres à point — elles sont parfaites pour ce soir. Celles-là sont encore un peu fermes."
+    ],
+    "next": "ask_general"
+  },
+
+  "organic_vs_regular_start": {
+    "prompt": [
+      "Le bio, c'est cultivé sans pesticides chimiques. C'est meilleur pour la santé et pour l'environnement.",
+      "La différence principale, c'est le label AB. Mes produits bio coûtent un peu plus cher, mais les clients adorent !"
+    ],
+    "next": "ask_general"
+  },
+
+  "unavailable_seasonal_start": {
+    "prompt": [
+      "Désolé, ce n'est plus en saison ! Revenez en juillet pour en trouver de belles.",
+      "Ce produit n'est pas disponible en ce moment. Puis-je vous proposer quelque chose de similaire ?"
+    ],
+    "next": "ask_general"
+  },
+
+  "large_party_order_start": {
+    "prompt": [
+      "Une grosse commande ? Vous organisez quelque chose de spécial ? Je peux vous faire un prix de groupe !",
+      "Pour une grande quantité, venez me voir tôt le matin — je réserve une belle sélection pour vous."
+    ],
+    "next": "ask_general"
+  },
+
+  "opening_hours_start": {
+    "prompt": [
+      "Le marché est ouvert tous les jours de 7h à 13h, sauf le lundi. Arrivez tôt pour le meilleur choix !",
+      "Nous ouvrons à 7h du matin. L'hiver, on ferme vers midi pour ne pas geler !"
+    ],
+    "next": "end_session"
+  },
+
+  "cheese_fruit_tasting_start": {
+    "prompt": [
+      "Goûtez donc ! C'est une pêche de vigne, elle vient d'arriver ce matin. Qu'est-ce que vous en pensez ?",
+      "Tenez, je vous coupe un petit morceau de fromage à goûter. C'est un chèvre affiné 3 semaines."
+    ],
+    "next": "ask_general"
+  },
+
+  "recipe_advice_start": {
+    "prompt": [
+      "Qu'est-ce que vous voulez cuisiner ? Je peux vous conseiller selon ce que j'ai de frais aujourd'hui.",
+      "Pour une ratatouille, je vous recommande mes courgettes et mes tomates cerises. Vous connaissez la recette ?"
+    ],
+    "next": "ask_general"
+  },
+
+  "organic_check_start": {
+    "prompt": [
+      "Oui, j'ai une gamme bio ! Ces légumes sont certifiés Agriculture Biologique, regardez le label.",
+      "Mes produits bio arrivent directement d'une ferme à 20 km d'ici. Vous en voulez ?"
+    ],
+    "next": "ask_general"
+  },
+
+  "bulk_discount_start": {
+    "prompt": [
+      "Pour une grosse quantité, je peux vous faire un prix de gros. Vous pensez à combien de kilos ?",
+      "Si vous prenez plus de 5 kilos, je vous fais une remise de 10%. C'est intéressant !"
+    ],
+    "next": "ask_general"
+  },
+
+  "rotten_item_start": {
+    "prompt": [
+      "Oh, je suis vraiment désolé pour ça ! Je vous les échange immédiatement, sans problème.",
+      "C'est inacceptable, toutes mes excuses. Je vous remplace tout ça et je vous offre quelque chose en plus."
+    ],
+    "next": "ask_general"
+  },
+
+  "origin_inquiry_start": {
+    "prompt": [
+      "Alors ça, c'est de la production locale — ça vient d'une ferme à moins de 30 km d'ici !",
+      "L'origine est indiquée sur l'étiquette. Pour les fruits exotiques, c'est importé d'Espagne ou du Maroc."
+    ],
+    "next": "ask_general"
+  },
+
+  "ask_general": {
+    "prompt": [
+      "Alors, qu'est-ce qui vous ferait plaisir aujourd'hui ?",
+      "Vous avez quelque chose en tête ou je peux vous suggérer ce qui est le plus frais ?"
+    ],
+    "next": "ask_quantity"
+  },
+
+  "ask_fruit_type": {
+    "prompt": [
+      "Quels fruits est-ce que vous voulez — pommes, poires, fraises, raisins ? J'ai un beau choix !",
+      "Vous avez envie de quoi comme fruits ? Je peux vous montrer ce qui est le plus mûr."
+    ],
+    "next": "ask_quantity"
+  },
+
+  "ask_veg_type": {
+    "prompt": [
+      "Quels légumes cherchez-vous — tomates, carottes, courgettes, salade ? Tout est frais du matin !",
+      "C'est pour quels légumes ? J'ai de belles tomates et des poireaux magnifiques aujourd'hui."
+    ],
+    "next": "ask_quantity"
+  },
+
+  "ask_quantity": {
+    "prompt": [
+      "Quelle quantité est-ce que je vous mets ? Un kilo, deux kilos ou vous m'indiquez ?",
+      "Combien il vous en faut ? Je pèse ça tout de suite."
+    ],
+    "next": "ask_anything_else"
+  },
+
+  "ask_anything_else": {
+    "prompt": [
+      "Et avec ça, je vous mets autre chose ? J'ai de très belles fraises aujourd'hui !",
+      "C'est tout pour vous ou il vous faut encore quelque chose ?"
+    ],
+    "intents": {
+      "no": "calculate_price",
+      "yes": "start"
+    }
+  },
+
+  "calculate_price": {
+    "prompt": [
+      "Alors, je fais le compte... Voilà votre total ! C'est de beaux produits tout frais.",
+      "Je totalise tout ça. Vous avez fait de bons choix aujourd'hui !"
+    ],
+    "next": "ask_payment"
+  },
+
+  "ask_payment": {
+    "prompt": [
+      "Comment vous réglez ? En espèces ou par carte ? On prend la carte depuis cette année !",
+      "C'est combien pour vous ? Vous payez en liquide ou par carte sans contact ?"
+    ],
+    "next": "end_session"
+  },
+
+  "end_session": {
+    "prompt": ["Merci beaucoup et à bientôt !", "Au revoir et bonne cuisine !"]
+  }
+}

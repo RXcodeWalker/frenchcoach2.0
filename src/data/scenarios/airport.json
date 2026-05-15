@@ -1,0 +1,204 @@
+{
+  "start": {
+    "prompt": [
+      "Bonjour ! Bienvenue à l'aéroport. Souhaitez-vous vous enregistrer ?",
+      "Bonjour. Puis-je voir votre passeport ?",
+      "Bienvenue ! C'est pour un départ, une location de voiture ou un service spécial ?"
+    ],
+    "intents": {
+      "checkin": "check_documents",
+      "car": "car_rental_start",
+      "prayer": "quiet_room_start",
+      "lost_phone": "lost_item_airport_start",
+      "exchange": "currency_exchange_start",
+      "shuttle": "hotel_shuttle_start",
+      "passport": "lost_passport_emergency_start",
+      "vat": "vat_refund_detaxe_start",
+      "baby": "baby_care_room_start",
+      "water": "water_fountain_request_start",
+      "trolley": "baggage_trolley_help_start",
+      "priority": "fast_track_priority_start",
+      "guest": "lounge_guest_policy_start",
+      "tag_error": "baggage_tag_error_start",
+      "adapter": "power_adapter_purchase_start",
+      "pharmacy": "airport_pharmacy_location_start",
+      "toilets": "toilets_location_start",
+      "wifi": "wifi_access_start",
+      "hours": "airport_hours_start",
+      "contactless": "contactless_payment_start",
+      "atm": "atm_location_start"
+    }
+  },
+
+  "toilets_location_start": {
+    "prompt": [
+      "Les toilettes les plus proches sont juste après le Relay, sur votre droite.",
+      "Il y a des sanitaires à chaque porte d'embarquement et près de la zone de récupération des bagages."
+    ],
+    "next": "end_session"
+  },
+
+  "wifi_access_start": {
+    "prompt": [
+      "Le Wi-Fi est gratuit et illimité. Connectez-vous au réseau 'AIRPORT-FREE-WIFI' et acceptez les conditions.",
+      "Vous avez besoin d'une connexion plus rapide ? Nous proposons un forfait 'Premium' sans publicité pour 5 euros."
+    ],
+    "next": "end_session"
+  },
+
+  "airport_hours_start": {
+    "prompt": [
+      "L'aéroport est ouvert 24h/24, mais la plupart des boutiques ferment entre 22h et 6h du matin.",
+      "Les comptoirs d'enregistrement ouvrent généralement 3 heures avant le départ des vols internationaux."
+    ],
+    "next": "end_session"
+  },
+
+  "contactless_payment_start": {
+    "prompt": [
+      "Oui, toutes les boutiques et restaurants de l'aéroport acceptent le paiement sans contact et Apple Pay.",
+      "Vous pouvez payer sans contact jusqu'à 50 euros. Au-delà, il faudra insérer votre carte."
+    ],
+    "next": "end_session"
+  },
+
+  "atm_location_start": {
+    "prompt": [
+      "Il y a un distributeur automatique de billets juste à côté du bureau de change Travelex.",
+      "Vous en trouverez un autre au niveau des arrivées, près de la sortie 4."
+    ],
+    "next": "end_session"
+  },
+
+  "fast_track_priority_start": {
+    "prompt": [
+      "Si vous voyagez en classe Affaires ou si vous avez le statut Gold, vous pouvez utiliser la file prioritaire 'Accès n°1'.",
+      "Voulez-vous acheter un pass prioritaire pour passer la sécurité en moins de 5 minutes ? C'est 10 euros par personne."
+    ],
+    "next": "end_session"
+  },
+
+  "lounge_guest_policy_start": {
+    "prompt": [
+      "Votre carte vous donne droit à un invité gratuit. Pour les personnes supplémentaires, c'est 35 euros par entrée.",
+      "Désolé, le salon est actuellement complet. Seuls les passagers de la Première Classe sont acceptés pour le moment."
+    ],
+    "next": "end_session"
+  },
+
+  "baggage_tag_error_start": {
+    "prompt": [
+      "Oh, je vois que la destination sur l'étiquette est incorrecte. Laissez-moi la retirer et en imprimer une nouvelle tout de suite.",
+      "C'est une erreur du système. Je vais mettre à jour votre dossier pour que votre valise suive bien votre correspondance."
+    ],
+    "next": "end_session"
+  },
+
+  "power_adapter_purchase_start": {
+    "prompt": [
+      "Vous pouvez trouver des adaptateurs universels à la boutique 'Relay' juste en face ou à la boutique d'électronique.",
+      "Nous en vendons aussi aux bornes automatiques à côté de la porte B4. Voulez-vous que je vous montre ?"
+    ],
+    "next": "end_session"
+  },
+
+  "airport_pharmacy_location_start": {
+    "prompt": [
+      "La pharmacie est située au niveau des départs, juste avant le contrôle de sécurité du Terminal 2.",
+      "Elle est ouverte de 7h à 21h. Cherchez-vous des médicaments contre le mal de l'air ?"
+    ],
+    "next": "end_session"
+  },
+
+  "lost_passport_emergency_start": {
+    "prompt": [
+      "C'est une urgence ! Rendez-vous immédiatement au poste de police de l'aéroport, ils vont vous aider.",
+      "Contactez d'abord la police de l'aéroport, puis l'ambassade ou le consulat de votre pays. Je vous donne l'adresse du poste ?"
+    ],
+    "next": "end_session"
+  },
+
+  "vat_refund_detaxe_start": {
+    "prompt": [
+      "Pour la détaxe, rendez-vous au bureau PABLO situé après les contrôles douaniers, avant l'embarquement.",
+      "Le bureau de remboursement de TVA est au niveau des départs. Avez-vous bien tous vos reçus d'achat ?"
+    ],
+    "next": "end_session"
+  },
+
+  "baby_care_room_start": {
+    "prompt": [
+      "La salle pour bébé est à la porte B12, juste après les grandes enseignes. Elle est équipée de tables à langer.",
+      "Vous trouverez un espace bébé très bien équipé à la porte B12. C'est la salle avec les dessins colorés !"
+    ],
+    "next": "end_session"
+  },
+
+  "water_fountain_request_start": {
+    "prompt": [
+      "Il y a une fontaine à eau juste près des toilettes du niveau départ, sur votre droite.",
+      "Vous pouvez remplir votre bouteille à la fontaine d'eau potable à côté des WC au niveau 2."
+    ],
+    "next": "end_session"
+  },
+
+  "baggage_trolley_help_start": {
+    "prompt": [
+      "Les chariots à bagages sont disponibles à l'entrée. Il faut une pièce d'1 euro remboursable à la fin.",
+      "Vous trouverez des chariots juste à l'entrée des portes automatiques. Prenez bien une pièce !"
+    ],
+    "next": "end_session"
+  },
+
+  "car_rental_start": {
+    "prompt": [
+      "Les comptoirs de location de voiture sont au niveau des arrivées, après la récupération des bagages.",
+      "Vous trouverez toutes les agences de location au niveau -1 des arrivées. Hertz, Avis, et Europcar y sont."
+    ],
+    "next": "end_session"
+  },
+
+  "quiet_room_start": {
+    "prompt": [
+      "Nous avons une salle de recueillement et de prière à la porte A14, dans une zone calme.",
+      "La salle non-confessionnelle est indiquée sur le plan en jaune. Elle est à la porte A14, accès libre."
+    ],
+    "next": "end_session"
+  },
+
+  "lost_item_airport_start": {
+    "prompt": [
+      "Oh non, vous avez perdu quelque chose ? Quelle marque est votre téléphone et où l'avez-vous eu pour la dernière fois ?",
+      "Je suis désolé ! Décrivez-moi l'objet perdu et je vous indique le bureau des objets trouvés."
+    ],
+    "next": "end_session"
+  },
+
+  "currency_exchange_start": {
+    "prompt": [
+      "Le bureau Travelex est ouvert et se trouve au niveau des départs, près de la porte 12.",
+      "Le bureau de change est juste là-bas, à gauche après le Starbucks. Les taux sont affichés à l'entrée."
+    ],
+    "next": "end_session"
+  },
+
+  "hotel_shuttle_start": {
+    "prompt": [
+      "Les navettes hôtelières partent du quai 2, à la sortie des arrivées. Elles passent toutes les 20 minutes.",
+      "Votre navette d'hôtel part du quai 2 côté arrivées. Regardez les panneaux lumineux pour l'horaire."
+    ],
+    "next": "end_session"
+  },
+
+  "check_documents": {
+    "prompt": [
+      "Très bien ! Puis-je voir votre passeport et votre billet de voyage, s'il vous plaît ?",
+      "Je vais vous enregistrer tout de suite. Votre passeport, s'il vous plaît !"
+    ],
+    "next": "end_session"
+  },
+
+  "end_session": {
+    "prompt": ["Bon vol et bon voyage !", "Profitez bien de votre voyage !"]
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "start": {
+    "prompt": [
+      "Bonjour. C'est pour de l'essence ou juste un passage en boutique ?",
+      "Bonjour ! Quelle pompe avez-vous utilisée ?",
+      "Bienvenue. Vous voulez faire le plein ou un montant précis ?",
+      "Bonjour. C'est pour le lavage automatique ?"
+    ],
+    "intents": {
+      "fuel": "fuel_start",
+      "shop": "shop_start",
+      "wash": "wash_start",
+      "air": "air_pressure_start",
+      "diesel": "fuel_type_selection_start",
+      "unleaded": "fuel_type_selection_start",
+      "oil": "engine_oil_start",
+      "coffee": "coffee_break_start",
+      "highway": "toll_tag_start",
+      "problem": "pump_issue_start"
+    }
+  },
+
+  "fuel_type_selection_start": {
+    "prompt": [
+      "Attention à ne pas vous tromper de pistolet ! C'est bien du Sans Plomb 95 ou du Gazole ?",
+      "On a aussi du Sans Plomb 98 pour les moteurs plus puissants. Lequel voulez-vous ?"
+    ],
+    "next": "ask_pump_number"
+  },
+
+  "engine_oil_start": {
+    "prompt": [
+      "Vous avez vérifié votre niveau d'huile ? On a plusieurs bidons en rayon, il faut regarder l'indice de viscosité recommandé pour votre véhicule.",
+      "Voulez-vous un entonnoir pour faire l'appoint proprement ?"
+    ],
+    "next": "shop_start"
+  },
+
+  "coffee_break_start": {
+    "prompt": [
+      "La machine à café est juste là-bas. On a aussi des sandwichs frais et des boissons fraîches si vous faites une pause.",
+      "Voulez-vous un ticket de caisse séparé pour vos achats en boutique ?"
+    ],
+    "next": "shop_start"
+  },
+
+  "toll_tag_start": {
+    "prompt": [
+      "Vous cherchez un badge de télépéage ? On les vend à l'accueil. Il faut remplir un petit formulaire pour l'activer.",
+      "C'est très pratique pour gagner du temps sur l'autoroute."
+    ],
+    "next": "end_session"
+  },
+
+  "pump_issue_start": {
+    "prompt": [
+      "Ah, la pompe numéro 4 est bloquée ? Je vais la réinitialiser tout de suite. Réessayez dans une minute.",
+      "Désolé, nous sommes en rupture de stock de Gazole aujourd'hui. Un camion de livraison doit passer cet après-midi."
+    ],
+    "next": "end_session"
+  },
+
+  "fuel_start": {
+    "prompt": ["Très bien, quelle pompe ?"],
+    "capture": "pump_number",
+    "next": "ask_payment"
+  },
+
+  "shop_start": {
+    "prompt": ["D'accord, je vous laisse regarder. On a des promos sur les boissons."],
+    "next": "ask_payment"
+  },
+
+  "wash_start": {
+    "prompt": ["On a trois programmes : simple, avec cire, ou haute pression. Lequel choisissez-vous ?"],
+    "next": "ask_payment"
+  },
+
+  "air_pressure_start": {
+    "prompt": ["La borne de gonflage est gratuite, elle se trouve derrière la station, près du lavage."],
+    "next": "end_session"
+  },
+
+  "ask_pump_number": {
+    "prompt": ["C'est quelle pompe ?"],
+    "capture": "pump_number",
+    "next": "ask_payment"
+  },
+
+  "ask_payment": {
+    "prompt": ["Ça vous fera 65 euros. Vous réglez par carte ou en espèces ?"],
+    "intents": {
+      "card": "payment_confirm",
+      "cash": "payment_confirm"
+    }
+  },
+
+  "payment_confirm": {
+    "prompt": ["Merci. Voulez-vous votre ticket ?"],
+    "next": "end_session"
+  },
+
+  "end_session": {
+    "prompt": ["Bonne route et soyez prudent !", "Au revoir !"]
+  }
+}

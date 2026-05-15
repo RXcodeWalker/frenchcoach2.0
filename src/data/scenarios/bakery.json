@@ -1,0 +1,240 @@
+{
+  "start": {
+    "prompt": [
+      "Bonjour ! Qu'est-ce qu'il vous faudra ?",
+      "Bonjour ! Une baguette bien cuite ?",
+      "Bienvenue ! C'est pour du pain, une pâtisserie ou une formule déjeuner ?"
+    ],
+    "intents": {
+      "bread": "ask_bread_type",
+      "pastry": "ask_pastry",
+      "breakfast": "breakfast_formula_start",
+      "special": "special_breads_start",
+      "birds": "old_bread_start",
+      "custom": "custom_sandwich_start",
+      "today": "daily_special_start",
+      "slice": "slice_bread_request_start",
+      "change": "small_change_request_start",
+      "hot": "hot_coffee_togo_start",
+      "box": "pastry_box_request_start",
+      "ingredients": "ingredient_list_request_start",
+      "slice_thickness": "slice_thickness_pref_start",
+      "allergen_bread": "allergen_free_bread_start",
+      "cake_message": "custom_cake_message_start",
+      "holiday_hours": "holiday_hours_start",
+      "freshness": "fresh_bread_time_start",
+      "paper_bag": "individual_paper_bag_start",
+      "recipe_info": "bread_recipe_info_start",
+      "bulk_discount": "bulk_roll_discount_start",
+      "flour_type": "flour_type_inquiry_start",
+      "owner": "ask_for_owner_start"
+    }
+  },
+
+  "individual_paper_bag_start": {
+    "prompt": [
+      "Voulez-vous que je mette chaque croissant dans un sachet séparé ?",
+      "D'accord, je vous prépare des petits sacs individuels."
+    ],
+    "next": "ask_anything_else"
+  },
+
+  "bread_recipe_info_start": {
+    "prompt": [
+      "Le secret de notre tradition, c'est une fermentation très lente de 24 heures.",
+      "On utilise un levain naturel fait maison. C'est ce qui donne ce goût un peu acide."
+    ],
+    "next": "ask_anything_else"
+  },
+
+  "bulk_roll_discount_start": {
+    "prompt": [
+      "Si vous prenez 10 petits pains, je vous fais le lot à 8 euros au lieu de 10.",
+      "Pour une grosse commande de rolls, il vaut mieux prévenir la veille !"
+    ],
+    "next": "ask_anything_else"
+  },
+
+  "flour_type_inquiry_start": {
+    "prompt": [
+      "C'est de la farine T80, une farine bise qui conserve plus de minéraux.",
+      "Toute notre farine est Label Rouge, garantie sans additifs chimiques."
+    ],
+    "next": "ask_anything_else"
+  },
+
+  "ask_for_owner_start": {
+    "prompt": [
+      "Le patron est au fournil en ce moment. Voulez-vous que je l'appelle ?",
+      "Il n'est pas là cet après-midi, mais je peux lui laisser un message de votre part."
+    ],
+    "next": "end_session"
+  },
+
+  "slice_thickness_pref_start": {
+    "prompt": [
+      "Vous préférez des tranches fines pour les toasts ou des tranches épaisses ?",
+      "Je peux vous couper ça en tranches fines, moyennes ou épaisses. Quelle épaisseur vous convient ?"
+    ],
+    "next": "ask_anything_else"
+  },
+
+  "allergen_free_bread_start": {
+    "prompt": [
+      "Vous cherchez du pain sans gluten ? Nous en faisons le mardi et le jeudi.",
+      "Oui, nous avons une gamme sans gluten. C'est pour une allergie ou une intolérance ?"
+    ],
+    "next": "ask_anything_else"
+  },
+
+  "custom_cake_message_start": {
+    "prompt": [
+      "C'est pour un gâteau d'anniversaire ? Quel message souhaitez-vous qu'on écrive dessus ?",
+      "Je prends note du message pour le gâteau. Vous voulez qu'on écrive quoi exactement ?"
+    ],
+    "next": "ask_anything_else"
+  },
+
+  "holiday_hours_start": {
+    "prompt": [
+      "Dimanche et jours fériés, nous ouvrons de 7h à 13h uniquement. Notez bien l'heure !",
+      "Les horaires des fêtes sont affichés sur la porte d'entrée. En général on ouvre quand même le matin !"
+    ],
+    "next": "end_session"
+  },
+
+  "fresh_bread_time_start": {
+    "prompt": [
+      "La prochaine fournée sort dans 20 minutes si vous voulez du pain tout chaud !",
+      "Le pain sort du four à 8h, 11h et 15h environ. Vous avez de la chance, il sort bientôt !"
+    ],
+    "next": "ask_anything_else"
+  },
+
+  "slice_bread_request_start": {
+    "prompt": [
+      "Pas de problème, je coupe ça pour vous tout de suite ! Vous voulez des tranches fines ou épaisses ?",
+      "Bien sûr, je passe le pain à la trancheuse. Ça vous rend service pour la maison !"
+    ],
+    "next": "ask_anything_else"
+  },
+
+  "small_change_request_start": {
+    "prompt": [
+      "Bien sûr, tenez ! J'ai de la petite monnaie pour vous.",
+      "Je peux vous changer ça, pas de problème. Voilà votre monnaie !"
+    ],
+    "next": "ask_anything_else"
+  },
+
+  "hot_coffee_togo_start": {
+    "prompt": [
+      "Bien sûr ! Vous voulez un expresso, un allongé ou un café au lait ?",
+      "Je vous fais votre café à emporter tout de suite. Expresso ou autre chose ?"
+    ],
+    "next": "ask_anything_else"
+  },
+
+  "pastry_box_request_start": {
+    "prompt": [
+      "Vous voulez une belle boîte cadeau avec un assortiment de pâtisseries ? On a différentes tailles.",
+      "Bien sûr ! Je vous prépare un coffret. Vous avez une préférence pour le contenu ?"
+    ],
+    "next": "ask_anything_else"
+  },
+
+  "ingredient_list_request_start": {
+    "prompt": [
+      "Voici la liste complète des ingrédients. Vous cherchez à éviter quelque chose en particulier ?",
+      "Bien sûr, tout est affiché sur notre étiquette. Farine de blé, eau, sel, levure. C'est tout !"
+    ],
+    "next": "ask_anything_else"
+  },
+
+  "breakfast_formula_start": {
+    "prompt": [
+      "Formule petit-déjeuner à 6,50 euros : café, croissant et jus d'orange. Ça vous tente ?",
+      "Nous avons une formule à 6,50 euros avec boisson, viennoiserie et jus de fruit. Vous prenez quoi comme boisson ?"
+    ],
+    "next": "ask_anything_else"
+  },
+
+  "special_breads_start": {
+    "prompt": [
+      "Nous avons pain aux noix, pain de seigle et notre spécialité au cumin. Lequel vous tente ?",
+      "Nos pains spéciaux du jour : campagne, céréales ou complet. Lequel vous fait envie ?"
+    ],
+    "next": "ask_bread_count"
+  },
+
+  "old_bread_start": {
+    "prompt": [
+      "Vous cherchez du pain rassis pour les oiseaux ou pour faire de la chapelure ? J'ai ce qu'il vous faut !",
+      "On garde toujours un peu de pain de la veille. Combien en voulez-vous ?"
+    ],
+    "next": "ask_anything_else"
+  },
+
+  "custom_sandwich_start": {
+    "prompt": [
+      "Je vous fais un sandwich sur mesure ! Vous voulez quoi comme ingrédients dedans ?",
+      "Super ! Sur quelle base — baguette, ciabatta ou pain de mie ? Et quels ingrédients ?"
+    ],
+    "next": "ask_anything_else"
+  },
+
+  "daily_special_start": {
+    "prompt": [
+      "Aujourd'hui, notre spécialité du jour c'est une couronne aux raisins et cannelle. Une merveille !",
+      "La spécialité du moment, c'est notre fougasse aux olives. Elle vient de sortir du four !"
+    ],
+    "next": "ask_anything_else"
+  },
+
+  "ask_bread_type": {
+    "prompt": [
+      "Quel pain vous fait envie — baguette tradition, pain de campagne, ou autre chose ?",
+      "Vous cherchez quel type de pain ? Baguette, complet, aux céréales ou aux noix ?"
+    ],
+    "next": "ask_bread_count"
+  },
+
+  "ask_bread_count": {
+    "prompt": [
+      "Et vous en prenez combien ?",
+      "Combien vous en faut-il ?"
+    ],
+    "next": "ask_anything_else"
+  },
+
+  "ask_pastry": {
+    "prompt": [
+      "Quelle pâtisserie vous tente ? Croissant, pain au chocolat, chausson aux pommes ?",
+      "Regardez notre vitrine ! Laquelle vous fait envie aujourd'hui ?"
+    ],
+    "next": "ask_anything_else"
+  },
+
+  "ask_anything_else": {
+    "prompt": [
+      "C'est tout pour vous ou vous prenez autre chose ?",
+      "Je vous mets aussi autre chose ?"
+    ],
+    "intents": {
+      "yes": "start",
+      "no": "show_total"
+    }
+  },
+
+  "show_total": {
+    "prompt": [
+      "Ça vous fera 4,50 euros, s'il vous plaît !",
+      "Le total s'élève à 4,50 euros. Merci !"
+    ],
+    "next": "end_session"
+  },
+
+  "end_session": {
+    "prompt": ["Bon appétit ! À bientôt !", "Au revoir et bonne journée !"]
+  }
+}

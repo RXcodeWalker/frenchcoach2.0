@@ -1,24 +1,33 @@
 import { motion } from 'framer-motion';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import type { Screen } from '../types';
-import { Home, BookOpen, GraduationCap, BarChart3, User, Compass, Flame } from 'lucide-react';
+import { Home, BookOpen, GraduationCap, BarChart3, User, Compass, Flame, Users, ShoppingBag, Trophy, Info } from 'lucide-react';
 
 const NAV_ITEMS: { id: Screen; label: string; icon: React.ReactNode; glowColor: string }[] = [
   { id: 'home', label: 'Home', icon: <Home size={18} />, glowColor: '#7C3AED' },
   { id: 'learn', label: 'Learn', icon: <BookOpen size={18} />, glowColor: '#0EA5E9' },
   { id: 'exam', label: 'Exam', icon: <GraduationCap size={18} />, glowColor: '#F59E0B' },
+  { id: 'shop', label: 'Shop', icon: <ShoppingBag size={18} />, glowColor: '#EC4899' },
   { id: 'explore', label: 'Explore', icon: <Compass size={18} />, glowColor: '#06B6D4' },
-  { id: 'progress', label: 'Progress', icon: <BarChart3 size={18} />, glowColor: '#10B981' },
+  { id: 'study-groups', label: 'Groups', icon: <Users size={18} />, glowColor: '#10B981' },
+  { id: 'rankings', label: 'Rankings', icon: <Trophy size={18} />, glowColor: '#F59E0B' },
+  { id: 'progress', label: 'Progress', icon: <BarChart3 size={18} />, glowColor: '#8B5CF6' },
   { id: 'profile', label: 'Profile', icon: <User size={18} />, glowColor: '#EC4899' },
+  { id: 'about', label: 'About', icon: <Info size={18} />, glowColor: '#94A3B8' },
 ];
 
+const toPath = (id: Screen): string => id === 'home' ? '/' : `/${id}`;
+
 export function SideRail() {
-  const { state, dispatch } = useApp();
+  const { state } = useApp();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   return (
     <>
       {/* Desktop Side Rail */}
-      <nav className="fixed left-0 top-0 bottom-0 w-[64px] glass border-r border-white/[0.04] z-50 hidden md:flex flex-col items-center py-5 gap-1">
+      <nav className="nav-rail fixed left-0 top-0 bottom-0 w-[64px] glass border-r border-white/[0.04] z-50 hidden md:flex flex-col items-center py-5 gap-1">
         {/* Logo */}
         <motion.div
           className="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-electric to-indigo-500 flex items-center justify-center mb-8 animate-icon-glow"
@@ -32,11 +41,11 @@ export function SideRail() {
         {/* Nav Items */}
         <div className="flex-1 flex flex-col items-center gap-0.5">
           {NAV_ITEMS.map(item => {
-            const active = state.screen === item.id;
+            const active = location.pathname === toPath(item.id);
             return (
               <motion.button
                 key={item.id}
-                onClick={() => dispatch({ type: 'SET_SCREEN', screen: item.id })}
+                onClick={() => navigate(toPath(item.id))}
                 className={`group relative w-10 h-10 rounded-lg flex items-center justify-center transition-colors duration-200 ${
                   active
                     ? 'text-violet-400'
@@ -94,17 +103,17 @@ export function SideRail() {
       </nav>
 
       {/* Mobile Bottom Dock */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
+      <nav className="nav-rail fixed bottom-0 left-0 right-0 z-50 md:hidden">
         <div className="mx-3 mb-3 px-1.5 py-1.5 glass-elevated rounded-2xl">
           <div className="flex items-center justify-around">
             {NAV_ITEMS.slice(0, 5).map(item => {
-              const active = state.screen === item.id;
+              const active = location.pathname === toPath(item.id);
               return (
                 <motion.button
                   key={item.id}
-                  onClick={() => dispatch({ type: 'SET_SCREEN', screen: item.id })}
+                  onClick={() => navigate(toPath(item.id))}
                   className={`relative flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl transition-colors duration-200 ${
-                    active ? 'text-violet-400' : 'text-slate-600'
+                    active ? 'text-violet-400' : 'text-slate-400'
                   }`}
                   whileTap={{ scale: 0.9 }}
                 >
@@ -124,7 +133,7 @@ export function SideRail() {
                   >
                     {item.icon}
                   </div>
-                  <span className="text-[9px] font-semibold relative z-10">{item.label}</span>
+                  <span className="text-[9px] font-bold relative z-10">{item.label}</span>
                   {active && (
                     <motion.div
                       layoutId="mobile-nav-dot"

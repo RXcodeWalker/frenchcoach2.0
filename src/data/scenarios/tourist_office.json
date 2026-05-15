@@ -1,0 +1,347 @@
+{
+  "start": {
+    "prompt": [
+      "Bonjour ! Bienvenue à l'Office de Tourisme. Comment puis-je vous aider dans l'organisation de votre séjour ?",
+      "Bonjour ! Vous cherchez des informations sur la ville, les transports ou les spécialités locales ?",
+      "Bienvenue ! C'est votre première fois dans la région ou connaissez-vous déjà un peu les environs ?"
+    ],
+    "intents": {
+      "map": "provide_map",
+      "activities": "ask_interests",
+      "restaurants": "suggest_restaurants",
+      "transport": "ask_transport_info",
+      "regional_tours": "ask_regional_tours",
+      "weather": "provide_weather_info",
+      "emergency": "provide_emergency_info",
+      "gastronomy": "ask_gastronomy_info",
+      "accommodation": "ask_accommodation_type",
+      "festivals": "provide_event_calendar",
+      "free_activities": "suggest_free_activities",
+      "souvenirs": "suggest_souvenir_shops",
+      "guided_hike": "guided_hike_start",
+      "bike_map": "bike_path_map",
+      "stroller": "stroller_rental_info",
+      "photos": "photo_spots_info",
+      "legends": "local_legends_info"
+    }
+  },
+
+  "guided_hike_start": {
+    "prompt": [
+      "Nous organisons des randonnées avec un guide naturaliste tous les mercredis. Voulez-vous découvrir la faune et la flore locale ?",
+      "Il existe plusieurs niveaux : de la balade familiale de 2h à l'ascension plus sportive. Laquelle vous tente ?"
+    ],
+    "next": "ask_other_needs"
+  },
+
+  "bike_path_map": {
+    "prompt": [
+      "Voici un plan spécifique pour les cyclistes. Les pistes en vert sont entièrement sécurisées et séparées des voitures.",
+      "Vous pouvez faire le tour du lac à vélo, c'est une boucle de 15km très agréable et plate."
+    ],
+    "next": "ask_other_needs"
+  },
+
+  "stroller_rental_info": {
+    "prompt": [
+      "Oui, nous louons des poussettes tout-terrain pour la journée ou la semaine. C'est très pratique pour les chemins pavés de la vieille ville.",
+      "Il nous en reste deux de disponibles aujourd'hui. Le tarif est de 10 euros par jour avec une caution."
+    ],
+    "next": "ask_other_needs"
+  },
+
+  "photo_spots_info": {
+    "prompt": [
+      "Pour les meilleures photos, je vous recommande le pont médiéval au lever du soleil ou la place de la fontaine à l'heure bleue.",
+      "Ne manquez pas non plus le point de vue depuis le clocher de l'église, c'est le spot le plus populaire sur Instagram !"
+    ],
+    "next": "ask_other_needs"
+  },
+
+  "local_legends_info": {
+    "prompt": [
+      "La ville est riche en histoires ! Connaissez-vous la légende de la Dame Blanche du château ou celle du trésor caché des templiers ?",
+      "Je peux vous donner un petit livret qui raconte toutes les anecdotes historiques et les mystères de la région."
+    ],
+    "next": "ask_other_needs"
+  },
+
+  "ask_accommodation_type": {
+    "prompt": ["Cherchez-vous un hôtel de charme, une chambre d'hôtes chez l'habitant ou peut-être un camping pour être plus proche de la nature ?"],
+    "intents": {
+      "hotel": "list_hotels",
+      "bnb": "list_bnbs",
+      "camping": "list_campings"
+    }
+  },
+  "list_hotels": {
+    "prompt": ["Nous avons plusieurs établissements en centre-ville. Voulez-vous que je filtre par nombre d'étoiles ou par budget ?"],
+    "next": "ask_other_needs"
+  },
+  "list_bnbs": {
+    "prompt": ["Les chambres d'hôtes sont idéales pour découvrir l'hospitalité locale. Voici une liste de nos partenaires labellisés."],
+    "next": "ask_other_needs"
+  },
+  "list_campings": {
+    "prompt": ["Il y a deux campings très bien équipés à moins de 10km, avec accès direct à la rivière. Ça vous intéresse ?"],
+    "next": "ask_other_needs"
+  },
+  "provide_event_calendar": {
+    "prompt": ["Ce mois-ci est très animé ! Il y a le festival de Jazz ce week-end et la fête médiévale la semaine prochaine. Voulez-vous le programme complet ?"],
+    "intents": {
+      "yes": "show_detailed_events",
+      "no": "ask_other_needs"
+    }
+  },
+  "show_detailed_events": {
+    "prompt": ["Voici le dépliant des festivités. La plupart des concerts sont gratuits et en plein air."],
+    "next": "ask_other_needs"
+  },
+  "suggest_free_activities": {
+    "prompt": ["La ville offre de nombreuses options gratuites : la visite des jardins de la mairie, le parcours d'art urbain, ou l'accès aux belvédères de la falaise."],
+    "next": "ask_other_needs"
+  },
+  "suggest_souvenir_shops": {
+    "prompt": ["Pour des souvenirs authentiques, je vous conseille les boutiques d'artisans dans la rue de la Soif ou le comptoir des producteurs locaux."],
+    "next": "ask_other_needs"
+  },
+  "provide_map": {
+    "prompt": ["Bien sûr, voici un plan détaillé de la ville. J'y entoure les monuments incontournables et les zones piétonnes. Voulez-vous aussi le guide des sentiers de randonnée ?"],
+    "intents": {
+      "yes": "provide_hiking_guide",
+      "no": "ask_other_needs",
+      "digital_map": "provide_qr_code_map",
+      "billet": "ask_ticket_booking"
+    }
+  },
+  "ask_ticket_booking": {
+    "prompt": [
+      "Vous pouvez acheter vos billets pour le musée et le château ici même. Cela vous évitera de faire la queue à l'entrée.",
+      "Nous proposons un 'Pass Culture' qui donne accès à tous les sites historiques de la ville. Voulez-vous que je vous explique les tarifs ?",
+      "Pour la visite guidée de la cathédrale, il est préférable de réserver au moins 24h à l'avance.",
+      "Voici vos billets. Il suffit de présenter le code-barres au contrôle à l'entrée de chaque monument."
+    ],
+    "next": "ask_payment"
+  },
+  "provide_qr_code_map": {
+    "prompt": ["Plus écologique ! Scannez ce QR code pour avoir le plan interactif directement sur votre smartphone avec la géolocalisation."],
+    "next": "ask_other_needs"
+  },
+  "provide_hiking_guide": {
+    "prompt": ["Voici notre guide 'Nature et Patrimoine'. Il contient 12 circuits balisés autour de la ville, classés par niveau de difficulté."],
+    "next": "ask_other_needs"
+  },
+  "ask_interests": {
+    "prompt": ["Pour mieux vous conseiller, qu'est-ce qui vous passionne le plus ? Les musées d'art, les châteaux, ou les activités de plein air ?"],
+    "intents": {
+      "hidden_gems": "suggest_off_beaten_path"
+    },
+    "capture": "interests",
+    "next": "suggest_activities"
+  },
+  "suggest_off_beaten_path": {
+    "prompt": ["Si vous voulez éviter la foule, je vous suggère la petite chapelle Sainte-Anne. Elle est peu connue mais offre une vue incroyable."],
+    "next": "ask_other_needs"
+  },
+  "suggest_activities": {
+    "prompt": ["Puisque vous appréciez {interests}, je vous suggère de visiter {activity_suggestion}. C'est une étape incontournable ici !"],
+    "next": "ask_tour"
+  },
+  "ask_tour": {
+    "prompt": ["Nous proposons des visites guidées thématiques, comme 'Les secrets de la vieille ville' ou 'Le circuit des artisans'. Cela vous tenterait ?"],
+    "intents": {
+      "yes": "book_tour",
+      "no": "ask_other_needs"
+    }
+  },
+  "book_tour": {
+    "prompt": ["La visite dure environ 1h30. C'est 12 euros par adulte et gratuit pour les moins de 12 ans. Combien de personnes souhaitez-vous inscrire ?"],
+    "capture": "tour_count",
+    "next": "ask_payment"
+  },
+  "ask_transport_info": {
+    "prompt": [
+      "Souhaitez-vous des informations sur les bus de la ville, le réseau de tramway ou nos forfaits touristiques type 'Pass Transport' ?",
+      "Cherchez-vous à acheter un titre de transport ou voulez-vous connaître les horaires pour la gare ?"
+    ],
+    "intents": {
+      "passes": "provide_transport_passes",
+      "schedules": "provide_transport_schedules",
+      "bike_rental": "provide_bike_info",
+      "parking": "provide_parking_info",
+      "greve": "check_transport_strikes"
+    }
+  },
+  "check_transport_strikes": {
+    "prompt": [
+      "Il y a effectivement un mouvement social aujourd'hui. Les bus circulent mais avec une fréquence réduite de moitié.",
+      "Le trafic est normal pour le moment, mais une grève est annoncée pour demain matin sur le réseau de tramway.",
+      "Heureusement, les trains ne sont pas affectés. Je vous conseille de vérifier l'application 'CityInfo' en temps réel.",
+      "Voulez-vous que je regarde les horaires spécifiques pour votre trajet de cet après-midi ?"
+    ],
+    "next": "ask_other_needs"
+  },
+  "provide_parking_info": {
+    "prompt": ["Le stationnement en centre-ville est payant, mais il y a un grand parking relais gratuit à l'entrée ouest avec une navette toutes les 10 minutes."],
+    "next": "ask_other_needs"
+  },
+  "provide_transport_passes": {
+    "prompt": ["Nous avons le 'City Pass' qui inclut les transports illimités et l'entrée dans 3 musées pour 24h ou 48h. C'est idéal pour visiter !"],
+    "next": "ask_other_needs"
+  },
+  "provide_transport_schedules": {
+    "prompt": ["Les bus circulent de 6h à 21h30. Je peux vous imprimer la fiche horaire de la ligne 4 qui dessert les sites principaux. Ça vous va ?"],
+    "next": "ask_other_needs"
+  },
+  "provide_bike_info": {
+    "prompt": ["La ville dispose d'un excellent réseau de pistes cyclables. Vous pouvez louer des vélos en libre-service ou passer par un loueur privé au port."],
+    "next": "ask_other_needs"
+  },
+  "ask_regional_tours": {
+    "prompt": [
+      "Voulez-vous découvrir l'arrière-pays ? Nous avons des excursions en minibus vers les vignobles ou les villages perchés.",
+      "Préférez-vous une croisière sur le fleuve pour admirer les paysages depuis l'eau ?"
+    ],
+    "intents": {
+      "vineyards": "set_vineyard_tour",
+      "villages": "set_villages_tour",
+      "cruise": "set_cruise_tour"
+    }
+  },
+  "set_vineyard_tour": {
+    "prompt": ["Le circuit 'Route des Vins' comprend la visite de trois caves et une dégustation. Il part tous les matins à 9h de la place centrale."],
+    "next": "ask_other_needs"
+  },
+  "set_villages_tour": {
+    "prompt": ["C'est une magnifique boucle d'une demi-journée. Le guide vous racontera toute l'histoire médiévale de la région."],
+    "next": "ask_other_needs"
+  },
+  "set_cruise_tour": {
+    "prompt": ["La croisière part du quai n°3. Il y a un départ à 14h et un autre à 16h. C'est très reposant !"],
+    "next": "ask_other_needs"
+  },
+  "provide_weather_info": {
+    "prompt": [
+      "Aujourd's hui, le ciel est dégagé avec des températures autour de 22°C. C'est parfait pour une balade !",
+      "Attention, des averses sont prévues en fin de journée. Je vous conseille de privilégier les visites de musées cet après-midi."
+    ],
+    "intents": {
+      "coucher_soleil": "suggest_sunset_spot"
+    },
+    "next": "ask_other_needs"
+  },
+  "suggest_sunset_spot": {
+    "prompt": [
+      "Le meilleur endroit pour voir le coucher du soleil est sans aucun doute le Belvédère du Parc Royal.",
+      "Je vous conseille aussi la terrasse panoramique de la mairie, l'accès est libre jusqu'à 20h.",
+      "C'est magnifique depuis le vieux port, avec les reflets du soleil sur l'eau et les mâts des bateaux.",
+      "Si vous avez le courage de monter les marches de la tour, la vue y est imprenable au crépuscule."
+    ],
+    "next": "ask_other_needs"
+  },
+  "provide_emergency_info": {
+    "prompt": [
+      "En cas d'urgence, composez le 112. La pharmacie de garde la plus proche se trouve sur la rue Gambetta.",
+      "Le commissariat central est ouvert 24h/24, il est situé juste derrière la mairie sur votre plan."
+    ],
+    "next": "ask_other_needs"
+  },
+  "ask_gastronomy_info": {
+    "prompt": [
+      "Vous ne pouvez pas repartir sans avoir goûté nos spécialités ! Êtes-vous plutôt sucré ou salé ?",
+      "Cherchez-vous les meilleurs endroits pour acheter des produits du terroir ?"
+    ],
+    "intents": {
+      "sweet": "provide_gastronomy_sweet",
+      "savory": "provide_gastronomy_savory",
+      "market": "provide_market_info"
+    }
+  },
+  "provide_gastronomy_sweet": {
+    "prompt": ["Il faut absolument goûter nos célèbres macarons artisanaux. La pâtisserie 'Maison Durand' est la référence historique."],
+    "next": "ask_other_needs"
+  },
+  "provide_gastronomy_savory": {
+    "prompt": ["Notre fromage local et la charcuterie de montagne sont excellents. Je vous recommande le restaurant 'Chez Marcel' pour un plateau typique."],
+    "next": "ask_other_needs"
+  },
+  "provide_market_info": {
+    "prompt": ["Le grand marché local se tient le samedi matin sur la place de la République. C'est l'endroit idéal pour les produits frais."],
+    "next": "ask_other_needs"
+  },
+  "suggest_restaurants": {
+    "prompt": ["Vous cherchez quelle ambiance ? Un bistrot familial, une terrasse avec vue ou un restaurant étoilé ?"],
+    "capture": "food_preference",
+    "next": "provide_restaurant_list"
+  },
+  "provide_restaurant_list": {
+    "prompt": ["Je vous suggère 'Le Jardin' pour son cadre magnifique ou 'La Table d'Or' pour une expérience gastronomique. Souhaitez-vous que je réserve pour vous ?"],
+    "intents": {
+      "yes": "set_reservation",
+      "no": "ask_other_needs"
+    }
+  },
+  "set_reservation": {
+    "prompt": ["C'est entendu. Pour combien de personnes et pour quelle heure ?"],
+    "capture": "reservation_details",
+    "next": "confirm_reservation"
+  },
+  "confirm_reservation": {
+    "prompt": ["C'est réservé ! Vous n'avez plus qu'à donner votre nom à l'arrivée. Bon appétit !"],
+    "next": "ask_other_needs"
+  },
+  "ask_other_needs": {
+    "prompt": ["Puis-je vous renseigner sur d'autres aspects de votre visite ?"],
+    "intents": {
+      "yes": "start",
+      "no": "end_session",
+      "lost_property": "handle_lost_property",
+      "wifi_access": "provide_wifi_hotspots",
+      "toilettes": "find_public_toilets",
+      "accessibilite": "check_accessibility_info"
+    }
+  },
+  "find_public_toilets": {
+    "prompt": [
+      "Les toilettes publiques les plus proches sont situées juste à côté de l'entrée du jardin public.",
+      "Il y a aussi des sanitaires automatiques et gratuits sur la place de la Comédie.",
+      "Je vous les indique sur le plan. Elles sont accessibles aux personnes à mobilité réduite également.",
+      "Sachez que la plupart des cafés du centre-ville vous laisseront accéder à leurs toilettes si vous consommez."
+    ],
+    "next": "ask_other_needs"
+  },
+  "check_accessibility_info": {
+    "prompt": [
+      "La quasi-totalité du centre-ville historique est pavée, mais nous avons aménagé des parcours lisses pour les fauteuils.",
+      "Tous nos musées et monuments principaux sont équipés d'ascenseurs ou de rampes d'accès.",
+      "Voici un plan spécifique 'Ville Accessible' qui répertorie les places de parking GIG-GIC et les zones sans obstacles.",
+      "Les bus et tramways de la ville sont 100% accessibles. Voulez-vous que je vous aide à planifier un itinéraire ?"
+    ],
+    "next": "ask_other_needs"
+  },
+  "handle_lost_property": {
+    "prompt": ["Si vous avez perdu un objet, il faut vous adresser au bureau des objets trouvés de la mairie, juste en face. Voulez-vous leurs horaires ?"],
+    "next": "ask_other_needs"
+  },
+  "provide_wifi_hotspots": {
+    "prompt": ["Il y a un accès Wi-Fi gratuit sur cette place et dans tous les parcs publics de la ville. Cherchez le réseau 'City_Public_Wifi'."],
+    "next": "ask_other_needs"
+  },
+  "ask_payment": {
+    "prompt": ["Le règlement peut s'effectuer par carte bancaire ou espèces. Merci !"],
+    "intents": {
+      "tax_refund": "provide_tax_refund_info"
+    },
+    "next": "end_session"
+  },
+  "provide_tax_refund_info": {
+    "prompt": ["Pour la détaxe, n'oubliez pas de demander un bordereau lors de vos achats en boutique. Vous pourrez le valider à la borne PABLO de l'aéroport."],
+    "next": "end_session"
+  },
+  "end_session": {
+    "prompt": [
+      "C'était un plaisir de vous aider. Profitez bien de votre séjour !",
+      "N'hésitez pas à repasser si vous avez d'autres questions. À bientôt !"
+    ]
+  }
+}

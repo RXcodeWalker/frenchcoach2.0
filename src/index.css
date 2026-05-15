@@ -20,13 +20,22 @@
     background: #0D0D0F;
     color: #fff;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+
+  html:not(.dark) body {
+    background: #f1f5f9;
+    color: #0f172a;
   }
 
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.06); border-radius: 99px; }
   ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.12); }
+  html:not(.dark) ::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.12); }
+  html:not(.dark) ::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.2); }
   * { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.06) transparent; }
+  html:not(.dark) * { scrollbar-color: rgba(0,0,0,0.12) transparent; }
 }
 
 @layer components {
@@ -105,6 +114,64 @@
     animation: liquidWave 2s ease-in-out infinite;
   }
 }
+
+/* ============================================================
+   LIGHT MODE OVERRIDES
+   ============================================================ */
+
+html:not(.dark) .glass {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(20px) saturate(1.1);
+  -webkit-backdrop-filter: blur(20px) saturate(1.1);
+  border: 1px solid rgba(99, 102, 241, 0.12);
+  background-image: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+html:not(.dark) .glass-elevated {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(20px) saturate(1.1);
+  -webkit-backdrop-filter: blur(20px) saturate(1.1);
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  background-image: none;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+html:not(.dark) .glass-subtle {
+  background: rgba(99, 102, 241, 0.04);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(99, 102, 241, 0.10);
+  background-image: none;
+  box-shadow: none;
+}
+
+/* Dark mode — brighter, bolder muted text */
+.text-slate-500 { color: #b8c7d9; font-weight: 500; }
+.text-slate-600 { color: #a8baca; font-weight: 500; }
+.text-slate-700 { color: #94a3b8; font-weight: 500; }
+
+/* Text color overrides for light mode */
+html:not(.dark) .text-white { color: #0f172a; }
+html:not(.dark) .text-slate-500 { color: #64748b; font-weight: unset; }
+html:not(.dark) .text-slate-600 { color: #475569; font-weight: unset; }
+html:not(.dark) .text-slate-700 { color: #334155; font-weight: unset; }
+html:not(.dark) .text-slate-800 { color: #475569; }
+
+/* Elements that should always stay white (on colored backgrounds) */
+.keep-white { color: white !important; }
+
+/* Nav sidebar always dark */
+.nav-rail { background: rgba(10, 12, 16, 0.92) !important; border-color: rgba(255,255,255,0.04) !important; }
+.nav-rail .text-white { color: white !important; }
+.nav-rail .text-slate-600 { color: #475569 !important; }
+.nav-rail .text-slate-700 { color: #334155 !important; }
+
+/* Navy background overrides for light mode */
+html:not(.dark) .bg-navy-300 { background-color: #e2e8f0; }
+html:not(.dark) .bg-navy-400 { background-color: #cbd5e1; }
+html:not(.dark) .bg-navy-200 { background-color: #f8fafc; }
+html:not(.dark) .border-white\/\[0\.04\] { border-color: rgba(0,0,0,0.06); }
 
 @layer utilities {
   .animate-blob { animation: blob 12s ease-in-out infinite; }

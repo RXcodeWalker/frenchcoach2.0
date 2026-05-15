@@ -1,0 +1,167 @@
+{
+  "start": {
+    "prompt": [
+      "Bonjour, bienvenue à bord. Puis-je vous aider ?",
+      "Bonjour. Vous avez trouvé votre siège ?",
+      "Bienvenue ! C'est pour un souci technique, un service ou une information ?"
+    ],
+    "intents": {
+      "yes": "ask_drink",
+      "screen": "broken_screen_start",
+      "medical": "medical_kit_start",
+      "location": "flight_path_start",
+      "gate": "connecting_gate_start",
+      "comfort": "cabin_adjustment_start",
+      "seatbelt": "seatbelt_sign_info_start",
+      "light": "reading_light_help_start",
+      "blanket": "blanket_request_start",
+      "specific_drink": "specific_drink_request_start",
+      "assistance": "special_assistance_cabin_start",
+      "blind": "window_blind_help_start",
+      "special_meal": "special_meal_verify_start",
+      "upgrade": "cabin_upgrade_check_start",
+      "earphone": "lost_earphone_help_start",
+      "eta": "arrival_time_update_start"
+    }
+  },
+
+  "window_blind_help_start": {
+    "prompt": [
+      "Pour fermer le hublot, vous devez utiliser le bouton tactile juste en dessous. Voulez-vous que je le fasse pour vous ?",
+      "Pendant les phases de décollage et d'atterrissage, le hublot doit rester ouvert par mesure de sécurité. Merci."
+    ],
+    "next": "ask_drink"
+  },
+
+  "special_meal_verify_start": {
+    "prompt": [
+      "Je vérifie sur ma tablette... Oui, Monsieur/Madame, votre repas sans gluten est bien prévu. Je vous le sers en priorité.",
+      "Désolé, je ne vois pas de commande spéciale à votre nom. Voulez-vous que je regarde s'il reste un plateau végétarien ?"
+    ],
+    "next": "ask_drink"
+  },
+
+  "cabin_upgrade_check_start": {
+    "prompt": [
+      "Le vol est complet en classe Affaires aujourd'hui, je ne peux pas vous surclasser.",
+      "Si vous avez assez de miles, nous pouvons voir avec le chef de cabine. Voulez-vous qu'il vienne vous voir ?"
+    ],
+    "next": "ask_drink"
+  },
+
+  "lost_earphone_help_start": {
+    "prompt": [
+      "Oh, il est tombé sous le siège ? Ne bougez surtout pas votre fauteuil électrique, vous risqueriez de l'écraser !",
+      "Je vais chercher une lampe de poche pour essayer de le retrouver dans les rails du siège."
+    ],
+    "next": "ask_drink"
+  },
+
+  "arrival_time_update_start": {
+    "prompt": [
+      "Nous avons rattrapé un peu de retard grâce à des vents favorables. Nous devrions atterrir avec 10 minutes d'avance.",
+      "L'heure d'arrivée prévue à Paris est actuellement 8h45. La température au sol est de 18 degrés."
+    ],
+    "next": "ask_drink"
+  },
+
+  "seatbelt_sign_info_start": {
+    "prompt": [
+      "Le signal de ceinture est allumé car nous traversons une zone de turbulences. Veuillez vous attacher, s'il vous plaît.",
+      "Les turbulences devraient durer encore une dizaine de minutes. Restez bien assis et attachez votre ceinture."
+    ],
+    "next": "ask_drink"
+  },
+
+  "reading_light_help_start": {
+    "prompt": [
+      "La lumière de lecture est contrôlée par le bouton sur votre accoudoir, juste à droite. Essayez le bouton du haut !",
+      "Appuyez sur la petite icône lumière sur votre accoudoir. Si ça ne marche pas, je viens l'allumer manuellement."
+    ],
+    "next": "ask_drink"
+  },
+
+  "blanket_request_start": {
+    "prompt": [
+      "Bien sûr, il fait frais en cabine ! Je vous apporte une couverture et un oreiller tout de suite.",
+      "Je vous cherche ça immédiatement. Voulez-vous aussi des chaussettes de vol pour être plus à l'aise ?"
+    ],
+    "next": "ask_drink"
+  },
+
+  "specific_drink_request_start": {
+    "prompt": [
+      "Du jus de tomate ? Bien sûr, c'est le classique en vol ! Avec du sel et du poivre ?",
+      "Quelle boisson souhaitez-vous — eau, jus de fruits, soda ou quelque chose de chaud ?"
+    ],
+    "next": "ask_meal"
+  },
+
+  "special_assistance_cabin_start": {
+    "prompt": [
+      "Bien sûr, je suis là pour vous aider ! Qu'est-ce que je peux faire pour vous ?",
+      "Je vous aide avec plaisir. Quel est votre besoin ? Je reste disponible pour vous tout au long du vol."
+    ],
+    "next": "ask_drink"
+  },
+
+  "broken_screen_start": {
+    "prompt": [
+      "Oh, l'écran ne fonctionne pas ? Je redémarre le système de divertissement. Ça prend environ une minute.",
+      "Je suis désolé pour ce désagrément. Je redémarre l'écran et si ça ne marche pas, je vous change de siège."
+    ],
+    "next": "ask_drink"
+  },
+
+  "medical_kit_start": {
+    "prompt": [
+      "Je prends la trousse de secours tout de suite ! Qu'est-ce qui se passe, comment je peux vous aider ?",
+      "Y a-t-il un médecin à bord ? En attendant, dites-moi ce dont vous avez besoin."
+    ],
+    "next": "ask_drink"
+  },
+
+  "flight_path_start": {
+    "prompt": [
+      "En ce moment nous survolons l'Italie du Nord. Regardez par le hublot, on voit les Alpes !",
+      "Nous sommes à environ 10 000 mètres d'altitude et nous survolons la Méditerranée."
+    ],
+    "next": "ask_drink"
+  },
+
+  "connecting_gate_start": {
+    "prompt": [
+      "Votre correspondance part de la porte D22. Vous avez environ 45 minutes pour y être. Dépêchez-vous un peu !",
+      "La porte D22 est à l'autre bout du terminal. Je vous conseille de vous lever dès l'atterrissage."
+    ],
+    "next": "ask_drink"
+  },
+
+  "cabin_adjustment_start": {
+    "prompt": [
+      "Je règle ça pour vous tout de suite ! Qu'est-ce qui ne vous convient pas — l'air, la lumière, le siège ?",
+      "Bien sûr, comment puis-je rendre votre vol plus confortable ? Dites-moi ce qu'il faut ajuster."
+    ],
+    "next": "ask_drink"
+  },
+
+  "ask_drink": {
+    "prompt": [
+      "Qu'est-ce que je vous sers à boire — eau, jus, soda, thé ou café ?",
+      "Boisson chaude ou froide ? On a aussi du vin et de la bière si vous le souhaitez."
+    ],
+    "next": "ask_meal"
+  },
+
+  "ask_meal": {
+    "prompt": [
+      "Pour le repas, vous avez le choix entre le poulet rôti aux légumes ou le risotto végétarien. Votre préférence ?",
+      "Et pour manger, qu'est-ce que vous choisissez ? J'ai aussi un plateau végétarien si vous voulez."
+    ],
+    "next": "end_session"
+  },
+
+  "end_session": {
+    "prompt": ["Bon vol et merci d'avoir choisi notre compagnie !", "Excellent vol ! N'hésitez pas à m'appeler."]
+  }
+}

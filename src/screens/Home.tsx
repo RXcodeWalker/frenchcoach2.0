@@ -1,11 +1,19 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { ChevronRight, Zap, Flame, Target, Brain, Sparkles, Clock, TrendingUp, Trophy, Star, Quote } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import { Flame, Zap, TrendingUp, Trophy, Star, Target, Sparkles, Gem, ArrowRight, Play } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { ProgressRing } from '../components/ProgressRing';
-import type { Screen } from '../types';
-
-const DAILY_GOAL = 3;
+import { MOCK_DAILY } from '../data/mocks/mockDaily';
+import { fadeUp } from '../components/motion/variants';
+import { WeeklyChart } from '../components/WeeklyChart';
+import { PageShell } from '../components/layout/PageShell';
+import { HeroMission } from './home/HeroMission';
+import { DailyCards } from './home/DailyCards';
+import { QuickAccess } from './home/QuickAccess';
+import { RecentActivity } from './home/RecentActivity';
+import { TopContextBar } from '../components/TopContextBar';
+import { HookStack } from '../components/EngagementHooks';
+import type { Screen } from '../types/index';
 
 const FRENCH_QUOTES = [
   { text: "La vie est belle quand on la regarde avec le coeur.", translation: "Life is beautiful when you look at it with the heart." },
@@ -15,349 +23,176 @@ const FRENCH_QUOTES = [
   { text: "La patience est la cle de toute reussite.", translation: "Patience is the key to all success." },
 ];
 
-const MOCK_DAILY = [
-  { day: 'Mon', score: 6.2 },
-  { day: 'Tue', score: 7.1 },
-  { day: 'Wed', score: 6.8 },
-  { day: 'Thu', score: 7.9 },
-  { day: 'Fri', score: 8.1 },
-  { day: 'Sat', score: 7.4 },
-  { day: 'Sun', score: 8.5 },
-];
-
-const stagger = {
-  hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { staggerChildren: 0.08 } },
-};
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 16 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.4, 0, 0.2, 1] as const } },
-};
-
 export function Home() {
-  const { state, dispatch } = useApp();
+  const { state } = useApp();
   const { profile } = state;
+  const navigate = useNavigate();
   const [todayCount] = useState(2);
   const [quote] = useState(() => FRENCH_QUOTES[Math.floor(Math.random() * FRENCH_QUOTES.length)]);
-
-  const navigate = (screen: Screen) => dispatch({ type: 'SET_SCREEN', screen });
-  const goalComplete = todayCount >= DAILY_GOAL;
-  const maxScore = Math.max(...MOCK_DAILY.map(d => d.score));
+  const [hooks, setHooks] = useState([
+    { 
+      type: 'streak' as const, 
+      title: 'Streak at Risk!', 
+      description: 'Your 7-day streak ends in 4 hours. Practice now!', 
+      cta: 'Save My Streak', 
+      onClick: () => navigate('/learn'),
+      onClose: () => setHooks(h => h.slice(1))
+    }
+  ]);
 
   return (
-    <div className="min-h-screen pb-24 md:pb-8">
-      <motion.div
-        className="max-w-5xl mx-auto px-4 md:px-6 pt-6 md:pt-8 space-y-5"
-        variants={stagger}
-        initial="hidden"
-        animate="show"
-      >
-        {/* Header */}
-        <motion.div variants={fadeUp} className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-slate-500 font-medium">Good evening</p>
-            <h1 className="text-2xl md:text-3xl font-black text-white">{profile.username}</h1>
-          </div>
-          <div className="flex items-center gap-2.5">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg glass border-orange-500/15">
-              <Flame size={14} className="text-orange-400" />
-              <span className="text-xs font-bold text-orange-400">{profile.streak_days}</span>
+    <div className="flex flex-col min-h-screen">
+      <TopContextBar 
+        title="Dashboard" 
+        subtitle={`Welcome back, ${profile.username}`}
+      />
+      
+      <PageShell>
+        <div className="space-y-6 pb-24 md:pb-8">
+          {/* Motivation Quote */}
+          <motion.div 
+            variants={fadeUp}
+            className="glass border-white/5 rounded-2xl p-4 flex items-center gap-4 group"
+          >
+            <div className="w-12 h-12 rounded-xl bg-violet-electric/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+              <Sparkles size={20} className="text-violet-400" />
             </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg glass border-violet-electric/15">
-              <Zap size={14} className="text-violet-400" />
-              <span className="text-xs font-bold text-violet-400">{profile.total_xp.toLocaleString()}</span>
+            <div>
+              <p className="text-sm font-medium italic text-slate-300">"{quote.text}"</p>
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-1">{quote.translation}</p>
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
 
-        {/* Hero: Today's Mission */}
-        <motion.div variants={fadeUp}>
-          <div className="relative overflow-hidden rounded-2xl glass-elevated border-violet-electric/15 p-6 md:p-8">
-            <div className="absolute top-0 right-0 w-72 h-72 bg-violet-electric/5 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-48 h-48 bg-indigo-500/4 rounded-full blur-3xl pointer-events-none" />
+          <HeroMission todayCount={todayCount} onLearn={() => navigate('/learn')} onExam={() => navigate('/exam')} />
 
-            <div className="relative z-10 flex flex-col md:flex-row items-center gap-6 md:gap-10">
-              <div className="relative flex-shrink-0">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-28 h-28 rounded-full bg-violet-electric/8 blur-xl animate-pulse" />
-                </div>
-                <ProgressRing
-                  value={todayCount}
-                  max={DAILY_GOAL}
-                  size={130}
-                  strokeWidth={10}
-                  color="#7C3AED"
-                  label={`${todayCount}/${DAILY_GOAL}`}
-                  sublabel="today"
-                  glow
-                />
-              </div>
-
-              <div className="flex-1 text-center md:text-left">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-electric/10 border border-violet-electric/20 mb-3">
-                  <Target size={11} className="text-violet-400" />
-                  <span className="text-[10px] font-bold text-violet-300 uppercase tracking-wider">Today's Mission</span>
-                </div>
-                <h2 className="text-2xl md:text-3xl font-black text-white mb-1.5">
-                  {goalComplete ? 'Mission Complete' : `${DAILY_GOAL - todayCount} sessions to go`}
-                </h2>
-                <p className="text-slate-500 text-sm mb-4">
-                  {goalComplete
-                    ? 'You crushed it! Bonus XP earned.'
-                    : 'Complete your daily goal to earn +50 bonus XP and keep your streak alive.'}
-                </p>
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <motion.button
-                    onClick={() => navigate('learn')}
-                    className="btn-primary px-5 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.97 }}
-                  >
-                    <Zap size={14} /> Start Learning <ChevronRight size={14} />
-                  </motion.button>
-                  <motion.button
-                    onClick={() => navigate('exam')}
-                    className="px-5 py-2.5 rounded-xl font-semibold text-sm border border-white/8 hover:border-white/15 text-slate-400 hover:text-white transition-all flex items-center justify-center gap-2"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.97 }}
-                  >
-                    <Clock size={13} /> Quick Exam
-                  </motion.button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* AI Recommendation + Daily Motivation */}
-        <motion.div variants={fadeUp} className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {/* AI Suggests */}
-          <div className="relative overflow-hidden rounded-xl glass border-cyan-500/10 p-4">
-            <div className="flex items-start gap-3">
-              <div className="w-9 h-9 rounded-lg bg-cyan-500/8 border border-cyan-500/15 flex items-center justify-center flex-shrink-0">
-                <Brain size={15} className="text-cyan-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5 mb-0.5">
-                  <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider">AI Suggests</span>
-                  <Sparkles size={10} className="text-cyan-400" />
-                </div>
-                <p className="text-white font-semibold text-sm">Focus on <span className="text-cyan-300">Environment</span></p>
-                <p className="text-[10px] text-slate-600 mt-0.5">3 sessions will boost your score by ~15%</p>
-              </div>
-              <motion.button
-                onClick={() => navigate('learn')}
-                className="flex-shrink-0 px-3 py-1.5 rounded-lg bg-cyan-500/8 border border-cyan-500/15 text-cyan-400 text-[10px] font-bold hover:bg-cyan-500/15 transition-all"
-                whileTap={{ scale: 0.95 }}
-              >
-                Go
-              </motion.button>
-            </div>
-          </div>
-
-          {/* Daily Motivation */}
-          <div className="relative overflow-hidden rounded-xl glass border-amber-500/10 p-4">
-            <div className="flex items-start gap-3">
-              <div className="w-9 h-9 rounded-lg bg-amber-500/8 border border-amber-500/15 flex items-center justify-center flex-shrink-0">
-                <Quote size={15} className="text-amber-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Daily Motivation</span>
-                <p className="text-white font-medium text-sm mt-0.5 italic leading-snug">{quote.text}</p>
-                <p className="text-[10px] text-slate-600 mt-0.5">{quote.translation}</p>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Stats Grid */}
-        <motion.div variants={fadeUp} className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
-          {[
-            { icon: <Flame size={16} className="text-orange-400" />, value: profile.streak_days, label: 'Day Streak', border: 'border-orange-500/15' },
-            { icon: <Zap size={16} className="text-violet-400" />, value: profile.total_xp.toLocaleString(), label: 'Total XP', border: 'border-violet-electric/15' },
-            { icon: <TrendingUp size={16} className="text-emerald-fluency" />, value: '7.8', label: 'Avg Score', border: 'border-emerald-500/15' },
-            { icon: <Trophy size={16} className="text-gold-achievement" />, value: state.achievements.filter(a => a.unlocked).length, label: 'Achievements', border: 'border-amber-500/15' },
-          ].map(stat => (
+          {/* Engagement Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Quick Action: Continue */}
             <motion.div
-              key={stat.label}
-              className={`rounded-xl glass ${stat.border} p-3.5 cursor-pointer`}
-              whileHover={{ scale: 1.03, y: -2 }}
-              transition={{ duration: 0.2 }}
+              variants={fadeUp}
+              whileHover={{ scale: 1.01, translateY: -2 }}
+              onClick={() => navigate('/learn')}
+              className="group relative overflow-hidden rounded-2xl glass-elevated border-blue-500/20 p-6 cursor-pointer"
             >
-              <div className="mb-1.5">{stat.icon}</div>
-              <p className="text-lg font-black text-white">{stat.value}</p>
-              <p className="text-[10px] text-slate-600 font-medium">{stat.label}</p>
+              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl group-hover:bg-blue-500/20 transition-colors" />
+              <div className="relative z-10">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
+                    <Play size={18} className="text-blue-400 fill-blue-400/20" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Next Lesson</span>
+                    <h3 className="text-white font-bold">School & Education</h3>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-xs mb-2">
+                  <span className="text-slate-500 font-medium">Progress</span>
+                  <span className="text-blue-400 font-bold">60%</span>
+                </div>
+                <div className="h-2 bg-navy-300 rounded-full overflow-hidden">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: '60%' }}
+                    transition={{ duration: 1, delay: 0.5 }}
+                    className="h-full bg-gradient-to-r from-blue-600 to-cyan-400 shimmer-bar" 
+                  />
+                </div>
+                <div className="mt-4 flex items-center gap-2 text-[10px] font-bold text-blue-400 group-hover:gap-3 transition-all">
+                  START NOW <ArrowRight size={12} />
+                </div>
+              </div>
             </motion.div>
-          ))}
-        </motion.div>
 
-        {/* 7-Day Performance Chart */}
-        <motion.div variants={fadeUp} className="rounded-xl glass-elevated p-5">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <TrendingUp size={14} className="text-violet-400" />
-              <h3 className="font-bold text-white text-sm">7-Day Performance</h3>
-            </div>
-            <span className="text-[10px] text-slate-600">Avg: {(MOCK_DAILY.reduce((s, d) => s + d.score, 0) / MOCK_DAILY.length).toFixed(1)}</span>
+            {/* Daily Challenge */}
+            <motion.div
+              variants={fadeUp}
+              whileHover={{ scale: 1.01, translateY: -2 }}
+              onClick={() => navigate('/learn')}
+              className="group relative overflow-hidden rounded-2xl glass-elevated border-amber-500/20 p-6 cursor-pointer"
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-3xl group-hover:bg-amber-500/20 transition-colors" />
+              <div className="relative z-10">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center">
+                    <Target size={18} className="text-amber-400" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest">Daily Challenge</span>
+                    <h3 className="text-white font-bold">Describe your routine</h3>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="flex -space-x-2">
+                    {[1, 2, 3].map(i => (
+                      <div key={i} className="w-6 h-6 rounded-full border-2 border-navy bg-slate-800 flex items-center justify-center text-[8px] font-bold text-white">
+                        {i <= 1 ? '✅' : i}
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-slate-500 font-medium">+35 XP Bonus</p>
+                </div>
+                <div className="mt-4 flex items-center gap-2 text-[10px] font-bold text-amber-400 group-hover:gap-3 transition-all">
+                  VIEW CHALLENGE <ArrowRight size={12} />
+                </div>
+              </div>
+            </motion.div>
           </div>
-          {/* Area chart with gradient fill */}
-          <div className="relative h-28">
-            <svg className="w-full h-full" viewBox="0 0 700 112" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#7C3AED" stopOpacity="0.3" />
-                  <stop offset="100%" stopColor="#7C3AED" stopOpacity="0" />
-                </linearGradient>
-                <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="#7C3AED" />
-                  <stop offset="100%" stopColor="#818CF8" />
-                </linearGradient>
-              </defs>
-              {/* Area fill */}
-              <path
-                d={`M0,${112 - (MOCK_DAILY[0].score / maxScore) * 100} ${MOCK_DAILY.map((d, i) => {
-                  const x = (i / (MOCK_DAILY.length - 1)) * 700;
-                  const y = 112 - (d.score / maxScore) * 100;
-                  return i === 0 ? `M0,${y}` : `C${x - 50},${y} ${x - 25},${y} ${x},${y}`;
-                }).join(' ')} L700,112 L0,112 Z`}
-                fill="url(#chartGrad)"
-              />
-              {/* Line */}
-              <path
-                d={MOCK_DAILY.map((d, i) => {
-                  const x = (i / (MOCK_DAILY.length - 1)) * 700;
-                  const y = 112 - (d.score / maxScore) * 100;
-                  return i === 0 ? `M${x},${y}` : `C${x - 50},${y} ${x - 25},${y} ${x},${y}`;
-                }).join(' ')}
-                fill="none"
-                stroke="url(#lineGrad)"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                style={{ filter: 'drop-shadow(0 0 4px rgba(124, 58, 237, 0.4))' }}
-              />
-              {/* Dots */}
-              {MOCK_DAILY.map((d, i) => {
-                const x = (i / (MOCK_DAILY.length - 1)) * 700;
-                const y = 112 - (d.score / maxScore) * 100;
-                return <circle key={i} cx={x} cy={y} r="3" fill="#7C3AED" style={{ filter: 'drop-shadow(0 0 3px rgba(124, 58, 237, 0.6))' }} />;
-              })}
-            </svg>
-            {/* Day labels */}
-            <div className="absolute bottom-0 left-0 right-0 flex justify-between px-1 translate-y-5">
-              {MOCK_DAILY.map(d => (
-                <span key={d.day} className="text-[9px] text-slate-700">{d.day}</span>
-              ))}
-            </div>
-          </div>
-        </motion.div>
 
-        {/* Continue Learning + Daily Challenge */}
-        <motion.div variants={fadeUp} className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <motion.button
-            onClick={() => navigate('learn')}
-            className="group relative overflow-hidden rounded-xl glass border-blue-500/10 p-5 text-left hover:border-blue-500/25 transition-all duration-300"
-            whileHover={{ y: -2 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/3 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-            <div className="relative">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-7 h-7 rounded-lg bg-blue-500/8 border border-blue-500/15 flex items-center justify-center">
-                  <Star size={12} className="text-blue-400" />
+          {/* Stats & Activity */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
+              {/* 7-Day Performance Chart */}
+              <motion.div variants={fadeUp} className="rounded-2xl glass-elevated p-6 border-white/5">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp size={16} className="text-violet-400" />
+                    <h3 className="font-bold text-white text-base">Weekly Momentum</h3>
+                  </div>
+                  <div className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold text-slate-400">
+                    AVG SCORE: {(MOCK_DAILY.reduce((s, d) => s + d.score, 0) / MOCK_DAILY.length).toFixed(1)}
+                  </div>
                 </div>
-                <span className="text-[10px] font-bold text-blue-400 uppercase tracking-wider">Continue</span>
-              </div>
-              <p className="text-white font-bold text-sm mb-0.5">School & Education</p>
-              <p className="text-[10px] text-slate-600">Last: Score 7.8 — 2 questions left</p>
-              <div className="mt-3 h-1 bg-navy-300 rounded-full overflow-hidden">
-                <div className="h-full w-3/5 rounded-full bg-gradient-to-r from-blue-500 to-cyan-400 shimmer-bar" />
-              </div>
-            </div>
-          </motion.button>
-
-          <motion.button
-            onClick={() => navigate('learn')}
-            className="group relative overflow-hidden rounded-xl glass border-amber-500/10 p-5 text-left hover:border-amber-500/25 transition-all duration-300"
-            whileHover={{ y: -2 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/3 rounded-full blur-2xl pointer-events-none" />
-            <div className="relative">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-7 h-7 rounded-lg bg-amber-500/8 border border-amber-500/15 flex items-center justify-center">
-                  <Target size={12} className="text-amber-400" />
-                </div>
-                <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Daily Challenge</span>
-              </div>
-              <p className="text-white font-bold text-sm mb-0.5">Describe your routine</p>
-              <p className="text-[10px] text-slate-600">+35 XP bonus — 4h remaining</p>
-              <div className="mt-3 flex items-center gap-2">
-                <div className="flex-1 h-1 bg-navy-300 rounded-full overflow-hidden">
-                  <div className="h-full w-1/3 rounded-full bg-gradient-to-r from-amber-500 to-orange-400 shimmer-bar" />
-                </div>
-                <span className="text-[9px] font-bold text-amber-400">1/3</span>
-              </div>
-            </div>
-          </motion.button>
-        </motion.div>
-
-        {/* Quick Access */}
-        <motion.div variants={fadeUp}>
-          <h3 className="text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-2.5">Quick Access</h3>
-          <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
-            {[
-              { icon: '📚', label: 'Practice', screen: 'learn' as Screen },
-              { icon: '🎓', label: 'Exam', screen: 'exam' as Screen },
-              { icon: '🧭', label: 'Explore', screen: 'explore' as Screen },
-              { icon: '📊', label: 'Progress', screen: 'progress' as Screen },
-              { icon: '💬', label: 'AI Chat', screen: 'learn' as Screen },
-              { icon: '🏆', label: 'Rankings', screen: 'explore' as Screen },
-            ].map(item => (
-              <motion.button
-                key={item.label}
-                onClick={() => navigate(item.screen)}
-                className="group flex flex-col items-center gap-1.5 p-3 rounded-xl glass-subtle hover:bg-white/[0.04] transition-all duration-200"
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <span className="text-xl group-hover:scale-110 transition-transform duration-200">{item.icon}</span>
-                <span className="text-[10px] font-semibold text-slate-600 group-hover:text-white transition-colors">{item.label}</span>
-              </motion.button>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Recent Activity */}
-        <motion.div variants={fadeUp}>
-          <h3 className="text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-2.5">Recent Activity</h3>
-          <div className="space-y-1.5">
-            {state.recentSessions.slice(0, 3).map(session => (
-              <motion.div
-                key={session.id}
-                className="flex items-center gap-3 p-3 rounded-xl glass-subtle hover:bg-white/[0.03] transition-all duration-200 cursor-pointer"
-                whileHover={{ x: 4 }}
-              >
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm flex-shrink-0 ${
-                  session.mode === 'practice' ? 'bg-blue-500/8 border border-blue-500/15' :
-                  session.mode === 'exam' ? 'bg-amber-500/8 border border-amber-500/15' :
-                  'bg-emerald-500/8 border border-emerald-500/15'
-                }`}>
-                  {session.mode === 'practice' ? '📚' : session.mode === 'exam' ? '📝' : '💬'}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-white capitalize">{session.mode}</p>
-                  <p className="text-[10px] text-slate-600 truncate">{session.topicKey ?? 'General'}</p>
-                </div>
-                <div className="text-right flex-shrink-0">
-                  <p className="text-xs font-bold text-white">{session.score.toFixed(1)}<span className="text-[9px] text-slate-600">/10</span></p>
-                  <p className="text-[9px] text-emerald-400 font-semibold">+{session.xpEarned} XP</p>
-                </div>
+                <WeeklyChart data={MOCK_DAILY} uid="home" />
               </motion.div>
-            ))}
+
+              <RecentActivity sessions={state.recentSessions} />
+            </div>
+
+            <div className="space-y-6">
+              {/* Stats Vertical Grid */}
+              <motion.div variants={fadeUp} className="grid grid-cols-2 lg:grid-cols-1 gap-3">
+                {[
+                  { icon: <Flame size={18} />, value: profile.streak_days, label: 'Day Streak', color: 'text-orange-400', border: 'border-orange-500/20' },
+                  { icon: <Zap size={18} />, value: profile.total_xp.toLocaleString(), label: 'Total XP', color: 'text-violet-400', border: 'border-violet-electric/20' },
+                  { icon: <Star size={18} />, value: '7.8', label: 'Avg Score', color: 'text-emerald-400', border: 'border-emerald-500/20' },
+                  { icon: <Trophy size={18} />, value: state.achievements.filter(a => a.unlocked).length, label: 'Badges', color: 'text-amber-400', border: 'border-amber-500/20' },
+                ].map((stat, i) => (
+                  <motion.div
+                    key={stat.label}
+                    className={`rounded-2xl glass p-4 border ${stat.border} group cursor-pointer overflow-hidden relative`}
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.1 * i }}
+                  >
+                    <div className="absolute top-0 right-0 p-3 opacity-5 group-hover:opacity-10 group-hover:scale-150 transition-all duration-500">
+                      {stat.icon}
+                    </div>
+                    <div className={`${stat.color} mb-2`}>{stat.icon}</div>
+                    <p className="text-2xl font-black text-white">{stat.value}</p>
+                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{stat.label}</p>
+                  </motion.div>
+                ))}
+              </motion.div>
+
+              <QuickAccess onNavigate={(screen) => navigate(screen === 'home' ? '/' : `/${screen}`)} />
+            </div>
           </div>
-        </motion.div>
-      </motion.div>
+        </div>
+      </PageShell>
+
+      <HookStack hooks={hooks} />
     </div>
   );
 }
+

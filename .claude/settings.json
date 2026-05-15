@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git checkout *)"
+      "Bash(git checkout *)",
+      "Bash(npm run *)",
+      "Bash(node_modules\\\\.bin\\\\tsc --noEmit -p tsconfig.app.json)",
+      "Bash(npm install *)"
     ]
   }
 }

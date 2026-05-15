@@ -1,0 +1,59 @@
+import { CheckCircle, ChevronRight, RotateCcw } from 'lucide-react';
+import type { CoachingIssue } from '../../../types';
+import { SeverityBadge } from '../../../components/ui/SeverityBadge';
+import { SEVERITY_BG, SEVERITY_COLOR } from '../theme/severity';
+import { TeachMeLesson } from './TeachMeLesson';
+
+interface Props {
+  issue: CoachingIssue;
+  isSelected?: boolean;
+}
+
+export function IssueRow({ issue, isSelected }: Props) {
+  const bg = SEVERITY_BG[issue.severity] ?? '';
+  return (
+    <div className={`rounded-lg border p-3 ${bg} ${isSelected ? 'ring-1 ring-violet-400/40' : ''}`}>
+      <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+        <SeverityBadge level={issue.severity} />
+        {issue.marksImpact > 0 && (
+          <span className="text-[9px] text-slate-600">−{issue.marksImpact} mark{issue.marksImpact > 1 ? 's' : ''}</span>
+        )}
+        {issue.isRecurring && (
+          <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-[8px] font-bold text-amber-400 uppercase tracking-wide">
+            <RotateCcw size={8} />
+            Recurring pattern
+          </span>
+        )}
+      </div>
+
+      {issue.quote && (
+        <p
+          className="text-[10px] font-mono mb-1.5 px-1.5 py-0.5 rounded inline-block"
+          style={{ color: SEVERITY_COLOR[issue.severity], background: `${SEVERITY_COLOR[issue.severity]}12` }}
+        >
+          "{issue.quote}"
+        </p>
+      )}
+
+      <p className="text-[10px] text-slate-400 mb-1.5">{issue.diagnostic}</p>
+
+      {issue.isRecurring && issue.recurrenceNote && (
+        <p className="text-[9px] text-amber-500/80 italic mb-1.5">{issue.recurrenceNote}</p>
+      )}
+
+      <div className="flex items-start gap-1.5 text-[10px] mb-1">
+        <CheckCircle size={10} className="text-emerald-400 flex-shrink-0 mt-0.5" />
+        <span className="text-emerald-300 font-medium">{issue.correction}</span>
+      </div>
+
+      {issue.stronger && (
+        <div className="flex items-start gap-1.5 text-[10px]">
+          <ChevronRight size={10} className="text-violet-400 flex-shrink-0 mt-0.5" />
+          <span className="text-violet-300">{issue.stronger}</span>
+        </div>
+      )}
+
+      {issue.teachMe && <TeachMeLesson teachMe={issue.teachMe} />}
+    </div>
+  );
+}

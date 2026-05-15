@@ -1,0 +1,304 @@
+{
+  "start": {
+    "prompt": [
+      "Bonjour. Que puis-je faire pour vous ?",
+      "Bonjour, c'est pour une déclaration, un dépôt de plainte ou un renseignement administratif ?",
+      "Police Nationale, j'écoute. Quel est l'objet de votre venue ?"
+    ],
+    "intents": {
+      "theft": "ask_theft_details",
+      "loss": "ask_loss_details",
+      "complaint": "ask_complaint_subject",
+      "noise": "ask_noise_complaint",
+      "accident": "ask_accident_witness",
+      "pet": "ask_lost_pet",
+      "admin": "ask_admin_info",
+      "cyber": "ask_cyber_fraud",
+      "suspicious": "suspicious_activity_report",
+      "package": "package_theft_flow",
+      "harassment": "harassment_complaint",
+      "domestic_violence": "domestic_violence_start",
+      "vandalism": "vandalism_report_start",
+      "missing_person": "missing_person_start",
+      "holiday_peace": "operation_tranquillite_vacances"
+    }
+  },
+  "operation_tranquillite_vacances": {
+    "prompt": [
+      "Vous souhaitez que nous surveillions votre domicile pendant vos vacances ? C'est le dispositif 'Opération Tranquillité Vacances'. Quelles sont vos dates d'absence ?",
+      "C'est un service gratuit. Nous effectuons des patrouilles régulières autour de votre maison. Pouvez-vous remplir ce formulaire ?"
+    ],
+    "capture": "vacation_dates",
+    "next": "ask_id"
+  },
+  "missing_person_start": {
+    "prompt": [
+      "Depuis quand la personne a-t-elle disparu ? S'agit-il d'un mineur ou d'une personne vulnérable ?",
+      "Nous avons besoin d'un signalement précis et d'une photo récente. Quel est votre lien de parenté avec cette personne ?"
+    ],
+    "capture": "missing_person_details",
+    "next": "ask_id"
+  },
+  "vandalism_report_start": {
+    "prompt": [
+      "Il s'agit de tags, d'un bris de vitre ou de dégradations sur votre façade ? Avez-vous une estimation des dégâts ?",
+      "Le vandalisme a-t-il eu lieu sur votre propriété privée ou sur la voie publique ?"
+    ],
+    "capture": "vandalism_details",
+    "next": "ask_id"
+  },
+  "domestic_violence_start": {
+    "prompt": [
+      "Nous sommes là pour vous protéger. Souhaitez-vous parler à une assistante sociale ou à un officier spécialisé dans un bureau fermé ?",
+      "Y a-t-il un danger immédiat pour vous ou pour des enfants ? Nous pouvons déclencher une procédure d'urgence si nécessaire."
+    ],
+    "capture": "domestic_violence_details",
+    "next": "ask_id"
+  },
+  "harassment_complaint": {
+    "prompt": [
+      "S'agit-il de harcèlement moral, physique ou sur les réseaux sociaux ? Pouvez-vous nous expliquer le contexte ?",
+      "Nous prenons ces signalements très au sérieux. Depuis combien de temps cela dure-t-il ?"
+    ],
+    "capture": "harassment_details",
+    "next": "ask_id"
+  },
+  "package_theft_flow": {
+    "prompt": [
+      "Votre colis a été volé dans votre boîte aux lettres ou devant votre porte ? Aviez-vous reçu une confirmation de livraison ?",
+      "Avez-vous contacté le transporteur au préalable ? Nous avons besoin de la preuve de livraison pour le dépôt de plainte."
+    ],
+    "capture": "package_details",
+    "next": "ask_id"
+  },
+  "suspicious_activity_report": {
+    "prompt": [
+      "Pouvez-vous nous décrire ce que vous avez observé ? S'agit-il d'un individu ou d'un véhicule suspect ?",
+      "Où se situe exactement cette activité ? Y a-t-il un danger immédiat ?"
+    ],
+    "capture": "suspicious_details",
+    "next": "ask_id"
+  },
+  "ask_theft_details": {
+    "prompt": ["Où et quand cela s'est-il passé ? Qu'est-ce qui vous a été dérobé ?"],
+    "capture": "theft_info",
+    "intents": {
+      "violence": "aggravated_theft_details",
+      "vehicle": "vehicle_theft_details"
+    },
+    "next": "ask_description"
+  },
+  "vehicle_theft_details": {
+    "prompt": [
+      "Il s'agit d'une voiture, d'une moto ou d'un vélo ? Pouvez-vous nous donner la plaque d'immatriculation et le modèle ?",
+      "Où était garé le véhicule ? Aviez-vous bien verrouillé les portes ?"
+    ],
+    "capture": "vehicle_info",
+    "next": "ask_id"
+  },
+  "aggravated_theft_details": {
+    "prompt": [
+      "Y a-t-il eu des violences ou des menaces ? Avez-vous besoin de voir un médecin ou une unité médico-judiciaire ?",
+      "C'est un vol avec violence. Pouvez-vous décrire l'agresseur et l'arme éventuelle ?"
+    ],
+    "capture": "violence_details",
+    "next": "ask_id"
+  },
+  "ask_loss_details": {
+    "prompt": ["Quel objet avez-vous perdu ? Savez-vous à peu près où vous l'avez vu pour la dernière fois ?"],
+    "capture": "loss_info",
+    "intents": {
+      "abroad": "loss_abroad"
+    },
+    "next": "ask_description"
+  },
+  "loss_abroad": {
+    "prompt": [
+      "J'ai perdu mon passeport pendant mon séjour à l'étranger. Quelle est la procédure pour rentrer en France ?",
+      "On m'a volé mes papiers hier à l'aéroport. Comment puis-je obtenir un laissez-passer ?"
+    ],
+    "next": "ask_description"
+  },
+  "ask_description": {
+    "prompt": ["Pouvez-vous me donner une description précise de l'objet ? (Couleur, marque, signes distinctifs)"],
+    "capture": "item_description",
+    "next": "ask_id"
+  },
+  "ask_noise_complaint": {
+    "prompt": [
+      "Il s'agit de tapage nocturne ou diurne ? Pouvez-vous me donner l'adresse exacte et l'origine du bruit ?",
+      "Vous venez signaler un problème de voisinage ? Est-ce récurrent ?"
+    ],
+    "capture": "noise_details",
+    "intents": {
+      "mediation": "mediation_referral",
+      "party": "party_noise"
+    },
+    "next": "ask_id"
+  },
+  "party_noise": {
+    "prompt": [
+      "Il y a une fête très bruyante dans l'appartement d'au-dessus depuis 22h. J'ai déjà essayé de discuter avec eux.",
+      "La musique est à fond et il y a beaucoup de cris dans la rue. Pouvez-vous envoyer une patrouille ?"
+    ],
+    "next": "ask_id"
+  },
+  "mediation_referral": {
+    "prompt": [
+      "Avant de porter plainte, souhaiteriez-vous faire appel à un médiateur de quartier pour résoudre le conflit ?",
+      "Nous pouvons vous orienter vers les services de médiation de la mairie. Est-ce que cela vous intéresse ?"
+    ],
+    "intents": {
+      "yes": "end_session",
+      "no": "ask_id"
+    }
+  },
+  "ask_accident_witness": {
+    "prompt": [
+      "Vous avez été témoin d'un accident de la circulation ? Y a-t-il des blessés ?",
+      "Pouvez-vous nous décrire les circonstances de l'accident et les véhicules impliqués ?"
+    ],
+    "intents": {
+      "hit_and_run": "hit_and_run_details"
+    },
+    "capture": "accident_testimony",
+    "next": "ask_id"
+  },
+  "hit_and_run_details": {
+    "prompt": [
+      "C'est un délit de fuite. Avez-vous pu relever la plaque d'immatriculation ou identifier le modèle du véhicule qui a pris la fuite ?",
+      "Dans quelle direction le véhicule est-il parti ? Y avait-il des caméras de surveillance à proximité ?"
+    ],
+    "next": "ask_id"
+  },
+  "ask_lost_pet": {
+    "prompt": [
+      "Quel animal avez-vous perdu ? Est-il pucé ou tatoué ?",
+      "Pouvez-vous nous donner sa race, sa couleur et le lieu de sa disparition ?"
+    ],
+    "capture": "pet_details",
+    "next": "ask_id"
+  },
+  "ask_admin_info": {
+    "prompt": [
+      "C'est pour un renouvellement de passeport ou de carte d'identité ? Avez-vous déjà fait votre pré-demande en ligne ?",
+      "Pour les titres d'identité, il faut prendre rendez-vous. Avez-vous votre dossier complet ?"
+    ],
+    "intents": {
+      "passport": "passport_info",
+      "id_card": "id_card_info"
+    },
+    "next": "end_session"
+  },
+  "passport_info": {
+    "prompt": ["Pour le passeport, il vous faut un timbre fiscal, un justificatif de domicile et vos photos d'identité conformes."],
+    "next": "provide_admin_link"
+  },
+  "id_card_info": {
+    "prompt": ["La carte d'identité est gratuite s'il s'agit d'un renouvellement simple. En cas de perte, il faudra un timbre fiscal de 25€."],
+    "next": "provide_admin_link"
+  },
+  "provide_admin_link": {
+    "prompt": ["Je vous conseille de consulter le site ants.gouv.fr pour finaliser votre dossier. Souhaitez-vous une autre information ?"],
+    "intents": {
+      "yes": "start",
+      "no": "end_session"
+    }
+  },
+  "ask_cyber_fraud": {
+    "prompt": [
+      "S'agit-il d'un piratage de compte, d'un e-mail frauduleux ou d'un achat non reçu ?",
+      "Vous avez été victime d'une escroquerie sur internet ? Avez-vous des captures d'écran ou des preuves de transaction ?"
+    ],
+    "capture": "fraud_details",
+    "intents": {
+      "identity_theft": "identity_theft_branch",
+      "phishing": "phishing_details",
+      "scam": "telephone_scam_details"
+    },
+    "next": "ask_id"
+  },
+  "telephone_scam_details": {
+    "prompt": [
+      "J'ai reçu un appel d'une personne se faisant passer pour un conseiller bancaire. On m'a demandé de valider des opérations suspectes.",
+      "Quelqu'un a essayé de m'extorquer de l'argent par téléphone en prétendant qu'un proche était en difficulté."
+    ],
+    "next": "ask_id"
+  },
+  "phishing_details": {
+    "prompt": [
+      "J'ai reçu un SMS suspect me demandant mes coordonnées bancaires pour un colis. J'ai malheureusement cliqué sur le lien.",
+      "Il s'agit d'une tentative de phishing par e-mail imitant ma banque. Dois-je faire opposition à ma carte ?"
+    ],
+    "next": "ask_id"
+  },
+  "identity_theft_branch": {
+    "prompt": [
+      "Si vos papiers sont utilisés par un tiers, il faut agir vite. Avez-vous constaté des ouvertures de comptes bancaires à votre nom ?",
+      "Nous allons enregistrer une plainte spécifique pour usurpation d'identité. Préparez tous les documents compromettants."
+    ],
+    "intents": {
+      "bank_fraud": "bank_fraud_details"
+    },
+    "capture": "identity_theft_details",
+    "next": "ask_id"
+  },
+  "bank_fraud_details": {
+    "prompt": [
+      "Plusieurs prélèvements inconnus sont apparus sur mon relevé bancaire. Ma banque me demande un récépissé de plainte.",
+      "Mon compte a été débité de sommes importantes sans mon autorisation. J'ai déjà bloqué ma carte."
+    ],
+    "next": "ask_id"
+  },
+  "ask_id": {
+    "prompt": ["J'ai besoin de votre pièce d'identité pour enregistrer votre déclaration ou votre plainte."],
+    "capture": "identity",
+    "intents": {
+      "no_id": "no_id_procedure"
+    },
+    "next": "process_report"
+  },
+  "no_id_procedure": {
+    "prompt": [
+      "Si vous avez perdu vos papiers, nous allons d'abord faire une déclaration de perte qui servira d'identité provisoire. Avez-vous une photo ou une photocopie ?",
+      "Sans aucun document, la procédure est plus longue. Un officier devra vérifier votre identité via nos fichiers."
+    ],
+    "next": "process_report"
+  },
+  "process_report": {
+    "prompt": ["Un instant, je saisis les informations dans le logiciel... Voilà. Veuillez relire attentivement la déposition avant de signer."],
+    "intents": {
+      "translator": "translator_assistance"
+    },
+    "next": "provide_copy"
+  },
+  "translator_assistance": {
+    "prompt": [
+      "Si vous ne comprenez pas tout, nous pouvons faire appel à un interprète par téléphone. Est-ce nécessaire ?",
+      "La loi vous permet d'être assisté par un traducteur pour relire votre déposition. Souhaitez-vous l'utiliser ?"
+    ],
+    "next": "provide_copy"
+  },
+  "provide_copy": {
+    "prompt": ["Voici votre récépissé. Conservez-le précieusement, il est indispensable pour vos démarches ultérieures. Autre chose ?"],
+    "intents": {
+      "yes": "start",
+      "no": "end_session",
+      "insurance": "insurance_claim_advice"
+    }
+  },
+  "insurance_claim_advice": {
+    "prompt": [
+      "Vous devez envoyer ce récépissé à votre assureur sous 48 heures. Souhaitez-vous que je vous explique la procédure ?",
+      "L'assurance vous demandera aussi une facture d'achat pour les objets volés. Avez-vous ces documents ?"
+    ],
+    "next": "end_session"
+  },
+  "end_session": {
+    "prompt": [
+      "Bon courage pour la suite de vos démarches. Au revoir.",
+      "Nous restons à votre disposition. Bonne journée.",
+      "Au revoir, Monsieur/Madame."
+    ]
+  }
+}

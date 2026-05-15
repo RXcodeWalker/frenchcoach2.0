@@ -1,0 +1,7807 @@
+﻿import type { Question, Topic } from '../types';
+
+// Topic metadata — keys match old repo so question topicKeys are consistent
+export const TOPICS: Topic[] = [
+  { key: 'school',      label: "L'école",          labelEn: 'School & Education',         icon: '🎓', color: '#3b82f6', description: "Parle de l'école, tes matières et ta routine.",         questionsCount: 0 },
+  { key: 'hobbies',     label: 'Les loisirs',       labelEn: 'Hobbies & Free Time',        icon: '⚽', color: '#10b981', description: 'Tes activités préférées et comment tu passes ton temps.', questionsCount: 0 },
+  { key: 'family',      label: 'La famille',        labelEn: 'Family & Friends',           icon: '👨‍👩‍👧‍👦', color: '#f59e0b', description: 'Décris ta famille et tes amis proches.',               questionsCount: 0 },
+  { key: 'holidays',    label: 'Les vacances',      labelEn: 'Holidays & Travel',          icon: '✈️', color: '#8b5cf6', description: 'Tes voyages, destinations et vacances idéales.',        questionsCount: 0 },
+  { key: 'home',        label: 'La maison',         labelEn: 'Home & Town',                icon: '🏠', color: '#ec4899', description: 'Parle de chez toi et de ta ville ou région.',           questionsCount: 0 },
+  { key: 'future',      label: "L'avenir",          labelEn: 'Future Plans',               icon: '🚀', color: '#0ea5e9', description: 'Tes projets pour le futur et ta carrière.',             questionsCount: 0 },
+  { key: 'food',        label: 'La nourriture',     labelEn: 'Food & Health',              icon: '🥐', color: '#f97316', description: 'Ce que tu manges, ta santé et tes habitudes.',          questionsCount: 0 },
+  { key: 'environment', label: "L'environnement",   labelEn: 'Environment & Technology',   icon: '🌍', color: '#14b8a6', description: "L'environnement, la technologie et la société.",        questionsCount: 0 },
+];
+
+export interface ExamSet {
+  id: string;
+  label: string;
+  questions: string[];
+}
+
+export const QUESTIONS: Question[] = [
+
+  // ── L'ÉCOLE ──────────────────────────────────────────────────────────────
+  {
+    id: "sch_01",
+    topicKey: "school",
+    text: "Parle-moi de ton école.",
+    hint: "Talk about your school — size, subjects, teachers, uniform, facilities.",
+    difficulty: 1,
+    followUps: [
+      "Quel est ton professeur préféré et pourquoi ?",
+      "Combien d'élèves y a-t-il dans ton école ?",
+      "Est-ce que tu portes un uniforme scolaire ?",
+    ],
+    modelAnswer: "Mon école s'appelle City Academy et se trouve en ville. C'est une grande école avec environ mille élèves. J'aime bien mon école parce que les professeurs sont sympathiques et il y a beaucoup d'activités parascolaires. Mes matières préférées sont les maths et les sciences. On porte un uniforme — un pantalon noir et un pull bleu marine — ce qui, à mon avis, est pratique.",
+    keyVocab: [
+      { fr: "le/la proviseur(e)", en: "headteacher" },
+      { fr: "la cour de récréation", en: "playground" },
+      { fr: "la bibliothèque", en: "library" },
+      { fr: "le couloir", en: "corridor" },
+      { fr: "la salle de classe", en: "classroom" },
+      { fr: "les activités parascolaires", en: "extracurricular activities" },
+    ],
+  },
+  {
+    id: "sch_02",
+    topicKey: "school",
+    text: "Quelles sont tes matières préférées et pourquoi ?",
+    hint: "Describe 2-3 favourite subjects, give reasons, compare with subjects you dislike.",
+    difficulty: 1,
+    followUps: [
+      "À quelle heure commencent tes cours ?",
+      "Est-ce que les cours sont difficiles pour toi ?",
+      "Qu'est-ce que tu fais pendant la récréation ?",
+    ],
+    modelAnswer: "Ma matière préférée, c'est le français parce que j'aime beaucoup les langues étrangères et je trouve que c'est utile pour voyager. J'aime aussi les sciences car les expériences sont fascinantes. Par contre, je n'aime pas trop l'EPS parce que je ne suis pas très sportif(ve). En revanche, je pense que toutes les matières sont importantes pour notre avenir.",
+    keyVocab: [
+      { fr: "utile/inutile", en: "useful/useless" },
+      { fr: "fascinant(e)", en: "fascinating" },
+      { fr: "difficile/facile", en: "difficult/easy" },
+      { fr: "je trouve que...", en: "I find that..." },
+      { fr: "par contre", en: "on the other hand" },
+      { fr: "en revanche", en: "however / on the other hand" },
+    ],
+  },
+  {
+    id: "sch_03",
+    topicKey: "school",
+    text: "Comment tu vas à l'école chaque matin ?",
+    hint: "Explain your journey to school — transport, how long it takes, who you go with.",
+    difficulty: 1,
+    followUps: [
+      "À quelle heure tu pars de chez toi ?",
+      "Est-ce que le trajet est long ?",
+      "Tu préfères quel moyen de transport et pourquoi ?",
+    ],
+    modelAnswer: "Le matin, je prends le bus scolaire pour aller à l'école. Le trajet dure environ vingt minutes. Je retrouve mes amis à l'arrêt de bus et on discute pendant le voyage. Parfois, quand il fait beau, mon père me dépose en voiture. À mon avis, le bus, c'est bien parce que je peux parler avec mes camarades, mais c'est parfois bruyant.",
+    keyVocab: [
+      { fr: "le trajet", en: "the journey / commute" },
+      { fr: "le bus scolaire", en: "school bus" },
+      { fr: "à pied", en: "on foot" },
+      { fr: "déposer quelqu'un", en: "to drop someone off" },
+      { fr: "bruyant(e)", en: "noisy" },
+      { fr: "en retard", en: "late" },
+    ],
+  },
+  {
+    id: "sch_04",
+    topicKey: "school",
+    text: "Est-ce que tu aimes ton école ? Pourquoi ou pourquoi pas ?",
+    hint: "Give a balanced opinion with both positives and negatives, plus reasons.",
+    difficulty: 2,
+    followUps: [
+      "Qu'est-ce que tu changerais dans ton école si tu pouvais ?",
+      "Les règles de ton école sont-elles strictes ?",
+      "Quel est le meilleur souvenir que tu as de ton école ?",
+    ],
+    modelAnswer: "Dans l'ensemble, j'aime bien mon école. Les professeurs sont compétents et bienveillants, et les installations sont modernes — il y a une salle informatique et un gymnase. Cependant, je pense que les journées sont trop longues et les devoirs excessifs. Si je pouvais changer quelque chose, je réduirais les examens et j'organiserais plus de sorties scolaires. Malgré tout, je suis content(e) d'aller dans cette école.",
+    keyVocab: [
+      { fr: "dans l'ensemble", en: "on the whole" },
+      { fr: "bienveillant(e)", en: "kind / caring" },
+      { fr: "les installations", en: "facilities" },
+      { fr: "les devoirs excessifs", en: "excessive homework" },
+      { fr: "malgré tout", en: "despite everything" },
+      { fr: "réduire", en: "to reduce" },
+    ],
+  },
+  {
+    id: "sch_05",
+    topicKey: "school",
+    text: "Qu'est-ce que tu as fait à l'école la semaine dernière ?",
+    hint: "Use passé composé to describe specific events — a lesson, a test, a school trip.",
+    difficulty: 2,
+    followUps: [
+      "Est-ce que tu as eu des examens récemment ?",
+      "Tu as fait quelque chose de spécial avec ta classe ?",
+      "Comment ça s'est passé ?",
+    ],
+    modelAnswer: "La semaine dernière, j'ai eu un contrôle de maths assez difficile. J'avais bien révisé la veille, donc je pense que j'ai réussi. On a aussi fait une sortie scolaire au musée des sciences, ce qui était vraiment intéressant. Le jeudi, on a commencé un nouveau projet en groupe pour le cours d'anglais. Dans l'ensemble, c'était une semaine chargée mais productive.",
+    keyVocab: [
+      { fr: "un contrôle", en: "a test / assessment" },
+      { fr: "réviser", en: "to revise / study" },
+      { fr: "une sortie scolaire", en: "a school trip" },
+      { fr: "un projet en groupe", en: "a group project" },
+      { fr: "chargé(e)", en: "busy / hectic" },
+      { fr: "la veille", en: "the day before" },
+    ],
+  },
+  {
+    id: "sch_06",
+    topicKey: "school",
+    text: "Décris ta journée scolaire typique.",
+    hint: "Walk through your day from morning to end of school using time phrases.",
+    difficulty: 1,
+    followUps: [
+      "Tu manges à la cantine ou tu apportes ton repas ?",
+      "Combien de cours as-tu par jour ?",
+      "À quelle heure finissent tes cours ?",
+    ],
+    modelAnswer: "Ma journée scolaire commence à huit heures et demie. D'abord, on fait l'appel en classe de base, puis on va en cours. On a six cours par jour, chacun d'une heure. À midi, je mange à la cantine avec mes amis — la nourriture est correcte mais pas extraordinaire. Les cours se terminent à seize heures. Le soir, je fais mes devoirs pendant environ une heure avant de me détendre.",
+    keyVocab: [
+      { fr: "l'appel", en: "the register / roll call" },
+      { fr: "la cantine", en: "the canteen / cafeteria" },
+      { fr: "se terminer", en: "to finish / end" },
+      { fr: "se détendre", en: "to relax" },
+      { fr: "d'abord... puis... ensuite...", en: "first... then... next..." },
+      { fr: "pendant environ", en: "for about / approximately" },
+    ],
+  },
+
+  // ── LES LOISIRS ──────────────────────────────────────────────────────────
+  {
+    id: "hob_01",
+    topicKey: "hobbies",
+    text: "Qu'est-ce que tu fais pendant ton temps libre ?",
+    hint: "Describe 2-3 hobbies in detail — how often, who with, why you enjoy them.",
+    difficulty: 1,
+    followUps: [
+      "Depuis combien de temps tu fais cette activité ?",
+      "Tu préfères les activités en plein air ou à l'intérieur ?",
+      "Est-ce que tu voudrais essayer un nouveau passe-temps ?",
+    ],
+    modelAnswer: "Pendant mon temps libre, j'aime surtout jouer de la guitare. Je joue depuis trois ans et je prends des cours le samedi. En plus, j'aime lire des romans — surtout les thrillers et la science-fiction. Le week-end, je retrouve mes amis pour aller au cinéma ou faire du shopping en ville. J'essaie aussi de faire du sport régulièrement pour rester en forme.",
+    keyVocab: [
+      { fr: "surtout", en: "especially / above all" },
+      { fr: "depuis", en: "since / for (duration)" },
+      { fr: "régulièrement", en: "regularly" },
+      { fr: "rester en forme", en: "to stay fit / healthy" },
+      { fr: "un passe-temps", en: "a hobby / pastime" },
+      { fr: "j'essaie de...", en: "I try to..." },
+    ],
+  },
+  {
+    id: "hob_02",
+    topicKey: "hobbies",
+    text: "Tu fais du sport ? Quel sport tu préfères et pourquoi ?",
+    hint: "Talk about sports you play or watch. Include how often and where.",
+    difficulty: 1,
+    followUps: [
+      "Tu fais partie d'une équipe ?",
+      "Quel sport voudrais-tu apprendre à pratiquer ?",
+      "Tu préfères regarder le sport à la télé ou y participer ?",
+    ],
+    modelAnswer: "Oui, je suis assez sportif(ve). Mon sport préféré, c'est le football — je joue dans l'équipe scolaire depuis deux ans. On s'entraîne le mercredi après-midi et on a des matchs le samedi. J'adore l'esprit d'équipe et la compétition. J'aime aussi nager pendant les vacances. À mon avis, pratiquer un sport est essentiel pour la santé physique et mentale.",
+    keyVocab: [
+      { fr: "s'entraîner", en: "to train / practise" },
+      { fr: "l'esprit d'équipe", en: "team spirit" },
+      { fr: "un match", en: "a match / game" },
+      { fr: "faire partie de", en: "to be part of" },
+      { fr: "la compétition", en: "competition" },
+      { fr: "essentiel pour", en: "essential for" },
+    ],
+  },
+  {
+    id: "hob_03",
+    topicKey: "hobbies",
+    text: "Est-ce que tu joues d'un instrument de musique ou tu chantes ?",
+    hint: "Discuss any musical activity — playing, singing, concerts, favourite music genres.",
+    difficulty: 1,
+    followUps: [
+      "Quel est ton genre de musique préféré ?",
+      "Tu écoutes de la musique française ?",
+      "Tu es déjà allé(e) à un concert ?",
+    ],
+    modelAnswer: "Je joue du piano depuis l'âge de sept ans. Au début, c'était difficile, mais maintenant j'en joue avec plaisir. Je m'entraîne environ trente minutes chaque jour. Concernant la musique que j'écoute, je préfère le pop et le rock. Mon groupe préféré est Arctic Monkeys. L'année dernière, je suis allé(e) à mon premier concert et c'était une expérience inoubliable.",
+    keyVocab: [
+      { fr: "jouer de (+ instrument)", en: "to play (an instrument)" },
+      { fr: "au début", en: "at first / in the beginning" },
+      { fr: "inoubliable", en: "unforgettable" },
+      { fr: "un genre musical", en: "a music genre" },
+      { fr: "concernant", en: "regarding / concerning" },
+      { fr: "avec plaisir", en: "with pleasure / happily" },
+    ],
+  },
+  {
+    id: "hob_04",
+    topicKey: "hobbies",
+    text: "Tu lis beaucoup ? Qu'est-ce que tu aimes lire ?",
+    hint: "Describe your reading habits, favourite genres, specific books or authors.",
+    difficulty: 2,
+    followUps: [
+      "Tu préfères les livres électroniques ou les livres papier ?",
+      "Quel livre tu recommanderais à un ami ?",
+      "Tu lis des livres en français ?",
+    ],
+    modelAnswer: "Je lis assez souvent, surtout avant de dormir. J'aime beaucoup les romans d'aventure et les histoires de fantasy. En ce moment, je lis une série de livres qui s'appelle « Percy Jackson » — c'est captivant. Je pense que la lecture est très bénéfique parce qu'elle améliore le vocabulaire et stimule l'imagination. J'ai aussi lu quelques nouvelles en français pour pratiquer la langue.",
+    keyVocab: [
+      { fr: "un roman", en: "a novel" },
+      { fr: "captivant(e)", en: "gripping / captivating" },
+      { fr: "bénéfique", en: "beneficial" },
+      { fr: "améliorer", en: "to improve" },
+      { fr: "stimuler", en: "to stimulate" },
+      { fr: "en ce moment", en: "at the moment / currently" },
+    ],
+  },
+  {
+    id: "hob_05",
+    topicKey: "hobbies",
+    text: "Est-ce que tu regardes beaucoup la télévision ou des vidéos en ligne ?",
+    hint: "Discuss screen time habits — TV shows, YouTube, streaming, how much time per day.",
+    difficulty: 2,
+    followUps: [
+      "Quelle est ton émission préférée en ce moment ?",
+      "Tu penses que les jeunes regardent trop la télé ?",
+      "Est-ce que tu as regardé des films ou séries en français ?",
+    ],
+    modelAnswer: "Je regarde des vidéos en ligne tous les jours, surtout sur YouTube où je suis des chaînes de science et de comédie. Je regarde aussi des séries en streaming — ma préférée en ce moment est une série coréenne avec des sous-titres français. Cependant, j'essaie de limiter mon temps d'écran à deux heures par jour pour ne pas négliger mes études. Je pense que c'est important de trouver un équilibre.",
+    keyVocab: [
+      { fr: "le temps d'écran", en: "screen time" },
+      { fr: "les sous-titres", en: "subtitles" },
+      { fr: "négliger", en: "to neglect" },
+      { fr: "un équilibre", en: "a balance" },
+      { fr: "limiter", en: "to limit" },
+      { fr: "une chaîne", en: "a channel" },
+    ],
+  },
+
+  // ── LA FAMILLE ────────────────────────────────────────────────────────────
+  {
+    id: "fam_01",
+    topicKey: "family",
+    text: "Décris ta famille.",
+    hint: "Describe family members — their appearance, personality, job, and your relationship.",
+    difficulty: 1,
+    followUps: [
+      "Tu t'entends bien avec tes frères et sœurs ?",
+      "Qu'est-ce que ta famille fait ensemble le week-end ?",
+      "Tu ressembles plus à ta mère ou à ton père ?",
+    ],
+    modelAnswer: "Je vis avec mes parents et ma sœur cadette, qui a douze ans. Mon père est grand et brun — il travaille comme ingénieur. Ma mère a les cheveux châtains et elle est très créative — elle est professeure d'art. Ma sœur est un peu timide mais très gentille. Nous nous entendons bien en général, même si on se dispute parfois. La famille est très importante pour moi.",
+    keyVocab: [
+      { fr: "cadet/cadette", en: "younger (sibling)" },
+      { fr: "s'entendre (bien)", en: "to get along (well)" },
+      { fr: "se disputer", en: "to argue / quarrel" },
+      { fr: "les cheveux châtains", en: "brown hair" },
+      { fr: "même si", en: "even if / even though" },
+      { fr: "en général", en: "in general / usually" },
+    ],
+  },
+  {
+    id: "fam_02",
+    topicKey: "family",
+    text: "Comment est ta relation avec tes parents ?",
+    hint: "Explain how you get along — what you do together, any conflicts, how they support you.",
+    difficulty: 2,
+    followUps: [
+      "Est-ce que tes parents sont stricts ?",
+      "Qu'est-ce que tes parents font pour te soutenir à l'école ?",
+      "Tu as déjà eu un conflit avec tes parents ? Comment ça s'est résolu ?",
+    ],
+    modelAnswer: "Dans l'ensemble, j'ai une très bonne relation avec mes parents. Ils me soutiennent beaucoup, surtout avec mes études. Mon père m'aide avec les maths et ma mère m'encourage à être créatif(ve). Parfois, on n'est pas d'accord sur des choses comme l'heure du coucher ou le temps que je passe sur mon téléphone. Cependant, on discute toujours calmement et on trouve un compromis. Je les respecte beaucoup.",
+    keyVocab: [
+      { fr: "soutenir", en: "to support" },
+      { fr: "être d'accord", en: "to agree" },
+      { fr: "l'heure du coucher", en: "bedtime" },
+      { fr: "un compromis", en: "a compromise" },
+      { fr: "respecter", en: "to respect" },
+      { fr: "calmement", en: "calmly" },
+    ],
+  },
+  {
+    id: "fam_03",
+    topicKey: "family",
+    text: "Décris ton meilleur ami ou ta meilleure amie.",
+    hint: "Describe their appearance, personality, how you met, what you do together.",
+    difficulty: 1,
+    followUps: [
+      "Depuis combien de temps tu connais cette personne ?",
+      "Qu'est-ce que vous aimez faire ensemble ?",
+      "Qu'est-ce qui est important pour toi dans une amitié ?",
+    ],
+    modelAnswer: "Mon meilleur ami s'appelle Liam. Il est grand, avec des cheveux blonds et des yeux verts. On se connaît depuis l'école primaire — ça fait donc environ huit ans. Il est vraiment drôle et loyal — je peux toujours compter sur lui. On partage les mêmes goûts musicaux et on adore jouer aux jeux vidéo ensemble. Pour moi, la confiance et le sens de l'humour sont les qualités les plus importantes dans une amitié.",
+    keyVocab: [
+      { fr: "compter sur quelqu'un", en: "to rely on someone" },
+      { fr: "partager", en: "to share" },
+      { fr: "les goûts", en: "tastes / preferences" },
+      { fr: "loyal(e)", en: "loyal" },
+      { fr: "la confiance", en: "trust / confidence" },
+      { fr: "l'école primaire", en: "primary school" },
+    ],
+  },
+  {
+    id: "fam_04",
+    topicKey: "family",
+    text: "Qu'est-ce que tu fais avec tes amis le week-end ?",
+    hint: "Talk about typical weekend activities with friends — where you go, what you do.",
+    difficulty: 1,
+    followUps: [
+      "Tu préfères rester à la maison ou sortir avec des amis ?",
+      "Est-ce que tu utilises les réseaux sociaux pour rester en contact avec tes amis ?",
+      "Tu as déjà eu un problème avec un ami ? Comment tu l'as résolu ?",
+    ],
+    modelAnswer: "Le week-end, j'aime retrouver mes amis en ville. On va souvent au cinéma ou dans un café pour bavarder. L'été, on se retrouve au parc pour faire du sport ou un pique-nique. Le soir, parfois on se retrouve chez quelqu'un pour jouer à des jeux de société ou regarder des films. C'est toujours très sympa. Je pense que passer du temps avec ses amis est essentiel pour le bien-être.",
+    keyVocab: [
+      { fr: "bavarder", en: "to chat / natter" },
+      { fr: "un pique-nique", en: "a picnic" },
+      { fr: "un jeu de société", en: "a board game" },
+      { fr: "le bien-être", en: "well-being / welfare" },
+      { fr: "sympa (= sympathique)", en: "nice / pleasant" },
+      { fr: "se retrouver", en: "to meet up / get together" },
+    ],
+  },
+
+  // ── LES VACANCES ──────────────────────────────────────────────────────────
+  {
+    id: "hol_01",
+    topicKey: "holidays",
+    text: "Où es-tu allé(e) pendant les dernières vacances ?",
+    hint: "Describe a recent holiday — where, who with, what you did, how you felt.",
+    difficulty: 1,
+    followUps: [
+      "Comment tu as voyagé — en avion, en voiture ou en train ?",
+      "Qu'est-ce que tu as fait là-bas ?",
+      "Est-ce que tu as mangé des spécialités locales ?",
+    ],
+    modelAnswer: "L'été dernier, je suis allé(e) en Espagne avec ma famille. On a pris l'avion depuis Londres — le vol a duré environ deux heures. On a séjourné dans un hôtel au bord de la mer, à Barcelone. Pendant les vacances, j'ai visité la Sagrada Família, j'ai profité de la plage et j'ai goûté des tapas, ce qui était délicieux. C'était des vacances inoubliables et j'aimerais y retourner un jour.",
+    keyVocab: [
+      { fr: "séjourner", en: "to stay (at a hotel etc.)" },
+      { fr: "profiter de", en: "to enjoy / make the most of" },
+      { fr: "goûter", en: "to taste / try (food)" },
+      { fr: "au bord de la mer", en: "at the seaside" },
+      { fr: "un vol", en: "a flight" },
+      { fr: "inoubliable", en: "unforgettable" },
+    ],
+  },
+  {
+    id: "hol_02",
+    topicKey: "holidays",
+    text: "Tu préfères les vacances à la mer ou à la montagne ? Pourquoi ?",
+    hint: "Compare both types of holiday, give strong reasons for your preference.",
+    difficulty: 2,
+    followUps: [
+      "Qu'est-ce qu'on peut faire à la montagne en été ?",
+      "Tu as peur de la mer ou tu adores nager ?",
+      "Est-ce que les vacances à la campagne t'intéressent ?",
+    ],
+    modelAnswer: "Je préfère nettement les vacances à la mer. J'adore me baigner, faire du snorkeling et me détendre sur la plage. Le soleil et la mer ont un effet très relaxant sur moi. La montagne peut être belle en hiver pour faire du ski, mais en été je la trouve un peu monotone. Cependant, je reconnais que la montagne offre de beaux paysages et de bonnes randonnées. Mais pour moi, rien ne vaut une belle plage méditerranéenne !",
+    keyVocab: [
+      { fr: "nettement", en: "clearly / decidedly" },
+      { fr: "se baigner", en: "to swim / bathe" },
+      { fr: "la randonnée", en: "hiking / trekking" },
+      { fr: "les paysages", en: "landscapes / scenery" },
+      { fr: "monotone", en: "monotonous / dull" },
+      { fr: "rien ne vaut", en: "nothing beats" },
+    ],
+  },
+  {
+    id: "hol_03",
+    topicKey: "holidays",
+    text: "Décris des vacances idéales.",
+    hint: "Paint a picture of your dream holiday — use conditional tense (j'irais, je ferais).",
+    difficulty: 3,
+    followUps: [
+      "Avec qui est-ce que tu voyagerais dans l'idéal ?",
+      "Tu préfères les hôtels de luxe ou le camping ?",
+      "Quel pays voudrais-tu absolument visiter ?",
+    ],
+    modelAnswer: "Pour mes vacances idéales, j'irais au Japon avec mes meilleurs amis. On séjournerait dans un ryokan — une auberge traditionnelle japonaise. On visiterait Tokyo, Kyoto et le Mont Fuji. Je goûterais des sushis authentiques et j'assisterais à une cérémonie du thé. On se déplacerait en Shinkansen — le train à grande vitesse. Ce voyage serait parfait parce que le Japon mélange modernité et tradition de façon unique.",
+    keyVocab: [
+      { fr: "dans l'idéal", en: "ideally" },
+      { fr: "un(e) auberge", en: "an inn / hostel" },
+      { fr: "assister à", en: "to attend" },
+      { fr: "se déplacer", en: "to travel / get around" },
+      { fr: "mélanger", en: "to mix / combine" },
+      { fr: "la modernité", en: "modernity" },
+    ],
+  },
+  {
+    id: "hol_04",
+    topicKey: "holidays",
+    text: "Est-ce que tu voudrais voyager dans d'autres pays ? Lesquels ?",
+    hint: "Name specific countries, explain what appeals to you about each one.",
+    difficulty: 2,
+    followUps: [
+      "Pourquoi est-ce que voyager est important, selon toi ?",
+      "Est-ce que tu parles des langues étrangères qui t'aideraient à voyager ?",
+      "Les voyages t'ont-ils déjà changé ou appris quelque chose d'important ?",
+    ],
+    modelAnswer: "Oui, j'adorerais voyager beaucoup plus. J'aimerais visiter le Canada pour ses grands espaces sauvages et le bilinguisme anglais-français. J'aimerais aussi découvrir le Maroc pour sa culture riche et sa cuisine épicée. À long terme, je rêve de faire le tour du monde. Je crois que voyager ouvre l'esprit, permet de découvrir d'autres cultures et aide à comprendre le monde dans lequel on vit.",
+    keyVocab: [
+      { fr: "les grands espaces", en: "wide open spaces" },
+      { fr: "le bilinguisme", en: "bilingualism" },
+      { fr: "épicé(e)", en: "spicy" },
+      { fr: "ouvrir l'esprit", en: "to broaden the mind" },
+      { fr: "à long terme", en: "in the long term" },
+      { fr: "rêver de", en: "to dream of" },
+    ],
+  },
+
+  // ── LA MAISON ─────────────────────────────────────────────────────────────
+  {
+    id: "hom_01",
+    topicKey: "home",
+    text: "Décris ta maison ou ton appartement.",
+    hint: "Describe rooms, size, location, what you like or dislike about it.",
+    difficulty: 1,
+    followUps: [
+      "Ta chambre est comment ?",
+      "Est-ce que tu partages une chambre avec quelqu'un ?",
+      "Qu'est-ce que tu ferais si tu pouvais refaire ta chambre ?",
+    ],
+    modelAnswer: "J'habite dans une maison semi-individuelle en banlieue. C'est une maison à deux étages avec quatre chambres, un salon, une cuisine moderne et un jardin. J'aime beaucoup notre jardin parce qu'on y passe du temps en été. Ma chambre se trouve au premier étage — elle est assez grande avec un bureau, une armoire et mon lit. Je l'ai décorée avec des affiches de mes groupes préférés. Je me sens vraiment bien chez moi.",
+    keyVocab: [
+      { fr: "semi-individuel(le)", en: "semi-detached" },
+      { fr: "en banlieue", en: "in the suburbs" },
+      { fr: "à deux étages", en: "two-storey" },
+      { fr: "le premier étage", en: "the first floor (UK: first floor)" },
+      { fr: "une armoire", en: "a wardrobe" },
+      { fr: "une affiche", en: "a poster" },
+    ],
+  },
+  {
+    id: "hom_02",
+    topicKey: "home",
+    text: "Comment est la ville ou le village où tu habites ?",
+    hint: "Describe your area — facilities, atmosphere, pros and cons for young people.",
+    difficulty: 2,
+    followUps: [
+      "Est-ce qu'il y a des problèmes dans ta ville ?",
+      "Qu'est-ce qui manque dans ta ville pour les jeunes ?",
+      "Tu préférerais habiter à la campagne ou en ville ? Pourquoi ?",
+    ],
+    modelAnswer: "J'habite dans une ville de taille moyenne dans le nord de l'Angleterre. Il y a un centre commercial, plusieurs parcs, des cinémas et de bonnes liaisons de transport. Pour les jeunes, il y a un centre sportif et des clubs. Cependant, il manque des espaces culturels comme des musées ou des galeries d'art. La ville est sûre et propre en général. Personnellement, je l'aime bien, même si parfois je préfèrerais vivre dans une grande ville comme Londres.",
+    keyVocab: [
+      { fr: "de taille moyenne", en: "medium-sized" },
+      { fr: "les liaisons de transport", en: "transport links" },
+      { fr: "il manque", en: "there is a lack of" },
+      { fr: "sûr(e)", en: "safe" },
+      { fr: "propre", en: "clean" },
+      { fr: "une galerie d'art", en: "an art gallery" },
+    ],
+  },
+  {
+    id: "hom_03",
+    topicKey: "home",
+    text: "Qu'est-ce qu'il y a à faire pour les jeunes dans ta région ?",
+    hint: "Talk about leisure options — what's available, what's missing, what you'd add.",
+    difficulty: 2,
+    followUps: [
+      "Est-ce que tu penses que ta ville fait assez pour les jeunes ?",
+      "Quel type de centre jeunesse tu aimerais voir dans ta ville ?",
+      "Les transports en commun sont-ils bien développés dans ta région ?",
+    ],
+    modelAnswer: "Dans ma région, il y a assez de choses à faire pour les jeunes. Il y a un parc aquatique, plusieurs terrains de sport, une patinoire et des cafés. Le week-end, beaucoup de jeunes se retrouvent dans le parc ou au centre commercial. Cependant, je pense qu'il manque un espace artistique — un endroit où les jeunes pourraient faire de la danse, du théâtre ou des arts visuels. Ce serait vraiment bénéfique pour la communauté.",
+    keyVocab: [
+      { fr: "un parc aquatique", en: "a water park" },
+      { fr: "une patinoire", en: "an ice rink" },
+      { fr: "les arts visuels", en: "visual arts" },
+      { fr: "la communauté", en: "the community" },
+      { fr: "bénéfique", en: "beneficial" },
+      { fr: "un endroit", en: "a place / spot" },
+    ],
+  },
+
+  // ── L'AVENIR ──────────────────────────────────────────────────────────────
+  {
+    id: "fut_01",
+    topicKey: "future",
+    text: "Qu'est-ce que tu veux faire dans l'avenir ?",
+    hint: "Discuss future career or study plans. Use future tense and conditional.",
+    difficulty: 2,
+    followUps: [
+      "Pourquoi tu as choisi cette carrière ?",
+      "Qu'est-ce que tu dois faire pour réaliser ce rêve ?",
+      "Est-ce que tu as un plan B si ça ne marche pas ?",
+    ],
+    modelAnswer: "Dans l'avenir, j'aimerais devenir médecin. Je suis passionné(e) par les sciences et j'aime aider les autres, donc je pense que c'est la carrière parfaite pour moi. Pour réaliser ce rêve, je devrai obtenir de bonnes notes aux examens et faire des études de médecine pendant plusieurs années. C'est un chemin long et difficile, mais je suis déterminé(e). Si ça ne marche pas, j'envisagerais peut-être une carrière dans la recherche scientifique.",
+    keyVocab: [
+      { fr: "passionné(e) par", en: "passionate about" },
+      { fr: "réaliser", en: "to achieve / fulfil" },
+      { fr: "déterminé(e)", en: "determined" },
+      { fr: "envisager", en: "to consider / envisage" },
+      { fr: "la recherche", en: "research" },
+      { fr: "plusieurs années", en: "several years" },
+    ],
+  },
+  {
+    id: "fut_02",
+    topicKey: "future",
+    text: "Tu voudrais aller à l'université ? Pourquoi ou pourquoi pas ?",
+    hint: "Give a clear opinion on university with pros/cons and alternatives.",
+    difficulty: 3,
+    followUps: [
+      "Qu'est-ce que tu voudrais étudier à l'université ?",
+      "La dette étudiante te fait-elle peur ?",
+      "Tu penses que l'apprentissage est une bonne alternative à l'université ?",
+    ],
+    modelAnswer: "Oui, j'aimerais beaucoup aller à l'université. Je voudrais étudier l'informatique parce que c'est un domaine en pleine croissance avec de nombreuses opportunités. Je sais que les frais de scolarité sont élevés et que l'on accumule des dettes, mais je pense que c'est un investissement dans l'avenir. Cependant, je comprends que l'université n'est pas la bonne voie pour tout le monde — certains préfèrent faire un apprentissage ou créer leur propre entreprise, ce qui est tout à fait valable.",
+    keyVocab: [
+      { fr: "les frais de scolarité", en: "tuition fees" },
+      { fr: "une dette", en: "a debt" },
+      { fr: "en pleine croissance", en: "rapidly growing" },
+      { fr: "un apprentissage", en: "an apprenticeship" },
+      { fr: "une voie", en: "a path / route" },
+      { fr: "tout à fait valable", en: "completely valid / worthwhile" },
+    ],
+  },
+  {
+    id: "fut_03",
+    topicKey: "future",
+    text: "Quel métier voudrais-tu faire plus tard ?",
+    hint: "Describe your dream job, why it appeals, what skills are needed.",
+    difficulty: 2,
+    followUps: [
+      "Qu'est-ce qui t'a inspiré à vouloir ce métier ?",
+      "Quelles qualités faut-il pour réussir dans ce domaine ?",
+      "Tu penses que tu seras heureux/heureuse dans ce métier ?",
+    ],
+    modelAnswer: "Plus tard, je voudrais travailler comme architecte. J'ai toujours été fasciné(e) par les bâtiments et j'adore dessiner. Ce métier me permettrait de combiner ma passion pour l'art et pour les sciences. Pour réussir, il faut être créatif(ve), précis(e) et avoir de bonnes compétences en maths. Je me vois en train de concevoir des bâtiments durables et écologiques — c'est un domaine d'avenir. Je suis convaincu(e) que ce serait un métier épanouissant.",
+    keyVocab: [
+      { fr: "un bâtiment", en: "a building" },
+      { fr: "concevoir", en: "to design / conceive" },
+      { fr: "durable", en: "sustainable" },
+      { fr: "écologique", en: "eco-friendly / ecological" },
+      { fr: "épanouissant(e)", en: "fulfilling / rewarding" },
+      { fr: "les compétences", en: "skills" },
+    ],
+  },
+
+  // ── LA NOURRITURE ─────────────────────────────────────────────────────────
+  {
+    id: "foo_01",
+    topicKey: "food",
+    text: "Qu'est-ce que tu manges normalement au déjeuner ?",
+    hint: "Describe your typical lunch — what, where, with whom. Include a past example.",
+    difficulty: 1,
+    followUps: [
+      "Tu apportes ton déjeuner de chez toi ou tu manges à la cantine ?",
+      "Est-ce que tu penses que l'alimentation des jeunes est saine ?",
+      "C'est quoi ton repas préféré de la journée ?",
+    ],
+    modelAnswer: "En général, je mange à la cantine avec mes amis. Je prends souvent un sandwich au fromage ou un repas chaud comme des pâtes ou du riz avec des légumes. Hier, par exemple, j'ai mangé un curry de poulet avec du riz — c'était vraiment bon. Je bois de l'eau ou du jus d'orange. Je pense qu'il est important de bien manger à midi pour avoir de l'énergie pour les cours de l'après-midi.",
+    keyVocab: [
+      { fr: "l'alimentation", en: "diet / nutrition" },
+      { fr: "sain(e)", en: "healthy" },
+      { fr: "les légumes", en: "vegetables" },
+      { fr: "un repas chaud", en: "a hot meal" },
+      { fr: "avoir de l'énergie", en: "to have energy" },
+      { fr: "par exemple", en: "for example" },
+    ],
+  },
+  {
+    id: "foo_02",
+    topicKey: "food",
+    text: "Est-ce que tu fais attention à ta santé ?",
+    hint: "Discuss healthy habits — diet, exercise, sleep, screen time. Be honest!",
+    difficulty: 2,
+    followUps: [
+      "Tu fais de l'exercice régulièrement ?",
+      "Est-ce que tu manges cinq fruits et légumes par jour ?",
+      "La santé mentale est-elle aussi importante que la santé physique, selon toi ?",
+    ],
+    modelAnswer: "J'essaie de faire attention à ma santé, même si ce n'est pas toujours facile. Je fais du sport trois fois par semaine — principalement du football et de la natation. Concernant l'alimentation, je mange assez équilibré, mais j'avoue que j'aime trop le chocolat et les chips. Je dors environ huit heures par nuit, ce qui est bien. Je pense que la santé mentale est aussi importante que la santé physique — c'est pourquoi je prends le temps de me détendre et de voir mes amis.",
+    keyVocab: [
+      { fr: "équilibré(e)", en: "balanced" },
+      { fr: "j'avoue que", en: "I admit that" },
+      { fr: "la natation", en: "swimming" },
+      { fr: "principalement", en: "mainly / primarily" },
+      { fr: "la santé mentale", en: "mental health" },
+      { fr: "c'est pourquoi", en: "that is why" },
+    ],
+  },
+  {
+    id: "foo_03",
+    topicKey: "food",
+    text: "Quel est ton plat préféré ? Est-ce que tu sais le préparer ?",
+    hint: "Describe your favourite dish, its ingredients, whether you can cook it.",
+    difficulty: 1,
+    followUps: [
+      "Tu aimes cuisiner ? Qu'est-ce que tu sais faire ?",
+      "Quelle cuisine étrangère tu préfères ?",
+      "Qu'est-ce que tu manges pour un repas de fête ?",
+    ],
+    modelAnswer: "Mon plat préféré, c'est la lasagne. J'adore le mélange de sauce bolognaise, de béchamel et de pâtes. Ma mère la prépare souvent le dimanche et toute la famille se retrouve à table. J'ai essayé de la faire moi-même l'année dernière — c'était assez réussi ! En ce qui concerne la cuisine étrangère, j'aime beaucoup la cuisine japonaise, surtout les sushis et les ramens. Je pense que cuisiner est une compétence importante que tout le monde devrait apprendre.",
+    keyVocab: [
+      { fr: "la sauce bolognaise", en: "bolognese sauce" },
+      { fr: "réussi(e)", en: "successful / well done" },
+      { fr: "en ce qui concerne", en: "as for / regarding" },
+      { fr: "une compétence", en: "a skill" },
+      { fr: "tout le monde devrait", en: "everyone should" },
+      { fr: "se retrouver à table", en: "to gather at the table" },
+    ],
+  },
+
+  // ── L'ENVIRONNEMENT ───────────────────────────────────────────────────────
+  {
+    id: "env_01",
+    topicKey: "environment",
+    text: "Qu'est-ce que tu fais pour protéger l'environnement ?",
+    hint: "Discuss specific eco-friendly actions you take at home, school, or in your community.",
+    difficulty: 2,
+    followUps: [
+      "Penses-tu que les gouvernements font assez pour l'environnement ?",
+      "Le changement climatique t'inquiète-t-il ?",
+      "Est-ce que tu penses que les individus peuvent vraiment faire une différence ?",
+    ],
+    modelAnswer: "Je fais plusieurs choses pour protéger l'environnement. Je recycle toujours le papier, le plastique et le verre. Je préfère aller à l'école à vélo plutôt qu'en voiture pour réduire les émissions de carbone. Chez moi, on essaie de réduire la consommation d'énergie en éteignant les lumières. Cependant, je pense que les gouvernements doivent aussi prendre des mesures plus strictes contre la pollution industrielle. Les individus peuvent aider, mais ce n'est pas suffisant seul.",
+    keyVocab: [
+      { fr: "recycler", en: "to recycle" },
+      { fr: "les émissions de carbone", en: "carbon emissions" },
+      { fr: "la consommation d'énergie", en: "energy consumption" },
+      { fr: "prendre des mesures", en: "to take measures / steps" },
+      { fr: "la pollution industrielle", en: "industrial pollution" },
+      { fr: "suffisant", en: "sufficient / enough" },
+    ],
+  },
+  {
+    id: "env_02",
+    topicKey: "environment",
+    text: "Est-ce que la technologie joue un rôle important dans ta vie ?",
+    hint: "Discuss how technology affects your daily life — positives and negatives.",
+    difficulty: 2,
+    followUps: [
+      "Tu penses que les jeunes sont trop dépendants de la technologie ?",
+      "L'intelligence artificielle — est-ce une bonne ou mauvaise chose ?",
+      "Comment la technologie a-t-elle changé l'éducation ?",
+    ],
+    modelAnswer: "Oui, la technologie joue un rôle énorme dans ma vie. J'utilise mon téléphone chaque jour pour communiquer avec mes amis, faire des recherches et écouter de la musique. À l'école, on utilise des tablettes et des ordinateurs pour apprendre. Les avantages sont évidents — accès à l'information, communication facile. Cependant, je pense que la dépendance aux écrans peut être néfaste, surtout pour la santé mentale des jeunes. Il faut trouver un équilibre sain.",
+    keyVocab: [
+      { fr: "dépendant(e) de", en: "dependent on" },
+      { fr: "néfaste", en: "harmful / damaging" },
+      { fr: "les avantages", en: "advantages / benefits" },
+      { fr: "les inconvénients", en: "disadvantages" },
+      { fr: "accès à l'information", en: "access to information" },
+      { fr: "un équilibre sain", en: "a healthy balance" },
+    ],
+  },
+
+  // --- SCHOOL (Continued) ---
+  {
+    id: "sch_07",
+    topicKey: "school",
+    text: "Quelle est ta matière la moins préférée et pourquoi ?",
+    hint: "Identify your least favorite subject, explain why (boring, difficult, teacher), and compare it to others.",
+    difficulty: 1,
+    followUps: [
+      "Est-ce que tu penses que c'est une matière importante ?",
+      "Est-ce que tes parents sont d'accord avec toi ?",
+      "Depuis combien de temps est-ce que tu étudies cette matière ?"
+    ],
+    modelAnswer: "Ma matière la moins préférée est la physique. Je trouve que c'est extrêmement difficile et je ne comprends pas toujours les formules complexes. À mon avis, c'est un peu barbant par rapport aux langues vivantes comme le français ou l'espagnol, qui sont plus interactives. Bien que je sache que les sciences sont essentielles pour certaines carrières, je préfère nettement les matières littéraires.",
+    keyVocab: [
+      { fr: "la moins préférée", en: "least favorite" },
+      { fr: "barbant(e)", en: "boring / tedious" },
+      { fr: "les formules", en: "formulas" },
+      { fr: "par rapport à", en: "compared to" },
+      { fr: "les matières littéraires", en: "humanities / literary subjects" },
+      { fr: "nettement", en: "clearly / much" }
+    ],
+  },
+  {
+    id: "sch_08",
+    topicKey: "school",
+    text: "Décris un professeur que tu admires.",
+    hint: "Describe a teacher you admire — their subject, personality, and why they are a good teacher.",
+    difficulty: 2,
+    followUps: [
+      "Quelles sont les qualités d'un bon professeur selon toi ?",
+      "Est-ce que tu aimerais être professeur un jour ?",
+      "Comment ce professeur aide-t-il les élèves ?"
+    ],
+    modelAnswer: "J'admire énormément mon professeur d'histoire, Monsieur Martin. Il est passionné par sa matière et il raconte les événements historiques comme si c'étaient des histoires passionnantes. Il est toujours patient et prend le temps d'expliquer les choses quand on ne comprend pas. Grâce à lui, j'ai fait beaucoup de progrès cette année. Il nous encourage à donner notre avis et à être critiques, ce que je trouve très motivant.",
+    keyVocab: [
+      { fr: "admirer", en: "to admire" },
+      { fr: "faire des progrès", en: "to make progress" },
+      { fr: "passionnant(e)", en: "exciting / fascinating" },
+      { fr: "encourager", en: "to encourage" },
+      { fr: "donner son avis", en: "to give one's opinion" },
+      { fr: "grâce à", en: "thanks to" }
+    ],
+  },
+  {
+    id: "sch_09",
+    topicKey: "school",
+    text: "Que penses-tu du règlement scolaire ?",
+    hint: "Discuss school rules — uniform, phone usage, punctuality — and give your opinion on whether they are fair.",
+    difficulty: 2,
+    followUps: [
+      "Quelle règle est la plus difficile à suivre ?",
+      "Est-ce que tu penses que l'uniforme est une bonne idée ?",
+      "Qu'est-ce qui se passe si on ne respecte pas les règles ?"
+    ],
+    modelAnswer: "À mon avis, le règlement scolaire est nécessaire pour maintenir la discipline, mais certaines règles sont trop strictes. Par exemple, il est interdit d'utiliser nos téléphones portables même pendant la récréation, ce qui est frustrant. Cependant, je comprends l'importance de la ponctualité et du respect envers les professeurs. Quant à l'uniforme, je pense que c'est une bonne chose car cela réduit les inégalités sociales entre les élèves.",
+    keyVocab: [
+      { fr: "le règlement scolaire", en: "school rules / regulations" },
+      { fr: "maintenir la discipline", en: "to maintain discipline" },
+      { fr: "interdit", en: "forbidden / prohibited" },
+      { fr: "la ponctualité", en: "punctuality" },
+      { fr: "les inégalités", en: "inequalities" },
+      { fr: "frustrant(e)", en: "frustrating" }
+    ],
+  },
+  {
+    id: "sch_10",
+    topicKey: "school",
+    text: "Si tu étais le proviseur, qu'est-ce que tu changerais ?",
+    hint: "Use conditional tense to describe changes you would make to school life, facilities, or schedule.",
+    difficulty: 3,
+    followUps: [
+      "Est-ce que tu changerais les horaires scolaires ?",
+      "Quelles nouvelles installations ferais-tu construire ?",
+      "Est-ce que tu penses que les élèves seraient plus heureux avec ces changements ?"
+    ],
+    modelAnswer: "Si j'étais le proviseur, je changerais plusieurs choses pour améliorer le bien-être des élèves. Tout d'abord, je raccourcirais les journées scolaires car je trouve qu'on finit trop tard. Ensuite, je ferais construire une nouvelle salle de détente avec des canapés et des jeux. Enfin, j'abolirais l'uniforme scolaire pour permettre aux élèves d'exprimer leur personnalité. Je crois que ces mesures rendraient l'école plus attrayante et moins stressante pour tout le monde.",
+    keyVocab: [
+      { fr: "le proviseur", en: "the headteacher" },
+      { fr: "raccourcir", en: "to shorten" },
+      { fr: "une salle de détente", en: "a common room / relaxation room" },
+      { fr: "abolir", en: "to abolish" },
+      { fr: "exprimer sa personnalité", en: "to express one's personality" },
+      { fr: "attrayant(e)", en: "attractive / appealing" }
+    ],
+  },
+
+  // --- HOBBIES (Continued) ---
+  {
+    id: "hob_06",
+    topicKey: "hobbies",
+    text: "Qu'est-ce que tu as fait le week-end dernier pour te détendre ?",
+    hint: "Describe your recent weekend activities using the past tense (passé composé).",
+    difficulty: 2,
+    followUps: [
+      "Avec qui as-tu passé ton temps ?",
+      "Est-ce que tu as fait tes devoirs aussi ?",
+      "Quel était le meilleur moment de ton week-end ?"
+    ],
+    modelAnswer: "Le week-end dernier, j'ai décidé de me reposer après une semaine chargée. Samedi matin, je suis allé courir dans le parc pour prendre l'air. L'après-midi, j'ai retrouvé mes amis au centre-ville et nous avons regardé un nouveau film de science-fiction au cinéma. Dimanche, j'ai passé la journée à lire un roman et j'ai cuisiné un gâteau avec ma mère. C'était un week-end très relaxant et j'ai pu recharger mes batteries.",
+    keyVocab: [
+      { fr: "se détendre / se reposer", en: "to relax / to rest" },
+      { fr: "prendre l'air", en: "to get some fresh air" },
+      { fr: "recharger ses batteries", en: "to recharge one's batteries" },
+      { fr: "une semaine chargée", en: "a busy week" },
+      { fr: "retrouver des amis", en: "to meet up with friends" },
+      { fr: "cuisiner", en: "to cook" }
+    ],
+  },
+  {
+    id: "hob_07",
+    topicKey: "hobbies",
+    text: "Est-ce qu'il y a une activité que tu aimerais essayer à l'avenir ?",
+    hint: "Talk about a new hobby or sport you want to try, explain why it interests you.",
+    difficulty: 2,
+    followUps: [
+      "Pourquoi est-ce que tu ne l'as pas encore fait ?",
+      "Est-ce que c'est une activité dangereuse ou chère ?",
+      "Tu préférerais l'essayer seul ou avec des amis ?"
+    ],
+    modelAnswer: "À l'avenir, j'aimerais vraiment essayer le surf. J'ai toujours été fasciné par l'océan et je pense que ce serait une expérience incroyable. Je voudrais aller en France, peut-être à Biarritz, pour prendre des cours pendant les vacances d'été. C'est un sport qui semble difficile mais très gratifiant. Bien que ce soit un peu cher à cause de l'équipement, je crois que les sensations fortes en valent la peine.",
+    keyVocab: [
+      { fr: "essayer", en: "to try" },
+      { fr: "gratifiant(e)", en: "rewarding" },
+      { fr: "les sensations fortes", en: "thrills" },
+      { fr: "en valoir la peine", en: "to be worth it" },
+      { fr: "l'équipement", en: "equipment" },
+      { fr: "fasciné(e) par", en: "fascinated by" }
+    ],
+  },
+  {
+    id: "hob_08",
+    topicKey: "hobbies",
+    text: "Tu préfères les sports individuels ou d'équipe ?",
+    hint: "Compare individual and team sports, giving advantages and disadvantages of each.",
+    difficulty: 1,
+    followUps: [
+      "Quel sport d'équipe est le plus populaire dans ton pays ?",
+      "Est-ce que tu es quelqu'un de compétitif ?",
+      "Quel sport individuel aimerais-tu pratiquer ?"
+    ],
+    modelAnswer: "Je préfère nettement les sports d'équipe comme le basket ou le rugby. Ce que j'aime par-dessus tout, c'est l'esprit de camaraderie et le fait de travailler ensemble pour atteindre un but commun. Les sports individuels, comme le tennis, peuvent être intéressants car on apprend la discipline personnelle, mais je trouve cela un peu solitaire. Pour moi, le sport est avant tout un moyen de socialiser et de s'amuser avec les autres.",
+    keyVocab: [
+      { fr: "un sport d'équipe", en: "a team sport" },
+      { fr: "par-dessus tout", en: "above all" },
+      { fr: "la camaraderie", en: "camaraderie / friendship" },
+      { fr: "un but commun", en: "a common goal" },
+      { fr: "solitaire", en: "lonely / solitary" },
+      { fr: "socialiser", en: "to socialise" }
+    ],
+  },
+  {
+    id: "hob_09",
+    topicKey: "hobbies",
+    text: "Est-ce que tu penses que les jeunes passent trop de temps sur leurs écrans ?",
+    hint: "Discuss the impact of technology and social media on young people's leisure time.",
+    difficulty: 3,
+    followUps: [
+      "Quels sont les dangers des réseaux sociaux ?",
+      "Est-ce que tu utilises souvent ton téléphone portable ?",
+      "Comment peut-on encourager les jeunes à sortir plus ?"
+    ],
+    modelAnswer: "Il est indéniable que les jeunes passent énormément de temps devant les écrans, que ce soit sur les réseaux sociaux ou en jouant aux jeux vidéo. D'un côté, c'est un excellent moyen de rester connecté avec le monde. De l'autre côté, cela peut nuire à la santé physique et réduire les interactions réelles. Je pense qu'il est crucial de limiter ce temps pour favoriser des activités plus actives et créatives. Un équilibre est nécessaire pour éviter la dépendance numérique.",
+    keyVocab: [
+      { fr: "indéniable", en: "undeniable" },
+      { fr: "énormément", en: "enormously / a lot" },
+      { fr: "nuire à", en: "to harm / be harmful to" },
+      { fr: "crucial(e)", en: "crucial" },
+      { fr: "favoriser", en: "to encourage / promote" },
+      { fr: "la dépendance numérique", en: "digital addiction" }
+    ],
+  },
+
+  // --- FAMILY (Continued) ---
+  {
+    id: "fam_05",
+    topicKey: "family",
+    text: "Est-ce que tu as un animal domestique ? Décris-le.",
+    hint: "Describe your pet (or one you would like), its name, appearance, and personality.",
+    difficulty: 1,
+    followUps: [
+      "Qui s'occupe de l'animal chez toi ?",
+      "Est-ce qu'il est important pour les enfants d'avoir un animal ?",
+      "Où dort ton animal ?"
+    ],
+    modelAnswer: "Oui, j'ai un petit chien qui s'appelle Rex. C'est un terrier avec des poils blancs et frisés. Il est extrêmement énergique et adore jouer à la balle dans le jardin. Je m'en occupe tous les jours : je lui donne à manger et je le promène après l'école. Il fait vraiment partie de la famille et il nous rend tous très heureux. Si je ne pouvais pas avoir de chien, j'aimerais bien avoir un chat parce qu'ils sont plus indépendants.",
+    keyVocab: [
+      { fr: "un animal domestique", en: "a pet" },
+      { fr: "frisé(e)", en: "curly" },
+      { fr: "s'occuper de", en: "to look after" },
+      { fr: "donner à manger", en: "to feed" },
+      { fr: "promener", en: "to walk (an animal)" },
+      { fr: "faire partie de", en: "to be part of" }
+    ],
+  },
+  {
+    id: "fam_06",
+    topicKey: "family",
+    text: "Comment est-ce que tu aides tes parents à la maison ?",
+    hint: "Talk about household chores you do to help your family.",
+    difficulty: 1,
+    followUps: [
+      "Est-ce que tu reçois de l'argent de poche pour ton aide ?",
+      "Quelle tâche ménagère détestes-tu le plus ?",
+      "Est-ce que tes frères ou sœurs aident aussi ?"
+    ],
+    modelAnswer: "Pour aider mes parents, je fais plusieurs petites tâches ménagères chaque semaine. Par exemple, je dois ranger ma chambre tous les matins et mettre la table pour le dîner. Le week-end, j'aide souvent mon père à laver la voiture ou à passer l'aspirateur dans le salon. Je pense qu'il est juste de partager les corvées pour que tout le monde ait du temps libre. Même si c'est parfois ennuyeux, c'est important d'être responsable.",
+    keyVocab: [
+      { fr: "les tâches ménagères", en: "household chores" },
+      { fr: "ranger", en: "to tidy up" },
+      { fr: "mettre la table", en: "to set the table" },
+      { fr: "passer l'aspirateur", en: "to hoover / vacuum" },
+      { fr: "les corvées", en: "chores" },
+      { fr: "juste", en: "fair" }
+    ],
+  },
+  {
+    id: "fam_07",
+    topicKey: "family",
+    text: "Qu'est-ce que tu as fait avec ta famille récemment ?",
+    hint: "Describe a recent family outing or activity using the past tense.",
+    difficulty: 2,
+    followUps: [
+      "C'était à quelle occasion ?",
+      "Quel temps faisait-il ?",
+      "Qu'est-ce que vous allez faire le week-end prochain ?"
+    ],
+    modelAnswer: "Le week-end dernier, nous sommes allés au bord de la mer pour fêter l'anniversaire de ma grand-mère. Nous avons déjeuné dans un petit restaurant traditionnel qui servait des fruits de mer délicieux. Après le repas, nous nous sommes promenés sur la plage malgré le vent assez fort. C'était une excellente journée car nous avons pu passer du temps de qualité ensemble et discuter de plein de choses. J'adore ces moments en famille car ils renforcent nos liens.",
+    keyVocab: [
+      { fr: "fêter", en: "to celebrate" },
+      { fr: "les fruits de mer", en: "seafood" },
+      { fr: "malgré", en: "despite" },
+      { fr: "temps de qualité", en: "quality time" },
+      { fr: "renforcer les liens", en: "to strengthen bonds" },
+      { fr: "se promener", en: "to go for a walk" }
+    ],
+  },
+  {
+    id: "fam_08",
+    topicKey: "family",
+    text: "Est-il plus important d'avoir beaucoup d'amis ou quelques amis proches ?",
+    hint: "Express and justify your opinion on friendship, quality vs quantity.",
+    difficulty: 3,
+    followUps: [
+      "Comment as-tu rencontré ton meilleur ami ?",
+      "Qu'est-ce que tu fais quand tu as un désaccord avec un ami ?",
+      "Peut-on rester ami avec quelqu'un qui vit loin ?"
+    ],
+    modelAnswer: "Selon moi, il est bien plus important d'avoir quelques amis proches que d'avoir une multitude de connaissances. Les vrais amis sont ceux sur qui on peut compter dans les moments difficiles et avec qui on peut être soi-même. Une amitié profonde demande du temps et de la confiance, ce qui est impossible à maintenir avec trop de personnes. Je préfère avoir deux ou trois amis fidèles plutôt que des centaines d'amis sur les réseaux sociaux qui ne me connaissent pas vraiment.",
+    keyVocab: [
+      { fr: "une multitude de", en: "a multitude of" },
+      { fr: "les connaissances", en: "acquaintances" },
+      { fr: "compter sur", en: "to rely on" },
+      { fr: "être soi-même", en: "to be oneself" },
+      { fr: "fidèle", en: "loyal / faithful" },
+      { fr: "la confiance", en: "trust" }
+    ],
+  },
+
+  // --- HOLIDAYS (Continued) ---
+  {
+    id: "hol_05",
+    topicKey: "holidays",
+    text: "Où vas-tu passer tes prochaines vacances ?",
+    hint: "Use future tense to describe your upcoming holiday plans.",
+    difficulty: 1,
+    followUps: [
+      "Avec qui vas-tu partir ?",
+      "Qu'est-ce que tu vas mettre dans ta valise ?",
+      "Est-ce que tu as hâte d'y aller ?"
+    ],
+    modelAnswer: "Pour mes prochaines vacances, je vais aller en Italie avec mes parents et mon frère. Nous allons passer une semaine à Rome pour visiter les monuments historiques comme le Colisée. J'ai vraiment hâte de goûter aux vraies pizzas italiennes et de voir les musées. Nous allons loger dans un petit appartement près du centre-ville pour être proches de tout. Ce sera fantastique car j'adore l'histoire et la culture méditerranéenne.",
+    keyVocab: [
+      { fr: "prochain(e)", en: "next" },
+      { fr: "avoir hâte de", en: "to look forward to" },
+      { fr: "loger", en: "to stay / lodge" },
+      { fr: "une valise", en: "a suitcase" },
+      { fr: "près de", en: "near to" },
+      { fr: "fantastique", en: "fantastic" }
+    ],
+  },
+  {
+    id: "hol_06",
+    topicKey: "holidays",
+    text: "Tu préfères partir en vacances avec ta famille ou avec tes amis ? Pourquoi ?",
+    hint: "Compare traveling with family vs. friends, mentioning pros and cons.",
+    difficulty: 2,
+    followUps: [
+      "Est-ce que tu as déjà voyagé sans tes parents ?",
+      "Quelles sont les activités que tu préfères faire avec tes amis ?",
+      "Qui paie pour tes vacances d'habitude ?"
+    ],
+    modelAnswer: "C'est une question difficile. J'aime partir avec ma famille car mes parents paient pour tout et nous allons souvent dans des hôtels confortables. C'est plus relaxant et sûr. Cependant, je préfère partir avec mes amis car on a plus de liberté et on peut faire des activités plus dynamiques. On a les mêmes goûts et on s'amuse beaucoup plus. Dans l'idéal, j'aimerais faire un petit voyage avec mes amis l'été prochain pour fêter la fin des examens.",
+    keyVocab: [
+      { fr: "d'habitude", en: "usually" },
+      { fr: "confortable", en: "comfortable" },
+      { fr: "la liberté", en: "freedom" },
+      { fr: "dynamique", en: "dynamic / energetic" },
+      { fr: "les mêmes goûts", en: "the same tastes" },
+      { fr: "s'amuser", en: "to have fun" }
+    ],
+  },
+  {
+    id: "hol_07",
+    topicKey: "holidays",
+    text: "Parle-moi d'une ville française que tu aimerais visiter.",
+    hint: "Choose a French city (Paris, Nice, Lyon, etc.) and explain why you want to go there.",
+    difficulty: 2,
+    followUps: [
+      "Est-ce que tu connais déjà la France ?",
+      "Quels monuments voudrais-tu voir ?",
+      "Est-ce que tu aimerais y habiter un jour ?"
+    ],
+    modelAnswer: "J'aimerais beaucoup visiter Nice, dans le sud de la France. J'ai vu des photos de la Promenade des Anglais et je trouve ça magnifique. La mer est d'un bleu incroyable et j'adore le climat ensoleillé. Je voudrais aussi explorer le vieux Nice pour goûter les spécialités locales comme la socca. À mon avis, c'est la destination parfaite pour combiner culture et détente au bord de la Méditerranée.",
+    keyVocab: [
+      { fr: "ensoleillé(e)", en: "sunny" },
+      { fr: "magnifique", en: "magnificent / beautiful" },
+      { fr: "explorer", en: "to explore" },
+      { fr: "les spécialités locales", en: "local specialities" },
+      { fr: "en bord de", en: "on the edge of" },
+      { fr: "le climat", en: "the climate" }
+    ],
+  },
+  {
+    id: "hol_08",
+    topicKey: "holidays",
+    text: "Quels sont les avantages et les inconvénients du tourisme ?",
+    hint: "Discuss the impact of tourism on the economy and the environment.",
+    difficulty: 3,
+    followUps: [
+      "Est-ce que ta région est touristique ?",
+      "Que penses-tu du tourisme de masse ?",
+      "Comment peut-on être un touriste responsable ?"
+    ],
+    modelAnswer: "Le tourisme a des avantages considérables, notamment pour l'économie locale car il crée des emplois et apporte de l'argent. Cela permet aussi de découvrir de nouvelles cultures. Cependant, il y a des inconvénients majeurs comme la pollution et la dégradation des sites historiques. Le tourisme de masse peut transformer des villes paisibles en endroits bruyants et chers. Je pense qu'il est essentiel de promouvoir un tourisme plus durable et respectueux de l'environnement pour protéger notre planète.",
+    keyVocab: [
+      { fr: "considérable", en: "considerable / significant" },
+      { fr: "notamment", en: "notably / especially" },
+      { fr: "apporter", en: "to bring" },
+      { fr: "majeur(e)", en: "major" },
+      { fr: "le tourisme de masse", en: "mass tourism" },
+      { fr: "paisible", en: "peaceful" }
+    ],
+  },
+
+  // --- HOME (Continued) ---
+  {
+    id: "hom_04",
+    topicKey: "home",
+    text: "Comment est ta chambre idéale ?",
+    hint: "Use conditional tense to describe your dream bedroom — furniture, colors, technology.",
+    difficulty: 2,
+    followUps: [
+      "Quelle est ta couleur préférée pour une chambre ?",
+      "Est-ce que tu préférerais avoir une grande fenêtre ou un balcon ?",
+      "Où serait située cette chambre ?"
+    ],
+    modelAnswer: "Ma chambre idéale serait très spacieuse et lumineuse. Les murs seraient peints en bleu clair et il y aurait une grande baie vitrée donnant sur la mer. J'aurais un lit immense et très confortable, ainsi qu'un système de son haute fidélité pour écouter ma musique. Il y aurait aussi un coin lecture avec un fauteuil moelleux et une bibliothèque remplie de livres. Ce serait mon refuge personnel où je pourrais me détendre en toute tranquillité.",
+    keyVocab: [
+      { fr: "spacieux / spacieuse", en: "spacious" },
+      { fr: "lumineux / lumineuse", en: "bright / luminous" },
+      { fr: "une baie vitrée", en: "a large glass door / window" },
+      { fr: "moelleux / moelleuse", en: "soft / plush" },
+      { fr: "un refuge", en: "a refuge / hideaway" },
+      { fr: "en toute tranquillité", en: "in total peace" }
+    ],
+  },
+  {
+    id: "hom_05",
+    topicKey: "home",
+    text: "Où voudrais-tu habiter plus tard ?",
+    hint: "Talk about your future home location — city, countryside, abroad — and give reasons.",
+    difficulty: 2,
+    followUps: [
+      "Préférerais-tu habiter dans une maison moderne ou ancienne ?",
+      "Est-ce que tu aimerais habiter près de ta famille ?",
+      "Quels sont les avantages d'habiter à l'étranger ?"
+    ],
+    modelAnswer: "Plus tard, j'aimerais habiter à l'étranger, peut-être au Canada ou en France. J'aime l'idée de découvrir une nouvelle culture et de pratiquer une autre langue au quotidien. Je préférerais vivre dans une grande ville dynamique car il y a toujours quelque chose à faire : des musées, des cinémas et des restaurants. Cependant, j'aimerais que ma maison soit dans un quartier calme et vert. C'est important pour moi d'avoir un équilibre entre l'agitation urbaine et la tranquillité de la nature.",
+    keyVocab: [
+      { fr: "à l'étranger", en: "abroad" },
+      { fr: "au quotidien", en: "on a daily basis" },
+      { fr: "un quartier", en: "a neighborhood / district" },
+      { fr: "l'agitation urbaine", en: "urban bustle" },
+      { fr: "un équilibre", en: "a balance" },
+      { fr: "vert(e)", en: "green / leafy" }
+    ],
+  },
+  {
+    id: "hom_06",
+    topicKey: "home",
+    text: "Qu'est-ce que tu as fait dans ta ville le week-end dernier ?",
+    hint: "Describe your recent activities in your local area using the past tense.",
+    difficulty: 2,
+    followUps: [
+      "Est-ce que tu es allé au centre commercial ?",
+      "Avec qui étais-tu ?",
+      "Est-ce que tu as mangé en ville ?"
+    ],
+    modelAnswer: "Le week-end dernier, je suis allé au centre-ville avec mon meilleur ami. Nous avons d'abord visité une nouvelle exposition d'art moderne à la galerie municipale, ce qui était très intéressant. Ensuite, nous avons mangé un burger dans un petit café sympa. L'après-midi, nous avons fait un peu de lèche-vitrines avant d'aller voir un match de foot au stade local. C'était une journée très animée et j'ai beaucoup apprécié l'ambiance de la ville.",
+    keyVocab: [
+      { fr: "une exposition", en: "an exhibition" },
+      { fr: "faire du lèche-vitrines", en: "to go window-shopping" },
+      { fr: "animé(e)", en: "busy / lively" },
+      { fr: "l'ambiance", en: "atmosphere" },
+      { fr: "apprécier", en: "to enjoy / appreciate" },
+      { fr: "ensuite", en: "then / afterwards" }
+    ],
+  },
+  {
+    id: "hom_07",
+    topicKey: "home",
+    text: "Préfères-tu vivre dans une maison ou dans un appartement ? Pourquoi ?",
+    hint: "Compare houses and apartments, giving your preference and reasons.",
+    difficulty: 1,
+    followUps: [
+      "Quels sont les avantages d'avoir un jardin ?",
+      "Est-ce que c'est plus facile de nettoyer un appartement ?",
+      "Où habites-tu en ce moment ?"
+    ],
+    modelAnswer: "Je préfère nettement vivre dans une maison. L'avantage principal est d'avoir plus d'espace et, surtout, un jardin où l'on peut faire des barbecues en été ou jouer avec son chien. Dans un appartement, on a souvent des voisins bruyants au-dessus ou en-dessous, ce qui peut être agaçant. Cependant, je reconnais que les appartements sont souvent situés plus près du centre-ville, ce qui est pratique pour les transports. Mais pour moi, l'indépendance d'une maison est primordiale.",
+    keyVocab: [
+      { fr: "principal(e)", en: "main / principal" },
+      { fr: "au-dessus", en: "above" },
+      { fr: "en-dessous", en: "below" },
+      { fr: "agaçant(e)", en: "annoying" },
+      { fr: "pratique", en: "practical / convenient" },
+      { fr: "primordial(e)", en: "essential / paramount" }
+    ],
+  },
+
+  // --- FUTURE (Continued) ---
+  {
+    id: "fut_04",
+    topicKey: "future",
+    text: "Qu'est-ce que tu vas faire l'année prochaine après tes examens ?",
+    hint: "Talk about your immediate post-exam plans — holidays, summer job, next year's studies.",
+    difficulty: 2,
+    followUps: [
+      "Est-ce que tu vas continuer à étudier les mêmes matières ?",
+      "Vas-tu prendre une année sabbatique ?",
+      "Qu'est-ce que tes parents pensent de tes projets ?"
+    ],
+    modelAnswer: "Après mes examens, je vais d'abord prendre de longues vacances pour me reposer. J'ai l'intention de partir en voyage avec mes amis en Europe, peut-être en faisant du camping. En septembre, je vais retourner au lycée pour commencer mon baccalauréat. Je vais me spécialiser en mathématiques, physique et informatique car je veux devenir ingénieur plus tard. J'ai un peu peur de la charge de travail, mais je suis motivé pour réussir mes études supérieures.",
+    keyVocab: [
+      { fr: "avoir l'intention de", en: "to intend to" },
+      { fr: "le lycée", en: "sixth form / high school" },
+      { fr: "se spécialiser en", en: "to specialise in" },
+      { fr: "la charge de travail", en: "workload" },
+      { fr: "les études supérieures", en: "higher education / university" },
+      { fr: "réussir", en: "to succeed" }
+    ],
+  },
+  {
+    id: "fut_05",
+    topicKey: "future",
+    text: "Est-ce que tu voudrais travailler à l'étranger un jour ?",
+    hint: "Discuss the pros and cons of working in another country, mention a specific place if you have one in mind.",
+    difficulty: 2,
+    followUps: [
+      "Dans quel pays aimerais-tu travailler ?",
+      "Quelles sont les difficultés de travailler dans une autre langue ?",
+      "Est-ce que ta famille te manquerait ?"
+    ],
+    modelAnswer: "Oui, c'est un de mes rêves. J'aimerais beaucoup travailler aux États-Unis ou en Australie. Je pense que c'est une opportunité fantastique de découvrir une nouvelle culture de travail et d'élargir ses horizons. Travailler à l'étranger permet d'apprendre à être plus indépendant et adaptable. Certes, ma famille me manquerait, mais avec la technologie d'aujourd'hui, il est facile de rester en contact. Je crois que c'est une expérience qui enrichit énormément la vie professionnelle et personnelle.",
+    keyVocab: [
+      { fr: "un rêve", en: "a dream" },
+      { fr: "élargir ses horizons", en: "to broaden one's horizons" },
+      { fr: "adaptable", en: "adaptable" },
+      { fr: "certes", en: "admittedly / certainly" },
+      { fr: "manquer à quelqu'un", en: "to be missed by someone" },
+      { fr: "enrichir", en: "to enrich" }
+    ],
+  },
+  {
+    id: "fut_06",
+    topicKey: "future",
+    text: "Quel est l'emploi de tes rêves et pourquoi ?",
+    hint: "Describe your ideal job, what you'd do daily, and why it's your dream.",
+    difficulty: 2,
+    followUps: [
+      "Quelles études dois-tu faire pour cet emploi ?",
+      "Est-ce que c'est un métier bien payé ?",
+      "Est-ce que c'est un métier stressant ?"
+    ],
+    modelAnswer: "L'emploi de mes rêves serait d'être journaliste sportif. J'adore le sport et j'aime écrire, donc ce serait la combinaison parfaite. Je voyagerais partout dans le monde pour couvrir des événements comme les Jeux Olympiques ou la Coupe du Monde de football. Je rencontrerais des athlètes célèbres et je partagerais leurs histoires avec le public. C'est un métier passionnant qui demande beaucoup de créativité et de réactivité. Même si c'est parfois stressant, je ne m'ennuierais jamais.",
+    keyVocab: [
+      { fr: "journaliste sportif", en: "sports journalist" },
+      { fr: "partout dans le monde", en: "all over the world" },
+      { fr: "couvrir un événement", en: "to cover an event" },
+      { fr: "célèbre", en: "famous" },
+      { fr: "la réactivité", en: "responsiveness / reactivity" },
+      { fr: "s'ennuyer", en: "to be bored" }
+    ],
+  },
+
+  // --- FOOD (Continued) ---
+  {
+    id: "foo_04",
+    topicKey: "food",
+    text: "Qu'est-ce que tu as mangé hier soir ?",
+    hint: "Describe your dinner from last night using the past tense.",
+    difficulty: 1,
+    followUps: [
+      "C'était bon ?",
+      "Qui a préparé le repas ?",
+      "Qu'est-ce que tu as bu avec ton repas ?"
+    ],
+    modelAnswer: "Hier soir, j'ai mangé un repas délicieux avec ma famille à la maison. Ma mère a préparé un poulet rôti avec des pommes de terre au four et des haricots verts. En dessert, nous avons mangé une salade de fruits frais. C'était très savoureux et nous avons passé un bon moment à discuter de notre journée. Pour boire, j'ai pris un grand verre d'eau minérale. J'essaie de manger sainement le soir pour mieux dormir ensuite.",
+    keyVocab: [
+      { fr: "le poulet rôti", en: "roast chicken" },
+      { fr: "les pommes de terre", en: "potatoes" },
+      { fr: "au four", en: "baked / in the oven" },
+      { fr: "savoureux / savoureuse", en: "tasty / flavourful" },
+      { fr: "frais / fraîche", en: "fresh" },
+      { fr: "sainement", en: "healthily" }
+    ],
+  },
+  {
+    id: "foo_05",
+    topicKey: "food",
+    text: "Est-ce que tu préfères manger à la maison ou au restaurant ?",
+    hint: "Compare eating at home and dining out, giving reasons for your preference.",
+    difficulty: 2,
+    followUps: [
+      "Quel est ton restaurant préféré ?",
+      "Est-ce que tu aimes cuisiner ?",
+      "Est-ce que c'est plus cher de manger au restaurant ?"
+    ],
+    modelAnswer: "D'un côté, j'aime manger au restaurant parce qu'on peut découvrir de nouveaux plats et on n'a pas besoin de faire la vaisselle après ! L'ambiance est souvent sympa et c'est une occasion spéciale. D'un autre côté, je préfère manger à la maison car c'est plus économique et, à mon avis, plus sain car on sait exactement ce qu'il y a dans notre assiette. Ma mère cuisine très bien, donc je suis souvent plus content de manger ses plats que ceux d'un restaurant.",
+    keyVocab: [
+      { fr: "faire la vaisselle", en: "to do the dishes" },
+      { fr: "une occasion spéciale", en: "a special occasion" },
+      { fr: "économique", en: "economical / cheap" },
+      { fr: "dans notre assiette", en: "on our plate" },
+      { fr: "cuisiner", en: "to cook" },
+      { fr: "à mon avis", en: "in my opinion" }
+    ],
+  },
+  {
+    id: "foo_06",
+    topicKey: "food",
+    text: "Qu'est-ce que tu penses des fast-foods ?",
+    hint: "Give your opinion on fast food — convenience vs. health concerns.",
+    difficulty: 2,
+    followUps: [
+      "À quelle fréquence manges-tu du fast-food ?",
+      "Quel est ton fast-food préféré ?",
+      "Pourquoi les jeunes aiment-ils tant le fast-food ?"
+    ],
+    modelAnswer: "Je pense que les fast-foods sont très pratiques quand on est pressé ou quand on veut manger quelque chose de rapide et pas cher avec ses amis. Cependant, je sais que ce n'est pas bon pour la santé car c'est souvent trop gras, trop sucré et trop salé. Si on en mange trop souvent, on risque de prendre du poids et d'avoir des problèmes de santé. Personnellement, j'en mange rarement, peut-être une fois par mois, car je préfère une alimentation équilibrée.",
+    keyVocab: [
+      { fr: "être pressé(e)", en: "to be in a hurry" },
+      { fr: "pas cher", en: "cheap" },
+      { fr: "gras", en: "fatty / oily" },
+      { fr: "sucré", en: "sugary" },
+      { fr: "salé", en: "salty" },
+      { fr: "prendre du poids", en: "to gain weight" }
+    ],
+  },
+  {
+    id: "foo_07",
+    topicKey: "food",
+    text: "Est-il important d'apprendre à cuisiner à l'école ?",
+    hint: "Discuss whether cooking should be a mandatory subject in school.",
+    difficulty: 3,
+    followUps: [
+      "Est-ce que tu avez des cours de cuisine dans ton école ?",
+      "Quelles sont les autres compétences essentielles qu'on devrait apprendre ?",
+      "Sais-tu préparer un repas complet ?"
+    ],
+    modelAnswer: "Absolument, je pense que cuisiner est une compétence de vie fondamentale. Apprendre à cuisiner à l'école permettrait aux jeunes de comprendre l'importance d'une alimentation saine et de devenir plus indépendants. Aujourd'hui, beaucoup de gens comptent trop sur les plats préparés qui sont mauvais pour la santé. Si les élèves apprenaient les bases de la cuisine dès le plus jeune âge, ils feraient de meilleurs choix alimentaires à l'avenir. C'est aussi un excellent moyen de découvrir d'autres cultures à travers la gastronomie.",
+    keyVocab: [
+      { fr: "fondamental(e)", en: "fundamental" },
+      { fr: "une compétence de vie", en: "a life skill" },
+      { fr: "compter sur", en: "to rely on" },
+      { fr: "les plats préparés", en: "ready meals" },
+      { fr: "dès le plus jeune âge", en: "from a young age" },
+      { fr: "la gastronomie", en: "gastronomy / cooking" }
+    ],
+  },
+
+  // --- ENVIRONMENT (Continued) ---
+  {
+    id: "env_03",
+    topicKey: "environment",
+    text: "Quels sont les plus grands problèmes environnementaux aujourd'hui ?",
+    hint: "Identify and discuss major environmental issues like climate change, pollution, or deforestation.",
+    difficulty: 3,
+    followUps: [
+      "Lequel de ces problèmes t'inquiète le plus ?",
+      "Qu'est-ce qu'on peut faire au niveau mondial ?",
+      "Est-ce qu'il est trop tard pour sauver la planète ?"
+    ],
+    modelAnswer: "À mon avis, le plus grand problème est le réchauffement climatique causé par les émissions de gaz à effet de serre. Cela entraîne la fonte des glaciers et l'augmentation des catastrophes naturelles. Un autre problème majeur est la pollution plastique dans les océans, qui détruit la vie marine. Enfin, la déforestation massive menace la biodiversité de notre planète. Il est urgent que les gouvernements et les citoyens agissent ensemble pour réduire notre empreinte écologique avant qu'il ne soit trop tard.",
+    keyVocab: [
+      { fr: "le réchauffement climatique", en: "global warming" },
+      { fr: "l'effet de serre", en: "greenhouse effect" },
+      { fr: "la fonte des glaciers", en: "melting of glaciers" },
+      { fr: "les catastrophes naturelles", en: "natural disasters" },
+      { fr: "la déforestation", en: "deforestation" },
+      { fr: "l'empreinte écologique", en: "ecological footprint" }
+    ],
+  },
+  {
+    id: "env_04",
+    topicKey: "environment",
+    text: "Est-ce que tu utilises souvent les transports en commun ? Pourquoi ?",
+    hint: "Discuss your use of bus, train, or metro, and its environmental impact.",
+    difficulty: 1,
+    followUps: [
+      "Quels transports en commun y a-t-il dans ta ville ?",
+      "Est-ce que les transports en commun sont chers ?",
+      "Préfères-tu le train ou l'avion pour les longs trajets ?"
+    ],
+    modelAnswer: "J'utilise le bus presque tous les jours pour aller à l'école. C'est très pratique car l'arrêt est juste devant chez moi. J'utilise aussi le train pour aller voir mes grands-parents le week-end. Je pense que c'est une bonne chose car c'est plus écologique que d'utiliser la voiture individuelle. Les transports en commun permettent de réduire les embouteillages et la pollution de l'air en ville. Même si c'est parfois bondé, je préfère cette option car elle est plus durable.",
+    keyVocab: [
+      { fr: "les transports en commun", en: "public transport" },
+      { fr: "presque", en: "almost" },
+      { fr: "individuel(le)", en: "individual / private" },
+      { fr: "les embouteillages", en: "traffic jams" },
+      { fr: "bondé(e)", en: "crowded" },
+      { fr: "durable", en: "sustainable" }
+    ],
+  },
+  {
+    id: "env_05",
+    topicKey: "environment",
+    text: "Que penses-tu du recyclage ?",
+    hint: "Give your opinion on recycling, explain what you recycle and why it's important.",
+    difficulty: 2,
+    followUps: [
+      "Est-ce que c'est facile de recycler dans ton quartier ?",
+      "Que fait ton école pour le recyclage ?",
+      "Que pourrait-on recycler de plus ?"
+    ],
+    modelAnswer: "Je pense que le recyclage est absolument essentiel pour protéger l'environnement et économiser les ressources naturelles. Chez moi, nous trions soigneusement nos déchets : nous avons des poubelles séparées pour le papier, le plastique, le verre et les déchets organiques. C'est un geste simple qui peut faire une grande différence. Cependant, je crois que les entreprises devraient aussi réduire les emballages inutiles. Le recyclage est une bonne étape, mais réduire notre consommation est encore plus important.",
+    keyVocab: [
+      { fr: "le recyclage", en: "recycling" },
+      { fr: "trier les déchets", en: "to sort waste" },
+      { fr: "une poubelle", en: "a bin" },
+      { fr: "les déchets organiques", en: "organic waste" },
+      { fr: "un geste", en: "an action / gesture" },
+      { fr: "les emballages", en: "packaging" }
+    ],
+  },
+
+  // --- SCHOOL (Extended) ---
+  {
+    id: "sch_11",
+    topicKey: "school",
+    text: "Tu préfères travailler seul ou en groupe ? Pourquoi ?",
+    hint: "Discuss the pros and cons of individual vs. group work in school.",
+    difficulty: 2,
+    followUps: [
+      "Quels sont les avantages du travail en équipe ?",
+      "Est-ce que c'est difficile de se concentrer seul ?",
+      "Quel type de projet préfères-tu faire en groupe ?"
+    ],
+    modelAnswer: "Je préfère travailler en groupe pour les projets créatifs car on peut partager des idées et s'entraider. C'est plus motivant et on apprend beaucoup des autres. Cependant, pour réviser mes examens, je préfère être seul pour rester concentré et travailler à mon propre rythme. Je pense qu'un mélange des deux est idéal pour réussir ses études.",
+    keyVocab: [
+      { fr: "travailler en groupe", en: "to work in a group" },
+      { fr: "s'entraider", en: "to help each other" },
+      { fr: "se concentrer", en: "to concentrate" },
+      { fr: "à son propre rythme", en: "at one's own pace" },
+      { fr: "un mélange", en: "a mix / blend" },
+      { fr: "motivant(e)", en: "motivating" }
+    ],
+  },
+  {
+    id: "sch_12",
+    topicKey: "school",
+    text: "Parle-moi de ton uniforme scolaire. Est-ce une bonne idée ?",
+    hint: "Describe your uniform and give your opinion on whether it should be mandatory.",
+    difficulty: 1,
+    followUps: [
+      "Qu'est-ce que tu portes exactement ?",
+      "Est-ce que ton uniforme est confortable ?",
+      "Si tu pouvais, qu'est-ce que tu changerais dans ton uniforme ?"
+    ],
+    modelAnswer: "Je porte un pantalon gris, une chemise blanche et une cravate rayée. Je pense que l'uniforme est une bonne idée car on ne perd pas de temps le matin à choisir ses vêtements. Cela crée aussi un sentiment d'appartenance à l'école. Par contre, je trouve que le tissu n'est pas très confortable en été quand il fait chaud. Si je pouvais, je choisirais des vêtements plus décontractés.",
+    keyVocab: [
+      { fr: "une cravate rayée", en: "a striped tie" },
+      { fr: "perdre du temps", en: "to waste time" },
+      { fr: "un sentiment d'appartenance", en: "a sense of belonging" },
+      { fr: "décontracté(e)", en: "casual / relaxed" },
+      { fr: "le tissu", en: "the fabric" },
+      { fr: "obligatoire", en: "mandatory / compulsory" }
+    ],
+  },
+  {
+    id: "sch_13",
+    topicKey: "school",
+    text: "Qu'est-ce que tu penses des devoirs ? Est-ce qu'ils sont utiles ?",
+    hint: "Give a balanced view on the necessity and amount of homework.",
+    difficulty: 2,
+    followUps: [
+      "Combien de temps passes-tu sur tes devoirs chaque soir ?",
+      "Quelles matières donnent le plus de devoirs ?",
+      "Est-ce que tes parents t'aident avec tes devoirs ?"
+    ],
+    modelAnswer: "Je pense que les devoirs sont utiles pour consolider ce qu'on a appris en classe, mais parfois il y en a trop. Je passe environ deux heures chaque soir à faire mes exercices, ce qui est fatigant après une longue journée. Je préférerais avoir plus de temps pour mes loisirs. À mon avis, la qualité des devoirs est plus importante que la quantité. Les professeurs devraient mieux coordonner pour ne pas tout donner en même temps.",
+    keyVocab: [
+      { fr: "consolider", en: "to consolidate / reinforce" },
+      { fr: "fatigant(e)", en: "tiring" },
+      { fr: "la quantité", en: "quantity" },
+      { fr: "coordonner", en: "to coordinate" },
+      { fr: "en même temps", en: "at the same time" },
+      { fr: "utile", en: "useful" }
+    ],
+  },
+  {
+    id: "sch_14",
+    topicKey: "school",
+    text: "Décris une journée scolaire idéale.",
+    hint: "Imagine your perfect school day — subjects, breaks, food, and duration.",
+    difficulty: 2,
+    followUps: [
+      "À quelle heure commencerait l'école ?",
+      "Quelles matières aurais-tu au programme ?",
+      "Qu'est-ce qu'on mangerait à la cantine ?"
+    ],
+    modelAnswer: "Ma journée idéale commencerait plus tard, vers dix heures, pour pouvoir dormir plus. On n'aurait que mes matières préférées comme le français et le dessin. La pause-déjeuner durerait deux heures et on mangerait de la pizza et des glaces à la cantine. L'après-midi, on ferait des activités sportives ou des sorties culturelles. L'école finirait à quatorze heures pour avoir tout le reste de la journée libre.",
+    keyVocab: [
+      { fr: "vers", en: "around / towards" },
+      { fr: "le dessin", en: "art / drawing" },
+      { fr: "la glace", en: "ice cream" },
+      { fr: "culturel(le)", en: "cultural" },
+      { fr: "libre", en: "free" },
+      { fr: "le programme", en: "the timetable / curriculum" }
+    ],
+  },
+  {
+    id: "sch_15",
+    topicKey: "school",
+    text: "Est-ce que tu participes à des clubs après l'école ?",
+    hint: "Talk about extracurricular activities and their benefits.",
+    difficulty: 1,
+    followUps: [
+      "Quel club préfères-tu ?",
+      "Pourquoi est-il bon de faire des activités extrascolaires ?",
+      "Est-ce que tu as rencontré de nouveaux amis dans ces clubs ?"
+    ],
+    modelAnswer: "Oui, je fais partie du club de théâtre et de l'équipe de natation. On se réunit deux fois par semaine après les cours. J'adore le théâtre parce que ça m'aide à avoir plus de confiance en moi. La natation me permet de rester en forme et de décompresser après une journée stressante. C'est aussi un excellent moyen de rencontrer des gens qui partagent les mêmes passions que moi.",
+    keyVocab: [
+      { fr: "faire partie de", en: "to be part of" },
+      { fr: "la confiance en soi", en: "self-confidence" },
+      { fr: "décompresser", en: "to unwind / de-stress" },
+      { fr: "une passion", en: "a passion" },
+      { fr: "se réunir", en: "to meet up" },
+      { fr: "extrascolaire", en: "extracurricular" }
+    ],
+  },
+
+  // --- HOBBIES (Extended) ---
+  {
+    id: "hob_10",
+    topicKey: "hobbies",
+    text: "Quel est le dernier film que tu as vu ? C'était comment ?",
+    hint: "Describe a recent movie experience — plot, opinion, and actors.",
+    difficulty: 1,
+    followUps: [
+      "Tu es allé au cinéma ou tu l'as regardé chez toi ?",
+      "Quel est ton genre de film préféré ?",
+      "Est-ce que tu recommanderais ce film à tes amis ?"
+    ],
+    modelAnswer: "Le week-end dernier, j'ai regardé un film d'action qui s'appelle « Top Gun ». Je l'ai vu chez moi sur Netflix avec mon frère. C'était absolument incroyable parce que les effets spéciaux étaient impressionnants et l'histoire était très émouvante. Je recommande vivement ce film car les acteurs jouent très bien. D'habitude, je préfère les comédies, mais ce film était vraiment une bonne surprise.",
+    keyVocab: [
+      { fr: "les effets spéciaux", en: "special effects" },
+      { fr: "impressionnant(e)", en: "impressive" },
+      { fr: "émouvant(e)", en: "moving / touching" },
+      { fr: "recommander vivement", en: "to highly recommend" },
+      { fr: "une surprise", en: "a surprise" },
+      { fr: "jouer un rôle", en: "to play a role" }
+    ],
+  },
+  {
+    id: "hob_11",
+    topicKey: "hobbies",
+    text: "Est-ce que tu joues aux jeux vidéo ? Pourquoi (pas) ?",
+    hint: "Discuss your gaming habits or why you don't enjoy gaming.",
+    difficulty: 2,
+    followUps: [
+      "Quel est ton jeu préféré ?",
+      "Tu joues en ligne avec des amis ?",
+      "Est-ce que les jeux vidéo sont une perte de temps selon toi ?"
+    ],
+    modelAnswer: "Oui, je joue aux jeux vidéo presque tous les soirs pendant environ une heure. Mon jeu préféré est Minecraft parce qu'on peut être très créatif et construire des mondes incroyables. Je joue souvent en ligne avec mes copains d'école, ce qui est très amusant. Je ne pense pas que ce soit une perte de temps si on ne joue pas trop longtemps, car cela aide à développer la stratégie et la coordination.",
+    keyVocab: [
+      { fr: "construire", en: "to build" },
+      { fr: "un copain / une copine", en: "a friend" },
+      { fr: "une perte de temps", en: "a waste of time" },
+      { fr: "la stratégie", en: "strategy" },
+      { fr: "la coordination", en: "coordination" },
+      { fr: "en ligne", en: "online" }
+    ],
+  },
+  {
+    id: "hob_12",
+    topicKey: "hobbies",
+    text: "Tu préfères lire un livre ou regarder un film ? Pourquoi ?",
+    hint: "Compare reading and watching films, giving your preference.",
+    difficulty: 2,
+    followUps: [
+      "Quel est le dernier livre que tu as lu ?",
+      "Est-ce que les films sont toujours fidèles aux livres ?",
+      "Qu'est-ce qui est plus relaxant pour toi ?"
+    ],
+    modelAnswer: "C'est difficile à dire, mais je pense que je préfère lire un livre. Quand on lit, on peut imaginer les personnages et les décors à sa façon, ce qui est plus personnel. Les films sont souvent trop rapides et on perd beaucoup de détails de l'histoire originale. Cependant, regarder un film est plus relaxant après une longue journée car on n'a pas besoin de faire d'effort. Mais pour l'émotion, rien ne vaut un bon roman.",
+    keyVocab: [
+      { fr: "imaginer", en: "to imagine" },
+      { fr: "les décors", en: "scenery / settings" },
+      { fr: "un détail", en: "a detail" },
+      { fr: "original(e)", en: "original" },
+      { fr: "faire un effort", en: "to make an effort" },
+      { fr: "fidèle", en: "faithful / true" }
+    ],
+  },
+  {
+    id: "hob_13",
+    topicKey: "hobbies",
+    text: "Qu'est-ce que tu aimes faire le soir après l'école ?",
+    hint: "Describe your evening routine and leisure activities after school.",
+    difficulty: 1,
+    followUps: [
+      "À quelle heure manges-tu le dîner ?",
+      "Est-ce que tu écoutes de la musique ?",
+      "Est-ce que tu te couches tôt ou tard ?"
+    ],
+    modelAnswer: "Après l'école, je commence par prendre un goûter et je me repose un peu. Ensuite, je fais mes devoirs avant de dîner avec ma famille vers dix-neuf heures. Le soir, j'aime bien écouter des podcasts ou regarder des vidéos sur YouTube pour me détendre. Parfois, je lis quelques pages de mon livre avant de m'éteindre les lumières vers vingt-deux heures. J'essaie de me coucher tôt pour être en forme le lendemain.",
+    keyVocab: [
+      { fr: "prendre un goûter", en: "to have a snack" },
+      { fr: "un podcast", en: "a podcast" },
+      { fr: "éteindre les lumières", en: "to turn off the lights" },
+      { fr: "le lendemain", en: "the next day" },
+      { fr: "se reposer", en: "to rest" },
+      { fr: "vers", en: "around / at approximately" }
+    ],
+  },
+
+  // --- FAMILY (Extended) ---
+  {
+    id: "fam_09",
+    topicKey: "family",
+    text: "Qui est la personne la plus drôle dans ta famille ? Pourquoi ?",
+    hint: "Describe a funny family member and give examples of their humor.",
+    difficulty: 1,
+    followUps: [
+      "Est-ce qu'elle raconte des blagues ?",
+      "Est-ce que tu lui ressembles ?",
+      "Qu'est-ce que vous faites ensemble pour vous amuser ?"
+    ],
+    modelAnswer: "La personne la plus drôle dans ma famille est sans aucun doute mon oncle Thomas. Il a toujours une blague à raconter et il fait des imitations hilarantes des membres de la famille pendant les repas de fête. Il est très spontané et sait comment nous faire rire quand on est triste. Je ne lui ressemble pas beaucoup physiquement, mais j'espère avoir hérité de son sens de l'humour car c'est une grande qualité.",
+    keyVocab: [
+      { fr: "sans aucun doute", en: "without a doubt" },
+      { fr: "une blague", en: "a joke" },
+      { fr: "une imitation", en: "an impression / imitation" },
+      { fr: "hilarant(e)", en: "hilarious" },
+      { fr: "hériter de", en: "to inherit" },
+      { fr: "le sens de l'humour", en: "sense of humour" }
+    ],
+  },
+  {
+    id: "fam_10",
+    topicKey: "family",
+    text: "Est-ce que tu partages les mêmes intérêts que tes parents ?",
+    hint: "Discuss common hobbies or differences between you and your parents.",
+    difficulty: 2,
+    followUps: [
+      "Quelles activités fais-tu avec tes parents ?",
+      "Y a-t-il quelque chose que tu n'aimes pas faire avec eux ?",
+      "Est-ce important d'avoir les mêmes passions ?"
+    ],
+    modelAnswer: "Je partage pas mal de centres d'intérêt avec mon père, notamment la passion pour le sport et les voitures anciennes. On va souvent voir des matchs ensemble le week-end. Par contre, ma mère adore le jardinage et l'opéra, ce qui ne m'intéresse pas du tout. Je pense qu'il n'est pas nécessaire d'avoir exactement les mêmes passions, mais c'est bien d'avoir au moins une activité commune pour passer du temps ensemble et discuter.",
+    keyVocab: [
+      { fr: "les centres d'intérêt", en: "interests" },
+      { fr: "ancien(ne)", en: "old / vintage" },
+      { fr: "le jardinage", en: "gardening" },
+      { fr: "l'opéra", en: "opera" },
+      { fr: "au moins", en: "at least" },
+      { fr: "commune", en: "common / shared" }
+    ],
+  },
+  {
+    id: "fam_11",
+    topicKey: "family",
+    text: "Parle-moi d'une célébration familiale récente.",
+    hint: "Describe a family event like a birthday, wedding, or festival using the past tense.",
+    difficulty: 2,
+    followUps: [
+      "Qu'est-ce que vous avez mangé ?",
+      "Qui était présent ?",
+      "C'était où ?"
+    ],
+    modelAnswer: "Le mois dernier, nous avons fêté les soixante ans de mariage de mes grands-parents. C'était une grande fête dans une salle de réception avec toute la famille — on était plus de cinquante personnes ! Nous avons mangé un buffet énorme et il y avait une grande pièce montée. J'ai revu des cousins que je n'avais pas vus depuis des années. C'était un moment très émouvant et on a dansé jusqu'à minuit. C'est un souvenir précieux.",
+    keyVocab: [
+      { fr: "fêter", en: "to celebrate" },
+      { fr: "une salle de réception", en: "a reception hall" },
+      { fr: "une pièce montée", en: "a tiered cake / wedding cake" },
+      { fr: "depuis des années", en: "for years" },
+      { fr: "précieux / précieuse", en: "precious" },
+      { fr: "le mariage", en: "marriage / wedding" }
+    ],
+  },
+  {
+    id: "fam_12",
+    topicKey: "family",
+    text: "Est-il important de passer du temps en famille ? Pourquoi ?",
+    hint: "Explain the importance of family time for relationships and well-being.",
+    difficulty: 3,
+    followUps: [
+      "Quels sont les dangers si on ne voit pas assez sa famille ?",
+      "Est-ce que la technologie aide à rester en contact ?",
+      "Préfères-tu les petites ou les grandes familles ?"
+    ],
+    modelAnswer: "Je crois qu'il est primordial de passer du temps en famille car cela renforce les liens affectifs et donne un sentiment de sécurité. Dans notre monde moderne où tout va très vite, ces moments permettent de se ressourcer et de partager ses problèmes. La famille est notre premier soutien en cas de difficulté. Cependant, avec les réseaux sociaux, on a tendance à être distrait même quand on est ensemble, donc il faut faire l'effort d'être vraiment présent.",
+    keyVocab: [
+      { fr: "primordial(e)", en: "essential / vital" },
+      { fr: "les liens affectifs", en: "emotional bonds" },
+      { fr: "se ressourcer", en: "to recharge / refresh oneself" },
+      { fr: "le soutien", en: "support" },
+      { fr: "avoir tendance à", en: "to have a tendency to" },
+      { fr: "être présent(e)", en: "to be present" }
+    ],
+  },
+
+  // --- HOLIDAYS (Extended) ---
+  {
+    id: "hol_09",
+    topicKey: "holidays",
+    text: "Tu préfères les vacances actives ou relaxantes ? Pourquoi ?",
+    hint: "Contrast sightseeing/sports holidays with beach/rest holidays.",
+    difficulty: 2,
+    followUps: [
+      "Qu'est-ce que tu fais pendant des vacances actives ?",
+      "Où irais-tu pour te relaxer ?",
+      "Quel type de vacances tes parents préfèrent-ils ?"
+    ],
+    modelAnswer: "Je préfère nettement les vacances actives. J'aime visiter des monuments, explorer de nouvelles villes et faire du sport comme de la randonnée ou du vélo. Je trouve que rester sur une plage toute la journée est un peu ennuyeux. Pour moi, les vacances sont l'occasion de découvrir des choses que je ne vois pas d'habitude. Cependant, je comprends que certaines personnes aient besoin de se relaxer après une année de travail stressante.",
+    keyVocab: [
+      { fr: "nettement", en: "clearly / much" },
+      { fr: "ennuyeux / ennuyeuse", en: "boring" },
+      { fr: "l'occasion de", en: "the opportunity to" },
+      { fr: "découvrir", en: "to discover" },
+      { fr: "stresser", en: "to stress out" },
+      { fr: "le monument", en: "monument / landmark" }
+    ],
+  },
+  {
+    id: "hol_10",
+    topicKey: "holidays",
+    text: "Où es-tu allé l'hiver dernier ?",
+    hint: "Describe a winter trip or activity using the past tense.",
+    difficulty: 1,
+    followUps: [
+      "Quel temps faisait-il ?",
+      "Est-ce que tu as fait du ski ?",
+      "Avec qui es-tu allé ?"
+    ],
+    modelAnswer: "L'hiver dernier, je suis allé à la montagne, dans les Alpes françaises, avec mon club de sport. Nous avons passé une semaine dans un chalet en bois. Il y avait beaucoup de neige et il faisait très froid, mais c'était magnifique. J'ai fait du ski tous les jours et j'ai beaucoup progressé. Le soir, on mangeait de la raclette et on jouait à des jeux de société. C'était une expérience géniale et j'ai hâte d'y retourner l'année prochaine.",
+    keyVocab: [
+      { fr: "un chalet", en: "a chalet / cabin" },
+      { fr: "la neige", en: "snow" },
+      { fr: "progresser", en: "to improve / progress" },
+      { fr: "la raclette", en: "raclette (cheese dish)" },
+      { fr: "génial(e)", en: "great / awesome" },
+      { fr: "froid", en: "cold" }
+    ],
+  },
+  {
+    id: "hol_11",
+    topicKey: "holidays",
+    text: "Quel est le pays que tu as le plus aimé visiter ? Pourquoi ?",
+    hint: "Discuss your favorite travel destination and what made it special.",
+    difficulty: 2,
+    followUps: [
+      "Qu'est-ce que tu as aimé là-bas ?",
+      "Est-ce que les gens étaient accueillants ?",
+      "Est-ce que tu aimerais y vivre ?"
+    ],
+    modelAnswer: "Le pays que j'ai préféré visiter est le Portugal. J'ai adoré la ville de Lisbonne avec ses vieux tramways et ses rues colorées. La nourriture est délicieuse, surtout les petits gâteaux à la crème. Les gens sont extrêmement accueillants et le climat est parfait, pas trop chaud mais très ensoleillé. Ce qui m'a le plus marqué, c'est l'ambiance décontractée et la beauté des paysages côtiers. C'est un pays où je me sens vraiment bien.",
+    keyVocab: [
+      { fr: "un tramway", en: "a tram" },
+      { fr: "accueillant(e)", en: "welcoming" },
+      { fr: "marquer", en: "to leave an impression on" },
+      { fr: "côtier / côtière", en: "coastal" },
+      { fr: "ensoleillé(e)", en: "sunny" },
+      { fr: "la beauté", en: "beauty" }
+    ],
+  },
+  {
+    id: "hol_12",
+    topicKey: "holidays",
+    text: "Est-ce que tu as déjà fait du camping ? C'était comment ?",
+    hint: "Describe a camping experience or your opinion on it.",
+    difficulty: 1,
+    followUps: [
+      "Préfères-tu dormir sous une tente ou dans une caravane ?",
+      "Quels sont les avantages du camping ?",
+      "Quel est l'inconvénient principal ?"
+    ],
+    modelAnswer: "Oui, j'ai fait du camping l'été dernier avec mes scouts. Nous avons dormi sous une tente dans une forêt près d'un lac. C'était une aventure incroyable parce qu'on cuisinait sur un feu de camp et on dormait à la belle étoile. L'avantage du camping est d'être proche de la nature et de vivre une expérience simple. L'inconvénient principal est le manque de confort, surtout quand il pleut et que tout devient humide. Mais c'est très formateur !",
+    keyVocab: [
+      { fr: "une tente", en: "a tent" },
+      { fr: "à la belle étoile", en: "under the stars / outdoors" },
+      { fr: "un feu de camp", en: "a campfire" },
+      { fr: "humide", en: "damp / wet" },
+      { fr: "formateur / formatrice", en: "educational / character-building" },
+      { fr: "un inconvénient", en: "a disadvantage / drawback" }
+    ],
+  },
+
+  // --- HOME (Extended) ---
+  {
+    id: "hom_08",
+    topicKey: "home",
+    text: "Qu'est-ce qu'il y a pour les touristes dans ta ville ?",
+    hint: "Describe local tourist attractions and why they are worth visiting.",
+    difficulty: 2,
+    followUps: [
+      "Quel est le monument le plus célèbre ?",
+      "Est-ce qu'il y a de bons restaurants pour les étrangers ?",
+      "Ta ville est-elle trop touristique ?"
+    ],
+    modelAnswer: "Dans ma ville, il y a beaucoup de choses à voir pour les touristes. Le monument le plus célèbre est la vieille cathédrale gothique qui date du douzième siècle. Il y a aussi un musée d'histoire locale très intéressant et un grand parc botanique. Pour ceux qui aiment le shopping, notre centre-ville possède de nombreuses boutiques artisanales. Ma ville n'est pas trop touristique, donc l'ambiance reste authentique et agréable pour les visiteurs.",
+    keyVocab: [
+      { fr: "une cathédrale", en: "a cathedral" },
+      { fr: "gothique", en: "Gothic" },
+      { fr: "botanique", en: "botanical" },
+      { fr: "artisanal(e)", en: "handcrafted / artisanal" },
+      { fr: "authentique", en: "authentic" },
+      { fr: "agréable", en: "pleasant" }
+    ],
+  },
+  {
+    id: "hom_09",
+    topicKey: "home",
+    text: "Comment as-tu décoré ta chambre ?",
+    hint: "Describe the colors, furniture, and personal touches in your room.",
+    difficulty: 1,
+    followUps: [
+      "Quelle est ta couleur préférée pour les murs ?",
+      "Est-ce que tu as beaucoup d'affiches ?",
+      "Où as-tu acheté tes meubles ?"
+    ],
+    modelAnswer: "J'ai décoré ma chambre de façon assez moderne. Les murs sont blancs mais j'ai un pan de mur bleu foncé. J'ai mis beaucoup d'affiches de mes groupes de musique préférés et des photos de mes amis. Sur mon bureau, il y a une lampe design et quelques plantes vertes. J'ai acheté la plupart de mes meubles chez IKEA car c'est pratique et pas trop cher. Ma chambre est l'endroit où je me sens le plus à l'aise pour travailler et me détendre.",
+    keyVocab: [
+      { fr: "un pan de mur", en: "a section of wall" },
+      { fr: "une affiche", en: "a poster" },
+      { fr: "design", en: "stylish / design" },
+      { fr: "une plante verte", en: "a houseplant" },
+      { fr: "à l'aise", en: "comfortable / at ease" },
+      { fr: "la plupart de", en: "most of" }
+    ],
+  },
+  {
+    id: "hom_10",
+    topicKey: "home",
+    text: "Si tu pouvais déménager, où irais-tu ?",
+    hint: "Use conditional to describe where you would move and why.",
+    difficulty: 3,
+    followUps: [
+      "Préférerais-tu une ville ou la campagne ?",
+      "Dans quel pays aimerais-tu vivre ?",
+      "Qu'est-ce qui te manquerait de ta maison actuelle ?"
+    ],
+    modelAnswer: "Si je pouvais déménager, j'irais vivre dans le sud de la France, peut-être près de Montpellier. J'aimerais être proche de la mer et profiter d'un climat plus chaud et ensoleillé qu'en Angleterre. Je choisirais une maison moderne avec une grande terrasse et une piscine. Cependant, mes amis et ma famille me manqueraient beaucoup. Je pense que ce serait une expérience enrichissante de vivre dans un autre pays, même si c'est seulement pour quelques années.",
+    keyVocab: [
+      { fr: "déménager", en: "to move house" },
+      { fr: "une terrasse", en: "a terrace / patio" },
+      { fr: "une piscine", en: "a swimming pool" },
+      { fr: "manquer à quelqu'un", en: "to be missed by someone" },
+      { fr: "actuel(le)", en: "current / present" },
+      { fr: "enrichissant(e)", en: "enriching" }
+    ],
+  },
+
+  // --- FUTURE (Extended) ---
+  {
+    id: "fut_07",
+    topicKey: "future",
+    text: "Est-ce que tu voudrais avoir ta propre entreprise plus tard ?",
+    hint: "Discuss the pros and cons of being an entrepreneur vs. an employee.",
+    difficulty: 3,
+    followUps: [
+      "Quel type d'entreprise créerais-tu ?",
+      "Quelles sont les qualités d'un bon chef d'entreprise ?",
+      "Est-ce que c'est trop risqué selon toi ?"
+    ],
+    modelAnswer: "Oui, j'aimerais beaucoup créer ma propre entreprise dans le domaine de la technologie. Je trouve que c'est passionnant d'être son propre patron et d'avoir la liberté de réaliser ses idées. Un bon chef d'entreprise doit être travailleur, créatif et savoir prendre des décisions difficiles. Certes, c'est risqué car on peut échouer, mais je pense que le défi en vaut la peine. Je préfère essayer de construire quelque chose de nouveau plutôt que d'avoir un travail monotone.",
+    keyVocab: [
+      { fr: "une entreprise", en: "a company / business" },
+      { fr: "son propre patron", en: "one's own boss" },
+      { fr: "risqué", en: "risky" },
+      { fr: "échouer", en: "to fail" },
+      { fr: "un défi", en: "a challenge" },
+      { fr: "monotone", en: "monotonous / dull" }
+    ],
+  },
+  {
+    id: "fut_08",
+    topicKey: "future",
+    text: "Quel est le métier que tu ne voudrais jamais faire ? Pourquoi ?",
+    hint: "Identify a job you dislike and explain the reasons (stress, boredom, danger).",
+    difficulty: 2,
+    followUps: [
+      "Est-ce que tu as peur du sang ou du danger ?",
+      "Quelles sont les conditions de travail que tu détestes ?",
+      "Est-ce que le salaire est important pour toi ?"
+    ],
+    modelAnswer: "Je ne voudrais jamais être comptable. Je trouve que travailler avec des chiffres toute la journée dans un bureau serait extrêmement barbant pour moi. J'ai besoin de bouger et de voir des gens. Je ne voudrais pas non plus être chirurgien parce que j'ai horreur du sang et c'est un métier beaucoup trop stressant. Pour moi, le bonheur au travail est plus important qu'un salaire élevé, donc je choisirais toujours une carrière qui me passionne.",
+    keyVocab: [
+      { fr: "comptable", en: "accountant" },
+      { fr: "barbant(e)", en: "boring / tedious" },
+      { fr: "avoir horreur de", en: "to hate / loathe" },
+      { fr: "le sang", en: "blood" },
+      { fr: "le bonheur", en: "happiness" },
+      { fr: "élevé", en: "high" }
+    ],
+  },
+  {
+    id: "fut_09",
+    topicKey: "future",
+    text: "Comment vois-tu ta vie dans dix ans ?",
+    hint: "Use future tense to describe your personal and professional situation in 10 years.",
+    difficulty: 3,
+    followUps: [
+      "Où habiteras-tu ?",
+      "Est-ce que tu seras marié(e) ?",
+      "Quel sera ton plus grand succès ?"
+    ],
+    modelAnswer: "Dans dix ans, j'aurai terminé mes études universitaires et j'aurai un bon emploi dans le marketing. J'habiterai probablement dans une grande ville européenne comme Paris ou Berlin. J'espère que je serai indépendant(e) financièrement et que j'aurai déjà beaucoup voyagé à travers le monde. Je ne sais pas si je serai marié(e), mais j'aimerais avoir un cercle d'amis fidèles et être heureux dans ce que je fais. Mon plus grand succès serait d'avoir un équilibre parfait entre ma vie pro et ma vie perso.",
+    keyVocab: [
+      { fr: "probablement", en: "probably" },
+      { fr: "financièrement", en: "financially" },
+      { fr: "un cercle d'amis", en: "a circle of friends" },
+      { fr: "fidèle", en: "loyal / faithful" },
+      { fr: "le succès", en: "success" },
+      { fr: "pro / perso", en: "professional / personal" }
+    ],
+  },
+
+  // --- FOOD (Extended) ---
+  {
+    id: "foo_08",
+    topicKey: "food",
+    text: "Qu'est-ce que tu n'aimes pas manger ? Pourquoi ?",
+    hint: "Discuss foods you dislike — taste, texture, or health reasons.",
+    difficulty: 1,
+    followUps: [
+      "Y a-t-il un légume que tu détestes ?",
+      "Est-ce que tu es allergique à quelque chose ?",
+      "Est-ce que tu goûtes quand même aux nouveaux plats ?"
+    ],
+    modelAnswer: "Je déteste les choux de Bruxelles parce que je trouve que l'odeur et le goût sont trop forts. Je n'aime pas non plus les fruits de mer, surtout les huîtres, car la texture me dégoûte. Heureusement, je n'ai aucune allergie alimentaire, donc je peux manger presque tout. J'essaie toujours de goûter une petite bouchée quand on me propose un nouveau plat, car parfois on a de bonnes surprises. Mais pour les choux, c'est définitif : c'est non !",
+    keyVocab: [
+      { fr: "les choux de Bruxelles", en: "Brussels sprouts" },
+      { fr: "une huître", en: "an oyster" },
+      { fr: "dégoûter", en: "to disgust" },
+      { fr: "une bouchée", en: "a mouthful / bite" },
+      { fr: "définitif / définitive", en: "final / definite" },
+      { fr: "l'odeur", en: "the smell" }
+    ],
+  },
+  {
+    id: "foo_09",
+    topicKey: "food",
+    text: "Est-ce que tu manges souvent des produits bio ?",
+    hint: "Discuss organic food — health benefits, cost, and environment.",
+    difficulty: 2,
+    followUps: [
+      "Est-ce que c'est plus cher ?",
+      "Est-ce que le goût est différent ?",
+      "Où achètes-tu tes fruits et légumes ?"
+    ],
+    modelAnswer: "Mes parents essaient d'acheter des produits bio quand c'est possible, surtout pour les fruits et les légumes. Je pense que c'est meilleur pour la santé car il n'y a pas de pesticides. Cependant, c'est souvent beaucoup plus cher que les produits normaux, donc on ne peut pas tout acheter en bio. Je trouve que les tomates bio ont plus de goût et sont plus juteuses. On va souvent au marché local le samedi matin pour trouver des produits frais et naturels.",
+    keyVocab: [
+      { fr: "bio (biologique)", en: "organic" },
+      { fr: "un pesticide", en: "a pesticide" },
+      { fr: "jouteux / juteuse", en: "juicy" },
+      { fr: "frais / fraîche", en: "fresh" },
+      { fr: "naturel(le)", en: "natural" },
+      { fr: "le marché local", en: "local market" }
+    ],
+  },
+  {
+    id: "foo_10",
+    topicKey: "food",
+    text: "Quel est le dessert français que tu préfères ?",
+    hint: "Talk about French pastries or desserts you enjoy.",
+    difficulty: 1,
+    followUps: [
+      "Tu préfères les gâteaux ou les tartes ?",
+      "As-tu déjà mangé des macarons ?",
+      "Sais-tu préparer un dessert français ?"
+    ],
+    modelAnswer: "Mon dessert français préféré est la tarte Tatin. J'adore le mélange des pommes caramélisées et de la pâte croustillante. J'aime aussi beaucoup les éclairs au chocolat et les macarons à la framboise. L'année dernière, j'ai essayé de faire des crêpes pour la Chandeleur et c'était très réussi. La pâtisserie française est mondialement connue pour sa finesse et ses saveurs délicates. C'est toujours un régal d'aller dans une boulangerie en France.",
+    keyVocab: [
+      { fr: "la tarte Tatin", en: "upside-down apple tart" },
+      { fr: "caramélisé(e)", en: "caramelised" },
+      { fr: "croustillant(e)", en: "crunchy / crispy" },
+      { fr: "la framboise", en: "raspberry" },
+      { fr: "un régal", en: "a treat / delight" },
+      { fr: "la finesse", en: "finesse / delicacy" }
+    ],
+  },
+  {
+    id: "foo_11",
+    topicKey: "food",
+    text: "Parle-moi d'un repas spécial que tu as mangé récemment.",
+    hint: "Describe a special meal — celebration, restaurant, or home-cooked (past tense).",
+    difficulty: 2,
+    followUps: [
+      "C'était pour quelle occasion ?",
+      "Qui a cuisiné ?",
+      "Quel était le plat principal ?"
+    ],
+    modelAnswer: "Récemment, j'ai mangé un repas exceptionnel pour fêter la fin de l'année scolaire. Nous sommes allés dans un restaurant italien très réputé. J'ai pris des lasagnes faites maison qui étaient absolument divines. En plat principal, mon père a mangé un risotto aux champignons sauvages. L'ambiance était très festive et le service était impeccable. Pour finir, on a partagé un grand tiramisu. C'était un moment de pur plaisir après tout le stress des examens.",
+    keyVocab: [
+      { fr: "réputé(e)", en: "renowned / famous" },
+      { fr: "divin(e)", en: "divine / heavenly" },
+      { fr: "un champignon sauvage", en: "a wild mushroom" },
+      { fr: "impeccable", en: "faultless / impeccable" },
+      { fr: "festif / festive", en: "festive" },
+      { fr: "le plat principal", en: "the main course" }
+    ],
+  },
+
+  // --- ENVIRONMENT (Extended) ---
+  {
+    id: "env_06",
+    topicKey: "environment",
+    text: "Que penses-tu des voitures électriques ?",
+    hint: "Discuss the pros and cons of electric vehicles for the environment.",
+    difficulty: 2,
+    followUps: [
+      "Est-ce que tes parents ont une voiture électrique ?",
+      "Est-ce que c'est l'avenir du transport ?",
+      "Quels sont les problèmes avec les voitures électriques ?"
+    ],
+    modelAnswer: "Je pense que les voitures électriques sont une excellente initiative pour réduire la pollution en ville et lutter contre le réchauffement climatique. Elles sont silencieuses et ne rejettent pas de gaz toxiques. Cependant, la fabrication des batteries est encore très polluante et il n'y a pas assez de bornes de recharge dans certaines régions. Je crois que c'est une étape nécessaire, mais nous devrions aussi privilégier les transports en commun et le vélo pour être vraiment écologiques.",
+    keyVocab: [
+      { fr: "une initiative", en: "an initiative" },
+      { fr: "silencieux / silencieuse", en: "quiet / silent" },
+      { fr: "rejeter", en: "to emit / reject" },
+      { fr: "une borne de recharge", en: "a charging point" },
+      { fr: "privilégier", en: "to favour / prioritize" },
+      { fr: "toxique", en: "toxic" }
+    ],
+  },
+  {
+    id: "env_07",
+    topicKey: "environment",
+    text: "Est-ce que ton école est écologique ?",
+    hint: "Talk about environmental initiatives at your school.",
+    difficulty: 2,
+    followUps: [
+      "Qu'est-ce que ton école fait pour recycler ?",
+      "Y a-t-il des panneaux solaires ?",
+      "Qu'est-ce que tu aimerais changer ?"
+    ],
+    modelAnswer: "Mon école fait des efforts, mais elle pourrait faire mieux. On a des bacs de recyclage dans chaque classe pour le papier et le plastique. On nous encourage aussi à éteindre les ordinateurs à la fin de la journée. Par contre, il n'y a pas encore de panneaux solaires sur les toits et la cantine utilise trop d'emballages en plastique jetables. J'aimerais qu'on installe un jardin potager pour faire pousser nos propres légumes et qu'on réduise le gaspillage alimentaire.",
+    keyVocab: [
+      { fr: "un bac de recyclage", en: "a recycling bin" },
+      { fr: "un panneau solaire", en: "a solar panel" },
+      { fr: "jetable", en: "disposable" },
+      { fr: "un jardin potager", en: "a vegetable garden" },
+      { fr: "le gaspillage alimentaire", en: "food waste" },
+      { fr: "faire pousser", en: "to grow" }
+    ],
+  },
+  {
+    id: "env_08",
+    topicKey: "environment",
+    text: "Qu'est-ce qu'on peut faire pour économiser l'eau à la maison ?",
+    hint: "Suggest practical ways to reduce water consumption at home.",
+    difficulty: 1,
+    followUps: [
+      "Prends-tu des douches ou des bains ?",
+      "Utilises-tu l'eau de pluie pour le jardin ?",
+      "Pourquoi est-il important d'économiser l'eau ?"
+    ],
+    modelAnswer: "Pour économiser l'eau, on peut faire plusieurs choses simples. Par exemple, il vaut mieux prendre une douche rapide plutôt qu'un bain, car on utilise beaucoup moins de litres. Il faut aussi fermer le robinet quand on se brosse les dents. Dans mon jardin, mon père utilise un réservoir pour récupérer l'eau de pluie pour arroser les plantes. L'eau est une ressource précieuse et limitée, donc il est de notre devoir de ne pas la gaspiller pour les générations futures.",
+    keyVocab: [
+      { fr: "économiser", en: "to save / economize" },
+      { fr: "le robinet", en: "the tap" },
+      { fr: "arroser", en: "to water" },
+      { fr: "une ressource", en: "a resource" },
+      { fr: "le devoir", en: "duty" },
+      { fr: "gaspiller", en: "to waste" }
+    ],
+  },
+
+  // --- SCHOOL (Final Expansion) ---
+  {
+    id: "sch_16",
+    topicKey: "school",
+    text: "Comment est-ce que tu utilises la technologie à l'école ?",
+    hint: "Talk about laptops, tablets, and the internet in your lessons.",
+    difficulty: 2,
+    followUps: [
+      "Est-ce que tu préfères les livres papier ou numériques ?",
+      "Quels sont les avantages d'utiliser internet pour les devoirs ?",
+      "Y a-t-il des inconvénients à la technologie en classe ?"
+    ],
+    modelAnswer: "À l'école, on utilise des tablettes dans presque tous les cours pour faire des recherches et accéder à des manuels numériques. C'est très pratique car c'est plus léger que de porter dix livres dans son sac. Cependant, je trouve que c'est parfois distrayant car on a tendance à vouloir aller sur les réseaux sociaux. Je pense que la technologie est un outil formidable si on l'utilise de façon responsable.",
+    keyVocab: [
+      { fr: "un manuel numérique", en: "a digital textbook" },
+      { fr: "léger / légère", en: "light (weight)" },
+      { fr: "distrayant(e)", en: "distracting" },
+      { fr: "un outil", en: "a tool" },
+      { fr: "responsable", en: "responsible" },
+      { fr: "accéder à", en: "to access" }
+    ],
+  },
+  {
+    id: "sch_17",
+    topicKey: "school",
+    text: "Où aimerais-tu aller pour ton prochain voyage scolaire ?",
+    hint: "Describe your dream school trip and what you would do there.",
+    difficulty: 2,
+    followUps: [
+      "Pourquoi as-tu choisi cette destination ?",
+      "Quelles activités ferais-tu là-bas ?",
+      "Avec qui aimerais-tu partager cette expérience ?"
+    ],
+    modelAnswer: "J'aimerais beaucoup aller à Paris avec ma classe de français. On pourrait visiter le Louvre, monter en haut de la tour Eiffel et pratiquer notre français avec les habitants. Ce serait une occasion unique de découvrir la culture française en vrai et pas seulement dans les livres. On irait aussi manger dans des vraies boulangeries. Je pense que ce serait un voyage inoubliable qui nous motiverait tous à apprendre davantage.",
+    keyVocab: [
+      { fr: "en vrai", en: "in real life / for real" },
+      { fr: "davantage", en: "more / further" },
+      { fr: "une occasion", en: "an opportunity / occasion" },
+      { fr: "monter en haut", en: "to go to the top" },
+      { fr: "infrançais", en: "French (language)" },
+      { fr: "inhabituel(le)", en: "unusual" }
+    ],
+  },
+  {
+    id: "sch_18",
+    topicKey: "school",
+    text: "Pourquoi est-il important d'apprendre des langues étrangères ?",
+    hint: "Discuss the benefits of bilingualism for travel, work, and culture.",
+    difficulty: 3,
+    followUps: [
+      "Quelles langues apprends-tu à l'école ?",
+      "Est-ce que tu penses que tout le monde devrait parler anglais ?",
+      "Comment les langues aident-elles à comprendre d'autres cultures ?"
+    ],
+    modelAnswer: "Apprendre une langue étrangère est essentiel pour ouvrir son esprit sur le monde. Cela permet non seulement de voyager plus facilement, mais aussi d'avoir de meilleures opportunités de carrière à l'international. De plus, on comprend mieux sa propre langue en en étudiant une autre. Je crois que parler plusieurs langues favorise la tolérance car on découvre des façons différentes de penser et de vivre.",
+    keyVocab: [
+      { fr: "ouvrir son esprit", en: "to open one's mind" },
+      { fr: "à l'international", en: "internationally" },
+      { fr: "la tolérance", en: "tolerance" },
+      { fr: "plusieurs", en: "several" },
+      { fr: "favoriser", en: "to encourage / promote" },
+      { fr: "étranger / étrangère", en: "foreign" }
+    ],
+  },
+  {
+    id: "sch_19",
+    topicKey: "school",
+    text: "Comment sont les relations entre les élèves dans ton école ?",
+    hint: "Talk about friendships, atmosphere, and how students get along.",
+    difficulty: 2,
+    followUps: [
+      "Est-ce que tu as beaucoup d'amis à l'école ?",
+      "Y a-t-il une bonne ambiance dans ta classe ?",
+      "Qu'est-ce qu'on fait dans ton école pour lutter contre le harcèlement ?"
+    ],
+    modelAnswer: "En général, les relations sont très bonnes. Il y a une atmosphère de camaraderie et de respect mutuel. Bien sûr, il y a parfois des petits conflits, mais on essaie de les résoudre par la discussion. Mon école est très stricte contre le harcèlement scolaire et organise des ateliers pour nous sensibiliser. Je me sens en sécurité et soutenu par mes camarades, ce qui est très important pour bien travailler.",
+    keyVocab: [
+      { fr: "le respect mutuel", en: "mutual respect" },
+      { fr: "le harcèlement", en: "bullying" },
+      { fr: "sensibiliser", en: "to raise awareness" },
+      { fr: "soutenu(e)", en: "supported" },
+      { fr: "un atelier", en: "a workshop" },
+      { fr: "résoudre", en: "to resolve" }
+    ],
+  },
+  {
+    id: "sch_20",
+    topicKey: "school",
+    text: "Quelles sont les différences entre ton école primaire et ton lycée ?",
+    hint: "Compare your current school with your previous one (past vs present).",
+    difficulty: 2,
+    followUps: [
+      "Laquelle préférais-tu et pourquoi ?",
+      "Est-ce que les matières sont plus difficiles maintenant ?",
+      "As-tu plus de liberté au lycée ?"
+    ],
+    modelAnswer: "Mon école primaire était beaucoup plus petite et plus familiale. On avait le même professeur pour toutes les matières, alors qu'au lycée, on change de salle et de prof à chaque heure. Les cours sont nettement plus difficiles maintenant et la charge de travail est plus lourde. Cependant, j'apprécie d'avoir plus de liberté et de pouvoir choisir mes options. C'est un passage nécessaire pour devenir plus indépendant et responsable.",
+    keyVocab: [
+      { fr: "familial(e)", en: "family-like / intimate" },
+      { fr: "alors que", en: "whereas / while" },
+      { fr: "lourd(e)", en: "heavy" },
+      { fr: "apprécier", en: "to enjoy / appreciate" },
+      { fr: "un passage", en: "a transition / stage" },
+      { fr: "nettement", en: "clearly / significantly" }
+    ],
+  },
+
+  // --- HOBBIES (Final Expansion) ---
+  {
+    id: "hob_14",
+    topicKey: "hobbies",
+    text: "Tu préfères faire du shopping en ligne ou dans des magasins ?",
+    hint: "Compare online shopping with going to physical stores.",
+    difficulty: 2,
+    followUps: [
+      "Quels sont les avantages du shopping en ligne ?",
+      "Pourquoi est-il bon d'aller dans les magasins ?",
+      "À quelle fréquence fais-tu du shopping ?"
+    ],
+    modelAnswer: "Je préfère faire du shopping en ligne parce que c'est plus rapide et on peut comparer les prix facilement sans bouger de chez soi. Il y a aussi plus de choix. Par contre, j'aime aller dans les magasins avec mes amis pour essayer les vêtements et voir la qualité des produits en vrai. C'est aussi une sortie sympa. Je dirais que j'achète mes gadgets en ligne mais mes vêtements plutôt en magasin.",
+    keyVocab: [
+      { fr: "sans bouger de chez soi", en: "without leaving home" },
+      { fr: "plutôt", en: "rather" },
+      { fr: "comparer", en: "to compare" },
+      { fr: "essayer", en: "to try on" },
+      { fr: "un gadget", en: "a gadget" },
+      { fr: "le prix", en: "price" }
+    ],
+  },
+  {
+    id: "hob_15",
+    topicKey: "hobbies",
+    text: "Quelle personne célèbre aimerais-tu rencontrer un jour ?",
+    hint: "Talk about an actor, singer, or athlete you admire.",
+    difficulty: 2,
+    followUps: [
+      "Pourquoi admires-tu cette personne ?",
+      "Qu'est-ce que tu lui demanderais ?",
+      "Où aimerais-tu la rencontrer ?"
+    ],
+    modelAnswer: "J'aimerais énormément rencontrer Kylian Mbappé car c'est mon joueur de football préféré. Je l'admire pour son talent incroyable et sa détermination sur le terrain. Si je le rencontrais, je lui demanderais des conseils pour devenir un meilleur attaquant et je le remercierais pour tout ce qu'il fait pour le sport. On se rencontrerait au Parc des Princes après un match. Ce serait un rêve qui deviendrait réalité !",
+    keyVocab: [
+      { fr: "le terrain", en: "the pitch / field" },
+      { fr: "un attaquant", en: "a striker / forward" },
+      { fr: "remercier", en: "to thank" },
+      { fr: "un rêve", en: "a dream" },
+      { fr: "réalité", en: "reality" },
+      { fr: "joueur", en: "player" }
+    ],
+  },
+  {
+    id: "hob_16",
+    topicKey: "hobbies",
+    text: "Est-ce que tu aimes aller aux musées ou aux galeries d'art ?",
+    hint: "Discuss your interest in culture and exhibitions.",
+    difficulty: 2,
+    followUps: [
+      "Quel est le dernier musée que tu as visité ?",
+      "Quel genre d'art préfères-tu ?",
+      "Penses-tu que les musées devraient être gratuits pour les jeunes ?"
+    ],
+    modelAnswer: "Oui, j'adore aller aux musées, surtout quand il y a des expositions interactives. Le dernier musée que j'ai visité était le Musée d'Orsay à Paris — les tableaux impressionnistes étaient magnifiques. Je préfère l'art moderne car je trouve ça plus surprenant. Je pense absolument que les musées devraient être gratuits pour les jeunes car cela encourage la culture et l'apprentissage en dehors de l'école. C'est une source d'inspiration inépuisable.",
+    keyVocab: [
+      { fr: "interactif / interactive", en: "interactive" },
+      { fr: "gratuit(e)", en: "free (of charge)" },
+      { fr: "en dehors de", en: "outside of" },
+      { fr: "inépuisable", en: "endless / inexhaustible" },
+      { fr: "un tableau", en: "a painting" },
+      { fr: "surprenant(e)", en: "surprising" }
+    ],
+  },
+  {
+    id: "hob_17",
+    topicKey: "hobbies",
+    text: "Pourquoi est-il important d'avoir des passe-temps pour la santé mentale ?",
+    hint: "Discuss how hobbies help reduce stress and improve well-being.",
+    difficulty: 3,
+    followUps: [
+      "Quel passe-temps te relaxe le plus ?",
+      "Que se passe-t-il si on n'a pas de loisirs ?",
+      "Comment peut-on trouver un nouveau passe-temps ?"
+    ],
+    modelAnswer: "Avoir des passe-temps est crucial pour évacuer le stress accumulé pendant la semaine. Cela permet de déconnecter du travail ou des études et de se concentrer sur quelque chose qui nous passionne vraiment. C'est essentiel pour le bien-être mental car cela procure un sentiment d'accomplissement et de plaisir. Sans loisirs, la vie deviendrait vite monotone et épuisante. Personnellement, jouer de la musique est ma thérapie pour rester zen.",
+    keyVocab: [
+      { fr: "évacuer", en: "to release / get rid of" },
+      { fr: "accumulé(e)", en: "built up / accumulated" },
+      { fr: "procure", en: "to provide / give" },
+      { fr: "l'accomplissement", en: "achievement / fulfillment" },
+      { fr: "épuisant(e)", en: "exhausting" },
+      { fr: "déconnecter", en: "to disconnect / switch off" }
+    ],
+  },
+  {
+    id: "hob_18",
+    topicKey: "hobbies",
+    text: "Qu'est-ce que tu fais quand il pleut et que tu ne peux pas sortir ?",
+    hint: "Talk about indoor activities like reading, watching movies, or games.",
+    difficulty: 1,
+    followUps: [
+      "Est-ce que tu aimes la pluie ?",
+      "Quel est ton film préféré pour un jour de pluie ?",
+      "Est-ce que tu en profites pour faire tes devoirs ?"
+    ],
+    modelAnswer: "Quand il pleut, j'en profite pour rester bien au chaud à la maison. Je regarde souvent des séries sur Netflix ou je joue aux jeux de société avec ma sœur. Parfois, je lis un bon livre avec une tasse de chocolat chaud. Même si j'aime être dehors, j'apprécie ces moments de tranquillité à l'intérieur. C'est l'occasion parfaite pour se reposer et être un peu paresseux sans culpabiliser !",
+    keyVocab: [
+      { fr: "bien au chaud", en: "nice and warm" },
+      { fr: "paresseux / paresseuse", en: "lazy" },
+      { fr: "culpabiliser", en: "to feel guilty" },
+      { fr: "en profiter", en: "to take advantage / make the most of it" },
+      { fr: "dedans / à l'intérieur", en: "inside / indoors" },
+      { fr: "la tranquillité", en: "peace / quiet" }
+    ],
+  },
+
+  // --- FAMILY (Final Expansion) ---
+  {
+    id: "fam_13",
+    topicKey: "family",
+    text: "Est-ce que tu as beaucoup de cousins ? Tu les vois souvent ?",
+    hint: "Talk about your extended family and your relationship with them.",
+    difficulty: 1,
+    followUps: [
+      "Où habitent tes cousins ?",
+      "Qu'est-ce que vous faites quand vous êtes ensemble ?",
+      "As-tu un cousin ou une cousine préféré(e) ?"
+    ],
+    modelAnswer: "Oui, j'ai une famille assez nombreuse ! J'ai six cousins et quatre cousines. La plupart habitent dans la même ville que moi, donc on se voit presque tous les week-ends chez mes grands-parents. On s'entend super bien et on joue souvent au foot ensemble dans le jardin. Ma cousine préférée s'appelle Léa, elle a le même âge que moi et on se confie tout. C'est génial d'avoir des cousins car c'est comme avoir des frères et sœurs en plus.",
+    keyVocab: [
+      { fr: "nombreux / nombreuse", en: "large (family)" },
+      { fr: "se confier", en: "to confide in each other" },
+      { fr: "en plus", en: "extra / in addition" },
+      { fr: "le cousin / la cousine", en: "cousin" },
+      { fr: "s'entendre", en: "to get along" },
+      { fr: "presque", en: "almost" }
+    ],
+  },
+  {
+    id: "fam_14",
+    topicKey: "family",
+    text: "À qui est-ce que tu parles quand tu as un problème ?",
+    hint: "Identify the family member or friend you trust most.",
+    difficulty: 2,
+    followUps: [
+      "Pourquoi as-tu confiance en cette personne ?",
+      "Est-ce qu'elle te donne de bons conseils ?",
+      "Est-ce plus facile de parler à un ami ou à un parent ?"
+    ],
+    modelAnswer: "Quand j'ai un problème, je parle d'abord à ma mère car elle est très à l'écoute et ne me juge jamais. Elle a toujours des paroles rassurantes et me donne des conseils très avisés. Cependant, si c'est un problème avec mes amis, je préfère en parler à mon meilleur ami car il comprend mieux ma situation. Je pense qu'il est crucial d'avoir quelqu'un de confiance pour ne pas garder ses soucis pour soi.",
+    keyVocab: [
+      { fr: "à l'écoute", en: "a good listener" },
+      { fr: "juger", en: "to judge" },
+      { fr: "rassurant(e)", en: "reassuring" },
+      { fr: "avisé(e)", en: "wise / sensible" },
+      { fr: "les soucis", en: "worries / troubles" },
+      { fr: "garder pour soi", en: "to keep to oneself" }
+    ],
+  },
+  {
+    id: "fam_15",
+    topicKey: "family",
+    text: "Est-il préférable d'être enfant unique ou d'avoir des frères et sœurs ?",
+    hint: "Compare the two situations and give your opinion.",
+    difficulty: 3,
+    followUps: [
+      "Quels sont les avantages d'être enfant unique ?",
+      "Qu'est-ce qui est difficile quand on a des frères et sœurs ?",
+      "Et toi, quelle est ta situation ?"
+    ],
+    modelAnswer: "À mon avis, il est préférable d'avoir des frères et sœurs car on ne se sent jamais seul et on apprend très tôt à partager et à être patient. Même si on se dispute parfois pour des bêtises, on sait qu'on peut toujours compter les uns sur les autres. L'avantage d'être enfant unique est d'avoir toute l'attention de ses parents, mais je pense que la complicité entre frères et sœurs est irremplaçable. Personnellement, je ne pourrais pas vivre sans ma petite sœur.",
+    keyVocab: [
+      { fr: "enfant unique", en: "only child" },
+      { fr: "partager", en: "to share" },
+      { fr: "une bêtise", en: "nonsense / silly thing" },
+      { fr: "la complicité", en: "bond / closeness" },
+      { fr: "irremplaçable", en: "irreplaceable" },
+      { fr: "tôt", en: "early" }
+    ],
+  },
+  {
+    id: "fam_16",
+    topicKey: "family",
+    text: "Décris un dimanche typique avec ta famille.",
+    hint: "Walk through your family's Sunday routine — meals, activities, relaxation.",
+    difficulty: 1,
+    followUps: [
+      "À quelle heure vous levez-vous ?",
+      "Qu'est-ce que vous mangez pour le déjeuner ?",
+      "Est-ce que vous sortez ou restez à la maison ?"
+    ],
+    modelAnswer: "Le dimanche, on se lève tard et on prend un grand petit-déjeuner tous ensemble. C'est le moment où on discute de notre semaine. Ensuite, si le temps le permet, on va faire une longue promenade en forêt ou au bord de la mer. Vers quatorze heures, on mange un repas traditionnel préparé par mon père. L'après-midi est plus calme : chacun se repose, lit ou regarde un film. C'est ma journée préférée car c'est vraiment relaxant et familial.",
+    keyVocab: [
+      { fr: "se lever tard", en: "to get up late" },
+      { fr: "si le temps le permet", en: "weather permitting" },
+      { fr: "une promenade", en: "a walk / stroll" },
+      { fr: "chacun", en: "each one / everyone" },
+      { fr: "traditionnel(le)", en: "traditional" },
+      { fr: "le dimanche", en: "Sunday" }
+    ],
+  },
+  {
+    id: "fam_17",
+    topicKey: "family",
+    text: "Penses-tu que les jeunes devraient écouter davantage leurs grands-parents ?",
+    hint: "Discuss the value of elderly people's experience and wisdom.",
+    difficulty: 3,
+    followUps: [
+      "Vois-tu souvent tes grands-parents ?",
+      "Qu'est-ce que tes grands-parents t'ont appris ?",
+      "Pourquoi est-il parfois difficile de se comprendre ?"
+    ],
+    modelAnswer: "Absolument. Les grands-parents ont une expérience de la vie inestimable et peuvent nous donner des perspectives très différentes. Ils ont vécu à une époque sans technologie et peuvent nous apprendre la patience et le sens des vraies valeurs. Je vois mes grands-parents tous les quinze jours et j'adore écouter leurs histoires de jeunesse. Même si le monde a changé, les sentiments humains restent les mêmes et leurs conseils sont souvent très pertinents pour nous aujourd'hui.",
+    keyVocab: [
+      { fr: "inestimable", en: "priceless" },
+      { fr: "une époque", en: "an era / time" },
+      { fr: "le sens des valeurs", en: "sense of values" },
+      { fr: "la jeunesse", en: "youth" },
+      { fr: "pertinent(e)", en: "relevant" },
+      { fr: "tous les quinze jours", en: "every fortnight" }
+    ],
+  },
+
+  // --- HOLIDAYS (Final Expansion) ---
+  {
+    id: "hol_13",
+    topicKey: "holidays",
+    text: "Tu préfères les vacances d'été ou d'hiver ? Pourquoi ?",
+    hint: "Compare beach/sun holidays with skiing/snow holidays.",
+    difficulty: 2,
+    followUps: [
+      "Qu'est-ce que tu aimes faire en été ?",
+      "Est-ce que tu aimes le froid et la neige ?",
+      "Quelle est ta destination préférée pour chaque saison ?"
+    ],
+    modelAnswer: "Je préfère les vacances d'été car j'adore la chaleur, le soleil et pouvoir me baigner dans la mer. En été, les journées sont plus longues et on a plus d'énergie pour faire des activités en plein air. Cependant, j'apprécie aussi une semaine au ski en hiver pour les sensations fortes. Mais si je devais choisir, je prendrais toujours une destination ensoleillée comme la Grèce ou l'Espagne pour me ressourcer totalement.",
+    keyVocab: [
+      { fr: "la chaleur", en: "heat" },
+      { fr: "se baigner", en: "to swim / bathe" },
+      { fr: "en plein air", en: "outdoors" },
+      { fr: "les sensations fortes", en: "thrills" },
+      { fr: "ensoleillé(e)", en: "sunny" },
+      { fr: "choisir", en: "to choose" }
+    ],
+  },
+  {
+    id: "hol_14",
+    topicKey: "holidays",
+    text: "As-tu déjà eu une mauvaise expérience en vacances ?",
+    hint: "Describe a trip that went wrong — delays, weather, or illness (past tense).",
+    difficulty: 2,
+    followUps: [
+      "Qu'est-ce qui s'est passé exactement ?",
+      "Comment as-tu résolu le problème ?",
+      "Est-ce que tu retournerais à cet endroit ?"
+    ],
+    modelAnswer: "Oui, malheureusement. Il y a deux ans, nous sommes allés en Bretagne et il a plu pendant toute la semaine ! En plus, notre valise a été perdue à l'aéroport et on a dû attendre trois jours pour la récupérer. On a dû acheter des vêtements de rechange en catastrophe. C'était très stressant au début, mais finalement on a pris ça avec humour et on a visité beaucoup de musées à l'abri de la pluie. Maintenant, c'est une anecdote drôle qu'on raconte souvent.",
+    keyVocab: [
+      { fr: "en catastrophe", en: "as a last resort / in a rush" },
+      { fr: "vêtements de rechange", en: "change of clothes" },
+      { fr: "à l'abri de", en: "sheltered from" },
+      { fr: "une anecdote", en: "an anecdote / story" },
+      { fr: "récupérer", en: "to recover / get back" },
+      { fr: "malheureusement", en: "unfortunately" }
+    ],
+  },
+  {
+    id: "hol_15",
+    topicKey: "holidays",
+    text: "Si tu gagnais à la loterie, où irais-tu en vacances ?",
+    hint: "Use conditional to describe your ultimate luxury dream trip.",
+    difficulty: 3,
+    followUps: [
+      "Avec qui partirais-tu ?",
+      "Dans quel genre d'hôtel logerais-tu ?",
+      "Qu'est-ce que tu achèterais là-bas ?"
+    ],
+    modelAnswer: "Si je gagnais à la loterie, je ferais le tour du monde pendant un an ! J'irais d'abord en Polynésie française pour loger dans un bungalow sur l'eau. Ensuite, je visiterais les grandes métropoles comme New York, Tokyo et Sydney. Je voyagerais en première classe et je logerais dans les hôtels les plus luxueux. J'inviterais toute ma famille et mes meilleurs amis à me rejoindre pour partager ces moments incroyables. Ce serait l'aventure de ma vie !",
+    keyVocab: [
+      { fr: "gagner à la loterie", en: "to win the lottery" },
+      { fr: "le tour du monde", en: "world tour" },
+      { fr: "un bungalow", en: "a bungalow / hut" },
+      { fr: "rejoindre", en: "to join" },
+      { fr: "luxueux / luxueuse", en: "luxurious" },
+      { fr: "première classe", en: "first class" }
+    ],
+  },
+  {
+    id: "hol_16",
+    topicKey: "holidays",
+    text: "Pourquoi est-il important de goûter la nourriture locale à l'étranger ?",
+    hint: "Discuss the link between food, culture, and travel experience.",
+    difficulty: 2,
+    followUps: [
+      "Quelle est la meilleure chose que tu as mangée à l'étranger ?",
+      "Y a-t-il des plats que tu refuses de goûter ?",
+      "Penses-tu que la nourriture est le meilleur moyen de découvrir une culture ?"
+    ],
+    modelAnswer: "Je pense que la gastronomie fait partie intégrante de la culture d'un pays. Goûter les spécialités locales permet de mieux comprendre l'histoire et les traditions des habitants. C'est une expérience sensorielle unique qui rend le voyage plus authentique. Si on mange la même chose qu'à la maison, on perd une grande partie du dépaysement. Personnellement, j'adore découvrir de nouvelles saveurs et épices, même si c'est parfois surprenant.",
+    keyVocab: [
+      { fr: "partie intégrante", en: "integral part" },
+      { fr: "sensoriel(le)", en: "sensory" },
+      { fr: "le dépaysement", en: "change of scenery / culture shock" },
+      { fr: "une saveur", en: "a flavor" },
+      { fr: "une épice", en: "a spice" },
+      { fr: "authentique", en: "authentic" }
+    ],
+  },
+  {
+    id: "hol_17",
+    topicKey: "holidays",
+    text: "Tu préfères voyager en avion ou en train ? Pourquoi ?",
+    hint: "Compare the convenience, cost, and environmental impact of both.",
+    difficulty: 2,
+    followUps: [
+      "Quel est l'avantage du train ?",
+      "Est-ce que tu as peur de l'avion ?",
+      "Penses-tu qu'on devrait limiter les vols pour sauver la planète ?"
+    ],
+    modelAnswer: "Pour les longs trajets, l'avion est imbattable car c'est beaucoup plus rapide. Cependant, je préfère le train pour voyager en Europe. C'est plus relaxant car on peut voir les paysages défiler et il n'y a pas les contrôles de sécurité interminables de l'aéroport. De plus, le train est bien plus écologique, ce qui est important pour moi. Je crois qu'on devrait privilégier le rail dès que c'est possible pour réduire notre empreinte carbone.",
+    keyVocab: [
+      { fr: "imbattable", en: "unbeatable" },
+      { fr: "défiler", en: "to pass by / scroll" },
+      { fr: "interminable", en: "endless" },
+      { fr: "le rail", en: "rail / train travel" },
+      { fr: "une empreinte carbone", en: "carbon footprint" },
+      { fr: "un trajet", en: "a journey / trip" }
+    ],
+  },
+
+  // --- HOME (Final Expansion) ---
+  {
+    id: "hom_11",
+    topicKey: "home",
+    text: "Est-ce qu'il y a un parc près de chez toi ? Tu y vas souvent ?",
+    hint: "Describe local green spaces and how you use them.",
+    difficulty: 1,
+    followUps: [
+      "Qu'est-ce qu'on peut faire dans ce parc ?",
+      "Est-ce qu'il est propre et bien entretenu ?",
+      "Avec qui y vas-tu ?"
+    ],
+    modelAnswer: "Oui, il y a un grand parc magnifique à seulement cinq minutes à pied de ma maison. J'y vais presque tous les jours après l'école pour me détendre ou faire un peu de jogging. Le parc est très bien entretenu avec beaucoup de fleurs et un petit lac. Le week-end, je retrouve mes amis là-bas pour discuter ou faire un pique-nique quand il fait beau. C'est mon endroit préféré dans mon quartier pour prendre l'air.",
+    keyVocab: [
+      { fr: "entretenu(e)", en: "maintained" },
+      { fr: "le jogging", en: "jogging" },
+      { fr: "prendre l'air", en: "to get some fresh air" },
+      { fr: "un pique-nique", en: "a picnic" },
+      { fr: "le quartier", en: "neighborhood" },
+      { fr: "magnifique", en: "beautiful" }
+    ],
+  },
+  {
+    id: "hom_12",
+    topicKey: "home",
+    text: "Qu'est-ce que tu aimerais changer dans ta ville ?",
+    hint: "Discuss improvements like transport, facilities, or environment.",
+    difficulty: 2,
+    followUps: [
+      "Y a-t-il assez de pistes cyclables ?",
+      "Est-ce qu'il manque des centres de loisirs ?",
+      "Penses-tu que ta ville est trop polluée ?"
+    ],
+    modelAnswer: "Si je pouvais, j'ajouterais beaucoup plus de pistes cyclables car je trouve que c'est dangereux de faire du vélo en ville actuellement. J'aimerais aussi qu'il y ait plus de centres de jeunesse avec des activités gratuites comme de la musique ou du sport. Enfin, je pense qu'on devrait planter plus d'arbres pour rendre la ville plus verte et moins bruyante. Ma ville est sympa, mais elle pourrait être beaucoup plus moderne et écologique.",
+    keyVocab: [
+      { fr: "une piste cyclable", en: "a cycle path" },
+      { fr: "actuellement", en: "currently / at the moment" },
+      { fr: "planter", en: "to plant" },
+      { fr: "bruyant(e)", en: "noisy" },
+      { fr: "un centre de jeunesse", en: "a youth center" },
+      { fr: "écologique", en: "eco-friendly" }
+    ],
+  },
+  {
+    id: "hom_13",
+    topicKey: "home",
+    text: "Est-ce que tu connais bien tes voisins ?",
+    hint: "Talk about the people living next door and your relationship with them.",
+    difficulty: 1,
+    followUps: [
+      "Sont-ils sympathiques ?",
+      "Est-ce que vous vous aidez parfois ?",
+      "Y a-t-il beaucoup de bruit dans ton quartier ?"
+    ],
+    modelAnswer: "On connaît assez bien nos voisins de droite, c'est un couple âgé très gentil. On discute souvent par-dessus la haie et ils gardent parfois nos clés quand on part en vacances. Par contre, on ne connaît pas du tout les nouveaux voisins de gauche car ils travaillent beaucoup et sont rarement là. Je pense qu'il est important d'avoir de bonnes relations avec ses voisins pour créer un sentiment de sécurité et de communauté.",
+    keyVocab: [
+      { fr: "le voisin / la voisine", en: "neighbor" },
+      { fr: "par-dessus la haie", en: "over the hedge" },
+      { fr: "garder les clés", en: "to keep the keys" },
+      { fr: "rarement", en: "rarely" },
+      { fr: "la haie", en: "hedge" },
+      { fr: "le couple", en: "couple" }
+    ],
+  },
+  {
+    id: "hom_14",
+    topicKey: "home",
+    text: "Décris ta cuisine. Est-ce un endroit important chez toi ?",
+    hint: "Describe the kitchen's look and its role in family life.",
+    difficulty: 1,
+    followUps: [
+      "Qui cuisine le plus à la maison ?",
+      "Est-ce que vous mangez dans la cuisine ?",
+      "Quelles sont les couleurs de ta cuisine ?"
+    ],
+    modelAnswer: "Ma cuisine est assez moderne avec des meubles blancs et un plan de travail en bois noir. C'est l'endroit le plus important de la maison car c'est là qu'on se retrouve tous pour préparer les repas et discuter de notre journée. Il y a une grande table au milieu où on prend tous nos repas. Ma mère adore cuisiner et elle passe beaucoup de temps à essayer de nouvelles recettes. C'est une pièce très chaleureuse et lumineuse.",
+    keyVocab: [
+      { fr: "le plan de travail", en: "worktop / counter" },
+      { fr: "au milieu", en: "in the middle" },
+      { fr: "une recette", en: "a recipe" },
+      { fr: "chaleureux / chaleureuse", en: "warm / cozy" },
+      { fr: "la pièce", en: "the room" },
+      { fr: "lumineux / lumineuse", en: "bright / light" }
+    ],
+  },
+  {
+    id: "hom_15",
+    topicKey: "home",
+    text: "Quels sont les avantages de vivre dans un village par rapport à une grande ville ?",
+    hint: "Compare country life with city life.",
+    difficulty: 3,
+    followUps: [
+      "Où préférerais-tu vivre plus tard ?",
+      "Le calme te dérange-t-il ou te plaît-il ?",
+      "Y a-t-il assez de choses à faire dans un village pour les jeunes ?"
+    ],
+    modelAnswer: "Vivre dans un village offre une qualité de vie incomparable : c'est calme, il y a moins de pollution et on est proche de la nature. Tout le monde se connaît, ce qui est rassurant. Par contre, dans une grande ville, il y a beaucoup plus de services, de magasins et de sorties culturelles. Personnellement, je préfère la ville pour mes études car c'est plus dynamique, mais je rêve d'une maison à la campagne pour mes vieux jours afin de profiter de la tranquillité.",
+    keyVocab: [
+      { fr: "par rapport à", en: "compared to" },
+      { fr: "le calme", en: "peace / quiet" },
+      { fr: "dynamique", en: "dynamic / lively" },
+      { fr: "mes vieux jours", en: "my old age" },
+      { fr: "incomparable", en: "incomparable" },
+      { fr: "rassurant(e)", en: "reassuring" }
+    ],
+  },
+
+  // --- FUTURE (Final Expansion) ---
+  {
+    id: "fut_10",
+    topicKey: "future",
+    text: "Est-ce que tu aimerais écrire un livre un jour ?",
+    hint: "Talk about your creative ambitions and what you'd write about.",
+    difficulty: 2,
+    followUps: [
+      "Quel serait le sujet de ton livre ?",
+      "Penses-tu que c'est un métier difficile ?",
+      "Est-ce que tu aimes écrire à l'école ?"
+    ],
+    modelAnswer: "Oui, j'ai toujours rêvé d'écrire un roman de science-fiction. J'adore imaginer des mondes futuristes et des nouvelles technologies. Je pense que c'est un métier passionnant mais très exigeant car il faut beaucoup de discipline et d'imagination. À l'école, j'apprécie beaucoup les rédactions car c'est le moment où je peux exprimer ma créativité. Même si je ne deviens pas écrivain professionnel, j'aimerais publier au moins un livre pour partager mes idées.",
+    keyVocab: [
+      { fr: "exigeant(e)", en: "demanding" },
+      { fr: "une rédaction", en: "an essay / piece of writing" },
+      { fr: "publier", en: "to publish" },
+      { fr: "futuriste", en: "futuristic" },
+      { fr: "un écrivain", en: "a writer" },
+      { fr: "dream", en: "rêver" }
+    ],
+  },
+  {
+    id: "fut_11",
+    topicKey: "future",
+    text: "Qu'est-ce qui est le plus important : la satisfaction au travail ou l'argent ?",
+    hint: "Discuss your priorities for your future career.",
+    difficulty: 3,
+    followUps: [
+      "Peut-on être heureux sans argent ?",
+      "Travaillerais-tu gratuitement pour une cause ?",
+      "Qu'est-ce qu'un bon salaire selon toi ?"
+    ],
+    modelAnswer: "Pour moi, la satisfaction au travail est bien plus importante que le salaire. On passe la majeure partie de sa vie au travail, donc il est essentiel d'aimer ce que l'on fait pour être épanoui. Bien sûr, on a besoin d'assez d'argent pour vivre confortablement, mais je ne choisirais jamais un métier ennuyeux juste pour être riche. Je crois que si on est passionné par son travail, le succès et l'argent viendront naturellement après. Le bonheur ne s'achète pas.",
+    keyVocab: [
+      { fr: "la majeure partie", en: "the major part / most of" },
+      { fr: "épanoui(e)", en: "fulfilled / happy" },
+      { fr: "naturellement", en: "naturally" },
+      { fr: "s'acheter", en: "to be bought" },
+      { fr: "la satisfaction", en: "satisfaction" },
+      { fr: "confortablement", en: "comfortably" }
+    ],
+  },
+  {
+    id: "fut_12",
+    topicKey: "future",
+    text: "Est-ce que tu voudrais avoir des enfants plus tard ?",
+    hint: "Talk about your family plans for the future.",
+    difficulty: 2,
+    followUps: [
+      "Combien d'enfants aimerais-tu avoir ?",
+      "Est-ce que c'est une grande responsabilité ?",
+      "Quelles valeurs aimerais-tu leur transmettre ?"
+    ],
+    modelAnswer: "Oui, j'aimerais fonder une famille dans l'avenir. Je voudrais avoir deux enfants, un garçon et une fille si possible. C'est une énorme responsabilité, mais je pense que c'est une expérience magnifique. J'aimerais leur transmettre des valeurs comme l'honnêteté, le respect et la curiosité. Je veux être un parent présent qui encourage ses enfants à réaliser leurs rêves. Pour l'instant, je me concentre sur mes études, mais c'est un projet qui me tient à cœur.",
+    keyVocab: [
+      { fr: "fonder une famille", en: "to start a family" },
+      { fr: "transmettre", en: "to pass on / transmit" },
+      { fr: "l'honnêteté", en: "honesty" },
+      { fr: "tenir à cœur", en: "to be important to one's heart" },
+      { fr: "un garçon", en: "a boy" },
+      { fr: "une fille", en: "a girl" }
+    ],
+  },
+  {
+    id: "fut_13",
+    topicKey: "future",
+    text: "Où te vois-tu vivre dans vingt ans ?",
+    hint: "Describe your ideal living situation in the distant future.",
+    difficulty: 3,
+    followUps: [
+      "Seras-tu toujours dans le même pays ?",
+      "Habiteras-tu en ville ou à la campagne ?",
+      "Comment sera ta maison ?"
+    ],
+    modelAnswer: "Dans vingt ans, je me vois vivre dans une maison écologique en bord de mer, peut-être au Portugal ou en Italie. J'aurai une vie paisible loin de l'agitation des grandes métropoles. Ma maison sera autonome en énergie avec beaucoup de lumière naturelle. Je travaillerai peut-être à distance, ce qui me permettra de profiter de la nature au quotidien. J'espère que je serai en bonne santé et entouré de mes proches. Ce serait mon petit coin de paradis.",
+    keyVocab: [
+      { fr: "autonome", en: "autonomous / self-sufficient" },
+      { fr: "à distance", en: "remotely" },
+      { fr: "entouré(e) de", en: "surrounded by" },
+      { fr: "un coin de paradis", en: "a corner of paradise" },
+      { fr: "paisible", en: "peaceful" },
+      { fr: "au quotidien", en: "daily" }
+    ],
+  },
+  {
+    id: "fut_14",
+    topicKey: "future",
+    text: "Quel impact l'intelligence artificielle aura-t-elle sur ta future carrière ?",
+    hint: "Discuss the role of AI and automation in your chosen field.",
+    difficulty: 3,
+    followUps: [
+      "As-tu peur que l'IA remplace ton travail ?",
+      "Comment l'IA peut-elle t'aider ?",
+      "Est-ce une menace ou une opportunité ?"
+    ],
+    modelAnswer: "Je pense que l'IA va transformer radicalement ma future carrière, mais je ne pense pas qu'elle va me remplacer. C'est plutôt un outil puissant qui nous permettra d'être plus efficaces et créatifs. Par exemple, l'IA pourra gérer les tâches répétitives, nous laissant plus de temps pour la résolution de problèmes complexes. C'est à la fois une opportunité et un défi car nous devrons apprendre à collaborer avec ces nouvelles technologies tout au long de notre vie.",
+    keyVocab: [
+      { fr: "radicalement", en: "radically" },
+      { fr: "gérer", en: "to manage" },
+      { fr: "répétitif / répétitive", en: "repetitive" },
+      { fr: "une menace", en: "a threat" },
+      { fr: "tout au long de", en: "throughout" },
+      { fr: "puissant(e)", en: "powerful" }
+    ],
+  },
+
+  // --- FOOD (Final Expansion) ---
+  {
+    id: "foo_12",
+    topicKey: "food",
+    text: "Est-ce que tu bois assez d'eau chaque jour ?",
+    hint: "Discuss your hydration habits and why water is important.",
+    difficulty: 1,
+    followUps: [
+      "Combien de litres bois-tu environ ?",
+      "Préfères-tu l'eau plate ou gazeuse ?",
+      "Bois-tu beaucoup de sodas ?"
+    ],
+    modelAnswer: "J'essaie de boire au moins un litre et demi d'eau par jour. J'emporte toujours une gourde avec moi à l'école pour rester hydraté. Je préfère l'eau plate, mais j'aime bien l'eau gazeuse avec un peu de citron le week-end. Je limite les sodas car c'est trop sucré et mauvais pour les dents. Boire assez d'eau m'aide à rester concentré en cours et à avoir plus d'énergie. C'est une habitude santé indispensable.",
+    keyVocab: [
+      { fr: "une gourde", en: "a water bottle" },
+      { fr: "plate", en: "still (water)" },
+      { fr: "gazeuse", en: "sparkling (water)" },
+      { fr: "un citron", en: "a lemon" },
+      { fr: "indispensable", en: "essential / indispensable" },
+      { fr: "hydraté(e)", en: "hydrated" }
+    ],
+  },
+  {
+    id: "foo_13",
+    topicKey: "food",
+    text: "Quel est ton petit-déjeuner préféré ?",
+    hint: "Describe what you eat and drink in the morning.",
+    difficulty: 1,
+    followUps: [
+      "Est-ce que tu manges salé ou sucré le matin ?",
+      "À quelle heure prends-tu ton petit-déjeuner ?",
+      "Est-ce que tu manges la même chose le week-end ?"
+    ],
+    modelAnswer: "Mon petit-déjeuner préféré est un bol de céréales avec du lait froid et un grand verre de jus d'orange pressé. Parfois, je mange aussi un yaourt aux fruits. Le week-end, on prend plus de temps et on mange des croissants ou des tartines avec de la confiture de fraise. Je ne peux pas commencer ma journée sans manger, sinon je me sens faible. C'est vraiment le repas le plus important pour moi.",
+    keyVocab: [
+      { fr: "jus d'orange pressé", en: "freshly squeezed orange juice" },
+      { fr: "une tartine", en: "a slice of bread with spread" },
+      { fr: "la confiture de fraise", en: "strawberry jam" },
+      { fr: "faible", en: "weak" },
+      { fr: "salé(e)", en: "savory / salty" },
+      { fr: "sucré(e)", en: "sweet" }
+    ],
+  },
+  {
+    id: "foo_14",
+    topicKey: "food",
+    text: "Penses-tu que les repas à la cantine sont équilibrés ?",
+    hint: "Evaluate the nutritional value of your school lunches.",
+    difficulty: 2,
+    followUps: [
+      "Qu'est-ce qu'on mange d'habitude ?",
+      "Est-ce qu'il y a assez de légumes ?",
+      "Si tu pouvais, qu'est-ce que tu ajouterais au menu ?"
+    ],
+    modelAnswer: "D'un côté, on a toujours une entrée, un plat principal et un dessert, donc c'est assez complet. D'un autre côté, je trouve que les plats sont parfois trop gras et qu'il n'y a pas assez de légumes verts. Si je pouvais, j'ajouterais plus d'options végétariennes et des fruits frais de saison. Je pense que la cantine devrait faire plus d'efforts pour nous apprendre à manger sainement tout en proposant des choses savoureuses.",
+    keyVocab: [
+      { fr: "une entrée", en: "a starter" },
+      { fr: "de saison", en: "in season" },
+      { fr: "sainement", en: "healthily" },
+      { fr: "gras", en: "fatty / oily" },
+      { fr: "équilibré(e)", en: "balanced" },
+      { fr: "savoureux / savoureuse", en: "tasty" }
+    ],
+  },
+  {
+    id: "foo_15",
+    topicKey: "food",
+    text: "As-tu déjà essayé un régime végétarien ou végan ?",
+    hint: "Talk about your experience or opinion on meat-free diets.",
+    difficulty: 2,
+    followUps: [
+      "Pourquoi les gens choisissent-ils d'être végétariens ?",
+      "Est-ce que c'est difficile de ne pas manger de viande ?",
+      "Penses-tu que c'est bon pour l'environnement ?"
+    ],
+    modelAnswer: "Je n'ai jamais essayé un régime strictement végétarien, mais on mange de moins en moins de viande à la maison pour protéger la planète. Je pense que c'est une bonne initiative car l'élevage industriel consomme beaucoup d'eau. Il est tout à fait possible d'avoir une alimentation équilibrée sans viande si on mange assez de protéines végétales. C'est un choix personnel qui demande de la discipline mais qui est bénéfique pour la santé et l'écologie.",
+    keyVocab: [
+      { fr: "un régime", en: "a diet" },
+      { fr: "la viande", en: "meat" },
+      { fr: "l'élevage industriel", en: "factory farming" },
+      { fr: "protéines végétales", en: "plant proteins" },
+      { fr: "strictement", en: "strictly" },
+      { fr: "consommer", en: "to consume" }
+    ],
+  },
+  {
+    id: "foo_16",
+    topicKey: "food",
+    text: "Parle-moi d'une recette que tu sais préparer tout(e) seul(e).",
+    hint: "Explain the steps and ingredients of a dish you can cook.",
+    difficulty: 2,
+    followUps: [
+      "C'est difficile à faire ?",
+      "Qui t'a appris cette recette ?",
+      "À qui as-tu déjà préparé ce plat ?"
+    ],
+    modelAnswer: "Je sais préparer des crêpes tout seul. Il faut de la farine, des œufs, du lait et un peu de beurre. On mélange tout dans un saladier pour faire une pâte lisse. C'est ma grand-mère qui m'a appris la recette quand j'étais petit. J'en prépare souvent pour mes amis le samedi après-midi. On les mange avec du sucre, de la confiture ou du chocolat. C'est très simple mais tout le monde adore ça, c'est un vrai régal !",
+    keyVocab: [
+      { fr: "la farine", en: "flour" },
+      { fr: "un saladier", en: "a mixing bowl" },
+      { fr: "une pâte lisse", en: "a smooth batter" },
+      { fr: "un régal", en: "a treat / delight" },
+      { fr: "mélanger", en: "to mix" },
+      { fr: "seul(e)", en: "alone / by oneself" }
+    ],
+  },
+
+  // --- ENVIRONMENT (Final Expansion) ---
+  {
+    id: "env_09",
+    topicKey: "environment",
+    text: "Est-ce qu'il y a beaucoup de déchets dans ta ville ?",
+    hint: "Talk about littering and cleanliness in your area.",
+    difficulty: 1,
+    followUps: [
+      "Y a-t-il assez de poubelles publiques ?",
+      "Qui doit nettoyer les rues ?",
+      "Que penses-tu des gens qui jettent leurs déchets par terre ?"
+    ],
+    modelAnswer: "Malheureusement, on voit souvent des déchets par terre dans le centre-ville, surtout le week-end. Je trouve ça honteux car il y a des poubelles partout. Les services municipaux font de leur mieux pour nettoyer, mais c'est la responsabilité de chacun de respecter son environnement. Jeter un papier par terre est un manque de respect total envers les autres et envers la nature. On devrait avoir des amendes plus lourdes pour lutter contre cela.",
+    keyVocab: [
+      { fr: "un déchet", en: "a piece of litter / waste" },
+      { fr: "honteux / honteuse", en: "shameful" },
+      { fr: "jeter par terre", en: "to throw on the ground" },
+      { fr: "une amende", en: "a fine" },
+      { fr: "lutter contre", en: "to fight against" },
+      { fr: "partout", en: "everywhere" }
+    ],
+  },
+  {
+    id: "env_10",
+    topicKey: "environment",
+    text: "Penses-tu qu'on devrait interdire les sacs en plastique ?",
+    hint: "Discuss the impact of single-use plastics and possible alternatives.",
+    difficulty: 2,
+    followUps: [
+      "Qu'est-ce qu'on peut utiliser à la place ?",
+      "Est-ce que tu as toujours un sac réutilisable avec toi ?",
+      "Pourquoi le plastique est-il dangereux pour les animaux ?"
+    ],
+    modelAnswer: "Je pense qu'interdire les sacs en plastique à usage unique est une excellente décision. Ils polluent nos océans pendant des siècles et tuent des milliers d'animaux marins qui les confondent avec de la nourriture. On devrait tous utiliser des sacs en tissu ou en papier recyclé qui sont bien plus durables. Personnellement, j'ai toujours un sac à dos ou un sac réutilisable avec moi quand je vais faire les courses. C'est un petit changement d'habitude pour un grand impact.",
+    keyVocab: [
+      { fr: "interdire", en: "to ban / forbid" },
+      { fr: "à usage unique", en: "single-use" },
+      { fr: "un sac en tissu", en: "a cloth bag / tote bag" },
+      { fr: "durable", en: "sustainable" },
+      { fr: "confondre", en: "to mistake / confuse" },
+      { fr: "un siècle", en: "a century" }
+    ],
+  },
+  {
+    id: "env_11",
+    topicKey: "environment",
+    text: "Que peut-on faire pour protéger les animaux en voie de disparition ?",
+    hint: "Suggest ways to save species like pandas, polar bears, or bees.",
+    difficulty: 3,
+    followUps: [
+      "Quel animal aimerais-tu sauver en priorité ?",
+      "Est-ce que les zoos sont utiles pour la conservation ?",
+      "Pourquoi la biodiversité est-elle importante ?"
+    ],
+    modelAnswer: "Pour protéger les espèces menacées, il faut avant tout préserver leur habitat naturel en luttant contre la déforestation et le changement climatique. On peut aussi soutenir des organisations qui luttent contre le braconnage. Je pense que la sensibilisation est la clé : plus les gens connaissent l'importance de chaque animal, plus ils feront attention. La biodiversité est essentielle pour l'équilibre de notre planète et si une espèce disparaît, c'est tout l'écosystème qui est en danger.",
+    keyVocab: [
+      { fr: "en voie de disparition", en: "endangered" },
+      { fr: "préserver", en: "to preserve" },
+      { fr: "le braconnage", en: "poaching" },
+      { fr: "la sensibilisation", en: "awareness" },
+      { fr: "un écosystème", en: "an ecosystem" },
+      { fr: "menacé(e)", en: "threatened" }
+    ],
+  },
+  {
+    id: "env_12",
+    topicKey: "environment",
+    text: "As-tu déjà participé à un projet écologique ?",
+    hint: "Describe any green activity like planting trees or a beach clean-up (past tense).",
+    difficulty: 2,
+    followUps: [
+      "C'était quoi exactement ?",
+      "C'était avec qui ?",
+      "Qu'est-ce que tu as appris ?"
+    ],
+    modelAnswer: "L'année dernière, j'ai participé à une journée de nettoyage sur la plage avec mon club de scoutisme. On a ramassé des kilos de plastique et de mégots de cigarettes. C'était choquant de voir autant de saletés dans un endroit si beau. J'ai appris que même les petits gestes comptent et que si tout le monde s'y mettait, on pourrait vraiment faire une différence. Depuis ce jour-là, je fais beaucoup plus attention à ne rien laisser derrière moi quand je vais dans la nature.",
+    keyVocab: [
+      { fr: "un nettoyage", en: "a clean-up" },
+      { fr: "un mégot de cigarette", en: "a cigarette butt" },
+      { fr: "ramasser", en: "to pick up" },
+      { fr: "saletés", en: "dirt / filth" },
+      { fr: "compter", en: "to count / matter" },
+      { fr: "s'y mettre", en: "to get involved / start" }
+    ],
+  },
+  {
+    id: "env_13",
+    topicKey: "environment",
+    text: "Penses-tu que le réchauffement climatique est la plus grande menace pour l'humanité ?",
+    hint: "Give your opinion on the gravity of climate change.",
+    difficulty: 3,
+    followUps: [
+      "Pourquoi est-ce une menace ?",
+      "Est-ce qu'il y a d'autres problèmes plus urgents ?",
+      "Es-tu optimiste ou pessimiste pour l'avenir ?"
+    ],
+    modelAnswer: "Je pense que c'est effectivement la menace la plus grave car elle affecte absolument tout : notre nourriture, notre eau, notre santé et notre sécurité. Les catastrophes naturelles deviennent plus fréquentes et intenses. Cependant, je reste optimiste car je vois que ma génération est très engagée et que les technologies propres progressent vite. C'est une course contre la montre, mais si on agit maintenant de façon globale, on peut encore éviter le pire pour les générations futures.",
+    keyVocab: [
+      { fr: "effectivement", en: "indeed / actually" },
+      { fr: "affecter", en: "to affect" },
+      { fr: "engagé(e)", en: "committed / involved" },
+      { fr: "une course contre la montre", en: "a race against time" },
+      { fr: "agir", en: "to act" },
+      { fr: "le pire", en: "the worst" }
+    ],
+  },
+
+  // --- SCHOOL (Final Polish) ---
+  {
+    id: "sch_21",
+    topicKey: "school",
+    text: "Qu'est-ce que tu penses de la mixité à l'école ?",
+    hint: "Discuss the pros and cons of mixed-gender schools vs. single-sex schools.",
+    difficulty: 3,
+    followUps: [
+      "Préfères-tu les écoles mixtes ou non-mixtes ?",
+      "Est-ce que cela change la façon dont on travaille ?",
+      "Y a-t-il plus de distractions dans les écoles mixtes ?"
+    ],
+    modelAnswer: "Je suis tout à fait en faveur de la mixité car cela reflète la réalité de la société et du monde du travail. Apprendre à collaborer avec tout le monde dès le plus jeune âge favorise le respect et l'égalité. Je ne pense pas que ce soit plus distrayant ; au contraire, cela rend l'ambiance plus naturelle et équilibrée. Les écoles non-mixtes me semblent un peu démodées par rapport aux besoins actuels des jeunes.",
+    keyVocab: [
+      { fr: "la mixité", en: "mixed-gender education" },
+      { fr: "refléter la réalité", en: "to reflect reality" },
+      { fr: "démodé(e)", en: "old-fashioned" },
+      { fr: "en faveur de", en: "in favour of" },
+      { fr: "l'égalité", en: "equality" },
+      { fr: "non-mixte", en: "single-sex" }
+    ],
+  },
+  {
+    id: "sch_22",
+    topicKey: "school",
+    text: "Quels sont les avantages d'avoir une bibliothèque dans ton école ?",
+    hint: "Talk about the resources, quiet space, and benefits for students.",
+    difficulty: 1,
+    followUps: [
+      "Vas-tu souvent à la bibliothèque ?",
+      "Qu'est-ce que tu y fais d'habitude ?",
+      "Est-ce qu'il y a assez d'ordinateurs ?"
+    ],
+    modelAnswer: "Avoir une bibliothèque est un immense avantage pour nous. C'est un endroit calme où on peut vraiment se concentrer pour faire ses recherches ou ses devoirs. On a accès à des centaines de livres, mais aussi à des journaux et des magazines. J'y vais souvent pendant la pause-déjeuner pour lire en toute tranquillité. C'est aussi très pratique car il y a des ordinateurs et une imprimante à notre disposition.",
+    keyVocab: [
+      { fr: "un avantage", en: "an advantage" },
+      { fr: "en toute tranquillité", en: "in total peace" },
+      { fr: "une imprimante", en: "a printer" },
+      { fr: "à disposition", en: "available" },
+      { fr: "se concentrer", en: "to concentrate" },
+      { fr: "faire des recherches", en: "to do research" }
+    ],
+  },
+  {
+    id: "sch_23",
+    topicKey: "school",
+    text: "Comment est-ce que tu gères ton stress pendant les examens ?",
+    hint: "Share your tips for staying calm and organized during test periods.",
+    difficulty: 2,
+    followUps: [
+      "Es-tu une personne stressée d'habitude ?",
+      "Que fais-tu pour te détendre après un examen ?",
+      "Est-ce que tu révises à la dernière minute ?"
+    ],
+    modelAnswer: "Pour gérer mon stress, j'essaie d'être très organisé(e). Je commence mes révisions plusieurs semaines à l'avance pour ne pas être débordé(e) à la fin. Je fais aussi de courtes pauses régulières pour m'aérer l'esprit. Pendant la période des examens, je m'assure de dormir suffisamment et de bien manger. Après un gros test, je m'offre une petite récompense, comme regarder un film ou sortir avec mes amis, pour décompresser totalement.",
+    keyVocab: [
+      { fr: "gérer le stress", en: "to manage stress" },
+      { fr: "débordé(e)", en: "overwhelmed" },
+      { fr: "m'aérer l'esprit", en: "to clear my mind" },
+      { fr: "une récompense", en: "a reward" },
+      { fr: "à l'avance", en: "in advance" },
+      { fr: "régulier / régulière", en: "regular" }
+    ],
+  },
+  {
+    id: "sch_24",
+    topicKey: "school",
+    text: "Si tu pouvais créer une nouvelle matière scolaire, laquelle serait-ce ?",
+    hint: "Think about something practical or fun that isn't currently taught.",
+    difficulty: 2,
+    followUps: [
+      "Pourquoi cette matière serait-elle utile ?",
+      "Est-ce que ce serait une matière obligatoire ?",
+      "Comment se passerait un cours typique ?"
+    ],
+    modelAnswer: "Si je pouvais, je créerais une matière appelée « Compétences de Vie ». On y apprendrait des choses pratiques comme gérer un budget, cuisiner des plats simples, ou comprendre comment fonctionne le monde du travail. Je pense que ce serait extrêmement utile pour nous préparer à la vie d'adulte. Les cours seraient très interactifs, avec des simulations et des ateliers pratiques. Ce ne serait pas une matière avec des examens stressants, mais plutôt une préparation concrète pour l'avenir.",
+    keyVocab: [
+      { fr: "gérer un budget", en: "to manage a budget" },
+      { fr: "vie d'adulte", en: "adult life" },
+      { fr: "concrète", en: "concrete / practical" },
+      { fr: "une simulation", en: "a simulation" },
+      { fr: "utile", en: "useful" },
+      { fr: "préparer", en: "to prepare" }
+    ],
+  },
+  {
+    id: "sch_25",
+    topicKey: "school",
+    text: "Quel est l'impact des sorties scolaires sur ton apprentissage ?",
+    hint: "Discuss the benefits of learning outside the traditional classroom setting.",
+    difficulty: 3,
+    followUps: [
+      "Quelle a été ta meilleure sortie scolaire ?",
+      "Préfères-tu apprendre en classe ou à l'extérieur ?",
+      "Pourquoi est-il important de voir les choses en vrai ?"
+    ],
+    modelAnswer: "Les sorties scolaires ont un impact énorme car elles rendent l'apprentissage beaucoup plus concret et mémorable. Par exemple, visiter un site historique ou un musée permet de mieux comprendre ce qu'on a étudié dans les livres d'histoire. C'est aussi un excellent moyen de renforcer la cohésion de groupe au sein de la classe. On apprend en s'amusant et on découvre des choses qu'il serait impossible de reproduire dans une salle de classe traditionnelle.",
+    keyVocab: [
+      { fr: "mémorable", en: "memorable" },
+      { fr: "la cohésion de groupe", en: "group cohesion" },
+      { fr: "en s'amusant", en: "while having fun" },
+      { fr: "reproduire", en: "to reproduce / replicate" },
+      { fr: "un impact", en: "an impact" },
+      { fr: "traditionnel(le)", en: "traditional" }
+    ],
+  },
+
+  // --- HOBBIES (Final Polish) ---
+  {
+    id: "hob_19",
+    topicKey: "hobbies",
+    text: "Est-ce que tu préfères les activités calmes ou dynamiques ?",
+    hint: "Compare hobbies like reading/drawing with sports/dancing.",
+    difficulty: 1,
+    followUps: [
+      "Pourquoi préfères-tu ce type d'activité ?",
+      "Est-ce que cela change selon ton humeur ?",
+      "Quelle activité dynamique aimerais-tu essayer ?"
+    ],
+    modelAnswer: "D'habitude, je préfère les activités dynamiques comme le basket ou la danse car j'ai besoin de bouger pour me sentir bien. Cela me donne beaucoup d'énergie et j'aime l'aspect social de ces loisirs. Cependant, quand je suis fatigué(e) après une longue semaine, j'apprécie aussi de faire quelque chose de calme comme dessiner ou écouter de la musique. Je pense que l'équilibre entre les deux est important pour rester en bonne santé.",
+    keyVocab: [
+      { fr: "bouger", en: "to move" },
+      { fr: "selon l'humeur", en: "depending on the mood" },
+      { fr: "l'aspect social", en: "the social aspect" },
+      { fr: "dynamique", en: "dynamic / energetic" },
+      { fr: "équilibre", en: "balance" },
+      { fr: "humeur", en: "mood" }
+    ],
+  },
+  {
+    id: "hob_20",
+    topicKey: "hobbies",
+    text: "Est-ce que tu aimes collectionner des objets ?",
+    hint: "Talk about any collections you have — stamps, coins, posters, digital items.",
+    difficulty: 1,
+    followUps: [
+      "Qu'est-ce que tu collectionnes ?",
+      "Pourquoi as-tu commencé cette collection ?",
+      "Où gardes-tu tes objets de collection ?"
+    ],
+    modelAnswer: "Quand j'étais plus petit(e), je collectionnais les cartes Pokémon et j'en avais des centaines ! C'était très amusant de les échanger avec mes amis à la récréation. Aujourd'hui, je ne collectionne plus vraiment d'objets physiques, mais je collectionne des vinyles de mes groupes préférés. J'adore le son et les belles pochettes. Je les garde précieusement sur une étagère dans ma chambre. C'est une passion qui me permet de me souvenir de bons moments.",
+    keyVocab: [
+      { fr: "collectionner", en: "to collect" },
+      { fr: "échanger", en: "to exchange / swap" },
+      { fr: "un vinyle", en: "a vinyl record" },
+      { fr: "une pochette", en: "a cover (sleeve)" },
+      { fr: "précieusement", en: "carefully / preciously" },
+      { fr: "une étagère", en: "a shelf" }
+    ],
+  },
+  {
+    id: "hob_21",
+    topicKey: "hobbies",
+    text: "Quel est ton genre de musique préféré et pourquoi ?",
+    hint: "Discuss your musical tastes and how they make you feel.",
+    difficulty: 2,
+    followUps: [
+      "Quel est ton chanteur ou groupe préféré ?",
+      "Est-ce que tu écoutes de la musique pour travailler ?",
+      "Joues-tu d'un instrument ou aimerais-tu en apprendre un ?"
+    ],
+    modelAnswer: "Mon genre de musique préféré est le pop-rock car je trouve que c'est très entraînant et les paroles me parlent souvent. Mon groupe préféré est Imagine Dragons, j'adore la voix du chanteur. J'écoute de la musique tout le temps : dans le bus, quand je fais mes devoirs et pour me détendre le soir. Pour moi, la musique est indispensable car elle peut changer mon humeur en un instant et me motiver quand je suis un peu triste.",
+    keyVocab: [
+      { fr: "entraînant(e)", en: "catchy / upbeat" },
+      { fr: "les paroles", en: "lyrics" },
+      { fr: "la voix", en: "voice" },
+      { fr: "indispensable", en: "essential / indispensable" },
+      { fr: "en un instant", en: "in an instant" },
+      { fr: "parler à quelqu'un", en: "to speak to (resonate with) someone" }
+    ],
+  },
+  {
+    id: "hob_22",
+    topicKey: "hobbies",
+    text: "Qu'est-ce que tu penses du bénévolat comme passe-temps ?",
+    hint: "Discuss the benefits of volunteering for others and for oneself.",
+    difficulty: 3,
+    followUps: [
+      "As-tu déjà fait du bénévolat ?",
+      "Quelles causes aimerais-tu soutenir ?",
+      "Est-ce que les jeunes devraient être encouragés à aider les autres ?"
+    ],
+    modelAnswer: "Je pense que le bénévolat est un passe-temps exceptionnel qui apporte beaucoup de satisfaction personnelle. Cela permet de se sentir utile et d'aider ceux qui en ont besoin, que ce soit des personnes âgées, des animaux ou l'environnement. On apprend aussi des compétences importantes comme l'empathie et la patience. Je pense que tous les jeunes devraient essayer au moins une fois, car cela nous fait sortir de notre bulle et nous fait découvrir des réalités différentes.",
+    keyVocab: [
+      { fr: "le bénévolat", en: "volunteering" },
+      { fr: "utile", en: "useful" },
+      { fr: "l'empathie", en: "empathy" },
+      { fr: "sortir de sa bulle", en: "to get out of one's bubble" },
+      { fr: "une cause", en: "a cause" },
+      { fr: "la satisfaction", en: "satisfaction" }
+    ],
+  },
+  {
+    id: "hob_23",
+    topicKey: "hobbies",
+    text: "Comment est-ce que tes loisirs ont changé depuis que tu es petit(e) ?",
+    hint: "Compare your childhood activities with your current hobbies.",
+    difficulty: 2,
+    followUps: [
+      "Qu'est-ce que tu faisais avant et que tu ne fais plus ?",
+      "Pourquoi as-tu arrêté certaines activités ?",
+      "Es-tu devenu(e) plus sérieux/sérieuse dans tes loisirs ?"
+    ],
+    modelAnswer: "Quand j'étais petit(e), je passais tout mon temps à jouer aux Legos ou à courir dans le jardin avec mes amis. C'était très simple et insouciant. Aujourd'hui, mes loisirs sont plus variés et parfois plus intellectuels : je lis plus de romans, je m'intéresse à la photographie et je passe plus de temps sur les réseaux sociaux. Je suis devenu(e) plus passionné(e) par certains domaines, comme la musique, et j'y consacre plus d'efforts et de temps pour m'améliorer.",
+    keyVocab: [
+      { fr: "insouciant(e)", en: "carefree" },
+      { fr: "varié(e)", en: "varied" },
+      { fr: "consacrer", en: "to devote / dedicate" },
+      { fr: "s'améliorer", en: "to improve" },
+      { fr: "depuis que", en: "since" },
+      { fr: "avant", en: "before" }
+    ],
+  },
+
+  // --- FAMILY (Final Polish) ---
+  {
+    id: "fam_18",
+    topicKey: "family",
+    text: "As-tu des traditions familiales spéciales pour les fêtes ?",
+    hint: "Describe what your family usually does for Christmas, Eid, or other celebrations.",
+    difficulty: 1,
+    followUps: [
+      "Qu'est-ce que vous mangez ?",
+      "Est-ce que vous décorez la maison ?",
+      "Quelle est ta tradition préférée ?"
+    ],
+    modelAnswer: "Pour Noël, on a une tradition immuable : on décore le sapin tous ensemble le premier dimanche de décembre avec de la musique de fête. Le soir du réveillon, on mange une dinde rôtie et une bûche au chocolat. Ma tradition préférée est d'ouvrir un petit cadeau après le dîner, juste avant d'aller se coucher. C'est un moment magique où toute la famille est réunie et on oublie tous nos soucis du quotidien.",
+    keyVocab: [
+      { fr: "immuable", en: "unchanging" },
+      { fr: "le sapin", en: "Christmas tree" },
+      { fr: "le réveillon", en: "festive evening / Christmas Eve" },
+      { fr: "la dinde", en: "turkey" },
+      { fr: "la bûche", en: "Yule log (cake)" },
+      { fr: "magique", en: "magical" }
+    ],
+  },
+  {
+    id: "fam_19",
+    topicKey: "family",
+    text: "Est-ce que tes parents sont stricts sur les horaires ?",
+    hint: "Talk about rules regarding bedtime or returning home in the evening.",
+    difficulty: 2,
+    followUps: [
+      "À quelle heure dois-tu rentrer le week-end ?",
+      "Est-ce que tu penses que c'est juste ?",
+      "As-tu déjà bravé les interdits ?"
+    ],
+    modelAnswer: "Mes parents sont assez flexibles, mais ils insistent sur la ponctualité. Le week-end, je dois être rentré(e) à vingt-deux heures. Si je suis en retard, ils s'inquiètent, donc j'essaie de toujours les prévenir. Je pense que leurs règles sont justes car elles sont là pour ma sécurité. On en discute souvent ensemble et ils sont prêts à faire des exceptions pour des occasions spéciales comme l'anniversaire d'un ami.",
+    keyVocab: [
+      { fr: "flexible", en: "flexible" },
+      { fr: "s'inquiéter", en: "to worry" },
+      { fr: "prévenir", en: "to warn / notify" },
+      { fr: "juste", en: "fair" },
+      { fr: "une exception", en: "an exception" },
+      { fr: "braver les interdits", en: "to defy the rules" }
+    ],
+  },
+  {
+    id: "fam_20",
+    topicKey: "family",
+    text: "Décris un membre de ta famille que tu n'as pas vu depuis longtemps.",
+    hint: "Describe a relative who lives far away or you haven't visited recently.",
+    difficulty: 1,
+    followUps: [
+      "Où habite cette personne ?",
+      "Pourquoi ne vous voyez-vous pas souvent ?",
+      "Qu'est-ce que tu aimerais faire avec elle quand tu la reverras ?"
+    ],
+    modelAnswer: "Je n'ai pas vu mon cousin Antoine depuis trois ans car il habite au Canada pour ses études. C'est une personne très dynamique et sportive. Il me manque beaucoup car on s'entendait vraiment bien quand on était plus petits. Quand il reviendra cet été, j'aimerais qu'on aille passer une journée à la plage pour discuter et faire du surf. On se parle souvent sur Skype, mais ce n'est pas la même chose que de se voir en vrai.",
+    keyVocab: [
+      { fr: "manquer à quelqu'un", en: "to be missed by someone" },
+      { fr: "en vrai", en: "in person / for real" },
+      { fr: "depuis longtemps", en: "for a long time" },
+      { fr: "revoir", en: "to see again" },
+      { fr: "loin", en: "far" },
+      { fr: "dynamic", en: "dynamique" }
+    ],
+  },
+  {
+    id: "fam_21",
+    topicKey: "family",
+    text: "Penses-tu que les parents et les adolescents peuvent être amis ?",
+    hint: "Discuss the balance between authority and friendship in family relationships.",
+    difficulty: 3,
+    followUps: [
+      "Considères-tu tes parents comme des amis ?",
+      "Pourquoi est-il important qu'il y ait des limites ?",
+      "Comment la relation change-t-elle avec l'âge ?"
+    ],
+    modelAnswer: "Je pense qu'il est possible d'avoir une relation très proche et complice, mais les parents ne peuvent pas être des « amis » au sens strict car ils ont un rôle d'autorité et de protection. Ils doivent parfois dire « non » pour notre bien, ce que les amis ne font pas forcément. Cependant, j'apprécie de pouvoir discuter de tout avec mes parents, comme avec un ami, tout en respectant leur expérience et leur place dans la famille. C'est un équilibre délicat à trouver.",
+    keyVocab: [
+      { fr: "complice", en: "close / having a bond" },
+      { fr: "au sens strict", en: "in the strict sense" },
+      { fr: "l'autorité", en: "authority" },
+      { fr: "forcément", en: "necessarily" },
+      { fr: "un équilibre délicat", en: "a delicate balance" },
+      { fr: "la protection", en: "protection" }
+    ],
+  },
+  {
+    id: "fam_22",
+    topicKey: "family",
+    text: "Quelles sont les qualités les plus importantes pour être un bon parent ?",
+    hint: "Discuss traits like patience, support, honesty, and listening.",
+    difficulty: 3,
+    followUps: [
+      "Tes parents possèdent-ils ces qualités ?",
+      "Est-ce difficile d'être un bon parent aujourd'hui ?",
+      "Comment peut-on s'améliorer en tant que parent ?"
+    ],
+    modelAnswer: "À mon avis, la patience et l'écoute sont les qualités essentielles. Un bon parent doit savoir encourager ses enfants, même quand ils font des erreurs, et être présent pour les soutenir. L'honnêteté et la bienveillance sont aussi primordiales pour créer un climat de confiance. Mes parents essaient toujours de me comprendre et de m'aider à grandir, même si ce n'est pas toujours facile pour eux. Être parent demande beaucoup d'abnégation et d'amour inconditionnel.",
+    keyVocab: [
+      { fr: "la bienveillance", en: "kindness / benevolence" },
+      { fr: "l'abnégation", en: "selflessness" },
+      { fr: "inconditionnel(le)", en: "unconditional" },
+      { fr: "posséder", en: "to possess / have" },
+      { fr: "primordial(e)", en: "essential / paramount" },
+      { fr: "soutenir", en: "to support" }
+    ],
+  },
+
+  // --- HOLIDAYS (Final Polish) ---
+  {
+    id: "hol_18",
+    topicKey: "holidays",
+    text: "Préfères-tu les grandes villes ou les petits villages pour tes vacances ?",
+    hint: "Compare the energy and activities of a city with the peace of a village.",
+    difficulty: 1,
+    followUps: [
+      "Qu'est-ce que tu aimes faire dans une ville ?",
+      "Le calme d'un village est-il ennuyeux pour toi ?",
+      "Quelle est ta ville préférée au monde ?"
+    ],
+    modelAnswer: "Je préfère nettement les grandes villes car j'adore l'agitation, les musées, les magasins et la diversité culturelle. Il y a toujours quelque chose de nouveau à découvrir et j'aime l'énergie qui s'en dégage. Ma ville préférée est Londres car c'est un mélange incroyable d'histoire et de modernité. Les petits villages peuvent être charmants pour un week-end, mais je finis vite par m'ennuyer car il n'y a pas assez d'activités pour moi.",
+    keyVocab: [
+      { fr: "l'agitation", en: "bustle / excitement" },
+      { fr: "la diversité", en: "diversity" },
+      { fr: "se dégager", en: "to emanate / come from" },
+      { fr: "charmant(e)", en: "charming" },
+      { fr: "mélange", en: "mix / blend" },
+      { fr: "modernité", en: "modernity" }
+    ],
+  },
+  {
+    id: "hol_19",
+    topicKey: "holidays",
+    text: "Quel est l'objet le plus important dans ton sac de voyage ?",
+    hint: "Talk about something essential you always take with you.",
+    difficulty: 1,
+    followUps: [
+      "Est-ce que c'est ton téléphone ?",
+      "Pourquoi est-ce si important ?",
+      "Qu'est-ce qui se passerait si tu l'oubliais ?"
+    ],
+    modelAnswer: "L'objet le plus important dans mon sac est sans aucun doute mon appareil photo. J'adore capturer des moments spéciaux et les paysages magnifiques que je découvre. Pour moi, les photos sont les meilleurs souvenirs car elles permettent de revivre le voyage des années plus tard. Si je l'oubliais, je serais vraiment triste car mon téléphone ne fait pas d'aussi belles photos. C'est l'outil indispensable pour immortaliser mes aventures !",
+    keyVocab: [
+      { fr: "capturer", en: "to capture" },
+      { fr: "immortaliser", en: "to immortalize / capture forever" },
+      { fr: "un appareil photo", en: "a camera" },
+      { fr: "revivre", en: "to relive" },
+      { fr: "indispensable", en: "essential" },
+      { fr: "sans aucun doute", en: "without a doubt" }
+    ],
+  },
+  {
+    id: "hol_20",
+    topicKey: "holidays",
+    text: "Penses-tu que voyager rend plus intelligent ?",
+    hint: "Discuss how exposure to new cultures and experiences helps us grow.",
+    difficulty: 3,
+    followUps: [
+      "Qu'as-tu appris lors de ton dernier voyage ?",
+      "Est-ce que voyager change notre façon de voir le monde ?",
+      "Peut-on apprendre autant dans les livres ?"
+    ],
+    modelAnswer: "Absolument. Voyager nous force à sortir de notre zone de confort et à nous adapter à des situations imprévues. On apprend à être plus tolérant et ouvert d'esprit en découvrant des modes de vie différents du nôtre. On apprend aussi l'histoire et la géographie de façon beaucoup plus concrète qu'à l'école. Pour moi, le voyage est la meilleure école car il nous enseigne l'autonomie et nous donne une perspective globale sur le monde.",
+    keyVocab: [
+      { fr: "zone de confort", en: "comfort zone" },
+      { fr: "imprévu(e)", en: "unforeseen / unexpected" },
+      { fr: "enseigner", en: "to teach" },
+      { fr: "perspective globale", en: "global perspective" },
+      { fr: "concrète", en: "concrete / real" },
+      { fr: "autonomie", en: "autonomy / independence" }
+    ],
+  },
+  {
+    id: "hol_21",
+    topicKey: "holidays",
+    text: "Quel est le meilleur moment pour partir en vacances selon toi ?",
+    hint: "Discuss your preferred season or time of year for traveling.",
+    difficulty: 2,
+    followUps: [
+      "Préfères-tu les vacances scolaires ou hors saison ?",
+      "Pourquoi aimes-tu partir à cette période ?",
+      "Est-ce que c'est plus cher d'habitude ?"
+    ],
+    modelAnswer: "Pour moi, le meilleur moment est le mois de juin, juste avant les grandes vacances scolaires. Le temps est souvent magnifique, les journées sont les plus longues et il y a moins de monde que pendant l'été. C'est aussi souvent moins cher que pendant les vacances d'été. J'apprécie cette période car on peut vraiment profiter de la nature et de la tranquillité avant l'agitation du mois d'août. C'est le moment idéal pour se ressourcer.",
+    keyVocab: [
+      { fr: "hors saison", en: "off-season" },
+      { fr: "une période", en: "a period / time" },
+      { fr: "profiter de", en: "to enjoy / make the most of" },
+      { fr: "août", en: "August" },
+      { fr: "moins de monde", en: "fewer people" },
+      { fr: "magnifique", en: "beautiful" }
+    ],
+  },
+  {
+    id: "hol_22",
+    topicKey: "holidays",
+    text: "As-tu déjà fait un voyage humanitaire ou aimerais-tu en faire un ?",
+    hint: "Discuss combining travel with helping a community or environmental project.",
+    difficulty: 3,
+    followUps: [
+      "Quelle cause aimerais-tu aider ?",
+      "Penses-tu que c'est une expérience enrichissante ?",
+      "Où aimerais-tu aller pour ce projet ?"
+    ],
+    modelAnswer: "Je n'en ai jamais fait, mais j'aimerais beaucoup participer à un projet de protection de l'environnement en Amérique du Sud, par exemple pour aider à la reforestation de l'Amazonie. Je pense que c'est une expérience extrêmement enrichissante car cela permet d'être utile tout en découvrant une nouvelle culture. C'est une façon de voyager plus responsable et humaine qui donne du sens à nos vacances. J'espère pouvoir réaliser ce projet l'année prochaine.",
+    keyVocab: [
+      { fr: "un voyage humanitaire", en: "humanitarian / volunteer trip" },
+      { fr: "donner du sens", en: "to give meaning" },
+      { fr: "enrichissant(e)", en: "enriching" },
+      { fr: "utile", en: "useful" },
+      { fr: "la reforestation", en: "reforestation" },
+      { fr: "responsable", en: "responsible" }
+    ],
+  },
+
+  // --- HOME (Final Polish) ---
+  {
+    id: "hom_16",
+    topicKey: "home",
+    text: "Comment est-ce que ta ville a changé ces dernières années ?",
+    hint: "Talk about new buildings, shops, or changes in transport.",
+    difficulty: 2,
+    followUps: [
+      "Y a-t-il plus de monde maintenant ?",
+      "Les changements sont-ils positifs selon toi ?",
+      "Qu'est-ce qui a disparu et que tu regrettes ?"
+    ],
+    modelAnswer: "Ma ville a énormément changé récemment. On a construit un nouveau centre commercial très moderne et plusieurs pistes cyclables. De plus, les transports en commun sont devenus plus fréquents et plus propres. Je pense que ces changements sont positifs car ils facilitent la vie des habitants. Cependant, je regrette la fermeture d'un petit cinéma indépendant qui a été remplacé par un fast-food. C'est dommage que la ville perde un peu de son caractère ancien.",
+    keyVocab: [
+      { fr: "ces dernières années", en: "in recent years" },
+      { fr: "récemment", en: "recently" },
+      { fr: "faciliter", en: "to make easier / facilitate" },
+      { fr: "regretter", en: "to regret" },
+      { fr: "disparaître", en: "to disappear" },
+      { fr: "le caractère ancien", en: "old-fashioned character" }
+    ],
+  },
+  {
+    id: "hom_17",
+    topicKey: "home",
+    text: "Où se trouve ton endroit préféré pour faire du shopping dans ta ville ?",
+    hint: "Describe a specific street, mall, or market you like.",
+    difficulty: 1,
+    followUps: [
+      "Qu'est-ce que tu aimes acheter là-bas ?",
+      "Est-ce que c'est souvent bondé ?",
+      "Y vas-tu seul(e) ou avec des amis ?"
+    ],
+    modelAnswer: "Mon endroit préféré est une petite rue piétonne au centre-ville où il y a beaucoup de boutiques indépendantes et de cafés sympas. J'adore y aller le samedi après-midi avec mes copines pour faire du lèche-vitrines et prendre un goûter. C'est souvent bondé, mais l'ambiance est très joyeuse et animée. On peut y trouver des vêtements originaux et des accessoires qu'on ne voit nulle part ailleurs. C'est vraiment le cœur de la ville pour moi.",
+    keyVocab: [
+      { fr: "une rue piétonne", en: "a pedestrian street" },
+      { fr: "faire du lèche-vitrines", en: "to go window-shopping" },
+      { fr: "joyeux / joyeuse", en: "joyful / happy" },
+      { fr: "nulle part ailleurs", en: "nowhere else" },
+      { fr: "le cœur de la ville", en: "the heart of the city" },
+      { fr: "bondé(e)", en: "crowded" }
+    ],
+  },
+  {
+    id: "hom_18",
+    topicKey: "home",
+    text: "Est-ce que ta ville est sûre le soir ?",
+    hint: "Discuss the safety and security of your area at night.",
+    difficulty: 2,
+    followUps: [
+      "As-tu peur de sortir seul(e) le soir ?",
+      "Y a-t-il beaucoup de lumières dans les rues ?",
+      "Est-ce que la police est présente ?"
+    ],
+    modelAnswer: "Dans l'ensemble, je pense que ma ville est assez sûre car les rues sont bien éclairées et il y a toujours du monde. Personnellement, je ne sors pas seul(e) très tard par précaution, mais je ne me sens pas en danger. Il y a souvent des patrouilles de police qui circulent, ce qui est rassurant. Le quartier où j'habite est particulièrement tranquille et familial, donc on peut s'y promener sans crainte, même après le coucher du soleil.",
+    keyVocab: [
+      { fr: "bien éclairé(e)", en: "well-lit" },
+      { fr: "par précaution", en: "as a precaution" },
+      { fr: "en danger", en: "in danger" },
+      { fr: "une patrouille", en: "a patrol" },
+      { fr: "sans crainte", en: "without fear" },
+      { fr: "coucher du soleil", en: "sunset" }
+    ],
+  },
+  {
+    id: "hom_19",
+    topicKey: "home",
+    text: "Qu'est-ce que tu penses de l'architecture de ta ville ?",
+    hint: "Compare old and new styles of buildings in your area.",
+    difficulty: 3,
+    followUps: [
+      "Quel est le plus beau bâtiment ?",
+      "Préfères-tu le style moderne ou classique ?",
+      "Y a-t-il trop de constructions nouvelles ?"
+    ],
+    modelAnswer: "L'architecture de ma ville est un mélange intéressant de styles. Il y a une partie historique avec des bâtiments en pierre magnifique et une cathédrale gothique. À côté de cela, on a construit des immeubles très modernes en verre et en acier. Je préfère le style ancien car je trouve qu'il a plus de charme et d'histoire. Cependant, je pense que les nouvelles constructions sont nécessaires pour la croissance de la ville, à condition qu'elles respectent l'environnement.",
+    keyVocab: [
+      { fr: "un mélange", en: "a mixture / blend" },
+      { fr: "en pierre", en: "made of stone" },
+      { fr: "en acier", en: "made of steel" },
+      { fr: "le charme", en: "charm" },
+      { fr: "une condition", en: "a condition" },
+      { fr: "un immeuble", en: "a building / apartment block" }
+    ],
+  },
+  {
+    id: "hom_20",
+    topicKey: "home",
+    text: "Est-ce qu'il y a assez d'activités culturelles dans ta ville ?",
+    hint: "Discuss cinemas, theatres, festivals, and other cultural events.",
+    difficulty: 2,
+    followUps: [
+      "Quel est le dernier événement culturel auquel tu as assisté ?",
+      "Est-ce que c'est cher d'aller au théâtre ?",
+      "Qu'est-ce qu'on pourrait améliorer ?"
+    ],
+    modelAnswer: "Oui, ma ville est assez dynamique sur le plan culturel. On a plusieurs cinémas, un théâtre municipal et on organise souvent des festivals de musique en été. Récemment, je suis allé(e) voir une pièce de théâtre moderne et c'était fantastique. Par contre, je trouve que les prix sont parfois trop élevés pour les jeunes. On devrait organiser plus d'événements gratuits dans les parcs pour permettre à tout le monde d'en profiter. La culture doit être accessible à tous.",
+    keyVocab: [
+      { fr: "sur le plan culturel", en: "culturally / in terms of culture" },
+      { fr: "un événement", en: "an event" },
+      { fr: "accessible", en: "accessible" },
+      { fr: "fantastique", en: "fantastic" },
+      { fr: "municipal(e)", en: "municipal / city" },
+      { fr: "élevé(e)", en: "high" }
+    ],
+  },
+
+  // --- FUTURE (Final Polish) ---
+  {
+    id: "fut_15",
+    topicKey: "future",
+    text: "Penses-tu que les robots feront tous les travaux ménagers à l'avenir ?",
+    hint: "Discuss the role of automation in our daily home lives.",
+    difficulty: 2,
+    followUps: [
+      "En as-tu déjà chez toi ?",
+      "Qu'est-ce que cela changerait dans ta vie ?",
+      "Est-ce une bonne ou une mauvaise chose ?"
+    ],
+    modelAnswer: "Je pense que c'est inévitable. On a déjà des robots aspirateurs qui font un excellent travail. Dans le futur, on aura sûrement des robots pour cuisiner, repasser le linge et même s'occuper du jardin. Ce serait une bonne chose car cela nous donnerait plus de temps libre pour nos loisirs et notre famille. Cependant, il ne faut pas devenir trop paresseux et perdre le sens de l'effort. La technologie doit nous aider, pas nous remplacer complètement.",
+    keyVocab: [
+      { fr: "inévitable", en: "inevitable" },
+      { fr: "aspirateur", en: "vacuum cleaner" },
+      { fr: "repasser le linge", en: "to iron the laundry" },
+      { fr: "paresseux / paresseuse", en: "lazy" },
+      { fr: "sûrement", en: "surely / probably" },
+      { fr: "le sens de l'effort", en: "the value of effort" }
+    ],
+  },
+  {
+    id: "fut_16",
+    topicKey: "future",
+    text: "Comment la technologie changera-t-elle notre façon de voyager ?",
+    hint: "Think about faster transport, virtual reality, or space travel.",
+    difficulty: 3,
+    followUps: [
+      "Aimerais-tu aller sur la Lune ?",
+      "Penses-tu que les avions seront plus rapides ?",
+      "Le voyage virtuel remplacera-t-il le voyage réel ?"
+    ],
+    modelAnswer: "La technologie va rendre les voyages beaucoup plus rapides et écologiques. On aura peut-être des trains ultra-rapides qui relieront les continents en quelques heures. On pourra aussi explorer des endroits inaccessibles grâce à la réalité virtuelle, même si cela ne remplacera jamais l'émotion de découvrir un pays en vrai. Le tourisme spatial deviendra peut-être possible pour les gens ordinaires, ce qui serait une aventure extraordinaire, mais il faudra faire attention à l'impact environnemental.",
+    keyVocab: [
+      { fr: "relier", en: "to connect / link" },
+      { fr: "réalité virtuelle", en: "virtual reality" },
+      { fr: "ordinaire", en: "ordinary" },
+      { fr: "extraordinaire", en: "extraordinary" },
+      { fr: "un continent", en: "a continent" },
+      { fr: "inaccessible", en: "inaccessible" }
+    ],
+  },
+  {
+    id: "fut_17",
+    topicKey: "future",
+    text: "Quel est ton plus grand défi pour l'avenir ?",
+    hint: "Talk about a personal goal or obstacle you want to overcome.",
+    difficulty: 3,
+    followUps: [
+      "Es-tu confiant(e) pour réussir ?",
+      "Qui peut t'aider à atteindre tes buts ?",
+      "Qu'est-ce qui te fait le plus peur ?"
+    ],
+    modelAnswer: "Mon plus grand défi est de réussir mes études supérieures et de trouver un métier qui me passionne vraiment. C'est un long chemin qui demande beaucoup de travail et de persévérance. Je suis confiant(e) car je suis très motivé(e), mais j'ai peur de ne pas être à la hauteur parfois. Mes parents et mes professeurs m'encouragent énormément, ce qui m'aide à rester focalisé(e) sur mes objectifs. L'essentiel est de ne jamais baisser les bras face aux difficultés.",
+    keyVocab: [
+      { fr: "un défi", en: "a challenge" },
+      { fr: "études supérieures", en: "higher education" },
+      { fr: "la persévérance", en: "perseverance" },
+      { fr: "être à la hauteur", en: "to be up to the task / standard" },
+      { fr: "baisser les bras", en: "to give up" },
+      { fr: "focalisé(e)", en: "focused" }
+    ],
+  },
+  {
+    id: "fut_18",
+    topicKey: "future",
+    text: "Penses-tu que le monde sera meilleur dans cinquante ans ?",
+    hint: "Discuss environmental, social, and technological progress.",
+    difficulty: 3,
+    followUps: [
+      "Es-tu optimiste pour la planète ?",
+      "Quels problèmes seront résolus selon toi ?",
+      "Que pouvons-nous faire dès maintenant ?"
+    ],
+    modelAnswer: "Je veux être optimiste. J'espère que grâce à la technologie et à une prise de conscience globale, on aura réussi à résoudre les problèmes environnementaux majeurs. Le monde sera peut-être plus juste et solidaire grâce à une meilleure éducation pour tous. Cependant, de nouveaux défis apparaîtront sûrement. C'est à notre génération d'agir dès maintenant pour construire cet avenir meilleur. On a le pouvoir de changer les choses si on travaille ensemble avec détermination.",
+    keyVocab: [
+      { fr: "prise de conscience", en: "awareness / realization" },
+      { fr: "solidaire", en: "supportive / united" },
+      { fr: "apparaître", en: "to appear" },
+      { fr: "détermination", en: "determination" },
+      { fr: "global(e)", en: "global" },
+      { fr: "majeur(e)", en: "major" }
+    ],
+  },
+  {
+    id: "fut_19",
+    topicKey: "future",
+    text: "Aimerais-tu être célèbre plus tard ? Pourquoi ?",
+    hint: "Discuss the advantages and disadvantages of fame.",
+    difficulty: 2,
+    followUps: [
+      "Dans quel domaine serais-tu célèbre ?",
+      "La célébrité est-elle dangereuse ?",
+      "Penses-tu que la vie privée est plus importante ?"
+    ],
+    modelAnswer: "Franchement, non. La célébrité semble avoir beaucoup d'avantages, comme l'argent et le succès, mais elle détruit souvent la vie privée. On est constamment observé et jugé par tout le monde, ce qui doit être très stressant. Je préfère avoir une vie tranquille et épanouie, entouré de mes vrais amis, plutôt que d'être connu(e) par des millions d'inconnus. Pour moi, le bonheur est dans les choses simples et authentiques, pas dans les paillettes de la célébrité.",
+    keyVocab: [
+      { fr: "la célébrité", en: "fame" },
+      { fr: "vie privée", en: "private life" },
+      { fr: "constamment", en: "constantly" },
+      { fr: "inconnu(e)", en: "unknown / stranger" },
+      { fr: "les paillettes", en: "glamour / glitter" },
+      { fr: "authentique", en: "authentic" }
+    ],
+  },
+
+  // --- FOOD (Final Polish) ---
+  {
+    id: "foo_17",
+    topicKey: "food",
+    text: "Est-ce que tu manges beaucoup de collations entre les repas ?",
+    hint: "Talk about your snacking habits and if they are healthy.",
+    difficulty: 1,
+    followUps: [
+      "Qu'est-ce que tu manges d'habitude ?",
+      "Est-ce que c'est sain ?",
+      "Pourquoi as-tu faim entre les repas ?"
+    ],
+    modelAnswer: "J'essaie de ne pas trop grignoter, mais j'ai souvent une petite faim vers seize heures. D'habitude, je mange un fruit ou une barre de céréales pour avoir de l'énergie avant mes activités sportives. Parfois, je craque pour quelques biscuits, mais j'essaie de limiter car je sais que c'est trop sucré. Je pense qu'une petite collation saine est nécessaire pour rester concentré(e) et ne pas arriver affamé(e) au dîner.",
+    keyVocab: [
+      { fr: "une collation", en: "a snack" },
+      { fr: "grignoter", en: "to snack / nibble" },
+      { fr: "avoir faim", en: "to be hungry" },
+      { fr: "affamé(e)", en: "starving" },
+      { fr: "craquer pour", en: "to give in to / fall for" },
+      { fr: "sain(e)", en: "healthy" }
+    ],
+  },
+  {
+    id: "foo_18",
+    topicKey: "food",
+    text: "Quel est le plat le plus étrange que tu as déjà goûté ?",
+    hint: "Describe a food experience that was unusual or surprising (past tense).",
+    difficulty: 2,
+    followUps: [
+      "C'était où ?",
+      "Est-ce que tu as aimé ?",
+      "Voudrais-tu en remanger ?"
+    ],
+    modelAnswer: "Le plat le plus étrange était des escargots au beurre d'ail quand je suis allé(e) en France l'été dernier. Au début, j'avais un peu peur de goûter, mais finalement c'était plutôt bon ! La texture est un peu élastique mais le goût de l'ail et du persil est délicieux. Je n'en mangerais pas tous les jours, mais c'était une expérience culturelle intéressante. J'aime bien tester des choses nouvelles même si elles semblent bizarres au premier abord.",
+    keyVocab: [
+      { fr: "étrange", en: "strange" },
+      { fr: "un escargot", en: "a snail" },
+      { fr: "beurre d'ail", en: "garlic butter" },
+      { fr: "élastique", en: "rubbery / elastic" },
+      { fr: "au premier abord", en: "at first glance" },
+      { fr: "bizarre", en: "weird" }
+    ],
+  },
+  {
+    id: "foo_19",
+    topicKey: "food",
+    text: "Pourquoi est-il important de manger en famille sans écrans ?",
+    hint: "Discuss the benefits of conversation and social bonding during meals.",
+    difficulty: 2,
+    followUps: [
+      "Manges-tu souvent devant la télé ?",
+      "De quoi parlez-vous à table ?",
+      "Est-ce difficile de poser son téléphone ?"
+    ],
+    modelAnswer: "Il est crucial de manger sans écrans pour vraiment profiter de la compagnie des autres et avoir des conversations de qualité. C'est le moment idéal pour partager les événements de la journée et se détendre ensemble. Sans téléphone, on est plus attentif à ce que l'on mange, ce qui est meilleur pour la digestion. C'est une règle d'or chez moi : pas de portables à table pour préserver ce moment de convivialité familiale.",
+    keyVocab: [
+      { fr: "une règle d'or", en: "a golden rule" },
+      { fr: "la convivialité", en: "friendliness / conviviality" },
+      { fr: "posé", en: "put down" },
+      { fr: "profiter de", en: "to enjoy" },
+      { fr: "la digestion", en: "digestion" },
+      { fr: "qualité", en: "quality" }
+    ],
+  },
+  {
+    id: "foo_20",
+    topicKey: "food",
+    text: "Penses-tu que les émissions de cuisine à la télé sont utiles ?",
+    hint: "Discuss if shows like Top Chef or Masterchef inspire people to cook.",
+    difficulty: 2,
+    followUps: [
+      "Regardes-tu ce genre d'émissions ?",
+      "Est-ce que cela te donne envie de cuisiner ?",
+      "Qu'est-ce qu'on y apprend ?"
+    ],
+    modelAnswer: "Oui, je trouve ces émissions très inspirantes car elles montrent que cuisiner est un art et une passion. On y apprend des techniques nouvelles et on découvre des ingrédients originaux. Cela donne envie de se mettre aux fourneaux et de tester ses propres recettes. Même si c'est parfois un peu trop dramatique pour la télé, cela encourage les gens à manger des produits frais et à être plus créatifs dans leur cuisine au quotidien.",
+    keyVocab: [
+      { fr: "inspirant(e)", en: "inspiring" },
+      { fr: "se mettre aux fourneaux", en: "to start cooking / get in the kitchen" },
+      { fr: "une recette", en: "a recipe" },
+      { fr: "dramatique", en: "dramatic" },
+      { fr: "technique", en: "technique" },
+      { fr: "au quotidien", en: "daily" }
+    ],
+  },
+  {
+    id: "foo_21",
+    topicKey: "food",
+    text: "Comment peut-on réduire le gaspillage alimentaire au niveau mondial ?",
+    hint: "Discuss solutions like better planning, donating leftovers, or buying 'ugly' fruit.",
+    difficulty: 3,
+    followUps: [
+      "Est-ce que tu jettes beaucoup de nourriture ?",
+      "Que fait ton supermarché avec les produits invendus ?",
+      "Pourquoi est-ce un problème grave ?"
+    ],
+    modelAnswer: "On peut réduire le gaspillage en planifiant mieux ses repas et en n'achetant que le nécessaire. Il faut aussi apprendre à utiliser les restes pour faire de nouveaux plats. Au niveau mondial, les supermarchés devraient donner les invendus à des associations caritatives plutôt que de les jeter. Le gaspillage est un scandale alors que des millions de gens ont faim. C'est aussi un désastre écologique car produire de la nourriture consomme énormément d'énergie et d'eau.",
+    keyVocab: [
+      { fr: "le gaspillage alimentaire", en: "food waste" },
+      { fr: "les restes", en: "leftovers" },
+      { fr: "une association caritative", en: "a charity" },
+      { fr: "un invendu", en: "unsold item" },
+      { fr: "planifier", en: "to plan" },
+      { fr: "un scandale", en: "a scandal" }
+    ],
+  },
+
+  // --- ENVIRONMENT (Final Polish) ---
+  {
+    id: "env_14",
+    topicKey: "environment",
+    text: "Est-ce que tu penses que la mode éthique est importante ?",
+    hint: "Discuss the impact of fast fashion on the environment and workers.",
+    difficulty: 2,
+    followUps: [
+      "Achètes-tu souvent des vêtements ?",
+      "Connais-tu les marques éthiques ?",
+      "Est-ce que c'est trop cher pour les jeunes ?"
+    ],
+    modelAnswer: "Oui, c'est primordial. La « fast fashion » est l'une des industries les plus polluantes au monde et les conditions de travail sont souvent affreuses. J'essaie d'acheter moins de vêtements et de choisir des marques plus responsables, ou même d'acheter d'occasion. C'est parfois plus cher, mais les vêtements durent plus longtemps. On doit tous réfléchir à l'impact de nos achats et privilégier la qualité plutôt que la quantité pour protéger notre planète.",
+    keyVocab: [
+      { fr: "mode éthique", en: "ethical fashion" },
+      { fr: "d'occasion", en: "second-hand" },
+      { fr: "affreux / affreuse", en: "awful / terrible" },
+      { fr: "durer", en: "to last" },
+      { fr: "un achat", en: "a purchase" },
+      { fr: "privilégier", en: "to favor / prioritize" }
+    ],
+  },
+  {
+    id: "env_15",
+    topicKey: "environment",
+    text: "Quel est l'impact du tourisme sur l'environnement ?",
+    hint: "Discuss flights, hotel waste, and the destruction of natural sites.",
+    difficulty: 3,
+    followUps: [
+      "Peut-on voyager de façon écologique ?",
+      "Faut-il limiter le nombre de touristes dans certains endroits ?",
+      "Est-ce que tu fais attention quand tu es en vacances ?"
+    ],
+    modelAnswer: "Le tourisme a un impact énorme, surtout à cause des vols qui rejettent beaucoup de CO2. De plus, les hôtels consomment énormément d'eau et produisent beaucoup de déchets. Le tourisme de masse peut aussi détruire des écosystèmes fragiles. Je pense qu'on devrait privilégier le tourisme local et durable, et respecter la nature quand on visite de nouveaux endroits. Voyager est magnifique, mais on ne doit pas le faire au détriment de l'environnement.",
+    keyVocab: [
+      { fr: "au détriment de", en: "at the expense of" },
+      { fr: "fragile", en: "fragile" },
+      { fr: "le CO2", en: "CO2" },
+      { fr: "durable", en: "sustainable" },
+      { fr: "le tourisme de masse", en: "mass tourism" },
+      { fr: "rejeter", en: "to emit / reject" }
+    ],
+  },
+  {
+    id: "env_16",
+    topicKey: "environment",
+    text: "Penses-tu que les énergies renouvelables sont la solution ?",
+    hint: "Discuss solar, wind, and hydraulic energy vs. fossil fuels.",
+    difficulty: 3,
+    followUps: [
+      "Y a-t-il des éoliennes dans ta région ?",
+      "Est-ce que c'est suffisant pour nos besoins ?",
+      "Pourquoi est-ce difficile de changer ?"
+    ],
+    modelAnswer: "Oui, les énergies renouvelables sont indispensables pour arrêter notre dépendance aux énergies fossiles. L'énergie solaire et éolienne sont des solutions propres et infinies. Dans ma région, on voit de plus en plus d'éoliennes et je trouve ça très positif. C'est un défi technologique et économique car on doit adapter tout notre système, mais c'est le seul moyen d'avoir un avenir durable et de lutter efficacement contre le réchauffement climatique.",
+    keyVocab: [
+      { fr: "énergies renouvelables", en: "renewable energies" },
+      { fr: "une éolienne", en: "a wind turbine" },
+      { fr: "fossile", en: "fossil" },
+      { fr: "la dépendance", en: "dependence" },
+      { fr: "propre", en: "clean" },
+      { fr: "efficacement", en: "effectively" }
+    ],
+  },
+  {
+    id: "env_17",
+    topicKey: "environment",
+    text: "Comment peut-on encourager les gens à recycler davantage ?",
+    hint: "Suggest ideas like better education, more bins, or financial incentives.",
+    difficulty: 2,
+    followUps: [
+      "Est-ce que tu recycles tout ce que tu peux ?",
+      "Le système de recyclage est-il clair dans ta ville ?",
+      "Faut-il punir ceux qui ne recyclent pas ?"
+    ],
+    modelAnswer: "On peut encourager les gens par l'éducation dès l'école primaire et en rendant le recyclage plus facile avec plus de poubelles de tri dans les rues. Certains pays utilisent un système de consigne pour les bouteilles, ce qui fonctionne très bien. Je pense que la sensibilisation est plus efficace que la punition, car les gens doivent comprendre l'intérêt du geste. Quand on sait que nos déchets peuvent avoir une seconde vie, on est plus motivé pour faire l'effort.",
+    keyVocab: [
+      { fr: "poubelle de tri", en: "sorting bin" },
+      { fr: "un système de consigne", en: "a deposit system" },
+      { fr: "la punition", en: "punishment" },
+      { fr: "seconde vie", en: "second life" },
+      { fr: "l'intérêt", en: "the interest / benefit" },
+      { fr: "davantage", en: "more" }
+    ],
+  },
+  {
+    id: "env_18",
+    topicKey: "environment",
+    text: "Si tu étais ministre de l'Environnement, quelle serait ta première mesure ?",
+    hint: "Use conditional to describe a bold environmental policy.",
+    difficulty: 3,
+    followUps: [
+      "Interdirais-tu les voitures en ville ?",
+      "Donnerais-tu plus d'argent pour la nature ?",
+      "Penses-tu que ce serait un métier difficile ?"
+    ],
+    modelAnswer: "Si j'étais ministre, ma première mesure serait de rendre les transports en commun totalement gratuits pour tout le monde afin de réduire massivement l'utilisation de la voiture. Je lancerais aussi un grand programme de reforestation nationale et je taxerais lourdement les entreprises les plus polluantes. Ce serait un métier très difficile à cause des pressions économiques, mais je serais déterminé(e) car l'urgence climatique est absolue. On doit agir avec courage pour l'avenir.",
+    keyVocab: [
+      { fr: "une mesure", en: "a measure" },
+      { fr: "taxer lourdement", en: "to tax heavily" },
+      { fr: "l'urgence climatique", en: "climate emergency" },
+      { fr: "une pression", en: "pressure" },
+      { fr: "massivement", en: "massively" },
+      { fr: "le courage", en: "courage" }
+    ],
+  },
+
+  // --- SCHOOL (Extended 2) ---
+  {
+    id: "sch_26",
+    topicKey: "school",
+    text: "Quelles sont les qualités d'un bon professeur selon toi ?",
+    hint: "Discuss the traits that make a teacher effective and inspiring.",
+    difficulty: 2,
+    followUps: [
+      "As-tu un professeur préféré ? Pourquoi ?",
+      "Est-ce qu'un professeur doit être strict ?",
+      "Comment un prof peut-il rendre sa matière plus intéressante ?"
+    ],
+    modelAnswer: "Selon moi, un bon professeur doit avant tout être passionné par sa matière et avoir beaucoup de patience. Il doit savoir expliquer les choses de façon claire et être à l'écoute de ses élèves. Un prof qui a le sens de l'humour est aussi très apprécié car cela rend le cours plus détendu. Pour moi, le plus important est qu'il nous encourage à donner le meilleur de nous-mêmes et qu'il nous donne envie d'apprendre.",
+    keyVocab: [
+      { fr: "à l'écoute", en: "attentive / a good listener" },
+      { fr: "le sens de l'humour", en: "sense of humour" },
+      { fr: "détendu(e)", en: "relaxed" },
+      { fr: "encourager", en: "to encourage" },
+      { fr: "donner le meilleur de soi", en: "to do one's best" },
+      { fr: "donner envie de", en: "to make someone want to" }
+    ],
+  },
+  {
+    id: "sch_27",
+    topicKey: "school",
+    text: "Que penses-tu de la triche aux examens ?",
+    hint: "Discuss the ethics of cheating and its consequences.",
+    difficulty: 3,
+    followUps: [
+      "Pourquoi certains élèves trichent-ils ?",
+      "Quelles sont les sanctions dans ton école ?",
+      "Est-ce que la triche aide vraiment à réussir dans la vie ?"
+    ],
+    modelAnswer: "Je pense que la triche est un problème grave car c'est injuste pour les élèves qui travaillent dur. Même si cela peut sembler une solution facile pour avoir de bonnes notes, cela ne permet pas d'acquérir de vraies connaissances. À long terme, c'est contre-productif car on finit par manquer de bases solides. Je crois que l'honnêteté est une valeur fondamentale et qu'il vaut mieux avoir une note moyenne honnêtement que de tricher.",
+    keyVocab: [
+      { fr: "la triche", en: "cheating" },
+      { fr: "injuste", en: "unfair" },
+      { fr: "acquérir", en: "to acquire" },
+      { fr: "contre-productif", en: "counter-productive" },
+      { fr: "manquer de", en: "to lack" },
+      { fr: "fondamental(e)", en: "fundamental" }
+    ],
+  },
+  {
+    id: "sch_28",
+    topicKey: "school",
+    text: "Est-ce que les compétitions sportives sont importantes à l'école ?",
+    hint: "Talk about school sports days and their impact on students.",
+    difficulty: 2,
+    followUps: [
+      "Participes-tu aux journées sportives de ton école ?",
+      "Qu'est-ce qu'on apprend grâce à la compétition ?",
+      "Est-ce que c'est trop stressant pour certains ?"
+    ],
+    modelAnswer: "Oui, je crois que les compétitions sportives sont essentielles car elles renforcent l'esprit d'équipe et apprennent la persévérance. C'est l'occasion de se dépasser physiquement et de représenter fièrement son école. On apprend aussi à gérer la victoire avec modestie et la défaite avec dignité. Même pour ceux qui ne sont pas très sportifs, c'est une journée festive qui crée de bons souvenirs et encourage un mode de vie sain.",
+    keyVocab: [
+      { fr: "esprit d'équipe", en: "team spirit" },
+      { fr: "se dépasser", en: "to go beyond one's limits" },
+      { fr: "fièrement", en: "proudly" },
+      { fr: "gérer", en: "to manage / handle" },
+      { fr: "la victoire / la défaite", en: "victory / defeat" },
+      { fr: "festif / festive", en: "festive" }
+    ],
+  },
+  {
+    id: "sch_29",
+    topicKey: "school",
+    text: "L'école devrait-elle commencer plus tard le matin ?",
+    hint: "Discuss the benefits and drawbacks of a later start time for students.",
+    difficulty: 2,
+    followUps: [
+      "À quelle heure commences-tu d'habitude ?",
+      "Serais-tu plus concentré(e) si tu dormais plus ?",
+      "Est-ce que cela finirait trop tard l'après-midi ?"
+    ],
+    modelAnswer: "À mon avis, commencer une heure plus tard serait très bénéfique pour les adolescents. Les études montrent que les jeunes ont besoin de plus de sommeil pour être attentifs et performants. Si on commençait à neuf heures au lieu de huit heures, on serait moins fatigués et plus productifs en classe. Par contre, cela signifierait finir plus tard le soir, ce qui laisserait moins de temps pour les devoirs et les loisirs. C'est un dilemme difficile.",
+    keyVocab: [
+      { fr: "bénéfique", en: "beneficial" },
+      { fr: "le sommeil", en: "sleep" },
+      { fr: "performant(e)", en: "efficient / successful" },
+      { fr: "signifier", en: "to mean" },
+      { fr: "productif / productive", en: "productive" },
+      { fr: "un dilemme", en: "a dilemma" }
+    ],
+  },
+
+  // --- HOBBIES (Extended 2) ---
+  {
+    id: "hob_24",
+    topicKey: "hobbies",
+    text: "Considères-tu les réseaux sociaux comme un passe-temps ?",
+    hint: "Discuss your use of TikTok, Instagram, etc., as a leisure activity.",
+    difficulty: 2,
+    followUps: [
+      "Combien de temps passes-tu sur ton téléphone ?",
+      "Qu'est-ce que tu aimes regarder sur les réseaux ?",
+      "Est-ce que c'est une perte de temps selon toi ?"
+    ],
+    modelAnswer: "Oui, pour beaucoup de jeunes, scroller sur les réseaux sociaux est devenu le passe-temps principal. C'est un moyen de se détendre, de s'informer et de rester en contact avec ses amis. Personnellement, j'aime bien regarder des vidéos de cuisine ou des tutoriels de dessin. Cependant, il faut faire attention à ne pas y passer trop d'heures car cela peut vite devenir addictif et nous empêcher de faire des activités plus productives ou physiques.",
+    keyVocab: [
+      { fr: "scroller", en: "to scroll" },
+      { fr: "s'informer", en: "to keep oneself informed" },
+      { fr: "rester en contact", en: "to stay in touch" },
+      { fr: "un tutoriel", en: "a tutorial" },
+      { fr: "addictif / addictive", en: "addictive" },
+      { fr: "empêcher de", en: "to prevent from" }
+    ],
+  },
+  {
+    id: "hob_25",
+    topicKey: "hobbies",
+    text: "Aimes-tu bricoler ou faire du bricolage ?",
+    hint: "Talk about making things, crafts, or DIY projects.",
+    difficulty: 2,
+    followUps: [
+      "Qu'as-tu fabriqué récemment ?",
+      "Préfères-tu acheter ou fabriquer tes objets ?",
+      "Est-ce que tu es habile de tes mains ?"
+    ],
+    modelAnswer: "J'adore faire du bricolage car je trouve ça très gratifiant de créer quelque chose de ses propres mains. Récemment, j'ai fabriqué un cadre photo en bois pour l'anniversaire de ma mère. J'aime aussi personnaliser mes vêtements ou réparer des objets cassés. Cela demande de la patience et de la précision, mais c'est une excellente façon d'exprimer sa créativité et de se sentir fier du résultat final. C'est aussi plus écologique que d'acheter du neuf.",
+    keyVocab: [
+      { fr: "le bricolage / bricoler", en: "DIY / to do DIY" },
+      { fr: "gratifiant(e)", en: "rewarding / gratifying" },
+      { fr: "un cadre", en: "a frame" },
+      { fr: "habile", en: "skillful / handy" },
+      { fr: "du neuf", en: "new things" },
+      { fr: "le résultat final", en: "the final result" }
+    ],
+  },
+  {
+    id: "hob_26",
+    topicKey: "hobbies",
+    text: "Aimerais-tu essayer un sport extrême un jour ?",
+    hint: "Discuss activities like skydiving, bungee jumping, or rock climbing.",
+    difficulty: 2,
+    followUps: [
+      "Quel sport extrême te tente le plus ?",
+      "As-tu peur du vide ou du danger ?",
+      "Est-ce que c'est trop risqué selon toi ?"
+    ],
+    modelAnswer: "Je serais très tenté(e) par le saut en parachute car j'ai toujours rêvé de voler. J'aime les sensations fortes et l'adrénaline. Bien sûr, j'aurais un peu peur avant de sauter, mais je pense que l'expérience serait inoubliable. Par contre, certains sports comme l'escalade sans corde me semblent beaucoup trop dangereux. Il faut savoir faire la part des choses entre le défi personnel et le risque inutile pour sa vie.",
+    keyVocab: [
+      { fr: "le saut en parachute", en: "skydiving" },
+      { fr: "sensations fortes", en: "thrills" },
+      { fr: "le vide", en: "heights / the void" },
+      { fr: "tenter", en: "to tempt / try" },
+      { fr: "risqué", en: "risky" },
+      { fr: "faire la part des choses", en: "to find a balance / put things into perspective" }
+    ],
+  },
+  {
+    id: "hob_27",
+    topicKey: "hobbies",
+    text: "Tu préfères regarder le sport à la télé ou le pratiquer ?",
+    hint: "Contrast watching matches with participating in physical activities.",
+    difficulty: 2,
+    followUps: [
+      "Quel sport aimes-tu regarder ?",
+      "Est-ce que l'ambiance au stade est meilleure ?",
+      "Pourquoi est-il important de rester actif ?"
+    ],
+    modelAnswer: "Sans hésiter, je préfère pratiquer le sport. C'est bien plus gratifiant de faire l'effort soi-même et de sentir son corps progresser. J'aime l'action et l'interaction avec mes coéquipiers. Regarder le sport à la télé est sympa pour les grands événements comme la Coupe du Monde, mais je trouve que c'est parfois un peu passif. Rien ne remplace l'adrénaline du terrain et le plaisir de marquer un point par ses propres moyens.",
+    keyVocab: [
+      { fr: "sans hésiter", en: "without hesitation" },
+      { fr: "pratiquer", en: "to practice / do" },
+      { fr: "un coéquipier", en: "a teammate" },
+      { fr: "passif / passive", en: "passive" },
+      { fr: "rien ne remplace", en: "nothing replaces" },
+      { fr: "marquer un point", en: "to score a point" }
+    ],
+  },
+
+  // --- FAMILY (Extended 2) ---
+  {
+    id: "fam_23",
+    topicKey: "family",
+    text: "Quelle place occupent les animaux domestiques dans ta famille ?",
+    hint: "Talk about your pets and how they are treated like family members.",
+    difficulty: 1,
+    followUps: [
+      "As-tu un chien ou un chat ?",
+      "Qui s'occupe de l'animal à la maison ?",
+      "Penses-tu qu'un animal aide à être plus responsable ?"
+    ],
+    modelAnswer: "Dans ma famille, notre chien Max est considéré comme un membre à part entière. Il apporte beaucoup de joie et de réconfort à tout le monde. Je m'occupe de le promener tous les soirs et de lui donner à manger. Je pense qu'avoir un animal est excellent pour les jeunes car cela nous apprend la responsabilité et l'empathie. C'est une présence fidèle qui rend la maison beaucoup plus vivante et chaleureuse.",
+    keyVocab: [
+      { fr: "un membre à part entière", en: "a full-fledged member" },
+      { fr: "le réconfort", en: "comfort / solace" },
+      { fr: "promener", en: "to walk (an animal)" },
+      { fr: "fidèle", en: "loyal / faithful" },
+      { fr: "vivant(e)", en: "lively" },
+      { fr: "chaleureux / chaleureuse", en: "warm / cozy" }
+    ],
+  },
+  {
+    id: "fam_24",
+    topicKey: "family",
+    text: "Comment sont les règles et la discipline chez toi ?",
+    hint: "Discuss house rules, punishments, and how your parents maintain order.",
+    difficulty: 2,
+    followUps: [
+      "Quelles sont les règles les plus importantes ?",
+      "Est-ce que tes parents sont sévères ?",
+      "Y a-v-il des conséquences si tu ne respectes pas les règles ?"
+    ],
+    modelAnswer: "Chez moi, les règles sont assez claires mais justes. Les plus importantes concernent l'heure du coucher et le temps passé sur les écrans. Mes parents ne sont pas extrêmement sévères, mais ils insistent sur le respect mutuel et l'honnêteté. Si je ne respecte pas un engagement, je peux être privé de sortie le week-end. Je pense que c'est nécessaire pour avoir une bonne ambiance et pour nous apprendre à être disciplinés et responsables.",
+    keyVocab: [
+      { fr: "la discipline", en: "discipline" },
+      { fr: "sévère", en: "strict / severe" },
+      { fr: "un engagement", en: "a commitment / promise" },
+      { fr: "privé(e) de", en: "deprived of / banned from" },
+      { fr: "juste", en: "fair" },
+      { fr: "mutuel(le)", en: "mutual" }
+    ],
+  },
+  {
+    id: "fam_25",
+    topicKey: "family",
+    text: "Penses-tu que ce sera difficile de quitter ta famille pour l'université ?",
+    hint: "Discuss the emotional and practical aspects of moving away from home.",
+    difficulty: 3,
+    followUps: [
+      "Aimerais-tu étudier loin de chez toi ?",
+      "Qu'est-ce qui te manquerait le plus ?",
+      "Es-tu prêt(e) à être indépendant(e) ?"
+    ],
+    modelAnswer: "Je pense que ce sera un mélange d'excitation et d'appréhension. D'un côté, j'ai hâte de découvrir l'indépendance et de vivre de nouvelles aventures. D'un autre côté, le confort de la maison et les repas de mes parents me manqueront énormément. Je devrai apprendre à tout gérer seul(e) : la cuisine, le ménage et mon budget. Ce sera un grand défi, mais c'est une étape indispensable pour grandir et devenir un adulte autonome.",
+    keyVocab: [
+      { fr: "l'appréhension", en: "apprehension / fear" },
+      { fr: "l'indépendance", en: "independence" },
+      { fr: "hâte de", en: "can't wait to" },
+      { fr: "gérer", en: "to manage" },
+      { fr: "indispensable", en: "essential / indispensable" },
+      { fr: "autonome", en: "self-sufficient / autonomous" }
+    ],
+  },
+  {
+    id: "fam_26",
+    topicKey: "family",
+    text: "Qu'est-ce que tu penses du fossé des générations ?",
+    hint: "Discuss the differences in ideas and values between young people and older relatives.",
+    difficulty: 3,
+    followUps: [
+      "Comprends-tu toujours tes grands-parents ?",
+      "Sur quels sujets êtes-vous en désaccord ?",
+      "Est-ce que la technologie accentue ce fossé ?"
+    ],
+    modelAnswer: "Je crois que le fossé des générations est réel, surtout à cause de la rapidité des changements technologiques. Mes grands-parents ont parfois du mal à comprendre l'importance des réseaux sociaux ou de l'IA dans nos vies. Sur certains sujets sociaux, nos valeurs peuvent aussi diverger. Cependant, je pense qu'on peut beaucoup apprendre les uns des autres : nous leur apportons la modernité et ils nous transmettent leur sagesse et leur expérience. Le dialogue est la clé.",
+    keyVocab: [
+      { fr: "le fossé des générations", en: "generation gap" },
+      { fr: "diverger", en: "to differ / diverge" },
+      { fr: "transmettre", en: "to pass on / transmit" },
+      { fr: "la sagesse", en: "wisdom" },
+      { fr: "réel(le)", en: "real" },
+      { fr: "accentuer", en: "to emphasize / accentuate" }
+    ],
+  },
+
+  // --- HOLIDAYS (Extended 2) ---
+  {
+    id: "hol_23",
+    topicKey: "holidays",
+    text: "Tu préfères voyager seul(e) ou avec d'autres personnes ? Pourquoi ?",
+    hint: "Contrast solo travel with group or family trips.",
+    difficulty: 2,
+    followUps: [
+      "Quels sont les avantages de voyager en groupe ?",
+      "Est-ce que voyager seul est dangereux ?",
+      "Avec qui aimes-tu le plus partir ?"
+    ],
+    modelAnswer: "Pour l'instant, je préfère voyager avec mes amis ou ma famille car c'est plus convivial et rassurant. On peut partager les frais, les souvenirs et s'entraider en cas de problème. Voyager seul peut être une expérience très formatrice car on a une liberté totale, mais cela peut aussi être un peu solitaire. Je pense qu'un jour j'essaierai un voyage en solo pour me découvrir moi-même, mais pour de vraies vacances, je préfère la compagnie de mes proches.",
+    keyVocab: [
+      { fr: "convivial(e)", en: "friendly / sociable" },
+      { fr: "les frais", en: "costs / expenses" },
+      { fr: "s'entraider", en: "to help each other" },
+      { fr: "formateur / formatrice", en: "character-building / educational" },
+      { fr: "solitaire", en: "lonely / solitary" },
+      { fr: "rassurant(e)", en: "reassuring" }
+    ],
+  },
+  {
+    id: "hol_24",
+    topicKey: "holidays",
+    text: "Comment est-ce que tu planifies tes vacances ?",
+    hint: "Talk about booking, research, and organizing your trips.",
+    difficulty: 2,
+    followUps: [
+      "Utilises-tu des sites internet ou des agences de voyage ?",
+      "Préfères-tu tout organiser à l'avance ou improviser ?",
+      "Qui décide de la destination finale ?"
+    ],
+    modelAnswer: "Je passe beaucoup de temps sur internet à lire des blogs et à regarder des vidéos sur YouTube pour trouver les meilleures destinations. J'utilise des sites comme Booking ou Airbnb pour réserver le logement. Je préfère organiser les grandes lignes à l'avance — comme les vols et l'hôtel — mais je laisse toujours une place à l'improvisation une fois sur place. En général, on discute tous ensemble en famille pour choisir le lieu final afin que tout le monde soit content.",
+    keyVocab: [
+      { fr: "planifier", en: "to plan" },
+      { fr: "réserver", en: "to book" },
+      { fr: "le logement", en: "accommodation" },
+      { fr: "les grandes lignes", en: "the main points / outline" },
+      { fr: "l'improvisation", en: "improvisation" },
+      { fr: "sur place", en: "there / on the spot" }
+    ],
+  },
+  {
+    id: "hol_25",
+    topicKey: "holidays",
+    text: "Est-ce que tu achètes souvent des souvenirs quand tu es en vacances ?",
+    hint: "Discuss what items you bring back and why they are important.",
+    difficulty: 1,
+    followUps: [
+      "Quel est ton souvenir préféré ?",
+      "Achètes-tu des cadeaux pour tes amis ?",
+      "Est-ce que c'est un gaspillage d'argent selon toi ?"
+    ],
+    modelAnswer: "Oui, j'adore ramener des petits objets qui me rappellent le voyage, comme des magnets pour le frigo ou des cartes postales. J'achète aussi souvent des spécialités locales pour mes amis. Mon souvenir préféré est un petit bracelet que j'ai acheté sur un marché en Grèce. Je ne pense pas que ce soit un gaspillage d'argent si l'objet a une valeur sentimentale. C'est une façon de prolonger le plaisir du voyage une fois rentré à la maison.",
+    keyVocab: [
+      { fr: "ramener", en: "to bring back" },
+      { fr: "un magnet", en: "a magnet" },
+      { fr: "une spécialité locale", en: "a local specialty" },
+      { fr: "valeur sentimentale", en: "sentimental value" },
+      { fr: "prolonger", en: "to prolong / extend" },
+      { fr: "un souvenir", en: "a souvenir / memory" }
+    ],
+  },
+  {
+    id: "hol_26",
+    topicKey: "holidays",
+    text: "Aimes-tu rendre visite à ta famille qui habite à l'étranger ?",
+    hint: "Talk about trips to see relatives in other countries.",
+    difficulty: 2,
+    followUps: [
+      "Où habite ta famille à l'étranger ?",
+      "Est-ce que tu y vas souvent ?",
+      "Est-ce que c'est différent de vraies vacances ?"
+    ],
+    modelAnswer: "Oui, j'aime beaucoup aller voir mes cousins qui habitent en Espagne. C'est l'occasion de passer du temps ensemble et de découvrir leur mode de vie quotidien. C'est un peu différent de vraies vacances car on ne loge pas à l'hôtel et on ne fait pas toujours des activités de touristes. On partage des repas en famille et on discute beaucoup. Pour moi, es'est très important de garder ces liens familiaux malgré la distance géographique.",
+    keyVocab: [
+      { fr: "rendre visite à", en: "to visit (a person)" },
+      { fr: "étranger", en: "foreign country / abroad" },
+      { fr: "quotidien(ne)", en: "daily" },
+      { fr: "garder les liens", en: "to keep in touch / maintain bonds" },
+      { fr: "la distance", en: "distance" },
+      { fr: "malgré", en: "despite" }
+    ],
+  },
+
+  // --- HOME (Extended 2) ---
+  {
+    id: "hom_21",
+    topicKey: "home",
+    text: "Comment sont réparties les tâches ménagères chez toi ?",
+    hint: "Discuss who does the cooking, cleaning, laundry, etc.",
+    difficulty: 2,
+    followUps: [
+      "Quelles tâches fais-tu toi-même ?",
+      "Penses-tu que la répartition est juste ?",
+      "Tes parents te paient-ils pour aider ?"
+    ],
+    modelAnswer: "Chez moi, on essaie de se partager les tâches de façon équitable. Ma mère s'occupe souvent de la cuisine et mon père du bricolage et du jardin. Personnellement, je dois ranger ma chambre, mettre la table et vider le lave-vaisselle. Je ne suis pas payé(e) pour le faire car je pense que c'est normal de contribuer à la vie de la maison. Je crois que la répartition est assez juste, même si je n'aime pas trop faire le ménage !",
+    keyVocab: [
+      { fr: "répartir / la répartition", en: "to distribute / distribution" },
+      { fr: "équitable", en: "fair / equal" },
+      { fr: "le lave-vaisselle", en: "dishwasher" },
+      { fr: "contribuer", en: "to contribute" },
+      { fr: "le ménage", en: "housework / cleaning" },
+      { fr: "juste", en: "fair" }
+    ],
+  },
+  {
+    id: "hom_22",
+    topicKey: "home",
+    text: "Décris ta maison idéale.",
+    hint: "Use the conditional to talk about your dream home.",
+    difficulty: 2,
+    followUps: [
+      "Où se trouverait cette maison ?",
+      "Combien de pièces y aurait-il ?",
+      "Y aurait-il une piscine ou un grand jardin ?"
+    ],
+    modelAnswer: "Ma maison idéale se trouverait au bord de l'océan, avec une vue magnifique sur la mer. Ce serait une villa moderne et lumineuse avec de grandes baies vitrées. Il y aurait au moins cinq chambres, un home-cinéma et, bien sûr, une piscine à débordement. Le jardin serait rempli de plantes exotiques et de hamacs pour se détendre. Ce serait un véritable havre de paix où je pourrais inviter tous mes amis et ma famille.",
+    keyVocab: [
+      { fr: "une baie vitrée", en: "a large glass door / window" },
+      { fr: "une piscine à débordement", en: "infinity pool" },
+      { fr: "exotique", en: "exotic" },
+      { fr: "un hamac", en: "a hammock" },
+      { fr: "un havre de paix", en: "a haven of peace" },
+      { fr: "lumineux / lumineuse", en: "bright / light" }
+    ],
+  },
+  {
+    id: "hom_23",
+    topicKey: "home",
+    text: "Préfères-tu vivre dans un appartement ou dans une maison ?",
+    hint: "Contrast living in a flat/apartment with a detached/semi-detached house.",
+    difficulty: 2,
+    followUps: [
+      "Quels sont les avantages d'un appartement ?",
+      "Pourquoi les gens préfèrent-ils les maisons ?",
+      "Et toi, où habites-tu actuellement ?"
+    ],
+    modelAnswer: "Je préfère nettement vivre dans une maison car on a plus d'espace et souvent un jardin privé. On n'a pas non plus de voisins directement au-dessus ou en dessous, donc c'est plus calme. Cependant, vivre dans un appartement en centre-ville est très pratique car tout est à proximité : les magasins, les transports et les loisirs. Actuellement, j'habite dans une maison de banlieue et j'apprécie beaucoup la tranquillité du quartier.",
+    keyVocab: [
+      { fr: "nettement", en: "clearly / much" },
+      { fr: "privé(e)", en: "private" },
+      { fr: "à proximité", en: "nearby" },
+      { fr: "banlieue", en: "suburbs" },
+      { fr: "tranquillité", en: "peace / quiet" },
+      { fr: "actuellement", en: "currently" }
+    ],
+  },
+  {
+    id: "hom_24",
+    topicKey: "home",
+    text: "Y a-t-il des marchés locaux dans ton quartier ?",
+    hint: "Talk about open-air markets and what they sell.",
+    difficulty: 1,
+    followUps: [
+      "À quelle fréquence y vas-tu ?",
+      "Préfères-tu le marché ou le supermarché ?",
+      "Qu'est-ce qu'on peut y acheter de spécial ?"
+    ],
+    modelAnswer: "Oui, il y a un marché fermier tous les samedis matins sur la place principale. J'adore l'ambiance : c'est très vivant et coloré. On y trouve des fruits et légumes frais, du fromage artisanal et parfois des fleurs. Je préfère le marché au supermarché car les produits sont de meilleure qualité et on peut discuter directement avec les producteurs. C'est un moment convivial qui permet de soutenir l'économie locale.",
+    keyVocab: [
+      { fr: "un marché fermier", en: "a farmers' market" },
+      { fr: "artisanal(e)", en: "artisanal / handcrafted" },
+      { fr: "frais / fraîche", en: "fresh" },
+      { fr: "un producteur", en: "a producer / farmer" },
+      { fr: "vivant(e)", en: "lively / vibrant" },
+      { fr: "soutenir", en: "to support" }
+    ],
+  },
+
+  // --- FUTURE (Extended 2) ---
+  {
+    id: "fut_20",
+    topicKey: "future",
+    text: "Que penses-tu du mariage ? Est-ce important pour toi ?",
+    hint: "Discuss your views on traditional marriage vs. other forms of commitment.",
+    difficulty: 2,
+    followUps: [
+      "Veux-tu te marier un jour ?",
+      "Penses-tu que c'est une institution démodée ?",
+      "Qu'est-ce qui est le plus important pour un couple heureux ?"
+    ],
+    modelAnswer: "Je pense que le mariage est une belle tradition qui symbolise l'engagement envers une personne. Pour moi, c'est important car cela crée une base solide pour fonder une famille. Cependant, je respecte tout à fait ceux qui préfèrent vivre ensemble sans se marier officiellement. Je ne crois pas que ce soit démodé, mais c'est devenu un choix personnel plutôt qu'une obligation sociale. Le plus important est le respect et la communication.",
+    keyVocab: [
+      { fr: "le mariage", en: "marriage" },
+      { fr: "l'engagement", en: "commitment" },
+      { fr: "démodé(e)", en: "old-fashioned" },
+      { fr: "officiellement", en: "officially" },
+      { fr: "une obligation", en: "an obligation" },
+      { fr: "symboliser", en: "to symbolize" }
+    ],
+  },
+  {
+    id: "fut_21",
+    topicKey: "future",
+    text: "Penses-tu que les humains habiteront sur d'autres planètes ?",
+    hint: "Discuss space colonization and living on Mars or the Moon.",
+    difficulty: 3,
+    followUps: [
+      "Aimerais-tu vivre sur Mars ?",
+      "Quels seraient les plus grands défis ?",
+      "Est-ce une solution aux problèmes de la Terre ?"
+    ],
+    modelAnswer: "Je pense que c'est une possibilité fascinante, mais pas pour un futur proche. La technologie progresse vite, mais les défis sont énormes : le manque d'air, d'eau et les radiations extrêmes. Personnellement, je n'aimerais pas vivre sur Mars car le confort et la nature de la Terre me manqueraient trop. Je crois qu'on devrait d'abord se concentrer sur la protection de notre propre planète plutôt que de chercher à s'enfuir ailleurs.",
+    keyVocab: [
+      { fr: "fascinant(e)", en: "fascinating" },
+      { fr: "futur proche", en: "near future" },
+      { fr: "les radiations", en: "radiation" },
+      { fr: "s'enfuir", en: "to flee / escape" },
+      { fr: "ailleurs", en: "elsewhere" },
+      { fr: "le manque de", en: "the lack of" }
+    ],
+  },
+  {
+    id: "fut_22",
+    topicKey: "future",
+    text: "Est-ce que tu penses changer de carrière plusieurs fois dans ta vie ?",
+    hint: "Discuss the modern idea of career mobility vs. having one job for life.",
+    difficulty: 3,
+    followUps: [
+      "Est-ce que c'est stressant de changer de métier ?",
+      "Quels sont les avantages de la polyvalence ?",
+      "Est-ce difficile d'apprendre de nouvelles choses à 40 ans ?"
+    ],
+    modelAnswer: "Oui, je crois que c'est la réalité du monde du travail aujourd'hui. Il est rare de garder le même emploi pendant quarante ans. Je trouve que c'est une opportunité de se renouveler et de ne pas s'ennuyer. La polyvalence est une grande qualité car elle permet de s'adapter à différentes situations. Bien sûr, cela demande de se former tout au long de sa vie, mais c'est stimulant intellectuellement et cela permet d'avoir des expériences variées.",
+    keyVocab: [
+      { fr: "changer de carrière", en: "to change career" },
+      { fr: "se renouveler", en: "to reinvent oneself" },
+      { fr: "la polyvalence", en: "versatility" },
+      { fr: "stimulant(e)", en: "stimulating" },
+      { fr: "se former", en: "to train / educate oneself" },
+      { fr: "rare", en: "rare" }
+    ],
+  },
+  {
+    id: "fut_23",
+    topicKey: "future",
+    text: "Comment imagines-tu ta retraite ?",
+    hint: "Talk about your plans for your late years (travel, relaxation, hobbies).",
+    difficulty: 2,
+    followUps: [
+      "À quel âge aimerais-tu t'arrêter de travailler ?",
+      "Où habiterais-tu ?",
+      "Quelles activités ferais-tu ?"
+    ],
+    modelAnswer: "J'imagine ma retraite comme un moment de liberté totale pour voyager et profiter de mes passions. J'aimerais habiter dans une petite maison au bord de la mer et passer mes journées à jardiner, lire et cuisiner de bons repas pour ma famille. J'aimerais aussi faire du bénévolat pour rester actif socialement. Pour moi, la retraite n'est pas la fin de tout, mais le début d'une nouvelle étape de vie plus paisible et sereine.",
+    keyVocab: [
+      { fr: "la retraite", en: "retirement" },
+      { fr: "jardiner", en: "to garden" },
+      { fr: "paisible", en: "peaceful" },
+      { fr: "serein(e)", en: "serene / calm" },
+      { fr: "le début", en: "the beginning" },
+      { fr: "profiter de", en: "to enjoy / make the most of" }
+    ],
+  },
+
+  // --- FOOD (Extended 2) ---
+  {
+    id: "foo_22",
+    topicKey: "food",
+    text: "Tu préfères le fast-food ou les repas faits maison ?",
+    hint: "Compare quick takeaway food with home-cooked meals.",
+    difficulty: 1,
+    followUps: [
+      "Pourquoi le fast-food est-il si populaire ?",
+      "Est-ce que tu sais cuisiner ?",
+      "Lequel est meilleur pour la santé ?"
+    ],
+    modelAnswer: "Je préfère nettement les repas faits maison car ils ont plus de goût et on sait exactement quels ingrédients sont utilisés. C'est beaucoup plus sain et équilibré. Le fast-food est sympa de temps en temps pour dépanner car c'est rapide et pas cher, mais c'est souvent trop gras et trop salé. J'aime bien aider mes parents en cuisine et apprendre de nouvelles recettes ; c'est un moment convivial et créatif.",
+    keyVocab: [
+      { fr: "fait maison", en: "home-made" },
+      { fr: "de temps en temps", en: "from time to time" },
+      { fr: "dépanner", en: "to help out / as a backup" },
+      { fr: "trop gras / trop salé", en: "too fatty / too salty" },
+      { fr: "une recette", en: "a recipe" },
+      { fr: "équilibré(e)", en: "balanced" }
+    ],
+  },
+  {
+    id: "foo_23",
+    topicKey: "food",
+    text: "Quelle est l'importance du café et du thé dans ta culture ?",
+    hint: "Discuss beverage culture and social habits around coffee/tea.",
+    difficulty: 2,
+    followUps: [
+      "Que bois-tu le matin ?",
+      "Est-ce que c'est une occasion de se retrouver ?",
+      "Lequel préfères-tu ?"
+    ],
+    modelAnswer: "Le café et le thé sont des éléments essentiels de la vie sociale. C'est souvent l'excuse parfaite pour se retrouver entre amis ou en famille et discuter. Le matin, beaucoup de gens ne peuvent pas commencer leur journée sans un café bien fort. Personnellement, je préfère le thé l'après-midi car je trouve ça plus relaxant. C'est un rituel quotidien qui permet de faire une pause dans une journée bien remplie.",
+    keyVocab: [
+      { fr: "bien fort", en: "strong (coffee)" },
+      { fr: "se retrouver", en: "to meet up" },
+      { fr: "un rituel", en: "a ritual" },
+      { fr: "bien remplie", en: "busy / full" },
+      { fr: "quotidien(ne)", en: "daily" },
+      { fr: "relaxant(e)", en: "relaxing" }
+    ],
+  },
+  {
+    id: "foo_24",
+    topicKey: "food",
+    text: "Comment est-ce que tes habitudes alimentaires ont changé ?",
+    hint: "Compare what you ate as a child with your diet now.",
+    difficulty: 2,
+    followUps: [
+      "Mangeais-tu plus de bonbons avant ?",
+      "Es-tu devenu(e) plus difficile ou plus ouvert(e) ?",
+      "Pourquoi manges-tu différemment maintenant ?"
+    ],
+    modelAnswer: "Quand j'étais petit(e), je ne voulais manger que des pâtes et des nuggets de poulet ! J'avais horreur des légumes verts. Aujourd'hui, je suis beaucoup plus ouvert(e) et j'adore tester des saveurs exotiques comme la cuisine thaïlandaise ou libanaise. J'essaie aussi de manger plus sainement car j'ai compris que l'alimentation a un impact direct sur mon énergie et ma santé. Je fais plus attention à la qualité des produits.",
+    keyVocab: [
+      { fr: "habitudes alimentaires", en: "eating habits" },
+      { fr: "avoir horreur de", en: "to hate / loathe" },
+      { fr: "saveurs", en: "flavors" },
+      { fr: "differemment", en: "differently" },
+      { fr: "exotique", en: "exotic" },
+      { fr: "un impact", en: "an impact" }
+    ],
+  },
+
+  // --- ENVIRONMENT (Extended 2) ---
+  {
+    id: "env_19",
+    topicKey: "environment",
+    text: "Pourquoi est-il crucial de protéger les océans ?",
+    hint: "Discuss plastic pollution, marine life, and the role of oceans in the climate.",
+    difficulty: 3,
+    followUps: [
+      "Quelles sont les plus grandes menaces ?",
+      "Que peut-on faire individuellement ?",
+      "Est-ce que tu avez déjà vu une plage polluée ?"
+    ],
+    modelAnswer: "Les océans sont les poumons de la planète car ils produisent une grande partie de l'oxygène. Il est crucial de les protéger contre la pollution plastique et le réchauffement des eaux qui détruit les coraux. Individuellement, on peut réduire notre consommation de plastique à usage unique et faire attention à ne rien jeter sur les plages. Si les océans meurent, c'est tout l'écosystème terrestre qui sera menacé de disparition.",
+    keyVocab: [
+      { fr: "les poumons de la planète", en: "the lungs of the planet" },
+      { fr: "oxygène", en: "oxygen" },
+      { fr: "coraux", en: "corals" },
+      { fr: "à usage unique", en: "single-use" },
+      { fr: "terrestre", en: "terrestrial / on land" },
+      { fr: "menacé de disparition", en: "threatened with extinction" }
+    ],
+  },
+  {
+    id: "env_20",
+    topicKey: "environment",
+    text: "Que penses-tu du verdissement urbain ?",
+    hint: "Discuss planting more trees and parks in cities.",
+    difficulty: 2,
+    followUps: [
+      "Y a-t-il assez de parcs dans ta ville ?",
+      "Quels sont les avantages des arbres en ville ?",
+      "Aimerais-tu avoir un jardin sur ton toit ?"
+    ],
+    modelAnswer: "Je pense que c'est une nécessité absolue pour rendre nos villes vivables. Planter plus d'arbres permet de réduire la pollution de l'air et de créer des îlots de fraîcheur pendant les canicules. C'est aussi très bon pour le moral des habitants d'avoir accès à des espaces verts. J'adorerais que ma ville installe plus de jardins partagés et de murs végétalisés ; cela rendrait le paysage urbain beaucoup plus beau et agréable au quotidien.",
+    keyVocab: [
+      { fr: "verdissement urbain", en: "urban greening" },
+      { fr: "îlot de fraîcheur", en: "cooling island" },
+      { fr: "canicule", en: "heatwave" },
+      { fr: "végétalisé", en: "covered in plants" },
+      { fr: "vivable", en: "livable" },
+      { fr: "au quotidien", en: "daily" }
+    ],
+  },
+  {
+    id: "env_21",
+    topicKey: "environment",
+    text: "Comment essaies-tu de réduire ton empreinte carbone ?",
+    hint: "Talk about your personal actions like transport, diet, and consumption.",
+    difficulty: 3,
+    followUps: [
+      "Utilises-tu moins la voiture ?",
+      "Manges-tu moins de viande ?",
+      "Achètes-tu moins de choses neuves ?"
+    ],
+    modelAnswer: "J'essaie de faire de petits gestes chaque jour. Par exemple, je me déplace au maximum à vélo ou à pied au lieu de prendre la voiture. J'ai aussi réduit ma consommation de viande car l'élevage industriel pollue énormément. Enfin, j'évite de commander trop de choses en ligne pour limiter les emballages et le transport. Je crois que si tout le monde faisait un petit effort, on pourrait vraiment ralentir le changement climatique ensemble.",
+    keyVocab: [
+      { fr: "empreinte carbone", en: "carbon footprint" },
+      { fr: "se déplacer", en: "to get around / travel" },
+      { fr: "au maximum", en: "as much as possible" },
+      { fr: "l'élevage industriel", en: "factory farming" },
+      { fr: "ralentir", en: "to slow down" },
+      { fr: "un petit geste", en: "a small action / gesture" }
+    ],
+  },
+  {
+    id: "sch_30",
+    topicKey: "school",
+    text: "Préfères-tu être interne ou externe à l'école ?",
+    hint: "Discuss the pros and cons of being a boarding student vs. a day student.",
+    difficulty: 2,
+    followUps: [
+      "Quels sont les avantages de vivre à l'école ?",
+      "Est-ce que ta famille te manquerait si tu étais interne ?",
+      "Penses-tu que l'internat aide à devenir plus indépendant ?"
+    ],
+    modelAnswer: "Je préfère être externe car j'aime retrouver le confort de ma maison et passer du temps avec ma famille après les cours. Cependant, je comprends que l'internat puisse être bénéfique pour se concentrer sur ses études et se faire des amis proches. À mon avis, être externe permet de garder un meilleur équilibre entre la vie scolaire et la vie personnelle.",
+    keyVocab: [
+      { fr: "interne", en: "boarding student" },
+      { fr: "externe", en: "day student" },
+      { fr: "l'internat", en: "boarding school" },
+      { fr: "le confort", en: "comfort" },
+      { fr: "indépendant(e)", en: "independent" },
+      { fr: "se concentrer", en: "to concentrate" }
+    ],
+  },
+  {
+    id: "sch_31",
+    topicKey: "school",
+    text: "Pourquoi est-il important d'apprendre des langues étrangères à l'école ?",
+    hint: "Explain the benefits of language learning for travel, career, and culture.",
+    difficulty: 1,
+    followUps: [
+      "Quelle autre langue aimerais-tu apprendre ?",
+      "Est-ce que c'est difficile d'apprendre le français ?",
+      "Penses-tu que les langues aident à trouver un bon travail ?"
+    ],
+    modelAnswer: "Il est essentiel d'apprendre des langues étrangères car cela permet de communiquer avec des gens du monde entier et de découvrir de nouvelles cultures. De plus, parler plusieurs langues est un grand avantage pour ma future carrière. À l'école, j'apprends le français et l'espagnol, et je trouve que c'est très enrichissant pour l'esprit.",
+    keyVocab: [
+      { fr: "une langue étrangère", en: "a foreign language" },
+      { fr: "communiquer", en: "to communicate" },
+      { fr: "un avantage", en: "an advantage" },
+      { fr: "enrichissant(e)", en: "enriching" },
+      { fr: "le monde entier", en: "the whole world" },
+      { fr: "la carrière", en: "career" }
+    ],
+  },
+  {
+    id: "sch_32",
+    topicKey: "school",
+    text: "Que penses-tu de l'utilisation des tablettes et ordinateurs en classe ?",
+    hint: "Discuss how technology helps or hinders learning in the classroom.",
+    difficulty: 2,
+    followUps: [
+      "Utilises-tu souvent une tablette pour faire tes devoirs ?",
+      "Est-ce que la technologie peut être une distraction ?",
+      "Préfères-tu les livres en papier ou les versions numériques ?"
+    ],
+    modelAnswer: "Je pense que l'utilisation des tablettes est une excellente chose car elle rend les cours plus interactifs et permet d'accéder rapidement à beaucoup d'informations. Cependant, il faut faire attention car cela peut aussi être une source de distraction si on ne reste pas concentré sur le travail. Dans l'ensemble, la technologie est un outil indispensable pour l'éducation moderne.",
+    keyVocab: [
+      { fr: "une tablette", en: "a tablet" },
+      { fr: "interactif / interactive", en: "interactive" },
+      { fr: "une source de distraction", en: "a source of distraction" },
+      { fr: "accéder à", en: "to access" },
+      { fr: "indispensable", en: "indispensable / essential" },
+      { fr: "un outil", en: "a tool" }
+    ],
+  },
+  {
+    id: "sch_33",
+    topicKey: "school",
+    text: "As-tu déjà participé à un échange scolaire à l'étranger ?",
+    hint: "Talk about a school exchange trip or your desire to participate in one.",
+    difficulty: 2,
+    followUps: [
+      "Dans quel pays aimerais-tu faire un échange ?",
+      "Quels sont les bénéfices de vivre dans une famille d'accueil ?",
+      "Est-ce que tu aurais peur de parler une autre langue toute la journée ?"
+    ],
+    modelAnswer: "Je n'ai pas encore participé à un échange, mais j'aimerais beaucoup aller en France l'année prochaine. Ce serait une opportunité incroyable pour améliorer mon français et découvrir le mode de vie des lycéens français. Je pense que vivre dans une famille d'accueil est le meilleur moyen de progresser rapidement et de gagner en confiance.",
+    keyVocab: [
+      { fr: "un échange scolaire", en: "a school exchange" },
+      { fr: "une famille d'accueil", en: "a host family" },
+      { fr: "le mode de vie", en: "lifestyle" },
+      { fr: "améliorer", en: "to improve" },
+      { fr: "gagner en confiance", en: "to gain confidence" },
+      { fr: "lycéen(ne)", en: "high school student" }
+    ],
+  },
+  {
+    id: "sch_34",
+    topicKey: "school",
+    text: "Est-ce que tu ressens beaucoup de pression à cause des notes ?",
+    hint: "Discuss academic pressure, competition, and how you cope with it.",
+    difficulty: 3,
+    followUps: [
+      "Tes parents sont-ils exigeants avec tes résultats ?",
+      "Que fais-tu pour te détendre pendant les périodes d'examens ?",
+      "Penses-tu que les notes reflètent vraiment l'intelligence d'un élève ?"
+    ],
+    modelAnswer: "Oui, je ressens parfois une pression énorme, surtout avant les examens importants. La compétition entre les élèves peut être stressante car tout le monde veut obtenir les meilleures notes pour aller à l'université. Pour gérer ce stress, j'essaie d'organiser mon temps de révision à l'avance et de faire du sport régulièrement. Je crois qu'il est important de ne pas se focaliser uniquement sur les résultats.",
+    keyVocab: [
+      { fr: "la pression", en: "pressure" },
+      { fr: "exigeant(e)", en: "demanding" },
+      { fr: "les résultats", en: "results / grades" },
+      { fr: "gérer le stress", en: "to manage stress" },
+      { fr: "se focaliser sur", en: "to focus on" },
+      { fr: "refléter", en: "to reflect" }
+    ],
+  },
+  {
+    id: "sch_35",
+    topicKey: "school",
+    text: "Comment sont tes relations avec tes camarades de classe ?",
+    hint: "Describe your social life at school and how you get along with others.",
+    difficulty: 1,
+    followUps: [
+      "As-tu un grand groupe d'amis à l'école ?",
+      "Est-ce qu'il y a une bonne ambiance dans ta classe ?",
+      "Que fais-tu si tu as un désaccord avec un camarade ?"
+    ],
+    modelAnswer: "En général, je m'entends très bien avec mes camarades de classe. Il y a une ambiance chaleureuse et on s'entraide souvent pour les devoirs difficiles. J'ai un petit groupe d'amis proches avec qui je passe tout mon temps pendant la récréation. Je pense qu'avoir de bons rapports avec les autres rend la vie scolaire beaucoup plus agréable et moins monotone.",
+    keyVocab: [
+      { fr: "un(e) camarade", en: "a classmate" },
+      { fr: "s'entendre bien", en: "to get along well" },
+      { fr: "une ambiance chaleureuse", en: "a warm atmosphere" },
+      { fr: "s'entraider", en: "to help each other" },
+      { fr: "un rapport", en: "a relationship" },
+      { fr: "agréable", en: "pleasant" }
+    ],
+  },
+  {
+    id: "sch_36",
+    topicKey: "school",
+    text: "Est-ce que tu ton école t'aide pour ton orientation professionnelle ?",
+    hint: "Talk about career advice, internships, or guidance you receive at school.",
+    difficulty: 2,
+    followUps: [
+      "As-tu déjà rencontré un conseiller d'orientation ?",
+      "As-tu fait un stage en entreprise avec ton école ?",
+      "Sais-tu déjà ce que tu veux faire après le lycée ?"
+    ],
+    modelAnswer: "Oui, mon école organise régulièrement des forums des métiers où l'on peut rencontrer des professionnels. J'ai aussi eu un entretien avec un conseiller d'orientation pour discuter de mes choix de matières pour l'année prochaine. L'été dernier, j'ai fait un stage d'une semaine dans un cabinet d'architecte, ce qui m'a beaucoup aidé à préciser mon projet d'avenir.",
+    keyVocab: [
+      { fr: "l'orientation professionnelle", en: "career guidance" },
+      { fr: "un conseiller d'orientation", en: "a career advisor" },
+      { fr: "un stage", en: "an internship / work placement" },
+      { fr: "un forum des métiers", en: "a career fair" },
+      { fr: "préciser", en: "to clarify / specify" },
+      { fr: "un entretien", en: "an interview / meeting" }
+    ],
+  },
+  {
+    id: "sch_37",
+    topicKey: "school",
+    text: "Penses-tu que le bénévolat devrait être obligatoire à l'école ?",
+    hint: "Discuss the value of community service and volunteering for students.",
+    difficulty: 3,
+    followUps: [
+      "As-tu déjà fait du bénévolat dans ton école ?",
+      "Qu'est-ce que cela peut apporter aux jeunes ?",
+      "Quelles activités de bénévolat aimerais-tu organiser ?"
+    ],
+    modelAnswer: "Je pense que le bénévolat est une excellente initiative car cela apprend aux élèves à être solidaires et à s'impliquer dans la communauté. Cependant, je ne crois pas qu'il faille le rendre obligatoire, car le principe même du bénévolat est d'être volontaire. Personnellement, j'aide parfois à la bibliothèque de l'école et je trouve cela très gratifiant.",
+    keyVocab: [
+      { fr: "le bénévolat", en: "volunteering" },
+      { fr: "obligatoire", en: "mandatory" },
+      { fr: "solidaire", en: "supportive / solidary" },
+      { fr: "s'impliquer", en: "to get involved" },
+      { fr: "volontaire", en: "voluntary / a volunteer" },
+      { fr: "gratifiant(e)", en: "rewarding" }
+    ],
+  },
+  {
+    id: "sch_38",
+    topicKey: "school",
+    text: "Qu'est-ce que tu penses des prix et des récompenses scolaires ?",
+    hint: "Discuss if rewards for good grades or behavior are a good motivation.",
+    difficulty: 2,
+    followUps: [
+      "As-tu déjà reçu un prix à l'école ?",
+      "Est-ce que cela encourage les élèves à travailler plus ?",
+      "Penses-tu que c'est injuste pour ceux qui ont des difficultés ?"
+    ],
+    modelAnswer: "À mon avis, les prix scolaires sont une bonne source de motivation pour certains élèves car ils valorisent le travail acharné et les efforts. D'un autre côté, cela peut créer une compétition malsaine et décourager ceux qui ont des difficultés d'apprentissage malgré leurs efforts. Je pense qu'on devrait aussi récompenser la persévérance et le progrès personnel, pas seulement les meilleures notes.",
+    keyVocab: [
+      { fr: "une récompense", en: "a reward" },
+      { fr: "valoriser", en: "to value / promote" },
+      { fr: "le travail acharné", en: "hard work" },
+      { fr: "malsain(e)", en: "unhealthy" },
+      { fr: "la persévérance", en: "perseverance" },
+      { fr: "le progrès", en: "progress" }
+    ],
+  },
+  {
+    id: "sch_39",
+    topicKey: "school",
+    text: "Comment sont les infrastructures sportives de ton école ?",
+    hint: "Describe the sports facilities like gym, fields, or pool at your school.",
+    difficulty: 1,
+    followUps: [
+      "Est-ce qu'il y a une piscine dans ton école ?",
+      "Les installations sont-elles modernes ou anciennes ?",
+      "Quelle infrastructure utilises-tu le plus souvent ?"
+    ],
+    modelAnswer: "Mon école possède de très bonnes infrastructures sportives. Nous avons un grand gymnase moderne, plusieurs terrains de football et des courts de tennis. Malheureusement, il n'y a pas de piscine, donc nous devons aller à la piscine municipale pour les cours de natation. J'utilise surtout le terrain de basket pendant la pause de midi avec mes amis car c'est mon sport préféré.",
+    keyVocab: [
+      { fr: "les infrastructures", en: "facilities / infrastructure" },
+      { fr: "le gymnase", en: "gymnasium" },
+      { fr: "un terrain de foot", en: "a football pitch" },
+      { fr: "un court de tennis", en: "a tennis court" },
+      { fr: "moderne", en: "modern" },
+      { fr: "municipal(e)", en: "municipal / city-owned" }
+    ],
+  },
+  {
+    id: "sch_40",
+    topicKey: "school",
+    text: "Comment ton école lutte-t-elle contre le harcèlement ?",
+    hint: "Discuss school safety and policies regarding bullying.",
+    difficulty: 3,
+    followUps: [
+      "Est-ce que tu te sens en sécurité dans ton école ?",
+      "À qui peux-tu parler si tu as un problème ?",
+      "Penses-tu que les réseaux sociaux aggravent le harcèlement ?"
+    ],
+    modelAnswer: "Mon école prend le harcèlement très au sérieux et a mis en place une politique de tolérance zéro. Il y a des affiches partout pour nous encourager à parler aux professeurs ou aux conseillers si nous sommes témoins de comportements inacceptables. Je pense que le cyberharcèlement est le plus grand défi aujourd'hui car il est plus difficile à surveiller. Heureusement, je me sens en sécurité car l'ambiance générale est respectueuse.",
+    keyVocab: [
+      { fr: "le harcèlement", en: "bullying" },
+      { fr: "lutter contre", en: "to fight against" },
+      { fr: "la tolérance zéro", en: "zero tolerance" },
+      { fr: "être témoin de", en: "to be a witness to" },
+      { fr: "inacceptable", en: "unacceptable" },
+      { fr: "le cyberharcèlement", en: "cyberbullying" }
+    ],
+  },
+  {
+    id: "sch_41",
+    topicKey: "school",
+    text: "Es-tu satisfait(e) de la qualité des repas à la cantine ?",
+    hint: "Review the school food — taste, variety, and healthiness.",
+    difficulty: 1,
+    followUps: [
+      "Quel est ton plat préféré à la cantine ?",
+      "Est-ce qu'il y a assez d'options végétariennes ?",
+      "Penses-tu que la nourriture est trop chère ?"
+    ],
+    modelAnswer: "Pour être honnête, je suis assez partagé(e). Certains jours, les repas sont délicieux, comme le vendredi quand on a du poisson et des frites. Cependant, je trouve qu'il manque souvent de fruits frais et de légumes variés. Les options végétariennes sont aussi un peu limitées. Je pense que l'école devrait essayer de servir des repas plus équilibrés et moins industriels.",
+    keyVocab: [
+      { fr: "satisfait(e)", en: "satisfied" },
+      { fr: "la qualité", en: "quality" },
+      { fr: "végétarien(ne)", en: "vegetarian" },
+      { fr: "équilibré(e)", en: "balanced" },
+      { fr: "industriel(le)", en: "industrial / processed" },
+      { fr: "varié(e)", en: "varied" }
+    ],
+  },
+  {
+    id: "sch_42",
+    topicKey: "school",
+    text: "Devrait-on apprendre plus de compétences pratiques à l'école ?",
+    hint: "Discuss learning life skills like cooking, DIY, or personal finance at school.",
+    difficulty: 2,
+    followUps: [
+      "Sais-tu cuisiner ou réparer quelque chose ?",
+      "Quelle compétence pratique aimerais-tu apprendre ?",
+      "Penses-tu que c'est plus important que les maths ?"
+    ],
+    modelAnswer: "Oui, je suis convaincu(e) qu'on devrait apprendre des choses concrètes comme la cuisine, le bricolage ou comment gérer un budget. Ces compétences sont essentielles pour la vie adulte et nous aideraient à être plus autonomes après le lycée. Bien que les matières académiques soient importantes, un équilibre avec des cours pratiques rendrait l'éducation beaucoup plus complète et utile au quotidien.",
+    keyVocab: [
+      { fr: "une compétence", en: "a skill" },
+      { fr: "pratique", en: "practical" },
+      { fr: "le bricolage", en: "DIY / home repairs" },
+      { fr: "gérer un budget", en: "to manage a budget" },
+      { fr: "autonome", en: "independent / autonomous" },
+      { fr: "concret / concrète", en: "concrete / real-life" }
+    ],
+  },
+  {
+    id: "sch_43",
+    topicKey: "school",
+    text: "Aimerais-tu participer à un club de débat dans ton école ?",
+    hint: "Discuss the benefits of public speaking and debating clubs.",
+    difficulty: 2,
+    followUps: [
+      "Es-tu à l'aise pour parler en public ?",
+      "Sur quel sujet aimerais-tu débattre ?",
+      "Penses-tu que débattre aide à mieux comprendre les autres ?"
+    ],
+    modelAnswer: "J'aimerais beaucoup essayer le club de débat car je pense que c'est un excellent moyen d'améliorer son éloquence et d'apprendre à structurer ses arguments. Pour l'instant, je suis un peu timide quand je dois parler devant toute la classe, donc ce serait un bon défi. Débattre sur des sujets d'actualité comme l'environnement ou la technologie me semble passionnant et très utile.",
+    keyVocab: [
+      { fr: "un club de débat", en: "a debating club" },
+      { fr: "l'éloquence", en: "eloquence / public speaking" },
+      { fr: "un argument", en: "an argument / point" },
+      { fr: "un défi", en: "a challenge" },
+      { fr: "l'actualité", en: "current events" },
+      { fr: "structurer", en: "to structure" }
+    ],
+  },
+  {
+    id: "sch_44",
+    topicKey: "school",
+    text: "Quels sont tes meilleurs souvenirs de l'école primaire ?",
+    hint: "Reflect on your early education and how it differs from secondary school.",
+    difficulty: 1,
+    followUps: [
+      "Quelle était ta matière préférée quand tu étais petit(e) ?",
+      "Est-ce que l'école était plus facile à l'époque ?",
+      "As-tu gardé des amis de ton école primaire ?"
+    ],
+    modelAnswer: "Mes meilleurs souvenirs sont les moments passés à jouer dans la cour de récréation avec mes amis. L'école était beaucoup moins stressante car nous n'avions pas d'examens importants et les journées étaient plus courtes. Je me souviens surtout de ma maîtresse de CM2 qui était très gentille et nous racontait des histoires fantastiques. Aujourd'hui, le travail est plus sérieux, mais j'aime quand même apprendre de nouvelles choses.",
+    keyVocab: [
+      { fr: "un souvenir", en: "a memory" },
+      { fr: "l'école primaire", en: "primary school" },
+      { fr: "à l'époque", en: "at the time" },
+      { fr: "une maîtresse / un maître", en: "a primary teacher" },
+      { fr: "la cour de récréation", en: "the playground" },
+      { fr: "moins stressant(e)", en: "less stressful" }
+    ],
+  },
+  {
+    id: "sch_45",
+    topicKey: "school",
+    text: "Que penses-tu des cours de soutien scolaire ?",
+    hint: "Discuss the role of extra tutoring or catch-up classes for students.",
+    difficulty: 2,
+    followUps: [
+      "As-tu déjà pris des cours particuliers ?",
+      "Est-ce que c'est nécessaire pour réussir ses examens ?",
+      "Penses-tu que c'est injuste pour ceux qui ne peuvent pas payer ?"
+    ],
+    modelAnswer: "Je pense que les cours de soutien peuvent être très utiles si on a des difficultés dans une matière spécifique, comme les maths ou la physique. Cela permet de prendre le temps d'expliquer les concepts plus calmement. Cependant, je crois que l'école devrait offrir ces services gratuitement pour éviter que seuls les élèves riches puissent en bénéficier. Réussir ne devrait pas dépendre de l'argent de ses parents.",
+    keyVocab: [
+      { fr: "le soutien scolaire", en: "tutoring / academic support" },
+      { fr: "un cours particulier", en: "a private lesson" },
+      { fr: "calmement", en: "calmly" },
+      { fr: "bénéficier de", en: "to benefit from" },
+      { fr: "gratuitement", en: "for free" },
+      { fr: "dépendre de", en: "to depend on" }
+    ],
+  },
+  {
+    id: "sch_46",
+    topicKey: "school",
+    text: "Est-ce que ton école organise des spectacles ou des fêtes ?",
+    hint: "Describe school events like plays, concerts, or end-of-year parties.",
+    difficulty: 1,
+    followUps: [
+      "As-tu déjà joué dans une pièce de théâtre à l'école ?",
+      "Y a-t-il une fête pour célébrer la fin des examens ?",
+      "Préfères-tu les événements sportifs ou culturels ?"
+    ],
+    modelAnswer: "Oui, chaque année avant les vacances de Noël, nous organisons un grand concert de musique et une pièce de théâtre. C'est un moment très joyeux où tous les élèves se réunissent pour montrer leurs talents. À la fin de l'année scolaire, il y a aussi un bal de promo pour les plus grands. J'adore ces événements car cela renforce l'esprit d'équipe et nous permet de décompresser après une année de travail.",
+    keyVocab: [
+      { fr: "un spectacle", en: "a show / performance" },
+      { fr: "une fête", en: "a party / celebration" },
+      { fr: "un bal de promo", en: "a school prom" },
+      { fr: "se réunir", en: "to gather / meet" },
+      { fr: "montrer son talent", en: "to show one's talent" },
+      { fr: "décompresser", en: "to unwind / de-stress" }
+    ],
+  },
+  {
+    id: "sch_47",
+    topicKey: "school",
+    text: "Quel est le rôle des délégués de classe dans ton école ?",
+    hint: "Discuss student representation and how students can voice their opinions.",
+    difficulty: 2,
+    followUps: [
+      "Aimerais-tu être délégué(e) de classe ?",
+      "Comment les délégués sont-ils élus ?",
+      "Penses-tu que les professeurs écoutent vraiment les élèves ?"
+    ],
+    modelAnswer: "Les délégués de classe représentent les intérêts des élèves lors des conseils de classe. Ils servent de lien entre nous et l'administration pour discuter des problèmes comme les devoirs excessifs ou les infrastructures sportives. Pour devenir délégué, il faut faire une petite campagne et être élu par ses camarades. Je pense que c'est un rôle important pour apprendre la démocratie et la responsabilité dès le plus jeune âge.",
+    keyVocab: [
+      { fr: "un délégué / une déléguée", en: "a class representative" },
+      { fr: "le conseil de classe", en: "the class council / meeting" },
+      { fr: "être élu(e)", en: "to be elected" },
+      { fr: "un lien", en: "a link / connection" },
+      { fr: "représenter", en: "to represent" },
+      { fr: "la responsabilité", en: "responsibility" }
+    ],
+  },
+  {
+    id: "sch_48",
+    topicKey: "school",
+    text: "Comment imagines-tu l'école du futur ?",
+    hint: "Use the future tense to describe changes in technology, subjects, or school life.",
+    difficulty: 3,
+    followUps: [
+      "Y aura-t-il encore des professeurs humains ou des robots ?",
+      "Est-ce que les élèves étudieront toujours dans des bâtiments ?",
+      "Quelles matières seront les plus importantes selon toi ?"
+    ],
+    modelAnswer: "Dans le futur, je pense que l'école sera complètement numérique. Les élèves n'auront plus de manuels en papier et utiliseront la réalité virtuelle pour explorer l'histoire ou les sciences. Les cours seront peut-être plus flexibles et personnalisés selon les intérêts de chaque enfant. Cependant, je crois que la présence d'un professeur humain restera essentielle pour nous guider et nous encourager, ce qu'un robot ne pourra jamais faire parfaitement.",
+    keyVocab: [
+      { fr: "le futur / l'avenir", en: "the future" },
+      { fr: "numérique", en: "digital" },
+      { fr: "la réalité virtuelle", en: "virtual reality" },
+      { fr: "flexible", en: "flexible" },
+      { fr: "guider", en: "to guide" },
+      { fr: "encourager", en: "to encourage" }
+    ],
+  },
+  {
+    id: "sch_49",
+    topicKey: "school",
+    text: "Que penses-tu de l'importance de l'éducation physique à l'école ?",
+    hint: "Discuss the balance between academic subjects and physical education.",
+    difficulty: 2,
+    followUps: [
+      "Combien d'heures d'EPS as-tu par semaine ?",
+      "Est-ce que l'EPS devrait compter pour les notes finales ?",
+      "Préfères-tu les sports collectifs ou individuels en cours d'EPS ?"
+    ],
+    modelAnswer: "Je pense que l'éducation physique est aussi importante que les maths car elle nous aide à rester en bonne santé et à réduire le stress. Faire de l'exercice permet de mieux se concentrer pendant les autres cours. À mon école, nous avons deux heures d'EPS par semaine, ce qui est un bon début mais peut-être pas suffisant. L'essentiel est d'apprendre aux jeunes à aimer bouger pour qu'ils gardent cette habitude toute leur vie.",
+    keyVocab: [
+      { fr: "l'education physique (EPS)", en: "P.E. (Physical Education)" },
+      { fr: "rester en bonne santé", en: "to stay healthy" },
+      { fr: "se concentrer", en: "to concentrate" },
+      { fr: "suffisant", en: "sufficient" },
+      { fr: "une habitude", en: "a habit" },
+      { fr: "bouger", en: "to move" }
+    ],
+  },
+  {
+    id: "hob_28",
+    topicKey: "hobbies",
+    text: "Est-ce que tu t'intéresses à la photographie ?",
+    hint: "Talk about taking photos, your equipment, and what you like to capture.",
+    difficulty: 1,
+    followUps: [
+      "Utilises-tu ton téléphone ou un véritable appareil photo ?",
+      "Quel genre de photos préfères-tu prendre (paysages, portraits) ?",
+      "Partages-tu tes photos sur les réseaux sociaux ?"
+    ],
+    modelAnswer: "Oui, j'adore prendre des photos, surtout quand je voyage ou quand je sors avec mes amis. J'utilise principalement mon smartphone car il est pratique et la qualité est excellente. Je préfère photographier les paysages naturels et les monuments historiques. De temps en temps, je poste mes meilleures photos sur Instagram car j'aime recevoir les avis de mes abonnés. C'est un moyen créatif de garder des souvenirs.",
+    keyVocab: [
+      { fr: "la photographie", en: "photography" },
+      { fr: "un appareil photo", en: "a camera" },
+      { fr: "un paysage", en: "a landscape" },
+      { fr: "un portrait", en: "a portrait" },
+      { fr: "garder des souvenirs", en: "to keep memories" },
+      { fr: "pratique", en: "practical / convenient" }
+    ],
+  },
+  {
+    id: "hob_29",
+    topicKey: "hobbies",
+    text: "Aimes-tu cuisiner ou faire de la pâtisserie pendant ton temps libre ?",
+    hint: "Discuss cooking as a hobby, your favorite recipes, and who you cook for.",
+    difficulty: 2,
+    followUps: [
+      "Quelle est ta spécialité en cuisine ?",
+      "Cuisines-tu souvent pour ta famille ?",
+      "Préfères-tu les plats salés ou les desserts sucrés ?"
+    ],
+    modelAnswer: "Je suis passionné(e) par la pâtisserie. Le week-end, j'aime préparer des gâteaux au chocolat ou des tartes aux fruits pour ma famille. C'est très relaxant de suivre une recette et de voir le résultat final. Ma spécialité est le fondant au chocolat car tout le monde l'adore chez moi. À l'avenir, j'aimerais apprendre à cuisiner des plats plus complexes, comme des spécialités françaises ou italiennes.",
+    keyVocab: [
+      { fr: "la pâtisserie", en: "baking / pastry making" },
+      { fr: "une recette", en: "a recipe" },
+      { fr: "préparer", en: "to prepare" },
+      { fr: "salé / sucré", en: "salty / sweet" },
+      { fr: "relaxant", en: "relaxing" },
+      { fr: "le fondant au chocolat", en: "lava cake / chocolate fondant" }
+    ],
+  },
+  {
+    id: "hob_30",
+    topicKey: "hobbies",
+    text: "Y a-t-il un centre de jeunesse dans ta ville ? Qu'est-ce qu'on peut y faire ?",
+    hint: "Describe local youth facilities and the activities they offer.",
+    difficulty: 2,
+    followUps: [
+      "Est-ce que tu y vas souvent ?",
+      "Quelles nouvelles activités aimerais-tu voir là-bas ?",
+      "Est-ce que c'est un bon endroit pour rencontrer de nouvelles personnes ?"
+    ],
+    modelAnswer: "Oui, il y a une maison des jeunes près du centre-ville. On peut y faire beaucoup de choses : jouer au billard, faire de l'informatique ou participer à des ateliers de danse. C'est un endroit génial car c'est gratuit et sécurisé pour les adolescents. J'y vais parfois le mercredi après-midi pour retrouver mes amis et discuter. Je pense qu'il devrait y avoir plus de centres comme celui-ci dans toutes les villes.",
+    keyVocab: [
+      { fr: "un centre de jeunesse", en: "a youth centre" },
+      { fr: "la maison des jeunes", en: "youth house" },
+      { fr: "un atelier", en: "a workshop" },
+      { fr: "le billard", en: "billiards / pool" },
+      { fr: "sécurisé", en: "safe / secure" },
+      { fr: "gratuit", en: "free" }
+    ],
+  },
+  {
+    id: "hob_31",
+    topicKey: "hobbies",
+    text: "Est-ce que tu es doué(e) pour le dessin ou la peinture ?",
+    hint: "Talk about your creative arts hobbies and your favorite style.",
+    difficulty: 1,
+    followUps: [
+      "Préfères-tu dessiner au crayon ou peindre avec des couleurs ?",
+      "Où trouves-tu ton inspiration ?",
+      "As-tu déjà exposé tes œuvres quelque part ?"
+    ],
+    modelAnswer: "Je ne suis pas un grand artiste, mais j'aime beaucoup dessiner au crayon dans mon carnet de croquis. C'est une activité calme qui m'aide à me vider l'esprit après l'école. Mon inspiration vient souvent de la nature ou des personnages de mangas que j'admire. J'ai exposé une de mes peintures lors de la fête de l'école l'année dernière et j'en étais très fier(ère) même si c'était un peu intimidant.",
+    keyVocab: [
+      { fr: "doué(e)", en: "gifted / talented" },
+      { fr: "le dessin", en: "drawing" },
+      { fr: "la peinture", en: "painting" },
+      { fr: "un carnet de croquis", en: "a sketchbook" },
+      { fr: "se vider l'esprit", en: "to clear one's mind" },
+      { fr: "intimidant", en: "intimidating" }
+    ],
+  },
+  {
+    id: "hob_32",
+    topicKey: "hobbies",
+    text: "Aimes-tu la danse ? Quel style préfères-tu ?",
+    hint: "Discuss dancing as a hobby, whether you take lessons or dance for fun.",
+    difficulty: 2,
+    followUps: [
+      "Prends-tu des cours de danse ?",
+      "Penses-tu que la danse est un sport ou un art ?",
+      "Aimerais-tu danser dans un spectacle un jour ?"
+    ],
+    modelAnswer: "J'adore la danse moderne car c'est une activité très dynamique et expressive. Je prends des cours deux fois par semaine dans un studio local. Pour moi, la danse est à la fois un sport car c'est physiquement exigeant, et un art car on exprime des émotions. Mon rêve serait de participer à un spectacle de fin d'année devant un grand public. C'est un excellent moyen de rester en forme tout en s'amusant.",
+    keyVocab: [
+      { fr: "la danse", en: "dancing" },
+      { fr: "dynamique", en: "dynamic" },
+      { fr: "expressif / expressive", en: "expressive" },
+      { fr: "un studio", en: "a studio" },
+      { fr: "physiquement exigeant", en: "physically demanding" },
+      { fr: "exprimer des émotions", en: "to express emotions" }
+    ],
+  },
+  {
+    id: "hob_33",
+    topicKey: "hobbies",
+    text: "Est-ce que tu aides tes parents avec le jardinage ?",
+    hint: "Talk about gardening, plants, or spending time in the garden.",
+    difficulty: 1,
+    followUps: [
+      "As-tu des fleurs ou des légumes dans ton jardin ?",
+      "Aimes-tu passer du temps à l'extérieur ?",
+      "Préfères-tu les jardins sauvages ou les jardins très organisés ?"
+    ],
+    modelAnswer: "Oui, j'aide souvent mon père à arroser les plantes et à tondre la pelouse en été. Nous avons un petit potager où nous faisons pousser des tomates, des fraises et des salades. Je trouve que c'est très gratifiant de manger ce qu'on a cultivé soi-même. J'aime le jardinage parce que c'est une activité paisible qui permet d'être en contact avec la nature et de profiter du grand air.",
+    keyVocab: [
+      { fr: "le jardinage", en: "gardening" },
+      { fr: "un potager", en: "a vegetable patch" },
+      { fr: "arroser les plantes", en: "to water the plants" },
+      { fr: "tondre la pelouse", en: "to mow the lawn" },
+      { fr: "cultiver", en: "to grow / cultivate" },
+      { fr: "le grand air", en: "the great outdoors" }
+    ],
+  },
+  {
+    id: "hob_34",
+    topicKey: "hobbies",
+    text: "Quelles sont les responsabilités liées au fait d'avoir un animal de compagnie ?",
+    hint: "Discuss looking after pets as a daily commitment and hobby.",
+    difficulty: 2,
+    followUps: [
+      "As-tu un animal à la maison ?",
+      "Est-ce que c'est un bon passe-temps pour les jeunes ?",
+      "Quel animal est le plus facile à soigner ?"
+    ],
+    modelAnswer: "Avoir un animal demande beaucoup de temps et d'engagement. Par exemple, il faut promener son chien tous les jours, nettoyer sa cage ou sa litière, et s'assurer qu'il mange sainement. C'est une excellente façon pour les jeunes d'apprendre la responsabilité. J'ai un chat et je passe beaucoup de temps à jouer avec lui après mes devoirs. C'est un compagnon fidèle qui m'aide à me relaxer quand je suis stressé(e).",
+    keyVocab: [
+      { fr: "une responsabilité", en: "a responsibility" },
+      { fr: "un animal de compagnie", en: "a pet" },
+      { fr: "l'engagement", en: "commitment" },
+      { fr: "promener", en: "to walk (an animal)" },
+      { fr: "nettoyer", en: "to clean" },
+      { fr: "fidèle", en: "loyal" }
+    ],
+  },
+  {
+    id: "hob_35",
+    topicKey: "hobbies",
+    text: "Pourquoi est-il important d'avoir des loisirs pour réduire le stress ?",
+    hint: "Discuss the mental health benefits of having hobbies outside of school.",
+    difficulty: 3,
+    followUps: [
+      "Quel loisir te détend le plus ?",
+      "Penses-tu que les jeunes ont assez de temps libre aujourd'hui ?",
+      "Qu'est-ce qui se passe si on travaille tout le temps sans s'amuser ?"
+    ],
+    modelAnswer: "Il est crucial d'avoir des loisirs pour garder un bon équilibre mental car l'école peut être épuisante. Les activités créatives ou sportives permettent de s'évader du quotidien et d'oublier la pression des examens. Si on ne prend pas de temps pour soi, on risque de faire un burn-out ou d'être constamment anxieux. Pour moi, le dessin est mon refuge personnel où je peux me ressourcer et retrouver mon énergie.",
+    keyVocab: [
+      { fr: "réduire le stress", en: "to reduce stress" },
+      { fr: "l'équilibre mental", en: "mental balance" },
+      { fr: "épuisant(e)", en: "exhausting" },
+      { fr: "s'évader", en: "to escape" },
+      { fr: "un refuge", en: "a refuge / haven" },
+      { fr: "se ressourcer", en: "to recharge one's batteries" }
+    ],
+  },
+  {
+    id: "hob_36",
+    topicKey: "hobbies",
+    text: "Est-ce que tu t'intéresses au théâtre ou à l'art dramatique ?",
+    hint: "Talk about acting, watching plays, or participating in drama workshops.",
+    difficulty: 2,
+    followUps: [
+      "Préfères-tu être sur scène ou dans le public ?",
+      "Quel est le dernier spectacle que tu as vu ?",
+      "Penses-tu que le théâtre aide à avoir plus de confiance en soi ?"
+    ],
+    modelAnswer: "Je m'intéresse beaucoup au théâtre car j'aime interpréter différents personnages et explorer diverses émotions. Je fais partie du club de théâtre de mon quartier et c'est passionnant. Le mois dernier, nous avons joué une comédie et c'était hilarant de voir la réaction du public. Je crois que l'art dramatique est un excellent moyen de vaincre sa timidité et d'apprendre à mieux communiquer avec les autres.",
+    keyVocab: [
+      { fr: "le théâtre", en: "theatre / drama" },
+      { fr: "l'art dramatique", en: "dramatic arts" },
+      { fr: "sur scène", en: "on stage" },
+      { fr: "interpréter un personnage", en: "to play a character" },
+      { fr: "vaincre sa timidité", en: "to overcome one's shyness" },
+      { fr: "hilarant", en: "hilarious" }
+    ],
+  },
+  {
+    id: "hob_37",
+    topicKey: "hobbies",
+    text: "As-tu déjà essayé le yoga ou la méditation ?",
+    hint: "Discuss wellness activities and how they affect your physical/mental state.",
+    difficulty: 2,
+    followUps: [
+      "Penses-tu que c'est ennuyeux ou relaxant ?",
+      "Est-ce que tu le fais seul ou en groupe ?",
+      "À quelle fréquence pratiques-tu ces activités ?"
+    ],
+    modelAnswer: "J'ai commencé la méditation l'année dernière pour mieux dormir. Au début, je trouvais ça un peu difficile de rester immobile, mais maintenant je trouve ça très apaisant. Je pratique pendant dix minutes chaque matin avant d'aller à l'école. Cela m'aide à commencer la journée avec calme and concentration. Je pense que de plus en plus de jeunes devraient essayer car cela aide vraiment à gérer l'anxiété scolaire.",
+    keyVocab: [
+      { fr: "la méditation", en: "meditation" },
+      { fr: "immobile", en: "still / motionless" },
+      { fr: "apaisant", en: "soothing / calming" },
+      { fr: "la concentration", en: "concentration" },
+      { fr: "gérer l'anxiété", en: "to manage anxiety" },
+      { fr: "au début", en: "at first" }
+    ],
+  },
+  {
+    id: "hob_38",
+    topicKey: "hobbies",
+    text: "Est-ce que tu t'intéresses au codage informatique ou à la robotique ?",
+    hint: "Talk about technology-based hobbies and creating software or machines.",
+    difficulty: 3,
+    followUps: [
+      "Sais-tu créer un site web ou une application ?",
+      "Penses-tu que c'est une compétence utile pour ton futur métier ?",
+      "As-tu déjà construit un robot ?"
+    ],
+    modelAnswer: "Je suis fasciné(e) par le codage depuis que j'ai dix ans. J'apprends le langage Python en suivant des tutoriels en ligne et j'ai déjà créé un petit jeu vidéo simple. C'est un loisir qui demande beaucoup de logique et de patience. Je pense que c'est une compétence indispensable pour l'avenir, quel que soit le métier que je choisirai. J'aimerais aussi rejoindre un club de robotique pour apprendre à construire des machines intelligentes.",
+    keyVocab: [
+      { fr: "le codage", en: "coding" },
+      { fr: "la robotique", en: "robotics" },
+      { fr: "un tutoriel", en: "a tutorial" },
+      { fr: "la logique", en: "logic" },
+      { fr: "indispensable", en: "essential" },
+      { fr: "créer", en: "to create" }
+    ],
+  },
+  {
+    id: "hob_39",
+    topicKey: "hobbies",
+    text: "Est-ce que la mode et la création de vêtements t'intéressent ?",
+    hint: "Discuss fashion as a creative outlet, sewing, or following trends.",
+    difficulty: 1,
+    followUps: [
+      "Aimes-tu faire du shopping pour trouver des vêtements originaux ?",
+      "Sais-tu coudre ou personnaliser tes habits ?",
+      "Suis-tu les dernières tendances de la mode sur les réseaux sociaux ?"
+    ],
+    modelAnswer: "J'adore la mode parce que c'est une façon d'exprimer ma personnalité. Je ne sais pas encore coudre, mais j'aime beaucoup personnaliser mes vieux jeans avec des écussons ou de la peinture. Je passe pas mal de temps sur Pinterest pour trouver de l'inspiration et créer mes propres styles. Pour moi, la mode ne consiste pas seulement à suivre les tendances, mais à être créatif et à se sentir bien dans ses vêtements.",
+    keyVocab: [
+      { fr: "la mode", en: "fashion" },
+      { fr: "exprimer sa personnalité", en: "to express one's personality" },
+      { fr: "coudre", en: "to sew" },
+      { fr: "une tendance", en: "a trend" },
+      { fr: "personnaliser", en: "to personalize" },
+      { fr: "l'inspiration", en: "inspiration" }
+    ],
+  },
+  {
+    id: "hob_40",
+    topicKey: "hobbies",
+    text: "Aimes-tu observer les étoiles ou t'intéresses-tu à l'astronomie ?",
+    hint: "Talk about space, planets, and using a telescope.",
+    difficulty: 2,
+    followUps: [
+      "As-tu un télescope chez toi ?",
+      "Quelle est ta planète préférée et pourquoi ?",
+      "Aimerais-tu voyager dans l'espace un jour ?"
+    ],
+    modelAnswer: "L'astronomie est un passe-temps fascinant. Quand le ciel est dégagé, j'aime bien observer les étoiles et essayer d'identifier les constellations avec une application sur mon téléphone. Mon père a un vieux télescope et on regarde parfois la Lune, c'est impressionnant de voir tous les cratères. Je trouve que l'espace est mystérieux et j'adore lire des livres sur les trous noirs et les galaxies lointaines. Voyager dans l'espace serait l'aventure ultime !",
+    keyVocab: [
+      { fr: "l'astronomie", en: "astronomy" },
+      { fr: "une étoile", en: "a star" },
+      { fr: "un télescope", en: "a telescope" },
+      { fr: "dégagé", en: "clear (sky)" },
+      { fr: "une constellation", en: "a constellation" },
+      { fr: "impressionnant", en: "impressive" }
+    ],
+  },
+  {
+    id: "hob_41",
+    topicKey: "hobbies",
+    text: "Fais-tu du bénévolat dans ta communauté locale ?",
+    hint: "Talk about helping others, charity work, or local community events.",
+    difficulty: 3,
+    followUps: [
+      "Pour quelle organisation travailles-tu ?",
+      "Combien de temps y consacres-tu par semaine ?",
+      "Penses-tu que c'est important d'aider les autres sans être payé ?"
+    ],
+    modelAnswer: "Oui, je fais du bénévolat dans une association locale qui aide les personnes âgées. J'y vais le samedi matin pour discuter avec eux ou les aider avec leur ordinateur. Je pense que c'est une expérience humaine très riche car cela permet de sortir de sa bulle et de se sentir utile. Même si je ne suis pas payé(e), la satisfaction d'avoir aidé quelqu'un est la meilleure des récompenses. C'est un loisir qui donne du sens à mon temps libre.",
+    keyVocab: [
+      { fr: "le bénévolat", en: "volunteering" },
+      { fr: "une association", en: "an organization / charity" },
+      { fr: "les personnes âgées", en: "elderly people" },
+      { fr: "se sentir utile", en: "to feel useful" },
+      { fr: "une récompense", en: "a reward" },
+      { fr: "donner du sens", en: "to give meaning" }
+    ],
+  },
+  {
+    id: "hob_42",
+    topicKey: "hobbies",
+    text: "Aimes-tu visiter des sites historiques ou des monuments ?",
+    hint: "Talk about cultural trips, museums, and historical interests.",
+    difficulty: 2,
+    followUps: [
+      "Quel est le monument le plus intéressant que tu as visité ?",
+      "Préfères-tu les châteaux ou les églises anciennes ?",
+      "Est-ce que l'histoire est une de tes passions ?"
+    ],
+    modelAnswer: "J'adore visiter les vieux châteaux car cela me permet d'imaginer la vie à l'époque médiévale. L'été dernier, j'ai visité le Mont Saint-Michel en France et c'était absolument magnifique. Je trouve que les monuments historiques ont une âme et nous apprennent beaucoup sur nos racines. Pour moi, c'est une activité passionnante qui combine marche à pied et culture. Je préfère largement cela à rester dans un centre commercial.",
+    keyVocab: [
+      { fr: "un site historique", en: "a historical site" },
+      { fr: "un monument", en: "a monument / landmark" },
+      { fr: "le Moyen Âge / médiéval", en: "the Middle Ages / medieval" },
+      { fr: "un château", en: "a castle" },
+      { fr: "magnifique", en: "magnificent" },
+      { fr: "les racines", en: "roots" }
+    ],
+  },
+  {
+    id: "hob_43",
+    topicKey: "hobbies",
+    text: "Préfères-tu les jeux de société simples ou les jeux de stratégie complexes ?",
+    hint: "Discuss board games, rules, and playing with family or friends.",
+    difficulty: 2,
+    followUps: [
+      "Quel est ton jeu de société préféré ?",
+      "Es-tu un(e) mauvais(e) perdant(e) ?",
+      "Joues-tu souvent en famille le week-end ?"
+    ],
+    modelAnswer: "Je préfère nettement les jeux de stratégie complexes comme les échecs ou « Les Aventuriers du Rail ». J'aime le fait de devoir réfléchir et planifier ses coups pour gagner. On y joue souvent en famille le dimanche après-midi quand il pleut. Par contre, je dois admettre que je suis un peu mauvais(e) perdant(e), donc l'ambiance devient parfois électrique ! C'est un excellent moyen de s'amuser tout en stimulant son cerveau.",
+    keyVocab: [
+      { fr: "un jeu de société", en: "a board game" },
+      { fr: "un jeu de stratégie", en: "a strategy game" },
+      { fr: "les échecs", en: "chess" },
+      { fr: "réfléchir", en: "to think / reflect" },
+      { fr: "un(e) mauvais(e) perdant(e)", en: "a sore loser" },
+      { fr: "stimuler", en: "to stimulate" }
+    ],
+  },
+  {
+    id: "hob_44",
+    topicKey: "hobbies",
+    text: "Aimes-tu regarder des matchs de sport au stade ?",
+    hint: "Discuss the atmosphere of live sports vs. watching on TV.",
+    difficulty: 1,
+    followUps: [
+      "Quel est le dernier match que tu as vu en direct ?",
+      "Préfères-tu l'ambiance du stade ou le confort du salon ?",
+      "Quel sport est le plus impressionnant à voir en vrai ?"
+    ],
+    modelAnswer: "Rien ne bat l'ambiance d'un stade de football ! Le bruit de la foule et l'énergie des supporters sont incroyables. Je suis allé(e) voir mon équipe locale le mois dernier et nous avons gagné deux à zéro. Bien que regarder à la télé soit plus confortable et gratuit, je préfère aller au stade car on se sent vraiment impliqué dans le match. C'est une expérience inoubliable que j'adore partager avec mon père ou mes amis.",
+    keyVocab: [
+      { fr: "un match en direct", en: "a live match" },
+      { fr: "le stade", en: "the stadium" },
+      { fr: "la foule", en: "the crowd" },
+      { fr: "les supporters", en: "the fans / supporters" },
+      { fr: "l'énergie", en: "energy" },
+      { fr: "s'impliquer", en: "to get involved" }
+    ],
+  },
+  {
+    id: "hob_45",
+    topicKey: "hobbies",
+    text: "Sais-tu faire des tours de magie ou as-tu un talent particulier ?",
+    hint: "Talk about learning unique skills or talents for entertainment.",
+    difficulty: 2,
+    followUps: [
+      "Comment as-tu appris ce talent ?",
+      "Fais-tu des spectacles pour tes amis ou ta famille ?",
+      "Combien de temps faut-il s'entraîner pour réussir ?"
+    ],
+    modelAnswer: "Je m'entraîne à faire des tours de cartes depuis quelques mois. J'ai appris les bases en regardant des vidéos sur YouTube. Ce n'est pas facile et cela demande beaucoup de dextérité et de patience, mais j'adore voir la surprise sur le visage des gens. Je fais parfois des petits spectacles pendant les fêtes de famille. C'est un passe-temps original qui permet de briser la glace et d'amuser la galerie.",
+    keyVocab: [
+      { fr: "un tour de magie", en: "a magic trick" },
+      { fr: "un talent", en: "a talent" },
+      { fr: "la dextérité", en: "dexterity" },
+      { fr: "la surprise", en: "surprise" },
+      { fr: "briser la glace", en: "to break the ice" },
+      { fr: "amuser la galerie", en: "to entertain people / show off" }
+    ],
+  },
+  {
+    id: "hob_46",
+    topicKey: "hobbies",
+    text: "Aimes-tu faire de la randonnée ou des marches en forêt ?",
+    hint: "Discuss walking in nature, equipment, and how it makes you feel.",
+    difficulty: 1,
+    followUps: [
+      "Quel est ton endroit préféré pour marcher ?",
+      "Marches-tu souvent avec tes parents ou avec un club ?",
+      "Qu'est-ce que tu emportes dans ton sac à dos ?"
+    ],
+    modelAnswer: "J'adore faire de la randonnée en montagne car l'air est pur et les paysages sont époustouflants. Le week-end, ma famille et moi partons souvent marcher en forêt pendant plusieurs heures. J'emporte toujours une bouteille d'eau, des fruits et une carte dans mon sac à dos. C'est une activité qui me permet de déconnecter de la technologie et de me sentir en harmonie avec la nature. C'est excellent pour la santé physique !",
+    keyVocab: [
+      { fr: "la randonnée", en: "hiking" },
+      { fr: "la forêt", en: "the forest" },
+      { fr: "l'air pur", en: "fresh air" },
+      { fr: "époustouflant(e)", en: "breathtaking" },
+      { fr: "déconnecter", en: "to disconnect" },
+      { fr: "un sac à dos", en: "a backpack" }
+    ],
+  },
+  {
+    id: "hob_47",
+    topicKey: "hobbies",
+    text: "Écoutes-tu souvent des podcasts ou des livres audio pendant tes loisirs ?",
+    hint: "Discuss modern ways of consuming stories or information.",
+    difficulty: 2,
+    followUps: [
+      "Quel est ton sujet de podcast préféré ?",
+      "Préfères-tu écouter une histoire ou la lire dans un livre ?",
+      "Est-ce que tu écoutes des podcasts en français pour pratiquer ?"
+    ],
+    modelAnswer: "J'écoute des podcasts presque tous les jours, surtout quand je suis dans le bus ou quand je range ma chambre. Je m'intéresse beaucoup aux podcasts sur la technologie et sur l'histoire. Je trouve que c'est un moyen très pratique d'apprendre de nouvelles choses tout en faisant autre chose. Parfois, j'écoute des podcasts en français pour améliorer ma compréhension orale. C'est beaucoup plus divertissant que de faire des exercices de grammaire !",
+    keyVocab: [
+      { fr: "un podcast", en: "a podcast" },
+      { fr: "un livre audio", en: "an audiobook" },
+      { fr: "la compréhension orale", en: "listening comprehension" },
+      { fr: "pratique", en: "practical / convenient" },
+      { fr: "divertissant", en: "entertaining" },
+      { fr: "améliorer", en: "to improve" }
+    ],
+  },
+  {
+    id: "fam_27",
+    topicKey: "family",
+    text: "Penses-tu que les réseaux sociaux nuisent à la vie de famille ?",
+    hint: "Discuss the impact of social media on family interactions and quality time.",
+    difficulty: 3,
+    followUps: [
+      "Est-ce que vous utilisez vos téléphones à table ?",
+      "Comment la technologie aide-t-elle à rester en contact avec la famille éloignée ?",
+      "Quelles sont les règles chez toi concernant les écrans ?"
+    ],
+    modelAnswer: "À mon avis, les réseaux sociaux peuvent nuire à la vie de famille s'ils sont utilisés de manière excessive. Parfois, on est ensemble physiquement mais chacun est sur son écran, ce qui réduit les conversations réelles. Cependant, c'est aussi un outil formidable pour partager des photos et des nouvelles avec les membres de la famille qui vivent loin.",
+    keyVocab: [
+      { fr: "nuire à", en: "to harm / be harmful to" },
+      { fr: "de manière excessive", en: "excessively" },
+      { fr: "un outil", en: "a tool" },
+      { fr: "éloigné(e)", en: "distant / far away" },
+      { fr: "la vie quotidienne", en: "daily life" },
+      { fr: "réduire", en: "to reduce" }
+    ],
+  },
+  {
+    id: "fam_28",
+    topicKey: "family",
+    text: "Parle-moi d'un souvenir d'enfance précieux avec ta famille.",
+    hint: "Describe a happy memory from when you were younger involving your family members.",
+    difficulty: 2,
+    followUps: [
+      "Quel âge avais-tu ?",
+      "Où étiez-vous ?",
+      "Pourquoi ce souvenir est-il spécial pour toi ?"
+    ],
+    modelAnswer: "Je me souviens très bien d'un été où nous sommes allés camper près d'un lac. J'avais huit ans et mon père m'a appris à pêcher pour la première fois. Nous avons passé la soirée à faire griller des guimauves sur un feu de camp en racontant des histoires. C'est un souvenir précieux parce que c'était un moment de pure simplicité et de complicité.",
+    keyVocab: [
+      { fr: "précieux / précieuse", en: "precious" },
+      { fr: "pêcher", en: "to fish" },
+      { fr: "une guimauve", en: "a marshmallow" },
+      { fr: "la complicité", en: "bond / closeness" },
+      { fr: "se souvenir de", en: "to remember" },
+      { fr: "l'enfance", en: "childhood" }
+    ],
+  },
+  {
+    id: "fam_29",
+    topicKey: "family",
+    text: "Est-il important d'avoir des frères et sœurs selon toi ?",
+    hint: "Discuss the advantages and disadvantages of having siblings versus being an only child.",
+    difficulty: 2,
+    followUps: [
+      "Quels sont les avantages d'être l'aîné(e) ou le/la cadet(te) ?",
+      "Est-ce que tu te disputes souvent avec tes frères ou sœurs ?",
+      "Aimerais-tu avoir une famille nombreuse plus tard ?"
+    ],
+    modelAnswer: "Je pense qu'avoir des frères et sœurs est très bénéfique car on apprend à partager et à être patient dès le plus jeune âge. On a toujours quelqu'un avec qui jouer et se confier. Par contre, il peut y avoir des rivalités ou un manque d'intimité dans la maison. Dans l'ensemble, je préfère ne pas être seul car mes frères sont mes meilleurs amis.",
+    keyVocab: [
+      { fr: "l'aîné(e)", en: "the eldest" },
+      { fr: "se confier", en: "to confide in" },
+      { fr: "la rivalité", en: "rivalry" },
+      { fr: "l'intimité", en: "privacy" },
+      { fr: "apprendre à", en: "to learn to" },
+      { fr: "bénéfique", en: "beneficial" }
+    ],
+  },
+  {
+    id: "fam_30",
+    topicKey: "family",
+    text: "Y a-t-il un membre de ta famille qui est un modèle pour toi ?",
+    hint: "Describe a family member you look up to and explain why they inspire you.",
+    difficulty: 2,
+    followUps: [
+      "Quelles qualités possèdes-tu en commun avec cette personne ?",
+      "Qu'est-ce qu'elle t'a appris d'important ?",
+      "Est-ce qu'elle a un métier qui t'intéresse ?"
+    ],
+    modelAnswer: "Mon modèle est ma tante Marie car elle est extrêmement courageuse et travailleuse. Elle a créé sa propre entreprise tout en élevant trois enfants, ce que je trouve admirable. Elle est toujours positive et me donne d'excellents conseils pour mes études. J'aimerais avoir sa détermination et son sens de l'organisation à l'avenir.",
+    keyVocab: [
+      { fr: "un modèle", en: "a role model" },
+      { fr: "regarder avec admiration", en: "to look up to" },
+      { fr: "la détermination", en: "determination" },
+      { fr: "inspirer", en: "to inspire" },
+      { fr: "élever des enfants", en: "to raise children" },
+      { fr: "travailleur / travailleuse", en: "hardworking" }
+    ],
+  },
+  {
+    id: "fam_31",
+    topicKey: "family",
+    text: "Quels sont les avantages de vivre avec ses grands-parents ?",
+    hint: "Discuss multigenerational living and what younger people can learn from older generations.",
+    difficulty: 3,
+    followUps: [
+      "Vois-tu tes grands-parents souvent ?",
+      "Quelles histoires te racontent-ils ?",
+      "Penses-tu que le fossé des générations est un problème ?"
+    ],
+    modelAnswer: "Vivre avec ses grands-parents permet de maintenir un lien fort avec son héritage culturel et d'apprendre de leur expérience de vie. Ils ont souvent beaucoup de patience et de sagesse à partager avec les jeunes. Cependant, cela peut parfois causer des tensions à cause de visions différentes sur l'éducation ou la discipline. C'est un équilibre à trouver pour que tout le monde se sente respecté.",
+    keyVocab: [
+      { fr: "l'héritage", en: "heritage" },
+      { fr: "la sagesse", en: "wisdom" },
+      { fr: "le fossé des générations", en: "generation gap" },
+      { fr: "une vision", en: "a view / perspective" },
+      { fr: "maintenir", en: "to maintain" },
+      { fr: "apprendre de", en: "to learn from" }
+    ],
+  },
+  {
+    id: "fam_32",
+    topicKey: "family",
+    text: "Vers qui te tournes-tu quand tu as besoin de conseils ?",
+    hint: "Explain who in your family gives the best advice and why you trust them.",
+    difficulty: 1,
+    followUps: [
+      "Préfères-tu les conseils de tes parents ou de tes amis ?",
+      "Sur quels sujets demandes-tu de l'aide ?",
+      "Est-ce que tu écoutes toujours ce qu'on te dit ?"
+    ],
+    modelAnswer: "Quand j'ai un problème, je me tourne généralement vers ma mère car elle est très à l'écoute et ne me juge jamais. Elle a beaucoup d'expérience et sait toujours trouver les mots pour me rassurer. Parfois, je demande aussi l'avis de mon grand frère pour les questions scolaires. Je pense qu'il est essentiel d'avoir des personnes de confiance dans sa famille.",
+    keyVocab: [
+      { fr: "se tourner vers", en: "to turn to" },
+      { fr: "être à l'écoute", en: "to be a good listener" },
+      { fr: "rassurer", en: "to reassure" },
+      { fr: "un avis", en: "an opinion" },
+      { fr: "juger", en: "to judge" },
+      { fr: "la confiance", en: "trust" }
+    ],
+  },
+  {
+    id: "fam_33",
+    topicKey: "family",
+    text: "Y a-t-il une recette spéciale que ta famille prépare souvent ?",
+    hint: "Talk about a traditional family dish and its significance to you.",
+    difficulty: 1,
+    followUps: [
+      "Qui cuisine le mieux chez toi ?",
+      "Quels sont les ingrédients principaux ?",
+      "Est-ce que tu sais cuisiner ce plat ?"
+    ],
+    modelAnswer: "Ma famille prépare souvent un gâteau au chocolat secret selon la recette de mon arrière-grand-mère. C'est une tradition de le faire pour chaque anniversaire. C'est un moment convivial où nous cuisinons tous ensemble dans la cuisine. Le gâteau est délicieux car il est très fondant et nous le servons avec de la crème. Pour moi, ce plat représente l'amour et l'unité de ma famille.",
+    keyVocab: [
+      { fr: "une recette", en: "a recipe" },
+      { fr: "convivial(e)", en: "convivial / friendly" },
+      { fr: "fondant(e)", en: "melting / soft" },
+      { fr: "représenter", en: "to represent" },
+      { fr: "l'unité", en: "unity" },
+      { fr: "un ingrédient", en: "an ingredient" }
+    ],
+  },
+  {
+    id: "fam_34",
+    topicKey: "family",
+    text: "Comment ta famille a-t-elle changé au cours des cinq dernières années ?",
+    hint: "Reflect on how your family dynamics or situation has evolved recently.",
+    difficulty: 2,
+    followUps: [
+      "Y a-t-il eu de nouveaux membres dans la famille ?",
+      "Est-ce que tu as plus de responsabilités maintenant ?",
+      "Est-ce que vous passez plus ou moins de temps ensemble ?"
+    ],
+    modelAnswer: "Au cours des cinq dernières années, ma famille a beaucoup évolué car ma sœur aînée a quitté la maison pour aller à l'université. Nous avons également adopté un chien, ce qui a apporté beaucoup de joie. Personnellement, j'ai grandi et mes parents me font plus confiance, donc j'ai plus de liberté. Même si nous sommes plus occupés, nous essayons toujours de dîner ensemble le soir.",
+    keyVocab: [
+      { fr: "évoluer", en: "to evolve / change" },
+      { fr: "quitter la maison", en: "to leave home" },
+      { fr: "adopter", en: "to adopt" },
+      { fr: "apporter", en: "to bring" },
+      { fr: "faire confiance", en: "to trust" },
+      { fr: "la liberté", en: "freedom" }
+    ],
+  },
+  {
+    id: "fam_35",
+    topicKey: "family",
+    text: "Est-ce que tu aimerais élever ta propre famille à l'étranger plus tard ?",
+    hint: "Consider the pros and cons of raising a family in another country.",
+    difficulty: 3,
+    followUps: [
+      "Quelles langues parlerais-tu à tes enfants ?",
+      "Qu'est-ce qui te manquerait de ton pays d'origine ?",
+      "Quels sont les avantages pour les enfants de vivre à l'étranger ?"
+    ],
+    modelAnswer: "Oui, je pense que ce serait une expérience enrichissante d'élever une famille à l'étranger. Cela permettrait à mes futurs enfants de devenir bilingues et d'avoir une ouverture d'esprit sur le monde. Cependant, ce serait difficile d'être loin des grands-parents et des cousins. Je choisirais probablement un pays avec un bon système éducatif et une qualité de vie élevée.",
+    keyVocab: [
+      { fr: "élever une famille", en: "to raise a family" },
+      { fr: "enrichissant(e)", en: "enriching" },
+      { fr: "bilingue", en: "bilingual" },
+      { fr: "l'ouverture d'esprit", en: "open-mindedness" },
+      { fr: "le pays d'origine", en: "home country" },
+      { fr: "la qualité de vie", en: "quality of life" }
+    ],
+  },
+  {
+    id: "fam_36",
+    topicKey: "family",
+    text: "Qu'est-ce qui définit une 'famille heureuse' selon toi ?",
+    hint: "Give your opinion on the most important values for a happy family life.",
+    difficulty: 2,
+    followUps: [
+      "Est-ce que l'argent est nécessaire pour être heureux en famille ?",
+      "Quelle est l'importance du respect mutuel ?",
+      "Comment peut-on résoudre les conflits calmement ?"
+    ],
+    modelAnswer: "Pour moi, une famille heureuse est définie par l'amour, la communication et le soutien mutuel. Il est essentiel que chaque membre se sente écouté et respecté, peu importe son âge. On n'a pas besoin de beaucoup d'argent pour être heureux, tant qu'on passe du temps de qualité ensemble. La capacité à rire ensemble et à se pardonner est également fondamentale pour l'harmonie familiale.",
+    keyVocab: [
+      { fr: "définir", en: "to define" },
+      { fr: "le soutien mutuel", en: "mutual support" },
+      { fr: "peu importe", en: "no matter / regardless of" },
+      { fr: "se pardonner", en: "to forgive each other" },
+      { fr: "l'harmonie", en: "harmony" },
+      { fr: "fondamental(e)", en: "fundamental" }
+    ],
+  },
+  {
+    id: "fam_37",
+    topicKey: "family",
+    text: "Quelle influence tes frères et sœurs ont-ils sur ton propre caractère ?",
+    hint: "Discuss how siblings shape your personality — being responsible, funny, or competitive.",
+    difficulty: 3,
+    followUps: [
+      "Qui est le plus sérieux entre vous ?",
+      "Est-ce que tu es parfois jaloux ou jalouse d'eux ?",
+      "Comment est-ce que vous vous entraidez au quotidien ?"
+    ],
+    modelAnswer: "Je pense que mes frères et sœurs ont une grande influence sur moi car on passe énormément de temps ensemble. Ma grande sœur est très organisée, ce qui m'encourage à être plus responsable. D'un autre côté, mon petit frère est très drôle et il m'apprend à ne pas prendre les choses trop au sérieux.",
+    keyVocab: [
+      { fr: "l'influence", en: "influence" },
+      { fr: "le caractère", en: "character / personality" },
+      { fr: "s'entraider", en: "to help each other" },
+      { fr: "responsable", en: "responsible" },
+      { fr: "jaloux / jalouse", en: "jealous" },
+      { fr: "au quotidien", en: "daily" }
+    ],
+  },
+  {
+    id: "fam_38",
+    topicKey: "family",
+    text: "Quels sont les sujets de dispute les plus fréquents dans ta famille ?",
+    hint: "Talk about common sources of conflict — chores, screen time, or sharing things.",
+    difficulty: 2,
+    followUps: [
+      "Avec qui te disputes-tu le plus souvent ?",
+      "Comment est-ce que vous vous réconciliez après une dispute ?",
+      "Tes parents sont-ils souvent les médiateurs ?"
+    ],
+    modelAnswer: "En général, on se dispute pour des choses sans importance, comme le choix du film à regarder ou qui doit faire la vaisselle. Parfois, mes parents ne sont pas d'accord sur mon temps passé sur les réseaux sociaux. Cependant, on essaie toujours de discuter calmement après pour retrouver une bonne ambiance.",
+    keyVocab: [
+      { fr: "une dispute", en: "an argument / dispute" },
+      { fr: "sans importance", en: "unimportant" },
+      { fr: "faire la vaisselle", en: "to do the dishes" },
+      { fr: "se réconcilier", en: "to make up / reconcile" },
+      { fr: "calmement", en: "calmly" },
+      { fr: "la bonne ambiance", en: "good atmosphere" }
+    ],
+  },
+  {
+    id: "fam_39",
+    topicKey: "family",
+    text: "Quelles activités fais-tu spécifiquement avec tes parents pour vous amuser ?",
+    hint: "Describe shared fun activities like hobbies, sports, or games.",
+    difficulty: 1,
+    followUps: [
+      "Est-ce que vous sortez souvent au restaurant ensemble ?",
+      "Est-ce que vous jouez à des jeux de société le week-end ?",
+      "Qui gagne d'habitude quand vous jouez ensemble ?"
+    ],
+    modelAnswer: "Avec mes parents, nous aimons beaucoup aller faire des randonnées en forêt le dimanche après-midi. Parfois, nous jouons aussi à des jeux de société le soir après le dîner. C'est un moment très sympa qui nous permet de rire et de nous détendre ensemble.",
+    keyVocab: [
+      { fr: "s'amuser", en: "to have fun" },
+      { fr: "une randonnée", en: "a hike" },
+      { fr: "un jeu de société", en: "a board game" },
+      { fr: "d'habitude", en: "usually" },
+      { fr: "rire", en: "to laugh" },
+      { fr: "se détendre", en: "to relax" }
+    ],
+  },
+  {
+    id: "fam_40",
+    topicKey: "family",
+    text: "Pourquoi est-il important de prendre les repas en famille tous les soirs ?",
+    hint: "Discuss the social and emotional benefits of shared family meals.",
+    difficulty: 2,
+    followUps: [
+      "De quoi parlez-vous d'habitude à table ?",
+      "Est-ce que vous regardez la télé en mangeant ?",
+      "Qui prépare le repas chez toi la plupart du temps ?"
+    ],
+    modelAnswer: "Oui, je pense que c'est essentiel car c'est le seul moment de la journée où tout le monde est réuni. On en profite pour discuter de notre journée et partager nos problèmes ou nos réussites. Sans ce moment, je crois qu'on se parlerait beaucoup moins.",
+    keyVocab: [
+      { fr: "un repas", en: "a meal" },
+      { fr: "essentiel(le)", en: "essential" },
+      { fr: "réuni(e)", en: "gathered / together" },
+      { fr: "en profiter pour", en: "to take the opportunity to" },
+      { fr: "une réussite", en: "a success" },
+      { fr: "à table", en: "at the table" }
+    ],
+  },
+  {
+    id: "fam_41",
+    topicKey: "family",
+    text: "Est-ce que tu aimerais fonder ta propre famille plus tard ?",
+    hint: "Talk about your future family aspirations — marriage, children, lifestyle.",
+    difficulty: 3,
+    followUps: [
+      "Combien d'enfants voudrais-tu avoir dans l'idéal ?",
+      "Aimerais-tu habiter près de tes parents plus tard ?",
+      "Quelles valeurs aimerais-tu transmettre à tes enfants ?"
+    ],
+    modelAnswer: "Plus tard, j'aimerais beaucoup avoir deux ou trois enfants car j'aime l'idée d'avoir une maison pleine de vie. Je voudrais être un parent encourageant et patient, comme les miens. Je pense que fonder une famille est une étape importante pour s'épanouir dans la vie.",
+    keyVocab: [
+      { fr: "fonder une famille", en: "to start a family" },
+      { fr: "plus tard", en: "later on" },
+      { fr: "pleine de vie", en: "full of life" },
+      { fr: "encourageant(e)", en: "encouraging" },
+      { fr: "s'épanouir", en: "to blossom / find fulfillment" },
+      { fr: "transmettre", en: "to pass on / transmit" }
+    ],
+  },
+  {
+    id: "fam_42",
+    topicKey: "family",
+    text: "Quels sont les avantages de vivre dans une famille nombreuse ?",
+    hint: "Discuss the pros (company, support) and cons (noise, lack of space) of a big family.",
+    difficulty: 1,
+    followUps: [
+      "Est-ce que c'est souvent bruyant chez toi ?",
+      "As-tu assez d'espace personnel ou une chambre à toi ?",
+      "Est-ce que vous vous entraidez pour les devoirs ?"
+    ],
+    modelAnswer: "Vivre dans une famille nombreuse est génial parce qu'on ne s'ennuie jamais et il y a toujours quelqu'un à qui parler. On apprend très tôt à partager et à être solidaire avec les autres. Par contre, il faut avouer que la maison est souvent bruyante et qu'on manque parfois d'intimité.",
+    keyVocab: [
+      { fr: "nombreux / nombreuse", en: "large (family)" },
+      { fr: "s'ennuyer", en: "to get bored" },
+      { fr: "partager", en: "to share" },
+      { fr: "solidaire", en: "supportive / united" },
+      { fr: "bruyant(e)", en: "noisy" },
+      { fr: "l'intimité", en: "privacy" }
+    ],
+  },
+  {
+    id: "fam_43",
+    topicKey: "family",
+    text: "Est-il important de connaître l'histoire et les origines de sa famille ?",
+    hint: "Discuss the importance of heritage, ancestry, and family stories.",
+    difficulty: 3,
+    followUps: [
+      "As-tu déjà fait des recherches sur tes ancêtres ?",
+      "Est-ce que tes grands-parents te racontent des histoires du passé ?",
+      "Où habitaient tes ancêtres il y a cent ans ?"
+    ],
+    modelAnswer: "Je crois que c'est fondamental pour comprendre qui on est et d'où on vient. Connaître le parcours de ses ancêtres permet d'apprécier les traditions qui nous ont été transmises. Cela crée un sentiment de fierté et renforce notre identité personnelle au sein de la société.",
+    keyVocab: [
+      { fr: "les origines", en: "origins / background" },
+      { fr: "fondamental(e)", en: "fundamental" },
+      { fr: "un ancêtre", en: "an ancestor" },
+      { fr: "une fierté", en: "a sense of pride" },
+      { fr: "l'identity", en: "identity" },
+      { fr: "au sein de", en: "within" }
+    ],
+  },
+  {
+    id: "fam_44",
+    topicKey: "family",
+    text: "Comment ta famille influence-t-elle tes choix pour l'avenir professionnel ?",
+    hint: "Talk about family expectations, support, or pressure regarding your career.",
+    difficulty: 2,
+    followUps: [
+      "Est-ce que tes parents veulent que tu fasses le même métier qu'eux ?",
+      "Est-ce qu'ils te mettent la pression pour avoir de bonnes notes ?",
+      "À qui d'autre demandes-tu conseil pour ton avenir ?"
+    ],
+    modelAnswer: "Mes parents m'encouragent à suivre ma passion, mais ils me donnent aussi des conseils pratiques sur le marché du travail. Leur expérience m'aide à éviter certaines erreurs et à choisir une voie qui me correspond vraiment. Ils ne me mettent pas la pression, mais leur avis compte énormément pour moi.",
+    keyVocab: [
+      { fr: "l'avenir professionnel", en: "professional future / career" },
+      { fr: "le marché du travail", en: "job market" },
+      { fr: "une voie", en: "a path / route" },
+      { fr: "mettre la pression", en: "to put pressure" },
+      { fr: "un avis", en: "an opinion / advice" },
+      { fr: "compter", en: "to count / matter" }
+    ],
+  },
+  {
+    id: "fam_45",
+    topicKey: "family",
+    text: "Quel est le rôle des grands-parents dans la société actuelle selon toi ?",
+    hint: "Discuss the evolution of grandparents' roles — childcare, wisdom, or modern connection.",
+    difficulty: 3,
+    followUps: [
+      "Est-ce que tes grands-parents s'occupent souvent de toi ?",
+      "Apportent-ils une sagesse particulière selon toi ?",
+      "Penses-tu qu'ils sont plus connectés technologiquement qu'avant ?"
+    ],
+    modelAnswer: "Aujourd'hui, les grands-parents jouent souvent un rôle de soutien en s'occupant des enfants quand les parents travaillent. Ils transmettent aussi des valeurs et une sagesse que l'on ne trouve pas dans les livres. Je pense qu'ils sont le lien indispensable entre le passé et le présent.",
+    keyVocab: [
+      { fr: "le rôle", en: "role" },
+      { fr: "la société actuelle", en: "modern society" },
+      { fr: "la sagesse", en: "wisdom" },
+      { fr: "un lien", en: "a link / bond" },
+      { fr: "indispensable", en: "essential / indispensable" },
+      { fr: "s'occuper de", en: "to look after" }
+    ],
+  },
+  {
+    id: "fam_46",
+    topicKey: "family",
+    text: "Comment restes-tu en contact avec les membres de ta famille qui habitent loin ?",
+    hint: "Discuss technology, visits, or letters to stay close with distant relatives.",
+    difficulty: 1,
+    followUps: [
+      "Utilises-tu souvent les appels vidéo pour leur parler ?",
+      "À quelle fréquence vous voyez-vous en personne ?",
+      "Est-ce que c'est difficile de garder le lien malgré la distance ?"
+    ],
+    modelAnswer: "J'utilise principalement les appels vidéo pour parler à mes cousins qui vivent à l'étranger. On a aussi un groupe sur WhatsApp où on partage des photos et des nouvelles tous les jours. Même si la distance est difficile, la technologie nous permet de rester très proches.",
+    keyVocab: [
+      { fr: "rester en contact", en: "to stay in touch" },
+      { fr: "loin", en: "far away" },
+      { fr: "un appel vidéo", en: "a video call" },
+      { fr: "à l'étranger", en: "abroad" },
+      { fr: "la distance", en: "distance" },
+      { fr: "partager", en: "to share" }
+    ],
+  },
+  {
+    id: "hol_27",
+    topicKey: "holidays",
+    text: "Est-il important de parler la langue locale quand on voyage ?",
+    hint: "Discuss the benefits of knowing the local language for cultural immersion and practical reasons.",
+    difficulty: 2,
+    followUps: [
+      "As-tu déjà utilisé ton français en vacances ?",
+      "Est-ce que les gens sont plus accueillants si on fait un effort ?",
+      "Quels sont les problèmes si on ne parle pas du tout la langue ?"
+    ],
+    modelAnswer: "Je pense qu'il est très important d'apprendre au moins quelques phrases de base comme « bonjour » et « merci ». Cela montre du respect pour la culture locale et les habitants sont souvent beaucoup plus chaleureux. Cela aide aussi pour lire les menus ou demander son chemin dans les endroits moins touristiques. Pour moi, parler la langue fait partie intégrante de l'expérience du voyage.",
+    keyVocab: [
+      { fr: "la langue locale", en: "local language" },
+      { fr: "faire un effort", en: "to make an effort" },
+      { fr: "chaleureux / chaleureuse", en: "warm / friendly" },
+      { fr: "demander son chemin", en: "to ask for directions" },
+      { fr: "faire partie intégrante de", en: "to be an integral part of" },
+      { fr: "les habitants", en: "locals / inhabitants" }
+    ],
+  },
+  {
+    id: "hol_28",
+    topicKey: "holidays",
+    text: "Que penses-tu du tourisme durable et de son impact sur l'environnement ?",
+    hint: "Discuss eco-friendly travel options and how to reduce your carbon footprint while on holiday.",
+    difficulty: 3,
+    followUps: [
+      "Préfères-tu prendre le train ou l'avion pour protéger la planète ?",
+      "Est-ce que tu évites les plastiques jetables en vacances ?",
+      "Comment peut-on aider l'économie locale sans détruire l'environnement ?"
+    ],
+    modelAnswer: "Le tourisme durable est essentiel aujourd'hui pour protéger les paysages magnifiques que nous aimons visiter. On peut essayer de voyager en train plutôt qu'en avion et choisir des hébergements écologiques. Il est aussi important de respecter la faune et la flore locales et de ne pas laisser de déchets derrière soi. À mon avis, nous devons voyager de manière plus responsable pour que les générations futures puissent aussi découvrir le monde.",
+    keyVocab: [
+      { fr: "durable", en: "sustainable" },
+      { fr: "l'empreinte carbone", en: "carbon footprint" },
+      { fr: "un hébergement", en: "accommodation" },
+      { fr: "la faune et la flore", en: "wildlife and plants" },
+      { fr: "les déchets", en: "waste / rubbish" },
+      { fr: "responsable", en: "responsible" }
+    ],
+  },
+  {
+    id: "hol_29",
+    topicKey: "holidays",
+    text: "Préfères-tu les vacances dans ton propre pays ou à l'étranger ?",
+    hint: "Compare 'staycations' (holidays at home) with traveling abroad.",
+    difficulty: 1,
+    followUps: [
+      "Quels sont les avantages de rester près de chez soi ?",
+      "Est-ce que c'est moins cher ?",
+      "Y a-t-il des endroits magnifiques à visiter dans ta région ?"
+    ],
+    modelAnswer: "J'aime les deux, mais j'ai une préférence pour les vacances à l'étranger car c'est un dépaysement total. J'adore découvrir de nouvelles cultures, des paysages différents et une nourriture exotique. Cependant, rester dans son propre pays est beaucoup plus simple et écologique. On peut découvrir des trésors cachés juste à côté de chez soi sans avoir le stress des aéroports ou des visas.",
+    keyVocab: [
+      { fr: "le dépaysement", en: "change of scenery" },
+      { fr: "exotique", en: "exotic" },
+      { fr: "un trésor caché", en: "a hidden gem / treasure" },
+      { fr: "le stress", en: "stress" },
+      { fr: "un visa", en: "a visa" },
+      { fr: "à l'étranger", en: "abroad" }
+    ],
+  },
+  {
+    id: "hol_30",
+    topicKey: "holidays",
+    text: "Y a-t-il un festival ou un événement culturel que tu voudrais voir à l'étranger ?",
+    hint: "Talk about a specific event like Carnival in Rio, Bastille Day in France, or Holi in India.",
+    difficulty: 2,
+    followUps: [
+      "Pourquoi cet événement t'intéresse-t-il ?",
+      "Avec qui aimerais-tu y aller ?",
+      "Qu'est-ce que tu porterais pour l'occasion ?"
+    ],
+    modelAnswer: "J'aimerais énormément assister au Carnaval de Nice en France. Les défilés de chars fleuris et l'ambiance festive sur la Côte d'Azur doivent être incroyables. C'est une occasion unique de voir les traditions locales et de s'amuser dans une ville magnifique. Je voudrais y aller avec mes amis pour profiter de la musique et de la bataille de fleurs. Je pense que ce serait un souvenir inoubliable et très coloré.",
+    keyVocab: [
+      { fr: "assister à", en: "to attend" },
+      { fr: "un défilé", en: "a parade" },
+      { fr: "un char", en: "a float (in a parade)" },
+      { fr: "festif / festive", en: "festive" },
+      { fr: "inoubliable", en: "unforgettable" },
+      { fr: "coloré(e)", en: "colourful" }
+    ],
+  },
+  {
+    id: "hol_31",
+    topicKey: "holidays",
+    text: "Qu'est-ce qu'il y a d'absolument essentiel dans ta valise ?",
+    hint: "List the items you cannot travel without and explain why.",
+    difficulty: 1,
+    followUps: [
+      "Est-ce que tu emportes trop de vêtements d'habitude ?",
+      "Préfères-tu un sac à dos ou une valise à roulettes ?",
+      "Qu'est-ce que tu achètes toujours au magasin de l'aéroport ?"
+    ],
+    modelAnswer: "Dans ma valise, l'objet le plus essentiel est mon appareil photo car j'adore capturer tous les moments spéciaux. J'emporte aussi toujours mes écouteurs pour écouter de la musique pendant le trajet. Bien sûr, je n'oublie jamais ma crème solaire car j'ai la peau sensible. J'essaie de voyager léger, mais j'ai tendance à prendre trop de livres que je ne finis jamais de lire !",
+    keyVocab: [
+      { fr: "essentiel(le)", en: "essential" },
+      { fr: "un appareil photo", en: "a camera" },
+      { fr: "la crème solaire", en: "sunscreen" },
+      { fr: "voyager léger", en: "to travel light" },
+      { fr: "avoir tendance à", en: "to have a tendency to" },
+      { fr: "un écouteur", en: "an earphone / headphone" }
+    ],
+  },
+  {
+    id: "hol_32",
+    topicKey: "holidays",
+    text: "Aimerais-tu faire un voyage spécial pour pratiquer un sport ?",
+    hint: "Discuss holidays focused on activities like skiing, surfing, or hiking.",
+    difficulty: 2,
+    followUps: [
+      "Quel sport choisirais-tu ?",
+      "Où irais-tu pour pratiquer ce sport ?",
+      "Est-ce que c'est plus fatigant que des vacances normales ?"
+    ],
+    modelAnswer: "J'aimerais beaucoup faire un voyage de surf au Portugal ou au Maroc. Ce serait génial de passer toute la journée dans l'eau et d'apprendre avec des professionnels. Je trouve que les vacances sportives sont très motivantes car on reste actif tout en découvrant de nouveaux paysages. Même si c'est physiquement fatigant, on se sent vraiment en forme et on rencontre des gens qui partagent la même passion.",
+    keyVocab: [
+      { fr: "pratiquer un sport", en: "to do / practice a sport" },
+      { fr: "génial(e)", en: "great / awesome" },
+      { fr: "motivant(e)", en: "motivating" },
+      { fr: "fatigant(e)", en: "tiring" },
+      { fr: "une passion", en: "a passion" },
+      { fr: "actif / active", en: "active" }
+    ],
+  },
+  {
+    id: "hol_33",
+    topicKey: "holidays",
+    text: "Quelle est la meilleure façon d'explorer une nouvelle ville, selon toi ?",
+    hint: "Compare walking, bus tours, cycling, or using public transport to see a city.",
+    difficulty: 2,
+    followUps: [
+      "Préfères-tu utiliser une carte papier ou une application sur ton téléphone ?",
+      "Est-ce que tu aimes te perdre dans les petites rues ?",
+      "Est-ce qu'il vaut mieux visiter les musées ou simplement se promener ?"
+    ],
+    modelAnswer: "À mon avis, la meilleure façon d'explorer une ville est de marcher. On peut voir beaucoup plus de détails, s'arrêter dans des petits cafés et découvrir des endroits secrets que les bus touristiques ne voient pas. Si la ville est grande, j'aime aussi louer un vélo car c'est rapide et amusant. Je pense qu'il est important de prendre son temps et de s'imprégner de l'atmosphère locale sans trop se presser.",
+    keyVocab: [
+      { fr: "explorer", en: "to explore" },
+      { fr: "s'imprégner de", en: "to soak up / immerse oneself in" },
+      { fr: "louer un vélo", en: "to rent a bike" },
+      { fr: "un endroit secret", en: "a secret spot" },
+      { fr: "se presser", en: "to hurry" },
+      { fr: "à pied", en: "on foot" }
+    ],
+  },
+  {
+    id: "hol_34",
+    topicKey: "holidays",
+    text: "Comment la technologie a-t-elle changé ta façon de voyager ?",
+    hint: "Discuss the use of apps for maps, translation, booking, and social media on holiday.",
+    difficulty: 3,
+    followUps: [
+      "Utilises-tu Google Maps pour t'orienter ?",
+      "Est-ce que tu réserves tes hôtels en ligne ?",
+      "Penses-tu qu'on regarde trop nos écrans au lieu de profiter du paysage ?"
+    ],
+    modelAnswer: "La technologie a rendu les voyages beaucoup plus faciles et moins stressants. Grâce aux applications, je peux traduire des panneaux instantanément ou trouver le meilleur restaurant du quartier en quelques secondes. On peut aussi réserver tout son voyage sur son téléphone, ce qui est très pratique. Cependant, il faut faire attention à ne pas rester trop connecté et à profiter réellement du moment présent sans toujours chercher le Wi-Fi.",
+    keyVocab: [
+      { fr: "traduire", en: "to translate" },
+      { fr: "instantanément", en: "instantly" },
+      { fr: "réserver", en: "to book" },
+      { fr: "le moment présent", en: "the present moment" },
+      { fr: "pratique", en: "practical / convenient" },
+      { fr: "un panneau", en: "a sign" }
+    ],
+  },
+  {
+    id: "hol_35",
+    topicKey: "holidays",
+    text: "Préfères-tu les vacances de luxe ou les vacances à petit budget ?",
+    hint: "Contrast high-end hotels and dining with hostels, camping, and budget travel.",
+    difficulty: 2,
+    followUps: [
+      "Quels sont les inconvénients des hôtels bon marché ?",
+      "Est-ce qu'on peut s'amuser autant sans dépenser beaucoup d'argent ?",
+      "Si tu gagnais au loto, quel type de vacances choisirais-tu ?"
+    ],
+    modelAnswer: "Personnellement, je préfère les vacances à petit budget car c'est souvent plus authentique et aventureux. On rencontre des gens plus intéressants dans les auberges de jeunesse et on apprend à être débrouillard. Bien sûr, un hôtel de luxe est très confortable, mais on reste parfois dans une bulle sans vraiment voir la réalité du pays. Je pense que le plus important est l'expérience et les souvenirs, pas le prix de la chambre.",
+    keyVocab: [
+      { fr: "à petit budget", en: "budget / low cost" },
+      { fr: "débrouillard(e)", en: "resourceful" },
+      { fr: "une auberge de jeunesse", en: "a youth hostel" },
+      { fr: "une bulle", en: "a bubble" },
+      { fr: "authentique", en: "authentic" },
+      { fr: "dépenser", en: "to spend (money)" }
+    ],
+  },
+  {
+    id: "hol_36",
+    topicKey: "holidays",
+    text: "Pourquoi est-il important de prendre des photos pendant ses vacances ?",
+    hint: "Discuss the role of photography in preserving memories and sharing experiences.",
+    difficulty: 2,
+    followUps: [
+      "Est-ce que tu partages tes photos sur Instagram ou Facebook ?",
+      "Préfères-tu les photos numériques ou les albums papier ?",
+      "Est-ce que tu passes trop de temps à prendre des photos ?"
+    ],
+    modelAnswer: "Prendre des photos est essentiel pour moi car cela permet de garder des souvenirs précis de moments heureux. Quand je regarde mes photos quelques années plus tard, je me rappelle des détails que j'aurais oubliés. C'est aussi un excellent moyen de partager mes aventures avec ma famille et mes amis. Cependant, il faut savoir poser l'appareil de temps en temps pour vivre l'expérience avec ses propres yeux et pas seulement à travers un objectif.",
+    keyVocab: [
+      { fr: "se rappeler", en: "to remember" },
+      { fr: "un objectif", en: "a lens" },
+      { fr: "numérique", en: "digital" },
+      { fr: "précis / précise", en: "precise / accurate" },
+      { fr: "garder des souvenirs", en: "to keep memories" },
+      { fr: "de temps en temps", en: "from time to time" }
+    ],
+  },
+  {
+    id: "hol_37",
+    topicKey: "holidays",
+    text: "Préfères-tu loger dans un hôtel ou dans une location comme Airbnb en vacances ?",
+    hint: "Compare hotel services with the local feel of a rental apartment.",
+    difficulty: 2,
+    followUps: [
+      "Quel est l'avantage principal de l'hôtel selon toi ?",
+      "Aimes-tu cuisiner tes propres repas pendant tes vacances ?",
+      "Où as-tu logé lors de ton dernier voyage ?"
+    ],
+    modelAnswer: "Je préfère les locations Airbnb parce que c'est plus authentique et on se sent comme un habitant local. On a plus d'espace et on peut cuisiner ses propres repas, ce qui est plus économique. Cependant, l'hôtel est plus confortable si on veut se reposer sans rien faire.",
+    keyVocab: [
+      { fr: "loger", en: "to stay / lodge" },
+      { fr: "une location", en: "a rental" },
+      { fr: "authentique", en: "authentic" },
+      { fr: "habitant local", en: "local resident" },
+      { fr: "économique", en: "economical / cheap" },
+      { fr: "se reposer", en: "to rest" }
+    ],
+  },
+  {
+    id: "hol_38",
+    topicKey: "holidays",
+    text: "Pourquoi est-il important de découvrir de nouvelles cultures en voyageant ?",
+    hint: "Discuss broadening horizons, tolerance, and learning different ways of life.",
+    difficulty: 3,
+    followUps: [
+      "Qu'est-ce que tu as appris de nouveau lors d'un voyage récent ?",
+      "Est-ce que cela change ta façon de penser au quotidien ?",
+      "Est-il facile de s'adapter à une culture très différente de la tienne ?"
+    ],
+    modelAnswer: "Voyager permet de sortir de sa zone de confort et de comprendre que le monde est très diversifié. En découvrant de nouvelles traditions, on devient plus tolérant et ouvert d'esprit. C'est une expérience qui nous enrichit personnellement bien plus que n'importe quel cours à l'école.",
+    keyVocab: [
+      { fr: "découvrir", en: "to discover" },
+      { fr: "zone de confort", en: "comfort zone" },
+      { fr: "diversifié(e)", en: "diverse / varied" },
+      { fr: "ouvert d'esprit", en: "open-minded" },
+      { fr: "enrichir", en: "to enrich" },
+      { fr: "tolérant(e)", en: "tolerant" }
+    ],
+  },
+  {
+    id: "hol_39",
+    topicKey: "holidays",
+    text: "Est-ce que tu aimes visiter des monuments historiques en vacances ?",
+    hint: "Talk about your interest in history, architecture, and landmarks.",
+    difficulty: 1,
+    followUps: [
+      "Quel est le monument le plus impressionnant que tu as vu ?",
+      "Préfères-tu les châteaux ou les musées d'art ?",
+      "Est-ce que tu prends le temps de lire les informations sur les panneaux ?"
+    ],
+    modelAnswer: "Oui, j'adore ça car j'aime l'histoire et je trouve fascinant de voir des bâtiments qui ont des siècles. Ça permet d'imaginer comment les gens vivaient autrefois. Mon monument préféré est la Tour de Londres car il y a tellement d'histoires sombres et intéressantes.",
+    keyVocab: [
+      { fr: "un monument", en: "a monument / landmark" },
+      { fr: "historique", en: "historical" },
+      { fr: "fascinant(e)", en: "fascinating" },
+      { fr: "autrefois", en: "in the past / formerly" },
+      { fr: "sombre", en: "dark" },
+      { fr: "un bâtiment", en: "a building" }
+    ],
+  },
+  {
+    id: "hol_40",
+    topicKey: "holidays",
+    text: "As-tu déjà eu un petit boulot ou un job d'été pendant les vacances ?",
+    hint: "Describe work experiences during the holidays and what you learned.",
+    difficulty: 1,
+    followUps: [
+      "Qu'est-ce que tu as fait exactement comme travail ?",
+      "Est-ce que c'était difficile physiquement ou mentalement ?",
+      "Qu'est-ce que tu as fait avec l'argent que tu as gagné ?"
+    ],
+    modelAnswer: "L'été dernier, j'ai travaillé comme serveur dans un petit café près de chez moi. C'était assez fatigant car il y avait beaucoup de clients, mais j'ai appris à être plus organisé. Avec l'argent que j'ai gagné, j'ai pu m'acheter un nouvel ordinateur pour l'école.",
+    keyVocab: [
+      { fr: "un job d'été", en: "a summer job" },
+      { fr: "un serveur / une serveuse", en: "a waiter / waitress" },
+      { fr: "fatigant(e)", en: "tiring" },
+      { fr: "gagner de l'argent", en: "to earn money" },
+      { fr: "organisé(e)", en: "organized" },
+      { fr: "s'acheter", en: "to buy for oneself" }
+    ],
+  },
+  {
+    id: "hol_41",
+    topicKey: "holidays",
+    text: "Quel est ton moyen de transport préféré pour explorer une nouvelle ville ?",
+    hint: "Talk about walking, cycling, or public transport in a city environment.",
+    difficulty: 1,
+    followUps: [
+      "Est-ce que tu aimes beaucoup marcher en vacances ?",
+      "Prends-tu souvent le métro ou le bus ?",
+      "Préfères-tu louer un vélo ou une trottinette électrique ?"
+    ],
+    modelAnswer: "Je préfère explorer les villes à pied ou à vélo car on peut s'arrêter quand on veut pour prendre des photos. On découvre souvent des petits endroits cachés qu'on ne verrait pas en bus ou en métro. Pour moi, c'est la meilleure façon de vraiment ressentir l'ambiance d'un quartier.",
+    keyVocab: [
+      { fr: "moyen de transport", en: "means of transport" },
+      { fr: "explorer", en: "to explore" },
+      { fr: "à pied", en: "on foot" },
+      { fr: "caché(e)", en: "hidden" },
+      { fr: "ressentir", en: "to feel / sense" },
+      { fr: "un quartier", en: "a neighborhood" }
+    ],
+  },
+  {
+    id: "hol_42",
+    topicKey: "holidays",
+    text: "Quelle est, selon toi, la meilleure saison pour partir en voyage ?",
+    hint: "Discuss seasons (spring, summer, etc.) and the pros/cons of weather and crowds.",
+    difficulty: 2,
+    followUps: [
+      "Aimes-tu voyager quand il fait très chaud ?",
+      "Préfères-tu la neige ou le soleil pour tes vacances ?",
+      "Est-ce qu'il y a trop de touristes pendant l'été selon toi ?"
+    ],
+    modelAnswer: "À mon avis, le printemps est la meilleure saison car il ne fait ni trop chaud ni trop froid. La nature est magnifique avec les fleurs et il y a moins de touristes qu'en juillet ou en août. C'est le moment idéal pour faire des visites culturelles sans souffrir de la chaleur.",
+    keyVocab: [
+      { fr: "la saison", en: "season" },
+      { fr: "le printemps", en: "spring" },
+      { fr: "magnifique", en: "magnificent / beautiful" },
+      { fr: "idéal(e)", en: "ideal" },
+      { fr: "souffrir", en: "to suffer" },
+      { fr: "la chaleur", en: "the heat" }
+    ],
+  },
+  {
+    id: "hol_43",
+    topicKey: "holidays",
+    text: "Est-ce que les réseaux sociaux influencent tes choix de destinations ?",
+    hint: "Discuss the impact of Instagram, TikTok, or travel blogs on your plans.",
+    difficulty: 3,
+    followUps: [
+      "Regardes-tu des photos sur Instagram avant de choisir où partir ?",
+      "Suis-tu des blogueurs de voyage célèbres ?",
+      "Est-ce que les photos correspondent toujours à la réalité sur place ?"
+    ],
+    modelAnswer: "Oui, je dois avouer que je regarde souvent des photos sur Instagram pour trouver des endroits magnifiques à visiter. Les vidéos sur TikTok me donnent aussi beaucoup d'idées pour des activités originales. Cependant, je sais que les photos sont parfois plus belles que la réalité, donc je reste prudent ou prudente.",
+    keyVocab: [
+      { fr: "les réseaux sociaux", en: "social media" },
+      { fr: "influencer", en: "to influence" },
+      { fr: "avouer", en: "to admit" },
+      { fr: "original / originale", en: "original / unique" },
+      { fr: "la réalité", en: "reality" },
+      { fr: "prudent(e)", en: "cautious" }
+    ],
+  },
+  {
+    id: "hol_44",
+    topicKey: "holidays",
+    text: "Aimerais-tu voyager pour assister à un grand événement sportif ou musical ?",
+    hint: "Talk about going to the World Cup, Olympics, or a big concert abroad.",
+    difficulty: 2,
+    followUps: [
+      "Quel événement t'intéresserait le plus ?",
+      "Avec qui aimerais-tu partir pour ce genre de voyage ?",
+      "Est-ce que c'est trop cher pour un étudiant d'après toi ?"
+    ],
+    modelAnswer: "J'adorerais voyager pour aller voir un match de la Coupe du Monde de football ou un concert de mon groupe préféré. L'ambiance doit être incroyable avec des gens venant du monde entier. Même si c'est un peu cher, je pense que les souvenirs d'un tel événement restent gravés pour toujours.",
+    keyVocab: [
+      { fr: "assister à", en: "to attend" },
+      { fr: "un événement", en: "an event" },
+      { fr: "sportif / sportive", en: "sporting" },
+      { fr: "l'ambiance", en: "atmosphere" },
+      { fr: "monde entier", en: "entire world" },
+      { fr: "gravé(e)", en: "engraved / etched (in memory)" }
+    ],
+  },
+  {
+    id: "hol_45",
+    topicKey: "holidays",
+    text: "Quelles précautions prends-tu pour rester en sécurité quand tu voyages ?",
+    hint: "Discuss safety measures like keeping passports safe and staying vigilant.",
+    difficulty: 3,
+    followUps: [
+      "Est-ce que tu gardes toujours ton passeport avec toi ?",
+      "Fais-tu attention à tes affaires dans les transports en commun ?",
+      "Est-ce que tu évites de visiter certains quartiers le soir ?"
+    ],
+    modelAnswer: "Je fais toujours attention à mes affaires personnelles dans les endroits bondés pour éviter les pickpockets. Je garde une copie de mon passeport en ligne et je préviens toujours mes parents de l'endroit où je me trouve. Il est important d'être vigilant tout en profitant du voyage sans être trop stressé.",
+    keyVocab: [
+      { fr: "une précaution", en: "a precaution" },
+      { fr: "la sécurité", en: "safety / security" },
+      { fr: "bondé(e)", en: "crowded" },
+      { fr: "un pickpocket", en: "a pickpocket" },
+      { fr: "vigilant(e)", en: "vigilant / watchful" },
+      { fr: "prévenir", en: "to warn / notify" }
+    ],
+  },
+  {
+    id: "hol_46",
+    topicKey: "holidays",
+    text: "Est-il nécessaire de partir loin de chez soi pour passer de bonnes vacances ?",
+    hint: "Discuss the benefits of local tourism (staycations) vs. international travel.",
+    difficulty: 1,
+    followUps: [
+      "Connais-tu bien ta propre région ?",
+      "Quels sont les avantages de rester près de chez soi ?",
+      "Est-ce que c'est moins stressant de ne pas prendre l'avion ?"
+    ],
+    modelAnswer: "Pas du tout ! On peut passer d'excellentes vacances en explorant sa propre région ou son propre pays. Ça permet de découvrir des endroits magnifiques sans passer des heures dans les transports. C'est aussi souvent plus écologique et plus économique que de partir à l'autre bout du monde.",
+    keyVocab: [
+      { fr: "loin de chez soi", en: "far from home" },
+      { fr: "nécessaire", en: "necessary" },
+      { fr: "propre", en: "own (e.g., own country)" },
+      { fr: "écologique", en: "eco-friendly" },
+      { fr: "économique", en: "economical" },
+      { fr: "l'autre bout du monde", en: "the other side of the world" }
+    ],
+  },
+  {
+    id: "hom_25",
+    topicKey: "home",
+    text: "Qu'est-ce qu'il y a de plus intéressant à voir dans ta région pour un amoureux de la nature ?",
+    hint: "Talk about parks, forests, lakes, or mountains nearby.",
+    difficulty: 2,
+    followUps: [
+      "Tu préfères te promener en forêt ou au bord de l'eau ?",
+      "Y a-t-il des animaux sauvages que l'on peut apercevoir ?",
+      "Est-ce que les gens respectent la nature dans ton coin ?"
+    ],
+    modelAnswer: "Dans ma région, le plus intéressant est sans doute la forêt domaniale qui se trouve à vingt minutes de chez moi. C'est un endroit magnifique avec des sentiers de randonnée et des arbres centenaires. On peut aussi visiter une réserve naturelle où l'on protège les oiseaux migrateurs. C'est le lieu idéal pour se ressourcer loin du bruit de la ville.",
+    keyVocab: [
+      { fr: "amoureux de la nature", en: "nature lover" },
+      { fr: "une forêt domaniale", en: "state forest" },
+      { fr: "un sentier de randonnée", en: "hiking trail" },
+      { fr: "centenaire", en: "century-old" },
+      { fr: "oiseaux migrateurs", en: "migratory birds" },
+      { fr: "se ressourcer", en: "to recharge one's batteries" }
+    ],
+  },
+  {
+    id: "hom_26",
+    topicKey: "home",
+    text: "Décris la vue depuis la fenêtre de ta chambre.",
+    hint: "What can you see? Buildings, trees, people, the street?",
+    difficulty: 1,
+    followUps: [
+      "Est-ce que tu aimes cette vue ?",
+      "Est-ce que c'est bruyant quand tu ouvres la fenêtre ?",
+      "Qu'est-ce que tu aimerais voir à la place ?"
+    ],
+    modelAnswer: "Depuis ma fenêtre, je peux voir notre petit jardin et quelques grands chênes au fond. Au loin, on aperçoit les toits des maisons voisines et le clocher de l'église. C'est une vue très apaisante, surtout le matin quand les oiseaux chantent. Parfois, je vois aussi des gens qui promènent leur chien dans la rue.",
+    keyVocab: [
+      { fr: "au loin", en: "in the distance" },
+      { fr: "un chêne", en: "an oak tree" },
+      { fr: "le clocher", en: "church tower" },
+      { fr: "apaisant", en: "soothing / peaceful" },
+      { fr: "voisin", en: "neighboring" },
+      { fr: "apercevoir", en: "to catch sight of" }
+    ],
+  },
+  {
+    id: "hom_27",
+    topicKey: "home",
+    text: "Comment est-ce que tu aides à entretenir le jardin ou la maison ?",
+    hint: "Specific chores like watering plants, mowing the lawn, or cleaning.",
+    difficulty: 1,
+    followUps: [
+      "Est-ce que tu aimes le jardinage ?",
+      "Quel est l'outil le plus difficile à utiliser ?",
+      "Tes parents te récompensent-ils pour ton aide ?"
+    ],
+    modelAnswer: "J'aide souvent mon père dans le jardin le week-end. Je m'occupe d'arroser les fleurs et d'enlever les mauvaises herbes dans les massifs. Parfois, je passe la tondeuse sur la pelouse, même si c'est un peu fatigant. À l'intérieur, je passe l'aspirateur dans le salon pour aider ma mère à garder la maison propre.",
+    keyVocab: [
+      { fr: "entretenir", en: "to maintain" },
+      { fr: "arroser", en: "to water" },
+      { fr: "mauvaise herbe", en: "weed" },
+      { fr: "la tondeuse", en: "lawnmower" },
+      { fr: "la pelouse", en: "lawn" },
+      { fr: "passer l'aspirateur", en: "to vacuum" }
+    ],
+  },
+  {
+    id: "hom_28",
+    topicKey: "home",
+    text: "Quels sont les problèmes de pollution dans ta ville ?",
+    hint: "Air quality, noise, litter, or water pollution.",
+    difficulty: 3,
+    followUps: [
+      "Quelle est la cause principale de cette pollution ?",
+      "Que fait la mairie pour lutter contre ce problème ?",
+      "Est-ce que la situation s'améliore ?"
+    ],
+    modelAnswer: "Malheureusement, ma ville souffre beaucoup de la pollution de l'air à cause de la circulation automobile intense au centre-ville. Il y a souvent des embouteillages qui rejettent des gaz d'échappement nocifs. Un autre problème est la pollution sonore, surtout la nuit à cause des travaux. Je pense qu'il faudrait limiter le nombre de voitures pour améliorer la qualité de vie.",
+    keyVocab: [
+      { fr: "souffrir de", en: "to suffer from" },
+      { fr: "circulation automobile", en: "road traffic" },
+      { fr: "gaz d'échappement", en: "exhaust fumes" },
+      { fr: "nocif", en: "harmful" },
+      { fr: "pollution sonore", en: "noise pollution" },
+      { fr: "investir", en: "to invest" }
+    ],
+  },
+  {
+    id: "hom_29",
+    topicKey: "home",
+    text: "Quels sont les avantages d'habiter en banlieue par rapport au centre-ville ?",
+    hint: "Space, noise, safety, cost, access to shops.",
+    difficulty: 2,
+    followUps: [
+      "Où est-ce que tu préférerais habiter quand tu seras adulte ?",
+      "Est-ce que les transports sont faciles depuis la banlieue ?",
+      "Est-ce que c'est plus sûr pour les familles ?"
+    ],
+    modelAnswer: "Habiter en banlieue permet d'avoir plus d'espace et souvent un jardin, ce qui est impossible au centre-ville. C'est aussi beaucoup plus calme et moins pollué, donc meilleur pour la santé. En revanche, au centre-ville, tout est à proximité comme les cinémas et les magasins. La banlieue est idéale pour les familles, alors que le centre-ville convient mieux aux jeunes actifs.",
+    keyVocab: [
+      { fr: "banlieue", en: "suburbs" },
+      { fr: "par rapport à", en: "compared to" },
+      { fr: "à proximité", en: "nearby" },
+      { fr: "convenir à", en: "to suit" },
+      { fr: "jeune actif", en: "young professional" },
+      { fr: "en revanche", en: "on the other hand" }
+    ],
+  },
+  {
+    id: "hom_30",
+    topicKey: "home",
+    text: "Décris un festival ou un événement local dans ta ville.",
+    hint: "Carnival, music festival, market, or fair.",
+    difficulty: 2,
+    followUps: [
+      "À quelle période de l'année cela a-t-il lieu ?",
+      "Est-ce que tu y participes chaque année ?",
+      "Pourquoi est-ce important pour la communauté ?"
+    ],
+    modelAnswer: "Chaque année en juillet, il y a un festival de musique traditionnelle sur la place du marché. C'est un événement très joyeux où les gens dansent et portent des costumes typiques. On installe aussi des stands qui vendent des spécialités gastronomiques locales. C'est un moment fort qui renforce les liens entre les habitants et attire beaucoup de touristes chaque été.",
+    keyVocab: [
+      { fr: "traditionnel", en: "traditional" },
+      { fr: "un stand", en: "a stall" },
+      { fr: "gastronomique", en: "gastronomic / gourmet" },
+      { fr: "renforcer les liens", en: "to strengthen bonds" },
+      { fr: "festif", en: "festive" },
+      { fr: "régner", en: "to reign / prevail" }
+    ],
+  },
+  {
+    id: "hom_31",
+    topicKey: "home",
+    text: "Qu'est-ce que tu changerais dans ton quartier pour le rendre plus sûr pour les enfants ?",
+    hint: "Better lighting, more parks, slower cars, security.",
+    difficulty: 3,
+    followUps: [
+      "Est-ce que tu penses que les enfants sont en sécurité actuellement ?",
+      "Y a-t-il assez d'espaces de jeux ?",
+      "Quel est le plus grand danger selon toi ?"
+    ],
+    modelAnswer: "Si je pouvais, j'installerais plus de passages piétons sécurisés et je limiterais la vitesse des voitures à trente kilomètres par heure. Je ferais aussi construire un parc clôturé où les enfants pourraient jouer sans risque. Enfin, je pense qu'il faudrait améliorer l'éclairage public le soir. La sécurité des plus jeunes doit être une priorité absolue pour la municipalité de ma ville.",
+    keyVocab: [
+      { fr: "passage piéton", en: "pedestrian crossing" },
+      { fr: "sécurisé", en: "secured / safe" },
+      { fr: "limiter la vitesse", en: "to speed limit" },
+      { fr: "clôturé", en: "fenced" },
+      { fr: "éclairage public", en: "street lighting" },
+      { fr: "municipalité", en: "municipality / town council" }
+    ],
+  },
+  {
+    id: "hom_32",
+    topicKey: "home",
+    text: "Est-ce qu'il est facile de trouver un emploi dans ta ville ?",
+    hint: "Industries, local businesses, unemployment, opportunities for young people.",
+    difficulty: 3,
+    followUps: [
+      "Quels secteurs recrutent le plus ?",
+      "Est-ce que les jeunes doivent partir ailleurs pour travailler ?",
+      "Quel genre de petit boulot peut-on faire l'été ?"
+    ],
+    modelAnswer: "Dans ma ville, le marché de l'emploi est assez dynamique, surtout dans le secteur des services et du commerce. Grâce au grand centre commercial, il y a beaucoup d'opportunités pour les jeunes qui cherchent un premier travail. Cependant, pour les métiers plus spécialisés, il est parfois nécessaire de se déplacer vers les grandes métropoles. Le chômage reste relativement faible ici.",
+    keyVocab: [
+      { fr: "le marché de l'emploi", en: "job market" },
+      { fr: "recruter", en: "to recruit" },
+      { fr: "opportunité", en: "opportunity" },
+      { fr: "spécialisé", en: "specialized" },
+      { fr: "la métropole", en: "metropolis / city" },
+      { fr: "le chômage", en: "unemployment" }
+    ],
+  },
+  {
+    id: "hom_33",
+    topicKey: "home",
+    text: "Décris la rue où tu habites.",
+    hint: "Narrow/wide, busy/quiet, trees, neighbors, shops.",
+    difficulty: 1,
+    followUps: [
+      "Ta rue est-elle longue ?",
+      "Y a-t-il beaucoup d'arbres ou de fleurs ?",
+      "Est-ce que les voitures circulent vite ?"
+    ],
+    modelAnswer: "J'habite dans une petite impasse très calme, loin de la route principale. La rue est bordée d'arbres et chaque maison a un petit jardinet devant l'entrée. Il n'y a pas de commerces, seulement des habitations, donc c'est très paisible toute la journée. Mes voisins sont sympathiques et on se salue toujours quand on se croise.",
+    keyVocab: [
+      { fr: "une impasse", en: "dead end / cul-de-sac" },
+      { fr: "bordé de", en: "lined with" },
+      { fr: "un jardinet", en: "small garden" },
+      { fr: "une habitation", en: "dwelling / house" },
+      { fr: "paisible", en: "peaceful" },
+      { fr: "se saluer", en: "to greet each other" }
+    ],
+  },
+  {
+    id: "hom_34",
+    topicKey: "home",
+    text: "Où vas-tu d'habitude quand tu veux être seul(e) dans ta ville ?",
+    hint: "A quiet park, library, café, or a bench somewhere.",
+    difficulty: 2,
+    followUps: [
+      "Qu'est-ce que tu fais là-bas ?",
+      "Est-ce que c'est un endroit secret ?",
+      "Pourquoi aimes-tu cet endroit ?"
+    ],
+    modelAnswer: "Quand j'ai besoin de calme, je vais souvent m'asseoir sur un banc dans le vieux parc qui surplombe la rivière. C'est un endroit assez caché que peu de gens connaissent vraiment. J'y vais pour lire un livre ou simplement pour réfléchir en écoutant le bruit de l'eau. Cela m'aide à évacuer le stress et à me sentir plus serein.",
+    keyVocab: [
+      { fr: "surplomber", en: "to overlook" },
+      { fr: "caché", en: "hidden" },
+      { fr: "réfléchir", en: "to think / reflect" },
+      { fr: "évacuer le stress", en: "to relieve stress" },
+      { fr: "serein", en: "serene" },
+      { fr: "un refuge", en: "a refuge / haven" }
+    ],
+  },
+  {
+    id: "hom_35",
+    topicKey: "home",
+    text: "Est-ce que tu connais bien tes voisins ?",
+    hint: "Talk about your relationship with neighbors — do you say hello, help each other, or are they strangers?",
+    difficulty: 1,
+    followUps: [
+      "Est-ce que tes voisins sont sympathiques ?",
+      "Est-ce que tu as déjà aidé un voisin ?",
+      "Est-ce qu'il y a beaucoup de bruit à cause de tes voisins ?"
+    ],
+    modelAnswer: "Oui, je connais assez bien mes voisins. Ils sont très polis et on se dit bonjour tous les matins. Parfois, ils nous apportent des gâteaux ou nous aident à arroser les plantes quand nous sommes en vacances. Je pense que c'est important d'avoir de bonnes relations de voisinage pour se sentir en sécurité.",
+    keyVocab: [
+      { fr: "poli(e)", en: "polite" },
+      { fr: "se dire bonjour", en: "to say hello" },
+      { fr: "arroser les plantes", en: "to water the plants" },
+      { fr: "s'entraider", en: "to help each other" },
+      { fr: "un étranger", en: "a stranger" },
+      { fr: "le voisinage", en: "the neighborhood/neighbors" }
+    ],
+  },
+  {
+    id: "hom_36",
+    topicKey: "home",
+    text: "Est-ce que ton quartier est bruyant ou calme ?",
+    hint: "Describe the noise levels in your area — traffic, nature, people — and how it affects you.",
+    difficulty: 2,
+    followUps: [
+      "Qu'est-ce qui cause le plus de bruit dans ta rue ?",
+      "Tu préfères le silence ou l'animation ?",
+      "Est-ce que tu dors bien malgré le bruit ?"
+    ],
+    modelAnswer: "Mon quartier est généralement très calme car j'habite dans une impasse, loin de la circulation. On entend surtout le chant des oiseaux et le vent dans les arbres, ce que je trouve relaxant. Cependant, le samedi matin, c'est un peu plus bruyant parce que les gens tondent leur pelouse. J'apprécie beaucoup ce silence pour étudier sereinement.",
+    keyVocab: [
+      { fr: "bruyant(e)", en: "noisy" },
+      { fr: "une impasse", en: "a cul-de-sac/dead end" },
+      { fr: "la circulation", en: "traffic" },
+      { fr: "le chant des oiseaux", en: "birdsong" },
+      { fr: "tondre la pelouse", en: "to mow the lawn" },
+      { fr: "sereinement", en: "serenely/peacefully" }
+    ],
+  },
+  {
+    id: "hom_37",
+    topicKey: "home",
+    text: "Quels sont les espaces verts près de chez toi ?",
+    hint: "Talk about parks, forests, or gardens nearby and what you do there.",
+    difficulty: 1,
+    followUps: [
+      "Est-ce que tu vas souvent au parc ?",
+      "Qu'est-ce qu'on peut faire dans ces espaces verts ?",
+      "Est-ce qu'il y a assez d'arbres dans ta ville ?"
+    ],
+    modelAnswer: "Il y a un grand parc public à seulement cinq minutes de ma maison. Il possède une forêt de chênes, un petit lac et beaucoup de sentiers pour se promener. J'y vais souvent le dimanche pour faire du jogging ou pique-niquer avec mes amis. Je pense que ces espaces sont essentiels pour respirer de l'air pur en ville.",
+    keyVocab: [
+      { fr: "un espace vert", en: "a green space" },
+      { fr: "un sentier", en: "a path/trail" },
+      { fr: "se promener", en: "to go for a walk" },
+      { fr: "respirer", en: "to breathe" },
+      { fr: "l'air pur", en: "fresh air" },
+      { fr: "un chêne", en: "an oak tree" }
+    ],
+  },
+  {
+    id: "hom_38",
+    topicKey: "home",
+    text: "Est-ce que tu connais l'histoire de ton quartier ou de ta ville ?",
+    hint: "Discuss any historical facts, old buildings, or how the area has changed over time.",
+    difficulty: 3,
+    followUps: [
+      "Y a-t-il des monuments historiques importants ?",
+      "Comment était la ville il y a cinquante ans ?",
+      "Est-ce que tu penses que c'est important de préserver le patrimoine ?"
+    ],
+    modelAnswer: "Ma ville a une histoire très riche qui remonte à l'époque romaine. On peut encore voir les ruines d'un ancien théâtre dans le centre historique. Autrefois, c'était un petit village de pêcheurs, mais elle s'est beaucoup développée grâce au commerce maritime. Je trouve fascinant de voir comment l'architecture ancienne se mélange aux bâtiments modernes d'aujourd'hui.",
+    keyVocab: [
+      { fr: "remonter à", en: "to date back to" },
+      { fr: "le patrimoine", en: "heritage" },
+      { fr: "autrefois", en: "formerly/in the past" },
+      { fr: "un pêcheur", en: "a fisherman" },
+      { fr: "maritime", en: "maritime/sea-related" },
+      { fr: "se mélanger", en: "to mix" }
+    ],
+  },
+  {
+    id: "hom_39",
+    topicKey: "home",
+    text: "Quel est le commerce le plus utile dans ton quartier ?",
+    hint: "Identify a local shop (bakery, pharmacy, etc.) and explain why it's important for residents.",
+    difficulty: 1,
+    followUps: [
+      "Est-ce que tu y vas souvent ?",
+      "Qu'est-ce que tu y achètes d'habitude ?",
+      "Est-ce que les vendeurs sont accueillants ?"
+    ],
+    modelAnswer: "Pour moi, le commerce le plus utile est la boulangerie au coin de la rue. J'y vais tous les matins pour acheter du pain frais et des croissants pour le petit-déjeuner. C'est un endroit très convivial où tout le monde se retrouve. Sans cette boulangerie, nous devrions prendre la voiture pour aller au supermarché, ce qui serait moins pratique.",
+    keyVocab: [
+      { fr: "utile", en: "useful" },
+      { fr: "au coin de la rue", en: "on the corner" },
+      { fr: "le pain frais", en: "fresh bread" },
+      { fr: "convivial(e)", en: "friendly/convivial" },
+      { fr: "un vendeur", en: "a shop assistant" },
+      { fr: "pratique", en: "convenient/practical" }
+    ],
+  },
+  {
+    id: "hom_40",
+    topicKey: "home",
+    text: "Comment est l'aspect de ta ville pendant les différentes saisons ?",
+    hint: "Describe how your town looks in winter vs. summer (flowers, snow, lights, atmosphere).",
+    difficulty: 2,
+    followUps: [
+      "Quelle est ta saison préférée dans ta ville ?",
+      "Est-ce qu'il y a des décorations spéciales en hiver ?",
+      "Qu'est-ce que les gens font différemment en été ?"
+    ],
+    modelAnswer: "Ma ville change beaucoup selon les saisons. En automne, les feuilles des arbres deviennent rouges et dorées, ce qui est magnifique. En hiver, on installe des illuminations de Noël dans les rues principales, alors qu'en été, les terrasses des cafés sont pleines de monde. Je préfère le printemps car tous les jardins sont en fleurs et l'air sent très bon.",
+    keyVocab: [
+      { fr: "l'aspect", en: "appearance" },
+      { fr: "doré(e)", en: "golden" },
+      { fr: "les illuminations", en: "lights/decorations" },
+      { fr: "en fleurs", en: "in bloom" },
+      { fr: "sentir", en: "to smell" },
+      { fr: "selon", en: "according to" }
+    ],
+  },
+  {
+    id: "hom_41",
+    topicKey: "home",
+    text: "Quels animaux peut-on voir dans ton quartier ?",
+    hint: "Talk about wildlife (birds, foxes, squirrels) or domestic pets you see around.",
+    difficulty: 1,
+    followUps: [
+      "Est-ce que tu aimes les animaux sauvages ?",
+      "Est-ce que tes voisins ont des chiens ?",
+      "As-tu déjà vu un animal inhabituel près de chez toi ?"
+    ],
+    modelAnswer: "On voit souvent des écureuils et beaucoup d'oiseaux différents dans les jardins. Parfois, le soir, on peut même apercevoir un renard qui traverse la route. Beaucoup de mes voisins promènent leurs chiens dans le quartier, ce qui rend l'ambiance très vivante. J'aime beaucoup observer la nature sauvage qui arrive à vivre au milieu des habitations.",
+    keyVocab: [
+      { fr: "un écureuil", en: "a squirrel" },
+      { fr: "un renard", en: "a fox" },
+      { fr: "apercevoir", en: "to catch a glimpse of" },
+      { fr: "sauvage", en: "wild" },
+      { fr: "promener", en: "to walk (an animal)" },
+      { fr: "vivant(e)", en: "lively" }
+    ],
+  },
+  {
+    id: "hom_42",
+    topicKey: "home",
+    text: "Quel est l'objet le plus précieux dans ta maison ?",
+    hint: "Describe a possession that means a lot to you (an heirloom, a gift, a device) and explain why.",
+    difficulty: 3,
+    followUps: [
+      "Depuis combien de temps as-tu cet objet ?",
+      "Où est-ce qu'il se trouve dans ta maison ?",
+      "Est-ce que tu l'emporterais si tu devais déménager ?"
+    ],
+    modelAnswer: "L'objet le plus précieux chez moi est un vieil appareil photo qui appartenait à mon grand-père. Ce n'est pas un objet qui a une grande valeur financière, mais il a une immense valeur sentimentale. Il est posé sur une étagère dans le salon. Cet objet me rappelle les histoires que mon grand-père me racontait sur ses voyages autour du monde.",
+    keyVocab: [
+      { fr: "précieux / précieuse", en: "precious" },
+      { fr: "appartenir à", en: "to belong to" },
+      { fr: "une valeur sentimentale", en: "sentimental value" },
+      { fr: "une étagère", en: "a shelf" },
+      { fr: "rappeler", en: "to remind" },
+      { fr: "emporter", en: "to take (with oneself)" }
+    ],
+  },
+  {
+    id: "hom_43",
+    topicKey: "home",
+    text: "Quelles sont les activités possibles en soirée dans ta ville ?",
+    hint: "Discuss what people do at night — restaurants, cinemas, clubs, or quiet walks.",
+    difficulty: 2,
+    followUps: [
+      "Est-ce que la ville est animée le soir ?",
+      "Qu'est-ce que tu as fait en ville samedi dernier ?",
+      "Est-ce que c'est sûr de sortir tard ?"
+    ],
+    modelAnswer: "En soirée, ma ville est assez animée, surtout dans le centre-ville. On peut aller au cinéma pour voir les derniers films ou dîner dans des restaurants de spécialités étrangères. Pour les jeunes, il y a aussi quelques bowlings et des salles de jeux. Si on préfère le calme, on peut se promener le long de la rivière car les ponts sont magnifiquement éclairés la nuit.",
+    keyVocab: [
+      { fr: "en soirée", en: "in the evening" },
+      { fr: "animé(e)", en: "lively" },
+      { fr: "un bowling", en: "a bowling alley" },
+      { fr: "éclairé(e)", en: "lit/illuminated" },
+      { fr: "la rivière", en: "the river" },
+      { fr: "sortir", en: "to go out" }
+    ],
+  },
+  {
+    id: "hom_44",
+    topicKey: "home",
+    text: "Quels sont tes meilleurs souvenirs d'enfance liés à ta maison ?",
+    hint: "Reflect on activities or events that happened at home when you were younger.",
+    difficulty: 2,
+    followUps: [
+      "Est-ce que tu habites dans la même maison depuis ta naissance ?",
+      "Qu'est-ce qui a changé dans la maison depuis ton enfance ?",
+      "Est-ce que tu aimerais que tes enfants grandissent dans une maison similaire ?"
+    ],
+    modelAnswer: "Mon meilleur souvenir est celui des anniversaires que nous fêtions dans le jardin avec tous mes cousins. On installait une grande tente et on jouait à cache-cache jusqu'à la tombée de la nuit. Je me souviens aussi des hivers où nous lisions des histoires près de la cheminée. Ces moments simples ont rendu ma maison très chaleureuse et pleine de bonheur.",
+    keyVocab: [
+      { fr: "un souvenir", en: "a memory" },
+      { fr: "fêter", en: "to celebrate" },
+      { fr: "jouer à cache-cache", en: "to play hide and seek" },
+      { fr: "la tombée de la nuit", en: "nightfall" },
+      { fr: "la cheminée", en: "fireplace" },
+      { fr: "chaleureux / chaleureuse", en: "warm/welcoming" }
+    ],
+  },
+  {
+    id: "fut_24",
+    topicKey: "future",
+    text: "Pourquoi est-il important d'apprendre des langues étrangères pour ta future carrière ?",
+    hint: "International travel, communication, competitive advantage.",
+    difficulty: 1,
+    followUps: [
+      "Quelles langues voudrais-tu maîtriser parfaitement ?",
+      "Penses-tu que l'anglais suffit aujourd'hui ?",
+      "Comment vas-tu utiliser tes langues au travail ?"
+    ],
+    modelAnswer: "Je crois que parler plusieurs langues est un atout majeur dans le monde du travail actuel. Cela permet de travailler avec des entreprises internationales et de communiquer facilement avec des clients du monde entier. Dans certains métiers comme le tourisme, c'est même indispensable. En apprenant le français, j'espère avoir plus d'opportunités professionnelles à l'avenir.",
+    keyVocab: [
+      { fr: "un atout majeur", en: "major asset" },
+      { fr: "actuel", en: "current / present-day" },
+      { fr: "le monde du travail", en: "the world of work" },
+      { fr: "international", en: "international" },
+      { fr: "indispensable", en: "essential" },
+      { fr: "francophone", en: "French-speaking" }
+    ],
+  },
+  {
+    id: "fut_25",
+    topicKey: "future",
+    text: "Préférerais-tu travailler à la maison ou dans un bureau à l'avenir ?",
+    hint: "Pros and cons: flexibility, socialization, distraction, concentration.",
+    difficulty: 2,
+    followUps: [
+      "Quels sont les dangers du télétravail ?",
+      "Est-ce que l'ambiance de bureau est importante pour toi ?",
+      "Pourrais-tu être productif seul chez toi ?"
+    ],
+    modelAnswer: "Dans l'idéal, j'aimerais avoir un mélange des deux. Le télétravail est génial pour la flexibilité et pour gagner du temps en évitant les transports quotidiens. Cependant, je pense qu'il est essentiel d'aller au bureau pour voir ses collègues et échanger des idées. Le contact humain est important pour garder la motivation et se sentir intégré dans une équipe.",
+    keyVocab: [
+      { fr: "le télétravail", en: "teleworking / remote work" },
+      { fr: "la flexibilité", en: "flexibility" },
+      { fr: "gagner du temps", en: "to save time" },
+      { fr: "échanger des idées", en: "to exchange ideas" },
+      { fr: "intégré", en: "integrated / part of" },
+      { fr: "solitaire", en: "lonely" }
+    ],
+  },
+  {
+    id: "fut_26",
+    topicKey: "future",
+    text: "Est-ce que tu aimerais prendre une année sabbatique avant d'aller à l'université ?",
+    hint: "Traveling, volunteering, working, maturing.",
+    difficulty: 2,
+    followUps: [
+      "Que ferais-tu pendant cette année ?",
+      "Est-ce que tes parents seraient d'accord ?",
+      "Quels sont les risques de s'arrêter d'étudier pendant un an ?"
+    ],
+    modelAnswer: "Oui, j'adorerais prendre une année sabbatique pour voyager et découvrir de nouvelles cultures. J'aimerais faire du bénévolat dans une association humanitaire à l'étranger pour me sentir utile et gagner en maturité. Je pense que cela permet de prendre du recul avant de s'engager dans des études longues. C'est une expérience enrichissante qui aide à mieux se connaître.",
+    keyVocab: [
+      { fr: "année sabbatique", en: "gap year" },
+      { fr: "humanitaire", en: "humanitarian" },
+      { fr: "gagner en maturité", en: "to gain in maturity" },
+      { fr: "prendre du recul", en: "to gain perspective" },
+      { fr: "s'engager", en: "to commit oneself" },
+      { fr: "enrichissant", en: "enriching" }
+    ],
+  },
+  {
+    id: "fut_27",
+    topicKey: "future",
+    text: "Est-ce que tu prévois de faire du bénévolat ou du travail caritatif plus tard ?",
+    hint: "Helping others, causes you care about (environment, animals, poverty).",
+    difficulty: 1,
+    followUps: [
+      "Quelle cause te tient le plus à cœur ?",
+      "Combien de temps pourrais-tu y consacrer ?",
+      "Penses-tu que tout le monde devrait aider les autres ?"
+    ],
+    modelAnswer: "Oui, j'aimerais beaucoup consacrer une partie de mon temps libre à aider les animaux dans un refuge. Je suis très sensible à la protection de la biodiversité et je pense qu'il est important de donner de son temps pour une cause noble. On peut aussi aider les personnes âgées en leur rendant visite. Le bénévolat apporte beaucoup de bonheur à tout le monde.",
+    keyVocab: [
+      { fr: "prévoir", en: "to plan / foresee" },
+      { fr: "caritatif", en: "charitable" },
+      { fr: "tenir à cœur", en: "to be close to one's heart" },
+      { fr: "consacrer", en: "to devote / dedicate" },
+      { fr: "un refuge", en: "a shelter" },
+      { fr: "noble", en: "noble" }
+    ],
+  },
+  {
+    id: "fut_28",
+    topicKey: "future",
+    text: "Quel impact les réseaux sociaux auront-ils sur les métiers de demain ?",
+    hint: "New careers, digital marketing, the importance of online presence.",
+    difficulty: 3,
+    followUps: [
+      "Aimerais-tu être influenceur ou créateur de contenu ?",
+      "Est-ce que c'est un métier stable selon toi ?",
+      "Comment les entreprises utilisent-elles ces plateformes ?"
+    ],
+    modelAnswer: "Les réseaux sociaux transforment complètement le monde du travail en créant de nouveaux métiers comme community manager. Aujourd'hui, avoir une présence numérique est devenu indispensable pour presque toutes les entreprises. À l'avenir, je pense que la communication digitale sera au cœur de chaque carrière. Cependant, il faudra faire attention à protéger sa vie privée et ne pas être trop dépendant.",
+    keyVocab: [
+      { fr: "transformer", en: "to transform" },
+      { fr: "community manager", en: "social media manager" },
+      { fr: "présence numérique", en: "digital presence" },
+      { fr: "digital", en: "digital" },
+      { fr: "vie privée", en: "private life" },
+      { fr: "dépendant", en: "dependent" }
+    ],
+  },
+  {
+    id: "fut_29",
+    topicKey: "future",
+    text: "Comment penses-tu que nous mangerons dans le futur ?",
+    hint: "Environmental impact of food, synthetic products, local consumption.",
+    difficulty: 3,
+    followUps: [
+      "Serais-tu prêt(e) à manger de la viande synthétique ou des insectes ?",
+      "Pourquoi nos habitudes alimentaires doivent-elles changer ?",
+      "La nourriture sera-t-elle plus saine ?"
+    ],
+    modelAnswer: "Je pense que nos habitudes alimentaires vont changer radicalement pour protéger l'environnement. On mangera sans doute moins de viande rouge et plus de protéines végétales ou de la viande produite en laboratoire. Le bio et le local deviendront la norme car transporter de la nourriture n'est plus durable. On utilisera peut-être aussi plus de technologies pour cultiver nos légumes.",
+    keyVocab: [
+      { fr: "radicalement", en: "radically" },
+      { fr: "viande synthétique", en: "synthetic meat" },
+      { fr: "protéine végétale", en: "plant protein" },
+      { fr: "en laboratoire", en: "in a laboratory" },
+      { fr: "la norme", en: "the norm" },
+      { fr: "durable", en: "sustainable" }
+    ],
+  },
+  {
+    id: "fut_30",
+    topicKey: "future",
+    text: "Selon toi, quelles sont les compétences les plus importantes pour réussir à l'avenir ?",
+    hint: "Adaptability, creativity, technical skills, languages.",
+    difficulty: 2,
+    followUps: [
+      "Est-ce que les diplômes sont plus importants que l'expérience ?",
+      "Quelle compétence voudrais-tu apprendre en priorité ?",
+      "L'école nous prépare-t-elle bien à la vie active ?"
+    ],
+    modelAnswer: "À mon avis, l'adaptabilité sera la compétence la plus cruciale car le monde change de plus en plus vite. Il faudra être capable d'apprendre de nouvelles choses tout au long de sa vie. La créativité et la résolution de problèmes complexes seront aussi très demandées par les entreprises. Enfin, savoir bien communiquer et travailler en équipe restera fondamental dans tout domaine professionnel.",
+    keyVocab: [
+      { fr: "une compétence", en: "a skill" },
+      { fr: "adaptabilité", en: "adaptability" },
+      { fr: "crucial", en: "crucial" },
+      { fr: "résolution de problèmes", en: "problem solving" },
+      { fr: "fondamental", en: "fundamental" },
+      { fr: "domaine professionnel", en: "professional field" }
+    ],
+  },
+  {
+    id: "fut_31",
+    topicKey: "future",
+    text: "Aimerais-tu habiter dans une maison intelligente à l'avenir ?",
+    hint: "Automation, energy saving, security, privacy.",
+    difficulty: 1,
+    followUps: [
+      "Quels seraient les avantages pour l'environnement ?",
+      "As-tu peur que la technologie surveille ta vie privée ?",
+      "Quel gadget technologique serait le plus utile ?"
+    ],
+    modelAnswer: "J'aimerais beaucoup habiter dans une maison connectée car cela permettrait d'économiser de l'énergie de façon automatique. Par exemple, le chauffage s'éteindrait quand je quitte une pièce. Cela apporterait aussi plus de sécurité avec des alarmes intelligentes. Cependant, je ne voudrais pas que tout soit contrôlé par ordinateur par peur des pannes ou du piratage informatique.",
+    keyVocab: [
+      { fr: "maison intelligente", en: "smart home" },
+      { fr: "connecté", en: "connected / smart" },
+      { fr: "économiser l'énergie", en: "to save energy" },
+      { fr: "une panne", en: "a breakdown / failure" },
+      { fr: "piratage informatique", en: "hacking" },
+      { fr: "une habitation", en: "a dwelling / home" }
+    ],
+  },
+  {
+    id: "fut_32",
+    topicKey: "future",
+    text: "Est-ce que tu penses que l'environnement influencera ton choix de carrière ?",
+    hint: "Sustainable energy, ecology, social responsibility.",
+    difficulty: 3,
+    followUps: [
+      "Voudrais-tu travailler dans le secteur des énergies renouvelables ?",
+      "Est-ce qu'une entreprise doit être écologique pour que tu y travailles ?",
+      "Quels sont les métiers verts de demain ?"
+    ],
+    modelAnswer: "Absolument, je veux que mon futur travail ait un impact positif sur la planète. Je ne pourrais pas travailler pour une entreprise qui pollue sans remords. J'envisage de m'orienter vers les énergies renouvelables ou la protection de la biodiversité. Je pense que les métiers verts vont se multiplier à l'avenir. C'est une responsabilité que nous avons envers les générations futures.",
+    keyVocab: [
+      { fr: "influencer", en: "to influence" },
+      { fr: "sans remords", en: "remorselessly" },
+      { fr: "s'orienter vers", en: "to move towards / specialize in" },
+      { fr: "se multiplier", en: "to multiply" },
+      { fr: "durable", en: "sustainable" },
+      { fr: "envers", en: "towards" }
+    ],
+  },
+  {
+    id: "fut_33",
+    topicKey: "future",
+    text: "Comment imagines-tu l'équilibre entre ton travail et ta vie de famille plus tard ?",
+    hint: "Working hours, leisure time, priorities.",
+    difficulty: 3,
+    followUps: [
+      "Travailleras-tu autant que tes parents ?",
+      "Est-ce que le temps libre est plus précieux que le succès ?",
+      "Comment partageras-tu les responsabilités à la maison ?"
+    ],
+    modelAnswer: "Pour moi, l'équilibre entre vie professionnelle et vie privée est la clé du bonheur. Je ne veux pas sacrifier ma famille pour ma carrière, même si je suis ambitieux. J'espère que les entreprises proposeront des horaires plus flexibles à l'avenir. Je prévois de partager équitablement toutes les tâches ménagères avec mon partenaire pour avoir du temps libre ensemble.",
+    keyVocab: [
+      { fr: "l'équilibre", en: "balance" },
+      { fr: "vie professionnelle", en: "professional life" },
+      { fr: "vie privée", en: "private life" },
+      { fr: "sacrifier", en: "to sacrifice" },
+      { fr: "ambitieux", en: "ambitious" },
+      { fr: "équitablement", en: "fairly / equally" }
+    ],
+  },
+  {
+    id: "fut_34",
+    topicKey: "future",
+    text: "Comment penses-tu que nous nous déplacerons dans le futur ?",
+    hint: "Discuss future transportation methods — flying cars, high-speed trains, electric planes.",
+    difficulty: 2,
+    followUps: [
+      "Est-ce que tu aimerais avoir une voiture volante ?",
+      "Penses-tu que les voyages en avion seront plus écologiques ?",
+      "Est-ce que les voitures autonomes sont une bonne idée ?"
+    ],
+    modelAnswer: "Je pense que les transports seront beaucoup plus rapides et écologiques à l'avenir. On utilisera probablement des trains à très grande vitesse, comme l'Hyperloop, pour voyager entre les pays. Les voitures seront toutes électriques et autonomes, ce qui réduira les accidents de la route. Peut-être même que les drones transporteront les gens sur de courtes distances en ville pour éviter les bouchons.",
+    keyVocab: [
+      { fr: "se déplacer", en: "to move/get around" },
+      { fr: "volant(e)", en: "flying" },
+      { fr: "autonome", en: "autonomous/self-driving" },
+      { fr: "réduire", en: "to reduce" },
+      { fr: "les bouchons", en: "traffic jams" },
+      { fr: "probablement", en: "probably" }
+    ],
+  },
+  {
+    id: "fut_35",
+    topicKey: "future",
+    text: "À quoi ressemblera l'école de l'avenir selon toi ?",
+    hint: "Imagine future classrooms — technology, subjects, or if schools will even exist physically.",
+    difficulty: 2,
+    followUps: [
+      "Est-ce que les professeurs seront remplacés par des robots ?",
+      "Aimerais-tu étudier depuis chez toi avec la réalité virtuelle ?",
+      "Quelles nouvelles matières apprendra-t-on ?"
+    ],
+    modelAnswer: "L'école de l'avenir sera très différente grâce à la technologie. On utilisera la réalité virtuelle pour visiter des lieux historiques ou explorer l'espace sans quitter la classe. Les élèves auront peut-être des tuteurs personnalisés basés sur l'intelligence artificielle pour les aider à progresser. Cependant, je crois que le contact humain avec les professeurs restera essentiel pour apprendre à vivre ensemble.",
+    keyVocab: [
+      { fr: "ressembler à", en: "to look like" },
+      { fr: "la réalité virtuelle", en: "virtual reality" },
+      { fr: "remplacer", en: "to replace" },
+      { fr: "un tuteur / une tutrice", en: "a tutor" },
+      { fr: "progresser", en: "to progress/improve" },
+      { fr: "quitter", en: "to leave" }
+    ],
+  },
+  {
+    id: "fut_36",
+    topicKey: "future",
+    text: "Aimerais-tu faire du tourisme spatial un jour ?",
+    hint: "Discuss the possibility of visiting the Moon or Mars as a tourist.",
+    difficulty: 3,
+    followUps: [
+      "Penses-tu que ce sera abordable pour tout le monde ?",
+      "Quels seraient les dangers d'un voyage dans l'espace ?",
+      "Est-ce que tu préférerais visiter une autre planète ou rester sur Terre ?"
+    ],
+    modelAnswer: "L'idée de voyager dans l'espace me fascine énormément. J'adorerais voir la Terre depuis la Lune et ressentir l'absence de gravité. Cependant, je pense que ce genre de tourisme sera réservé aux gens très riches pendant longtemps. C'est aussi un défi technologique risqué car le corps humain n'est pas habitué aux conditions spatiales. Malgré cela, c'est une aventure incroyable que je ne refuserais pas.",
+    keyVocab: [
+      { fr: "le tourisme spatial", en: "space tourism" },
+      { fr: "abordable", en: "affordable" },
+      { fr: "la gravité", en: "gravity" },
+      { fr: "un défi", en: "a challenge" },
+      { fr: "risqué", en: "risky" },
+      { fr: "s'habituer à", en: "to get used to" }
+    ],
+  },
+  {
+    id: "fut_37",
+    topicKey: "future",
+    text: "Penses-tu que les livres papier vont disparaître dans le futur ?",
+    hint: "Compare digital reading with traditional books and predict which will survive.",
+    difficulty: 2,
+    followUps: [
+      "Préfères-tu lire sur une tablette ou un livre physique ?",
+      "Quels sont les avantages des livres numériques ?",
+      "Est-ce que les bibliothèques existeront encore dans 50 ans ?"
+    ],
+    modelAnswer: "Je ne pense pas que les livres papier disparaîtront complètement. Même si les liseuses numériques sont pratiques pour voyager, beaucoup de gens aiment encore l'odeur du papier et la sensation de tourner les pages. Les livres physiques sont aussi des objets de décoration qu'on aime garder chez soi. À mon avis, les deux formats continueront de coexister car ils offrent des expériences de lecture différentes.",
+    keyVocab: [
+      { fr: "disparaître", en: "to disappear" },
+      { fr: "une liseuse", en: "an e-reader" },
+      { fr: "pratique", en: "convenient" },
+      { fr: "la sensation", en: "sensation/feeling" },
+      { fr: "garder", en: "to keep" },
+      { fr: "coexister", en: "to coexist" }
+    ],
+  },
+  {
+    id: "fut_38",
+    topicKey: "future",
+    text: "Est-ce que tu aimerais avoir un robot comme compagnon à la maison ?",
+    hint: "Talk about robots helping with daily life or providing company.",
+    difficulty: 1,
+    followUps: [
+      "Quelles tâches est-ce que le robot pourrait faire pour toi ?",
+      "Est-ce qu'un robot peut être un véritable ami ?",
+      "Est-ce que les robots te font peur ?"
+    ],
+    modelAnswer: "Oui, j'aimerais bien avoir un petit robot pour m'aider avec les tâches ennuyeuses comme ranger ma chambre ou préparer mon sac. Ce serait aussi amusant de pouvoir discuter avec lui et de lui poser des questions. Cependant, je ne pense pas qu'un robot puisse remplacer un vrai ami car il n'a pas de sentiments réels. Ce serait juste un outil technologique très perfectionné et utile au quotidien.",
+    keyVocab: [
+      { fr: "un compagnon", en: "a companion" },
+      { fr: "ennuyeux / ennuyeuse", en: "boring" },
+      { fr: "un sentiment", en: "a feeling/emotion" },
+      { fr: "perfectionné(e)", en: "advanced/sophisticated" },
+      { fr: "un outil", en: "a tool" },
+      { fr: "ranger", en: "to tidy up" }
+    ],
+  },
+  {
+    id: "fut_39",
+    topicKey: "future",
+    text: "Quels seront les nouveaux loisirs des jeunes dans 50 ans ?",
+    hint: "Predict future hobbies — eSports, virtual reality games, or new sports.",
+    difficulty: 1,
+    followUps: [
+      "Est-ce que les sports traditionnels comme le foot existeront encore ?",
+      "Penses-tu que les jeunes sortiront moins de chez eux ?",
+      "Quel nouveau jeu aimerais-tu inventer ?"
+    ],
+    modelAnswer: "Je pense que les loisirs seront de plus en plus numériques. Les jeunes passeront beaucoup de temps dans des mondes virtuels pour jouer ou rencontrer des amis. Il y aura peut-être des sports extrêmes avec des jet-packs ou des compétitions de jeux vidéo encore plus populaires qu'aujourd'hui. Mais j'espère que les gens continueront aussi à faire des activités en plein air pour rester en contact avec la nature.",
+    keyVocab: [
+      { fr: "un loisir", en: "a hobby/pastime" },
+      { fr: "numérique", en: "digital" },
+      { fr: "virtuel(le)", en: "virtual" },
+      { fr: "une compétition", en: "a competition" },
+      { fr: "populaire", en: "popular" },
+      { fr: "en plein air", en: "outdoors" }
+    ],
+  },
+  {
+    id: "fut_40",
+    topicKey: "future",
+    text: "Comment la médecine va-t-elle changer notre vie à l'avenir ?",
+    hint: "Discuss medical advances — living longer, curing diseases, nanotechnology.",
+    difficulty: 3,
+    followUps: [
+      "Est-ce que tu aimerais vivre jusqu'à 150 ans ?",
+      "Penses-tu que nous pourrons soigner toutes les maladies ?",
+      "Est-ce que la technologie peut améliorer notre santé mentale ?"
+    ],
+    modelAnswer: "La médecine du futur sera incroyable grâce aux progrès de la génétique et de la nanotechnologie. On pourra probablement détecter les maladies très tôt et les soigner avec des traitements personnalisés. L'espérance de vie va sans doute augmenter, et on pourra peut-être remplacer des organes malades par des organes imprimés en 3D. Cela changera notre façon de voir la vieillesse et la santé en général.",
+    keyVocab: [
+      { fr: "soigner", en: "to treat/cure" },
+      { fr: "une maladie", en: "a disease/illness" },
+      { fr: "l'espérance de vie", en: "life expectancy" },
+      { fr: "un organe", en: "an organ" },
+      { fr: "augmenter", en: "to increase" },
+      { fr: "la vieillesse", en: "old age" }
+    ],
+  },
+  {
+    id: "fut_41",
+    topicKey: "future",
+    text: "À quoi ressembleront nos vêtements dans le futur ?",
+    hint: "Imagine smart clothing — self-cleaning, temperature-controlled, or eco-friendly materials.",
+    difficulty: 2,
+    followUps: [
+      "Est-ce que les vêtements seront plus écologiques ?",
+      "Aimerais-tu porter des vêtements qui changent de couleur ?",
+      "Penses-tu que la mode sera la même pour tout le monde ?"
+    ],
+    modelAnswer: "Les vêtements du futur seront très technologiques et intelligents. Ils pourront changer de température selon le temps qu'il fait ou même changer de couleur selon notre humeur. On utilisera aussi des matières plus durables, comme des tissus fabriqués à partir de plantes ou de matériaux recyclés. La mode sera peut-être moins jetable qu'aujourd'hui, car les vêtements seront plus solides et multifonctions.",
+    keyVocab: [
+      { fr: "un vêtement", en: "a piece of clothing" },
+      { fr: "intelligent(e)", en: "smart/intelligent" },
+      { fr: "la température", en: "temperature" },
+      { fr: "l'humeur", en: "mood" },
+      { fr: "durable", en: "sustainable" },
+      { fr: "jetable", en: "disposable" }
+    ],
+  },
+  {
+    id: "fut_42",
+    topicKey: "future",
+    text: "Comment ferons-nous nos courses dans le futur ?",
+    hint: "Discuss the future of shopping — drones, no physical stores, virtual fitting rooms.",
+    difficulty: 2,
+    followUps: [
+      "Est-ce que les magasins physiques vont disparaître ?",
+      "Penses-tu que les drones livreront tous nos colis ?",
+      "Est-ce que faire du shopping sera encore une activité sociale ?"
+    ],
+    modelAnswer: "À mon avis, faire les courses sera beaucoup plus automatisé. On n'ira plus au supermarché car tout sera livré à domicile par des robots ou des drones en quelques minutes. On utilisera la réalité augmentée pour essayer des vêtements virtuellement devant son miroir. Cependant, je pense que les petits commerces de quartier resteront importants pour garder un lien social et acheter des produits artisanaux de qualité.",
+    keyVocab: [
+      { fr: "faire les courses", en: "to go shopping (groceries)" },
+      { fr: "automatisé(e)", en: "automated" },
+      { fr: "livrer", en: "to deliver" },
+      { fr: "à domicile", en: "to one's home" },
+      { fr: "un colis", en: "a parcel/package" },
+      { fr: "virtuellement", en: "virtually" }
+    ],
+  },
+  {
+    id: "fut_43",
+    topicKey: "future",
+    text: "Quel sera le rôle de l'art et de la musique dans le futur ?",
+    hint: "Discuss AI-generated art, virtual concerts, and if human creativity will still be valued.",
+    difficulty: 3,
+    followUps: [
+      "Est-ce que l'intelligence artificielle peut être créative ?",
+      "Aimerais-tu assister à un concert en hologramme ?",
+      "L'art humain sera-t-il plus précieux que l'art technologique ?"
+    ],
+    modelAnswer: "L'art et la musique vont beaucoup évoluer avec l'intelligence artificielle. On pourra créer des œuvres magnifiques en collaborant avec des ordinateurs, et les concerts se passeront peut-être dans des mondes virtuels avec des hologrammes d'artistes. Pourtant, je crois que la créativité humaine restera irremplaçable car elle exprime des émotions réelles et une expérience de vie unique. L'art fait par les humains aura probablement une valeur encore plus grande.",
+    keyVocab: [
+      { fr: "une œuvre", en: "a work (of art)" },
+      { fr: "évoluer", en: "to evolve" },
+      { fr: "un hologramme", en: "a hologram" },
+      { fr: "irremplaçable", en: "irreplaceable" },
+      { fr: "la créativité", en: "creativity" },
+      { fr: "exprimer", en: "to express" }
+    ],
+  },
+  {
+    id: "foo_25",
+    topicKey: "food",
+    text: "Où préfères-tu faire les courses alimentaires et pourquoi ?",
+    hint: "Compare supermarkets and local markets for food shopping.",
+    difficulty: 2,
+    followUps: [
+      "Est-ce que les marchés sont plus chers que les supermarchés ?",
+      "Qu'est-ce qu'on peut acheter au marché qu'on ne trouve pas ailleurs ?",
+      "Tu aimes faire les courses avec tes parents ?"
+    ],
+    modelAnswer: "Je préfère faire les courses au marché local car les produits sont plus frais et souvent de meilleure qualité que ceux du supermarché. C'est aussi une ambiance plus agréable où on peut discuter avec les producteurs. Cependant, le supermarché est plus pratique car on y trouve tout au même endroit et c'est ouvert plus tard.",
+    keyVocab: [
+      { fr: "faire les courses", en: "to go food shopping" },
+      { fr: "le producteur", en: "producer / farmer" },
+      { fr: "frais / fraîche", en: "fresh" },
+      { fr: "agréable", en: "pleasant" },
+      { fr: "pratique", en: "practical / convenient" },
+      { fr: "au même endroit", en: "in the same place" }
+    ]
+  },
+  {
+    id: "foo_26",
+    topicKey: "food",
+    text: "Quelle est ta boisson préférée et quand la bois-tu ?",
+    hint: "Talk about your favorite non-alcoholic drink and when you enjoy it.",
+    difficulty: 1,
+    followUps: [
+      "Est-ce que tu bois beaucoup de boissons sucrées ?",
+      "Tu préfères les boissons chaudes ou froides ?",
+      "Qu'est-ce que tu bois quand tu fais du sport ?"
+    ],
+    modelAnswer: "Ma boisson préférée est le jus de pomme frais. J'aime son goût sucré et rafraîchissant, surtout quand il fait chaud en été. Parfois, je bois aussi du thé glacé maison avec un peu de menthe. Je trouve que c'est bien meilleur pour la santé que les sodas qui contiennent trop de sucre.",
+    keyVocab: [
+      { fr: "le jus de pomme", en: "apple juice" },
+      { fr: "rafraîchissant", en: "refreshing" },
+      { fr: "le thé glacé", en: "iced tea" },
+      { fr: "la menthe", en: "mint" },
+      { fr: "le soda", en: "fizzy drink / soda" },
+      { fr: "contenir", en: "to contain" }
+    ]
+  },
+  {
+    id: "foo_27",
+    topicKey: "food",
+    text: "Quels plats spéciaux prépares-tu pour les fêtes comme Noël ou l'Aïd ?",
+    hint: "Discuss traditional or festive meals in your culture or family.",
+    difficulty: 2,
+    followUps: [
+      "Quelle est ta fête préférée pour la nourriture ?",
+      "Qui cuisine les repas de fête dans ta famille ?",
+      "Est-ce que tu aides à préparer la table pour les invités ?"
+    ],
+    modelAnswer: "Pour les fêtes, nous préparons souvent des plats traditionnels comme une dinde rôtie ou des pâtisseries orientales. Toute la famille se réunit pour partager un grand buffet avec beaucoup de saveurs différentes. C'est un moment très joyeux et la nourriture joue un rôle central dans nos célébrations. J'adore aider ma mère à décorer les gâteaux avant l'arrivée des invités.",
+    keyVocab: [
+      { fr: "les fêtes", en: "festivals / celebrations" },
+      { fr: "traditionnel(le)", en: "traditional" },
+      { fr: "se réunir", en: "to gather / meet up" },
+      { fr: "le buffet", en: "buffet" },
+      { fr: "une saveur", en: "a flavor" },
+      { fr: "un invité", en: "a guest" }
+    ]
+  },
+  {
+    id: "foo_28",
+    topicKey: "food",
+    text: "Que penses-tu de la cuisine de rue (le street food) et des food trucks ?",
+    hint: "Give your opinion on street food — variety, speed, and quality.",
+    difficulty: 2,
+    followUps: [
+      "As-tu déjà mangé dans un food truck ?",
+      "Quels types de street food sont populaires dans ta ville ?",
+      "Penses-tu que c'est moins sain que la cuisine traditionnelle ?"
+    ],
+    modelAnswer: "Je trouve que la cuisine de rue est une excellente façon de goûter des plats variés et originaux sans dépenser beaucoup d'argent. Les food trucks proposent souvent des concepts innovants comme des tacos fusion ou des burgers gourmets. C'est très pratique quand on veut manger rapidement en ville. Cependant, il faut faire attention à l'hygiène et ne pas en manger trop souvent car cela peut être un peu gras.",
+    keyVocab: [
+      { fr: "la cuisine de rue", en: "street food" },
+      { fr: "varié(e)", en: "varied" },
+      { fr: "innovant(e)", en: "innovative" },
+      { fr: "gourmet", en: "gourmet" },
+      { fr: "l'hygiène", en: "hygiene" },
+      { fr: "gras", en: "fatty / oily" }
+    ]
+  },
+  {
+    id: "foo_29",
+    topicKey: "food",
+    text: "Y a-t-il un plat que tu adorais quand tu étais petit et que tu aimes toujours ?",
+    hint: "Talk about a childhood favorite dish that you still enjoy today.",
+    difficulty: 1,
+    followUps: [
+      "Qui cuisinait ce plat pour toi ?",
+      "Est-ce que c'est un plat sucré ou salé ?",
+      "Sais-tu le cuisiner toi-même maintenant ?"
+    ],
+    modelAnswer: "Quand j'étais petit, j'adorer les pâtes à la sauce tomate que mon père préparait le mercredi. C'est un plat très simple mais il me rappelle de bons souvenirs d'enfance. Aujourd'hui, j'aime toujours autant ça, surtout avec beaucoup de fromage râpé. C'est ma nourriture de réconfort préférée quand je suis fatigué après l'école.",
+    keyVocab: [
+      { fr: "quand j'étais petit", en: "when I was little" },
+      { fr: "un souvenir d'enfance", en: "a childhood memory" },
+      { fr: "toujours autant", en: "just as much" },
+      { fr: "le fromage râpé", en: "grated cheese" },
+      { fr: "la nourriture de réconfort", en: "comfort food" },
+      { fr: "se rappeler", en: "to remember" }
+    ]
+  },
+  {
+    id: "foo_30",
+    topicKey: "food",
+    text: "Quel est ton ingrédient ou ton épice préférée en cuisine ?",
+    hint: "Identify one specific ingredient you love using when you cook.",
+    difficulty: 1,
+    followUps: [
+      "Dans quels plats utilises-tu cet ingrédient ?",
+      "Tu préfères les plats épicés ou doux ?",
+      "Est-ce que tu aimes découvrir de nouvelles saveurs ?"
+    ],
+    modelAnswer: "Mon ingrédient préféré est l'ail car je trouve qu'il donne énormément de goût à n'importe quel plat. J'en utilise presque partout : dans les pâtes, avec les légumes et même dans les marinades pour le poulet. J'aime aussi beaucoup la cannelle pour les desserts car elle a une odeur délicieuse. Je pense que les épices sont le secret d'une cuisine réussie et savoureuse.",
+    keyVocab: [
+      { fr: "un ingrédient", en: "an ingredient" },
+      { fr: "l'ail", en: "garlic" },
+      { fr: "la cannelle", en: "cinnamon" },
+      { fr: "une marinade", en: "a marinade" },
+      { fr: "savoureux / savoureuse", en: "tasty / flavourful" },
+      { fr: "réussi(e)", en: "successful / well-done" }
+    ]
+  },
+  {
+    id: "foo_31",
+    topicKey: "food",
+    text: "Que penses-tu du futur de la nourriture, comme la viande cultivée en laboratoire ?",
+    hint: "Discuss modern food technology and its ethical or environmental benefits.",
+    difficulty: 3,
+    followUps: [
+      "Serais-tu prêt à goûter de la viande de laboratoire ?",
+      "Penses-tu que manger des insectes est une bonne solution pour la planète ?",
+      "Comment l'alimentation va-t-elle changer dans 50 ans ?"
+    ],
+    modelAnswer: "Je pense que la viande cultivée en laboratoire est une invention fascinante qui pourrait réduire la souffrance animale et l'impact écologique de l'élevage. C'est une solution durable pour nourrir une population mondiale croissante sans détruire la planète. Cependant, beaucoup de gens ont peur de ces nouvelles technologies et préfèrent la nourriture naturelle. À mon avis, nous devrons tous adapter nos habitudes alimentaires à l'avenir pour survivre.",
+    keyVocab: [
+      { fr: "cultivé en laboratoire", en: "lab-grown" },
+      { fr: "la souffrance animale", en: "animal suffering" },
+      { fr: "l'élevage", en: "farming / livestock breeding" },
+      { fr: "croissant(e)", en: "growing" },
+      { fr: "survivre", en: "to survive" },
+      { fr: "adapter", en: "to adapt" }
+    ]
+  },
+  {
+    id: "foo_32",
+    topicKey: "food",
+    text: "Est-ce que tu aimes inviter des amis à dîner chez toi ? Qu'est-ce que tu prépares ?",
+    hint: "Talk about hosting friends and what you like to cook for them.",
+    difficulty: 2,
+    followUps: [
+      "Préfères-tu cuisiner seul ou avec tes amis ?",
+      "Quelle ambiance aimes-tu créer pour un dîner ?",
+      "Est-ce que tu préfères être l'invité ou celui qui reçoit ?"
+    ],
+    modelAnswer: "J'adore inviter mes amis car c'est un moment très convivial et chaleureux. D'habitude, je prépare quelque chose de simple comme des pizzas maison ou un grand plat de pâtes pour que tout le monde soit content. On met de la musique et on discute pendant des heures. Je pense que partager un repas est le meilleur moyen de renforcer une amitié et de passer une bonne soirée.",
+    keyVocab: [
+      { fr: "inviter", en: "to invite" },
+      { fr: "chaleureux / chaleureuse", en: "warm / cozy" },
+      { fr: "convivial", en: "sociable / friendly" },
+      { fr: "partager un repas", en: "to share a meal" },
+      { fr: "renforcer", en: "to strengthen" },
+      { fr: "celui qui reçoit", en: "the host" }
+    ]
+  },
+  {
+    id: "foo_33",
+    topicKey: "food",
+    text: "Pourquoi est-il important de manger des produits de saison ?",
+    hint: "Discuss the benefits of eating fruits and vegetables that are currently in season.",
+    difficulty: 2,
+    followUps: [
+      "Quels sont tes fruits préférés en été et en hiver ?",
+      "Est-ce que les produits de saison ont meilleur goût ?",
+      "C'est plus écologique de manger de saison ?"
+    ],
+    modelAnswer: "Il est important de manger de saison car les produits ont beaucoup plus de goût et contiennent plus de vitamines. C'est aussi bien meilleur pour l'environnement car on évite les transports lointains en avion ou en camion. En plus, les fruits et légumes de saison sont souvent moins chers au marché. Je crois que respecter le rythme de la nature est essentiel pour une alimentation saine et responsable.",
+    keyVocab: [
+      { fr: "de saison", en: "seasonal / in season" },
+      { fr: "lointain(e)", en: "distant" },
+      { fr: "le rythme", en: "rhythm / pace" },
+      { fr: "respecter", en: "to respect" },
+      { fr: "les vitamines", en: "vitamins" },
+      { fr: "essentiel", en: "essential" }
+    ]
+  },
+  {
+    id: "foo_34",
+    topicKey: "food",
+    text: "Préfères-tu acheter des produits locaux ou des produits importés ?",
+    hint: "Discuss your preference for local food vs. food from other countries.",
+    difficulty: 3,
+    followUps: [
+      "Quels sont les avantages des produits locaux ?",
+      "Y a-t-il des produits importés que tu ne pourrais pas arrêter de manger ?",
+      "Le prix influence-t-il ton choix ?"
+    ],
+    modelAnswer: "Je préfère nettement acheter local pour soutenir les agriculteurs de ma région et réduire mon empreinte carbone. Les produits n'ont pas voyagé des milliers de kilomètres, donc ils sont plus frais. Cependant, je reconnais que j'achète aussi des produits importés comme les bananes ou le café car on ne peut pas les produire ici. À mon avis, il faut trouver un équilibre et privilégier le local dès que c'est possible.",
+    keyVocab: [
+      { fr: "local / locaux", en: "local" },
+      { fr: "importé(e)", en: "imported" },
+      { fr: "l'agriculteur", en: "farmer" },
+      { fr: "l'empreinte carbone", en: "carbon footprint" },
+      { fr: "privilégier", en: "to prioritize / favor" },
+      { fr: "influencer", en: "to influence" }
+    ]
+  },
+  {
+    id: "foo_35",
+    topicKey: "food",
+    text: "Que penses-tu des applications de livraison de nourriture comme UberEats ?",
+    hint: "Discuss the convenience versus the cost and health impact of delivery apps.",
+    difficulty: 2,
+    followUps: [
+      "Est-ce que tu les utilises souvent ?",
+      "Quels sont les avantages pour les gens pressés ?",
+      "Penses-tu que cela encourage de mauvaises habitudes ?"
+    ],
+    modelAnswer: "Je pense que les applications de livraison sont très pratiques, surtout quand on n'a pas le temps de cuisiner après une longue journée. C'est génial d'avoir autant de choix de restaurants à portée de main. Cependant, cela peut devenir très cher à cause des frais de livraison et c'est souvent moins sain que de préparer un repas à la maison.",
+    keyVocab: [
+      { fr: "la livraison", en: "delivery" },
+      { fr: "à portée de main", en: "at one's fingertips" },
+      { fr: "les frais", en: "fees / costs" },
+      { fr: "commander", en: "to order" },
+      { fr: "pressé(e)", en: "in a hurry" },
+      { fr: "gagner du temps", en: "to save time" }
+    ],
+  },
+  {
+    id: "foo_36",
+    topicKey: "food",
+    text: "Est-ce que tu aimes la nourriture épicée ? Pourquoi ?",
+    hint: "Talk about your tolerance for spicy food and any specific dishes you like.",
+    difficulty: 1,
+    followUps: [
+      "Quelle est la chose la plus épicée que tu as mangée ?",
+      "Est-ce que la cuisine de ton pays est épicée ?",
+      "Quels ingrédients rendent un plat piquant ?"
+    ],
+    modelAnswer: "J'adore la nourriture épicée car je trouve que cela donne beaucoup de saveur aux plats. Mon plat préféré est le curry indien très piquant. Au début, c'est un peu fort, mais on s'habitue vite. Par contre, ma sœur déteste ça car elle trouve que ça brûle la bouche !",
+    keyVocab: [
+      { fr: "épicé(e)", en: "spicy" },
+      { fr: "piquant(e)", en: "hot / spicy" },
+      { fr: "la saveur", en: "flavour" },
+      { fr: "s'habituer", en: "to get used to" },
+      { fr: "brûler", en: "to burn" },
+      { fr: "relever un plat", en: "to spice up a dish" }
+    ],
+  },
+  {
+    id: "foo_37",
+    topicKey: "food",
+    text: "Est-ce que tu aimes faire des pique-niques ? Où vas-tu d'habitude ?",
+    hint: "Describe an outdoor eating experience, the food you take, and the location.",
+    difficulty: 1,
+    followUps: [
+      "Qu'est-ce que tu mets dans ton panier de pique-nique ?",
+      "Tu préfères pique-niquer à la plage ou au parc ?",
+      "Quel temps fait-il d'habitude quand tu y vas ?"
+    ],
+    modelAnswer: "J'adore pique-niquer en été avec mes amis au parc local. On apporte souvent des baguettes, du fromage, des fruits et des boissons fraîches. C'est très relaxant d'être en plein air et de profiter du soleil tout en mangeant. Parfois, on joue au frisbee après le repas.",
+    keyVocab: [
+      { fr: "un panier", en: "a basket" },
+      { fr: "en plein air", en: "outdoors" },
+      { fr: "profiter de", en: "to enjoy" },
+      { fr: "la nappe", en: "tablecloth" },
+      { fr: "se détendre", en: "to relax" },
+      { fr: "frais / fraîche", en: "cool / fresh" }
+    ],
+  },
+  {
+    id: "foo_38",
+    topicKey: "food",
+    text: "Est-ce que tu cuisines souvent avec tes parents ou tes grands-parents ?",
+    hint: "Discuss learning to cook from family members and sharing traditional recipes.",
+    difficulty: 2,
+    followUps: [
+      "Quelle recette t'ont-ils apprise ?",
+      "Est-ce un moment important pour toi ?",
+      "Qui est le meilleur cuisinier dans ta famille ?"
+    ],
+    modelAnswer: "Je cuisine souvent le dimanche avec ma grand-mère. Elle m'apprend à préparer des recettes traditionnelles qui se transmettent de génération en génération. C'est un moment privilégié où on discute beaucoup. Récemment, nous avons fait une tarte aux pommes délicieuse selon sa recette secrète.",
+    keyVocab: [
+      { fr: "transmettre", en: "to pass on" },
+      { fr: "une recette", en: "a recipe" },
+      { fr: "privilégié(e)", en: "special / privileged" },
+      { fr: "apprendre à", en: "to learn to" },
+      { fr: "de génération en génération", en: "from generation to generation" },
+      { fr: "le goût", en: "taste" }
+    ],
+  },
+  {
+    id: "foo_39",
+    topicKey: "food",
+    text: "Penses-tu qu'il y a trop de sucre et de sel dans notre alimentation ?",
+    hint: "Discuss the health risks of processed foods and hidden additives.",
+    difficulty: 3,
+    followUps: [
+      "Quels sont les dangers pour la santé ?",
+      "Est-ce que tu regardes les étiquettes sur les produits ?",
+      "Comment peut-on réduire notre consommation de sel ?"
+    ],
+    modelAnswer: "À mon avis, l'industrie alimentaire ajoute beaucoup trop de sucre et de sel dans les plats préparés pour améliorer le goût. C'est dangereux car cela peut causer de l'obésité ou des problèmes cardiaques. J'essaie de cuisiner avec des produits frais et d'utiliser des herbes aromatiques à la place du sel pour rester en bonne santé.",
+    keyVocab: [
+      { fr: "l'alimentation", en: "diet / nutrition" },
+      { fr: "les plats préparés", en: "ready meals" },
+      { fr: "une étiquette", en: "a label" },
+      { fr: "cardiaque", en: "cardiac / heart-related" },
+      { fr: "les herbes aromatiques", en: "herbs" },
+      { fr: "la santé", en: "health" }
+    ],
+  },
+  {
+    id: "foo_40",
+    topicKey: "food",
+    text: "Connais-tu quelqu'un qui a des allergies alimentaires ? Comment font-ils ?",
+    hint: "Talk about food intolerances or allergies and how they affect daily life.",
+    difficulty: 2,
+    followUps: [
+      "Es-tu allergique à quelque chose ?",
+      "Est-ce difficile de manger au restaurant avec une allergie ?",
+      "Quelles sont les allergies les plus communes ?"
+    ],
+    modelAnswer: "Mon meilleur ami est allergique aux noix, donc il doit faire très attention quand nous sortons manger. Il demande toujours la liste des ingrédients au serveur pour éviter tout risque. À l'école, la cantine propose des repas spéciaux pour les élèves qui ont des allergies, ce qui est très rassurant.",
+    keyVocab: [
+      { fr: "une allergie", en: "an allergy" },
+      { fr: "les noix", en: "nuts" },
+      { fr: "faire attention", en: "to be careful" },
+      { fr: "le serveur", en: "waiter" },
+      { fr: "éviter", en: "to avoid" },
+      { fr: "rassurant(e)", en: "reassuring" }
+    ],
+  },
+  {
+    id: "foo_41",
+    topicKey: "food",
+    text: "Aimes-tu les fruits exotiques ? Lesquels ?",
+    hint: "Discuss fruits that aren't native to your area and their availability.",
+    difficulty: 1,
+    followUps: [
+      "Quel est le fruit le plus bizarre que tu as goûté ?",
+      "Est-ce que les fruits exotiques sont chers dans ton pays ?",
+      "Préfères-tu les fruits locaux ou importés ?"
+    ],
+    modelAnswer: "J'adore les fruits exotiques, surtout la mangue et l'ananas. Je trouve qu'ils ont un goût beaucoup plus sucré et intense que les pommes ou les poires. Cependant, je sais qu'ils sont souvent importés par avion, ce qui n'est pas très bon pour l'environnement. J'essaie donc d'en manger seulement pour les occasions spéciales.",
+    keyVocab: [
+      { fr: "exotique", en: "exotic" },
+      { fr: "la mangue", en: "mango" },
+      { fr: "l'ananas", en: "pineapple" },
+      { fr: "importé(e)", en: "imported" },
+      { fr: "intense", en: "intense" },
+      { fr: "le transport", en: "transport" }
+    ],
+  },
+  {
+    id: "foo_42",
+    topicKey: "food",
+    text: "Décris un plat traditionnel de ton pays à un étranger.",
+    hint: "Explain the ingredients and preparation of a culturally significant dish.",
+    difficulty: 2,
+    followUps: [
+      "À quelle occasion mange-t-on ce plat ?",
+      "Est-ce difficile à préparer ?",
+      "Est-ce que tout le monde aime ce plat dans ton pays ?"
+    ],
+    modelAnswer: "Un plat typique de chez moi est le 'Roast Dinner'. C'est de la viande rôtie servie avec des pommes de terre au four, des légumes et une sauce épaisse appelée 'gravy'. On le mange traditionnellement le dimanche en famille. C'est un repas très copieux et réconfortant, surtout en hiver quand il fait froid dehors.",
+    keyVocab: [
+      { fr: "typique", en: "typical" },
+      { fr: "rôti(e)", en: "roast" },
+      { fr: "copieux / copieuse", en: "hearty / filling" },
+      { fr: "réconfortant(e)", en: "comforting" },
+      { fr: "la viande", en: "meat" },
+      { fr: "épais / épaisse", en: "thick" }
+    ],
+  },
+  {
+    id: "foo_43",
+    topicKey: "food",
+    text: "Qu'est-ce que tu mangerais pour un petit-déjeuner de fête ?",
+    hint: "Describe a special morning meal for a birthday or holiday.",
+    difficulty: 1,
+    followUps: [
+      "Qui préparerait ce repas ?",
+      "Préfères-tu le sucré ou le salé le matin ?",
+      "Qu'est-ce que tu boirais ?"
+    ],
+    modelAnswer: "Pour mon anniversaire, j'adorerais manger des pancakes avec du sirop d'érable et des fruits rouges. Je boirais aussi un grand chocolat chaud avec de la crème chantilly. C'est beaucoup plus gourmand que mes céréales habituelles ! D'habitude, c'est mon père qui prépare ce petit-déjeuner spécial pour toute la famille.",
+    keyVocab: [
+      { fr: "le sirop d'érable", en: "maple syrup" },
+      { fr: "les fruits rouges", en: "berries" },
+      { fr: "gourmand(e)", en: "delicious / sweet-toothed" },
+      { fr: "la crème chantilly", en: "whipped cream" },
+      { fr: "habituel(le)", en: "usual" },
+      { fr: "fêter", en: "to celebrate" }
+    ],
+  },
+  {
+    id: "foo_44",
+    topicKey: "food",
+    text: "Penses-tu que la sécurité dans la cuisine est importante ?",
+    hint: "Discuss hygiene and safety measures when preparing food.",
+    difficulty: 2,
+    followUps: [
+      "Quelles sont les règles de base dans la cuisine ?",
+      "As-tu déjà eu un petit accident en cuisinant ?",
+      "Pourquoi faut-il se laver les mains avant de toucher la nourriture ?"
+    ],
+    modelAnswer: "La sécurité est primordiale en cuisine pour éviter les accidents et les intoxications alimentaires. Il faut toujours se laver les mains et faire attention avec les couteaux bien aiguisés. De plus, il est important de bien nettoyer les surfaces après avoir préparé de la viande crue. C'est une question d'hygiène fondamentale pour rester en bonne santé.",
+    keyVocab: [
+      { fr: "la sécurité", en: "safety" },
+      { fr: "une intoxication alimentaire", en: "food poisoning" },
+      { fr: "aiguisé(e)", en: "sharp" },
+      { fr: "cru(e)", en: "raw" },
+      { fr: "l'hygiène", en: "hygiene" },
+      { fr: "fondamental(e)", en: "fundamental" }
+    ],
+  },
+  {
+    id: "env_22",
+    topicKey: "environment",
+    text: "Pourquoi les abeilles et les insectes sont-ils importants pour notre planète ?",
+    hint: "Discuss the role of insects in pollination and the food chain.",
+    difficulty: 3,
+    followUps: [
+      "Qu'est-ce qui menace les abeilles aujourd'hui ?",
+      "Que se passerait-il si les insectes disparaissaient ?",
+      "Est-ce que tu as peur des insectes ou tu les respectes ?"
+    ],
+    modelAnswer: "Les abeilles sont essentielles car elles assurent la pollinisation de la plupart de nos fruits et légumes. Sans elles, la biodiversité diminuerait et nous aurions beaucoup de mal à produire assez de nourriture. Elles sont à la base de la chaîne alimentaire mondiale. Il est donc crucial de protéger leur habitat et d'arrêter l'utilisation de pesticides toxiques qui les tuent massivement.",
+    keyVocab: [
+      { fr: "une abeille", en: "a bee" },
+      { fr: "la pollinisation", en: "pollination" },
+      { fr: "la chaîne alimentaire", en: "food chain" },
+      { fr: "diminuer", en: "to decrease" },
+      { fr: "un pesticide", en: "a pesticide" },
+      { fr: "massivement", en: "massively" }
+    ]
+  },
+  {
+    id: "env_23",
+    topicKey: "environment",
+    text: "Que penses-tu de la pollution sonore et lumineuse dans les villes ?",
+    hint: "Discuss how noise and too much light affect people and wildlife in cities.",
+    difficulty: 2,
+    followUps: [
+      "Est-ce que ton quartier est bruyant le soir ?",
+      "Comment la lumière artificielle affecte-t-elle les animaux ?",
+      "Que pourrait-on faire pour réduire le bruit en ville ?"
+    ],
+    modelAnswer: "La pollution sonore est un problème grave car elle peut causer du stress et des troubles du sommeil chez les habitants. Quant à la pollution lumineuse, elle empêche de voir les étoiles et perturbe le rythme biologique des oiseaux et des insectes. Je pense qu'on devrait éteindre les enseignes lumineuses la nuit et encourager l'utilisation de véhicules électriques plus silencieux pour améliorer notre qualité de vie.",
+    keyVocab: [
+      { fr: "la pollution sonore", en: "noise pollution" },
+      { fr: "la pollution lumineuse", en: "light pollution" },
+      { fr: "le sommeil", en: "sleep" },
+      { fr: "perturber", en: "to disturb / disrupt" },
+      { fr: "une enseigne", en: "a sign / billboard" },
+      { fr: "éteindre", en: "to turn off" }
+    ]
+  },
+  {
+    id: "env_24",
+    topicKey: "environment",
+    text: "As-tu déjà participé à une manifestation ou une campagne pour l'environnement ?",
+    hint: "Talk about environmental activism, protests, or school campaigns.",
+    difficulty: 2,
+    followUps: [
+      "Quelles sont les causes qui te tiennent le plus à cœur ?",
+      "Penses-tu que les jeunes ont le pouvoir de changer les choses ?",
+      "Que penses-tu des activistes comme Greta Thunberg ?"
+    ],
+    modelAnswer: "L'année dernière, j'ai participé à une grève scolaire pour le climat avec mes amis. Nous voulions attirer l'attention des politiciens sur l'urgence écologique. C'était une expérience très forte de voir autant de jeunes unis pour la même cause. Je crois que même si on est jeune, on peut faire entendre sa voix et influencer les décisions pour notre futur. L'activisme est nécessaire pour faire bouger les lignes.",
+    keyVocab: [
+      { fr: "une manifestation", en: "a protest / demonstration" },
+      { fr: "une grève", en: "a strike" },
+      { fr: "attirer l'attention", en: "to attract attention" },
+      { fr: "tenir à cœur", en: "to be important to one" },
+      { fr: "faire entendre sa voix", en: "to make one's voice heard" },
+      { fr: "l'urgence", en: "emergency / urgency" }
+    ]
+  },
+  {
+    id: "env_25",
+    topicKey: "environment",
+    text: "Comment est la qualité de l'air dans ta ville ou ton village ?",
+    hint: "Discuss air pollution levels where you live and what causes them.",
+    difficulty: 2,
+    followUps: [
+      "Est-ce qu'il y a beaucoup de smog ou de fumée ?",
+      "Quelles sont les sources principales de pollution de l'air ?",
+      "Est-ce que tu penses que planter des arbres peut aider ?"
+    ],
+    modelAnswer: "Dans ma ville, la qualité de l'air est parfois mauvaise à cause du trafic intense et des usines à proximité. En hiver, on voit souvent un nuage de pollution au-dessus du centre-ville. C'est inquiétant pour la santé, surtout pour les enfants et les personnes âgées. Je pense que la municipalité devrait créer plus de zones piétonnes et investir dans des bus à hydrogène pour purifier l'air que nous respirons tous les jours.",
+    keyVocab: [
+      { fr: "la qualité de l'air", en: "air quality" },
+      { fr: "le trafic", en: "traffic" },
+      { fr: "une usine", en: "a factory" },
+      { fr: "inquiétant(e)", en: "worrying" },
+      { fr: "purifier", en: "to purify" },
+      { fr: "à proximité", en: "nearby" }
+    ]
+  },
+  {
+    id: "env_26",
+    topicKey: "environment",
+    text: "Comment pouvons-nous réduire notre consommation de papier à l'ère numérique ?",
+    hint: "Discuss ways to use less paper at home or school using technology.",
+    difficulty: 1,
+    followUps: [
+      "Utilises-tu des cahiers en papier ou une tablette à l'école ?",
+      "Est-ce que tu imprimes souvent tes documents ?",
+      "Que fais-tu des vieux journaux et magazines ?"
+    ],
+    modelAnswer: "À l'ère numérique, il est plus facile de réduire le papier en utilisant des tablettes pour prendre des notes au lieu de cahiers. On peut aussi lire les journaux en ligne et recevoir ses factures par e-mail. À la maison, nous essayons d'éviter d'imprimer des documents inutiles. C'est un geste simple qui permet de sauver des arbres et de réduire les déchets. Le recyclage du papier reste important, mais consommer moins est encore mieux.",
+    keyVocab: [
+      { fr: "l'ère numérique", en: "digital age" },
+      { fr: "prendre des notes", en: "to take notes" },
+      { fr: "une facture", en: "a bill" },
+      { fr: "imprimer", en: "to print" },
+      { fr: "inutile", en: "useless / unnecessary" },
+      { fr: "sauver", en: "to save" }
+    ]
+  },
+  {
+    id: "env_27",
+    topicKey: "environment",
+    text: "À quoi ressemblerait une maison écologique idéale selon toi ?",
+    hint: "Describe the features of a sustainable house using the conditional.",
+    difficulty: 3,
+    followUps: [
+      "Quels matériaux utiliserais-tu ?",
+      "Comment produirais-tu de l'énergie ?",
+      "Est-ce que ce genre de maison est trop cher pour la plupart des gens ?"
+    ],
+    modelAnswer: "Ma maison écologique idéale serait construite avec des matériaux naturels comme le bois et la paille pour une isolation parfaite. Elle aurait des panneaux solaires sur le toit pour être autonome en électricité et un système pour récupérer l'eau de pluie. Il y aurait aussi un grand jardin potager pour faire pousser nos propres légumes. Bien que le coût initial soit élevé, je pense que c'est un investissement indispensable pour un futur durable.",
+    keyVocab: [
+      { fr: "une maison écologique", en: "an eco-friendly house" },
+      { fr: "l'isolation", en: "insulation" },
+      { fr: "la paille", en: "straw" },
+      { fr: "autonome", en: "self-sufficient" },
+      { fr: "récupérer l'eau", en: "to collect water" },
+      { fr: "le coût initial", en: "initial cost" }
+    ]
+  },
+  {
+    id: "env_28",
+    topicKey: "environment",
+    text: "Comment peux-tu encourager tes amis à être plus respectueux de l'environnement ?",
+    hint: "Discuss how you can influence your peers to adopt greener habits.",
+    difficulty: 2,
+    followUps: [
+      "Est-ce difficile de changer les habitudes des autres ?",
+      "Quels petits gestes proposes-tu à tes amis ?",
+      "Penses-tu que l'exemple personnel est le plus efficace ?"
+    ],
+    modelAnswer: "Je pense que le meilleur moyen est de montrer l'exemple en faisant des gestes simples au quotidien, comme utiliser une gourde ou recycler ses déchets. J'essaie d'expliquer à mes amis pourquoi c'est important sans être trop sévère. On peut aussi organiser des activités sympas, comme aller dans des magasins d'occasion ensemble. Je crois que si on rend l'écologie amusante et accessible, les gens sont plus motivés pour changer leurs habitudes.",
+    keyVocab: [
+      { fr: "encourager", en: "to encourage" },
+      { fr: "montrer l'exemple", en: "to lead by example" },
+      { fr: "respectueux", en: "respectful" },
+      { fr: "un magasin d'occasion", en: "a second-hand shop" },
+      { fr: "efficace", en: "effective" },
+      { fr: "au quotidien", en: "daily" }
+    ]
+  },
+  {
+    id: "env_29",
+    topicKey: "environment",
+    text: "Que penses-tu de l'économie de partage (comme Uber ou Airbnb) pour l'environnement ?",
+    hint: "Discuss if sharing resources like cars or homes helps the planet.",
+    difficulty: 2,
+    followUps: [
+      "As-tu déjà utilisé un service de partage ?",
+      "Quels sont les avantages de partager au lieu de posséder ?",
+      "Est-ce que cela réduit vraiment la consommation mondiale ?"
+    ],
+    modelAnswer: "L'économie de partage est une bonne idée car elle permet d'optimiser l'utilisation des ressources existantes au lieu d'en produire de nouvelles. Par exemple, le covoiturage réduit le nombre de voitures sur la route et donc les émissions de CO2. C'est souvent plus économique pour les utilisateurs aussi. Cependant, il faut s'assurer que ces services ne poussent pas à consommer encore plus. À mon avis, partager est une étape vers une société plus durable et moins matérialiste.",
+    keyVocab: [
+      { fr: "l'économie de partage", en: "sharing economy" },
+      { fr: "optimiser", en: "to optimize" },
+      { fr: "le covoiturage", en: "car-sharing / carpooling" },
+      { fr: "posséder", en: "to own / possess" },
+      { fr: "matérialiste", en: "materialistic" },
+      { fr: "existant(e)", en: "existing" }
+    ]
+  },
+  {
+    id: "env_30",
+    topicKey: "environment",
+    text: "Quelle est l'importance des parcs nationaux dans ton pays ?",
+    hint: "Discuss the role of protected areas for nature and tourism.",
+    difficulty: 1,
+    followUps: [
+      "As-tu déjà visité un parc national ?",
+      "Quelles activités peut-on y faire ?",
+      "Est-il important de protéger la vie sauvage ?"
+    ],
+    modelAnswer: "Les parcs nationaux sont cruciaux pour protéger la vie sauvage et les paysages naturels contre l'urbanisation. Ils permettent aussi aux gens de se reconnecter avec la nature et de pratiquer des activités saines comme la randonnée. C'est un refuge pour beaucoup d'espèces menacées. Je pense que nous devons préserver ces endroits intacts pour que les générations futures puissent aussi en profiter et apprécier la beauté de notre planète.",
+    keyVocab: [
+      { fr: "un parc national", en: "a national park" },
+      { fr: "l'urbanisation", en: "urbanization" },
+      { fr: "la vie sauvage", en: "wildlife" },
+      { fr: "un refuge", en: "a refuge / haven" },
+      { fr: "intact(e)", en: "intact / untouched" },
+      { fr: "préserver", en: "to preserve" }
+    ]
+  },
+  {
+    id: "env_31",
+    topicKey: "environment",
+    text: "Que penses-tu du concept de 'réparer au lieu de remplacer' ?",
+    hint: "Discuss upcycling and fixing broken items instead of buying new ones.",
+    difficulty: 2,
+    followUps: [
+      "Sais-tu réparer tes vêtements ou tes appareils ?",
+      "Pourquoi est-il plus facile d'acheter du neuf aujourd'hui ?",
+      "Est-ce que tu aimes les objets qui ont une histoire ?"
+    ],
+    modelAnswer: "Je trouve que réparer ses objets est un acte de résistance contre la surconsommation. Cela permet de réduire les déchets et d'économiser de l'argent. Souvent, on jette des choses qui pourraient encore fonctionner avec une petite réparation. J'essaie d'apprendre à recoudre mes vêtements ou à réparer mon vélo moi-même. À mon avis, redonner vie à un vieil objet est très gratifiant et bien plus écologique que de toujours acheter du neuf.",
+    keyVocab: [
+      { fr: "réparer", en: "to repair / fix" },
+      { fr: "remplacer", en: "to replace" },
+      { fr: "la surconsommation", en: "overconsumption" },
+      { fr: "recoudre", en: "to sew back / mend" },
+      { fr: "gratifiant(e)", en: "rewarding" },
+      { fr: "redonner vie", en: "to give new life to" }
+    ]
+  },
+  {
+    id: "env_32",
+    topicKey: "environment",
+    text: "Que penses-tu du suremballage des produits dans les supermarchés ?",
+    hint: "Discuss the excessive use of plastic packaging and its impact.",
+    difficulty: 2,
+    followUps: [
+      "Est-ce que cela t'énerve quand tu fais les courses ?",
+      "Quelles sont les alternatives au plastique ?",
+      "Penses-tu que les entreprises devraient payer une taxe ?"
+    ],
+    modelAnswer: "Le suremballage est un énorme problème car il génère des tonnes de déchets plastiques inutiles. Je trouve ça ridicule de voir des fruits individuels emballés dans du plastique. Les supermarchés devraient proposer plus de produits en vrac. Personnellement, j'essaie d'acheter des produits avec le moins d'emballage possible pour protéger la planète.",
+    keyVocab: [
+      { fr: "le suremballage", en: "over-packaging" },
+      { fr: "en vrac", en: "in bulk" },
+      { fr: "inutile", en: "useless / unnecessary" },
+      { fr: "générer", en: "to generate" },
+      { fr: "un déchet", en: "waste" },
+      { fr: "énerver", en: "to annoy" }
+    ],
+  },
+  {
+    id: "env_33",
+    topicKey: "environment",
+    text: "Est-ce que tu fais du compostage chez toi ?",
+    hint: "Explain what composting is and how it helps reduce landfill waste.",
+    difficulty: 1,
+    followUps: [
+      "Quels déchets peut-on mettre dans le compost ?",
+      "Est-ce que c'est bon pour le jardin ?",
+      "Si tu n'en fais pas, pourquoi ?"
+    ],
+    modelAnswer: "Oui, nous avons un petit bac à compost dans notre jardin. On y met les épluchures de légumes, le marc de café et les restes de fruits. Cela permet de réduire la quantité de déchets qui partent à la décharge. En plus, après quelques mois, on obtient un excellent engrais naturel pour nos fleurs et notre potager.",
+    keyVocab: [
+      { fr: "le compostage", en: "composting" },
+      { fr: "les épluchures", en: "peelings" },
+      { fr: "le marc de café", en: "coffee grounds" },
+      { fr: "un engrais", en: "fertilizer" },
+      { fr: "le potager", en: "vegetable garden" },
+      { fr: "la décharge", en: "landfill" }
+    ],
+  },
+  {
+    id: "env_34",
+    topicKey: "environment",
+    text: "Penses-tu qu'il est possible de vivre un mode de vie 'zéro déchet' ?",
+    hint: "Discuss the challenges and benefits of trying to eliminate waste completely.",
+    difficulty: 3,
+    followUps: [
+      "Quels sont les plus gros obstacles ?",
+      "Est-ce que c'est plus cher de vivre ainsi ?",
+      "Quels petits changements as-tu déjà faits ?"
+    ],
+    modelAnswer: "Vivre totalement sans déchets est un défi incroyable mais très difficile dans notre société actuelle. Cela demande beaucoup d'organisation, comme apporter ses propres contenants au magasin. Cependant, chaque petit geste compte, comme utiliser une gourde réutilisable ou refuser les pailles en plastique. Je pense que c'est un objectif noble vers lequel nous devrions tous tendre.",
+    keyVocab: [
+      { fr: "zéro déchet", en: "zero waste" },
+      { fr: "un défi", en: "a challenge" },
+      { fr: "un contenant", en: "a container" },
+      { fr: "une gourde", en: "water bottle" },
+      { fr: "réutilisable", en: "reusable" },
+      { fr: "tendre vers", en: "to strive towards" }
+    ],
+  },
+  {
+    id: "env_35",
+    topicKey: "environment",
+    text: "Entends-tu souvent parler de 'l'éco-anxiété' chez les jeunes ?",
+    hint: "Talk about the mental health impact of climate change on the younger generation.",
+    difficulty: 3,
+    followUps: [
+      "Est-ce que tu t'inquiètes pour l'avenir de la planète ?",
+      "Comment peut-on rester optimiste ?",
+      "Quelles actions te font te sentir mieux ?"
+    ],
+    modelAnswer: "L'éco-anxiété est très réelle car beaucoup de jeunes ont peur de l'avenir à cause de la crise climatique. Les nouvelles sont souvent alarmantes et on se sent parfois impuissant. Pour lutter contre cela, je pense qu'il est important de passer à l'action, par exemple en rejoignant des projets écologiques locaux. Cela donne un sentiment de contrôle et d'espoir pour changer les choses.",
+    keyVocab: [
+      { fr: "l'éco-anxiété", en: "eco-anxiety" },
+      { fr: "alarmant(e)", en: "alarming" },
+      { fr: "impuissant(e)", en: "powerless" },
+      { fr: "l'espoir", en: "hope" },
+      { fr: "passer à l'action", en: "to take action" },
+      { fr: "la crise climatique", en: "climate crisis" }
+    ],
+  },
+  {
+    id: "env_36",
+    topicKey: "environment",
+    text: "Savais-tu qu'Internet a une empreinte carbone ? Qu'en penses-tu ?",
+    hint: "Discuss digital pollution, such as energy used by data centers and streaming.",
+    difficulty: 3,
+    followUps: [
+      "Est-ce que tu supprimes tes vieux e-mails ?",
+      "Faut-il limiter le temps de streaming vidéo ?",
+      "Comment la technologie peut-elle devenir plus verte ?"
+    ],
+    modelAnswer: "C'est surprenant, mais les centres de données consomment énormément d'électricité. Chaque recherche Google ou vidéo regardée en streaming a un coût énergétique. Pour réduire ma pollution numérique, j'essaie de supprimer mes vieux e-mails et de limiter la résolution des vidéos. On oublie souvent que le monde virtuel a un impact bien réel sur l'environnement.",
+    keyVocab: [
+      { fr: "l'empreinte carbone", en: "carbon footprint" },
+      { fr: "numérique", en: "digital" },
+      { fr: "un centre de données", en: "data center" },
+      { fr: "consommer", en: "to consume" },
+      { fr: "supprimer", en: "to delete" },
+      { fr: "virtuel(le)", en: "virtual" }
+    ],
+  },
+  {
+    id: "env_37",
+    topicKey: "environment",
+    text: "Pourquoi est-il important de protéger les forêts contre la déforestation ?",
+    hint: "Discuss the role of trees in absorbing CO2 and protecting biodiversity.",
+    difficulty: 2,
+    followUps: [
+      "Y a-t-il beaucoup de forêts dans ton pays ?",
+      "Quelles sont les causes de la déforestation ?",
+      "As-tu déjà planté un arbre ?"
+    ],
+    modelAnswer: "Les forêts sont les poumons de la Terre car elles absorbent le CO2 et produisent de l'oxygène. La déforestation détruit l'habitat de milliers d'espèces d'animaux et aggrave le réchauffement climatique. Il est crucial de planter plus d'arbres et de protéger les zones naturelles. L'année dernière, j'ai participé à une journée de reboisement avec mon école.",
+    keyVocab: [
+      { fr: "la déforestation", en: "deforestation" },
+      { fr: "les poumons", en: "lungs" },
+      { fr: "absorber", en: "to absorb" },
+      { fr: "l'oxygène", en: "oxygen" },
+      { fr: "aggraver", en: "to worsen" },
+      { fr: "le reboisement", en: "reforestation" }
+    ],
+  },
+  {
+    id: "env_38",
+    topicKey: "environment",
+    text: "Que penses-tu de l'usage des pesticides dans l'agriculture ?",
+    hint: "Discuss the impact of chemicals on bees, biodiversity, and human health.",
+    difficulty: 2,
+    followUps: [
+      "Est-ce que les produits bio sont une bonne solution ?",
+      "Quel est l'effet sur les abeilles ?",
+      "Est-ce que tu laves toujours tes fruits avant de les manger ?"
+    ],
+    modelAnswer: "L'usage intensif de pesticides est inquiétant car cela pollue les sols et les nappes phréatiques. De plus, cela tue les abeilles qui sont essentielles pour la pollinisation. Je pense que nous devrions encourager une agriculture plus naturelle et biologique. C'est plus sain pour nous et pour l'écosystème en général, même si les produits sont un peu plus chers.",
+    keyVocab: [
+      { fr: "les pesticides", en: "pesticides" },
+      { fr: "la nappe phréatique", en: "groundwater" },
+      { fr: "la pollinisation", en: "pollination" },
+      { fr: "inquiétant(e)", en: "worrying" },
+      { fr: "le sol", en: "soil" },
+      { fr: "tuer", en: "to kill" }
+    ],
+  },
+  {
+    id: "env_39",
+    topicKey: "environment",
+    text: "Que penses-tu des jardins verticaux et des fermes urbaines ?",
+    hint: "Discuss the trend of growing food and plants in city centers or on buildings.",
+    difficulty: 2,
+    followUps: [
+      "Est-ce qu'il y en a dans ta ville ?",
+      "Quels sont les avantages pour la qualité de l'air ?",
+      "Aimerais-tu avoir un jardin sur ton toit ?"
+    ],
+    modelAnswer: "Je trouve que les jardins verticaux sont une idée brillante pour ramener la nature en ville. Cela permet de rafraîchir l'air et de cultiver des légumes localement, ce qui réduit le transport. Les villes deviennent plus belles et plus respirables. Si j'avais le choix, j'installerais des plantes sur tous les murs de mon immeuble pour créer un environnement plus vert.",
+    keyVocab: [
+      { fr: "vertical(e)", en: "vertical" },
+      { fr: "urbain(e)", en: "urban" },
+      { fr: "rafraîchir", en: "to cool down" },
+      { fr: "respirable", en: "breathable" },
+      { fr: "cultiver", en: "to grow / cultivate" },
+      { fr: "ramener", en: "to bring back" }
+    ],
+  },
+  {
+    id: "env_40",
+    topicKey: "environment",
+    text: "Savais-tu qu'est-ce que c'est la 'fast fashion' ? Quel est son impact sur l'environnement ?",
+    hint: "Discuss the environmental cost of the mass production of cheap clothing.",
+    difficulty: 2,
+    followUps: [
+      "Achètes-tu souvent de nouveaux vêtements ?",
+      "Préfères-tu acheter d'occasion ?",
+      "Pourquoi les vêtements sont-ils si peu chers parfois ?"
+    ],
+    modelAnswer: "La 'fast fashion' est catastrophique car l'industrie textile consomme énormément d'eau et utilise des produits chimiques toxiques. De plus, beaucoup de vêtements finissent à la décharge après avoir été portés seulement quelques fois. J'essaie d'acheter moins de vêtements et de privilégier les magasins d'occasion ou les marques éthiques pour réduire mon impact.",
+    keyVocab: [
+      { fr: "la fast fashion", en: "fast fashion" },
+      { fr: "textile", en: "textile" },
+      { fr: "d'occasion", en: "second-hand" },
+      { fr: "une marque", en: "a brand" },
+      { fr: "catastrophique", en: "catastrophic" },
+      { fr: "finir", en: "to end up" }
+    ],
+  },
+  {
+    id: "env_41",
+    topicKey: "environment",
+    text: "Est-ce qu'il est facile d'installer de l'énergie renouvelable à la maison ?",
+    hint: "Talk about solar panels, heat pumps, or insulation improvements.",
+    difficulty: 2,
+    followUps: [
+      "Est-ce que ta maison a des panneaux solaires ?",
+      "Est-ce que c'est un bon investissement ?",
+      "Quelles sont les aides du gouvernement dans ton pays ?"
+    ],
+    modelAnswer: "L'installation de panneaux solaires devient de plus en plus populaire, mais cela coûte encore assez cher au début. C'est un excellent investissement à long terme car on réduit ses factures d'électricité et on utilise une énergie propre. Ma famille réfléchit à en installer l'année prochaine. Je pense que le gouvernement devrait aider financièrement les citoyens pour rendre ces technologies accessibles à tous.",
+    keyVocab: [
+      { fr: "renouvelable", en: "renewable" },
+      { fr: "un panneau solaire", en: "solar panel" },
+      { fr: "une facture", en: "a bill" },
+      { fr: "un investissement", en: "an investment" },
+      { fr: "propre", en: "clean" },
+      { fr: "accessible", en: "accessible" }
+    ],
+  },
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  DAILY CHALLENGE POOL — one per day, rotating by date
+// ─────────────────────────────────────────────────────────────────────────────
+const DAILY_CHALLENGES = [
+  {
+    text: "Décris la dernière fois que tu as été vraiment heureux/heureuse.",
+    hint: "Use passé composé. Describe the event, who was there, what happened, how you felt.",
+    topic: "Expression personnelle",
+    difficulty: 2,
+  },
+  {
+    text: "Si tu pouvais changer une chose dans le monde, qu'est-ce que ce serait ?",
+    hint: "Use the conditional. Be specific and give reasons for your choice.",
+    topic: "Opinion",
+    difficulty: 3,
+  },
+  {
+    text: "Décris une personne qui t'inspire vraiment.",
+    hint: "Describe who they are, what they do, why they inspire you. Could be real or fictional.",
+    topic: "Inspiration",
+    difficulty: 2,
+  },
+  {
+    text: "Qu'est-ce que tu as appris de tes erreurs ?",
+    hint: "Talk about a mistake you made and what lesson you drew from it. Use passé composé.",
+    topic: "Réflexion personnelle",
+    difficulty: 3,
+  },
+  {
+    text: "Décris un moment où tu as dû faire preuve de courage.",
+    hint: "Describe a situation that required bravery — standing up for someone, trying something new.",
+    topic: "Expérience personnelle",
+    difficulty: 2,
+  },
+  {
+    text: "Quelles sont les qualités les plus importantes d'un bon ami ?",
+    hint: "List 3+ qualities with examples. You can compare a good friend vs. a bad friend.",
+    topic: "Les amis",
+    difficulty: 1,
+  },
+  {
+    text: "Comment est-ce que les réseaux sociaux ont changé la façon dont les jeunes communiquent ?",
+    hint: "Discuss both positive and negative impacts. Include your own experience.",
+    topic: "Technologie & Société",
+    difficulty: 3,
+  },
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  EXAM SIMULATION SETS — curated sets for timed practice
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const EXAM_SETS: ExamSet[] = [
+  {
+    id: "exam_set_1",
+    label: "Exam Set A — General",
+    questions: ["sch_01", "hob_01", "fam_01", "hol_01", "fut_01"],
+  },
+  {
+    id: "exam_set_2",
+    label: "Exam Set B — Personal & Social",
+    questions: ["fam_03", "hob_02", "hom_01", "foo_01", "env_01"],
+  },
+  {
+    id: "exam_set_3",
+    label: "Exam Set C — Extended Tier",
+    questions: ["sch_04", "hol_03", "fut_02", "env_02", "hob_04"],
+  },
+  {
+    id: "exam_set_4",
+    label: "Exam Set D — Foundation",
+    questions: ["sch_01", "fam_01", "hob_01", "foo_01", "hom_01"],
+  },
+  {
+    id: "exam_set_5",
+    label: "Exam Set E — Home & Town",
+    questions: ["hom_01", "hom_02", "hom_03", "env_01", "foo_02"],
+  },
+  {
+    id: "exam_set_6",
+    label: "Exam Set F — Future & Ambitions",
+    questions: ["fut_01", "fut_02", "fut_03", "sch_05", "hob_03"],
+  },
+  {
+    id: "exam_set_7",
+    label: "Exam Set G — Health & Environment",
+    questions: ["foo_03", "foo_02", "env_01", "env_02", "hol_02"],
+  },
+  {
+    id: "exam_set_8",
+    label: "Exam Set H — IGCSE Preparation",
+    questions: ["sch_04", "hol_03", "hob_04", "env_02", "fut_02"],
+  },
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+export function getTopicQuestions(topicKey: string): Question[] {
+  return QUESTIONS.filter(q => q.topicKey === topicKey);
+}
+
+export function getQuestionById(id: string): Question | undefined {
+  return QUESTIONS.find(q => q.id === id);
+}
+
+export function getRandomQuestion(topicKey: string | null = null, excludeIds: string[] = [], maxDifficulty: 1 | 2 | 3 = 3): Question {
+  let pool = topicKey ? getTopicQuestions(topicKey) : QUESTIONS;
+  const diffPool = pool.filter(q => (q.difficulty ?? 1) <= maxDifficulty);
+  if (diffPool.length > 0) pool = diffPool;
+  const available = pool.filter(q => !excludeIds.includes(q.id));
+  const src = available.length > 0 ? available : pool;
+  return src[Math.floor(Math.random() * src.length)];
+}
+
+export function getTopicCounts(): Record<string, number> {
+  return QUESTIONS.reduce((acc, q) => {
+    acc[q.topicKey] = (acc[q.topicKey] ?? 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+}
+
+// Patch questionsCount into TOPICS after QUESTIONS is defined
+(function patchTopicCounts() {
+  const counts = getTopicCounts();
+  TOPICS.forEach(t => { t.questionsCount = counts[t.key] ?? 0; });
+})();

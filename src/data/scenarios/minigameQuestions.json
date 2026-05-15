@@ -1,0 +1,43 @@
+[
+  { "difficulty": "easy", "category": "gender", "english": "I eat bread", "french": "Je mange du pain" },
+  { "difficulty": "easy", "category": "gender", "english": "I am hungry.", "french": "J'ai faim" },
+  { "difficulty": "easy", "category": "gender", "english": "Where is the station?", "french": "Où est la gare" },
+  { "difficulty": "easy", "category": "gender", "english": "I have a brother.", "french": "J'ai un frère" },
+  { "difficulty": "easy", "category": "gender", "english": "I love French.", "french": "J'aime le français" },
+  { "difficulty": "easy", "category": "gender", "english": "My name is Thomas.", "french": "Je m'appelle Thomas" },
+  { "difficulty": "easy", "category": "gender", "english": "What time is it?", "french": "Quelle heure est-il" },
+  { "difficulty": "easy", "category": "gender", "english": "I would like a croissant.", "french": ["Je voudrais un croissant", "Un croissant s'il vous plaît"] },
+  { "difficulty": "easy", "category": "gender", "english": "The apple is red.", "french": "La pomme est rouge" },
+  { "difficulty": "easy", "category": "gender", "english": "The car is blue.", "french": "La voiture est bleue" },
+  { "difficulty": "easy", "category": "gender", "english": "A boy and a girl.", "french": "Un garçon et une fille" },
+  
+  { "difficulty": "medium", "category": "past_tense", "english": "I went to the market yesterday", "french": "Je suis allé au marché hier" },
+  { "difficulty": "medium", "category": "past_tense", "english": "It was beautiful yesterday.", "french": "Il faisait beau hier" },
+  { "difficulty": "medium", "category": "past_tense", "english": "I finished my homework.", "french": "J'ai fini mes devoirs" },
+  { "difficulty": "medium", "category": "past_tense", "english": "We saw a movie.", "french": "Nous avons vu un film" },
+  { "difficulty": "medium", "category": "past_tense", "english": "They arrived late.", "french": "Ils sont arrivés en retard" },
+  { "difficulty": "medium", "category": "past_tense", "english": "I was reading when you called.", "french": "Je lisais quand tu as appelé" },
+  { "difficulty": "medium", "category": "past_tense", "english": "She lived in Paris.", "french": "Elle habitait à Paris" },
+  { "difficulty": "medium", "category": "past_tense", "english": "I used to play tennis.", "french": "Je jouais au tennis" },
+
+  { "difficulty": "medium", "category": "negation", "english": "I don't know.", "french": "Je ne sais pas" },
+  { "difficulty": "medium", "category": "negation", "english": "I never eat meat.", "french": "Je ne mange jamais de viande" },
+  { "difficulty": "medium", "category": "negation", "english": "There is no one.", "french": "Il n'y a personne" },
+  { "difficulty": "medium", "category": "negation", "english": "I have nothing.", "french": "Je n'ai rien" },
+  { "difficulty": "medium", "category": "negation", "english": "She no longer works here.", "french": "Elle ne travaille plus ici" },
+
+  { "difficulty": "hard", "category": "subjunctive", "english": "If I had time, I would travel more", "french": "Si j'avais le temps, je voyagerais plus" },
+  { "difficulty": "hard", "category": "subjunctive", "english": "Although it is raining, I am going out.", "french": "Bien qu'il pleuve, je sors" },
+  { "difficulty": "hard", "category": "subjunctive", "english": "I don't think he is coming.", "french": "Je ne pense pas qu'il vienne" },
+  { "difficulty": "hard", "category": "subjunctive", "english": "Before I go, I must finish this.", "french": "Avant que je parte, je dois finir ceci" },
+  { "difficulty": "hard", "category": "subjunctive", "english": "It is necessary that you study.", "french": "Il faut que tu étudies" },
+  { "difficulty": "hard", "category": "subjunctive", "english": "I am looking for someone who can help me.", "french": "Je cherche quelqu'un qui puisse m'aider" },
+  { "difficulty": "hard", "category": "subjunctive", "english": "Whatever you do, stay calm.", "french": "Quoi que tu fasses, reste calme" },
+  { "difficulty": "hard", "category": "subjunctive", "english": "I want you to be happy.", "french": "Je veux que tu sois heureux" },
+
+  { "difficulty": "hard", "category": "future", "english": "I will go to Paris next year.", "french": "J'irai à Paris l'année prochaine" },
+  { "difficulty": "hard", "category": "future", "english": "When I am older, I will be a doctor.", "french": "Quand je serai plus grand, je serai médecin" },
+  { "difficulty": "hard", "category": "future", "english": "We will see each other tomorrow.", "french": "Nous nous verrons demain" },
+  { "difficulty": "hard", "category": "future", "english": "They will arrive soon.", "french": "Ils arriveront bientôt" },
+  { "difficulty": "hard", "category": "future", "english": "I would like to see the world.", "french": "Je voudrais voir le monde" }
+]

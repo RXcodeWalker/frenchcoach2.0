@@ -1,0 +1,221 @@
+{
+  "start": {
+    "prompt": [
+      "Bonjour ! Bienvenue au Camping du Lac. Vous venez pour un emplacement ou un mobil-home ?",
+      "Bonjour. Vous avez une réservation ?",
+      "Bienvenue ! C'est pour un séjour, une location de matériel ou un petit souci technique ?"
+    ],
+    "intents": {
+      "yes": "ask_reservation_name",
+      "no": "ask_stay_type",
+      "rental": "rental_service_start",
+      "wifi": "wifi_troubleshoot_start",
+      "broken": "maintenance_report_start",
+      "shop": "supermarket_info_start",
+      "hiking": "hiking_trails_start",
+      "pet": "pet_rules_inquiry_start",
+      "quiet": "quiet_hours_check_start",
+      "pool": "pool_hours_check_start",
+      "market": "local_market_info_start",
+      "checkout": "checkout_time_inquiry_start",
+      "ice": "ice_freezer_service_start",
+      "adapter": "electricity_adapter_start",
+      "events": "local_events_info_start",
+      "mosquito": "mosquito_repellent_start",
+      "first_aid": "first_aid_location_start",
+      "sanitary": "sanitary_location_start",
+      "hours": "reception_hours_start",
+      "contactless": "contactless_payment_start",
+      "atm": "atm_location_start",
+      "ev_charging": "ev_charging_start"
+    }
+  },
+
+  "sanitary_location_start": {
+    "prompt": [
+      "Les blocs sanitaires (douches et toilettes) sont situés au centre du camping, près de l'aire de jeux.",
+      "Il y a un deuxième bloc plus petit à l'entrée du secteur C. L'eau chaude est gratuite et illimitée."
+    ],
+    "next": "end_session"
+  },
+
+  "reception_hours_start": {
+    "prompt": [
+      "La réception est ouverte de 8h à 12h et de 14h à 19h. En dehors de ces horaires, la barrière est fermée aux voitures.",
+      "Si vous arrivez après 19h, merci de nous appeler pour que nous vous laissions les clés dans le coffre sécurisé."
+    ],
+    "next": "end_session"
+  },
+
+  "contactless_payment_start": {
+    "prompt": [
+      "Oui, nous acceptons le paiement sans contact à l'accueil, à l'épicerie et au bar du camping.",
+      "Vous pouvez régler votre séjour par carte bancaire sans contact si le montant ne dépasse pas 50 euros."
+    ],
+    "next": "end_session"
+  },
+
+  "atm_location_start": {
+    "prompt": [
+      "Il n'y a pas de distributeur dans le camping. Le plus proche se trouve au village, à environ 3 kilomètres d'ici.",
+      "Vous trouverez un distributeur de billets au Crédit Agricole sur la place de l'église au village."
+    ],
+    "next": "end_session"
+  },
+
+  "ev_charging_start": {
+    "prompt": [
+      "Oui, nous avons deux bornes de recharge pour véhicules électriques sur le parking de l'entrée.",
+      "C'est une recharge lente (7kW). Vous pouvez acheter un jeton à l'accueil pour 10 euros la charge."
+    ],
+    "next": "end_session"
+  },
+
+  "ice_freezer_service_start": {
+    "prompt": [
+      "Nous vendons des sacs de glaçons à l'accueil pour 3 euros. On peut aussi congeler vos blocs de glace gratuitement.",
+      "Il y a un congélateur commun dans le local à côté du bar pour vos blocs de glacière."
+    ],
+    "next": "end_session"
+  },
+
+  "electricity_adapter_start": {
+    "prompt": [
+      "Il vous faut un adaptateur européen bleu (P17) ? Nous en louons pour 5 euros avec une caution de 20 euros.",
+      "Oui, j'en ai un dernier en stock. Voulez-vous que je l'ajoute à votre compte ?"
+    ],
+    "next": "end_session"
+  },
+
+  "local_events_info_start": {
+    "prompt": [
+      "Ce soir, il y a un concert de jazz gratuit sur la place du village à partir de 20h30.",
+      "Il y a une fête médiévale ce week-end au château. C'est une sortie idéale pour les familles !"
+    ],
+    "next": "end_session"
+  },
+
+  "mosquito_repellent_start": {
+    "prompt": [
+      "C'est vrai qu'il y en a beaucoup près de la rivière. On vend des serpentins à brûler et du spray à l'épicerie.",
+      "Je vous conseille de fermer votre moustiquaire dès la tombée de la nuit. Voulez-vous un sachet de lavande ?"
+    ],
+    "next": "end_session"
+  },
+
+  "first_aid_location_start": {
+    "prompt": [
+      "La trousse de secours et le défibrillateur se trouvent à l'accueil, juste derrière le comptoir.",
+      "Si c'est une petite coupure, je peux vous donner un pansement tout de suite. Voulez-vous de l'antiseptique ?"
+    ],
+    "next": "end_session"
+  },
+
+  "pet_rules_inquiry_start": {
+    "prompt": [
+      "Les animaux sont acceptés avec leur carnet de santé à jour et les vaccinations obligatoires. Vous l'avez ?",
+      "Oui, les chiens sont bienvenus ! Il faut juste qu'ils soient tenus en laisse dans les parties communes."
+    ],
+    "next": "end_session"
+  },
+
+  "quiet_hours_check_start": {
+    "prompt": [
+      "Le silence est demandé à partir de 23h dans tout le camping. C'est pour le confort de tous les vacanciers.",
+      "Les heures de silence sont de 23h à 7h du matin. Merci de respecter vos voisins de tente !"
+    ],
+    "next": "end_session"
+  },
+
+  "pool_hours_check_start": {
+    "prompt": [
+      "La piscine est ouverte de 10h à 19h tous les jours. Les enfants de moins de 12 ans doivent être accompagnés.",
+      "Bonne nouvelle, la piscine est ouverte ! Elle ferme à 19h. Des serviettes sont disponibles à l'accueil."
+    ],
+    "next": "end_session"
+  },
+
+  "local_market_info_start": {
+    "prompt": [
+      "Il y a un marché au village le mercredi matin à partir de 8h. C'est à 5 minutes à pied du camping.",
+      "Le marché du mercredi est vraiment agréable ! On y trouve des produits locaux et du fromage du coin."
+    ],
+    "next": "end_session"
+  },
+
+  "checkout_time_inquiry_start": {
+    "prompt": [
+      "Vous devez libérer votre emplacement avant midi. Mais si vous avez besoin de rester un peu plus, dites-le moi.",
+      "Le départ doit se faire avant 12h le jour de votre départ. Voulez-vous qu'on repasse votre facture ?"
+    ],
+    "next": "end_session"
+  },
+
+  "rental_service_start": {
+    "prompt": [
+      "On loue des vélos, des kayaks et du matériel de camping. Qu'est-ce qui vous ferait plaisir ?",
+      "Nous avons des vélos adultes et enfants disponibles à la journée. C'est 8 euros par vélo. Intéressé(e) ?"
+    ],
+    "next": "end_session"
+  },
+
+  "wifi_troubleshoot_start": {
+    "prompt": [
+      "Le code Wi-Fi est affiché au bar du camping et à l'accueil. Il change chaque semaine pour la sécurité.",
+      "Si votre connexion est lente, rapprochez-vous du bar — c'est là que le signal est le plus puissant."
+    ],
+    "next": "end_session"
+  },
+
+  "maintenance_report_start": {
+    "prompt": [
+      "Je suis désolé pour ce problème ! Je note votre numéro d'emplacement et j'envoie quelqu'un réparer ça aujourd'hui.",
+      "Merci de nous le signaler. Mon collègue passera sur votre emplacement dans l'après-midi pour réparer."
+    ],
+    "next": "end_session"
+  },
+
+  "supermarket_info_start": {
+    "prompt": [
+      "Le supermarché le plus proche est à environ 5 km d'ici. Je peux vous indiquer l'itinéraire sur la carte.",
+      "Il y a aussi une petite épicerie dans le camping avec les produits essentiels, si vous avez juste besoin de dépanner."
+    ],
+    "next": "end_session"
+  },
+
+  "hiking_trails_start": {
+    "prompt": [
+      "Vous trouverez les plans des sentiers de randonnée à l'accueil. Il y en a pour tous les niveaux !",
+      "Je vous donne un plan des randonnées locales. Le sentier du lac est magnifique et accessible à tous."
+    ],
+    "next": "end_session"
+  },
+
+  "ask_reservation_name": {
+    "prompt": [
+      "Très bien ! Vous avez réservé sous quel nom, s'il vous plaît ?",
+      "La réservation est à quel nom ? Je cherche ça dans notre système."
+    ],
+    "next": "give_pitch"
+  },
+
+  "give_pitch": {
+    "prompt": [
+      "Je vous ai trouvé ! C'est l'emplacement numéro 42, au bord du lac. C'est l'un des plus beaux !",
+      "Votre emplacement est le numéro 42. Vous avez de la chance, il est très bien placé à l'ombre."
+    ],
+    "next": "end_session"
+  },
+
+  "ask_stay_type": {
+    "prompt": [
+      "Pas de problème, on a de la place ! Vous venez avec une tente, un camping-car ou vous voulez louer un mobil-home ?",
+      "Bienvenue au camping ! C'est pour quel type d'hébergement — tente, caravane ou location ?"
+    ],
+    "next": "give_pitch"
+  },
+
+  "end_session": {
+    "prompt": ["Bonnes vacances et profitez bien du séjour !", "Au revoir et bonne détente !"]
+  }
+}

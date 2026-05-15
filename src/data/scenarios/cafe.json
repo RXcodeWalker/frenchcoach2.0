@@ -1,0 +1,212 @@
+{
+  "start": {
+    "prompt": [
+      "Bonjour ! Qu'est-ce que je vous sers ?",
+      "Bonjour ! Une table en terrasse ou à l'intérieur ?",
+      "Bienvenue ! C'est pour boire un café, utiliser le WiFi ou une commande à emporter ?"
+    ],
+    "intents": {
+      "coffee": "ask_coffee",
+      "wifi": "wifi_access_start",
+      "milk": "milk_alternative_start",
+      "charger": "charger_outlet_start",
+      "togo": "takeaway_order_start",
+      "cold": "cold_coffee_start",
+      "toilet": "toilet_code_request_start",
+      "heating": "terrace_heating_request_start",
+      "napkins": "napkins_request_start",
+      "decaf": "decaf_request_start",
+      "iced": "iced_coffee_option_start",
+      "sugar_type": "sugar_type_request_start",
+      "cleanup": "table_cleanup_request_start",
+      "milk_temp": "milk_temp_request_start",
+      "newspaper": "newspaper_availability_start",
+      "wifi_signal": "wifi_signal_complaint_start",
+      "tap_water": "carafe_water_request_start",
+      "corner_table": "corner_table_request_start",
+      "dessert_menu": "dessert_menu_inquiry_start",
+      "straw": "straw_request_start",
+      "ask_bill": "ask_for_bill_start"
+    }
+  },
+
+  "carafe_water_request_start": {
+    "prompt": [
+      "Bien sûr, je vous apporte une carafe d'eau fraîche et des verres tout de suite.",
+      "C'est entendu. Voulez-vous aussi un petit bol de cacahuètes pour accompagner ?"
+    ],
+    "next": "end_session"
+  },
+
+  "corner_table_request_start": {
+    "prompt": [
+      "La petite table dans le coin là-bas ? Elle est libre, installez-vous.",
+      "C'est la plus tranquille du café ! Je vous apporte la carte ?"
+    ],
+    "next": "end_session"
+  },
+
+  "dessert_menu_inquiry_start": {
+    "prompt": [
+      "Aujourd'hui nous avons de la tarte aux pommes, un fondant au chocolat et du cheesecake.",
+      "Je vous apporte l'ardoise des desserts. Ils sont tous faits maison !"
+    ],
+    "next": "end_session"
+  },
+
+  "straw_request_start": {
+    "prompt": [
+      "Voici une paille en carton recyclé. C'est pour votre jus de fruits ?",
+      "Bien sûr, en voici une."
+    ],
+    "next": "end_session"
+  },
+
+  "ask_for_bill_start": {
+    "prompt": [
+      "Tout de suite ! Ça nous fera 12 euros 50 au total.",
+      "Je vous l'apporte. Voulez-vous payer ensemble ou séparément ?"
+    ],
+    "next": "show_total"
+  },
+
+  "sugar_type_request_start": {
+    "prompt": [
+      "Vous préférez du sucre blanc ou du sucre roux ?",
+      "J'ai aussi des sachets de sucre de canne si vous voulez quelque chose de plus naturel !"
+    ],
+    "next": "ask_coffee"
+  },
+
+  "table_cleanup_request_start": {
+    "prompt": [
+      "Oh, pardon ! Je nettoie ça tout de suite, une seconde.",
+      "Je suis vraiment désolé pour ça. Laissez-moi enlever tout ça immédiatement."
+    ],
+    "next": "end_session"
+  },
+
+  "milk_temp_request_start": {
+    "prompt": [
+      "Vous voulez votre lait très chaud ? Je demande au barista de chauffer un peu plus.",
+      "Pas de problème, je vous le refais avec le lait bien chaud. Un instant !"
+    ],
+    "next": "ask_coffee"
+  },
+
+  "newspaper_availability_start": {
+    "prompt": [
+      "Les journaux sont sur le présentoir là-bas, près de la fenêtre. Aidez-vous !",
+      "Voici Le Monde d'aujourd'hui. Je vous l'apporte à votre table ?"
+    ],
+    "next": "end_session"
+  },
+
+  "wifi_signal_complaint_start": {
+    "prompt": [
+      "Ah, le signal est faible de ce côté-là ! Je redémarre le routeur, ça devrait s'arranger.",
+      "Essayez de vous rapprocher du comptoir, c'est là que le signal est le plus fort."
+    ],
+    "next": "end_session"
+  },
+
+  "toilet_code_request_start": {
+    "prompt": [
+      "Le code des toilettes, c'est 1234 ! Elles sont au fond du couloir sur votre gauche.",
+      "Tapez le code 1234 sur le boîtier. C'est la porte bleue tout au fond."
+    ],
+    "next": "end_session"
+  },
+
+  "terrace_heating_request_start": {
+    "prompt": [
+      "Bien sûr, il fait un peu frais ! J'allume le chauffage de terrasse tout de suite.",
+      "Je branche les parasols chauffants. Dans une minute vous aurez bien chaud !"
+    ],
+    "next": "end_session"
+  },
+
+  "napkins_request_start": {
+    "prompt": [
+      "Tenez, voici des serviettes supplémentaires !",
+      "Bien sûr, je vous en apporte plusieurs. On n'est jamais trop prudent !"
+    ],
+    "next": "end_session"
+  },
+
+  "decaf_request_start": {
+    "prompt": [
+      "Bien sûr, vous prenez un déca ! Je vous le prépare tout de suite.",
+      "Un décaféiné, très bien ! Vous voulez du lait ou du sucre avec ?"
+    ],
+    "next": "ask_coffee"
+  },
+
+  "iced_coffee_option_start": {
+    "prompt": [
+      "Vous voulez votre café glacé ? Je peux vous mettre des glaçons ou vous faire un cold brew.",
+      "Un café sur glace, bonne idée par cette chaleur ! Avec du lait ou nature ?"
+    ],
+    "next": "show_total"
+  },
+
+  "wifi_access_start": {
+    "prompt": [
+      "Le code Wi-Fi est CAFE24 — en majuscules. Vous devriez trouver le réseau 'Café-Guests'.",
+      "Connectez-vous au réseau 'Café-Guests' et entrez le code CAFE24. Ça marche bien !"
+    ],
+    "next": "ask_coffee"
+  },
+
+  "milk_alternative_start": {
+    "prompt": [
+      "Bien sûr ! Vous préférez du lait de soja ou du lait d'avoine ?",
+      "On a aussi du lait d'amande si vous voulez. Lequel vous tente ?"
+    ],
+    "next": "ask_coffee"
+  },
+
+  "charger_outlet_start": {
+    "prompt": [
+      "Il y a une prise juste sous votre table ! Vous avez votre chargeur sur vous ?",
+      "Les prises sont sous les tables du fond. Je peux aussi vous prêter un câble USB si besoin."
+    ],
+    "next": "ask_coffee"
+  },
+
+  "takeaway_order_start": {
+    "prompt": [
+      "Très bien, c'est noté pour emporter ! Je vous prépare ça dans un gobelet avec couvercle.",
+      "Commande à emporter, parfait ! Vous voulez aussi quelque chose à grignoter ?"
+    ],
+    "next": "ask_coffee"
+  },
+
+  "cold_coffee_start": {
+    "prompt": [
+      "Oh, je suis vraiment désolé ! Je vous en refais un chaud tout de suite, sans supplément.",
+      "Toutes mes excuses pour ça. Je vous rapporte un café bien chaud immédiatement."
+    ],
+    "next": "ask_coffee"
+  },
+
+  "ask_coffee": {
+    "prompt": [
+      "Qu'est-ce que vous prendrez comme café — expresso, allongé, cappuccino, latte ?",
+      "Vous voulez quoi comme boisson ? Expresso, café au lait ou autre chose ?"
+    ],
+    "next": "show_total"
+  },
+
+  "show_total": {
+    "prompt": [
+      "Ça vous fera 4 euros, s'il vous plaît !",
+      "Le total est de 4 euros. Vous payez par carte ou en espèces ?"
+    ],
+    "next": "end_session"
+  },
+
+  "end_session": {
+    "prompt": ["Bonne journée ! À bientôt !", "Merci et à très bientôt !"]
+  }
+}

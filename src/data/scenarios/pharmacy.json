@@ -1,0 +1,267 @@
+{
+  "start": {
+    "prompt": [
+      "Bonjour. Que puis-je faire pour vous ?",
+      "Bonjour. Vous avez une ordonnance ou c'est pour un conseil ?",
+      "Bienvenue ! Cherchez-vous un médicament, un soin de beauté ou un service de test ?"
+    ],
+    "intents": {
+      "prescription": "ask_prescription",
+      "sick": "ask_symptoms",
+      "skincare": "skincare_start",
+      "first_aid": "first_aid_kit_start",
+      "tools": "diagnostic_tools_start",
+      "test": "covid_test_start",
+      "baby": "baby_supplies_start",
+      "sun": "sunscreen_advice_start",
+      "vaccine": "vaccine_inquiry_start",
+      "blister": "bandage_blister_start",
+      "vitamins": "vitamin_recommendation_start",
+      "eyes": "eye_drops_allergy_start",
+      "generic": "generic_vs_brand_start",
+      "expiry": "expiration_date_check_start",
+      "dosage": "dosage_reminder_start",
+      "stock": "out_of_stock_order_start",
+      "side_effects": "side_effects_inquiry_start",
+      "duty": "ask_duty_pharmacy",
+      "disposal": "ask_medication_disposal",
+      "scale": "ask_weight_scale",
+      "pregnancy": "ask_pregnancy_test",
+      "emergency": "ask_emergency_first_aid"
+    }
+  },
+
+  "ask_duty_pharmacy": {
+    "prompt": [
+      "La pharmacie de garde la plus proche est celle de la rue de la République. Elle est ouverte toute la nuit.",
+      "Aujourd'hui, c'est la pharmacie du Marché qui assure la garde. Voulez-vous son numéro de téléphone ?",
+      "Vous pouvez trouver la liste complète sur le panneau d'affichage extérieur ou en appelant le 3237.",
+      "C'est la pharmacie des Lilas qui est de garde ce dimanche. Elle se trouve juste à côté de la gare.",
+      "En cas d'urgence la nuit, il faut parfois passer par le commissariat pour obtenir l'adresse. Vous le saviez ?",
+      "Voici l'adresse de la pharmacie de garde actuelle. Elle est à environ 10 minutes en voiture.",
+      "La garde change tous les lundis à 19h. Actuellement, c'est nous qui sommes ouverts !",
+      "Toutes les pharmacies de garde du secteur sont répertoriées sur ce dépliant. Voulez-vous le prendre ?",
+      "Pour les urgences nocturnes, n'oubliez pas d'apporter votre ordonnance originale.",
+      "Il y a une pharmacie 24h/24 en centre-ville si vous ne trouvez pas de garde plus proche."
+    ],
+    "next": "ask_other_needs"
+  },
+
+  "ask_medication_disposal": {
+    "prompt": [
+      "Oui, nous reprenons tous les médicaments périmés ou non utilisés dans le cadre du programme Cyclamed.",
+      "Merci de rapporter vos médicaments sans les boîtes en carton ni les notices en papier, s'il vous plaît.",
+      "Vous pouvez nous laisser votre sac de médicaments ici. Nous nous occupons du tri sécurisé.",
+      "Les médicaments périmés ne doivent jamais être jetés à la poubelle. Merci de nous les ramener !",
+      "C'est un excellent réflexe pour l'environnement ! Je vais mettre vos anciens médicaments au recyclage."
+    ],
+    "next": "ask_other_needs"
+  },
+
+  "ask_weight_scale": {
+    "prompt": [
+      "Bien sûr, la balance est juste là, derrière le rayon parapharmacie. C'est 50 centimes la pesée.",
+      "Notre balance professionnelle est très précise. Elle calcule aussi votre IMC si vous le souhaitez."
+    ],
+    "next": "ask_other_needs"
+  },
+
+  "ask_pregnancy_test": {
+    "prompt": [
+      "Voici nos différents tests de grossesse. Celui-ci est très fiable dès le premier jour de retard.",
+      "Nous avons des tests classiques ou des tests digitaux. Le tarif commence à 5,50 euros. Lequel préférez-vous ?"
+    ],
+    "next": "ask_other_needs"
+  },
+
+  "ask_emergency_first_aid": {
+    "prompt": [
+      "Vite, j'apporte la trousse de secours ! Que s'est-il passé exactement ?",
+      "Asseyez la personne ici. Je vais désinfecter la plaie tout de suite. Ne paniquez pas."
+    ],
+    "next": "ask_other_needs"
+  },
+
+  "generic_vs_brand_start": {
+    "prompt": [
+      "Le générique contient exactement la même molécule active, il est juste moins cher et mieux remboursé. Voulez-vous le prendre ?",
+      "Je vous conseille le générique, c'est la règle pour le tiers payant. Sinon, vous devrez avancer les frais."
+    ],
+    "next": "ask_other_needs"
+  },
+
+  "expiration_date_check_start": {
+    "prompt": [
+      "Ne vous inquiétez pas, tous nos stocks sont vérifiés tous les mois. La date de péremption est au dos de la boîte.",
+      "Si vous avez des vieux médicaments périmés chez vous, rapportez-les-nous pour le recyclage Cyclamed."
+    ],
+    "next": "end_session"
+  },
+
+  "dosage_reminder_start": {
+    "prompt": [
+      "C'est un comprimé toutes les 8 heures, sans dépasser 3 par jour. Voulez-vous que je l'écrive sur la boîte ?",
+      "Attention, ce sirop doit être conservé au réfrigérateur après ouverture. C'est bien compris ?"
+    ],
+    "next": "ask_other_needs"
+  },
+
+  "out_of_stock_order_start": {
+    "prompt": [
+      "Désolé, nous n'en avons plus en rayon. Je peux le commander pour vous, il sera là cet après-midi à 16h.",
+      "C'est un médicament assez rare. Voulez-vous que j'appelle la pharmacie voisine pour voir s'ils l'ont ?"
+    ],
+    "next": "end_session"
+  },
+
+  "side_effects_inquiry_start": {
+    "prompt": [
+      "Ce médicament peut provoquer une légère somnolence. Il vaut mieux éviter de conduire après la prise.",
+      "Si vous ressentez des maux de ventre ou des boutons, arrêtez le traitement et contactez votre médecin."
+    ],
+    "next": "ask_other_needs"
+  },
+
+  "sunscreen_advice_start": {
+    "prompt": [
+      "Pour une protection optimale, je vous recommande un indice 50, surtout si vous avez la peau claire.",
+      "Vous cherchez quel indice de protection ? Pour les enfants, on conseille toujours l'indice 50+."
+    ],
+    "next": "ask_other_needs"
+  },
+
+  "vaccine_inquiry_start": {
+    "prompt": [
+      "Vous souhaitez vérifier vos vaccinations ? J'ai besoin de voir votre carnet de santé.",
+      "Pour un rappel vaccinal, avez-vous votre carnet de vaccination avec vous ?"
+    ],
+    "next": "ask_other_needs"
+  },
+
+  "bandage_blister_start": {
+    "prompt": [
+      "Vous avez des ampoules ? Nos pansements hydrocolloïdes sont excellents pour ça !",
+      "J'ai des pansements spéciaux pour les ampoules qui protègent et soulagent. Quelle taille vous faut-il ?"
+    ],
+    "next": "ask_other_needs"
+  },
+
+  "vitamin_recommendation_start": {
+    "prompt": [
+      "Vous vous sentez fatigué(e) ? Je recommande souvent le magnésium avec vitamine B6, c'est très efficace contre le stress.",
+      "Quel est votre besoin principal — énergie, immunité ou récupération ? Je peux vous orienter."
+    ],
+    "next": "ask_other_needs"
+  },
+
+  "eye_drops_allergy_start": {
+    "prompt": [
+      "Vous avez les yeux qui piquent à cause des allergies ? J'ai un excellent collyre antihistaminique.",
+      "C'est pour une allergie ou une sécheresse oculaire ? Le traitement n'est pas le même."
+    ],
+    "next": "ask_other_needs"
+  },
+
+  "skincare_start": {
+    "prompt": [
+      "Quel est votre type de peau — sèche, grasse, mixte ou sensible ? Ça va m'aider à vous conseiller.",
+      "C'est pour une routine quotidienne ou pour un problème de peau particulier ?"
+    ],
+    "next": "ask_other_needs"
+  },
+
+  "first_aid_kit_start": {
+    "prompt": [
+      "Vous cherchez une trousse de secours ? Nous en avons pour la maison, la voiture ou les voyages.",
+      "Je peux vous composer une trousse sur mesure ou vous proposer un kit complet déjà prêt !"
+    ],
+    "next": "ask_other_needs"
+  },
+
+  "diagnostic_tools_start": {
+    "prompt": [
+      "Vous cherchez un thermomètre ? Nous avons des modèles frontal, auriculaire ou buccal.",
+      "Nous avons des appareils de mesure de tension et des thermomètres. De quoi avez-vous besoin ?"
+    ],
+    "next": "ask_other_needs"
+  },
+
+  "covid_test_start": {
+    "prompt": [
+      "Souhaitez-vous faire un test antigénique ici même ? Nous pouvons vous recevoir tout de suite.",
+      "Un test rapide prend 15 minutes. Voulez-vous que je vous prépare ça tout de suite ?"
+    ],
+    "next": "ask_other_needs"
+  },
+
+  "baby_supplies_start": {
+    "prompt": [
+      "Vous cherchez des couches, du lait infantile ou des produits pour le soin du bébé ?",
+      "Quel âge a votre bébé ? Je peux vous guider vers les bons produits."
+    ],
+    "next": "ask_other_needs"
+  },
+
+  "ask_prescription": {
+    "prompt": [
+      "Avez-vous votre ordonnance ? Je vais voir ce que nous avons en stock et préparer vos médicaments.",
+      "Vous avez une ordonnance ? Montrez-la moi, je prépare tout ça pour vous."
+    ],
+    "next": "prepare_meds"
+  },
+
+  "ask_symptoms": {
+    "prompt": [
+      "Décrivez-moi vos symptômes, s'il vous plaît. Depuis quand vous sentez-vous comme ça ?",
+      "Qu'est-ce qui ne va pas ? Prenez votre temps, je vais faire de mon mieux pour vous aider."
+    ],
+    "next": "suggest_remedy"
+  },
+
+  "prepare_meds": {
+    "prompt": [
+      "Je vais préparer vos médicaments, un instant s'il vous plaît !",
+      "Laissez-moi chercher ça pour vous, j'en ai pour quelques secondes."
+    ],
+    "next": "ask_other_needs"
+  },
+
+  "suggest_remedy": {
+    "prompt": [
+      "Pour ces symptômes, je vous recommande ce sirop. Il est très efficace et bien toléré.",
+      "D'après ce que vous décrivez, ce médicament devrait vous soulager rapidement."
+    ],
+    "next": "ask_other_needs"
+  },
+
+  "ask_other_needs": {
+    "prompt": [
+      "Puis-je vous aider avec autre chose ?",
+      "Est-ce qu'il vous faut autre chose ?"
+    ],
+    "intents": {
+      "no": "show_total",
+      "yes": "start"
+    }
+  },
+
+  "show_total": {
+    "prompt": [
+      "Voilà, ça vous fera 18 euros en tout, s'il vous plaît.",
+      "Pour tout ça, le total est de 18 euros."
+    ],
+    "next": "ask_payment"
+  },
+
+  "ask_payment": {
+    "prompt": [
+      "Comment souhaitez-vous régler ? Carte bancaire ou espèces ?",
+      "Vous payez par carte ou en liquide ?"
+    ],
+    "next": "end_session"
+  },
+
+  "end_session": {
+    "prompt": ["Au revoir et bonne guérison !", "Soignez-vous bien et à bientôt !"]
+  }
+}

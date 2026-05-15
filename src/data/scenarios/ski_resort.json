@@ -1,0 +1,325 @@
+{
+  "start": {
+    "prompt": [
+      "Bonjour ! Bienvenue à la station. Prêt pour les pistes ?",
+      "Bonjour, comment puis-je vous aider aujourd'hui ? Location, forfait, cours ou infos ?",
+      "Bienvenue ! C'est une magnifique journée pour skier. Que puis-je faire pour vous ?"
+    ],
+    "intents": {
+      "rent": "ask_equipment_details",
+      "pass": "ask_pass_duration",
+      "lessons": "ask_lessons_type",
+      "safety": "show_safety_info",
+      "problem": "ask_equipment_issue",
+      "apres_ski": "show_apres_ski_info",
+      "events": "show_special_events",
+      "weather": "weather_forecast_detail",
+      "parking": "parking_and_shuttle",
+      "lost_child": "lost_child_procedure",
+      "plan": "ask_trail_map",
+      "etat": "check_lifts_status",
+      "lost_goggles": "lost_goggles_report",
+      "beginner_slopes": "beginner_slopes_info"
+    }
+  },
+  "lost_goggles_report": {
+    "prompt": [
+      "Oh mince, vous avez perdu votre masque sur les pistes ? Savez-vous sur quelle remontée mécanique ou quelle piste vous l'avez eu pour la dernière fois ?",
+      "Je vais noter la description de votre masque (marque, couleur) et vos coordonnées. S'il est rapporté aux objets trouvés, nous vous appellerons."
+    ],
+    "capture": "goggles_description",
+    "next": "ask_more_info"
+  },
+  "beginner_slopes_info": {
+    "prompt": [
+      "Pour débuter en douceur, je vous conseille l'espace 'Pitchouns' au pied des pistes ou la piste verte 'Les Escargots' qui redescend tranquillement au village.",
+      "Le secteur du plateau est idéal car il est très large et peu pentu. Voulez-vous que je vous les montre sur le plan ?"
+    ],
+    "next": "ask_trail_map"
+  },
+  "ask_trail_map": {
+    "prompt": [
+      "Bien sûr, voici le plan des pistes de la station. J'ai aussi une version petit format pour votre poche.",
+      "Le plan est aussi disponible sur notre application mobile. Voulez-vous que je vous montre le QR code ?",
+      "Tenez, c'est gratuit. Toutes les pistes ouvertes aujourd'hui sont marquées d'un point vert sur ce panneau.",
+      "N'oubliez pas de bien regarder les horaires de fermeture des remontées au dos du plan."
+    ],
+    "next": "ask_more_info"
+  },
+  "check_lifts_status": {
+    "prompt": [
+      "Aujourd'hui, 90% des remontées sont ouvertes. Les liaisons avec les autres vallées sont également opérationnelles.",
+      "À cause du vent, les télésièges sur les sommets sont fermés pour le moment. Nous espérons une réouverture à midi.",
+      "Tout fonctionne normalement. Vous pouvez accéder au glacier sans problème.",
+      "Voulez-vous que je vérifie l'état d'une remontée précise ?"
+    ],
+    "next": "ask_more_info"
+  },
+  "lost_child_procedure": {
+    "prompt": [
+      "Gardez votre calme. Pouvez-vous me donner son prénom, son âge et la couleur de sa tenue de ski ?",
+      "Nous lançons immédiatement une alerte radio à tous les pisteurs et remontées mécaniques. Où l'avez-vous vu pour la dernière fois ?"
+    ],
+    "capture": "child_details",
+    "next": "emergency_contacts"
+  },
+  "parking_and_shuttle": {
+    "prompt": [
+      "Le parking P1 est complet, mais il reste des places au P3 avec une navette gratuite toutes les 10 minutes. Cela vous convient ?",
+      "Toutes les navettes de la station sont gratuites et circulent de 8h à 20h. Voulez-vous le plan des arrêts ?"
+    ],
+    "next": "ask_more_info"
+  },
+  "weather_forecast_detail": {
+    "prompt": [
+      "Aujourd'hui, grand soleil avec des températures entre -2°C et 3°C. La neige est excellente (poudreuse sur les sommets).",
+      "Des chutes de neige sont prévues pour demain matin. La visibilité risque d'être réduite, soyez prudent."
+    ],
+    "next": "ask_more_info"
+  },
+  "ask_equipment_details": {
+    "prompt": [
+      "C'est pour des skis, un snowboard ou des raquettes ? Quel est votre niveau : débutant, intermédiaire ou expert ?",
+      "Quel type de matériel souhaitez-vous ? Nous avons des gammes Excellence, Performance ou Loisir."
+    ],
+    "capture": "equip_level",
+    "intents": {
+      "alternative": "alternative_ski_types",
+      "consigne": "ask_locker_rent"
+    },
+    "next": "ask_body_metrics"
+  },
+  "ask_locker_rent": {
+    "prompt": [
+      "Oui, nous avons des casiers chauffants à louer au pied des pistes. C'est très pratique pour laisser ses chaussures de ville.",
+      "La location d'une consigne à skis coûte 10 euros par jour. Voulez-vous que je vous réserve un casier ?",
+      "Nos casiers fonctionnent avec votre forfait de ski. Il suffit de le passer devant le lecteur pour ouvrir.",
+      "Nous avons aussi des casiers familiaux pouvant contenir jusqu'à 4 paires de skis. Cela vous intéresse ?"
+    ],
+    "next": "ask_body_metrics"
+  },
+  "alternative_ski_types": {
+    "prompt": [
+      "Nous proposons aussi du ski de randonnée ou du ski de fond (classique ou skating). Qu'est-ce qui vous intéresse ?",
+      "Voulez-vous essayer les snowblades ou la luge de compétition ?"
+    ],
+    "intents": { "snowshoes": "snow_shoes_rent" },
+    "capture": "alt_equip_pref",
+    "next": "ask_body_metrics"
+  },
+  "snow_shoes_rent": {
+    "prompt": [
+      "Les raquettes sont idéales pour découvrir les sentiers boisés loin des skieurs. Nous en avons pour toutes les tailles, enfants et adultes.",
+      "Voulez-vous aussi louer des bâtons télescopiques ? C'est plus facile pour l'équilibre dans la neige profonde."
+    ],
+    "next": "ask_body_metrics"
+  },
+  "ask_body_metrics": {
+    "prompt": ["Pour le réglage des fixations, j'ai besoin de votre taille, de votre poids et de votre pointure."],
+    "capture": "metrics",
+    "next": "ask_helmet"
+  },
+  "ask_helmet": {
+    "prompt": ["Voulez-vous louer un casque pour votre sécurité ? C'est vivement conseillé sur le domaine."],
+    "intents": {
+      "yes": "set_helmet",
+      "no": "skip_helmet",
+      "accessories": "clothing_accessories"
+    }
+  },
+  "clothing_accessories": {
+    "prompt": [
+      "Nous vendons aussi des masques, des gants et des crèmes solaires. Avez-vous besoin de quelque chose en particulier ?",
+      "Il fait très froid aujourd'hui. Voulez-vous acheter des chaufferettes pour vos chaussures ?"
+    ],
+    "intents": { "sunscreen": "sunscreen_purchase" },
+    "capture": "accessory_pref",
+    "next": "ask_pass_confirm"
+  },
+  "sunscreen_purchase": {
+    "prompt": [
+      "Attention, le soleil tape fort avec la réverbération sur la neige ! Nous avons des tubes d'indice 50 et des sticks à lèvres.",
+      "Voulez-vous un format de poche que vous pouvez garder facilement dans votre veste de ski ?"
+    ],
+    "next": "ask_pass_confirm"
+  },
+  "set_helmet": {
+    "prompt": ["Très bien, la sécurité avant tout ! Voici un casque ajustable."],
+    "memory": { "helmet": "Oui" },
+    "next": "ask_pass_confirm"
+  },
+  "skip_helmet": {
+    "prompt": ["D'accord, c'est noté."],
+    "memory": { "helmet": "Non" },
+    "next": "ask_pass_confirm"
+  },
+  "ask_lessons_type": {
+    "prompt": [
+      "Souhaitez-vous des cours collectifs avec l'ESF ou un moniteur particulier ?",
+      "Pour quel âge ? Nous avons le Club Piou-Piou pour les petits et des cours pour adultes."
+    ],
+    "capture": "lesson_preference",
+    "next": "ask_lesson_duration"
+  },
+  "ask_lesson_duration": {
+    "prompt": ["Vous préférez un stage d'une semaine ou juste un cours de 2 heures pour vous perfectionner ?"],
+    "capture": "lesson_duration",
+    "next": "show_lesson_total"
+  },
+  "show_lesson_total": {
+    "prompt": ["Très bien, je vous réserve cela. Le tarif est de {price} euros. On passe au règlement ?"],
+    "next": "ask_payment"
+  },
+  "show_safety_info": {
+    "prompt": [
+      "Attention, le risque d'avalanche est actuellement de 3 sur 5. Restez sur les pistes balisées !",
+      "La météo s'annonce changeante cet après-midi. Le vent va se lever, restez vigilant sur les crêtes."
+    ],
+    "next": "emergency_contacts"
+  },
+  "emergency_contacts": {
+    "prompt": [
+      "En cas d'urgence sur les pistes, appelez le 112 ou utilisez les bornes SOS aux remontées mécaniques.",
+      "Voulez-vous que je vous donne le numéro direct des secours en montagne de la station ?"
+    ],
+    "next": "ask_more_info"
+  },
+  "ask_equipment_issue": {
+    "prompt": [
+      "Un problème avec votre matériel ? C'est une fixation mal réglée ou une chaussure qui fait mal ?",
+      "Votre planche a besoin d'un fartage ou vous voulez changer de taille de chaussures ?"
+    ],
+    "capture": "issue_details",
+    "intents": {
+      "stolen": "stolen_equipment_report",
+      "boot_pain": "ski_boot_issue_start"
+    },
+    "next": "solve_issue"
+  },
+  "ski_boot_issue_start": {
+    "prompt": [
+      "C'est souvent le cas si les boucles sont trop serrées ou si la pointure ne convient pas. On va essayer une taille au-dessus ou un modèle plus large.",
+      "Je peux vous proposer des semelles de confort ou vérifier si le chausson est bien positionné. Ça vous fait mal où précisément ?"
+    ],
+    "next": "solve_issue"
+  },
+  "stolen_equipment_report": {
+    "prompt": [
+      "Vos skis ont disparu devant le restaurant ? Nous allons remplir une déclaration pour votre assurance. Aviez-vous un antivol ?",
+      "C'est malheureusement fréquent. Je vais vérifier si quelqu'un les a rapportés par erreur à l'accueil."
+    ],
+    "capture": "theft_details",
+    "next": "solve_issue"
+  },
+  "solve_issue": {
+    "prompt": ["Pas de souci, passez à l'atelier, nos techniciens vont s'en occuper immédiatement ou vous échanger le matériel."],
+    "next": "ask_more_info"
+  },
+  "show_apres_ski_info": {
+    "prompt": [
+      "Pour manger sur les pistes, je vous recommande 'La Folie Douce' pour l'ambiance ou 'Le Chalet' pour une fondue traditionnelle.",
+      "Le village propose plusieurs bars sympas et un spa pour vous détendre après l'effort. Ça vous tente ?"
+    ],
+    "intents": {
+      "hotel": "accommodation_inquiry",
+      "restaurant": "mountain_restaurant_booking"
+    },
+    "next": "ask_more_info"
+  },
+  "mountain_restaurant_booking": {
+    "prompt": [
+      "Très bien, je peux appeler pour vous. 'La Folie Douce' est souvent complet, pour quelle heure voulez-vous une table ?",
+      "C'est une excellente adresse ! Voulez-vous être en terrasse pour profiter de la musique ou au calme à l'intérieur ?",
+      "C'est réservé ! N'oubliez pas qu'ils ferment à 17h, juste avant la fermeture des pistes.",
+      "Voulez-vous que je vous indique le chemin le plus rapide sur le plan pour y arriver ?"
+    ],
+    "next": "ask_more_info"
+  },
+  "accommodation_inquiry": {
+    "prompt": [
+      "Cherchez-vous un hôtel, une résidence de tourisme ou un chalet à louer ? Quel est votre budget ?",
+      "Je peux vous mettre en relation avec la centrale de réservation pour trouver une chambre disponible ce soir."
+    ],
+    "capture": "accommodation_pref",
+    "next": "ask_more_info"
+  },
+  "show_special_events": {
+    "prompt": [
+      "Ce soir, nous avons une descente aux flambeaux organisée par les moniteurs ! Et demain, c'est ski de nuit jusqu'à 21h.",
+      "Il y a un concert gratuit sur la place centrale demain soir à 18h. Ne le manquez pas !"
+    ],
+    "intents": {
+      "nuit": "night_ski_details"
+    },
+    "next": "ask_more_info"
+  },
+  "night_ski_details": {
+    "prompt": [
+      "Le ski de nuit a lieu tous les mardis et jeudis sur la piste 'Les Étoiles'. C'est une expérience magique !",
+      "Si vous avez un forfait 6 jours, c'est inclus ! Sinon, le pass soirée est à 15 euros.",
+      "La piste est entièrement éclairée et les télésièges fonctionnent jusqu'à 21h30.",
+      "Voulez-vous que je vous réserve un pass pour la session de demain soir ?"
+    ],
+    "next": "ask_more_info"
+  },
+  "ask_more_info": {
+    "prompt": ["Souhaitez-vous d'autres renseignements sur la station ou le domaine ?"],
+    "intents": {
+      "yes": "start",
+      "no": "end_session"
+    }
+  },
+  "ask_pass_confirm": {
+    "prompt": ["Avez-vous déjà votre forfait ou voulez-vous le prendre ici ?"],
+    "intents": {
+      "buy": "ask_pass_duration",
+      "already_have": "show_total_rent"
+    }
+  },
+  "ask_pass_duration": {
+    "prompt": ["Pour quelle durée ? Une demi-journée, une journée entière ou le pass '3 Vallées' pour la semaine ?"],
+    "capture": "pass_duration",
+    "intents": {
+      "family": "family_discount_flow"
+    },
+    "next": "show_total_all"
+  },
+  "family_discount_flow": {
+    "prompt": [
+      "Nous avons un pack famille (2 adultes + 2 enfants) qui permet d'économiser 15%. Est-ce que cela correspond à votre groupe ?",
+      "Combien d'enfants de moins de 12 ans vous accompagnent ? Les forfaits sont gratuits pour les moins de 5 ans."
+    ],
+    "capture": "family_details",
+    "next": "show_total_all"
+  },
+  "show_total_rent": {
+    "prompt": ["Entendu. La location seule revient à 45 euros pour la journée."],
+    "next": "ask_payment"
+  },
+  "show_total_all": {
+    "prompt": ["Alors, location plus forfait {pass_duration}, ça fera un total de {price} euros."],
+    "next": "ask_payment"
+  },
+  "ask_payment": {
+    "prompt": ["On procède au paiement par carte bancaire ou par chèques vacances ?"],
+    "intents": {
+      "yes": "end_session",
+      "positive": "end_session",
+      "refund": "refund_policy_weather"
+    }
+  },
+  "refund_policy_weather": {
+    "prompt": [
+      "En cas de fermeture des remontées pour cause de tempête, nous remboursons au prorata du temps non utilisé. Voulez-vous les détails ?",
+      "Les forfaits ne sont normalement pas remboursables, sauf si vous avez souscrit à l'assurance 'Carré Neige'."
+    ],
+    "next": "end_session"
+  },
+  "end_session": {
+    "prompt": [
+      "Bonne glisse et profitez bien du soleil !",
+      "Amusez-vous bien sur les pistes. À bientôt !",
+      "Passez un excellent séjour à la montagne !"
+    ]
+  }
+}

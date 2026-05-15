@@ -1,0 +1,344 @@
+{
+  "start": {
+    "prompt": [
+      "Bonjour. Vous venez pour l'entretien pour le poste de conseiller de vente ?",
+      "Bonjour, installez-vous je vous prie. Nous allons commencer l'entretien.",
+      "Bonjour ! Ravi de vous rencontrer. Vous avez trouvé nos bureaux facilement ?"
+    ],
+    "intents": {
+      "yes": "ask_introduction",
+      "greeting": "ask_introduction",
+      "positive": "ask_introduction",
+      "clarify_role": "ask_role_clarification"
+    }
+  },
+  "ask_role_clarification": {
+    "prompt": [
+      "C'est un poste qui combine conseil client, gestion des stocks et mise en rayon. Est-ce que cela correspond à vos attentes ?",
+      "Nous cherchons quelqu'un de polyvalent pour l'accueil et la vente technique. Cela vous convient-il ?"
+    ],
+    "intents": {
+      "yes": "ask_introduction",
+      "no": "end_session"
+    }
+  },
+  "ask_introduction": {
+    "prompt": [
+      "Pour commencer, pouvez-vous vous présenter brièvement et nous parler de votre parcours ?",
+      "Parlez-moi un peu de vous. Quel a été votre cheminement jusqu'à aujourd'hui ?"
+    ],
+    "capture": "candidate_intro",
+    "intents": {
+      "languages": "language_skills",
+      "project": "experience_specifics"
+    },
+    "next": "ask_motivation"
+  },
+  "experience_specifics": {
+    "prompt": [
+      "C'est un parcours intéressant. Pourriez-vous me détailler un projet ou une mission dont vous êtes particulièrement fier ?",
+      "Dans vos précédentes expériences, quel a été votre plus grand défi professionnel ?"
+    ],
+    "capture": "project_detail",
+    "next": "ask_motivation"
+  },
+  "language_skills": {
+    "prompt": [
+      "Vous avez mentionné des compétences linguistiques. Quel est votre niveau d'anglais ou d'une autre langue étrangère ?",
+      "Pourriez-vous nous parler de votre capacité à conseiller des clients internationaux ?"
+    ],
+    "capture": "languages_detail",
+    "next": "ask_motivation"
+  },
+  "ask_motivation": {
+    "prompt": [
+      "Qu'est-ce qui vous attire particulièrement dans notre entreprise et pour ce poste ?",
+      "Pourquoi avoir postulé chez nous plutôt qu'ailleurs ? Qu'est-ce qui a retenu votre attention ?"
+    ],
+    "capture": "motivation",
+    "intents": {
+      "recent_news": "company_news_question"
+    },
+    "next": "ask_strengths"
+  },
+  "company_news_question": {
+    "prompt": [
+      "Justement, nous avons récemment lancé une nouvelle gamme éco-responsable. Qu'en pensez-vous ?",
+      "Nous avons beaucoup communiqué sur notre nouvelle stratégie digitale. Quel est votre avis sur ce virage ?"
+    ],
+    "capture": "company_news_feedback",
+    "next": "ask_strengths"
+  },
+  "ask_strengths": {
+    "prompt": ["Quelles sont vos trois principales qualités pour ce travail ?"],
+    "capture": "strengths",
+    "next": "ask_weakness"
+  },
+  "ask_weakness": {
+    "prompt": ["Et quel serait votre principal axe d'amélioration ou un défaut que vous essayez de corriger ?"],
+    "capture": "weakness",
+    "intents": {
+      "conflict": "conflict_resolution"
+    },
+    "next": "situation_question"
+  },
+  "conflict_resolution": {
+    "prompt": [
+      "Comment gérez-vous un désaccord avec un collègue au sein d'une équipe ?",
+      "Si vous n'êtes pas d'accord avec une décision de votre supérieur, comment réagissez-vous ?"
+    ],
+    "capture": "conflict_strategy",
+    "next": "situation_question"
+  },
+  "situation_question": {
+    "prompt": ["Imaginons qu'un client soit mécontent. Comment réagiriez-vous pour calmer la situation ?"],
+    "capture": "situation_response",
+    "next": "technical_assessment"
+  },
+  "technical_assessment": {
+    "prompt": [
+      "Nous aimerions maintenant passer à une courte évaluation technique. Pouvez-vous m'expliquer comment vous utilisez les outils CRM dans votre quotidien ?",
+      "Côté technique, quels logiciels de gestion de stock ou de vente maîtrisez-vous ?"
+    ],
+    "capture": "technical_skills",
+    "intents": {
+      "portfolio": "portfolio_review",
+      "equipment": "ask_equipment_provided"
+    },
+    "next": "ask_salary_expectations"
+  },
+  "ask_equipment_provided": {
+    "prompt": [
+      "Concernant les outils de travail, nous fournissons un ordinateur portable et un téléphone de fonction. Avez-vous des besoins spécifiques en termes d'équipement ?",
+      "Nous mettons à disposition tout le matériel nécessaire (tablette, outils de diagnostic). Êtes-vous à l'aise avec l'usage professionnel de ces outils ?"
+    ],
+    "capture": "equipment_needs",
+    "next": "ask_salary_expectations"
+  },
+  "portfolio_review": {
+    "prompt": [
+      "C'est intéressant. Pourriez-vous nous montrer quelques exemples de vos réalisations précédentes ?",
+      "Avez-vous un portfolio ou des documents qui illustrent vos succès passés ?"
+    ],
+    "capture": "portfolio_details",
+    "next": "ask_salary_expectations"
+  },
+  "ask_salary_expectations": {
+    "prompt": [
+      "Parlons maintenant des conditions. Quelles sont vos prétentions salariales pour ce poste ?",
+      "Avez-vous une fourchette de rémunération en tête pour ce rôle ?"
+    ],
+    "capture": "salary_expectations",
+    "intents": {
+      "bonus": "bonus_structure"
+    },
+    "next": "negotiate_benefits"
+  },
+  "bonus_structure": {
+    "prompt": [
+      "Nous avons un système de bonus basé sur les performances individuelles et collectives. Est-ce un modèle qui vous motive ?",
+      "Souhaitez-vous que je vous détaille le calcul des primes sur objectifs ?"
+    ],
+    "capture": "bonus_interest",
+    "next": "negotiate_benefits"
+  },
+  "negotiate_benefits": {
+    "prompt": [
+      "Au-delà du salaire fixe, nous proposons des tickets-restaurants et une mutuelle d'entreprise. Est-ce que cela vous convient ?",
+      "Nous offrons également des primes sur objectifs et une participation aux bénéfices. Qu'en pensez-vous ?"
+    ],
+    "intents": {
+      "yes": "ask_remote_work",
+      "positive": "ask_remote_work",
+      "negotiate": "salary_detail",
+      "training": "professional_dev"
+    },
+    "capture": "benefits_feedback",
+    "next": "ask_remote_work"
+  },
+  "professional_dev": {
+    "prompt": [
+      "Nous encourageons la formation continue. Y a-t-il des compétences spécifiques que vous aimeriez développer ?",
+      "Nous avons un budget dédié au développement professionnel. Quel type de formation vous intéresserait ?"
+    ],
+    "capture": "training_needs",
+    "intents": {
+      "career_path": "ask_career_path"
+    },
+    "next": "ask_remote_work"
+  },
+  "ask_career_path": {
+    "prompt": [
+      "Quelles sont les perspectives d'évolution interne après deux ou trois ans à ce poste ?",
+      "Comment l'entreprise accompagne-t-elle la montée en compétences de ses collaborateurs sur le long terme ?"
+    ],
+    "capture": "career_path_interest",
+    "next": "ask_remote_work"
+  },
+  "salary_detail": {
+    "prompt": [
+      "Je comprends. Le salaire est négociable selon l'expérience. Souhaitez-vous que nous en rediscutions lors d'un second entretien ?",
+      "C'est un point que nous pouvons affiner. Quels autres avantages seraient importants pour vous ?"
+    ],
+    "capture": "negotiation_notes",
+    "next": "ask_remote_work"
+  },
+  "ask_remote_work": {
+    "prompt": [
+      "Quelle est votre position sur le télétravail ? Nous proposons actuellement deux jours par semaine en mode hybride.",
+      "Le poste permet une certaine flexibilité. Seriez-vous intéressé par un rythme hybride ou préférez-vous être en présentiel ?"
+    ],
+    "capture": "remote_preference",
+    "intents": {
+      "travel": "ask_travel_requirements"
+    },
+    "next": "ask_onboarding"
+  },
+  "ask_travel_requirements": {
+    "prompt": [
+      "Le poste peut occasionnellement nécessiter des déplacements régionaux. Est-ce que cela pose un problème pour vous ?",
+      "Seriez-vous prêt à vous déplacer ponctuellement pour des salons professionnels ou des formations dans d'autres filiales ?"
+    ],
+    "capture": "travel_availability",
+    "next": "ask_onboarding"
+  },
+  "ask_onboarding": {
+    "prompt": [
+      "Si vous êtes retenu, nous avons un programme d'intégration de deux semaines. Seriez-vous disponible pour commencer le mois prochain ?",
+      "L'onboarding comprend une formation sur nos outils et une immersion avec l'équipe. Est-ce que ce processus vous semble clair ?"
+    ],
+    "intents": {
+      "yes": "ask_references",
+      "no": "onboarding_clarification",
+      "positive": "ask_references",
+      "relocation": "relocation_help",
+      "notice": "ask_notice_period",
+      "flexible_start": "ask_start_date_flexibility"
+    },
+    "next": "ask_references"
+  },
+  "ask_start_date_flexibility": {
+    "prompt": [
+      "Nous avons une certaine souplesse sur la date de début. Quelle serait votre date idéale pour commencer ?",
+      "Si nécessaire, pourrions-nous avancer ou décaler votre prise de poste d'une semaine ?"
+    ],
+    "capture": "start_date_notes",
+    "next": "ask_references"
+  },
+  "ask_notice_period": {
+    "prompt": [
+      "Quel est votre délai de préavis actuel ? Seriez-vous en mesure de le négocier si besoin ?",
+      "Avez-vous des obligations contractuelles qui pourraient retarder votre prise de poste ?"
+    ],
+    "capture": "notice_period_detail",
+    "next": "ask_references"
+  },
+  "relocation_help": {
+    "prompt": [
+      "Si vous devez déménager, nous pouvons vous accompagner dans vos démarches. Est-ce un point important pour vous ?",
+      "Proposez-vous un pack de relocalisation pour les candidats venant d'une autre région ?"
+    ],
+    "capture": "relocation_notes",
+    "next": "ask_references"
+  },
+  "onboarding_clarification": {
+    "prompt": ["C'est un parcours guidé avec un mentor pour vous aider à prendre vos marques sereinement. Cela vous rassure-t-il ?"],
+    "next": "ask_references"
+  },
+  "ask_references": {
+    "prompt": [
+      "Pourriez-vous nous fournir les coordonnées de deux références professionnelles que nous pourrions contacter ?",
+      "Acceptez-vous que nous prenions contact avec vos anciens employeurs pour une prise de références ?"
+    ],
+    "capture": "references_consent",
+    "next": "ask_availability"
+  },
+  "ask_availability": {
+    "prompt": ["Quelles sont vos disponibilités exactes ? Pourriez-vous travailler le samedi de manière ponctuelle ?"],
+    "capture": "availability",
+    "intents": {
+      "overtime": "ask_overtime_policy"
+    },
+    "next": "ask_candidate_questions"
+  },
+  "ask_overtime_policy": {
+    "prompt": [
+      "Les heures supplémentaires sont exceptionnelles et toujours rémunérées ou récupérées. Est-ce que ce fonctionnement vous convient ?",
+      "Comment envisagez-vous la gestion des pics d'activité qui pourraient nécessiter de rester un peu plus tard certains soirs ?"
+    ],
+    "capture": "overtime_feedback",
+    "next": "ask_candidate_questions"
+  },
+  "ask_candidate_questions": {
+    "prompt": [
+      "Avez-vous des questions à me poser sur le poste, l'ambiance au bureau ou sur l'équipe ?",
+      "C'est à vous. Y a-t-il des points que vous souhaiteriez éclaircir ?"
+    ],
+    "capture": "candidate_questions",
+    "intents": {
+      "team": "team_structure",
+      "balance": "ask_work_life_balance"
+    },
+    "next": "interview_conclusion"
+  },
+  "ask_work_life_balance": {
+    "prompt": [
+      "Comment décririez-vous l'équilibre vie professionnelle-vie personnelle au sein de votre équipe ?",
+      "Quelle est la politique de l'entreprise concernant les horaires flexibles ou le droit à la déconnexion ?"
+    ],
+    "capture": "balance_feedback",
+    "next": "interview_conclusion"
+  },
+  "team_structure": {
+    "prompt": [
+      "L'équipe est composée de cinq personnes sous la responsabilité d'un manager de zone. Cela vous convient ?",
+      "Nous travaillons beaucoup en mode projet. Est-ce que cet aspect collaboratif vous plaît ?"
+    ],
+    "capture": "team_feedback",
+    "intents": {
+      "values": "ask_company_values",
+      "management": "ask_management_style"
+    },
+    "next": "interview_conclusion"
+  },
+  "ask_management_style": {
+    "prompt": [
+      "Comment décririez-vous le style de management de votre futur responsable ?",
+      "Nous privilégions un management bienveillant basé sur la confiance et l'autonomie. Est-ce un environnement dans lequel vous vous épanouissez ?"
+    ],
+    "capture": "management_feedback",
+    "next": "interview_conclusion"
+  },
+  "ask_company_values": {
+    "prompt": [
+      "Quelles sont les valeurs fondamentales de l'entreprise qui guident vos décisions au quotidien ?",
+      "Comment la culture d'entreprise se manifeste-t-elle concrètement dans le travail d'équipe ?"
+    ],
+    "capture": "values_feedback",
+    "next": "interview_conclusion"
+  },
+  "interview_conclusion": {
+    "prompt": [
+      "Très bien. Merci pour cet échange très complet. Nous avons encore quelques candidats à voir.",
+      "Merci de votre visite. Le processus suit son cours et nous vous donnerons une réponse d'ici la fin de semaine."
+    ],
+    "intents": {
+      "second_interview": "next_steps_technical"
+    },
+    "next": "end_session"
+  },
+  "next_steps_technical": {
+    "prompt": [
+      "La prochaine étape serait un entretien technique approfondi avec notre directeur. Seriez-vous prêt pour cela ?",
+      "Nous aimerions vous revoir pour un test en situation réelle. Quelles sont vos disponibilités ?"
+    ],
+    "capture": "follow_up_availability",
+    "next": "end_session"
+  },
+  "end_session": {
+    "prompt": [
+      "Merci d'être venu. Bonne fin de journée !",
+      "Au revoir, nous vous recontactons très vite. Bonne chance pour la suite."
+    ]
+  }
+}

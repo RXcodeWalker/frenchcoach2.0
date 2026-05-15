@@ -1,0 +1,101 @@
+{
+  "start": {
+    "prompt": [
+      "Bonjour ! C'est pour une séance d'essai ou vous êtes déjà membre ?",
+      "Bienvenue ! On peut vous renseigner sur nos abonnements ?",
+      "Bonjour. Vous venez pour un cours collectif ou pour le plateau de musculation ?",
+      "Salut ! C'est votre première fois chez nous ?"
+    ],
+    "intents": {
+      "membership": "membership_info_start",
+      "trial": "trial_session_start",
+      "class": "class_schedule_start",
+      "coach": "personal_trainer_start",
+      "yoga": "class_schedule_start",
+      "cardio": "goals_inquiry_start",
+      "locker": "locker_room_info_start",
+      "sauna": "amenities_info_start",
+      "cancel": "cancellation_policy_start",
+      "hours": "opening_hours_start"
+    }
+  },
+
+  "membership_info_start": {
+    "prompt": [
+      "On a plusieurs formules : l'abonnement mensuel sans engagement ou l'engagement annuel qui est moins cher. Laquelle vous tente ?",
+      "L'inscription donne accès à toutes nos salles 7 jours sur 7. Voulez-vous connaître nos tarifs étudiants ?"
+    ],
+    "next": "registration_process"
+  },
+
+  "trial_session_start": {
+    "prompt": [
+      "Bien sûr ! La première séance est gratuite. Il vous faut juste une paire de baskets propres et une serviette. Vous avez ça avec vous ?",
+      "Je vous fais remplir une petite décharge de responsabilité et je vous montre les machines."
+    ],
+    "next": "goals_inquiry_start"
+  },
+
+  "class_schedule_start": {
+    "prompt": [
+      "On a du yoga le matin à 8h et de la Zumba tous les soirs à 18h. Il faut réserver votre place sur notre application.",
+      "Voulez-vous le planning complet de la semaine ? On propose aussi du Pilates et du Crossfit."
+    ],
+    "next": "end_session"
+  },
+
+  "personal_trainer_start": {
+    "prompt": [
+      "Si vous voulez un programme sur mesure, je vous conseille de prendre une séance avec l'un de nos coachs. Ils sont diplômés d'État.",
+      "Le coach peut vous aider à corriger vos postures pour éviter les blessures. C'est 40 euros de l'heure."
+    ],
+    "next": "goals_inquiry_start"
+  },
+
+  "locker_room_info_start": {
+    "prompt": [
+      "Les vestiaires sont au fond du couloir. Prévoyez un cadenas pour votre casier, on en vend à l'accueil si besoin.",
+      "Il y a des douches individuelles et des sèche-cheveux à votre disposition."
+    ],
+    "next": "amenities_info_start"
+  },
+
+  "amenities_info_start": {
+    "prompt": [
+      "On a un espace détente avec un sauna et un hammam. C'est parfait après une grosse séance d'entraînement !",
+      "La fontaine à eau est juste à côté de l'espace cardio. N'oubliez pas de bien vous hydrater."
+    ],
+    "next": "end_session"
+  },
+
+  "cancellation_policy_start": {
+    "prompt": [
+      "Vous voulez suspendre votre abonnement ? Il y a un préavis de deux mois à respecter, sauf raison médicale avec certificat.",
+      "On peut aussi mettre votre abonnement en pause si vous partez en vacances plus d'un mois."
+    ],
+    "next": "end_session"
+  },
+
+  "opening_hours_start": {
+    "prompt": [
+      "On est ouvert de 6h du matin à 23h en semaine, et de 9h à 20h le week-end.",
+      "C'est ouvert même pendant les jours fériés, sauf pour Noël et le premier de l'an."
+    ],
+    "next": "end_session"
+  },
+
+  "goals_inquiry_start": {
+    "prompt": ["Quel est votre objectif principal ? Perte de poids, prise de masse ou juste rester en forme ?"],
+    "capture": "fitness_goal",
+    "next": "registration_process"
+  },
+
+  "registration_process": {
+    "prompt": ["Très bien. Il me faudra une pièce d'identité et un RIB pour le prélèvement automatique."],
+    "next": "end_session"
+  },
+
+  "end_session": {
+    "prompt": ["Bon entraînement !", "À bientôt pour votre séance !"]
+  }
+}
