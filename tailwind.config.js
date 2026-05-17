@@ -8,6 +8,10 @@ export default {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
       },
       colors: {
+        primary: {
+          DEFAULT: 'rgb(var(--color-primary))',
+          variant: 'rgb(var(--color-primary-variant))',
+        },
         navy: {
           DEFAULT: '#0A0C10',
           50: '#0E1117',
@@ -22,7 +26,7 @@ export default {
           900: '#6B6F78',
         },
         violet: {
-          electric: '#7C3AED',
+          electric: 'rgb(var(--color-primary))',
         },
         emerald: {
           fluency: '#10B981',

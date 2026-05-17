@@ -17,7 +17,7 @@ export function OverviewTab({ profile }: Props) {
     <>
       <motion.div variants={fadeUp} className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
         {[
-          { icon: <Zap size={15} className="text-violet-400" />, value: profile.total_xp.toLocaleString(), label: 'Total XP' },
+          { icon: <Zap size={15} className="text-primary" />, value: profile.total_xp.toLocaleString(), label: 'Total XP' },
           { icon: <span className="text-sm">🔥</span>, value: profile.streak_days, label: 'Day Streak' },
           { icon: <span className="text-sm">📚</span>, value: profile.sessions_count, label: 'Sessions' },
           { icon: <span className="text-sm">💬</span>, value: profile.total_words_spoken.toLocaleString(), label: 'Words' },
@@ -45,7 +45,7 @@ export function OverviewTab({ profile }: Props) {
               return (
                 <div key={lvl.level} className="flex items-center gap-2">
                   <div className={`w-4 h-4 rounded-full flex items-center justify-center text-[8px] border ${
-                    isPast ? 'bg-emerald-500 border-emerald-500' : isCurrent ? 'bg-violet-electric border-violet-electric shadow-[0_0_6px_rgba(124,58,237,0.5)]' : 'bg-navy-300 border-navy-400'
+                    isPast ? 'bg-emerald-500 border-emerald-500' : isCurrent ? 'bg-primary border-primary' : 'bg-navy-300 border-navy-400'
                   }`}>
                     {isPast ? '✓' : isCurrent ? '★' : ''}
                   </div>
@@ -61,7 +61,7 @@ export function OverviewTab({ profile }: Props) {
       <motion.div variants={fadeUp} className="rounded-xl glass-elevated p-5">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <TrendingUp size={14} className="text-violet-400" />
+            <TrendingUp size={14} className="text-primary" />
             <h3 className="font-bold text-white text-sm">7-Day Performance</h3>
           </div>
           <span className="text-[9px] text-slate-600">Avg: {(MOCK_DAILY.reduce((s, d) => s + d.score, 0) / MOCK_DAILY.length).toFixed(1)}</span>
@@ -76,7 +76,7 @@ export function OverviewTab({ profile }: Props) {
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 justify-items-center">
           {[
-            { label: 'Grammar', value: 72, color: '#7C3AED' },
+            { label: 'Grammar', value: 72, color: 'rgb(var(--color-primary))' },
             { label: 'Vocabulary', value: 65, color: '#F59E0B' },
             { label: 'Fluency', value: 81, color: '#10B981' },
             { label: 'Communication', value: 58, color: '#EC4899' },

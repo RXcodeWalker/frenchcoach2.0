@@ -54,7 +54,7 @@ export function Progress() {
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`px-3 py-1.5 rounded-lg text-[10px] font-bold capitalize transition-all duration-200 ${
-                activeTab === tab ? 'bg-violet-electric/10 text-violet-400 border border-violet-electric/20' : 'text-slate-600 hover:text-white border border-transparent'
+                activeTab === tab ? 'bg-primary/10 text-primary border border-primary/20' : 'text-slate-600 hover:text-white border border-transparent'
               }`}
               whileTap={{ scale: 0.95 }}
             >

@@ -43,7 +43,7 @@ export function RecordingPanel({ isActive, recording, onStop }: Props) {
           className={`relative w-14 h-14 rounded-full flex items-center justify-center ${
             recording.isRecording
               ? 'bg-red-500 shadow-[0_0_24px_rgba(239,68,68,0.4)]'
-              : 'bg-gradient-to-br from-violet-electric to-indigo-500 shadow-[0_0_20px_rgba(124,58,237,0.3)]'
+              : 'bg-gradient-to-br from-primary to-primary-variant shadow-[0_0_20px_rgba(var(--color-primary),0.3)]'
           }`}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}

@@ -18,7 +18,7 @@ export function FeedbackPanel({ feedback, isLoading, onRetry, onComplete }: Prop
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <Loader2 size={24} className="text-violet-400 animate-spin" />
+        <Loader2 size={24} className="text-primary animate-spin" />
         <p className="text-sm text-slate-500">Analysing your response…</p>
       </motion.div>
     );

@@ -11,7 +11,7 @@ export function HistoryTab({ sessions }: Props) {
   return (
     <motion.div variants={fadeUp} className="rounded-xl glass p-4">
       <div className="flex items-center gap-2 mb-4">
-        <Calendar size={14} className="text-violet-400" />
+        <Calendar size={14} className="text-primary" />
         <h3 className="font-bold text-white text-sm">Session History</h3>
       </div>
       <div className="space-y-1.5">

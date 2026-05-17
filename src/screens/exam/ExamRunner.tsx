@@ -50,7 +50,7 @@ export function ExamRunner({
         <div className="flex items-center gap-1.5">
           {['roleplay', 'topic1', 'topic2'].map((phase, i) => (
             <div key={phase} className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${
-              examState === phase ? 'bg-violet-electric text-white' : 'bg-navy-400 text-slate-500'
+              examState === phase ? 'bg-primary text-white' : 'bg-navy-400 text-slate-500'
             }`}>
               Phase {i + 1}
             </div>
@@ -93,7 +93,7 @@ export function ExamRunner({
 
         <motion.div
           className={`mb-4 px-3 py-1 rounded-full text-[9px] font-bold border ${
-            examState === 'prep' ? 'bg-amber-500/8 text-amber-400 border-amber-500/15' : 'bg-violet-electric/8 text-violet-400 border-violet-electric/15'
+            examState === 'prep' ? 'bg-amber-500/8 text-amber-400 border-amber-500/15' : 'bg-primary/8 text-primary border-primary/15'
           }`}
           key={examState}
           initial={{ scale: 0.9, opacity: 0 }}
@@ -105,10 +105,10 @@ export function ExamRunner({
         {examState === 'prep' && (
           <div className="w-full text-center space-y-6">
             <div className="bg-white/[0.03] border border-white/5 rounded-2xl p-6 backdrop-blur-sm relative overflow-hidden">
-              <div className="absolute top-0 right-0 px-3 py-1 bg-violet-electric text-[8px] font-bold uppercase rounded-bl-lg">
+              <div className="absolute top-0 right-0 px-3 py-1 bg-primary text-[8px] font-bold uppercase rounded-bl-lg">
                 Your Role: {roleplayCandidateRole}
               </div>
-              <h3 className="text-violet-400 text-[10px] font-bold uppercase tracking-widest mb-3">Your Role Play Scenario</h3>
+              <h3 className="text-primary text-[10px] font-bold uppercase tracking-widest mb-3">Your Role Play Scenario</h3>
               <p className="text-lg text-white font-medium leading-relaxed">{roleplayScenario}</p>
             </div>
             
@@ -136,7 +136,7 @@ export function ExamRunner({
               {currentQuestion.keyVocab && (
                 <div className="flex flex-wrap justify-center gap-1.5 mt-3">
                   {currentQuestion.keyVocab.map(word => (
-                    <span key={word} className="text-[9px] px-1.5 py-0.5 rounded-md bg-violet-electric/8 text-violet-300 border border-violet-electric/12">{word}</span>
+                    <span key={word} className="text-[9px] px-1.5 py-0.5 rounded-md bg-primary/8 text-primary border border-primary/12">{word}</span>
                   ))}
                 </div>
               )}
@@ -150,7 +150,7 @@ export function ExamRunner({
                   className={`relative w-14 h-14 rounded-full flex items-center justify-center ${
                     recording.isRecording
                       ? 'bg-red-500 shadow-[0_0_20px_rgba(239,68,68,0.4)]'
-                      : 'bg-gradient-to-br from-violet-electric to-indigo-500 shadow-[0_0_20px_rgba(124,58,237,0.3)]'
+                      : 'bg-gradient-to-br from-primary to-primary-variant shadow-[0_0_20px_rgba(var(--color-primary),0.3)]'
                   }`}
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}

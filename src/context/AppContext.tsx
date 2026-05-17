@@ -1,5 +1,5 @@
 import { createContext, useContext, useReducer, useEffect, type ReactNode } from 'react';
-import type { UserProfile, Achievement, Session, XPAnimation, GemAnimation, SkillProfile } from '../types';
+import type { UserProfile, Achievement, Session, XPAnimation, GemAnimation, SkillProfile, Theme } from '../types';
 import { ACHIEVEMENTS } from '../data/gameData';
 import { getStats, recordSession as persistSession } from '../services/analytics/analyticsService';
 import { getProgressionState, awardXP, checkAchievements, awardGemsForXP } from '../services/progression/progressionService';
@@ -16,6 +16,7 @@ interface AppState {
   lastGemsGained: number;
   soundEnabled: boolean;
   darkMode: boolean;
+  theme: Theme;
   skillProfile: SkillProfile;
   focusedSkillId: string | null;
   masteredDrills: string[];
@@ -36,6 +37,7 @@ type Action =
   | { type: 'SET_PROFILE'; profile: UserProfile }
   | { type: 'TOGGLE_SOUND' }
   | { type: 'TOGGLE_DARK_MODE' }
+  | { type: 'SET_THEME'; theme: Theme }
   | { type: 'REMOVE_XP_ANIMATION'; id: string }
   | { type: 'REMOVE_GEM_ANIMATION'; id: string }
   | { type: 'UPDATE_SKILL_PROFILE'; skillProfile: SkillProfile }
@@ -87,6 +89,9 @@ function buildInitialState(): AppState {
   const savedDark = localStorage.getItem('frenchCoach_darkMode');
   const darkMode = savedDark === null ? true : savedDark === 'true';
 
+  const savedTheme = localStorage.getItem('frenchCoach_theme') as Theme;
+  const theme = savedTheme || 'purple';
+
   return {
     profile,
     achievements,
@@ -98,6 +103,7 @@ function buildInitialState(): AppState {
     lastGemsGained: 0,
     soundEnabled: true,
     darkMode,
+    theme,
     skillProfile,
     focusedSkillId: null,
     masteredDrills,
@@ -235,6 +241,10 @@ function reducer(state: AppState, action: Action): AppState {
       localStorage.setItem('frenchCoach_darkMode', String(next));
       return { ...state, darkMode: next };
     }
+    case 'SET_THEME': {
+      localStorage.setItem('frenchCoach_theme', action.theme);
+      return { ...state, theme: action.theme };
+    }
     case 'UPDATE_SKILL_PROFILE':
       return { ...state, skillProfile: action.skillProfile };
     case 'SET_FOCUSED_SKILL':
@@ -283,6 +293,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     document.documentElement.classList.toggle('dark', state.darkMode);
   }, [state.darkMode]);
+
+  useEffect(() => {
+    // Remove all theme classes
+    const themeClasses = ['theme-purple', 'theme-blue', 'theme-green', 'theme-rose', 'theme-amber', 'theme-cyan', 'theme-orange', 'theme-lime', 'theme-fuchsia', 'theme-sky'];
+    document.documentElement.classList.remove(...themeClasses);
+    // Add current theme class
+    if (state.theme !== 'purple') {
+      document.documentElement.classList.add(`theme-${state.theme}`);
+    }
+  }, [state.theme]);
 
   return <AppContext.Provider value={{ state, dispatch }}>{children}</AppContext.Provider>;
 }

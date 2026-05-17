@@ -54,14 +54,15 @@ const pageVariants: Variants = {
 function Background() {
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-      <div className="absolute inset-0 dark:bg-gradient-to-br dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 bg-gradient-to-br from-slate-100 via-blue-50/30 to-violet-50/20 animate-aurora-shift" />
-      <div className="absolute -top-40 -left-40 w-96 h-96 dark:bg-blue-600/8 bg-violet-400/6 rounded-full blur-3xl animate-blob" />
-      <div className="absolute top-1/3 -right-32 w-80 h-80 dark:bg-cyan-500/5 bg-blue-300/8 rounded-full blur-3xl animate-blob animation-delay-2000" />
-      <div className="absolute bottom-0 left-1/3 w-72 h-72 dark:bg-blue-800/6 bg-indigo-300/6 rounded-full blur-3xl animate-blob animation-delay-4000" />
-      <div className="absolute top-1/4 left-1/4 w-80 h-80 dark:bg-indigo-500/3 bg-purple-200/8 rounded-full blur-3xl animate-blob animation-delay-6000" />
+      <div className="absolute inset-0 dark:bg-gradient-to-br dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 bg-gradient-to-br from-slate-100 via-blue-50/30 to-primary/5 animate-aurora-shift" />
+      <div className="absolute -top-40 -left-40 w-96 h-96 dark:bg-primary/8 bg-primary/6 rounded-full blur-3xl animate-blob" />
+      <div className="absolute top-1/3 -right-32 w-80 h-80 dark:bg-primary-variant/5 bg-primary-variant/8 rounded-full blur-3xl animate-blob animation-delay-2000" />
+      <div className="absolute bottom-0 left-1/3 w-72 h-72 dark:bg-primary/6 bg-primary-variant/6 rounded-full blur-3xl animate-blob animation-delay-4000" />
+      <div className="absolute top-1/4 left-1/4 w-80 h-80 dark:bg-primary-variant/3 bg-primary/8 rounded-full blur-3xl animate-blob animation-delay-6000" />
     </div>
   );
 }
+
 
 function GlobalCelebrations() {
   const { state, dispatch } = useApp();

@@ -53,8 +53,8 @@ export function Rankings() {
       {/* Header */}
       <div>
         <div className="flex items-center gap-2 mb-1">
-          <Trophy size={14} className="text-violet-400" />
-          <span className="text-[10px] font-bold text-violet-400 uppercase tracking-wider">Hall of Fame</span>
+          <Trophy size={14} className="text-primary" />
+          <span className="text-[10px] font-bold text-primary uppercase tracking-wider">Hall of Fame</span>
         </div>
         <h1 className="text-2xl md:text-3xl font-black text-white">Rankings</h1>
         <p className="text-sm text-slate-500 mt-1">Compete with learners worldwide</p>
@@ -166,7 +166,7 @@ export function Rankings() {
                   transition={{ delay: index * 0.03 }}
                   className={`group relative flex items-center gap-4 p-4 rounded-xl transition-all ${
                     user.isCurrentUser 
-                      ? 'bg-violet-electric/10 border border-violet-electric/30' 
+                      ? 'bg-primary/10 border border-primary/30'
                       : 'glass hover:bg-white/[0.04]'
                   }`}
                 >
@@ -200,7 +200,7 @@ export function Rankings() {
                   {/* Info */}
                   <div className="flex-1">
                     <p className={`text-sm font-bold ${user.isCurrentUser ? 'text-white' : 'text-slate-200'}`}>
-                      {user.username} {user.isCurrentUser && <span className="text-[10px] text-violet-400">(You)</span>}
+                      {user.username} {user.isCurrentUser && <span className="text-[10px] text-primary">(You)</span>}
                     </p>
                     <div className="flex items-center gap-3 mt-0.5">
                       <div className="flex items-center gap-1">
@@ -259,16 +259,16 @@ export function Rankings() {
             exit={{ y: 100 }}
             className="fixed bottom-24 md:bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-lg z-40"
           >
-            <div className="glass-elevated border-violet-electric/50 rounded-2xl p-4 flex items-center gap-4 shadow-2xl">
+            <div className="glass-elevated border-primary/50 rounded-2xl p-4 flex items-center gap-4 shadow-2xl">
                <div className="w-6 text-center text-sm font-black text-white">
                  #{displayUsers.find(u => u.isCurrentUser)?.rank}
                </div>
-               <div className="w-10 h-10 rounded-full bg-violet-electric flex items-center justify-center text-xl border-2 border-white/20">
+               <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-xl border-2 border-white/20">
                  {currentUser?.avatar}
                </div>
                <div className="flex-1">
                  <p className="text-sm font-bold text-white">Your Rank</p>
-                 <p className="text-[10px] text-violet-300">Keep practicing to move up!</p>
+                 <p className="text-[10px] text-primary">Keep practicing to move up!</p>
                </div>
                <div className="text-right">
                  <p className="text-sm font-black text-white">

@@ -47,14 +47,14 @@ export function LevelUpCelebration({ newLevel, onDismiss }: LevelUpProps) {
       <div className="absolute inset-0 bg-navy/80 backdrop-blur-xl" onClick={onDismiss} />
       
       <motion.div 
-        className="relative z-10 w-full max-w-sm glass-elevated border-violet-electric/30 p-8 text-center"
+        className="relative z-10 w-full max-w-sm glass-elevated border-primary/30 p-8 text-center"
         initial={{ scale: 0.8, y: 20, opacity: 0 }}
         animate={{ scale: 1, y: 0, opacity: 1 }}
         transition={{ type: 'spring', damping: 15, stiffness: 200 }}
       >
         <div className="absolute -top-12 left-1/2 -translate-x-1/2">
           <motion.div 
-            className="w-24 h-24 rounded-full bg-violet-electric flex items-center justify-center shadow-[0_0_40px_rgba(124,58,237,0.6)]"
+            className="w-24 h-24 rounded-full bg-primary flex items-center justify-center shadow-[0_0_40px_rgba(var(--color-primary),0.6)]"
             animate={{ 
               rotate: [0, 10, -10, 10, 0],
               scale: [1, 1.1, 1],
@@ -75,7 +75,7 @@ export function LevelUpCelebration({ newLevel, onDismiss }: LevelUpProps) {
             LEVEL UP!
           </motion.h2>
           <motion.div 
-            className="text-violet-400 font-bold text-lg mb-6"
+            className="text-primary font-bold text-lg mb-6"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}

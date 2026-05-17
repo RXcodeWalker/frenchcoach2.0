@@ -23,8 +23,8 @@ export function Explore() {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <Sparkles size={14} className="text-violet-400" />
-              <span className="text-[10px] font-bold text-violet-400 uppercase tracking-wider">Training Hub</span>
+              <Sparkles size={14} className="text-primary" />
+              <span className="text-[10px] font-bold text-primary uppercase tracking-wider">Training Hub</span>
             </div>
             <h1 className="text-2xl md:text-3xl font-black text-white">Explore</h1>
             <p className="text-sm text-slate-500 mt-1">Discover all learning modes, AI tools, and challenges</p>
@@ -34,7 +34,7 @@ export function Explore() {
             <button
               onClick={() => setViewMode('grid')}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
-                viewMode === 'grid' ? 'bg-violet-electric/10 text-violet-400' : 'text-slate-500 hover:text-slate-300'
+                viewMode === 'grid' ? 'bg-primary/10 text-primary' : 'text-slate-500 hover:text-slate-300'
               }`}
             >
               <LayoutGrid size={12} /> FEATURES
@@ -42,7 +42,7 @@ export function Explore() {
             <button
               onClick={() => setViewMode('tree')}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
-                viewMode === 'tree' ? 'bg-violet-electric/10 text-violet-400' : 'text-slate-500 hover:text-slate-300'
+                viewMode === 'tree' ? 'bg-primary/10 text-primary' : 'text-slate-500 hover:text-slate-300'
               }`}
             >
               <GitBranch size={12} /> SCENARIOS
@@ -63,7 +63,7 @@ export function Explore() {
                 <motion.button
                   onClick={() => setActiveCategory('all')}
                   className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all duration-200 ${
-                    activeCategory === 'all' ? 'bg-violet-electric/10 text-violet-400 border border-violet-electric/20' : 'text-slate-600 hover:text-white border border-white/[0.04]'
+                    activeCategory === 'all' ? 'bg-primary/10 text-primary border border-primary/20' : 'text-slate-600 hover:text-white border border-white/[0.04]'
                   }`}
                   whileTap={{ scale: 0.95 }}
                 >
@@ -74,7 +74,7 @@ export function Explore() {
                     key={cat}
                     onClick={() => setActiveCategory(cat)}
                     className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all duration-200 ${
-                      activeCategory === cat ? 'bg-violet-electric/10 text-violet-400 border border-violet-electric/20' : 'text-slate-600 hover:text-white border border-white/[0.04]'
+                      activeCategory === cat ? 'bg-primary/10 text-primary border border-primary/20' : 'text-slate-600 hover:text-white border border-white/[0.04]'
                     }`}
                     whileTap={{ scale: 0.95 }}
                   >

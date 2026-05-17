@@ -167,9 +167,9 @@ export function InsightsTab() {
       </div>
 
       {/* Summary Stat */}
-      <div className="rounded-xl bg-gradient-to-br from-violet-electric/10 to-indigo-500/10 border border-violet-electric/20 p-4 flex items-center justify-between">
+      <div className="rounded-xl bg-gradient-to-br from-primary/10 to-primary-variant/10 border border-primary/20 p-4 flex items-center justify-between">
         <div>
-          <p className="text-[9px] text-violet-400 uppercase font-black tracking-widest mb-0.5">Overall Mastery</p>
+          <p className="text-[9px] text-primary uppercase font-black tracking-widest mb-0.5">Overall Mastery</p>
           <p className="text-2xl font-black text-white">{report.avgMastery}%</p>
         </div>
         <div className="text-right">

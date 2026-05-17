@@ -3,6 +3,8 @@ export type Screen = 'home' | 'learn' | 'exam' | 'progress' | 'profile' | 'explo
 
 export type Level = 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert' | 'Beast Mode';
 
+export type Theme = 'purple' | 'blue' | 'green' | 'rose' | 'amber' | 'cyan' | 'orange' | 'lime' | 'fuchsia' | 'sky';
+
 export type League = 'Bronze' | 'Silver' | 'Gold' | 'Platinum' | 'Diamond' | 'Champion';
 
 export interface RankingUser {

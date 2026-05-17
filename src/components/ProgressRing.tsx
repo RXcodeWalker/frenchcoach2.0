@@ -16,7 +16,7 @@ export function ProgressRing({
   max = 100,
   size = 100,
   strokeWidth = 8,
-  color = '#7C3AED',
+  color = 'rgb(var(--color-primary))',
   label,
   sublabel,
   glow = true,

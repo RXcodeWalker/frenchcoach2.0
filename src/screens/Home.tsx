@@ -54,8 +54,8 @@ export function Home() {
             variants={fadeUp}
             className="glass border-white/5 rounded-2xl p-4 flex items-center gap-4 group"
           >
-            <div className="w-12 h-12 rounded-xl bg-violet-electric/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-              <Sparkles size={20} className="text-violet-400" />
+            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+              <Sparkles size={20} className="text-primary" />
             </div>
             <div>
               <p className="text-sm font-medium italic text-slate-300">"{quote.text}"</p>
@@ -145,7 +145,7 @@ export function Home() {
               <motion.div variants={fadeUp} className="rounded-2xl glass-elevated p-6 border-white/5">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-2">
-                    <TrendingUp size={16} className="text-violet-400" />
+                    <TrendingUp size={16} className="text-primary" />
                     <h3 className="font-bold text-white text-base">Weekly Momentum</h3>
                   </div>
                   <div className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold text-slate-400">
@@ -163,7 +163,7 @@ export function Home() {
               <motion.div variants={fadeUp} className="grid grid-cols-2 lg:grid-cols-1 gap-3">
                 {[
                   { icon: <Flame size={18} />, value: profile.streak_days, label: 'Day Streak', color: 'text-orange-400', border: 'border-orange-500/20' },
-                  { icon: <Zap size={18} />, value: profile.total_xp.toLocaleString(), label: 'Total XP', color: 'text-violet-400', border: 'border-violet-electric/20' },
+                  { icon: <Zap size={18} />, value: profile.total_xp.toLocaleString(), label: 'Total XP', color: 'text-primary', border: 'border-primary/20' },
                   { icon: <Star size={18} />, value: '7.8', label: 'Avg Score', color: 'text-emerald-400', border: 'border-emerald-500/20' },
                   { icon: <Trophy size={18} />, value: state.achievements.filter(a => a.unlocked).length, label: 'Badges', color: 'text-amber-400', border: 'border-amber-500/20' },
                 ].map((stat, i) => (

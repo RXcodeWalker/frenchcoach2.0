@@ -63,7 +63,7 @@ export function SkillTreeTab() {
                     isUnlocked 
                       ? mastery >= 80 
                         ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.1)]' 
-                        : 'bg-violet-electric/10 border-violet-electric/20 text-violet-400'
+                        : 'bg-primary/10 border-primary/20 text-primary'
                       : 'bg-navy-300 border-white/[0.03] opacity-35 grayscale'
                   }`}>
                     {def?.icon ?? '❓'}
@@ -75,7 +75,7 @@ export function SkillTreeTab() {
                       </p>
                       {isUnlocked && (
                         <span className={`text-[10px] font-black ${
-                          mastery >= 80 ? 'text-emerald-400' : 'text-violet-400'
+                          mastery >= 80 ? 'text-emerald-400' : 'text-primary'
                         }`}>
                           {mastery}%
                         </span>
@@ -84,7 +84,7 @@ export function SkillTreeTab() {
                     <div className="h-1.5 bg-navy-300/50 rounded-full overflow-hidden w-full">
                       <motion.div
                         className={`h-full rounded-full ${
-                          mastery >= 80 ? 'bg-emerald-500' : 'bg-gradient-to-r from-violet-electric to-indigo-400'
+                          mastery >= 80 ? 'bg-emerald-500' : 'bg-gradient-to-r from-primary to-primary-variant'
                         }`}
                         initial={{ width: 0 }}
                         animate={{ width: `${mastery}%` }}

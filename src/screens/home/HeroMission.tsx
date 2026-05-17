@@ -17,9 +17,9 @@ export function HeroMission({ todayCount, onLearn, onExam }: Props) {
 
   return (
     <motion.div variants={fadeUp}>
-      <div className="relative overflow-hidden rounded-3xl glass-elevated border-violet-electric/20 p-8 md:p-10">
+      <div className="relative overflow-hidden rounded-3xl glass-elevated border-primary/20 p-8 md:p-10">
         {/* Animated Background Orbs */}
-        <div className="absolute -top-24 -right-24 w-64 h-64 bg-violet-600/10 rounded-full blur-[80px] animate-pulse" />
+        <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary/10 rounded-full blur-[80px] animate-pulse" />
         <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-blue-600/10 rounded-full blur-[80px] animate-pulse delay-1000" />
         
         <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 md:gap-12">
@@ -27,7 +27,7 @@ export function HeroMission({ todayCount, onLearn, onExam }: Props) {
           <div className="relative shrink-0">
             <div className="absolute inset-0 flex items-center justify-center">
               <motion.div 
-                className="w-32 h-32 rounded-full bg-violet-electric/10 blur-2xl"
+                className="w-32 h-32 rounded-full bg-primary/10 blur-2xl"
                 animate={{ 
                   scale: [1, 1.2, 1],
                   opacity: [0.5, 0.8, 0.5]
@@ -40,7 +40,7 @@ export function HeroMission({ todayCount, onLearn, onExam }: Props) {
               max={DAILY_GOAL}
               size={150}
               strokeWidth={12}
-              color="#7C3AED"
+              color="rgb(var(--color-primary))"
               label={`${todayCount}/${DAILY_GOAL}`}
               sublabel="sessions"
               glow
@@ -59,16 +59,16 @@ export function HeroMission({ todayCount, onLearn, onExam }: Props) {
 
           {/* Content Section */}
           <div className="flex-1 text-center md:text-left">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-electric/10 border border-violet-electric/20 mb-4">
-              <Target size={12} className="text-violet-400" />
-              <span className="text-[10px] font-black text-violet-300 uppercase tracking-widest">Your Daily Mission</span>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 mb-4">
+              <Target size={12} className="text-primary" />
+              <span className="text-[10px] font-black text-primary-variant uppercase tracking-widest">Your Daily Mission</span>
             </div>
             
             <h2 className="text-3xl md:text-4xl font-black text-white mb-2 tracking-tight">
               {goalComplete ? (
                 <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">Mission Accomplished!</span>
               ) : (
-                <>Only <span className="text-violet-400">{DAILY_GOAL - todayCount}</span> to reach your goal</>
+                <>Only <span className="text-primary">{DAILY_GOAL - todayCount}</span> to reach your goal</>
               )}
             </h2>
             
@@ -81,7 +81,7 @@ export function HeroMission({ todayCount, onLearn, onExam }: Props) {
             <div className="flex flex-col sm:flex-row gap-3">
               <motion.button
                 onClick={onLearn}
-                className="btn-primary px-8 py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(124,58,237,0.3)] group"
+                className="btn-primary px-8 py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(var(--color-primary),0.3)] group"
                 whileHover={{ scale: 1.02, y: -2 }}
                 whileTap={{ scale: 0.98 }}
               >

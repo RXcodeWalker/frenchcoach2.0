@@ -40,7 +40,7 @@ export function QuestionCard({ question, showHint, onToggleHint }: Props) {
         exit={{ opacity: 0, y: -12 }}
         transition={{ duration: 0.3 }}
       >
-        <div className="absolute top-0 right-0 w-64 h-64 bg-violet-electric/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
         
         <div className="relative">
           <div className="flex items-center justify-between mb-4">
@@ -56,7 +56,7 @@ export function QuestionCard({ question, showHint, onToggleHint }: Props) {
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={handleSpeak}
-              className={`w-10 h-10 rounded-xl glass border-white/10 flex items-center justify-center transition-colors ${isSpeaking ? 'text-violet-400 border-violet-400/30' : 'text-slate-400 hover:text-white'}`}
+              className={`w-10 h-10 rounded-xl glass border-white/10 flex items-center justify-center transition-colors ${isSpeaking ? 'text-primary border-primary/30' : 'text-slate-400 hover:text-white'}`}
             >
               {isSpeaking ? <VolumeX size={18} /> : <Volume2 size={18} />}
             </motion.button>
@@ -68,7 +68,7 @@ export function QuestionCard({ question, showHint, onToggleHint }: Props) {
             {question.keyVocab.map(word => (
               <motion.span 
                 key={word.fr} 
-                className="text-[10px] px-3 py-1 rounded-lg bg-violet-electric/10 text-violet-300 border border-violet-electric/20 font-bold uppercase tracking-wider cursor-help group relative"
+                className="text-[10px] px-3 py-1 rounded-lg bg-primary/10 text-primary-variant border border-primary/20 font-bold uppercase tracking-wider cursor-help group relative"
               >
                 {word.fr}
                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 rounded bg-navy-200 border border-white/10 text-white text-[9px] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">

@@ -7,7 +7,7 @@ interface Props {
   height?: number;
 }
 
-export function Sparkline({ data, color = '#7C3AED', width = 60, height = 20 }: Props) {
+export function Sparkline({ data, color = 'rgb(var(--color-primary))', width = 60, height = 20 }: Props) {
   if (!data || data.length < 2) return null;
 
   // Normalize data points

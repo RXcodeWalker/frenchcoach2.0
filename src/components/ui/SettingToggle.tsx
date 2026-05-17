@@ -18,7 +18,7 @@ export function SettingToggle({ icon, label, description, enabled, onToggle, dis
         <p className="text-[10px] font-semibold text-white">{label}</p>
         <p className="text-[9px] text-slate-700">{description}</p>
       </div>
-      <div className={`relative w-8 h-[18px] rounded-full transition-all duration-200 ${enabled ? 'bg-violet-electric' : 'bg-navy-400'}`}>
+      <div className={`relative w-8 h-[18px] rounded-full transition-all duration-200 ${enabled ? 'bg-primary' : 'bg-navy-400'}`}>
         <div className={`absolute top-[2px] w-[14px] h-[14px] bg-white rounded-full shadow transition-transform duration-200 ${enabled ? 'left-[15px]' : 'left-[2px]'}`} />
       </div>
     </div>

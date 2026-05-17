@@ -5,7 +5,7 @@ import type { Screen } from '../types';
 import { Home, BookOpen, GraduationCap, BarChart3, User, Compass, Flame, Users, ShoppingBag, Trophy, Info } from 'lucide-react';
 
 const NAV_ITEMS: { id: Screen; label: string; icon: React.ReactNode; glowColor: string }[] = [
-  { id: 'home', label: 'Home', icon: <Home size={18} />, glowColor: '#7C3AED' },
+  { id: 'home', label: 'Home', icon: <Home size={18} />, glowColor: 'rgb(var(--color-primary))' },
   { id: 'learn', label: 'Learn', icon: <BookOpen size={18} />, glowColor: '#0EA5E9' },
   { id: 'exam', label: 'Exam', icon: <GraduationCap size={18} />, glowColor: '#F59E0B' },
   { id: 'shop', label: 'Shop', icon: <ShoppingBag size={18} />, glowColor: '#EC4899' },
@@ -13,7 +13,7 @@ const NAV_ITEMS: { id: Screen; label: string; icon: React.ReactNode; glowColor: 
   { id: 'study-groups', label: 'Groups', icon: <Users size={18} />, glowColor: '#10B981' },
   { id: 'rankings', label: 'Rankings', icon: <Trophy size={18} />, glowColor: '#F59E0B' },
   { id: 'progress', label: 'Progress', icon: <BarChart3 size={18} />, glowColor: '#8B5CF6' },
-  { id: 'profile', label: 'Profile', icon: <User size={18} />, glowColor: '#EC4899' },
+  { id: 'profile', label: 'Profile', icon: <User size={18} />, glowColor: 'rgb(var(--color-primary))' },
   { id: 'about', label: 'About', icon: <Info size={18} />, glowColor: '#94A3B8' },
 ];
 
@@ -30,10 +30,10 @@ export function SideRail() {
       <nav className="nav-rail fixed left-0 top-0 bottom-0 w-[64px] glass border-r border-white/[0.04] z-50 hidden md:flex flex-col items-center py-5 gap-1">
         {/* Logo */}
         <motion.div
-          className="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-electric to-indigo-500 flex items-center justify-center mb-8 animate-icon-glow"
+          className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary to-primary-variant flex items-center justify-center mb-8 animate-icon-glow"
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
-          style={{ boxShadow: '0 0 20px rgba(124, 58, 237, 0.35)' }}
+          style={{ boxShadow: '0 0 20px rgba(var(--color-primary), 0.35)' }}
         >
           <span className="text-sm font-black text-white">F</span>
         </motion.div>
@@ -48,7 +48,7 @@ export function SideRail() {
                 onClick={() => navigate(toPath(item.id))}
                 className={`group relative w-10 h-10 rounded-lg flex items-center justify-center transition-colors duration-200 ${
                   active
-                    ? 'text-violet-400'
+                    ? 'text-primary'
                     : 'text-slate-600 hover:text-slate-300'
                 }`}
                 whileHover={{ scale: 1.08 }}
@@ -58,8 +58,8 @@ export function SideRail() {
                 {active && (
                   <motion.div
                     layoutId="nav-glow"
-                    className="absolute inset-0 rounded-lg bg-violet-electric/10"
-                    style={{ boxShadow: '0 0 16px rgba(124, 58, 237, 0.2)' }}
+                    className="absolute inset-0 rounded-lg bg-primary/10"
+                    style={{ boxShadow: '0 0 16px rgba(var(--color-primary), 0.2)' }}
                     transition={{ type: 'spring', stiffness: 350, damping: 30 }}
                   />
                 )}
@@ -67,8 +67,8 @@ export function SideRail() {
                 {active && (
                   <motion.div
                     layoutId="nav-indicator"
-                    className="absolute left-0 top-1/2 -translate-y-1/2 w-[2.5px] h-4 bg-violet-400 rounded-r-full"
-                    style={{ boxShadow: '0 0 8px rgba(124, 58, 237, 0.7)' }}
+                    className="absolute left-0 top-3 w-[2.5px] h-4 bg-primary rounded-r-full"
+                    style={{ boxShadow: '0 0 8px rgba(var(--color-primary), 0.7)' }}
                     transition={{ type: 'spring', stiffness: 350, damping: 30 }}
                   />
                 )}
@@ -113,14 +113,14 @@ export function SideRail() {
                   key={item.id}
                   onClick={() => navigate(toPath(item.id))}
                   className={`relative flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl transition-colors duration-200 ${
-                    active ? 'text-violet-400' : 'text-slate-400'
+                    active ? 'text-primary' : 'text-slate-400'
                   }`}
                   whileTap={{ scale: 0.9 }}
                 >
                   {active && (
                     <motion.div
                       layoutId="mobile-nav-glow"
-                      className="absolute inset-0 rounded-xl bg-violet-electric/8"
+                      className="absolute inset-0 rounded-xl bg-primary/8"
                       transition={{ type: 'spring', stiffness: 350, damping: 30 }}
                     />
                   )}
@@ -137,8 +137,8 @@ export function SideRail() {
                   {active && (
                     <motion.div
                       layoutId="mobile-nav-dot"
-                      className="w-1 h-1 rounded-full bg-violet-400"
-                      style={{ boxShadow: '0 0 6px rgba(124, 58, 237, 0.8)' }}
+                      className="w-1 h-1 rounded-full bg-primary"
+                      style={{ boxShadow: '0 0 6px rgba(var(--color-primary), 0.8)' }}
                       transition={{ type: 'spring', stiffness: 350, damping: 30 }}
                     />
                   )}

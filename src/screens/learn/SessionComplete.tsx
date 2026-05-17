@@ -50,7 +50,7 @@ export function SessionComplete({ scores, wordCount, xpEarned, cefrLevel, onCont
             <div className="grid grid-cols-3 gap-2 mb-5">
               {[
                 { value: `+${xpEarned ?? 25}`, label: 'XP', color: 'text-emerald-400' },
-                { value: String(wordCount ?? '—'), label: 'Words', color: 'text-violet-400' },
+                { value: String(wordCount ?? '—'), label: 'Words', color: 'text-primary' },
                 { value: cefrLevel ?? '—', label: 'CEFR', color: 'text-amber-400' },
               ].map(stat => (
                 <div key={stat.label} className="p-2.5 rounded-xl glass-subtle">

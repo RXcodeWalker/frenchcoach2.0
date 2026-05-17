@@ -66,7 +66,7 @@ export function TopicGrid({ onSelect, title = "Learn", subtitle = "Choose a topi
           whileTap={{ scale: 0.98 }}
         >
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-violet-electric/8 border border-violet-electric/15 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-lg bg-primary/8 border border-primary/15 flex items-center justify-center">
               <span className="text-base">🎲</span>
             </div>
             <div className="flex-1">
