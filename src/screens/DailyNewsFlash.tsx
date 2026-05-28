@@ -180,7 +180,7 @@ export function DailyNewsFlash() {
       setFeedback(fb);
       
       const session: Session = {
-        id: Date.now().toString(),
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
         mode: 'daily_news',
         topicKey: 'news',
         questionText: question.text,

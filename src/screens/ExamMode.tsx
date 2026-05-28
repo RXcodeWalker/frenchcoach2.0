@@ -183,7 +183,7 @@ export function ExamMode() {
     const totalSec = targetAnswers.reduce((s, a) => s + a.time, 0);
     dispatch({ type: 'ADD_XP', amount: 100, x: 70, y: 20 });
     const session: Session = {
-      id: Date.now().toString(),
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       mode: 'exam',
       wordCount: Math.round(totalSec * 1.5),
       score: avgScore,

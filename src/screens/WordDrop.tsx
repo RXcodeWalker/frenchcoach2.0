@@ -183,7 +183,7 @@ export function WordDrop() {
       dispatch({ 
         type: 'ADD_SESSION', 
         session: {
-          id: Date.now().toString(),
+          id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
           mode: 'word_drop',
           wordCount: Math.floor(score / 10),
           score: Math.min(100, score / 2),

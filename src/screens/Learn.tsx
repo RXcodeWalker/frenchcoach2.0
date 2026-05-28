@@ -100,7 +100,7 @@ export function Learn() {
     dispatch({ type: 'ADD_XP', amount: xpGain, x: 60, y: 30 });
 
     const session: Session = {
-      id: Date.now().toString(),
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       mode: 'practice',
       topicKey: selectedTopic?.key,
       questionText: currentQuestion?.text,
