@@ -3,7 +3,7 @@ import confetti from 'canvas-confetti';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { getRandomQuestion, getQuestionById } from '../data/gameData';
-import { getAIFeedback } from '../services/api/apiClient';
+import { getAIFeedback, saveSessionToBackend } from '../services/api/apiClient';
 import { getSkillProfile } from '../services/coaching/diagnosticEngine';
 import { awardXP, checkAchievements, getProgressionState } from '../services/progression/progressionService';
 import { recordSession as persistSession } from '../services/analytics/analyticsService';
@@ -194,6 +194,7 @@ export function ExamMode() {
     };
 
     persistSession(session);
+    saveSessionToBackend(session);
     const xpResult = awardXP(avgScore, state.profile.streak_days);
     const { level: newLevel } = getProgressionState();
     const newUnlockedAchievementIds = checkAchievements({

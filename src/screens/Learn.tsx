@@ -4,7 +4,7 @@ import { useApp } from '../context/AppContext';
 import { TOPICS } from '../data/gameData';
 import { useItem, awardXP, checkAchievements, getProgressionState } from '../services/progression/progressionService';
 import { recordSession as persistSession } from '../services/analytics/analyticsService';
-import { getAIFeedback } from '../services/api/apiClient';
+import { getAIFeedback, saveSessionToBackend } from '../services/api/apiClient';
 import { getSkillProfile, buildSkillContext, detectAvoidance, runAfterSession } from '../services/coaching/diagnosticEngine';
 import { useRecording } from '../features/recording/useRecording';
 import { TopicGrid } from './learn/TopicGrid';
@@ -203,6 +203,7 @@ export function Learn() {
 
     // Orchestrate side effects before dispatch so the reducer stays pure
     persistSession(session);
+    saveSessionToBackend(session);
     const xpResult = awardXP(finalScore, profile.streak_days);
     const { level: newLevel } = getProgressionState();
     const newUnlockedAchievementIds = checkAchievements({
