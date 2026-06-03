@@ -175,8 +175,8 @@ To provide IGCSE/A‑Level learners an accessible, local-first practice tool for
 
 ## License
 
-This project is licensed under the Apache 2.0 License. Add a `LICENSE` file with the Apache-2.0 text to the repository.
-
+This project will soon be licensed under the Apache 2.0 License. 
 ---
 
-If any of the configuration details above should be expanded (Supabase seed steps, preferred Node version, hosting/deployment notes), tell me which area to extend and I will update the README.
+Credit: This README file was enhanced by ChatGPT.
+Note: This site is still a work in progress and there is a lot of development required so it will take a while to become functional. Thanks for your patience!
