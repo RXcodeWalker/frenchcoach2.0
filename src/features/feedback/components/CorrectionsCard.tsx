@@ -1,4 +1,4 @@
-import { XCircle } from 'lucide-react';
+import { XCircle, Sparkles } from 'lucide-react';
 import { CollapsibleCard } from '../../../components/ui/CollapsibleCard';
 import { IssueRow } from './IssueRow';
 import { useFeedbackContext } from '../state/feedbackContext';
@@ -6,45 +6,86 @@ import type { CoachingIssue, FeedbackV2 } from '../../../types';
 
 interface Props {
   issues: CoachingIssue[];
+  polishIssues?: CoachingIssue[];
   feedback: FeedbackV2;
-  topPriorityId?: string;
 }
 
-export function CorrectionsCard({ issues, feedback, topPriorityId }: Props) {
+export function CorrectionsCard({ issues, polishIssues = [], feedback }: Props) {
   const { state } = useFeedbackContext();
   const highlighted = state.highlightedCardId === 'corrections';
 
-  // Show v2 issues if available; fall back to legacy grammar errors
-  const v2Issues = issues.filter(i => i.id !== topPriorityId && (i.severity === 'major' || i.severity === 'minor'));
+  // Critical: major issues that need fixing
+  const criticalV2 = issues.filter(i => i.severity === 'major' || i.severity === 'minor');
 
-  const legacyErrors = v2Issues.length === 0
-    ? [...(feedback.grammar?.critical ?? []), ...(feedback.grammar?.polish ?? [])]
+  // Polish: style/refinement issues (collapsed by default)
+  const polishV2 = polishIssues.filter(i =>
+    i.severity === 'polish' || i.severity === 'anglicism'
+  );
+
+  // Legacy fallback when no v2 issues at all
+  const legacyCritical = criticalV2.length === 0 && polishV2.length === 0
+    ? (feedback.grammar?.critical ?? [])
+    : [];
+  const legacyPolish = criticalV2.length === 0 && polishV2.length === 0
+    ? (feedback.grammar?.polish ?? [])
     : [];
 
-  const totalCount = v2Issues.length || legacyErrors.length;
-  if (totalCount === 0) return null;
+  const totalCritical = criticalV2.length || legacyCritical.length;
+  const totalPolish = polishV2.length || legacyPolish.length;
+
+  if (totalCritical === 0 && totalPolish === 0) return null;
 
   return (
-    <CollapsibleCard
-      title="Corrections"
-      icon={<XCircle size={13} className="text-red-400" />}
-      badgeCount={totalCount}
-      defaultOpen={false}
-      forceOpen={state.openCardIds.has('corrections') ? true : undefined}
-      highlight={highlighted}
-    >
-      {v2Issues.length > 0
-        ? v2Issues.map(issue => (
-            <IssueRow key={issue.id} issue={issue} isSelected={state.selectedIssueId === issue.id} />
-          ))
-        : legacyErrors.map((err, i) => (
-            <div key={i} className="p-2.5 rounded-lg bg-red-500/5 border border-red-500/10 mb-1.5">
-              <p className="text-[10px] font-semibold text-red-300">{err.theme}</p>
-              <p className="text-[10px] text-slate-500 mt-0.5">{err.diagnostic}</p>
-              <p className="text-[10px] text-emerald-400 mt-0.5">{err.correction}</p>
-            </div>
-          ))
-      }
-    </CollapsibleCard>
+    <div className="space-y-2">
+      {/* Critical section — open by default */}
+      {totalCritical > 0 && (
+        <CollapsibleCard
+          title="Fix These First"
+          icon={<XCircle size={13} className="text-red-400" />}
+          badgeCount={totalCritical}
+          defaultOpen={true}
+          forceOpen={state.openCardIds.has('corrections') ? true : undefined}
+          highlight={highlighted}
+          className="border border-red-500/10"
+        >
+          {criticalV2.length > 0
+            ? criticalV2.map(issue => (
+                <IssueRow key={issue.id} issue={issue} isSelected={state.selectedIssueId === issue.id} />
+              ))
+            : legacyCritical.map((err, i) => (
+                <div key={i} className="p-2.5 rounded-lg bg-red-500/5 border border-red-500/10 mb-1.5">
+                  <p className="text-[10px] font-semibold text-red-300">{err.theme}</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">{err.diagnostic}</p>
+                  <p className="text-[10px] text-emerald-400 mt-0.5">{err.correction}</p>
+                </div>
+              ))
+          }
+        </CollapsibleCard>
+      )}
+
+      {/* Polish section — collapsed by default */}
+      {totalPolish > 0 && (
+        <CollapsibleCard
+          title="Next Level"
+          icon={<Sparkles size={13} className="text-violet-400" />}
+          badgeCount={totalPolish}
+          defaultOpen={false}
+          className="border border-violet-500/10"
+        >
+          {polishV2.length > 0
+            ? polishV2.map(issue => (
+                <IssueRow key={issue.id} issue={issue} isSelected={state.selectedIssueId === issue.id} />
+              ))
+            : legacyPolish.map((err, i) => (
+                <div key={i} className="p-2.5 rounded-lg bg-violet-500/5 border border-violet-500/10 mb-1.5">
+                  <p className="text-[10px] font-semibold text-violet-300">{err.theme}</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">{err.diagnostic}</p>
+                  <p className="text-[10px] text-emerald-400 mt-0.5">{err.correction}</p>
+                </div>
+              ))
+          }
+        </CollapsibleCard>
+      )}
+    </div>
   );
 }

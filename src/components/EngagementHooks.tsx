@@ -1,3 +1,4 @@
+import { forwardRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertCircle, Target, Trophy, Sparkles, Flame, Zap } from 'lucide-react';
 
@@ -12,7 +13,7 @@ interface HookProps {
   onClose: () => void;
 }
 
-export function EngagementHook({ type, title, description, cta, onClick, onClose }: HookProps) {
+export const EngagementHook = forwardRef<HTMLDivElement, HookProps>(function EngagementHook({ type, title, description, cta, onClick, onClose }: HookProps, ref) {
   const configs = {
     streak: { icon: <Flame className="text-orange-400" />, border: 'border-orange-500/30', bg: 'bg-orange-500/5', accent: 'text-orange-400' },
     goal: { icon: <Target className="text-blue-400" />, border: 'border-blue-500/30', bg: 'bg-blue-500/5', accent: 'text-blue-400' },
@@ -26,6 +27,7 @@ export function EngagementHook({ type, title, description, cta, onClick, onClose
 
   return (
     <motion.div
+      ref={ref}
       layout
       initial={{ x: 300, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
@@ -66,7 +68,7 @@ export function EngagementHook({ type, title, description, cta, onClick, onClose
       </div>
     </motion.div>
   );
-}
+});
 
 export function HookStack({ hooks }: { hooks: HookProps[] }) {
   return (

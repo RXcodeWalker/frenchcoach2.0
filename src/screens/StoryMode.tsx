@@ -13,7 +13,7 @@ import { ScenarioPrepScreen } from '../components/ui/ScenarioPrepScreen';
 import { VisualNovelView } from '../components/ui/VisualNovelView';
 import type { Expression } from '../components/ui/CharacterAvatar';
 import type { Objective } from '../components/ui/MissionObjectivesList';
-import type { Feedback, Question } from '../types';
+import type { FeedbackV2, Question } from '../types';
 
 interface Roleplay {
   id: string;
@@ -40,8 +40,8 @@ export function StoryMode() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
-  const [showFeedback, setShowFeedback] = useState(false);
-  const [lastFeedback, setLastFeedback] = useState<Feedback | null>(null);
+  const [showFeedback, setShowFeedbackV2] = useState(false);
+  const [lastFeedback, setLastFeedbackV2] = useState<FeedbackV2 | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [objectives, setObjectives] = useState<Objective[]>([]);
   const [expression, setExpression] = useState<Expression>('neutral');
@@ -66,8 +66,8 @@ export function StoryMode() {
     setIsPrepping(false);
     setCurrentStep(0);
     setMessages([]);
-    setShowFeedback(false);
-    setLastFeedback(null);
+    setShowFeedbackV2(false);
+    setLastFeedbackV2(null);
     setOverallScore(0);
     setIsFinished(false);
     setExpression('happy');
@@ -114,7 +114,7 @@ export function StoryMode() {
     const currentQId = selectedStory.question_ids[currentStep];
     const question = allQuestions.find(q => q.id === currentQId) as unknown as Question;
     
-    let fb: Feedback;
+    let fb: FeedbackV2;
     try {
       fb = await getAIFeedback(transcript, question);
     } catch {
@@ -123,8 +123,8 @@ export function StoryMode() {
     
     setIsProcessing(false);
     addMessage(transcript, 'user');
-    setLastFeedback(fb);
-    setShowFeedback(true);
+    setLastFeedbackV2(fb);
+    setShowFeedbackV2(true);
     setOverallScore(prev => prev + fb.scores.overall);
 
     // Update expression based on feedback
@@ -145,7 +145,7 @@ export function StoryMode() {
 
     if (isOffScript && currentStep < selectedStory.question_ids.length) {
       setIsTyping(true);
-      setShowFeedback(false);
+      setShowFeedbackV2(false);
       try {
         const history = messages.map(m => ({
           speaker: m.sender === 'ai' ? 'examiner' : 'student' as const,
@@ -177,8 +177,8 @@ export function StoryMode() {
       obj.id === currentQId ? { ...obj, isCompleted: true } : obj
     ));
 
-    setShowFeedback(false);
-    setLastFeedback(null);
+    setShowFeedbackV2(false);
+    setLastFeedbackV2(null);
     setExpression('neutral');
     const nextStep = currentStep + 1;
     

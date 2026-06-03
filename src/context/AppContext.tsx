@@ -1,9 +1,11 @@
-import { createContext, useContext, useReducer, useEffect, type ReactNode } from 'react';
-import type { UserProfile, Achievement, Session, XPAnimation, GemAnimation, SkillProfile } from '../types';
+import { createContext, useContext, useReducer, useEffect, useRef, type ReactNode } from 'react';
+import type { UserProfile, Achievement, Session, XPAnimation, GemAnimation, SkillProfile, ActiveSession, TopicMasteryEntry, AIEngine, DifficultyTier } from '../types';
+import { DEFAULT_DIFFICULTY } from '../utils/difficultyConfig';
 import { ACHIEVEMENTS } from '../data/gameData';
-import { getStats, recordSession as persistSession } from '../services/analytics/analyticsService';
-import { getProgressionState, awardXP, checkAchievements, awardGemsForXP } from '../services/progression/progressionService';
-import { getSkillProfile, runAfterSession } from '../services/coaching/diagnosticEngine';
+import { getStats } from '../services/analytics/analyticsService';
+import { getProgressionState, awardGemsForXP } from '../services/progression/progressionService';
+import { getSkillProfile } from '../services/coaching/diagnosticEngine';
+import { STORAGE_KEYS, storageGet, storageSet, storageSetRaw } from '../services/persistence/storage';
 
 interface AppState {
   profile: UserProfile;
@@ -21,6 +23,11 @@ interface AppState {
   masteredDrills: string[];
   lastUnlockedAchievement: Achievement | null;
   newLevelReached: string | null;
+  activeSession: ActiveSession | null;
+  topicMastery: Record<string, TopicMasteryEntry>;
+  justMasteredTopic: string | null;
+  preferredEngine: AIEngine;
+  selectedDifficulty: DifficultyTier;
 }
 
 type Action =
@@ -28,7 +35,7 @@ type Action =
   | { type: 'ADD_GEMS'; amount: number; x?: number; y?: number }
   | { type: 'DISMISS_XP_MODAL' }
   | { type: 'DISMISS_CELEBRATIONS' }
-  | { type: 'ADD_SESSION'; session: Session }
+  | { type: 'ADD_SESSION'; session: Session; xpResult: { gain: number; totalXP: number; gemsGain: number; totalGems: number; activeBoosters: { id: string; expiresAt: string; multiplier: number }[] }; newUnlockedAchievementIds: string[]; newLevelName: string; xpAnimX?: number; xpAnimY?: number }
   | { type: 'UNLOCK_ACHIEVEMENT'; achievementId: string }
   | { type: 'PURCHASE_ITEM'; cost: number; itemId: string }
   | { type: 'USE_ITEM'; itemId: string }
@@ -40,7 +47,14 @@ type Action =
   | { type: 'REMOVE_GEM_ANIMATION'; id: string }
   | { type: 'UPDATE_SKILL_PROFILE'; skillProfile: SkillProfile }
   | { type: 'SET_FOCUSED_SKILL'; skillId: string | null }
-  | { type: 'MARK_DRILL_MASTERED'; drillId: string };
+  | { type: 'MARK_DRILL_MASTERED'; drillId: string }
+  | { type: 'START_SESSION'; session: ActiveSession }
+  | { type: 'UPDATE_ACTIVE_SESSION'; session: ActiveSession }
+  | { type: 'END_SESSION' }
+  | { type: 'UPDATE_TOPIC_MASTERY'; entry: TopicMasteryEntry; justMastered: boolean }
+  | { type: 'CLEAR_JUST_MASTERED' }
+  | { type: 'SET_AI_ENGINE'; engine: AIEngine }
+  | { type: 'SET_DIFFICULTY'; tier: DifficultyTier };
 
 function buildInitialState(): AppState {
   const analytics = getStats();
@@ -48,8 +62,7 @@ function buildInitialState(): AppState {
   const skillProfile = getSkillProfile();
   const unlockedIds = new Set(progression.achievements);
 
-  const savedMastered = localStorage.getItem('frenchCoach_masteredDrills');
-  const masteredDrills = savedMastered ? JSON.parse(savedMastered) : [];
+  const masteredDrills = storageGet<string[]>(STORAGE_KEYS.masteredDrills, []);
 
   const profile: UserProfile = {
     id: 'local-user',
@@ -84,8 +97,13 @@ function buildInitialState(): AppState {
     unlocked: unlockedIds.has(a.id),
   }));
 
-  const savedDark = localStorage.getItem('frenchCoach_darkMode');
+  const savedDark = localStorage.getItem(STORAGE_KEYS.darkMode);
   const darkMode = savedDark === null ? true : savedDark === 'true';
+
+  const preferredEngine: AIEngine = (localStorage.getItem(STORAGE_KEYS.aiEngine) as AIEngine | null) ?? 'groq';
+  const selectedDifficulty: DifficultyTier = (localStorage.getItem(STORAGE_KEYS.difficulty) as DifficultyTier | null) ?? DEFAULT_DIFFICULTY;
+
+  const topicMastery = storageGet<Record<string, TopicMasteryEntry>>(STORAGE_KEYS.topicMastery, {});
 
   return {
     profile,
@@ -103,6 +121,11 @@ function buildInitialState(): AppState {
     masteredDrills,
     lastUnlockedAchievement: null,
     newLevelReached: null,
+    activeSession: null,
+    topicMastery,
+    justMasteredTopic: null,
+    preferredEngine,
+    selectedDifficulty,
   };
 }
 
@@ -111,13 +134,13 @@ function reducer(state: AppState, action: Action): AppState {
     case 'MARK_DRILL_MASTERED': {
       if (state.masteredDrills.includes(action.drillId)) return state;
       const next = [...state.masteredDrills, action.drillId];
-      localStorage.setItem('frenchCoach_masteredDrills', JSON.stringify(next));
+      storageSet(STORAGE_KEYS.masteredDrills, next);
       return { ...state, masteredDrills: next };
     }
     case 'ADD_XP': {
       const { totalXP, totalGems, activeBoosters } = awardGemsForXP(action.amount);
       const { level } = getProgressionState();
-      const animId = Date.now().toString();
+      const animId = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
       const gemAmount = Math.floor(action.amount / 10);
 
       const newLevelReached = (level.name !== state.profile.current_level) ? level.name : state.newLevelReached;
@@ -142,48 +165,44 @@ function reducer(state: AppState, action: Action): AppState {
     case 'DISMISS_CELEBRATIONS':
       return { ...state, lastUnlockedAchievement: null, newLevelReached: null };
     case 'ADD_SESSION': {
+      const { session, xpResult, newUnlockedAchievementIds, newLevelName, xpAnimX = 60, xpAnimY = 30 } = action;
+      const animId = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
+
       const newProfile = {
         ...state.profile,
         sessions_count: state.profile.sessions_count + 1,
-        total_words_spoken: state.profile.total_words_spoken + action.session.wordCount,
+        total_words_spoken: state.profile.total_words_spoken + session.wordCount,
         last_session_date: new Date().toISOString().split('T')[0],
+        total_xp: xpResult.totalXP,
+        gems: xpResult.totalGems,
+        activeBoosters: xpResult.activeBoosters,
+        current_level: newLevelName as UserProfile['current_level'],
       };
 
-      persistSession(action.session);
-      const xpResult = awardXP(action.session.score, state.profile.streak_days);
-      const { level: newLevel } = getProgressionState();
-      const newlyUnlockedIds = checkAchievements({
-        score: action.session.score,
-        mode: action.session.mode,
-        totalSessions: newProfile.sessions_count,
-        topicsUsed: action.session.topicKey ? [action.session.topicKey] : undefined,
-      });
-
-      const newlyUnlockedAchievements = state.achievements.filter(a => newlyUnlockedIds.includes(a.id) && !a.unlocked);
-
-      const newAchievements = newlyUnlockedIds.length
-        ? state.achievements.map(a => newlyUnlockedIds.includes(a.id) ? { ...a, unlocked: true, unlockedAt: new Date().toISOString() } : a)
+      const newlyUnlockedAchievements = state.achievements.filter(a => newUnlockedAchievementIds.includes(a.id) && !a.unlocked);
+      const newAchievements = newUnlockedAchievementIds.length
+        ? state.achievements.map(a => newUnlockedAchievementIds.includes(a.id) ? { ...a, unlocked: true, unlockedAt: new Date().toISOString() } : a)
         : state.achievements;
 
-      if (action.session.feedback) {
-        runAfterSession(action.session.feedback);
-      }
-
-      const animId = Date.now().toString();
       const newGemAnimations = xpResult.gemsGain > 0
         ? [...state.gemAnimations, { id: 'g' + animId, amount: xpResult.gemsGain, x: 55, y: 50 }]
         : state.gemAnimations;
 
       return {
         ...state,
-        profile: { ...newProfile, total_xp: xpResult.totalXP, gems: xpResult.totalGems, activeBoosters: xpResult.activeBoosters, current_level: newLevel.name as UserProfile['current_level'] },
-        recentSessions: [action.session, ...state.recentSessions].slice(0, 20),
+        profile: newProfile,
+        recentSessions: state.recentSessions.some(s => s.id === session.id)
+          ? state.recentSessions
+          : [session, ...state.recentSessions].slice(0, 20),
         achievements: newAchievements,
+        xpAnimations: [...state.xpAnimations, { id: animId, amount: xpResult.gain, x: xpAnimX, y: xpAnimY }],
         gemAnimations: newGemAnimations,
+        showXPModal: true,
+        lastXPGained: xpResult.gain,
         lastGemsGained: xpResult.gemsGain,
         focusedSkillId: null,
         lastUnlockedAchievement: newlyUnlockedAchievements[0] || null,
-        newLevelReached: (newLevel.name !== state.profile.current_level) ? newLevel.name : null,
+        newLevelReached: (newLevelName !== state.profile.current_level) ? newLevelName : null,
       };
     }
 
@@ -232,13 +251,45 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, soundEnabled: !state.soundEnabled };
     case 'TOGGLE_DARK_MODE': {
       const next = !state.darkMode;
-      localStorage.setItem('frenchCoach_darkMode', String(next));
+      storageSetRaw(STORAGE_KEYS.darkMode, String(next));
       return { ...state, darkMode: next };
     }
     case 'UPDATE_SKILL_PROFILE':
       return { ...state, skillProfile: action.skillProfile };
     case 'SET_FOCUSED_SKILL':
       return { ...state, focusedSkillId: action.skillId };
+
+    case 'START_SESSION':
+      return { ...state, activeSession: action.session };
+
+    case 'UPDATE_ACTIVE_SESSION':
+      return { ...state, activeSession: action.session };
+
+    case 'END_SESSION':
+      return { ...state, activeSession: null };
+
+    case 'UPDATE_TOPIC_MASTERY': {
+      const updated = { ...state.topicMastery, [action.entry.topicKey]: action.entry };
+      return {
+        ...state,
+        topicMastery: updated,
+        justMasteredTopic: action.justMastered ? action.entry.topicKey : state.justMasteredTopic,
+      };
+    }
+
+    case 'CLEAR_JUST_MASTERED':
+      return { ...state, justMasteredTopic: null };
+
+    case 'SET_AI_ENGINE': {
+      storageSetRaw(STORAGE_KEYS.aiEngine, action.engine);
+      return { ...state, preferredEngine: action.engine };
+    }
+
+    case 'SET_DIFFICULTY': {
+      storageSetRaw(STORAGE_KEYS.difficulty, action.tier);
+      return { ...state, selectedDifficulty: action.tier };
+    }
+
     default:
       return state;
   }
@@ -248,11 +299,33 @@ const AppContext = createContext<{ state: AppState; dispatch: React.Dispatch<Act
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, undefined, buildInitialState);
+  const xpDismissTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Auto-dismiss XP modal after 3 seconds (fix for known never-dismissing bug)
+  useEffect(() => {
+    if (state.showXPModal) {
+      if (xpDismissTimer.current) clearTimeout(xpDismissTimer.current);
+      xpDismissTimer.current = setTimeout(() => {
+        dispatch({ type: 'DISMISS_XP_MODAL' });
+      }, 3000);
+    }
+    return () => {
+      if (xpDismissTimer.current) clearTimeout(xpDismissTimer.current);
+    };
+  }, [state.showXPModal]);
 
   // Sync state when localStorage changes in other tabs or through direct service calls
   useEffect(() => {
     const handleStorage = (e: StorageEvent) => {
-      if (e.key === 'frenchCoach_progression' || e.key === 'frenchCoach_v2') {
+      if (e.key === STORAGE_KEYS.aiEngine && e.newValue) {
+        dispatch({ type: 'SET_AI_ENGINE', engine: e.newValue as AIEngine });
+        return;
+      }
+      if (e.key === STORAGE_KEYS.difficulty && e.newValue) {
+        dispatch({ type: 'SET_DIFFICULTY', tier: e.newValue as DifficultyTier });
+        return;
+      }
+      if (e.key === STORAGE_KEYS.progression || e.key === STORAGE_KEYS.analytics) {
         const progression = getProgressionState();
         const analytics = getStats();
         const updatedProfile = {

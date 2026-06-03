@@ -1,0 +1,299 @@
+"filename", "language", "Markdown", "JSON with Comments", "JSON", "TypeScript", "JavaScript", "HTML", "MS SQL", "Python", "Batch", "pip requirements", "TypeScript JSX", "PostCSS", "comment", "blank", "total"
+"c:\Users\om\OneDrive\Desktop\French 2.0\.claude\settings.json", "JSON with Comments", 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 11
+"c:\Users\om\OneDrive\Desktop\French 2.0\CLAUDE.md", "Markdown", 58, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 27, 85
+"c:\Users\om\OneDrive\Desktop\French 2.0\COMPONENT_REFERENCE.md", "Markdown", 520, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 119, 639
+"c:\Users\om\OneDrive\Desktop\French 2.0\IMPLEMENTATION_CHECKLIST.md", "Markdown", 398, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 92, 490
+"c:\Users\om\OneDrive\Desktop\French 2.0\QUICK_START.md", "Markdown", 320, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 101, 421
+"c:\Users\om\OneDrive\Desktop\French 2.0\README_REDESIGN.md", "Markdown", 315, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 97, 412
+"c:\Users\om\OneDrive\Desktop\French 2.0\REDESIGN_SUMMARY.md", "Markdown", 345, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 99, 444
+"c:\Users\om\OneDrive\Desktop\French 2.0\UI_UX_IMPLEMENTATION_GUIDE.md", "Markdown", 463, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 123, 586
+"c:\Users\om\OneDrive\Desktop\French 2.0\backend\README.md", "Markdown", 29, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 42
+"c:\Users\om\OneDrive\Desktop\French 2.0\backend\data\igcse_master.json", "JSON", 0, 0, 240, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 241
+"c:\Users\om\OneDrive\Desktop\French 2.0\backend\data\papers.json", "JSON", 0, 0, 215, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 216
+"c:\Users\om\OneDrive\Desktop\French 2.0\backend\data\questions.json", "JSON", 0, 0, 203, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 204
+"c:\Users\om\OneDrive\Desktop\French 2.0\backend\data\roleplays.json", "JSON", 0, 0, 308, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 309
+"c:\Users\om\OneDrive\Desktop\French 2.0\backend\data\topic_conversations.json", "JSON", 0, 0, 527, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 528
+"c:\Users\om\OneDrive\Desktop\French 2.0\backend\db\db_logic.py", "Python", 0, 0, 0, 0, 0, 0, 0, 119, 0, 0, 0, 0, 32, 28, 179
+"c:\Users\om\OneDrive\Desktop\French 2.0\backend\db\load_data.py", "Python", 0, 0, 0, 0, 0, 0, 0, 155, 0, 0, 0, 0, 4, 25, 184
+"c:\Users\om\OneDrive\Desktop\French 2.0\backend\db\main.py", "Python", 0, 0, 0, 0, 0, 0, 0, 57, 0, 0, 0, 0, 13, 23, 93
+"c:\Users\om\OneDrive\Desktop\French 2.0\backend\db\schema.sql", "MS SQL", 0, 0, 0, 0, 0, 0, 39, 0, 0, 0, 0, 0, 0, 6, 45
+"c:\Users\om\OneDrive\Desktop\French 2.0\backend\evaluator_service.py", "Python", 0, 0, 0, 0, 0, 0, 0, 231, 0, 0, 0, 0, 10, 25, 266
+"c:\Users\om\OneDrive\Desktop\French 2.0\backend\exam_controller.py", "Python", 0, 0, 0, 0, 0, 0, 0, 596, 0, 0, 0, 0, 74, 89, 759
+"c:\Users\om\OneDrive\Desktop\French 2.0\backend\exam_sessions.py", "Python", 0, 0, 0, 0, 0, 0, 0, 51, 0, 0, 0, 0, 4, 13, 68
+"c:\Users\om\OneDrive\Desktop\French 2.0\backend\main.py", "Python", 0, 0, 0, 0, 0, 0, 0, 2611, 0, 0, 0, 0, 132, 284, 3027
+"c:\Users\om\OneDrive\Desktop\French 2.0\backend\massive_expansion.json", "JSON", 0, 0, 2422, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2422
+"c:\Users\om\OneDrive\Desktop\French 2.0\backend\migrate_to_sqlite.py", "Python", 0, 0, 0, 0, 0, 0, 0, 76, 0, 0, 0, 0, 5, 14, 95
+"c:\Users\om\OneDrive\Desktop\French 2.0\backend\requirements.txt", "pip requirements", 0, 0, 0, 0, 0, 0, 0, 0, 0, 11, 0, 0, 0, 1, 12
+"c:\Users\om\OneDrive\Desktop\French 2.0\backend\roleplay_cards.json", "JSON", 0, 0, 194, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 195
+"c:\Users\om\OneDrive\Desktop\French 2.0\backend\scenario_generator.py", "Python", 0, 0, 0, 0, 0, 0, 0, 98, 0, 0, 0, 0, 5, 11, 114
+"c:\Users\om\OneDrive\Desktop\French 2.0\backend\seed_massive_expansion.py", "Python", 0, 0, 0, 0, 0, 0, 0, 34, 0, 0, 0, 0, 5, 10, 49
+"c:\Users\om\OneDrive\Desktop\French 2.0\backend\seed_more_topic_questions.py", "Python", 0, 0, 0, 0, 0, 0, 0, 209, 0, 0, 0, 0, 10, 14, 233
+"c:\Users\om\OneDrive\Desktop\French 2.0\backend\seed_questions.py", "Python", 0, 0, 0, 0, 0, 0, 0, 640, 0, 0, 0, 0, 32, 25, 697
+"c:\Users\om\OneDrive\Desktop\French 2.0\backend\seed_speaking_vault.py", "Python", 0, 0, 0, 0, 0, 0, 0, 257, 0, 0, 0, 0, 10, 13, 280
+"c:\Users\om\OneDrive\Desktop\French 2.0\backend\start.bat", "Batch", 0, 0, 0, 0, 0, 0, 0, 0, 15, 0, 0, 0, 1, 1, 17
+"c:\Users\om\OneDrive\Desktop\French 2.0\backend\state_manager.py", "Python", 0, 0, 0, 0, 0, 0, 0, 36, 0, 0, 0, 0, 8, 12, 56
+"c:\Users\om\OneDrive\Desktop\French 2.0\backend\test_gen.py", "Python", 0, 0, 0, 0, 0, 0, 0, 14, 0, 0, 0, 0, 0, 3, 17
+"c:\Users\om\OneDrive\Desktop\French 2.0\docs\COMPONENT_REFERENCE.md", "Markdown", 520, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 119, 639
+"c:\Users\om\OneDrive\Desktop\French 2.0\docs\IMPLEMENTATION_CHECKLIST.md", "Markdown", 398, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 92, 490
+"c:\Users\om\OneDrive\Desktop\French 2.0\docs\QUICK_START.md", "Markdown", 320, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 101, 421
+"c:\Users\om\OneDrive\Desktop\French 2.0\docs\README_REDESIGN.md", "Markdown", 315, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 97, 412
+"c:\Users\om\OneDrive\Desktop\French 2.0\docs\REDESIGN_SUMMARY.md", "Markdown", 345, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 99, 444
+"c:\Users\om\OneDrive\Desktop\French 2.0\docs\SPEED_SPEAKING_UPGRADE.md", "Markdown", 39, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11, 50
+"c:\Users\om\OneDrive\Desktop\French 2.0\docs\UI_UX_IMPLEMENTATION_GUIDE.md", "Markdown", 463, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 123, 586
+"c:\Users\om\OneDrive\Desktop\French 2.0\eslint.config.js", "JavaScript", 0, 0, 0, 0, 27, 0, 0, 0, 0, 0, 0, 0, 0, 2, 29
+"c:\Users\om\OneDrive\Desktop\French 2.0\french2.0\project\COMPONENT_REFERENCE.md", "Markdown", 520, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 119, 639
+"c:\Users\om\OneDrive\Desktop\French 2.0\french2.0\project\IMPLEMENTATION_CHECKLIST.md", "Markdown", 398, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 92, 490
+"c:\Users\om\OneDrive\Desktop\French 2.0\french2.0\project\QUICK_START.md", "Markdown", 320, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 101, 421
+"c:\Users\om\OneDrive\Desktop\French 2.0\french2.0\project\README_REDESIGN.md", "Markdown", 315, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 97, 412
+"c:\Users\om\OneDrive\Desktop\French 2.0\french2.0\project\REDESIGN_SUMMARY.md", "Markdown", 345, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 99, 444
+"c:\Users\om\OneDrive\Desktop\French 2.0\french2.0\project\UI_UX_IMPLEMENTATION_GUIDE.md", "Markdown", 463, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 123, 586
+"c:\Users\om\OneDrive\Desktop\French 2.0\french2.0\project\eslint.config.js", "JavaScript", 0, 0, 0, 0, 27, 0, 0, 0, 0, 0, 0, 0, 0, 2, 29
+"c:\Users\om\OneDrive\Desktop\French 2.0\french2.0\project\index.html", "HTML", 0, 0, 0, 0, 0, 19, 0, 0, 0, 0, 0, 0, 0, 1, 20
+"c:\Users\om\OneDrive\Desktop\French 2.0\french2.0\project\package-lock.json", "JSON", 0, 0, 4175, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 4176
+"c:\Users\om\OneDrive\Desktop\French 2.0\french2.0\project\package.json", "JSON", 0, 0, 35, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 36
+"c:\Users\om\OneDrive\Desktop\French 2.0\french2.0\project\postcss.config.js", "JavaScript", 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 1, 7
+"c:\Users\om\OneDrive\Desktop\French 2.0\french2.0\project\src\App.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 5, 8, 63
+"c:\Users\om\OneDrive\Desktop\French 2.0\french2.0\project\src\components\Navigation.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 79, 0, 2, 7, 88
+"c:\Users\om\OneDrive\Desktop\French 2.0\french2.0\project\src\components\ProgressRing.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 64, 0, 0, 3, 67
+"c:\Users\om\OneDrive\Desktop\French 2.0\french2.0\project\src\components\XPAnimation.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 26, 0, 0, 5, 31
+"c:\Users\om\OneDrive\Desktop\French 2.0\french2.0\project\src\context\AppContext.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 102, 0, 0, 10, 112
+"c:\Users\om\OneDrive\Desktop\French 2.0\french2.0\project\src\data\gameData.ts", "TypeScript", 0, 0, 0, 162, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 170
+"c:\Users\om\OneDrive\Desktop\French 2.0\french2.0\project\src\index.css", "PostCSS", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 135, 4, 31, 170
+"c:\Users\om\OneDrive\Desktop\French 2.0\french2.0\project\src\lib\supabase.ts", "TypeScript", 0, 0, 0, 64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 68
+"c:\Users\om\OneDrive\Desktop\French 2.0\french2.0\project\src\main.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 2, 11
+"c:\Users\om\OneDrive\Desktop\French 2.0\french2.0\project\src\screens\ExamMode.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 196, 0, 0, 15, 211
+"c:\Users\om\OneDrive\Desktop\French 2.0\french2.0\project\src\screens\Explore.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 155, 0, 10, 14, 179
+"c:\Users\om\OneDrive\Desktop\French 2.0\french2.0\project\src\screens\Home.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 280, 0, 11, 17, 308
+"c:\Users\om\OneDrive\Desktop\French 2.0\french2.0\project\src\screens\Learn.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 325, 0, 10, 29, 364
+"c:\Users\om\OneDrive\Desktop\French 2.0\french2.0\project\src\screens\Profile.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 145, 0, 7, 11, 163
+"c:\Users\om\OneDrive\Desktop\French 2.0\french2.0\project\src\screens\Progress.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 207, 0, 5, 14, 226
+"c:\Users\om\OneDrive\Desktop\French 2.0\french2.0\project\src\types\index.ts", "TypeScript", 0, 0, 0, 99, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 112
+"c:\Users\om\OneDrive\Desktop\French 2.0\french2.0\project\src\vite-env.d.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2
+"c:\Users\om\OneDrive\Desktop\French 2.0\french2.0\project\supabase\migrations\20260503093957_french_coach_schema.sql", "MS SQL", 0, 0, 0, 0, 0, 0, 115, 0, 0, 0, 0, 0, 20, 24, 159
+"c:\Users\om\OneDrive\Desktop\French 2.0\french2.0\project\tailwind.config.js", "JavaScript", 0, 0, 0, 0, 47, 0, 0, 0, 0, 0, 0, 0, 1, 1, 49
+"c:\Users\om\OneDrive\Desktop\French 2.0\french2.0\project\tsconfig.app.json", "JSON", 0, 0, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 3, 25
+"c:\Users\om\OneDrive\Desktop\French 2.0\french2.0\project\tsconfig.json", "JSON with Comments", 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 8
+"c:\Users\om\OneDrive\Desktop\French 2.0\french2.0\project\tsconfig.node.json", "JSON", 0, 0, 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 3, 23
+"c:\Users\om\OneDrive\Desktop\French 2.0\french2.0\project\vite.config.ts", "TypeScript", 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 11
+"c:\Users\om\OneDrive\Desktop\French 2.0\index.html", "HTML", 0, 0, 0, 0, 0, 25, 0, 0, 0, 0, 0, 0, 0, 1, 26
+"c:\Users\om\OneDrive\Desktop\French 2.0\package-lock.json", "JSON", 0, 0, 4301, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 4302
+"c:\Users\om\OneDrive\Desktop\French 2.0\package.json", "JSON", 0, 0, 39, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 40
+"c:\Users\om\OneDrive\Desktop\French 2.0\plan.md", "Markdown", 254, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 24, 278
+"c:\Users\om\OneDrive\Desktop\French 2.0\postcss.config.js", "JavaScript", 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 1, 7
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\App.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 198, 0, 0, 11, 209
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\components\CelebrationModals.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 162, 0, 0, 18, 180
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\components\EngagementHooks.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 82, 0, 0, 12, 94
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\components\GemAnimation.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 28, 0, 0, 5, 33
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\components\Navigation.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 136, 0, 8, 8, 152
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\components\ProgressRing.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 73, 0, 2, 4, 79
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\components\SessionCompletion.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 154, 0, 1, 10, 165
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\components\Sparkline.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 30, 0, 1, 5, 36
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\components\TopContextBar.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 111, 0, 3, 13, 127
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\components\WeeklyChart.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 53, 0, 0, 3, 56
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\components\XPAnimation.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 26, 0, 0, 5, 31
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\components\layout\PageShell.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 25, 0, 0, 4, 29
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\components\motion\variants.ts", "TypeScript", 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 10
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\components\ui\Card.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 18, 0, 0, 4, 22
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\components\ui\CharacterAvatar.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 51, 0, 3, 10, 64
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\components\ui\CollapsibleCard.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 60, 0, 2, 5, 67
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\components\ui\FlashcardDeck.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 95, 0, 2, 11, 108
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\components\ui\MicroDrillModal.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 237, 0, 7, 22, 266
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\components\ui\MissionObjectivesList.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 1, 6, 57
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\components\ui\MistakeLogViewer.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 63, 0, 0, 6, 69
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\components\ui\ScenarioBackground.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 51, 0, 5, 8, 64
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\components\ui\ScenarioPrepScreen.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 160, 0, 3, 9, 172
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\components\ui\SettingToggle.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 25, 0, 0, 2, 27
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\components\ui\SeverityBadge.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 19, 0, 0, 4, 23
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\components\ui\SpeechBubble.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 37, 0, 2, 6, 45
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\components\ui\StatTile.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16, 0, 0, 3, 19
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\components\ui\VisualNovelView.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 147, 0, 5, 12, 164
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\components\ui\VocabListView.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 38, 0, 0, 5, 43
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\context\AppContext.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 321, 0, 3, 39, 363
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\emojiQuestions.ts", "TypeScript", 0, 0, 0, 326, 0, 0, 0, 0, 0, 0, 0, 0, 1, 4, 331
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\exploreTree.ts", "TypeScript", 0, 0, 0, 41, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 43
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\features.ts", "TypeScript", 0, 0, 0, 52, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 57
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\gameData.ts", "TypeScript", 0, 0, 0, 28, 0, 0, 0, 0, 0, 0, 0, 0, 1, 4, 33
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\listeningQuestions.ts", "TypeScript", 0, 0, 0, 93, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 101
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\minigame.json", "JSON", 0, 0, 26, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 27
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\mocks\mockDaily.ts", "TypeScript", 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 10
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\mocks\mockFeedback.ts", "TypeScript", 0, 0, 0, 17, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 18
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\mocks\mockFriends.ts", "TypeScript", 0, 0, 0, 147, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 151
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\mocks\mockGroups.ts", "TypeScript", 0, 0, 0, 93, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 97
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\mocks\mockNews.ts", "TypeScript", 0, 0, 0, 53, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 55
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\mocks\mockRankings.ts", "TypeScript", 0, 0, 0, 111, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 114
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\pronunciationDrills.ts", "TypeScript", 0, 0, 0, 170, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 172
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\questions.ts", "TypeScript", 0, 0, 0, 9116, 0, 0, 0, 0, 0, 0, 0, 0, 78, 81, 9275
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\raw\igcse_master.json", "JSON", 0, 0, 240, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 241
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\raw\massive_expansion.json", "JSON", 0, 0, 2422, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2422
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\raw\papers.json", "JSON", 0, 0, 215, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 216
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\raw\questions.json", "JSON", 0, 0, 203, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 204
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\raw\roleplays.json", "JSON", 0, 0, 308, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 309
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\raw\topic_conversations.json", "JSON", 0, 0, 527, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 528
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\rebuildQuestions.ts", "TypeScript", 0, 0, 0, 183, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 186
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\roleplayCards.ts", "TypeScript", 0, 0, 0, 194, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 196
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\scenarios\airport.json", "JSON", 0, 0, 182, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 23, 205
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\scenarios\bakery.json", "JSON", 0, 0, 214, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 27, 241
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\scenarios\bank.json", "JSON", 0, 0, 143, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 18, 161
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\scenarios\bookstore.json", "JSON", 0, 0, 96, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 14, 110
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\scenarios\cafe.json", "JSON", 0, 0, 189, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 24, 213
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\scenarios\camping.json", "JSON", 0, 0, 197, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 25, 222
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\scenarios\car_rental.json", "JSON", 0, 0, 389, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 396
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\scenarios\cinema.json", "JSON", 0, 0, 150, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 19, 169
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\scenarios\dentist.json", "JSON", 0, 0, 92, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 107
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\scenarios\doctor.json", "JSON", 0, 0, 111, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 14, 125
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\scenarios\flight.json", "JSON", 0, 0, 149, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 19, 168
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\scenarios\flower_shop.json", "JSON", 0, 0, 100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 115
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\scenarios\gare.json", "JSON", 0, 0, 149, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 19, 168
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\scenarios\gas_station.json", "JSON", 0, 0, 93, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 14, 107
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\scenarios\gym.json", "JSON", 0, 0, 90, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 102
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\scenarios\hairdresser.json", "JSON", 0, 0, 372, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 379
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\scenarios\hotel.json", "JSON", 0, 0, 221, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 28, 249
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\scenarios\job_interview.json", "JSON", 0, 0, 344, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 345
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\scenarios\library.json", "JSON", 0, 0, 821, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 822
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\scenarios\market.json", "JSON", 0, 0, 220, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 28, 248
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\scenarios\minigameQuestions.json", "JSON", 0, 0, 39, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 44
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\scenarios\museum.json", "JSON", 0, 0, 408, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 409
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\scenarios\offlineScenarios.ts", "TypeScript", 0, 0, 0, 33, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 35
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\scenarios\pharmacy.json", "JSON", 0, 0, 239, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 29, 268
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\scenarios\police_station.json", "JSON", 0, 0, 304, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 305
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\scenarios\post_office.json", "JSON", 0, 0, 151, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 19, 170
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\scenarios\real_estate.json", "JSON", 0, 0, 343, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 344
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\scenarios\restaurant.json", "JSON", 0, 0, 252, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 32, 284
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\scenarios\ski_resort.json", "JSON", 0, 0, 325, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 326
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\scenarios\store.json", "JSON", 0, 0, 178, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 23, 201
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\scenarios\taxi.json", "JSON", 0, 0, 142, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 18, 160
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\scenarios\tourist_office.json", "JSON", 0, 0, 341, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 348
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\shopItems.ts", "TypeScript", 0, 0, 0, 155, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 157
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\data\speedSpeakingData.ts", "TypeScript", 0, 0, 0, 29, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 36
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\domain\levels.ts", "TypeScript", 0, 0, 0, 16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 19
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\domain\scoring.ts", "TypeScript", 0, 0, 0, 21, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 25
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\domain\time.ts", "TypeScript", 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 3
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\features\feedback\FeedbackExperience.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 137, 0, 18, 21, 176
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\features\feedback\components\AdvancedAnswerCard.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 23, 0, 0, 4, 27
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\features\feedback\components\AnnotatedTranscript.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 81, 0, 0, 13, 94
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\features\feedback\components\AvoidanceCard.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 44, 0, 0, 6, 50
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\features\feedback\components\BiggestOpportunityCard.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 18, 0, 0, 4, 22
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\features\feedback\components\CoachingPopover.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 52, 0, 0, 8, 60
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\features\feedback\components\CorrectionsCard.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 77, 0, 5, 10, 92
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\features\feedback\components\DeepAnalysisCard.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 94, 0, 4, 8, 106
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\features\feedback\components\DeepAnalysisToggle.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 22, 0, 0, 3, 25
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\features\feedback\components\ExaminerNotebookCard.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 52, 0, 0, 5, 57
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\features\feedback\components\ExpansionIdeasCard.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 28, 0, 0, 4, 32
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\features\feedback\components\FeedbackFooter.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45, 0, 0, 6, 51
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\features\feedback\components\ImprovedAnswerCard.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 48, 0, 7, 10, 65
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\features\feedback\components\IssueRow.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 60, 0, 3, 10, 73
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\features\feedback\components\MinimalResponseCard.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 156, 0, 5, 17, 178
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\features\feedback\components\PersonalizedContextBanner.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 21, 0, 0, 4, 25
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\features\feedback\components\PronunciationCard.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 67, 0, 2, 7, 76
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\features\feedback\components\SnapshotCard.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 77, 0, 0, 7, 84
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\features\feedback\components\StrongestMomentCard.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 38, 0, 5, 7, 50
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\features\feedback\components\StyleStructureCard.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 42, 0, 0, 4, 46
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\features\feedback\components\TeachMeLesson.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 127, 0, 1, 16, 144
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\features\feedback\components\TopPriorityCard.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 29, 0, 0, 4, 33
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\features\feedback\components\VocabularyCard.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 66, 0, 0, 6, 72
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\features\feedback\hooks\useFeedbackState.ts", "TypeScript", 0, 0, 0, 26, 0, 0, 0, 0, 0, 0, 0, 0, 1, 6, 33
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\features\feedback\hooks\useTranscriptIssues.ts", "TypeScript", 0, 0, 0, 29, 0, 0, 0, 0, 0, 0, 0, 0, 1, 8, 38
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\features\feedback\index.ts", "TypeScript", 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\features\feedback\state\feedbackContext.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 53, 0, 0, 7, 60
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\features\feedback\state\selectors.ts", "TypeScript", 0, 0, 0, 26, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 32
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\features\feedback\theme\severity.ts", "TypeScript", 0, 0, 0, 22, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 26
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\features\recording\Waveform.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 55, 0, 0, 4, 59
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\features\recording\useAudioBlobRecorder.ts", "TypeScript", 0, 0, 0, 83, 0, 0, 0, 0, 0, 0, 0, 0, 0, 22, 105
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\features\recording\useRecording.ts", "TypeScript", 0, 0, 0, 143, 0, 0, 0, 0, 0, 0, 0, 0, 7, 22, 172
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\hooks\useEngineHealth.ts", "TypeScript", 0, 0, 0, 51, 0, 0, 0, 0, 0, 0, 0, 0, 1, 8, 60
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\index.css", "PostCSS", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 223, 18, 44, 285
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\lib\supabase.ts", "TypeScript", 0, 0, 0, 64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 68
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\main.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 0, 0, 2, 14
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\About.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 201, 0, 7, 17, 225
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\AccentAnalyzer.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 426, 0, 2, 10, 438
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\BossBattle.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 901, 0, 17, 63, 981
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\Challenges.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 407, 0, 7, 27, 441
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\DailyNewsFlash.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 428, 0, 9, 51, 488
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\EmojiMaster.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 372, 0, 0, 41, 413
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\ExamMode.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 207, 0, 3, 25, 235
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\Explore.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 155, 0, 0, 7, 162
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\FluencyHeatmap.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 411, 0, 18, 44, 473
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\FrenchRoadmap.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 239, 0, 9, 22, 270
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\FriendChallenges.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1025, 0, 29, 78, 1132
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\Home.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 178, 0, 7, 14, 199
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\Learn.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 468, 0, 20, 84, 572
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\ListeningMode.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 261, 0, 3, 21, 285
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\MasteryJourney.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 182, 0, 3, 16, 201
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\MysteryBox.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 134, 0, 0, 13, 147
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\Profile.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 146, 0, 7, 10, 163
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\Progress.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 69, 0, 0, 7, 76
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\PronunciationLab.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 403, 0, 2, 28, 433
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\Rankings.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 254, 0, 13, 21, 288
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\RapidFire.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 614, 0, 14, 48, 676
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\ScenarioArchitect.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 224, 0, 1, 16, 241
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\ScenarioArchitectSession.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 246, 0, 7, 26, 279
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\SentenceRebuilder.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 401, 0, 7, 36, 444
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\Shop.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 408, 0, 14, 42, 464
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\SpeakingArena.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 719, 0, 3, 46, 768
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\SpeedSpeaking.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 519, 0, 0, 50, 569
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\StoryMode.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 276, 0, 7, 34, 317
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\StudyGroups.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 225, 0, 7, 16, 248
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\SurvivalMode.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 762, 0, 16, 70, 848
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\WeaknessAnalysis.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 302, 0, 11, 17, 330
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\WordDrop.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 371, 0, 12, 38, 421
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\exam\ExamIntro.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 84, 0, 0, 5, 89
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\exam\ExamResults.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 120, 0, 3, 15, 138
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\exam\ExamRunner.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 170, 0, 0, 12, 182
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\explore\ExploreSkillTree.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 137, 0, 7, 12, 156
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\home\DailyCards.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 47, 0, 0, 4, 51
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\home\HeroMission.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 94, 0, 3, 12, 109
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\home\QuickAccess.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 40, 0, 0, 4, 44
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\home\RecentActivity.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 38, 0, 0, 3, 41
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\learn\EngineIndicatorPill.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 84, 0, 1, 10, 95
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\learn\FailoverToast.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 58, 0, 0, 5, 63
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\learn\FeedbackPanel.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 119, 0, 0, 8, 127
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\learn\MidSessionToast.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45, 0, 0, 5, 50
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\learn\ModelSelectorCard.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 132, 0, 7, 16, 155
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\learn\OfflineLimitationsBanner.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 23, 0, 0, 3, 26
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\learn\QuestionCard.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 98, 0, 0, 13, 111
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\learn\ReEvaluateBar.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 109, 0, 4, 10, 123
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\learn\RecordingPanel.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 56, 0, 0, 6, 62
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\learn\SessionComplete.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 89, 0, 0, 6, 95
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\learn\SessionProgressBar.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 94, 0, 2, 11, 107
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\learn\SessionStartScreen.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 151, 0, 6, 10, 167
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\learn\SessionSummary.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 212, 0, 7, 20, 239
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\learn\StreakToast.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 40, 0, 0, 5, 45
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\learn\TopicGrid.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 134, 0, 1, 11, 146
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\progress\HistoryTab.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 42, 0, 0, 3, 45
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\progress\InsightsTab.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 168, 0, 3, 12, 183
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\progress\OverviewTab.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 88, 0, 0, 6, 94
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\progress\PerformanceTimeline.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 201, 0, 8, 15, 224
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\progress\SkillTreeTab.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 104, 0, 0, 5, 109
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\progress\SkillsTab.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 80, 0, 0, 10, 90
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\screens\progress\TimelineItem.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 220, 0, 3, 15, 238
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\services\analytics\analyticsService.ts", "TypeScript", 0, 0, 0, 169, 0, 0, 0, 0, 0, 0, 0, 0, 4, 29, 202
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\services\api\apiClient.ts", "TypeScript", 0, 0, 0, 406, 0, 0, 0, 0, 0, 0, 0, 0, 20, 44, 470
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\services\coaching\coachService.ts", "TypeScript", 0, 0, 0, 922, 0, 0, 0, 0, 0, 0, 0, 0, 41, 71, 1034
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\services\coaching\diagnosticEngine.ts", "TypeScript", 0, 0, 0, 360, 0, 0, 0, 0, 0, 0, 0, 0, 29, 56, 445
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\services\coaching\qualityGate.ts", "TypeScript", 0, 0, 0, 33, 0, 0, 0, 0, 0, 0, 0, 0, 4, 8, 45
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\services\coaching\responseTier.ts", "TypeScript", 0, 0, 0, 81, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 90
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\services\content\contentClient.ts", "TypeScript", 0, 0, 0, 84, 0, 0, 0, 0, 0, 0, 0, 0, 19, 24, 127
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\services\content\questionMetadata.ts", "TypeScript", 0, 0, 0, 72, 0, 0, 0, 0, 0, 0, 0, 0, 30, 20, 122
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\services\progression\progressionService.ts", "TypeScript", 0, 0, 0, 152, 0, 0, 0, 0, 0, 0, 0, 0, 3, 35, 190
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\services\progression\roadmapService.ts", "TypeScript", 0, 0, 0, 213, 0, 0, 0, 0, 0, 0, 0, 0, 3, 29, 245
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\services\roleplay\dialogueManager.ts", "TypeScript", 0, 0, 0, 137, 0, 0, 0, 0, 0, 0, 0, 0, 1, 22, 160
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\services\roleplay\intentMatcher.ts", "TypeScript", 0, 0, 0, 159, 0, 0, 0, 0, 0, 0, 0, 0, 2, 18, 179
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\services\supabase\achievements.ts", "TypeScript", 0, 0, 0, 17, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 20
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\services\supabase\client.ts", "TypeScript", 0, 0, 0, 64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 68
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\services\supabase\profiles.ts", "TypeScript", 0, 0, 0, 37, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 40
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\services\supabase\sessions.ts", "TypeScript", 0, 0, 0, 39, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 42
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\services\tts\ttsService.ts", "TypeScript", 0, 0, 0, 83, 0, 0, 0, 0, 0, 0, 0, 0, 3, 19, 105
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\types\index.ts", "TypeScript", 0, 0, 0, 520, 0, 0, 0, 0, 0, 0, 0, 0, 8, 72, 600
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\types\questions.ts", "TypeScript", 0, 0, 0, 57, 0, 0, 0, 0, 0, 0, 0, 0, 44, 15, 116
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\utils\sessionBuilder.ts", "TypeScript", 0, 0, 0, 252, 0, 0, 0, 0, 0, 0, 0, 0, 29, 47, 328
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\utils\transcriptHash.ts", "TypeScript", 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 14
+"c:\Users\om\OneDrive\Desktop\French 2.0\src\vite-env.d.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2
+"c:\Users\om\OneDrive\Desktop\French 2.0\supabase\migrations\20260503093957_french_coach_schema.sql", "MS SQL", 0, 0, 0, 0, 0, 0, 115, 0, 0, 0, 0, 0, 20, 24, 159
+"c:\Users\om\OneDrive\Desktop\French 2.0\tailwind.config.js", "JavaScript", 0, 0, 0, 0, 93, 0, 0, 0, 0, 0, 0, 0, 1, 1, 95
+"c:\Users\om\OneDrive\Desktop\French 2.0\tsconfig.app.json", "JSON", 0, 0, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 3, 25
+"c:\Users\om\OneDrive\Desktop\French 2.0\tsconfig.app.tsbuildinfo", "JSON", 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1
+"c:\Users\om\OneDrive\Desktop\French 2.0\tsconfig.json", "JSON with Comments", 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 8
+"c:\Users\om\OneDrive\Desktop\French 2.0\tsconfig.node.json", "JSON", 0, 0, 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 3, 23
+"c:\Users\om\OneDrive\Desktop\French 2.0\tsconfig.node.tsbuildinfo", "JSON", 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1
+"c:\Users\om\OneDrive\Desktop\French 2.0\vite.config.ts", "TypeScript", 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 11
+"Total", "-", 7463, 24, 23722, 15551, 206, 44, 269, 5184, 15, 11, 20639, 358, 1215, 5875, 80576

@@ -1,10 +1,10 @@
 import { motion } from 'framer-motion';
 import { ChevronRight, XCircle, CheckCircle, RotateCcw, Loader2 } from 'lucide-react';
 import { scoreColor } from '../../domain/scoring';
-import type { Feedback } from '../../types';
+import type { FeedbackV2 } from '../../types';
 
 interface Props {
-  feedback: Feedback | null;
+  feedback: FeedbackV2 | null;
   isLoading?: boolean;
   onRetry: () => void;
   onComplete: () => void;

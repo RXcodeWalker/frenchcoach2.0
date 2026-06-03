@@ -10,6 +10,16 @@ export const TOPICS: Topic[] = [
   { key: 'future',      label: "L'avenir",          labelEn: 'Future Plans',               icon: '🚀', color: '#0ea5e9', description: 'Tes projets pour le futur et ta carrière.',             questionsCount: 0 },
   { key: 'food',        label: 'La nourriture',     labelEn: 'Food & Health',              icon: '🥐', color: '#f97316', description: 'Ce que tu manges, ta santé et tes habitudes.',          questionsCount: 0 },
   { key: 'environment', label: "L'environnement",   labelEn: 'Environment & Technology',   icon: '🌍', color: '#14b8a6', description: "L'environnement, la technologie et la société.",        questionsCount: 0 },
+  
+  // Advanced Topics
+  { key: 'pro',         label: "L'Espace Pro",      labelEn: 'Professional French',        icon: '💼', color: '#64748b', description: 'Le monde du travail, les entretiens et la carrière.', isAdvanced: true, questionsCount: 0 },
+  { key: 'culture',     label: 'Francophonie',      labelEn: 'Culture & Traditions',       icon: '🎭', color: '#a855f7', description: 'Les traditions, les festivals et la culture francophone.', isAdvanced: true, questionsCount: 0 },
+  { key: 'lifestyle',   label: 'Mode de Vie',       labelEn: 'Lifestyle & Trends',         icon: '👗', color: '#ec4899', description: 'La mode, les tendances et le style de vie moderne.', isAdvanced: true, questionsCount: 0 },
+  { key: 'news',        label: 'Actualités',        labelEn: 'Current Affairs',            icon: '🗞️', color: '#f59e0b', description: 'Les infos, les débats et les enjeux de société.', isAdvanced: true, questionsCount: 0 },
+  { key: 'slang',       label: "L'Argot",           labelEn: 'Slang & Idioms',             icon: '💬', color: '#ef4444', description: 'Apprends le français familier et les expressions.', isAdvanced: true, questionsCount: 0 },
+  { key: 'survival',    label: 'Survie',            labelEn: 'Survival French',            icon: '🚨', color: '#f43f5e', description: 'Gère les situations urgentes et imprévues.', isAdvanced: true, questionsCount: 0 },
+  { key: 'debate',      label: 'Le Grand Débat',    labelEn: 'Rhetoric & Debate',          icon: '⚖️', color: '#10b981', description: 'Apprends à argumenter et à convaincre.', isAdvanced: true, questionsCount: 0 },
+  { key: 'art',         label: 'Art & Tableaux',    labelEn: 'Visual Storytelling',        icon: '🖼️', color: '#06b6d4', description: 'Décris des œuvres d\'art et des scènes visuelles.', isAdvanced: true, questionsCount: 0 },
 ];
 
 export interface ExamSet {
@@ -5156,6 +5166,636 @@ export const QUESTIONS: Question[] = [
     ],
   },
   {
+    id: "hob_48",
+    topicKey: "hobbies",
+    text: "Aimes-tu le bricolage ou créer des choses de tes propres mains ?",
+    hint: "Talk about DIY projects, making things at home, or fixing things.",
+    difficulty: 2,
+    followUps: [
+      "Quel est ton dernier projet de bricolage ?",
+      "Préfères-tu acheter quelque chose de neuf ou le fabriquer ?",
+      "Est-ce que le bricolage est populaire dans ton pays ?"
+    ],
+    modelAnswer: "J'adore le bricolage car cela me permet d'être créatif et de me détendre. Le week-end dernier, j'ai fabriqué une petite étagère pour ma chambre avec du bois de récupération. Je trouve qu'il est beaucoup plus gratifiant de créer quelque chose de ses propres mains que de l'acheter tout fait au magasin. En plus, c'est souvent plus écologique et économique.",
+    keyVocab: [
+      { fr: "le bricolage", en: "DIY / tinkering" },
+      { fr: "de récupération", en: "salvaged / recycled" },
+      { fr: "gratifiant", en: "rewarding" },
+      { fr: "tout fait", en: "ready-made" },
+      { fr: "économique", en: "economical" },
+      { fr: "une étagère", en: "a shelf" }
+    ]
+  },
+  {
+    id: "hob_49",
+    topicKey: "hobbies",
+    text: "T'intéresses-tu au jardinage pendant ton temps libre ?",
+    hint: "Discuss growing plants, flowers, or vegetables in a garden or on a balcony.",
+    difficulty: 2,
+    followUps: [
+      "As-tu un jardin chez toi ?",
+      "Quelles plantes aimes-tu cultiver ?",
+      "Penses-tu que le jardinage aide à réduire le stress ?"
+    ],
+    modelAnswer: "Oui, le jardinage est l'un de mes passe-temps préférés. Même si je n'ai qu'un petit balcon, j'y cultive des herbes aromatiques comme le basilic et la menthe, ainsi que quelques tomates. Passer du temps à prendre soin des plantes m'aide vraiment à évacuer le stress après une longue journée de cours. C'est très satisfaisant de voir ses plantes pousser et de manger ce qu'on a cultivé.",
+    keyVocab: [
+      { fr: "le jardinage", en: "gardening" },
+      { fr: "cultiver", en: "to grow / cultivate" },
+      { fr: "les herbes aromatiques", en: "herbs" },
+      { fr: "évacuer le stress", en: "to relieve stress" },
+      { fr: "prendre soin de", en: "to take care of" },
+      { fr: "pousser", en: "to grow (plants)" }
+    ]
+  },
+  {
+    id: "hob_50",
+    topicKey: "hobbies",
+    text: "Fais-tu de la programmation ou du codage comme loisir ?",
+    hint: "Talk about coding, making websites, or game development as a hobby.",
+    difficulty: 3,
+    followUps: [
+      "Quels langages de programmation connais-tu ?",
+      "As-tu déjà créé ton propre jeu vidéo ou site web ?",
+      "Pourquoi penses-tu que coder est une compétence utile ?"
+    ],
+    modelAnswer: "Absolument, la programmation est une véritable passion pour moi. J'ai commencé à apprendre le Python il y a deux ans en regardant des tutoriels sur Internet. Récemment, j'ai même développé un petit jeu vidéo en 2D pour m'amuser avec mes amis. Je pense que le codage est une compétence essentielle pour l'avenir, et c'est génial de pouvoir transformer ses idées en réalité sur un écran.",
+    keyVocab: [
+      { fr: "la programmation", en: "programming / coding" },
+      { fr: "un langage de programmation", en: "a programming language" },
+      { fr: "un tutoriel", en: "a tutorial" },
+      { fr: "développer", en: "to develop" },
+      { fr: "une compétence", en: "a skill" },
+      { fr: "l'avenir", en: "the future" }
+    ]
+  },
+  {
+    id: "hob_51",
+    topicKey: "hobbies",
+    text: "Aimes-tu faire de la pâtisserie le week-end ?",
+    hint: "Discuss baking cakes, cookies, or bread.",
+    difficulty: 1,
+    followUps: [
+      "Quel est ton dessert préféré à préparer ?",
+      "Cuisines-tu souvent avec ta famille ?",
+      "Préfères-tu les desserts au chocolat ou aux fruits ?"
+    ],
+    modelAnswer: "J'adore faire de la pâtisserie, surtout le dimanche après-midi. Ma spécialité, c'est le gâteau au chocolat fondant. J'aime chercher de nouvelles recettes sur Internet et les essayer. Parfois, ma petite sœur m'aide à mélanger les ingrédients. Ce que je préfère, c'est l'odeur délicieuse qui remplit la maison quand le gâteau est dans le four. C'est un loisir très gourmand !",
+    keyVocab: [
+      { fr: "la pâtisserie", en: "baking / pastry" },
+      { fr: "fondant", en: "melting / soft-centered" },
+      { fr: "une recette", en: "a recipe" },
+      { fr: "mélanger", en: "to mix" },
+      { fr: "le four", en: "the oven" },
+      { fr: "gourmand(e)", en: "food-loving / greedy" }
+    ]
+  },
+  {
+    id: "hob_52",
+    topicKey: "hobbies",
+    text: "Écris-tu des histoires ou des poèmes pendant ton temps libre ?",
+    hint: "Talk about creative writing, journaling, or writing poems.",
+    difficulty: 2,
+    followUps: [
+      "Quel genre d'histoires aimes-tu écrire ?",
+      "As-tu déjà pensé à publier un livre un jour ?",
+      "Est-ce que tu tiens un journal intime ?"
+    ],
+    modelAnswer: "L'écriture créative est mon échappatoire. J'aime inventer des mondes fantastiques et écrire des nouvelles de science-fiction. Quand j'écris, je perds complètement la notion du temps. Je tiens aussi un journal intime où je note mes pensées et les événements de ma journée, ce qui m'aide à réfléchir. Un jour, j'aimerais publier mon propre roman, même si je sais que ce sera difficile.",
+    keyVocab: [
+      { fr: "l'écriture créative", en: "creative writing" },
+      { fr: "une échappatoire", en: "an escape / outlet" },
+      { fr: "une nouvelle", en: "a short story" },
+      { fr: "perdre la notion du temps", en: "to lose track of time" },
+      { fr: "un journal intime", en: "a diary" },
+      { fr: "publier", en: "to publish" }
+    ]
+  },
+  {
+    id: "hob_53",
+    topicKey: "hobbies",
+    text: "As-tu déjà essayé la poterie ou la céramique ?",
+    hint: "Discuss making pottery, working with clay, or taking art classes.",
+    difficulty: 2,
+    followUps: [
+      "Qu'est-ce que tu as fabriqué en poterie ?",
+      "Trouves-tu que travailler l'argile est relaxant ?",
+      "Aimerais-tu prendre des cours d'art à l'avenir ?"
+    ],
+    modelAnswer: "J'ai commencé la poterie l'année dernière en prenant des cours du soir. C'est incroyablement relaxant de travailler l'argile avec ses mains. J'ai déjà fabriqué plusieurs bols, des tasses et même un petit vase pour ma mère. Au début, c'était très salissant et difficile de centrer l'argile sur le tour, mais avec de la pratique, je me suis beaucoup amélioré(e).",
+    keyVocab: [
+      { fr: "la poterie", en: "pottery" },
+      { fr: "l'argile", en: "clay" },
+      { fr: "un cours du soir", en: "an evening class" },
+      { fr: "salissant(e)", en: "messy" },
+      { fr: "le tour (de potier)", en: "the potter's wheel" },
+      { fr: "un bol", en: "a bowl" }
+    ]
+  },
+  {
+    id: "hob_54",
+    topicKey: "hobbies",
+    text: "Pratiques-tu le yoga ou la méditation pour te détendre ?",
+    hint: "Talk about yoga, stretching, mindfulness, or meditation practices.",
+    difficulty: 2,
+    followUps: [
+      "À quelle fréquence fais-tu du yoga ?",
+      "Suis-tu des cours en ligne ou vas-tu dans un studio ?",
+      "Est-ce que ça t'aide à mieux te concentrer à l'école ?"
+    ],
+    modelAnswer: "Je fais du yoga trois fois par semaine, généralement le matin avant d'aller au lycée. Je suis des vidéos sur YouTube dans ma chambre. Cela m'aide énormément à m'étirer et à réveiller mon corps en douceur. De plus, les exercices de respiration me permettent de rester calme et de mieux gérer le stress des examens. C'est une habitude saine que je recommande à tout le monde.",
+    keyVocab: [
+      { fr: "le yoga", en: "yoga" },
+      { fr: "la méditation", en: "meditation" },
+      { fr: "s'étirer", en: "to stretch" },
+      { fr: "en douceur", en: "gently" },
+      { fr: "la respiration", en: "breathing" },
+      { fr: "gérer le stress", en: "to manage stress" }
+    ]
+  },
+  {
+    id: "hob_55",
+    topicKey: "hobbies",
+    text: "Aimes-tu jouer aux jeux de société avec tes amis ou ta famille ?",
+    hint: "Discuss board games, strategy games, or family game nights.",
+    difficulty: 1,
+    followUps: [
+      "Quel est ton jeu de société préféré ?",
+      "Es-tu un(e) bon(ne) perdant(e) ?",
+      "Préfères-tu les jeux de stratégie ou les jeux de hasard ?"
+    ],
+    modelAnswer: "Oui, les jeux de société sont une tradition dans ma famille. Tous les vendredis soirs, on se réunit autour de la table pour jouer. Mon jeu préféré est Les Colons de Catane car j'adore la stratégie et la négociation. Je dois avouer que je suis parfois un peu mauvais perdant, mais c'est surtout pour rire. C'est une excellente façon de passer du temps ensemble sans regarder un écran.",
+    keyVocab: [
+      { fr: "un jeu de société", en: "a board game" },
+      { fr: "la stratégie", en: "strategy" },
+      { fr: "un(e) mauvais(e) perdant(e)", en: "a sore loser" },
+      { fr: "se réunir", en: "to gather / meet up" },
+      { fr: "autour de", en: "around" },
+      { fr: "le hasard", en: "chance / luck" }
+    ]
+  },
+  {
+    id: "hob_56",
+    topicKey: "hobbies",
+    text: "As-tu déjà fait un jeu d'évasion (escape room) ?",
+    hint: "Talk about escape rooms, solving puzzles, and teamwork.",
+    difficulty: 2,
+    followUps: [
+      "Avec qui es-tu allé(e) faire ce jeu d'évasion ?",
+      "Avez-vous réussi à sortir avant la fin du temps ?",
+      "Qu'est-ce qui est le plus important pour gagner ?"
+    ],
+    modelAnswer: "J'ai découvert les jeux d'évasion l'année dernière pour mon anniversaire et j'ai adoré ! J'y suis allé avec trois amis. On a été enfermés dans une pièce sur le thème des pirates et on devait résoudre des énigmes pour s'échapper. L'esprit d'équipe et la communication sont absolument essentiels pour réussir. Malheureusement, on a manqué de temps, mais c'était quand même une expérience palpitante.",
+    keyVocab: [
+      { fr: "un jeu d'évasion", en: "an escape room" },
+      { fr: "être enfermé(e)", en: "to be locked in" },
+      { fr: "résoudre", en: "to solve" },
+      { fr: "une énigme", en: "a puzzle / riddle" },
+      { fr: "s'échapper", en: "to escape" },
+      { fr: "palpitant(e)", en: "thrilling / exciting" }
+    ]
+  },
+  {
+    id: "hob_57",
+    topicKey: "hobbies",
+    text: "T'intéresses-tu aux tours de magie ou à l'illusionnisme ?",
+    hint: "Discuss learning magic tricks, card tricks, and entertaining others.",
+    difficulty: 3,
+    followUps: [
+      "Quel est ton tour de magie préféré ?",
+      "Où as-tu appris à faire de la magie ?",
+      "Aimes-tu faire des spectacles pour ta famille ?"
+    ],
+    modelAnswer: "Depuis que j'ai vu un magicien à la télévision, je suis fasciné par l'illusionnisme. J'ai acheté quelques livres et je regarde des vidéos pour apprendre des tours de cartes. C'est un passe-temps qui demande beaucoup d'habileté et de pratique devant le miroir. J'aime surprendre mes amis lors des fêtes, même si parfois mes tours ratent un peu. C'est toujours amusant de voir leurs réactions.",
+    keyVocab: [
+      { fr: "un tour de magie", en: "a magic trick" },
+      { fr: "l'illusionnisme", en: "illusionism / magic" },
+      { fr: "un tour de cartes", en: "a card trick" },
+      { fr: "l'habileté", en: "skill / dexterity" },
+      { fr: "surprendre", en: "to surprise" },
+      { fr: "rater", en: "to fail / mess up" }
+    ]
+  },
+  {
+    id: "hob_58",
+    topicKey: "hobbies",
+    text: "Fais-tu de l'astronomie en observant les étoiles ?",
+    hint: "Talk about stargazing, telescopes, and learning about space.",
+    difficulty: 3,
+    followUps: [
+      "As-tu un télescope chez toi ?",
+      "Quelle est ta planète ou constellation préférée ?",
+      "Aimerais-tu voyager dans l'espace un jour ?"
+    ],
+    modelAnswer: "L'astronomie me passionne profondément. Mon grand-père m'a offert un télescope pour Noël, et depuis, je passe de nombreuses nuits claires à observer le ciel. J'ai appris à reconnaître plusieurs constellations, comme la Grande Ourse et Orion. L'immensité de l'univers me fascine. Si j'en avais l'occasion, je rêverais d'aller dans l'espace pour voir la Terre depuis là-haut.",
+    keyVocab: [
+      { fr: "l'astronomie", en: "astronomy" },
+      { fr: "un télescope", en: "a telescope" },
+      { fr: "observer", en: "to observe" },
+      { fr: "le ciel", en: "the sky" },
+      { fr: "une constellation", en: "a constellation" },
+      { fr: "l'immensité", en: "the immensity / vastness" }
+    ]
+  },
+  {
+    id: "hob_59",
+    topicKey: "hobbies",
+    text: "Aimes-tu faire voler un drone pendant ton temps libre ?",
+    hint: "Discuss flying drones, taking aerial photos, or racing drones.",
+    difficulty: 2,
+    followUps: [
+      "Depuis combien de temps as-tu un drone ?",
+      "Préfères-tu prendre des photos ou faire des courses ?",
+      "Est-ce difficile de piloter un drone ?"
+    ],
+    modelAnswer: "J'ai acheté un drone l'été dernier et c'est devenu ma nouvelle passion. J'adore l'emmener quand je pars en balade à la campagne pour filmer des paysages vus d'en haut. Les images aériennes sont souvent spectaculaires. Au début, c'était un peu difficile à piloter et j'avais peur de le crasher dans un arbre, mais maintenant je maîtrise plutôt bien les commandes.",
+    keyVocab: [
+      { fr: "un drone", en: "a drone" },
+      { fr: "aérien(ne)", en: "aerial" },
+      { fr: "piloter", en: "to pilot / fly" },
+      { fr: "spectaculaire", en: "spectacular" },
+      { fr: "maîtriser", en: "to master / control" },
+      { fr: "les commandes", en: "the controls" }
+    ]
+  },
+  {
+    id: "hob_60",
+    topicKey: "hobbies",
+    text: "Fais-tu du skate (planche à roulettes) ?",
+    hint: "Talk about skateboarding, skateparks, learning tricks, and skate culture.",
+    difficulty: 2,
+    followUps: [
+      "Vas-tu souvent au skatepark de ta ville ?",
+      "Quel est le plus difficile quand on apprend le skate ?",
+      "T'es-tu déjà blessé(e) en faisant du skate ?"
+    ],
+    modelAnswer: "Oui, je fais du skate presque tous les jours après l'école. Je retrouve mes amis au skatepark du quartier pour m'entraîner à faire de nouvelles figures. C'est un sport très exigeant qui demande de la persévérance. Je tombe souvent, et j'ai déjà eu quelques bleus et égratignures, mais la sensation de réussite quand on passe une figure difficile vaut vraiment la peine.",
+    keyVocab: [
+      { fr: "le skate / la planche à roulettes", en: "skateboarding" },
+      { fr: "un skatepark", en: "a skatepark" },
+      { fr: "une figure", en: "a trick (skate/BMX)" },
+      { fr: "la persévérance", en: "perseverance" },
+      { fr: "tomber", en: "to fall" },
+      { fr: "un bleu", en: "a bruise" }
+    ]
+  },
+  {
+    id: "hob_61",
+    topicKey: "hobbies",
+    text: "Aimes-tu la couture ou fabriquer tes propres vêtements ?",
+    hint: "Discuss sewing, making clothes, fashion, or upcycling fabrics.",
+    difficulty: 2,
+    followUps: [
+      "As-tu une machine à coudre ?",
+      "Qu'as-tu cousu récemment ?",
+      "Préfères-tu créer de nouveaux vêtements ou réparer d'anciens ?"
+    ],
+    modelAnswer: "La couture est une de mes activités favorites. J'ai appris avec ma grand-mère sur sa vieille machine à coudre. J'aime particulièrement le fait de pouvoir créer des vêtements uniques qui correspondent exactement à mon style. Récemment, j'ai cousu un sac fourre-tout à partir de vieux jeans. C'est très créatif et, de nos jours, c'est aussi un bon moyen de lutter contre la fast-fashion.",
+    keyVocab: [
+      { fr: "la couture", en: "sewing" },
+      { fr: "une machine à coudre", en: "a sewing machine" },
+      { fr: "coudre", en: "to sew" },
+      { fr: "un sac fourre-tout", en: "a tote bag" },
+      { fr: "un(e) couturier(ère)", en: "a tailor / dressmaker" },
+      { fr: "la mode éphémère", en: "fast fashion" }
+    ]
+  },
+  {
+    id: "hob_62",
+    topicKey: "hobbies",
+    text: "Joues-tu à des jeux de rôle sur table (comme Donjons et Dragons) ?",
+    hint: "Talk about tabletop RPGs, creating characters, and storytelling.",
+    difficulty: 3,
+    followUps: [
+      "Es-tu plutôt joueur ou maître du jeu ?",
+      "Comment décrirais-tu ton personnage préféré ?",
+      "Pourquoi aimes-tu ce genre de jeu ?"
+    ],
+    modelAnswer: "J'adore les jeux de rôle sur table, particulièrement Donjons et Dragons. On se réunit avec mon groupe d'amis une fois par mois pour jouer pendant des heures. Je suis souvent le maître du jeu, ce qui signifie que je dois inventer l'histoire et les obstacles. J'apprécie l'immersion totale et la liberté de choix. C'est comme écrire un livre d'aventure, mais ensemble et en temps réel.",
+    keyVocab: [
+      { fr: "un jeu de rôle", en: "a role-playing game (RPG)" },
+      { fr: "le maître du jeu", en: "the game master" },
+      { fr: "un personnage", en: "a character" },
+      { fr: "l'immersion", en: "immersion" },
+      { fr: "en temps réel", en: "in real time" },
+      { fr: "un obstacle", en: "an obstacle / challenge" }
+    ]
+  },
+  {
+    id: "hob_63",
+    topicKey: "hobbies",
+    text: "Fais-tu du bénévolat ou aides-tu des associations pendant ton temps libre ?",
+    hint: "Discuss volunteering, helping charities, or community service.",
+    difficulty: 2,
+    followUps: [
+      "Pour quelle association fais-tu du bénévolat ?",
+      "Pourquoi as-tu décidé de t'engager ?",
+      "Que fais-tu exactement pour les aider ?"
+    ],
+    modelAnswer: "Je considère le bénévolat comme un loisir très important. Le samedi matin, j'aide dans un refuge pour animaux de ma ville. Je m'occupe de promener les chiens et de nettoyer les cages. J'ai décidé de m'engager car j'adore les animaux et je voulais me sentir utile dans ma communauté. C'est très gratifiant de voir que l'on peut faire une différence dans la vie des autres.",
+    keyVocab: [
+      { fr: "le bénévolat", en: "volunteering" },
+      { fr: "une association", en: "a charity / association" },
+      { fr: "un refuge pour animaux", en: "an animal shelter" },
+      { fr: "s'engager", en: "to commit / get involved" },
+      { fr: "se sentir utile", en: "to feel useful" },
+      { fr: "la communauté", en: "the community" }
+    ]
+  },
+  {
+    id: "hob_64",
+    topicKey: "hobbies",
+    text: "Apprends-tu une autre langue étrangère comme passe-temps (à part le français) ?",
+    hint: "Talk about language learning apps, motivation, and which languages you study.",
+    difficulty: 2,
+    followUps: [
+      "Quelle autre langue apprends-tu ?",
+      "Utilises-tu des applications comme Duolingo ?",
+      "Pourquoi penses-tu qu'il est utile de parler plusieurs langues ?"
+    ],
+    modelAnswer: "En plus du français à l'école, j'apprends l'espagnol en autodidacte pendant mon temps libre. J'utilise des applications mobiles tous les jours pendant environ vingt minutes. J'adore écouter de la musique espagnole, ce qui m'aide à améliorer ma prononciation. Je trouve que connaître plusieurs langues ouvre l'esprit, permet de découvrir de nouvelles cultures et sera très utile pour ma future carrière.",
+    keyVocab: [
+      { fr: "une langue étrangère", en: "a foreign language" },
+      { fr: "en autodidacte", en: "self-taught" },
+      { fr: "une application mobile", en: "a mobile app" },
+      { fr: "la prononciation", en: "pronunciation" },
+      { fr: "ouvrir l'esprit", en: "to broaden one's mind" },
+      { fr: "polyglotte", en: "multilingual / polyglot" }
+    ]
+  },
+  {
+    id: "hob_65",
+    topicKey: "hobbies",
+    text: "Fais-tu du théâtre ou de la comédie ?",
+    hint: "Discuss acting, drama club, stage fright, and performances.",
+    difficulty: 2,
+    followUps: [
+      "As-tu déjà joué dans une pièce de théâtre ?",
+      "As-tu le trac (stage fright) avant de monter sur scène ?",
+      "Quel type de rôle préfères-tu jouer ?"
+    ],
+    modelAnswer: "Je fais partie du club de théâtre de mon lycée et c'est ma passion. On répète tous les mercredis. J'adore jouer des rôles comiques car faire rire le public est une sensation géniale. Bien sûr, j'ai toujours un peu le trac avant que le rideau se lève, mais dès que je dis ma première réplique, le stress disparaît. Le théâtre m'a donné beaucoup de confiance en moi.",
+    keyVocab: [
+      { fr: "le théâtre", en: "theatre / drama" },
+      { fr: "une pièce de théâtre", en: "a play" },
+      { fr: "avoir le trac", en: "to have stage fright" },
+      { fr: "monter sur scène", en: "to go on stage" },
+      { fr: "répéter", en: "to rehearse" },
+      { fr: "une réplique", en: "a line (in a play)" }
+    ]
+  },
+  {
+    id: "hob_66",
+    topicKey: "hobbies",
+    text: "Aimes-tu le recyclage créatif (upcycling) ou redonner vie à de vieux objets ?",
+    hint: "Talk about DIY upcycling, restoring old furniture, or transforming clothes.",
+    difficulty: 3,
+    followUps: [
+      "Où trouves-tu les objets que tu transformes ?",
+      "Quelle est ta plus belle création ?",
+      "Pourquoi le recyclage est-il important pour toi ?"
+    ],
+    modelAnswer: "Le recyclage créatif est un loisir qui me tient vraiment à cœur. J'adore fouiner dans les brocantes pour trouver de vieux objets ou des meubles abîmés. Ensuite, je les peins, je les répare et je leur donne une seconde vie. Par exemple, j'ai transformé une vieille valise en table de chevet. C'est à la fois écologique, créatif et très tendance. Ça évite de jeter des choses qui peuvent encore servir.",
+    keyVocab: [
+      { fr: "le recyclage créatif", en: "upcycling" },
+      { fr: "une brocante", en: "a flea market" },
+      { fr: "fouiner", en: "to snoop / rummage" },
+      { fr: "redonner vie à", en: "to bring back to life" },
+      { fr: "une table de chevet", en: "a bedside table" },
+      { fr: "jeter", en: "to throw away" }
+    ]
+  },
+  {
+    id: "hob_67",
+    topicKey: "hobbies",
+    text: "Sais-tu jongler ou pratiques-tu les arts du cirque ?",
+    hint: "Discuss juggling, circus skills, acrobatics, and coordination.",
+    difficulty: 3,
+    followUps: [
+      "Avec combien de balles sais-tu jongler ?",
+      "Est-ce difficile d'apprendre à jongler ?",
+      "Pratiques-tu d'autres arts du cirque ?"
+    ],
+    modelAnswer: "J'ai appris à jongler pendant le confinement. J'ai commencé avec des paires de chaussettes, puis j'ai acheté de vraies balles de jonglage. Maintenant, je sais jongler avec trois balles et je m'entraîne pour y arriver avec quatre. C'est un exercice incroyable pour la coordination des yeux et des mains. Ça demande beaucoup de patience, car au début on passe son temps à ramasser les balles par terre !",
+    keyVocab: [
+      { fr: "jongler", en: "to juggle" },
+      { fr: "les arts du cirque", en: "circus arts" },
+      { fr: "une balle", en: "a ball" },
+      { fr: "la coordination", en: "coordination" },
+      { fr: "ramasser", en: "to pick up" },
+      { fr: "par terre", en: "on the ground / floor" }
+    ]
+  },
+  {
+    id: "hob_68",
+    topicKey: "hobbies",
+    text: "Pratiques-tu des arts martiaux (judo, karaté, taekwondo) ?",
+    hint: "Talk about martial arts, belts, discipline, and physical fitness.",
+    difficulty: 1,
+    followUps: [
+      "Quel art martial pratiques-tu et depuis quand ?",
+      "Quelle couleur de ceinture as-tu ?",
+      "Penses-tu que cela aide à se défendre ou plutôt à se discipliner ?"
+    ],
+    modelAnswer: "Je fais du judo depuis que j'ai huit ans et je suis sur le point de passer ma ceinture marron. Je m'entraîne deux soirs par semaine au dojo local. J'aime les arts martiaux car ils ne développent pas seulement la force physique, mais aussi le respect, la discipline et la maîtrise de soi. Ce n'est pas pour se battre, mais pour apprendre à se défendre et à respecter son adversaire.",
+    keyVocab: [
+      { fr: "les arts martiaux", en: "martial arts" },
+      { fr: "une ceinture", en: "a belt (martial arts)" },
+      { fr: "la discipline", en: "discipline" },
+      { fr: "la maîtrise de soi", en: "self-control" },
+      { fr: "se défendre", en: "to defend oneself" },
+      { fr: "un adversaire", en: "an opponent" }
+    ]
+  },
+  {
+    id: "hob_69",
+    topicKey: "hobbies",
+    text: "Aimes-tu faire de la peinture ou du dessin créatif ?",
+    hint: "Discuss painting, drawing, watercolors, and artistic expression.",
+    difficulty: 2,
+    followUps: [
+      "Préfères-tu la peinture à l'huile, l'aquarelle ou le dessin au crayon ?",
+      "Quels sujets aimes-tu peindre (paysages, portraits) ?",
+      "Exposes-tu tes œuvres ou les gardes-tu pour toi ?"
+    ],
+    modelAnswer: "La peinture est ma façon de m'exprimer. J'utilise surtout l'aquarelle car j'aime la douceur des couleurs et la façon dont l'eau se mélange sur le papier. Je peins souvent des paysages que je vois lors de mes promenades. Je garde la plupart de mes carnets de croquis pour moi, mais j'ai offert quelques tableaux à ma famille. Peindre m'aide à voir la beauté dans les petits détails du quotidien.",
+    keyVocab: [
+      { fr: "la peinture", en: "painting" },
+      { fr: "le dessin", en: "drawing" },
+      { fr: "l'aquarelle", en: "watercolor" },
+      { fr: "un carnet de croquis", en: "a sketchbook" },
+      { fr: "un tableau", en: "a painting (object)" },
+      { fr: "s'exprimer", en: "to express oneself" }
+    ]
+  },
+  {
+    id: "hob_70",
+    topicKey: "hobbies",
+    text: "Est-ce que tu collectionnes quelque chose (timbres, pièces, cartes) ?",
+    hint: "Talk about collecting items, finding rare pieces, and organizing the collection.",
+    difficulty: 1,
+    followUps: [
+      "Que collectionnes-tu exactement ?",
+      "Quelle est la pièce la plus rare de ta collection ?",
+      "Pourquoi aimes-tu collectionner ces objets ?"
+    ],
+    modelAnswer: "Depuis mon enfance, je collectionne les pièces de monnaie des pays étrangers. À chaque fois qu'un ami ou un membre de la famille voyage, je leur demande de me rapporter quelques pièces. J'ai une grande boîte pleine de monnaies d'Asie et d'Amérique. Je trouve que c'est fascinant car chaque pièce raconte une histoire et représente la culture et l'histoire d'un pays différent.",
+    keyVocab: [
+      { fr: "collectionner", en: "to collect" },
+      { fr: "une pièce de monnaie", en: "a coin" },
+      { fr: "un timbre", en: "a stamp" },
+      { fr: "rare", en: "rare" },
+      { fr: "rapporter", en: "to bring back" },
+      { fr: "raconter une histoire", en: "to tell a story" }
+    ]
+  },
+  {
+    id: "hob_71",
+    topicKey: "hobbies",
+    text: "T'intéresses-tu à l'ornithologie (l'observation des oiseaux) ?",
+    hint: "Discuss bird watching, nature walks, binoculars, and identifying species.",
+    difficulty: 3,
+    followUps: [
+      "As-tu des jumelles pour observer les oiseaux ?",
+      "Quel est l'oiseau le plus rare que tu aies vu ?",
+      "Où vas-tu généralement pour faire de l'observation ?"
+    ],
+    modelAnswer: "L'observation des oiseaux est un passe-temps très paisible que je partage avec mon père. Le dimanche, on se lève tôt, on prend nos jumelles et on va dans une réserve naturelle près de chez nous. On utilise une application pour identifier les chants des oiseaux. Ça demande d'être silencieux et patient. Mon meilleur souvenir est le jour où nous avons aperçu un martin-pêcheur, ses couleurs étaient magnifiques.",
+    keyVocab: [
+      { fr: "l'ornithologie", en: "ornithology / bird watching" },
+      { fr: "l'observation des oiseaux", en: "bird watching" },
+      { fr: "des jumelles", en: "binoculars" },
+      { fr: "une réserve naturelle", en: "a nature reserve" },
+      { fr: "un chant d'oiseau", en: "a birdsong" },
+      { fr: "apercevoir", en: "to catch a glimpse of" }
+    ]
+  },
+  {
+    id: "hob_72",
+    topicKey: "hobbies",
+    text: "Participes-tu à des tournois d'e-sport (compétitions de jeux vidéo) ?",
+    hint: "Talk about competitive gaming, e-sports, team communication, and practice.",
+    difficulty: 2,
+    followUps: [
+      "À quel jeu joues-tu en compétition ?",
+      "Fais-tu partie d'une équipe en ligne ?",
+      "Penses-tu que l'e-sport est un vrai sport ?"
+    ],
+    modelAnswer: "L'e-sport est ma plus grande passion. Je joue à des jeux de tir stratégiques en équipe, et nous participons à des tournois en ligne le week-end. On s'entraîne presque tous les soirs pour améliorer notre communication et nos réflexes. Je considère que c'est un vrai sport car cela demande autant de concentration, d'esprit d'équipe et de stratégie que le football ou le basket.",
+    keyVocab: [
+      { fr: "l'e-sport", en: "e-sports" },
+      { fr: "un tournoi", en: "a tournament" },
+      { fr: "un jeu de tir", en: "a shooting game" },
+      { fr: "en ligne", en: "online" },
+      { fr: "les réflexes", en: "reflexes" },
+      { fr: "la concentration", en: "concentration" }
+    ]
+  },
+  {
+    id: "hob_73",
+    topicKey: "hobbies",
+    text: "As-tu déjà fait du géocaching (chasse au trésor par GPS) ?",
+    hint: "Discuss geocaching, outdoor treasure hunts, using a phone GPS, and hiding small items.",
+    difficulty: 3,
+    followUps: [
+      "Où cherches-tu des 'caches' en général ?",
+      "As-tu déjà laissé un objet pour les autres dans une boîte ?",
+      "Qu'est-ce qui te plaît dans cette activité ?"
+    ],
+    modelAnswer: "Le géocaching est parfait pour découvrir de nouveaux endroits. C'est comme une chasse au trésor moderne ! J'utilise mon téléphone pour trouver les coordonnées géographiques des boîtes cachées dans la ville ou la forêt. Parfois, elles sont très difficiles à trouver. Quand on en trouve une, on signe le petit carnet et on peut échanger un petit objet. C'est une façon très amusante de se promener à l'extérieur.",
+    keyVocab: [
+      { fr: "le géocaching", en: "geocaching" },
+      { fr: "une chasse au trésor", en: "a treasure hunt" },
+      { fr: "caché(e)", en: "hidden" },
+      { fr: "un carnet", en: "a notebook / logbook" },
+      { fr: "échanger", en: "to exchange" },
+      { fr: "les coordonnées", en: "coordinates" }
+    ]
+  },
+  {
+    id: "hob_74",
+    topicKey: "hobbies",
+    text: "Pratiques-tu la calligraphie ou le lettrage artistique ?",
+    hint: "Talk about beautiful handwriting, calligraphy pens, ink, and artistic writing.",
+    difficulty: 3,
+    followUps: [
+      "Quels outils utilises-tu pour la calligraphie ?",
+      "As-tu appris avec un professeur ou tout seul ?",
+      "Aimes-tu faire des cartes d'anniversaire pour tes amis ?"
+    ],
+    modelAnswer: "J'ai découvert la calligraphie en regardant des vidéos apaisantes sur les réseaux sociaux. J'ai acheté des feutres spéciaux et de l'encre, et j'ai commencé à m'entraîner à former de belles lettres. C'est une activité très méticuleuse qui demande beaucoup de concentration. J'adore utiliser mes compétences pour créer des cartes de vœux personnalisées pour l'anniversaire de mes amis, ils apprécient toujours beaucoup.",
+    keyVocab: [
+      { fr: "la calligraphie", en: "calligraphy" },
+      { fr: "le lettrage", en: "lettering" },
+      { fr: "un feutre", en: "a felt-tip pen / marker" },
+      { fr: "l'encre", en: "ink" },
+      { fr: "méticuleux(euse)", en: "meticulous" },
+      { fr: "une carte de vœux", en: "a greeting card" }
+    ]
+  },
+  {
+    id: "hob_75",
+    topicKey: "hobbies",
+    text: "Aimes-tu le scrapbooking pour conserver tes souvenirs ?",
+    hint: "Discuss making memory albums, photos, decorating pages, and crafting.",
+    difficulty: 2,
+    followUps: [
+      "Quels types de souvenirs mets-tu dans ton scrapbook ?",
+      "Aimes-tu utiliser des autocollants ou des rubans ?",
+      "Préfères-tu les photos imprimées ou les photos sur ton téléphone ?"
+    ],
+    modelAnswer: "Le scrapbooking est ma façon de conserver mes souvenirs de vacances et de moments passés avec mes amis. J'imprime mes photos préférées et je les colle dans un grand album. Ensuite, je décore les pages avec des autocollants, des petits dessins et des billets de cinéma ou de train. C'est tellement agréable à feuilleter quelques mois plus tard, c'est bien mieux que de laisser des centaines de photos dans son téléphone.",
+    keyVocab: [
+      { fr: "le scrapbooking", en: "scrapbooking" },
+      { fr: "un souvenir", en: "a memory / souvenir" },
+      { fr: "imprimer", en: "to print" },
+      { fr: "un album", en: "an album" },
+      { fr: "un autocollant", en: "a sticker" },
+      { fr: "feuilleter", en: "to flip through (a book/album)" }
+    ]
+  },
+  {
+    id: "hob_76",
+    topicKey: "hobbies",
+    text: "Fais-tu du surf ou des sports nautiques pendant les vacances ?",
+    hint: "Talk about surfing, beach holidays, water sports, and waves.",
+    difficulty: 1,
+    followUps: [
+      "Où vas-tu habituellement pour faire du surf ?",
+      "Est-ce difficile de se tenir debout sur la planche ?",
+      "Préfères-tu la mer ou la piscine ?"
+    ],
+    modelAnswer: "Pendant les vacances d'été, j'adore faire du surf sur la côte ouest. Prendre une vague et réussir à se tenir debout sur la planche procure une sensation de liberté incroyable. Bien sûr, ça demande de l'équilibre et beaucoup de force pour nager, mais j'adore être dans l'océan. C'est l'un des meilleurs moyens de se rafraîchir et de faire de l'exercice en même temps.",
+    keyVocab: [
+      { fr: "le surf", en: "surfing" },
+      { fr: "un sport nautique", en: "a water sport" },
+      { fr: "une vague", en: "a wave" },
+      { fr: "se tenir debout", en: "to stand up" },
+      { fr: "une planche", en: "a board" },
+      { fr: "se rafraîchir", en: "to cool down / refresh oneself" }
+    ]
+  },
+  {
+    id: "hob_77",
+    topicKey: "hobbies",
+    text: "Fais-tu de l'origami (l'art de plier le papier) ?",
+    hint: "Discuss origami, paper folding, patience, and Japanese culture.",
+    difficulty: 3,
+    followUps: [
+      "Quelle est la figure la plus difficile que tu as réalisée ?",
+      "Utilises-tu du papier spécial pour origami ?",
+      "Pourquoi aimes-tu cette activité minutieuse ?"
+    ],
+    modelAnswer: "J'ai découvert l'origami en lisant un livre sur la culture japonaise. C'est l'art de plier le papier pour créer des formes variées. Je connais par cœur les plis pour faire une grue en papier, symbole de paix. J'utilise des papiers carrés très colorés avec des motifs traditionnels. C'est une activité qui m'apaise, car elle demande de se concentrer sur chaque pli de façon très précise et de ne pas se presser.",
+    keyVocab: [
+      { fr: "l'origami", en: "origami" },
+      { fr: "plier", en: "to fold" },
+      { fr: "le papier", en: "paper" },
+      { fr: "une grue (oiseau)", en: "a crane (bird)" },
+      { fr: "apaiser", en: "to soothe / calm" },
+      { fr: "précis(e)", en: "precise / accurate" }
+    ]
+  },
+  {
     id: "fam_27",
     topicKey: "family",
     text: "Penses-tu que les réseaux sociaux nuisent à la vie de famille ?",
@@ -7675,6 +8315,736 @@ export const QUESTIONS: Question[] = [
       { fr: "accessible", en: "accessible" }
     ],
   },
+
+  // ── ADVANCED TOPICS ──────────────────────────────────────────────────────
+
+  // PROFESSIONAL FRENCH
+  {
+    id: "pro_01",
+    topicKey: "pro",
+    text: "Quelles sont les compétences les plus importantes pour réussir dans le monde du travail aujourd'hui ?",
+    hint: "Discuss soft skills (communication, teamwork) vs hard skills (languages, tech).",
+    difficulty: 3,
+    followUps: ["Voudriez-vous travailler dans une grande entreprise internationale ?", "L'intelligence artificielle va-t-elle changer votre métier ?"],
+    modelAnswer: "À mon avis, l'adaptabilité et l'intelligence émotionnelle sont cruciales. Il faut savoir collaborer et communiquer efficacement.",
+    keyVocab: [{ fr: "l'adaptabilité", en: "adaptability" }, { fr: "collaborer", en: "to collaborate" }]
+  },
+
+  // CULTURE & TRADITIONS
+  {
+    id: "cul_01",
+    topicKey: "culture",
+    text: "Pourquoi est-il important de préserver les traditions culturelles dans un monde globalisé ?",
+    hint: "Talk about identity, heritage, and the impact of modernization.",
+    difficulty: 3,
+    followUps: ["Quelle est votre fête traditionnelle préférée ?", "La culture française influence-t-elle votre pays ?"],
+    modelAnswer: "Préserver les traditions permet de garder un lien avec nos racines et de célébrer la diversité humaine.",
+    keyVocab: [{ fr: "les racines", en: "roots" }, { fr: "globalisé", en: "globalized" }]
+  },
+
+  // LIFESTYLE & TRENDS
+  {
+    id: "life_01",
+    topicKey: "lifestyle",
+    text: "Comment la mode influence-t-elle l'identité des jeunes aujourd'hui ?",
+    hint: "Discuss self-expression, peer pressure, and sustainable fashion.",
+    difficulty: 3,
+    followUps: ["Suivez-vous les tendances sur les réseaux sociaux ?", "Le style est-il plus important que le confort ?"],
+    modelAnswer: "La mode est un moyen d'expression personnelle, mais elle peut aussi créer une pression sociale constante.",
+    keyVocab: [{ fr: "l'expression personnelle", en: "self-expression" }, { fr: "la tendance", en: "trend" }]
+  },
+
+  // CURRENT AFFAIRS
+  {
+    id: "news_01",
+    topicKey: "news",
+    text: "Quel est l'impact des réseaux sociaux sur la diffusion de l'information ?",
+    hint: "Discuss fake news, speed of information, and social awareness.",
+    difficulty: 3,
+    followUps: ["Lisez-vous souvent les actualités ?", "Peut-on faire confiance aux médias traditionnels ?"],
+    modelAnswer: "Les réseaux sociaux permettent une diffusion instantanée, mais ils favorisent aussi la propagation de fausses nouvelles.",
+    keyVocab: [{ fr: "la diffusion", en: "spread/broadcast" }, { fr: "fausses nouvelles", en: "fake news" }]
+  },
+
+  // SLANG & IDIOMS
+  {
+    id: "slang_01",
+    topicKey: "slang",
+    text: "Est-ce que tu trouves que le français familier est difficile à comprendre ?",
+    hint: "Discuss slang (verlan) and idiomatic expressions.",
+    difficulty: 2,
+    followUps: ["Utilises-tu des expressions familières avec tes amis ?", "Le français des livres est-il très différent du français parlé ?"],
+    modelAnswer: "Le français familier est complexe car il utilise beaucoup d'argot comme le verlan, mais c'est essentiel pour sonner naturel.",
+    keyVocab: [{ fr: "l'argot", en: "slang" }, { fr: "sonner naturel", en: "to sound natural" }]
+  },
+
+  // SURVIVAL FRENCH
+  {
+    id: "surv_01",
+    topicKey: "survival",
+    text: "Que ferais-tu si tu perdais ton passeport et ton téléphone dans un pays étranger ?",
+    hint: "High-pressure situation. Describe steps to take (consulate, police).",
+    difficulty: 3,
+    followUps: ["Sais-tu demander de l'aide en urgence ?", "Es-tu une personné débrouillarde ?"],
+    modelAnswer: "Je contacterais immédiatement l'ambassade et j'irais au commissariat de police le plus proche pour déclarer le vol.",
+    keyVocab: [{ fr: "l'ambassade", en: "embassy" }, { fr: "débrouillard", en: "resourceful" }]
+  },
+
+  // RHETORIC & DEBATE
+  {
+    id: "deb_01",
+    topicKey: "debate",
+    text: "Le vote devrait-il être obligatoire dès l'âge de 16 ans ?",
+    hint: "Argue for or against using logical connectors.",
+    difficulty: 3,
+    followUps: ["Les jeunes s'intéressent-ils assez à la politique ?", "Comment encourager l'engagement citoyen ?"],
+    modelAnswer: "D'une part, cela encouragerait l'engagement civique précoce. D'autre part, certains pensent que 16 ans est trop jeune.",
+    keyVocab: [{ fr: "l'engagement civique", en: "civic engagement" }, { fr: "d'une part", en: "on one hand" }]
+  },
+
+  // VISUAL STORYTELLING
+  {
+    id: "art_01",
+    topicKey: "art",
+    text: "Décris un tableau ou une image qui t'a particulièrement marqué.",
+    hint: "Focus on colors, composition, and emotions felt.",
+    difficulty: 3,
+    followUps: ["L'art est-il essentiel à la société ?", "Préfères-tu l'art moderne ou classique ?"],
+    modelAnswer: "Ce tableau m'a frappé par l'utilisation de couleurs vives et la mélancolie qui se dégage du personnage central.",
+    keyVocab: [{ fr: "frapper", en: "to strike/impress" }, { fr: "se dégager", en: "to emanate" }]
+  },
+
+  // --- FOOD (Expansion - 30 New Questions) ---
+  {
+    id: "foo_45",
+    topicKey: "food",
+    text: "Que penses-tu de l'influence des réseaux sociaux sur nos choix alimentaires ?",
+    hint: "Discuss how Instagram or TikTok affect what and where people eat.",
+    difficulty: 2,
+    followUps: [
+      "Est-ce que tu prends des photos de tes plats avant de manger ?",
+      "As-tu déjà testé une recette devenue virale ?",
+      "Est-ce que l'apparence d'un plat est plus importante que son goût ?"
+    ],
+    modelAnswer: "Je pense que les réseaux sociaux ont un impact énorme, car on voit constamment des photos de plats magnifiques qui donnent envie. Cela encourage les restaurants à être plus créatifs visuellement. Cependant, je trouve dommage que certaines personnes privilégient l'esthétique au détriment du goût. Personnellement, j'aime bien regarder des vidéos de cuisine sur TikTok pour trouver de l'inspiration.",
+    keyVocab: [
+      { fr: "les réseaux sociaux", en: "social media" },
+      { fr: "viral(e)", en: "viral" },
+      { fr: "l'apparence", en: "appearance" },
+      { fr: "au détriment de", en: "at the expense of" },
+      { fr: "l'esthétique", en: "aesthetics" },
+      { fr: "l'inspiration", en: "inspiration" }
+    ],
+  },
+  {
+    id: "foo_46",
+    topicKey: "food",
+    text: "Connais-tu la cuisine moléculaire ? Aimerais-tu la goûter ?",
+    hint: "Discuss the fusion of science and cooking (foams, spheres, etc.).",
+    difficulty: 3,
+    followUps: [
+      "Penses-tu que c'est de l'art ou de la science ?",
+      "Est-ce que tu préfères la cuisine traditionnelle ou moderne ?",
+      "Quels ingrédients bizarres as-tu déjà vus ?"
+    ],
+    modelAnswer: "La cuisine moléculaire est fascinante car elle utilise des techniques scientifiques pour transformer les textures des aliments, comme faire des mousses ou des perles de saveur. J'aimerais beaucoup goûter cela un jour car c'est une expérience sensorielle unique. Même si c'est très moderne, je pense que cela reste de l'art culinaire car le but est de surprendre le client.",
+    keyVocab: [
+      { fr: "la cuisine moléculaire", en: "molecular gastronomy" },
+      { fr: "scientifique", en: "scientific" },
+      { fr: "une texture", en: "a texture" },
+      { fr: "sensoriel(le)", en: "sensory" },
+      { fr: "surprendre", en: "to surprise" },
+      { fr: "culinaire", en: "culinary" }
+    ],
+  },
+  {
+    id: "foo_47",
+    topicKey: "food",
+    text: "Que penses-tu de la nourriture imprimée en 3D ?",
+    hint: "Discuss the possibility of printing meals and its benefits.",
+    difficulty: 3,
+    followUps: [
+      "Serais-tu prêt à manger un steak imprimé en 3D ?",
+      "Quels sont les avantages pour l'environnement ?",
+      "Est-ce que cela va remplacer les chefs ?"
+    ],
+    modelAnswer: "C'est une technologie incroyable qui pourrait aider à réduire le gaspillage en utilisant des ingrédients précis. On pourrait créer des formes impossibles à faire à la main. Cependant, je ne suis pas sûr que ce soit aussi savoureux que la cuisine faite par un humain. Pour l'environnement, cela pourrait réduire les émissions de carbone si on utilise des protéines végétales au lieu de viande.",
+    keyVocab: [
+      { fr: "imprimé en 3D", en: "3D printed" },
+      { fr: "le gaspillage", en: "waste" },
+      { fr: "précis(e)", en: "precise" },
+      { fr: "savoureux / savoureuse", en: "tasty / flavorful" },
+      { fr: "les émissions de carbone", en: "carbon emissions" },
+      { fr: "remplacer", en: "to replace" }
+    ],
+  },
+  {
+    id: "foo_48",
+    topicKey: "food",
+    text: "Penses-tu que les repas scolaires sont meilleurs dans certains pays que dans d'autres ?",
+    hint: "Compare school lunches globally (e.g., France vs. USA vs. Japan).",
+    difficulty: 2,
+    followUps: [
+      "Qu'est-ce que tu sais des repas scolaires en France ?",
+      "Penses-tu que le déjeuner devrait être gratuit pour tous ?",
+      "Quel pays a la nourriture la plus saine selon toi ?"
+    ],
+    modelAnswer: "J'ai entendu dire qu'en France, les élèves mangent souvent des repas complets avec plusieurs plats, ce qui semble excellent. Au Japon, les élèves aident souvent à servir la nourriture, ce qui apprend la responsabilité. Je pense que chaque pays a ses forces, mais il est crucial que tous les enfants aient accès à une alimentation saine et équilibrée à l'école, peu importe le budget de leurs parents.",
+    keyVocab: [
+      { fr: "entendre dire que", en: "to hear that" },
+      { fr: "gratuit(e)", en: "free" },
+      { fr: "la responsabilité", en: "responsibility" },
+      { fr: "équilibré(e)", en: "balanced" },
+      { fr: "peu importe", en: "regardless of / no matter" },
+      { fr: "les forces", en: "strengths" }
+    ],
+  },
+  {
+    id: "foo_49",
+    topicKey: "food",
+    text: "Que penses-tu de la consommation excessive de boissons énergisantes chez les jeunes ?",
+    hint: "Discuss the health risks of caffeine and sugar for students.",
+    difficulty: 2,
+    followUps: [
+      "En bois-tu pour réviser tes examens ?",
+      "Quels sont les effets secondaires ?",
+      "Devrait-on interdire la vente aux mineurs ?"
+    ],
+    modelAnswer: "Je trouve cela inquiétant car ces boissons contiennent énormément de caféine et de sucre. Beaucoup de jeunes en boivent pour rester éveillés, mais cela peut causer du stress, des palpitations ou des insomnies. À mon avis, il vaut mieux dormir suffisamment ou boire de l'eau. Je serais favorable à une interdiction de vente aux moins de 16 ans pour protéger leur santé.",
+    keyVocab: [
+      { fr: "excessif / excessive", en: "excessive" },
+      { fr: "une boisson énergisante", en: "energy drink" },
+      { fr: "éveillé(e)", en: "awake" },
+      { fr: "une insomnie", en: "insomnia" },
+      { fr: "interdire", en: "to forbid / ban" },
+      { fr: "favorable à", en: "in favor of" }
+    ],
+  },
+  {
+    id: "foo_50",
+    topicKey: "food",
+    text: "Es-tu pour ou contre les OGM (organismes génétiquement modifiés) ?",
+    hint: "Discuss the ethics and safety of genetically modified food.",
+    difficulty: 3,
+    followUps: [
+      "Peuvent-ils aider à résoudre la faim dans le monde ?",
+      "Est-ce dangereux pour la biodiversité ?",
+      "Voudrais-tu que ce soit clairement indiqué sur les étiquettes ?"
+    ],
+    modelAnswer: "C'est un sujet complexe. D'un côté, les OGM peuvent résister aux maladies et nourrir plus de gens. D'un autre côté, on ne connaît pas encore tous les effets à long terme sur la santé humaine et l'environnement. Je pense qu'il faut être très prudent et s'assurer que les consommateurs sont bien informés grâce à un étiquetage transparent et obligatoire.",
+    keyVocab: [
+      { fr: "les OGM", en: "GMOs" },
+      { fr: "résister", en: "to resist" },
+      { fr: "à long terme", en: "long-term" },
+      { fr: "prudent(e)", en: "careful / cautious" },
+      { fr: "un étiquetage", en: "labeling" },
+      { fr: "obligatoire", en: "mandatory" }
+    ],
+  },
+  {
+    id: "foo_51",
+    topicKey: "food",
+    text: "As-tu déjà entendu parler de la Fête de la Gastronomie en France ?",
+    hint: "Discuss food festivals and their role in celebrating culture.",
+    difficulty: 2,
+    followUps: [
+      "Y a-t-il des festivals de nourriture dans ton pays ?",
+      "Pourquoi est-ce important de célébrer la cuisine nationale ?",
+      "Quel plat choisirais-tu pour représenter ta culture ?"
+    ],
+    modelAnswer: "Oui, c'est un événement qui célèbre le patrimoine culinaire français. Je pense que c'est une excellente idée car cela permet de partager des traditions et de découvrir des produits locaux. Dans mon pays, nous avons aussi des foires alimentaires qui sont très populaires. Ces festivals renforcent le sentiment d'appartenance et soutiennent les petits producteurs locaux.",
+    keyVocab: [
+      { fr: "la gastronomie", en: "gastronomy / culinary art" },
+      { fr: "le patrimoine", en: "heritage" },
+      { fr: "culinaire", en: "culinary" },
+      { fr: "une foire", en: "a fair" },
+      { fr: "renforcer", en: "to strengthen" },
+      { fr: "un producteur", en: "a producer / farmer" }
+    ],
+  },
+  {
+    id: "foo_52",
+    topicKey: "food",
+    text: "Penses-tu que cuisiner peut aider à réduire le stress ?",
+    hint: "Discuss cooking as a creative and relaxing hobby.",
+    difficulty: 1,
+    followUps: [
+      "Cuisines-tu quand tu es stressé(e) ?",
+      "Quelle étape de la préparation trouves-tu la plus relaxante ?",
+      "Est-ce que tu préfères cuisiner seul(e) ou avec de la musique ?"
+    ],
+    modelAnswer: "Absolument, je trouve que cuisiner est très thérapeutique. Se concentrer sur une recette permet d'oublier les soucis de la journée. J'adore couper les légumes ou pétrir de la pâte car c'est une activité manuelle très satisfaisante. Pour moi, préparer un bon repas pour mes proches est un moyen d'exprimer ma créativité et de me détendre complètement après l'école.",
+    keyVocab: [
+      { fr: "thérapeutique", en: "therapeutic" },
+      { fr: "se concentrer", en: "to concentrate" },
+      { fr: "un souci", en: "a worry / concern" },
+      { fr: "pétrir", en: "to knead" },
+      { fr: "satisfaisant(e)", en: "satisfying" },
+      { fr: "se détendre", en: "to relax" }
+    ],
+  },
+  {
+    id: "foo_53",
+    topicKey: "food",
+    text: "Que penses-tu des publicités pour la nourriture s'adressant aux enfants ?",
+    hint: "Discuss the ethics of marketing junk food to minors.",
+    difficulty: 2,
+    followUps: [
+      "Les publicités t'influencent-elles ?",
+      "Devrait-on interdire les publicités pour les produits trop sucrés ?",
+      "Comment peut-on éduquer les enfants à mieux manger ?"
+    ],
+    modelAnswer: "Je pense que ces publicités sont souvent trompeuses car elles présentent des produits mauvais pour la santé comme s'ils étaient amusants ou nécessaires. Cela encourage les mauvaises habitudes alimentaires dès le plus jeune âge. À mon avis, les gouvernements devraient limiter ce genre de marketing, surtout pendant les émissions pour enfants, et promouvoir plutôt des fruits et des légumes.",
+    keyVocab: [
+      { fr: "une publicité", en: "an advertisement" },
+      { fr: "s'adresser à", en: "to be aimed at" },
+      { fr: "trompeur / trompeuse", en: "misleading" },
+      { fr: "le marketing", en: "marketing" },
+      { fr: "promouvoir", en: "to promote" },
+      { fr: "une habitude", en: "a habit" }
+    ],
+  },
+  {
+    id: "foo_54",
+    topicKey: "food",
+    text: "As-tu déjà ramassé des fruits ou des champignons dans la nature ?",
+    hint: "Discuss foraging for wild food and the risks/benefits.",
+    difficulty: 2,
+    followUps: [
+      "Sais-tu différencier les champignons comestibles des toxiques ?",
+      "Est-ce que la nourriture sauvage a meilleur goût ?",
+      "Aimerais-tu apprendre à survivre en mangeant ce que tu trouves ?"
+    ],
+    modelAnswer: "Quand je vais chez mes grands-parents à la campagne, nous ramassons souvent des mûres sauvages pour faire de la confiture. C'est un vrai plaisir de manger quelque chose que l'on a cueilli soi-même. Cependant, il faut être très prudent avec les champignons car certains sont mortels. Je pense que c'est une compétence importante pour se reconnecter avec la nature et comprendre d'où vient notre nourriture.",
+    keyVocab: [
+      { fr: "ramasser", en: "to pick up / collect" },
+      { fr: "cueillir", en: "to pick (fruits/flowers)" },
+      { fr: "sauvage", en: "wild" },
+      { fr: "comestible", en: "edible" },
+      { fr: "mortel(le)", en: "deadly" },
+      { fr: "se reconnecter", en: "to reconnect" }
+    ],
+  },
+  {
+    id: "foo_55",
+    topicKey: "food",
+    text: "Penses-tu qu'une taxe sur le sucre est une bonne idée ?",
+    hint: "Discuss government measures to reduce obesity.",
+    difficulty: 3,
+    followUps: [
+      "Est-ce que cela décourage vraiment les gens d'acheter des sodas ?",
+      "Est-ce injuste pour les personnes pauvres ?",
+      "Que devrait faire le gouvernement avec l'argent récolté ?"
+    ],
+    modelAnswer: "Je pense que c'est une mesure nécessaire pour lutter contre l'obésité et le diabète. Si les boissons sucrées sont plus chères, les gens en achèteront moins. L'argent récolté devrait être réinvesti dans l'éducation à la santé ou pour baisser le prix des fruits et légumes bio. Même si c'est impopulaire, c'est une question de santé publique majeure qui nécessite des actions concrètes.",
+    keyVocab: [
+      { fr: "une taxe", en: "a tax" },
+      { fr: "lutter contre", en: "to fight against" },
+      { fr: "récolter", en: "to collect / gather" },
+      { fr: "santé publique", en: "public health" },
+      { fr: "concret / concrète", en: "concrete" },
+      { fr: "le diabète", en: "diabetes" }
+    ],
+  },
+  {
+    id: "foo_56",
+    topicKey: "food",
+    text: "Tu préfères apporter ton 'lunch box' ou manger à la cantine ?",
+    hint: "Compare packed lunches from home with school-provided meals.",
+    difficulty: 1,
+    followUps: [
+      "Qu'est-ce qu'on met dans ton lunch box d'habitude ?",
+      "Est-ce que c'est plus économique de l'apporter de la maison ?",
+      "Tes amis font-ils la même chose ?"
+    ],
+    modelAnswer: "Je préfère apporter mon lunch box car je peux choisir exactement ce que je veux manger. Ma mère me prépare souvent un wrap au poulet, un yaourt et une pomme. C'est plus sain que la nourriture de la cantine qui est parfois trop grasse. De plus, cela permet d'économiser de l'argent. Mes amis trouvent que mon déjeuner a toujours l'air meilleur que le leur !",
+    keyVocab: [
+      { fr: "apporter", en: "to bring" },
+      { fr: "sain(e)", en: "healthy" },
+      { fr: "économiser", en: "to save (money)" },
+      { fr: "d'habitude", en: "usually" },
+      { fr: "le déjeuner", en: "lunch" },
+      { fr: "avoir l'air", en: "to look / seem" }
+    ],
+  },
+  {
+    id: "foo_57",
+    topicKey: "food",
+    text: "As-tu déjà entendu parler des 'super-aliments' comme le quinoa ou le chou kale ?",
+    hint: "Discuss nutrient-dense foods and their popularity.",
+    difficulty: 2,
+    followUps: [
+      "En manges-tu souvent ?",
+      "Penses-tu que c'est juste une mode passagère ?",
+      "Quels sont les bienfaits pour la santé ?"
+    ],
+    modelAnswer: "Oui, j'en mange de temps en temps car ils sont riches en vitamines et en antioxydants. Je pense que c'est plus qu'une mode, c'est une prise de conscience sur l'importance de bien nourrir son corps. Cependant, je crois qu'il ne faut pas oublier les aliments simples et locaux qui sont tout aussi bons pour la santé. L'équilibre est la clé d'une bonne alimentation.",
+    keyVocab: [
+      { fr: "un super-aliment", en: "a superfood" },
+      { fr: "une mode passagère", en: "a passing fad" },
+      { fr: "les bienfaits", en: "benefits" },
+      { fr: "une prise de conscience", en: "an awareness / realization" },
+      { fr: "nutritif / nutritive", en: "nutritious" },
+      { fr: "la clé", en: "the key" }
+    ],
+  },
+  {
+    id: "foo_58",
+    topicKey: "food",
+    text: "Que penses-tu des aliments fermentés comme le yaourt ou le kimchi ?",
+    hint: "Discuss foods with probiotics and their impact on digestion.",
+    difficulty: 2,
+    followUps: [
+      "Aimes-tu le goût acide de ces aliments ?",
+      "Est-ce que tu savais qu'ils sont bons pour l'intestin ?",
+      "Y a-t-il des aliments fermentés traditionnels dans ton pays ?"
+    ],
+    modelAnswer: "J'adore le yaourt, mais je trouve le kimchi un peu trop fort pour moi. Je sais que les aliments fermentés sont excellents pour le microbiote et la digestion car ils contiennent des probiotiques naturels. C'est fascinant de voir comment des méthodes de conservation anciennes deviennent si populaires aujourd'hui pour leurs vertus santé. J'essaie d'en manger un peu chaque jour pour mon bien-être.",
+    keyVocab: [
+      { fr: "fermenté(e)", en: "fermented" },
+      { fr: "la digestion", en: "digestion" },
+      { fr: "l'intestin", en: "the gut / intestine" },
+      { fr: "la conservation", en: "preservation" },
+      { fr: "une vertu", en: "a virtue / benefit" },
+      { fr: "le bien-être", en: "well-being" }
+    ],
+  },
+  {
+    id: "foo_59",
+    topicKey: "food",
+    text: "Pourquoi les cafés (coffee shops) sont-ils si populaires pour travailler ou étudier ?",
+    hint: "Discuss the 'third space' concept and working in public.",
+    difficulty: 2,
+    followUps: [
+      "Préfères-tu réviser dans une bibliothèque ou dans un café ?",
+      "Qu'est-ce que tu commandes d'habitude ?",
+      "Est-ce que le bruit te dérange ?"
+    ],
+    modelAnswer: "Je pense que les gens aiment l'ambiance décontractée et l'odeur du café. Cela permet de sortir de chez soi et de se sentir moins seul tout en étant productif. Personnellement, je trouve qu'un peu de bruit de fond m'aide à me concentrer mieux qu'un silence absolu. De plus, avoir une bonne boisson chaude et une pâtisserie à côté de soi est très motivant pour finir ses devoirs !",
+    keyVocab: [
+      { fr: "décontracté(e)", en: "relaxed / casual" },
+      { fr: "le bruit de fond", en: "background noise" },
+      { fr: "se concentrer", en: "to concentrate" },
+      { fr: "productif / productive", en: "productive" },
+      { fr: "la motivation", en: "motivation" },
+      { fr: "absolu(e)", en: "absolute" }
+    ],
+  },
+  {
+    id: "foo_60",
+    topicKey: "food",
+    text: "Voyagerais-tu dans un pays uniquement pour sa nourriture ?",
+    hint: "Discuss food tourism and the importance of gastronomy in travel.",
+    difficulty: 2,
+    followUps: [
+      "Quel pays choisirais-tu pour un voyage gastronomique ?",
+      "As-tu déjà fait un cours de cuisine à l'étranger ?",
+      "Est-ce que la nourriture est le meilleur moyen de découvrir une culture ?"
+    ],
+    modelAnswer: "Oui, absolument ! J'adorerais aller en Italie ou en Thaïlande juste pour goûter les spécialités locales authentiques. Je pense que la nourriture raconte l'histoire et les traditions d'un peuple. Pour moi, découvrir de nouvelles saveurs est une partie essentielle du voyage. C'est un moyen de se connecter avec les locaux d'une manière très conviviale et chaleureuse.",
+    keyVocab: [
+      { fr: "gastronomique", en: "gastronomic" },
+      { fr: "authentique", en: "authentic" },
+      { fr: "raconter", en: "to tell / relate" },
+      { fr: "une saveur", en: "a flavor" },
+      { fr: "essentiel(le)", en: "essential" },
+      { fr: "chaleureux / chaleureuse", en: "warm" }
+    ],
+  },
+  {
+    id: "foo_61",
+    topicKey: "food",
+    text: "Qu'est-ce que tu penses des restaurants à volonté (les buffets) ?",
+    hint: "Discuss the pros and cons of all-you-can-eat restaurants.",
+    difficulty: 2,
+    followUps: [
+      "Est-ce que tu manges trop quand tu y vas ?",
+      "Est-ce que la qualité est aussi bonne que dans un restaurant normal ?",
+      "Pourquoi sont-ils populaires pour les familles ?"
+    ],
+    modelAnswer: "Je trouve que c'est une bonne option pour les familles car il y en a pour tous les goûts et c'est économique. Cependant, la qualité est parfois moins bonne car la nourriture reste longtemps sur le buffet. De plus, cela encourage souvent le gaspillage et la surconsommation, ce qui n'est pas très sain. Personnellement, je préfère un restaurant avec un menu plus court mais des ingrédients plus frais.",
+    keyVocab: [
+      { fr: "à volonté", en: "all-you-can-eat" },
+      { fr: "économique", en: "economical" },
+      { fr: "la surconsommation", en: "overconsumption" },
+      { fr: "le gaspillage", en: "waste" },
+      { fr: "frais / fraîche", en: "fresh" },
+      { fr: "choisir", en: "to choose" }
+    ],
+  },
+  {
+    id: "foo_62",
+    topicKey: "food",
+    text: "Connais-tu le rôle des banques alimentaires dans ta communauté ?",
+    hint: "Discuss food charity and helping people in need.",
+    difficulty: 2,
+    followUps: [
+      "As-tu déjà donné de la nourriture à une association ?",
+      "Pourquoi y a-t-il plus de gens qui en ont besoin aujourd'hui ?",
+      "Comment peut-on aider davantage ?"
+    ],
+    modelAnswer: "Les banques alimentaires jouent un rôle vital pour aider les familles qui ont des difficultés financières à se nourrir correctement. Elles collectent les dons des particuliers et des supermarchés. Je pense que c'est une magnifique preuve de solidarité. Ma famille donne souvent des boîtes de conserve et du riz lors des collectes à l'école. Il est important de soutenir ces organisations pour que personne ne souffre de la faim.",
+    keyVocab: [
+      { fr: "une banque alimentaire", en: "a food bank" },
+      { fr: "vital / vitale", en: "vital" },
+      { fr: "un don", en: "a donation" },
+      { fr: "la solidarité", en: "solidarity" },
+      { fr: "soutenir", en: "to support" },
+      { fr: "souffrir de la faim", en: "to suffer from hunger" }
+    ],
+  },
+  {
+    id: "foo_63",
+    topicKey: "food",
+    text: "Aimes-tu regarder des concours de cuisine à la télé ?",
+    hint: "Discuss shows like MasterChef or Great British Bake Off.",
+    difficulty: 1,
+    followUps: [
+      "Qui est ton chef préféré ?",
+      "Voudrais-tu participer à une telle compétition ?",
+      "Est-ce que cela te rend affamé(e) de regarder ces émissions ?"
+    ],
+    modelAnswer: "J'adore regarder ces émissions car elles sont pleines de suspense et de créativité. C'est impressionnant de voir ce que les gens peuvent cuisiner sous pression. Cela me donne souvent de nouvelles idées pour mes propres repas, même si je ne suis pas aussi doué qu'eux ! Par contre, je finis toujours par avoir très faim après avoir vu tous ces magnifiques desserts !",
+    keyVocab: [
+      { fr: "un concours", en: "a competition" },
+      { fr: "le suspense", en: "suspense" },
+      { fr: "sous pression", en: "under pressure" },
+      { fr: "doué(e)", en: "gifted / talented" },
+      { fr: "impressionnant(e)", en: "impressive" },
+      { fr: "affamé(e)", en: "starving" }
+    ],
+  },
+  {
+    id: "foo_64",
+    topicKey: "food",
+    text: "Serais-tu prêt(e) à manger des insectes si c'était meilleur pour la planète ?",
+    hint: "Discuss entomophagy as a sustainable protein source.",
+    difficulty: 3,
+    followUps: [
+      "Penses-tu que c'est le futur de l'alimentation ?",
+      "Quelle est ta réaction face à cette idée ?",
+      "Les insectes pourraient-ils remplacer la viande de bœuf ?"
+    ],
+    modelAnswer: "C'est une idée qui me dégoûte un peu au début, mais je sais que c'est une source de protéines très écologique car l'élevage d'insectes consomme très peu d'eau et d'espace. Si les insectes étaient transformés en farine pour faire des gâteaux ou des barres énergétiques, je serais prêt à essayer. Je pense que nous devrons changer nos mentalités pour sauver l'environnement, même si c'est difficile.",
+    keyVocab: [
+      { fr: "un insecte", en: "an insect" },
+      { fr: "dégoûter", en: "to disgust" },
+      { fr: "la farine", en: "flour" },
+      { fr: "la mentalité", en: "mindset" },
+      { fr: "sauver", en: "to save" },
+      { fr: "consommer", en: "to consume" }
+    ],
+  },
+  {
+    id: "foo_65",
+    topicKey: "food",
+    text: "Pourquoi la baguette est-elle si emblématique de la France ?",
+    hint: "Discuss the cultural history and importance of French bread.",
+    difficulty: 2,
+    followUps: [
+      "En manges-tu souvent ?",
+      "Préfères-tu le pain blanc ou le pain complet ?",
+      "Sais-tu ce qu'est une boulangerie artisanale ?"
+    ],
+    modelAnswer: "La baguette est plus qu'un simple pain, c'est un symbole national qui représente l'art de vivre à la française. Elle est inscrite au patrimoine mondial de l'UNESCO. J'aime l'idée que les gens achètent leur pain frais chaque matin. Personnellement, j'adore l'odeur du pain chaud qui sort du four. C'est un aliment simple, pas cher et délicieux qui réunit tout le monde autour de la table.",
+    keyVocab: [
+      { fr: "emblématique", en: "emblematic" },
+      { fr: "un symbole", en: "a symbol" },
+      { fr: "l'art de vivre", en: "way of life" },
+      { fr: "frais / fraîche", en: "fresh" },
+      { fr: "une boulangerie", en: "a bakery" },
+      { fr: "sortir du four", en: "to come out of the oven" }
+    ],
+  },
+  {
+    id: "foo_66",
+    topicKey: "food",
+    text: "Est-ce que tu regardes le 'Nutri-Score' sur les emballages avant d'acheter ?",
+    hint: "Discuss nutritional labeling and making healthy choices.",
+    difficulty: 2,
+    followUps: [
+      "Est-ce que cela influence ton choix ?",
+      "Penses-tu que c'est un système fiable ?",
+      "Les produits avec un 'E' devraient-ils être interdits ?"
+    ],
+    modelAnswer: "Oui, je regarde souvent le score pour savoir si le produit est trop gras ou trop sucré. C'est très pratique pour comparer rapidement deux marques différentes. Je pense que c'est un système fiable qui aide les consommateurs à être plus conscients de leur santé. Cependant, il ne faut pas oublier de regarder aussi la liste des ingrédients pour éviter les additifs chimiques.",
+    keyVocab: [
+      { fr: "un emballage", en: "packaging" },
+      { fr: "fiable", en: "reliable" },
+      { fr: "conscient(e)", en: "aware" },
+      { fr: "un additif", en: "an additive" },
+      { fr: "interdire", en: "to forbid / ban" },
+      { fr: "comparer", en: "to compare" }
+    ],
+  },
+  {
+    id: "foo_67",
+    topicKey: "food",
+    text: "Que penses-tu des fermes verticales en plein centre-ville ?",
+    hint: "Discuss urban agriculture and local production.",
+    difficulty: 3,
+    followUps: [
+      "Est-ce une solution contre la pollution des transports ?",
+      "Est-ce que les légumes ont le même goût sans terre ?",
+      "Aimerais-tu avoir une mini-ferme dans ton appartement ?"
+    ],
+    modelAnswer: "Je trouve que c'est une solution brillante pour produire de la nourriture locale sans utiliser de pesticides et en réduisant les trajets en camion. Cela permet de transformer des bâtiments abandonnés en espaces verts productifs. Bien que ce soit très technologique, je pense que c'est l'avenir de nos villes pour devenir plus autonomes et durables face au changement climatique.",
+    keyVocab: [
+      { fr: "vertical(e)", en: "vertical" },
+      { fr: "un bâtiment", en: "a building" },
+      { fr: "autonome", en: "self-sufficient" },
+      { fr: "durable", en: "sustainable" },
+      { fr: "abandonné(e)", en: "abandoned" },
+      { fr: "un trajet", en: "a journey / trip" }
+    ],
+  },
+  {
+    id: "foo_68",
+    topicKey: "food",
+    text: "Préfères-tu les collations faites maison ou celles achetées au magasin ?",
+    hint: "Compare home-made snacks like cookies with store-bought ones.",
+    difficulty: 1,
+    followUps: [
+      "Quelle est ta collation préférée ?",
+      "Est-ce que les snacks du magasin sont trop sucrés ?",
+      "Sais-tu préparer des barres de céréales ?"
+    ],
+    modelAnswer: "Je préfère nettement les collations faites maison car on peut contrôler la quantité de sucre et on n'utilise pas de conservateurs. Par exemple, j'adore préparer des muffins à la banane le dimanche pour toute la semaine. Les snacks du magasin sont pratiques mais ils sont souvent trop transformés. C'est aussi une activité sympa à faire en famille pendant le week-end.",
+    keyVocab: [
+      { fr: "une collation", en: "a snack" },
+      { fr: "un conservateur", en: "a preservative" },
+      { fr: "transformé(e)", en: "processed" },
+      { fr: "contrôler", en: "to control" },
+      { fr: "la quantité", en: "quantity" },
+      { fr: "sympa", en: "nice / cool" }
+    ],
+  },
+  {
+    id: "foo_69",
+    topicKey: "food",
+    text: "Que penses-tu de l'augmentation des laits végétaux (avoine, amande, soja) ?",
+    hint: "Discuss alternatives to dairy and why people choose them.",
+    difficulty: 2,
+    followUps: [
+      "En bois-tu à la place du lait de vache ?",
+      "Est-ce meilleur pour l'environnement ?",
+      "Lequel a le meilleur goût selon toi ?"
+    ],
+    modelAnswer: "Je pense que c'est une excellente alternative, surtout pour les personnes qui sont intolérantes au lactose ou qui veulent réduire leur impact écologique. Le lait d'avoine est mon préféré car il est très crémeux. Produire du lait végétal consomme beaucoup moins d'eau et rejette moins de gaz à effet de serre que l'élevage de vaches. C'est un petit changement d'habitude qui peut aider la planète.",
+    keyVocab: [
+      { fr: "végétal / végétaux", en: "plant-based" },
+      { fr: "l'avoine", en: "oats" },
+      { fr: "l'amande", en: "almonds" },
+      { fr: "crémeux / crémeuse", en: "creamy" },
+      { fr: "l'élevage", en: "farming / livestock" },
+      { fr: "une vache", en: "a cow" }
+    ],
+  },
+  {
+    id: "foo_70",
+    topicKey: "food",
+    text: "Pourquoi est-il important de choisir du poisson issu de la pêche durable ?",
+    hint: "Discuss overfishing and ocean conservation.",
+    difficulty: 3,
+    followUps: [
+      "Est-ce que tu manges souvent du poisson ?",
+      "Connais-tu les labels qui garantissent une pêche responsable ?",
+      "Que se passerait-il si les océans étaient vides ?"
+    ],
+    modelAnswer: "La surpêche est un problème mondial majeur car elle détruit les écosystèmes marins. Il est crucial de choisir des poissons qui ne sont pas en danger d'extinction pour permettre aux populations de se renouveler. On devrait tous faire attention aux labels comme le MSC sur les emballages. Protéger les océans est indispensable pour l'équilibre de notre planète et pour notre propre survie alimentaire.",
+    keyVocab: [
+      { fr: "la pêche durable", en: "sustainable fishing" },
+      { fr: "la surpêche", en: "overfishing" },
+      { fr: "l'extinction", en: "extinction" },
+      { fr: "se renouveler", en: "to renew itself" },
+      { fr: "indispensable", en: "essential" },
+      { fr: "la survie", en: "survival" }
+    ],
+  },
+  {
+    id: "foo_71",
+    topicKey: "food",
+    text: "As-tu déjà entendu parler du mouvement 'Slow Food' ?",
+    hint: "Discuss the philosophy of eating slowly and valuing local traditions.",
+    difficulty: 2,
+    followUps: [
+      "Prends-tu le temps de savourer tes repas ?",
+      "Est-ce que l'on mange trop vite aujourd'hui ?",
+      "Pourquoi est-il important de connaître l'origine de ses aliments ?"
+    ],
+    modelAnswer: "Oui, c'est un mouvement qui encourage les gens à prendre le temps de cuisiner et de manger avec plaisir, à l'opposé du fast-food. Je pense que c'est une philosophie très saine car elle valorise la qualité et les traditions locales. Aujourd'hui, on mange souvent devant un écran ou en marchant, ce qui est mauvais pour la santé. Apprendre à savourer chaque bouchée nous permet de mieux apprécier la nourriture.",
+    keyVocab: [
+      { fr: "savourer", en: "to savor / enjoy" },
+      { fr: "valoriser", en: "to value / promote" },
+      { fr: "l'origine", en: "origin" },
+      { fr: "une bouchée", en: "a mouthful / bite" },
+      { fr: "à l'opposé de", en: "opposite to" },
+      { fr: "apprécier", en: "to appreciate" }
+    ],
+  },
+  {
+    id: "foo_72",
+    topicKey: "food",
+    text: "Comment le changement climatique affecte-t-il la production de chocolat et de café ?",
+    hint: "Discuss how rising temperatures threaten certain crops.",
+    difficulty: 3,
+    followUps: [
+      "Seras-tu triste si ces produits deviennent trop chers ?",
+      "Peut-on cultiver ces plantes ailleurs ?",
+      "Que peuvent faire les agriculteurs pour s'adapter ?"
+    ],
+    modelAnswer: "Le réchauffement climatique rend les zones de culture habituelles trop chaudes ou trop sèches, ce qui réduit les récoltes. C'est inquiétant car le chocolat et le café sont appréciés partout dans le monde. Les prix vont sans doute augmenter massivement à l'avenir. Les agriculteurs doivent essayer de nouvelles techniques ou planter des variétés plus résistantes, mais c'est un défi immense pour leur survie économique.",
+    keyVocab: [
+      { fr: "une récolte", en: "a harvest" },
+      { fr: "sans doute", en: "no doubt / probably" },
+      { fr: "massivement", en: "massively" },
+      { fr: "une variété", en: "a variety" },
+      { fr: "résistant(e)", en: "resistant" },
+      { fr: "sèche", en: "dry" }
+    ],
+  },
+  {
+    id: "foo_73",
+    topicKey: "food",
+    text: "Est-ce qu'une odeur ou un goût particulier te rappelle un souvenir d'enfance ?",
+    hint: "Discuss the link between food and memory (like Proust's Madeleine).",
+    difficulty: 2,
+    followUps: [
+      "Quel est ce souvenir ?",
+      "Pourquoi la nourriture est-elle si liée à nos émotions ?",
+      "Y a-t-il un plat que tu associes à tes vacances ?"
+    ],
+    modelAnswer: "L'odeur du pain grillé me rappelle toujours les dimanches matin chez ma grand-mère quand j'étais petit. C'est un souvenir très réconfortant qui me rend nostalgique. Je pense que la nourriture est liée à nos émotions car elle est souvent associée à des moments de partage et d'amour avec nos proches. Chaque famille a ses propres 'madeleines de Proust' qui font partie de son histoire.",
+    keyVocab: [
+      { fr: "une odeur", en: "a smell" },
+      { fr: "un souvenir", en: "a memory" },
+      { fr: "réconfortant(e)", en: "comforting" },
+      { fr: "nostalgique", en: "nostalgic" },
+      { fr: "lié à", en: "linked to" },
+      { fr: "proche", en: "relative / close one" }
+    ],
+  },
+  {
+    id: "foo_74",
+    topicKey: "food",
+    text: "Connais-tu le 'paradoxe français' concernant l'alimentation et la santé ?",
+    hint: "Discuss how the French stay healthy despite a rich diet.",
+    difficulty: 3,
+    followUps: [
+      "Penses-tu que c'est grâce au vin rouge ou aux petites portions ?",
+      "Est-ce que les Français marchent plus que nous ?",
+      "Quel est le secret d'une vie longue et saine selon toi ?"
+    ],
+    modelAnswer: "On dit que les Français mangent des choses riches comme du fromage ou du beurre, mais qu'ils ont moins de problèmes cardiaques. Je pense que c'est parce qu'ils mangent des portions plus petites et qu'ils prennent le temps de savourer leurs repas sans grignoter entre-temps. C'est une question d'équilibre et de modération. Pour moi, le secret est de manger de tout, mais en quantités raisonnables, et de rester actif.",
+    keyVocab: [
+      { fr: "un paradoxe", en: "a paradox" },
+      { fr: "cardiaque", en: "cardiac / heart-related" },
+      { fr: "grignoter", en: "to snack / nibble" },
+      { fr: "entre-temps", en: "in the meantime" },
+      { fr: "la modération", en: "moderation" },
+      { fr: "raisonnable", en: "reasonable" }
+    ],
+  },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -7722,6 +9092,104 @@ const DAILY_CHALLENGES = [
     hint: "Discuss both positive and negative impacts. Include your own experience.",
     topic: "Technologie & Société",
     difficulty: 3,
+  },
+
+  // ── ADVANCED TOPICS ──────────────────────────────────────────────────────
+
+  // PROFESSIONAL FRENCH
+  {
+    id: "pro_01",
+    topicKey: "pro",
+    text: "Quelles sont les compétences les plus importantes pour réussir dans le monde du travail aujourd'hui ?",
+    hint: "Discuss soft skills (communication, teamwork) vs hard skills (languages, tech).",
+    difficulty: 3,
+    followUps: ["Voudriez-vous travailler dans une grande entreprise internationale ?", "L'intelligence artificielle va-t-elle changer votre métier ?"],
+    modelAnswer: "À mon avis, l'adaptabilité et l'intelligence émotionnelle sont cruciales. Il faut savoir collaborer et communiquer efficacement.",
+    keyVocab: [{ fr: "l'adaptabilité", en: "adaptability" }, { fr: "collaborer", en: "to collaborate" }]
+  },
+
+  // CULTURE & TRADITIONS
+  {
+    id: "cul_01",
+    topicKey: "culture",
+    text: "Pourquoi est-il important de préserver les traditions culturelles dans un monde globalisé ?",
+    hint: "Talk about identity, heritage, and the impact of modernization.",
+    difficulty: 3,
+    followUps: ["Quelle est votre fête traditionnelle préférée ?", "La culture française influence-t-elle votre pays ?"],
+    modelAnswer: "Préserver les traditions permet de garder un lien avec nos racines et de célébrer la diversité humaine.",
+    keyVocab: [{ fr: "les racines", en: "roots" }, { fr: "globalisé", en: "globalized" }]
+  },
+
+  // LIFESTYLE & TRENDS
+  {
+    id: "life_01",
+    topicKey: "lifestyle",
+    text: "Comment la mode influence-t-elle l'identité des jeunes aujourd'hui ?",
+    hint: "Discuss self-expression, peer pressure, and sustainable fashion.",
+    difficulty: 3,
+    followUps: ["Suivez-vous les tendances sur les réseaux sociaux ?", "Le style est-il plus important que le confort ?"],
+    modelAnswer: "La mode est un moyen d'expression personnelle, mais elle peut aussi créer une pression sociale constante.",
+    keyVocab: [{ fr: "l'expression personnelle", en: "self-expression" }, { fr: "la tendance", en: "trend" }]
+  },
+
+  // CURRENT AFFAIRS
+  {
+    id: "news_01",
+    topicKey: "news",
+    text: "Quel est l'impact des réseaux sociaux sur la diffusion de l'information ?",
+    hint: "Discuss fake news, speed of information, and social awareness.",
+    difficulty: 3,
+    followUps: ["Lisez-vous souvent les actualités ?", "Peut-on faire confiance aux médias traditionnels ?"],
+    modelAnswer: "Les réseaux sociaux permettent une diffusion instantanée, mais ils favorisent aussi la propagation de fausses nouvelles.",
+    keyVocab: [{ fr: "la diffusion", en: "spread/broadcast" }, { fr: "fausses nouvelles", en: "fake news" }]
+  },
+
+  // SLANG & IDIOMS
+  {
+    id: "slang_01",
+    topicKey: "slang",
+    text: "Est-ce que tu trouves que le français familier est difficile à comprendre ?",
+    hint: "Discuss slang (verlan) and idiomatic expressions.",
+    difficulty: 2,
+    followUps: ["Utilises-tu des expressions familières avec tes amis ?", "Le français des livres est-il très différent du français parlé ?"],
+    modelAnswer: "Le français familier est complexe car il utilise beaucoup d'argot comme le verlan, mais c'est essentiel pour sonner naturel.",
+    keyVocab: [{ fr: "l'argot", en: "slang" }, { fr: "sonner naturel", en: "to sound natural" }]
+  },
+
+  // SURVIVAL FRENCH
+  {
+    id: "surv_01",
+    topicKey: "survival",
+    text: "Que ferais-tu si tu perdais ton passeport et ton téléphone dans un pays étranger ?",
+    hint: "High-pressure situation. Describe steps to take (consulate, police).",
+    difficulty: 3,
+    followUps: ["Sais-tu demander de l'aide en urgence ?", "Es-tu une personne débrouillarde ?"],
+    modelAnswer: "Je contacterais immédiatement l'ambassade et j'irais au commissariat de police le plus proche pour déclarer le vol.",
+    keyVocab: [{ fr: "l'ambassade", en: "embassy" }, { fr: "débrouillard", en: "resourceful" }]
+  },
+
+  // RHETORIC & DEBATE
+  {
+    id: "deb_01",
+    topicKey: "debate",
+    text: "Le vote devrait-il être obligatoire dès l'âge de 16 ans ?",
+    hint: "Argue for or against using logical connectors.",
+    difficulty: 3,
+    followUps: ["Les jeunes s'intéressent-ils assez à la politique ?", "Comment encourager l'engagement citoyen ?"],
+    modelAnswer: "D'une part, cela encouragerait l'engagement civique précoce. D'autre part, certains pensent que 16 ans est trop jeune.",
+    keyVocab: [{ fr: "l'engagement civique", en: "civic engagement" }, { fr: "d'une part", en: "on one hand" }]
+  },
+
+  // VISUAL STORYTELLING
+  {
+    id: "art_01",
+    topicKey: "art",
+    text: "Décris un tableau ou une image qui t'a particulièrement marqué.",
+    hint: "Focus on colors, composition, and emotions felt.",
+    difficulty: 3,
+    followUps: ["L'art est-il essentiel à la société ?", "Préfères-tu l'art moderne ou classique ?"],
+    modelAnswer: "Ce tableau m'a frappé par l'utilisation de couleurs vives et la mélancolie qui se dégage du personnage central.",
+    keyVocab: [{ fr: "frapper", en: "to strike/impress" }, { fr: "se dégager", en: "to emanate" }]
   },
 ];
 

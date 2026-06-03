@@ -1,4 +1,4 @@
-import { CheckCircle, ChevronRight, RotateCcw } from 'lucide-react';
+import { CheckCircle, ChevronRight, RotateCcw, Lightbulb } from 'lucide-react';
 import type { CoachingIssue } from '../../../types';
 import { SeverityBadge } from '../../../components/ui/SeverityBadge';
 import { SEVERITY_BG, SEVERITY_COLOR } from '../theme/severity';
@@ -15,13 +15,17 @@ export function IssueRow({ issue, isSelected }: Props) {
     <div className={`rounded-lg border p-3 ${bg} ${isSelected ? 'ring-1 ring-violet-400/40' : ''}`}>
       <div className="flex items-center gap-2 mb-1.5 flex-wrap">
         <SeverityBadge level={issue.severity} />
+        {/* themeLabel from backend — more readable than raw category */}
+        {issue.themeLabel && (
+          <span className="text-[9px] text-slate-400 font-medium">{issue.themeLabel}</span>
+        )}
         {issue.marksImpact > 0 && (
           <span className="text-[9px] text-slate-600">−{issue.marksImpact} mark{issue.marksImpact > 1 ? 's' : ''}</span>
         )}
         {issue.isRecurring && (
           <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-[8px] font-bold text-amber-400 uppercase tracking-wide">
             <RotateCcw size={8} />
-            Recurring pattern
+            Recurring
           </span>
         )}
       </div>
@@ -47,13 +51,22 @@ export function IssueRow({ issue, isSelected }: Props) {
       </div>
 
       {issue.stronger && (
-        <div className="flex items-start gap-1.5 text-[10px]">
+        <div className="flex items-start gap-1.5 text-[10px] mb-1">
           <ChevronRight size={10} className="text-violet-400 flex-shrink-0 mt-0.5" />
           <span className="text-violet-300">{issue.stronger}</span>
         </div>
       )}
 
-      {issue.teachMe && <TeachMeLesson teachMe={issue.teachMe} />}
+      {/* masterTip — single highest-leverage fix from backend */}
+      {issue.masterTip && (
+        <div className="flex items-start gap-1.5 mt-1.5 p-2 rounded-md bg-amber-500/8 border border-amber-500/15">
+          <Lightbulb size={9} className="text-amber-400 flex-shrink-0 mt-0.5" />
+          <p className="text-[9px] text-amber-300">{issue.masterTip}</p>
+        </div>
+      )}
+
+      {/* Prefer mini_lesson (new backend) over teachMe (offline legacy) */}
+      <TeachMeLesson mini_lesson={issue.mini_lesson} teachMe={issue.teachMe} />
     </div>
   );
 }

@@ -1,4 +1,9 @@
-import type { Feedback, FeedbackV2, Question, CoachingIssue, ExaminerVerdict, IssueCategory, TranscriptSpan, TeachMe } from '../../types';
+import type { FeedbackV2, Question, CoachingIssue, ExaminerVerdict, IssueCategory, TranscriptSpan, TeachMe, DifficultyEvalExpectations, DifficultyTier } from '../../types';
+import { DIFFICULTY_CONFIG, DEFAULT_DIFFICULTY } from '../../utils/difficultyConfig';
+import { classifyTier, buildTier0Result, buildTier1LocalResult } from './responseTier';
+import { applyQualityGate } from './qualityGate';
+import { detectAvoidance } from './diagnosticEngine';
+import { scoreToBand } from '../../domain/scoring';
 
 // ── Diagnostic themes ──────────────────────────────────────────────────────────
 const THEMES: Record<string, { label: string; desc: string; sde_key: string; master_tip: string }> = {
@@ -444,6 +449,94 @@ const VOCAB_UPGRADES = [
   { detect: (t: string) => /\b(faire)\b/i.test(t),           basic: "faire",     upgrade: "réaliser, pratiquer, effectuer" },
 ];
 
+// ── Vocabulary V2 rules: context-aware, extract actual phrase from transcript ──
+interface VocabV2Rule {
+  pattern: RegExp;
+  tier: 'weak' | 'decent';
+  getBasic: (m: RegExpMatchArray) => string;
+  upgrades: { phrase: string; level: 'B1' | 'B2' | 'C1'; nuance: string }[];
+}
+
+const VOCAB_V2_RULES: VocabV2Rule[] = [
+  // Safe for all contexts
+  {
+    pattern: /c'était (bien|bon|super|cool|sympa)\b/gi,
+    tier: 'weak',
+    getBasic: (m) => m[0],
+    upgrades: [
+      { phrase: "c'était formidable", level: 'B1', nuance: 'Much stronger positive evaluation' },
+      { phrase: "c'était vraiment enrichissant", level: 'B2', nuance: 'Implies personal growth' },
+    ],
+  },
+  // Safe for all contexts
+  {
+    pattern: /\bbeaucoup( de)?\b/gi,
+    tier: 'decent',
+    getBasic: (m) => m[0],
+    upgrades: [
+      { phrase: "énormément de", level: 'B1', nuance: 'Stronger degree' },
+      { phrase: "une multitude de", level: 'B2', nuance: 'Richer register (countable nouns)' },
+    ],
+  },
+  // Safe for all contexts — hedged opinion
+  {
+    pattern: /\bje pense que\b/gi,
+    tier: 'decent',
+    getBasic: (m) => m[0],
+    upgrades: [
+      { phrase: "il me semble que", level: 'B1', nuance: 'More nuanced, hedged opinion' },
+      { phrase: "je suis convaincu(e) que", level: 'B2', nuance: 'Expresses conviction' },
+    ],
+  },
+  // j'aime + infinitive ONLY → passionné par (avoids "je suis passionné par le chocolat")
+  {
+    pattern: /j'aime (?=\w+(?:er|ir|re)\b)/gi,
+    tier: 'decent',
+    getBasic: (m) => m[0].trimEnd(),
+    upgrades: [
+      { phrase: "je suis passionné(e) par", level: 'B1', nuance: 'Shows genuine enthusiasm for the activity' },
+      { phrase: "ça me tient à cœur de", level: 'B2', nuance: 'Emotionally rich — idiomatic' },
+    ],
+  },
+  // j'aime + noun/article → safer universal upgrades
+  {
+    pattern: /j'aime (?=le |la |les |l')/gi,
+    tier: 'decent',
+    getBasic: (m) => m[0].trimEnd(),
+    upgrades: [
+      { phrase: "j'apprécie vraiment", level: 'B1', nuance: 'Works for food, places, and activities' },
+      { phrase: "ça me plaît énormément", level: 'B1', nuance: 'Natural upgrade, universal context' },
+    ],
+  },
+  // Generic j'aime not followed by infinitive or article
+  {
+    pattern: /j'aime(?! (?:\w+(?:er|ir|re)\b|le |la |les |l'))/gi,
+    tier: 'decent',
+    getBasic: (m) => m[0].trimEnd(),
+    upgrades: [
+      { phrase: "j'apprécie vraiment", level: 'B1', nuance: 'Versatile upgrade for any context' },
+    ],
+  },
+];
+
+function _buildVocabV2(transcript: string): import('../../types').VocabularyEntry[] {
+  const entries: import('../../types').VocabularyEntry[] = [];
+  const seen = new Set<string>();
+
+  for (const rule of VOCAB_V2_RULES) {
+    rule.pattern.lastIndex = 0;
+    const match = rule.pattern.exec(transcript);
+    if (!match) continue;
+    const basic = rule.getBasic(match);
+    if (seen.has(basic.toLowerCase().trim())) continue;
+    seen.add(basic.toLowerCase().trim());
+    entries.push({ basic, tier: rule.tier, upgrades: rule.upgrades });
+    if (entries.length >= 5) break;
+  }
+
+  return entries;
+}
+
 const FILLER_WORDS = [
   { word: "euh",   label: "Verbal Filler",      tip: "Try to pause silently instead of using 'euh'." },
   { word: "bah",   label: "Informal Filler",    tip: "Avoid 'bah' in formal exams; it sounds too casual." },
@@ -497,39 +590,112 @@ function _buildTranscriptAnnotations(transcript: string, issues: CoachingIssue[]
   return annotations;
 }
 
-function _findStrongestMomentSpan(transcript: string, annotations: TranscriptSpan[]): TranscriptSpan | undefined {
-  // Find a span containing a sophisticated structure (subjunctive, conditional, cleft, connector)
-  const sophisticatedPatterns = [
-    /\bil faut que\b/i,
-    /\b(si j'avais|si j'étais|si on pouvait)\b/i,
-    /\bce que (j'aime|je préfère|je pense)\b/i,
-    /\b(cependant|néanmoins|toutefois|par ailleurs|en revanche)\b/i,
-    /\b(il me semble que|à mon avis|selon moi)\b/i,
-    /\b(dont|lequel|laquelle|auxquels)\b/i,
-  ];
+function _sentenceAt(transcript: string, matchIndex: number): { start: number; end: number; text: string } {
+  const sentenceStart = transcript.lastIndexOf('.', matchIndex - 1) + 1;
+  const sentenceEnd = transcript.indexOf('.', matchIndex);
+  const end = sentenceEnd === -1 ? transcript.length : sentenceEnd + 1;
+  return { start: Math.max(0, sentenceStart), end, text: transcript.slice(Math.max(0, sentenceStart), end).trim() };
+}
 
-  for (const pattern of sophisticatedPatterns) {
-    const match = transcript.match(pattern);
-    if (match && match.index !== undefined) {
-      // Extend to sentence boundary
-      const sentenceStart = transcript.lastIndexOf('.', match.index - 1) + 1;
-      const sentenceEnd = transcript.indexOf('.', match.index + match[0].length);
-      const end = sentenceEnd === -1 ? transcript.length : sentenceEnd + 1;
-      return {
-        start: Math.max(0, sentenceStart),
-        end,
-        severity: 'strong',
-        category: 'grammar',
-      };
-    }
+function _findStrongestMoment(
+  transcript: string,
+  annotations: TranscriptSpan[],
+): { span: TranscriptSpan | undefined; explanation: string } {
+  const annotatedRanges = annotations.map(a => ({ start: a.start, end: a.end }));
+  const isClean = (start: number, end: number) =>
+    !annotatedRanges.some(r => r.start < end && r.end > start);
+
+  // Priority 1: correct passé composé (avoir or être auxiliary)
+  const pcPattern = /\b(j'ai|il a|elle a|nous avons|ils ont|je suis|il est|elle est|nous sommes|ils sont)\s+\w+(é|i|u|is|it|ert)\b/i;
+  const pcMatch = transcript.match(pcPattern);
+  if (pcMatch && pcMatch.index !== undefined && isClean(pcMatch.index, pcMatch.index + pcMatch[0].length)) {
+    const s = _sentenceAt(transcript, pcMatch.index);
+    return {
+      span: { start: s.start, end: s.end, severity: 'strong', category: 'tense' },
+      explanation: `Your phrase '${s.text.length > 60 ? s.text.slice(0, 60) + '…' : s.text}' shows correct use of the passé composé — using a past tense is one of the clearest signs of progress beyond Foundation level.`,
+    };
   }
 
-  // Fallback: find the longest stretch without annotations
-  if (annotations.length === 0 && transcript.length > 20) {
-    return { start: 0, end: Math.min(60, transcript.length), severity: 'strong', category: 'fluency' };
+  // Priority 2: giving a reason (parce que / car / puisque)
+  const reasonPattern = /\b(parce que|car|puisque)\b/i;
+  const reasonMatch = transcript.match(reasonPattern);
+  if (reasonMatch && reasonMatch.index !== undefined) {
+    const s = _sentenceAt(transcript, reasonMatch.index);
+    return {
+      span: { start: s.start, end: s.end, severity: 'strong', category: 'fluency' },
+      explanation: `'${s.text.length > 60 ? s.text.slice(0, 60) + '…' : s.text}' is your strongest moment — giving a reason is exactly what IGCSE Communication marks reward. Examiners look for justified opinions at every band.`,
+    };
   }
 
-  return undefined;
+  // Priority 3: connector beyond "et" (mais, donc, alors, pourtant, cependant, etc.)
+  const connectorPattern = /\b(mais|donc|alors|pourtant|cependant|néanmoins|toutefois|par contre|en revanche|d'ailleurs|en plus|de plus|ensuite|enfin|finalement)\b/i;
+  const connMatch = transcript.match(connectorPattern);
+  if (connMatch && connMatch.index !== undefined) {
+    const word = connMatch[0];
+    const s = _sentenceAt(transcript, connMatch.index);
+    return {
+      span: { start: s.start, end: s.end, severity: 'strong', category: 'fluency' },
+      explanation: `Your use of '${word}' to link ideas shows you can organise your response logically — this is a mark booster at every level, including Foundation.`,
+    };
+  }
+
+  // Priority 4: relative clause (qui/que/dont/où connecting clauses)
+  const relPattern = /\b\w+ (qui|que|qu'|dont|où) \w+/i;
+  const relMatch = transcript.match(relPattern);
+  if (relMatch && relMatch.index !== undefined && isClean(relMatch.index, relMatch.index + relMatch[0].length)) {
+    const s = _sentenceAt(transcript, relMatch.index);
+    return {
+      span: { start: s.start, end: s.end, severity: 'strong', category: 'grammar' },
+      explanation: `'${s.text.length > 60 ? s.text.slice(0, 60) + '…' : s.text}' uses a relative clause to connect ideas — this is a Core-to-Extended grammar marker that examiners reward.`,
+    };
+  }
+
+  // Priority 5: future or conditional form
+  const futCondPattern = /\b(irai|ferai|serai|aurai|pourrai|devrai|aimerais|voudrais|serait|irais|ferais|aurais|faudrait)\b/i;
+  const futMatch = transcript.match(futCondPattern);
+  if (futMatch && futMatch.index !== undefined && isClean(futMatch.index, futMatch.index + futMatch[0].length)) {
+    const s = _sentenceAt(transcript, futMatch.index);
+    const isCond = /ais|ait|aient|ions|iez/.test(futMatch[0]);
+    return {
+      span: { start: s.start, end: s.end, severity: 'strong', category: 'tense' },
+      explanation: `Your ${isCond ? 'conditional' : 'future'} form in '${s.text.length > 60 ? s.text.slice(0, 60) + '…' : s.text}' shows tense range beyond the present — exactly what Language marks reward.`,
+    };
+  }
+
+  // Priority 6: subjunctive / hypothetical (kept last — advanced)
+  const advancedPattern = /\b(il faut que|si j'avais|si j'étais|ce que j'aime|il me semble que|à mon avis|selon moi)\b/i;
+  const advMatch = transcript.match(advancedPattern);
+  if (advMatch && advMatch.index !== undefined) {
+    const s = _sentenceAt(transcript, advMatch.index);
+    return {
+      span: { start: s.start, end: s.end, severity: 'strong', category: 'grammar' },
+      explanation: `'${s.text.length > 60 ? s.text.slice(0, 60) + '…' : s.text}' demonstrates an advanced grammatical structure — this is a strong indicator of Extended-band performance.`,
+    };
+  }
+
+  // Fallback: longest sentence with no error annotations, as a communication-based strength
+  const sentences = transcript.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 8);
+  const cleanSentences = sentences.filter(s => {
+    const start = transcript.indexOf(s);
+    return start !== -1 && isClean(start, start + s.length);
+  });
+  const longest = [...cleanSentences].sort((a, b) => b.length - a.length)[0];
+  if (longest) {
+    const start = transcript.indexOf(longest);
+    const snippet = longest.length > 60 ? longest.slice(0, 60) + '…' : longest;
+    return {
+      span: { start, end: start + longest.length, severity: 'strong', category: 'fluency' },
+      explanation: `'${snippet}' communicates your point clearly and directly — effective communication is the foundation of the IGCSE mark scheme.`,
+    };
+  }
+
+  // No span found at all
+  return {
+    span: undefined,
+    explanation: annotations.length === 0
+      ? 'Your response was largely accurate — a solid foundation to build from.'
+      : 'Attempting complete, structured sentences shows linguistic ambition even when errors occur.',
+  };
 }
 
 // Accuracy-weighted scoring (Part 8 of plan)
@@ -542,8 +708,9 @@ function _computeScores(data: {
   hasOpinion: boolean;
   structureCount: number;
   fillerCount: number;
+  expectations: DifficultyEvalExpectations;
 }) {
-  const { wordCount, tenses, complexity, grammarErrors, relevanceScore, hasOpinion, structureCount, fillerCount } = data;
+  const { wordCount, tenses, complexity, grammarErrors, relevanceScore, hasOpinion, structureCount, fillerCount, expectations } = data;
 
   const majorErrors = grammarErrors.filter(e => e.severity === 'major').length;
   const minorErrors = grammarErrors.filter(e => e.severity === 'minor').length;
@@ -568,9 +735,9 @@ function _computeScores(data: {
 
   // COMMUNICATION
   let comm = 2.0
-    + (wordCount > 15 ? 1.5 : 0)
-    + (wordCount > 40 ? 1.5 : 0)
-    + (wordCount > 70 ? 0.5 : 0)
+    + (wordCount > expectations.wordCountTier1 ? 1.5 : 0)
+    + (wordCount > expectations.wordCountTier2 ? 1.5 : 0)
+    + (wordCount > expectations.wordCountTier3 ? 0.5 : 0)
     + (hasOpinion ? 1.5 : 0)
     + (structureCount >= 2 ? 1.0 : 0)
     + relevanceScore * 2.0;
@@ -604,62 +771,85 @@ const THEME_TO_CATEGORY: Record<string, IssueCategory> = {
 
 // Data-driven examiner verdict that references the actual transcript/session
 function _buildExaminerVerdict(
-  scores: Feedback['scores'],
+  scores: FeedbackV2['scores'],
   wordCount: number,
   cefrLevel: string,
+  transcript: string,
   topIssueTheme?: string,
+  topIssueQuote?: string,
   complexity?: Record<string, boolean>,
   tenses?: ReturnType<typeof _detectTenses>,
 ): ExaminerVerdict {
-  const band = scores.overall >= 8.5 ? 'Extended-High' as const
-    : scores.overall >= 7 ? 'Extended-Mid' as const
-    : scores.overall >= 5.5 ? 'Core-Secure' as const
-    : scores.overall >= 4 ? 'Core-Developing' as const
-    : scores.overall >= 2.5 ? 'Foundation-Secure' as const
-    : 'Foundation-Developing' as const;
+  const band = scoreToBand(scores.overall);
 
   const weakestDimension = scores.language <= scores.communication && scores.language <= scores.fluency
     ? 'language range' : scores.fluency <= scores.communication ? 'accuracy' : 'communication';
 
-  // Word count commentary
-  const wordNote = wordCount < 30
-    ? `This ${wordCount}-word response is significantly below the IGCSE 40-word baseline — aim to double the length.`
-    : wordCount < 40
-    ? `This ${wordCount}-word response is slightly short; 40+ words unlocks fuller Communication marks.`
-    : `This ${wordCount}-word response demonstrates adequate engagement with the question.`;
+  // Build a specific notebook that references actual transcript content
+  const parts: string[] = [];
 
-  // Structures used commentary
-  const structuresUsed: string[] = [];
-  if (tenses?.subjunctive) structuresUsed.push("subjunctive");
-  if (tenses?.conditional) structuresUsed.push("conditional");
-  if (tenses?.imparfait) structuresUsed.push("imparfait");
-  if (complexity?.connectors) structuresUsed.push("discourse connectors");
-  if (complexity?.hypothetical) structuresUsed.push("hypothetical");
+  // What the student did well — name specific structures found
+  const positives: string[] = [];
+  if (tenses?.past) {
+    const pcMatch = transcript.match(/\b(j'ai|je suis|il a|elle a)\s+\w+(é|i|u)\b/i);
+    if (pcMatch) positives.push(`used passé composé ('${pcMatch[0]}')`);
+  }
+  if (tenses?.conditional) positives.push("attempted conditional tense");
+  if (tenses?.subjunctive) positives.push("used subjunctive mood");
+  if (complexity?.connectors) {
+    const connMatch = transcript.match(/\b(mais|donc|cependant|néanmoins|par contre|en revanche|d'ailleurs|pourtant)\b/i);
+    if (connMatch) positives.push(`linked ideas with '${connMatch[0]}'`);
+  }
+  if (/\b(parce que|car|puisque)\b/i.test(transcript)) positives.push("justified an opinion with 'parce que'");
 
-  const structureNote = structuresUsed.length > 0
-    ? `The candidate used ${structuresUsed.join(' and ')}, which accesses higher Language marks.`
-    : "No complex grammatical structures were detected. Adding one conditional or relative clause would immediately raise the Language band.";
+  if (positives.length > 0) {
+    parts.push(`This response ${positives.slice(0, 2).join(' and ')}.`);
+  }
 
-  const errorNote = topIssueTheme
-    ? `The primary accuracy barrier is ${topIssueTheme} — eliminating this pattern would move the response up by at least one band.`
-    : "Accuracy is the strongest element of this response.";
+  // Primary error — name it with the actual quote
+  if (topIssueQuote && topIssueTheme) {
+    parts.push(`The main accuracy issue is ${topIssueTheme}: '${topIssueQuote}' needs correction.`);
+  } else if (!topIssueTheme) {
+    parts.push("No significant accuracy errors detected in this response.");
+  }
 
-  const oneLiner = `${cefrLevel} response — ${wordCount < 40 ? 'limited length and ' : ''}${weakestDimension} holds back the band.`;
+  // Length note only if genuinely short
+  if (wordCount < 30) {
+    parts.push(`At ${wordCount} words, the response is too short — aim for 40+ to access full Communication marks.`);
+  }
 
-  const notebook = `${wordNote} ${structureNote} ${errorNote}`;
+  const notebook = parts.join(' ');
+  const oneLiner = positives.length > 0
+    ? `${cefrLevel} — strong on ${positives[0]}; work on ${weakestDimension}.`
+    : `${cefrLevel} response — ${weakestDimension} is the primary mark barrier.`;
 
-  const nextStep = band === 'Foundation-Developing' ? "Focus on sentence length and basic accuracy."
-    : band === 'Foundation-Secure' ? "Add one tense beyond present to access Core bands."
-    : band === 'Core-Developing' ? "Eliminate elision/auxiliary errors and add an opinion phrase."
-    : band === 'Core-Secure' ? "One correctly formed conditional or subjunctive moves you to Extended."
-    : band === 'Extended-Mid' ? "Aim for zero major errors and add a sophisticated connector."
+  const nextStep = band === 'Foundation-Developing' ? "Focus on complete sentences and basic accuracy."
+    : band === 'Foundation-Secure' ? "Add a past tense (passé composé) to access Core bands."
+    : band === 'Core-Developing' ? "Eliminate your most frequent error and add a personal opinion with a reason."
+    : band === 'Core-Secure' ? "One correctly formed conditional or relative clause moves you to Extended band."
+    : band === 'Extended-Mid' ? "Aim for zero major errors and vary your connectors."
     : "Refine register and eliminate all minor accuracy slips.";
+
+  // Examiner insight: single highest-leverage improvement, specific to this response
+  let examinerInsight: string;
+  if (scores.language < 5 && topIssueTheme) {
+    examinerInsight = `Fix '${topIssueQuote ?? topIssueTheme}' — eliminating this single error pattern would be your biggest mark gain right now.`;
+  } else if (scores.communication < 5 && !/\b(pense|crois|avis|trouve|semble|estime|selon moi|à mon avis)\b/i.test(transcript)) {
+    examinerInsight = "Add a personal opinion with justification ('À mon avis… parce que…') — examiners reward justified views across all bands.";
+  } else if (!tenses?.past && !tenses?.conditional && !tenses?.future) {
+    examinerInsight = "Introduce one tense beyond the present — even a simple 'j'ai mangé' (passé composé) immediately raises your Language mark.";
+  } else if (scores.overall >= 7) {
+    examinerInsight = "Vary your sentence openers — avoid starting every sentence with 'Je'. Use 'En ce qui me concerne…' or 'Ce qui est certain, c'est que…'.";
+  } else {
+    examinerInsight = `${nextStep}`;
+  }
 
   return {
     oneLiner,
     notebook,
     predictedBand: band,
     marksGuidance: `Predicted band: ${band}. ${nextStep}`,
+    examinerInsight,
   };
 }
 
@@ -674,7 +864,11 @@ function _priorityScore(issue: CoachingIssue): number {
 
 // ── Public API ────────────────────────────────────────────────────────────────
 
-export function evaluate(transcript: string, question: Question): FeedbackV2 {
+export function evaluate(transcript: string, question: Question, difficulty: DifficultyTier = DEFAULT_DIFFICULTY): FeedbackV2 {
+  const tier = classifyTier(transcript);
+  if (tier === 0) return buildTier0Result();
+  if (tier === 1) return buildTier1LocalResult(transcript);
+
   const t = transcript;
   const wordCount = t.trim().split(/\s+/).filter(Boolean).length;
   const tenses = _detectTenses(t);
@@ -713,6 +907,7 @@ export function evaluate(transcript: string, question: Question): FeedbackV2 {
     ruleId: rule.id,
   }));
 
+  const expectations = DIFFICULTY_CONFIG[difficulty].expectations;
   const scores = _computeScores({
     wordCount, tenses, complexity,
     grammarErrors: allErrors.map(e => ({ severity: e.severity, theme: e.themeKey })),
@@ -720,6 +915,7 @@ export function evaluate(transcript: string, question: Question): FeedbackV2 {
     hasOpinion: /\b(pense|crois|avis|aime|trouve)\b/i.test(t),
     structureCount: structureFindings.filter(f => f.type === "positive").length,
     fillerCount: fillers.length,
+    expectations,
   });
 
   const style = STYLE_UPGRADES
@@ -750,6 +946,9 @@ export function evaluate(transcript: string, question: Question): FeedbackV2 {
       examinerNote: libraryEntry.examinerNote,
     };
 
+    // High confidence if we captured the actual quote; medium if quote is empty
+    const confidence = err.quote ? 0.95 : 0.70;
+
     return {
       id: err.ruleId,
       category: THEME_TO_CATEGORY[themeKey] ?? 'grammar',
@@ -759,19 +958,44 @@ export function evaluate(transcript: string, question: Question): FeedbackV2 {
       correction: err.correction,
       marksImpact: err.severity === 'major' ? 2 : 1,
       teachMe: baseTeachMe,
+      evidence: err.quote || undefined,
+      sourceWords: err.quote ? err.quote.split(/\s+/) : undefined,
+      confidence,
     } satisfies CoachingIssue;
   });
 
   // Sort by priority and select top priority
   const sortedIssues = [...issues].sort((a, b) => _priorityScore(b) - _priorityScore(a));
   const topPriorityIssue = sortedIssues[0];
-  const topTheme = allErrors.find(e => e.severity === 'major')?.theme;
+  const topMajorError = allErrors.find(e => e.severity === 'major');
+  const topTheme = topMajorError?.theme;
+  const topQuote = topMajorError?.quote || topPriorityIssue?.quote;
 
   // Build transcript annotations and strongest moment
   const transcriptAnnotations = _buildTranscriptAnnotations(transcript, sortedIssues);
-  const strongestMomentSpan = _findStrongestMomentSpan(transcript, transcriptAnnotations);
+  const strongest = _findStrongestMoment(transcript, transcriptAnnotations);
 
-  return {
+  // Build avoidance report for offline path
+  const avoidanceReport = detectAvoidance(transcript, question, expectations);
+
+  // Tag avoidance entries with confidence and evidence
+  const taggedAvoidance = avoidanceReport.map(entry => ({
+    ...entry,
+    confidence: 0.75,
+    evidence: transcript.split(/\s+/).find(w => entry.observation.toLowerCase().includes(w.toLowerCase())) ?? undefined,
+  }));
+
+  // Build vocabulary V2 entries with evidence tags
+  const rawVocabV2 = _buildVocabV2(transcript);
+  const taggedVocabV2 = rawVocabV2.map(entry => ({
+    ...entry,
+    evidence: entry.basic,
+    sourceWords: entry.basic.split(/\s+/),
+    confidence: 0.88,
+  }));
+
+  const result: FeedbackV2 = {
+    responseTier: tier,
     scores,
     grammar: {
       critical: allErrors.filter(e => e.severity === "major").slice(0, 4).map(e => ({ theme: e.theme, severity: e.severity, msg: e.diagnostic, diagnostic: e.diagnostic, correction: e.correction })),
@@ -785,11 +1009,16 @@ export function evaluate(transcript: string, question: Question): FeedbackV2 {
     schemaVersion: 2,
     issues: sortedIssues.slice(0, 8),
     topPriorityIssueId: topPriorityIssue?.id,
-    strongestMomentSpan,
-    examiner: _buildExaminerVerdict(scores, wordCount, cefrLevel, topTheme, complexity, tenses),
+    strongestMomentSpan: strongest.span,
+    strongestMomentExplanation: strongest.explanation,
+    vocabularyV2: taggedVocabV2,
+    avoidanceReport: taggedAvoidance,
+    examiner: _buildExaminerVerdict(scores, wordCount, cefrLevel, transcript, topTheme, topQuote, complexity, tenses),
     transcriptAnnotations,
     pronunciation: { score: 7, issues: [] },
   };
+
+  return applyQualityGate(result, transcript);
 }
 
 export function pacingLabel(wpm: number) {

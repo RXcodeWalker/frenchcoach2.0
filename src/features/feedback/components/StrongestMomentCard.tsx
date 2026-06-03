@@ -8,35 +8,42 @@ interface Props {
 }
 
 export function StrongestMomentCard({ feedback, transcript }: Props) {
-  const span = feedback.strongestMomentSpan;
+  if ((feedback.responseTier ?? 3) <= 1) return null;
 
-  // Prefer slicing the actual transcript by span; fall back to deep analysis sentence
-  const strongText = span && transcript && span.start < transcript.length
+  // Prefer best_moment (new backend field), fall back to legacy span/explanation
+  const bestMoment = feedback.best_moment;
+  const legacyExplanation = feedback.strongestMomentExplanation;
+
+  const span = feedback.strongestMomentSpan;
+  const spanText = span && transcript && span.start < transcript.length
     ? transcript.slice(span.start, Math.min(span.end, transcript.length)).trim()
     : null;
 
-  const stylePositives = feedback.style?.length ? null : null;
+  // Nothing to show
+  if (!bestMoment && !legacyExplanation && !spanText) return null;
 
   return (
     <CollapsibleCard
       title="Strongest Moment"
       icon={<Star size={13} className="text-emerald-400" />}
-      defaultOpen={false}
+      defaultOpen={true}
       className="border border-emerald-500/10"
     >
-      {strongText ? (
+      {bestMoment ? (
+        // New backend field — rich coaching voice
+        <p className="text-[11px] text-slate-300 leading-relaxed">{bestMoment}</p>
+      ) : spanText ? (
+        // Legacy: span-derived quote + explanation
         <div className="p-3 rounded-lg bg-emerald-500/8 border border-emerald-500/15">
-          <p className="text-[10px] text-emerald-300 font-medium italic">"{strongText}"</p>
-          <p className="text-[10px] text-slate-500 mt-1">This section demonstrates clear, natural French — keep doing this.</p>
+          <p className="text-[10px] text-emerald-300 font-medium italic">"{spanText}"</p>
+          {legacyExplanation && (
+            <p className="text-[10px] text-slate-400 mt-1">{legacyExplanation}</p>
+          )}
         </div>
       ) : (
-        <p className="text-[10px] text-slate-500">
-          {feedback.grammar?.polish.length === 0 && feedback.grammar?.critical.length === 0
-            ? 'Your response was largely accurate — a solid foundation to build from.'
-            : 'Even with errors, using complex tenses and connectors shows linguistic ambition.'}
-        </p>
+        // Explanation only
+        <p className="text-[10px] text-slate-400">{legacyExplanation}</p>
       )}
-      {stylePositives}
     </CollapsibleCard>
   );
 }

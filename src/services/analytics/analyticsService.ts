@@ -2,8 +2,10 @@
 import type { Session } from '../../types';
 
 import { hasStreakFreeze, useStreakFreeze } from '../progression/progressionService';
+import { STORAGE_KEYS } from '../persistence/storage';
 
-const STORAGE_KEY = "frenchCoach_v2";
+const STORAGE_KEY = STORAGE_KEYS.analytics;
+const MASTERY_KEY_CONST = STORAGE_KEYS.topicMastery;
 
 interface StoredSession {
   id: string;
@@ -33,8 +35,14 @@ function load(): AnalyticsData {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return { sessions: [], totalWords: 0, streak: { count: 0, lastDate: null }, challengeLog: {} };
     const parsed = JSON.parse(raw);
+    const seen = new Set<string>();
+    const sessions = (parsed.sessions || []).filter((s: StoredSession) => {
+      if (seen.has(s.id)) return false;
+      seen.add(s.id);
+      return true;
+    });
     return {
-      sessions: parsed.sessions || [],
+      sessions,
       totalWords: parsed.totalWords || 0,
       streak: parsed.streak || { count: 0, lastDate: null },
       challengeLog: parsed.challengeLog || {},
@@ -88,6 +96,7 @@ export function recordSession(session: Session): StoredSession {
     score:        session.score,
     durationSec:  session.durationSec,
   };
+  if (data.sessions.some(s => s.id === stored.id)) return stored;
   data.sessions.push(stored);
   data.totalWords = (data.totalWords || 0) + session.wordCount;
   updateStreak(data);
@@ -170,3 +179,25 @@ export function isTodayChallengeComplete(): boolean {
 
 export function resetAll() { localStorage.removeItem(STORAGE_KEY); }
 export function exportData() { return JSON.stringify(load(), null, 2); }
+
+// ── Topic mastery persistence ──────────────────────────────────────────────────
+
+const MASTERY_KEY = MASTERY_KEY_CONST;
+
+export function updateTopicMastery(entry: { topicKey: string; sessionsCompleted: number; uniqueQuestionsAnswered: string[]; averageScore: number; lastSessionAt: string; mastered: boolean; masteredAt?: string; badge?: string }) {
+  try {
+    const raw = localStorage.getItem(MASTERY_KEY);
+    const current = raw ? JSON.parse(raw) : {};
+    current[entry.topicKey] = entry;
+    localStorage.setItem(MASTERY_KEY, JSON.stringify(current));
+  } catch {}
+}
+
+export function getTopicMasteryAll(): Record<string, { topicKey: string; sessionsCompleted: number; uniqueQuestionsAnswered: string[]; averageScore: number; lastSessionAt: string; mastered: boolean; masteredAt?: string; badge?: string }> {
+  try {
+    const raw = localStorage.getItem(MASTERY_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}

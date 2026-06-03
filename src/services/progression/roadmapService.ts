@@ -1,5 +1,6 @@
 import { RoadmapLevel, RoadmapData } from '../../types';
 import { getStats } from '../analytics/analyticsService';
+import { STORAGE_KEYS, storageGet } from '../persistence/storage';
 
 export const ROADMAP_LEVELS: RoadmapLevel[] = [
   {
@@ -80,7 +81,7 @@ export const SKILL_INFO = {
   examResponse:  { label: "Exam Response",  icon: "🎯", desc: "Performance in exam conditions" },
 };
 
-const KEY = "frenchCoach_roadmap";
+const KEY = STORAGE_KEYS.roadmap;
 
 function loadData(): RoadmapData {
   try {
@@ -197,9 +198,7 @@ export function evaluateRoadmap(): RoadmapData {
   const topicSet = new Set(sessions.filter(s => s.topicKey).map(s => s.topicKey));
   const maxIScore = igcse.reduce((m, s) => Math.max(m, s.score || 0), 0);
   
-  // Note: Vocab vault count would need VocabVault service which might be local storage too
-  const vaultRaw = localStorage.getItem('frenchCoach_vault');
-  const vaultCount = vaultRaw ? JSON.parse(vaultRaw).length : 0;
+  const vaultCount = storageGet<unknown[]>(STORAGE_KEYS.vault, []).length;
 
   ROADMAP_LEVELS.forEach((level, li) => {
     if (li > data.levelIndex + 1) return;

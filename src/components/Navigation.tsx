@@ -63,13 +63,11 @@ export function SideRail() {
                     transition={{ type: 'spring', stiffness: 350, damping: 30 }}
                   />
                 )}
-                {/* Active indicator line */}
+                {/* Active indicator line (rendered without layout animation to avoid misalignment) */}
                 {active && (
-                  <motion.div
-                    layoutId="nav-indicator"
+                  <div
                     className="absolute left-0 top-1/2 -translate-y-1/2 w-[2.5px] h-4 bg-violet-400 rounded-r-full"
                     style={{ boxShadow: '0 0 8px rgba(124, 58, 237, 0.7)' }}
-                    transition={{ type: 'spring', stiffness: 350, damping: 30 }}
                   />
                 )}
                 <span

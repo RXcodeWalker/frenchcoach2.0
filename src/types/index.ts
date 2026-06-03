@@ -76,6 +76,8 @@ export interface Topic {
   color: string;
   description: string;
   questionsCount: number;
+  locked?: boolean;
+  isAdvanced?: boolean;
 }
 
 export interface Question {
@@ -345,6 +347,76 @@ export interface ScenarioState {
   next?: string;
 }
 
+// ── Response Tier System ──────────────────────────────────────────────────────
+
+/** 0=no answer, 1=1-3 words, 2=4-25 words, 3=26+ words */
+export type ResponseTier = 0 | 1 | 2 | 3;
+
+export interface ExpansionLevel {
+  level: 1 | 2 | 3;
+  sentence: string;
+  addedWhat: string;
+}
+
+/** Three-layer coaching feedback: what was communicated, how the examiner sees it, how to improve */
+export interface CoachingLayer {
+  teacher: string;
+  examiner: string;
+  coach: string;
+}
+
+// ── AI Engine Selection ────────────────────────────────────────────────────────
+
+export type AIEngine = 'gemini' | 'groq' | 'offline';
+
+// ── Learner Difficulty / Proficiency Tier ────────────────────────────────────
+
+export type DifficultyTier = 'beginner' | 'intermediate' | 'advanced' | 'expert';
+
+export interface DifficultyEvalExpectations {
+  wordCountTier1: number;
+  wordCountTier2: number;
+  wordCountTier3: number;
+  requireConnectors: boolean;
+  requirePastTense: boolean;
+  requireSubjunctive: boolean;
+  requireMultiplePerspectives: boolean;
+  requireDetailedJustification: boolean;
+}
+
+export interface DifficultyConfig {
+  tier: DifficultyTier;
+  label: string;
+  cefr: string;
+  cefrTarget: string;
+  icon: string;
+  color: string;
+  description: string;
+  preferredQuestionDifficulty: (1 | 2 | 3)[];
+  expectations: DifficultyEvalExpectations;
+  coachingTone: string;
+  coachingRubric: string;
+}
+
+export type EngineHealth = 'healthy' | 'degraded' | 'unavailable' | 'checking';
+
+export type EngineConfidence = 'high' | 'medium_high' | 'limited';
+
+export interface EngineMetadata {
+  requestedEngine: AIEngine;
+  actualEngine: AIEngine;
+  fallbackUsed: boolean;
+  failoverReason?: string;
+  latencyMs: number;
+  evaluatedAt: string;
+}
+
+export interface EngineResult {
+  engine: AIEngine;
+  feedback: FeedbackV2;
+  meta: EngineMetadata;
+}
+
 // ── FeedbackV2 — extended schema (all fields optional for back-compat) ─────────
 
 export type Severity = 'major' | 'minor' | 'polish' | 'strong' | 'anglicism';
@@ -371,6 +443,14 @@ export interface TeachMe {
   examinerNote?: string;
 }
 
+export interface MiniLesson {
+  title: string;
+  rule: string;
+  examples: string[];
+  common_mistake: string;
+  practice: string;
+}
+
 export interface CoachingIssue {
   id: string;
   category: IssueCategory;
@@ -382,9 +462,16 @@ export interface CoachingIssue {
   stronger?: string;
   marksImpact: 0 | 1 | 2 | 3;
   teachMe?: TeachMe;
+  mini_lesson?: MiniLesson;
+  themeLabel?: string;
+  themeDesc?: string;
+  masterTip?: string;
   isRecurring?: boolean;
   recurrenceNote?: string;
   patternTemplate?: string;
+  evidence?: string;
+  sourceWords?: string[];
+  confidence?: number;
 }
 
 export interface VocabularyEntry {
@@ -392,6 +479,9 @@ export interface VocabularyEntry {
   tier: 'weak' | 'decent' | 'advanced' | 'idiomatic' | 'repetitive' | 'anglicism';
   upgrades: { phrase: string; nuance: string; level: 'B1' | 'B2' | 'C1' }[];
   topic?: string;
+  evidence?: string;
+  sourceWords?: string[];
+  confidence?: number;
 }
 
 export interface PronunciationIssue {
@@ -411,6 +501,7 @@ export interface ExaminerVerdict {
     | 'Core-Developing' | 'Core-Secure'
     | 'Extended-Mid' | 'Extended-High';
   marksGuidance: string;
+  examinerInsight?: string;
 }
 
 export interface DeepAnalysis {
@@ -431,6 +522,14 @@ export interface FeedbackV2 extends Feedback {
   examiner?: ExaminerVerdict;
   topPriorityIssueId?: string;
   strongestMomentSpan?: TranscriptSpan;
+  strongestMomentExplanation?: string;
+  best_moment?: string;
+  biggest_opportunity?: string;
+  improved_answer?: string;
+  rephrase?: string;
+  advanced_answer?: string;
+  expansion_ideas?: string[];
+  formatted_transcript?: string;
   issues?: CoachingIssue[];
   transcriptAnnotations?: TranscriptSpan[];
   vocabularyV2?: VocabularyEntry[];
@@ -439,6 +538,13 @@ export interface FeedbackV2 extends Feedback {
   schemaVersion?: 2 | 3;
   avoidanceReport?: AvoidanceReportEntry[];
   skillContextUsed?: boolean;
+  provider?: string;
+  providerAttempts?: { provider: string; success: boolean; error?: string }[];
+  engineMeta?: EngineMetadata;
+  responseTier?: ResponseTier;
+  expansionLevels?: ExpansionLevel[];
+  coachingLayer?: CoachingLayer;
+  confidence?: number;
 }
 
 // ── Avoidance detection ────────────────────────────────────────────────────────
@@ -447,9 +553,61 @@ export interface AvoidanceSignal {
   skillId: string;
   observation: string;
   nudge: string;
+  evidence?: string;
+  sourceWords?: string[];
+  confidence?: number;
 }
 
 export type AvoidanceReportEntry = AvoidanceSignal;
+
+// ── Practice Session Architecture ────────────────────────────────────────────
+
+export type SessionMode = 'quick' | 'standard' | 'deep_dive' | 'full_topic';
+
+export interface QuestionAttempt {
+  transcript: string;
+  score: number;
+  xpEarned: number;
+  feedback: FeedbackV2;
+  durationSec: number;
+  attemptIndex: number;
+}
+
+export interface SessionQuestion {
+  question: Question;
+  status: 'pending' | 'active' | 'completed' | 'skipped';
+  attempts: QuestionAttempt[];
+  bestScore: number;
+  savedVocab: string[];
+}
+
+export interface ActiveSession {
+  id: string;
+  topicKey: string;
+  mode: SessionMode;
+  targetCount: number;
+  questions: SessionQuestion[];
+  currentIndex: number;
+  questionsCompleted: number;
+  answerStreak: number;
+  bestStreak: number;
+  xpAccumulated: number;
+  gemsAccumulated: number;
+  totalWords: number;
+  startedAt: string;
+  skillSnapshot: SkillProfile;
+}
+
+export interface TopicMasteryEntry {
+  topicKey: string;
+  sessionsCompleted: number;
+  uniqueQuestionsAnswered: string[];
+  averageScore: number;
+  lastSessionAt: string;
+  mastered: boolean;
+  masteredAt?: string;
+  badge?: 'bronze' | 'silver' | 'gold';
+}
 
 // ── Cross-session skill context (sent to backend) ─────────────────────────────
 

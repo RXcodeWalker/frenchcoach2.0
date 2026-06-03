@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Heart, Zap, Play, RotateCcw, Trophy, AlertTriangle, Sparkles } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { awardXP, checkAchievements, getProgressionState } from '../services/progression/progressionService';
+import { recordSession as persistSession } from '../services/analytics/analyticsService';
 
 interface FallingWord {
   id: string;
@@ -51,7 +53,7 @@ const VOCABULARY = [
 
 export function WordDrop() {
   const navigate = useNavigate();
-  const { dispatch } = useApp();
+  const { state, dispatch } = useApp();
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -178,23 +180,22 @@ export function WordDrop() {
   };
 
   const handleGameOver = useCallback(() => {
-    const xpEarned = Math.floor(score / 2);
-    if (xpEarned > 0) {
-      dispatch({ 
-        type: 'ADD_SESSION', 
-        session: {
-          id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-          mode: 'word_drop',
-          wordCount: Math.floor(score / 10),
-          score: Math.min(100, score / 2),
-          xpEarned,
-          durationSec: 0,
-          createdAt: new Date().toISOString()
-        }
-      });
-      dispatch({ type: 'ADD_XP', amount: xpEarned });
-    }
-  }, [score, dispatch]);
+    const sessionScore = Math.min(10, score / 20);
+    const session = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      mode: 'word_drop' as const,
+      wordCount: Math.floor(score / 10),
+      score: sessionScore,
+      xpEarned: 0,
+      durationSec: 0,
+      createdAt: new Date().toISOString(),
+    };
+    persistSession(session);
+    const xpResult = awardXP(sessionScore, state.profile.streak_days);
+    const { level: newLevel } = getProgressionState();
+    const newUnlockedAchievementIds = checkAchievements({ score: sessionScore, mode: 'word_drop', totalSessions: state.profile.sessions_count + 1 });
+    dispatch({ type: 'ADD_SESSION', session: { ...session, xpEarned: xpResult.gain }, xpResult, newUnlockedAchievementIds, newLevelName: newLevel.name });
+  }, [score, state.profile.streak_days, state.profile.sessions_count, dispatch]);
 
   useEffect(() => {
     if (gameOver) {

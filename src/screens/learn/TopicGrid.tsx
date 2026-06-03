@@ -1,15 +1,28 @@
-import { motion } from 'framer-motion';
-import { ChevronRight } from 'lucide-react';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronRight, AlertTriangle, ArrowRight } from 'lucide-react';
 import { TOPICS } from '../../data/gameData';
-import type { Topic } from '../../types/index';
+import type { Topic, DifficultyTier } from '../../types/index';
 
 interface Props {
   onSelect: (topic: Topic) => void;
   title?: string;
   subtitle?: string;
+  selectedDifficulty?: DifficultyTier;
 }
 
-export function TopicGrid({ onSelect, title = "Learn", subtitle = "Choose a topic and start practicing" }: Props) {
+export function TopicGrid({ onSelect, title = "Learn", subtitle = "Choose a topic and start practicing", selectedDifficulty }: Props) {
+  const [selectedAdvanced, setSelectedAdvanced] = useState<Topic | null>(null);
+  const visibleTopics = TOPICS.filter(t => !(t.isAdvanced && selectedDifficulty === 'beginner'));
+
+  const handleTopicClick = (topic: Topic) => {
+    if (topic.isAdvanced) {
+      setSelectedAdvanced(topic);
+    } else {
+      onSelect(topic);
+    }
+  };
+
   return (
     <div className="min-h-screen pb-24 md:pb-8">
       <motion.div
@@ -24,10 +37,10 @@ export function TopicGrid({ onSelect, title = "Learn", subtitle = "Choose a topi
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {TOPICS.map((topic, idx) => (
+          {visibleTopics.map((topic, idx) => (
             <motion.button
               key={topic.key}
-              onClick={() => onSelect(topic)}
+              onClick={() => handleTopicClick(topic)}
               className="group relative overflow-hidden rounded-xl glass p-5 text-left hover:border-white/10 transition-all duration-300 perspective"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -51,7 +64,14 @@ export function TopicGrid({ onSelect, title = "Learn", subtitle = "Choose a topi
                 >
                   {topic.icon}
                 </div>
-                <h3 className="font-bold text-white text-sm mb-0.5">{topic.label}</h3>
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <h3 className="font-bold text-white text-sm">{topic.label}</h3>
+                  {topic.isAdvanced && (
+                    <span className="text-[8px] bg-amber-500/20 text-amber-400 px-1 rounded-sm uppercase tracking-wider font-bold border border-amber-500/20">
+                      ADV
+                    </span>
+                  )}
+                </div>
                 <p className="text-[10px] text-slate-600">{topic.labelEn}</p>
                 <p className="text-[9px] text-slate-700 mt-2">{topic.questionsCount} questions</p>
               </div>
@@ -77,6 +97,51 @@ export function TopicGrid({ onSelect, title = "Learn", subtitle = "Choose a topi
           </div>
         </motion.button>
       </motion.div>
+
+      {/* Advanced Topic Confirmation Modal */}
+      <AnimatePresence>
+        {selectedAdvanced && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="w-full max-w-md glass border-amber-500/30 overflow-hidden rounded-2xl"
+            >
+              <div className="p-6 text-center">
+                <div className="w-16 h-16 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-amber-500/30">
+                  <AlertTriangle className="text-amber-500" size={32} />
+                </div>
+                
+                <h2 className="text-xl font-black text-white mb-2">Advanced Content!</h2>
+                <p className="text-slate-400 text-sm mb-6">
+                  Are you sure you want to continue? This section contains <span className="text-amber-400 font-bold">advanced content</span>, complex grammar, and specialized vocabulary (blah blah blah).
+                </p>
+
+                <div className="flex flex-col gap-3">
+                  <button
+                    onClick={() => {
+                      onSelect(selectedAdvanced);
+                      setSelectedAdvanced(null);
+                    }}
+                    className="w-full py-4 bg-amber-500 hover:bg-amber-600 text-black font-black rounded-xl transition-all flex items-center justify-center gap-2 group"
+                  >
+                    CONTINUE ANYWAY
+                    <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                  </button>
+                  
+                  <button
+                    onClick={() => setSelectedAdvanced(null)}
+                    className="w-full py-3 text-slate-500 hover:text-white font-bold transition-colors"
+                  >
+                    Go Back
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

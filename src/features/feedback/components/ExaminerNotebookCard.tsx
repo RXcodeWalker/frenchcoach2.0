@@ -37,6 +37,14 @@ export function ExaminerNotebookCard({ examiner }: Props) {
         <p className="text-[11px] text-slate-300 leading-relaxed italic border-t border-slate-800 pt-2">
           {examiner.notebook}
         </p>
+        {examiner.examinerInsight && (
+          <div className="pt-2 border-t border-slate-800">
+            <p className="text-[9px] uppercase tracking-wide text-amber-400/70 font-bold mb-1">
+              Examiner Insight — highest-leverage improvement
+            </p>
+            <p className="text-[10px] text-amber-200 font-medium not-italic">{examiner.examinerInsight}</p>
+          </div>
+        )}
         {examiner.marksGuidance && (
           <p className="text-[10px] text-slate-500 pt-2 border-t border-slate-800 not-italic">
             {examiner.marksGuidance}

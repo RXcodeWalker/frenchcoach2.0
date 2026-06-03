@@ -1,5 +1,7 @@
 // Copied verbatim from progression.js — strips DOM calls, keeps XP/level logic
-const KEY = "frenchCoach_progression";
+import { STORAGE_KEYS } from '../persistence/storage';
+import { computeXPGain } from '../../domain/xp';
+const KEY = STORAGE_KEYS.progression;
 
 interface ProgressionData {
   xp: number; totalXP: number; gems: number; achievements: string[];
@@ -49,10 +51,8 @@ export function awardXP(score: number, streak = 0): { gain: number; totalXP: num
   const prevXP = data.xp;
   const prevLevel = _levelFor(prevXP);
 
-  const base        = 10;
-  const scoreBonus  = Math.round((score / 10) * 15);   // 0–15 XP
-  const streakBonus = Math.min(streak, 7) * 2;          // 0–14 XP
-  let gain = base + scoreBonus + streakBonus;
+  const base = computeXPGain(score, streak);
+  let gain = base.gain;
 
   // Apply multipliers from active boosters
   const now = new Date().toISOString();
@@ -60,9 +60,8 @@ export function awardXP(score: number, streak = 0): { gain: number; totalXP: num
   validBoosters.forEach(b => {
     gain = Math.round(gain * b.multiplier);
   });
-  data.activeBoosters = validBoosters; // Cleanup expired ones
+  data.activeBoosters = validBoosters;
 
-  // Award gems: 1 gem per 10 XP gain, plus 5 gems for score >= 8
   const gemsGain = Math.floor(gain / 10) + (score >= 8 ? 5 : 0);
 
   data.xp      = prevXP + gain;

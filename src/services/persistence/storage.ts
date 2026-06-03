@@ -1,0 +1,55 @@
+// Central registry of all localStorage keys. Edit here, not at call sites.
+export const STORAGE_KEYS = {
+  analytics:      'frenchCoach_v2',
+  progression:    'frenchCoach_progression',
+  diagnosticSDE:  'frenchCoach_sde',
+  topicMastery:   'frenchCoach_topicMastery',
+  masteredDrills: 'frenchCoach_masteredDrills',
+  darkMode:       'frenchCoach_darkMode',
+  aiEngine:       'frenchCoach_aiEngine',
+  difficulty:     'frenchCoach_difficulty',
+  roadmap:        'frenchCoach_roadmap',
+  vault:          'frenchCoach_vault',
+  contentCache:   'frenchCoach_questions_v1',
+  newsCache:      'frenchCoach_dailyNews',
+} as const;
+
+export type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS];
+
+/**
+ * JSON-safe localStorage read. Returns `fallback` on missing key, corrupt JSON,
+ * or any storage error — never throws, never white-screens on boot.
+ */
+export function storageGet<T>(key: string, fallback: T): T {
+  try {
+    const raw = localStorage.getItem(key);
+    if (raw === null) return fallback;
+    return JSON.parse(raw) as T;
+  } catch {
+    return fallback;
+  }
+}
+
+/**
+ * JSON-safe localStorage write. Silently ignores quota errors.
+ */
+export function storageSet(key: string, value: unknown): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {}
+}
+
+/**
+ * JSON-safe localStorage write for non-JSON string values (e.g. 'true'/'false').
+ */
+export function storageSetRaw(key: string, value: string): void {
+  try {
+    localStorage.setItem(key, value);
+  } catch {}
+}
+
+export function storageRemove(key: string): void {
+  try {
+    localStorage.removeItem(key);
+  } catch {}
+}

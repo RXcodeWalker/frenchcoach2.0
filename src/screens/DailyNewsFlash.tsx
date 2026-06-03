@@ -26,14 +26,17 @@ import { MOCK_NEWS, NewsSnippet } from '../data/mocks/mockNews';
 import { PageShell } from '../components/layout/PageShell';
 import { TopContextBar } from '../components/TopContextBar';
 import type { FeedbackV2, Question, Session } from '../types';
+import { STORAGE_KEYS } from '../services/persistence/storage';
+import { awardXP, checkAchievements, getProgressionState } from '../services/progression/progressionService';
+import { recordSession as persistSession } from '../services/analytics/analyticsService';
 
 type Phase = 'listening' | 'recording' | 'feedback';
 
-const CACHE_KEY = 'frenchCoach_dailyNews';
+const CACHE_KEY = STORAGE_KEYS.newsCache;
 
 export function DailyNewsFlash() {
   const navigate = useNavigate();
-  const { dispatch } = useApp();
+  const { state, dispatch } = useApp();
   const recording = useRecording();
   
   const [phase, setPhase] = useState<Phase>('listening');
@@ -193,8 +196,15 @@ export function DailyNewsFlash() {
         createdAt: new Date().toISOString()
       };
       
-      dispatch({ type: 'ADD_SESSION', session });
-      dispatch({ type: 'ADD_XP', amount: xpEarned });
+      persistSession(session);
+      const xpResult = awardXP(session.score, state.profile.streak_days);
+      const { level: newLevel } = getProgressionState();
+      const newUnlockedAchievementIds = checkAchievements({
+        score: session.score,
+        mode: session.mode,
+        totalSessions: state.profile.sessions_count + 1,
+      });
+      dispatch({ type: 'ADD_SESSION', session: { ...session, xpEarned: xpResult.gain }, xpResult, newUnlockedAchievementIds, newLevelName: newLevel.name });
       setPhase('feedback');
     } catch (error) {
       console.error("Failed to get feedback:", error);

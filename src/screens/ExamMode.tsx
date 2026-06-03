@@ -5,7 +5,9 @@ import { useApp } from '../context/AppContext';
 import { getRandomQuestion, getQuestionById } from '../data/gameData';
 import { getAIFeedback } from '../services/api/apiClient';
 import { getSkillProfile } from '../services/coaching/diagnosticEngine';
-import type { Session, Question, Feedback } from '../types/index';
+import { awardXP, checkAchievements, getProgressionState } from '../services/progression/progressionService';
+import { recordSession as persistSession } from '../services/analytics/analyticsService';
+import type { Session, Question } from '../types/index';
 import { useRecording } from '../features/recording/useRecording';
 import { ExamIntro } from './exam/ExamIntro';
 import { ExamResults } from './exam/ExamResults';
@@ -25,7 +27,7 @@ const TOPIC_AREAS = {
 };
 
 export function ExamMode() {
-  const { dispatch } = useApp();
+  const { state, dispatch } = useApp();
   const navigate = useNavigate();
   const [examState, setExamState] = useState<ExamState>('intro');
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -140,7 +142,7 @@ export function ExamMode() {
     const transcript = await recording.stop();
     const elapsed = recording.elapsedTime;
 
-    let fb: Feedback | undefined;
+    let fb: import('../types').FeedbackV2 | undefined;
     let score: number;
     try {
       fb = await getAIFeedback(transcript, currentQ);
@@ -181,17 +183,26 @@ export function ExamMode() {
     setExamState('results');
     const avgScore = Math.round((targetAnswers.reduce((s, a) => s + a.score, 0) / targetAnswers.length) * 10) / 10;
     const totalSec = targetAnswers.reduce((s, a) => s + a.time, 0);
-    dispatch({ type: 'ADD_XP', amount: 100, x: 70, y: 20 });
     const session: Session = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       mode: 'exam',
       wordCount: Math.round(totalSec * 1.5),
       score: avgScore,
-      xpEarned: 100,
+      xpEarned: 0,
       durationSec: totalSec,
       createdAt: new Date().toISOString(),
     };
-    dispatch({ type: 'ADD_SESSION', session });
+
+    persistSession(session);
+    const xpResult = awardXP(avgScore, state.profile.streak_days);
+    const { level: newLevel } = getProgressionState();
+    const newUnlockedAchievementIds = checkAchievements({
+      score: avgScore,
+      mode: 'exam',
+      totalSessions: state.profile.sessions_count + 1,
+    });
+
+    dispatch({ type: 'ADD_SESSION', session: { ...session, xpEarned: xpResult.gain }, xpResult, newUnlockedAchievementIds, newLevelName: newLevel.name, xpAnimX: 70, xpAnimY: 20 });
     dispatch({ type: 'UPDATE_SKILL_PROFILE', skillProfile: getSkillProfile() });
     confetti({ particleCount: 150, spread: 100, origin: { y: 0.5 } });
   };

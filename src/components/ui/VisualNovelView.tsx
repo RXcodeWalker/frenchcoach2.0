@@ -7,7 +7,7 @@ import { MissionObjectivesList, type Objective } from './MissionObjectivesList';
 import { RecordingPanel } from '../../screens/learn/RecordingPanel';
 import { FeedbackPanel } from '../../screens/learn/FeedbackPanel';
 import { Info, Star, ArrowLeft } from 'lucide-react';
-import type { Feedback } from '../../types';
+import type { FeedbackV2 } from '../../types';
 
 interface VisualNovelViewProps {
   topic: string;
@@ -20,7 +20,7 @@ interface VisualNovelViewProps {
   isProcessing: boolean;
   recording: any;
   showFeedback: boolean;
-  lastFeedback: Feedback | null;
+  lastFeedback: FeedbackV2 | null;
   onStopRecording: () => void;
   onNextStep: () => void;
   onExit: () => void;

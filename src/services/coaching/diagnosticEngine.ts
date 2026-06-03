@@ -1,6 +1,8 @@
-import type { FeedbackV2, SkillProfile, MistakeLog, SkillContext, AvoidanceSignal, Question } from '../../types';
+import type { FeedbackV2, SkillProfile, MistakeLog, SkillContext, AvoidanceSignal, Question, DifficultyEvalExpectations } from '../../types';
+import { DEFAULT_DIFFICULTY, DIFFICULTY_CONFIG } from '../../utils/difficultyConfig';
+import { STORAGE_KEYS } from '../persistence/storage';
 
-const STORAGE_KEY = "frenchCoach_sde";
+const STORAGE_KEY = STORAGE_KEYS.diagnosticSDE;
 const HALF_LIFE_DAYS = 14;
 const LAMBDA = Math.log(2) / HALF_LIFE_DAYS;
 
@@ -166,60 +168,166 @@ export function buildSkillContext(): SkillContext {
  * Detect what structures the student did NOT attempt, given what the question invited.
  * Returns AvoidanceSignal[] describing the gap.
  */
-export function detectAvoidance(transcript: string, question: Question): AvoidanceSignal[] {
+// Topic-aware nudges: check question keywords and flag missing content
+interface TopicNudge {
+  keywords: RegExp;
+  missingCheck: (t: string) => boolean;
+  observation: string;
+  nudge: string;
+}
+
+const TOPIC_NUDGES: TopicNudge[] = [
+  {
+    keywords: /\b(école|lycée|collège|cours|classe|scolaire)\b/i,
+    missingCheck: (t) => !/\b(matière|prof|camarade|devoir|récré|emploi du temps|note|classe|cours)\b/i.test(t),
+    observation: "You described your school but didn't mention subjects, teachers, or classmates.",
+    nudge: "Add: 'Ma matière préférée est… parce que le professeur est…' — specific details earn Communication marks.",
+  },
+  {
+    keywords: /\b(famille|parents|frères?|sœurs?|chez moi|maison)\b/i,
+    missingCheck: (t) => !/\b(entends|relation|proche|ensemble|vivre|habite|maison|appartement|sympa)\b/i.test(t),
+    observation: "You mentioned your family but didn't describe your relationships or home life.",
+    nudge: "Try: 'Je m'entends bien avec… parce que nous…' — describing relationships adds real depth.",
+  },
+  {
+    keywords: /\b(sport|hobby|loisir|activité|temps libre|passe-temps)\b/i,
+    missingCheck: (t) => !/\b(souvent|fois|semaine|parce que|car|depuis|raison|aime|adore|déteste)\b/i.test(t),
+    observation: "You named an activity but didn't say how often you do it or why you enjoy it.",
+    nudge: "Add frequency and reason: 'Je joue… deux fois par semaine parce que ça me détend.'",
+  },
+  {
+    keywords: /\b(vacances|voyage|pays|visite|partir|aller|destination)\b/i,
+    missingCheck: (t) => !/\b(avec|famille|ami|activité|souvenir|mangé|visité|logé|hébergé|météo)\b/i.test(t),
+    observation: "You described where you went but didn't mention who you went with or what you did there.",
+    nudge: "Try: 'J'y suis allé(e) avec… et nous avons…' — activities and companions unlock Communication marks.",
+  },
+  {
+    keywords: /\b(environnement|planète|réchauffement|écologie|nature|pollution)\b/i,
+    missingCheck: (t) => !/\b(solution|geste|peut|faut|devrait|pourrait|recycler|réduire|économiser)\b/i.test(t),
+    observation: "You identified an environmental issue but didn't suggest solutions or personal actions.",
+    nudge: "Add: 'On pourrait… / Il faudrait que les gens…' — solutions are highly rewarded in this topic.",
+  },
+  {
+    keywords: /\b(technologie|téléphone|internet|réseaux sociaux|portable|ordinateur)\b/i,
+    missingCheck: (t) => !/\b(avantage|inconvénient|problème|danger|bénéfice|utile|inutile|trop|dépend)\b/i.test(t),
+    observation: "You mentioned technology but didn't weigh its advantages or disadvantages.",
+    nudge: "Try: 'D'un côté… mais d'un autre côté…' — balanced opinions push you towards Extended band.",
+  },
+];
+
+export function detectAvoidance(
+  transcript: string,
+  question: Question,
+  expectations: DifficultyEvalExpectations = DIFFICULTY_CONFIG[DEFAULT_DIFFICULTY].expectations,
+): AvoidanceSignal[] {
   const signals: AvoidanceSignal[] = [];
   const t = transcript.toLowerCase();
   const q = (question.text + ' ' + (question.hint ?? '')).toLowerCase();
   const wordCount = transcript.trim().split(/\s+/).filter(Boolean).length;
 
-  // Hypothetical / conditional: invited by si, imagine, si tu pouvais, if
+  // No avoidance analysis possible on very short responses
+  if (wordCount < 5) return [];
+
+  // Topic-aware content suggestions (check question keywords)
+  for (const nudge of TOPIC_NUDGES) {
+    if (nudge.keywords.test(q) && nudge.missingCheck(t)) {
+      signals.push({ skillId: 'connectors', observation: nudge.observation, nudge: nudge.nudge });
+      break; // one topic nudge per response
+    }
+  }
+
+  // Hypothetical / conditional: invited by si, imagine, en rêve, idéal
   const invitesHypothetical = /\bsi\b|\bimagine\b|\ben rêve\b|\bidéal(e|ement)?\b/i.test(q);
   const hasConditional = /\b(ais|ait|aient|ions|iez)\b/.test(t);
   if (invitesHypothetical && !hasConditional) {
     signals.push({
       skillId: 'hypothetical',
-      observation: "This question invited a conditional/hypothetical (si + imparfait) but none appeared in your response.",
+      observation: "This question invited a conditional/hypothetical response but you answered in the present tense only.",
       nudge: "Try: 'Si j'avais le choix, j'irais…' or 'Si c'était possible, je voudrais…' — this guarantees Language marks.",
     });
   }
 
-  // Subjunctive: invited at difficulty >= 2 if no subjunctive detected
+  // Subjunctive: only expected at levels where requireSubjunctive is true
   const hasSubjunctive = /\b(fasse|soit|puisse|sache|aille|veuille|vaille|il faut que|pour que|bien que|à condition que)\b/i.test(t);
-  if (question.difficulty >= 2 && !hasSubjunctive) {
+  if (expectations.requireSubjunctive && !hasSubjunctive) {
     signals.push({
       skillId: 'subjunctive',
-      observation: "At this difficulty level, examiners expect at least one subjunctive attempt.",
-      nudge: "Add: 'Il faut que je fasse des efforts…' or 'Je veux que ce soit possible…' — even one correct subjunctive boosts your Language score.",
+      observation: "At this level, examiners look for at least one subjunctive attempt.",
+      nudge: "Add: 'Il faut que je fasse…' or 'Je veux que ce soit possible…' — even one correct subjunctive boosts your Language score.",
     });
   }
 
-  // Opinion phrases: expected in most speaking questions
-  const hasOpinion = /\b(pense|crois|avis|trouve|semble|estime|selon moi|à mon avis|il me semble)\b/i.test(t);
-  if (!hasOpinion && wordCount > 20) {
+  // Connectors: expected at advanced/expert levels for longer answers
+  const hasConnectors = /\b(cependant|néanmoins|toutefois|par contre|en revanche|d'ailleurs|en outre|ainsi|de plus|pourtant|en effet|c'est pourquoi)\b/i.test(t);
+  if (expectations.requireConnectors && wordCount > 30 && !hasConnectors) {
+    signals.push({
+      skillId: 'connectors',
+      observation: "Your response lacks discourse connectors — examiners expect these at this level.",
+      nudge: "Use: 'Cependant…', 'En revanche…', 'De plus…', or 'C'est pourquoi…' to link your ideas and access Language marks.",
+    });
+  }
+
+  // Tense variety: at least one non-present tense expected
+  const hasPastOrFuture = /\b(ai|as|a|avons|avez|ont)\s+\w+é\b|\b(étais|était|avais|avait)\b|\b(ira|irai|ferai|serai|pourrai|voudrai)\b/i.test(t);
+  if (expectations.requirePastTense && !hasPastOrFuture) {
+    signals.push({
+      skillId: 'tense_past',
+      observation: "Your answer uses only the present tense — examiners expect tense variety at this level.",
+      nudge: "Add a past reference ('Quand j'étais jeune…' / 'L'année dernière…') or a future one ('Dans l'avenir…') to access Language marks.",
+    });
+  }
+
+  // Multiple perspectives: expected at expert level
+  const hasPerspective = /\b(d'un côté|d'autre part|certes|en revanche|il est vrai que|certains pensent|d'autres estiment|cependant|toutefois)\b/i.test(t);
+  if (expectations.requireMultiplePerspectives && !hasPerspective) {
     signals.push({
       skillId: 'opinion',
-      observation: "No opinion markers were detected. Cambridge examiners expect you to express and justify your view.",
-      nudge: "Add: 'À mon avis…', 'Je pense que…', or 'Selon moi…' to access Communication marks.",
+      observation: "At this level, examiners expect you to consider more than one perspective or counterargument.",
+      nudge: "Use: 'D'un côté… mais d'un autre côté…', 'Certes… cependant…', or 'Il est vrai que… néanmoins…'",
     });
   }
 
-  // Sentence variety: all sentences starting with Je
+  // Justification depth: expected at advanced/expert levels
+  const hasJustification = /\b(parce que|car|puisque|étant donné|vu que|grâce à|en raison de|c'est pourquoi)\b/i.test(t);
+  if (expectations.requireDetailedJustification && !hasJustification && wordCount > 15) {
+    signals.push({
+      skillId: 'opinion',
+      observation: "You gave an opinion but didn't justify it — examiners expect a reason at this level.",
+      nudge: "Add 'parce que…' or 'car…' followed by a specific reason or example to access Communication marks.",
+    });
+  }
+
+  // Opinion: expected in most questions — quote what they DID say in the observation
+  const hasOpinion = /\b(pense|crois|avis|trouve|semble|estime|selon moi|à mon avis|il me semble)\b/i.test(t);
+  if (!hasOpinion && wordCount > 20) {
+    const firstClause = transcript.split(/[.!?,]+/)[0]?.trim() ?? '';
+    const preview = firstClause.length > 45 ? firstClause.slice(0, 45) + '…' : firstClause;
+    signals.push({
+      skillId: 'opinion',
+      observation: preview
+        ? `You stated '${preview}' but didn't give a personal opinion on the topic.`
+        : "No opinion markers were detected. Cambridge examiners expect you to express and justify your view.",
+      nudge: "Add: 'À mon avis…', 'Je pense que…', or 'Selon moi…' followed by a reason to access Communication marks.",
+    });
+  }
+
+  // Sentence variety: all sentences starting with Je/J' (only if 3+ sentences)
   const sentences = transcript.split(/[.!?]+/).map(s => s.trim()).filter(Boolean);
   const jeCount = sentences.filter(s => /^(je|j')/i.test(s)).length;
   if (sentences.length >= 3 && jeCount === sentences.length) {
     signals.push({
       skillId: 'connectors',
-      observation: "Every sentence starts with 'Je' or 'J''. This is a structural monotony examiners penalise.",
-      nudge: "Vary your openers: 'En ce qui me concerne…', 'D'une part…', 'Ce qui est certain, c'est que…'",
+      observation: "Every sentence starts with 'Je' or 'J'' — examiners penalise structural monotony.",
+      nudge: "Vary your openers: 'En ce qui me concerne…', 'Ce qui est certain, c'est que…', or 'D'une part…'",
     });
   }
 
-  // Response length
-  if (wordCount < 30) {
+  // Word count: fire when below the tier's first threshold
+  if (wordCount < expectations.wordCountTier1) {
     signals.push({
       skillId: 'word_count',
-      observation: `Your response was only ${wordCount} words — well below the IGCSE 40-word minimum for Communication marks.`,
-      nudge: "Aim for 50–70 words: give an opinion, a reason, and an example for every question.",
+      observation: `Your response was only ${wordCount} words — too short for Communication marks at this level (minimum ~${expectations.wordCountTier2} words).`,
+      nudge: "Aim to state an opinion, give a reason, and add an example for every question.",
     });
   }
 
