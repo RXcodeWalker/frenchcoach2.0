@@ -14,6 +14,8 @@ import { VisualNovelView } from '../components/ui/VisualNovelView';
 import type { Expression } from '../components/ui/CharacterAvatar';
 import type { Objective } from '../components/ui/MissionObjectivesList';
 import type { FeedbackV2, Question } from '../types';
+import { observeAttempt } from '../services/coach/sessionOrchestrator';
+import { getSkillProfile } from '../services/coaching/diagnosticEngine';
 
 interface Roleplay {
   id: string;
@@ -132,7 +134,19 @@ export function StoryMode() {
     else if (fb.scores.overall >= 6) setExpression('happy');
     else if (fb.scores.overall <= 3) setExpression('confused');
     else setExpression('thinking');
-    
+
+    // Emit evidence + update beliefs for the coach system.
+    observeAttempt({
+      sessionId: `story-${Date.now()}-${currentStep}`,
+      question: question ?? null,
+      feedback: fb,
+      transcript,
+      finalScore: fb.scores.overall,
+      mode: 'story',
+      topicKey: selectedStory?.id,
+    });
+    dispatch({ type: 'UPDATE_SKILL_PROFILE', skillProfile: getSkillProfile() });
+
     dispatch({ type: 'ADD_XP', amount: 10 });
   };
 

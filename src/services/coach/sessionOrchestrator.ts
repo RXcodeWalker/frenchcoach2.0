@@ -17,6 +17,8 @@ import { buildEvidence } from './evidenceBuilder';
 import { updateFromFeedback } from './beliefProjectionService';
 import { generateRecommendation } from './recommendationEngine';
 import { appendEvidenceEvents, getRecentEvidence } from './coachStorage';
+import { syncProfileFromServices } from './coachProfileService';
+import { invalidateDailyPlan } from './decisionEngine';
 
 /**
  * Process one completed answer. Order matters: diagnostics + evidence update the
@@ -72,6 +74,11 @@ export function orchestrateAttempt(input: OrchestratorInput): OrchestratorResult
 
   // 6. Generate the next recommendation from the freshly updated model.
   const recommendation = generateRecommendation(beliefSnapshot, getRecentEvidence(20));
+
+  // 7. Keep CoachProfile in sync and bust the cached daily plan so the next
+  //    visit to Home regenerates based on fresh evidence.
+  syncProfileFromServices();
+  invalidateDailyPlan();
 
   return {
     evidenceEvents,
@@ -131,6 +138,9 @@ export function observeAttempt(input: ObserveAttemptInput): ObserveAttemptResult
   appendEvidenceEvents(evidenceEvents);
 
   const recommendation = generateRecommendation(beliefSnapshot, getRecentEvidence(20));
+
+  syncProfileFromServices();
+  invalidateDailyPlan();
 
   return { evidenceEvents, beliefSnapshot, recommendation };
 }

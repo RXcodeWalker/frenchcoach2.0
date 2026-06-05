@@ -7,6 +7,7 @@ import { getAIFeedback } from '../services/api/apiClient';
 import { getSkillProfile, buildSkillContext, detectAvoidance } from '../services/coaching/diagnosticEngine';
 import { orchestrateAttempt } from '../services/coach/sessionOrchestrator';
 import { getActiveRecommendation, setRecommendationStatus } from '../services/coach/recommendationEngine';
+import { getDailyPlan } from '../services/coach/decisionEngine';
 import { useRecording } from '../features/recording/useRecording';
 import { TopicGrid } from './learn/TopicGrid';
 import { QuestionCard } from './learn/QuestionCard';
@@ -77,14 +78,17 @@ export function Learn() {
   const startSession = useCallback((mode: SessionMode) => {
     if (!selectedTopic) return;
 
-    // Coach loop: let the active recommendation bias this session toward the
-    // skill the coach flagged from the previous attempt.
+    // Coach loop: let the active recommendation + daily plan blend bias this
+    // session toward skills/topics flagged from previous evidence.
     const recommendation = getActiveRecommendation();
     const focusedSkillId = recommendation?.targetSkillIds?.[0] ?? null;
     if (focusedSkillId) {
       dispatch({ type: 'SET_FOCUSED_SKILL', skillId: focusedSkillId });
       setRecommendationStatus('accepted');
     }
+
+    const dailyPlan = getDailyPlan();
+    const sessionBlend = dailyPlan?.sessionBlend ?? null;
 
     const questions = buildSessionQuestions(
       selectedTopic.key,
@@ -93,6 +97,7 @@ export function Learn() {
       topicMastery[selectedTopic.key] ?? null,
       selectedDifficulty,
       focusedSkillId,
+      sessionBlend,
     );
 
     const target = mode === 'full_topic' ? questions.length : SESSION_TARGET[mode];

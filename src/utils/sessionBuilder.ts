@@ -4,6 +4,7 @@ import { preferredFirst, DEFAULT_DIFFICULTY } from './difficultyConfig';
 import type { QuestionV2, SessionFilters, CEFRLevel, SkillType } from '../types/questions';
 import { contentClient } from '../services/content/contentClient';
 import { inferQuestionMetadata } from '../services/content/questionMetadata';
+import type { SessionBlend } from '../types/coach';
 
 /**
  * Coach loop: does this question exercise the skill the coach asked us to focus
@@ -84,23 +85,34 @@ export function buildSessionQuestions(
   topicMastery: TopicMasteryEntry | null,
   difficulty: DifficultyTier = DEFAULT_DIFFICULTY,
   focusedSkillId: string | null = null,
+  sessionBlend: SessionBlend | null = null,
 ): Question[] {
   const allQuestions = preferredFirst(
     topicKey ? getTopicQuestions(topicKey) : [...QUESTIONS],
     difficulty,
   );
   const seen = new Set<string>(topicMastery?.uniqueQuestionsAnswered ?? []);
-  const weakSkillIds = getWeakSkillIds(skillProfile);
+
+  // If the decision engine provided a blend, merge its focus skills with the
+  // provided focusedSkillId.  The blend's focusTopicKey is respected already
+  // via the topicKey parameter passed by the caller.
+  const blendSkillIds = sessionBlend?.focusSkillIds ?? [];
+  const effectiveFocusSkill =
+    focusedSkillId ??
+    (blendSkillIds.length > 0 ? blendSkillIds[0] : null);
+
+  const weakSkillIds = blendSkillIds.length > 0
+    ? blendSkillIds
+    : getWeakSkillIds(skillProfile);
 
   const unseen = allQuestions.filter(q => !seen.has(q.id));
   const seenQs = allQuestions.filter(q => seen.has(q.id));
 
   // Sort unseen: coach-focused skill first, then by difficulty ascending.
-  // The focused skill comes from the active recommendation, so a weak/avoided
-  // structure flagged last session is prioritised this session.
+  // The focused skill comes from the active recommendation / session blend.
   const sorted = [...unseen].sort((a, b) => {
-    const fa = matchesFocusSkill(a, focusedSkillId) ? 0 : 1;
-    const fb = matchesFocusSkill(b, focusedSkillId) ? 0 : 1;
+    const fa = matchesFocusSkill(a, effectiveFocusSkill) ? 0 : 1;
+    const fb = matchesFocusSkill(b, effectiveFocusSkill) ? 0 : 1;
     if (fa !== fb) return fa - fb;
     return a.difficulty - b.difficulty;
   });

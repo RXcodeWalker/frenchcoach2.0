@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Flame, Zap, TrendingUp, Trophy, Star, Target, Sparkles, Gem, ArrowRight, Play } from 'lucide-react';
+import { Flame, Zap, TrendingUp, Trophy, Star, Target, Sparkles, Gem, ArrowRight, Play, BrainCircuit, AlertTriangle, ChevronRight } from 'lucide-react';
+import { generateDailyPlan } from '../services/coach/decisionEngine';
+import type { DailyPlan } from '../types/coach';
 import { useApp } from '../context/AppContext';
 import { MOCK_DAILY } from '../data/mocks/mockDaily';
 import { fadeUp } from '../components/motion/variants';
@@ -29,6 +31,16 @@ export function Home() {
   const navigate = useNavigate();
   const [todayCount] = useState(2);
   const [quote] = useState(() => FRENCH_QUOTES[Math.floor(Math.random() * FRENCH_QUOTES.length)]);
+  const [dailyPlan, setDailyPlan] = useState<DailyPlan | null>(null);
+
+  useEffect(() => {
+    try {
+      setDailyPlan(generateDailyPlan());
+    } catch {
+      // Non-critical — Home still renders without a coach plan
+    }
+  }, []);
+
   const [hooks, setHooks] = useState([
     { 
       type: 'streak' as const, 
@@ -64,6 +76,54 @@ export function Home() {
           </motion.div>
 
           <HeroMission todayCount={todayCount} onLearn={() => navigate('/learn')} onExam={() => navigate('/exam')} />
+
+          {/* Today's AI Coach Card */}
+          {dailyPlan && (
+            <motion.div
+              variants={fadeUp}
+              onClick={() => navigate('/learn')}
+              className={`group relative overflow-hidden rounded-2xl glass-elevated cursor-pointer border ${
+                dailyPlan.urgency === 'exam_soon' ? 'border-red-500/30' :
+                dailyPlan.urgency === 'streak_at_risk' ? 'border-orange-500/30' :
+                dailyPlan.urgency === 'confidence_drop' ? 'border-yellow-500/30' :
+                'border-violet-500/20'
+              } p-5`}
+              whileHover={{ scale: 1.01, translateY: -2 }}
+            >
+              <div className="absolute top-0 right-0 w-40 h-40 bg-violet-500/5 rounded-full blur-3xl group-hover:bg-violet-500/10 transition-colors" />
+              <div className="relative z-10 flex items-start gap-4">
+                <div className={`shrink-0 w-10 h-10 rounded-xl flex items-center justify-center ${
+                  dailyPlan.urgency !== 'none' ? 'bg-orange-500/10' : 'bg-violet-500/10'
+                }`}>
+                  {dailyPlan.urgency !== 'none'
+                    ? <AlertTriangle size={18} className="text-orange-400" />
+                    : <BrainCircuit size={18} className="text-violet-400" />
+                  }
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-violet-400">
+                      Today's Coach
+                    </span>
+                    {dailyPlan.urgency !== 'none' && (
+                      <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-orange-500/15 text-orange-400 uppercase tracking-wide">
+                        {dailyPlan.urgency.replace(/_/g, ' ')}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm text-white font-semibold leading-snug line-clamp-2">
+                    {dailyPlan.urgencyMessage ?? dailyPlan.explanation}
+                  </p>
+                  {dailyPlan.urgencyMessage && (
+                    <p className="text-xs text-slate-400 mt-1 line-clamp-1">{dailyPlan.explanation}</p>
+                  )}
+                  <div className="mt-3 flex items-center gap-2 text-[10px] font-bold text-violet-400 group-hover:gap-3 transition-all">
+                    START SESSION <ChevronRight size={12} />
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
 
           {/* Engagement Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
