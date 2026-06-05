@@ -3,7 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Flame, Zap, TrendingUp, Trophy, Star, Target, Sparkles, Gem, ArrowRight, Play, BrainCircuit, AlertTriangle, ChevronRight } from 'lucide-react';
 import { generateDailyPlan } from '../services/coach/decisionEngine';
-import type { DailyPlan } from '../types/coach';
+import { getActiveRecommendation } from '../services/coach/recommendationEngine';
+import { getSkillLabel } from '../services/coach/skillGraph';
+import type { CoachRecommendation, DailyPlan } from '../types/coach';
 import { useApp } from '../context/AppContext';
 import { MOCK_DAILY } from '../data/mocks/mockDaily';
 import { fadeUp } from '../components/motion/variants';
@@ -32,14 +34,20 @@ export function Home() {
   const [todayCount] = useState(2);
   const [quote] = useState(() => FRENCH_QUOTES[Math.floor(Math.random() * FRENCH_QUOTES.length)]);
   const [dailyPlan, setDailyPlan] = useState<DailyPlan | null>(null);
+  const [recommendation, setRecommendation] = useState<CoachRecommendation | null>(null);
 
   useEffect(() => {
     try {
       setDailyPlan(generateDailyPlan());
+      setRecommendation(getActiveRecommendation());
     } catch {
       // Non-critical — Home still renders without a coach plan
     }
   }, []);
+
+  const coachSkillIds = recommendation?.targetSkillIds?.length
+    ? recommendation.targetSkillIds
+    : dailyPlan?.topAction.targetSkillIds ?? [];
 
   const [hooks, setHooks] = useState([
     { 
@@ -116,6 +124,34 @@ export function Home() {
                   </p>
                   {dailyPlan.urgencyMessage && (
                     <p className="text-xs text-slate-400 mt-1 line-clamp-1">{dailyPlan.explanation}</p>
+                  )}
+                  {recommendation && (
+                    <div className="mt-3 space-y-2">
+                      {coachSkillIds.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5">
+                          {coachSkillIds.slice(0, 3).map(id => (
+                            <span
+                              key={id}
+                              className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-violet-500/15 text-violet-300 uppercase tracking-wide"
+                            >
+                              {getSkillLabel(id)}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      {recommendation.rationale.evidenceSummary && (
+                        <p className="text-[11px] text-slate-400 leading-snug line-clamp-2">
+                          <span className="text-slate-500 font-semibold">Because I noticed: </span>
+                          {recommendation.rationale.evidenceSummary}
+                        </p>
+                      )}
+                      {recommendation.rationale.successCriteria[0] && (
+                        <p className="text-[11px] text-slate-500 leading-snug line-clamp-1">
+                          <span className="font-semibold">Success today: </span>
+                          {recommendation.rationale.successCriteria[0]}
+                        </p>
+                      )}
+                    </div>
                   )}
                   <div className="mt-3 flex items-center gap-2 text-[10px] font-bold text-violet-400 group-hover:gap-3 transition-all">
                     START SESSION <ChevronRight size={12} />

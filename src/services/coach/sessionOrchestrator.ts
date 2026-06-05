@@ -19,6 +19,7 @@ import { generateRecommendation } from './recommendationEngine';
 import { appendEvidenceEvents, getRecentEvidence } from './coachStorage';
 import { syncProfileFromServices } from './coachProfileService';
 import { invalidateDailyPlan } from './decisionEngine';
+import { detectRecurringGrammarDrill } from './recurringGrammar';
 
 /**
  * Process one completed answer. Order matters: diagnostics + evidence update the
@@ -70,10 +71,11 @@ export function orchestrateAttempt(input: OrchestratorInput): OrchestratorResult
     topicKey: session.topicKey ?? question?.topicKey,
     engine: feedback.engineMeta?.actualEngine,
   });
-  appendEvidenceEvents(evidenceEvents);
+  const allEvidence = appendEvidenceEvents(evidenceEvents);
 
   // 6. Generate the next recommendation from the freshly updated model.
   const recommendation = generateRecommendation(beliefSnapshot, getRecentEvidence(20));
+  const drillSkillId = detectRecurringGrammarDrill(allEvidence);
 
   // 7. Keep CoachProfile in sync and bust the cached daily plan so the next
   //    visit to Home regenerates based on fresh evidence.
@@ -93,6 +95,7 @@ export function orchestrateAttempt(input: OrchestratorInput): OrchestratorResult
     },
     newUnlockedAchievementIds,
     newLevelName: level.name,
+    drillSkillId,
   };
 }
 

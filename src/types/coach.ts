@@ -189,6 +189,8 @@ export interface OrchestratorResult {
   };
   newUnlockedAchievementIds: string[];
   newLevelName: string;
+  /** Grammar skill to offer MicroDrill for, when recurring failures detected. */
+  drillSkillId: string | null;
 }
 
 // ── Weekly review types ───────────────────────────────────────────────────────

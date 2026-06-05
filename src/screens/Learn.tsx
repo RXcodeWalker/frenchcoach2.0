@@ -8,6 +8,8 @@ import { getSkillProfile, buildSkillContext, detectAvoidance } from '../services
 import { orchestrateAttempt } from '../services/coach/sessionOrchestrator';
 import { getActiveRecommendation, setRecommendationStatus } from '../services/coach/recommendationEngine';
 import { getDailyPlan } from '../services/coach/decisionEngine';
+import { getSkillLabel } from '../services/coach/skillGraph';
+import { MicroDrillModal } from '../components/ui/MicroDrillModal';
 import { useRecording } from '../features/recording/useRecording';
 import { TopicGrid } from './learn/TopicGrid';
 import { QuestionCard } from './learn/QuestionCard';
@@ -52,6 +54,8 @@ export function Learn() {
   // Failover toast
   const [showFailoverToast, setShowFailoverToast] = useState(false);
   const [failoverInfo, setFailoverInfo] = useState<{ requested: AIEngine; actual: AIEngine; reason?: string } | null>(null);
+  const [drillSkillId, setDrillSkillId] = useState<string | null>(null);
+  const [showDrillModal, setShowDrillModal] = useState(false);
 
   const recording = useRecording();
 
@@ -244,6 +248,8 @@ export function Learn() {
     });
     dispatch({ type: 'UPDATE_SKILL_PROFILE', skillProfile: getSkillProfile() });
 
+    setDrillSkillId(orchestration.drillSkillId);
+    setShowDrillModal(false);
     setFeedback(fb);
     setIsLoadingFeedback(false);
 
@@ -356,6 +362,8 @@ export function Learn() {
     dispatch({ type: 'UPDATE_ACTIVE_SESSION', session: updatedSession });
 
     setFeedback(null);
+    setDrillSkillId(null);
+    setShowDrillModal(false);
     setShowHint(false);
     setIsRetry(false);
     // Clear evaluation cache for the next question
@@ -427,6 +435,8 @@ export function Learn() {
   const handleRetry = () => {
     setIsRetry(true);
     setFeedback(null);
+    setDrillSkillId(null);
+    setShowDrillModal(false);
     setShowHint(false);
     setEngineResults(new Map());
     setActiveResultEngine(null);
@@ -533,6 +543,7 @@ export function Learn() {
                 onStart={startSession}
                 onSingleQuestion={startSingleQuestion}
                 onBack={() => { setSelectedTopic(null); setLearnState('topics'); }}
+                coachRecommendation={getActiveRecommendation()}
               />
             </motion.div>
           )}
@@ -572,6 +583,28 @@ export function Learn() {
                 onStop={handleStopRecording}
               />
 
+              {learnState === 'feedback' && drillSkillId && !showDrillModal && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-4 rounded-2xl glass-elevated border-rose-500/25 space-y-3"
+                >
+                  <p className="text-sm text-white font-semibold leading-snug">
+                    You&apos;ve struggled with {getSkillLabel(drillSkillId)} a few times recently.
+                  </p>
+                  <p className="text-xs text-slate-400">
+                    A quick recovery drill can lock in the pattern before you move on.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setShowDrillModal(true)}
+                    className="w-full py-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 font-bold text-sm hover:bg-rose-500/25 transition-colors"
+                  >
+                    Start recovery drill
+                  </button>
+                </motion.div>
+              )}
+
               {learnState === 'feedback' && (
                 <FeedbackExperience
                   feedback={feedback}
@@ -593,6 +626,15 @@ export function Learn() {
 
         </AnimatePresence>
       </div>
+
+      <AnimatePresence>
+        {showDrillModal && drillSkillId && (
+          <MicroDrillModal
+            skillId={drillSkillId}
+            onClose={() => setShowDrillModal(false)}
+          />
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {learnState === 'session_summary' && activeSession && selectedTopic && (

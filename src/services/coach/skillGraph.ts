@@ -3,8 +3,10 @@
 // Node IDs are identical to diagnostic skill IDs so beliefs, evidence, and
 // recommendations all speak the same vocabulary. No traversal in the MVP.
 
+import { QUESTIONS } from '../../data/gameData';
+import { inferQuestionMetadata } from '../content/questionMetadata';
 import { SKILL_DEFS } from '../coaching/diagnosticEngine';
-import type { IssueCategory, CoachingIssue, GrammarError, AvoidanceSignal } from '../../types';
+import type { IssueCategory, CoachingIssue, GrammarError, AvoidanceSignal, Question } from '../../types';
 
 export interface SkillNode {
   id: string;
@@ -97,4 +99,9 @@ export function resolveTargetNodes(args: {
   }
 
   return [...nodes];
+}
+
+/** Questions whose inferred grammarFocus includes this diagnostic skill ID. */
+export function getQuestionsPracticingSkill(skillId: string): Question[] {
+  return QUESTIONS.filter(q => inferQuestionMetadata(q).grammarFocus.includes(skillId));
 }

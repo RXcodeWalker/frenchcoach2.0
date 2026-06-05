@@ -4,6 +4,8 @@ import { Target, Zap, BookOpen, ChevronRight, Clock } from 'lucide-react';
 import { buildSkillContext } from '../../services/coaching/diagnosticEngine';
 import { ModelSelectorCard } from './ModelSelectorCard';
 import { useEngineHealth } from '../../hooks/useEngineHealth';
+import { getSkillLabel } from '../../services/coach/skillGraph';
+import type { CoachRecommendation } from '../../types/coach';
 import type { Topic, SessionMode, TopicMasteryEntry, AIEngine, DifficultyTier } from '../../types';
 import { SESSION_LABEL, SESSION_DURATION } from '../../utils/sessionBuilder';
 import { DIFFICULTY_CONFIG } from '../../utils/difficultyConfig';
@@ -18,6 +20,7 @@ interface Props {
   onStart: (mode: SessionMode) => void;
   onSingleQuestion: () => void;
   onBack: () => void;
+  coachRecommendation?: CoachRecommendation | null;
 }
 
 const MODES: { mode: SessionMode; icon: string }[] = [
@@ -35,7 +38,7 @@ const TIER_COLORS: Record<DifficultyTier, string> = {
   expert:       'amber',
 };
 
-export function SessionStartScreen({ topic, topicMastery, selectedEngine, onEngineChange, selectedDifficulty, onDifficultyChange, onStart, onSingleQuestion, onBack }: Props) {
+export function SessionStartScreen({ topic, topicMastery, selectedEngine, onEngineChange, selectedDifficulty, onDifficultyChange, onStart, onSingleQuestion, onBack, coachRecommendation }: Props) {
   const [selected, setSelected] = useState<SessionMode>('standard');
   const health = useEngineHealth();
   const skillContext = buildSkillContext();
@@ -93,8 +96,36 @@ export function SessionStartScreen({ topic, topicMastery, selectedEngine, onEngi
         </div>
       )}
 
-      {/* Skill targeting */}
-      {topWeaknesses.length > 0 && (
+      {/* Coach recommendation banner */}
+      {coachRecommendation ? (
+        <div className="p-4 rounded-2xl glass-subtle border-violet-electric/15 space-y-3">
+          <div className="flex items-center gap-2">
+            <Target size={14} className="text-violet-400" />
+            <p className="text-xs font-bold text-violet-400 uppercase tracking-wide">Coach recommendation</p>
+          </div>
+          <p className="text-sm text-white font-medium leading-snug">
+            {coachRecommendation.rationale.primaryReason}
+          </p>
+          {coachRecommendation.targetSkillIds.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {coachRecommendation.targetSkillIds.map(id => (
+                <span
+                  key={id}
+                  className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-violet-500/15 text-violet-300 uppercase tracking-wide"
+                >
+                  {getSkillLabel(id)}
+                </span>
+              ))}
+            </div>
+          )}
+          {coachRecommendation.rationale.evidenceSummary && (
+            <p className="text-[11px] text-slate-400 leading-snug">
+              <span className="text-slate-500 font-semibold">Because I noticed: </span>
+              {coachRecommendation.rationale.evidenceSummary}
+            </p>
+          )}
+        </div>
+      ) : topWeaknesses.length > 0 ? (
         <div className="p-4 rounded-2xl glass-subtle border-violet-electric/15 space-y-2">
           <div className="flex items-center gap-2 mb-3">
             <Target size={14} className="text-violet-400" />
@@ -115,7 +146,7 @@ export function SessionStartScreen({ topic, topicMastery, selectedEngine, onEngi
             </div>
           ))}
         </div>
-      )}
+      ) : null}
 
       {/* AI Engine selector */}
       <ModelSelectorCard
