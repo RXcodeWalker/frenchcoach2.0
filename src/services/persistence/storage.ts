@@ -17,6 +17,10 @@ export const STORAGE_KEYS = {
   coachBeliefs:        'frenchCoach_coachBeliefs',
   coachRecommendation: 'frenchCoach_coachRecommendation',
   coachGoals:          'frenchCoach_coachGoals',
+  // ── Phase 2: evidence-driven belief accumulator state ─────────────────────
+  // Stores Record<skillId, SkillBeliefState>. Can be rebuilt from
+  // coachEvidence at any time; exists for performance (no full replay needed).
+  coachBeliefState:    'frenchCoach_coachBeliefState',
 } as const;
 
 export type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS];
