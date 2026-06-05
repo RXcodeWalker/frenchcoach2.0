@@ -39,6 +39,7 @@ import { PronunciationLab } from './screens/PronunciationLab';
 import { SpeakingArena } from './screens/SpeakingArena';
 import { Challenges } from './screens/Challenges';
 import { DailyNewsFlash } from './screens/DailyNewsFlash';
+import { CoachBeliefDebug } from './screens/CoachBeliefDebug';
 import { LevelUpCelebration, AchievementUnlocked } from './components/CelebrationModals';
 
 const pageVariants: Variants = {
@@ -197,6 +198,10 @@ export default function App() {
           <Route path="/speaking-arena" element={<SpeakingArena />} />
           <Route path="/challenges" element={<Challenges />} />
           <Route path="/daily-news" element={<DailyNewsFlash />} />
+          {/* DEV-ONLY: coach belief debug dashboard. Tree-shaken out of prod builds. */}
+          {import.meta.env.DEV && (
+            <Route path="/debug/beliefs" element={<CoachBeliefDebug />} />
+          )}
         </Route>
 
         <Route element={<ExamLayout />}>
