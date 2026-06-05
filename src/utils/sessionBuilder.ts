@@ -3,6 +3,18 @@ import type { Question, SessionMode, SkillProfile, SessionQuestion, TopicMastery
 import { preferredFirst, DEFAULT_DIFFICULTY } from './difficultyConfig';
 import type { QuestionV2, SessionFilters, CEFRLevel, SkillType } from '../types/questions';
 import { contentClient } from '../services/content/contentClient';
+import { inferQuestionMetadata } from '../services/content/questionMetadata';
+
+/**
+ * Coach loop: does this question exercise the skill the coach asked us to focus
+ * on? Uses heuristic metadata inference (grammar focus + skill type) so plain
+ * Question records can still be biased toward a recommended skill.
+ */
+function matchesFocusSkill(q: Question, focusedSkillId: string | null): boolean {
+  if (!focusedSkillId) return false;
+  const meta = inferQuestionMetadata(q);
+  return meta.grammarFocus.includes(focusedSkillId) || meta.skill === focusedSkillId;
+}
 
 export const SESSION_TARGET: Record<SessionMode, number> = {
   quick: 5,
@@ -71,6 +83,7 @@ export function buildSessionQuestions(
   skillProfile: SkillProfile,
   topicMastery: TopicMasteryEntry | null,
   difficulty: DifficultyTier = DEFAULT_DIFFICULTY,
+  focusedSkillId: string | null = null,
 ): Question[] {
   const allQuestions = preferredFirst(
     topicKey ? getTopicQuestions(topicKey) : [...QUESTIONS],
@@ -82,11 +95,13 @@ export function buildSessionQuestions(
   const unseen = allQuestions.filter(q => !seen.has(q.id));
   const seenQs = allQuestions.filter(q => seen.has(q.id));
 
-  // Sort unseen: weak-skill-related questions first, then by difficulty ascending
+  // Sort unseen: coach-focused skill first, then by difficulty ascending.
+  // The focused skill comes from the active recommendation, so a weak/avoided
+  // structure flagged last session is prioritised this session.
   const sorted = [...unseen].sort((a, b) => {
-    // Heuristic: questions with lower difficulty first, but bump up weak-skill-targeted ones
-    // (We don't have explicit skill tags per question, so we use difficulty as proxy and
-    //  put difficulty-1 first to build confidence, then escalate)
+    const fa = matchesFocusSkill(a, focusedSkillId) ? 0 : 1;
+    const fb = matchesFocusSkill(b, focusedSkillId) ? 0 : 1;
+    if (fa !== fb) return fa - fb;
     return a.difficulty - b.difficulty;
   });
 

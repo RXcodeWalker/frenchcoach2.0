@@ -7,6 +7,7 @@ import { getAIFeedback, saveSessionToBackend } from '../services/api/apiClient';
 import { getSkillProfile } from '../services/coaching/diagnosticEngine';
 import { awardXP, checkAchievements, getProgressionState } from '../services/progression/progressionService';
 import { recordSession as persistSession } from '../services/analytics/analyticsService';
+import { observeAttempt } from '../services/coach/sessionOrchestrator';
 import type { Session, Question } from '../types/index';
 import { useRecording } from '../features/recording/useRecording';
 import { ExamIntro } from './exam/ExamIntro';
@@ -149,6 +150,21 @@ export function ExamMode() {
       score = fb.scores.overall;
     } catch {
       score = Math.round((Math.random() * 4 + 5) * 10) / 10;
+    }
+
+    // Coach loop: when we have real feedback, feed it into the learner model as
+    // exam evidence. No XP/session here — finishExam still owns that lifecycle.
+    if (fb) {
+      observeAttempt({
+        sessionId: `exam-${Date.now()}-${currentIndex}`,
+        question: currentQ ?? null,
+        feedback: fb,
+        transcript,
+        finalScore: score,
+        mode: 'exam',
+        topicKey: currentQ?.topicKey,
+      });
+      dispatch({ type: 'UPDATE_SKILL_PROFILE', skillProfile: getSkillProfile() });
     }
 
     const newAnswer = { score, time: elapsed, phase: examState };

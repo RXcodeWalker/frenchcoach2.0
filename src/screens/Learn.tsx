@@ -2,10 +2,11 @@ import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { TOPICS } from '../data/gameData';
-import { useItem, awardXP, checkAchievements, getProgressionState } from '../services/progression/progressionService';
-import { recordSession as persistSession } from '../services/analytics/analyticsService';
-import { getAIFeedback, saveSessionToBackend } from '../services/api/apiClient';
-import { getSkillProfile, buildSkillContext, detectAvoidance, runAfterSession } from '../services/coaching/diagnosticEngine';
+import { useItem } from '../services/progression/progressionService';
+import { getAIFeedback } from '../services/api/apiClient';
+import { getSkillProfile, buildSkillContext, detectAvoidance } from '../services/coaching/diagnosticEngine';
+import { orchestrateAttempt } from '../services/coach/sessionOrchestrator';
+import { getActiveRecommendation, setRecommendationStatus } from '../services/coach/recommendationEngine';
 import { useRecording } from '../features/recording/useRecording';
 import { TopicGrid } from './learn/TopicGrid';
 import { QuestionCard } from './learn/QuestionCard';
@@ -76,12 +77,22 @@ export function Learn() {
   const startSession = useCallback((mode: SessionMode) => {
     if (!selectedTopic) return;
 
+    // Coach loop: let the active recommendation bias this session toward the
+    // skill the coach flagged from the previous attempt.
+    const recommendation = getActiveRecommendation();
+    const focusedSkillId = recommendation?.targetSkillIds?.[0] ?? null;
+    if (focusedSkillId) {
+      dispatch({ type: 'SET_FOCUSED_SKILL', skillId: focusedSkillId });
+      setRecommendationStatus('accepted');
+    }
+
     const questions = buildSessionQuestions(
       selectedTopic.key,
       mode,
       skillProfile,
       topicMastery[selectedTopic.key] ?? null,
       selectedDifficulty,
+      focusedSkillId,
     );
 
     const target = mode === 'full_topic' ? questions.length : SESSION_TARGET[mode];
@@ -201,20 +212,31 @@ export function Learn() {
       createdAt: new Date().toISOString(),
     };
 
-    // Orchestrate side effects before dispatch so the reducer stays pure
-    persistSession(session);
-    saveSessionToBackend(session);
-    const xpResult = awardXP(finalScore, profile.streak_days);
-    const { level: newLevel } = getProgressionState();
-    const newUnlockedAchievementIds = checkAchievements({
-      score: finalScore,
+    // Coach orchestrator: persist, XP, achievements, diagnostics, evidence,
+    // beliefs, and recommendation — all in one place so the reducer stays pure.
+    const orchestration = orchestrateAttempt({
+      session,
+      question: currentQuestion,
+      feedback: fb,
+      avoidanceSignals,
+      transcript,
+      durationSec: elapsed,
       mode: 'practice',
-      totalSessions: profile.sessions_count + 1,
       topicsUsed: selectedTopic ? [selectedTopic.key] : undefined,
+      finalScore,
+      streakDays: profile.streak_days,
+      totalSessionsBefore: profile.sessions_count,
     });
-    runAfterSession(fb, avoidanceSignals);
 
-    dispatch({ type: 'ADD_SESSION', session, xpResult, newUnlockedAchievementIds, newLevelName: newLevel.name, xpAnimX: 60, xpAnimY: 30 });
+    dispatch({
+      type: 'ADD_SESSION',
+      session,
+      xpResult: orchestration.xpResult,
+      newUnlockedAchievementIds: orchestration.newUnlockedAchievementIds,
+      newLevelName: orchestration.newLevelName,
+      xpAnimX: 60,
+      xpAnimY: 30,
+    });
     dispatch({ type: 'UPDATE_SKILL_PROFILE', skillProfile: getSkillProfile() });
 
     setFeedback(fb);

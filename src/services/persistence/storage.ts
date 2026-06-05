@@ -12,6 +12,11 @@ export const STORAGE_KEYS = {
   vault:          'frenchCoach_vault',
   contentCache:   'frenchCoach_questions_v1',
   newsCache:      'frenchCoach_dailyNews',
+  // ── Coach MVP ──────────────────────────────────────────────────────────────
+  coachEvidence:       'frenchCoach_coachEvidence',
+  coachBeliefs:        'frenchCoach_coachBeliefs',
+  coachRecommendation: 'frenchCoach_coachRecommendation',
+  coachGoals:          'frenchCoach_coachGoals',
 } as const;
 
 export type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS];
