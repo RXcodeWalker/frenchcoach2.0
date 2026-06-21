@@ -1,12 +1,9 @@
-// ── Coach MVP: Belief contracts ────────────────────────────────────────────────
-// A CoachBeliefSnapshot is a projection over the existing diagnostic engine. The
-// diagnostic engine (frenchCoach_sde) remains the source of truth for mastery;
-// this snapshot is a coach-friendly, denormalised read model that the
-// recommendation engine and UI can consume without recomputing.
-//
-// Phase 2 additions (evidence-driven beliefs) live below the existing types.
-// They are purely additive — nothing in the current recommendation or UI path
-// reads from them yet.
+// ── Coach: Belief contracts ────────────────────────────────────────────────────
+// The diagnostic engine (frenchCoach_sde) remains live for legacy UI, but the
+// coach's read model is the evidence-driven EvidenceBeliefSnapshot produced by
+// beliefReducer. The earlier diagnostic-projection types (CoachBeliefSnapshot /
+// SkillBelief / TopicBelief) have been removed now that every coach consumer
+// reads the evidence snapshot.
 
 export type BeliefTrend =
   | 'unknown'
@@ -15,44 +12,9 @@ export type BeliefTrend =
   | 'declining'
   | 'volatile';
 
-export interface SkillBelief {
-  nodeId: string;
-  label: string;
-  category: string;
-  /** 0–1 mastery, mirrors SkillEntry.score from the diagnostic engine. */
-  mastery: number;
-  /** 0–1 confidence derived from observation count. */
-  confidence: number;
-  trend: BeliefTrend;
-  /** 0–1 — how often the learner avoids this structure when invited. */
-  avoidanceScore: number;
-  evidenceCount: number;
-  lastObservedAt: string | null;
-  recurringIssueIds: string[];
-}
-
-export interface TopicBelief {
-  topicKey: string;
-  sessionsCompleted: number;
-  averageScore: number;
-  uniqueQuestionsAnswered: number;
-  mastered: boolean;
-  lastSessionAt: string | null;
-}
-
-export interface CoachBeliefSnapshot {
-  learnerId: string;
-  generatedAt: string;
-  projectionVersion: string;
-  skills: Record<string, SkillBelief>;
-  topics: Record<string, TopicBelief>;
-  weakestSkillIds: string[];
-  strongestSkillIds: string[];
-}
-
-// ── Phase 2: Evidence-driven belief types ─────────────────────────────────────
-// These types support the evidence-derived belief model introduced in Phase 2.
-// They live alongside the existing types so the migration can be incremental.
+// ── Evidence-driven belief types ───────────────────────────────────────────────
+// These types support the evidence-derived belief model that drives all coach
+// decisions (recommendations, daily plan, interventions).
 
 /**
  * One weighted observation stored inside SkillBeliefState. Keeps the last
@@ -146,9 +108,9 @@ export interface EvidenceDerivedSkillBelief {
 }
 
 /**
- * Snapshot produced by the evidence-driven belief reducer.
- * Parallel to CoachBeliefSnapshot but does not include topics (out of scope
- * for Phase 2 — topics remain sourced from analytics).
+ * Snapshot produced by the evidence-driven belief reducer. This is the sole
+ * coach read model. Topics are out of scope here — they remain sourced from
+ * analytics (getTopicMasteryAll) where needed.
  */
 export interface EvidenceBeliefSnapshot {
   learnerId: string;

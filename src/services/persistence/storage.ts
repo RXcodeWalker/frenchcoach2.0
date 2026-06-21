@@ -23,6 +23,10 @@ export const STORAGE_KEYS = {
   coachProfile:        'frenchCoach_coachProfile',
   coachDailyPlan:      'frenchCoach_coachDailyPlan',
   coachWeeklyReview:   'frenchCoach_coachWeeklyReview',
+  // ── Coach intervention loop (recurring-grammar drills) ──────────────────────
+  coachProblems:              'frenchCoach_coachProblems',
+  coachInterventions:         'frenchCoach_coachInterventions',
+  coachInterventionOutcomes:  'frenchCoach_coachInterventionOutcomes',
 } as const;
 
 export type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS];

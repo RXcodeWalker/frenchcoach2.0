@@ -2,7 +2,8 @@
 
 import type { Session, Question, FeedbackV2, AvoidanceSignal } from './index';
 import type { EvidenceEvent } from './evidence';
-import type { CoachBeliefSnapshot } from './beliefs';
+import type { EvidenceBeliefSnapshot } from './beliefs';
+import type { LearningProblem } from './intervention';
 
 // ── Goal types ────────────────────────────────────────────────────────────────
 
@@ -141,6 +142,8 @@ export interface RecommendationRationale {
   goalLinks: string[];
   targetWeaknesses: string[];
   successCriteria: string[];
+  /** Prerequisite-readiness notes, e.g. "Past tense needs work before hypotheticals." */
+  readinessReasons?: string[];
   alternativesConsidered: { title: string; whyNot: string }[];
   confidence: number;
 }
@@ -178,7 +181,7 @@ export interface OrchestratorInput {
 
 export interface OrchestratorResult {
   evidenceEvents: EvidenceEvent[];
-  beliefSnapshot: CoachBeliefSnapshot;
+  beliefSnapshot: EvidenceBeliefSnapshot;
   recommendation: CoachRecommendation;
   xpResult: {
     gain: number;
@@ -191,6 +194,8 @@ export interface OrchestratorResult {
   newLevelName: string;
   /** Grammar skill to offer MicroDrill for, when recurring failures detected. */
   drillSkillId: string | null;
+  /** The tracked recurring-grammar problem to remediate, if one is active. */
+  activeProblem: LearningProblem | null;
 }
 
 // ── Weekly review types ───────────────────────────────────────────────────────

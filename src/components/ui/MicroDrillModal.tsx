@@ -2,12 +2,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, 
-  Puzzle, 
   CheckCircle2, 
   XCircle, 
   ChevronRight, 
   Lightbulb, 
-  Zap, 
   RefreshCcw,
   Target
 } from 'lucide-react';
@@ -18,6 +16,8 @@ import { useApp } from '../../context/AppContext';
 interface MicroDrillModalProps {
   skillId: string;
   onClose: () => void;
+  /** Fired once when the drill finishes, before the modal is dismissed. */
+  onComplete?: (result: { correct: number; total: number; immediateSuccess: number }) => void;
 }
 
 // Mapping between diagnostic skillId and REBUILD_QUESTIONS theme
@@ -34,7 +34,7 @@ const SKILL_TO_THEME: Record<string, string[]> = {
   comparative: ['Comparatives'],
 };
 
-export const MicroDrillModal: React.FC<MicroDrillModalProps> = ({ skillId, onClose }) => {
+export const MicroDrillModal: React.FC<MicroDrillModalProps> = ({ skillId, onClose, onComplete }) => {
   const { dispatch } = useApp();
   const skillDef = SKILL_DEFS[skillId];
   
@@ -50,6 +50,7 @@ export const MicroDrillModal: React.FC<MicroDrillModalProps> = ({ skillId, onClo
   const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
   const [isFinished, setIsFinished] = useState(false);
   const [score, setScore] = useState(0);
+  const [correctCount, setCorrectCount] = useState(0);
 
   const currentQuestion = questions[currentIndex];
 
@@ -96,6 +97,7 @@ export const MicroDrillModal: React.FC<MicroDrillModalProps> = ({ skillId, onClo
     if (cleanUser === cleanTarget) {
       setFeedback('correct');
       setScore(s => s + 10);
+      setCorrectCount(c => c + 1);
       dispatch({ type: 'ADD_XP', amount: 10 });
     } else {
       setFeedback('incorrect');
@@ -106,6 +108,12 @@ export const MicroDrillModal: React.FC<MicroDrillModalProps> = ({ skillId, onClo
     if (currentIndex < questions.length - 1) {
       setCurrentIndex(prev => prev + 1);
     } else {
+      const total = questions.length;
+      onComplete?.({
+        correct: correctCount,
+        total,
+        immediateSuccess: total > 0 ? correctCount / total : 0,
+      });
       setIsFinished(true);
     }
   };

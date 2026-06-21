@@ -1,5 +1,5 @@
 // Copied verbatim from analytics.js — minimal TS wrapper only
-import type { Session } from '../../types';
+import type { Session, FeedbackV2 } from '../../types';
 
 import { hasStreakFreeze, useStreakFreeze } from '../progression/progressionService';
 import { STORAGE_KEYS } from '../persistence/storage';
@@ -17,6 +17,30 @@ interface StoredSession {
   wordCount: number;
   score: number;
   durationSec: number;
+  // ── Coach MVP: compact coaching summary (all optional, backward compatible) ──
+  /** Short examiner/opportunity one-liner derived from FeedbackV2. */
+  feedbackSummary?: string;
+  /** Graph-resolved skill node IDs implicated by this answer. */
+  targetSkillIds?: string[];
+  cefrLevel?: string;
+  criticalIssueCount?: number;
+}
+
+/** Options the coach orchestrator can pass to enrich the stored session. */
+export interface RecordSessionOptions {
+  /** Skill node IDs resolved from evidence so analytics need not re-parse feedback. */
+  targetSkillIds?: string[];
+}
+
+/** Derive a compact coaching summary from a session's FeedbackV2, when present. */
+function deriveFeedbackSummary(feedback?: FeedbackV2): string | undefined {
+  if (!feedback) return undefined;
+  return (
+    feedback.biggest_opportunity ||
+    feedback.examiner?.oneLiner ||
+    feedback.best_moment ||
+    (feedback.cefrLevel ? `CEFR ${feedback.cefrLevel}` : undefined)
+  );
 }
 
 interface AnalyticsData {
@@ -83,8 +107,9 @@ function updateStreak(data: AnalyticsData) {
   return data;
 }
 
-export function recordSession(session: Session): StoredSession {
+export function recordSession(session: Session, options?: RecordSessionOptions): StoredSession {
   const data = load();
+  const feedback = session.feedback as FeedbackV2 | undefined;
   const stored: StoredSession = {
     id:           session.id,
     date:         session.createdAt,
@@ -95,6 +120,10 @@ export function recordSession(session: Session): StoredSession {
     wordCount:    session.wordCount,
     score:        session.score,
     durationSec:  session.durationSec,
+    feedbackSummary:    deriveFeedbackSummary(feedback),
+    targetSkillIds:     options?.targetSkillIds,
+    cefrLevel:          feedback?.cefrLevel,
+    criticalIssueCount: feedback?.grammar?.critical?.length,
   };
   if (data.sessions.some(s => s.id === stored.id)) return stored;
   data.sessions.push(stored);

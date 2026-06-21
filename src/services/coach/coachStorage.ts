@@ -4,8 +4,14 @@
 
 import { STORAGE_KEYS, storageGet, storageSet } from '../persistence/storage';
 import type { EvidenceEvent } from '../../types/evidence';
-import type { CoachBeliefSnapshot } from '../../types/beliefs';
-import type { CoachRecommendation, CoachGoal } from '../../types/coach';
+import type { EvidenceBeliefSnapshot } from '../../types/beliefs';
+import type { CoachRecommendation } from '../../types/coach';
+import {
+  reduceEvidenceToBeliefState,
+  projectEvidenceBeliefSnapshot,
+  REDUCER_VERSION,
+} from './beliefReducer';
+import { getSkillProfile } from '../coaching/diagnosticEngine';
 
 /** Cap the evidence log so localStorage never grows unbounded. */
 const MAX_EVIDENCE_EVENTS = 100;
@@ -35,11 +41,29 @@ export function getRecentEvidence(limit = 20): EvidenceEvent[] {
 
 // ── Belief snapshot ───────────────────────────────────────────────────────────
 
-export function getBeliefSnapshot(): CoachBeliefSnapshot | null {
-  return storageGet<CoachBeliefSnapshot | null>(STORAGE_KEYS.coachBeliefs, null);
+/**
+ * Return the coach's evidence-derived belief snapshot. Includes a version guard:
+ * if the stored snapshot was produced by an older reducer (or is missing while
+ * evidence exists), it is rebuilt from the full evidence log and re-persisted so
+ * consumers never read stale beliefs after a reducer upgrade.
+ */
+export function getBeliefSnapshot(): EvidenceBeliefSnapshot | null {
+  const stored = storageGet<EvidenceBeliefSnapshot | null>(STORAGE_KEYS.coachBeliefs, null);
+  if (stored && stored.reducerVersion === REDUCER_VERSION) return stored;
+
+  const events = getEvidenceEvents();
+  if (events.length === 0) return stored;
+
+  const rebuilt = projectEvidenceBeliefSnapshot(
+    reduceEvidenceToBeliefState(events),
+    getSkillProfile(),
+    LEARNER_ID,
+  );
+  storageSet(STORAGE_KEYS.coachBeliefs, rebuilt);
+  return rebuilt;
 }
 
-export function saveBeliefSnapshot(snapshot: CoachBeliefSnapshot): void {
+export function saveBeliefSnapshot(snapshot: EvidenceBeliefSnapshot): void {
   storageSet(STORAGE_KEYS.coachBeliefs, snapshot);
 }
 
@@ -54,31 +78,6 @@ export function saveRecommendation(rec: CoachRecommendation): void {
 }
 
 // ── Goals ──────────────────────────────────────────────────────────────────
-
-export function getGoals(): CoachGoal[] {
-  return storageGet<CoachGoal[]>(STORAGE_KEYS.coachGoals, []);
-}
-
-export function saveGoals(goals: CoachGoal[]): void {
-  storageSet(STORAGE_KEYS.coachGoals, goals);
-}
-
-/**
- * Returns the active goal, defaulting to a general speaking goal if none has been
- * set. The default is persisted so subsequent reads are stable.
- */
-export function getActiveGoal(): CoachGoal {
-  const goals = getGoals();
-  const active = goals.find(g => g.active);
-  if (active) return active;
-
-  const fallback: CoachGoal = {
-    id: 'goal-default',
-    type: 'general_speaking',
-    label: 'General Speaking',
-    createdAt: new Date().toISOString(),
-    active: true,
-  };
-  saveGoals([fallback, ...goals.filter(g => g.id !== fallback.id)]);
-  return fallback;
-}
+// Goal ownership is unified on coachProfileService (see getActiveGoal there).
+// The previous duplicate goal store that lived here has been removed so the
+// recommendation and decision engines read a single canonical active goal.

@@ -4,7 +4,7 @@
 // No React, no network, no ML. Persists the active recommendation for the next
 // session to read.
 
-import type { CoachBeliefSnapshot, SkillBelief } from '../../types/beliefs';
+import type { EvidenceBeliefSnapshot, EvidenceDerivedSkillBelief } from '../../types/beliefs';
 import type { EvidenceEvent } from '../../types/evidence';
 import type { CoachRecommendation, RecommendationRationale } from '../../types/coach';
 import {
@@ -13,9 +13,10 @@ import {
   saveRecommendation,
   getBeliefSnapshot,
   getRecentEvidence,
-  getActiveGoal,
 } from './coachStorage';
-import { getSkillLabel } from './skillGraph';
+import { getActiveGoal } from './coachProfileService';
+import { getSkillLabel, isSkillReady } from './skillGraph';
+import { getActiveProblem } from './interventionService';
 
 const POLICY_VERSION = 'coach-mvp-1';
 const WEAK_MASTERY_THRESHOLD = 0.6;
@@ -25,7 +26,7 @@ function makeId(): string {
 }
 
 function goalLabel(): string {
-  return getActiveGoal().label;
+  return getActiveGoal()?.label ?? 'General Speaking';
 }
 
 function avoidanceSkillIdsFromEvidence(evidence: EvidenceEvent[]): string[] {
@@ -45,24 +46,30 @@ function mostRecentTopicKey(evidence: EvidenceEvent[]): string | undefined {
   return undefined;
 }
 
-function weakestSkill(snapshot: CoachBeliefSnapshot): SkillBelief | null {
+function weakestSkill(snapshot: EvidenceBeliefSnapshot): EvidenceDerivedSkillBelief | null {
   const id = snapshot.weakestSkillIds[0];
   return id ? snapshot.skills[id] ?? null : null;
 }
 
 function buildReviewWeakSkill(
-  skill: SkillBelief,
+  skill: EvidenceDerivedSkillBelief,
   isAvoided: boolean,
+  readinessReasons: string[] = [],
 ): CoachRecommendation {
   const label = getSkillLabel(skill.nodeId);
   const masteryPct = Math.round(skill.mastery * 100);
+  const lowConfidence = skill.confidence < 0.3;
 
   const evidenceSummary = isAvoided
     ? `You tend to avoid ${label} when questions invite it, and your mastery is around ${masteryPct}%.`
-    : `${label} is your weakest area right now (about ${masteryPct}% mastery, seen ${skill.evidenceCount} times).`;
+    : `${label} is your weakest area right now (about ${masteryPct}% mastery, seen ${skill.evidenceCount} times).${
+        lowConfidence ? ' Confidence is still low — I am learning your level.' : ''
+      }`;
 
   const rationale: RecommendationRationale = {
-    primaryReason: `Target ${label} because it is currently holding your score back.`,
+    primaryReason: readinessReasons.length > 0
+      ? readinessReasons[0]
+      : `Target ${label} because it is currently holding your score back.`,
     evidenceSummary,
     goalLinks: [`Supports your goal: ${goalLabel()}.`],
     targetWeaknesses: [`${label} (${masteryPct}% mastery${isAvoided ? ', frequently avoided' : ''}).`],
@@ -70,6 +77,7 @@ function buildReviewWeakSkill(
       `Use ${label} correctly in at least one answer.`,
       `Avoid the recurring mistake the coach flagged last time.`,
     ],
+    readinessReasons,
     alternativesConsidered: [
       { title: 'General practice', whyNot: 'A focused weakness exists that is higher leverage right now.' },
     ],
@@ -87,6 +95,52 @@ function buildReviewWeakSkill(
       ? `Let's deliberately use ${label} instead of avoiding it.`
       : `A short focused set to strengthen ${label}.`,
     targetSkillIds: [skill.nodeId],
+    suggestedMode: 'quick',
+    rationale,
+    status: 'active',
+  };
+}
+
+/**
+ * Forced recommendation when an unresolved recurring-grammar problem exists.
+ * Takes priority over the standard weakness ranking so the learner is steered
+ * back to the skill they keep missing until the recovery drill resolves it.
+ */
+function buildProblemRecommendation(
+  nodeId: string,
+  failedDrills: number,
+  skill: EvidenceDerivedSkillBelief | undefined,
+): CoachRecommendation {
+  const label = getSkillLabel(nodeId);
+  const masteryPct = skill ? Math.round(skill.mastery * 100) : null;
+
+  const rationale: RecommendationRationale = {
+    primaryReason: `You keep slipping on ${label} — let's break the pattern with a focused recovery loop.`,
+    evidenceSummary: `${label} has failed in multiple recent answers${
+      masteryPct !== null ? ` (about ${masteryPct}% mastery)` : ''
+    }, so it is now a tracked problem.`,
+    goalLinks: [`Supports your goal: ${goalLabel()}.`],
+    targetWeaknesses: [`${label} (recurring mistake${failedDrills > 0 ? `, ${failedDrills} drill miss${failedDrills > 1 ? 'es' : ''}` : ''}).`],
+    successCriteria: [
+      'Complete the recovery drill without skipping.',
+      `Use ${label} correctly in your next answer.`,
+    ],
+    readinessReasons: [],
+    alternativesConsidered: [
+      { title: 'Move on to a new topic', whyNot: 'A recurring mistake is unresolved and will keep capping your scores.' },
+    ],
+    confidence: 0.7,
+  };
+
+  return {
+    id: makeId(),
+    learnerId: LEARNER_ID,
+    generatedAt: new Date().toISOString(),
+    policyVersion: POLICY_VERSION,
+    type: 'review_weak_skill',
+    title: `Recover ${label}`,
+    description: `A short recovery drill plus targeted practice to fix ${label}.`,
+    targetSkillIds: [nodeId],
     suggestedMode: 'quick',
     rationale,
     status: 'active',
@@ -153,7 +207,7 @@ function buildDefault(): CoachRecommendation {
  * the provided (or stored) snapshot and recent evidence.
  */
 export function generateRecommendation(
-  snapshot?: CoachBeliefSnapshot | null,
+  snapshot?: EvidenceBeliefSnapshot | null,
   recentEvidence?: EvidenceEvent[],
 ): CoachRecommendation {
   const snap = snapshot ?? getBeliefSnapshot();
@@ -161,10 +215,36 @@ export function generateRecommendation(
 
   let recommendation: CoachRecommendation;
 
+  // 1. Highest priority: an unresolved recurring-grammar problem. Force the
+  //    learner back to that node with a recovery-focused rationale.
+  const problem = getActiveProblem();
+  if (problem && problem.status === 'active') {
+    recommendation = buildProblemRecommendation(
+      problem.nodeId,
+      problem.failedDrills ?? 0,
+      snap?.skills[problem.nodeId],
+    );
+    saveRecommendation(recommendation);
+    return recommendation;
+  }
+
   const avoidedIds = avoidanceSkillIdsFromEvidence(evidence);
   const weak = snap ? weakestSkill(snap) : null;
 
-  if (weak && weak.mastery < WEAK_MASTERY_THRESHOLD) {
+  if (snap && weak && weak.mastery < WEAK_MASTERY_THRESHOLD) {
+    // Prerequisite gate: if the weakest skill is blocked by an under-developed
+    // prerequisite, redirect practice to the prerequisite first.
+    const readiness = isSkillReady(weak.nodeId, snap);
+    if (!readiness.ready && readiness.blockers.length > 0) {
+      const prereqId = readiness.blockers[0];
+      const prereqBelief = snap.skills[prereqId];
+      if (prereqBelief) {
+        const reason = `${getSkillLabel(prereqId)} needs work before ${getSkillLabel(weak.nodeId)}.`;
+        recommendation = buildReviewWeakSkill(prereqBelief, avoidedIds.includes(prereqId), [reason]);
+        saveRecommendation(recommendation);
+        return recommendation;
+      }
+    }
     const isAvoided = avoidedIds.includes(weak.nodeId);
     recommendation = buildReviewWeakSkill(weak, isAvoided);
   } else if (snap && avoidedIds.length > 0 && snap.skills[avoidedIds[0]]) {

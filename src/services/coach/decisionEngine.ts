@@ -6,7 +6,7 @@
 //   • session blend biasing in sessionBuilder
 //   • urgency banners
 
-import type { CoachBeliefSnapshot } from '../../types/beliefs';
+import type { EvidenceBeliefSnapshot } from '../../types/beliefs';
 import type {
   CoachProfile,
   DailyPlan,
@@ -19,7 +19,7 @@ import type { EvidenceEvent } from '../../types/evidence';
 import { STORAGE_KEYS, storageGet, storageSet } from '../persistence/storage';
 import { getCoachProfile, getActiveGoal, daysUntilExam } from './coachProfileService';
 import { getBeliefSnapshot, getRecentEvidence } from './coachStorage';
-import { getSkillLabel } from './skillGraph';
+import { getSkillLabel, applyReadinessSubstitution } from './skillGraph';
 
 const EXAM_URGENCY_DAYS = 14;
 const OVERDUE_REVIEW_DAYS = 10;
@@ -81,7 +81,7 @@ function isConfidenceDropping(profile: CoachProfile): boolean {
 function scoreCandidate(
   type: CandidateActionType,
   targetSkillIds: string[],
-  snapshot: CoachBeliefSnapshot | null,
+  snapshot: EvidenceBeliefSnapshot | null,
   profile: CoachProfile,
   urgency: UrgencyType,
   evidence: EvidenceEvent[],
@@ -127,7 +127,7 @@ function scoreCandidate(
 // ── Candidate generation ──────────────────────────────────────────────────────
 
 function buildCandidates(
-  snapshot: CoachBeliefSnapshot | null,
+  snapshot: EvidenceBeliefSnapshot | null,
   profile: CoachProfile,
   urgency: UrgencyType,
   evidence: EvidenceEvent[],
@@ -136,7 +136,9 @@ function buildCandidates(
 
   // --- Review weak skill (requires snapshot) ---
   if (snapshot) {
-    const weak2 = snapshot.weakestSkillIds.slice(0, 2);
+    // Prerequisite gate: substitute any blocked weak skill with its prerequisite
+    // so the daily plan never targets a skill the learner is not ready for.
+    const weak2 = applyReadinessSubstitution(snapshot.weakestSkillIds.slice(0, 2), snapshot);
     if (weak2.length > 0) {
       const score = scoreCandidate('review_weak_skill', weak2, snapshot, profile, urgency, evidence);
       const labels = weak2.map(getSkillLabel).join(' & ');
@@ -217,7 +219,7 @@ function buildCandidates(
 
 // ── Session blend ─────────────────────────────────────────────────────────────
 
-function buildSessionBlend(top: CandidateAction, snapshot: CoachBeliefSnapshot | null): SessionBlend {
+function buildSessionBlend(top: CandidateAction, snapshot: EvidenceBeliefSnapshot | null): SessionBlend {
   const weak2 = snapshot?.weakestSkillIds.slice(0, 2) ?? [];
 
   // Base blend ratios — adjusted by action type
@@ -285,7 +287,7 @@ function buildExplanation(
 export function generateDailyPlan(
   opts?: {
     profile?: CoachProfile;
-    snapshot?: CoachBeliefSnapshot | null;
+    snapshot?: EvidenceBeliefSnapshot | null;
     evidence?: EvidenceEvent[];
     forceRegenerate?: boolean;
   },

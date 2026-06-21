@@ -4,6 +4,8 @@ import { preferredFirst, DEFAULT_DIFFICULTY } from './difficultyConfig';
 import type { QuestionV2, SessionFilters, CEFRLevel, SkillType } from '../types/questions';
 import { contentClient } from '../services/content/contentClient';
 import { inferQuestionMetadata } from '../services/content/questionMetadata';
+import { isSkillReady } from '../services/coach/skillGraph';
+import { getBeliefSnapshot } from '../services/coach/coachStorage';
 import type { SessionBlend } from '../types/coach';
 
 /**
@@ -97,9 +99,19 @@ export function buildSessionQuestions(
   // provided focusedSkillId.  The blend's focusTopicKey is respected already
   // via the topicKey parameter passed by the caller.
   const blendSkillIds = sessionBlend?.focusSkillIds ?? [];
-  const effectiveFocusSkill =
+  let effectiveFocusSkill =
     focusedSkillId ??
     (blendSkillIds.length > 0 ? blendSkillIds[0] : null);
+
+  // Prerequisite gate: if the focus skill is blocked by an under-developed
+  // prerequisite, sort questions toward that prerequisite instead so the
+  // learner builds the foundation before the harder skill.
+  if (effectiveFocusSkill) {
+    const { ready, blockers } = isSkillReady(effectiveFocusSkill, getBeliefSnapshot());
+    if (!ready && blockers.length > 0) {
+      effectiveFocusSkill = blockers[0];
+    }
+  }
 
   const weakSkillIds = blendSkillIds.length > 0
     ? blendSkillIds

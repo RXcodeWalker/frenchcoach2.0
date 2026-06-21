@@ -12,14 +12,15 @@ import { awardXP, checkAchievements, getProgressionState } from '../progression/
 import type { OrchestratorInput, OrchestratorResult, CoachRecommendation } from '../../types/coach';
 import type { Question, FeedbackV2, AvoidanceSignal } from '../../types';
 import type { EvidenceEvent } from '../../types/evidence';
-import type { CoachBeliefSnapshot } from '../../types/beliefs';
+import type { EvidenceBeliefSnapshot } from '../../types/beliefs';
 import { buildEvidence } from './evidenceBuilder';
 import { updateFromFeedback } from './beliefProjectionService';
 import { generateRecommendation } from './recommendationEngine';
 import { appendEvidenceEvents, getRecentEvidence } from './coachStorage';
 import { syncProfileFromServices } from './coachProfileService';
 import { invalidateDailyPlan } from './decisionEngine';
-import { detectRecurringGrammarDrill } from './recurringGrammar';
+import { detectRecurringGrammarDrill, hasMicroDrillForSkill } from './recurringGrammar';
+import { detectAndPersistProblem } from './interventionService';
 
 /**
  * Process one completed answer. Order matters: diagnostics + evidence update the
@@ -40,26 +41,8 @@ export function orchestrateAttempt(input: OrchestratorInput): OrchestratorResult
     topicsUsed,
   } = input;
 
-  // 1. Persist session locally + best-effort backend (unchanged behavior).
-  recordSession(session);
-  saveSessionToBackend(session);
-
-  // 2. XP + level (unchanged behavior).
-  const xpResult = awardXP(finalScore, streakDays);
-  const { level } = getProgressionState();
-
-  // 3. Achievements (unchanged behavior).
-  const newUnlockedAchievementIds = checkAchievements({
-    score: finalScore,
-    mode,
-    totalSessions: totalSessionsBefore + 1,
-    topicsUsed,
-  });
-
-  // 4. Drive diagnostics + project beliefs (replaces the old runAfterSession call).
-  const beliefSnapshot = updateFromFeedback(feedback, avoidanceSignals);
-
-  // 5. Capture evidence from this answer.
+  // 1. Capture evidence from this answer FIRST so beliefs + analytics summaries
+  //    reflect the latest attempt.
   const evidenceEvents = buildEvidence({
     sessionId: session.id,
     question,
@@ -73,11 +56,40 @@ export function orchestrateAttempt(input: OrchestratorInput): OrchestratorResult
   });
   const allEvidence = appendEvidenceEvents(evidenceEvents);
 
-  // 6. Generate the next recommendation from the freshly updated model.
-  const recommendation = generateRecommendation(beliefSnapshot, getRecentEvidence(20));
-  const drillSkillId = detectRecurringGrammarDrill(allEvidence);
+  // 2. Persist session locally (with a coaching summary + graph-resolved target
+  //    skills) + best-effort backend.
+  recordSession(session, { targetSkillIds: evidenceEvents[0]?.targetNodeIds });
+  saveSessionToBackend(session);
 
-  // 7. Keep CoachProfile in sync and bust the cached daily plan so the next
+  // 3. XP + level (unchanged behavior).
+  const xpResult = awardXP(finalScore, streakDays);
+  const { level } = getProgressionState();
+
+  // 4. Achievements (unchanged behavior).
+  const newUnlockedAchievementIds = checkAchievements({
+    score: finalScore,
+    mode,
+    totalSessions: totalSessionsBefore + 1,
+    topicsUsed,
+  });
+
+  // 5. Drive diagnostics (legacy UI) + rebuild the evidence-driven belief
+  //    snapshot from the full evidence log, including the event just appended.
+  const beliefSnapshot = updateFromFeedback(feedback, avoidanceSignals);
+
+  // 6. Detect and persist a recurring-grammar problem (intervention loop), and
+  //    decide whether to offer a MicroDrill for it.
+  const activeProblem = detectAndPersistProblem(allEvidence, beliefSnapshot);
+  const drillSkillId =
+    activeProblem && hasMicroDrillForSkill(activeProblem.nodeId)
+      ? activeProblem.nodeId
+      : detectRecurringGrammarDrill(allEvidence);
+
+  // 7. Generate the next recommendation from the freshly updated model. If the
+  //    problem above is unresolved, this forces a recovery recommendation.
+  const recommendation = generateRecommendation(beliefSnapshot, getRecentEvidence(20));
+
+  // 8. Keep CoachProfile in sync and bust the cached daily plan so the next
   //    visit to Home regenerates based on fresh evidence.
   syncProfileFromServices();
   invalidateDailyPlan();
@@ -96,6 +108,7 @@ export function orchestrateAttempt(input: OrchestratorInput): OrchestratorResult
     newUnlockedAchievementIds,
     newLevelName: level.name,
     drillSkillId,
+    activeProblem,
   };
 }
 
@@ -112,7 +125,7 @@ export interface ObserveAttemptInput {
 
 export interface ObserveAttemptResult {
   evidenceEvents: EvidenceEvent[];
-  beliefSnapshot: CoachBeliefSnapshot;
+  beliefSnapshot: EvidenceBeliefSnapshot;
   recommendation: CoachRecommendation;
 }
 
@@ -125,8 +138,7 @@ export interface ObserveAttemptResult {
 export function observeAttempt(input: ObserveAttemptInput): ObserveAttemptResult {
   const avoidanceSignals = input.avoidanceSignals ?? [];
 
-  const beliefSnapshot = updateFromFeedback(input.feedback, avoidanceSignals);
-
+  // Append evidence first so the rebuilt belief snapshot reflects this attempt.
   const evidenceEvents = buildEvidence({
     sessionId: input.sessionId,
     question: input.question,
@@ -138,7 +150,10 @@ export function observeAttempt(input: ObserveAttemptInput): ObserveAttemptResult
     topicKey: input.topicKey ?? input.question?.topicKey,
     engine: input.feedback.engineMeta?.actualEngine,
   });
-  appendEvidenceEvents(evidenceEvents);
+  const allEvidence = appendEvidenceEvents(evidenceEvents);
+
+  const beliefSnapshot = updateFromFeedback(input.feedback, avoidanceSignals);
+  detectAndPersistProblem(allEvidence, beliefSnapshot);
 
   const recommendation = generateRecommendation(beliefSnapshot, getRecentEvidence(20));
 

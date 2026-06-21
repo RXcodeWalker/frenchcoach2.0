@@ -6,10 +6,12 @@ import { useItem } from '../services/progression/progressionService';
 import { getAIFeedback } from '../services/api/apiClient';
 import { getSkillProfile, buildSkillContext, detectAvoidance } from '../services/coaching/diagnosticEngine';
 import { orchestrateAttempt } from '../services/coach/sessionOrchestrator';
-import { getActiveRecommendation, setRecommendationStatus } from '../services/coach/recommendationEngine';
-import { getDailyPlan } from '../services/coach/decisionEngine';
+import { getActiveRecommendation, setRecommendationStatus, generateRecommendation } from '../services/coach/recommendationEngine';
+import { getDailyPlan, invalidateDailyPlan } from '../services/coach/decisionEngine';
+import { recordIntervention, recordInterventionOutcome } from '../services/coach/interventionService';
 import { getSkillLabel } from '../services/coach/skillGraph';
 import { MicroDrillModal } from '../components/ui/MicroDrillModal';
+import type { LearningProblem } from '../types/intervention';
 import { useRecording } from '../features/recording/useRecording';
 import { TopicGrid } from './learn/TopicGrid';
 import { QuestionCard } from './learn/QuestionCard';
@@ -56,6 +58,8 @@ export function Learn() {
   const [failoverInfo, setFailoverInfo] = useState<{ requested: AIEngine; actual: AIEngine; reason?: string } | null>(null);
   const [drillSkillId, setDrillSkillId] = useState<string | null>(null);
   const [showDrillModal, setShowDrillModal] = useState(false);
+  const [activeProblem, setActiveProblem] = useState<LearningProblem | null>(null);
+  const [drillInterventionId, setDrillInterventionId] = useState<string | null>(null);
 
   const recording = useRecording();
 
@@ -249,6 +253,8 @@ export function Learn() {
     dispatch({ type: 'UPDATE_SKILL_PROFILE', skillProfile: getSkillProfile() });
 
     setDrillSkillId(orchestration.drillSkillId);
+    setActiveProblem(orchestration.activeProblem);
+    setDrillInterventionId(null);
     setShowDrillModal(false);
     setFeedback(fb);
     setIsLoadingFeedback(false);
@@ -336,6 +342,37 @@ export function Learn() {
     }
   }, [engineResults]);
 
+  // ── Recovery drill (intervention loop) ────────────────────────────────────────
+
+  const openDrill = () => {
+    if (activeProblem) {
+      const intervention = recordIntervention({
+        problemId: activeProblem.id,
+        nodeId: activeProblem.nodeId,
+        deliveredInSessionId: activeSession?.id,
+      });
+      setDrillInterventionId(intervention.id);
+    }
+    setShowDrillModal(true);
+  };
+
+  const handleDrillComplete = (result: { correct: number; total: number; immediateSuccess: number }) => {
+    if (activeProblem && drillInterventionId) {
+      recordInterventionOutcome({
+        interventionId: drillInterventionId,
+        problemId: activeProblem.id,
+        nodeId: activeProblem.nodeId,
+        correct: result.correct,
+        total: result.total,
+        immediateSuccess: result.immediateSuccess,
+      });
+      // Refresh the coach's recommendation + daily plan from the updated problem
+      // status so the next Home/Learn surface reflects the drill outcome.
+      generateRecommendation();
+      invalidateDailyPlan();
+    }
+  };
+
   // ── Advance to next question or end session ───────────────────────────────────
 
   const advanceQuestion = () => {
@@ -363,6 +400,8 @@ export function Learn() {
 
     setFeedback(null);
     setDrillSkillId(null);
+    setActiveProblem(null);
+    setDrillInterventionId(null);
     setShowDrillModal(false);
     setShowHint(false);
     setIsRetry(false);
@@ -436,6 +475,8 @@ export function Learn() {
     setIsRetry(true);
     setFeedback(null);
     setDrillSkillId(null);
+    setActiveProblem(null);
+    setDrillInterventionId(null);
     setShowDrillModal(false);
     setShowHint(false);
     setEngineResults(new Map());
@@ -597,7 +638,7 @@ export function Learn() {
                   </p>
                   <button
                     type="button"
-                    onClick={() => setShowDrillModal(true)}
+                    onClick={openDrill}
                     className="w-full py-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 font-bold text-sm hover:bg-rose-500/25 transition-colors"
                   >
                     Start recovery drill
@@ -632,6 +673,7 @@ export function Learn() {
           <MicroDrillModal
             skillId={drillSkillId}
             onClose={() => setShowDrillModal(false)}
+            onComplete={handleDrillComplete}
           />
         )}
       </AnimatePresence>
