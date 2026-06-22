@@ -4,10 +4,11 @@ import { fadeUp } from '../../components/motion/variants';
 
 interface Props {
   quote: { text: string; translation: string };
+  weakestTopic: string | null;
   onLearn: () => void;
 }
 
-export function DailyCards({ quote, onLearn }: Props) {
+export function DailyCards({ quote, weakestTopic, onLearn }: Props) {
   return (
     <motion.div variants={fadeUp} className="grid grid-cols-1 md:grid-cols-2 gap-3">
       <div className="relative overflow-hidden rounded-xl glass border-cyan-500/10 p-4">
@@ -20,8 +21,8 @@ export function DailyCards({ quote, onLearn }: Props) {
               <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider">AI Suggests</span>
               <Sparkles size={10} className="text-cyan-400" />
             </div>
-            <p className="text-white font-semibold text-sm">Focus on <span className="text-cyan-300">Environment</span></p>
-            <p className="text-[10px] text-slate-600 mt-0.5">3 sessions will boost your score by ~15%</p>
+            <p className="text-white font-semibold text-sm">Focus on <span className="text-cyan-300">{weakestTopic ?? 'General Practice'}</span></p>
+            <p className="text-[10px] text-slate-600 mt-0.5">Target this topic to raise your overall score.</p>
           </div>
           <motion.button
             onClick={onLearn}

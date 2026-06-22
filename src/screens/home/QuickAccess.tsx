@@ -6,13 +6,13 @@ interface Props {
   onNavigate: (screen: Screen) => void;
 }
 
-const ITEMS = [
+const ITEMS: { icon: string; label: string; screen: Screen; badge?: string }[] = [
   { icon: '📚', label: 'Practice', screen: 'learn' as Screen },
   { icon: '📻', label: 'News', screen: 'daily-news' as Screen },
   { icon: '🎓', label: 'Exam', screen: 'exam' as Screen },
   { icon: '🧭', label: 'Explore', screen: 'explore' as Screen },
   { icon: '📊', label: 'Progress', screen: 'progress' as Screen },
-  { icon: '🛍️', label: 'Shop', screen: 'shop' as Screen, badge: 'SALE' },
+  { icon: '🛍️', label: 'Shop', screen: 'shop' as Screen },
 ];
 
 export function QuickAccess({ onNavigate }: Props) {

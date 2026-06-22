@@ -13,7 +13,6 @@ interface Props {
 
 export function HeroMission({ todayCount, onLearn, onExam }: Props) {
   const goalComplete = todayCount >= DAILY_GOAL;
-  const progress = (todayCount / DAILY_GOAL) * 100;
 
   return (
     <motion.div variants={fadeUp}>
@@ -74,8 +73,8 @@ export function HeroMission({ todayCount, onLearn, onExam }: Props) {
             
             <p className="text-slate-400 text-sm md:text-base mb-8 max-w-md leading-relaxed font-medium">
               {goalComplete
-                ? "You've hit your goal for today! Keep practicing to earn extra Gems and climb the leaderboard."
-                : `Complete ${DAILY_GOAL - todayCount} more session${DAILY_GOAL - todayCount > 1 ? 's' : ''} to maintain your ${todayCount + 1}-day streak and unlock bonus rewards.`}
+                ? "You've hit your goal for today! Keep practicing to build your streak."
+                : `Complete ${DAILY_GOAL - todayCount} more session${DAILY_GOAL - todayCount > 1 ? 's' : ''} to hit your daily goal.`}
             </p>
             
             <div className="flex flex-col sm:flex-row gap-3">

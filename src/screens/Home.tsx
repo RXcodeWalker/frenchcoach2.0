@@ -1,23 +1,21 @@
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Flame, Zap, TrendingUp, Trophy, Star, Target, Sparkles, Gem, ArrowRight, Play, BrainCircuit, AlertTriangle, ChevronRight } from 'lucide-react';
+import { Flame, Zap, TrendingUp, Trophy, Star, Target, Sparkles, ArrowRight, Play, BrainCircuit, AlertTriangle, ChevronRight } from 'lucide-react';
 import { generateDailyPlan } from '../services/coach/decisionEngine';
 import { getActiveRecommendation } from '../services/coach/recommendationEngine';
 import { getSkillLabel } from '../services/coach/skillGraph';
 import type { CoachRecommendation, DailyPlan } from '../types/coach';
 import { useApp } from '../context/AppContext';
-import { MOCK_DAILY } from '../data/mocks/mockDaily';
+import { getDailyStats, getStats } from '../services/analytics/analyticsService';
 import { fadeUp } from '../components/motion/variants';
 import { WeeklyChart } from '../components/WeeklyChart';
 import { PageShell } from '../components/layout/PageShell';
 import { HeroMission } from './home/HeroMission';
-import { DailyCards } from './home/DailyCards';
 import { QuickAccess } from './home/QuickAccess';
 import { RecentActivity } from './home/RecentActivity';
 import { TopContextBar } from '../components/TopContextBar';
 import { HookStack } from '../components/EngagementHooks';
-import type { Screen } from '../types/index';
 
 const FRENCH_QUOTES = [
   { text: "La vie est belle quand on la regarde avec le coeur.", translation: "Life is beautiful when you look at it with the heart." },
@@ -31,10 +29,21 @@ export function Home() {
   const { state } = useApp();
   const { profile } = state;
   const navigate = useNavigate();
-  const [todayCount] = useState(2);
   const [quote] = useState(() => FRENCH_QUOTES[Math.floor(Math.random() * FRENCH_QUOTES.length)]);
   const [dailyPlan, setDailyPlan] = useState<DailyPlan | null>(null);
   const [recommendation, setRecommendation] = useState<CoachRecommendation | null>(null);
+
+  const stats = useMemo(() => getStats(), []);
+  const chartData = useMemo(() => getDailyStats(7), []);
+
+  const today = new Date().toISOString().slice(0, 10);
+  const todayCount = state.recentSessions.filter(s => s.createdAt?.startsWith(today)).length;
+
+  const weakestTopic = useMemo(() => {
+    const entries = Object.entries(stats.byTopic);
+    if (!entries.length) return null;
+    return entries.sort((a, b) => a[1].avg - b[1].avg)[0][0];
+  }, [stats]);
 
   useEffect(() => {
     try {
@@ -49,16 +58,34 @@ export function Home() {
     ? recommendation.targetSkillIds
     : dailyPlan?.topAction.targetSkillIds ?? [];
 
-  const [hooks, setHooks] = useState([
-    { 
-      type: 'streak' as const, 
-      title: 'Streak at Risk!', 
-      description: 'Your 7-day streak ends in 4 hours. Practice now!', 
-      cta: 'Save My Streak', 
-      onClick: () => navigate('/learn'),
-      onClose: () => setHooks(h => h.slice(1))
-    }
-  ]);
+  const streakAtRisk = useMemo(() => {
+    if (!profile.streak_days || todayCount > 0) return false;
+    const lastSession = profile.last_session_date;
+    if (!lastSession) return false;
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    return lastSession.startsWith(yesterday.toISOString().slice(0, 10));
+  }, [profile.streak_days, profile.last_session_date, todayCount]);
+
+  const hoursToMidnight = useMemo(() => {
+    const now = new Date();
+    const midnight = new Date(now);
+    midnight.setHours(24, 0, 0, 0);
+    return Math.ceil((midnight.getTime() - now.getTime()) / 3600000);
+  }, []);
+
+  const [hooks, setHooks] = useState(() =>
+    streakAtRisk
+      ? [{
+          type: 'streak' as const,
+          title: 'Streak at Risk!',
+          description: `Your ${profile.streak_days}-day streak ends in ${hoursToMidnight} hour${hoursToMidnight === 1 ? '' : 's'}. Practice now!`,
+          cta: 'Save My Streak',
+          onClick: () => navigate('/learn'),
+          onClose: () => setHooks(h => h.slice(1))
+        }]
+      : []
+  );
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -163,7 +190,7 @@ export function Home() {
 
           {/* Engagement Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Quick Action: Continue */}
+            {/* Quick Action: Practice Focus */}
             <motion.div
               variants={fadeUp}
               whileHover={{ scale: 1.01, translateY: -2 }}
@@ -177,22 +204,13 @@ export function Home() {
                     <Play size={18} className="text-blue-400 fill-blue-400/20" />
                   </div>
                   <div>
-                    <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Next Lesson</span>
-                    <h3 className="text-white font-bold">School & Education</h3>
+                    <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Practice Focus</span>
+                    <h3 className="text-white font-bold">{weakestTopic ?? 'General Practice'}</h3>
                   </div>
                 </div>
-                <div className="flex items-center justify-between text-xs mb-2">
-                  <span className="text-slate-500 font-medium">Progress</span>
-                  <span className="text-blue-400 font-bold">60%</span>
-                </div>
-                <div className="h-2 bg-navy-300 rounded-full overflow-hidden">
-                  <motion.div 
-                    initial={{ width: 0 }}
-                    animate={{ width: '60%' }}
-                    transition={{ duration: 1, delay: 0.5 }}
-                    className="h-full bg-gradient-to-r from-blue-600 to-cyan-400 shimmer-bar" 
-                  />
-                </div>
+                <p className="text-xs text-slate-400 mb-4">
+                  {weakestTopic ? 'Your lowest-scoring topic — target it to raise your overall score.' : 'Complete some sessions to unlock personalised topic focus.'}
+                </p>
                 <div className="mt-4 flex items-center gap-2 text-[10px] font-bold text-blue-400 group-hover:gap-3 transition-all">
                   START NOW <ArrowRight size={12} />
                 </div>
@@ -221,11 +239,11 @@ export function Home() {
                   <div className="flex -space-x-2">
                     {[1, 2, 3].map(i => (
                       <div key={i} className="w-6 h-6 rounded-full border-2 border-navy bg-slate-800 flex items-center justify-center text-[8px] font-bold text-white">
-                        {i <= 1 ? '✅' : i}
+                        {i <= todayCount ? '✅' : i}
                       </div>
                     ))}
                   </div>
-                  <p className="text-xs text-slate-500 font-medium">+35 XP Bonus</p>
+                  <p className="text-xs text-slate-500 font-medium">{todayCount}/3 sessions today</p>
                 </div>
                 <div className="mt-4 flex items-center gap-2 text-[10px] font-bold text-amber-400 group-hover:gap-3 transition-all">
                   VIEW CHALLENGE <ArrowRight size={12} />
@@ -245,10 +263,10 @@ export function Home() {
                     <h3 className="font-bold text-white text-base">Weekly Momentum</h3>
                   </div>
                   <div className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold text-slate-400">
-                    AVG SCORE: {(MOCK_DAILY.reduce((s, d) => s + d.score, 0) / MOCK_DAILY.length).toFixed(1)}
+                    AVG SCORE: {stats.avgScore != null ? stats.avgScore.toFixed(1) : '—'}
                   </div>
                 </div>
-                <WeeklyChart data={MOCK_DAILY} uid="home" />
+                <WeeklyChart data={chartData} uid="home" />
               </motion.div>
 
               <RecentActivity sessions={state.recentSessions} />
@@ -260,7 +278,7 @@ export function Home() {
                 {[
                   { icon: <Flame size={18} />, value: profile.streak_days, label: 'Day Streak', color: 'text-orange-400', border: 'border-orange-500/20' },
                   { icon: <Zap size={18} />, value: profile.total_xp.toLocaleString(), label: 'Total XP', color: 'text-violet-400', border: 'border-violet-electric/20' },
-                  { icon: <Star size={18} />, value: '7.8', label: 'Avg Score', color: 'text-emerald-400', border: 'border-emerald-500/20' },
+                  { icon: <Star size={18} />, value: stats.avgScore != null ? stats.avgScore.toFixed(1) : '—', label: 'Avg Score', color: 'text-emerald-400', border: 'border-emerald-500/20' },
                   { icon: <Trophy size={18} />, value: state.achievements.filter(a => a.unlocked).length, label: 'Badges', color: 'text-amber-400', border: 'border-amber-500/20' },
                 ].map((stat, i) => (
                   <motion.div
