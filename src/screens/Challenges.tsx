@@ -16,7 +16,7 @@ import {
   Gift,
   Award
 } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { useApp, dispatchAddXP } from '../context/AppContext';
 
 interface Challenge {
   id: string;
@@ -97,7 +97,7 @@ export function Challenges() {
 
   const handleClaim = (id: string) => {
     // In a real app, this would update the backend
-    dispatch({ type: 'ADD_XP', amount: 400 });
+    dispatchAddXP(dispatch, 400);
     // Update local state for immediate feedback
   };
 

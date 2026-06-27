@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { REBUILD_QUESTIONS } from '../../data/rebuildQuestions';
 import { SKILL_DEFS } from '../../services/coaching/diagnosticEngine';
-import { useApp } from '../../context/AppContext';
+import { useApp, dispatchAddXP } from '../../context/AppContext';
 
 interface MicroDrillModalProps {
   skillId: string;
@@ -98,7 +98,7 @@ export const MicroDrillModal: React.FC<MicroDrillModalProps> = ({ skillId, onClo
       setFeedback('correct');
       setScore(s => s + 10);
       setCorrectCount(c => c + 1);
-      dispatch({ type: 'ADD_XP', amount: 10 });
+      dispatchAddXP(dispatch, 10);
     } else {
       setFeedback('incorrect');
     }

@@ -16,7 +16,7 @@ import {
   Timer,
   Flame
 } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { useApp, dispatchAddXP } from '../context/AppContext';
 import { PageShell } from '../components/layout/PageShell';
 import { SessionCompletion } from '../components/SessionCompletion';
 import { fadeUp } from '../components/motion/variants';
@@ -110,7 +110,7 @@ export function SentenceRebuilder() {
         return newStreak;
       });
       setCorrectAnswers(c => c + 1);
-      dispatch({ type: 'ADD_XP', amount: finalPoints });
+      dispatchAddXP(dispatch, finalPoints);
       speak(currentQuestion.french);
     } else {
       setFeedback('incorrect');

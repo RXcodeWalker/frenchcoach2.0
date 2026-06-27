@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { useRecording } from '../features/recording/useRecording';
 import { Waveform } from '../features/recording/Waveform';
-import { useApp } from '../context/AppContext';
+import { useApp, dispatchAddXP } from '../context/AppContext';
 
 interface AccentDrill {
   id: string;
@@ -146,7 +146,7 @@ export function AccentAnalyzer() {
       setIsAnalyzing(false);
 
       if (score > 80) {
-        dispatch({ type: 'ADD_XP', amount: 15 });
+        dispatchAddXP(dispatch, 15);
       }
     }, 1500);
   };

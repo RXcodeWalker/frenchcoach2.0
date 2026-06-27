@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Heart, Zap, Trophy, ArrowLeft, RefreshCw, CheckCircle2, XCircle, Flame, Star, Shield, AlertTriangle, Sparkles, Clock, ZapOff, Lightbulb } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { useApp, dispatchAddXP } from '../context/AppContext';
 import minigameQuestions from '../data/scenarios/minigameQuestions.json';
 
 type GameState = 'idle' | 'countdown' | 'playing' | 'finished';
@@ -288,10 +288,7 @@ export function SurvivalMode() {
 
   const finishGame = () => {
     if (score > 0) {
-      dispatch({ 
-        type: 'ADD_XP', 
-        amount: score
-      });
+      dispatchAddXP(dispatch, score);
     }
   };
 

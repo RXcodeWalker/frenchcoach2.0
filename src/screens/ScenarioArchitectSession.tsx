@@ -17,7 +17,7 @@ import {
 import { Card } from '../components/ui/Card';
 import { useRecording } from '../features/recording/useRecording';
 import { Waveform } from '../features/recording/Waveform';
-import { useApp } from '../context/AppContext';
+import { useApp, dispatchAddXP } from '../context/AppContext';
 import { roleplayTurn } from '../services/api/apiClient';
 import type { GeneratedScenario } from '../types';
 
@@ -106,7 +106,7 @@ export function ScenarioArchitectSession() {
       // For this demo, we'll just mark one as done every few turns
       if (messages.length > 2 && completedObjectives.length < customScenario.objectives.length) {
         setCompletedObjectives(prev => [...prev, prev.length]);
-        dispatch({ type: 'ADD_XP', amount: 20 });
+        dispatchAddXP(dispatch, 20);
       }
 
     } catch (err) {

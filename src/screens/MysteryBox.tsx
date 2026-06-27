@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Gift, Sparkles, Zap, Trophy, RefreshCw } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { useApp, dispatchAddXP } from '../context/AppContext';
 
 type BoxState = 'closed' | 'shaking' | 'opening' | 'revealed';
 
@@ -29,7 +29,7 @@ export function MysteryBox() {
       
       setTimeout(() => {
         setBoxState('revealed');
-        dispatch({ type: 'ADD_XP', amount: randomReward.value });
+        dispatchAddXP(dispatch, randomReward.value);
       }, 1000);
     }, 1500);
   };

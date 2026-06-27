@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Mic, MicOff, Info, CheckCircle2, XCircle, ArrowLeft, Trophy, Sparkles, Volume2, ChevronRight, RotateCcw, Loader2, Play, Pause, Crown } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { useApp, dispatchAddXP } from '../context/AppContext';
 import { useAudioBlobRecorder } from '../features/recording/useAudioBlobRecorder';
 import { PRONUNCIATION_DRILLS } from '../data/pronunciationDrills';
 import { Waveform } from '../features/recording/Waveform';
@@ -45,7 +45,7 @@ export function PronunciationLab() {
           if (pronScore >= 7) {
             const xp = Math.round(pronScore * (attempts === 1 ? 2 : 1.5));
             setScore(s => s + xp);
-            dispatch({ type: 'ADD_XP', amount: xp });
+            dispatchAddXP(dispatch, xp);
           }
 
           if (pronScore >= 9) {

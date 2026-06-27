@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Volume2, CheckCircle2, XCircle, ArrowRight, RotateCcw, Headphones, ChevronLeft } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useNavigate } from 'react-router-dom';
-import { useApp } from '../context/AppContext';
+import { useApp, dispatchAddXP } from '../context/AppContext';
 import { TTS } from '../services/tts/ttsService';
 import { TOPICS } from '../data/gameData';
 import { getRandomListeningQuestion, ListeningQuestion } from '../data/listeningQuestions';
@@ -60,7 +60,7 @@ export function ListeningMode() {
     if (correct) {
       setScore(s => s + 1);
       triggerConfetti();
-      dispatch({ type: 'ADD_XP', amount: 15, x: window.innerWidth / 2, y: window.innerHeight / 2 });
+      dispatchAddXP(dispatch, 15, { x: window.innerWidth / 2, y: window.innerHeight / 2 });
     }
     setState('feedback');
     setQuestionsDone(d => d + 1);

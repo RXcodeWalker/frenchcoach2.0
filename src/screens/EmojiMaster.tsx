@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Trophy, Star, Sparkles, CheckCircle2, XCircle, Timer, Flame, Keyboard, RefreshCcw } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { useApp, dispatchAddXP } from '../context/AppContext';
 import { EMOJI_QUESTIONS, EmojiQuestion } from '../data/emojiQuestions';
 
 type GameMode = 'classic' | 'reverse' | 'typing' | 'blitz';
@@ -85,7 +85,7 @@ export function EmojiMaster() {
       if (timerRef.current) clearInterval(timerRef.current);
       const xpEarned = calculateXP();
       if (xpEarned > 0) {
-        dispatch({ type: 'ADD_XP', amount: xpEarned });
+        dispatchAddXP(dispatch, xpEarned);
       }
     }
   };

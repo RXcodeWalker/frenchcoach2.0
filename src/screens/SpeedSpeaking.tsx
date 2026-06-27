@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Timer, Mic, Trophy, ArrowLeft, RefreshCw, CheckCircle2, XCircle, Flame, Zap, Volume2, Shield, Snowflake } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { useApp, dispatchAddXP } from '../context/AppContext';
 import { useRecording } from '../features/recording/useRecording';
 import { Waveform } from '../features/recording/Waveform';
 import { getSpeedSpeakingPool, getNextSpeedQuestion, SpeedQuestion } from '../data/speedSpeakingData';
@@ -213,10 +213,7 @@ export function SpeedSpeaking() {
 
   const finishGame = () => {
     if (score > 0) {
-      dispatch({ 
-        type: 'ADD_XP', 
-        amount: score
-      });
+      dispatchAddXP(dispatch, score);
     }
     stop();
   };

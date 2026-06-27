@@ -1,9 +1,9 @@
-import { createContext, useContext, useReducer, useEffect, useRef, type ReactNode } from 'react';
+import { createContext, useContext, useReducer, useEffect, useRef, type Dispatch, type ReactNode } from 'react';
 import type { UserProfile, Achievement, Session, XPAnimation, GemAnimation, SkillProfile, ActiveSession, TopicMasteryEntry, AIEngine, DifficultyTier } from '../types';
 import { DEFAULT_DIFFICULTY } from '../utils/difficultyConfig';
 import { ACHIEVEMENTS } from '../data/gameData';
 import { getStats } from '../services/analytics/analyticsService';
-import { getProgressionState, awardGemsForXP } from '../services/progression/progressionService';
+import { getProgressionState, awardGemsForXP, levelFor } from '../services/progression/progressionService';
 import { getSkillProfile } from '../services/coaching/diagnosticEngine';
 import { STORAGE_KEYS, storageGet, storageSet, storageSetRaw } from '../services/persistence/storage';
 
@@ -31,7 +31,7 @@ interface AppState {
 }
 
 type Action =
-  | { type: 'ADD_XP'; amount: number; x?: number; y?: number }
+  | { type: 'ADD_XP'; amount: number; totalXP: number; totalGems: number; gemGain: number; activeBoosters: { id: string; expiresAt: string; multiplier: number }[]; x?: number; y?: number }
   | { type: 'ADD_GEMS'; amount: number; x?: number; y?: number }
   | { type: 'DISMISS_XP_MODAL' }
   | { type: 'DISMISS_CELEBRATIONS' }
@@ -138,25 +138,21 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, masteredDrills: next };
     }
     case 'ADD_XP': {
-      const { totalXP, totalGems, activeBoosters } = awardGemsForXP(action.amount);
-      const { level } = getProgressionState();
+      const { totalXP, totalGems, gemGain, activeBoosters } = action;
       const animId = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
-      const gemAmount = Math.floor(action.amount / 10);
-
-      const newLevelReached = (level.name !== state.profile.current_level) ? level.name : state.newLevelReached;
-
-      const newGemAnimations = gemAmount > 0 
-        ? [...state.gemAnimations, { id: 'g' + animId, amount: gemAmount, x: (action.x ?? 50) + 5, y: action.y ?? 50 }]
+      const newLevel = levelFor(totalXP);
+      const newLevelReached = newLevel.name !== state.profile.current_level ? newLevel.name : state.newLevelReached;
+      const newGemAnimations = gemGain > 0
+        ? [...state.gemAnimations, { id: 'g' + animId, amount: gemGain, x: (action.x ?? 50) + 5, y: action.y ?? 50 }]
         : state.gemAnimations;
-
       return {
         ...state,
-        profile: { ...state.profile, total_xp: totalXP, gems: totalGems, activeBoosters, current_level: level.name as UserProfile['current_level'] },
+        profile: { ...state.profile, total_xp: totalXP, gems: totalGems, activeBoosters, current_level: newLevel.name as UserProfile['current_level'] },
         xpAnimations: [...state.xpAnimations, { id: animId, amount: action.amount, x: action.x ?? 50, y: action.y ?? 50 }],
         gemAnimations: newGemAnimations,
         showXPModal: true,
         lastXPGained: action.amount,
-        lastGemsGained: gemAmount,
+        lastGemsGained: gemGain,
         newLevelReached,
       };
     }
@@ -364,4 +360,15 @@ export function useApp() {
   const ctx = useContext(AppContext);
   if (!ctx) throw new Error('useApp must be used within AppProvider');
   return ctx;
+}
+
+export function dispatchAddXP(
+  dispatch: Dispatch<Action>,
+  amount: number,
+  coords?: { x: number; y: number }
+) {
+  const prev = getProgressionState();
+  const { totalXP, totalGems, activeBoosters } = awardGemsForXP(amount);
+  const gemGain = totalGems - prev.gems;
+  dispatch({ type: 'ADD_XP', amount, totalXP, totalGems, gemGain, activeBoosters, ...coords });
 }

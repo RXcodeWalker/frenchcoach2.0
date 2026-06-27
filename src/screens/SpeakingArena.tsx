@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useReducer } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Timer, Trophy, ArrowLeft, RefreshCw, CheckCircle2, XCircle, Flame, Zap, Shield, Sword, Sparkles } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { useApp, dispatchAddXP } from '../context/AppContext';
 import minigameQuestions from '../data/scenarios/minigameQuestions.json';
 import { useRecording } from '../features/recording/useRecording';
 import { Waveform } from '../features/recording/Waveform';
@@ -338,7 +338,7 @@ export function SpeakingArena() {
   useEffect(() => {
     if (state.phase === 'finished') {
       if (state.score > 0) {
-        appDispatch({ type: 'ADD_XP', amount: state.score });
+        dispatchAddXP(appDispatch, state.score);
       }
       stop();
     }

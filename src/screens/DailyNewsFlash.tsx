@@ -16,7 +16,7 @@ import {
   Loader2,
   AlertCircle
 } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { useApp, dispatchAddXP } from '../context/AppContext';
 import { useRecording } from '../features/recording/useRecording';
 import { Waveform } from '../features/recording/Waveform';
 import { RecordingPanel } from './learn/RecordingPanel';
@@ -219,7 +219,7 @@ export function DailyNewsFlash() {
         cefrLevel: 'A1'
       };
       setFeedback(fallbackFb);
-      dispatch({ type: 'ADD_XP', amount: 5 }); // Minimal pity XP
+      dispatchAddXP(dispatch, 5);
       setPhase('feedback');
     } finally {
       setIsProcessing(false);
@@ -228,7 +228,7 @@ export function DailyNewsFlash() {
 
   const handleRevealTranscript = () => {
     setShowTranscript(true);
-    dispatch({ type: 'ADD_XP', amount: -5 });
+    dispatchAddXP(dispatch, -5);
   };
 
   const handleRetry = () => {

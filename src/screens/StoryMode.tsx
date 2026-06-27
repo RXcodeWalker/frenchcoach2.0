@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { BookOpen, ArrowLeft, MessageSquare, Star, ChevronRight, User, Info, CheckCircle2 } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { useApp, dispatchAddXP } from '../context/AppContext';
 import roleplays from '../data/raw/roleplays.json';
 import allQuestions from '../data/raw/questions.json';
 import { RecordingPanel } from './learn/RecordingPanel';
@@ -147,7 +147,7 @@ export function StoryMode() {
     });
     dispatch({ type: 'UPDATE_SKILL_PROFILE', skillProfile: getSkillProfile() });
 
-    dispatch({ type: 'ADD_XP', amount: 10 });
+    dispatchAddXP(dispatch, 10);
   };
 
   const handleNextStep = async () => {
@@ -216,7 +216,7 @@ export function StoryMode() {
         addMessage("Excellent travail ! L'échange est terminé.", 'ai');
         setExpression('excited');
         setIsFinished(true);
-        dispatch({ type: 'ADD_XP', amount: 50 }); 
+        dispatchAddXP(dispatch, 50);
       }, 1000);
     }
   };

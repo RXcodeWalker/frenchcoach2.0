@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Sword, Heart, Zap, Trophy, ArrowLeft, RefreshCw, Skull, Clock, Shield } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { useApp, dispatchAddXP } from '../context/AppContext';
 import minigameQuestions from '../data/scenarios/minigameQuestions.json';
 
 type GameState = 'selection' | 'battle' | 'finished';
@@ -408,7 +408,7 @@ export function BossBattle() {
     setIsWon(true);
     setGameState('finished');
     const xp = selectedBoss ? (selectedBoss.difficulty === 'hard' ? 200 : selectedBoss.difficulty === 'medium' ? 100 : 50) : 0;
-    dispatch({ type: 'ADD_XP', amount: xp });
+    dispatchAddXP(dispatch, xp);
   };
 
   const handleLoss = () => {

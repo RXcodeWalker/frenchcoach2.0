@@ -32,12 +32,14 @@ const LEVELS = [
   { name: "Beast Mode",   minXP: 7000, color: "#7C3AED" },
 ];
 
-function _levelFor(xp: number) {
+export function levelFor(xp: number) {
   for (let i = LEVELS.length - 1; i >= 0; i--) {
     if (xp >= LEVELS[i].minXP) return { ...LEVELS[i], index: i };
   }
   return { ...LEVELS[0], index: 0 };
 }
+
+function _levelFor(xp: number) { return levelFor(xp); }
 
 function _progressPct(xp: number) {
   const lvl = _levelFor(xp);
