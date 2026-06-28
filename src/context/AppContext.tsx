@@ -9,6 +9,7 @@ import { getSkillProfile } from '../services/coaching/diagnosticEngine';
 import { STORAGE_KEYS, storageGet, storageSet, storageSetRaw } from '../services/persistence/storage';
 import { supabase } from '../lib/supabase';
 import { pushProgressionToCloud, pullProgressionFromCloud, mergeProgressionData, cloudDiffersFromMerged, markNeedsSync } from '../services/sync/progressionSync';
+import { hydrateSessionsFromCloud, pushSessionToCloud, backfillSessionsToCloud, flushPendingQueue } from '../services/sync/sessionSync';
 
 interface AppState {
   profile: UserProfile;
@@ -300,6 +301,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, undefined, buildInitialState);
   const [authUser, setAuthUser] = useState<User | null>(null);
   const hydrationComplete = useRef(false);
+  const sessionHydrationInProgress = useRef(false);
   const xpDismissTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Auto-dismiss XP modal after 3 seconds (fix for known never-dismissing bug)
@@ -318,49 +320,78 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Auth state subscription + cloud hydration
   useEffect(() => {
     async function hydrateFromCloud(userId: string) {
-      const cloudRow = await pullProgressionFromCloud(userId);
-      if (!cloudRow) {
-        hydrationComplete.current = true;
-        return;
-      }
-      const localRaw = getProgressionState();
-      const localData = {
-        xp: localRaw.xp,
-        totalXP: localRaw.totalXP,
-        gems: localRaw.gems,
-        achievements: localRaw.achievements,
-        inventory: localRaw.inventory,
-        activeBoosters: localRaw.activeBoosters,
-        grammarCoachUses: 0,
-        roleplayCount: 0,
-      };
-      const merged = mergeProgressionData(localData, cloudRow);
-      setProgressionData(merged);
+      // Step 0: suppress incremental session pushes during hydration
+      sessionHydrationInProgress.current = true;
 
+      // Step 1: progression
+      const cloudRow = await pullProgressionFromCloud(userId);
+      if (cloudRow) {
+        const localRaw = getProgressionState();
+        const localData = {
+          xp: localRaw.xp,
+          totalXP: localRaw.totalXP,
+          gems: localRaw.gems,
+          achievements: localRaw.achievements,
+          inventory: localRaw.inventory,
+          activeBoosters: localRaw.activeBoosters,
+          grammarCoachUses: 0,
+          roleplayCount: 0,
+        };
+        const merged = mergeProgressionData(localData, cloudRow);
+        setProgressionData(merged);
+
+        const mergedLevel = levelFor(merged.totalXP);
+        const progressionProfile: UserProfile = {
+          id: userId,
+          username: null,
+          total_xp: merged.totalXP,
+          gems: merged.gems,
+          current_level: mergedLevel.name as UserProfile['current_level'],
+          streak_days: 0,
+          longest_streak: 0,
+          last_session_date: null,
+          sessions_count: 0,
+          total_words_spoken: 0,
+          inventory: merged.inventory,
+          activeBoosters: merged.activeBoosters,
+        };
+        dispatch({ type: 'SET_PROFILE', profile: progressionProfile });
+        merged.achievements.forEach(id => dispatch({ type: 'UNLOCK_ACHIEVEMENT', achievementId: id }));
+
+        if (cloudDiffersFromMerged(merged, cloudRow)) {
+          pushProgressionToCloud(userId, merged);
+        }
+      }
+
+      // Step 2: sessions — pull, merge, write localStorage
+      const { mergedSessions, cloudIds } = await hydrateSessionsFromCloud(userId);
+
+      // Step 3: re-read analytics (now includes merged sessions) and emit final profile
       const analytics = getStats();
-      const mergedLevel = levelFor(merged.totalXP);
+      const progression = getProgressionState();
+      const mergedLevel = levelFor(progression.totalXP);
       const newProfile: UserProfile = {
         id: userId,
         username: null,
-        total_xp: merged.totalXP,
-        gems: merged.gems,
+        total_xp: progression.totalXP,
+        gems: progression.gems,
         current_level: mergedLevel.name as UserProfile['current_level'],
         streak_days: analytics.streak,
         longest_streak: analytics.streak,
         last_session_date: analytics.recentSessions[0]?.date ?? null,
         sessions_count: analytics.totalSessions,
         total_words_spoken: analytics.totalWords,
-        inventory: merged.inventory,
-        activeBoosters: merged.activeBoosters,
+        inventory: progression.inventory,
+        activeBoosters: progression.activeBoosters,
       };
       dispatch({ type: 'SET_PROFILE', profile: newProfile });
-      // Re-apply all achievement unlocks from merged state
-      merged.achievements.forEach(id => dispatch({ type: 'UNLOCK_ACHIEVEMENT', achievementId: id }));
 
-      if (cloudDiffersFromMerged(merged, cloudRow)) {
-        pushProgressionToCloud(userId, merged);
-      }
+      // Step 4: backfill + flush (fire-and-forget, run concurrently)
+      sessionHydrationInProgress.current = false;
+      void backfillSessionsToCloud(userId, mergedSessions, cloudIds);
+      void flushPendingQueue(userId);
 
+      // Step 5: open the gate for incremental pushes
       hydrationComplete.current = true;
     }
 
@@ -399,6 +430,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }, 2000);
     return () => clearTimeout(timer);
   }, [state.profile.total_xp, state.profile.gems, state.achievements, authUser?.id]);
+
+  // Incremental session push — fires after each new session, gated on auth + hydration
+  useEffect(() => {
+    const newest = state.recentSessions[0];
+    if (!newest || !authUser || !hydrationComplete.current || sessionHydrationInProgress.current) return;
+    void pushSessionToCloud(authUser.id, newest);
+  }, [state.recentSessions[0]?.id, authUser?.id]);
+
+  // Flush pending session queue when network comes back online
+  useEffect(() => {
+    if (!authUser) return;
+    const userId = authUser.id;
+    const handler = () => { void flushPendingQueue(userId); };
+    window.addEventListener('online', handler);
+    return () => window.removeEventListener('online', handler);
+  }, [authUser?.id]);
 
   // Sync state when localStorage changes in other tabs or through direct service calls
   useEffect(() => {
