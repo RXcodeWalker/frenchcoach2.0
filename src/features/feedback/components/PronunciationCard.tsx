@@ -17,7 +17,7 @@ export function PronunciationCard({ feedback }: Props) {
   const pron = feedback.pronunciation;
   if (!pron || !pron.issues.length) return null;
 
-  const color = scoreColor(pron.score);
+  const color = scoreColor(pron.score ?? 0);
 
   return (
     <CollapsibleCard
@@ -36,11 +36,11 @@ export function PronunciationCard({ feedback }: Props) {
               cx="18" cy="18" r="15" fill="none" strokeWidth="3"
               stroke={color}
               strokeLinecap="round"
-              strokeDasharray={`${(pron.score / 10) * 94.2} 94.2`}
+              strokeDasharray={`${((pron.score ?? 0) / 10) * 94.2} 94.2`}
             />
           </svg>
           <span className="absolute inset-0 flex items-center justify-center text-[10px] font-black" style={{ color }}>
-            {pron.score}
+            {pron.score ?? '—'}
           </span>
         </div>
         <div>

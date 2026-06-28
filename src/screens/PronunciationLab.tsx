@@ -320,10 +320,15 @@ export function PronunciationLab() {
                         <div key={idx} className="bg-white/5 rounded-xl p-4 border border-white/10">
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-xs font-black text-white">{issue.word}</span>
-                            <div className="flex gap-2 text-[10px] font-mono">
-                              <span className="text-slate-500">/{issue.ipaExpected}/</span>
+                            <div className="flex gap-2 text-[10px] font-mono items-center">
+                              {!issue.ipaExpected && <span className="text-[8px] text-slate-600 uppercase tracking-widest">heard</span>}
+                              <span className="text-slate-500">
+                                {issue.ipaExpected ? `/${issue.ipaExpected}/` : (issue.expected ?? issue.word)}
+                              </span>
                               <ChevronRight size={10} className="text-slate-700" />
-                              <span className="text-red-400">/{issue.ipaHeard}/</span>
+                              <span className="text-red-400">
+                                {issue.ipaHeard ? `/${issue.ipaHeard}/` : (issue.heard ?? '?')}
+                              </span>
                             </div>
                           </div>
                           <p className="text-[11px] text-slate-400 leading-relaxed italic">"{issue.problem}"</p>

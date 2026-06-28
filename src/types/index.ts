@@ -491,6 +491,9 @@ export interface PronunciationIssue {
   problem: string;
   severity: Severity;
   drill: { hint: string; repeatPhrase: string };
+  // Orthographic fallback populated by Whisper-alignment scorer (no phoneme model yet)
+  expected?: string;
+  heard?: string;
 }
 
 export interface ExaminerVerdict {
@@ -533,7 +536,7 @@ export interface FeedbackV2 extends Feedback {
   issues?: CoachingIssue[];
   transcriptAnnotations?: TranscriptSpan[];
   vocabularyV2?: VocabularyEntry[];
-  pronunciation?: { score: number; issues: PronunciationIssue[] };
+  pronunciation?: { score: number | null; issues: PronunciationIssue[] };
   deepAnalysis?: DeepAnalysis;
   schemaVersion?: 2 | 3;
   avoidanceReport?: AvoidanceReportEntry[];

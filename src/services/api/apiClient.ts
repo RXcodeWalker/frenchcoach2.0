@@ -103,7 +103,7 @@ function mapBackendFeedback(raw: BackendFeedback): FeedbackV2 {
     fillers:    (raw.fillers    ?? []).map(f => ({ word: f.word ?? '', count: f.count ?? 0 })),
     wordCount:  raw.wordCount ?? 0,
     cefrLevel:  raw.cefrLevel ?? 'A2',
-    pronunciation: { score: 7, issues: [] },
+    pronunciation: { score: null, issues: [] },
   };
 }
 
@@ -407,16 +407,21 @@ export async function getDailyNews(): Promise<any> {
 export async function evaluatePronunciationAudio(audioBlob: Blob, targetText: string): Promise<FeedbackV2> {
   const formData = new FormData();
   formData.append('audio', audioBlob, 'recording.webm');
-  formData.append('transcript', targetText);
+  formData.append('target_text', targetText);
 
-  const res = await fetch(`${API_BASE}/api/evaluate`, {
+  const res = await fetch(`${API_BASE}/api/pronunciation`, {
     method: 'POST',
     body: formData,
   });
 
-  if (!res.ok) throw new Error(`API evaluate → ${res.status}`);
-  const raw = await res.json() as BackendFeedbackV2;
-  return mergeV2Fields(mapBackendFeedback(raw), raw);
+  if (!res.ok) throw new Error(`API pronunciation → ${res.status}`);
+  const raw = await res.json() as { score: number; transcript: string; issues: import('../../types').PronunciationIssue[]; words: unknown[] };
+
+  const base = mapBackendFeedback({});
+  return {
+    ...base,
+    pronunciation: { score: raw.score, issues: raw.issues },
+  };
 }
 
 export interface VocabPrepData {
