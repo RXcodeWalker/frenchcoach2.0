@@ -1,11 +1,14 @@
-import { createContext, useContext, useReducer, useEffect, useRef, type Dispatch, type ReactNode } from 'react';
+import { createContext, useContext, useReducer, useEffect, useRef, useState, type Dispatch, type ReactNode } from 'react';
+import type { User } from '@supabase/supabase-js';
 import type { UserProfile, Achievement, Session, XPAnimation, GemAnimation, SkillProfile, ActiveSession, TopicMasteryEntry, AIEngine, DifficultyTier } from '../types';
 import { DEFAULT_DIFFICULTY } from '../utils/difficultyConfig';
 import { ACHIEVEMENTS } from '../data/gameData';
 import { getStats } from '../services/analytics/analyticsService';
-import { getProgressionState, awardGemsForXP, levelFor } from '../services/progression/progressionService';
+import { getProgressionState, awardGemsForXP, levelFor, setProgressionData } from '../services/progression/progressionService';
 import { getSkillProfile } from '../services/coaching/diagnosticEngine';
 import { STORAGE_KEYS, storageGet, storageSet, storageSetRaw } from '../services/persistence/storage';
+import { supabase } from '../lib/supabase';
+import { pushProgressionToCloud, pullProgressionFromCloud, mergeProgressionData, cloudDiffersFromMerged, markNeedsSync } from '../services/sync/progressionSync';
 
 interface AppState {
   profile: UserProfile;
@@ -291,10 +294,12 @@ function reducer(state: AppState, action: Action): AppState {
   }
 }
 
-const AppContext = createContext<{ state: AppState; dispatch: React.Dispatch<Action> } | null>(null);
+const AppContext = createContext<{ state: AppState; dispatch: React.Dispatch<Action>; authUser: User | null } | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, undefined, buildInitialState);
+  const [authUser, setAuthUser] = useState<User | null>(null);
+  const hydrationComplete = useRef(false);
   const xpDismissTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Auto-dismiss XP modal after 3 seconds (fix for known never-dismissing bug)
@@ -309,6 +314,105 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (xpDismissTimer.current) clearTimeout(xpDismissTimer.current);
     };
   }, [state.showXPModal]);
+
+  // Auth state subscription + cloud hydration
+  useEffect(() => {
+    async function hydrateFromCloud(userId: string) {
+      const cloudRow = await pullProgressionFromCloud(userId);
+      if (!cloudRow) {
+        hydrationComplete.current = true;
+        return;
+      }
+      const localRaw = getProgressionState();
+      const localData = {
+        xp: localRaw.xp,
+        totalXP: localRaw.totalXP,
+        gems: localRaw.gems,
+        achievements: localRaw.achievements,
+        inventory: localRaw.inventory,
+        activeBoosters: localRaw.activeBoosters,
+        grammarCoachUses: 0,
+        roleplayCount: 0,
+      };
+      const merged = mergeProgressionData(localData, cloudRow);
+      setProgressionData(merged);
+
+      const analytics = getStats();
+      const mergedLevel = levelFor(merged.totalXP);
+      const unlockedIds = new Set(merged.achievements);
+      const newProfile: UserProfile = {
+        id: userId,
+        username: null,
+        total_xp: merged.totalXP,
+        gems: merged.gems,
+        current_level: mergedLevel.name as UserProfile['current_level'],
+        streak_days: analytics.streak,
+        longest_streak: analytics.streak,
+        last_session_date: analytics.recentSessions[0]?.date ?? null,
+        sessions_count: analytics.totalSessions,
+        total_words_spoken: analytics.totalWords,
+        inventory: merged.inventory,
+        activeBoosters: merged.activeBoosters,
+      };
+      dispatch({ type: 'SET_PROFILE', profile: newProfile });
+      dispatch({
+        type: 'UNLOCK_ACHIEVEMENT',
+        // batch-unlock not directly supported; update achievements array via SET_PROFILE re-render
+        achievementId: '',
+      });
+      // Re-apply all achievement unlocks
+      if (merged.achievements.length > 0) {
+        const achievementsWithUnlocked = ACHIEVEMENTS.map(a => ({
+          ...a,
+          unlocked: unlockedIds.has(a.id),
+        }));
+        // Dispatch a custom approach: rebuild via profile update forces achievement re-render
+        // The achievements array lives in state separate from profile — update via a forEach
+        merged.achievements.forEach(id => dispatch({ type: 'UNLOCK_ACHIEVEMENT', achievementId: id }));
+      }
+
+      if (cloudDiffersFromMerged(merged, cloudRow)) {
+        pushProgressionToCloud(userId, merged);
+      }
+
+      hydrationComplete.current = true;
+    }
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      const user = session?.user ?? null;
+      setAuthUser(user);
+      if (user) {
+        hydrationComplete.current = false;
+        await hydrateFromCloud(user.id);
+      } else {
+        hydrationComplete.current = true;
+      }
+    });
+
+    // Check current session on mount
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      const user = session?.user ?? null;
+      setAuthUser(user);
+      if (user) {
+        hydrationComplete.current = false;
+        hydrateFromCloud(user.id);
+      } else {
+        hydrationComplete.current = true;
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Debounced cloud save — fires 2s after XP/gems/achievements change, gated on hydration
+  useEffect(() => {
+    if (!authUser || !hydrationComplete.current) return;
+    markNeedsSync();
+    const timer = setTimeout(() => {
+      pushProgressionToCloud(authUser.id);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [state.profile.total_xp, state.profile.gems, state.achievements, authUser?.id]);
 
   // Sync state when localStorage changes in other tabs or through direct service calls
   useEffect(() => {
@@ -353,7 +457,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     document.documentElement.classList.toggle('dark', state.darkMode);
   }, [state.darkMode]);
 
-  return <AppContext.Provider value={{ state, dispatch }}>{children}</AppContext.Provider>;
+  return <AppContext.Provider value={{ state, dispatch, authUser }}>{children}</AppContext.Provider>;
 }
 
 export function useApp() {

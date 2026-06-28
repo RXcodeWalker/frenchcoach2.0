@@ -19,6 +19,10 @@ export type Database = {
           last_session_date: string | null;
           sessions_count: number;
           total_words_spoken: number;
+          gems: number;
+          achievements: string[];
+          inventory: Record<string, number>;
+          active_boosters: { id: string; expiresAt: string; multiplier: number }[];
           created_at: string;
           updated_at: string;
         };

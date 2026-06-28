@@ -2,8 +2,13 @@
 import { STORAGE_KEYS } from '../persistence/storage';
 import { computeXPGain } from '../../domain/xp';
 const KEY = STORAGE_KEYS.progression;
+const NEEDS_SYNC_KEY = 'frenchCoach_needsSync';
 
-interface ProgressionData {
+export function markNeedsSync() { try { localStorage.setItem(NEEDS_SYNC_KEY, '1'); } catch {} }
+export function clearNeedsSync() { try { localStorage.removeItem(NEEDS_SYNC_KEY); } catch {} }
+export function hasPendingSync(): boolean { return localStorage.getItem(NEEDS_SYNC_KEY) === '1'; }
+
+export interface ProgressionData {
   xp: number; totalXP: number; gems: number; achievements: string[];
   inventory: Record<string, number>;
   activeBoosters: { id: string; expiresAt: string; multiplier: number }[];
@@ -70,6 +75,7 @@ export function awardXP(score: number, streak = 0): { gain: number; totalXP: num
   data.totalXP = (data.totalXP || 0) + gain;
   data.gems    = (data.gems || 0) + gemsGain;
   _save(data);
+  markNeedsSync();
 
   const newLevel = _levelFor(data.xp);
   return { gain, totalXP: data.xp, gemsGain, totalGems: data.gems, levelUp: newLevel.index > prevLevel.index, activeBoosters: data.activeBoosters };
@@ -151,6 +157,7 @@ export function unlockAchievement(id: string): boolean {
   if (data.achievements.includes(id)) return false;
   data.achievements.push(id);
   _save(data);
+  markNeedsSync();
   return true;
 }
 
@@ -187,4 +194,9 @@ export function recordRoleplayComplete() {
 
 export function getUnlockedAchievementIds(): string[] {
   return _load().achievements ?? [];
+}
+
+export function setProgressionData(data: ProgressionData): void {
+  _save(data);
+  markNeedsSync();
 }

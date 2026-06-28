@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import type { Screen } from '../types';
-import { Home, BookOpen, GraduationCap, BarChart3, User, Compass, Flame, Users, ShoppingBag, Trophy, Info } from 'lucide-react';
+import { Home, BookOpen, GraduationCap, BarChart3, User, Compass, Flame, Users, ShoppingBag, Trophy, Info, Cloud, CloudOff } from 'lucide-react';
+import { AuthModal } from './AuthModal';
 
 const NAV_ITEMS: { id: Screen; label: string; icon: React.ReactNode; glowColor: string }[] = [
   { id: 'home', label: 'Home', icon: <Home size={18} />, glowColor: '#7C3AED' },
@@ -20,9 +22,10 @@ const NAV_ITEMS: { id: Screen; label: string; icon: React.ReactNode; glowColor: 
 const toPath = (id: Screen): string => id === 'home' ? '/' : `/${id}`;
 
 export function SideRail() {
-  const { state } = useApp();
+  const { state, authUser } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
+  const [showAuth, setShowAuth] = useState(false);
 
   return (
     <>
@@ -88,6 +91,24 @@ export function SideRail() {
           })}
         </div>
 
+        {/* Cloud sync button */}
+        <motion.button
+          onClick={() => setShowAuth(true)}
+          className="group relative w-9 h-9 rounded-lg flex items-center justify-center mb-1"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.92 }}
+          title={authUser ? `Signed in: ${authUser.email}` : 'Sign in to sync'}
+        >
+          {authUser ? (
+            <Cloud size={15} className="text-emerald-400" style={{ filter: 'drop-shadow(0 0 6px #34d399)' }} />
+          ) : (
+            <CloudOff size={15} className="text-slate-500 group-hover:text-slate-300 transition-colors" />
+          )}
+          <div className="absolute left-full ml-2.5 px-2 py-1 bg-navy-200 border border-white/10 rounded-md text-[10px] font-semibold text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl z-50">
+            {authUser ? 'Synced' : 'Sync'}
+          </div>
+        </motion.button>
+
         {/* Streak */}
         <div className="flex flex-col items-center gap-1.5 mb-1">
           <motion.div
@@ -99,6 +120,8 @@ export function SideRail() {
           <span className="text-[9px] font-bold text-orange-400">{state.profile.streak_days}</span>
         </div>
       </nav>
+
+      {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
 
       {/* Mobile Bottom Dock */}
       <nav className="nav-rail fixed bottom-0 left-0 right-0 z-50 md:hidden">
