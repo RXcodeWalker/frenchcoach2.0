@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { track } from '../services/telemetry/telemetryService';
 import confetti from 'canvas-confetti';
 import { useNavigate } from 'react-router-dom';
@@ -11,6 +11,7 @@ import { recordSession as persistSession } from '../services/analytics/analytics
 import { observeAttempt } from '../services/coach/sessionOrchestrator';
 import type { Session, Question } from '../types/index';
 import { useRecording } from '../features/recording/useRecording';
+import { useCountdownTimer } from '../features/recording/useCountdownTimer';
 import { ExamIntro } from './exam/ExamIntro';
 import { ExamResults } from './exam/ExamResults';
 import { ExamRunner } from './exam/ExamRunner';
@@ -33,53 +34,17 @@ export function ExamMode() {
   const navigate = useNavigate();
   const [examState, setExamState] = useState<ExamState>('intro');
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(PREP_TIME);
   const [answers, setAnswers] = useState<{ score: number; time: number; phase: string }[]>([]);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [activeTopicQuestions, setActiveTopicQuestions] = useState<Question[]>([]);
   const [roleplayScenario, setRoleplayScenario] = useState<string>('');
   const [roleplayCandidateRole, setRoleplayCandidateRole] = useState<string>('');
-  const timerRef = useRef<number | null>(null);
+  const timer = useCountdownTimer();
   const recording = useRecording();
 
   const currentQ = examState === 'roleplay' 
     ? questions[currentIndex] 
     : activeTopicQuestions[currentIndex];
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (examState === 'prep') {
-      setTimeLeft(PREP_TIME);
-      timerRef.current = window.setInterval(() => {
-        setTimeLeft(t => {
-          if (t <= 1) { 
-            clearInterval(timerRef.current!); 
-            startRolePlay();
-            return 0; 
-          }
-          return t - 1;
-        });
-      }, 1000);
-    } else if (examState === 'topic1' || examState === 'topic2') {
-      // For topics, the timer is overarching for the phase
-      if (timerRef.current) clearInterval(timerRef.current);
-      timerRef.current = window.setInterval(() => {
-        setTimeLeft(t => {
-          if (t <= 0) { 
-            clearInterval(timerRef.current!); 
-            return 0; 
-          }
-          return t - 1;
-        });
-      }, 1000);
-    }
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [examState]);
 
   const startExam = () => {
     // 1. Select Role Play from real data
@@ -103,6 +68,7 @@ export function ExamMode() {
     setCurrentIndex(0);
     setAnswers([]);
     setExamState('prep');
+    timer.start(PREP_TIME, startRolePlay);
   };
 
   const startRolePlay = () => {
@@ -121,8 +87,8 @@ export function ExamMode() {
     }
     setActiveTopicQuestions(qs);
     setCurrentIndex(0);
-    setTimeLeft(TOPIC_TIME);
     setExamState('topic1');
+    timer.start(TOPIC_TIME);
   };
 
   const startTopic2 = () => {
@@ -136,8 +102,8 @@ export function ExamMode() {
     }
     setActiveTopicQuestions(qs);
     setCurrentIndex(0);
-    setTimeLeft(TOPIC_TIME);
     setExamState('topic2');
+    timer.start(TOPIC_TIME);
   };
 
   const handleNextQuestion = async () => {
@@ -179,14 +145,14 @@ export function ExamMode() {
         setCurrentIndex(i => i + 1);
       }
     } else if (examState === 'topic1') {
-      if (timeLeft <= 0) {
+      if (timer.timeLeft <= 0) {
         startTopic2();
       } else {
         if (currentIndex + 1 >= activeTopicQuestions.length) setCurrentIndex(0);
         else setCurrentIndex(i => i + 1);
       }
     } else if (examState === 'topic2') {
-      if (timeLeft <= 0) {
+      if (timer.timeLeft <= 0) {
         finishExam(newAnswers);
       } else {
         if (currentIndex + 1 >= activeTopicQuestions.length) setCurrentIndex(0);
@@ -230,9 +196,7 @@ export function ExamMode() {
     confetti({ particleCount: 150, spread: 100, origin: { y: 0.5 } });
   };
 
-  const timerTotal = examState === 'prep' ? PREP_TIME : TOPIC_TIME;
-  const timerPercent = (timeLeft / timerTotal) * 100;
-  const timerColor = timeLeft > 30 ? '#10B981' : timeLeft > 10 ? '#F59E0B' : '#EF4444';
+  const timerColor = timer.timeLeft > 30 ? '#10B981' : timer.timeLeft > 10 ? '#F59E0B' : '#EF4444';
 
   if (examState === 'intro') return <ExamIntro onStart={startExam} onBack={() => navigate('/')} />;
 
@@ -252,8 +216,8 @@ export function ExamMode() {
       examState={examState as any}
       currentIndex={currentIndex}
       totalQuestions={examState === 'roleplay' ? ROLEPLAY_LENGTH : activeTopicQuestions.length}
-      timeLeft={timeLeft}
-      timerPercent={timerPercent}
+      timeLeft={timer.timeLeft}
+      timerPercent={timer.timerPercent}
       timerColor={timerColor}
       currentQuestion={currentQ}
       recording={recording}
