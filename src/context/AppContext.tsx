@@ -10,6 +10,8 @@ import { STORAGE_KEYS, storageGet, storageSet, storageSetRaw } from '../services
 import { supabase } from '../lib/supabase';
 import { pushProgressionToCloud, pullProgressionFromCloud, mergeProgressionData, cloudDiffersFromMerged, markNeedsSync } from '../services/sync/progressionSync';
 import { hydrateSessionsFromCloud, pushSessionToCloud, backfillSessionsToCloud, flushPendingQueue } from '../services/sync/sessionSync';
+import { hydrateCoachFromCloud, backfillEvidenceToCloud, pushPendingEvidence } from '../services/sync/coachSync';
+import { getEvidenceEvents } from '../services/coach/coachStorage';
 
 interface AppState {
   profile: UserProfile;
@@ -366,6 +368,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       // Step 2: sessions — pull, merge, write localStorage
       const { mergedSessions, cloudIds } = await hydrateSessionsFromCloud(userId);
 
+      // Step 2.5: coach evidence — pull, merge, rebuild beliefs + problems
+      // Runs after sessions so sourceSessionId references are already present
+      const { cloudIds: cloudEvidenceIds } = await hydrateCoachFromCloud(userId);
+
       // Step 3: re-read analytics (now includes merged sessions) and emit final profile
       const analytics = getStats();
       const progression = getProgressionState();
@@ -389,6 +395,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       // Step 4: backfill + flush (fire-and-forget, run concurrently)
       sessionHydrationInProgress.current = false;
       void backfillSessionsToCloud(userId, mergedSessions, cloudIds);
+      void backfillEvidenceToCloud(userId, getEvidenceEvents(), cloudEvidenceIds);
       void flushPendingQueue(userId);
 
       // Step 5: open the gate for incremental pushes
@@ -436,13 +443,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const newest = state.recentSessions[0];
     if (!newest || !authUser || !hydrationComplete.current || sessionHydrationInProgress.current) return;
     void pushSessionToCloud(authUser.id, newest);
+    void pushPendingEvidence(authUser.id);
   }, [state.recentSessions[0]?.id, authUser?.id]);
 
   // Flush pending session queue when network comes back online
   useEffect(() => {
     if (!authUser) return;
     const userId = authUser.id;
-    const handler = () => { void flushPendingQueue(userId); };
+    const handler = () => {
+      void flushPendingQueue(userId);
+      void pushPendingEvidence(userId);
+    };
     window.addEventListener('online', handler);
     return () => window.removeEventListener('online', handler);
   }, [authUser?.id]);

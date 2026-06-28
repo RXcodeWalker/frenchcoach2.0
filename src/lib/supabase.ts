@@ -68,6 +68,22 @@ export type Database = {
           recorded_at: string;
         };
       };
+      coach_evidence: {
+        Row: {
+          id: string;
+          user_id: string;
+          occurred_at: string;
+          source_session_id: string | null;
+          evidence_type: string;
+          target_node_ids: string[];
+          observation: Record<string, unknown>;
+          result: Record<string, unknown>;
+          reliability: Record<string, unknown>;
+          context: Record<string, unknown>;
+          schema_version: number;
+          created_at: string;
+        };
+      };
     };
   };
 };

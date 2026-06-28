@@ -14,7 +14,7 @@ import {
 import { getSkillProfile } from '../coaching/diagnosticEngine';
 
 /** Cap the evidence log so localStorage never grows unbounded. */
-const MAX_EVIDENCE_EVENTS = 100;
+export const MAX_EVIDENCE_EVENTS = 100;
 
 export const LEARNER_ID = 'local-user';
 

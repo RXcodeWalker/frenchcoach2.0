@@ -30,6 +30,8 @@ export const STORAGE_KEYS = {
   // ── Session cloud sync ────────────────────────────────────────────────────────
   syncedSessionIds:   'frenchCoach_syncedSessionIds',
   pendingSyncSessionIds: 'frenchCoach_pendingSyncSessionIds',
+  // ── Coach evidence cloud sync ─────────────────────────────────────────────────
+  syncedEvidenceIds:  'frenchCoach_syncedEvidenceIds',
 } as const;
 
 export type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS];
