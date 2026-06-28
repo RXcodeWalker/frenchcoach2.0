@@ -3,6 +3,8 @@ import { Routes, Route, Outlet, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion, type Variants } from 'framer-motion';
 import { Zap } from 'lucide-react';
 import { AppProvider, useApp } from './context/AppContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { Auth } from './screens/Auth';
 import { XPAnimations } from './components/XPAnimation';
 import { GemAnimations } from './components/GemAnimation';
 import { SideRail } from './components/Navigation';
@@ -162,10 +164,25 @@ function ExamLayout() {
   );
 }
 
-export default function App() {
+function AppShell() {
+  const { user, loading, configError } = useAuth();
+  const location = useLocation();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen dark:bg-slate-950 bg-slate-100 flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full border-2 border-violet-500/30 border-t-violet-500 animate-spin" />
+      </div>
+    );
+  }
+
+  if (configError || !user) {
+    return <Auth />;
+  }
+
   return (
     <AppProvider>
-      <Routes>
+      <Routes location={location}>
         <Route element={<MainLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/learn" element={<Learn />} />
@@ -209,5 +226,13 @@ export default function App() {
         </Route>
       </Routes>
     </AppProvider>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppShell />
+    </AuthProvider>
   );
 }

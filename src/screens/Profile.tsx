@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
-import { Volume2, Moon, Bell, Globe, Database, Shield, ChevronRight, Zap, Trophy, Flame, TrendingUp, BookOpen } from 'lucide-react';
+import { Volume2, Moon, Bell, Globe, Database, Shield, ChevronRight, Zap, Trophy, Flame, TrendingUp, BookOpen, LogOut } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
 import { getLevelInfo } from '../domain/levels';
 import { ACHIEVEMENTS } from '../data/gameData';
 import { fadeUp } from '../components/motion/variants';
@@ -9,6 +10,7 @@ import { SettingToggle } from '../components/ui/SettingToggle';
 
 export function Profile() {
   const { state, dispatch } = useApp();
+  const { user, signOut } = useAuth();
   const { profile } = state;
   const { current, progress } = getLevelInfo(profile.total_xp);
   const unlockedCount = state.achievements.filter(a => a.unlocked).length;
@@ -26,7 +28,7 @@ export function Profile() {
             {profile.username?.[0] ?? 'F'}
           </motion.div>
           <div className="flex-1">
-            <h2 className="text-lg font-black text-white">{profile.username ?? 'French Learner'}</h2>
+            <h2 className="text-lg font-black text-white">{profile.username ?? user?.email ?? 'French Learner'}</h2>
             <p className="text-xs text-slate-500">{current.icon} {current.level}</p>
             <div className="mt-2 h-1 bg-navy-300 rounded-full overflow-hidden w-44">
               <motion.div
@@ -152,6 +154,13 @@ export function Profile() {
             <Shield size={14} className="text-slate-600" />
             <div className="flex-1"><p className="text-[10px] font-semibold text-white">Privacy Policy</p><p className="text-[9px] text-slate-700">How we handle your data</p></div>
             <ChevronRight size={12} className="text-slate-700" />
+          </button>
+          <button
+            onClick={() => signOut()}
+            className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-red-500/[0.06] transition-colors text-left group"
+          >
+            <LogOut size={14} className="text-red-400/70 group-hover:text-red-400 transition-colors" />
+            <div className="flex-1"><p className="text-[10px] font-semibold text-red-400/80 group-hover:text-red-400 transition-colors">Sign Out</p><p className="text-[9px] text-slate-700">Your local progress is preserved</p></div>
           </button>
         </div>
       </motion.div>

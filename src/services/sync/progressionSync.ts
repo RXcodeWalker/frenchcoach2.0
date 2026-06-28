@@ -1,4 +1,4 @@
-import { supabase } from '../../lib/supabase';
+import { supabase, supabaseConfigured } from '../../lib/supabase';
 import type { ProgressionData } from '../progression/progressionService';
 import { getProgressionState, clearNeedsSync, markNeedsSync, levelFor } from '../progression/progressionService';
 
@@ -14,6 +14,7 @@ export async function pushProgressionToCloud(
   userId: string,
   data?: ProgressionData
 ): Promise<boolean> {
+  if (!supabaseConfigured) return false;
   try {
     const source = data ?? (() => {
       const s = getProgressionState();
@@ -57,6 +58,7 @@ export async function pushProgressionToCloud(
 export async function pullProgressionFromCloud(
   userId: string
 ): Promise<CloudProgressionRow | null> {
+  if (!supabaseConfigured) return null;
   try {
     const { data, error } = await supabase
       .from('profiles')

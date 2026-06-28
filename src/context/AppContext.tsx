@@ -339,7 +339,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       const analytics = getStats();
       const mergedLevel = levelFor(merged.totalXP);
-      const unlockedIds = new Set(merged.achievements);
       const newProfile: UserProfile = {
         id: userId,
         username: null,
@@ -355,21 +354,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         activeBoosters: merged.activeBoosters,
       };
       dispatch({ type: 'SET_PROFILE', profile: newProfile });
-      dispatch({
-        type: 'UNLOCK_ACHIEVEMENT',
-        // batch-unlock not directly supported; update achievements array via SET_PROFILE re-render
-        achievementId: '',
-      });
-      // Re-apply all achievement unlocks
-      if (merged.achievements.length > 0) {
-        const achievementsWithUnlocked = ACHIEVEMENTS.map(a => ({
-          ...a,
-          unlocked: unlockedIds.has(a.id),
-        }));
-        // Dispatch a custom approach: rebuild via profile update forces achievement re-render
-        // The achievements array lives in state separate from profile — update via a forEach
-        merged.achievements.forEach(id => dispatch({ type: 'UNLOCK_ACHIEVEMENT', achievementId: id }));
-      }
+      // Re-apply all achievement unlocks from merged state
+      merged.achievements.forEach(id => dispatch({ type: 'UNLOCK_ACHIEVEMENT', achievementId: id }));
 
       if (cloudDiffersFromMerged(merged, cloudRow)) {
         pushProgressionToCloud(userId, merged);
@@ -378,7 +364,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       hydrationComplete.current = true;
     }
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       const user = session?.user ?? null;
       setAuthUser(user);
       if (user) {
