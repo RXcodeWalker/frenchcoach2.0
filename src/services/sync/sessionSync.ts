@@ -29,7 +29,7 @@ type FeedbackSummaryBlob = {
   critical_count?: number;
 };
 
-interface StoredSession {
+export interface StoredSession {
   id: string;
   date: string;
   mode: string;

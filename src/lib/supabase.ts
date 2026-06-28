@@ -25,6 +25,7 @@ export type Database = {
           achievements: string[];
           inventory: Record<string, number>;
           active_boosters: { id: string; expiresAt: string; multiplier: number }[];
+          migration_version: number;
           created_at: string;
           updated_at: string;
         };

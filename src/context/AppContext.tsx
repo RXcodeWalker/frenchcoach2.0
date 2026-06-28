@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer, useEffect, useRef, useState, type Dispatch, type ReactNode } from 'react';
+import { createContext, useContext, useReducer, useEffect, useRef, useState, useCallback, type Dispatch, type ReactNode } from 'react';
 import type { User } from '@supabase/supabase-js';
 import type { UserProfile, Achievement, Session, XPAnimation, GemAnimation, SkillProfile, ActiveSession, TopicMasteryEntry, AIEngine, DifficultyTier } from '../types';
 import { DEFAULT_DIFFICULTY } from '../utils/difficultyConfig';
@@ -12,6 +12,7 @@ import { pushProgressionToCloud, pullProgressionFromCloud, mergeProgressionData,
 import { hydrateSessionsFromCloud, pushSessionToCloud, backfillSessionsToCloud, flushPendingQueue } from '../services/sync/sessionSync';
 import { hydrateCoachFromCloud, backfillEvidenceToCloud, pushPendingEvidence } from '../services/sync/coachSync';
 import { getEvidenceEvents } from '../services/coach/coachStorage';
+import { isMigrationNeeded, markMigrationComplete, runMigration, type MigrationPhase, type MigrationRecord } from '../services/sync/migrationService';
 
 interface AppState {
   profile: UserProfile;
@@ -297,14 +298,17 @@ function reducer(state: AppState, action: Action): AppState {
   }
 }
 
-const AppContext = createContext<{ state: AppState; dispatch: React.Dispatch<Action>; authUser: User | null } | null>(null);
+const AppContext = createContext<{ state: AppState; dispatch: React.Dispatch<Action>; authUser: User | null; migrationPhase: MigrationPhase | null; dismissMigration: () => void } | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, undefined, buildInitialState);
   const [authUser, setAuthUser] = useState<User | null>(null);
+  const [migrationPhase, setMigrationPhase] = useState<MigrationPhase | null>(null);
   const hydrationComplete = useRef(false);
   const sessionHydrationInProgress = useRef(false);
   const xpDismissTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const dismissMigration = useCallback(() => setMigrationPhase(null), []);
 
   // Auto-dismiss XP modal after 3 seconds (fix for known never-dismissing bug)
   useEffect(() => {
@@ -325,8 +329,86 @@ export function AppProvider({ children }: { children: ReactNode }) {
       // Step 0: suppress incremental session pushes during hydration
       sessionHydrationInProgress.current = true;
 
-      // Step 1: progression
+      // Step 0.5: first-login migration gate
+      // pullProgressionFromCloud is called once and shared with Step 1 below.
       const cloudRow = await pullProgressionFromCloud(userId);
+
+      if (cloudRow !== null) {
+        const localRecord = storageGet<MigrationRecord | null>(STORAGE_KEYS.migrationV1, null);
+        const cloudVersion = cloudRow.migration_version ?? 0;
+
+        if (cloudVersion >= 1 && localRecord?.userId !== userId) {
+          // Cloud already migrated but local flag is absent (new device) — sync flag locally
+          await markMigrationComplete(userId);
+        } else if (isMigrationNeeded(userId, localRecord, cloudVersion)) {
+          // Sessions + evidence needed for migration phases; pull them first
+          const { mergedSessions, cloudIds } = await hydrateSessionsFromCloud(userId);
+          const { cloudIds: cloudEvidenceIds } = await hydrateCoachFromCloud(userId);
+
+          await runMigration(userId, mergedSessions, cloudIds, cloudEvidenceIds, setMigrationPhase);
+
+          // Merge progression after migration (cloudRow is non-null here)
+          const localRaw = getProgressionState();
+          const localData = {
+            xp: localRaw.xp,
+            totalXP: localRaw.totalXP,
+            gems: localRaw.gems,
+            achievements: localRaw.achievements,
+            inventory: localRaw.inventory,
+            activeBoosters: localRaw.activeBoosters,
+            grammarCoachUses: 0,
+            roleplayCount: 0,
+          };
+          const merged = mergeProgressionData(localData, cloudRow);
+          setProgressionData(merged);
+          const mergedLevel = levelFor(merged.totalXP);
+          const progressionProfile: UserProfile = {
+            id: userId,
+            username: null,
+            total_xp: merged.totalXP,
+            gems: merged.gems,
+            current_level: mergedLevel.name as UserProfile['current_level'],
+            streak_days: 0,
+            longest_streak: 0,
+            last_session_date: null,
+            sessions_count: 0,
+            total_words_spoken: 0,
+            inventory: merged.inventory,
+            activeBoosters: merged.activeBoosters,
+          };
+          dispatch({ type: 'SET_PROFILE', profile: progressionProfile });
+          merged.achievements.forEach(id => dispatch({ type: 'UNLOCK_ACHIEVEMENT', achievementId: id }));
+          if (cloudDiffersFromMerged(merged, cloudRow)) {
+            pushProgressionToCloud(userId, merged);
+          }
+
+          const analytics = getStats();
+          const progression = getProgressionState();
+          const finalLevel = levelFor(progression.totalXP);
+          const newProfile: UserProfile = {
+            id: userId,
+            username: null,
+            total_xp: progression.totalXP,
+            gems: progression.gems,
+            current_level: finalLevel.name as UserProfile['current_level'],
+            streak_days: analytics.streak,
+            longest_streak: analytics.streak,
+            last_session_date: analytics.recentSessions[0]?.date ?? null,
+            sessions_count: analytics.totalSessions,
+            total_words_spoken: analytics.totalWords,
+            inventory: progression.inventory,
+            activeBoosters: progression.activeBoosters,
+          };
+          dispatch({ type: 'SET_PROFILE', profile: newProfile });
+
+          sessionHydrationInProgress.current = false;
+          void flushPendingQueue(userId);
+          hydrationComplete.current = true;
+          return;
+        }
+      }
+
+      // Normal hydration path (no migration needed)
       if (cloudRow) {
         const localRaw = getProgressionState();
         const localData = {
@@ -501,7 +583,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     document.documentElement.classList.toggle('dark', state.darkMode);
   }, [state.darkMode]);
 
-  return <AppContext.Provider value={{ state, dispatch, authUser }}>{children}</AppContext.Provider>;
+  return <AppContext.Provider value={{ state, dispatch, authUser, migrationPhase, dismissMigration }}>{children}</AppContext.Provider>;
 }
 
 export function useApp() {

@@ -43,6 +43,7 @@ import { Challenges } from './screens/Challenges';
 import { DailyNewsFlash } from './screens/DailyNewsFlash';
 import { CoachBeliefDebug } from './screens/CoachBeliefDebug';
 import { LevelUpCelebration, AchievementUnlocked } from './components/CelebrationModals';
+import { MigrationOverlay } from './components/MigrationOverlay';
 
 const pageVariants: Variants = {
   initial: { opacity: 0, scale: 0.98 },
@@ -164,6 +165,11 @@ function ExamLayout() {
   );
 }
 
+function MigrationGate() {
+  const { migrationPhase, dismissMigration } = useApp();
+  return <MigrationOverlay migrationPhase={migrationPhase} onSkip={dismissMigration} />;
+}
+
 function AppShell() {
   const { user, loading, configError } = useAuth();
   const location = useLocation();
@@ -182,6 +188,7 @@ function AppShell() {
 
   return (
     <AppProvider>
+      <MigrationGate />
       <Routes location={location}>
         <Route element={<MainLayout />}>
           <Route path="/" element={<Home />} />
