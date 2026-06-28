@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { getSessionHistory } from '../services/analytics/analyticsService';
+import { getLastWeeklyReview, markWeeklyReviewSeen } from '../services/coach/weeklyReviewService';
 import { fadeUp } from '../components/motion/variants';
 import { PageShell } from '../components/layout/PageShell';
 import { OverviewTab } from './progress/OverviewTab';
@@ -11,7 +12,9 @@ import { SkillTreeTab } from './progress/SkillTreeTab';
 import { InsightsTab } from './progress/InsightsTab';
 import { HistoryTab } from './progress/HistoryTab';
 import { PerformanceTimeline } from './progress/PerformanceTimeline';
+import { WeeklyReviewCard } from './progress/WeeklyReviewCard';
 import type { Session } from '../types';
+import type { WeeklyReview } from '../types/coach';
 
 function storedToSession(s: ReturnType<typeof getSessionHistory>[number]): Session {
   return {
@@ -31,13 +34,25 @@ function storedToSession(s: ReturnType<typeof getSessionHistory>[number]): Sessi
 export function Progress() {
   const { state } = useApp();
   const [searchParams] = useSearchParams();
-  const initialTab = searchParams.get('tab') as 'overview' | 'skills' | 'timeline' | 'tree' | 'insights' | 'history' | null;
-  
-  const [activeTab, setActiveTab] = useState<'overview' | 'skills' | 'timeline' | 'tree' | 'insights' | 'history'>(
-    initialTab && ['overview', 'skills', 'timeline', 'tree', 'insights', 'history'].includes(initialTab) 
-      ? initialTab 
+  const initialTab = searchParams.get('tab') as 'overview' | 'skills' | 'timeline' | 'tree' | 'insights' | 'history' | 'review' | null;
+
+  const [activeTab, setActiveTab] = useState<'overview' | 'skills' | 'timeline' | 'tree' | 'insights' | 'history' | 'review'>(
+    initialTab && ['overview', 'skills', 'timeline', 'tree', 'insights', 'history', 'review'].includes(initialTab)
+      ? initialTab
       : 'overview'
   );
+
+  const [weeklyReview, setWeeklyReview] = useState<WeeklyReview | null>(null);
+
+  useEffect(() => {
+    setWeeklyReview(getLastWeeklyReview());
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'review') {
+      markWeeklyReviewSeen();
+    }
+  }, [activeTab]);
 
   const allSessions: Session[] = getSessionHistory().map(storedToSession);
 
@@ -48,8 +63,8 @@ export function Progress() {
           <h1 className="text-2xl md:text-3xl font-black text-white">Progress</h1>
           <p className="text-sm text-slate-500 mt-1">Track your improvement</p>
         </div>
-        <div className="flex gap-1">
-          {(['overview', 'skills', 'timeline', 'tree', 'insights', 'history'] as const).map(tab => (
+        <div className="flex gap-1 flex-wrap">
+          {(['overview', 'skills', 'timeline', 'tree', 'insights', 'history', 'review'] as const).map(tab => (
             <motion.button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -58,7 +73,7 @@ export function Progress() {
               }`}
               whileTap={{ scale: 0.95 }}
             >
-              {tab}
+              {tab === 'review' ? 'Weekly Review' : tab}
             </motion.button>
           ))}
         </div>
@@ -70,6 +85,7 @@ export function Progress() {
       {activeTab === 'tree' && <SkillTreeTab />}
       {activeTab === 'insights' && <InsightsTab />}
       {activeTab === 'history' && <HistoryTab sessions={allSessions} />}
+      {activeTab === 'review' && <WeeklyReviewCard review={weeklyReview} variant="full" />}
     </PageShell>
   );
 }

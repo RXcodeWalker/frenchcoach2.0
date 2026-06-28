@@ -5,7 +5,9 @@ import { Flame, Zap, TrendingUp, Trophy, Star, Target, Sparkles, ArrowRight, Pla
 import { generateDailyPlan } from '../services/coach/decisionEngine';
 import { getActiveRecommendation } from '../services/coach/recommendationEngine';
 import { getSkillLabel } from '../services/coach/skillGraph';
-import type { CoachRecommendation, DailyPlan } from '../types/coach';
+import { getLastWeeklyReview, hasSeenWeeklyReviewThisWeek, markWeeklyReviewSeen } from '../services/coach/weeklyReviewService';
+import type { CoachRecommendation, DailyPlan, WeeklyReview } from '../types/coach';
+import { WeeklyReviewCard } from './progress/WeeklyReviewCard';
 import { useApp } from '../context/AppContext';
 import { getDailyStats, getStats } from '../services/analytics/analyticsService';
 import { fadeUp } from '../components/motion/variants';
@@ -32,6 +34,8 @@ export function Home() {
   const [quote] = useState(() => FRENCH_QUOTES[Math.floor(Math.random() * FRENCH_QUOTES.length)]);
   const [dailyPlan, setDailyPlan] = useState<DailyPlan | null>(null);
   const [recommendation, setRecommendation] = useState<CoachRecommendation | null>(null);
+  const [weeklyReview, setWeeklyReview] = useState<WeeklyReview | null>(null);
+  const [showReviewBanner, setShowReviewBanner] = useState(false);
 
   const stats = useMemo(() => getStats(), []);
   const chartData = useMemo(() => getDailyStats(7), []);
@@ -52,7 +56,20 @@ export function Home() {
     } catch {
       // Non-critical — Home still renders without a coach plan
     }
+    const review = getLastWeeklyReview();
+    if (review) {
+      setWeeklyReview(review);
+      const isSunday = new Date().getDay() === 0;
+      if (isSunday || !hasSeenWeeklyReviewThisWeek()) {
+        setShowReviewBanner(true);
+      }
+    }
   }, []);
+
+  const handleDismissReview = () => {
+    markWeeklyReviewSeen();
+    setShowReviewBanner(false);
+  };
 
   const coachSkillIds = recommendation?.targetSkillIds?.length
     ? recommendation.targetSkillIds
@@ -186,6 +203,14 @@ export function Home() {
                 </div>
               </div>
             </motion.div>
+          )}
+
+          {showReviewBanner && weeklyReview && (
+            <WeeklyReviewCard
+              review={weeklyReview}
+              variant="banner"
+              onDismiss={handleDismissReview}
+            />
           )}
 
           {/* Engagement Grid */}

@@ -209,6 +209,26 @@ function buildTutorSummary(
   return `${sessionStr}${trendStr}${gainStr}${riskStr}.`;
 }
 
+// ── Seen state helpers ────────────────────────────────────────────────────────
+
+function getCurrentWeekKey(): string {
+  const d = new Date();
+  const dayOfWeek = (d.getDay() + 6) % 7; // Mon=0
+  d.setDate(d.getDate() - dayOfWeek + 3);
+  const firstThursday = new Date(d.getFullYear(), 0, 4);
+  const weekNum = 1 + Math.round(((d.getTime() - firstThursday.getTime()) / 86400000 - 3 + ((firstThursday.getDay() + 6) % 7)) / 7);
+  return `${d.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
+}
+
+export function markWeeklyReviewSeen(): void {
+  storageSet(STORAGE_KEYS.coachWeeklyReviewSeen, { weekKey: getCurrentWeekKey() });
+}
+
+export function hasSeenWeeklyReviewThisWeek(): boolean {
+  const stored = storageGet<{ weekKey: string } | null>(STORAGE_KEYS.coachWeeklyReviewSeen, null);
+  return stored?.weekKey === getCurrentWeekKey();
+}
+
 // ── Public API ────────────────────────────────────────────────────────────────
 
 /**

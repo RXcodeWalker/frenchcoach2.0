@@ -34,6 +34,8 @@ export const STORAGE_KEYS = {
   syncedEvidenceIds:  'frenchCoach_syncedEvidenceIds',
   // ── First-login migration ─────────────────────────────────────────────────────
   migrationV1:        'frenchCoach_migration_v1',
+  // ── Weekly review seen state ──────────────────────────────────────────────────
+  coachWeeklyReviewSeen: 'frenchCoach_weeklyReviewSeen',
 } as const;
 
 export type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS];
