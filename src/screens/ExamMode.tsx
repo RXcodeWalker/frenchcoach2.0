@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { track } from '../services/telemetry/telemetryService';
 import confetti from 'canvas-confetti';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
@@ -218,6 +219,11 @@ export function ExamMode() {
       mode: 'exam',
       totalSessions: state.profile.sessions_count + 1,
     });
+
+    track({ name: 'session_completed', props: { mode: 'exam', score: avgScore, duration_sec: totalSec, xp_gain: xpResult.gain } });
+    for (const id of newUnlockedAchievementIds) {
+      track({ name: 'achievement_unlocked', props: { achievement_id: id, mode: 'exam', session_count: state.profile.sessions_count + 1 } });
+    }
 
     dispatch({ type: 'ADD_SESSION', session: { ...session, xpEarned: xpResult.gain }, xpResult, newUnlockedAchievementIds, newLevelName: newLevel.name, xpAnimX: 70, xpAnimY: 20 });
     dispatch({ type: 'UPDATE_SKILL_PROFILE', skillProfile: getSkillProfile() });

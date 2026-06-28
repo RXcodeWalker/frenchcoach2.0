@@ -25,6 +25,7 @@ import { MidSessionToast } from './learn/MidSessionToast';
 import { StreakToast } from './learn/StreakToast';
 import { FailoverToast } from './learn/FailoverToast';
 import { buildSessionQuestions, makeSessionQuestion, SESSION_TARGET } from '../utils/sessionBuilder';
+import { track } from '../services/telemetry/telemetryService';
 import { DIFFICULTY_CONFIG } from '../utils/difficultyConfig';
 import { updateTopicMastery } from '../services/analytics/analyticsService';
 import { computeXPGain } from '../domain/xp';
@@ -240,6 +241,14 @@ export function Learn() {
       streakDays: profile.streak_days,
       totalSessionsBefore: profile.sessions_count,
     });
+
+    track({ name: 'session_completed', props: { mode: 'practice', score: finalScore, duration_sec: elapsed, xp_gain: orchestration.xpResult.gain, topic_key: selectedTopic?.key } });
+    if (fb.engineMeta) {
+      track({ name: 'feedback_received', props: { engine: fb.engineMeta.actualEngine, fallback_used: fb.engineMeta.fallbackUsed, score: finalScore, latency_ms: fb.engineMeta.latencyMs, response_tier: fb.responseTier ?? 2 } });
+    }
+    for (const id of orchestration.newUnlockedAchievementIds) {
+      track({ name: 'achievement_unlocked', props: { achievement_id: id, mode: 'practice', session_count: profile.sessions_count + 1 } });
+    }
 
     dispatch({
       type: 'ADD_SESSION',

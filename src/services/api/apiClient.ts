@@ -1,4 +1,5 @@
 import type { FeedbackV2, Question, Session, SkillContext, GeneratedScenario, AIEngine, EngineMetadata, DifficultyTier } from '../../types';
+import { track } from '../telemetry/telemetryService';
 import { evaluate as offlineEvaluate } from '../coaching/coachService';
 import { DIFFICULTY_CONFIG, DEFAULT_DIFFICULTY } from '../../utils/difficultyConfig';
 import { buildSkillContext } from '../coaching/diagnosticEngine';
@@ -353,10 +354,14 @@ export async function getAIFeedback(
     // This engine failed — note the reason and try next
     failoverReason = `${engine.charAt(0).toUpperCase() + engine.slice(1)} timed out or was unavailable`;
     fallbackUsed = true;
+    if (i < fallbackChain.length - 1) {
+      track({ name: 'ai_failover', props: { requested_engine: enginePreference, actual_engine: fallbackChain[i + 1], reason: failoverReason, latency_ms: Date.now() - startTime } });
+    }
   }
 
   // All network options exhausted → offline (already tier-aware and quality-gated in coachService)
   console.log('[AI Feedback] All network engines failed — using offline evaluation');
+  track({ name: 'ai_failover', props: { requested_engine: enginePreference, actual_engine: 'offline', reason: failoverReason ?? 'unknown', latency_ms: Date.now() - startTime } });
   const result = offlineEvaluate(transcript, question, difficulty);
   result.engineMeta = {
     requestedEngine: enginePreference,

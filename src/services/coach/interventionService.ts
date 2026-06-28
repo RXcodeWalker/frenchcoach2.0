@@ -8,6 +8,7 @@
 // unit-tested without storage. Thin wrappers add localStorage persistence.
 
 import { STORAGE_KEYS, storageGet, storageSet } from '../persistence/storage';
+import { track } from '../telemetry/telemetryService';
 import type { EvidenceEvent } from '../../types/evidence';
 import type { EvidenceBeliefSnapshot } from '../../types/beliefs';
 import type {
@@ -292,5 +293,6 @@ export function recordInterventionOutcome(args: {
 
   const updated = applyOutcomeToProblem(target, outcome.immediateSuccess);
   saveProblems(problems.map(p => (p.id === target.id ? updated : p)));
+  track({ name: 'drill_completed', props: { node_id: args.nodeId, immediate_success: outcome.immediateSuccess, correct: args.correct, total: args.total, problem_status: updated.status } });
   return { outcome, problem: updated };
 }

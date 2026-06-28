@@ -13,6 +13,7 @@ import { hydrateSessionsFromCloud, pushSessionToCloud, backfillSessionsToCloud, 
 import { hydrateCoachFromCloud, backfillEvidenceToCloud, pushPendingEvidence } from '../services/sync/coachSync';
 import { getEvidenceEvents } from '../services/coach/coachStorage';
 import { isMigrationNeeded, markMigrationComplete, runMigration, type MigrationPhase, type MigrationRecord } from '../services/sync/migrationService';
+import * as Sentry from '@sentry/react';
 
 interface AppState {
   profile: UserProfile;
@@ -488,9 +489,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const user = session?.user ?? null;
       setAuthUser(user);
       if (user) {
+        Sentry.setUser({ id: user.id, email: user.email ?? undefined });
         hydrationComplete.current = false;
         await hydrateFromCloud(user.id);
       } else {
+        Sentry.setUser(null);
         hydrationComplete.current = true;
       }
     });
