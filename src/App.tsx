@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Routes, Route, Outlet, useLocation } from 'react-router-dom';
+import { Routes, Route, Outlet, useLocation, Navigate } from 'react-router-dom';
 import { AnimatePresence, motion, type Variants } from 'framer-motion';
 import { Zap } from 'lucide-react';
 import { AppProvider, useApp } from './context/AppContext';
@@ -20,6 +20,8 @@ import { StudyGroups } from './screens/StudyGroups';
 import { Rankings } from './screens/Rankings';
 import { WeaknessAnalysis } from './screens/WeaknessAnalysis';
 import { SentenceRebuilder } from './screens/SentenceRebuilder';
+import { Onboarding } from './screens/Onboarding';
+import { getCoachProfile } from './services/coach/coachProfileService';
 
 import { RapidFire } from './screens/RapidFire';
 import { SpeedSpeaking } from './screens/SpeedSpeaking';
@@ -186,6 +188,11 @@ function AppShell() {
     return <Auth />;
   }
 
+  const coachProfile = getCoachProfile();
+  if (!coachProfile.onboardingComplete && location.pathname !== '/onboarding') {
+    return <Navigate to="/onboarding" replace />;
+  }
+
   return (
     <AppProvider>
       <MigrationGate />
@@ -230,6 +237,7 @@ function AppShell() {
 
         <Route element={<ExamLayout />}>
           <Route path="/exam" element={<ExamMode />} />
+          <Route path="/onboarding" element={<Onboarding />} />
         </Route>
       </Routes>
     </AppProvider>

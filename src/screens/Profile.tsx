@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
-import { Volume2, Moon, Bell, Globe, Database, Shield, ChevronRight, Zap, Trophy, Flame, TrendingUp, BookOpen, LogOut } from 'lucide-react';
+import { Volume2, Moon, Bell, Globe, Database, Shield, ChevronRight, Zap, Trophy, Flame, TrendingUp, BookOpen, LogOut, Target } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { getLevelInfo } from '../domain/levels';
@@ -11,6 +12,7 @@ import { SettingToggle } from '../components/ui/SettingToggle';
 export function Profile() {
   const { state, dispatch } = useApp();
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   const { profile } = state;
   const { current, progress } = getLevelInfo(profile.total_xp);
   const unlockedCount = state.achievements.filter(a => a.unlocked).length;
@@ -91,6 +93,22 @@ export function Profile() {
             transition={{ duration: 0.8 }}
           />
         </div>
+      </motion.div>
+
+      {/* Learning Goals */}
+      <motion.div variants={fadeUp} className="rounded-xl glass p-4">
+        <h3 className="font-bold text-slate-600 text-[10px] uppercase tracking-wider mb-2.5">Learning Goals</h3>
+        <button
+          onClick={() => navigate('/onboarding?from=profile')}
+          className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-white/[0.02] transition-colors text-left"
+        >
+          <Target size={14} className="text-violet-400" />
+          <div className="flex-1">
+            <p className="text-[10px] font-semibold text-white">Update learning goals</p>
+            <p className="text-[9px] text-slate-600">Change exam board, target date, or goal type</p>
+          </div>
+          <ChevronRight size={12} className="text-slate-700" />
+        </button>
       </motion.div>
 
       {/* Preferences */}
