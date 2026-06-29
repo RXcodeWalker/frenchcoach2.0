@@ -38,12 +38,21 @@ interface AIFailoverProps {
   latency_ms: number;
 }
 
+interface FeedbackStreamTimingProps {
+  engine: AIEngine;
+  ttfb_ms: number;
+  ttfc_ms: number;
+  total_ms: number;
+  sections_streamed: boolean;
+}
+
 type TelemetryEvent =
-  | { name: 'session_completed';    props: SessionCompletedProps }
-  | { name: 'feedback_received';    props: FeedbackReceivedProps }
-  | { name: 'drill_completed';      props: DrillCompletedProps }
-  | { name: 'achievement_unlocked'; props: AchievementUnlockedProps }
-  | { name: 'ai_failover';          props: AIFailoverProps };
+  | { name: 'session_completed';       props: SessionCompletedProps }
+  | { name: 'feedback_received';       props: FeedbackReceivedProps }
+  | { name: 'drill_completed';         props: DrillCompletedProps }
+  | { name: 'achievement_unlocked';    props: AchievementUnlockedProps }
+  | { name: 'ai_failover';             props: AIFailoverProps }
+  | { name: 'feedback_stream_timing';  props: FeedbackStreamTimingProps };
 
 export function initTelemetry(): void {
   const dsn = import.meta.env.VITE_SENTRY_DSN as string | undefined;

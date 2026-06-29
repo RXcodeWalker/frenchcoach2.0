@@ -376,6 +376,168 @@ export async function getAIFeedback(
 
 export type { EngineMetadata };
 
+// ── Streaming feedback ────────────────────────────────────────────────────────
+
+export type StreamPhase = 'transcribing' | 'generating' | 'complete';
+
+export interface StreamFeedbackCallbacks {
+  onStatus?: (phase: StreamPhase) => void;
+  onTranscript?: (text: string) => void;
+  onSection?: (type: string, data: Partial<FeedbackV2>) => void;
+  onComplete: (feedback: FeedbackV2) => void;
+  onError?: (message: string) => void;
+}
+
+function mergeSection(acc: Partial<FeedbackV2>, type: string, data: Record<string, unknown>): Partial<FeedbackV2> {
+  switch (type) {
+    case 'snapshot': {
+      const raw = data as { scores?: { comm?: number; know?: number; acc?: number; overall?: number }; fluency?: number; cefrLevel?: string; wordCount?: number };
+      const overall = raw.scores?.overall ?? raw.fluency ?? 5;
+      return {
+        ...acc,
+        scores: {
+          overall,
+          communication: raw.scores?.comm ?? overall,
+          language: raw.scores?.know ?? overall,
+          fluency: raw.scores?.acc ?? overall,
+        },
+        cefrLevel: raw.cefrLevel ?? acc.cefrLevel,
+        wordCount: raw.wordCount ?? acc.wordCount,
+      };
+    }
+    case 'strongest_moment':
+      return { ...acc, best_moment: (data as { best_moment?: string }).best_moment };
+    case 'opportunity':
+      return { ...acc, biggest_opportunity: (data as { biggest_opportunity?: string }).biggest_opportunity };
+    case 'grammar': {
+      const raw = data as { grammar?: FeedbackV2['grammar'] };
+      return { ...acc, grammar: raw.grammar };
+    }
+    case 'vocabulary': {
+      const raw = data as { vocabulary?: FeedbackV2['vocabulary'] };
+      return { ...acc, vocabulary: raw.vocabulary };
+    }
+    case 'pronunciation': {
+      const raw = data as { pronunciation?: FeedbackV2['pronunciation'] };
+      return { ...acc, pronunciation: raw.pronunciation };
+    }
+    default:
+      return acc;
+  }
+}
+
+export async function streamFeedback(
+  transcript: string,
+  question: Question,
+  skillContext: import('../../types').SkillContext | undefined,
+  audioBlob: Blob | undefined,
+  enginePreference: AIEngine,
+  difficulty: import('../../types').DifficultyTier,
+  signal: AbortSignal,
+  callbacks: StreamFeedbackCallbacks,
+): Promise<void> {
+  const cfg = DIFFICULTY_CONFIG[difficulty];
+  const ctx = skillContext ?? buildSkillContext();
+
+  const requestBody = {
+    transcript,
+    question: {
+      id: question.id,
+      text: question.text,
+      topicKey: question.topicKey,
+      difficulty: question.difficulty,
+      modelAnswer: question.modelAnswer,
+      keyVocab: question.keyVocab,
+    },
+    skillContext: ctx,
+    difficultyContext: {
+      tier: cfg.tier,
+      label: cfg.label,
+      cefrTarget: cfg.cefrTarget,
+      coachingTone: cfg.coachingTone,
+      coachingRubric: cfg.coachingRubric,
+    },
+  };
+
+  let res: Response;
+  if (audioBlob) {
+    const formData = new FormData();
+    formData.append('audio', audioBlob, 'recording.webm');
+    formData.append('question', question.text);
+    formData.append('data', JSON.stringify(requestBody));
+    res = await fetch(`${API_BASE}/api/feedback/stream`, {
+      method: 'POST',
+      body: formData,
+      signal,
+    });
+  } else {
+    res = await fetch(`${API_BASE}/api/feedback/stream`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestBody),
+      signal,
+    });
+  }
+
+  if (!res.ok) {
+    throw new Error(`API /api/feedback/stream → ${res.status}`);
+  }
+
+  const reader = res.body!.getReader();
+  const decoder = new TextDecoder();
+  let lineBuffer = '';
+  let partial: Partial<FeedbackV2> = {};
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    lineBuffer += decoder.decode(value, { stream: true });
+    const lines = lineBuffer.split('\n');
+    lineBuffer = lines.pop() ?? '';
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+      let msg: { type: string; data: unknown };
+      try {
+        msg = JSON.parse(trimmed) as { type: string; data: unknown };
+      } catch {
+        continue;
+      }
+
+      const { type, data } = msg;
+
+      if (type === 'status') {
+        callbacks.onStatus?.((data as { phase: StreamPhase }).phase);
+      } else if (type === 'transcript') {
+        callbacks.onTranscript?.((data as { text: string }).text);
+      } else if (type === 'error') {
+        callbacks.onError?.((data as { message: string }).message);
+      } else if (type === 'complete') {
+        const raw = data as BackendFeedbackV2;
+        logProviderAttempts(raw, 'stream');
+        const base = mergeV2Fields(mapBackendFeedback(raw), raw);
+        base.provider = raw.provider;
+        base.providerAttempts = raw.providerAttempts;
+        base.engineMeta = {
+          requestedEngine: enginePreference,
+          actualEngine: (raw.provider as AIEngine | undefined) ?? enginePreference,
+          fallbackUsed: false,
+          latencyMs: 0,
+          evaluatedAt: new Date().toISOString(),
+        };
+        base.responseTier = base.responseTier ?? 2;
+        const final = applyQualityGate(base, transcript);
+        callbacks.onComplete(final);
+      } else {
+        // section event
+        partial = mergeSection(partial, type, data as Record<string, unknown>);
+        callbacks.onSection?.(type, { ...partial });
+      }
+    }
+  }
+}
+
 export async function saveSessionToBackend(session: Session): Promise<void> {
   try {
     await post('/api/sessions', session);

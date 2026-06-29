@@ -1,9 +1,9 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { TOPICS } from '../data/gameData';
 import { useItem } from '../services/progression/progressionService';
-import { getAIFeedback } from '../services/api/apiClient';
+import { getAIFeedback, streamFeedback } from '../services/api/apiClient';
 import { getSkillProfile, buildSkillContext, detectAvoidance } from '../services/coaching/diagnosticEngine';
 import { orchestrateAttempt } from '../services/coach/sessionOrchestrator';
 import { getActiveRecommendation, setRecommendationStatus, generateRecommendation } from '../services/coach/recommendationEngine';
@@ -62,7 +62,17 @@ export function Learn() {
   const [activeProblem, setActiveProblem] = useState<LearningProblem | null>(null);
   const [drillInterventionId, setDrillInterventionId] = useState<string | null>(null);
 
+  // Streaming progressive reveal
+  const [partialFeedback, setPartialFeedback] = useState<Partial<FeedbackV2> | null>(null);
+  const [streamPhase, setStreamPhase] = useState<'transcribing' | 'generating' | 'complete' | null>(null);
+  const streamAbortRef = useRef<AbortController | null>(null);
+
   const recording = useRecording();
+
+  // Abort stream on unmount
+  useEffect(() => {
+    return () => { streamAbortRef.current?.abort(); };
+  }, []);
 
   const currentQuestion = activeSession
     ? activeSession.questions[activeSession.currentIndex]?.question ?? null
@@ -144,38 +154,21 @@ export function Learn() {
 
   // ── Recording + evaluation ────────────────────────────────────────────────────
 
-  const handleStopRecording = async () => {
+  // Not memoized — called only from handleStopRecording
+  const _finalizeAnswer = (
+    fb: FeedbackV2,
+    transcript: string,
+    elapsed: number,
+    avoidanceSignals: ReturnType<typeof detectAvoidance>,
+    skillContext: ReturnType<typeof buildSkillContext>,
+  ) => {
     if (!activeSession || !currentQuestion) return;
 
-    const transcript = await recording.stop();
-    setLearnState('feedback');
-    setIsLoadingFeedback(true);
-    // Clear stale cache when a new recording is made
-    setEngineResults(new Map());
-    setActiveResultEngine(null);
-    setShowFailoverToast(false);
-
-    const elapsed = recording.elapsedTime;
-    const skillContext = buildSkillContext();
-    const avoidanceSignals = detectAvoidance(transcript, currentQuestion, DIFFICULTY_CONFIG[selectedDifficulty].expectations);
-
-    let fb: FeedbackV2;
-    try {
-      fb = await getAIFeedback(transcript, currentQuestion, skillContext, recording.audioBlob ?? undefined, selectedEngine, selectedDifficulty);
-      if (avoidanceSignals.length > 0 && !fb.avoidanceReport?.length) {
-        fb = { ...fb, avoidanceReport: avoidanceSignals, skillContextUsed: true };
-      } else if (skillContext.sessionsAnalyzed > 0) {
-        fb = { ...fb, skillContextUsed: true };
-      }
-    } catch {
-      fb = {
-        scores: { overall: 5, communication: 5, language: 5, fluency: 5 },
-        grammar: { critical: [], polish: [] },
-        vocabulary: [], style: [], fillers: [],
-        wordCount: transcript.split(/\s+/).filter(Boolean).length,
-        cefrLevel: 'A2',
-        avoidanceReport: avoidanceSignals,
-      };
+    // Apply avoidance signals
+    if (avoidanceSignals.length > 0 && !fb.avoidanceReport?.length) {
+      fb = { ...fb, avoidanceReport: avoidanceSignals, skillContextUsed: true };
+    } else if (skillContext.sessionsAnalyzed > 0) {
+      fb = { ...fb, skillContextUsed: true };
     }
 
     // Detect failover and show toast
@@ -185,7 +178,6 @@ export function Learn() {
       setShowFailoverToast(true);
     }
 
-    // Store in cache using the actual engine that ran
     const actualEngine = meta?.actualEngine ?? selectedEngine;
     const result: EngineResult = { engine: actualEngine, feedback: fb, meta: meta ?? {
       requestedEngine: selectedEngine,
@@ -199,15 +191,14 @@ export function Learn() {
 
     let finalScore = fb.scores.overall;
     let usedShield = false;
-
     if (finalScore < 8.5 && (profile.inventory['perfect_shield'] || 0) > 0) {
       finalScore = Math.max(8.5, finalScore + 2);
       usedShield = true;
+      // eslint-disable-next-line react-hooks/rules-of-hooks
       if (useItem('perfect_shield')) {
         dispatch({ type: 'USE_ITEM', itemId: 'perfect_shield' });
       }
     }
-
     if (usedShield) { /* shield used — score boosted */ }
 
     const { gain: xpGain, gemsGain: gemGain } = computeXPGain(finalScore, profile.streak_days);
@@ -226,8 +217,6 @@ export function Learn() {
       createdAt: new Date().toISOString(),
     };
 
-    // Coach orchestrator: persist, XP, achievements, diagnostics, evidence,
-    // beliefs, and recommendation — all in one place so the reducer stays pure.
     const orchestration = orchestrateAttempt({
       session,
       question: currentQuestion,
@@ -267,6 +256,8 @@ export function Learn() {
     setShowDrillModal(false);
     setFeedback(fb);
     setIsLoadingFeedback(false);
+    setPartialFeedback(null);
+    setStreamPhase('complete');
 
     setActiveSession(prev => {
       if (!prev) return prev;
@@ -277,10 +268,8 @@ export function Learn() {
       sq.attempts = [...sq.attempts, attempt];
       sq.bestScore = Math.max(sq.bestScore, finalScore);
       updatedQuestions[prev.currentIndex] = sq;
-
       const newStreak = finalScore >= 7 ? prev.answerStreak + 1 : 0;
       const newBestStreak = Math.max(prev.bestStreak, newStreak);
-
       return {
         ...prev,
         questions: updatedQuestions,
@@ -290,6 +279,98 @@ export function Learn() {
         bestStreak: newBestStreak,
       };
     });
+  };
+
+  const handleStopRecording = async () => {
+    if (!activeSession || !currentQuestion) return;
+
+    // Abort any previous in-flight stream
+    streamAbortRef.current?.abort();
+    const controller = new AbortController();
+    streamAbortRef.current = controller;
+
+    const transcript = await recording.stop();
+    setLearnState('feedback');
+    setIsLoadingFeedback(true);
+    setPartialFeedback(null);
+    setStreamPhase(null);
+    setEngineResults(new Map());
+    setActiveResultEngine(null);
+    setShowFailoverToast(false);
+
+    const elapsed = recording.elapsedTime;
+    const skillContext = buildSkillContext();
+    const avoidanceSignals = detectAvoidance(transcript, currentQuestion, DIFFICULTY_CONFIG[selectedDifficulty].expectations);
+
+    const t0 = Date.now();
+    let tFirstChunk = 0;
+    let tFirstCard = 0;
+    let sectionsStreamed = false;
+
+    try {
+      await streamFeedback(
+        transcript,
+        currentQuestion,
+        skillContext,
+        recording.audioBlob ?? undefined,
+        selectedEngine,
+        selectedDifficulty,
+        controller.signal,
+        {
+          onStatus: (phase) => {
+            setStreamPhase(phase);
+            if (!tFirstChunk) tFirstChunk = Date.now();
+          },
+          onTranscript: () => {
+            if (!tFirstChunk) tFirstChunk = Date.now();
+          },
+          onSection: (_, data) => {
+            if (!tFirstChunk) tFirstChunk = Date.now();
+            if (!tFirstCard) tFirstCard = Date.now();
+            sectionsStreamed = true;
+            setIsLoadingFeedback(false);
+            setPartialFeedback(data as Partial<FeedbackV2>);
+          },
+          onComplete: (fb) => {
+            const tComplete = Date.now();
+            track({
+              name: 'feedback_stream_timing',
+              props: {
+                engine: selectedEngine,
+                ttfb_ms: tFirstChunk ? tFirstChunk - t0 : tComplete - t0,
+                ttfc_ms: tFirstCard ? tFirstCard - t0 : tComplete - t0,
+                total_ms: tComplete - t0,
+                sections_streamed: sectionsStreamed,
+              },
+            });
+            _finalizeAnswer(fb, transcript, elapsed, avoidanceSignals, skillContext);
+          },
+          onError: (msg) => {
+            console.warn('[Stream] section error:', msg);
+          },
+        },
+      );
+    } catch (err) {
+      if ((err as Error).name === 'AbortError') return;
+      // Fallback to non-streaming path
+      console.warn('[Stream] falling back to getAIFeedback:', err);
+      setIsLoadingFeedback(true);
+      setPartialFeedback(null);
+      let fb: FeedbackV2;
+      try {
+        fb = await getAIFeedback(transcript, currentQuestion, skillContext, recording.audioBlob ?? undefined, selectedEngine, selectedDifficulty);
+      } catch {
+        fb = {
+          scores: { overall: 5, communication: 5, language: 5, fluency: 5 },
+          grammar: { critical: [], polish: [] },
+          vocabulary: [], style: [], fillers: [],
+          wordCount: transcript.split(/\s+/).filter(Boolean).length,
+          cefrLevel: 'A2',
+          avoidanceReport: avoidanceSignals,
+        };
+      }
+      _finalizeAnswer(fb, transcript, elapsed, avoidanceSignals, skillContext);
+    }
   };
 
   // ── Re-evaluate with a different engine (reuses saved transcript) ─────────────
@@ -659,6 +740,8 @@ export function Learn() {
                 <FeedbackExperience
                   feedback={feedback}
                   isLoading={isLoadingFeedback}
+                  partialFeedback={partialFeedback}
+                  streamPhase={streamPhase}
                   transcript={recording.transcript}
                   modelAnswer={currentQuestion?.modelAnswer}
                   engineResults={engineResults}

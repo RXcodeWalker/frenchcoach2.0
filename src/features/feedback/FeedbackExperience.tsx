@@ -1,3 +1,4 @@
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 import { stagger } from '../../components/motion/variants';
@@ -19,6 +20,24 @@ import { OfflineLimitationsBanner } from '../../screens/learn/OfflineLimitations
 import { ReEvaluateBar } from '../../screens/learn/ReEvaluateBar';
 import type { FeedbackV2, AIEngine, EngineResult } from '../../types';
 
+function CardSkeleton() {
+  return (
+    <div className="rounded-xl glass-elevated p-5 animate-pulse">
+      <div className="h-3 bg-slate-700/60 rounded w-1/3 mb-3" />
+      <div className="space-y-2">
+        <div className="h-2.5 bg-slate-700/40 rounded w-full" />
+        <div className="h-2.5 bg-slate-700/40 rounded w-4/5" />
+        <div className="h-2.5 bg-slate-700/40 rounded w-3/5" />
+      </div>
+    </div>
+  );
+}
+
+function SectionGate({ ready, children }: { ready: boolean; children: React.ReactNode }) {
+  if (ready) return <>{children}</>;
+  return <CardSkeleton />;
+}
+
 // Deprecated components — kept as files, no longer rendered in the main flow.
 // To re-enable any of them, import and add back to FeedbackContent.
 // - PersonalizedContextBanner (replaced by backend coaching voice in cards)
@@ -31,6 +50,8 @@ import type { FeedbackV2, AIEngine, EngineResult } from '../../types';
 interface Props {
   feedback: FeedbackV2 | null;
   isLoading?: boolean;
+  partialFeedback?: Partial<FeedbackV2> | null;
+  streamPhase?: 'transcribing' | 'generating' | 'complete' | null;
   transcript?: string;
   modelAnswer?: string;
   engineResults: Map<AIEngine, EngineResult>;
@@ -136,11 +157,20 @@ function FeedbackContent({
 }
 
 export function FeedbackExperience({
-  feedback, isLoading, transcript, modelAnswer, onRetry, onComplete,
+  feedback, isLoading, partialFeedback, streamPhase, transcript, modelAnswer, onRetry, onComplete,
   engineResults, activeEngine, isReEvaluating, reEvaluatingEngine,
   onReEvaluate, onSwitchEngine,
 }: Props) {
-  if (isLoading || !feedback) {
+  const p = partialFeedback;
+  const isStreaming = !feedback && p != null;
+
+  // Full spinner: no partial data yet
+  if ((isLoading && !isStreaming) || (!feedback && !isStreaming)) {
+    const phaseLabel = streamPhase === 'transcribing'
+      ? 'Transcribing your recording…'
+      : streamPhase === 'generating'
+      ? 'Generating feedback…'
+      : 'Analysing your response…';
     return (
       <motion.div
         className="rounded-xl glass-elevated p-8 flex flex-col items-center gap-3"
@@ -148,8 +178,34 @@ export function FeedbackExperience({
         animate={{ opacity: 1, y: 0 }}
       >
         <Loader2 size={24} className="text-violet-400 animate-spin" />
-        <p className="text-sm text-slate-500">Analysing your response…</p>
+        <p className="text-sm text-slate-500">{phaseLabel}</p>
       </motion.div>
+    );
+  }
+
+  // Progressive reveal: partial data streaming in
+  if (isStreaming && p) {
+    return (
+      <AnimatePresence>
+        <motion.div
+          variants={stagger}
+          initial="hidden"
+          animate="show"
+          className="space-y-3"
+        >
+          <SectionGate ready={!!p.scores}>
+            <SnapshotCard feedback={p as FeedbackV2} />
+          </SectionGate>
+          <SectionGate ready={p.best_moment != null}>
+            <StrongestMomentCard feedback={p as FeedbackV2} transcript={transcript} />
+          </SectionGate>
+          <SectionGate ready={p.biggest_opportunity != null}>
+            <BiggestOpportunityCard opportunity={p.biggest_opportunity} />
+          </SectionGate>
+          <CardSkeleton />
+          <CardSkeleton />
+        </motion.div>
+      </AnimatePresence>
     );
   }
 
@@ -157,7 +213,7 @@ export function FeedbackExperience({
     <AnimatePresence>
       <FeedbackProvider>
         <FeedbackContent
-          feedback={feedback}
+          feedback={feedback!}
           transcript={transcript}
           modelAnswer={modelAnswer}
           onRetry={onRetry}
