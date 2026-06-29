@@ -46,6 +46,8 @@ import { DailyNewsFlash } from './screens/DailyNewsFlash';
 import { CoachBeliefDebug } from './screens/CoachBeliefDebug';
 import { LevelUpCelebration, AchievementUnlocked } from './components/CelebrationModals';
 import { MigrationOverlay } from './components/MigrationOverlay';
+import { ComingSoonGate } from './components/ComingSoonGate';
+import { FEATURE_FLAGS } from './config/featureFlags';
 
 const pageVariants: Variants = {
   initial: { opacity: 0, scale: 0.98 },
@@ -203,31 +205,107 @@ function AppShell() {
           <Route path="/explore" element={<Explore />} />
           <Route path="/progress" element={<Progress />} />
           <Route path="/profile" element={<Profile />} />
-          <Route path="/shop" element={<Shop />} />
+          <Route path="/shop" element={
+            <ComingSoonGate status={FEATURE_FLAGS.shop} featureId="shop" name="Shop" description="Unlock power-ups and cosmetics with your earned gems." fallbackRoute="/" fallbackLabel="Go Home">
+              <Shop />
+            </ComingSoonGate>
+          } />
           <Route path="/about" element={<About />} />
-          <Route path="/accent-analyzer" element={<AccentAnalyzer />} />
-          <Route path="/listening-mode" element={<ListeningMode />} />
-          <Route path="/study-groups" element={<StudyGroups />} />
-          <Route path="/rankings" element={<Rankings />} />
+          <Route path="/accent-analyzer" element={
+            <ComingSoonGate status={FEATURE_FLAGS.accentAnalyzer} featureId="accentAnalyzer" name="Accent Analyzer" description="Get detailed pronunciation feedback powered by AI." fallbackRoute="/learn" fallbackLabel="Practice Speaking">
+              <AccentAnalyzer />
+            </ComingSoonGate>
+          } />
+          <Route path="/listening-mode" element={
+            <ComingSoonGate status={FEATURE_FLAGS.listeningMode} featureId="listeningMode" name="Listening Mode" description="Train your ear with comprehension exercises." fallbackRoute="/learn" fallbackLabel="Practice Speaking">
+              <ListeningMode />
+            </ComingSoonGate>
+          } />
+          <Route path="/study-groups" element={
+            <ComingSoonGate status={FEATURE_FLAGS.studyGroups} featureId="studyGroups" name="Study Groups" description="Learn together with friends and classmates." fallbackRoute="/progress" fallbackLabel="View Progress">
+              <StudyGroups />
+            </ComingSoonGate>
+          } />
+          <Route path="/rankings" element={
+            <ComingSoonGate status={FEATURE_FLAGS.rankings} featureId="rankings" name="Rankings" description="Compete with learners around the world." fallbackRoute="/progress" fallbackLabel="View Progress">
+              <Rankings />
+            </ComingSoonGate>
+          } />
           <Route path="/weakness-analysis" element={<WeaknessAnalysis />} />
-          <Route path="/sentence-rebuilder" element={<SentenceRebuilder />} />
-          <Route path="/rapid-fire" element={<RapidFire />} />
-          <Route path="/speed-speaking" element={<SpeedSpeaking />} />
-          <Route path="/friend-challenges" element={<FriendChallenges />} />
-          <Route path="/roadmap" element={<FrenchRoadmap />} />
-          <Route path="/fluency-heatmap" element={<FluencyHeatmap />} />
+          <Route path="/sentence-rebuilder" element={
+            <ComingSoonGate status={FEATURE_FLAGS.sentenceRebuilder} featureId="sentenceRebuilder" name="Sentence Rebuilder" description="Drag-and-drop grammar exercises to reinforce sentence structure." fallbackRoute="/learn" fallbackLabel="Practice Speaking">
+              <SentenceRebuilder />
+            </ComingSoonGate>
+          } />
+          <Route path="/rapid-fire" element={
+            <ComingSoonGate status={FEATURE_FLAGS.rapidFire} featureId="rapidFire" name="Rapid Fire" description="60-second vocabulary sprint to test your word recall." fallbackRoute="/learn" fallbackLabel="Practice Speaking">
+              <RapidFire />
+            </ComingSoonGate>
+          } />
+          <Route path="/speed-speaking" element={
+            <ComingSoonGate status={FEATURE_FLAGS.speedSpeaking} featureId="speedSpeaking" name="Speed Speaking" description="Race against the clock with 60-second speaking challenges." fallbackRoute="/learn" fallbackLabel="Practice Speaking">
+              <SpeedSpeaking />
+            </ComingSoonGate>
+          } />
+          <Route path="/friend-challenges" element={
+            <ComingSoonGate status={FEATURE_FLAGS.friendChallenges} featureId="friendChallenges" name="Friend Challenges" description="Challenge your friends and track who improves faster." fallbackRoute="/progress" fallbackLabel="View Progress">
+              <FriendChallenges />
+            </ComingSoonGate>
+          } />
+          <Route path="/roadmap" element={
+            <ComingSoonGate status={FEATURE_FLAGS.roadmap} featureId="roadmap" name="French Roadmap" description="Your personalised path from A1 to C1, milestone by milestone." fallbackRoute="/progress" fallbackLabel="View Progress">
+              <FrenchRoadmap />
+            </ComingSoonGate>
+          } />
+          <Route path="/fluency-heatmap" element={
+            <ComingSoonGate status={FEATURE_FLAGS.fluencyHeatmap} featureId="fluencyHeatmap" name="Fluency Heatmap" description="Visualise when and how much you've been practising." fallbackRoute="/progress" fallbackLabel="View Progress">
+              <FluencyHeatmap />
+            </ComingSoonGate>
+          } />
           <Route path="/story-mode" element={<StoryMode />} />
           <Route path="/scenario-architect" element={<ScenarioArchitect />} />
           <Route path="/scenario-architect/session" element={<ScenarioArchitectSession />} />
-          <Route path="/word-drop" element={<WordDrop />} />
-          <Route path="/mastery" element={<MasteryJourney />} />
-          <Route path="/boss-battle" element={<BossBattle />} />
-          <Route path="/emoji-master" element={<EmojiMaster />} />
+          <Route path="/word-drop" element={
+            <ComingSoonGate status={FEATURE_FLAGS.wordDrop} featureId="wordDrop" name="Word Drop" description="Catch falling words before they hit the ground." fallbackRoute="/learn" fallbackLabel="Practice Speaking">
+              <WordDrop />
+            </ComingSoonGate>
+          } />
+          <Route path="/mastery" element={
+            <ComingSoonGate status={FEATURE_FLAGS.mastery} featureId="mastery" name="Mastery Journey" description="Track your CEFR progress across all grammar and vocab domains." fallbackRoute="/progress" fallbackLabel="View Progress">
+              <MasteryJourney />
+            </ComingSoonGate>
+          } />
+          <Route path="/boss-battle" element={
+            <ComingSoonGate status={FEATURE_FLAGS.bossBattle} featureId="bossBattle" name="Boss Battle" description="Take on grammar bosses in high-stakes encounters." fallbackRoute="/learn" fallbackLabel="Practice Speaking">
+              <BossBattle />
+            </ComingSoonGate>
+          } />
+          <Route path="/emoji-master" element={
+            <ComingSoonGate status={FEATURE_FLAGS.emojiMaster} featureId="emojiMaster" name="Emoji Master" description="Match emojis to French words in rapid-fire rounds." fallbackRoute="/learn" fallbackLabel="Practice Speaking">
+              <EmojiMaster />
+            </ComingSoonGate>
+          } />
           <Route path="/mystery-box" element={<MysteryBox />} />
-          <Route path="/survival" element={<SurvivalMode />} />
-          <Route path="/pronunciation-lab" element={<PronunciationLab />} />
-          <Route path="/speaking-arena" element={<SpeakingArena />} />
-          <Route path="/challenges" element={<Challenges />} />
+          <Route path="/survival" element={
+            <ComingSoonGate status={FEATURE_FLAGS.survivalMode} featureId="survivalMode" name="Survival Mode" description="Answer questions correctly or lose a life — how far can you go?" fallbackRoute="/learn" fallbackLabel="Practice Speaking">
+              <SurvivalMode />
+            </ComingSoonGate>
+          } />
+          <Route path="/pronunciation-lab" element={
+            <ComingSoonGate status={FEATURE_FLAGS.pronunciationLab} featureId="pronunciationLab" name="Pronunciation Lab" description="Drill individual sounds and phonemes with instant audio feedback." fallbackRoute="/learn" fallbackLabel="Practice Speaking">
+              <PronunciationLab />
+            </ComingSoonGate>
+          } />
+          <Route path="/speaking-arena" element={
+            <ComingSoonGate status={FEATURE_FLAGS.speakingArena} featureId="speakingArena" name="Speaking Arena" description="Competitive speaking battles against real opponents." fallbackRoute="/learn" fallbackLabel="Practice Speaking">
+              <SpeakingArena />
+            </ComingSoonGate>
+          } />
+          <Route path="/challenges" element={
+            <ComingSoonGate status={FEATURE_FLAGS.challenges} featureId="challenges" name="Challenges" description="Daily and weekly challenges to keep your streak alive." fallbackRoute="/learn" fallbackLabel="Practice Speaking">
+              <Challenges />
+            </ComingSoonGate>
+          } />
           <Route path="/daily-news" element={<DailyNewsFlash />} />
           {/* DEV-ONLY: coach belief debug dashboard. Tree-shaken out of prod builds. */}
           {import.meta.env.DEV && (

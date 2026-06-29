@@ -18,8 +18,10 @@ import { Card } from '../components/ui/Card';
 import { useRecording } from '../features/recording/useRecording';
 import { Waveform } from '../features/recording/Waveform';
 import { useApp, dispatchAddXP } from '../context/AppContext';
-import { roleplayTurn } from '../services/api/apiClient';
-import type { GeneratedScenario } from '../types';
+import { roleplayTurn, getAIFeedback } from '../services/api/apiClient';
+import { observeAttempt } from '../services/coach/sessionOrchestrator';
+import { getSkillProfile } from '../services/coaching/diagnosticEngine';
+import type { FeedbackV2, GeneratedScenario } from '../types';
 
 interface Message {
   id: string;
@@ -98,9 +100,27 @@ export function ScenarioArchitectSession() {
         transcript,
         customScenario
       );
-      
+
       setIsTyping(false);
       addMessage(data.reply, 'ai');
+
+      // Get AI feedback for coach evidence (fire-and-forget side effect)
+      let fb: FeedbackV2;
+      try {
+        fb = await getAIFeedback(transcript, { id: 'scenario-architect', text: customScenario.title, topicKey: 'scenario', hint: '', difficulty: 2, followUps: [], modelAnswer: '', keyVocab: [] });
+      } catch {
+        fb = { scores: { overall: 5, communication: 5, language: 5, fluency: 5 }, grammar: { critical: [], polish: [] }, vocabulary: [], style: [], fillers: [], wordCount: transcript.split(/\s+/).filter(Boolean).length, cefrLevel: 'A2' };
+      }
+      observeAttempt({
+        sessionId: `scenario-architect-${Date.now()}-${messages.length}`,
+        question: null,
+        feedback: fb,
+        transcript,
+        finalScore: fb.scores.overall,
+        mode: 'scenario-architect',
+        topicKey: customScenario.title,
+      });
+      dispatch({ type: 'UPDATE_SKILL_PROFILE', skillProfile: getSkillProfile() });
 
       // Simple objective tracking heuristic (normally handled by AI)
       // For this demo, we'll just mark one as done every few turns

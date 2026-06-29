@@ -30,6 +30,8 @@ import { STORAGE_KEYS } from '../services/persistence/storage';
 import { awardXP, checkAchievements, getProgressionState } from '../services/progression/progressionService';
 import { recordSession as persistSession } from '../services/analytics/analyticsService';
 import { buildAchievementContext } from '../services/coach/achievementContextBuilder';
+import { observeAttempt } from '../services/coach/sessionOrchestrator';
+import { getSkillProfile } from '../services/coaching/diagnosticEngine';
 
 type Phase = 'listening' | 'recording' | 'feedback';
 
@@ -213,6 +215,16 @@ export function DailyNewsFlash() {
         }),
       );
       dispatch({ type: 'ADD_SESSION', session: { ...session, xpEarned: xpResult.gain }, xpResult, newUnlockedAchievementIds, newLevelName: newLevel.name });
+      observeAttempt({
+        sessionId: session.id,
+        question,
+        feedback: fb,
+        transcript: userTranscript,
+        finalScore: newsStats.overall,
+        mode: 'daily-news',
+        topicKey: 'news',
+      });
+      dispatch({ type: 'UPDATE_SKILL_PROFILE', skillProfile: getSkillProfile() });
       setPhase('feedback');
     } catch (error) {
       console.error("Failed to get feedback:", error);

@@ -36,6 +36,8 @@ export const STORAGE_KEYS = {
   migrationV1:        'frenchCoach_migration_v1',
   // ── Weekly review seen state ──────────────────────────────────────────────────
   coachWeeklyReviewSeen: 'frenchCoach_weeklyReviewSeen',
+  // ── Feature interest tracking (for prioritising gated features) ───────────────
+  featureInterest: 'frenchCoach_featureInterest',
 } as const;
 
 export type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS];
