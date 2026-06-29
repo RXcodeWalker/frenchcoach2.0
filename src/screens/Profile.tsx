@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Volume2, Moon, Bell, Globe, Database, Shield, ChevronRight, Zap, Trophy, Flame, TrendingUp, BookOpen, LogOut, Target } from 'lucide-react';
+import { Volume2, Moon, Bell, Globe, Database, Shield, ChevronRight, Zap, Trophy, Flame, TrendingUp, BookOpen, LogOut, Target, SlidersHorizontal } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
@@ -11,7 +11,7 @@ import { SettingToggle } from '../components/ui/SettingToggle';
 
 export function Profile() {
   const { state, dispatch } = useApp();
-  const { user, signOut } = useAuth();
+  const { user, signOut, isAdmin } = useAuth();
   const navigate = useNavigate();
   const { profile } = state;
   const { current, progress } = getLevelInfo(profile.total_xp);
@@ -173,6 +173,16 @@ export function Profile() {
             <div className="flex-1"><p className="text-[10px] font-semibold text-white">Privacy Policy</p><p className="text-[9px] text-slate-700">How we handle your data</p></div>
             <ChevronRight size={12} className="text-slate-700" />
           </button>
+          {isAdmin && (
+            <button
+              onClick={() => navigate('/admin')}
+              className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-violet-500/[0.06] transition-colors text-left group"
+            >
+              <SlidersHorizontal size={14} className="text-violet-400/70 group-hover:text-violet-400 transition-colors" />
+              <div className="flex-1"><p className="text-[10px] font-semibold text-violet-300">Content Admin</p><p className="text-[9px] text-slate-700">Manage questions & scenarios</p></div>
+              <ChevronRight size={12} className="text-slate-700" />
+            </button>
+          )}
           <button
             onClick={() => signOut()}
             className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-red-500/[0.06] transition-colors text-left group"

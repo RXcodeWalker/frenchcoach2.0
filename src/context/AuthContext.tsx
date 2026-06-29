@@ -5,6 +5,7 @@ import { supabase, supabaseConfigured } from '../lib/supabase';
 interface AuthContextValue {
   user: User | null;
   session: Session | null;
+  isAdmin: boolean;
   loading: boolean;
   configError: boolean;
   signIn: (email: string, password: string) => Promise<void>;
@@ -78,8 +79,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
   }
 
+  const isAdmin =
+    (user?.app_metadata as { role?: string } | undefined)?.role === 'admin';
+
   return (
-    <AuthContext.Provider value={{ user, session, loading, configError: !supabaseConfigured, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, session, isAdmin, loading, configError: !supabaseConfigured, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );

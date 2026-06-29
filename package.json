@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.app.json",
+    "seed:content": "tsx scripts/seed-content.ts",
     "test": "vitest run",
     "test:watch": "vitest"
   },

@@ -44,6 +44,14 @@ import { SpeakingArena } from './screens/SpeakingArena';
 import { Challenges } from './screens/Challenges';
 import { DailyNewsFlash } from './screens/DailyNewsFlash';
 import { CoachBeliefDebug } from './screens/CoachBeliefDebug';
+import { AdminRoute } from './components/auth/AdminRoute';
+import { AdminLayout } from './layouts/AdminLayout';
+import { AdminDashboard } from './screens/admin/AdminDashboard';
+import { QuestionList } from './screens/admin/questions/QuestionList';
+import { QuestionForm } from './screens/admin/questions/QuestionForm';
+import { ScenarioList } from './screens/admin/scenarios/ScenarioList';
+import { ScenarioForm } from './screens/admin/scenarios/ScenarioForm';
+import { VersionHistory } from './screens/admin/VersionHistory';
 import { LevelUpCelebration, AchievementUnlocked } from './components/CelebrationModals';
 import { MigrationOverlay } from './components/MigrationOverlay';
 import { ComingSoonGate } from './components/ComingSoonGate';
@@ -316,6 +324,21 @@ function AppShell() {
         <Route element={<ExamLayout />}>
           <Route path="/exam" element={<ExamMode />} />
           <Route path="/onboarding" element={<Onboarding />} />
+        </Route>
+
+        {/* Admin content management — gated on JWT app_metadata.role */}
+        <Route element={<AdminRoute />}>
+          <Route element={<AdminLayout />}>
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/questions" element={<QuestionList />} />
+            <Route path="/admin/questions/new" element={<QuestionForm />} />
+            <Route path="/admin/questions/:id/edit" element={<QuestionForm />} />
+            <Route path="/admin/questions/:id/history" element={<VersionHistory kind="questions" />} />
+            <Route path="/admin/scenarios" element={<ScenarioList />} />
+            <Route path="/admin/scenarios/new" element={<ScenarioForm />} />
+            <Route path="/admin/scenarios/:id/edit" element={<ScenarioForm />} />
+            <Route path="/admin/scenarios/:id/history" element={<VersionHistory kind="scenarios" />} />
+          </Route>
         </Route>
       </Routes>
     </AppProvider>
