@@ -29,6 +29,7 @@ import type { FeedbackV2, Question, Session } from '../types';
 import { STORAGE_KEYS } from '../services/persistence/storage';
 import { awardXP, checkAchievements, getProgressionState } from '../services/progression/progressionService';
 import { recordSession as persistSession } from '../services/analytics/analyticsService';
+import { buildAchievementContext } from '../services/coach/achievementContextBuilder';
 
 type Phase = 'listening' | 'recording' | 'feedback';
 
@@ -200,11 +201,17 @@ export function DailyNewsFlash() {
       saveSessionToBackend(session);
       const xpResult = awardXP(session.score, state.profile.streak_days);
       const { level: newLevel } = getProgressionState();
-      const newUnlockedAchievementIds = checkAchievements({
-        score: session.score,
-        mode: session.mode,
-        totalSessions: state.profile.sessions_count + 1,
-      });
+      const newUnlockedAchievementIds = checkAchievements(
+        buildAchievementContext({
+          finalScore: session.score,
+          streakDays: state.profile.streak_days,
+          totalSessionsAfter: state.profile.sessions_count + 1,
+          topicsUsed: [],
+          beliefSnapshot: null,
+          examCompleted: false,
+          examType: null,
+        }),
+      );
       dispatch({ type: 'ADD_SESSION', session: { ...session, xpEarned: xpResult.gain }, xpResult, newUnlockedAchievementIds, newLevelName: newLevel.name });
       setPhase('feedback');
     } catch (error) {

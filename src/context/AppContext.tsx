@@ -3,6 +3,7 @@ import type { User } from '@supabase/supabase-js';
 import type { UserProfile, Achievement, Session, XPAnimation, GemAnimation, SkillProfile, ActiveSession, TopicMasteryEntry, AIEngine, DifficultyTier } from '../types';
 import { DEFAULT_DIFFICULTY } from '../utils/difficultyConfig';
 import { ACHIEVEMENTS } from '../data/gameData';
+import { validateAchievementRegistry } from '../data/achievements';
 import { getStats } from '../services/analytics/analyticsService';
 import { getProgressionState, awardGemsForXP, levelFor, setProgressionData } from '../services/progression/progressionService';
 import { getSkillProfile } from '../services/coaching/diagnosticEngine';
@@ -310,6 +311,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const xpDismissTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const dismissMigration = useCallback(() => setMigrationPhase(null), []);
+
+  // Dev-time sanity check: warn if achievement definitions and rules are out of sync.
+  useEffect(() => { validateAchievementRegistry(); }, []);
 
   // Auto-dismiss XP modal after 3 seconds (fix for known never-dismissing bug)
   useEffect(() => {

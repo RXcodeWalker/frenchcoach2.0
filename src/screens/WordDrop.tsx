@@ -5,6 +5,7 @@ import { ArrowLeft, Heart, Zap, Play, RotateCcw, Trophy, AlertTriangle, Sparkles
 import { useApp } from '../context/AppContext';
 import { awardXP, checkAchievements, getProgressionState } from '../services/progression/progressionService';
 import { recordSession as persistSession } from '../services/analytics/analyticsService';
+import { buildAchievementContext } from '../services/coach/achievementContextBuilder';
 
 interface FallingWord {
   id: string;
@@ -193,7 +194,17 @@ export function WordDrop() {
     persistSession(session);
     const xpResult = awardXP(sessionScore, state.profile.streak_days);
     const { level: newLevel } = getProgressionState();
-    const newUnlockedAchievementIds = checkAchievements({ score: sessionScore, mode: 'word_drop', totalSessions: state.profile.sessions_count + 1 });
+    const newUnlockedAchievementIds = checkAchievements(
+      buildAchievementContext({
+        finalScore: sessionScore,
+        streakDays: state.profile.streak_days,
+        totalSessionsAfter: state.profile.sessions_count + 1,
+        topicsUsed: [],
+        beliefSnapshot: null,
+        examCompleted: false,
+        examType: null,
+      }),
+    );
     dispatch({ type: 'ADD_SESSION', session: { ...session, xpEarned: xpResult.gain }, xpResult, newUnlockedAchievementIds, newLevelName: newLevel.name });
   }, [score, state.profile.streak_days, state.profile.sessions_count, dispatch]);
 

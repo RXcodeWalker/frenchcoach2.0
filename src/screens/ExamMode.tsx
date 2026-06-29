@@ -8,6 +8,7 @@ import { getAIFeedback, saveSessionToBackend } from '../services/api/apiClient';
 import { getSkillProfile } from '../services/coaching/diagnosticEngine';
 import { awardXP, checkAchievements, getProgressionState } from '../services/progression/progressionService';
 import { recordSession as persistSession } from '../services/analytics/analyticsService';
+import { buildAchievementContext } from '../services/coach/achievementContextBuilder';
 import { observeAttempt } from '../services/coach/sessionOrchestrator';
 import type { Session, Question } from '../types/index';
 import { useRecording } from '../features/recording/useRecording';
@@ -180,11 +181,17 @@ export function ExamMode() {
     saveSessionToBackend(session);
     const xpResult = awardXP(avgScore, state.profile.streak_days);
     const { level: newLevel } = getProgressionState();
-    const newUnlockedAchievementIds = checkAchievements({
-      score: avgScore,
-      mode: 'exam',
-      totalSessions: state.profile.sessions_count + 1,
-    });
+    const newUnlockedAchievementIds = checkAchievements(
+      buildAchievementContext({
+        finalScore: avgScore,
+        streakDays: state.profile.streak_days,
+        totalSessionsAfter: state.profile.sessions_count + 1,
+        topicsUsed: [],
+        beliefSnapshot: null,
+        examCompleted: true,
+        examType: 'igcse',
+      }),
+    );
 
     track({ name: 'session_completed', props: { mode: 'exam', score: avgScore, duration_sec: totalSec, xp_gain: xpResult.gain } });
     for (const id of newUnlockedAchievementIds) {

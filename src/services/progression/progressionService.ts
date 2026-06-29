@@ -1,6 +1,7 @@
 // Copied verbatim from progression.js — strips DOM calls, keeps XP/level logic
 import { STORAGE_KEYS } from '../persistence/storage';
 import { computeXPGain } from '../../domain/xp';
+import { evaluateAchievements, type AchievementContext } from '../../data/achievements';
 const KEY = STORAGE_KEYS.progression;
 const NEEDS_SYNC_KEY = 'frenchCoach_needsSync';
 
@@ -161,35 +162,21 @@ export function unlockAchievement(id: string): boolean {
   return true;
 }
 
-export function checkAchievements(context: { score?: number; mode?: string; totalSessions?: number; topicsUsed?: string[] }) {
-  const { score, mode, totalSessions, topicsUsed } = context;
-  const unlocked: string[] = [];
-
-  if (totalSessions && totalSessions >= 1)  { if (unlockAchievement("premier_pas"))      unlocked.push("premier_pas"); }
-  if (typeof score === "number" && score >= 8) { if (unlockAchievement("fluent"))         unlocked.push("fluent"); }
-  if (typeof score === "number" && score >= 10){ if (unlockAchievement("perfectionniste"))unlocked.push("perfectionniste"); }
-  if (mode === "exam")                         { if (unlockAchievement("examinateur"))    unlocked.push("examinateur"); }
-  if (mode === "igcse")                        { if (unlockAchievement("grand_oral"))     unlocked.push("grand_oral"); }
-  if (totalSessions && totalSessions >= 50)    { if (unlockAchievement("marathonien"))   unlocked.push("marathonien"); }
-  if (topicsUsed && topicsUsed.length >= 8)    { if (unlockAchievement("polyglotte"))    unlocked.push("polyglotte"); }
-  const { xp } = _load();
-  if (xp >= 1500)                              { if (unlockAchievement("expert"))         unlocked.push("expert"); }
-
-  return unlocked;
+export function checkAchievements(context: AchievementContext): string[] {
+  const alreadyUnlocked = new Set(getUnlockedAchievementIds());
+  return evaluateAchievements(context, alreadyUnlocked).filter(id => unlockAchievement(id));
 }
 
 export function recordGrammarCoachUse() {
   const data = _load();
   data.grammarCoachUses = (data.grammarCoachUses || 0) + 1;
   _save(data);
-  if (data.grammarCoachUses >= 10) unlockAchievement("curieux");
 }
 
 export function recordRoleplayComplete() {
   const data = _load();
   data.roleplayCount = (data.roleplayCount || 0) + 1;
   _save(data);
-  if (data.roleplayCount >= 5) unlockAchievement("causeur");
 }
 
 export function getUnlockedAchievementIds(): string[] {

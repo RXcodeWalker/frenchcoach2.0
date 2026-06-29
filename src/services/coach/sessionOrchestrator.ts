@@ -21,6 +21,7 @@ import { syncProfileFromServices } from './coachProfileService';
 import { invalidateDailyPlan } from './decisionEngine';
 import { detectRecurringGrammarDrill, hasMicroDrillForSkill } from './recurringGrammar';
 import { detectAndPersistProblem } from './interventionService';
+import { buildAchievementContext } from './achievementContextBuilder';
 
 /**
  * Process one completed answer. Order matters: diagnostics + evidence update the
@@ -38,7 +39,7 @@ export function orchestrateAttempt(input: OrchestratorInput): OrchestratorResult
     streakDays,
     totalSessionsBefore,
     mode,
-    topicsUsed,
+    topicsUsed = [],
   } = input;
 
   // 1. Capture evidence from this answer FIRST so beliefs + analytics summaries
@@ -65,20 +66,25 @@ export function orchestrateAttempt(input: OrchestratorInput): OrchestratorResult
   const xpResult = awardXP(finalScore, streakDays);
   const { level } = getProgressionState();
 
-  // 4. Achievements (unchanged behavior).
-  const newUnlockedAchievementIds = checkAchievements({
-    score: finalScore,
-    mode,
-    totalSessions: totalSessionsBefore + 1,
-    topicsUsed,
-  });
-
-  // 5. Drive diagnostics (legacy UI) + rebuild the evidence-driven belief
+  // 4. Drive diagnostics (legacy UI) + rebuild the evidence-driven belief
   //    snapshot from the full evidence log, including the event just appended.
   const beliefSnapshot = updateFromFeedback(feedback, avoidanceSignals);
 
-  // 6. Detect and persist a recurring-grammar problem (intervention loop), and
-  //    decide whether to offer a MicroDrill for it.
+  // 5. Achievements — evaluated after XP and beliefSnapshot are ready so all
+  //    predicate contexts (xp thresholds, skill mastery) reflect this session.
+  const newUnlockedAchievementIds = checkAchievements(
+    buildAchievementContext({
+      finalScore,
+      streakDays,
+      totalSessionsAfter: totalSessionsBefore + 1,
+      topicsUsed,
+      beliefSnapshot,
+      examCompleted: false,
+      examType: null,
+    }),
+  );
+
+  // 6. Detect recurring-grammar problems and decide whether to offer a MicroDrill.
   const activeProblem = detectAndPersistProblem(allEvidence, beliefSnapshot);
   const drillSkillId =
     activeProblem && hasMicroDrillForSkill(activeProblem.nodeId)

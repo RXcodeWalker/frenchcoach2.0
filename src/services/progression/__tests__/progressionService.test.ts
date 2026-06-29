@@ -160,41 +160,62 @@ describe('awardGemsForXP', () => {
 
 // ── checkAchievements ─────────────────────────────────────────────────────────
 
+import type { AchievementContext } from '../../../data/achievements';
+
+function ctx(overrides: Partial<AchievementContext> = {}): AchievementContext {
+  return {
+    score: 0,
+    streak: 0,
+    totalSessions: 0,
+    topicsUsed: [],
+    beliefSnapshot: null,
+    problems: [],
+    interventions: [],
+    xp: 0,
+    grammarCoachUses: 0,
+    roleplayCount: 0,
+    examCompleted: false,
+    examType: null,
+    ...overrides,
+  };
+}
+
 describe('checkAchievements', () => {
   it('unlocks premier_pas on first session', () => {
-    const result = checkAchievements({ totalSessions: 1 });
+    const result = checkAchievements(ctx({ totalSessions: 1 }));
     expect(result).toContain('premier_pas');
   });
 
   it('unlocks fluent when score≥8', () => {
-    const result = checkAchievements({ score: 8 });
+    const result = checkAchievements(ctx({ score: 8 }));
     expect(result).toContain('fluent');
   });
 
-  it('unlocks perfectionniste when score=10', () => {
-    const result = checkAchievements({ score: 10 });
+  it('unlocks perfectionniste when score=10 (requires fluent first)', () => {
+    checkAchievements(ctx({ score: 8 })); // unlock fluent prerequisite
+    const result = checkAchievements(ctx({ score: 10 }));
     expect(result).toContain('perfectionniste');
   });
 
-  it('unlocks examinateur in exam mode', () => {
-    const result = checkAchievements({ mode: 'exam' });
+  it('unlocks examinateur when exam completed', () => {
+    const result = checkAchievements(ctx({ examCompleted: true, examType: 'practice' }));
     expect(result).toContain('examinateur');
   });
 
   it('unlocks expert when xp≥1500', () => {
     seedXP(1500);
-    const result = checkAchievements({});
+    const result = checkAchievements(ctx({ xp: 1500 }));
     expect(result).toContain('expert');
   });
 
   it('returns empty array when no conditions met', () => {
-    const result = checkAchievements({ score: 5, totalSessions: 0 });
+    const result = checkAchievements(ctx({ score: 5, totalSessions: 0 }));
     expect(result).toEqual([]);
   });
 
   it('does not re-unlock an already-unlocked achievement', () => {
-    checkAchievements({ totalSessions: 1 });
-    const second = checkAchievements({ totalSessions: 1 });
+    checkAchievements(ctx({ totalSessions: 1 }));
+    const second = checkAchievements(ctx({ totalSessions: 1 }));
     expect(second).not.toContain('premier_pas');
   });
 });

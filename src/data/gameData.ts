@@ -1,22 +1,13 @@
-import type { Achievement, RoleplayScenario } from '../types';
+import type { RoleplayScenario } from '../types';
+import { ACHIEVEMENT_DEFINITIONS } from './achievements';
 
 // Re-export from the full question bank
 export { TOPICS, QUESTIONS, EXAM_SETS, getTopicQuestions, getRandomQuestion, getQuestionById } from './questions';
 
-export const ACHIEVEMENTS: Achievement[] = [
-  { id: 'premier_pas', name: 'Premier Pas', description: 'Complete your first practice session', icon: '🎯', xpReward: 50, unlocked: false, category: 'practice' },
-  { id: 'semaine_parfaite', name: 'Semaine Parfaite', description: 'Maintain a 7-day streak', icon: '🔥', xpReward: 200, unlocked: false, category: 'streak' },
-  { id: 'vocab_riche', name: 'Vocabulaire Riche', description: 'Use 50+ unique advanced words', icon: '📚', xpReward: 150, unlocked: false, category: 'skill' },
-  { id: 'fluent', name: 'Fluent', description: 'Score 8+ on fluency', icon: '🌟', xpReward: 100, unlocked: false, category: 'skill' },
-  { id: 'perfectionniste', name: 'Perfectionniste', description: 'Score perfect 10/10', icon: '💎', xpReward: 300, unlocked: false, category: 'skill' },
-  { id: 'examinateur', name: 'Examinateur', description: 'Complete your first exam', icon: '📝', xpReward: 100, unlocked: false, category: 'exam' },
-  { id: 'polyglotte', name: 'Polyglotte', description: 'Practice all 8 topics', icon: '🗺', xpReward: 200, unlocked: false, category: 'practice' },
-  { id: 'marathonien', name: 'Marathonien', description: 'Complete 50 total sessions', icon: '🏃', xpReward: 250, unlocked: false, category: 'practice' },
-  { id: 'grand_oral', name: 'Grand Oral', description: 'Complete your first IGCSE exam', icon: '🎓', xpReward: 150, unlocked: false, category: 'exam' },
-  { id: 'curieux', name: 'Curieux', description: 'Use Grammar Coach 10 times', icon: '🔬', xpReward: 75, unlocked: false, category: 'practice' },
-  { id: 'causeur', name: 'Causeur', description: 'Complete 5 roleplay conversations', icon: '💬', xpReward: 125, unlocked: false, category: 'social' },
-  { id: 'expert', name: 'Expert', description: 'Reach the Advanced level', icon: '🏆', xpReward: 500, unlocked: false, category: 'skill' },
-];
+export { ACHIEVEMENT_DEFINITIONS };
+
+// Backward-compatible shape with `unlocked: false` for consumers that spread it onto Achievement
+export const ACHIEVEMENTS = ACHIEVEMENT_DEFINITIONS.map(d => ({ ...d, unlocked: false }));
 
 export const ROLEPLAY_SCENARIOS: RoleplayScenario[] = [
   { id: 'restaurant', title: 'Au Restaurant', icon: '🍽️', description: 'Order food and drinks in a French restaurant', difficulty: 1 },
