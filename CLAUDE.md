@@ -115,10 +115,20 @@ The previous system contained duplicated rubric logic, invented scoring weights,
 
 ## Before planning or implementing
 
+Architecture docs are split by concern — read only what's relevant to the task.
+
 Always read:
 
-- `docs/architecture/rubric-architecture-v3.md`
-- `docs/architecture/roadmap.md`
+- `docs/architecture/00-overview-and-rationale.md` — why the old multi-board v1 architecture was rejected, what "success" means for this scorer
+- `docs/architecture/roadmap.md` — implementation order (subphases S0–S17); single source of truth for subphase ordering
+
+Plus whichever of the others matches the current subphase — do not read all six for every task:
+
+- `docs/architecture/01-cambridge-rubric-source.md` — verbatim Cambridge 0520 mark scheme and audit of invented old numbers. Required for S0, and any time you touch `rubric.ts` or are tempted to add/adjust a band, weight, or threshold.
+- `docs/architecture/02-scoring-pipeline-architecture.md` — three-layer scorer (deterministic evidence → constrained LLM judgement → deterministic guardrails), calibration anchors, and `ScoringEnvelope` versioning. Required for S1, S7, S8, S9, S11, S12.
+- `docs/architecture/03-validation-strategy.md` — staged A/B/C validation phases and exit criteria. Required for S2, S5, S6, S10, S11, S15, S16, and anything touching the graded-response corpus.
+- `docs/architecture/04-frontend-pipeline.md` — STT model choice, transcript quality, accent handling, original-question-bank/copyright constraint. Required for S3, S4, S13.
+- `docs/architecture/05-deprecated-v1-removals.md` — what was explicitly rejected and why. Read if unsure whether something is a forbidden multi-board abstraction (hard constraint #1).
 
 Treat the architecture as the design source of truth and the roadmap as the execution order.
 
