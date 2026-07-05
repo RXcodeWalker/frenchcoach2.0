@@ -59,3 +59,30 @@ export type {
 } from './hooks/useFloatingXP';
 export { useRunStats } from './hooks/useRunStats';
 export type { RunStatsState } from './hooks/useRunStats';
+
+// Animations
+export {
+  shakeAnimation,
+  shakeTransition,
+  countdownPopVariants,
+  getTimerBarColor,
+  getOverdriveClasses,
+  getOverdriveCardClasses,
+  getOverdriveStreakClasses,
+  getModeCardClasses,
+} from './animations';
+export type { AccentColor } from './animations';
+
+// Components
+export { GameShell } from './components/GameShell';
+export { GameCountdown } from './components/GameCountdown';
+export { GameHUD } from './components/GameHUD';
+export { GameTimerBar } from './components/GameTimerBar';
+export { GameFeedbackOverlay } from './components/GameFeedbackOverlay';
+export type { GameFeedbackType } from './components/GameFeedbackOverlay';
+export { GameResultsCard } from './components/GameResultsCard';
+export type { GameResultsStat } from './components/GameResultsCard';
+export { FloatingXPOverlay } from './components/FloatingXPOverlay';
+export { StreakBadge } from './components/StreakBadge';
+export { ModePickerCard, ModePickerGrid } from './components/ModePickerCard';
+export type { ModeOption } from './components/ModePickerCard';
