@@ -134,25 +134,60 @@ CREATE TABLE IF NOT EXISTS daily_challenges (
 
 ALTER TABLE daily_challenges ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users can view own challenges"
-  ON daily_challenges FOR SELECT
-  TO authenticated
-  USING (auth.uid() = user_id);
+-- Only create user-scoped policies when the table has a user_id column.
+-- The remote DB may have a different daily_challenges schema (question-pool table
+-- without user_id), in which case these policies are inapplicable and skipped.
+DO $$ BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name   = 'daily_challenges'
+      AND column_name  = 'user_id'
+  ) THEN
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_policies
+      WHERE schemaname = 'public' AND tablename = 'daily_challenges'
+        AND policyname = 'Users can view own challenges'
+    ) THEN
+      EXECUTE $p$
+        CREATE POLICY "Users can view own challenges"
+          ON daily_challenges FOR SELECT TO authenticated
+          USING (auth.uid() = user_id)
+      $p$;
+    END IF;
 
-CREATE POLICY "Users can insert own challenges"
-  ON daily_challenges FOR INSERT
-  TO authenticated
-  WITH CHECK (auth.uid() = user_id);
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_policies
+      WHERE schemaname = 'public' AND tablename = 'daily_challenges'
+        AND policyname = 'Users can insert own challenges'
+    ) THEN
+      EXECUTE $p$
+        CREATE POLICY "Users can insert own challenges"
+          ON daily_challenges FOR INSERT TO authenticated
+          WITH CHECK (auth.uid() = user_id)
+      $p$;
+    END IF;
 
-CREATE POLICY "Users can update own challenges"
-  ON daily_challenges FOR UPDATE
-  TO authenticated
-  USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_policies
+      WHERE schemaname = 'public' AND tablename = 'daily_challenges'
+        AND policyname = 'Users can update own challenges'
+    ) THEN
+      EXECUTE $p$
+        CREATE POLICY "Users can update own challenges"
+          ON daily_challenges FOR UPDATE TO authenticated
+          USING (auth.uid() = user_id)
+          WITH CHECK (auth.uid() = user_id)
+      $p$;
+    END IF;
+
+    CREATE INDEX IF NOT EXISTS daily_challenges_user_id_date_idx
+      ON daily_challenges(user_id, challenge_date);
+  END IF;
+END $$;
 
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS sessions_user_id_idx ON sessions(user_id);
 CREATE INDEX IF NOT EXISTS sessions_created_at_idx ON sessions(created_at);
 CREATE INDEX IF NOT EXISTS achievements_user_id_idx ON achievements(user_id);
 CREATE INDEX IF NOT EXISTS skill_snapshots_user_id_idx ON skill_snapshots(user_id);
-CREATE INDEX IF NOT EXISTS daily_challenges_user_id_date_idx ON daily_challenges(user_id, challenge_date);

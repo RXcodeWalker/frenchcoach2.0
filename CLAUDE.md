@@ -28,6 +28,7 @@ A French language speaking-practice app for IGCSE/A-Level learners. Users record
 ### State & Data Flow
 
 Global state lives in a single `useReducer` in [src/context/AppContext.tsx](src/context/AppContext.tsx). On mount, `buildInitialState()` hydrates from three localStorage services:
+
 - `analyticsService` → session history, streak, daily stats (`frenchCoach_v2`)
 - `progressionService` → XP, level, achievements (`frenchCoach_progression`)
 - `diagnosticEngine` → skill mastery profile (`frenchCoach_sde`)
@@ -36,14 +37,14 @@ Each screen owns its local state (recording, timer, step machine). Shared state 
 
 ### Services Layer (`src/services/`)
 
-| Service | Purpose |
-|---|---|
-| `api/apiClient.ts` | POST `/api/feedback` → falls back to `coachService` if offline |
-| `coaching/coachService.ts` | Offline regex-based grammar evaluator (~34 rules); computes 4 scores (0–10) |
-| `coaching/diagnosticEngine.ts` | Maps grammar errors → 14 skill categories with exponential decay (14-day half-life) |
-| `analytics/analyticsService.ts` | Records sessions, computes streak, builds 7-day chart data |
-| `progression/progressionService.ts` | XP formula: `10 + (score/10×15) + (streak×2)`; 5 levels; 12 achievements |
-| `supabase/` | Dead code — not wired up anywhere |
+| Service                             | Purpose                                                                             |
+| ----------------------------------- | ----------------------------------------------------------------------------------- |
+| `api/apiClient.ts`                  | POST `/api/feedback` → falls back to `coachService` if offline                      |
+| `coaching/coachService.ts`          | Offline regex-based grammar evaluator (~34 rules); computes 4 scores (0–10)         |
+| `coaching/diagnosticEngine.ts`      | Maps grammar errors → 14 skill categories with exponential decay (14-day half-life) |
+| `analytics/analyticsService.ts`     | Records sessions, computes streak, builds 7-day chart data                          |
+| `progression/progressionService.ts` | XP formula: `10 + (score/10×15) + (streak×2)`; 5 levels; 12 achievements            |
+| `supabase/`                         | Dead code — not wired up anywhere                                                   |
 
 ### Coach MVP Layer (`src/services/coach/`)
 
@@ -73,6 +74,7 @@ Each big screen has a matching sub-directory (e.g., `src/screens/learn/`) with e
 ### Routing
 
 React Router v7. Two layouts in [src/App.tsx](src/App.tsx):
+
 - `MainLayout` — wraps most routes with `<Navigation>` sidebar + animated `<Outlet>`
 - `ExamLayout` — fullscreen, no sidebar
 
@@ -104,3 +106,59 @@ App types in [src/types/index.ts](src/types/index.ts); coach types split across 
 - Mic recording + timer logic is duplicated between Learn and ExamMode
 - Color-to-score mapping is defined in multiple places; canonical version is `src/domain/scoring.ts`
 - Coach intervention loop (`interventionService.ts`) is implemented and tested but not yet wired into any screen UI
+
+# Assessment Engine
+
+This repository is implementing a complete replacement of the old IGCSE speaking scorer.
+
+The previous system contained duplicated rubric logic, invented scoring weights, and multiple inconsistent implementations. This phase replaces it with a single audited Cambridge IGCSE French (0520) assessment engine.
+
+## Before planning or implementing
+
+Always read:
+
+- `docs/architecture/rubric-architecture-v3.md`
+- `docs/architecture/roadmap.md`
+
+Treat the architecture as the design source of truth and the roadmap as the execution order.
+
+Do not work on a subphase until its roadmap dependencies have been completed.
+
+---
+
+## Project constraints
+
+1. **Cambridge IGCSE French (0520) only.**
+   Do not introduce board abstractions, generic rubric engines, or future-proofing for other exam boards.
+
+2. **Everything must be sourced.**
+   Rubric criteria, mark ranges, and grade boundaries must come from official Cambridge documentation. Anything uncertain must be marked `UNVALIDATED`.
+
+3. **Follow the three-layer architecture.**
+   - Layer 1: deterministic evidence extraction
+   - Layer 2: constrained LLM judgement
+   - Layer 3: deterministic guardrails
+
+   Do not replace this with purely deterministic scoring or unrestricted LLM scoring.
+
+4. **Follow the roadmap.**
+   Do not implement future subphases early.
+
+5. **Never assume validation data exists.**
+   Corpus availability is determined by the roadmap checkpoints.
+
+6. **Calibration and validation datasets must remain separate.**
+
+---
+
+## Workflow
+
+Every subphase follows two separate sessions:
+
+1. **Planning**
+   - Read the architecture and roadmap.
+   - Produce an implementation plan only.
+   - No code.
+
+2. **Implementation**
+   - Begin only after the plan has been approved.
