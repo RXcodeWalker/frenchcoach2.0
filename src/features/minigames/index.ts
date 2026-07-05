@@ -40,3 +40,22 @@ export { getSpeedMultiplier } from './utils/getSpeedMultiplier';
 export type { SpeedMultiplierResult } from './utils/getSpeedMultiplier';
 export { completeMinigameSession } from './utils/completeMinigameSession';
 export type { CompleteMinigameSessionOptions } from './utils/completeMinigameSession';
+
+// Hooks
+export { useGameTimer } from './hooks/useGameTimer';
+export type { GameTimerMode, UseGameTimerOptions, GameTimerState } from './hooks/useGameTimer';
+export { useCountdown } from './hooks/useCountdown';
+export type { UseCountdownOptions, CountdownState } from './hooks/useCountdown';
+export { useStreakMultiplier } from './hooks/useStreakMultiplier';
+export type {
+  UseStreakMultiplierOptions,
+  StreakMultiplierState,
+} from './hooks/useStreakMultiplier';
+export { useFloatingXP } from './hooks/useFloatingXP';
+export type {
+  FloatingXPItem,
+  UseFloatingXPOptions,
+  FloatingXPState,
+} from './hooks/useFloatingXP';
+export { useRunStats } from './hooks/useRunStats';
+export type { RunStatsState } from './hooks/useRunStats';
