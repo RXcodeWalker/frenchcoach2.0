@@ -4,7 +4,7 @@
 > (split from `rubric-architecture-v3.md`). Covers speech-to-text model
 > choice and WER targets, transcript quality handling (disfluency,
 > self-correction), accent handling, and the original-question-bank /
-> copyright constraint. Primary reference for **S3, S4, S13**.
+> copyright constraint. Primary reference for **S3, S4, S10, S13**.
 
 ## 6. Front of the pipeline — the part that actually breaks first
 
@@ -17,6 +17,7 @@ A scorer that gets a perfect 40/40 reading from a transcript that misheard "j'ai
 - **Force language code `fr` explicitly.** Whisper auto-detect routinely misroutes hesitant French as English when the speaker is anglophone.
 - **Two-pass transcription for low-confidence spans:** if the ASR returns a low confidence on a span, re-run that span with biased decoding (prompt with expected domain vocabulary for the topic conversation) and present the user with the corrected version to confirm.
 - **Persist word-level confidence.** Layer 1 uses these to discount evidence drawn from spans where it might be mishearing. Layer 3 uses aggregate confidence to gate scoring.
+- **Externally recorded tests (teacher-conducted):** transcribe **both** speakers with diarization. Detect and annotate examiner repetitions and alternative-question usage — alternative questions are identifiable by matching examiner utterances against the question bank's alternative variants. Annotated conduct events feed the session-evidence fields in `EvidenceProfile` (`repetitions_used`, `alternative_triggered`, `extension_questions_asked`, `response_duration_s` per question). These recordings and the Teacher's Notes (TN) booklet remain **confidential — internal scoring and validation use only**, never redistributed, never pooled into any shared corpus.
 
 ### 6.2 Transcript quality
 
@@ -33,9 +34,22 @@ A scorer that gets a perfect 40/40 reading from a transcript that misheard "j'ai
 
 - **Real Cambridge role-play cards and topic-conversation questions are UCLES copyright** and the teacher/examiner booklet is explicitly confidential. They cannot be ingested or redistributed.
 - **Build an original question bank modelled on the published structure**, not copied from it. Role play: 5 transactional tasks per scenario, drawn from the syllabus topic areas (A: Everyday activities; B: Personal and social life; C: World around us; D: World of work; E: International world), in the same instruction style ("greet…", "say that you have a reservation…", "choose between two options…", "thank and ask one question"). Topic conversations: 5 open questions per topic with one alternative per main question (Cambridge requires alternatives to support weaker candidates).
-- **Quality control by a French teacher.** Every question reviewed by a 0520-familiar teacher before it enters the bank. Tag by topic area, sub-topic, target structures (past expected, opinion expected, future expected), difficulty.
+- **Quality control by a French teacher.** Every question reviewed by a 0520-familiar teacher before it enters the bank. Tag by topic area, sub-topic, target structures (past expected, opinion expected, future expected), **`expected_time_frame`** (`past` | `present` | `future` | `conditional` — derived from cue words for Layer 1 time-frame alignment), difficulty. For role-play tasks, tag **`parts_expected`** (1 or 2). Include **alternative-question variants** for each main topic question so examiner-speech annotation can match them.
 - **Honest framing:** the app says "modelled on Cambridge IGCSE 0520 format. Original questions written for practice — not past paper questions." This protects copyright and sets honest expectations.
 - **No bulk PDF scraping of past papers.** Personal-use upload by a candidate for their own practice is acceptable; redistributing, training on, or pooling them into a corpus is not.
+- **June 2024 TN confidentiality:** the June 2024 Teacher's Notes role-play cards and topic questions are confidential UCLES material — they must **not** seed the original question bank's content, only its structure and instruction style (which was already the rule). The Principal Examiner Report's guidance on differentiated further questions **may** inform how the app generates its (original) further/extension questions for topic conversations.
+
+### 6.5 Examiner-simulation conduct rules
+
+For app-conducted practice sessions (implemented in roadmap **S10**), the session engine must simulate a Cambridge examiner's conduct faithfully enough that `EvidenceProfile` session-evidence fields are trustworthy:
+
+- Read questions **exactly as authored** in the question bank — repeat but **never rephrase**.
+- **Role play:** no extension questions; move through the 5 tasks in order.
+- **Topic conversation Q1–Q5:** repeat the main question first, then offer the alternative if needed, then move on — do not skip ahead.
+- Encourage fuller responses with the standard extension prompts (*Pouvez-vous développer ?*, *Pourquoi ?*, etc.).
+- Cap examiner-chosen further questions at **2 per topic** (beyond the scripted Q1–Q5 and their alternatives).
+- Target **~4 minutes** of candidate speaking time per topic conversation.
+- **Log every conduct event** (repetition, alternative triggered, extension asked, task part addressed, timestamps) to the session log that Layer 1 consumes.
 
 ---
 

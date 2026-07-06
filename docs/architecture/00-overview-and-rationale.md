@@ -42,7 +42,7 @@ What survives, in modified form: the diagnosis that the same rubric is encoded i
 
 ## 9. What success looks like, concretely
 
-- The scorer agrees with a teacher's mark within 1 mark on Communication and Quality of Language ≥ 85% of the time, and within 1 mark on role-play tasks ≥ 90% of the time, on a held-out set of at least 30 responses (Phase C exit).
+- The scorer agrees with a teacher's mark within 1 mark on Communication ≥ 85% of the time and within 1 mark on role-play tasks ≥ 90% of the time, on a held-out set of at least 30 responses (Phase C exit). **QoL within-1 agreement targets are conditional on the Phase A pronunciation-variance measurement** (`03-validation-strategy.md` §5.1, `02-scoring-pipeline-architecture.md` §3.4.2) — this document must not promise transcript-only QoL parity with examiner marks before that number exists.
 - Every mark is shown to the user with a Cambridge-verbatim descriptor quotation and at least one quoted span from the transcript that justifies it.
 - Predicted letter grades are shown with an uncertainty range and the boundary series they reference. Single confident letters are never shown for raw marks within ±2 of a boundary.
 - The transcript shown to the user before scoring matches what the candidate actually said well enough that the candidate confirms it. This is a measured, reported metric.

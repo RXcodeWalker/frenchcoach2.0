@@ -17,6 +17,7 @@
 - **Weighted overall computation (0.35/0.35/0.30).** Replace with the additive Cambridge sum to /40.
 - **The v1 "engine is the sole authority" hard separation.** Replaced by the three-layer hybrid with explicit contracts (§3.3–3.5).
 - **Single-axis rubric versioning.** Replaced by full-stack `ScoringEnvelope` (§3.8).
+- **Any reintroduction of a "fluency" top-level criterion, or any claim that QoL is fully assessable from transcript alone, is a regression** — see `02-scoring-pipeline-architecture.md` §3.4.2 (QoL known-limitation block).
 
 ---
 

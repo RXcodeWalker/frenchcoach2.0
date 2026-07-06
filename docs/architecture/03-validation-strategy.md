@@ -19,7 +19,7 @@ Validation is not a single gate. It is three phases, each with its own corpus si
 
 **Coverage target.** A small spread — roughly 2 per major band tier (top / middle / bottom) per criterion, plus 3–5 role-play attempts spanning task completion levels. Coverage matters more than balance here; you want to surface failure modes, not measure rates.
 
-**Examiner ask (kept light).** Mark + 1–3 sentences per criterion describing what drove the band choice. A teacher giving up a weekend evening can produce 10 of these; demanding a full examiner-report-style essay for each will kill the corpus before it starts.
+**Examiner ask (kept light).** Mark + 1–3 sentences per criterion describing what drove the band choice. **Additionally, for each transcript:** note whether pronunciation/fluency materially moved the QoL mark (yes/no + one phrase). This is the cheapest possible measurement of the QoL blind spot and gates the pronunciation-pipeline decision (roadmap **S7**). A teacher giving up a weekend evening can produce 10 of these; demanding a full examiner-report-style essay for each will kill the corpus before it starts.
 
 **Allocation:** all 10–15 transcripts go to a Phase A pool. None become permanent anchors yet — Phase A's transcripts are diagnostic. Some may be promoted to anchors in Phase B after review.
 
@@ -27,9 +27,14 @@ Validation is not a single gate. It is three phases, each with its own corpus si
 
 - Every transcript produces a non-empty `EvidenceProfile` with the expected fields populated.
 - Manual review of every L2 justification: **0 fabricated evidence** (zero, not low rate — fabrication at Phase A means the prompt is broken).
-- Every guardrail that should have fired did fire on at least one transcript that should have triggered it (synthetic transcripts may be added to exercise guardrails that no real transcript triggers).
+- Every guardrail that should have fired did fire on at least one transcript that should have triggered it (synthetic transcripts may be added to exercise guardrails that no real transcript triggers). **Synthetic guardrail/test transcripts** should be seeded from the Principal Examiner Report's documented failure taxonomy, including at minimum:
+  - wrong time frame after cue words (e.g. present-tense response to *la semaine dernière*);
+  - misunderstood interrogatives — *Où* / *Quand* / *Combien* / *Comment* answered with the wrong information type;
+  - second part of a two-part role-play task dropped;
+  - *c'est* vs *c'était* in past-tense opinion questions;
+  - number given without currency (note: **any** currency unit is acceptable — the failure mode is omitting currency entirely when the task requires a price).
 - No "polar" failures: a transcript graded ≥ 10 by the examiner should not receive ≤ 4 from the scorer, and vice versa.
-- L1 detector outputs spot-check as correct on every transcript (tense detection, filler counts, word counts — these are deterministic and must be right).
+- L1 detector outputs spot-check as correct on every transcript (tense detection, filler counts, word counts, **time-frame alignment**, **alternative-question usage extraction** — these are deterministic and must be right).
 - A teacher reading any single scored attempt can follow the justification trail from mark → descriptor → evidence span without confusion.
 
 **Expected outcomes — what Phase A is for:**
@@ -56,7 +61,7 @@ Validation is not a single gate. It is three phases, each with its own corpus si
 
 **Success criteria (all must hold to exit):**
 
-- Within-2 agreement ≥ 80% on the held-out set, per criterion. (Within-2 is a deliberately wide bar — Phase B is about convergence direction, not production accuracy.)
+- Within-2 agreement ≥ 80% on the held-out set, per criterion. (Within-2 is a deliberately wide bar — Phase B is about convergence direction, not production accuracy.) **QoL within-2 agreement is provisionally subject to the pronunciation-variance finding from Phase A** (see §5.3 note).
 - Systematic bias |mean(scorer − examiner)| < 1.5 marks per criterion.
 - No band is consistently misclassified by ≥ 2 bands (e.g. all 13–15 responses come out as 7–9 → fundamental issue, not a Phase B exit).
 - Self-consistency agreement (between L2 runs 1 and 2) ≥ 85% same-band.
@@ -85,7 +90,7 @@ Validation is not a single gate. It is three phases, each with its own corpus si
 
 **Success criteria (all must hold to promote to `v1.0`):**
 
-- Within-1 agreement ≥ 85% for Communication and Quality of Language on the held-out set.
+- Within-1 agreement ≥ 85% for Communication and Quality of Language on the held-out set. **QoL agreement targets are provisionally subject to the pronunciation-variance finding from Phase A:** if pronunciation explains ≥ 1 mark of QoL variance in ≥ 30% of Phase A transcripts, Phase C QoL targets are only claimable after the audio pipeline ships — **or** targets are re-scoped to "QoL excluding pronunciation" with honest UI framing (see `02-scoring-pipeline-architecture.md` §3.4.2).
 - Within-band agreement ≥ 90% on the held-out set.
 - Mean absolute error ≤ 1.5 marks per criterion.
 - Role-play per-task agreement ≥ 90% (these are 0/1/2 — easier target).
