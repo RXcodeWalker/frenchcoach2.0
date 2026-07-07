@@ -1,9 +1,30 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Heart, Zap, Trophy, ArrowLeft, RefreshCw, CheckCircle2, XCircle, Flame, Star, Shield, AlertTriangle, Sparkles, Clock, ZapOff, Lightbulb } from 'lucide-react';
-import { useApp, dispatchAddXP } from '../context/AppContext';
+import { Heart, Zap, Trophy, ArrowLeft, RefreshCw, Star, Shield, AlertTriangle, Sparkles, Clock, ZapOff, Lightbulb } from 'lucide-react';
+import { useApp } from '../context/AppContext';
 import minigameQuestions from '../data/scenarios/minigameQuestions.json';
+import {
+  matchTypedAnswer,
+  getStreakMultiplier,
+  STANDARD_STREAK_TIERS,
+  getSpeedMultiplier,
+  useCountdown,
+  useGameTimer,
+  useStreakMultiplier,
+  useFloatingXP,
+  gradeFromStats,
+  RUBRICS,
+  completeMinigameSession,
+  shakeAnimation,
+  shakeTransition,
+  getOverdriveCardClasses,
+  GameCountdown,
+  GameFeedbackOverlay,
+  GameResultsCard,
+  FloatingXPOverlay,
+  StreakBadge,
+} from '../features/minigames';
 
 type GameState = 'idle' | 'countdown' | 'playing' | 'finished';
 
@@ -13,27 +34,27 @@ interface Question {
   french: string | string[];
 }
 
-interface FloatingXP {
-  id: number;
-  amount: number;
-  x: number;
-  y: number;
-  label?: string;
-}
-
 interface EventNotification {
   id: number;
   type: 'level_up' | 'shield_up' | 'perfect' | 'life_up' | 'power_up';
   text: string;
 }
 
+function getQuestionMaxTime(currentLevel: number): number {
+  return Math.max(5, 20 - Math.floor((currentLevel - 1) / 5) * 2);
+}
+
+function getSpeedPreviewMultiplier(timeLeft: number, maxTime: number): number {
+  const timeUsed = maxTime - timeLeft;
+  return getSpeedMultiplier(timeUsed).multiplier;
+}
+
 export function SurvivalMode() {
   const navigate = useNavigate();
   const { dispatch } = useApp();
   const inputRef = useRef<HTMLInputElement>(null);
-  
+
   const [gameState, setGameState] = useState<GameState>('idle');
-  const [countdown, setCountdown] = useState(3);
   const [lives, setLives] = useState(3);
   const [shields, setShields] = useState(0);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -42,95 +63,55 @@ export function SurvivalMode() {
   const [level, setLevel] = useState(1);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [feedback, setFeedback] = useState<'correct' | 'incorrect' | 'timeout' | null>(null);
-  
-  const [streak, setStreak] = useState(0);
-  const [maxStreak, setMaxStreak] = useState(0);
+
   const [correctAnswers, setCorrectAnswers] = useState(0);
   const [totalAnswered, setTotalAnswered] = useState(0);
-  const [floatingXPs, setFloatingXPs] = useState<FloatingXP[]>([]);
   const [notifications, setNotifications] = useState<EventNotification[]>([]);
   const [isShaking, setIsShaking] = useState(false);
 
-  // Survival 2.0 States
-  const [timeLeft, setTimeLeft] = useState(20);
-  const [maxTime, setMaxTime] = useState(20);
   const [isTimerPaused, setIsTimerPaused] = useState(false);
   const [runTokens, setRunTokens] = useState(0);
   const [showHint, setShowHint] = useState(false);
   const [startTime, setStartTime] = useState<number>(0);
-  
-  const isOverdrive = streak >= 10;
-  const isDanger = lives === 1;
-  
-  const easyPool = minigameQuestions.filter(q => q.difficulty === 'easy');
-  const mediumPool = minigameQuestions.filter(q => q.difficulty === 'medium');
-  const hardPool = minigameQuestions.filter(q => q.difficulty === 'hard');
 
-  const addNotification = (type: EventNotification['type'], text: string) => {
-    const id = Date.now();
-    setNotifications(prev => [...prev, { id, type, text }]);
-    setTimeout(() => setNotifications(prev => prev.filter(n => n.id !== id)), 3000);
-  };
+  const {
+    streak,
+    maxStreak,
+    isOverdrive,
+    onCorrect: onStreakCorrect,
+    onIncorrect: onStreakIncorrect,
+    reset: resetStreak,
+  } = useStreakMultiplier({ tiers: STANDARD_STREAK_TIERS });
 
-  const getNextQuestion = (currentLevel: number) => {
-    let pool = easyPool;
-    if (currentLevel >= 15) pool = hardPool;
-    else if (currentLevel >= 8) pool = mediumPool;
-    
-    return pool[Math.floor(Math.random() * pool.length)];
-  };
+  const { items: floatingXPs, add: addFloatingXP, clear: clearFloatingXP } = useFloatingXP();
 
-  useEffect(() => {
-    const firstQ = getNextQuestion(1);
-    setQuestions([firstQ]);
-  }, []);
+  function prepareNextQuestion() {
+    setFeedback(null);
+    setUserInput('');
+    setShowHint(false);
+    const nextQ = getNextQuestion(level);
+    setQuestions(prev => [...prev, nextQ]);
+    setCurrentIndex(prev => prev + 1);
 
-  useEffect(() => {
-    if (gameState === 'countdown') {
-      if (countdown > 0) {
-        const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
-        return () => clearTimeout(timer);
-      } else {
-        setGameState('playing');
-        const initialMax = Math.max(5, 20 - Math.floor((level - 1) / 5) * 2);
-        setMaxTime(initialMax);
-        setTimeLeft(initialMax);
-        setStartTime(Date.now());
-        setTimeout(() => inputRef.current?.focus(), 10);
-      }
-    }
-  }, [gameState, countdown, level]);
+    const newMax = getQuestionMaxTime(level);
+    timer.reset(newMax);
+    setStartTime(Date.now());
+  }
 
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (gameState === 'playing' && !isTimerPaused && !feedback) {
-      timer = setInterval(() => {
-        setTimeLeft(prev => {
-          if (prev <= 0) {
-            handleTimeOut();
-            return 0;
-          }
-          return Math.round((prev - 0.1) * 10) / 10;
-        });
-      }, 100);
-    }
-    return () => clearInterval(timer);
-  }, [gameState, isTimerPaused, feedback]);
-
-  const handleTimeOut = () => {
+  function handleTimeOut() {
     if (feedback) return;
     setTotalAnswered(prev => prev + 1);
     setIsShaking(true);
-    
+
     if (shields > 0) {
       setShields(prev => prev - 1);
-      setFeedback('correct'); // Using green feedback for shield block
+      setFeedback('correct');
       addNotification('shield_up', 'SHIELD BLOCKED TIMEOUT!');
       setTimeout(() => {
         prepareNextQuestion();
       }, 800);
     } else {
-      setStreak(0);
+      onStreakIncorrect();
       setFeedback('timeout');
       setLives(prev => {
         const newLives = prev - 1;
@@ -147,32 +128,51 @@ export function SurvivalMode() {
       }, 1500);
     }
     setTimeout(() => setIsShaking(false), 500);
+  }
+
+  const timer = useGameTimer({
+    mode: 'perQuestion',
+    initialSeconds: 20,
+    tickMs: 100,
+    paused: isTimerPaused,
+    active: gameState === 'playing' && !feedback,
+    onExpire: handleTimeOut,
+  });
+
+  const countdown = useCountdown({
+    onComplete: () => {
+      setGameState('playing');
+      const initialMax = getQuestionMaxTime(level);
+      timer.reset(initialMax);
+      setStartTime(Date.now());
+      setTimeout(() => inputRef.current?.focus(), 10);
+    },
+  });
+
+  const isDanger = lives === 1;
+
+  const easyPool = minigameQuestions.filter(q => q.difficulty === 'easy');
+  const mediumPool = minigameQuestions.filter(q => q.difficulty === 'medium');
+  const hardPool = minigameQuestions.filter(q => q.difficulty === 'hard');
+
+  const addNotification = (type: EventNotification['type'], text: string) => {
+    const id = Date.now();
+    setNotifications(prev => [...prev, { id, type, text }]);
+    setTimeout(() => setNotifications(prev => prev.filter(n => n.id !== id)), 3000);
   };
 
-  const prepareNextQuestion = () => {
-    setFeedback(null);
-    setUserInput('');
-    setShowHint(false);
-    const nextQ = getNextQuestion(level);
-    setQuestions(prev => [...prev, nextQ]);
-    setCurrentIndex(prev => prev + 1);
-    
-    // Reset timer for next question
-    const newMax = Math.max(5, 20 - Math.floor((level - 1) / 5) * 2);
-    setMaxTime(newMax);
-    setTimeLeft(newMax);
-    setStartTime(Date.now());
+  const getNextQuestion = (currentLevel: number) => {
+    let pool = easyPool;
+    if (currentLevel >= 15) pool = hardPool;
+    else if (currentLevel >= 8) pool = mediumPool;
+
+    return pool[Math.floor(Math.random() * pool.length)];
   };
 
-  const normalize = (str: string) => {
-    return str
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .trim()
-      .replace(/[?.,\/#!$%\^&\*;:{}=\-_`~()]/g, "")
-      .replace(/\s{2,}/g, " ");
-  };
+  useEffect(() => {
+    const firstQ = getNextQuestion(1);
+    setQuestions([firstQ]);
+  }, []);
 
   const handleCheck = (e: React.FormEvent) => {
     e.preventDefault();
@@ -180,87 +180,63 @@ export function SurvivalMode() {
 
     setTotalAnswered(prev => prev + 1);
     const currentQ = questions[currentIndex];
-    const acceptable = Array.isArray(currentQ.french) 
-      ? currentQ.french.map(normalize)
-      : [normalize(currentQ.french)];
-    
-    const isCorrect = acceptable.includes(normalize(userInput));
+    const isCorrect = matchTypedAnswer(userInput, currentQ.french);
 
     if (isCorrect) {
       const updatedCorrect = correctAnswers + 1;
       setCorrectAnswers(updatedCorrect);
       const newStreak = streak + 1;
-      setStreak(newStreak);
-      if (newStreak > maxStreak) setMaxStreak(newStreak);
+      onStreakCorrect();
 
-      // Energy/Tokens gain
       if (newStreak % 3 === 0) {
         setRunTokens(prev => prev + 1);
         addNotification('power_up', '+1 ENERGY');
       }
 
-      // Level Up Check
       const newLevel = Math.floor(updatedCorrect / 5) + 1;
       if (newLevel > level) {
         setLevel(newLevel);
         addNotification('level_up', `LEVEL ${newLevel}!`);
       }
 
-      // Shield Check (Every 10 streak, max 2)
       if (newStreak > 0 && newStreak % 10 === 0 && shields < 2) {
         setShields(prev => prev + 1);
         addNotification('shield_up', 'SHIELD ACQUIRED!');
       }
 
-      // Bonus life (Every 25 streak, max 5)
       if (newStreak > 0 && newStreak % 25 === 0 && lives < 5) {
         setLives(prev => prev + 1);
         addNotification('life_up', 'LIFE RESTORED!');
       }
 
-      // Perfect Bonus
       if (newStreak === 5) {
         addNotification('perfect', 'UNSTOPPABLE!');
       }
 
-      // Multipliers
-      let streakMult = 1;
-      if (newStreak >= 10) streakMult = 3;
-      else if (newStreak >= 5) streakMult = 2;
-      else if (newStreak >= 3) streakMult = 1.5;
-
-      // Speed Multiplier
+      const streakMult = getStreakMultiplier(newStreak, STANDARD_STREAK_TIERS);
       const timeUsed = (Date.now() - startTime) / 1000;
-      let speedMult = 1;
-      let speedLabel = "";
-      if (timeUsed < 3) { speedMult = 3; speedLabel = "GODLIKE SPEED!"; }
-      else if (timeUsed < 5) { speedMult = 2; speedLabel = "LIGHTNING FAST!"; }
-      else if (timeUsed < 8) { speedMult = 1.5; speedLabel = "SPEEDY!"; }
+      const { multiplier: speedMult, label: speedLabel } = getSpeedMultiplier(timeUsed);
 
       const xpGain = Math.round(5 * streakMult * speedMult);
       setScore(s => s + xpGain);
       setFeedback('correct');
 
-      const id = Date.now();
-      setFloatingXPs(prev => [...prev, { 
-        id, 
-        amount: xpGain, 
-        x: Math.random() * 40 - 20, 
-        y: 0,
-        label: speedLabel
-      }]);
-      setTimeout(() => setFloatingXPs(prev => prev.filter(f => f.id !== id)), 1000);
+      addFloatingXP({
+        amount: xpGain,
+        x: Math.random() * 40 - 20,
+        label: speedLabel || undefined,
+      });
 
       setTimeout(() => {
         prepareNextQuestion();
       }, 600);
     } else {
-      setStreak(0);
+      onStreakIncorrect();
       setIsShaking(true);
-      
+
       if (shields > 0) {
         setShields(prev => prev - 1);
-        setFeedback('correct'); // Using green feedback for shield block
+        setFeedback('correct');
         addNotification('shield_up', 'SHIELD BLOCKED!');
         setTimeout(() => {
           prepareNextQuestion();
@@ -274,29 +250,23 @@ export function SurvivalMode() {
           }
           return newLives;
         });
-        
+
         setTimeout(() => {
           if (lives > 1) {
             prepareNextQuestion();
           }
         }, 1500);
       }
-      
-      setTimeout(() => setIsShaking(false), 500);
-    }
-  };
 
-  const finishGame = () => {
-    if (score > 0) {
-      dispatchAddXP(dispatch, score);
+      setTimeout(() => setIsShaking(false), 500);
     }
   };
 
   useEffect(() => {
     if (gameState === 'finished') {
-      finishGame();
+      completeMinigameSession({ dispatch, score });
     }
-  }, [gameState]);
+  }, [gameState, dispatch, score]);
 
   const handleFreeze = () => {
     if (runTokens < 1 || isTimerPaused || feedback) return;
@@ -320,55 +290,58 @@ export function SurvivalMode() {
     addNotification('power_up', 'HINT REVEALED!');
   };
 
+  const startGame = () => {
+    setGameState('countdown');
+    countdown.start();
+  };
+
   const resetGame = () => {
     const firstQ = getNextQuestion(1);
     setQuestions([firstQ]);
     setCurrentIndex(0);
     setScore(0);
-    setStreak(0);
-    setMaxStreak(0);
+    resetStreak();
     setCorrectAnswers(0);
     setTotalAnswered(0);
     setUserInput('');
-    setCountdown(3);
     setLives(3);
     setShields(0);
     setLevel(1);
     setGameState('countdown');
     setNotifications([]);
-    
-    // Reset 2.0 states
-    setTimeLeft(20);
-    setMaxTime(20);
+    clearFloatingXP();
+
+    timer.reset(20);
     setIsTimerPaused(false);
     setRunTokens(0);
     setShowHint(false);
+    countdown.start();
   };
 
   if (gameState === 'idle') {
     return (
       <div className="min-h-[80vh] flex flex-col items-center justify-center p-6">
-        <motion.div 
+        <motion.div
           className="max-w-md w-full glass-elevated p-8 text-center space-y-6 relative overflow-hidden"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500 via-amber-500 to-orange-500" />
-          
+
           <div className="w-24 h-24 bg-orange-500/10 rounded-3xl flex items-center justify-center mx-auto border border-orange-500/20 relative group">
             <div className="absolute inset-0 bg-orange-500/20 blur-xl rounded-full scale-0 group-hover:scale-100 transition-transform duration-500" />
             <Zap size={48} className="text-orange-400 fill-orange-400/20 relative z-10" />
           </div>
-          
+
           <div>
             <h1 className="text-4xl font-black text-white mb-2 italic tracking-tighter">SURVIVAL BLITZ</h1>
             <p className="text-slate-400 text-sm leading-relaxed">
-              Translate phrases under intense pressure. 
+              Translate phrases under intense pressure.
               <br/>
               <span className="text-orange-400 font-bold uppercase text-[10px] tracking-widest mt-2 block">20S TIMER • SPEED MULTIPLIERS • ENERGY POWER-UPS</span>
             </p>
           </div>
-          
+
           <div className="grid grid-cols-3 gap-3 py-2">
             <div className="p-3 rounded-2xl bg-white/5 border border-white/10 hover:border-blue-500/30 transition-colors">
               <Clock size={16} className="text-blue-400 mx-auto mb-1" />
@@ -389,14 +362,14 @@ export function SurvivalMode() {
 
           <div className="flex flex-col gap-3">
             <motion.button
-              onClick={() => setGameState('countdown')}
+              onClick={startGame}
               className="w-full py-4 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-white font-black rounded-2xl shadow-xl shadow-orange-500/20 transition-all uppercase italic tracking-wider border-b-4 border-orange-800 active:border-b-0 active:translate-y-1"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
               INITIATE BLITZ
             </motion.button>
-            <button 
+            <button
               onClick={() => navigate('/explore')}
               className="text-xs font-bold text-slate-500 hover:text-white transition-colors flex items-center justify-center gap-1.5 py-2"
             >
@@ -412,18 +385,13 @@ export function SurvivalMode() {
   if (gameState === 'countdown') {
     return (
       <div className="min-h-[80vh] flex flex-col items-center justify-center gap-8">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={countdown}
-            initial={{ opacity: 0, scale: 0.2, rotate: -20 }}
-            animate={{ opacity: 1, scale: 1, rotate: 0 }}
-            exit={{ opacity: 0, scale: 2, rotate: 20 }}
-            className="text-[12rem] font-black text-orange-400 italic tracking-tighter drop-shadow-[0_0_30px_rgba(249,115,22,0.4)]"
-          >
-            {countdown === 0 ? 'GO!' : countdown}
-          </motion.div>
-        </AnimatePresence>
-        <motion.p 
+        <GameCountdown
+          display={countdown.display}
+          value={countdown.value}
+          className="flex items-center justify-center"
+          textClassName="text-9xl font-black text-orange-400 italic tracking-tighter drop-shadow-[0_0_30px_rgba(249,115,22,0.4)]"
+        />
+        <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="text-orange-500/50 font-black uppercase tracking-[0.5em] text-sm"
@@ -436,13 +404,14 @@ export function SurvivalMode() {
 
   if (gameState === 'playing') {
     const currentQ = questions[currentIndex];
-    const levelProgress = ((correctAnswers % 5) / 5) * 100;
-    const timeRatio = timeLeft / maxTime;
-    const isTimeCritical = timeLeft < 5;
-    
+    const timeRatio = timer.timeLeft / timer.maxTime;
+    const isTimeCritical = timer.isCritical;
+    const streakMult = getStreakMultiplier(streak, STANDARD_STREAK_TIERS);
+    const speedMult = getSpeedPreviewMultiplier(timer.timeLeft, timer.maxTime);
+    const combinedMultiplier = (streakMult * speedMult).toFixed(1);
+
     return (
       <div className="max-w-3xl mx-auto px-4 pt-12 relative">
-        {/* Notifications Overlay */}
         <div className="fixed top-24 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 w-full max-w-xs px-4">
           <AnimatePresence>
             {notifications.map(n => (
@@ -470,33 +439,16 @@ export function SurvivalMode() {
           </AnimatePresence>
         </div>
 
-        {/* HUD */}
         <div className="flex flex-col gap-6 mb-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className={`glass-elevated px-5 py-2.5 rounded-2xl flex items-center gap-3 transition-all duration-500 relative border-2 ${isOverdrive ? 'border-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.3)]' : 'border-white/5'}`}>
                 <Zap size={18} className={`text-orange-400 ${isOverdrive ? 'animate-pulse' : ''}`} />
                 <span className="text-2xl font-black text-white tabular-nums">{score}</span>
-                
-                <AnimatePresence>
-                  {floatingXPs.map(fxp => (
-                    <motion.div
-                      key={fxp.id}
-                      initial={{ opacity: 0, y: 0, x: fxp.x }}
-                      animate={{ opacity: 1, y: -80 }}
-                      exit={{ opacity: 0 }}
-                      className="absolute pointer-events-none flex flex-col items-center whitespace-nowrap"
-                    >
-                      <span className="font-black text-orange-400 text-2xl">+{fxp.amount}</span>
-                      {fxp.label && (
-                        <span className="text-[10px] font-black text-white bg-orange-600 px-2 py-0.5 rounded-full uppercase italic tracking-tighter">
-                          {fxp.label}
-                        </span>
-                      )}
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
+                <FloatingXPOverlay items={floatingXPs} className="text-orange-400 text-2xl" animateY={-80} />
               </div>
+
+              <StreakBadge streak={streak} isOverdrive={isOverdrive} overdriveLabel="OVERDRIVE!" />
 
               <div className="flex gap-1.5">
                 {[...Array(shields)].map((_, i) => (
@@ -511,29 +463,29 @@ export function SurvivalMode() {
                 ))}
               </div>
             </div>
-            
+
             <div className="flex flex-col items-end gap-2">
               <div className="flex gap-1.5">
                 {[...Array(5)].map((_, i) => (
                   <motion.div
                     key={`heart-${i}`}
                     initial={false}
-                    animate={{ 
+                    animate={{
                       scale: i < lives ? 1 : 0.8,
                       opacity: i < lives ? 1 : 0.2,
                       y: (i < lives && isDanger) ? [0, -4, 0] : 0
                     }}
                     transition={isDanger ? { repeat: Infinity, duration: 0.6, delay: i * 0.1 } : {}}
                   >
-                    <Heart 
-                      size={28} 
-                      className={i < lives ? "text-red-500 fill-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.4)]" : "text-slate-800"} 
+                    <Heart
+                      size={28}
+                      className={i < lives ? "text-red-500 fill-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.4)]" : "text-slate-800"}
                     />
                   </motion.div>
                 ))}
               </div>
               {isDanger && (
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: [0.4, 1, 0.4] }}
                   transition={{ repeat: Infinity, duration: 1 }}
@@ -546,20 +498,19 @@ export function SurvivalMode() {
             </div>
           </div>
 
-          {/* Timer Bar */}
           <div className="space-y-2">
             <div className="flex justify-between items-end px-1">
               <span className={`text-[10px] font-black uppercase tracking-widest flex items-center gap-2 ${isTimeCritical ? 'text-red-500' : 'text-slate-500'}`}>
                 <Clock size={12} className={isTimeCritical ? 'animate-spin' : ''} />
-                {isTimerPaused ? 'TIME FROZEN' : `${timeLeft.toFixed(1)}s Remaining`}
+                {isTimerPaused ? 'TIME FROZEN' : `${timer.timeLeft.toFixed(1)}s Remaining`}
               </span>
-              <span className="text-[10px] font-black text-slate-500 uppercase">Multiplier x{((isOverdrive ? 3 : streak >= 5 ? 2 : streak >= 3 ? 1.5 : 1) * (timeLeft > 17 ? 3 : timeLeft > 15 ? 2 : timeLeft > 12 ? 1.5 : 1)).toFixed(1)}</span>
+              <span className="text-[10px] font-black text-slate-500 uppercase">Multiplier x{combinedMultiplier}</span>
             </div>
             <div className={`w-full h-3 bg-white/5 rounded-full overflow-hidden border p-0.5 transition-colors duration-300 ${isTimeCritical ? 'border-red-500/50' : 'border-white/5'}`}>
-              <motion.div 
+              <motion.div
                 className={`h-full rounded-full shadow-[0_0_10px_rgba(0,0,0,0.2)] ${
-                  isTimerPaused ? 'bg-blue-400' : 
-                  timeRatio > 0.6 ? 'bg-emerald-500' : 
+                  isTimerPaused ? 'bg-blue-400' :
+                  timeRatio > 0.6 ? 'bg-emerald-500' :
                   timeRatio > 0.3 ? 'bg-amber-500' : 'bg-red-500'
                 }`}
                 initial={{ width: '100%' }}
@@ -570,7 +521,6 @@ export function SurvivalMode() {
           </div>
         </div>
 
-        {/* Power-ups Bar */}
         <div className="flex justify-center gap-4 mb-8">
           <div className="glass-elevated px-4 py-2 rounded-2xl flex items-center gap-4 border-white/5">
             <div className="flex flex-col items-center">
@@ -617,62 +567,36 @@ export function SurvivalMode() {
           </div>
         </div>
 
-        {/* Main Arena */}
-        <motion.div 
+        <motion.div
           className={`glass-elevated p-10 rounded-[2.5rem] relative overflow-hidden transition-all duration-700 border-2 ${
-            isOverdrive ? 'border-orange-500 shadow-[0_0_50px_rgba(249,115,22,0.15)] bg-orange-500/[0.02]' : 
-            isDanger ? 'border-red-500/30 bg-red-500/[0.02]' : 
+            isOverdrive ? `border-orange-500 shadow-[0_0_50px_rgba(249,115,22,0.15)] bg-orange-500/[0.02] ${getOverdriveCardClasses(isOverdrive)}` :
+            isDanger ? 'border-red-500/30 bg-red-500/[0.02]' :
             isTimeCritical ? 'border-red-500/40 bg-red-500/[0.01]' : 'border-white/10'
           }`}
-          animate={isShaking || (isTimeCritical && !feedback) ? { x: [-2, 2, -2, 2, 0] } : { x: 0 }}
-          transition={isTimeCritical ? { repeat: Infinity, duration: 0.1 } : { duration: 0.4 }}
+          animate={
+            isShaking ? shakeAnimation :
+            (isTimeCritical && !feedback) ? { x: [-2, 2, -2, 2, 0] } : { x: 0 }
+          }
+          transition={
+            isTimeCritical && !isShaking ? { repeat: Infinity, duration: 0.1 } : shakeTransition
+          }
           layout
         >
-          {/* Decorative Corner */}
           <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
             {isTimerPaused ? <ZapOff size={120} className="text-blue-400 rotate-12" /> : <Shield size={120} className="text-white rotate-12" />}
           </div>
 
-          <AnimatePresence>
-            {feedback && (
-              <motion.div 
-                initial={{ opacity: 0, scale: 1.1 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                className={`absolute inset-0 flex flex-col items-center justify-center z-20 backdrop-blur-sm ${
-                  feedback === 'correct' ? 'bg-emerald-500/10' : 
-                  feedback === 'timeout' ? 'bg-amber-500/20' : 'bg-red-500/20'
-                }`}
-              >
-                {feedback === 'correct' ? (
-                  <motion.div
-                    initial={{ scale: 0.5 }}
-                    animate={{ scale: [1, 1.2, 1] }}
-                    className="flex flex-col items-center"
-                  >
-                    <CheckCircle2 size={100} className="text-emerald-400 drop-shadow-[0_0_20px_rgba(52,211,153,0.4)]" />
-                    <span className="mt-4 text-emerald-400 font-black italic tracking-tight text-2xl uppercase">Correct!</span>
-                  </motion.div>
-                ) : (
-                  <div className="text-center p-8 max-w-sm">
-                    {feedback === 'timeout' ? (
-                      <Clock size={80} className="text-amber-400 mb-6 mx-auto animate-bounce" />
-                    ) : (
-                      <XCircle size={80} className="text-red-400 mb-6 mx-auto drop-shadow-[0_0_20px_rgba(248,113,113,0.4)]" />
-                    )}
-                    <div className="space-y-3 bg-slate-950/80 p-6 rounded-3xl border border-red-500/20 shadow-2xl">
-                      <p className="text-red-400 font-black uppercase text-xs tracking-[0.2em]">
-                        {feedback === 'timeout' ? 'TIME EXPIRED' : 'Correct Translation:'}
-                      </p>
-                      <p className="text-2xl font-black text-white leading-tight">
-                        {Array.isArray(currentQ.french) ? currentQ.french[0] : currentQ.french}
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <GameFeedbackOverlay
+            feedback={feedback}
+            correctAnswer={Array.isArray(currentQ?.french) ? currentQ.french[0] : currentQ?.french}
+            correctLabel="Correct Translation:"
+            timeoutLabel="TIME EXPIRED"
+            className={
+              feedback === 'correct' ? 'bg-emerald-500/10 backdrop-blur-sm z-20' :
+              feedback === 'timeout' ? 'bg-amber-500/20 backdrop-blur-sm z-20' :
+              'bg-red-500/20 backdrop-blur-sm z-20'
+            }
+          />
 
           <div className="text-center space-y-10 relative z-10">
             <div className="min-h-[120px] flex flex-col items-center justify-center">
@@ -685,9 +609,9 @@ export function SurvivalMode() {
                 <span className="text-[11px] font-black text-slate-500 uppercase tracking-[0.3em]">English Phrase</span>
                 <div className="h-[1px] w-8 bg-slate-800" />
               </motion.div>
-              
+
               <AnimatePresence mode="wait">
-                <motion.h2 
+                <motion.h2
                   key={currentQ?.english}
                   initial={{ scale: 0.95, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
@@ -712,8 +636,8 @@ export function SurvivalMode() {
                 autoCapitalize="off"
                 spellCheck="false"
                 className={`w-full bg-slate-900/80 border-2 rounded-[2rem] px-8 py-6 text-2xl font-black text-white placeholder:text-slate-700 focus:outline-none transition-all text-center ${
-                  isOverdrive ? 'border-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.1)] focus:border-orange-400' : 
-                  isDanger ? 'border-red-500/40 focus:border-red-500' : 
+                  isOverdrive ? 'border-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.1)] focus:border-orange-400' :
+                  isDanger ? 'border-red-500/40 focus:border-red-500' :
                   isTimeCritical ? 'border-red-500/60 focus:border-red-500' : 'border-white/10 focus:border-orange-500/50'
                 }`}
               />
@@ -726,7 +650,6 @@ export function SurvivalMode() {
           </div>
         </motion.div>
 
-        {/* Dynamic Background Warning */}
         {(isDanger || isTimeCritical) && !feedback && (
           <div className="fixed inset-0 pointer-events-none z-0">
             <div className={`absolute inset-0 border-[16px] animate-pulse ${isDanger ? 'border-red-500/10' : 'border-orange-500/5'}`} />
@@ -738,104 +661,46 @@ export function SurvivalMode() {
   }
 
   if (gameState === 'finished') {
-    const accuracy = totalAnswered > 0 ? Math.round((correctAnswers / totalAnswered) * 100) : 0;
-    
-    let grade = 'D';
-    let gradeColor = 'text-slate-400';
-    let gradeMsg = 'Survival is tough. Try again!';
-    
-    if (accuracy >= 90 && level >= 15) {
-      grade = 'S';
-      gradeColor = 'text-orange-400 drop-shadow-[0_0_15px_rgba(249,115,22,0.6)]';
-      gradeMsg = 'LEGENDARY SURVIVOR!';
-    } else if (accuracy >= 80 && level >= 8) {
-      grade = 'A';
-      gradeColor = 'text-purple-400';
-      gradeMsg = 'Masterful performance!';
-    } else if (accuracy >= 65 && level >= 4) {
-      grade = 'B';
-      gradeColor = 'text-blue-400';
-      gradeMsg = 'Solid survival skills!';
-    } else if (accuracy >= 40) {
-      grade = 'C';
-      gradeColor = 'text-emerald-400';
-      gradeMsg = 'Keep practicing!';
-    }
+    const graded = gradeFromStats(
+      { score, correctAnswers, totalAnswered, maxStreak, accuracy: 0, level },
+      RUBRICS.survival,
+      'survival'
+    );
 
     return (
-      <div className="min-h-[80vh] flex flex-col items-center justify-center p-6">
-        <motion.div 
-          className="max-w-md w-full glass-elevated p-10 text-center space-y-8 relative overflow-hidden"
-          initial={{ opacity: 0, scale: 0.9, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-        >
-          <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-orange-600 via-amber-400 to-orange-600" />
-          
-          <div className="relative">
-            <motion.div 
-              className="w-32 h-32 bg-white/5 rounded-[2.5rem] flex items-center justify-center mx-auto border-2 border-white/10 relative z-10"
-              initial={{ rotate: -10 }}
-              animate={{ rotate: 0 }}
-              transition={{ type: 'spring', damping: 10 }}
-            >
-              <span className={`text-8xl font-black italic tracking-tighter ${gradeColor}`}>{grade}</span>
-            </motion.div>
-            <motion.div 
-              className="absolute -top-4 -right-4 bg-orange-500 p-3 rounded-2xl shadow-xl z-20"
-              initial={{ scale: 0, rotate: 45 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ delay: 0.4, type: 'spring' }}
-            >
-              <Trophy size={28} className="text-white" />
-            </motion.div>
-            {/* Background Glow */}
-            <div className={`absolute inset-0 blur-3xl opacity-20 rounded-full scale-150 ${
-              grade === 'S' ? 'bg-orange-500' : grade === 'A' ? 'bg-purple-500' : 'bg-blue-500'
-            }`} />
-          </div>
-          
-          <div>
-            <h1 className="text-3xl font-black text-white mb-2 uppercase italic tracking-tighter">Mission Terminated</h1>
-            <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">{gradeMsg}</p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="p-5 rounded-[2rem] bg-white/5 border border-white/10 group hover:bg-white/[0.08] transition-colors">
-              <p className="text-[10px] text-slate-500 font-black uppercase mb-2 tracking-widest">Experience</p>
-              <p className="text-4xl font-black text-white">+{score}</p>
-            </div>
-            <div className="p-5 rounded-[2rem] bg-white/5 border border-white/10 group hover:bg-white/[0.08] transition-colors">
-              <p className="text-[10px] text-slate-500 font-black uppercase mb-2 tracking-widest">Max Level</p>
-              <p className="text-4xl font-black text-orange-400">{level}</p>
-            </div>
-            <div className="p-5 rounded-[2rem] bg-white/5 border border-white/10 group hover:bg-white/[0.08] transition-colors">
-              <p className="text-[10px] text-slate-500 font-black uppercase mb-2 tracking-widest">Accuracy</p>
-              <p className="text-3xl font-black text-blue-400">{accuracy}%</p>
-            </div>
-            <div className="p-5 rounded-[2rem] bg-white/5 border border-white/10 group hover:bg-white/[0.08] transition-colors">
-              <p className="text-[10px] text-slate-500 font-black uppercase mb-2 tracking-widest">Streak</p>
-              <p className="text-3xl font-black text-amber-400">{maxStreak}</p>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-4 pt-4">
-            <motion.button
-              onClick={resetGame}
-              className="w-full py-5 bg-white text-slate-950 font-black rounded-[1.5rem] hover:bg-slate-100 transition-all flex items-center justify-center gap-3 shadow-2xl shadow-white/5"
-              whileHover={{ scale: 1.02, y: -2 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <RefreshCw size={20} />
-              REDEPLOY SURVIVOR
-            </motion.button>
-            <button 
-              onClick={() => navigate('/explore')}
-              className="w-full py-4 bg-white/5 border border-white/10 text-white font-black rounded-[1.5rem] hover:bg-white/10 transition-all uppercase text-xs tracking-[0.2em]"
-            >
-              Exit to Base
-            </button>
-          </div>
-        </motion.div>
+      <div className="relative">
+        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-orange-600 via-amber-400 to-orange-600 z-10 pointer-events-none" />
+        <GameResultsCard
+          grade={graded.grade}
+          gradeColor={graded.gradeColor}
+          title="Mission Terminated"
+          subtitle={graded.message}
+          stats={[
+            { label: 'Experience', value: `+${score}`, valueClassName: 'text-4xl' },
+            { label: 'Max Level', value: level, valueClassName: 'text-4xl text-orange-400' },
+            { label: 'Accuracy', value: `${graded.accuracy}%`, valueClassName: 'text-3xl text-blue-400' },
+            { label: 'Streak', value: maxStreak, valueClassName: 'text-3xl text-amber-400' },
+          ]}
+          actions={
+            <>
+              <motion.button
+                onClick={resetGame}
+                className="w-full py-5 bg-white text-slate-950 font-black rounded-[1.5rem] hover:bg-slate-100 transition-all flex items-center justify-center gap-3 shadow-2xl shadow-white/5"
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <RefreshCw size={20} />
+                REDEPLOY SURVIVOR
+              </motion.button>
+              <button
+                onClick={() => navigate('/explore')}
+                className="w-full py-4 bg-white/5 border border-white/10 text-white font-black rounded-[1.5rem] hover:bg-white/10 transition-all uppercase text-xs tracking-[0.2em]"
+              >
+                Exit to Base
+              </button>
+            </>
+          }
+        />
       </div>
     );
   }
