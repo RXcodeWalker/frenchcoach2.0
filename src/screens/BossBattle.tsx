@@ -118,7 +118,7 @@ export function BossBattle() {
   const [selectedAction, setSelectedAction] = useState<PlayerAction>('attack');
   const [isKO, setIsKO] = useState(false);
   const [isShielded, setIsShielded] = useState(false);
-  const [mechanicActive, setMechanicActive] = useState(false);
+  const [, setMechanicActive] = useState(false);
   const [timeLeft, setTimeLeft] = useState(10);
   const [isLockedLeft, setIsLockedLeft] = useState(false);
   const [isLockedRight, setIsLockedRight] = useState(false);
