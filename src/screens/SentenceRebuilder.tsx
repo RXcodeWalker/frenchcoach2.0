@@ -21,6 +21,7 @@ import { PageShell } from '../components/layout/PageShell';
 import { SessionCompletion } from '../components/SessionCompletion';
 import { fadeUp } from '../components/motion/variants';
 import { REBUILD_QUESTIONS } from '../data/rebuildQuestions';
+import { matchTypedAnswer, ModePickerGrid } from '../features/minigames';
 
 type GameMode = 'classic' | 'blind' | 'speed';
 
@@ -94,10 +95,9 @@ export function SentenceRebuilder() {
 
   const checkAnswer = () => {
     const userAnswer = targetFragments.join(' ');
-    const cleanUser = userAnswer.replace(/[.,!?]/g, '').toLowerCase();
-    const cleanTarget = currentQuestion.french.replace(/[.,!?]/g, '').toLowerCase();
+    const isCorrect = matchTypedAnswer(userAnswer, currentQuestion.french);
 
-    if (cleanUser === cleanTarget) {
+    if (isCorrect) {
       setFeedback('correct');
       const points = Math.max(5, 20 - (hintsUsed * 5));
       const multiplier = mode === 'blind' ? 1.5 : 1;
@@ -188,41 +188,38 @@ export function SentenceRebuilder() {
   if (!mode) {
     return (
       <PageShell>
-        <div className="max-w-4xl mx-auto px-6 py-12">
-          <div className="flex items-center gap-4 mb-12">
-            <button onClick={() => navigate('/explore')} className="p-2 rounded-xl hover:bg-white/5 text-slate-400">
-              <ArrowLeft size={24} />
-            </button>
-            <div>
-              <h1 className="text-3xl font-black text-white italic">Sentence Rebuilder</h1>
-              <p className="text-slate-400">Master French syntax through construction</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <ModeCard 
-              icon={<Puzzle className="text-violet-400" />}
-              title="Classic"
-              description="English to French translation using word fragments."
-              onClick={() => setMode('classic')}
-              color="violet"
-            />
-            <ModeCard 
-              icon={<Eye className="text-blue-400" />}
-              title="Blind Build"
-              description="No English prompt! Build the sentence strictly from logic."
-              onClick={() => setMode('blind')}
-              color="blue"
-            />
-            <ModeCard 
-              icon={<Timer className="text-red-400" />}
-              title="Speed Run"
-              description="90 seconds. How many sentences can you reconstruct?"
-              onClick={() => setMode('speed')}
-              color="red"
-            />
-          </div>
-        </div>
+        <ModePickerGrid
+          title="Sentence Rebuilder"
+          subtitle="Master French syntax through construction"
+          titleClassName="italic"
+          cardTitleClassName="italic tracking-tighter"
+          columns={3}
+          modes={[
+            {
+              id: 'classic',
+              icon: <Puzzle className="text-violet-400" />,
+              title: 'Classic',
+              description: 'English to French translation using word fragments.',
+              color: 'violet',
+            },
+            {
+              id: 'blind',
+              icon: <Eye className="text-blue-400" />,
+              title: 'Blind Build',
+              description: 'No English prompt! Build the sentence strictly from logic.',
+              color: 'blue',
+            },
+            {
+              id: 'speed',
+              icon: <Timer className="text-red-400" />,
+              title: 'Speed Run',
+              description: '90 seconds. How many sentences can you reconstruct?',
+              color: 'red',
+            },
+          ]}
+          onSelect={(id) => setMode(id as GameMode)}
+          onBack={() => navigate('/explore')}
+        />
       </PageShell>
     );
   }
@@ -395,30 +392,7 @@ export function SentenceRebuilder() {
   );
 }
 
-function ModeCard({ icon, title, description, onClick, color }: { icon: any, title: string, description: string, onClick: () => void, color: string }) {
-  const colorMap: any = {
-    violet: "hover:border-violet-500/50 hover:bg-violet-500/5",
-    blue: "hover:border-blue-500/50 hover:bg-blue-500/5",
-    red: "hover:border-red-500/50 hover:bg-red-500/5"
-  };
-
-  return (
-    <motion.button
-      onClick={onClick}
-      className={`glass-elevated p-8 rounded-3xl text-left transition-all border border-white/10 group ${colorMap[color]}`}
-      whileHover={{ y: -4 }}
-      whileTap={{ scale: 0.98 }}
-    >
-      <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-        {icon}
-      </div>
-      <h3 className="text-xl font-black text-white mb-2 italic tracking-tighter">{title}</h3>
-      <p className="text-slate-400 text-sm leading-relaxed">{description}</p>
-    </motion.button>
-  );
-}
-
-function HintButton({ onClick, icon, label, active, color = "text-slate-400" }: { 
+function HintButton({ onClick, icon, label, active, color = "text-slate-400" }: {
   onClick: () => void; 
   icon: React.ReactNode; 
   label: string;

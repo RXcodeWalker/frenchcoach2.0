@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Trophy, Star, Sparkles, CheckCircle2, XCircle, Timer, Flame, Keyboard, RefreshCcw } from 'lucide-react';
 import { useApp, dispatchAddXP } from '../context/AppContext';
 import { EMOJI_QUESTIONS, EmojiQuestion } from '../data/emojiQuestions';
+import { matchTypedAnswer, ModePickerGrid } from '../features/minigames';
 
 type GameMode = 'classic' | 'reverse' | 'typing' | 'blitz';
 
@@ -115,7 +116,7 @@ export function EmojiMaster() {
     e.preventDefault();
     if (showFeedback || isFinished || !userInput) return;
 
-    const isCorrect = userInput.toLowerCase().trim() === currentQ.french.toLowerCase().trim();
+    const isCorrect = matchTypedAnswer(userInput, currentQ.french);
     
     if (isCorrect) handleCorrect();
     else handleIncorrect();
@@ -125,48 +126,42 @@ export function EmojiMaster() {
 
   if (!mode) {
     return (
-      <div className="max-w-4xl mx-auto px-6 py-12">
-        <div className="flex items-center gap-4 mb-12">
-          <button onClick={() => navigate('/explore')} className="p-2 rounded-xl hover:bg-white/5 text-slate-400">
-            <ArrowLeft size={24} />
-          </button>
-          <div>
-            <h1 className="text-3xl font-black text-white">Emoji Master</h1>
-            <p className="text-slate-400">Choose your challenge mode</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <ModeCard 
-            icon={<Sparkles className="text-yellow-400" />}
-            title="Classic"
-            description="Emoji to French. The standard way to master vocabulary."
-            onClick={() => startMode('classic')}
-            color="yellow"
-          />
-          <ModeCard 
-            icon={<RefreshCcw className="text-blue-400" />}
-            title="Reverse"
-            description="French to Emoji. Think in reverse to solidify memory."
-            onClick={() => startMode('reverse')}
-            color="blue"
-          />
-          <ModeCard 
-            icon={<Keyboard className="text-purple-400" />}
-            title="Hardcore"
-            description="Typing mode. No options, just you and your keyboard."
-            onClick={() => startMode('typing')}
-            color="purple"
-          />
-          <ModeCard 
-            icon={<Timer className="text-red-400" />}
-            title="Speed Blitz"
-            description="60 seconds. How many can you get?"
-            onClick={() => startMode('blitz')}
-            color="red"
-          />
-        </div>
-      </div>
+      <ModePickerGrid
+        title="Emoji Master"
+        subtitle="Choose your challenge mode"
+        modes={[
+          {
+            id: 'classic',
+            icon: <Sparkles className="text-yellow-400" />,
+            title: 'Classic',
+            description: 'Emoji to French. The standard way to master vocabulary.',
+            color: 'yellow',
+          },
+          {
+            id: 'reverse',
+            icon: <RefreshCcw className="text-blue-400" />,
+            title: 'Reverse',
+            description: 'French to Emoji. Think in reverse to solidify memory.',
+            color: 'blue',
+          },
+          {
+            id: 'typing',
+            icon: <Keyboard className="text-purple-400" />,
+            title: 'Hardcore',
+            description: 'Typing mode. No options, just you and your keyboard.',
+            color: 'purple',
+          },
+          {
+            id: 'blitz',
+            icon: <Timer className="text-red-400" />,
+            title: 'Speed Blitz',
+            description: '60 seconds. How many can you get?',
+            color: 'red',
+          },
+        ]}
+        onSelect={(id) => startMode(id as GameMode)}
+        onBack={() => navigate('/explore')}
+      />
     );
   }
 
@@ -384,29 +379,5 @@ export function EmojiMaster() {
         )}
       </AnimatePresence>
     </div>
-  );
-}
-
-function ModeCard({ icon, title, description, onClick, color }: { icon: any, title: string, description: string, onClick: () => void, color: string }) {
-  const colorMap: any = {
-    yellow: "hover:border-yellow-500/50 group-hover:bg-yellow-500/10",
-    blue: "hover:border-blue-500/50 group-hover:bg-blue-500/10",
-    purple: "hover:border-purple-500/50 group-hover:bg-purple-500/10",
-    red: "hover:border-red-500/50 group-hover:bg-red-500/10"
-  };
-
-  return (
-    <motion.button
-      onClick={onClick}
-      className={`glass-elevated p-8 rounded-3xl text-left transition-all border border-white/10 group ${colorMap[color]}`}
-      whileHover={{ y: -4, scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-    >
-      <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-        {icon}
-      </div>
-      <h3 className="text-xl font-black text-white mb-2">{title}</h3>
-      <p className="text-slate-400 text-sm leading-relaxed">{description}</p>
-    </motion.button>
   );
 }
