@@ -2,8 +2,9 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Sword, Heart, Zap, Trophy, ArrowLeft, RefreshCw, Skull, Clock, Shield } from 'lucide-react';
-import { useApp, dispatchAddXP } from '../context/AppContext';
+import { useApp } from '../context/AppContext';
 import minigameQuestions from '../data/scenarios/minigameQuestions.json';
+import { matchTypedAnswer, completeMinigameSession } from '../features/minigames';
 
 type GameState = 'selection' | 'battle' | 'finished';
 type PlayerAction = 'attack' | 'heavy' | 'heal' | 'shield';
@@ -153,16 +154,6 @@ export function BossBattle() {
       if (poisonTimerRef.current) clearInterval(poisonTimerRef.current);
     };
   }, [isPoisoned, gameState, isKO]);
-
-  const normalize = (str: string) => {
-    return str
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .trim()
-      .replace(/[?.,\/#!$%\^&\*;:{}=\-_`~()]/g, "")
-      .replace(/\s{2,}/g, " ");
-  };
 
   const TAUNTS = {
     subjunctive: [
@@ -325,11 +316,7 @@ export function BossBattle() {
     if (!userInput.trim() || !selectedBoss || isKO || isStunned) return;
 
     const currentQ = questions[currentIndex];
-    const acceptable = Array.isArray(currentQ.french) 
-      ? currentQ.french.map(normalize)
-      : [normalize(currentQ.french)];
-    
-    const isCorrect = acceptable.includes(normalize(userInput));
+    const isCorrect = matchTypedAnswer(userInput, currentQ.french);
 
     if (isCorrect) {
       setInputFeedback('correct');
@@ -408,7 +395,7 @@ export function BossBattle() {
     setIsWon(true);
     setGameState('finished');
     const xp = selectedBoss ? (selectedBoss.difficulty === 'hard' ? 200 : selectedBoss.difficulty === 'medium' ? 100 : 50) : 0;
-    dispatchAddXP(dispatch, xp);
+    completeMinigameSession({ dispatch, score: xp });
   };
 
   const handleLoss = () => {
