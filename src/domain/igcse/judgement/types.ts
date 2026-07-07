@@ -4,6 +4,7 @@
  */
 
 import type { BandLabel } from '../rubric';
+import type { TimeFrame } from '../evidence/types';
 
 /** Candidate-only transcript in Cambridge 0520 Paper 3 shape. */
 export interface SpeakingTranscript {
@@ -20,6 +21,8 @@ export interface RolePlayTaskResponse {
   taskPrompt: string;
   /** Candidate utterance only. */
   candidateResponse: string;
+  /** S2 optional detector hint for two-part tasks. */
+  partsExpected?: 1 | 2;
 }
 
 export interface TopicConversation {
@@ -35,6 +38,8 @@ export interface ConversationTurn {
   questionPrompt: string;
   /** Candidate utterance only. */
   candidateResponse: string;
+  /** S2 optional detector hint if a question has known expected time frame. */
+  expectedTimeFrame?: TimeFrame;
 }
 
 /** Injected LLM seam — no model/temperature/retry in S1. */
