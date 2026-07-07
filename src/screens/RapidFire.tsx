@@ -1,11 +1,33 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Timer, Zap, Trophy, ArrowLeft, RefreshCw, CheckCircle2, XCircle, Flame, Heart, ChevronRight, Eye } from 'lucide-react';
-import { useApp, dispatchAddXP } from '../context/AppContext';
+import { Timer, Zap, ArrowLeft, RefreshCw, CheckCircle2, XCircle, Heart, Eye } from 'lucide-react';
+import { useApp } from '../context/AppContext';
 import minigameQuestions from '../data/scenarios/minigameQuestions.json';
 import { EMOJI_QUESTIONS } from '../data/emojiQuestions';
 import { QUESTIONS } from '../data/questions';
+import {
+  matchTypedAnswer,
+  getStreakMultiplier,
+  DEFAULT_STREAK_TIERS,
+  useCountdown,
+  useGameTimer,
+  useStreakMultiplier,
+  useFloatingXP,
+  gradeFromStats,
+  RUBRICS,
+  completeMinigameSession,
+  shakeAnimation,
+  shakeTransition,
+  getOverdriveClasses,
+  getOverdriveCardClasses,
+  GameCountdown,
+  GameFeedbackOverlay,
+  GameResultsCard,
+  FloatingXPOverlay,
+  StreakBadge,
+  GameTimerBar,
+} from '../features/minigames';
 
 type GameState = 'idle' | 'countdown' | 'playing' | 'finished';
 
@@ -14,13 +36,6 @@ interface Question {
   english: string;
   french: string | string[];
   topic?: string;
-}
-
-interface FloatingXP {
-  id: number;
-  amount: number;
-  x: number;
-  y: number;
 }
 
 interface AnswerHistory {
@@ -32,33 +47,51 @@ interface AnswerHistory {
 export function RapidFire() {
   const navigate = useNavigate();
   const { dispatch } = useApp();
-  
+
   const [gameState, setGameState] = useState<GameState>('idle');
   const [selectedTopic, setSelectedTopic] = useState<string>('all');
-  const [countdown, setCountdown] = useState(3);
-  const [timeLeft, setTimeLeft] = useState(60);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [userInput, setUserInput] = useState('');
   const [score, setScore] = useState(0);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
-  
-  // New game mechanics state
-  const [streak, setStreak] = useState(0);
-  const [maxStreak, setMaxStreak] = useState(0);
   const [correctAnswers, setCorrectAnswers] = useState(0);
   const [totalAnswered, setTotalAnswered] = useState(0);
-  const [floatingXPs, setFloatingXPs] = useState<FloatingXP[]>([]);
   const [isShaking, setIsShaking] = useState(false);
   const [hearts, setHearts] = useState(3);
   const [history, setHistory] = useState<AnswerHistory[]>([]);
   const [showReview, setShowReview] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Overdrive and Dynamic Difficulty
-  const isOverdrive = streak >= 10;
+  const {
+    streak,
+    maxStreak,
+    isOverdrive,
+    onCorrect: onStreakCorrect,
+    onIncorrect: onStreakIncorrect,
+    reset: resetStreak,
+  } = useStreakMultiplier({ tiers: DEFAULT_STREAK_TIERS });
+
+  const { items: floatingXPs, add: addFloatingXP } = useFloatingXP();
+
+  const timer = useGameTimer({
+    mode: 'global',
+    initialSeconds: 60,
+    active: gameState === 'playing',
+    onExpire: () => setGameState('finished'),
+  });
+
+  const countdown = useCountdown({
+    onComplete: () => {
+      setGameState('playing');
+      timer.reset(60);
+      setHearts(3);
+      setHistory([]);
+      setShowReview(false);
+      setTimeout(() => inputRef.current?.focus(), 10);
+    },
+  });
   
   // Topic Pools building
   const [pools, setPools] = useState<Record<string, Question[]>>({
@@ -133,57 +166,11 @@ export function RapidFire() {
     }
   }, [pools]);
 
-  // Countdown effect
-  useEffect(() => {
-    if (gameState === 'countdown') {
-      if (countdown > 0) {
-        const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
-        return () => clearTimeout(timer);
-      } else {
-        setGameState('playing');
-        setTimeLeft(60);
-        setHearts(3);
-        setHistory([]);
-        setShowReview(false);
-        setTimeout(() => inputRef.current?.focus(), 10);
-      }
-    }
-  }, [gameState, countdown]);
-
-  // Timer effect
-  useEffect(() => {
-    if (gameState === 'playing' && timeLeft > 0) {
-      timerRef.current = setInterval(() => {
-        setTimeLeft((prev) => {
-          if (prev <= 1) {
-            setGameState('finished');
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-      return () => {
-        if (timerRef.current) clearInterval(timerRef.current);
-      };
-    }
-  }, [gameState, timeLeft]);
-
-  // Health check
   useEffect(() => {
     if (hearts <= 0 && gameState === 'playing') {
       setGameState('finished');
     }
   }, [hearts, gameState]);
-
-  const normalize = (str: string) => {
-    return str
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .trim()
-      .replace(/[?.,\/#!$%\^&\*;:{}=\-_`~()]/g, "")
-      .replace(/\s{2,}/g, " ");
-  };
 
   const handleCheck = (e: React.FormEvent) => {
     e.preventDefault();
@@ -191,13 +178,8 @@ export function RapidFire() {
 
     setTotalAnswered(prev => prev + 1);
     const currentQ = questions[currentIndex];
-    const acceptable = Array.isArray(currentQ.french) 
-      ? currentQ.french.map(normalize)
-      : [normalize(currentQ.french)];
-    
-    const isCorrect = acceptable.includes(normalize(userInput));
+    const isCorrect = matchTypedAnswer(userInput, currentQ.french);
 
-    // Add to history
     setHistory(prev => [...prev, {
       question: currentQ,
       userAnswer: userInput,
@@ -207,28 +189,16 @@ export function RapidFire() {
     if (isCorrect) {
       setCorrectAnswers(prev => prev + 1);
       const newStreak = streak + 1;
-      setStreak(newStreak);
-      if (newStreak > maxStreak) setMaxStreak(newStreak);
-
-      // Calculate XP with multipliers
-      let multiplier = 1;
-      if (newStreak >= 20) multiplier = 5;
-      else if (newStreak >= 10) multiplier = 3;
-      else if (newStreak >= 5) multiplier = 2;
-      else if (newStreak >= 3) multiplier = 1.5;
-
+      onStreakCorrect();
+      const multiplier = getStreakMultiplier(newStreak, DEFAULT_STREAK_TIERS);
       const xpGain = Math.round(5 * multiplier);
       setScore(s => s + xpGain);
       setFeedback('correct');
 
-      // Add floating XP
-      const id = Date.now();
-      setFloatingXPs(prev => [...prev, { id, amount: xpGain, x: Math.random() * 40 - 20, y: 0 }]);
-      setTimeout(() => setFloatingXPs(prev => prev.filter(f => f.id !== id)), 1000);
+      addFloatingXP({ amount: xpGain, x: Math.random() * 40 - 20 });
 
-      // Rewards
-      if (newStreak % 5 === 0) setTimeLeft(prev => prev + 2); // Time bonus
-      if (newStreak % 10 === 0) setHearts(prev => Math.min(3, prev + 1)); // Heart restore
+      if (newStreak % 5 === 0) timer.addTime(2);
+      if (newStreak % 10 === 0) setHearts(prev => Math.min(3, prev + 1));
 
       setTimeout(() => {
         setFeedback(null);
@@ -238,16 +208,14 @@ export function RapidFire() {
         setCurrentIndex(prev => prev + 1);
       }, 600);
     } else {
-      setStreak(0);
+      onStreakIncorrect();
       setFeedback('incorrect');
       setIsShaking(true);
       setHearts(prev => prev - 1);
       setTimeout(() => setIsShaking(false), 500);
-      
-      // Penalty: -2 seconds
-      setTimeLeft(prev => Math.max(0, prev - 2));
 
-      // Show correct answer briefly then skip
+      timer.subtractTime(2);
+
       setTimeout(() => {
         setFeedback(null);
         setUserInput('');
@@ -258,30 +226,28 @@ export function RapidFire() {
     }
   };
 
-  const finishGame = () => {
-    if (score > 0) {
-      dispatchAddXP(dispatch, score);
-    }
-  };
-
   useEffect(() => {
     if (gameState === 'finished') {
-      finishGame();
+      completeMinigameSession({ dispatch, score });
     }
-  }, [gameState]);
+  }, [gameState, dispatch, score]);
 
   const resetGame = () => {
     const firstQ = getNextQuestion(0, selectedTopic);
     setQuestions([firstQ]);
     setCurrentIndex(0);
     setScore(0);
-    setStreak(0);
-    setMaxStreak(0);
+    resetStreak();
     setCorrectAnswers(0);
     setTotalAnswered(0);
     setUserInput('');
-    setCountdown(3);
     setGameState('countdown');
+    countdown.start();
+  };
+
+  const startChallenge = () => {
+    setGameState('countdown');
+    countdown.start();
   };
 
   if (gameState === 'idle') {
@@ -339,7 +305,7 @@ export function RapidFire() {
 
           <div className="flex flex-col gap-3">
             <motion.button
-              onClick={() => setGameState('countdown')}
+              onClick={startChallenge}
               className="w-full py-4 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl shadow-lg shadow-amber-500/20 transition-all uppercase italic tracking-wider"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -361,47 +327,21 @@ export function RapidFire() {
 
   if (gameState === 'countdown') {
     return (
-      <div className="min-h-[80vh] flex items-center justify-center">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={countdown}
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 1.5 }}
-            className="text-9xl font-black text-amber-400 italic tracking-tighter"
-          >
-            {countdown === 0 ? 'GO!' : countdown}
-          </motion.div>
-        </AnimatePresence>
-      </div>
+      <GameCountdown display={countdown.display} value={countdown.value} />
     );
   }
 
   if (gameState === 'playing') {
     const currentQ = questions[currentIndex];
-    const timeProgress = (timeLeft / 60) * 100;
-    
+
     return (
       <div className="max-w-2xl mx-auto px-4 pt-12">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className={`glass-elevated px-4 py-2 rounded-xl flex items-center gap-2 transition-all duration-500 relative ${isOverdrive ? 'border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.3)]' : 'border-amber-500/20'}`}>
+            <div className={`glass-elevated px-4 py-2 rounded-xl flex items-center gap-2 transition-all duration-500 relative ${getOverdriveClasses(isOverdrive)}`}>
               <Zap size={16} className={`text-amber-400 ${isOverdrive ? 'animate-pulse' : ''}`} />
               <span className="text-xl font-black text-white tabular-nums">{score}</span>
-              
-              <AnimatePresence>
-                {floatingXPs.map(fxp => (
-                  <motion.div
-                    key={fxp.id}
-                    initial={{ opacity: 0, y: 0, x: fxp.x }}
-                    animate={{ opacity: 1, y: -40 }}
-                    exit={{ opacity: 0 }}
-                    className="absolute font-black text-amber-400 pointer-events-none text-lg"
-                  >
-                    +{fxp.amount}
-                  </motion.div>
-                ))}
-              </AnimatePresence>
+              <FloatingXPOverlay items={floatingXPs} />
             </div>
 
             <div className="glass-elevated px-4 py-2 rounded-xl flex items-center gap-1.5 border-red-500/20">
@@ -416,75 +356,33 @@ export function RapidFire() {
           </div>
 
           <div className="flex items-center gap-3">
-            {streak >= 2 && (
-              <motion.div 
-                initial={{ scale: 0.5, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-all duration-500 ${isOverdrive ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.5)]' : 'bg-orange-500/20 text-orange-400 border-orange-500/30'}`}
-              >
-                <Flame size={14} className={isOverdrive ? 'fill-slate-950' : 'fill-orange-400/20'} />
-                <span className="text-sm font-black italic tracking-tight uppercase">{isOverdrive ? 'OVERDRIVE!' : `${streak} COMBO`}</span>
-              </motion.div>
-            )}
-            
-            <div className={`glass-elevated px-4 py-2 rounded-xl flex items-center gap-2 transition-colors ${timeLeft < 10 ? 'border-red-500 animate-pulse text-red-400' : 'border-blue-500/20 text-blue-400'}`}>
+            <StreakBadge streak={streak} isOverdrive={isOverdrive} />
+            <div className={`glass-elevated px-4 py-2 rounded-xl flex items-center gap-2 transition-colors ${timer.isCritical ? 'border-red-500 animate-pulse text-red-400' : 'border-blue-500/20 text-blue-400'}`}>
               <Timer size={16} />
-              <span className="text-xl font-black tabular-nums">{timeLeft}s</span>
+              <span className="text-xl font-black tabular-nums">{timer.timeLeft}s</span>
             </div>
           </div>
         </div>
 
-        {/* Time Progress Bar */}
-        <div className="w-full h-2 bg-white/5 rounded-full mb-8 overflow-hidden border border-white/5">
-          <motion.div 
-            className={`h-full transition-colors ${timeLeft < 10 ? 'bg-red-500' : isOverdrive ? 'bg-amber-400' : 'bg-blue-500'}`}
-            initial={{ width: '100%' }}
-            animate={{ width: `${timeProgress}%` }}
-            transition={{ duration: 1, ease: "linear" }}
-          />
-        </div>
+        <GameTimerBar
+          timeLeft={timer.timeLeft}
+          maxTime={timer.maxTime}
+          isCritical={timer.isCritical}
+          isOverdrive={isOverdrive}
+          showLabel={false}
+          className="mb-8"
+        />
 
         <motion.div 
-          className={`glass-elevated p-8 rounded-2xl relative overflow-hidden transition-all duration-500 ${isOverdrive ? 'border-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.2)]' : ''}`}
-          animate={isShaking ? { x: [-4, 4, -4, 4, 0] } : { x: 0 }}
-          transition={{ duration: 0.4 }}
+          className={`glass-elevated p-8 rounded-2xl relative overflow-hidden transition-all duration-500 ${getOverdriveCardClasses(isOverdrive)}`}
+          animate={isShaking ? shakeAnimation : { x: 0 }}
+          transition={shakeTransition}
           layout
         >
-          <AnimatePresence>
-            {feedback && (
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className={`absolute inset-0 flex flex-col items-center justify-center z-10 p-6 text-center ${feedback === 'correct' ? 'bg-emerald-500/30 backdrop-blur-sm' : 'bg-red-500/30 backdrop-blur-sm'}`}
-              >
-                {feedback === 'correct' ? (
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: 'spring', damping: 10 }}
-                  >
-                    <CheckCircle2 size={100} className="text-emerald-400 drop-shadow-[0_0_15px_rgba(52,211,153,0.5)]" />
-                  </motion.div>
-                ) : (
-                  <div className="space-y-4">
-                    <motion.div
-                      initial={{ rotate: -20, scale: 0 }}
-                      animate={{ rotate: 0, scale: 1 }}
-                    >
-                      <XCircle size={80} className="text-red-400 mx-auto drop-shadow-[0_0_15px_rgba(248,113,113,0.5)]" />
-                    </motion.div>
-                    <div className="space-y-2">
-                      <p className="text-red-300 font-bold uppercase text-[10px] tracking-[0.2em]">Correct Answer:</p>
-                      <p className="text-2xl font-black text-white">
-                        {Array.isArray(currentQ.french) ? currentQ.french[0] : currentQ.french}
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <GameFeedbackOverlay
+            feedback={feedback}
+            correctAnswer={Array.isArray(currentQ?.french) ? currentQ.french[0] : currentQ?.french}
+          />
 
           <div className="text-center space-y-8">
             <div className="min-h-[120px] flex flex-col items-center justify-center">
@@ -529,25 +427,11 @@ export function RapidFire() {
   }
 
   if (gameState === 'finished') {
-    const accuracy = totalAnswered > 0 ? Math.round((correctAnswers / totalAnswered) * 100) : 0;
-    
-    // Calculate Grade
-    let grade = 'D';
-    let gradeColor = 'text-slate-400';
-    
-    if (accuracy >= 90 && maxStreak >= 10 && totalAnswered >= 15) {
-      grade = 'S';
-      gradeColor = 'text-amber-400 drop-shadow-[0_0_15px_rgba(245,158,11,0.5)]';
-    } else if (accuracy >= 80 && maxStreak >= 5) {
-      grade = 'A';
-      gradeColor = 'text-purple-400';
-    } else if (accuracy >= 65 && totalAnswered >= 5) {
-      grade = 'B';
-      gradeColor = 'text-blue-400';
-    } else if (accuracy >= 40) {
-      grade = 'C';
-      gradeColor = 'text-emerald-400';
-    }
+    const graded = gradeFromStats(
+      { score, correctAnswers, totalAnswered, maxStreak, accuracy: 0 },
+      RUBRICS.rapidFire,
+      'rapidFire'
+    );
 
     if (showReview) {
       return (
@@ -593,51 +477,23 @@ export function RapidFire() {
     }
 
     return (
-      <div className="min-h-[80vh] flex flex-col items-center justify-center p-6">
-        <motion.div 
-          className="max-w-md w-full glass-elevated p-8 text-center space-y-6"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-        >
-          <div className="relative">
-            <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mx-auto border border-white/10">
-              <span className={`text-6xl font-black italic ${gradeColor}`}>{grade}</span>
-            </div>
-            <motion.div 
-              className="absolute -top-2 -right-2 bg-slate-900 border border-white/10 p-2 rounded-lg"
-              initial={{ rotate: 20, scale: 0 }}
-              animate={{ rotate: 0, scale: 1 }}
-              transition={{ delay: 0.5, type: 'spring' }}
-            >
-              <Trophy size={20} className="text-amber-400" />
-            </motion.div>
-          </div>
-          
-          <div>
-            <h1 className="text-3xl font-black text-white mb-1 uppercase italic tracking-tighter">Mission Complete</h1>
-            <p className="text-slate-400 text-sm">You've achieved <span className={`font-bold ${gradeColor}`}>{grade} Rank</span> performance!</p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4 py-2">
-            <div className="p-4 rounded-xl bg-white/5 border border-white/10 text-center">
-              <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">Total XP</p>
-              <p className="text-3xl font-black text-white">+{score}</p>
-            </div>
-            <div className="p-4 rounded-xl bg-white/5 border border-white/10 text-center">
-              <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">Max Streak</p>
-              <p className="text-3xl font-black text-orange-400">{maxStreak}</p>
-            </div>
-            <div className="p-4 rounded-xl bg-white/5 border border-white/10 text-center">
-              <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">Accuracy</p>
-              <p className="text-2xl font-black text-blue-400">{accuracy}%</p>
-            </div>
-            <div className="p-4 rounded-xl bg-white/5 border border-white/10 text-center">
-              <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">Phrases</p>
-              <p className="text-2xl font-black text-white">{correctAnswers}/{totalAnswered}</p>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-3 pt-4">
+      <GameResultsCard
+        grade={graded.grade}
+        gradeColor={graded.gradeColor}
+        title="Mission Complete"
+        subtitle={
+          <>
+            You've achieved <span className={`font-bold ${graded.gradeColor}`}>{graded.grade} Rank</span> performance!
+          </>
+        }
+        stats={[
+          { label: 'Total XP', value: `+${score}`, valueClassName: 'text-3xl' },
+          { label: 'Max Streak', value: maxStreak, valueClassName: 'text-3xl text-orange-400' },
+          { label: 'Accuracy', value: `${graded.accuracy}%`, valueClassName: 'text-blue-400' },
+          { label: 'Phrases', value: `${correctAnswers}/${totalAnswered}` },
+        ]}
+        actions={
+          <>
             <motion.button
               onClick={() => setShowReview(true)}
               className="w-full py-3 bg-white/5 border border-white/10 text-white font-bold rounded-xl hover:bg-white/10 transition-all flex items-center justify-center gap-2"
@@ -662,9 +518,9 @@ export function RapidFire() {
             >
               Back to Explore
             </button>
-          </div>
-        </motion.div>
-      </div>
+          </>
+        }
+      />
     );
   }
 
