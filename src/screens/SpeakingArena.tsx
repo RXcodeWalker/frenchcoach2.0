@@ -1,11 +1,20 @@
 import { useState, useEffect, useRef, useReducer } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Timer, Trophy, ArrowLeft, RefreshCw, CheckCircle2, XCircle, Flame, Zap, Shield, Sword, Sparkles } from 'lucide-react';
-import { useApp, dispatchAddXP } from '../context/AppContext';
+import { Timer, ArrowLeft, RefreshCw, CheckCircle2, XCircle, Flame, Zap, Shield, Sword, Sparkles } from 'lucide-react';
+import { useApp } from '../context/AppContext';
 import minigameQuestions from '../data/scenarios/minigameQuestions.json';
 import { useRecording } from '../features/recording/useRecording';
 import { Waveform } from '../features/recording/Waveform';
+import {
+  matchTranscriptDelta,
+  gradeFromStats,
+  RUBRICS,
+  completeMinigameSession,
+  useCountdown,
+  GameCountdown,
+  GameResultsCard,
+} from '../features/minigames';
 
 type GamePhase = 'idle' | 'loadout' | 'countdown' | 'playing' | 'boss_wave' | 'finished';
 
@@ -183,36 +192,24 @@ interface FloatingXP {
   y: number;
 }
 
-const getBigrams = (str: string) => {
-  const bigrams = new Set<string>();
-  for (let i = 0; i < str.length - 1; i++) {
-    bigrams.add(str.substring(i, i + 2));
-  }
-  return bigrams;
-};
-
-const diceCoefficient = (str1: string, str2: string) => {
-  if (str1.length < 2 || str2.length < 2) return str1 === str2 ? 1 : 0;
-  const bg1 = getBigrams(str1);
-  const bg2 = getBigrams(str2);
-  let intersection = 0;
-  for (const bg of bg1) {
-    if (bg2.has(bg)) intersection++;
-  }
-  return (2.0 * intersection) / (bg1.size + bg2.size);
-};
-
 export function SpeakingArena() {
   const navigate = useNavigate();
   const { dispatch: appDispatch } = useApp();
   const { isRecording, transcript, start, stop, waveData } = useRecording();
   
   const [state, dispatch] = useReducer(arenaReducer, initialState);
-  const [countdown, setCountdown] = useState(3);
   const [feedbackUI, setFeedbackUI] = useState<'correct' | 'incorrect' | null>(null);
   
   const timerRef = useRef<number | null>(null);
   const lastCheckedTranscriptRef = useRef('');
+
+  const countdown = useCountdown({
+    goLabel: 'FIGHT!',
+    onComplete: () => {
+      dispatch({ type: 'START_PLAYING', initialQuestion: getNextQuestion(1) });
+      start();
+    },
+  });
 
   const isOverdrive = state.hype >= 80;
   const easyPool = minigameQuestions.filter(q => q.difficulty === 'easy');
@@ -228,18 +225,6 @@ export function SpeakingArena() {
   };
 
   useEffect(() => {
-    if (state.phase === 'countdown') {
-      if (countdown > 0) {
-        const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
-        return () => clearTimeout(timer);
-      } else {
-        dispatch({ type: 'START_PLAYING', initialQuestion: getNextQuestion(1) });
-        start();
-      }
-    }
-  }, [state.phase, countdown, start]);
-
-  useEffect(() => {
     if (state.phase === 'playing' && state.timeLeft > 0) {
       timerRef.current = window.setInterval(() => {
         dispatch({ type: 'TICK' });
@@ -250,41 +235,18 @@ export function SpeakingArena() {
     }
   }, [state.phase, state.timeLeft]);
 
-  const normalize = (str: string) => {
-    return str
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .trim()
-      .replace(/[?.,\/#!$%\^&\*;:{}=\-_`~()]/g, "")
-      .replace(/\s{2,}/g, " ");
-  };
-
   useEffect(() => {
     if (state.phase !== 'playing' || feedbackUI) return;
 
     const currentQ = state.questions[state.currentIndex];
     if (!currentQ) return;
 
-    const acceptable = Array.isArray(currentQ.french) 
-      ? currentQ.french.map(normalize)
-      : [normalize(currentQ.french)];
-    
-    const normalizedTranscript = normalize(transcript);
-    const relevantTranscript = normalizedTranscript.replace(normalize(lastCheckedTranscriptRef.current), '');
-
-    const foundMatch = acceptable.some(phrase => {
-      if (relevantTranscript.includes(phrase)) return true;
-      const similarity = diceCoefficient(relevantTranscript, phrase);
-      if (similarity > 0.8) return true;
-
-      const words = phrase.split(' ');
-      const transcriptWords = relevantTranscript.split(' ');
-      return words.every(word => {
-        if (word.length <= 2) return true;
-        return transcriptWords.some(tWord => diceCoefficient(tWord, word) > 0.85);
-      });
-    });
+    const foundMatch = matchTranscriptDelta(
+      transcript,
+      lastCheckedTranscriptRef.current,
+      currentQ.french,
+      { mode: 'fuzzy' }
+    );
 
     if (foundMatch) {
       handleCorrect();
@@ -337,17 +299,16 @@ export function SpeakingArena() {
 
   useEffect(() => {
     if (state.phase === 'finished') {
-      if (state.score > 0) {
-        dispatchAddXP(appDispatch, state.score);
-      }
+      completeMinigameSession({ dispatch: appDispatch, score: state.score });
       stop();
     }
   }, [state.phase]);
 
   const resetGame = () => {
-    setCountdown(3);
+    countdown.reset();
     dispatch({ type: 'RESET', initialQuestion: getNextQuestion(1) });
     lastCheckedTranscriptRef.current = '';
+    countdown.start();
   };
 
   const usePowerUp = (id: string) => {
@@ -451,8 +412,9 @@ export function SpeakingArena() {
 
           <motion.button
             onClick={() => {
-              setCountdown(3);
               dispatch({ type: 'START_COUNTDOWN' });
+              countdown.reset();
+              countdown.start();
             }}
             className="w-full py-4 bg-red-600 hover:bg-red-500 text-white font-black rounded-xl shadow-lg shadow-red-500/20 transition-all uppercase italic tracking-wider"
             whileHover={{ scale: 1.02 }}
@@ -467,19 +429,11 @@ export function SpeakingArena() {
 
   if (state.phase === 'countdown') {
     return (
-      <div className="min-h-[80vh] flex items-center justify-center">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={countdown}
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 1.5 }}
-            className="text-9xl font-black text-red-500 italic tracking-tighter"
-          >
-            {countdown === 0 ? 'FIGHT!' : countdown}
-          </motion.div>
-        </AnimatePresence>
-      </div>
+      <GameCountdown
+        display={countdown.display}
+        value={countdown.value}
+        textClassName="text-9xl font-black text-red-500 italic tracking-tighter"
+      />
     );
   }
 
@@ -677,71 +631,38 @@ export function SpeakingArena() {
   }
 
   if (state.phase === 'finished') {
-    const accuracy = state.totalAnswered > 0 ? Math.round((state.correctAnswers / state.totalAnswered) * 100) : 0;
-    
-    let grade = 'D';
-    let gradeColor = 'text-slate-400';
-    
-    if (accuracy >= 90 && state.wave >= 5 && state.totalAnswered >= 20) {
-      grade = 'S';
-      gradeColor = 'text-amber-400 drop-shadow-[0_0_10px_rgba(245,158,11,0.5)]';
-    } else if (accuracy >= 80 && state.wave >= 3) {
-      grade = 'A';
-      gradeColor = 'text-purple-400';
-    } else if (accuracy >= 65 && state.wave >= 2) {
-      grade = 'B';
-      gradeColor = 'text-blue-400';
-    } else if (accuracy >= 40) {
-      grade = 'C';
-      gradeColor = 'text-emerald-400';
-    }
+    const graded = gradeFromStats(
+      {
+        score: state.score,
+        correctAnswers: state.correctAnswers,
+        totalAnswered: state.totalAnswered,
+        maxStreak: state.maxStreak,
+        accuracy: 0,
+        wave: state.wave,
+      },
+      RUBRICS.speakingArena,
+      'speakingArena'
+    );
 
     return (
-      <div className="min-h-[80vh] flex flex-col items-center justify-center p-6">
-        <motion.div 
-          className="max-w-md w-full glass-elevated p-8 text-center space-y-6 border-red-500/20"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-        >
-          <div className="relative">
-            <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mx-auto border border-white/10">
-              <span className={`text-6xl font-black italic ${gradeColor}`}>{grade}</span>
-            </div>
-            <motion.div 
-              className="absolute -top-2 -right-2 bg-slate-900 border border-white/10 p-2 rounded-lg"
-              initial={{ rotate: 20, scale: 0 }}
-              animate={{ rotate: 0, scale: 1 }}
-              transition={{ delay: 0.5, type: 'spring' }}
-            >
-              <Trophy size={20} className="text-amber-400" />
-            </motion.div>
-          </div>
-          
-          <div>
-            <h1 className="text-3xl font-black text-white mb-1 uppercase italic tracking-tighter">Arena Survival Complete</h1>
-            <p className="text-slate-400 text-sm">You've reached <span className={`font-bold ${gradeColor}`}>Wave {state.wave}</span> with a {grade} Rank!</p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4 py-2">
-            <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-              <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">Total XP</p>
-              <p className="text-3xl font-black text-white">+{state.score}</p>
-            </div>
-            <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-              <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">Waves Cleared</p>
-              <p className="text-3xl font-black text-red-400">{state.wave - 1}</p>
-            </div>
-            <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-              <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">Accuracy</p>
-              <p className="text-2xl font-black text-blue-400">{accuracy}%</p>
-            </div>
-            <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-              <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">Max Streak</p>
-              <p className="text-2xl font-black text-orange-400">{state.maxStreak}</p>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-3 pt-4">
+      <GameResultsCard
+        grade={graded.grade}
+        gradeColor={graded.gradeColor}
+        title="Arena Survival Complete"
+        subtitle={
+          <>
+            You've reached <span className={`font-bold ${graded.gradeColor}`}>Wave {state.wave}</span> with a {graded.grade} Rank!
+          </>
+        }
+        borderClassName="border-red-500/20"
+        stats={[
+          { label: 'Total XP', value: `+${state.score}`, valueClassName: 'text-3xl' },
+          { label: 'Waves Cleared', value: state.wave - 1, valueClassName: 'text-3xl text-red-400' },
+          { label: 'Accuracy', value: `${graded.accuracy}%`, valueClassName: 'text-2xl text-blue-400' },
+          { label: 'Max Streak', value: state.maxStreak, valueClassName: 'text-2xl text-orange-400' },
+        ]}
+        actions={
+          <>
             <motion.button
               onClick={resetGame}
               className="w-full py-4 bg-white text-slate-950 font-black rounded-xl hover:bg-slate-200 transition-all flex items-center justify-center gap-2"
@@ -751,15 +672,15 @@ export function SpeakingArena() {
               <RefreshCw size={18} />
               RE-ENTER ARENA
             </motion.button>
-            <button 
+            <button
               onClick={() => navigate('/explore')}
               className="w-full py-4 bg-white/5 border border-white/10 text-white font-bold rounded-xl hover:bg-white/10 transition-all"
             >
               EXIT TO HUB
             </button>
-          </div>
-        </motion.div>
-      </div>
+          </>
+        }
+      />
     );
   }
 
