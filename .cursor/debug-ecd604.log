@@ -1,0 +1,5 @@
+{"sessionId":"ecd604","location":"supabase.ts:init","message":"Supabase env check","data":{"hasUrl":true,"hasKey":true,"supabaseConfigured":true,"mode":"development"},"timestamp":1783487684524,"hypothesisId":"H1-H3"}
+{"sessionId":"ecd604","location":"AuthContext.tsx:useEffect","message":"Auth init","data":{"supabaseConfigured":true,"configErrorWillBe":false},"timestamp":1783487685087,"hypothesisId":"H4"}
+{"sessionId":"ecd604","location":"AuthContext.tsx:useEffect","message":"Auth init","data":{"supabaseConfigured":true,"configErrorWillBe":false},"timestamp":1783487685088,"hypothesisId":"H4"}
+{"sessionId":"ecd604","location":"App.tsx:AppShell","message":"Auth gate decision","data":{"supabaseConfigured":true,"hasUser":false,"willShowAuth":true,"willBypassAuth":false},"timestamp":1783487686057,"hypothesisId":"H4-H5","runId":"post-fix"}
+{"sessionId":"ecd604","location":"App.tsx:AppShell","message":"Auth gate decision","data":{"supabaseConfigured":true,"hasUser":false,"willShowAuth":true,"willBypassAuth":false},"timestamp":1783487686059,"hypothesisId":"H4-H5","runId":"post-fix"}

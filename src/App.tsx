@@ -56,6 +56,7 @@ import { LevelUpCelebration, AchievementUnlocked } from './components/Celebratio
 import { MigrationOverlay } from './components/MigrationOverlay';
 import { ComingSoonGate } from './components/ComingSoonGate';
 import { FEATURE_FLAGS } from './config/featureFlags';
+import { supabaseConfigured } from './lib/supabase';
 
 const pageVariants: Variants = {
   initial: { opacity: 0, scale: 0.98 },
@@ -183,7 +184,7 @@ function MigrationGate() {
 }
 
 function AppShell() {
-  const { user, loading, configError } = useAuth();
+  const { user, loading } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -194,7 +195,11 @@ function AppShell() {
     );
   }
 
-  if (configError || !user) {
+  // #region agent log
+  fetch('http://127.0.0.1:7538/ingest/0124e581-c085-44a4-a338-4b8730b7c93b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'ecd604'},body:JSON.stringify({sessionId:'ecd604',location:'App.tsx:AppShell',message:'Auth gate decision',data:{supabaseConfigured,hasUser:Boolean(user),willShowAuth:supabaseConfigured&&!user,willBypassAuth:!supabaseConfigured},timestamp:Date.now(),hypothesisId:'H4-H5',runId:'post-fix'})}).catch(()=>{});
+  // #endregion
+
+  if (supabaseConfigured && !user) {
     return <Auth />;
   }
 

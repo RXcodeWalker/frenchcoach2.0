@@ -5,6 +5,10 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY ?? '';
 
 export const supabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 
+// #region agent log
+fetch('http://127.0.0.1:7538/ingest/0124e581-c085-44a4-a338-4b8730b7c93b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'ecd604'},body:JSON.stringify({sessionId:'ecd604',location:'supabase.ts:init',message:'Supabase env check',data:{hasUrl:Boolean(supabaseUrl),hasKey:Boolean(supabaseAnonKey),supabaseConfigured,mode:import.meta.env.MODE},timestamp:Date.now(),hypothesisId:'H1-H3'})}).catch(()=>{});
+// #endregion
+
 export const supabase = createClient(supabaseUrl || 'https://placeholder.supabase.co', supabaseAnonKey || 'placeholder');
 
 export type Database = {
