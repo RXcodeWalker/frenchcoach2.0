@@ -42,9 +42,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // #region agent log
-    fetch('http://127.0.0.1:7538/ingest/0124e581-c085-44a4-a338-4b8730b7c93b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'ecd604'},body:JSON.stringify({sessionId:'ecd604',location:'AuthContext.tsx:useEffect',message:'Auth init',data:{supabaseConfigured,configErrorWillBe:!supabaseConfigured},timestamp:Date.now(),hypothesisId:'H4'})}).catch(()=>{});
-    // #endregion
     if (!supabaseConfigured) {
       setLoading(false);
       return;
