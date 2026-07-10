@@ -226,6 +226,13 @@ export const TOTAL_MARKS = 40 as const;
 
 export const TOTAL_MARKS_SOURCE = exactSource(10);
 
+/**
+ * S4: bump whenever a descriptor, band, mark, or principle below changes in a
+ * way that affects output — paired with RUBRIC_CONTENT_HASH in
+ * __tests__/version-pin.test.ts, which fails loudly if the two drift apart.
+ */
+export const RUBRIC_VERSION = 'rubric-v0.1';
+
 export const IGCSE_0520_SPEAKING = deepFreeze({
   meta: SYLLABUS_META,
   rolePlay: ROLE_PLAY,
