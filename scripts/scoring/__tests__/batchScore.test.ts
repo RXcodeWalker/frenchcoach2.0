@@ -37,10 +37,10 @@ function buildGoodJudgeFactory() {
       const session = structGolden as unknown as SessionTranscript;
       return toSpeakingTranscript(session, questionSet());
     });
-    let meta: { model: string; effort: 'high'; responseId?: string } | undefined;
+    let meta: { provider: 'gemini'; model: string; responseId?: string } | undefined;
     const wrapped: typeof judge = async (req) => {
       const r = await judge(req);
-      meta = { model: 'fake-model', effort: 'high', responseId: 'resp-fake' };
+      meta = { provider: 'gemini', model: 'fake-model', responseId: 'resp-fake' };
       return r;
     };
     return { judge: wrapped, getLastCallMetadata: () => meta };
@@ -119,7 +119,7 @@ describe('runBatchScore', () => {
       callCount += 1;
       if (callCount === 1) {
         // First session's judge returns invalid JSON -> JudgementValidationError
-        return { judge: async () => ({ raw: 'not json' }), getLastCallMetadata: () => ({ model: 'x', effort: 'high' as const }) };
+        return { judge: async () => ({ raw: 'not json' }), getLastCallMetadata: () => ({ provider: 'gemini' as const, model: 'x' }) };
       }
       return buildGoodJudgeFactory()();
     };

@@ -34,9 +34,10 @@ const VersionStackSchema = z.object({
 });
 
 const LlmProvenanceSchema = z.object({
+  provider: z.enum(['gemini', 'groq']),
   model: z.string(),
-  effort: z.enum(['low', 'medium', 'high', 'xhigh', 'max']),
-  thinking: z.object({ type: z.literal('adaptive') }),
+  effort: z.enum(['low', 'medium', 'high', 'xhigh', 'max']).optional(),
+  thinking: z.object({ type: z.literal('adaptive') }).optional(),
   selfConsistencyRuns: z.literal(1),
   responseId: z.string().optional(),
 });

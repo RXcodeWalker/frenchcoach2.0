@@ -43,9 +43,8 @@ function buildTestEnvelope(attemptId: string, sessionId: string) {
     transcriptQuality: { meanWordConfidence: 0.9, lowConfidenceSpanRatio: 0, lowConfidenceSpanCount: 0 },
     userCorrected: false,
     llm: {
-      model: 'claude-opus-4-8',
-      effort: 'high',
-      thinking: { type: 'adaptive' },
+      provider: 'gemini',
+      model: 'gemini-2.5-flash-lite',
       selfConsistencyRuns: 1,
     },
     versions: {

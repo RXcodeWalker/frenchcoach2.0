@@ -32,14 +32,20 @@ export interface VersionStack {
   gradeBoundarySeries: 'none';
 }
 
+/** Free string, not an enum — e.g. 'gemini', 'groq'. Never fabricated if a provider doesn't expose an equivalent concept. */
+export type LlmProviderName = 'gemini' | 'groq';
+
 export interface LlmProvenance {
-  /** Free string, not an enum — e.g. 'claude-opus-4-8'. */
+  provider: LlmProviderName;
+  /** Free string, not an enum — e.g. 'gemini-2.5-flash-lite'. */
   model: string;
-  effort: 'low' | 'medium' | 'high' | 'xhigh' | 'max';
-  thinking: { type: 'adaptive' };
+  /** Anthropic-specific effort knob — absent for providers with no equivalent (Gemini, Groq). */
+  effort?: 'low' | 'medium' | 'high' | 'xhigh' | 'max';
+  /** Anthropic-specific adaptive thinking — absent for providers with no equivalent (Gemini, Groq). */
+  thinking?: { type: 'adaptive' };
   /** Literal 1 in S4 — self-consistency (2 calls) is a Phase B/S9 concern. */
   selfConsistencyRuns: 1;
-  /** Audit pointer only — not a determinism guarantee. */
+  /** Audit pointer only — not a determinism guarantee. Never fabricated if the provider doesn't return one. */
   responseId?: string;
 }
 

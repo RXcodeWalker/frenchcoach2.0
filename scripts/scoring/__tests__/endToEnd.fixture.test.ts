@@ -32,11 +32,11 @@ describe('S4 exit criterion: recording -> transcript -> L1 -> L2 -> envelope -> 
       const session = structGolden as unknown as SessionTranscript;
       return toSpeakingTranscript(session, questionSet);
     });
-    let lastCallMetadata: { model: string; effort: 'high'; responseId?: string } | undefined;
+    let lastCallMetadata: { provider: 'gemini'; model: string; responseId?: string } | undefined;
     const createJudge = () => {
       const wrapped: typeof judge = async (req) => {
         const r = await judge(req);
-        lastCallMetadata = { model: 'fixture-judge', effort: 'high', responseId: 'resp-fixture' };
+        lastCallMetadata = { provider: 'gemini', model: 'fixture-judge', responseId: 'resp-fixture' };
         return r;
       };
       return { judge: wrapped, getLastCallMetadata: () => lastCallMetadata };

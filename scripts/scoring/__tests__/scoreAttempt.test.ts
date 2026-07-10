@@ -27,10 +27,10 @@ function makeDeps(): ScoreAttemptDeps {
         const session = structGolden as unknown as SessionTranscript;
         return toSpeakingTranscript(session, questionSet);
       });
-      let lastCallMetadata: { model: string; effort: 'high'; responseId?: string } | undefined;
+      let lastCallMetadata: { provider: 'gemini'; model: string; responseId?: string } | undefined;
       const wrappedJudge: typeof judge = async (req) => {
         const result = await judge(req);
-        lastCallMetadata = { model: 'fake-model', effort: 'high', responseId: 'resp-fake' };
+        lastCallMetadata = { provider: 'gemini', model: 'fake-model', responseId: 'resp-fake' };
         return result;
       };
       return { judge: wrappedJudge, getLastCallMetadata: () => lastCallMetadata };
@@ -56,7 +56,7 @@ describe('scoreAttempt', () => {
   it('propagates ProvenanceError/JudgementValidationError unchanged rather than swallowing them', async () => {
     const deps = makeDeps();
     const badJudge = async () => ({ raw: 'not json' });
-    deps.createJudge = () => ({ judge: badJudge, getLastCallMetadata: () => ({ model: 'x', effort: 'high' as const }) });
+    deps.createJudge = () => ({ judge: badJudge, getLastCallMetadata: () => ({ provider: 'gemini' as const, model: 'x' }) });
 
     await expect(
       scoreAttempt(deps, { sessionId: SESSION_ID, questionSet: structQuestions as SessionQuestionSet }),

@@ -33,9 +33,8 @@ function buildInput() {
     transcriptQuality: { meanWordConfidence: 0.95, lowConfidenceSpanRatio: 0.02, lowConfidenceSpanCount: 1 },
     userCorrected: false,
     llm: {
-      model: 'claude-opus-4-8',
-      effort: 'high' as const,
-      thinking: { type: 'adaptive' as const },
+      provider: 'gemini' as const,
+      model: 'gemini-2.5-flash-lite',
       selfConsistencyRuns: 1 as const,
       responseId: 'resp-1',
     },
@@ -68,9 +67,8 @@ describe('buildScoringEnvelope golden regression', () => {
         gradeBoundarySeries: 'none',
       },
       llm: {
-        model: 'claude-opus-4-8',
-        effort: 'high',
-        thinking: { type: 'adaptive' },
+        provider: 'gemini',
+        model: 'gemini-2.5-flash-lite',
         selfConsistencyRuns: 1,
         responseId: 'resp-1',
       },

@@ -23,11 +23,11 @@ import { summariseQuality } from '../../src/domain/igcse/stt/quality/summariseQu
 import type { SessionQuestionSet } from '../../src/domain/igcse/stt/types';
 import type { TranscriptStore } from '../../src/domain/igcse/stt/ports';
 import { resolveScoringEngineVersion } from './engineVersion';
-import type { Effort } from './anthropicJudge';
+import type { LlmProviderName } from '../../src/domain/igcse/envelope/types';
 
 export interface CreateJudgeResult {
   judge: Judge;
-  getLastCallMetadata: () => { model: string; effort: Effort; responseId?: string } | undefined;
+  getLastCallMetadata: () => { provider: LlmProviderName; model: string; responseId?: string } | undefined;
 }
 
 export interface ScoreAttemptDeps {
@@ -86,9 +86,8 @@ export async function scoreAttempt(
     transcriptQuality: summariseQuality(session),
     userCorrected: session.userCorrected,
     llm: {
+      provider: llmMetadata.provider,
       model: llmMetadata.model,
-      effort: llmMetadata.effort,
-      thinking: { type: 'adaptive' },
       selfConsistencyRuns: 1,
       ...(llmMetadata.responseId !== undefined ? { responseId: llmMetadata.responseId } : {}),
     },

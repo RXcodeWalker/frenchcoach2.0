@@ -5,8 +5,11 @@
  *
  * Usage:
  *   npm run score:batch -- --transcript-store file|fixture --sessions-root data/sessions
- *                          --judge anthropic|fixture --out-dir data/reports/<runId>
+ *                          --judge gemini|fixture --out-dir data/reports/<runId>
  *                          [--session <id>]  (repeatable; default: all)
+ *
+ * --judge gemini uses Gemini 2.5 Flash Lite as the primary provider with
+ * automatic Groq fallback on a genuine request failure (see providers/judgeFactory.ts).
  *
  * Hard scope redline: this computes per-criterion diff rows only (mark,
  * teacher mark, delta, justification, quoted evidence, transcript quality).
@@ -29,7 +32,7 @@ import { createFileTranscriptStore } from '../stt/fileTranscriptStore';
 import { createFixtureTranscriptStore } from '../../src/domain/igcse/stt/providers/fixtureTranscriptStore';
 import { createFileEnvelopeStore } from './fileEnvelopeStore';
 import { createFixtureEnvelopeStore } from '../../src/domain/igcse/envelope/providers/fixtureEnvelopeStore';
-import { createAnthropicJudge } from './anthropicJudge';
+import { createJudgeWithFallback } from './providers/judgeFactory';
 import { scoreAttempt } from './scoreAttempt';
 import type { ScoreAttemptDeps } from './scoreAttempt';
 import { toCsv } from './csv';
@@ -37,7 +40,7 @@ import { toCsv } from './csv';
 interface CliArgs {
   transcriptStore: 'file' | 'fixture';
   sessionsRoot: string;
-  judge: 'anthropic' | 'fixture';
+  judge: 'gemini' | 'fixture';
   outDir: string;
   sessions?: string[];
 }
@@ -56,7 +59,7 @@ function parseArgs(argv: string[]): CliArgs {
   };
 
   const transcriptStore = (get('--transcript-store') ?? 'file') as 'file' | 'fixture';
-  const judge = (get('--judge') ?? 'fixture') as 'anthropic' | 'fixture';
+  const judge = (get('--judge') ?? 'fixture') as 'gemini' | 'fixture';
   const sessionsRoot = get('--sessions-root') ?? path.join(process.cwd(), 'data', 'sessions');
   const outDir = get('--out-dir');
   if (!outDir) {
@@ -65,8 +68,8 @@ function parseArgs(argv: string[]): CliArgs {
   if (transcriptStore !== 'file' && transcriptStore !== 'fixture') {
     throw new Error(`Unknown --transcript-store "${transcriptStore}"; expected file|fixture`);
   }
-  if (judge !== 'anthropic' && judge !== 'fixture') {
-    throw new Error(`Unknown --judge "${judge}"; expected anthropic|fixture`);
+  if (judge !== 'gemini' && judge !== 'fixture') {
+    throw new Error(`Unknown --judge "${judge}"; expected gemini|fixture`);
   }
 
   const sessions = getAll('--session');
@@ -128,8 +131,8 @@ export async function runBatchScore(
 
   const createJudge: ScoreAttemptDeps['createJudge'] =
     overrides.createJudge ??
-    (args.judge === 'anthropic'
-      ? () => createAnthropicJudge()
+    (args.judge === 'gemini'
+      ? () => createJudgeWithFallback()
       : () => {
           throw new Error('--judge fixture requires overrides.createJudge to be supplied (e.g. from a test)');
         });

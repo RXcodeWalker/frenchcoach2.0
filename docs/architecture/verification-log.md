@@ -372,3 +372,90 @@ sections, so a `cache_control` breakpoint today would cache the wrong,
 volatile-preceding-stable content), and structured outputs / `output_config.format`
 on the judge request (deferred to keep the existing zod-validation safety net
 as the sole guard for this first cut).
+
+## Provider swap — Gemini primary Judge, Groq automatic fallback
+
+Replaces the Anthropic Judge implementation from the S4 entry above.
+**Gemini is now the primary Judge provider for production scoring; Groq is
+the automatic fallback; Anthropic is no longer used for production scoring.**
+This is a provider substitution only — the three-layer architecture, the
+`Judge` port (`(req) => Promise<{raw: string}>`), `scoreSpeaking`,
+`buildJudgementPrompt`, `buildScoringEnvelope`, `scoreAttempt`/`replayEnvelope`,
+and all envelope types are unchanged except for the minimal, additive
+`LlmProvenance` change described below.
+
+### What was built
+
+- `scripts/scoring/providers/geminiJudge.ts` — `createGeminiJudge()`, wraps
+  `@google/genai`'s `GoogleGenAI.models.generateContent`. Model:
+  `gemini-2.5-flash-lite`. No `effort`/`thinking` params sent — those are
+  Anthropic-specific concepts with no Gemini equivalent. Captures
+  `{model, responseId}` per call via the same fresh-per-attempt closure
+  pattern as the removed `anthropicJudge.ts`.
+- `scripts/scoring/providers/groqJudge.ts` — `createGroqJudge()`, wraps
+  `groq-sdk`'s `chat.completions.create` (OpenAI-shaped). Default model
+  `llama-3.3-70b-versatile`. Same metadata-capture pattern.
+- `scripts/scoring/providers/judgeFactory.ts` — `createJudgeWithFallback()`,
+  the single provider-selection seam. Tries Gemini first; only falls back to
+  Groq when the Gemini **call itself throws** (network failure, timeout,
+  provider unavailable, rate limit — i.e. the SDK call rejects). A
+  successful-but-low-quality Gemini response (malformed JSON, ungrounded
+  evidence) is never a fallback trigger, because `scoreSpeaking` parses/
+  validates the judge's `raw` string *after* this factory's `judge()` call
+  already resolved — this composite judge only ever sees provider-call
+  exceptions, never downstream validation failures. Never runs both
+  providers for one attempt; records whichever one actually answered.
+- `src/domain/igcse/envelope/types.ts` — `LlmProvenance` gains
+  `provider: 'gemini' | 'groq'` (new `LlmProviderName` type) and `effort`/
+  `thinking` are now optional rather than required, since neither Gemini nor
+  Groq exposes an equivalent knob and metadata must never be fabricated.
+  `src/domain/igcse/envelope/schema.ts` updated to match (`provider` enum
+  required, `effort`/`thinking` optional).
+- `scripts/scoring/scoreAttempt.ts` — `CreateJudgeResult`'s metadata shape
+  narrowed to `{provider, model, responseId?}`; the `llm` block assembled for
+  `buildScoringEnvelope` now carries `provider` and omits `effort`/`thinking`
+  entirely (no `{type: 'adaptive'}` literal survives from the Anthropic era).
+- `scripts/scoring/batchScore.ts` — `--judge gemini` (replaces
+  `--judge anthropic`) invokes `createJudgeWithFallback()`; `--judge fixture`
+  unchanged for tests.
+- Removed: `scripts/scoring/anthropicJudge.ts` and its test,
+  `scripts/scoring/__tests__/judgeFactoryIsolation.test.ts` (superseded by
+  `providers/__tests__/judgeFactory.test.ts`), the `@anthropic-ai/sdk`
+  dependency.
+- Added dependencies: `@google/genai` (Gemini SDK), `groq-sdk` (Groq SDK).
+- Tests: `providers/__tests__/geminiJudge.test.ts`,
+  `providers/__tests__/groqJudge.test.ts` (request shape, response mapping,
+  metadata capture, custom-model override, no-content error path — mirrors
+  the removed `anthropicJudge.test.ts` structure per provider),
+  `providers/__tests__/judgeFactory.test.ts` (Gemini success never calls
+  Groq; Gemini request failure triggers Groq fallback and records
+  `provider: 'groq'`; exactly one provider is ever called per attempt, even
+  under concurrent invocations; both-providers-fail throws a combined error;
+  a successful-but-garbage Gemini response is *not* a fallback trigger).
+  All envelope/comparison fixture blocks (`buildEnvelope.golden.test.ts`,
+  `sentinels.test.ts`, `sttEmbedding.test.ts`, `diff.test.ts`,
+  `fileEnvelopeStore.test.ts`, `supabaseEnvelopeStore.test.ts`,
+  `scoreAttempt.test.ts`, `batchScore.test.ts`, `endToEnd.fixture.test.ts`)
+  updated from the Anthropic-shaped `llm` block to
+  `{provider: 'gemini', model: 'gemini-2.5-flash-lite', selfConsistencyRuns: 1}`.
+
+### Independently verified
+
+- `npm test`: 396/396 tests passing (58 files), including the 3 new provider
+  test files.
+- `npm run typecheck`: identical pre-existing error set to the prior S4
+  baseline (`src/data/`, `src/screens/` — all unrelated to scoring code);
+  zero errors in any `envelope/`, `comparison/`, `scripts/scoring/`, or
+  `judgement/` path.
+- `npm run typecheck:scripts`: same pre-existing baseline; zero new errors
+  from any `scripts/scoring/*` file, including the new `providers/` directory.
+- `npx eslint scripts/scoring/providers`: clean.
+
+### Explicitly deferred
+
+No live smoke test against the real Gemini/Groq APIs was run in this
+session — same constraint as the original S4 entry (no API keys/network in
+this environment). `npm run score:batch -- --judge gemini` against a real
+session with live `GEMINI_API_KEY`/`GROQ_API_KEY` credentials, including a
+deliberate Gemini-failure scenario to confirm the Groq fallback path fires
+in practice, remains an outstanding manual verification step.

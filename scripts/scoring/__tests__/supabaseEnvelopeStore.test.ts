@@ -25,9 +25,8 @@ function buildEnvelope(contentProvenance: ScoringEnvelope['contentProvenance']):
       gradeBoundarySeries: 'none',
     },
     llm: {
-      model: 'claude-opus-4-8',
-      effort: 'high',
-      thinking: { type: 'adaptive' },
+      provider: 'gemini',
+      model: 'gemini-2.5-flash-lite',
       selfConsistencyRuns: 1,
     },
     stt: {
