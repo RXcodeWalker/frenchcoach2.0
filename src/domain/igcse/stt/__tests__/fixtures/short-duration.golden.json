@@ -1,0 +1,302 @@
+{
+  "schemaVersion": "session-transcript-v1",
+  "assemblerVersion": "stt-assembler-v1",
+  "sessionId": "short-duration-001",
+  "recordedAt": "2026-05-01T09:00:00.000Z",
+  "contentProvenance": "confidential-internal",
+  "userCorrected": false,
+  "audio": {
+    "sha256": "short-audio-0000000000000000000000000000000000000000000001",
+    "durationS": 12,
+    "sampleRateHz": 16000,
+    "channels": 1
+  },
+  "stt": {
+    "model": "whisper-large-v3",
+    "modelVersion": "20231117",
+    "provider": "whisperx",
+    "languageCode": "fr",
+    "alignmentModel": "wav2vec2-fr-align",
+    "diarizationModel": "pyannote/speaker-diarization-3.1",
+    "decodeParamsHash": "short0000000000000000000000000000000000000000000000001",
+    "confidenceSource": "whisperx-align-score",
+    "promptBiasedRetries": 0,
+    "transcribedAt": "2026-05-01T09:00:00.000Z"
+  },
+  "annotationSource": "asr-annotation",
+  "questionSetId": "qs-short-001",
+  "questionSetHash": "short-qsh-00000000000000000000000000000000000000000001",
+  "matchThreshold": 0.6,
+  "roleLabelConfidence": 1,
+  "utterances": [
+    {
+      "utteranceId": "u1",
+      "role": "examiner",
+      "speakerCluster": "SPEAKER_00",
+      "part": "rolePlay",
+      "questionId": "rp1",
+      "startS": 0,
+      "endS": 1.2,
+      "text": "Demande où se trouve la gare .",
+      "words": [
+        {
+          "text": "Demande",
+          "startS": 0,
+          "endS": 0.3,
+          "confidence": 0.9
+        },
+        {
+          "text": "où",
+          "startS": 0.3,
+          "endS": 0.4,
+          "confidence": 0.9
+        },
+        {
+          "text": "se",
+          "startS": 0.4,
+          "endS": 0.5,
+          "confidence": 0.9
+        },
+        {
+          "text": "trouve",
+          "startS": 0.5,
+          "endS": 0.8,
+          "confidence": 0.9
+        },
+        {
+          "text": "la",
+          "startS": 0.8,
+          "endS": 0.9,
+          "confidence": 0.9
+        },
+        {
+          "text": "gare",
+          "startS": 0.9,
+          "endS": 1.2,
+          "confidence": 0.9
+        },
+        {
+          "text": ".",
+          "startS": 1.2,
+          "endS": 1.2,
+          "confidence": 0.9
+        }
+      ]
+    },
+    {
+      "utteranceId": "u2",
+      "role": "candidate",
+      "speakerCluster": "SPEAKER_01",
+      "part": "rolePlay",
+      "questionId": "rp1",
+      "startS": 2.5,
+      "endS": 3.1,
+      "text": "Où est la gare ?",
+      "words": [
+        {
+          "text": "Où",
+          "startS": 2.5,
+          "endS": 2.6,
+          "confidence": 0.9
+        },
+        {
+          "text": "est",
+          "startS": 2.6,
+          "endS": 2.7,
+          "confidence": 0.9
+        },
+        {
+          "text": "la",
+          "startS": 2.7,
+          "endS": 2.8,
+          "confidence": 0.9
+        },
+        {
+          "text": "gare",
+          "startS": 2.8,
+          "endS": 3.1,
+          "confidence": 0.9
+        },
+        {
+          "text": "?",
+          "startS": 3.1,
+          "endS": 3.1,
+          "confidence": 0.9
+        }
+      ]
+    },
+    {
+      "utteranceId": "u3",
+      "role": "examiner",
+      "speakerCluster": "SPEAKER_00",
+      "part": "topic1",
+      "questionId": "t1q1",
+      "startS": 5,
+      "endS": 6.7,
+      "text": "Qu'est-ce que tu aimes faire le week-end ?",
+      "words": [
+        {
+          "text": "Qu'est-ce",
+          "startS": 5,
+          "endS": 5.3,
+          "confidence": 0.9
+        },
+        {
+          "text": "que",
+          "startS": 5.3,
+          "endS": 5.4,
+          "confidence": 0.9
+        },
+        {
+          "text": "tu",
+          "startS": 5.4,
+          "endS": 5.5,
+          "confidence": 0.9
+        },
+        {
+          "text": "aimes",
+          "startS": 5.5,
+          "endS": 5.8,
+          "confidence": 0.9
+        },
+        {
+          "text": "faire",
+          "startS": 5.8,
+          "endS": 6.1,
+          "confidence": 0.9
+        },
+        {
+          "text": "le",
+          "startS": 6.1,
+          "endS": 6.2,
+          "confidence": 0.9
+        },
+        {
+          "text": "week-end",
+          "startS": 6.2,
+          "endS": 6.7,
+          "confidence": 0.9
+        },
+        {
+          "text": "?",
+          "startS": 6.7,
+          "endS": 6.7,
+          "confidence": 0.9
+        }
+      ]
+    },
+    {
+      "utteranceId": "u4",
+      "role": "candidate",
+      "speakerCluster": "SPEAKER_01",
+      "part": "topic1",
+      "questionId": "t1q1",
+      "startS": 7.5,
+      "endS": 7.8,
+      "text": "Lire",
+      "words": [
+        {
+          "text": "Lire",
+          "startS": 7.5,
+          "endS": 7.8,
+          "confidence": 0.9
+        }
+      ]
+    },
+    {
+      "utteranceId": "u5",
+      "role": "examiner",
+      "speakerCluster": "SPEAKER_00",
+      "part": "topic2",
+      "questionId": "t2q1",
+      "startS": 9,
+      "endS": 10.5,
+      "text": "Quelle est ta matière préférée ?",
+      "words": [
+        {
+          "text": "Quelle",
+          "startS": 9,
+          "endS": 9.3,
+          "confidence": 0.9
+        },
+        {
+          "text": "est",
+          "startS": 9.3,
+          "endS": 9.5,
+          "confidence": 0.9
+        },
+        {
+          "text": "ta",
+          "startS": 9.5,
+          "endS": 9.6,
+          "confidence": 0.9
+        },
+        {
+          "text": "matière",
+          "startS": 9.6,
+          "endS": 10,
+          "confidence": 0.9
+        },
+        {
+          "text": "préférée",
+          "startS": 10,
+          "endS": 10.5,
+          "confidence": 0.9
+        },
+        {
+          "text": "?",
+          "startS": 10.5,
+          "endS": 10.5,
+          "confidence": 0.9
+        }
+      ]
+    },
+    {
+      "utteranceId": "u6",
+      "role": "candidate",
+      "speakerCluster": "SPEAKER_01",
+      "part": "topic2",
+      "questionId": "t2q1",
+      "startS": 11.5,
+      "endS": 11.9,
+      "text": "Français",
+      "words": [
+        {
+          "text": "Français",
+          "startS": 11.5,
+          "endS": 11.9,
+          "confidence": 0.9
+        }
+      ]
+    }
+  ],
+  "examinerEvents": [
+    {
+      "eventId": "e1",
+      "utteranceId": "u1",
+      "atS": 0,
+      "part": "rolePlay",
+      "kind": "main_question",
+      "questionId": "rp1",
+      "matchScore": 0.625
+    },
+    {
+      "eventId": "e2",
+      "utteranceId": "u3",
+      "atS": 5,
+      "part": "topic1",
+      "kind": "main_question",
+      "questionId": "t1q1",
+      "matchScore": 1
+    },
+    {
+      "eventId": "e3",
+      "utteranceId": "u5",
+      "atS": 9,
+      "part": "topic2",
+      "kind": "main_question",
+      "questionId": "t2q1",
+      "matchScore": 1
+    }
+  ]
+}

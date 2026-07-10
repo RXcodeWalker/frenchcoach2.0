@@ -1,0 +1,12 @@
+{
+  "questionSetId": "qs-adv-001",
+  "questions": [
+    {
+      "questionId": "q1",
+      "part": "topic1",
+      "mainText": "Qu'est-ce que tu aimes faire le week-end ?",
+      "alternativeTexts": [],
+      "topicArea": "A"
+    }
+  ]
+}

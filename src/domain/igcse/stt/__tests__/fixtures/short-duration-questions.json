@@ -1,0 +1,25 @@
+{
+  "questionSetId": "qs-short-001",
+  "questions": [
+    {
+      "questionId": "rp1",
+      "part": "rolePlay",
+      "mainText": "Demande où se trouve la gare.",
+      "alternativeTexts": []
+    },
+    {
+      "questionId": "t1q1",
+      "part": "topic1",
+      "mainText": "Qu'est-ce que tu aimes faire le week-end ?",
+      "alternativeTexts": [],
+      "topicArea": "A"
+    },
+    {
+      "questionId": "t2q1",
+      "part": "topic2",
+      "mainText": "Quelle est ta matière préférée ?",
+      "alternativeTexts": [],
+      "topicArea": "B"
+    }
+  ]
+}

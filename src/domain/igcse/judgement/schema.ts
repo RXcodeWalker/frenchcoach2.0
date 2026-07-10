@@ -21,27 +21,11 @@ import type {
 } from './types';
 
 // ── Normalization (sole comparison path) ──────────────────────────────────────
-
-const APOSTROPHES = /[\u2018\u2019\u02BC\u0060\u00B4]/g;
-const DOUBLE_QUOTES = /[\u201C\u201D]/g;
-const EDGE_PUNCT =
-  /^[\s"'.,;:!?\u2026\-\u2013\u2014()]+|[\s"'.,;:!?\u2026\-\u2013\u2014()]+$/g;
-
-/** Base normalization — transcript text; internal content preserved. */
-export function normalizeForMatch(input: string): string {
-  return input
-    .normalize('NFC')
-    .replace(APOSTROPHES, "'")
-    .replace(DOUBLE_QUOTES, '"')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .toLowerCase();
-}
-
-/** Descriptor equality + quote-boundary trimming. */
-export function canonicalizeForMatch(input: string): string {
-  return normalizeForMatch(input).replace(EDGE_PUNCT, '');
-}
+// Moved to ../text/normalize.ts (S3) so STT question-matching uses the identical
+// normaliser as this quote-verification guardrail. Re-exported here so existing
+// importers of judgement/schema keep working unchanged.
+export { normalizeForMatch, canonicalizeForMatch } from '../text/normalize';
+import { normalizeForMatch, canonicalizeForMatch } from '../text/normalize';
 
 // ── Errors ────────────────────────────────────────────────────────────────────
 

@@ -7,3 +7,6 @@ dist/
 .vercel
 
 backend/
+
+# S3 STT: teacher recordings + TN-derived material — never redistributed, never pooled.
+data/sessions/

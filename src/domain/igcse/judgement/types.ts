@@ -6,10 +6,16 @@
 import type { BandLabel } from '../rubric';
 import type { TimeFrame } from '../evidence/types';
 
+/**
+ * Confidentiality gates redistribution, not scoring — 'confidential-internal'
+ * covers teacher-conducted recordings against TN booklets (S3); assertRedistributable
+ * (judgement/scoreSpeaking.ts) is the guard that blocks those from export/sync.
+ */
+export type ContentProvenance = 'original-practice' | 'confidential-internal';
+
 /** Candidate-only transcript in Cambridge 0520 Paper 3 shape. */
 export interface SpeakingTranscript {
-  /** Literal; asserted before any judge call (UCLES copyright constraint). */
-  contentProvenance: 'original-practice';
+  contentProvenance: ContentProvenance;
   /** Exactly ROLE_PLAY.tasks (5). */
   rolePlay: RolePlayTaskResponse[];
   topicConversations: [TopicConversation, TopicConversation];

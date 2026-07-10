@@ -14,10 +14,26 @@ export class ProvenanceError extends Error {
   }
 }
 
+const KNOWN_PROVENANCES = new Set(['original-practice', 'confidential-internal']);
+
+/** Must be a known provenance before any judge call. Does not gate redistribution. */
 function assertProvenance(transcript: SpeakingTranscript): void {
-  if (transcript.contentProvenance !== 'original-practice') {
+  if (!KNOWN_PROVENANCES.has(transcript.contentProvenance)) {
     throw new ProvenanceError(
-      `contentProvenance must be "original-practice", got "${transcript.contentProvenance as string}"`,
+      `contentProvenance must be a known provenance, got "${transcript.contentProvenance as string}"`,
+    );
+  }
+}
+
+/**
+ * Blocks confidential-internal transcripts (teacher recordings against TN booklets)
+ * from export/sync paths. Called by the Supabase sync adapter and any corpus/anchor
+ * export path — never by scoreSpeaking itself, which only needs assertProvenance.
+ */
+export function assertRedistributable(transcript: SpeakingTranscript): void {
+  if (transcript.contentProvenance === 'confidential-internal') {
+    throw new ProvenanceError(
+      'Transcript is confidential-internal and must not be redistributed or exported',
     );
   }
 }

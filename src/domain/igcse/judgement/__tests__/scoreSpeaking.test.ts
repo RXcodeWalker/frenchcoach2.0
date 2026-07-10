@@ -1,5 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
-import { scoreSpeaking, ProvenanceError, JudgementValidationError } from '../scoreSpeaking';
+import {
+  scoreSpeaking,
+  ProvenanceError,
+  JudgementValidationError,
+  assertRedistributable,
+} from '../scoreSpeaking';
 import type { Judge, JudgeRequest, JudgeResponse } from '../types';
 import { buildValidJudgeOutput, PRACTICE_TRANSCRIPT } from './fixtures';
 
@@ -28,6 +33,25 @@ describe('scoreSpeaking', () => {
 
     await expect(scoreSpeaking(badTranscript, judge)).rejects.toThrow(ProvenanceError);
     expect(judge).not.toHaveBeenCalled();
+  });
+
+  it('provenance guard: accepts confidential-internal (scoring is not gated by redistributability)', async () => {
+    const judge = fakeJudge(buildValidJudgeOutput());
+    const confidentialTranscript = {
+      ...PRACTICE_TRANSCRIPT,
+      contentProvenance: 'confidential-internal' as const,
+    };
+
+    const result = await scoreSpeaking(confidentialTranscript, judge);
+    expect(result.total).toBe(25);
+    expect(judge).toHaveBeenCalledOnce();
+  });
+
+  it('assertRedistributable: throws on confidential-internal, passes on original-practice', () => {
+    expect(() =>
+      assertRedistributable({ ...PRACTICE_TRANSCRIPT, contentProvenance: 'confidential-internal' }),
+    ).toThrow(ProvenanceError);
+    expect(() => assertRedistributable(PRACTICE_TRANSCRIPT)).not.toThrow();
   });
 
   it('rejects invalid JSON from judge', async () => {

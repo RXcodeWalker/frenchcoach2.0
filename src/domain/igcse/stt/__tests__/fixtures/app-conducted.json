@@ -1,0 +1,84 @@
+{
+  "schemaVersion": "session-transcript-v1",
+  "assemblerVersion": "stt-assembler-v1",
+  "sessionId": "app-conducted-001",
+  "recordedAt": "2026-05-01T10:00:00.000Z",
+  "contentProvenance": "original-practice",
+  "userCorrected": false,
+  "audio": {
+    "sha256": "0000000000000000000000000000000000000000000000000000000000aa",
+    "durationS": 120,
+    "sampleRateHz": 16000,
+    "channels": 1
+  },
+  "stt": {
+    "model": "session-engine",
+    "modelVersion": "1.0.0",
+    "provider": "session-engine",
+    "languageCode": "fr",
+    "alignmentModel": null,
+    "diarizationModel": null,
+    "decodeParamsHash": "0000000000000000000000000000000000000000000000000000000000bb",
+    "confidenceSource": "faster-whisper-probability",
+    "promptBiasedRetries": 0,
+    "transcribedAt": "2026-05-01T10:02:00.000Z"
+  },
+  "annotationSource": "session-engine-log",
+  "questionSetId": "qs-app-001",
+  "questionSetHash": "0000000000000000000000000000000000000000000000000000000000cc",
+  "matchThreshold": 0.6,
+  "roleLabelConfidence": 1,
+  "utterances": [
+    {
+      "utteranceId": "u1",
+      "role": "examiner",
+      "speakerCluster": "engine",
+      "part": "topic1",
+      "questionId": "q1",
+      "startS": 0,
+      "endS": 3,
+      "text": "Quelle est ta matière préférée ?",
+      "words": [
+        { "text": "Quelle", "startS": 0, "endS": 0.5, "confidence": 1 },
+        { "text": "est", "startS": 0.5, "endS": 0.8, "confidence": 1 },
+        { "text": "ta", "startS": 0.8, "endS": 1.0, "confidence": 1 },
+        { "text": "matière", "startS": 1.0, "endS": 1.6, "confidence": 1 },
+        { "text": "préférée", "startS": 1.6, "endS": 2.5, "confidence": 1 }
+      ]
+    },
+    {
+      "utteranceId": "u2",
+      "role": "candidate",
+      "speakerCluster": "user",
+      "part": "topic1",
+      "questionId": "q1",
+      "startS": 3.5,
+      "endS": 8,
+      "text": "Ma matière préférée est le français parce que j'aime beaucoup parler.",
+      "words": [
+        { "text": "Ma", "startS": 3.5, "endS": 3.7, "confidence": 1 },
+        { "text": "matière", "startS": 3.7, "endS": 4.2, "confidence": 1 },
+        { "text": "préférée", "startS": 4.2, "endS": 4.8, "confidence": 1 },
+        { "text": "est", "startS": 4.8, "endS": 5.0, "confidence": 1 },
+        { "text": "le", "startS": 5.0, "endS": 5.1, "confidence": 1 },
+        { "text": "français", "startS": 5.1, "endS": 5.6, "confidence": 1 },
+        { "text": "parce", "startS": 5.6, "endS": 5.9, "confidence": 1 },
+        { "text": "que", "startS": 5.9, "endS": 6.0, "confidence": 1 },
+        { "text": "j'aime", "startS": 6.0, "endS": 6.4, "confidence": 1 },
+        { "text": "beaucoup", "startS": 6.4, "endS": 6.9, "confidence": 1 },
+        { "text": "parler", "startS": 6.9, "endS": 7.4, "confidence": 1 }
+      ]
+    }
+  ],
+  "examinerEvents": [
+    {
+      "eventId": "e1",
+      "utteranceId": "u1",
+      "atS": 0,
+      "part": "topic1",
+      "kind": "main_question",
+      "questionId": "q1",
+      "matchScore": 1
+    }
+  ]
+}

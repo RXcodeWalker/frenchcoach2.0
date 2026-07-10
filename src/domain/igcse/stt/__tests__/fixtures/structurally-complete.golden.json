@@ -1,0 +1,1532 @@
+{
+  "schemaVersion": "session-transcript-v1",
+  "assemblerVersion": "stt-assembler-v1",
+  "sessionId": "structurally-complete-001",
+  "recordedAt": "2026-05-01T09:00:00.000Z",
+  "contentProvenance": "confidential-internal",
+  "userCorrected": false,
+  "audio": {
+    "sha256": "struct-audio-00000000000000000000000000000000000000000000001",
+    "durationS": 108.09999999999971,
+    "sampleRateHz": 16000,
+    "channels": 1
+  },
+  "stt": {
+    "model": "whisper-large-v3",
+    "modelVersion": "20231117",
+    "provider": "whisperx",
+    "languageCode": "fr",
+    "alignmentModel": "wav2vec2-fr-align",
+    "diarizationModel": "pyannote/speaker-diarization-3.1",
+    "decodeParamsHash": "struct00000000000000000000000000000000000000000000000001",
+    "confidenceSource": "whisperx-align-score",
+    "promptBiasedRetries": 0,
+    "transcribedAt": "2026-05-01T09:00:00.000Z"
+  },
+  "annotationSource": "asr-annotation",
+  "questionSetId": "qs-struct-001",
+  "questionSetHash": "struct-qsh-000000000000000000000000000000000000000000001",
+  "matchThreshold": 0.6,
+  "roleLabelConfidence": 1,
+  "utterances": [
+    {
+      "utteranceId": "u1",
+      "role": "examiner",
+      "speakerCluster": "SPEAKER_00",
+      "part": "rolePlay",
+      "questionId": "rp1",
+      "startS": 0,
+      "endS": 1.8,
+      "text": "Demande où se trouve la gare.",
+      "words": [
+        {
+          "text": "Demande",
+          "startS": 0,
+          "endS": 0.3,
+          "confidence": 0.9
+        },
+        {
+          "text": "où",
+          "startS": 0.3,
+          "endS": 0.6,
+          "confidence": 0.9
+        },
+        {
+          "text": "se",
+          "startS": 0.6,
+          "endS": 0.8999999999999999,
+          "confidence": 0.9
+        },
+        {
+          "text": "trouve",
+          "startS": 0.8999999999999999,
+          "endS": 1.2,
+          "confidence": 0.9
+        },
+        {
+          "text": "la",
+          "startS": 1.2,
+          "endS": 1.5,
+          "confidence": 0.9
+        },
+        {
+          "text": "gare.",
+          "startS": 1.5,
+          "endS": 1.8,
+          "confidence": 0.9
+        }
+      ]
+    },
+    {
+      "utteranceId": "u2",
+      "role": "candidate",
+      "speakerCluster": "SPEAKER_01",
+      "part": "rolePlay",
+      "questionId": "rp1",
+      "startS": 3.8,
+      "endS": 5.299999999999999,
+      "text": "Oui d'accord voilà ma réponse",
+      "words": [
+        {
+          "text": "Oui",
+          "startS": 3.8,
+          "endS": 4.1,
+          "confidence": 0.9
+        },
+        {
+          "text": "d'accord",
+          "startS": 4.1,
+          "endS": 4.3999999999999995,
+          "confidence": 0.9
+        },
+        {
+          "text": "voilà",
+          "startS": 4.3999999999999995,
+          "endS": 4.699999999999999,
+          "confidence": 0.9
+        },
+        {
+          "text": "ma",
+          "startS": 4.699999999999999,
+          "endS": 4.999999999999999,
+          "confidence": 0.9
+        },
+        {
+          "text": "réponse",
+          "startS": 4.999999999999999,
+          "endS": 5.299999999999999,
+          "confidence": 0.9
+        }
+      ]
+    },
+    {
+      "utteranceId": "u3",
+      "role": "examiner",
+      "speakerCluster": "SPEAKER_00",
+      "part": "rolePlay",
+      "questionId": "rp2",
+      "startS": 7.299999999999999,
+      "endS": 8.8,
+      "text": "Demande le prix du billet.",
+      "words": [
+        {
+          "text": "Demande",
+          "startS": 7.299999999999999,
+          "endS": 7.599999999999999,
+          "confidence": 0.9
+        },
+        {
+          "text": "le",
+          "startS": 7.599999999999999,
+          "endS": 7.899999999999999,
+          "confidence": 0.9
+        },
+        {
+          "text": "prix",
+          "startS": 7.899999999999999,
+          "endS": 8.2,
+          "confidence": 0.9
+        },
+        {
+          "text": "du",
+          "startS": 8.2,
+          "endS": 8.5,
+          "confidence": 0.9
+        },
+        {
+          "text": "billet.",
+          "startS": 8.5,
+          "endS": 8.8,
+          "confidence": 0.9
+        }
+      ]
+    },
+    {
+      "utteranceId": "u4",
+      "role": "candidate",
+      "speakerCluster": "SPEAKER_01",
+      "part": "rolePlay",
+      "questionId": "rp2",
+      "startS": 10.8,
+      "endS": 12.300000000000004,
+      "text": "Oui d'accord voilà ma réponse",
+      "words": [
+        {
+          "text": "Oui",
+          "startS": 10.8,
+          "endS": 11.100000000000001,
+          "confidence": 0.9
+        },
+        {
+          "text": "d'accord",
+          "startS": 11.100000000000001,
+          "endS": 11.400000000000002,
+          "confidence": 0.9
+        },
+        {
+          "text": "voilà",
+          "startS": 11.400000000000002,
+          "endS": 11.700000000000003,
+          "confidence": 0.9
+        },
+        {
+          "text": "ma",
+          "startS": 11.700000000000003,
+          "endS": 12.000000000000004,
+          "confidence": 0.9
+        },
+        {
+          "text": "réponse",
+          "startS": 12.000000000000004,
+          "endS": 12.300000000000004,
+          "confidence": 0.9
+        }
+      ]
+    },
+    {
+      "utteranceId": "u5",
+      "role": "examiner",
+      "speakerCluster": "SPEAKER_00",
+      "part": "rolePlay",
+      "questionId": "rp3",
+      "startS": 14.300000000000004,
+      "endS": 17.600000000000012,
+      "text": "Dis à quelle heure part le train et demande le quai.",
+      "words": [
+        {
+          "text": "Dis",
+          "startS": 14.300000000000004,
+          "endS": 14.600000000000005,
+          "confidence": 0.9
+        },
+        {
+          "text": "à",
+          "startS": 14.600000000000005,
+          "endS": 14.900000000000006,
+          "confidence": 0.9
+        },
+        {
+          "text": "quelle",
+          "startS": 14.900000000000006,
+          "endS": 15.200000000000006,
+          "confidence": 0.9
+        },
+        {
+          "text": "heure",
+          "startS": 15.200000000000006,
+          "endS": 15.500000000000007,
+          "confidence": 0.9
+        },
+        {
+          "text": "part",
+          "startS": 15.500000000000007,
+          "endS": 15.800000000000008,
+          "confidence": 0.9
+        },
+        {
+          "text": "le",
+          "startS": 15.800000000000008,
+          "endS": 16.10000000000001,
+          "confidence": 0.9
+        },
+        {
+          "text": "train",
+          "startS": 16.10000000000001,
+          "endS": 16.40000000000001,
+          "confidence": 0.9
+        },
+        {
+          "text": "et",
+          "startS": 16.40000000000001,
+          "endS": 16.70000000000001,
+          "confidence": 0.9
+        },
+        {
+          "text": "demande",
+          "startS": 16.70000000000001,
+          "endS": 17.00000000000001,
+          "confidence": 0.9
+        },
+        {
+          "text": "le",
+          "startS": 17.00000000000001,
+          "endS": 17.30000000000001,
+          "confidence": 0.9
+        },
+        {
+          "text": "quai.",
+          "startS": 17.30000000000001,
+          "endS": 17.600000000000012,
+          "confidence": 0.9
+        }
+      ]
+    },
+    {
+      "utteranceId": "u6",
+      "role": "candidate",
+      "speakerCluster": "SPEAKER_01",
+      "part": "rolePlay",
+      "questionId": "rp3",
+      "startS": 19.600000000000012,
+      "endS": 21.100000000000016,
+      "text": "Oui d'accord voilà ma réponse",
+      "words": [
+        {
+          "text": "Oui",
+          "startS": 19.600000000000012,
+          "endS": 19.900000000000013,
+          "confidence": 0.9
+        },
+        {
+          "text": "d'accord",
+          "startS": 19.900000000000013,
+          "endS": 20.200000000000014,
+          "confidence": 0.9
+        },
+        {
+          "text": "voilà",
+          "startS": 20.200000000000014,
+          "endS": 20.500000000000014,
+          "confidence": 0.9
+        },
+        {
+          "text": "ma",
+          "startS": 20.500000000000014,
+          "endS": 20.800000000000015,
+          "confidence": 0.9
+        },
+        {
+          "text": "réponse",
+          "startS": 20.800000000000015,
+          "endS": 21.100000000000016,
+          "confidence": 0.9
+        }
+      ]
+    },
+    {
+      "utteranceId": "u7",
+      "role": "examiner",
+      "speakerCluster": "SPEAKER_00",
+      "part": "rolePlay",
+      "questionId": "rp4",
+      "startS": 23.100000000000016,
+      "endS": 24.90000000000002,
+      "text": "Demande si le train est direct.",
+      "words": [
+        {
+          "text": "Demande",
+          "startS": 23.100000000000016,
+          "endS": 23.400000000000016,
+          "confidence": 0.9
+        },
+        {
+          "text": "si",
+          "startS": 23.400000000000016,
+          "endS": 23.700000000000017,
+          "confidence": 0.9
+        },
+        {
+          "text": "le",
+          "startS": 23.700000000000017,
+          "endS": 24.000000000000018,
+          "confidence": 0.9
+        },
+        {
+          "text": "train",
+          "startS": 24.000000000000018,
+          "endS": 24.30000000000002,
+          "confidence": 0.9
+        },
+        {
+          "text": "est",
+          "startS": 24.30000000000002,
+          "endS": 24.60000000000002,
+          "confidence": 0.9
+        },
+        {
+          "text": "direct.",
+          "startS": 24.60000000000002,
+          "endS": 24.90000000000002,
+          "confidence": 0.9
+        }
+      ]
+    },
+    {
+      "utteranceId": "u8",
+      "role": "candidate",
+      "speakerCluster": "SPEAKER_01",
+      "part": "rolePlay",
+      "questionId": "rp4",
+      "startS": 26.90000000000002,
+      "endS": 28.400000000000023,
+      "text": "Oui d'accord voilà ma réponse",
+      "words": [
+        {
+          "text": "Oui",
+          "startS": 26.90000000000002,
+          "endS": 27.20000000000002,
+          "confidence": 0.9
+        },
+        {
+          "text": "d'accord",
+          "startS": 27.20000000000002,
+          "endS": 27.50000000000002,
+          "confidence": 0.9
+        },
+        {
+          "text": "voilà",
+          "startS": 27.50000000000002,
+          "endS": 27.800000000000022,
+          "confidence": 0.9
+        },
+        {
+          "text": "ma",
+          "startS": 27.800000000000022,
+          "endS": 28.100000000000023,
+          "confidence": 0.9
+        },
+        {
+          "text": "réponse",
+          "startS": 28.100000000000023,
+          "endS": 28.400000000000023,
+          "confidence": 0.9
+        }
+      ]
+    },
+    {
+      "utteranceId": "u9",
+      "role": "examiner",
+      "speakerCluster": "SPEAKER_00",
+      "part": "rolePlay",
+      "questionId": "rp5",
+      "startS": 30.400000000000023,
+      "endS": 31.900000000000027,
+      "text": "Remercie et dis au revoir.",
+      "words": [
+        {
+          "text": "Remercie",
+          "startS": 30.400000000000023,
+          "endS": 30.700000000000024,
+          "confidence": 0.9
+        },
+        {
+          "text": "et",
+          "startS": 30.700000000000024,
+          "endS": 31.000000000000025,
+          "confidence": 0.9
+        },
+        {
+          "text": "dis",
+          "startS": 31.000000000000025,
+          "endS": 31.300000000000026,
+          "confidence": 0.9
+        },
+        {
+          "text": "au",
+          "startS": 31.300000000000026,
+          "endS": 31.600000000000026,
+          "confidence": 0.9
+        },
+        {
+          "text": "revoir.",
+          "startS": 31.600000000000026,
+          "endS": 31.900000000000027,
+          "confidence": 0.9
+        }
+      ]
+    },
+    {
+      "utteranceId": "u10",
+      "role": "candidate",
+      "speakerCluster": "SPEAKER_01",
+      "part": "rolePlay",
+      "questionId": "rp5",
+      "startS": 33.90000000000003,
+      "endS": 35.40000000000001,
+      "text": "Oui d'accord voilà ma réponse",
+      "words": [
+        {
+          "text": "Oui",
+          "startS": 33.90000000000003,
+          "endS": 34.200000000000024,
+          "confidence": 0.9
+        },
+        {
+          "text": "d'accord",
+          "startS": 34.200000000000024,
+          "endS": 34.50000000000002,
+          "confidence": 0.9
+        },
+        {
+          "text": "voilà",
+          "startS": 34.50000000000002,
+          "endS": 34.80000000000002,
+          "confidence": 0.9
+        },
+        {
+          "text": "ma",
+          "startS": 34.80000000000002,
+          "endS": 35.100000000000016,
+          "confidence": 0.9
+        },
+        {
+          "text": "réponse",
+          "startS": 35.100000000000016,
+          "endS": 35.40000000000001,
+          "confidence": 0.9
+        }
+      ]
+    },
+    {
+      "utteranceId": "u11",
+      "role": "examiner",
+      "speakerCluster": "SPEAKER_00",
+      "part": "topic1",
+      "questionId": "t1q1",
+      "startS": 37.40000000000001,
+      "endS": 38.6,
+      "text": "Comment tu t'appelles ?",
+      "words": [
+        {
+          "text": "Comment",
+          "startS": 37.40000000000001,
+          "endS": 37.70000000000001,
+          "confidence": 0.9
+        },
+        {
+          "text": "tu",
+          "startS": 37.70000000000001,
+          "endS": 38.00000000000001,
+          "confidence": 0.9
+        },
+        {
+          "text": "t'appelles",
+          "startS": 38.00000000000001,
+          "endS": 38.300000000000004,
+          "confidence": 0.9
+        },
+        {
+          "text": "?",
+          "startS": 38.300000000000004,
+          "endS": 38.6,
+          "confidence": 0.9
+        }
+      ]
+    },
+    {
+      "utteranceId": "u12",
+      "role": "candidate",
+      "speakerCluster": "SPEAKER_01",
+      "part": "topic1",
+      "questionId": "t1q1",
+      "startS": 40.6,
+      "endS": 42.09999999999999,
+      "text": "Oui d'accord voilà ma réponse",
+      "words": [
+        {
+          "text": "Oui",
+          "startS": 40.6,
+          "endS": 40.9,
+          "confidence": 0.9
+        },
+        {
+          "text": "d'accord",
+          "startS": 40.9,
+          "endS": 41.199999999999996,
+          "confidence": 0.9
+        },
+        {
+          "text": "voilà",
+          "startS": 41.199999999999996,
+          "endS": 41.49999999999999,
+          "confidence": 0.9
+        },
+        {
+          "text": "ma",
+          "startS": 41.49999999999999,
+          "endS": 41.79999999999999,
+          "confidence": 0.9
+        },
+        {
+          "text": "réponse",
+          "startS": 41.79999999999999,
+          "endS": 42.09999999999999,
+          "confidence": 0.9
+        }
+      ]
+    },
+    {
+      "utteranceId": "u13",
+      "role": "examiner",
+      "speakerCluster": "SPEAKER_00",
+      "part": "topic1",
+      "questionId": "t1q2",
+      "startS": 44.09999999999999,
+      "endS": 44.99999999999998,
+      "text": "Où habites-tu ?",
+      "words": [
+        {
+          "text": "Où",
+          "startS": 44.09999999999999,
+          "endS": 44.399999999999984,
+          "confidence": 0.9
+        },
+        {
+          "text": "habites-tu",
+          "startS": 44.399999999999984,
+          "endS": 44.69999999999998,
+          "confidence": 0.9
+        },
+        {
+          "text": "?",
+          "startS": 44.69999999999998,
+          "endS": 44.99999999999998,
+          "confidence": 0.9
+        }
+      ]
+    },
+    {
+      "utteranceId": "u14",
+      "role": "candidate",
+      "speakerCluster": "SPEAKER_01",
+      "part": "topic1",
+      "questionId": "t1q2",
+      "startS": 46.99999999999998,
+      "endS": 48.499999999999964,
+      "text": "Oui d'accord voilà ma réponse",
+      "words": [
+        {
+          "text": "Oui",
+          "startS": 46.99999999999998,
+          "endS": 47.299999999999976,
+          "confidence": 0.9
+        },
+        {
+          "text": "d'accord",
+          "startS": 47.299999999999976,
+          "endS": 47.59999999999997,
+          "confidence": 0.9
+        },
+        {
+          "text": "voilà",
+          "startS": 47.59999999999997,
+          "endS": 47.89999999999997,
+          "confidence": 0.9
+        },
+        {
+          "text": "ma",
+          "startS": 47.89999999999997,
+          "endS": 48.19999999999997,
+          "confidence": 0.9
+        },
+        {
+          "text": "réponse",
+          "startS": 48.19999999999997,
+          "endS": 48.499999999999964,
+          "confidence": 0.9
+        }
+      ]
+    },
+    {
+      "utteranceId": "u15",
+      "role": "examiner",
+      "speakerCluster": "SPEAKER_00",
+      "part": "topic1",
+      "questionId": "t1q3",
+      "startS": 50.499999999999964,
+      "endS": 51.399999999999956,
+      "text": "Décris ta famille.",
+      "words": [
+        {
+          "text": "Décris",
+          "startS": 50.499999999999964,
+          "endS": 50.79999999999996,
+          "confidence": 0.9
+        },
+        {
+          "text": "ta",
+          "startS": 50.79999999999996,
+          "endS": 51.09999999999996,
+          "confidence": 0.9
+        },
+        {
+          "text": "famille.",
+          "startS": 51.09999999999996,
+          "endS": 51.399999999999956,
+          "confidence": 0.9
+        }
+      ]
+    },
+    {
+      "utteranceId": "u16",
+      "role": "candidate",
+      "speakerCluster": "SPEAKER_01",
+      "part": "topic1",
+      "questionId": "t1q3",
+      "startS": 53.399999999999956,
+      "endS": 54.89999999999994,
+      "text": "Oui d'accord voilà ma réponse",
+      "words": [
+        {
+          "text": "Oui",
+          "startS": 53.399999999999956,
+          "endS": 53.69999999999995,
+          "confidence": 0.9
+        },
+        {
+          "text": "d'accord",
+          "startS": 53.69999999999995,
+          "endS": 53.99999999999995,
+          "confidence": 0.9
+        },
+        {
+          "text": "voilà",
+          "startS": 53.99999999999995,
+          "endS": 54.29999999999995,
+          "confidence": 0.9
+        },
+        {
+          "text": "ma",
+          "startS": 54.29999999999995,
+          "endS": 54.599999999999945,
+          "confidence": 0.9
+        },
+        {
+          "text": "réponse",
+          "startS": 54.599999999999945,
+          "endS": 54.89999999999994,
+          "confidence": 0.9
+        }
+      ]
+    },
+    {
+      "utteranceId": "u17",
+      "role": "examiner",
+      "speakerCluster": "SPEAKER_00",
+      "part": "topic1",
+      "questionId": "t1q4",
+      "startS": 56.89999999999994,
+      "endS": 59.599999999999916,
+      "text": "Qu'est-ce que tu as fait le week-end dernier ?",
+      "words": [
+        {
+          "text": "Qu'est-ce",
+          "startS": 56.89999999999994,
+          "endS": 57.19999999999994,
+          "confidence": 0.9
+        },
+        {
+          "text": "que",
+          "startS": 57.19999999999994,
+          "endS": 57.499999999999936,
+          "confidence": 0.9
+        },
+        {
+          "text": "tu",
+          "startS": 57.499999999999936,
+          "endS": 57.79999999999993,
+          "confidence": 0.9
+        },
+        {
+          "text": "as",
+          "startS": 57.79999999999993,
+          "endS": 58.09999999999993,
+          "confidence": 0.9
+        },
+        {
+          "text": "fait",
+          "startS": 58.09999999999993,
+          "endS": 58.39999999999993,
+          "confidence": 0.9
+        },
+        {
+          "text": "le",
+          "startS": 58.39999999999993,
+          "endS": 58.699999999999925,
+          "confidence": 0.9
+        },
+        {
+          "text": "week-end",
+          "startS": 58.699999999999925,
+          "endS": 58.99999999999992,
+          "confidence": 0.9
+        },
+        {
+          "text": "dernier",
+          "startS": 58.99999999999992,
+          "endS": 59.29999999999992,
+          "confidence": 0.9
+        },
+        {
+          "text": "?",
+          "startS": 59.29999999999992,
+          "endS": 59.599999999999916,
+          "confidence": 0.9
+        }
+      ]
+    },
+    {
+      "utteranceId": "u18",
+      "role": "candidate",
+      "speakerCluster": "SPEAKER_01",
+      "part": "topic1",
+      "questionId": "t1q4",
+      "startS": 61.599999999999916,
+      "endS": 63.0999999999999,
+      "text": "Oui d'accord voilà ma réponse",
+      "words": [
+        {
+          "text": "Oui",
+          "startS": 61.599999999999916,
+          "endS": 61.89999999999991,
+          "confidence": 0.9
+        },
+        {
+          "text": "d'accord",
+          "startS": 61.89999999999991,
+          "endS": 62.19999999999991,
+          "confidence": 0.9
+        },
+        {
+          "text": "voilà",
+          "startS": 62.19999999999991,
+          "endS": 62.49999999999991,
+          "confidence": 0.9
+        },
+        {
+          "text": "ma",
+          "startS": 62.49999999999991,
+          "endS": 62.799999999999905,
+          "confidence": 0.9
+        },
+        {
+          "text": "réponse",
+          "startS": 62.799999999999905,
+          "endS": 63.0999999999999,
+          "confidence": 0.9
+        }
+      ]
+    },
+    {
+      "utteranceId": "u19",
+      "role": "examiner",
+      "speakerCluster": "SPEAKER_00",
+      "part": "topic1",
+      "questionId": "t1q5",
+      "startS": 65.09999999999991,
+      "endS": 66.89999999999989,
+      "text": "Que feras-tu pendant les vacances ?",
+      "words": [
+        {
+          "text": "Que",
+          "startS": 65.09999999999991,
+          "endS": 65.3999999999999,
+          "confidence": 0.9
+        },
+        {
+          "text": "feras-tu",
+          "startS": 65.3999999999999,
+          "endS": 65.6999999999999,
+          "confidence": 0.9
+        },
+        {
+          "text": "pendant",
+          "startS": 65.6999999999999,
+          "endS": 65.9999999999999,
+          "confidence": 0.9
+        },
+        {
+          "text": "les",
+          "startS": 65.9999999999999,
+          "endS": 66.2999999999999,
+          "confidence": 0.9
+        },
+        {
+          "text": "vacances",
+          "startS": 66.2999999999999,
+          "endS": 66.5999999999999,
+          "confidence": 0.9
+        },
+        {
+          "text": "?",
+          "startS": 66.5999999999999,
+          "endS": 66.89999999999989,
+          "confidence": 0.9
+        }
+      ]
+    },
+    {
+      "utteranceId": "u20",
+      "role": "candidate",
+      "speakerCluster": "SPEAKER_01",
+      "part": "topic1",
+      "questionId": "t1q5",
+      "startS": 68.89999999999989,
+      "endS": 70.39999999999988,
+      "text": "Oui d'accord voilà ma réponse",
+      "words": [
+        {
+          "text": "Oui",
+          "startS": 68.89999999999989,
+          "endS": 69.19999999999989,
+          "confidence": 0.9
+        },
+        {
+          "text": "d'accord",
+          "startS": 69.19999999999989,
+          "endS": 69.49999999999989,
+          "confidence": 0.9
+        },
+        {
+          "text": "voilà",
+          "startS": 69.49999999999989,
+          "endS": 69.79999999999988,
+          "confidence": 0.9
+        },
+        {
+          "text": "ma",
+          "startS": 69.79999999999988,
+          "endS": 70.09999999999988,
+          "confidence": 0.9
+        },
+        {
+          "text": "réponse",
+          "startS": 70.09999999999988,
+          "endS": 70.39999999999988,
+          "confidence": 0.9
+        }
+      ]
+    },
+    {
+      "utteranceId": "u21",
+      "role": "examiner",
+      "speakerCluster": "SPEAKER_00",
+      "part": "topic2",
+      "questionId": "t2q1",
+      "startS": 72.39999999999988,
+      "endS": 74.19999999999986,
+      "text": "Quelle est ta matière préférée ?",
+      "words": [
+        {
+          "text": "Quelle",
+          "startS": 72.39999999999988,
+          "endS": 72.69999999999987,
+          "confidence": 0.9
+        },
+        {
+          "text": "est",
+          "startS": 72.69999999999987,
+          "endS": 72.99999999999987,
+          "confidence": 0.9
+        },
+        {
+          "text": "ta",
+          "startS": 72.99999999999987,
+          "endS": 73.29999999999987,
+          "confidence": 0.9
+        },
+        {
+          "text": "matière",
+          "startS": 73.29999999999987,
+          "endS": 73.59999999999987,
+          "confidence": 0.9
+        },
+        {
+          "text": "préférée",
+          "startS": 73.59999999999987,
+          "endS": 73.89999999999986,
+          "confidence": 0.9
+        },
+        {
+          "text": "?",
+          "startS": 73.89999999999986,
+          "endS": 74.19999999999986,
+          "confidence": 0.9
+        }
+      ]
+    },
+    {
+      "utteranceId": "u22",
+      "role": "candidate",
+      "speakerCluster": "SPEAKER_01",
+      "part": "topic2",
+      "questionId": "t2q1",
+      "startS": 76.19999999999986,
+      "endS": 77.69999999999985,
+      "text": "Oui d'accord voilà ma réponse",
+      "words": [
+        {
+          "text": "Oui",
+          "startS": 76.19999999999986,
+          "endS": 76.49999999999986,
+          "confidence": 0.9
+        },
+        {
+          "text": "d'accord",
+          "startS": 76.49999999999986,
+          "endS": 76.79999999999986,
+          "confidence": 0.9
+        },
+        {
+          "text": "voilà",
+          "startS": 76.79999999999986,
+          "endS": 77.09999999999985,
+          "confidence": 0.9
+        },
+        {
+          "text": "ma",
+          "startS": 77.09999999999985,
+          "endS": 77.39999999999985,
+          "confidence": 0.9
+        },
+        {
+          "text": "réponse",
+          "startS": 77.39999999999985,
+          "endS": 77.69999999999985,
+          "confidence": 0.9
+        }
+      ]
+    },
+    {
+      "utteranceId": "u23",
+      "role": "examiner",
+      "speakerCluster": "SPEAKER_00",
+      "part": "topic2",
+      "questionId": "t2q2",
+      "startS": 79.69999999999985,
+      "endS": 82.09999999999982,
+      "text": "Qu'est-ce que tu aimes faire le week-end ?",
+      "words": [
+        {
+          "text": "Qu'est-ce",
+          "startS": 79.69999999999985,
+          "endS": 79.99999999999984,
+          "confidence": 0.9
+        },
+        {
+          "text": "que",
+          "startS": 79.99999999999984,
+          "endS": 80.29999999999984,
+          "confidence": 0.9
+        },
+        {
+          "text": "tu",
+          "startS": 80.29999999999984,
+          "endS": 80.59999999999984,
+          "confidence": 0.9
+        },
+        {
+          "text": "aimes",
+          "startS": 80.59999999999984,
+          "endS": 80.89999999999984,
+          "confidence": 0.9
+        },
+        {
+          "text": "faire",
+          "startS": 80.89999999999984,
+          "endS": 81.19999999999983,
+          "confidence": 0.9
+        },
+        {
+          "text": "le",
+          "startS": 81.19999999999983,
+          "endS": 81.49999999999983,
+          "confidence": 0.9
+        },
+        {
+          "text": "week-end",
+          "startS": 81.49999999999983,
+          "endS": 81.79999999999983,
+          "confidence": 0.9
+        },
+        {
+          "text": "?",
+          "startS": 81.79999999999983,
+          "endS": 82.09999999999982,
+          "confidence": 0.9
+        }
+      ]
+    },
+    {
+      "utteranceId": "u24",
+      "role": "candidate",
+      "speakerCluster": "SPEAKER_01",
+      "part": "topic2",
+      "questionId": "t2q2",
+      "startS": 84.09999999999982,
+      "endS": 85.59999999999981,
+      "text": "Oui d'accord voilà ma réponse",
+      "words": [
+        {
+          "text": "Oui",
+          "startS": 84.09999999999982,
+          "endS": 84.39999999999982,
+          "confidence": 0.9
+        },
+        {
+          "text": "d'accord",
+          "startS": 84.39999999999982,
+          "endS": 84.69999999999982,
+          "confidence": 0.9
+        },
+        {
+          "text": "voilà",
+          "startS": 84.69999999999982,
+          "endS": 84.99999999999982,
+          "confidence": 0.9
+        },
+        {
+          "text": "ma",
+          "startS": 84.99999999999982,
+          "endS": 85.29999999999981,
+          "confidence": 0.9
+        },
+        {
+          "text": "réponse",
+          "startS": 85.29999999999981,
+          "endS": 85.59999999999981,
+          "confidence": 0.9
+        }
+      ]
+    },
+    {
+      "utteranceId": "u25",
+      "role": "examiner",
+      "speakerCluster": "SPEAKER_00",
+      "part": "topic2",
+      "questionId": "t2q3",
+      "startS": 87.59999999999981,
+      "endS": 88.4999999999998,
+      "text": "Décris ton collège.",
+      "words": [
+        {
+          "text": "Décris",
+          "startS": 87.59999999999981,
+          "endS": 87.8999999999998,
+          "confidence": 0.9
+        },
+        {
+          "text": "ton",
+          "startS": 87.8999999999998,
+          "endS": 88.1999999999998,
+          "confidence": 0.9
+        },
+        {
+          "text": "collège.",
+          "startS": 88.1999999999998,
+          "endS": 88.4999999999998,
+          "confidence": 0.9
+        }
+      ]
+    },
+    {
+      "utteranceId": "u26",
+      "role": "candidate",
+      "speakerCluster": "SPEAKER_01",
+      "part": "topic2",
+      "questionId": "t2q3",
+      "startS": 90.4999999999998,
+      "endS": 91.99999999999979,
+      "text": "Oui d'accord voilà ma réponse",
+      "words": [
+        {
+          "text": "Oui",
+          "startS": 90.4999999999998,
+          "endS": 90.7999999999998,
+          "confidence": 0.9
+        },
+        {
+          "text": "d'accord",
+          "startS": 90.7999999999998,
+          "endS": 91.0999999999998,
+          "confidence": 0.9
+        },
+        {
+          "text": "voilà",
+          "startS": 91.0999999999998,
+          "endS": 91.39999999999979,
+          "confidence": 0.9
+        },
+        {
+          "text": "ma",
+          "startS": 91.39999999999979,
+          "endS": 91.69999999999979,
+          "confidence": 0.9
+        },
+        {
+          "text": "réponse",
+          "startS": 91.69999999999979,
+          "endS": 91.99999999999979,
+          "confidence": 0.9
+        }
+      ]
+    },
+    {
+      "utteranceId": "u27",
+      "role": "examiner",
+      "speakerCluster": "SPEAKER_00",
+      "part": "topic2",
+      "questionId": "t2q4",
+      "startS": 93.99999999999979,
+      "endS": 96.39999999999976,
+      "text": "Qu'est-ce que tu as étudié l'année dernière ?",
+      "words": [
+        {
+          "text": "Qu'est-ce",
+          "startS": 93.99999999999979,
+          "endS": 94.29999999999978,
+          "confidence": 0.9
+        },
+        {
+          "text": "que",
+          "startS": 94.29999999999978,
+          "endS": 94.59999999999978,
+          "confidence": 0.9
+        },
+        {
+          "text": "tu",
+          "startS": 94.59999999999978,
+          "endS": 94.89999999999978,
+          "confidence": 0.9
+        },
+        {
+          "text": "as",
+          "startS": 94.89999999999978,
+          "endS": 95.19999999999978,
+          "confidence": 0.9
+        },
+        {
+          "text": "étudié",
+          "startS": 95.19999999999978,
+          "endS": 95.49999999999977,
+          "confidence": 0.9
+        },
+        {
+          "text": "l'année",
+          "startS": 95.49999999999977,
+          "endS": 95.79999999999977,
+          "confidence": 0.9
+        },
+        {
+          "text": "dernière",
+          "startS": 95.79999999999977,
+          "endS": 96.09999999999977,
+          "confidence": 0.9
+        },
+        {
+          "text": "?",
+          "startS": 96.09999999999977,
+          "endS": 96.39999999999976,
+          "confidence": 0.9
+        }
+      ]
+    },
+    {
+      "utteranceId": "u28",
+      "role": "candidate",
+      "speakerCluster": "SPEAKER_01",
+      "part": "topic2",
+      "questionId": "t2q4",
+      "startS": 98.39999999999976,
+      "endS": 99.89999999999975,
+      "text": "Oui d'accord voilà ma réponse",
+      "words": [
+        {
+          "text": "Oui",
+          "startS": 98.39999999999976,
+          "endS": 98.69999999999976,
+          "confidence": 0.9
+        },
+        {
+          "text": "d'accord",
+          "startS": 98.69999999999976,
+          "endS": 98.99999999999976,
+          "confidence": 0.9
+        },
+        {
+          "text": "voilà",
+          "startS": 98.99999999999976,
+          "endS": 99.29999999999976,
+          "confidence": 0.9
+        },
+        {
+          "text": "ma",
+          "startS": 99.29999999999976,
+          "endS": 99.59999999999975,
+          "confidence": 0.9
+        },
+        {
+          "text": "réponse",
+          "startS": 99.59999999999975,
+          "endS": 99.89999999999975,
+          "confidence": 0.9
+        }
+      ]
+    },
+    {
+      "utteranceId": "u29",
+      "role": "examiner",
+      "speakerCluster": "SPEAKER_00",
+      "part": "topic2",
+      "questionId": "t2q5",
+      "startS": 101.89999999999975,
+      "endS": 104.59999999999972,
+      "text": "Qu'est-ce que tu voudrais étudier après le collège ?",
+      "words": [
+        {
+          "text": "Qu'est-ce",
+          "startS": 101.89999999999975,
+          "endS": 102.19999999999975,
+          "confidence": 0.9
+        },
+        {
+          "text": "que",
+          "startS": 102.19999999999975,
+          "endS": 102.49999999999974,
+          "confidence": 0.9
+        },
+        {
+          "text": "tu",
+          "startS": 102.49999999999974,
+          "endS": 102.79999999999974,
+          "confidence": 0.9
+        },
+        {
+          "text": "voudrais",
+          "startS": 102.79999999999974,
+          "endS": 103.09999999999974,
+          "confidence": 0.9
+        },
+        {
+          "text": "étudier",
+          "startS": 103.09999999999974,
+          "endS": 103.39999999999974,
+          "confidence": 0.9
+        },
+        {
+          "text": "après",
+          "startS": 103.39999999999974,
+          "endS": 103.69999999999973,
+          "confidence": 0.9
+        },
+        {
+          "text": "le",
+          "startS": 103.69999999999973,
+          "endS": 103.99999999999973,
+          "confidence": 0.9
+        },
+        {
+          "text": "collège",
+          "startS": 103.99999999999973,
+          "endS": 104.29999999999973,
+          "confidence": 0.9
+        },
+        {
+          "text": "?",
+          "startS": 104.29999999999973,
+          "endS": 104.59999999999972,
+          "confidence": 0.9
+        }
+      ]
+    },
+    {
+      "utteranceId": "u30",
+      "role": "candidate",
+      "speakerCluster": "SPEAKER_01",
+      "part": "topic2",
+      "questionId": "t2q5",
+      "startS": 106.59999999999972,
+      "endS": 108.09999999999971,
+      "text": "Oui d'accord voilà ma réponse",
+      "words": [
+        {
+          "text": "Oui",
+          "startS": 106.59999999999972,
+          "endS": 106.89999999999972,
+          "confidence": 0.9
+        },
+        {
+          "text": "d'accord",
+          "startS": 106.89999999999972,
+          "endS": 107.19999999999972,
+          "confidence": 0.9
+        },
+        {
+          "text": "voilà",
+          "startS": 107.19999999999972,
+          "endS": 107.49999999999972,
+          "confidence": 0.9
+        },
+        {
+          "text": "ma",
+          "startS": 107.49999999999972,
+          "endS": 107.79999999999971,
+          "confidence": 0.9
+        },
+        {
+          "text": "réponse",
+          "startS": 107.79999999999971,
+          "endS": 108.09999999999971,
+          "confidence": 0.9
+        }
+      ]
+    }
+  ],
+  "examinerEvents": [
+    {
+      "eventId": "e1",
+      "utteranceId": "u1",
+      "atS": 0,
+      "part": "rolePlay",
+      "kind": "main_question",
+      "questionId": "rp1",
+      "matchScore": 1
+    },
+    {
+      "eventId": "e2",
+      "utteranceId": "u3",
+      "atS": 7.299999999999999,
+      "part": "rolePlay",
+      "kind": "main_question",
+      "questionId": "rp2",
+      "matchScore": 1
+    },
+    {
+      "eventId": "e3",
+      "utteranceId": "u5",
+      "atS": 14.300000000000004,
+      "part": "rolePlay",
+      "kind": "main_question",
+      "questionId": "rp3",
+      "matchScore": 1
+    },
+    {
+      "eventId": "e4",
+      "utteranceId": "u7",
+      "atS": 23.100000000000016,
+      "part": "rolePlay",
+      "kind": "main_question",
+      "questionId": "rp4",
+      "matchScore": 1
+    },
+    {
+      "eventId": "e5",
+      "utteranceId": "u9",
+      "atS": 30.400000000000023,
+      "part": "rolePlay",
+      "kind": "main_question",
+      "questionId": "rp5",
+      "matchScore": 1
+    },
+    {
+      "eventId": "e6",
+      "utteranceId": "u11",
+      "atS": 37.40000000000001,
+      "part": "topic1",
+      "kind": "main_question",
+      "questionId": "t1q1",
+      "matchScore": 1
+    },
+    {
+      "eventId": "e7",
+      "utteranceId": "u13",
+      "atS": 44.09999999999999,
+      "part": "topic1",
+      "kind": "main_question",
+      "questionId": "t1q2",
+      "matchScore": 1
+    },
+    {
+      "eventId": "e8",
+      "utteranceId": "u15",
+      "atS": 50.499999999999964,
+      "part": "topic1",
+      "kind": "main_question",
+      "questionId": "t1q3",
+      "matchScore": 1
+    },
+    {
+      "eventId": "e9",
+      "utteranceId": "u17",
+      "atS": 56.89999999999994,
+      "part": "topic1",
+      "kind": "main_question",
+      "questionId": "t1q4",
+      "matchScore": 1
+    },
+    {
+      "eventId": "e10",
+      "utteranceId": "u19",
+      "atS": 65.09999999999991,
+      "part": "topic1",
+      "kind": "main_question",
+      "questionId": "t1q5",
+      "matchScore": 1
+    },
+    {
+      "eventId": "e11",
+      "utteranceId": "u21",
+      "atS": 72.39999999999988,
+      "part": "topic2",
+      "kind": "main_question",
+      "questionId": "t2q1",
+      "matchScore": 1
+    },
+    {
+      "eventId": "e12",
+      "utteranceId": "u23",
+      "atS": 79.69999999999985,
+      "part": "topic2",
+      "kind": "main_question",
+      "questionId": "t2q2",
+      "matchScore": 1
+    },
+    {
+      "eventId": "e13",
+      "utteranceId": "u25",
+      "atS": 87.59999999999981,
+      "part": "topic2",
+      "kind": "main_question",
+      "questionId": "t2q3",
+      "matchScore": 1
+    },
+    {
+      "eventId": "e14",
+      "utteranceId": "u27",
+      "atS": 93.99999999999979,
+      "part": "topic2",
+      "kind": "main_question",
+      "questionId": "t2q4",
+      "matchScore": 1
+    },
+    {
+      "eventId": "e15",
+      "utteranceId": "u29",
+      "atS": 101.89999999999975,
+      "part": "topic2",
+      "kind": "main_question",
+      "questionId": "t2q5",
+      "matchScore": 1
+    }
+  ]
+}
