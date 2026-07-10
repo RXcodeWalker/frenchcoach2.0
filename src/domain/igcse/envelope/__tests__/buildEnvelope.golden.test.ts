@@ -131,4 +131,22 @@ describe('buildScoringEnvelope golden regression', () => {
     const envelope = buildScoringEnvelope({ ...buildInput(), regradedFrom: 'attempt-0' });
     expect(envelope.regradedFrom).toBe('attempt-0');
   });
+
+  it('omits questionSetId/questionSetHash when not provided (backward compatibility)', () => {
+    const envelope = buildScoringEnvelope(buildInput());
+    expect(envelope.questionSetId).toBeUndefined();
+    expect(envelope.questionSetHash).toBeUndefined();
+    expect('questionSetId' in envelope).toBe(false);
+    expect('questionSetHash' in envelope).toBe(false);
+  });
+
+  it('includes questionSetId/questionSetHash when provided', () => {
+    const envelope = buildScoringEnvelope({
+      ...buildInput(),
+      questionSetId: 'qs-1',
+      questionSetHash: 'hash-abc',
+    });
+    expect(envelope.questionSetId).toBe('qs-1');
+    expect(envelope.questionSetHash).toBe('hash-abc');
+  });
 });

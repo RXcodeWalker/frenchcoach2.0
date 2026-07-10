@@ -79,6 +79,8 @@ const ScoringEnvelopeSchema = z.object({
     userCorrected: z.boolean(),
   }),
   anchorsUsedByCriterion: z.record(CriterionSchema, z.array(z.string())),
+  questionSetId: z.string().optional(),
+  questionSetHash: z.string().optional(),
   rolePlayTasks: z.array(RolePlayTaskSchema),
   communication: BandCriterionSchema,
   qualityOfLanguage: BandCriterionSchema,

@@ -53,6 +53,17 @@ describe('scoreAttempt', () => {
     expect(envelope.regradedFrom).toBeUndefined();
   });
 
+  it('carries the source session questionSetId/questionSetHash into the envelope', async () => {
+    const deps = makeDeps();
+    const envelope = await scoreAttempt(deps, {
+      sessionId: SESSION_ID,
+      questionSet: structQuestions as SessionQuestionSet,
+    });
+
+    expect(envelope.questionSetId).toBe((structGolden as unknown as SessionTranscript).questionSetId);
+    expect(envelope.questionSetHash).toBe((structGolden as unknown as SessionTranscript).questionSetHash);
+  });
+
   it('propagates ProvenanceError/JudgementValidationError unchanged rather than swallowing them', async () => {
     const deps = makeDeps();
     const badJudge = async () => ({ raw: 'not json' });

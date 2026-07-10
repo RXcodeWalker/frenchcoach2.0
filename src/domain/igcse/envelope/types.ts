@@ -97,6 +97,17 @@ export interface ScoringEnvelope {
   /** Always [] in S4 — no calibration anchors exist yet. */
   anchorsUsedByCriterion: Record<Criterion, string[]>;
 
+  /**
+   * Provenance of the question set the attempt was scored against — feeds both
+   * L1 (expectedTimeFrame, partsExpected) and the L2 prompt (mainText), so an
+   * unversioned question set breaks the envelope's provenance chain. Optional
+   * for backward compatibility with envelope-v0.1 envelopes persisted before
+   * this field existed.
+   */
+  questionSetId?: string;
+  /** sha256 of the canonicalized SessionQuestionSet — see SessionTranscript.questionSetHash. */
+  questionSetHash?: string;
+
   rolePlayTasks: EnvelopeRolePlayTask[];
   communication: EnvelopeBandCriterion;
   qualityOfLanguage: EnvelopeBandCriterion;

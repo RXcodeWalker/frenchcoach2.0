@@ -14,6 +14,11 @@
  * it only sees provider-call exceptions raised directly by createGeminiJudge's
  * `judge()` fn (network/timeout/4xx/5xx from the SDK).
  *
+ * Groq is constructed lazily, only inside the fallback branch — createGroqJudge()
+ * (and therefore `new Groq({...})`) must never run just because Gemini succeeded.
+ * Otherwise a caller with only GEMINI_API_KEY set (no GROQ_API_KEY) would crash
+ * on every attempt before Gemini is ever called.
+ *
  * Only one provider scores a given attempt — never both. The provider
  * actually used (and only that one) is recorded via getLastCallMetadata().
  *
@@ -50,7 +55,6 @@ export function createJudgeWithFallback(options: CreateJudgeWithFallbackOptions 
   getLastCallMetadata: () => JudgeFactoryCallMetadata | undefined;
 } {
   const gemini = createGeminiJudge(options.gemini);
-  const groq = createGroqJudge(options.groq);
 
   let lastCallMetadata: JudgeFactoryCallMetadata | undefined;
 
@@ -66,6 +70,7 @@ export function createJudgeWithFallback(options: CreateJudgeWithFallbackOptions 
       return result;
     } catch (geminiError) {
       try {
+        const groq = createGroqJudge(options.groq);
         const result = await groq.judge(req);
         const meta = groq.getLastCallMetadata();
         lastCallMetadata = {

@@ -20,7 +20,7 @@ import type { ContentProvenance, RawAsrResult, SessionQuestionSet } from '../../
 
 const SESSIONS_ROOT = path.join(process.cwd(), 'data', 'sessions');
 
-interface CliArgs {
+export interface CliArgs {
   session: string;
   provider: 'whisperx' | 'fixture';
   hfToken?: string;
@@ -54,8 +54,27 @@ function sha256(buffer: Buffer): string {
   return crypto.createHash('sha256').update(buffer).digest('hex');
 }
 
-function canonicalize(value: unknown): string {
-  return JSON.stringify(value, Object.keys(value as object).sort());
+/**
+ * Recursively stable-key-sorted JSON serialization. JSON.stringify's replacer
+ * form of Object.keys(...).sort() only allowlists top-level keys — every
+ * nested object collapses to {} — so this walks the tree itself instead.
+ */
+export function canonicalize(value: unknown): string {
+  return JSON.stringify(sortKeysDeep(value));
+}
+
+function sortKeysDeep(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(sortKeysDeep);
+  }
+  if (value !== null && typeof value === 'object') {
+    const sorted: Record<string, unknown> = {};
+    for (const key of Object.keys(value as object).sort()) {
+      sorted[key] = sortKeysDeep((value as Record<string, unknown>)[key]);
+    }
+    return sorted;
+  }
+  return value;
 }
 
 async function loadQuestionSet(sessionDir: string): Promise<SessionQuestionSet> {
@@ -63,7 +82,7 @@ async function loadQuestionSet(sessionDir: string): Promise<SessionQuestionSet> 
   return JSON.parse(raw) as SessionQuestionSet;
 }
 
-function resolveProvider(args: CliArgs, fixtureResult?: RawAsrResult): TranscriptionProvider {
+export function resolveProvider(args: CliArgs, fixtureResult?: RawAsrResult): TranscriptionProvider {
   if (args.provider === 'fixture') {
     if (!fixtureResult) {
       throw new Error('--provider fixture requires a canned RawAsrResult; wire one in for smoke testing');
@@ -79,7 +98,7 @@ function resolveProvider(args: CliArgs, fixtureResult?: RawAsrResult): Transcrip
   });
 }
 
-async function main(): Promise<void> {
+async function main(fixtureResult?: RawAsrResult): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
   const sessionDir = path.join(SESSIONS_ROOT, args.session);
 
@@ -87,7 +106,7 @@ async function main(): Promise<void> {
   const audioPath = path.join(sessionDir, 'audio.wav');
   const audioBuffer = await fs.readFile(audioPath);
 
-  const provider = resolveProvider(args);
+  const provider = resolveProvider(args, fixtureResult);
   const raw = await provider.transcribe({
     audioPath,
     languageCode: 'fr',
@@ -128,7 +147,11 @@ async function main(): Promise<void> {
   );
 }
 
-main().catch((err) => {
-  console.error(err instanceof Error ? err.message : err);
-  process.exitCode = 1;
-});
+// Guarded so ingestSession's exports (canonicalize, resolveProvider, etc.) can
+// be imported by tests without invoking the CLI — same pattern as batchScore.ts.
+if (import.meta.url === `file://${process.argv[1]}`) {
+  main().catch((err) => {
+    console.error(err instanceof Error ? err.message : err);
+    process.exitCode = 1;
+  });
+}

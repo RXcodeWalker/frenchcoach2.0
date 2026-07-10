@@ -85,6 +85,8 @@ export async function scoreAttempt(
     },
     transcriptQuality: summariseQuality(session),
     userCorrected: session.userCorrected,
+    questionSetId: session.questionSetId,
+    questionSetHash: session.questionSetHash,
     llm: {
       provider: llmMetadata.provider,
       model: llmMetadata.model,

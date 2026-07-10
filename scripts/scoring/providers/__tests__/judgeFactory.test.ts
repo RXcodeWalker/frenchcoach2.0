@@ -102,6 +102,24 @@ describe('createJudgeWithFallback', () => {
     expect(groq.chat.completions.create).not.toHaveBeenCalled();
   });
 
+  it('does not construct or call Groq when Gemini succeeds, even with no client injected and no GROQ_API_KEY', async () => {
+    const originalGroqApiKey = process.env.GROQ_API_KEY;
+    delete process.env.GROQ_API_KEY;
+    try {
+      const gemini = geminiClient('succeed');
+      // No `groq` option at all — createGroqJudge (and `new Groq(...)`) must
+      // never be reached on the success path, so this must not throw.
+      const { judge, getLastCallMetadata } = createJudgeWithFallback({ gemini: { client: gemini } });
+
+      const result = await judge({ prompt: 'hello' });
+
+      expect(result).toEqual({ raw: '{"ok":true}' });
+      expect(getLastCallMetadata()?.provider).toBe('gemini');
+    } finally {
+      if (originalGroqApiKey !== undefined) process.env.GROQ_API_KEY = originalGroqApiKey;
+    }
+  });
+
   it('produces independent metadata across concurrent fresh factory invocations', async () => {
     const factories = Array.from({ length: 5 }, (_, i) => {
       const gemini = geminiClient('succeed', `{"n":${i}}`);

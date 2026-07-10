@@ -39,6 +39,10 @@ export interface BuildScoringEnvelopeInput {
     evidenceDetectorVersion: string;
     scoringPromptVersion: string;
   };
+  /** See ScoringEnvelope.questionSetId — omitted when the caller has no question set provenance. */
+  questionSetId?: string;
+  /** See ScoringEnvelope.questionSetHash. */
+  questionSetHash?: string;
   regradedFrom?: string;
 }
 
@@ -106,6 +110,12 @@ export function buildScoringEnvelope(input: BuildScoringEnvelopeInput): ScoringE
     transcriptSnapshot: input.transcript,
   };
 
+  if (input.questionSetId !== undefined) {
+    envelope.questionSetId = input.questionSetId;
+  }
+  if (input.questionSetHash !== undefined) {
+    envelope.questionSetHash = input.questionSetHash;
+  }
   if (input.regradedFrom !== undefined) {
     envelope.regradedFrom = input.regradedFrom;
   }
