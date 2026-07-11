@@ -20,7 +20,7 @@ function buildEnvelope(contentProvenance: ScoringEnvelope['contentProvenance']):
       scoringEngineVersion: 'engine-v0.1',
       evidenceDetectorVersion: 'detectors-v0.1',
       scoringPromptVersion: 'scoring-prompt-v0.1',
-      guardrailsVersion: 'none',
+      guardrailsVersion: 'guardrails-v0.1',
       calibrationVersion: 'none',
       gradeBoundarySeries: 'none',
     },
@@ -72,6 +72,7 @@ function buildEnvelope(contentProvenance: ScoringEnvelope['contentProvenance']):
       responseCountsByQuestion: [],
       fillerDensityByQuestion: [],
       rolePlayPartsByTask: [],
+      topicConversationDurationByConversation: [],
     },
     transcriptSnapshot: {
       contentProvenance,

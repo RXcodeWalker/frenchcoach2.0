@@ -459,3 +459,96 @@ this environment). `npm run score:batch -- --judge gemini` against a real
 session with live `GEMINI_API_KEY`/`GROQ_API_KEY` credentials, including a
 deliberate Gemini-failure scenario to confirm the Groq fallback path fires
 in practice, remains an outstanding manual verification step.
+
+---
+
+## S5 — Guardrails v1 + synthetic trip set
+
+Built the first slice of Layer 3: `src/domain/igcse/guardrails/` with two
+pure, deterministic, advisory-only guardrails, wired into the envelope.
+
+- `quoteVerification.ts::verifyQuotes` — every evidence span quoted in a
+  `SpeakingAssessment` must be a substring of the transcript (normalized).
+  Reuses the existing `buildEvidenceCorpora` / `isQuoteGrounded` helpers from
+  `judgement/schema.ts` rather than duplicating quote-matching logic. Silent
+  by construction on real judge output (L2 parse already rejects ungrounded
+  quotes); exists as defense-in-depth and an independently testable L3 unit.
+- `insufficientEvidence.ts::checkInsufficientEvidence` — fires when combined
+  topic-conversation candidate material is below threshold: `< 240s` total
+  candidate speaking duration OR `< 200` combined words
+  (`guardrails/config.ts::DEFAULT_DURATION_CONFIG`, labelled `UNVALIDATED`,
+  tuned in Phase A/S6). The duration sub-check only applies when total
+  duration `> 0`, since `candidateSpeakingDurationS` is `0` whenever no turn
+  carries STT timing (hand-authored transcripts) and absence is not a penalty
+  signal — a dedicated regression test asserts this does not false-positive.
+- `runGuardrails.ts` composes both into a `GuardrailReport`; pure, no I/O.
+- `guardrails/__tests__/synthetic.ts` — the trip-set fixtures: a clean,
+  sufficiently long transcript/assessment pair (silent on both guardrails), a
+  hand-built fabricated-quote assessment (fires quote verification), a
+  low-word-count transcript (fires the word sub-check only), and a
+  long-but-slow-timed transcript (fires the duration sub-check only).
+  Structured/commented by guardrail origin so S6 can extend rather than
+  rewrite it.
+- Version-pin test hashes `{config, report}` together (not report alone), so
+  a threshold edit in `config.ts` always changes the hash even when it
+  doesn't flip a fixture's trigger — forcing a `GUARDRAILS_VERSION` bump in
+  the same commit as any threshold change.
+
+### Wired into the envelope (advisory only)
+
+- `envelope/types.ts`: `VersionStack.guardrailsVersion` widened from the
+  literal `'none'` to `string`. `guardrailTriggers` is no longer hardcoded
+  empty. `calibrationVersion` / `gradeBoundarySeries` remain `'none'`
+  (S8/S12) — only the S5 seam changed.
+- `envelope/schema.ts`: `guardrailsVersion` relaxed from `z.literal('none')`
+  to `z.string()` — backward-compatible (old `'none'` envelopes still parse),
+  so no `ENVELOPE_SCHEMA_VERSION` bump or upcaster was needed.
+- `envelope/buildEnvelope.ts`: `BuildScoringEnvelopeInput` gains
+  `versions.guardrailsVersion` and top-level `guardrailTriggers`, both now
+  required inputs (no more sentinel fill-in).
+- `scripts/scoring/scoreAttempt.ts`: calls `runGuardrails(assessment,
+  evidenceProfile, speakingTranscript)` after `scoreSpeaking`, threads
+  trigger ids and `GUARDRAILS_VERSION` into `buildScoringEnvelope`.
+  Guardrails remain advisory in v1 — no mark-clamping, no `unscored`
+  short-circuit, no `CriterionConfidence` widening (all Phase-A-gated,
+  S6/S7).
+- Updated all envelope/comparison fixture blocks that construct
+  `BuildScoringEnvelopeInput` or a raw `ScoringEnvelope` to supply
+  `guardrailsVersion: 'guardrails-v0.1'` and `guardrailTriggers: []`:
+  `buildEnvelope.golden.test.ts`, `sentinels.test.ts` (assertions updated
+  from "always none/empty" to "real value passed through"),
+  `sttEmbedding.test.ts`, `diff.test.ts`, `fileEnvelopeStore.test.ts`,
+  `supabaseEnvelopeStore.test.ts` (also fixed a pre-existing gap: its
+  `evidenceProfileSnapshot` fixture was missing
+  `topicConversationDurationByConversation`, added in S4 but never
+  backfilled into this fixture — surfaced now because TypeScript checks this
+  file for the first time in this task's typecheck pass).
+
+### Independently verified
+
+- `npm test`: 421/421 tests passing (64 files), including 9 new guardrail
+  tests across 5 new test files.
+- `npm run typecheck` / `npm run typecheck:scripts`: zero errors in any
+  `guardrails/`, `envelope/`, `judgement/`, `evidence/`, or `scripts/scoring/`
+  path; identical pre-existing unrelated error set in `src/data/`,
+  `src/screens/`.
+- `npx eslint` (full run): zero errors/warnings in any guardrails/envelope/
+  scoreAttempt file; identical pre-existing unrelated error set elsewhere.
+- Manual confirmation of the roadmap exit criterion: each guardrail's
+  fire/silent test pair directly demonstrates "every guardrail demonstrably
+  fires on its synthetic trigger and stays silent on clean transcripts" — no
+  app run needed (pure domain logic, no I/O).
+
+### Explicitly deferred
+
+- Mark-clamping / `unscored` short-circuit on guardrail trigger — advisory
+  only in v1, per roadmap (Phase-A-gated, S6/S7).
+- `CriterionConfidence` widening beyond the single `'unassessed'` literal —
+  deferred to the same Phase-A gate.
+- Threshold tuning (240s / 200 words) — labelled `UNVALIDATED`, tuned against
+  real teacher-graded transcripts in S6 (Phase A), not synthetic fixtures.
+- Extending the synthetic corpus to the full five-item examiner-report
+  taxonomy (wrong time frame, misunderstood interrogatives, dropped two-part
+  task, `c'est`/`c'était`, number without currency) — these map to L1/L2
+  signals, not to S5's two guardrails; `guardrails/__tests__/synthetic.ts` is
+  structured for S6 to extend.

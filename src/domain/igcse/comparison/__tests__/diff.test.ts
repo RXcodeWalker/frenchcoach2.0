@@ -40,7 +40,9 @@ function buildTestEnvelope() {
       scoringEngineVersion: 'engine-v0.1',
       evidenceDetectorVersion: 'detectors-v0.1',
       scoringPromptVersion: 'scoring-prompt-v0.1',
+      guardrailsVersion: 'guardrails-v0.1',
     },
+    guardrailTriggers: [],
   });
 }
 

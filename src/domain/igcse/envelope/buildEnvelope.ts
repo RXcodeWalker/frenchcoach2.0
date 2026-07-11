@@ -1,10 +1,11 @@
 /**
- * S4 pure envelope assembly. Zero scoring logic — combines already-computed
- * values (assessment, evidence, versions, transcript quality) into the
- * immutable ScoringEnvelope shape. Fills in the S4 sentinels
- * (guardrailsVersion/calibrationVersion/gradeBoundarySeries: 'none',
- * anchorsUsedByCriterion: [], guardrailTriggers: [], agreement: 'single_run',
- * confidence: 'unassessed') — never conditionals about marks/bands/evidence.
+ * S4 pure envelope assembly, extended in S5 to carry real guardrail output.
+ * Zero scoring logic — combines already-computed values (assessment,
+ * evidence, versions, transcript quality, guardrail triggers) into the
+ * immutable ScoringEnvelope shape. Still fills in the remaining S4 sentinels
+ * (calibrationVersion/gradeBoundarySeries: 'none', anchorsUsedByCriterion: [],
+ * agreement: 'single_run', confidence: 'unassessed') — never conditionals
+ * about marks/bands/evidence.
  */
 
 import type { EvidenceProfileSubset } from '../evidence/types';
@@ -38,7 +39,10 @@ export interface BuildScoringEnvelopeInput {
     scoringEngineVersion: string;
     evidenceDetectorVersion: string;
     scoringPromptVersion: string;
+    guardrailsVersion: string;
   };
+  /** S5 guardrail trigger ids from runGuardrails — see guardrails/. */
+  guardrailTriggers: string[];
   /** See ScoringEnvelope.questionSetId — omitted when the caller has no question set provenance. */
   questionSetId?: string;
   /** See ScoringEnvelope.questionSetHash. */
@@ -79,7 +83,7 @@ export function buildScoringEnvelope(input: BuildScoringEnvelopeInput): ScoringE
     scoringEngineVersion: input.versions.scoringEngineVersion,
     evidenceDetectorVersion: input.versions.evidenceDetectorVersion,
     scoringPromptVersion: input.versions.scoringPromptVersion,
-    guardrailsVersion: 'none',
+    guardrailsVersion: input.versions.guardrailsVersion,
     calibrationVersion: 'none',
     gradeBoundarySeries: 'none',
   };
@@ -104,7 +108,7 @@ export function buildScoringEnvelope(input: BuildScoringEnvelopeInput): ScoringE
     communication: toEnvelopeBandCriterion(input.assessment.communication),
     qualityOfLanguage: toEnvelopeBandCriterion(input.assessment.qualityOfLanguage),
     total: input.assessment.total,
-    guardrailTriggers: [],
+    guardrailTriggers: input.guardrailTriggers,
     selfConsistencyOutcomes: { agreement: 'single_run', rerunsRequested: 0 },
     evidenceProfileSnapshot: input.evidenceProfile,
     transcriptSnapshot: input.transcript,

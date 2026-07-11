@@ -14,6 +14,8 @@ import { buildEvidenceSubset } from '../../src/domain/igcse/evidence/buildEviden
 import { EVIDENCE_DETECTOR_VERSION } from '../../src/domain/igcse/evidence/version';
 import { buildScoringEnvelope } from '../../src/domain/igcse/envelope/buildEnvelope';
 import type { ScoringEnvelope } from '../../src/domain/igcse/envelope/types';
+import { runGuardrails } from '../../src/domain/igcse/guardrails/runGuardrails';
+import { GUARDRAILS_VERSION } from '../../src/domain/igcse/guardrails/version';
 import { scoreSpeaking } from '../../src/domain/igcse/judgement/scoreSpeaking';
 import type { Judge, SpeakingAssessment } from '../../src/domain/igcse/judgement/types';
 import { SCORING_PROMPT_VERSION } from '../../src/domain/igcse/judgement/version';
@@ -46,6 +48,7 @@ export interface ScoreAttemptDeps {
     scoringEngineVersion?: string;
     evidenceDetectorVersion?: string;
     scoringPromptVersion?: string;
+    guardrailsVersion?: string;
   };
 }
 
@@ -70,6 +73,8 @@ export async function scoreAttempt(
   if (!llmMetadata) {
     throw new Error('scoreAttempt: createJudge() instance produced no call metadata after scoreSpeaking');
   }
+
+  const guardrailReport = runGuardrails(assessment, evidenceProfile, speakingTranscript);
 
   const envelope = buildScoringEnvelope({
     attemptId: crypto.randomUUID(),
@@ -98,7 +103,9 @@ export async function scoreAttempt(
       scoringEngineVersion: deps.versions?.scoringEngineVersion ?? resolveScoringEngineVersion(),
       evidenceDetectorVersion: deps.versions?.evidenceDetectorVersion ?? EVIDENCE_DETECTOR_VERSION,
       scoringPromptVersion: deps.versions?.scoringPromptVersion ?? SCORING_PROMPT_VERSION,
+      guardrailsVersion: deps.versions?.guardrailsVersion ?? GUARDRAILS_VERSION,
     },
+    guardrailTriggers: guardrailReport.triggers.map((t) => t.id),
     ...(input.regradedFrom !== undefined ? { regradedFrom: input.regradedFrom } : {}),
   });
 

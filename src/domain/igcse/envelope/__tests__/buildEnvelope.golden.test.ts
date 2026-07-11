@@ -43,7 +43,9 @@ function buildInput() {
       scoringEngineVersion: 'engine-v0.1',
       evidenceDetectorVersion: 'detectors-v0.1',
       scoringPromptVersion: 'scoring-prompt-v0.1',
+      guardrailsVersion: 'guardrails-v0.1',
     },
+    guardrailTriggers: [],
   };
 }
 
@@ -62,7 +64,7 @@ describe('buildScoringEnvelope golden regression', () => {
         scoringEngineVersion: 'engine-v0.1',
         evidenceDetectorVersion: 'detectors-v0.1',
         scoringPromptVersion: 'scoring-prompt-v0.1',
-        guardrailsVersion: 'none',
+        guardrailsVersion: 'guardrails-v0.1',
         calibrationVersion: 'none',
         gradeBoundarySeries: 'none',
       },

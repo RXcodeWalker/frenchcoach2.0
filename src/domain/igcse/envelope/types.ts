@@ -24,8 +24,8 @@ export interface VersionStack {
   scoringEngineVersion: string;
   evidenceDetectorVersion: string;
   scoringPromptVersion: string;
-  /** Literal sentinel — S5 guardrails not built yet. */
-  guardrailsVersion: 'none';
+  /** S5: real guardrails version (e.g. 'guardrails-v0.1'). Was a literal 'none' sentinel pre-S5. */
+  guardrailsVersion: string;
   /** Literal sentinel — S8/S9 calibration not built yet. */
   calibrationVersion: 'none';
   /** Literal sentinel — S12 grade boundaries not built yet. */
@@ -113,7 +113,7 @@ export interface ScoringEnvelope {
   qualityOfLanguage: EnvelopeBandCriterion;
   total: number;
 
-  /** Always [] in S4 — no guardrails exist yet. */
+  /** S5: guardrail trigger ids from runGuardrails (advisory only — see guardrails/). */
   guardrailTriggers: string[];
   selfConsistencyOutcomes: { agreement: 'single_run'; rerunsRequested: 0 };
 

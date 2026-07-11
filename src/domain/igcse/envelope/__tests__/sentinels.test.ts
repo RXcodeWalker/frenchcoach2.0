@@ -1,7 +1,9 @@
 /**
- * S4 sentinel regression net. buildScoringEnvelope must always emit the S4
- * placeholder sentinels literally — this is the guard against them silently
- * becoming load-bearing before S5/S8/S9/S12 actually populate them.
+ * S4 sentinel regression net, updated in S5 now that guardrailsVersion /
+ * guardrailTriggers are real (no longer 'none' / []). The remaining
+ * placeholder sentinels (calibrationVersion, gradeBoundarySeries,
+ * confidence) must still be emitted literally — this guards against them
+ * silently becoming load-bearing before S8/S9/S12 actually populate them.
  */
 
 import { describe, expect, it } from 'vitest';
@@ -45,7 +47,9 @@ function buildInput(): BuildScoringEnvelopeInput {
       scoringEngineVersion: 'engine-v0.1',
       evidenceDetectorVersion: 'detectors-v0.1',
       scoringPromptVersion: 'scoring-prompt-v0.1',
+      guardrailsVersion: 'guardrails-v0.1',
     },
+    guardrailTriggers: [],
   };
 }
 
@@ -56,8 +60,8 @@ describe('buildScoringEnvelope sentinel regression', () => {
     expect(envelope.versions.calibrationVersion).toBe('none');
   });
 
-  it('always emits guardrailsVersion === "none"', () => {
-    expect(envelope.versions.guardrailsVersion).toBe('none');
+  it('emits the real guardrailsVersion passed in (no longer a "none" sentinel)', () => {
+    expect(envelope.versions.guardrailsVersion).toBe('guardrails-v0.1');
   });
 
   it('always emits gradeBoundarySeries === "none"', () => {
@@ -72,7 +76,7 @@ describe('buildScoringEnvelope sentinel regression', () => {
     });
   });
 
-  it('always emits empty guardrailTriggers', () => {
+  it('emits guardrailTriggers passed in (empty when clean)', () => {
     expect(envelope.guardrailTriggers).toEqual([]);
   });
 

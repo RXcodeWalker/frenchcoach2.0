@@ -28,7 +28,7 @@ const VersionStackSchema = z.object({
   scoringEngineVersion: z.string(),
   evidenceDetectorVersion: z.string(),
   scoringPromptVersion: z.string(),
-  guardrailsVersion: z.literal('none'),
+  guardrailsVersion: z.string(),
   calibrationVersion: z.literal('none'),
   gradeBoundarySeries: z.literal('none'),
 });
