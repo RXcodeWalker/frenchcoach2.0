@@ -33,9 +33,23 @@ export interface RolePlayPartsEvidence {
   partsAddressed: 0 | 1 | 2;
 }
 
+/**
+ * S4: candidate speaking time/word count per topic conversation, for the S5
+ * insufficient-evidence-duration guardrail (02-scoring-pipeline-architecture.md
+ * §3.5). `candidateSpeakingDurationS` is 0 when no turn in the conversation
+ * carries `candidateResponseDurationS` (hand-authored transcripts with no
+ * timing source) — absence is not a penalty signal here, L3 decides that.
+ */
+export interface TopicConversationDurationEvidence {
+  conversationId: 'topic1' | 'topic2';
+  candidateSpeakingDurationS: number;
+  candidateWordCount: number;
+}
+
 export interface EvidenceProfileSubset {
   timeFrameAlignmentByQuestion: QuestionTimeFrameEvidence[];
   responseCountsByQuestion: ResponseCountEvidence[];
   fillerDensityByQuestion: FillerDensityEvidence[];
   rolePlayPartsByTask: RolePlayPartsEvidence[];
+  topicConversationDurationByConversation: TopicConversationDurationEvidence[];
 }

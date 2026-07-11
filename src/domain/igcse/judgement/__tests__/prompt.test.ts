@@ -7,11 +7,13 @@ import {
   PRINCIPLE_TC_ADEQUATELY,
   PRINCIPLE_TC_JUST,
 } from '../../canonical';
+import { buildEvidenceSubset } from '../../evidence/buildEvidence';
 import { buildJudgementPrompt } from '../prompt';
 import { PRACTICE_TRANSCRIPT } from './fixtures';
 
 describe('buildJudgementPrompt', () => {
-  const prompt = buildJudgementPrompt(PRACTICE_TRANSCRIPT);
+  const evidence = buildEvidenceSubset(PRACTICE_TRANSCRIPT);
+  const prompt = buildJudgementPrompt(PRACTICE_TRANSCRIPT, evidence);
 
   it('states examiner role', () => {
     expect(prompt).toContain('Cambridge IGCSE French 0520 Paper 3 Speaking examiner');
@@ -82,5 +84,24 @@ describe('buildJudgementPrompt', () => {
     // Prompt asks for verbatim citation; normalization is enforced at parse time.
     // Near-miss acceptance is tested in schema.test.ts — prompt must require evidence spans.
     expect(prompt).toContain('quote specific spans');
+  });
+
+  it('includes the Layer 1 EvidenceProfile, not just the raw transcript', () => {
+    expect(prompt).toContain('Layer 1 evidence');
+
+    const firstTimeFrameRow = evidence.timeFrameAlignmentByQuestion[0];
+    expect(prompt).toContain(
+      `${firstTimeFrameRow.questionId}: expected=${firstTimeFrameRow.expectedTimeFrame ?? 'n/a'}`,
+    );
+
+    const firstPartsRow = evidence.rolePlayPartsByTask[0];
+    expect(prompt).toContain(
+      `${firstPartsRow.taskId}: partsExpected=${firstPartsRow.partsExpected}, partsAddressed=${firstPartsRow.partsAddressed}`,
+    );
+
+    const firstDurationRow = evidence.topicConversationDurationByConversation[0];
+    expect(prompt).toContain(
+      `${firstDurationRow.conversationId}: candidateSpeakingDurationS=${firstDurationRow.candidateSpeakingDurationS}`,
+    );
   });
 });

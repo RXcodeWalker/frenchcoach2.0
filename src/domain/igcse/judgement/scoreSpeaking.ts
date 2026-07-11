@@ -2,6 +2,7 @@
  * S1 Layer-2 scoring orchestration — provenance guard → prompt → judge → parse → validate.
  */
 
+import { buildEvidenceSubset } from '../evidence/buildEvidence';
 import { parseAndValidateJudgeOutput } from './schema';
 import { JudgementValidationError } from './schema';
 import { buildJudgementPrompt } from './prompt';
@@ -48,7 +49,8 @@ export async function scoreSpeaking(
 ): Promise<SpeakingAssessment> {
   assertProvenance(transcript);
 
-  const prompt = buildJudgementPrompt(transcript);
+  const evidence = buildEvidenceSubset(transcript);
+  const prompt = buildJudgementPrompt(transcript, evidence);
   const { raw } = await judge({ prompt });
 
   let parsed: unknown;

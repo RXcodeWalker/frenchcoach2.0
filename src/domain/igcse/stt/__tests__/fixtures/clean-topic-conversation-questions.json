@@ -1,0 +1,136 @@
+{
+  "questionSetId": "qs-clean-001",
+  "questions": [
+    {
+      "questionId": "rp1",
+      "part": "rolePlay",
+      "mainText": "Demande où se trouve la gare.",
+      "alternativeTexts": [],
+      "partsExpected": 1
+    },
+    {
+      "questionId": "rp2",
+      "part": "rolePlay",
+      "mainText": "Demande le prix du billet.",
+      "alternativeTexts": [],
+      "partsExpected": 1
+    },
+    {
+      "questionId": "rp3",
+      "part": "rolePlay",
+      "mainText": "Dis à quelle heure part le train et demande le quai.",
+      "alternativeTexts": [],
+      "partsExpected": 2
+    },
+    {
+      "questionId": "rp4",
+      "part": "rolePlay",
+      "mainText": "Demande si le train est direct.",
+      "alternativeTexts": [],
+      "partsExpected": 1
+    },
+    {
+      "questionId": "rp5",
+      "part": "rolePlay",
+      "mainText": "Remercie et dis au revoir.",
+      "alternativeTexts": [],
+      "partsExpected": 1
+    },
+    {
+      "questionId": "t1q1",
+      "part": "topic1",
+      "mainText": "Comment tu t'appelles ?",
+      "alternativeTexts": [
+        "Quel est ton nom ?"
+      ],
+      "topicArea": "A"
+    },
+    {
+      "questionId": "t1q2",
+      "part": "topic1",
+      "mainText": "Où habites-tu ?",
+      "alternativeTexts": [
+        "Où est-ce que tu vis ?"
+      ],
+      "topicArea": "A"
+    },
+    {
+      "questionId": "t1q3",
+      "part": "topic1",
+      "mainText": "Décris ta famille.",
+      "alternativeTexts": [
+        "Parle-moi de ta famille."
+      ],
+      "topicArea": "A",
+      "expectedTimeFrame": "present"
+    },
+    {
+      "questionId": "t1q4",
+      "part": "topic1",
+      "mainText": "Qu'est-ce que tu as fait le week-end dernier ?",
+      "alternativeTexts": [
+        "Raconte ton dernier week-end."
+      ],
+      "topicArea": "A",
+      "expectedTimeFrame": "past"
+    },
+    {
+      "questionId": "t1q5",
+      "part": "topic1",
+      "mainText": "Que feras-tu pendant les vacances ?",
+      "alternativeTexts": [
+        "Quels sont tes projets de vacances ?"
+      ],
+      "topicArea": "A",
+      "expectedTimeFrame": "future"
+    },
+    {
+      "questionId": "t2q1",
+      "part": "topic2",
+      "mainText": "Quelle est ta matière préférée ?",
+      "alternativeTexts": [
+        "Quel est ton cours préféré ?"
+      ],
+      "topicArea": "B"
+    },
+    {
+      "questionId": "t2q2",
+      "part": "topic2",
+      "mainText": "Qu'est-ce que tu aimes faire le week-end ?",
+      "alternativeTexts": [
+        "Que fais-tu pendant le week-end ?"
+      ],
+      "topicArea": "B"
+    },
+    {
+      "questionId": "t2q3",
+      "part": "topic2",
+      "mainText": "Décris ton collège.",
+      "alternativeTexts": [
+        "Parle-moi de ton collège."
+      ],
+      "topicArea": "B",
+      "expectedTimeFrame": "present"
+    },
+    {
+      "questionId": "t2q4",
+      "part": "topic2",
+      "mainText": "Qu'est-ce que tu as étudié l'année dernière ?",
+      "alternativeTexts": [
+        "Raconte ta dernière année scolaire."
+      ],
+      "topicArea": "B",
+      "expectedTimeFrame": "past"
+    },
+    {
+      "questionId": "t2q5",
+      "part": "topic2",
+      "mainText": "Qu'est-ce que tu voudrais étudier après le collège ?",
+      "alternativeTexts": [
+        "Quels sont tes projets d'études ?"
+      ],
+      "topicArea": "B",
+      "expectedTimeFrame": "future"
+    }
+  ]
+}

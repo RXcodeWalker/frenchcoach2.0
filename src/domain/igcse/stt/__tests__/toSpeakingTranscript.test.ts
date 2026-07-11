@@ -66,4 +66,19 @@ describe('toSpeakingTranscript', () => {
   it('uses the golden fixture unchanged', () => {
     expect(structGolden.utterances.length).toBeGreaterThan(0);
   });
+
+  it('sums candidate utterance durations into candidateResponseDurationS per turn', () => {
+    const session = assembleSession(structRaw as RawAsrResult, structQuestions as SessionQuestionSet, meta);
+    const transcript = toSpeakingTranscript(session, structQuestions as SessionQuestionSet);
+
+    for (const conversation of transcript.topicConversations) {
+      for (const turn of conversation.turns) {
+        const candidateUtterances = session.utterances.filter(
+          (u) => u.role === 'candidate' && u.part === conversation.conversationId && u.questionId === turn.turnId,
+        );
+        const expectedDuration = candidateUtterances.reduce((sum, u) => sum + (u.endS - u.startS), 0);
+        expect(turn.candidateResponseDurationS).toBe(expectedDuration);
+      }
+    }
+  });
 });

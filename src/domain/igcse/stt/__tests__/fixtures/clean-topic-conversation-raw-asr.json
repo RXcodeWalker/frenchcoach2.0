@@ -1,0 +1,4109 @@
+{
+  "provider": "whisperx",
+  "model": "whisper-large-v3",
+  "modelVersion": "20231117",
+  "languageCode": "fr",
+  "alignmentModel": "wav2vec2-fr-align",
+  "diarizationModel": "pyannote/speaker-diarization-3.1",
+  "decodeParamsHash": "clean0000000000000000000000000000000000000000000000001",
+  "confidenceSource": "whisperx-align-score",
+  "promptBiasedRetries": 0,
+  "transcribedAt": "2026-05-01T09:00:00.000Z",
+  "words": [
+    {
+      "text": "Demande",
+      "startS": 0,
+      "endS": 0.38,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "où",
+      "startS": 0.41,
+      "endS": 0.79,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "se",
+      "startS": 0.82,
+      "endS": 1.2,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "trouve",
+      "startS": 1.23,
+      "endS": 1.61,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "la",
+      "startS": 1.64,
+      "endS": 2.02,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "gare.",
+      "startS": 2.05,
+      "endS": 2.43,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "Excusez-moi,",
+      "startS": 3.26,
+      "endS": 3.81,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "où",
+      "startS": 3.84,
+      "endS": 4.39,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "est",
+      "startS": 4.42,
+      "endS": 4.97,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "la",
+      "startS": 5,
+      "endS": 5.55,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "gare",
+      "startS": 5.58,
+      "endS": 6.13,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "s'il",
+      "startS": 6.16,
+      "endS": 6.71,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "vous",
+      "startS": 6.74,
+      "endS": 7.29,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "plaît",
+      "startS": 7.32,
+      "endS": 7.87,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "?",
+      "startS": 7.9,
+      "endS": 8.45,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "Demande",
+      "startS": 9.28,
+      "endS": 9.66,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "le",
+      "startS": 9.69,
+      "endS": 10.07,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "prix",
+      "startS": 10.1,
+      "endS": 10.48,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "du",
+      "startS": 10.51,
+      "endS": 10.89,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "billet.",
+      "startS": 10.92,
+      "endS": 11.3,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "C'est",
+      "startS": 12.13,
+      "endS": 12.68,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "combien",
+      "startS": 12.71,
+      "endS": 13.26,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "le",
+      "startS": 13.29,
+      "endS": 13.84,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "billet,",
+      "startS": 13.87,
+      "endS": 14.42,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "s'il",
+      "startS": 14.45,
+      "endS": 15,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "vous",
+      "startS": 15.03,
+      "endS": 15.58,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "plaît",
+      "startS": 15.61,
+      "endS": 16.16,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "?",
+      "startS": 16.19,
+      "endS": 16.74,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "Dis",
+      "startS": 17.57,
+      "endS": 17.95,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "à",
+      "startS": 17.98,
+      "endS": 18.36,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "quelle",
+      "startS": 18.39,
+      "endS": 18.77,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "heure",
+      "startS": 18.8,
+      "endS": 19.18,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "part",
+      "startS": 19.21,
+      "endS": 19.59,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "le",
+      "startS": 19.62,
+      "endS": 20,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "train",
+      "startS": 20.03,
+      "endS": 20.41,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "et",
+      "startS": 20.44,
+      "endS": 20.82,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "demande",
+      "startS": 20.85,
+      "endS": 21.23,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "le",
+      "startS": 21.26,
+      "endS": 21.64,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "quai.",
+      "startS": 21.67,
+      "endS": 22.05,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "Le",
+      "startS": 22.88,
+      "endS": 23.43,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "train",
+      "startS": 23.46,
+      "endS": 24.01,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "part",
+      "startS": 24.04,
+      "endS": 24.59,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "à",
+      "startS": 24.62,
+      "endS": 25.17,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "quelle",
+      "startS": 25.2,
+      "endS": 25.75,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "heure",
+      "startS": 25.78,
+      "endS": 26.33,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "et",
+      "startS": 26.36,
+      "endS": 26.91,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "c'est",
+      "startS": 26.94,
+      "endS": 27.49,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "quel",
+      "startS": 27.52,
+      "endS": 28.07,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "quai",
+      "startS": 28.1,
+      "endS": 28.65,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "?",
+      "startS": 28.68,
+      "endS": 29.23,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "Demande",
+      "startS": 30.06,
+      "endS": 30.44,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "si",
+      "startS": 30.47,
+      "endS": 30.85,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "le",
+      "startS": 30.88,
+      "endS": 31.26,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "train",
+      "startS": 31.29,
+      "endS": 31.67,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "est",
+      "startS": 31.7,
+      "endS": 32.08,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "direct.",
+      "startS": 32.11,
+      "endS": 32.49,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "Est-ce",
+      "startS": 33.32,
+      "endS": 33.87,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "que",
+      "startS": 33.9,
+      "endS": 34.45,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "le",
+      "startS": 34.48,
+      "endS": 35.03,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "train",
+      "startS": 35.06,
+      "endS": 35.61,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "est",
+      "startS": 35.64,
+      "endS": 36.19,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "direct",
+      "startS": 36.22,
+      "endS": 36.77,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "ou",
+      "startS": 36.8,
+      "endS": 37.35,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "est-ce",
+      "startS": 37.38,
+      "endS": 37.93,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "qu'il",
+      "startS": 37.96,
+      "endS": 38.51,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "y",
+      "startS": 38.54,
+      "endS": 39.09,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "a",
+      "startS": 39.12,
+      "endS": 39.67,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "un",
+      "startS": 39.7,
+      "endS": 40.25,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "changement",
+      "startS": 40.28,
+      "endS": 40.83,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "?",
+      "startS": 40.86,
+      "endS": 41.41,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "Remercie",
+      "startS": 42.24,
+      "endS": 42.62,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "et",
+      "startS": 42.65,
+      "endS": 43.03,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "dis",
+      "startS": 43.06,
+      "endS": 43.44,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "au",
+      "startS": 43.47,
+      "endS": 43.85,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "revoir.",
+      "startS": 43.88,
+      "endS": 44.26,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "Merci",
+      "startS": 45.09,
+      "endS": 45.64,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "beaucoup,",
+      "startS": 45.67,
+      "endS": 46.22,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "au",
+      "startS": 46.25,
+      "endS": 46.8,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "revoir",
+      "startS": 46.83,
+      "endS": 47.38,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "et",
+      "startS": 47.41,
+      "endS": 47.96,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "bonne",
+      "startS": 47.99,
+      "endS": 48.54,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "journée.",
+      "startS": 48.57,
+      "endS": 49.12,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "Comment",
+      "startS": 49.95,
+      "endS": 50.33,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "tu",
+      "startS": 50.36,
+      "endS": 50.74,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "t'appelles",
+      "startS": 50.77,
+      "endS": 51.15,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "?",
+      "startS": 51.18,
+      "endS": 51.56,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "Je",
+      "startS": 52.39,
+      "endS": 52.94,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "m'appelle",
+      "startS": 52.97,
+      "endS": 53.52,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "Camille",
+      "startS": 53.55,
+      "endS": 54.1,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "et",
+      "startS": 54.13,
+      "endS": 54.68,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "j'ai",
+      "startS": 54.71,
+      "endS": 55.26,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "seize",
+      "startS": 55.29,
+      "endS": 55.84,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "ans.",
+      "startS": 55.87,
+      "endS": 56.42,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "J'habite",
+      "startS": 56.45,
+      "endS": 57,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "avec",
+      "startS": 57.03,
+      "endS": 57.58,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "ma",
+      "startS": 57.61,
+      "endS": 58.16,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "famille",
+      "startS": 58.19,
+      "endS": 58.74,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "dans",
+      "startS": 58.77,
+      "endS": 59.32,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "une",
+      "startS": 59.35,
+      "endS": 59.9,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "petite",
+      "startS": 59.93,
+      "endS": 60.48,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "ville",
+      "startS": 60.51,
+      "endS": 61.06,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "près",
+      "startS": 61.09,
+      "endS": 61.64,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "de",
+      "startS": 61.67,
+      "endS": 62.22,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "Lyon",
+      "startS": 62.25,
+      "endS": 62.8,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "depuis",
+      "startS": 62.83,
+      "endS": 63.38,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "toujours,",
+      "startS": 63.41,
+      "endS": 63.96,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "et",
+      "startS": 63.99,
+      "endS": 64.54,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "j'aime",
+      "startS": 64.57,
+      "endS": 65.12,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "beaucoup",
+      "startS": 65.15,
+      "endS": 65.7,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "vivre",
+      "startS": 65.73,
+      "endS": 66.28,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "ici",
+      "startS": 66.31,
+      "endS": 66.86,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "parce",
+      "startS": 66.89,
+      "endS": 67.44,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "que",
+      "startS": 67.47,
+      "endS": 68.02,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "c'est",
+      "startS": 68.05,
+      "endS": 68.6,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "calme",
+      "startS": 68.63,
+      "endS": 69.18,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "et",
+      "startS": 69.21,
+      "endS": 69.76,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "agréable.",
+      "startS": 69.79,
+      "endS": 70.34,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "Où",
+      "startS": 71.17,
+      "endS": 71.55,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "habites-tu",
+      "startS": 71.58,
+      "endS": 71.96,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "?",
+      "startS": 71.99,
+      "endS": 72.37,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "J'habite",
+      "startS": 73.2,
+      "endS": 73.75,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "dans",
+      "startS": 73.78,
+      "endS": 74.33,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "une",
+      "startS": 74.36,
+      "endS": 74.91,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "maison",
+      "startS": 74.94,
+      "endS": 75.49,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "assez",
+      "startS": 75.52,
+      "endS": 76.07,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "grande",
+      "startS": 76.1,
+      "endS": 76.65,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "avec",
+      "startS": 76.68,
+      "endS": 77.23,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "un",
+      "startS": 77.26,
+      "endS": 77.81,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "jardin,",
+      "startS": 77.84,
+      "endS": 78.39,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "dans",
+      "startS": 78.42,
+      "endS": 78.97,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "un",
+      "startS": 79,
+      "endS": 79.55,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "quartier",
+      "startS": 79.58,
+      "endS": 80.13,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "tranquille",
+      "startS": 80.16,
+      "endS": 80.71,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "à",
+      "startS": 80.74,
+      "endS": 81.29,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "la",
+      "startS": 81.32,
+      "endS": 81.87,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "périphérie",
+      "startS": 81.9,
+      "endS": 82.45,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "de",
+      "startS": 82.48,
+      "endS": 83.03,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "la",
+      "startS": 83.06,
+      "endS": 83.61,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "ville.",
+      "startS": 83.64,
+      "endS": 84.19,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "Il",
+      "startS": 84.22,
+      "endS": 84.77,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "y",
+      "startS": 84.8,
+      "endS": 85.35,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "a",
+      "startS": 85.38,
+      "endS": 85.93,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "beaucoup",
+      "startS": 85.96,
+      "endS": 86.51,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "d'arbres",
+      "startS": 86.54,
+      "endS": 87.09,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "et",
+      "startS": 87.12,
+      "endS": 87.67,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "un",
+      "startS": 87.7,
+      "endS": 88.25,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "parc",
+      "startS": 88.28,
+      "endS": 88.83,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "juste",
+      "startS": 88.86,
+      "endS": 89.41,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "en",
+      "startS": 89.44,
+      "endS": 89.99,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "face,",
+      "startS": 90.02,
+      "endS": 90.57,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "ce",
+      "startS": 90.6,
+      "endS": 91.15,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "qui",
+      "startS": 91.18,
+      "endS": 91.73,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "est",
+      "startS": 91.76,
+      "endS": 92.31,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "vraiment",
+      "startS": 92.34,
+      "endS": 92.89,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "pratique",
+      "startS": 92.92,
+      "endS": 93.47,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "pour",
+      "startS": 93.5,
+      "endS": 94.05,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "promener",
+      "startS": 94.08,
+      "endS": 94.63,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "notre",
+      "startS": 94.66,
+      "endS": 95.21,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "chien",
+      "startS": 95.24,
+      "endS": 95.79,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "tous",
+      "startS": 95.82,
+      "endS": 96.37,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "les",
+      "startS": 96.4,
+      "endS": 96.95,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "jours.",
+      "startS": 96.98,
+      "endS": 97.53,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "Décris",
+      "startS": 98.36,
+      "endS": 98.74,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "ta",
+      "startS": 98.77,
+      "endS": 99.15,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "famille.",
+      "startS": 99.18,
+      "endS": 99.56,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "Dans",
+      "startS": 100.39,
+      "endS": 100.94,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "ma",
+      "startS": 100.97,
+      "endS": 101.52,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "famille,",
+      "startS": 101.55,
+      "endS": 102.1,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "il",
+      "startS": 102.13,
+      "endS": 102.68,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "y",
+      "startS": 102.71,
+      "endS": 103.26,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "a",
+      "startS": 103.29,
+      "endS": 103.84,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "mes",
+      "startS": 103.87,
+      "endS": 104.42,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "parents,",
+      "startS": 104.45,
+      "endS": 105,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "mon",
+      "startS": 105.03,
+      "endS": 105.58,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "grand",
+      "startS": 105.61,
+      "endS": 106.16,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "frère",
+      "startS": 106.19,
+      "endS": 106.74,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "et",
+      "startS": 106.77,
+      "endS": 107.32,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "ma",
+      "startS": 107.35,
+      "endS": 107.9,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "petite",
+      "startS": 107.93,
+      "endS": 108.48,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "sœur.",
+      "startS": 108.51,
+      "endS": 109.06,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "Mon",
+      "startS": 109.09,
+      "endS": 109.64,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "père",
+      "startS": 109.67,
+      "endS": 110.22,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "travaille",
+      "startS": 110.25,
+      "endS": 110.8,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "comme",
+      "startS": 110.83,
+      "endS": 111.38,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "ingénieur",
+      "startS": 111.41,
+      "endS": 111.96,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "et",
+      "startS": 111.99,
+      "endS": 112.54,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "ma",
+      "startS": 112.57,
+      "endS": 113.12,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "mère",
+      "startS": 113.15,
+      "endS": 113.7,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "est",
+      "startS": 113.73,
+      "endS": 114.28,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "professeure",
+      "startS": 114.31,
+      "endS": 114.86,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "de",
+      "startS": 114.89,
+      "endS": 115.44,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "mathématiques",
+      "startS": 115.47,
+      "endS": 116.02,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "dans",
+      "startS": 116.05,
+      "endS": 116.6,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "un",
+      "startS": 116.63,
+      "endS": 117.18,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "collège.",
+      "startS": 117.21,
+      "endS": 117.76,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "Mon",
+      "startS": 117.79,
+      "endS": 118.34,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "frère",
+      "startS": 118.37,
+      "endS": 118.92,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "étudie",
+      "startS": 118.95,
+      "endS": 119.5,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "à",
+      "startS": 119.53,
+      "endS": 120.08,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "l'université",
+      "startS": 120.11,
+      "endS": 120.66,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "et",
+      "startS": 120.69,
+      "endS": 121.24,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "ma",
+      "startS": 121.27,
+      "endS": 121.82,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "sœur",
+      "startS": 121.85,
+      "endS": 122.4,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "va",
+      "startS": 122.43,
+      "endS": 122.98,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "encore",
+      "startS": 123.01,
+      "endS": 123.56,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "à",
+      "startS": 123.59,
+      "endS": 124.14,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "l'école",
+      "startS": 124.17,
+      "endS": 124.72,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "primaire.",
+      "startS": 124.75,
+      "endS": 125.3,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "On",
+      "startS": 125.33,
+      "endS": 125.88,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "s'entend",
+      "startS": 125.91,
+      "endS": 126.46,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "très",
+      "startS": 126.49,
+      "endS": 127.04,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "bien",
+      "startS": 127.07,
+      "endS": 127.62,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "et",
+      "startS": 127.65,
+      "endS": 128.2,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "on",
+      "startS": 128.23,
+      "endS": 128.78,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "mange",
+      "startS": 128.81,
+      "endS": 129.36,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "toujours",
+      "startS": 129.39,
+      "endS": 129.94,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "ensemble",
+      "startS": 129.97,
+      "endS": 130.52,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "le",
+      "startS": 130.55,
+      "endS": 131.1,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "soir.",
+      "startS": 131.13,
+      "endS": 131.68,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "Qu'est-ce",
+      "startS": 132.51,
+      "endS": 132.89,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "que",
+      "startS": 132.92,
+      "endS": 133.3,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "tu",
+      "startS": 133.33,
+      "endS": 133.71,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "as",
+      "startS": 133.74,
+      "endS": 134.12,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "fait",
+      "startS": 134.15,
+      "endS": 134.53,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "le",
+      "startS": 134.56,
+      "endS": 134.94,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "week-end",
+      "startS": 134.97,
+      "endS": 135.35,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "dernier",
+      "startS": 135.38,
+      "endS": 135.76,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "?",
+      "startS": 135.79,
+      "endS": 136.17,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "Le",
+      "startS": 137,
+      "endS": 137.55,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "week-end",
+      "startS": 137.58,
+      "endS": 138.13,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "dernier,",
+      "startS": 138.16,
+      "endS": 138.71,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "j'ai",
+      "startS": 138.74,
+      "endS": 139.29,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "passé",
+      "startS": 139.32,
+      "endS": 139.87,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "du",
+      "startS": 139.9,
+      "endS": 140.45,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "temps",
+      "startS": 140.48,
+      "endS": 141.03,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "avec",
+      "startS": 141.06,
+      "endS": 141.61,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "mes",
+      "startS": 141.64,
+      "endS": 142.19,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "amis.",
+      "startS": 142.22,
+      "endS": 142.77,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "Samedi",
+      "startS": 142.8,
+      "endS": 143.35,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "matin,",
+      "startS": 143.38,
+      "endS": 143.93,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "j'ai",
+      "startS": 143.96,
+      "endS": 144.51,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "fait",
+      "startS": 144.54,
+      "endS": 145.09,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "du",
+      "startS": 145.12,
+      "endS": 145.67,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "shopping",
+      "startS": 145.7,
+      "endS": 146.25,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "au",
+      "startS": 146.28,
+      "endS": 146.83,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "centre-ville",
+      "startS": 146.86,
+      "endS": 147.41,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "avec",
+      "startS": 147.44,
+      "endS": 147.99,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "ma",
+      "startS": 148.02,
+      "endS": 148.57,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "meilleure",
+      "startS": 148.6,
+      "endS": 149.15,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "amie,",
+      "startS": 149.18,
+      "endS": 149.73,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "puis",
+      "startS": 149.76,
+      "endS": 150.31,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "nous",
+      "startS": 150.34,
+      "endS": 150.89,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "avons",
+      "startS": 150.92,
+      "endS": 151.47,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "déjeuné",
+      "startS": 151.5,
+      "endS": 152.05,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "dans",
+      "startS": 152.08,
+      "endS": 152.63,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "un",
+      "startS": 152.66,
+      "endS": 153.21,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "petit",
+      "startS": 153.24,
+      "endS": 153.79,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "café.",
+      "startS": 153.82,
+      "endS": 154.37,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "L'après-midi,",
+      "startS": 154.4,
+      "endS": 154.95,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "j'ai",
+      "startS": 154.98,
+      "endS": 155.53,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "regardé",
+      "startS": 155.56,
+      "endS": 156.11,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "un",
+      "startS": 156.14,
+      "endS": 156.69,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "film",
+      "startS": 156.72,
+      "endS": 157.27,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "à",
+      "startS": 157.3,
+      "endS": 157.85,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "la",
+      "startS": 157.88,
+      "endS": 158.43,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "maison,",
+      "startS": 158.46,
+      "endS": 159.01,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "et",
+      "startS": 159.04,
+      "endS": 159.59,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "dimanche,",
+      "startS": 159.62,
+      "endS": 160.17,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "j'ai",
+      "startS": 160.2,
+      "endS": 160.75,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "aidé",
+      "startS": 160.78,
+      "endS": 161.33,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "ma",
+      "startS": 161.36,
+      "endS": 161.91,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "mère",
+      "startS": 161.94,
+      "endS": 162.49,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "à",
+      "startS": 162.52,
+      "endS": 163.07,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "préparer",
+      "startS": 163.1,
+      "endS": 163.65,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "un",
+      "startS": 163.68,
+      "endS": 164.23,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "grand",
+      "startS": 164.26,
+      "endS": 164.81,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "repas",
+      "startS": 164.84,
+      "endS": 165.39,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "pour",
+      "startS": 165.42,
+      "endS": 165.97,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "toute",
+      "startS": 166,
+      "endS": 166.55,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "la",
+      "startS": 166.58,
+      "endS": 167.13,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "famille.",
+      "startS": 167.16,
+      "endS": 167.71,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "Que",
+      "startS": 168.54,
+      "endS": 168.92,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "feras-tu",
+      "startS": 168.95,
+      "endS": 169.33,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "pendant",
+      "startS": 169.36,
+      "endS": 169.74,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "les",
+      "startS": 169.77,
+      "endS": 170.15,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "vacances",
+      "startS": 170.18,
+      "endS": 170.56,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "?",
+      "startS": 170.59,
+      "endS": 170.97,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "Pendant",
+      "startS": 171.8,
+      "endS": 172.35,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "les",
+      "startS": 172.38,
+      "endS": 172.93,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "vacances,",
+      "startS": 172.96,
+      "endS": 173.51,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "j'irai",
+      "startS": 173.54,
+      "endS": 174.09,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "chez",
+      "startS": 174.12,
+      "endS": 174.67,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "mes",
+      "startS": 174.7,
+      "endS": 175.25,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "grands-parents",
+      "startS": 175.28,
+      "endS": 175.83,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "à",
+      "startS": 175.86,
+      "endS": 176.41,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "la",
+      "startS": 176.44,
+      "endS": 176.99,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "montagne",
+      "startS": 177.02,
+      "endS": 177.57,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "pendant",
+      "startS": 177.6,
+      "endS": 178.15,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "une",
+      "startS": 178.18,
+      "endS": 178.73,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "semaine.",
+      "startS": 178.76,
+      "endS": 179.31,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "Je",
+      "startS": 179.34,
+      "endS": 179.89,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "ferai",
+      "startS": 179.92,
+      "endS": 180.47,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "de",
+      "startS": 180.5,
+      "endS": 181.05,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "la",
+      "startS": 181.08,
+      "endS": 181.63,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "randonnée",
+      "startS": 181.66,
+      "endS": 182.21,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "avec",
+      "startS": 182.24,
+      "endS": 182.79,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "mon",
+      "startS": 182.82,
+      "endS": 183.37,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "grand-père",
+      "startS": 183.4,
+      "endS": 183.95,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "et",
+      "startS": 183.98,
+      "endS": 184.53,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "je",
+      "startS": 184.56,
+      "endS": 185.11,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "lirai",
+      "startS": 185.14,
+      "endS": 185.69,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "beaucoup,",
+      "startS": 185.72,
+      "endS": 186.27,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "parce",
+      "startS": 186.3,
+      "endS": 186.85,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "que",
+      "startS": 186.88,
+      "endS": 187.43,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "j'adore",
+      "startS": 187.46,
+      "endS": 188.01,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "les",
+      "startS": 188.04,
+      "endS": 188.59,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "romans",
+      "startS": 188.62,
+      "endS": 189.17,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "policiers.",
+      "startS": 189.2,
+      "endS": 189.75,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "Ensuite,",
+      "startS": 189.78,
+      "endS": 190.33,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "je",
+      "startS": 190.36,
+      "endS": 190.91,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "passerai",
+      "startS": 190.94,
+      "endS": 191.49,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "le",
+      "startS": 191.52,
+      "endS": 192.07,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "reste",
+      "startS": 192.1,
+      "endS": 192.65,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "des",
+      "startS": 192.68,
+      "endS": 193.23,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "vacances",
+      "startS": 193.26,
+      "endS": 193.81,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "à",
+      "startS": 193.84,
+      "endS": 194.39,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "la",
+      "startS": 194.42,
+      "endS": 194.97,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "maison",
+      "startS": 195,
+      "endS": 195.55,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "pour",
+      "startS": 195.58,
+      "endS": 196.13,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "me",
+      "startS": 196.16,
+      "endS": 196.71,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "reposer",
+      "startS": 196.74,
+      "endS": 197.29,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "avant",
+      "startS": 197.32,
+      "endS": 197.87,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "la",
+      "startS": 197.9,
+      "endS": 198.45,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "rentrée.",
+      "startS": 198.48,
+      "endS": 199.03,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "Quelle",
+      "startS": 199.86,
+      "endS": 200.24,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "est",
+      "startS": 200.27,
+      "endS": 200.65,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "ta",
+      "startS": 200.68,
+      "endS": 201.06,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "matière",
+      "startS": 201.09,
+      "endS": 201.47,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "préférée",
+      "startS": 201.5,
+      "endS": 201.88,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "?",
+      "startS": 201.91,
+      "endS": 202.29,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "Ma",
+      "startS": 203.12,
+      "endS": 203.67,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "matière",
+      "startS": 203.7,
+      "endS": 204.25,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "préférée,",
+      "startS": 204.28,
+      "endS": 204.83,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "c'est",
+      "startS": 204.86,
+      "endS": 205.41,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "les",
+      "startS": 205.44,
+      "endS": 205.99,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "sciences,",
+      "startS": 206.02,
+      "endS": 206.57,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "surtout",
+      "startS": 206.6,
+      "endS": 207.15,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "la",
+      "startS": 207.18,
+      "endS": 207.73,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "biologie,",
+      "startS": 207.76,
+      "endS": 208.31,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "parce",
+      "startS": 208.34,
+      "endS": 208.89,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "que",
+      "startS": 208.92,
+      "endS": 209.47,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "le",
+      "startS": 209.5,
+      "endS": 210.05,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "professeur",
+      "startS": 210.08,
+      "endS": 210.63,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "rend",
+      "startS": 210.66,
+      "endS": 211.21,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "les",
+      "startS": 211.24,
+      "endS": 211.79,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "cours",
+      "startS": 211.82,
+      "endS": 212.37,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "très",
+      "startS": 212.4,
+      "endS": 212.95,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "intéressants",
+      "startS": 212.98,
+      "endS": 213.53,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "et",
+      "startS": 213.56,
+      "endS": 214.11,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "on",
+      "startS": 214.14,
+      "endS": 214.69,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "fait",
+      "startS": 214.72,
+      "endS": 215.27,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "souvent",
+      "startS": 215.3,
+      "endS": 215.85,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "des",
+      "startS": 215.88,
+      "endS": 216.43,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "expériences",
+      "startS": 216.46,
+      "endS": 217.01,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "en",
+      "startS": 217.04,
+      "endS": 217.59,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "laboratoire.",
+      "startS": 217.62,
+      "endS": 218.17,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "J'aime",
+      "startS": 218.2,
+      "endS": 218.75,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "aussi",
+      "startS": 218.78,
+      "endS": 219.33,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "l'anglais",
+      "startS": 219.36,
+      "endS": 219.91,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "parce",
+      "startS": 219.94,
+      "endS": 220.49,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "que",
+      "startS": 220.52,
+      "endS": 221.07,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "je",
+      "startS": 221.1,
+      "endS": 221.65,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "voudrais",
+      "startS": 221.68,
+      "endS": 222.23,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "voyager",
+      "startS": 222.26,
+      "endS": 222.81,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "plus",
+      "startS": 222.84,
+      "endS": 223.39,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "tard.",
+      "startS": 223.42,
+      "endS": 223.97,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "Qu'est-ce",
+      "startS": 224.8,
+      "endS": 225.18,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "que",
+      "startS": 225.21,
+      "endS": 225.59,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "tu",
+      "startS": 225.62,
+      "endS": 226,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "aimes",
+      "startS": 226.03,
+      "endS": 226.41,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "faire",
+      "startS": 226.44,
+      "endS": 226.82,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "le",
+      "startS": 226.85,
+      "endS": 227.23,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "week-end",
+      "startS": 227.26,
+      "endS": 227.64,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "?",
+      "startS": 227.67,
+      "endS": 228.05,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "D'habitude,",
+      "startS": 228.88,
+      "endS": 229.43,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "le",
+      "startS": 229.46,
+      "endS": 230.01,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "week-end,",
+      "startS": 230.04,
+      "endS": 230.59,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "je",
+      "startS": 230.62,
+      "endS": 231.17,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "fais",
+      "startS": 231.2,
+      "endS": 231.75,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "du",
+      "startS": 231.78,
+      "endS": 232.33,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "sport",
+      "startS": 232.36,
+      "endS": 232.91,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "avec",
+      "startS": 232.94,
+      "endS": 233.49,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "mes",
+      "startS": 233.52,
+      "endS": 234.07,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "amis,",
+      "startS": 234.1,
+      "endS": 234.65,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "surtout",
+      "startS": 234.68,
+      "endS": 235.23,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "du",
+      "startS": 235.26,
+      "endS": 235.81,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "basket,",
+      "startS": 235.84,
+      "endS": 236.39,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "et",
+      "startS": 236.42,
+      "endS": 236.97,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "parfois",
+      "startS": 237,
+      "endS": 237.55,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "nous",
+      "startS": 237.58,
+      "endS": 238.13,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "allons",
+      "startS": 238.16,
+      "endS": 238.71,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "au",
+      "startS": 238.74,
+      "endS": 239.29,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "cinéma",
+      "startS": 239.32,
+      "endS": 239.87,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "le",
+      "startS": 239.9,
+      "endS": 240.45,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "samedi",
+      "startS": 240.48,
+      "endS": 241.03,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "soir.",
+      "startS": 241.06,
+      "endS": 241.61,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "Le",
+      "startS": 241.64,
+      "endS": 242.19,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "dimanche,",
+      "startS": 242.22,
+      "endS": 242.77,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "je",
+      "startS": 242.8,
+      "endS": 243.35,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "préfère",
+      "startS": 243.38,
+      "endS": 243.93,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "rester",
+      "startS": 243.96,
+      "endS": 244.51,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "tranquille,",
+      "startS": 244.54,
+      "endS": 245.09,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "écouter",
+      "startS": 245.12,
+      "endS": 245.67,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "de",
+      "startS": 245.7,
+      "endS": 246.25,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "la",
+      "startS": 246.28,
+      "endS": 246.83,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "musique",
+      "startS": 246.86,
+      "endS": 247.41,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "et",
+      "startS": 247.44,
+      "endS": 247.99,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "aider",
+      "startS": 248.02,
+      "endS": 248.57,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "mes",
+      "startS": 248.6,
+      "endS": 249.15,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "parents",
+      "startS": 249.18,
+      "endS": 249.73,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "à",
+      "startS": 249.76,
+      "endS": 250.31,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "la",
+      "startS": 250.34,
+      "endS": 250.89,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "maison.",
+      "startS": 250.92,
+      "endS": 251.47,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "Décris",
+      "startS": 252.3,
+      "endS": 252.68,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "ton",
+      "startS": 252.71,
+      "endS": 253.09,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "collège.",
+      "startS": 253.12,
+      "endS": 253.5,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "Mon",
+      "startS": 254.33,
+      "endS": 254.88,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "collège",
+      "startS": 254.91,
+      "endS": 255.46,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "est",
+      "startS": 255.49,
+      "endS": 256.04,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "assez",
+      "startS": 256.07,
+      "endS": 256.62,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "grand,",
+      "startS": 256.65,
+      "endS": 257.2,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "avec",
+      "startS": 257.23,
+      "endS": 257.78,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "environ",
+      "startS": 257.81,
+      "endS": 258.36,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "huit",
+      "startS": 258.39,
+      "endS": 258.94,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "cents",
+      "startS": 258.97,
+      "endS": 259.52,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "élèves.",
+      "startS": 259.55,
+      "endS": 260.1,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "Il",
+      "startS": 260.13,
+      "endS": 260.68,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "y",
+      "startS": 260.71,
+      "endS": 261.26,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "a",
+      "startS": 261.29,
+      "endS": 261.84,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "une",
+      "startS": 261.87,
+      "endS": 262.42,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "belle",
+      "startS": 262.45,
+      "endS": 263,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "bibliothèque,",
+      "startS": 263.03,
+      "endS": 263.58,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "un",
+      "startS": 263.61,
+      "endS": 264.16,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "grand",
+      "startS": 264.19,
+      "endS": 264.74,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "gymnase",
+      "startS": 264.77,
+      "endS": 265.32,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "et",
+      "startS": 265.35,
+      "endS": 265.9,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "plusieurs",
+      "startS": 265.93,
+      "endS": 266.48,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "laboratoires",
+      "startS": 266.51,
+      "endS": 267.06,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "de",
+      "startS": 267.09,
+      "endS": 267.64,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "sciences",
+      "startS": 267.67,
+      "endS": 268.22,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "bien",
+      "startS": 268.25,
+      "endS": 268.8,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "équipés.",
+      "startS": 268.83,
+      "endS": 269.38,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "Les",
+      "startS": 269.41,
+      "endS": 269.96,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "professeurs",
+      "startS": 269.99,
+      "endS": 270.54,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "sont",
+      "startS": 270.57,
+      "endS": 271.12,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "sympathiques",
+      "startS": 271.15,
+      "endS": 271.7,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "et",
+      "startS": 271.73,
+      "endS": 272.28,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "il",
+      "startS": 272.31,
+      "endS": 272.86,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "y",
+      "startS": 272.89,
+      "endS": 273.44,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "a",
+      "startS": 273.47,
+      "endS": 274.02,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "beaucoup",
+      "startS": 274.05,
+      "endS": 274.6,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "de",
+      "startS": 274.63,
+      "endS": 275.18,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "clubs",
+      "startS": 275.21,
+      "endS": 275.76,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "après",
+      "startS": 275.79,
+      "endS": 276.34,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "les",
+      "startS": 276.37,
+      "endS": 276.92,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "cours,",
+      "startS": 276.95,
+      "endS": 277.5,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "comme",
+      "startS": 277.53,
+      "endS": 278.08,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "le",
+      "startS": 278.11,
+      "endS": 278.66,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "club",
+      "startS": 278.69,
+      "endS": 279.24,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "de",
+      "startS": 279.27,
+      "endS": 279.82,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "théâtre",
+      "startS": 279.85,
+      "endS": 280.4,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "et",
+      "startS": 280.43,
+      "endS": 280.98,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "le",
+      "startS": 281.01,
+      "endS": 281.56,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "club",
+      "startS": 281.59,
+      "endS": 282.14,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "d'échecs.",
+      "startS": 282.17,
+      "endS": 282.72,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "Qu'est-ce",
+      "startS": 283.55,
+      "endS": 283.93,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "que",
+      "startS": 283.96,
+      "endS": 284.34,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "tu",
+      "startS": 284.37,
+      "endS": 284.75,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "as",
+      "startS": 284.78,
+      "endS": 285.16,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "étudié",
+      "startS": 285.19,
+      "endS": 285.57,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "l'année",
+      "startS": 285.6,
+      "endS": 285.98,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "dernière",
+      "startS": 286.01,
+      "endS": 286.39,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "?",
+      "startS": 286.42,
+      "endS": 286.8,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "L'année",
+      "startS": 287.63,
+      "endS": 288.18,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "dernière,",
+      "startS": 288.21,
+      "endS": 288.76,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "j'ai",
+      "startS": 288.79,
+      "endS": 289.34,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "étudié",
+      "startS": 289.37,
+      "endS": 289.92,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "beaucoup",
+      "startS": 289.95,
+      "endS": 290.5,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "de",
+      "startS": 290.53,
+      "endS": 291.08,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "matières",
+      "startS": 291.11,
+      "endS": 291.66,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "différentes,",
+      "startS": 291.69,
+      "endS": 292.24,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "y",
+      "startS": 292.27,
+      "endS": 292.82,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "compris",
+      "startS": 292.85,
+      "endS": 293.4,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "l'histoire,",
+      "startS": 293.43,
+      "endS": 293.98,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "la",
+      "startS": 294.01,
+      "endS": 294.56,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "géographie",
+      "startS": 294.59,
+      "endS": 295.14,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "et",
+      "startS": 295.17,
+      "endS": 295.72,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "l'informatique.",
+      "startS": 295.75,
+      "endS": 296.3,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "J'ai",
+      "startS": 296.33,
+      "endS": 296.88,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "particulièrement",
+      "startS": 296.91,
+      "endS": 297.46,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "aimé",
+      "startS": 297.49,
+      "endS": 298.04,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "le",
+      "startS": 298.07,
+      "endS": 298.62,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "cours",
+      "startS": 298.65,
+      "endS": 299.2,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "d'histoire",
+      "startS": 299.23,
+      "endS": 299.78,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "parce",
+      "startS": 299.81,
+      "endS": 300.36,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "qu'on",
+      "startS": 300.39,
+      "endS": 300.94,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "a",
+      "startS": 300.97,
+      "endS": 301.52,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "étudié",
+      "startS": 301.55,
+      "endS": 302.1,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "la",
+      "startS": 302.13,
+      "endS": 302.68,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "Révolution",
+      "startS": 302.71,
+      "endS": 303.26,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "française",
+      "startS": 303.29,
+      "endS": 303.84,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "en",
+      "startS": 303.87,
+      "endS": 304.42,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "détail,",
+      "startS": 304.45,
+      "endS": 305,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "et",
+      "startS": 305.03,
+      "endS": 305.58,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "j'ai",
+      "startS": 305.61,
+      "endS": 306.16,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "écrit",
+      "startS": 306.19,
+      "endS": 306.74,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "un",
+      "startS": 306.77,
+      "endS": 307.32,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "grand",
+      "startS": 307.35,
+      "endS": 307.9,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "projet",
+      "startS": 307.93,
+      "endS": 308.48,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "sur",
+      "startS": 308.51,
+      "endS": 309.06,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "ce",
+      "startS": 309.09,
+      "endS": 309.64,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "sujet",
+      "startS": 309.67,
+      "endS": 310.22,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "qui",
+      "startS": 310.25,
+      "endS": 310.8,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "a",
+      "startS": 310.83,
+      "endS": 311.38,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "été",
+      "startS": 311.41,
+      "endS": 311.96,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "très",
+      "startS": 311.99,
+      "endS": 312.54,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "apprécié",
+      "startS": 312.57,
+      "endS": 313.12,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "par",
+      "startS": 313.15,
+      "endS": 313.7,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "mon",
+      "startS": 313.73,
+      "endS": 314.28,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "professeur.",
+      "startS": 314.31,
+      "endS": 314.86,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "Qu'est-ce",
+      "startS": 315.69,
+      "endS": 316.07,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "que",
+      "startS": 316.1,
+      "endS": 316.48,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "tu",
+      "startS": 316.51,
+      "endS": 316.89,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "voudrais",
+      "startS": 316.92,
+      "endS": 317.3,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "étudier",
+      "startS": 317.33,
+      "endS": 317.71,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "après",
+      "startS": 317.74,
+      "endS": 318.12,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "le",
+      "startS": 318.15,
+      "endS": 318.53,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "collège",
+      "startS": 318.56,
+      "endS": 318.94,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "?",
+      "startS": 318.97,
+      "endS": 319.35,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_00"
+    },
+    {
+      "text": "Après",
+      "startS": 320.18,
+      "endS": 320.73,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "le",
+      "startS": 320.76,
+      "endS": 321.31,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "collège,",
+      "startS": 321.34,
+      "endS": 321.89,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "je",
+      "startS": 321.92,
+      "endS": 322.47,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "voudrais",
+      "startS": 322.5,
+      "endS": 323.05,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "étudier",
+      "startS": 323.08,
+      "endS": 323.63,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "la",
+      "startS": 323.66,
+      "endS": 324.21,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "médecine",
+      "startS": 324.24,
+      "endS": 324.79,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "à",
+      "startS": 324.82,
+      "endS": 325.37,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "l'université,",
+      "startS": 325.4,
+      "endS": 325.95,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "parce",
+      "startS": 325.98,
+      "endS": 326.53,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "que",
+      "startS": 326.56,
+      "endS": 327.11,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "je",
+      "startS": 327.14,
+      "endS": 327.69,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "rêve",
+      "startS": 327.72,
+      "endS": 328.27,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "de",
+      "startS": 328.3,
+      "endS": 328.85,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "devenir",
+      "startS": 328.88,
+      "endS": 329.43,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "médecin",
+      "startS": 329.46,
+      "endS": 330.01,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "depuis",
+      "startS": 330.04,
+      "endS": 330.59,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "que",
+      "startS": 330.62,
+      "endS": 331.17,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "je",
+      "startS": 331.2,
+      "endS": 331.75,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "suis",
+      "startS": 331.78,
+      "endS": 332.33,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "petite.",
+      "startS": 332.36,
+      "endS": 332.91,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "Ce",
+      "startS": 332.94,
+      "endS": 333.49,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "sera",
+      "startS": 333.52,
+      "endS": 334.07,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "difficile,",
+      "startS": 334.1,
+      "endS": 334.65,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "mais",
+      "startS": 334.68,
+      "endS": 335.23,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "je",
+      "startS": 335.26,
+      "endS": 335.81,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "suis",
+      "startS": 335.84,
+      "endS": 336.39,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "prête",
+      "startS": 336.42,
+      "endS": 336.97,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "à",
+      "startS": 337,
+      "endS": 337.55,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "travailler",
+      "startS": 337.58,
+      "endS": 338.13,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "très",
+      "startS": 338.16,
+      "endS": 338.71,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "dur.",
+      "startS": 338.74,
+      "endS": 339.29,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "Si",
+      "startS": 339.32,
+      "endS": 339.87,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "ce",
+      "startS": 339.9,
+      "endS": 340.45,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "n'est",
+      "startS": 340.48,
+      "endS": 341.03,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "pas",
+      "startS": 341.06,
+      "endS": 341.61,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "possible,",
+      "startS": 341.64,
+      "endS": 342.19,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "j'aimerais",
+      "startS": 342.22,
+      "endS": 342.77,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "peut-être",
+      "startS": 342.8,
+      "endS": 343.35,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "étudier",
+      "startS": 343.38,
+      "endS": 343.93,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "la",
+      "startS": 343.96,
+      "endS": 344.51,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "biologie",
+      "startS": 344.54,
+      "endS": 345.09,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "à",
+      "startS": 345.12,
+      "endS": 345.67,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "la",
+      "startS": 345.7,
+      "endS": 346.25,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    },
+    {
+      "text": "place.",
+      "startS": 346.28,
+      "endS": 346.83,
+      "confidence": 0.92,
+      "speakerCluster": "SPEAKER_01"
+    }
+  ]
+}

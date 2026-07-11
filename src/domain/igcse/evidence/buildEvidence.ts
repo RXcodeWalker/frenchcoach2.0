@@ -1,5 +1,6 @@
 import type { SpeakingTranscript } from '../judgement/types';
 import { responseCountsByQuestion } from './counts';
+import { topicConversationDurationByConversation } from './duration';
 import { fillerDensityByQuestion } from './fillers';
 import { rolePlayPartsByTask } from './parts';
 import { deriveExpectedTimeFrameFromCues, detectTimeFrameAlignment } from './timeFrame';
@@ -29,5 +30,6 @@ export function buildEvidenceSubset(transcript: SpeakingTranscript): EvidencePro
     responseCountsByQuestion: responseCountsByQuestion(transcript),
     fillerDensityByQuestion: fillerDensityByQuestion(transcript),
     rolePlayPartsByTask: rolePlayPartsByTask(transcript),
+    topicConversationDurationByConversation: topicConversationDurationByConversation(transcript),
   };
 }

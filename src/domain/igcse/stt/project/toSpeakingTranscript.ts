@@ -20,6 +20,10 @@ function joinCandidateText(utterances: Utterance[]): string {
   return utterances.map((u) => u.text).join(' ');
 }
 
+function sumCandidateDuration(utterances: Utterance[]): number {
+  return utterances.reduce((sum, u) => sum + (u.endS - u.startS), 0);
+}
+
 function findQuestion(questionSet: SessionQuestionSet, questionId: string | null): SessionQuestion | undefined {
   if (questionId === null) return undefined;
   return questionSet.questions.find((q) => q.questionId === questionId);
@@ -62,6 +66,9 @@ function buildTopicConversation(
       candidateResponse: joinCandidateText(candidateUtterances),
       ...(question.expectedTimeFrame !== undefined
         ? { expectedTimeFrame: question.expectedTimeFrame }
+        : {}),
+      ...(candidateUtterances.length > 0
+        ? { candidateResponseDurationS: sumCandidateDuration(candidateUtterances) }
         : {}),
     };
   });

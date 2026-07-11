@@ -3,4 +3,4 @@
  * rendered scoring prompt — paired with SCORING_PROMPT_FIXTURE_HASH in
  * __tests__/version-pin.test.ts, which fails loudly if the two drift apart.
  */
-export const SCORING_PROMPT_VERSION = 'scoring-prompt-v0.1';
+export const SCORING_PROMPT_VERSION = 'scoring-prompt-v0.2';

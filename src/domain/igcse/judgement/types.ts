@@ -46,6 +46,12 @@ export interface ConversationTurn {
   candidateResponse: string;
   /** S2 optional detector hint if a question has known expected time frame. */
   expectedTimeFrame?: TimeFrame;
+  /**
+   * S4 optional candidate speaking time for this turn, in seconds, summed from
+   * STT word timings (see toSpeakingTranscript). Absent for hand-authored
+   * transcripts with no timing source (unit fixtures, manual entry).
+   */
+  candidateResponseDurationS?: number;
 }
 
 /** Injected LLM seam — no model/temperature/retry in S1. */

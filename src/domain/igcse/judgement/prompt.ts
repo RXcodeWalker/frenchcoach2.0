@@ -4,6 +4,7 @@
 
 import { IGCSE_0520_SPEAKING } from '../rubric';
 import type { MarkBand } from '../rubric';
+import type { EvidenceProfileSubset } from '../evidence/types';
 import type { SpeakingTranscript } from './types';
 
 interface BandCriterion {
@@ -122,11 +123,62 @@ function formatTranscript(transcript: SpeakingTranscript): string {
   return lines.join('\n');
 }
 
+function formatEvidence(evidence: EvidenceProfileSubset): string {
+  const lines: string[] = [
+    '## Layer 1 evidence (deterministic detector output — an input to your judgement, not a mark)',
+    '',
+    'This evidence is measured, not judged. Use it as instructed under "Marking instructions" below; do not treat it as a substitute for reading the transcript.',
+    '',
+  ];
+
+  lines.push('### Time-frame alignment (per question)');
+  for (const row of evidence.timeFrameAlignmentByQuestion) {
+    lines.push(
+      `- ${row.questionId}: expected=${row.expectedTimeFrame ?? 'n/a'}, detected=${row.detectedTimeFrame ?? 'n/a'}, alignment=${row.alignment}`,
+    );
+  }
+  lines.push('');
+
+  lines.push('### Response word/utterance counts (per question or task)');
+  for (const row of evidence.responseCountsByQuestion) {
+    lines.push(`- ${row.questionId}: wordCount=${row.wordCount}, responseCount=${row.responseCount}`);
+  }
+  lines.push('');
+
+  lines.push('### Filler density (per question or task)');
+  for (const row of evidence.fillerDensityByQuestion) {
+    lines.push(
+      `- ${row.questionId}: fillerCount=${row.fillerCount}, wordCount=${row.wordCount}, density=${row.density.toFixed(3)}`,
+    );
+  }
+  lines.push('');
+
+  lines.push('### Role-play parts addressed (per task)');
+  for (const row of evidence.rolePlayPartsByTask) {
+    lines.push(
+      `- ${row.taskId}: partsExpected=${row.partsExpected}, partsAddressed=${row.partsAddressed}`,
+    );
+  }
+  lines.push('');
+
+  lines.push('### Topic-conversation candidate speaking time and word count (per conversation)');
+  for (const row of evidence.topicConversationDurationByConversation) {
+    lines.push(
+      `- ${row.conversationId}: candidateSpeakingDurationS=${row.candidateSpeakingDurationS}, candidateWordCount=${row.candidateWordCount}`,
+    );
+  }
+  lines.push('');
+
+  return lines.join('\n');
+}
+
 /**
- * Build the full examiner prompt with frozen rubric descriptors and transcript context.
+ * Build the full examiner prompt with frozen rubric descriptors, transcript context,
+ * and Layer 1 evidence.
  */
 export function buildJudgementPrompt(
   transcript: SpeakingTranscript,
+  evidence: EvidenceProfileSubset,
   rubric = IGCSE_0520_SPEAKING,
 ): string {
   void rubric; // rubric param reserved for future versioning; content pulled from frozen export
@@ -140,6 +192,7 @@ export function buildJudgementPrompt(
     formatBandRubric('Table B', IGCSE_0520_SPEAKING.communication),
     formatBandRubric('Table C', IGCSE_0520_SPEAKING.qualityOfLanguage),
     formatTranscript(transcript),
+    formatEvidence(evidence),
     '## Marking instructions',
     '',
     '1. Role play: award 0, 1, or 2 per task separately. There are NO middle marks for role play — do not apply the convincingly/adequately/just placement principle to role play.',

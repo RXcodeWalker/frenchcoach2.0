@@ -6,19 +6,21 @@
 
 import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
+import { buildEvidenceSubset } from '../../evidence/buildEvidence';
 import { buildJudgementPrompt } from '../prompt';
 import { SCORING_PROMPT_VERSION } from '../version';
 import { PRACTICE_TRANSCRIPT } from './fixtures';
 
-const SCORING_PROMPT_FIXTURE_HASH = '2fabd7c6ec2d9d44821fcaff149eead213c7391a86beee5a79e06326aaa2ec62';
+const SCORING_PROMPT_FIXTURE_HASH = 'a8576c5876c96b9f2bc6c02479c0863bb4170dd8df0298d4fd1d18e7961ff01e';
 
 function sha256(value: string): string {
   return createHash('sha256').update(value).digest('hex');
 }
 
 describe('scoring prompt version pin', () => {
-  it('buildJudgementPrompt(PRACTICE_TRANSCRIPT) hash matches SCORING_PROMPT_FIXTURE_HASH', () => {
-    const actual = sha256(buildJudgementPrompt(PRACTICE_TRANSCRIPT));
+  it('buildJudgementPrompt(PRACTICE_TRANSCRIPT, evidence) hash matches SCORING_PROMPT_FIXTURE_HASH', () => {
+    const evidence = buildEvidenceSubset(PRACTICE_TRANSCRIPT);
+    const actual = sha256(buildJudgementPrompt(PRACTICE_TRANSCRIPT, evidence));
     expect(
       actual,
       `scoring prompt output changed — bump SCORING_PROMPT_VERSION (currently "${SCORING_PROMPT_VERSION}") and update SCORING_PROMPT_FIXTURE_HASH together in this commit`,

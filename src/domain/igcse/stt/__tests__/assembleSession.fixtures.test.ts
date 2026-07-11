@@ -19,12 +19,17 @@ import shortGolden from './fixtures/short-duration.golden.json';
 import shortRaw from './fixtures/short-duration-raw-asr.json';
 import shortQuestions from './fixtures/short-duration-questions.json';
 
+import cleanTopicGolden from './fixtures/clean-topic-conversation.golden.json';
+import cleanTopicRaw from './fixtures/clean-topic-conversation-raw-asr.json';
+import cleanTopicQuestions from './fixtures/clean-topic-conversation-questions.json';
+
 const ALL_FIXTURES = [
   ['app-conducted', appConducted],
   ['clean-session', cleanGolden],
   ['adversarial-session', adversarialGolden],
   ['structurally-complete', structGolden],
   ['short-duration', shortGolden],
+  ['clean-topic-conversation', cleanTopicGolden],
 ] as const;
 
 describe('every committed fixture JSON parses under the current schema', () => {
@@ -149,7 +154,11 @@ describe('short-duration fixture', () => {
     const totalCandidateTopicDuration = result.utterances
       .filter((u) => u.role === 'candidate' && (u.part === 'topic1' || u.part === 'topic2'))
       .reduce((sum, u) => sum + (u.endS - u.startS), 0);
-    expect(totalCandidateTopicDuration).toBeLessThan(240);
+    // Strictly less than the clean fixture's 257s, so the two fixtures are
+    // provably distinguished by the same predicate (see 'clean topic-conversation
+    // fixture' below) — a `< 240` bound alone does not discriminate them, since
+    // structurally-complete (15s) also clears it.
+    expect(totalCandidateTopicDuration).toBeLessThan(60);
   });
 
   it('proves part attribution on Utterance actually works for a short session', () => {
@@ -157,5 +166,68 @@ describe('short-duration fixture', () => {
     expect(result.utterances.some((u) => u.part === 'rolePlay')).toBe(true);
     expect(result.utterances.some((u) => u.part === 'topic1')).toBe(true);
     expect(result.utterances.some((u) => u.part === 'topic2')).toBe(true);
+  });
+});
+
+describe('clean topic-conversation fixture', () => {
+  const meta: AssembleSessionMeta = {
+    sessionId: 'clean-topic-conversation-001',
+    contentProvenance: 'confidential-internal',
+    recordedAt: '2026-05-01T09:00:00.000Z',
+    audio: {
+      sha256: 'clean-audio-0000000000000000000000000000000000000000000001',
+      durationS: (cleanTopicRaw as RawAsrResult).words[
+        (cleanTopicRaw as RawAsrResult).words.length - 1
+      ].endS,
+      sampleRateHz: 16000,
+      channels: 1,
+    },
+    questionSetHash: 'clean-qsh-000000000000000000000000000000000000000001',
+    annotationSource: 'asr-annotation',
+  };
+
+  it('produces 5 role-play tasks and 5+5 topic questions, matching the golden output', () => {
+    const result = assembleSession(
+      cleanTopicRaw as RawAsrResult,
+      cleanTopicQuestions as SessionQuestionSet,
+      meta,
+    );
+    expect(result).toEqual(cleanTopicGolden);
+
+    const rolePlayQuestionIds = new Set(
+      result.examinerEvents.filter((e) => e.part === 'rolePlay').map((e) => e.questionId),
+    );
+    const topic1QuestionIds = new Set(
+      result.examinerEvents.filter((e) => e.part === 'topic1').map((e) => e.questionId),
+    );
+    const topic2QuestionIds = new Set(
+      result.examinerEvents.filter((e) => e.part === 'topic2').map((e) => e.questionId),
+    );
+    expect(rolePlayQuestionIds.size).toBe(5);
+    expect(topic1QuestionIds.size).toBe(5);
+    expect(topic2QuestionIds.size).toBe(5);
+  });
+
+  it('candidate speaking time and word count across topic1+topic2 clear the S5 insufficient-evidence-duration thresholds (>= 240s, >= 300 words), unlike every other committed fixture', () => {
+    const result = assembleSession(
+      cleanTopicRaw as RawAsrResult,
+      cleanTopicQuestions as SessionQuestionSet,
+      meta,
+    );
+    const topicCandidateUtterances = result.utterances.filter(
+      (u) => u.role === 'candidate' && (u.part === 'topic1' || u.part === 'topic2'),
+    );
+    const totalCandidateTopicDuration = topicCandidateUtterances.reduce(
+      (sum, u) => sum + (u.endS - u.startS),
+      0,
+    );
+    const totalCandidateTopicWords = topicCandidateUtterances.reduce(
+      (sum, u) => sum + u.words.length,
+      0,
+    );
+    // Strictly greater than short-duration's < 60s bound above — the two fixtures
+    // are provably distinguished by the same duration predicate.
+    expect(totalCandidateTopicDuration).toBeGreaterThanOrEqual(240);
+    expect(totalCandidateTopicWords).toBeGreaterThanOrEqual(300);
   });
 });
