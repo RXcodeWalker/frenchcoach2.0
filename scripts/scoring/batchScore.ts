@@ -20,13 +20,16 @@
 
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { ProvenanceError } from '../../src/domain/igcse/judgement/scoreSpeaking';
 import { JudgementValidationError } from '../../src/domain/igcse/judgement/schema';
 import { buildDiffRows } from '../../src/domain/igcse/comparison/diff';
 import { parseTeacherMarkSet } from '../../src/domain/igcse/comparison/teacherMark';
 import type { DiffRow } from '../../src/domain/igcse/comparison/diff';
+import type { ReviewStatus } from '../../src/domain/igcse/comparison/reviewStatus';
 import type { SessionQuestionSet } from '../../src/domain/igcse/stt/types';
 import type { EnvelopeStore } from '../../src/domain/igcse/envelope/ports';
+import type { ScoringEnvelope } from '../../src/domain/igcse/envelope/types';
 import type { TranscriptStore } from '../../src/domain/igcse/stt/ports';
 import { createFileTranscriptStore } from '../stt/fileTranscriptStore';
 import { createFixtureTranscriptStore } from '../../src/domain/igcse/stt/providers/fixtureTranscriptStore';
@@ -36,6 +39,14 @@ import { createJudgeWithFallback } from './providers/judgeFactory';
 import { scoreAttempt } from './scoreAttempt';
 import type { ScoreAttemptDeps } from './scoreAttempt';
 import { toCsv } from './csv';
+import { enableScoringDebug } from './observability/logger';
+import { buildEnvelopeView } from './reporting/envelopeView';
+import type { EnvelopeView } from './reporting/envelopeView';
+import { buildReviewArtifactRows } from './reporting/reviewArtifact';
+import type { ReviewArtifactRow } from './reporting/reviewArtifact';
+import { rankSessions } from './reporting/priority';
+import type { SortBy } from './reporting/priority';
+import { createReviewStore } from './reviewStore';
 
 interface CliArgs {
   transcriptStore: 'file' | 'fixture';
@@ -43,6 +54,8 @@ interface CliArgs {
   judge: 'gemini' | 'fixture';
   outDir: string;
   sessions?: string[];
+  debug: boolean;
+  sortBy: SortBy;
 }
 
 function parseArgs(argv: string[]): CliArgs {
@@ -72,12 +85,19 @@ function parseArgs(argv: string[]): CliArgs {
     throw new Error(`Unknown --judge "${judge}"; expected gemini|fixture`);
   }
 
+  const sortBy = (get('--sort-by') ?? 'none') as SortBy;
+  if (sortBy !== 'delta' && sortBy !== 'guardrails' && sortBy !== 'none') {
+    throw new Error(`Unknown --sort-by "${sortBy}"; expected delta|guardrails|none`);
+  }
+
   const sessions = getAll('--session');
   return {
     transcriptStore,
     sessionsRoot,
     judge,
     outDir,
+    debug: argv.includes('--debug'),
+    sortBy,
     ...(sessions.length > 0 ? { sessions } : {}),
   };
 }
@@ -91,6 +111,14 @@ async function loadTeacherMarks(sessionsRoot: string, sessionId: string) {
   try {
     const raw = await fs.readFile(path.join(sessionsRoot, sessionId, 'teacher-marks.json'), 'utf8');
     return parseTeacherMarkSet(JSON.parse(raw));
+  } catch {
+    return undefined; // never assumed to exist
+  }
+}
+
+async function loadReviewStatus(envelopesRoot: string, attemptId: string): Promise<ReviewStatus | undefined> {
+  try {
+    return await createReviewStore(envelopesRoot).load(attemptId);
   } catch {
     return undefined; // never assumed to exist
   }
@@ -119,15 +147,16 @@ export async function runBatchScore(
   args: CliArgs,
   overrides: RunBatchScoreOverrides = {},
 ): Promise<{ diffRows: DiffRow[]; failures: ScoringFailedRow[] }> {
+  if (args.debug) enableScoringDebug();
+
   const transcriptStore: TranscriptStore =
     overrides.transcriptStore ??
     (args.transcriptStore === 'fixture' ? createFixtureTranscriptStore({}) : createFileTranscriptStore(args.sessionsRoot));
 
+  const envelopesRoot = path.join(process.cwd(), 'data', 'envelopes');
   const envelopeStore: EnvelopeStore =
     overrides.envelopeStore ??
-    (args.transcriptStore === 'fixture'
-      ? createFixtureEnvelopeStore({})
-      : createFileEnvelopeStore(path.join(process.cwd(), 'data', 'envelopes')));
+    (args.transcriptStore === 'fixture' ? createFixtureEnvelopeStore({}) : createFileEnvelopeStore(envelopesRoot));
 
   const createJudge: ScoreAttemptDeps['createJudge'] =
     overrides.createJudge ??
@@ -140,18 +169,29 @@ export async function runBatchScore(
   const sessionIds = await resolveSessionIds(transcriptStore, args.sessions);
   const diffRows: DiffRow[] = [];
   const failures: ScoringFailedRow[] = [];
+  const envelopeViewsBySession = new Map<string, EnvelopeView>();
+  const guardrailTriggersBySession = new Map<string, string[]>();
+  const reviewArtifactRows: ReviewArtifactRow[] = [];
 
   for (const sessionId of sessionIds) {
     try {
       const questionSet = await loadQuestionSet(args.sessionsRoot, sessionId);
-      const envelope = await scoreAttempt(
+      const envelope: ScoringEnvelope = await scoreAttempt(
         { transcriptStore, createJudge },
         { sessionId, questionSet },
       );
       await envelopeStore.save(envelope);
 
       const teacherMarks = await loadTeacherMarks(args.sessionsRoot, sessionId);
-      diffRows.push(...buildDiffRows(envelope, teacherMarks));
+      const sessionDiffRows = buildDiffRows(envelope, teacherMarks);
+      diffRows.push(...sessionDiffRows);
+
+      guardrailTriggersBySession.set(sessionId, envelope.guardrailTriggers);
+      const envelopeView = buildEnvelopeView(envelope, teacherMarks);
+      envelopeViewsBySession.set(sessionId, envelopeView);
+
+      const reviewStatus = await loadReviewStatus(envelopesRoot, envelope.attemptId);
+      reviewArtifactRows.push(...buildReviewArtifactRows(sessionDiffRows, envelopeView, reviewStatus));
     } catch (err) {
       if (err instanceof ProvenanceError || err instanceof JudgementValidationError) {
         failures.push({ sessionId, reason: err.message });
@@ -162,7 +202,15 @@ export async function runBatchScore(
   }
 
   await fs.mkdir(args.outDir, { recursive: true });
-  await writeReports(args.outDir, diffRows, failures);
+  await writeReports(
+    args.outDir,
+    diffRows,
+    failures,
+    guardrailTriggersBySession,
+    envelopeViewsBySession,
+    reviewArtifactRows,
+    args.sortBy,
+  );
 
   return { diffRows, failures };
 }
@@ -181,7 +229,16 @@ const CSV_HEADERS = [
   'lowConfidenceSpanRatio',
 ];
 
-async function writeReports(outDir: string, diffRows: DiffRow[], failures: ScoringFailedRow[]): Promise<void> {
+async function writeReports(
+  outDir: string,
+  diffRows: DiffRow[],
+  failures: ScoringFailedRow[],
+  guardrailTriggersBySession: Map<string, string[]>,
+  envelopeViewsBySession: Map<string, EnvelopeView>,
+  reviewArtifactRows: ReviewArtifactRow[],
+  sortBy: SortBy,
+): Promise<void> {
+  // diff.csv row order/content is never affected by --sort-by — only report.md's session grouping is reordered.
   const csv = toCsv(CSV_HEADERS, diffRows as unknown as Array<Record<string, unknown>>);
   await fs.writeFile(path.join(outDir, 'diff.csv'), csv, 'utf8');
 
@@ -192,8 +249,14 @@ async function writeReports(outDir: string, diffRows: DiffRow[], failures: Scori
     bySessionId.set(row.sessionId, existing);
   }
 
+  const orderedSessionIds = rankSessions(diffRows, guardrailTriggersBySession, sortBy);
+  // rankSessions only sees sessions with diff rows or guardrail entries; preserve original grouping order as a tiebreak/fallback for any session missing from that ranking (should not happen in practice, but never silently drop a session).
+  const sessionIds = [...orderedSessionIds, ...[...bySessionId.keys()].filter((id) => !orderedSessionIds.includes(id))];
+
   const lines: string[] = ['# Batch scoring report', ''];
-  for (const [sessionId, rows] of bySessionId) {
+  for (const sessionId of sessionIds) {
+    const rows = bySessionId.get(sessionId);
+    if (!rows) continue;
     lines.push(`## Session ${sessionId}`, '');
     for (const row of rows) {
       const label = row.taskId ? `${row.criterion} (${row.taskId})` : row.criterion;
@@ -202,6 +265,10 @@ async function writeReports(outDir: string, diffRows: DiffRow[], failures: Scori
           (row.teacherMark !== null ? `, teacher ${row.teacherMark}, delta ${row.delta}` : ', teacher: n/a') +
           ` — ${row.justification}`,
       );
+    }
+    const guardrailTriggers = guardrailTriggersBySession.get(sessionId) ?? [];
+    if (guardrailTriggers.length > 0) {
+      lines.push(`- **Guardrail triggers**: ${guardrailTriggers.join(', ')}`);
     }
     lines.push('');
   }
@@ -215,6 +282,28 @@ async function writeReports(outDir: string, diffRows: DiffRow[], failures: Scori
   }
 
   await fs.writeFile(path.join(outDir, 'report.md'), lines.join('\n'), 'utf8');
+
+  const evidenceJson = Object.fromEntries(envelopeViewsBySession);
+  await fs.writeFile(path.join(outDir, 'evidence.json'), JSON.stringify(evidenceJson, null, 2) + '\n', 'utf8');
+
+  await fs.writeFile(
+    path.join(outDir, 'review-artifacts.json'),
+    JSON.stringify(reviewArtifactRows, null, 2) + '\n',
+    'utf8',
+  );
+
+  const reviewLines: string[] = [
+    '# Review artifacts',
+    '',
+    '| session | criterion | task | mark | teacher | delta | reviewed | reviewer |',
+    '| --- | --- | --- | --- | --- | --- | --- | --- |',
+  ];
+  for (const row of reviewArtifactRows) {
+    reviewLines.push(
+      `| ${row.sessionId} | ${row.criterion} | ${row.taskId ?? ''} | ${row.mark} | ${row.teacherMark ?? ''} | ${row.delta ?? ''} | ${row.reviewed} | ${row.reviewer ?? ''} |`,
+    );
+  }
+  await fs.writeFile(path.join(outDir, 'review-artifacts.md'), reviewLines.join('\n') + '\n', 'utf8');
 }
 
 async function main(): Promise<void> {
@@ -229,7 +318,7 @@ async function main(): Promise<void> {
 }
 
 // Guarded so runBatchScore can be imported by tests without invoking the CLI.
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main().catch((err) => {
     console.error(err instanceof Error ? err.message : err);
     process.exitCode = 1;

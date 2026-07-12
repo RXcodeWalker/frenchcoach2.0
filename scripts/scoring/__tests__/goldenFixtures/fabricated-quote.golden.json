@@ -1,0 +1,560 @@
+{
+  "id": "fabricated-quote",
+  "evidence": {
+    "timeFrameAlignmentByQuestion": [
+      {
+        "questionId": "topic1:q1",
+        "expectedTimeFrame": null,
+        "detectedTimeFrame": "past",
+        "alignment": "aligned"
+      },
+      {
+        "questionId": "topic1:q2",
+        "expectedTimeFrame": null,
+        "detectedTimeFrame": "past",
+        "alignment": "aligned"
+      },
+      {
+        "questionId": "topic2:q1",
+        "expectedTimeFrame": null,
+        "detectedTimeFrame": "past",
+        "alignment": "aligned"
+      },
+      {
+        "questionId": "topic2:q2",
+        "expectedTimeFrame": null,
+        "detectedTimeFrame": "present",
+        "alignment": "aligned"
+      }
+    ],
+    "responseCountsByQuestion": [
+      {
+        "questionId": "rolePlay:t1",
+        "wordCount": 2,
+        "responseCount": 1
+      },
+      {
+        "questionId": "rolePlay:t2",
+        "wordCount": 8,
+        "responseCount": 1
+      },
+      {
+        "questionId": "rolePlay:t3",
+        "wordCount": 3,
+        "responseCount": 1
+      },
+      {
+        "questionId": "rolePlay:t4",
+        "wordCount": 4,
+        "responseCount": 1
+      },
+      {
+        "questionId": "rolePlay:t5",
+        "wordCount": 3,
+        "responseCount": 1
+      },
+      {
+        "questionId": "topic1:q1",
+        "wordCount": 58,
+        "responseCount": 1
+      },
+      {
+        "questionId": "topic1:q2",
+        "wordCount": 57,
+        "responseCount": 1
+      },
+      {
+        "questionId": "topic2:q1",
+        "wordCount": 52,
+        "responseCount": 1
+      },
+      {
+        "questionId": "topic2:q2",
+        "wordCount": 45,
+        "responseCount": 1
+      }
+    ],
+    "fillerDensityByQuestion": [
+      {
+        "questionId": "rolePlay:t1",
+        "fillerCount": 0,
+        "wordCount": 2,
+        "density": 0
+      },
+      {
+        "questionId": "rolePlay:t2",
+        "fillerCount": 0,
+        "wordCount": 8,
+        "density": 0
+      },
+      {
+        "questionId": "rolePlay:t3",
+        "fillerCount": 0,
+        "wordCount": 3,
+        "density": 0
+      },
+      {
+        "questionId": "rolePlay:t4",
+        "fillerCount": 0,
+        "wordCount": 4,
+        "density": 0
+      },
+      {
+        "questionId": "rolePlay:t5",
+        "fillerCount": 0,
+        "wordCount": 3,
+        "density": 0
+      },
+      {
+        "questionId": "topic1:q1",
+        "fillerCount": 0,
+        "wordCount": 58,
+        "density": 0
+      },
+      {
+        "questionId": "topic1:q2",
+        "fillerCount": 0,
+        "wordCount": 57,
+        "density": 0
+      },
+      {
+        "questionId": "topic2:q1",
+        "fillerCount": 0,
+        "wordCount": 52,
+        "density": 0
+      },
+      {
+        "questionId": "topic2:q2",
+        "fillerCount": 0,
+        "wordCount": 45,
+        "density": 0
+      }
+    ],
+    "rolePlayPartsByTask": [
+      {
+        "taskId": "t1",
+        "partsExpected": 1,
+        "partsAddressed": 1
+      },
+      {
+        "taskId": "t2",
+        "partsExpected": 1,
+        "partsAddressed": 1
+      },
+      {
+        "taskId": "t3",
+        "partsExpected": 1,
+        "partsAddressed": 1
+      },
+      {
+        "taskId": "t4",
+        "partsExpected": 1,
+        "partsAddressed": 1
+      },
+      {
+        "taskId": "t5",
+        "partsExpected": 1,
+        "partsAddressed": 1
+      }
+    ],
+    "topicConversationDurationByConversation": [
+      {
+        "conversationId": "topic1",
+        "candidateSpeakingDurationS": 0,
+        "candidateWordCount": 115
+      },
+      {
+        "conversationId": "topic2",
+        "candidateSpeakingDurationS": 0,
+        "candidateWordCount": 97
+      }
+    ]
+  },
+  "guardrailTriggers": [
+    "quote_verification_failed"
+  ],
+  "envelope": {
+    "attemptId": "golden-fabricated-quote",
+    "sessionId": "golden-session-fabricated-quote",
+    "scoredAt": "2025-01-01T00:00:00.000Z",
+    "contentProvenance": "original-practice",
+    "versions": {
+      "envelopeSchemaVersion": "envelope-v0.1",
+      "rubricVersion": "rubric-v0.1",
+      "scoringEngineVersion": "golden-fixture",
+      "evidenceDetectorVersion": "detectors-v0.2",
+      "scoringPromptVersion": "scoring-prompt-v0.2",
+      "guardrailsVersion": "guardrails-v0.1",
+      "calibrationVersion": "none",
+      "gradeBoundarySeries": "none"
+    },
+    "llm": {
+      "provider": "gemini",
+      "model": "golden-fixture-no-llm",
+      "selfConsistencyRuns": 1
+    },
+    "stt": {
+      "model": "golden-fixture",
+      "modelVersion": "golden-fixture-v1",
+      "provider": "golden-fixture",
+      "languageCode": "fr",
+      "alignmentModel": null,
+      "diarizationModel": null,
+      "decodeParamsHash": "golden-fixture-hash",
+      "confidenceSource": "faster-whisper-probability",
+      "promptBiasedRetries": 0,
+      "transcribedAt": "2025-01-01T00:00:00.000Z"
+    },
+    "transcriptVersion": {
+      "schemaVersion": "session-transcript-v1",
+      "assemblerVersion": "stt-assembler-v1"
+    },
+    "transcriptConfidence": {
+      "meanWordConfidence": 1,
+      "lowConfidenceSpanRatio": 0,
+      "lowConfidenceSpanCount": 0,
+      "userCorrected": false
+    },
+    "anchorsUsedByCriterion": {
+      "rolePlayTask": [],
+      "communication": [],
+      "qualityOfLanguage": []
+    },
+    "rolePlayTasks": [
+      {
+        "taskId": "t1",
+        "mark": 2,
+        "confidence": "unassessed",
+        "justification": "The information is communicated.",
+        "evidenceSpans": [
+          {
+            "source": "rolePlay",
+            "quote": "Bonjour madame"
+          }
+        ]
+      },
+      {
+        "taskId": "t2",
+        "mark": 2,
+        "confidence": "unassessed",
+        "justification": "The information is communicated.",
+        "evidenceSpans": [
+          {
+            "source": "rolePlay",
+            "quote": "deux croissants"
+          }
+        ]
+      },
+      {
+        "taskId": "t3",
+        "mark": 1,
+        "confidence": "unassessed",
+        "justification": "Errors impede communication.",
+        "evidenceSpans": [
+          {
+            "source": "rolePlay",
+            "quote": "C est combien"
+          }
+        ]
+      },
+      {
+        "taskId": "t4",
+        "mark": 2,
+        "confidence": "unassessed",
+        "justification": "The information is communicated.",
+        "evidenceSpans": [
+          {
+            "source": "rolePlay",
+            "quote": "Je paie par carte"
+          }
+        ]
+      },
+      {
+        "taskId": "t5",
+        "mark": 2,
+        "confidence": "unassessed",
+        "justification": "The information is communicated.",
+        "evidenceSpans": [
+          {
+            "source": "rolePlay",
+            "quote": "Merci, au revoir"
+          }
+        ]
+      }
+    ],
+    "communication": {
+      "mark": 8,
+      "band": {
+        "min": 7,
+        "max": 9,
+        "label": "Satisfactory"
+      },
+      "confidence": "unassessed",
+      "justification": "Responds satisfactorily with mostly relevant information.",
+      "evidenceSpans": [
+        {
+          "source": "topic1",
+          "quote": "ceci ne figure jamais dans la transcription"
+        }
+      ]
+    },
+    "qualityOfLanguage": {
+      "mark": 8,
+      "band": {
+        "min": 7,
+        "max": 9,
+        "label": "Satisfactory"
+      },
+      "confidence": "unassessed",
+      "justification": "Satisfactory structures with frequent errors.",
+      "evidenceSpans": [
+        {
+          "source": "topic1",
+          "quote": "Je préfère le sport"
+        }
+      ]
+    },
+    "total": 25,
+    "guardrailTriggers": [
+      "quote_verification_failed"
+    ],
+    "selfConsistencyOutcomes": {
+      "agreement": "single_run",
+      "rerunsRequested": 0
+    },
+    "evidenceProfileSnapshot": {
+      "timeFrameAlignmentByQuestion": [
+        {
+          "questionId": "topic1:q1",
+          "expectedTimeFrame": null,
+          "detectedTimeFrame": "past",
+          "alignment": "aligned"
+        },
+        {
+          "questionId": "topic1:q2",
+          "expectedTimeFrame": null,
+          "detectedTimeFrame": "past",
+          "alignment": "aligned"
+        },
+        {
+          "questionId": "topic2:q1",
+          "expectedTimeFrame": null,
+          "detectedTimeFrame": "past",
+          "alignment": "aligned"
+        },
+        {
+          "questionId": "topic2:q2",
+          "expectedTimeFrame": null,
+          "detectedTimeFrame": "present",
+          "alignment": "aligned"
+        }
+      ],
+      "responseCountsByQuestion": [
+        {
+          "questionId": "rolePlay:t1",
+          "wordCount": 2,
+          "responseCount": 1
+        },
+        {
+          "questionId": "rolePlay:t2",
+          "wordCount": 8,
+          "responseCount": 1
+        },
+        {
+          "questionId": "rolePlay:t3",
+          "wordCount": 3,
+          "responseCount": 1
+        },
+        {
+          "questionId": "rolePlay:t4",
+          "wordCount": 4,
+          "responseCount": 1
+        },
+        {
+          "questionId": "rolePlay:t5",
+          "wordCount": 3,
+          "responseCount": 1
+        },
+        {
+          "questionId": "topic1:q1",
+          "wordCount": 58,
+          "responseCount": 1
+        },
+        {
+          "questionId": "topic1:q2",
+          "wordCount": 57,
+          "responseCount": 1
+        },
+        {
+          "questionId": "topic2:q1",
+          "wordCount": 52,
+          "responseCount": 1
+        },
+        {
+          "questionId": "topic2:q2",
+          "wordCount": 45,
+          "responseCount": 1
+        }
+      ],
+      "fillerDensityByQuestion": [
+        {
+          "questionId": "rolePlay:t1",
+          "fillerCount": 0,
+          "wordCount": 2,
+          "density": 0
+        },
+        {
+          "questionId": "rolePlay:t2",
+          "fillerCount": 0,
+          "wordCount": 8,
+          "density": 0
+        },
+        {
+          "questionId": "rolePlay:t3",
+          "fillerCount": 0,
+          "wordCount": 3,
+          "density": 0
+        },
+        {
+          "questionId": "rolePlay:t4",
+          "fillerCount": 0,
+          "wordCount": 4,
+          "density": 0
+        },
+        {
+          "questionId": "rolePlay:t5",
+          "fillerCount": 0,
+          "wordCount": 3,
+          "density": 0
+        },
+        {
+          "questionId": "topic1:q1",
+          "fillerCount": 0,
+          "wordCount": 58,
+          "density": 0
+        },
+        {
+          "questionId": "topic1:q2",
+          "fillerCount": 0,
+          "wordCount": 57,
+          "density": 0
+        },
+        {
+          "questionId": "topic2:q1",
+          "fillerCount": 0,
+          "wordCount": 52,
+          "density": 0
+        },
+        {
+          "questionId": "topic2:q2",
+          "fillerCount": 0,
+          "wordCount": 45,
+          "density": 0
+        }
+      ],
+      "rolePlayPartsByTask": [
+        {
+          "taskId": "t1",
+          "partsExpected": 1,
+          "partsAddressed": 1
+        },
+        {
+          "taskId": "t2",
+          "partsExpected": 1,
+          "partsAddressed": 1
+        },
+        {
+          "taskId": "t3",
+          "partsExpected": 1,
+          "partsAddressed": 1
+        },
+        {
+          "taskId": "t4",
+          "partsExpected": 1,
+          "partsAddressed": 1
+        },
+        {
+          "taskId": "t5",
+          "partsExpected": 1,
+          "partsAddressed": 1
+        }
+      ],
+      "topicConversationDurationByConversation": [
+        {
+          "conversationId": "topic1",
+          "candidateSpeakingDurationS": 0,
+          "candidateWordCount": 115
+        },
+        {
+          "conversationId": "topic2",
+          "candidateSpeakingDurationS": 0,
+          "candidateWordCount": 97
+        }
+      ]
+    },
+    "transcriptSnapshot": {
+      "contentProvenance": "original-practice",
+      "rolePlay": [
+        {
+          "taskId": "t1",
+          "taskPrompt": "Greet the shop assistant.",
+          "candidateResponse": "Bonjour madame."
+        },
+        {
+          "taskId": "t2",
+          "taskPrompt": "Say you want two croissants.",
+          "candidateResponse": "Je voudrais deux  croissants, s il vous plaît."
+        },
+        {
+          "taskId": "t3",
+          "taskPrompt": "Ask the price.",
+          "candidateResponse": "C est combien?"
+        },
+        {
+          "taskId": "t4",
+          "taskPrompt": "Say you will pay by card.",
+          "candidateResponse": "Je paie par carte."
+        },
+        {
+          "taskId": "t5",
+          "taskPrompt": "Thank and say goodbye.",
+          "candidateResponse": "Merci, au revoir."
+        }
+      ],
+      "topicConversations": [
+        {
+          "conversationId": "topic1",
+          "topicArea": "A",
+          "turns": [
+            {
+              "turnId": "q1",
+              "questionPrompt": "What do you do at weekends?",
+              "candidateResponse": "Le samedi j'ai joué au football avec mes amis dans le parc pres de chez moi et ensuite nous sommes alles au cafe pour parler de nos projets et de nos vacances pendant longtemps et nous avons aussi discute de nos matieres preferees au college et de nos projets pour les grandes vacances qui arrivent bientot cette annee."
+            },
+            {
+              "turnId": "q2",
+              "questionPrompt": "Do you prefer sport or cinema?",
+              "candidateResponse": "Je préfère le sport parce que c est amusant et je me sens en meilleure forme apres avoir couru pendant une heure avec mon equipe le weekend dernier et je pense que le cinema est aussi agreable mais moins actif donc je prefere sortir et bouger avec mes camarades plutot que de rester assis pendant deux heures."
+            }
+          ]
+        },
+        {
+          "conversationId": "topic2",
+          "topicArea": "B",
+          "turns": [
+            {
+              "turnId": "q1",
+              "questionPrompt": "Describe your best friend.",
+              "candidateResponse": "Mon meilleur ami s appelle Thomas et il est très sympa et genereux avec tout le monde autour de lui et nous nous connaissons depuis l ecole primaire et il aime beaucoup jouer de la guitare et regarder des films avec ses amis pendant le weekend quand il a du temps libre."
+            },
+            {
+              "turnId": "q2",
+              "questionPrompt": "What do you do together?",
+              "candidateResponse": "Nous écoutons de la musique ensemble et parfois nous allons au cinema le weekend pour nous detendre un peu apres une semaine chargee de devoirs et nous aimons aussi faire du velo dans la foret pres de chez lui quand il fait beau en ete."
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

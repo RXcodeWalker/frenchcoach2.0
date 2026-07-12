@@ -10,3 +10,6 @@ backend/
 
 # S3 STT: teacher recordings + TN-derived material — never redistributed, never pooled.
 data/sessions/
+
+# Toolkit-generated reports (inspectAttempt HTML/terminal output, batch reports) — regenerable, not source.
+data/reports/

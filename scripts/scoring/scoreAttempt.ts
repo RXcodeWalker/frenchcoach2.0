@@ -26,6 +26,7 @@ import type { SessionQuestionSet } from '../../src/domain/igcse/stt/types';
 import type { TranscriptStore } from '../../src/domain/igcse/stt/ports';
 import { resolveScoringEngineVersion } from './engineVersion';
 import type { LlmProviderName } from '../../src/domain/igcse/envelope/types';
+import { logStage } from './observability/logger';
 
 export interface CreateJudgeResult {
   judge: Judge;
@@ -63,21 +64,29 @@ export async function scoreAttempt(
   deps: ScoreAttemptDeps,
   input: ScoreAttemptInput,
 ): Promise<ScoringEnvelope> {
-  const session = await deps.transcriptStore.load(input.sessionId);
+  const attemptId = crypto.randomUUID();
+
+  const session = await logStage(attemptId, 'transcriptStore.load', () => deps.transcriptStore.load(input.sessionId));
   const speakingTranscript = toSpeakingTranscript(session, input.questionSet);
-  const evidenceProfile = buildEvidenceSubset(speakingTranscript);
+  const evidenceProfile = await logStage(attemptId, 'buildEvidenceSubset', async () =>
+    buildEvidenceSubset(speakingTranscript),
+  );
 
   const { judge, getLastCallMetadata } = deps.createJudge();
-  const assessment: SpeakingAssessment = await scoreSpeaking(speakingTranscript, judge);
+  const assessment: SpeakingAssessment = await logStage(attemptId, 'scoreSpeaking', () =>
+    scoreSpeaking(speakingTranscript, judge),
+  );
   const llmMetadata = getLastCallMetadata();
   if (!llmMetadata) {
     throw new Error('scoreAttempt: createJudge() instance produced no call metadata after scoreSpeaking');
   }
 
-  const guardrailReport = runGuardrails(assessment, evidenceProfile, speakingTranscript);
+  const guardrailReport = await logStage(attemptId, 'runGuardrails', async () =>
+    runGuardrails(assessment, evidenceProfile, speakingTranscript),
+  );
 
   const envelope = buildScoringEnvelope({
-    attemptId: crypto.randomUUID(),
+    attemptId,
     sessionId: input.sessionId,
     scoredAt: new Date().toISOString(),
     transcript: speakingTranscript,

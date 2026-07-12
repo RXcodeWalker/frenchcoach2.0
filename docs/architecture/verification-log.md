@@ -552,3 +552,129 @@ pure, deterministic, advisory-only guardrails, wired into the envelope.
   task, `c'est`/`c'était`, number without currency) — these map to L1/L2
   signals, not to S5's two guardrails; `guardrails/__tests__/synthetic.ts` is
   structured for S6 to extend.
+
+---
+
+## Validation & inspection toolkit (dev tooling, not a roadmap subphase)
+
+Developer tooling built on top of S1–S5, prepared ahead of S6 (Phase A) so
+scoring real teacher-graded recordings has inspection/regression/prioritization
+tooling in place the moment recordings arrive. **Zero scoring-logic change** —
+no file under `src/domain/igcse/{evidence,judgement,guardrails,envelope}/*.ts`
+was modified; `synthetic.ts` and `diff.ts` were only imported from, never
+edited.
+
+### Built
+
+- `src/domain/igcse/guardrails/__tests__/syntheticManifest.ts` — taxonomy tags
+  (03 §5.1's five-item list) + `expectedGuardrails` over the existing S5
+  `synthetic.ts` fixtures. Honestly records `expectedGuardrails: []` for the
+  3 taxonomy items with no guardrail yet, plus a separate
+  `UNCOVERED_TAXONOMY_ITEMS` export — no fabricated coverage.
+- `scripts/scoring/goldenRegression.ts` (+ `npm run score:golden`) — recomputes
+  L1 evidence + L3 guardrails (and a full envelope, with fixed literal
+  provenance, for the two manifest entries that pair a static assessment) with
+  no LLM/network call, diffs against checked-in
+  `scripts/scoring/__tests__/goldenFixtures/*.golden.json`, `--update-goldens`
+  to regenerate. Wrapped in `goldenRegression.test.ts` so `npm test` catches
+  drift too.
+- `scripts/scoring/reporting/envelopeView.ts` — pure view-model
+  (`ScoringEnvelope` + optional `TeacherMarkSet` → render-ready shape), adding
+  `topicArea`/`responseLength` per criterion (bracketed from existing
+  `EvidenceProfileSubset` word counts, no new detector) since
+  02 §3.6 confirms S8 calibration-anchor selection will key on the same two
+  dimensions.
+- `scripts/scoring/reporting/renderAttemptHtml.ts` /
+  `renderAttemptTerminal.ts` + `scripts/scoring/inspectAttempt.ts`
+  (`npm run score:inspect`) — self-contained HTML (inline CSS, zero deps) for
+  a non-developer to open, plus a terminal pretty-printer for the fast
+  developer loop.
+- `src/domain/igcse/comparison/reviewStatus.ts` (+ zod `parseReviewStatus`)
+  and `scripts/scoring/reviewStore.ts` / `reviewAttempt.ts`
+  (`npm run score:review`) — new sibling artifact at
+  `data/envelopes/<attemptId>/review.json`, mirroring `teacherMark.ts`'s
+  "kept fully separate from `ScoringEnvelope`" pattern exactly. Never read by
+  anything under `src/domain/igcse/{evidence,judgement,guardrails,envelope}/`.
+- `scripts/scoring/reporting/priority.ts` — generic `rankSessions()` primitive
+  over `DiffRow[]` + guardrail-trigger counts (`delta` / `guardrails` / `none`
+  strategies). Deliberately generic, not calibration-specific — S8's
+  `calibration/select.ts` is separate code, written later.
+- `scripts/scoring/reporting/reviewArtifact.ts` — merges `buildDiffRows()`
+  output with `ReviewStatus` (optional) into one row per criterion; field
+  names (`topicArea`, `responseLength`, `mark`, `band`) chosen to align with
+  02 §3.6's future `CalibrationAnchor` shape where they overlap — best-effort,
+  not a contract, since S8 doesn't exist yet.
+- `scripts/scoring/observability/logger.ts` — `logStage(traceId, stage, fn)`,
+  true no-op unless `SCORING_DEBUG=1` or `--debug`; pure passthrough
+  (`try { return await fn() } finally { log }`, no `catch`), preserving
+  `scoreAttempt.ts`'s "errors propagate unchanged" contract.
+
+### Modified (additive/backward-compatible only)
+
+- `scripts/scoring/scoreAttempt.ts` — wraps the four pipeline stage calls
+  (`transcriptStore.load`, `buildEvidenceSubset`, `scoreSpeaking`,
+  `runGuardrails`) in `logStage`, keyed by `attemptId` (moved
+  `crypto.randomUUID()` earlier, no other behavior change). Confirmed via
+  `scoreAttempt.test.ts`'s existing "propagates errors unchanged" test, which
+  still passes unmodified.
+- `scripts/scoring/batchScore.ts` — captures `guardrailTriggers` per session,
+  writes `evidence.json` (via `envelopeView.ts`) and
+  `review-artifacts.json`/`.md` (via `reviewArtifact.ts`) alongside the
+  existing `diff.csv`/`report.md`; appends an optional "Guardrail triggers"
+  bullet to `report.md` only when non-empty; adds opt-in `--debug` and
+  `--sort-by delta|guardrails|none` (default `none`) flags. `diff.csv`
+  row order/content is byte-identical regardless of `--sort-by` — only
+  `report.md`'s session grouping is reordered; verified by a new test that
+  diffs two runs (normalizing the per-run-random `attemptId` UUID, which
+  legitimately differs between independent `scoreAttempt()` calls).
+- `scripts/scoring/batchScore.ts` / `goldenRegression.ts` / `inspectAttempt.ts`
+  / `reviewAttempt.ts` — fixed (or, for the three new files, wrote correctly
+  from the start) the `main()`-guard idiom
+  (`import.meta.url === \`file://${process.argv[1]}\``) to use
+  `pathToFileURL(process.argv[1]).href` instead. On Windows,
+  `process.argv[1]` is a backslash path while `import.meta.url` is a
+  `file:///C:/...` URL, so the naive string comparison never matched and the
+  CLI silently no-op'd when run via `npx tsx`/`npm run`. Discovered while
+  manually verifying `score:golden`; the same latent bug pre-existed in
+  `ingestSession.ts`'s identical idiom and was left alone there — out of this
+  toolkit's scope to fix a file it doesn't otherwise touch.
+- `.gitignore` — added `data/reports/` (toolkit-generated `inspectAttempt`/
+  `batchScore` output, regenerable, not source).
+
+### Independently verified
+
+- `npm test`: 71/71 files, 446/446 tests passing, including all new toolkit
+  test files (`goldenRegression.test.ts`, `envelopeView.test.ts`,
+  `reviewStore.test.ts`, `reviewAttempt.test.ts`, `priority.test.ts`,
+  `reviewArtifact.test.ts`, `logger.test.ts`) and the pre-existing
+  `batchScore.test.ts`/`scoreAttempt.test.ts`/`endToEnd.fixture.test.ts` all
+  green with zero assertion changes needed beyond adding the two new required
+  `CliArgs` fields (`debug`, `sortBy`) to existing call sites.
+- `npm run typecheck:scripts`: zero errors in any new or modified file;
+  identical pre-existing unrelated error set in `src/data/`, `src/screens/`.
+- `npx eslint scripts/scoring src/domain/igcse/comparison
+  src/domain/igcse/guardrails/__tests__/syntheticManifest.ts`: zero errors in
+  any new/modified file; the 3 reported errors are pre-existing and in files
+  this toolkit did not touch (`__tests__/fixtures.ts`,
+  pre-existing lines in `scoreAttempt.test.ts`).
+- Manually ran `score:golden` (clean pass, 5/5 cases match) and
+  `score:inspect` against a golden fixture envelope in both `--format html`
+  and `--format terminal`, confirming the HTML file opens with transcript,
+  every criterion's mark/band/justification/quoted evidence, guardrail list,
+  and full version/provenance metadata.
+- Confirmed no diff appears under any
+  `src/domain/igcse/{evidence,judgement,guardrails,envelope,comparison}/*.ts`
+  file that isn't a new, additive file
+  (`comparison/reviewStatus.ts` is new; `comparison/diff.ts`/`teacherMark.ts`
+  are unmodified).
+
+### Explicitly deferred
+
+- Aggregate accuracy stats (agreement %, bias, band-consistency) — stays
+  S6/S8/S9 territory, per the existing hard-scope redline comments in
+  `diff.ts`/`batchScore.ts`, which this toolkit does not relax.
+- Calibration anchor storage/selection/injection logic — `priority.ts` and
+  `reviewArtifact.ts` are reusable primitives only; S8 owns the real
+  subsystem.
+- Fixing the same `main()`-guard Windows bug in `scripts/stt/ingestSession.ts`
+  — out of scope for a toolkit that doesn't otherwise touch that file.

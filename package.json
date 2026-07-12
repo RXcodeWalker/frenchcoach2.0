@@ -13,6 +13,9 @@
     "seed:content": "tsx scripts/seed-content.ts",
     "stt:ingest": "tsx scripts/stt/ingestSession.ts",
     "score:batch": "tsx scripts/scoring/batchScore.ts",
+    "score:golden": "tsx scripts/scoring/goldenRegression.ts",
+    "score:inspect": "tsx scripts/scoring/inspectAttempt.ts",
+    "score:review": "tsx scripts/scoring/reviewAttempt.ts",
     "test": "vitest run",
     "test:watch": "vitest"
   },

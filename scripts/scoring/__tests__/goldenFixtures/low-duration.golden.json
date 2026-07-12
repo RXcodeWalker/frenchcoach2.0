@@ -1,0 +1,175 @@
+{
+  "id": "low-duration",
+  "evidence": {
+    "timeFrameAlignmentByQuestion": [
+      {
+        "questionId": "topic1:q1",
+        "expectedTimeFrame": null,
+        "detectedTimeFrame": "present",
+        "alignment": "aligned"
+      },
+      {
+        "questionId": "topic1:q2",
+        "expectedTimeFrame": null,
+        "detectedTimeFrame": "present",
+        "alignment": "aligned"
+      },
+      {
+        "questionId": "topic2:q1",
+        "expectedTimeFrame": null,
+        "detectedTimeFrame": "present",
+        "alignment": "aligned"
+      },
+      {
+        "questionId": "topic2:q2",
+        "expectedTimeFrame": null,
+        "detectedTimeFrame": "present",
+        "alignment": "aligned"
+      }
+    ],
+    "responseCountsByQuestion": [
+      {
+        "questionId": "rolePlay:t1",
+        "wordCount": 2,
+        "responseCount": 1
+      },
+      {
+        "questionId": "rolePlay:t2",
+        "wordCount": 8,
+        "responseCount": 1
+      },
+      {
+        "questionId": "rolePlay:t3",
+        "wordCount": 3,
+        "responseCount": 1
+      },
+      {
+        "questionId": "rolePlay:t4",
+        "wordCount": 4,
+        "responseCount": 1
+      },
+      {
+        "questionId": "rolePlay:t5",
+        "wordCount": 3,
+        "responseCount": 1
+      },
+      {
+        "questionId": "topic1:q1",
+        "wordCount": 78,
+        "responseCount": 1
+      },
+      {
+        "questionId": "topic1:q2",
+        "wordCount": 78,
+        "responseCount": 1
+      },
+      {
+        "questionId": "topic2:q1",
+        "wordCount": 78,
+        "responseCount": 1
+      },
+      {
+        "questionId": "topic2:q2",
+        "wordCount": 78,
+        "responseCount": 1
+      }
+    ],
+    "fillerDensityByQuestion": [
+      {
+        "questionId": "rolePlay:t1",
+        "fillerCount": 0,
+        "wordCount": 2,
+        "density": 0
+      },
+      {
+        "questionId": "rolePlay:t2",
+        "fillerCount": 0,
+        "wordCount": 8,
+        "density": 0
+      },
+      {
+        "questionId": "rolePlay:t3",
+        "fillerCount": 0,
+        "wordCount": 3,
+        "density": 0
+      },
+      {
+        "questionId": "rolePlay:t4",
+        "fillerCount": 0,
+        "wordCount": 4,
+        "density": 0
+      },
+      {
+        "questionId": "rolePlay:t5",
+        "fillerCount": 0,
+        "wordCount": 3,
+        "density": 0
+      },
+      {
+        "questionId": "topic1:q1",
+        "fillerCount": 0,
+        "wordCount": 78,
+        "density": 0
+      },
+      {
+        "questionId": "topic1:q2",
+        "fillerCount": 0,
+        "wordCount": 78,
+        "density": 0
+      },
+      {
+        "questionId": "topic2:q1",
+        "fillerCount": 0,
+        "wordCount": 78,
+        "density": 0
+      },
+      {
+        "questionId": "topic2:q2",
+        "fillerCount": 0,
+        "wordCount": 78,
+        "density": 0
+      }
+    ],
+    "rolePlayPartsByTask": [
+      {
+        "taskId": "t1",
+        "partsExpected": 1,
+        "partsAddressed": 1
+      },
+      {
+        "taskId": "t2",
+        "partsExpected": 1,
+        "partsAddressed": 1
+      },
+      {
+        "taskId": "t3",
+        "partsExpected": 1,
+        "partsAddressed": 1
+      },
+      {
+        "taskId": "t4",
+        "partsExpected": 1,
+        "partsAddressed": 1
+      },
+      {
+        "taskId": "t5",
+        "partsExpected": 1,
+        "partsAddressed": 1
+      }
+    ],
+    "topicConversationDurationByConversation": [
+      {
+        "conversationId": "topic1",
+        "candidateSpeakingDurationS": 100,
+        "candidateWordCount": 156
+      },
+      {
+        "conversationId": "topic2",
+        "candidateSpeakingDurationS": 100,
+        "candidateWordCount": 156
+      }
+    ]
+  },
+  "guardrailTriggers": [],
+  "envelope": null
+}

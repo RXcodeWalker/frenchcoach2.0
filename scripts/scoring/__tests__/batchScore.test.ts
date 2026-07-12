@@ -54,7 +54,7 @@ describe('runBatchScore', () => {
     const outDir = path.join(tmpRoot, 'out');
 
     const { diffRows, failures } = await runBatchScore(
-      { transcriptStore: 'fixture', sessionsRoot: tmpRoot, judge: 'fixture', outDir },
+      { transcriptStore: 'fixture', sessionsRoot: tmpRoot, judge: 'fixture', outDir, debug: false, sortBy: 'none' },
       { transcriptStore, envelopeStore, createJudge: buildGoodJudgeFactory() },
     );
 
@@ -92,7 +92,7 @@ describe('runBatchScore', () => {
     const outDir = path.join(tmpRoot, 'out');
 
     const { diffRows } = await runBatchScore(
-      { transcriptStore: 'fixture', sessionsRoot: tmpRoot, judge: 'fixture', outDir },
+      { transcriptStore: 'fixture', sessionsRoot: tmpRoot, judge: 'fixture', outDir, debug: false, sortBy: 'none' },
       { transcriptStore, envelopeStore, createJudge: buildGoodJudgeFactory() },
     );
 
@@ -125,7 +125,7 @@ describe('runBatchScore', () => {
     };
 
     const { diffRows, failures } = await runBatchScore(
-      { transcriptStore: 'fixture', sessionsRoot: tmpRoot, judge: 'fixture', outDir },
+      { transcriptStore: 'fixture', sessionsRoot: tmpRoot, judge: 'fixture', outDir, debug: false, sortBy: 'none' },
       { transcriptStore, envelopeStore, createJudge },
     );
 
@@ -134,5 +134,84 @@ describe('runBatchScore', () => {
 
     const report = await fs.readFile(path.join(outDir, 'report.md'), 'utf8');
     expect(report).toContain('Scoring failed');
+  });
+
+  it('writes evidence.json and review-artifacts.json alongside diff.csv/report.md', async () => {
+    const transcriptStore = createFixtureTranscriptStore({ [SESSION_ID]: structGolden });
+    const envelopeStore = createFixtureEnvelopeStore({});
+    const outDir = path.join(tmpRoot, 'out');
+
+    await runBatchScore(
+      { transcriptStore: 'fixture', sessionsRoot: tmpRoot, judge: 'fixture', outDir, debug: false, sortBy: 'none' },
+      { transcriptStore, envelopeStore, createJudge: buildGoodJudgeFactory() },
+    );
+
+    const evidence = JSON.parse(await fs.readFile(path.join(outDir, 'evidence.json'), 'utf8'));
+    expect(evidence[SESSION_ID]).toBeDefined();
+    expect(evidence[SESSION_ID].criteria.length).toBeGreaterThan(0);
+
+    const reviewArtifacts = JSON.parse(await fs.readFile(path.join(outDir, 'review-artifacts.json'), 'utf8'));
+    expect(Array.isArray(reviewArtifacts)).toBe(true);
+    expect(reviewArtifacts.length).toBeGreaterThan(0);
+    for (const row of reviewArtifacts) {
+      expect(row.reviewed).toBe(false);
+    }
+
+    const reviewMd = await fs.readFile(path.join(outDir, 'review-artifacts.md'), 'utf8');
+    expect(reviewMd).toContain('# Review artifacts');
+  });
+
+  it('produces byte-identical diff.csv with and without --sort-by', async () => {
+    const transcriptStore1 = createFixtureTranscriptStore({ [SESSION_ID]: structGolden });
+    const envelopeStore1 = createFixtureEnvelopeStore({});
+    const outDirNone = path.join(tmpRoot, 'out-none');
+
+    await runBatchScore(
+      { transcriptStore: 'fixture', sessionsRoot: tmpRoot, judge: 'fixture', outDir: outDirNone, debug: false, sortBy: 'none' },
+      { transcriptStore: transcriptStore1, envelopeStore: envelopeStore1, createJudge: buildGoodJudgeFactory() },
+    );
+
+    const transcriptStore2 = createFixtureTranscriptStore({ [SESSION_ID]: structGolden });
+    const envelopeStore2 = createFixtureEnvelopeStore({});
+    const outDirDelta = path.join(tmpRoot, 'out-delta');
+
+    await runBatchScore(
+      { transcriptStore: 'fixture', sessionsRoot: tmpRoot, judge: 'fixture', outDir: outDirDelta, debug: false, sortBy: 'delta' },
+      { transcriptStore: transcriptStore2, envelopeStore: envelopeStore2, createJudge: buildGoodJudgeFactory() },
+    );
+
+    // attemptId is a fresh crypto.randomUUID() per scoreAttempt() call, so it legitimately
+    // differs between these two independent runs — normalize it out before comparing, since
+    // the claim under test is "row order/content is unaffected by --sort-by", not determinism
+    // of attemptId generation (which is separately guaranteed by scoreAttempt.ts).
+    const normalizeAttemptId = (csv: string) => csv.replace(/"[0-9a-f-]{36}"/g, '"<attemptId>"');
+    const csvNone = await fs.readFile(path.join(outDirNone, 'diff.csv'), 'utf8');
+    const csvDelta = await fs.readFile(path.join(outDirDelta, 'diff.csv'), 'utf8');
+    expect(normalizeAttemptId(csvDelta)).toBe(normalizeAttemptId(csvNone));
+  });
+
+  it('--sort-by guardrails reorders report.md session sections by descending guardrail trigger count', async () => {
+    const otherSessionId = 'other-session';
+    const otherDir = path.join(tmpRoot, otherSessionId);
+    await fs.mkdir(otherDir, { recursive: true });
+    await fs.writeFile(path.join(otherDir, 'questions.json'), JSON.stringify(structQuestions), 'utf8');
+
+    const transcriptStore = createFixtureTranscriptStore({
+      [SESSION_ID]: structGolden,
+      [otherSessionId]: { ...structGolden, sessionId: otherSessionId },
+    });
+    const envelopeStore = createFixtureEnvelopeStore({});
+    const outDir = path.join(tmpRoot, 'out');
+
+    await runBatchScore(
+      { transcriptStore: 'fixture', sessionsRoot: tmpRoot, judge: 'fixture', outDir, debug: false, sortBy: 'guardrails' },
+      { transcriptStore, envelopeStore, createJudge: buildGoodJudgeFactory() },
+    );
+
+    const report = await fs.readFile(path.join(outDir, 'report.md'), 'utf8');
+    // Neither session trips a guardrail (clean fixture), so ordering falls back to
+    // original grouping order — this just confirms the flag doesn't crash or drop a session.
+    expect(report).toContain(`## Session ${SESSION_ID}`);
+    expect(report).toContain(`## Session ${otherSessionId}`);
   });
 });
