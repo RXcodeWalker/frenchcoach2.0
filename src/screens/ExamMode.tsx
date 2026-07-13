@@ -31,6 +31,7 @@ export function ExamMode() {
   const [action, setAction] = useState<ExaminerAction | null>(null);
   const [voiceMuted, setVoiceMuted] = useState(isExaminerVoiceMuted());
   const [transcript, setTranscript] = useState<SessionTranscript | null>(null);
+  const [pendingSilentSkip, setPendingSilentSkip] = useState(false);
 
   const recording = useRecording();
   const clock = useSessionClock();
@@ -62,8 +63,44 @@ export function ExamMode() {
     const responseDurationS = Math.max(clock.nowS() - turnStartRef.current, 0.1);
     const transcriptText = await recording.stop();
 
+    if (transcriptText.trim().length === 0) {
+      // Don't auto-forward an empty submit as an intentional non-answer — could be an
+      // accidental instant Stop & Submit. Ask the candidate to confirm before it drives
+      // the reducer's no_response path.
+      setPendingSilentSkip(true);
+      return;
+    }
+
     const nextAction = await session.submitTurn({
       transcript: transcriptText,
+      responseDurationS,
+      requestedRepeat: false,
+    });
+    setAction(nextAction);
+
+    if (session.isComplete) {
+      finishSession(session);
+      return;
+    }
+
+    turnStartRef.current = clock.nowS();
+    recording.start();
+  };
+
+  const handleKeepTrying = () => {
+    setPendingSilentSkip(false);
+    turnStartRef.current = clock.nowS();
+    recording.start();
+  };
+
+  const handleSkipQuestion = async () => {
+    const session = sessionRef.current;
+    if (!session) return;
+    setPendingSilentSkip(false);
+
+    const responseDurationS = Math.max(clock.nowS() - turnStartRef.current, 0.1);
+    const nextAction = await session.submitTurn({
+      transcript: '',
       responseDurationS,
       requestedRepeat: false,
     });
@@ -182,6 +219,9 @@ export function ExamMode() {
       onExit={() => navigate('/')}
       voiceMuted={voiceMuted}
       onToggleVoice={toggleVoice}
+      pendingSilentSkip={pendingSilentSkip}
+      onKeepTrying={handleKeepTrying}
+      onSkipQuestion={() => void handleSkipQuestion()}
     />
   );
 }

@@ -3,7 +3,9 @@ import {
   initConductEngineState,
   startConduct,
   step,
+  decideExtension,
   MAX_FURTHER_QUESTIONS_PER_TOPIC,
+  MAX_EXTENSIONS_PER_TOPIC,
   TOPIC_SPEAKING_FLOOR_S,
 } from '../conductEngine';
 import { ORIGINAL_QUESTION_SET_1 } from '../../../../data/exam/originalQuestionSets';
@@ -100,6 +102,86 @@ describe('conductEngine: role play', () => {
   });
 });
 
+describe('decideExtension (Finding 1: content-aware extension prompts)', () => {
+  const presentQ = qs.questions.find((q) => q.questionId === 't1q1')!; // expectedTimeFrame: 'present'
+  const pastQ = qs.questions.find((q) => q.questionId === 't1q3')!; // expectedTimeFrame: 'past'
+  const futureQ = qs.questions.find((q) => q.questionId === 't1q5')!; // expectedTimeFrame: 'future'
+  const whyQ = qs.questions.find((q) => q.questionId === 't1q4')!; // mainText contains "Pourquoi ?"
+
+  it('returns null (skip extension) when the answer is developed by word count', () => {
+    const result = decideExtension(
+      presentQ,
+      { transcript: 'x'.repeat(1), wordCount: 12, responseDurationS: 5 },
+      null,
+    );
+    expect(result).toBeNull();
+  });
+
+  it('returns null (skip extension) when the answer is developed by duration, even with a thin transcript', () => {
+    const result = decideExtension(
+      presentQ,
+      { transcript: 'neuf mots seulement dans cette reponse ici la', wordCount: 9, responseDurationS: 22 },
+      null,
+    );
+    expect(result).toBeNull();
+  });
+
+  it('asks "justify" (why) for a thin answer with no justification marker', () => {
+    const result = decideExtension(
+      presentQ,
+      { transcript: 'Je fais mes devoirs.', wordCount: 4, responseDurationS: 5 },
+      null,
+    );
+    expect(result).toMatchObject({ intent: 'justify', text: 'Pourquoi ?' });
+  });
+
+  it('asks "develop" instead of re-asking why when the candidate already used a justification marker', () => {
+    const result = decideExtension(
+      presentQ,
+      { transcript: 'Je le fais parce que je dois aider.', wordCount: 7, responseDurationS: 5 },
+      null,
+    );
+    expect(result).toMatchObject({ intent: 'develop' });
+  });
+
+  it('asks "develop" instead of "justify" when the question itself already asked "Pourquoi ?"', () => {
+    const result = decideExtension(whyQ, { transcript: 'Le restaurant.', wordCount: 2, responseDurationS: 5 }, null);
+    expect(result).toMatchObject({ intent: 'develop' });
+  });
+
+  it('selects expectedTimeFrame-specific wording (future -> "Pourquoi ce choix ?")', () => {
+    const result = decideExtension(futureQ, { transcript: 'Je vais sortir.', wordCount: 3, responseDurationS: 5 }, null);
+    expect(result).toMatchObject({ intent: 'justify', text: 'Pourquoi ce choix ?' });
+  });
+
+  it('selects expectedTimeFrame-specific wording (past -> "Racontez-en un peu plus." for develop intent)', () => {
+    const result = decideExtension(
+      pastQ,
+      { transcript: "J'ai voyagé parce que c'était les vacances.", wordCount: 6, responseDurationS: 5 },
+      null,
+    );
+    expect(result).toMatchObject({ intent: 'develop', text: 'Racontez-en un peu plus.' });
+  });
+
+  it('does not repeat the same intent as the previous extension', () => {
+    const result = decideExtension(
+      presentQ,
+      { transcript: 'Je fais mes devoirs.', wordCount: 4, responseDurationS: 5 },
+      'justify',
+    );
+    expect(result?.intent).toBe('develop');
+  });
+
+  it('never flips into "justify" when the answer already covers why', () => {
+    const result = decideExtension(
+      presentQ,
+      { transcript: 'Je le fais parce que je dois aider.', wordCount: 7, responseDurationS: 5 },
+      'develop',
+    );
+    expect(result?.intent).toBe('develop');
+  });
+});
+
 describe('conductEngine: topic conversation', () => {
   function toTopic1(): ConductEngineState {
     let state = initConductEngineState(qs);
@@ -136,10 +218,15 @@ describe('conductEngine: topic conversation', () => {
 
   it('caps further-questions at 2 per topic when the 4-min floor is not met', () => {
     let state = toTopic1();
-    // Answer all 5 topic1 questions quickly (short duration -> below floor), each followed by one extension.
+    // Answer all 5 topic1 questions with short, thin answers (below floor, below developed threshold).
+    // Each answer may or may not draw an extension (capped at MAX_EXTENSIONS_PER_TOPIC); drive until advanced.
     for (let i = 0; i < 5; i++) {
-      state = driveOne(qs, state, answer({ responseDurationS: 5 })).state; // extension
-      state = driveOne(qs, state, answer({ responseDurationS: 5 })).state; // advance (or further-question fallback)
+      let r = driveOne(qs, state, answer({ responseDurationS: 5 }));
+      state = r.state;
+      if (r.action.kind === 'EXTENSION_PROMPT') {
+        r = driveOne(qs, state, answer({ responseDurationS: 5 }));
+        state = r.state;
+      }
     }
 
     // Now should be in further-question territory (speakingS well under 3.5 min floor)
@@ -157,6 +244,16 @@ describe('conductEngine: topic conversation', () => {
 
     expect(furtherCount).toBeLessThanOrEqual(MAX_FURTHER_QUESTIONS_PER_TOPIC);
     expect(state.furtherAskedCount.topic1).toBeLessThanOrEqual(MAX_FURTHER_QUESTIONS_PER_TOPIC);
+  });
+
+  it('extensionAskedCount never exceeds MAX_EXTENSIONS_PER_TOPIC even with all-thin answers', () => {
+    let state = toTopic1();
+    let guard = 0;
+    while (guard < 30 && state.phase.kind === 'topic' && state.phase.part === 'topic1') {
+      guard += 1;
+      state = driveOne(qs, state, answer({ responseDurationS: 5, wordCount: 4 })).state;
+    }
+    expect(state.extensionAskedCount.topic1).toBeLessThanOrEqual(MAX_EXTENSIONS_PER_TOPIC);
   });
 
   it('advances from topic1 to topic2 and eventually reaches complete with an END action', () => {

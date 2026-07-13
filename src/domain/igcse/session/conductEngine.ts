@@ -19,6 +19,7 @@ import type {
   ConductPhase,
   ExaminerAction,
   ExaminerTrigger,
+  ExtIntent,
   RolePlayTaskState,
   SessionQuestion,
   SessionQuestionSet,
@@ -26,6 +27,7 @@ import type {
   StepResult,
   TopicQuestionState,
 } from './types';
+import type { TimeFrame } from '../evidence/types';
 
 /** Below this word count, a candidate turn is treated as a non-answer (S10 scope — no LLM relevance grading). */
 export const RELEVANCE_WORD_THRESHOLD = 3;
@@ -35,6 +37,48 @@ export const MAX_FURTHER_QUESTIONS_PER_TOPIC = 2;
 
 /** Cambridge 0520 conduct rule: target ~4 min candidate speaking per topic; floor that triggers further questions. */
 export const TOPIC_SPEAKING_FLOOR_S = 3.5 * 60;
+
+// ── Content-aware extension prompts (Finding 1 — realism pass, UNVALIDATED tunables) ──
+// These thresholds are realism heuristics, not Cambridge mark-scheme numbers.
+
+/** Word count at/above which a candidate turn is treated as a fully developed answer. */
+const DEVELOPED_ANSWER_WORDS = 12;
+/** Speaking duration (s) at/above which a turn is treated as developed, even if the transcript under-counts words (STT-robust). */
+const DEVELOPED_ANSWER_SECONDS = 20;
+/** French connectives that indicate the candidate already justified their answer. */
+const JUSTIFICATION_MARKERS = /\b(parce qu[e']|\bcar\b|puisqu[e']|grâce à|à cause de|c'est pourquoi|\bdonc\b)/i;
+/** Cambridge 0520 conduct rule (realism pass): at most 2 content-aware extension prompts per topic. */
+export const MAX_EXTENSIONS_PER_TOPIC = 2;
+
+const EXTENSION_TEXT: Record<ExtIntent, { default: string } & Partial<Record<TimeFrame, string>>> = {
+  justify: { default: 'Pourquoi ?', future: 'Pourquoi ce choix ?' },
+  develop: { default: 'Pouvez-vous donner un exemple ?', past: 'Racontez-en un peu plus.' },
+};
+
+/**
+ * Deterministic, content-aware decision on whether to ask an extension prompt after a
+ * successful answer, and if so which one. Returns null when the answer is already
+ * developed (skip extension, advance directly).
+ */
+export function decideExtension(
+  question: SessionQuestion,
+  result: Pick<CandidateTurnResult, 'transcript' | 'wordCount' | 'responseDurationS'>,
+  lastIntent: ExtIntent | null,
+): { text: string; intent: ExtIntent } | null {
+  const developed =
+    result.wordCount >= DEVELOPED_ANSWER_WORDS || result.responseDurationS >= DEVELOPED_ANSWER_SECONDS;
+  if (developed) return null;
+
+  const whyCovered = JUSTIFICATION_MARKERS.test(result.transcript) || /pourquoi/i.test(question.mainText);
+
+  let intent: ExtIntent = whyCovered ? 'develop' : 'justify';
+  if (intent === lastIntent) intent = intent === 'justify' ? 'develop' : 'justify';
+  if (intent === 'justify' && whyCovered) intent = 'develop';
+
+  const tf = question.expectedTimeFrame;
+  const text = (tf && EXTENSION_TEXT[intent][tf]) ?? EXTENSION_TEXT[intent].default;
+  return { text, intent };
+}
 
 export function computeRelevance(result: Pick<CandidateTurnResult, 'didRespond' | 'wordCount'>): boolean {
   return result.didRespond && result.wordCount >= RELEVANCE_WORD_THRESHOLD;
@@ -79,6 +123,8 @@ export function initConductEngineState(questionSet: SessionQuestionSet): Conduct
       alternativeRepeatUsed: false,
     })),
     furtherAskedCount: { topic1: 0, topic2: 0 },
+    extensionAskedCount: { topic1: 0, topic2: 0 },
+    lastExtensionIntent: null,
     topicSpeakingS: { topic1: 0, topic2: 0 },
     clockS: 0,
     nextSeq: 1,
@@ -260,7 +306,7 @@ function stepTopic(
 
   if (qState.subState === 'awaitingAnswer') {
     if (didAnswer) {
-      return moveToExtensionOrAdvance(questionSet, stateWithSpeaking, part, questionIndex, question);
+      return moveToExtensionOrAdvance(questionSet, stateWithSpeaking, part, questionIndex, question, result);
     }
     if (!qState.repeatUsed) {
       const updated: TopicQuestionState = { ...qState, subState: 'repeated', repeatUsed: true };
@@ -278,14 +324,14 @@ function stepTopic(
 
   if (qState.subState === 'repeated') {
     if (didAnswer) {
-      return moveToExtensionOrAdvance(questionSet, stateWithSpeaking, part, questionIndex, question);
+      return moveToExtensionOrAdvance(questionSet, stateWithSpeaking, part, questionIndex, question, result);
     }
     return afterFailedMain(questionSet, stateWithSpeaking, part, questionIndex, question);
   }
 
   if (qState.subState === 'alternative') {
     if (didAnswer) {
-      return moveToExtensionOrAdvance(questionSet, stateWithSpeaking, part, questionIndex, question);
+      return moveToExtensionOrAdvance(questionSet, stateWithSpeaking, part, questionIndex, question, result);
     }
     if (!qState.alternativeRepeatUsed) {
       const updated: TopicQuestionState = { ...qState, alternativeRepeatUsed: true };
@@ -299,7 +345,7 @@ function stepTopic(
   }
 
   // 'extending' / 'further' handled by extension/further-question flow below.
-  return moveToExtensionOrAdvance(questionSet, stateWithSpeaking, part, questionIndex, question);
+  return moveToExtensionOrAdvance(questionSet, stateWithSpeaking, part, questionIndex, question, result);
 }
 
 /** After the main question fails its one repeat: offer the alternative iff data-driven eligibility, else advance. */
@@ -328,24 +374,42 @@ function afterFailedMain(
   return advanceTopicQuestion(questionSet, state, part, questionIndex);
 }
 
-const EXTENSION_PROMPTS = ['Pouvez-vous développer ?', 'Pourquoi ?'];
-
-/** After a successful answer: ask one extension prompt (once), then advance. */
+/**
+ * After a successful answer: decide whether a content-aware extension prompt is
+ * warranted (Finding 1). A developed answer, an exhausted per-topic extension cap,
+ * or a subState already past 'extending' all skip straight to advance.
+ */
 function moveToExtensionOrAdvance(
   questionSet: SessionQuestionSet,
   state: ConductEngineState,
   part: 'topic1' | 'topic2',
   questionIndex: number,
   question: SessionQuestion,
+  result: CandidateTurnResult,
 ): StepResult {
   const qState = topicQuestionStates(state, part)[questionIndex];
 
   if (qState.subState !== 'extending') {
+    const askedSoFar = state.extensionAskedCount[part];
+    const decision =
+      askedSoFar < MAX_EXTENSIONS_PER_TOPIC ? decideExtension(question, result, state.lastExtensionIntent) : null;
+
+    if (decision) {
+      const updated: TopicQuestionState = { ...qState, subState: 'extending' };
+      let nextState = replaceTopicQuestionState(state, part, questionIndex, updated);
+      nextState = {
+        ...nextState,
+        extensionAskedCount: { ...nextState.extensionAskedCount, [part]: askedSoFar + 1 },
+        lastExtensionIntent: decision.intent,
+      };
+      const action = makeAction(nextState, 'EXTENSION_PROMPT', part, question.questionId, null, decision.text, 'extension');
+      return { state: bumpSeq(nextState), actions: [action] };
+    }
+
+    // Developed answer or cap reached: mark 'extending' so a repeated call doesn't re-decide, then advance.
     const updated: TopicQuestionState = { ...qState, subState: 'extending' };
     const nextState = replaceTopicQuestionState(state, part, questionIndex, updated);
-    const promptText = EXTENSION_PROMPTS[questionIndex % EXTENSION_PROMPTS.length];
-    const action = makeAction(nextState, 'EXTENSION_PROMPT', part, question.questionId, null, promptText, 'extension');
-    return { state: bumpSeq(nextState), actions: [action] };
+    return advanceTopicQuestion(questionSet, nextState, part, questionIndex);
   }
 
   return advanceTopicQuestion(questionSet, state, part, questionIndex);

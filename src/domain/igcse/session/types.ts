@@ -99,6 +99,9 @@ export interface ConductLog {
 
 export type TopicSubState = 'awaitingAnswer' | 'repeated' | 'alternative' | 'extending' | 'further';
 
+/** Intent of a content-aware extension prompt (Finding 1): ask the candidate to justify, or to develop/exemplify. */
+export type ExtIntent = 'justify' | 'develop';
+
 export interface TopicQuestionState {
   questionId: string;
   subState: TopicSubState;
@@ -127,6 +130,10 @@ export interface ConductEngineState {
   topic2Questions: TopicQuestionState[];
   /** furtherAskedCount keyed by topic part. */
   furtherAskedCount: Record<'topic1' | 'topic2', number>;
+  /** Content-aware extensions asked so far, keyed by topic part (Finding 1 per-topic cap). */
+  extensionAskedCount: Record<'topic1' | 'topic2', number>;
+  /** Intent of the most recent extension prompt, so successive extensions don't repeat intent (Finding 1). */
+  lastExtensionIntent: ExtIntent | null;
   /** Accumulated candidate speaking seconds, keyed by topic part (4-min floor). */
   topicSpeakingS: Record<'topic1' | 'topic2', number>;
   clockS: number;
