@@ -1,189 +1,136 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { track } from '../services/telemetry/telemetryService';
 import confetti from 'canvas-confetti';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { getRandomQuestion, getQuestionById } from '../data/gameData';
-import { getAIFeedback, saveSessionToBackend } from '../services/api/apiClient';
 import { getSkillProfile } from '../services/coaching/diagnosticEngine';
 import { awardXP, checkAchievements, getProgressionState } from '../services/progression/progressionService';
 import { recordSession as persistSession } from '../services/analytics/analyticsService';
 import { buildAchievementContext } from '../services/coach/achievementContextBuilder';
-import { observeAttempt } from '../services/coach/sessionOrchestrator';
-import type { Session, Question } from '../types/index';
+import type { Session } from '../types/index';
 import { useRecording } from '../features/recording/useRecording';
-import { useCountdownTimer } from '../features/recording/useCountdownTimer';
+import { useSessionClock } from '../features/recording/useSessionClock';
 import { ExamIntro } from './exam/ExamIntro';
 import { ExamResults } from './exam/ExamResults';
 import { ExamRunner } from './exam/ExamRunner';
+import { TranscriptReview } from './exam/TranscriptReview';
+import { SimulationSession } from '../services/exam/simulationSession';
+import { saveConductLog } from '../services/exam/conductLogStore';
+import { saveStoredTranscript } from '../services/exam/localTranscriptStore';
+import { isExaminerVoiceMuted, setExaminerVoiceMuted, stopExaminerVoice } from '../services/exam/examinerVoice';
+import { ORIGINAL_QUESTION_SET_1 } from '../data/exam/originalQuestionSets';
+import type { ExaminerAction } from '../domain/igcse/session/types';
+import type { SessionTranscript } from '../domain/igcse/stt/types';
 
-import roleplaysData from '../data/raw/roleplays.json';
-
-type ExamState = 'intro' | 'prep' | 'roleplay' | 'topic1' | 'topic2' | 'results';
-
-const PREP_TIME = 600; // 10 minutes
-const TOPIC_TIME = 240; // 4 minutes
-const ROLEPLAY_LENGTH = 5;
-
-const TOPIC_AREAS = {
-  ab: ['school', 'hobbies', 'family', 'food', 'home'],
-  cde: ['environment', 'future', 'holidays']
-};
+type ExamState = 'intro' | 'running' | 'review' | 'results';
 
 export function ExamMode() {
   const { state, dispatch } = useApp();
   const navigate = useNavigate();
   const [examState, setExamState] = useState<ExamState>('intro');
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [answers, setAnswers] = useState<{ score: number; time: number; phase: string }[]>([]);
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [activeTopicQuestions, setActiveTopicQuestions] = useState<Question[]>([]);
-  const [roleplayScenario, setRoleplayScenario] = useState<string>('');
-  const [roleplayCandidateRole, setRoleplayCandidateRole] = useState<string>('');
-  const timer = useCountdownTimer();
+  const [action, setAction] = useState<ExaminerAction | null>(null);
+  const [voiceMuted, setVoiceMuted] = useState(isExaminerVoiceMuted());
+  const [transcript, setTranscript] = useState<SessionTranscript | null>(null);
+
   const recording = useRecording();
+  const clock = useSessionClock();
+  const sessionRef = useRef<SimulationSession | null>(null);
+  const sessionIdRef = useRef<string>('');
+  const turnStartRef = useRef<number>(0);
 
-  const currentQ = examState === 'roleplay' 
-    ? questions[currentIndex] 
-    : activeTopicQuestions[currentIndex];
+  const startExam = async () => {
+    const sessionId = `exam-sim-${Date.now()}`;
+    sessionIdRef.current = sessionId;
+    clock.start();
 
-  const startExam = () => {
-    // 1. Select Role Play from real data
-    const rp = roleplaysData[Math.floor(Math.random() * roleplaysData.length)];
-    const rpQs: Question[] = rp.question_ids.map(id => {
-      const q = getQuestionById(id);
-      if (q) return q;
-      // Fallback if not in main bank
-      return {
-        id,
-        text: "Question de jeu de rôle...",
-        topicKey: 'role_play',
-        difficulty: 2
-      } as Question;
+    const session = new SimulationSession(sessionId, ORIGINAL_QUESTION_SET_1, clock.nowS, {
+      onExaminerAction: (a) => setAction(a),
     });
+    sessionRef.current = session;
+    setExamState('running');
 
-    setQuestions(rpQs);
-    setRoleplayScenario(rp.scenario);
-    setRoleplayCandidateRole(rp.candidate_role || 'Candidat(e)');
-
-    setCurrentIndex(0);
-    setAnswers([]);
-    setExamState('prep');
-    timer.start(PREP_TIME, startRolePlay);
+    const firstAction = await session.begin();
+    setAction(firstAction);
+    turnStartRef.current = clock.nowS();
+    recording.start();
   };
 
-  const startRolePlay = () => {
-    setExamState('roleplay');
-    setCurrentIndex(0);
+  const handleSubmitTurn = async () => {
+    const session = sessionRef.current;
+    if (!session) return;
+
+    const responseDurationS = Math.max(clock.nowS() - turnStartRef.current, 0.1);
+    const transcriptText = await recording.stop();
+
+    const nextAction = await session.submitTurn({
+      transcript: transcriptText,
+      responseDurationS,
+      requestedRepeat: false,
+    });
+    setAction(nextAction);
+
+    if (session.isComplete) {
+      finishSession(session);
+      return;
+    }
+
+    turnStartRef.current = clock.nowS();
+    recording.start();
   };
 
-  const startTopic1 = () => {
-    const topic = TOPIC_AREAS.ab[Math.floor(Math.random() * TOPIC_AREAS.ab.length)];
-    const qs: Question[] = [];
-    const usedIds: string[] = [];
-    for (let i = 0; i < 6; i++) {
-      const q = getRandomQuestion(topic, usedIds, 3);
-      usedIds.push(q.id);
-      qs.push(q);
+  const handleRequestRepeat = async () => {
+    const session = sessionRef.current;
+    if (!session) return;
+
+    const nextAction = await session.submitTurn({
+      transcript: '',
+      responseDurationS: 0.1,
+      requestedRepeat: true,
+    });
+    setAction(nextAction);
+
+    if (session.isComplete) {
+      finishSession(session);
+      return;
     }
-    setActiveTopicQuestions(qs);
-    setCurrentIndex(0);
-    setExamState('topic1');
-    timer.start(TOPIC_TIME);
+
+    turnStartRef.current = clock.nowS();
+    recording.start();
   };
 
-  const startTopic2 = () => {
-    const topic = TOPIC_AREAS.cde[Math.floor(Math.random() * TOPIC_AREAS.cde.length)];
-    const qs: Question[] = [];
-    const usedIds: string[] = [];
-    for (let i = 0; i < 6; i++) {
-      const q = getRandomQuestion(topic, usedIds, 3);
-      usedIds.push(q.id);
-      qs.push(q);
-    }
-    setActiveTopicQuestions(qs);
-    setCurrentIndex(0);
-    setExamState('topic2');
-    timer.start(TOPIC_TIME);
+  const finishSession = (session: SimulationSession) => {
+    stopExaminerVoice();
+    saveConductLog(session.getConductLog());
+    const built = session.buildTranscript();
+    setTranscript(built);
+    setExamState('review');
   };
 
-  const handleNextQuestion = async () => {
-    const transcript = await recording.stop();
-    const elapsed = recording.elapsedTime;
-
-    let fb: import('../types').FeedbackV2 | undefined;
-    let score: number;
-    try {
-      fb = await getAIFeedback(transcript, currentQ);
-      score = fb.scores.overall;
-    } catch {
-      score = Math.round((Math.random() * 4 + 5) * 10) / 10;
-    }
-
-    // Coach loop: when we have real feedback, feed it into the learner model as
-    // exam evidence. No XP/session here — finishExam still owns that lifecycle.
-    if (fb) {
-      observeAttempt({
-        sessionId: `exam-${Date.now()}-${currentIndex}`,
-        question: currentQ ?? null,
-        feedback: fb,
-        transcript,
-        finalScore: score,
-        mode: 'exam',
-        topicKey: currentQ?.topicKey,
-      });
-      dispatch({ type: 'UPDATE_SKILL_PROFILE', skillProfile: getSkillProfile() });
-    }
-
-    const newAnswer = { score, time: elapsed, phase: examState };
-    const newAnswers = [...answers, newAnswer];
-    setAnswers(newAnswers);
-
-    if (examState === 'roleplay') {
-      if (currentIndex + 1 >= ROLEPLAY_LENGTH) {
-        startTopic1();
-      } else {
-        setCurrentIndex(i => i + 1);
-      }
-    } else if (examState === 'topic1') {
-      if (timer.timeLeft <= 0) {
-        startTopic2();
-      } else {
-        if (currentIndex + 1 >= activeTopicQuestions.length) setCurrentIndex(0);
-        else setCurrentIndex(i => i + 1);
-      }
-    } else if (examState === 'topic2') {
-      if (timer.timeLeft <= 0) {
-        finishExam(newAnswers);
-      } else {
-        if (currentIndex + 1 >= activeTopicQuestions.length) setCurrentIndex(0);
-        else setCurrentIndex(i => i + 1);
-      }
-    }
-  };
-
-  const finishExam = (finalAnswers?: { score: number; time: number; phase: string }[]) => {
-    const targetAnswers = finalAnswers || answers;
+  const handleReviewConfirm = (finalTranscript: SessionTranscript) => {
+    saveStoredTranscript(finalTranscript);
+    setTranscript(finalTranscript);
     setExamState('results');
-    const avgScore = Math.round((targetAnswers.reduce((s, a) => s + a.score, 0) / targetAnswers.length) * 10) / 10;
-    const totalSec = targetAnswers.reduce((s, a) => s + a.time, 0);
-    const session: Session = {
+
+    const candidateUtterances = finalTranscript.utterances.filter((u) => u.role === 'candidate');
+    const totalSec = candidateUtterances.reduce((sum, u) => sum + (u.endS - u.startS), 0);
+    const wordCount = candidateUtterances.reduce((sum, u) => sum + u.text.trim().split(/\s+/).filter(Boolean).length, 0);
+
+    const appSession: Session = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       mode: 'exam',
-      wordCount: Math.round(totalSec * 1.5),
-      score: avgScore,
+      wordCount,
+      score: 0,
       xpEarned: 0,
-      durationSec: totalSec,
+      durationSec: Math.round(totalSec),
       createdAt: new Date().toISOString(),
     };
 
-    persistSession(session);
-    saveSessionToBackend(session);
-    const xpResult = awardXP(avgScore, state.profile.streak_days);
+    persistSession(appSession);
+    const xpResult = awardXP(5, state.profile.streak_days);
     const { level: newLevel } = getProgressionState();
     const newUnlockedAchievementIds = checkAchievements(
       buildAchievementContext({
-        finalScore: avgScore,
+        finalScore: 5,
         streakDays: state.profile.streak_days,
         totalSessionsAfter: state.profile.sessions_count + 1,
         topicsUsed: [],
@@ -193,25 +140,32 @@ export function ExamMode() {
       }),
     );
 
-    track({ name: 'session_completed', props: { mode: 'exam', score: avgScore, duration_sec: totalSec, xp_gain: xpResult.gain } });
+    track({ name: 'session_completed', props: { mode: 'exam', score: 0, duration_sec: totalSec, xp_gain: xpResult.gain } });
     for (const id of newUnlockedAchievementIds) {
       track({ name: 'achievement_unlocked', props: { achievement_id: id, mode: 'exam', session_count: state.profile.sessions_count + 1 } });
     }
 
-    dispatch({ type: 'ADD_SESSION', session: { ...session, xpEarned: xpResult.gain }, xpResult, newUnlockedAchievementIds, newLevelName: newLevel.name, xpAnimX: 70, xpAnimY: 20 });
+    dispatch({ type: 'ADD_SESSION', session: { ...appSession, xpEarned: xpResult.gain }, xpResult, newUnlockedAchievementIds, newLevelName: newLevel.name, xpAnimX: 70, xpAnimY: 20 });
     dispatch({ type: 'UPDATE_SKILL_PROFILE', skillProfile: getSkillProfile() });
     confetti({ particleCount: 150, spread: 100, origin: { y: 0.5 } });
   };
 
-  const timerColor = timer.timeLeft > 30 ? '#10B981' : timer.timeLeft > 10 ? '#F59E0B' : '#EF4444';
+  const toggleVoice = () => {
+    const next = !voiceMuted;
+    setExaminerVoiceMuted(next);
+    setVoiceMuted(next);
+  };
 
-  if (examState === 'intro') return <ExamIntro onStart={startExam} onBack={() => navigate('/')} />;
+  if (examState === 'intro') return <ExamIntro onStart={() => void startExam()} onBack={() => navigate('/')} />;
 
-  if (examState === 'results') {
+  if (examState === 'review' && transcript) {
+    return <TranscriptReview transcript={transcript} onConfirm={handleReviewConfirm} />;
+  }
+
+  if (examState === 'results' && transcript) {
     return (
       <ExamResults
-        answers={answers}
-        questions={questions}
+        transcript={transcript}
         onRetake={() => setExamState('intro')}
         onHome={() => navigate('/')}
       />
@@ -220,20 +174,14 @@ export function ExamMode() {
 
   return (
     <ExamRunner
-      examState={examState as any}
-      currentIndex={currentIndex}
-      totalQuestions={examState === 'roleplay' ? ROLEPLAY_LENGTH : activeTopicQuestions.length}
-      timeLeft={timer.timeLeft}
-      timerPercent={timer.timerPercent}
-      timerColor={timerColor}
-      currentQuestion={currentQ}
+      action={action}
+      elapsedS={recording.elapsedTime}
       recording={recording}
-      onNextQuestion={() => void handleNextQuestion()}
+      onSubmitTurn={() => void handleSubmitTurn()}
+      onRequestRepeat={() => void handleRequestRepeat()}
       onExit={() => navigate('/')}
-      onSkipPrep={examState === 'prep' ? startRolePlay : undefined}
-      roleplayScenario={roleplayScenario}
-      roleplayCandidateRole={roleplayCandidateRole}
+      voiceMuted={voiceMuted}
+      onToggleVoice={toggleVoice}
     />
   );
 }
-

@@ -38,6 +38,9 @@ export const STORAGE_KEYS = {
   coachWeeklyReviewSeen: 'frenchCoach_weeklyReviewSeen',
   // ── Feature interest tracking (for prioritising gated features) ───────────────
   featureInterest: 'frenchCoach_featureInterest',
+  // ── S10 examiner-simulation session engine ────────────────────────────────────
+  examTranscripts:  'frenchCoach_examTranscripts',
+  examConductLogs:  'frenchCoach_examConductLogs',
 } as const;
 
 export type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS];
