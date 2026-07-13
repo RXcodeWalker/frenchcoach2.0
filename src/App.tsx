@@ -22,6 +22,7 @@ import { WeaknessAnalysis } from './screens/WeaknessAnalysis';
 import { SentenceRebuilder } from './screens/SentenceRebuilder';
 import { Onboarding } from './screens/Onboarding';
 import { getCoachProfile } from './services/coach/coachProfileService';
+import { useGuestMode } from './hooks/useGuestMode';
 
 import { RapidFire } from './screens/RapidFire';
 import { SpeedSpeaking } from './screens/SpeedSpeaking';
@@ -185,6 +186,7 @@ function MigrationGate() {
 
 function AppShell() {
   const { user, loading } = useAuth();
+  const { isGuest } = useGuestMode();
   const location = useLocation();
 
   if (loading) {
@@ -195,7 +197,10 @@ function AppShell() {
     );
   }
 
-  if (supabaseConfigured && !user) {
+  // '/login' is an intentionally unregistered pathname: it never appears as a
+  // <Route> below, it only exists here to force the auth screen back up for a
+  // guest who wants to convert to a real account, without clearing guestMode.
+  if (supabaseConfigured && !user && (!isGuest || location.pathname === '/login')) {
     return <Auth />;
   }
 

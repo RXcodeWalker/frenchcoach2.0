@@ -8,10 +8,12 @@ import { ACHIEVEMENTS } from '../data/gameData';
 import { fadeUp } from '../components/motion/variants';
 import { PageShell } from '../components/layout/PageShell';
 import { SettingToggle } from '../components/ui/SettingToggle';
+import { useGuestMode } from '../hooks/useGuestMode';
 
 export function Profile() {
   const { state, dispatch } = useApp();
   const { user, signOut, isAdmin } = useAuth();
+  const { isGuest, exitGuestMode } = useGuestMode();
   const navigate = useNavigate();
   const { profile } = state;
   const { current, progress } = getLevelInfo(profile.total_xp);
@@ -30,8 +32,16 @@ export function Profile() {
             {profile.username?.[0] ?? 'F'}
           </motion.div>
           <div className="flex-1">
-            <h2 className="text-lg font-black text-white">{profile.username ?? user?.email ?? 'French Learner'}</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg font-black text-white">{profile.username ?? user?.email ?? 'French Learner'}</h2>
+              {isGuest && (
+                <span className="text-[9px] font-bold uppercase tracking-wide bg-amber-500/10 text-amber-400 px-1.5 py-0.5 rounded-full border border-amber-500/15">Guest</span>
+              )}
+            </div>
             <p className="text-xs text-slate-500">{current.icon} {current.level}</p>
+            {isGuest && (
+              <p className="text-[9px] text-amber-400/80 mt-0.5">Your progress is saved on this device only</p>
+            )}
             <div className="mt-2 h-1 bg-navy-300 rounded-full overflow-hidden w-44">
               <motion.div
                 className="h-full rounded-full bg-gradient-to-r from-violet-electric to-indigo-400 shimmer-bar"
@@ -183,12 +193,36 @@ export function Profile() {
               <ChevronRight size={12} className="text-slate-700" />
             </button>
           )}
+          {isGuest && (
+            <button
+              onClick={() => navigate('/login')}
+              className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-violet-500/[0.06] transition-colors text-left group"
+            >
+              <LogOut size={14} className="text-violet-400/70 group-hover:text-violet-400 transition-colors rotate-180" />
+              <div className="flex-1">
+                <p className="text-[10px] font-semibold text-violet-300">Log In / Create Account</p>
+                <p className="text-[9px] text-slate-700">Creating a new account backs up this device's data. Logging into an existing account may not preserve it.</p>
+              </div>
+              <ChevronRight size={12} className="text-slate-700" />
+            </button>
+          )}
           <button
-            onClick={() => signOut()}
+            onClick={() => {
+              if (isGuest) {
+                exitGuestMode();
+                navigate('/', { replace: true });
+              } else {
+                exitGuestMode();
+                signOut();
+              }
+            }}
             className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-red-500/[0.06] transition-colors text-left group"
           >
             <LogOut size={14} className="text-red-400/70 group-hover:text-red-400 transition-colors" />
-            <div className="flex-1"><p className="text-[10px] font-semibold text-red-400/80 group-hover:text-red-400 transition-colors">Sign Out</p><p className="text-[9px] text-slate-700">Your local progress is preserved</p></div>
+            <div className="flex-1">
+              <p className="text-[10px] font-semibold text-red-400/80 group-hover:text-red-400 transition-colors">{isGuest ? 'Exit Guest Mode' : 'Sign Out'}</p>
+              <p className="text-[9px] text-slate-700">{isGuest ? 'Clears local guest session' : 'Your local progress is preserved'}</p>
+            </div>
           </button>
         </div>
       </motion.div>

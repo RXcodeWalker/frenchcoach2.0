@@ -3,12 +3,15 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useGuestMode } from '../hooks/useGuestMode';
 
 export function Auth() {
   const { signIn, signUp, configError } = useAuth();
+  const { isGuest, enterGuestMode, exitGuestMode } = useGuestMode();
   const navigate = useNavigate();
   const location = useLocation();
   const redirectTo = (location.state as { redirect?: string } | null)?.redirect ?? '/';
+  const isGuestConversion = isGuest && location.pathname === '/login';
 
   const [tab, setTab] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState('');
@@ -32,12 +35,14 @@ export function Auth() {
     try {
       if (tab === 'login') {
         await signIn(email, password);
+        exitGuestMode();
         navigate(redirectTo, { replace: true });
       } else {
         const result = await signUp(email, password);
         if (result.needsConfirmation) {
           setNeedsConfirmation(true);
         } else {
+          exitGuestMode();
           navigate(redirectTo, { replace: true });
         }
       }
@@ -46,6 +51,15 @@ export function Auth() {
     } finally {
       setLoading(false);
     }
+  }
+
+  function handleGuest() {
+    enterGuestMode();
+    navigate(redirectTo, { replace: true });
+  }
+
+  function handleCancelConversion() {
+    navigate('/', { replace: true });
   }
 
   return (
@@ -99,6 +113,16 @@ export function Auth() {
             </div>
           ) : (
             <>
+              {isGuestConversion && (
+                <button
+                  type="button"
+                  onClick={handleCancelConversion}
+                  className="mb-4 text-xs text-violet-400 underline underline-offset-2"
+                >
+                  ← Cancel — back to your guest session
+                </button>
+              )}
+
               {/* Tab switcher */}
               <div className="flex rounded-lg dark:bg-slate-800/60 bg-slate-100 p-0.5 mb-5">
                 {(['login', 'signup'] as const).map(t => (
@@ -195,6 +219,21 @@ export function Auth() {
                   {loading ? (tab === 'login' ? 'Logging in…' : 'Creating account…') : (tab === 'login' ? 'Log In' : 'Create Account')}
                 </button>
               </form>
+
+              {!isGuestConversion && (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleGuest}
+                    className="w-full mt-3 py-2.5 rounded-lg dark:bg-slate-800/60 bg-slate-100 dark:text-slate-300 text-slate-700 text-xs font-bold border dark:border-white/6 border-slate-200 hover:dark:bg-slate-800 hover:bg-slate-200 transition-all"
+                  >
+                    Continue as Guest
+                  </button>
+                  <p className="text-[10px] dark:text-slate-500 text-slate-400 text-center mt-2">
+                    Guest data stays on this device only — it isn't backed up, and clearing your browser storage will erase it.
+                  </p>
+                </>
+              )}
             </>
           )}
         </div>

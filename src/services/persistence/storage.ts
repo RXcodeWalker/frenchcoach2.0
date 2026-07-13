@@ -41,6 +41,8 @@ export const STORAGE_KEYS = {
   // ── S10 examiner-simulation session engine ────────────────────────────────────
   examTranscripts:  'frenchCoach_examTranscripts',
   examConductLogs:  'frenchCoach_examConductLogs',
+  // ── Guest mode (local-only auth bypass) ────────────────────────────────────────
+  guestMode: 'frenchCoach_guestMode',
 } as const;
 
 export type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS];
