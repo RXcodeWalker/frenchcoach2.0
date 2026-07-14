@@ -128,6 +128,13 @@ export interface SessionQuestion {
   expectedTimeFrame?: TimeFrame;
   /** Carried to RolePlayTaskResponse. */
   partsExpected?: 1 | 2;
+  /**
+   * Second-part prompt for a two-part question (role-play PAUSE task or a topic
+   * question whose main text embeds a follow-up like "…? Pourquoi ?"). Delivered
+   * as a distinct examiner utterance after the main part is answered — never a
+   * re-read of mainText. Additive; not part of the SessionTranscript schema.
+   */
+  secondPartText?: string;
 }
 
 export interface SessionQuestionSet {

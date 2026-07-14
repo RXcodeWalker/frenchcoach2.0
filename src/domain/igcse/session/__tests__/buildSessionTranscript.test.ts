@@ -96,9 +96,10 @@ describe('buildSessionTranscript', () => {
       questionSetHash: '1'.repeat(64),
     });
 
-    // rp3 is a PAUSE (two-part) task: the engine intentionally re-reads its main
-    // text for part 2, which annotateExaminer's general-purpose matcher (no
-    // partsExpected awareness) classifies as a 'repetition' rather than a second
+    // rp3 is a PAUSE (two-part) task: the engine delivers a DISTINCT secondPartText
+    // for part 2 (not a re-read of mainText). annotateExaminer's general-purpose
+    // matcher (no partsExpected awareness) sees that distinct text as 'unmatched'
+    // (it Jaccard-matches no question above threshold) rather than a second
     // 'main_question' — a real, expected divergence for two-part tasks only.
     // Every other (single-part) question must agree exactly.
     const reAnnotated = annotateExaminer(transcript.utterances, qs);

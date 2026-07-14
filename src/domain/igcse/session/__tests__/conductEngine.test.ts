@@ -91,10 +91,12 @@ describe('conductEngine: role play', () => {
     state = driveOne(qs, state, answer()).state;
     state = driveOne(qs, state, answer()).state;
 
-    // rp3 is partsExpected: 2 — first answer should re-read rp3 (part 2), not advance to rp4
+    // rp3 is partsExpected: 2 — first answer should deliver the DISTINCT part-2
+    // prompt (rp3.secondPartText), not advance to rp4 and not re-read mainText.
     const part2 = driveOne(qs, state, answer());
     state = part2.state;
-    expect(part2.action).toMatchObject({ kind: 'READ_MAIN', questionId: 'rp3' });
+    expect(part2.action).toMatchObject({ kind: 'READ_MAIN', questionId: 'rp3', text: qs.questions[2].secondPartText });
+    expect(part2.action.text).not.toBe(qs.questions[2].mainText);
     expect(state.rolePlayTasks[2].partsAddressed).toBe(1);
 
     const afterPart2 = driveOne(qs, state, answer());
@@ -252,6 +254,83 @@ describe('conductEngine: topic conversation', () => {
       state = driveOne(qs, state, answer({ wordCount: 4, responseDurationS: 5 })).state;
     }
     expect(state.extensionAskedCount.topic1).toBe(countAtTarget);
+  });
+
+  // ── C3: two-part topic questions (t1q4 has a distinct secondPartText) ──
+  function developed(overrides: Partial<CandidateTurnResult> = {}): CandidateTurnResult {
+    // wordCount >= DEVELOPED_ANSWER_WORDS so decideExtension returns null (no extension noise).
+    return answer({ wordCount: 15, responseDurationS: 15, ...overrides });
+  }
+
+  /** Drives topic1 with developed answers up to (but not answering) t1q4 (index 3). */
+  function toT1Q4(): ConductEngineState {
+    let state = toTopic1();
+    // t1q1, t1q2, t1q3 answered developed -> each advances directly (no extension, no second part).
+    state = driveOne(qs, state, developed()).state; // -> t1q2
+    state = driveOne(qs, state, developed()).state; // -> t1q3
+    state = driveOne(qs, state, developed()).state; // -> t1q4
+    expect(state.phase).toMatchObject({ kind: 'topic', part: 'topic1', questionIndex: 3 });
+    return state;
+  }
+
+  it('C3: delivers the distinct second-part prompt after a successful main answer (answer -> part2 -> answer -> advance)', () => {
+    let state = toT1Q4();
+
+    // Main answer to t1q4 -> engine reads the DISTINCT secondPartText, not mainText, not advance.
+    const part2 = driveOne(qs, state, developed());
+    state = part2.state;
+    expect(part2.action).toMatchObject({ kind: 'READ_MAIN', questionId: 't1q4', variant: 'main', text: qs.questions[8].secondPartText });
+    expect(part2.action.text).not.toBe(qs.questions[8].mainText);
+    expect(state.topic1Questions[3].subState).toBe('secondPart');
+
+    // Answer the second part -> advance to t1q5 (never re-offers part 2, never reverses).
+    const afterPart2 = driveOne(qs, state, developed());
+    state = afterPart2.state;
+    expect(afterPart2.action).toMatchObject({ kind: 'READ_MAIN', questionId: 't1q5' });
+  });
+
+  it('C3: a failed second part gets exactly one verbatim repeat, then advances (no alternative on part 2)', () => {
+    let state = toT1Q4();
+    state = driveOne(qs, state, developed()).state; // main answered -> part 2 delivered
+    expect(state.topic1Questions[3].subState).toBe('secondPart');
+
+    // Silence on part 2 -> one repeat of the SECOND-PART text (not mainText, not the alternative).
+    const repeat = driveOne(qs, state, noResponse());
+    state = repeat.state;
+    expect(repeat.action).toMatchObject({ kind: 'REPEAT', questionId: 't1q4', text: qs.questions[8].secondPartText });
+    expect(repeat.action.kind).not.toBe('READ_ALTERNATIVE');
+    expect(state.topic1Questions[3].secondPartRepeatUsed).toBe(true);
+
+    // Failed repeat -> advance to t1q5; the alternative is NEVER offered for a second part.
+    const afterFailed = driveOne(qs, state, noResponse());
+    state = afterFailed.state;
+    expect(afterFailed.action.kind).not.toBe('READ_ALTERNATIVE');
+    expect(afterFailed.action).toMatchObject({ kind: 'READ_MAIN', questionId: 't1q5' });
+  });
+
+  it('C3: a question answered via its ALTERNATIVE never delivers a second part', () => {
+    let state = toT1Q4();
+    // Fail the main + its repeat so the alternative is offered (t1q4 has alternativeTexts).
+    state = driveOne(qs, state, noResponse()).state; // repeat main
+    const alt = driveOne(qs, state, noResponse());
+    state = alt.state;
+    expect(alt.action).toMatchObject({ kind: 'READ_ALTERNATIVE', questionId: 't1q4' });
+    expect(state.topic1Questions[3].subState).toBe('alternative');
+
+    // Answer the alternative -> straight to advance (t1q5). No secondPart is ever entered.
+    const afterAlt = driveOne(qs, state, developed());
+    state = afterAlt.state;
+    expect(state.topic1Questions[3].subState).not.toBe('secondPart');
+    expect(afterAlt.action).toMatchObject({ kind: 'READ_MAIN', questionId: 't1q5' });
+  });
+
+  it('C3: single-part questions (no secondPartText) never enter the secondPart sub-state', () => {
+    let state = toTopic1();
+    // t1q1 has no secondPartText -> a developed answer advances directly to t1q2.
+    const r = driveOne(qs, state, developed());
+    state = r.state;
+    expect(state.topic1Questions[0].subState).not.toBe('secondPart');
+    expect(r.action).toMatchObject({ kind: 'READ_MAIN', questionId: 't1q2' });
   });
 
   it('advances from topic1 to topic2 and eventually reaches complete with an END action', () => {

@@ -1,7 +1,8 @@
 /**
  * S10 original SessionQuestionSet fixtures — modelled on Cambridge 0520 Paper 3
  * structure (5 role-play tasks including one PAUSE two-part task; two topic
- * conversations of 5 questions each, alternatives on Q3-Q5). All text is
+ * conversations of 5 questions each, alternatives on Q3-Q5, a two-part Q4 whose
+ * follow-up is delivered as a distinct secondPartText). All text is
  * original practice material, NOT derived from confidential TN booklets.
  * Full bank authoring (many sets, teacher-reviewed) stays with S11 — this is
  * a minimal fixture so the S10 engine has something concrete to drive.
@@ -31,6 +32,7 @@ export const ORIGINAL_QUESTION_SET_1: SessionQuestionSet = {
       mainText: 'Demandez le prix du billet.',
       alternativeTexts: [],
       partsExpected: 2,
+      secondPartText: "Demandez aussi s'il y a une réduction pour les étudiants.",
     },
     {
       questionId: 'rp4',
@@ -72,7 +74,8 @@ export const ORIGINAL_QUESTION_SET_1: SessionQuestionSet = {
     {
       questionId: 't1q4',
       part: 'topic1',
-      mainText: 'Préfères-tu manger à la maison ou au restaurant ? Pourquoi ?',
+      mainText: 'Préfères-tu manger à la maison ou au restaurant ?',
+      secondPartText: 'Pourquoi ?',
       alternativeTexts: ['Quel est ton repas préféré ?'],
       topicArea: 'A',
       expectedTimeFrame: 'present',
@@ -113,7 +116,8 @@ export const ORIGINAL_QUESTION_SET_1: SessionQuestionSet = {
     {
       questionId: 't2q4',
       part: 'topic2',
-      mainText: 'Penses-tu que le changement climatique est un problème grave ? Pourquoi ?',
+      mainText: 'Penses-tu que le changement climatique est un problème grave ?',
+      secondPartText: 'Pourquoi ?',
       alternativeTexts: ['Que penses-tu de la pollution dans les grandes villes ?'],
       topicArea: 'C',
       expectedTimeFrame: 'present',

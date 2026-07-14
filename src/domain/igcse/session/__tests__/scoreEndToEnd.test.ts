@@ -112,6 +112,6 @@ describe('S10 exit criterion: engine transcript -> scoreAttempt -> ScoringEnvelo
     expect(envelope.sessionId).toBe(SESSION_ID);
     expect(envelope.rolePlayTasks.length).toBe(5);
     expect(typeof envelope.total).toBe('number');
-    expect(envelope.transcriptVersion.assemblerVersion).toBe('session-engine-v1');
+    expect(envelope.transcriptVersion.assemblerVersion).toBe('session-engine-v2');
   });
 });

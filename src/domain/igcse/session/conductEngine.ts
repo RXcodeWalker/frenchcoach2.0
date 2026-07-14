@@ -120,12 +120,14 @@ export function initConductEngineState(questionSet: SessionQuestionSet): Conduct
       subState: 'awaitingAnswer',
       repeatUsed: false,
       alternativeRepeatUsed: false,
+      secondPartRepeatUsed: false,
     })),
     topic2Questions: topicQuestions(questionSet, 'topic2').map((q) => ({
       questionId: q.questionId,
       subState: 'awaitingAnswer',
       repeatUsed: false,
       alternativeRepeatUsed: false,
+      secondPartRepeatUsed: false,
     })),
     furtherAskedCount: { topic1: 0, topic2: 0 },
     extensionAskedCount: { topic1: 0, topic2: 0 },
@@ -212,8 +214,10 @@ function stepRolePlay(
     const nextState = replaceRolePlayTask(state, phase.taskIndex, updatedTask);
 
     if (task.partsExpected === 2 && partsAddressed < 2) {
-      // PAUSE task: part 1 answered, now read part 2 of the same prompt.
-      const action = makeAction(nextState, 'READ_MAIN', 'rolePlay', task.questionId, 'main', task.mainText, 'scripted');
+      // PAUSE task: part 1 answered, now read the DISTINCT part-2 prompt (never a
+      // re-read of mainText). secondPartText is required on any partsExpected:2 task.
+      const secondPartText = task.secondPartText ?? task.mainText;
+      const action = makeAction(nextState, 'READ_MAIN', 'rolePlay', task.questionId, 'main', secondPartText, 'scripted');
       return { state: bumpSeq(nextState), actions: [action] };
     }
     return advanceRolePlay(questionSet, nextState, phase.taskIndex);
@@ -311,7 +315,7 @@ function stepTopic(
 
   if (qState.subState === 'awaitingAnswer') {
     if (didAnswer) {
-      return moveToExtensionOrAdvance(questionSet, stateWithSpeaking, part, questionIndex, question, result);
+      return moveToSecondPartOrExtension(questionSet, stateWithSpeaking, part, questionIndex, question, result);
     }
     if (!qState.repeatUsed) {
       const updated: TopicQuestionState = { ...qState, subState: 'repeated', repeatUsed: true };
@@ -329,9 +333,31 @@ function stepTopic(
 
   if (qState.subState === 'repeated') {
     if (didAnswer) {
-      return moveToExtensionOrAdvance(questionSet, stateWithSpeaking, part, questionIndex, question, result);
+      return moveToSecondPartOrExtension(questionSet, stateWithSpeaking, part, questionIndex, question, result);
     }
     return afterFailedMain(questionSet, stateWithSpeaking, part, questionIndex, question);
+  }
+
+  if (qState.subState === 'secondPart') {
+    // Second part answered (or its one repeat exhausted): the alternative is NEVER
+    // offered for a second part — funnel straight to extension/advance.
+    if (didAnswer) {
+      return moveToExtensionOrAdvance(questionSet, stateWithSpeaking, part, questionIndex, question, result);
+    }
+    if (!qState.secondPartRepeatUsed) {
+      const updated: TopicQuestionState = { ...qState, secondPartRepeatUsed: true };
+      const nextState = replaceTopicQuestionState(stateWithSpeaking, part, questionIndex, updated);
+      const secondPartText = question.secondPartText ?? question.mainText;
+      const trigger: ExaminerTrigger = result.requestedRepeat
+        ? 'repeat_requested'
+        : result.didRespond
+          ? 'irrelevant_answer'
+          : 'no_response';
+      const action = makeAction(nextState, 'REPEAT', part, question.questionId, 'main', secondPartText, trigger);
+      return { state: bumpSeq(nextState), actions: [action] };
+    }
+    // Failed second-part repeat: advance (like a failed main — no extension probe on a failure).
+    return advanceTopicQuestion(questionSet, stateWithSpeaking, part, questionIndex);
   }
 
   if (qState.subState === 'alternative') {
@@ -377,6 +403,34 @@ function afterFailedMain(
     return { state: bumpSeq(nextState), actions: [action] };
   }
   return advanceTopicQuestion(questionSet, state, part, questionIndex);
+}
+
+/**
+ * After a successful MAIN answer: if the question is two-part, deliver the distinct
+ * second-part prompt and enter the 'secondPart' sub-state (C3). Otherwise fall through
+ * to the extension/advance funnel. Only reached from the awaitingAnswer/repeated success
+ * branches — a question answered via its ALTERNATIVE bypasses this (the alternative
+ * replaces the two-part main question, so its second part is never asked).
+ */
+function moveToSecondPartOrExtension(
+  questionSet: SessionQuestionSet,
+  state: ConductEngineState,
+  part: 'topic1' | 'topic2',
+  questionIndex: number,
+  question: SessionQuestion,
+  result: CandidateTurnResult,
+): StepResult {
+  const qState = topicQuestionStates(state, part)[questionIndex];
+
+  if (question.secondPartText && qState.subState !== 'secondPart') {
+    const updated: TopicQuestionState = { ...qState, subState: 'secondPart' };
+    const nextState = replaceTopicQuestionState(state, part, questionIndex, updated);
+    // Same questionId, second emission — event kind stays main_question.
+    const action = makeAction(nextState, 'READ_MAIN', part, question.questionId, 'main', question.secondPartText, 'scripted');
+    return { state: bumpSeq(nextState), actions: [action] };
+  }
+
+  return moveToExtensionOrAdvance(questionSet, state, part, questionIndex, question, result);
 }
 
 /**

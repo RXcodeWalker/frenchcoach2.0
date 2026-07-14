@@ -678,3 +678,87 @@ edited.
   subsystem.
 - Fixing the same `main()`-guard Windows bug in `scripts/stt/ingestSession.ts`
   — out of scope for a toolkit that doesn't otherwise touch that file.
+
+---
+
+## S10 — Examiner-simulation session engine
+
+The pure conduct-rule engine (`src/domain/igcse/session/`) that drives an
+app-conducted 0520 mock oral: `conductEngine.ts` (a no-I/O reducer over
+04 §6.5 conduct rules), `simulationSession.ts` (the sole impure driver),
+`buildSessionTranscript.ts` (ConductLog → provenance-agnostic
+`SessionTranscript`, `annotationSource: 'session-engine-log'`), and the
+`version.ts` engine-version pin. Consumed by `ExamMode.tsx`.
+
+This is the retroactive S10 entry (none existed) plus the behavioural-compliance
+change train that follows it. That train is landing incrementally; each
+sub-phase below is verified as it lands.
+
+### Behavioural-compliance train (`session-engine-v2`)
+
+- **C1 — authorized, original extension prompts.** Replaced the old
+  content-aware extension machinery with two original, `tu`-register app-authored
+  probes (`AUTHORIZED_EXTENSION_PROMPTS`), alternated deterministically by index.
+  Original content per 04 §6.5 (never TN-verbatim, not on the rubric-only
+  `UNSOURCED_ALLOWLIST`). `MAX_EXTENSIONS_PER_TOPIC` re-labelled as an app
+  heuristic (Cambridge caps *further questions*, not extension prompts).
+- **C8 — extension suppression past the 4-minute target.** `TOPIC_TARGET_S`
+  (240s); once accumulated topic speaking reaches it, extension *probing* stops
+  while scripted Q1–Q5, alternatives, and further-questions are still delivered.
+  Value is Cambridge; the suppression behaviour and the "accumulated
+  candidate-speaking seconds" proxy metric are app policy (commented as such).
+- **C3 — two-part question delivery.** Two-part questions (role-play PAUSE
+  tasks; topic Q4 whose prompt embeds a follow-up) are now delivered as two
+  **separate** examiner utterances: the main part, then a **distinct**
+  `secondPartText` (a new additive `SessionQuestion` field), never a re-read of
+  the main text. In topics: a new `'secondPart'` `TopicSubState` entered **only**
+  from a successful main answer (an answer given via the *alternative* skips its
+  second part — the alternative replaces the two-part main question); a failed
+  second part gets **one** verbatim repeat (gated by a dedicated
+  `secondPartRepeatUsed` flag so the sub-state can never loop), then advances
+  (no extension probe on a failure, no alternative for a second part).
+  `originalQuestionSets.ts`: `rp3` gained a distinct `secondPartText`; `t1q4`/
+  `t2q4` split their embedded `"…? Pourquoi ?"` into `mainText` + `secondPartText`.
+  `SESSION_ENGINE_VERSION` bumped `v1 → v2` (behavioural change), and
+  `scoreEndToEnd.test.ts`'s `assemblerVersion` literal updated in the same change.
+
+### Independently verified (through C3)
+
+- `npx vitest run` (full suite): **473/473 tests passing (75 files)**, including
+  the golden-regression / scoring fixtures — the `session-engine-v2` bump touches
+  no `detectors-v*`/`scoring-prompt-v*` pin, so no golden regeneration was needed.
+- Session-engine suite (`conductEngine.test.ts`, `buildSessionTranscript.test.ts`,
+  `scoreEndToEnd.test.ts`): 26/26 green, including new C3 cases —
+  distinct-second-part delivery (main → part2 → answer → advance), one-repeat
+  failure-then-advance, alternative-never-triggers-a-second-part, and
+  single-part questions never entering `'secondPart'`.
+- Cross-check integrity: `buildSessionTranscript.test.ts`'s `annotateExaminer`
+  agreement test still passes; its comment updated to record that a two-part
+  question's distinct part-2 text is now classified `unmatched` (it Jaccard-matches
+  no question above `MATCH_THRESHOLD`) rather than `repetition`, and `rp3` remains
+  excluded from the single-part agreement assertion.
+- `npm run typecheck`: zero new errors in any `src/domain/igcse/session/` or
+  `src/data/exam/` file; the additive `secondPartText?` / `secondPartRepeatUsed`
+  fields make an under-supplied fixture a compile error, not a runtime one. Same
+  pre-existing unrelated `src/screens/*` errors as prior subphases.
+- Serialization/replay compatibility: `secondPartText` is additive and **not**
+  part of the validated `session-transcript-v1` schema; old stored ConductLogs
+  remain readable. No `stt/schema.ts` change.
+
+### Docs
+
+- `04-frontend-pipeline.md §6.5`: added the two-part-question conduct rule
+  (separate utterances, distinct second-part prompt, one repeat then advance,
+  no alternative on a second part).
+
+### Explicitly deferred / not yet landed
+
+- Remaining behavioural-compliance changes on the `v2` train (C2 authored
+  further-questions, C4 utterance-intent classification + scored-text blanking,
+  C5 greeting, C6 neutral transition markers) and the UI/voice polish (C9–C11)
+  land in their own sub-phases and will be appended here as they do.
+- **C7 (cross-layer conduct-evidence into Layer 1 + the scoring prompt) is
+  deferred pending greenlight** — it is the only change that mutates the frozen
+  scoring pipeline and forces `EVIDENCE_DETECTOR_VERSION` / `SCORING_PROMPT_VERSION`
+  bumps + golden regeneration. Completing it is what closes S10's roadmap
+  "full event logging into `EvidenceProfile`" exit criterion.

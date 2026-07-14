@@ -97,7 +97,7 @@ export interface ConductLog {
 
 // ── Reducer internal state ────────────────────────────────────────────────────
 
-export type TopicSubState = 'awaitingAnswer' | 'repeated' | 'alternative' | 'extending' | 'further';
+export type TopicSubState = 'awaitingAnswer' | 'repeated' | 'alternative' | 'secondPart' | 'extending' | 'further';
 
 export interface TopicQuestionState {
   questionId: string;
@@ -106,6 +106,12 @@ export interface TopicQuestionState {
   repeatUsed: boolean;
   /** true once the alternative (if any) has been offered its one repeat. */
   alternativeRepeatUsed: boolean;
+  /**
+   * true once a two-part question's second part has been offered its one repeat.
+   * Distinct from repeatUsed/alternativeRepeatUsed so the 'secondPart' sub-state
+   * can only move forward (advance) after one failed second-part repeat — never loop.
+   */
+  secondPartRepeatUsed: boolean;
 }
 
 export interface RolePlayTaskState {
