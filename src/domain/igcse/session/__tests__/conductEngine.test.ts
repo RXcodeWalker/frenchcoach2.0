@@ -4,6 +4,7 @@ import {
   startConduct,
   step,
   decideExtension,
+  AUTHORIZED_EXTENSION_PROMPTS,
   MAX_FURTHER_QUESTIONS_PER_TOPIC,
   MAX_EXTENSIONS_PER_TOPIC,
   TOPIC_SPEAKING_FLOOR_S,
@@ -102,83 +103,42 @@ describe('conductEngine: role play', () => {
   });
 });
 
-describe('decideExtension (Finding 1: content-aware extension prompts)', () => {
-  const presentQ = qs.questions.find((q) => q.questionId === 't1q1')!; // expectedTimeFrame: 'present'
-  const pastQ = qs.questions.find((q) => q.questionId === 't1q3')!; // expectedTimeFrame: 'past'
-  const futureQ = qs.questions.find((q) => q.questionId === 't1q5')!; // expectedTimeFrame: 'future'
-  const whyQ = qs.questions.find((q) => q.questionId === 't1q4')!; // mainText contains "Pourquoi ?"
-
+describe('decideExtension (C1: authorized, original extension prompts)', () => {
   it('returns null (skip extension) when the answer is developed by word count', () => {
-    const result = decideExtension(
-      presentQ,
-      { transcript: 'x'.repeat(1), wordCount: 12, responseDurationS: 5 },
-      null,
-    );
+    const result = decideExtension({ wordCount: 12, responseDurationS: 5 }, null);
     expect(result).toBeNull();
   });
 
-  it('returns null (skip extension) when the answer is developed by duration, even with a thin transcript', () => {
-    const result = decideExtension(
-      presentQ,
-      { transcript: 'neuf mots seulement dans cette reponse ici la', wordCount: 9, responseDurationS: 22 },
-      null,
-    );
+  it('returns null (skip extension) when the answer is developed by duration, even with a thin word count', () => {
+    const result = decideExtension({ wordCount: 9, responseDurationS: 22 }, null);
     expect(result).toBeNull();
   });
 
-  it('asks "justify" (why) for a thin answer with no justification marker', () => {
-    const result = decideExtension(
-      presentQ,
-      { transcript: 'Je fais mes devoirs.', wordCount: 4, responseDurationS: 5 },
-      null,
-    );
-    expect(result).toMatchObject({ intent: 'justify', text: 'Pourquoi ?' });
+  it('returns exactly one of the two authorized prompts for a thin answer', () => {
+    const result = decideExtension({ wordCount: 4, responseDurationS: 5 }, null);
+    expect(result).not.toBeNull();
+    expect(AUTHORIZED_EXTENSION_PROMPTS).toContain(result?.text);
   });
 
-  it('asks "develop" instead of re-asking why when the candidate already used a justification marker', () => {
-    const result = decideExtension(
-      presentQ,
-      { transcript: 'Je le fais parce que je dois aider.', wordCount: 7, responseDurationS: 5 },
-      null,
-    );
-    expect(result).toMatchObject({ intent: 'develop' });
+  it('contains no "vous" register in the authorized extension prompts', () => {
+    for (const prompt of AUTHORIZED_EXTENSION_PROMPTS) {
+      expect(prompt.toLowerCase()).not.toMatch(/\bvous\b/);
+    }
   });
 
-  it('asks "develop" instead of "justify" when the question itself already asked "Pourquoi ?"', () => {
-    const result = decideExtension(whyQ, { transcript: 'Le restaurant.', wordCount: 2, responseDurationS: 5 }, null);
-    expect(result).toMatchObject({ intent: 'develop' });
+  it('alternates deterministically by index, starting at index 0 with lastIndex=null', () => {
+    const first = decideExtension({ wordCount: 4, responseDurationS: 5 }, null);
+    expect(first).toMatchObject({ index: 0, text: AUTHORIZED_EXTENSION_PROMPTS[0] });
   });
 
-  it('selects expectedTimeFrame-specific wording (future -> "Pourquoi ce choix ?")', () => {
-    const result = decideExtension(futureQ, { transcript: 'Je vais sortir.', wordCount: 3, responseDurationS: 5 }, null);
-    expect(result).toMatchObject({ intent: 'justify', text: 'Pourquoi ce choix ?' });
+  it('picks index 1 when lastIndex was 0', () => {
+    const result = decideExtension({ wordCount: 4, responseDurationS: 5 }, 0);
+    expect(result).toMatchObject({ index: 1, text: AUTHORIZED_EXTENSION_PROMPTS[1] });
   });
 
-  it('selects expectedTimeFrame-specific wording (past -> "Racontez-en un peu plus." for develop intent)', () => {
-    const result = decideExtension(
-      pastQ,
-      { transcript: "J'ai voyagé parce que c'était les vacances.", wordCount: 6, responseDurationS: 5 },
-      null,
-    );
-    expect(result).toMatchObject({ intent: 'develop', text: 'Racontez-en un peu plus.' });
-  });
-
-  it('does not repeat the same intent as the previous extension', () => {
-    const result = decideExtension(
-      presentQ,
-      { transcript: 'Je fais mes devoirs.', wordCount: 4, responseDurationS: 5 },
-      'justify',
-    );
-    expect(result?.intent).toBe('develop');
-  });
-
-  it('never flips into "justify" when the answer already covers why', () => {
-    const result = decideExtension(
-      presentQ,
-      { transcript: 'Je le fais parce que je dois aider.', wordCount: 7, responseDurationS: 5 },
-      'develop',
-    );
-    expect(result?.intent).toBe('develop');
+  it('picks index 0 when lastIndex was 1', () => {
+    const result = decideExtension({ wordCount: 4, responseDurationS: 5 }, 1);
+    expect(result).toMatchObject({ index: 0, text: AUTHORIZED_EXTENSION_PROMPTS[0] });
   });
 });
 

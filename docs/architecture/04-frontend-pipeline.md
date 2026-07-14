@@ -46,7 +46,7 @@ For app-conducted practice sessions (implemented in roadmap **S10**), the sessio
 - Read questions **exactly as authored** in the question bank — repeat but **never rephrase**.
 - **Role play:** no extension questions; move through the 5 tasks in order.
 - **Topic conversation Q1–Q5:** repeat the main question first, then offer the alternative if needed, then move on — do not skip ahead.
-- Encourage fuller responses with the standard extension prompts (*Pouvez-vous développer ?*, *Pourquoi ?*, etc.).
+- Encourage fuller responses on thin answers with two **original, app-authored** extension prompts (`tu`-register, alternated deterministically): *"Donne-moi plus de détails."* / *"Peux-tu me dire autre chose à ce sujet ?"*. These are original content, not copied from confidential Teacher's Notes wording — Cambridge's own further-questions guidance (§6.4 above) may inform *when* to probe, but the wording itself must never be TN-verbatim.
 - Cap examiner-chosen further questions at **2 per topic** (beyond the scripted Q1–Q5 and their alternatives).
 - Target **~4 minutes** of candidate speaking time per topic conversation.
 - **Log every conduct event** (repetition, alternative triggered, extension asked, task part addressed, timestamps) to the session log that Layer 1 consumes.
