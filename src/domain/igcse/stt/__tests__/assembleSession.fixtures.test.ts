@@ -58,7 +58,7 @@ describe('adversarial fixture', () => {
   it('overlapping speech, an echoing candidate, and a low-confidence span all survive assembly', () => {
     const result = assembleSession(
       adversarialRaw as RawAsrResult,
-      adversarialQuestions as SessionQuestionSet,
+      adversarialQuestions as unknown as SessionQuestionSet,
       meta,
     );
     expect(result).toEqual(adversarialGolden);
@@ -72,7 +72,7 @@ describe('adversarial fixture', () => {
   it('candidate echoing the question text is not misclassified as an examiner event', () => {
     const result = assembleSession(
       adversarialRaw as RawAsrResult,
-      adversarialQuestions as SessionQuestionSet,
+      adversarialQuestions as unknown as SessionQuestionSet,
       meta,
     );
     const mainQuestionEvents = result.examinerEvents.filter((e) => e.kind === 'main_question');
@@ -82,7 +82,7 @@ describe('adversarial fixture', () => {
   it('examiner back-channel is recorded as unmatched, not dropped', () => {
     const result = assembleSession(
       adversarialRaw as RawAsrResult,
-      adversarialQuestions as SessionQuestionSet,
+      adversarialQuestions as unknown as SessionQuestionSet,
       meta,
     );
     const unmatched = result.examinerEvents.filter((e) => e.kind === 'unmatched');
@@ -106,7 +106,7 @@ describe('structurally complete fixture', () => {
   };
 
   it('produces 5 role-play tasks and 5+5 topic questions, matching the golden output', () => {
-    const result = assembleSession(structRaw as RawAsrResult, structQuestions as SessionQuestionSet, meta);
+    const result = assembleSession(structRaw as RawAsrResult, structQuestions as unknown as SessionQuestionSet, meta);
     expect(result).toEqual(structGolden);
 
     const rolePlayQuestionIds = new Set(
@@ -124,7 +124,7 @@ describe('structurally complete fixture', () => {
   });
 
   it('per-part candidate speaking time is derivable directly from utterances (S5 guardrail precondition)', () => {
-    const result = assembleSession(structRaw as RawAsrResult, structQuestions as SessionQuestionSet, meta);
+    const result = assembleSession(structRaw as RawAsrResult, structQuestions as unknown as SessionQuestionSet, meta);
     const topic1Duration = result.utterances
       .filter((u) => u.role === 'candidate' && u.part === 'topic1')
       .reduce((sum, u) => sum + (u.endS - u.startS), 0);
@@ -148,7 +148,7 @@ describe('short-duration fixture', () => {
   };
 
   it('candidate speaking time across topic1+topic2 is well under 4 minutes, matching golden output', () => {
-    const result = assembleSession(shortRaw as RawAsrResult, shortQuestions as SessionQuestionSet, meta);
+    const result = assembleSession(shortRaw as RawAsrResult, shortQuestions as unknown as SessionQuestionSet, meta);
     expect(result).toEqual(shortGolden);
 
     const totalCandidateTopicDuration = result.utterances
@@ -162,7 +162,7 @@ describe('short-duration fixture', () => {
   });
 
   it('proves part attribution on Utterance actually works for a short session', () => {
-    const result = assembleSession(shortRaw as RawAsrResult, shortQuestions as SessionQuestionSet, meta);
+    const result = assembleSession(shortRaw as RawAsrResult, shortQuestions as unknown as SessionQuestionSet, meta);
     expect(result.utterances.some((u) => u.part === 'rolePlay')).toBe(true);
     expect(result.utterances.some((u) => u.part === 'topic1')).toBe(true);
     expect(result.utterances.some((u) => u.part === 'topic2')).toBe(true);
@@ -189,7 +189,7 @@ describe('clean topic-conversation fixture', () => {
   it('produces 5 role-play tasks and 5+5 topic questions, matching the golden output', () => {
     const result = assembleSession(
       cleanTopicRaw as RawAsrResult,
-      cleanTopicQuestions as SessionQuestionSet,
+      cleanTopicQuestions as unknown as SessionQuestionSet,
       meta,
     );
     expect(result).toEqual(cleanTopicGolden);
@@ -211,7 +211,7 @@ describe('clean topic-conversation fixture', () => {
   it('candidate speaking time and word count across topic1+topic2 clear the S5 insufficient-evidence-duration thresholds (>= 240s, >= 300 words), unlike every other committed fixture', () => {
     const result = assembleSession(
       cleanTopicRaw as RawAsrResult,
-      cleanTopicQuestions as SessionQuestionSet,
+      cleanTopicQuestions as unknown as SessionQuestionSet,
       meta,
     );
     const topicCandidateUtterances = result.utterances.filter(

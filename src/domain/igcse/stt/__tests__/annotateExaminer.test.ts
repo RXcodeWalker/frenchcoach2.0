@@ -12,6 +12,10 @@ const QUESTION_SET: SessionQuestionSet = {
       alternativeTexts: ['Que fais-tu pendant le week-end ?'],
     },
   ],
+  furtherQuestions: {
+    topic1: ['Further question 1?', 'Further question 2?'],
+    topic2: ['Further question 3?', 'Further question 4?'],
+  },
 };
 
 function examinerUtt(id: string, startS: number, text: string): Utterance {

@@ -131,6 +131,14 @@ export const ORIGINAL_QUESTION_SET_1: SessionQuestionSet = {
       expectedTimeFrame: 'future',
     },
   ],
+  // ── Authored on-topic "further question" padding (C2) ──────────────────
+  // Asked only when a topic conversation falls short of the speaking floor
+  // after Q1-Q5 are exhausted (see conductEngine MAX_FURTHER_QUESTIONS_PER_TOPIC).
+  // Original, tu-register, on-topic material — not TN-sourced.
+  furtherQuestions: {
+    topic1: ['Est-ce que tu aides souvent tes parents à la maison ?', 'Quel est ton repas préféré en famille ?'],
+    topic2: ["Qu'est-ce que ta ville pourrait faire pour être plus écologique ?", 'Aimerais-tu vivre dans une autre ville un jour ?'],
+  },
 };
 
 export const ORIGINAL_QUESTION_SETS: SessionQuestionSet[] = [ORIGINAL_QUESTION_SET_1];

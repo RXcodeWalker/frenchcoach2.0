@@ -140,6 +140,18 @@ export interface SessionQuestion {
 export interface SessionQuestionSet {
   questionSetId: string;
   questions: SessionQuestion[];
+  /**
+   * Authored on-topic "further question" padding (C2), asked when a topic
+   * conversation is below the speaking floor after Q1-Q5 are exhausted (see
+   * conductEngine MAX_FURTHER_QUESTIONS_PER_TOPIC). Fixed-length tuple (not
+   * string[]) so furtherQuestions[part][askedSoFar] can never read undefined —
+   * an author must supply exactly the cap's worth of questions per topic.
+   * Additive; not part of the SessionTranscript schema.
+   */
+  furtherQuestions: {
+    topic1: readonly [string, string];
+    topic2: readonly [string, string];
+  };
 }
 
 // ── Provider contract (adapter's job: normalise vendor JSON into this) ──

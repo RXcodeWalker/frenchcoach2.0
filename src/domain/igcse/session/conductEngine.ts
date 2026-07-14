@@ -511,7 +511,7 @@ function checkFloorOrAdvancePart(
       ...state,
       furtherAskedCount: { ...state.furtherAskedCount, [part]: nextCount },
     };
-    const promptText = `Question supplémentaire ${nextCount} : pouvez-vous en dire plus ?`;
+    const promptText = questionSet.furtherQuestions[part][askedSoFar];
     const action = makeAction(nextState, 'FURTHER_QUESTION', part, null, null, promptText, 'below_min_duration');
     return { state: bumpSeq(nextState), actions: [action] };
   }

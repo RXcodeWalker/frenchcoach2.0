@@ -195,18 +195,44 @@ describe('conductEngine: topic conversation', () => {
     // Now should be in further-question territory (speakingS well under 3.5 min floor)
     expect(state.topicSpeakingS.topic1).toBeLessThan(TOPIC_SPEAKING_FLOOR_S);
 
-    let furtherCount = 0;
+    const furtherTexts: (string | null)[] = [];
     let guard = 0;
     while (state.furtherAskedCount.topic1 < MAX_FURTHER_QUESTIONS_PER_TOPIC + 1 && guard < 10) {
       guard += 1;
       const r = driveOne(qs, state, answer({ responseDurationS: 5 }));
       state = r.state;
-      if (r.action.kind === 'FURTHER_QUESTION') furtherCount += 1;
+      if (r.action.kind === 'FURTHER_QUESTION') furtherTexts.push(r.action.text);
       if (state.phase.kind === 'topic' && state.phase.part === 'topic2') break;
     }
 
-    expect(furtherCount).toBeLessThanOrEqual(MAX_FURTHER_QUESTIONS_PER_TOPIC);
+    expect(furtherTexts).toEqual(qs.furtherQuestions.topic1.slice(0, furtherTexts.length));
+    expect(furtherTexts.length).toBeLessThanOrEqual(MAX_FURTHER_QUESTIONS_PER_TOPIC);
     expect(state.furtherAskedCount.topic1).toBeLessThanOrEqual(MAX_FURTHER_QUESTIONS_PER_TOPIC);
+  });
+
+  it('C2: further questions are the authored on-topic strings, asked in order, never the synthesized placeholder', () => {
+    let state = toTopic1();
+    // Drive all 5 topic1 questions with short, thin, below-floor answers so we
+    // reliably reach further-question territory without relying on extension timing.
+    for (let i = 0; i < 5; i++) {
+      let r = driveOne(qs, state, answer({ responseDurationS: 1, wordCount: 1 }));
+      state = r.state;
+      if (r.action.kind === 'EXTENSION_PROMPT') {
+        r = driveOne(qs, state, answer({ responseDurationS: 1, wordCount: 1 }));
+        state = r.state;
+      }
+    }
+
+    const first = driveOne(qs, state, answer({ responseDurationS: 1, wordCount: 1 }));
+    state = first.state;
+    expect(first.action).toMatchObject({ kind: 'FURTHER_QUESTION', text: qs.furtherQuestions.topic1[0] });
+    expect(first.action.text).not.toMatch(/Question supplémentaire/);
+
+    const second = driveOne(qs, state, answer({ responseDurationS: 1, wordCount: 1 }));
+    state = second.state;
+    if (second.action.kind === 'FURTHER_QUESTION') {
+      expect(second.action).toMatchObject({ text: qs.furtherQuestions.topic1[1] });
+    }
   });
 
   it('extensionAskedCount never exceeds MAX_EXTENSIONS_PER_TOPIC even with all-thin answers', () => {

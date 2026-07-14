@@ -12,6 +12,10 @@ const QUESTION_SET: SessionQuestionSet = {
       alternativeTexts: [],
     },
   ],
+  furtherQuestions: {
+    topic1: ['Further question 1?', 'Further question 2?'],
+    topic2: ['Further question 3?', 'Further question 4?'],
+  },
 };
 
 function w(text: string, startS: number, endS: number, speakerCluster: string): RawAsrWord {
