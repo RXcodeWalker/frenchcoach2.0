@@ -36,6 +36,16 @@ export const MAX_FURTHER_QUESTIONS_PER_TOPIC = 2;
 /** Cambridge 0520 conduct rule: target ~4 min candidate speaking per topic; floor that triggers further questions. */
 export const TOPIC_SPEAKING_FLOOR_S = 3.5 * 60;
 
+/**
+ * Cambridge value (~4 min target per topic), but the suppression *behaviour* here
+ * (stop offering extension probes once reached) and the metric it's measured against
+ * (app-side "accumulated candidate-speaking seconds", a proxy for conversation
+ * duration) are both app policy, not a literal Cambridge conduct rule. Scripted
+ * Q1-Q5, alternatives, and further-questions are still delivered past this point —
+ * only content-aware extension *probing* stops.
+ */
+export const TOPIC_TARGET_S = 4 * 60;
+
 // ── Extension prompts (realism pass, UNVALIDATED application heuristics) ──
 // These thresholds are realism heuristics, not Cambridge mark-scheme numbers.
 
@@ -386,8 +396,11 @@ function moveToExtensionOrAdvance(
 
   if (qState.subState !== 'extending') {
     const askedSoFar = state.extensionAskedCount[part];
+    const pastTarget = state.topicSpeakingS[part] >= TOPIC_TARGET_S;
     const decision =
-      askedSoFar < MAX_EXTENSIONS_PER_TOPIC ? decideExtension(result, state.lastExtensionIndex) : null;
+      askedSoFar < MAX_EXTENSIONS_PER_TOPIC && !pastTarget
+        ? decideExtension(result, state.lastExtensionIndex)
+        : null;
 
     if (decision) {
       const updated: TopicQuestionState = { ...qState, subState: 'extending' };

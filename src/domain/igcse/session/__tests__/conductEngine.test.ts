@@ -8,6 +8,7 @@ import {
   MAX_FURTHER_QUESTIONS_PER_TOPIC,
   MAX_EXTENSIONS_PER_TOPIC,
   TOPIC_SPEAKING_FLOOR_S,
+  TOPIC_TARGET_S,
 } from '../conductEngine';
 import { ORIGINAL_QUESTION_SET_1 } from '../../../../data/exam/originalQuestionSets';
 import type { CandidateTurnResult, ConductEngineState, ExaminerAction, SessionQuestionSet } from '../types';
@@ -214,6 +215,43 @@ describe('conductEngine: topic conversation', () => {
       state = driveOne(qs, state, answer({ responseDurationS: 5, wordCount: 4 })).state;
     }
     expect(state.extensionAskedCount.topic1).toBeLessThanOrEqual(MAX_EXTENSIONS_PER_TOPIC);
+  });
+
+  it('C8: suppresses extension prompts once accumulated topic speaking reaches TOPIC_TARGET_S, but still advances through scripted questions', () => {
+    let state = toTopic1();
+    // Drive one long, thin (undeveloped) answer that alone crosses the 4-min target.
+    // Thin by word count/duration so decideExtension WOULD normally fire.
+    const r = driveOne(qs, state, answer({ wordCount: 4, responseDurationS: TOPIC_TARGET_S }));
+    state = r.state;
+
+    expect(state.topicSpeakingS.topic1).toBeGreaterThanOrEqual(TOPIC_TARGET_S);
+    // No extension should be offered for this answer since the target is already met.
+    expect(r.action.kind).not.toBe('EXTENSION_PROMPT');
+    // Scripted advance still happens (either next question or further-question/floor logic).
+    expect(['READ_MAIN', 'FURTHER_QUESTION', 'READ_ALTERNATIVE', 'REPEAT']).toContain(r.action.kind);
+
+    // Subsequent thin answers in the same topic must never draw an extension prompt again.
+    let guard = 0;
+    while (guard < 10 && state.phase.kind === 'topic' && state.phase.part === 'topic1') {
+      guard += 1;
+      const next = driveOne(qs, state, answer({ wordCount: 4, responseDurationS: 5 }));
+      state = next.state;
+      expect(next.action.kind).not.toBe('EXTENSION_PROMPT');
+    }
+  });
+
+  it('C8: extensionAskedCount does not grow once TOPIC_TARGET_S is reached', () => {
+    let state = toTopic1();
+    const r = driveOne(qs, state, answer({ wordCount: 4, responseDurationS: TOPIC_TARGET_S }));
+    state = r.state;
+    const countAtTarget = state.extensionAskedCount.topic1;
+
+    let guard = 0;
+    while (guard < 10 && state.phase.kind === 'topic' && state.phase.part === 'topic1') {
+      guard += 1;
+      state = driveOne(qs, state, answer({ wordCount: 4, responseDurationS: 5 })).state;
+    }
+    expect(state.extensionAskedCount.topic1).toBe(countAtTarget);
   });
 
   it('advances from topic1 to topic2 and eventually reaches complete with an END action', () => {
