@@ -69,6 +69,17 @@ export const MAX_EXTENSIONS_PER_TOPIC = 2;
 export const AUTHORIZED_EXTENSION_PROMPTS = ['Donne-moi plus de détails.', 'Peux-tu me dire autre chose à ce sujet ?'] as const;
 
 /**
+ * Neutral transition markers (C6, realism pass, UNVALIDATED application heuristic —
+ * not a Cambridge conduct rule). Original app-authored examiner acknowledgements
+ * spoken between a successfully-answered topic question and the next one, so the
+ * exam doesn't read as a bare back-to-back prompt list. Alternated deterministically
+ * by ConductEngineState.transitionCount, never by nextSeq parity (see that field's
+ * comment). Emitted ONLY at the single success funnel in moveToExtensionOrAdvance —
+ * see that function for the leak-proofing rationale.
+ */
+export const TRANSITION_MARKERS = ["D'accord.", 'Merci.'] as const;
+
+/**
  * Deterministic decision on whether to ask an extension prompt after a successful
  * answer, and if so which authorized prompt (alternating by index). Returns null
  * when the answer is already developed (skip extension, advance directly).
@@ -87,6 +98,15 @@ export function decideExtension(
 
 export function computeRelevance(result: Pick<CandidateTurnResult, 'didRespond' | 'wordCount'>): boolean {
   return result.didRespond && result.wordCount >= RELEVANCE_WORD_THRESHOLD;
+}
+
+/**
+ * Deterministic choice of transition marker text, alternating on transitionCount
+ * (never nextSeq parity — see that field's comment). Pure; the caller
+ * (moveToExtensionOrAdvance's success funnel) decides WHETHER to transition.
+ */
+function decideTransition(transitionCount: number): string {
+  return TRANSITION_MARKERS[transitionCount % TRANSITION_MARKERS.length];
 }
 
 function rolePlayQuestions(questionSet: SessionQuestionSet): SessionQuestion[] {
@@ -133,6 +153,7 @@ export function initConductEngineState(questionSet: SessionQuestionSet): Conduct
     extensionAskedCount: { topic1: 0, topic2: 0 },
     lastExtensionIndex: null,
     topicSpeakingS: { topic1: 0, topic2: 0 },
+    transitionCount: 0,
     clockS: 0,
     nextSeq: 1,
   };
@@ -471,10 +492,40 @@ function moveToExtensionOrAdvance(
     // Developed answer or cap reached: mark 'extending' so a repeated call doesn't re-decide, then advance.
     const updated: TopicQuestionState = { ...qState, subState: 'extending' };
     const nextState = replaceTopicQuestionState(state, part, questionIndex, updated);
-    return advanceTopicQuestion(questionSet, nextState, part, questionIndex);
+    return advanceWithTransition(questionSet, nextState, part, questionIndex);
   }
 
-  return advanceTopicQuestion(questionSet, state, part, questionIndex);
+  return advanceWithTransition(questionSet, state, part, questionIndex);
+}
+
+/**
+ * C6: prepends a neutral TRANSITION marker before the advance action, ONLY at this
+ * single success funnel (both call sites are inside moveToExtensionOrAdvance, reached
+ * exclusively after a successfully-answered question — main, second-part, or
+ * alternative). Deliberately NOT called from advanceTopicQuestion/checkFloorOrAdvancePart/
+ * advancePart directly, nor from afterFailedMain — those are also reached from failure
+ * paths (failed repeat, failed alternative, failed second-part repeat), and a transition
+ * placed there would leak onto a failure. Suppressed when the funnel's own advance
+ * would emit END (a closing "Merci." from the END action itself is enough; see F2/Review B).
+ */
+function advanceWithTransition(
+  questionSet: SessionQuestionSet,
+  state: ConductEngineState,
+  part: 'topic1' | 'topic2',
+  questionIndex: number,
+): StepResult {
+  const text = decideTransition(state.transitionCount);
+  const nextState: ConductEngineState = { ...state, transitionCount: state.transitionCount + 1 };
+  const transitionAction = makeAction(nextState, 'TRANSITION', part, null, null, text, 'scripted');
+
+  const advanced = advanceTopicQuestion(questionSet, bumpSeq(nextState), part, questionIndex);
+
+  if (advanced.actions.length === 1 && advanced.actions[0].kind === 'END') {
+    // Final handoff: a closing "Merci." rides on the END action itself — don't double it.
+    return { state: advanced.state, actions: advanced.actions };
+  }
+
+  return { state: advanced.state, actions: [transitionAction, ...advanced.actions] };
 }
 
 function advanceTopicQuestion(

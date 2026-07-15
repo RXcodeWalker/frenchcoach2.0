@@ -168,4 +168,72 @@ describe('buildSessionTranscript', () => {
       expect(reAnnotated[i].questionId).toBe(transcript.examinerEvents[i].questionId);
     }
   });
+
+  it('C6: a TRANSITION examiner action becomes an Utterance but emits zero ExaminerEvents', () => {
+    let clock = 0;
+    let seq = 1;
+    const entries: ConductLogEntry[] = [];
+
+    let state = initConductEngineState(qs);
+    let result = startConduct(qs, state);
+    state = result.state;
+
+    const logActions = () => {
+      for (const action of result.actions) {
+        entries.push(examinerActionToLogEntry(action, seq, clock));
+        seq += 1;
+        clock += 2;
+      }
+    };
+    logActions();
+
+    const developedAnswer: CandidateTurnResult = {
+      didRespond: true,
+      relevant: true,
+      transcript: 'Je fais beaucoup de choses à la maison pour aider mes parents tous les jours.',
+      wordCount: 15,
+      responseDurationS: 15,
+      requestedRepeat: false,
+    };
+
+    const driveTurn = () => {
+      const lastAction = result.actions[result.actions.length - 1];
+      entries.push(candidateTurnToLogEntry(developedAnswer, seq, clock, lastAction.part, lastAction.questionId, true));
+      seq += 1;
+      clock += developedAnswer.responseDurationS;
+      result = step(qs, state, { kind: 'candidateTurn', result: developedAnswer });
+      state = result.state;
+      logActions();
+    };
+
+    // 5 role play tasks (rp3 needs two answers) then one developed topic1 answer,
+    // which crosses the success funnel and should draw a TRANSITION before t1q2.
+    for (let i = 0; i < 6; i++) driveTurn();
+    expect(state.phase).toMatchObject({ kind: 'topic', part: 'topic1' });
+    driveTurn();
+
+    const transitionEntries = entries.filter((e) => e.kind === 'examiner' && e.action === 'TRANSITION');
+    expect(transitionEntries.length).toBeGreaterThan(0);
+
+    const transcript = buildSessionTranscript(
+      { sessionId: 'test-session-transition', questionSetId: qs.questionSetId, entries },
+      qs,
+      {
+        sessionId: 'test-session-transition',
+        recordedAt: '2026-01-01T00:00:00.000Z',
+        contentProvenance: 'original-practice',
+        audio: { sha256: '0'.repeat(64), durationS: 120, sampleRateHz: 16000, channels: 1 },
+        questionSetHash: '1'.repeat(64),
+      },
+    );
+
+    const transitionTexts = transitionEntries.map((e) => (e as { text: string }).text);
+    const transitionUtterances = transcript.utterances.filter((u) => u.role === 'examiner' && transitionTexts.includes(u.text));
+    expect(transitionUtterances.length).toBe(transitionEntries.length);
+
+    // Zero ExaminerEvents reference a TRANSITION utterance — projection/scoring is untouched.
+    const transitionUtteranceIds = new Set(transitionUtterances.map((u) => u.utteranceId));
+    const eventsOnTransitions = transcript.examinerEvents.filter((e) => transitionUtteranceIds.has(e.utteranceId));
+    expect(eventsOnTransitions).toHaveLength(0);
+  });
 });

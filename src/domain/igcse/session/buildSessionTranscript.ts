@@ -36,6 +36,10 @@ const ACTION_TO_EVENT_KIND: Record<string, ExaminerEventKind | null> = {
   READ_ALTERNATIVE: 'alternative_question',
   EXTENSION_PROMPT: 'extension_prompt',
   FURTHER_QUESTION: 'extension_prompt',
+  // C6: a transition becomes examiner *speech* (an Utterance) but never an
+  // ExaminerEvent — the toSpeakingTranscript projection drops examiner speech
+  // entirely, so this has zero scoring impact.
+  TRANSITION: null,
   ADVANCE: null,
   END: null,
 };

@@ -751,12 +751,110 @@ sub-phase below is verified as it lands.
   (separate utterances, distinct second-part prompt, one repeat then advance,
   no alternative on a second part).
 
+### C2, C4, C5 — landed since the entry above (not individually logged at the time)
+
+`git log` shows further sub-phases committed after the "through C3" verification
+above: **C2** (authored on-topic further/padding questions —
+`SessionQuestionSet.furtherQuestions`, a fixed two-question tuple per topic,
+emitted in place of the old synthesized placeholder string), **C4** (whole-utterance
+intent classification — `session/utteranceIntents.ts` — routing `dont_know` /
+`repeat_request` / `non_french` distinctly, with `repeat_request`/`non_french`
+text blanked in the scored transcript while the raw ConductLog keeps it verbatim
+for replay), and **C5** (a non-assessed French greeting, UI-only, entirely outside
+the ConductLog — `ExamMode.tsx`'s `'greeting'` state, `ExamGreeting.tsx`). No
+retroactive re-verification of C2/C4/C5 was performed as part of the C6 work below
+beyond confirming the full suite is green with them in place (see below); revisit
+if a dedicated audit of those three is later wanted.
+
+### C6 — neutral transition markers
+
+Two original, app-authored acknowledgements (`TRANSITION_MARKERS`: `"D'accord."`
+/ `"Merci."`) spoken between a successfully-answered topic question and the next,
+so consecutive prompts don't read as a bare back-to-back list. Purely a realism
+addition — UNVALIDATED application heuristic, not a Cambridge conduct rule.
+
+- **`types.ts`:** new `'TRANSITION'` `ExaminerActionKind`; new
+  `ConductEngineState.transitionCount` field (a dedicated deterministic counter
+  for alternating wording — deliberately **not** `nextSeq` parity, since `nextSeq`
+  is a per-*action* counter and a step can now emit more than one action).
+- **`conductEngine.ts`:** `decideTransition(transitionCount)` (pure, alternates by
+  index) and `advanceWithTransition()`, a thin wrapper around `advanceTopicQuestion`
+  that prepends a `TRANSITION` action and bumps `transitionCount`. Wired in at
+  **exactly the two `advanceTopicQuestion`-calling sites inside
+  `moveToExtensionOrAdvance`** — the single success funnel every answered-question
+  path (main, second-part, or alternative) routes through — and nowhere else.
+  Deliberately **not** wired into `advanceTopicQuestion`/`checkFloorOrAdvancePart`/
+  `advancePart`/`afterFailedMain` directly, since those are also reached from
+  failure paths (failed repeat, failed alternative, failed second-part repeat);
+  a transition emitted there would leak onto a failure. The topic1→topic2 handoff
+  gets a transition "for free" (it's just another successful-answer advance); the
+  final topic2 exhaustion is detected (`advanced.actions === [END]`) and the
+  transition is suppressed so the closing "Merci." isn't doubled.
+- **`buildSessionTranscript.ts`:** `ACTION_TO_EVENT_KIND.TRANSITION = null` — a
+  transition becomes an examiner `Utterance` (spoken, logged) but never an
+  `ExaminerEvent`; the `toSpeakingTranscript` projection drops all examiner speech
+  regardless, so this has zero scoring impact by construction.
+- **`simulationSession.ts`:** no change needed — `emitActions()` already loops
+  over `actions[]` and speaks/logs each one in order; `submitTurn()`'s return
+  value (what `ExamMode.tsx` treats as "current") is already the *last* action
+  of the batch, which is exactly the desired UI behaviour for a
+  `[TRANSITION, READ_MAIN]` pair.
+- **Test harness generalised first (F2), per the plan:** `conductEngine.test.ts`'s
+  `driveOne` (asserted `actions.length === 1`) is kept for genuinely single-action
+  call sites, alongside a new `driveStep` that returns the full `actions[]` array
+  (plus a `.action` alias for the last one). Every topic-conversation test whose
+  call site crosses a success→advance boundary was switched to `driveStep`.
+- **No `SESSION_ENGINE_VERSION` bump was needed:** the version was already at
+  `session-engine-v2` from the C1–C3/C8 train (the plan's "one v2 bump covers
+  PR-1+PR-2" strategy), and `scoreEndToEnd.test.ts`'s `assemblerVersion` literal
+  already read `'session-engine-v2'` — nothing to update in this sub-phase.
+
+### New tests
+
+- `conductEngine.test.ts`, new `'conductEngine: TRANSITION markers (C6)'` block
+  (8 tests): never emitted during role play; exactly `[TRANSITION, READ_MAIN]`
+  after a successful developed answer; wording alternates across successive
+  successful answers; **never** emitted after a failed repeat with no
+  alternative; **never** emitted after a failed alternative; **never** doubled
+  onto the final `END` action; exactly `[TRANSITION, FURTHER_QUESTION]` when a
+  further question follows a success; an `EXTENSION_PROMPT` itself is never
+  preceded by a transition (extension is not an advance).
+- `buildSessionTranscript.test.ts`, new case: drives a real topic success through
+  the full engine, confirms the resulting `TRANSITION` log entries become
+  examiner `Utterance`s in the transcript, and confirms **zero** `ExaminerEvent`s
+  reference those utterance ids.
+
+### Independently verified
+
+- `npx vitest run` (full suite): **510/510 tests passing (76 files)** — up from
+  473 at the "through C3" checkpoint (37 new tests: 8 C6-specific in
+  `conductEngine.test.ts` above, 1 C6-specific in `buildSessionTranscript.test.ts`,
+  the rest accounted for by the C2/C4/C5 sub-phases that landed in between).
+  `scoreEndToEnd.test.ts` still asserts `assemblerVersion === 'session-engine-v2'`
+  and passes unmodified.
+- Session-engine suite alone: 63/63 green across `conductEngine.test.ts` (31),
+  `buildSessionTranscript.test.ts` (5), `scoreEndToEnd.test.ts` (1),
+  `utteranceIntents.test.ts` (26).
+- `npm run typecheck`: zero new errors in any `src/domain/igcse/session/` or
+  `src/services/exam/` file (confirmed by diffing against a `git stash` baseline
+  of the same command — identical pre-existing unrelated `src/screens/*`/
+  `src/data/scenarios/offlineScenarios.ts` error set before and after).
+- `npx eslint src/domain/igcse/session/ src/services/exam/simulationSession.ts`:
+  clean (two `prefer-const` errors introduced while drafting the new C6 tests
+  were caught and fixed in the same pass).
+- Leak-proofing (the plan's single biggest identified risk, F2): directly
+  asserted by the four negative tests above (no transition on failed repeat,
+  failed alternative, or the final `END`) plus the positive tests (transition
+  present and correctly alternating on every successful-answer advance,
+  including the further-question path).
+- Cross-layer boundary: no diff under `evidence/`, `judgement/`, `guardrails/`,
+  `envelope/`, `rubric.ts`, `stt/schema.ts`, or `scoreAttempt.ts` — confirmed by
+  `git status`/`git diff` scoped to this sub-phase.
+
 ### Explicitly deferred / not yet landed
 
-- Remaining behavioural-compliance changes on the `v2` train (C2 authored
-  further-questions, C4 utterance-intent classification + scored-text blanking,
-  C5 greeting, C6 neutral transition markers) and the UI/voice polish (C9–C11)
-  land in their own sub-phases and will be appended here as they do.
+- The UI/voice polish sub-phases (C9 silence nudge, C10 examiner voice quality,
+  C11 optional 45s pacing hint) have not landed.
 - **C7 (cross-layer conduct-evidence into Layer 1 + the scoring prompt) is
   deferred pending greenlight** — it is the only change that mutates the frozen
   scoring pipeline and forces `EVIDENCE_DETECTOR_VERSION` / `SCORING_PROMPT_VERSION`

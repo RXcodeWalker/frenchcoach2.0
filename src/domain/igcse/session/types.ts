@@ -19,6 +19,7 @@ export type ExaminerActionKind =
   | 'READ_ALTERNATIVE'
   | 'EXTENSION_PROMPT'
   | 'FURTHER_QUESTION'
+  | 'TRANSITION'
   | 'ADVANCE'
   | 'END';
 
@@ -146,6 +147,13 @@ export interface ConductEngineState {
   lastExtensionIndex: 0 | 1 | null;
   /** Accumulated candidate speaking seconds, keyed by topic part (4-min floor). */
   topicSpeakingS: Record<'topic1' | 'topic2', number>;
+  /**
+   * Count of TRANSITION actions emitted so far (C6). Dedicated deterministic key
+   * for alternating transition wording — NOT nextSeq parity, since nextSeq is a
+   * per-action counter and a single step can now emit multiple actions, making
+   * its parity a fragile basis for wording choice.
+   */
+  transitionCount: number;
   clockS: number;
   nextSeq: number;
 }
