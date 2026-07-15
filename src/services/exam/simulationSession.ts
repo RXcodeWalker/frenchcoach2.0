@@ -14,6 +14,7 @@ import {
   examinerActionToLogEntry,
   candidateTurnToLogEntry,
 } from '../../domain/igcse/session/conductEngine';
+import { classifyUtteranceIntent } from '../../domain/igcse/session/utteranceIntents';
 import { buildSessionTranscript } from '../../domain/igcse/session/buildSessionTranscript';
 import type {
   CandidateTurnResult,
@@ -105,19 +106,24 @@ export class SimulationSession {
     }
     const startS = this.getClockS() - turn.responseDurationS;
     const wc = wordCount(turn.transcript);
+    // Button repeat and a spoken repeat request are treated identically (C4):
+    // both route to REPEAT, never to a content classification.
+    const intent = turn.requestedRepeat ? 'repeat_request' : classifyUtteranceIntent(turn.transcript);
+
+    const didRespond = intent === 'dont_know' ? true : intent === 'answer' ? turn.transcript.trim().length > 0 : false;
     const candidateResult: CandidateTurnResult = {
-      didRespond: turn.transcript.trim().length > 0,
+      didRespond,
       relevant: false,
       transcript: turn.transcript,
       wordCount: wc,
       responseDurationS: turn.responseDurationS,
-      requestedRepeat: turn.requestedRepeat,
+      requestedRepeat: turn.requestedRepeat || intent === 'repeat_request',
     };
-    candidateResult.relevant = computeRelevance(candidateResult);
+    candidateResult.relevant = intent === 'answer' ? computeRelevance(candidateResult) : false;
 
     const { part, questionId } = this.currentAction;
     this.entries.push(
-      candidateTurnToLogEntry(candidateResult, this.seq, startS, part, questionId, candidateResult.relevant),
+      candidateTurnToLogEntry(candidateResult, this.seq, startS, part, questionId, candidateResult.relevant, intent),
     );
     this.seq += 1;
 

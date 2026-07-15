@@ -563,6 +563,7 @@ export function candidateTurnToLogEntry(
   part: import('../stt/types').SessionPart,
   questionId: string | null,
   relevant: boolean,
+  intent?: import('./utteranceIntents').UtteranceIntent,
 ): ConductLogEntry {
   return {
     kind: 'candidate',
@@ -575,6 +576,7 @@ export function candidateTurnToLogEntry(
     wordCount: result.wordCount,
     requestedRepeat: result.requestedRepeat,
     relevant,
+    intent,
   };
 }
 

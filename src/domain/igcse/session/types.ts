@@ -85,6 +85,13 @@ export interface ConductLogCandidateEntry {
   wordCount: number;
   requestedRepeat: boolean;
   relevant: boolean;
+  /**
+   * Whole-utterance intent classification (C4), app-side debug data like
+   * requestedRepeat/relevant. Consumed by buildSessionTranscript to blank
+   * repeat_request/non_french text before it reaches the scored transcript —
+   * see that file's header for the intentional-coupling note. Never serialized.
+   */
+  intent?: import('./utteranceIntents').UtteranceIntent;
 }
 
 export type ConductLogEntry = ConductLogExaminerEntry | ConductLogCandidateEntry;

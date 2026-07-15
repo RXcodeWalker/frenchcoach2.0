@@ -70,7 +70,7 @@ describe('buildSessionTranscript', () => {
     expect(transcript.utterances.length).toBeGreaterThan(0);
   });
 
-  it('drops trigger/requestedRepeat/relevant fields — the transcript schema is untouched', () => {
+  it('drops trigger/requestedRepeat/relevant/intent fields — the transcript schema is untouched', () => {
     const log = driveRolePlay();
     const transcript = buildSessionTranscript(log, qs, {
       sessionId: log.sessionId,
@@ -84,6 +84,61 @@ describe('buildSessionTranscript', () => {
     expect(serialized).not.toContain('"trigger"');
     expect(serialized).not.toContain('"requestedRepeat"');
     expect(serialized).not.toContain('"relevant"');
+    expect(serialized).not.toContain('"intent"');
+  });
+
+  it('blanks scored text/words for repeat_request and non_french candidate entries, keeps dont_know verbatim', () => {
+    const entries: ConductLogEntry[] = [
+      examinerActionToLogEntry(
+        { kind: 'READ_MAIN', part: 'rolePlay', questionId: 'rp1', variant: 'main', text: 'Bonjour.', trigger: 'scripted' },
+        1,
+        0,
+      ),
+      candidateTurnToLogEntry(
+        { didRespond: false, relevant: false, transcript: 'Peux-tu répéter ?', wordCount: 3, responseDurationS: 2, requestedRepeat: true },
+        2,
+        2,
+        'rolePlay',
+        'rp1',
+        false,
+        'repeat_request',
+      ),
+      candidateTurnToLogEntry(
+        { didRespond: false, relevant: false, transcript: 'What?', wordCount: 1, responseDurationS: 1, requestedRepeat: false },
+        3,
+        4,
+        'rolePlay',
+        'rp1',
+        false,
+        'non_french',
+      ),
+      candidateTurnToLogEntry(
+        { didRespond: true, relevant: false, transcript: 'Je ne sais pas', wordCount: 3, responseDurationS: 2, requestedRepeat: false },
+        4,
+        5,
+        'rolePlay',
+        'rp1',
+        false,
+        'dont_know',
+      ),
+    ];
+    const log: ConductLog = { sessionId: 'test-session-blank', questionSetId: qs.questionSetId, entries };
+
+    const transcript = buildSessionTranscript(log, qs, {
+      sessionId: log.sessionId,
+      recordedAt: '2026-01-01T00:00:00.000Z',
+      contentProvenance: 'original-practice',
+      audio: { sha256: '0'.repeat(64), durationS: 60, sampleRateHz: 16000, channels: 1 },
+      questionSetHash: '1'.repeat(64),
+    });
+
+    const candidateUtterances = transcript.utterances.filter((u) => u.role === 'candidate');
+    expect(candidateUtterances[0].text).toBe('');
+    expect(candidateUtterances[0].words).toHaveLength(0);
+    expect(candidateUtterances[1].text).toBe('');
+    expect(candidateUtterances[1].words).toHaveLength(0);
+    expect(candidateUtterances[2].text).toBe('Je ne sais pas');
+    expect(candidateUtterances[2].words.length).toBeGreaterThan(0);
   });
 
   it('cross-checks examinerEvents against annotateExaminer for deterministic main_question cases', () => {

@@ -6,6 +6,14 @@
  * would assign. Deliberately ignores ConductLog's `trigger` field and the
  * candidate turn's `requestedRepeat`/`relevant` signals — those are app-side
  * debug/replay data only; the scored SessionTranscript schema is untouched.
+ *
+ * `intent` (C4) is the one deliberate exception: a candidate entry classified
+ * as `repeat_request` or `non_french` has its scored text/words blanked below
+ * (kept verbatim in the ConductLog for replay) so a spoken "peux-tu répéter"
+ * or an English aside never gets joined into the scored response. `dont_know`
+ * keeps its real text — it's a substantive (if unhelpful) answer. `intent`
+ * itself is still never serialized onto the output Utterance, same as the
+ * other app-side fields above.
  */
 
 import { STT_SCHEMA_VERSION } from '../stt/version';
@@ -65,7 +73,12 @@ function examinerEntryToUtterance(entry: ConductLogExaminerEntry, index: number)
   };
 }
 
+/** Candidate intents whose scored text/words are blanked — see module header. */
+const BLANKED_INTENTS = new Set(['repeat_request', 'non_french']);
+
 function candidateEntryToUtterance(entry: ConductLogCandidateEntry, index: number): Utterance {
+  const blank = entry.intent !== undefined && BLANKED_INTENTS.has(entry.intent);
+  const text = blank ? '' : entry.transcript;
   return {
     utteranceId: `engine-candidate-${index}`,
     role: 'candidate',
@@ -74,8 +87,8 @@ function candidateEntryToUtterance(entry: ConductLogCandidateEntry, index: numbe
     questionId: entry.questionId,
     startS: entry.startS,
     endS: entry.endS,
-    text: entry.transcript,
-    words: synthesizeWords(entry.transcript, entry.startS, entry.endS),
+    text,
+    words: blank ? [] : synthesizeWords(entry.transcript, entry.startS, entry.endS),
   };
 }
 
