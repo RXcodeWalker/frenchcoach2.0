@@ -17,12 +17,15 @@ import { TranscriptReview } from './exam/TranscriptReview';
 import { SimulationSession } from '../services/exam/simulationSession';
 import { saveConductLog } from '../services/exam/conductLogStore';
 import { saveStoredTranscript } from '../services/exam/localTranscriptStore';
-import { isExaminerVoiceMuted, setExaminerVoiceMuted, stopExaminerVoice } from '../services/exam/examinerVoice';
+import { isExaminerVoiceMuted, setExaminerVoiceMuted, stopExaminerVoice, speakExaminerText } from '../services/exam/examinerVoice';
 import { ORIGINAL_QUESTION_SET_1 } from '../data/exam/originalQuestionSets';
 import type { ExaminerAction } from '../domain/igcse/session/types';
 import type { SessionTranscript } from '../domain/igcse/stt/types';
+import { ExamGreeting } from './exam/ExamGreeting';
 
-type ExamState = 'intro' | 'running' | 'review' | 'results';
+type ExamState = 'intro' | 'greeting' | 'running' | 'review' | 'results';
+
+const GREETING_TEXT = 'Bonjour ! Comment ça va ? Es-tu prêt ? On va commencer.';
 
 export function ExamMode() {
   const { state, dispatch } = useApp();
@@ -39,7 +42,18 @@ export function ExamMode() {
   const sessionIdRef = useRef<string>('');
   const turnStartRef = useRef<number>(0);
 
+  const enterGreeting = () => {
+    setExamState('greeting');
+    void speakExaminerText(GREETING_TEXT);
+  };
+
   const startExam = async () => {
+    // Discard the greeting's reply entirely — abort any in-progress recognizer
+    // so it never overlaps with the first real turn's recording.
+    if (recording.isRecording) {
+      await recording.stop();
+    }
+
     const sessionId = `exam-sim-${Date.now()}`;
     sessionIdRef.current = sessionId;
     clock.start();
@@ -193,7 +207,11 @@ export function ExamMode() {
     setVoiceMuted(next);
   };
 
-  if (examState === 'intro') return <ExamIntro onStart={() => void startExam()} onBack={() => navigate('/')} />;
+  if (examState === 'intro') return <ExamIntro onStart={enterGreeting} onBack={() => navigate('/')} />;
+
+  if (examState === 'greeting') {
+    return <ExamGreeting recording={recording} onContinue={() => void startExam()} />;
+  }
 
   if (examState === 'review' && transcript) {
     return <TranscriptReview transcript={transcript} onConfirm={handleReviewConfirm} />;
