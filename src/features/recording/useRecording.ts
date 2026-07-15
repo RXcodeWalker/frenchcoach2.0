@@ -35,6 +35,7 @@ export interface RecordingState {
   waveData: number[];
   transcript: string;
   audioBlob: Blob | null;
+  lastActivityAt: number | null;
   start: () => void;
   stop: () => Promise<string>;
 }
@@ -45,6 +46,7 @@ export function useRecording(): RecordingState {
   const [waveData, setWaveData]         = useState<number[]>(Array(WAVE_BARS).fill(4));
   const [transcript, setTranscript]     = useState('');
   const [audioBlob, setAudioBlob]       = useState<Blob | null>(null);
+  const [lastActivityAt, setLastActivityAt] = useState<number | null>(null);
 
   const timerRef      = useRef<number | null>(null);
   const waveRef       = useRef<number | null>(null);
@@ -77,6 +79,7 @@ export function useRecording(): RecordingState {
     setElapsedTime(0);
     setTranscript('');
     setAudioBlob(null);
+    setLastActivityAt(Date.now());
     finalTextRef.current = '';
     chunksRef.current = [];
 
@@ -119,6 +122,7 @@ export function useRecording(): RecordingState {
         }
         finalTextRef.current = final;
         setTranscript(final + interim);
+        setLastActivityAt(Date.now());
       };
 
       recog.onend = () => {
@@ -167,5 +171,5 @@ export function useRecording(): RecordingState {
     });
   }, []);
 
-  return { isRecording, elapsedTime, waveData, transcript, audioBlob, start, stop };
+  return { isRecording, elapsedTime, waveData, transcript, audioBlob, lastActivityAt, start, stop };
 }

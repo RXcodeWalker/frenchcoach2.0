@@ -853,10 +853,44 @@ addition — UNVALIDATED application heuristic, not a Cambridge conduct rule.
 
 ### Explicitly deferred / not yet landed
 
-- The UI/voice polish sub-phases (C9 silence nudge, C10 examiner voice quality,
-  C11 optional 45s pacing hint) have not landed.
+- The remaining UI/voice polish sub-phases (C10 examiner voice quality, C11
+  optional 45s pacing hint) have not landed.
 - **C7 (cross-layer conduct-evidence into Layer 1 + the scoring prompt) is
   deferred pending greenlight** — it is the only change that mutates the frozen
   scoring pipeline and forces `EVIDENCE_DETECTOR_VERSION` / `SCORING_PROMPT_VERSION`
   bumps + golden regeneration. Completing it is what closes S10's roadmap
   "full event logging into `EvidenceProfile`" exit criterion.
+
+## S10 — C9: Silence nudge (manual submit retained)
+
+Passive, non-blocking UI cue that fires while recording if `NUDGE_QUIET_S = 5`
+seconds pass with no new Web Speech recognition activity — never auto-submits,
+never writes to the ConductLog or `SessionTranscript`.
+
+### Built
+
+- `useRecording.ts`: new `lastActivityAt: number | null` in `RecordingState`,
+  set on `start()` and on every `onresult` callback (interim or final).
+- `ExamRunner.tsx`: a 1s interval (only while `recording.isRecording`) compares
+  `Date.now() - lastActivityAt` against `NUDGE_QUIET_S`; renders a small
+  `glass-subtle` banner ("Fini ? Soumets ta réponse — ou continue à parler.")
+  below the timer when quiet, clears immediately on the next recognition event
+  or when recording stops. No new state is added to `conductEngine.ts`,
+  `simulationSession.ts`, or the ConductLog — this is UI-only wall-clock state,
+  consistent with the plan's C9/C11 categorization ("UI heuristics ... never
+  logged/scored").
+
+### Independently verified
+
+- `npm run typecheck`: no new errors in `useRecording.ts`, `ExamRunner.tsx`,
+  `ExamMode.tsx`, `ExamGreeting.tsx`, or `ExamIntro.tsx` (all pre-existing
+  errors are in unrelated `src/screens/*` files, confirmed unchanged before/after).
+- `npx vitest run`: full suite still 510/510 passing (76 files) — C9 is UI-only
+  and touches no tested pure module, so the count is unchanged from the C6
+  checkpoint.
+- Cross-layer boundary: no diff under `evidence/`, `judgement/`, `guardrails/`,
+  `envelope/`, `rubric.ts`, `stt/schema.ts`, `scoreAttempt.ts`, or the
+  ConductLog/`SessionTranscript` builder (`buildSessionTranscript.ts`) — the
+  nudge never leaves the two UI files it's implemented in.
+- No `SESSION_ENGINE_VERSION` bump needed — no engine or transcript behaviour
+  changed.

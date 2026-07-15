@@ -1,9 +1,13 @@
 import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
 import { Mic, MicOff, ArrowLeft, Volume2, VolumeX, RotateCcw } from 'lucide-react';
 import { Waveform } from '../../features/recording/Waveform';
 import { formatTime } from '../../domain/time';
 import type { RecordingState } from '../../features/recording/useRecording';
 import type { ExaminerAction } from '../../domain/igcse/session/types';
+
+// UI-only pacing heuristic (approximate VAD) — never logged or scored.
+const NUDGE_QUIET_S = 5;
 
 interface Props {
   action: ExaminerAction | null;
@@ -49,6 +53,20 @@ export function ExamRunner({
   const part = action?.part ?? 'rolePlay';
   const phaseLabel = PART_LABEL[part] ?? part;
   const examinerLabel = action ? (ACTION_LABEL[action.kind] ?? 'Examiner') : 'Examiner';
+
+  const [showSilenceNudge, setShowSilenceNudge] = useState(false);
+
+  useEffect(() => {
+    if (!recording.isRecording) {
+      setShowSilenceNudge(false);
+      return;
+    }
+    const interval = window.setInterval(() => {
+      const quietFor = recording.lastActivityAt ? (Date.now() - recording.lastActivityAt) / 1000 : 0;
+      setShowSilenceNudge(quietFor >= NUDGE_QUIET_S);
+    }, 1000);
+    return () => window.clearInterval(interval);
+  }, [recording.isRecording, recording.lastActivityAt]);
 
   return (
     <div className="fixed inset-0 bg-navy flex flex-col z-40">
@@ -119,6 +137,16 @@ export function ExamRunner({
             <>
               <Waveform data={recording.waveData} isRecording={recording.isRecording} variant="exam" />
               <div className="text-center text-[10px] text-slate-600 tabular-nums">{formatTime(Math.round(elapsedS))}</div>
+              {showSilenceNudge && (
+                <motion.div
+                  className="text-center text-[10px] text-slate-500 glass-subtle rounded-lg py-1.5 px-3"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  Fini ? Soumets ta réponse — ou continue à parler.
+                </motion.div>
+              )}
               <div className="flex items-center justify-center gap-3">
                 <motion.button
                   onClick={recording.isRecording ? undefined : recording.start}
