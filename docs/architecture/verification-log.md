@@ -894,3 +894,62 @@ never writes to the ConductLog or `SessionTranscript`.
   nudge never leaves the two UI files it's implemented in.
 - No `SESSION_ENGINE_VERSION` bump needed — no engine or transcript behaviour
   changed.
+
+## S10 — C10: Examiner voice quality
+
+Adopts the fr-FR voice-selection cascade already proven in `services/tts/ttsService.ts`
+(a separate, unrelated TTS caller elsewhere in the app) and sets a slower
+speech rate for exam-conduct clarity. Pure voice-quality/UI polish — no engine,
+ConductLog, or transcript involvement.
+
+### Built
+
+- `examinerVoice.ts`:
+  - New `selectVoice()`: prefers an `fr-FR` voice with `localService: true`,
+    then falls back through `fr-FR` (any service) → any `fr-*` lang → any
+    `fr`-prefixed lang → `null`, mirroring `ttsService.ts`'s cascade exactly.
+  - New `initVoice()`, called once at module load (guarded by `isTtsAvailable()`):
+    caches the selected voice in module state; if no voice is available yet
+    (voices often load async), subscribes `window.speechSynthesis.onvoiceschanged`
+    to re-select once the browser's voice list populates.
+  - `speakExaminerText()`: now sets `utterance.rate = 0.9` (named constant
+    `EXAMINER_VOICE_RATE`) and applies the cached `selectedVoice` when present.
+    Falls back to the browser's default `fr-FR` voice (via `utterance.lang`
+    alone) when no matching voice was found — unchanged degrade behaviour.
+  - Mute/cancel/never-reject semantics from `setExaminerVoiceMuted`,
+    `isExaminerVoiceMuted`, and `stopExaminerVoice` are untouched.
+
+### New tests
+
+- **NEW** `services/exam/__tests__/examinerVoice.test.ts` (5 tests, smoke-import
+  style per the plan): exercises the module under the suite's default `node`
+  test environment (no `window`/`speechSynthesis`), which is also the real
+  degrade path unsupported/headless browsers hit — confirms
+  `isTtsAvailable()` reports `false`, mute-state toggling doesn't throw,
+  `speakExaminerText` resolves (never rejects) for both a normal string and
+  empty text, and `stopExaminerVoice` never throws. Module-load-time
+  `initVoice()` call is exercised implicitly by the import itself completing
+  without error under a DOM-less environment.
+
+### Independently verified
+
+- `npx vitest run src/services/exam/__tests__/examinerVoice.test.ts`: 5/5 passing.
+- `npx vitest run` (full suite): 515/515 passing (77 files) — up from 510 at
+  the C9 checkpoint (5 new C10 tests).
+- `npm run typecheck`: zero new errors attributable to `examinerVoice.ts` or
+  its new test file (grepped typecheck output for the file name — no hits;
+  full error set is the same pre-existing unrelated `src/screens/*` failures
+  present before this change).
+- `npx eslint src/services/exam/examinerVoice.ts src/services/exam/__tests__/examinerVoice.test.ts`:
+  clean.
+- Cross-layer boundary: no diff under `evidence/`, `judgement/`, `guardrails/`,
+  `envelope/`, `rubric.ts`, `stt/schema.ts`, `scoreAttempt.ts`,
+  `conductEngine.ts`, `simulationSession.ts`, or `buildSessionTranscript.ts` —
+  the change is fully contained to `examinerVoice.ts` and its new test.
+- No `SESSION_ENGINE_VERSION` bump needed — voice selection/rate is UI/audio
+  polish, never logged to the ConductLog or scored.
+
+### Explicitly deferred / not yet landed
+
+- C11 (optional 45s pacing hint) has not landed.
+- C7 remains deferred pending greenlight (see C6 entry above for detail).
