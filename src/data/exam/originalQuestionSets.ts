@@ -4,8 +4,14 @@
  * conversations of 5 questions each, alternatives on Q3-Q5, a two-part Q4 whose
  * follow-up is delivered as a distinct secondPartText). All text is
  * original practice material, NOT derived from confidential TN booklets.
- * Full bank authoring (many sets, teacher-reviewed) stays with S11 — this is
- * a minimal fixture so the S10 engine has something concrete to drive.
+ *
+ * SUPERSEDED (S11 architecture): production code resolves question sets via
+ * getOriginalQuestionSet() in data/exam/bank/loader.ts, whose canonical source
+ * for this same content is the AuthoredQuestionSet fixture at
+ * data/exam/bank/fixtures/original-practice-001.ts. This raw SessionQuestionSet
+ * constant is kept only as a standalone engine-level fixture for tests that
+ * exercise conductEngine/buildSessionTranscript directly without going through
+ * the authoring/validation/adapter layer (e.g. scoreEndToEnd.test.ts).
  */
 
 import type { SessionQuestionSet } from '../../domain/igcse/session/types';
@@ -142,7 +148,3 @@ export const ORIGINAL_QUESTION_SET_1: SessionQuestionSet = {
 };
 
 export const ORIGINAL_QUESTION_SETS: SessionQuestionSet[] = [ORIGINAL_QUESTION_SET_1];
-
-export function getOriginalQuestionSet(questionSetId: string): SessionQuestionSet | undefined {
-  return ORIGINAL_QUESTION_SETS.find((qs) => qs.questionSetId === questionSetId);
-}

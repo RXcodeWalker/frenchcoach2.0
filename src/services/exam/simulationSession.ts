@@ -16,6 +16,7 @@ import {
 } from '../../domain/igcse/session/conductEngine';
 import { classifyUtteranceIntent } from '../../domain/igcse/session/utteranceIntents';
 import { buildSessionTranscript } from '../../domain/igcse/session/buildSessionTranscript';
+import { hashQuestionSet } from '../../domain/igcse/content/hashQuestionSet';
 import type {
   CandidateTurnResult,
   ConductEngineState,
@@ -137,17 +138,18 @@ export class SimulationSession {
   }
 
   /** Builds the SessionTranscript from the completed ConductLog. Throws if the session hasn't reached 'complete'. */
-  buildTranscript(contentProvenance: ContentProvenance = 'original-practice'): SessionTranscript {
+  async buildTranscript(contentProvenance: ContentProvenance = 'original-practice'): Promise<SessionTranscript> {
     if (!this.isComplete) {
       throw new Error('SimulationSession: buildTranscript called before session completed');
     }
     const now = new Date().toISOString();
+    const questionSetHash = await hashQuestionSet(this.questionSet);
     return buildSessionTranscript(this.getConductLog(), this.questionSet, {
       sessionId: this.sessionId,
       recordedAt: now,
       contentProvenance,
       audio: { sha256: '0'.repeat(64), durationS: this.getClockS(), sampleRateHz: 16000, channels: 1 },
-      questionSetHash: '0'.repeat(64),
+      questionSetHash,
     });
   }
 }

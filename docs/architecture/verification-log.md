@@ -953,3 +953,172 @@ ConductLog, or transcript involvement.
 
 - C11 (optional 45s pacing hint) has not landed.
 - C7 remains deferred pending greenlight (see C6 entry above for detail).
+
+---
+
+## S11 — Question-bank architecture & data model (schema only, no content authoring)
+
+Reorder note: per the partial-reorder entry in `roadmap.md` (2026-07-16), only
+S11's *architecture* is pulled forward — schema, validator, lint, hash,
+adapter, and one proof set. Bulk content authoring remains gated behind Phase
+B and a separately-approved S11 content session, unchanged.
+
+### Built
+
+**Frontend (`frenchcoach2.0`):**
+- `src/data/exam/bank/types.ts` — `AuthoredQuestion` / `RolePlayScenario` /
+  `AuthoredTopic` / `AuthoredContent` / `AuthoredQuestionSet` / `ReviewStatus`,
+  distinct from the S3 annotator contract (`stt/types.ts`
+  `SessionQuestion`/`SessionQuestionSet`, unchanged).
+- `src/data/exam/bank/version.ts` — `QUESTION_BANK_SCHEMA_VERSION =
+  'question-bank-v1'`.
+- `src/data/exam/bank/validate.ts` — `validateAuthoredQuestionSet` /
+  `parseAuthoredQuestionSet`, three-severity report (blocking errors /
+  lint warnings / info diagnostics), schemaVersion dispatch mirroring
+  `parseSessionTranscript`, canonicalization-safety checks (control chars,
+  reserved U+001D/1E/1F delimiters, unpaired surrogates).
+- `src/data/exam/bank/lint.ts` — deterministic content-quality lint
+  (duplicate mainText, weak alternatives, time-frame monotony, low lexical
+  variation), folded into the validator's warnings bucket.
+- `src/domain/igcse/content/hashQuestionSet.ts` — `canonicalizeQuestionSet` /
+  `hashQuestionSet`, the frozen positional-delimiter canonicalization spec
+  (§3.5.1), Web Crypto `sha256`. Replaces the `'0'.repeat(64)` stub at
+  `simulationSession.ts` (`buildTranscript` is now `async`; `ExamMode.tsx`'s
+  `finishSession` and its three call sites updated to `await` it).
+- `src/data/exam/bank/adapter.ts` — `toSessionQuestionSet`, pure lossy
+  projection to the unchanged engine-facing `SessionQuestionSet`.
+- `src/data/exam/bank/fixtures/original-practice-001.ts` — the S10 fixture
+  re-expressed as the first `AuthoredQuestionSet`, fully tagged
+  (subTopic/difficulty/targetStructures/expectedTimeFrame).
+- `src/data/exam/bank/loader.ts` — `getOriginalQuestionSet` (backend HTTP
+  first, 2.5s `AbortController` timeout, offline-fixture fallback) and
+  `getOfflineQuestionSet` (sync, no network). `ExamMode.tsx` now resolves its
+  question set through this loader instead of importing
+  `ORIGINAL_QUESTION_SET_1` directly.
+- `originalQuestionSets.ts` — downgraded to a documented standalone
+  engine-level fixture (S10's own tests still import it directly; production
+  code no longer does).
+- `tsconfig.app.json` — added `resolveJsonModule: true` (needed to import the
+  committed canonicalization vectors).
+
+**Backend (`french-coach-backend`):**
+- Step 0: moved `supabase/` (config + 6 pre-existing migrations, byte-verified
+  identical via `diff`) from the frontend repo into this repo; CLI re-linked
+  here against project ref `mlukwnhpazxbgaqyskjl`.
+- `supabase/migrations/20260716120000_add_igcse_question_sets.sql` — new
+  `public.igcse_question_sets` table (PK `id` = questionSetId, `schema_version`,
+  `content_hash` as a first-class indexed column, `payload jsonb`, `status
+  content_status`), `snapshot_before_update` trigger, the five standard RLS
+  policies, copied from the `questions` block in `add_content_tables.sql`.
+- `supabase/migrations/20260716121500_grant_igcse_question_sets.sql` — **bug
+  fix found during live verification** (see below): explicit
+  `grant select, insert, update, delete ... to anon, authenticated,
+  service_role`, without which even `service_role` got `permission denied for
+  table` (Postgres 42501) despite correct RLS policies — a plain `create
+  table` via CLI migration does not inherit the dashboard's implicit grants.
+- `models/igcse.py` — `IgcseQuestionSetCreate` + nested models, the
+  authoritative Pydantic gate mirroring `validate.ts`'s blocking-error bucket
+  field-for-field.
+- `lib/hash_question_set.py` — Python re-implementation of
+  `hashQuestionSet.ts`, same canonicalization spec.
+- `seed_igcse_questions.py` — validates, computes `content_hash`, upserts by
+  `id` (idempotent), mirrors `seed_questions.py`'s pattern; `--dry-run` flag.
+- `data/igcse/original-practice-001.json` — canonical JSON, exported directly
+  from the TS fixture (not hand-transcribed) to guarantee byte-identical
+  content.
+- `routers/content.py` — `GET /api/content/igcse-sets/{question_set_id}`,
+  behind the existing shared TTL cache.
+- `tests/test_hash_question_set.py` + `tests/canonicalization-vectors.json`
+  (vendored copy of the frontend file) — Python-side parity assertion.
+
+### New tests (frontend)
+
+- `src/data/exam/bank/__tests__/validate.test.ts` (25 tests) — all blocking
+  error codes, schemaVersion dispatch, clean-set pass, info diagnostics.
+- `src/data/exam/bank/__tests__/lint.test.ts` (6 tests) — each lint rule fires
+  on deliberately weak content, stays quiet on the clean fixture, folds into
+  `warnings` not `errors`.
+- `src/data/exam/bank/__tests__/adapter.test.ts` (6 tests) — lossless
+  round-trip on engine-relevant fields; hash-exclusion proof (editing
+  review/difficulty/subTopic does NOT change the hash; editing mainText DOES).
+- `src/domain/igcse/content/__tests__/hashQuestionSet.test.ts` (13 tests) —
+  reproduces all 9 committed vectors, NFC-fold identity, apostrophe
+  non-over-normalization, stability, canonical-bytes snapshot.
+- `src/data/exam/bank/__tests__/loader.test.ts` (4 tests) — offline-fallback
+  path, bounded-timeout regression test (see bug below).
+- `src/domain/igcse/session/__tests__/scoreEndToEnd.test.ts` — new second
+  test: authored fixture → `parseAuthoredQuestionSet` → `toSessionQuestionSet`
+  → conduct engine → `scoreAttempt`, asserting a real non-zero
+  `questionSetHash` matching the envelope.
+
+### Independently verified
+
+- `npx vitest run` (full suite): **570/570 passing (82 files)**, up from 566
+  before this subphase (frontend only; no regressions).
+- `npm run typecheck`: 81 errors, all pre-existing and unrelated (verified via
+  `git stash` baseline of 82 before this subphase — one fewer, not attributable
+  to this work); zero errors in any new/touched file.
+- `npm run lint`: zero new findings in touched files.
+- **Runtime verification, not just static checks** (per this project's UI-change
+  policy): started the Vite dev server, confirmed `ExamMode.tsx` and every new
+  `bank/` module transforms through Vite with no resolution errors (HTTP 200
+  on each); confirmed the offline-fallback path actually executes end-to-end
+  (not just typechecks).
+- **Cross-language hash parity, on real content, not just synthetic
+  vectors**: computed the real TS `hashQuestionSet` output for the actual
+  `original-practice-001` fixture (`b11f881ac2d229172216c369be575800bd389af2030668d318ba8cc6b440bd45`)
+  and the Python `hash_question_set` output for the same content projected
+  through `to_session_question_set` — **byte-for-byte identical**, full
+  64-char hex.
+- **Backend model parity**: hand-built a Python fixture matching the TS
+  `buildCleanSet()` test fixture and ran it through `IgcseQuestionSetCreate`
+  for the same 14 structural-invariant cases the TS validator test covers —
+  all 14 passed with matching accept/reject behavior.
+- **Live database round-trip**: pushed the new migration + grant-fix
+  migration via `supabase db push` (with explicit user confirmation per push,
+  since this affects a live shared database), ran `seed_igcse_questions.py`
+  for real (non-dry-run), started the FastAPI server, and confirmed `GET
+  /api/content/igcse-sets/original-practice-001` returns the seeded payload
+  live. Then re-ran the frontend loader test with `VITE_API_URL` pointed at
+  the live server (confirmed the env var actually reached
+  `import.meta.env` before trusting the result) — the loader correctly
+  resolved via the network path, not the offline fallback.
+- Component-boundary check (§7): `validate.ts` imports only `types.ts` +
+  `lint.ts`; `lint.ts` imports only `types.ts` + `text/normalize.ts`;
+  `hashQuestionSet.ts` imports only `SessionQuestionSet` (deliberately not
+  `bank/version.ts`, to stay standalone — uses its own frozen
+  `CANONICALIZATION_SCHEME_VERSION` literal); `adapter.ts` imports only
+  `types.ts` + `SessionQuestionSet`. No circular or upward imports found.
+- Cross-layer boundary: no diff under `evidence/`, `judgement/`,
+  `guardrails/`, `rubric.ts`, `conductEngine.ts`, `toSpeakingTranscript.ts`,
+  or the `stt/` annotator path — confirmed by the full test suite staying
+  green and by direct inspection.
+
+### Bugs found and fixed during verification (not caught by typecheck/lint)
+
+1. **Loader could hang indefinitely.** `fetchPublishedSet`'s bare `fetch()`
+   had no `AbortSignal`; against an unreachable backend in this sandbox it
+   never rejected, hanging the whole loader (caught by an early version of
+   `loader.test.ts` timing out at the default 5s). Fixed with a 2.5s
+   `AbortController` timeout, mirroring `apiClient.ts`'s existing
+   `fetchWithTimeout` pattern.
+2. **`permission denied for table igcse_question_sets` (Postgres 42501) on
+   the live database**, discovered only by actually starting the FastAPI
+   server and hitting the new endpoint (not by the migration dry-run, which
+   only checks SQL syntax/planning, not runtime grants). Root cause: a table
+   created via a raw CLI migration doesn't inherit the project's baseline
+   PostgREST role grants the way dashboard-created tables do. Fixed with a
+   follow-up grant migration; re-verified live query success before and
+   after.
+
+### Explicitly deferred / not yet landed
+
+- Content authoring (the S11 content session: full role-play + topic-
+  conversation bank across topic areas A–E) — gated behind Phase B per the
+  roadmap, unchanged by this subphase.
+- Admin UI for authoring/reviewing sets through the CMS (draft → propose →
+  publish workflow) — downstream of this schema, not built here.
+- `content_versions`-based historical-hash resolution path (§8.2) — the
+  mechanism (existing trigger + `content_hash` column) is in place and
+  unexercised; no regrade/replay scenario has hit it yet since only one
+  version of one set has ever been seeded.

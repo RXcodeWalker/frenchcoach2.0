@@ -18,6 +18,10 @@ import {
 } from '../conductEngine';
 import { buildSessionTranscript } from '../buildSessionTranscript';
 import { ORIGINAL_QUESTION_SET_1 } from '../../../../data/exam/originalQuestionSets';
+import { ORIGINAL_PRACTICE_001 } from '../../../../data/exam/bank/fixtures/original-practice-001';
+import { parseAuthoredQuestionSet } from '../../../../data/exam/bank/validate';
+import { toSessionQuestionSet } from '../../../../data/exam/bank/adapter';
+import { hashQuestionSet } from '../../content/hashQuestionSet';
 import { createFixtureTranscriptStore } from '../../stt/providers/fixtureTranscriptStore';
 import { toSpeakingTranscript } from '../../stt/project/toSpeakingTranscript';
 import type { CandidateTurnResult, ConductLog, ConductLogEntry, SessionQuestionSet } from '../types';
@@ -113,5 +117,87 @@ describe('S10 exit criterion: engine transcript -> scoreAttempt -> ScoringEnvelo
     expect(envelope.rolePlayTasks.length).toBe(5);
     expect(typeof envelope.total).toBe('number');
     expect(envelope.transcriptVersion.assemblerVersion).toBe('session-engine-v2');
+  });
+});
+
+/** Drives a full simulated test to completion against an arbitrary question set (Step 3 proof — see below). */
+function driveFullSessionFor(questionSet: SessionQuestionSet, sessionId: string): ConductLog {
+  const entries: ConductLogEntry[] = [];
+  let clock = 0;
+  let seq = 1;
+
+  let state = initConductEngineState(questionSet);
+  let result = startConduct(questionSet, state);
+  state = result.state;
+
+  const logActions = () => {
+    for (const action of result.actions) {
+      entries.push(examinerActionToLogEntry(action, seq, clock));
+      seq += 1;
+      clock += 2;
+    }
+  };
+  logActions();
+
+  let guard = 0;
+  while (state.phase.kind !== 'complete' && guard < 300) {
+    guard += 1;
+    const lastAction = result.actions[result.actions.length - 1];
+    const turn = respond(
+      `Réponse numéro ${guard} avec plusieurs mots pour dépasser le seuil de pertinence.`,
+      12,
+      65,
+    );
+    entries.push(candidateTurnToLogEntry(turn, seq, clock, lastAction.part, lastAction.questionId, true));
+    seq += 1;
+    clock += turn.responseDurationS;
+
+    result = step(questionSet, state, { kind: 'candidateTurn', result: turn });
+    state = result.state;
+    logActions();
+  }
+
+  expect(state.phase.kind).toBe('complete');
+  return { sessionId, questionSetId: questionSet.questionSetId, entries };
+}
+
+describe('S11 architecture proof (Step 3): AuthoredQuestionSet -> validate -> adapter -> engine -> scoreAttempt, real hash', () => {
+  it('drives the authored fixture end-to-end with a real non-zero questionSetHash', async () => {
+    const authored = parseAuthoredQuestionSet(ORIGINAL_PRACTICE_001);
+    const projected = toSessionQuestionSet(authored);
+    const sessionId = 's11-architecture-proof-001';
+
+    const log = driveFullSessionFor(projected, sessionId);
+    const questionSetHash = await hashQuestionSet(projected);
+
+    expect(questionSetHash).not.toBe('0'.repeat(64));
+    expect(questionSetHash).toMatch(/^[0-9a-f]{64}$/);
+
+    const transcript: SessionTranscript = buildSessionTranscript(log, projected, {
+      sessionId,
+      recordedAt: '2026-07-16T00:00:00.000Z',
+      contentProvenance: 'original-practice',
+      audio: { sha256: '0'.repeat(64), durationS: log.entries.length * 10, sampleRateHz: 16000, channels: 1 },
+      questionSetHash,
+    });
+
+    const transcriptStore = createFixtureTranscriptStore({ [sessionId]: transcript });
+    const judge = createGenericFakeJudge(() => toSpeakingTranscript(transcript, projected));
+    let lastCallMetadata: { provider: 'gemini'; model: string; responseId?: string } | undefined;
+    const createJudge = () => {
+      const wrapped: typeof judge = async (req) => {
+        const r = await judge(req);
+        lastCallMetadata = { provider: 'gemini', model: 'stub-judge', responseId: 'resp-s11' };
+        return r;
+      };
+      return { judge: wrapped, getLastCallMetadata: () => lastCallMetadata };
+    };
+
+    const envelope = await scoreAttempt({ transcriptStore, createJudge }, { sessionId, questionSet: projected });
+
+    expect(envelope.sessionId).toBe(sessionId);
+    expect(envelope.rolePlayTasks.length).toBe(5);
+    expect(typeof envelope.total).toBe('number');
+    expect(envelope.questionSetHash).toBe(questionSetHash);
   });
 });

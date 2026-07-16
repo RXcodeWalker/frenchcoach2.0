@@ -18,7 +18,7 @@ import { SimulationSession } from '../services/exam/simulationSession';
 import { saveConductLog } from '../services/exam/conductLogStore';
 import { saveStoredTranscript } from '../services/exam/localTranscriptStore';
 import { isExaminerVoiceMuted, setExaminerVoiceMuted, stopExaminerVoice, speakExaminerText } from '../services/exam/examinerVoice';
-import { ORIGINAL_QUESTION_SET_1 } from '../data/exam/originalQuestionSets';
+import { getOriginalQuestionSet } from '../data/exam/bank/loader';
 import type { ExaminerAction } from '../domain/igcse/session/types';
 import type { SessionTranscript } from '../domain/igcse/stt/types';
 import { ExamGreeting } from './exam/ExamGreeting';
@@ -58,7 +58,12 @@ export function ExamMode() {
     sessionIdRef.current = sessionId;
     clock.start();
 
-    const session = new SimulationSession(sessionId, ORIGINAL_QUESTION_SET_1, clock.nowS, {
+    const questionSet = await getOriginalQuestionSet('original-practice-001');
+    if (!questionSet) {
+      throw new Error('ExamMode: question set "original-practice-001" could not be resolved (backend and offline fixture both failed)');
+    }
+
+    const session = new SimulationSession(sessionId, questionSet, clock.nowS, {
       onExaminerAction: (a) => setAction(a),
     });
     sessionRef.current = session;
@@ -93,7 +98,7 @@ export function ExamMode() {
     setAction(nextAction);
 
     if (session.isComplete) {
-      finishSession(session);
+      await finishSession(session);
       return;
     }
 
@@ -121,7 +126,7 @@ export function ExamMode() {
     setAction(nextAction);
 
     if (session.isComplete) {
-      finishSession(session);
+      await finishSession(session);
       return;
     }
 
@@ -141,7 +146,7 @@ export function ExamMode() {
     setAction(nextAction);
 
     if (session.isComplete) {
-      finishSession(session);
+      await finishSession(session);
       return;
     }
 
@@ -149,10 +154,10 @@ export function ExamMode() {
     recording.start();
   };
 
-  const finishSession = (session: SimulationSession) => {
+  const finishSession = async (session: SimulationSession) => {
     stopExaminerVoice();
     saveConductLog(session.getConductLog());
-    const built = session.buildTranscript();
+    const built = await session.buildTranscript();
     setTranscript(built);
     setExamState('review');
   };
