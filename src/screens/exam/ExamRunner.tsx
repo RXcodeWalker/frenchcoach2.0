@@ -6,8 +6,9 @@ import { formatTime } from '../../domain/time';
 import type { RecordingState } from '../../features/recording/useRecording';
 import type { ExaminerAction } from '../../domain/igcse/session/types';
 
-// UI-only pacing heuristic (approximate VAD) — never logged or scored.
+// UI-only pacing heuristics (approximate VAD / pacing) — never logged or scored.
 const NUDGE_QUIET_S = 5;
+const PACING_HINT_S = 45;
 
 interface Props {
   action: ExaminerAction | null;
@@ -137,7 +138,7 @@ export function ExamRunner({
             <>
               <Waveform data={recording.waveData} isRecording={recording.isRecording} variant="exam" />
               <div className="text-center text-[10px] text-slate-600 tabular-nums">{formatTime(Math.round(elapsedS))}</div>
-              {showSilenceNudge && (
+              {showSilenceNudge ? (
                 <motion.div
                   className="text-center text-[10px] text-slate-500 glass-subtle rounded-lg py-1.5 px-3"
                   initial={{ opacity: 0 }}
@@ -146,6 +147,18 @@ export function ExamRunner({
                 >
                   Fini ? Soumets ta réponse — ou continue à parler.
                 </motion.div>
+              ) : (
+                recording.isRecording &&
+                elapsedS >= PACING_HINT_S && (
+                  <motion.div
+                    className="text-center text-[10px] text-slate-600 glass-subtle rounded-lg py-1.5 px-3"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    Pense à conclure ta réponse.
+                  </motion.div>
+                )
               )}
               <div className="flex items-center justify-center gap-3">
                 <motion.button
