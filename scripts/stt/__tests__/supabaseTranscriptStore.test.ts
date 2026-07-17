@@ -41,22 +41,22 @@ function buildSession(contentProvenance: SessionTranscript['contentProvenance'])
 
 describe('SupabaseTranscriptStore', () => {
   it('save() throws on confidential-internal before any network call', async () => {
-    const store = createSupabaseTranscriptStore({ url: 'https://x.supabase.co', serviceKey: 'key' });
+    const store = createSupabaseTranscriptStore({ url: 'https://x.supabase.co', serviceKey: 'key', userId: 'u1' });
     const session = buildSession('confidential-internal');
 
     await expect(store.save(session)).rejects.toThrow(/confidential-internal/);
     expect(fromSpy).not.toHaveBeenCalled();
   });
 
-  it('save() proceeds to the network call for original-practice', async () => {
+  it('save() proceeds to the network call for original-practice, writing the real userId', async () => {
     const upsert = vi.fn(async () => ({ error: null }));
     fromSpy.mockReturnValue({ upsert });
 
-    const store = createSupabaseTranscriptStore({ url: 'https://x.supabase.co', serviceKey: 'key' });
+    const store = createSupabaseTranscriptStore({ url: 'https://x.supabase.co', serviceKey: 'key', userId: 'u1' });
     const session = buildSession('original-practice');
 
     await store.save(session);
     expect(fromSpy).toHaveBeenCalledWith('session_transcripts');
-    expect(upsert).toHaveBeenCalledOnce();
+    expect(upsert).toHaveBeenCalledWith(expect.objectContaining({ user_id: 'u1' }));
   });
 });

@@ -15,6 +15,8 @@ import type { ScoringEnvelope } from '../../src/domain/igcse/envelope/types';
 export interface SupabaseEnvelopeStoreOptions {
   url: string;
   serviceKey: string;
+  /** Caller-supplied at construction, once per authenticated request (A3/A6). */
+  userId: string;
 }
 
 function checkRedistributable(envelope: ScoringEnvelope): void {
@@ -31,7 +33,7 @@ export function createSupabaseEnvelopeStore(options: SupabaseEnvelopeStoreOption
       const { error } = await client.from('scoring_envelopes').upsert({
         attempt_id: envelope.attemptId,
         session_id: envelope.sessionId,
-        user_id: null, // caller-supplied at a higher layer once auth is wired in
+        user_id: options.userId,
         content_provenance: envelope.contentProvenance,
         envelope,
       });

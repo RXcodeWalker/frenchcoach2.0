@@ -2,6 +2,12 @@
  * S4 scoringEngineVersion resolution: package.json version + short git SHA if
  * available. Wrapped in try/catch — must not crash in environments without git
  * (e.g. a fresh checkout, a CI sandbox without .git).
+ *
+ * Render checks the repo out without a .git directory, so readShortGitSha()
+ * always returns undefined there and every envelope would silently lose its
+ * SHA (A4). RENDER_GIT_COMMIT is injected by Render at build/run time and
+ * carries the same commit the deployed code was built from — used as a
+ * fallback, never preferred over a real local .git read.
  */
 
 import { execSync } from 'node:child_process';
@@ -20,7 +26,7 @@ function readShortGitSha(): string | undefined {
       .toString()
       .trim();
   } catch {
-    return undefined;
+    return process.env.RENDER_GIT_COMMIT?.slice(0, 7);
   }
 }
 

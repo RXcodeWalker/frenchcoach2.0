@@ -87,22 +87,22 @@ function buildEnvelope(contentProvenance: ScoringEnvelope['contentProvenance']):
 
 describe('SupabaseEnvelopeStore', () => {
   it('save() throws on confidential-internal before any network call', async () => {
-    const store = createSupabaseEnvelopeStore({ url: 'https://x.supabase.co', serviceKey: 'key' });
+    const store = createSupabaseEnvelopeStore({ url: 'https://x.supabase.co', serviceKey: 'key', userId: 'u1' });
     const envelope = buildEnvelope('confidential-internal');
 
     await expect(store.save(envelope)).rejects.toThrow(/confidential-internal/);
     expect(fromSpy).not.toHaveBeenCalled();
   });
 
-  it('save() proceeds to the network call for original-practice', async () => {
+  it('save() proceeds to the network call for original-practice, writing the real userId', async () => {
     const upsert = vi.fn(async () => ({ error: null }));
     fromSpy.mockReturnValue({ upsert });
 
-    const store = createSupabaseEnvelopeStore({ url: 'https://x.supabase.co', serviceKey: 'key' });
+    const store = createSupabaseEnvelopeStore({ url: 'https://x.supabase.co', serviceKey: 'key', userId: 'u1' });
     const envelope = buildEnvelope('original-practice');
 
     await store.save(envelope);
     expect(fromSpy).toHaveBeenCalledWith('scoring_envelopes');
-    expect(upsert).toHaveBeenCalledOnce();
+    expect(upsert).toHaveBeenCalledWith(expect.objectContaining({ user_id: 'u1' }));
   });
 });

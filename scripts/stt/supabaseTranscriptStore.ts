@@ -15,6 +15,8 @@ import type { SessionTranscript } from '../../src/domain/igcse/stt/types';
 export interface SupabaseTranscriptStoreOptions {
   url: string;
   serviceKey: string;
+  /** Caller-supplied at construction, once per authenticated request (A3/A6). */
+  userId: string;
 }
 
 /**
@@ -35,7 +37,7 @@ export function createSupabaseTranscriptStore(options: SupabaseTranscriptStoreOp
 
       const { error } = await client.from('session_transcripts').upsert({
         session_id: t.sessionId,
-        user_id: null, // caller-supplied at a higher layer once auth is wired in
+        user_id: options.userId,
         schema_version: t.schemaVersion,
         content_provenance: t.contentProvenance,
         stt: t.stt,
