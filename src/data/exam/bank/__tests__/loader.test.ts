@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getOriginalQuestionSet, getOfflineQuestionSet } from '../loader';
+import { getOriginalQuestionSet, getOfflineQuestionSet, listPublishedQuestionSetIds } from '../loader';
 
 const TIMEOUT = 5000; // covers the loader's FETCH_TIMEOUT_MS bound plus test overhead
 
@@ -20,6 +20,17 @@ describe('getOriginalQuestionSet — backend unreachable in this test environmen
     async () => {
       const set = await getOriginalQuestionSet('does-not-exist');
       expect(set).toBeUndefined();
+    },
+    TIMEOUT,
+  );
+});
+
+describe('listPublishedQuestionSetIds — backend unreachable in this test environment, exercises the offline-fallback path', () => {
+  it(
+    'falls back to the offline fixture registry keys when the backend is unreachable',
+    async () => {
+      const ids = await listPublishedQuestionSetIds();
+      expect(ids).toContain('original-practice-001');
     },
     TIMEOUT,
   );

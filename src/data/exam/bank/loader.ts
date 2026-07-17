@@ -59,6 +59,27 @@ export async function getOriginalQuestionSet(questionSetId: string): Promise<Ses
   return toSessionQuestionSet(validated);
 }
 
+/**
+ * Lists published question-set ids: backend-first (GET /api/content/igcse-sets),
+ * falling back to the in-repo offline fixture registry's keys. Usability-only
+ * (S11 §8) — no adaptive/weighted/history-aware selection.
+ */
+export async function listPublishedQuestionSetIds(): Promise<string[]> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  try {
+    const res = await fetch(`${API_BASE}/api/content/igcse-sets`, { signal: controller.signal });
+    if (!res.ok) return Object.keys(OFFLINE_FIXTURES);
+    const ids = (await res.json()) as unknown;
+    if (!Array.isArray(ids) || ids.length === 0) return Object.keys(OFFLINE_FIXTURES);
+    return ids as string[];
+  } catch {
+    return Object.keys(OFFLINE_FIXTURES);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 /** Synchronous, offline-only accessor for callers that can't await (dev/test convenience). */
 export function getOfflineQuestionSet(questionSetId: string): SessionQuestionSet | undefined {
   const fixture = OFFLINE_FIXTURES[questionSetId];

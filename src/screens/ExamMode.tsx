@@ -18,7 +18,7 @@ import { SimulationSession } from '../services/exam/simulationSession';
 import { saveConductLog } from '../services/exam/conductLogStore';
 import { saveStoredTranscript } from '../services/exam/localTranscriptStore';
 import { isExaminerVoiceMuted, setExaminerVoiceMuted, stopExaminerVoice, speakExaminerText } from '../services/exam/examinerVoice';
-import { getOriginalQuestionSet } from '../data/exam/bank/loader';
+import { getOriginalQuestionSet, listPublishedQuestionSetIds } from '../data/exam/bank/loader';
 import type { ExaminerAction } from '../domain/igcse/session/types';
 import type { SessionTranscript } from '../domain/igcse/stt/types';
 import { ExamGreeting } from './exam/ExamGreeting';
@@ -58,9 +58,14 @@ export function ExamMode() {
     sessionIdRef.current = sessionId;
     clock.start();
 
-    const questionSet = await getOriginalQuestionSet('original-practice-001');
+    const publishedIds = await listPublishedQuestionSetIds();
+    const questionSetId = publishedIds.length > 0
+      ? publishedIds[Math.floor(Math.random() * publishedIds.length)]
+      : 'original-practice-001';
+
+    const questionSet = await getOriginalQuestionSet(questionSetId);
     if (!questionSet) {
-      throw new Error('ExamMode: question set "original-practice-001" could not be resolved (backend and offline fixture both failed)');
+      throw new Error(`ExamMode: question set "${questionSetId}" could not be resolved (backend and offline fixture both failed)`);
     }
 
     const session = new SimulationSession(sessionId, questionSet, clock.nowS, {

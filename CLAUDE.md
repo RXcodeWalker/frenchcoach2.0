@@ -17,6 +17,14 @@ npm test             # Run tests once (vitest run)
 npm run test:watch   # Run tests in watch mode
 ```
 
+```bash
+npm run authoring:skeleton -- <NN>   # Emit a pre-tagged question-set skeleton from the corpus matrix
+npm run authoring:check              # Pre-seed gate: validate + lint + cross-set corpus check (backend/data/igcse/*.json)
+npm run authoring:check -- --draft   # Same gate, minus the "not-approved" error (work-in-progress sets)
+npm run authoring:review-sheet -- <NN>  # Render one set as readable Markdown for reviewers
+npm run authoring:status             # internal:* vs teacher:* review-tier counts + corpus coverage
+```
+
 Tests live in `src/services/coach/__tests__/`. Only pure functions (no localStorage) are unit-tested; impure wrappers are integration concerns.
 
 ## What This Is
@@ -129,6 +137,11 @@ Plus whichever of the others matches the current subphase — do not read all si
 - `docs/architecture/03-validation-strategy.md` — staged A/B/C validation phases and exit criteria. Required for S2, S5, S6, S10, S11, S15, S16, and anything touching the graded-response corpus.
 - `docs/architecture/04-frontend-pipeline.md` — STT model choice, transcript quality, accent handling, original-question-bank/copyright constraint. Required for S3, S4, S13.
 - `docs/architecture/05-deprecated-v1-removals.md` — what was explicitly rejected and why. Read if unsure whether something is a forbidden multi-board abstraction (hard constraint #1).
+
+**Content authoring** (S11 question bank, `backend/data/igcse/*.json`) has its own docs, separate from the scoring architecture above:
+
+- `docs/content/authoring-guide.md` — wording style, vocabulary level, register, the anaphora rule, alternative-question rules, tag-duplication rule, the `authoring:skeleton` → `authoring:check --draft` → `authoring:check` workflow, and the draft trap.
+- `docs/content/corpus-matrix.md` — the 10-set / 150-item corpus plan: topic-area pair coverage, role-play/topic-slot balance, time-frame templates, rare-structure placement, scenario archetypes.
 
 Treat the architecture as the design source of truth and the roadmap as the execution order.
 

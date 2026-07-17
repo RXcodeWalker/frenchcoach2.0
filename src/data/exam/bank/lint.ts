@@ -27,7 +27,7 @@ function allQuestions(content: AuthoredContent): { path: string; q: AuthoredQues
 }
 
 /** Token-set similarity over the shared match-normalization; 1.0 = identical token sets. */
-function tokenSetSimilarity(a: string, b: string): number {
+export function tokenSetSimilarity(a: string, b: string): number {
   const ta = new Set(canonicalizeForMatch(a).split(' ').filter(Boolean));
   const tb = new Set(canonicalizeForMatch(b).split(' ').filter(Boolean));
   if (ta.size === 0 || tb.size === 0) return ta.size === tb.size ? 1 : 0;
