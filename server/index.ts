@@ -10,13 +10,16 @@
  *   2. parseSessionTranscript(body) -> 400 on invalid
  *   3. contentProvenance !== 'original-practice' -> 403 before any work
  *   4. idempotency fast path: existing envelope for this sessionId? return it, no LLM call
- *      (best-effort only here — race-safe enforcement is Part B's DB unique index,
- *      explicitly out of scope for this session; two near-simultaneous requests
- *      for the same sessionId can both score until B lands)
+ *      (best-effort — narrows the race window but two near-simultaneous requests
+ *      can both pass this check and both score; step 7's DB constraint is the backstop)
  *   5. hash guard (A5): resolved question set's hash must match the transcript's
  *      declared questionSetHash, else 409, nothing written
  *   6. transcriptStore.save(transcript, userId) -> scoreAttempt() loads it back
- *   7. envelopeStore.save()
+ *   7. envelopeStore.saveOriginal() — Phase B: scoring_envelopes_one_original_per_session
+ *      (20260717130000) is a partial unique index on session_id where regraded_from
+ *      is null. On a losing 23505 (another concurrent request won), saveOriginal loads
+ *      and returns that winner instead of throwing, so both concurrent requests get an
+ *      identical 200 for one LLM call and one row, not a second envelope or an error.
  *   8. buildEnvelopeView(envelope) -> 200
  *
  * Never abort scoring on client disconnect (A2) — confirmed both locally and
@@ -133,10 +136,10 @@ app.post('/score', async (req: Request, res: Response) => {
     logRequest(transcript.sessionId, undefined, Date.now() - startedAt, 'error');
     throw err;
   }
-  await envelopeStore.save(envelope);
+  const savedEnvelope = await envelopeStore.saveOriginal(envelope);
   logRequest(transcript.sessionId, envelope.llm.provider, Date.now() - startedAt, 'ok');
 
-  res.status(200).json(buildEnvelopeView(envelope));
+  res.status(200).json(buildEnvelopeView(savedEnvelope));
 });
 
 app.get('/score', async (req: Request, res: Response) => {

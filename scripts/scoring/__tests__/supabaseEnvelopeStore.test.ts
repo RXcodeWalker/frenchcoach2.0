@@ -94,15 +94,70 @@ describe('SupabaseEnvelopeStore', () => {
     expect(fromSpy).not.toHaveBeenCalled();
   });
 
-  it('save() proceeds to the network call for original-practice, writing the real userId', async () => {
-    const upsert = vi.fn(async () => ({ error: null }));
-    fromSpy.mockReturnValue({ upsert });
+  it('save() proceeds to the network call for original-practice, writing the real userId and regraded_from: null', async () => {
+    const insert = vi.fn(async () => ({ error: null }));
+    fromSpy.mockReturnValue({ insert });
 
     const store = createSupabaseEnvelopeStore({ url: 'https://x.supabase.co', serviceKey: 'key', userId: 'u1' });
     const envelope = buildEnvelope('original-practice');
 
     await store.save(envelope);
     expect(fromSpy).toHaveBeenCalledWith('scoring_envelopes');
-    expect(upsert).toHaveBeenCalledWith(expect.objectContaining({ user_id: 'u1' }));
+    expect(insert).toHaveBeenCalledWith(expect.objectContaining({ user_id: 'u1', regraded_from: null }));
+  });
+
+  it('save() writes regraded_from when the envelope is a regrade', async () => {
+    const insert = vi.fn(async () => ({ error: null }));
+    fromSpy.mockReturnValue({ insert });
+
+    const store = createSupabaseEnvelopeStore({ url: 'https://x.supabase.co', serviceKey: 'key', userId: 'u1' });
+    const envelope = { ...buildEnvelope('original-practice'), regradedFrom: 'attempt-0' };
+
+    await store.save(envelope);
+    expect(insert).toHaveBeenCalledWith(expect.objectContaining({ regraded_from: 'attempt-0' }));
+  });
+
+  describe('saveOriginal()', () => {
+    it('returns the envelope as-is when the insert wins the race', async () => {
+      const insert = vi.fn(async () => ({ error: null }));
+      fromSpy.mockReturnValue({ insert });
+
+      const store = createSupabaseEnvelopeStore({ url: 'https://x.supabase.co', serviceKey: 'key', userId: 'u1' });
+      const envelope = buildEnvelope('original-practice');
+
+      const result = await store.saveOriginal(envelope);
+      expect(result).toBe(envelope);
+    });
+
+    it('on a 23505 unique violation, loads and returns the winning row instead of throwing', async () => {
+      const insert = vi.fn(async () => ({ error: { code: '23505', message: 'duplicate key value' } }));
+      const single = vi.fn(async () => ({
+        data: { envelope: buildEnvelope('original-practice') },
+        error: null,
+      }));
+      const is = vi.fn(() => ({ single }));
+      const eq = vi.fn(() => ({ is }));
+      const select = vi.fn(() => ({ eq }));
+      fromSpy.mockReturnValue({ insert, select });
+
+      const store = createSupabaseEnvelopeStore({ url: 'https://x.supabase.co', serviceKey: 'key', userId: 'u1' });
+      const envelope = { ...buildEnvelope('original-practice'), attemptId: 'a2' };
+
+      const result = await store.saveOriginal(envelope);
+      expect(result.attemptId).toBe('a1');
+      expect(select).toHaveBeenCalledWith('envelope');
+      expect(eq).toHaveBeenCalledWith('session_id', 's1');
+      expect(is).toHaveBeenCalledWith('regraded_from', null);
+    });
+
+    it('rethrows on a non-conflict error rather than treating it as a race loss', async () => {
+      const insert = vi.fn(async () => ({ error: { code: '42501', message: 'permission denied' } }));
+      fromSpy.mockReturnValue({ insert });
+
+      const store = createSupabaseEnvelopeStore({ url: 'https://x.supabase.co', serviceKey: 'key', userId: 'u1' });
+      const envelope = buildEnvelope('original-practice');
+
+      await expect(store.saveOriginal(envelope)).rejects.toThrow(/permission denied/);
+    });
   });
 });
