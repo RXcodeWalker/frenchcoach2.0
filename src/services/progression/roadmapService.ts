@@ -196,7 +196,7 @@ export function evaluateRoadmap(): RoadmapData {
   const igcse = sessions.filter(s => s.mode === 'exam');
   const roleplay = sessions.filter(s => s.mode === 'roleplay').length;
   const topicSet = new Set(sessions.filter(s => s.topicKey).map(s => s.topicKey));
-  const maxIScore = igcse.reduce((m, s) => Math.max(m, s.score || 0), 0);
+  const maxIScore = igcse.reduce((m, s) => typeof s.score === 'number' ? Math.max(m, s.score) : m, 0);
   
   const vaultCount = storageGet<unknown[]>(STORAGE_KEYS.vault, []).length;
 

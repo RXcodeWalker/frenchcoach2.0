@@ -11,3 +11,17 @@ export function computeXPGain(score: number, streak: number): { gain: number; ge
   const gemsGain    = Math.floor(gain / 10) + (score >= 8 ? 5 : 0);
   return { gain, gemsGain };
 }
+
+/**
+ * Participation-only XP: no score term. For sessions with no real assessed
+ * score (score: null) — e.g. an exam whose scoring service call failed —
+ * so completing it still earns something, without inventing a score to
+ * feed computeXPGain. Deliberately no score-derived gems bonus either.
+ */
+export function computeParticipationXPGain(streak: number): { gain: number; gemsGain: number } {
+  const base        = 10;
+  const streakBonus = Math.min(streak, 7) * 2; // 0–14 XP
+  const gain         = base + streakBonus;
+  const gemsGain     = Math.floor(gain / 10);
+  return { gain, gemsGain };
+}

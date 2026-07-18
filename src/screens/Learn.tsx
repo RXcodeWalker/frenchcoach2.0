@@ -57,6 +57,8 @@ export function Learn() {
   // Failover toast
   const [showFailoverToast, setShowFailoverToast] = useState(false);
   const [failoverInfo, setFailoverInfo] = useState<{ requested: AIEngine; actual: AIEngine; reason?: string } | null>(null);
+  // E1: honest error state when feedback could not be produced at all — never a fabricated score.
+  const [feedbackErrorMessage, setFeedbackErrorMessage] = useState<string | null>(null);
   const [drillSkillId, setDrillSkillId] = useState<string | null>(null);
   const [showDrillModal, setShowDrillModal] = useState(false);
   const [activeProblem, setActiveProblem] = useState<LearningProblem | null>(null);
@@ -189,19 +191,20 @@ export function Learn() {
     setEngineResults(new Map([[actualEngine, result]]));
     setActiveResultEngine(actualEngine);
 
-    let finalScore = fb.scores.overall;
-    let usedShield = false;
+    // E3: perfect_shield boosts XP/rewards only. finalScore (the real assessed score) is
+    // never mutated — it stays the recorded session score, the evidence/orchestration
+    // input, and what achievements like perfectionniste gate on.
+    const finalScore = fb.scores.overall;
+    let xpScore = finalScore;
     if (finalScore < 8.5 && (profile.inventory['perfect_shield'] || 0) > 0) {
-      finalScore = Math.max(8.5, finalScore + 2);
-      usedShield = true;
+      xpScore = Math.max(8.5, finalScore + 2);
       // eslint-disable-next-line react-hooks/rules-of-hooks
       if (useItem('perfect_shield')) {
         dispatch({ type: 'USE_ITEM', itemId: 'perfect_shield' });
       }
     }
-    if (usedShield) { /* shield used — score boosted */ }
 
-    const { gain: xpGain, gemsGain: gemGain } = computeXPGain(finalScore, profile.streak_days);
+    const { gain: xpGain, gemsGain: gemGain } = computeXPGain(xpScore, profile.streak_days);
 
     const session: Session = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -356,20 +359,18 @@ export function Learn() {
       console.warn('[Stream] falling back to getAIFeedback:', err);
       setIsLoadingFeedback(true);
       setPartialFeedback(null);
-      let fb: FeedbackV2;
       try {
-        fb = await getAIFeedback(transcript, currentQuestion, skillContext, recording.audioBlob ?? undefined, selectedEngine, selectedDifficulty);
-      } catch {
-        fb = {
-          scores: { overall: 5, communication: 5, language: 5, fluency: 5 },
-          grammar: { critical: [], polish: [] },
-          vocabulary: [], style: [], fillers: [],
-          wordCount: transcript.split(/\s+/).filter(Boolean).length,
-          cefrLevel: 'A2',
-          avoidanceReport: avoidanceSignals,
-        };
+        const fb = await getAIFeedback(transcript, currentQuestion, skillContext, recording.audioBlob ?? undefined, selectedEngine, selectedDifficulty);
+        _finalizeAnswer(fb, transcript, elapsed, avoidanceSignals, skillContext);
+      } catch (fallbackErr) {
+        // E1: total failure — no real feedback exists. Show an honest error and let the
+        // candidate retry, rather than inventing a score that flows into XP/achievements/
+        // the coach loop as if it were a real assessment.
+        console.warn('[Learn] feedback unavailable:', fallbackErr);
+        setIsLoadingFeedback(false);
+        setFeedbackErrorMessage('Could not get feedback for that answer. Check your connection and try again.');
+        setLearnState('question');
       }
-      _finalizeAnswer(fb, transcript, elapsed, avoidanceSignals, skillContext);
     }
   };
 
@@ -652,6 +653,34 @@ export function Learn() {
           onDismiss={() => setShowFailoverToast(false)}
         />
       )}
+
+      {/* E1: honest feedback-failure toast — no fabricated score behind it */}
+      <AnimatePresence>
+        {feedbackErrorMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: -16, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -16, scale: 0.96 }}
+            transition={{ duration: 0.2 }}
+            className="fixed top-16 right-4 z-50 max-w-xs w-full"
+          >
+            <div className="rounded-2xl glass-elevated border border-red-400/20 p-4 shadow-xl">
+              <div className="flex items-start gap-3">
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-red-300">Feedback unavailable</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed">{feedbackErrorMessage}</p>
+                </div>
+                <button
+                  onClick={() => setFeedbackErrorMessage(null)}
+                  className="flex-shrink-0 p-1 rounded-lg hover:bg-white/5 text-slate-500 hover:text-white transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="flex-1 max-w-3xl mx-auto w-full px-4 md:px-6 py-6 md:py-8">
         <AnimatePresence mode="wait">

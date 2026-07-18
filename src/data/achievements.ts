@@ -14,7 +14,8 @@ export interface AchievementDefinition {
 
 // ── Immutable snapshot assembled once after session completion ─────────────────
 export interface AchievementContext {
-  score: number;
+  /** null when the session has no real assessed score — score-gated achievements must not fire on it. */
+  score: number | null;
   streak: number;
   totalSessions: number;
   topicsUsed: string[];
@@ -39,7 +40,7 @@ interface AchievementRule {
 // ── Helper predicates ──────────────────────────────────────────────────────────
 const minSessions  = (n: number): Predicate => ctx => ctx.totalSessions >= n;
 const minStreak    = (n: number): Predicate => ctx => ctx.streak >= n;
-const minScore     = (n: number): Predicate => ctx => ctx.score >= n;
+const minScore     = (n: number): Predicate => ctx => ctx.score != null && ctx.score >= n;
 const minXP        = (n: number): Predicate => ctx => ctx.xp >= n;
 const topicsCover  = (n: number): Predicate => ctx => ctx.topicsUsed.length >= n;
 

@@ -17,7 +17,6 @@ import {
 } from 'lucide-react';
 import { useRecording } from '../features/recording/useRecording';
 import { Waveform } from '../features/recording/Waveform';
-import { useApp, dispatchAddXP } from '../context/AppContext';
 
 interface AccentDrill {
   id: string;
@@ -73,7 +72,6 @@ const DRILLS: AccentDrill[] = [
 
 export function AccentAnalyzer() {
   const navigate = useNavigate();
-  const { dispatch } = useApp();
   const { isRecording, transcript, start, stop, waveData } = useRecording();
   
   const [selectedDrill, setSelectedDrill] = useState<AccentDrill>(DRILLS[0]);
@@ -98,40 +96,41 @@ export function AccentAnalyzer() {
     analyzeAccent(finalTranscript);
   };
 
+  // E4: word-presence matching only — no phoneme/pronunciation analysis exists here.
+  // Never inject Math.random() noise dressed up as "AI analysis", and never award
+  // real XP off a heuristic this coarse.
   const analyzeAccent = (userText: string) => {
     if (!userText) return;
-    
+
     setIsAnalyzing(true);
-    
-    // Simulate API delay for "AI analysis"
+
     setTimeout(() => {
       const targetWords = normalize(selectedDrill.french).split(' ');
       const userWords = normalize(userText).split(' ');
-      
+
       let matchedCount = 0;
       const matches = targetWords.map(targetWord => {
-        // Simple fuzzy match
-        const found = userWords.some(userWord => 
-          userWord === targetWord || 
+        // Word-presence match — not a real pronunciation/phoneme check.
+        const found = userWords.some(userWord =>
+          userWord === targetWord ||
           (userWord.length > 3 && targetWord.includes(userWord)) ||
           (targetWord.length > 3 && userWord.includes(targetWord))
         );
-        
+
         if (found) {
           matchedCount++;
-          const status = Math.random() > 0.3 ? 'perfect' : 'good';
-          return { word: targetWord, status: status as any };
+          return { word: targetWord, status: 'good' as const };
         }
-        return { word: targetWord, status: 'missed' as any };
+        return { word: targetWord, status: 'missed' as const };
       });
 
       const accuracy = (matchedCount / targetWords.length) * 100;
-      const fluency = Math.min(100, (userWords.length / targetWords.length) * 85 + (Math.random() * 15));
+      const fluency = Math.min(100, (userWords.length / targetWords.length) * 85);
       const score = Math.round((accuracy * 0.7) + (fluency * 0.3));
 
       let feedback = "";
-      if (score > 90) feedback = "Excellent! Your accent is very close to a native speaker.";
-      else if (score > 75) feedback = "Great job! Most sounds are correct, focus on the tricky parts.";
+      if (score > 90) feedback = "Excellent! You said all the key words clearly.";
+      else if (score > 75) feedback = "Great job! Most words came through — focus on the tricky parts.";
       else if (score > 50) feedback = "Good effort! Try to emphasize the nasal sounds more.";
       else feedback = "Keep practicing! Listen to the native audio and try to mimic the rhythm.";
 
@@ -142,12 +141,8 @@ export function AccentAnalyzer() {
         feedback,
         matches
       });
-      
-      setIsAnalyzing(false);
 
-      if (score > 80) {
-        dispatchAddXP(dispatch, 15);
-      }
+      setIsAnalyzing(false);
     }, 1500);
   };
 

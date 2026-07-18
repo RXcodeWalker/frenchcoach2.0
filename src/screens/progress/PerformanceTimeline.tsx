@@ -104,7 +104,10 @@ export function PerformanceTimeline({ sessions }: Props) {
         <div className="glass-subtle p-3 rounded-xl border border-white/5">
           <p className="text-[9px] font-bold text-slate-600 uppercase mb-1">Average Score</p>
           <p className="text-xl font-black text-emerald-400">
-            {(sessions.reduce((a, b) => a + b.score, 0) / (sessions.length || 1)).toFixed(1)}
+            {(() => {
+              const scored = sessions.map(s => s.score).filter((s): s is number => typeof s === 'number');
+              return scored.length ? (scored.reduce((a, b) => a + b, 0) / scored.length).toFixed(1) : '—';
+            })()}
           </p>
         </div>
         <div className="glass-subtle p-3 rounded-xl border border-white/5">

@@ -9,8 +9,8 @@ interface Props {
 }
 
 export function TimelineItem({ session, isExpanded, onToggle }: Props) {
-  const isHighPerformance = session.score >= 8.5;
-  const isPerfect = session.score >= 9.5;
+  const isHighPerformance = session.score != null && session.score >= 8.5;
+  const isPerfect = session.score != null && session.score >= 9.5;
   const isExam = session.mode === 'exam';
   
   const time = new Date(session.createdAt).toLocaleTimeString('en-US', { 
@@ -89,7 +89,7 @@ export function TimelineItem({ session, isExpanded, onToggle }: Props) {
                 </motion.div>
               )}
               <p className={`text-2xl font-black italic tracking-tighter ${isPerfect ? 'text-transparent bg-clip-text bg-gradient-to-br from-amber-300 to-orange-500' : isHighPerformance ? 'text-emerald-400' : 'text-white'}`}>
-                {session.score.toFixed(1)}
+                {session.score == null ? '—' : session.score.toFixed(1)}
               </p>
             </div>
             <p className="text-[9px] text-slate-600 font-bold uppercase tracking-widest">Score</p>
@@ -120,7 +120,7 @@ export function TimelineItem({ session, isExpanded, onToggle }: Props) {
               }}
             >
               {[
-                { label: 'Fluency', value: session.score.toFixed(1), color: 'text-blue-400', progress: session.score * 10 },
+                { label: 'Fluency', value: session.score == null ? '—' : session.score.toFixed(1), color: 'text-blue-400', progress: (session.score ?? 0) * 10 },
                 { label: 'Vocabulary', value: '7.8', color: 'text-violet-400', progress: 78 },
                 { label: 'Grammar', value: '8.2', color: 'text-emerald-400', progress: 82 },
                 { label: 'CEFR Level', value: 'B2', color: 'text-amber-400', progress: 65 },

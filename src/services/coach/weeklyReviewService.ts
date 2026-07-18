@@ -122,8 +122,10 @@ function computeExamReadiness(profile: ReturnType<typeof getCoachProfile>): Exam
   const stats = _getStats();
 
   if (!days) return undefined;
+  // No real scored sessions yet — nothing to predict readiness from; don't fabricate one from a default score.
+  if (stats.avgScore == null) return undefined;
 
-  const avgScore = stats.avgScore ?? 5;
+  const avgScore = stats.avgScore;
   const skillBias = snapshot
     ? Object.values(snapshot.skills).reduce((sum, s) => sum + s.mastery, 0) /
       Math.max(1, Object.keys(snapshot.skills).length)

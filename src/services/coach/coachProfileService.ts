@@ -118,8 +118,12 @@ export function syncProfileFromServices(): CoachProfile {
   const consistencyScore = computeConsistencyScore(streak, stats.totalSessions);
 
   // ── CEFR estimate from aggregate scores ────────────────────────────────────
-  const cefrEstimate = deriveCEFR(stats.avgScore ?? 5);
-  const cefrConfidence = Math.min(0.9, Math.max(0.1, stats.totalSessions / 20));
+  // No real average yet (no scored sessions) — keep the profile's existing estimate
+  // rather than deriving one from a fabricated score.
+  const cefrEstimate = stats.avgScore != null ? deriveCEFR(stats.avgScore) : profile.cefr.estimate;
+  const cefrConfidence = stats.avgScore != null
+    ? Math.min(0.9, Math.max(0.1, stats.totalSessions / 20))
+    : profile.cefr.confidence;
 
   // ── Affect ─────────────────────────────────────────────────────────────────
   const recentAvg = computeRecentAvg(stats);
@@ -192,7 +196,7 @@ function computeRecentAvg(stats: ReturnType<typeof getStats>): number | null {
   if (!stats.recentSessions.length) return null;
   const scores = stats.recentSessions
     .slice(0, 5)
-    .map((s: { score: number }) => s.score)
+    .map((s: { score: number | null }) => s.score)
     .filter((s): s is number => typeof s === 'number');
   if (!scores.length) return null;
   return scores.reduce((a, b) => a + b, 0) / scores.length;

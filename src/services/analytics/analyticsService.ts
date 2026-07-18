@@ -7,7 +7,7 @@ import { STORAGE_KEYS } from '../persistence/storage';
 const STORAGE_KEY = STORAGE_KEYS.analytics;
 const MASTERY_KEY_CONST = STORAGE_KEYS.topicMastery;
 
-interface StoredSession {
+export interface StoredSession {
   id: string;
   date: string;
   mode: string;
@@ -15,7 +15,7 @@ interface StoredSession {
   questionText: string;
   transcript: string;
   wordCount: number;
-  score: number;
+  score: number | null;
   durationSec: number;
   // ── Coach MVP: compact coaching summary (all optional, backward compatible) ──
   /** Short examiner/opportunity one-liner derived from FeedbackV2. */
@@ -150,8 +150,9 @@ export function getDailyStats(days = 7): DailyStats[] {
     const d = new Date(Date.now() - i * 86400000);
     const key = dateKey(d);
     const daySessions = sessions.filter(s => s.date.slice(0, 10) === key);
-    const avgScore = daySessions.length
-      ? Math.round((daySessions.reduce((a, b) => a + b.score, 0) / daySessions.length) * 10) / 10
+    const scored = daySessions.map(s => s.score).filter((s): s is number => typeof s === 'number');
+    const avgScore = scored.length
+      ? Math.round((scored.reduce((a, b) => a + b, 0) / scored.length) * 10) / 10
       : 0;
     result.push({ day: d.toLocaleDateString('en', { weekday: 'short' }), score: avgScore, sessions: daySessions.length });
   }
@@ -169,10 +170,10 @@ export function getStats() {
 
   const byTopic: Record<string, { count: number; totalScore: number; avg: number }> = {};
   sessions.forEach(s => {
-    if (s.topicKey) {
+    if (s.topicKey && typeof s.score === 'number') {
       if (!byTopic[s.topicKey]) byTopic[s.topicKey] = { count: 0, totalScore: 0, avg: 0 };
       byTopic[s.topicKey].count++;
-      byTopic[s.topicKey].totalScore += s.score || 0;
+      byTopic[s.topicKey].totalScore += s.score;
     }
   });
   Object.keys(byTopic).forEach(k => { byTopic[k].avg = Math.round((byTopic[k].totalScore / byTopic[k].count) * 10) / 10; });

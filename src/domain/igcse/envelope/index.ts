@@ -11,6 +11,16 @@ export { createFixtureEnvelopeStore } from './providers/fixtureEnvelopeStore';
 
 export type { EnvelopeStore } from './ports';
 
+export { buildEnvelopeView, bracketResponseLength } from './envelopeView';
+export type {
+  EnvelopeView,
+  CriterionView,
+  EvidenceQuoteView,
+  EvidenceGroupView,
+  GuardrailTriggerView,
+  ResponseLengthBracket,
+} from './envelopeView';
+
 export type {
   ScoringEnvelope,
   VersionStack,

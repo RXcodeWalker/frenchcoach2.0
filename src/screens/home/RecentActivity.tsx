@@ -29,7 +29,7 @@ export function RecentActivity({ sessions }: Props) {
               <p className="text-[10px] text-slate-400 font-bold truncate">{session.topicKey ?? 'General'}</p>
             </div>
             <div className="text-right flex-shrink-0">
-              <p className="text-xs font-black text-white">{session.score.toFixed(1)}<span className="text-[9px] text-slate-400 font-bold">/10</span></p>
+              <p className="text-xs font-black text-white">{session.score == null ? '—' : session.score.toFixed(1)}<span className="text-[9px] text-slate-400 font-bold">/10</span></p>
               <p className="text-[9px] text-emerald-400 font-bold">+{session.xpEarned} XP</p>
             </div>
           </motion.div>

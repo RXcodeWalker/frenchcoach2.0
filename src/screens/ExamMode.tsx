@@ -1,10 +1,10 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { track } from '../services/telemetry/telemetryService';
 import confetti from 'canvas-confetti';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { getSkillProfile } from '../services/coaching/diagnosticEngine';
-import { awardXP, checkAchievements, getProgressionState } from '../services/progression/progressionService';
+import { checkAchievements, getProgressionState, awardParticipationXP } from '../services/progression/progressionService';
 import { recordSession as persistSession } from '../services/analytics/analyticsService';
 import { buildAchievementContext } from '../services/coach/achievementContextBuilder';
 import type { Session } from '../types/index';
@@ -18,12 +18,17 @@ import { SimulationSession } from '../services/exam/simulationSession';
 import { saveConductLog } from '../services/exam/conductLogStore';
 import { saveStoredTranscript } from '../services/exam/localTranscriptStore';
 import { isExaminerVoiceMuted, setExaminerVoiceMuted, stopExaminerVoice, speakExaminerText } from '../services/exam/examinerVoice';
+import { pingScoringServiceHealth, scoreExamTranscript, ScoringApiError } from '../services/exam/scoringApiClient';
 import { getOriginalQuestionSet, listPublishedQuestionSetIds } from '../data/exam/bank/loader';
 import type { ExaminerAction } from '../domain/igcse/session/types';
 import type { SessionTranscript } from '../domain/igcse/stt/types';
+import type { EnvelopeView } from '../domain/igcse/envelope/envelopeView';
 import { ExamGreeting } from './exam/ExamGreeting';
 
-type ExamState = 'intro' | 'greeting' | 'running' | 'review' | 'results';
+type ExamState = 'intro' | 'greeting' | 'running' | 'review' | 'scoring' | 'results';
+
+/** A8: exam duration (10-15 min) only marginally exceeds Render free tier's ~15 min idle window — the keepalive is what guarantees warmth by the time scoring is needed. */
+const KEEPALIVE_INTERVAL_MS = 5 * 60 * 1000;
 
 const GREETING_TEXT = 'Bonjour ! Comment ça va ? Es-tu prêt ? On va commencer.';
 
@@ -35,6 +40,8 @@ export function ExamMode() {
   const [voiceMuted, setVoiceMuted] = useState(isExaminerVoiceMuted());
   const [transcript, setTranscript] = useState<SessionTranscript | null>(null);
   const [pendingSilentSkip, setPendingSilentSkip] = useState(false);
+  const [scoringError, setScoringError] = useState<string | null>(null);
+  const [envelopeView, setEnvelopeView] = useState<EnvelopeView | null>(null);
 
   const recording = useRecording();
   const clock = useSessionClock();
@@ -42,12 +49,24 @@ export function ExamMode() {
   const sessionIdRef = useRef<string>('');
   const turnStartRef = useRef<number>(0);
 
+  // A8: keepalive ping while the exam runs, so the scoring service stays warm
+  // through the ~15 min Render free-tier idle window until scoring is needed.
+  useEffect(() => {
+    if (examState !== 'running') return;
+    const interval = setInterval(pingScoringServiceHealth, KEEPALIVE_INTERVAL_MS);
+    return () => clearInterval(interval);
+  }, [examState]);
+
   const enterGreeting = () => {
     setExamState('greeting');
     void speakExaminerText(GREETING_TEXT);
   };
 
   const startExam = async () => {
+    // A8: the exam itself is the warm-up window — ping now, invisibly, so the
+    // service is awake well before the candidate finishes and scoring is requested.
+    pingScoringServiceHealth();
+
     // Discard the greeting's reply entirely — abort any in-progress recognizer
     // so it never overlaps with the first real turn's recording.
     if (recording.isRecording) {
@@ -170,28 +189,64 @@ export function ExamMode() {
   const handleReviewConfirm = (finalTranscript: SessionTranscript) => {
     saveStoredTranscript(finalTranscript);
     setTranscript(finalTranscript);
+    setExamState('scoring');
+    setScoringError(null);
+    void runScoring(finalTranscript);
+  };
+
+  const runScoring = async (finalTranscript: SessionTranscript) => {
+    let view: EnvelopeView | null = null;
+    try {
+      view = await scoreExamTranscript(finalTranscript);
+    } catch (err) {
+      const message = err instanceof ScoringApiError ? err.message : 'Scoring failed unexpectedly.';
+      setScoringError(message);
+      setExamState('results');
+      return;
+    }
+    finishWithScore(finalTranscript, view);
+  };
+
+  /** C1/A9: Retry hits the idempotency fast path server-side — a prior timed-out request keeps scoring and persists, so this is typically instant. */
+  const retryScoring = () => {
+    if (!transcript) return;
+    setExamState('scoring');
+    setScoringError(null);
+    void runScoring(transcript);
+  };
+
+  const finishWithScore = (finalTranscript: SessionTranscript, view: EnvelopeView | null) => {
+    setEnvelopeView(view);
     setExamState('results');
 
     const candidateUtterances = finalTranscript.utterances.filter((u) => u.role === 'candidate');
     const totalSec = candidateUtterances.reduce((sum, u) => sum + (u.endS - u.startS), 0);
     const wordCount = candidateUtterances.reduce((sum, u) => sum + u.text.trim().split(/\s+/).filter(Boolean).length, 0);
 
+    // D4: real Cambridge total (/40) when scoring succeeded, rescaled to the app's existing /10
+    // Session.score convention (same convention roadmapService.ts already assumes for exam sessions);
+    // null when scoring failed — never a fabricated placeholder.
+    const finalScore = view ? Math.round((view.total / 40) * 10 * 10) / 10 : null;
+
     const appSession: Session = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       mode: 'exam',
       wordCount,
-      score: 0,
+      score: finalScore,
       xpEarned: 0,
       durationSec: Math.round(totalSec),
       createdAt: new Date().toISOString(),
     };
 
     persistSession(appSession);
-    const xpResult = awardXP(5, state.profile.streak_days);
+    // D5: participation XP either way — score-derived XP would need calibration-backed
+    // meaning behind a /40 Cambridge total that S6 hasn't established yet (see the
+    // "Unvalidated estimate" framing in ExamResults).
+    const xpResult = awardParticipationXP(state.profile.streak_days);
     const { level: newLevel } = getProgressionState();
     const newUnlockedAchievementIds = checkAchievements(
       buildAchievementContext({
-        finalScore: 5,
+        finalScore,
         streakDays: state.profile.streak_days,
         totalSessionsAfter: state.profile.sessions_count + 1,
         topicsUsed: [],
@@ -201,14 +256,16 @@ export function ExamMode() {
       }),
     );
 
-    track({ name: 'session_completed', props: { mode: 'exam', score: 0, duration_sec: totalSec, xp_gain: xpResult.gain } });
+    track({ name: 'session_completed', props: { mode: 'exam', score: finalScore, duration_sec: totalSec, xp_gain: xpResult.gain } });
     for (const id of newUnlockedAchievementIds) {
       track({ name: 'achievement_unlocked', props: { achievement_id: id, mode: 'exam', session_count: state.profile.sessions_count + 1 } });
     }
 
     dispatch({ type: 'ADD_SESSION', session: { ...appSession, xpEarned: xpResult.gain }, xpResult, newUnlockedAchievementIds, newLevelName: newLevel.name, xpAnimX: 70, xpAnimY: 20 });
     dispatch({ type: 'UPDATE_SKILL_PROFILE', skillProfile: getSkillProfile() });
-    confetti({ particleCount: 150, spread: 100, origin: { y: 0.5 } });
+    if (finalScore !== null) {
+      confetti({ particleCount: 150, spread: 100, origin: { y: 0.5 } });
+    }
   };
 
   const toggleVoice = () => {
@@ -227,10 +284,25 @@ export function ExamMode() {
     return <TranscriptReview transcript={transcript} onConfirm={handleReviewConfirm} />;
   }
 
+  if (examState === 'scoring') {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-6">
+        <div className="text-center space-y-3 max-w-xs">
+          <div className="w-10 h-10 mx-auto border-2 border-violet-electric/30 border-t-violet-electric rounded-full animate-spin" />
+          <p className="text-sm font-bold text-white">Scoring your session…</p>
+          <p className="text-[11px] text-slate-500">This can take up to a minute.</p>
+        </div>
+      </div>
+    );
+  }
+
   if (examState === 'results' && transcript) {
     return (
       <ExamResults
         transcript={transcript}
+        envelopeView={envelopeView}
+        scoringError={scoringError}
+        onRetryScoring={retryScoring}
         onRetake={() => setExamState('intro')}
         onHome={() => navigate('/')}
       />

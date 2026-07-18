@@ -5,7 +5,7 @@ import type { EvidenceBeliefSnapshot } from '../../types/beliefs';
 import type { AchievementContext } from '../../data/achievements';
 
 interface BuildParams {
-  finalScore: number;
+  finalScore: number | null;
   streakDays: number;
   totalSessionsAfter: number;
   topicsUsed: string[];

@@ -12,7 +12,7 @@ type CloudSessionRow = {
   question_text: string | null;
   transcript: string | null;
   word_count: number;
-  score: number;
+  score: number | null;
   xp_earned: number;
   duration_sec: number;
   feedback: Record<string, unknown> | null;
@@ -37,7 +37,7 @@ export interface StoredSession {
   questionText: string;
   transcript: string;
   wordCount: number;
-  score: number;
+  score: number | null;
   durationSec: number;
   feedbackSummary?: string;
   targetSkillIds?: string[];

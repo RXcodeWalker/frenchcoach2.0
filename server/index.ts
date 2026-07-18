@@ -38,7 +38,7 @@ import { createSupabaseTranscriptStore } from '../scripts/stt/supabaseTranscript
 import { createSupabaseEnvelopeStore } from '../scripts/scoring/supabaseEnvelopeStore';
 import { scoreAttempt } from '../scripts/scoring/scoreAttempt';
 import { createJudgeWithFallback } from '../scripts/scoring/providers/judgeFactory';
-import { buildEnvelopeView } from '../scripts/scoring/reporting/envelopeView';
+import { buildEnvelopeView } from '../src/domain/igcse/envelope/envelopeView';
 import { isScoringDebugEnabled } from '../scripts/scoring/observability/logger';
 import { resolveAndVerifyQuestionSet, QuestionSetNotFoundError, QuestionSetHashMismatchError } from './resolveQuestionSet';
 

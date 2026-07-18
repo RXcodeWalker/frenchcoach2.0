@@ -1,6 +1,6 @@
 // Copied verbatim from progression.js — strips DOM calls, keeps XP/level logic
 import { STORAGE_KEYS } from '../persistence/storage';
-import { computeXPGain } from '../../domain/xp';
+import { computeXPGain, computeParticipationXPGain } from '../../domain/xp';
 import { evaluateAchievements, type AchievementContext } from '../../data/achievements';
 const KEY = STORAGE_KEYS.progression;
 const NEEDS_SYNC_KEY = 'frenchCoach_needsSync';
@@ -71,6 +71,34 @@ export function awardXP(score: number, streak = 0): { gain: number; totalXP: num
   data.activeBoosters = validBoosters;
 
   const gemsGain = Math.floor(gain / 10) + (score >= 8 ? 5 : 0);
+
+  data.xp      = prevXP + gain;
+  data.totalXP = (data.totalXP || 0) + gain;
+  data.gems    = (data.gems || 0) + gemsGain;
+  _save(data);
+  markNeedsSync();
+
+  const newLevel = _levelFor(data.xp);
+  return { gain, totalXP: data.xp, gemsGain, totalGems: data.gems, levelUp: newLevel.index > prevLevel.index, activeBoosters: data.activeBoosters };
+}
+
+/** D5: participation path for sessions with no real assessed score — never derives XP/gems from a fabricated score. */
+export function awardParticipationXP(streak = 0): { gain: number; totalXP: number; gemsGain: number; totalGems: number; levelUp: boolean; activeBoosters: { id: string; expiresAt: string; multiplier: number }[] } {
+  const data = _load();
+  const prevXP = data.xp;
+  const prevLevel = _levelFor(prevXP);
+
+  const base = computeParticipationXPGain(streak);
+  let gain = base.gain;
+
+  const now = new Date().toISOString();
+  const validBoosters = (data.activeBoosters || []).filter(b => b.expiresAt > now);
+  validBoosters.forEach(b => {
+    gain = Math.round(gain * b.multiplier);
+  });
+  data.activeBoosters = validBoosters;
+
+  const gemsGain = Math.floor(gain / 10);
 
   data.xp      = prevXP + gain;
   data.totalXP = (data.totalXP || 0) + gain;

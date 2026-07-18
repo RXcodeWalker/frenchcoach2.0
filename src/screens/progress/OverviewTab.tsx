@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { Trophy, Target, TrendingUp, Zap } from 'lucide-react';
 import { ProgressRing } from '../../components/ProgressRing';
 import { getLevelInfo, LEVELS } from '../../domain/levels';
-import { MOCK_DAILY } from '../../data/mocks/mockDaily';
+import { getDailyStats } from '../../services/analytics/analyticsService';
 import { fadeUp } from '../../components/motion/variants';
 import { WeeklyChart } from '../../components/WeeklyChart';
 import type { UserProfile } from '../../types/index';
@@ -13,6 +13,11 @@ interface Props {
 
 export function OverviewTab({ profile }: Props) {
   const { current, progress } = getLevelInfo(profile.total_xp);
+  const dailyStats = getDailyStats(7);
+  const scoredDays = dailyStats.filter(d => d.sessions > 0);
+  const weeklyAvg = scoredDays.length
+    ? scoredDays.reduce((s, d) => s + d.score, 0) / scoredDays.length
+    : null;
   return (
     <>
       <motion.div variants={fadeUp} className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
@@ -64,9 +69,13 @@ export function OverviewTab({ profile }: Props) {
             <TrendingUp size={14} className="text-violet-400" />
             <h3 className="font-bold text-white text-sm">7-Day Performance</h3>
           </div>
-          <span className="text-[9px] text-slate-600">Avg: {(MOCK_DAILY.reduce((s, d) => s + d.score, 0) / MOCK_DAILY.length).toFixed(1)}</span>
+          <span className="text-[9px] text-slate-600">{weeklyAvg === null ? 'No sessions yet' : `Avg: ${weeklyAvg.toFixed(1)}`}</span>
         </div>
-        <WeeklyChart data={MOCK_DAILY} uid="progress" />
+        {scoredDays.length > 0 ? (
+          <WeeklyChart data={dailyStats} uid="progress" />
+        ) : (
+          <p className="text-[11px] text-slate-600 italic py-6 text-center">Complete a session to see your weekly trend.</p>
+        )}
       </motion.div>
 
       <motion.div variants={fadeUp} className="rounded-xl glass-elevated p-5">

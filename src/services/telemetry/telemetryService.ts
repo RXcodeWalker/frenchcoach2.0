@@ -3,7 +3,8 @@ import type { AIEngine } from '../../types';
 
 interface SessionCompletedProps {
   mode: 'practice' | 'exam' | 'story';
-  score: number;
+  /** null when the session has no real assessed score (e.g. exam scoring failed). */
+  score: number | null;
   duration_sec: number;
   xp_gain: number;
   topic_key?: string;

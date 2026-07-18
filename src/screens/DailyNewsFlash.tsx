@@ -201,11 +201,11 @@ export function DailyNewsFlash() {
       
       persistSession(session);
       saveSessionToBackend(session);
-      const xpResult = awardXP(session.score, state.profile.streak_days);
+      const xpResult = awardXP(newsStats.overall, state.profile.streak_days);
       const { level: newLevel } = getProgressionState();
       const newUnlockedAchievementIds = checkAchievements(
         buildAchievementContext({
-          finalScore: session.score,
+          finalScore: newsStats.overall,
           streakDays: state.profile.streak_days,
           totalSessionsAfter: state.profile.sessions_count + 1,
           topicsUsed: [],

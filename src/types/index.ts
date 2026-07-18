@@ -139,7 +139,8 @@ export interface Session {
   questionText?: string;
   transcript?: string;
   wordCount: number;
-  score: number;
+  /** null when no real assessed score exists (e.g. exam scoring failed/unavailable) — never a fabricated placeholder. */
+  score: number | null;
   xpEarned: number;
   durationSec: number;
   feedback?: Feedback;

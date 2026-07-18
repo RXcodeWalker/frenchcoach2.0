@@ -84,8 +84,19 @@ function logProviderAttempts(raw: BackendFeedbackV2, endpoint: string): void {
   }
 }
 
+/** E2: a response with no real score anywhere is invalid input, not a "5" — callers must treat this as a failure and let the fallback chain run. */
+export class NoScoreInFeedbackError extends Error {
+  constructor() {
+    super('Backend feedback contained no usable score');
+    this.name = 'NoScoreInFeedbackError';
+  }
+}
+
 function mapBackendFeedback(raw: BackendFeedback): FeedbackV2 {
-  const overall  = raw.scores?.overall ?? raw.fluency ?? 5;
+  const overall = raw.scores?.overall ?? raw.fluency;
+  if (overall === undefined) {
+    throw new NoScoreInFeedbackError();
+  }
   const grammar  = Array.isArray(raw.grammar)
     ? { critical: raw.grammar as FeedbackV2['grammar']['critical'], polish: [] }
     : { critical: (raw.grammar?.critical ?? []) as FeedbackV2['grammar']['critical'], polish: (raw.grammar?.polish ?? []) as FeedbackV2['grammar']['polish'] };
@@ -392,15 +403,22 @@ function mergeSection(acc: Partial<FeedbackV2>, type: string, data: Record<strin
   switch (type) {
     case 'snapshot': {
       const raw = data as { scores?: { comm?: number; know?: number; acc?: number; overall?: number }; fluency?: number; cefrLevel?: string; wordCount?: number };
-      const overall = raw.scores?.overall ?? raw.fluency ?? 5;
+      const overall = raw.scores?.overall ?? raw.fluency;
       return {
         ...acc,
-        scores: {
-          overall,
-          communication: raw.scores?.comm ?? overall,
-          language: raw.scores?.know ?? overall,
-          fluency: raw.scores?.acc ?? overall,
-        },
+        // E2: this is a live preview (partialFeedback), never the recorded score — omit
+        // scores entirely rather than fabricating an "overall: 5" placeholder when the
+        // snapshot doesn't carry a real one yet. The 'complete' event supplies the real score.
+        ...(overall !== undefined
+          ? {
+              scores: {
+                overall,
+                communication: raw.scores?.comm ?? overall,
+                language: raw.scores?.know ?? overall,
+                fluency: raw.scores?.acc ?? overall,
+              },
+            }
+          : {}),
         cefrLevel: raw.cefrLevel ?? acc.cefrLevel,
         wordCount: raw.wordCount ?? acc.wordCount,
       };
@@ -579,9 +597,17 @@ export async function evaluatePronunciationAudio(audioBlob: Blob, targetText: st
   if (!res.ok) throw new Error(`API pronunciation → ${res.status}`);
   const raw = await res.json() as { score: number; transcript: string; issues: import('../../types').PronunciationIssue[]; words: unknown[] };
 
-  const base = mapBackendFeedback({});
+  // E2: this endpoint only assesses pronunciation — it has no real communication/language/
+  // fluency signal, so scores.overall must not be fabricated. Callers (PronunciationLab.tsx)
+  // only ever read `.pronunciation`, never `.scores`.
   return {
-    ...base,
+    scores: { overall: 0, communication: 0, language: 0, fluency: 0 },
+    grammar: { critical: [], polish: [] },
+    vocabulary: [],
+    style: [],
+    fillers: [],
+    wordCount: 0,
+    cefrLevel: 'A2',
     pronunciation: { score: raw.score, issues: raw.issues },
   };
 }

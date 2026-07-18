@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Thermometer, Calendar, Clock, ChevronLeft, Info, Zap, BookOpen, TrendingUp } from 'lucide-react';
-import { getSessionHistory } from '../services/analytics/analyticsService';
+import { getSessionHistory, type StoredSession } from '../services/analytics/analyticsService';
 
 const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -11,7 +11,7 @@ export function FluencyHeatmap() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [hoveredDay, setHoveredDay] = useState<{ date: string; score: number; count: number } | null>(null);
-  const [history, setHistory] = useState<any[]>([]);
+  const [history, setHistory] = useState<StoredSession[]>([]);
   
   // Filters
   const [topicFilter, setTopicFilter] = useState<string>('all');
@@ -35,12 +35,15 @@ export function FluencyHeatmap() {
   }, [history, topicFilter, modeFilter]);
 
   const heatmapData = useMemo(() => {
-    const data: Record<string, { totalScore: number; count: number }> = {};
+    const data: Record<string, { totalScore: number; scoredCount: number; sessionCount: number }> = {};
     filteredHistory.forEach(s => {
       const date = s.date.slice(0, 10);
-      if (!data[date]) data[date] = { totalScore: 0, count: 0 };
-      data[date].totalScore += s.score || 0;
-      data[date].count++;
+      if (!data[date]) data[date] = { totalScore: 0, scoredCount: 0, sessionCount: 0 };
+      data[date].sessionCount++;
+      if (typeof s.score === 'number') {
+        data[date].totalScore += s.score;
+        data[date].scoredCount++;
+      }
     });
     return data;
   }, [filteredHistory]);
@@ -58,11 +61,11 @@ export function FluencyHeatmap() {
       const week = [];
       for (let i = 0; i < 7; i++) {
         const dateStr = current.toISOString().slice(0, 10);
-        const dayData = heatmapData[dateStr] || { totalScore: 0, count: 0 };
+        const dayData = heatmapData[dateStr] || { totalScore: 0, scoredCount: 0, sessionCount: 0 };
         week.push({
           date: dateStr,
-          score: dayData.count > 0 ? dayData.totalScore / dayData.count : 0,
-          count: dayData.count
+          score: dayData.scoredCount > 0 ? dayData.totalScore / dayData.scoredCount : 0,
+          count: dayData.sessionCount
         });
         current.setDate(current.getDate() + 1);
         if (current > now) break;
@@ -75,51 +78,58 @@ export function FluencyHeatmap() {
   const insights = useMemo(() => {
     if (filteredHistory.length === 0) return null;
 
-    // Time of day analysis
+    // Time of day analysis — scored sessions only; an unscored session has no fluency signal to attribute.
     const hours: Record<number, { total: number; count: number }> = {};
     const topics: Record<string, { total: number; count: number }> = {};
 
     filteredHistory.forEach(s => {
+      if (typeof s.score !== 'number') return;
       const date = new Date(s.date);
       const hour = date.getHours();
       if (!hours[hour]) hours[hour] = { total: 0, count: 0 };
-      hours[hour].total += s.score || 0;
+      hours[hour].total += s.score;
       hours[hour].count++;
 
       if (s.topicKey) {
         if (!topics[s.topicKey]) topics[s.topicKey] = { total: 0, count: 0 };
-        topics[s.topicKey].total += s.score || 0;
+        topics[s.topicKey].total += s.score;
         topics[s.topicKey].count++;
       }
     });
 
-    const bestHour = Object.entries(hours).reduce((a, b) => 
-      (b[1].total / b[1].count) > (a[1].total / a[1].count) ? b : a
-    );
-
-    const bestTopic = Object.entries(topics).length > 0 
-      ? Object.entries(topics).reduce((a, b) => 
+    const bestHour = Object.entries(hours).length > 0
+      ? Object.entries(hours).reduce((a, b) =>
           (b[1].total / b[1].count) > (a[1].total / a[1].count) ? b : a
         )
       : null;
 
+    const bestTopic = Object.entries(topics).length > 0
+      ? Object.entries(topics).reduce((a, b) =>
+          (b[1].total / b[1].count) > (a[1].total / a[1].count) ? b : a
+        )
+      : null;
+
+    const scored = filteredHistory.map(s => s.score).filter((s): s is number => typeof s === 'number');
+
     return {
-      bestHour: parseInt(bestHour[0]),
+      bestHour: bestHour ? parseInt(bestHour[0]) : null,
       bestTopic: bestTopic ? bestTopic[0] : 'General',
       totalSessions: filteredHistory.length,
-      avgFluency: filteredHistory.reduce((a, b) => a + (b.score || 0), 0) / filteredHistory.length
+      avgFluency: scored.length ? scored.reduce((a, b) => a + b, 0) / scored.length : null,
     };
   }, [filteredHistory]);
 
   const trendData = useMemo(() => {
-    if (filteredHistory.length === 0) return [];
-    
+    const scoredHistory = filteredHistory.filter(s => typeof s.score === 'number');
+    if (scoredHistory.length === 0) return [];
+
     // Group by date first
     const daily: Record<string, number> = {};
-    filteredHistory.forEach(s => {
+    scoredHistory.forEach(s => {
       const date = s.date.slice(0, 10);
-      if (!daily[date]) daily[date] = s.score;
-      else daily[date] = (daily[date] + s.score) / 2; // Rough daily avg
+      const score = s.score as number;
+      if (!(date in daily)) daily[date] = score;
+      else daily[date] = (daily[date] + score) / 2; // Rough daily avg
     });
 
     // Create a chronological list for the sparkline
@@ -128,7 +138,7 @@ export function FluencyHeatmap() {
   }, [filteredHistory]);
 
   const uniqueTopics = useMemo(() => {
-    const set = new Set(history.map(s => s.topicKey).filter(Boolean));
+    const set = new Set(history.map(s => s.topicKey).filter((t): t is string => Boolean(t)));
     return Array.from(set);
   }, [history]);
 
@@ -139,18 +149,18 @@ export function FluencyHeatmap() {
 
   const isDayInStreak = (date: string) => {
     const dayData = heatmapData[date];
-    if (!dayData || dayData.count === 0) return false;
-    
+    if (!dayData || dayData.sessionCount === 0) return false;
+
     // Check neighbors to see if it's part of a sequence
     const d = new Date(date);
     const prev = new Date(d);
     prev.setDate(d.getDate() - 1);
     const next = new Date(d);
     next.setDate(d.getDate() + 1);
-    
-    const hasPrev = heatmapData[prev.toISOString().slice(0, 10)]?.count > 0;
-    const hasNext = heatmapData[next.toISOString().slice(0, 10)]?.count > 0;
-    
+
+    const hasPrev = heatmapData[prev.toISOString().slice(0, 10)]?.sessionCount > 0;
+    const hasNext = heatmapData[next.toISOString().slice(0, 10)]?.sessionCount > 0;
+
     return hasPrev || hasNext;
   };
 
@@ -371,7 +381,7 @@ export function FluencyHeatmap() {
             
             {isLoading ? (
               <div className="h-10 w-32 bg-white/5 animate-pulse rounded-lg" />
-            ) : insights ? (
+            ) : insights && insights.bestHour !== null ? (
               <div className="flex items-end gap-2">
                 <span className="text-4xl font-black text-white italic tracking-tighter">
                   {insights.bestHour > 12 ? insights.bestHour - 12 : insights.bestHour}
@@ -451,7 +461,7 @@ export function FluencyHeatmap() {
                     {i === 1 ? 'Total Effort' : i === 2 ? 'Avg Fluency' : i === 3 ? 'Consistency' : 'Elite Days'}
                   </p>
                   <p className={`text-xl font-black ${i === 2 ? 'text-blue-400' : i === 3 ? 'text-emerald-400' : 'text-white'}`}>
-                    {i === 1 ? insights?.totalSessions : i === 2 ? insights?.avgFluency.toFixed(1) : i === 3 ? `${Math.round(((insights?.totalSessions || 0) / 168) * 100)}%` : Object.values(heatmapData).filter(d => (d.totalScore/d.count) > 8).length}
+                    {i === 1 ? insights?.totalSessions : i === 2 ? (insights?.avgFluency == null ? '—' : insights.avgFluency.toFixed(1)) : i === 3 ? `${Math.round(((insights?.totalSessions || 0) / 168) * 100)}%` : Object.values(heatmapData).filter(d => d.scoredCount > 0 && (d.totalScore / d.scoredCount) > 8).length}
                   </p>
                 </>
               )}
