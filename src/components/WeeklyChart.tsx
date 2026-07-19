@@ -4,7 +4,7 @@ interface Props {
 }
 
 export function WeeklyChart({ data, uid = 'chart' }: Props) {
-  const maxScore = Math.max(...data.map(d => d.score));
+  const maxScore = Math.max(...data.map(d => d.score), 1);
   const fillId = `${uid}-fill`;
   const lineId = `${uid}-line`;
 
