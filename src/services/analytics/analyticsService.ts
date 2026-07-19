@@ -150,7 +150,7 @@ export function getDailyStats(days = 7): DailyStats[] {
     const d = new Date(Date.now() - i * 86400000);
     const key = dateKey(d);
     const daySessions = sessions.filter(s => s.date.slice(0, 10) === key);
-    const scored = daySessions.map(s => s.score).filter((s): s is number => typeof s === 'number');
+    const scored = daySessions.map(s => s.score).filter((s): s is number => typeof s === 'number' && Number.isFinite(s));
     const avgScore = scored.length
       ? Math.round((scored.reduce((a, b) => a + b, 0) / scored.length) * 10) / 10
       : 0;
@@ -164,7 +164,7 @@ export function getStats() {
   const sessions = data.sessions;
   if (sessions.length === 0) return { totalSessions: 0, avgScore: null, bestScore: null, totalWords: data.totalWords || 0, streak: data.streak.count, byTopic: {}, recentSessions: [], allSessions: [] };
 
-  const scores = sessions.map(s => s.score).filter(s => typeof s === "number");
+  const scores = sessions.map(s => s.score).filter((s): s is number => typeof s === "number" && Number.isFinite(s));
   const avgScore = scores.length ? Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 10) / 10 : null;
   const bestScore = scores.length ? Math.max(...scores) : null;
 

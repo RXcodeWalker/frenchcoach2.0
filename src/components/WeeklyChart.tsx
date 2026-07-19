@@ -4,7 +4,12 @@ interface Props {
 }
 
 export function WeeklyChart({ data, uid = 'chart' }: Props) {
-  const maxScore = Math.max(...data.map(d => d.score), 1);
+  // Coerce any non-finite score (e.g. NaN from a bad/synced session) to 0 so we
+  // never feed NaN into SVG coordinates, which breaks the whole <path>/<circle>.
+  const points = data.map(d => ({ day: d.day, score: Number.isFinite(d.score) ? d.score : 0 }));
+  const maxScore = Math.max(...points.map(p => p.score), 1);
+  // Guard the single-point case: dividing by (length - 1) would be 0/0 → NaN.
+  const denom = Math.max(points.length - 1, 1);
   const fillId = `${uid}-fill`;
   const lineId = `${uid}-line`;
 
@@ -22,17 +27,17 @@ export function WeeklyChart({ data, uid = 'chart' }: Props) {
           </linearGradient>
         </defs>
         <path
-          d={data.map((d, i) => {
-            const x = (i / (data.length - 1)) * 700;
-            const y = 112 - (d.score / maxScore) * 100;
+          d={points.map((p, i) => {
+            const x = (i / denom) * 700;
+            const y = 112 - (p.score / maxScore) * 100;
             return i === 0 ? `M${x},${y}` : `C${x - 50},${y} ${x - 25},${y} ${x},${y}`;
           }).join(' ') + ` L700,112 L0,112 Z`}
           fill={`url(#${fillId})`}
         />
         <path
-          d={data.map((d, i) => {
-            const x = (i / (data.length - 1)) * 700;
-            const y = 112 - (d.score / maxScore) * 100;
+          d={points.map((p, i) => {
+            const x = (i / denom) * 700;
+            const y = 112 - (p.score / maxScore) * 100;
             return i === 0 ? `M${x},${y}` : `C${x - 50},${y} ${x - 25},${y} ${x},${y}`;
           }).join(' ')}
           fill="none"
@@ -41,14 +46,14 @@ export function WeeklyChart({ data, uid = 'chart' }: Props) {
           strokeLinecap="round"
           style={{ filter: 'drop-shadow(0 0 4px rgba(124, 58, 237, 0.4))' }}
         />
-        {data.map((d, i) => {
-          const x = (i / (data.length - 1)) * 700;
-          const y = 112 - (d.score / maxScore) * 100;
+        {points.map((p, i) => {
+          const x = (i / denom) * 700;
+          const y = 112 - (p.score / maxScore) * 100;
           return <circle key={i} cx={x} cy={y} r="3" fill="#7C3AED" style={{ filter: 'drop-shadow(0 0 3px rgba(124, 58, 237, 0.6))' }} />;
         })}
       </svg>
       <div className="absolute bottom-0 left-0 right-0 flex justify-between px-1 translate-y-5">
-        {data.map(d => <span key={d.day} className="text-[9px] text-slate-400 font-bold">{d.day}</span>)}
+        {points.map(p => <span key={p.day} className="text-[9px] text-slate-400 font-bold">{p.day}</span>)}
       </div>
     </div>
   );
