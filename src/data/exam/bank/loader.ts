@@ -12,7 +12,12 @@ import { ORIGINAL_PRACTICE_001 } from './fixtures/original-practice-001';
 import type { SessionQuestionSet } from '../../../domain/igcse/session/types';
 import type { AuthoredQuestionSet } from './types';
 
-const API_BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000';
+// In production the browser calls same-origin '/api/*', which Vercel rewrites
+// to the backend server-side (see vercel.json) — this avoids CORS entirely.
+// In dev we call the backend directly (localhost / VITE_API_URL).
+const API_BASE = import.meta.env.PROD
+  ? ''
+  : ((import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000');
 
 /**
  * Bounded so an unreachable/slow backend can never hang the loader — mirrors

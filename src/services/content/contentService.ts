@@ -6,7 +6,11 @@ import { OFFLINE_SCENARIOS } from '../../data/scenarios/offlineScenarios';
 // status='published' rows from Supabase; the local TypeScript bundles are the
 // implicitly-published fallback when the API is unreachable.
 
-const API_BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000';
+// Prod: same-origin '/api/*' proxied to the backend by Vercel (see vercel.json)
+// to avoid CORS. Dev: call the backend directly.
+const API_BASE = import.meta.env.PROD
+  ? ''
+  : ((import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000');
 
 // ── snake_case (DB) → camelCase (app types) mappers ──────────────────────────
 interface QuestionRow {

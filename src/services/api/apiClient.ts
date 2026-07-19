@@ -7,7 +7,11 @@ import { classifyTier, buildTier0Result, buildTier1LocalResult } from '../coachi
 import { applyQualityGate } from '../coaching/qualityGate';
 import { validateBackendFeedback, SchemaValidationError } from './feedbackSchema';
 
-const API_BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000';
+// Prod: same-origin '/api/*' proxied to the backend by Vercel (see vercel.json)
+// to avoid CORS. Dev: call the backend directly.
+const API_BASE = import.meta.env.PROD
+  ? ''
+  : ((import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000');
 
 const ENGINE_TIMEOUT_MS: Record<AIEngine, number> = {
   gemini: 18000,
