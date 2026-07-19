@@ -87,3 +87,27 @@ export function getOfflineQuestionSet(questionSetId: string): SessionQuestionSet
   const validated = parseAuthoredQuestionSet(fixture);
   return toSessionQuestionSet(validated);
 }
+
+/**
+ * Fetches one published set's raw AuthoredQuestionSet (pre-adaptation) —
+ * used by exam-selection UI that needs title/subTopic metadata, never by
+ * the conduct engine. Backend-first, falling back to the offline fixture.
+ */
+async function getAuthoredQuestionSet(questionSetId: string): Promise<AuthoredQuestionSet | undefined> {
+  const remote = await fetchPublishedSet(questionSetId);
+  if (remote) return remote;
+
+  const fixture = OFFLINE_FIXTURES[questionSetId];
+  if (!fixture) return undefined;
+  return parseAuthoredQuestionSet(fixture);
+}
+
+/**
+ * Lists every published set's raw AuthoredQuestionSet, for exam-selection UI.
+ * Usability-only (S11 §8) — no adaptive/weighted/history-aware selection.
+ */
+export async function listPublishedQuestionSets(): Promise<AuthoredQuestionSet[]> {
+  const ids = await listPublishedQuestionSetIds();
+  const sets = await Promise.all(ids.map(getAuthoredQuestionSet));
+  return sets.filter((s): s is AuthoredQuestionSet => s !== undefined);
+}

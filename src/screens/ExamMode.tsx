@@ -24,8 +24,9 @@ import type { ExaminerAction } from '../domain/igcse/session/types';
 import type { SessionTranscript } from '../domain/igcse/stt/types';
 import type { EnvelopeView } from '../domain/igcse/envelope/envelopeView';
 import { ExamGreeting } from './exam/ExamGreeting';
+import { ExamSelect } from './exam/ExamSelect';
 
-type ExamState = 'intro' | 'greeting' | 'running' | 'review' | 'scoring' | 'results';
+type ExamState = 'select' | 'intro' | 'greeting' | 'running' | 'review' | 'scoring' | 'results';
 
 /** A8: exam duration (10-15 min) only marginally exceeds Render free tier's ~15 min idle window — the keepalive is what guarantees warmth by the time scoring is needed. */
 const KEEPALIVE_INTERVAL_MS = 5 * 60 * 1000;
@@ -35,7 +36,7 @@ const GREETING_TEXT = 'Bonjour ! Comment ça va ? Es-tu prêt ? On va commencer.
 export function ExamMode() {
   const { state, dispatch } = useApp();
   const navigate = useNavigate();
-  const [examState, setExamState] = useState<ExamState>('intro');
+  const [examState, setExamState] = useState<ExamState>('select');
   const [action, setAction] = useState<ExaminerAction | null>(null);
   const [voiceMuted, setVoiceMuted] = useState(isExaminerVoiceMuted());
   const [transcript, setTranscript] = useState<SessionTranscript | null>(null);
@@ -48,6 +49,7 @@ export function ExamMode() {
   const sessionRef = useRef<SimulationSession | null>(null);
   const sessionIdRef = useRef<string>('');
   const turnStartRef = useRef<number>(0);
+  const selectedQuestionSetIdRef = useRef<string | undefined>(undefined);
 
   // A8: keepalive ping while the exam runs, so the scoring service stays warm
   // through the ~15 min Render free-tier idle window until scoring is needed.
@@ -63,6 +65,7 @@ export function ExamMode() {
   };
 
   const startExam = async () => {
+    const questionSetId = selectedQuestionSetIdRef.current;
     // A8: the exam itself is the warm-up window — ping now, invisibly, so the
     // service is awake well before the candidate finishes and scoring is requested.
     pingScoringServiceHealth();
@@ -77,14 +80,18 @@ export function ExamMode() {
     sessionIdRef.current = sessionId;
     clock.start();
 
-    const publishedIds = await listPublishedQuestionSetIds();
-    const questionSetId = publishedIds.length > 0
-      ? publishedIds[Math.floor(Math.random() * publishedIds.length)]
-      : 'original-practice-001';
+    let questionSet = questionSetId ? await getOriginalQuestionSet(questionSetId) : undefined;
 
-    const questionSet = await getOriginalQuestionSet(questionSetId);
     if (!questionSet) {
-      throw new Error(`ExamMode: question set "${questionSetId}" could not be resolved (backend and offline fixture both failed)`);
+      const publishedIds = await listPublishedQuestionSetIds();
+      const fallbackId = publishedIds.length > 0
+        ? publishedIds[Math.floor(Math.random() * publishedIds.length)]
+        : 'original-practice-001';
+
+      questionSet = await getOriginalQuestionSet(fallbackId);
+      if (!questionSet) {
+        throw new Error(`ExamMode: question set "${fallbackId}" could not be resolved (backend and offline fixture both failed)`);
+      }
     }
 
     const session = new SimulationSession(sessionId, questionSet, clock.nowS, {
@@ -274,6 +281,21 @@ export function ExamMode() {
     setVoiceMuted(next);
   };
 
+  if (examState === 'select') {
+    return (
+      <ExamSelect
+        onSelect={(id) => {
+          selectedQuestionSetIdRef.current = id;
+          setExamState('intro');
+        }}
+        onAutoFallback={() => {
+          selectedQuestionSetIdRef.current = undefined;
+          setExamState('intro');
+        }}
+      />
+    );
+  }
+
   if (examState === 'intro') return <ExamIntro onStart={enterGreeting} onBack={() => navigate('/')} />;
 
   if (examState === 'greeting') {
@@ -303,7 +325,10 @@ export function ExamMode() {
         envelopeView={envelopeView}
         scoringError={scoringError}
         onRetryScoring={retryScoring}
-        onRetake={() => setExamState('intro')}
+        onRetake={() => {
+          selectedQuestionSetIdRef.current = undefined;
+          setExamState('select');
+        }}
         onHome={() => navigate('/')}
       />
     );
