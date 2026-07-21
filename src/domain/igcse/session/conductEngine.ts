@@ -15,10 +15,12 @@
 import type {
   CandidateTurnResult,
   ConductEngineState,
+  ConductHint,
   ConductLogEntry,
   ConductPhase,
   ExaminerAction,
   ExaminerTrigger,
+  MemoryEntry,
   RolePlayTaskState,
   SessionQuestion,
   SessionQuestionSet,
@@ -26,6 +28,8 @@ import type {
   StepResult,
   TopicQuestionState,
 } from './types';
+import { canonicalizeForMatch, normalizeForMatch } from '../text/normalize';
+import { stripFillers } from './utteranceIntents';
 
 /** Below this word count, a candidate turn is treated as a non-answer (S10 scope — no LLM relevance grading). */
 export const RELEVANCE_WORD_THRESHOLD = 3;
@@ -78,6 +82,95 @@ export const AUTHORIZED_EXTENSION_PROMPTS = ['Donne-moi plus de détails.', 'Peu
  * see that function for the leak-proofing rationale.
  */
 export const TRANSITION_MARKERS = ["D'accord.", 'Merci.'] as const;
+
+// ── Conversational memory + callbacks (Change C, deterministic) ──────────────
+
+/** Max verbatim tokens kept in a memory span's `verbatimSpan` — enough to quote back, short enough to sidestep gender/number agreement. */
+const MEMORY_SPAN_MAX_TOKENS = 6;
+/** A span must have at least this many tokens after filler-stripping to qualify as a clean callback anchor (else skip to authored further-question). */
+const MEMORY_SPAN_MIN_TOKENS = 2;
+/** Cap on the retained conversationMemory list (bounded, per-part dedupe already limits it further). */
+const MAX_MEMORY_ENTRIES = 8;
+
+/**
+ * Callback templates (Change C). Each quotes the candidate's own verbatim span,
+ * so no examiner free text and no gender/number agreement risk. Topic phase only;
+ * a callback consumes a further-question slot (see checkFloorOrAdvancePart). Wording
+ * audited against docs/architecture/01-cambridge-rubric-source.md — neutral,
+ * original, never TN-verbatim, `tu`-register to match the topic questions.
+ */
+export const CALLBACK_TEMPLATES = [
+  'Tu as parlé de « {verbatimSpan} ». Peux-tu développer ?',
+  'Tu as mentionné « {verbatimSpan} ». Pourquoi ?',
+] as const;
+
+/** Fills a callback template's single `{verbatimSpan}` slot. Kept pure so the wording-provenance test can reconstruct it. */
+export function renderCallback(templateIndex: number, verbatimSpan: string): string {
+  const template = CALLBACK_TEMPLATES[templateIndex % CALLBACK_TEMPLATES.length];
+  return template.replace('{verbatimSpan}', verbatimSpan);
+}
+
+/**
+ * Deterministic verbatim-span selection from a candidate transcript (Change C):
+ * strip leading fillers (same rule as utteranceIntents.stripFillers), take the
+ * first content span up to MEMORY_SPAN_MAX_TOKENS tokens. Returns null when no
+ * clean span of at least MEMORY_SPAN_MIN_TOKENS tokens survives — the caller then
+ * falls back to the authored further-question. No LLM, so identical across providers.
+ */
+export function selectVerbatimSpan(transcript: string): { verbatimSpan: string; normalizedKey: string } | null {
+  const stripped = stripFillers(normalizeForMatch(transcript));
+  if (stripped.length === 0) return null;
+
+  const tokens = stripped.split(/\s+/).filter(Boolean).slice(0, MEMORY_SPAN_MAX_TOKENS);
+  if (tokens.length < MEMORY_SPAN_MIN_TOKENS) return null;
+
+  const verbatimSpan = tokens.join(' ');
+  const normalizedKey = canonicalizeForMatch(verbatimSpan);
+  if (normalizedKey.length === 0) return null;
+
+  return { verbatimSpan, normalizedKey };
+}
+
+/**
+ * Appends a memory entry for a successfully-answered topic turn iff a clean span
+ * qualifies AND it isn't a duplicate (by normalizedKey, within the same part).
+ * Bounded to MAX_MEMORY_ENTRIES (oldest dropped). Pure; deterministic.
+ */
+function recordMemory(
+  state: ConductEngineState,
+  part: 'topic1' | 'topic2',
+  questionId: string | null,
+  transcript: string,
+): ConductEngineState {
+  const selected = selectVerbatimSpan(transcript);
+  if (!selected) return state;
+
+  const duplicate = state.conversationMemory.some(
+    (m) => m.part === part && m.normalizedKey === selected.normalizedKey,
+  );
+  if (duplicate) return state;
+
+  const entry: MemoryEntry = {
+    part,
+    questionId,
+    verbatimSpan: selected.verbatimSpan,
+    normalizedKey: selected.normalizedKey,
+  };
+  const next = [...state.conversationMemory, entry].slice(-MAX_MEMORY_ENTRIES);
+  return { ...state, conversationMemory: next };
+}
+
+/**
+ * The freshest callback-eligible memory for a further-question slot: the
+ * immediately-preceding answer's entry, scoped to the current topic part only
+ * (a topic2 callback never references topic1). Returns null when the last entry
+ * isn't for this part (recency rule — never reaches back to an arbitrary old turn).
+ */
+export function latestCallbackFor(state: ConductEngineState, part: 'topic1' | 'topic2'): MemoryEntry | null {
+  const last = state.conversationMemory[state.conversationMemory.length - 1];
+  if (!last || last.part !== part) return null;
+  return last;
+}
 
 /**
  * Deterministic decision on whether to ask an extension prompt after a successful
@@ -154,6 +247,8 @@ export function initConductEngineState(questionSet: SessionQuestionSet): Conduct
     lastExtensionIndex: null,
     topicSpeakingS: { topic1: 0, topic2: 0 },
     transitionCount: 0,
+    conversationMemory: [],
+    lastCallbackKey: null,
     clockS: 0,
     nextSeq: 1,
   };
@@ -204,14 +299,46 @@ export function step(
 
   const result = input.result;
   const relevant = result.relevant;
+  const conductHint = input.conductHint;
 
   if (state.phase.kind === 'rolePlay') {
-    return stepRolePlay(questionSet, state, result, relevant);
+    return stepRolePlay(questionSet, state, result, relevant, conductHint);
   }
   if (state.phase.kind === 'topic') {
-    return stepTopic(questionSet, state, state.phase.part, state.phase.questionIndex, result, relevant);
+    return stepTopic(questionSet, state, state.phase.part, state.phase.questionIndex, result, relevant, conductHint);
   }
   return { state, actions: [] };
+}
+
+/**
+ * Clarification/repeat conduct-hint (Change B): the LLM caught a meta-utterance
+ * the deterministic classifier missed on messy STT. Authentic Cambridge —
+ * clarification is answered with a verbatim REPEAT, never an explanation. This
+ * treats the hinted turn as a non-answer so it routes to the engine's existing
+ * verbatim-REPEAT path, while carrying a distinct trigger.
+ *
+ * The `requestedRepeat: true` set here is on a LOCAL COPY consumed only by this
+ * reducer's own trigger derivation (so a repeat_request hint reads 'repeat_requested'
+ * via the engine's existing `result.requestedRepeat` branch) — it is a different
+ * object from the CandidateTurnResult the runtime driver already logged via
+ * candidateTurnToLogEntry BEFORE calling step(). It NEVER touches the candidate log
+ * entry's `requestedRepeat` or `intent` fields (those stay the deterministic
+ * classifier's job, written by the caller from the ORIGINAL result/transcript).
+ */
+function applyConductHint(result: CandidateTurnResult, hint: ConductHint | undefined): {
+  result: CandidateTurnResult;
+  relevant: boolean;
+  clarificationTrigger: boolean;
+} {
+  if (hint === undefined) {
+    return { result, relevant: result.relevant, clarificationTrigger: false };
+  }
+  // Force the non-answer repeat path; a clarification carries the distinct trigger below.
+  return {
+    result: { ...result, didRespond: false, requestedRepeat: hint === 'repeat_request' ? true : result.requestedRepeat },
+    relevant: false,
+    clarificationTrigger: hint === 'clarification_request',
+  };
 }
 
 // ── Role play (5 tasks, in order; never rephrase; no extensions; PAUSE two-part) ──
@@ -219,9 +346,14 @@ export function step(
 function stepRolePlay(
   questionSet: SessionQuestionSet,
   state: ConductEngineState,
-  result: CandidateTurnResult,
-  relevant: boolean,
+  rawResult: CandidateTurnResult,
+  rawRelevant: boolean,
+  hint?: ConductHint,
 ): StepResult {
+  const { result, relevant, clarificationTrigger } = applyConductHint(
+    { ...rawResult, relevant: rawRelevant },
+    hint,
+  );
   const phase = state.phase as Extract<ConductPhase, { kind: 'rolePlay' }>;
   const rpQuestions = rolePlayQuestions(questionSet);
   const task = rpQuestions[phase.taskIndex];
@@ -244,15 +376,18 @@ function stepRolePlay(
     return advanceRolePlay(questionSet, nextState, phase.taskIndex);
   }
 
-  // No response / irrelevant: repeat once (verbatim, never rephrase), then advance.
+  // No response / irrelevant / clarification: repeat once (verbatim, never rephrase
+  // and never explain — authentic Cambridge), then advance.
   if (!taskState.repeatUsed) {
     const updatedTask: RolePlayTaskState = { ...taskState, repeatUsed: true };
     const nextState = replaceRolePlayTask(state, phase.taskIndex, updatedTask);
-    const trigger: ExaminerTrigger = result.requestedRepeat
-      ? 'repeat_requested'
-      : result.didRespond
-        ? 'irrelevant_answer'
-        : 'no_response';
+    const trigger: ExaminerTrigger = clarificationTrigger
+      ? 'clarification_requested'
+      : result.requestedRepeat
+        ? 'repeat_requested'
+        : result.didRespond
+          ? 'irrelevant_answer'
+          : 'no_response';
     const action = makeAction(nextState, 'REPEAT', 'rolePlay', task.questionId, 'main', task.mainText, trigger);
     return { state: bumpSeq(nextState), actions: [action] };
   }
@@ -319,20 +454,33 @@ function stepTopic(
   state: ConductEngineState,
   part: 'topic1' | 'topic2',
   questionIndex: number,
-  result: CandidateTurnResult,
-  relevant: boolean,
+  rawResult: CandidateTurnResult,
+  rawRelevant: boolean,
+  hint?: ConductHint,
 ): StepResult {
+  const { result, relevant, clarificationTrigger } = applyConductHint(
+    { ...rawResult, relevant: rawRelevant },
+    hint,
+  );
   const questions = topicQuestions(questionSet, part);
   const question = questions[questionIndex];
   const qState = topicQuestionStates(state, part)[questionIndex];
 
   const speakingS = state.topicSpeakingS[part] + result.responseDurationS;
-  const stateWithSpeaking: ConductEngineState = {
+  const baseWithSpeaking: ConductEngineState = {
     ...state,
     topicSpeakingS: { ...state.topicSpeakingS, [part]: speakingS },
   };
 
   const didAnswer = result.didRespond && relevant;
+
+  // Deterministic conversational memory (Change C): record every successful
+  // topic answer's transcript-derived span. Recorded from the ORIGINAL (raw)
+  // transcript — a conduct-hinted turn is forced to didAnswer=false above, so it
+  // never reaches here; only genuine substantive answers land in memory.
+  const stateWithSpeaking: ConductEngineState = didAnswer
+    ? recordMemory(baseWithSpeaking, part, question.questionId, result.transcript)
+    : baseWithSpeaking;
 
   if (qState.subState === 'awaitingAnswer') {
     if (didAnswer) {
@@ -341,11 +489,13 @@ function stepTopic(
     if (!qState.repeatUsed) {
       const updated: TopicQuestionState = { ...qState, subState: 'repeated', repeatUsed: true };
       const nextState = replaceTopicQuestionState(stateWithSpeaking, part, questionIndex, updated);
-      const trigger: ExaminerTrigger = result.requestedRepeat
-        ? 'repeat_requested'
-        : result.didRespond
-          ? 'irrelevant_answer'
-          : 'no_response';
+      const trigger: ExaminerTrigger = clarificationTrigger
+        ? 'clarification_requested'
+        : result.requestedRepeat
+          ? 'repeat_requested'
+          : result.didRespond
+            ? 'irrelevant_answer'
+            : 'no_response';
       const action = makeAction(nextState, 'REPEAT', part, question.questionId, 'main', question.mainText, trigger);
       return { state: bumpSeq(nextState), actions: [action] };
     }
@@ -369,11 +519,13 @@ function stepTopic(
       const updated: TopicQuestionState = { ...qState, secondPartRepeatUsed: true };
       const nextState = replaceTopicQuestionState(stateWithSpeaking, part, questionIndex, updated);
       const secondPartText = question.secondPartText ?? question.mainText;
-      const trigger: ExaminerTrigger = result.requestedRepeat
-        ? 'repeat_requested'
-        : result.didRespond
-          ? 'irrelevant_answer'
-          : 'no_response';
+      const trigger: ExaminerTrigger = clarificationTrigger
+        ? 'clarification_requested'
+        : result.requestedRepeat
+          ? 'repeat_requested'
+          : result.didRespond
+            ? 'irrelevant_answer'
+            : 'no_response';
       const action = makeAction(nextState, 'REPEAT', part, question.questionId, 'main', secondPartText, trigger);
       return { state: bumpSeq(nextState), actions: [action] };
     }
@@ -389,7 +541,11 @@ function stepTopic(
       const updated: TopicQuestionState = { ...qState, alternativeRepeatUsed: true };
       const nextState = replaceTopicQuestionState(stateWithSpeaking, part, questionIndex, updated);
       const altText = question.alternativeTexts[0];
-      const trigger: ExaminerTrigger = result.requestedRepeat ? 'repeat_requested' : 'failed_repeat';
+      const trigger: ExaminerTrigger = clarificationTrigger
+        ? 'clarification_requested'
+        : result.requestedRepeat
+          ? 'repeat_requested'
+          : 'failed_repeat';
       const action = makeAction(nextState, 'REPEAT', part, question.questionId, 'alternative', altText, trigger);
       return { state: bumpSeq(nextState), actions: [action] };
     }
@@ -558,6 +714,25 @@ function checkFloorOrAdvancePart(
 
   if (speakingS < TOPIC_SPEAKING_FLOOR_S && askedSoFar < MAX_FURTHER_QUESTIONS_PER_TOPIC) {
     const nextCount = askedSoFar + 1;
+
+    // Change C: a fresh, non-reused callback quoting the candidate's own words
+    // consumes this further-question slot; otherwise fall back to the authored
+    // on-topic further-question (skip-if-empty). Callback quotes a verbatim span,
+    // so no examiner free text and no agreement risk. Deterministic either way.
+    const callback = latestCallbackFor(state, part);
+    const callbackFresh = callback !== null && callback.normalizedKey !== state.lastCallbackKey;
+
+    if (callbackFresh && callback) {
+      const nextState: ConductEngineState = {
+        ...state,
+        furtherAskedCount: { ...state.furtherAskedCount, [part]: nextCount },
+        lastCallbackKey: callback.normalizedKey,
+      };
+      const promptText = renderCallback(askedSoFar, callback.verbatimSpan);
+      const action = makeAction(nextState, 'FURTHER_QUESTION', part, null, null, promptText, 'callback');
+      return { state: bumpSeq(nextState), actions: [action] };
+    }
+
     const nextState: ConductEngineState = {
       ...state,
       furtherAskedCount: { ...state.furtherAskedCount, [part]: nextCount },

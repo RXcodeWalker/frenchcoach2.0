@@ -26,11 +26,13 @@ export type ExaminerActionKind =
 export type ExaminerTrigger =
   | 'scripted'
   | 'repeat_requested'
+  | 'clarification_requested'
   | 'no_response'
   | 'irrelevant_answer'
   | 'failed_repeat'
   | 'below_min_duration'
-  | 'extension';
+  | 'extension'
+  | 'callback';
 
 /** One instruction from the reducer to the runtime driver. */
 export interface ExaminerAction {
@@ -57,8 +59,20 @@ export interface CandidateTurnResult {
   requestedRepeat: boolean;
 }
 
+/**
+ * Conduct-only routing hint (Change B), distinct from `intent`. The runtime
+ * driver may pass this when the understanding-only interpreter caught a
+ * clarification/repeat the deterministic classifier missed on messy STT. It
+ * drives the verbatim-REPEAT path but is NEVER written to the ConductLog's
+ * candidate `intent` (blanking authority stays the deterministic classifier),
+ * so it can never affect the scored transcript — only which action the examiner
+ * performs live. Surfaced only as the examiner action's `trigger`, which
+ * buildSessionTranscript ignores.
+ */
+export type ConductHint = 'clarification_request' | 'repeat_request';
+
 export type StepInput =
-  | { kind: 'candidateTurn'; result: CandidateTurnResult }
+  | { kind: 'candidateTurn'; result: CandidateTurnResult; conductHint?: ConductHint }
   | { kind: 'clockTick' };
 
 // ── ConductLog (append-only, durable debug/replay artifact) ───────────────────
@@ -134,6 +148,21 @@ export type ConductPhase =
   | { kind: 'topic'; part: 'topic1' | 'topic2'; questionIndex: number }
   | { kind: 'complete' };
 
+/**
+ * One deterministic, transcript-derived memory of a candidate answer (Change C).
+ * Entirely reconstructable from the ConductLog — no LLM output ever writes here,
+ * so callbacks are identical across model/provider changes. `verbatimSpan` is a
+ * fixed-rule substring of the candidate's transcript (filler-stripped, first
+ * content span up to N tokens); `normalizedKey` is its canonicalized form, used
+ * for dedupe.
+ */
+export interface MemoryEntry {
+  part: 'topic1' | 'topic2';
+  questionId: string | null;
+  verbatimSpan: string;
+  normalizedKey: string;
+}
+
 export interface ConductEngineState {
   phase: ConductPhase;
   rolePlayTasks: RolePlayTaskState[];
@@ -154,6 +183,18 @@ export interface ConductEngineState {
    * its parity a fragile basis for wording choice.
    */
   transitionCount: number;
+  /**
+   * Deterministic conversational memory (Change C): capped list of transcript-
+   * derived answer spans, appended after each successful topic answer. Scoped and
+   * deduped by the callback logic — never an LLM artifact, so replayable from the log.
+   */
+  conversationMemory: MemoryEntry[];
+  /**
+   * normalizedKey of the most recently quoted callback (Change C), so a second
+   * further-question slot never re-quotes the same span even if no fresher answer
+   * qualified in between. null until the first callback is emitted.
+   */
+  lastCallbackKey: string | null;
   clockS: number;
   nextSeq: number;
 }

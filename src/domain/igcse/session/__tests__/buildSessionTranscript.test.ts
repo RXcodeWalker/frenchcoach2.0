@@ -141,6 +141,38 @@ describe('buildSessionTranscript', () => {
     expect(candidateUtterances[2].words.length).toBeGreaterThan(0);
   });
 
+  it('Change B: blanks scored text/words for clarification_request candidate entries too', () => {
+    const entries: ConductLogEntry[] = [
+      examinerActionToLogEntry(
+        { kind: 'READ_MAIN', part: 'rolePlay', questionId: 'rp1', variant: 'main', text: 'Bonjour.', trigger: 'scripted' },
+        1,
+        0,
+      ),
+      candidateTurnToLogEntry(
+        { didRespond: false, relevant: false, transcript: 'Que veut dire ce mot ?', wordCount: 5, responseDurationS: 2, requestedRepeat: false },
+        2,
+        2,
+        'rolePlay',
+        'rp1',
+        false,
+        'clarification_request',
+      ),
+    ];
+    const log: ConductLog = { sessionId: 'test-session-clarify', questionSetId: qs.questionSetId, entries };
+
+    const transcript = buildSessionTranscript(log, qs, {
+      sessionId: log.sessionId,
+      recordedAt: '2026-01-01T00:00:00.000Z',
+      contentProvenance: 'original-practice',
+      audio: { sha256: '0'.repeat(64), durationS: 60, sampleRateHz: 16000, channels: 1 },
+      questionSetHash: '1'.repeat(64),
+    });
+
+    const candidateUtterances = transcript.utterances.filter((u) => u.role === 'candidate');
+    expect(candidateUtterances[0].text).toBe('');
+    expect(candidateUtterances[0].words).toHaveLength(0);
+  });
+
   it('cross-checks examinerEvents against annotateExaminer for deterministic main_question cases', () => {
     const log = driveRolePlay();
     const transcript = buildSessionTranscript(log, qs, {
@@ -235,5 +267,51 @@ describe('buildSessionTranscript', () => {
     const transitionUtteranceIds = new Set(transitionUtterances.map((u) => u.utteranceId));
     const eventsOnTransitions = transcript.examinerEvents.filter((e) => transitionUtteranceIds.has(e.utteranceId));
     expect(eventsOnTransitions).toHaveLength(0);
+  });
+
+  it('Invariant 3 (reproducibility): a fixed ConductLog + questionSet yields a byte-identical SessionTranscript across repeated builds', () => {
+    const log = driveRolePlay();
+    const meta = {
+      sessionId: log.sessionId,
+      recordedAt: '2026-01-01T00:00:00.000Z',
+      contentProvenance: 'original-practice' as const,
+      audio: { sha256: '0'.repeat(64), durationS: 60, sampleRateHz: 16000, channels: 1 },
+      questionSetHash: '1'.repeat(64),
+    };
+
+    const first = buildSessionTranscript(log, qs, meta);
+    const second = buildSessionTranscript(log, qs, meta);
+    const third = buildSessionTranscript(structuredClone(log), qs, meta);
+
+    expect(JSON.stringify(first)).toBe(JSON.stringify(second));
+    expect(JSON.stringify(first)).toBe(JSON.stringify(third));
+  });
+
+  it('Invariant 3: a ConductLog carrying a conductHint-driven clarification REPEAT (trigger only) still reproduces byte-identically — trigger is dropped, never randomized', () => {
+    const entries: ConductLogEntry[] = [
+      examinerActionToLogEntry(
+        { kind: 'READ_MAIN', part: 'rolePlay', questionId: 'rp1', variant: 'main', text: 'Bonjour.', trigger: 'scripted' },
+        1,
+        0,
+      ),
+      examinerActionToLogEntry(
+        { kind: 'REPEAT', part: 'rolePlay', questionId: 'rp1', variant: 'main', text: 'Bonjour.', trigger: 'clarification_requested' },
+        2,
+        1,
+      ),
+    ];
+    const log: ConductLog = { sessionId: 'test-session-repro-clarify', questionSetId: qs.questionSetId, entries };
+    const meta = {
+      sessionId: log.sessionId,
+      recordedAt: '2026-01-01T00:00:00.000Z',
+      contentProvenance: 'original-practice' as const,
+      audio: { sha256: '0'.repeat(64), durationS: 10, sampleRateHz: 16000, channels: 1 },
+      questionSetHash: '1'.repeat(64),
+    };
+
+    const first = buildSessionTranscript(log, qs, meta);
+    const second = buildSessionTranscript(log, qs, meta);
+    expect(JSON.stringify(first)).toBe(JSON.stringify(second));
+    expect(JSON.stringify(first)).not.toContain('"trigger"');
   });
 });

@@ -17,14 +17,17 @@ import {
 import { classifyUtteranceIntent } from '../../domain/igcse/session/utteranceIntents';
 import { buildSessionTranscript } from '../../domain/igcse/session/buildSessionTranscript';
 import { hashQuestionSet } from '../../domain/igcse/content/hashQuestionSet';
+import { interpretUtterance } from './interpretUtterance';
 import type {
   CandidateTurnResult,
   ConductEngineState,
+  ConductHint,
   ConductLog,
   ConductLogEntry,
   ExaminerAction,
   SessionQuestionSet,
 } from '../../domain/igcse/session/types';
+import type { SessionPart } from '../../domain/igcse/stt/types';
 import type { ContentProvenance, SessionTranscript } from '../../domain/igcse/stt/types';
 import { speakExaminerText } from './examinerVoice';
 
@@ -107,8 +110,12 @@ export class SimulationSession {
     }
     const startS = this.getClockS() - turn.responseDurationS;
     const wc = wordCount(turn.transcript);
-    // Button repeat and a spoken repeat request are treated identically (C4):
-    // both route to REPEAT, never to a content classification.
+    const { part, questionId } = this.currentAction;
+
+    // Blanking authority stays the DETERMINISTIC classifier (C4): this `intent` is
+    // the sole value written to the ConductLog candidate entry, and it is the sole
+    // signal buildSessionTranscript reads for scored-text blanking. No LLM signal
+    // ever writes it. Button repeat and a spoken repeat request are identical.
     const intent = turn.requestedRepeat ? 'repeat_request' : classifyUtteranceIntent(turn.transcript);
 
     const didRespond = intent === 'dont_know' ? true : intent === 'answer' ? turn.transcript.trim().length > 0 : false;
@@ -122,15 +129,57 @@ export class SimulationSession {
     };
     candidateResult.relevant = intent === 'answer' ? computeRelevance(candidateResult) : false;
 
-    const { part, questionId } = this.currentAction;
+    // Understanding-only interpreter (Change A/B/D): boosts live conduct-routing
+    // recall over messy STT. Its output is a LOCAL variable — never placed on
+    // CandidateTurnResult, the ConductLog, or the SessionTranscript (enforced by an
+    // import-boundary test). It only produces a conduct-hint when it caught a
+    // clarification/repeat the deterministic classifier missed; on a button repeat
+    // or when the classifier already agrees, no hint is needed. Falls back
+    // deterministically (no added latency) when unavailable — see interpretUtterance.
+    const conductHint = await this.deriveConductHint(turn, intent, part);
+
     this.entries.push(
       candidateTurnToLogEntry(candidateResult, this.seq, startS, part, questionId, candidateResult.relevant, intent),
     );
     this.seq += 1;
 
-    const result = step(this.questionSet, this.engineState, { kind: 'candidateTurn', result: candidateResult });
+    const result = step(this.questionSet, this.engineState, {
+      kind: 'candidateTurn',
+      result: candidateResult,
+      ...(conductHint ? { conductHint } : {}),
+    });
     this.engineState = result.state;
     return this.emitActions(result.actions);
+  }
+
+  /**
+   * Change B/D: the interpreter's ONLY authoritative effect — a conduct-routing
+   * hint when the LLM caught a clarification/repeat meta-utterance the deterministic
+   * classifier missed on messy STT. Returns undefined (no hint) when:
+   *  - it's a button repeat (already routed deterministically), or
+   *  - the deterministic classifier didn't say 'answer' (it already caught the
+   *    meta-utterance, so its own routing + blanking are authoritative), or
+   *  - the interpreter did not observe a clarification/repeat.
+   * The hint drives the verbatim-REPEAT path but never writes the candidate log
+   * entry's `intent`, so it cannot affect the scored transcript.
+   */
+  private async deriveConductHint(
+    turn: SimulationTurnInput,
+    intent: ReturnType<typeof classifyUtteranceIntent> | 'repeat_request',
+    part: SessionPart,
+  ): Promise<ConductHint | undefined> {
+    // A button repeat and any deterministic non-'answer' classification are already
+    // handled by the engine's own routing — no interpreter round-trip needed.
+    if (turn.requestedRepeat || intent !== 'answer') return undefined;
+
+    const observation = await interpretUtterance(turn.transcript, { part });
+    // A deterministic fallback observation adds nothing the classifier didn't
+    // already produce (it IS the classifier), so it never overrides to a hint.
+    if (observation.fallback) return undefined;
+
+    if (observation.speechAct === 'clarification_request') return 'clarification_request';
+    if (observation.speechAct === 'repeat_request') return 'repeat_request';
+    return undefined;
   }
 
   getConductLog(): ConductLog {

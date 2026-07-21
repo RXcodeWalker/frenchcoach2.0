@@ -19,6 +19,7 @@ import { saveConductLog } from '../services/exam/conductLogStore';
 import { saveStoredTranscript } from '../services/exam/localTranscriptStore';
 import { isExaminerVoiceMuted, setExaminerVoiceMuted, stopExaminerVoice, speakExaminerText } from '../services/exam/examinerVoice';
 import { pingScoringServiceHealth, scoreExamTranscript, ScoringApiError } from '../services/exam/scoringApiClient';
+import { pingInterpretServiceHealth } from '../services/exam/interpretUtterance';
 import { getOriginalQuestionSet, getAuthoredQuestionSet, listPublishedQuestionSetIds } from '../data/exam/bank/loader';
 import type { ExaminerAction } from '../domain/igcse/session/types';
 import type { SessionTranscript } from '../domain/igcse/stt/types';
@@ -101,6 +102,9 @@ export function ExamMode() {
     // A8: the exam itself is the warm-up window — ping now, invisibly, so the
     // service is awake well before the candidate finishes and scoring is requested.
     pingScoringServiceHealth();
+    // Change D: warm the understanding-only interpret endpoint the same way, so the
+    // first turn's routing round-trip doesn't pay a cold start (falls back deterministically if it does).
+    pingInterpretServiceHealth();
 
     // Discard the greeting's reply entirely — abort any in-progress recognizer
     // so it never overlaps with the first real turn's recording.

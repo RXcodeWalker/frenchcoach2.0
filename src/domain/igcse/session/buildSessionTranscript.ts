@@ -8,9 +8,10 @@
  * debug/replay data only; the scored SessionTranscript schema is untouched.
  *
  * `intent` (C4) is the one deliberate exception: a candidate entry classified
- * as `repeat_request` or `non_french` has its scored text/words blanked below
- * (kept verbatim in the ConductLog for replay) so a spoken "peux-tu répéter"
- * or an English aside never gets joined into the scored response. `dont_know`
+ * as `repeat_request`, `clarification_request`, or `non_french` has its scored
+ * text/words blanked below (kept verbatim in the ConductLog for replay) so a
+ * spoken "peux-tu répéter", a "que veut dire…" clarification, or an English aside
+ * never gets joined into the scored response. `dont_know`
  * keeps its real text — it's a substantive (if unhelpful) answer. `intent`
  * itself is still never serialized onto the output Utterance, same as the
  * other app-side fields above.
@@ -78,7 +79,7 @@ function examinerEntryToUtterance(entry: ConductLogExaminerEntry, index: number)
 }
 
 /** Candidate intents whose scored text/words are blanked — see module header. */
-const BLANKED_INTENTS = new Set(['repeat_request', 'non_french']);
+const BLANKED_INTENTS = new Set(['repeat_request', 'clarification_request', 'non_french']);
 
 function candidateEntryToUtterance(entry: ConductLogCandidateEntry, index: number): Utterance {
   const blank = entry.intent !== undefined && BLANKED_INTENTS.has(entry.intent);

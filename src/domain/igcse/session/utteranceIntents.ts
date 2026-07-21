@@ -10,10 +10,34 @@
 
 import { normalizeForMatch } from '../text/normalize';
 
-export type UtteranceIntent = 'answer' | 'dont_know' | 'repeat_request' | 'non_french';
+export type UtteranceIntent = 'answer' | 'dont_know' | 'repeat_request' | 'clarification_request' | 'non_french';
 
-/** Strips leading fillers ("euh", "ben", "bah", "alors") and trailing/leading punctuation noise for whole-utterance matching. */
-function stripFillers(normalized: string): string {
+/**
+ * Clarification vs. repeat (Change B): a repeat request asks the examiner to say
+ * the SAME question again ("répète") — a clarification request asks what a word
+ * or the question MEANS ("que veut dire…", "c'est quoi…"). Both route the engine
+ * to the same authentic-Cambridge verbatim REPEAT (the examiner never explains),
+ * but they are distinct intents so the scored-transcript blanking and the debug
+ * trigger can tell them apart. Precision-first, like the other lists: a longer
+ * substantive answer that merely contains "je ne comprends pas le mot…" stays an
+ * answer via the whole-utterance anchor.
+ */
+const CLARIFICATION_REQUEST_PATTERNS: RegExp[] = [
+  /^ça veut dire quoi( .+)?$/,
+  /^que veut dire( .+)?$/,
+  /^qu'?est-ce que ça (veut dire|signifie)( .+)?$/,
+  /^c'?est quoi( .+)?$/,
+  /^je ne comprends pas le mot( .+)?$/,
+  /^je (ne )?connais pas (ce|le) mot( .+)?$/,
+];
+
+/**
+ * Strips leading fillers ("euh", "ben", "bah", "alors") and trailing/leading
+ * punctuation noise for whole-utterance matching. Exported so the deterministic
+ * conversational-memory selector (conductEngine.ts, Change C) reuses the exact
+ * same filler-stripping rule when it picks a verbatim callback span.
+ */
+export function stripFillers(normalized: string): string {
   return normalized
     .replace(/^(euh+|ben|bah|alors|donc|enfin)[\s,]+/g, '')
     .replace(/[.!?…]+$/g, '')
@@ -66,6 +90,9 @@ export function classifyUtteranceIntent(transcript: string): UtteranceIntent {
   if (normalized.length === 0) return 'answer';
 
   if (matchesAny(normalized, NON_FRENCH_PATTERNS)) return 'non_french';
+  // Clarification before dont_know/repeat: "je ne comprends pas le mot X" is a
+  // more specific clarification, not the bare "je ne comprends pas" non-answer.
+  if (matchesAny(normalized, CLARIFICATION_REQUEST_PATTERNS)) return 'clarification_request';
   if (matchesAny(normalized, REPEAT_REQUEST_PATTERNS)) return 'repeat_request';
   if (matchesAny(normalized, DONT_KNOW_PATTERNS)) return 'dont_know';
   return 'answer';

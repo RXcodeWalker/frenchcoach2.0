@@ -4,15 +4,19 @@ import {
   startConduct,
   step,
   decideExtension,
+  selectVerbatimSpan,
+  latestCallbackFor,
   AUTHORIZED_EXTENSION_PROMPTS,
+  CALLBACK_TEMPLATES,
   MAX_FURTHER_QUESTIONS_PER_TOPIC,
   MAX_EXTENSIONS_PER_TOPIC,
   TOPIC_SPEAKING_FLOOR_S,
   TOPIC_TARGET_S,
   TRANSITION_MARKERS,
 } from '../conductEngine';
+import { classifyUtteranceIntent } from '../utteranceIntents';
 import { ORIGINAL_QUESTION_SET_1 } from '../../../../data/exam/originalQuestionSets';
-import type { CandidateTurnResult, ConductEngineState, ExaminerAction, SessionQuestionSet } from '../types';
+import type { CandidateTurnResult, ConductEngineState, ConductHint, ExaminerAction, SessionQuestionSet } from '../types';
 
 const qs = ORIGINAL_QUESTION_SET_1;
 
@@ -26,6 +30,17 @@ function answer(overrides: Partial<CandidateTurnResult> = {}): CandidateTurnResu
     requestedRepeat: false,
     ...overrides,
   };
+}
+
+/**
+ * A "successful" answer whose transcript yields no qualifying memory span (Change
+ * C: selectVerbatimSpan requires >=2 content tokens after filler-stripping) — used
+ * to exercise the authored-further-question fallback path without a callback
+ * pre-empting it. wordCount/relevance still satisfy computeRelevance's word-count
+ * gate independently of the transcript's own (short) content.
+ */
+function noSpanAnswer(overrides: Partial<CandidateTurnResult> = {}): CandidateTurnResult {
+  return answer({ transcript: 'euh', ...overrides });
 }
 
 function noResponse(): CandidateTurnResult {
@@ -50,8 +65,9 @@ function driveStep(
   qsSet: SessionQuestionSet,
   state: ConductEngineState,
   result: CandidateTurnResult,
+  conductHint?: ConductHint,
 ): { state: ConductEngineState; actions: ExaminerAction[]; action: ExaminerAction } {
-  const stepResult = step(qsSet, state, { kind: 'candidateTurn', result });
+  const stepResult = step(qsSet, state, { kind: 'candidateTurn', result, ...(conductHint ? { conductHint } : {}) });
   return { state: stepResult.state, actions: stepResult.actions, action: stepResult.actions[stepResult.actions.length - 1] };
 }
 
@@ -60,8 +76,9 @@ function driveOne(
   qsSet: SessionQuestionSet,
   state: ConductEngineState,
   result: CandidateTurnResult,
+  conductHint?: ConductHint,
 ): { state: ConductEngineState; action: ExaminerAction } {
-  const { state: nextState, actions, action } = driveStep(qsSet, state, result);
+  const { state: nextState, actions, action } = driveStep(qsSet, state, result, conductHint);
   expect(actions.length).toBe(1);
   return { state: nextState, action };
 }
@@ -199,13 +216,14 @@ describe('conductEngine: topic conversation', () => {
 
   it('caps further-questions at 2 per topic when the 4-min floor is not met', () => {
     let state = toTopic1();
-    // Answer all 5 topic1 questions with short, thin answers (below floor, below developed threshold).
-    // Each answer may or may not draw an extension (capped at MAX_EXTENSIONS_PER_TOPIC); drive until advanced.
+    // Answer all 5 topic1 questions with short, thin, span-less answers (below
+    // floor, below developed threshold, and no qualifying memory span — see
+    // noSpanAnswer — so this test exercises the authored-fallback path, not callbacks).
     for (let i = 0; i < 5; i++) {
-      let r = driveStep(qs, state, answer({ responseDurationS: 5 }));
+      let r = driveStep(qs, state, noSpanAnswer({ responseDurationS: 5 }));
       state = r.state;
       if (r.action.kind === 'EXTENSION_PROMPT') {
-        r = driveStep(qs, state, answer({ responseDurationS: 5 }));
+        r = driveStep(qs, state, noSpanAnswer({ responseDurationS: 5 }));
         state = r.state;
       }
     }
@@ -217,7 +235,7 @@ describe('conductEngine: topic conversation', () => {
     let guard = 0;
     while (state.furtherAskedCount.topic1 < MAX_FURTHER_QUESTIONS_PER_TOPIC + 1 && guard < 10) {
       guard += 1;
-      const r = driveStep(qs, state, answer({ responseDurationS: 5 }));
+      const r = driveStep(qs, state, noSpanAnswer({ responseDurationS: 5 }));
       state = r.state;
       if (r.action.kind === 'FURTHER_QUESTION') furtherTexts.push(r.action.text);
       if (state.phase.kind === 'topic' && state.phase.part === 'topic2') break;
@@ -230,8 +248,33 @@ describe('conductEngine: topic conversation', () => {
 
   it('C2: further questions are the authored on-topic strings, asked in order, never the synthesized placeholder', () => {
     let state = toTopic1();
-    // Drive all 5 topic1 questions with short, thin, below-floor answers so we
-    // reliably reach further-question territory without relying on extension timing.
+    // Drive all 5 topic1 questions with short, thin, below-floor, span-less answers
+    // so we reliably reach the authored-further-question fallback (not a callback).
+    for (let i = 0; i < 5; i++) {
+      let r = driveStep(qs, state, noSpanAnswer({ responseDurationS: 1, wordCount: 1 }));
+      state = r.state;
+      if (r.action.kind === 'EXTENSION_PROMPT') {
+        r = driveStep(qs, state, noSpanAnswer({ responseDurationS: 1, wordCount: 1 }));
+        state = r.state;
+      }
+    }
+
+    const first = driveStep(qs, state, noSpanAnswer({ responseDurationS: 1, wordCount: 1 }));
+    state = first.state;
+    expect(first.action).toMatchObject({ kind: 'FURTHER_QUESTION', text: qs.furtherQuestions.topic1[0] });
+    expect(first.action.text).not.toMatch(/Question supplémentaire/);
+
+    const second = driveStep(qs, state, noSpanAnswer({ responseDurationS: 1, wordCount: 1 }));
+    state = second.state;
+    if (second.action.kind === 'FURTHER_QUESTION') {
+      expect(second.action).toMatchObject({ text: qs.furtherQuestions.topic1[1] });
+    }
+  });
+
+  it('Change C: a fresh callback pre-empts the authored further-question, quoting the immediately-preceding answer verbatim', () => {
+    let state = toTopic1();
+    // Drive all 5 topic1 questions with thin, below-floor answers that DO carry a
+    // qualifying memory span (the default `answer()` transcript).
     for (let i = 0; i < 5; i++) {
       let r = driveStep(qs, state, answer({ responseDurationS: 1, wordCount: 1 }));
       state = r.state;
@@ -241,16 +284,12 @@ describe('conductEngine: topic conversation', () => {
       }
     }
 
-    const first = driveStep(qs, state, answer({ responseDurationS: 1, wordCount: 1 }));
-    state = first.state;
-    expect(first.action).toMatchObject({ kind: 'FURTHER_QUESTION', text: qs.furtherQuestions.topic1[0] });
-    expect(first.action.text).not.toMatch(/Question supplémentaire/);
+    expect(state.conversationMemory.length).toBeGreaterThan(0);
 
-    const second = driveStep(qs, state, answer({ responseDurationS: 1, wordCount: 1 }));
-    state = second.state;
-    if (second.action.kind === 'FURTHER_QUESTION') {
-      expect(second.action).toMatchObject({ text: qs.furtherQuestions.topic1[1] });
-    }
+    const first = driveStep(qs, state, answer({ responseDurationS: 1, wordCount: 1 }));
+    expect(first.action.kind).toBe('FURTHER_QUESTION');
+    expect(first.action.text).toContain('Tu as parlé de');
+    expect(first.action.text).not.toBe(qs.furtherQuestions.topic1[0]);
   });
 
   it('extensionAskedCount never exceeds MAX_EXTENSIONS_PER_TOPIC even with all-thin answers', () => {
@@ -497,5 +536,203 @@ describe('conductEngine: TRANSITION markers (C6)', () => {
     if (r.action.kind === 'EXTENSION_PROMPT') {
       expect(r.actions.length).toBe(1);
     }
+  });
+});
+
+describe('conductEngine: clarification conduct-hint (Change B)', () => {
+  function toTopic1(): ConductEngineState {
+    let state = initConductEngineState(qs);
+    state = startConduct(qs, state).state;
+    for (let i = 0; i < 6; i++) {
+      state = driveOne(qs, state, answer()).state;
+    }
+    return state;
+  }
+
+  it('a clarification hint on an otherwise-substantive-looking answer routes to REPEAT, verbatim, with trigger clarification_requested', () => {
+    let state = initConductEngineState(qs);
+    state = startConduct(qs, state).state;
+
+    // A substantive-shaped CandidateTurnResult (didRespond/relevant=true) — as if the
+    // deterministic classifier said 'answer' on messy STT — but the interpreter caught
+    // a clarification the classifier missed.
+    const looksLikeAnswer = answer({ transcript: 'Que veut dire ce mot ?' });
+    const r = driveOne(qs, state, looksLikeAnswer, 'clarification_request');
+
+    expect(r.action).toMatchObject({
+      kind: 'REPEAT',
+      questionId: 'rp1',
+      text: qs.questions[0].mainText,
+      trigger: 'clarification_requested',
+    });
+  });
+
+  it('clarification hint in topic phase repeats the current main question verbatim (never rephrased, never an explanation)', () => {
+    const state = toTopic1();
+    const looksLikeAnswer = answer({ transcript: "C'est quoi ce mot ?" });
+    const r = driveOne(qs, state, looksLikeAnswer, 'clarification_request');
+
+    expect(r.action.kind).toBe('REPEAT');
+    expect(r.action.text).toBe(qs.questions[5].mainText); // t1q1 (index 5: 5 role-play + 0)
+    expect(r.action.trigger).toBe('clarification_requested');
+  });
+
+  it('a repeat_request hint (distinct from clarification) still routes to REPEAT but with trigger repeat_requested, not clarification_requested', () => {
+    let state = initConductEngineState(qs);
+    state = startConduct(qs, state).state;
+    const r = driveOne(qs, state, answer({ transcript: 'Peux-tu répéter ?' }), 'repeat_request');
+    expect(r.action).toMatchObject({ kind: 'REPEAT', trigger: 'repeat_requested' });
+  });
+
+  it('only one clarification repeat is granted per question — a second clarification on the same question advances instead of looping', () => {
+    let state = initConductEngineState(qs);
+    state = startConduct(qs, state).state;
+    const looksLikeAnswer = answer({ transcript: 'Que veut dire ce mot ?' });
+
+    const first = driveOne(qs, state, looksLikeAnswer, 'clarification_request');
+    state = first.state;
+    expect(first.action.kind).toBe('REPEAT');
+
+    const second = driveOne(qs, state, looksLikeAnswer, 'clarification_request');
+    expect(second.action.kind).not.toBe('REPEAT');
+    expect(second.action).toMatchObject({ kind: 'READ_MAIN', questionId: 'rp2' });
+  });
+
+  it('Invariant 1 (blanking independence): the conduct-hint never appears in ConductLogCandidateEntry.intent — intent stays classifyUtteranceIntent(transcript)', () => {
+    // The hint only ever influences which ExaminerAction is returned; the candidate
+    // log entry's `intent` field is written by the runtime driver (simulationSession)
+    // exclusively from classifyUtteranceIntent, never from the hint or step()'s
+    // return value. step() itself returns no `intent` at all — structurally provable:
+    const transcript = 'Je fais mes devoirs et je range ma chambre.'; // classifies as 'answer'
+    let state = initConductEngineState(qs);
+    state = startConduct(qs, state).state;
+    const r = driveOne(qs, state, answer({ transcript }), 'clarification_request');
+
+    // Regardless of the hint routing to REPEAT, the deterministic classification of
+    // this transcript is unaffected — it is still 'answer', computed independently.
+    expect(classifyUtteranceIntent(transcript)).toBe('answer');
+    // step()'s StepResult carries no `intent` field for the caller to (mis)use.
+    expect(r.action).not.toHaveProperty('intent');
+  });
+});
+
+describe('conductEngine: conversational memory + callbacks (Change C)', () => {
+  function toTopic1(): ConductEngineState {
+    let state = initConductEngineState(qs);
+    state = startConduct(qs, state).state;
+    for (let i = 0; i < 6; i++) {
+      state = driveOne(qs, state, answer()).state;
+    }
+    return state;
+  }
+
+  it('selectVerbatimSpan strips leading fillers and caps span length, deterministically', () => {
+    const withFiller = selectVerbatimSpan('Euh, je fais mes devoirs et je range ma chambre le soir tous les jours.');
+    expect(withFiller).not.toBeNull();
+    expect(withFiller?.verbatimSpan.startsWith('euh')).toBe(false);
+    expect(withFiller?.verbatimSpan.split(' ').length).toBeLessThanOrEqual(6);
+  });
+
+  it('selectVerbatimSpan returns null for filler-only or too-short transcripts (skip-if-empty source)', () => {
+    expect(selectVerbatimSpan('euh')).toBeNull();
+    expect(selectVerbatimSpan('')).toBeNull();
+    expect(selectVerbatimSpan('oui')).toBeNull();
+  });
+
+  it('is fully deterministic and provider-independent: same transcript always yields the same span', () => {
+    const a = selectVerbatimSpan('Je joue au football avec mes amis le weekend.');
+    const b = selectVerbatimSpan('Je joue au football avec mes amis le weekend.');
+    expect(a).toEqual(b);
+  });
+
+  it('records a memory entry scoped to the current topic part only, after a successful topic answer', () => {
+    let state = toTopic1();
+    expect(state.conversationMemory).toHaveLength(0);
+    const r = driveStep(qs, state, answer({ responseDurationS: 1, wordCount: 1 }));
+    state = r.state;
+    expect(state.conversationMemory.length).toBeGreaterThan(0);
+    expect(state.conversationMemory.every((m) => m.part === 'topic1')).toBe(true);
+  });
+
+  it('dedupes by normalizedKey within the same part — an identical answer twice does not double the memory', () => {
+    let state = toTopic1();
+    const sameAnswer = answer({ transcript: 'Je joue au foot avec mes amis.', responseDurationS: 1, wordCount: 1 });
+    state = driveStep(qs, state, sameAnswer).state;
+    const countAfterFirst = state.conversationMemory.length;
+    state = driveStep(qs, state, sameAnswer).state;
+    expect(state.conversationMemory.length).toBe(countAfterFirst);
+  });
+
+  it('caps conversationMemory at a bounded size even across a long session of distinct answers', () => {
+    let state = toTopic1();
+    let guard = 0;
+    while (guard < 30 && state.phase.kind === 'topic') {
+      guard += 1;
+      state = driveStep(qs, state, answer({
+        transcript: `Réponse numéro ${guard} avec plusieurs mots distincts pour tester la mémoire.`,
+        responseDurationS: 1,
+        wordCount: 1,
+      })).state;
+    }
+    expect(state.conversationMemory.length).toBeLessThanOrEqual(8);
+  });
+
+  it('a callback quotes a verbatim substring of the immediately-preceding answer and consumes a further-question slot', () => {
+    let state = toTopic1();
+    for (let i = 0; i < 5; i++) {
+      let r = driveStep(qs, state, answer({ responseDurationS: 1, wordCount: 1 }));
+      state = r.state;
+      if (r.action.kind === 'EXTENSION_PROMPT') {
+        r = driveStep(qs, state, answer({ responseDurationS: 1, wordCount: 1 }));
+        state = r.state;
+      }
+    }
+    const lastMemory = state.conversationMemory[state.conversationMemory.length - 1];
+    expect(lastMemory).toBeDefined();
+
+    const before = state.furtherAskedCount.topic1;
+    const r = driveStep(qs, state, answer({ responseDurationS: 1, wordCount: 1 }));
+    expect(r.action.kind).toBe('FURTHER_QUESTION');
+    expect(r.action.text).toContain(lastMemory.verbatimSpan);
+    expect(r.state.furtherAskedCount.topic1).toBe(before + 1);
+  });
+
+  it('never quotes a topic1 memory entry in a topic2 callback (part-scoped): latestCallbackFor returns null right after entering topic2', () => {
+    let guard = 0;
+    let state = initConductEngineState(qs);
+    state = startConduct(qs, state).state;
+    for (let i = 0; i < 6; i++) state = driveOne(qs, state, answer()).state; // clear role play
+
+    // Drive to topic2 using long/developed answers (no further-questions triggered in topic1).
+    while (guard < 60 && !(state.phase.kind === 'topic' && state.phase.part === 'topic2')) {
+      guard += 1;
+      state = driveStep(qs, state, answer({ wordCount: 15, responseDurationS: 60 })).state;
+    }
+    expect(state.phase).toMatchObject({ kind: 'topic', part: 'topic2' });
+
+    const topic1Keys = new Set(state.conversationMemory.filter((m) => m.part === 'topic1').map((m) => m.normalizedKey));
+    expect(topic1Keys.size).toBeGreaterThan(0);
+
+    // Freshest memory is still topic1's (no topic2 answer yet) — the recency+scope
+    // rule means topic2 has NO eligible callback candidate at this point.
+    expect(latestCallbackFor(state, 'topic2')).toBeNull();
+
+    // Once a topic2 answer is recorded, the callback candidate is scoped to topic2.
+    const afterTopic2Answer = driveStep(qs, state, answer({ wordCount: 1, responseDurationS: 1 })).state;
+    const topic2Callback = latestCallbackFor(afterTopic2Answer, 'topic2');
+    if (topic2Callback) expect(topic2Callback.part).toBe('topic2');
+  });
+
+  it('Invariant 4 (wording provenance): a rendered callback text is authored template + a verbatim substring of a prior candidate transcript — never free model text', () => {
+    const transcript = 'Je fais du sport tous les samedis avec mon frère.';
+    const selected = selectVerbatimSpan(transcript);
+    expect(selected).not.toBeNull();
+    if (!selected) return;
+
+    const rendered = CALLBACK_TEMPLATES[0].replace('{verbatimSpan}', selected.verbatimSpan);
+    // The quoted span must appear verbatim inside the original transcript (case-insensitively,
+    // since selection normalizes/lowercases) — provably candidate-sourced, not model-generated.
+    expect(transcript.toLowerCase()).toContain(selected.verbatimSpan);
+    expect(rendered).toContain(selected.verbatimSpan);
   });
 });
