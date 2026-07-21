@@ -98,7 +98,7 @@ export function getOfflineQuestionSet(questionSetId: string): SessionQuestionSet
  * used by exam-selection UI that needs title/subTopic metadata, never by
  * the conduct engine. Backend-first, falling back to the offline fixture.
  */
-async function getAuthoredQuestionSet(questionSetId: string): Promise<AuthoredQuestionSet | undefined> {
+export async function getAuthoredQuestionSet(questionSetId: string): Promise<AuthoredQuestionSet | undefined> {
   const remote = await fetchPublishedSet(questionSetId);
   if (remote) return remote;
 

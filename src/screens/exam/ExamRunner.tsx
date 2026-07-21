@@ -22,6 +22,8 @@ interface Props {
   pendingSilentSkip: boolean;
   onKeepTrying: () => void;
   onSkipQuestion: () => void;
+  rolePlayTitle?: string;
+  taskProgress?: { index: number; total: number };
 }
 
 const PART_LABEL: Record<string, string> = {
@@ -50,6 +52,8 @@ export function ExamRunner({
   pendingSilentSkip,
   onKeepTrying,
   onSkipQuestion,
+  rolePlayTitle,
+  taskProgress,
 }: Props) {
   const part = action?.part ?? 'rolePlay';
   const phaseLabel = PART_LABEL[part] ?? part;
@@ -95,13 +99,26 @@ export function ExamRunner({
 
       <div className="flex-1 flex flex-col items-center justify-center px-5 py-6 max-w-2xl mx-auto w-full">
         <motion.div
-          className="mb-4 px-3 py-1 rounded-full text-[9px] font-bold border bg-violet-electric/8 text-violet-400 border-violet-electric/15"
+          className={`px-3 py-1 rounded-full text-[9px] font-bold border bg-violet-electric/8 text-violet-400 border-violet-electric/15 ${
+            part === 'rolePlay' && rolePlayTitle ? 'mb-1.5' : 'mb-4'
+          }`}
           key={phaseLabel}
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
         >
           {phaseLabel}
         </motion.div>
+
+        {part === 'rolePlay' && rolePlayTitle && (
+          <div className="mb-4 flex items-center gap-2">
+            <p className="text-[11px] text-slate-500 font-semibold">{rolePlayTitle}</p>
+            {taskProgress && (
+              <span className="px-2 py-0.5 rounded-full bg-navy-400 text-slate-500 text-[8px] font-bold uppercase tracking-wider">
+                Task {taskProgress.index + 1} of {taskProgress.total}
+              </span>
+            )}
+          </div>
+        )}
 
         <div className="w-full rounded-xl glass-elevated p-5 mb-5 text-center">
           <p className="text-[9px] text-slate-700 uppercase tracking-wider mb-1.5">{examinerLabel}</p>

@@ -4,7 +4,7 @@ import { listPublishedQuestionSets } from '../../data/exam/bank/loader';
 import type { AuthoredQuestionSet } from '../../data/exam/bank/types';
 
 interface Props {
-  onSelect: (questionSetId: string) => void;
+  onSelect: (set: AuthoredQuestionSet) => void;
   onAutoFallback: () => void;
 }
 
@@ -59,7 +59,7 @@ export function ExamSelect({ onSelect, onAutoFallback }: Props) {
           {sets.map((set, idx) => (
             <motion.button
               key={set.questionSetId}
-              onClick={() => onSelect(set.questionSetId)}
+              onClick={() => onSelect(set)}
               className="group relative overflow-hidden rounded-xl glass p-5 text-left hover:border-white/10 transition-all duration-300"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}

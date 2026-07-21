@@ -19,14 +19,21 @@ import { saveConductLog } from '../services/exam/conductLogStore';
 import { saveStoredTranscript } from '../services/exam/localTranscriptStore';
 import { isExaminerVoiceMuted, setExaminerVoiceMuted, stopExaminerVoice, speakExaminerText } from '../services/exam/examinerVoice';
 import { pingScoringServiceHealth, scoreExamTranscript, ScoringApiError } from '../services/exam/scoringApiClient';
-import { getOriginalQuestionSet, listPublishedQuestionSetIds } from '../data/exam/bank/loader';
+import { getOriginalQuestionSet, getAuthoredQuestionSet, listPublishedQuestionSetIds } from '../data/exam/bank/loader';
 import type { ExaminerAction } from '../domain/igcse/session/types';
 import type { SessionTranscript } from '../domain/igcse/stt/types';
 import type { EnvelopeView } from '../domain/igcse/envelope/envelopeView';
+import type { AuthoredQuestionSet, RolePlayScenario } from '../data/exam/bank/types';
 import { ExamGreeting } from './exam/ExamGreeting';
 import { ExamSelect } from './exam/ExamSelect';
+import { RolePlayCardPreview } from './exam/RolePlayCardPreview';
 
-type ExamState = 'select' | 'intro' | 'greeting' | 'running' | 'review' | 'scoring' | 'results';
+type ExamState = 'select' | 'intro' | 'greeting' | 'card' | 'running' | 'review' | 'scoring' | 'results';
+
+interface RolePlayMeta {
+  title: string;
+  taskIds: string[];
+}
 
 /** A8: exam duration (10-15 min) only marginally exceeds Render free tier's ~15 min idle window — the keepalive is what guarantees warmth by the time scoring is needed. */
 const KEEPALIVE_INTERVAL_MS = 5 * 60 * 1000;
@@ -43,6 +50,8 @@ export function ExamMode() {
   const [pendingSilentSkip, setPendingSilentSkip] = useState(false);
   const [scoringError, setScoringError] = useState<string | null>(null);
   const [envelopeView, setEnvelopeView] = useState<EnvelopeView | null>(null);
+  const [rolePlayScenario, setRolePlayScenario] = useState<RolePlayScenario | undefined>(undefined);
+  const [rolePlayMeta, setRolePlayMeta] = useState<RolePlayMeta | undefined>(undefined);
 
   const recording = useRecording();
   const clock = useSessionClock();
@@ -50,6 +59,7 @@ export function ExamMode() {
   const sessionIdRef = useRef<string>('');
   const turnStartRef = useRef<number>(0);
   const selectedQuestionSetIdRef = useRef<string | undefined>(undefined);
+  const selectedAuthoredSetRef = useRef<AuthoredQuestionSet | undefined>(undefined);
 
   // A8: keepalive ping while the exam runs, so the scoring service stays warm
   // through the ~15 min Render free-tier idle window until scoring is needed.
@@ -62,6 +72,28 @@ export function ExamMode() {
   const enterGreeting = () => {
     setExamState('greeting');
     void speakExaminerText(GREETING_TEXT);
+  };
+
+  const enterCardPreview = async () => {
+    let scenario: RolePlayScenario | undefined = selectedAuthoredSetRef.current?.content.rolePlay;
+
+    if (!scenario) {
+      const publishedIds = await listPublishedQuestionSetIds();
+      const fallbackId = publishedIds.length > 0
+        ? publishedIds[Math.floor(Math.random() * publishedIds.length)]
+        : 'original-practice-001';
+
+      selectedQuestionSetIdRef.current = fallbackId;
+      const authoredSet = await getAuthoredQuestionSet(fallbackId);
+      scenario = authoredSet?.content.rolePlay;
+    }
+
+    if (!scenario) {
+      throw new Error('ExamMode: role play card could not be resolved (backend and offline fixture both failed)');
+    }
+
+    setRolePlayScenario(scenario);
+    setExamState('card');
   };
 
   const startExam = async () => {
@@ -80,19 +112,19 @@ export function ExamMode() {
     sessionIdRef.current = sessionId;
     clock.start();
 
-    let questionSet = questionSetId ? await getOriginalQuestionSet(questionSetId) : undefined;
+    const questionSet = questionSetId ? await getOriginalQuestionSet(questionSetId) : undefined;
 
     if (!questionSet) {
-      const publishedIds = await listPublishedQuestionSetIds();
-      const fallbackId = publishedIds.length > 0
-        ? publishedIds[Math.floor(Math.random() * publishedIds.length)]
-        : 'original-practice-001';
-
-      questionSet = await getOriginalQuestionSet(fallbackId);
-      if (!questionSet) {
-        throw new Error(`ExamMode: question set "${fallbackId}" could not be resolved (backend and offline fixture both failed)`);
-      }
+      throw new Error(`ExamMode: question set "${questionSetId ?? '(none)'}" could not be resolved (backend and offline fixture both failed)`);
     }
+
+    if (rolePlayScenario) {
+      setRolePlayMeta({
+        title: rolePlayScenario.title,
+        taskIds: rolePlayScenario.tasks.map((t) => t.questionId),
+      });
+    }
+    setRolePlayScenario(undefined);
 
     const session = new SimulationSession(sessionId, questionSet, clock.nowS, {
       onExaminerAction: (a) => setAction(a),
@@ -284,12 +316,14 @@ export function ExamMode() {
   if (examState === 'select') {
     return (
       <ExamSelect
-        onSelect={(id) => {
-          selectedQuestionSetIdRef.current = id;
+        onSelect={(set) => {
+          selectedQuestionSetIdRef.current = set.questionSetId;
+          selectedAuthoredSetRef.current = set;
           setExamState('intro');
         }}
         onAutoFallback={() => {
           selectedQuestionSetIdRef.current = undefined;
+          selectedAuthoredSetRef.current = undefined;
           setExamState('intro');
         }}
       />
@@ -299,7 +333,11 @@ export function ExamMode() {
   if (examState === 'intro') return <ExamIntro onStart={enterGreeting} onBack={() => navigate('/')} />;
 
   if (examState === 'greeting') {
-    return <ExamGreeting recording={recording} onContinue={() => void startExam()} />;
+    return <ExamGreeting recording={recording} onContinue={() => void enterCardPreview()} />;
+  }
+
+  if (examState === 'card' && rolePlayScenario) {
+    return <RolePlayCardPreview scenario={rolePlayScenario} onBegin={() => void startExam()} />;
   }
 
   if (examState === 'review' && transcript) {
@@ -327,12 +365,22 @@ export function ExamMode() {
         onRetryScoring={retryScoring}
         onRetake={() => {
           selectedQuestionSetIdRef.current = undefined;
+          selectedAuthoredSetRef.current = undefined;
+          setRolePlayScenario(undefined);
+          setRolePlayMeta(undefined);
           setExamState('select');
         }}
         onHome={() => navigate('/')}
       />
     );
   }
+
+  const taskProgress = rolePlayMeta && action
+    ? (() => {
+        const index = rolePlayMeta.taskIds.indexOf(action.questionId ?? '');
+        return index >= 0 ? { index, total: rolePlayMeta.taskIds.length } : undefined;
+      })()
+    : undefined;
 
   return (
     <ExamRunner
@@ -347,6 +395,8 @@ export function ExamMode() {
       pendingSilentSkip={pendingSilentSkip}
       onKeepTrying={handleKeepTrying}
       onSkipQuestion={() => void handleSkipQuestion()}
+      rolePlayTitle={rolePlayMeta?.title}
+      taskProgress={taskProgress}
     />
   );
 }
