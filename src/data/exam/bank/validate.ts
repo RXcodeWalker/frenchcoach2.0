@@ -217,6 +217,20 @@ function validateTopic(topic: AuthoredTopic, topicPath: 'topic1' | 'topic2', err
     if (i >= 2 && q.alternativeTexts.length === 0) {
       errors.push({ code: 'missing-alternative', message: `${path}: topic Q${i + 1} requires >=1 alternativeText`, path });
     }
+    if (q.topicArea !== undefined && q.topicArea !== topic.topicArea) {
+      errors.push({
+        code: 'topic-area-mismatch',
+        message: `${path}.topicArea "${q.topicArea}" disagrees with ${topicPath}.topicArea "${topic.topicArea}"`,
+        path,
+      });
+    }
+    if (q.subTopic !== undefined && q.subTopic !== topic.subTopic) {
+      errors.push({
+        code: 'sub-topic-mismatch',
+        message: `${path}.subTopic "${q.subTopic}" disagrees with ${topicPath}.subTopic "${topic.subTopic}"`,
+        path,
+      });
+    }
   });
   checkCanonicalizationSafety(topic.furtherQuestions[0], `${topicPath}.furtherQuestions[0]`, errors);
   checkCanonicalizationSafety(topic.furtherQuestions[1], `${topicPath}.furtherQuestions[1]`, errors);

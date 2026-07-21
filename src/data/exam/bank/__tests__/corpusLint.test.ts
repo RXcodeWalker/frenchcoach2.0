@@ -106,22 +106,6 @@ describe('lintCorpus — overused prompt stems', () => {
   });
 });
 
-describe('lintCorpus — tag duplication (finding #4)', () => {
-  it('flags a question-level topicArea that disagrees with its topic-level topicArea', () => {
-    const setA = buildCleanSet();
-    setA.content.topic1.questions[0].topicArea = 'B';
-    const report = lintCorpus([setA]);
-    expect(report.issues.some((i) => i.code === 'topic-area-mismatch')).toBe(true);
-  });
-
-  it('flags a question-level subTopic that disagrees with its topic-level subTopic', () => {
-    const setA = buildCleanSet();
-    setA.content.topic1.questions[0].subTopic = 'Something Else';
-    const report = lintCorpus([setA]);
-    expect(report.issues.some((i) => i.code === 'sub-topic-mismatch')).toBe(true);
-  });
-});
-
 describe('lintCorpus — legacy app bank overlap', () => {
   it('flags authored text recycled from the legacy question bank when texts are supplied', () => {
     const setA = buildCleanSet();

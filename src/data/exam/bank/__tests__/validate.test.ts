@@ -169,6 +169,22 @@ describe('validateAuthoredQuestionSet — blocking structural errors', () => {
   });
 });
 
+describe('validateAuthoredQuestionSet — tag duplication (finding #4)', () => {
+  it('flags a question-level topicArea that disagrees with its topic-level topicArea', () => {
+    const set = buildCleanSet();
+    set.content.topic1.questions[0].topicArea = 'B';
+    const report = validateAuthoredQuestionSet(set);
+    expect(report.errors.some((e) => e.code === 'topic-area-mismatch')).toBe(true);
+  });
+
+  it('flags a question-level subTopic that disagrees with its topic-level subTopic', () => {
+    const set = buildCleanSet();
+    set.content.topic1.questions[0].subTopic = 'Something Else';
+    const report = validateAuthoredQuestionSet(set);
+    expect(report.errors.some((e) => e.code === 'sub-topic-mismatch')).toBe(true);
+  });
+});
+
 describe('parseAuthoredQuestionSet', () => {
   it('throws only when errors is non-empty', () => {
     const set = buildCleanSet();

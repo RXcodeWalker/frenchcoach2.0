@@ -12,7 +12,7 @@
 
 import { canonicalizeForMatch } from '../../../domain/igcse/text/normalize';
 import { tokenSetSimilarity } from './lint';
-import type { AuthoredQuestionSet, AuthoredTopic, TargetStructure } from './types';
+import type { AuthoredQuestionSet, TargetStructure } from './types';
 import type { TimeFrame } from '../../../domain/igcse/evidence/types';
 
 export interface CorpusLintIssue {
@@ -149,35 +149,6 @@ function overusedStems(items: TextItem[]): CorpusLintIssue[] {
   return issues;
 }
 
-function tagMismatches(sets: AuthoredQuestionSet[]): CorpusLintIssue[] {
-  const issues: CorpusLintIssue[] = [];
-  for (const set of sets) {
-    for (const topicPath of ['topic1', 'topic2'] as const) {
-      const topic: AuthoredTopic = set.content[topicPath];
-      topic.questions.forEach((q, i) => {
-        const path = `${topicPath}.questions[${i}]`;
-        if (q.topicArea !== undefined && q.topicArea !== topic.topicArea) {
-          issues.push({
-            code: 'topic-area-mismatch',
-            message: `${path}.topicArea "${q.topicArea}" disagrees with ${topicPath}.topicArea "${topic.topicArea}"`,
-            setId: set.questionSetId,
-            path,
-          });
-        }
-        if (q.subTopic !== undefined && q.subTopic !== topic.subTopic) {
-          issues.push({
-            code: 'sub-topic-mismatch',
-            message: `${path}.subTopic "${q.subTopic}" disagrees with ${topicPath}.subTopic "${topic.subTopic}"`,
-            setId: set.questionSetId,
-            path,
-          });
-        }
-      });
-    }
-  }
-  return issues;
-}
-
 /** Cross-set check: an authored mainText/alternative recycled verbatim (or near-verbatim) from the legacy app question bank. */
 function legacyBankOverlap(sets: AuthoredQuestionSet[], legacyTexts: readonly string[]): CorpusLintIssue[] {
   const issues: CorpusLintIssue[] = [];
@@ -266,7 +237,6 @@ export function lintCorpus(sets: AuthoredQuestionSet[], legacyBankTexts: readonl
     ...crossSetDuplicates(furtherQuestionTextItems(sets), 'cross-set-duplicate-further-question'),
     ...rolePlayNearDuplicates(sets),
     ...overusedStems(mainTextItems(sets)),
-    ...tagMismatches(sets),
   ];
   if (legacyBankTexts.length > 0) {
     issues.push(...legacyBankOverlap(sets, legacyBankTexts));
