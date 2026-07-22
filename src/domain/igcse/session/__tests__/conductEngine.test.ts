@@ -513,7 +513,7 @@ describe('conductEngine: TRANSITION markers (C6)', () => {
       if (r.action.kind === 'END') sawEnd = true;
     }
     expect(sawEnd).toBe(true);
-    expect(last?.actions).toEqual([{ kind: 'END', part: 'topic2', questionId: null, variant: null, text: null, trigger: 'scripted' }]);
+    expect(last?.actions).toEqual([{ kind: 'END', part: 'topic2', questionId: null, variant: null, text: 'Merci.', trigger: 'scripted' }]);
   });
 
   it('produces exactly [TRANSITION, FURTHER_QUESTION] when a further question follows a successful answer', () => {

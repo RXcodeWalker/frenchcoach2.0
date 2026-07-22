@@ -53,5 +53,13 @@ For app-conducted practice sessions (implemented in roadmap **S10**), the sessio
 - **Neutral transition markers** between a successfully-answered topic question and the next (main question, further question, or extension follow-up): two **original, app-authored** acknowledgements (`"D'accord."` / `"Merci."`), alternated deterministically, spoken so consecutive prompts don't read as a bare back-to-back list. Emitted **only** after a successful answer (main, second-part, or alternative) — never after a failed repeat, a failed alternative, or a skip, and never doubled onto the closing "Merci." that ends the exam. Not part of the scored transcript's examiner events (examiner speech is dropped by the scoring projection regardless), so this is realism-only and has no effect on `EvidenceProfile`.
 - **Log every conduct event** (repetition, alternative triggered, extension asked, task part addressed, timestamps) to the session log that Layer 1 consumes.
 
+**Consistent examiner personality checklist** (app-authored realism heuristics, same class as the transition markers above — not sourced Cambridge mark-scheme rules; use this to check future edits to `conductEngine.ts` against):
+
+- Every examiner utterance is either verbatim authored question-bank text or one of a small fixed set of app-authored constants — never freeform or generated text.
+- Selection among fixed alternatives is always deterministic (index/counter-based), never random.
+- Register is `tu`-form throughout, consistently.
+- The exam has a fixed non-assessed opening (`GREETING_TEXT` in `ExamMode.tsx`) and a fixed closing (`EXAM_CLOSING_TEXT` in `conductEngine.ts`), so every session begins and ends with a clear, professional signal.
+- The LLM interpreter (`interpretUtterance.ts`) never generates or influences examiner wording — routing hints only, enforced by the import-boundary test.
+
 ---
 

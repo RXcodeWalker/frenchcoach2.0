@@ -83,6 +83,15 @@ export const AUTHORIZED_EXTENSION_PROMPTS = ['Donne-moi plus de détails.', 'Peu
  */
 export const TRANSITION_MARKERS = ["D'accord.", 'Merci.'] as const;
 
+/**
+ * Closing line spoken on the exam's final END action (realism pass, UNVALIDATED
+ * application heuristic — not a Cambridge conduct rule, same class as
+ * TRANSITION_MARKERS). Referenced by docs/architecture/04-frontend-pipeline.md
+ * §6.5 as "the closing 'Merci.' that ends the exam"; advanceWithTransition already
+ * suppresses a TRANSITION marker immediately before END so this is never doubled.
+ */
+export const EXAM_CLOSING_TEXT = 'Merci.';
+
 // ── Conversational memory + callbacks (Change C, deterministic) ──────────────
 
 /** Max verbatim tokens kept in a memory span's `verbatimSpan` — enough to quote back, short enough to sidestep gender/number agreement. */
@@ -756,7 +765,7 @@ function advancePart(
   }
 
   const nextState: ConductEngineState = { ...state, phase: { kind: 'complete' } };
-  const action = makeAction(nextState, 'END', 'topic2', null, null, null, 'scripted');
+  const action = makeAction(nextState, 'END', 'topic2', null, null, EXAM_CLOSING_TEXT, 'scripted');
   return { state: bumpSeq(nextState), actions: [action] };
 }
 

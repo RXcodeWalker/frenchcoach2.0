@@ -41,7 +41,7 @@ export interface ExaminerAction {
   /** null for ADVANCE/END and for extension/further prompts with no fixed question anchor. */
   questionId: string | null;
   variant: 'main' | 'alternative' | null;
-  /** Text to display/speak; null for ADVANCE/END (no utterance). */
+  /** Text to display/speak; null for ADVANCE (no utterance). END carries the fixed closing line (EXAM_CLOSING_TEXT). */
   text: string | null;
   trigger: ExaminerTrigger;
 }
