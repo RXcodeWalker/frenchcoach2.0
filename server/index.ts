@@ -34,7 +34,7 @@ import { createClient } from '@supabase/supabase-js';
 
 import { parseSessionTranscript, SessionTranscriptValidationError } from '../src/domain/igcse/stt/schema';
 import type { SessionTranscript } from '../src/domain/igcse/stt/types';
-import { createSupabaseTranscriptStore } from '../scripts/stt/supabaseTranscriptStore';
+import { createSupabaseTranscriptStore, getLastAttemptAt } from '../scripts/stt/supabaseTranscriptStore';
 import { createSupabaseEnvelopeStore } from '../scripts/scoring/supabaseEnvelopeStore';
 import { scoreAttempt } from '../scripts/scoring/scoreAttempt';
 import { createJudgeWithFallback } from '../scripts/scoring/providers/judgeFactory';
@@ -51,6 +51,16 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
 }
 
 const CORS_ORIGINS = (process.env.CORS_ORIGINS ?? '').split(',').map((s) => s.trim()).filter(Boolean);
+
+/**
+ * Reliability plan §A — how long a session_transcripts row's last_attempt_at
+ * is trusted as "an attempt is plausibly still running" before GET /score
+ * treats it as abandoned (crashed/redeployed process) and safe to resubmit.
+ * No hard timeout exists on the Gemini/Groq calls (judgeFactory.ts), so this
+ * is a conservative judgment call, not a derived value — comfortably above
+ * typical scoring latency (seconds to ~1-2 min).
+ */
+const STALE_THRESHOLD_MS = 5 * 60 * 1000;
 
 const authClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
@@ -107,6 +117,21 @@ app.post('/score', async (req: Request, res: Response) => {
     return;
   }
 
+  // §A optional hardening: close the in-flight-duplicate race from the server
+  // side too — if a non-stale attempt is already underway for this session
+  // (last_attempt_at within the staleness window, no envelope yet), don't
+  // kick off a second scoreAttempt()/LLM call for it. The DB unique index
+  // (scoring_envelopes_one_original_per_session) remains the hard backstop
+  // either way; this just avoids paying for a duplicate LLM call.
+  const priorAttemptAt = await getLastAttemptAt(
+    { url: SUPABASE_URL, serviceKey: SUPABASE_SERVICE_KEY, userId },
+    transcript.sessionId,
+  );
+  if (priorAttemptAt && Date.now() - priorAttemptAt.getTime() < STALE_THRESHOLD_MS) {
+    res.status(202).json({ status: 'in_progress' });
+    return;
+  }
+
   let questionSet;
   try {
     questionSet = await resolveAndVerifyQuestionSet(transcript.questionSetId, transcript.questionSetHash);
@@ -122,24 +147,28 @@ app.post('/score', async (req: Request, res: Response) => {
     throw err;
   }
 
-  const transcriptStore = createSupabaseTranscriptStore({ url: SUPABASE_URL, serviceKey: SUPABASE_SERVICE_KEY, userId });
+  const transcriptStoreOptions = { url: SUPABASE_URL, serviceKey: SUPABASE_SERVICE_KEY, userId };
+  const transcriptStore = createSupabaseTranscriptStore(transcriptStoreOptions);
   await transcriptStore.save(transcript);
 
   const startedAt = Date.now();
-  let envelope;
   try {
-    envelope = await scoreAttempt(
+    const envelope = await scoreAttempt(
       { transcriptStore, createJudge: () => createJudgeWithFallback() },
       { sessionId: transcript.sessionId, questionSet },
     );
+    const savedEnvelope = await envelopeStore.saveOriginal(envelope);
+    logRequest(transcript.sessionId, envelope.llm.provider, Date.now() - startedAt, 'ok');
+    res.status(200).json(buildEnvelopeView(savedEnvelope));
   } catch (err) {
+    // Root cause #1 (reliability plan §A): without this, an Express 4 async
+    // handler whose promise rejects here never sends a response — a client
+    // still within its abort window hangs until its own timeout, and the
+    // resulting message ("may still finish in the background") is false.
     logRequest(transcript.sessionId, undefined, Date.now() - startedAt, 'error');
-    throw err;
+    const message = err instanceof Error ? err.message : 'scoring failed unexpectedly';
+    res.status(500).json({ error: message });
   }
-  const savedEnvelope = await envelopeStore.saveOriginal(envelope);
-  logRequest(transcript.sessionId, envelope.llm.provider, Date.now() - startedAt, 'ok');
-
-  res.status(200).json(buildEnvelopeView(savedEnvelope));
 });
 
 app.get('/score', async (req: Request, res: Response) => {
@@ -158,11 +187,29 @@ app.get('/score', async (req: Request, res: Response) => {
   const envelopeStore = createSupabaseEnvelopeStore({ url: SUPABASE_URL, serviceKey: SUPABASE_SERVICE_KEY, userId });
   const existing = await envelopeStore.listBySession(sessionId);
   const original = existing.find((e) => e.regradedFrom === undefined);
-  if (!original) {
-    res.status(404).json({ error: 'no envelope for this sessionId' });
+  if (original) {
+    res.status(200).json(buildEnvelopeView(original));
     return;
   }
-  res.status(200).json(buildEnvelopeView(original));
+
+  // Reliability plan §A: existence-only (200/404) can't distinguish "still
+  // scoring" from "the process that was scoring it is gone" — both leave an
+  // identical session_transcripts row with no envelope yet. last_attempt_at
+  // is the recency signal that tells them apart: within the staleness
+  // window, a 202 tells the client to keep polling instead of re-POSTing
+  // (which would trigger a duplicate, wasted LLM call for a still-live
+  // request); past it, the earlier attempt is presumed dead and a 404 tells
+  // the client it's safe — and necessary — to resubmit.
+  const lastAttemptAt = await getLastAttemptAt(
+    { url: SUPABASE_URL, serviceKey: SUPABASE_SERVICE_KEY, userId },
+    sessionId,
+  );
+  if (lastAttemptAt && Date.now() - lastAttemptAt.getTime() < STALE_THRESHOLD_MS) {
+    res.status(202).json({ status: 'in_progress' });
+    return;
+  }
+
+  res.status(404).json({ error: 'no envelope for this sessionId' });
 });
 
 app.listen(PORT, '0.0.0.0', () => {

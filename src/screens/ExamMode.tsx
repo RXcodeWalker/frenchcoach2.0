@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { track } from '../services/telemetry/telemetryService';
+import { track, captureError } from '../services/telemetry/telemetryService';
 import confetti from 'canvas-confetti';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
@@ -17,10 +17,22 @@ import { ExamRunner } from './exam/ExamRunner';
 import { TranscriptReview } from './exam/TranscriptReview';
 import { SimulationSession } from '../services/exam/simulationSession';
 import { saveConductLog } from '../services/exam/conductLogStore';
-import { saveStoredTranscript } from '../services/exam/localTranscriptStore';
+import {
+  saveStoredTranscript,
+  getStoredTranscript,
+  getPendingScoreSessionId,
+  setPendingScoreSessionId,
+  clearPendingScoreSessionId,
+} from '../services/exam/localTranscriptStore';
 import { isExaminerVoiceMuted, setExaminerVoiceMuted, stopExaminerVoice, speakExaminerText } from '../services/exam/examinerVoice';
 import { wait, PRE_SPEECH_LEAD_MS, PRE_LISTEN_PAUSE_MS } from '../services/exam/examinerPacing';
-import { pingScoringServiceHealth, scoreExamTranscript, ScoringApiError } from '../services/exam/scoringApiClient';
+import { pingScoringServiceHealth, submitForScoring, pollScoreStatus, isTerminalScoringStatus, ScoringApiError } from '../services/exam/scoringApiClient';
+import {
+  initialScoringMachineState,
+  transitionScoringMachine,
+  recoveringBackoffMs,
+  type ScoringMachineState,
+} from '../services/exam/examScoringMachine';
 import { pingInterpretServiceHealth } from '../services/exam/interpretUtterance';
 import { getOriginalQuestionSet, getAuthoredQuestionSet, listPublishedQuestionSetIds } from '../data/exam/bank/loader';
 import type { ExaminerAction } from '../domain/igcse/session/types';
@@ -51,7 +63,7 @@ export function ExamMode() {
   const [voiceMuted, setVoiceMuted] = useState(isExaminerVoiceMuted());
   const [transcript, setTranscript] = useState<SessionTranscript | null>(null);
   const [pendingSilentSkip, setPendingSilentSkip] = useState(false);
-  const [scoringError, setScoringError] = useState<string | null>(null);
+  const [scoringMachine, setScoringMachine] = useState<ScoringMachineState>(initialScoringMachineState());
   const [envelopeView, setEnvelopeView] = useState<EnvelopeView | null>(null);
   const [rolePlayScenario, setRolePlayScenario] = useState<RolePlayScenario | undefined>(undefined);
   const [rolePlayMeta, setRolePlayMeta] = useState<RolePlayMeta | undefined>(undefined);
@@ -73,6 +85,25 @@ export function ExamMode() {
     const interval = setInterval(pingScoringServiceHealth, KEEPALIVE_INTERVAL_MS);
     return () => clearInterval(interval);
   }, [examState]);
+
+  // Reliability plan §D: resume-on-reload. A reload during 'scoring' (or
+  // after a failure) used to drop the user back to 'select' with the pending
+  // session forgotten even though its transcript was already saved. On
+  // mount, if a pending sessionId exists, skip Queued/Submitting entirely —
+  // call GET /score first, exactly like the mid-session recovery path,
+  // never blindly re-POST on reload.
+  useEffect(() => {
+    const pendingSessionId = getPendingScoreSessionId();
+    if (!pendingSessionId) return;
+    const stored = getStoredTranscript(pendingSessionId);
+    if (!stored) {
+      clearPendingScoreSessionId();
+      return;
+    }
+    setTranscript(stored);
+    setExamState('scoring');
+    setScoringMachine({ phase: 'WaitingForScore', attempt: 1 });
+  }, []);
 
   const enterGreeting = () => {
     setExamState('greeting');
@@ -260,83 +291,164 @@ export function ExamMode() {
 
   const handleReviewConfirm = (finalTranscript: SessionTranscript) => {
     saveStoredTranscript(finalTranscript);
+    setPendingScoreSessionId(finalTranscript.sessionId);
     setTranscript(finalTranscript);
     setExamState('scoring');
-    setScoringError(null);
-    void runScoring(finalTranscript);
+    setScoringMachine({ phase: 'Submitting', attempt: 1 });
   };
 
-  const runScoring = async (finalTranscript: SessionTranscript) => {
-    let view: EnvelopeView | null = null;
-    try {
-      view = await scoreExamTranscript(finalTranscript);
-    } catch (err) {
-      const message = err instanceof ScoringApiError ? err.message : 'Scoring failed unexpectedly.';
-      setScoringError(message);
-      setExamState('results');
-      return;
-    }
-    finishWithScore(finalTranscript, view);
-  };
-
-  /** C1/A9: Retry hits the idempotency fast path server-side — a prior timed-out request keeps scoring and persists, so this is typically instant. */
+  /**
+   * Reliability plan §B: the manual "Retry Scoring" backstop from
+   * FailedTerminal — re-enters Submitting. Also reachable from the resume-
+   * on-reload effect, which enters WaitingForScore directly instead.
+   */
   const retryScoring = () => {
     if (!transcript) return;
-    setExamState('scoring');
-    setScoringError(null);
-    void runScoring(transcript);
+    setScoringMachine((s) => transitionScoringMachine(s, { type: 'RETRY' }));
   };
 
+  const scoringFailedTerminal = scoringMachine.phase === 'FailedTerminal' ? scoringMachine.reason : null;
+
+  // Reliability plan §B driver: runs the effect appropriate to whichever
+  // phase the machine just entered, then dispatches the resulting event.
+  // POST /score only ever fires here from Submitting — reached from Queued,
+  // or from WaitingForScore/Recovering's POLL_NOT_FOUND, or from a manual
+  // RETRY — never from an ambiguous client error and never while a poll
+  // result places the last attempt inside the staleness window (202).
+  useEffect(() => {
+    if (!transcript) return;
+    let cancelled = false;
+
+    if (scoringMachine.phase === 'Submitting') {
+      void (async () => {
+        let result: Awaited<ReturnType<typeof submitForScoring>>;
+        try {
+          result = await submitForScoring(transcript);
+        } catch (err) {
+          if (cancelled) return;
+          captureError(err, { stage: 'submitForScoring', sessionId: transcript.sessionId });
+          if (err instanceof ScoringApiError && isTerminalScoringStatus(err.status)) {
+            setScoringMachine((s) => transitionScoringMachine(s, { type: 'SUBMIT_TERMINAL_ERROR', reason: err.message }));
+          } else {
+            setScoringMachine((s) => transitionScoringMachine(s, { type: 'SUBMIT_AMBIGUOUS_ERROR' }));
+          }
+          return;
+        }
+        if (cancelled) return;
+        if (result.status === 'done') {
+          setEnvelopeView(result.envelope);
+          setScoringMachine((s) => transitionScoringMachine(s, { type: 'SUBMIT_OK' }));
+        } else {
+          setScoringMachine((s) => transitionScoringMachine(s, { type: 'SUBMIT_IN_PROGRESS' }));
+        }
+      })();
+      return () => { cancelled = true; };
+    }
+
+    if (scoringMachine.phase === 'WaitingForScore' || scoringMachine.phase === 'Recovering') {
+      const delayMs = scoringMachine.phase === 'Recovering' ? recoveringBackoffMs(scoringMachine.pollCount) : 0;
+      const timeoutId = setTimeout(() => {
+        void (async () => {
+          let result: Awaited<ReturnType<typeof pollScoreStatus>>;
+          try {
+            result = await pollScoreStatus(transcript.sessionId);
+          } catch (err) {
+            if (cancelled) return;
+            captureError(err, { stage: 'pollScoreStatus', sessionId: transcript.sessionId });
+            const reason = err instanceof ScoringApiError ? err.message : 'Scoring failed unexpectedly.';
+            if (err instanceof ScoringApiError && isTerminalScoringStatus(err.status)) {
+              setScoringMachine((s) => transitionScoringMachine(s, { type: 'POLL_TERMINAL_ERROR', reason }));
+            } else {
+              // Ambiguous — stay put; the next scheduled poll will retry.
+            }
+            return;
+          }
+          if (cancelled) return;
+          if (result.status === 'done') {
+            setEnvelopeView(result.envelope);
+            setScoringMachine((s) => transitionScoringMachine(s, { type: 'POLL_DONE' }));
+          } else if (result.status === 'in_progress') {
+            setScoringMachine((s) => transitionScoringMachine(s, { type: 'POLL_IN_PROGRESS' }));
+          } else {
+            setScoringMachine((s) => transitionScoringMachine(s, { type: 'POLL_NOT_FOUND' }));
+          }
+        })();
+      }, delayMs);
+      return () => { cancelled = true; clearTimeout(timeoutId); };
+    }
+
+    if (scoringMachine.phase === 'Completed') {
+      clearPendingScoreSessionId();
+      finishWithScore(transcript, envelopeView);
+    }
+
+    if (scoringMachine.phase === 'FailedTerminal') {
+      captureError(new Error(scoringMachine.reason), { stage: 'scoringFailedTerminal', sessionId: transcript.sessionId });
+      setEnvelopeView(null);
+      setExamState('results');
+    }
+
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scoringMachine, transcript]);
+
   const finishWithScore = (finalTranscript: SessionTranscript, view: EnvelopeView | null) => {
+    // Score UI state is set first and unconditionally — everything below is
+    // XP/achievement/analytics side effects. A bug in any of it must never
+    // make a successfully-scored exam look like the score was lost.
     setEnvelopeView(view);
     setExamState('results');
 
-    const candidateUtterances = finalTranscript.utterances.filter((u) => u.role === 'candidate');
-    const totalSec = candidateUtterances.reduce((sum, u) => sum + (u.endS - u.startS), 0);
-    const wordCount = candidateUtterances.reduce((sum, u) => sum + u.text.trim().split(/\s+/).filter(Boolean).length, 0);
+    try {
+      const candidateUtterances = finalTranscript.utterances.filter((u) => u.role === 'candidate');
+      const totalSec = candidateUtterances.reduce((sum, u) => sum + (u.endS - u.startS), 0);
+      const wordCount = candidateUtterances.reduce((sum, u) => sum + u.text.trim().split(/\s+/).filter(Boolean).length, 0);
 
-    // D4: real Cambridge total (/40) when scoring succeeded, rescaled to the app's existing /10
-    // Session.score convention (same convention roadmapService.ts already assumes for exam sessions);
-    // null when scoring failed — never a fabricated placeholder.
-    const finalScore = view ? Math.round((view.total / 40) * 10 * 10) / 10 : null;
+      // D4: real Cambridge total (/40) when scoring succeeded, rescaled to the app's existing /10
+      // Session.score convention (same convention roadmapService.ts already assumes for exam sessions);
+      // null when scoring failed — never a fabricated placeholder.
+      const finalScore = view ? Math.round((view.total / 40) * 10 * 10) / 10 : null;
 
-    const appSession: Session = {
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-      mode: 'exam',
-      wordCount,
-      score: finalScore,
-      xpEarned: 0,
-      durationSec: Math.round(totalSec),
-      createdAt: new Date().toISOString(),
-    };
+      const appSession: Session = {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        mode: 'exam',
+        wordCount,
+        score: finalScore,
+        xpEarned: 0,
+        durationSec: Math.round(totalSec),
+        createdAt: new Date().toISOString(),
+      };
 
-    persistSession(appSession);
-    // D5: participation XP either way — score-derived XP would need calibration-backed
-    // meaning behind a /40 Cambridge total that S6 hasn't established yet (see the
-    // "Unvalidated estimate" framing in ExamResults).
-    const xpResult = awardParticipationXP(state.profile.streak_days);
-    const { level: newLevel } = getProgressionState();
-    const newUnlockedAchievementIds = checkAchievements(
-      buildAchievementContext({
-        finalScore,
-        streakDays: state.profile.streak_days,
-        totalSessionsAfter: state.profile.sessions_count + 1,
-        topicsUsed: [],
-        beliefSnapshot: null,
-        examCompleted: true,
-        examType: 'igcse',
-      }),
-    );
+      persistSession(appSession);
+      // D5: participation XP either way — score-derived XP would need calibration-backed
+      // meaning behind a /40 Cambridge total that S6 hasn't established yet (see the
+      // "Unvalidated estimate" framing in ExamResults).
+      const xpResult = awardParticipationXP(state.profile.streak_days);
+      const { level: newLevel } = getProgressionState();
+      const newUnlockedAchievementIds = checkAchievements(
+        buildAchievementContext({
+          finalScore,
+          streakDays: state.profile.streak_days,
+          totalSessionsAfter: state.profile.sessions_count + 1,
+          topicsUsed: [],
+          beliefSnapshot: null,
+          examCompleted: true,
+          examType: 'igcse',
+        }),
+      );
 
-    track({ name: 'session_completed', props: { mode: 'exam', score: finalScore, duration_sec: totalSec, xp_gain: xpResult.gain } });
-    for (const id of newUnlockedAchievementIds) {
-      track({ name: 'achievement_unlocked', props: { achievement_id: id, mode: 'exam', session_count: state.profile.sessions_count + 1 } });
-    }
+      track({ name: 'session_completed', props: { mode: 'exam', score: finalScore, duration_sec: totalSec, xp_gain: xpResult.gain } });
+      for (const id of newUnlockedAchievementIds) {
+        track({ name: 'achievement_unlocked', props: { achievement_id: id, mode: 'exam', session_count: state.profile.sessions_count + 1 } });
+      }
 
-    dispatch({ type: 'ADD_SESSION', session: { ...appSession, xpEarned: xpResult.gain }, xpResult, newUnlockedAchievementIds, newLevelName: newLevel.name, xpAnimX: 70, xpAnimY: 20 });
-    dispatch({ type: 'UPDATE_SKILL_PROFILE', skillProfile: getSkillProfile() });
-    if (finalScore !== null) {
-      confetti({ particleCount: 150, spread: 100, origin: { y: 0.5 } });
+      dispatch({ type: 'ADD_SESSION', session: { ...appSession, xpEarned: xpResult.gain }, xpResult, newUnlockedAchievementIds, newLevelName: newLevel.name, xpAnimX: 70, xpAnimY: 20 });
+      dispatch({ type: 'UPDATE_SKILL_PROFILE', skillProfile: getSkillProfile() });
+      if (finalScore !== null) {
+        confetti({ particleCount: 150, spread: 100, origin: { y: 0.5 } });
+      }
+    } catch (err) {
+      captureError(err, { stage: 'finishWithScore.sideEffects', sessionId: finalTranscript.sessionId });
     }
   };
 
@@ -378,12 +490,19 @@ export function ExamMode() {
   }
 
   if (examState === 'scoring') {
+    // Reliability plan §C: the loading state reflects the real phase instead
+    // of one static spinner for a process that can legitimately run for minutes.
+    const isRecovering = scoringMachine.phase === 'Recovering' || scoringMachine.phase === 'WaitingForScore';
     return (
       <div className="min-h-screen flex items-center justify-center px-6">
         <div className="text-center space-y-3 max-w-xs">
           <div className="w-10 h-10 mx-auto border-2 border-violet-electric/30 border-t-violet-electric rounded-full animate-spin" />
-          <p className="text-sm font-bold text-white">Scoring your session…</p>
-          <p className="text-[11px] text-slate-500">This can take up to a minute.</p>
+          <p className="text-sm font-bold text-white">{isRecovering ? 'Still working…' : 'Scoring your session…'}</p>
+          <p className="text-[11px] text-slate-500">
+            {isRecovering
+              ? 'Your answers are safe — checking again shortly.'
+              : 'This can take up to a minute.'}
+          </p>
         </div>
       </div>
     );
@@ -394,7 +513,7 @@ export function ExamMode() {
       <ExamResults
         transcript={transcript}
         envelopeView={envelopeView}
-        scoringError={scoringError}
+        scoringError={scoringFailedTerminal}
         onRetryScoring={retryScoring}
         onRetake={() => {
           selectedQuestionSetIdRef.current = undefined;

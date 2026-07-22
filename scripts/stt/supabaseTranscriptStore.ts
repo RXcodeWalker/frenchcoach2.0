@@ -28,6 +28,25 @@ function checkRedistributable(session: SessionTranscript): void {
   assertRedistributable({ contentProvenance: session.contentProvenance } as SpeakingTranscript);
 }
 
+/**
+ * Server-only staleness lookup for GET /score's 3-way response (not part of
+ * the shared TranscriptStore port — scoreAttempt.ts never needs this).
+ * Returns null if no transcript row exists for this sessionId.
+ */
+export async function getLastAttemptAt(
+  options: SupabaseTranscriptStoreOptions,
+  sessionId: string,
+): Promise<Date | null> {
+  const client = createClient(options.url, options.serviceKey);
+  const { data, error } = await client
+    .from('session_transcripts')
+    .select('last_attempt_at')
+    .eq('session_id', sessionId)
+    .maybeSingle();
+  if (error || !data) return null;
+  return new Date(data.last_attempt_at as string);
+}
+
 export function createSupabaseTranscriptStore(options: SupabaseTranscriptStoreOptions): TranscriptStore {
   const client = createClient(options.url, options.serviceKey);
 
@@ -42,6 +61,9 @@ export function createSupabaseTranscriptStore(options: SupabaseTranscriptStoreOp
         content_provenance: t.contentProvenance,
         stt: t.stt,
         transcript: t,
+        // Stamped on every save (not just insert) so GET /score can tell a
+        // recent attempt from an abandoned one — see the migration's comment.
+        last_attempt_at: new Date().toISOString(),
       });
       if (error) {
         throw new Error(`SupabaseTranscriptStore.save failed: ${error.message}`);

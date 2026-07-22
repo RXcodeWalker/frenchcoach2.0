@@ -41,6 +41,8 @@ export const STORAGE_KEYS = {
   // ── S10 examiner-simulation session engine ────────────────────────────────────
   examTranscripts:  'frenchCoach_examTranscripts',
   examConductLogs:  'frenchCoach_examConductLogs',
+  // ── Exam scoring reliability §D: resume-on-reload marker ──────────────────────
+  examPendingScoreSessionId: 'frenchCoach_examPendingScoreSessionId',
   // ── Guest mode (local-only auth bypass) ────────────────────────────────────────
   guestMode: 'frenchCoach_guestMode',
 } as const;

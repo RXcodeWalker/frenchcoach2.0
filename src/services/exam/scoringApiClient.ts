@@ -3,6 +3,12 @@
  * (server/index.ts). Mirrors adminApi.ts's auth pattern (Supabase access
  * token as Bearer) but talks to a separate deployable — VITE_SCORING_API_URL,
  * not VITE_API_URL (FastAPI). The two services never call each other.
+ *
+ * Reliability plan §B: GET /score is now 3-way (done / in_progress / not_found),
+ * matching server/index.ts's staleness-based recovery design — see
+ * pollScoreStatus. The exam-scoring state machine (examScoringMachine.ts)
+ * is the only caller that should interpret these results; ExamMode.tsx
+ * drives the machine, not this client directly.
  */
 
 import { supabase } from '../../lib/supabase';
@@ -11,7 +17,7 @@ import type { EnvelopeView } from '../../domain/igcse/envelope/envelopeView';
 
 const SCORING_API_BASE = (import.meta.env.VITE_SCORING_API_URL as string | undefined) ?? '';
 
-/** A9: client-side cap on POST /score. The server keeps scoring past this — see loadScoredEnvelope. */
+/** A9: client-side cap on POST /score. The server keeps scoring past this — see pollScoreStatus. */
 const SCORE_TIMEOUT_MS = 90_000;
 
 export class ScoringApiError extends Error {
@@ -20,6 +26,16 @@ export class ScoringApiError extends Error {
     this.name = 'ScoringApiError';
   }
 }
+
+/** True for a status that will never succeed by repeating the same request unchanged. */
+export function isTerminalScoringStatus(status: number | undefined): boolean {
+  return status === 400 || status === 401 || status === 403 || status === 409;
+}
+
+export type ScoreStatus =
+  | { status: 'done'; envelope: EnvelopeView }
+  | { status: 'in_progress' }
+  | { status: 'not_found' };
 
 async function authHeaders(): Promise<Record<string, string>> {
   const { data } = await supabase.auth.getSession();
@@ -38,12 +54,16 @@ export function pingScoringServiceHealth(): void {
 
 /**
  * A9: POST the transcript for scoring, aborting client-side after
- * SCORE_TIMEOUT_MS. A timeout here does NOT mean scoring failed — the
- * server keeps working and persists the envelope (never aborts on
- * disconnect, per server/index.ts's header) — so the caller's Retry path
- * should call loadScoredEnvelope, which hits the idempotency fast path.
+ * SCORE_TIMEOUT_MS. A timeout or network error here does NOT mean scoring
+ * failed — the server may still be working (never aborts on disconnect, per
+ * server/index.ts's header) — so the caller (the WaitingForScore state)
+ * follows up with pollScoreStatus rather than assuming failure.
+ *
+ * A 202 response (§A's in-flight dedup — a non-stale attempt already
+ * underway) is treated the same as an ambiguous outcome: the caller should
+ * move to WaitingForScore/poll, not treat it as done or as an error.
  */
-export async function scoreExamTranscript(transcript: SessionTranscript): Promise<EnvelopeView> {
+export async function submitForScoring(transcript: SessionTranscript): Promise<ScoreStatus> {
   if (!SCORING_API_BASE) {
     throw new ScoringApiError('Scoring service is not configured (VITE_SCORING_API_URL unset)');
   }
@@ -58,10 +78,12 @@ export async function scoreExamTranscript(transcript: SessionTranscript): Promis
       body: JSON.stringify(transcript),
       signal: controller.signal,
     });
-    return await parseEnvelopeResponse(res);
+    if (res.status === 202) return { status: 'in_progress' };
+    const envelope = await parseEnvelopeResponse(res);
+    return { status: 'done', envelope };
   } catch (err) {
     if (err instanceof DOMException && err.name === 'AbortError') {
-      throw new ScoringApiError('Scoring is taking longer than expected. The session may still finish scoring in the background — try again in a moment.');
+      throw new ScoringApiError('Scoring is taking longer than expected. The session may still finish scoring in the background — checking again shortly.');
     }
     throw err;
   } finally {
@@ -69,15 +91,25 @@ export async function scoreExamTranscript(transcript: SessionTranscript): Promis
   }
 }
 
-/** Used by the Retry path and by "navigated away and came back" (A2's GET /score). 404 means no envelope exists yet. */
-export async function loadScoredEnvelope(sessionId: string): Promise<EnvelopeView | null> {
-  if (!SCORING_API_BASE) return null;
+/**
+ * Reliability plan §A/§B: the 3-way read behind WaitingForScore/Recovering.
+ * 200 -> done, 202 -> in_progress (a recent attempt exists, keep polling,
+ * never re-POST), 404 -> not_found (safe, and the only case where it's
+ * meaningful, to resubmit). Any other non-ok status throws ScoringApiError
+ * (terminal 4xx handled by isTerminalScoringStatus, or an unexpected 5xx).
+ */
+export async function pollScoreStatus(sessionId: string): Promise<ScoreStatus> {
+  if (!SCORING_API_BASE) {
+    throw new ScoringApiError('Scoring service is not configured (VITE_SCORING_API_URL unset)');
+  }
 
   const res = await fetch(`${SCORING_API_BASE}/score?sessionId=${encodeURIComponent(sessionId)}`, {
     headers: await authHeaders(),
   });
-  if (res.status === 404) return null;
-  return parseEnvelopeResponse(res);
+  if (res.status === 404) return { status: 'not_found' };
+  if (res.status === 202) return { status: 'in_progress' };
+  const envelope = await parseEnvelopeResponse(res);
+  return { status: 'done', envelope };
 }
 
 async function parseEnvelopeResponse(res: Response): Promise<EnvelopeView> {

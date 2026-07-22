@@ -44,3 +44,23 @@ export function saveStoredTranscript(t: SessionTranscript): void {
   all[t.sessionId] = t;
   storageSet(STORAGE_KEYS.examTranscripts, all);
 }
+
+/**
+ * Reliability plan §D — resume-on-reload marker. The transcript itself is
+ * already durable via saveStoredTranscript; this is just "which sessionId,
+ * if any, was submitted for scoring but hasn't reached Completed yet" so a
+ * reload during 'scoring' (or after a failure) can find it. Cleared once the
+ * exam-scoring state machine reaches Completed. A plain string, not a set —
+ * ExamMode only ever runs one exam session at a time.
+ */
+export function getPendingScoreSessionId(): string | null {
+  return storageGet<string | null>(STORAGE_KEYS.examPendingScoreSessionId, null);
+}
+
+export function setPendingScoreSessionId(sessionId: string): void {
+  storageSet(STORAGE_KEYS.examPendingScoreSessionId, sessionId);
+}
+
+export function clearPendingScoreSessionId(): void {
+  storageSet(STORAGE_KEYS.examPendingScoreSessionId, null);
+}
