@@ -42,6 +42,7 @@ import type { AuthoredQuestionSet, RolePlayScenario } from '../data/exam/bank/ty
 import { ExamGreeting } from './exam/ExamGreeting';
 import { ExamSelect } from './exam/ExamSelect';
 import { RolePlayCardPreview } from './exam/RolePlayCardPreview';
+import { ExitConfirmDialog } from './exam/ExitConfirmDialog';
 
 type ExamState = 'select' | 'intro' | 'greeting' | 'card' | 'running' | 'review' | 'scoring' | 'results';
 
@@ -53,7 +54,7 @@ interface RolePlayMeta {
 /** A8: exam duration (10-15 min) only marginally exceeds Render free tier's ~15 min idle window — the keepalive is what guarantees warmth by the time scoring is needed. */
 const KEEPALIVE_INTERVAL_MS = 5 * 60 * 1000;
 
-const GREETING_TEXT = 'Bonjour ! Comment ça va ? Es-tu prêt ? On va commencer.';
+export const GREETING_TEXT = 'Bonjour ! Comment ça va ? Es-tu prêt ? On va commencer.';
 
 export function ExamMode() {
   const { state, dispatch } = useApp();
@@ -67,6 +68,7 @@ export function ExamMode() {
   const [envelopeView, setEnvelopeView] = useState<EnvelopeView | null>(null);
   const [rolePlayScenario, setRolePlayScenario] = useState<RolePlayScenario | undefined>(undefined);
   const [rolePlayMeta, setRolePlayMeta] = useState<RolePlayMeta | undefined>(undefined);
+  const [showScoringExitConfirm, setShowScoringExitConfirm] = useState(false);
 
   const recording = useRecording();
   const clock = useSessionClock();
@@ -478,7 +480,7 @@ export function ExamMode() {
   if (examState === 'intro') return <ExamIntro onStart={enterGreeting} onBack={() => navigate('/')} />;
 
   if (examState === 'greeting') {
-    return <ExamGreeting recording={recording} onContinue={() => void enterCardPreview()} />;
+    return <ExamGreeting recording={recording} greetingText={GREETING_TEXT} onContinue={() => void enterCardPreview()} />;
   }
 
   if (examState === 'card' && rolePlayScenario) {
@@ -486,7 +488,7 @@ export function ExamMode() {
   }
 
   if (examState === 'review' && transcript) {
-    return <TranscriptReview transcript={transcript} onConfirm={handleReviewConfirm} />;
+    return <TranscriptReview transcript={transcript} onConfirm={handleReviewConfirm} onExit={() => navigate('/')} />;
   }
 
   if (examState === 'scoring') {
@@ -503,7 +505,18 @@ export function ExamMode() {
               ? 'Your answers are safe — checking again shortly.'
               : 'This can take up to a minute.'}
           </p>
+          <button
+            onClick={() => setShowScoringExitConfirm(true)}
+            className="text-[10px] text-slate-600 hover:text-white transition-colors underline underline-offset-2"
+          >
+            Exit
+          </button>
         </div>
+        <ExitConfirmDialog
+          open={showScoringExitConfirm}
+          onCancel={() => setShowScoringExitConfirm(false)}
+          onConfirm={() => navigate('/')}
+        />
       </div>
     );
   }

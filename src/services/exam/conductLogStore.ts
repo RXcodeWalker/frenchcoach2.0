@@ -10,13 +10,23 @@ import { STORAGE_KEYS, storageGet, storageSet } from '../persistence/storage';
 
 type ConductLogMap = Record<string, ConductLog>;
 
+/** Cap on stored conduct logs — practice exams accumulate indefinitely otherwise; keep only the most recent. */
+const MAX_STORED_CONDUCT_LOGS = 20;
+
 function readAll(): ConductLogMap {
   return storageGet<ConductLogMap>(STORAGE_KEYS.examConductLogs, {});
 }
 
 export function saveConductLog(log: ConductLog): void {
   const all = readAll();
+  delete all[log.sessionId];
   all[log.sessionId] = log;
+  const keys = Object.keys(all);
+  if (keys.length > MAX_STORED_CONDUCT_LOGS) {
+    for (const staleKey of keys.slice(0, keys.length - MAX_STORED_CONDUCT_LOGS)) {
+      delete all[staleKey];
+    }
+  }
   storageSet(STORAGE_KEYS.examConductLogs, all);
 }
 

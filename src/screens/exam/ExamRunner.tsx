@@ -1,10 +1,11 @@
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
-import { Mic, MicOff, ArrowLeft, Volume2, VolumeX, RotateCcw } from 'lucide-react';
+import { Mic, MicOff, ArrowLeft, Volume2, VolumeX, RotateCcw, Info } from 'lucide-react';
 import { Waveform } from '../../features/recording/Waveform';
 import { formatTime } from '../../domain/time';
 import type { RecordingState } from '../../features/recording/useRecording';
 import type { ExaminerAction } from '../../domain/igcse/session/types';
+import { ExitConfirmDialog } from './ExitConfirmDialog';
 
 // UI-only pacing heuristics (approximate VAD / pacing) — never logged or scored.
 const NUDGE_QUIET_S = 5;
@@ -62,6 +63,7 @@ export function ExamRunner({
   const examinerLabel = action ? (ACTION_LABEL[action.kind] ?? 'Examiner') : 'Examiner';
 
   const [showSilenceNudge, setShowSilenceNudge] = useState(false);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
 
   useEffect(() => {
     if (!recording.isRecording) {
@@ -79,7 +81,7 @@ export function ExamRunner({
     <div className="fixed inset-0 bg-navy flex flex-col z-40">
       <div className="flex items-center justify-between px-5 py-3 border-b border-white/[0.03] glass">
         <motion.button
-          onClick={onExit}
+          onClick={() => setShowExitConfirm(true)}
           className="flex items-center gap-1.5 text-slate-600 hover:text-white transition-colors text-[10px]"
           whileHover={{ x: -2 }}
         >
@@ -98,7 +100,12 @@ export function ExamRunner({
           <div className="text-[9px] text-slate-600 tabular-nums">
             Total <span className="text-slate-500">{formatTime(Math.round(totalElapsedS))}</span>
           </div>
-          <button onClick={onToggleVoice} className="text-slate-600 hover:text-white transition-colors">
+          <button
+            onClick={onToggleVoice}
+            aria-label={voiceMuted ? 'Unmute examiner voice' : 'Mute examiner voice'}
+            title={voiceMuted ? 'Unmute examiner voice' : 'Mute examiner voice'}
+            className="text-slate-600 hover:text-white transition-colors"
+          >
             {voiceMuted ? <VolumeX size={14} /> : <Volume2 size={14} />}
           </button>
         </div>
@@ -127,6 +134,13 @@ export function ExamRunner({
           </div>
         )}
 
+        {(part === 'topic1' || part === 'topic2') && (
+          <div className="mb-4 flex items-center gap-1.5 text-[8px] font-bold uppercase tracking-wider text-slate-600">
+            <span className="w-1.5 h-1.5 rounded-full bg-violet-electric animate-pulse" />
+            {action?.kind === 'EXTENSION_PROMPT' || action?.kind === 'FURTHER_QUESTION' ? 'Extension question' : 'Conversation in progress'}
+          </div>
+        )}
+
         <div className="w-full rounded-xl glass-elevated p-5 mb-5 text-center">
           <p className="text-[9px] text-slate-700 uppercase tracking-wider mb-1.5">{examinerLabel}</p>
           <p className="text-base font-bold text-white leading-relaxed">{action?.text ?? '…'}</p>
@@ -140,7 +154,7 @@ export function ExamRunner({
               animate={{ scale: 1, opacity: 1 }}
             >
               <p className="text-sm font-semibold text-white">We didn't hear an answer</p>
-              <p className="text-[10px] text-slate-500">Keep trying to record, or skip this question.</p>
+              <p className="text-[10px] text-slate-500">Keep trying to record, or skip this question. Skipping will be scored as no answer, just like in the real exam.</p>
               <div className="flex items-center justify-center gap-3 pt-1">
                 <motion.button
                   onClick={onKeepTrying}
@@ -164,22 +178,24 @@ export function ExamRunner({
               <div className="text-center text-[10px] text-slate-600 tabular-nums">{formatTime(Math.round(elapsedS))}</div>
               {showSilenceNudge ? (
                 <motion.div
-                  className="text-center text-[10px] text-slate-500 glass-subtle rounded-lg py-1.5 px-3"
+                  className="flex items-center justify-center gap-1.5 text-center text-[10px] italic text-slate-500 glass-subtle rounded-lg py-1.5 px-3"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                 >
+                  <Info size={10} className="flex-shrink-0 opacity-60" />
                   Fini ? Soumets ta réponse — ou continue à parler.
                 </motion.div>
               ) : (
                 recording.isRecording &&
                 elapsedS >= PACING_HINT_S && (
                   <motion.div
-                    className="text-center text-[10px] text-slate-600 glass-subtle rounded-lg py-1.5 px-3"
+                    className="flex items-center justify-center gap-1.5 text-center text-[10px] italic text-slate-600 glass-subtle rounded-lg py-1.5 px-3"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                   >
+                    <Info size={10} className="flex-shrink-0 opacity-60" />
                     Pense à conclure ta réponse.
                   </motion.div>
                 )
@@ -208,6 +224,13 @@ export function ExamRunner({
                   >
                     Stop &amp; Submit
                   </motion.button>
+                ) : action?.kind === 'REPEAT' ? (
+                  <button
+                    disabled
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-lg glass-subtle text-slate-700 font-semibold text-[10px] cursor-not-allowed"
+                  >
+                    <RotateCcw size={11} /> No repeats left
+                  </button>
                 ) : (
                   <motion.button
                     onClick={onRequestRepeat}
@@ -222,6 +245,12 @@ export function ExamRunner({
           )}
         </div>
       </div>
+
+      <ExitConfirmDialog
+        open={showExitConfirm}
+        onCancel={() => setShowExitConfirm(false)}
+        onConfirm={onExit}
+      />
     </div>
   );
 }

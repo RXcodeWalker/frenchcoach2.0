@@ -40,12 +40,12 @@ export function ExamIntro({ onStart, onBack }: Props) {
               🎓
             </motion.div>
             <h2 className="text-2xl font-black text-white mb-2">IGCSE Exam Simulation</h2>
-            <p className="text-sm text-slate-500 leading-relaxed mb-6 max-w-md mx-auto">Experience a full IGCSE French oral exam. Timed preparation and speaking phases for each question.</p>
+            <p className="text-sm text-slate-500 leading-relaxed mb-6 max-w-md mx-auto">Experience a full IGCSE French oral exam. Self-paced preparation, then live speaking phases for each part.</p>
             <div className="grid grid-cols-3 gap-2 mb-7 max-w-sm mx-auto">
               {[
-                { value: '10m', label: 'Prep', color: 'text-amber-400' },
-                { value: '2m', label: 'Role Play', color: 'text-violet-400' },
-                { value: '8m', label: 'Topics', color: 'text-emerald-400' },
+                { value: '~10m', label: 'Prep (untimed)', color: 'text-amber-400' },
+                { value: '~2m', label: 'Role Play', color: 'text-violet-400' },
+                { value: '~4m ea.', label: 'Topics', color: 'text-emerald-400' },
               ].map(s => (
                 <div key={s.label} className="p-2.5 rounded-xl glass-subtle">
                   <p className={`text-lg font-black ${s.color}`}>{s.value}</p>
@@ -68,10 +68,10 @@ export function ExamIntro({ onStart, onBack }: Props) {
           <h3 className="font-bold text-slate-500 text-[10px] uppercase tracking-wider mb-3">Exam Structure</h3>
           <div className="space-y-1.5">
             {[
-              { label: '10 min Preparation', desc: 'Review your Role Play card and make notes.' },
+              { label: 'Preparation (untimed)', desc: 'Review your Role Play card and make notes — take as long as you like.' },
               { label: 'Part 1: Role Play', desc: 'Respond to 5 prompts in a specific scenario.' },
-              { label: 'Part 2: Topic 1', desc: '4 min conversation on Everyday Life topics.' },
-              { label: 'Part 3: Topic 2', desc: '4 min conversation on The World topics.' },
+              { label: 'Part 2: Topic 1', desc: '~4 min conversation on Everyday Life topics (may extend with follow-up questions).' },
+              { label: 'Part 3: Topic 2', desc: '~4 min conversation on The World topics (may extend with follow-up questions).' },
             ].map(item => (
               <div key={item.label} className="flex items-center gap-3 p-2.5 rounded-lg glass-subtle">
                 <div className="flex-1">

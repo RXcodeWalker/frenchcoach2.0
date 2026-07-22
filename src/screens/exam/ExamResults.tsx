@@ -1,5 +1,6 @@
-import { motion } from 'framer-motion';
-import { Trophy, Download, AlertTriangle, RefreshCw } from 'lucide-react';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Trophy, Download, AlertTriangle, RefreshCw, ChevronDown } from 'lucide-react';
 import type { SessionTranscript } from '../../domain/igcse/stt/types';
 import type { EnvelopeView, CriterionView } from '../../domain/igcse/envelope/envelopeView';
 import { downloadConductLog } from '../../services/exam/conductLogStore';
@@ -19,9 +20,19 @@ function criterionLabel(criterion: CriterionView): string {
   return 'Quality of Language';
 }
 
+const GUARDRAIL_LABEL: Record<string, string> = {
+  insufficient_evidence_duration: 'Not enough spoken evidence to fully justify this mark — treat it as provisional.',
+  quote_verification_failed: 'A quoted piece of evidence could not be verified against your transcript.',
+};
+
+function guardrailLabel(id: string): string {
+  return GUARDRAIL_LABEL[id] ?? id;
+}
+
 export function ExamResults({ transcript, envelopeView, scoringError, onRetryScoring, onRetake, onHome }: Props) {
   const candidateUtterances = transcript.utterances.filter((u) => u.role === 'candidate');
   const totalSpeakingS = candidateUtterances.reduce((sum, u) => sum + (u.endS - u.startS), 0);
+  const [transcriptOpen, setTranscriptOpen] = useState(false);
 
   return (
     <div className="min-h-screen pb-24 md:pb-8">
@@ -123,7 +134,7 @@ export function ExamResults({ transcript, envelopeView, scoringError, onRetrySco
                   <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Guardrail Flags</span>
                 </div>
                 {envelopeView.guardrailTriggers.map((t, i) => (
-                  <p key={i} className="text-[10px] text-slate-400">{t.id}</p>
+                  <p key={i} className="text-[10px] text-slate-400">{guardrailLabel(t.id)}</p>
                 ))}
               </div>
             )}
@@ -131,10 +142,40 @@ export function ExamResults({ transcript, envelopeView, scoringError, onRetrySco
         )}
 
         <div className="rounded-xl glass p-5">
-          <h3 className="font-bold text-slate-500 text-[10px] uppercase tracking-wider mb-3">Transcript Saved</h3>
-          <p className="text-[11px] text-slate-400 leading-relaxed">
-            Your session transcript has been saved locally.
-          </p>
+          <button
+            onClick={() => setTranscriptOpen((v) => !v)}
+            className="w-full flex items-center justify-between"
+          >
+            <div className="text-left">
+              <h3 className="font-bold text-slate-500 text-[10px] uppercase tracking-wider mb-1">Transcript Saved</h3>
+              <p className="text-[11px] text-slate-400 leading-relaxed">
+                Your session transcript has been saved locally.
+              </p>
+            </div>
+            <ChevronDown
+              size={16}
+              className={`flex-shrink-0 text-slate-500 transition-transform ${transcriptOpen ? 'rotate-180' : ''}`}
+            />
+          </button>
+          <AnimatePresence>
+            {transcriptOpen && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="mt-3 space-y-2.5 pt-3 border-t border-white/5">
+                  {candidateUtterances.map((u, i) => (
+                    <div key={u.utteranceId} className="p-2.5 rounded-lg bg-white/[0.03] border border-white/5">
+                      <p className="text-[9px] text-slate-600 uppercase tracking-wider mb-1">{u.part} &middot; Answer {i + 1}</p>
+                      <p className="text-[11px] text-slate-300 leading-relaxed">{u.text}</p>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {import.meta.env.DEV && (

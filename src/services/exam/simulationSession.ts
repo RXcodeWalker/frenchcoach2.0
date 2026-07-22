@@ -200,6 +200,8 @@ export class SimulationSession {
       sessionId: this.sessionId,
       recordedAt: now,
       contentProvenance,
+      // Stubbed — no real audio hashing/resampling happens on this client-engine path.
+      // Downstream scoring/audit consumers must not treat this as a real hash.
       audio: { sha256: '0'.repeat(64), durationS: this.getClockS(), sampleRateHz: 16000, channels: 1 },
       questionSetHash,
     });

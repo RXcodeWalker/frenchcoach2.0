@@ -5,6 +5,7 @@ import type { RecordingState } from '../../features/recording/useRecording';
 
 interface Props {
   recording: RecordingState;
+  greetingText: string;
   onContinue: () => void;
 }
 
@@ -13,7 +14,7 @@ interface Props {
  * to the session and never logged — it exists only to warm up the mic/voice
  * before the assessed role play begins.
  */
-export function ExamGreeting({ recording, onContinue }: Props) {
+export function ExamGreeting({ recording, greetingText, onContinue }: Props) {
   return (
     <div className="fixed inset-0 bg-navy flex flex-col z-40">
       <div className="flex-1 flex flex-col items-center justify-center px-5 py-6 max-w-2xl mx-auto w-full">
@@ -28,7 +29,7 @@ export function ExamGreeting({ recording, onContinue }: Props) {
         <div className="w-full rounded-xl glass-elevated p-5 mb-5 text-center">
           <p className="text-[9px] text-slate-700 uppercase tracking-wider mb-1.5">Examiner</p>
           <p className="text-base font-bold text-white leading-relaxed">
-            Bonjour ! Comment ça va ? Es-tu prêt ? On va commencer.
+            {greetingText}
           </p>
         </div>
 

@@ -1,7 +1,34 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { listPublishedQuestionSets } from '../../data/exam/bank/loader';
-import type { AuthoredQuestionSet } from '../../data/exam/bank/types';
+import type { AuthoredQuestionSet, Difficulty } from '../../data/exam/bank/types';
+
+const TOPIC_AREA_LABEL: Record<string, string> = {
+  A: 'Everyday Activities',
+  B: 'Personal & Social Life',
+  C: 'World Around Us',
+  D: 'World of Work',
+  E: 'International World',
+};
+
+const DIFFICULTY_LABEL: Record<Difficulty, string> = {
+  foundation: 'Foundation',
+  core: 'Core',
+  higher: 'Higher',
+};
+
+/** Rough difficulty summary for a topic — most common `difficulty` among its authored questions. */
+function dominantDifficulty(set: AuthoredQuestionSet): Difficulty | undefined {
+  const counts: Partial<Record<Difficulty, number>> = {};
+  for (const topic of [set.content.topic1, set.content.topic2]) {
+    for (const q of topic.questions) {
+      if (q.difficulty) counts[q.difficulty] = (counts[q.difficulty] ?? 0) + 1;
+    }
+  }
+  const entries = Object.entries(counts) as [Difficulty, number][];
+  if (entries.length === 0) return undefined;
+  return entries.sort((a, b) => b[1] - a[1])[0][0];
+}
 
 interface Props {
   onSelect: (set: AuthoredQuestionSet) => void;
@@ -56,25 +83,39 @@ export function ExamSelect({ onSelect, onAutoFallback }: Props) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {sets.map((set, idx) => (
-            <motion.button
-              key={set.questionSetId}
-              onClick={() => onSelect(set)}
-              className="group relative overflow-hidden rounded-xl glass p-5 text-left hover:border-white/10 transition-all duration-300"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.05, duration: 0.4 }}
-              whileHover={{ scale: 1.02, y: -2 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <div className="relative">
-                <h3 className="font-bold text-white text-sm mb-1">{set.content.rolePlay.title}</h3>
-                <p className="text-[10px] text-slate-600">
-                  {set.content.topic1.subTopic} &middot; {set.content.topic2.subTopic}
-                </p>
-              </div>
-            </motion.button>
-          ))}
+          {sets.map((set, idx) => {
+            const difficulty = dominantDifficulty(set);
+            return (
+              <motion.button
+                key={set.questionSetId}
+                onClick={() => onSelect(set)}
+                className="group relative overflow-hidden rounded-xl glass p-5 text-left hover:border-white/10 transition-all duration-300"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.05, duration: 0.4 }}
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <div className="relative">
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <h3 className="font-bold text-white text-sm">{set.content.rolePlay.title}</h3>
+                    {difficulty && (
+                      <span className="flex-shrink-0 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider bg-navy-400 text-slate-500">
+                        {DIFFICULTY_LABEL[difficulty]}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-slate-600">
+                    {TOPIC_AREA_LABEL[set.content.topic1.topicArea] ?? set.content.topic1.topicArea} &middot;{' '}
+                    {TOPIC_AREA_LABEL[set.content.topic2.topicArea] ?? set.content.topic2.topicArea}
+                  </p>
+                  <p className="text-[9px] text-slate-700 mt-0.5">
+                    {set.content.topic1.subTopic} &middot; {set.content.topic2.subTopic}
+                  </p>
+                </div>
+              </motion.button>
+            );
+          })}
         </div>
 
         <motion.button

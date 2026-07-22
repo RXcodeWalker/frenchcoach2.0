@@ -1,15 +1,18 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Check, Pencil } from 'lucide-react';
+import { Check, Pencil, ArrowLeft } from 'lucide-react';
 import type { SessionTranscript } from '../../domain/igcse/stt/types';
+import { ExitConfirmDialog } from './ExitConfirmDialog';
 
 interface Props {
   transcript: SessionTranscript;
   onConfirm: (finalTranscript: SessionTranscript) => void;
+  onExit: () => void;
 }
 
 /** 04 §6.1 transcript-review step: candidate sees the assembled transcript and may correct it; edits set userCorrected: true. */
-export function TranscriptReview({ transcript, onConfirm }: Props) {
+export function TranscriptReview({ transcript, onConfirm, onExit }: Props) {
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
   const candidateUtterances = transcript.utterances.filter((u) => u.role === 'candidate');
   const [edits, setEdits] = useState<Record<string, string>>(() =>
     Object.fromEntries(candidateUtterances.map((u) => [u.utteranceId, u.text])),
@@ -37,9 +40,17 @@ export function TranscriptReview({ transcript, onConfirm }: Props) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
-        <div className="flex items-center gap-2 mb-2">
-          <Pencil size={16} className="text-violet-400" />
-          <h1 className="text-lg font-black text-white uppercase tracking-tight">Review Your Transcript</h1>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <Pencil size={16} className="text-violet-400" />
+            <h1 className="text-lg font-black text-white uppercase tracking-tight">Review Your Transcript</h1>
+          </div>
+          <button
+            onClick={() => setShowExitConfirm(true)}
+            className="flex items-center gap-1.5 text-slate-600 hover:text-white transition-colors text-[10px]"
+          >
+            <ArrowLeft size={12} /> Exit
+          </button>
         </div>
         <p className="text-[11px] text-slate-500 mb-4">
           Check what was recorded for each answer. Correct anything the microphone misheard before scoring.
@@ -69,6 +80,12 @@ export function TranscriptReview({ transcript, onConfirm }: Props) {
           <Check size={15} /> Confirm &amp; Finish
         </motion.button>
       </motion.div>
+
+      <ExitConfirmDialog
+        open={showExitConfirm}
+        onCancel={() => setShowExitConfirm(false)}
+        onConfirm={onExit}
+      />
     </div>
   );
 }

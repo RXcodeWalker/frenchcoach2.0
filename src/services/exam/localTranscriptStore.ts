@@ -10,15 +10,29 @@ import { STORAGE_KEYS, storageGet, storageSet } from '../persistence/storage';
 
 type TranscriptMap = Record<string, SessionTranscript>;
 
+/** Cap on stored transcripts — practice exams accumulate indefinitely otherwise; keep only the most recent. */
+const MAX_STORED_TRANSCRIPTS = 20;
+
 function readAll(): TranscriptMap {
   return storageGet<TranscriptMap>(STORAGE_KEYS.examTranscripts, {});
+}
+
+function evictStale(all: TranscriptMap): void {
+  const keys = Object.keys(all);
+  if (keys.length > MAX_STORED_TRANSCRIPTS) {
+    for (const staleKey of keys.slice(0, keys.length - MAX_STORED_TRANSCRIPTS)) {
+      delete all[staleKey];
+    }
+  }
 }
 
 export function createLocalTranscriptStore(): TranscriptStore {
   return {
     async save(t: SessionTranscript): Promise<void> {
       const all = readAll();
+      delete all[t.sessionId];
       all[t.sessionId] = t;
+      evictStale(all);
       storageSet(STORAGE_KEYS.examTranscripts, all);
     },
     async load(sessionId: string): Promise<SessionTranscript> {
@@ -41,7 +55,9 @@ export function getStoredTranscript(sessionId: string): SessionTranscript | null
 
 export function saveStoredTranscript(t: SessionTranscript): void {
   const all = readAll();
+  delete all[t.sessionId];
   all[t.sessionId] = t;
+  evictStale(all);
   storageSet(STORAGE_KEYS.examTranscripts, all);
 }
 
