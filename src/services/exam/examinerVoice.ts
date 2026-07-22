@@ -55,11 +55,41 @@ export function isExaminerVoiceMuted(): boolean {
   return muted;
 }
 
+const VOICE_READY_TIMEOUT_MS = 800;
+
+/**
+ * Resolves once a voice is selected (or immediately if one already is / voices
+ * are already cached). On a genuinely cold first load, waits on the existing
+ * `onvoiceschanged` hook with a timeout guard so it degrades to "speak now
+ * anyway" rather than ever blocking indefinitely.
+ */
+export function ensureVoiceReady(): Promise<void> {
+  if (!isTtsAvailable()) return Promise.resolve();
+  if (selectedVoice || window.speechSynthesis.getVoices().length) return Promise.resolve();
+
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      resolve();
+    };
+    const timeoutId = setTimeout(finish, VOICE_READY_TIMEOUT_MS);
+    window.speechSynthesis.onvoiceschanged = () => {
+      selectedVoice = selectVoice();
+      clearTimeout(timeoutId);
+      finish();
+    };
+  });
+}
+
 /** Speaks `text` in fr-FR; resolves when speech ends (or immediately if muted/unavailable). Never rejects. */
-export function speakExaminerText(text: string): Promise<void> {
+export async function speakExaminerText(text: string): Promise<void> {
   if (muted || !isTtsAvailable() || text.trim().length === 0) {
     return Promise.resolve();
   }
+
+  await ensureVoiceReady();
 
   return new Promise((resolve) => {
     const utterance = new SpeechSynthesisUtterance(text);

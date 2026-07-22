@@ -30,6 +30,7 @@ import type {
 import type { SessionPart } from '../../domain/igcse/stt/types';
 import type { ContentProvenance, SessionTranscript } from '../../domain/igcse/stt/types';
 import { speakExaminerText } from './examinerVoice';
+import { wait, INTER_ACTION_PAUSE_MS } from './examinerPacing';
 
 export interface SimulationTurnInput {
   transcript: string;
@@ -90,12 +91,14 @@ export class SimulationSession {
 
   private async emitActions(actions: ExaminerAction[]): Promise<ExaminerAction> {
     let last: ExaminerAction = actions[actions.length - 1];
-    for (const action of actions) {
+    for (let i = 0; i < actions.length; i++) {
+      const action = actions[i];
       const atS = this.getClockS();
       this.entries.push(examinerActionToLogEntry(action, this.seq, atS));
       this.seq += 1;
       this.callbacks.onExaminerAction?.(action);
       if (action.text) await speakExaminerText(action.text);
+      if (i < actions.length - 1) await wait(INTER_ACTION_PAUSE_MS);
       last = action;
     }
     this.currentAction = last;

@@ -19,6 +19,7 @@ import { SimulationSession } from '../services/exam/simulationSession';
 import { saveConductLog } from '../services/exam/conductLogStore';
 import { saveStoredTranscript } from '../services/exam/localTranscriptStore';
 import { isExaminerVoiceMuted, setExaminerVoiceMuted, stopExaminerVoice, speakExaminerText } from '../services/exam/examinerVoice';
+import { wait, PRE_SPEECH_LEAD_MS, PRE_LISTEN_PAUSE_MS } from '../services/exam/examinerPacing';
 import { pingScoringServiceHealth, scoreExamTranscript, ScoringApiError } from '../services/exam/scoringApiClient';
 import { pingInterpretServiceHealth } from '../services/exam/interpretUtterance';
 import { getOriginalQuestionSet, getAuthoredQuestionSet, listPublishedQuestionSetIds } from '../data/exam/bank/loader';
@@ -75,7 +76,10 @@ export function ExamMode() {
 
   const enterGreeting = () => {
     setExamState('greeting');
-    void speakExaminerText(GREETING_TEXT);
+    void (async () => {
+      await wait(PRE_SPEECH_LEAD_MS);
+      await speakExaminerText(GREETING_TEXT);
+    })();
   };
 
   const enterCardPreview = async () => {
@@ -142,6 +146,7 @@ export function ExamMode() {
 
     const firstAction = await session.begin();
     setAction(firstAction);
+    await wait(PRE_LISTEN_PAUSE_MS);
     turnStartRef.current = clock.nowS();
     recording.start();
   };
@@ -175,6 +180,7 @@ export function ExamMode() {
         return;
       }
 
+      await wait(PRE_LISTEN_PAUSE_MS);
       turnStartRef.current = clock.nowS();
       recording.start();
     } finally {
@@ -209,6 +215,7 @@ export function ExamMode() {
         return;
       }
 
+      await wait(PRE_LISTEN_PAUSE_MS);
       turnStartRef.current = clock.nowS();
       recording.start();
     } finally {
@@ -234,6 +241,7 @@ export function ExamMode() {
         return;
       }
 
+      await wait(PRE_LISTEN_PAUSE_MS);
       turnStartRef.current = clock.nowS();
       recording.start();
     } finally {
