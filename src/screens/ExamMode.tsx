@@ -10,6 +10,7 @@ import { buildAchievementContext } from '../services/coach/achievementContextBui
 import type { Session } from '../types/index';
 import { useRecording } from '../features/recording/useRecording';
 import { useSessionClock } from '../features/recording/useSessionClock';
+import { useElapsedClock } from '../features/recording/useElapsedClock';
 import { ExamIntro } from './exam/ExamIntro';
 import { ExamResults } from './exam/ExamResults';
 import { ExamRunner } from './exam/ExamRunner';
@@ -56,11 +57,13 @@ export function ExamMode() {
 
   const recording = useRecording();
   const clock = useSessionClock();
+  const totalClock = useElapsedClock();
   const sessionRef = useRef<SimulationSession | null>(null);
   const sessionIdRef = useRef<string>('');
   const turnStartRef = useRef<number>(0);
   const selectedQuestionSetIdRef = useRef<string | undefined>(undefined);
   const selectedAuthoredSetRef = useRef<AuthoredQuestionSet | undefined>(undefined);
+  const turnBusyRef = useRef(false);
 
   // A8: keepalive ping while the exam runs, so the scoring service stays warm
   // through the ~15 min Render free-tier idle window until scoring is needed.
@@ -115,6 +118,7 @@ export function ExamMode() {
     const sessionId = `exam-sim-${Date.now()}`;
     sessionIdRef.current = sessionId;
     clock.start();
+    totalClock.start();
 
     const questionSet = questionSetId ? await getOriginalQuestionSet(questionSetId) : undefined;
 
@@ -144,36 +148,42 @@ export function ExamMode() {
 
   const handleSubmitTurn = async () => {
     const session = sessionRef.current;
-    if (!session) return;
+    if (!session || turnBusyRef.current) return;
+    turnBusyRef.current = true;
 
-    const responseDurationS = Math.max(clock.nowS() - turnStartRef.current, 0.1);
-    const transcriptText = await recording.stop();
+    try {
+      const responseDurationS = Math.max(clock.nowS() - turnStartRef.current, 0.1);
+      const transcriptText = await recording.stop();
 
-    if (transcriptText.trim().length === 0) {
-      // Don't auto-forward an empty submit as an intentional non-answer — could be an
-      // accidental instant Stop & Submit. Ask the candidate to confirm before it drives
-      // the reducer's no_response path.
-      setPendingSilentSkip(true);
-      return;
+      if (transcriptText.trim().length === 0) {
+        // Don't auto-forward an empty submit as an intentional non-answer — could be an
+        // accidental instant Stop & Submit. Ask the candidate to confirm before it drives
+        // the reducer's no_response path.
+        setPendingSilentSkip(true);
+        return;
+      }
+
+      const nextAction = await session.submitTurn({
+        transcript: transcriptText,
+        responseDurationS,
+        requestedRepeat: false,
+      });
+      setAction(nextAction);
+
+      if (session.isComplete) {
+        await finishSession(session);
+        return;
+      }
+
+      turnStartRef.current = clock.nowS();
+      recording.start();
+    } finally {
+      turnBusyRef.current = false;
     }
-
-    const nextAction = await session.submitTurn({
-      transcript: transcriptText,
-      responseDurationS,
-      requestedRepeat: false,
-    });
-    setAction(nextAction);
-
-    if (session.isComplete) {
-      await finishSession(session);
-      return;
-    }
-
-    turnStartRef.current = clock.nowS();
-    recording.start();
   };
 
   const handleKeepTrying = () => {
+    if (turnBusyRef.current) return;
     setPendingSilentSkip(false);
     turnStartRef.current = clock.nowS();
     recording.start();
@@ -181,47 +191,58 @@ export function ExamMode() {
 
   const handleSkipQuestion = async () => {
     const session = sessionRef.current;
-    if (!session) return;
+    if (!session || turnBusyRef.current) return;
+    turnBusyRef.current = true;
     setPendingSilentSkip(false);
 
-    const responseDurationS = Math.max(clock.nowS() - turnStartRef.current, 0.1);
-    const nextAction = await session.submitTurn({
-      transcript: '',
-      responseDurationS,
-      requestedRepeat: false,
-    });
-    setAction(nextAction);
+    try {
+      const responseDurationS = Math.max(clock.nowS() - turnStartRef.current, 0.1);
+      const nextAction = await session.submitTurn({
+        transcript: '',
+        responseDurationS,
+        requestedRepeat: false,
+      });
+      setAction(nextAction);
 
-    if (session.isComplete) {
-      await finishSession(session);
-      return;
+      if (session.isComplete) {
+        await finishSession(session);
+        return;
+      }
+
+      turnStartRef.current = clock.nowS();
+      recording.start();
+    } finally {
+      turnBusyRef.current = false;
     }
-
-    turnStartRef.current = clock.nowS();
-    recording.start();
   };
 
   const handleRequestRepeat = async () => {
     const session = sessionRef.current;
-    if (!session) return;
+    if (!session || turnBusyRef.current) return;
+    turnBusyRef.current = true;
 
-    const nextAction = await session.submitTurn({
-      transcript: '',
-      responseDurationS: 0.1,
-      requestedRepeat: true,
-    });
-    setAction(nextAction);
+    try {
+      const nextAction = await session.submitTurn({
+        transcript: '',
+        responseDurationS: 0.1,
+        requestedRepeat: true,
+      });
+      setAction(nextAction);
 
-    if (session.isComplete) {
-      await finishSession(session);
-      return;
+      if (session.isComplete) {
+        await finishSession(session);
+        return;
+      }
+
+      turnStartRef.current = clock.nowS();
+      recording.start();
+    } finally {
+      turnBusyRef.current = false;
     }
-
-    turnStartRef.current = clock.nowS();
-    recording.start();
   };
 
   const finishSession = async (session: SimulationSession) => {
+    totalClock.stop();
     stopExaminerVoice();
     saveConductLog(session.getConductLog());
     const built = await session.buildTranscript();
@@ -390,6 +411,7 @@ export function ExamMode() {
     <ExamRunner
       action={action}
       elapsedS={recording.elapsedTime}
+      totalElapsedS={totalClock.elapsedS}
       recording={recording}
       onSubmitTurn={() => void handleSubmitTurn()}
       onRequestRepeat={() => void handleRequestRepeat()}

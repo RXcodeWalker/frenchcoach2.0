@@ -53,6 +53,7 @@ export function useRecording(): RecordingState {
   const recogRef      = useRef<SpeechRecognition | null>(null);
   const finalTextRef  = useRef('');
   const resolveRef    = useRef<((t: string) => void) | null>(null);
+  const startedAtRef  = useRef<number>(0);
 
   // MediaRecorder for audio blob capture (pronunciation pipeline)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -83,7 +84,11 @@ export function useRecording(): RecordingState {
     finalTextRef.current = '';
     chunksRef.current = [];
 
-    timerRef.current = window.setInterval(() => setElapsedTime(t => t + 1), 1000);
+    if (timerRef.current) clearInterval(timerRef.current);
+    startedAtRef.current = Date.now();
+    timerRef.current = window.setInterval(() => {
+      setElapsedTime(Math.round((Date.now() - startedAtRef.current) / 1000));
+    }, 1000);
     waveRef.current  = requestAnimationFrame(animateWave);
 
     // Start MediaRecorder for audio blob (best-effort — ignore if permissions denied)
@@ -143,7 +148,7 @@ export function useRecording(): RecordingState {
 
   const stop = useCallback((): Promise<string> => {
     setIsRecording(false);
-    if (timerRef.current)  clearInterval(timerRef.current);
+    if (timerRef.current)  { clearInterval(timerRef.current); timerRef.current = null; }
     if (waveRef.current)   cancelAnimationFrame(waveRef.current);
     setWaveData(Array(WAVE_BARS).fill(4));
 

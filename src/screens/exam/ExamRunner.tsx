@@ -13,6 +13,7 @@ const PACING_HINT_S = 45;
 interface Props {
   action: ExaminerAction | null;
   elapsedS: number;
+  totalElapsedS: number;
   recording: RecordingState;
   onSubmitTurn: () => void;
   onRequestRepeat: () => void;
@@ -43,6 +44,7 @@ const ACTION_LABEL: Record<string, string> = {
 export function ExamRunner({
   action,
   elapsedS,
+  totalElapsedS,
   recording,
   onSubmitTurn,
   onRequestRepeat,
@@ -92,9 +94,14 @@ export function ExamRunner({
             </div>
           ))}
         </div>
-        <button onClick={onToggleVoice} className="text-slate-600 hover:text-white transition-colors">
-          {voiceMuted ? <VolumeX size={14} /> : <Volume2 size={14} />}
-        </button>
+        <div className="flex items-center gap-3">
+          <div className="text-[9px] text-slate-600 tabular-nums">
+            Total <span className="text-slate-500">{formatTime(Math.round(totalElapsedS))}</span>
+          </div>
+          <button onClick={onToggleVoice} className="text-slate-600 hover:text-white transition-colors">
+            {voiceMuted ? <VolumeX size={14} /> : <Volume2 size={14} />}
+          </button>
+        </div>
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-5 py-6 max-w-2xl mx-auto w-full">
