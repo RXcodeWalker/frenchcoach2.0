@@ -78,6 +78,7 @@ function buildSkeleton(setNumber: number): AuthoredQuestionSet {
         scenarioId: `rp-${row.questionSetId}`,
         topicArea: row.rolePlayArea,
         title: TODO,
+        setup: TODO,
         tasks: Array.from({ length: 5 }, (_, i) => roleplayTaskSkeleton(i, [2])),
       },
       topic1: {

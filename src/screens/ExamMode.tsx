@@ -48,6 +48,7 @@ type ExamState = 'select' | 'intro' | 'greeting' | 'card' | 'running' | 'review'
 
 interface RolePlayMeta {
   title: string;
+  setup: string;
   taskIds: string[];
 }
 
@@ -166,16 +167,25 @@ export function ExamMode() {
     if (rolePlayScenario) {
       setRolePlayMeta({
         title: rolePlayScenario.title,
+        setup: rolePlayScenario.setup,
         taskIds: rolePlayScenario.tasks.map((t) => t.questionId),
       });
     }
-    setRolePlayScenario(undefined);
 
     const session = new SimulationSession(sessionId, questionSet, clock.nowS, {
       onExaminerAction: (a) => setAction(a),
     });
     sessionRef.current = session;
     setExamState('running');
+
+    // Scene-setting is UI-layer speech, like the greeting: never logged to
+    // ConductLog, never scored, never part of SessionQuestionSet/the hash.
+    if (rolePlayScenario) {
+      await wait(PRE_SPEECH_LEAD_MS);
+      await speakExaminerText(rolePlayScenario.setup);
+      await wait(PRE_LISTEN_PAUSE_MS);
+    }
+    setRolePlayScenario(undefined);
 
     const firstAction = await session.begin();
     setAction(firstAction);
@@ -562,6 +572,7 @@ export function ExamMode() {
       onKeepTrying={handleKeepTrying}
       onSkipQuestion={() => void handleSkipQuestion()}
       rolePlayTitle={rolePlayMeta?.title}
+      rolePlaySetup={rolePlayMeta?.setup}
       taskProgress={taskProgress}
     />
   );

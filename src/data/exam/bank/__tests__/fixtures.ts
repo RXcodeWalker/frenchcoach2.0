@@ -12,6 +12,7 @@ export function buildCleanSet(): AuthoredQuestionSet {
         scenarioId: 'rp-test-1',
         topicArea: 'A',
         title: 'Test scenario',
+        setup: 'Tu es a la gare et tu veux acheter un billet. Je suis le vendeur.',
         tasks: [
           { questionId: 'rp1', part: 'rolePlay', mainText: 'Saluez le vendeur.', alternativeTexts: [], partsExpected: 1 },
           { questionId: 'rp2', part: 'rolePlay', mainText: "Dites l'heure de depart.", alternativeTexts: [], partsExpected: 1 },

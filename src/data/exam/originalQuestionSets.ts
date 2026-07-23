@@ -19,37 +19,37 @@ import type { SessionQuestionSet } from '../../domain/igcse/session/types';
 export const ORIGINAL_QUESTION_SET_1: SessionQuestionSet = {
   questionSetId: 'original-practice-001',
   questions: [
-    // ── Role play (5 tasks, TN instruction style) ──────────────────────────
+    // ── Role play (5 tasks, examiner-question style) ────────────────────────
     {
       questionId: 'rp1',
       part: 'rolePlay',
-      mainText: 'Saluez le vendeur et demandez un billet pour Paris.',
+      mainText: 'Bonjour ! Où voulez-vous aller ?',
       alternativeTexts: [],
     },
     {
       questionId: 'rp2',
       part: 'rolePlay',
-      mainText: 'Dites à quelle heure vous voulez partir.',
+      mainText: 'À quelle heure voulez-vous partir ?',
       alternativeTexts: [],
     },
     {
       questionId: 'rp3',
       part: 'rolePlay',
-      mainText: 'Demandez le prix du billet.',
+      mainText: 'Voulez-vous un aller simple ou un aller-retour ?',
       alternativeTexts: [],
       partsExpected: 2,
-      secondPartText: "Demandez aussi s'il y a une réduction pour les étudiants.",
+      secondPartText: "Y a-t-il une réduction pour les étudiants ?",
     },
     {
       questionId: 'rp4',
       part: 'rolePlay',
-      mainText: "Dites que vous voulez payer par carte.",
+      mainText: "Comment voulez-vous payer ?",
       alternativeTexts: [],
     },
     {
       questionId: 'rp5',
       part: 'rolePlay',
-      mainText: 'Remerciez le vendeur et dites au revoir.',
+      mainText: 'Voici votre billet. Autre chose ?',
       alternativeTexts: [],
     },
     // ── Topic 1 (Everyday Life, topic area A) ──────────────────────────────

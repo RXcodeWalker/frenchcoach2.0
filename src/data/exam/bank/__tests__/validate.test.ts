@@ -35,6 +35,21 @@ describe('validateAuthoredQuestionSet — schemaVersion dispatch', () => {
 });
 
 describe('validateAuthoredQuestionSet — blocking structural errors', () => {
+  it('rejects a role-play missing setup', () => {
+    const set = buildCleanSet();
+    const rolePlay = set.content.rolePlay as Partial<typeof set.content.rolePlay>;
+    delete rolePlay.setup;
+    const report = validateAuthoredQuestionSet(set);
+    expect(report.errors.length).toBeGreaterThan(0);
+  });
+
+  it('rejects a role-play with an empty-string setup', () => {
+    const set = buildCleanSet();
+    set.content.rolePlay.setup = '';
+    const report = validateAuthoredQuestionSet(set);
+    expect(report.errors.length).toBeGreaterThan(0);
+  });
+
   it('rejects a role-play with != 5 tasks', () => {
     const set = buildCleanSet();
     set.content.rolePlay.tasks = set.content.rolePlay.tasks.slice(0, 4);

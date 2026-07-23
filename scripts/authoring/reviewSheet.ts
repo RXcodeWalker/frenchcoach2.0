@@ -65,6 +65,8 @@ export function renderReviewSheet(set: AuthoredQuestionSet): string {
 
   lines.push(`## Role play — "${rolePlay.title}" (area ${rolePlay.topicArea})`);
   lines.push('');
+  lines.push(`_Setup:_ ${rolePlay.setup}`);
+  lines.push('');
   rolePlay.tasks.forEach((t, i) => lines.push(...renderQuestion(`T${i + 1}`, t)));
   lines.push('---');
   lines.push('');

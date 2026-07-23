@@ -25,6 +25,7 @@ interface Props {
   onKeepTrying: () => void;
   onSkipQuestion: () => void;
   rolePlayTitle?: string;
+  rolePlaySetup?: string;
   taskProgress?: { index: number; total: number };
 }
 
@@ -56,6 +57,7 @@ export function ExamRunner({
   onKeepTrying,
   onSkipQuestion,
   rolePlayTitle,
+  rolePlaySetup,
   taskProgress,
 }: Props) {
   const part = action?.part ?? 'rolePlay';
@@ -124,12 +126,17 @@ export function ExamRunner({
         </motion.div>
 
         {part === 'rolePlay' && rolePlayTitle && (
-          <div className="mb-4 flex items-center gap-2">
-            <p className="text-[11px] text-slate-500 font-semibold">{rolePlayTitle}</p>
-            {taskProgress && (
-              <span className="px-2 py-0.5 rounded-full bg-navy-400 text-slate-500 text-[8px] font-bold uppercase tracking-wider">
-                Task {taskProgress.index + 1} of {taskProgress.total}
-              </span>
+          <div className="mb-4 max-w-md text-center space-y-1.5">
+            <div className="flex items-center justify-center gap-2">
+              <p className="text-[11px] text-slate-500 font-semibold">{rolePlayTitle}</p>
+              {taskProgress && (
+                <span className="px-2 py-0.5 rounded-full bg-navy-400 text-slate-500 text-[8px] font-bold uppercase tracking-wider">
+                  Question {taskProgress.index + 1} of {taskProgress.total}
+                </span>
+              )}
+            </div>
+            {rolePlaySetup && (
+              <p className="text-[10px] text-slate-600 leading-relaxed italic">{rolePlaySetup}</p>
             )}
           </div>
         )}

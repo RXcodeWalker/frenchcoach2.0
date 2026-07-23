@@ -62,12 +62,19 @@ export interface AuthoredQuestion {
   secondPartText?: string;
 }
 
-/** One 5-task transactional role-play scenario (TN instruction style). */
+/** One 5-question transactional role-play scenario, examiner-question style. */
 export interface RolePlayScenario {
   scenarioId: string;
   topicArea: TopicArea;
   title: string;
-  /** Validator: exactly 5, every task.part === 'rolePlay'. */
+  /**
+   * French scene-setting paragraph: who the candidate is, the situation, and
+   * who the examiner plays ("Je suis…"). Spoken by the examiner and shown on
+   * the candidate prep card; NOT projected into SessionQuestionSet (UI layer
+   * only — see ExamMode.tsx) and so never enters the content hash.
+   */
+  setup: string;
+  /** Validator: exactly 5, every task.part === 'rolePlay'. mainText is an examiner-asked question. */
   tasks: AuthoredQuestion[];
 }
 

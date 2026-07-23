@@ -69,7 +69,7 @@ export function ExamIntro({ onStart, onBack }: Props) {
           <div className="space-y-1.5">
             {[
               { label: 'Preparation (untimed)', desc: 'Review your Role Play card and make notes — take as long as you like.' },
-              { label: 'Part 1: Role Play', desc: 'Respond to 5 prompts in a specific scenario.' },
+              { label: 'Part 1: Role Play', desc: "Answer the examiner's 5 questions in a role-play scenario." },
               { label: 'Part 2: Topic 1', desc: '~4 min conversation on Everyday Life topics (may extend with follow-up questions).' },
               { label: 'Part 3: Topic 2', desc: '~4 min conversation on The World topics (may extend with follow-up questions).' },
             ].map(item => (

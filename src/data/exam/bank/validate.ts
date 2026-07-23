@@ -125,6 +125,7 @@ const AuthoredContentShapeSchema = z.object({
     scenarioId: z.string().min(1),
     topicArea: z.enum(['A', 'B', 'C', 'D', 'E']),
     title: z.string().min(1),
+    setup: z.string().min(1),
     tasks: z.array(AuthoredQuestionShapeSchema),
   }),
   topic1: z.object({
@@ -273,6 +274,8 @@ export function validateAuthoredQuestionSet(raw: unknown): ValidationReport {
   }
 
   const { rolePlay, topic1, topic2 } = set.content;
+
+  checkCanonicalizationSafety(rolePlay.setup, 'rolePlay.setup', errors);
 
   if (rolePlay.tasks.length !== 5) {
     errors.push({ code: 'wrong-task-count', message: `rolePlay.tasks must have exactly 5 tasks, got ${rolePlay.tasks.length}`, path: 'rolePlay.tasks' });

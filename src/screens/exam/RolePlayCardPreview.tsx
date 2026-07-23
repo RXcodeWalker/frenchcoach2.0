@@ -25,34 +25,21 @@ export function RolePlayCardPreview({ scenario, onBegin }: Props) {
         </motion.div>
 
         <div className="rounded-2xl glass-elevated p-6">
-          <h1 className="text-xl font-black text-white mb-1">{scenario.title}</h1>
-          <p className="text-[11px] text-slate-500 leading-relaxed mb-5">
-            The examiner will read each task aloud in order. Respond to each one, then the exam moves to the next.
-          </p>
+          <h1 className="text-xl font-black text-white mb-4">{scenario.title}</h1>
 
-          <div className="space-y-2.5">
-            {scenario.tasks.map((task, idx) => (
-              <motion.div
-                key={task.questionId}
-                className="rounded-xl glass-subtle p-3.5"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.05, duration: 0.3 }}
-              >
-                <div className="flex items-start gap-2.5">
-                  <span className="mt-0.5 flex-shrink-0 w-5 h-5 rounded-full bg-violet-electric/10 border border-violet-electric/20 text-violet-400 text-[9px] font-bold flex items-center justify-center">
-                    {idx + 1}
-                  </span>
-                  <div className="flex-1 space-y-1.5">
-                    <p className="text-[12px] text-white leading-relaxed">{task.mainText}</p>
-                    {task.secondPartText && (
-                      <p className="text-[12px] text-slate-400 leading-relaxed">{task.secondPartText}</p>
-                    )}
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+          <motion.div
+            className="rounded-xl glass-subtle p-4"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <p className="text-[13px] text-white leading-relaxed">{scenario.setup}</p>
+          </motion.div>
+
+          <p className="text-[11px] text-slate-500 leading-relaxed mt-5">
+            You'll play the role above. The examiner will set the scene, then ask you five
+            questions in French — answer each one. You won't see the questions in advance.
+          </p>
         </div>
 
         <motion.button

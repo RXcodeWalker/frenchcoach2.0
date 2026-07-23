@@ -20,8 +20,13 @@ disagree, the checker is a bug — file it, don't route around it by re-approvin
 
 ## 1. Wording style
 
-- **Role-play tasks**: imperative instruction style, addressed to the candidate, in French
-  — "Saluez…", "Demandez…", "Dites que…" (mirrors 001; see §6.4's instruction-style examples).
+- **Role-play scenario (`setup`)**: a short French scene-setting paragraph — who the
+  candidate is, the situation, and who the examiner plays ("Je suis…"). Read aloud by the
+  examiner and shown on the candidate's prep card; the candidate never sees the 5 questions
+  in advance.
+- **Role-play tasks**: real examiner-asked questions in French, matching the role the
+  `setup` assigns the examiner (vendor, receptionist, friend, official, etc.) — "Où
+  voulez-vous aller ?", "Quel est votre nom complet ?" (mirrors 001; see §6.4).
 - **Topic questions**: direct questions, `tu`-register — "Que fais-tu…?", "As-tu déjà…?".
 - **One communicative goal per question.** A second goal is never bolted on with a comma —
   it requires `partsExpected: 2` and a distinct `secondPartText` instead.
@@ -49,22 +54,28 @@ obviously be asked out loud." Write it the way it will be read.
   `"Demandez aussi s'il y a une réduction pour les étudiants."` Long enough to stand alone
   as a prompt, never a restatement of `mainText`.
 
-## 5. Role-play structure (T1–T5)
+## 5. Role-play structure — scenario `setup` + 5 examiner questions (T1–T5)
 
-Five transactional tasks per scenario, TN instruction style, in this fixed functional order:
+Each scenario has a `setup` (the French scene-setting paragraph — see §1) plus five
+transactional questions the *examiner* asks the candidate, in this fixed functional order:
 
 | Task | Function |
 | --- | --- |
-| T1 | Greet + state purpose |
-| T2 | Give a specific detail (time, number, preference) |
-| T3 | **Choose between two options** — the natural two-part slot |
-| T4 | Ask the examiner a question |
-| T5 | Thank + close |
+| T1 | Examiner greets/opens and asks an opening question establishing purpose |
+| T2 | Examiner asks for a specific detail (time, number, preference) |
+| T3 | **Examiner offers a choice between two options** — the natural two-part slot |
+| T4 | Examiner asks a follow-up/preference question |
+| T5 | Examiner closes (confirms, thanks, or asks "autre chose ?") |
 
 Exactly **1–2** tasks per scenario carry `partsExpected: 2`. `secondPartText` must be short
 and must not equal `mainText` (validator: `second-part-equals-main`). Both parts must be
 independently answerable — Cambridge awards full marks only when both parts are
 communicated, so a second part that merely rephrases the first tests nothing new.
+
+`setup` is validated (`z.string().min(1)` + canonicalization safety) but is **not** part of
+`SessionQuestionSet`/the content hash — see `RolePlayScenario` in `types.ts`. It is spoken
+by the UI layer before the first task, the same way the non-assessed greeting is (never
+routed through the conduct engine or scored).
 
 ## 6. Conversation flow — the anaphora rule
 
@@ -184,7 +195,7 @@ for zero product benefit. New sets simply don't inherit the inconsistency.
 1. `npm run authoring:skeleton -- 0NN` — emits a pre-tagged JSON skeleton (ids, `part`,
    areas, `partsExpected` slots, time-frame template tags) from the matrix row. **Fill in
    text only** — don't hand-edit ids, `part`, or slot structure.
-2. Draft the role-play (5 tasks), then topic 1 (5 questions), then topic 2.
+2. Draft the role-play `setup` + 5 examiner questions, then topic 1 (5 questions), then topic 2.
 3. Write alternatives for Q3–Q5 of each topic (§9), then 2 `furtherQuestions` per topic.
 4. Re-read every `targetStructures` tag against what the text actually elicits (§7).
 5. `npm run authoring:check -- --draft` — fixes everything **except** `not-approved`, which
@@ -222,6 +233,8 @@ Pilot-publishable = G0 + G1 + G2 + G4(`internal:*`). S11-complete = + G3 + G4(`t
 
 ## 16. Checklist before flipping `approved`
 
+- [ ] `rolePlay.setup` sets the scene and assigns the examiner's role; all 5 role-play
+      `mainText`s are genuine examiner-asked questions consistent with that role (§1, §5).
 - [ ] Topic-level and every question-level `topicArea`/`subTopic` agree (§10).
 - [ ] Every topic exercises past + future (+ present via the template) across its 5
       questions.
