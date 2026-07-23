@@ -34,7 +34,7 @@ import {
   type ScoringMachineState,
 } from '../services/exam/examScoringMachine';
 import { pingInterpretServiceHealth } from '../services/exam/interpretUtterance';
-import { getOriginalQuestionSet, getAuthoredQuestionSet, listPublishedQuestionSetIds } from '../data/exam/bank/loader';
+import { getOriginalQuestionSet, getAuthoredQuestionSet, listPublishedQuestionSetIdsWithRetry } from '../data/exam/bank/loader';
 import type { ExaminerAction } from '../domain/igcse/session/types';
 import type { SessionTranscript } from '../domain/igcse/stt/types';
 import type { EnvelopeView } from '../domain/igcse/envelope/envelopeView';
@@ -119,7 +119,7 @@ export function ExamMode() {
     let scenario: RolePlayScenario | undefined = selectedAuthoredSetRef.current?.content.rolePlay;
 
     if (!scenario) {
-      const publishedIds = await listPublishedQuestionSetIds();
+      const publishedIds = await listPublishedQuestionSetIdsWithRetry();
       const fallbackId = publishedIds.length > 0
         ? publishedIds[Math.floor(Math.random() * publishedIds.length)]
         : 'original-practice-001';

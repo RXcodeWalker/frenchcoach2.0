@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { listPublishedQuestionSets } from '../../data/exam/bank/loader';
+import { listPublishedQuestionSetsWithRetry } from '../../data/exam/bank/loader';
+import { useElapsedClock } from '../../features/recording/useElapsedClock';
 import type { AuthoredQuestionSet, Difficulty } from '../../data/exam/bank/types';
 
 const TOPIC_AREA_LABEL: Record<string, string> = {
@@ -35,39 +36,58 @@ interface Props {
   onAutoFallback: () => void;
 }
 
+type LoadState =
+  | { phase: 'loading' }
+  | { phase: 'ready'; sets: AuthoredQuestionSet[]; source: 'remote' | 'fixture' };
+
 export function ExamSelect({ onSelect, onAutoFallback }: Props) {
-  const [sets, setSets] = useState<AuthoredQuestionSet[] | null>(null);
+  const [state, setState] = useState<LoadState>({ phase: 'loading' });
+  const { elapsedS, start, stop } = useElapsedClock();
 
   useEffect(() => {
     let cancelled = false;
-    listPublishedQuestionSets()
-      .then((result) => {
+    start();
+    listPublishedQuestionSetsWithRetry()
+      .then(({ sets, source }) => {
         if (cancelled) return;
-        if (result.length === 0) {
+        stop();
+        if (sets.length === 0) {
           onAutoFallback();
           return;
         }
-        setSets(result);
+        setState({ phase: 'ready', sets, source });
       })
       .catch(() => {
-        if (!cancelled) onAutoFallback();
+        if (!cancelled) {
+          stop();
+          onAutoFallback();
+        }
       });
     return () => {
       cancelled = true;
+      stop();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (sets === null) {
+  if (state.phase === 'loading') {
+    const message =
+      elapsedS >= 8
+        ? 'Waking up the server… this can take up to a minute on a cold start.'
+        : elapsedS >= 3
+          ? 'Still loading… this is taking a little longer than usual.'
+          : 'Loading exams…';
     return (
       <div className="min-h-screen flex items-center justify-center px-6">
         <div className="text-center space-y-3">
           <div className="w-10 h-10 mx-auto border-2 border-violet-electric/30 border-t-violet-electric rounded-full animate-spin" />
-          <p className="text-sm font-bold text-white">Loading exams…</p>
+          <p className="text-sm font-bold text-white">{message}</p>
         </div>
       </div>
     );
   }
+
+  const { sets, source } = state;
 
   return (
     <div className="min-h-screen pb-24 md:pb-8">
@@ -81,6 +101,15 @@ export function ExamSelect({ onSelect, onAutoFallback }: Props) {
           <h1 className="text-2xl md:text-3xl font-black text-white">Choose an Exam</h1>
           <p className="text-sm text-slate-500 mt-1">Pick one of the Cambridge-style mock exams below</p>
         </div>
+
+        {source === 'fixture' && (
+          <div className="rounded-xl glass-subtle border-dashed border-white/8 p-4">
+            <p className="text-xs font-bold text-white">Offline mode</p>
+            <p className="text-[11px] text-slate-500 mt-0.5">
+              We couldn't reach the exam catalog, so only one offline practice exam is available below.
+            </p>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {sets.map((set, idx) => {

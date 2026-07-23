@@ -48,6 +48,79 @@ async function fetchPublishedSet(questionSetId: string): Promise<AuthoredQuestio
   }
 }
 
+/** Fire-and-forget wake-up ping for the content backend — mirrors scoringApiClient.ts's pingScoringServiceHealth. Never throws. */
+export function pingContentServiceHealth(): void {
+  void fetch(`${API_BASE}/health`).catch(() => undefined);
+}
+
+type FetchFailureKind = 'timeout' | 'network' | 'http';
+
+interface FetchOutcome<T> {
+  ok: boolean;
+  value?: T;
+  failure?: FetchFailureKind;
+}
+
+/** One attempt at GET-ing and JSON-parsing the catalog-listing endpoint, classifying how it failed. */
+async function attemptFetchCatalog(timeoutMs: number): Promise<FetchOutcome<string[]>> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(`${API_BASE}/api/content/igcse-sets`, { signal: controller.signal });
+    if (!res.ok) return { ok: false, failure: 'http' };
+    const ids = (await res.json()) as unknown;
+    if (!Array.isArray(ids) || ids.length === 0) return { ok: false, failure: 'http' };
+    return { ok: true, value: ids as string[] };
+  } catch (err) {
+    if (err instanceof DOMException && err.name === 'AbortError') {
+      return { ok: false, failure: 'timeout' };
+    }
+    return { ok: false, failure: 'network' };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
+ * Retry/backoff budget for the catalog-listing call, tuned for Render free-tier
+ * cold starts (~20-50s). 'timeout'/'http' failures (server is booting, just slow)
+ * keep retrying up to TOTAL_BUDGET_MS. 'network' failures (backend genuinely
+ * unreachable — the dev/test-without-backend case) fail fast after a couple of
+ * quick retries so loader.test.ts's bound still holds.
+ */
+const RETRY_TOTAL_BUDGET_MS = 45_000;
+const RETRY_BACKOFF_MS = [1000, 2000, 4000, 6000, 8000];
+const NETWORK_FAILURE_MAX_ATTEMPTS = 2;
+
+async function fetchCatalogWithRetry(): Promise<{ ids: string[]; source: 'remote' | 'fixture' }> {
+  const startedAt = Date.now();
+  let attempt = 0;
+  let networkFailures = 0;
+
+  while (true) {
+    const outcome = await attemptFetchCatalog(FETCH_TIMEOUT_MS);
+    if (outcome.ok && outcome.value) {
+      return { ids: outcome.value, source: 'remote' };
+    }
+
+    if (outcome.failure === 'network') {
+      networkFailures += 1;
+      if (networkFailures >= NETWORK_FAILURE_MAX_ATTEMPTS) {
+        return { ids: Object.keys(OFFLINE_FIXTURES), source: 'fixture' };
+      }
+    }
+
+    const elapsed = Date.now() - startedAt;
+    const backoff = RETRY_BACKOFF_MS[Math.min(attempt, RETRY_BACKOFF_MS.length - 1)];
+    if (elapsed + backoff >= RETRY_TOTAL_BUDGET_MS) {
+      return { ids: Object.keys(OFFLINE_FIXTURES), source: 'fixture' };
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, backoff));
+    attempt += 1;
+  }
+}
+
 /**
  * Resolves one question set by id: backend (published) first, falling back
  * to the in-repo offline fixture. Always returns the validated + adapted
@@ -115,4 +188,37 @@ export async function listPublishedQuestionSets(): Promise<AuthoredQuestionSet[]
   const ids = await listPublishedQuestionSetIds();
   const sets = await Promise.all(ids.map(getAuthoredQuestionSet));
   return sets.filter((s): s is AuthoredQuestionSet => s !== undefined);
+}
+
+/**
+ * Retry-aware catalog listing for exam-selection UI: rides out a Render
+ * cold start on the catalog-listing call (bounded backoff loop, see
+ * fetchCatalogWithRetry) instead of collapsing to the 1-exam offline fixture
+ * after a single 2.5s timeout. The `source` tag lets the caller distinguish
+ * "real catalog" from "offline fixture" so the fallback can be labeled
+ * instead of silently presented as the full set.
+ */
+export async function listPublishedQuestionSetsWithRetry(): Promise<{
+  sets: AuthoredQuestionSet[];
+  source: 'remote' | 'fixture';
+}> {
+  const { ids, source } = await fetchCatalogWithRetry();
+  if (source === 'fixture') {
+    const sets = ids
+      .map((id) => OFFLINE_FIXTURES[id])
+      .filter((s): s is AuthoredQuestionSet => s !== undefined)
+      .map((s) => parseAuthoredQuestionSet(s));
+    return { sets, source };
+  }
+  const sets = await Promise.all(ids.map(getAuthoredQuestionSet));
+  return { sets: sets.filter((s): s is AuthoredQuestionSet => s !== undefined), source };
+}
+
+/**
+ * Retry-aware id listing — same backoff budget as listPublishedQuestionSetsWithRetry,
+ * for callers (ExamMode's "Surprise Me" path) that only need ids, not full sets.
+ */
+export async function listPublishedQuestionSetIdsWithRetry(): Promise<string[]> {
+  const { ids } = await fetchCatalogWithRetry();
+  return ids;
 }
