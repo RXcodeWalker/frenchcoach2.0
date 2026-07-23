@@ -8,6 +8,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   interpretUtterance,
   deriveObservationFromIntent,
+  __resetInterpretCircuitForTests,
   CONFIDENCE_FLOOR,
 } from '../interpretUtterance';
 
@@ -125,6 +126,36 @@ describe('interpretUtterance reliability (Change A, "fall back IMMEDIATELY")', (
     const obs = await promise;
     expect(obs.fallback).toBe(true);
     expect(obs.speechAct).toBe('substantive_answer');
+  });
+});
+
+describe('404 circuit breaker (undeployed/stale backend): stop hammering a missing route', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    __resetInterpretCircuitForTests();
+  });
+
+  it('after one 404, subsequent turns skip the round-trip entirely and fall back deterministically', async () => {
+    const fetchSpy = vi.fn().mockResolvedValue(new Response('Not Found', { status: 404 }));
+    vi.stubGlobal('fetch', fetchSpy);
+
+    const first = await interpretUtterance('Je fais mes devoirs.', { part: 'topic1' });
+    expect(first.fallback).toBe(true);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+
+    // Breaker tripped — no further fetch on the next turn.
+    const second = await interpretUtterance('Je joue au foot.', { part: 'topic1' });
+    expect(second.fallback).toBe(true);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('a 5xx does NOT trip the breaker — it may be a transient cold start, so later turns still retry', async () => {
+    const fetchSpy = vi.fn().mockResolvedValue(new Response('', { status: 503 }));
+    vi.stubGlobal('fetch', fetchSpy);
+
+    await interpretUtterance('Je fais mes devoirs.', { part: 'topic1' });
+    await interpretUtterance('Je joue au foot.', { part: 'topic1' });
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
   });
 });
 

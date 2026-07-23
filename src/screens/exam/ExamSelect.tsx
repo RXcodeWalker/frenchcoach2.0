@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { listPublishedQuestionSetsWithRetry } from '../../data/exam/bank/loader';
-import { useElapsedClock } from '../../features/recording/useElapsedClock';
+import { listPublishedQuestionSetsWithRetry, getOfflineAuthoredSets } from '../../data/exam/bank/loader';
 import type { AuthoredQuestionSet, Difficulty } from '../../data/exam/bank/types';
 
 const TOPIC_AREA_LABEL: Record<string, string> = {
@@ -36,58 +35,43 @@ interface Props {
   onAutoFallback: () => void;
 }
 
-type LoadState =
+// The remote catalog rides out a Render free-tier cold start (up to ~45s) in the
+// background. Rather than block the whole screen on a spinner for that long, we
+// render the bundled offline exam immediately and swap in the full catalog once
+// it arrives — or keep the offline set if the backend is genuinely unreachable.
+type RemoteState =
   | { phase: 'loading' }
-  | { phase: 'ready'; sets: AuthoredQuestionSet[]; source: 'remote' | 'fixture' };
+  | { phase: 'ready'; sets: AuthoredQuestionSet[] }
+  | { phase: 'offline-only' };
 
 export function ExamSelect({ onSelect, onAutoFallback }: Props) {
-  const [state, setState] = useState<LoadState>({ phase: 'loading' });
-  const { elapsedS, start, stop } = useElapsedClock();
+  // Available synchronously — no network — so a card is on screen from the first paint.
+  const offlineSets = useMemo(() => getOfflineAuthoredSets(), []);
+  const [remote, setRemote] = useState<RemoteState>({ phase: 'loading' });
 
   useEffect(() => {
     let cancelled = false;
-    start();
     listPublishedQuestionSetsWithRetry()
       .then(({ sets, source }) => {
         if (cancelled) return;
-        stop();
-        if (sets.length === 0) {
-          onAutoFallback();
-          return;
+        // A real catalog with content replaces the offline placeholder; anything
+        // else (fetch fell back to the fixture, or an empty catalog) means the
+        // backend never really answered — keep showing the offline set.
+        if (source === 'remote' && sets.length > 0) {
+          setRemote({ phase: 'ready', sets });
+        } else {
+          setRemote({ phase: 'offline-only' });
         }
-        setState({ phase: 'ready', sets, source });
       })
       .catch(() => {
-        if (!cancelled) {
-          stop();
-          onAutoFallback();
-        }
+        if (!cancelled) setRemote({ phase: 'offline-only' });
       });
     return () => {
       cancelled = true;
-      stop();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (state.phase === 'loading') {
-    const message =
-      elapsedS >= 8
-        ? 'Waking up the server… this can take up to a minute on a cold start.'
-        : elapsedS >= 3
-          ? 'Still loading… this is taking a little longer than usual.'
-          : 'Loading exams…';
-    return (
-      <div className="min-h-screen flex items-center justify-center px-6">
-        <div className="text-center space-y-3">
-          <div className="w-10 h-10 mx-auto border-2 border-violet-electric/30 border-t-violet-electric rounded-full animate-spin" />
-          <p className="text-sm font-bold text-white">{message}</p>
-        </div>
-      </div>
-    );
-  }
-
-  const { sets, source } = state;
+  const sets = remote.phase === 'ready' ? remote.sets : offlineSets;
 
   return (
     <div className="min-h-screen pb-24 md:pb-8">
@@ -101,15 +85,6 @@ export function ExamSelect({ onSelect, onAutoFallback }: Props) {
           <h1 className="text-2xl md:text-3xl font-black text-white">Choose an Exam</h1>
           <p className="text-sm text-slate-500 mt-1">Pick one of the Cambridge-style mock exams below</p>
         </div>
-
-        {source === 'fixture' && (
-          <div className="rounded-xl glass-subtle border-dashed border-white/8 p-4">
-            <p className="text-xs font-bold text-white">Offline mode</p>
-            <p className="text-[11px] text-slate-500 mt-0.5">
-              We couldn't reach the exam catalog, so only one offline practice exam is available below.
-            </p>
-          </div>
-        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {sets.map((set, idx) => {
@@ -146,6 +121,33 @@ export function ExamSelect({ onSelect, onAutoFallback }: Props) {
             );
           })}
         </div>
+
+        {remote.phase === 'loading' && (
+          <motion.div
+            className="rounded-xl glass-subtle border-dashed border-white/8 p-4 flex items-center gap-3"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <div className="w-5 h-5 flex-shrink-0 border-2 border-violet-electric/30 border-t-violet-electric rounded-full animate-spin" />
+            <div>
+              <p className="text-xs font-bold text-white">Loading the other exams…</p>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                The server is waking up, which can take up to a minute. This only happens the first
+                time — you can start the practice exam above right now. Thanks for your patience!
+              </p>
+            </div>
+          </motion.div>
+        )}
+
+        {remote.phase === 'offline-only' && (
+          <div className="rounded-xl glass-subtle border-dashed border-white/8 p-4">
+            <p className="text-xs font-bold text-white">Offline mode</p>
+            <p className="text-[11px] text-slate-500 mt-0.5">
+              We couldn't reach the exam catalog, so only the offline practice exam above is
+              available right now. Everything still works — your session runs and is scored locally.
+            </p>
+          </div>
+        )}
 
         <motion.button
           onClick={onAutoFallback}

@@ -158,6 +158,16 @@ export async function listPublishedQuestionSetIds(): Promise<string[]> {
   }
 }
 
+/**
+ * Synchronous, offline-only accessor for the raw AuthoredQuestionSets bundled in
+ * the repo — used by exam-selection UI to render a usable card *immediately* on
+ * mount, before the (potentially cold-starting) backend catalog resolves. Never
+ * touches the network.
+ */
+export function getOfflineAuthoredSets(): AuthoredQuestionSet[] {
+  return Object.values(OFFLINE_FIXTURES).map((s) => parseAuthoredQuestionSet(s));
+}
+
 /** Synchronous, offline-only accessor for callers that can't await (dev/test convenience). */
 export function getOfflineQuestionSet(questionSetId: string): SessionQuestionSet | undefined {
   const fixture = OFFLINE_FIXTURES[questionSetId];

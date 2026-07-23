@@ -76,6 +76,23 @@ export interface InterpretContext {
 }
 
 /**
+ * Session-scoped circuit breaker. When the interpret endpoint is genuinely absent
+ * (HTTP 404 — e.g. the deployed backend predates this route), every subsequent
+ * turn would otherwise pay a doomed round-trip and log a fresh 404 to the console.
+ * The deterministic classifier is a complete substitute, so once we see a 404 we
+ * stop calling the endpoint entirely for the rest of the session. Reset on full
+ * page reload (module re-init) — and on demand in tests. Only a definitive 404
+ * trips it: 5xx/timeout/network failures may be transient cold-start hiccups and
+ * must keep retrying on later turns.
+ */
+let interpretEndpointGone = false;
+
+/** Test-only: clear the 404 circuit breaker so cases don't leak state across each other. */
+export function __resetInterpretCircuitForTests(): void {
+  interpretEndpointGone = false;
+}
+
+/**
  * Deterministic mapping from the whole-utterance intent classifier to an
  * observation. This IS the fallback, and it is the sole source of truth whenever
  * the LLM is unavailable/untrusted — so its behaviour is identical offline.
@@ -138,6 +155,11 @@ export async function interpretUtterance(
     return deriveObservationFromIntent(transcript);
   }
 
+  // Endpoint already known-absent this session — skip the doomed round-trip.
+  if (interpretEndpointGone) {
+    return deriveObservationFromIntent(transcript);
+  }
+
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), INTERPRET_TIMEOUT_MS);
 
@@ -149,7 +171,12 @@ export async function interpretUtterance(
       signal: controller.signal,
     });
 
-    if (!res.ok) return deriveObservationFromIntent(transcript);
+    if (!res.ok) {
+      // A 404 means the route isn't deployed — trip the breaker so later turns
+      // don't repeat it. Other statuses may be transient; keep trying next turn.
+      if (res.status === 404) interpretEndpointGone = true;
+      return deriveObservationFromIntent(transcript);
+    }
 
     let body: unknown;
     try {
@@ -172,7 +199,16 @@ export async function interpretUtterance(
   }
 }
 
-/** Fire-and-forget warm-up ping for the interpret endpoint, mirroring pingScoringServiceHealth. Never throws. */
+/**
+ * Fire-and-forget warm-up ping for the interpret endpoint, mirroring
+ * pingScoringServiceHealth. Doubles as an early probe: a 404 here trips the
+ * circuit breaker before the first turn, so a backend without this route never
+ * produces per-turn 404 noise. Never throws.
+ */
 export function pingInterpretServiceHealth(): void {
-  void fetch(`${API_BASE}/api/exam/interpret/health`).catch(() => undefined);
+  void fetch(`${API_BASE}/api/exam/interpret/health`)
+    .then((res) => {
+      if (res.status === 404) interpretEndpointGone = true;
+    })
+    .catch(() => undefined);
 }
