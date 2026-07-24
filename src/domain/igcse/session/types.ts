@@ -57,6 +57,14 @@ export interface CandidateTurnResult {
   wordCount: number;
   responseDurationS: number;
   requestedRepeat: boolean;
+  /**
+   * True only for an explicit candidate-initiated skip (the "Skip question" button
+   * after a silence prompt) — distinct from a genuine first no-response, which still
+   * gets the normal one-time verbatim REPEAT. An explicit skip bypasses that repeat
+   * gate entirely and is scored as no answer immediately, since the candidate has
+   * already declined to keep trying.
+   */
+  skipConfirmed?: boolean;
 }
 
 /**

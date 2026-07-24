@@ -250,6 +250,7 @@ export function ExamMode() {
         transcript: '',
         responseDurationS,
         requestedRepeat: false,
+        skipConfirmed: true,
       });
       setAction(nextAction);
 

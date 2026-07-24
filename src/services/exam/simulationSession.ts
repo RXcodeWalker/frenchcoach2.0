@@ -36,6 +36,8 @@ export interface SimulationTurnInput {
   transcript: string;
   responseDurationS: number;
   requestedRepeat: boolean;
+  /** Explicit "Skip question" after a silence prompt — see CandidateTurnResult.skipConfirmed. */
+  skipConfirmed?: boolean;
 }
 
 export interface SimulationSessionCallbacks {
@@ -129,6 +131,7 @@ export class SimulationSession {
       wordCount: wc,
       responseDurationS: turn.responseDurationS,
       requestedRepeat: turn.requestedRepeat || intent === 'repeat_request',
+      skipConfirmed: turn.skipConfirmed,
     };
     candidateResult.relevant = intent === 'answer' ? computeRelevance(candidateResult) : false;
 
@@ -171,9 +174,10 @@ export class SimulationSession {
     intent: ReturnType<typeof classifyUtteranceIntent> | 'repeat_request',
     part: SessionPart,
   ): Promise<ConductHint | undefined> {
-    // A button repeat and any deterministic non-'answer' classification are already
-    // handled by the engine's own routing — no interpreter round-trip needed.
-    if (turn.requestedRepeat || intent !== 'answer') return undefined;
+    // A button repeat, an explicit skip, and any deterministic non-'answer'
+    // classification are already handled by the engine's own routing — no
+    // interpreter round-trip needed.
+    if (turn.requestedRepeat || turn.skipConfirmed || intent !== 'answer') return undefined;
 
     const observation = await interpretUtterance(turn.transcript, { part });
     // A deterministic fallback observation adds nothing the classifier didn't

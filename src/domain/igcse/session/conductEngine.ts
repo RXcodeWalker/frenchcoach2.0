@@ -386,8 +386,9 @@ function stepRolePlay(
   }
 
   // No response / irrelevant / clarification: repeat once (verbatim, never rephrase
-  // and never explain — authentic Cambridge), then advance.
-  if (!taskState.repeatUsed) {
+  // and never explain — authentic Cambridge), then advance. An explicit skip bypasses
+  // this gate — the candidate already declined to keep trying.
+  if (!taskState.repeatUsed && !result.skipConfirmed) {
     const updatedTask: RolePlayTaskState = { ...taskState, repeatUsed: true };
     const nextState = replaceRolePlayTask(state, phase.taskIndex, updatedTask);
     const trigger: ExaminerTrigger = clarificationTrigger
@@ -495,7 +496,7 @@ function stepTopic(
     if (didAnswer) {
       return moveToSecondPartOrExtension(questionSet, stateWithSpeaking, part, questionIndex, question, result);
     }
-    if (!qState.repeatUsed) {
+    if (!qState.repeatUsed && !result.skipConfirmed) {
       const updated: TopicQuestionState = { ...qState, subState: 'repeated', repeatUsed: true };
       const nextState = replaceTopicQuestionState(stateWithSpeaking, part, questionIndex, updated);
       const trigger: ExaminerTrigger = clarificationTrigger
@@ -524,7 +525,7 @@ function stepTopic(
     if (didAnswer) {
       return moveToExtensionOrAdvance(questionSet, stateWithSpeaking, part, questionIndex, question, result);
     }
-    if (!qState.secondPartRepeatUsed) {
+    if (!qState.secondPartRepeatUsed && !result.skipConfirmed) {
       const updated: TopicQuestionState = { ...qState, secondPartRepeatUsed: true };
       const nextState = replaceTopicQuestionState(stateWithSpeaking, part, questionIndex, updated);
       const secondPartText = question.secondPartText ?? question.mainText;
@@ -546,7 +547,7 @@ function stepTopic(
     if (didAnswer) {
       return moveToExtensionOrAdvance(questionSet, stateWithSpeaking, part, questionIndex, question, result);
     }
-    if (!qState.alternativeRepeatUsed) {
+    if (!qState.alternativeRepeatUsed && !result.skipConfirmed) {
       const updated: TopicQuestionState = { ...qState, alternativeRepeatUsed: true };
       const nextState = replaceTopicQuestionState(stateWithSpeaking, part, questionIndex, updated);
       const altText = question.alternativeTexts[0];
