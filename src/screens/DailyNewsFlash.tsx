@@ -21,7 +21,7 @@ import { useRecording } from '../features/recording/useRecording';
 import { Waveform } from '../features/recording/Waveform';
 import { RecordingPanel } from './learn/RecordingPanel';
 import { FeedbackPanel } from './learn/FeedbackPanel';
-import { getAIFeedback, getDailyNews, saveSessionToBackend } from '../services/api/apiClient';
+import { getAIFeedback, getDailyNews } from '../services/api/apiClient';
 import { MOCK_NEWS, NewsSnippet } from '../data/mocks/mockNews';
 import { PageShell } from '../components/layout/PageShell';
 import { TopContextBar } from '../components/TopContextBar';
@@ -200,7 +200,6 @@ export function DailyNewsFlash() {
       };
       
       persistSession(session);
-      saveSessionToBackend(session);
       const xpResult = awardXP(newsStats.overall, state.profile.streak_days);
       const { level: newLevel } = getProgressionState();
       const newUnlockedAchievementIds = checkAchievements(

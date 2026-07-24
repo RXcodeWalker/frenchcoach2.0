@@ -7,7 +7,6 @@
 // UI state, so the reducer stays pure and modes stay thin.
 
 import { recordSession } from '../analytics/analyticsService';
-import { saveSessionToBackend } from '../api/apiClient';
 import { awardXP, checkAchievements, getProgressionState } from '../progression/progressionService';
 import type { OrchestratorInput, OrchestratorResult, CoachRecommendation } from '../../types/coach';
 import type { Question, FeedbackV2, AvoidanceSignal } from '../../types';
@@ -58,9 +57,9 @@ export function orchestrateAttempt(input: OrchestratorInput): OrchestratorResult
   const allEvidence = appendEvidenceEvents(evidenceEvents);
 
   // 2. Persist session locally (with a coaching summary + graph-resolved target
-  //    skills) + best-effort backend.
+  //    skills). Cloud sync happens separately via sessionSync.ts, driven by
+  //    AppContext once the session is committed to state.
   recordSession(session, { targetSkillIds: evidenceEvents[0]?.targetNodeIds });
-  saveSessionToBackend(session);
 
   // 3. XP + level (unchanged behavior).
   const xpResult = awardXP(finalScore, streakDays);

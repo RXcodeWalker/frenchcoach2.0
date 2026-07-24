@@ -14,28 +14,38 @@ const API_BASE = import.meta.env.PROD
   : ((import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000');
 const HEALTH_TIMEOUT_MS = 4000;
 
-async function pingEngine(engine: 'gemini' | 'groq'): Promise<EngineHealth> {
+// Backend's /health probes both engines in a single call (60s-cached) — there is
+// no per-engine query param, so one fetch covers both statuses.
+function mapProbeStatus(status: string | undefined): EngineHealth {
+  if (status === 'ok') return 'healthy';
+  if (status === 'degraded') return 'degraded';
+  if (status === 'not_configured') return 'unavailable';
+  return 'unavailable';
+}
+
+async function pingEngines(): Promise<{ gemini: EngineHealth; groq: EngineHealth }> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), HEALTH_TIMEOUT_MS);
   try {
-    const res = await fetch(`${API_BASE}/api/health?engine=${engine}`, {
+    const res = await fetch(`${API_BASE}/health`, {
       signal: controller.signal,
       method: 'GET',
     });
     clearTimeout(timer);
     if (res.ok) {
       const data = await res.json().catch(() => ({}));
-      const status: string = data?.engines?.[engine] ?? 'healthy';
-      if (status === 'degraded') return 'degraded';
-      if (status === 'unavailable' || status === 'down') return 'unavailable';
-      return 'healthy';
+      return {
+        gemini: mapProbeStatus(data?.gemini),
+        groq: mapProbeStatus(data?.groq),
+      };
     }
-    // 5xx → degraded, 4xx auth error → treat as healthy (backend up, just not authed)
-    return res.status >= 500 ? 'degraded' : 'healthy';
+    // 5xx → degraded (backend up but unwell); other non-OK → unavailable
+    const status: EngineHealth = res.status >= 500 ? 'degraded' : 'unavailable';
+    return { gemini: status, groq: status };
   } catch (err) {
     clearTimeout(timer);
-    if ((err as Error).name === 'AbortError') return 'degraded';
-    return 'unavailable';
+    const status: EngineHealth = (err as Error).name === 'AbortError' ? 'degraded' : 'unavailable';
+    return { gemini: status, groq: status };
   }
 }
 
@@ -48,11 +58,8 @@ export function useEngineHealth(): EngineHealthState {
 
   const check = useCallback(async () => {
     setHealth(prev => ({ ...prev, gemini: 'checking', groq: 'checking' }));
-    const [geminiStatus, groqStatus] = await Promise.all([
-      pingEngine('gemini'),
-      pingEngine('groq'),
-    ]);
-    setHealth({ gemini: geminiStatus, groq: groqStatus, offline: 'healthy' });
+    const { gemini, groq } = await pingEngines();
+    setHealth({ gemini, groq, offline: 'healthy' });
   }, []);
 
   useEffect(() => {

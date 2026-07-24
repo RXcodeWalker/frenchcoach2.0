@@ -1,4 +1,4 @@
-import type { FeedbackV2, Question, Session, SkillContext, GeneratedScenario, AIEngine, EngineMetadata, DifficultyTier } from '../../types';
+import type { FeedbackV2, Question, SkillContext, GeneratedScenario, AIEngine, EngineMetadata, DifficultyTier } from '../../types';
 import { track } from '../telemetry/telemetryService';
 import { evaluate as offlineEvaluate } from '../coaching/coachService';
 import { DIFFICULTY_CONFIG, DEFAULT_DIFFICULTY } from '../../utils/difficultyConfig';
@@ -557,14 +557,6 @@ export async function streamFeedback(
         callbacks.onSection?.(type, { ...partial });
       }
     }
-  }
-}
-
-export async function saveSessionToBackend(session: Session): Promise<void> {
-  try {
-    await post('/api/sessions', session);
-  } catch {
-    // Non-critical — local storage is the source of truth
   }
 }
 
