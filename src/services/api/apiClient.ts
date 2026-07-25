@@ -70,9 +70,19 @@ interface BackendFeedback {
 type BackendFeedbackV2 = BackendFeedback & Partial<FeedbackV2> & {
   provider?: string;
   providerAttempts?: { provider: string; success: boolean; error?: string }[];
+  // Backend's per-provider failure detail when it fell back internally
+  // (e.g. Gemini 429 quota → Groq). Without surfacing this a silent
+  // Gemini→Groq fallback looks like "Gemini never works" with no reason.
+  providerErrors?: { provider: string; type: string; message?: string }[];
 };
 
 function logProviderAttempts(raw: BackendFeedbackV2, endpoint: string): void {
+  // Surface any provider the backend tried and abandoned before the winner,
+  // so a server-side Gemini→Groq fallback isn't invisible on the client.
+  (raw.providerErrors ?? []).forEach(err => {
+    console.warn(`[AI Feedback] ${err.provider} did not give a response — ${err.type}${err.message ? `: ${err.message}` : ''} (${endpoint})`);
+  });
+
   const attempts = raw.providerAttempts;
   if (attempts && attempts.length > 0) {
     attempts.forEach(attempt => {
