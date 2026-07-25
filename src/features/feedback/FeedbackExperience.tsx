@@ -17,6 +17,7 @@ import { PronunciationCard } from './components/PronunciationCard';
 import { FeedbackFooter } from './components/FeedbackFooter';
 import { MinimalResponseCard } from './components/MinimalResponseCard';
 import { OfflineLimitationsBanner } from '../../screens/learn/OfflineLimitationsBanner';
+import { FailoverBadge } from '../../screens/learn/FailoverBadge';
 import { ReEvaluateBar } from '../../screens/learn/ReEvaluateBar';
 import type { FeedbackV2, AIEngine, EngineResult } from '../../types';
 
@@ -92,6 +93,7 @@ function FeedbackContent({
       className="space-y-3"
     >
       {isOffline && <OfflineLimitationsBanner />}
+      <FailoverBadge engineMeta={feedback.engineMeta} />
 
       {/* Scores near the top — quick orientation before coaching content */}
       <SnapshotCard feedback={feedback} />

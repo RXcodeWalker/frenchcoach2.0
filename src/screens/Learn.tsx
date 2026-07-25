@@ -23,7 +23,6 @@ import { SessionProgressBar } from './learn/SessionProgressBar';
 import { SessionSummary } from './learn/SessionSummary';
 import { MidSessionToast } from './learn/MidSessionToast';
 import { StreakToast } from './learn/StreakToast';
-import { FailoverToast } from './learn/FailoverToast';
 import { buildSessionQuestions, makeSessionQuestion, SESSION_TARGET } from '../utils/sessionBuilder';
 import { track } from '../services/telemetry/telemetryService';
 import { DIFFICULTY_CONFIG } from '../utils/difficultyConfig';
@@ -54,9 +53,6 @@ export function Learn() {
   const [activeResultEngine, setActiveResultEngine] = useState<AIEngine | null>(null);
   const [isReEvaluating, setIsReEvaluating] = useState(false);
   const [reEvaluatingEngine, setReEvaluatingEngine] = useState<AIEngine | null>(null);
-  // Failover toast
-  const [showFailoverToast, setShowFailoverToast] = useState(false);
-  const [failoverInfo, setFailoverInfo] = useState<{ requested: AIEngine; actual: AIEngine; reason?: string } | null>(null);
   // E1: honest error state when feedback could not be produced at all — never a fabricated score.
   const [feedbackErrorMessage, setFeedbackErrorMessage] = useState<string | null>(null);
   const [drillSkillId, setDrillSkillId] = useState<string | null>(null);
@@ -173,13 +169,7 @@ export function Learn() {
       fb = { ...fb, skillContextUsed: true };
     }
 
-    // Detect failover and show toast
     const meta = fb.engineMeta;
-    if (meta?.fallbackUsed && meta.actualEngine !== meta.requestedEngine) {
-      setFailoverInfo({ requested: meta.requestedEngine, actual: meta.actualEngine, reason: meta.failoverReason });
-      setShowFailoverToast(true);
-    }
-
     const actualEngine = meta?.actualEngine ?? selectedEngine;
     const result: EngineResult = { engine: actualEngine, feedback: fb, meta: meta ?? {
       requestedEngine: selectedEngine,
@@ -299,7 +289,6 @@ export function Learn() {
     setStreamPhase(null);
     setEngineResults(new Map());
     setActiveResultEngine(null);
-    setShowFailoverToast(false);
 
     const elapsed = recording.elapsedTime;
     const skillContext = buildSkillContext();
@@ -413,12 +402,6 @@ export function Learn() {
       setEngineResults(prev => new Map(prev).set(actualEngine, result));
       setActiveResultEngine(actualEngine);
       setFeedback(fb);
-
-      // Show failover toast if needed
-      if (meta.fallbackUsed && actualEngine !== engine) {
-        setFailoverInfo({ requested: engine, actual: actualEngine, reason: meta.failoverReason });
-        setShowFailoverToast(true);
-      }
     } finally {
       setIsReEvaluating(false);
       setReEvaluatingEngine(null);
@@ -499,7 +482,6 @@ export function Learn() {
     // Clear evaluation cache for the next question
     setEngineResults(new Map());
     setActiveResultEngine(null);
-    setShowFailoverToast(false);
 
     const streak = updatedSession.answerStreak;
     if (streak === 3 || streak === 5) {
@@ -572,7 +554,6 @@ export function Learn() {
     setShowHint(false);
     setEngineResults(new Map());
     setActiveResultEngine(null);
-    setShowFailoverToast(false);
     recording.stop();
     setLearnState('question');
   };
@@ -642,17 +623,6 @@ export function Learn() {
         streak={activeSession?.answerStreak ?? 0}
         onDismiss={() => setShowStreakToast(false)}
       />
-
-      {/* Failover toast */}
-      {failoverInfo && (
-        <FailoverToast
-          show={showFailoverToast}
-          requestedEngine={failoverInfo.requested}
-          actualEngine={failoverInfo.actual}
-          reason={failoverInfo.reason}
-          onDismiss={() => setShowFailoverToast(false)}
-        />
-      )}
 
       {/* E1: honest feedback-failure toast — no fabricated score behind it */}
       <AnimatePresence>
