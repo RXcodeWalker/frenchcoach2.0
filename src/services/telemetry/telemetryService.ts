@@ -47,13 +47,27 @@ interface FeedbackStreamTimingProps {
   sections_streamed: boolean;
 }
 
+interface PronunciationAssessedProps {
+  source: string;
+  provider: 'azure' | 'whisper-heuristic';
+  score: number;
+  latency_ms: number;
+}
+
+interface PronunciationAssessmentFailedProps {
+  source: string;
+  reason: string;
+}
+
 type TelemetryEvent =
   | { name: 'session_completed';       props: SessionCompletedProps }
   | { name: 'feedback_received';       props: FeedbackReceivedProps }
   | { name: 'drill_completed';         props: DrillCompletedProps }
   | { name: 'achievement_unlocked';    props: AchievementUnlockedProps }
   | { name: 'ai_failover';             props: AIFailoverProps }
-  | { name: 'feedback_stream_timing';  props: FeedbackStreamTimingProps };
+  | { name: 'feedback_stream_timing';  props: FeedbackStreamTimingProps }
+  | { name: 'pronunciation_assessed';           props: PronunciationAssessedProps }
+  | { name: 'pronunciation_assessment_failed';  props: PronunciationAssessmentFailedProps };
 
 export function initTelemetry(): void {
   const dsn = import.meta.env.VITE_SENTRY_DSN as string | undefined;

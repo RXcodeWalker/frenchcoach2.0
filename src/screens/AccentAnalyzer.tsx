@@ -1,22 +1,22 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Mic, 
-  ArrowLeft, 
-  Play, 
-  RotateCcw, 
-  CheckCircle2, 
-  Info, 
-  Volume2, 
+import {
+  Mic,
+  ArrowLeft,
+  RotateCcw,
+  Info,
+  Volume2,
   ChevronRight,
   Trophy,
   Target,
-  Zap,
   Star
 } from 'lucide-react';
-import { useRecording } from '../features/recording/useRecording';
+import { useAudioBlobRecorder } from '../features/recording/useAudioBlobRecorder';
 import { Waveform } from '../features/recording/Waveform';
+import { assessPronunciation } from '../services/pronunciation/pronunciationClient';
+import { PronunciationSourceBadge } from './learn/PronunciationSourceBadge';
+import type { PronunciationAssessment } from '../domain/pronunciation/types';
 
 interface AccentDrill {
   id: string;
@@ -70,84 +70,81 @@ const DRILLS: AccentDrill[] = [
   }
 ];
 
+interface AccentResults {
+  score: number;
+  accuracy: number;
+  fluency: number;
+  feedback: string;
+  matches: { word: string; status: 'perfect' | 'good' | 'missed' }[];
+  provider: PronunciationAssessment['provider'];
+}
+
+function feedbackForScore(score: number): string {
+  if (score > 90) return "Excellent! You said all the key words clearly.";
+  if (score > 75) return "Great job! Most words came through — focus on the tricky parts.";
+  if (score > 50) return "Good effort! Try to emphasize the nasal sounds more.";
+  return "Keep practicing! Listen to the native audio and try to mimic the rhythm.";
+}
+
+function statusForAccuracy(accuracyScore: number | null): 'perfect' | 'good' | 'missed' {
+  if (accuracyScore === null) return 'good';
+  if (accuracyScore >= 90) return 'perfect';
+  if (accuracyScore >= 60) return 'good';
+  return 'missed';
+}
+
+// Real pass-through mapping, not a rescale: score/subScores are already 0-100
+// end to end in the new contract, so no `* 10` unit conversion is needed here.
+function mapAssessmentToAccentResults(assessment: PronunciationAssessment): AccentResults {
+  return {
+    score: assessment.score,
+    accuracy: Math.round(assessment.subScores?.accuracy ?? assessment.score),
+    fluency: Math.round(assessment.subScores?.fluency ?? assessment.score),
+    feedback: feedbackForScore(assessment.score),
+    matches: assessment.words.map(w => ({
+      word: w.word,
+      status: statusForAccuracy(w.accuracyScore),
+    })),
+    provider: assessment.provider,
+  };
+}
+
 export function AccentAnalyzer() {
   const navigate = useNavigate();
-  const { isRecording, transcript, start, stop, waveData } = useRecording();
-  
-  const [selectedDrill, setSelectedDrill] = useState<AccentDrill>(DRILLS[0]);
-  const [results, setResults] = useState<{
-    score: number;
-    accuracy: number;
-    fluency: number;
-    feedback: string;
-    matches: { word: string; status: 'perfect' | 'good' | 'missed' }[];
-  } | null>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const { isRecording, start, stop, waveData } = useAudioBlobRecorder();
 
-  const normalize = (str: string) => {
-    return str
-      .toLowerCase()
-      .replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, "")
-      .trim();
-  };
+  const [selectedDrill, setSelectedDrill] = useState<AccentDrill>(DRILLS[0]);
+  const [results, setResults] = useState<AccentResults | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [evalError, setEvalError] = useState<string | null>(null);
 
   const handleStopRecording = async () => {
-    const finalTranscript = await stop();
-    analyzeAccent(finalTranscript);
+    const recorded = await stop();
+    if (!recorded) return;
+    await analyzeAccent(recorded.blob);
   };
 
-  // E4: word-presence matching only — no phoneme/pronunciation analysis exists here.
-  // Never inject Math.random() noise dressed up as "AI analysis", and never award
-  // real XP off a heuristic this coarse.
-  const analyzeAccent = (userText: string) => {
-    if (!userText) return;
-
+  const analyzeAccent = async (audioBlob: Blob) => {
     setIsAnalyzing(true);
-
-    setTimeout(() => {
-      const targetWords = normalize(selectedDrill.french).split(' ');
-      const userWords = normalize(userText).split(' ');
-
-      let matchedCount = 0;
-      const matches = targetWords.map(targetWord => {
-        // Word-presence match — not a real pronunciation/phoneme check.
-        const found = userWords.some(userWord =>
-          userWord === targetWord ||
-          (userWord.length > 3 && targetWord.includes(userWord)) ||
-          (targetWord.length > 3 && userWord.includes(targetWord))
-        );
-
-        if (found) {
-          matchedCount++;
-          return { word: targetWord, status: 'good' as const };
-        }
-        return { word: targetWord, status: 'missed' as const };
+    setEvalError(null);
+    try {
+      const assessment = await assessPronunciation({
+        audioBlob,
+        targetText: selectedDrill.french,
+        source: 'accent_analyzer',
       });
-
-      const accuracy = (matchedCount / targetWords.length) * 100;
-      const fluency = Math.min(100, (userWords.length / targetWords.length) * 85);
-      const score = Math.round((accuracy * 0.7) + (fluency * 0.3));
-
-      let feedback = "";
-      if (score > 90) feedback = "Excellent! You said all the key words clearly.";
-      else if (score > 75) feedback = "Great job! Most words came through — focus on the tricky parts.";
-      else if (score > 50) feedback = "Good effort! Try to emphasize the nasal sounds more.";
-      else feedback = "Keep practicing! Listen to the native audio and try to mimic the rhythm.";
-
-      setResults({
-        score,
-        accuracy: Math.round(accuracy),
-        fluency: Math.round(fluency),
-        feedback,
-        matches
-      });
-
+      setResults(mapAssessmentToAccentResults(assessment));
+    } catch (err) {
+      console.error("Accent evaluation failed:", err);
+      setEvalError(err instanceof Error ? err.message : 'Evaluation failed. Please try again.');
+    } finally {
       setIsAnalyzing(false);
-    }, 1500);
+    }
   };
 
   const reset = () => {
     setResults(null);
+    setEvalError(null);
   };
 
   const playReference = () => {
@@ -233,8 +230,28 @@ export function AccentAnalyzer() {
               {/* Recording State */}
               <div className="w-full max-w-sm py-4">
                 <AnimatePresence mode="wait">
-                  {!results && !isAnalyzing ? (
-                    <motion.div 
+                  {evalError ? (
+                    <motion.div
+                      key="error"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="flex flex-col items-center space-y-4 text-center"
+                    >
+                      <div className="w-16 h-16 rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center">
+                        <Info size={28} className="text-rose-400" />
+                      </div>
+                      <p className="text-rose-400 font-bold text-sm">Evaluation failed</p>
+                      <p className="text-slate-500 text-xs max-w-xs">{evalError}</p>
+                      <button
+                        onClick={reset}
+                        className="px-6 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-bold flex items-center gap-2 transition-all"
+                      >
+                        <RotateCcw size={14} /> Try Again
+                      </button>
+                    </motion.div>
+                  ) : !results && !isAnalyzing ? (
+                    <motion.div
                       key="idle"
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
@@ -358,6 +375,8 @@ export function AccentAnalyzer() {
                           </div>
                         </div>
                       </div>
+
+                      <PronunciationSourceBadge provider={results!.provider} />
 
                       {/* Word Breakdown */}
                       <div className="flex flex-wrap justify-center gap-2">

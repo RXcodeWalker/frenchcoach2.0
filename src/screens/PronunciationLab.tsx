@@ -6,8 +6,11 @@ import { useApp, dispatchAddXP } from '../context/AppContext';
 import { useAudioBlobRecorder } from '../features/recording/useAudioBlobRecorder';
 import { PRONUNCIATION_DRILLS } from '../data/pronunciationDrills';
 import { Waveform } from '../features/recording/Waveform';
-import { evaluatePronunciationAudio } from '../services/api/apiClient';
-import type { FeedbackV2 } from '../types';
+import { assessPronunciation } from '../services/pronunciation/pronunciationClient';
+import { PronunciationSourceBadge } from './learn/PronunciationSourceBadge';
+import type { PronunciationAssessment } from '../domain/pronunciation/types';
+
+type LabResult = PronunciationAssessment & { audioUrl?: string; waveSnapshot?: number[] };
 
 export function PronunciationLab() {
   const navigate = useNavigate();
@@ -16,7 +19,8 @@ export function PronunciationLab() {
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [feedback, setFeedback] = useState<FeedbackV2 & { audioUrl?: string; waveSnapshot?: number[] } | null>(null);
+  const [feedback, setFeedback] = useState<LabResult | null>(null);
+  const [evalError, setEvalError] = useState<string | null>(null);
   const [showTip, setShowTip] = useState(false);
   const [score, setScore] = useState(0);
   const [completed, setCompleted] = useState(false);
@@ -32,44 +36,40 @@ export function PronunciationLab() {
       const result = await stop();
       if (result) {
         setIsAnalyzing(true);
+        setEvalError(null);
         try {
-          const evalResult = await evaluatePronunciationAudio(result.blob, currentDrill.french);
-          const feedbackWithAudio = { 
-            ...evalResult, 
+          const assessment = await assessPronunciation({
+            audioBlob: result.blob,
+            targetText: currentDrill.french,
+            source: 'pronunciation_lab',
+          });
+          const feedbackWithAudio: LabResult = {
+            ...assessment,
             audioUrl: result.url,
-            waveSnapshot: result.waveSnapshot 
+            waveSnapshot: result.waveSnapshot,
           };
           setFeedback(feedbackWithAudio);
-          
-          const pronScore = evalResult.pronunciation?.score ?? 0;
-          if (pronScore >= 7) {
-            const xp = Math.round(pronScore * (attempts === 1 ? 2 : 1.5));
+
+          const pronScore = assessment.score;
+          if (pronScore >= 70) {
+            const xp = Math.round((pronScore / 10) * (attempts === 1 ? 2 : 1.5));
             setScore(s => s + xp);
             dispatchAddXP(dispatch, xp);
           }
 
-          if (pronScore >= 9) {
+          if (pronScore >= 90) {
             dispatch({ type: 'MARK_DRILL_MASTERED', drillId: currentDrill.id });
           }
         } catch (err) {
           console.error("Evaluation failed:", err);
-          setFeedback({
-            scores: { overall: 5, communication: 5, language: 5, fluency: 5 },
-            grammar: { critical: [], polish: [] },
-            vocabulary: [],
-            style: [],
-            fillers: [],
-            wordCount: 0,
-            cefrLevel: 'A1',
-            audioUrl: result.url,
-            waveSnapshot: result.waveSnapshot
-          });
+          setEvalError(err instanceof Error ? err.message : 'Evaluation failed. Please try again.');
         } finally {
           setIsAnalyzing(false);
         }
       }
     } else {
       setFeedback(null);
+      setEvalError(null);
       setAttempts(prev => prev + 1);
       start();
     }
@@ -108,7 +108,7 @@ export function PronunciationLab() {
     }
   };
 
-  const isSuccess = feedback && (feedback.pronunciation?.score ?? 0) >= 7;
+  const isSuccess = feedback && feedback.score >= 70;
 
   if (completed) {
     const masteredInSession = PRONUNCIATION_DRILLS.filter(d => state.masteredDrills.includes(d.id)).length;
@@ -262,14 +262,36 @@ export function PronunciationLab() {
                 </motion.div>
               )}
 
-              {feedback && !isAnalyzing && (
-                <motion.div 
+              {evalError && !isAnalyzing && (
+                <motion.div
+                  key="error"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="absolute inset-0 z-10 flex flex-col items-center justify-center p-6 bg-red-500/10 text-center"
+                >
+                  <XCircle size={40} className="text-red-400 mb-4" />
+                  <p className="text-red-400 font-black text-lg italic uppercase tracking-tighter">Evaluation Failed</p>
+                  <p className="text-slate-500 text-xs mt-2 max-w-xs">{evalError}</p>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setEvalError(null)}
+                    className="mt-6 flex items-center justify-center gap-2 px-6 py-3 bg-white/10 border border-white/10 text-white font-bold rounded-xl transition-all uppercase text-xs tracking-wider"
+                  >
+                    Try Again
+                    <RotateCcw size={16} />
+                  </motion.button>
+                </motion.div>
+              )}
+
+              {feedback && !isAnalyzing && !evalError && (
+                <motion.div
                   key="feedback"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   className={`absolute inset-0 z-10 flex flex-col p-6 overflow-y-auto ${isSuccess ? 'bg-emerald-500/10' : 'bg-red-500/10'}`}
                 >
-                  <div className="flex items-center justify-between mb-8">
+                  <div className="flex items-center justify-between mb-4">
                     <div className="flex flex-col items-start">
                       <div className="flex items-center gap-2">
                         {isSuccess ? (
@@ -277,25 +299,29 @@ export function PronunciationLab() {
                         ) : (
                           <XCircle size={32} className="text-red-400" />
                         )}
-                        <span className={`text-2xl font-black ${isSuccess ? 'text-emerald-400' : 'text-red-400'}`}>{feedback.pronunciation?.score ?? 0}/10</span>
+                        <span className={`text-2xl font-black ${isSuccess ? 'text-emerald-400' : 'text-red-400'}`}>{feedback.score}/100</span>
                       </div>
                       <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Precision Score</span>
                     </div>
 
                     <div className="flex gap-2">
-                      <button 
+                      <button
                         onClick={speak}
                         className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold text-slate-400 hover:text-white transition-all"
                       >
                         <Volume2 size={14} /> NATIVE
                       </button>
-                      <button 
+                      <button
                         onClick={togglePlayback}
                         className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-[10px] font-bold transition-all ${isPlayingBack ? 'bg-emerald-500 text-slate-950 border-emerald-400' : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'}`}
                       >
                         {isPlayingBack ? <Pause size={14} /> : <Play size={14} />} YOU
                       </button>
                     </div>
+                  </div>
+
+                  <div className="mb-4">
+                    <PronunciationSourceBadge provider={feedback.provider} />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4 mb-6">
@@ -313,10 +339,10 @@ export function PronunciationLab() {
                     </div>
                   </div>
 
-                  {feedback.pronunciation?.issues && feedback.pronunciation.issues.length > 0 ? (
+                  {feedback.issues.length > 0 ? (
                     <div className="space-y-4 text-left">
                       <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest border-b border-white/5 pb-2">Phonetic Breakdown</h3>
-                      {feedback.pronunciation.issues.map((issue, idx) => (
+                      {feedback.issues.map((issue, idx) => (
                         <div key={idx} className="bg-white/5 rounded-xl p-4 border border-white/10">
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-xs font-black text-white">{issue.word}</span>
@@ -342,11 +368,11 @@ export function PronunciationLab() {
                     </div>
                   )}
 
-                  {feedback.pronunciation && feedback.pronunciation.issues.length > 0 && (
+                  {feedback.issues.length > 0 && (
                     <div className="mt-6 text-left">
                       <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest border-b border-white/5 pb-2 mb-3">AI Recommendations</h3>
                       <ul className="space-y-2">
-                        {feedback.pronunciation.issues.map((issue, idx) => (
+                        {feedback.issues.map((issue, idx) => (
                           <li key={idx} className="flex gap-2 text-[11px] text-slate-300">
                             <span className="text-emerald-500">•</span>
                             <span>{issue.problem}</span>
@@ -355,7 +381,7 @@ export function PronunciationLab() {
                       </ul>
                     </div>
                   )}
-                  
+
                   <div className="mt-auto pt-8">
                     {isSuccess ? (
                       <motion.button

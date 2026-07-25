@@ -590,34 +590,6 @@ export async function getDailyNews(): Promise<any> {
   }
 }
 
-export async function evaluatePronunciationAudio(audioBlob: Blob, targetText: string): Promise<FeedbackV2> {
-  const formData = new FormData();
-  formData.append('audio', audioBlob, 'recording.webm');
-  formData.append('target_text', targetText);
-
-  const res = await fetch(`${API_BASE}/api/pronunciation`, {
-    method: 'POST',
-    body: formData,
-  });
-
-  if (!res.ok) throw new Error(`API pronunciation → ${res.status}`);
-  const raw = await res.json() as { score: number; transcript: string; issues: import('../../types').PronunciationIssue[]; words: unknown[] };
-
-  // E2: this endpoint only assesses pronunciation — it has no real communication/language/
-  // fluency signal, so scores.overall must not be fabricated. Callers (PronunciationLab.tsx)
-  // only ever read `.pronunciation`, never `.scores`.
-  return {
-    scores: { overall: 0, communication: 0, language: 0, fluency: 0 },
-    grammar: { critical: [], polish: [] },
-    vocabulary: [],
-    style: [],
-    fillers: [],
-    wordCount: 0,
-    cefrLevel: 'A2',
-    pronunciation: { score: raw.score, issues: raw.issues },
-  };
-}
-
 export interface VocabPrepData {
   vocab: { fr: string; en: string; type: string }[];
   phrases: { fr: string; en: string; type: string }[];
