@@ -549,6 +549,8 @@ export interface FeedbackV2 extends Feedback {
   expansionLevels?: ExpansionLevel[];
   coachingLayer?: CoachingLayer;
   confidence?: number;
+  /** Set when no LLM judged this attempt (offline fallback) — `scores` is a placeholder, not a real assessment. */
+  unscored?: 'no_llm_offline';
 }
 
 // ── Avoidance detection ────────────────────────────────────────────────────────
@@ -570,7 +572,8 @@ export type SessionMode = 'quick' | 'standard' | 'deep_dive' | 'full_topic';
 
 export interface QuestionAttempt {
   transcript: string;
-  score: number;
+  /** null when this attempt was never graded (offline fallback) — never a fabricated placeholder. */
+  score: number | null;
   xpEarned: number;
   feedback: FeedbackV2;
   durationSec: number;
@@ -581,7 +584,8 @@ export interface SessionQuestion {
   question: Question;
   status: 'pending' | 'active' | 'completed' | 'skipped';
   attempts: QuestionAttempt[];
-  bestScore: number;
+  /** Best real score across attempts; null until a graded attempt exists. */
+  bestScore: number | null;
   savedVocab: string[];
 }
 

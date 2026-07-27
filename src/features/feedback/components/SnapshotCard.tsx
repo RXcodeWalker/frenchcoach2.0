@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { scoreColor } from '../../../domain/scoring';
+import { scoreColor, isUnscored } from '../../../domain/scoring';
 import { fadeUp } from '../../../components/motion/variants';
 import type { FeedbackV2 } from '../../../types';
 
@@ -19,6 +19,7 @@ interface Props {
 export function SnapshotCard({ feedback }: Props) {
   const { scores, wordCount, cefrLevel, examiner } = feedback;
   const band = examiner?.predictedBand;
+  const unscored = isUnscored(feedback);
 
   const scoreEntries = [
     { label: 'Comm', val: scores.communication },
@@ -26,6 +27,26 @@ export function SnapshotCard({ feedback }: Props) {
     { label: 'Fluency', val: scores.fluency },
     { label: 'Overall', val: scores.overall },
   ];
+
+  if (unscored) {
+    return (
+      <motion.div
+        variants={fadeUp}
+        initial="hidden"
+        animate="show"
+        className="rounded-xl glass-elevated p-5"
+      >
+        <div className="flex items-start justify-between mb-2">
+          <h3 className="font-bold text-white text-sm">Results</h3>
+          <span className="text-[9px] text-slate-600">{wordCount}w</span>
+        </div>
+        <p className="text-sm text-slate-300 font-semibold">Practiced offline — not graded</p>
+        <p className="text-[11px] text-slate-500 mt-1 leading-snug">
+          No AI grader was reachable for this attempt, so no score was assigned. Your evidence and coaching tips below are still real.
+        </p>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div

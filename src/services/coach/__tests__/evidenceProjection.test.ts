@@ -195,6 +195,44 @@ describe('buildEvidence', () => {
     expect(behaviorEvent).toBeDefined();
     expect(behaviorEvent!.targetNodeIds).toEqual(['subjunctive']);
   });
+
+  // ── Phase 4b: unscored (offline, no-LLM) attempts must never be scored ──
+  describe('unscored attempts (feedback.unscored === "no_llm_offline")', () => {
+    it('omits result.score entirely — never the placeholder 0', () => {
+      const feedback = makeFeedback({ unscored: 'no_llm_offline', issues: [makeIssue()] });
+      const [event] = buildEvidence({
+        sessionId: 's1', question: null, feedback, avoidanceSignals: [],
+        transcript: 'transcript', finalScore: 0, mode: 'practice',
+      });
+      expect(event.result.score).toBeUndefined();
+    });
+
+    it('still derives per-node success/failure from real observations when present', () => {
+      const feedback = makeFeedback({ unscored: 'no_llm_offline', issues: [makeIssue({ category: 'tense', confidence: 0.95 })] });
+      const [event] = buildEvidence({
+        sessionId: 's1', question: null, feedback, avoidanceSignals: [],
+        transcript: 'transcript', finalScore: 0, mode: 'practice',
+      });
+      // A real confident issue observation still counts as a failure —
+      // observations are real evidence regardless of whether an LLM scored it.
+      expect(event.result.success).toBe(false);
+    });
+
+    it('does NOT fall back to the score threshold when there are zero observations — never fabricates success:false from a placeholder 0', () => {
+      const feedback = makeFeedback({ unscored: 'no_llm_offline', issues: [] });
+      const events = buildEvidence({
+        sessionId: 's1', question: null, feedback,
+        avoidanceSignals: [{ skillId: 'subjunctive', observation: 'no subjunctive used', nudge: 'try il faut que' }],
+        transcript: 'transcript', finalScore: 0, mode: 'practice',
+      });
+      const languageEvent = events.find(e => e.evidenceType === 'language')!;
+      // Contrast with the scored case (line ~173 above): finalScore=0 with
+      // real scoring would legitimately fall back to success:false. Here,
+      // the same finalScore=0 must NOT be trusted as a real threshold input.
+      expect(languageEvent.result.success).toBeUndefined();
+      expect(languageEvent.result.score).toBeUndefined();
+    });
+  });
 });
 
 // ── Characterization: belief snapshot is same-or-richer than pre-Phase-2 ──

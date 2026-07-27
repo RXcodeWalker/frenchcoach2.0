@@ -16,6 +16,7 @@ import type { Objective } from '../components/ui/MissionObjectivesList';
 import type { FeedbackV2, Question } from '../types';
 import { observeAttempt } from '../services/coach/sessionOrchestrator';
 import { getSkillProfile } from '../services/coaching/diagnosticEngine';
+import { isUnscored } from '../domain/scoring';
 
 interface Roleplay {
   id: string;
@@ -127,10 +128,16 @@ export function StoryMode() {
     addMessage(transcript, 'user');
     setLastFeedbackV2(fb);
     setShowFeedbackV2(true);
-    setOverallScore(prev => prev + fb.scores.overall);
 
-    // Update expression based on feedback
-    if (fb.scores.overall >= 8) setExpression('excited');
+    const unscored = isUnscored(fb);
+    if (!unscored) {
+      setOverallScore(prev => prev + fb.scores.overall);
+    }
+
+    // Update expression based on feedback — a placeholder offline score must
+    // never drive the "confused" reaction; stay neutral instead.
+    if (unscored) setExpression('thinking');
+    else if (fb.scores.overall >= 8) setExpression('excited');
     else if (fb.scores.overall >= 6) setExpression('happy');
     else if (fb.scores.overall <= 3) setExpression('confused');
     else setExpression('thinking');

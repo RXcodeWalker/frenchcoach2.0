@@ -164,7 +164,7 @@ export function makeSessionQuestion(question: Question | QuestionV2): SessionQue
     question: question as Question,
     status: 'pending',
     attempts: [],
-    bestScore: 0,
+    bestScore: null,
     savedVocab: [],
   };
 }

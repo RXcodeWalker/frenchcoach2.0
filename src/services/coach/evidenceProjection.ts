@@ -22,7 +22,7 @@ import type {
 } from '../../types/evidence';
 import type { Observation, Span } from '../../domain/igcse/evidence/framework/observation';
 import { nodeForIssueCategory, nodeForGrammarTheme } from '../../domain/igcse/evidence/framework/nodeMap';
-import { LANGUAGE_SUCCESS_SCORE } from '../../domain/scoring';
+import { LANGUAGE_SUCCESS_SCORE, isUnscored } from '../../domain/scoring';
 import { LEARNER_ID } from './learnerId';
 
 const RUBRIC_VERSION = 'coach-mvp-1';
@@ -238,6 +238,11 @@ export function buildEvidence(args: BuildEvidenceArgs): EvidenceEvent[] {
   const anyNodeFailed = targetNodeIds.some(
     nodeId => deriveNodeOutcome(nodeId, observations) === 'failure',
   );
+  // An unscored (offline, no-LLM) attempt has no real finalScore to fall back
+  // on — args.finalScore is a placeholder 0 in that case, and comparing it
+  // against LANGUAGE_SUCCESS_SCORE would record a clean, zero-observation
+  // response as a belief "failure" purely because it was never graded.
+  const unscored = isUnscored(feedback);
 
   const events: EvidenceEvent[] = [];
 
@@ -256,8 +261,12 @@ export function buildEvidence(args: BuildEvidenceArgs): EvidenceEvent[] {
       feedbackSummary: summarise(feedback),
     },
     result: {
-      score: args.finalScore,
-      success: observations.length > 0 ? !anyNodeFailed : args.finalScore >= LANGUAGE_SUCCESS_SCORE,
+      ...(unscored ? {} : { score: args.finalScore }),
+      success: observations.length > 0
+        ? !anyNodeFailed
+        : unscored
+        ? undefined
+        : args.finalScore >= LANGUAGE_SUCCESS_SCORE,
       wordCount,
       issueCount: issues.length + grammarErrors.length,
       criticalIssueCount,

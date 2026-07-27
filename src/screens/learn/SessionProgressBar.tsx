@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import { EngineIndicatorPill } from './EngineIndicatorPill';
+import { averageRealScores } from '../../domain/scoring';
 import type { ActiveSession, AIEngine } from '../../types';
 
 interface Props {
@@ -20,9 +21,7 @@ export function SessionProgressBar({ session, topicLabel, topicIcon, selectedEng
   const completedScores = session.questions
     .filter(q => q.status === 'completed')
     .map(q => q.bestScore);
-  const avgScore = completedScores.length > 0
-    ? completedScores.reduce((a, b) => a + b, 0) / completedScores.length
-    : null;
+  const avgScore = averageRealScores(completedScores);
 
   return (
     <div className="w-full space-y-2">
@@ -81,11 +80,13 @@ export function SessionProgressBar({ session, topicLabel, topicIcon, selectedEng
           const q = session.questions[i];
           const isCompleted = q?.status === 'completed';
           const isActive = i === currentIndex;
-          const score = q?.bestScore ?? 0;
+          const score = q?.bestScore ?? null;
 
           let dotColor = 'bg-white/10';
           if (isCompleted) {
-            dotColor = score >= 8 ? 'bg-emerald-500' : score >= 6 ? 'bg-amber-500' : 'bg-rose-500';
+            // null = every attempt on this question was unscored (offline) —
+            // neutral color, never fabricated red/amber from a placeholder 0.
+            dotColor = score == null ? 'bg-slate-500' : score >= 8 ? 'bg-emerald-500' : score >= 6 ? 'bg-amber-500' : 'bg-rose-500';
           } else if (isActive) {
             dotColor = 'bg-violet-500 animate-pulse';
           }

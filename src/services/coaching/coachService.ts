@@ -1,9 +1,7 @@
-import type { FeedbackV2, Question, CoachingIssue, ExaminerVerdict, IssueCategory, TranscriptSpan, TeachMe, DifficultyEvalExpectations, DifficultyTier } from '../../types';
-import { DIFFICULTY_CONFIG, DEFAULT_DIFFICULTY } from '../../utils/difficultyConfig';
+import type { FeedbackV2, Question, CoachingIssue, IssueCategory, TranscriptSpan, TeachMe } from '../../types';
 import { classifyTier, buildTier0Result, buildTier1LocalResult } from './responseTier';
 import { applyQualityGate } from './qualityGate';
 import { detectAvoidance } from './diagnosticEngine';
-import { scoreToBand, LANGUAGE_SUCCESS_SCORE } from '../../domain/scoring';
 
 // ── Diagnostic themes ──────────────────────────────────────────────────────────
 const THEMES: Record<string, { label: string; desc: string; sde_key: string; master_tip: string }> = {
@@ -545,31 +543,12 @@ const FILLER_WORDS = [
 
 // ── Internal helpers ───────────────────────────────────────────────────────────
 
-function _detectTenses(t: string) {
-  return {
-    present:     /\b(je suis|j'ai|je vais|je fais|je mange|je parle|j'habite|j'aime|c'est)\b/i.test(t),
-    past:        /\b(j'ai|je suis|est|a|avons|êtes|ont)\s+\w*(é|i|u|is|it|ert)\b/i.test(t) || /\b(fait|dit|pu|voulu|dû|su|vu|pris|mis|eu|été)\b/i.test(t),
-    imparfait:   /\b(étais|était|avait|avais|faisais|faisait|allais|allait|voulait|pouvait|jouait|aimait|savait)\b/i.test(t),
-    future:      /\b(irai|ferai|serai|aura|visiterai|aurai|pourrai|devrai)\b/i.test(t) || /\b(vais|vas|va|allons|allez|vont)\s+\w+er\b/i.test(t),
-    conditional: /\b(aimerais|voudrais|serait|irais|pourrait|ferais|aurais|faudrait)\b/i.test(t),
-    subjunctive: /\b(fasse|soit|puisse|sache|aille|veuille|vaille)\b/i.test(t) || /\b(que je|qu'il|qu'elle|qu'on|que nous|que vous|qu'ils|qu'elles)\s+\w+(e|es|ions|iez|ent)\b/i.test(t),
-  };
-}
-
 function _detectFillers(t: string) {
   const findings: { word: string; count: number }[] = [];
   FILLER_WORDS.forEach(f => {
     const count = (t.toLowerCase().match(new RegExp(`\\b${f.word}\\b`, 'g')) || []).length;
     if (count >= 2) findings.push({ word: f.word, count });
   });
-  return findings;
-}
-
-function _analyzeStructure(t: string) {
-  const findings: { type: string; msg: string }[] = [];
-  if (/\b(bonjour|salut|d'abord|premièrement|pour commencer|tout d'abord)\b/i.test(t))    findings.push({ type: "positive", msg: "Good clear opening." });
-  if (/\b(ensuite|puis|après|de plus|par ailleurs|en outre|en revanche|par contre|cependant)\b/i.test(t)) findings.push({ type: "positive", msg: "You used logical connectors." });
-  if (/\b(enfin|pour finir|en conclusion|finalement|pour conclure|en somme)\b/i.test(t))  findings.push({ type: "positive", msg: "Strong concluding phrase detected." });
   return findings;
 }
 
@@ -698,69 +677,6 @@ function _findStrongestMoment(
   };
 }
 
-// Accuracy-weighted scoring (Part 8 of plan)
-function _computeScores(data: {
-  wordCount: number;
-  tenses: ReturnType<typeof _detectTenses>;
-  complexity: Record<string, boolean>;
-  grammarErrors: { severity: string; theme?: string }[];
-  relevanceScore: number;
-  hasOpinion: boolean;
-  structureCount: number;
-  fillerCount: number;
-  expectations: DifficultyEvalExpectations;
-}) {
-  const { wordCount, tenses, complexity, grammarErrors, relevanceScore, hasOpinion, structureCount, fillerCount, expectations } = data;
-
-  const majorErrors = grammarErrors.filter(e => e.severity === 'major').length;
-  const minorErrors = grammarErrors.filter(e => e.severity === 'minor').length;
-
-  // Tense errors reduce the tense score
-  const tenseErrorCount = grammarErrors.filter(e =>
-    ['AUXILIARY', 'SI_CLAUSE', 'SUBJUNCTIVE'].includes((e as { theme?: string }).theme ?? '')
-  ).length;
-  const rawTenseCount = Object.values(tenses).filter(Boolean).length;
-  const correctTenseCount = Math.max(0, rawTenseCount - tenseErrorCount);
-
-  // LANGUAGE (accuracy-weighted)
-  let language = 2.0
-    + correctTenseCount * 1.2
-    + (complexity.subjunctive && !grammarErrors.some(e => (e as { theme?: string }).theme === 'SUBJUNCTIVE') ? 2.0 : 0)
-    + (complexity.hypothetical && !grammarErrors.some(e => (e as { theme?: string }).theme === 'SI_CLAUSE') ? 1.5 : 0)
-    + (complexity.connectors ? 0.8 : 0)
-    + (complexity.relativeClauses ? 0.5 : 0)
-    - majorErrors * 1.2
-    - minorErrors * 0.4;
-  language = Math.min(10, Math.max(0, language));
-
-  // COMMUNICATION
-  let comm = 2.0
-    + (wordCount > expectations.wordCountTier1 ? 1.5 : 0)
-    + (wordCount > expectations.wordCountTier2 ? 1.5 : 0)
-    + (wordCount > expectations.wordCountTier3 ? 0.5 : 0)
-    + (hasOpinion ? 1.5 : 0)
-    + (structureCount >= 2 ? 1.0 : 0)
-    + relevanceScore * 2.0;
-  comm = Math.min(10, Math.max(0, comm));
-
-  // FLUENCY
-  let fluency = 10.0
-    - majorErrors * 1.0
-    - minorErrors * 0.3
-    - (fillerCount > 2 ? 1.5 : 0)
-    - (fillerCount > 4 ? 1.0 : 0)
-    - (!complexity.connectors && wordCount > 30 ? 0.5 : 0);
-  fluency = Math.min(10, Math.max(0, fluency));
-
-  const overall = Math.round((language * 0.35 + comm * 0.35 + fluency * 0.30) * 10) / 10;
-  return {
-    overall,
-    communication: Math.round(comm * 10) / 10,
-    language: Math.round(language * 10) / 10,
-    fluency: Math.round(fluency * 10) / 10,
-  };
-}
-
 // Theme -> IssueCategory (UI display categorization for CoachingIssue.category).
 // Distinct from the theme -> skillNodeId routing table in
 // domain/igcse/evidence/framework/nodeMap.ts — same theme keys, different
@@ -775,90 +691,6 @@ const THEME_TO_CATEGORY: Record<string, IssueCategory> = {
   DEMONSTRATIVE: 'grammar', CONFUSION: 'vocabulary',
 };
 
-// Data-driven examiner verdict that references the actual transcript/session
-function _buildExaminerVerdict(
-  scores: FeedbackV2['scores'],
-  wordCount: number,
-  cefrLevel: string,
-  transcript: string,
-  topIssueTheme?: string,
-  topIssueQuote?: string,
-  complexity?: Record<string, boolean>,
-  tenses?: ReturnType<typeof _detectTenses>,
-): ExaminerVerdict {
-  const band = scoreToBand(scores.overall);
-
-  const weakestDimension = scores.language <= scores.communication && scores.language <= scores.fluency
-    ? 'language range' : scores.fluency <= scores.communication ? 'accuracy' : 'communication';
-
-  // Build a specific notebook that references actual transcript content
-  const parts: string[] = [];
-
-  // What the student did well — name specific structures found
-  const positives: string[] = [];
-  if (tenses?.past) {
-    const pcMatch = transcript.match(/\b(j'ai|je suis|il a|elle a)\s+\w+(é|i|u)\b/i);
-    if (pcMatch) positives.push(`used passé composé ('${pcMatch[0]}')`);
-  }
-  if (tenses?.conditional) positives.push("attempted conditional tense");
-  if (tenses?.subjunctive) positives.push("used subjunctive mood");
-  if (complexity?.connectors) {
-    const connMatch = transcript.match(/\b(mais|donc|cependant|néanmoins|par contre|en revanche|d'ailleurs|pourtant)\b/i);
-    if (connMatch) positives.push(`linked ideas with '${connMatch[0]}'`);
-  }
-  if (/\b(parce que|car|puisque)\b/i.test(transcript)) positives.push("justified an opinion with 'parce que'");
-
-  if (positives.length > 0) {
-    parts.push(`This response ${positives.slice(0, 2).join(' and ')}.`);
-  }
-
-  // Primary error — name it with the actual quote
-  if (topIssueQuote && topIssueTheme) {
-    parts.push(`The main accuracy issue is ${topIssueTheme}: '${topIssueQuote}' needs correction.`);
-  } else if (!topIssueTheme) {
-    parts.push("No significant accuracy errors detected in this response.");
-  }
-
-  // Length note only if genuinely short
-  if (wordCount < 30) {
-    parts.push(`At ${wordCount} words, the response is too short — aim for 40+ to access full Communication marks.`);
-  }
-
-  const notebook = parts.join(' ');
-  const oneLiner = positives.length > 0
-    ? `${cefrLevel} — strong on ${positives[0]}; work on ${weakestDimension}.`
-    : `${cefrLevel} response — ${weakestDimension} is the primary mark barrier.`;
-
-  const nextStep = band === 'Foundation-Developing' ? "Focus on complete sentences and basic accuracy."
-    : band === 'Foundation-Secure' ? "Add a past tense (passé composé) to access Core bands."
-    : band === 'Core-Developing' ? "Eliminate your most frequent error and add a personal opinion with a reason."
-    : band === 'Core-Secure' ? "One correctly formed conditional or relative clause moves you to Extended band."
-    : band === 'Extended-Mid' ? "Aim for zero major errors and vary your connectors."
-    : "Refine register and eliminate all minor accuracy slips.";
-
-  // Examiner insight: single highest-leverage improvement, specific to this response
-  let examinerInsight: string;
-  if (scores.language < 5 && topIssueTheme) {
-    examinerInsight = `Fix '${topIssueQuote ?? topIssueTheme}' — eliminating this single error pattern would be your biggest mark gain right now.`;
-  } else if (scores.communication < 5 && !/\b(pense|crois|avis|trouve|semble|estime|selon moi|à mon avis)\b/i.test(transcript)) {
-    examinerInsight = "Add a personal opinion with justification ('À mon avis… parce que…') — examiners reward justified views across all bands.";
-  } else if (!tenses?.past && !tenses?.conditional && !tenses?.future) {
-    examinerInsight = "Introduce one tense beyond the present — even a simple 'j'ai mangé' (passé composé) immediately raises your Language mark.";
-  } else if (scores.overall >= LANGUAGE_SUCCESS_SCORE) {
-    examinerInsight = "Vary your sentence openers — avoid starting every sentence with 'Je'. Use 'En ce qui me concerne…' or 'Ce qui est certain, c'est que…'.";
-  } else {
-    examinerInsight = `${nextStep}`;
-  }
-
-  return {
-    oneLiner,
-    notebook,
-    predictedBand: band,
-    marksGuidance: `Predicted band: ${band}. ${nextStep}`,
-    examinerInsight,
-  };
-}
-
 // Multi-factor priority score for selecting topPriorityIssue
 function _priorityScore(issue: CoachingIssue): number {
   return issue.marksImpact * 3
@@ -870,32 +702,24 @@ function _priorityScore(issue: CoachingIssue): number {
 
 // ── Public API ────────────────────────────────────────────────────────────────
 
-export function evaluate(transcript: string, question: Question, difficulty: DifficultyTier = DEFAULT_DIFFICULTY): FeedbackV2 {
+// Placeholder scores for the offline (no-LLM) path — never a fabricated mark.
+// The `unscored: 'no_llm_offline'` flag on the result is the load-bearing
+// signal; callers must key off that, not off these zeros, to detect "not
+// really graded" (E2: a response with no real score is a failure state, not
+// a 5 — see apiClient.NoScoreInFeedbackError for the same principle on the
+// network path).
+const OFFLINE_PLACEHOLDER_SCORES: FeedbackV2['scores'] = {
+  overall: 0, communication: 0, language: 0, fluency: 0,
+};
+
+export function evaluate(transcript: string, question: Question): FeedbackV2 {
   const tier = classifyTier(transcript);
   if (tier === 0) return buildTier0Result();
   if (tier === 1) return buildTier1LocalResult(transcript);
 
   const t = transcript;
   const wordCount = t.trim().split(/\s+/).filter(Boolean).length;
-  const tenses = _detectTenses(t);
-  const structureFindings = _analyzeStructure(t);
   const fillers = _detectFillers(t);
-
-  const complexity = {
-    relativeClauses: /\b(qui|que|dont|où)\b/i.test(t),
-    hypothetical:    /\bsi (j'avais|j'étais|on pouvait|c'était|on avait|on était)\b/i.test(t),
-    subjunctive:     tenses.subjunctive,
-    connectors:      /\b(cependant|néanmoins|toutefois|par contre|en revanche|d'ailleurs|en outre|ainsi)\b/i.test(t),
-  };
-
-  // Relevance scoring against model answer
-  let relevanceScore = 0.8;
-  if (question.modelAnswer) {
-    const modelWords = question.modelAnswer.toLowerCase().split(/\W+/).filter(w => w.length > 4);
-    let matchCount = 0;
-    modelWords.forEach(mw => { if (t.toLowerCase().includes(mw)) matchCount++; });
-    if (matchCount > 0) relevanceScore = Math.min(1.0, 0.7 + matchCount * 0.1);
-  }
 
   // Detect fired rules and extract quotes
   const firedRules = GRAMMAR_RULES.filter(rule => rule.test(t));
@@ -913,17 +737,6 @@ export function evaluate(transcript: string, question: Question, difficulty: Dif
     ruleId: rule.id,
   }));
 
-  const expectations = DIFFICULTY_CONFIG[difficulty].expectations;
-  const scores = _computeScores({
-    wordCount, tenses, complexity,
-    grammarErrors: allErrors.map(e => ({ severity: e.severity, theme: e.themeKey })),
-    relevanceScore,
-    hasOpinion: /\b(pense|crois|avis|aime|trouve)\b/i.test(t),
-    structureCount: structureFindings.filter(f => f.type === "positive").length,
-    fillerCount: fillers.length,
-    expectations,
-  });
-
   const style = STYLE_UPGRADES
     .filter(u => u.detect(t))
     .map(u => {
@@ -935,8 +748,6 @@ export function evaluate(transcript: string, question: Question, difficulty: Dif
     .filter(u => u.detect(t))
     .slice(0, 3)
     .map(({ basic, upgrade }) => ({ basic, upgrade }));
-
-  const cefrLevel = scores.overall >= 9 ? "B2" : scores.overall >= 7 ? "B1" : scores.overall >= 5 ? "A2" : "A1";
 
   // Build v2 CoachingIssues with enriched teachMe from TEACHME_LIBRARY
   const issues: CoachingIssue[] = allErrors.map((err) => {
@@ -973,16 +784,13 @@ export function evaluate(transcript: string, question: Question, difficulty: Dif
   // Sort by priority and select top priority
   const sortedIssues = [...issues].sort((a, b) => _priorityScore(b) - _priorityScore(a));
   const topPriorityIssue = sortedIssues[0];
-  const topMajorError = allErrors.find(e => e.severity === 'major');
-  const topTheme = topMajorError?.theme;
-  const topQuote = topMajorError?.quote || topPriorityIssue?.quote;
 
   // Build transcript annotations and strongest moment
   const transcriptAnnotations = _buildTranscriptAnnotations(transcript, sortedIssues);
   const strongest = _findStrongestMoment(transcript, transcriptAnnotations);
 
   // Build avoidance report for offline path
-  const avoidanceReport = detectAvoidance(transcript, question, expectations);
+  const avoidanceReport = detectAvoidance(transcript, question);
 
   // Tag avoidance entries with confidence and evidence
   const taggedAvoidance = avoidanceReport.map(entry => ({
@@ -1002,7 +810,8 @@ export function evaluate(transcript: string, question: Question, difficulty: Dif
 
   const result: FeedbackV2 = {
     responseTier: tier,
-    scores,
+    scores: OFFLINE_PLACEHOLDER_SCORES,
+    unscored: 'no_llm_offline',
     grammar: {
       critical: allErrors.filter(e => e.severity === "major").slice(0, 4).map(e => ({ theme: e.theme, severity: e.severity, msg: e.diagnostic, diagnostic: e.diagnostic, correction: e.correction })),
       polish:   allErrors.filter(e => e.severity === "minor").slice(0, 3).map(e => ({ theme: e.theme, severity: e.severity, msg: e.diagnostic, diagnostic: e.diagnostic, correction: e.correction })),
@@ -1011,7 +820,7 @@ export function evaluate(transcript: string, question: Question, difficulty: Dif
     style,
     fillers,
     wordCount,
-    cefrLevel,
+    cefrLevel: 'A2',
     schemaVersion: 2,
     issues: sortedIssues.slice(0, 8),
     topPriorityIssueId: topPriorityIssue?.id,
@@ -1019,18 +828,11 @@ export function evaluate(transcript: string, question: Question, difficulty: Dif
     strongestMomentExplanation: strongest.explanation,
     vocabularyV2: taggedVocabV2,
     avoidanceReport: taggedAvoidance,
-    examiner: _buildExaminerVerdict(scores, wordCount, cefrLevel, transcript, topTheme, topQuote, complexity, tenses),
     transcriptAnnotations,
-    pronunciation: { score: 7, issues: [] },
+    pronunciation: { score: null, issues: [] },
   };
 
   return applyQualityGate(result, transcript);
-}
-
-export function pacingLabel(wpm: number) {
-  if (wpm < 70)  return { label: "Deliberate",  color: "#f59e0b" };
-  if (wpm < 110) return { label: "Fluent",       color: "#10b981" };
-  return             { label: "Native-like",  color: "#6366f1" };
 }
 
 export function getCoachingTip(skillId: string): string | null {

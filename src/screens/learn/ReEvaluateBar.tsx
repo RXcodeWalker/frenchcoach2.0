@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
+import { displayScore } from '../../domain/scoring';
 import type { AIEngine, EngineResult } from '../../types';
 
 const ENGINE_LABEL: Record<AIEngine, string> = { gemini: 'Gemini', groq: 'Groq', offline: 'Offline' };
@@ -54,7 +55,7 @@ export function ReEvaluateBar({
             <div className="flex gap-1.5 flex-wrap">
               {evaluatedEngines.map(engine => {
                 const result = engineResults.get(engine)!;
-                const score = result.feedback.scores.overall.toFixed(1);
+                const score = displayScore(result.feedback);
                 const isActive = engine === activeEngine;
                 return (
                   <button
@@ -67,7 +68,7 @@ export function ReEvaluateBar({
                     <span>{ENGINE_ICON[engine]}</span>
                     <span>{ENGINE_LABEL[engine]}</span>
                     <span className={`text-[10px] font-black ${isActive ? '' : 'text-slate-600'}`}>
-                      {score}/10
+                      {score === null ? 'not graded' : `${score}/10`}
                     </span>
                   </button>
                 );

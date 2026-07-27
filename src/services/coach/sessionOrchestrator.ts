@@ -7,7 +7,8 @@
 // UI state, so the reducer stays pure and modes stay thin.
 
 import { recordSession } from '../analytics/analyticsService';
-import { awardXP, checkAchievements, getProgressionState } from '../progression/progressionService';
+import { awardXP, awardParticipationXP, checkAchievements, getProgressionState } from '../progression/progressionService';
+import { isUnscored } from '../../domain/scoring';
 import type { OrchestratorInput, OrchestratorResult, CoachRecommendation } from '../../types/coach';
 import type { Question, FeedbackV2, AvoidanceSignal } from '../../types';
 import type { EvidenceEvent } from '../../types/evidence';
@@ -61,8 +62,11 @@ export function orchestrateAttempt(input: OrchestratorInput): OrchestratorResult
   //    AppContext once the session is committed to state.
   recordSession(session, { targetSkillIds: evidenceEvents[0]?.targetNodeIds });
 
-  // 3. XP + level (unchanged behavior).
-  const xpResult = awardXP(finalScore, streakDays);
+  // 3. XP + level. The discriminant is feedback.unscored, never finalScore's
+  // numeric value — a genuine graded 0 (a real bad answer) must still take the
+  // scored path, so branching on "score === 0" would be wrong here.
+  const unscored = isUnscored(feedback);
+  const xpResult = unscored ? awardParticipationXP(streakDays) : awardXP(finalScore, streakDays);
   const { level } = getProgressionState();
 
   // 4. Rebuild the evidence-driven belief snapshot from the full evidence
@@ -73,7 +77,7 @@ export function orchestrateAttempt(input: OrchestratorInput): OrchestratorResult
   //    predicate contexts (xp thresholds, skill mastery) reflect this session.
   const newUnlockedAchievementIds = checkAchievements(
     buildAchievementContext({
-      finalScore,
+      finalScore: unscored ? null : finalScore,
       streakDays,
       totalSessionsAfter: totalSessionsBefore + 1,
       topicsUsed,

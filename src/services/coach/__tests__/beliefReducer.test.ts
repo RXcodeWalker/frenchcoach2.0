@@ -198,6 +198,42 @@ describe('reduceEvidenceToBeliefState', () => {
     expect(state['tense_past'].rawEvidenceCount).toBe(2);
   });
 
+  // ── Phase 4b: events with no success signal at all (unscored offline
+  // attempt, zero confident observations) must not be silently counted as
+  // a failure via `(undefined ?? 0) >= LANGUAGE_SUCCESS_SCORE`. ─────────────
+
+  it('an event with neither result.success nor result.score contributes evidence but leaves alpha/beta at their (1,1) prior', () => {
+    const state = reduceEvidenceToBeliefState([
+      makeEvent({ result: { wordCount: 50 } }), // no success, no score — offline, zero observations
+    ]);
+    const s = state['tense_past'];
+    expect(s.rawEvidenceCount).toBe(1);
+    expect(s.weightedEvidence).toBeGreaterThan(0);
+    // No signal either way — neither bucket should have moved off the (1,1) prior.
+    expect(s.alpha).toBe(1.0);
+    expect(s.beta).toBe(1.0);
+    expect(s.weightedSuccess).toBe(0);
+    expect(s.weightedFailure).toBe(0);
+  });
+
+  it('contrast: a genuinely scored 0 (real bad answer, no explicit success) still counts as a failure', () => {
+    const state = reduceEvidenceToBeliefState([
+      makeEvent({ result: { score: 0, wordCount: 50 } }), // real score, no explicit success — falls back to threshold
+    ]);
+    const s = state['tense_past'];
+    expect(s.beta).toBeGreaterThan(0);
+    expect(s.weightedFailure).toBeGreaterThan(0);
+  });
+
+  it('explicit success still takes priority even with no score', () => {
+    const state = reduceEvidenceToBeliefState([
+      makeEvent({ result: { success: true, wordCount: 50 } }), // no score, but success is explicit
+    ]);
+    const s = state['tense_past'];
+    expect(s.alpha).toBeGreaterThan(0);
+    expect(s.weightedSuccess).toBeGreaterThan(0);
+  });
+
   // ── Exam weighting ─────────────────────────────────────────────────────
 
   it('exam failures accumulate less beta than identical practice failures', () => {

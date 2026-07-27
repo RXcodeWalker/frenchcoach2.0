@@ -5,6 +5,8 @@ import type { FeedbackScore } from '../../types/index';
 
 interface Props {
   scores: FeedbackScore;
+  /** True when no LLM graded this attempt (offline fallback) — `scores` is a placeholder. */
+  unscored?: boolean;
   wordCount?: number;
   xpEarned?: number;
   cefrLevel?: string;
@@ -13,7 +15,7 @@ interface Props {
   onBack: () => void;
 }
 
-export function SessionComplete({ scores, wordCount, xpEarned, cefrLevel, onContinue, onRetry, onBack }: Props) {
+export function SessionComplete({ scores, unscored, wordCount, xpEarned, cefrLevel, onContinue, onRetry, onBack }: Props) {
   const color = scoreColor(scores.overall);
   return (
     <div className="min-h-screen pb-24 md:pb-8 flex items-center justify-center">
@@ -38,14 +40,14 @@ export function SessionComplete({ scores, wordCount, xpEarned, cefrLevel, onCont
 
             <motion.div
               className="text-5xl font-black mb-1"
-              style={{ color }}
+              style={unscored ? undefined : { color }}
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.4, type: 'spring', stiffness: 200 }}
             >
-              {scores.overall.toFixed(1)}
+              {unscored ? 'Not graded' : scores.overall.toFixed(1)}
             </motion.div>
-            <p className="text-[10px] text-slate-600 mb-5">out of 10.0</p>
+            <p className="text-[10px] text-slate-600 mb-5">{unscored ? 'Practiced offline' : 'out of 10.0'}</p>
 
             <div className="grid grid-cols-3 gap-2 mb-5">
               {[

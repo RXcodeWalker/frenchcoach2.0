@@ -173,7 +173,12 @@ export interface OrchestratorInput {
   durationSec: number;
   mode: 'practice' | 'exam' | 'story' | 'daily-news' | 'scenario-architect';
   topicsUsed?: string[];
-  /** Pre-computed final score (e.g. after a shield boost in Learn). */
+  /**
+   * Pre-computed final score (e.g. after a shield boost in Learn). Ignored for
+   * XP/Session.score/achievements when `feedback.unscored === 'no_llm_offline'`
+   * — the orchestrator branches on that flag, not on this value, so a real
+   * graded 0 is never conflated with "not graded."
+   */
   finalScore: number;
   streakDays: number;
   totalSessionsBefore: number;

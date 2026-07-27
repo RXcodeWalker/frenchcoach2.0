@@ -141,7 +141,17 @@ export function getStreakCount(): number {
   return load().streak.count;
 }
 
-export interface DailyStats { day: string; score: number; sessions: number }
+export interface DailyStats {
+  day: string;
+  /** Chart-plotting value — 0 when there is no real score to show (no sessions,
+   *  or sessions that were all unscored). Never trust this as "the average was
+   *  actually zero"; check scoredSessions for that. */
+  score: number;
+  sessions: number;
+  /** How many of `sessions` had a real (non-null) score — 0 means `score`
+   *  above is a placeholder, not a real average, even if `sessions > 0`. */
+  scoredSessions: number;
+}
 
 export function getDailyStats(days = 7): DailyStats[] {
   const sessions = load().sessions;
@@ -154,7 +164,7 @@ export function getDailyStats(days = 7): DailyStats[] {
     const avgScore = scored.length
       ? Math.round((scored.reduce((a, b) => a + b, 0) / scored.length) * 10) / 10
       : 0;
-    result.push({ day: d.toLocaleDateString('en', { weekday: 'short' }), score: avgScore, sessions: daySessions.length });
+    result.push({ day: d.toLocaleDateString('en', { weekday: 'short' }), score: avgScore, sessions: daySessions.length, scoredSessions: scored.length });
   }
   return result;
 }

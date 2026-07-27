@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Zap, MessageSquare, Flame, Gem, ArrowRight, RotateCcw, Home, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { averageRealScores } from '../../domain/scoring';
 import type { ActiveSession, SkillProfile, TopicMasteryEntry } from '../../types';
 
 interface SkillDelta {
@@ -52,9 +53,7 @@ export function SessionSummary({
 }: Props) {
   const deltas = computeSkillDeltas(session, currentSkillProfile);
   const completedQs = session.questions.filter(q => q.status === 'completed');
-  const avgScore = completedQs.length > 0
-    ? completedQs.reduce((a, q) => a + q.bestScore, 0) / completedQs.length
-    : 0;
+  const avgScore = averageRealScores(completedQs.map(q => q.bestScore));
 
   const totalWords = session.questions.reduce(
     (a, q) => a + (q.attempts[q.attempts.length - 1]?.transcript?.split(/\s+/).filter(Boolean).length ?? 0),
@@ -63,8 +62,8 @@ export function SessionSummary({
 
   const allSavedVocab = session.questions.flatMap(q => q.savedVocab);
 
-  const isExcellent = avgScore >= 8;
-  const accentColor = isExcellent ? '#10B981' : avgScore >= 6 ? '#F59E0B' : '#EF4444';
+  const isExcellent = avgScore != null && avgScore >= 8;
+  const accentColor = avgScore == null ? '#6366F1' : isExcellent ? '#10B981' : avgScore >= 6 ? '#F59E0B' : '#EF4444';
 
   useEffect(() => {
     confetti({
@@ -107,8 +106,8 @@ export function SessionSummary({
           {/* 4-stat grid */}
           <div className="grid grid-cols-4 gap-2">
             <StatTile
-              icon={<span className="text-lg" style={{ color: accentColor }}>{avgScore.toFixed(1)}</span>}
-              label="Avg Score"
+              icon={<span className="text-lg" style={{ color: accentColor }}>{avgScore == null ? '—' : avgScore.toFixed(1)}</span>}
+              label={avgScore == null ? 'Not Graded' : 'Avg Score'}
             />
             <StatTile
               icon={<Zap size={16} className="text-emerald-400" />}

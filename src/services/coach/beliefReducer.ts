@@ -194,7 +194,12 @@ export function reduceEvidenceToBeliefState(
       event.reliability.taskValidity *
       event.reliability.signalQuality;
 
-    // success is explicit when present; fall back to score threshold
+    // success is explicit when present; fall back to score threshold only
+    // when a real score exists. An event with neither (unscored offline
+    // attempt, no confident observations either way) has no success/failure
+    // signal at all — it must not be silently treated as a failure via
+    // `(undefined ?? 0) >= LANGUAGE_SUCCESS_SCORE`.
+    const hasSuccessSignal = event.result.success !== undefined || event.result.score !== undefined;
     const isSuccess =
       event.result.success !== undefined
         ? event.result.success
@@ -204,13 +209,16 @@ export function reduceEvidenceToBeliefState(
       if (!state[nodeId]) state[nodeId] = emptyBeliefState(nodeId);
       const s = state[nodeId];
 
-      // Beta distribution accumulators
-      if (isSuccess) {
-        s.weightedSuccess += weight;
-        s.alpha           += weight;
-      } else {
-        s.weightedFailure += weight;
-        s.beta            += weight;
+      // Beta distribution accumulators — skip entirely when there's no real
+      // success/failure signal, rather than defaulting to "failure".
+      if (hasSuccessSignal) {
+        if (isSuccess) {
+          s.weightedSuccess += weight;
+          s.alpha           += weight;
+        } else {
+          s.weightedFailure += weight;
+          s.beta            += weight;
+        }
       }
       s.weightedEvidence += weight;
       s.rawEvidenceCount += 1;

@@ -13,7 +13,8 @@ interface SessionCompletedProps {
 interface FeedbackReceivedProps {
   engine: AIEngine;
   fallback_used: boolean;
-  score: number;
+  /** null when this attempt was never graded (offline fallback) — never a fabricated placeholder. */
+  score: number | null;
   latency_ms: number;
   response_tier: number;
 }

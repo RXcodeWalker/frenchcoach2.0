@@ -306,7 +306,7 @@ export async function getAIFeedback(
 
   // Offline: skip network entirely for all tiers
   if (enginePreference === 'offline') {
-    const result = offlineEvaluate(transcript, question, difficulty);
+    const result = offlineEvaluate(transcript, question);
     result.engineMeta = {
       requestedEngine: 'offline',
       actualEngine: 'offline',
@@ -387,7 +387,7 @@ export async function getAIFeedback(
   // All network options exhausted → offline (already tier-aware and quality-gated in coachService)
   console.log('[AI Feedback] All network engines failed — using offline evaluation');
   track({ name: 'ai_failover', props: { requested_engine: enginePreference, actual_engine: 'offline', reason: failoverReason ?? 'unknown', latency_ms: Date.now() - startTime } });
-  const result = offlineEvaluate(transcript, question, difficulty);
+  const result = offlineEvaluate(transcript, question);
   result.engineMeta = {
     requestedEngine: enginePreference,
     actualEngine: 'offline',

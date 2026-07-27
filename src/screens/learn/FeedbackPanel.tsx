@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { ChevronRight, XCircle, CheckCircle, RotateCcw, Loader2 } from 'lucide-react';
-import { scoreColor } from '../../domain/scoring';
+import { scoreColor, isUnscored } from '../../domain/scoring';
 import type { FeedbackV2 } from '../../types';
 
 interface Props {
@@ -36,31 +36,40 @@ export function FeedbackPanel({ feedback, isLoading, onRetry, onComplete }: Prop
           <h3 className="font-bold text-white text-sm">Results</h3>
           <span className="text-[9px] text-slate-600">{feedback.wordCount} words / {feedback.cefrLevel}</span>
         </div>
-        <div className="grid grid-cols-4 gap-3">
-          {Object.entries({ Comm: feedback.scores.communication, Lang: feedback.scores.language, Fluency: feedback.scores.fluency, Overall: feedback.scores.overall }).map(([label, val]) => (
-            <div key={label} className="text-center">
-              <motion.div
-                className="text-xl font-black mb-1"
-                style={{ color: scoreColor(val) }}
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-              >
-                {val.toFixed(1)}
-              </motion.div>
-              <div className="text-[9px] text-slate-600">{label}</div>
-              <div className="mt-1.5 h-1 bg-navy-300 rounded-full overflow-hidden">
+        {isUnscored(feedback) ? (
+          <div>
+            <p className="text-sm text-slate-300 font-semibold">Practiced offline — not graded</p>
+            <p className="text-[11px] text-slate-500 mt-1 leading-snug">
+              No AI grader was reachable for this attempt, so no score was assigned.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-4 gap-3">
+            {Object.entries({ Comm: feedback.scores.communication, Lang: feedback.scores.language, Fluency: feedback.scores.fluency, Overall: feedback.scores.overall }).map(([label, val]) => (
+              <div key={label} className="text-center">
                 <motion.div
-                  className="h-full rounded-full shimmer-bar"
-                  style={{ background: scoreColor(val) }}
-                  initial={{ width: 0 }}
-                  animate={{ width: `${(val / 10) * 100}%` }}
-                  transition={{ delay: 0.3, duration: 0.6 }}
-                />
+                  className="text-xl font-black mb-1"
+                  style={{ color: scoreColor(val) }}
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
+                >
+                  {val.toFixed(1)}
+                </motion.div>
+                <div className="text-[9px] text-slate-600">{label}</div>
+                <div className="mt-1.5 h-1 bg-navy-300 rounded-full overflow-hidden">
+                  <motion.div
+                    className="h-full rounded-full shimmer-bar"
+                    style={{ background: scoreColor(val) }}
+                    initial={{ width: 0 }}
+                    animate={{ width: `${(val / 10) * 100}%` }}
+                    transition={{ delay: 0.3, duration: 0.6 }}
+                  />
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {feedback.grammar.critical.length > 0 && (

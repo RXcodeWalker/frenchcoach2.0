@@ -27,7 +27,8 @@ import { buildSessionQuestions, makeSessionQuestion, SESSION_TARGET } from '../u
 import { track } from '../services/telemetry/telemetryService';
 import { DIFFICULTY_CONFIG } from '../utils/difficultyConfig';
 import { updateTopicMastery } from '../services/analytics/analyticsService';
-import { computeXPGain } from '../domain/xp';
+import { computeXPGain, computeParticipationXPGain } from '../domain/xp';
+import { isUnscored, averageRealScores } from '../domain/scoring';
 import type { Topic, Session, FeedbackV2, ActiveSession, SessionMode, SessionQuestion, AIEngine, EngineResult } from '../types/index';
 
 type LearnState = 'topics' | 'session_start' | 'question' | 'recording' | 'feedback' | 'session_summary';
@@ -181,12 +182,17 @@ export function Learn() {
     setEngineResults(new Map([[actualEngine, result]]));
     setActiveResultEngine(actualEngine);
 
-    // E3: perfect_shield boosts XP/rewards only. finalScore (the real assessed score) is
-    // never mutated — it stays the recorded session score, the evidence/orchestration
-    // input, and what achievements like perfectionniste gate on.
+    // The discriminant for "was this attempt actually graded" is feedback.unscored,
+    // never scores.overall's numeric value (Phase 4b) — a real graded 0 is a
+    // legitimate bad answer, while an offline placeholder 0 must never reach XP,
+    // Session.score, or achievements as if it were a real mark.
+    const unscored = isUnscored(fb);
     const finalScore = fb.scores.overall;
+
+    // E3: perfect_shield boosts XP/rewards only, and only when there's a real
+    // score to boost — it never fabricates a score for an unscored attempt.
     let xpScore = finalScore;
-    if (finalScore < 8.5 && (profile.inventory['perfect_shield'] || 0) > 0) {
+    if (!unscored && finalScore < 8.5 && (profile.inventory['perfect_shield'] || 0) > 0) {
       xpScore = Math.max(8.5, finalScore + 2);
       // eslint-disable-next-line react-hooks/rules-of-hooks
       if (useItem('perfect_shield')) {
@@ -194,7 +200,9 @@ export function Learn() {
       }
     }
 
-    const { gain: xpGain, gemsGain: gemGain } = computeXPGain(xpScore, profile.streak_days);
+    const { gain: xpGain, gemsGain: gemGain } = unscored
+      ? computeParticipationXPGain(profile.streak_days)
+      : computeXPGain(xpScore, profile.streak_days);
 
     const session: Session = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -203,7 +211,7 @@ export function Learn() {
       questionText: currentQuestion.text,
       transcript,
       wordCount: fb.wordCount,
-      score: finalScore,
+      score: unscored ? null : finalScore,
       xpEarned: xpGain,
       durationSec: elapsed,
       feedback: fb,
@@ -224,9 +232,9 @@ export function Learn() {
       totalSessionsBefore: profile.sessions_count,
     });
 
-    track({ name: 'session_completed', props: { mode: 'practice', score: finalScore, duration_sec: elapsed, xp_gain: orchestration.xpResult.gain, topic_key: selectedTopic?.key } });
+    track({ name: 'session_completed', props: { mode: 'practice', score: unscored ? null : finalScore, duration_sec: elapsed, xp_gain: orchestration.xpResult.gain, topic_key: selectedTopic?.key } });
     if (fb.engineMeta) {
-      track({ name: 'feedback_received', props: { engine: fb.engineMeta.actualEngine, fallback_used: fb.engineMeta.fallbackUsed, score: finalScore, latency_ms: fb.engineMeta.latencyMs, response_tier: fb.responseTier ?? 2 } });
+      track({ name: 'feedback_received', props: { engine: fb.engineMeta.actualEngine, fallback_used: fb.engineMeta.fallbackUsed, score: unscored ? null : finalScore, latency_ms: fb.engineMeta.latencyMs, response_tier: fb.responseTier ?? 2 } });
     }
     for (const id of orchestration.newUnlockedAchievementIds) {
       track({ name: 'achievement_unlocked', props: { achievement_id: id, mode: 'practice', session_count: profile.sessions_count + 1 } });
@@ -255,13 +263,18 @@ export function Learn() {
     setActiveSession(prev => {
       if (!prev) return prev;
       const attemptIndex = isRetry ? 2 : 1;
-      const attempt = { transcript, score: finalScore, xpEarned: xpGain, feedback: fb, durationSec: elapsed, attemptIndex };
+      const attemptScore = unscored ? null : finalScore;
+      const attempt = { transcript, score: attemptScore, xpEarned: xpGain, feedback: fb, durationSec: elapsed, attemptIndex };
       const updatedQuestions = [...prev.questions];
       const sq = { ...updatedQuestions[prev.currentIndex] };
       sq.attempts = [...sq.attempts, attempt];
-      sq.bestScore = Math.max(sq.bestScore, finalScore);
+      sq.bestScore = attemptScore === null
+        ? sq.bestScore
+        : Math.max(sq.bestScore ?? attemptScore, attemptScore);
       updatedQuestions[prev.currentIndex] = sq;
-      const newStreak = finalScore >= 7 ? prev.answerStreak + 1 : 0;
+      // An unscored attempt neither extends nor breaks the correct-answer
+      // streak — there's no real score to judge it against.
+      const newStreak = unscored ? prev.answerStreak : (finalScore >= 7 ? prev.answerStreak + 1 : 0);
       const newBestStreak = Math.max(prev.bestStreak, newStreak);
       return {
         ...prev,
@@ -508,13 +521,16 @@ export function Learn() {
     const newAnsweredIds = completedQs.map(q => q.question.id);
     const existing = topicMastery[selectedTopic.key];
     const allAnswered = Array.from(new Set([...(existing?.uniqueQuestionsAnswered ?? []), ...newAnsweredIds]));
-    const avgScore = completedQs.length > 0
-      ? completedQs.reduce((a, q) => a + q.bestScore, 0) / completedQs.length
-      : 0;
+    // null when every question this session was unscored (offline) — a
+    // session with no real scores must not fold a phantom 0 into the running
+    // topic average or nudge the mastery threshold.
+    const avgScore = averageRealScores(completedQs.map(q => q.bestScore));
 
-    const priorAvg = existing?.averageScore ?? avgScore;
+    const priorAvg = existing?.averageScore ?? avgScore ?? 0;
     const priorSessions = existing?.sessionsCompleted ?? 0;
-    const newAvg = priorSessions > 0
+    const newAvg = avgScore === null
+      ? priorAvg
+      : priorSessions > 0
       ? (priorAvg * priorSessions + avgScore) / (priorSessions + 1)
       : avgScore;
 
@@ -596,9 +612,11 @@ export function Learn() {
 
   const topicData = selectedTopic ? TOPICS.find(t => t.key === selectedTopic.key) ?? selectedTopic : null;
   const midAvg = activeSession && activeSession.questionsCompleted > 0
-    ? activeSession.questions
-        .filter(q => q.status === 'completed')
-        .reduce((a, q) => a + q.bestScore, 0) / activeSession.questionsCompleted
+    ? averageRealScores(
+        activeSession.questions
+          .filter(q => q.status === 'completed')
+          .map(q => q.bestScore),
+      )
     : null;
 
   return (

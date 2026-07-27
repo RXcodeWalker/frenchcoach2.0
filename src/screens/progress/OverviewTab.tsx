@@ -14,7 +14,10 @@ interface Props {
 export function OverviewTab({ profile }: Props) {
   const { current, progress } = getLevelInfo(profile.total_xp);
   const dailyStats = getDailyStats(7);
-  const scoredDays = dailyStats.filter(d => d.sessions > 0);
+  // Only average days that actually had a real (non-null) scored session —
+  // a day with sessions but none graded (e.g. offline-only) must not drag
+  // this average toward 0 via its placeholder chart value.
+  const scoredDays = dailyStats.filter(d => d.scoredSessions > 0);
   const weeklyAvg = scoredDays.length
     ? scoredDays.reduce((s, d) => s + d.score, 0) / scoredDays.length
     : null;
