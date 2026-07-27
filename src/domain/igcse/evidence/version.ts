@@ -7,5 +7,13 @@
  * ENVELOPE_SCHEMA_VERSION in the same commit because buildEvidenceProfile's
  * output (the new EvidenceProfile wrapper) is now what's snapshotted into the
  * envelope, even though buildEvidenceSubset's own output is unchanged.
+ *
+ * Phase 3 (§10.7 Phase 3): bumped again because the registered detector fleet
+ * grew from 5 (legacy) to 25 (5 legacy + 20 new) — buildEvidenceSubset's own
+ * output is STILL byte-identical (see __tests__/version-pin.test.ts, which is
+ * unchanged), but buildEvidenceProfile's full output (observations/
+ * detectorRuns/detectorVersions/features) is not, so its own version-pin
+ * (__tests__/buildEvidenceProfile.version-pin.test.ts) is what this bump
+ * guards.
  */
-export const EVIDENCE_DETECTOR_VERSION = 'detectors-v0.3';
+export const EVIDENCE_DETECTOR_VERSION = 'detectors-v0.4';

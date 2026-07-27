@@ -2,10 +2,1454 @@
   "id": "low-word-count",
   "evidence": {
     "schemaVersion": "evidence-profile-v1",
-    "observations": [],
-    "features": {},
-    "detectorRuns": [],
-    "detectorVersions": {},
+    "observations": [
+      {
+        "observationId": "0be936aa",
+        "detectorId": "segment",
+        "detectorVersion": "1",
+        "type": "sentence",
+        "value": "Bonjour madame.",
+        "spans": [
+          {
+            "startOffset": 0,
+            "endOffset": 15
+          }
+        ],
+        "confidence": 0.9,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "babcd316",
+        "detectorId": "segment",
+        "detectorVersion": "1",
+        "type": "sentence",
+        "value": "Je voudrais deux  croissants, s il vous plaît.",
+        "spans": [
+          {
+            "startOffset": 16,
+            "endOffset": 62
+          }
+        ],
+        "confidence": 0.9,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "cee679ee",
+        "detectorId": "segment",
+        "detectorVersion": "1",
+        "type": "sentence",
+        "value": "C est combien?",
+        "spans": [
+          {
+            "startOffset": 63,
+            "endOffset": 77
+          }
+        ],
+        "confidence": 0.9,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "196270dc",
+        "detectorId": "segment",
+        "detectorVersion": "1",
+        "type": "sentence",
+        "value": "Je paie par carte.",
+        "spans": [
+          {
+            "startOffset": 78,
+            "endOffset": 96
+          }
+        ],
+        "confidence": 0.9,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "6b48fed5",
+        "detectorId": "segment",
+        "detectorVersion": "1",
+        "type": "sentence",
+        "value": "Merci, au revoir.",
+        "spans": [
+          {
+            "startOffset": 97,
+            "endOffset": 114
+          }
+        ],
+        "confidence": 0.9,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "4cf7e81a",
+        "detectorId": "segment",
+        "detectorVersion": "1",
+        "type": "sentence",
+        "value": "Le foot.",
+        "spans": [
+          {
+            "startOffset": 115,
+            "endOffset": 123
+          }
+        ],
+        "confidence": 0.9,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "d127e0b1",
+        "detectorId": "segment",
+        "detectorVersion": "1",
+        "type": "sentence",
+        "value": "Le sport.",
+        "spans": [
+          {
+            "startOffset": 124,
+            "endOffset": 133
+          }
+        ],
+        "confidence": 0.9,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "0f3a7fcb",
+        "detectorId": "segment",
+        "detectorVersion": "1",
+        "type": "sentence",
+        "value": "Il est sympa.",
+        "spans": [
+          {
+            "startOffset": 134,
+            "endOffset": 147
+          }
+        ],
+        "confidence": 0.9,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "6923390d",
+        "detectorId": "segment",
+        "detectorVersion": "1",
+        "type": "sentence",
+        "value": "On joue.",
+        "spans": [
+          {
+            "startOffset": 148,
+            "endOffset": 156
+          }
+        ],
+        "confidence": 0.9,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "f38bfc43",
+        "detectorId": "tokenize",
+        "detectorVersion": "1",
+        "type": "lexeme",
+        "value": "bonjour",
+        "spans": [
+          {
+            "startOffset": 0,
+            "endOffset": 7
+          }
+        ],
+        "confidence": 0.9,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "e6babd6d",
+        "detectorId": "tokenize",
+        "detectorVersion": "1",
+        "type": "lexeme",
+        "value": "madame",
+        "spans": [
+          {
+            "startOffset": 8,
+            "endOffset": 14
+          }
+        ],
+        "confidence": 0.9,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "82ebec22",
+        "detectorId": "tokenize",
+        "detectorVersion": "1",
+        "type": "lexeme",
+        "value": "je",
+        "spans": [
+          {
+            "startOffset": 16,
+            "endOffset": 18
+          }
+        ],
+        "confidence": 0.9,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "8945c127",
+        "detectorId": "tokenize",
+        "detectorVersion": "1",
+        "type": "lexeme",
+        "value": "voudrais",
+        "spans": [
+          {
+            "startOffset": 19,
+            "endOffset": 27
+          }
+        ],
+        "confidence": 0.9,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "ba0b1370",
+        "detectorId": "tokenize",
+        "detectorVersion": "1",
+        "type": "lexeme",
+        "value": "deux",
+        "spans": [
+          {
+            "startOffset": 28,
+            "endOffset": 32
+          }
+        ],
+        "confidence": 0.9,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "8f5bba0d",
+        "detectorId": "tokenize",
+        "detectorVersion": "1",
+        "type": "lexeme",
+        "value": "croissants",
+        "spans": [
+          {
+            "startOffset": 34,
+            "endOffset": 44
+          }
+        ],
+        "confidence": 0.9,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "24f443f3",
+        "detectorId": "tokenize",
+        "detectorVersion": "1",
+        "type": "lexeme",
+        "value": "s",
+        "spans": [
+          {
+            "startOffset": 46,
+            "endOffset": 47
+          }
+        ],
+        "confidence": 0.9,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "de82d9f5",
+        "detectorId": "tokenize",
+        "detectorVersion": "1",
+        "type": "lexeme",
+        "value": "il",
+        "spans": [
+          {
+            "startOffset": 48,
+            "endOffset": 50
+          }
+        ],
+        "confidence": 0.9,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "4fbc948c",
+        "detectorId": "tokenize",
+        "detectorVersion": "1",
+        "type": "lexeme",
+        "value": "vous",
+        "spans": [
+          {
+            "startOffset": 51,
+            "endOffset": 55
+          }
+        ],
+        "confidence": 0.9,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "23a1f48b",
+        "detectorId": "tokenize",
+        "detectorVersion": "1",
+        "type": "lexeme",
+        "value": "plait",
+        "spans": [
+          {
+            "startOffset": 56,
+            "endOffset": 61
+          }
+        ],
+        "confidence": 0.9,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "2ca08827",
+        "detectorId": "tokenize",
+        "detectorVersion": "1",
+        "type": "lexeme",
+        "value": "c",
+        "spans": [
+          {
+            "startOffset": 63,
+            "endOffset": 64
+          }
+        ],
+        "confidence": 0.9,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "48ed2d40",
+        "detectorId": "tokenize",
+        "detectorVersion": "1",
+        "type": "lexeme",
+        "value": "est",
+        "spans": [
+          {
+            "startOffset": 65,
+            "endOffset": 68
+          }
+        ],
+        "confidence": 0.9,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "5d979374",
+        "detectorId": "tokenize",
+        "detectorVersion": "1",
+        "type": "lexeme",
+        "value": "combien",
+        "spans": [
+          {
+            "startOffset": 69,
+            "endOffset": 76
+          }
+        ],
+        "confidence": 0.9,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "bc3804dd",
+        "detectorId": "tokenize",
+        "detectorVersion": "1",
+        "type": "lexeme",
+        "value": "je",
+        "spans": [
+          {
+            "startOffset": 78,
+            "endOffset": 80
+          }
+        ],
+        "confidence": 0.9,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "cc704898",
+        "detectorId": "tokenize",
+        "detectorVersion": "1",
+        "type": "lexeme",
+        "value": "paie",
+        "spans": [
+          {
+            "startOffset": 81,
+            "endOffset": 85
+          }
+        ],
+        "confidence": 0.9,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "cabf0c37",
+        "detectorId": "tokenize",
+        "detectorVersion": "1",
+        "type": "lexeme",
+        "value": "par",
+        "spans": [
+          {
+            "startOffset": 86,
+            "endOffset": 89
+          }
+        ],
+        "confidence": 0.9,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "a8debad9",
+        "detectorId": "tokenize",
+        "detectorVersion": "1",
+        "type": "lexeme",
+        "value": "carte",
+        "spans": [
+          {
+            "startOffset": 90,
+            "endOffset": 95
+          }
+        ],
+        "confidence": 0.9,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "81d5db8e",
+        "detectorId": "tokenize",
+        "detectorVersion": "1",
+        "type": "lexeme",
+        "value": "merci",
+        "spans": [
+          {
+            "startOffset": 97,
+            "endOffset": 102
+          }
+        ],
+        "confidence": 0.9,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "efbead0b",
+        "detectorId": "tokenize",
+        "detectorVersion": "1",
+        "type": "lexeme",
+        "value": "au",
+        "spans": [
+          {
+            "startOffset": 104,
+            "endOffset": 106
+          }
+        ],
+        "confidence": 0.9,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "289bb249",
+        "detectorId": "tokenize",
+        "detectorVersion": "1",
+        "type": "lexeme",
+        "value": "revoir",
+        "spans": [
+          {
+            "startOffset": 107,
+            "endOffset": 113
+          }
+        ],
+        "confidence": 0.9,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "4bb9197e",
+        "detectorId": "tokenize",
+        "detectorVersion": "1",
+        "type": "lexeme",
+        "value": "le",
+        "spans": [
+          {
+            "startOffset": 115,
+            "endOffset": 117
+          }
+        ],
+        "confidence": 0.9,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "5c9e1a88",
+        "detectorId": "tokenize",
+        "detectorVersion": "1",
+        "type": "lexeme",
+        "value": "foot",
+        "spans": [
+          {
+            "startOffset": 118,
+            "endOffset": 122
+          }
+        ],
+        "confidence": 0.9,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "34ec6896",
+        "detectorId": "tokenize",
+        "detectorVersion": "1",
+        "type": "lexeme",
+        "value": "le",
+        "spans": [
+          {
+            "startOffset": 124,
+            "endOffset": 126
+          }
+        ],
+        "confidence": 0.9,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "24a204ed",
+        "detectorId": "tokenize",
+        "detectorVersion": "1",
+        "type": "lexeme",
+        "value": "sport",
+        "spans": [
+          {
+            "startOffset": 127,
+            "endOffset": 132
+          }
+        ],
+        "confidence": 0.9,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "9c5ffc60",
+        "detectorId": "tokenize",
+        "detectorVersion": "1",
+        "type": "lexeme",
+        "value": "il",
+        "spans": [
+          {
+            "startOffset": 134,
+            "endOffset": 136
+          }
+        ],
+        "confidence": 0.9,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "25e55e0f",
+        "detectorId": "tokenize",
+        "detectorVersion": "1",
+        "type": "lexeme",
+        "value": "est",
+        "spans": [
+          {
+            "startOffset": 137,
+            "endOffset": 140
+          }
+        ],
+        "confidence": 0.9,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "fb047c88",
+        "detectorId": "tokenize",
+        "detectorVersion": "1",
+        "type": "lexeme",
+        "value": "sympa",
+        "spans": [
+          {
+            "startOffset": 141,
+            "endOffset": 146
+          }
+        ],
+        "confidence": 0.9,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "745eb6cd",
+        "detectorId": "tokenize",
+        "detectorVersion": "1",
+        "type": "lexeme",
+        "value": "on",
+        "spans": [
+          {
+            "startOffset": 148,
+            "endOffset": 150
+          }
+        ],
+        "confidence": 0.9,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "514f6666",
+        "detectorId": "tokenize",
+        "detectorVersion": "1",
+        "type": "lexeme",
+        "value": "joue",
+        "spans": [
+          {
+            "startOffset": 151,
+            "endOffset": 155
+          }
+        ],
+        "confidence": 0.9,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "dc0ace1d",
+        "detectorId": "tag-verbs",
+        "detectorVersion": "1",
+        "type": "verb",
+        "value": "present:madame",
+        "spans": [
+          {
+            "startOffset": 8,
+            "endOffset": 14
+          }
+        ],
+        "confidence": 0.7,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "185c73a2",
+        "detectorId": "tag-verbs",
+        "detectorVersion": "1",
+        "type": "verb",
+        "value": "conditionnel:voudrais",
+        "spans": [
+          {
+            "startOffset": 19,
+            "endOffset": 27
+          }
+        ],
+        "confidence": 0.7,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "fb68e077",
+        "detectorId": "tag-verbs",
+        "detectorVersion": "1",
+        "type": "verb",
+        "value": "imparfait:plait",
+        "spans": [
+          {
+            "startOffset": 56,
+            "endOffset": 61
+          }
+        ],
+        "confidence": 0.7,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "99bdf2bd",
+        "detectorId": "tag-verbs",
+        "detectorVersion": "1",
+        "type": "verb",
+        "value": "auxiliary:est",
+        "spans": [
+          {
+            "startOffset": 65,
+            "endOffset": 68
+          }
+        ],
+        "confidence": 0.7,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "0dd6814a",
+        "detectorId": "tag-verbs",
+        "detectorVersion": "1",
+        "type": "verb",
+        "value": "present:paie",
+        "spans": [
+          {
+            "startOffset": 81,
+            "endOffset": 85
+          }
+        ],
+        "confidence": 0.7,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "16042c53",
+        "detectorId": "tag-verbs",
+        "detectorVersion": "1",
+        "type": "verb",
+        "value": "present:carte",
+        "spans": [
+          {
+            "startOffset": 90,
+            "endOffset": 95
+          }
+        ],
+        "confidence": 0.7,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "0bd9462e",
+        "detectorId": "tag-verbs",
+        "detectorVersion": "1",
+        "type": "verb",
+        "value": "auxiliary:est",
+        "spans": [
+          {
+            "startOffset": 137,
+            "endOffset": 140
+          }
+        ],
+        "confidence": 0.7,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "a6c2b790",
+        "detectorId": "tag-verbs",
+        "detectorVersion": "1",
+        "type": "verb",
+        "value": "present:joue",
+        "spans": [
+          {
+            "startOffset": 151,
+            "endOffset": 155
+          }
+        ],
+        "confidence": 0.7,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "9bafdad1",
+        "detectorId": "tense",
+        "detectorVersion": "1",
+        "type": "tense_detected",
+        "value": "present:present:madame",
+        "spans": [
+          {
+            "startOffset": 8,
+            "endOffset": 14
+          }
+        ],
+        "confidence": 0.7,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "1f5e0df7",
+        "detectorId": "tense",
+        "detectorVersion": "1",
+        "type": "tense_detected",
+        "value": "conditional:conditionnel:voudrais",
+        "spans": [
+          {
+            "startOffset": 19,
+            "endOffset": 27
+          }
+        ],
+        "confidence": 0.7,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "8e5fbeb0",
+        "detectorId": "tense",
+        "detectorVersion": "1",
+        "type": "tense_detected",
+        "value": "past:imparfait:plait",
+        "spans": [
+          {
+            "startOffset": 56,
+            "endOffset": 61
+          }
+        ],
+        "confidence": 0.7,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "59556b1b",
+        "detectorId": "tense",
+        "detectorVersion": "1",
+        "type": "tense_missing",
+        "value": "rolePlay:t3",
+        "spans": [
+          {
+            "startOffset": 63,
+            "endOffset": 77
+          }
+        ],
+        "confidence": 0.7,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "fdbcd1bc",
+        "detectorId": "tense",
+        "detectorVersion": "1",
+        "type": "tense_detected",
+        "value": "present:present:paie",
+        "spans": [
+          {
+            "startOffset": 81,
+            "endOffset": 85
+          }
+        ],
+        "confidence": 0.7,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "33300cc5",
+        "detectorId": "tense",
+        "detectorVersion": "1",
+        "type": "tense_detected",
+        "value": "present:present:carte",
+        "spans": [
+          {
+            "startOffset": 90,
+            "endOffset": 95
+          }
+        ],
+        "confidence": 0.7,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "57c390aa",
+        "detectorId": "tense",
+        "detectorVersion": "1",
+        "type": "tense_missing",
+        "value": "rolePlay:t5",
+        "spans": [
+          {
+            "startOffset": 97,
+            "endOffset": 114
+          }
+        ],
+        "confidence": 0.7,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "fbfee216",
+        "detectorId": "tense",
+        "detectorVersion": "1",
+        "type": "tense_missing",
+        "value": "topic1:q1",
+        "spans": [
+          {
+            "startOffset": 115,
+            "endOffset": 123
+          }
+        ],
+        "confidence": 0.7,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "190edf3e",
+        "detectorId": "tense",
+        "detectorVersion": "1",
+        "type": "tense_missing",
+        "value": "topic1:q2",
+        "spans": [
+          {
+            "startOffset": 124,
+            "endOffset": 133
+          }
+        ],
+        "confidence": 0.7,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "114333b6",
+        "detectorId": "tense",
+        "detectorVersion": "1",
+        "type": "tense_missing",
+        "value": "topic2:q1",
+        "spans": [
+          {
+            "startOffset": 134,
+            "endOffset": 147
+          }
+        ],
+        "confidence": 0.7,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "5bb28b62",
+        "detectorId": "tense",
+        "detectorVersion": "1",
+        "type": "tense_detected",
+        "value": "present:present:joue",
+        "spans": [
+          {
+            "startOffset": 151,
+            "endOffset": 155
+          }
+        ],
+        "confidence": 0.7,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "32ed6151",
+        "detectorId": "complexity",
+        "detectorVersion": "1",
+        "type": "complex_sentence",
+        "value": false,
+        "spans": [
+          {
+            "startOffset": 0,
+            "endOffset": 15
+          }
+        ],
+        "confidence": 0.7,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "a363573a",
+        "detectorId": "complexity",
+        "detectorVersion": "1",
+        "type": "complex_sentence",
+        "value": false,
+        "spans": [
+          {
+            "startOffset": 16,
+            "endOffset": 62
+          }
+        ],
+        "confidence": 0.7,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "1e0e839c",
+        "detectorId": "complexity",
+        "detectorVersion": "1",
+        "type": "complex_sentence",
+        "value": false,
+        "spans": [
+          {
+            "startOffset": 63,
+            "endOffset": 77
+          }
+        ],
+        "confidence": 0.7,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "19af4811",
+        "detectorId": "complexity",
+        "detectorVersion": "1",
+        "type": "complex_sentence",
+        "value": false,
+        "spans": [
+          {
+            "startOffset": 78,
+            "endOffset": 96
+          }
+        ],
+        "confidence": 0.7,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "edc04389",
+        "detectorId": "complexity",
+        "detectorVersion": "1",
+        "type": "complex_sentence",
+        "value": false,
+        "spans": [
+          {
+            "startOffset": 97,
+            "endOffset": 114
+          }
+        ],
+        "confidence": 0.7,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "bfd19d5a",
+        "detectorId": "complexity",
+        "detectorVersion": "1",
+        "type": "complex_sentence",
+        "value": false,
+        "spans": [
+          {
+            "startOffset": 115,
+            "endOffset": 123
+          }
+        ],
+        "confidence": 0.7,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "a9ffb85b",
+        "detectorId": "complexity",
+        "detectorVersion": "1",
+        "type": "complex_sentence",
+        "value": false,
+        "spans": [
+          {
+            "startOffset": 124,
+            "endOffset": 133
+          }
+        ],
+        "confidence": 0.7,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "34645235",
+        "detectorId": "complexity",
+        "detectorVersion": "1",
+        "type": "complex_sentence",
+        "value": false,
+        "spans": [
+          {
+            "startOffset": 134,
+            "endOffset": 147
+          }
+        ],
+        "confidence": 0.7,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "d6420e60",
+        "detectorId": "complexity",
+        "detectorVersion": "1",
+        "type": "complex_sentence",
+        "value": false,
+        "spans": [
+          {
+            "startOffset": 148,
+            "endOffset": 156
+          }
+        ],
+        "confidence": 0.7,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "f20b550e",
+        "detectorId": "lexical-range",
+        "detectorVersion": "1",
+        "type": "lexeme_rare",
+        "value": "bonjour",
+        "spans": [
+          {
+            "startOffset": 0,
+            "endOffset": 15
+          }
+        ],
+        "confidence": 0.7,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "b6081509",
+        "detectorId": "lexical-range",
+        "detectorVersion": "1",
+        "type": "lexeme_rare",
+        "value": "madame",
+        "spans": [
+          {
+            "startOffset": 8,
+            "endOffset": 14
+          }
+        ],
+        "confidence": 0.7,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "e72e516b",
+        "detectorId": "lexical-range",
+        "detectorVersion": "1",
+        "type": "lexeme_rare",
+        "value": "voudrais",
+        "spans": [
+          {
+            "startOffset": 19,
+            "endOffset": 27
+          }
+        ],
+        "confidence": 0.7,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "0bf88704",
+        "detectorId": "lexical-range",
+        "detectorVersion": "1",
+        "type": "lexeme_rare",
+        "value": "deux",
+        "spans": [
+          {
+            "startOffset": 28,
+            "endOffset": 32
+          }
+        ],
+        "confidence": 0.7,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "1a098e39",
+        "detectorId": "lexical-range",
+        "detectorVersion": "1",
+        "type": "lexeme_rare",
+        "value": "croissants",
+        "spans": [
+          {
+            "startOffset": 34,
+            "endOffset": 44
+          }
+        ],
+        "confidence": 0.7,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "d4e42116",
+        "detectorId": "lexical-range",
+        "detectorVersion": "1",
+        "type": "lexeme_rare",
+        "value": "plait",
+        "spans": [
+          {
+            "startOffset": 16,
+            "endOffset": 62
+          }
+        ],
+        "confidence": 0.7,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "55386410",
+        "detectorId": "lexical-range",
+        "detectorVersion": "1",
+        "type": "lexeme_rare",
+        "value": "combien",
+        "spans": [
+          {
+            "startOffset": 69,
+            "endOffset": 76
+          }
+        ],
+        "confidence": 0.7,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "6d2bbd74",
+        "detectorId": "lexical-range",
+        "detectorVersion": "1",
+        "type": "lexeme_rare",
+        "value": "paie",
+        "spans": [
+          {
+            "startOffset": 81,
+            "endOffset": 85
+          }
+        ],
+        "confidence": 0.7,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "edc47565",
+        "detectorId": "lexical-range",
+        "detectorVersion": "1",
+        "type": "lexeme_rare",
+        "value": "carte",
+        "spans": [
+          {
+            "startOffset": 90,
+            "endOffset": 95
+          }
+        ],
+        "confidence": 0.7,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "503a3b5d",
+        "detectorId": "lexical-range",
+        "detectorVersion": "1",
+        "type": "lexeme_rare",
+        "value": "merci",
+        "spans": [
+          {
+            "startOffset": 97,
+            "endOffset": 114
+          }
+        ],
+        "confidence": 0.7,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "bb955d05",
+        "detectorId": "lexical-range",
+        "detectorVersion": "1",
+        "type": "lexeme_rare",
+        "value": "revoir",
+        "spans": [
+          {
+            "startOffset": 107,
+            "endOffset": 113
+          }
+        ],
+        "confidence": 0.7,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "327b064c",
+        "detectorId": "lexical-range",
+        "detectorVersion": "1",
+        "type": "lexeme_rare",
+        "value": "sympa",
+        "spans": [
+          {
+            "startOffset": 141,
+            "endOffset": 146
+          }
+        ],
+        "confidence": 0.7,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "0e598f9c",
+        "detectorId": "tense-consistency",
+        "detectorVersion": "1",
+        "type": "tense_inconsistent",
+        "value": "conditional:conditional=1,past=1",
+        "spans": [
+          {
+            "startOffset": 16,
+            "endOffset": 62
+          }
+        ],
+        "confidence": 0.7,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "1254fe89",
+        "detectorId": "cefr-vector",
+        "detectorVersion": "1",
+        "type": "cefr_indicator",
+        "value": "B1",
+        "spans": [
+          {
+            "startOffset": 0,
+            "endOffset": 156
+          }
+        ],
+        "confidence": 0.5,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      }
+    ],
+    "features": {
+      "ttr": 0.8620689655172413,
+      "tenseHistogramPast": 1,
+      "tenseHistogramPresent": 4,
+      "tenseHistogramFuture": 0,
+      "tenseHistogramConditional": 1,
+      "complexSentenceRatio": 0,
+      "connectorCount": 0,
+      "fillerDensityMean": 0,
+      "expectedVocabCoverage": 0,
+      "rareLemmaRatio": 0.41379310344827586
+    },
+    "detectorRuns": [
+      {
+        "detectorId": "segment",
+        "version": "1",
+        "state": "success"
+      },
+      {
+        "detectorId": "tokenize",
+        "version": "1",
+        "state": "success"
+      },
+      {
+        "detectorId": "tag-verbs",
+        "version": "1",
+        "state": "success"
+      },
+      {
+        "detectorId": "counts",
+        "version": "1",
+        "state": "success"
+      },
+      {
+        "detectorId": "duration",
+        "version": "1",
+        "state": "success"
+      },
+      {
+        "detectorId": "fillers",
+        "version": "1",
+        "state": "success"
+      },
+      {
+        "detectorId": "parts",
+        "version": "1",
+        "state": "success"
+      },
+      {
+        "detectorId": "time-frame",
+        "version": "1",
+        "state": "success"
+      },
+      {
+        "detectorId": "tense",
+        "version": "1",
+        "state": "success"
+      },
+      {
+        "detectorId": "agreement",
+        "version": "1",
+        "state": "success"
+      },
+      {
+        "detectorId": "articles",
+        "version": "1",
+        "state": "success"
+      },
+      {
+        "detectorId": "negation",
+        "version": "1",
+        "state": "success"
+      },
+      {
+        "detectorId": "aux",
+        "version": "1",
+        "state": "success"
+      },
+      {
+        "detectorId": "prepositions",
+        "version": "1",
+        "state": "success"
+      },
+      {
+        "detectorId": "anglicisms",
+        "version": "1",
+        "state": "success"
+      },
+      {
+        "detectorId": "complexity",
+        "version": "1",
+        "state": "success"
+      },
+      {
+        "detectorId": "connectors",
+        "version": "1",
+        "state": "success"
+      },
+      {
+        "detectorId": "lexical-range",
+        "version": "1",
+        "state": "success"
+      },
+      {
+        "detectorId": "repetition",
+        "version": "1",
+        "state": "success"
+      },
+      {
+        "detectorId": "self-correction",
+        "version": "1",
+        "state": "success"
+      },
+      {
+        "detectorId": "coverage",
+        "version": "1",
+        "state": "success"
+      },
+      {
+        "detectorId": "constructions",
+        "version": "1",
+        "state": "success"
+      },
+      {
+        "detectorId": "avoidance",
+        "version": "1",
+        "state": "success"
+      },
+      {
+        "detectorId": "tense-consistency",
+        "version": "1",
+        "state": "success"
+      },
+      {
+        "detectorId": "cefr-vector",
+        "version": "1",
+        "state": "success"
+      }
+    ],
+    "detectorVersions": {
+      "segment": "1",
+      "tokenize": "1",
+      "tag-verbs": "1",
+      "counts": "1",
+      "duration": "1",
+      "fillers": "1",
+      "parts": "1",
+      "time-frame": "1",
+      "tense": "1",
+      "agreement": "1",
+      "articles": "1",
+      "negation": "1",
+      "aux": "1",
+      "prepositions": "1",
+      "anglicisms": "1",
+      "complexity": "1",
+      "connectors": "1",
+      "lexical-range": "1",
+      "repetition": "1",
+      "self-correction": "1",
+      "coverage": "1",
+      "constructions": "1",
+      "avoidance": "1",
+      "tense-consistency": "1",
+      "cefr-vector": "1"
+    },
     "timeFrameAlignmentByQuestion": [
       {
         "questionId": "topic1:q1",

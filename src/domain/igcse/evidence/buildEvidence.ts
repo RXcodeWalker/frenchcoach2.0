@@ -1,8 +1,11 @@
+import type { SessionQuestionSet } from '../session/types';
 import type { SpeakingTranscript } from '../judgement/types';
 import { responseCountsByQuestion } from './counts';
 import { topicConversationDurationByConversation } from './duration';
+import { projectFeatures } from './features/project';
 import { fillerDensityByQuestion } from './fillers';
 import { LEGACY_DETECTORS } from './framework/legacyDetectors';
+import { PHASE3_DETECTORS } from './framework/phase3Detectors';
 import { DetectorRegistry } from './framework/registry';
 import { runDetectors } from './framework/runner';
 import { rolePlayPartsByTask } from './parts';
@@ -10,6 +13,13 @@ import { deriveExpectedTimeFrameFromCues, detectTimeFrameAlignment } from './tim
 import type { EvidenceProfile, EvidenceProfileSubset } from './types';
 
 const LEGACY_REGISTRY = new DetectorRegistry(LEGACY_DETECTORS);
+/**
+ * Phase 3 (§10.7): the combined fleet — legacy detectors (byte-identical
+ * bookkeeping-only `run()`, §10.7 Phase 0) plus the full new detector set
+ * (§10.3), sharing one tier-DAG registry so Phase-3 detectors that declare no
+ * dependsOn on a legacy id never accidentally collide with one.
+ */
+const FULL_REGISTRY = new DetectorRegistry([...LEGACY_DETECTORS, ...PHASE3_DETECTORS]);
 
 /**
  * Phase 0 (§10.7): delegates to the registry/runner for detector bookkeeping
@@ -53,16 +63,31 @@ export function buildEvidenceSubset(transcript: SpeakingTranscript): EvidencePro
  * type. `scoreAttempt` calls this once and injects the same object into both
  * `scoreSpeaking` (prompt) and `buildScoringEnvelope` (snapshot) — see
  * scoreAttempt.ts. Additive over `buildEvidenceSubset`: the five subset
- * fields are computed identically (byte-identical golden), wrapped with the
- * Phase-1 bookkeeping fields that stay empty until Phase 3 detectors exist.
+ * fields are computed identically (byte-identical golden).
+ *
+ * Phase 3 (§10.7 Phase 3): runs the full detector fleet (legacy + new) once
+ * via `FULL_REGISTRY`, populating `observations`/`detectorRuns`/
+ * `detectorVersions`/`features`. This is additive-only — none of these four
+ * fields are in the L2 prompt allow-list (judgement/prompt.ts), so no mark
+ * moves. `questionSet` is optional (null at every current call site except
+ * where a caller passes one) — see DetectorContext.questionSet.
  */
-export function buildEvidenceProfile(transcript: SpeakingTranscript): EvidenceProfile {
+export function buildEvidenceProfile(
+  transcript: SpeakingTranscript,
+  questionSet: SessionQuestionSet | null = null,
+): EvidenceProfile {
+  const { observations, detectorRuns } = runDetectors(FULL_REGISTRY, { transcript, questionSet });
+  const detectorVersions = Object.fromEntries(
+    FULL_REGISTRY.list().map((detector) => [detector.id, detector.version]),
+  );
+  const subset = buildEvidenceSubset(transcript);
+
   return {
     schemaVersion: 'evidence-profile-v1',
-    observations: [],
-    features: {},
-    detectorRuns: [],
-    detectorVersions: {},
-    ...buildEvidenceSubset(transcript),
+    observations,
+    features: projectFeatures({ observations, fillerDensityByQuestion: subset.fillerDensityByQuestion }),
+    detectorRuns,
+    detectorVersions,
+    ...subset,
   };
 }

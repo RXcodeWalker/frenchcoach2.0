@@ -3,6 +3,8 @@
  * This is intentionally a subset of the full EvidenceProfile in architecture §3.3.
  */
 
+import type { DetectorRun, Observation } from './framework/observation';
+
 export type TimeFrame = 'past' | 'present' | 'future' | 'conditional';
 
 export type TimeFrameAlignment = 'aligned' | 'misaligned' | 'no_verb';
@@ -62,18 +64,20 @@ export interface EvidenceProfileSubset {
  * verbatim (§9.5 R2) so guardrails/envelopeView, which read them by name,
  * need no changes.
  *
- * `observations`/`features`/`detectorRuns` are always empty in Phase 1 —
- * no detector emits typed Observations yet (that is Phase 3). They exist now
- * so the shape is stable and additive when Phase 3 populates them, per the
- * "additive, marks don't move" discipline in §9.5.
+ * Phase 3 (§10.7 Phase 3): `observations`/`features`/`detectorRuns`/
+ * `detectorVersions` are now populated by the full detector fleet
+ * (framework/phase3Detectors.ts). This widening is additive per §9.5 — no
+ * existing field changed shape, and none of these four are in the L2 prompt
+ * allow-list (judgement/prompt.ts PROMPT_EVIDENCE_ALLOW_LIST), so no mark
+ * moves as a result.
  */
 export interface EvidenceProfile extends EvidenceProfileSubset {
   schemaVersion: 'evidence-profile-v1';
-  /** Flat, append-only fact log — empty until Phase 3 detectors run. */
-  observations: never[];
-  /** Derived rollups (TTR, tense histogram, ...) — empty until Phase 3. */
-  features: Record<string, never>;
-  /** One entry per registered detector — empty until Phase 3 registers feature detectors. */
-  detectorRuns: never[];
-  detectorVersions: Record<string, never>;
+  /** Flat, append-only fact log — one entry per Observation emitted by any successful detector. */
+  observations: Observation[];
+  /** Derived rollups (TTR, tense histogram, ...) — see features/project.ts. */
+  features: Record<string, number | string | boolean>;
+  /** One entry per registered detector (success/disabled/dependency_unavailable/version_mismatch/failed). */
+  detectorRuns: DetectorRun[];
+  detectorVersions: Record<string, string>;
 }

@@ -41,17 +41,73 @@ export const NODE_MAP: Record<string, string | null> = {
 };
 
 /**
- * NOTE for Phase 3: the full §10.3 nodeMap table additionally maps concrete
- * Observation.type values (tense_detected, agreement_gender, ...) to node
- * ids, some of which reuse these same string keys with a DIFFERENT target
- * (e.g. Phase-3 `anglicism` → `confusions`, vs. the legacy IssueCategory
- * `anglicism` → `vocab_range` above). Phase 3 must not blindly merge into
- * this object — resolve the collision (e.g. namespace Observation.type keys,
- * or a second map) when those detectors are implemented. Left undone here
- * deliberately: Phase 2 has no real ObservationType producer to validate
- * against, and guessing the shape now would just be dead code Phase 3 has to
- * rewrite anyway.
+ * Phase 3 (§10.3): the concrete Observation.type → skillNodeId table, kept as
+ * a SEPARATE map from NODE_MAP (not merged) precisely because of the
+ * collision flagged above — Phase-3 `anglicism` → `confusions` here, vs. the
+ * legacy IssueCategory `anglicism` → `vocab_range` in NODE_MAP. Both maps are
+ * correct for their own input vocabulary; a caller must know which shape it
+ * has (Observation.type vs legacy IssueCategory/GrammarError.theme) and call
+ * the matching resolver.
  */
+export const OBSERVATION_TYPE_NODE_MAP: Record<string, string | null> = {
+  tense_detected: 'tense_past', // overridden per-observation to tense_future by nodeForObservation (time-frame prefix)
+  tense_missing: 'tense_past',
+  tense_inconsistent: 'tense_past',
+  agreement_gender: 'gender',
+  agreement_number: 'gender',
+  article_error: 'gender',
+  contraction_error: 'contraction',
+  elision_error: 'elision',
+  negation_incomplete: 'negation',
+  auxiliary_error: 'etre_avoir',
+  preposition_error: 'preposition',
+  anglicism: 'confusions',
+  pronoun_placement: 'confusions',
+  interrogation_form: 'confusions',
+  subjunctive_missing: 'subjunctive',
+  hypothetical_form: 'hypothetical',
+  relative_pronoun: 'relative_pron',
+  comparative_form: 'comparative',
+  demonstrative_error: 'demonstrative',
+  connector_used: 'connectors',
+  lexeme_rare: 'vocab_range',
+  expected_vocab_hit: 'vocab_range',
+  repetition: 'repetition',
+  filler: 'fluency_score',
+  self_correction: 'fluency_score',
+  // Feature-only, never attributed to a node.
+  sentence: null,
+  lexeme: null,
+  verb: null,
+  complex_sentence: null,
+  cefr_indicator: null,
+  response_count: null,
+  topic_duration: null,
+  role_play_part: null,
+  time_frame_alignment: null,
+  expected_structure_hit: null,
+  // avoidance carries its own skillNodeId set directly on the observation by
+  // the detector (tense_past/tense_future) — never resolved through this map.
+  avoidance: null,
+};
+
+/**
+ * Resolve a Phase-3 Observation to a skill node id. `tense_detected`/
+ * `tense_missing`/`tense_inconsistent` need the observation's own `value`
+ * (which carries the time-frame prefix, e.g. "future:futur_simple:irai") to
+ * distinguish tense_past from tense_future — a single static table entry
+ * can't express that, hence this function over a plain lookup.
+ */
+export function nodeForObservationType(type: string, value?: string | number | boolean): string | null {
+  if (
+    (type === 'tense_detected' || type === 'tense_inconsistent') &&
+    typeof value === 'string' &&
+    (value.startsWith('future') || value.startsWith('conditional'))
+  ) {
+    return 'tense_future';
+  }
+  return OBSERVATION_TYPE_NODE_MAP[type] ?? null;
+}
 
 /**
  * Legacy `GrammarError.theme` is a free-text uppercase string (e.g.
@@ -104,8 +160,9 @@ export function isSkillNode(id: string): boolean {
 }
 
 /**
- * Every non-null NODE_MAP value must be a real SKILL_DEFS key. Exported so a
- * test can assert exhaustiveness without duplicating the walk logic.
+ * Every non-null NODE_MAP/OBSERVATION_TYPE_NODE_MAP value must be a real
+ * SKILL_DEFS key. Exported so a test can assert exhaustiveness without
+ * duplicating the walk logic.
  */
 export function findUnknownNodeMapTargets(): string[] {
   const unknown = new Set<string>();
@@ -113,6 +170,9 @@ export function findUnknownNodeMapTargets(): string[] {
     if (nodeId && !isSkillNode(nodeId)) unknown.add(nodeId);
   }
   for (const [, nodeId] of THEME_SUBSTRING_RULES) {
+    if (nodeId && !isSkillNode(nodeId)) unknown.add(nodeId);
+  }
+  for (const nodeId of Object.values(OBSERVATION_TYPE_NODE_MAP)) {
     if (nodeId && !isSkillNode(nodeId)) unknown.add(nodeId);
   }
   return [...unknown];
