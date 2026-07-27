@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { useMicLevel, type MicLevelController } from './useMicLevel';
 
 const WAVE_BARS = 40;
 
@@ -36,6 +37,7 @@ export interface RecordingState {
   transcript: string;
   audioBlob: Blob | null;
   lastActivityAt: number | null;
+  micLevel: MicLevelController;
   start: () => void;
   stop: () => Promise<string>;
 }
@@ -47,9 +49,9 @@ export function useRecording(): RecordingState {
   const [transcript, setTranscript]     = useState('');
   const [audioBlob, setAudioBlob]       = useState<Blob | null>(null);
   const [lastActivityAt, setLastActivityAt] = useState<number | null>(null);
+  const micLevel = useMicLevel();
 
   const timerRef      = useRef<number | null>(null);
-  const waveRef       = useRef<number | null>(null);
   const recogRef      = useRef<SpeechRecognition | null>(null);
   const finalTextRef  = useRef('');
   const resolveRef    = useRef<((t: string) => void) | null>(null);
@@ -63,16 +65,12 @@ export function useRecording(): RecordingState {
   useEffect(() => {
     return () => {
       if (timerRef.current)  clearInterval(timerRef.current);
-      if (waveRef.current)   cancelAnimationFrame(waveRef.current);
+      micLevel.detach();
       recogRef.current?.abort();
       mediaRecorderRef.current?.stop();
       streamRef.current?.getTracks().forEach(t => t.stop());
     };
-  }, []);
-
-  const animateWave = useCallback(() => {
-    setWaveData(Array(WAVE_BARS).fill(0).map(() => Math.random() * 44 + 4));
-    waveRef.current = requestAnimationFrame(animateWave);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const start = useCallback(() => {
@@ -89,11 +87,11 @@ export function useRecording(): RecordingState {
     timerRef.current = window.setInterval(() => {
       setElapsedTime(Math.round((Date.now() - startedAtRef.current) / 1000));
     }, 1000);
-    waveRef.current  = requestAnimationFrame(animateWave);
 
     // Start MediaRecorder for audio blob (best-effort — ignore if permissions denied)
     navigator.mediaDevices?.getUserMedia({ audio: true }).then(stream => {
       streamRef.current = stream;
+      micLevel.attach(stream);
       const mimeType = ['audio/webm', 'audio/ogg', 'audio/mp4']
         .find(t => MediaRecorder.isTypeSupported(t)) ?? '';
       const mr = new MediaRecorder(stream, mimeType ? { mimeType } : {});
@@ -144,12 +142,13 @@ export function useRecording(): RecordingState {
       recog.start();
       recogRef.current = recog;
     }
-  }, [animateWave]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const stop = useCallback((): Promise<string> => {
     setIsRecording(false);
     if (timerRef.current)  { clearInterval(timerRef.current); timerRef.current = null; }
-    if (waveRef.current)   cancelAnimationFrame(waveRef.current);
+    micLevel.detach();
     setWaveData(Array(WAVE_BARS).fill(4));
 
     // Finalize audio blob
@@ -174,7 +173,7 @@ export function useRecording(): RecordingState {
         resolve(finalTextRef.current.trim());
       }
     });
-  }, []);
+  }, [micLevel]);
 
-  return { isRecording, elapsedTime, waveData, transcript, audioBlob, lastActivityAt, start, stop };
+  return { isRecording, elapsedTime, waveData, transcript, audioBlob, lastActivityAt, micLevel, start, stop };
 }

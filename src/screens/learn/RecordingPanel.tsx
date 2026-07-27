@@ -18,7 +18,7 @@ export function RecordingPanel({ isActive, recording, onStop }: Props) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
     >
-      <Waveform data={recording.waveData} isRecording={recording.isRecording} />
+      <Waveform data={recording.waveData} isRecording={recording.isRecording} source={recording.micLevel} />
 
       <AnimatePresence>
         {recording.isRecording && (

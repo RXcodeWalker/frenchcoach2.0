@@ -34,7 +34,7 @@ type GameState = 'idle' | 'countdown' | 'playing' | 'finished';
 export function SpeedSpeaking() {
   const navigate = useNavigate();
   const { dispatch } = useApp();
-  const { isRecording, transcript, start, stop, waveData } = useRecording();
+  const { isRecording, transcript, start, stop, waveData, micLevel } = useRecording();
 
   const [gameState, setGameState] = useState<GameState>('idle');
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -388,7 +388,7 @@ export function SpeedSpeaking() {
 
             <div className="flex flex-col items-center gap-6">
               <div className="w-full max-w-xs h-12">
-                <Waveform data={waveData} isRecording={isRecording} />
+                <Waveform data={waveData} isRecording={isRecording} source={micLevel} />
               </div>
 
               <div className="min-h-[40px] px-4 py-2 rounded-lg bg-white/5 border border-white/5 w-full">

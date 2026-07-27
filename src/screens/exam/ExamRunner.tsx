@@ -181,7 +181,7 @@ export function ExamRunner({
             </motion.div>
           ) : (
             <>
-              <Waveform data={recording.waveData} isRecording={recording.isRecording} variant="exam" />
+              <Waveform data={recording.waveData} isRecording={recording.isRecording} variant="exam" source={recording.micLevel} />
               <div className="text-center text-[10px] text-slate-600 tabular-nums">{formatTime(Math.round(elapsedS))}</div>
               {showSilenceNudge ? (
                 <motion.div

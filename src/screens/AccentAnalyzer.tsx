@@ -111,7 +111,7 @@ function mapAssessmentToAccentResults(assessment: PronunciationAssessment): Acce
 
 export function AccentAnalyzer() {
   const navigate = useNavigate();
-  const { isRecording, start, stop, waveData } = useAudioBlobRecorder();
+  const { isRecording, start, stop, waveData, micLevel } = useAudioBlobRecorder();
 
   const [selectedDrill, setSelectedDrill] = useState<AccentDrill>(DRILLS[0]);
   const [results, setResults] = useState<AccentResults | null>(null);
@@ -261,7 +261,7 @@ export function AccentAnalyzer() {
                       {isRecording ? (
                         <div className="w-full space-y-6">
                           <div className="h-16 flex items-center justify-center">
-                            <Waveform data={waveData} isRecording={isRecording} />
+                            <Waveform data={waveData} isRecording={isRecording} source={micLevel} />
                           </div>
                           <p className="text-cyan-400 font-bold animate-pulse text-sm">Recording... Speak now</p>
                           <button

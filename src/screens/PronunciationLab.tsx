@@ -15,7 +15,7 @@ type LabResult = PronunciationAssessment & { audioUrl?: string; waveSnapshot?: n
 export function PronunciationLab() {
   const navigate = useNavigate();
   const { state, dispatch } = useApp();
-  const { isRecording, start, stop, waveData } = useAudioBlobRecorder();
+  const { isRecording, start, stop, waveData, micLevel } = useAudioBlobRecorder();
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -426,7 +426,7 @@ export function PronunciationLab() {
               <div className="py-8 flex flex-col items-center justify-center min-h-[120px]">
                 {isRecording ? (
                   <div className="space-y-4 w-full flex flex-col items-center">
-                    <Waveform data={waveData} isRecording={isRecording} />
+                    <Waveform data={waveData} isRecording={isRecording} source={micLevel} />
                     <p className="text-emerald-400 font-bold text-xs animate-pulse">Capturing Audio...</p>
                   </div>
                 ) : !feedback && (

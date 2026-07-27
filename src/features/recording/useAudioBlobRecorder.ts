@@ -1,10 +1,12 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { useMicLevel, type MicLevelController } from './useMicLevel';
 
 const WAVE_BARS = 40;
 
 export interface AudioBlobRecorderState {
   isRecording: boolean;
   waveData: number[];
+  micLevel: MicLevelController;
   start: () => void;
   stop: () => Promise<{ blob: Blob; url: string; waveSnapshot: number[] } | null>;
 }
@@ -12,21 +14,16 @@ export interface AudioBlobRecorderState {
 export function useAudioBlobRecorder(): AudioBlobRecorderState {
   const [isRecording, setIsRecording] = useState(false);
   const [waveData, setWaveData] = useState<number[]>(Array(WAVE_BARS).fill(4));
+  const micLevel = useMicLevel();
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
-  const waveRef = useRef<number | null>(null);
   const audioUrlRef = useRef<string | null>(null);
-
-  const animateWave = useCallback(() => {
-    setWaveData(Array(WAVE_BARS).fill(0).map(() => Math.random() * 44 + 4));
-    waveRef.current = requestAnimationFrame(animateWave);
-  }, []);
 
   useEffect(() => {
     return () => {
-      if (waveRef.current) cancelAnimationFrame(waveRef.current);
+      micLevel.detach();
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
       }
@@ -34,6 +31,7 @@ export function useAudioBlobRecorder(): AudioBlobRecorderState {
         URL.revokeObjectURL(audioUrlRef.current);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const start = useCallback(async () => {
@@ -45,7 +43,8 @@ export function useAudioBlobRecorder(): AudioBlobRecorderState {
 
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
-      
+      micLevel.attach(stream);
+
       const mimeType = ['audio/webm', 'audio/ogg', 'audio/mp4', 'audio/wav']
         .find(type => MediaRecorder.isTypeSupported(type)) || '';
 
@@ -61,11 +60,11 @@ export function useAudioBlobRecorder(): AudioBlobRecorderState {
 
       mediaRecorder.start(250);
       setIsRecording(true);
-      waveRef.current = requestAnimationFrame(animateWave);
     } catch (err) {
       console.error("Failed to start recording:", err);
     }
-  }, [animateWave]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const stop = useCallback((): Promise<{ blob: Blob; url: string; waveSnapshot: number[] } | null> => {
     return new Promise((resolve) => {
@@ -74,22 +73,19 @@ export function useAudioBlobRecorder(): AudioBlobRecorderState {
         return;
       }
 
-      const currentWaveData = [...waveData];
+      const currentWaveData = Array.from(micLevel.levelsRef.current, v => v * 44 + 4);
 
       mediaRecorderRef.current.onstop = () => {
         const blob = new Blob(chunksRef.current, { type: mediaRecorderRef.current?.mimeType || 'audio/webm' });
         const url = URL.createObjectURL(blob);
         audioUrlRef.current = url;
-        
+
         if (streamRef.current) {
           streamRef.current.getTracks().forEach(track => track.stop());
           streamRef.current = null;
         }
 
-        if (waveRef.current) {
-          cancelAnimationFrame(waveRef.current);
-          waveRef.current = null;
-        }
+        micLevel.detach();
 
         setWaveData(Array(WAVE_BARS).fill(4));
         setIsRecording(false);
@@ -98,7 +94,8 @@ export function useAudioBlobRecorder(): AudioBlobRecorderState {
 
       mediaRecorderRef.current.stop();
     });
-  }, [waveData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  return { isRecording, waveData, start, stop };
+  return { isRecording, waveData, micLevel, start, stop };
 }

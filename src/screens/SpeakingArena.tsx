@@ -195,7 +195,7 @@ interface FloatingXP {
 export function SpeakingArena() {
   const navigate = useNavigate();
   const { dispatch: appDispatch } = useApp();
-  const { isRecording, transcript, start, stop, waveData } = useRecording();
+  const { isRecording, transcript, start, stop, waveData, micLevel } = useRecording();
   
   const [state, dispatch] = useReducer(arenaReducer, initialState);
   const [feedbackUI, setFeedbackUI] = useState<'correct' | 'incorrect' | null>(null);
@@ -569,7 +569,7 @@ export function SpeakingArena() {
 
             <div className="flex flex-col items-center gap-6">
               <div className="w-full max-w-xs h-12">
-                <Waveform data={waveData} isRecording={isRecording} />
+                <Waveform data={waveData} isRecording={isRecording} source={micLevel} />
               </div>
               
               <div className="min-h-[40px] px-4 py-2 rounded-lg bg-white/5 border border-white/5 w-full">

@@ -34,7 +34,7 @@ export function ExamGreeting({ recording, greetingText, onContinue }: Props) {
         </div>
 
         <div className="w-full space-y-4">
-          <Waveform data={recording.waveData} isRecording={recording.isRecording} variant="exam" />
+          <Waveform data={recording.waveData} isRecording={recording.isRecording} variant="exam" source={recording.micLevel} />
 
           <div className="flex items-center justify-center gap-3">
             <motion.button
