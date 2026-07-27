@@ -25,6 +25,7 @@ import type {
   SkillBeliefState,
 } from '../../types/beliefs';
 import { SKILL_DEFS } from '../coaching/diagnosticEngine';
+import { LANGUAGE_SUCCESS_SCORE } from '../../domain/scoring';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -51,8 +52,13 @@ const PRIOR_ALPHA = 1.0;
 const PRIOR_BETA  = 1.0;
 
 /** Version string — bump when the reduction algorithm changes so cached
- *  belief state from old versions can be detected and rebuilt. */
-export const REDUCER_VERSION = 'evidence-v1';
+ *  belief state from old versions can be detected and rebuilt.
+ *  Bumped to evidence-v2 in Phase 2: evidenceBuilder now derives per-event
+ *  result.success from per-node observation outcomes (deriveNodeOutcome) when
+ *  observations exist, rather than purely from the score >= LANGUAGE_SUCCESS_SCORE
+ *  threshold — a real behavior change to what beliefs are computed from
+ *  existing cached evidence, so old snapshots must be rebuilt. */
+export const REDUCER_VERSION = 'evidence-v2';
 
 // ── Weighting tables ──────────────────────────────────────────────────────────
 
@@ -192,7 +198,7 @@ export function reduceEvidenceToBeliefState(
     const isSuccess =
       event.result.success !== undefined
         ? event.result.success
-        : (event.result.score ?? 0) >= 7;
+        : (event.result.score ?? 0) >= LANGUAGE_SUCCESS_SCORE;
 
     for (const nodeId of event.targetNodeIds) {
       if (!state[nodeId]) state[nodeId] = emptyBeliefState(nodeId);

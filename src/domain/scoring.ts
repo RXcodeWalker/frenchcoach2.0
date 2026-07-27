@@ -1,5 +1,13 @@
 import type { ExaminerVerdict } from '../types';
 
+/**
+ * The single scalar threshold above which a score counts as a "success" for
+ * coaching purposes. Survives only where a scalar score genuinely exists
+ * (LLM overall, XP award) — replaces 4 previously-drifting `>= 7` literals
+ * (i-am-building-an-cosmic-cascade.md, Resolved Decisions §3).
+ */
+export const LANGUAGE_SUCCESS_SCORE = 7;
+
 export const scoreColor = (val: number): string =>
   val >= 8 ? '#10B981' : val >= 6 ? '#F59E0B' : '#EF4444';
 

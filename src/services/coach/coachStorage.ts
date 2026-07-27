@@ -12,11 +12,12 @@ import {
   REDUCER_VERSION,
 } from './beliefReducer';
 import { getSkillProfile } from '../coaching/diagnosticEngine';
+import { LEARNER_ID } from './learnerId';
 
 /** Cap the evidence log so localStorage never grows unbounded. */
 export const MAX_EVIDENCE_EVENTS = 100;
 
-export const LEARNER_ID = 'local-user';
+export { LEARNER_ID };
 
 // ── Evidence ────────────────────────────────────────────────────────────────
 

@@ -18,11 +18,12 @@ import type {
 } from '../../types/intervention';
 import { LEARNER_ID } from './coachStorage';
 import { isGrammarSkill, hasMicroDrillForSkill } from './recurringGrammar';
+import { LANGUAGE_SUCCESS_SCORE } from '../../domain/scoring';
 
 const WEEK_MS = 7 * 86_400_000;
 /** Avoid drill fatigue: no second intervention for a node within this window. */
 const DRILL_COOLDOWN_MS = 24 * 3_600_000;
-const FAILURE_SCORE_THRESHOLD = 7;
+const FAILURE_SCORE_THRESHOLD = LANGUAGE_SUCCESS_SCORE;
 /** Immediate-success thresholds for outcome → status transitions. */
 const DRILL_PASS = 0.67;
 const DRILL_FAIL = 0.5;

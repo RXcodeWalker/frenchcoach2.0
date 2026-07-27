@@ -1,6 +1,8 @@
 import type { FeedbackV2, SkillProfile, MistakeLog, SkillContext, AvoidanceSignal, Question, DifficultyEvalExpectations } from '../../types';
 import { DEFAULT_DIFFICULTY, DIFFICULTY_CONFIG } from '../../utils/difficultyConfig';
 import { STORAGE_KEYS } from '../persistence/storage';
+import { nodeForGrammarTheme } from '../../domain/igcse/evidence/framework/nodeMap';
+import { LANGUAGE_SUCCESS_SCORE } from '../../domain/scoring';
 
 const STORAGE_KEY = STORAGE_KEYS.diagnosticSDE;
 const HALF_LIFE_DAYS = 14;
@@ -31,23 +33,10 @@ export const SKILL_DEFS: Record<string, { name: string; desc: string; category: 
   pronunciation: { name: "Pronunciation",         desc: "clarity of speech sounds",      category: "fluency",    icon: "🗣" },
 };
 
-// ── Internal helpers (copied verbatim from studentDiagnosticEngine.js) ────────
-
-function _classifyGrammarTheme(theme: string): string | null {
-  if (theme.includes("ELISION"))     return "elision";
-  if (theme.includes("AUXILIARY"))   return "etre_avoir";
-  if (theme.includes("NEGATION"))    return "negation";
-  if (theme.includes("GENDER") || theme.includes("ADJECTIVE")) return "gender";
-  if (theme.includes("PREPOSITION")) return "preposition";
-  if (theme.includes("SUBJUNCTIVE")) return "subjunctive";
-  if (theme.includes("SI_CLAUSE"))   return "hypothetical";
-  if (theme.includes("RELATIVE"))    return "relative_pron";
-  if (theme.includes("COMPARATIVE")) return "comparative";
-  if (theme.includes("DEMONSTRATIVE")) return "demonstrative";
-  if (theme.includes("CONFUSION"))   return "confusions";
-  if (theme.includes("PRONOUN"))     return "grammar";
-  return null;
-}
+// ── Internal helpers ────────────────────────────────────────────────────────
+// Theme classification now delegates to the canonical nodeMap (domain/igcse/
+// evidence/framework/nodeMap.ts) instead of a private copy — see
+// i-am-building-an-cosmic-cascade.md Phase 2 / Resolved Decisions.
 
 function _load() {
   try {
@@ -374,7 +363,7 @@ export function runAfterSession(feedback: FeedbackV2, avoidanceSignals?: Avoidan
   const seenSkills = new Set<string>();
   if (feedback.issues) {
     feedback.issues.forEach(issue => {
-      const id = _classifyGrammarTheme(issue.category.toUpperCase());
+      const id = nodeForGrammarTheme(issue.category.toUpperCase());
       if (id) {
         seenSkills.add(id);
         _observe(skills, id, true, date, {
@@ -388,7 +377,7 @@ export function runAfterSession(feedback: FeedbackV2, avoidanceSignals?: Avoidan
   // Grammar errors (legacy check for safety)
   const grammarErrors = [...(feedback.grammar.critical ?? []), ...(feedback.grammar.polish ?? [])];
   for (const err of grammarErrors) {
-    const id = _classifyGrammarTheme(err.theme ?? "");
+    const id = nodeForGrammarTheme(err.theme ?? "");
     if (id && !seenSkills.has(id)) {
       seenSkills.add(id);
       _observe(skills, id, true, date, {
@@ -399,7 +388,7 @@ export function runAfterSession(feedback: FeedbackV2, avoidanceSignals?: Avoidan
   }
 
   // Grammar success for unflagged skills when score is good
-  if (feedback.scores.overall >= 7) {
+  if (feedback.scores.overall >= LANGUAGE_SUCCESS_SCORE) {
     ["elision", "etre_avoir", "contraction", "negation", "gender"].forEach(id => {
       if (!seenSkills.has(id)) _observe(skills, id, false, date);
     });

@@ -3,7 +3,7 @@ import { DIFFICULTY_CONFIG, DEFAULT_DIFFICULTY } from '../../utils/difficultyCon
 import { classifyTier, buildTier0Result, buildTier1LocalResult } from './responseTier';
 import { applyQualityGate } from './qualityGate';
 import { detectAvoidance } from './diagnosticEngine';
-import { scoreToBand } from '../../domain/scoring';
+import { scoreToBand, LANGUAGE_SUCCESS_SCORE } from '../../domain/scoring';
 
 // ── Diagnostic themes ──────────────────────────────────────────────────────────
 const THEMES: Record<string, { label: string; desc: string; sde_key: string; master_tip: string }> = {
@@ -761,6 +761,12 @@ function _computeScores(data: {
   };
 }
 
+// Theme -> IssueCategory (UI display categorization for CoachingIssue.category).
+// Distinct from the theme -> skillNodeId routing table in
+// domain/igcse/evidence/framework/nodeMap.ts — same theme keys, different
+// target vocabularies (e.g. SI_CLAUSE categorizes as 'tense' here but routes
+// to the 'hypothetical' skill node there), so this is not one of the
+// consolidated maps.
 const THEME_TO_CATEGORY: Record<string, IssueCategory> = {
   ELISION: 'elision', AUXILIARY: 'auxiliary', ANGLICISM: 'anglicism',
   GENDER: 'gender', NEGATION: 'grammar', PREPOSITION: 'preposition',
@@ -838,7 +844,7 @@ function _buildExaminerVerdict(
     examinerInsight = "Add a personal opinion with justification ('À mon avis… parce que…') — examiners reward justified views across all bands.";
   } else if (!tenses?.past && !tenses?.conditional && !tenses?.future) {
     examinerInsight = "Introduce one tense beyond the present — even a simple 'j'ai mangé' (passé composé) immediately raises your Language mark.";
-  } else if (scores.overall >= 7) {
+  } else if (scores.overall >= LANGUAGE_SUCCESS_SCORE) {
     examinerInsight = "Vary your sentence openers — avoid starting every sentence with 'Je'. Use 'En ce qui me concerne…' or 'Ce qui est certain, c'est que…'.";
   } else {
     examinerInsight = `${nextStep}`;

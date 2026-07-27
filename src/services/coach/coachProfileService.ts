@@ -7,8 +7,7 @@ import type { CoachProfile, CoachGoal, CoachGoalType, CEFRLevel } from '../../ty
 import { STORAGE_KEYS, storageGet, storageSet } from '../persistence/storage';
 import { getSkillProfile } from '../coaching/diagnosticEngine';
 import { getStats, getStreakCount } from '../analytics/analyticsService';
-
-const LEARNER_ID = 'local_learner';
+import { LEARNER_ID, migrateLegacyLearnerId } from './learnerId';
 
 // ── Default profile factory ───────────────────────────────────────────────────
 
@@ -41,7 +40,7 @@ function defaultProfile(): CoachProfile {
 
 export function getCoachProfile(): CoachProfile {
   const stored = storageGet<CoachProfile | null>(STORAGE_KEYS.coachProfile, null);
-  return stored ?? defaultProfile();
+  return stored ? migrateLegacyLearnerId(stored) : defaultProfile();
 }
 
 export function saveCoachProfile(profile: CoachProfile): void {

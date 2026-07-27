@@ -1,14 +1,19 @@
 // ── Coach MVP: belief projection (evidence-driven) ─────────────────────────────
 // The diagnostic engine (frenchCoach_sde) stays live for legacy UI (Progress,
-// SessionStartScreen, AppContext skill profile). This service drives it
-// (runAfterSession) so that path keeps working, but the COACH read model is now
-// the evidence-derived EvidenceBeliefSnapshot produced by beliefReducer from the
-// EvidenceEvent log. Recommendations, the daily plan, and interventions all read
-// that snapshot; diagnosticEngine is only consulted as a sparse-evidence fallback.
+// SessionStartScreen, AppContext skill profile) and as the sparse-evidence
+// fallback read by projectEvidenceBeliefSnapshot. The COACH read model is the
+// evidence-derived EvidenceBeliefSnapshot produced by beliefReducer from the
+// EvidenceEvent log, rebuilt from that log alone.
+//
+// Phase 2 (i-am-building-an-cosmic-cascade.md, Resolved Decisions §2): the
+// dual-write to diagnosticEngine.runAfterSession has been removed. Beliefs
+// are rebuilt from L1/bridge evidence only; diagnosticEngine.SKILL_DEFS data
+// is read-only fallback for skills with insufficient evidence, and stops
+// receiving new observations through this path. diagnosticEngine itself is
+// not deleted — only demoted.
 
-import type { FeedbackV2, AvoidanceSignal } from '../../types';
 import type { EvidenceBeliefSnapshot } from '../../types/beliefs';
-import { runAfterSession, getSkillProfile } from '../coaching/diagnosticEngine';
+import { getSkillProfile } from '../coaching/diagnosticEngine';
 import { reduceEvidenceToBeliefState, projectEvidenceBeliefSnapshot } from './beliefReducer';
 import { LEARNER_ID, getEvidenceEvents, saveBeliefSnapshot } from './coachStorage';
 
@@ -29,14 +34,10 @@ export function rebuildBeliefSnapshot(): EvidenceBeliefSnapshot {
 }
 
 /**
- * Drive the diagnostic engine from a completed answer (legacy UI), then rebuild
- * and persist the coach's evidence-driven belief snapshot. The orchestrator must
- * append this attempt's evidence BEFORE calling this so the snapshot reflects it.
+ * Rebuild and persist the coach's evidence-driven belief snapshot after a
+ * completed answer. The orchestrator must append this attempt's evidence
+ * BEFORE calling this so the snapshot reflects it.
  */
-export function updateFromFeedback(
-  feedback: FeedbackV2,
-  avoidanceSignals: AvoidanceSignal[],
-): EvidenceBeliefSnapshot {
-  runAfterSession(feedback, avoidanceSignals);
+export function updateFromFeedback(): EvidenceBeliefSnapshot {
   return rebuildBeliefSnapshot();
 }

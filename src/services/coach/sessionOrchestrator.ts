@@ -65,9 +65,9 @@ export function orchestrateAttempt(input: OrchestratorInput): OrchestratorResult
   const xpResult = awardXP(finalScore, streakDays);
   const { level } = getProgressionState();
 
-  // 4. Drive diagnostics (legacy UI) + rebuild the evidence-driven belief
-  //    snapshot from the full evidence log, including the event just appended.
-  const beliefSnapshot = updateFromFeedback(feedback, avoidanceSignals);
+  // 4. Rebuild the evidence-driven belief snapshot from the full evidence
+  //    log, including the event just appended.
+  const beliefSnapshot = updateFromFeedback();
 
   // 5. Achievements — evaluated after XP and beliefSnapshot are ready so all
   //    predicate contexts (xp thresholds, skill mastery) reflect this session.
@@ -136,8 +136,8 @@ export interface ObserveAttemptResult {
 
 /**
  * Lightweight coach hook for modes that own their own XP/session lifecycle (e.g.
- * Exam, which persists once at finish). It updates diagnostics + beliefs, captures
- * evidence, and regenerates the recommendation WITHOUT awarding XP, persisting a
+ * Exam, which persists once at finish). It captures evidence, rebuilds beliefs,
+ * and regenerates the recommendation WITHOUT awarding XP, persisting a
  * session, or checking achievements — so existing mode behavior is preserved.
  */
 export function observeAttempt(input: ObserveAttemptInput): ObserveAttemptResult {
@@ -157,7 +157,7 @@ export function observeAttempt(input: ObserveAttemptInput): ObserveAttemptResult
   });
   const allEvidence = appendEvidenceEvents(evidenceEvents);
 
-  const beliefSnapshot = updateFromFeedback(input.feedback, avoidanceSignals);
+  const beliefSnapshot = updateFromFeedback();
   detectAndPersistProblem(allEvidence, beliefSnapshot);
 
   const recommendation = generateRecommendation(beliefSnapshot, getRecentEvidence(20));
