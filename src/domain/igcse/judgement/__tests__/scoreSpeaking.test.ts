@@ -5,8 +5,11 @@ import {
   JudgementValidationError,
   assertRedistributable,
 } from '../scoreSpeaking';
+import { buildEvidenceProfile } from '../../evidence/buildEvidence';
 import type { Judge, JudgeRequest, JudgeResponse } from '../types';
 import { buildValidJudgeOutput, PRACTICE_TRANSCRIPT } from './fixtures';
+
+const EVIDENCE = buildEvidenceProfile(PRACTICE_TRANSCRIPT);
 
 function fakeJudge(output: ReturnType<typeof buildValidJudgeOutput>): Judge {
   return vi.fn(async () => ({ raw: JSON.stringify(output) }));
@@ -15,7 +18,7 @@ function fakeJudge(output: ReturnType<typeof buildValidJudgeOutput>): Judge {
 describe('scoreSpeaking', () => {
   it('happy path: returns typed assessment with derived totals', async () => {
     const judge = fakeJudge(buildValidJudgeOutput());
-    const result = await scoreSpeaking(PRACTICE_TRANSCRIPT, judge);
+    const result = await scoreSpeaking(PRACTICE_TRANSCRIPT, EVIDENCE, judge);
 
     expect(result.rolePlay.total).toBe(9);
     expect(result.total).toBe(25);
@@ -31,7 +34,7 @@ describe('scoreSpeaking', () => {
       contentProvenance: 'exam-script' as 'original-practice',
     };
 
-    await expect(scoreSpeaking(badTranscript, judge)).rejects.toThrow(ProvenanceError);
+    await expect(scoreSpeaking(badTranscript, EVIDENCE, judge)).rejects.toThrow(ProvenanceError);
     expect(judge).not.toHaveBeenCalled();
   });
 
@@ -42,7 +45,7 @@ describe('scoreSpeaking', () => {
       contentProvenance: 'confidential-internal' as const,
     };
 
-    const result = await scoreSpeaking(confidentialTranscript, judge);
+    const result = await scoreSpeaking(confidentialTranscript, EVIDENCE, judge);
     expect(result.total).toBe(25);
     expect(judge).toHaveBeenCalledOnce();
   });
@@ -56,7 +59,7 @@ describe('scoreSpeaking', () => {
 
   it('rejects invalid JSON from judge', async () => {
     const judge: Judge = async () => ({ raw: 'not json' });
-    await expect(scoreSpeaking(PRACTICE_TRANSCRIPT, judge)).rejects.toThrow(
+    await expect(scoreSpeaking(PRACTICE_TRANSCRIPT, EVIDENCE, judge)).rejects.toThrow(
       JudgementValidationError,
     );
   });
@@ -69,7 +72,7 @@ describe('scoreSpeaking', () => {
     ];
     const judge = fakeJudge(output);
 
-    await expect(scoreSpeaking(PRACTICE_TRANSCRIPT, judge)).rejects.toThrow(
+    await expect(scoreSpeaking(PRACTICE_TRANSCRIPT, EVIDENCE, judge)).rejects.toThrow(
       /evidence quote not grounded/,
     );
   });
@@ -79,7 +82,7 @@ describe('scoreSpeaking', () => {
     output.rolePlay.tasks[1].evidenceSpans = [{ source: 'rolePlay', quote: 'deux croissants' }];
     const judge = fakeJudge(output);
 
-    const result = await scoreSpeaking(PRACTICE_TRANSCRIPT, judge);
+    const result = await scoreSpeaking(PRACTICE_TRANSCRIPT, EVIDENCE, judge);
     expect(result.rolePlay.total).toBe(9);
   });
 
@@ -91,7 +94,7 @@ describe('scoreSpeaking', () => {
     ];
     const judge = fakeJudge(output);
 
-    const result = await scoreSpeaking(PRACTICE_TRANSCRIPT, judge);
+    const result = await scoreSpeaking(PRACTICE_TRANSCRIPT, EVIDENCE, judge);
     expect(result.total).toBe(25);
   });
 
@@ -99,7 +102,7 @@ describe('scoreSpeaking', () => {
     const judge = fakeJudge(buildValidJudgeOutput());
     const fetchSpy = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('no network'));
 
-    await scoreSpeaking(PRACTICE_TRANSCRIPT, judge);
+    await scoreSpeaking(PRACTICE_TRANSCRIPT, EVIDENCE, judge);
 
     expect(fetchSpy).not.toHaveBeenCalled();
     fetchSpy.mockRestore();
@@ -112,7 +115,7 @@ describe('scoreSpeaking', () => {
       return { raw: JSON.stringify(buildValidJudgeOutput()) };
     };
 
-    await scoreSpeaking(PRACTICE_TRANSCRIPT, judge);
+    await scoreSpeaking(PRACTICE_TRANSCRIPT, EVIDENCE, judge);
 
     expect(capturedPrompt).toContain('Table A');
     expect(capturedPrompt).toContain('Table B');

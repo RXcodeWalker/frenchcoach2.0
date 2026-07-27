@@ -15,7 +15,7 @@ function buildEnvelope(contentProvenance: ScoringEnvelope['contentProvenance']):
     scoredAt: '2026-07-10T00:00:00.000Z',
     contentProvenance,
     versions: {
-      envelopeSchemaVersion: 'envelope-v0.1',
+      envelopeSchemaVersion: 'envelope-v0.2',
       rubricVersion: 'rubric-v0.1',
       scoringEngineVersion: 'engine-v0.1',
       evidenceDetectorVersion: 'detectors-v0.1',

@@ -7,7 +7,7 @@ import { DetectorRegistry } from './framework/registry';
 import { runDetectors } from './framework/runner';
 import { rolePlayPartsByTask } from './parts';
 import { deriveExpectedTimeFrameFromCues, detectTimeFrameAlignment } from './timeFrame';
-import type { EvidenceProfileSubset } from './types';
+import type { EvidenceProfile, EvidenceProfileSubset } from './types';
 
 const LEGACY_REGISTRY = new DetectorRegistry(LEGACY_DETECTORS);
 
@@ -45,5 +45,24 @@ export function buildEvidenceSubset(transcript: SpeakingTranscript): EvidencePro
     fillerDensityByQuestion: fillerDensityByQuestion(transcript),
     rolePlayPartsByTask: rolePlayPartsByTask(transcript),
     topicConversationDurationByConversation: topicConversationDurationByConversation(transcript),
+  };
+}
+
+/**
+ * Phase 1 (§10.7 Phase 1 / §9.4 R1): the single evidence build site's output
+ * type. `scoreAttempt` calls this once and injects the same object into both
+ * `scoreSpeaking` (prompt) and `buildScoringEnvelope` (snapshot) — see
+ * scoreAttempt.ts. Additive over `buildEvidenceSubset`: the five subset
+ * fields are computed identically (byte-identical golden), wrapped with the
+ * Phase-1 bookkeeping fields that stay empty until Phase 3 detectors exist.
+ */
+export function buildEvidenceProfile(transcript: SpeakingTranscript): EvidenceProfile {
+  return {
+    schemaVersion: 'evidence-profile-v1',
+    observations: [],
+    features: {},
+    detectorRuns: [],
+    detectorVersions: {},
+    ...buildEvidenceSubset(transcript),
   };
 }

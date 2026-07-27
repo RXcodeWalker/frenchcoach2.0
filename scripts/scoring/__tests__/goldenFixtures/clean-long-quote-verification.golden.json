@@ -1,6 +1,11 @@
 {
   "id": "clean-long-quote-verification",
   "evidence": {
+    "schemaVersion": "evidence-profile-v1",
+    "observations": [],
+    "features": {},
+    "detectorRuns": [],
+    "detectorVersions": {},
     "timeFrameAlignmentByQuestion": [
       {
         "questionId": "topic1:q1",
@@ -177,10 +182,10 @@
     "scoredAt": "2025-01-01T00:00:00.000Z",
     "contentProvenance": "original-practice",
     "versions": {
-      "envelopeSchemaVersion": "envelope-v0.1",
+      "envelopeSchemaVersion": "envelope-v0.2",
       "rubricVersion": "rubric-v0.1",
       "scoringEngineVersion": "golden-fixture",
-      "evidenceDetectorVersion": "detectors-v0.2",
+      "evidenceDetectorVersion": "detectors-v0.3",
       "scoringPromptVersion": "scoring-prompt-v0.2",
       "guardrailsVersion": "guardrails-v0.1",
       "calibrationVersion": "none",
@@ -323,6 +328,11 @@
       "rerunsRequested": 0
     },
     "evidenceProfileSnapshot": {
+      "schemaVersion": "evidence-profile-v1",
+      "observations": [],
+      "features": {},
+      "detectorRuns": [],
+      "detectorVersions": {},
       "timeFrameAlignmentByQuestion": [
         {
           "questionId": "topic1:q1",

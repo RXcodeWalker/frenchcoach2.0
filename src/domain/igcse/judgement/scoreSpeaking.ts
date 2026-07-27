@@ -2,7 +2,7 @@
  * S1 Layer-2 scoring orchestration — provenance guard → prompt → judge → parse → validate.
  */
 
-import { buildEvidenceSubset } from '../evidence/buildEvidence';
+import type { EvidenceProfile } from '../evidence/types';
 import { parseAndValidateJudgeOutput } from './schema';
 import { JudgementValidationError } from './schema';
 import { buildJudgementPrompt } from './prompt';
@@ -42,14 +42,21 @@ export function assertRedistributable(transcript: SpeakingTranscript): void {
 /**
  * Score a speaking transcript via an injected LLM judge port.
  * No network, retries, caching, or guardrails in S1.
+ *
+ * Phase 1 (§9.4 R1): evidence is now a parameter, not built internally — the
+ * caller (scoreAttempt) builds the EvidenceProfile once and injects the same
+ * object into both this prompt path and the envelope snapshot, so "the
+ * profile the LLM saw === the audited snapshot" is a structural guarantee
+ * rather than a coincidence of two independent, incidentally-deterministic
+ * computations.
  */
 export async function scoreSpeaking(
   transcript: SpeakingTranscript,
+  evidence: EvidenceProfile,
   judge: Judge,
 ): Promise<SpeakingAssessment> {
   assertProvenance(transcript);
 
-  const evidence = buildEvidenceSubset(transcript);
   const prompt = buildJudgementPrompt(transcript, evidence);
   const { raw } = await judge({ prompt });
 

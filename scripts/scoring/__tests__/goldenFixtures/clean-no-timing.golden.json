@@ -1,6 +1,11 @@
 {
   "id": "clean-no-timing",
   "evidence": {
+    "schemaVersion": "evidence-profile-v1",
+    "observations": [],
+    "features": {},
+    "detectorRuns": [],
+    "detectorVersions": {},
     "timeFrameAlignmentByQuestion": [
       {
         "questionId": "topic1:q1",

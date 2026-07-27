@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildScoringEnvelope } from '../../envelope/buildEnvelope';
-import { buildEvidenceSubset } from '../../evidence/buildEvidence';
+import { buildEvidenceProfile } from '../../evidence/buildEvidence';
 import { buildValidJudgeOutput, PRACTICE_TRANSCRIPT } from '../../judgement/__tests__/fixtures';
 import { parseAndValidateJudgeOutput } from '../../judgement/schema';
 import { buildDiffRows } from '../diff';
@@ -14,7 +14,7 @@ function buildTestEnvelope() {
     scoredAt: '2026-07-10T00:00:00.000Z',
     transcript: PRACTICE_TRANSCRIPT,
     assessment,
-    evidenceProfile: buildEvidenceSubset(PRACTICE_TRANSCRIPT),
+    evidenceProfile: buildEvidenceProfile(PRACTICE_TRANSCRIPT),
     stt: {
       model: 'm',
       modelVersion: '1',

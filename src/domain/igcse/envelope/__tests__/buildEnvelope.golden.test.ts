@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildEvidenceSubset } from '../../evidence/buildEvidence';
+import { buildEvidenceProfile } from '../../evidence/buildEvidence';
 import { buildValidJudgeOutput, PRACTICE_TRANSCRIPT } from '../../judgement/__tests__/fixtures';
 import { parseAndValidateJudgeOutput } from '../../judgement/schema';
 import { buildScoringEnvelope } from '../buildEnvelope';
@@ -8,7 +8,7 @@ const FIXED_SCORED_AT = '2026-07-10T00:00:00.000Z';
 
 function buildInput() {
   const assessment = parseAndValidateJudgeOutput(buildValidJudgeOutput(), PRACTICE_TRANSCRIPT);
-  const evidenceProfile = buildEvidenceSubset(PRACTICE_TRANSCRIPT);
+  const evidenceProfile = buildEvidenceProfile(PRACTICE_TRANSCRIPT);
 
   return {
     attemptId: 'attempt-1',
@@ -59,7 +59,7 @@ describe('buildScoringEnvelope golden regression', () => {
       scoredAt: FIXED_SCORED_AT,
       contentProvenance: 'original-practice',
       versions: {
-        envelopeSchemaVersion: 'envelope-v0.1',
+        envelopeSchemaVersion: 'envelope-v0.2',
         rubricVersion: 'rubric-v0.1',
         scoringEngineVersion: 'engine-v0.1',
         evidenceDetectorVersion: 'detectors-v0.1',
@@ -118,7 +118,7 @@ describe('buildScoringEnvelope golden regression', () => {
       total: 25,
       guardrailTriggers: [],
       selfConsistencyOutcomes: { agreement: 'single_run', rerunsRequested: 0 },
-      evidenceProfileSnapshot: buildEvidenceSubset(PRACTICE_TRANSCRIPT),
+      evidenceProfileSnapshot: buildEvidenceProfile(PRACTICE_TRANSCRIPT),
       transcriptSnapshot: PRACTICE_TRANSCRIPT,
     });
   });

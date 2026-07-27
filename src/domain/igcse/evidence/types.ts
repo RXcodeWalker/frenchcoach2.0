@@ -53,3 +53,27 @@ export interface EvidenceProfileSubset {
   rolePlayPartsByTask: RolePlayPartsEvidence[];
   topicConversationDurationByConversation: TopicConversationDurationEvidence[];
 }
+
+/**
+ * Phase 1 (i-am-building-an-cosmic-cascade.md §10.1/§10.7): the full L1
+ * evidence record that replaces EvidenceProfileSubset as the type built once
+ * per attempt and injected into both the L2 prompt and the envelope
+ * snapshot (§9.4 R1). The five EvidenceProfileSubset fields are preserved
+ * verbatim (§9.5 R2) so guardrails/envelopeView, which read them by name,
+ * need no changes.
+ *
+ * `observations`/`features`/`detectorRuns` are always empty in Phase 1 —
+ * no detector emits typed Observations yet (that is Phase 3). They exist now
+ * so the shape is stable and additive when Phase 3 populates them, per the
+ * "additive, marks don't move" discipline in §9.5.
+ */
+export interface EvidenceProfile extends EvidenceProfileSubset {
+  schemaVersion: 'evidence-profile-v1';
+  /** Flat, append-only fact log — empty until Phase 3 detectors run. */
+  observations: never[];
+  /** Derived rollups (TTR, tense histogram, ...) — empty until Phase 3. */
+  features: Record<string, never>;
+  /** One entry per registered detector — empty until Phase 3 registers feature detectors. */
+  detectorRuns: never[];
+  detectorVersions: Record<string, never>;
+}

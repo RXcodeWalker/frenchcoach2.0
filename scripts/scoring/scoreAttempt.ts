@@ -10,7 +10,7 @@
  */
 
 import * as crypto from 'node:crypto';
-import { buildEvidenceSubset } from '../../src/domain/igcse/evidence/buildEvidence';
+import { buildEvidenceProfile } from '../../src/domain/igcse/evidence/buildEvidence';
 import { EVIDENCE_DETECTOR_VERSION } from '../../src/domain/igcse/evidence/version';
 import { buildScoringEnvelope } from '../../src/domain/igcse/envelope/buildEnvelope';
 import type { ScoringEnvelope } from '../../src/domain/igcse/envelope/types';
@@ -68,13 +68,16 @@ export async function scoreAttempt(
 
   const session = await logStage(attemptId, 'transcriptStore.load', () => deps.transcriptStore.load(input.sessionId));
   const speakingTranscript = toSpeakingTranscript(session, input.questionSet);
-  const evidenceProfile = await logStage(attemptId, 'buildEvidenceSubset', async () =>
-    buildEvidenceSubset(speakingTranscript),
+  // Single build site (§9.4 R1): this same evidenceProfile object is injected
+  // into both scoreSpeaking (the prompt the LLM sees) and buildScoringEnvelope
+  // (the audited snapshot) — so they can never desync.
+  const evidenceProfile = await logStage(attemptId, 'buildEvidenceProfile', async () =>
+    buildEvidenceProfile(speakingTranscript),
   );
 
   const { judge, getLastCallMetadata } = deps.createJudge();
   const assessment: SpeakingAssessment = await logStage(attemptId, 'scoreSpeaking', () =>
-    scoreSpeaking(speakingTranscript, judge),
+    scoreSpeaking(speakingTranscript, evidenceProfile, judge),
   );
   const llmMetadata = getLastCallMetadata();
   if (!llmMetadata) {

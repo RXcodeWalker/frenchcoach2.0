@@ -8,7 +8,7 @@
  * about marks/bands/evidence.
  */
 
-import type { EvidenceProfileSubset } from '../evidence/types';
+import type { EvidenceProfile } from '../evidence/types';
 import type { SpeakingAssessment, SpeakingTranscript } from '../judgement/types';
 import type { SttMetadata, TranscriptQuality } from '../stt/types';
 import { ENVELOPE_SCHEMA_VERSION } from './types';
@@ -28,7 +28,7 @@ export interface BuildScoringEnvelopeInput {
   scoredAt: string;
   transcript: SpeakingTranscript;
   assessment: SpeakingAssessment;
-  evidenceProfile: EvidenceProfileSubset;
+  evidenceProfile: EvidenceProfile;
   stt: SttMetadata;
   transcriptVersion: TranscriptVersion;
   transcriptQuality: TranscriptQuality;

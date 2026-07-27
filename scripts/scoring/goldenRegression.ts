@@ -18,7 +18,7 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { buildEvidenceSubset } from '../../src/domain/igcse/evidence/buildEvidence';
+import { buildEvidenceProfile } from '../../src/domain/igcse/evidence/buildEvidence';
 import { EVIDENCE_DETECTOR_VERSION } from '../../src/domain/igcse/evidence/version';
 import { buildScoringEnvelope } from '../../src/domain/igcse/envelope/buildEnvelope';
 import type { ScoringEnvelope } from '../../src/domain/igcse/envelope/types';
@@ -27,7 +27,7 @@ import { GUARDRAILS_VERSION } from '../../src/domain/igcse/guardrails/version';
 import { SCORING_PROMPT_VERSION } from '../../src/domain/igcse/judgement/version';
 import { RUBRIC_VERSION } from '../../src/domain/igcse/rubric';
 import { SYNTHETIC_MANIFEST } from '../../src/domain/igcse/guardrails/__tests__/syntheticManifest';
-import type { EvidenceProfileSubset } from '../../src/domain/igcse/evidence/types';
+import type { EvidenceProfile } from '../../src/domain/igcse/evidence/types';
 import type { GuardrailId } from '../../src/domain/igcse/guardrails/types';
 import type { SttMetadata } from '../../src/domain/igcse/stt/types';
 
@@ -51,14 +51,14 @@ const FIXED_STT: SttMetadata = {
 
 export interface GoldenCaseResult {
   id: string;
-  evidence: EvidenceProfileSubset;
+  evidence: EvidenceProfile;
   guardrailTriggers: GuardrailId[];
   envelope: ScoringEnvelope | null;
 }
 
 /** Pure — recomputes L1 evidence + L3 guardrails (+ full envelope if an assessment is paired). */
 export function computeGoldenCase(entry: (typeof SYNTHETIC_MANIFEST)[number]): GoldenCaseResult {
-  const evidence = buildEvidenceSubset(entry.transcript);
+  const evidence = buildEvidenceProfile(entry.transcript);
   const guardrailReport = entry.assessment
     ? runGuardrails(entry.assessment, evidence, entry.transcript)
     : { triggers: [] as { id: GuardrailId; message: string }[] };

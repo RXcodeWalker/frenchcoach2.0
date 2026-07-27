@@ -4,7 +4,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { buildEvidenceSubset } from '../../evidence/buildEvidence';
+import { buildEvidenceProfile } from '../../evidence/buildEvidence';
 import { buildValidJudgeOutput, PRACTICE_TRANSCRIPT } from '../../judgement/__tests__/fixtures';
 import { parseAndValidateJudgeOutput } from '../../judgement/schema';
 import { buildScoringEnvelope } from '../buildEnvelope';
@@ -32,7 +32,7 @@ describe('ScoringEnvelope.stt wholesale embedding', () => {
       scoredAt: '2026-07-10T00:00:00.000Z',
       transcript: PRACTICE_TRANSCRIPT,
       assessment,
-      evidenceProfile: buildEvidenceSubset(PRACTICE_TRANSCRIPT),
+      evidenceProfile: buildEvidenceProfile(PRACTICE_TRANSCRIPT),
       stt: sttMetadata,
       transcriptVersion: { schemaVersion: 'session-transcript-v1', assemblerVersion: 'stt-assembler-v1' },
       transcriptQuality: { meanWordConfidence: 0.95, lowConfidenceSpanRatio: 0.02, lowConfidenceSpanCount: 1 },

@@ -7,12 +7,12 @@ import {
   PRINCIPLE_TC_ADEQUATELY,
   PRINCIPLE_TC_JUST,
 } from '../../canonical';
-import { buildEvidenceSubset } from '../../evidence/buildEvidence';
-import { buildJudgementPrompt } from '../prompt';
+import { buildEvidenceProfile } from '../../evidence/buildEvidence';
+import { buildJudgementPrompt, _PROMPT_EVIDENCE_ALLOW_LIST } from '../prompt';
 import { PRACTICE_TRANSCRIPT } from './fixtures';
 
 describe('buildJudgementPrompt', () => {
-  const evidence = buildEvidenceSubset(PRACTICE_TRANSCRIPT);
+  const evidence = buildEvidenceProfile(PRACTICE_TRANSCRIPT);
   const prompt = buildJudgementPrompt(PRACTICE_TRANSCRIPT, evidence);
 
   it('states examiner role', () => {
@@ -103,5 +103,15 @@ describe('buildJudgementPrompt', () => {
     expect(prompt).toContain(
       `${firstDurationRow.conversationId}: candidateSpeakingDurationS=${firstDurationRow.candidateSpeakingDurationS}`,
     );
+  });
+
+  it('rendered-field-set snapshot: prompt evidence allow-list is exactly the five Phase-0 subset fields (§10.3/Phase 3 exit criterion)', () => {
+    expect(_PROMPT_EVIDENCE_ALLOW_LIST).toEqual([
+      'timeFrameAlignmentByQuestion',
+      'responseCountsByQuestion',
+      'fillerDensityByQuestion',
+      'rolePlayPartsByTask',
+      'topicConversationDurationByConversation',
+    ]);
   });
 });

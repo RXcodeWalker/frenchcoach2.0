@@ -4,7 +4,7 @@ import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createFileEnvelopeStore } from '../fileEnvelopeStore';
 import { buildScoringEnvelope } from '../../../src/domain/igcse/envelope/buildEnvelope';
-import { buildEvidenceSubset } from '../../../src/domain/igcse/evidence/buildEvidence';
+import { buildEvidenceProfile } from '../../../src/domain/igcse/evidence/buildEvidence';
 import { buildValidJudgeOutput, PRACTICE_TRANSCRIPT } from '../../../src/domain/igcse/judgement/__tests__/fixtures';
 import { parseAndValidateJudgeOutput } from '../../../src/domain/igcse/judgement/schema';
 
@@ -26,7 +26,7 @@ function buildTestEnvelope(attemptId: string, sessionId: string) {
     scoredAt: '2026-07-10T00:00:00.000Z',
     transcript: PRACTICE_TRANSCRIPT,
     assessment,
-    evidenceProfile: buildEvidenceSubset(PRACTICE_TRANSCRIPT),
+    evidenceProfile: buildEvidenceProfile(PRACTICE_TRANSCRIPT),
     stt: {
       model: 'm',
       modelVersion: '1',

@@ -6,7 +6,7 @@
 
 import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
-import { buildEvidenceSubset } from '../../evidence/buildEvidence';
+import { buildEvidenceProfile } from '../../evidence/buildEvidence';
 import { buildJudgementPrompt } from '../prompt';
 import { SCORING_PROMPT_VERSION } from '../version';
 import { PRACTICE_TRANSCRIPT } from './fixtures';
@@ -19,7 +19,7 @@ function sha256(value: string): string {
 
 describe('scoring prompt version pin', () => {
   it('buildJudgementPrompt(PRACTICE_TRANSCRIPT, evidence) hash matches SCORING_PROMPT_FIXTURE_HASH', () => {
-    const evidence = buildEvidenceSubset(PRACTICE_TRANSCRIPT);
+    const evidence = buildEvidenceProfile(PRACTICE_TRANSCRIPT);
     const actual = sha256(buildJudgementPrompt(PRACTICE_TRANSCRIPT, evidence));
     expect(
       actual,

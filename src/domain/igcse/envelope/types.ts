@@ -10,11 +10,11 @@
  * 'unassessed' (S5 has not built the guardrails that would justify high/medium/low).
  */
 
-import type { EvidenceProfileSubset } from '../evidence/types';
+import type { EvidenceProfile } from '../evidence/types';
 import type { ContentProvenance, EvidenceSpan, SpeakingTranscript } from '../judgement/types';
 import type { SttMetadata } from '../stt/types';
 
-export const ENVELOPE_SCHEMA_VERSION = 'envelope-v0.1';
+export const ENVELOPE_SCHEMA_VERSION = 'envelope-v0.2';
 
 export interface VersionStack {
   /** Versions this envelope's own SHAPE — dispatched on like stt/schema.ts's schemaVersion. */
@@ -118,7 +118,7 @@ export interface ScoringEnvelope {
   selfConsistencyOutcomes: { agreement: 'single_run'; rerunsRequested: 0 };
 
   /** Audit/debug artifact only — never read back in as a scoring input. See replayEnvelope. */
-  evidenceProfileSnapshot: EvidenceProfileSubset;
+  evidenceProfileSnapshot: EvidenceProfile;
   /** Audit/debug artifact only — never read back in as a scoring input. See replayEnvelope. */
   transcriptSnapshot: SpeakingTranscript;
   regradedFrom?: string;

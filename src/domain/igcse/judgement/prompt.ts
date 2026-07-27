@@ -4,7 +4,7 @@
 
 import { IGCSE_0520_SPEAKING } from '../rubric';
 import type { MarkBand } from '../rubric';
-import type { EvidenceProfileSubset } from '../evidence/types';
+import type { EvidenceProfile } from '../evidence/types';
 import type { SpeakingTranscript } from './types';
 
 interface BandCriterion {
@@ -123,7 +123,22 @@ function formatTranscript(transcript: SpeakingTranscript): string {
   return lines.join('\n');
 }
 
-function formatEvidence(evidence: EvidenceProfileSubset): string {
+/**
+ * Phase 1 (§10.3 "Prompt-field allow-list", §9.5 R2 point 4): renders ONLY
+ * these five EvidenceProfileSubset fields, never the whole EvidenceProfile.
+ * New Phase-3 fields (observations, features, detectorRuns, ...) must NOT be
+ * added here without bumping SCORING_PROMPT_VERSION — see prompt.test.ts's
+ * rendered-field-set snapshot, which fails if this list silently grows.
+ */
+const PROMPT_EVIDENCE_ALLOW_LIST = [
+  'timeFrameAlignmentByQuestion',
+  'responseCountsByQuestion',
+  'fillerDensityByQuestion',
+  'rolePlayPartsByTask',
+  'topicConversationDurationByConversation',
+] as const;
+
+function formatEvidence(evidence: EvidenceProfile): string {
   const lines: string[] = [
     '## Layer 1 evidence (deterministic detector output — an input to your judgement, not a mark)',
     '',
@@ -178,7 +193,7 @@ function formatEvidence(evidence: EvidenceProfileSubset): string {
  */
 export function buildJudgementPrompt(
   transcript: SpeakingTranscript,
-  evidence: EvidenceProfileSubset,
+  evidence: EvidenceProfile,
   rubric = IGCSE_0520_SPEAKING,
 ): string {
   void rubric; // rubric param reserved for future versioning; content pulled from frozen export
@@ -218,3 +233,6 @@ export function buildJudgementPrompt(
 
 /** @internal Exported for tests — JSON contract snippet. */
 export const _JSON_OUTPUT_CONTRACT = JSON_OUTPUT_CONTRACT;
+
+/** @internal Exported for tests — the allow-list, so prompt.test.ts can snapshot it. */
+export const _PROMPT_EVIDENCE_ALLOW_LIST = PROMPT_EVIDENCE_ALLOW_LIST;
