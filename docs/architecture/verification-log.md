@@ -1122,3 +1122,70 @@ B and a separately-approved S11 content session, unchanged.
   mechanism (existing trigger + `content_hash` column) is in place and
   unexercised; no regrade/replay scenario has hit it yet since only one
   version of one set has ever been seeded.
+
+## Evidence-engine Phase 5 — L3 promotion hooks (calibration-ready, not calibrated)
+
+Implements the final phase of the deterministic-evidence-engine redesign
+(§10.6). Phase 3 shipped the full detector fleet; Phase 5 supplies the
+mechanism that decides whether any of those detectors may move a Cambridge
+mark — and ships it closed.
+
+### What landed
+
+- `evidence/framework/calibrationReferences.ts` — the promotion ledger.
+  `CALIBRATION_REFERENCES` is **empty by design**: no validation corpus exists
+  (constraint #5), so nothing is promotable. A reference is keyed by
+  `(detectorId, detectorVersion)`, so an output-changing detector edit
+  invalidates its own grant and drops it back to `forbidden` until re-measured.
+- `evidence/framework/markInfluence.ts` — `resolveMarkInfluence` computes
+  **effective** influence as `min(declared, authorised)`. `detector.
+  defaultMarkInfluence` is treated as untrusted intent: a detector declaring
+  `eligible` without a ledger entry is pinned to `forbidden` at runtime *and*
+  fails CI, so the mistake is loud rather than merely harmless.
+- `GRANDFATHERED_ADVISORY_DETECTORS` — the closed 5-item list (`counts`,
+  `duration`, `fillers`, `parts`, `time-frame`) preserving the influence those
+  detectors already have in shipped behaviour (§10.3 footnote: "No existing
+  influence changes"). Capped at `advisory`; grandfathering can never grant
+  `eligible`. Phase 5 must not silently *revoke* influence any more than it may
+  silently grant it.
+- `guardrails/evidenceCeilings.ts` + `config.ts::EVIDENCE_CEILINGS` — the L3
+  hook. Two independent gates must both open for a mark to move: the detector
+  resolves to `eligible`, **and** a ceiling entry exists carrying a sourced
+  threshold. Both ship closed, so `runGuardrails` remains advisory-only.
+- `guardrails/__tests__/no-uncalibrated-influence.test.ts` — the CI guard that
+  turns "accelerate build, gate influence" from a discipline into a
+  mechanically-enforced invariant.
+
+### Verification
+
+- **Full suite green**: 893 tests / 126 files, including 9 new
+  no-uncalibrated-influence assertions and 7 new ceiling/resolver tests.
+- **Zero mark movement** (the Phase 5 exit criterion): regenerating all five
+  scoring goldens produced a 2-line diff across 2 files — `guardrailsVersion:
+  guardrails-v0.1 → v0.2` and nothing else. Every mark, evidence field, and
+  guardrail trigger is byte-identical.
+- **Version discipline**: `GuardrailReport` gained `adjustments`, changing the
+  version-pin hash exactly as intended; `GUARDRAILS_VERSION` bumped and
+  `GUARDRAILS_FIXTURE_HASH` re-pinned in the same commit. `EVIDENCE_CEILINGS`
+  was added to the hashed inputs so a future ceiling cannot be added without a
+  version bump.
+- **Typecheck**: zero errors in any touched file. The 67 pre-existing errors
+  (all `src/screens/*.tsx`, unrelated) are unchanged — confirmed by comparing
+  against a stashed clean tree.
+- **Prompt channel**: the second mark-influence route (§9.5 R2 point 4) is
+  pinned by an assertion that `_PROMPT_EVIDENCE_ALLOW_LIST` still contains
+  exactly the five audited subset fields.
+
+### Explicitly deferred / not yet landed
+
+- **Any actual promotion.** No detector advances past `forbidden` here, because
+  promotion requires a measured correlation against teacher marks on a held-out
+  set (S6/S9). Adding a `CalibrationReference` is a validation event, not a code
+  cleanup — and it is expected to move marks, which is validated behaviour, not
+  a regression.
+- **Every L3 ceiling number.** `EVIDENCE_CEILINGS` is empty and no threshold
+  constant was invented; a mark-capping value must be Cambridge-sourced or
+  Phase-C-signed-off (constraint #2). There is deliberately no `UNVALIDATED`
+  escape hatch for a number that clamps a real mark.
+- **`unscored` short-circuit on insufficient evidence** — still advisory, as in
+  S5; unchanged by this phase.

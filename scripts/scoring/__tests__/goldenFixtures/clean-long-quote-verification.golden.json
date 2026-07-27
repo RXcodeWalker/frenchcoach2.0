@@ -7871,7 +7871,7 @@
       "scoringEngineVersion": "golden-fixture",
       "evidenceDetectorVersion": "detectors-v0.4",
       "scoringPromptVersion": "scoring-prompt-v0.2",
-      "guardrailsVersion": "guardrails-v0.1",
+      "guardrailsVersion": "guardrails-v0.2",
       "calibrationVersion": "none",
       "gradeBoundarySeries": "none"
     },

@@ -4,6 +4,7 @@ import { responseCountsByQuestion } from './counts';
 import { topicConversationDurationByConversation } from './duration';
 import { projectFeatures } from './features/project';
 import { fillerDensityByQuestion } from './fillers';
+import type { Detector } from './framework/detector';
 import { LEGACY_DETECTORS } from './framework/legacyDetectors';
 import { PHASE3_DETECTORS } from './framework/phase3Detectors';
 import { DetectorRegistry } from './framework/registry';
@@ -20,6 +21,17 @@ const LEGACY_REGISTRY = new DetectorRegistry(LEGACY_DETECTORS);
  * dependsOn on a legacy id never accidentally collide with one.
  */
 const FULL_REGISTRY = new DetectorRegistry([...LEGACY_DETECTORS, ...PHASE3_DETECTORS]);
+
+/**
+ * Phase 5 (§10.6): the registered fleet, exposed read-only so L3 and the
+ * `no-uncalibrated-influence` CI guard can enumerate every detector's declared
+ * mark-influence. Exported as a list rather than the registry itself to keep
+ * `FULL_REGISTRY` the sole orchestration entry point (§9.4 R1 — the runner must
+ * not acquire a second caller).
+ */
+export function registeredDetectors(): readonly Detector[] {
+  return FULL_REGISTRY.list();
+}
 
 /**
  * Phase 0 (§10.7): delegates to the registry/runner for detector bookkeeping

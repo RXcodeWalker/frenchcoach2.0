@@ -7,13 +7,13 @@
 
 import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
-import { buildEvidenceSubset } from '../../evidence/buildEvidence';
-import { DEFAULT_DURATION_CONFIG } from '../config';
+import { buildEvidenceProfile } from '../../evidence/buildEvidence';
+import { DEFAULT_DURATION_CONFIG, EVIDENCE_CEILINGS } from '../config';
 import { runGuardrails } from '../runGuardrails';
 import { GUARDRAILS_VERSION } from '../version';
 import { CLEAN_ASSESSMENT, CLEAN_LONG_TRANSCRIPT } from './synthetic';
 
-const GUARDRAILS_FIXTURE_HASH = '0ea98a83c910b1c4c94ecc3fbae95a90194235670fb1541e3ce0f7bf363de692';
+const GUARDRAILS_FIXTURE_HASH = '814903a73418e9305ff9e3898da0f9c80a7506709058f98fb11b48fd95e657f6';
 
 function sha256(value: unknown): string {
   return createHash('sha256').update(JSON.stringify(value)).digest('hex');
@@ -21,9 +21,16 @@ function sha256(value: unknown): string {
 
 describe('guardrails version pin', () => {
   it('runGuardrails(CLEAN_LONG_TRANSCRIPT) output + config hash matches GUARDRAILS_FIXTURE_HASH', () => {
-    const evidence = buildEvidenceSubset(CLEAN_LONG_TRANSCRIPT);
+    const evidence = buildEvidenceProfile(CLEAN_LONG_TRANSCRIPT);
     const report = runGuardrails(CLEAN_ASSESSMENT, evidence, CLEAN_LONG_TRANSCRIPT);
-    const actual = sha256({ config: DEFAULT_DURATION_CONFIG, report });
+    // Phase 5: EVIDENCE_CEILINGS joins the hashed inputs for the same reason
+    // DEFAULT_DURATION_CONFIG is here — promoting a detector by adding a ceiling
+    // must be impossible without a GUARDRAILS_VERSION bump in the same commit.
+    const actual = sha256({
+      config: DEFAULT_DURATION_CONFIG,
+      ceilings: EVIDENCE_CEILINGS,
+      report,
+    });
 
     expect(
       actual,

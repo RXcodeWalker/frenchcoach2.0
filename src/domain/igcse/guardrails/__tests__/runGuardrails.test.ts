@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildEvidenceSubset } from '../../evidence/buildEvidence';
+import { buildEvidenceProfile } from '../../evidence/buildEvidence';
 import { runGuardrails } from '../runGuardrails';
 import {
   CLEAN_ASSESSMENT,
@@ -10,13 +10,15 @@ import {
 
 describe('runGuardrails', () => {
   it('returns no triggers for fully clean input', () => {
-    const evidence = buildEvidenceSubset(CLEAN_LONG_TRANSCRIPT);
+    const evidence = buildEvidenceProfile(CLEAN_LONG_TRANSCRIPT);
     const report = runGuardrails(CLEAN_ASSESSMENT, evidence, CLEAN_LONG_TRANSCRIPT);
-    expect(report).toEqual({ triggers: [] });
+    // Phase 5: `adjustments` is empty because no detector is calibrated to
+    // `eligible` and EVIDENCE_CEILINGS is empty — L3 stays advisory-only.
+    expect(report).toEqual({ triggers: [], adjustments: [] });
   });
 
   it('returns both trigger kinds when both guardrails fire', () => {
-    const evidence = buildEvidenceSubset(LOW_WORD_COUNT_TRANSCRIPT);
+    const evidence = buildEvidenceProfile(LOW_WORD_COUNT_TRANSCRIPT);
     const report = runGuardrails(FABRICATED_QUOTE_ASSESSMENT, evidence, LOW_WORD_COUNT_TRANSCRIPT);
 
     const ids = new Set(report.triggers.map((t) => t.id));
