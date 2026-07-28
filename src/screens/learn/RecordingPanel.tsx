@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mic, MicOff } from 'lucide-react';
-import { Waveform } from '../../features/recording/Waveform';
+import { ScrollingWaveform } from '../../features/recording/ScrollingWaveform';
 import { formatTime } from '../../domain/time';
 import type { RecordingState } from '../../features/recording/useRecording';
 
@@ -18,7 +18,7 @@ export function RecordingPanel({ isActive, recording, onStop }: Props) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
     >
-      <Waveform data={recording.waveData} isRecording={recording.isRecording} source={recording.micLevel} />
+      <ScrollingWaveform isRecording={recording.isRecording} source={recording.micLevel} />
 
       <AnimatePresence>
         {recording.isRecording && (
