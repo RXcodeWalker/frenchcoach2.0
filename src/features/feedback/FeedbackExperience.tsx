@@ -14,12 +14,14 @@ import { ExpansionIdeasCard } from './components/ExpansionIdeasCard';
 import { AdvancedAnswerCard } from './components/AdvancedAnswerCard';
 import { VocabularyCard } from './components/VocabularyCard';
 import { PronunciationCard } from './components/PronunciationCard';
+import { AzurePronunciationCard } from './components/AzurePronunciationCard';
 import { FeedbackFooter } from './components/FeedbackFooter';
 import { MinimalResponseCard } from './components/MinimalResponseCard';
 import { OfflineLimitationsBanner } from '../../screens/learn/OfflineLimitationsBanner';
 import { FailoverBadge } from '../../screens/learn/FailoverBadge';
 import { ReEvaluateBar } from '../../screens/learn/ReEvaluateBar';
 import type { FeedbackV2, AIEngine, EngineResult } from '../../types';
+import type { PronunciationAssessment } from '../../domain/pronunciation/types';
 
 function CardSkeleton() {
   return (
@@ -63,12 +65,15 @@ interface Props {
   onComplete: () => void;
   onReEvaluate: (engine: AIEngine) => void;
   onSwitchEngine: (engine: AIEngine) => void;
+  /** Azure pronunciation (Learn-only). When present/pending, suppresses the legacy 0-10 card. */
+  pronunciationResult?: PronunciationAssessment | null;
+  pronunciationStatus?: 'idle' | 'pending' | 'done' | 'failed';
 }
 
 function FeedbackContent({
   feedback, transcript, modelAnswer, onRetry, onComplete,
   engineResults, activeEngine, isReEvaluating, reEvaluatingEngine,
-  onReEvaluate, onSwitchEngine,
+  onReEvaluate, onSwitchEngine, pronunciationResult, pronunciationStatus,
 }: Omit<Props, 'isLoading' | 'feedback'> & { feedback: FeedbackV2 }) {
   const { majorIssues, polishIssues, openCardFromIssue } = useFeedbackState(feedback);
 
@@ -137,8 +142,21 @@ function FeedbackContent({
       {/* Vocabulary upgrades */}
       <VocabularyCard feedback={feedback} />
 
-      {/* Pronunciation */}
-      <PronunciationCard feedback={feedback} />
+      {/* Pronunciation — Azure (0-100, real acoustic analysis) supersedes the legacy
+          0-10 Gemini-prompt field whenever a Learn attempt has an audio blob. Never
+          rendered together: mixing scales on one screen would mislead the learner. */}
+      {pronunciationStatus && pronunciationStatus !== 'idle' ? (
+        pronunciationResult ? (
+          <AzurePronunciationCard result={pronunciationResult} />
+        ) : pronunciationStatus === 'pending' ? (
+          <div className="rounded-xl glass p-4 flex items-center gap-2.5">
+            <Loader2 size={14} className="text-cyan-400 animate-spin shrink-0" />
+            <p className="text-[10px] text-slate-500">Analysing pronunciation…</p>
+          </div>
+        ) : null
+      ) : (
+        <PronunciationCard feedback={feedback} />
+      )}
 
       <ReEvaluateBar
         engineResults={engineResults}
@@ -161,7 +179,7 @@ function FeedbackContent({
 export function FeedbackExperience({
   feedback, isLoading, partialFeedback, streamPhase, transcript, modelAnswer, onRetry, onComplete,
   engineResults, activeEngine, isReEvaluating, reEvaluatingEngine,
-  onReEvaluate, onSwitchEngine,
+  onReEvaluate, onSwitchEngine, pronunciationResult, pronunciationStatus,
 }: Props) {
   const p = partialFeedback;
   const isStreaming = !feedback && p != null;
@@ -226,6 +244,8 @@ export function FeedbackExperience({
           reEvaluatingEngine={reEvaluatingEngine}
           onReEvaluate={onReEvaluate}
           onSwitchEngine={onSwitchEngine}
+          pronunciationResult={pronunciationResult}
+          pronunciationStatus={pronunciationStatus}
         />
       </FeedbackProvider>
     </AnimatePresence>

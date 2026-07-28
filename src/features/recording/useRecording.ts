@@ -40,6 +40,13 @@ export interface RecordingState {
   micLevel: MicLevelController;
   start: () => void;
   stop: () => Promise<string>;
+  /**
+   * Resolves once the audio blob is actually finalized inside MediaRecorder's
+   * onstop handler — unlike `audioBlob` (React state), this never reads stale
+   * data from before the current stop() call. Resolves null if no recorder
+   * was active (e.g. mic permission denied).
+   */
+  audioBlobPromise: () => Promise<Blob | null>;
 }
 
 export function useRecording(): RecordingState {
@@ -61,6 +68,7 @@ export function useRecording(): RecordingState {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef        = useRef<Blob[]>([]);
   const streamRef        = useRef<MediaStream | null>(null);
+  const blobResolveRef   = useRef<((b: Blob | null) => void) | null>(null);
 
   useEffect(() => {
     return () => {
@@ -160,8 +168,14 @@ export function useRecording(): RecordingState {
         setAudioBlob(blob);
         streamRef.current?.getTracks().forEach(t => t.stop());
         streamRef.current = null;
+        blobResolveRef.current?.(blob);
+        blobResolveRef.current = null;
       };
       mediaRecorderRef.current.stop();
+    } else {
+      // No active recorder (e.g. permission denied) — resolve null immediately.
+      blobResolveRef.current?.(null);
+      blobResolveRef.current = null;
     }
 
     return new Promise(resolve => {
@@ -175,5 +189,11 @@ export function useRecording(): RecordingState {
     });
   }, [micLevel]);
 
-  return { isRecording, elapsedTime, waveData, transcript, audioBlob, lastActivityAt, micLevel, start, stop };
+  const audioBlobPromise = useCallback((): Promise<Blob | null> => {
+    return new Promise(resolve => {
+      blobResolveRef.current = resolve;
+    });
+  }, []);
+
+  return { isRecording, elapsedTime, waveData, transcript, audioBlob, lastActivityAt, micLevel, start, stop, audioBlobPromise };
 }

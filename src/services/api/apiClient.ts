@@ -6,6 +6,7 @@ import { buildSkillContext } from '../coaching/diagnosticEngine';
 import { classifyTier, buildTier0Result, buildTier1LocalResult } from '../coaching/responseTier';
 import { applyQualityGate } from '../coaching/qualityGate';
 import { validateBackendFeedback, SchemaValidationError } from './feedbackSchema';
+import { getGroundedExaminerFeedback, type ExaminerFeedback } from '../coaching/examinerFeedback';
 
 // Prod: same-origin '/api/*' proxied to the backend by Vercel (see vercel.json)
 // to avoid CORS. Dev: call the backend directly.
@@ -400,6 +401,61 @@ export async function getAIFeedback(
 }
 
 export type { EngineMetadata };
+
+// ── Examiner-mode feedback ──────────────────────────────────────────────────
+//
+// Deliberately routed through the same /api/feedback/v3 endpoint (Gemini→Groq
+// chain) with a `feedbackMode: 'examiner'` flag — not a separate endpoint, and
+// NOT /api/feedback/igcse (that is the legacy invented scorer, unrelated to
+// the audited src/domain/igcse engine or to this examiner-voice practice
+// commentary). The response shape is ExaminerFeedback, never merged into
+// FeedbackV2 — that type always carries a numeric `scores`, and examiner mode
+// must never fabricate one.
+//
+// The rubric-sourced prompt (buildExaminerPrompt) is built HERE, client-side,
+// from src/domain/igcse/rubric.ts — the only place the sourced 0520 descriptor
+// text lives. The backend has no Python copy of the rubric; it only relays
+// whatever prompt this client sends to the LLM and returns raw JSON. Grounding
+// and the one-retry rule (getGroundedExaminerFeedback) also run client-side so
+// every quote is checked against the exact transcript this client holds.
+
+export class ExaminerFeedbackUnavailableError extends Error {
+  constructor() {
+    super('Could not get examiner feedback for that answer. Check your connection and try again.');
+    this.name = 'ExaminerFeedbackUnavailableError';
+  }
+}
+
+async function callExaminerModel(prompt: string, signal: AbortSignal): Promise<ExaminerFeedback> {
+  const raw = await postWithSignal<Partial<ExaminerFeedback>>(
+    '/api/feedback/v3',
+    { feedbackMode: 'examiner' as const, prompt },
+    signal,
+  );
+  return {
+    currentDescriptorCommentary: raw.currentDescriptorCommentary ?? [],
+    improvementCommentary: raw.improvementCommentary ?? [],
+  };
+}
+
+export async function getExaminerFeedback(
+  transcript: string,
+  question: Question,
+  signal: AbortSignal,
+): Promise<ExaminerFeedback> {
+  try {
+    return await getGroundedExaminerFeedback(question.text, transcript, (prompt) =>
+      callExaminerModel(prompt, signal),
+    );
+  } catch (err) {
+    if ((err as Error).name === 'AbortError') throw err;
+    if (err instanceof Error && err.name === 'ExaminerGroundingFailedError') throw err;
+    // E1 parity: examiner mode has no offline fallback voice — a total
+    // network failure must surface an honest error, never coach-voice
+    // offline output silently substituted in.
+    throw new ExaminerFeedbackUnavailableError();
+  }
+}
 
 // ── Streaming feedback ────────────────────────────────────────────────────────
 

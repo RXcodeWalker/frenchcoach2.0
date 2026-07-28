@@ -370,6 +370,12 @@ export interface CoachingLayer {
 
 export type AIEngine = 'gemini' | 'groq' | 'offline';
 
+// ── Feedback Voice ───────────────────────────────────────────────────────────
+// 'coach' = free-form Gemini/Groq coaching (existing FeedbackV2 scores).
+// 'examiner' = Cambridge 0520 descriptor-language commentary on structures/vocabulary
+// only, no mark/band/total — see src/services/coaching/examinerFeedback.ts.
+export type FeedbackMode = 'coach' | 'examiner';
+
 // ── Learner Difficulty / Proficiency Tier ────────────────────────────────────
 
 export type DifficultyTier = 'beginner' | 'intermediate' | 'advanced' | 'expert';

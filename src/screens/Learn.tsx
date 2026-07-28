@@ -3,7 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { TOPICS } from '../data/gameData';
 import { useItem } from '../services/progression/progressionService';
-import { getAIFeedback, streamFeedback } from '../services/api/apiClient';
+import { getAIFeedback, streamFeedback, getExaminerFeedback } from '../services/api/apiClient';
+import { assessPronunciation } from '../services/pronunciation/pronunciationClient';
+import type { PronunciationAssessment } from '../domain/pronunciation/types';
+import { ExaminerFeedbackCard } from '../features/feedback/components/ExaminerFeedbackCard';
+import type { ExaminerFeedback } from '../services/coaching/examinerFeedback';
 import { getSkillProfile, buildSkillContext, detectAvoidance } from '../services/coaching/diagnosticEngine';
 import { orchestrateAttempt } from '../services/coach/sessionOrchestrator';
 import { getActiveRecommendation, setRecommendationStatus, generateRecommendation } from '../services/coach/recommendationEngine';
@@ -29,7 +33,7 @@ import { DIFFICULTY_CONFIG } from '../utils/difficultyConfig';
 import { updateTopicMastery } from '../services/analytics/analyticsService';
 import { computeXPGain, computeParticipationXPGain } from '../domain/xp';
 import { isUnscored, averageRealScores } from '../domain/scoring';
-import type { Topic, Session, FeedbackV2, ActiveSession, SessionMode, SessionQuestion, AIEngine, EngineResult } from '../types/index';
+import type { Topic, Session, FeedbackV2, ActiveSession, SessionMode, SessionQuestion, AIEngine, EngineResult, FeedbackMode } from '../types/index';
 
 type LearnState = 'topics' | 'session_start' | 'question' | 'recording' | 'feedback' | 'session_summary';
 
@@ -49,6 +53,8 @@ export function Learn() {
 
   // Engine selection state
   const [selectedEngine, setSelectedEngine] = useState<AIEngine>(preferredEngine);
+  // Coach voice (free-form scores) vs examiner voice (Cambridge descriptor language, no marks).
+  const [feedbackMode, setFeedbackMode] = useState<FeedbackMode>('coach');
   // Per-question evaluation cache: Map<AIEngine, EngineResult>
   const [engineResults, setEngineResults] = useState<Map<AIEngine, EngineResult>>(new Map());
   const [activeResultEngine, setActiveResultEngine] = useState<AIEngine | null>(null);
@@ -56,6 +62,11 @@ export function Learn() {
   const [reEvaluatingEngine, setReEvaluatingEngine] = useState<AIEngine | null>(null);
   // E1: honest error state when feedback could not be produced at all — never a fabricated score.
   const [feedbackErrorMessage, setFeedbackErrorMessage] = useState<string | null>(null);
+  // Examiner mode result — separate from FeedbackV2 (which always carries a numeric
+  // score); examiner mode must never fabricate one. No session/XP finalization runs
+  // for an examiner-mode attempt — there is no score to record.
+  const [examinerStatus, setExaminerStatus] = useState<'idle' | 'pending' | 'done' | 'failed'>('idle');
+  const [examinerFeedbackResult, setExaminerFeedbackResult] = useState<ExaminerFeedback | null>(null);
   const [drillSkillId, setDrillSkillId] = useState<string | null>(null);
   const [showDrillModal, setShowDrillModal] = useState(false);
   const [activeProblem, setActiveProblem] = useState<LearningProblem | null>(null);
@@ -66,11 +77,24 @@ export function Learn() {
   const [streamPhase, setStreamPhase] = useState<'transcribing' | 'generating' | 'complete' | null>(null);
   const streamAbortRef = useRef<AbortController | null>(null);
 
+  // Azure pronunciation (Learn-only; separate lifecycle from the coaching stream —
+  // never delays feedback, never blurs into FeedbackV2's legacy 0-10 field).
+  const [pronunciationStatus, setPronunciationStatus] = useState<'idle' | 'pending' | 'done' | 'failed'>('idle');
+  const [pronunciationResult, setPronunciationResult] = useState<PronunciationAssessment | null>(null);
+  const pronunciationAbortRef = useRef<AbortController | null>(null);
+  // Single generation counter guarding both the feedback stream and the pronunciation
+  // call — belt-and-braces alongside AbortController so a race can never write stale
+  // state even if an abort signal is slow to land.
+  const attemptIdRef = useRef(0);
+
   const recording = useRecording();
 
-  // Abort stream on unmount
+  // Abort stream + pronunciation call on unmount
   useEffect(() => {
-    return () => { streamAbortRef.current?.abort(); };
+    return () => {
+      streamAbortRef.current?.abort();
+      pronunciationAbortRef.current?.abort();
+    };
   }, []);
 
   const currentQuestion = activeSession
@@ -290,10 +314,12 @@ export function Learn() {
   const handleStopRecording = async () => {
     if (!activeSession || !currentQuestion) return;
 
-    // Abort any previous in-flight stream
+    // New attempt: abort any previous in-flight stream + pronunciation call
     streamAbortRef.current?.abort();
+    pronunciationAbortRef.current?.abort();
     const controller = new AbortController();
     streamAbortRef.current = controller;
+    const myAttemptId = ++attemptIdRef.current;
 
     const transcript = await recording.stop();
     setLearnState('feedback');
@@ -302,6 +328,60 @@ export function Learn() {
     setStreamPhase(null);
     setEngineResults(new Map());
     setActiveResultEngine(null);
+    setPronunciationStatus('idle');
+    setPronunciationResult(null);
+    setExaminerStatus('idle');
+    setExaminerFeedbackResult(null);
+
+    // Fire Azure pronunciation assessment concurrently — never awaited before
+    // rendering feedback. The blob resolves asynchronously inside MediaRecorder's
+    // onstop, so audioBlobPromise() (not recording.audioBlob) is the only
+    // reliable way to get it for THIS attempt.
+    void (async () => {
+      const blob = await recording.audioBlobPromise();
+      if (!blob || myAttemptId !== attemptIdRef.current) return;
+
+      const pronunciationController = new AbortController();
+      pronunciationAbortRef.current = pronunciationController;
+      setPronunciationStatus('pending');
+      try {
+        const result = await assessPronunciation({
+          audioBlob: blob,
+          targetText: transcript,
+          source: 'learn',
+        });
+        if (myAttemptId !== attemptIdRef.current) return;
+        setPronunciationResult(result);
+        setPronunciationStatus('done');
+      } catch {
+        if (myAttemptId !== attemptIdRef.current) return;
+        setPronunciationStatus('failed');
+      } finally {
+        if (myAttemptId === attemptIdRef.current) {
+          pronunciationAbortRef.current = null;
+        }
+      }
+    })();
+
+    // Examiner mode: entirely separate from the coach path below — no
+    // streaming, no XP/session finalization (there is no score to record),
+    // no offline fallback voice. A total failure surfaces the honest error
+    // card with a "switch to coach mode" escape hatch.
+    if (feedbackMode === 'examiner') {
+      setIsLoadingFeedback(false);
+      setExaminerStatus('pending');
+      try {
+        const result = await getExaminerFeedback(transcript, currentQuestion, controller.signal);
+        if (myAttemptId !== attemptIdRef.current) return;
+        setExaminerFeedbackResult(result);
+        setExaminerStatus('done');
+      } catch (err) {
+        if ((err as Error).name === 'AbortError') return;
+        if (myAttemptId !== attemptIdRef.current) return;
+        setExaminerStatus('failed');
+      }
+      return;
+    }
 
     const elapsed = recording.elapsedTime;
     const skillContext = buildSkillContext();
@@ -495,6 +575,8 @@ export function Learn() {
     // Clear evaluation cache for the next question
     setEngineResults(new Map());
     setActiveResultEngine(null);
+    setExaminerStatus('idle');
+    setExaminerFeedbackResult(null);
 
     const streak = updatedSession.answerStreak;
     if (streak === 3 || streak === 5) {
@@ -570,8 +652,15 @@ export function Learn() {
     setShowHint(false);
     setEngineResults(new Map());
     setActiveResultEngine(null);
+    setExaminerStatus('idle');
+    setExaminerFeedbackResult(null);
     recording.stop();
     setLearnState('question');
+  };
+
+  const handleSwitchToCoachMode = () => {
+    setFeedbackMode('coach');
+    handleRetry();
   };
 
   const handleContinueTopic = () => {
@@ -725,6 +814,33 @@ export function Learn() {
                 />
               )}
 
+              {(learnState === 'question' || learnState === 'recording') && (
+                <div className="flex items-center justify-center gap-1.5 -mb-1">
+                  {(['coach', 'examiner'] as const).map((mode) => {
+                    const disabled = isLoadingFeedback || recording.isRecording;
+                    const active = feedbackMode === mode;
+                    return (
+                      <button
+                        key={mode}
+                        type="button"
+                        disabled={disabled}
+                        onClick={() => !disabled && setFeedbackMode(mode)}
+                        title={mode === 'examiner' ? 'Cambridge examiner-style commentary — no marks' : 'Free-form coaching feedback'}
+                        className={`px-3 py-1.5 rounded-full text-[10px] font-bold border transition-colors ${
+                          active
+                            ? mode === 'examiner'
+                              ? 'border-amber-400/50 text-amber-300 bg-amber-400/10'
+                              : 'border-violet-400/50 text-violet-300 bg-violet-400/10'
+                            : 'border-transparent text-slate-500 hover:text-slate-300'
+                        } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      >
+                        {mode === 'examiner' ? 'Examiner voice' : 'Coach voice'}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
               <RecordingPanel
                 isActive={learnState === 'question' || learnState === 'recording'}
                 recording={recording}
@@ -753,7 +869,27 @@ export function Learn() {
                 </motion.div>
               )}
 
-              {learnState === 'feedback' && (
+              {learnState === 'feedback' && feedbackMode === 'examiner' && (
+                <div className="space-y-3">
+                  <ExaminerFeedbackCard
+                    status={examinerStatus === 'idle' ? 'pending' : examinerStatus}
+                    result={examinerFeedbackResult}
+                    onSwitchToCoach={handleSwitchToCoachMode}
+                    onRetry={handleRetry}
+                  />
+                  {examinerStatus === 'done' && (
+                    <button
+                      type="button"
+                      onClick={advanceQuestion}
+                      className="w-full py-3 rounded-xl bg-violet-500/15 border border-violet-500/30 text-violet-300 font-bold text-sm hover:bg-violet-500/25 transition-colors"
+                    >
+                      Continue
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {learnState === 'feedback' && feedbackMode === 'coach' && (
                 <FeedbackExperience
                   feedback={feedback}
                   isLoading={isLoadingFeedback}
@@ -769,6 +905,8 @@ export function Learn() {
                   onComplete={advanceQuestion}
                   onReEvaluate={handleReEvaluate}
                   onSwitchEngine={handleSwitchEngine}
+                  pronunciationResult={pronunciationResult}
+                  pronunciationStatus={pronunciationStatus}
                 />
               )}
             </motion.div>
