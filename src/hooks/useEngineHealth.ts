@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { EngineHealth } from '../types';
 
 export interface EngineHealthState {
@@ -13,6 +13,11 @@ const API_BASE = import.meta.env.PROD
   ? ''
   : ((import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000');
 const HEALTH_TIMEOUT_MS = 4000;
+// Recheck fast while anything is unhealthy (e.g. a Render cold start warming up)
+// so the UI self-heals within a few polls instead of staying stuck until reload.
+// Once everything is healthy, back off to a slow poll that just watches for regressions.
+const RECHECK_UNHEALTHY_MS = 5000;
+const RECHECK_HEALTHY_MS = 60000;
 
 // Backend's /health probes both engines in a single call (60s-cached) — there is
 // no per-engine query param, so one fetch covers both statuses.
@@ -55,16 +60,33 @@ export function useEngineHealth(): EngineHealthState {
     groq: 'checking',
     offline: 'healthy',
   });
-
-  const check = useCallback(async () => {
-    setHealth(prev => ({ ...prev, gemini: 'checking', groq: 'checking' }));
-    const { gemini, groq } = await pingEngines();
-    setHealth({ gemini, groq, offline: 'healthy' });
-  }, []);
+  const mountedRef = useRef(true);
 
   useEffect(() => {
-    check();
-  }, [check]);
+    mountedRef.current = true;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
+    const run = async (isFirstCheck: boolean) => {
+      // Only show the "checking" state on the very first probe — once we have a
+      // real reading, background re-polls should update silently instead of
+      // flickering the whole card back to "checking" every few seconds.
+      if (isFirstCheck) {
+        setHealth(prev => ({ ...prev, gemini: 'checking', groq: 'checking' }));
+      }
+      const { gemini, groq } = await pingEngines();
+      if (!mountedRef.current) return;
+      setHealth({ gemini, groq, offline: 'healthy' });
+      const allHealthy = gemini === 'healthy' && groq === 'healthy';
+      timer = setTimeout(() => run(false), allHealthy ? RECHECK_HEALTHY_MS : RECHECK_UNHEALTHY_MS);
+    };
+
+    run(true);
+
+    return () => {
+      mountedRef.current = false;
+      if (timer) clearTimeout(timer);
+    };
+  }, []);
 
   return health;
 }
