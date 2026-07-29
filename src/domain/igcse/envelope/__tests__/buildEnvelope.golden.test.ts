@@ -59,7 +59,7 @@ describe('buildScoringEnvelope golden regression', () => {
       scoredAt: FIXED_SCORED_AT,
       contentProvenance: 'original-practice',
       versions: {
-        envelopeSchemaVersion: 'envelope-v0.2',
+        envelopeSchemaVersion: 'envelope-v0.3',
         rubricVersion: 'rubric-v0.1',
         scoringEngineVersion: 'engine-v0.1',
         evidenceDetectorVersion: 'detectors-v0.1',
@@ -115,7 +115,11 @@ describe('buildScoringEnvelope golden regression', () => {
         justification: expect.any(String),
         evidenceSpans: expect.any(Array),
       },
+      // Unchanged by Workstream C: with no clamp, recomputing
+      // rolePlay.total + communication.mark + qualityOfLanguage.mark is
+      // identity over assessment.total (which schema.ts derives the same way).
       total: 25,
+      criterionAdjustments: [],
       guardrailTriggers: [],
       selfConsistencyOutcomes: { agreement: 'single_run', rerunsRequested: 0 },
       evidenceProfileSnapshot: buildEvidenceProfile(PRACTICE_TRANSCRIPT),

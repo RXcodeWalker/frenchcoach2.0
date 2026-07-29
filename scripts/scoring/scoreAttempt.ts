@@ -118,6 +118,10 @@ export async function scoreAttempt(
       guardrailsVersion: deps.versions?.guardrailsVersion ?? GUARDRAILS_VERSION,
     },
     guardrailTriggers: guardrailReport.triggers.map((t) => t.id),
+    // Workstream C: L3's clamps reach the envelope, where buildScoringEnvelope
+    // applies them to the criterion mark/band and the total. Always [] until a
+    // detector is promoted to `eligible` with a sourced ceiling.
+    criterionAdjustments: guardrailReport.adjustments,
     ...(input.regradedFrom !== undefined ? { regradedFrom: input.regradedFrom } : {}),
   });
 

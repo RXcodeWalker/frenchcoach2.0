@@ -11,10 +11,16 @@
  */
 
 import type { EvidenceProfile } from '../evidence/types';
+import type { CriterionAdjustment } from '../guardrails/types';
 import type { ContentProvenance, EvidenceSpan, SpeakingTranscript } from '../judgement/types';
 import type { SttMetadata } from '../stt/types';
 
-export const ENVELOPE_SCHEMA_VERSION = 'envelope-v0.2';
+/**
+ * v0.3 (Workstream C): added `criterionAdjustments`, the audit record of any L3
+ * evidence ceiling applied to a criterion mark. Always [] while
+ * EVIDENCE_CEILINGS is empty.
+ */
+export const ENVELOPE_SCHEMA_VERSION = 'envelope-v0.3';
 
 export interface VersionStack {
   /** Versions this envelope's own SHAPE — dispatched on like stt/schema.ts's schemaVersion. */
@@ -109,9 +115,22 @@ export interface ScoringEnvelope {
   questionSetHash?: string;
 
   rolePlayTasks: EnvelopeRolePlayTask[];
+  /** Post-clamp. When a ceiling applied, `criterionAdjustments` holds L2's proposed mark. */
   communication: EnvelopeBandCriterion;
+  /** Post-clamp — see `communication`. */
   qualityOfLanguage: EnvelopeBandCriterion;
+  /** rolePlay.total + communication.mark + qualityOfLanguage.mark, recomputed after any clamp. */
   total: number;
+
+  /**
+   * Workstream C: every L3 evidence ceiling that moved a mark, carrying both
+   * L2's proposed mark and the clamped final mark — so the judge's original
+   * proposal is never lost from the audit trail (§3.5: L3 produces a ceiling
+   * and a confidence, not a replacement judgement).
+   *
+   * Always [] today: EVIDENCE_CEILINGS is empty and no detector is `eligible`.
+   */
+  criterionAdjustments: CriterionAdjustment[];
 
   /** S5: guardrail trigger ids from runGuardrails (advisory only — see guardrails/). */
   guardrailTriggers: string[];

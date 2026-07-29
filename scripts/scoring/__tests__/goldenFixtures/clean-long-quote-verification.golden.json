@@ -7866,12 +7866,12 @@
     "scoredAt": "2025-01-01T00:00:00.000Z",
     "contentProvenance": "original-practice",
     "versions": {
-      "envelopeSchemaVersion": "envelope-v0.2",
+      "envelopeSchemaVersion": "envelope-v0.3",
       "rubricVersion": "rubric-v0.1",
       "scoringEngineVersion": "golden-fixture",
       "evidenceDetectorVersion": "detectors-v0.4",
       "scoringPromptVersion": "scoring-prompt-v0.2",
-      "guardrailsVersion": "guardrails-v0.2",
+      "guardrailsVersion": "guardrails-v0.3",
       "calibrationVersion": "none",
       "gradeBoundarySeries": "none"
     },
@@ -8006,6 +8006,7 @@
       ]
     },
     "total": 25,
+    "criterionAdjustments": [],
     "guardrailTriggers": [],
     "selfConsistencyOutcomes": {
       "agreement": "single_run",

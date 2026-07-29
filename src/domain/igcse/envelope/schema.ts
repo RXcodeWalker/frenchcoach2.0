@@ -96,18 +96,15 @@ const ScoringEnvelopeSchema = z.object({
   communication: BandCriterionSchema,
   qualityOfLanguage: BandCriterionSchema,
   total: z.number(),
-  // C0 backfills this to [] for pre-v0.3 envelopes, so it is always present by
-  // the time zod sees it. Kept optional here only so that C0 is independently
-  // revertable while ENVELOPE_SCHEMA_VERSION is still v0.2.
-  criterionAdjustments: z
-    .array(
-      z.object({
-        criterion: z.enum(['communication', 'qualityOfLanguage']),
-        proposedMark: z.number(),
-        finalMark: z.number(),
-      }),
-    )
-    .optional(),
+  // Required at v0.3. C0's migrateEnvelope backfills it to [] for every
+  // pre-v0.3 envelope, so it is always present by the time zod sees it.
+  criterionAdjustments: z.array(
+    z.object({
+      criterion: z.enum(['communication', 'qualityOfLanguage']),
+      proposedMark: z.number(),
+      finalMark: z.number(),
+    }),
+  ),
   guardrailTriggers: z.array(z.string()),
   selfConsistencyOutcomes: z.object({
     agreement: z.literal('single_run'),

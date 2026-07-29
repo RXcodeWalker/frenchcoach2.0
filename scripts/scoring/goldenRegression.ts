@@ -28,7 +28,7 @@ import { SCORING_PROMPT_VERSION } from '../../src/domain/igcse/judgement/version
 import { RUBRIC_VERSION } from '../../src/domain/igcse/rubric';
 import { SYNTHETIC_MANIFEST } from '../../src/domain/igcse/guardrails/__tests__/syntheticManifest';
 import type { EvidenceProfile } from '../../src/domain/igcse/evidence/types';
-import type { GuardrailId } from '../../src/domain/igcse/guardrails/types';
+import type { CriterionAdjustment, GuardrailId } from '../../src/domain/igcse/guardrails/types';
 import type { SttMetadata } from '../../src/domain/igcse/stt/types';
 
 const GOLDEN_DIR = path.join(process.cwd(), 'scripts', 'scoring', '__tests__', 'goldenFixtures');
@@ -59,9 +59,10 @@ export interface GoldenCaseResult {
 /** Pure — recomputes L1 evidence + L3 guardrails (+ full envelope if an assessment is paired). */
 export function computeGoldenCase(entry: (typeof SYNTHETIC_MANIFEST)[number]): GoldenCaseResult {
   const evidence = buildEvidenceProfile(entry.transcript);
-  const guardrailReport = entry.assessment
-    ? runGuardrails(entry.assessment, evidence, entry.transcript)
-    : { triggers: [] as { id: GuardrailId; message: string }[] };
+  const guardrailReport: { triggers: { id: GuardrailId; message: string }[]; adjustments: CriterionAdjustment[] } =
+    entry.assessment
+      ? runGuardrails(entry.assessment, evidence, entry.transcript)
+      : { triggers: [], adjustments: [] };
   const guardrailTriggers = guardrailReport.triggers.map((t) => t.id);
 
   let envelope: ScoringEnvelope | null = null;
@@ -86,6 +87,7 @@ export function computeGoldenCase(entry: (typeof SYNTHETIC_MANIFEST)[number]): G
         guardrailsVersion: GUARDRAILS_VERSION,
       },
       guardrailTriggers,
+      criterionAdjustments: guardrailReport.adjustments,
     });
   }
 
