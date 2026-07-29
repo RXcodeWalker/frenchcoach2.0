@@ -21,6 +21,20 @@ function toErrorReason(error: unknown): string {
 }
 
 /**
+ * D2: the duplicate-observation check keys on the observation's own fields,
+ * not on `observationId` (an FNV-1a hash — see framework/text.ts). Hashing
+ * first and comparing hashes means a hash collision between two genuinely
+ * distinct observations would masquerade as a real duplicate, throw, and
+ * silently drop every observation the detector produced (cascading
+ * `dependency_unavailable` to dependents). Comparing the composite identity
+ * key directly makes that failure mode impossible regardless of hash quality.
+ */
+function observationIdentityKey(observation: Observation): string {
+  const spanKey = observation.spans.map((s) => `${s.startOffset}:${s.endOffset}`).join(',');
+  return `${observation.detectorId}|${observation.type}|${spanKey}|${String(observation.value)}`;
+}
+
+/**
  * Defensive topological sort, belt-and-braces on top of registry construction
  * validation (§9.1). Should be unreachable if registry validation passed, but
  * the runner does not trust that invariant blindly.
@@ -88,12 +102,13 @@ export function runDetectors(
       const seen = new Set<string>();
       const observations = detector.run({ ...ctx, evidenceView });
       for (const observation of observations) {
-        if (seen.has(observation.observationId)) {
+        const identityKey = observationIdentityKey(observation);
+        if (seen.has(identityKey)) {
           throw new Error(
-            `DuplicateObservationError: detector "${id}" emitted duplicate observationId "${observation.observationId}"`,
+            `DuplicateObservationError: detector "${id}" emitted duplicate observation (type="${observation.type}", spans=${JSON.stringify(observation.spans)}, value=${String(observation.value)})`,
           );
         }
-        seen.add(observation.observationId);
+        seen.add(identityKey);
       }
       observationsByDetector.set(id, observations);
       states.set(id, 'success');

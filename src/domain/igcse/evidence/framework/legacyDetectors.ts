@@ -7,17 +7,15 @@
  * shapes (ResponseCountEvidence, etc.) predate the Observation model, and
  * porting their facts onto Observation is a Phase-3 concern (new detector
  * ids in §10.3, e.g. `counts`/`duration`/`fillers`/`parts`/`time-frame`
- * rows). Phase 0's job is byte-identical output, so `run()` returns `[]` and
- * `buildEvidence.ts` continues to call the underlying pure functions
- * directly for the actual evidence values — the runner only supplies the
- * detectorRuns audit trail (success/failed bookkeeping) in this phase.
+ * rows). Phase 0's job is byte-identical output, so `run()` returns `[]`.
+ *
+ * E3 (§10.7 hygiene pass): `run()` no longer recomputes the underlying pure
+ * function — `buildEvidence.ts::computeSubsetFields` is the single place that
+ * calls it for the real evidence values. A throwing pure function would throw
+ * again inside `computeSubsetFields` immediately after this bookkeeping-only
+ * run, so nothing is lost by not calling it here too.
  */
 
-import { responseCountsByQuestion } from '../counts';
-import { topicConversationDurationByConversation } from '../duration';
-import { fillerDensityByQuestion } from '../fillers';
-import { rolePlayPartsByTask } from '../parts';
-import { deriveExpectedTimeFrameFromCues, detectTimeFrameAlignment } from '../timeFrame';
 import type { Detector } from './detector';
 
 export const countsDetector: Detector = {
@@ -28,8 +26,7 @@ export const countsDetector: Detector = {
   produces: ['response_count'],
   baseConfidence: 0.9,
   defaultMarkInfluence: 'advisory',
-  run(ctx) {
-    responseCountsByQuestion(ctx.transcript);
+  run() {
     return [];
   },
 };
@@ -42,8 +39,7 @@ export const durationDetector: Detector = {
   produces: ['topic_duration'],
   baseConfidence: 0.9,
   defaultMarkInfluence: 'advisory',
-  run(ctx) {
-    topicConversationDurationByConversation(ctx.transcript);
+  run() {
     return [];
   },
 };
@@ -56,8 +52,7 @@ export const fillersDetector: Detector = {
   produces: ['filler'],
   baseConfidence: 0.9,
   defaultMarkInfluence: 'advisory',
-  run(ctx) {
-    fillerDensityByQuestion(ctx.transcript);
+  run() {
     return [];
   },
 };
@@ -70,8 +65,7 @@ export const partsDetector: Detector = {
   produces: ['role_play_part'],
   baseConfidence: 0.7,
   defaultMarkInfluence: 'advisory',
-  run(ctx) {
-    rolePlayPartsByTask(ctx.transcript);
+  run() {
     return [];
   },
 };
@@ -84,13 +78,7 @@ export const timeFrameDetector: Detector = {
   produces: ['time_frame_alignment'],
   baseConfidence: 0.7,
   defaultMarkInfluence: 'advisory',
-  run(ctx) {
-    for (const conversation of ctx.transcript.topicConversations) {
-      for (const turn of conversation.turns) {
-        const expectedTimeFrame = turn.expectedTimeFrame ?? deriveExpectedTimeFrameFromCues(turn.questionPrompt);
-        detectTimeFrameAlignment(expectedTimeFrame, turn.candidateResponse);
-      }
-    }
+  run() {
     return [];
   },
 };

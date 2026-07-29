@@ -2,10 +2,11 @@ import type { SessionQuestionSet } from '../session/types';
 import type { SpeakingTranscript } from '../judgement/types';
 import { responseCountsByQuestion } from './counts';
 import { topicConversationDurationByConversation } from './duration';
-import { projectFeatures } from './features/project';
+import { FEATURE_PROJECTION_VERSION, projectFeatures } from './features/project';
 import { fillerDensityByQuestion } from './fillers';
 import type { Detector } from './framework/detector';
 import { LEGACY_DETECTORS } from './framework/legacyDetectors';
+import { OBSERVATION_SCHEMA_VERSION } from './framework/observation';
 import { PHASE3_DETECTORS } from './framework/phase3Detectors';
 import { DetectorRegistry } from './framework/registry';
 import { runDetectors } from './framework/runner';
@@ -34,15 +35,11 @@ export function registeredDetectors(): readonly Detector[] {
 }
 
 /**
- * Phase 0 (§10.7): delegates to the registry/runner for detector bookkeeping
- * (ordering, per-detector run state), while the actual evidence values still
- * come from the same pure functions the wrapped detectors call — see
- * framework/legacyDetectors.ts for why `run()` returns `[]` in this phase.
- * Output is byte-identical to the pre-Phase-0 implementation by construction.
+ * The five legacy evidence fields, computed once from their pure functions —
+ * shared by buildEvidenceSubset and buildEvidenceProfile so neither has to
+ * re-derive the other's output (§I2: byte-identical regardless of caller).
  */
-export function buildEvidenceSubset(transcript: SpeakingTranscript): EvidenceProfileSubset {
-  runDetectors(LEGACY_REGISTRY, { transcript, questionSet: null });
-
+function computeSubsetFields(transcript: SpeakingTranscript): EvidenceProfileSubset {
   const timeFrameAlignmentByQuestion = transcript.topicConversations.flatMap((conversation) =>
     conversation.turns.map((turn) => {
       const expectedTimeFrame =
@@ -71,6 +68,18 @@ export function buildEvidenceSubset(transcript: SpeakingTranscript): EvidencePro
 }
 
 /**
+ * Phase 0 (§10.7): delegates to the registry/runner for detector bookkeeping
+ * (ordering, per-detector run state), while the actual evidence values still
+ * come from the same pure functions the wrapped detectors call — see
+ * framework/legacyDetectors.ts for why `run()` returns `[]` in this phase.
+ * Output is byte-identical to the pre-Phase-0 implementation by construction.
+ */
+export function buildEvidenceSubset(transcript: SpeakingTranscript): EvidenceProfileSubset {
+  runDetectors(LEGACY_REGISTRY, { transcript, questionSet: null });
+  return computeSubsetFields(transcript);
+}
+
+/**
  * Phase 1 (§10.7 Phase 1 / §9.4 R1): the single evidence build site's output
  * type. `scoreAttempt` calls this once and injects the same object into both
  * `scoreSpeaking` (prompt) and `buildScoringEnvelope` (snapshot) — see
@@ -92,10 +101,12 @@ export function buildEvidenceProfile(
   const detectorVersions = Object.fromEntries(
     FULL_REGISTRY.list().map((detector) => [detector.id, detector.version]),
   );
-  const subset = buildEvidenceSubset(transcript);
+  const subset = computeSubsetFields(transcript);
 
   return {
     schemaVersion: 'evidence-profile-v1',
+    observationSchemaVersion: OBSERVATION_SCHEMA_VERSION,
+    featureProjectionVersion: FEATURE_PROJECTION_VERSION,
     observations,
     features: projectFeatures({ observations, fillerDensityByQuestion: subset.fillerDensityByQuestion }),
     detectorRuns,

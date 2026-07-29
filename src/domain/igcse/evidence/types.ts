@@ -73,6 +73,10 @@ export interface EvidenceProfileSubset {
  */
 export interface EvidenceProfile extends EvidenceProfileSubset {
   schemaVersion: 'evidence-profile-v1';
+  /** Sourced from framework/observation.ts's OBSERVATION_SCHEMA_VERSION — versions the Observation shape itself. */
+  observationSchemaVersion: string;
+  /** Sourced from features/project.ts's FEATURE_PROJECTION_VERSION — versions the rollup policy below. */
+  featureProjectionVersion: string;
   /** Flat, append-only fact log — one entry per Observation emitted by any successful detector. */
   observations: Observation[];
   /** Derived rollups (TTR, tense histogram, ...) — see features/project.ts. */

@@ -2,6 +2,8 @@
   "id": "clean-long-quote-verification",
   "evidence": {
     "schemaVersion": "evidence-profile-v1",
+    "observationSchemaVersion": "observation-v1",
+    "featureProjectionVersion": "features-v1",
     "observations": [
       {
         "observationId": "0be936aa",
@@ -7508,11 +7510,43 @@
         "skillNodeId": null
       },
       {
-        "observationId": "1d36e2f4",
+        "observationId": "01c746a0",
         "detectorId": "cefr-vector",
         "detectorVersion": "1",
-        "type": "cefr_indicator",
-        "value": "B2",
+        "type": "lexical_density",
+        "value": 0.3620689655172414,
+        "spans": [
+          {
+            "startOffset": 0,
+            "endOffset": 1252
+          }
+        ],
+        "confidence": 0.5,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "e3d9d564",
+        "detectorId": "cefr-vector",
+        "detectorVersion": "1",
+        "type": "complexity_ratio",
+        "value": 0.4444444444444444,
+        "spans": [
+          {
+            "startOffset": 0,
+            "endOffset": 1252
+          }
+        ],
+        "confidence": 0.5,
+        "markInfluence": "forbidden",
+        "skillNodeId": null
+      },
+      {
+        "observationId": "a5f221ce",
+        "detectorId": "cefr-vector",
+        "detectorVersion": "1",
+        "type": "tense_range",
+        "value": 1,
         "spans": [
           {
             "startOffset": 0,
@@ -7869,7 +7903,7 @@
       "envelopeSchemaVersion": "envelope-v0.3",
       "rubricVersion": "rubric-v0.1",
       "scoringEngineVersion": "golden-fixture",
-      "evidenceDetectorVersion": "detectors-v0.4",
+      "evidenceDetectorVersion": "detectors-v0.5",
       "scoringPromptVersion": "scoring-prompt-v0.2",
       "guardrailsVersion": "guardrails-v0.3",
       "calibrationVersion": "none",
@@ -8014,6 +8048,8 @@
     },
     "evidenceProfileSnapshot": {
       "schemaVersion": "evidence-profile-v1",
+      "observationSchemaVersion": "observation-v1",
+      "featureProjectionVersion": "features-v1",
       "observations": [
         {
           "observationId": "0be936aa",
@@ -15520,11 +15556,43 @@
           "skillNodeId": null
         },
         {
-          "observationId": "1d36e2f4",
+          "observationId": "01c746a0",
           "detectorId": "cefr-vector",
           "detectorVersion": "1",
-          "type": "cefr_indicator",
-          "value": "B2",
+          "type": "lexical_density",
+          "value": 0.3620689655172414,
+          "spans": [
+            {
+              "startOffset": 0,
+              "endOffset": 1252
+            }
+          ],
+          "confidence": 0.5,
+          "markInfluence": "forbidden",
+          "skillNodeId": null
+        },
+        {
+          "observationId": "e3d9d564",
+          "detectorId": "cefr-vector",
+          "detectorVersion": "1",
+          "type": "complexity_ratio",
+          "value": 0.4444444444444444,
+          "spans": [
+            {
+              "startOffset": 0,
+              "endOffset": 1252
+            }
+          ],
+          "confidence": 0.5,
+          "markInfluence": "forbidden",
+          "skillNodeId": null
+        },
+        {
+          "observationId": "a5f221ce",
+          "detectorId": "cefr-vector",
+          "detectorVersion": "1",
+          "type": "tense_range",
+          "value": 1,
           "spans": [
             {
               "startOffset": 0,

@@ -20,8 +20,10 @@ import {
   resolveFleetInfluence,
   resolveMarkInfluence,
 } from '../../evidence/framework/markInfluence';
+import { buildEvidenceProfile } from '../../evidence/buildEvidence';
 import { EVIDENCE_CEILINGS } from '../config';
-import { _PROMPT_EVIDENCE_ALLOW_LIST } from '../../judgement/prompt';
+import { _PROMPT_EVIDENCE_ALLOW_LIST, buildJudgementPrompt } from '../../judgement/prompt';
+import { PRACTICE_TRANSCRIPT } from '../../judgement/__tests__/fixtures';
 
 describe('no uncalibrated mark influence', () => {
   it('every detector declaring influence is either calibrated or explicitly grandfathered', () => {
@@ -174,5 +176,22 @@ describe('no uncalibrated mark influence', () => {
       'rolePlayPartsByTask',
       'topicConversationDurationByConversation',
     ]);
+  });
+
+  it('D1: the RENDERED prompt never leaks a Phase-3-only evidence field, not just the allow-list constant', () => {
+    // The test above only pins the constant's shape. formatEvidence is now
+    // driven BY that constant (§10.3), so this proves the actual channel —
+    // what the LLM receives — carries none of observations/features/
+    // detectorRuns/detectorVersions, the other four EvidenceProfile fields.
+    const evidence = buildEvidenceProfile(PRACTICE_TRANSCRIPT);
+    const prompt = buildJudgementPrompt(PRACTICE_TRANSCRIPT, evidence);
+
+    expect(prompt).not.toContain('"observations"');
+    expect(prompt).not.toContain('"features"');
+    expect(prompt).not.toContain('"detectorRuns"');
+    expect(prompt).not.toContain('"detectorVersions"');
+    expect(prompt).not.toMatch(/\bobservationId\b/);
+    expect(prompt).not.toMatch(/\bmarkInfluence\b/);
+    expect(prompt).not.toMatch(/\bskillNodeId\b/);
   });
 });

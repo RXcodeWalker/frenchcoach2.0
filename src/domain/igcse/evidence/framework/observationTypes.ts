@@ -40,7 +40,9 @@ export const OBSERVATION_TYPES = [
   // Tier 2
   'avoidance',
   'tense_inconsistent',
-  'cefr_indicator',
+  'lexical_density',
+  'complexity_ratio',
+  'tense_range',
 ] as const;
 
 export type ConcreteObservationType = (typeof OBSERVATION_TYPES)[number];

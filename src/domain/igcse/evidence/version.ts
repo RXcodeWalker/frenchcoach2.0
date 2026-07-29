@@ -15,5 +15,13 @@
  * detectorRuns/detectorVersions/features) is not, so its own version-pin
  * (__tests__/buildEvidenceProfile.version-pin.test.ts) is what this bump
  * guards.
+ *
+ * Workstream E (fix-plan §Workstream E): bumped again. E1 replaces
+ * cefr-vector's single invented-weighted `cefr_indicator` observation with
+ * three raw component observations (lexical_density/complexity_ratio/
+ * tense_range); E2 adds observationSchemaVersion/featureProjectionVersion to
+ * EvidenceProfile. buildEvidenceSubset's own output is STILL byte-identical
+ * (I2 — EVIDENCE_DETECTOR_FIXTURE_HASH unchanged); only buildEvidenceProfile's
+ * full output changes, so again it's EVIDENCE_PROFILE_FIXTURE_HASH that moves.
  */
-export const EVIDENCE_DETECTOR_VERSION = 'detectors-v0.4';
+export const EVIDENCE_DETECTOR_VERSION = 'detectors-v0.5';

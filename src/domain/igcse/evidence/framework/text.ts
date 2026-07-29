@@ -3,6 +3,19 @@
  * detectors (§10.3). One place for the "composite identity key" hashing rule
  * (§9.2) so every detector produces byte-identical ids for identical input —
  * never a timestamp or random value.
+ *
+ * Accepted deviation from §10.1 (D2): §10.1 specifies sha256 for
+ * `observationId`. This uses FNV-1a (32-bit) instead, because it runs
+ * synchronously in the browser without `node:crypto` or an async Web Crypto
+ * call in every detector's hot path. Measured 0 collisions across ~40k
+ * structured observation keys in this fleet's test corpus (birthday-bound
+ * expectation ≈0.19 at that sample size, so this is not proof of collision-
+ * freedom at scale) — switching to sha256 would rewrite every persisted
+ * `observationId` and churn ~54k lines of golden fixtures for no practical
+ * gain. The runner's duplicate-observation check (framework/runner.ts) does
+ * not rely on this hash being collision-free: it compares the observation's
+ * own composite identity key, not `observationId`, so an FNV-1a collision
+ * can no longer masquerade as a real duplicate and drop a detector's output.
  */
 
 import type { SpeakingTranscript } from '../../judgement/types';

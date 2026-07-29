@@ -4,8 +4,9 @@
  * the legacy system's biggest failure mode (hallucinated errors). Only the
  * ISSUE-shaped observation types are asserted zero here; neutral/feature
  * types (sentence, lexeme, verb, tense_detected, connector_used, complex_
- * sentence, expected_vocab_hit, repetition, cefr_indicator) are facts, not
- * issues, and are expected to fire on any real response.
+ * sentence, expected_vocab_hit, repetition, lexical_density,
+ * complexity_ratio, tense_range) are facts, not issues, and are expected to
+ * fire on any real response.
  */
 
 import { describe, expect, it } from 'vitest';

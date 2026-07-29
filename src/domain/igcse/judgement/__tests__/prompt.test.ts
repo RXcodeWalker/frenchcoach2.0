@@ -114,4 +114,17 @@ describe('buildJudgementPrompt', () => {
       'topicConversationDurationByConversation',
     ]);
   });
+
+  it('D1: the RENDERED prompt carries no Phase-3-only evidence field marker (observations, features, detectorRuns, detectorVersions)', () => {
+    // The allow-list snapshot above only proves the constant's shape; this
+    // proves formatEvidence is actually driven by it — an unlisted field
+    // would have to appear as literal text in the prompt to leak.
+    expect(prompt).not.toContain('"observations"');
+    expect(prompt).not.toContain('"features"');
+    expect(prompt).not.toContain('"detectorRuns"');
+    expect(prompt).not.toContain('"detectorVersions"');
+    expect(prompt).not.toMatch(/\bobservationId\b/);
+    expect(prompt).not.toMatch(/\bmarkInfluence\b/);
+    expect(prompt).not.toMatch(/\bskillNodeId\b/);
+  });
 });

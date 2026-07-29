@@ -129,6 +129,10 @@ function formatTranscript(transcript: SpeakingTranscript): string {
  * New Phase-3 fields (observations, features, detectorRuns, ...) must NOT be
  * added here without bumping SCORING_PROMPT_VERSION — see prompt.test.ts's
  * rendered-field-set snapshot, which fails if this list silently grows.
+ *
+ * D1: `formatEvidence` below is driven BY this array (iterated in this
+ * order), not merely asserted equal to it — an unlisted field is now
+ * structurally unrenderable rather than just untested.
  */
 const PROMPT_EVIDENCE_ALLOW_LIST = [
   'timeFrameAlignmentByQuestion',
@@ -138,6 +142,49 @@ const PROMPT_EVIDENCE_ALLOW_LIST = [
   'topicConversationDurationByConversation',
 ] as const;
 
+type AllowedEvidenceField = (typeof PROMPT_EVIDENCE_ALLOW_LIST)[number];
+
+const EVIDENCE_SECTION_RENDERERS: Record<AllowedEvidenceField, (evidence: EvidenceProfile) => string[]> = {
+  timeFrameAlignmentByQuestion: (evidence) => [
+    '### Time-frame alignment (per question)',
+    ...evidence.timeFrameAlignmentByQuestion.map(
+      (row) =>
+        `- ${row.questionId}: expected=${row.expectedTimeFrame ?? 'n/a'}, detected=${row.detectedTimeFrame ?? 'n/a'}, alignment=${row.alignment}`,
+    ),
+    '',
+  ],
+  responseCountsByQuestion: (evidence) => [
+    '### Response word/utterance counts (per question or task)',
+    ...evidence.responseCountsByQuestion.map(
+      (row) => `- ${row.questionId}: wordCount=${row.wordCount}, responseCount=${row.responseCount}`,
+    ),
+    '',
+  ],
+  fillerDensityByQuestion: (evidence) => [
+    '### Filler density (per question or task)',
+    ...evidence.fillerDensityByQuestion.map(
+      (row) =>
+        `- ${row.questionId}: fillerCount=${row.fillerCount}, wordCount=${row.wordCount}, density=${row.density.toFixed(3)}`,
+    ),
+    '',
+  ],
+  rolePlayPartsByTask: (evidence) => [
+    '### Role-play parts addressed (per task)',
+    ...evidence.rolePlayPartsByTask.map(
+      (row) => `- ${row.taskId}: partsExpected=${row.partsExpected}, partsAddressed=${row.partsAddressed}`,
+    ),
+    '',
+  ],
+  topicConversationDurationByConversation: (evidence) => [
+    '### Topic-conversation candidate speaking time and word count (per conversation)',
+    ...evidence.topicConversationDurationByConversation.map(
+      (row) =>
+        `- ${row.conversationId}: candidateSpeakingDurationS=${row.candidateSpeakingDurationS}, candidateWordCount=${row.candidateWordCount}`,
+    ),
+    '',
+  ],
+};
+
 function formatEvidence(evidence: EvidenceProfile): string {
   const lines: string[] = [
     '## Layer 1 evidence (deterministic detector output — an input to your judgement, not a mark)',
@@ -146,43 +193,9 @@ function formatEvidence(evidence: EvidenceProfile): string {
     '',
   ];
 
-  lines.push('### Time-frame alignment (per question)');
-  for (const row of evidence.timeFrameAlignmentByQuestion) {
-    lines.push(
-      `- ${row.questionId}: expected=${row.expectedTimeFrame ?? 'n/a'}, detected=${row.detectedTimeFrame ?? 'n/a'}, alignment=${row.alignment}`,
-    );
+  for (const field of PROMPT_EVIDENCE_ALLOW_LIST) {
+    lines.push(...EVIDENCE_SECTION_RENDERERS[field](evidence));
   }
-  lines.push('');
-
-  lines.push('### Response word/utterance counts (per question or task)');
-  for (const row of evidence.responseCountsByQuestion) {
-    lines.push(`- ${row.questionId}: wordCount=${row.wordCount}, responseCount=${row.responseCount}`);
-  }
-  lines.push('');
-
-  lines.push('### Filler density (per question or task)');
-  for (const row of evidence.fillerDensityByQuestion) {
-    lines.push(
-      `- ${row.questionId}: fillerCount=${row.fillerCount}, wordCount=${row.wordCount}, density=${row.density.toFixed(3)}`,
-    );
-  }
-  lines.push('');
-
-  lines.push('### Role-play parts addressed (per task)');
-  for (const row of evidence.rolePlayPartsByTask) {
-    lines.push(
-      `- ${row.taskId}: partsExpected=${row.partsExpected}, partsAddressed=${row.partsAddressed}`,
-    );
-  }
-  lines.push('');
-
-  lines.push('### Topic-conversation candidate speaking time and word count (per conversation)');
-  for (const row of evidence.topicConversationDurationByConversation) {
-    lines.push(
-      `- ${row.conversationId}: candidateSpeakingDurationS=${row.candidateSpeakingDurationS}, candidateWordCount=${row.candidateWordCount}`,
-    );
-  }
-  lines.push('');
 
   return lines.join('\n');
 }

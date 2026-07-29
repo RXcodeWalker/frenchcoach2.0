@@ -13,6 +13,8 @@ import type { Detector } from '../../evidence/framework/detector';
 import type { MarkInfluence, Observation } from '../../evidence/framework/observation';
 import type { EvidenceProfile } from '../../evidence/types';
 import { CLEAN_ASSESSMENT } from './synthetic';
+import { OBSERVATION_SCHEMA_VERSION } from '../../evidence/framework/observation';
+import { FEATURE_PROJECTION_VERSION } from '../../evidence/features/project';
 
 function detector(id: string, influence: MarkInfluence, version = '1'): Detector {
   return {
@@ -45,6 +47,8 @@ function observation(overrides: Partial<Observation> = {}): Observation {
 function profile(observations: Observation[]): EvidenceProfile {
   return {
     schemaVersion: 'evidence-profile-v1',
+    observationSchemaVersion: OBSERVATION_SCHEMA_VERSION,
+    featureProjectionVersion: FEATURE_PROJECTION_VERSION,
     observations,
     features: {},
     detectorRuns: [],

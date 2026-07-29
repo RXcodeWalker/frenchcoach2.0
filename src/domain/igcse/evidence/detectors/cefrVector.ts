@@ -1,23 +1,35 @@
 /**
- * Tier-2 `cefr-vector` detector (§10.3): CEFR-band indicator vector, composed
- * from TTR proxy (rare-lemma density) + complexity (complex-sentence ratio) +
- * tense range (distinct time frames attempted). Advisory/derived only — Part
- * 2 marks this low-confidence/high-FP; never eligible for marks. Emits a
- * single whole-response `cefr_indicator` observation with a coarse
- * 'A1'|'A2'|'B1'|'B2' value, purely for coaching/analytics narrative.
+ * Tier-2 `cefr-vector` detector (§10.3): raw component signals feeding a
+ * CEFR-band estimate — TTR proxy (rare-lemma density), complexity
+ * (complex-sentence ratio), and tense range (distinct time frames attempted).
+ * Advisory/derived only — Part 2 marks this low-confidence/high-FP; never
+ * eligible for marks. Emits three whole-response numeric observations
+ * (lexical_density, complexity_ratio, tense_range) for coaching/analytics
+ * narrative. Composing these into a single band is a consumer's job once the
+ * combination weights have a Cambridge source (§I8) — this detector no longer
+ * invents one itself.
  */
 
 import type { Detector } from '../framework/detector';
 import { buildCanonicalUnits, computeObservationId, fullResponseSpan } from '../framework/text';
 import type { Observation } from '../framework/observation';
 
-type CefrBand = 'A1' | 'A2' | 'B1' | 'B2';
-
-function bandFromScore(score: number): CefrBand {
-  if (score >= 2.5) return 'B2';
-  if (score >= 1.5) return 'B1';
-  if (score >= 0.5) return 'A2';
-  return 'A1';
+function component(
+  type: string,
+  value: number,
+  span: Observation['spans'],
+): Observation {
+  return {
+    observationId: computeObservationId('cefr-vector', '1', type, span, value),
+    detectorId: 'cefr-vector',
+    detectorVersion: '1',
+    type,
+    value,
+    spans: span,
+    confidence: 0.5,
+    markInfluence: 'forbidden',
+    skillNodeId: null,
+  };
 }
 
 export const cefrVectorDetector: Detector = {
@@ -25,7 +37,7 @@ export const cefrVectorDetector: Detector = {
   version: '1',
   tier: 2,
   dependsOn: ['lexical-range', 'complexity', 'tense'],
-  produces: ['cefr_indicator'],
+  produces: ['lexical_density', 'complexity_ratio', 'tense_range'],
   baseConfidence: 0.5,
   defaultMarkInfluence: 'forbidden',
   run(ctx) {
@@ -48,22 +60,12 @@ export const cefrVectorDetector: Detector = {
     const complexRatio = totalSentences > 0 ? complexSentences / totalSentences : 0;
     const tenseRangeScore = Math.min(distinctTimeFrames / 3, 1);
 
-    const score = rareDensity * 3 + complexRatio * 2 + tenseRangeScore;
-    const band = bandFromScore(score);
-
     const span = fullResponseSpan(units);
-    const observation: Observation = {
-      observationId: computeObservationId('cefr-vector', '1', 'cefr_indicator', span, band),
-      detectorId: 'cefr-vector',
-      detectorVersion: '1',
-      type: 'cefr_indicator',
-      value: band,
-      spans: span,
-      confidence: 0.5,
-      markInfluence: 'forbidden',
-      skillNodeId: null,
-    };
 
-    return [observation];
+    return [
+      component('lexical_density', rareDensity, span),
+      component('complexity_ratio', complexRatio, span),
+      component('tense_range', tenseRangeScore, span),
+    ];
   },
 };
