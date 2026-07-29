@@ -1189,3 +1189,50 @@ mark — and ships it closed.
   escape hatch for a number that clamps a real mark.
 - **`unscored` short-circuit on insufficient evidence** — still advisory, as in
   S5; unchanged by this phase.
+
+---
+
+## Correction — Evidence-engine Phase 1–5 commit-message overstatements
+
+A post-hoc audit of the Phase 0–5 migration (`cbd59be`…`6c8bee6`, none of
+which have their own entry in this log — only Phase 5 above does) found four
+claims in commit messages and one gap that this file should have recorded and
+did not. Filed here rather than editing history, per this log's append-only
+convention.
+
+- **Phase 2** (`21752ce`, "converge coach layer on canonical evidence seam")
+  overstates what landed. The coach layer still runs on
+  `wrapFeedbackAsEvidenceObservations`, a `FeedbackV2` bridge documented as
+  temporary in `evidenceProjection.ts:7-15` — that file header is honest
+  about the gap; the commit message is not. No live-app producer of a real
+  L1 `EvidenceProfile` exists; `deriveNodeOutcome` runs against
+  FeedbackV2-sourced observations, not detector output.
+- **Phase 3** (`41de5d9`, "Ship them immediately to coaching + analytics")
+  is false as stated. `buildEvidenceProfile` and `buildEvidenceSubset` have
+  zero callers under `src/` (grep-confirmed); the full L1 detector fleet
+  runs only inside `scripts/scoring/` and the test suite. The missing piece,
+  scoped as follow-up work and not undertaken in this session: a browser-side
+  `SpeakingTranscript` construction path feeding `buildEvidenceProfile` into
+  `evidenceProjection`, replacing the FeedbackV2 bridge from Phase 2.
+- **Phase 5** (`6c8bee6`, this file's own entry above, "893 tests / 126
+  files") was accurate for its own commit but the "lint clean; no new type
+  errors" characterization implied elsewhere in the same session's summary
+  was not: at that point `npm run lint` reported 95 errors / 23 warnings and
+  `npm run typecheck` reported 27 errors, both pre-existing (predating Phase
+  0, unrelated to the evidence-engine work) and unaddressed until the
+  Workstream G cleanup that resolved them to zero.
+- **Phase 1** (`7aaadea`, `ENVELOPE_SCHEMA_VERSION` bumped
+  `envelope-v0.1 → v0.2`) silently broke read-compatibility for any
+  previously persisted `envelope-v0.1` row: `envelope/schema.ts` rejected on
+  exact version inequality, so `listBySession` failed wholesale the moment a
+  single stale row was present. Not caught at the time because no v0.1 data
+  existed yet in the Supabase `scoring_envelopes` table. Fixed by
+  Workstream C0 (known-versions set + forward migration, skip-and-report on
+  unreadable rows) ahead of Workstream C's own `v0.2 → v0.3` bump.
+
+`coach/__tests__/noFeedbackV2InEvidencePath.test.ts` was reviewed against the
+same "satisfied by moving the import one file over" concern: its header
+comment already states precisely what it pins (that `evidenceBuilder.ts` is a
+FeedbackV2-free re-export) and explicitly disclaims pinning
+`evidenceProjection.ts`'s continued FeedbackV2 dependency. Left in place
+unchanged — it is not a case of a test claiming more than it proves.

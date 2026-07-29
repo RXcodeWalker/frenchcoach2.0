@@ -1,6 +1,6 @@
 import { forwardRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertCircle, Target, Trophy, Sparkles, Flame, Zap } from 'lucide-react';
+import { Target, Trophy, Sparkles, Flame, Zap } from 'lucide-react';
 
 export type HookType = 'streak' | 'goal' | 'achievement' | 'milestone' | 'suggestion' | 'challenge';
 

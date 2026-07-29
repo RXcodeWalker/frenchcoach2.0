@@ -23,7 +23,6 @@ import { PageShell } from '../components/layout/PageShell';
 import { fadeUp } from '../components/motion/variants';
 import { MistakeLogViewer } from '../components/ui/MistakeLogViewer';
 import { MicroDrillModal } from '../components/ui/MicroDrillModal';
-import { useApp } from '../context/AppContext';
 
 // Smart Mode Suggestions Mapping
 const SKILL_TO_MODE: Record<string, { label: string; route: string }> = {
@@ -37,7 +36,6 @@ const SKILL_TO_MODE: Record<string, { label: string; route: string }> = {
 
 export function WeaknessAnalysis() {
   const navigate = useNavigate();
-  const { dispatch } = useApp();
   const report = getReport();
   const [expandedSkillId, setExpandedSkillId] = useState<string | null>(null);
   const [activeDrillSkillId, setActiveDrillSkillId] = useState<string | null>(null);
@@ -267,11 +265,11 @@ export function WeaknessAnalysis() {
               <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">AI Recommendation</h3>
             </div>
             <p className="text-xs text-slate-400 leading-relaxed mb-6">
-              Based on your recent performance, your biggest hurdle is <span className="text-white font-bold">{report.topWeaknesses[0]?.name || 'Grammar Consistency'}</span>. 
+              Based on your recent performance, your biggest hurdle is <span className="text-white font-bold">{report.topWeaknesses?.[0]?.name || 'Grammar Consistency'}</span>.
               We've generated a specialized <span className="text-violet-400 font-bold">Sentence Rebuilder</span> session focusing on your weak spots.
             </p>
             <button 
-              onClick={() => handlePracticeClick(report.topWeaknesses[0]?.id || 'connectors')}
+              onClick={() => handlePracticeClick(report.topWeaknesses?.[0]?.id || 'connectors')}
               className="w-full py-4 bg-white text-slate-950 font-black rounded-xl shadow-xl shadow-white/5 hover:scale-[1.02] transition-all uppercase italic tracking-wider text-xs flex items-center justify-center gap-2"
             >
               <Zap size={14} className="fill-current" />

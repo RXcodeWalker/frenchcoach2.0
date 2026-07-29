@@ -129,7 +129,7 @@ export class DialogueManager {
       }
 
       this.failCount++;
-      let msg = this.getRandom(DEFAULT_FALLBACKS);
+      const msg = this.getRandom(DEFAULT_FALLBACKS);
       if (this.failCount >= 3) {
         let recovery = stateObj.next;
         if (!recovery && stateObj.intents) {

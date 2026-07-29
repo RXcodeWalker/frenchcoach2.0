@@ -10,7 +10,7 @@ export function FrenchRoadmap() {
   const navigate = useNavigate();
   const [data, setData] = useState<RoadmapData | null>(null);
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
-  const [report, setReport] = useState<any>(null);
+  const [report, setReport] = useState<ReturnType<typeof getReport> | null>(null);
 
   useEffect(() => {
     setData(evaluateRoadmap());
@@ -55,7 +55,7 @@ export function FrenchRoadmap() {
         </div>
 
         {/* AI Recommendations Banner */}
-        {report?.hasData && report.topWeaknesses.length > 0 && (
+        {report?.hasData && (report.topWeaknesses?.length ?? 0) > 0 && (
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -68,7 +68,7 @@ export function FrenchRoadmap() {
               <div>
                 <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">AI Recovery Recommendation</h3>
                 <p className="text-xs text-slate-400 max-w-lg mt-1">
-                  We've detected a trend in your <span className="text-white font-bold">{report.topWeaknesses[0].name}</span> mistakes. 
+                  We've detected a trend in your <span className="text-white font-bold">{report.topWeaknesses?.[0]?.name}</span> mistakes.
                   Diverting to <span className="text-violet-400 font-bold">Weakness Analysis</span> is recommended before proceeding to the next node.
                 </p>
               </div>
@@ -87,7 +87,7 @@ export function FrenchRoadmap() {
           {(Object.keys(data.skills) as Array<keyof typeof data.skills>).map((key) => {
             const info = SKILL_INFO[key];
             const score = data.skills[key];
-            const isWeak = report?.hasData && report.topWeaknesses.some((w: any) => w.id === key);
+            const isWeak = report?.hasData && report.topWeaknesses?.some((w) => w.id === key);
 
             return (
               <motion.div 

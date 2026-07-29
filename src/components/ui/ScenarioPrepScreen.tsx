@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  BookOpen, 
-  Layers, 
-  Zap, 
-  ArrowRight, 
-  Sparkles, 
-  CheckCircle2,
-  RefreshCcw,
-  Volume2
+  BookOpen,
+  Layers,
+  Zap,
+  ArrowRight,
+  Sparkles,
+  CheckCircle2
 } from 'lucide-react';
 import { VocabListView } from './VocabListView';
 import { FlashcardDeck } from './FlashcardDeck';

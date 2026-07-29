@@ -78,15 +78,16 @@ function arenaReducer(state: ArenaState, action: ArenaAction): ArenaState {
   switch (action.type) {
     case 'START_LOADOUT':
       return { ...state, phase: 'loadout' };
-    case 'TOGGLE_POWERUP':
+    case 'TOGGLE_POWERUP': {
       const exists = state.selectedPowerUps.includes(action.id);
       if (!exists && state.selectedPowerUps.length >= 2) return state;
       return {
         ...state,
-        selectedPowerUps: exists 
+        selectedPowerUps: exists
           ? state.selectedPowerUps.filter(id => id !== action.id)
           : [...state.selectedPowerUps, action.id]
       };
+    }
     case 'START_COUNTDOWN':
       return { ...state, phase: 'countdown' };
     case 'START_PLAYING':
@@ -111,12 +112,12 @@ function arenaReducer(state: ArenaState, action: ArenaAction): ArenaState {
         timeLeft: state.timeLeft - 1,
         hype: Math.max(0, state.hype - 0.5)
       };
-    case 'CORRECT':
+    case 'CORRECT': {
       const newStreak = state.streak + 1;
       const nextQCount = state.questionsInWave + 1;
       const isWaveComplete = nextQCount >= 5;
       const isEnteringBoss = isWaveComplete && state.wave % 5 === 4; // Wave 5, 10... (next wave will be 5, 10)
-      
+
       let comboMult = 1;
       if (newStreak >= 10) comboMult = 3;
       else if (newStreak >= 5) comboMult = 2;
@@ -140,6 +141,7 @@ function arenaReducer(state: ArenaState, action: ArenaAction): ArenaState {
         floatingXPs: [...state.floatingXPs, { id: action.id, amount: action.xp, x: action.x, y: 0 }],
         phase: isEnteringBoss ? 'boss_wave' : state.phase
       };
+    }
     case 'INCORRECT':
       return {
         ...state,
@@ -161,11 +163,11 @@ function arenaReducer(state: ArenaState, action: ArenaAction): ArenaState {
       return { ...initialState, phase: 'countdown', questions: [action.initialQuestion] };
     case 'SET_SHAKE':
       return { ...state, isShaking: action.value };
-    case 'USE_POWERUP':
+    case 'USE_POWERUP': {
       if (state.usedPowerUps.includes(action.id)) return state;
-      
-      let newState = { ...state, usedPowerUps: [...state.usedPowerUps, action.id] };
-      
+
+      const newState = { ...state, usedPowerUps: [...state.usedPowerUps, action.id] };
+
       if (action.id === 'time_freeze') {
         newState.timeLeft += 10; // Simple freeze = add time
       } else if (action.id === 'crowd_favor') {
@@ -174,6 +176,7 @@ function arenaReducer(state: ArenaState, action: ArenaAction): ArenaState {
         // Handled in UI mainly, but could affect state if we track revealed words
       }
       return newState;
+    }
     default:
       return state;
   }
@@ -311,7 +314,7 @@ export function SpeakingArena() {
     countdown.start();
   };
 
-  const usePowerUp = (id: string) => {
+  const consumePowerUp = (id: string) => {
     if (state.usedPowerUps.includes(id)) return;
     dispatch({ type: 'USE_POWERUP', id });
   };
@@ -612,7 +615,7 @@ export function SpeakingArena() {
             return (
               <button 
                 key={pid}
-                onClick={() => usePowerUp(pid)}
+                onClick={() => consumePowerUp(pid)}
                 disabled={isUsed}
                 className={`w-14 h-14 rounded-2xl glass border flex flex-col items-center justify-center transition-all ${
                   isUsed ? 'opacity-20 border-white/5 grayscale' : 'border-white/10 text-white hover:border-white/30 hover:scale-110 active:scale-95'

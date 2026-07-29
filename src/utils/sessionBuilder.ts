@@ -141,7 +141,7 @@ export function buildSessionQuestions(
     ? (unseen.length > 0 ? unseen.length : allQuestions.length)
     : SESSION_TARGET[mode];
 
-  let selected = applyDifficultyDistribution(sorted, target);
+  const selected = applyDifficultyDistribution(sorted, target);
 
   // Pad with seen questions if needed
   if (selected.length < target && seenQs.length > 0) {
@@ -354,7 +354,7 @@ export async function buildSession(
   const unseen = pool.filter(q => !excludeIds.includes(q.id));
   const seen   = pool.filter(q =>  excludeIds.includes(q.id));
 
-  let selected = applyDifficultyDistributionV2(
+  const selected = applyDifficultyDistributionV2(
     unseen.sort((a, b) => a.difficulty - b.difficulty),
     targetCount,
   );

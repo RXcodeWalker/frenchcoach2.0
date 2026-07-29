@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, Users, Globe, Clock, Flame, Shield, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { PageShell } from '../components/layout/PageShell';

@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Info, Target, Mic2, Brain, Zap, Users, Rocket, 
+  Target, Mic2, Brain, Zap, Rocket,
   Quote, ShieldCheck, Sparkles, MessageSquare, Play
 } from 'lucide-react';
 import { PageShell } from '../components/layout/PageShell';

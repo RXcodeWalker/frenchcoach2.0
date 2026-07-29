@@ -30,9 +30,9 @@ export function MasteryJourney() {
 
   const getCategoryMastery = (cat: string) => {
     if (!report?.allSkills) return 0;
-    const skills = report.allSkills.filter((s: any) => s.category === cat);
+    const skills = report.allSkills.filter((s) => s.category === cat);
     if (skills.length === 0) return 0;
-    return Math.round(skills.reduce((acc: number, s: any) => acc + (s.mastery ?? 0), 0) / skills.length);
+    return Math.round(skills.reduce((acc, s) => acc + (s.mastery ?? 0), 0) / skills.length);
   };
 
   return (
@@ -155,7 +155,7 @@ export function MasteryJourney() {
               <h3 className="font-bold text-white text-sm uppercase tracking-wider">Top Skills</h3>
             </div>
             <div className="space-y-3">
-              {report?.topStrengths?.slice(0, 3)?.map((s: any) => (
+              {report?.topStrengths?.slice(0, 3)?.map((s) => (
                 <div key={s.id} className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5">
                   <div className="flex items-center gap-3">
                     <span className="text-lg">{s.icon}</span>

@@ -101,7 +101,7 @@ export function BossBattle() {
   const [playerHp, setPlayerHp] = useState(100);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [userInput, setUserInput] = useState('');
-  const [questions, setQuestions] = useState<any[]>([]);
+  const [questions, setQuestions] = useState<(typeof minigameQuestions)[number][]>([]);
   const [battleLog, setBattleLog] = useState<string[]>([]);
   const [lastAction, setLastAction] = useState<'hit' | 'miss' | 'player_hit' | 'heal' | 'shield' | null>(null);
   const [isWon, setIsWon] = useState(false);

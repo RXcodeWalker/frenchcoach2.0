@@ -47,7 +47,7 @@ function _load() {
 }
 
 function _save(data: unknown) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch {}
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch { /* quota exceeded — degrade silently */ }
 }
 
 function _weight(dateISO: string) {

@@ -7,6 +7,7 @@ import { classifyTier, buildTier0Result, buildTier1LocalResult } from '../coachi
 import { applyQualityGate } from '../coaching/qualityGate';
 import { validateBackendFeedback, SchemaValidationError } from './feedbackSchema';
 import { getGroundedExaminerFeedback, type ExaminerFeedback } from '../coaching/examinerFeedback';
+import type { NewsSnippet } from '../../data/mocks/mockNews';
 
 // Prod: same-origin '/api/*' proxied to the backend by Vercel (see vercel.json)
 // to avoid CORS. Dev: call the backend directly.
@@ -635,11 +636,11 @@ export async function getRandomQuestionFromBackend(topicKey?: string): Promise<Q
   } catch { return null; }
 }
 
-export async function getDailyNews(): Promise<any> {
+export async function getDailyNews(): Promise<NewsSnippet> {
   try {
     const res = await fetch(`${API_BASE}/api/news/daily`);
     if (!res.ok) throw new Error(`API news → ${res.status}`);
-    return res.json();
+    return res.json() as Promise<NewsSnippet>;
   } catch (error) {
     console.error("Failed to fetch daily news:", error);
     throw error;

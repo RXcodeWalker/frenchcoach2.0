@@ -236,7 +236,7 @@ export interface RoadmapNode {
   title: string;
   desc: string;
   type: RoadmapNodeType;
-  req: any;
+  req: number | { skill: string; val: number };
   isGate?: boolean;
 }
 
@@ -320,6 +320,7 @@ export interface OfflineScenarioState {
   intents?: Record<string, string>;
   next?: string;
   capture?: string;
+  memory?: Record<string, unknown>;
 }
 
 export interface RoleplayScenario {

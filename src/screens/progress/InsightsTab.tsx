@@ -36,7 +36,7 @@ export function InsightsTab() {
         </div>
         
         {report.topWeaknesses?.length ? (
-          report.topWeaknesses.map((w: any) => {
+          report.topWeaknesses.map((w) => {
             const tip = getCoachingTip(w.id);
             const isExpanded = expandedMistakes === w.id;
 
@@ -106,7 +106,7 @@ export function InsightsTab() {
                       className="bg-navy-400/30 border-t border-white/[0.03]"
                     >
                       <div className="p-3 space-y-2">
-                        {w.mistakes.map((m: any, idx: number) => (
+                        {w.mistakes.map((m, idx: number) => (
                           <div key={idx} className="flex gap-2 items-start">
                             <AlertCircle size={10} className="text-red-400/50 mt-1 shrink-0" />
                             <div className="flex-1">
@@ -139,7 +139,7 @@ export function InsightsTab() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {report.topStrengths?.map((s: any) => (
+          {report.topStrengths?.map((s) => (
             <motion.div 
               key={s.id} 
               className="rounded-xl glass border border-emerald-500/10 p-3 flex items-center gap-3"

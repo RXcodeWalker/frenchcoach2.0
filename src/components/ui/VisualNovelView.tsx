@@ -8,6 +8,7 @@ import { RecordingPanel } from '../../screens/learn/RecordingPanel';
 import { FeedbackPanel } from '../../screens/learn/FeedbackPanel';
 import { Info, Star, ArrowLeft } from 'lucide-react';
 import type { FeedbackV2 } from '../../types';
+import type { RecordingState } from '../../features/recording/useRecording';
 
 interface VisualNovelViewProps {
   topic: string;
@@ -18,7 +19,7 @@ interface VisualNovelViewProps {
   currentInstruction?: string;
   isTyping: boolean;
   isProcessing: boolean;
-  recording: any;
+  recording: RecordingState;
   showFeedback: boolean;
   lastFeedback: FeedbackV2 | null;
   onStopRecording: () => void;

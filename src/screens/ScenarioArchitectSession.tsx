@@ -1,18 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { 
-  ArrowLeft, 
-  Send, 
-  User, 
-  Bot, 
-  Target, 
-  CheckCircle2, 
-  MessageSquare,
+import {
+  ArrowLeft,
+  User,
+  Bot,
+  Target,
   Loader2,
   Mic,
-  Square,
-  Volume2
+  Square
 } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { useRecording } from '../features/recording/useRecording';

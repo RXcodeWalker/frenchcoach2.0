@@ -5,7 +5,7 @@
  * candidate text.
  */
 
-import type { Judge, JudgeRequest, JudgeResponse, SpeakingTranscript } from '../../../src/domain/igcse/judgement/types';
+import type { Judge, JudgeResponse, SpeakingTranscript } from '../../../src/domain/igcse/judgement/types';
 import { RP_MARK_2, COMM_7_9, QOL_7_9 } from '../../../src/domain/igcse/canonical';
 
 function firstWord(text: string): string {
@@ -50,7 +50,7 @@ export function buildGenericJudgeOutput(transcript: SpeakingTranscript) {
 
 /** A Judge whose output adapts to whatever transcript it's asked to score. */
 export function createGenericFakeJudge(getTranscript: () => SpeakingTranscript): Judge {
-  return async (_req: JudgeRequest): Promise<JudgeResponse> => {
+  return async (): Promise<JudgeResponse> => {
     return { raw: JSON.stringify(buildGenericJudgeOutput(getTranscript())) };
   };
 }

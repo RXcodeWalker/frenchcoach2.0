@@ -1,7 +1,7 @@
 // Copied verbatim from analytics.js — minimal TS wrapper only
 import type { Session, FeedbackV2, TopicMasteryEntry } from '../../types';
 
-import { hasStreakFreeze, useStreakFreeze } from '../progression/progressionService';
+import { hasStreakFreeze, consumeStreakFreeze } from '../progression/progressionService';
 import { STORAGE_KEYS } from '../persistence/storage';
 
 const STORAGE_KEY = STORAGE_KEYS.analytics;
@@ -77,7 +77,7 @@ function load(): AnalyticsData {
 }
 
 function save(data: AnalyticsData) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch {}
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch { /* quota exceeded — degrade silently */ }
 }
 
 function updateStreak(data: AnalyticsData) {
@@ -94,7 +94,7 @@ function updateStreak(data: AnalyticsData) {
     // If last was day-before-yesterday, and we have a freeze, we can save it.
     const dayBeforeYesterday = dateKey(new Date(Date.now() - 172800000));
     if (last === dayBeforeYesterday && hasStreakFreeze()) {
-      useStreakFreeze();
+      consumeStreakFreeze();
       data.streak.count += 1; // Preserve and increment as if yesterday was active
     } else {
       data.streak.count = 1;
@@ -230,7 +230,7 @@ export function updateTopicMastery(entry: TopicMasteryEntry) {
     const current = raw ? JSON.parse(raw) : {};
     current[entry.topicKey] = entry;
     localStorage.setItem(MASTERY_KEY, JSON.stringify(current));
-  } catch {}
+  } catch { /* quota exceeded — degrade silently */ }
 }
 
 export function getTopicMasteryAll(): Record<string, TopicMasteryEntry> {

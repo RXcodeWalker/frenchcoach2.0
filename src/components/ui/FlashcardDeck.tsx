@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { RefreshCcw, ChevronLeft, ChevronRight, Volume2 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { ChevronLeft, ChevronRight, Volume2 } from 'lucide-react';
 
 interface VocabItem {
   fr: string;

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { CheckCircle2, Zap, ArrowRight, RotateCcw, Home, Star, TrendingUp } from 'lucide-react';
+import { Zap, ArrowRight, RotateCcw, Home, Star, TrendingUp } from 'lucide-react';
 import { ProgressRing } from './ProgressRing';
 
 interface Props {

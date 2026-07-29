@@ -56,7 +56,7 @@ export function FluencyHeatmap() {
     start.setDate(now.getDate() - (24 * 7));
     start.setDate(start.getDate() - start.getDay()); // Back to Sunday
 
-    let current = new Date(start);
+    const current = new Date(start);
     while (current <= now) {
       const week = [];
       for (let i = 0; i < 7; i++) {

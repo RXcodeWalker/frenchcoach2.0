@@ -1,12 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { BookOpen, ArrowLeft, MessageSquare, Star, ChevronRight, User, Info, CheckCircle2 } from 'lucide-react';
+import { BookOpen, ArrowLeft, MessageSquare, Star, ChevronRight } from 'lucide-react';
 import { useApp, dispatchAddXP } from '../context/AppContext';
 import roleplays from '../data/raw/roleplays.json';
 import allQuestions from '../data/raw/questions.json';
-import { RecordingPanel } from './learn/RecordingPanel';
-import { FeedbackPanel } from './learn/FeedbackPanel';
 import { useRecording } from '../features/recording/useRecording';
 import { getAIFeedback, getRoleplayTurn } from '../services/api/apiClient';
 import { ScenarioPrepScreen } from '../components/ui/ScenarioPrepScreen';
@@ -48,9 +46,9 @@ export function StoryMode() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [objectives, setObjectives] = useState<Objective[]>([]);
   const [expression, setExpression] = useState<Expression>('neutral');
-  const [overallScore, setOverallScore] = useState(0);
-  const [isFinished, setIsFinished] = useState(false);
-  
+  const [, setOverallScore] = useState(0);
+  const [, setIsFinished] = useState(false);
+
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -168,8 +166,8 @@ export function StoryMode() {
       setIsTyping(true);
       setShowFeedbackV2(false);
       try {
-        const history = messages.map(m => ({
-          speaker: m.sender === 'ai' ? 'examiner' : 'student' as const,
+        const history: { speaker: 'examiner' | 'student'; text: string }[] = messages.map(m => ({
+          speaker: m.sender === 'ai' ? 'examiner' : 'student',
           text: m.text
         }));
         
@@ -314,7 +312,9 @@ export function StoryMode() {
   }
 
   const currentQId = selectedStory.question_ids[currentStep];
-  const currentQuestionData = allQuestions.find(q => q.id === currentQId) as any;
+  const currentQuestionData = allQuestions.find(q => q.id === currentQId) as
+    | { instruction?: string }
+    | undefined;
 
   return (
     <VisualNovelView 

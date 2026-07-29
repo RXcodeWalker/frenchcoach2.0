@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { TOPICS } from '../data/gameData';
-import { useItem } from '../services/progression/progressionService';
+import { consumeItem } from '../services/progression/progressionService';
 import { getAIFeedback, streamFeedback, getExaminerFeedback } from '../services/api/apiClient';
 import { assessPronunciation } from '../services/pronunciation/pronunciationClient';
 import type { PronunciationAssessment } from '../domain/pronunciation/types';
@@ -219,7 +219,7 @@ export function Learn() {
     if (!unscored && finalScore < 8.5 && (profile.inventory['perfect_shield'] || 0) > 0) {
       xpScore = Math.max(8.5, finalScore + 2);
       // eslint-disable-next-line react-hooks/rules-of-hooks
-      if (useItem('perfect_shield')) {
+      if (consumeItem('perfect_shield')) {
         dispatch({ type: 'USE_ITEM', itemId: 'perfect_shield' });
       }
     }

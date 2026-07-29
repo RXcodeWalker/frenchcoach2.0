@@ -69,7 +69,9 @@ export function storageGet<T>(key: string, fallback: T): T {
 export function storageSet(key: string, value: unknown): void {
   try {
     localStorage.setItem(key, JSON.stringify(value));
-  } catch {}
+  } catch {
+    // quota exceeded or storage unavailable — degrade silently, never throw
+  }
 }
 
 /**
@@ -78,11 +80,15 @@ export function storageSet(key: string, value: unknown): void {
 export function storageSetRaw(key: string, value: string): void {
   try {
     localStorage.setItem(key, value);
-  } catch {}
+  } catch {
+    // quota exceeded or storage unavailable — degrade silently, never throw
+  }
 }
 
 export function storageRemove(key: string): void {
   try {
     localStorage.removeItem(key);
-  } catch {}
+  } catch {
+    // storage unavailable — degrade silently, never throw
+  }
 }

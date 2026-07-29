@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
-import { 
+import {
   Users, Swords, Search, UserPlus, Clock, Zap, Flame,
   ChevronRight, Share2, MoreHorizontal, BarChart2, X, TrendingUp,
   Sparkles, Heart, MessageSquare, Target, Shield, Coins, Star, Plus
@@ -74,7 +73,7 @@ export function FriendChallenges() {
             ].map(tab => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => setActiveTab(tab.id as 'duels' | 'co-op' | 'feed' | 'friends')}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-bold transition-all whitespace-nowrap ${
                   activeTab === tab.id ? 'bg-blue-500/10 text-blue-400' : 'text-slate-500 hover:text-slate-300'
                 }`}
@@ -291,7 +290,7 @@ export function FriendChallenges() {
   );
 }
 
-function VsSplash({ challenge, onClose: _onClose }: { challenge: FriendChallenge; onClose: () => void }) {
+function VsSplash({ challenge }: { challenge: FriendChallenge; onClose: () => void }) {
   const { state } = useApp();
   const friend = MOCK_FRIENDS.find(f => f.id === challenge.friendId);
 
@@ -646,7 +645,7 @@ function FriendCard({ friend, onCompare }: { friend: Friend; onCompare: () => vo
 
 function CreateChallengeModal({ onClose }: { onClose: () => void }) {
   const [step, setStep] = useState(1);
-  const [_challengeType, setChallengeType] = useState<'versus' | 'co-op'>('versus');
+  const [, setChallengeType] = useState<'versus' | 'co-op'>('versus');
   
   return (
     <motion.div

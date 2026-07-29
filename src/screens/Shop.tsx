@@ -20,6 +20,7 @@ import { SHOP_ITEMS, ShopItem } from '../data/shopItems';
 import { PageShell } from '../components/layout/PageShell';
 import { fadeUp } from '../components/motion/variants';
 import { purchaseItem, activateBooster, getProgressionState } from '../services/progression/progressionService';
+import type { Level } from '../types';
 
 type Tab = 'featured' | 'powerups' | 'cosmetics' | 'inventory';
 
@@ -29,7 +30,7 @@ export function Shop() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<Tab>('featured');
   const [purchaseSuccess, setPurchaseSuccess] = useState<string | null>(null);
-  const [timeLeftStr, setTimeLeftStr] = useState('04:12:35');
+  const [, setTimeLeftStr] = useState('04:12:35');
 
   // Dynamic timer for Daily Deal
   useEffect(() => {
@@ -63,7 +64,7 @@ export function Shop() {
           gems: progression.gems, 
           inventory: progression.inventory,
           total_xp: progression.xp,
-          current_level: progression.level.name as any,
+          current_level: progression.level.name as Level,
           activeBoosters: progression.activeBoosters
         } 
       });

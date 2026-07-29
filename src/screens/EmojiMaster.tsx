@@ -92,7 +92,7 @@ export function EmojiMaster() {
   };
 
   const calculateXP = () => {
-    let baseXP = score * 10;
+    const baseXP = score * 10;
     const streakBonus = Math.floor(maxStreak / 5) * 20;
     const modeBonus = mode === 'typing' ? 2 : mode === 'blitz' ? 1.5 : 1;
     return Math.floor((baseXP + streakBonus) * modeBonus);

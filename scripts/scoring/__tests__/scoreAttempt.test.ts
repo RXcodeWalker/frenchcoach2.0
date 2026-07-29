@@ -124,8 +124,8 @@ describe('replayEnvelope', () => {
     // replayed envelope would visibly differ / break.
     const corruptedPrior = {
       ...prior,
-      evidenceProfileSnapshot: { corrupted: true } as any,
-      transcriptSnapshot: { corrupted: true } as any,
+      evidenceProfileSnapshot: { corrupted: true } as unknown as typeof prior.evidenceProfileSnapshot,
+      transcriptSnapshot: { corrupted: true } as unknown as typeof prior.transcriptSnapshot,
     };
 
     const replayed = await replayEnvelope(deps, corruptedPrior, structQuestions as SessionQuestionSet);

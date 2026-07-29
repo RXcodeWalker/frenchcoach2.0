@@ -1,11 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Volume2, CheckCircle2, XCircle, ArrowRight, RotateCcw, Headphones, ChevronLeft } from 'lucide-react';
+import { Play, Volume2, CheckCircle2, XCircle, ArrowRight, RotateCcw, ChevronLeft } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useNavigate } from 'react-router-dom';
 import { useApp, dispatchAddXP } from '../context/AppContext';
 import { TTS } from '../services/tts/ttsService';
-import { TOPICS } from '../data/gameData';
 import { getRandomListeningQuestion, ListeningQuestion } from '../data/listeningQuestions';
 import { TopicGrid } from './learn/TopicGrid';
 import type { Topic } from '../types/index';

@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { ChevronLeft, Settings, Flame, Zap, Gem, Bell, Menu } from 'lucide-react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 
 interface Props {
@@ -13,11 +13,8 @@ interface Props {
 
 export function TopContextBar({ title, subtitle, showBack, onBack, actions }: Props) {
   const navigate = useNavigate();
-  const location = useLocation();
   const { state } = useApp();
   const { profile } = state;
-
-  const isHome = location.pathname === '/';
 
   return (
     <div className="sticky top-0 z-[80] w-full px-4 py-3 md:px-8">

@@ -63,7 +63,7 @@ function eventToRow(userId: string, ev: EvidenceEvent): CoachEvidenceRow {
   };
 }
 
-function migrateRow(row: CoachEvidenceRow, _fromVersion: number): CoachEvidenceRow {
+function migrateRow(row: CoachEvidenceRow): CoachEvidenceRow {
   // No migrations needed at v1. Add cases here as COACH_SYNC_SCHEMA_VERSION bumps.
   return row;
 }
@@ -76,7 +76,7 @@ export function rowToEvent(row: CoachEvidenceRow): EvidenceEvent | null {
   }
 
   const normalized = row.schema_version < COACH_SYNC_SCHEMA_VERSION
-    ? migrateRow(row, row.schema_version)
+    ? migrateRow(row)
     : row;
 
   return {

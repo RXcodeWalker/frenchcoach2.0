@@ -5,8 +5,8 @@ import { evaluateAchievements, type AchievementContext } from '../../data/achiev
 const KEY = STORAGE_KEYS.progression;
 const NEEDS_SYNC_KEY = 'frenchCoach_needsSync';
 
-export function markNeedsSync() { try { localStorage.setItem(NEEDS_SYNC_KEY, '1'); } catch {} }
-export function clearNeedsSync() { try { localStorage.removeItem(NEEDS_SYNC_KEY); } catch {} }
+export function markNeedsSync() { try { localStorage.setItem(NEEDS_SYNC_KEY, '1'); } catch { /* storage unavailable — degrade silently */ } }
+export function clearNeedsSync() { try { localStorage.removeItem(NEEDS_SYNC_KEY); } catch { /* storage unavailable — degrade silently */ } }
 export function hasPendingSync(): boolean { return localStorage.getItem(NEEDS_SYNC_KEY) === '1'; }
 
 export interface ProgressionData {
@@ -27,7 +27,7 @@ function _load(): ProgressionData {
 }
 
 function _save(data: ProgressionData) {
-  try { localStorage.setItem(KEY, JSON.stringify(data)); } catch {}
+  try { localStorage.setItem(KEY, JSON.stringify(data)); } catch { /* quota exceeded — degrade silently */ }
 }
 
 const LEVELS = [
@@ -167,11 +167,11 @@ export function hasStreakFreeze(): boolean {
   return (data.inventory?.['streak_freeze'] || 0) > 0;
 }
 
-export function useStreakFreeze(): boolean {
-  return useItem('streak_freeze');
+export function consumeStreakFreeze(): boolean {
+  return consumeItem('streak_freeze');
 }
 
-export function useItem(itemId: string): boolean {
+export function consumeItem(itemId: string): boolean {
   const data = _load();
   if (!data.inventory || !data.inventory[itemId] || data.inventory[itemId] <= 0) return false;
   

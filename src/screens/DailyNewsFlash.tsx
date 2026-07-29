@@ -1,19 +1,17 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Play, 
-  Pause, 
-  RotateCcw, 
-  Mic, 
-  Info, 
-  CheckCircle2, 
-  ArrowLeft,
+import {
+  Play,
+  Pause,
+  RotateCcw,
+  Mic,
+  Info,
+  CheckCircle2,
   Radio,
   Eye,
   EyeOff,
   Sparkles,
-  Loader2,
   AlertCircle
 } from 'lucide-react';
 import { useApp, dispatchAddXP } from '../context/AppContext';

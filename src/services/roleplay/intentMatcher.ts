@@ -80,7 +80,7 @@ function removeAccents(str: string) {
 
 function normalize(str: string) {
   return removeAccents(str.toLowerCase().trim())
-    .replace(/[.,!?'\-]/g, " ")
+    .replace(/[.,!?'-]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }

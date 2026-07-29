@@ -9050,7 +9050,7 @@ export const QUESTIONS: Question[] = [
 // ─────────────────────────────────────────────────────────────────────────────
 //  DAILY CHALLENGE POOL — one per day, rotating by date
 // ─────────────────────────────────────────────────────────────────────────────
-const DAILY_CHALLENGES = [
+export const DAILY_CHALLENGES = [
   {
     text: "Décris la dernière fois que tu as été vraiment heureux/heureuse.",
     hint: "Use passé composé. Describe the event, who was there, what happened, how you felt.",

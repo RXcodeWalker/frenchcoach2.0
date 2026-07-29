@@ -1,4 +1,4 @@
-import { RoadmapLevel, RoadmapData } from '../../types';
+import { RoadmapLevel, RoadmapData, Feedback } from '../../types';
 import { getStats } from '../analytics/analyticsService';
 import { STORAGE_KEYS, storageGet } from '../persistence/storage';
 
@@ -104,7 +104,9 @@ function defaultData(): RoadmapData {
 function save(data: RoadmapData) {
   try {
     localStorage.setItem(KEY, JSON.stringify(data));
-  } catch {}
+  } catch {
+    // quota exceeded or storage unavailable — degrade silently, never throw
+  }
 }
 
 function blend(old: number, fresh: number) {
@@ -125,7 +127,7 @@ export function evaluateRoadmap(): RoadmapData {
 
   if (sessions.length === 0) return data;
 
-  const recent = sessions.filter(s => (s as any).aiFeedback).slice(0, 15);
+  const recent = sessions.filter(s => (s as { aiFeedback?: Feedback }).aiFeedback).slice(0, 15);
   if (recent.length > 0) {
     let fluencySum = 0, fluencyN = 0;
     let grammarSum = 0, grammarN = 0;
@@ -133,7 +135,7 @@ export function evaluateRoadmap(): RoadmapData {
     let examSum = 0, examN = 0;
 
     recent.forEach(s => {
-      const ai = (s as any).aiFeedback;
+      const ai = (s as { aiFeedback?: Feedback }).aiFeedback;
       if (!ai) return;
 
       if (typeof ai.scores?.fluency === "number" && ai.scores.fluency > 0) {
@@ -205,20 +207,24 @@ export function evaluateRoadmap(): RoadmapData {
     level.nodes.forEach(node => {
       if (done.has(node.id)) return;
       let pass = false;
-      const r = node.req;
+      const req = node.req;
 
       switch (node.type) {
-        case "sessions":   pass = total >= r; break;
-        case "maxWords":   pass = maxWords >= r; break;
-        case "challenges": pass = challenges >= r; break;
-        case "topics":     pass = topicSet.size >= r; break;
-        case "avgSkill":   pass = avgSkill >= r; break;
-        case "skill":      pass = (data.skills[r.skill as keyof RoadmapData['skills']] || 0) >= r.val; break;
-        case "vault":      pass = vaultCount >= r; break;
-        case "igcse":      pass = igcse.length >= r; break;
-        case "igcseScore": pass = maxIScore >= r; break;
-        case "roleplay":   pass = roleplay >= r; break;
-        case "allSkills":  pass = Object.values(data.skills).every(v => v >= r); break;
+        case "sessions":   pass = total >= (req as number); break;
+        case "maxWords":   pass = maxWords >= (req as number); break;
+        case "challenges": pass = challenges >= (req as number); break;
+        case "topics":     pass = topicSet.size >= (req as number); break;
+        case "avgSkill":   pass = avgSkill >= (req as number); break;
+        case "skill": {
+          const r = req as { skill: string; val: number };
+          pass = (data.skills[r.skill as keyof RoadmapData['skills']] || 0) >= r.val;
+          break;
+        }
+        case "vault":      pass = vaultCount >= (req as number); break;
+        case "igcse":      pass = igcse.length >= (req as number); break;
+        case "igcseScore": pass = maxIScore >= (req as number); break;
+        case "roleplay":   pass = roleplay >= (req as number); break;
+        case "allSkills":  pass = Object.values(data.skills).every(v => v >= (req as number)); break;
       }
       if (pass) done.add(node.id);
     });

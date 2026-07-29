@@ -1,15 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Swords, 
-  Trophy, 
-  Target, 
-  Zap, 
-  Flame, 
-  Clock, 
-  ChevronRight, 
-  Users, 
+import {
+  Swords,
+  Target,
+  Zap,
+  Clock,
+  ChevronRight,
+  Users,
   Star,
   Shield,
   ArrowLeft,
@@ -89,13 +87,13 @@ const LEAGUES = [
 
 export function Challenges() {
   const navigate = useNavigate();
-  const { state, dispatch } = useApp();
+  const { dispatch } = useApp();
   const [activeTab, setActiveTab] = useState<'weekly' | 'global' | 'league'>('weekly');
 
   const userXpThisWeek = 2450; // Mock weekly XP
   const currentLeague = LEAGUES.find(l => userXpThisWeek >= l.minXp) || LEAGUES[LEAGUES.length - 1];
 
-  const handleClaim = (id: string) => {
+  const handleClaim = () => {
     // In a real app, this would update the backend
     dispatchAddXP(dispatch, 400);
     // Update local state for immediate feedback
@@ -235,7 +233,7 @@ export function Challenges() {
 
                       <button
                         disabled={challenge.status === 'active' || challenge.status === 'claimed'}
-                        onClick={() => handleClaim(challenge.id)}
+                        onClick={() => handleClaim()}
                         className={`w-full md:w-32 py-3 rounded-xl font-black text-[10px] uppercase italic tracking-wider transition-all ${
                           challenge.status === 'completed' 
                             ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/20 hover:scale-105' 
@@ -370,7 +368,7 @@ export function Challenges() {
               <div className="space-y-4">
                 <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">League Progression</h3>
                 <div className="space-y-2">
-                  {LEAGUES.map((league, i) => {
+                  {LEAGUES.map((league) => {
                     const isCurrent = league.name === currentLeague.name;
                     const isUnlocked = userXpThisWeek >= league.minXp;
                     
