@@ -39,7 +39,7 @@ function _buildTier1CoachingLayer(word: string, wordCount: number): CoachingLaye
 export function buildTier0Result(): FeedbackV2 {
   return {
     responseTier: 0,
-    confidence: 1,
+    unscored: 'below_assessable_length',
     scores: { overall: 0, communication: 0, language: 0, fluency: 0 },
     grammar: { critical: [], polish: [] },
     vocabulary: [],
@@ -60,11 +60,10 @@ export function buildTier1LocalResult(transcript: string): FeedbackV2 {
   const wordCount = transcript.trim().split(/\s+/).filter(Boolean).length;
   const expansionLevels = buildExpansionLevels(word);
   const coachingLayer = _buildTier1CoachingLayer(word, wordCount);
-  const displayTranscript = transcript.trim();
 
   return {
     responseTier: 1,
-    confidence: 1,
+    unscored: 'below_assessable_length',
     expansionLevels,
     coachingLayer,
     scores: { overall: 0, communication: 0, language: 0, fluency: 0 },
@@ -78,12 +77,5 @@ export function buildTier1LocalResult(transcript: string): FeedbackV2 {
     issues: [],
     avoidanceReport: [],
     vocabularyV2: [],
-    examiner: {
-      oneLiner: `${wordCount === 1 ? 'A single word' : 'A very short response'} cannot earn Communication or Language marks.`,
-      notebook: `The response consists of only ${wordCount === 1 ? 'one word' : `${wordCount} words`}: '${displayTranscript}'. No complete sentence exists, so there is no grammar, tense range, or communication of ideas to assess. Examiners require a minimum of a complete sentence before any marks can be awarded.`,
-      predictedBand: 'Foundation-Developing',
-      marksGuidance: 'Foundation-Developing. Build a complete sentence first — subject + verb + reason earns real marks.',
-      examinerInsight: `Turn '${word}' into 'J'aime ${word} parce que…' — subject, verb, and reason is the minimum for Communication marks.`,
-    },
   };
 }

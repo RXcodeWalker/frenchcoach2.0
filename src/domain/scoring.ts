@@ -12,14 +12,15 @@ export const scoreColor = (val: number): string =>
   val >= 8 ? '#10B981' : val >= 6 ? '#F59E0B' : '#EF4444';
 
 /**
- * The single discriminant for "was this attempt actually graded": every offline
- * (no-LLM) result carries `unscored: 'no_llm_offline'` alongside placeholder
- * zero scores (Phase 4a). Never infer "unscored" from `scores.overall === 0` —
- * a real bad answer legitimately scores 0 too, and conflating the two would
- * hide genuine low scores as "not graded" or vice versa.
+ * The single discriminant for "was this attempt actually graded": any
+ * ungraded result carries a reason under `unscored` alongside placeholder
+ * zero scores (Phase 4a, widened A4). Never infer "unscored" from
+ * `scores.overall === 0` — a real bad answer legitimately scores 0 too, and
+ * conflating the two would hide genuine low scores as "not graded" or vice
+ * versa.
  */
 export const isUnscored = (feedback: Pick<FeedbackV2, 'unscored'>): boolean =>
-  feedback.unscored === 'no_llm_offline';
+  feedback.unscored !== undefined;
 
 /**
  * Every UI render of an overall score must go through this — returns `null`

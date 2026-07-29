@@ -628,11 +628,15 @@ export function Learn() {
     const avgScore = averageRealScores(completedQs.map(q => q.bestScore));
 
     const priorAvg = existing?.averageScore ?? avgScore ?? 0;
-    const priorSessions = existing?.sessionsCompleted ?? 0;
+    // Weight by scoredSessionsCompleted, not sessionsCompleted — a fully-
+    // unscored (offline) session must not dilute the running average's
+    // denominator (A6). Falls back to sessionsCompleted for entries written
+    // before this field existed.
+    const priorScoredSessions = existing?.scoredSessionsCompleted ?? existing?.sessionsCompleted ?? 0;
     const newAvg = avgScore === null
       ? priorAvg
-      : priorSessions > 0
-      ? (priorAvg * priorSessions + avgScore) / (priorSessions + 1)
+      : priorScoredSessions > 0
+      ? (priorAvg * priorScoredSessions + avgScore) / (priorScoredSessions + 1)
       : avgScore;
 
     const wasMastered = existing?.mastered ?? false;
@@ -641,6 +645,7 @@ export function Learn() {
     const entry = {
       topicKey: selectedTopic.key,
       sessionsCompleted: (existing?.sessionsCompleted ?? 0) + 1,
+      scoredSessionsCompleted: priorScoredSessions + (avgScore === null ? 0 : 1),
       uniqueQuestionsAnswered: allAnswered,
       averageScore: newAvg,
       lastSessionAt: new Date().toISOString(),

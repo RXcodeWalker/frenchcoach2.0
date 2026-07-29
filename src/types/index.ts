@@ -555,9 +555,18 @@ export interface FeedbackV2 extends Feedback {
   expansionLevels?: ExpansionLevel[];
   coachingLayer?: CoachingLayer;
   confidence?: number;
-  /** Set when no LLM judged this attempt (offline fallback) — `scores` is a placeholder, not a real assessment. */
-  unscored?: 'no_llm_offline';
+  /** Set when this attempt was never actually graded — `scores` is a placeholder, not a real assessment. */
+  unscored?: UnscoredReason;
 }
+
+/**
+ * Every path that produces a FeedbackV2 with no real assessment must tag
+ * *why*, so isUnscored()/displayScore() can render "not graded" instead of a
+ * fabricated score (A4). `no_llm_offline` — offline fallback, no LLM judged
+ * it. `below_assessable_length` — too short to assess (tier 0/1, online or
+ * offline). `evaluation_failed` — the evaluation call itself failed.
+ */
+export type UnscoredReason = 'no_llm_offline' | 'below_assessable_length' | 'evaluation_failed';
 
 // ── Avoidance detection ────────────────────────────────────────────────────────
 
@@ -615,6 +624,8 @@ export interface ActiveSession {
 export interface TopicMasteryEntry {
   topicKey: string;
   sessionsCompleted: number;
+  /** Sessions that contributed a real score to averageScore — the correct weight for its running mean. Defaults to sessionsCompleted on read for entries written before this field existed. */
+  scoredSessionsCompleted?: number;
   uniqueQuestionsAnswered: string[];
   averageScore: number;
   lastSessionAt: string;

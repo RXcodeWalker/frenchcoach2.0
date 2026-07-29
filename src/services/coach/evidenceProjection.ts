@@ -298,7 +298,7 @@ export function buildEvidence(args: BuildEvidenceArgs): EvidenceEvent[] {
       },
       result: {
         avoided: true,
-        score: args.finalScore,
+        ...(unscored ? {} : { score: args.finalScore }),
         wordCount,
       },
       reliability: {

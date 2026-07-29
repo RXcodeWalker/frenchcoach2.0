@@ -99,6 +99,7 @@ function computeConfidenceTrend(): WeeklyReview['confidenceTrend'] {
   if (weekEvidence.length < 3) return 'unknown';
 
   const scores = weekEvidence
+    .filter(ev => ev.evidenceType === 'language')
     .map(ev => ev.result.score ?? null)
     .filter((s): s is number => s !== null);
   if (scores.length < 3) return 'unknown';

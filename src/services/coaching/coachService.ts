@@ -708,9 +708,9 @@ function _priorityScore(issue: CoachingIssue): number {
 // really graded" (E2: a response with no real score is a failure state, not
 // a 5 — see apiClient.NoScoreInFeedbackError for the same principle on the
 // network path).
-const OFFLINE_PLACEHOLDER_SCORES: FeedbackV2['scores'] = {
+const OFFLINE_PLACEHOLDER_SCORES: FeedbackV2['scores'] = Object.freeze({
   overall: 0, communication: 0, language: 0, fluency: 0,
-};
+});
 
 export function evaluate(transcript: string, question: Question): FeedbackV2 {
   const tier = classifyTier(transcript);
@@ -810,7 +810,7 @@ export function evaluate(transcript: string, question: Question): FeedbackV2 {
 
   const result: FeedbackV2 = {
     responseTier: tier,
-    scores: OFFLINE_PLACEHOLDER_SCORES,
+    scores: { ...OFFLINE_PLACEHOLDER_SCORES },
     unscored: 'no_llm_offline',
     grammar: {
       critical: allErrors.filter(e => e.severity === "major").slice(0, 4).map(e => ({ theme: e.theme, severity: e.severity, msg: e.diagnostic, diagnostic: e.diagnostic, correction: e.correction })),

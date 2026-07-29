@@ -1,5 +1,5 @@
 // Copied verbatim from analytics.js — minimal TS wrapper only
-import type { Session, FeedbackV2 } from '../../types';
+import type { Session, FeedbackV2, TopicMasteryEntry } from '../../types';
 
 import { hasStreakFreeze, useStreakFreeze } from '../progression/progressionService';
 import { STORAGE_KEYS } from '../persistence/storage';
@@ -224,7 +224,7 @@ export function exportData() { return JSON.stringify(load(), null, 2); }
 
 const MASTERY_KEY = MASTERY_KEY_CONST;
 
-export function updateTopicMastery(entry: { topicKey: string; sessionsCompleted: number; uniqueQuestionsAnswered: string[]; averageScore: number; lastSessionAt: string; mastered: boolean; masteredAt?: string; badge?: string }) {
+export function updateTopicMastery(entry: TopicMasteryEntry) {
   try {
     const raw = localStorage.getItem(MASTERY_KEY);
     const current = raw ? JSON.parse(raw) : {};
@@ -233,7 +233,7 @@ export function updateTopicMastery(entry: { topicKey: string; sessionsCompleted:
   } catch {}
 }
 
-export function getTopicMasteryAll(): Record<string, { topicKey: string; sessionsCompleted: number; uniqueQuestionsAnswered: string[]; averageScore: number; lastSessionAt: string; mastered: boolean; masteredAt?: string; badge?: string }> {
+export function getTopicMasteryAll(): Record<string, TopicMasteryEntry> {
   try {
     const raw = localStorage.getItem(MASTERY_KEY);
     return raw ? JSON.parse(raw) : {};

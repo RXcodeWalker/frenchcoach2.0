@@ -162,15 +162,13 @@ export function DailyNewsFlash() {
       const newsStats = evaluateNewsReport(userTranscript, currentNews);
       const fb = await getAIFeedback(userTranscript, question, undefined, recording.audioBlob || undefined);
 
-      // Override the AI feedback score with our news-aware relevance score.
-      // This is always a real, deterministic score (keyword coverage + length),
-      // so clear any `unscored` flag the offline fallback may have set —
-      // otherwise a genuinely-scored news response would still read as
-      // "not graded" downstream.
-      fb.scores.overall = newsStats.overall;
-      fb.scores.communication = newsStats.overall; // Link comm to relevance
-      delete fb.unscored;
-      
+      // newsStats.overall (keyword coverage + length) is the real relevance
+      // score for this mode and drives Session.score/XP independently below —
+      // but it says nothing about language/fluency, so the AI feedback's own
+      // scores and unscored flag are left untouched here. Overwriting them
+      // previously left language/fluency at their offline placeholder 0 while
+      // looking graded (A2).
+
       // Add custom news feedback to the style section or vocabulary
       if (newsStats.foundKeywords.length < currentNews.keywords.length) {
         const missing = currentNews.keywords.filter(kw => !newsStats.foundKeywords.includes(kw));
