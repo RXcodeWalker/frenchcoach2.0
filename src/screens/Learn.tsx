@@ -387,6 +387,25 @@ export function Learn() {
     const skillContext = buildSkillContext();
     const avoidanceSignals = detectAvoidance(transcript, currentQuestion, DIFFICULTY_CONFIG[selectedDifficulty].expectations);
 
+    // Offline is a local, instant evaluation — streamFeedback always calls the
+    // network endpoint regardless of enginePreference, so it must never be used
+    // for 'offline' (that silently produced a Groq result the first time and
+    // required a manual "re-evaluate offline" to get the real offline score).
+    if (selectedEngine === 'offline') {
+      setIsLoadingFeedback(true);
+      setPartialFeedback(null);
+      try {
+        const fb = await getAIFeedback(transcript, currentQuestion, skillContext, recording.audioBlob ?? undefined, selectedEngine, selectedDifficulty);
+        _finalizeAnswer(fb, transcript, elapsed, avoidanceSignals, skillContext);
+      } catch (fallbackErr) {
+        console.warn('[Learn] offline feedback unavailable:', fallbackErr);
+        setIsLoadingFeedback(false);
+        setFeedbackErrorMessage('Could not get feedback for that answer. Check your connection and try again.');
+        setLearnState('question');
+      }
+      return;
+    }
+
     const t0 = Date.now();
     let tFirstChunk = 0;
     let tFirstCard = 0;
