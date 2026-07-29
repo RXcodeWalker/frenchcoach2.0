@@ -48,7 +48,7 @@ Each screen owns its local state (recording, timer, step machine). Shared state 
 | Service                             | Purpose                                                                             |
 | ----------------------------------- | ----------------------------------------------------------------------------------- |
 | `api/apiClient.ts`                  | POST `/api/feedback` → falls back to `coachService` if offline                      |
-| `coaching/coachService.ts`          | Offline regex-based grammar evaluator (~34 rules); computes 4 scores (0–10)         |
+| `coaching/coachService.ts`          | Offline regex-based grammar evaluator (23 rules); computes 4 scores (0–10)          |
 | `coaching/diagnosticEngine.ts`      | Maps grammar errors → 14 skill categories with exponential decay (14-day half-life) |
 | `analytics/analyticsService.ts`     | Records sessions, computes streak, builds 7-day chart data                          |
 | `progression/progressionService.ts` | XP formula: `10 + (score/10×15) + (streak×2)`; 5 levels; 12 achievements            |
@@ -113,7 +113,7 @@ App types in [src/types/index.ts](src/types/index.ts); coach types split across 
 - `src/services/supabase/` is dead code (not imported)
 - Mic recording + timer logic is duplicated between Learn and ExamMode
 - Color-to-score mapping is defined in multiple places; canonical version is `src/domain/scoring.ts`
-- Coach intervention loop (`interventionService.ts`) is implemented and tested but not yet wired into any screen UI
+- Coach intervention loop (`interventionService.ts`) is wired in: `Learn.tsx` calls `recordIntervention`/`recordInterventionOutcome` and renders `MicroDrillModal`; also used by `WeaknessAnalysis.tsx` and `services/sync/coachSync.ts`
 
 # Assessment Engine
 
