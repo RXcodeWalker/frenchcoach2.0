@@ -22,6 +22,24 @@ import { invalidateDailyPlan } from './decisionEngine';
 import { detectRecurringGrammarDrill, hasMicroDrillForSkill } from './recurringGrammar';
 import { detectAndPersistProblem } from './interventionService';
 import { buildAchievementContext } from './achievementContextBuilder';
+import { projectSkillProfile } from './skillProfileProjection';
+import { writeSkillProfile } from '../coaching/diagnosticEngine';
+
+/**
+ * B2: persist the evidence-derived skill profile (frenchCoach_sde).
+ *
+ * WRITE ORDER IS LOAD-BEARING (§2.3). Per attempt this module performs three
+ * sequential localStorage writes: evidence log -> belief snapshot -> skill
+ * profile. A single setItem is atomic per key, but the *sequence* is not
+ * transactional, and no cross-key transaction is attempted. Recoverability
+ * comes from invariant I9 instead: the evidence log is written FIRST and is
+ * the source of truth, so an interruption after any write leaves the derived
+ * caches stale but fully reconstructible (rebuildBeliefSnapshot() followed by
+ * this call), never corrupt. Do not reorder these writes.
+ */
+function persistDerivedSkillProfile(snapshot: EvidenceBeliefSnapshot): void {
+  writeSkillProfile(projectSkillProfile(snapshot));
+}
 
 /**
  * Process one completed answer. Order matters: diagnostics + evidence update the
@@ -70,8 +88,11 @@ export function orchestrateAttempt(input: OrchestratorInput): OrchestratorResult
   const { level } = getProgressionState();
 
   // 4. Rebuild the evidence-driven belief snapshot from the full evidence
-  //    log, including the event just appended.
+  //    log, including the event just appended, then project it down into the
+  //    legacy skill profile (evidence -> beliefs -> profile; see
+  //    persistDerivedSkillProfile for why this order is load-bearing).
   const beliefSnapshot = updateFromFeedback();
+  persistDerivedSkillProfile(beliefSnapshot);
 
   // 5. Achievements — evaluated after XP and beliefSnapshot are ready so all
   //    predicate contexts (xp thresholds, skill mastery) reflect this session.
@@ -161,7 +182,9 @@ export function observeAttempt(input: ObserveAttemptInput): ObserveAttemptResult
   });
   const allEvidence = appendEvidenceEvents(evidenceEvents);
 
+  // Evidence -> beliefs -> profile; the ordering is load-bearing (§2.3).
   const beliefSnapshot = updateFromFeedback();
+  persistDerivedSkillProfile(beliefSnapshot);
   detectAndPersistProblem(allEvidence, beliefSnapshot);
 
   const recommendation = generateRecommendation(beliefSnapshot, getRecentEvidence(20));

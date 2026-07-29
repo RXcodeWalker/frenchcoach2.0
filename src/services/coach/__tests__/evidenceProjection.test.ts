@@ -44,46 +44,58 @@ function makeFeedback(overrides: Partial<FeedbackV2> = {}): FeedbackV2 {
 // ── deriveNodeOutcome ─────────────────────────────────────────────────────
 
 describe('deriveNodeOutcome', () => {
-  it('returns not_attempted when no observation targets the node', () => {
-    expect(deriveNodeOutcome('tense_past', [])).toBe('not_attempted');
-  });
-
-  it('returns failure when a confident issue observation targets the node', () => {
-    const obs: Observation[] = [{
+  function issueObs(overrides: Partial<Observation> = {}): Observation {
+    return {
       observationId: 'x', detectorId: 'd', detectorVersion: 'v1',
       type: 'issue:tense', value: 'issue-1', spans: [{ startOffset: 0, endOffset: 5 }],
       confidence: 0.9, markInfluence: 'forbidden', skillNodeId: 'tense_past',
-    }];
-    expect(deriveNodeOutcome('tense_past', obs)).toBe('failure');
+      ...overrides,
+    };
+  }
+
+  it('returns not_attempted when nothing targets the node and the attempt was unscored', () => {
+    expect(deriveNodeOutcome('tense_past', [], null)).toBe('not_attempted');
   });
 
-  it('returns success when the node is targeted but no issue observation qualifies', () => {
-    // A feature-only observation (skillNodeId set, but type is not an issue type).
-    const obs: Observation[] = [{
-      observationId: 'x', detectorId: 'd', detectorVersion: 'v1',
-      type: 'connector_used', value: 'donc', spans: [{ startOffset: 0, endOffset: 4 }],
-      confidence: 0.9, markInfluence: 'forbidden', skillNodeId: 'connectors',
-    }];
-    expect(deriveNodeOutcome('connectors', obs)).toBe('success');
+  it('returns failure when an issue observation targets the node', () => {
+    expect(deriveNodeOutcome('tense_past', [issueObs()], 6)).toBe('failure');
   });
 
-  it('a low-confidence issue observation does not count as a failure', () => {
-    const obs: Observation[] = [{
-      observationId: 'x', detectorId: 'd', detectorVersion: 'v1',
-      type: 'issue:gender', value: 'issue-2', spans: [{ startOffset: 0, endOffset: 5 }],
-      confidence: 0.5, markInfluence: 'forbidden', skillNodeId: 'gender',
-    }];
-    // Targeted but below the 0.7 confidence floor -> falls through to success.
-    expect(deriveNodeOutcome('gender', obs)).toBe('success');
+  it('an issue observation outranks a high score — the node still failed', () => {
+    expect(deriveNodeOutcome('tense_past', [issueObs()], 9)).toBe('failure');
   });
 
-  it('is unaffected by observations targeting a different node', () => {
-    const obs: Observation[] = [{
-      observationId: 'x', detectorId: 'd', detectorVersion: 'v1',
-      type: 'issue:gender', value: 'issue-2', spans: [{ startOffset: 0, endOffset: 5 }],
-      confidence: 0.9, markInfluence: 'forbidden', skillNodeId: 'gender',
-    }];
-    expect(deriveNodeOutcome('tense_past', obs)).toBe('not_attempted');
+  // ── B1 regression: the mastery inversion this workstream exists to fix ────
+  // The FeedbackV2 bridge stamps minor grammar errors at confidence 0.6, below
+  // the old `>= 0.7` gate. Those observations fell through to `success`, so
+  // every minor error incremented alpha/weightedSuccess on the node the
+  // learner got WRONG. One minor error must be a failure, never a success.
+  it('a MINOR (low-confidence) issue observation is a failure, never a success', () => {
+    const obs = [issueObs({
+      type: 'grammar:RELATIVE_PRONOUN', skillNodeId: 'relative_pron', confidence: 0.6,
+    })];
+    expect(deriveNodeOutcome('relative_pron', obs, 8)).toBe('failure');
+    expect(deriveNodeOutcome('relative_pron', obs, null)).toBe('failure');
+  });
+
+  it('falls back to the score threshold when the node has no issue observation', () => {
+    const obs = [issueObs({ skillNodeId: 'gender', type: 'issue:gender' })];
+    // Untargeted node, scored attempt -> score decides.
+    expect(deriveNodeOutcome('tense_past', obs, 8)).toBe('success');
+    expect(deriveNodeOutcome('tense_past', obs, 3)).toBe('failure');
+  });
+
+  it('a non-issue (feature) observation does not fail the node; the score decides', () => {
+    const obs = [issueObs({
+      type: 'connector_used', value: 'donc', skillNodeId: 'connectors',
+    })];
+    expect(deriveNodeOutcome('connectors', obs, 8)).toBe('success');
+    expect(deriveNodeOutcome('connectors', obs, 3)).toBe('failure');
+  });
+
+  it('an unscored attempt with no issue on the node is not_attempted, never a failure', () => {
+    const obs = [issueObs({ skillNodeId: 'gender', type: 'issue:gender' })];
+    expect(deriveNodeOutcome('tense_past', obs, null)).toBe('not_attempted');
   });
 });
 

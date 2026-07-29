@@ -142,19 +142,51 @@ function isIssueType(type: string): boolean {
 
 /**
  * §10.4: per node, from one attempt's observation log, was this node a
- * success, a failure, or not attempted? A node "fails" when at least one
- * confident (>= 0.7) issue observation targets it.
+ * success, a failure, or not attempted?
+ *
+ * B1 (mastery-inversion fix). The previous rule gated failure on
+ * `confidence >= 0.7` and then treated "targeted at all" as success. Because
+ * the FeedbackV2 bridge emits ONLY issue observations, "attempted" was
+ * identical to "erred" — so every minor grammar error (stamped 0.6 at :129,
+ * below the gate) fell through and recorded a mastery *success* on the exact
+ * node the learner got wrong.
+ *
+ * The rule now is:
+ *   - any issue observation on the node  -> failure (confidence no longer
+ *     gates the outcome; it is applied as a *weight* instead, via the event's
+ *     reliability.assessmentConfidence — see buildEvidence)
+ *   - otherwise, if a real score exists  -> score >= LANGUAGE_SUCCESS_SCORE
+ *   - otherwise (unscored attempt)       -> not_attempted
+ *
+ * `realScore` is null when the attempt was never graded (isUnscored): an
+ * ungraded attempt has no score to compare, and must not be read as a failure.
  */
 export function deriveNodeOutcome(
   nodeId: string,
   observations: Observation[],
+  realScore: number | null,
 ): 'success' | 'failure' | 'not_attempted' {
-  const issues = observations.filter(
-    o => o.skillNodeId === nodeId && isIssueType(o.type) && o.confidence >= 0.7,
+  const hasIssue = observations.some(
+    o => o.skillNodeId === nodeId && isIssueType(o.type),
   );
-  if (issues.length > 0) return 'failure';
-  const attempted = observations.some(o => o.skillNodeId === nodeId);
-  return attempted ? 'success' : 'not_attempted';
+  if (hasIssue) return 'failure';
+  if (realScore === null) return 'not_attempted';
+  return realScore >= LANGUAGE_SUCCESS_SCORE ? 'success' : 'failure';
+}
+
+/**
+ * Confidence moved from gate to weight (B1): when this attempt carries issue
+ * observations, the event's assessment confidence is the *minimum* issue
+ * confidence, so a noisy low-confidence detection down-weights the whole
+ * event in beliefReducer.computeEventWeight rather than being discarded.
+ * Returns null when there are no issue observations to derive from.
+ */
+function minIssueConfidence(observations: Observation[]): number | null {
+  const confidences = observations
+    .filter(o => isIssueType(o.type) && o.skillNodeId !== null)
+    .map(o => o.confidence);
+  if (confidences.length === 0) return null;
+  return Math.min(...confidences);
 }
 
 function evaluatorFor(feedback: FeedbackV2): EvidenceEvaluator {
@@ -223,7 +255,29 @@ export function buildEvidence(args: BuildEvidenceArgs): EvidenceEvent[] {
     if (!targetNodeIds.includes(signal.skillId)) targetNodeIds.push(signal.skillId);
   }
 
-  const reliability = computeReliability(feedback, wordCount);
+  // An unscored (offline, no-LLM) attempt has no real finalScore to fall back
+  // on — args.finalScore is a placeholder 0 in that case, and comparing it
+  // against LANGUAGE_SUCCESS_SCORE would record a clean, zero-observation
+  // response as a belief "failure" purely because it was never graded.
+  const unscored = isUnscored(feedback);
+  const realScore = unscored ? null : args.finalScore;
+
+  const baseReliability = computeReliability(feedback, wordCount);
+  // B1: confidence is a weight, not a gate. When issue observations exist, the
+  // least-confident of them caps this event's assessment confidence, so a noisy
+  // detection contributes less weight in beliefReducer.computeEventWeight.
+  const issueConfidence = minIssueConfidence(observations);
+  const reliability: EvidenceReliability =
+    issueConfidence === null
+      ? baseReliability
+      : {
+          ...baseReliability,
+          assessmentConfidence: Math.min(
+            baseReliability.assessmentConfidence,
+            issueConfidence,
+          ),
+        };
+
   const issues = feedback.issues ?? [];
   const grammarErrors = [
     ...(feedback.grammar?.critical ?? []),
@@ -235,14 +289,20 @@ export function buildEvidence(args: BuildEvidenceArgs): EvidenceEvent[] {
   // per node; the event-level result.success stays a single scalar (the
   // reducer only reads result.success, not per-node outcomes) — computed as
   // "no node targeted by this attempt failed".
-  const anyNodeFailed = targetNodeIds.some(
-    nodeId => deriveNodeOutcome(nodeId, observations) === 'failure',
+  const nodeOutcomes = targetNodeIds.map(
+    nodeId => deriveNodeOutcome(nodeId, observations, realScore),
   );
-  // An unscored (offline, no-LLM) attempt has no real finalScore to fall back
-  // on — args.finalScore is a placeholder 0 in that case, and comparing it
-  // against LANGUAGE_SUCCESS_SCORE would record a clean, zero-observation
-  // response as a belief "failure" purely because it was never graded.
-  const unscored = isUnscored(feedback);
+  const anyNodeFailed = nodeOutcomes.includes('failure');
+  // `undefined` (no success signal at all) only when nothing was attempted AND
+  // there is no real score to fall back on — the reducer's hasSuccessSignal
+  // gate then skips this event's alpha/beta update rather than defaulting it
+  // to a failure.
+  const eventSuccess: boolean | undefined =
+    nodeOutcomes.some(o => o !== 'not_attempted')
+      ? !anyNodeFailed
+      : realScore === null
+      ? undefined
+      : realScore >= LANGUAGE_SUCCESS_SCORE;
 
   const events: EvidenceEvent[] = [];
 
@@ -262,11 +322,7 @@ export function buildEvidence(args: BuildEvidenceArgs): EvidenceEvent[] {
     },
     result: {
       ...(unscored ? {} : { score: args.finalScore }),
-      success: observations.length > 0
-        ? !anyNodeFailed
-        : unscored
-        ? undefined
-        : args.finalScore >= LANGUAGE_SUCCESS_SCORE,
+      success: eventSuccess,
       wordCount,
       issueCount: issues.length + grammarErrors.length,
       criticalIssueCount,

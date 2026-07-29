@@ -57,8 +57,18 @@ const PRIOR_BETA  = 1.0;
  *  result.success from per-node observation outcomes (deriveNodeOutcome) when
  *  observations exist, rather than purely from the score >= LANGUAGE_SUCCESS_SCORE
  *  threshold — a real behavior change to what beliefs are computed from
- *  existing cached evidence, so old snapshots must be rebuilt. */
-export const REDUCER_VERSION = 'evidence-v2';
+ *  existing cached evidence, so old snapshots must be rebuilt.
+ *
+ *  Bumped to evidence-v3 (B3) for TWO output changes, one of them retroactive:
+ *   1. Phase 4b added the `hasSuccessSignal` gate below — events with neither
+ *      an explicit success nor a real score stopped being counted as failures
+ *      — but left this constant at evidence-v2. That omission is covered here.
+ *   2. B1 inverted deriveNodeOutcome: any issue observation on a node is now a
+ *      failure (confidence became a weight, not a >= 0.7 gate). Snapshots built
+ *      under evidence-v2 recorded mastery SUCCESSES on nodes the learner got
+ *      wrong, so they must not be read back — see the version guard in
+ *      coachStorage.getBeliefSnapshot(). */
+export const REDUCER_VERSION = 'evidence-v3';
 
 // ── Weighting tables ──────────────────────────────────────────────────────────
 

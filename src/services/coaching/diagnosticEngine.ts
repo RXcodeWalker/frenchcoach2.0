@@ -354,6 +354,61 @@ export function generateCoachingNarrative(): string {
   return weakPart + strongPart;
 }
 
+/**
+ * B2: the replacement writer for frenchCoach_sde.
+ *
+ * Phase 2 removed the only caller of runAfterSession, leaving this store with
+ * no writer at all — frozen and empty for every new user, while five screens
+ * still dispatch UPDATE_SKILL_PROFILE with an unchanging value. The coach's
+ * evidence-derived belief snapshot is now the source (see
+ * coach/skillProfileProjection.ts); this function persists that projection in
+ * the store's existing on-disk shape so getSkillProfile(), getReport() and
+ * buildSkillContext() keep reading it unchanged.
+ *
+ * Overwrites rather than appends: the profile is a derived cache, always
+ * rebuildable from the evidence log (invariant I9), and is bounded by the
+ * ~22 SKILL_DEFS ids so it cannot grow without limit.
+ *
+ * Fields the SkillProfile shape does not carry (errors, wErrors/wObs,
+ * recentScores, mistakes) are preserved from the existing record where one
+ * exists, so historical mistake examples survive the write.
+ */
+export function writeSkillProfile(profile: SkillProfile): void {
+  const date = new Date().toISOString();
+  const data = _load();
+  const skills = (data.skills ?? {}) as Record<string, SkillRecord>;
+
+  for (const [id, entry] of Object.entries(profile)) {
+    if (!SKILL_DEFS[id]) continue;
+    const prev = skills[id];
+    skills[id] = {
+      // Carry forward the fields the projection cannot reconstruct.
+      errors:       prev?.errors ?? 0,
+      wErrors:      prev?.wErrors ?? 0,
+      wObs:         prev?.wObs ?? 0,
+      recentScores: entry.recentScores ?? prev?.recentScores ?? [],
+      mistakes:     prev?.mistakes ?? [],
+      trend:        prev?.trend ?? 'new',
+      // Evidence-derived values.
+      observations: entry.feedbackCount,
+      mastery:      Math.round(entry.score * 100),
+      lastSeen:     entry.lastSeen > 0 ? new Date(entry.lastSeen).toISOString() : (prev?.lastSeen ?? date),
+      confidence:   _computeConfidence(entry.feedbackCount),
+    };
+  }
+
+  data.skills = skills;
+  data.lastUpdated = date;
+  _save(data);
+}
+
+/**
+ * @deprecated Dead since Phase 2 — zero callers in src/. The dual-write from
+ * the coach layer to this engine was removed when beliefs became
+ * evidence-derived; writeSkillProfile above is the live path. Kept (not
+ * deleted) so the observation model stays available if a future subphase needs
+ * it. Do not re-wire it: doing so would resurrect the dual-write.
+ */
 export function runAfterSession(feedback: FeedbackV2, avoidanceSignals?: AvoidanceSignal[]) {
   const date = new Date().toISOString();
   const data = _load();

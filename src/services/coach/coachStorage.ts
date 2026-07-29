@@ -53,7 +53,15 @@ export function getBeliefSnapshot(): EvidenceBeliefSnapshot | null {
   if (stored && stored.reducerVersion === REDUCER_VERSION) return stored;
 
   const events = getEvidenceEvents();
-  if (events.length === 0) return stored;
+  if (events.length === 0) {
+    // B3 — guard hole. This branch previously returned `stored`, so a snapshot
+    // built by an OLD reducer was handed back verbatim whenever the evidence
+    // log was empty (a fresh install, or a learner whose log has aged out past
+    // MAX_EVIDENCE_EVENTS). That made the REDUCER_VERSION bump a no-op for
+    // exactly those users. A version-mismatched snapshot with nothing to
+    // rebuild from is unusable: drop it rather than serve stale beliefs.
+    return stored && stored.reducerVersion === REDUCER_VERSION ? stored : null;
+  }
 
   const rebuilt = projectEvidenceBeliefSnapshot(
     reduceEvidenceToBeliefState(events),
