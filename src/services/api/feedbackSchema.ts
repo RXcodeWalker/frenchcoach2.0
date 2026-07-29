@@ -9,21 +9,32 @@ const ScoreSchema = z.object({
   overall: z.number().min(0).max(10).optional(),
 });
 
+// LLMs frequently emit `null` for a field they consider not-applicable rather
+// than omitting the key — `.optional()` alone rejects that. `.nullish()` +
+// transform normalises both "absent" and "null" to the same value.
+const nullishString = z.string().nullish().transform(v => v ?? undefined);
+const nullishStringWithFallback = (fallback: string) =>
+  z.string().nullish().transform(v => v ?? fallback);
+
 const GrammarItemSchema = z.object({
-  id:         z.string().optional(),
-  themeLabel: z.string().optional(),
-  themeDesc:  z.string().optional(),
-  msg:        z.string(),
-  diagnostic: z.string().optional(),
-  correction: z.string(),
-  masterTip:  z.string().optional(),
-  severity:   z.enum(['major', 'minor']),
-  quote:      z.string().optional(),
+  id:         nullishString,
+  themeLabel: nullishString,
+  themeDesc:  nullishString,
+  msg:        nullishStringWithFallback(''),
+  diagnostic: nullishString,
+  correction: nullishStringWithFallback(''),
+  masterTip:  nullishString,
+  // A stray/renamed severity value (e.g. the model echoing the array name
+  // "critical" instead of "major") shouldn't sink the whole item.
+  severity:   z.enum(['major', 'minor']).catch('minor'),
+  quote:      nullishString,
 });
 
 const GrammarSchema = z.object({
-  critical: z.array(GrammarItemSchema).default([]),
-  polish:   z.array(GrammarItemSchema).default([]),
+  // .catch (not .default) so a malformed item inside one array doesn't
+  // invalidate the whole response — only that array degrades to empty.
+  critical: z.array(GrammarItemSchema).catch([]),
+  polish:   z.array(GrammarItemSchema).catch([]),
 });
 
 const VocabItemSchema = z.object({
@@ -55,7 +66,13 @@ export const BackendFeedbackSchema = z.object({
     acc:  z.number().min(0).max(10),
   }).or(ScoreSchema),
   fluency:   z.number().min(0).max(10).optional(),
-  grammar:   GrammarSchema.or(z.array(z.unknown()).transform(() => ({ critical: [], polish: [] }))),
+  // Grammar section is high-value but non-essential to the rest of the
+  // feedback (scores, best_moment, vocabulary, ...) — if the AI mangles it
+  // beyond recovery, degrade to empty rather than discarding the whole
+  // response and forcing a fallback to the next engine / offline mode.
+  grammar:   GrammarSchema
+    .or(z.array(z.unknown()).transform(() => ({ critical: [], polish: [] })))
+    .catch({ critical: [], polish: [] }),
   cefrLevel: z.enum(['A1', 'A2', 'B1', 'B2']),
 
   // Coaching text — optional, string only (not arrays or objects)
@@ -92,13 +109,26 @@ export type BackendFeedbackParsed = z.infer<typeof BackendFeedbackSchema>;
  * On failure logs a warning and throws — caller should fall back to offline.
  * Only called for online (non-offline) responses so we catch real regressions.
  */
+// A failed z.union collapses to one opaque top-level issue ("grammar: Invalid
+// input") with the real cause buried in `unionErrors`. Unwrap those so schema
+// failures are actually debuggable instead of always printing the same
+// meaningless message.
+function describeIssue(issue: z.ZodIssue): string {
+  if (issue.code === 'invalid_union') {
+    const nested = issue.errors
+      .flat()
+      .map(i => `${i.path.join('.')}: ${i.message}`)
+      .join(' | ');
+    return `${issue.path.join('.')}: Invalid input (${nested})`;
+  }
+  return `${issue.path.join('.')}: ${issue.message}`;
+}
+
 export function validateBackendFeedback(raw: unknown, endpoint: string): BackendFeedbackParsed {
   const result = BackendFeedbackSchema.safeParse(raw);
   if (result.success) return result.data;
 
-  const issues = result.error.issues
-    .map(i => `${i.path.join('.')}: ${i.message}`)
-    .join('; ');
+  const issues = result.error.issues.map(describeIssue).join('; ');
   console.warn(`[Schema] ${endpoint} response failed validation — ${issues}`);
 
   // Re-throw a typed error so apiClient can decide whether to fallback
