@@ -160,4 +160,55 @@ describe('SupabaseEnvelopeStore', () => {
       await expect(store.saveOriginal(envelope)).rejects.toThrow(/permission denied/);
     });
   });
+
+  describe('listBySession() (C0 skip-and-report)', () => {
+    function mockRows(rows: unknown[]): void {
+      const eq = vi.fn(async () => ({ data: rows.map((envelope) => ({ envelope })), error: null }));
+      const select = vi.fn(() => ({ eq }));
+      fromSpy.mockReturnValue({ select });
+    }
+
+    it('returns the readable envelopes when one row is unreadable, instead of failing wholesale', async () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      try {
+        mockRows([
+          { ...buildEnvelope('original-practice'), attemptId: 'good-1' },
+          {
+            ...buildEnvelope('original-practice'),
+            attemptId: 'stale-1',
+            versions: { ...buildEnvelope('original-practice').versions, envelopeSchemaVersion: 'envelope-v9.9' },
+          },
+          { ...buildEnvelope('original-practice'), attemptId: 'good-2' },
+        ]);
+
+        const store = createSupabaseEnvelopeStore({ url: 'https://x.supabase.co', serviceKey: 'key', userId: 'u1' });
+        const result = await store.listBySession('s1');
+
+        expect(result.map((e) => e.attemptId)).toEqual(['good-1', 'good-2']);
+        expect(warn).toHaveBeenCalledWith(expect.stringContaining('stale-1'));
+      } finally {
+        warn.mockRestore();
+      }
+    });
+
+    it('forward-migrates an older-version row rather than dropping it', async () => {
+      const older = buildEnvelope('original-practice');
+      mockRows([
+        {
+          ...older,
+          attemptId: 'v01-1',
+          versions: { ...older.versions, envelopeSchemaVersion: 'envelope-v0.1' },
+        },
+      ]);
+
+      const store = createSupabaseEnvelopeStore({ url: 'https://x.supabase.co', serviceKey: 'key', userId: 'u1' });
+      const result = await store.listBySession('s1');
+
+      expect(result).toHaveLength(1);
+      expect(result[0].attemptId).toBe('v01-1');
+      // The recorded judgement survives the migration untouched.
+      expect(result[0].communication.mark).toBe(8);
+      expect(result[0].total).toBe(16);
+    });
+  });
 });

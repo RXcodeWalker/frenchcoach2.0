@@ -1,7 +1,18 @@
 /**
  * S4 ScoringEnvelope zod validation. Dispatches on versions.envelopeSchemaVersion
- * first (mirrors stt/schema.ts's schemaVersion dispatch) — an unknown version is
- * a hard error, never silently coerced; future bumps add a new arm + upcaster.
+ * first (mirrors stt/schema.ts's schemaVersion dispatch).
+ *
+ * C0: the dispatch was an exact-equality check until this change, so every
+ * ENVELOPE_SCHEMA_VERSION bump silently orphaned every previously persisted
+ * envelope — which is what happened at Phase 1 (v0.1 -> v0.2). The persisted
+ * corpus (Supabase `scoring_envelopes`, file store) is the future calibration
+ * dataset and must survive bumps, so older versions are now FORWARD-MIGRATED
+ * rather than rejected. Unknown/newer versions still throw: that direction
+ * stays loud, because a newer writer may mean something different by a field
+ * this code already knows.
+ *
+ * Modelled on services/sync/coachSync.ts::rowToEvent — migrateRow upgrades
+ * older rows; newer ones are refused.
  */
 
 import { z } from 'zod';
@@ -85,6 +96,18 @@ const ScoringEnvelopeSchema = z.object({
   communication: BandCriterionSchema,
   qualityOfLanguage: BandCriterionSchema,
   total: z.number(),
+  // C0 backfills this to [] for pre-v0.3 envelopes, so it is always present by
+  // the time zod sees it. Kept optional here only so that C0 is independently
+  // revertable while ENVELOPE_SCHEMA_VERSION is still v0.2.
+  criterionAdjustments: z
+    .array(
+      z.object({
+        criterion: z.enum(['communication', 'qualityOfLanguage']),
+        proposedMark: z.number(),
+        finalMark: z.number(),
+      }),
+    )
+    .optional(),
   guardrailTriggers: z.array(z.string()),
   selfConsistencyOutcomes: z.object({
     agreement: z.literal('single_run'),
@@ -96,9 +119,71 @@ const ScoringEnvelopeSchema = z.object({
 });
 
 /**
- * Parse and validate a raw value as a ScoringEnvelope. Throws
- * ScoringEnvelopeValidationError on an unknown envelopeSchemaVersion or on any
- * zod validation failure.
+ * Every envelope schema version this parser can read, oldest first. An entry is
+ * NEVER removed: a version that once shipped may sit in the persisted corpus
+ * forever, and a later revert of the code that wrote it must still be able to
+ * read those rows back (see the fix plan §5, asymmetric-rollback note).
+ */
+export const KNOWN_ENVELOPE_SCHEMA_VERSIONS = [
+  'envelope-v0.1',
+  'envelope-v0.2',
+  'envelope-v0.3',
+] as const;
+
+export type KnownEnvelopeSchemaVersion = (typeof KNOWN_ENVELOPE_SCHEMA_VERSIONS)[number];
+
+function isKnownVersion(value: unknown): value is KnownEnvelopeSchemaVersion {
+  return (KNOWN_ENVELOPE_SCHEMA_VERSIONS as readonly unknown[]).includes(value);
+}
+
+/**
+ * True when `version` is newer than the version this build writes. The list may
+ * legitimately name a version ahead of ENVELOPE_SCHEMA_VERSION (it is
+ * append-only and survives a revert of the code that made that version
+ * current), and there is no backward migration — so a forward-dated envelope is
+ * refused here rather than silently mis-read, mirroring coachSync.ts's
+ * `row.schema_version > COACH_SYNC_SCHEMA_VERSION` guard.
+ */
+function isNewerThanThisBuild(version: KnownEnvelopeSchemaVersion): boolean {
+  const known: readonly string[] = KNOWN_ENVELOPE_SCHEMA_VERSIONS;
+  return known.indexOf(version) > known.indexOf(ENVELOPE_SCHEMA_VERSION);
+}
+
+/**
+ * Forward-migrate a raw envelope from `from` to ENVELOPE_SCHEMA_VERSION.
+ *
+ * Purely additive so far — each step fills in fields the newer shape requires
+ * and stamps the new version. Idempotent by construction: an envelope already
+ * at the current version is returned unchanged, so migrate(migrate(x)) is
+ * migrate(x).
+ *
+ * v0.1 -> v0.2: questionSetId/questionSetHash became optional-but-known; no
+ *   value to backfill (absent stays absent), version stamp only.
+ * v0.2 -> v0.3: criterionAdjustments added (Workstream C). A pre-v0.3 envelope
+ *   was written by a build with no ceiling application at all, so [] is the
+ *   only truthful backfill — it asserts "no clamp was applied", which is
+ *   exactly what was the case.
+ */
+export function migrateEnvelope(raw: unknown, from: KnownEnvelopeSchemaVersion): unknown {
+  if (typeof raw !== 'object' || raw === null) return raw;
+  if (from === ENVELOPE_SCHEMA_VERSION) return raw;
+
+  const source = raw as Record<string, unknown>;
+  const versions = (source.versions ?? {}) as Record<string, unknown>;
+
+  return {
+    ...source,
+    criterionAdjustments: Array.isArray(source.criterionAdjustments)
+      ? source.criterionAdjustments
+      : [],
+    versions: { ...versions, envelopeSchemaVersion: ENVELOPE_SCHEMA_VERSION },
+  };
+}
+
+/**
+ * Parse and validate a raw value as a ScoringEnvelope. Older known versions are
+ * forward-migrated first. Throws ScoringEnvelopeValidationError on an unknown
+ * (or newer-than-this-build) envelopeSchemaVersion, or on any zod failure.
  */
 export function parseScoringEnvelope(raw: unknown): ScoringEnvelope {
   if (typeof raw !== 'object' || raw === null || !('versions' in raw)) {
@@ -109,13 +194,20 @@ export function parseScoringEnvelope(raw: unknown): ScoringEnvelope {
     typeof versions === 'object' && versions !== null && 'envelopeSchemaVersion' in versions
       ? (versions as { envelopeSchemaVersion: unknown }).envelopeSchemaVersion
       : undefined;
-  if (envelopeSchemaVersion !== ENVELOPE_SCHEMA_VERSION) {
+  if (!isKnownVersion(envelopeSchemaVersion)) {
     throw new ScoringEnvelopeValidationError(
-      `Unknown envelopeSchemaVersion "${String(envelopeSchemaVersion)}"; expected "${ENVELOPE_SCHEMA_VERSION}"`,
+      `Unknown envelopeSchemaVersion "${String(envelopeSchemaVersion)}"; known versions are ${KNOWN_ENVELOPE_SCHEMA_VERSIONS.join(', ')}`,
+    );
+  }
+  if (isNewerThanThisBuild(envelopeSchemaVersion)) {
+    throw new ScoringEnvelopeValidationError(
+      `envelopeSchemaVersion "${envelopeSchemaVersion}" is newer than this build's "${ENVELOPE_SCHEMA_VERSION}"; refusing to downgrade`,
     );
   }
 
-  const result = ScoringEnvelopeSchema.safeParse(raw);
+  const migrated = migrateEnvelope(raw, envelopeSchemaVersion);
+
+  const result = ScoringEnvelopeSchema.safeParse(migrated);
   if (!result.success) {
     const issues = result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ');
     throw new ScoringEnvelopeValidationError(`ScoringEnvelope failed schema validation: ${issues}`);

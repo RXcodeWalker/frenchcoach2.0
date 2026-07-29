@@ -10,8 +10,21 @@ import type { ScoringEnvelope } from '../types';
 
 export function createFixtureEnvelopeStore(fixtures: Record<string, unknown>): EnvelopeStore {
   const store = new Map<string, ScoringEnvelope>();
+  // C0: skip-and-report, matching SupabaseEnvelopeStore.listBySession — one
+  // unreadable fixture must not deny access to the readable ones. A subsequent
+  // load() of a skipped attemptId still throws "no envelope for attemptId".
+  const skipped: string[] = [];
   for (const [attemptId, raw] of Object.entries(fixtures)) {
-    store.set(attemptId, parseScoringEnvelope(raw));
+    try {
+      store.set(attemptId, parseScoringEnvelope(raw));
+    } catch (err) {
+      skipped.push(`${attemptId}: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+  if (skipped.length > 0) {
+    console.warn(
+      `[FixtureEnvelopeStore] skipped ${skipped.length} unreadable fixture(s): ${skipped.join('; ')}`,
+    );
   }
 
   return {

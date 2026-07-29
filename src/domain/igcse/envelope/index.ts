@@ -5,7 +5,13 @@
 export { buildScoringEnvelope } from './buildEnvelope';
 export type { BuildScoringEnvelopeInput } from './buildEnvelope';
 
-export { parseScoringEnvelope, ScoringEnvelopeValidationError } from './schema';
+export {
+  parseScoringEnvelope,
+  ScoringEnvelopeValidationError,
+  migrateEnvelope,
+  KNOWN_ENVELOPE_SCHEMA_VERSIONS,
+} from './schema';
+export type { KnownEnvelopeSchemaVersion } from './schema';
 
 export { createFixtureEnvelopeStore } from './providers/fixtureEnvelopeStore';
 

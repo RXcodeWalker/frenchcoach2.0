@@ -49,6 +49,15 @@ function checkRedistributable(envelope: ScoringEnvelope): void {
   assertRedistributable({ contentProvenance: envelope.contentProvenance } as SpeakingTranscript);
 }
 
+/** Identifies a skipped row by attemptId where readable — the log's only job is to make the loss traceable. */
+function describeUnreadableRow(raw: unknown, err: unknown): string {
+  const attemptId =
+    typeof raw === 'object' && raw !== null && typeof (raw as { attemptId?: unknown }).attemptId === 'string'
+      ? (raw as { attemptId: string }).attemptId
+      : '<unknown attemptId>';
+  return `${attemptId}: ${err instanceof Error ? err.message : String(err)}`;
+}
+
 export function createSupabaseEnvelopeStore(options: SupabaseEnvelopeStoreOptions): SupabaseEnvelopeStore {
   const client = createClient(options.url, options.serviceKey);
 
@@ -121,7 +130,27 @@ export function createSupabaseEnvelopeStore(options: SupabaseEnvelopeStoreOption
       if (error) {
         throw new Error(`SupabaseEnvelopeStore.listBySession failed: ${error.message}`);
       }
-      return (data ?? []).map((row: { envelope: unknown }) => parseScoringEnvelope(row.envelope));
+
+      // C0: skip-and-report, not fail-wholesale. This maps over every stored
+      // row for the session, so a single unreadable row (written by a newer
+      // build, or corrupt) used to take the whole call down with it — losing
+      // the readable envelopes alongside it. Unreadable rows are dropped and
+      // reported; the caller still gets everything that parsed.
+      const envelopes: ScoringEnvelope[] = [];
+      const skipped: string[] = [];
+      for (const row of (data ?? []) as { envelope: unknown }[]) {
+        try {
+          envelopes.push(parseScoringEnvelope(row.envelope));
+        } catch (err) {
+          skipped.push(describeUnreadableRow(row.envelope, err));
+        }
+      }
+      if (skipped.length > 0) {
+        console.warn(
+          `[SupabaseEnvelopeStore] listBySession("${sessionId}"): skipped ${skipped.length} unreadable envelope(s): ${skipped.join('; ')}`,
+        );
+      }
+      return envelopes;
     },
   };
 }
