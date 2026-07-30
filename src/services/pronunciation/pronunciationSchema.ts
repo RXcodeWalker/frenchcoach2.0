@@ -23,7 +23,7 @@ const IssueSchema = z.object({
   severity: z.enum(['low', 'medium', 'high']),
   drill: DrillHintSchema,
   expected: z.string().optional(),
-  heard: z.string().optional(),
+  heard: z.string().nullable().optional(),
 }).strict();
 
 const WordResultSchema = z.object({

@@ -1,6 +1,8 @@
+import { STORAGE_KEYS, storageGet, storageSet } from '../services/persistence/storage';
+
 export type FeatureStatus = 'live' | 'coming-soon';
 
-export const FEATURE_FLAGS: Record<string, FeatureStatus> = {
+export const FEATURE_FLAGS = {
   shop:              'coming-soon',
   rankings:          'coming-soon',
   studyGroups:       'coming-soon',
@@ -20,4 +22,37 @@ export const FEATURE_FLAGS: Record<string, FeatureStatus> = {
   listeningMode:     'coming-soon',
   sentenceRebuilder: 'coming-soon',
   accentAnalyzer:    'coming-soon',
-};
+} satisfies Record<string, FeatureStatus>;
+
+export type FeatureFlagKey = keyof typeof FEATURE_FLAGS;
+
+type FeatureFlagOverrides = Partial<Record<FeatureFlagKey, FeatureStatus>>;
+
+function isFeatureStatus(value: string | null): value is FeatureStatus {
+  return value === 'live' || value === 'coming-soon';
+}
+
+/**
+ * Resolves a flag's status: URL query param (?ff_<key>=live|coming-soon,
+ * persisted to localStorage on first read) → localStorage override →
+ * compile-time default. Never throws; an unrecognized query value is
+ * ignored, not persisted.
+ */
+export function resolveFeatureStatus(key: FeatureFlagKey): FeatureStatus {
+  if (typeof window !== 'undefined') {
+    const queryValue = new URLSearchParams(window.location.search).get(`ff_${key}`);
+    if (isFeatureStatus(queryValue)) {
+      const overrides = storageGet<FeatureFlagOverrides>(STORAGE_KEYS.featureFlagOverrides, {});
+      storageSet(STORAGE_KEYS.featureFlagOverrides, { ...overrides, [key]: queryValue });
+      return queryValue;
+    }
+  }
+
+  const overrides = storageGet<FeatureFlagOverrides>(STORAGE_KEYS.featureFlagOverrides, {});
+  const override = overrides[key];
+  if (isFeatureStatus(override ?? null)) {
+    return override as FeatureStatus;
+  }
+
+  return FEATURE_FLAGS[key];
+}

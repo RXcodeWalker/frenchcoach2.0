@@ -45,6 +45,8 @@ export const STORAGE_KEYS = {
   examPendingScoreSessionId: 'frenchCoach_examPendingScoreSessionId',
   // ── Guest mode (local-only auth bypass) ────────────────────────────────────────
   guestMode: 'frenchCoach_guestMode',
+  // ── Feature flag runtime overrides (Phase 0.1) ─────────────────────────────────
+  featureFlagOverrides: 'frenchCoach_featureFlagOverrides',
 } as const;
 
 export type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS];

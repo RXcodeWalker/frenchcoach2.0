@@ -64,7 +64,7 @@ export interface PronunciationIssue {
   severity: PronunciationSeverity;
   drill: PronunciationDrillHint;
   expected?: string;
-  heard?: string;
+  heard?: string | null;
 }
 
 export interface PronunciationSubScores {

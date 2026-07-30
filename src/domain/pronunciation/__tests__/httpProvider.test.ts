@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createHttpPronunciationProvider } from '../providers/httpProvider';
-import { PRONUNCIATION_GOLDEN_ASSESSMENT } from './fixtures';
+import { PRONUNCIATION_GOLDEN_ASSESSMENT, buildPronunciationAssessment } from './fixtures';
 
 describe('createHttpPronunciationProvider', () => {
   it('POSTs FormData to /api/pronunciation and validates the response through the Zod schema', async () => {
@@ -34,6 +34,31 @@ describe('createHttpPronunciationProvider', () => {
     await expect(
       provider({ audioBlob: new Blob(['x']), targetText: 'x', languageCode: 'fr-FR' }),
     ).rejects.toThrow('API pronunciation → 500');
+
+    vi.unstubAllGlobals();
+  });
+
+  it('accepts an Azure-shaped payload with heard: null on a skipped word', async () => {
+    const assessmentWithSkippedWord = buildPronunciationAssessment({
+      issues: [
+        {
+          word: 'vin',
+          ipaExpected: '',
+          ipaHeard: '',
+          problem: "'vin' was skipped",
+          severity: 'medium',
+          drill: { hint: "Practise 'vin' slowly, then say it in the full phrase.", repeatPhrase: 'Un bon vin blanc.' },
+          expected: 'vin',
+          heard: null,
+        },
+      ],
+    });
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => assessmentWithSkippedWord })));
+
+    const provider = createHttpPronunciationProvider('http://localhost:8000');
+    await expect(
+      provider({ audioBlob: new Blob(['x']), targetText: 'Un bon vin blanc.', languageCode: 'fr-FR' }),
+    ).resolves.toEqual(assessmentWithSkippedWord);
 
     vi.unstubAllGlobals();
   });

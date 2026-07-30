@@ -115,6 +115,10 @@ App types in [src/types/index.ts](src/types/index.ts); coach types split across 
 - Color-to-score mapping is defined in multiple places; canonical version is `src/domain/scoring.ts`
 - Coach intervention loop (`interventionService.ts`) is wired in: `Learn.tsx` calls `recordIntervention`/`recordInterventionOutcome` and renders `MicroDrillModal`; also used by `WeaknessAnalysis.tsx` and `services/sync/coachSync.ts`
 
+## Working in `backend/`
+
+`backend/` is a separate git repository (own remote, own `.gitignore`) nested inside this one and deliberately excluded from the frontend repo's tracking (root `.gitignore`). Before editing it, confirm `git -C backend status` is clean, and `git -C backend push` after committing — the frontend repo's history provides no safety net for changes made there.
+
 # Assessment Engine
 
 This repository is implementing a complete replacement of the old IGCSE speaking scorer.
