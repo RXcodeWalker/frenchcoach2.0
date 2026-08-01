@@ -115,7 +115,7 @@ export function TopicGrid({ onSelect, title = "Learn", subtitle = "Choose a topi
                 
                 <h2 className="text-xl font-black text-white mb-2">Advanced Content!</h2>
                 <p className="text-slate-400 text-sm mb-6">
-                  Are you sure you want to continue? This section contains <span className="text-amber-400 font-bold">advanced content</span>, complex grammar, and specialized vocabulary (blah blah blah).
+                  Are you sure you want to continue? This section contains <span className="text-amber-400 font-bold">advanced content</span>, complex grammar, and specialized vocabulary.
                 </p>
 
                 <div className="flex flex-col gap-3">

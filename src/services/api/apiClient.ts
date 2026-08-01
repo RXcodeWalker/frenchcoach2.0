@@ -1,4 +1,4 @@
-import type { FeedbackV2, Question, SkillContext, GeneratedScenario, AIEngine, EngineMetadata, DifficultyTier } from '../../types';
+import type { FeedbackV2, Question, SkillContext, GeneratedScenario, AIEngine, EngineMetadata, DifficultyTier, UnscoredReason } from '../../types';
 import { track } from '../telemetry/telemetryService';
 import { evaluate as offlineEvaluate } from '../coaching/coachService';
 import { DIFFICULTY_CONFIG, DEFAULT_DIFFICULTY } from '../../utils/difficultyConfig';
@@ -66,6 +66,8 @@ interface BackendFeedback {
   fillers?: { word?: string; count?: number }[];
   wordCount?: number;
   cefrLevel?: string;
+  /** "offline_fallback" | "malformed_response" mark a response that was never really graded — see mapBackendFeedback. */
+  providerStatus?: string;
 }
 
 // Shape returned by /api/feedback/v2 or /api/feedback/v3 — superset of BackendFeedback
@@ -108,14 +110,41 @@ export class NoScoreInFeedbackError extends Error {
   }
 }
 
-function mapBackendFeedback(raw: BackendFeedback): FeedbackV2 {
+// Backend markers for "this attempt was never actually graded" — checked
+// before and independently of scores/fluency, since a malformed response can
+// still carry a real `fluency` number alongside missing `scores` (see
+// Slice 7 plan: fluency and scores are supplied independently by the
+// provider, nothing enforces consistency between them).
+const UNSCORED_PROVIDER_STATUS: Record<string, UnscoredReason> = {
+  offline_fallback: 'backend_offline_fallback',
+  malformed_response: 'backend_malformed_response',
+};
+
+export function mapBackendFeedback(raw: BackendFeedback): FeedbackV2 {
+  const unscoredReason = raw.providerStatus ? UNSCORED_PROVIDER_STATUS[raw.providerStatus] : undefined;
+
+  const grammar  = Array.isArray(raw.grammar)
+    ? { critical: raw.grammar as FeedbackV2['grammar']['critical'], polish: [] }
+    : { critical: (raw.grammar?.critical ?? []) as FeedbackV2['grammar']['critical'], polish: (raw.grammar?.polish ?? []) as FeedbackV2['grammar']['polish'] };
+
+  if (unscoredReason) {
+    return {
+      scores: { overall: 0, communication: 0, language: 0, fluency: 0 },
+      unscored: unscoredReason,
+      grammar,
+      vocabulary: (raw.vocabulary ?? []).map(v => ({ basic: v.basic ?? '', upgrade: v.upgrade ?? '' })),
+      style:      (raw.style      ?? []).map(s => ({ label: s.label ?? '', suggestion: s.suggestion ?? '' })),
+      fillers:    (raw.fillers    ?? []).map(f => ({ word: f.word ?? '', count: f.count ?? 0 })),
+      wordCount:  raw.wordCount ?? 0,
+      cefrLevel:  raw.cefrLevel ?? 'A2',
+      pronunciation: { score: null, issues: [] },
+    };
+  }
+
   const overall = raw.scores?.overall ?? raw.fluency;
   if (overall === undefined) {
     throw new NoScoreInFeedbackError();
   }
-  const grammar  = Array.isArray(raw.grammar)
-    ? { critical: raw.grammar as FeedbackV2['grammar']['critical'], polish: [] }
-    : { critical: (raw.grammar?.critical ?? []) as FeedbackV2['grammar']['critical'], polish: (raw.grammar?.polish ?? []) as FeedbackV2['grammar']['polish'] };
 
   return {
     scores: {

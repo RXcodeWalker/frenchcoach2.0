@@ -566,8 +566,17 @@ export interface FeedbackV2 extends Feedback {
  * fabricated score (A4). `no_llm_offline` — offline fallback, no LLM judged
  * it. `below_assessable_length` — too short to assess (tier 0/1, online or
  * offline). `evaluation_failed` — the evaluation call itself failed.
+ * `backend_offline_fallback` — backend's own offline heuristic answered
+ * (providerStatus: "offline_fallback"). `backend_malformed_response` — a
+ * live provider responded but omitted scores (providerStatus:
+ * "malformed_response").
  */
-export type UnscoredReason = 'no_llm_offline' | 'below_assessable_length' | 'evaluation_failed';
+export type UnscoredReason =
+  | 'no_llm_offline'
+  | 'below_assessable_length'
+  | 'evaluation_failed'
+  | 'backend_offline_fallback'
+  | 'backend_malformed_response';
 
 // ── Avoidance detection ────────────────────────────────────────────────────────
 
@@ -584,7 +593,7 @@ export type AvoidanceReportEntry = AvoidanceSignal;
 
 // ── Practice Session Architecture ────────────────────────────────────────────
 
-export type SessionMode = 'quick' | 'standard' | 'deep_dive' | 'full_topic';
+export type SessionMode = 'single' | 'quick' | 'standard' | 'deep_dive' | 'full_topic';
 
 export interface QuestionAttempt {
   transcript: string;

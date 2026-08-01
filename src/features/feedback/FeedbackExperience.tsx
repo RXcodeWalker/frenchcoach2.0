@@ -84,6 +84,7 @@ function FeedbackContent({
         transcript={transcript ?? ''}
         onRetry={onRetry}
         onComplete={onComplete}
+        modelAnswer={modelAnswer}
       />
     );
   }

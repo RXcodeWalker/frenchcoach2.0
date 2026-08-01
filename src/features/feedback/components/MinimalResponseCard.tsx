@@ -1,33 +1,14 @@
 import { motion } from 'framer-motion';
-import { RefreshCw, BookOpen, ArrowRight, GraduationCap, User, Brain, MicOff } from 'lucide-react';
+import { ArrowRight, GraduationCap, User, Brain, MicOff } from 'lucide-react';
 import type { FeedbackV2, ExpansionLevel } from '../../../types';
+import { FeedbackFooter } from './FeedbackFooter';
 
 interface Props {
   feedback: FeedbackV2;
   transcript: string;
   onRetry: () => void;
   onComplete: () => void;
-}
-
-function ActionButtons({ onRetry, onComplete }: { onRetry: () => void; onComplete: () => void }) {
-  return (
-    <div className="flex gap-2">
-      <button
-        onClick={onRetry}
-        className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg bg-violet-500/15 border border-violet-500/30 text-violet-300 text-xs font-medium hover:bg-violet-500/25 transition-colors"
-      >
-        <RefreshCw size={11} />
-        Try Again
-      </button>
-      <button
-        onClick={onComplete}
-        className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg bg-slate-700/40 border border-slate-600/30 text-slate-400 text-xs font-medium hover:bg-slate-700/60 transition-colors"
-      >
-        <BookOpen size={11} />
-        Model Answer
-      </button>
-    </div>
-  );
+  modelAnswer?: string;
 }
 
 function ExpansionLevelRow({ lvl, isLast }: { lvl: ExpansionLevel; isLast: boolean }) {
@@ -51,7 +32,7 @@ function ExpansionLevelRow({ lvl, isLast }: { lvl: ExpansionLevel; isLast: boole
   );
 }
 
-function Tier0Card({ onRetry, onComplete }: { onRetry: () => void; onComplete: () => void }) {
+function Tier0Card({ onRetry, onComplete, modelAnswer }: { onRetry: () => void; onComplete: () => void; modelAnswer?: string }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -67,12 +48,12 @@ function Tier0Card({ onRetry, onComplete }: { onRetry: () => void; onComplete: (
           <p className="text-[11px] text-slate-500 mt-1">No audio was detected or the transcription was empty.</p>
         </div>
       </div>
-      <ActionButtons onRetry={onRetry} onComplete={onComplete} />
+      <FeedbackFooter onRetry={onRetry} onComplete={onComplete} modelAnswer={modelAnswer} />
     </motion.div>
   );
 }
 
-function Tier1Card({ feedback, transcript, onRetry, onComplete }: Props) {
+function Tier1Card({ feedback, transcript, onRetry, onComplete, modelAnswer }: Props) {
   const word = transcript.trim().split(/\s+/)[0]?.replace(/[.,!?;:]/g, '') ?? transcript.trim();
   const wordCount = transcript.trim().split(/\s+/).filter(Boolean).length;
   const layer = feedback.coachingLayer;
@@ -164,14 +145,14 @@ function Tier1Card({ feedback, transcript, onRetry, onComplete }: Props) {
         </div>
       )}
 
-      <ActionButtons onRetry={onRetry} onComplete={onComplete} />
+      <FeedbackFooter onRetry={onRetry} onComplete={onComplete} modelAnswer={modelAnswer} />
     </motion.div>
   );
 }
 
-export function MinimalResponseCard({ feedback, transcript, onRetry, onComplete }: Props) {
+export function MinimalResponseCard({ feedback, transcript, onRetry, onComplete, modelAnswer }: Props) {
   if (feedback.responseTier === 0) {
-    return <Tier0Card onRetry={onRetry} onComplete={onComplete} />;
+    return <Tier0Card onRetry={onRetry} onComplete={onComplete} modelAnswer={modelAnswer} />;
   }
-  return <Tier1Card feedback={feedback} transcript={transcript} onRetry={onRetry} onComplete={onComplete} />;
+  return <Tier1Card feedback={feedback} transcript={transcript} onRetry={onRetry} onComplete={onComplete} modelAnswer={modelAnswer} />;
 }

@@ -20,6 +20,7 @@ function matchesFocusSkill(q: Question, focusedSkillId: string | null): boolean 
 }
 
 export const SESSION_TARGET: Record<SessionMode, number> = {
+  single: 1,
   quick: 5,
   standard: 10,
   deep_dive: 20,
@@ -27,6 +28,7 @@ export const SESSION_TARGET: Record<SessionMode, number> = {
 };
 
 export const SESSION_LABEL: Record<SessionMode, string> = {
+  single: 'Single question',
   quick: 'Quick (5 questions)',
   standard: 'Standard (10 questions)',
   deep_dive: 'Deep Dive (20 questions)',
@@ -34,6 +36,7 @@ export const SESSION_LABEL: Record<SessionMode, string> = {
 };
 
 export const SESSION_DURATION: Record<SessionMode, string> = {
+  single: '~2 min',
   quick: '~10 min',
   standard: '~20 min',
   deep_dive: '~40 min',

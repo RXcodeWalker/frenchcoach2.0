@@ -12,6 +12,7 @@ interface Props {
 
 export function QuestionCard({ question, showHint, onToggleHint }: Props) {
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [revealedVocab, setRevealedVocab] = useState<string | null>(null);
 
   const handleSpeak = async () => {
     if (isSpeaking) {
@@ -66,12 +67,13 @@ export function QuestionCard({ question, showHint, onToggleHint }: Props) {
 
           <div className="flex flex-wrap gap-2 mb-6">
             {question.keyVocab.map(word => (
-              <motion.span 
-                key={word.fr} 
+              <motion.span
+                key={word.fr}
+                onClick={() => setRevealedVocab(revealedVocab === word.fr ? null : word.fr)}
                 className="text-[10px] px-3 py-1 rounded-lg bg-violet-electric/10 text-violet-300 border border-violet-electric/20 font-bold uppercase tracking-wider cursor-help group relative"
               >
                 {word.fr}
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 rounded bg-navy-200 border border-white/10 text-white text-[9px] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                <div className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 rounded bg-navy-200 border border-white/10 text-white text-[9px] transition-opacity pointer-events-none whitespace-nowrap ${revealedVocab === word.fr ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                   {word.en}
                 </div>
               </motion.span>

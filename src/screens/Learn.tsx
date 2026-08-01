@@ -173,7 +173,7 @@ export function Learn() {
     setLearnState('question');
   }, [selectedTopic, skillProfile, topicMastery, dispatch]);
 
-  const startSingleQuestion = () => startSession('quick');
+  const startSingleQuestion = () => startSession('single');
 
   // ── Recording + evaluation ────────────────────────────────────────────────────
 

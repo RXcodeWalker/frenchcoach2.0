@@ -22,7 +22,7 @@ const THEMES: Record<string, { label: string; desc: string; sde_key: string; mas
 };
 
 // ── TeachMe library: cognitive explanations + 3 drills per rule ───────────────
-const TEACHME_LIBRARY: Record<string, Partial<TeachMe>> = {
+export const TEACHME_LIBRARY: Record<string, Partial<TeachMe>> = {
   aux_aller: {
     why: "In English, 'I have gone' uses 'have' as the auxiliary, so you mapped it directly to 'j'ai'. But French movement verbs form the passé composé with être, not avoir. The trick: if you physically moved somewhere, use être.",
     examples: [
@@ -31,7 +31,7 @@ const TEACHME_LIBRARY: Record<string, Partial<TeachMe>> = {
       { fr: "Nous sommes arrivés en retard.", en: "We arrived late. (not nous avons arrivé)" },
     ],
     advanced: "Les délégués sont tous partis avant midi, ce qui a surpris l'organisateur.",
-    examinerNote: "Missing être for DR MRS VANDERTRAMP verbs costs marks in every paper. Examiners see this error in ~40% of Foundation scripts.",
+    examinerNote: "Missing être for DR MRS VANDERTRAMP verbs costs marks in every paper.",
   },
   aux_venir: {
     why: "Same anglicism as aller: 'I have come' → 'j'ai venu' is a direct English translation. Venir is a movement verb; movement verbs use être.",
@@ -144,13 +144,11 @@ const TEACHME_LIBRARY: Record<string, Partial<TeachMe>> = {
     examinerNote: "Jouer à (sport) vs jouer de (instrument) is a classic IGCSE distinction tested in reading/listening papers.",
   },
   prep_ecouter_a: {
-    why: "English 'listen TO music', 'wait FOR someone' use prepositions. French écouter, attendre, and chercher are direct transitive verbs — no preposition needed. This is a systematic English interference pattern.",
+    why: "English 'listen TO music' uses a preposition. French écouter is a direct transitive verb — no preposition needed. This is a systematic English interference pattern.",
     examples: [
       { fr: "J'écoute de la musique.", en: "I listen to music. (not écouter à)" },
-      { fr: "J'attends le bus.", en: "I'm waiting for the bus. (not attendre pour)" },
-      { fr: "Je cherche mes clés.", en: "I'm looking for my keys. (not chercher pour)" },
     ],
-    advanced: "Les verbes transitifs directs — dont écouter, attendre et chercher — se distinguent de leurs équivalents anglais qui exigent une préposition.",
+    advanced: "Les verbes transitifs directs comme écouter se distinguent de leur équivalent anglais qui exige une préposition.",
     examinerNote: "Examiners consider preposition errors with common verbs a sign of intermediate-level interference. Fix these for Core-Secure access.",
   },
   subj_il_faut: {
@@ -246,7 +244,7 @@ interface GrammarRule {
   correction: string;
 }
 
-const GRAMMAR_RULES: GrammarRule[] = [
+export const GRAMMAR_RULES: GrammarRule[] = [
   {
     id: "el_je",
     theme: "ELISION", severity: "major",
@@ -282,8 +280,8 @@ const GRAMMAR_RULES: GrammarRule[] = [
   {
     id: "con_au",
     theme: "ELISION", severity: "major",
-    test: (t) => /\bà (le|les)\b/i.test(t),
-    capture: (t) => (t.match(/\bà (le|les)\b/i) ?? [])[0] ?? null,
+    test: (t) => /(?<![a-zàâäéèêëïîôöùûüç])à (le|les)\b/i.test(t),
+    capture: (t) => (t.match(/(?<![a-zàâäéèêëïîôöùûüç])à (le|les)\b/i) ?? [])[0] ?? null,
     buildDiagnostic: (q) => `You wrote "${q}" — à + le always contracts to au, and à + les to aux. There are no exceptions.`,
     correction: "au / aux",
   },
@@ -298,8 +296,8 @@ const GRAMMAR_RULES: GrammarRule[] = [
   {
     id: "aux_aller",
     theme: "AUXILIARY", severity: "major",
-    test: (t) => /\bj'ai allé\b/i.test(t),
-    capture: (t) => (t.match(/\bj'ai allé\b/i) ?? [])[0] ?? null,
+    test: (t) => /\bj'ai allé(?![a-zàâäéèêëïîôöùûüç])/i.test(t),
+    capture: (t) => (t.match(/\bj'ai allé(?![a-zàâäéèêëïîôöùûüç])/i) ?? [])[0] ?? null,
     buildDiagnostic: (q) => `You wrote "${q}" — you translated 'I have gone' directly from English. Movement verbs use être in passé composé: je suis allé(e).`,
     correction: "je suis allé(e)",
   },
@@ -354,9 +352,9 @@ const GRAMMAR_RULES: GrammarRule[] = [
   {
     id: "prep_ecouter_a",
     theme: "PREPOSITION", severity: "minor",
-    test: (t) => /\b(écouter|chercher|attendre) (à|pour)\b/i.test(t),
-    capture: (t) => (t.match(/\b(écouter|chercher|attendre) (à|pour)\b/i) ?? [])[0] ?? null,
-    buildDiagnostic: (q) => `You wrote "${q}" — unlike English, écouter, chercher and attendre are direct verbs in French. No preposition is needed: j'écoute de la musique.`,
+    test: (t) => /écouter (à|pour)(?![a-zàâäéèêëïîôöùûüç])/i.test(t),
+    capture: (t) => (t.match(/écouter (à|pour)(?![a-zàâäéèêëïîôöùûüç])/i) ?? [])[0] ?? null,
+    buildDiagnostic: (q) => `You wrote "${q}" — unlike English, écouter is a direct verb in French. No preposition is needed: j'écoute de la musique.`,
     correction: "[verb] [object] (no preposition)",
   },
   {
@@ -370,16 +368,21 @@ const GRAMMAR_RULES: GrammarRule[] = [
   {
     id: "si_clause",
     theme: "SI_CLAUSE", severity: "major",
-    test: (t) => /\bsi (j'avais|j'étais|on pouvait|on avait|on était) (je vais|je ferai|je suis|je serai|j'irai|je ferai)\b/i.test(t),
-    capture: (t) => (t.match(/\bsi (j'avais|j'étais|on pouvait|on avait|on était) (je vais|je ferai|je suis|je serai|j'irai|je ferai)\b/i) ?? [])[0] ?? null,
+    // si + [subject] + imparfait (…ais/ait/ions/iez/aient), then — allowing an
+    // intervening comma/subject rather than requiring strict adjacency — a
+    // second clause using future tense (…erai/eras/era/erons/erez/eront or
+    // the -ir-verb equivalents) instead of the required conditional. Covers
+    // all persons (je/tu/il/elle/on/nous/vous/ils/elles), not just je/on.
+    test: (t) => /\bsi (j'|je |tu |il |elle |on |nous |vous |ils |elles )[a-zàâäéèêëïîôöùûüç']*?(ais|ait|ions|iez|aient)\b[^.!?]{0,50}?\b(j'|je |tu |il |elle |on |nous |vous |ils |elles )[a-zàâäéèêëïîôöùûüç']*?(erai|eras|era|erons|erez|eront|irai|iras|ira|irons|irez|iront)\b/i.test(t),
+    capture: (t) => (t.match(/\bsi (j'|je |tu |il |elle |on |nous |vous |ils |elles )[a-zàâäéèêëïîôöùûüç']*?(ais|ait|ions|iez|aient)\b[^.!?]{0,50}?\b(j'|je |tu |il |elle |on |nous |vous |ils |elles )[a-zàâäéèêëïîôöùûüç']*?(erai|eras|era|erons|erez|eront|irai|iras|ira|irons|irez|iront)\b/i) ?? [])[0] ?? null,
     buildDiagnostic: (q) => `You wrote "${q}" — after si + imparfait, the main clause must use the conditional (not future or present): si j'avais, j'achèterais (not j'achèterai).`,
     correction: "si [imparfait], [conditional]",
   },
   {
     id: "pron_placement",
     theme: "PRONOUN", severity: "major",
-    test: (t) => /\b(je|tu|il|elle|on|nous|vous|ils|elles) (aime|adore|vois|regarde|déteste|écoute|aide|comprends|crois|appelle|rencontre) (le|la|les|lui|leur|me|te|nous|vous)\b/i.test(t),
-    capture: (t) => (t.match(/\b(je|tu|il|elle|on|nous|vous|ils|elles) (aime|adore|vois|regarde|déteste|écoute|aide|comprends|crois|appelle|rencontre) (le|la|les|lui|leur|me|te|nous|vous)\b/i) ?? [])[0] ?? null,
+    test: (t) => /\b(je|tu|il|elle|on|nous|vous|ils|elles) (aime|adore|vois|regarde|déteste|écoute|aide|comprends|crois|appelle|rencontre) (lui|leur|me|te|nous|vous)\b/i.test(t),
+    capture: (t) => (t.match(/\b(je|tu|il|elle|on|nous|vous|ils|elles) (aime|adore|vois|regarde|déteste|écoute|aide|comprends|crois|appelle|rencontre) (lui|leur|me|te|nous|vous)\b/i) ?? [])[0] ?? null,
     buildDiagnostic: (q) => `You wrote "${q}" — object pronouns must come BEFORE the verb in French. English puts them after ('I see him'), French does not.`,
     correction: "[subject] [pronoun] [verb]",
   },
@@ -394,18 +397,10 @@ const GRAMMAR_RULES: GrammarRule[] = [
   {
     id: "rel_qui_subj",
     theme: "RELATIVE", severity: "major",
-    test: (t) => /\bqui (je|tu|il|elle|on|nous|vous|ils|elles)\b/i.test(t),
-    capture: (t) => (t.match(/\bqui (je|tu|il|elle|on|nous|vous|ils|elles)\b/i) ?? [])[0] ?? null,
+    test: (t) => /(?<!\b(?:avec|à|a|pour|chez|sans|sur|dans|de|en) )\bqui (je|tu|il|elle|on|nous|vous|ils|elles)\b/i.test(t),
+    capture: (t) => (t.match(/(?<!\b(?:avec|à|a|pour|chez|sans|sur|dans|de|en) )\bqui (je|tu|il|elle|on|nous|vous|ils|elles)\b/i) ?? [])[0] ?? null,
     buildDiagnostic: (q) => `You wrote "${q}" — qui is for subjects (qui + verb). If a personal pronoun follows, use que instead: c'est le film que j'ai vu.`,
     correction: "que",
-  },
-  {
-    id: "rel_que_verb",
-    theme: "RELATIVE", severity: "major",
-    test: (t) => /\bque (est|a|va|fait|sont|ont|vont|font)\b/i.test(t),
-    capture: (t) => (t.match(/\bque (est|a|va|fait|sont|ont|vont|font)\b/i) ?? [])[0] ?? null,
-    buildDiagnostic: (q) => `You wrote "${q}" — que is for objects. If a verb follows directly (without a subject pronoun), use qui: c'est quelque chose qui est intéressant.`,
-    correction: "qui",
   },
   {
     id: "comp_meilleur",
@@ -585,9 +580,13 @@ function _findStrongestMoment(
     !annotatedRanges.some(r => r.start < end && r.end > start);
 
   // Priority 1: correct passé composé (avoir or être auxiliary)
-  const pcPattern = /\b(j'ai|il a|elle a|nous avons|ils ont|je suis|il est|elle est|nous sommes|ils sont)\s+\w+(é|i|u|is|it|ert)\b/i;
+  // Common non-participle words that share a passé-composé-like ending
+  // (e.g. "du" is the partitive article, not a participle) — denylisted so
+  // they don't get false-praised as correct passé composé.
+  const NON_PARTICIPLE_WORDS = new Set(['du', 'de', 'un', 'une', 'le', 'la', 'les', 'ce', 'qui', 'lui']);
+  const pcPattern = /\b(j'ai|il a|elle a|nous avons|ils ont|je suis|il est|elle est|nous sommes|ils sont)\s+(\w+(é|i|u|is|it|ert))\b/i;
   const pcMatch = transcript.match(pcPattern);
-  if (pcMatch && pcMatch.index !== undefined && isClean(pcMatch.index, pcMatch.index + pcMatch[0].length)) {
+  if (pcMatch && pcMatch.index !== undefined && !NON_PARTICIPLE_WORDS.has(pcMatch[2].toLowerCase()) && isClean(pcMatch.index, pcMatch.index + pcMatch[0].length)) {
     const s = _sentenceAt(transcript, pcMatch.index);
     return {
       span: { start: s.start, end: s.end, severity: 'strong', category: 'tense' },

@@ -99,7 +99,7 @@ export function SessionSummary({
             <div className="text-3xl mb-2">{topicIcon}</div>
             <h2 className="text-2xl font-black text-white">Session Complete!</h2>
             <p className="text-slate-400 text-sm mt-1">
-              {topicLabel} · {completedQs.length} questions · {formatDuration(session.startedAt)}
+              {topicLabel} · {completedQs.length} question{completedQs.length === 1 ? '' : 's'} · {formatDuration(session.startedAt)}
             </p>
           </div>
 
