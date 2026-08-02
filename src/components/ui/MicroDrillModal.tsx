@@ -32,6 +32,7 @@ const SKILL_TO_THEME: Record<string, string[]> = {
   gender: ['Adjective Placement'],
   demonstrative: ['Demonstratives'],
   comparative: ['Comparatives'],
+  confusions: ['Pronoun Placement'],
 };
 
 export const MicroDrillModal: React.FC<MicroDrillModalProps> = ({ skillId, onClose, onComplete }) => {

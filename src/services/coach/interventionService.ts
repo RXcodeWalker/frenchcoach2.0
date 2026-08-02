@@ -125,6 +125,8 @@ export function detectProblem(
       updatedAt: nowIso,
       successfulDrills: 0,
       failedDrills: 0,
+      isRecurring: recurring,
+      recurrenceNote: evidenceIds.length >= 3 ? `Missed ${evidenceIds.length} times this week` : undefined,
     };
   }
 
@@ -235,6 +237,8 @@ export function detectAndPersistProblem(
       evidenceIds: [...new Set([...prior.evidenceIds, ...detected.evidenceIds])],
       severity: Math.max(prior.severity, detected.severity),
       updatedAt: detected.detectedAt,
+      isRecurring: detected.isRecurring,
+      recurrenceNote: detected.recurrenceNote,
     };
     saveProblems(existing.map(p => (p.id === prior.id ? merged : p)));
     return merged;

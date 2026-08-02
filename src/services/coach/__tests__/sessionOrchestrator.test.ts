@@ -12,6 +12,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { orchestrateAttempt } from '../sessionOrchestrator';
 import { computeXPGain, computeParticipationXPGain } from '../../../domain/xp';
 import { getSessionHistory } from '../../analytics/analyticsService';
+import { getRecentEvidence } from '../coachStorage';
+import { STORAGE_KEYS } from '../../persistence/storage';
 import type { FeedbackV2, Question, Session } from '../../../types';
 
 function makeQuestion(): Question {
@@ -140,5 +142,86 @@ describe('orchestrateAttempt session persistence', () => {
 
     const [stored] = getSessionHistory();
     expect(stored.score).toBeNull();
+  });
+});
+
+describe('orchestrateAttempt with a follow-up-shaped question (Phase 3 Slice D)', () => {
+  it('writes evidence and awards XP for a synthetic follow-up question exactly as it would for a main question', () => {
+    const parent = makeQuestion();
+    // Learn.tsx's currentQuestion derivation for an active follow-up turn:
+    // the parent question shallow-cloned with .text swapped and .id suffixed.
+    const followUpQuestion: Question = { ...parent, id: `${parent.id}::followup`, text: 'Et pourquoi?' };
+
+    const feedback = makeFeedback({ scores: { overall: 7, communication: 7, language: 7, fluency: 7 } });
+    const session = makeSession({ score: 7, feedback, questionText: followUpQuestion.text });
+
+    const result = orchestrateAttempt({
+      session, question: followUpQuestion, feedback, avoidanceSignals: [],
+      transcript: 'Une reponse au suivi assez longue pour passer le tier gate.',
+      durationSec: 25, mode: 'practice',
+      finalScore: 7, streakDays: 1, totalSessionsBefore: 0,
+    });
+
+    // Full graded attempt, same evidence/XP path as a main question (user's explicit decision).
+    expect(result.xpResult.gain).toBe(computeXPGain(7, 1).gain);
+
+    const evidence = getRecentEvidence(10);
+    expect(evidence.length).toBeGreaterThan(0);
+    expect(evidence.some(ev => ev.id)).toBe(true);
+  });
+});
+
+describe('orchestrateAttempt review-pool step 9 (Phase 3 Slice E)', () => {
+  it('records a review-pool failure for a genuinely failed, scored attempt (finalScore < LANGUAGE_SUCCESS_SCORE)', () => {
+    const question = makeQuestion();
+    const feedback = makeFeedback({ scores: { overall: 4, communication: 4, language: 4, fluency: 4 } });
+    const session = makeSession({ score: 4, feedback, topicKey: 'school' });
+
+    orchestrateAttempt({
+      session, question, feedback, avoidanceSignals: [],
+      transcript: session.transcript!, durationSec: 30, mode: 'practice',
+      finalScore: 4, streakDays: 0, totalSessionsBefore: 0,
+    });
+
+    const stored = JSON.parse(localStorage.getItem(STORAGE_KEYS.reviewPool)!);
+    expect(stored.items[question.id]).toBeDefined();
+  });
+
+  it('does not record a review-pool failure for a passing score', () => {
+    const question = makeQuestion();
+    const feedback = makeFeedback({ scores: { overall: 8, communication: 8, language: 8, fluency: 8 } });
+    const session = makeSession({ score: 8, feedback, topicKey: 'school' });
+
+    orchestrateAttempt({
+      session, question, feedback, avoidanceSignals: [],
+      transcript: session.transcript!, durationSec: 30, mode: 'practice',
+      finalScore: 8, streakDays: 0, totalSessionsBefore: 0,
+    });
+
+    const stored = localStorage.getItem(STORAGE_KEYS.reviewPool);
+    const items = stored ? JSON.parse(stored).items : {};
+    expect(items[question.id]).toBeUndefined();
+  });
+
+  it('the review-pool write step never blocks orchestrateAttempt\'s return, even if the store write throws', () => {
+    const question = makeQuestion();
+    const feedback = makeFeedback({ scores: { overall: 3, communication: 3, language: 3, fluency: 3 } });
+    const session = makeSession({ score: 3, feedback, topicKey: 'school' });
+
+    const setItemSpy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation((key) => {
+      if (key === STORAGE_KEYS.reviewPool) throw new Error('quota exceeded');
+    });
+
+    let result;
+    expect(() => {
+      result = orchestrateAttempt({
+        session, question, feedback, avoidanceSignals: [],
+        transcript: session.transcript!, durationSec: 30, mode: 'practice',
+        finalScore: 3, streakDays: 0, totalSessionsBefore: 0,
+      });
+    }).not.toThrow();
+    expect(result).toBeDefined();
+
+    setItemSpy.mockRestore();
   });
 });

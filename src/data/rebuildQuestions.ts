@@ -29,6 +29,24 @@ export const REBUILD_QUESTIONS: RebuildQuestion[] = [
     difficulty: 2
   },
   {
+    id: 'sr21',
+    english: "I see her every day.",
+    french: "Je la vois tous les jours.",
+    fragments: ["Je", "la", "vois", "tous", "les", "jours"],
+    explanation: "The object pronoun 'la' (her/it) comes BEFORE the verb 'vois', not after.",
+    theme: "Pronoun Placement",
+    difficulty: 2
+  },
+  {
+    id: 'sr22',
+    english: "We are talking to them.",
+    french: "Nous leur parlons.",
+    fragments: ["Nous", "leur", "parlons"],
+    explanation: "'Leur' (to them) is an indirect object pronoun and goes BEFORE the verb, not after 'à eux'.",
+    theme: "Pronoun Placement",
+    difficulty: 2
+  },
+  {
     id: 'sr4',
     english: "I am going to the hospital.",
     french: "Je vais à l'hôpital.",

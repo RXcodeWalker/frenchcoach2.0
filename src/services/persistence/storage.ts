@@ -49,6 +49,8 @@ export const STORAGE_KEYS = {
   featureFlagOverrides: 'frenchCoach_featureFlagOverrides',
   // ── Tier-1 local-only product metrics (Phase 2 Slice 5) ────────────────────────
   localCounters: 'frenchCoach_localCounters',
+  // ── Phase 3 Slice E: spaced re-exposure review pool ─────────────────────────────
+  reviewPool: 'frenchCoach_reviewPool',
 } as const;
 
 export type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS];

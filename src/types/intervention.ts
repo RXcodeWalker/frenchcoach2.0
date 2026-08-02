@@ -28,6 +28,10 @@ export interface LearningProblem {
   successfulDrills?: number;
   /** Count of recovery drills failed (< 0.5 immediate success). */
   failedDrills?: number;
+  /** True when the recurrence signal is stronger than the raw 2-failure gate (belief-snapshot recurringIssueIds or repeated issue categories). */
+  isRecurring?: boolean;
+  /** Human-readable note when evidenceIds.length >= 3. */
+  recurrenceNote?: string;
 }
 
 export interface Intervention {

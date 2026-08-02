@@ -603,6 +603,10 @@ export interface QuestionAttempt {
   feedback: FeedbackV2;
   durationSec: number;
   attemptIndex: number;
+  /** Absent treated as 'main'. Set to 'followup' for a follow-up-turn attempt (Phase 3). */
+  kind?: 'main' | 'followup';
+  /** Set only when kind === 'followup' — the follow-up prompt text shown for this attempt. */
+  promptText?: string;
 }
 
 export interface SessionQuestion {

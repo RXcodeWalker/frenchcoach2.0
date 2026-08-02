@@ -459,6 +459,8 @@ export function ExamMode() {
       dispatch({ type: 'UPDATE_SKILL_PROFILE', skillProfile: getSkillProfile() });
       if (finalScore !== null) {
         confetti({ particleCount: 150, spread: 100, origin: { y: 0.5 } });
+      } else {
+        confetti({ particleCount: 60, spread: 70, origin: { y: 0.5 } }); // lighter — completion only, no score claim
       }
     } catch (err) {
       captureError(err, { stage: 'finishWithScore.sideEffects', sessionId: finalTranscript.sessionId });

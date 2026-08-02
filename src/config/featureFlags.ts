@@ -24,6 +24,8 @@ export const FEATURE_FLAGS = {
   accentAnalyzer:    'coming-soon',
   learnTranscriptConfirm: 'live',
   learnPracticeStep: 'live',
+  learnFollowUp: 'live',
+  learnSpacedReview: 'live',
 } satisfies Record<string, FeatureStatus>;
 
 export type FeatureFlagKey = keyof typeof FEATURE_FLAGS;

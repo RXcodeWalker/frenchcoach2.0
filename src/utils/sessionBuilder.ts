@@ -6,6 +6,7 @@ import { contentClient } from '../services/content/contentClient';
 import { inferQuestionMetadata } from '../services/content/questionMetadata';
 import { isSkillReady } from '../services/coach/skillGraph';
 import { getBeliefSnapshot } from '../services/coach/coachStorage';
+import { getEligibleReviewQuestion, advanceReviewPoolSessions } from '../services/coach/reviewPool';
 import type { SessionBlend } from '../types/coach';
 
 /**
@@ -154,6 +155,24 @@ export function buildSessionQuestions(
         selected.push(q);
         if (selected.length >= target) break;
       }
+    }
+  }
+
+  // Phase 3 Slice E: advance the cooldown counter for every pooled item once
+  // per new session start, then (deliberately not touching
+  // applyDifficultyDistribution's math above) splice an eligible failed
+  // question into the LAST slot — never touches how the other target-1
+  // questions were chosen. Sessions <4 questions get no reserved slot; the
+  // last valid index is always used, never an out-of-range one.
+  advanceReviewPoolSessions();
+  if (topicKey && target >= 4) {
+    // Exclude questions already in this session's selection, not just the
+    // learner's historical `seen` set — otherwise a question the difficulty
+    // distribution already picked could be spliced in a second time.
+    const alreadyInSession = new Set([...seen, ...selected.map(q => q.id)]);
+    const reviewCandidate = getEligibleReviewQuestion(topicKey, alreadyInSession);
+    if (reviewCandidate && selected.length === target) {
+      selected[target - 1] = reviewCandidate;
     }
   }
 

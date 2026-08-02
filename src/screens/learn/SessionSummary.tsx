@@ -55,10 +55,11 @@ export function SessionSummary({
   const completedQs = session.questions.filter(q => q.status === 'completed');
   const avgScore = averageRealScores(completedQs.map(q => q.bestScore));
 
-  const totalWords = session.questions.reduce(
-    (a, q) => a + (q.attempts[q.attempts.length - 1]?.transcript?.split(/\s+/).filter(Boolean).length ?? 0),
-    0
-  );
+  const totalWords = session.questions.reduce((a, q) => {
+    const mainAttempts = q.attempts.filter(at => at.kind !== 'followup');
+    const last = mainAttempts[mainAttempts.length - 1];
+    return a + (last?.transcript?.split(/\s+/).filter(Boolean).length ?? 0);
+  }, 0);
 
   const allSavedVocab = session.questions.flatMap(q => q.savedVocab);
 

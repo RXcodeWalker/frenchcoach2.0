@@ -44,4 +44,13 @@ describe('detectRecurringGrammarDrill', () => {
     const events = [makeFailure('negation', 8), makeFailure('negation', 0)];
     expect(detectRecurringGrammarDrill(events)).toBeNull();
   });
+
+  it('has MicroDrill coverage for confusions (pron_placement routes here)', () => {
+    expect(hasMicroDrillForSkill('confusions')).toBe(true);
+  });
+
+  it('returns confusions after two failures on that node within a week', () => {
+    const events = [makeFailure('confusions', 2), makeFailure('confusions', 0)];
+    expect(detectRecurringGrammarDrill(events)).toBe('confusions');
+  });
 });

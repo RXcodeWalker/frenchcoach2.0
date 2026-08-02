@@ -36,6 +36,7 @@ import { isUnscored, averageRealScores } from '../domain/scoring';
 import { resolveFeatureStatus } from '../config/featureFlags';
 import { SayItAgainCard } from '../features/feedback/components/SayItAgainCard';
 import { PRACTICE_MAX_PER_SESSION } from '../domain/pronunciation/practiceThresholds';
+import { FOLLOWUP_MAX_PER_SESSION } from '../domain/followUp/followUpThresholds';
 import { incrementCounter } from '../services/telemetry/localCounters';
 import type { Topic, Session, FeedbackV2, ActiveSession, SessionMode, SessionQuestion, AIEngine, EngineResult, FeedbackMode } from '../types/index';
 
@@ -52,6 +53,15 @@ export function Learn() {
   // every session, never written to EvidenceEvents/beliefs.
   const [practiceStepsUsed, setPracticeStepsUsed] = useState(0);
   const [showPracticeStep, setShowPracticeStep] = useState(false);
+  // 3.4: follow-up turn — a second, graded attempt on the current SessionQuestion
+  // (see types/index.ts QuestionAttempt.kind). Not persisted, resets every session.
+  const [followUpLive] = useState(() => resolveFeatureStatus('learnFollowUp') === 'live');
+  const [followUpTurn, setFollowUpTurn] = useState<{ promptText: string } | null>(null);
+  const [followUpsUsed, setFollowUpsUsed] = useState(0);
+  // Shared mutual-exclusion flag: prevents Say-It-Again and the follow-up turn
+  // from both firing on the same question, and (closing a pre-existing latent
+  // gap) prevents Say-It-Again from double-firing on a retry of the same question.
+  const [extraTurnOfferedForIndex, setExtraTurnOfferedForIndex] = useState<number | null>(null);
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
   const [activeSession, setActiveSession] = useState<ActiveSession | null>(null);
   const [showHint, setShowHint] = useState(false);
@@ -111,9 +121,15 @@ export function Learn() {
     };
   }, []);
 
-  const currentQuestion = activeSession
+  const baseQuestion = activeSession
     ? activeSession.questions[activeSession.currentIndex]?.question ?? null
     : null;
+  // 3.4: when a follow-up turn is active, every downstream call site (recording
+  // eval, avoidance detection, examiner feedback, getAIFeedback/streamFeedback,
+  // orchestrateAttempt) picks up the follow-up prompt with zero call-site changes.
+  const currentQuestion = baseQuestion && followUpTurn
+    ? { ...baseQuestion, id: `${baseQuestion.id}::followup`, text: followUpTurn.promptText }
+    : baseQuestion;
 
   // ── Engine preference change ──────────────────────────────────────────────────
 
@@ -300,15 +316,28 @@ export function Learn() {
 
     setActiveSession(prev => {
       if (!prev) return prev;
-      const attemptIndex = isRetry ? 2 : 1;
+      // Stable for the duration of one record→evaluate cycle: followUpTurn is set
+      // before recording starts and unchanged until this callback fires, so no
+      // stale-closure risk.
+      const isFollowUpAttempt = !!followUpTurn;
+      const attemptIndex = isFollowUpAttempt ? 3 : isRetry ? 2 : 1;
       const attemptScore = unscored ? null : finalScore;
-      const attempt = { transcript, score: attemptScore, xpEarned: xpGain, feedback: fb, durationSec: elapsed, attemptIndex };
+      const attempt = {
+        transcript, score: attemptScore, xpEarned: xpGain, feedback: fb, durationSec: elapsed, attemptIndex,
+        kind: isFollowUpAttempt ? 'followup' as const : 'main' as const,
+        promptText: isFollowUpAttempt ? followUpTurn!.promptText : undefined,
+      };
       const updatedQuestions = [...prev.questions];
       const sq = { ...updatedQuestions[prev.currentIndex] };
       sq.attempts = [...sq.attempts, attempt];
-      sq.bestScore = attemptScore === null
-        ? sq.bestScore
-        : Math.max(sq.bestScore ?? attemptScore, attemptScore);
+      // A follow-up's score doesn't represent mastery of the catalogued question —
+      // exclude it from bestScore (which SessionProgressBar dot coloring and
+      // SessionSummary's avgScore both key on).
+      if (!isFollowUpAttempt) {
+        sq.bestScore = attemptScore === null
+          ? sq.bestScore
+          : Math.max(sq.bestScore ?? attemptScore, attemptScore);
+      }
       updatedQuestions[prev.currentIndex] = sq;
       // An unscored attempt neither extends nor breaks the correct-answer
       // streak — there's no real score to judge it against.
@@ -660,6 +689,7 @@ export function Learn() {
     setExaminerStatus('idle');
     setExaminerFeedbackResult(null);
     setShowPracticeStep(false);
+    setExtraTurnOfferedForIndex(null);
 
     const streak = updatedSession.answerStreak;
     if (streak === 3 || streak === 5) {
@@ -686,16 +716,45 @@ export function Learn() {
     practiceStepLive &&
     !!practiceTargetSentence.trim() &&
     (feedback?.responseTier ?? 3) >= 2 &&
-    practiceStepsUsed < PRACTICE_MAX_PER_SESSION;
+    practiceStepsUsed < PRACTICE_MAX_PER_SESSION &&
+    extraTurnOfferedForIndex !== activeSession?.currentIndex &&
+    !followUpTurn;
+
+  // 3.4: offered only when Say-It-Again wasn't (checked first in
+  // handleFeedbackComplete below), never stacked on the same question, and
+  // picks the first authored follow-up deterministically — nothing in the
+  // codebase's Say-It-Again precedent randomizes either, and a fixed pick
+  // keeps this auditable.
+  const followUpEligible =
+    followUpLive &&
+    !followUpTurn &&
+    (currentQuestion?.followUps.length ?? 0) > 0 &&
+    (feedback?.responseTier ?? 3) >= 2 &&
+    followUpsUsed < FOLLOWUP_MAX_PER_SESSION &&
+    extraTurnOfferedForIndex !== activeSession?.currentIndex;
 
   const handleFeedbackComplete = () => {
+    if (followUpTurn) {
+      // Just finished the follow-up's own feedback — always advance, never chain a third turn.
+      setFollowUpTurn(null);
+      advanceQuestion();
+      return;
+    }
     if (practiceStepEligible) {
       setPracticeStepsUsed(n => n + 1);
       setShowPracticeStep(true);
+      setExtraTurnOfferedForIndex(activeSession?.currentIndex ?? null);
       if (currentQuestion) {
         track({ name: 'practice_step_shown', props: { question_id: currentQuestion.id } });
         incrementCounter('practice_step_shown');
       }
+      return;
+    }
+    if (followUpEligible && currentQuestion) {
+      setFollowUpsUsed(n => n + 1);
+      setExtraTurnOfferedForIndex(activeSession?.currentIndex ?? null);
+      setFollowUpTurn({ promptText: currentQuestion.followUps[0] });
+      setLearnState('question');
       return;
     }
     advanceQuestion();
@@ -1008,7 +1067,9 @@ export function Learn() {
                   className="p-4 rounded-2xl glass-elevated border-rose-500/25 space-y-3"
                 >
                   <p className="text-sm text-white font-semibold leading-snug">
-                    You&apos;ve struggled with {getSkillLabel(drillSkillId)} a few times recently.
+                    {activeProblem?.isRecurring
+                      ? `${getSkillLabel(drillSkillId)} keeps coming back — this is a pattern worth fixing now.`
+                      : `You've struggled with ${getSkillLabel(drillSkillId)} a few times recently.`}
                   </p>
                   <p className="text-xs text-slate-400">
                     A quick recovery drill can lock in the pattern before you move on.

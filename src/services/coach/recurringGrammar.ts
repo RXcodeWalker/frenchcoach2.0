@@ -21,6 +21,7 @@ export const MICRO_DRILL_SKILL_IDS = new Set([
   'gender',
   'demonstrative',
   'comparative',
+  'confusions',
 ]);
 
 export function isGrammarSkill(nodeId: string): boolean {

@@ -1,13 +1,20 @@
+// @vitest-environment jsdom
 // ── Intervention service pure-logic tests ──────────────────────────────────────
 // detectProblem and applyOutcomeToProblem are pure (no storage), so these run in
 // the Node test environment without a localStorage shim.
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import type { EvidenceEvent } from '../../../types/evidence';
 import type { Intervention, LearningProblem } from '../../../types/intervention';
-import { detectProblem, applyOutcomeToProblem } from '../interventionService';
+import type { EvidenceBeliefSnapshot } from '../../../types/beliefs';
+import { detectProblem, applyOutcomeToProblem, detectAndPersistProblem } from '../interventionService';
 
-function makeFailure(nodeId: string, daysAgo = 0, id = `ev-${nodeId}-${daysAgo}`): EvidenceEvent {
+function makeFailure(
+  nodeId: string,
+  daysAgo = 0,
+  id = `ev-${nodeId}-${daysAgo}`,
+  issueCategory = 'subjunctive',
+): EvidenceEvent {
   return {
     id,
     learnerId: 'local-user',
@@ -15,7 +22,7 @@ function makeFailure(nodeId: string, daysAgo = 0, id = `ev-${nodeId}-${daysAgo}`
     sourceSessionId: 'sess-1',
     evidenceType: 'language',
     targetNodeIds: [nodeId],
-    observation: { issueCategories: ['subjunctive'] },
+    observation: { issueCategories: [issueCategory] },
     result: { score: 4, success: false },
     reliability: {
       assessmentConfidence: 0.8,
@@ -84,6 +91,58 @@ describe('detectProblem', () => {
   it('ignores failures older than 7 days', () => {
     const events = [makeFailure('subjunctive', 9, 'a'), makeFailure('subjunctive', 8, 'b')];
     expect(detectProblem(events, null)).toBeNull();
+  });
+
+  it('sets isRecurring true when the belief snapshot has recurringIssueIds for the node', () => {
+    const events = [makeFailure('subjunctive', 2, 'a'), makeFailure('subjunctive', 0, 'b')];
+    const snapshot = {
+      skills: { subjunctive: { recurringIssueIds: ['subjunctive_mood'] } },
+    } as unknown as EvidenceBeliefSnapshot;
+    const problem = detectProblem(events, snapshot);
+    expect(problem?.isRecurring).toBe(true);
+  });
+
+  it('sets isRecurring false for a fresh 2-failure, non-recurring case', () => {
+    // Distinct issue categories per event so hasRepeatedIssueCategories doesn't fire.
+    const events = [
+      makeFailure('subjunctive', 2, 'a', 'cat_a'),
+      makeFailure('subjunctive', 0, 'b', 'cat_b'),
+    ];
+    const problem = detectProblem(events, null);
+    expect(problem?.isRecurring).toBe(false);
+  });
+
+  it('sets recurrenceNote once 3+ evidence events contributed', () => {
+    const events = [
+      makeFailure('subjunctive', 3, 'a', 'cat_a'),
+      makeFailure('subjunctive', 2, 'b', 'cat_b'),
+      makeFailure('subjunctive', 0, 'c', 'cat_c'),
+    ];
+    const problem = detectProblem(events, null);
+    expect(problem?.recurrenceNote).toBe('Missed 3 times this week');
+  });
+});
+
+describe('detectAndPersistProblem merge branch', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it('carries the fresh isRecurring flag forward instead of keeping a stale prior value', () => {
+    const firstEvents = [
+      makeFailure('subjunctive', 2, 'a', 'cat_a'),
+      makeFailure('subjunctive', 1, 'b', 'cat_b'),
+    ];
+    const first = detectAndPersistProblem(firstEvents, null);
+    expect(first?.isRecurring).toBe(false);
+
+    const secondEvents = [...firstEvents, makeFailure('subjunctive', 0, 'c', 'cat_c')];
+    const snapshot = {
+      skills: { subjunctive: { recurringIssueIds: ['subjunctive_mood'] } },
+    } as unknown as EvidenceBeliefSnapshot;
+    const second = detectAndPersistProblem(secondEvents, snapshot);
+    expect(second?.isRecurring).toBe(true);
+    expect(second?.id).toBe(first?.id); // merged, not duplicated
   });
 });
 
