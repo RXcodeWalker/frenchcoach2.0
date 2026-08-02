@@ -19,6 +19,7 @@ import {
   reduceEvidenceToBeliefState,
   projectEvidenceBeliefSnapshot,
 } from '../services/coach/beliefReducer';
+import { getCounters } from '../services/telemetry/localCounters';
 import type { SkillProfile } from '../types';
 import type { EvidenceBeliefSnapshot, EvidenceDerivedSkillBelief } from '../types/beliefs';
 import type { EvidenceEvent } from '../types/evidence';
@@ -62,8 +63,12 @@ function topSources(belief: EvidenceDerivedSkillBelief | undefined): string {
 export function CoachBeliefDebug() {
   const navigate = useNavigate();
   const [snapshot, setSnapshot] = useState<DebugSnapshot>(() => computeSnapshot());
+  const [counters, setCounters] = useState(() => getCounters());
 
-  const refresh = useCallback(() => setSnapshot(computeSnapshot()), []);
+  const refresh = useCallback(() => {
+    setSnapshot(computeSnapshot());
+    setCounters(getCounters());
+  }, []);
 
   // Union of every skill id known to either system, sorted by evidence mastery.
   const rows = useMemo(() => {
@@ -124,6 +129,21 @@ export function CoachBeliefDebug() {
         <SummaryCard label="Fallback skills" value={fallbackCount.toString()} tone="amber" />
         <SummaryCard label="Reducer" value={snapshot.evidence.reducerVersion} />
         <SummaryCard label="Computed" value={snapshot.computedAt} />
+      </div>
+
+      {/* Tier-1 local product metrics (Phase 2 Slice 5) — this device only, never synced */}
+      <div className="glass-elevated border-white/5 rounded-2xl p-4 mb-6">
+        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wide mb-3">
+          Local counters · this device only
+        </p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <SummaryCard label="Practice shown" value={(counters.practice_step_shown ?? 0).toString()} />
+          <SummaryCard label="Practice passed" value={(counters.practice_step_completed_pass ?? 0).toString()} tone="emerald" />
+          <SummaryCard label="Practice retried" value={(counters.practice_step_completed_retry ?? 0).toString()} tone="amber" />
+          <SummaryCard label="Practice no-verdict" value={(counters.practice_step_completed_advance_no_verdict ?? 0).toString()} />
+          <SummaryCard label="Transcript confirmed" value={(counters.transcript_confirmed ?? 0).toString()} tone="emerald" />
+          <SummaryCard label="Transcript re-recorded" value={(counters.transcript_rerecorded ?? 0).toString()} tone="amber" />
+        </div>
       </div>
 
       {/* Weakest / strongest from evidence */}

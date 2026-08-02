@@ -47,6 +47,8 @@ export const STORAGE_KEYS = {
   guestMode: 'frenchCoach_guestMode',
   // ── Feature flag runtime overrides (Phase 0.1) ─────────────────────────────────
   featureFlagOverrides: 'frenchCoach_featureFlagOverrides',
+  // ── Tier-1 local-only product metrics (Phase 2 Slice 5) ────────────────────────
+  localCounters: 'frenchCoach_localCounters',
 } as const;
 
 export type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS];

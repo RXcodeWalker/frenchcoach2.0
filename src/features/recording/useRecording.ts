@@ -20,10 +20,11 @@ interface SpeechRecognitionResult {
   [index: number]: SpeechRecognitionAlternative;
 }
 interface SpeechRecognitionAlternative { transcript: string; confidence: number; }
+interface SpeechRecognitionErrorEvent extends Event { error: string; }
 interface SpeechRecognition extends EventTarget {
   lang: string; continuous: boolean; interimResults: boolean; maxAlternatives: number;
   onresult: ((e: SpeechRecognitionEvent) => void) | null;
-  onerror: ((e: Event) => void) | null;
+  onerror: ((e: SpeechRecognitionErrorEvent) => void) | null;
   onend: (() => void) | null;
   start(): void; stop(): void; abort(): void;
 }
@@ -47,6 +48,12 @@ export interface RecordingState {
    * was active (e.g. mic permission denied).
    */
   audioBlobPromise: () => Promise<Blob | null>;
+  /** Whether this browser exposes the Web Speech API at all (computed once,
+   * from constructor presence — not whether it's currently working). */
+  sttSupported: boolean;
+  /** Set when SpeechRecognition reports an error (e.g. 'not-allowed',
+   * 'network', 'no-speech'). Null when no error has occurred this attempt. */
+  sttError: string | null;
 }
 
 export function useRecording(): RecordingState {
@@ -56,7 +63,11 @@ export function useRecording(): RecordingState {
   const [transcript, setTranscript]     = useState('');
   const [audioBlob, setAudioBlob]       = useState<Blob | null>(null);
   const [lastActivityAt, setLastActivityAt] = useState<number | null>(null);
+  const [sttError, setSttError] = useState<string | null>(null);
   const micLevel = useMicLevel();
+
+  const sttSupported = typeof window !== 'undefined' &&
+    (typeof SpeechRecognition !== 'undefined' || typeof webkitSpeechRecognition !== 'undefined');
 
   const timerRef      = useRef<number | null>(null);
   const recogRef      = useRef<SpeechRecognition | null>(null);
@@ -69,6 +80,10 @@ export function useRecording(): RecordingState {
   const chunksRef        = useRef<Blob[]>([]);
   const streamRef        = useRef<MediaStream | null>(null);
   const blobResolveRef   = useRef<((b: Blob | null) => void) | null>(null);
+  // Constructed by stop() itself (not by the first audioBlobPromise() caller) so
+  // the promise exists — and is resolved by MediaRecorder's onstop — regardless
+  // of whether audioBlobPromise() is called before or after onstop fires.
+  const blobPromiseRef   = useRef<Promise<Blob | null> | null>(null);
 
   useEffect(() => {
     return () => {
@@ -87,6 +102,7 @@ export function useRecording(): RecordingState {
     setTranscript('');
     setAudioBlob(null);
     setLastActivityAt(Date.now());
+    setSttError(null);
     finalTextRef.current = '';
     chunksRef.current = [];
 
@@ -143,8 +159,9 @@ export function useRecording(): RecordingState {
         }
       };
 
-      recog.onerror = () => {
-        // Waveform still animates; transcript stays empty
+      recog.onerror = (e: SpeechRecognitionErrorEvent) => {
+        // Waveform still animates; transcript stays whatever was captured so far.
+        setSttError(e.error || 'unknown');
       };
 
       recog.start();
@@ -161,6 +178,7 @@ export function useRecording(): RecordingState {
 
     // Finalize audio blob
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      blobPromiseRef.current = new Promise(resolve => { blobResolveRef.current = resolve; });
       mediaRecorderRef.current.onstop = () => {
         const blob = new Blob(chunksRef.current, {
           type: mediaRecorderRef.current?.mimeType || 'audio/webm',
@@ -174,8 +192,7 @@ export function useRecording(): RecordingState {
       mediaRecorderRef.current.stop();
     } else {
       // No active recorder (e.g. permission denied) — resolve null immediately.
-      blobResolveRef.current?.(null);
-      blobResolveRef.current = null;
+      blobPromiseRef.current = Promise.resolve(null);
     }
 
     return new Promise(resolve => {
@@ -190,10 +207,11 @@ export function useRecording(): RecordingState {
   }, [micLevel]);
 
   const audioBlobPromise = useCallback((): Promise<Blob | null> => {
-    return new Promise(resolve => {
-      blobResolveRef.current = resolve;
-    });
+    return blobPromiseRef.current ?? Promise.resolve(null);
   }, []);
 
-  return { isRecording, elapsedTime, waveData, transcript, audioBlob, lastActivityAt, micLevel, start, stop, audioBlobPromise };
+  return {
+    isRecording, elapsedTime, waveData, transcript, audioBlob, lastActivityAt,
+    micLevel, start, stop, audioBlobPromise, sttSupported, sttError,
+  };
 }

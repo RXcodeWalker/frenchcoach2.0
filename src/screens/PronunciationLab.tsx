@@ -8,6 +8,7 @@ import { PRONUNCIATION_DRILLS } from '../data/pronunciationDrills';
 import { Waveform } from '../features/recording/Waveform';
 import { assessPronunciation } from '../services/pronunciation/pronunciationClient';
 import { PronunciationSourceBadge } from './learn/PronunciationSourceBadge';
+import { PRACTICE_PASS_SCORE } from '../domain/pronunciation/practiceThresholds';
 import type { PronunciationAssessment } from '../domain/pronunciation/types';
 
 type LabResult = PronunciationAssessment & { audioUrl?: string; waveSnapshot?: number[] };
@@ -51,7 +52,7 @@ export function PronunciationLab() {
           setFeedback(feedbackWithAudio);
 
           const pronScore = assessment.score;
-          if (pronScore >= 70) {
+          if (pronScore >= PRACTICE_PASS_SCORE) {
             const xp = Math.round((pronScore / 10) * (attempts === 1 ? 2 : 1.5));
             setScore(s => s + xp);
             dispatchAddXP(dispatch, xp);
@@ -108,7 +109,7 @@ export function PronunciationLab() {
     }
   };
 
-  const isSuccess = feedback && feedback.score >= 70;
+  const isSuccess = feedback && feedback.score >= PRACTICE_PASS_SCORE;
 
   if (completed) {
     const masteredInSession = PRONUNCIATION_DRILLS.filter(d => state.masteredDrills.includes(d.id)).length;

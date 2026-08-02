@@ -33,15 +33,25 @@ import { DIFFICULTY_CONFIG } from '../utils/difficultyConfig';
 import { updateTopicMastery } from '../services/analytics/analyticsService';
 import { computeXPGain, computeParticipationXPGain } from '../domain/xp';
 import { isUnscored, averageRealScores } from '../domain/scoring';
+import { resolveFeatureStatus } from '../config/featureFlags';
+import { SayItAgainCard } from '../features/feedback/components/SayItAgainCard';
+import { PRACTICE_MAX_PER_SESSION } from '../domain/pronunciation/practiceThresholds';
+import { incrementCounter } from '../services/telemetry/localCounters';
 import type { Topic, Session, FeedbackV2, ActiveSession, SessionMode, SessionQuestion, AIEngine, EngineResult, FeedbackMode } from '../types/index';
 
-type LearnState = 'topics' | 'session_start' | 'question' | 'recording' | 'feedback' | 'session_summary';
+type LearnState = 'topics' | 'session_start' | 'question' | 'recording' | 'confirm' | 'feedback' | 'session_summary';
 
 export function Learn() {
   const { state, dispatch } = useApp();
   const { profile, skillProfile, topicMastery, preferredEngine, selectedDifficulty } = state;
 
   const [learnState, setLearnState] = useState<LearnState>('topics');
+  const [transcriptConfirmLive] = useState(() => resolveFeatureStatus('learnTranscriptConfirm') === 'live');
+  const [practiceStepLive] = useState(() => resolveFeatureStatus('learnPracticeStep') === 'live');
+  // 2.1: "Say It Again" — not persisted (Slice 4 decision, see plan §5): resets
+  // every session, never written to EvidenceEvents/beliefs.
+  const [practiceStepsUsed, setPracticeStepsUsed] = useState(0);
+  const [showPracticeStep, setShowPracticeStep] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
   const [activeSession, setActiveSession] = useState<ActiveSession | null>(null);
   const [showHint, setShowHint] = useState(false);
@@ -62,6 +72,10 @@ export function Learn() {
   const [reEvaluatingEngine, setReEvaluatingEngine] = useState<AIEngine | null>(null);
   // E1: honest error state when feedback could not be produced at all — never a fabricated score.
   const [feedbackErrorMessage, setFeedbackErrorMessage] = useState<string | null>(null);
+  // 2.4: transcript confirmation step between stop() and evaluation, behind
+  // learnTranscriptConfirm. Holds the transcript awaiting the student's
+  // Use this / Re-record choice; null whenever the confirm screen isn't showing.
+  const [pendingTranscript, setPendingTranscript] = useState<string | null>(null);
   // Examiner mode result — separate from FeedbackV2 (which always carries a numeric
   // score); examiner mode must never fabricate one. No session/XP finalization runs
   // for an examiner-mode attempt — there is no score to record.
@@ -314,6 +328,30 @@ export function Learn() {
   const handleStopRecording = async () => {
     if (!activeSession || !currentQuestion) return;
 
+    const transcript = await recording.stop();
+
+    // 2.4: never report "your browser can't transcribe" as "you said nothing".
+    // A genuinely silent student (STT supported, empty transcript) must still
+    // reach the normal Tier-0 path below — this only intercepts the case where
+    // transcription itself was never possible.
+    if (!recording.sttSupported) {
+      setFeedbackErrorMessage('Speech recognition isn’t available in this browser — try Chrome or Edge for live transcription.');
+      setLearnState('question');
+      return;
+    }
+
+    if (transcriptConfirmLive) {
+      setPendingTranscript(transcript);
+      setLearnState('confirm');
+      return;
+    }
+
+    await evaluateTranscript(transcript);
+  };
+
+  const evaluateTranscript = async (transcript: string) => {
+    if (!activeSession || !currentQuestion) return;
+
     // New attempt: abort any previous in-flight stream + pronunciation call
     streamAbortRef.current?.abort();
     pronunciationAbortRef.current?.abort();
@@ -321,7 +359,6 @@ export function Learn() {
     streamAbortRef.current = controller;
     const myAttemptId = ++attemptIdRef.current;
 
-    const transcript = await recording.stop();
     setLearnState('feedback');
     setIsLoadingFeedback(true);
     setPartialFeedback(null);
@@ -387,6 +424,12 @@ export function Learn() {
     const skillContext = buildSkillContext();
     const avoidanceSignals = detectAvoidance(transcript, currentQuestion, DIFFICULTY_CONFIG[selectedDifficulty].expectations);
 
+    // The transcript above comes from the Web Speech API only. Audio is never
+    // sent to the feedback endpoints — it goes exclusively to /api/pronunciation
+    // via recording.audioBlobPromise() (see the IIFE above). recording.audioBlob
+    // (React state) is always stale/null here regardless, since it's only set
+    // inside MediaRecorder's onstop, which fires after this closure was created.
+
     // Offline is a local, instant evaluation — streamFeedback always calls the
     // network endpoint regardless of enginePreference, so it must never be used
     // for 'offline' (that silently produced a Groq result the first time and
@@ -395,7 +438,7 @@ export function Learn() {
       setIsLoadingFeedback(true);
       setPartialFeedback(null);
       try {
-        const fb = await getAIFeedback(transcript, currentQuestion, skillContext, recording.audioBlob ?? undefined, selectedEngine, selectedDifficulty);
+        const fb = await getAIFeedback(transcript, currentQuestion, skillContext, undefined, selectedEngine, selectedDifficulty);
         _finalizeAnswer(fb, transcript, elapsed, avoidanceSignals, skillContext);
       } catch (fallbackErr) {
         console.warn('[Learn] offline feedback unavailable:', fallbackErr);
@@ -416,7 +459,7 @@ export function Learn() {
         transcript,
         currentQuestion,
         skillContext,
-        recording.audioBlob ?? undefined,
+        undefined,
         selectedEngine,
         selectedDifficulty,
         controller.signal,
@@ -461,7 +504,7 @@ export function Learn() {
       setIsLoadingFeedback(true);
       setPartialFeedback(null);
       try {
-        const fb = await getAIFeedback(transcript, currentQuestion, skillContext, recording.audioBlob ?? undefined, selectedEngine, selectedDifficulty);
+        const fb = await getAIFeedback(transcript, currentQuestion, skillContext, undefined, selectedEngine, selectedDifficulty);
         _finalizeAnswer(fb, transcript, elapsed, avoidanceSignals, skillContext);
       } catch (fallbackErr) {
         // E1: total failure — no real feedback exists. Show an honest error and let the
@@ -473,6 +516,26 @@ export function Learn() {
         setLearnState('question');
       }
     }
+  };
+
+  const handleConfirmTranscript = () => {
+    if (pendingTranscript === null) return;
+    const transcript = pendingTranscript;
+    setPendingTranscript(null);
+    if (currentQuestion) {
+      track({ name: 'transcript_confirmed', props: { question_id: currentQuestion.id } });
+      incrementCounter('transcript_confirmed');
+    }
+    void evaluateTranscript(transcript);
+  };
+
+  const handleRerecordTranscript = () => {
+    setPendingTranscript(null);
+    if (currentQuestion) {
+      track({ name: 'transcript_rerecorded', props: { question_id: currentQuestion.id } });
+      incrementCounter('transcript_rerecorded');
+    }
+    setLearnState('question');
   };
 
   // ── Re-evaluate with a different engine (reuses saved transcript) ─────────────
@@ -596,6 +659,7 @@ export function Learn() {
     setActiveResultEngine(null);
     setExaminerStatus('idle');
     setExaminerFeedbackResult(null);
+    setShowPracticeStep(false);
 
     const streak = updatedSession.answerStreak;
     if (streak === 3 || streak === 5) {
@@ -611,6 +675,35 @@ export function Learn() {
     } else {
       setLearnState('question');
     }
+  };
+
+  // 2.1: gates advanceQuestion behind an optional "Say It Again" practice
+  // step. Eligible only when: the flag is live, a target sentence exists,
+  // the response was substantial enough to be worth practising (tier 2/3),
+  // and the per-session cap hasn't been spent.
+  const practiceTargetSentence = feedback?.improved_answer || feedback?.rephrase || '';
+  const practiceStepEligible =
+    practiceStepLive &&
+    !!practiceTargetSentence.trim() &&
+    (feedback?.responseTier ?? 3) >= 2 &&
+    practiceStepsUsed < PRACTICE_MAX_PER_SESSION;
+
+  const handleFeedbackComplete = () => {
+    if (practiceStepEligible) {
+      setPracticeStepsUsed(n => n + 1);
+      setShowPracticeStep(true);
+      if (currentQuestion) {
+        track({ name: 'practice_step_shown', props: { question_id: currentQuestion.id } });
+        incrementCounter('practice_step_shown');
+      }
+      return;
+    }
+    advanceQuestion();
+  };
+
+  const handlePracticeStepDone = () => {
+    setShowPracticeStep(false);
+    advanceQuestion();
   };
 
   const endSession = (session: ActiveSession) => {
@@ -678,6 +771,7 @@ export function Learn() {
     setActiveResultEngine(null);
     setExaminerStatus('idle');
     setExaminerFeedbackResult(null);
+    setShowPracticeStep(false);
     recording.stop();
     setLearnState('question');
   };
@@ -710,7 +804,8 @@ export function Learn() {
     if (learnState === 'session_start') {
       setSelectedTopic(null);
       setLearnState('topics');
-    } else if (learnState === 'question' || learnState === 'recording') {
+    } else if (learnState === 'question' || learnState === 'recording' || learnState === 'confirm') {
+      setPendingTranscript(null);
       if (activeSession && activeSession.questionsCompleted > 0) {
         handleEndSessionEarly();
       } else {
@@ -809,7 +904,7 @@ export function Learn() {
             </motion.div>
           )}
 
-          {(learnState === 'question' || learnState === 'recording' || learnState === 'feedback') && activeSession && (
+          {(learnState === 'question' || learnState === 'recording' || learnState === 'confirm' || learnState === 'feedback') && activeSession && (
             <motion.div
               key="practice"
               initial={{ opacity: 0, y: 20 }}
@@ -871,6 +966,41 @@ export function Learn() {
                 onStop={handleStopRecording}
               />
 
+              {learnState === 'confirm' && pendingTranscript !== null && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="rounded-xl glass-elevated p-5 space-y-4"
+                >
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5">
+                      We heard
+                    </p>
+                    {pendingTranscript.trim() ? (
+                      <p className="text-sm text-white leading-relaxed">{pendingTranscript}</p>
+                    ) : (
+                      <p className="text-sm text-slate-500 italic">Nothing was transcribed.</p>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={handleRerecordTranscript}
+                      className="flex-1 py-2.5 rounded-xl text-xs font-bold border border-slate-700 text-slate-300 hover:bg-white/5 transition-colors"
+                    >
+                      Re-record
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleConfirmTranscript}
+                      className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-br from-violet-electric to-indigo-500 text-white shadow-[0_0_16px_rgba(124,58,237,0.3)]"
+                    >
+                      Use this
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+
               {learnState === 'feedback' && drillSkillId && !showDrillModal && (
                 <motion.div
                   initial={{ opacity: 0, y: 8 }}
@@ -913,7 +1043,15 @@ export function Learn() {
                 </div>
               )}
 
-              {learnState === 'feedback' && feedbackMode === 'coach' && (
+              {learnState === 'feedback' && feedbackMode === 'coach' && showPracticeStep && currentQuestion && (
+                <SayItAgainCard
+                  targetSentence={practiceTargetSentence}
+                  questionId={currentQuestion.id}
+                  onDone={handlePracticeStepDone}
+                />
+              )}
+
+              {learnState === 'feedback' && feedbackMode === 'coach' && !showPracticeStep && (
                 <FeedbackExperience
                   feedback={feedback}
                   isLoading={isLoadingFeedback}
@@ -926,7 +1064,7 @@ export function Learn() {
                   isReEvaluating={isReEvaluating}
                   reEvaluatingEngine={reEvaluatingEngine}
                   onRetry={handleRetry}
-                  onComplete={advanceQuestion}
+                  onComplete={handleFeedbackComplete}
                   onReEvaluate={handleReEvaluate}
                   onSwitchEngine={handleSwitchEngine}
                   pronunciationResult={pronunciationResult}

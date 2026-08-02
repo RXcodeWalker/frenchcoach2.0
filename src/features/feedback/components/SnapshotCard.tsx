@@ -70,7 +70,10 @@ export function SnapshotCard({ feedback }: Props) {
               {BAND_LABEL[band] ?? band}
             </span>
           )}
-          <span className="text-[9px] text-slate-600">{wordCount}w · {cefrLevel}</span>
+          <span className="text-[9px] text-slate-600">
+            {wordCount != null ? `${wordCount}w` : '…'}
+            {cefrLevel ? ` · ${cefrLevel}` : ''}
+          </span>
         </div>
       </div>
 

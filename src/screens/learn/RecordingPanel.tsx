@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic, MicOff } from 'lucide-react';
+import { Mic, MicOff, AlertTriangle } from 'lucide-react';
 import { ScrollingWaveform } from '../../features/recording/ScrollingWaveform';
 import { formatTime } from '../../domain/time';
 import type { RecordingState } from '../../features/recording/useRecording';
@@ -18,6 +18,23 @@ export function RecordingPanel({ isActive, recording, onStop }: Props) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
     >
+      {!recording.sttSupported && (
+        <div className="flex items-start gap-2 mb-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/25">
+          <AlertTriangle size={14} className="text-amber-400 shrink-0 mt-0.5" />
+          <p className="text-[11px] text-amber-300 leading-snug">
+            This browser doesn't support live speech transcription. Try Chrome or Edge for the best experience.
+          </p>
+        </div>
+      )}
+      {recording.sttSupported && recording.sttError && (
+        <div className="flex items-start gap-2 mb-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/25">
+          <AlertTriangle size={14} className="text-amber-400 shrink-0 mt-0.5" />
+          <p className="text-[11px] text-amber-300 leading-snug">
+            Speech recognition error ({recording.sttError}). Your recording may not have been transcribed.
+          </p>
+        </div>
+      )}
+
       <ScrollingWaveform isRecording={recording.isRecording} source={recording.micLevel} />
 
       <AnimatePresence>

@@ -60,6 +60,25 @@ interface PronunciationAssessmentFailedProps {
   reason: string;
 }
 
+interface PracticeStepShownProps {
+  question_id: string;
+}
+
+interface PracticeStepCompletedProps {
+  question_id: string;
+  outcome: 'pass' | 'retry' | 'advance-no-verdict';
+  provider: 'azure' | 'whisper-heuristic' | null;
+  attempts: number;
+}
+
+interface TranscriptConfirmedProps {
+  question_id: string;
+}
+
+interface TranscriptRerecordedProps {
+  question_id: string;
+}
+
 type TelemetryEvent =
   | { name: 'session_completed';       props: SessionCompletedProps }
   | { name: 'feedback_received';       props: FeedbackReceivedProps }
@@ -68,7 +87,11 @@ type TelemetryEvent =
   | { name: 'ai_failover';             props: AIFailoverProps }
   | { name: 'feedback_stream_timing';  props: FeedbackStreamTimingProps }
   | { name: 'pronunciation_assessed';           props: PronunciationAssessedProps }
-  | { name: 'pronunciation_assessment_failed';  props: PronunciationAssessmentFailedProps };
+  | { name: 'pronunciation_assessment_failed';  props: PronunciationAssessmentFailedProps }
+  | { name: 'practice_step_shown';     props: PracticeStepShownProps }
+  | { name: 'practice_step_completed'; props: PracticeStepCompletedProps }
+  | { name: 'transcript_confirmed';    props: TranscriptConfirmedProps }
+  | { name: 'transcript_rerecorded';   props: TranscriptRerecordedProps };
 
 export function initTelemetry(): void {
   const dsn = import.meta.env.VITE_SENTRY_DSN as string | undefined;
