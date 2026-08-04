@@ -148,7 +148,10 @@ function FeedbackContent({
           rendered together: mixing scales on one screen would mislead the learner. */}
       {pronunciationStatus && pronunciationStatus !== 'idle' ? (
         pronunciationResult ? (
-          <AzurePronunciationCard result={pronunciationResult} />
+          <AzurePronunciationCard
+            result={pronunciationResult}
+            correctedSentence={feedback.improved_answer ?? feedback.rephrase}
+          />
         ) : pronunciationStatus === 'pending' ? (
           <div className="rounded-xl glass p-4 flex items-center gap-2.5">
             <Loader2 size={14} className="text-cyan-400 animate-spin shrink-0" />

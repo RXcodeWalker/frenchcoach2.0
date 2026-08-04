@@ -26,17 +26,24 @@ const IssueSchema = z.object({
   heard: z.string().nullable().optional(),
 }).strict();
 
+const PhonemeSchema = z.object({
+  phoneme: z.string(),
+  accuracyScore: z.number().min(0).max(100).nullable(),
+}).strict();
+
 const WordResultSchema = z.object({
   word: z.string(),
   accuracyScore: z.number().min(0).max(100).nullable(),
   errorType: z.enum(['correct', 'mispronounced', 'skipped', 'extra']).nullable(),
   confidence: z.number().min(0).max(1).nullable(),
+  phonemes: z.array(PhonemeSchema).nullable().optional(),
 }).strict();
 
 const SubScoresSchema = z.object({
   accuracy: z.number().min(0).max(100),
   fluency: z.number().min(0).max(100),
   completeness: z.number().min(0).max(100),
+  prosody: z.number().min(0).max(100).nullable(),
 }).strict();
 
 export const PronunciationAssessmentSchema = z.object({

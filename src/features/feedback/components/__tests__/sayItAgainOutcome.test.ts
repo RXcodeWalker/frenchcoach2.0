@@ -10,7 +10,7 @@ function azureResult(score: number): PronunciationAssessment {
     issues: [],
     words: [],
     provider: 'azure',
-    subScores: { accuracy: score, fluency: score, completeness: score },
+    subScores: { accuracy: score, fluency: score, completeness: score, prosody: score },
   };
 }
 

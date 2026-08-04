@@ -1,10 +1,13 @@
-import { Mic2 } from 'lucide-react';
+import { Mic2, Volume2 } from 'lucide-react';
 import { CollapsibleCard } from '../../../components/ui/CollapsibleCard';
 import { PronunciationSourceBadge } from '../../../screens/learn/PronunciationSourceBadge';
+import { PronunciationHeatMap } from './PronunciationHeatMap';
+import { TTS } from '../../../services/tts/ttsService';
 import type { PronunciationAssessment } from '../../../domain/pronunciation/types';
 
 interface Props {
   result: PronunciationAssessment;
+  correctedSentence?: string;
 }
 
 const SEVERITY_DOT: Record<string, string> = {
@@ -20,7 +23,7 @@ function azureScoreColor(score: number): string {
   return '#f87171';
 }
 
-export function AzurePronunciationCard({ result }: Props) {
+export function AzurePronunciationCard({ result, correctedSentence }: Props) {
   const color = azureScoreColor(result.score);
   const circumference = 94.2;
 
@@ -29,7 +32,7 @@ export function AzurePronunciationCard({ result }: Props) {
       title="Pronunciation Analysis"
       icon={<Mic2 size={13} className="text-cyan-400" />}
       badgeCount={result.issues.length}
-      defaultOpen={false}
+      defaultOpen={true}
       className="border border-cyan-500/15"
     >
       <div className="flex items-center gap-3 mb-1 px-1">
@@ -53,8 +56,17 @@ export function AzurePronunciationCard({ result }: Props) {
         </div>
       </div>
 
-      <div className="px-1 mb-2">
+      <div className="px-1 mb-2 flex items-center gap-2">
         <PronunciationSourceBadge provider={result.provider} />
+        {correctedSentence && (
+          <button
+            type="button"
+            onClick={() => TTS.speak(correctedSentence)}
+            className="flex items-center gap-1 text-[9px] text-cyan-300 hover:text-cyan-200 font-medium ml-auto"
+          >
+            <Volume2 size={11} /> Hear corrected sentence
+          </button>
+        )}
       </div>
 
       {result.subScores && (
@@ -71,6 +83,8 @@ export function AzurePronunciationCard({ result }: Props) {
           ))}
         </div>
       )}
+
+      <PronunciationHeatMap assessment={result} onSpeakWord={(word) => TTS.speak(word)} />
 
       {result.issues.length > 0 && (
         <div className="space-y-2">

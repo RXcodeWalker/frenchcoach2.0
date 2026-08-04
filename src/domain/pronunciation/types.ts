@@ -38,6 +38,11 @@ export interface PronunciationAssessmentRequest {
   languageCode: 'fr-FR';
 }
 
+export interface PronunciationPhoneme {
+  phoneme: string;
+  accuracyScore: number | null;
+}
+
 export interface PronunciationWordResult {
   word: string;
   /** 0-100. null when this tier cannot structurally produce a per-word accuracy signal. */
@@ -49,6 +54,7 @@ export interface PronunciationWordResult {
    * basis of the score. Do not confuse with accuracyScore.
    */
   confidence: number | null;
+  phonemes?: PronunciationPhoneme[] | null;
 }
 
 export interface PronunciationDrillHint {
@@ -71,6 +77,8 @@ export interface PronunciationSubScores {
   accuracy: number; // 0-100
   fluency: number; // 0-100
   completeness: number; // 0-100
+  /** 0-100. null when Azure doesn't return ProsodyScore, even with EnableProsodyAssessment set. */
+  prosody: number | null;
 }
 
 export interface PronunciationAssessment {

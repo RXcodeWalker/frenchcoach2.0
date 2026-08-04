@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Mic, MicOff, ChevronRight, CheckCircle2, RotateCcw } from 'lucide-react';
+import { Mic, MicOff, ChevronRight, CheckCircle2, RotateCcw, Volume2 } from 'lucide-react';
 import { Waveform } from '../../recording/Waveform';
 import { useAudioBlobRecorder } from '../../recording/useAudioBlobRecorder';
 import { assessPronunciation } from '../../../services/pronunciation/pronunciationClient';
+import { TTS } from '../../../services/tts/ttsService';
 import {
   PRACTICE_PASS_SCORE,
   PRACTICE_NEAR_MISS_SCORE,
@@ -131,10 +132,28 @@ export function SayItAgainCard({ targetSentence, questionId, onDone }: Props) {
         <p className="text-[10px] font-bold uppercase tracking-widest text-violet-400 mb-1.5">
           Say it again
         </p>
-        <p className="text-sm text-white leading-relaxed">"{targetSentence}"</p>
+        <div className="flex items-center gap-2">
+          <p className="text-sm text-white leading-relaxed">"{targetSentence}"</p>
+          <button
+            type="button"
+            onClick={() => TTS.speak(targetSentence)}
+            className="shrink-0 text-violet-400 hover:text-violet-300"
+            aria-label="Hear the target sentence"
+          >
+            <Volume2 size={14} />
+          </button>
+        </div>
         {attempt > 1 && retryHintWord && !outcome && (
-          <p className="text-[11px] text-slate-400 mt-1.5">
+          <p className="text-[11px] text-slate-400 mt-1.5 flex items-center gap-1.5">
             Focus on: <span className="text-violet-300 font-semibold">{retryHintWord}</span>
+            <button
+              type="button"
+              onClick={() => TTS.speak(retryHintWord)}
+              className="text-violet-400 hover:text-violet-300"
+              aria-label={`Hear "${retryHintWord}"`}
+            >
+              <Volume2 size={11} />
+            </button>
           </p>
         )}
       </div>

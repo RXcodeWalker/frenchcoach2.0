@@ -63,6 +63,26 @@ describe('createHttpPronunciationProvider', () => {
     vi.unstubAllGlobals();
   });
 
+  it('accepts an Azure-shaped payload with phonemes and prosody', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => PRONUNCIATION_GOLDEN_ASSESSMENT })));
+
+    const provider = createHttpPronunciationProvider('http://localhost:8000');
+    const result = await provider({
+      audioBlob: new Blob(['x']),
+      targetText: 'Un bon vin blanc.',
+      languageCode: 'fr-FR',
+    });
+
+    expect(result.subScores?.prosody).toBe(88);
+    const vinWord = result.words.find(w => w.word === 'vin');
+    expect(vinWord?.phonemes).toEqual([
+      { phoneme: 'v', accuracyScore: 92 },
+      { phoneme: 'ɛ̃', accuracyScore: 38 },
+    ]);
+
+    vi.unstubAllGlobals();
+  });
+
   it('throws when the response fails schema validation', async () => {
     vi.stubGlobal(
       'fetch',
