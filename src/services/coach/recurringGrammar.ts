@@ -4,32 +4,26 @@
 
 import type { EvidenceEvent } from '../../types/evidence';
 import { SKILL_DEFS } from '../coaching/diagnosticEngine';
+import { SKILL_TO_THEME } from '../../domain/microDrill/skillThemes';
+import { REBUILD_QUESTIONS } from '../../data/rebuildQuestions';
 import { getRecentEvidence } from './coachStorage';
 
 const WEEK_MS = 7 * 86_400_000;
 const FAILURE_SCORE_THRESHOLD = 7;
-
-/** Skills covered by MicroDrillModal's SKILL_TO_THEME mapping. */
-export const MICRO_DRILL_SKILL_IDS = new Set([
-  'elision',
-  'negation',
-  'preposition',
-  'subjunctive',
-  'relative_pron',
-  'tense_past',
-  'hypothetical',
-  'gender',
-  'demonstrative',
-  'comparative',
-  'confusions',
-]);
+/** A drill needs 3 on-theme items to draw from (MicroDrillModal shows 3 questions). */
+const MICRO_DRILL_MIN_ITEMS = 3;
 
 export function isGrammarSkill(nodeId: string): boolean {
   return SKILL_DEFS[nodeId]?.category === 'grammar';
 }
 
+/** Availability is derived from real on-theme item counts, not a hardcoded
+ * skill-id set — a skill only "has" a drill if there's actually enough
+ * content to draw 3 distinct questions from. */
 export function hasMicroDrillForSkill(skillId: string): boolean {
-  return MICRO_DRILL_SKILL_IDS.has(skillId);
+  const themes = SKILL_TO_THEME[skillId];
+  if (!themes) return false;
+  return REBUILD_QUESTIONS.filter(q => themes.includes(q.theme)).length >= MICRO_DRILL_MIN_ITEMS;
 }
 
 function isLanguageFailure(ev: EvidenceEvent): boolean {

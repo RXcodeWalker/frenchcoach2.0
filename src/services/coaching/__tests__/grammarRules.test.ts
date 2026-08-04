@@ -1,11 +1,9 @@
-// ── Phase 1, Slice 1: regression tests locking in target GRAMMAR_RULES/
-// TEACHME_LIBRARY behavior BEFORE Slices 2-4 touch coachService.ts.
-//
-// Test-authoring strategy (user-confirmed): assertions target POST-FIX
-// behavior for the 5 rules with a documented bug (rel_qui_subj,
-// pron_placement, prep_ecouter_a, si_clause, passe-compose false-praise) —
-// these are RED until Slices 2-4 land, acting as a checklist. adj_plural has
-// no bug (just narrow recall) — its assertions pin CURRENT accepted scope.
+// ── Acceptance corpus (Part III, verbatim — accented). Each NO_ERROR
+// sentence must produce no issue from ANY rule, not just the rule it was
+// originally written to exercise: asserting narrowly (e.g. only against
+// rel_qui_subj) is how "mes parents français" previously slipped through
+// adj_plural undetected. Each STILL_FLAGGED sentence must still fire under
+// its documented rule after the regexBoundary.ts accent-safety fixes.
 
 import { describe, it, expect } from 'vitest';
 import { GRAMMAR_RULES, TEACHME_LIBRARY } from '../coachService';
@@ -16,23 +14,116 @@ function fires(id: string, transcript: string): boolean {
   return rule.test(transcript);
 }
 
-describe('rel_qui_subj (post-fix: prepositional "qui" excluded)', () => {
-  it('does not flag prepositional relative clauses', () => {
+function firedRuleIds(transcript: string): string[] {
+  return GRAMMAR_RULES.filter(r => r.test(transcript)).map(r => r.id);
+}
+
+export const NO_ERROR = [
+  'il regarde la télé',
+  'elle écoute la radio',
+  'mes parents français',
+  "l'ami avec qui je joue",
+  'la personne à qui je parle',
+  'je cherche à comprendre',
+  'ce que fait mon père',
+];
+
+export const STILL_FLAGGED = [
+  "c'est le film qui j'ai vu",
+  'je vois lui',
+  "j'écoute à la radio",
+  "si j'étais riche, j'achèterai un bateau",
+];
+
+describe('NO_ERROR corpus — no rule fires on any correct sentence', () => {
+  it.each(NO_ERROR)('%s', (sentence) => {
+    expect(firedRuleIds(sentence)).toEqual([]);
+  });
+});
+
+describe('STILL_FLAGGED corpus — genuine errors are still caught', () => {
+  it('"c\'est le film qui j\'ai vu" is flagged (rel_qui_subj)', () => {
+    expect(fires('rel_qui_subj', STILL_FLAGGED[0])).toBe(true);
+  });
+
+  it('"je vois lui" is flagged (pron_placement)', () => {
+    expect(fires('pron_placement', STILL_FLAGGED[1])).toBe(true);
+  });
+
+  it('"j\'écoute à la radio" is flagged (prep_ecouter_a)', () => {
+    expect(fires('prep_ecouter_a', STILL_FLAGGED[2])).toBe(true);
+  });
+
+  it('"si j\'étais riche, j\'achèterai un bateau" is flagged (si_clause — future instead of conditional)', () => {
+    expect(fires('si_clause', STILL_FLAGGED[3])).toBe(true);
+  });
+});
+
+describe('§2 boundary-bug cases — accented inputs, verbatim', () => {
+  it('rel_qui_subj: does not flag prepositional relative clauses (accented à)', () => {
+    expect(fires('rel_qui_subj', 'la personne à qui je parle')).toBe(false);
     expect(fires('rel_qui_subj', "l'ami avec qui je joue")).toBe(false);
-    expect(fires('rel_qui_subj', 'la personne a qui je parle')).toBe(false);
     expect(fires('rel_qui_subj', 'la personne avec qui je travaille')).toBe(false);
     expect(fires('rel_qui_subj', "l'ami chez qui je loge")).toBe(false);
   });
 
-  it('still flags a bare non-prepositional "qui + subject pronoun" construction', () => {
-    // TEACHME_LIBRARY['rel_qui_subj'] explains: qui introduces a relative
-    // clause where the pronoun is the SUBJECT; if a personal pronoun follows
-    // qui directly (no preposition), that's the error this rule targets.
-    expect(fires('rel_qui_subj', 'le film qui je regarde')).toBe(true);
+  it('rel_qui_subj: still flags a bare non-prepositional "qui + subject pronoun" construction', () => {
+    expect(fires('rel_qui_subj', "c'est le film qui j'ai vu")).toBe(true);
+  });
+
+  it('rel_qui_subj: nested lookbehind does not suppress a relative clause on a word ending in "de "', () => {
+    // "monde" ends in "de " — a naive (non-nested) fix would wrongly treat
+    // this as the "de qui" prepositional case and suppress a genuine error.
+    expect(fires('rel_qui_subj', 'le monde qui je vois')).toBe(true);
+  });
+
+  it('prep_ecouter_a: flags écouter à across conjugations, not just the infinitive', () => {
+    expect(fires('prep_ecouter_a', "j'écoute à la radio")).toBe(true);
+    expect(fires('prep_ecouter_a', 'nous écoutons à la radio')).toBe(true);
+    expect(fires('prep_ecouter_a', 'je vais écouter à la radio')).toBe(true);
+  });
+
+  it('prep_ecouter_a: does not flag unrelated verbs or écouter without a preposition', () => {
+    expect(fires('prep_ecouter_a', 'je cherche à comprendre')).toBe(false);
+    expect(fires('prep_ecouter_a', "j'écoute la radio")).toBe(false);
+  });
+
+  it('el_le_la: flags accented vowel-initial nouns after le/la', () => {
+    expect(fires('el_le_la', 'le école')).toBe(true);
+    expect(fires('el_le_la', 'la université')).toBe(true);
+  });
+
+  it('el_de: flags accented vowel-initial nouns after de', () => {
+    expect(fires('el_de', 'de université')).toBe(true);
+  });
+
+  it('dem_cet: flags accented vowel-initial nouns after ce', () => {
+    expect(fires('dem_cet', 'ce été')).toBe(true);
+  });
+
+  it('adj_plural: does not flag français/anglais in the masculine plural (already correct — no -s)', () => {
+    expect(fires('adj_plural', 'mes parents français')).toBe(false);
+  });
+
+  it('adj_plural: still flags the hardcoded whitelist case (missing plural -s)', () => {
+    expect(fires('adj_plural', 'mes amis intelligent')).toBe(true);
+  });
+
+  it('adj_plural: does NOT catch a determiner/noun pair outside the hardcoded whitelist (accepted current scope)', () => {
+    expect(fires('adj_plural', 'mes copains fatigue')).toBe(false);
+  });
+
+  it('neg_missing_ne: flags the elided j\' alternative (previously unreachable — required a space after j\')', () => {
+    expect(fires('neg_missing_ne', "j'ai pas de frères")).toBe(true);
+    expect(fires('neg_missing_ne', 'je suis pas content')).toBe(true);
+  });
+
+  it('neg_missing_ne: does not flag correctly formed negation', () => {
+    expect(fires('neg_missing_ne', 'je ne suis pas content')).toBe(false);
   });
 });
 
-describe('pron_placement (post-fix: le|la|les dropped from the alternation)', () => {
+describe('pron_placement (le|la|les excluded from the alternation)', () => {
   it('does not flag correct direct-object placement using le/la/les', () => {
     expect(fires('pron_placement', 'il regarde la television')).toBe(false);
     expect(fires('pron_placement', 'je vois le chat')).toBe(false);
@@ -44,21 +135,8 @@ describe('pron_placement (post-fix: le|la|les dropped from the alternation)', ()
   });
 });
 
-describe('prep_ecouter_a (post-fix: ecouter-only, chercher/attendre dropped)', () => {
-  it('does not flag chercher/attendre with a preposition', () => {
-    expect(fires('prep_ecouter_a', 'je vais chercher pour mes clés')).toBe(false);
-    expect(fires('prep_ecouter_a', "il faut attendre pour le bus")).toBe(false);
-  });
-
-  it('still flags ecouter with a preposition', () => {
-    // Also exercises the Slice 2 fix for a pre-existing \b/accent-boundary
-    // bug: JS \b is ASCII-only, so a literal à immediately against \b never
-    // matched (discovered during Slice 1 test-writing; user-confirmed to fix
-    // in the same slice since it already touches this rule's regex).
-    expect(fires('prep_ecouter_a', 'je vais écouter à la radio')).toBe(true);
-  });
-
-  it('TEACHME_LIBRARY explanation no longer mentions chercher/attendre once the rule is narrowed', () => {
+describe('prep_ecouter_a: TEACHME_LIBRARY explanation no longer mentions chercher/attendre', () => {
+  it('does not mention the dropped verbs', () => {
     const entry = TEACHME_LIBRARY['prep_ecouter_a'];
     const text = `${entry?.why ?? ''} ${entry?.examples?.map(e => e.en).join(' ') ?? ''}`;
     expect(text).not.toMatch(/chercher/i);
@@ -66,7 +144,7 @@ describe('prep_ecouter_a (post-fix: ecouter-only, chercher/attendre dropped)', (
   });
 });
 
-describe('si_clause (post-fix: adjacency removed, duplicate alternative removed, wider person coverage)', () => {
+describe('si_clause (adjacency removed, duplicate alternative removed, wider person coverage)', () => {
   it('still flags future tense instead of conditional after an imperfect si clause', () => {
     expect(fires('si_clause', "si j'etais riche, j'acheterai un bateau")).toBe(true);
   });
@@ -76,26 +154,11 @@ describe('si_clause (post-fix: adjacency removed, duplicate alternative removed,
   });
 });
 
-describe('adj_plural (no bug — scope-limited, documented current behavior)', () => {
-  it('catches the hardcoded whitelist case (missing plural -s)', () => {
-    expect(fires('adj_plural', 'mes amis intelligent')).toBe(true);
-  });
-
-  it('does NOT catch a determiner/noun pair outside the hardcoded whitelist (accepted current scope, not a regression to fix)', () => {
-    expect(fires('adj_plural', 'mes copains fatigue')).toBe(false);
-  });
-});
-
-describe('passe-compose false-praise (_findStrongestMoment, post-fix denylist)', () => {
+describe('passe-compose false-praise (_findStrongestMoment, denylist)', () => {
   it('does not praise "du" (partitive) as a passé composé participle', async () => {
     const { evaluate } = await import('../coachService');
     const question = { id: 'q1', topicKey: 'school', text: 'Q', difficulty: 2 } as import('../../../types').Question;
     const result = evaluate("j'ai du temps libre", question);
-    // The false positive would surface as a strongestMomentExplanation
-    // specifically praising this phrase as correct passé composé usage
-    // (category: 'tense', "shows correct use of the passé composé"). Falling
-    // through to a different, legitimate praise reason (e.g. the
-    // clear-communication fallback) is fine and expected post-fix.
     expect(result.strongestMomentExplanation ?? '').not.toMatch(/passé composé/i);
   });
 
@@ -127,14 +190,14 @@ describe('general non-regression: no relative-clause rule misfires on inverted-s
   });
 });
 
-describe('con_au (\\b/accent-boundary bug fix, Slice 2c — untouched by any other planned slice)', () => {
+describe('con_au (accent-boundary bug fix)', () => {
   it('flags "à le"/"à les" (previously silently never fired due to a leading \\b against à)', () => {
     expect(fires('con_au', 'je vais à le marché')).toBe(true);
     expect(fires('con_au', 'il parle à les professeurs')).toBe(true);
   });
 });
 
-describe('aux_aller (\\b/accent-boundary bug fix, bundled into Slice 5/8)', () => {
+describe('aux_aller (accent-boundary bug fix)', () => {
   it('flags "j\'ai allé" (previously silently never fired due to a trailing \\b against é)', () => {
     expect(fires('aux_aller', "j'ai allé au marché")).toBe(true);
   });

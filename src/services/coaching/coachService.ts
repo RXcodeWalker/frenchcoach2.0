@@ -2,6 +2,7 @@ import type { FeedbackV2, Question, CoachingIssue, IssueCategory, TranscriptSpan
 import { classifyTier, buildTier0Result, buildTier1LocalResult } from './responseTier';
 import { applyQualityGate } from './qualityGate';
 import { detectAvoidance } from './diagnosticEngine';
+import { NOT_BEFORE, NOT_AFTER } from './regexBoundary';
 
 // ── Diagnostic themes ──────────────────────────────────────────────────────────
 const THEMES: Record<string, { label: string; desc: string; sde_key: string; master_tip: string }> = {
@@ -256,16 +257,16 @@ export const GRAMMAR_RULES: GrammarRule[] = [
   {
     id: "el_le_la",
     theme: "ELISION", severity: "major",
-    test: (t) => /\b(le|la) (hôtel|hôpital|avion|ordinateur|école|université|histoire|idée|avis|été|hiver|automne|examen|exercice)\b/i.test(t),
-    capture: (t) => (t.match(/\b(le|la) (hôtel|hôpital|avion|ordinateur|école|université|histoire|idée|avis|été|hiver|automne|examen|exercice)\b/i) ?? [])[0] ?? null,
+    test: (t) => new RegExp(`\\b(le|la) (hôtel|hôpital|avion|ordinateur|école|université|histoire|idée|avis|été|hiver|automne|examen|exercice)${NOT_AFTER}`, 'i').test(t),
+    capture: (t) => (t.match(new RegExp(`\\b(le|la) (hôtel|hôpital|avion|ordinateur|école|université|histoire|idée|avis|été|hiver|automne|examen|exercice)${NOT_AFTER}`, 'i')) ?? [])[0] ?? null,
     buildDiagnostic: (q) => `You wrote "${q}" — le/la contracts to l' before a vowel or mute h. This is a fundamental French phonetics rule.`,
     correction: "l'…",
   },
   {
     id: "el_de",
     theme: "ELISION", severity: "major",
-    test: (t) => /\bde (un|une|ami|amie|école|université|ordinateur|idée|avis|eau|argent|orange)\b/i.test(t),
-    capture: (t) => (t.match(/\bde (un|une|ami|amie|école|université|ordinateur|idée|avis|eau|argent|orange)\b/i) ?? [])[0] ?? null,
+    test: (t) => new RegExp(`\\bde (un|une|ami|amie|école|université|ordinateur|idée|avis|eau|argent|orange)${NOT_AFTER}`, 'i').test(t),
+    capture: (t) => (t.match(new RegExp(`\\bde (un|une|ami|amie|école|université|ordinateur|idée|avis|eau|argent|orange)${NOT_AFTER}`, 'i')) ?? [])[0] ?? null,
     buildDiagnostic: (q) => `You wrote "${q}" — de contracts to d' before a vowel. Same rule as je → j'.`,
     correction: "d'…",
   },
@@ -280,8 +281,8 @@ export const GRAMMAR_RULES: GrammarRule[] = [
   {
     id: "con_au",
     theme: "ELISION", severity: "major",
-    test: (t) => /(?<![a-zàâäéèêëïîôöùûüç])à (le|les)\b/i.test(t),
-    capture: (t) => (t.match(/(?<![a-zàâäéèêëïîôöùûüç])à (le|les)\b/i) ?? [])[0] ?? null,
+    test: (t) => new RegExp(`${NOT_BEFORE}à (le|les)\\b`, 'i').test(t),
+    capture: (t) => (t.match(new RegExp(`${NOT_BEFORE}à (le|les)\\b`, 'i')) ?? [])[0] ?? null,
     buildDiagnostic: (q) => `You wrote "${q}" — à + le always contracts to au, and à + les to aux. There are no exceptions.`,
     correction: "au / aux",
   },
@@ -296,8 +297,8 @@ export const GRAMMAR_RULES: GrammarRule[] = [
   {
     id: "aux_aller",
     theme: "AUXILIARY", severity: "major",
-    test: (t) => /\bj'ai allé(?![a-zàâäéèêëïîôöùûüç])/i.test(t),
-    capture: (t) => (t.match(/\bj'ai allé(?![a-zàâäéèêëïîôöùûüç])/i) ?? [])[0] ?? null,
+    test: (t) => new RegExp(`\\bj'ai allé${NOT_AFTER}`, 'i').test(t),
+    capture: (t) => (t.match(new RegExp(`\\bj'ai allé${NOT_AFTER}`, 'i')) ?? [])[0] ?? null,
     buildDiagnostic: (q) => `You wrote "${q}" — you translated 'I have gone' directly from English. Movement verbs use être in passé composé: je suis allé(e).`,
     correction: "je suis allé(e)",
   },
@@ -320,8 +321,11 @@ export const GRAMMAR_RULES: GrammarRule[] = [
   {
     id: "adj_plural",
     theme: "ADJECTIVE", severity: "minor",
-    test: (t) => /\b(les|mes|tes|ses|nos|vos|leurs) (amis|parents|enfants|élèves) (intelligent|grand|petit|content|français|anglais|important)\b/i.test(t),
-    capture: (t) => (t.match(/\b(les|mes|tes|ses|nos|vos|leurs) (amis|parents|enfants|élèves) (intelligent|grand|petit|content|français|anglais|important)\b/i) ?? [])[0] ?? null,
+    // français/anglais excluded — they are already correct in the masculine
+    // plural (no -s), so flagging them told a correct student to introduce
+    // an error that doesn't exist.
+    test: (t) => /\b(les|mes|tes|ses|nos|vos|leurs) (amis|parents|enfants|élèves) (intelligent|grand|petit|content|important)\b/i.test(t),
+    capture: (t) => (t.match(/\b(les|mes|tes|ses|nos|vos|leurs) (amis|parents|enfants|élèves) (intelligent|grand|petit|content|important)\b/i) ?? [])[0] ?? null,
     buildDiagnostic: (q) => `You wrote "${q}" — the adjective must agree with the plural noun: add -s (or -ux for some endings).`,
     correction: "… [adjective]s",
   },
@@ -352,8 +356,8 @@ export const GRAMMAR_RULES: GrammarRule[] = [
   {
     id: "prep_ecouter_a",
     theme: "PREPOSITION", severity: "minor",
-    test: (t) => /écouter (à|pour)(?![a-zàâäéèêëïîôöùûüç])/i.test(t),
-    capture: (t) => (t.match(/écouter (à|pour)(?![a-zàâäéèêëïîôöùûüç])/i) ?? [])[0] ?? null,
+    test: (t) => new RegExp(`écout(?:e|es|ons|ez|ent|ais|ait|iez|aient|é|er)\\s+(à|pour)${NOT_AFTER}`, 'i').test(t),
+    capture: (t) => (t.match(new RegExp(`écout(?:e|es|ons|ez|ent|ais|ait|iez|aient|é|er)\\s+(à|pour)${NOT_AFTER}`, 'i')) ?? [])[0] ?? null,
     buildDiagnostic: (q) => `You wrote "${q}" — unlike English, écouter is a direct verb in French. No preposition is needed: j'écoute de la musique.`,
     correction: "[verb] [object] (no preposition)",
   },
@@ -389,16 +393,23 @@ export const GRAMMAR_RULES: GrammarRule[] = [
   {
     id: "neg_missing_ne",
     theme: "NEGATION", severity: "minor",
-    test: (t) => /\b(je|j'|tu|il|elle|on|nous|vous|ils|elles) (suis|ai|vais|fais|peux|dois|veux|sais|vois|mange|parle) pas\b/i.test(t),
-    capture: (t) => (t.match(/\b(je|j'|tu|il|elle|on|nous|vous|ils|elles) (suis|ai|vais|fais|peux|dois|veux|sais|vois|mange|parle) pas\b/i) ?? [])[0] ?? null,
+    // "j'" has no following space before the verb, so it needs its own
+    // alternative rather than sharing the "(pronoun) " prefix — the original
+    // pattern required a space after j', which is unreachable (j'ai, not j' ai).
+    test: (t) => new RegExp(`${NOT_BEFORE}(?:j'|(?:je|tu|il|elle|on|nous|vous|ils|elles) )(?:suis|ai|vais|fais|peux|dois|veux|sais|vois|mange|parle) pas\\b`, 'i').test(t),
+    capture: (t) => (t.match(new RegExp(`${NOT_BEFORE}(?:j'|(?:je|tu|il|elle|on|nous|vous|ils|elles) )(?:suis|ai|vais|fais|peux|dois|veux|sais|vois|mange|parle) pas\\b`, 'i')) ?? [])[0] ?? null,
     buildDiagnostic: (q) => `You wrote "${q}" — you dropped the ne. In IGCSE formal speech, the full sandwich is required: je NE [verb] PAS.`,
     correction: "je ne [verb] pas",
   },
   {
+    // A nested lookbehind is required: deleting the inner boundary check
+    // introduces a false negative — "le monde qui je vois" would be wrongly
+    // suppressed because "monde" ends in "de " (matching the "de " prefix
+    // alternative literally, not just as a preposition token boundary).
     id: "rel_qui_subj",
     theme: "RELATIVE", severity: "major",
-    test: (t) => /(?<!\b(?:avec|à|a|pour|chez|sans|sur|dans|de|en) )\bqui (je|tu|il|elle|on|nous|vous|ils|elles)\b/i.test(t),
-    capture: (t) => (t.match(/(?<!\b(?:avec|à|a|pour|chez|sans|sur|dans|de|en) )\bqui (je|tu|il|elle|on|nous|vous|ils|elles)\b/i) ?? [])[0] ?? null,
+    test: (t) => new RegExp(`(?<!${NOT_BEFORE}(?:avec|à|a|pour|chez|sans|sur|dans|de|en) )${NOT_BEFORE}qui (?:j'|je|tu|il|elle|on|nous|vous|ils|elles)\\b`, 'i').test(t),
+    capture: (t) => (t.match(new RegExp(`(?<!${NOT_BEFORE}(?:avec|à|a|pour|chez|sans|sur|dans|de|en) )${NOT_BEFORE}qui (?:j'|je|tu|il|elle|on|nous|vous|ils|elles)\\b`, 'i')) ?? [])[0] ?? null,
     buildDiagnostic: (q) => `You wrote "${q}" — qui is for subjects (qui + verb). If a personal pronoun follows, use que instead: c'est le film que j'ai vu.`,
     correction: "que",
   },
@@ -421,8 +432,8 @@ export const GRAMMAR_RULES: GrammarRule[] = [
   {
     id: "dem_cet",
     theme: "DEMONSTRATIVE", severity: "minor",
-    test: (t) => /\bce (hôtel|homme|ordinateur|été|ami|avion)\b/i.test(t),
-    capture: (t) => (t.match(/\bce (hôtel|homme|ordinateur|été|ami|avion)\b/i) ?? [])[0] ?? null,
+    test: (t) => new RegExp(`\\bce (hôtel|homme|ordinateur|été|ami|avion)${NOT_AFTER}`, 'i').test(t),
+    capture: (t) => (t.match(new RegExp(`\\bce (hôtel|homme|ordinateur|été|ami|avion)${NOT_AFTER}`, 'i')) ?? [])[0] ?? null,
     buildDiagnostic: (q) => `You wrote "${q}" — masculine ce becomes cet before a vowel or mute h. This is for phonetic ease: cet hôtel, cet homme.`,
     correction: "cet …",
   },

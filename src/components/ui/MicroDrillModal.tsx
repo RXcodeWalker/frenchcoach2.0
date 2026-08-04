@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { REBUILD_QUESTIONS } from '../../data/rebuildQuestions';
 import { SKILL_DEFS } from '../../services/coaching/diagnosticEngine';
+import { SKILL_TO_THEME } from '../../domain/microDrill/skillThemes';
 import { useApp, dispatchAddXP } from '../../context/AppContext';
 
 interface MicroDrillModalProps {
@@ -20,27 +21,12 @@ interface MicroDrillModalProps {
   onComplete?: (result: { correct: number; total: number; immediateSuccess: number }) => void;
 }
 
-// Mapping between diagnostic skillId and REBUILD_QUESTIONS theme
-const SKILL_TO_THEME: Record<string, string[]> = {
-  elision: ['Elision'],
-  negation: ['Negation'],
-  preposition: ['Prepositions', 'Verb Patterns'],
-  subjunctive: ['Subjunctive'],
-  relative_pron: ['Relative Pronouns'],
-  tense_past: ['Reflexive Verbs', 'Imperfect Tense'],
-  hypothetical: ['Conditionals'],
-  gender: ['Adjective Placement'],
-  demonstrative: ['Demonstratives'],
-  comparative: ['Comparatives'],
-  confusions: ['Pronoun Placement'],
-};
-
 export const MicroDrillModal: React.FC<MicroDrillModalProps> = ({ skillId, onClose, onComplete }) => {
   const { dispatch } = useApp();
   const skillDef = SKILL_DEFS[skillId];
-  
-  const [questions, setQuestions] = useState(
-    REBUILD_QUESTIONS.filter(q => 
+
+  const [questions] = useState(
+    () => REBUILD_QUESTIONS.filter(q =>
       SKILL_TO_THEME[skillId]?.includes(q.theme)
     ).sort(() => Math.random() - 0.5).slice(0, 3)
   );
@@ -65,13 +51,6 @@ export const MicroDrillModal: React.FC<MicroDrillModalProps> = ({ skillId, onClo
     setTargetFragments([]);
     setFeedback(null);
   }, [currentQuestion]);
-
-  useEffect(() => {
-    if (questions.length === 0) {
-      // Fallback if no specific questions found: use general ones
-      setQuestions(REBUILD_QUESTIONS.sort(() => Math.random() - 0.5).slice(0, 3));
-    }
-  }, [skillId]);
 
   useEffect(() => {
     initQuestion();
@@ -158,7 +137,22 @@ export const MicroDrillModal: React.FC<MicroDrillModalProps> = ({ skillId, onClo
 
         <div className="p-8">
           <AnimatePresence mode="wait">
-            {isFinished ? (
+            {questions.length === 0 ? (
+              <motion.div
+                key="no-drill"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-center py-8"
+              >
+                <p className="text-slate-400 text-sm mb-8">No drill available yet for this skill.</p>
+                <button
+                  onClick={onClose}
+                  className="w-full py-4 bg-white text-slate-950 font-black rounded-2xl shadow-xl hover:scale-105 transition-all uppercase italic tracking-wider"
+                >
+                  Close
+                </button>
+              </motion.div>
+            ) : isFinished ? (
               <motion.div 
                 key="finished"
                 initial={{ opacity: 0, y: 10 }}

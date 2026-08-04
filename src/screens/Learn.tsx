@@ -28,6 +28,8 @@ import { SessionSummary } from './learn/SessionSummary';
 import { MidSessionToast } from './learn/MidSessionToast';
 import { StreakToast } from './learn/StreakToast';
 import { buildSessionQuestions, makeSessionQuestion, SESSION_TARGET } from '../utils/sessionBuilder';
+import { getReviewItemFirstFailScore } from '../services/coach/reviewPool';
+import { useExtraTurnBudget } from './learn/useExtraTurnBudget';
 import { track } from '../services/telemetry/telemetryService';
 import { DIFFICULTY_CONFIG } from '../utils/difficultyConfig';
 import { updateTopicMastery } from '../services/analytics/analyticsService';
@@ -35,8 +37,6 @@ import { computeXPGain, computeParticipationXPGain } from '../domain/xp';
 import { isUnscored, averageRealScores } from '../domain/scoring';
 import { resolveFeatureStatus } from '../config/featureFlags';
 import { SayItAgainCard } from '../features/feedback/components/SayItAgainCard';
-import { PRACTICE_MAX_PER_SESSION } from '../domain/pronunciation/practiceThresholds';
-import { FOLLOWUP_MAX_PER_SESSION } from '../domain/followUp/followUpThresholds';
 import { incrementCounter } from '../services/telemetry/localCounters';
 import type { Topic, Session, FeedbackV2, ActiveSession, SessionMode, SessionQuestion, AIEngine, EngineResult, FeedbackMode } from '../types/index';
 
@@ -51,17 +51,16 @@ export function Learn() {
   const [practiceStepLive] = useState(() => resolveFeatureStatus('learnPracticeStep') === 'live');
   // 2.1: "Say It Again" — not persisted (Slice 4 decision, see plan §5): resets
   // every session, never written to EvidenceEvents/beliefs.
-  const [practiceStepsUsed, setPracticeStepsUsed] = useState(0);
   const [showPracticeStep, setShowPracticeStep] = useState(false);
   // 3.4: follow-up turn — a second, graded attempt on the current SessionQuestion
   // (see types/index.ts QuestionAttempt.kind). Not persisted, resets every session.
   const [followUpLive] = useState(() => resolveFeatureStatus('learnFollowUp') === 'live');
   const [followUpTurn, setFollowUpTurn] = useState<{ promptText: string } | null>(null);
-  const [followUpsUsed, setFollowUpsUsed] = useState(0);
-  // Shared mutual-exclusion flag: prevents Say-It-Again and the follow-up turn
-  // from both firing on the same question, and (closing a pre-existing latent
-  // gap) prevents Say-It-Again from double-firing on a retry of the same question.
-  const [extraTurnOfferedForIndex, setExtraTurnOfferedForIndex] = useState<number | null>(null);
+  // Owns practiceStepsUsed/followUpsUsed/extraTurnOfferedForIndex — the
+  // mutual-exclusion + per-session cap budget for Say-It-Again and follow-up
+  // turns. extraTurnOfferedForIndex prevents both from firing on the same
+  // question, and prevents Say-It-Again from double-firing on a retry.
+  const extraTurnBudget = useExtraTurnBudget();
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
   const [activeSession, setActiveSession] = useState<ActiveSession | null>(null);
   const [showHint, setShowHint] = useState(false);
@@ -121,15 +120,27 @@ export function Learn() {
     };
   }, []);
 
-  const baseQuestion = activeSession
-    ? activeSession.questions[activeSession.currentIndex]?.question ?? null
+  const currentSessionQuestion = activeSession
+    ? activeSession.questions[activeSession.currentIndex] ?? null
     : null;
+  const baseQuestion = currentSessionQuestion?.question ?? null;
   // 3.4: when a follow-up turn is active, every downstream call site (recording
   // eval, avoidance detection, examiner feedback, getAIFeedback/streamFeedback,
   // orchestrateAttempt) picks up the follow-up prompt with zero call-site changes.
   const currentQuestion = baseQuestion && followUpTurn
     ? { ...baseQuestion, id: `${baseQuestion.id}::followup`, text: followUpTurn.promptText }
     : baseQuestion;
+  const isReviewQuestion = !!currentSessionQuestion?.isReview;
+
+  // review_item_shown fires once per review question's presentation — keyed
+  // on the question id so it doesn't refire on unrelated re-renders.
+  useEffect(() => {
+    if (isReviewQuestion && baseQuestion && selectedTopic) {
+      track({ name: 'review_item_shown', props: { question_id: baseQuestion.id, topic_key: selectedTopic.key } });
+      incrementCounter('review_item_shown');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isReviewQuestion, baseQuestion?.id]);
 
   // ── Engine preference change ──────────────────────────────────────────────────
 
@@ -147,6 +158,20 @@ export function Learn() {
 
   // ── Session start ─────────────────────────────────────────────────────────────
 
+  // Learn never unmounts between sessions in one visit (no `key` on the
+  // route, handleNewTopic only nulls the topic) — anything not reset here
+  // leaks a previous session's state into the next one.
+  const resetSessionScopedState = useCallback(() => {
+    setFollowUpTurn(null);
+    setPendingTranscript(null);
+    setPronunciationStatus('idle');
+    setPronunciationResult(null);
+    setPartialFeedback(null);
+    setStreamPhase(null);
+    setFeedbackErrorMessage(null);
+    extraTurnBudget.resetForNewSession();
+  }, [extraTurnBudget]);
+
   const startSession = useCallback((mode: SessionMode) => {
     if (!selectedTopic) return;
 
@@ -162,7 +187,7 @@ export function Learn() {
     const dailyPlan = getDailyPlan();
     const sessionBlend = dailyPlan?.sessionBlend ?? null;
 
-    const questions = buildSessionQuestions(
+    const { questions, reviewQuestionId } = buildSessionQuestions(
       selectedTopic.key,
       mode,
       skillProfile,
@@ -173,7 +198,9 @@ export function Learn() {
     );
 
     const target = mode === 'full_topic' ? questions.length : SESSION_TARGET[mode];
-    const sessionQuestions: SessionQuestion[] = questions.slice(0, target).map(makeSessionQuestion);
+    const sessionQuestions: SessionQuestion[] = questions
+      .slice(0, target)
+      .map(q => makeSessionQuestion(q, q.id === reviewQuestionId));
 
     const session: ActiveSession = {
       id: `sess-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
@@ -200,8 +227,9 @@ export function Learn() {
     // Clear evaluation cache for the new session
     setEngineResults(new Map());
     setActiveResultEngine(null);
+    resetSessionScopedState();
     setLearnState('question');
-  }, [selectedTopic, skillProfile, topicMastery, dispatch]);
+  }, [selectedTopic, skillProfile, topicMastery, dispatch, resetSessionScopedState]);
 
   const startSingleQuestion = () => startSession('single');
 
@@ -287,6 +315,21 @@ export function Learn() {
     });
 
     track({ name: 'session_completed', props: { mode: 'practice', score: unscored ? null : finalScore, duration_sec: elapsed, xp_gain: orchestration.xpResult.gain, topic_key: selectedTopic?.key } });
+    // review_item_answered — only for the main (non-follow-up) attempt on a
+    // question spliced in as a spaced-review re-exposure. firstFailScore lets
+    // "did the score improve" be a local comparison against this event.
+    if (isReviewQuestion && !followUpTurn && selectedTopic) {
+      track({
+        name: 'review_item_answered',
+        props: {
+          question_id: baseQuestion!.id,
+          topic_key: selectedTopic.key,
+          score: unscored ? null : finalScore,
+          first_fail_score: getReviewItemFirstFailScore(baseQuestion!.id),
+        },
+      });
+      incrementCounter('review_item_answered');
+    }
     if (fb.engineMeta) {
       track({ name: 'feedback_received', props: { engine: fb.engineMeta.actualEngine, fallback_used: fb.engineMeta.fallbackUsed, score: unscored ? null : finalScore, latency_ms: fb.engineMeta.latencyMs, response_tier: fb.responseTier ?? 2 } });
     }
@@ -689,7 +732,11 @@ export function Learn() {
     setExaminerStatus('idle');
     setExaminerFeedbackResult(null);
     setShowPracticeStep(false);
-    setExtraTurnOfferedForIndex(null);
+    // followUpTurn is question-scoped, not session-scoped — must be cleared
+    // here too, or abandoning a session mid-follow-up (Back / end-early)
+    // rewrites the next session's currentQuestion with the previous prompt.
+    setFollowUpTurn(null);
+    extraTurnBudget.resetForNewQuestion();
 
     const streak = updatedSession.answerStreak;
     if (streak === 3 || streak === 5) {
@@ -716,8 +763,7 @@ export function Learn() {
     practiceStepLive &&
     !!practiceTargetSentence.trim() &&
     (feedback?.responseTier ?? 3) >= 2 &&
-    practiceStepsUsed < PRACTICE_MAX_PER_SESSION &&
-    extraTurnOfferedForIndex !== activeSession?.currentIndex &&
+    extraTurnBudget.canOfferPractice(activeSession?.currentIndex ?? null) &&
     !followUpTurn;
 
   // 3.4: offered only when Say-It-Again wasn't (checked first in
@@ -730,8 +776,7 @@ export function Learn() {
     !followUpTurn &&
     (currentQuestion?.followUps.length ?? 0) > 0 &&
     (feedback?.responseTier ?? 3) >= 2 &&
-    followUpsUsed < FOLLOWUP_MAX_PER_SESSION &&
-    extraTurnOfferedForIndex !== activeSession?.currentIndex;
+    extraTurnBudget.canOfferFollowUp(activeSession?.currentIndex ?? null);
 
   const handleFeedbackComplete = () => {
     if (followUpTurn) {
@@ -741,9 +786,8 @@ export function Learn() {
       return;
     }
     if (practiceStepEligible) {
-      setPracticeStepsUsed(n => n + 1);
+      extraTurnBudget.consumePractice(activeSession?.currentIndex ?? null);
       setShowPracticeStep(true);
-      setExtraTurnOfferedForIndex(activeSession?.currentIndex ?? null);
       if (currentQuestion) {
         track({ name: 'practice_step_shown', props: { question_id: currentQuestion.id } });
         incrementCounter('practice_step_shown');
@@ -751,8 +795,7 @@ export function Learn() {
       return;
     }
     if (followUpEligible && currentQuestion) {
-      setFollowUpsUsed(n => n + 1);
-      setExtraTurnOfferedForIndex(activeSession?.currentIndex ?? null);
+      extraTurnBudget.consumeFollowUp(activeSession?.currentIndex ?? null);
       setFollowUpTurn({ promptText: currentQuestion.followUps[0] });
       setLearnState('question');
       return;
@@ -989,6 +1032,7 @@ export function Learn() {
                   question={currentQuestion}
                   showHint={showHint}
                   onToggleHint={() => setShowHint(!showHint)}
+                  isReview={isReviewQuestion}
                 />
               )}
 

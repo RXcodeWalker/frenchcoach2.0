@@ -143,6 +143,8 @@ export function CoachBeliefDebug() {
           <SummaryCard label="Practice no-verdict" value={(counters.practice_step_completed_advance_no_verdict ?? 0).toString()} />
           <SummaryCard label="Transcript confirmed" value={(counters.transcript_confirmed ?? 0).toString()} tone="emerald" />
           <SummaryCard label="Transcript re-recorded" value={(counters.transcript_rerecorded ?? 0).toString()} tone="amber" />
+          <SummaryCard label="Review shown" value={(counters.review_item_shown ?? 0).toString()} />
+          <SummaryCard label="Review answered" value={(counters.review_item_answered ?? 0).toString()} tone="emerald" />
         </div>
       </div>
 

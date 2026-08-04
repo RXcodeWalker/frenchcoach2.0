@@ -17,7 +17,9 @@ export type CounterKey =
   | 'practice_step_completed_retry'
   | 'practice_step_completed_advance_no_verdict'
   | 'transcript_confirmed'
-  | 'transcript_rerecorded';
+  | 'transcript_rerecorded'
+  | 'review_item_shown'
+  | 'review_item_answered';
 
 interface CountersState {
   version: number;

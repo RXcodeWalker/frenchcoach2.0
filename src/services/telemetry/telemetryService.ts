@@ -79,6 +79,20 @@ interface TranscriptRerecordedProps {
   question_id: string;
 }
 
+interface ReviewItemShownProps {
+  question_id: string;
+  topic_key: string;
+}
+
+interface ReviewItemAnsweredProps {
+  question_id: string;
+  topic_key: string;
+  /** null when this attempt was never graded (offline fallback) — never a fabricated placeholder. */
+  score: number | null;
+  /** The score that caused the original failure, when known — lets "did the score improve" be computed locally. */
+  first_fail_score: number | null;
+}
+
 type TelemetryEvent =
   | { name: 'session_completed';       props: SessionCompletedProps }
   | { name: 'feedback_received';       props: FeedbackReceivedProps }
@@ -91,7 +105,9 @@ type TelemetryEvent =
   | { name: 'practice_step_shown';     props: PracticeStepShownProps }
   | { name: 'practice_step_completed'; props: PracticeStepCompletedProps }
   | { name: 'transcript_confirmed';    props: TranscriptConfirmedProps }
-  | { name: 'transcript_rerecorded';   props: TranscriptRerecordedProps };
+  | { name: 'transcript_rerecorded';   props: TranscriptRerecordedProps }
+  | { name: 'review_item_shown';       props: ReviewItemShownProps }
+  | { name: 'review_item_answered';    props: ReviewItemAnsweredProps };
 
 export function initTelemetry(): void {
   const dsn = import.meta.env.VITE_SENTRY_DSN as string | undefined;

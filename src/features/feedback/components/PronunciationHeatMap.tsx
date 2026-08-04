@@ -8,10 +8,11 @@ interface Props {
   onSpeakWord?: (word: string) => void;
 }
 
-const STATUS_CLASS: Record<'perfect' | 'good' | 'missed', string> = {
+const STATUS_CLASS: Record<'perfect' | 'good' | 'missed' | 'unknown', string> = {
   perfect: 'text-emerald-300',
   good: 'text-amber-300',
   missed: 'text-red-300',
+  unknown: 'text-slate-400',
 };
 
 const ERROR_TYPE_CLASS: Record<string, string> = {
@@ -24,13 +25,15 @@ function phonemeColor(accuracyScore: number | null): string {
   const status = statusForAccuracy(accuracyScore);
   if (status === 'perfect') return 'text-emerald-300';
   if (status === 'good') return 'text-amber-300';
+  if (status === 'unknown') return 'text-slate-400';
   return 'text-red-300';
 }
 
 function WordSpan({ word, onSpeakWord }: { word: PronunciationWordResult; onSpeakWord?: (word: string) => void }) {
   const [expanded, setExpanded] = useState(false);
   const hasPhonemes = !!word.phonemes && word.phonemes.length > 0;
-  const statusClass = STATUS_CLASS[statusForAccuracy(word.accuracyScore)];
+  const status = statusForAccuracy(word.accuracyScore);
+  const statusClass = STATUS_CLASS[status];
   const errorClass = word.errorType ? ERROR_TYPE_CLASS[word.errorType] ?? '' : '';
 
   return (
@@ -39,6 +42,7 @@ function WordSpan({ word, onSpeakWord }: { word: PronunciationWordResult; onSpea
         type="button"
         disabled={!hasPhonemes}
         onClick={() => setExpanded(e => !e)}
+        title={status === 'unknown' ? 'Not assessed' : undefined}
         className={`text-sm font-medium ${statusClass} ${errorClass} ${hasPhonemes ? 'cursor-pointer' : 'cursor-default'}`}
       >
         {word.word}

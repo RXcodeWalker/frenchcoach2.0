@@ -24,9 +24,16 @@ interface Props {
 export type PracticeOutcome = 'pass' | 'retry' | 'advance-no-verdict' | null;
 
 /** Pure practice-step state machine (exported for unit testing — see
- * __tests__/practiceOutcome.test.ts). Every path advances eventually: 'pass'
+ * __tests__/sayItAgainOutcome.test.ts). Every path advances eventually: 'pass'
  * and 'advance-no-verdict' are both terminal; 'retry' is reachable only when
- * attempt < PRACTICE_MAX_ATTEMPTS, so a third attempt is never offered. */
+ * attempt < PRACTICE_MAX_ATTEMPTS, so a third attempt is never offered.
+ *
+ * R3 amendment: practice-step pronunciation scores are deliberately NOT
+ * persisted as EvidenceEvents. The evidence log truncates at 100 entries and
+ * the belief reducer has no calibrated weight for a pronunciation score, so
+ * writing one would either be silently dropped or under-weighted relative to
+ * language evidence. The Tier-1 local counters (localCounters.ts,
+ * practice_step_shown/completed_*) carry the measurement load instead. */
 export function outcomeFor(result: PronunciationAssessment, attempt: number): PracticeOutcome {
   if (result.provider !== 'azure') return 'advance-no-verdict';
   if (result.score >= PRACTICE_PASS_SCORE) return 'pass';

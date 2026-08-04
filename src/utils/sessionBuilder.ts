@@ -36,10 +36,14 @@ export const SESSION_LABEL: Record<SessionMode, string> = {
   full_topic: 'Full Topic',
 };
 
+// standard's worst case is not 10 recordings: up to PRACTICE_MAX_PER_SESSION (3)
+// Say-It-Again turns and FOLLOWUP_MAX_PER_SESSION (3) follow-up turns can each
+// add a recording on top of the 10 main questions — 16 recordings worst case,
+// not 10. '~20 min' understated that; revised to a range that covers it.
 export const SESSION_DURATION: Record<SessionMode, string> = {
   single: '~2 min',
   quick: '~10 min',
-  standard: '~20 min',
+  standard: '~25–30 min',
   deep_dive: '~40 min',
   full_topic: 'All questions',
 };
@@ -84,6 +88,12 @@ function applyDifficultyDistribution(questions: Question[], target: number): Que
   return selected.slice(0, target);
 }
 
+export interface BuiltSessionQuestions {
+  questions: Question[];
+  /** The question id spliced in as a spaced-review re-exposure, if any. */
+  reviewQuestionId: string | null;
+}
+
 export function buildSessionQuestions(
   topicKey: string | null,
   mode: SessionMode,
@@ -92,7 +102,7 @@ export function buildSessionQuestions(
   difficulty: DifficultyTier = DEFAULT_DIFFICULTY,
   focusedSkillId: string | null = null,
   sessionBlend: SessionBlend | null = null,
-): Question[] {
+): BuiltSessionQuestions {
   const allQuestions = preferredFirst(
     topicKey ? getTopicQuestions(topicKey) : [...QUESTIONS],
     difficulty,
@@ -165,6 +175,7 @@ export function buildSessionQuestions(
   // questions were chosen. Sessions <4 questions get no reserved slot; the
   // last valid index is always used, never an out-of-range one.
   advanceReviewPoolSessions();
+  let reviewQuestionId: string | null = null;
   if (topicKey && target >= 4) {
     // Exclude questions already in this session's selection, not just the
     // learner's historical `seen` set — otherwise a question the difficulty
@@ -173,21 +184,23 @@ export function buildSessionQuestions(
     const reviewCandidate = getEligibleReviewQuestion(topicKey, alreadyInSession);
     if (reviewCandidate && selected.length === target) {
       selected[target - 1] = reviewCandidate;
+      reviewQuestionId = reviewCandidate.id;
     }
   }
 
-  return selected;
+  return { questions: selected, reviewQuestionId };
 }
 
 // Widened to accept QuestionV2 — QuestionV2 is a structural superset of Question
 // so the returned SessionQuestion.question field is still type-compatible.
-export function makeSessionQuestion(question: Question | QuestionV2): SessionQuestion {
+export function makeSessionQuestion(question: Question | QuestionV2, isReview = false): SessionQuestion {
   return {
     question: question as Question,
     status: 'pending',
     attempts: [],
     bestScore: null,
     savedVocab: [],
+    isReview,
   };
 }
 

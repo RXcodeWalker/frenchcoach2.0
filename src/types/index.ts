@@ -616,6 +616,8 @@ export interface SessionQuestion {
   /** Best real score across attempts; null until a graded attempt exists. */
   bestScore: number | null;
   savedVocab: string[];
+  /** True when this question was spliced in as a spaced-review re-exposure of a previously-failed question. */
+  isReview?: boolean;
 }
 
 export interface ActiveSession {

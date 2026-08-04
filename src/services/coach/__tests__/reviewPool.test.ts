@@ -22,6 +22,7 @@ import {
   getEligibleReviewQuestion,
   recordReviewFailure,
   advanceReviewPoolSessions,
+  getReviewItemFirstFailScore,
   REVIEW_MIN_INTERVAL_MS,
 } from '../reviewPool';
 
@@ -123,6 +124,20 @@ describe('recordReviewFailure', () => {
     const stored = JSON.parse(localStorage.getItem(STORAGE_KEYS.reviewPool)!);
     expect(stored.items['q-school-1'].sessionsSinceFailure).toBe(0);
   });
+
+  it('stores the optional score as firstFailScore, retrievable via getReviewItemFirstFailScore', () => {
+    recordReviewFailure({ questionId: 'q-school-1', topicKey: 'school', score: 4.5 });
+    expect(getReviewItemFirstFailScore('q-school-1')).toBe(4.5);
+  });
+
+  it('firstFailScore is null when no score argument is passed (8 existing call sites keep compiling)', () => {
+    recordReviewFailure({ questionId: 'q-school-1', topicKey: 'school' });
+    expect(getReviewItemFirstFailScore('q-school-1')).toBeNull();
+  });
+
+  it('getReviewItemFirstFailScore returns null for a question never recorded as failed', () => {
+    expect(getReviewItemFirstFailScore('never-failed')).toBeNull();
+  });
 });
 
 describe('backward-compatibility (direct change #3)', () => {
@@ -150,6 +165,15 @@ describe('backward-compatibility (direct change #3)', () => {
       items: { 'q-school-1': { questionId: 'q-school-1', topicKey: 'school', failedAt: new Date().toISOString(), attempts: 1, sessionsSinceFailure: 5, nextEligibleAt: new Date(0).toISOString() } },
     }));
     expect(getEligibleReviewQuestion('school', new Set())).toBeNull();
+  });
+
+  it('a v1 store (pre-firstFailScore, version 1) is discarded — bump to version 2 forces a clean rebuild', () => {
+    localStorage.setItem(STORAGE_KEYS.reviewPool, JSON.stringify({
+      version: 1,
+      items: { 'q-school-1': { questionId: 'q-school-1', topicKey: 'school', failedAt: new Date().toISOString(), attempts: 1, sessionsSinceFailure: 5, nextEligibleAt: new Date(0).toISOString() } },
+    }));
+    expect(getEligibleReviewQuestion('school', new Set())).toBeNull();
+    expect(getReviewItemFirstFailScore('q-school-1')).toBeNull();
   });
 });
 

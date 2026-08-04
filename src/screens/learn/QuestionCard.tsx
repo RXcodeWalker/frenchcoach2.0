@@ -8,9 +8,10 @@ interface Props {
   question: Question;
   showHint: boolean;
   onToggleHint: () => void;
+  isReview?: boolean;
 }
 
-export function QuestionCard({ question, showHint, onToggleHint }: Props) {
+export function QuestionCard({ question, showHint, onToggleHint, isReview }: Props) {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [revealedVocab, setRevealedVocab] = useState<string | null>(null);
 
@@ -45,13 +46,20 @@ export function QuestionCard({ question, showHint, onToggleHint }: Props) {
         
         <div className="relative">
           <div className="flex items-center justify-between mb-4">
-            <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-widest ${
-              question.difficulty === 1 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/15' :
-              question.difficulty === 2 ? 'bg-amber-500/10 text-amber-400 border border-amber-500/15' :
-              'bg-red-500/10 text-red-400 border border-red-500/15'
-            }`}>
-              {question.difficulty === 1 ? 'Foundation' : question.difficulty === 2 ? 'Core' : 'Extended'}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-widest ${
+                question.difficulty === 1 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/15' :
+                question.difficulty === 2 ? 'bg-amber-500/10 text-amber-400 border border-amber-500/15' :
+                'bg-red-500/10 text-red-400 border border-red-500/15'
+              }`}>
+                {question.difficulty === 1 ? 'Foundation' : question.difficulty === 2 ? 'Core' : 'Extended'}
+              </span>
+              {isReview && (
+                <span className="text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-widest bg-cyan-500/10 text-cyan-300 border border-cyan-500/15">
+                  Seen before — let's retry it
+                </span>
+              )}
+            </div>
 
             <motion.button
               whileHover={{ scale: 1.1 }}

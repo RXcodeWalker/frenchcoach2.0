@@ -33,14 +33,14 @@ describe('buildSessionQuestions review-slot integration', () => {
 
   it('quick mode (target=5, >=4) reserves the last slot for an eligible review question', () => {
     makeReviewQuestionEligible(REVIEW_CANDIDATE_ID, 'school');
-    const questions = buildSessionQuestions('school', 'quick', EMPTY_SKILL_PROFILE, null);
+    const { questions } = buildSessionQuestions('school', 'quick', EMPTY_SKILL_PROFILE, null);
     expect(questions).toHaveLength(SESSION_TARGET.quick);
     expect(questions[questions.length - 1].id).toBe(REVIEW_CANDIDATE_ID);
   });
 
   it('single mode (target=1, <4) never reserves a slot regardless of pool state', () => {
     makeReviewQuestionEligible(REVIEW_CANDIDATE_ID, 'school');
-    const questions = buildSessionQuestions('school', 'single', EMPTY_SKILL_PROFILE, null);
+    const { questions } = buildSessionQuestions('school', 'single', EMPTY_SKILL_PROFILE, null);
     expect(questions).toHaveLength(SESSION_TARGET.single);
     // The review candidate must not have forcibly displaced the normal pick
     // in a 1-question session — target < 4 gate means no splice happens at all.
@@ -49,7 +49,7 @@ describe('buildSessionQuestions review-slot integration', () => {
 
   it('standard mode (target=10) still reserves only the last slot, not multiple', () => {
     makeReviewQuestionEligible(REVIEW_CANDIDATE_ID, 'school');
-    const questions = buildSessionQuestions('school', 'standard', EMPTY_SKILL_PROFILE, null);
+    const { questions } = buildSessionQuestions('school', 'standard', EMPTY_SKILL_PROFILE, null);
     expect(questions).toHaveLength(SESSION_TARGET.standard);
     expect(questions[questions.length - 1].id).toBe(REVIEW_CANDIDATE_ID);
     // Every other slot is untouched by the review splice — no duplicate elsewhere.
@@ -63,19 +63,31 @@ describe('buildSessionQuestions review-slot integration', () => {
     // detect this and decline to insert a second copy, falling back to the
     // distribution's own natural last-slot pick instead.
     makeReviewQuestionEligible('sch_01', 'school');
-    const questions = buildSessionQuestions('school', 'standard', EMPTY_SKILL_PROFILE, null);
+    const { questions } = buildSessionQuestions('school', 'standard', EMPTY_SKILL_PROFILE, null);
     const occurrences = questions.filter(q => q.id === 'sch_01').length;
     expect(occurrences).toBe(1);
   });
 
   it('no eligible review question → last slot is chosen normally (no splice, no crash)', () => {
-    const questions = buildSessionQuestions('school', 'quick', EMPTY_SKILL_PROFILE, null);
+    const { questions } = buildSessionQuestions('school', 'quick', EMPTY_SKILL_PROFILE, null);
     expect(questions).toHaveLength(SESSION_TARGET.quick);
   });
 
   it('a different topic\'s review pool entry never leaks into this session', () => {
     makeReviewQuestionEligible(REVIEW_CANDIDATE_ID, 'school');
-    const questions = buildSessionQuestions('hobbies', 'quick', EMPTY_SKILL_PROFILE, null);
+    const { questions } = buildSessionQuestions('hobbies', 'quick', EMPTY_SKILL_PROFILE, null);
     expect(questions.some(q => q.id === REVIEW_CANDIDATE_ID)).toBe(false);
+  });
+
+  it('the review candidate is marked isReview: true, and reviewQuestionId matches it', () => {
+    makeReviewQuestionEligible(REVIEW_CANDIDATE_ID, 'school');
+    const { questions, reviewQuestionId } = buildSessionQuestions('school', 'quick', EMPTY_SKILL_PROFILE, null);
+    expect(reviewQuestionId).toBe(REVIEW_CANDIDATE_ID);
+    expect(questions[questions.length - 1].id).toBe(reviewQuestionId);
+  });
+
+  it('reviewQuestionId is null when no splice happens', () => {
+    const { reviewQuestionId } = buildSessionQuestions('school', 'quick', EMPTY_SKILL_PROFILE, null);
+    expect(reviewQuestionId).toBeNull();
   });
 });

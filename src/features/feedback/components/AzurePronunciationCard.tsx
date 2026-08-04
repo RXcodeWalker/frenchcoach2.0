@@ -93,7 +93,9 @@ export function AzurePronunciationCard({ result, correctedSentence }: Props) {
               <div className="flex items-center gap-2 mb-1">
                 <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${SEVERITY_DOT[issue.severity] ?? 'bg-slate-500'}`} />
                 <span className="text-[10px] font-bold text-slate-200">{issue.word}</span>
-                <span className="text-[9px] text-slate-500 font-mono ml-auto">/{issue.ipaExpected}/</span>
+                {issue.ipaExpected && (
+                  <span className="text-[9px] text-slate-500 font-mono ml-auto">/{issue.ipaExpected}/</span>
+                )}
               </div>
               <p className="text-[10px] text-slate-400 mb-1.5">{issue.problem}</p>
               {issue.drill.repeatPhrase && (

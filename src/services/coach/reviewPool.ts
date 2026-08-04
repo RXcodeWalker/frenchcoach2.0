@@ -11,7 +11,7 @@ import { STORAGE_KEYS, storageGet, storageSet } from '../persistence/storage';
 import { resolveFeatureStatus } from '../../config/featureFlags';
 import type { Question } from '../../types';
 
-const REVIEW_POOL_VERSION = 1;
+const REVIEW_POOL_VERSION = 2;
 
 /** UNVALIDATED — same value and reasoning as interventionService.ts's DRILL_COOLDOWN_MS (24h, "avoid drill fatigue"). */
 export const REVIEW_MIN_INTERVAL_MS = 24 * 3_600_000;
@@ -25,6 +25,8 @@ interface ReviewPoolItem {
   attempts: number;
   sessionsSinceFailure: number;
   nextEligibleAt: string;
+  /** The score that caused the original (or most recent) failure, when known — lets a re-exposure's "did the score improve" be a local comparison, not a guess. */
+  firstFailScore: number | null;
 }
 
 interface ReviewPoolState {
@@ -53,7 +55,7 @@ function writeState(state: ReviewPoolState): void {
 }
 
 /** Record that a question was failed. Called from sessionOrchestrator's step 9, best-effort. */
-export function recordReviewFailure(args: { questionId: string; topicKey: string }): void {
+export function recordReviewFailure(args: { questionId: string; topicKey: string; score?: number }): void {
   if (resolveFeatureStatus('learnSpacedReview') !== 'live') return;
 
   const state = readState();
@@ -67,6 +69,7 @@ export function recordReviewFailure(args: { questionId: string; topicKey: string
     attempts: (existing?.attempts ?? 0) + 1,
     sessionsSinceFailure: 0,
     nextEligibleAt: new Date(now + REVIEW_MIN_INTERVAL_MS).toISOString(),
+    firstFailScore: args.score ?? null,
   };
 
   writeState(state);
@@ -117,4 +120,14 @@ export function getEligibleReviewQuestion(topicKey: string, seenIds: Set<string>
   }
 
   return null;
+}
+
+/**
+ * Looks up a pooled item's stored firstFailScore for the review_item_answered
+ * telemetry event — kept separate from getEligibleReviewQuestion so that
+ * function's return type (and its existing call sites) stay untouched.
+ */
+export function getReviewItemFirstFailScore(questionId: string): number | null {
+  const state = readState();
+  return state.items[questionId]?.firstFailScore ?? null;
 }

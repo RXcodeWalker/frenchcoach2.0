@@ -129,7 +129,7 @@ export function orchestrateAttempt(input: OrchestratorInput): OrchestratorResult
   //    the return — this store is derived, not authoritative.
   try {
     if (!unscored && finalScore < LANGUAGE_SUCCESS_SCORE && question && session.topicKey) {
-      recordReviewFailure({ questionId: question.id, topicKey: session.topicKey });
+      recordReviewFailure({ questionId: question.id, topicKey: session.topicKey, score: finalScore });
     }
   } catch {
     // A review-pool write failure must never break orchestrateAttempt's contract.
