@@ -325,6 +325,32 @@ export function Home() {
               </motion.div>
 
               <QuickAccess onNavigate={(screen) => navigate(screen === 'home' ? '/' : `/${screen}`)} />
+
+              <motion.button
+                variants={fadeUp}
+                onClick={() =>
+                  navigate(
+                    '/scenario-architect?prompt=' +
+                      encodeURIComponent(
+                        weakestTopic
+                          ? `Help me practice talking about ${weakestTopic} in a real-life French situation.`
+                          : "I'm ordering food at a café and need to ask for recommendations."
+                      )
+                  )
+                }
+                className="w-full flex items-center justify-between gap-3 p-4 rounded-2xl bg-violet-500/10 border border-violet-500/20 hover:bg-violet-500/15 transition-colors text-left"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="text-xl">🏗️</span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-black text-white">Try a custom scene</p>
+                    <p className="text-[11px] text-slate-400 truncate">
+                      Scenario Architect builds a roleplay from your prompt
+                    </p>
+                  </div>
+                </div>
+                <ArrowRight size={16} className="text-violet-400 shrink-0" />
+              </motion.button>
             </div>
           </div>
         </div>
