@@ -44,6 +44,8 @@ import {
   type PronunciationAttemptRecord,
 } from '../services/pronunciation/pronunciationHistoryService';
 import { pushPronunciationAttempt } from '../services/sync/pronunciationSync';
+import { buildPronunciationEvidence } from '../services/coach/pronunciationEvidence';
+import { appendEvidenceEvents } from '../services/coach/coachStorage';
 import type { PronunciationAssessment } from '../domain/pronunciation/types';
 
 type ScreenState =
@@ -109,12 +111,24 @@ export function AccentAnalyzer() {
   };
 
   const recordAttempt = (result: PronunciationAssessment) => {
-    const record = assessmentToAttemptRecord(makeAttemptId(), currentDrill.french, result);
+    const attemptId = makeAttemptId();
+    const record = assessmentToAttemptRecord(attemptId, currentDrill.french, result);
     const next = appendPronunciationAttempt(record);
     setHistory(next);
     if (authUser) {
       void pushPronunciationAttempt(authUser.id, record);
     }
+
+    // pron:* evidence — captured in the coach evidence log, never merged into
+    // the 14 grammar categories (accent-analyzer plan Phase 5).
+    const evidenceEvents = buildPronunciationEvidence({
+      attemptId,
+      sessionId: attemptId,
+      assessment: result,
+      targetText: currentDrill.french,
+      mode: 'accent-analyzer',
+    });
+    if (evidenceEvents.length > 0) appendEvidenceEvents(evidenceEvents);
   };
 
   const analyze = async (audioBlob: Blob) => {
