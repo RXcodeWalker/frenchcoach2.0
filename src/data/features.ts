@@ -17,7 +17,7 @@ export const FEATURES: FeatureCard[] = [
   { id: 'practice', title: 'Practice Speaking', description: '450+ IGCSE questions with AI feedback', icon: '📚', category: 'Core Learning', color: '#7C3AED', locked: false, screen: 'learn' },
   { id: 'ai_chat', title: 'AI Conversations', description: 'Chat with an AI tutor in French', icon: '🤖', category: 'Core Learning', color: '#06B6D4', locked: false, badge: 'New' },
   { id: 'exam_sim', title: 'Exam Simulation', description: 'Full IGCSE oral exam with timer', icon: '🎓', category: 'Core Learning', color: '#F59E0B', locked: false, screen: 'exam' },
-  { id: 'pronunciation', title: 'Pronunciation Lab', description: 'Perfect your accent with phonetic drills', icon: '🎙', category: 'Core Learning', color: '#10B981', locked: false, screen: 'pronunciation-lab' },
+  { id: 'pronunciation', title: 'Accent Analyzer', description: 'Perfect your accent with phonetic drills', icon: '🎙', category: 'Core Learning', color: '#10B981', locked: false, screen: 'accent-analyzer' },
   { id: 'listening', title: 'Listening Mode', description: 'Train your ear with native audio', icon: '🎧', category: 'Core Learning', color: '#EC4899', locked: false, screen: 'listening-mode' },
   { id: 'speaking', title: 'Speaking Arena', description: 'Timed speaking challenges', icon: '🎤', category: 'Core Learning', color: '#EF4444', locked: false, screen: 'speaking-arena' },
   { id: 'daily_news', title: 'Daily News Flash', description: 'Listen to news and report back', icon: '📻', category: 'Core Learning', color: '#7C3AED', locked: false, badge: 'New', screen: 'daily-news' },

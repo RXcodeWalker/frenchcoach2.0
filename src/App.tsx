@@ -40,7 +40,6 @@ import { MysteryBox } from './screens/MysteryBox';
 import { SurvivalMode } from './screens/SurvivalMode';
 import { AccentAnalyzer } from './screens/AccentAnalyzer';
 import { ListeningMode } from './screens/ListeningMode';
-import { PronunciationLab } from './screens/PronunciationLab';
 import { SpeakingArena } from './screens/SpeakingArena';
 import { Challenges } from './screens/Challenges';
 import { DailyNewsFlash } from './screens/DailyNewsFlash';
@@ -305,11 +304,8 @@ function AppShell() {
               <SurvivalMode />
             </ComingSoonGate>
           } />
-          <Route path="/pronunciation-lab" element={
-            <ComingSoonGate status={resolveFeatureStatus('pronunciationLab')} featureId="pronunciationLab" name="Pronunciation Lab" description="Drill individual sounds and phonemes with instant audio feedback." fallbackRoute="/learn" fallbackLabel="Practice Speaking">
-              <PronunciationLab />
-            </ComingSoonGate>
-          } />
+          {/* PronunciationLab absorbed into AccentAnalyzer (accent-analyzer plan §16) — redirect, don't 404 old links/bookmarks. */}
+          <Route path="/pronunciation-lab" element={<Navigate to="/accent-analyzer" replace />} />
           <Route path="/speaking-arena" element={
             <ComingSoonGate status={resolveFeatureStatus('speakingArena')} featureId="speakingArena" name="Speaking Arena" description="Competitive speaking battles against real opponents." fallbackRoute="/learn" fallbackLabel="Practice Speaking">
               <SpeakingArena />

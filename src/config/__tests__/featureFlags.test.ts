@@ -14,15 +14,15 @@ describe('resolveFeatureStatus', () => {
 
   it('returns the compile-time default when there is no override', () => {
     expect(resolveFeatureStatus('shop')).toBe(FEATURE_FLAGS.shop);
-    expect(resolveFeatureStatus('pronunciationLab')).toBe('coming-soon');
+    expect(resolveFeatureStatus('speakingArena')).toBe('coming-soon');
   });
 
   it('returns a localStorage override when present', () => {
     localStorage.setItem(
       STORAGE_KEYS.featureFlagOverrides,
-      JSON.stringify({ pronunciationLab: 'live' }),
+      JSON.stringify({ speakingArena: 'live' }),
     );
-    expect(resolveFeatureStatus('pronunciationLab')).toBe('live');
+    expect(resolveFeatureStatus('speakingArena')).toBe('live');
     expect(resolveFeatureStatus('shop')).toBe('coming-soon');
   });
 
@@ -50,14 +50,14 @@ describe('resolveFeatureStatus', () => {
     it('wins over localStorage and persists itself', () => {
       localStorage.setItem(
         STORAGE_KEYS.featureFlagOverrides,
-        JSON.stringify({ pronunciationLab: 'coming-soon' }),
+        JSON.stringify({ speakingArena: 'coming-soon' }),
       );
-      window.history.replaceState(null, '', '?ff_pronunciationLab=live');
+      window.history.replaceState(null, '', '?ff_speakingArena=live');
 
-      expect(resolveFeatureStatus('pronunciationLab')).toBe('live');
+      expect(resolveFeatureStatus('speakingArena')).toBe('live');
 
       const persisted = JSON.parse(localStorage.getItem(STORAGE_KEYS.featureFlagOverrides) ?? '{}');
-      expect(persisted.pronunciationLab).toBe('live');
+      expect(persisted.speakingArena).toBe('live');
     });
 
     it('ignores an unrecognized query value without throwing or persisting', () => {

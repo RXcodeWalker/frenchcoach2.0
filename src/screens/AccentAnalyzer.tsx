@@ -1,4 +1,16 @@
-import { useState } from 'react';
+/**
+ * Accent Analyzer — the single pronunciation-practice surface (accent-analyzer
+ * plan §16). Absorbs PronunciationLab's drill/XP/mastery loop; PronunciationLab.tsx
+ * is deleted and /pronunciation-lab redirects here in the same change (leaving
+ * both live during migration would reinstate the duplication the plan exists
+ * to remove).
+ *
+ * No fabricated stats: the old "12 / 50 Drills Completed" / "Global Rank #42"
+ * literals are gone, replaced by real counts derived from masteredDrills and
+ * pronunciation history.
+ */
+
+import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -10,170 +22,184 @@ import {
   ChevronRight,
   Trophy,
   Target,
-  Star
+  Crown,
+  WifiOff,
+  AlertTriangle,
+  ShieldAlert,
 } from 'lucide-react';
+import { useApp, dispatchAddXP } from '../context/AppContext';
 import { useAudioBlobRecorder } from '../features/recording/useAudioBlobRecorder';
 import { Waveform } from '../features/recording/Waveform';
 import { assessPronunciation } from '../services/pronunciation/pronunciationClient';
 import { PronunciationSourceBadge } from './learn/PronunciationSourceBadge';
+import { PronunciationHeatMap } from '../features/feedback/components/PronunciationHeatMap';
+import { PRACTICE_PASS_SCORE } from '../domain/pronunciation/practiceThresholds';
+import { PRONUNCIATION_DRILLS, type PronunciationDrill } from '../data/pronunciationDrills';
+import { TTS } from '../services/tts/ttsService';
+import {
+  appendPronunciationAttempt,
+  assessmentToAttemptRecord,
+  getPronunciationHistory,
+  segmentHistoryForTrend,
+  type PronunciationAttemptRecord,
+} from '../services/pronunciation/pronunciationHistoryService';
+import { pushPronunciationAttempt } from '../services/sync/pronunciationSync';
 import type { PronunciationAssessment } from '../domain/pronunciation/types';
 
-interface AccentDrill {
-  id: string;
-  french: string;
-  english: string;
-  focus: string;
-  difficulty: 'Easy' | 'Medium' | 'Hard';
-  tips: string[];
+type ScreenState =
+  | 'idle'
+  | 'permission-denied'
+  | 'recording'
+  | 'too-short'
+  | 'analyzing'
+  | 'results'
+  | 'low-confidence'
+  | 'could-not-assess'
+  | 'offline-tier'
+  | 'error';
+
+const MIN_RECORDING_MS = 400; // plan §9: reject <0.4s clips client-side
+const LOW_CONFIDENCE_FLOOR = 0.4; // plan §11: below the floor, "we couldn't assess this reliably"
+
+function makeAttemptId(): string {
+  return `pron_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 }
 
-const DRILLS: AccentDrill[] = [
-  {
-    id: 'nasal_1',
-    french: "Un bon vin blanc.",
-    english: "A good white wine.",
-    focus: "Nasal Vowels",
-    difficulty: 'Easy',
-    tips: ["Try to let the air escape through your nose.", "Don't pronounce the 'n' or 'm' fully."]
-  },
-  {
-    id: 'r_1',
-    french: "Rarement, René regarde la rue.",
-    english: "Rarely, René looks at the street.",
-    focus: "The French 'R'",
-    difficulty: 'Medium',
-    tips: ["The French 'R' is gargled in the throat.", "Keep the tip of your tongue down."]
-  },
-  {
-    id: 'u_1',
-    french: "Tu as vu le mur ?",
-    english: "Have you seen the wall?",
-    focus: "The 'U' vs 'OU' sound",
-    difficulty: 'Medium',
-    tips: ["For 'U', shape your lips like 'OU' but say 'EE'.", "Don't confuse it with the English 'U'."]
-  },
-  {
-    id: 'elision_1',
-    french: "L'écureuil cueillait des noisettes.",
-    english: "The squirrel was picking hazelnuts.",
-    focus: "Elision & Fluidity",
-    difficulty: 'Hard',
-    tips: ["Merge the words smoothly.", "Watch out for the 'euil' sound."]
-  },
-  {
-    id: 'tongue_1',
-    french: "Ces six saucissons-ci sont si secs qu'on ne sait si c'en sont.",
-    english: "These six sausages here are so dry that one doesn't know if they are sausages.",
-    focus: "Sibilance & Speed",
-    difficulty: 'Hard',
-    tips: ["Start slowly and focus on clarity.", "Don't rush the 's' sounds."]
+function speakFrench(text: string) {
+  if (TTS.isSupported()) {
+    void TTS.speak(text);
+  } else {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'fr-FR';
+    window.speechSynthesis.speak(utterance);
   }
-];
-
-interface AccentResults {
-  score: number;
-  accuracy: number;
-  fluency: number;
-  feedback: string;
-  matches: { word: string; status: 'perfect' | 'good' | 'missed' }[];
-  provider: PronunciationAssessment['provider'];
-}
-
-function feedbackForScore(score: number): string {
-  if (score > 90) return "Excellent! You said all the key words clearly.";
-  if (score > 75) return "Great job! Most words came through — focus on the tricky parts.";
-  if (score > 50) return "Good effort! Try to emphasize the nasal sounds more.";
-  return "Keep practicing! Listen to the native audio and try to mimic the rhythm.";
-}
-
-function statusForAccuracy(accuracyScore: number | null): 'perfect' | 'good' | 'missed' {
-  if (accuracyScore === null) return 'good';
-  if (accuracyScore >= 90) return 'perfect';
-  if (accuracyScore >= 60) return 'good';
-  return 'missed';
-}
-
-// Real pass-through mapping, not a rescale: score/subScores are already 0-100
-// end to end in the new contract, so no `* 10` unit conversion is needed here.
-// Returns null when the assessment couldNotAssess (score is null) — the
-// caller routes that into the existing error state rather than rendering
-// fabricated numbers. A dedicated could-not-assess UI state (with retry and
-// a specific reason) belongs to the AccentAnalyzer rebuild, not here.
-function mapAssessmentToAccentResults(assessment: PronunciationAssessment): AccentResults | null {
-  if (assessment.score === null) return null;
-  const score = assessment.score;
-  return {
-    score,
-    accuracy: Math.round(assessment.subScores?.accuracy ?? score),
-    fluency: Math.round(assessment.subScores?.fluency ?? score),
-    feedback: feedbackForScore(score),
-    matches: assessment.words.map(w => ({
-      word: w.word,
-      status: statusForAccuracy(w.accuracyScore),
-    })),
-    provider: assessment.provider,
-  };
 }
 
 export function AccentAnalyzer() {
   const navigate = useNavigate();
+  const { state, dispatch, authUser } = useApp();
   const { isRecording, start, stop, waveData, micLevel } = useAudioBlobRecorder();
 
-  const [selectedDrill, setSelectedDrill] = useState<AccentDrill>(DRILLS[0]);
-  const [results, setResults] = useState<AccentResults | null>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [evalError, setEvalError] = useState<string | null>(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [screenState, setScreenState] = useState<ScreenState>('idle');
+  const [assessment, setAssessment] = useState<PronunciationAssessment | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [attempts, setAttempts] = useState(0);
+  const [sessionXP, setSessionXP] = useState(0);
+  const [recordingStartedAt, setRecordingStartedAt] = useState<number | null>(null);
+  const [history, setHistory] = useState<PronunciationAttemptRecord[]>([]);
 
-  const handleStopRecording = async () => {
-    const recorded = await stop();
-    if (!recorded) return;
-    await analyzeAccent(recorded.blob);
+  const currentDrill: PronunciationDrill = PRONUNCIATION_DRILLS[currentIndex];
+  const isMastered = state.masteredDrills.includes(currentDrill.id);
+
+  useEffect(() => {
+    setHistory(getPronunciationHistory());
+  }, []);
+
+  const historySegments = useMemo(() => segmentHistoryForTrend(history), [history]);
+  const masteredCount = useMemo(
+    () => PRONUNCIATION_DRILLS.filter(d => state.masteredDrills.includes(d.id)).length,
+    [state.masteredDrills],
+  );
+
+  const reset = () => {
+    setScreenState('idle');
+    setAssessment(null);
+    setErrorMessage(null);
   };
 
-  const analyzeAccent = async (audioBlob: Blob) => {
-    setIsAnalyzing(true);
-    setEvalError(null);
-    try {
-      const assessment = await assessPronunciation({
-        audioBlob,
-        targetText: selectedDrill.french,
-        source: 'accent_analyzer',
-      });
-      const mapped = mapAssessmentToAccentResults(assessment);
-      if (mapped === null) {
-        setEvalError(
-          assessment.couldNotAssessReason === 'silence' || assessment.couldNotAssessReason === 'no_speech_recognized'
-            ? "We couldn't hear anything — try recording again."
-            : "We couldn't assess that recording. Please try again.",
-        );
-        return;
-      }
-      setResults(mapped);
-    } catch (err) {
-      console.error("Accent evaluation failed:", err);
-      setEvalError(err instanceof Error ? err.message : 'Evaluation failed. Please try again.');
-    } finally {
-      setIsAnalyzing(false);
+  const recordAttempt = (result: PronunciationAssessment) => {
+    const record = assessmentToAttemptRecord(makeAttemptId(), currentDrill.french, result);
+    const next = appendPronunciationAttempt(record);
+    setHistory(next);
+    if (authUser) {
+      void pushPronunciationAttempt(authUser.id, record);
     }
   };
 
-  const reset = () => {
-    setResults(null);
-    setEvalError(null);
+  const analyze = async (audioBlob: Blob) => {
+    setScreenState('analyzing');
+    setErrorMessage(null);
+    try {
+      const result = await assessPronunciation({
+        audioBlob,
+        targetText: currentDrill.french,
+        source: 'accent_analyzer',
+      });
+
+      setAssessment(result);
+      recordAttempt(result);
+
+      if (result.couldNotAssess || result.score === null) {
+        setScreenState('could-not-assess');
+        return;
+      }
+
+      if (result.provider !== 'azure') {
+        // whisper-heuristic tier: still show results, but the source badge
+        // and offline-tier framing make the degraded confidence visible.
+        setScreenState('offline-tier');
+      } else if (result.confidence && result.confidence.overall < LOW_CONFIDENCE_FLOOR) {
+        setScreenState('low-confidence');
+      } else {
+        setScreenState('results');
+      }
+
+      const score = result.score;
+      if (score >= PRACTICE_PASS_SCORE) {
+        const xp = Math.round((score / 10) * (attempts === 1 ? 2 : 1.5));
+        setSessionXP(s => s + xp);
+        dispatchAddXP(dispatch, xp);
+      }
+      if (score >= 90) {
+        dispatch({ type: 'MARK_DRILL_MASTERED', drillId: currentDrill.id });
+      }
+    } catch (err) {
+      console.error('Accent evaluation failed:', err);
+      setErrorMessage(err instanceof Error ? err.message : 'Evaluation failed. Please try again.');
+      setScreenState('error');
+    }
   };
 
-  const playReference = () => {
-    const utterance = new SpeechSynthesisUtterance(selectedDrill.french);
-    utterance.lang = 'fr-FR';
-    window.speechSynthesis.speak(utterance);
+  const handleStart = async () => {
+    setAttempts(prev => prev + 1);
+    setRecordingStartedAt(Date.now());
+    try {
+      await start();
+      setScreenState('recording');
+    } catch {
+      setScreenState('permission-denied');
+    }
   };
+
+  const handleStop = async () => {
+    const recorded = await stop();
+    const durationMs = recordingStartedAt ? Date.now() - recordingStartedAt : 0;
+    if (!recorded || durationMs < MIN_RECORDING_MS) {
+      setScreenState('too-short');
+      return;
+    }
+    await analyze(recorded.blob);
+  };
+
+  const nextDrill = () => {
+    if (currentIndex < PRONUNCIATION_DRILLS.length - 1) {
+      setCurrentIndex(prev => prev + 1);
+    } else {
+      setCurrentIndex(0);
+    }
+    setAttempts(0);
+    reset();
+  };
+
+  const isSuccess = assessment != null && assessment.score != null && assessment.score >= PRACTICE_PASS_SCORE;
 
   return (
     <div className="min-h-screen pb-24 md:pb-8">
       <div className="max-w-4xl mx-auto px-4 pt-6 space-y-8">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <button 
+          <button
             onClick={() => navigate(-1)}
             className="w-10 h-10 rounded-xl glass flex items-center justify-center text-slate-400 hover:text-white transition-colors"
           >
@@ -183,41 +209,50 @@ export function AccentAnalyzer() {
             <h1 className="text-2xl font-black text-white">Accent Analyzer</h1>
             <p className="text-xs text-slate-500">Fine-tune your French pronunciation</p>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
-            <Target size={20} />
+          <div className="flex items-center gap-2">
+            <div className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold text-emerald-400">
+              {sessionXP} XP
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+              <Target size={20} />
+            </div>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Drills List */}
           <div className="lg:col-span-1 space-y-4">
-            <h2 className="text-[10px] font-bold text-slate-600 uppercase tracking-wider px-1">Selected Drills</h2>
-            <div className="space-y-2">
-              {DRILLS.map(drill => (
+            <h2 className="text-[10px] font-bold text-slate-600 uppercase tracking-wider px-1">Drills</h2>
+            <div className="space-y-2 max-h-[520px] overflow-y-auto pr-1">
+              {PRONUNCIATION_DRILLS.map((drill, idx) => (
                 <button
                   key={drill.id}
                   onClick={() => {
-                    setSelectedDrill(drill);
+                    setCurrentIndex(idx);
+                    setAttempts(0);
                     reset();
                   }}
                   className={`w-full p-4 rounded-2xl text-left transition-all duration-300 border ${
-                    selectedDrill.id === drill.id 
-                      ? 'bg-cyan-500/10 border-cyan-500/30 ring-1 ring-cyan-500/20' 
+                    currentIndex === idx
+                      ? 'bg-cyan-500/10 border-cyan-500/30 ring-1 ring-cyan-500/20'
                       : 'bg-slate-900/40 border-white/5 hover:border-white/10'
                   }`}
                 >
                   <div className="flex justify-between items-start mb-1">
                     <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md ${
-                      drill.difficulty === 'Easy' ? 'bg-emerald-500/10 text-emerald-400' :
-                      drill.difficulty === 'Medium' ? 'bg-amber-500/10 text-amber-400' :
+                      drill.difficulty === 'easy' ? 'bg-emerald-500/10 text-emerald-400' :
+                      drill.difficulty === 'medium' ? 'bg-amber-500/10 text-amber-400' :
                       'bg-rose-500/10 text-rose-400'
                     }`}>
                       {drill.difficulty}
                     </span>
-                    <span className="text-[9px] font-medium text-slate-500">{drill.focus}</span>
+                    <span className="text-[9px] font-medium text-slate-500 flex items-center gap-1">
+                      {state.masteredDrills.includes(drill.id) && <Crown size={10} className="text-amber-400" />}
+                      {drill.focus}
+                    </span>
                   </div>
                   <p className="text-sm font-bold text-white mb-0.5">{drill.french}</p>
-                  <p className="text-[10px] text-slate-600 italic">{drill.english}</p>
+                  <p className="text-[10px] text-slate-600 font-mono">/{drill.ipa}/</p>
                 </button>
               ))}
             </div>
@@ -230,222 +265,236 @@ export function AccentAnalyzer() {
                 <Target size={120} className="text-cyan-500" />
               </div>
 
-              <div className="space-y-2 relative">
-                <h3 className="text-slate-500 text-xs font-bold uppercase tracking-widest">Target Sentence</h3>
-                <p className="text-3xl font-black text-white leading-tight">{selectedDrill.french}</p>
-                <button 
-                  onClick={playReference}
+              <div className="space-y-2 relative w-full">
+                <div className="flex items-center justify-center gap-2">
+                  <h3 className="text-slate-500 text-xs font-bold uppercase tracking-widest">{currentDrill.focus}</h3>
+                  {isMastered && (
+                    <div className="flex items-center gap-1 px-2 py-0.5 bg-amber-500/10 border border-amber-500/20 rounded-full">
+                      <Crown size={10} className="text-amber-400" />
+                      <span className="text-[8px] font-bold text-amber-400 uppercase">Mastered</span>
+                    </div>
+                  )}
+                </div>
+                <p className="text-3xl font-black text-white leading-tight">{currentDrill.french}</p>
+                <p className="text-slate-600 font-mono text-sm">/{currentDrill.ipa}/</p>
+                <button
+                  onClick={() => speakFrench(currentDrill.french)}
                   className="flex items-center gap-2 mx-auto px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all group"
                 >
                   <Volume2 size={16} className="group-hover:scale-110 transition-transform" />
                   <span className="text-[10px] font-bold">Listen to native</span>
                 </button>
+                <div className="pt-2 flex items-start gap-2 text-left bg-slate-900/40 rounded-xl p-3 border border-white/5">
+                  <Info size={12} className="flex-shrink-0 text-cyan-500 mt-0.5" />
+                  <span className="text-[10px] text-slate-400">{currentDrill.tip}</span>
+                </div>
               </div>
 
-              {/* Recording State */}
+              {/* State machine */}
               <div className="w-full max-w-sm py-4">
                 <AnimatePresence mode="wait">
-                  {evalError ? (
-                    <motion.div
-                      key="error"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="flex flex-col items-center space-y-4 text-center"
-                    >
+                  {screenState === 'permission-denied' ? (
+                    <motion.div key="permission-denied" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center space-y-4 text-center">
+                      <div className="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+                        <ShieldAlert size={28} className="text-amber-400" />
+                      </div>
+                      <p className="text-amber-400 font-bold text-sm">Microphone access needed</p>
+                      <p className="text-slate-500 text-xs max-w-xs">Allow microphone access in your browser to record your pronunciation.</p>
+                      <button onClick={reset} className="px-6 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-bold flex items-center gap-2 transition-all">
+                        <RotateCcw size={14} /> Try Again
+                      </button>
+                    </motion.div>
+                  ) : screenState === 'too-short' ? (
+                    <motion.div key="too-short" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center space-y-4 text-center">
+                      <div className="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+                        <AlertTriangle size={28} className="text-amber-400" />
+                      </div>
+                      <p className="text-amber-400 font-bold text-sm">Recording too short</p>
+                      <p className="text-slate-500 text-xs max-w-xs">Hold the mic a little longer and say the full phrase.</p>
+                      <button onClick={reset} className="px-6 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-bold flex items-center gap-2 transition-all">
+                        <RotateCcw size={14} /> Try Again
+                      </button>
+                    </motion.div>
+                  ) : screenState === 'could-not-assess' ? (
+                    <motion.div key="could-not-assess" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center space-y-4 text-center">
+                      <div className="w-16 h-16 rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center">
+                        <Info size={28} className="text-rose-400" />
+                      </div>
+                      <p className="text-rose-400 font-bold text-sm">Couldn't assess that recording</p>
+                      <p className="text-slate-500 text-xs max-w-xs">
+                        {assessment?.couldNotAssessReason === 'silence' || assessment?.couldNotAssessReason === 'no_speech_recognized'
+                          ? "We didn't hear anything — try recording again in a quiet space."
+                          : 'We had trouble analyzing that clip. Please try again.'}
+                      </p>
+                      <button onClick={reset} className="px-6 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-bold flex items-center gap-2 transition-all">
+                        <RotateCcw size={14} /> Try Again
+                      </button>
+                    </motion.div>
+                  ) : screenState === 'error' ? (
+                    <motion.div key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center space-y-4 text-center">
                       <div className="w-16 h-16 rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center">
                         <Info size={28} className="text-rose-400" />
                       </div>
                       <p className="text-rose-400 font-bold text-sm">Evaluation failed</p>
-                      <p className="text-slate-500 text-xs max-w-xs">{evalError}</p>
-                      <button
-                        onClick={reset}
-                        className="px-6 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-bold flex items-center gap-2 transition-all"
-                      >
+                      <p className="text-slate-500 text-xs max-w-xs">{errorMessage}</p>
+                      <button onClick={reset} className="px-6 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-bold flex items-center gap-2 transition-all">
                         <RotateCcw size={14} /> Try Again
                       </button>
                     </motion.div>
-                  ) : !results && !isAnalyzing ? (
-                    <motion.div
-                      key="idle"
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.9 }}
-                      className="flex flex-col items-center space-y-6"
-                    >
-                      {isRecording ? (
-                        <div className="w-full space-y-6">
-                          <div className="h-16 flex items-center justify-center">
-                            <Waveform data={waveData} isRecording={isRecording} source={micLevel} />
+                  ) : screenState === 'idle' ? (
+                    <motion.div key="idle" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="flex flex-col items-center space-y-6">
+                      <button
+                        onClick={handleStart}
+                        className="w-24 h-24 rounded-full bg-cyan-500 flex items-center justify-center shadow-xl shadow-cyan-500/30 border-4 border-cyan-500/20 hover:scale-105 active:scale-95 transition-all group"
+                      >
+                        <Mic size={32} className="text-white group-hover:rotate-12 transition-transform" />
+                      </button>
+                      <p className="text-slate-500 font-bold text-[10px] uppercase tracking-wider">Tap to start analyzing</p>
+                    </motion.div>
+                  ) : screenState === 'recording' ? (
+                    <motion.div key="recording" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full space-y-6">
+                      <div className="h-16 flex items-center justify-center">
+                        <Waveform data={waveData} isRecording={isRecording} source={micLevel} />
+                      </div>
+                      <p className="text-cyan-400 font-bold animate-pulse text-sm">Recording... Speak now</p>
+                      <button
+                        onClick={handleStop}
+                        className="w-20 h-20 rounded-full bg-rose-500 flex items-center justify-center shadow-lg shadow-rose-500/40 border-4 border-rose-500/20 group relative mx-auto"
+                      >
+                        <div className="absolute inset-0 rounded-full animate-ping bg-rose-500/20" />
+                        <div className="w-6 h-6 bg-white rounded-sm" />
+                      </button>
+                    </motion.div>
+                  ) : screenState === 'analyzing' ? (
+                    <motion.div key="analyzing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center space-y-4">
+                      <div className="relative w-20 h-20">
+                        <div className="absolute inset-0 rounded-full border-4 border-cyan-500/10" />
+                        <motion.div
+                          className="absolute inset-0 rounded-full border-4 border-t-cyan-500"
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                        />
+                      </div>
+                      <p className="text-cyan-400 font-bold text-sm animate-pulse">Analyzing your pronunciation...</p>
+                    </motion.div>
+                  ) : (
+                    // results | low-confidence | offline-tier all render the same score panel;
+                    // the badges/banners below express the distinction, per plan §16's
+                    // "never render derived metrics as Azure scores" / "always show provider badge".
+                    assessment && assessment.score !== null && (
+                      <motion.div key="results" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full space-y-6">
+                        {screenState === 'low-confidence' && (
+                          <div className="flex items-start gap-2.5 px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-left">
+                            <AlertTriangle size={14} className="text-amber-400 flex-shrink-0 mt-0.5" />
+                            <p className="text-[10px] text-amber-300">We couldn't assess this reliably — try recording again in a quieter spot.</p>
                           </div>
-                          <p className="text-cyan-400 font-bold animate-pulse text-sm">Recording... Speak now</p>
-                          <button
-                            onClick={handleStopRecording}
-                            className="w-20 h-20 rounded-full bg-rose-500 flex items-center justify-center shadow-lg shadow-rose-500/40 border-4 border-rose-500/20 group relative"
-                          >
-                            <div className="absolute inset-0 rounded-full animate-ping bg-rose-500/20" />
-                            <div className="w-6 h-6 bg-white rounded-sm" />
-                          </button>
+                        )}
+
+                        <div className="flex justify-center gap-12">
+                          <div className="text-center space-y-1">
+                            <div className="relative w-24 h-24 flex items-center justify-center">
+                              <svg className="w-full h-full transform -rotate-90">
+                                <circle cx="48" cy="48" r="40" className="stroke-white/5 fill-none" strokeWidth="8" />
+                                <motion.circle
+                                  cx="48" cy="48" r="40"
+                                  className="stroke-cyan-500 fill-none"
+                                  strokeWidth="8"
+                                  strokeDasharray={251.2}
+                                  initial={{ strokeDashoffset: 251.2 }}
+                                  animate={{ strokeDashoffset: 251.2 - (251.2 * assessment.score) / 100 }}
+                                  transition={{ duration: 1.5, ease: 'easeOut' }}
+                                  strokeLinecap="round"
+                                />
+                              </svg>
+                              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                <span className="text-2xl font-black text-white">{Math.round(assessment.score)}</span>
+                                <span className="text-[8px] font-bold text-cyan-400 uppercase">Score</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {assessment.subScores && (
+                            <div className="flex flex-col justify-center space-y-4">
+                              <div className="space-y-1">
+                                <div className="flex justify-between items-center w-32">
+                                  <span className="text-[9px] font-bold text-slate-500 uppercase">Accuracy</span>
+                                  <span className="text-[9px] font-bold text-white">{Math.round(assessment.subScores.accuracy)}%</span>
+                                </div>
+                                <div className="w-32 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                  <motion.div className="h-full bg-emerald-500" initial={{ width: 0 }} animate={{ width: `${assessment.subScores.accuracy}%` }} transition={{ duration: 1, delay: 0.5 }} />
+                                </div>
+                              </div>
+                              <div className="space-y-1">
+                                <div className="flex justify-between items-center w-32">
+                                  <span className="text-[9px] font-bold text-slate-500 uppercase">Fluency</span>
+                                  <span className="text-[9px] font-bold text-white">{Math.round(assessment.subScores.fluency)}%</span>
+                                </div>
+                                <div className="w-32 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                  <motion.div className="h-full bg-amber-500" initial={{ width: 0 }} animate={{ width: `${assessment.subScores.fluency}%` }} transition={{ duration: 1, delay: 0.7 }} />
+                                </div>
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      ) : (
-                        <div className="space-y-6">
-                          <div className="flex gap-3">
-                            {selectedDrill.tips.map((tip, i) => (
-                              <div key={i} className="flex-1 p-3 rounded-xl bg-slate-900/50 border border-white/5 text-[10px] text-slate-400 text-left flex gap-2">
-                                <Info size={12} className="flex-shrink-0 text-cyan-500" />
-                                <span>{tip}</span>
+
+                        <PronunciationSourceBadge provider={assessment.provider} />
+
+                        <PronunciationHeatMap assessment={assessment} onSpeakWord={speakFrench} />
+
+                        {assessment.phonologicalFindings && assessment.phonologicalFindings.length > 0 && (
+                          <div className="space-y-2 text-left">
+                            <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest border-b border-white/5 pb-2">Findings</h3>
+                            {assessment.phonologicalFindings.map((finding, idx) => (
+                              <div key={idx} className="bg-white/5 rounded-xl p-3 border border-white/10 flex items-start gap-2">
+                                <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-md uppercase flex-shrink-0 ${
+                                  finding.provenance === 'authoritative' ? 'bg-emerald-500/10 text-emerald-400' :
+                                  finding.provenance === 'derived' ? 'bg-cyan-500/10 text-cyan-400' :
+                                  'bg-amber-500/10 text-amber-400'
+                                }`}>
+                                  {finding.provenance}
+                                </span>
+                                <p className="text-[11px] text-slate-300 leading-relaxed">{finding.explanation}</p>
                               </div>
                             ))}
                           </div>
-                          <button
-                            onClick={start}
-                            className="w-24 h-24 rounded-full bg-cyan-500 flex items-center justify-center shadow-xl shadow-cyan-500/30 border-4 border-cyan-500/20 hover:scale-105 active:scale-95 transition-all group"
-                          >
-                            <Mic size={32} className="text-white group-hover:rotate-12 transition-transform" />
+                        )}
+
+                        {assessment.coaching && (
+                          <div className="p-4 rounded-2xl bg-white/5 border border-white/5 text-left space-y-2">
+                            <p className="text-xs text-slate-300 leading-relaxed italic">"{assessment.coaching.summary}"</p>
+                            <p className="text-[11px] text-cyan-400 font-bold">Next: {assessment.coaching.topPriority}</p>
+                          </div>
+                        )}
+
+                        <div className="flex gap-3 justify-center">
+                          <button onClick={reset} className="px-6 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-bold flex items-center gap-2 transition-all">
+                            <RotateCcw size={14} /> Try Again
                           </button>
-                          <p className="text-slate-500 font-bold text-[10px] uppercase tracking-wider">Tap to start analyzing</p>
+                          {isSuccess && (
+                            <button
+                              onClick={nextDrill}
+                              className="px-6 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-white text-xs font-bold flex items-center gap-2 transition-all shadow-lg shadow-cyan-500/20"
+                            >
+                              Next Drill <ChevronRight size={14} />
+                            </button>
+                          )}
                         </div>
-                      )}
-                    </motion.div>
-                  ) : isAnalyzing ? (
-                    <motion.div 
-                      key="analyzing"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="flex flex-col items-center space-y-4"
-                    >
-                      <div className="relative w-20 h-20">
-                        <div className="absolute inset-0 rounded-full border-4 border-cyan-500/10" />
-                        <motion.div 
-                          className="absolute inset-0 rounded-full border-4 border-t-cyan-500"
-                          animate={{ rotate: 360 }}
-                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                        />
-                      </div>
-                      <p className="text-cyan-400 font-bold text-sm animate-pulse">AI is analyzing your phonemes...</p>
-                    </motion.div>
-                  ) : (
-                    <motion.div 
-                      key="results"
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="w-full space-y-8"
-                    >
-                      {/* Score Circle */}
-                      <div className="flex justify-center gap-12">
-                        <div className="text-center space-y-1">
-                          <div className="relative w-24 h-24 flex items-center justify-center">
-                            <svg className="w-full h-full transform -rotate-90">
-                              <circle
-                                cx="48" cy="48" r="40"
-                                className="stroke-white/5 fill-none"
-                                strokeWidth="8"
-                              />
-                              <motion.circle
-                                cx="48" cy="48" r="40"
-                                className="stroke-cyan-500 fill-none"
-                                strokeWidth="8"
-                                strokeDasharray={251.2}
-                                initial={{ strokeDashoffset: 251.2 }}
-                                animate={{ strokeDashoffset: 251.2 - (251.2 * results!.score) / 100 }}
-                                transition={{ duration: 1.5, ease: "easeOut" }}
-                                strokeLinecap="round"
-                              />
-                            </svg>
-                            <div className="absolute inset-0 flex flex-col items-center justify-center">
-                              <span className="text-2xl font-black text-white">{results!.score}%</span>
-                              <span className="text-[8px] font-bold text-cyan-400 uppercase">Match</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex flex-col justify-center space-y-4">
-                          <div className="space-y-1">
-                            <div className="flex justify-between items-center w-32">
-                              <span className="text-[9px] font-bold text-slate-500 uppercase">Accuracy</span>
-                              <span className="text-[9px] font-bold text-white">{results!.accuracy}%</span>
-                            </div>
-                            <div className="w-32 h-1.5 bg-white/5 rounded-full overflow-hidden">
-                              <motion.div 
-                                className="h-full bg-emerald-500"
-                                initial={{ width: 0 }}
-                                animate={{ width: `${results!.accuracy}%` }}
-                                transition={{ duration: 1, delay: 0.5 }}
-                              />
-                            </div>
-                          </div>
-                          <div className="space-y-1">
-                            <div className="flex justify-between items-center w-32">
-                              <span className="text-[9px] font-bold text-slate-500 uppercase">Fluency</span>
-                              <span className="text-[9px] font-bold text-white">{results!.fluency}%</span>
-                            </div>
-                            <div className="w-32 h-1.5 bg-white/5 rounded-full overflow-hidden">
-                              <motion.div 
-                                className="h-full bg-amber-500"
-                                initial={{ width: 0 }}
-                                animate={{ width: `${results!.fluency}%` }}
-                                transition={{ duration: 1, delay: 0.7 }}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <PronunciationSourceBadge provider={results!.provider} />
-
-                      {/* Word Breakdown */}
-                      <div className="flex flex-wrap justify-center gap-2">
-                        {results!.matches.map((m, i) => (
-                          <div 
-                            key={i}
-                            className={`px-3 py-1.5 rounded-lg border text-sm font-bold ${
-                              m.status === 'perfect' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
-                              m.status === 'good' ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' :
-                              'bg-rose-500/10 border-rose-500/20 text-rose-400'
-                            }`}
-                          >
-                            {m.word}
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
-                        <p className="text-xs text-slate-300 leading-relaxed italic">"{results!.feedback}"</p>
-                      </div>
-
-                      <div className="flex gap-3 justify-center">
-                        <button
-                          onClick={reset}
-                          className="px-6 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-bold flex items-center gap-2 transition-all"
-                        >
-                          <RotateCcw size={14} /> Try Again
-                        </button>
-                        <button
-                          onClick={() => {
-                            const nextIndex = (DRILLS.indexOf(selectedDrill) + 1) % DRILLS.length;
-                            setSelectedDrill(DRILLS[nextIndex]);
-                            reset();
-                          }}
-                          className="px-6 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-white text-xs font-bold flex items-center gap-2 transition-all shadow-lg shadow-cyan-500/20"
-                        >
-                          Next Drill <ChevronRight size={14} />
-                        </button>
-                      </div>
-                    </motion.div>
+                      </motion.div>
+                    )
                   )}
                 </AnimatePresence>
               </div>
             </div>
 
-            {/* Achievement / Stats */}
+            {/* Real stats — no fabricated numbers */}
             <div className="grid grid-cols-2 gap-4">
               <div className="glass rounded-2xl p-4 flex items-center gap-4">
                 <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400">
-                  <Star size={20} />
+                  <Crown size={20} />
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-500 uppercase">Drills Completed</p>
-                  <p className="text-lg font-black text-white">12 / 50</p>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase">Sounds Mastered</p>
+                  <p className="text-lg font-black text-white">{masteredCount} / {PRONUNCIATION_DRILLS.length}</p>
                 </div>
               </div>
               <div className="glass rounded-2xl p-4 flex items-center gap-4">
@@ -453,11 +502,43 @@ export function AccentAnalyzer() {
                   <Trophy size={20} />
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-500 uppercase">Global Rank</p>
-                  <p className="text-lg font-black text-white">#42</p>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase">Total Attempts</p>
+                  <p className="text-lg font-black text-white">{history.length}</p>
                 </div>
               </div>
             </div>
+
+            {/* History strip — segmented by (assessorVersion, provider), plan §13/§16 */}
+            {historySegments.length > 0 && (
+              <div className="glass rounded-2xl p-4 space-y-3">
+                <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Recent History</h3>
+                <div className="space-y-3">
+                  {historySegments.slice(-3).map((segment, segIdx) => (
+                    <div key={segIdx} className="space-y-1.5">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[8px] font-bold text-slate-600 uppercase tracking-wider">
+                          {segment.provider === 'azure' ? 'Azure' : 'Estimated'} · {segment.assessorVersion}
+                        </span>
+                        {segIdx > 0 && <WifiOff size={9} className="text-slate-700" />}
+                      </div>
+                      <div className="flex gap-1.5 flex-wrap">
+                        {segment.attempts.slice(-20).map(attempt => (
+                          <div
+                            key={attempt.id}
+                            title={attempt.score !== null ? `${Math.round(attempt.score)}` : 'Could not assess'}
+                            className={`w-2 h-6 rounded-full ${
+                              attempt.score === null ? 'bg-slate-700' :
+                              attempt.score >= PRACTICE_PASS_SCORE ? 'bg-emerald-500' :
+                              attempt.score >= 50 ? 'bg-amber-500' : 'bg-rose-500'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

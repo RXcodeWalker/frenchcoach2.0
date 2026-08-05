@@ -12,6 +12,7 @@ import { supabase } from '../lib/supabase';
 import { pushProgressionToCloud, pullProgressionFromCloud, mergeProgressionData, cloudDiffersFromMerged, markNeedsSync } from '../services/sync/progressionSync';
 import { hydrateSessionsFromCloud, pushSessionToCloud, backfillSessionsToCloud, flushPendingQueue } from '../services/sync/sessionSync';
 import { hydrateCoachFromCloud, backfillEvidenceToCloud, pushPendingEvidence } from '../services/sync/coachSync';
+import { hydratePronunciationFromCloud, backfillPronunciationToCloud, flushPendingPronunciationQueue } from '../services/sync/pronunciationSync';
 import { getEvidenceEvents } from '../services/coach/coachStorage';
 import { isMigrationNeeded, markMigrationComplete, runMigration, type MigrationPhase, type MigrationRecord } from '../services/sync/migrationService';
 import * as Sentry from '@sentry/react';
@@ -408,6 +409,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
           sessionHydrationInProgress.current = false;
           void flushPendingQueue(userId);
+          void hydratePronunciationFromCloud(userId);
           hydrationComplete.current = true;
           return;
         }
@@ -459,6 +461,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       // Runs after sessions so sourceSessionId references are already present
       const { cloudIds: cloudEvidenceIds } = await hydrateCoachFromCloud(userId);
 
+      // Step 2.6: pronunciation history — pull, merge, write localStorage
+      const { mergedAttempts, cloudIds: cloudPronunciationIds } = await hydratePronunciationFromCloud(userId);
+
       // Step 3: re-read analytics (now includes merged sessions) and emit final profile
       const analytics = getStats();
       const progression = getProgressionState();
@@ -483,7 +488,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       sessionHydrationInProgress.current = false;
       void backfillSessionsToCloud(userId, mergedSessions, cloudIds);
       void backfillEvidenceToCloud(userId, getEvidenceEvents(), cloudEvidenceIds);
+      void backfillPronunciationToCloud(userId, mergedAttempts, cloudPronunciationIds);
       void flushPendingQueue(userId);
+      void flushPendingPronunciationQueue(userId);
 
       // Step 5: open the gate for incremental pushes
       hydrationComplete.current = true;
@@ -542,6 +549,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const handler = () => {
       void flushPendingQueue(userId);
       void pushPendingEvidence(userId);
+      void flushPendingPronunciationQueue(userId);
     };
     window.addEventListener('online', handler);
     return () => window.removeEventListener('online', handler);

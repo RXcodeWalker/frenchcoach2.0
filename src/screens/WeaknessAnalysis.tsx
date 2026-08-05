@@ -27,7 +27,7 @@ import { MicroDrillModal } from '../components/ui/MicroDrillModal';
 // Smart Mode Suggestions Mapping
 const SKILL_TO_MODE: Record<string, { label: string; route: string }> = {
   vocab_range: { label: 'Explore Mode', route: '/explore' },
-  pronunciation: { label: 'Pronunciation Lab', route: '/pronunciation-lab' },
+  pronunciation: { label: 'Accent Analyzer', route: '/accent-analyzer' },
   fluency_score: { label: 'Speed Speaking', route: '/speed-speaking' },
   word_count: { label: 'Story Mode', route: '/story-mode' },
   opinion: { label: 'Speaking Arena', route: '/speaking-arena' },
