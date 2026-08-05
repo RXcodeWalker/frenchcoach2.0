@@ -50,9 +50,20 @@ function _save(data: unknown) {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch { /* quota exceeded — degrade silently */ }
 }
 
-function _weight(dateISO: string) {
+/**
+ * 14-day half-life exponential decay, keyed by an ISO date. Exported so
+ * other modules needing the same recency weighting (e.g. pronunciation
+ * phoneme-stat aggregation, accent-analyzer plan §13) don't copy the LAMBDA
+ * constant — `_weight` itself was module-private and unexported, so "just
+ * reuse it" wasn't actionable before this export existed.
+ */
+export function decayWeight(dateISO: string): number {
   const daysSince = (Date.now() - new Date(dateISO).getTime()) / 86400000;
   return Math.exp(-LAMBDA * Math.max(0, daysSince));
+}
+
+function _weight(dateISO: string) {
+  return decayWeight(dateISO);
 }
 
 function _computeMastery(wErrors: number, wObs: number) {

@@ -51,7 +51,9 @@ interface FeedbackStreamTimingProps {
 interface PronunciationAssessedProps {
   source: string;
   provider: 'azure' | 'whisper-heuristic';
-  score: number;
+  /** null when couldNotAssess is true — never a fabricated number. */
+  score: number | null;
+  couldNotAssess: boolean;
   latency_ms: number;
 }
 

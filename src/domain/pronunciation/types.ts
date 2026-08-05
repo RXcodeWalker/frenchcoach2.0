@@ -16,26 +16,53 @@
  *    this file never sees Azure's own labels.
  *
  * Contract stability policy: `score`, `transcript`, `issues`, `words`,
- * `provider` are guaranteed present on every response from every tier
- * (arrays may be empty, but the fields always exist) — any consumer may
- * depend on them unconditionally. `subScores` and per-word
- * `accuracyScore`/`errorType` are tier-gated: `null` specifically means
- * "this tier cannot structurally produce this field" (the whisper-heuristic
- * tier always sends `null` here, never a guess) — deliberately distinct from
- * `?:`/`undefined`, which is reserved for fields added in a future version
- * that older parsed responses won't have. No field is ever removed or has
- * its meaning changed without bumping PRONUNCIATION_ASSESSOR_VERSION
- * (version.ts) — enforced by __tests__/version-pin.test.ts.
+ * `provider` are guaranteed present (as keys) on every response from every
+ * tier (arrays may be empty, but the fields always exist) — any consumer may
+ * read them unconditionally without an `in`/`?.` check. `subScores` and
+ * per-word `accuracyScore`/`errorType` are tier-gated: `null` specifically
+ * means "this tier cannot structurally produce this field" (the
+ * whisper-heuristic tier always sends `null` here, never a guess) —
+ * deliberately distinct from `?:`/`undefined`, which is reserved for fields
+ * added in a future version that older parsed responses won't have.
+ *
+ * `score` is `number | null`: `null` exclusively when `couldNotAssess` is
+ * true (silence, no speech recognized, or a rejected/missing Azure
+ * assessment block) — never a fabricated `0`. Every consumer displaying
+ * `score` must check `couldNotAssess` first.
+ *
+ * No field is ever removed or has its meaning changed without bumping
+ * PRONUNCIATION_ASSESSOR_VERSION (version.ts) — enforced by
+ * __tests__/version-pin.test.ts.
  */
 
 export type PronunciationErrorType = 'correct' | 'mispronounced' | 'skipped' | 'extra';
 export type PronunciationSeverity = 'low' | 'medium' | 'high';
 export type PronunciationProvider = 'azure' | 'whisper-heuristic';
+export type PronunciationProvenance = 'authoritative' | 'derived' | 'inferred';
+export type PhonologicalCategory =
+  | 'liaison' | 'nasalVowel' | 'frenchR' | 'silentLetter' | 'elision' | 'vowelQuality';
 
 export interface PronunciationAssessmentRequest {
   audioBlob: Blob;
+  /**
+   * Scripted mode: the sentence the learner was asked to say — a real
+   * reference text. Freeform mode: this is IGNORED server-side; the backend
+   * substitutes its own Whisper transcript of the same audio as the
+   * reference (there is no independent target for an open-ended answer —
+   * see accent-analyzer plan defect #5). Pass the best text available
+   * anyway (never empty) since it's what the whisper-heuristic fallback
+   * tier uses when Azure is unavailable in scripted mode.
+   */
   targetText: string;
   languageCode: 'fr-FR';
+  /**
+   * 'scripted' (default): targetText is authoritative, enables Azure's
+   * miscue detection (omission/insertion) and completeness score.
+   * 'freeform': for open-ended answers with no fixed target sentence.
+   * completeness is always null in this mode — you cannot "omit" a word
+   * from your own transcript.
+   */
+  mode?: 'scripted' | 'freeform';
 }
 
 export interface PronunciationPhoneme {
@@ -55,6 +82,11 @@ export interface PronunciationWordResult {
    */
   confidence: number | null;
   phonemes?: PronunciationPhoneme[] | null;
+  /** ms from clip start, re-indexed across chunk seams on multi-chunk answers. Absent on a single-chunk response. */
+  offsetMs?: number | null;
+  durationMs?: number | null;
+  /** True when within ~150ms of a chunk seam — fluency/liaison claims involving this word are suppressed (plan §4). */
+  nearChunkBoundary?: boolean | null;
 }
 
 export interface PronunciationDrillHint {
@@ -76,17 +108,79 @@ export interface PronunciationIssue {
 export interface PronunciationSubScores {
   accuracy: number; // 0-100
   fluency: number; // 0-100
-  completeness: number; // 0-100
+  /** 0-100. null in freeform mode: completeness is meaningless against a self-transcribed reference. */
+  completeness: number | null;
   /** 0-100. null when Azure doesn't return ProsodyScore, even with EnableProsodyAssessment set. */
   prosody: number | null;
 }
 
+export interface PronunciationRhythmMetrics {
+  speechRateWpm: number | null;
+  articulationRateSyllPerSec: number | null;
+  pauseCount: number | null;
+  longestPauseMs: number | null;
+  pauseRatio: number | null;
+  /** Normalised pairwise variability of syllable durations — French is syllable-timed; anglophone speech imports stress-timed rhythm. */
+  rhythmRegularity: number | null;
+  finalSyllableLengthening: boolean | null;
+}
+
+export interface PhonologicalFinding {
+  category: PhonologicalCategory;
+  word: string;
+  explanation: string;
+  /** Ceilinged per the capability matrix (e.g. liaison capped at 0.6 — inference from timing, not measurement). */
+  confidence: number;
+  provenance: PronunciationProvenance;
+}
+
+export interface AudioQuality {
+  snrDb: number | null;
+  durationMs: number | null;
+  recognitionStatus: string | null;
+  clipped: boolean;
+}
+
+export interface PronunciationConfidence {
+  /** 0-1. UNVALIDATED weights until real calibration data exists — see practiceThresholds.ts's convention. */
+  overall: number;
+  basis: string[];
+  transcriptAgreement: number | null;
+}
+
+export interface PronunciationCoaching {
+  summary: string;
+  topPriority: string;
+  tips: string[];
+  /** False when the LLM pass failed and this is a template fallback. */
+  grounded: boolean;
+}
+
 export interface PronunciationAssessment {
-  score: number; // 0-100
+  /** 0-100. null exclusively when couldNotAssess is true — never a fabricated 0. */
+  score: number | null;
   transcript: string;
   issues: PronunciationIssue[];
   words: PronunciationWordResult[];
   provider: PronunciationProvider;
   /** null when this tier cannot structurally produce sub-scores (whisper-heuristic). */
   subScores: PronunciationSubScores | null;
+  /** True when the audio could not be assessed at all (silence, no speech recognized, Azure returned no assessment block). score is null iff this is true. */
+  couldNotAssess: boolean;
+  /** e.g. "no_speech_recognized", "silence", "noise", "assessment_unavailable". null when couldNotAssess is false. */
+  couldNotAssessReason: string | null;
+
+  // ── Phase 1 additions (all optional-with-null: added after v3's initial
+  // shape, may be absent on an older cached/mocked response) ──────────────
+  mode?: 'scripted' | 'freeform';
+  locale?: string;
+  assessorVersion?: string;
+  chunkCount?: number;
+  chunksFailed?: number;
+  /** Never Azure-authoritative for fr-FR — always derived. null when the capability matrix marks it unavailable for this (mode, tier). */
+  prosodyMetrics?: PronunciationRhythmMetrics | null;
+  phonologicalFindings?: PhonologicalFinding[];
+  audioQuality?: AudioQuality | null;
+  confidence?: PronunciationConfidence | null;
+  coaching?: PronunciationCoaching | null;
 }

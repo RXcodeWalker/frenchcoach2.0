@@ -10,7 +10,7 @@ import { describe, expect, it } from 'vitest';
 import { PRONUNCIATION_ASSESSOR_VERSION } from '../version';
 import { PRONUNCIATION_GOLDEN_ASSESSMENT, PRONUNCIATION_WHISPER_HEURISTIC_ASSESSMENT } from './fixtures';
 
-const PRONUNCIATION_FIXTURE_HASH = '9c84f5bd86a9f523f6093379a9f30cad16ed238b20eeaad901a0d68117171280';
+const PRONUNCIATION_FIXTURE_HASH = '4d3d6aac7d3ce7fde2f64840d836103dba2498b7869c5330771f003e1c13a047';
 
 function sha256(value: unknown): string {
   return createHash('sha256').update(JSON.stringify(value)).digest('hex');

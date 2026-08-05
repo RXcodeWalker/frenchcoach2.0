@@ -24,8 +24,30 @@ function azureScoreColor(score: number): string {
 }
 
 export function AzurePronunciationCard({ result, correctedSentence }: Props) {
-  const color = azureScoreColor(result.score);
   const circumference = 94.2;
+
+  if (result.couldNotAssess || result.score === null) {
+    return (
+      <CollapsibleCard
+        title="Pronunciation Analysis"
+        icon={<Mic2 size={13} className="text-cyan-400" />}
+        defaultOpen={true}
+        className="border border-cyan-500/15"
+      >
+        <div className="px-1 py-2">
+          <p className="text-[10px] font-semibold text-slate-300">We couldn't assess this recording.</p>
+          <p className="text-[9px] text-slate-500 mt-1">
+            {result.couldNotAssessReason === 'silence' || result.couldNotAssessReason === 'no_speech_recognized'
+              ? "We didn't hear any speech — try recording again."
+              : "The recording was too unclear to analyse. Try again in a quieter spot."}
+          </p>
+        </div>
+      </CollapsibleCard>
+    );
+  }
+
+  const score = result.score;
+  const color = azureScoreColor(score);
 
   return (
     <CollapsibleCard
@@ -43,11 +65,11 @@ export function AzurePronunciationCard({ result, correctedSentence }: Props) {
               cx="18" cy="18" r="15" fill="none" strokeWidth="3"
               stroke={color}
               strokeLinecap="round"
-              strokeDasharray={`${(result.score / 100) * circumference} ${circumference}`}
+              strokeDasharray={`${(score / 100) * circumference} ${circumference}`}
             />
           </svg>
           <span className="absolute inset-0 flex items-center justify-center text-[9px] font-black" style={{ color }}>
-            {Math.round(result.score)}
+            {Math.round(score)}
           </span>
         </div>
         <div>
@@ -77,7 +99,7 @@ export function AzurePronunciationCard({ result, correctedSentence }: Props) {
             ['Completeness', result.subScores.completeness],
           ] as const).map(([label, value]) => (
             <div key={label} className="text-center p-2 rounded-lg bg-slate-800/50 border border-slate-700/40">
-              <p className="text-[11px] font-bold text-slate-200">{Math.round(value)}</p>
+              <p className="text-[11px] font-bold text-slate-200">{value === null ? '—' : Math.round(value)}</p>
               <p className="text-[8px] text-slate-500">{label}</p>
             </div>
           ))}

@@ -51,6 +51,10 @@ export const STORAGE_KEYS = {
   localCounters: 'frenchCoach_localCounters',
   // ── Phase 3 Slice E: spaced re-exposure review pool ─────────────────────────────
   reviewPool: 'frenchCoach_reviewPool',
+  // ── Pronunciation history cloud sync (accent-analyzer plan §13, D3) ──────────────
+  pronunciationHistory:          'frenchCoach_pronunciationHistory',
+  syncedPronunciationIds:        'frenchCoach_syncedPronunciationIds',
+  pendingSyncPronunciationIds:   'frenchCoach_pendingSyncPronunciationIds',
 } as const;
 
 export type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS];

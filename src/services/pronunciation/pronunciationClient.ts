@@ -32,12 +32,20 @@ export interface AssessPronunciationArgs {
   targetText: string;
   /** Screen identifier for telemetry, e.g. 'pronunciation_lab' | 'accent_analyzer'. */
   source: string;
+  /**
+   * 'scripted' (default): targetText is a real reference sentence (drills,
+   * Say-It-Again). 'freeform': open-ended answers with no fixed target —
+   * the backend substitutes its own transcript as the reference. See
+   * PronunciationAssessmentRequest.mode for the full contract.
+   */
+  mode?: 'scripted' | 'freeform';
 }
 
 export async function assessPronunciation({
   audioBlob,
   targetText,
   source,
+  mode = 'scripted',
 }: AssessPronunciationArgs): Promise<PronunciationAssessment> {
   const start = performance.now();
   const controller = new AbortController();
@@ -45,7 +53,7 @@ export async function assessPronunciation({
 
   try {
     const result = await Promise.race([
-      provider({ audioBlob, targetText, languageCode: 'fr-FR' }),
+      provider({ audioBlob, targetText, languageCode: 'fr-FR', mode }),
       new Promise<never>((_, reject) => {
         controller.signal.addEventListener('abort', () =>
           reject(new Error('Pronunciation assessment timed out')),
@@ -59,6 +67,7 @@ export async function assessPronunciation({
         source,
         provider: result.provider,
         score: result.score,
+        couldNotAssess: result.couldNotAssess,
         latency_ms: Math.round(performance.now() - start),
       },
     });

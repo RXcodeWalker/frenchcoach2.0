@@ -95,12 +95,18 @@ function statusForAccuracy(accuracyScore: number | null): 'perfect' | 'good' | '
 
 // Real pass-through mapping, not a rescale: score/subScores are already 0-100
 // end to end in the new contract, so no `* 10` unit conversion is needed here.
-function mapAssessmentToAccentResults(assessment: PronunciationAssessment): AccentResults {
+// Returns null when the assessment couldNotAssess (score is null) — the
+// caller routes that into the existing error state rather than rendering
+// fabricated numbers. A dedicated could-not-assess UI state (with retry and
+// a specific reason) belongs to the AccentAnalyzer rebuild, not here.
+function mapAssessmentToAccentResults(assessment: PronunciationAssessment): AccentResults | null {
+  if (assessment.score === null) return null;
+  const score = assessment.score;
   return {
-    score: assessment.score,
-    accuracy: Math.round(assessment.subScores?.accuracy ?? assessment.score),
-    fluency: Math.round(assessment.subScores?.fluency ?? assessment.score),
-    feedback: feedbackForScore(assessment.score),
+    score,
+    accuracy: Math.round(assessment.subScores?.accuracy ?? score),
+    fluency: Math.round(assessment.subScores?.fluency ?? score),
+    feedback: feedbackForScore(score),
     matches: assessment.words.map(w => ({
       word: w.word,
       status: statusForAccuracy(w.accuracyScore),
@@ -133,7 +139,16 @@ export function AccentAnalyzer() {
         targetText: selectedDrill.french,
         source: 'accent_analyzer',
       });
-      setResults(mapAssessmentToAccentResults(assessment));
+      const mapped = mapAssessmentToAccentResults(assessment);
+      if (mapped === null) {
+        setEvalError(
+          assessment.couldNotAssessReason === 'silence' || assessment.couldNotAssessReason === 'no_speech_recognized'
+            ? "We couldn't hear anything — try recording again."
+            : "We couldn't assess that recording. Please try again.",
+        );
+        return;
+      }
+      setResults(mapped);
     } catch (err) {
       console.error("Accent evaluation failed:", err);
       setEvalError(err instanceof Error ? err.message : 'Evaluation failed. Please try again.');

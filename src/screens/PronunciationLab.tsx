@@ -44,6 +44,16 @@ export function PronunciationLab() {
             targetText: currentDrill.french,
             source: 'pronunciation_lab',
           });
+
+          if (assessment.couldNotAssess || assessment.score === null) {
+            setEvalError(
+              assessment.couldNotAssessReason === 'silence' || assessment.couldNotAssessReason === 'no_speech_recognized'
+                ? "We didn't hear anything — try recording again."
+                : "We couldn't assess that recording. Please try again.",
+            );
+            return;
+          }
+
           const feedbackWithAudio: LabResult = {
             ...assessment,
             audioUrl: result.url,
@@ -109,7 +119,7 @@ export function PronunciationLab() {
     }
   };
 
-  const isSuccess = feedback && feedback.score >= PRACTICE_PASS_SCORE;
+  const isSuccess = feedback != null && feedback.score != null && feedback.score >= PRACTICE_PASS_SCORE;
 
   if (completed) {
     const masteredInSession = PRONUNCIATION_DRILLS.filter(d => state.masteredDrills.includes(d.id)).length;
@@ -300,7 +310,7 @@ export function PronunciationLab() {
                         ) : (
                           <XCircle size={32} className="text-red-400" />
                         )}
-                        <span className={`text-2xl font-black ${isSuccess ? 'text-emerald-400' : 'text-red-400'}`}>{feedback.score}/100</span>
+                        <span className={`text-2xl font-black ${isSuccess ? 'text-emerald-400' : 'text-red-400'}`}>{feedback.score ?? '—'}/100</span>
                       </div>
                       <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Precision Score</span>
                     </div>

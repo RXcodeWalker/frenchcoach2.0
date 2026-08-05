@@ -36,6 +36,7 @@ export type PracticeOutcome = 'pass' | 'retry' | 'advance-no-verdict' | null;
  * practice_step_shown/completed_*) carry the measurement load instead. */
 export function outcomeFor(result: PronunciationAssessment, attempt: number): PracticeOutcome {
   if (result.provider !== 'azure') return 'advance-no-verdict';
+  if (result.couldNotAssess || result.score === null) return 'advance-no-verdict';
   if (result.score >= PRACTICE_PASS_SCORE) return 'pass';
   if (attempt < PRACTICE_MAX_ATTEMPTS) return 'retry';
   return 'advance-no-verdict';
@@ -120,7 +121,7 @@ export function SayItAgainCard({ targetSentence, questionId, onDone }: Props) {
   const handleRetry = () => {
     incrementCounter('practice_step_completed_retry');
     setRetryHintWord(
-      result && result.provider === 'azure' && isNearMiss(result.score)
+      result && result.provider === 'azure' && result.score !== null && isNearMiss(result.score)
         ? weakestWordOf(result)
         : null,
     );
@@ -192,7 +193,7 @@ export function SayItAgainCard({ targetSentence, questionId, onDone }: Props) {
       {outcome === 'pass' && result && (
         <div className="flex items-center gap-2.5 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/25">
           <CheckCircle2 size={16} className="text-emerald-400 shrink-0" />
-          <p className="text-[11px] text-emerald-300">Nice — that landed. Score: {Math.round(result.score)}</p>
+          <p className="text-[11px] text-emerald-300">Nice — that landed. Score: {result.score !== null ? Math.round(result.score) : '—'}</p>
         </div>
       )}
 

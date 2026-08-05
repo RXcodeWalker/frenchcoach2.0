@@ -456,8 +456,17 @@ export function Learn() {
       try {
         const result = await assessPronunciation({
           audioBlob: blob,
+          // Freeform: the backend ignores targetText and substitutes its
+          // own Whisper transcript of this same audio as the reference —
+          // grading against the Web Speech API's transcript (a third,
+          // separately-unreliable recognizer) was defect #5. Still pass the
+          // Web Speech transcript rather than '' so the whisper-heuristic
+          // fallback tier (used only when Azure is unconfigured/down) has
+          // a non-empty best-effort value, even though freeform mode makes
+          // that tier report no verdict rather than diff against it.
           targetText: transcript,
           source: 'learn',
+          mode: 'freeform',
         });
         if (myAttemptId !== attemptIdRef.current) return;
         setPronunciationResult(result);

@@ -11,6 +11,8 @@ function azureResult(score: number): PronunciationAssessment {
     words: [],
     provider: 'azure',
     subScores: { accuracy: score, fluency: score, completeness: score, prosody: score },
+    couldNotAssess: false,
+    couldNotAssessReason: null,
   };
 }
 
@@ -22,6 +24,21 @@ function whisperResult(score: number): PronunciationAssessment {
     words: [],
     provider: 'whisper-heuristic',
     subScores: null,
+    couldNotAssess: false,
+    couldNotAssessReason: null,
+  };
+}
+
+function couldNotAssessAzureResult(reason: string): PronunciationAssessment {
+  return {
+    score: null,
+    transcript: '',
+    issues: [],
+    words: [],
+    provider: 'azure',
+    subScores: null,
+    couldNotAssess: true,
+    couldNotAssessReason: reason,
   };
 }
 
@@ -62,6 +79,13 @@ describe('outcomeFor — practice step state machine', () => {
       for (const attempt of [1, PRACTICE_MAX_ATTEMPTS]) {
         expect(outcomeFor(whisperResult(score), attempt)).toBe('advance-no-verdict');
       }
+    }
+  });
+
+  it('couldNotAssess never yields a verdict, regardless of attempt (never a fabricated pass/retry)', () => {
+    for (const attempt of [1, PRACTICE_MAX_ATTEMPTS]) {
+      expect(outcomeFor(couldNotAssessAzureResult('no_speech_recognized'), attempt)).toBe('advance-no-verdict');
+      expect(outcomeFor(couldNotAssessAzureResult('silence'), attempt)).toBe('advance-no-verdict');
     }
   });
 });

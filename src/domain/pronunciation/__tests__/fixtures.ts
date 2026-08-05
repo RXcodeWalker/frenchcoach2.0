@@ -23,6 +23,8 @@ const BASE_ASSESSMENT: PronunciationAssessment = {
   ],
   provider: 'azure',
   subScores: { accuracy: 82, fluency: 90, completeness: 100, prosody: 88 },
+  couldNotAssess: false,
+  couldNotAssessReason: null,
 };
 
 export function buildPronunciationAssessment(
