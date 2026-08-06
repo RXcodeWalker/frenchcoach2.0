@@ -31,6 +31,7 @@ import { useApp, dispatchAddXP } from '../context/AppContext';
 import { useAudioBlobRecorder } from '../features/recording/useAudioBlobRecorder';
 import { Waveform } from '../features/recording/Waveform';
 import { assessPronunciation } from '../services/pronunciation/pronunciationClient';
+import { AudioTooShortError } from '../domain/pronunciation/audioNormalizer';
 import { PronunciationSourceBadge } from './learn/PronunciationSourceBadge';
 import { PronunciationHeatMap } from '../features/feedback/components/PronunciationHeatMap';
 import { PRACTICE_PASS_SCORE } from '../domain/pronunciation/practiceThresholds';
@@ -61,6 +62,13 @@ type ScreenState =
   | 'error';
 
 const MIN_RECORDING_MS = 400; // plan §9: reject <0.4s clips client-side
+// A blob this small is a container header, not 0.4s of speech in any codec —
+// what a denied mic or an instantly-stopped recorder produces. Caught here at
+// the recording boundary rather than in the normalizer, whose contract is to
+// decode whatever it is handed. Without it the clip reaches decodeAudioData as
+// a bare "EncodingError: Unable to decode audio data", degrades to uploading
+// the raw blob, and burns a backend round-trip on unassessable audio.
+const MIN_RECORDING_BYTES = 1024;
 const LOW_CONFIDENCE_FLOOR = 0.4; // plan §11: below the floor, "we couldn't assess this reliably"
 
 function makeAttemptId(): string {
@@ -170,16 +178,28 @@ export function AccentAnalyzer() {
       }
     } catch (err) {
       console.error('Accent evaluation failed:', err);
+      if (err instanceof AudioTooShortError) {
+        // The normalizer measured the decoded audio, which is stricter than
+        // handleStop's wall-clock guard — route it to the same "say a bit
+        // more" affordance rather than a dead-end "Evaluation failed".
+        setScreenState('too-short');
+        return;
+      }
       setErrorMessage(err instanceof Error ? err.message : 'Evaluation failed. Please try again.');
       setScreenState('error');
     }
   };
 
   const handleStart = async () => {
-    setAttempts(prev => prev + 1);
-    setRecordingStartedAt(Date.now());
     try {
       await start();
+      // Clock starts only once the mic is actually live. Starting it before
+      // `await start()` folded the getUserMedia permission-prompt delay into
+      // the measured duration, so a first-time user who granted access and
+      // stopped immediately cleared MIN_RECORDING_MS with near-zero audio —
+      // which then failed to decode and was uploaded as an unassessable clip.
+      setRecordingStartedAt(Date.now());
+      setAttempts(prev => prev + 1);
       setScreenState('recording');
     } catch {
       setScreenState('permission-denied');
@@ -189,7 +209,7 @@ export function AccentAnalyzer() {
   const handleStop = async () => {
     const recorded = await stop();
     const durationMs = recordingStartedAt ? Date.now() - recordingStartedAt : 0;
-    if (!recorded || durationMs < MIN_RECORDING_MS) {
+    if (!recorded || recorded.blob.size < MIN_RECORDING_BYTES || durationMs < MIN_RECORDING_MS) {
       setScreenState('too-short');
       return;
     }

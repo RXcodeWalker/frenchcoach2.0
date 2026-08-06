@@ -7,7 +7,8 @@ export interface AudioBlobRecorderState {
   isRecording: boolean;
   waveData: number[];
   micLevel: MicLevelController;
-  start: () => void;
+  /** Rejects if the mic is unavailable/denied — callers gate their UI on that. */
+  start: () => Promise<void>;
   stop: () => Promise<{ blob: Blob; url: string; waveSnapshot: number[] } | null>;
 }
 
@@ -35,34 +36,35 @@ export function useAudioBlobRecorder(): AudioBlobRecorderState {
   }, []);
 
   const start = useCallback(async () => {
-    try {
-      if (audioUrlRef.current) {
-        URL.revokeObjectURL(audioUrlRef.current);
-        audioUrlRef.current = null;
-      }
-
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      streamRef.current = stream;
-      micLevel.attach(stream);
-
-      const mimeType = ['audio/webm', 'audio/ogg', 'audio/mp4', 'audio/wav']
-        .find(type => MediaRecorder.isTypeSupported(type)) || '';
-
-      const options = mimeType ? { mimeType } : {};
-      const mediaRecorder = new MediaRecorder(stream, options);
-      
-      mediaRecorderRef.current = mediaRecorder;
-      chunksRef.current = [];
-
-      mediaRecorder.ondataavailable = (e) => {
-        if (e.data.size > 0) chunksRef.current.push(e.data);
-      };
-
-      mediaRecorder.start(250);
-      setIsRecording(true);
-    } catch (err) {
-      console.error("Failed to start recording:", err);
+    // Deliberately does NOT swallow errors. Catching getUserMedia here (as
+    // this hook used to) left callers unable to distinguish "recording" from
+    // "the mic was denied and nothing is being captured" — they'd show a live
+    // recording UI over a dead recorder, then send an empty blob for
+    // assessment. Permission/device failures must reach the caller.
+    if (audioUrlRef.current) {
+      URL.revokeObjectURL(audioUrlRef.current);
+      audioUrlRef.current = null;
     }
+
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    streamRef.current = stream;
+    micLevel.attach(stream);
+
+    const mimeType = ['audio/webm', 'audio/ogg', 'audio/mp4', 'audio/wav']
+      .find(type => MediaRecorder.isTypeSupported(type)) || '';
+
+    const options = mimeType ? { mimeType } : {};
+    const mediaRecorder = new MediaRecorder(stream, options);
+
+    mediaRecorderRef.current = mediaRecorder;
+    chunksRef.current = [];
+
+    mediaRecorder.ondataavailable = (e) => {
+      if (e.data.size > 0) chunksRef.current.push(e.data);
+    };
+
+    mediaRecorder.start(250);
+    setIsRecording(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

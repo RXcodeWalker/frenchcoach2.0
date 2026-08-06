@@ -114,7 +114,15 @@ export function SayItAgainCard({ targetSentence, questionId, onDone }: Props) {
     } else {
       setResult(null);
       setOutcome(null);
-      start();
+      try {
+        await start();
+      } catch {
+        // Mic denied/unavailable: advance rather than trap the student on a
+        // step that can never complete — same treatment as the no-recorder
+        // and assessment-failure branches above.
+        trackCompleted('advance-no-verdict', null, attempt);
+        onDone();
+      }
     }
   };
 
