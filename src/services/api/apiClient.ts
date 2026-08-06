@@ -39,19 +39,29 @@ export interface RoleplayTurnResponse {
   reply: string;
   is_done: boolean;
   hint: string | null;
+  /**
+   * Cumulative 0-based indices of scenario objectives completed so far
+   * (content-based). Optional for backward compatibility with older backends.
+   */
+  completed_objectives?: number[];
 }
 
 export async function roleplayTurn(
   scenarioId: string,
   turnHistory: { speaker: 'examiner' | 'student'; text: string }[],
   transcript: string,
-  customScenario?: GeneratedScenario
+  customScenario?: GeneratedScenario,
+  options?: {
+    /** Objectives already cleared client-side — helps the model stay consistent. */
+    completedObjectives?: number[];
+  },
 ): Promise<RoleplayTurnResponse> {
   return post<RoleplayTurnResponse>('/api/roleplay/turn', {
     scenario_id: scenarioId,
     turn_history: turnHistory,
     student_transcript: transcript,
-    custom_scenario: customScenario
+    custom_scenario: customScenario,
+    completed_objectives: options?.completedObjectives,
   });
 }
 
@@ -692,12 +702,9 @@ export interface RoleplayTurnRequest {
   turn_history: { speaker: 'examiner' | 'student'; text: string }[];
   student_transcript: string;
   is_final_turn?: boolean;
-}
-
-export interface RoleplayTurnResponse {
-  reply: string;
-  is_done: boolean;
-  hint: string | null;
+  custom_scenario?: GeneratedScenario;
+  /** Cumulative 0-based objective indices already cleared (Architect sessions). */
+  completed_objectives?: number[];
 }
 
 export async function getRoleplayTurn(req: RoleplayTurnRequest): Promise<RoleplayTurnResponse> {

@@ -17,6 +17,11 @@ import { useApp, dispatchAddXP } from '../context/AppContext';
 import { roleplayTurn, getAIFeedback } from '../services/api/apiClient';
 import { observeAttempt } from '../services/coach/sessionOrchestrator';
 import { getSkillProfile } from '../services/coaching/diagnosticEngine';
+import {
+  resolveObjectiveProgress,
+  objectiveClearedLabel,
+} from '../services/scenarioArchitect/objectiveProgress';
+import { ObjectiveClearedToast } from './scenarioArchitect/ObjectiveClearedToast';
 import type { FeedbackV2, GeneratedScenario } from '../types';
 
 interface Message {
@@ -25,6 +30,8 @@ interface Message {
   sender: 'ai' | 'user';
   timestamp: number;
 }
+
+const XP_PER_OBJECTIVE = 20;
 
 export function ScenarioArchitectSession() {
   const location = useLocation();
@@ -39,6 +46,19 @@ export function ScenarioArchitectSession() {
   const [isTyping, setIsTyping] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [completedObjectives, setCompletedObjectives] = useState<number[]>([]);
+  const [clearedToast, setClearedToast] = useState<{ label: string; detail: string } | null>(null);
+  const toastQueueRef = useRef<{ label: string; detail: string }[]>([]);
+
+  const enqueueClearedToasts = (items: { label: string; detail: string }[]) => {
+    if (items.length === 0) return;
+    toastQueueRef.current.push(...items);
+    setClearedToast(prev => prev ?? toastQueueRef.current.shift() ?? null);
+  };
+
+  const dismissClearedToast = () => {
+    const next = toastQueueRef.current.shift() ?? null;
+    setClearedToast(next);
+  };
 
   useEffect(() => {
     if (!customScenario) {
@@ -70,6 +90,35 @@ export function ScenarioArchitectSession() {
     setMessages(prev => [...prev, newMessage]);
   };
 
+  const applyObjectiveProgress = (
+    turn: { is_done: boolean; completed_objectives?: number[] | null },
+    studentUtterances: string[],
+    previouslyCompleted: number[],
+  ): number[] => {
+    if (!customScenario) return previouslyCompleted;
+
+    const { completed, newlyCompleted } = resolveObjectiveProgress({
+      objectives: customScenario.objectives,
+      previouslyCompleted,
+      studentUtterances,
+      turn,
+      keyVocab: customScenario.key_vocab,
+    });
+
+    if (newlyCompleted.length > 0) {
+      setCompletedObjectives(completed);
+      dispatchAddXP(dispatch, XP_PER_OBJECTIVE * newlyCompleted.length);
+      enqueueClearedToasts(
+        newlyCompleted.map(index => ({
+          label: objectiveClearedLabel(index),
+          detail: customScenario.objectives[index] ?? '',
+        })),
+      );
+    }
+
+    return completed;
+  };
+
   const handleStopRecording = async () => {
     if (!customScenario) return;
     
@@ -82,6 +131,11 @@ export function ScenarioArchitectSession() {
       }
       
       addMessage(transcript, 'user');
+
+      const priorStudentUtterances = messages
+        .filter(m => m.sender === 'user')
+        .map(m => m.text);
+      const studentUtterances = [...priorStudentUtterances, transcript];
       
       // Call AI for reply
       setIsTyping(true);
@@ -94,11 +148,22 @@ export function ScenarioArchitectSession() {
         'custom',
         turnHistory,
         transcript,
-        customScenario
+        customScenario,
+        { completedObjectives },
       );
 
       setIsTyping(false);
       addMessage(data.reply, 'ai');
+
+      // Content-based / AI-signaled objective completion (MH1) — not turn counting
+      applyObjectiveProgress(
+        {
+          is_done: Boolean(data.is_done),
+          completed_objectives: data.completed_objectives,
+        },
+        studentUtterances,
+        completedObjectives,
+      );
 
       // Get AI feedback for coach evidence (fire-and-forget side effect)
       let fb: FeedbackV2;
@@ -118,13 +183,6 @@ export function ScenarioArchitectSession() {
       });
       dispatch({ type: 'UPDATE_SKILL_PROFILE', skillProfile: getSkillProfile() });
 
-      // Simple objective tracking heuristic (normally handled by AI)
-      // For this demo, we'll just mark one as done every few turns
-      if (messages.length > 2 && completedObjectives.length < customScenario.objectives.length) {
-        setCompletedObjectives(prev => [...prev, prev.length]);
-        dispatchAddXP(dispatch, 20);
-      }
-
     } catch (err) {
       console.error(err);
     } finally {
@@ -136,6 +194,12 @@ export function ScenarioArchitectSession() {
 
   return (
     <div className="max-w-5xl mx-auto h-[calc(100vh-2rem)] flex flex-col pt-4 relative px-4">
+      <ObjectiveClearedToast
+        label={clearedToast?.label ?? null}
+        detail={clearedToast?.detail}
+        onDismiss={dismissClearedToast}
+      />
+
       {/* Header */}
       <div className="flex-shrink-0 mb-6">
         <div className="flex items-center justify-between mb-4">
