@@ -55,6 +55,12 @@ export const STORAGE_KEYS = {
   pronunciationHistory:          'frenchCoach_pronunciationHistory',
   syncedPronunciationIds:        'frenchCoach_syncedPronunciationIds',
   pendingSyncPronunciationIds:   'frenchCoach_pendingSyncPronunciationIds',
+  // ── Scenario Architect (draft, favorites, prefs) ────────────────────────────────
+  scenarioArchitectDraft:        'frenchCoach_scenarioArchitectDraft',
+  scenarioArchitectFavorites:    'frenchCoach_scenarioArchitectFavorites',
+  scenarioArchitectTutorialSeen: 'frenchCoach_scenarioArchitectTutorialSeen',
+  scenarioArchitectTtsMuted:     'frenchCoach_scenarioArchitectTtsMuted',
+  scenarioArchitectDifficulty:   'frenchCoach_scenarioArchitectDifficulty',
 } as const;
 
 export type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS];

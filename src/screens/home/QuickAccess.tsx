@@ -10,6 +10,7 @@ const ITEMS: { icon: string; label: string; screen: Screen; badge?: string }[] =
   { icon: '📚', label: 'Practice', screen: 'learn' as Screen },
   { icon: '📻', label: 'News', screen: 'daily-news' as Screen },
   { icon: '🎓', label: 'Exam', screen: 'exam' as Screen },
+  { icon: '🏗️', label: 'Architect', screen: 'scenario-architect' as Screen, badge: 'AI' },
   { icon: '🧭', label: 'Explore', screen: 'explore' as Screen },
   { icon: '📊', label: 'Progress', screen: 'progress' as Screen },
   { icon: '🛍️', label: 'Shop', screen: 'shop' as Screen },
@@ -19,7 +20,7 @@ export function QuickAccess({ onNavigate }: Props) {
   return (
     <motion.div variants={fadeUp}>
       <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2.5">Quick Access</h3>
-      <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+      <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2">
         {ITEMS.map(item => (
           <motion.button
             key={item.label}

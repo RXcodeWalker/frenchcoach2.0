@@ -39,19 +39,23 @@ export interface RoleplayTurnResponse {
   reply: string;
   is_done: boolean;
   hint: string | null;
+  /** Optional indexes into scenario.objectives completed this turn / overall. */
+  completed_objectives?: number[];
 }
 
 export async function roleplayTurn(
   scenarioId: string,
   turnHistory: { speaker: 'examiner' | 'student'; text: string }[],
   transcript: string,
-  customScenario?: GeneratedScenario
+  customScenario?: GeneratedScenario,
+  options?: { difficulty?: string }
 ): Promise<RoleplayTurnResponse> {
   return post<RoleplayTurnResponse>('/api/roleplay/turn', {
     scenario_id: scenarioId,
     turn_history: turnHistory,
     student_transcript: transcript,
-    custom_scenario: customScenario
+    custom_scenario: customScenario,
+    ...(options?.difficulty ? { difficulty: options.difficulty } : {}),
   });
 }
 
@@ -698,6 +702,7 @@ export interface RoleplayTurnResponse {
   reply: string;
   is_done: boolean;
   hint: string | null;
+  completed_objectives?: number[];
 }
 
 export async function getRoleplayTurn(req: RoleplayTurnRequest): Promise<RoleplayTurnResponse> {
