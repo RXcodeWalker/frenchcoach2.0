@@ -23,6 +23,11 @@ describe('normalizeFrench', () => {
     expect(normalizeFrench("j'ai faim")).toBe("j'ai faim");
   });
 
+  it('normalizes curly/smart apostrophes to straight', () => {
+    expect(normalizeFrench('j\u2019ai')).toBe("j'ai");
+    expect(normalizeFrench('l\u2018école')).toBe("l'ecole");
+  });
+
   it('handles combined accent + punctuation + spacing', () => {
     expect(normalizeFrench('  À bientôt!!!  ')).toBe('a bientot');
   });

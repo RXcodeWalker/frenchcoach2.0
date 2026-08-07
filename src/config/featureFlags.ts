@@ -14,7 +14,7 @@ export const FEATURE_FLAGS = {
   speedSpeaking:     'coming-soon',
   wordDrop:          'coming-soon',
   bossBattle:        'coming-soon',
-  emojiMaster:       'coming-soon',
+  emojiMaster:       'live',
   survivalMode:      'coming-soon',
   speakingArena:     'coming-soon',
   challenges:        'coming-soon',

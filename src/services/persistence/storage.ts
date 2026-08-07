@@ -55,6 +55,8 @@ export const STORAGE_KEYS = {
   pronunciationHistory:          'frenchCoach_pronunciationHistory',
   syncedPronunciationIds:        'frenchCoach_syncedPronunciationIds',
   pendingSyncPronunciationIds:   'frenchCoach_pendingSyncPronunciationIds',
+  // ── Emoji Master personal bests (versioned payload) ─────────────────────────────
+  emojiMasterBests: 'frenchCoach_emojiMasterBests',
 } as const;
 
 export type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS];

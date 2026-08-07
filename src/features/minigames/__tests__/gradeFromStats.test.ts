@@ -133,4 +133,28 @@ describe('gradeFromStats', () => {
       expect(result.grade).toBe('A');
     });
   });
+
+  describe('emojiMaster rubric', () => {
+    it('awards S for high accuracy, streak, and volume', () => {
+      const result = gradeFromStats(
+        stats({
+          correctAnswers: 10,
+          totalAnswered: 10,
+          maxStreak: 8,
+        }),
+        RUBRICS.emojiMaster,
+        'emojiMaster'
+      );
+      expect(result.grade).toBe('S');
+      expect(result.accuracy).toBe(100);
+    });
+
+    it('falls to D below C threshold', () => {
+      const result = gradeFromStats(
+        stats({ correctAnswers: 1, totalAnswered: 10, maxStreak: 1 }),
+        RUBRICS.emojiMaster
+      );
+      expect(result.grade).toBe('D');
+    });
+  });
 });
