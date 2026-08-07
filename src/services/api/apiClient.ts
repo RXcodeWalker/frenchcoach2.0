@@ -15,9 +15,13 @@ const API_BASE = import.meta.env.PROD
   ? ''
   : ((import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000');
 
+// Budgets must exceed the backend's own per-provider latency, or a provider that
+// is working perfectly still reads as "timed out" here and gets skipped forever.
+// Measured against prod: Gemini ~23s end-to-end (gemini-3.5-flash thinks before
+// its first token), Groq ~2-5s.
 const ENGINE_TIMEOUT_MS: Record<AIEngine, number> = {
-  gemini: 18000,
-  groq: 8000,
+  gemini: 35000,
+  groq: 15000,
   offline: 0,
 };
 
