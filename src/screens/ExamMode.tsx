@@ -24,7 +24,14 @@ import {
   setPendingScoreSessionId,
   clearPendingScoreSessionId,
 } from '../services/exam/localTranscriptStore';
-import { isExaminerVoiceMuted, setExaminerVoiceMuted, stopExaminerVoice, speakExaminerText } from '../services/exam/examinerVoice';
+import {
+  isExaminerVoiceMuted,
+  setExaminerVoiceMuted,
+  stopExaminerVoice,
+  speakExaminerText,
+  primeExaminerVoice,
+  getExaminerVoiceGeneration,
+} from '../services/exam/examinerVoice';
 import { wait, PRE_SPEECH_LEAD_MS, PRE_LISTEN_PAUSE_MS } from '../services/exam/examinerPacing';
 import { pingScoringServiceHealth, submitForScoring, pollScoreStatus, isTerminalScoringStatus, ScoringApiError } from '../services/exam/scoringApiClient';
 import {
@@ -90,6 +97,10 @@ export function ExamMode() {
     return () => clearInterval(interval);
   }, [examState]);
 
+  // Leaving exam mode (exit, navigation away) must never leave the examiner
+  // talking over another screen.
+  useEffect(() => stopExaminerVoice, []);
+
   // Reliability plan §D: resume-on-reload. A reload during 'scoring' (or
   // after a failure) used to drop the user back to 'select' with the pending
   // session forgotten even though its transcript was already saved. On
@@ -113,14 +124,22 @@ export function ExamMode() {
     // Fresh attempt (first run, or a retake reusing this same mounted component) —
     // clear the startExam re-entrancy guard so the new attempt can actually start.
     startExamBusyRef.current = false;
+    // Boot the TTS engine inside this click, not on the first real utterance —
+    // otherwise the greeting lands seconds after the greeting screen does.
+    primeExaminerVoice();
     setExamState('greeting');
+    const gen = getExaminerVoiceGeneration();
     void (async () => {
       await wait(PRE_SPEECH_LEAD_MS);
-      await speakExaminerText(GREETING_TEXT);
+      await speakExaminerText(GREETING_TEXT, gen);
     })();
   };
 
   const enterCardPreview = async () => {
+    // The greeting is left behind here: cut it off (and drop it if it hasn't
+    // started yet) so it can't play over the role-play preparation card.
+    stopExaminerVoice();
+
     let scenario: RolePlayScenario | undefined = selectedAuthoredSetRef.current?.content.rolePlay;
 
     if (!scenario) {
