@@ -133,7 +133,7 @@ export class SimulationSession {
       requestedRepeat: turn.requestedRepeat || intent === 'repeat_request',
       skipConfirmed: turn.skipConfirmed,
     };
-    candidateResult.relevant = intent === 'answer' ? computeRelevance(candidateResult) : false;
+    candidateResult.relevant = intent === 'answer' ? computeRelevance(candidateResult, part) : false;
 
     // Understanding-only interpreter (Change A/B/D): boosts live conduct-routing
     // recall over messy STT. Its output is a LOCAL variable — never placed on

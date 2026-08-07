@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Mic, MicOff, ArrowRight } from 'lucide-react';
-import { Waveform } from '../../features/recording/Waveform';
+import { ScrollingWaveform } from '../../features/recording/ScrollingWaveform';
 import type { RecordingState } from '../../features/recording/useRecording';
 
 interface Props {
@@ -34,7 +34,7 @@ export function ExamGreeting({ recording, greetingText, onContinue }: Props) {
         </div>
 
         <div className="w-full space-y-4">
-          <Waveform data={recording.waveData} isRecording={recording.isRecording} variant="exam" source={recording.micLevel} />
+          <ScrollingWaveform isRecording={recording.isRecording} source={recording.micLevel} />
 
           <div className="flex items-center justify-center gap-3">
             <motion.button

@@ -28,6 +28,7 @@ import type {
   StepResult,
   TopicQuestionState,
 } from './types';
+import type { SessionPart } from '../stt/types';
 import { canonicalizeForMatch, normalizeForMatch } from '../text/normalize';
 import { stripFillers } from './utteranceIntents';
 
@@ -198,8 +199,19 @@ export function decideExtension(
   return { text: AUTHORIZED_EXTENSION_PROMPTS[index], index };
 }
 
-export function computeRelevance(result: Pick<CandidateTurnResult, 'didRespond' | 'wordCount'>): boolean {
-  return result.didRespond && result.wordCount >= RELEVANCE_WORD_THRESHOLD;
+/**
+ * Role play answers are legitimately short (a time, a price, a single item —
+ * "un sandwich", "à trois heures") and are never scored for development, so the
+ * word-count non-answer gate only applies to topic1/topic2 turns. A role-play
+ * turn is relevant whenever the candidate said anything at all.
+ */
+export function computeRelevance(
+  result: Pick<CandidateTurnResult, 'didRespond' | 'wordCount'>,
+  part: SessionPart = 'topic1',
+): boolean {
+  if (!result.didRespond) return false;
+  if (part === 'rolePlay') return true;
+  return result.wordCount >= RELEVANCE_WORD_THRESHOLD;
 }
 
 /**

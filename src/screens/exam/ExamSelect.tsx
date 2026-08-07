@@ -48,9 +48,12 @@ export function ExamSelect({ onSelect, onAutoFallback }: Props) {
   // Available synchronously — no network — so a card is on screen from the first paint.
   const offlineSets = useMemo(() => getOfflineAuthoredSets(), []);
   const [remote, setRemote] = useState<RemoteState>({ phase: 'loading' });
+  // Bumped on manual retry to re-run the fetch effect below without remounting the screen.
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
+    setRemote({ phase: 'loading' });
     listPublishedQuestionSetsWithRetry()
       .then(({ sets, source }) => {
         if (cancelled) return;
@@ -69,7 +72,7 @@ export function ExamSelect({ onSelect, onAutoFallback }: Props) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [retryCount]);
 
   const sets = remote.phase === 'ready' ? remote.sets : offlineSets;
 
@@ -140,12 +143,21 @@ export function ExamSelect({ onSelect, onAutoFallback }: Props) {
         )}
 
         {remote.phase === 'offline-only' && (
-          <div className="rounded-xl glass-subtle border-dashed border-white/8 p-4">
-            <p className="text-xs font-bold text-white">Offline mode</p>
-            <p className="text-[11px] text-slate-500 mt-0.5">
-              We couldn't reach the exam catalog, so only the offline practice exam above is
-              available right now. Everything still works — your session runs and is scored locally.
-            </p>
+          <div className="rounded-xl glass-subtle border-dashed border-white/8 p-4 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-bold text-white">Offline mode</p>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                We couldn't reach the exam catalog, so only the offline practice exam above is
+                available right now. Everything still works — your session runs and is scored locally.
+              </p>
+            </div>
+            <motion.button
+              onClick={() => setRetryCount((n) => n + 1)}
+              className="flex-shrink-0 px-3 py-1.5 rounded-lg glass-subtle hover:bg-white/[0.04] text-white transition-all font-semibold text-[10px]"
+              whileTap={{ scale: 0.95 }}
+            >
+              Try again
+            </motion.button>
           </div>
         )}
 

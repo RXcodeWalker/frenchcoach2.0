@@ -94,7 +94,7 @@ describe('listPublishedQuestionSetsWithRetry — cold-start retry behavior', () 
 
       vi.stubGlobal('fetch', originalFetch);
     },
-    60_000,
+    100_000,
   );
 });
 

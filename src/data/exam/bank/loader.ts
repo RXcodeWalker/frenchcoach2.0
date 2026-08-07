@@ -83,12 +83,13 @@ async function attemptFetchCatalog(timeoutMs: number): Promise<FetchOutcome<stri
 
 /**
  * Retry/backoff budget for the catalog-listing call, tuned for Render free-tier
- * cold starts (~20-50s). 'timeout'/'http' failures (server is booting, just slow)
- * keep retrying up to TOTAL_BUDGET_MS. 'network' failures (backend genuinely
- * unreachable — the dev/test-without-backend case) fail fast after a couple of
- * quick retries so loader.test.ts's bound still holds.
+ * cold starts (~20-50s, occasionally longer for this service — see
+ * docs/architecture memory on its 512MB tier). 'timeout'/'http' failures (server
+ * is booting, just slow) keep retrying up to TOTAL_BUDGET_MS. 'network' failures
+ * (backend genuinely unreachable — the dev/test-without-backend case) fail fast
+ * after a couple of quick retries so loader.test.ts's bound still holds.
  */
-const RETRY_TOTAL_BUDGET_MS = 45_000;
+const RETRY_TOTAL_BUDGET_MS = 90_000;
 const RETRY_BACKOFF_MS = [1000, 2000, 4000, 6000, 8000];
 const NETWORK_FAILURE_MAX_ATTEMPTS = 2;
 

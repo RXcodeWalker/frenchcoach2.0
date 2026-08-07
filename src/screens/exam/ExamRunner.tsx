@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { Mic, MicOff, ArrowLeft, Volume2, VolumeX, RotateCcw, Info } from 'lucide-react';
-import { Waveform } from '../../features/recording/Waveform';
+import { ScrollingWaveform } from '../../features/recording/ScrollingWaveform';
 import { formatTime } from '../../domain/time';
 import type { RecordingState } from '../../features/recording/useRecording';
 import type { ExaminerAction } from '../../domain/igcse/session/types';
@@ -181,7 +181,7 @@ export function ExamRunner({
             </motion.div>
           ) : (
             <>
-              <Waveform data={recording.waveData} isRecording={recording.isRecording} variant="exam" source={recording.micLevel} />
+              <ScrollingWaveform isRecording={recording.isRecording} source={recording.micLevel} />
               <div className="text-center text-[10px] text-slate-600 tabular-nums">{formatTime(Math.round(elapsedS))}</div>
               {showSilenceNudge ? (
                 <motion.div

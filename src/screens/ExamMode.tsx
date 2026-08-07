@@ -80,6 +80,7 @@ export function ExamMode() {
   const selectedQuestionSetIdRef = useRef<string | undefined>(undefined);
   const selectedAuthoredSetRef = useRef<AuthoredQuestionSet | undefined>(undefined);
   const turnBusyRef = useRef(false);
+  const startExamBusyRef = useRef(false);
 
   // A8: keepalive ping while the exam runs, so the scoring service stays warm
   // through the ~15 min Render free-tier idle window until scoring is needed.
@@ -109,6 +110,9 @@ export function ExamMode() {
   }, []);
 
   const enterGreeting = () => {
+    // Fresh attempt (first run, or a retake reusing this same mounted component) —
+    // clear the startExam re-entrancy guard so the new attempt can actually start.
+    startExamBusyRef.current = false;
     setExamState('greeting');
     void (async () => {
       await wait(PRE_SPEECH_LEAD_MS);
@@ -139,6 +143,13 @@ export function ExamMode() {
   };
 
   const startExam = async () => {
+    // Guards against a double-click on "Begin" re-entering this whole async
+    // flow — without this, two overlapping runs would each speak the first
+    // question and each start a recording, sounding like everything was
+    // read/started twice.
+    if (startExamBusyRef.current) return;
+    startExamBusyRef.current = true;
+
     const questionSetId = selectedQuestionSetIdRef.current;
     // A8: the exam itself is the warm-up window — ping now, invisibly, so the
     // service is awake well before the candidate finishes and scoring is requested.
@@ -178,13 +189,9 @@ export function ExamMode() {
     sessionRef.current = session;
     setExamState('running');
 
-    // Scene-setting is UI-layer speech, like the greeting: never logged to
-    // ConductLog, never scored, never part of SessionQuestionSet/the hash.
-    if (rolePlayScenario) {
-      await wait(PRE_SPEECH_LEAD_MS);
-      await speakExaminerText(rolePlayScenario.setup);
-      await wait(PRE_LISTEN_PAUSE_MS);
-    }
+    // The candidate already read the setup untimed on the preparation card —
+    // it's shown again in the ExamRunner header, but never spoken here; the
+    // examiner's first spoken line is the first role-play question itself.
     setRolePlayScenario(undefined);
 
     const firstAction = await session.begin();
