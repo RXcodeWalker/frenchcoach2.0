@@ -122,7 +122,7 @@ export function ScenarioArchitectSession() {
       // For this demo, we'll just mark one as done every few turns
       if (messages.length > 2 && completedObjectives.length < customScenario.objectives.length) {
         setCompletedObjectives(prev => [...prev, prev.length]);
-        dispatchAddXP(dispatch, 20);
+        dispatchAddXP(dispatch, 20, 'roleplay');
       }
 
     } catch (err) {

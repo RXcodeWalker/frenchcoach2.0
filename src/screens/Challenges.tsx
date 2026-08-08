@@ -95,7 +95,7 @@ export function Challenges() {
 
   const handleClaim = () => {
     // In a real app, this would update the backend
-    dispatchAddXP(dispatch, 400);
+    dispatchAddXP(dispatch, 400, 'challenge');
     // Update local state for immediate feedback
   };
 

@@ -86,7 +86,7 @@ export function EmojiMaster() {
       if (timerRef.current) clearInterval(timerRef.current);
       const xpEarned = calculateXP();
       if (xpEarned > 0) {
-        dispatchAddXP(dispatch, xpEarned);
+        dispatchAddXP(dispatch, xpEarned, 'emoji_master');
       }
     }
   };

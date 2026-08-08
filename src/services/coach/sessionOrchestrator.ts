@@ -14,6 +14,16 @@ import type { OrchestratorInput, OrchestratorResult, CoachRecommendation } from 
 import type { Question, FeedbackV2, AvoidanceSignal } from '../../types';
 import type { EvidenceEvent } from '../../types/evidence';
 import type { EvidenceBeliefSnapshot } from '../../types/beliefs';
+import type { XpSource } from '../../types/social';
+
+/** OrchestratorInput.mode -> canonical XpSource (plan §2.3). */
+const MODE_TO_XP_SOURCE: Record<OrchestratorInput['mode'], XpSource> = {
+  practice: 'practice',
+  exam: 'exam',
+  story: 'story',
+  'daily-news': 'daily_news',
+  'scenario-architect': 'roleplay',
+};
 import { buildEvidence } from './evidenceBuilder';
 import { updateFromFeedback } from './beliefProjectionService';
 import { generateRecommendation } from './recommendationEngine';
@@ -85,7 +95,8 @@ export function orchestrateAttempt(input: OrchestratorInput): OrchestratorResult
   // numeric value — a genuine graded 0 (a real bad answer) must still take the
   // scored path, so branching on "score === 0" would be wrong here.
   const unscored = isUnscored(feedback);
-  const xpResult = unscored ? awardParticipationXP(streakDays) : awardXP(finalScore, streakDays);
+  const xpSource = MODE_TO_XP_SOURCE[mode];
+  const xpResult = unscored ? awardParticipationXP(streakDays, xpSource) : awardXP(finalScore, streakDays, xpSource);
   const { level } = getProgressionState();
 
   // 4. Rebuild the evidence-driven belief snapshot from the full evidence

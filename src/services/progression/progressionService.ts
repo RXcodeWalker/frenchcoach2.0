@@ -2,6 +2,8 @@
 import { STORAGE_KEYS } from '../persistence/storage';
 import { computeXPGain, computeParticipationXPGain } from '../../domain/xp';
 import { evaluateAchievements, type AchievementContext } from '../../data/achievements';
+import { logXpEvent } from '../social/xpLedger';
+import type { XpSource } from '../../types/social';
 const KEY = STORAGE_KEYS.progression;
 const NEEDS_SYNC_KEY = 'frenchCoach_needsSync';
 
@@ -54,7 +56,7 @@ function _progressPct(xp: number) {
   return Math.min(100, Math.round(((xp - lvl.minXP) / (next.minXP - lvl.minXP)) * 100));
 }
 
-export function awardXP(score: number, streak = 0): { gain: number; totalXP: number; gemsGain: number; totalGems: number; levelUp: boolean; activeBoosters: { id: string; expiresAt: string; multiplier: number }[] } {
+export function awardXP(score: number, streak = 0, source: XpSource = 'practice'): { gain: number; totalXP: number; gemsGain: number; totalGems: number; levelUp: boolean; activeBoosters: { id: string; expiresAt: string; multiplier: number }[] } {
   const data = _load();
   const prevXP = data.xp;
   const prevLevel = _levelFor(prevXP);
@@ -77,13 +79,14 @@ export function awardXP(score: number, streak = 0): { gain: number; totalXP: num
   data.gems    = (data.gems || 0) + gemsGain;
   _save(data);
   markNeedsSync();
+  logXpEvent(gain, source, { score, streak });
 
   const newLevel = _levelFor(data.xp);
   return { gain, totalXP: data.xp, gemsGain, totalGems: data.gems, levelUp: newLevel.index > prevLevel.index, activeBoosters: data.activeBoosters };
 }
 
 /** D5: participation path for sessions with no real assessed score — never derives XP/gems from a fabricated score. */
-export function awardParticipationXP(streak = 0): { gain: number; totalXP: number; gemsGain: number; totalGems: number; levelUp: boolean; activeBoosters: { id: string; expiresAt: string; multiplier: number }[] } {
+export function awardParticipationXP(streak = 0, source: XpSource = 'practice'): { gain: number; totalXP: number; gemsGain: number; totalGems: number; levelUp: boolean; activeBoosters: { id: string; expiresAt: string; multiplier: number }[] } {
   const data = _load();
   const prevXP = data.xp;
   const prevLevel = _levelFor(prevXP);
@@ -105,15 +108,16 @@ export function awardParticipationXP(streak = 0): { gain: number; totalXP: numbe
   data.gems    = (data.gems || 0) + gemsGain;
   _save(data);
   markNeedsSync();
+  logXpEvent(gain, source, { streak, participation: true });
 
   const newLevel = _levelFor(data.xp);
   return { gain, totalXP: data.xp, gemsGain, totalGems: data.gems, levelUp: newLevel.index > prevLevel.index, activeBoosters: data.activeBoosters };
 }
 
-export function awardGemsForXP(amount: number): { totalXP: number; totalGems: number; activeBoosters: { id: string; expiresAt: string; multiplier: number }[] } {
+export function awardGemsForXP(amount: number, source: XpSource): { totalXP: number; totalGems: number; activeBoosters: { id: string; expiresAt: string; multiplier: number }[] } {
   const data = _load();
   let gain = amount;
-  
+
   const now = new Date().toISOString();
   const validBoosters = (data.activeBoosters || []).filter(b => b.expiresAt > now);
   validBoosters.forEach(b => {
@@ -126,6 +130,8 @@ export function awardGemsForXP(amount: number): { totalXP: number; totalGems: nu
   data.totalXP = (data.totalXP || 0) + gain;
   data.gems = (data.gems || 0) + gemsGain;
   _save(data);
+  markNeedsSync();
+  logXpEvent(gain, source);
   return { totalXP: data.xp, totalGems: data.gems, activeBoosters: data.activeBoosters };
 }
 

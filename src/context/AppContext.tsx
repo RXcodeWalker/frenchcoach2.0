@@ -1,6 +1,7 @@
 import { createContext, useContext, useReducer, useEffect, useRef, useState, useCallback, type Dispatch, type ReactNode } from 'react';
 import type { User } from '@supabase/supabase-js';
 import type { UserProfile, Achievement, Session, XPAnimation, GemAnimation, SkillProfile, ActiveSession, TopicMasteryEntry, AIEngine, DifficultyTier } from '../types';
+import type { XpSource } from '../types/social';
 import { DEFAULT_DIFFICULTY } from '../utils/difficultyConfig';
 import { ACHIEVEMENTS } from '../data/gameData';
 import { validateAchievementRegistry } from '../data/achievements';
@@ -13,6 +14,8 @@ import { pushProgressionToCloud, pullProgressionFromCloud, mergeProgressionData,
 import { hydrateSessionsFromCloud, pushSessionToCloud, backfillSessionsToCloud, flushPendingQueue } from '../services/sync/sessionSync';
 import { hydrateCoachFromCloud, backfillEvidenceToCloud, pushPendingEvidence } from '../services/sync/coachSync';
 import { hydratePronunciationFromCloud, backfillPronunciationToCloud, flushPendingPronunciationQueue } from '../services/sync/pronunciationSync';
+import { hydrateXpEventsFromCloud, backfillXpEventsToCloud, flushPendingXpEventQueue } from '../services/social/xpLedger';
+import { getXpEventLog } from '../services/social/xpLedgerStorage';
 import { getEvidenceEvents } from '../services/coach/coachStorage';
 import { isMigrationNeeded, markMigrationComplete, runMigration, type MigrationPhase, type MigrationRecord } from '../services/sync/migrationService';
 import * as Sentry from '@sentry/react';
@@ -410,6 +413,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
           sessionHydrationInProgress.current = false;
           void flushPendingQueue(userId);
           void hydratePronunciationFromCloud(userId);
+          void hydrateXpEventsFromCloud(userId).then(({ mergedEvents, cloudIds }) => {
+            void backfillXpEventsToCloud(userId, mergedEvents, cloudIds);
+          });
           hydrationComplete.current = true;
           return;
         }
@@ -464,6 +470,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       // Step 2.6: pronunciation history — pull, merge, write localStorage
       const { mergedAttempts, cloudIds: cloudPronunciationIds } = await hydratePronunciationFromCloud(userId);
 
+      // Step 2.7: XP ledger — pull, merge, write localStorage
+      const { mergedEvents, cloudIds: cloudXpEventIds } = await hydrateXpEventsFromCloud(userId);
+
       // Step 3: re-read analytics (now includes merged sessions) and emit final profile
       const analytics = getStats();
       const progression = getProgressionState();
@@ -489,8 +498,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       void backfillSessionsToCloud(userId, mergedSessions, cloudIds);
       void backfillEvidenceToCloud(userId, getEvidenceEvents(), cloudEvidenceIds);
       void backfillPronunciationToCloud(userId, mergedAttempts, cloudPronunciationIds);
+      void backfillXpEventsToCloud(userId, mergedEvents, cloudXpEventIds);
       void flushPendingQueue(userId);
       void flushPendingPronunciationQueue(userId);
+      void flushPendingXpEventQueue(userId);
 
       // Step 5: open the gate for incremental pushes
       hydrationComplete.current = true;
@@ -530,6 +541,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     markNeedsSync();
     const timer = setTimeout(() => {
       pushProgressionToCloud(authUser.id);
+      // Push any XP ledger events appended locally since the last push (each
+      // earning call appends synchronously — see progressionService.ts).
+      // backfillXpEventsToCloud filters to already-unsynced rows internally,
+      // so passing the full local log here is a cheap no-op for old events.
+      void backfillXpEventsToCloud(authUser.id, getXpEventLog(), new Set());
     }, 2000);
     return () => clearTimeout(timer);
   }, [state.profile.total_xp, state.profile.gems, state.achievements, authUser?.id]);
@@ -550,6 +566,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       void flushPendingQueue(userId);
       void pushPendingEvidence(userId);
       void flushPendingPronunciationQueue(userId);
+      void flushPendingXpEventQueue(userId);
     };
     window.addEventListener('online', handler);
     return () => window.removeEventListener('online', handler);
@@ -610,10 +627,11 @@ export function useApp() {
 export function dispatchAddXP(
   dispatch: Dispatch<Action>,
   amount: number,
+  source: XpSource,
   coords?: { x: number; y: number }
 ) {
   const prev = getProgressionState();
-  const { totalXP, totalGems, activeBoosters } = awardGemsForXP(amount);
+  const { totalXP, totalGems, activeBoosters } = awardGemsForXP(amount, source);
   const gemGain = totalGems - prev.gems;
   dispatch({ type: 'ADD_XP', amount, totalXP, totalGems, gemGain, activeBoosters, ...coords });
 }

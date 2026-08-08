@@ -2,11 +2,14 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
   awardXP,
+  awardParticipationXP,
   awardGemsForXP,
+  setProgressionData,
   checkAchievements,
   getProgressionState,
 } from '../progressionService';
 import { computeXPGain } from '../../../domain/xp';
+import { getXpEventLog } from '../../social/xpLedgerStorage';
 
 const KEY = 'frenchCoach_progression';
 
@@ -126,7 +129,7 @@ describe('awardXP', () => {
 
 describe('awardGemsForXP', () => {
   it('adds XP and gems from plain amount', () => {
-    const { totalXP, totalGems } = awardGemsForXP(20);
+    const { totalXP, totalGems } = awardGemsForXP(20, 'minigame');
     expect(totalXP).toBe(20);
     expect(totalGems).toBe(2); // floor(20/10)=2
   });
@@ -138,21 +141,21 @@ describe('awardGemsForXP', () => {
       activeBoosters: [{ id: 'double_xp', expiresAt: future, multiplier: 2 }],
       grammarCoachUses: 0, roleplayCount: 0,
     }));
-    const { totalXP } = awardGemsForXP(10);
+    const { totalXP } = awardGemsForXP(10, 'minigame');
     expect(totalXP).toBe(20);
   });
 
   it('gem formula: floor(boostedGain / 10), no score bonus', () => {
-    const { totalGems } = awardGemsForXP(25);
+    const { totalGems } = awardGemsForXP(25, 'minigame');
     expect(totalGems).toBe(2); // floor(25/10)=2
   });
 
   it('REGRESSION: one logical award = exactly one XP increment', () => {
-    awardGemsForXP(20);
+    awardGemsForXP(20, 'minigame');
     const after1 = JSON.parse(localStorage.getItem(KEY)!);
     expect(after1.xp).toBe(20);
 
-    awardGemsForXP(20);
+    awardGemsForXP(20, 'minigame');
     const after2 = JSON.parse(localStorage.getItem(KEY)!);
     expect(after2.xp).toBe(40);
   });
@@ -235,5 +238,70 @@ describe('getProgressionState', () => {
   it('returns Beast Mode at 7000 XP', () => {
     seedXP(7000);
     expect(getProgressionState().level.name).toBe('Beast Mode');
+  });
+});
+
+// ── XP ledger emission (social layer plan §1.5, §2.2) ────────────────────────
+// Ledger emission must happen inside exactly the three earning functions, and
+// setProgressionData (a reconciliation merge, not earned XP) must never emit
+// — that's the one trap in this instrumentation point (plan §1.5).
+
+describe('XP ledger emission', () => {
+  it('awardXP appends exactly one ledger event with the correct amount and source', () => {
+    const { gain } = awardXP(5, 0, 'exam');
+    const log = getXpEventLog();
+    expect(log).toHaveLength(1);
+    expect(log[0].amount).toBe(gain);
+    expect(log[0].source).toBe('exam');
+  });
+
+  it('awardParticipationXP appends exactly one ledger event with the correct source', () => {
+    const { gain } = awardParticipationXP(0, 'story');
+    const log = getXpEventLog();
+    expect(log).toHaveLength(1);
+    expect(log[0].amount).toBe(gain);
+    expect(log[0].source).toBe('story');
+  });
+
+  it('awardGemsForXP appends exactly one ledger event with the correct source', () => {
+    awardGemsForXP(50, 'minigame');
+    const log = getXpEventLog();
+    expect(log).toHaveLength(1);
+    expect(log[0].amount).toBe(50);
+    expect(log[0].source).toBe('minigame');
+  });
+
+  it('awardXP defaults to source "practice" when no source is passed', () => {
+    awardXP(5, 0);
+    expect(getXpEventLog()[0].source).toBe('practice');
+  });
+
+  it('three separate award calls produce three separate ledger events, never merged', () => {
+    awardXP(5, 0, 'practice');
+    awardParticipationXP(0, 'exam');
+    awardGemsForXP(10, 'minigame');
+    expect(getXpEventLog()).toHaveLength(3);
+  });
+
+  it('setProgressionData does NOT emit a ledger event — it is reconciliation, not earned XP', () => {
+    setProgressionData({
+      xp: 100, totalXP: 100, gems: 10, achievements: [],
+      inventory: {}, activeBoosters: [], grammarCoachUses: 0, roleplayCount: 0,
+    });
+    expect(getXpEventLog()).toHaveLength(0);
+  });
+
+  it('a login-triggered cloud merge (setProgressionData) after real awards does not inflate the ledger', () => {
+    awardXP(5, 0, 'practice');
+    expect(getXpEventLog()).toHaveLength(1);
+
+    // Simulate the AppContext cloud-merge path calling setProgressionData.
+    setProgressionData({
+      xp: 200, totalXP: 200, gems: 20, achievements: [],
+      inventory: {}, activeBoosters: [], grammarCoachUses: 0, roleplayCount: 0,
+    });
+
+    // Still exactly one event — the merge did not add a second.
+    expect(getXpEventLog()).toHaveLength(1);
   });
 });

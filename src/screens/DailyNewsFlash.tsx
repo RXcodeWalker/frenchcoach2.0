@@ -201,7 +201,7 @@ export function DailyNewsFlash() {
       };
       
       persistSession(session);
-      const xpResult = awardXP(newsStats.overall, state.profile.streak_days);
+      const xpResult = awardXP(newsStats.overall, state.profile.streak_days, 'daily_news');
       const { level: newLevel } = getProgressionState();
       const newUnlockedAchievementIds = checkAchievements(
         buildAchievementContext({
@@ -238,7 +238,7 @@ export function DailyNewsFlash() {
         cefrLevel: 'A1'
       };
       setFeedback(fallbackFb);
-      dispatchAddXP(dispatch, 5);
+      dispatchAddXP(dispatch, 5, 'daily_news');
       setPhase('feedback');
     } finally {
       setIsProcessing(false);
@@ -247,7 +247,7 @@ export function DailyNewsFlash() {
 
   const handleRevealTranscript = () => {
     setShowTranscript(true);
-    dispatchAddXP(dispatch, -5);
+    dispatchAddXP(dispatch, -5, 'daily_news');
   };
 
   const handleRetry = () => {

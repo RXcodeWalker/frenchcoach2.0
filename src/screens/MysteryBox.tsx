@@ -29,7 +29,7 @@ export function MysteryBox() {
       
       setTimeout(() => {
         setBoxState('revealed');
-        dispatchAddXP(dispatch, randomReward.value);
+        dispatchAddXP(dispatch, randomReward.value, 'mystery_box');
       }, 1000);
     }, 1500);
   };

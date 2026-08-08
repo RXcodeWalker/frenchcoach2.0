@@ -462,7 +462,7 @@ export function ExamMode() {
       // D5: participation XP either way — score-derived XP would need calibration-backed
       // meaning behind a /40 Cambridge total that S6 hasn't established yet (see the
       // "Unvalidated estimate" framing in ExamResults).
-      const xpResult = awardParticipationXP(state.profile.streak_days);
+      const xpResult = awardParticipationXP(state.profile.streak_days, 'exam');
       const { level: newLevel } = getProgressionState();
       const newUnlockedAchievementIds = checkAchievements(
         buildAchievementContext({

@@ -55,6 +55,10 @@ export const STORAGE_KEYS = {
   pronunciationHistory:          'frenchCoach_pronunciationHistory',
   syncedPronunciationIds:        'frenchCoach_syncedPronunciationIds',
   pendingSyncPronunciationIds:   'frenchCoach_pendingSyncPronunciationIds',
+  // ── XP ledger cloud sync (social layer plan §1.3, §2.2, §5) ───────────────────────
+  xpEventLog:              'frenchCoach_xpEventLog',
+  syncedXpEventIds:        'frenchCoach_syncedXpEventIds',
+  pendingSyncXpEventIds:   'frenchCoach_pendingSyncXpEventIds',
 } as const;
 
 export type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS];

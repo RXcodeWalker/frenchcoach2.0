@@ -78,7 +78,7 @@ export const MicroDrillModal: React.FC<MicroDrillModalProps> = ({ skillId, onClo
       setFeedback('correct');
       setScore(s => s + 10);
       setCorrectCount(c => c + 1);
-      dispatchAddXP(dispatch, 10);
+      dispatchAddXP(dispatch, 10, 'micro_drill');
     } else {
       setFeedback('incorrect');
     }

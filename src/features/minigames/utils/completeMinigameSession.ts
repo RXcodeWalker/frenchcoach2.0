@@ -16,6 +16,6 @@ export function completeMinigameSession({
   score,
 }: CompleteMinigameSessionOptions): void {
   if (score > 0) {
-    dispatchAddXP(dispatch, score);
+    dispatchAddXP(dispatch, score, 'minigame');
   }
 }

@@ -11,7 +11,7 @@ describe('completeMinigameSession', () => {
   it('dispatches XP when score is positive', () => {
     const dispatch = vi.fn();
     completeMinigameSession({ dispatch, score: 50 });
-    expect(dispatchAddXP).toHaveBeenCalledWith(dispatch, 50);
+    expect(dispatchAddXP).toHaveBeenCalledWith(dispatch, 50, 'minigame');
   });
 
   it('skips dispatch when score is zero', () => {

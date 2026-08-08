@@ -59,7 +59,7 @@ export function ListeningMode() {
     if (correct) {
       setScore(s => s + 1);
       triggerConfetti();
-      dispatchAddXP(dispatch, 15, { x: window.innerWidth / 2, y: window.innerHeight / 2 });
+      dispatchAddXP(dispatch, 15, 'listening', { x: window.innerWidth / 2, y: window.innerHeight / 2 });
     }
     setState('feedback');
     setQuestionsDone(d => d + 1);

@@ -110,7 +110,7 @@ export function SentenceRebuilder() {
         return newStreak;
       });
       setCorrectAnswers(c => c + 1);
-      dispatchAddXP(dispatch, finalPoints);
+      dispatchAddXP(dispatch, finalPoints, 'sentence_rebuilder');
       speak(currentQuestion.french);
     } else {
       setFeedback('incorrect');

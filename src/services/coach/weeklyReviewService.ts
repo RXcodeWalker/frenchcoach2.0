@@ -8,6 +8,7 @@ import { getBeliefSnapshot, getRecentEvidence } from './coachStorage';
 import { getSkillLabel } from './skillGraph';
 import { getCoachProfile, daysUntilExam } from './coachProfileService';
 import { getStats as _getStats } from '../analytics/analyticsService';
+import { getWeekKey } from '../../domain/weekKey';
 
 const WEEK_MS = 7 * 86400000;
 
@@ -213,23 +214,18 @@ function buildTutorSummary(
 }
 
 // ── Seen state helpers ────────────────────────────────────────────────────────
-
-function getCurrentWeekKey(): string {
-  const d = new Date();
-  const dayOfWeek = (d.getDay() + 6) % 7; // Mon=0
-  d.setDate(d.getDate() - dayOfWeek + 3);
-  const firstThursday = new Date(d.getFullYear(), 0, 4);
-  const weekNum = 1 + Math.round(((d.getTime() - firstThursday.getTime()) / 86400000 - 3 + ((firstThursday.getDay() + 6) % 7)) / 7);
-  return `${d.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
-}
+// getCurrentWeekKey previously computed an ISO week from local getDay()/
+// getFullYear(), which disagreed with dateKey()'s UTC-based bucketing at
+// day/week boundaries for non-UTC users (plan §1.6). Now delegates to the
+// shared UTC util so this module agrees with the XP ledger's week_key.
 
 export function markWeeklyReviewSeen(): void {
-  storageSet(STORAGE_KEYS.coachWeeklyReviewSeen, { weekKey: getCurrentWeekKey() });
+  storageSet(STORAGE_KEYS.coachWeeklyReviewSeen, { weekKey: getWeekKey() });
 }
 
 export function hasSeenWeeklyReviewThisWeek(): boolean {
   const stored = storageGet<{ weekKey: string } | null>(STORAGE_KEYS.coachWeeklyReviewSeen, null);
-  return stored?.weekKey === getCurrentWeekKey();
+  return stored?.weekKey === getWeekKey();
 }
 
 // ── Public API ────────────────────────────────────────────────────────────────

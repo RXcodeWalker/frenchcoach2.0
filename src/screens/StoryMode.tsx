@@ -152,7 +152,7 @@ export function StoryMode() {
     });
     dispatch({ type: 'UPDATE_SKILL_PROFILE', skillProfile: getSkillProfile() });
 
-    dispatchAddXP(dispatch, 10);
+    dispatchAddXP(dispatch, 10, 'story');
   };
 
   const handleNextStep = async () => {
@@ -221,7 +221,7 @@ export function StoryMode() {
         addMessage("Excellent travail ! L'échange est terminé.", 'ai');
         setExpression('excited');
         setIsFinished(true);
-        dispatchAddXP(dispatch, 50);
+        dispatchAddXP(dispatch, 50, 'story');
       }, 1000);
     }
   };

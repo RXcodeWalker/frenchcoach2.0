@@ -192,7 +192,7 @@ export function WordDrop() {
       createdAt: new Date().toISOString(),
     };
     persistSession(session);
-    const xpResult = awardXP(sessionScore, state.profile.streak_days);
+    const xpResult = awardXP(sessionScore, state.profile.streak_days, 'word_drop');
     const { level: newLevel } = getProgressionState();
     const newUnlockedAchievementIds = checkAchievements(
       buildAchievementContext({

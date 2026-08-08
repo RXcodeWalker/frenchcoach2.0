@@ -171,7 +171,7 @@ export function AccentAnalyzer() {
       if (score >= PRACTICE_PASS_SCORE) {
         const xp = Math.round((score / 10) * (attempts === 1 ? 2 : 1.5));
         setSessionXP(s => s + xp);
-        dispatchAddXP(dispatch, xp);
+        dispatchAddXP(dispatch, xp, 'accent_analyzer');
       }
       if (score >= 90) {
         dispatch({ type: 'MARK_DRILL_MASTERED', drillId: currentDrill.id });
