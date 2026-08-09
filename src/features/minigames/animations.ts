@@ -19,6 +19,9 @@ const ACCENT_TIMER_BAR: Record<string, { normal: string; critical: string; overd
   orange: { normal: 'bg-orange-500', critical: 'bg-red-500', overdrive: 'bg-orange-400' },
   blue: { normal: 'bg-blue-500', critical: 'bg-red-500', overdrive: 'bg-blue-400' },
   red: { normal: 'bg-red-500', critical: 'bg-red-500', overdrive: 'bg-red-400' },
+  purple: { normal: 'bg-purple-500', critical: 'bg-red-500', overdrive: 'bg-purple-400' },
+  yellow: { normal: 'bg-yellow-500', critical: 'bg-red-500', overdrive: 'bg-yellow-400' },
+  violet: { normal: 'bg-violet-500', critical: 'bg-red-500', overdrive: 'bg-violet-400' },
 };
 
 export function getTimerBarColor(

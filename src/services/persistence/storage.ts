@@ -59,6 +59,8 @@ export const STORAGE_KEYS = {
   xpEventLog:              'frenchCoach_xpEventLog',
   syncedXpEventIds:        'frenchCoach_syncedXpEventIds',
   pendingSyncXpEventIds:   'frenchCoach_pendingSyncXpEventIds',
+  // ── Emoji Master personal bests (versioned payload) ─────────────────────────────
+  emojiMasterBests: 'frenchCoach_emojiMasterBests',
 } as const;
 
 export type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS];

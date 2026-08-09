@@ -6,6 +6,7 @@
 export function normalizeFrench(input: string): string {
   return input
     .toLowerCase()
+    .replace(/[\u2018\u2019]/g, "'")
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .trim()

@@ -34,6 +34,7 @@ export const RUBRICS: {
   survival: GradeRubric;
   speedSpeaking: GradeRubric;
   speakingArena: GradeRubric;
+  emojiMaster: GradeRubric;
 } = {
   rapidFire: {
     S: (s) => s.accuracy >= 90 && s.maxStreak >= 10 && s.totalAnswered >= 15,
@@ -57,6 +58,12 @@ export const RUBRICS: {
     S: (s) => s.accuracy >= 90 && (s.wave ?? 0) >= 5 && s.totalAnswered >= 20,
     A: (s) => s.accuracy >= 80 && (s.wave ?? 0) >= 3,
     B: (s) => s.accuracy >= 65 && (s.wave ?? 0) >= 2,
+    C: (s) => s.accuracy >= 40,
+  },
+  emojiMaster: {
+    S: (s) => s.accuracy >= 90 && s.maxStreak >= 8 && s.totalAnswered >= 10,
+    A: (s) => s.accuracy >= 80 && s.maxStreak >= 5,
+    B: (s) => s.accuracy >= 65 && s.totalAnswered >= 5,
     C: (s) => s.accuracy >= 40,
   },
 };

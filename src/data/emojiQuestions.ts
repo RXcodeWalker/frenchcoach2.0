@@ -279,6 +279,60 @@ export const EMOJI_QUESTIONS: EmojiQuestion[] = [
     category: 'nature',
     difficulty: 2
   },
+  {
+    id: '31',
+    emojis: '🐰',
+    french: 'le lapin',
+    english: 'the rabbit',
+    options: ['le chat', 'le lapin', 'le chien', 'le lion'],
+    category: 'animals',
+    difficulty: 1
+  },
+  {
+    id: '32',
+    emojis: '🐦',
+    french: 'l\'oiseau',
+    english: 'the bird',
+    options: ['le poisson', 'l\'oiseau', 'le chat', 'le cheval'],
+    category: 'animals',
+    difficulty: 1
+  },
+  {
+    id: '33',
+    emojis: '🐟',
+    french: 'le poisson',
+    english: 'the fish',
+    options: ['le poisson', 'l\'oiseau', 'le chat', 'le chien'],
+    category: 'animals',
+    difficulty: 1
+  },
+  {
+    id: '34',
+    emojis: '🐴',
+    french: 'le cheval',
+    english: 'the horse',
+    options: ['le chien', 'le cheval', 'le lion', 'le lapin'],
+    category: 'animals',
+    difficulty: 1
+  },
+  {
+    id: '35',
+    emojis: '📚',
+    french: 'le livre',
+    english: 'the book',
+    options: ['le cahier', 'le livre', 'le stylo', 'la table'],
+    category: 'objects',
+    difficulty: 1
+  },
+  {
+    id: '36',
+    emojis: '✏️',
+    french: 'le crayon',
+    english: 'the pencil',
+    options: ['le stylo', 'le crayon', 'le livre', 'la règle'],
+    category: 'objects',
+    difficulty: 1
+  },
   // Adding Sentence Questions
 
   {
@@ -325,6 +379,15 @@ export const EMOJI_QUESTIONS: EmojiQuestion[] = [
     options: ['Le train s\'arrête', 'La voiture va vite sur la route', 'Le vélo est cassé', 'Il pleut aujourd\'hui'],
     category: 'sentences',
     difficulty: 3
+  },
+  {
+    id: 's6',
+    emojis: '👧📖🏫',
+    french: 'Elle lit un livre à l\'école',
+    english: 'She is reading a book at school',
+    options: ['Il écrit une lettre', 'Elle lit un livre à l\'école', 'Nous jouons au parc', 'Tu manges une pomme'],
+    category: 'sentences',
+    difficulty: 2
   }
 ];
 

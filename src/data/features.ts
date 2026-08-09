@@ -42,7 +42,7 @@ export const FEATURES: FeatureCard[] = [
   { id: 'rapid_fire', title: 'Rapid Fire', description: 'Translate as fast as you can', icon: '⚡', category: 'Fun Modes', color: '#F59E0B', locked: false, screen: 'rapid-fire' },
   { id: 'boss_battle', title: 'Boss Battles', description: 'Defeat grammar bosses', icon: '👾', category: 'Fun Modes', color: '#EF4444', locked: false, screen: 'boss-battle' },
   { id: 'story_mode', title: 'Story Mode', description: 'Learn through interactive stories', icon: '📖', category: 'Fun Modes', color: '#10B981', locked: false, screen: 'story-mode' },
-  { id: 'emoji_master', title: 'Emoji Master', description: 'Decode French words from emojis', icon: '🎨', category: 'Fun Modes', color: '#FACC15', locked: false, screen: 'emoji-master' },
+  { id: 'emoji_master', title: 'Emoji Master', description: 'Decode French from emojis — Arena, Blitz, and more', icon: '🎨', category: 'Fun Modes', color: '#FACC15', locked: false, screen: 'emoji-master', badge: 'New' },
   { id: 'mystery_box', title: 'Mystery Box', description: 'Open a daily box for rewards', icon: '🎁', category: 'Fun Modes', color: '#EC4899', locked: false, screen: 'mystery-box' },
   { id: 'survival', title: 'Survival Mode', description: 'How long can you keep going?', icon: '🏝', category: 'Fun Modes', color: '#F97316', locked: false, screen: 'survival' },
   { id: 'speed', title: 'Speed Speaking', description: 'Race against the clock', icon: '⏱', category: 'Fun Modes', color: '#06B6D4', locked: false, screen: 'speed-speaking' },
