@@ -373,7 +373,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           const mergedLevel = levelFor(merged.totalXP);
           const progressionProfile: UserProfile = {
             id: userId,
-            username: null,
+            username: cloudRow.username,
             total_xp: merged.totalXP,
             gems: merged.gems,
             current_level: mergedLevel.name as UserProfile['current_level'],
@@ -396,7 +396,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           const finalLevel = levelFor(progression.totalXP);
           const newProfile: UserProfile = {
             id: userId,
-            username: null,
+            username: cloudRow.username,
             total_xp: progression.totalXP,
             gems: progression.gems,
             current_level: finalLevel.name as UserProfile['current_level'],
@@ -440,7 +440,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const mergedLevel = levelFor(merged.totalXP);
         const progressionProfile: UserProfile = {
           id: userId,
-          username: null,
+          username: cloudRow.username,
           total_xp: merged.totalXP,
           gems: merged.gems,
           current_level: mergedLevel.name as UserProfile['current_level'],
@@ -479,7 +479,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const mergedLevel = levelFor(progression.totalXP);
       const newProfile: UserProfile = {
         id: userId,
-        username: null,
+        username: cloudRow?.username ?? null,
         total_xp: progression.totalXP,
         gems: progression.gems,
         current_level: mergedLevel.name as UserProfile['current_level'],

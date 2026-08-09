@@ -3,15 +3,12 @@ export type Screen = 'home' | 'learn' | 'exam' | 'progress' | 'profile' | 'explo
 
 export type Level = 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert' | 'Beast Mode';
 
-export type League = 'Bronze' | 'Silver' | 'Gold' | 'Platinum' | 'Diamond' | 'Champion';
-
 export interface RankingUser {
   id: string;
   username: string;
   avatar?: string;
   totalXP: number;
   weeklyXP: number;
-  currentLeague: League;
   streak: number;
   isCurrentUser?: boolean;
   rank?: number;

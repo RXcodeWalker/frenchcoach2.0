@@ -108,7 +108,7 @@ export function Home() {
     <div className="flex flex-col min-h-screen">
       <TopContextBar 
         title="Dashboard" 
-        subtitle={`Welcome back, ${profile.username}`}
+        subtitle={`Welcome back, ${profile.username ?? 'French Learner'}`}
       />
       
       <PageShell>

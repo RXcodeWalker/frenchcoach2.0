@@ -9,6 +9,7 @@ export type CloudProgressionRow = {
   inventory: Record<string, number>;
   active_boosters: { id: string; expiresAt: string; multiplier: number }[];
   migration_version: number;
+  username: string | null;
 };
 
 export async function pushProgressionToCloud(
@@ -63,7 +64,7 @@ export async function pullProgressionFromCloud(
   try {
     const { data, error } = await supabase
       .from('profiles')
-      .select('total_xp, gems, achievements, inventory, active_boosters, migration_version')
+      .select('total_xp, gems, achievements, inventory, active_boosters, migration_version, username')
       .eq('id', userId)
       .single();
 
@@ -81,6 +82,7 @@ export async function pullProgressionFromCloud(
       inventory: (data.inventory as Record<string, number>) ?? {},
       active_boosters: (data.active_boosters as { id: string; expiresAt: string; multiplier: number }[]) ?? [],
       migration_version: (data.migration_version as number) ?? 0,
+      username: (data.username as string | null) ?? null,
     };
   } catch (err) {
     console.warn('[progressionSync] pull error:', err);

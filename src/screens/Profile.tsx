@@ -1,5 +1,6 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Volume2, Moon, Bell, Globe, Database, Shield, ChevronRight, Zap, Trophy, Flame, TrendingUp, BookOpen, LogOut, Target, SlidersHorizontal } from 'lucide-react';
+import { Volume2, Moon, Bell, Globe, Database, Shield, ChevronRight, Zap, Trophy, Flame, TrendingUp, BookOpen, LogOut, Target, SlidersHorizontal, AtSign, Loader2, Check, UserX, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
@@ -9,6 +10,22 @@ import { fadeUp } from '../components/motion/variants';
 import { PageShell } from '../components/layout/PageShell';
 import { SettingToggle } from '../components/ui/SettingToggle';
 import { useGuestMode } from '../hooks/useGuestMode';
+import { renameUsername, isValidUsername } from '../services/social/usernameService';
+import {
+  getPrivacySettings, setDiscoverable, setLeaderboardVisibility, setFriendRequestsFrom,
+  type PrivacySettings, type LeaderboardVisibility,
+} from '../services/social/privacyService';
+import { listBlockedUsers, unblockUser, type BlockedUserEntry } from '../services/social/blockService';
+
+const RENAME_REASON_COPY: Record<string, string> = {
+  invalid_format: 'Start with a letter, 3–20 characters, letters/numbers/underscore only.',
+  reserved_client_side: 'That name is reserved. Try another.',
+  already_set: 'You already have a username.',
+  taken: 'That username is already taken.',
+  throttled: 'You can only change your username once every 30 days.',
+  offline: 'You need to be signed in to rename your username.',
+  unknown: 'Something went wrong. Try again.',
+};
 
 export function Profile() {
   const { state, dispatch } = useApp();
@@ -18,6 +35,45 @@ export function Profile() {
   const { profile } = state;
   const { current, progress } = getLevelInfo(profile.total_xp);
   const unlockedCount = state.achievements.filter(a => a.unlocked).length;
+
+  const [renaming, setRenaming] = useState(false);
+  const [renameValue, setRenameValue] = useState('');
+  const [renameSubmitting, setRenameSubmitting] = useState(false);
+  const [renameError, setRenameError] = useState<string | null>(null);
+
+  const [privacy, setPrivacy] = useState<PrivacySettings | null>(null);
+  const [blockedUsers, setBlockedUsers] = useState<BlockedUserEntry[]>([]);
+  const [showBlockedList, setShowBlockedList] = useState(false);
+
+  useEffect(() => {
+    if (!profile.id) return;
+    void getPrivacySettings(profile.id).then(setPrivacy);
+  }, [profile.id]);
+
+  useEffect(() => {
+    if (showBlockedList) void listBlockedUsers().then(setBlockedUsers);
+  }, [showBlockedList]);
+
+  async function handleUnblock(userId: string) {
+    const result = await unblockUser(userId);
+    if (result.ok) setBlockedUsers(prev => prev.filter(u => u.userId !== userId));
+  }
+
+  async function handleRename(e: React.FormEvent) {
+    e.preventDefault();
+    if (!isValidUsername(renameValue) || renameSubmitting) return;
+    setRenameSubmitting(true);
+    setRenameError(null);
+    const result = await renameUsername(renameValue);
+    setRenameSubmitting(false);
+    if (result.ok) {
+      dispatch({ type: 'SET_PROFILE', profile: { ...state.profile, username: renameValue } });
+      setRenaming(false);
+      setRenameValue('');
+    } else {
+      setRenameError(RENAME_REASON_COPY[result.reason]);
+    }
+  }
 
   return (
     <PageShell maxWidth="sm">
@@ -105,6 +161,106 @@ export function Profile() {
         </div>
       </motion.div>
 
+      {/* Username */}
+      <motion.div variants={fadeUp} className="rounded-xl glass p-4">
+        <h3 className="font-bold text-slate-600 text-[10px] uppercase tracking-wider mb-2.5">Username</h3>
+        {renaming ? (
+          <form onSubmit={handleRename} className="space-y-2.5">
+            <input
+              autoFocus
+              value={renameValue}
+              onChange={e => { setRenameValue(e.target.value); setRenameError(null); }}
+              placeholder={profile.username ?? 'marie_92'}
+              maxLength={20}
+              className="w-full bg-navy-300/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-violet-electric/50 transition-colors"
+            />
+            {renameError && <p className="text-[10px] text-rose-400">{renameError}</p>}
+            <div className="flex gap-2">
+              <button
+                type="submit"
+                disabled={!isValidUsername(renameValue) || renameSubmitting}
+                className="flex-1 py-2 rounded-lg bg-violet-electric text-white text-[10px] font-bold disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+              >
+                {renameSubmitting ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
+                Save
+              </button>
+              <button
+                type="button"
+                onClick={() => { setRenaming(false); setRenameError(null); setRenameValue(''); }}
+                className="px-3 py-2 rounded-lg text-[10px] font-semibold text-slate-500 hover:text-slate-300 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+            <p className="text-[9px] text-slate-700">Usernames can be changed once every 30 days.</p>
+          </form>
+        ) : (
+          <button
+            onClick={() => setRenaming(true)}
+            className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-white/[0.02] transition-colors text-left"
+          >
+            <AtSign size={14} className="text-violet-400" />
+            <div className="flex-1">
+              <p className="text-[10px] font-semibold text-white">{profile.username ?? 'Claim a username'}</p>
+              <p className="text-[9px] text-slate-600">{profile.username ? 'Change your username' : 'Pick a name others will see on the leaderboard'}</p>
+            </div>
+            <ChevronRight size={12} className="text-slate-700" />
+          </button>
+        )}
+      </motion.div>
+
+      {/* Social Privacy */}
+      {privacy && (
+        <motion.div variants={fadeUp} className="rounded-xl glass p-4">
+          <h3 className="font-bold text-slate-600 text-[10px] uppercase tracking-wider mb-2.5">Social Privacy</h3>
+          <div className="space-y-0.5">
+            <SettingToggle
+              icon={<Globe size={14} />}
+              label="Discoverable"
+              description="Let others find you by username search"
+              enabled={privacy.discoverable}
+              onToggle={() => {
+                const next = !privacy.discoverable;
+                setPrivacy({ ...privacy, discoverable: next });
+                void setDiscoverable(profile.id, next);
+              }}
+            />
+            <SettingToggle
+              icon={<Users size={14} />}
+              label="Accept Friend Requests"
+              description="Allow other learners to send you requests"
+              enabled={privacy.friendRequestsFrom === 'anyone'}
+              onToggle={() => {
+                const next = privacy.friendRequestsFrom === 'anyone' ? 'nobody' : 'anyone';
+                setPrivacy({ ...privacy, friendRequestsFrom: next });
+                void setFriendRequestsFrom(profile.id, next);
+              }}
+            />
+            <div className="p-2.5">
+              <p className="text-[10px] font-semibold text-white mb-2">Leaderboard visibility</p>
+              <div className="flex p-1 bg-navy-300/30 rounded-lg">
+                {(['global', 'friends', 'hidden'] as LeaderboardVisibility[]).map(v => (
+                  <button
+                    key={v}
+                    onClick={() => {
+                      setPrivacy({ ...privacy, leaderboardVisibility: v });
+                      void setLeaderboardVisibility(profile.id, v);
+                    }}
+                    className={`flex-1 px-2 py-1.5 rounded-md text-[10px] font-bold capitalize transition-all ${
+                      privacy.leaderboardVisibility === v
+                        ? 'bg-white/10 text-white'
+                        : 'text-slate-600 hover:text-slate-400'
+                    }`}
+                  >
+                    {v}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {/* Learning Goals */}
       <motion.div variants={fadeUp} className="rounded-xl glass p-4">
         <h3 className="font-bold text-slate-600 text-[10px] uppercase tracking-wider mb-2.5">Learning Goals</h3>
@@ -183,6 +339,34 @@ export function Profile() {
             <div className="flex-1"><p className="text-[10px] font-semibold text-white">Privacy Policy</p><p className="text-[9px] text-slate-700">How we handle your data</p></div>
             <ChevronRight size={12} className="text-slate-700" />
           </button>
+          <button
+            onClick={() => setShowBlockedList(v => !v)}
+            className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-white/[0.02] transition-colors text-left"
+          >
+            <UserX size={14} className="text-slate-600" />
+            <div className="flex-1"><p className="text-[10px] font-semibold text-white">Blocked Users</p><p className="text-[9px] text-slate-700">{blockedUsers.length > 0 ? `${blockedUsers.length} blocked` : 'Manage blocked learners'}</p></div>
+            <ChevronRight size={12} className={`text-slate-700 transition-transform ${showBlockedList ? 'rotate-90' : ''}`} />
+          </button>
+          {showBlockedList && (
+            <div className="pl-2.5 space-y-1 pb-1">
+              {blockedUsers.length === 0 ? (
+                <p className="text-[9px] text-slate-700 py-2">No blocked users.</p>
+              ) : (
+                blockedUsers.map(u => (
+                  <div key={u.userId} className="flex items-center gap-2.5 p-2 rounded-lg bg-white/[0.02]">
+                    <span className="text-sm">{u.avatar ?? '👤'}</span>
+                    <p className="flex-1 text-[10px] text-slate-300">{u.username}</p>
+                    <button
+                      onClick={() => handleUnblock(u.userId)}
+                      className="text-[9px] font-bold text-violet-400 hover:text-violet-300 transition-colors"
+                    >
+                      Unblock
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
           {isAdmin && (
             <button
               onClick={() => navigate('/admin')}

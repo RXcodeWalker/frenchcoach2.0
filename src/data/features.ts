@@ -32,7 +32,7 @@ export const FEATURES: FeatureCard[] = [
   { id: 'xp_shop', title: 'XP Shop', description: 'Spend XP on themes and power-ups', icon: '🛍', category: 'Gamification', color: '#F59E0B', locked: false, screen: 'shop' },
   { id: 'achievements', title: 'Achievements', description: '12 milestones to unlock', icon: '🏆', category: 'Gamification', color: '#F59E0B', locked: false, screen: 'progress' },
   { id: 'challenges', title: 'Challenges', description: 'Weekly competitive events', icon: '⚔', category: 'Gamification', color: '#EF4444', locked: false, screen: 'challenges' },
-  { id: 'leaderboard', title: 'Leaderboards', description: 'Compete with learners worldwide', icon: '📊', category: 'Gamification', color: '#10B981', locked: true },
+  { id: 'leaderboard', title: 'Leaderboards', description: 'Compete with learners worldwide', icon: '📊', category: 'Gamification', color: '#10B981', locked: false, screen: 'rankings' },
   { id: 'seasonal', title: 'Seasonal Events', description: 'Limited-time themed challenges', icon: '🎄', category: 'Gamification', color: '#EC4899', locked: true },
   { id: 'skill_tree', title: 'Skill Tree', description: 'Unlock branches as you master topics', icon: '🌳', category: 'Progression', color: '#10B981', locked: false, screen: 'progress', tab: 'tree' },
   { id: 'roadmap', title: 'French Roadmap', description: 'Your personalized learning path', icon: '🗺', category: 'Progression', color: '#7C3AED', locked: false, screen: 'roadmap' },
@@ -49,7 +49,7 @@ export const FEATURES: FeatureCard[] = [
   { id: 'word_drop', title: 'Word Drop', description: 'Type translations before words hit the ground!', icon: '☄️', category: 'Fun Modes', color: '#10B981', locked: false, screen: 'word-drop', badge: 'New' },
   { id: 'friends', title: 'Friend Challenges', description: 'Challenge friends to duels', icon: '🤝', category: 'Community', color: '#7C3AED', locked: false, screen: 'friend-challenges' },
   { id: 'groups', title: 'Study Groups', description: 'Learn together in groups', icon: '👥', category: 'Community', color: '#10B981', locked: true },
-  { id: 'rankings', title: 'Rankings', description: 'See where you stand', icon: '🥇', category: 'Community', color: '#F59E0B', locked: true },
+  { id: 'rankings', title: 'Rankings', description: 'See where you stand', icon: '🥇', category: 'Community', color: '#F59E0B', locked: false, screen: 'rankings' },
   { id: 'shared', title: 'Shared Progress', description: 'Compare progress with friends', icon: '🔄', category: 'Community', color: '#EC4899', locked: false, screen: 'friend-challenges' },
 ];
 

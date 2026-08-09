@@ -1,19 +1,16 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
 import {
   Swords,
   Target,
   Zap,
   Clock,
-  ChevronRight,
   Users,
   Star,
-  Shield,
   ArrowLeft,
-  Gift,
-  Award
+  Gift
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useApp, dispatchAddXP } from '../context/AppContext';
 
 interface Challenge {
@@ -77,21 +74,12 @@ const GLOBAL_CHALLENGE = {
   participants: 12450
 };
 
-const LEAGUES = [
-  { name: 'Diamond', icon: <Shield className="text-cyan-400" />, minXp: 5000 },
-  { name: 'Platinum', icon: <Shield className="text-slate-300" />, minXp: 3500 },
-  { name: 'Gold', icon: <Shield className="text-amber-400" />, minXp: 2000 },
-  { name: 'Silver', icon: <Shield className="text-slate-400" />, minXp: 1000 },
-  { name: 'Bronze', icon: <Shield className="text-orange-600" />, minXp: 0 },
-];
-
 export function Challenges() {
   const navigate = useNavigate();
   const { dispatch } = useApp();
-  const [activeTab, setActiveTab] = useState<'weekly' | 'global' | 'league'>('weekly');
+  const [activeTab, setActiveTab] = useState<'weekly' | 'global'>('weekly');
 
   const userXpThisWeek = 2450; // Mock weekly XP
-  const currentLeague = LEAGUES.find(l => userXpThisWeek >= l.minXp) || LEAGUES[LEAGUES.length - 1];
 
   const handleClaim = () => {
     // In a real app, this would update the backend
@@ -141,14 +129,6 @@ export function Challenges() {
               }`}
             >
               <Users size={14} /> GLOBAL
-            </button>
-            <button
-              onClick={() => setActiveTab('league')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-bold transition-all ${
-                activeTab === 'league' ? 'bg-rose-500/10 text-rose-500' : 'text-slate-500 hover:text-slate-300'
-              }`}
-            >
-              <Shield size={14} /> LEAGUE
             </button>
           </div>
         </div>
@@ -320,96 +300,6 @@ export function Challenges() {
                   </button>
                 </div>
               </div>
-            </motion.div>
-          )}
-
-          {activeTab === 'league' && (
-            <motion.div
-              key="league"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="space-y-6"
-            >
-              {/* League Header */}
-              <div className="glass-elevated p-8 rounded-3xl text-center space-y-6">
-                <motion.div 
-                  className="w-24 h-24 mx-auto relative"
-                  animate={{ y: [0, -8, 0] }}
-                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                >
-                  <div className="absolute inset-0 bg-cyan-400/20 blur-2xl rounded-full" />
-                  <div className="relative w-full h-full flex items-center justify-center">
-                    {currentLeague.icon}
-                  </div>
-                </motion.div>
-                <div>
-                  <h2 className="text-3xl font-black text-white italic tracking-tighter uppercase">{currentLeague.name} League</h2>
-                  <p className="text-slate-500 text-sm">You are currently in the top 15% of all learners!</p>
-                </div>
-
-                <div className="grid grid-cols-3 gap-4 max-w-lg mx-auto pt-4">
-                  <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
-                    <p className="text-xl font-black text-white">#142</p>
-                    <p className="text-[8px] font-bold text-slate-600 uppercase">Current Rank</p>
-                  </div>
-                  <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
-                    <p className="text-xl font-black text-white">4</p>
-                    <p className="text-[8px] font-bold text-slate-600 uppercase">Weeks in Gold</p>
-                  </div>
-                  <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
-                    <p className="text-xl font-black text-emerald-400">+12</p>
-                    <p className="text-[8px] font-bold text-slate-600 uppercase">Places Today</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* League Road */}
-              <div className="space-y-4">
-                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">League Progression</h3>
-                <div className="space-y-2">
-                  {LEAGUES.map((league) => {
-                    const isCurrent = league.name === currentLeague.name;
-                    const isUnlocked = userXpThisWeek >= league.minXp;
-                    
-                    return (
-                      <div 
-                        key={league.name}
-                        className={`p-5 rounded-2xl flex items-center justify-between transition-all border ${
-                          isCurrent ? 'bg-cyan-500/10 border-cyan-500/30' : 
-                          isUnlocked ? 'bg-slate-900/40 border-emerald-500/20' : 
-                          'bg-slate-900/20 border-white/5 opacity-50'
-                        }`}
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isCurrent ? 'bg-cyan-500/20' : 'bg-white/5'}`}>
-                            {league.icon}
-                          </div>
-                          <div>
-                            <h4 className="font-bold text-white">{league.name}</h4>
-                            <p className="text-[10px] text-slate-500">Min. {league.minXp} XP / week</p>
-                          </div>
-                        </div>
-                        {isUnlocked ? (
-                          <div className="flex items-center gap-2 text-[10px] font-bold text-emerald-400">
-                            <Award size={14} />
-                            <span>UNLOCKED</span>
-                          </div>
-                        ) : (
-                          <div className="text-[10px] font-bold text-slate-700">LOCKED</div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <button 
-                onClick={() => navigate('/rankings')}
-                className="w-full py-4 glass-elevated border-white/5 rounded-2xl text-xs font-bold text-slate-400 hover:text-white transition-all flex items-center justify-center gap-2 group"
-              >
-                View Full Leaderboard <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
-              </button>
             </motion.div>
           )}
         </AnimatePresence>
