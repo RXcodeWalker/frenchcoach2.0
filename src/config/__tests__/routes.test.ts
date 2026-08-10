@@ -24,7 +24,11 @@ function extractRoutePaths(source: string): { registered: string[]; devOnly: str
   const withoutDevBlock = devBlock ? source.replace(devBlock, '') : source;
 
   const devOnly = [...devBlock.matchAll(/path="([^"]+)"/g)].map((m) => m[1]);
-  const registered = [...withoutDevBlock.matchAll(/path="([^"]+)"/g)].map((m) => m[1]);
+  // "*" is React Router's catch-all syntax, not a real route — it must never
+  // get a routes.ts entry or a Stage C static shell.
+  const registered = [...withoutDevBlock.matchAll(/path="([^"]+)"/g)]
+    .map((m) => m[1])
+    .filter((p) => p !== '*');
 
   return { registered, devOnly };
 }

@@ -4,7 +4,7 @@ import { AnimatePresence, motion, type Variants } from 'framer-motion';
 import { Zap } from 'lucide-react';
 import { AppProvider, useApp } from './context/AppContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { Auth } from './screens/Auth';
+import { PublicRoutes } from './PublicRoutes';
 import { XPAnimations } from './components/XPAnimation';
 import { GemAnimations } from './components/GemAnimation';
 import { SideRail } from './components/Navigation';
@@ -44,6 +44,9 @@ import { SpeakingArena } from './screens/SpeakingArena';
 import { Challenges } from './screens/Challenges';
 import { DailyNewsFlash } from './screens/DailyNewsFlash';
 import { CoachBeliefDebug } from './screens/CoachBeliefDebug';
+import { NotFound } from './screens/NotFound';
+import { IgcseFrenchSpeaking } from './screens/IgcseFrenchSpeaking';
+import { FrenchRoleplayPractice } from './screens/FrenchRoleplayPractice';
 import { AdminRoute } from './components/auth/AdminRoute';
 import { AdminLayout } from './layouts/AdminLayout';
 import { AdminDashboard } from './screens/admin/AdminDashboard';
@@ -199,8 +202,10 @@ function AppShell() {
   // '/login' is an intentionally unregistered pathname: it never appears as a
   // <Route> below, it only exists here to force the auth screen back up for a
   // guest who wants to convert to a real account, without clearing guestMode.
+  // PublicRoutes renders it (and every other public/unmatched path) via its
+  // own <Auth /> route, preserving the same behavior as the old direct return.
   if (supabaseConfigured && !user && (!isGuest || location.pathname === '/login')) {
-    return <Auth />;
+    return <PublicRoutes />;
   }
 
   const coachProfile = getCoachProfile();
@@ -321,12 +326,22 @@ function AppShell() {
           {import.meta.env.DEV && (
             <Route path="/debug/beliefs" element={<CoachBeliefDebug />} />
           )}
+          {/* Catch-all for signed-in/guest users hitting an unregistered app path.
+              Client-side fallback only — vercel.json's rewrite is what makes a hard
+              load of an unknown URL reach React at all. */}
+          <Route path="*" element={<NotFound />} />
         </Route>
 
         <Route element={<ExamLayout />}>
           <Route path="/exam" element={<ExamMode />} />
           <Route path="/onboarding" element={<Onboarding />} />
         </Route>
+
+        {/* Marketing pages, reachable for signed-in/guest users via footer
+            links on the other marketing pages. Each renders its own
+            MarketingLayout — no MainLayout/AppProvider chrome needed. */}
+        <Route path="/igcse-french-speaking" element={<IgcseFrenchSpeaking />} />
+        <Route path="/french-roleplay-practice" element={<FrenchRoleplayPractice />} />
 
         {/* Admin content management — gated on JWT app_metadata.role */}
         <Route element={<AdminRoute />}>

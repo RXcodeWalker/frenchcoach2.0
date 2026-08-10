@@ -15,8 +15,10 @@ export interface RouteEntry {
 // kind:'dev-only' — a <Route> guarded by import.meta.env.DEV; tree-shaken out of
 // production builds, so it must never get a prod shell.
 export const ROUTES: RouteEntry[] = [
-  { path: '/', kind: 'app', indexable: false },
+  { path: '/', kind: 'app', indexable: true },
   { path: '/about', kind: 'public', indexable: true },
+  { path: '/igcse-french-speaking', kind: 'public', indexable: true },
+  { path: '/french-roleplay-practice', kind: 'public', indexable: true },
 
   { path: '/login', kind: 'unregistered', indexable: false },
 
