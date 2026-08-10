@@ -1,10 +1,15 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "trailingSlash": false,
+  "cleanUrls": true,
   "rewrites": [
     {
       "source": "/api/(.*)",
       "destination": "https://french-coach-backend.onrender.com/api/$1"
     },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/admin/questions/:id/edit", "destination": "/admin/index.html" },
+    { "source": "/admin/questions/:id/history", "destination": "/admin/index.html" },
+    { "source": "/admin/scenarios/:id/edit", "destination": "/admin/index.html" },
+    { "source": "/admin/scenarios/:id/history", "destination": "/admin/index.html" }
   ]
 }
