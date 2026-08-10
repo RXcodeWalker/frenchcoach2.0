@@ -114,6 +114,18 @@ export function Onboarding() {
     return 'igcse';
   }
 
+  // Same end state as manually picking "Just learning" then "Casual learning"
+  // on steps 1 and 3 — a one-click shortcut through the already-supported
+  // no-exam / casual path, not a new "no goal" state.
+  function skipSurvey() {
+    setActiveGoal('general_speaking', undefined);
+    if (initialExamDate) {
+      updateCoachProfile({ examDate: undefined });
+    }
+    invalidateDailyPlan();
+    navigate('/', { replace: true });
+  }
+
   function handleComplete() {
     const newGoalType = computeGoalType();
     const goalChanged = newGoalType !== initialGoalType;
@@ -202,6 +214,14 @@ export function Onboarding() {
               >
                 Next
               </button>
+              {!isEditMode && (
+                <button
+                  onClick={skipSurvey}
+                  className="mt-2 w-full py-2 rounded-xl font-semibold text-xs text-slate-500 hover:text-slate-400 transition-colors"
+                >
+                  Skip for now
+                </button>
+              )}
             </motion.div>
           )}
 
