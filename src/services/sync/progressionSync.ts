@@ -95,7 +95,9 @@ export function mergeProgressionData(
   cloud: CloudProgressionRow
 ): ProgressionData {
   const mergedTotalXP = Math.max(local.totalXP, cloud.total_xp);
-  const mergedGems = Math.max(local.gems, cloud.gems);
+  // Gems are spent locally (purchaseItem/consumeItem), so a stale cloud value
+  // must never win — Math.max here would silently refund every purchase.
+  const mergedGems = local.gems;
 
   const mergedAchievements = Array.from(
     new Set([...local.achievements, ...cloud.achievements])

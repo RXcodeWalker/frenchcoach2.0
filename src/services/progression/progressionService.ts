@@ -159,12 +159,13 @@ export function activateBooster(itemId: string, durationMinutes: number, multipl
 export function purchaseItem(itemId: string, cost: number): boolean {
   const data = _load();
   if ((data.gems || 0) < cost) return false;
-  
+
   data.gems = (data.gems || 0) - cost;
   if (!data.inventory) data.inventory = {};
   data.inventory[itemId] = (data.inventory[itemId] || 0) + 1;
-  
+
   _save(data);
+  markNeedsSync();
   return true;
 }
 
@@ -180,9 +181,10 @@ export function consumeStreakFreeze(): boolean {
 export function consumeItem(itemId: string): boolean {
   const data = _load();
   if (!data.inventory || !data.inventory[itemId] || data.inventory[itemId] <= 0) return false;
-  
+
   data.inventory[itemId]--;
   _save(data);
+  markNeedsSync();
   return true;
 }
 

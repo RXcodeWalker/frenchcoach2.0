@@ -3,13 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   ShoppingBag,
   Gem,
-  Zap,
   ArrowLeft,
   CheckCircle2,
-  Flame,
-  Clock,
   Package,
-  Timer,
   ChevronRight,
   Info
 } from 'lucide-react';
@@ -19,7 +15,7 @@ import { useApp } from '../context/AppContext';
 import { SHOP_ITEMS, ShopItem } from '../data/shopItems';
 import { PageShell } from '../components/layout/PageShell';
 import { fadeUp } from '../components/motion/variants';
-import { purchaseItem, activateBooster, getProgressionState } from '../services/progression/progressionService';
+import { purchaseItem, getProgressionState } from '../services/progression/progressionService';
 import type { Level } from '../types';
 
 type Tab = 'featured' | 'powerups' | 'cosmetics' | 'inventory';
@@ -100,45 +96,12 @@ export function Shop() {
     }
   };
 
-  const handleActivate = (item: ShopItem) => {
-    if (ownedCount(item.id) <= 0) return;
-
-    // Generic booster activation for items with specific logic
-    const durationMap: Record<string, number> = {
-      'xp_boost': 15,
-      'double_gems': 1440,
-      'time_warp': 10,
-    };
-
-    const multiplierMap: Record<string, number> = {
-      'xp_boost': 2,
-      'double_gems': 2,
-    };
-
-    const duration = durationMap[item.id] || 60;
-    const multiplier = multiplierMap[item.id] || 1;
-
-    if (activateBooster(item.id, duration, multiplier)) {
-      dispatch({ type: 'ACTIVATE_BOOSTER', itemId: item.id, durationMinutes: duration, multiplier });
-      triggerBoosterConfetti();
-    }
-  };
-
   const triggerPurchaseConfetti = () => {
     confetti({
       particleCount: 100,
       spread: 70,
       origin: { y: 0.6 },
       colors: ['#10B981', '#34D399', '#6EE7B7'],
-    });
-  };
-
-  const triggerBoosterConfetti = () => {
-    confetti({
-      particleCount: 150,
-      spread: 100,
-      origin: { y: 0.6 },
-      colors: ['#8B5CF6', '#A78BFA', '#C4B5FD'],
     });
   };
 
@@ -213,65 +176,6 @@ export function Shop() {
             exit={{ opacity: 0, y: -20 }}
             className="space-y-8"
           >
-            {/* Daily Deal Hero */}
-            <div className="relative overflow-hidden rounded-[2rem] bg-slate-900 border border-white/5 shadow-2xl">
-              <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-violet-600/20 rounded-full blur-[120px] -mr-48 -mt-48 animate-pulse" />
-              <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-emerald-600/10 rounded-full blur-[100px] -ml-24 -mb-24" />
-              
-              <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2">
-                <div className="p-8 md:p-12 flex flex-col justify-center text-left">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center gap-1.5">
-                      <Clock size={12} className="text-amber-400" />
-                      <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest">Limited Time</span>
-                    </div>
-                    <div className="px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center gap-1.5">
-                      <Flame size={12} className="text-rose-400" />
-                      <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest">Daily Deal</span>
-                    </div>
-                  </div>
-
-                  <h2 className="text-4xl md:text-5xl font-black text-white mb-4 leading-tight">
-                    Legendary <br /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500">Gem Magnet</span>
-                  </h2>
-                  <p className="text-slate-400 text-lg mb-8 max-w-md leading-relaxed">
-                    Maximize your earnings with the double gem magnet. Earn 2x gems for every practice session for the next 24 hours!
-                  </p>
-
-                  <div className="flex items-center gap-4">
-                    <button 
-                      onClick={() => handlePurchase(SHOP_ITEMS.find(i => i.id === 'double_gems')!)}
-                      className="px-10 py-4 bg-white text-slate-900 font-black rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-xl shadow-white/10"
-                    >
-                      GET FOR 2,000
-                    </button>
-                    <div className="flex flex-col">
-                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Ends In</span>
-                      <span className="text-xl font-black text-white">04:12:35</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="hidden lg:flex items-center justify-center p-12 relative">
-                  <motion.div 
-                    className="w-64 h-64 bg-white/5 rounded-full border border-white/10 flex items-center justify-center text-9xl relative"
-                    animate={{ y: [0, -20, 0], rotate: [0, 5, -5, 0] }}
-                    transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-                  >
-                    <div className="absolute inset-0 bg-emerald-500/20 blur-3xl rounded-full" />
-                    🧲
-                    <motion.div 
-                      className="absolute -top-4 -right-4 w-20 h-20 bg-amber-500 rounded-3xl flex items-center justify-center text-4xl shadow-2xl border-4 border-slate-900"
-                      animate={{ scale: [1, 1.1, 1] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    >
-                      💎
-                    </motion.div>
-                  </motion.div>
-                </div>
-              </div>
-            </div>
-
             {/* Featured Grid */}
             <div className="space-y-6">
               <div className="flex items-center justify-between">
@@ -280,10 +184,10 @@ export function Shop() {
                   VIEW ALL <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
                 </button>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {SHOP_ITEMS.slice(0, 3).map((item) => (
-                  <ShopItemCard key={item.id} item={item} onPurchase={handlePurchase} onActivate={handleActivate} />
+                  <ShopItemCard key={item.id} item={item} onPurchase={handlePurchase} />
                 ))}
               </div>
             </div>
@@ -300,7 +204,7 @@ export function Shop() {
           >
             {filteredItems.length > 0 ? (
               filteredItems.map((item) => (
-                <ShopItemCard key={item.id} item={item} onPurchase={handlePurchase} onActivate={handleActivate} />
+                <ShopItemCard key={item.id} item={item} onPurchase={handlePurchase} />
               ))
             ) : (
               <div className="col-span-full py-20 flex flex-col items-center justify-center text-center space-y-4">
@@ -354,16 +258,14 @@ export function Shop() {
   );
 }
 
-function ShopItemCard({ item, onPurchase, onActivate }: { 
-  item: ShopItem, 
+function ShopItemCard({ item, onPurchase }: {
+  item: ShopItem,
   onPurchase: (item: ShopItem) => void,
-  onActivate: (item: ShopItem) => void 
 }) {
   const { state } = useApp();
   const { profile } = state;
   const count = profile.inventory[item.id] || 0;
-  const active = (profile.activeBoosters || []).some(b => b.id === item.id && new Date(b.expiresAt) > new Date());
-  
+
   const rarity = useMemo(() => {
     switch (item.rarity) {
       case 'common': return { text: 'text-slate-400', bg: 'bg-slate-400/10', border: 'border-slate-400/20', shadow: 'shadow-slate-500/5' };
@@ -430,30 +332,6 @@ function ShopItemCard({ item, onPurchase, onActivate }: {
             <Gem size={16} className={canAfford ? 'text-emerald-600' : 'text-slate-800'} />
             {item.cost.toLocaleString()}
           </button>
-
-          {count > 0 && (
-            <button
-              onClick={() => onActivate(item)}
-              disabled={active}
-              className={`w-full py-4 rounded-2xl flex items-center justify-center gap-3 font-black text-xs uppercase italic tracking-widest transition-all ${
-                active
-                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.1)]'
-                  : 'bg-violet-600 hover:bg-violet-500 text-white shadow-xl shadow-violet-600/20 hover:scale-[1.02] active:scale-95'
-              }`}
-            >
-              {active ? (
-                <>
-                  <Timer size={14} className="animate-spin-slow" />
-                  BOOSTER ACTIVE
-                </>
-              ) : (
-                <>
-                  <Zap size={14} />
-                  ACTIVATE ITEM
-                </>
-              )}
-            </button>
-          )}
         </div>
       </div>
       

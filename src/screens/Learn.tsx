@@ -2,7 +2,6 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { TOPICS } from '../data/gameData';
-import { consumeItem } from '../services/progression/progressionService';
 import { getAIFeedback, streamFeedback, getExaminerFeedback } from '../services/api/apiClient';
 import { assessPronunciation } from '../services/pronunciation/pronunciationClient';
 import type { PronunciationAssessment } from '../domain/pronunciation/types';
@@ -271,20 +270,9 @@ export function Learn() {
     const unscored = isUnscored(fb);
     const finalScore = fb.scores.overall;
 
-    // E3: perfect_shield boosts XP/rewards only, and only when there's a real
-    // score to boost — it never fabricates a score for an unscored attempt.
-    let xpScore = finalScore;
-    if (!unscored && finalScore < 8.5 && (profile.inventory['perfect_shield'] || 0) > 0) {
-      xpScore = Math.max(8.5, finalScore + 2);
-      // eslint-disable-next-line react-hooks/rules-of-hooks
-      if (consumeItem('perfect_shield')) {
-        dispatch({ type: 'USE_ITEM', itemId: 'perfect_shield' });
-      }
-    }
-
     const { gain: xpGain, gemsGain: gemGain } = unscored
       ? computeParticipationXPGain(profile.streak_days)
-      : computeXPGain(xpScore, profile.streak_days);
+      : computeXPGain(finalScore, profile.streak_days);
 
     const session: Session = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
