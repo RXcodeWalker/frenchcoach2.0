@@ -15,6 +15,7 @@ const REASON_COPY: Record<string, string> = {
   taken: 'That username is already taken.',
   throttled: 'You can only change your username once every 30 days.',
   offline: 'You need to be signed in to claim a username.',
+  not_signed_in: 'Your session has expired. Sign in again to claim a username.',
   unknown: 'Something went wrong. Try again.',
 };
 

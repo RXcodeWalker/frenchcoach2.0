@@ -32,8 +32,8 @@ type WeeklyLeaderboardRow = {
   weekly_xp: number;
 };
 
-type ProfileTotalXpRow = {
-  id: string;
+type AllTimeLeaderboardRow = {
+  user_id: string;
   username: string;
   avatar_emoji: string | null;
   total_xp: number;
@@ -91,11 +91,14 @@ async function fetchWeeklyPage(weekKey: string, currentUserId: string | null): P
 }
 
 /**
- * All-time leaderboard reads profiles.total_xp via the same restricted
- * public_profile-adjacent projection — never scans xp_events (plan §3.2).
- * total_xp isn't on public_profile (it's cross-user-sensitive on the base
- * table but fine to expose ranked, since that's the point of a leaderboard);
- * exposed here via a dedicated select rather than widening public_profile.
+ * All-time leaderboard reads total_xp via the all_time_leaderboard view —
+ * never scans xp_events (plan §3.2), and never the profiles table directly.
+ * Reading profiles here would return at most one row: its SELECT policy is
+ * self-scoped (auth.uid() = id) and must stay that way, so cross-user reads
+ * go through a curated view, exactly as weekly_leaderboard does. total_xp
+ * isn't on public_profile (cross-user-sensitive on the base table, but fine
+ * to expose ranked — that's the point of a leaderboard), hence a second view
+ * rather than widening public_profile.
  */
 export async function getAllTimeLeaderboard(currentUserId: string | null): Promise<RankingUser[]> {
   if (!supabaseConfigured) return [];
@@ -108,12 +111,10 @@ export async function getAllTimeLeaderboard(currentUserId: string | null): Promi
 
   try {
     const { data, error } = await supabase
-      .from('profiles')
-      .select('id, username, avatar_emoji, total_xp')
-      .eq('leaderboard_visibility', 'global')
-      .not('username', 'is', null)
+      .from('all_time_leaderboard')
+      .select('user_id, username, avatar_emoji, total_xp')
       .order('total_xp', { ascending: false })
-      .order('id', { ascending: true })
+      .order('user_id', { ascending: true })
       .limit(PAGE_SIZE);
 
     if (error) {
@@ -121,14 +122,14 @@ export async function getAllTimeLeaderboard(currentUserId: string | null): Promi
       return cached?.rows ?? [];
     }
 
-    const rows: RankingUser[] = ((data as ProfileTotalXpRow[]) ?? []).map((row, i) => ({
-      id: row.id,
+    const rows: RankingUser[] = ((data as AllTimeLeaderboardRow[]) ?? []).map((row, i) => ({
+      id: row.user_id,
       username: row.username,
       avatar: row.avatar_emoji ?? undefined,
       totalXP: row.total_xp,
       weeklyXP: 0,
       streak: 0,
-      isCurrentUser: row.id === currentUserId,
+      isCurrentUser: row.user_id === currentUserId,
       rank: i + 1,
     }));
 
@@ -169,10 +170,8 @@ export async function getMyAllTimeRank(myTotalXp: number): Promise<number | null
   if (!supabaseConfigured) return null;
   try {
     const { count, error } = await supabase
-      .from('profiles')
-      .select('id', { count: 'exact', head: true })
-      .eq('leaderboard_visibility', 'global')
-      .not('username', 'is', null)
+      .from('all_time_leaderboard')
+      .select('user_id', { count: 'exact', head: true })
       .gt('total_xp', myTotalXp);
 
     if (error) {

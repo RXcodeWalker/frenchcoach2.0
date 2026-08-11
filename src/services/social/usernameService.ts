@@ -19,7 +19,7 @@ export function isValidUsername(username: string): boolean {
 
 export type UsernameResult =
   | { ok: true }
-  | { ok: false; reason: 'invalid_format' | 'reserved_client_side' | 'already_set' | 'throttled' | 'taken' | 'offline' | 'unknown' };
+  | { ok: false; reason: 'invalid_format' | 'reserved_client_side' | 'already_set' | 'throttled' | 'taken' | 'offline' | 'not_signed_in' | 'unknown' };
 
 // Mirrors the seed list in the reserved_usernames migration, for an instant
 // client-side rejection before round-tripping to the RPC. Not authoritative
@@ -40,6 +40,11 @@ function mapPostgresError(message: string): UsernameResult {
   // failure mode; Postgres error code 23505, but supabase-js surfaces it as
   // a message substring here rather than a structured code in all versions.
   if (message.includes('duplicate key') || message.includes('23505')) return { ok: false, reason: 'taken' };
+  // Both RPCs are SECURITY INVOKER, so a missing session (or a missing GRANT
+  // on profiles) surfaces as a Postgres permission error, not an auth error.
+  // Distinguished from 'unknown' so the modal can say something actionable
+  // instead of "try again" — retrying is exactly what won't help here.
+  if (message.includes('permission denied')) return { ok: false, reason: 'not_signed_in' };
   return { ok: false, reason: 'unknown' };
 }
 

@@ -4,6 +4,7 @@ import { Trophy, Users, Globe, Clock, Flame, Check, X as XIcon, UserMinus, Inbox
 import { PageShell } from '../components/layout/PageShell';
 import { UsernameSetupModal } from '../components/ui/UsernameSetupModal';
 import { useApp } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
 import { getWeeklyLeaderboard, getAllTimeLeaderboard, getMyWeeklyRank, getMyAllTimeRank, type Timeframe } from '../services/social/leaderboardService';
 import {
   listFriendships, acceptFriendRequest, declineFriendRequest, cancelFriendRequest, removeFriend, sendFriendRequest,
@@ -31,6 +32,12 @@ function nextWeekRolloverLabel(): string {
 export function Rankings() {
   const { state } = useApp();
   const { profile } = state;
+  // profile.id is the local placeholder 'local-user' (AppContext), not a uuid —
+  // every social table keys on the Supabase auth uuid, so passing profile.id
+  // makes PostgREST reject the filter outright ("invalid input syntax for type
+  // uuid"). Signed-out users get no social data at all rather than a bad query.
+  const { user } = useAuth();
+  const authUserId = user?.id ?? null;
   const [activeTab, setActiveTab] = useState<Tab>('global');
   const [timeframe, setTimeframe] = useState<Timeframe>('weekly');
   const [users, setUsers] = useState<RankingUser[]>([]);
@@ -49,8 +56,8 @@ export function Rankings() {
   const load = useCallback(async () => {
     setLoading(true);
     const rows = timeframe === 'weekly'
-      ? await getWeeklyLeaderboard(profile.id)
-      : await getAllTimeLeaderboard(profile.id);
+      ? await getWeeklyLeaderboard(authUserId)
+      : await getAllTimeLeaderboard(authUserId);
     setUsers(rows);
 
     const mine = rows.find(u => u.isCurrentUser);
@@ -63,14 +70,19 @@ export function Rankings() {
       setMyRank(rank);
     }
     setLoading(false);
-  }, [timeframe, profile.id, profile.total_xp]);
+  }, [timeframe, authUserId, profile.total_xp]);
 
   const loadFriendships = useCallback(async () => {
+    if (!authUserId) {
+      setFriendships([]);
+      setFriendsLoading(false);
+      return;
+    }
     setFriendsLoading(true);
-    const rows = await listFriendships(profile.id);
+    const rows = await listFriendships(authUserId);
     setFriendships(rows);
     setFriendsLoading(false);
-  }, [profile.id]);
+  }, [authUserId]);
 
   useEffect(() => {
     if (activeTab === 'global') void load();
@@ -81,8 +93,10 @@ export function Rankings() {
   }, [activeTab, loadFriendships]);
 
   useEffect(() => {
-    if (!profile.username) setShowUsernameModal(true);
-  }, [profile.username]);
+    // claim_username is GRANT EXECUTE ... TO authenticated, so prompting a
+    // signed-out user can only ever end in a failed claim.
+    if (authUserId && !profile.username) setShowUsernameModal(true);
+  }, [authUserId, profile.username]);
 
   useEffect(() => {
     if (searchDebounce.current) clearTimeout(searchDebounce.current);
