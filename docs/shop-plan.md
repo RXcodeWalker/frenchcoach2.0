@@ -361,6 +361,11 @@ REVOKE INSERT, UPDATE, DELETE ON public.scoring_envelopes, public.session_transc
 
 **Views:** `public_profile` and `weekly_leaderboard` must be DROPped and recreated to add `equipped_frame`/`equipped_nameplate` (and to `weekly_leaderboard`'s `GROUP BY`). **Do not add `security_invoker`** — the migration header explains why these two deliberately run as owner.
 
+**Phase 3 correction (added, not part of the original Rev. 2 text):** this list was incomplete. Two more cross-user surfaces also need `equipped_frame`/`equipped_nameplate`, discovered during Phase 3 frontend work:
+
+- `all_time_leaderboard` — same treatment as `weekly_leaderboard` (runs as owner, no `security_invoker`), covered alongside it once the view existed (it postdates this plan's last schema read).
+- `discoverable_profiles` (backs username search) — **opposite semantics from the other three.** It is `WITH (security_invoker = true)` *on purpose*, so `auth.uid()` inside it reflects the calling user for its block-filter `NOT EXISTS` predicate. Adding the two columns must not touch that — dropping `security_invoker` here would leak blocked users into search results, and adding it to the other three would reintroduce the RLS wall they exist to bypass. All four views: DROP + recreate, never `CREATE OR REPLACE` (Postgres rejects adding columns via replace).
+
 ### 14.3 SECURITY DEFINER hardening (A11)
 
 Applies to `purchase_shop_item`, `equip_cosmetic`, `consume_item`, `mint_gems`. Every point below is required.
@@ -524,6 +529,7 @@ Flip `FEATURE_FLAGS.shop` to `live` only after §16 passes. Verify earn rate aga
 2. Buy an avatar → one ledger row, one inventory row, correct balance.
 3. Buy offline → clean error, no state change; reconnect and retry with the same key → charges once.
 4. Equip on A; open Rankings on B → avatar, frame, nameplate render.
+4a. *(Added during Phase 3 implementation, §14.2 correction.)* Equip on A; search for A's username from B → frame/nameplate render in the search result. Have A block B, then repeat the search from B → A does not appear at all (confirms `discoverable_profiles`'s block filter still works with `security_invoker` intact after adding the two columns).
 5. Buy a Streak Freeze, skip a day, return → streak intact, freeze **not** restored by the next cloud pull (A9). *(Blocked until Phase 4 — see precondition above.)*
 6. Two tabs: purchase in one, confirm the other reconciles on focus.
 7. Mobile pass at 375px: no horizontal scroll, sheet drags, tabs scroll, gems pill navigates.

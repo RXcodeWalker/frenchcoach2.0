@@ -13,8 +13,20 @@ import {
 import { searchUsernames, type SearchResult } from '../services/social/searchService';
 import { getWeekKey } from '../domain/weekKey';
 import { RankingUser } from '../types';
+import { CosmeticPreview } from '../components/ui/CosmeticPreview';
+import { useCatalogue } from '../services/shop/useCatalogue';
+import { rarityOf, RARITY_COLOR } from '../services/shop/rarity';
+import type { ShopItem } from '../types/shop';
 
 type Tab = 'global' | 'friends' | 'requests';
+
+function makeNameplateColorLookup(catalogue: ShopItem[]) {
+  return (itemId: string | null | undefined): React.CSSProperties | undefined => {
+    if (!itemId) return undefined;
+    const item = catalogue.find(i => i.id === itemId);
+    return item ? { color: RARITY_COLOR[rarityOf(item)] } : undefined;
+  };
+}
 
 function nextWeekRolloverLabel(): string {
   // Next UTC Monday 00:00 — the boundary the shared week-key util rolls over on.
@@ -38,6 +50,8 @@ export function Rankings() {
   // uuid"). Signed-out users get no social data at all rather than a bad query.
   const { user } = useAuth();
   const authUserId = user?.id ?? null;
+  const catalogue = useCatalogue();
+  const nameplateColorOf = useMemo(() => makeNameplateColorLookup(catalogue), [catalogue]);
   const [activeTab, setActiveTab] = useState<Tab>('global');
   const [timeframe, setTimeframe] = useState<Timeframe>('weekly');
   const [users, setUsers] = useState<RankingUser[]>([]);
@@ -263,9 +277,13 @@ export function Rankings() {
                       </div>
 
                       <div className="relative">
-                        <div className="w-10 h-10 rounded-full bg-navy-300 flex items-center justify-center text-xl border-2 border-white/5">
-                          {user.avatar ?? '👤'}
-                        </div>
+                        <CosmeticPreview
+                          avatarEmoji={user.avatar ?? null}
+                          frameItemId={user.equippedFrame ?? null}
+                          nameplateItemId={null}
+                          catalogue={catalogue}
+                          size={40}
+                        />
                         {user.streak > 50 && (
                           <div className="absolute -top-1 -right-1 bg-orange-500 rounded-full p-0.5 border border-navy shadow-lg">
                             <Flame size={8} className="text-white" />
@@ -274,7 +292,10 @@ export function Rankings() {
                       </div>
 
                       <div className="flex-1">
-                        <p className={`text-sm font-bold ${user.isCurrentUser ? 'text-white' : 'text-slate-200'}`}>
+                        <p
+                          className={`text-sm font-bold ${user.isCurrentUser ? 'text-white' : 'text-slate-200'}`}
+                          style={nameplateColorOf(user.equippedNameplate)}
+                        >
                           {user.username} {user.isCurrentUser && <span className="text-[10px] text-violet-400">(You)</span>}
                         </p>
                       </div>
@@ -310,11 +331,15 @@ export function Rankings() {
                 <h3 className="text-[10px] font-bold text-slate-600 uppercase tracking-wider px-1">Results</h3>
                 {searchResults.map(r => (
                   <div key={r.userId} className="flex items-center gap-4 p-3 rounded-xl glass">
-                    <div className="w-9 h-9 rounded-full bg-navy-300 flex items-center justify-center text-lg border-2 border-white/5">
-                      {r.avatar ?? '👤'}
-                    </div>
+                    <CosmeticPreview
+                      avatarEmoji={r.avatar ?? null}
+                      frameItemId={r.equippedFrame ?? null}
+                      nameplateItemId={null}
+                      catalogue={catalogue}
+                      size={36}
+                    />
                     <div className="flex-1">
-                      <p className="text-sm font-bold text-slate-200">{r.username}</p>
+                      <p className="text-sm font-bold text-slate-200" style={nameplateColorOf(r.equippedNameplate)}>{r.username}</p>
                     </div>
                     <button
                       onClick={() => handleSendRequest(r.userId)}
@@ -338,11 +363,15 @@ export function Rankings() {
             ) : (
               accepted.map(f => (
                 <div key={f.userId} className="flex items-center gap-4 p-4 rounded-xl glass">
-                  <div className="w-10 h-10 rounded-full bg-navy-300 flex items-center justify-center text-xl border-2 border-white/5">
-                    {f.avatar ?? '👤'}
-                  </div>
+                  <CosmeticPreview
+                    avatarEmoji={f.avatar ?? null}
+                    frameItemId={f.equippedFrame ?? null}
+                    nameplateItemId={null}
+                    catalogue={catalogue}
+                    size={40}
+                  />
                   <div className="flex-1">
-                    <p className="text-sm font-bold text-slate-200">{f.username}</p>
+                    <p className="text-sm font-bold text-slate-200" style={nameplateColorOf(f.equippedNameplate)}>{f.username}</p>
                   </div>
                   <button
                     onClick={() => handleRemove(f.userId)}
@@ -369,11 +398,15 @@ export function Rankings() {
                 ) : (
                   incoming.map(f => (
                     <div key={f.userId} className="flex items-center gap-4 p-4 rounded-xl glass">
-                      <div className="w-10 h-10 rounded-full bg-navy-300 flex items-center justify-center text-xl border-2 border-white/5">
-                        {f.avatar ?? '👤'}
-                      </div>
+                      <CosmeticPreview
+                        avatarEmoji={f.avatar ?? null}
+                        frameItemId={f.equippedFrame ?? null}
+                        nameplateItemId={null}
+                        catalogue={catalogue}
+                        size={40}
+                      />
                       <div className="flex-1">
-                        <p className="text-sm font-bold text-slate-200">{f.username}</p>
+                        <p className="text-sm font-bold text-slate-200" style={nameplateColorOf(f.equippedNameplate)}>{f.username}</p>
                       </div>
                       <button
                         onClick={() => handleAccept(f.userId)}
@@ -403,11 +436,15 @@ export function Rankings() {
                 ) : (
                   outgoing.map(f => (
                     <div key={f.userId} className="flex items-center gap-4 p-4 rounded-xl glass">
-                      <div className="w-10 h-10 rounded-full bg-navy-300 flex items-center justify-center text-xl border-2 border-white/5">
-                        {f.avatar ?? '👤'}
-                      </div>
+                      <CosmeticPreview
+                        avatarEmoji={f.avatar ?? null}
+                        frameItemId={f.equippedFrame ?? null}
+                        nameplateItemId={null}
+                        catalogue={catalogue}
+                        size={40}
+                      />
                       <div className="flex-1">
-                        <p className="text-sm font-bold text-slate-200">{f.username}</p>
+                        <p className="text-sm font-bold text-slate-200" style={nameplateColorOf(f.equippedNameplate)}>{f.username}</p>
                         <p className="text-[9px] text-slate-600">Pending</p>
                       </div>
                       <button

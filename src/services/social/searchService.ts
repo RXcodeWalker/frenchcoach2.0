@@ -10,12 +10,16 @@ export interface SearchResult {
   userId: string;
   username: string;
   avatar?: string;
+  equippedFrame?: string | null;
+  equippedNameplate?: string | null;
 }
 
 type DiscoverableProfileRow = {
   id: string;
   username: string;
   avatar_emoji: string | null;
+  equipped_frame: string | null;
+  equipped_nameplate: string | null;
 };
 
 export async function searchUsernames(prefix: string): Promise<SearchResult[]> {
@@ -23,7 +27,7 @@ export async function searchUsernames(prefix: string): Promise<SearchResult[]> {
   try {
     const { data, error } = await supabase
       .from('discoverable_profiles')
-      .select('id, username, avatar_emoji')
+      .select('id, username, avatar_emoji, equipped_frame, equipped_nameplate')
       .ilike('username', `${prefix}%`)
       .limit(20);
 
@@ -36,6 +40,8 @@ export async function searchUsernames(prefix: string): Promise<SearchResult[]> {
       userId: row.id,
       username: row.username,
       avatar: row.avatar_emoji ?? undefined,
+      equippedFrame: row.equipped_frame,
+      equippedNameplate: row.equipped_nameplate,
     }));
   } catch (err) {
     console.warn('[searchService] search error:', err);

@@ -7,6 +7,8 @@ export interface RankingUser {
   id: string;
   username: string;
   avatar?: string;
+  equippedFrame?: string | null;
+  equippedNameplate?: string | null;
   totalXP: number;
   weeklyXP: number;
   streak: number;

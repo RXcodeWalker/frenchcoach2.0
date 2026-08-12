@@ -11,6 +11,8 @@ export interface FriendEntry {
   userId: string;
   username: string;
   avatar?: string;
+  equippedFrame?: string | null;
+  equippedNameplate?: string | null;
   status: 'pending' | 'accepted' | 'declined';
   requestedByMe: boolean;
 }
@@ -42,6 +44,8 @@ type PublicProfileRow = {
   id: string;
   username: string;
   avatar_emoji: string | null;
+  equipped_frame: string | null;
+  equipped_nameplate: string | null;
 };
 
 /** All friendships involving the caller, with the other party's public profile joined client-side. */
@@ -64,7 +68,7 @@ export async function listFriendships(userId: string): Promise<FriendEntry[]> {
     const otherIds = rows.map(r => (r.user_low === userId ? r.user_high : r.user_low));
     const { data: profiles, error: profileError } = await supabase
       .from('public_profile')
-      .select('id, username, avatar_emoji')
+      .select('id, username, avatar_emoji, equipped_frame, equipped_nameplate')
       .in('id', otherIds);
 
     if (profileError) {
@@ -81,6 +85,8 @@ export async function listFriendships(userId: string): Promise<FriendEntry[]> {
         userId: otherId,
         username: p?.username ?? 'Unknown',
         avatar: p?.avatar_emoji ?? undefined,
+        equippedFrame: p?.equipped_frame ?? null,
+        equippedNameplate: p?.equipped_nameplate ?? null,
         status: r.status,
         requestedByMe: r.requested_by === userId,
       };

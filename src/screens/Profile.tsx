@@ -16,6 +16,9 @@ import {
   type PrivacySettings, type LeaderboardVisibility,
 } from '../services/social/privacyService';
 import { listBlockedUsers, unblockUser, type BlockedUserEntry } from '../services/social/blockService';
+import { CosmeticPreview } from '../components/ui/CosmeticPreview';
+import { useCatalogue } from '../services/shop/useCatalogue';
+import { rarityOf, RARITY_COLOR } from '../services/shop/rarity';
 
 const RENAME_REASON_COPY: Record<string, string> = {
   invalid_format: 'Start with a letter, 3–20 characters, letters/numbers/underscore only.',
@@ -34,6 +37,11 @@ export function Profile() {
   const navigate = useNavigate();
   const { profile } = state;
   const { current, progress } = getLevelInfo(profile.total_xp);
+  const catalogue = useCatalogue();
+  const equippedNameplateItem = profile.equipped.nameplate
+    ? catalogue.find(i => i.id === profile.equipped.nameplate)
+    : undefined;
+  const nameplateColor = equippedNameplateItem ? RARITY_COLOR[rarityOf(equippedNameplateItem)] : undefined;
   const unlockedCount = state.achievements.filter(a => a.unlocked).length;
 
   const [renaming, setRenaming] = useState(false);
@@ -81,15 +89,20 @@ export function Profile() {
       <motion.div variants={fadeUp} className="relative overflow-hidden rounded-2xl glass-elevated border-violet-electric/12 p-6">
         <div className="absolute top-0 right-0 w-40 h-40 bg-violet-electric/4 rounded-full blur-3xl pointer-events-none" />
         <div className="relative flex items-center gap-4">
-          <motion.div
-            className="w-14 h-14 rounded-xl bg-gradient-to-br from-violet-electric to-indigo-500 flex items-center justify-center text-xl font-black text-white shadow-[0_0_16px_rgba(124,58,237,0.3)]"
-            whileHover={{ scale: 1.05 }}
-          >
-            {profile.username?.[0] ?? 'F'}
+          <motion.div whileHover={{ scale: 1.05 }}>
+            <CosmeticPreview
+              avatarEmoji={profile.equipped.avatar}
+              frameItemId={profile.equipped.frame}
+              nameplateItemId={null}
+              catalogue={catalogue}
+              size={56}
+            />
           </motion.div>
           <div className="flex-1">
             <div className="flex items-center gap-2">
-              <h2 className="text-lg font-black text-white">{profile.username ?? user?.email ?? 'French Learner'}</h2>
+              <h2 className="text-lg font-black text-white" style={nameplateColor ? { color: nameplateColor } : undefined}>
+                {profile.username ?? user?.email ?? 'French Learner'}
+              </h2>
               {isGuest && (
                 <span className="text-[9px] font-bold uppercase tracking-wide bg-amber-500/10 text-amber-400 px-1.5 py-0.5 rounded-full border border-amber-500/15">Guest</span>
               )}

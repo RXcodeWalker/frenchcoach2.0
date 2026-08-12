@@ -1,7 +1,9 @@
 import { motion } from 'framer-motion';
-import { ChevronLeft, Settings, Flame, Zap, Gem, Bell, Menu } from 'lucide-react';
+import { ChevronLeft, Flame, Zap, Gem, Bell, Menu } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import { CosmeticPreview } from './ui/CosmeticPreview';
+import { useCatalogue } from '../services/shop/useCatalogue';
 
 interface Props {
   title: string;
@@ -15,6 +17,7 @@ export function TopContextBar({ title, subtitle, showBack, onBack, actions }: Pr
   const navigate = useNavigate();
   const { state } = useApp();
   const { profile } = state;
+  const catalogue = useCatalogue();
 
   return (
     <div className="sticky top-0 z-[80] w-full px-4 py-3 md:px-8">
@@ -74,9 +77,15 @@ export function TopContextBar({ title, subtitle, showBack, onBack, actions }: Pr
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => navigate('/profile')}
-                className="w-10 h-10 rounded-xl glass border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors"
+                className="rounded-xl glass border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors p-1"
               >
-                <Settings size={18} />
+                <CosmeticPreview
+                  avatarEmoji={profile.equipped.avatar}
+                  frameItemId={profile.equipped.frame}
+                  nameplateItemId={null}
+                  catalogue={catalogue}
+                  size={32}
+                />
               </motion.button>
             </div>
           )}
@@ -94,7 +103,7 @@ export function TopContextBar({ title, subtitle, showBack, onBack, actions }: Pr
 
       {/* Mobile Stats Bar - Just below TopBar */}
       <div className="flex md:hidden items-center justify-center gap-2 mt-2">
-        <StatPill icon={<Gem size={12} className="text-emerald-400" />} value={profile.gems.toLocaleString()} color="emerald" small />
+        <StatPill icon={<Gem size={12} className="text-emerald-400" />} value={profile.gems.toLocaleString()} color="emerald" small onClick={() => navigate('/shop')} />
         <StatPill icon={<Flame size={12} className="text-orange-400" />} value={profile.streak_days.toString()} color="orange" small />
         <StatPill icon={<Zap size={12} className="text-violet-400" />} value={profile.total_xp.toLocaleString()} color="violet" small />
       </div>

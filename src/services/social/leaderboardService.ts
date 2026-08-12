@@ -29,6 +29,8 @@ type WeeklyLeaderboardRow = {
   user_id: string;
   username: string;
   avatar_emoji: string | null;
+  equipped_frame: string | null;
+  equipped_nameplate: string | null;
   weekly_xp: number;
 };
 
@@ -36,6 +38,8 @@ type AllTimeLeaderboardRow = {
   user_id: string;
   username: string;
   avatar_emoji: string | null;
+  equipped_frame: string | null;
+  equipped_nameplate: string | null;
   total_xp: number;
 };
 
@@ -63,7 +67,7 @@ async function fetchWeeklyPage(weekKey: string, currentUserId: string | null): P
   try {
     const { data, error } = await supabase
       .from('weekly_leaderboard')
-      .select('user_id, username, avatar_emoji, weekly_xp')
+      .select('user_id, username, avatar_emoji, equipped_frame, equipped_nameplate, weekly_xp')
       .eq('week_key', weekKey)
       .order('weekly_xp', { ascending: false })
       .order('user_id', { ascending: true })
@@ -78,6 +82,8 @@ async function fetchWeeklyPage(weekKey: string, currentUserId: string | null): P
       id: row.user_id,
       username: row.username,
       avatar: row.avatar_emoji ?? undefined,
+      equippedFrame: row.equipped_frame,
+      equippedNameplate: row.equipped_nameplate,
       totalXP: 0,
       weeklyXP: row.weekly_xp,
       streak: 0,
@@ -112,7 +118,7 @@ export async function getAllTimeLeaderboard(currentUserId: string | null): Promi
   try {
     const { data, error } = await supabase
       .from('all_time_leaderboard')
-      .select('user_id, username, avatar_emoji, total_xp')
+      .select('user_id, username, avatar_emoji, equipped_frame, equipped_nameplate, total_xp')
       .order('total_xp', { ascending: false })
       .order('user_id', { ascending: true })
       .limit(PAGE_SIZE);
@@ -126,6 +132,8 @@ export async function getAllTimeLeaderboard(currentUserId: string | null): Promi
       id: row.user_id,
       username: row.username,
       avatar: row.avatar_emoji ?? undefined,
+      equippedFrame: row.equipped_frame,
+      equippedNameplate: row.equipped_nameplate,
       totalXP: row.total_xp,
       weeklyXP: 0,
       streak: 0,
