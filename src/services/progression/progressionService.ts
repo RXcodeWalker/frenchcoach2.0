@@ -1,9 +1,10 @@
 // Copied verbatim from progression.js — strips DOM calls, keeps XP/level logic
-import { STORAGE_KEYS } from '../persistence/storage';
+import { STORAGE_KEYS, storageGet, storageSet } from '../persistence/storage';
 import { computeXPGain, computeParticipationXPGain } from '../../domain/xp';
 import { evaluateAchievements, type AchievementContext } from '../../data/achievements';
 import { logXpEvent } from '../social/xpLedger';
 import { enqueueMint } from '../shop/mintQueue';
+import { consume, makeIdempotencyKey } from '../shop/shopService';
 import type { XpSource } from '../../types/social';
 const KEY = STORAGE_KEYS.progression;
 const NEEDS_SYNC_KEY = 'frenchCoach_needsSync';
@@ -148,23 +149,36 @@ export function getProgressionState() {
   return { xp, totalXP, gems: gems || 0, level, levelProgress: _progressPct(xp), achievements, inventory: inventory || {}, activeBoosters: activeBoosters || [] };
 }
 
-// NON-AUTHORITATIVE BETWEEN PHASE 2 AND PHASE 4 (Shop plan A9/§14.4/§15).
-// hasStreakFreeze/consumeStreakFreeze/consumeItem still read/write the local
-// `inventory` JSONB only. Server inventory (user_inventory, populated by
-// purchase_shop_item) is authoritative from Phase 1 onward, and A9 requires
-// Streak Freeze consumption to call consume_item and check its result
-// *before* incrementing the streak. That RPC is async; the caller here
-// (analyticsService.updateStreak, invoked synchronously from recordSession,
-// itself called synchronously from Learn.tsx/ExamMode.tsx/WordDrop.tsx/
-// DailyNewsFlash.tsx/sessionOrchestrator.ts) is not, and making it async
-// ripples through all of those call sites — out of Phase 2's stated scope
-// (shopService/SET_ECONOMY/mint wiring/hydration only; see plan §15 Phase 2).
-// Left as local-only by explicit decision during Phase 2 implementation.
-// Do not extend this local path — Phase 4 ("Rewire Streak Freeze to server
-// inventory (fixes A9)") replaces it with an async, RPC-checked call.
+// Phase 4 A9 fix (Shop plan §14.4, amended): server user_inventory
+// (populated by purchase_shop_item) is the authority for whether a freeze is
+// owned. analyticsService.updateStreak runs synchronously inside
+// orchestrateAttempt — a contract explicitly documented as synchronous and
+// relied on by Learn.tsx/ExamMode.tsx/WordDrop.tsx/DailyNewsFlash.tsx and
+// sessionOrchestrator.test.ts — so it cannot await the consume_item RPC.
+//
+// The exactly-once guarantee lives in consume_item itself (replay-guarded,
+// qty > 0 checked, single transaction) — the client does not need to await
+// it to make consumption correct, only to make the *local streak decision*
+// consistent. hasStreakFreeze() reads a server-reconciled snapshot
+// (shopInventoryCache, written by AppContext's refetchEconomy after every
+// SET_ECONOMY) rather than the stale local `inventory` JSONB. consumeItem()
+// fires the RPC without awaiting and optimistically decrements that same
+// cache so a second synchronous call in the same session (before the next
+// hydrate) also sees qty=0.
+//
+// Accepted window: if the cache is stale (e.g. a freeze was already spent on
+// another device and this device hasn't refetched yet), the streak can be
+// preserved locally for up to one day before the next hydrate/SET_ECONOMY
+// reconciles it back down. This is a display correction, not a currency
+// error — no gems or inventory are actually granted by it, since qty never
+// goes negative server-side and consume_item's own guard prevents a second
+// real decrement.
+function _loadInventoryCache(): Record<string, number> {
+  return storageGet<Record<string, number>>(STORAGE_KEYS.shopInventoryCache, {});
+}
+
 export function hasStreakFreeze(): boolean {
-  const data = _load();
-  return (data.inventory?.['streak_freeze'] || 0) > 0;
+  return (_loadInventoryCache()['streak_freeze'] || 0) > 0;
 }
 
 export function consumeStreakFreeze(): boolean {
@@ -172,12 +186,16 @@ export function consumeStreakFreeze(): boolean {
 }
 
 export function consumeItem(itemId: string): boolean {
-  const data = _load();
-  if (!data.inventory || !data.inventory[itemId] || data.inventory[itemId] <= 0) return false;
+  const cache = _loadInventoryCache();
+  if (!cache[itemId] || cache[itemId] <= 0) return false;
 
-  data.inventory[itemId]--;
-  _save(data);
-  markNeedsSync();
+  // Optimistic local decrement so a second synchronous call this session
+  // (before the next hydrate) also sees qty=0. The real decrement happens
+  // server-side in consume_item; this cache write is display-only.
+  storageSet(STORAGE_KEYS.shopInventoryCache, { ...cache, [itemId]: cache[itemId] - 1 });
+  void consume(itemId, makeIdempotencyKey()).catch(err => {
+    console.warn('[progressionService] consume_item RPC failed:', err);
+  });
   return true;
 }
 

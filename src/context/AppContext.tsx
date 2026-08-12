@@ -319,6 +319,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const refetchEconomy = useCallback(async (userId: string) => {
     const snapshot = await getEconomySnapshot(userId);
     dispatch({ type: 'SET_ECONOMY', balance: snapshot.balance, inventory: snapshot.inventory });
+    // Server-reconciled inventory cache, read synchronously by
+    // progressionService.hasStreakFreeze/consumeStreakFreeze (Shop plan §14.4
+    // A9 fix) — analyticsService.updateStreak runs synchronously and cannot
+    // await a network round-trip, so it reads this cache instead.
+    storageSet(STORAGE_KEYS.shopInventoryCache, snapshot.inventory);
   }, []);
 
   // Auth state subscription + cloud hydration
