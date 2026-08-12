@@ -12,6 +12,8 @@ import { Card } from '../components/ui/Card';
 import { CosmeticPreview } from '../components/ui/CosmeticPreview';
 import { RarityRing } from '../components/ui/RarityRing';
 import { TransactionList } from '../components/ui/TransactionList';
+import { GemBalance } from '../components/ui/GemBalance';
+import { ItemDetailSheet } from '../components/ui/ItemDetailSheet';
 import { fadeUp, stagger } from '../components/motion/variants';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
@@ -20,14 +22,22 @@ import { SHOP_CATALOGUE } from '../services/shop/shopCatalogue';
 import { rarityOf, RARITY_COLOR } from '../services/shop/rarity';
 import { purchase, equip, makeIdempotencyKey, getTransactionHistory } from '../services/shop/shopService';
 import { computeRequirementProgress } from '../services/shop/requirementProgress';
+import { computeCoachLine } from '../services/shop/coachLine';
 import { getBeliefSnapshot } from '../services/coach/coachStorage';
 import { getProblems, getInterventions } from '../services/coach/interventionService';
+import { getDailyPlan } from '../services/coach/decisionEngine';
+import { getCoachProfile, daysUntilExam } from '../services/coach/coachProfileService';
 import { canRepairStreak, repairStreak, getStreakCount } from '../services/analytics/analyticsService';
+import { hasStreakFreeze } from '../services/progression/progressionService';
 import { storageGet, STORAGE_KEYS } from '../services/persistence/storage';
 import { ShopError } from '../types/shop';
 import type { ShopItem, EquipSlot, GemEvent } from '../types/shop';
 
 type ShopTab = 'gear' | 'identity' | 'locker';
+
+// Shop plan §5: "~50" gems for a standard (10-question) sitting — the
+// documented average sitting used for "≈N more sessions" copy (§8, §11 C).
+const AVG_GEMS_PER_SESSION = 50;
 
 const TABS: { id: ShopTab; label: string }[] = [
   { id: 'gear', label: 'Gear' },
@@ -67,6 +77,15 @@ export function Shop() {
   const [shake, setShake] = useState(false);
   const [transactions, setTransactions] = useState<GemEvent[]>([]);
   const [transactionsLoading, setTransactionsLoading] = useState(false);
+  // §6/§12.7: "Equip flies home into TopContextBar and stays" — the Shop
+  // header's own CosmeticPreview is this screen's "home". A shared layoutId
+  // between the equipped card's ring and the header ring animates the card
+  // sliding into place on equip; cleared once the transition settles.
+  const [justEquippedSlot, setJustEquippedSlot] = useState<EquipSlot | null>(null);
+  // §8/§13: tapping a card opens the mobile detail bottom sheet; desktop
+  // ignores this (ItemDetailSheet renders md:hidden) and keeps the existing
+  // inline card interaction.
+  const [detailItemId, setDetailItemId] = useState<string | null>(null);
 
   const unlockedAchievementIds = useMemo(
     () => new Set(achievements.filter(a => a.unlocked).map(a => a.id)),
@@ -119,6 +138,24 @@ export function Shop() {
     [catalogue, profile.inventory],
   );
 
+  // §9: one read-only coach line inside the Shop, resolution order
+  // streak_at_risk (no freeze) > exam_soon > overdue_review > nearest unlock.
+  const coachLine = useMemo(() => {
+    const lockedCandidates = catalogue
+      .filter(item => item.active && (profile.inventory[item.id] ?? 0) === 0 && item.requirement.achievement)
+      .map(item => ({
+        name: SHOP_CATALOGUE[item.id]?.name ?? item.id,
+        ratio: progressByAchievement[item.requirement.achievement!]?.ratio ?? 0,
+      }));
+    return computeCoachLine({
+      dailyPlan: getDailyPlan(),
+      hasStreakFreeze: hasStreakFreeze(),
+      streakDays: profile.streak_days,
+      daysUntilExam: daysUntilExam(getCoachProfile()),
+      lockedCandidates,
+    });
+  }, [catalogue, profile.inventory, profile.streak_days, progressByAchievement]);
+
   useEffect(() => {
     if (tab !== 'locker' || !user) return;
     setTransactionsLoading(true);
@@ -133,6 +170,7 @@ export function Shop() {
     try {
       const result = await purchase(item.id, makeIdempotencyKey());
       dispatch({ type: 'SET_ECONOMY', balance: result.balance, inventory: { ...profile.inventory, [item.id]: result.qty ?? 1 } });
+      setDetailItemId(null);
     } catch (err) {
       setErrorById(prev => ({ ...prev, [item.id]: errorMessage(err) }));
       setShake(true);
@@ -151,6 +189,8 @@ export function Shop() {
         type: 'SET_PROFILE',
         profile: { ...profile, equipped: { ...profile.equipped, [slot]: item.id } },
       });
+      setJustEquippedSlot(slot);
+      setTimeout(() => setJustEquippedSlot(null), 700);
     } catch (err) {
       setErrorById(prev => ({ ...prev, [item.id]: errorMessage(err) }));
     } finally {
@@ -194,6 +234,8 @@ export function Shop() {
           catalogue={catalogue}
           username={profile.username ?? undefined}
           shake={shake}
+          coachLine={coachLine}
+          flyingSlot={justEquippedSlot}
         />
       </motion.div>
 
@@ -257,6 +299,14 @@ export function Shop() {
                   onUnequip={slot => handleUnequip(slot)}
                   canRepairStreak={item.id === 'streak_repair' ? canRepairStreak() : undefined}
                   onRepairStreak={item.id === 'streak_repair' ? handleRepairStreak : undefined}
+                  flying={
+                    justEquippedSlot === item.kind &&
+                    (item.kind === 'avatar' ? profile.equipped.avatar === item.id
+                    : item.kind === 'frame' ? profile.equipped.frame === item.id
+                    : item.kind === 'nameplate' ? profile.equipped.nameplate === item.id
+                    : false)
+                  }
+                  onOpenDetail={() => setDetailItemId(item.id)}
                 />
               </motion.div>
             );
@@ -279,6 +329,26 @@ export function Shop() {
           </Card>
         </motion.div>
       )}
+
+      {detailItemId && (() => {
+        const item = catalogue.find(i => i.id === detailItemId);
+        if (!item) return null;
+        const owned = (profile.inventory[item.id] ?? 0) > 0;
+        const unlocked = !item.requirement.achievement || unlockedAchievementIds.has(item.requirement.achievement);
+        return (
+          <ItemDetailSheet
+            item={item}
+            owned={owned}
+            balance={profile.gems}
+            unlocked={unlocked}
+            progress={item.requirement.achievement ? progressByAchievement[item.requirement.achievement] : undefined}
+            pending={pendingId === item.id}
+            error={errorById[item.id]}
+            onClose={() => setDetailItemId(null)}
+            onPurchase={() => handlePurchase(item)}
+          />
+        );
+      })()}
     </PageShell>
   );
 }
@@ -289,33 +359,46 @@ function ShopHeader({
   catalogue,
   username,
   shake,
+  coachLine,
+  flyingSlot,
 }: {
   balance: number;
   equipped: { avatar: string | null; frame: string | null; nameplate: string | null };
   catalogue: ShopItem[];
   username?: string;
   shake: boolean;
+  coachLine: string | null;
+  /** Shop plan §6/§12.7: which slot (if any) just equipped, so the header preview shares a layoutId with the card it flew home from. */
+  flyingSlot: EquipSlot | null;
 }) {
   return (
     <Card variant="elevated" className="relative overflow-hidden">
       <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-emerald-500/20 blur-3xl" />
       <div className="relative flex flex-wrap items-center justify-between gap-4">
-        <CosmeticPreview
-          avatarEmoji={null}
-          frameItemId={equipped.frame}
-          nameplateItemId={equipped.nameplate}
-          catalogue={catalogue}
-          username={username}
-          size={48}
-        />
-        <motion.div
-          animate={shake ? { x: [0, -6, 6, -4, 4, 0] } : {}}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl glass border-emerald-500/20 bg-emerald-500/10"
-        >
-          <Gem size={16} className="text-emerald-400" />
-          <span className="text-lg font-black text-white">{balance.toLocaleString()}</span>
+        <motion.div layoutId={flyingSlot ? `equip-home-${flyingSlot}` : undefined}>
+          <CosmeticPreview
+            avatarEmoji={null}
+            frameItemId={equipped.frame}
+            nameplateItemId={equipped.nameplate}
+            catalogue={catalogue}
+            username={username}
+            size={48}
+          />
         </motion.div>
+        <GemBalance balance={balance} shake={shake} />
       </div>
+      <AnimatePresence>
+        {coachLine && (
+          <motion.p
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="relative text-xs font-bold text-slate-400 mt-3"
+          >
+            {coachLine}
+          </motion.p>
+        )}
+      </AnimatePresence>
     </Card>
   );
 }
@@ -336,6 +419,8 @@ function ShopItemCard({
   onUnequip,
   canRepairStreak,
   onRepairStreak,
+  flying,
+  onOpenDetail,
 }: {
   item: ShopItem;
   owned: boolean;
@@ -355,6 +440,10 @@ function ShopItemCard({
   /** streak_repair only: whether the 48h repair window is currently open (§14.4). */
   canRepairStreak?: boolean;
   onRepairStreak?: () => void;
+  /** §6/§12.7: true for the moment right after this exact item was equipped — shares a layoutId with the header preview so the ring visibly flies home. */
+  flying?: boolean;
+  /** §8/§13: opens the mobile bottom sheet for this item. No-op target on desktop (sheet is md:hidden). */
+  onOpenDetail?: () => void;
 }) {
   const entry = SHOP_CATALOGUE[item.id];
   const rarity = rarityOf(item);
@@ -365,11 +454,13 @@ function ShopItemCard({
     <motion.div whileHover={{ scale: 1.01, y: -2 }}>
       <Card variant="default" className={`h-full flex flex-col gap-3 ${silhouette ? 'opacity-50' : ''}`}>
         <div className="flex items-start justify-between">
-          <RarityRing rarity={rarity} size={48}>
-            <div className="w-11 h-11 rounded-full bg-navy-300 flex items-center justify-center text-2xl">
-              {entry?.icon || '✨'}
-            </div>
-          </RarityRing>
+          <motion.div layoutId={flying ? `equip-home-${item.kind}` : undefined}>
+            <RarityRing rarity={rarity} size={48}>
+              <div className="w-11 h-11 rounded-full bg-navy-300 flex items-center justify-center text-2xl">
+                {entry?.icon || '✨'}
+              </div>
+            </RarityRing>
+          </motion.div>
           {rarity !== 'common' && (
             <span
               className="text-[10px] font-black uppercase tracking-widest"
@@ -380,7 +471,7 @@ function ShopItemCard({
           )}
         </div>
 
-        <div className="flex-1">
+        <div className="flex-1 md:cursor-default cursor-pointer" onClick={onOpenDetail}>
           <h3 className="text-sm font-bold text-white">{entry?.name ?? item.id}</h3>
           <p className="text-xs text-slate-500 mt-0.5">{entry?.description ?? ''}</p>
           {entry?.requirementLabel && (
@@ -455,6 +546,12 @@ function ShopItemCard({
               ? item.priceGems.toLocaleString()
               : `+${(item.priceGems - balance).toLocaleString()} more`}
           </button>
+        )}
+        {!owned && unlocked && !canAfford && (
+          <p className="text-[9px] font-bold text-slate-600 text-center -mt-1">
+            ≈{Math.max(1, Math.ceil((item.priceGems - balance) / AVG_GEMS_PER_SESSION))} more session
+            {Math.ceil((item.priceGems - balance) / AVG_GEMS_PER_SESSION) === 1 ? '' : 's'}
+          </p>
         )}
       </Card>
     </motion.div>
