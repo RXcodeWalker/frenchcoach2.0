@@ -16,6 +16,8 @@ import { hydrateCoachFromCloud, backfillEvidenceToCloud, pushPendingEvidence } f
 import { hydratePronunciationFromCloud, backfillPronunciationToCloud, flushPendingPronunciationQueue } from '../services/sync/pronunciationSync';
 import { hydrateXpEventsFromCloud, backfillXpEventsToCloud, flushPendingXpEventQueue } from '../services/social/xpLedger';
 import { getXpEventLog } from '../services/social/xpLedgerStorage';
+import { getEconomySnapshot } from '../services/shop/shopService';
+import { flushMintQueue } from '../services/shop/mintQueue';
 import { getEvidenceEvents } from '../services/coach/coachStorage';
 import { isMigrationNeeded, markMigrationComplete, runMigration, type MigrationPhase, type MigrationRecord } from '../services/sync/migrationService';
 import * as Sentry from '@sentry/react';
@@ -45,14 +47,11 @@ interface AppState {
 
 type Action =
   | { type: 'ADD_XP'; amount: number; totalXP: number; totalGems: number; gemGain: number; activeBoosters: { id: string; expiresAt: string; multiplier: number }[]; x?: number; y?: number }
-  | { type: 'ADD_GEMS'; amount: number; x?: number; y?: number }
   | { type: 'DISMISS_XP_MODAL' }
   | { type: 'DISMISS_CELEBRATIONS' }
   | { type: 'ADD_SESSION'; session: Session; xpResult: { gain: number; totalXP: number; gemsGain: number; totalGems: number; activeBoosters: { id: string; expiresAt: string; multiplier: number }[] }; newUnlockedAchievementIds: string[]; newLevelName: string; xpAnimX?: number; xpAnimY?: number }
   | { type: 'UNLOCK_ACHIEVEMENT'; achievementId: string }
-  | { type: 'PURCHASE_ITEM'; cost: number; itemId: string }
-  | { type: 'USE_ITEM'; itemId: string }
-  | { type: 'ACTIVATE_BOOSTER'; itemId: string; durationMinutes: number; multiplier: number }
+  | { type: 'SET_ECONOMY'; balance: number; inventory: Record<string, number> }
   | { type: 'SET_PROFILE'; profile: UserProfile }
   | { type: 'TOGGLE_SOUND' }
   | { type: 'TOGGLE_DARK_MODE' }
@@ -90,6 +89,7 @@ function buildInitialState(): AppState {
     total_words_spoken: analytics.totalWords,
     inventory: progression.inventory || {},
     activeBoosters: progression.activeBoosters || [],
+    equipped: { avatar: null, frame: null, nameplate: null },
   };
 
   const recentSessions: Session[] = (analytics.recentSessions ?? []).map(s => ({
@@ -215,36 +215,13 @@ function reducer(state: AppState, action: Action): AppState {
       };
     }
 
-    case 'PURCHASE_ITEM': {
-      const newGems = state.profile.gems - action.cost;
-      const newInventory = { ...state.profile.inventory };
-      newInventory[action.itemId] = (newInventory[action.itemId] || 0) + 1;
+    case 'SET_ECONOMY': {
+      // Applies the server RPC's returned balance/inventory directly — never
+      // computed locally (Shop plan §14.6: this is what kills the
+      // purchase-refund double-write at the root, replacing PURCHASE_ITEM).
       return {
         ...state,
-        profile: { ...state.profile, gems: newGems, inventory: newInventory },
-      };
-    }
-    case 'USE_ITEM': {
-      const newInventory = { ...state.profile.inventory };
-      if (newInventory[action.itemId] > 0) {
-        newInventory[action.itemId]--;
-      }
-      return {
-        ...state,
-        profile: { ...state.profile, inventory: newInventory },
-      };
-    }
-    case 'ACTIVATE_BOOSTER': {
-      const newInventory = { ...state.profile.inventory };
-      if (newInventory[action.itemId] > 0) {
-        newInventory[action.itemId]--;
-      }
-      const expiresAt = new Date();
-      expiresAt.setMinutes(expiresAt.getMinutes() + action.durationMinutes);
-      const newBoosters = [...state.profile.activeBoosters, { id: action.itemId, expiresAt: expiresAt.toISOString(), multiplier: action.multiplier }];
-      return {
-        ...state,
-        profile: { ...state.profile, inventory: newInventory, activeBoosters: newBoosters },
+        profile: { ...state.profile, gems: action.balance, inventory: action.inventory },
       };
     }
     case 'UNLOCK_ACHIEVEMENT':
@@ -254,6 +231,10 @@ function reducer(state: AppState, action: Action): AppState {
           a.id === action.achievementId ? { ...a, unlocked: true, unlockedAt: new Date().toISOString() } : a
         ),
       };
+    case 'REMOVE_XP_ANIMATION':
+      return { ...state, xpAnimations: state.xpAnimations.filter(a => a.id !== action.id) };
+    case 'REMOVE_GEM_ANIMATION':
+      return { ...state, gemAnimations: state.gemAnimations.filter(a => a.id !== action.id) };
     case 'SET_PROFILE':
       return { ...state, profile: action.profile };
     case 'TOGGLE_SOUND':
@@ -332,6 +313,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
   }, [state.showXPModal]);
 
+  // Balance/inventory refetch — server (gem_events/user_inventory) is the sole
+  // authority (Shop plan §14.1); this dispatches SET_ECONOMY with the live
+  // snapshot, never a locally-computed value.
+  const refetchEconomy = useCallback(async (userId: string) => {
+    const snapshot = await getEconomySnapshot(userId);
+    dispatch({ type: 'SET_ECONOMY', balance: snapshot.balance, inventory: snapshot.inventory });
+  }, []);
+
   // Auth state subscription + cloud hydration
   useEffect(() => {
     async function hydrateFromCloud(userId: string) {
@@ -384,6 +373,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             total_words_spoken: 0,
             inventory: merged.inventory,
             activeBoosters: merged.activeBoosters,
+            equipped: { avatar: cloudRow.avatar_emoji, frame: cloudRow.equipped_frame, nameplate: cloudRow.equipped_nameplate },
           };
           dispatch({ type: 'SET_PROFILE', profile: progressionProfile });
           merged.achievements.forEach(id => dispatch({ type: 'UNLOCK_ACHIEVEMENT', achievementId: id }));
@@ -407,6 +397,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             total_words_spoken: analytics.totalWords,
             inventory: progression.inventory,
             activeBoosters: progression.activeBoosters,
+            equipped: { avatar: cloudRow.avatar_emoji, frame: cloudRow.equipped_frame, nameplate: cloudRow.equipped_nameplate },
           };
           dispatch({ type: 'SET_PROFILE', profile: newProfile });
 
@@ -416,6 +407,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           void hydrateXpEventsFromCloud(userId).then(({ mergedEvents, cloudIds }) => {
             void backfillXpEventsToCloud(userId, mergedEvents, cloudIds);
           });
+          void flushMintQueue().then(() => refetchEconomy(userId));
           hydrationComplete.current = true;
           return;
         }
@@ -451,6 +443,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           total_words_spoken: 0,
           inventory: merged.inventory,
           activeBoosters: merged.activeBoosters,
+          equipped: { avatar: cloudRow.avatar_emoji, frame: cloudRow.equipped_frame, nameplate: cloudRow.equipped_nameplate },
         };
         dispatch({ type: 'SET_PROFILE', profile: progressionProfile });
         merged.achievements.forEach(id => dispatch({ type: 'UNLOCK_ACHIEVEMENT', achievementId: id }));
@@ -490,6 +483,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         total_words_spoken: analytics.totalWords,
         inventory: progression.inventory,
         activeBoosters: progression.activeBoosters,
+        equipped: { avatar: cloudRow?.avatar_emoji ?? null, frame: cloudRow?.equipped_frame ?? null, nameplate: cloudRow?.equipped_nameplate ?? null },
       };
       dispatch({ type: 'SET_PROFILE', profile: newProfile });
 
@@ -502,6 +496,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       void flushPendingQueue(userId);
       void flushPendingPronunciationQueue(userId);
       void flushPendingXpEventQueue(userId);
+      void flushMintQueue().then(() => refetchEconomy(userId));
 
       // Step 5: open the gate for incremental pushes
       hydrationComplete.current = true;
@@ -571,6 +566,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     window.addEventListener('online', handler);
     return () => window.removeEventListener('online', handler);
   }, [authUser?.id]);
+
+  // Refetch balance/inventory when the tab regains focus (Shop plan §14.7,
+  // "two tabs" concurrency case) — a purchase in another tab must reconcile
+  // here without waiting for a full re-hydration.
+  useEffect(() => {
+    if (!authUser) return;
+    const userId = authUser.id;
+    const handler = () => {
+      if (document.visibilityState === 'visible' && hydrationComplete.current) {
+        void refetchEconomy(userId);
+      }
+    };
+    document.addEventListener('visibilitychange', handler);
+    return () => document.removeEventListener('visibilitychange', handler);
+  }, [authUser?.id, refetchEconomy]);
 
   // Sync state when localStorage changes in other tabs or through direct service calls
   useEffect(() => {

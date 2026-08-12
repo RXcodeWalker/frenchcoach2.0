@@ -3,6 +3,7 @@ import { STORAGE_KEYS } from '../persistence/storage';
 import { computeXPGain, computeParticipationXPGain } from '../../domain/xp';
 import { evaluateAchievements, type AchievementContext } from '../../data/achievements';
 import { logXpEvent } from '../social/xpLedger';
+import { enqueueMint } from '../shop/mintQueue';
 import type { XpSource } from '../../types/social';
 const KEY = STORAGE_KEYS.progression;
 const NEEDS_SYNC_KEY = 'frenchCoach_needsSync';
@@ -76,10 +77,14 @@ export function awardXP(score: number, streak = 0, source: XpSource = 'practice'
 
   data.xp      = prevXP + gain;
   data.totalXP = (data.totalXP || 0) + gain;
+  // Provisional display value only — gem_events/mint_gems is the balance
+  // authority (Shop plan §14.1). Reconciled against the server balance on
+  // the next successful mint or hydration.
   data.gems    = (data.gems || 0) + gemsGain;
   _save(data);
   markNeedsSync();
   logXpEvent(gain, source, { score, streak });
+  if (gemsGain > 0) enqueueMint(gemsGain);
 
   const newLevel = _levelFor(data.xp);
   return { gain, totalXP: data.xp, gemsGain, totalGems: data.gems, levelUp: newLevel.index > prevLevel.index, activeBoosters: data.activeBoosters };
@@ -109,6 +114,7 @@ export function awardParticipationXP(streak = 0, source: XpSource = 'practice'):
   _save(data);
   markNeedsSync();
   logXpEvent(gain, source, { streak, participation: true });
+  if (gemsGain > 0) enqueueMint(gemsGain);
 
   const newLevel = _levelFor(data.xp);
   return { gain, totalXP: data.xp, gemsGain, totalGems: data.gems, levelUp: newLevel.index > prevLevel.index, activeBoosters: data.activeBoosters };
@@ -132,6 +138,7 @@ export function awardGemsForXP(amount: number, source: XpSource): { totalXP: num
   _save(data);
   markNeedsSync();
   logXpEvent(gain, source);
+  if (gemsGain > 0) enqueueMint(gemsGain);
   return { totalXP: data.xp, totalGems: data.gems, activeBoosters: data.activeBoosters };
 }
 
@@ -141,34 +148,20 @@ export function getProgressionState() {
   return { xp, totalXP, gems: gems || 0, level, levelProgress: _progressPct(xp), achievements, inventory: inventory || {}, activeBoosters: activeBoosters || [] };
 }
 
-export function activateBooster(itemId: string, durationMinutes: number, multiplier: number): boolean {
-  const data = _load();
-  if (!data.inventory || !data.inventory[itemId] || data.inventory[itemId] <= 0) return false;
-  
-  data.inventory[itemId]--;
-  if (!data.activeBoosters) data.activeBoosters = [];
-  
-  const expiresAt = new Date();
-  expiresAt.setMinutes(expiresAt.getMinutes() + durationMinutes);
-  
-  data.activeBoosters.push({ id: itemId, expiresAt: expiresAt.toISOString(), multiplier });
-  _save(data);
-  return true;
-}
-
-export function purchaseItem(itemId: string, cost: number): boolean {
-  const data = _load();
-  if ((data.gems || 0) < cost) return false;
-
-  data.gems = (data.gems || 0) - cost;
-  if (!data.inventory) data.inventory = {};
-  data.inventory[itemId] = (data.inventory[itemId] || 0) + 1;
-
-  _save(data);
-  markNeedsSync();
-  return true;
-}
-
+// NON-AUTHORITATIVE BETWEEN PHASE 2 AND PHASE 4 (Shop plan A9/§14.4/§15).
+// hasStreakFreeze/consumeStreakFreeze/consumeItem still read/write the local
+// `inventory` JSONB only. Server inventory (user_inventory, populated by
+// purchase_shop_item) is authoritative from Phase 1 onward, and A9 requires
+// Streak Freeze consumption to call consume_item and check its result
+// *before* incrementing the streak. That RPC is async; the caller here
+// (analyticsService.updateStreak, invoked synchronously from recordSession,
+// itself called synchronously from Learn.tsx/ExamMode.tsx/WordDrop.tsx/
+// DailyNewsFlash.tsx/sessionOrchestrator.ts) is not, and making it async
+// ripples through all of those call sites — out of Phase 2's stated scope
+// (shopService/SET_ECONOMY/mint wiring/hydration only; see plan §15 Phase 2).
+// Left as local-only by explicit decision during Phase 2 implementation.
+// Do not extend this local path — Phase 4 ("Rewire Streak Freeze to server
+// inventory (fixes A9)") replaces it with an async, RPC-checked call.
 export function hasStreakFreeze(): boolean {
   const data = _load();
   return (data.inventory?.['streak_freeze'] || 0) > 0;

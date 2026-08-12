@@ -10,6 +10,9 @@ export type CloudProgressionRow = {
   active_boosters: { id: string; expiresAt: string; multiplier: number }[];
   migration_version: number;
   username: string | null;
+  avatar_emoji: string | null;
+  equipped_frame: string | null;
+  equipped_nameplate: string | null;
 };
 
 export async function pushProgressionToCloud(
@@ -65,7 +68,7 @@ export async function pullProgressionFromCloud(
   try {
     const { data, error } = await supabase
       .from('profiles')
-      .select('total_xp, gems, achievements, inventory, active_boosters, migration_version, username')
+      .select('total_xp, gems, achievements, inventory, active_boosters, migration_version, username, avatar_emoji, equipped_frame, equipped_nameplate')
       .eq('id', userId)
       .single();
 
@@ -84,6 +87,9 @@ export async function pullProgressionFromCloud(
       active_boosters: (data.active_boosters as { id: string; expiresAt: string; multiplier: number }[]) ?? [],
       migration_version: (data.migration_version as number) ?? 0,
       username: (data.username as string | null) ?? null,
+      avatar_emoji: (data.avatar_emoji as string | null) ?? null,
+      equipped_frame: (data.equipped_frame as string | null) ?? null,
+      equipped_nameplate: (data.equipped_nameplate as string | null) ?? null,
     };
   } catch (err) {
     console.warn('[progressionSync] pull error:', err);
@@ -96,8 +102,9 @@ export function mergeProgressionData(
   cloud: CloudProgressionRow
 ): ProgressionData {
   const mergedTotalXP = Math.max(local.totalXP, cloud.total_xp);
-  // Gems are spent locally (purchaseItem/consumeItem), so a stale cloud value
-  // must never win — Math.max here would silently refund every purchase.
+  // Gems are no longer client-asserted (Shop Phase 1: gem_events/mint_gems
+  // is the sole balance authority) — local.gems is a display cache, never
+  // merged with a stale cloud value.
   const mergedGems = local.gems;
 
   const mergedAchievements = Array.from(

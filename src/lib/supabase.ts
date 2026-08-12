@@ -26,11 +26,55 @@ export type Database = {
           inventory: Record<string, number>;
           active_boosters: { id: string; expiresAt: string; multiplier: number }[];
           migration_version: number;
+          avatar_emoji: string | null;
+          equipped_frame: string | null;
+          equipped_nameplate: string | null;
           created_at: string;
           updated_at: string;
         };
         Insert: Omit<Database['public']['Tables']['profiles']['Row'], 'created_at' | 'updated_at'>;
         Update: Partial<Database['public']['Tables']['profiles']['Insert']>;
+      };
+      shop_items: {
+        Row: {
+          id: string;
+          kind: string;
+          price_gems: number;
+          consumable: boolean;
+          max_owned: number | null;
+          requirement: Record<string, unknown>;
+          emoji: string | null;
+          active: boolean;
+          sort_order: number;
+        };
+      };
+      gem_events: {
+        Row: {
+          id: string;
+          user_id: string;
+          delta: number;
+          kind: string;
+          item_id: string | null;
+          metadata: Record<string, unknown>;
+          occurred_at: string;
+          created_at: string;
+        };
+      };
+      user_inventory: {
+        Row: {
+          user_id: string;
+          item_id: string;
+          qty: number;
+          acquired_at: string;
+        };
+      };
+      item_consumptions: {
+        Row: {
+          id: string;
+          user_id: string;
+          item_id: string;
+          created_at: string;
+        };
       };
       sessions: {
         Row: {

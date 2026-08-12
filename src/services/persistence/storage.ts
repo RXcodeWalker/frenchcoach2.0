@@ -61,6 +61,10 @@ export const STORAGE_KEYS = {
   pendingSyncXpEventIds:   'frenchCoach_pendingSyncXpEventIds',
   // ── Emoji Master personal bests (versioned payload) ─────────────────────────────
   emojiMasterBests: 'frenchCoach_emojiMasterBests',
+  // ── Shop economy: mint queue + provisional balance cache (Shop plan §14.1, §14.7) ──
+  pendingMintQueue:      'frenchCoach_pendingMintQueue',
+  shopBalanceCache:      'frenchCoach_shopBalanceCache',
+  shopInventoryCache:    'frenchCoach_shopInventoryCache',
 } as const;
 
 export type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS];

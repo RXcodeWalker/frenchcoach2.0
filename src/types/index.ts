@@ -52,6 +52,7 @@ export interface UserProfile {
   total_words_spoken: number;
   inventory: Record<string, number>;
   activeBoosters: { id: string; expiresAt: string; multiplier: number }[];
+  equipped: { avatar: string | null; frame: string | null; nameplate: string | null };
 }
 
 export interface Achievement {
