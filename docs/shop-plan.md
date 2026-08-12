@@ -562,3 +562,77 @@ Phases 0–5. In order: remove the 9 pay-to-win/content SKUs and refund holders 
 This plan is implementation-ready with three explicitly-flagged verifications that must happen **during Phase 1, before merge**: B1 (the exact legitimate client-writable `profiles` column set), B2 (RPC ownership via `\df+`), and B3 (whether `profiles.gems` needs one release of shadow-writing). Everything else has been confirmed against the actual schema, policies, and code paths.
 
 Two properties are **accepted limitations, not gaps**: requirements are forgeable via `profiles.achievements` until Phase 7, and gem minting is client-asserted-but-capped until Phase 7. Both are consequences of nothing in this system being server-observed, and both are why Phase 7 is a hard gate on selling gems.
+
+---
+
+## Phase 7 status (added during Phase 7 implementation)
+
+Phase 7's own text names two prerequisites for "server-observed work" — signed
+transcripts from `/api/transcribe`, or server-side mint from verified
+`scoring_envelopes` — plus "server-validated achievements," **then** revoke
+client `UPDATE` on `total_xp`/`achievements`. Before writing any code, both
+prerequisite tables were checked against the live schema:
+
+- `scoring_envelopes` and `session_transcripts` are both `CHECK`-gated to
+  `content_provenance = 'original-practice'`, and both tables' own migration
+  headers say verbatim *"For the whole of Phase A, every session is
+  confidential-internal, so this table stays empty."* Original-practice
+  content does not exist in this codebase yet — it is a separate project's
+  (the Assessment Engine's) S11 content-authoring milestone, itself gated
+  behind that project's Phase B, neither of which has run.
+- Every predicate in `src/data/achievements.ts` (all 19 achievements) reads
+  client-only/localStorage state — session counts, streak, skill mastery, XP,
+  grammar-coach/roleplay counters, exam completion. The only genuinely
+  server-observed facts anywhere today are `gem_events` and `user_inventory`
+  (both Phase 1), and neither maps to any achievement in the catalogue.
+
+Per explicit direction: **build the Phase 7 machinery now, against the real
+interfaces, tested with fixtures, without claiming end-to-end integrity is
+proven.** What shipped:
+
+- **`mint_gems_from_envelope(p_attempt_id)`** (`20260812110000_phase7_envelope_mint.sql`)
+  — mints gems from a verified `scoring_envelopes` row (amount derived
+  server-side from the envelope's own `total`, never client-supplied;
+  idempotent per `attempt_id`; rejects non-`original-practice` provenance,
+  forged/unknown attempts, and out-of-range totals). Additive alongside the
+  existing client-asserted `mint_gems` — does not replace it, does not change
+  any client call site. 18/18 fixture-based DB tests pass
+  (`backend/supabase/tests/phase7_envelope_mint.test.mjs`), proving the RPC's
+  mechanics are correct against the documented shape. **Mints nothing in any
+  real environment today**, because `scoring_envelopes` has zero
+  original-practice rows to read.
+- **`achievements_derived` + `recompute_achievements()`** (`20260812113000_phase7_derived_achievements.sql`)
+  — real table, real RPC, real per-achievement rule-dispatch shape, but the
+  rule set derives **zero of the 19 achievements today, by design** (see
+  above — no predicate has a server-observed signal yet). Structured so a
+  future real predicate is a one-block addition, not a redesign. 9/9 fixture
+  tests pass (`backend/supabase/tests/phase7_derived_achievements.test.mjs`),
+  including a fixture-seeded row proving the read/round-trip contract works
+  ahead of any real rule existing. Deliberately a separate table from
+  `profiles.achievements` — this phase does not touch the live client-written
+  array.
+- **The revoke (`REVOKE UPDATE (total_xp, achievements) ...`) was
+  intentionally NOT executed.** The plan's own text sequences it *after*
+  server-observed work and server-validated achievements exist — and neither
+  does, functionally, today. Executing it now would immediately break
+  `purchase_shop_item`'s requirement check (reads `profiles.achievements` on
+  every purchase) and `progressionSync`'s XP push (every session), for every
+  live user, with no replacement data behind it. `total_xp`/`achievements`
+  remain client-writable, exactly as Phase 1 left them (documented there as
+  "accepted risk until Phase 7").
+
+**Also fixed, discovered while verifying against a clean `supabase db
+reset`:** `service_role` had no grant at all on `profiles` — not `SELECT`,
+`INSERT`, nor `UPDATE` — despite `20260811090000_fix_missing_table_grants.sql`
+claiming (incorrectly) that it already held full privileges there. This
+pre-existing gap blocked every DB integration test, Phase 1's included, from
+a clean reset; fixed in
+`20260812111500_fix_missing_service_role_profiles_grant.sql`. Confirmed
+Phase 1's full 73-test suite still passes unchanged after the fix.
+
+**What "done" means here:** the mechanism is built, tested, and ready. The
+production verification gate — running these RPCs against real
+original-practice envelopes and at least one real server-observed
+achievement signal, then executing the revoke — is deferred until the
+Assessment Engine project actually populates that data. Do not treat this
+session's fixture-test pass as proof of integrity against real student work.
