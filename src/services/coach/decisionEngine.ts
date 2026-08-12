@@ -340,3 +340,40 @@ export function getDailyPlan(): DailyPlan | null {
 export function invalidateDailyPlan(): void {
   storageSet(STORAGE_KEYS.coachDailyPlan, null);
 }
+
+// ── Focus Token override (Shop plan §14.4, §15 Phase 5) ─────────────────────
+//
+// "Override the coach's Today's Focus for one session." Pure: takes a
+// DailyPlan and the belief snapshot it was generated from, returns a new
+// plan with topAction forced to the learner's single weakest skill at
+// 'quick' mode — bypassing urgency/goal scoring entirely, since spending a
+// token is an explicit override of what the coach would otherwise pick, not
+// another candidate competing on score.
+//
+// Not persisted to STORAGE_KEYS.coachDailyPlan — the caller (Learn.tsx,
+// session start) holds the overridden plan in local/ActiveSession state for
+// that sitting only, per §14.4's "held in ActiveSession, lost on reload
+// (acceptable — refund not required, the sitting continues)".
+export function applyFocusTokenOverride(
+  plan: DailyPlan,
+  snapshot: EvidenceBeliefSnapshot | null,
+): DailyPlan {
+  const weakestId = snapshot?.weakestSkillIds[0];
+  if (!weakestId) return plan;
+
+  const label = getSkillLabel(weakestId);
+  const topAction: CandidateAction = {
+    type: 'review_weak_skill',
+    score: 100,
+    targetSkillIds: [weakestId],
+    rationale: `Focus Token: drilling ${label}, your weakest area.`,
+    suggestedMode: 'quick',
+  };
+
+  return {
+    ...plan,
+    topAction,
+    sessionBlend: buildSessionBlend(topAction, snapshot),
+    explanation: `You used a Focus Token — today's session targets ${label} instead of the usual plan.`,
+  };
+}

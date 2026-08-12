@@ -178,7 +178,12 @@ function _loadInventoryCache(): Record<string, number> {
 }
 
 export function hasStreakFreeze(): boolean {
-  return (_loadInventoryCache()['streak_freeze'] || 0) > 0;
+  return hasItem('streak_freeze');
+}
+
+/** Generic server-reconciled ownership check, reused by Focus Token / Streak Repair (§15 Phase 5). */
+export function hasItem(itemId: string): boolean {
+  return (_loadInventoryCache()[itemId] || 0) > 0;
 }
 
 export function consumeStreakFreeze(): boolean {

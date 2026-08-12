@@ -10,9 +10,11 @@ import type { ExaminerFeedback } from '../services/coaching/examinerFeedback';
 import { getSkillProfile, buildSkillContext, detectAvoidance } from '../services/coaching/diagnosticEngine';
 import { orchestrateAttempt } from '../services/coach/sessionOrchestrator';
 import { getActiveRecommendation, setRecommendationStatus, generateRecommendation } from '../services/coach/recommendationEngine';
-import { getDailyPlan, invalidateDailyPlan } from '../services/coach/decisionEngine';
+import { getDailyPlan, invalidateDailyPlan, applyFocusTokenOverride } from '../services/coach/decisionEngine';
+import { getBeliefSnapshot } from '../services/coach/coachStorage';
 import { recordIntervention, recordInterventionOutcome } from '../services/coach/interventionService';
 import { getSkillLabel } from '../services/coach/skillGraph';
+import { consumeItem } from '../services/progression/progressionService';
 import { MicroDrillModal } from '../components/ui/MicroDrillModal';
 import type { LearningProblem } from '../types/intervention';
 import { useRecording } from '../features/recording/useRecording';
@@ -62,6 +64,9 @@ export function Learn() {
   const extraTurnBudget = useExtraTurnBudget();
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
   const [activeSession, setActiveSession] = useState<ActiveSession | null>(null);
+  // Focus Token (Shop plan §14.4/§15 Phase 5): overrides the daily plan for
+  // this sitting only — not persisted, reset whenever a new topic is chosen.
+  const [focusTokenActive, setFocusTokenActive] = useState(false);
   const [showHint, setShowHint] = useState(false);
   const [feedback, setFeedback] = useState<FeedbackV2 | null>(null);
   const [isLoadingFeedback, setIsLoadingFeedback] = useState(false);
@@ -168,23 +173,36 @@ export function Learn() {
     setPartialFeedback(null);
     setStreamPhase(null);
     setFeedbackErrorMessage(null);
+    setFocusTokenActive(false);
     extraTurnBudget.resetForNewSession();
   }, [extraTurnBudget]);
+
+  const useFocusToken = useCallback(() => {
+    if (!consumeItem('focus_token')) return;
+    setFocusTokenActive(true);
+  }, []);
 
   const startSession = useCallback((mode: SessionMode) => {
     if (!selectedTopic) return;
 
+    let dailyPlan = getDailyPlan();
+    if (focusTokenActive && dailyPlan) {
+      dailyPlan = applyFocusTokenOverride(dailyPlan, getBeliefSnapshot());
+    }
+    const sessionBlend = dailyPlan?.sessionBlend ?? null;
+
     // Coach loop: let the active recommendation + daily plan blend bias this
-    // session toward skills/topics flagged from previous evidence.
+    // session toward skills/topics flagged from previous evidence. A Focus
+    // Token is an explicit user override and takes priority over the
+    // passively-generated recommendation.
     const recommendation = getActiveRecommendation();
-    const focusedSkillId = recommendation?.targetSkillIds?.[0] ?? null;
-    if (focusedSkillId) {
+    const focusedSkillId = focusTokenActive
+      ? dailyPlan?.topAction.targetSkillIds[0] ?? null
+      : recommendation?.targetSkillIds?.[0] ?? null;
+    if (focusedSkillId && !focusTokenActive) {
       dispatch({ type: 'SET_FOCUSED_SKILL', skillId: focusedSkillId });
       setRecommendationStatus('accepted');
     }
-
-    const dailyPlan = getDailyPlan();
-    const sessionBlend = dailyPlan?.sessionBlend ?? null;
 
     const { questions, reviewQuestionId } = buildSessionQuestions(
       selectedTopic.key,
@@ -228,7 +246,7 @@ export function Learn() {
     setActiveResultEngine(null);
     resetSessionScopedState();
     setLearnState('question');
-  }, [selectedTopic, skillProfile, topicMastery, dispatch, resetSessionScopedState]);
+  }, [selectedTopic, skillProfile, topicMastery, dispatch, resetSessionScopedState, focusTokenActive]);
 
   const startSingleQuestion = () => startSession('single');
 
@@ -999,6 +1017,9 @@ export function Learn() {
                 onSingleQuestion={startSingleQuestion}
                 onBack={() => { setSelectedTopic(null); setLearnState('topics'); }}
                 coachRecommendation={getActiveRecommendation()}
+                focusTokenQty={profile.inventory['focus_token'] ?? 0}
+                focusTokenActive={focusTokenActive}
+                onUseFocusToken={useFocusToken}
               />
             </motion.div>
           )}

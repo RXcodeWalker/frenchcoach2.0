@@ -1,7 +1,7 @@
 // Copied verbatim from analytics.js — minimal TS wrapper only
 import type { Session, FeedbackV2, TopicMasteryEntry } from '../../types';
 
-import { hasStreakFreeze, consumeStreakFreeze } from '../progression/progressionService';
+import { hasStreakFreeze, consumeStreakFreeze, consumeItem } from '../progression/progressionService';
 import { STORAGE_KEYS } from '../persistence/storage';
 
 const STORAGE_KEY = STORAGE_KEYS.analytics;
@@ -46,7 +46,12 @@ function deriveFeedbackSummary(feedback?: FeedbackV2): string | undefined {
 interface AnalyticsData {
   sessions: StoredSession[];
   totalWords: number;
-  streak: { count: number; lastDate: string | null };
+  streak: {
+    count: number;
+    lastDate: string | null;
+    /** Streak Repair (Shop plan §14.4): the count just before it broke, and when it broke — cleared once repaired or once the 48h window passes. */
+    brokenAt?: { previousCount: number; brokenDate: string } | null;
+  };
   challengeLog: Record<string, boolean>;
 }
 
@@ -86,9 +91,10 @@ function updateStreak(data: AnalyticsData) {
   const last = data.streak.lastDate;
 
   if (last === today) return data;
-  
+
   if (last === yesterday) {
     data.streak.count += 1;
+    data.streak.brokenAt = null;
   } else if (last) {
     // There's a gap. Check if it's just 1 day gap and if we have a freeze.
     // If last was day-before-yesterday, and we have a freeze, we can save it.
@@ -96,7 +102,13 @@ function updateStreak(data: AnalyticsData) {
     if (last === dayBeforeYesterday && hasStreakFreeze()) {
       consumeStreakFreeze();
       data.streak.count += 1; // Preserve and increment as if yesterday was active
+      data.streak.brokenAt = null;
     } else {
+      // Streak Repair (§14.4): record what was lost and when, so a Streak
+      // Repair item can restore it if used within 48h of this break.
+      if (data.streak.count > 0) {
+        data.streak.brokenAt = { previousCount: data.streak.count, brokenDate: today };
+      }
       data.streak.count = 1;
     }
   } else {
@@ -139,6 +151,35 @@ export function getSessionHistory(): StoredSession[] {
 
 export function getStreakCount(): number {
   return load().streak.count;
+}
+
+const REPAIR_WINDOW_MS = 48 * 3600 * 1000;
+
+/** Streak Repair (Shop plan §14.4): true only while a broken streak is still within the 48h repair window. */
+export function canRepairStreak(): boolean {
+  const brokenAt = load().streak.brokenAt;
+  if (!brokenAt) return false;
+  const brokenAtMs = new Date(brokenAt.brokenDate).getTime();
+  return Date.now() - brokenAtMs < REPAIR_WINDOW_MS;
+}
+
+/**
+ * Restore a streak lost less than 48 hours ago (§14.4), consuming one
+ * Streak Repair via the same generic, server-reconciled consumeItem path
+ * Streak Freeze uses (§15 Phase 5). Local-effect/server-payment asymmetry is
+ * accepted for the same reason documented on Streak Freeze: streak lives
+ * only in localStorage (profiles.streak_days is never written, A1).
+ */
+export function repairStreak(): boolean {
+  const data = load();
+  if (!canRepairStreak()) return false;
+  if (!consumeItem('streak_repair')) return false;
+
+  data.streak.count = data.streak.brokenAt!.previousCount + 1;
+  data.streak.lastDate = dateKey();
+  data.streak.brokenAt = null;
+  save(data);
+  return true;
 }
 
 export interface DailyStats {

@@ -1,23 +1,31 @@
-// Shop shell (Shop plan §15 Phase 4): layout, header, 3 tabs, ShopItemCard,
-// purchase flow with real error states. Requirement-progress richness
-// ("Grammar mastery 0.72/0.80" bars, silhouette grid, transaction ledger) is
-// explicitly Phase 5 scope (§15) — this screen shows a binary locked/unlocked
-// requirement check against `state.achievements` for now.
-import { useMemo, useState } from 'react';
+// Shop shell (Shop plan §15 Phase 4 + Phase 5). Phase 4 shipped layout,
+// header, 3 tabs, ShopItemCard, purchase flow with real error states, and a
+// binary locked/unlocked requirement check. Phase 5 adds: live requirement
+// progress on locked Identity cards (from the real belief snapshot, not a
+// placeholder), a silhouette collection grid on Locker (the full 19-item
+// catalogue, not just owned items), and the transaction ledger.
+import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Gem, Lock, Check, RefreshCw } from 'lucide-react';
 import { PageShell } from '../components/layout/PageShell';
 import { Card } from '../components/ui/Card';
 import { CosmeticPreview } from '../components/ui/CosmeticPreview';
 import { RarityRing } from '../components/ui/RarityRing';
+import { TransactionList } from '../components/ui/TransactionList';
 import { fadeUp, stagger } from '../components/motion/variants';
 import { useApp } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
 import { useCatalogue } from '../services/shop/useCatalogue';
 import { SHOP_CATALOGUE } from '../services/shop/shopCatalogue';
 import { rarityOf, RARITY_COLOR } from '../services/shop/rarity';
-import { purchase, equip, makeIdempotencyKey } from '../services/shop/shopService';
+import { purchase, equip, makeIdempotencyKey, getTransactionHistory } from '../services/shop/shopService';
+import { computeRequirementProgress } from '../services/shop/requirementProgress';
+import { getBeliefSnapshot } from '../services/coach/coachStorage';
+import { getProblems, getInterventions } from '../services/coach/interventionService';
+import { canRepairStreak, repairStreak, getStreakCount } from '../services/analytics/analyticsService';
+import { storageGet, STORAGE_KEYS } from '../services/persistence/storage';
 import { ShopError } from '../types/shop';
-import type { ShopItem, EquipSlot } from '../types/shop';
+import type { ShopItem, EquipSlot, GemEvent } from '../types/shop';
 
 type ShopTab = 'gear' | 'identity' | 'locker';
 
@@ -50,17 +58,48 @@ function errorMessage(err: unknown): string {
 
 export function Shop() {
   const { state, dispatch } = useApp();
+  const { user } = useAuth();
   const { profile, achievements } = state;
   const catalogue = useCatalogue();
   const [tab, setTab] = useState<ShopTab>('gear');
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [errorById, setErrorById] = useState<Record<string, string>>({});
   const [shake, setShake] = useState(false);
+  const [transactions, setTransactions] = useState<GemEvent[]>([]);
+  const [transactionsLoading, setTransactionsLoading] = useState(false);
 
   const unlockedAchievementIds = useMemo(
     () => new Set(achievements.filter(a => a.unlocked).map(a => a.id)),
     [achievements]
   );
+
+  // Requirement progress reads the same signals achievements.ts's predicates
+  // do (streak, xp, belief snapshot, problems, interventions) so a locked
+  // card's bar can never show progress that doesn't match what actually
+  // unlocks it (§15 Phase 5 success criterion).
+  const progressByAchievement = useMemo(() => {
+    const beliefSnapshot = getBeliefSnapshot();
+    const problems = getProblems();
+    const interventions = getInterventions();
+    const roleplayCount = storageGet<{ roleplayCount?: number }>(STORAGE_KEYS.progression, {}).roleplayCount ?? 0;
+    const requiredAchievementIds = new Set(
+      catalogue.map(item => item.requirement.achievement).filter((id): id is string => !!id),
+    );
+    const map: Record<string, ReturnType<typeof computeRequirementProgress>> = {};
+    for (const achievementId of requiredAchievementIds) {
+      map[achievementId] = computeRequirementProgress({
+        achievementId,
+        unlocked: unlockedAchievementIds.has(achievementId),
+        streak: profile.streak_days,
+        xp: profile.total_xp,
+        beliefSnapshot,
+        problems,
+        interventions,
+        roleplayCount,
+      });
+    }
+    return map;
+  }, [catalogue, unlockedAchievementIds, profile.streak_days, profile.total_xp]);
 
   const itemsByTab = useMemo(() => {
     const groups: Record<ShopTab, ShopItem[]> = { gear: [], identity: [], locker: [] };
@@ -68,10 +107,25 @@ export function Shop() {
       if (!item.active) continue;
       groups[KIND_TAB[item.kind]].push(item);
     }
-    const owned = catalogue.filter(item => (profile.inventory[item.id] ?? 0) > 0);
-    groups.locker = owned;
+    // Locker is the full collection, owned and unowned alike, shown as a
+    // silhouette grid (Shop plan §3–4, §11 scenario H: "the empty state IS
+    // the roadmap") — never filtered down to owned items only.
+    groups.locker = catalogue.filter(item => item.active);
     return groups;
-  }, [catalogue, profile.inventory]);
+  }, [catalogue]);
+
+  const ownedCount = useMemo(
+    () => catalogue.filter(item => item.active && (profile.inventory[item.id] ?? 0) > 0).length,
+    [catalogue, profile.inventory],
+  );
+
+  useEffect(() => {
+    if (tab !== 'locker' || !user) return;
+    setTransactionsLoading(true);
+    getTransactionHistory(user.id)
+      .then(setTransactions)
+      .finally(() => setTransactionsLoading(false));
+  }, [tab, user]);
 
   async function handlePurchase(item: ShopItem) {
     setPendingId(item.id);
@@ -113,6 +167,22 @@ export function Shop() {
     }
   }
 
+  // Streak Repair (Shop plan §14.4): synchronous, mirroring Streak Freeze's
+  // consumeItem path — the streak effect is local, the RPC payment fires
+  // without blocking. Reconciles profile.inventory/streak_days directly since
+  // this bypasses SET_ECONOMY (no purchase_shop_item round-trip to await).
+  function handleRepairStreak() {
+    if (!repairStreak()) return;
+    dispatch({
+      type: 'SET_PROFILE',
+      profile: {
+        ...profile,
+        streak_days: getStreakCount(),
+        inventory: { ...profile.inventory, streak_repair: Math.max(0, (profile.inventory['streak_repair'] ?? 1) - 1) },
+      },
+    });
+  }
+
   const activeItems = itemsByTab[tab];
 
   return (
@@ -146,6 +216,14 @@ export function Shop() {
         ))}
       </motion.div>
 
+      {tab === 'locker' && (
+        <motion.div variants={fadeUp} className="flex items-center justify-between">
+          <p className="text-xs font-black uppercase tracking-widest text-slate-500">
+            Collection · {ownedCount}/{itemsByTab.locker.length}
+          </p>
+        </motion.div>
+      )}
+
       <motion.div
         variants={stagger}
         initial="hidden"
@@ -153,39 +231,54 @@ export function Shop() {
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
       >
         <AnimatePresence mode="popLayout">
-          {activeItems.map(item => (
-            <motion.div key={item.id} variants={fadeUp} layout>
-              <ShopItemCard
-                item={item}
-                owned={(profile.inventory[item.id] ?? 0) > 0}
-                qty={profile.inventory[item.id] ?? 0}
-                equipped={
-                  item.kind === 'avatar' ? profile.equipped.avatar === item.id
-                  : item.kind === 'frame' ? profile.equipped.frame === item.id
-                  : item.kind === 'nameplate' ? profile.equipped.nameplate === item.id
-                  : false
-                }
-                balance={profile.gems}
-                unlocked={!item.requirement.achievement || unlockedAchievementIds.has(item.requirement.achievement)}
-                pending={pendingId === item.id}
-                error={errorById[item.id]}
-                onPurchase={() => handlePurchase(item)}
-                onEquip={slot => handleEquip(item, slot)}
-                onUnequip={slot => handleUnequip(slot)}
-              />
-            </motion.div>
-          ))}
+          {activeItems.map(item => {
+            const owned = (profile.inventory[item.id] ?? 0) > 0;
+            const unlocked = !item.requirement.achievement || unlockedAchievementIds.has(item.requirement.achievement);
+            return (
+              <motion.div key={item.id} variants={fadeUp} layout>
+                <ShopItemCard
+                  item={item}
+                  owned={owned}
+                  qty={profile.inventory[item.id] ?? 0}
+                  equipped={
+                    item.kind === 'avatar' ? profile.equipped.avatar === item.id
+                    : item.kind === 'frame' ? profile.equipped.frame === item.id
+                    : item.kind === 'nameplate' ? profile.equipped.nameplate === item.id
+                    : false
+                  }
+                  balance={profile.gems}
+                  unlocked={unlocked}
+                  progress={item.requirement.achievement ? progressByAchievement[item.requirement.achievement] : undefined}
+                  silhouette={tab === 'locker' && !owned}
+                  pending={pendingId === item.id}
+                  error={errorById[item.id]}
+                  onPurchase={() => handlePurchase(item)}
+                  onEquip={slot => handleEquip(item, slot)}
+                  onUnequip={slot => handleUnequip(slot)}
+                  canRepairStreak={item.id === 'streak_repair' ? canRepairStreak() : undefined}
+                  onRepairStreak={item.id === 'streak_repair' ? handleRepairStreak : undefined}
+                />
+              </motion.div>
+            );
+          })}
         </AnimatePresence>
         {activeItems.length === 0 && (
           <motion.div variants={fadeUp} className="col-span-full">
             <Card variant="subtle" className="text-center py-10">
-              <p className="text-sm text-slate-500 font-bold">
-                {tab === 'locker' ? "You don't own anything yet — browse Gear or Identity." : 'Nothing here yet.'}
-              </p>
+              <p className="text-sm text-slate-500 font-bold">Nothing here yet.</p>
             </Card>
           </motion.div>
         )}
       </motion.div>
+
+      {tab === 'locker' && (
+        <motion.div variants={fadeUp}>
+          <Card variant="subtle">
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Transaction history</p>
+            <TransactionList events={transactions} loading={transactionsLoading} />
+          </Card>
+        </motion.div>
+      )}
     </PageShell>
   );
 }
@@ -234,11 +327,15 @@ function ShopItemCard({
   equipped,
   balance,
   unlocked,
+  progress,
+  silhouette,
   pending,
   error,
   onPurchase,
   onEquip,
   onUnequip,
+  canRepairStreak,
+  onRepairStreak,
 }: {
   item: ShopItem;
   owned: boolean;
@@ -246,11 +343,18 @@ function ShopItemCard({
   equipped: boolean;
   balance: number;
   unlocked: boolean;
+  /** Live progress toward this item's requirement (Shop plan §15 Phase 5). Undefined for no-requirement items. */
+  progress?: { ratio: number; label: string };
+  /** Locker collection grid: full-opacity outline for an unowned item, advertising real progress (§3–4, §11 H). */
+  silhouette?: boolean;
   pending: boolean;
   error?: string;
   onPurchase: () => void;
   onEquip: (slot: EquipSlot) => void;
   onUnequip: (slot: EquipSlot) => void;
+  /** streak_repair only: whether the 48h repair window is currently open (§14.4). */
+  canRepairStreak?: boolean;
+  onRepairStreak?: () => void;
 }) {
   const entry = SHOP_CATALOGUE[item.id];
   const rarity = rarityOf(item);
@@ -259,7 +363,7 @@ function ShopItemCard({
 
   return (
     <motion.div whileHover={{ scale: 1.01, y: -2 }}>
-      <Card variant="default" className="h-full flex flex-col gap-3">
+      <Card variant="default" className={`h-full flex flex-col gap-3 ${silhouette ? 'opacity-50' : ''}`}>
         <div className="flex items-start justify-between">
           <RarityRing rarity={rarity} size={48}>
             <div className="w-11 h-11 rounded-full bg-navy-300 flex items-center justify-center text-2xl">
@@ -285,6 +389,17 @@ function ShopItemCard({
               {entry.requirementLabel}
             </p>
           )}
+          {!unlocked && progress && (
+            <div className="mt-2">
+              <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-rose-500 to-amber-500 rounded-full"
+                  style={{ width: `${Math.round(progress.ratio * 100)}%` }}
+                />
+              </div>
+              <p className="text-[9px] font-bold text-slate-500 mt-1">{progress.label}</p>
+            </div>
+          )}
         </div>
 
         {error && <p className="text-[11px] font-bold text-rose-400">{error}</p>}
@@ -302,6 +417,13 @@ function ShopItemCard({
             >
               {pending ? <RefreshCw size={12} className="animate-spin" /> : equipped ? <Check size={12} /> : null}
               {equipped ? 'Equipped' : 'Equip'}
+            </button>
+          ) : item.id === 'streak_repair' && canRepairStreak ? (
+            <button
+              onClick={onRepairStreak}
+              className="w-full py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30"
+            >
+              Repair Streak{qty > 1 ? ` (${qty})` : ''}
             </button>
           ) : (
             <div className="w-full py-2 rounded-lg text-xs font-black uppercase tracking-widest text-center bg-white/5 text-slate-400 border border-white/10">

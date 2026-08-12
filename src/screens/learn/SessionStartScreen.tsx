@@ -21,6 +21,11 @@ interface Props {
   onSingleQuestion: () => void;
   onBack: () => void;
   coachRecommendation?: CoachRecommendation | null;
+  /** Shop plan §14.4/§15 Phase 5: owned qty of the Focus Token consumable, 0 if none. */
+  focusTokenQty?: number;
+  /** True once "Use Focus Token" has been tapped for this sitting — the override then applies to onStart. */
+  focusTokenActive?: boolean;
+  onUseFocusToken?: () => void;
 }
 
 const MODES: { mode: SessionMode; icon: string }[] = [
@@ -38,7 +43,7 @@ const TIER_COLORS: Record<DifficultyTier, string> = {
   expert:       'amber',
 };
 
-export function SessionStartScreen({ topic, topicMastery, selectedEngine, onEngineChange, selectedDifficulty, onDifficultyChange, onStart, onSingleQuestion, onBack, coachRecommendation }: Props) {
+export function SessionStartScreen({ topic, topicMastery, selectedEngine, onEngineChange, selectedDifficulty, onDifficultyChange, onStart, onSingleQuestion, onBack, coachRecommendation, focusTokenQty = 0, focusTokenActive = false, onUseFocusToken }: Props) {
   const [selected, setSelected] = useState<SessionMode>('standard');
   const health = useEngineHealth();
   const skillContext = buildSkillContext();
@@ -147,6 +152,32 @@ export function SessionStartScreen({ topic, topicMastery, selectedEngine, onEngi
           ))}
         </div>
       ) : null}
+
+      {/* Focus Token (Shop plan §14.4): override today's focus for this sitting only */}
+      {focusTokenQty > 0 && (
+        <div className={`p-3 rounded-2xl glass-subtle flex items-center justify-between gap-3 ${focusTokenActive ? 'border-emerald-500/30' : 'border-transparent'}`}>
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-lg flex-shrink-0">🎯</span>
+            <p className="text-xs text-slate-400 leading-snug">
+              {focusTokenActive
+                ? 'Focus Token active — this session targets your weakest skill.'
+                : `Use a Focus Token to override today's focus (${focusTokenQty} owned).`}
+            </p>
+          </div>
+          <motion.button
+            onClick={onUseFocusToken}
+            disabled={focusTokenActive}
+            className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest flex-shrink-0 transition-colors ${
+              focusTokenActive
+                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/10'
+            }`}
+            whileTap={{ scale: 0.97 }}
+          >
+            {focusTokenActive ? 'Active' : 'Use'}
+          </motion.button>
+        </div>
+      )}
 
       {/* AI Engine selector */}
       <ModelSelectorCard
