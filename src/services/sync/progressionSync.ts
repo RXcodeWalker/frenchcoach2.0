@@ -32,14 +32,15 @@ export async function pushProgressionToCloud(
       } satisfies ProgressionData;
     })();
 
+    // gems/inventory/active_boosters are no longer client-writable on profiles
+    // (Shop Phase 1 §14.2 — REVOKE UPDATE backs gem_events as the sole balance
+    // authority). Sending them here would 42501 the whole upsert, including
+    // total_xp/achievements.
     const { error } = await supabase.from('profiles').upsert(
       {
         id: userId,
         total_xp: source.totalXP,
-        gems: source.gems,
         achievements: source.achievements,
-        inventory: source.inventory,
-        active_boosters: source.activeBoosters,
       },
       { onConflict: 'id' }
     );
