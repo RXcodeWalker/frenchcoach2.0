@@ -3,7 +3,7 @@ import { STORAGE_KEYS, storageGet, storageSet } from '../services/persistence/st
 export type FeatureStatus = 'live' | 'coming-soon';
 
 export const FEATURE_FLAGS = {
-  shop:              'coming-soon',
+  shop:              'live',
   rankings:          'live',
   studyGroups:       'coming-soon',
   friendChallenges:  'coming-soon',
