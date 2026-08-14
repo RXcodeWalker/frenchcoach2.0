@@ -7,7 +7,7 @@ export const FEATURE_FLAGS = {
   rankings:          'live',
   dailyChallenge:    'coming-soon',
   studyGroups:       'coming-soon',
-  friendChallenges:  'coming-soon',
+  friendChallenges:  'live',
   roadmap:           'coming-soon',
   mastery:           'coming-soon',
   fluencyHeatmap:    'coming-soon',

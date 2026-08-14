@@ -1,50 +1,87 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import {
-  Users, Swords, Search, UserPlus, Clock, Zap, Flame,
-  ChevronRight, Share2, MoreHorizontal, BarChart2, X, TrendingUp,
-  Sparkles, Heart, MessageSquare, Target, Shield, Coins, Star, Plus
+  Users, Swords, Search, UserPlus, Trophy,
+  BarChart2, X, TrendingUp,
+  Sparkles, Heart, MessageSquare, Star, Plus, Check, Ban
 } from 'lucide-react';
-import { MOCK_FRIENDS, MOCK_CHALLENGES, MOCK_ACTIVITY_FEED } from '../data/mocks/mockFriends';
+import { MOCK_CHALLENGES, MOCK_ACTIVITY_FEED } from '../data/mocks/mockFriends';
 import { useApp } from '../context/AppContext';
-import { Friend, FriendChallenge, ActivityFeedItem } from '../types';
+import { useAuth } from '../context/AuthContext';
+import { Friend, ActivityFeedItem } from '../types';
+import type { DuelChallenge } from '../types/duels';
+import {
+  listFriendships, sendFriendRequest, acceptFriendRequest, declineFriendRequest,
+  cancelFriendRequest, removeFriend, type FriendEntry,
+} from '../services/social/friendsService';
+import { supabase, supabaseConfigured } from '../lib/supabase';
+import { createDuelChallenge, respondDuelChallenge, listMyDuels } from '../services/duels/duelsService';
+import { listPublishedQuestionSets } from '../data/exam/bank/loader';
+import type { AuthoredQuestionSet } from '../data/exam/bank/types';
+
+/** Adapts a real FriendEntry (username/avatar only) into the decorative
+ *  Friend shape ComparisonModal/SkillRadarChart/VsSplash expect — those stay
+ *  fully decorative/local-only per this phase's scope, so their stat fields
+ *  are safe zero/placeholder defaults, never fabricated as if real. */
+function toDecorativeFriend(entry: FriendEntry): Friend {
+  return {
+    id: entry.userId,
+    username: entry.username,
+    avatar: entry.avatar,
+    total_xp: 0,
+    level: 'Beginner',
+    streak: 0,
+    isOnline: false,
+  };
+}
 
 export function FriendChallenges() {
+  const { user } = useAuth();
+  const authUserId = user?.id ?? null;
+  const navigate = useNavigate();
+
   const [activeTab, setActiveTab] = useState<'duels' | 'co-op' | 'feed' | 'friends'>('duels');
   const [searchQuery, setSearchQuery] = useState('');
   const [comparingFriendId, setComparingFriendId] = useState<string | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [vsChallengeId, setVsChallengeId] = useState<string | null>(null);
-  const [activeTaunt, setActiveTaunt] = useState<{ id: string; emoji: string; text: string } | null>(null);
 
-  const handleStartDuel = (id: string) => {
-    setVsChallengeId(id);
-    setTimeout(() => {
-      // In a real app, this would navigate to the session
-      // For now, we just clear the splash after 3 seconds
-      setVsChallengeId(null);
-    }, 3000);
-  };
+  const [friends, setFriends] = useState<FriendEntry[]>([]);
+  const [friendsLoading, setFriendsLoading] = useState(true);
+  const [duels, setDuels] = useState<DuelChallenge[]>([]);
+  const [duelsLoading, setDuelsLoading] = useState(true);
 
-  const sendTaunt = (challengeId: string, emoji: string, text: string) => {
-    setActiveTaunt({ id: challengeId, emoji, text });
-    setTimeout(() => setActiveTaunt(null), 3000);
-  };
+  const loadFriends = useCallback(async () => {
+    if (!authUserId) { setFriends([]); setFriendsLoading(false); return; }
+    setFriendsLoading(true);
+    const rows = await listFriendships(authUserId);
+    setFriends(rows);
+    setFriendsLoading(false);
+  }, [authUserId]);
 
-  const filteredFriends = MOCK_FRIENDS.filter(f => 
+  const loadDuels = useCallback(async () => {
+    if (!authUserId) { setDuels([]); setDuelsLoading(false); return; }
+    setDuelsLoading(true);
+    const rows = await listMyDuels(authUserId);
+    setDuels(rows);
+    setDuelsLoading(false);
+  }, [authUserId]);
+
+  useEffect(() => { void loadFriends(); }, [loadFriends]);
+  useEffect(() => { void loadDuels(); }, [loadDuels]);
+
+  const acceptedFriends = friends.filter(f => f.status === 'accepted');
+  const filteredFriends = friends.filter(f =>
     f.username.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const activeDuels = MOCK_CHALLENGES.filter(c => 
-    c.status === 'active' && 
-    !c.type.includes('co_op') && 
-    c.type !== 'daily_quest' && 
-    c.type !== 'boss_raid'
-  );
-
-  const activeCoops = MOCK_CHALLENGES.filter(c => 
+  const activeCoops = MOCK_CHALLENGES.filter(c =>
     c.status === 'active' && (c.type.includes('co_op') || c.type === 'boss_raid')
   );
+
+  const comparingFriend = friends.find(f => f.userId === comparingFriendId);
+  const vsDuel = duels.find(d => d.duelId === vsChallengeId);
 
   return (
     <div className="min-h-screen pb-24 md:pb-8">
@@ -84,9 +121,9 @@ export function FriendChallenges() {
           </div>
         </div>
 
-        {/* Daily Pair Quest Widget */}
+        {/* Daily Pair Quest Widget — decorative, unwired (co-op is out of scope this phase) */}
         {(activeTab === 'duels' || activeTab === 'co-op') && (
-           <motion.div 
+           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             className="relative overflow-hidden bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-white/10 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4"
@@ -128,24 +165,33 @@ export function FriendChallenges() {
               className="space-y-4"
             >
               <div className="flex items-center justify-between">
-                <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Active Duels</h2>
-                <button className="text-[10px] font-bold text-blue-400 flex items-center gap-1 hover:underline">
-                  <Clock size={12} /> History
-                </button>
+                <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Your Duels</h2>
               </div>
 
-              {activeDuels.map(challenge => (
-                <ChallengeCard 
-                  key={challenge.id} 
-                  challenge={challenge} 
-                  isCoop={false} 
-                  onStartDuel={handleStartDuel}
-                  onSendTaunt={sendTaunt}
-                  activeTaunt={activeTaunt?.id === challenge.id ? activeTaunt : null}
-                />
-              ))}
+              {duelsLoading ? (
+                <div className="py-12 text-center text-slate-600 text-sm">Loading duels…</div>
+              ) : duels.length === 0 ? (
+                <div className="py-12 text-center border border-dashed border-white/5 rounded-2xl">
+                  <Swords size={32} className="text-slate-800 mx-auto mb-3" />
+                  <p className="text-sm font-bold text-slate-600 italic">No duels yet. Challenge a friend to a head-to-head!</p>
+                </div>
+              ) : (
+                duels.map(duel => (
+                  <DuelCard
+                    key={duel.duelId}
+                    duel={duel}
+                    myUserId={authUserId}
+                    onOpen={() => setVsChallengeId(duel.duelId)}
+                    onRespond={async (action) => {
+                      await respondDuelChallenge(duel.duelId, action);
+                      await loadDuels();
+                    }}
+                    onViewDetail={() => navigate(`/duel/${duel.duelId}`)}
+                  />
+                ))
+              )}
 
-              <button 
+              <button
                 onClick={() => setIsCreateModalOpen(true)}
                 className="w-full py-6 border-2 border-dashed border-white/5 rounded-2xl flex flex-col items-center justify-center gap-2 text-slate-600 hover:border-blue-500/20 hover:text-blue-400 transition-all group"
               >
@@ -165,37 +211,19 @@ export function FriendChallenges() {
             >
               <div className="flex items-center justify-between">
                 <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Ongoing Collaborations</h2>
-                <div className="p-2 bg-emerald-500/10 rounded-lg flex items-center gap-2">
-                  <Shield size={12} className="text-emerald-400" />
-                  <span className="text-[10px] font-black text-emerald-400">CO-OP MULTIPLIER: 1.2x</span>
-                </div>
               </div>
 
               {activeCoops.length > 0 ? (
-                activeCoops.map(challenge => (
-                  <ChallengeCard 
-                    key={challenge.id} 
-                    challenge={challenge} 
-                    isCoop={true} 
-                    onStartDuel={handleStartDuel}
-                    onSendTaunt={sendTaunt}
-                    activeTaunt={activeTaunt?.id === challenge.id ? activeTaunt : null}
-                  />
-                ))
+                <div className="py-12 text-center border border-dashed border-white/5 rounded-2xl">
+                  <Heart size={32} className="text-slate-800 mx-auto mb-3" />
+                  <p className="text-sm font-bold text-slate-600 italic">Co-op challenges are coming soon.</p>
+                </div>
               ) : (
                 <div className="py-12 text-center border border-dashed border-white/5 rounded-2xl">
                   <Heart size={32} className="text-slate-800 mx-auto mb-3" />
                   <p className="text-sm font-bold text-slate-600 italic">No active collaborations. Team up to reach goals faster!</p>
                 </div>
               )}
-
-              <button 
-                onClick={() => setIsCreateModalOpen(true)}
-                className="w-full py-6 border-2 border-dashed border-emerald-500/5 rounded-2xl flex flex-col items-center justify-center gap-2 text-slate-600 hover:border-emerald-500/20 hover:text-emerald-400 transition-all group"
-              >
-                <Heart size={24} className="group-hover:scale-110 transition-transform" />
-                <span className="text-xs font-bold uppercase tracking-widest">Start Co-op Goal</span>
-              </button>
             </motion.div>
           )}
 
@@ -209,9 +237,6 @@ export function FriendChallenges() {
             >
                <div className="flex items-center justify-between">
                 <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Recent Activity</h2>
-                <button className="text-[10px] font-bold text-blue-400 flex items-center gap-1 hover:underline">
-                  Mark all read
-                </button>
               </div>
 
               <div className="space-y-3">
@@ -242,27 +267,25 @@ export function FriendChallenges() {
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {filteredFriends.map(friend => (
-                  <FriendCard 
-                    key={friend.id} 
-                    friend={friend} 
-                    onCompare={() => setComparingFriendId(friend.id)}
-                  />
-                ))}
-              </div>
-
-              <div className="pt-4 flex flex-col items-center gap-4">
-                <p className="text-xs text-slate-600 italic">Can't find your friends?</p>
-                <div className="flex gap-3">
-                  <button className="px-6 py-3 bg-white/5 border border-white/10 text-white rounded-xl text-xs font-bold flex items-center gap-2 hover:bg-white/10 transition-all">
-                    <Share2 size={16} /> Invite Friends
-                  </button>
-                  <button className="px-6 py-3 bg-blue-600 text-white rounded-xl text-xs font-bold flex items-center gap-2 hover:bg-blue-500 transition-all shadow-lg shadow-blue-600/20">
-                    <UserPlus size={16} /> Sync Contacts
-                  </button>
+              {friendsLoading ? (
+                <div className="py-12 text-center text-slate-600 text-sm">Loading friends…</div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {filteredFriends.map(friend => (
+                    <FriendRow
+                      key={friend.userId}
+                      friend={friend}
+                      onCompare={friend.status === 'accepted' ? () => setComparingFriendId(friend.userId) : undefined}
+                      onAccept={friend.status === 'pending' && !friend.requestedByMe ? async () => { await acceptFriendRequest(friend.userId); await loadFriends(); } : undefined}
+                      onDecline={friend.status === 'pending' && !friend.requestedByMe ? async () => { await declineFriendRequest(friend.userId); await loadFriends(); } : undefined}
+                      onCancel={friend.status === 'pending' && friend.requestedByMe ? async () => { await cancelFriendRequest(friend.userId); await loadFriends(); } : undefined}
+                      onRemove={friend.status === 'accepted' ? async () => { await removeFriend(friend.userId); await loadFriends(); } : undefined}
+                    />
+                  ))}
                 </div>
-              </div>
+              )}
+
+              <AddFriendBar onSent={() => void loadFriends()} />
             </motion.div>
           )}
         </AnimatePresence>
@@ -270,19 +293,24 @@ export function FriendChallenges() {
 
       {/* Modals */}
       <AnimatePresence>
-        {comparingFriendId && (
-          <ComparisonModal 
-            friend={MOCK_FRIENDS.find(f => f.id === comparingFriendId)!} 
-            onClose={() => setComparingFriendId(null)} 
+        {comparingFriend && (
+          <ComparisonModal
+            friend={toDecorativeFriend(comparingFriend)}
+            onClose={() => setComparingFriendId(null)}
           />
         )}
         {isCreateModalOpen && (
-          <CreateChallengeModal onClose={() => setIsCreateModalOpen(false)} />
+          <CreateDuelModal
+            friends={acceptedFriends}
+            onClose={() => setIsCreateModalOpen(false)}
+            onCreated={() => { setIsCreateModalOpen(false); void loadDuels(); }}
+          />
         )}
-        {vsChallengeId && (
-          <VsSplash 
-            challenge={MOCK_CHALLENGES.find(c => c.id === vsChallengeId)!} 
-            onClose={() => setVsChallengeId(null)} 
+        {vsDuel && (
+          <VsSplash
+            duel={vsDuel}
+            myUserId={authUserId}
+            onClose={() => setVsChallengeId(null)}
           />
         )}
       </AnimatePresence>
@@ -290,9 +318,70 @@ export function FriendChallenges() {
   );
 }
 
-function VsSplash({ challenge }: { challenge: FriendChallenge; onClose: () => void }) {
-  const { state } = useApp();
-  const friend = MOCK_FRIENDS.find(f => f.id === challenge.friendId);
+function AddFriendBar({ onSent }: { onSent: () => void }) {
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState<{ id: string; username: string; avatar_emoji: string | null }[]>([]);
+  const [sentTo, setSentTo] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!supabaseConfigured || query.trim().length < 2) { setResults([]); return; }
+    let cancelled = false;
+    void (async () => {
+      const { data, error } = await supabase
+        .from('discoverable_profiles')
+        .select('id, username, avatar_emoji')
+        .ilike('username', `${query.trim()}%`)
+        .limit(10);
+      if (!cancelled && !error) setResults(data ?? []);
+    })();
+    return () => { cancelled = true; };
+  }, [query]);
+
+  async function handleSend(targetId: string) {
+    const result = await sendFriendRequest(targetId);
+    if (result.ok) {
+      setSentTo(targetId);
+      onSent();
+    }
+  }
+
+  return (
+    <div className="pt-4 flex flex-col items-center gap-4">
+      <p className="text-xs text-slate-600 italic">Add a friend by username</p>
+      <div className="w-full max-w-sm space-y-2">
+        <input
+          type="text"
+          placeholder="Search by username..."
+          value={query}
+          onChange={(e) => { setQuery(e.target.value); setSentTo(null); }}
+          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500/30 transition-all"
+        />
+        {results.map(r => (
+          <div key={r.id} className="flex items-center justify-between gap-2 bg-white/5 border border-white/5 rounded-xl px-3 py-2">
+            <span className="text-sm text-white">{r.avatar_emoji ?? '🙂'} {r.username}</span>
+            <button
+              onClick={() => void handleSend(r.id)}
+              disabled={sentTo === r.id}
+              className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-[10px] font-bold hover:bg-blue-500 transition-all disabled:opacity-50"
+            >
+              {sentTo === r.id ? 'Sent' : 'Add'}
+            </button>
+          </div>
+        ))}
+      </div>
+      <div className="flex gap-3">
+        <button className="px-6 py-3 bg-white/5 border border-white/10 text-white rounded-xl text-xs font-bold flex items-center gap-2 hover:bg-white/10 transition-all">
+          <UserPlus size={16} /> Invite Friends
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function VsSplash({ duel, myUserId }: { duel: DuelChallenge; myUserId: string | null; onClose: () => void }) {
+  const iAmChallenger = duel.challengerId === myUserId;
+  const myName = iAmChallenger ? duel.challengerUsername : duel.opponentUsername;
+  const opponentName = iAmChallenger ? duel.opponentUsername : duel.challengerUsername;
 
   return (
     <motion.div
@@ -302,9 +391,9 @@ function VsSplash({ challenge }: { challenge: FriendChallenge; onClose: () => vo
       className="fixed inset-0 z-[200] flex items-center justify-center bg-navy-950 overflow-hidden"
     >
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-600/20 via-transparent to-transparent opacity-50" />
-      
+
       {/* User Side */}
-      <motion.div 
+      <motion.div
         initial={{ x: '-100%', skewX: -10 }}
         animate={{ x: '-10%', skewX: -10 }}
         transition={{ type: 'spring', damping: 20, stiffness: 100 }}
@@ -315,14 +404,14 @@ function VsSplash({ challenge }: { challenge: FriendChallenge; onClose: () => vo
             ⚡
           </div>
           <div className="text-center">
-            <h2 className="text-4xl font-black text-white italic tracking-tighter uppercase">{state.profile.username}</h2>
+            <h2 className="text-4xl font-black text-white italic tracking-tighter uppercase">{myName}</h2>
             <p className="text-blue-400 font-bold tracking-[0.3em] mt-2">CHALLENGER</p>
           </div>
         </div>
       </motion.div>
 
       {/* Friend Side */}
-      <motion.div 
+      <motion.div
         initial={{ x: '100%', skewX: -10 }}
         animate={{ x: '10%', skewX: -10 }}
         transition={{ type: 'spring', damping: 20, stiffness: 100 }}
@@ -330,17 +419,17 @@ function VsSplash({ challenge }: { challenge: FriendChallenge; onClose: () => vo
       >
         <div className="skew-x-[10deg] flex flex-col items-center gap-6">
           <div className="w-48 h-48 rounded-3xl bg-purple-500/20 border-2 border-purple-400/50 flex items-center justify-center text-6xl shadow-[0_0_50px_rgba(168,85,247,0.5)] text-white">
-            {friend?.username[0]}
+            {opponentName[0]}
           </div>
           <div className="text-center">
-            <h2 className="text-4xl font-black text-white italic tracking-tighter uppercase">{friend?.username}</h2>
+            <h2 className="text-4xl font-black text-white italic tracking-tighter uppercase">{opponentName}</h2>
             <p className="text-purple-400 font-bold tracking-[0.3em] mt-2">OPPONENT</p>
           </div>
         </div>
       </motion.div>
 
       {/* VS Text */}
-      <motion.div 
+      <motion.div
         initial={{ scale: 0, rotate: -45 }}
         animate={{ scale: 1, rotate: 0 }}
         transition={{ delay: 0.5, type: 'spring', damping: 10 }}
@@ -348,213 +437,203 @@ function VsSplash({ challenge }: { challenge: FriendChallenge; onClose: () => vo
       >
         <span className="text-6xl font-black text-navy-950 italic">VS</span>
       </motion.div>
-
-      {/* Start Banner */}
-      <motion.div 
-        initial={{ y: 100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.8 }}
-        className="absolute bottom-20 left-1/2 -translate-x-1/2"
-      >
-        <div className="bg-white px-12 py-4 rounded-2xl shadow-2xl">
-          <p className="text-2xl font-black text-navy-950 italic tracking-tighter animate-bounce">FIGHT!</p>
-        </div>
-      </motion.div>
     </motion.div>
   );
 }
 
-function ChallengeCard({ challenge, isCoop, onStartDuel, onSendTaunt, activeTaunt }: { 
-  challenge: FriendChallenge; 
-  isCoop: boolean;
-  onStartDuel?: (id: string) => void;
-  onSendTaunt?: (id: string, emoji: string, text: string) => void;
-  activeTaunt?: { emoji: string; text: string } | null;
+function DuelCard({ duel, myUserId, onOpen, onRespond, onViewDetail }: {
+  duel: DuelChallenge;
+  myUserId: string | null;
+  onOpen: () => void;
+  onRespond: (action: 'accept' | 'decline') => Promise<void>;
+  onViewDetail: () => void;
 }) {
-  const friend = MOCK_FRIENDS.find(f => f.id === challenge.friendId);
-  const totalProgress = challenge.userProgress + challenge.friendProgress;
-  const isBossRaid = challenge.type === 'boss_raid';
-  const goal = challenge.targetGoal || Math.max(challenge.userProgress, challenge.friendProgress, 1);
-  
-  const userPercent = (challenge.userProgress / goal) * 100;
-  const friendPercent = (challenge.friendProgress / goal) * 100;
-  const combinedPercent = (totalProgress / (challenge.targetGoal || 1)) * 100;
+  const iAmChallenger = duel.challengerId === myUserId;
+  const iAmOpponent = duel.opponentId === myUserId;
+  const opponentName = iAmChallenger ? duel.opponentUsername : duel.challengerUsername;
+  const opponentAvatar = (iAmChallenger ? duel.opponentAvatarEmoji : duel.challengerAvatarEmoji) ?? '🙂';
+  const myResult = iAmChallenger ? duel.myAttempt : duel.opponentAttempt;
+  const iWon = duel.winnerUserId === myUserId;
+  const [busy, setBusy] = useState(false);
 
-  const taunts = [
-    { emoji: '💨', text: 'Catch me if you can!' },
-    { emoji: '🎯', text: 'On target!' },
-    { emoji: '🤝', text: 'We got this!' },
-    { emoji: '🔥', text: 'Im on fire!' }
-  ];
+  const statusLabel: Record<DuelChallenge['status'], string> = {
+    pending: iAmOpponent ? 'Invite received' : 'Invite sent',
+    accepted: myResult ? 'Waiting on opponent' : 'Ready to play',
+    declined: 'Declined',
+    cancelled: 'Cancelled',
+    completed: duel.isTie ? 'Tie' : iWon ? 'You won' : 'You lost',
+    expired: 'Expired',
+  };
 
   return (
     <motion.div
-      className={`glass-elevated p-6 rounded-2xl border-white/5 relative overflow-hidden group ${isCoop ? 'border-emerald-500/20' : ''} ${isBossRaid ? 'border-amber-500/20' : ''}`}
+      className="glass-elevated p-6 rounded-2xl border-white/5 relative overflow-hidden group"
       whileHover={{ scale: 1.01 }}
     >
-      {/* Background flair for Boss Raid */}
-      {isBossRaid && (
-        <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent pointer-events-none" />
-      )}
-
-      {/* Active Taunt Overlay */}
-      <AnimatePresence>
-        {activeTaunt && (
-          <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.8 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            className="absolute top-4 right-4 z-20 bg-white text-navy-950 px-3 py-1.5 rounded-xl shadow-2xl flex items-center gap-2"
-          >
-            <span className="text-xl">{activeTaunt.emoji}</span>
-            <span className="text-[10px] font-bold uppercase italic">{activeTaunt.text}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <div className="flex flex-col md:flex-row gap-6 items-center relative z-10">
-        {/* Challenge Type & Status */}
-        <div className="flex flex-col items-center justify-center text-center space-y-2 min-w-[120px]">
-          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border transition-transform group-hover:rotate-3 ${
-            isBossRaid ? 'bg-amber-500/20 text-amber-400 border-amber-500/30 shadow-[0_0_20px_rgba(245,158,11,0.2)]' :
-            isCoop ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 
-            'bg-blue-500/10 text-blue-400 border-blue-500/20'
-          }`}>
-            {challenge.type === 'xp_race' ? <Zap size={28} /> : 
-             challenge.type === 'co_op_xp' ? <Heart size={28} /> :
-             challenge.type === 'skill_duel' ? <Target size={28} /> :
-             challenge.type === 'boss_raid' ? <Sparkles size={28} /> :
-             <Flame size={28} />}
+      <div className="flex flex-col md:flex-row gap-4 items-center relative z-10">
+        <div className="flex items-center gap-3 flex-1 w-full">
+          <span className="text-2xl">{opponentAvatar}</span>
+          <div className="flex-1">
+            <p className="text-sm font-bold text-white">vs {opponentName}</p>
+            <p className="text-[10px] font-bold text-slate-500 uppercase">{statusLabel[duel.status]}</p>
           </div>
-          <div>
-            <p className={`text-[10px] font-black uppercase italic ${isBossRaid ? 'text-amber-400' : 'text-white'}`}>
-              {challenge.type.replace(/_/g, ' ')}
-            </p>
-            {challenge.skillTarget && (
-              <p className="text-[8px] font-bold text-blue-400 uppercase tracking-tighter">
-                {challenge.skillTarget}
-              </p>
-            )}
-          </div>
+          {duel.status === 'completed' && (
+            <Trophy size={18} className={duel.isTie ? 'text-slate-400' : iWon ? 'text-emerald-400' : 'text-slate-600'} />
+          )}
         </div>
 
-        {/* Progress Comparison / Collaborative Progress */}
-        <div className="flex-1 w-full space-y-4">
-          <div className="flex items-center justify-between text-xs font-bold">
-            <div className="flex items-center gap-2">
-              <span className="text-white">You</span>
-              <span className="text-slate-500">{challenge.userProgress} {challenge.type === 'skill_duel' ? 'PTS' : 'XP'}</span>
-            </div>
-            {isBossRaid ? (
-              <div className="flex items-center gap-2">
-                <span className="text-amber-400">BOSS: {goal - totalProgress} HP</span>
-                <span className="text-slate-500">/{goal}</span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <span className="text-slate-500">{challenge.friendProgress} {challenge.type === 'skill_duel' ? 'PTS' : 'XP'}</span>
-                <span className="text-blue-400">{friend?.username}</span>
-              </div>
-            )}
-          </div>
-
-          <div className="h-4 bg-white/5 rounded-full overflow-hidden flex border border-white/5 p-0.5">
-            {isCoop || isBossRaid ? (
-              <motion.div 
-                className={`h-full rounded-full shadow-lg ${
-                  isBossRaid ? 'bg-gradient-to-r from-amber-600 to-amber-400' : 'bg-gradient-to-r from-emerald-500 to-teal-400'
-                }`}
-                initial={{ width: 0 }}
-                animate={{ width: `${Math.min(combinedPercent, 100)}%` }}
-              />
-            ) : (
-              <>
-                <motion.div 
-                  className="h-full bg-emerald-500 rounded-l-full shadow-[0_0_10px_rgba(16,185,129,0.3)]"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${userPercent}%` }}
-                />
-                <motion.div 
-                  className="h-full bg-blue-500 rounded-r-full shadow-[0_0_10px_rgba(59,130,246,0.3)]"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${friendPercent}%` }}
-                />
-              </>
-            )}
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5 text-[10px] text-slate-500">
-              <Clock size={12} />
-              <span>Expires in 2 days</span>
-            </div>
-            <div className="flex items-center gap-3">
-              {challenge.wagerGems && (
-                 <div className="flex items-center gap-1 px-2 py-0.5 bg-amber-500/10 rounded-full border border-amber-500/20">
-                  <Coins size={10} className="text-amber-400" />
-                  <span className="text-[10px] font-black text-amber-400">{challenge.wagerGems * 2} STAKE</span>
-                </div>
-              )}
-              <div className="flex items-center gap-1.5">
-                <span className="text-[9px] font-bold text-slate-500 uppercase">REWARD:</span>
-                {challenge.rewardType === 'loot_box' ? (
-                  <div className="flex items-center gap-1 text-purple-400 animate-pulse">
-                    <Star size={12} />
-                    <span className="text-[10px] font-black">MYSTERY BOX</span>
-                  </div>
-                ) : (
-                  <span className={`text-[10px] font-black ${isCoop ? 'text-emerald-400' : isBossRaid ? 'text-amber-400' : 'text-amber-400'}`}>
-                    {challenge.rewardXP} XP
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex flex-col gap-2 w-full md:w-auto">
-          <button 
-            onClick={() => onStartDuel?.(challenge.id)}
-            className={`w-full px-8 py-3 font-black rounded-xl transition-all text-xs italic tracking-tighter shadow-xl ${
-              isBossRaid ? 'bg-amber-500 text-navy-950 hover:bg-amber-400 shadow-amber-500/20' :
-              isCoop ? 'bg-emerald-500 text-white hover:bg-emerald-400 shadow-emerald-500/20' : 
-              'bg-white text-slate-950 hover:bg-slate-200'
-            }`}
-          >
-            {isCoop || isBossRaid ? 'CONTRIBUTE' : 'PLAY NOW'}
-          </button>
-          
-          <div className="flex gap-2">
-            <div className="relative group/taunt flex-1">
-              <button className="w-full py-2 px-3 bg-white/5 border border-white/10 rounded-lg text-[10px] font-black text-slate-400 hover:text-white hover:bg-white/10 transition-all">
-                {isCoop || isBossRaid ? 'CHEER' : 'TAUNT'}
+        <div className="flex gap-2 w-full md:w-auto">
+          {duel.status === 'pending' && iAmOpponent && (
+            <>
+              <button
+                onClick={() => { setBusy(true); void onRespond('decline').finally(() => setBusy(false)); }}
+                disabled={busy}
+                className="flex-1 py-2 px-4 bg-white/5 border border-white/10 rounded-lg text-[10px] font-black text-slate-400 hover:text-white transition-all disabled:opacity-50"
+              >
+                DECLINE
               </button>
-              <div className="absolute bottom-full right-0 mb-2 p-2 bg-navy-900 border border-white/10 rounded-xl flex gap-1.5 shadow-2xl opacity-0 invisible group-hover/taunt:opacity-100 group-hover/taunt:visible transition-all">
-                {taunts.map(t => (
-                  <button 
-                    key={t.text} 
-                    onClick={() => onSendTaunt?.(challenge.id, t.emoji, t.text)}
-                    className="w-10 h-10 bg-white/5 hover:bg-white/10 rounded-lg flex items-center justify-center text-xl transition-transform hover:scale-110" 
-                    title={t.text}
-                  >
-                    {t.emoji}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <button className="p-2 bg-white/5 border border-white/10 rounded-lg text-slate-400 hover:text-white hover:bg-white/10">
-              <MoreHorizontal size={14} />
+              <button
+                onClick={() => { setBusy(true); void onRespond('accept').finally(() => setBusy(false)); }}
+                disabled={busy}
+                className="flex-1 py-2 px-4 bg-white text-slate-950 rounded-lg text-[10px] font-black hover:bg-slate-200 transition-all disabled:opacity-50"
+              >
+                ACCEPT
+              </button>
+            </>
+          )}
+          {duel.status === 'accepted' && (
+            <button
+              onClick={() => { onOpen(); onViewDetail(); }}
+              className="w-full px-6 py-2 font-black rounded-xl transition-all text-xs italic tracking-tighter bg-white text-slate-950 hover:bg-slate-200"
+            >
+              PLAY
             </button>
-          </div>
+          )}
+          {(duel.status === 'completed' || duel.status === 'expired' || duel.status === 'pending' && !iAmOpponent) && (
+            <button
+              onClick={onViewDetail}
+              className="w-full px-6 py-2 font-black rounded-xl transition-all text-xs italic tracking-tighter bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10"
+            >
+              VIEW
+            </button>
+          )}
         </div>
       </div>
     </motion.div>
   );
 }
 
+function CreateDuelModal({ friends, onClose, onCreated }: {
+  friends: FriendEntry[];
+  onClose: () => void;
+  onCreated: () => void;
+}) {
+  const [step, setStep] = useState<1 | 2>(1);
+  const [opponentId, setOpponentId] = useState<string | null>(null);
+  const [questionSets, setQuestionSets] = useState<AuthoredQuestionSet[]>([]);
+  const [questionSetsLoading, setQuestionSetsLoading] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [errorReason, setErrorReason] = useState<string | null>(null);
+
+  async function goToQuestionSetStep(id: string) {
+    setOpponentId(id);
+    setStep(2);
+    setQuestionSetsLoading(true);
+    const sets = await listPublishedQuestionSets();
+    setQuestionSets(sets);
+    setQuestionSetsLoading(false);
+  }
+
+  async function handleSend(questionSetId: string) {
+    if (!opponentId) return;
+    setCreating(true);
+    setErrorReason(null);
+    const result = await createDuelChallenge(opponentId, questionSetId);
+    setCreating(false);
+    if (result.ok) {
+      onCreated();
+    } else {
+      setErrorReason(result.reason);
+    }
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[150] flex items-center justify-center p-4 md:p-6"
+    >
+      <div className="absolute inset-0 bg-navy-950/80 backdrop-blur-md" onClick={onClose} />
+      <motion.div
+        initial={{ scale: 0.9, y: 20 }}
+        animate={{ scale: 1, y: 0 }}
+        className="relative w-full max-w-lg bg-navy-900 border border-white/10 rounded-3xl overflow-hidden shadow-2xl"
+      >
+        <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
+          <h2 className="text-xl font-black text-white italic tracking-tighter">NEW DUEL</h2>
+          <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full text-slate-500"><X size={20} /></button>
+        </div>
+
+        <div className="p-8 space-y-6">
+          {step === 1 && (
+            <div className="space-y-4">
+              <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">SELECT OPPONENT</p>
+              {friends.length === 0 ? (
+                <p className="text-xs text-slate-600 text-center py-8 italic">Add a friend first to challenge them to a duel.</p>
+              ) : (
+                <div className="grid grid-cols-1 gap-2">
+                  {friends.map(f => (
+                    <button
+                      key={f.userId}
+                      onClick={() => void goToQuestionSetStep(f.userId)}
+                      className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-left hover:bg-white/10 transition-all flex items-center gap-3"
+                    >
+                      <span className="text-lg">{f.avatar ?? '🙂'}</span>
+                      <span className="text-sm font-bold text-white">{f.username}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {step === 2 && (
+            <div className="space-y-6">
+               <div className="space-y-3">
+                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">SELECT QUESTION SET</p>
+                {questionSetsLoading ? (
+                  <p className="text-xs text-slate-600 text-center py-8">Loading question sets…</p>
+                ) : (
+                  <div className="grid grid-cols-1 gap-2 max-h-64 overflow-y-auto custom-scrollbar">
+                    {questionSets.map(set => (
+                      <button
+                        key={set.questionSetId}
+                        onClick={() => void handleSend(set.questionSetId)}
+                        disabled={creating}
+                        className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-left hover:bg-white/10 transition-all flex items-center justify-between group disabled:opacity-50"
+                      >
+                        <span className="text-sm font-bold text-white">{set.content.rolePlay.title}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+               </div>
+
+               {errorReason && (
+                 <p className="text-xs text-red-400 text-center">Couldn't send duel: {errorReason}</p>
+               )}
+
+               <button onClick={() => setStep(1)} className="w-full text-[10px] font-black text-slate-600 uppercase tracking-widest hover:text-white transition-colors">Back</button>
+            </div>
+          )}
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 function ActivityFeedCard({ item }: { item: ActivityFeedItem }) {
-  const friend = MOCK_FRIENDS.find(f => f.id === item.friendId);
   const [reactions, setReactions] = useState(item.reactions);
 
   const addReaction = (emoji: string) => {
@@ -567,11 +646,10 @@ function ActivityFeedCard({ item }: { item: ActivityFeedItem }) {
   return (
     <div className="glass-elevated p-4 rounded-2xl border-white/5 flex items-start gap-4 hover:border-white/10 transition-colors group">
       <div className="w-10 h-10 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full flex items-center justify-center border border-white/10 overflow-hidden flex-shrink-0">
-        <span className="text-sm font-black text-white">{friend?.username[0]}</span>
+        <span className="text-sm font-black text-white">{item.content[0]}</span>
       </div>
       <div className="flex-1">
         <div className="flex items-center justify-between mb-1">
-          <span className="text-xs font-bold text-white group-hover:text-blue-400 transition-colors">{friend?.username}</span>
           <span className="text-[10px] text-slate-600 uppercase font-bold">{new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
         </div>
         <p className="text-sm text-slate-400 leading-tight mb-3">
@@ -579,7 +657,7 @@ function ActivityFeedCard({ item }: { item: ActivityFeedItem }) {
         </p>
         <div className="flex flex-wrap gap-2">
           {Object.entries(reactions).map(([emoji, count]) => (
-            <button 
+            <button
               key={emoji}
               onClick={() => addReaction(emoji)}
               className="flex items-center gap-1.5 px-2 py-1 bg-white/5 border border-white/5 rounded-lg hover:bg-white/10 transition-colors"
@@ -604,132 +682,71 @@ function ActivityFeedCard({ item }: { item: ActivityFeedItem }) {
   );
 }
 
-function FriendCard({ friend, onCompare }: { friend: Friend; onCompare: () => void }) {
+function FriendRow({ friend, onCompare, onAccept, onDecline, onCancel, onRemove }: {
+  friend: FriendEntry;
+  onCompare?: () => void;
+  onAccept?: () => Promise<void>;
+  onDecline?: () => Promise<void>;
+  onCancel?: () => Promise<void>;
+  onRemove?: () => Promise<void>;
+}) {
+  const [busy, setBusy] = useState(false);
+
+  async function run(fn: () => Promise<void>) {
+    setBusy(true);
+    await fn();
+    setBusy(false);
+  }
+
   return (
     <div className="glass-elevated p-4 rounded-2xl border-white/5 flex items-center justify-between group">
       <div className="flex items-center gap-4">
         <div className="relative">
-          <div className="w-12 h-12 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-full flex items-center justify-center border border-white/10 overflow-hidden">
-            <span className="text-lg font-black text-white">{friend.username[0]}</span>
+          <div className="w-12 h-12 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-full flex items-center justify-center border border-white/10 overflow-hidden text-lg">
+            {friend.avatar ?? friend.username[0]}
           </div>
-          {friend.isOnline && (
-            <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-slate-950 rounded-full" />
-          )}
         </div>
         <div>
           <h3 className="font-bold text-sm text-white group-hover:text-blue-400 transition-colors">{friend.username}</h3>
-          <div className="flex items-center gap-2 text-[10px] text-slate-500 font-bold uppercase">
-            <span className="text-blue-400">{friend.level}</span>
-            <span>•</span>
-            <span>{friend.total_xp} XP</span>
-            <span>•</span>
-            <span className="text-orange-400 flex items-center gap-0.5"><Flame size={10} /> {friend.streak}</span>
-          </div>
+          {friend.status === 'pending' && (
+            <p className="text-[10px] text-slate-500 font-bold uppercase">
+              {friend.requestedByMe ? 'Request sent' : 'Wants to be friends'}
+            </p>
+          )}
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <button 
-          onClick={onCompare}
-          className="p-2.5 bg-white/5 text-slate-500 rounded-xl hover:bg-violet-500/10 hover:text-violet-400 transition-all border border-transparent hover:border-violet-500/20"
-          title="Compare Progress"
-        >
-          <BarChart2 size={16} />
-        </button>
-        <button className="p-2.5 bg-blue-500/10 text-blue-400 rounded-xl hover:bg-blue-500 hover:text-white transition-all shadow-lg shadow-blue-500/5">
-          <Swords size={16} />
-        </button>
+        {onAccept && (
+          <button onClick={() => void run(onAccept)} disabled={busy} className="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-xl hover:bg-emerald-500 hover:text-white transition-all disabled:opacity-50" title="Accept">
+            <Check size={16} />
+          </button>
+        )}
+        {onDecline && (
+          <button onClick={() => void run(onDecline)} disabled={busy} className="p-2.5 bg-white/5 text-slate-500 rounded-xl hover:bg-red-500/10 hover:text-red-400 transition-all disabled:opacity-50" title="Decline">
+            <Ban size={16} />
+          </button>
+        )}
+        {onCancel && (
+          <button onClick={() => void run(onCancel)} disabled={busy} className="p-2.5 bg-white/5 text-slate-500 rounded-xl hover:bg-red-500/10 hover:text-red-400 transition-all disabled:opacity-50" title="Cancel request">
+            <X size={16} />
+          </button>
+        )}
+        {onCompare && (
+          <button
+            onClick={onCompare}
+            className="p-2.5 bg-white/5 text-slate-500 rounded-xl hover:bg-violet-500/10 hover:text-violet-400 transition-all border border-transparent hover:border-violet-500/20"
+            title="Compare Progress"
+          >
+            <BarChart2 size={16} />
+          </button>
+        )}
+        {onRemove && (
+          <button onClick={() => void run(onRemove)} disabled={busy} className="p-2.5 bg-white/5 text-slate-500 rounded-xl hover:bg-red-500/10 hover:text-red-400 transition-all disabled:opacity-50" title="Remove friend">
+            <X size={16} />
+          </button>
+        )}
       </div>
     </div>
-  );
-}
-
-function CreateChallengeModal({ onClose }: { onClose: () => void }) {
-  const [step, setStep] = useState(1);
-  const [, setChallengeType] = useState<'versus' | 'co-op'>('versus');
-  
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[150] flex items-center justify-center p-4 md:p-6"
-    >
-      <div className="absolute inset-0 bg-navy-950/80 backdrop-blur-md" onClick={onClose} />
-      <motion.div
-        initial={{ scale: 0.9, y: 20 }}
-        animate={{ scale: 1, y: 0 }}
-        className="relative w-full max-w-lg bg-navy-900 border border-white/10 rounded-3xl overflow-hidden shadow-2xl"
-      >
-        <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
-          <h2 className="text-xl font-black text-white italic tracking-tighter">NEW CHALLENGE</h2>
-          <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full text-slate-500"><X size={20} /></button>
-        </div>
-        
-        <div className="p-8 space-y-6">
-          {step === 1 && (
-            <div className="space-y-4">
-              <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">SELECT MODE</p>
-              <div className="grid grid-cols-2 gap-4">
-                <button 
-                  onClick={() => { setChallengeType('versus'); setStep(2); }}
-                  className="p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all group text-center"
-                >
-                  <Swords size={32} className="text-blue-400 mx-auto mb-3 group-hover:scale-110 transition-transform" />
-                  <p className="text-sm font-black text-white italic">VERSUS</p>
-                  <p className="text-[10px] text-slate-500 mt-1">Compete head-to-head</p>
-                </button>
-                <button 
-                  onClick={() => { setChallengeType('co-op'); setStep(2); }}
-                  className="p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all group text-center"
-                >
-                  <Heart size={32} className="text-emerald-400 mx-auto mb-3 group-hover:scale-110 transition-transform" />
-                  <p className="text-sm font-black text-white italic">CO-OP</p>
-                  <p className="text-[10px] text-slate-500 mt-1">Work together for a goal</p>
-                </button>
-              </div>
-            </div>
-          )}
-
-          {step === 2 && (
-            <div className="space-y-6">
-               <div className="space-y-3">
-                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">SELECT CHALLENGE TYPE</p>
-                <div className="grid grid-cols-1 gap-2">
-                  {['XP Race', 'Skill Duel', 'Streak War'].map(type => (
-                    <button key={type} className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-left hover:bg-white/10 transition-all flex items-center justify-between group">
-                      <span className="text-sm font-bold text-white italic">{type.toUpperCase()}</span>
-                      <ChevronRight size={16} className="text-slate-700 group-hover:text-white" />
-                    </button>
-                  ))}
-                </div>
-               </div>
-
-               <div className="space-y-3">
-                 <div className="flex items-center justify-between">
-                   <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">WAGER GEMS (OPTIONAL)</p>
-                   <span className="text-[10px] font-bold text-amber-400 flex items-center gap-1"><Coins size={12} /> 1,240</span>
-                 </div>
-                 <div className="flex gap-2">
-                   {[0, 10, 50, 100].map(amt => (
-                     <button key={amt} className="flex-1 py-2 rounded-lg bg-white/5 border border-white/5 text-[10px] font-black text-white hover:bg-amber-500/10 hover:border-amber-500/30 transition-all">
-                       {amt === 0 ? 'NONE' : `${amt} 💎`}
-                     </button>
-                   ))}
-                 </div>
-               </div>
-
-               <button 
-                onClick={onClose}
-                className="w-full py-4 rounded-2xl bg-blue-600 text-white font-black text-sm hover:bg-blue-500 shadow-xl shadow-blue-600/20 transition-all italic tracking-tighter"
-               >
-                 SEND CHALLENGE
-               </button>
-               <button onClick={() => setStep(1)} className="w-full text-[10px] font-black text-slate-600 uppercase tracking-widest hover:text-white transition-colors">Back</button>
-            </div>
-          )}
-        </div>
-      </motion.div>
-    </motion.div>
   );
 }
 
@@ -761,7 +778,7 @@ function ComparisonModal({ friend, onClose }: { friend: Friend; onClose: () => v
   const getAIMessage = () => {
     const userAvg = skillData.reduce((acc, s) => acc + s.user, 0) / skillData.length;
     const friendAvg = skillData.reduce((acc, s) => acc + s.friend, 0) / skillData.length;
-    
+
     if (userAvg > friendAvg + 1) return `You're significantly ahead in overall mastery! Marie might need some tips from you.`;
     if (friendAvg > userAvg + 1) return `${friend.username} is currently in the lead. Focus on your ${skillData.sort((a,b) => a.user - b.user)[0].label} to close the gap!`;
     return `It's a close match! You're stronger in ${skillData.sort((a,b) => b.user - a.user)[0].label}, while ${friend.username} excels in ${skillData.sort((a,b) => b.friend - a.friend)[0].label}.`;
@@ -778,11 +795,11 @@ function ComparisonModal({ friend, onClose }: { friend: Friend; onClose: () => v
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-6"
     >
-      <motion.div 
+      <motion.div
         className="absolute inset-0 bg-navy-950/80 backdrop-blur-md"
         onClick={onClose}
       />
-      
+
       <motion.div
         initial={{ opacity: 0, scale: 0.9, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -800,7 +817,7 @@ function ComparisonModal({ friend, onClose }: { friend: Friend; onClose: () => v
               <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Comparison 2.0</p>
             </div>
           </div>
-          <button 
+          <button
             onClick={onClose}
             className="p-2 hover:bg-white/5 rounded-full text-slate-500 hover:text-white transition-colors"
           >
@@ -815,9 +832,6 @@ function ComparisonModal({ friend, onClose }: { friend: Friend; onClose: () => v
               <div className="relative">
                 <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-violet-500/20 to-indigo-500/20 flex items-center justify-center border border-violet-500/30 text-3xl shadow-2xl shadow-violet-500/20">
                   ⚡
-                </div>
-                <div className="absolute -bottom-2 -right-2 bg-emerald-500 rounded-lg px-1.5 py-0.5 border border-navy-900 shadow-lg">
-                  <span className="text-[8px] font-black text-white">#4</span>
                 </div>
               </div>
               <div className="text-center">
@@ -836,9 +850,6 @@ function ComparisonModal({ friend, onClose }: { friend: Friend; onClose: () => v
                 <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center border border-blue-500/30 text-3xl shadow-2xl shadow-blue-500/20 text-white">
                   {friend.username[0]}
                 </div>
-                <div className="absolute -bottom-2 -left-2 bg-blue-500 rounded-lg px-1.5 py-0.5 border border-navy-900 shadow-lg">
-                  <span className="text-[8px] font-black text-white">#7</span>
-                </div>
               </div>
               <div className="text-center">
                 <p className="text-sm font-black text-white">{friend.username}</p>
@@ -847,58 +858,8 @@ function ComparisonModal({ friend, onClose }: { friend: Friend; onClose: () => v
             </div>
           </div>
 
-          {/* H2H Record Banner */}
-          <div className="flex items-center justify-center gap-6 py-3 px-6 bg-white/[0.02] border border-white/5 rounded-2xl">
-            <div className="text-center">
-              <p className="text-[9px] font-bold text-slate-500 uppercase">Your Wins</p>
-              <p className="text-xl font-black text-emerald-400">{friend.h2hRecord?.wins}</p>
-            </div>
-            <div className="h-8 w-px bg-white/5" />
-            <div className="text-center">
-              <p className="text-[9px] font-bold text-slate-500 uppercase">Draws</p>
-              <p className="text-xl font-black text-white">{friend.h2hRecord?.draws}</p>
-            </div>
-            <div className="h-8 w-px bg-white/5" />
-            <div className="text-center">
-              <p className="text-[9px] font-bold text-slate-500 uppercase">Wins</p>
-              <p className="text-xl font-black text-blue-400">{friend.h2hRecord?.losses}</p>
-            </div>
-          </div>
-
-          {/* AI Insight Box (Expanded) */}
+          {/* AI Insight Box */}
           <div className="space-y-4">
-            {/* Duo Synergy Level */}
-            <div className="relative overflow-hidden bg-gradient-to-r from-pink-600/20 to-purple-600/20 border border-pink-500/20 rounded-2xl p-5 group/synergy">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-pink-500/20 flex items-center justify-center text-pink-400 border border-pink-500/30">
-                    <Heart size={20} className="group-hover/synergy:scale-110 transition-transform" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-black text-pink-400 uppercase tracking-widest">DUO SYNERGY</p>
-                    <p className="text-sm font-black text-white italic">LEVEL {friend.synergyLevel || 1}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-[8px] font-bold text-slate-500 uppercase">NEXT REWARD</p>
-                  <p className="text-[10px] font-black text-emerald-400">SHARED PROFILE FRAME</p>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div className="h-2 bg-white/5 rounded-full overflow-hidden border border-white/5">
-                  <motion.div 
-                    className="h-full bg-gradient-to-r from-pink-500 to-purple-500 shadow-[0_0_10px_rgba(236,72,153,0.5)]"
-                    initial={{ width: 0 }}
-                    animate={{ width: '65%' }}
-                  />
-                </div>
-                <div className="flex justify-between text-[8px] font-bold text-slate-600 uppercase tracking-tighter">
-                  <span>Progress to Level {Number(friend.synergyLevel || 1) + 1}</span>
-                  <span>1,200 / 2,000 SYNERGY XP</span>
-                </div>
-              </div>
-            </div>
-
             <div className="relative overflow-hidden bg-gradient-to-br from-violet-600/10 to-transparent border border-violet-500/20 rounded-2xl p-5">
               <div className="absolute -top-6 -right-6 w-24 h-24 bg-violet-500/10 rounded-full blur-2xl" />
               <div className="flex items-start gap-4">
@@ -954,13 +915,13 @@ function ComparisonModal({ friend, onClose }: { friend: Friend; onClose: () => v
                 </div>
                 {!stat.isText && (
                   <div className="h-1 bg-white/5 rounded-full overflow-hidden flex mt-2.5">
-                    <div 
-                      className="h-full bg-emerald-500/60" 
-                      style={{ width: `${(Number(stat.user) / (Number(stat.user) + Number(stat.friend) || 1)) * 100}%` }} 
+                    <div
+                      className="h-full bg-emerald-500/60"
+                      style={{ width: `${(Number(stat.user) / (Number(stat.user) + Number(stat.friend) || 1)) * 100}%` }}
                     />
-                    <div 
-                      className="h-full bg-blue-500/60" 
-                      style={{ width: `${(Number(stat.friend) / (Number(stat.user) + Number(stat.friend) || 1)) * 100}%` }} 
+                    <div
+                      className="h-full bg-blue-500/60"
+                      style={{ width: `${(Number(stat.friend) / (Number(stat.user) + Number(stat.friend) || 1)) * 100}%` }}
                     />
                   </div>
                 )}
@@ -968,40 +929,17 @@ function ComparisonModal({ friend, onClose }: { friend: Friend; onClose: () => v
             ))}
           </div>
 
-          {/* Weekly Activity Summary */}
-          <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6">
-            <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
-              <Clock size={12} className="text-blue-400" /> Activity Overlap
-            </h3>
-            <div className="flex items-end justify-between gap-1 h-16">
-              {friend.weeklyXPData?.map((xp, i) => {
-                const max = Math.max(...(friend.weeklyXPData || [1]), 100);
-                return (
-                  <div key={i} className="flex-1 flex flex-col items-center gap-1.5 group/bar relative">
-                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-navy-800 px-1.5 py-0.5 rounded text-[8px] font-bold text-white opacity-0 group-hover/bar:opacity-100 transition-opacity whitespace-nowrap border border-white/10">{xp} XP</div>
-                    <motion.div 
-                      className="w-full bg-blue-500/20 rounded-t-sm border-t border-blue-500/30 group-hover/bar:bg-blue-500/40 transition-colors"
-                      initial={{ height: 0 }}
-                      animate={{ height: `${(xp / max) * 100}%` }}
-                    />
-                    <span className="text-[8px] font-bold text-slate-700">{['M','T','W','T','F','S','S'][i]}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Social Actions & Send Challenge */}
+          {/* Social Actions */}
           <div className="flex flex-col gap-3">
             <div className="flex gap-2">
-              <button 
+              <button
                 onClick={() => handleSocialAction('nudge')}
                 disabled={socialActionSent === 'nudge'}
                 className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-400 font-bold text-xs hover:bg-orange-500/20 transition-all"
               >
-                {socialActionSent === 'nudge' ? <span className="flex items-center gap-1.5 animate-bounce"><Flame size={14} /> Nudged!</span> : <><Flame size={14} /> Nudge</>}
+                {socialActionSent === 'nudge' ? <span className="flex items-center gap-1.5 animate-bounce">🔥 Nudged!</span> : <>🔥 Nudge</>}
               </button>
-              <button 
+              <button
                 onClick={() => handleSocialAction('cheer')}
                 disabled={socialActionSent === 'cheer'}
                 className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold text-xs hover:bg-emerald-500/20 transition-all"
@@ -1009,12 +947,8 @@ function ComparisonModal({ friend, onClose }: { friend: Friend; onClose: () => v
                 {socialActionSent === 'cheer' ? <span className="flex items-center gap-1.5 animate-bounce">🙌 Sent!</span> : <><TrendingUp size={14} /> Cheer</>}
               </button>
             </div>
-            
-            <button className="w-full py-4 rounded-2xl bg-violet-electric text-white font-black text-sm hover:bg-violet-600 transition-all shadow-xl shadow-violet-500/20 flex items-center justify-center gap-2 group">
-              <Swords size={18} className="group-hover:rotate-12 transition-transform" /> START CHALLENGE
-            </button>
-            
-            <button 
+
+            <button
               onClick={onClose}
               className="text-[10px] font-black text-slate-600 hover:text-white uppercase tracking-widest mt-2 transition-colors"
             >
@@ -1113,7 +1047,7 @@ function SkillRadarChart({ data, friendName }: { data: { label: string; user: nu
           );
         })}
       </svg>
-      
+
       {/* Legend */}
       <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex gap-4 bg-navy-900/80 backdrop-blur-sm border border-white/5 px-3 py-1.5 rounded-full shadow-lg">
         <div className="flex items-center gap-1.5">

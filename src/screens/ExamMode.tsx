@@ -51,6 +51,7 @@ import { ExamSelect } from './exam/ExamSelect';
 import { RolePlayCardPreview } from './exam/RolePlayCardPreview';
 import { ExitConfirmDialog } from './exam/ExitConfirmDialog';
 import { savePendingClaim, clearPendingClaim, submitDailyChallengeAttempt } from '../services/dailyChallenge/dailyChallengeService';
+import { savePendingDuelClaim, clearPendingDuelClaim, submitDuelAttempt } from '../services/duels/duelsService';
 
 type ExamState = 'select' | 'intro' | 'greeting' | 'card' | 'running' | 'review' | 'scoring' | 'results';
 
@@ -71,6 +72,12 @@ interface DailyChallengeLocationState {
   sessionId?: string;
 }
 
+interface DuelLocationState {
+  duelId?: string;
+  questionSetId?: string;
+  sessionId?: string;
+}
+
 export function ExamMode() {
   const { state, dispatch } = useApp();
   const navigate = useNavigate();
@@ -83,6 +90,17 @@ export function ExamMode() {
   const dailyChallengeQuestionSetId = dailyChallenge?.questionSetId;
   const dailyChallengeSessionId = dailyChallenge?.sessionId;
   const isDailyChallengeRun = Boolean(dailyChallengeDate && dailyChallengeQuestionSetId && dailyChallengeSessionId);
+
+  // Second, coexisting additive extension (Friend Duels Phase 2) — only takes
+  // effect when all three of duelId/questionSetId/sessionId are present. The
+  // two is*Run flags are mutually exclusive at runtime (only one screen ever
+  // populates location.state per navigation), so both checks can coexist
+  // unconditionally with no interference.
+  const duelState = location.state as DuelLocationState | null;
+  const duelId = duelState?.duelId;
+  const duelQuestionSetId = duelState?.questionSetId;
+  const duelSessionId = duelState?.sessionId;
+  const isDuelRun = Boolean(duelId && duelQuestionSetId && duelSessionId);
 
   const [examState, setExamState] = useState<ExamState>('select');
   const [action, setAction] = useState<ExaminerAction | null>(null);
@@ -154,6 +172,20 @@ export function ExamMode() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Friend Duels Phase 2: sibling of the Daily Challenge effect above — same
+  // skip-ExamSelect, load-the-assigned-set, jump-to-intro behavior.
+  useEffect(() => {
+    if (!isDuelRun || !duelQuestionSetId) return;
+    if (getPendingScoreSessionId()) return; // resume-on-reload takes priority
+    selectedQuestionSetIdRef.current = duelQuestionSetId;
+    void (async () => {
+      const authoredSet = await getAuthoredQuestionSet(duelQuestionSetId);
+      selectedAuthoredSetRef.current = authoredSet ?? undefined;
+      setExamState('intro');
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const enterGreeting = () => {
     // Fresh attempt (first run, or a retake reusing this same mounted component) —
     // clear the startExam re-entrancy guard so the new attempt can actually start.
@@ -217,10 +249,15 @@ export function ExamMode() {
       await recording.stop();
     }
 
-    // Daily Challenge: use the server-reserved session_id verbatim instead of
-    // minting a client one — this is what lets submit_daily_challenge_attempt
-    // later prove the run was entered through the Daily Challenge flow (Fix 2).
-    const sessionId = isDailyChallengeRun && dailyChallengeSessionId ? dailyChallengeSessionId : `exam-sim-${Date.now()}`;
+    // Daily Challenge / Duels: use the server-reserved session_id verbatim
+    // instead of minting a client one — this is what lets
+    // submit_daily_challenge_attempt / submit_duel_attempt later prove the
+    // run was entered through the respective flow (Fix 2's pattern, reused).
+    const sessionId = isDailyChallengeRun && dailyChallengeSessionId
+      ? dailyChallengeSessionId
+      : isDuelRun && duelSessionId
+        ? duelSessionId
+        : `exam-sim-${Date.now()}`;
     sessionIdRef.current = sessionId;
     clock.start();
     totalClock.start();
@@ -468,6 +505,18 @@ export function ExamMode() {
           })
           .catch((err) => captureError(err, { stage: 'submitDailyChallengeAttempt.inline', sessionId: transcript.sessionId }));
       }
+      // Friend Duels Phase 2: sibling of the Daily Challenge block above —
+      // same durable-checkpoint-then-inline-attempt pattern. DuelDetail.tsx's
+      // own mount-effect check is the recovery path for a failed/interrupted
+      // call; clearPendingDuelClaim takes duelId since claims are keyed per-duel.
+      if (isDuelRun && duelId && envelopeView) {
+        savePendingDuelClaim({ duelId, attemptId: envelopeView.attemptId });
+        void submitDuelAttempt(duelId, envelopeView.attemptId)
+          .then((result) => {
+            if (result.ok) clearPendingDuelClaim(duelId);
+          })
+          .catch((err) => captureError(err, { stage: 'submitDuelAttempt.inline', sessionId: transcript.sessionId }));
+      }
       finishWithScore(transcript, envelopeView);
     }
 
@@ -624,7 +673,7 @@ export function ExamMode() {
           setRolePlayMeta(undefined);
           setExamState('select');
         }}
-        onHome={() => navigate(isDailyChallengeRun ? '/daily-challenge' : '/')}
+        onHome={() => navigate(isDailyChallengeRun ? '/daily-challenge' : isDuelRun && duelId ? `/duel/${duelId}` : '/')}
       />
     );
   }

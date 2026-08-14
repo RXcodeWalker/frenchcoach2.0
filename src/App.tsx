@@ -19,6 +19,7 @@ import { About } from './screens/About';
 import { StudyGroups } from './screens/StudyGroups';
 import { Rankings } from './screens/Rankings';
 import { DailyChallenge } from './screens/DailyChallenge';
+import { DuelDetail } from './screens/DuelDetail';
 import { WeaknessAnalysis } from './screens/WeaknessAnalysis';
 import { SentenceRebuilder } from './screens/SentenceRebuilder';
 import { Onboarding } from './screens/Onboarding';
@@ -274,6 +275,11 @@ function AppShell() {
           <Route path="/friend-challenges" element={
             <ComingSoonGate status={resolveFeatureStatus('friendChallenges')} featureId="friendChallenges" name="Friend Challenges" description="Challenge your friends and track who improves faster." fallbackRoute="/progress" fallbackLabel="View Progress">
               <FriendChallenges />
+            </ComingSoonGate>
+          } />
+          <Route path="/duel/:duelId" element={
+            <ComingSoonGate status={resolveFeatureStatus('friendChallenges')} featureId="friendChallenges" name="Friend Duels" description="Challenge a friend to a head-to-head speaking duel." fallbackRoute="/friend-challenges" fallbackLabel="Back to Challenges">
+              <DuelDetail />
             </ComingSoonGate>
           } />
           <Route path="/roadmap" element={

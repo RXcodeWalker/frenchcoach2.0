@@ -67,6 +67,10 @@ export const STORAGE_KEYS = {
   shopInventoryCache:    'frenchCoach_shopInventoryCache',
   // ── Daily Challenge Phase 1: claim-recovery checkpoint (Fix 4) ──────────────────
   dailyChallengePendingClaim: 'frenchCoach_dailyChallengePendingClaim',
+  // ── Friend Duels Phase 2: claim-recovery checkpoints, keyed by duelId ────────────
+  // (plural — multiple duels can be in flight at once, unlike Daily Challenge's
+  // single-slot key; see duelsService.ts for the full rationale)
+  duelPendingClaims: 'frenchCoach_duelPendingClaims',
 } as const;
 
 export type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS];

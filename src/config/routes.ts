@@ -65,4 +65,5 @@ export const ROUTES: RouteEntry[] = [
   { path: '/admin/questions/:id/history', kind: 'dynamic', indexable: false },
   { path: '/admin/scenarios/:id/edit', kind: 'dynamic', indexable: false },
   { path: '/admin/scenarios/:id/history', kind: 'dynamic', indexable: false },
+  { path: '/duel/:duelId', kind: 'dynamic', indexable: false },
 ];
