@@ -1,0 +1,45 @@
+name: Scheduled RPC
+
+# Reusable workflow: calls one service_role-only Supabase RPC via
+# scripts/scheduledJobs/callRpc.ts. Not triggered directly — each scheduled
+# job (Phase 1's daily-challenge seed, Phase 3's weekly league assignment)
+# gets its own thin workflow with a `schedule:` trigger that calls this one
+# with its RPC name, e.g.:
+#
+#   jobs:
+#     seed:
+#       uses: ./.github/workflows/scheduled-rpc.yml
+#       with:
+#         rpc-name: seed_daily_challenge
+#       secrets: inherit
+#
+# Requires repo secrets SUPABASE_URL and SUPABASE_SERVICE_KEY (Settings ->
+# Secrets and variables -> Actions), scoped to the service_role key so these
+# RPCs must be REVOKE FROM PUBLIC + GRANT TO service_role only.
+
+on:
+  workflow_call:
+    inputs:
+      rpc-name:
+        description: Name of the Postgres RPC function to call
+        required: true
+        type: string
+      rpc-args:
+        description: Optional JSON object of RPC params
+        required: false
+        type: string
+        default: ''
+
+jobs:
+  call-rpc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npx tsx scripts/scheduledJobs/callRpc.ts "${{ inputs.rpc-name }}" ${{ inputs.rpc-args != '' && format('''{0}''', inputs.rpc-args) || '' }}
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
