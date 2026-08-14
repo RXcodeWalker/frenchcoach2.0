@@ -18,6 +18,7 @@ import { Shop } from './screens/Shop';
 import { About } from './screens/About';
 import { StudyGroups } from './screens/StudyGroups';
 import { Rankings } from './screens/Rankings';
+import { DailyChallenge } from './screens/DailyChallenge';
 import { WeaknessAnalysis } from './screens/WeaknessAnalysis';
 import { SentenceRebuilder } from './screens/SentenceRebuilder';
 import { Onboarding } from './screens/Onboarding';
@@ -247,6 +248,11 @@ function AppShell() {
           <Route path="/rankings" element={
             <ComingSoonGate status={resolveFeatureStatus('rankings')} featureId="rankings" name="Rankings" description="Compete with learners around the world." fallbackRoute="/progress" fallbackLabel="View Progress">
               <Rankings />
+            </ComingSoonGate>
+          } />
+          <Route path="/daily-challenge" element={
+            <ComingSoonGate status={resolveFeatureStatus('dailyChallenge')} featureId="dailyChallenge" name="Daily Challenge" description="One shared question set a day — same challenge, same day, for everyone." fallbackRoute="/" fallbackLabel="Go Home">
+              <DailyChallenge />
             </ComingSoonGate>
           } />
           <Route path="/weakness-analysis" element={<WeaknessAnalysis />} />

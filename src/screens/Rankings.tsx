@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, Users, Globe, Clock, Flame, Check, X as XIcon, UserMinus, Inbox, Search, UserPlus } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Trophy, Users, Globe, Clock, Flame, Check, X as XIcon, UserMinus, Inbox, Search, UserPlus, Zap } from 'lucide-react';
 import { PageShell } from '../components/layout/PageShell';
 import { UsernameSetupModal } from '../components/ui/UsernameSetupModal';
 import { useApp } from '../context/AppContext';
@@ -194,6 +195,24 @@ export function Rankings() {
       <div className="space-y-6">
         {activeTab === 'global' && (
           <>
+            {/* Daily Challenge comparison — links out to the shared once-a-day set */}
+            <Link to="/daily-challenge">
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                whileTap={{ scale: 0.98 }}
+                className="flex items-center gap-3 p-4 rounded-2xl border border-violet-electric/20 bg-violet-electric/5 hover:bg-violet-electric/10 transition-colors"
+              >
+                <div className="w-9 h-9 rounded-xl bg-violet-electric/15 flex items-center justify-center flex-shrink-0">
+                  <Zap size={16} className="text-violet-400" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs font-bold text-white">Daily Challenge</p>
+                  <p className="text-[10px] text-slate-500">Same question, everyone, once a day — see today's leaderboard</p>
+                </div>
+              </motion.div>
+            </Link>
+
             {/* Week rollover card */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}

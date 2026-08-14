@@ -1,0 +1,22 @@
+name: Daily Challenge Seed
+
+# Seeds both today's and tomorrow's daily_challenge_assignments row every 6
+# hours (5-minute offset to avoid the exact top-of-hour). Today is a
+# self-healing safety net (catches up if an earlier run was missed); tomorrow
+# is the usual one-day buffer. Both are no-ops if already seeded
+# (seed_daily_challenges_batch / seed_daily_challenge use atomic
+# ON CONFLICT DO NOTHING inserts — see backend/supabase/migrations/
+# 20260814130400_phase1_daily_challenge_seed_rpc.sql), so this is safe to run
+# this often.
+
+on:
+  schedule:
+    - cron: '5 */6 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  seed:
+    uses: ./.github/workflows/scheduled-rpc.yml
+    with:
+      rpc-name: seed_daily_challenges_batch
+    secrets: inherit

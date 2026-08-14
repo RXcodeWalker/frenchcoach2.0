@@ -5,6 +5,7 @@ export type FeatureStatus = 'live' | 'coming-soon';
 export const FEATURE_FLAGS = {
   shop:              'live',
   rankings:          'live',
+  dailyChallenge:    'coming-soon',
   studyGroups:       'coming-soon',
   friendChallenges:  'coming-soon',
   roadmap:           'coming-soon',

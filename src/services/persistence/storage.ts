@@ -65,6 +65,8 @@ export const STORAGE_KEYS = {
   pendingMintQueue:      'frenchCoach_pendingMintQueue',
   shopBalanceCache:      'frenchCoach_shopBalanceCache',
   shopInventoryCache:    'frenchCoach_shopInventoryCache',
+  // ── Daily Challenge Phase 1: claim-recovery checkpoint (Fix 4) ──────────────────
+  dailyChallengePendingClaim: 'frenchCoach_dailyChallengePendingClaim',
 } as const;
 
 export type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS];

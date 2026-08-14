@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { track, captureError } from '../services/telemetry/telemetryService';
 import confetti from 'canvas-confetti';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { getSkillProfile } from '../services/coaching/diagnosticEngine';
 import { checkAchievements, getProgressionState, awardParticipationXP } from '../services/progression/progressionService';
@@ -50,6 +50,7 @@ import { ExamGreeting } from './exam/ExamGreeting';
 import { ExamSelect } from './exam/ExamSelect';
 import { RolePlayCardPreview } from './exam/RolePlayCardPreview';
 import { ExitConfirmDialog } from './exam/ExitConfirmDialog';
+import { savePendingClaim, clearPendingClaim, submitDailyChallengeAttempt } from '../services/dailyChallenge/dailyChallengeService';
 
 type ExamState = 'select' | 'intro' | 'greeting' | 'card' | 'running' | 'review' | 'scoring' | 'results';
 
@@ -64,9 +65,25 @@ const KEEPALIVE_INTERVAL_MS = 5 * 60 * 1000;
 
 export const GREETING_TEXT = 'Bonjour ! Comment ça va ? Es-tu prêt ? On va commencer.';
 
+interface DailyChallengeLocationState {
+  dailyChallengeDate?: string;
+  questionSetId?: string;
+  sessionId?: string;
+}
+
 export function ExamMode() {
   const { state, dispatch } = useApp();
   const navigate = useNavigate();
+  const location = useLocation();
+  const dailyChallenge = location.state as DailyChallengeLocationState | null;
+  // Additive extension: only takes effect when all three of dailyChallengeDate/
+  // questionSetId/sessionId are present (Daily Challenge Phase 1 lifecycle step 4)
+  // — any other navigation to /exam behaves exactly as before.
+  const dailyChallengeDate = dailyChallenge?.dailyChallengeDate;
+  const dailyChallengeQuestionSetId = dailyChallenge?.questionSetId;
+  const dailyChallengeSessionId = dailyChallenge?.sessionId;
+  const isDailyChallengeRun = Boolean(dailyChallengeDate && dailyChallengeQuestionSetId && dailyChallengeSessionId);
+
   const [examState, setExamState] = useState<ExamState>('select');
   const [action, setAction] = useState<ExaminerAction | null>(null);
   const [voiceMuted, setVoiceMuted] = useState(isExaminerVoiceMuted());
@@ -118,6 +135,23 @@ export function ExamMode() {
     setTranscript(stored);
     setExamState('scoring');
     setScoringMachine({ phase: 'WaitingForScore', attempt: 1 });
+  }, []);
+
+  // Daily Challenge lifecycle step 4: skip ExamSelect entirely, load the
+  // server-assigned question set, and run the exact same intro -> greeting ->
+  // card -> running flow as a normal exam. Only fires when the resume-on-
+  // reload effect above didn't already claim the mount (that effect returns
+  // early with no pending sessionId, so both can safely run on the same mount).
+  useEffect(() => {
+    if (!isDailyChallengeRun || !dailyChallengeQuestionSetId) return;
+    if (getPendingScoreSessionId()) return; // resume-on-reload takes priority
+    selectedQuestionSetIdRef.current = dailyChallengeQuestionSetId;
+    void (async () => {
+      const authoredSet = await getAuthoredQuestionSet(dailyChallengeQuestionSetId);
+      selectedAuthoredSetRef.current = authoredSet ?? undefined;
+      setExamState('intro');
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const enterGreeting = () => {
@@ -183,7 +217,10 @@ export function ExamMode() {
       await recording.stop();
     }
 
-    const sessionId = `exam-sim-${Date.now()}`;
+    // Daily Challenge: use the server-reserved session_id verbatim instead of
+    // minting a client one — this is what lets submit_daily_challenge_attempt
+    // later prove the run was entered through the Daily Challenge flow (Fix 2).
+    const sessionId = isDailyChallengeRun && dailyChallengeSessionId ? dailyChallengeSessionId : `exam-sim-${Date.now()}`;
     sessionIdRef.current = sessionId;
     clock.start();
     totalClock.start();
@@ -418,6 +455,19 @@ export function ExamMode() {
 
     if (scoringMachine.phase === 'Completed') {
       clearPendingScoreSessionId();
+      // Fix 4 — durable checkpoint written unconditionally, before the claim
+      // RPC is even attempted, so a reload during/after a failed claim call
+      // can retry without redoing the exam. Only in daily-challenge mode.
+      if (isDailyChallengeRun && dailyChallengeDate && envelopeView) {
+        savePendingClaim({ challengeDate: dailyChallengeDate, attemptId: envelopeView.attemptId });
+        // Best-effort inline attempt — DailyChallenge.tsx's own mount-effect
+        // check is the recovery path for a failed/interrupted call.
+        void submitDailyChallengeAttempt(dailyChallengeDate, envelopeView.attemptId)
+          .then((result) => {
+            if (result.ok) clearPendingClaim();
+          })
+          .catch((err) => captureError(err, { stage: 'submitDailyChallengeAttempt.inline', sessionId: transcript.sessionId }));
+      }
       finishWithScore(transcript, envelopeView);
     }
 
@@ -574,7 +624,7 @@ export function ExamMode() {
           setRolePlayMeta(undefined);
           setExamState('select');
         }}
-        onHome={() => navigate('/')}
+        onHome={() => navigate(isDailyChallengeRun ? '/daily-challenge' : '/')}
       />
     );
   }

@@ -20,7 +20,12 @@ export type XpSource =
   | 'challenge'
   | 'minigame'
   // Reserved for the (not yet built) friend-challenge feature.
-  | 'friend_challenge';
+  | 'friend_challenge'
+  // Daily Challenge (Phase 1) — server-written only, via award_xp inside
+  // submit_daily_challenge_attempt. Never dispatched client-side through
+  // logXpEvent; included here so xpLedger.ts's cloud-pull path (which casts
+  // xp_events.source to XpSource) stays exhaustive.
+  | 'daily_challenge';
 
 /** A single local XP ledger entry, appended synchronously at award time. */
 export interface XpEventRecord {
