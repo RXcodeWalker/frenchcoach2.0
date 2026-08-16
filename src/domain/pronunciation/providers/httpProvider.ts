@@ -20,6 +20,11 @@
  * the guaranteed-WAV fix. This mirrors the codebase's established "never
  * hard-fail on a best-effort step" pattern (see
  * services/pronunciation/fallback.py).
+ *
+ * `getAuthToken` (Phase 4 — Shadowing Mode) is called ONLY when
+ * `coaching === 'full'`, so the fast (drill/Learn/SayItAgainCard) path gains
+ * zero extra awaits. A null token is not an error — the backend degrades to
+ * an 'unauthenticated' coachingQuota rather than failing the assessment.
  */
 
 import { normalizeToWav16kMono, AudioTooShortError } from '../audioNormalizer';
@@ -27,8 +32,11 @@ import { PronunciationAssessmentSchema } from '../../../services/pronunciation/p
 import type { PronunciationAssessor } from '../ports';
 import type { PronunciationAssessment } from '../types';
 
-export function createHttpPronunciationProvider(apiBase: string): PronunciationAssessor {
-  return async ({ audioBlob, targetText, mode = 'scripted' }) => {
+export function createHttpPronunciationProvider(
+  apiBase: string,
+  getAuthToken?: () => Promise<string | null>,
+): PronunciationAssessor {
+  return async ({ audioBlob, targetText, mode = 'scripted', coaching = 'none', coachingRequestId }) => {
     let uploadBlob = audioBlob;
     let uploadFilename = 'recording.webm';
     try {
@@ -44,9 +52,18 @@ export function createHttpPronunciationProvider(apiBase: string): PronunciationA
     formData.append('audio', uploadBlob, uploadFilename);
     formData.append('target_text', targetText);
     formData.append('mode', mode);
+    formData.append('coaching', coaching);
+    if (coachingRequestId) formData.append('coaching_request_id', coachingRequestId);
+
+    const headers: Record<string, string> = {};
+    if (coaching === 'full' && getAuthToken) {
+      const token = await getAuthToken();
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+    }
 
     const res = await fetch(`${apiBase}/api/pronunciation`, {
       method: 'POST',
+      headers,
       body: formData,
     });
     if (!res.ok) throw new Error(`API pronunciation → ${res.status}`);

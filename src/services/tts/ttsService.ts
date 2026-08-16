@@ -30,15 +30,61 @@ export const TTS = (() => {
   function initVoice() {
     if (typeof window === 'undefined') return;
     _voice = selectVoice();
-    if (!_voice && speechSynthesis.onvoiceschanged !== undefined) {
-      speechSynthesis.onvoiceschanged = () => {
+    if (!_voice && 'onvoiceschanged' in speechSynthesis) {
+      // addEventListener, not `onvoiceschanged = ...` — that single-slot
+      // property is also assigned by services/exam/examinerVoice.ts, and
+      // whichever module runs its assignment second silently clobbers the
+      // other's voice refresh (Phase 4 — Shadowing Mode, review item 9).
+      speechSynthesis.addEventListener('voiceschanged', () => {
         _voice = selectVoice();
-      };
+      });
     }
   }
 
   function isSupported() {
     return typeof window !== 'undefined' && "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
+  }
+
+  const VOICE_READY_TIMEOUT_MS = 800;
+
+  /**
+   * Resolves once a voice is selected (or immediately if one already is /
+   * voices are already cached). On a genuinely cold first load, waits on
+   * `voiceschanged` with a timeout guard so it degrades to "ready anyway"
+   * rather than ever blocking indefinitely. Mirrors
+   * services/exam/examinerVoice.ts's ensureVoiceReady().
+   */
+  function ensureVoiceReady(): Promise<void> {
+    if (!isSupported()) return Promise.resolve();
+    if (_voice || speechSynthesis.getVoices().length) return Promise.resolve();
+
+    return new Promise((resolve) => {
+      let settled = false;
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        resolve();
+      };
+      const timeoutId = setTimeout(finish, VOICE_READY_TIMEOUT_MS);
+      speechSynthesis.addEventListener(
+        'voiceschanged',
+        () => {
+          _voice = selectVoice();
+          clearTimeout(timeoutId);
+          finish();
+        },
+        { once: true },
+      );
+    });
+  }
+
+  /** True once a real fr-FR/fr-* voice has been selected — false means the
+   * platform default voice would be used instead, which on some platforms
+   * reads French with an English voice (Phase 4 — Shadowing Mode, review
+   * item 9). Callers that would actively teach wrong pronunciation on a
+   * fallback voice should gate playback on this. */
+  function hasFrenchVoice(): boolean {
+    return _voice !== null;
   }
 
   function speak(text: string, options: { rate?: number; pitch?: number; volume?: number } = {}): Promise<void> {
@@ -100,5 +146,5 @@ export const TTS = (() => {
     initVoice();
   }
 
-  return { speak, stop, onStateChange, isSupported, isSpeaking: () => _isSpeaking };
+  return { speak, stop, onStateChange, isSupported, isSpeaking: () => _isSpeaking, ensureVoiceReady, hasFrenchVoice };
 })();

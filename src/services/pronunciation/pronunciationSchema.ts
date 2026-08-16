@@ -95,6 +95,13 @@ const CoachingSchema = z.object({
   grounded: z.boolean(),
 }).passthrough();
 
+const CoachingQuotaSchema = z.object({
+  used: z.number(),
+  limit: z.number(),
+  granted: z.boolean(),
+  reason: z.string().nullable().optional(),
+}).passthrough();
+
 export const PronunciationAssessmentSchema = z.object({
   score: z.number().min(0).max(100).nullable(),
   transcript: z.string(),
@@ -116,6 +123,7 @@ export const PronunciationAssessmentSchema = z.object({
   audioQuality: AudioQualitySchema.nullable().optional(),
   confidence: ConfidenceSchema.nullable().optional(),
   coaching: CoachingSchema.nullable().optional(),
+  coachingQuota: CoachingQuotaSchema.nullable().optional(),
 }).passthrough();
 
 export type ParsedPronunciationAssessment = z.infer<typeof PronunciationAssessmentSchema>;

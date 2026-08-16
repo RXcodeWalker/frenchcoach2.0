@@ -66,6 +66,8 @@ describe('examinerVoice cancellation (fake speechSynthesis)', () => {
       cancel: () => {},
       resume: () => {},
       onvoiceschanged: null,
+      addEventListener: () => {},
+      removeEventListener: () => {},
     };
     (globalThis as Record<string, unknown>).window = { speechSynthesis: synthesis };
     (globalThis as Record<string, unknown>).SpeechSynthesisUtterance = FakeUtterance;

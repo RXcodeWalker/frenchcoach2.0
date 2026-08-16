@@ -63,6 +63,16 @@ export interface PronunciationAssessmentRequest {
    * from your own transcript.
    */
   mode?: 'scripted' | 'freeform';
+  /**
+   * 'none' (default): no detailed coaching pass, no auth required.
+   * 'full': requests the server-metered, Groq-backed shadowing coaching
+   * pass (Phase 4). Requires a bearer token; degrades gracefully (never
+   * blocks the assessment) if unauthenticated, quota-exhausted, or Groq is
+   * unavailable — see coachingQuota on the response.
+   */
+  coaching?: 'none' | 'full';
+  /** Idempotency key for the coaching quota consume/refund RPCs. Only read when coaching === 'full'. */
+  coachingRequestId?: string;
 }
 
 export interface PronunciationPhoneme {
@@ -156,6 +166,14 @@ export interface PronunciationCoaching {
   grounded: boolean;
 }
 
+export interface PronunciationCoachingQuota {
+  used: number;
+  limit: number;
+  granted: boolean;
+  /** 'daily_limit_reached' | 'unauthenticated' | 'quota_unavailable' | 'could_not_assess' | 'coaching_unavailable' */
+  reason?: string | null;
+}
+
 export interface PronunciationAssessment {
   /** 0-100. null exclusively when couldNotAssess is true — never a fabricated 0. */
   score: number | null;
@@ -183,4 +201,6 @@ export interface PronunciationAssessment {
   audioQuality?: AudioQuality | null;
   confidence?: PronunciationConfidence | null;
   coaching?: PronunciationCoaching | null;
+  /** Present only when the request sent coaching: 'full'. Display-only — the server is always authoritative. */
+  coachingQuota?: PronunciationCoachingQuota | null;
 }

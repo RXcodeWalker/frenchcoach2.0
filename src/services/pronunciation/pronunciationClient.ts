@@ -15,6 +15,7 @@
 
 import { createHttpPronunciationProvider } from '../../domain/pronunciation/providers/httpProvider';
 import type { PronunciationAssessment } from '../../domain/pronunciation/types';
+import { supabase } from '../../lib/supabase';
 import { track } from '../telemetry/telemetryService';
 
 // Prod: same-origin '/api/*' proxied to the backend by Vercel (see vercel.json).
@@ -25,7 +26,15 @@ const API_BASE = import.meta.env.PROD
 
 const ASSESS_TIMEOUT_MS = 25_000;
 
-const provider = createHttpPronunciationProvider(API_BASE);
+// Same accessor shape as scoringApiClient.ts's authHeaders() — only called
+// when coaching === 'full' (see httpProvider.ts), so the fast path never pays
+// for a session lookup.
+async function getAuthToken(): Promise<string | null> {
+  const { data } = await supabase.auth.getSession();
+  return data.session?.access_token ?? null;
+}
+
+const provider = createHttpPronunciationProvider(API_BASE, getAuthToken);
 
 export interface AssessPronunciationArgs {
   audioBlob: Blob;
@@ -39,6 +48,10 @@ export interface AssessPronunciationArgs {
    * PronunciationAssessmentRequest.mode for the full contract.
    */
   mode?: 'scripted' | 'freeform';
+  /** 'none' (default) or 'full' — see PronunciationAssessmentRequest.coaching. */
+  coaching?: 'none' | 'full';
+  /** Idempotency key for the coaching quota RPCs. Only meaningful when coaching === 'full'. */
+  coachingRequestId?: string;
 }
 
 export async function assessPronunciation({
@@ -46,6 +59,8 @@ export async function assessPronunciation({
   targetText,
   source,
   mode = 'scripted',
+  coaching = 'none',
+  coachingRequestId,
 }: AssessPronunciationArgs): Promise<PronunciationAssessment> {
   const start = performance.now();
   const controller = new AbortController();
@@ -53,7 +68,7 @@ export async function assessPronunciation({
 
   try {
     const result = await Promise.race([
-      provider({ audioBlob, targetText, languageCode: 'fr-FR', mode }),
+      provider({ audioBlob, targetText, languageCode: 'fr-FR', mode, coaching, coachingRequestId }),
       new Promise<never>((_, reject) => {
         controller.signal.addEventListener('abort', () =>
           reject(new Error('Pronunciation assessment timed out')),
@@ -69,6 +84,8 @@ export async function assessPronunciation({
         score: result.score,
         couldNotAssess: result.couldNotAssess,
         latency_ms: Math.round(performance.now() - start),
+        coaching,
+        coachingGranted: result.coachingQuota?.granted ?? null,
       },
     });
 

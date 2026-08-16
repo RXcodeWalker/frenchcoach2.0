@@ -27,7 +27,14 @@ export type XpSource =
   // submit_daily_challenge_attempt. Never dispatched client-side through
   // logXpEvent; included here so xpLedger.ts's cloud-pull path (which casts
   // xp_events.source to XpSource) stays exhaustive.
-  | 'daily_challenge';
+  | 'daily_challenge'
+  // Shadowing Mode (Phase 4) — deliberately client-submittable via
+  // submit_xp_event, unlike daily_challenge/friend_challenge: the rolling
+  // 24h XP cap (20260815090000_league_xp_event_hardening.sql) has no
+  // source filter, so adding this source raises the forgeable ceiling by
+  // exactly zero. Must stay in sync with xp_events_source_check in
+  // 20260816120000_phase4_shadowing_xp_source.sql.
+  | 'shadowing';
 
 /** A single local XP ledger entry, appended synchronously at award time. */
 export interface XpEventRecord {

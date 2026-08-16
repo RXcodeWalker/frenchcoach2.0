@@ -44,10 +44,14 @@ function selectVoice(): SpeechSynthesisVoice | null {
 function initVoice(): void {
   if (!isTtsAvailable()) return;
   selectedVoice = selectVoice();
-  if (!selectedVoice && window.speechSynthesis.onvoiceschanged !== undefined) {
-    window.speechSynthesis.onvoiceschanged = () => {
+  if (!selectedVoice && 'onvoiceschanged' in window.speechSynthesis) {
+    // addEventListener, not `onvoiceschanged = ...` — that single-slot
+    // property is also assigned by services/tts/ttsService.ts, and whichever
+    // module runs its assignment second silently clobbers the other's voice
+    // refresh (Phase 4 — Shadowing Mode, review item 9).
+    window.speechSynthesis.addEventListener('voiceschanged', () => {
       selectedVoice = selectVoice();
-    };
+    });
   }
 }
 
@@ -86,11 +90,15 @@ export function ensureVoiceReady(): Promise<void> {
       resolve();
     };
     const timeoutId = setTimeout(finish, VOICE_READY_TIMEOUT_MS);
-    window.speechSynthesis.onvoiceschanged = () => {
-      selectedVoice = selectVoice();
-      clearTimeout(timeoutId);
-      finish();
-    };
+    window.speechSynthesis.addEventListener(
+      'voiceschanged',
+      () => {
+        selectedVoice = selectVoice();
+        clearTimeout(timeoutId);
+        finish();
+      },
+      { once: true },
+    );
   });
 }
 
