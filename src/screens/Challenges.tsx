@@ -12,6 +12,8 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useApp, dispatchAddXP } from '../context/AppContext';
+import { STORAGE_KEYS } from '../services/persistence/storage';
+import { getSyncedIds, addSyncedId } from '../services/sync/syncQueue';
 
 interface Challenge {
   id: string;
@@ -78,13 +80,20 @@ export function Challenges() {
   const navigate = useNavigate();
   const { dispatch } = useApp();
   const [activeTab, setActiveTab] = useState<'weekly' | 'global'>('weekly');
+  const [claimedIds, setClaimedIds] = useState<Set<string>>(() =>
+    getSyncedIds(STORAGE_KEYS.claimedChallengeIds)
+  );
 
   const userXpThisWeek = 2450; // Mock weekly XP
 
-  const handleClaim = () => {
+  const isClaimed = (id: string) => claimedIds.has(id);
+
+  const handleClaim = (challengeId: string) => {
+    if (isClaimed(challengeId)) return;
     // In a real app, this would update the backend
     dispatchAddXP(dispatch, 400, 'challenge');
-    // Update local state for immediate feedback
+    addSyncedId(STORAGE_KEYS.claimedChallengeIds, challengeId);
+    setClaimedIds(getSyncedIds(STORAGE_KEYS.claimedChallengeIds));
   };
 
   return (
@@ -176,7 +185,7 @@ export function Challenges() {
                         className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0"
                         style={{ background: `${challenge.color}15`, border: `1px solid ${challenge.color}30` }}
                       >
-                        {challenge.status === 'completed' || challenge.status === 'claimed' ? (
+                        {challenge.status === 'completed' || isClaimed(challenge.id) ? (
                           <CheckCircle className="text-emerald-400" size={28} />
                         ) : (
                           <Target style={{ color: challenge.color }} size={28} />
@@ -212,17 +221,17 @@ export function Challenges() {
                       </div>
 
                       <button
-                        disabled={challenge.status === 'active' || challenge.status === 'claimed'}
-                        onClick={() => handleClaim()}
+                        disabled={challenge.status === 'active' || isClaimed(challenge.id)}
+                        onClick={() => handleClaim(challenge.id)}
                         className={`w-full md:w-32 py-3 rounded-xl font-black text-[10px] uppercase italic tracking-wider transition-all ${
-                          challenge.status === 'completed' 
-                            ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/20 hover:scale-105' 
-                            : challenge.status === 'claimed'
+                          challenge.status === 'completed' && !isClaimed(challenge.id)
+                            ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/20 hover:scale-105'
+                            : isClaimed(challenge.id)
                             ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 cursor-default'
                             : 'bg-white/5 text-slate-700 cursor-not-allowed'
                         }`}
                       >
-                        {challenge.status === 'claimed' ? 'CLAIMED' : 'CLAIM XP'}
+                        {isClaimed(challenge.id) ? 'CLAIMED' : 'CLAIM XP'}
                       </button>
                     </div>
                   </div>

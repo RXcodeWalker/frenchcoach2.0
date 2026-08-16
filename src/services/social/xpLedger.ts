@@ -26,7 +26,6 @@ import { STORAGE_KEYS } from '../persistence/storage';
 import {
   getSyncedIds,
   addSyncedId,
-  addSyncedIds,
   getPendingIds,
   addPendingId,
   removePendingId,
@@ -50,21 +49,23 @@ type CloudXpEventRow = {
   schema_version: number;
 };
 
-function recordToRow(userId: string, record: XpEventRecord): CloudXpEventRow {
+// submit_xp_event (20260815090000_league_xp_event_hardening.sql) stores the
+// underlying row id as `${auth.uid()}:${p_idempotency_key}`, namespaced by
+// caller so two different users can never collide on the same raw
+// idempotency key. Strip that prefix back off when reading rows so the
+// cloud row's id matches the local ledger's unprefixed record.id — without
+// this, every already-synced event would re-appear as "new" on every
+// hydrate, since mergeXpEventLists/getSyncedIds key everything off
+// record.id. This also harmlessly normalizes daily_challenge/friend_challenge
+// rows, which use a similar `${userId}:source:naturalKey` id format from
+// award_xp's own internal callers (pre-existing, unrelated to this) — the
+// local ledger never generates ids for those server-only sources, so the
+// stripped id just produces a local id these rows never collide with.
+function rowToRecord(row: CloudXpEventRow, userId: string): XpEventRecord {
+  const prefix = `${userId}:`;
+  const id = row.id.startsWith(prefix) ? row.id.slice(prefix.length) : row.id;
   return {
-    id: record.id,
-    user_id: userId,
-    amount: record.amount,
-    source: record.source,
-    metadata: record.metadata,
-    occurred_at: record.occurredAt,
-    schema_version: 1,
-  };
-}
-
-function rowToRecord(row: CloudXpEventRow): XpEventRecord {
-  return {
-    id: row.id,
+    id,
     amount: row.amount,
     source: row.source as XpSource,
     metadata: row.metadata ?? {},
@@ -127,7 +128,7 @@ async function pullXpEventsFromCloud(userId: string): Promise<XpEventRecord[] | 
       return null;
     }
 
-    return (data ?? []).map(row => rowToRecord(row as CloudXpEventRow));
+    return (data ?? []).map(row => rowToRecord(row as CloudXpEventRow, userId));
   } catch (err) {
     console.warn('[xpLedger] pull error:', err);
     return null;
@@ -136,19 +137,24 @@ async function pullXpEventsFromCloud(userId: string): Promise<XpEventRecord[] | 
 
 // ── Push ─────────────────────────────────────────────────────────────────────
 
-export async function pushXpEvent(userId: string, record: XpEventRecord): Promise<boolean> {
+// userId is unused (submit_xp_event derives the caller from auth.uid()
+// server-side) but kept in the signature to match every call site and every
+// sibling sync module (sessionSync, coachSync, pronunciationSync all take
+// userId even where individual calls don't need it).
+export async function pushXpEvent(_userId: string, record: XpEventRecord): Promise<boolean> {
   if (!supabaseConfigured) return false;
 
   const syncedIds = getSyncedIds(STORAGE_KEYS.syncedXpEventIds);
   if (syncedIds.has(record.id)) return true;
 
   try {
-    const row = recordToRow(userId, record);
-    // ignoreDuplicates -> INSERT ... ON CONFLICT DO NOTHING. See module header:
-    // this must never become a plain upsert.
-    const { error } = await supabase
-      .from('xp_events')
-      .upsert(row, { onConflict: 'id', ignoreDuplicates: true });
+    const { error } = await supabase.rpc('submit_xp_event', {
+      p_source: record.source,
+      p_amount: record.amount,
+      p_idempotency_key: record.id,
+      p_occurred_at: record.occurredAt,
+      p_metadata: record.metadata,
+    });
 
     if (error) {
       console.warn('[xpLedger] push failed:', error.message);
@@ -169,7 +175,7 @@ export async function pushXpEvent(userId: string, record: XpEventRecord): Promis
 // ── Backfill ─────────────────────────────────────────────────────────────────
 
 export async function backfillXpEventsToCloud(
-  userId: string,
+  _userId: string,
   local: XpEventRecord[],
   cloudIds: Set<string>,
 ): Promise<number> {
@@ -179,20 +185,28 @@ export async function backfillXpEventsToCloud(
   if (toBackfill.length === 0) return 0;
 
   let pushed = 0;
-  try {
-    const rows = toBackfill.map(r => recordToRow(userId, r));
-    const { error } = await supabase
-      .from('xp_events')
-      .upsert(rows, { onConflict: 'id', ignoreDuplicates: true });
-
-    if (!error) {
-      addSyncedIds(STORAGE_KEYS.syncedXpEventIds, toBackfill.map(r => r.id));
-      pushed = toBackfill.length;
-    } else {
-      console.warn('[xpLedger] backfill failed:', error.message);
+  // submit_xp_event has no batch form -- backfill one at a time, same as a
+  // normal push. userId is unused here (the RPC derives the caller from
+  // auth.uid() server-side) but kept in the signature to match every other
+  // call site in this module.
+  for (const record of toBackfill) {
+    try {
+      const { error } = await supabase.rpc('submit_xp_event', {
+        p_source: record.source,
+        p_amount: record.amount,
+        p_idempotency_key: record.id,
+        p_occurred_at: record.occurredAt,
+        p_metadata: record.metadata,
+      });
+      if (!error) {
+        addSyncedId(STORAGE_KEYS.syncedXpEventIds, record.id);
+        pushed++;
+      } else {
+        console.warn('[xpLedger] backfill failed:', error.message);
+      }
+    } catch (err) {
+      console.warn('[xpLedger] backfill error:', err);
     }
-  } catch (err) {
-    console.warn('[xpLedger] backfill error:', err);
   }
 
   return pushed;
@@ -200,7 +214,7 @@ export async function backfillXpEventsToCloud(
 
 // ── Flush pending ──────────────────────────────────────────────────────────
 
-export async function flushPendingXpEventQueue(userId: string): Promise<void> {
+export async function flushPendingXpEventQueue(): Promise<void> {
   if (!supabaseConfigured) return;
   const pending = getPendingIds(STORAGE_KEYS.pendingSyncXpEventIds);
   if (pending.length === 0) return;
@@ -215,10 +229,13 @@ export async function flushPendingXpEventQueue(userId: string): Promise<void> {
       continue;
     }
     try {
-      const row = recordToRow(userId, record);
-      const { error } = await supabase
-        .from('xp_events')
-        .upsert(row, { onConflict: 'id', ignoreDuplicates: true });
+      const { error } = await supabase.rpc('submit_xp_event', {
+        p_source: record.source,
+        p_amount: record.amount,
+        p_idempotency_key: record.id,
+        p_occurred_at: record.occurredAt,
+        p_metadata: record.metadata,
+      });
       if (!error) {
         addSyncedId(STORAGE_KEYS.syncedXpEventIds, id);
         removePendingId(STORAGE_KEYS.pendingSyncXpEventIds, id);

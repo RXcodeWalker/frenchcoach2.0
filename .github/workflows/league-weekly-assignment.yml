@@ -1,0 +1,13 @@
+name: League Power Weekly Assignment
+
+on:
+  schedule:
+    - cron: '10 0 * * 1'
+  workflow_dispatch: {}
+
+jobs:
+  assign:
+    uses: ./.github/workflows/scheduled-rpc.yml
+    with:
+      rpc-name: assign_weekly_league_cohorts
+    secrets: inherit

@@ -19,7 +19,9 @@ export type XpSource =
   | 'mystery_box'
   | 'challenge'
   | 'minigame'
-  // Reserved for the (not yet built) friend-challenge feature.
+  // Friend Duels (Phase 2) — server-written only, via award_xp inside the
+  // duel RPCs (create/respond/submit_duel_attempt). Never dispatched
+  // client-side through logXpEvent.
   | 'friend_challenge'
   // Daily Challenge (Phase 1) — server-written only, via award_xp inside
   // submit_daily_challenge_attempt. Never dispatched client-side through

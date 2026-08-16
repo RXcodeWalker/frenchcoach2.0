@@ -213,6 +213,24 @@ export function Rankings() {
               </motion.div>
             </Link>
 
+            {/* League Power promo — weekly XP cohorts */}
+            <Link to="/league">
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                whileTap={{ scale: 0.98 }}
+                className="flex items-center gap-3 p-4 rounded-2xl border border-amber-400/20 bg-amber-400/5 hover:bg-amber-400/10 transition-colors"
+              >
+                <div className="w-9 h-9 rounded-xl bg-amber-400/15 flex items-center justify-center flex-shrink-0">
+                  <Trophy size={16} className="text-amber-400" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs font-bold text-white">League Power</p>
+                  <p className="text-[10px] text-slate-500">Weekly cohorts — climb the ranks, don't get demoted</p>
+                </div>
+              </motion.div>
+            </Link>
+
             {/* Week rollover card */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}

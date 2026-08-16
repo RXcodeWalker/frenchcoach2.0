@@ -71,6 +71,10 @@ export const STORAGE_KEYS = {
   // (plural — multiple duels can be in flight at once, unlike Daily Challenge's
   // single-slot key; see duelsService.ts for the full rationale)
   duelPendingClaims: 'frenchCoach_duelPendingClaims',
+  // ── League Power prerequisite (plan i-am-implementing-phase-hashed-karp.md,
+  // Part A4): persisted claimed-state for Challenges.tsx's weekly-challenge
+  // claim button, closing the unbounded re-click XP exploit.
+  claimedChallengeIds: 'frenchCoach_claimedChallengeIds',
 } as const;
 
 export type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS];

@@ -19,6 +19,7 @@ import { About } from './screens/About';
 import { StudyGroups } from './screens/StudyGroups';
 import { Rankings } from './screens/Rankings';
 import { DailyChallenge } from './screens/DailyChallenge';
+import { League } from './screens/League';
 import { DuelDetail } from './screens/DuelDetail';
 import { WeaknessAnalysis } from './screens/WeaknessAnalysis';
 import { SentenceRebuilder } from './screens/SentenceRebuilder';
@@ -254,6 +255,11 @@ function AppShell() {
           <Route path="/daily-challenge" element={
             <ComingSoonGate status={resolveFeatureStatus('dailyChallenge')} featureId="dailyChallenge" name="Daily Challenge" description="One shared question set a day — same challenge, same day, for everyone." fallbackRoute="/" fallbackLabel="Go Home">
               <DailyChallenge />
+            </ComingSoonGate>
+          } />
+          <Route path="/league" element={
+            <ComingSoonGate status={resolveFeatureStatus('league')} featureId="league" name="League Power" description="Weekly XP cohorts — climb the ranks, promote, don't get demoted." fallbackRoute="/rankings" fallbackLabel="View Rankings">
+              <League />
             </ComingSoonGate>
           } />
           <Route path="/weakness-analysis" element={<WeaknessAnalysis />} />

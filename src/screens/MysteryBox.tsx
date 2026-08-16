@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Gift, Sparkles, Trophy, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Gift, Sparkles, Trophy } from 'lucide-react';
 import { useApp, dispatchAddXP } from '../context/AppContext';
 
 type BoxState = 'closed' | 'shaking' | 'opening' | 'revealed';
@@ -125,16 +125,6 @@ export function MysteryBox() {
                   >
                     AWESOME!
                   </motion.button>
-                  <button 
-                    onClick={() => {
-                      setBoxState('closed');
-                      setReward(null);
-                    }}
-                    className="text-[10px] font-bold text-slate-600 hover:text-white transition-colors flex items-center justify-center gap-1.5"
-                  >
-                    <RefreshCw size={10} />
-                    Open another (Debug)
-                  </button>
                 </div>
               </motion.div>
             )}

@@ -500,7 +500,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       void backfillXpEventsToCloud(userId, mergedEvents, cloudXpEventIds);
       void flushPendingQueue(userId);
       void flushPendingPronunciationQueue(userId);
-      void flushPendingXpEventQueue(userId);
+      void flushPendingXpEventQueue();
       void flushMintQueue().then(() => refetchEconomy(userId));
 
       // Step 5: open the gate for incremental pushes
@@ -566,7 +566,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       void flushPendingQueue(userId);
       void pushPendingEvidence(userId);
       void flushPendingPronunciationQueue(userId);
-      void flushPendingXpEventQueue(userId);
+      void flushPendingXpEventQueue();
     };
     window.addEventListener('online', handler);
     return () => window.removeEventListener('online', handler);

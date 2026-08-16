@@ -6,6 +6,7 @@ export const FEATURE_FLAGS = {
   shop:              'live',
   rankings:          'live',
   dailyChallenge:    'coming-soon',
+  league:            'coming-soon',
   studyGroups:       'coming-soon',
   friendChallenges:  'live',
   roadmap:           'coming-soon',
