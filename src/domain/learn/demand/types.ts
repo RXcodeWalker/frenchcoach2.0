@@ -28,3 +28,30 @@ export interface QuestionDemands {
 }
 
 export type DemandLevel = 'A1' | 'A2' | 'B1' | 'B2';
+
+export interface DemandReviewStatus {
+  status: 'draft' | 'approved';
+  reviewedBy?: string;
+  reviewedAt?: string;
+  notes?: string;
+}
+
+/** One entry in a `src/data/learn/demands/<topic>.json` file — §12. */
+export interface LearnDemandsEntry {
+  questionId: string;
+  demands: QuestionDemands;
+  /**
+   * Never authored deliberately (§7: authors cannot assert a level). Present
+   * only so the demand-level-mismatch validator rule has something real to
+   * catch — see docs §16 example F.
+   */
+  checkedInLevel?: DemandLevel;
+  review: DemandReviewStatus;
+}
+
+/** Shape of one `src/data/learn/demands/<topic>.json` file — §12. */
+export interface LearnDemandsFile {
+  schemaVersion: 'learn-demands-v1';
+  topicKey: string;
+  entries: LearnDemandsEntry[];
+}
