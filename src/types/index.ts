@@ -1,3 +1,5 @@
+import type { QuestionDemands } from '../domain/learn/demand/types';
+
 export type Screen = 'home' | 'learn' | 'exam' | 'progress' | 'profile' | 'explore' | 'shop' | 'about' | 'challenges' | 'rapid-fire' | 'boss-battle' | 'story-mode' | 'survival' | 'speed-speaking' | 'emoji-master' | 'mystery-box' | 'study-groups' | 'pronunciation-lab' | 'roadmap' | 'friend-challenges' | 'rankings' | 'listening-mode' | 'fluency-heatmap' | 'speaking-arena' | 'accent-analyzer' | 'weakness-analysis' | 'sentence-rebuilder' | 'word-drop' | 'daily-news' | 'scenario-architect' | 'mastery';
 
 
@@ -92,6 +94,7 @@ export interface Question {
   isPastPaper?: boolean;
   year?: number;
   paperCode?: string;
+  demands?: QuestionDemands;
 }
 
 export interface RebuildQuestion {
