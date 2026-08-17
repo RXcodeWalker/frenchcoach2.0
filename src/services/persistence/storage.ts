@@ -75,6 +75,11 @@ export const STORAGE_KEYS = {
   // Part A4): persisted claimed-state for Challenges.tsx's weekly-challenge
   // claim button, closing the unbounded re-click XP exploit.
   claimedChallengeIds: 'frenchCoach_claimedChallengeIds',
+  // ── Phase 4: Shadowing Mode — local history, cloud sync, and preferences ────────
+  shadowingHistory:              'frenchCoach_shadowingHistory',
+  syncedShadowingIds:            'frenchCoach_syncedShadowingIds',
+  pendingSyncShadowingIds:       'frenchCoach_pendingSyncShadowingIds',
+  shadowingDetailedFeedback:     'frenchCoach_shadowingDetailedFeedback',
 } as const;
 
 export type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS];

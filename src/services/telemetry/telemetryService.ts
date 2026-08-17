@@ -55,6 +55,10 @@ interface PronunciationAssessedProps {
   score: number | null;
   couldNotAssess: boolean;
   latency_ms: number;
+  /** 'none' | 'full' — Phase 4 (Shadowing Mode). */
+  coaching: 'none' | 'full';
+  /** null when coaching === 'none' or the response omitted coachingQuota. */
+  coachingGranted: boolean | null;
 }
 
 interface PronunciationAssessmentFailedProps {

@@ -28,6 +28,8 @@ import {
   ShieldAlert,
 } from 'lucide-react';
 import { useApp, dispatchAddXP } from '../context/AppContext';
+import { resolveFeatureStatus } from '../config/featureFlags';
+import { ShadowingPanel } from './accent/ShadowingPanel';
 import { useAudioBlobRecorder } from '../features/recording/useAudioBlobRecorder';
 import { Waveform } from '../features/recording/Waveform';
 import { assessPronunciation } from '../services/pronunciation/pronunciationClient';
@@ -98,6 +100,8 @@ export function AccentAnalyzer() {
   const [sessionXP, setSessionXP] = useState(0);
   const [recordingStartedAt, setRecordingStartedAt] = useState<number | null>(null);
   const [history, setHistory] = useState<PronunciationAttemptRecord[]>([]);
+  const [practiceMode, setPracticeMode] = useState<'drills' | 'shadowing'>('drills');
+  const shadowingLive = resolveFeatureStatus('shadowingMode') === 'live';
 
   const currentDrill: PronunciationDrill = PRONUNCIATION_DRILLS[currentIndex];
   const isMastered = state.masteredDrills.includes(currentDrill.id);
@@ -253,6 +257,34 @@ export function AccentAnalyzer() {
           </div>
         </div>
 
+        {shadowingLive && (
+          <div className="flex gap-2">
+            <button
+              onClick={() => setPracticeMode('drills')}
+              className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                practiceMode === 'drills'
+                  ? 'bg-cyan-500/10 border border-cyan-500/30 text-cyan-400'
+                  : 'bg-slate-900/40 border border-white/5 text-slate-500 hover:text-slate-300'
+              }`}
+            >
+              Drills
+            </button>
+            <button
+              onClick={() => setPracticeMode('shadowing')}
+              className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                practiceMode === 'shadowing'
+                  ? 'bg-cyan-500/10 border border-cyan-500/30 text-cyan-400'
+                  : 'bg-slate-900/40 border border-white/5 text-slate-500 hover:text-slate-300'
+              }`}
+            >
+              Shadowing
+            </button>
+          </div>
+        )}
+
+        {practiceMode === 'shadowing' && shadowingLive ? (
+          <ShadowingPanel />
+        ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Drills List */}
           <div className="lg:col-span-1 space-y-4">
@@ -575,6 +607,7 @@ export function AccentAnalyzer() {
             )}
           </div>
         </div>
+        )}
       </div>
     </div>
   );
