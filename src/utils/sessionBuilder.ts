@@ -1,13 +1,18 @@
 import { getTopicQuestions, QUESTIONS } from '../data/gameData';
 import type { Question, SessionMode, SkillProfile, SessionQuestion, TopicMasteryEntry, DifficultyTier } from '../types';
 import { preferredFirst, DEFAULT_DIFFICULTY } from './difficultyConfig';
-import type { QuestionV2, SessionFilters, CEFRLevel, SkillType } from '../types/questions';
-import { contentClient } from '../services/content/contentClient';
+import type { QuestionV2 } from '../types/questions';
 import { inferQuestionMetadata } from '../services/content/questionMetadata';
 import { isSkillReady } from '../services/coach/skillGraph';
 import { getBeliefSnapshot } from '../services/coach/coachStorage';
 import { getEligibleReviewQuestion, advanceReviewPoolSessions } from '../services/coach/reviewPool';
 import type { SessionBlend } from '../types/coach';
+import { resolveFeatureStatus } from '../config/featureFlags';
+import { STORAGE_KEYS, storageGet } from '../services/persistence/storage';
+import { deriveAbility, coldStart } from '../domain/learn/ability/deriveAbility';
+import { aimFromMigratedTier, computeSessionTarget } from '../domain/learn/selection/sessionTarget';
+import { planSlots } from '../domain/learn/selection/planSlots';
+import { selectQuestions } from '../domain/learn/selection/selectQuestions';
 
 /**
  * Coach loop: does this question exercise the skill the coach asked us to focus
@@ -94,7 +99,94 @@ export interface BuiltSessionQuestions {
   reviewQuestionId: string | null;
 }
 
+/**
+ * docs (Learn adaptive difficulty) §16 Stage 6 — flag-gated dispatcher. The
+ * signature is unchanged from the legacy function so Learn.tsx's call site
+ * needs no changes; `learnAdaptiveDifficulty` stays 'coming-soon' until
+ * Stage 10 wires the UI (Aim picker, measured-level display) that makes the
+ * adaptive path's output meaningful to show a learner.
+ */
 export function buildSessionQuestions(
+  topicKey: string | null,
+  mode: SessionMode,
+  skillProfile: SkillProfile,
+  topicMastery: TopicMasteryEntry | null,
+  difficulty: DifficultyTier = DEFAULT_DIFFICULTY,
+  focusedSkillId: string | null = null,
+  sessionBlend: SessionBlend | null = null,
+): BuiltSessionQuestions {
+  if (resolveFeatureStatus('learnAdaptiveDifficulty') !== 'live') {
+    return buildSessionQuestionsLegacy(topicKey, mode, skillProfile, topicMastery, difficulty, focusedSkillId, sessionBlend);
+  }
+  return buildSessionQuestionsAdaptive(topicKey, mode, topicMastery, sessionBlend);
+}
+
+/**
+ * docs §8 — slot-based selector path. Reads ability from the belief snapshot
+ * directly (same source buildSessionQuestionsLegacy already reads at the
+ * prerequisite gate below) rather than taking it as a parameter, exactly as
+ * the legacy function reads getBeliefSnapshot() itself. Aim resolves from the
+ * one-time migrated `frenchCoach_difficulty` read (docs §6.4) — no SET_AIM
+ * reducer action exists yet; that lands in Stage 10.
+ */
+function buildSessionQuestionsAdaptive(
+  topicKey: string | null,
+  mode: SessionMode,
+  topicMastery: TopicMasteryEntry | null,
+  sessionBlend: SessionBlend | null,
+): BuiltSessionQuestions {
+  const pool = topicKey ? getTopicQuestions(topicKey) : [...QUESTIONS];
+  const seen = new Set<string>(topicMastery?.uniqueQuestionsAnswered ?? []);
+
+  const snapshot = getBeliefSnapshot();
+  const migratedTier = storageGet<DifficultyTier | null>(STORAGE_KEYS.difficulty, null);
+  // No snapshot at all yet (brand-new learner, no evidence log) -> the same
+  // coldStart() path deriveAbility itself falls back to when totalWeight is 0.
+  const ability = snapshot ? deriveAbility(snapshot, migratedTier ?? undefined) : coldStart(migratedTier ?? undefined);
+  const aim = aimFromMigratedTier(migratedTier);
+  const sessionTarget = computeSessionTarget(ability.abilityScore, aim);
+
+  const target = mode === 'full_topic'
+    ? (pool.length > seen.size ? pool.length - seen.size : pool.length)
+    : SESSION_TARGET[mode];
+
+  const blend: SessionBlend = sessionBlend ?? {
+    warmupPct: 20,
+    reviewPct: 30,
+    targetSkillPct: 30,
+    stretchPct: 10,
+    choicePct: 10,
+    focusSkillIds: [],
+  };
+
+  const slots = planSlots({ sessionBlend: blend, sessionTarget, count: target });
+
+  advanceReviewPoolSessions();
+  const { selected } = selectQuestions(
+    {
+      pool,
+      slots,
+      chosenIds: new Set<string>(),
+      seenIds: seen,
+      focusSkillIds: blend.focusSkillIds,
+      activeDemandProblem: null,
+      getReviewQuestion: (chosenIds) => {
+        if (!topicKey) return null;
+        const alreadyInSession = new Set([...seen, ...chosenIds]);
+        return getEligibleReviewQuestion(topicKey, alreadyInSession);
+      },
+    },
+    { beliefSnapshot: snapshot },
+  );
+
+  const reviewPick = selected.find((s) => s.slot === 'review');
+  return {
+    questions: selected.map((s) => s.question),
+    reviewQuestionId: reviewPick ? reviewPick.question.id : null,
+  };
+}
+
+function buildSessionQuestionsLegacy(
   topicKey: string | null,
   mode: SessionMode,
   skillProfile: SkillProfile,
@@ -204,203 +296,3 @@ export function makeSessionQuestion(question: Question | QuestionV2, isReview = 
   };
 }
 
-// ── buildSession ──────────────────────────────────────────────────────────────
-// New multi-dimensional session builder. Runs alongside buildSessionQuestions()
-// which is kept intact for all existing call sites.
-//
-// Returns QuestionV2[] — a structural superset of Question[], so results can be
-// passed directly to coachService.evaluate(), apiClient.getAIFeedback(), and
-// makeSessionQuestion() without any downstream changes.
-
-// Per-exam distribution: how many questions of each skill type to include.
-const EXAM_DISTRIBUTIONS: Record<string, { skill: SkillType; count: number }[]> = {
-  IGCSE: [
-    { skill: 'roleplay',     count: 5 },
-    { skill: 'description',  count: 2 },
-    { skill: 'opinion',      count: 2 },
-    { skill: 'narration',    count: 1 },
-  ],
-  DELF: [
-    { skill: 'presentation', count: 1 },
-    { skill: 'opinion',      count: 3 },
-    { skill: 'conversation', count: 2 },
-  ],
-  GCSE: [
-    { skill: 'roleplay',     count: 4 },
-    { skill: 'description',  count: 2 },
-    { skill: 'opinion',      count: 2 },
-  ],
-};
-
-// Maps grammar skill IDs (from SKILL_DEFS) to the SkillType they relate to.
-// Used in adaptive mode to derive which skill types to prioritise.
-const GRAMMAR_TO_SKILL: Partial<Record<string, SkillType>> = {
-  tense_past:   'narration',
-  hypothetical: 'hypothetical',
-  subjunctive:  'opinion',
-  comparative:  'comparison',
-  opinion:      'opinion',
-  connectors:   'presentation',
-  contrast:     'comparison',
-  relative_pron:'description',
-};
-
-// Estimates the learner's likely proficiency level from their skill profile scores.
-function inferCEFRFromProfile(profile: SkillProfile): CEFRLevel {
-  const scores = Object.values(profile).map(e => e.score);
-  if (scores.length === 0) return 'A2';
-  const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
-  if (avg < 0.35) return 'A1';
-  if (avg < 0.55) return 'A2';
-  if (avg < 0.75) return 'B1';
-  return 'B2';
-}
-
-// Scores a question by how well it targets a learner's current weaknesses.
-function adaptiveScore(
-  q: QuestionV2,
-  weakSkillIds: string[],
-  weakSkillTypes: SkillType[],
-  seenSet: Set<string>,
-): number {
-  let score = 0;
-  if (seenSet.has(q.id)) score -= 20;
-  score += q.grammarFocus.filter(g => weakSkillIds.includes(g)).length * 10;
-  if (weakSkillTypes.includes(q.skill)) score += 8;
-  return score;
-}
-
-// Generic difficulty distribution for QuestionV2 arrays.
-function applyDifficultyDistributionV2(questions: QuestionV2[], target: number): QuestionV2[] {
-  if (questions.length <= target) return questions;
-
-  const d1 = questions.filter(q => q.difficulty === 1);
-  const d2 = questions.filter(q => q.difficulty === 2);
-  const d3 = questions.filter(q => q.difficulty === 3);
-
-  const want1 = Math.round(target * 0.6);
-  const want2 = Math.round(target * 0.3);
-  const want3 = target - want1 - want2;
-
-  const pick = (pool: QuestionV2[], n: number) => pool.slice(0, Math.max(0, n));
-  const selected = [
-    ...pick(d1, want1),
-    ...pick(d2, want2),
-    ...pick(d3, want3),
-  ];
-
-  if (selected.length < target) {
-    const used = new Set(selected.map(q => q.id));
-    for (const q of questions) {
-      if (!used.has(q.id)) { selected.push(q); if (selected.length >= target) break; }
-    }
-  }
-
-  return selected.slice(0, target);
-}
-
-export async function buildSession(
-  filters: SessionFilters,
-  skillProfile?: SkillProfile,
-): Promise<QuestionV2[]> {
-  const {
-    topicKey,
-    level,
-    skill,
-    exam,
-    adaptive = false,
-    excludeIds = [],
-    mode = 'standard',
-    examSetId,
-  } = filters;
-
-  const targetCount = filters.maxCount ?? (mode === 'full_topic' ? 999 : SESSION_TARGET[mode]);
-
-  // ── Path 1: pre-defined exam set ──────────────────────────────────────────
-  if (examSetId) {
-    const set = await contentClient.getExamSet(examSetId);
-    const questions = await contentClient.getQuestionsByIds(set.question_ids);
-    return questions.slice(0, targetCount);
-  }
-
-  // ── Path 2: exam framework distribution ───────────────────────────────────
-  if (exam) {
-    const distribution = EXAM_DISTRIBUTIONS[exam];
-    if (distribution) {
-      const buckets = await Promise.all(
-        distribution.map(async ({ skill: s, count }) => {
-          const pool = await contentClient.queryQuestions({
-            examTag: exam,
-            skill: s,
-            level,
-            validationStates: ['approved'],
-          });
-          const available = pool.filter(q => !excludeIds.includes(q.id));
-          return applyDifficultyDistributionV2(available, count);
-        }),
-      );
-      return buckets.flat().slice(0, targetCount);
-    }
-    // Unrecognised exam framework — fall through to filtered path with examTag filter
-    const pool = await contentClient.queryQuestions({
-      examTag: exam, level, skill, validationStates: ['approved'],
-    });
-    return applyDifficultyDistributionV2(
-      pool.filter(q => !excludeIds.includes(q.id)),
-      targetCount,
-    );
-  }
-
-  // ── Path 3: adaptive (SkillProfile-driven) ────────────────────────────────
-  if (adaptive && skillProfile) {
-    const weakSkillIds = Object.entries(skillProfile)
-      .filter(([, e]) => e.score < 0.55)
-      .sort((a, b) => a[1].score - b[1].score)
-      .map(([id]) => id);
-
-    const weakSkillTypes = [...new Set(
-      weakSkillIds.map(id => GRAMMAR_TO_SKILL[id]).filter((t): t is SkillType => !!t),
-    )];
-
-    const inferredLevel = level ?? inferCEFRFromProfile(skillProfile);
-
-    const pool = await contentClient.queryQuestions({
-      topicKey,
-      level: inferredLevel,
-      validationStates: ['approved'],
-    });
-
-    const seenSet = new Set(excludeIds);
-    const scored = pool
-      .map(q => ({ q, s: adaptiveScore(q, weakSkillIds, weakSkillTypes, seenSet) }))
-      .sort((a, b) => b.s - a.s);
-
-    return scored.slice(0, targetCount).map(({ q }) => q);
-  }
-
-  // ── Path 4: direct filter (level + topic + skill) ─────────────────────────
-  const pool = await contentClient.queryQuestions({
-    topicKey,
-    level,
-    skill,
-    validationStates: ['approved'],
-  });
-
-  const unseen = pool.filter(q => !excludeIds.includes(q.id));
-  const seen   = pool.filter(q =>  excludeIds.includes(q.id));
-
-  const selected = applyDifficultyDistributionV2(
-    unseen.sort((a, b) => a.difficulty - b.difficulty),
-    targetCount,
-  );
-
-  // Pad with seen questions if pool is thin
-  if (selected.length < targetCount) {
-    const usedIds = new Set(selected.map(q => q.id));
-    for (const q of seen) {
-      if (!usedIds.has(q.id)) { selected.push(q); if (selected.length >= targetCount) break; }
-    }
-  }
-
-  return selected;
-}

@@ -100,16 +100,3 @@ export interface SessionFilters {
   mode?: SessionMode;
   examSetId?: string;      // load a pre-defined ordered exam set
 }
-
-// ── Evaluation context (Phase 3 target — defined now so the contract is clear) ─
-// When the evaluation engine is updated it will receive this instead of deriving
-// targetLevel from the question record. Phase 1/2 do not use this yet.
-export interface EvaluationContext {
-  question: QuestionV2;
-  transcript: string;
-  // The CEFR level the learner has selected for this session.
-  // The evaluation engine applies the rubric for this level, not the question's
-  // own classification. An A1 answer to "Parle-moi de ta famille" scores ~8/10
-  // at targetLevel A1 and ~2/10 at targetLevel B2. This is intended behaviour.
-  targetLevel: CEFRLevel;
-}
