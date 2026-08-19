@@ -215,6 +215,54 @@ const TOPIC_NUDGES: TopicNudge[] = [
   },
 ];
 
+// ── Demand-satisfaction detectors ───────────────────────────────────────────
+// Extracted as named exports so src/domain/learn/demand/satisfaction.ts (§9.3)
+// can reuse the exact same closed-marker-list logic. Regexes are unchanged —
+// verbatim lift from the bodies of the `detectAvoidance` checks below.
+
+/** `si`/`imagine`/`en rêve`/`idéal(e/ement)` — invites a conditional/hypothetical response. */
+export function invitesHypothetical(questionText: string): boolean {
+  return /\bsi\b|\bimagine\b|\ben rêve\b|\bidéal(e|ement)?\b/i.test(questionText);
+}
+
+/**
+ * Conditional mood markers. NOTE: broken per docs §9.3/§3.8 — the required
+ * `\b` before `ais` never matches after a vowel (e.g. `j'irais`), so this
+ * currently never fires. Left unchanged; fixed separately in Stage 4b.
+ */
+export function hasConditional(transcript: string): boolean {
+  return /\b(ais|ait|aient|ions|iez)\b/.test(transcript);
+}
+
+export function hasSubjunctive(transcript: string): boolean {
+  return /\b(fasse|soit|puisse|sache|aille|veuille|vaille|il faut que|pour que|bien que|à condition que)\b/i.test(transcript);
+}
+
+export function hasConnectors(transcript: string): boolean {
+  return /\b(cependant|néanmoins|toutefois|par contre|en revanche|d'ailleurs|en outre|ainsi|de plus|pourtant|en effet|c'est pourquoi)\b/i.test(transcript);
+}
+
+export function hasPastOrFuture(transcript: string): boolean {
+  return /\b(ai|as|a|avons|avez|ont)\s+\w+é\b|\b(étais|était|avais|avait)\b|\b(ira|irai|ferai|serai|pourrai|voudrai)\b/i.test(transcript);
+}
+
+export function hasPerspective(transcript: string): boolean {
+  return /\b(d'un côté|d'autre part|certes|en revanche|il est vrai que|certains pensent|d'autres estiment|cependant|toutefois)\b/i.test(transcript);
+}
+
+export function hasJustification(transcript: string): boolean {
+  return /\b(parce que|car|puisque|étant donné|vu que|grâce à|en raison de|c'est pourquoi)\b/i.test(transcript);
+}
+
+export function hasOpinion(transcript: string): boolean {
+  return /\b(pense|crois|avis|trouve|semble|estime|selon moi|à mon avis|il me semble)\b/i.test(transcript);
+}
+
+/** Word count by whitespace-split, matching `detectAvoidance`'s own counting. */
+export function countWords(transcript: string): number {
+  return transcript.trim().split(/\s+/).filter(Boolean).length;
+}
+
 export function detectAvoidance(
   transcript: string,
   question: Question,
@@ -223,7 +271,7 @@ export function detectAvoidance(
   const signals: AvoidanceSignal[] = [];
   const t = transcript.toLowerCase();
   const q = (question.text + ' ' + (question.hint ?? '')).toLowerCase();
-  const wordCount = transcript.trim().split(/\s+/).filter(Boolean).length;
+  const wordCount = countWords(transcript);
 
   // No avoidance analysis possible on very short responses
   if (wordCount < 5) return [];
@@ -237,9 +285,7 @@ export function detectAvoidance(
   }
 
   // Hypothetical / conditional: invited by si, imagine, en rêve, idéal
-  const invitesHypothetical = /\bsi\b|\bimagine\b|\ben rêve\b|\bidéal(e|ement)?\b/i.test(q);
-  const hasConditional = /\b(ais|ait|aient|ions|iez)\b/.test(t);
-  if (invitesHypothetical && !hasConditional) {
+  if (invitesHypothetical(q) && !hasConditional(t)) {
     signals.push({
       skillId: 'hypothetical',
       observation: "This question invited a conditional/hypothetical response but you answered in the present tense only.",
@@ -248,8 +294,7 @@ export function detectAvoidance(
   }
 
   // Subjunctive: only expected at levels where requireSubjunctive is true
-  const hasSubjunctive = /\b(fasse|soit|puisse|sache|aille|veuille|vaille|il faut que|pour que|bien que|à condition que)\b/i.test(t);
-  if (expectations.requireSubjunctive && !hasSubjunctive) {
+  if (expectations.requireSubjunctive && !hasSubjunctive(t)) {
     signals.push({
       skillId: 'subjunctive',
       observation: "At this level, examiners look for at least one subjunctive attempt.",
@@ -258,8 +303,7 @@ export function detectAvoidance(
   }
 
   // Connectors: expected at advanced/expert levels for longer answers
-  const hasConnectors = /\b(cependant|néanmoins|toutefois|par contre|en revanche|d'ailleurs|en outre|ainsi|de plus|pourtant|en effet|c'est pourquoi)\b/i.test(t);
-  if (expectations.requireConnectors && wordCount > 30 && !hasConnectors) {
+  if (expectations.requireConnectors && wordCount > 30 && !hasConnectors(t)) {
     signals.push({
       skillId: 'connectors',
       observation: "Your response lacks discourse connectors — examiners expect these at this level.",
@@ -268,8 +312,7 @@ export function detectAvoidance(
   }
 
   // Tense variety: at least one non-present tense expected
-  const hasPastOrFuture = /\b(ai|as|a|avons|avez|ont)\s+\w+é\b|\b(étais|était|avais|avait)\b|\b(ira|irai|ferai|serai|pourrai|voudrai)\b/i.test(t);
-  if (expectations.requirePastTense && !hasPastOrFuture) {
+  if (expectations.requirePastTense && !hasPastOrFuture(t)) {
     signals.push({
       skillId: 'tense_past',
       observation: "Your answer uses only the present tense — examiners expect tense variety at this level.",
@@ -278,8 +321,7 @@ export function detectAvoidance(
   }
 
   // Multiple perspectives: expected at expert level
-  const hasPerspective = /\b(d'un côté|d'autre part|certes|en revanche|il est vrai que|certains pensent|d'autres estiment|cependant|toutefois)\b/i.test(t);
-  if (expectations.requireMultiplePerspectives && !hasPerspective) {
+  if (expectations.requireMultiplePerspectives && !hasPerspective(t)) {
     signals.push({
       skillId: 'opinion',
       observation: "At this level, examiners expect you to consider more than one perspective or counterargument.",
@@ -288,8 +330,7 @@ export function detectAvoidance(
   }
 
   // Justification depth: expected at advanced/expert levels
-  const hasJustification = /\b(parce que|car|puisque|étant donné|vu que|grâce à|en raison de|c'est pourquoi)\b/i.test(t);
-  if (expectations.requireDetailedJustification && !hasJustification && wordCount > 15) {
+  if (expectations.requireDetailedJustification && !hasJustification(t) && wordCount > 15) {
     signals.push({
       skillId: 'opinion',
       observation: "You gave an opinion but didn't justify it — examiners expect a reason at this level.",
@@ -298,8 +339,7 @@ export function detectAvoidance(
   }
 
   // Opinion: expected in most questions — quote what they DID say in the observation
-  const hasOpinion = /\b(pense|crois|avis|trouve|semble|estime|selon moi|à mon avis|il me semble)\b/i.test(t);
-  if (!hasOpinion && wordCount > 20) {
+  if (!hasOpinion(t) && wordCount > 20) {
     const firstClause = transcript.split(/[.!?,]+/)[0]?.trim() ?? '';
     const preview = firstClause.length > 45 ? firstClause.slice(0, 45) + '…' : firstClause;
     signals.push({
