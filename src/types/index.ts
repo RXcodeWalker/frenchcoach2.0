@@ -1,4 +1,5 @@
 import type { QuestionDemands } from '../domain/learn/demand/types';
+import type { DemandBand, SlotType } from '../domain/learn/selection/types';
 
 export type Screen = 'home' | 'learn' | 'exam' | 'progress' | 'profile' | 'explore' | 'shop' | 'about' | 'challenges' | 'rapid-fire' | 'boss-battle' | 'story-mode' | 'survival' | 'speed-speaking' | 'emoji-master' | 'mystery-box' | 'study-groups' | 'pronunciation-lab' | 'roadmap' | 'friend-challenges' | 'rankings' | 'listening-mode' | 'fluency-heatmap' | 'speaking-arena' | 'accent-analyzer' | 'weakness-analysis' | 'sentence-rebuilder' | 'word-drop' | 'daily-news' | 'scenario-architect' | 'mastery';
 
@@ -621,6 +622,10 @@ export interface SessionQuestion {
   savedVocab: string[];
   /** True when this question was spliced in as a spaced-review re-exposure of a previously-failed question. */
   isReview?: boolean;
+  /** docs §8.4 — the slot this question was selected for, so midSessionAdjust can tell stretch from target. Absent for legacy-path (non-adaptive) sessions and the review slot. */
+  slotType?: SlotType;
+  /** docs §8.4 — the band this question was selected under, so a 'target' slot's band can be shifted by -1.0 on ease. Absent/null when the slot's band was ignored (e.g. review) or the question came from the legacy path. */
+  slotBand?: DemandBand | null;
 }
 
 export interface ActiveSession {

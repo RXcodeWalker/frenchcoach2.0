@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
-import { TOPICS } from '../data/gameData';
+import { TOPICS, getTopicQuestions } from '../data/gameData';
 import { getAIFeedback, streamFeedback, getExaminerFeedback } from '../services/api/apiClient';
 import { assessPronunciation } from '../services/pronunciation/pronunciationClient';
 import type { PronunciationAssessment } from '../domain/pronunciation/types';
@@ -29,6 +29,7 @@ import { SessionSummary } from './learn/SessionSummary';
 import { MidSessionToast } from './learn/MidSessionToast';
 import { StreakToast } from './learn/StreakToast';
 import { buildSessionQuestions, makeSessionQuestion, SESSION_TARGET } from '../utils/sessionBuilder';
+import { midSessionAdjust } from '../domain/learn/selection/midSessionAdjust';
 import { getReviewItemFirstFailScore } from '../services/coach/reviewPool';
 import { useExtraTurnBudget } from './learn/useExtraTurnBudget';
 import { track } from '../services/telemetry/telemetryService';
@@ -73,6 +74,11 @@ export function Learn() {
   const [isRetry, setIsRetry] = useState(false);
   const [showMidToast, setShowMidToast] = useState(false);
   const [showStreakToast, setShowStreakToast] = useState(false);
+  // docs (Learn adaptive difficulty) §8.4/§16 Stage 7: at most one mid-session
+  // difficulty adjustment per session — reset in resetSessionScopedState,
+  // like the other session-scoped state above.
+  const [hasAdjustedDifficulty, setHasAdjustedDifficulty] = useState(false);
+  const [difficultyToastDirection, setDifficultyToastDirection] = useState<'ease' | 'raise' | null>(null);
 
   // Engine selection state
   const [selectedEngine, setSelectedEngine] = useState<AIEngine>(preferredEngine);
@@ -174,6 +180,8 @@ export function Learn() {
     setStreamPhase(null);
     setFeedbackErrorMessage(null);
     setFocusTokenActive(false);
+    setHasAdjustedDifficulty(false);
+    setDifficultyToastDirection(null);
     extraTurnBudget.resetForNewSession();
   }, [extraTurnBudget]);
 
@@ -204,7 +212,7 @@ export function Learn() {
       setRecommendationStatus('accepted');
     }
 
-    const { questions, reviewQuestionId } = buildSessionQuestions(
+    const { questions, reviewQuestionId, slots: builtSlots } = buildSessionQuestions(
       selectedTopic.key,
       mode,
       skillProfile,
@@ -215,9 +223,10 @@ export function Learn() {
     );
 
     const target = mode === 'full_topic' ? questions.length : SESSION_TARGET[mode];
+    const slotByQuestionId = new Map((builtSlots ?? []).map(s => [s.questionId, s]));
     const sessionQuestions: SessionQuestion[] = questions
       .slice(0, target)
-      .map(q => makeSessionQuestion(q, q.id === reviewQuestionId));
+      .map(q => makeSessionQuestion(q, q.id === reviewQuestionId, slotByQuestionId.get(q.id)));
 
     const session: ActiveSession = {
       id: `sess-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
@@ -724,12 +733,42 @@ export function Learn() {
     const newIndex = activeSession.currentIndex + 1;
     const isLast = newIndex >= activeSession.targetCount;
 
-    const updatedSession: ActiveSession = {
+    let updatedSession: ActiveSession = {
       ...activeSession,
       questions: updatedQuestions,
       currentIndex: newIndex,
       questionsCompleted: newCompleted,
     };
+
+    // docs §8.4/§16 Stage 7 — bounded, at-most-once, adaptive-path-only mid-
+    // session difficulty adjustment. Gated on the same flag that chooses the
+    // adaptive selector in sessionBuilder.ts, so flag-off sessions (and their
+    // legacy-path SessionQuestions, which carry no slotType) are byte-for-
+    // byte unaffected — midSessionAdjust itself is also a no-op on any
+    // question lacking slotType, so this is a belt-and-braces double guard.
+    let adjustDirection: 'ease' | 'raise' | null = null;
+    if (
+      resolveFeatureStatus('learnAdaptiveDifficulty') === 'live' &&
+      !hasAdjustedDifficulty &&
+      selectedTopic &&
+      !isLast
+    ) {
+      const seenIds = new Set(topicMastery[selectedTopic.key]?.uniqueQuestionsAnswered ?? []);
+      const adjustResult = midSessionAdjust({
+        session: updatedSession,
+        pool: getTopicQuestions(selectedTopic.key),
+        seenIds,
+        focusSkillIds: [],
+        activeDemandProblem: null,
+        beliefSnapshot: getBeliefSnapshot(),
+        alreadyAdjustedThisSession: hasAdjustedDifficulty,
+      });
+      if (adjustResult.changed) {
+        updatedSession = adjustResult.session;
+        adjustDirection = adjustResult.direction;
+        setHasAdjustedDifficulty(true);
+      }
+    }
 
     setActiveSession(updatedSession);
     dispatch({ type: 'UPDATE_ACTIVE_SESSION', session: updatedSession });
@@ -753,13 +792,21 @@ export function Learn() {
     setFollowUpTurn(null);
     extraTurnBudget.resetForNewQuestion();
 
-    const streak = updatedSession.answerStreak;
-    if (streak === 3 || streak === 5) {
-      setShowStreakToast(true);
-    }
+    // docs §8.4 — single-toast precedence: a difficulty notice outranks
+    // progress (halfway) and streak; the outranked toast is dropped, not
+    // queued, since a stale "halfway" message after a difficulty change
+    // helps no one.
+    if (adjustDirection) {
+      setDifficultyToastDirection(adjustDirection);
+    } else {
+      const streak = updatedSession.answerStreak;
+      if (streak === 3 || streak === 5) {
+        setShowStreakToast(true);
+      }
 
-    if (newCompleted === Math.floor(activeSession.targetCount / 2) && activeSession.targetCount >= 4) {
-      setShowMidToast(true);
+      if (newCompleted === Math.floor(activeSession.targetCount / 2) && activeSession.targetCount >= 4) {
+        setShowMidToast(true);
+      }
     }
 
     if (isLast) {
@@ -953,13 +1000,25 @@ export function Learn() {
         onBack={handleBack}
       />
 
-      {/* Mid-session toasts */}
+      {/* Mid-session toasts — docs §8.4: a difficulty notice outranks progress
+          and streak; advanceQuestion already enforces this at the trigger
+          (only one of adjustDirection / streak / mid-toast is ever set per
+          question), so these three are mutually exclusive by construction. */}
       <MidSessionToast
         show={showMidToast}
+        variant="progress"
         questionsCompleted={activeSession?.questionsCompleted ?? 0}
         targetCount={activeSession?.targetCount ?? 0}
         avgScore={midAvg}
         onDismiss={() => setShowMidToast(false)}
+      />
+      <MidSessionToast
+        show={difficultyToastDirection !== null}
+        variant={difficultyToastDirection === 'raise' ? 'difficulty-up' : 'difficulty-down'}
+        questionsCompleted={activeSession?.questionsCompleted ?? 0}
+        targetCount={activeSession?.targetCount ?? 0}
+        avgScore={midAvg}
+        onDismiss={() => setDifficultyToastDirection(null)}
       />
       <StreakToast
         show={showStreakToast}

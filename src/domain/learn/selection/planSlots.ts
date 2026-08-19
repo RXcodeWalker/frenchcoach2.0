@@ -4,7 +4,7 @@ import type { SessionBlend } from '../../../types/coach';
 import type { DemandBand, PlanSlotsArgs, SessionSlot, SlotType } from './types';
 
 /** docs §8.1 — band offsets relative to sessionTarget (T). `review`'s band is ignored. */
-function bandFor(type: SlotType, sessionTarget: number): DemandBand | null {
+export function bandFor(type: SlotType, sessionTarget: number): DemandBand | null {
   switch (type) {
     case 'warmup':
       return { lo: sessionTarget - 2.5, hi: sessionTarget - 1.0 };

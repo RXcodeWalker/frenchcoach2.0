@@ -11,8 +11,9 @@ import { resolveFeatureStatus } from '../config/featureFlags';
 import { STORAGE_KEYS, storageGet } from '../services/persistence/storage';
 import { deriveAbility, coldStart } from '../domain/learn/ability/deriveAbility';
 import { aimFromMigratedTier, computeSessionTarget } from '../domain/learn/selection/sessionTarget';
-import { planSlots } from '../domain/learn/selection/planSlots';
+import { planSlots, bandFor } from '../domain/learn/selection/planSlots';
 import { selectQuestions } from '../domain/learn/selection/selectQuestions';
+import type { DemandBand, SlotType } from '../domain/learn/selection/types';
 
 /**
  * Coach loop: does this question exercise the skill the coach asked us to focus
@@ -93,10 +94,19 @@ function applyDifficultyDistribution(questions: Question[], target: number): Que
   return selected.slice(0, target);
 }
 
+/** docs §8.4 — carries the slot metadata midSessionAdjust needs; absent on the legacy path. */
+export interface BuiltSessionQuestionSlot {
+  questionId: string;
+  slotType: SlotType;
+  slotBand: DemandBand | null;
+}
+
 export interface BuiltSessionQuestions {
   questions: Question[];
   /** The question id spliced in as a spaced-review re-exposure, if any. */
   reviewQuestionId: string | null;
+  /** Present only on the adaptive path (docs §8) — one entry per question in `questions`, same order. */
+  slots?: BuiltSessionQuestionSlot[];
 }
 
 /**
@@ -183,6 +193,14 @@ function buildSessionQuestionsAdaptive(
   return {
     questions: selected.map((s) => s.question),
     reviewQuestionId: reviewPick ? reviewPick.question.id : null,
+    // docs §8.4 — the *planned* band for the slot type, not necessarily the
+    // exact band the escalation ladder (§8.3) ultimately matched under; this
+    // is what midSessionAdjust needs to shift a target band by -1.0.
+    slots: selected.map((s) => ({
+      questionId: s.question.id,
+      slotType: s.slot,
+      slotBand: bandFor(s.slot, sessionTarget),
+    })),
   };
 }
 
@@ -285,7 +303,11 @@ function buildSessionQuestionsLegacy(
 
 // Widened to accept QuestionV2 — QuestionV2 is a structural superset of Question
 // so the returned SessionQuestion.question field is still type-compatible.
-export function makeSessionQuestion(question: Question | QuestionV2, isReview = false): SessionQuestion {
+export function makeSessionQuestion(
+  question: Question | QuestionV2,
+  isReview = false,
+  slotInfo?: BuiltSessionQuestionSlot,
+): SessionQuestion {
   return {
     question: question as Question,
     status: 'pending',
@@ -293,6 +315,8 @@ export function makeSessionQuestion(question: Question | QuestionV2, isReview = 
     bestScore: null,
     savedVocab: [],
     isReview,
+    slotType: slotInfo?.slotType,
+    slotBand: slotInfo?.slotBand,
   };
 }
 
