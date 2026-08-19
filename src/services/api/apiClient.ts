@@ -2,7 +2,18 @@ import type { FeedbackV2, Question, SkillContext, GeneratedScenario, AIEngine, E
 import { track } from '../telemetry/telemetryService';
 import { evaluate as offlineEvaluate } from '../coaching/coachService';
 import { DIFFICULTY_CONFIG, DEFAULT_DIFFICULTY } from '../../utils/difficultyConfig';
-import { buildSkillContext } from '../coaching/diagnosticEngine';
+import {
+  buildSkillContext,
+  hasJustification,
+  hasOpinion,
+  hasConnectors,
+  hasPerspective,
+  hasSubjunctive,
+  hasConditional,
+  hasPastOrFuture,
+} from '../coaching/diagnosticEngine';
+import { wordCount as demandWordCount } from '../../domain/learn/demand/textCues';
+import { demandsVersion as LEARN_DEMANDS_VERSION } from '../../data/learn/demandsManifest';
 import { classifyTier, buildTier0Result, buildTier1LocalResult } from '../coaching/responseTier';
 import { applyQualityGate } from '../coaching/qualityGate';
 import { validateBackendFeedback, SchemaValidationError } from './feedbackSchema';
@@ -33,6 +44,39 @@ async function post<T>(path: string, body: unknown): Promise<T> {
   });
   if (!res.ok) throw new Error(`API ${path} → ${res.status}`);
   return res.json() as Promise<T>;
+}
+
+/**
+ * docs §9.1 trust boundary: the client sends only questionId + demandsVersion
+ * (never the demand fields it has locally) so the backend resolves demands
+ * against its own copy of the corpus — the client cannot declare its own
+ * demands. Returns {} for a question with no demands, so requestBody stays
+ * unchanged for legacy/un-inferred questions.
+ */
+function buildDemandIdentity(question: Question): { questionId?: string; demandsVersion?: string } {
+  if (!question.demands) return {};
+  return { questionId: question.id, demandsVersion: LEARN_DEMANDS_VERSION };
+}
+
+/**
+ * Client-computed L1 marker readout for the prompt's DETERMINISTIC SIGNALS
+ * section (docs §9.2) — same detectors evaluateDemandSatisfaction uses for L1
+ * evidence (docs §9.3), read-only here: this never feeds evidence itself,
+ * only what the backend renders as "already measured — do not contradict".
+ */
+function buildDemandSignals(transcript: string, question: Question): Record<string, unknown> | undefined {
+  if (!question.demands) return undefined;
+  return {
+    cognitiveDemand: question.demands.cognitiveDemand,
+    wordCount: demandWordCount(transcript),
+    hasJustification: hasJustification(transcript),
+    hasOpinion: hasOpinion(transcript),
+    hasConnectors: hasConnectors(transcript),
+    hasPerspective: hasPerspective(transcript),
+    hasSubjunctive: hasSubjunctive(transcript),
+    hasConditional: hasConditional(transcript),
+    hasPastOrFuture: hasPastOrFuture(transcript),
+  };
 }
 
 export async function generateScenario(description: string): Promise<GeneratedScenario> {
@@ -387,6 +431,8 @@ export async function getAIFeedback(
       coachingTone: cfg.coachingTone,
       coachingRubric: cfg.coachingRubric,
     },
+    ...buildDemandIdentity(question),
+    demandSignals: buildDemandSignals(transcript, question),
   };
 
   // Build fallback chain based on preference
@@ -579,6 +625,12 @@ export async function streamFeedback(
       coachingTone: cfg.coachingTone,
       coachingRubric: cfg.coachingRubric,
     },
+    // Bug fix (docs §3.12/§9.2): this was never sent, so the backend's
+    // _parse_feedback_request fell through to its "groq" default regardless
+    // of what the user selected — the engine selector was inert on this path.
+    enginePreference,
+    ...buildDemandIdentity(question),
+    demandSignals: buildDemandSignals(transcript, question),
   };
 
   let res: Response;

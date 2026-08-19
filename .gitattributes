@@ -1,0 +1,9 @@
+# docs §9.1: demandsVersion is a SHA-256 hash over these files' raw bytes,
+# and must match byte-for-byte between src/data/learn/demands/ (this repo)
+# and backend/data/learn/ (a separate repo, synced via
+# `npm run learn:sync-backend`). core.autocrlf on Windows would otherwise
+# convert LF -> CRLF on checkout here but not necessarily identically in the
+# backend repo, silently breaking hash parity depending on platform. Force
+# LF so the checked-out bytes are the same on every machine.
+src/data/learn/demands/*.json text eol=lf
+src/data/learn/demandsManifest.ts text eol=lf

@@ -98,6 +98,15 @@ export const BackendFeedbackSchema = z.object({
   providerStatus:  z.string().optional(),
   providerErrors:  z.array(z.unknown()).optional(),
   wordCount:       z.number().optional(),
+
+  // Learn adaptive-difficulty (docs §9.2/§14) — optional; only meaningful
+  // when the request resolved demands server-side. §14: demands_met/
+  // demands_missed are telemetry only, never rendered as a verdict — the
+  // learner sees exactly one verdict per demand, and it is L1's.
+  answered_the_question: z.boolean().optional(),
+  demands_met:           z.array(z.string()).optional(),
+  demands_missed:        z.array(z.string()).optional(),
+  difficulty_fit:        z.enum(['too easy', 'right level', 'too hard']).optional(),
 }).passthrough();
 
 export type BackendFeedbackParsed = z.infer<typeof BackendFeedbackSchema>;

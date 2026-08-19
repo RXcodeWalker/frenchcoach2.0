@@ -1,9 +1,9 @@
 /**
  * Pre-review gate for src/data/learn/demands/*.json — validates every topic
  * file against the question bank (unknown-question-id) and reports each
- * file's errors/warnings. corpus-hash-drift (docs §12, §9.1) is Stage 8
- * territory — backend/data/learn/ does not exist yet, so that check is a
- * clean no-op until then.
+ * file's errors/warnings. corpus-hash-drift (docs §12, §9.1) compares this
+ * corpus's hash against backend/data/learn/'s copy — the same check CI runs
+ * (Stage 8).
  *
  *   npm run learn:check                  # real gate — must be clean before review
  *   npm run learn:check -- --draft       # suppresses only "not-approved"
@@ -14,6 +14,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { validateLearnDemandsFile } from '../../src/domain/learn/demand/validate';
 import { QUESTIONS } from '../../src/data/questions';
+import { hashCorpus } from './buildDemandsManifest';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DEFAULT_DATA_DIR = join(__dirname, '..', '..', 'src', 'data', 'learn', 'demands');
@@ -34,13 +35,34 @@ function loadFiles(dataDir: string): { filename: string; raw: unknown }[] {
   }));
 }
 
-/** §12 corpus-hash-drift — Stage 8 wires the real backend/data/learn/ hash comparison. */
-function checkCorpusHashDrift(): { errors: number } {
+function loadRawTextFiles(dir: string): { filename: string; raw: string }[] {
+  const filenames = readdirSync(dir).filter((f) => f.endsWith('.json')).sort();
+  return filenames.map((filename) => ({ filename, raw: readFileSync(join(dir, filename), 'utf-8') }));
+}
+
+/** §12 corpus-hash-drift — src/data/learn/ and backend/data/learn/ must hash identically (§9.1). */
+function checkCorpusHashDrift(sourceDataDir: string): { errors: number } {
+  console.log('-- corpus-hash-drift --');
   if (!existsSync(BACKEND_DATA_DIR)) {
+    console.log('  SKIPPED: backend/data/learn/ does not exist. Run: npm run learn:sync-backend');
+    console.log('');
     return { errors: 0 };
   }
-  console.log('-- corpus-hash-drift --');
-  console.log('  SKIPPED: backend/data/learn/ exists but hash-parity checking is not implemented until Stage 8.');
+
+  const sourceFiles = loadRawTextFiles(sourceDataDir);
+  const backendFiles = loadRawTextFiles(BACKEND_DATA_DIR);
+
+  const sourceHash = hashCorpus(sourceFiles);
+  const backendHash = hashCorpus(backendFiles);
+
+  if (sourceHash !== backendHash) {
+    console.log(`  ERROR [corpus-hash-drift] src/data/learn/ (${sourceHash}) != backend/data/learn/ (${backendHash})`);
+    console.log('  Run: npm run learn:sync-backend, then commit and push backend/ separately (CLAUDE.md).');
+    console.log('');
+    return { errors: 1 };
+  }
+
+  console.log('  clean — hashes match');
   console.log('');
   return { errors: 0 };
 }
@@ -57,7 +79,7 @@ function main(): void {
 
   if (files.length === 0) {
     console.log(`No .json files found in ${dataDir} — nothing to check.`);
-    const { errors } = checkCorpusHashDrift();
+    const { errors } = checkCorpusHashDrift(dataDir);
     if (errors > 0) process.exit(1);
     return;
   }
@@ -95,7 +117,7 @@ function main(): void {
     console.log('');
   }
 
-  const { errors: hashDriftErrors } = checkCorpusHashDrift();
+  const { errors: hashDriftErrors } = checkCorpusHashDrift(dataDir);
   totalErrors += hashDriftErrors;
 
   console.log(`Total: ${totalErrors} error(s), ${totalWarnings} warning(s) across ${files.length} file(s).`);
