@@ -14,8 +14,17 @@ import {
 import { getSkillProfile } from '../coaching/diagnosticEngine';
 import { LEARNER_ID } from './learnerId';
 
-/** Cap the evidence log so localStorage never grows unbounded. */
-export const MAX_EVIDENCE_EVENTS = 100;
+/**
+ * Cap the evidence log so localStorage never grows unbounded.
+ *
+ * Raised 100 -> 150 in Learn adaptive difficulty Stage 5 (docs C3): every
+ * Learn attempt with resolved demands now appends up to 2 events (the
+ * language event + a separate demand:* event, forced by C2), so the old cap
+ * of 100 would have shrunk the effective attempt horizon from ~50 to ~33.
+ * 150 preserves the ~50-attempt horizon at up to 3 events/attempt (language +
+ * demand + behavior/avoidance).
+ */
+export const MAX_EVIDENCE_EVENTS = 150;
 
 export { LEARNER_ID };
 

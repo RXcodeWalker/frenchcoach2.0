@@ -20,6 +20,7 @@ import type { SkillProfile } from '../../types';
 import type {
   BeliefObservation,
   BeliefTrend,
+  DemandBelief,
   EvidenceDerivedSkillBelief,
   EvidenceBeliefSnapshot,
   SkillBeliefState,
@@ -67,8 +68,13 @@ const PRIOR_BETA  = 1.0;
  *      failure (confidence became a weight, not a >= 0.7 gate). Snapshots built
  *      under evidence-v2 recorded mastery SUCCESSES on nodes the learner got
  *      wrong, so they must not be read back — see the version guard in
- *      coachStorage.getBeliefSnapshot(). */
-export const REDUCER_VERSION = 'evidence-v3';
+ *      coachStorage.getBeliefSnapshot().
+ *
+ *  Bumped to evidence-v4 (Learn adaptive difficulty Stage 5, docs C4): the
+ *  snapshot SHAPE changes (projectDemandBeliefs adds snapshot.demands), even
+ *  though the reduction math over skills is unchanged and REDUCER_FIXTURE_HASH
+ *  does not move. Stale snapshots would otherwise silently lack `demands`. */
+export const REDUCER_VERSION = 'evidence-v4';
 
 // ── Weighting tables ──────────────────────────────────────────────────────────
 
@@ -399,5 +405,42 @@ export function projectEvidenceBeliefSnapshot(
     weakestSkillIds,
     strongestSkillIds,
     totalEvidenceProcessed,
+    demands: projectDemandBeliefs(beliefState),
   };
+}
+
+/**
+ * Pure projection of `demand:*` nodes out of the SAME belief state map
+ * projectEvidenceBeliefSnapshot folds `skills` from (docs §10). Node ids not
+ * prefixed `demand:` are ignored here — `skills` already covers those via
+ * SKILL_DEFS, and grammar nodes must never leak into `snapshot.demands` any
+ * more than demand nodes leak into `snapshot.skills` (the `pron:*` precedent
+ * this mirrors, see pronunciationEvidence.ts's module doc comment).
+ *
+ * No diagnosticEngine fallback exists for demand nodes (there is no legacy
+ * data to fall back to — Learn adaptive difficulty is new), so a demand with
+ * no evidence at all is simply absent from the result, exactly like a skill
+ * with no evidence and no fallback entry.
+ */
+export function projectDemandBeliefs(
+  beliefState: Record<string, SkillBeliefState>,
+): Record<string, DemandBelief> {
+  const demands: Record<string, DemandBelief> = {};
+
+  for (const [nodeId, s] of Object.entries(beliefState)) {
+    if (!nodeId.startsWith('demand:')) continue;
+
+    const mastery = s.alpha / (s.alpha + s.beta);
+    const confidence = 1 - 1 / (1 + s.weightedEvidence * 0.30);
+
+    demands[nodeId] = {
+      nodeId,
+      mastery:    Math.round(mastery * 100) / 100,
+      confidence: Math.round(confidence * 100) / 100,
+      rawEvidenceCount: s.rawEvidenceCount,
+      lastObservedAt:   s.lastObservedAt,
+    };
+  }
+
+  return demands;
 }

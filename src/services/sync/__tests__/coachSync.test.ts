@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import type { EvidenceEvent } from '../../../types/evidence';
 import { mergeEvidenceLists, rowToEvent, COACH_SYNC_SCHEMA_VERSION } from '../coachSync';
+import { MAX_EVIDENCE_EVENTS } from '../../coach/coachStorage';
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -72,17 +73,19 @@ describe('mergeEvidenceLists', () => {
     expect(merged.map(e => e.id)).toEqual(['ev-a', 'ev-b', 'ev-c']);
   });
 
-  it('caps result at MAX_EVIDENCE_EVENTS (100)', () => {
-    const local = Array.from({ length: 60 }, (_, i) =>
-      makeEvent(`ev-l${i}`, `2026-01-${String(i + 1).padStart(2, '0')}T00:00:00Z`),
+  it('caps result at MAX_EVIDENCE_EVENTS', () => {
+    // One event per minute, so ordering-by-occurredAt is unambiguous however
+    // many events MAX_EVIDENCE_EVENTS happens to be.
+    const local = Array.from({ length: 100 }, (_, i) =>
+      makeEvent(`ev-l${i}`, new Date(Date.UTC(2026, 0, 1, 0, i)).toISOString()),
     );
-    const cloud = Array.from({ length: 60 }, (_, i) =>
-      makeEvent(`ev-c${i}`, `2026-02-${String(i + 1).padStart(2, '0')}T00:00:00Z`),
+    const cloud = Array.from({ length: 100 }, (_, i) =>
+      makeEvent(`ev-c${i}`, new Date(Date.UTC(2026, 1, 1, 0, i)).toISOString()),
     );
     const merged = mergeEvidenceLists(local, cloud);
-    expect(merged).toHaveLength(100);
-    // Should keep the most recent 100 — all cloud events come after local, so oldest local are dropped
-    expect(merged[merged.length - 1].id).toBe('ev-c59');
+    expect(merged).toHaveLength(MAX_EVIDENCE_EVENTS);
+    // Should keep the most recent MAX_EVIDENCE_EVENTS — all cloud events come after local, so oldest local are dropped
+    expect(merged[merged.length - 1].id).toBe('ev-c99');
   });
 
   it('returns empty array when both inputs are empty', () => {

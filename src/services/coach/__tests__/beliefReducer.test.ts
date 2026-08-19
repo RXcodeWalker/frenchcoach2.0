@@ -18,6 +18,7 @@ import {
   computeEventWeight,
   reduceEvidenceToBeliefState,
   projectEvidenceBeliefSnapshot,
+  projectDemandBeliefs,
   MIN_RELIABLE_WEIGHT,
   REDUCER_VERSION,
 } from '../beliefReducer';
@@ -552,5 +553,64 @@ describe('projectEvidenceBeliefSnapshot', () => {
     // Mastery should reflect the failures, not the fallback 0.70
     expect(snap.skills['tense_past'].fallbackUsed).toBeUndefined();
     expect(snap.skills['tense_past'].mastery).toBeLessThan(0.50);
+  });
+});
+
+// ── Stage 5: demand:* isolation + projectDemandBeliefs ─────────────────────
+// docs §0 claim C0 (verified): `demand:*` node ids are never in SKILL_DEFS,
+// so projectEvidenceBeliefSnapshot's `SKILL_DEFS[nodeId]` miss excludes them
+// from `skills` automatically — mirrors the existing pron:* precedent
+// (pronunciationEvidence.ts's module doc comment).
+
+describe('demand:* isolation', () => {
+  it('a demand:* node never appears in snapshot.skills', () => {
+    const events = [
+      makeEvent({ targetNodeIds: ['demand:justify'], result: { success: true } }),
+    ];
+    const snap = projectEvidenceBeliefSnapshot(reduceEvidenceToBeliefState(events));
+    expect(snap.skills['demand:justify']).toBeUndefined();
+  });
+
+  it('a grammar node never appears in snapshot.demands', () => {
+    const events = [makeEvent({ targetNodeIds: ['tense_past'] })];
+    const snap = projectEvidenceBeliefSnapshot(reduceEvidenceToBeliefState(events));
+    expect(snap.demands?.['tense_past']).toBeUndefined();
+  });
+
+  it('a demand:* success event raises mastery in snapshot.demands, not skills', () => {
+    const events = [
+      makeEvent({ targetNodeIds: ['demand:justify'], result: { success: true } }),
+    ];
+    const snap = projectEvidenceBeliefSnapshot(reduceEvidenceToBeliefState(events));
+    expect(snap.demands?.['demand:justify']?.mastery).toBeGreaterThan(0.5);
+    expect(snap.skills['demand:justify']).toBeUndefined();
+  });
+
+  it('a demand:* avoidance (behavior) event does not move mastery away from the 0.5 prior', () => {
+    const events = [
+      makeEvent({
+        evidenceType: 'behavior',
+        targetNodeIds: ['demand:justify'],
+        observation: { avoidanceSkillIds: ['demand:justify'] },
+        result: { avoided: true },
+      }),
+    ];
+    const state = reduceEvidenceToBeliefState(events);
+    const demands = projectDemandBeliefs(state);
+    // Beta(1,1) prior: mastery stays exactly 0.5 since avoidance never
+    // touches alpha/beta — not_attempted must never read as a failure.
+    expect(demands['demand:justify'].mastery).toBe(0.5);
+  });
+
+  it('projectDemandBeliefs is a pure projection of the same beliefState skills is folded from', () => {
+    const events = [
+      makeEvent({ targetNodeIds: ['tense_past'] }),
+      makeEvent({ targetNodeIds: ['demand:explain'], result: { success: true } }),
+      makeEvent({ targetNodeIds: ['demand:explain'], result: { success: true } }),
+    ];
+    const state = reduceEvidenceToBeliefState(events);
+    const demands = projectDemandBeliefs(state);
+    expect(Object.keys(demands)).toEqual(['demand:explain']);
+    expect(demands['demand:explain'].rawEvidenceCount).toBe(2);
   });
 });

@@ -39,6 +39,11 @@ export interface EvidenceContext {
   targetDifficulty?: string;
   timed: boolean;
   engine?: string;
+  /** Learn adaptive difficulty (docs §10) — populated only on demand:* events. */
+  questionDemandLevel?: string;
+  questionDemandScore?: number;
+  demandProvenance?: string;
+  demandsResolved?: boolean;
 }
 
 export interface EvidenceResult {

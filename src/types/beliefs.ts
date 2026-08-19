@@ -108,6 +108,24 @@ export interface EvidenceDerivedSkillBelief {
 }
 
 /**
+ * Learn adaptive difficulty (docs §6, §10) — per-`demand:*`-node belief,
+ * folded by the SAME beliefReducer math as skills, just projected separately
+ * since `demand:*` node ids are never in SKILL_DEFS (docs §0 claim C0,
+ * verified: `skills` stays byte-identical with no filtering code needed).
+ * Deliberately narrower than EvidenceDerivedSkillBelief — only the fields
+ * deriveAbility (docs §6.2) actually reads.
+ */
+export interface DemandBelief {
+  nodeId: string;
+  /** 0–1: Beta mean = alpha / (alpha + beta). */
+  mastery: number;
+  /** 0–1: grows with weighted evidence volume. */
+  confidence: number;
+  rawEvidenceCount: number;
+  lastObservedAt: string | null;
+}
+
+/**
  * Snapshot produced by the evidence-driven belief reducer. This is the sole
  * coach read model. Topics are out of scope here — they remain sourced from
  * analytics (getTopicMasteryAll) where needed.
@@ -124,4 +142,11 @@ export interface EvidenceBeliefSnapshot {
   strongestSkillIds: string[];
   /** Total raw evidence events that contributed to this snapshot. */
   totalEvidenceProcessed: number;
+  /**
+   * Keyed by `demand:<CognitiveDemand>` node id — docs §6, §10. Optional so
+   * existing snapshot literals built before Stage 5 (tests, fixtures) keep
+   * compiling; producers should always populate it going forward and
+   * consumers should treat a missing key as `{}`.
+   */
+  demands?: Record<string, DemandBelief>;
 }

@@ -125,6 +125,6 @@ describe('belief reducer version pin', () => {
   });
 
   it('the pinned hash is paired with the current REDUCER_VERSION', () => {
-    expect(REDUCER_VERSION).toBe('evidence-v3');
+    expect(REDUCER_VERSION).toBe('evidence-v4');
   });
 });

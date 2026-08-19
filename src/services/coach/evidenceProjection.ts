@@ -24,10 +24,26 @@ import type { Observation, Span } from '../../domain/igcse/evidence/framework/ob
 import { nodeForIssueCategory, nodeForGrammarTheme } from '../../domain/igcse/evidence/framework/nodeMap';
 import { LANGUAGE_SUCCESS_SCORE, isUnscored } from '../../domain/scoring';
 import { LEARNER_ID } from './learnerId';
+import { evaluateDemandSatisfaction } from '../../domain/learn/demand/satisfaction';
+import { deriveDemandScore, demandScoreToLevel } from '../../domain/learn/demand/deriveDemandLevel';
+import { demandNodeId } from '../../domain/learn/demand/nodeId';
+import type { DemandProvenance } from '../../domain/learn/demand/types';
 
 const RUBRIC_VERSION = 'coach-mvp-1';
 const BRIDGE_DETECTOR_ID = 'feedbackv2-bridge';
 const BRIDGE_DETECTOR_VERSION = 'bridge-v1';
+
+/**
+ * docs §13.2 valve 1: guessed labels move demand beliefs ~40% less than a
+ * reviewed/authored one. Multiplies straight into reliability.taskValidity,
+ * same mechanism computeEventWeight already reads for every other event.
+ */
+const PROVENANCE_TASK_VALIDITY: Record<DemandProvenance, number> = {
+  authored: 1.0,
+  reviewed: 0.85,
+  inferred: 0.6,
+};
+
 
 export interface BuildEvidenceArgs {
   sessionId: string;
@@ -236,6 +252,99 @@ function summarise(feedback: FeedbackV2): string {
 }
 
 /**
+ * docs §9.3 / §10: a SEPARATE evidence event carrying this attempt's L1
+ * demand verdict, forced by C2 (riding along on the language event's single
+ * result.success scalar would force demand outcome = grammar outcome).
+ *
+ * - `met`           -> a 'language' event, result.success: true (mastery UP).
+ * - `not_attempted` -> a 'behavior' event (avoidance, never a Beta failure —
+ *                      mirrors the existing grammar-avoidance event below).
+ * - `unknown`       -> no event at all. beliefReducer's hasSuccessSignal gate
+ *                      would already skip an event with no success/score, but
+ *                      not emitting it in the first place is what keeps this
+ *                      "zero evidence", not "evidence with no opinion".
+ *
+ * Returns [] whenever the question carries no demands (legacy/un-inferred
+ * question) — there is nothing to evaluate.
+ */
+function buildDemandEvidence(args: {
+  sessionId: string;
+  question: Question | null;
+  transcript: string;
+  mode: string;
+  topicKey?: string;
+  occurredAt: string;
+}): EvidenceEvent[] {
+  const { question, transcript, occurredAt } = args;
+  const demands = question?.demands;
+  if (!demands) return [];
+
+  const verdict = evaluateDemandSatisfaction(transcript, demands);
+  if (verdict === 'unknown') return [];
+
+  const nodeId = demandNodeId(demands.cognitiveDemand);
+  const demandScore = deriveDemandScore(demands);
+  const demandLevel = demandScoreToLevel(demandScore);
+  const taskValidity = PROVENANCE_TASK_VALIDITY[demands.provenance];
+
+  const reliability: EvidenceReliability = {
+    // L1 markers are closed-list regex detectors, not a calibrated model —
+    // 'heuristic' matches evaluatorFor's own non-LLM fallback.
+    assessmentConfidence: demands.provenance === 'inferred' ? (demands.inferenceConfidence ?? 0.5) : 0.9,
+    taskValidity,
+    signalQuality: 0.9,
+    evaluator: 'heuristic',
+    rubricVersion: RUBRIC_VERSION,
+  };
+
+  const context = {
+    mode: args.mode,
+    topicKey: args.topicKey,
+    questionId: question?.id,
+    questionText: question?.text?.slice(0, 200),
+    timed: args.mode === 'exam',
+    questionDemandLevel: demandLevel,
+    questionDemandScore: demandScore,
+    demandProvenance: demands.provenance,
+    demandsResolved: true,
+  };
+
+  if (verdict === 'met') {
+    return [{
+      id: computeObservationId('evidence-event', BRIDGE_DETECTOR_VERSION, 'demand', fullResponseSpan(transcript), args.sessionId),
+      learnerId: LEARNER_ID,
+      occurredAt,
+      sourceSessionId: args.sessionId,
+      evidenceType: 'language',
+      targetNodeIds: [nodeId],
+      observation: {
+        feedbackSummary: `demand:${demands.cognitiveDemand} met`,
+      },
+      result: { success: true },
+      reliability,
+      context,
+    }];
+  }
+
+  // not_attempted -> avoidance, never a Beta-model failure (docs §9.3).
+  return [{
+    id: computeObservationId('evidence-event', BRIDGE_DETECTOR_VERSION, 'demand-avoidance', fullResponseSpan(transcript), args.sessionId),
+    learnerId: LEARNER_ID,
+    occurredAt,
+    sourceSessionId: args.sessionId,
+    evidenceType: 'behavior',
+    targetNodeIds: [nodeId],
+    observation: {
+      avoidanceSkillIds: [nodeId],
+      feedbackSummary: `demand:${demands.cognitiveDemand} not attempted`,
+    },
+    result: { avoided: true },
+    reliability,
+    context,
+  }];
+}
+
+/**
  * Build this attempt's EvidenceEvents by first constructing the observation
  * log (today: the FeedbackV2 bridge; future: a real EvidenceProfile), then
  * projecting via deriveNodeOutcome. Result shape is unchanged from the
@@ -370,6 +479,18 @@ export function buildEvidence(args: BuildEvidenceArgs): EvidenceEvent[] {
       },
     });
   }
+
+  // Demand evidence is a SEPARATE event, never folded into the language event
+  // above (docs §9.3 / C2) — omits observation.transcript since the language
+  // event above already stores it (docs §10, log-growth bound for C3).
+  events.push(...buildDemandEvidence({
+    sessionId: args.sessionId,
+    question: args.question,
+    transcript,
+    mode: args.mode,
+    topicKey: args.topicKey,
+    occurredAt,
+  }));
 
   return events;
 }
