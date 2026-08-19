@@ -119,16 +119,21 @@ describe('evaluateDemandSatisfaction — subjunctive (reliable presence, unrelia
   });
 });
 
-describe('evaluateDemandSatisfaction — conditional (broken detector — unknown until Stage 4b, both directions)', () => {
-  it('a conditional-tagged structure never resolves met even with "j\'irais" present (regex is broken)', () => {
+describe('evaluateDemandSatisfaction — conditional (fixed in Stage 4b — reliable presence, still unreliable absence)', () => {
+  it('a conditional-tagged structure resolves met when "j\'irais" is present (regex fixed in Stage 4b)', () => {
     const t = "Si j'avais le choix, j'irais directement à la plage avec toute ma famille et mes amis.";
-    expect(evaluateDemandSatisfaction(t, demandsOf('justify', 'short', ['conditional']))).toBe('unknown');
+    expect(evaluateDemandSatisfaction(t, demandsOf('justify', 'short', ['conditional']))).toBe('met');
   });
 
-  it('absence also resolves unknown (not not_attempted, not met)', () => {
+  it('absence resolves unknown (not not_attempted, not met) — absence still unreliable', () => {
     // "justify" (not describe) so word count alone cannot resolve met; below
     // the developed floor (40) but above the not_attempted threshold (16)
     expect(evaluateDemandSatisfaction(words(20), demandsOf('justify', 'developed', ['conditional']))).toBe('unknown');
+  });
+
+  it('hypothesize now resolves met via hasConditional directly, not only the justification/perspective fallback', () => {
+    const t = "Si je pouvais choisir, j'irais au Japon.";
+    expect(evaluateDemandSatisfaction(t, demandsOf('hypothesize', 'short'))).toBe('met');
   });
 });
 

@@ -226,12 +226,31 @@ export function invitesHypothetical(questionText: string): boolean {
 }
 
 /**
- * Conditional mood markers. NOTE: broken per docs §9.3/§3.8 — the required
- * `\b` before `ais` never matches after a vowel (e.g. `j'irais`), so this
- * currently never fires. Left unchanged; fixed separately in Stage 4b.
+ * Words ending in a conditional-mood suffix (ais/ait/aient/ions/iez) that are
+ * not conditional forms at all — present tense (`vais`, `fais`, `sais`) or
+ * common adverbs/nouns (`mais`, `jamais`, `palais`). Excluded so the fixed
+ * detector below stays presence-reliable rather than firing on ordinary
+ * present-tense speech.
+ */
+const CONDITIONAL_FALSE_POSITIVES = new Set([
+  'vais', 'fais', 'sais', 'plait', 'plaît', 'fait', 'mais', 'jamais', 'palais',
+]);
+
+/**
+ * Conditional mood markers. Fixed in Stage 4b (docs §9.3/§3.8): the previous
+ * `\b` before `ais` never matched after a vowel (e.g. `j'irais`), so the
+ * regex never fired at all. Now matches any 2+ letter stem ending in a
+ * conditional suffix, minus the small set of common non-conditional words
+ * that end the same way — catching irregular stems like `irais` (aller),
+ * `ferions` (faire), `serait` (être) that the old anchor missed.
  */
 export function hasConditional(transcript: string): boolean {
-  return /\b(ais|ait|aient|ions|iez)\b/.test(transcript);
+  const re = /\b(\w{2,}(?:ais|ait|aient|ions|iez))\b/gi;
+  let match: RegExpExecArray | null;
+  while ((match = re.exec(transcript)) !== null) {
+    if (!CONDITIONAL_FALSE_POSITIVES.has(match[1].toLowerCase())) return true;
+  }
+  return false;
 }
 
 export function hasSubjunctive(transcript: string): boolean {

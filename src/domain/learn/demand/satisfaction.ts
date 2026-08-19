@@ -52,21 +52,18 @@ const NOT_ATTEMPTED_FACTOR = 0.4;
  *   explain     -> hasJustification || hasConnectors
  *   justify     -> hasJustification || hasOpinion
  *   compare     -> hasPerspective || hasConnectors
- *   hypothesize -> hasJustification || hasPerspective
- *                  NOT hasConditional: diagnosticEngine.ts's hasConditional
- *                  regex requires a `\b` before `ais`, which never matches
- *                  after a vowel (e.g. `j'irais`) — see docs §3.8/§9.3. It
- *                  would resolve `unknown` 100% of the time until Stage 4b
- *                  fixes the regex.
- *   TODO(stage-4b): once hasConditional is fixed, switch hypothesize to
- *   `hasConditional(t) || hasJustification(t) || hasPerspective(t)`.
+ *   hypothesize -> hasConditional || hasJustification || hasPerspective
+ *                  hasConditional was fixed in Stage 4b (diagnosticEngine.ts's
+ *                  regex previously required a `\b` before `ais`, which never
+ *                  matched after a vowel, e.g. `j'irais` — see docs
+ *                  §3.8/§9.3) and is now wired in here as planned.
  */
 const COGNITIVE_DEMAND_MARKERS: Record<CognitiveDemand, (transcript: string) => boolean> = {
   describe: () => false,
   explain: (t) => hasJustification(t) || hasConnectors(t),
   justify: (t) => hasJustification(t) || hasOpinion(t),
   compare: (t) => hasPerspective(t) || hasConnectors(t),
-  hypothesize: (t) => hasJustification(t) || hasPerspective(t),
+  hypothesize: (t) => hasConditional(t) || hasJustification(t) || hasPerspective(t),
 };
 
 /**
@@ -78,7 +75,6 @@ const STRUCTURE_MARKERS: Partial<Record<QuestionDemands['structures'][number], (
   opinion: hasOpinion,
   justification: hasJustification,
   subjunctive: hasSubjunctive,
-  // Broken detector (docs §3.8/§9.3) — always unknown until Stage 4b fixes it.
   conditional: hasConditional,
 };
 
