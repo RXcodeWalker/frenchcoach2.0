@@ -19,6 +19,7 @@
     "authoring:review-sheet": "tsx scripts/authoring/reviewSheet.ts",
     "authoring:status": "tsx scripts/authoring/status.ts",
     "learn:skeleton": "tsx scripts/authoring/learnSkeleton.ts",
+    "learn:infer": "tsx scripts/authoring/inferLearnDemands.ts",
     "learn:check": "tsx scripts/authoring/checkLearnDemands.ts",
     "learn:review": "tsx scripts/authoring/learnReview.ts",
     "learn:status": "tsx scripts/authoring/learnStatus.ts",
