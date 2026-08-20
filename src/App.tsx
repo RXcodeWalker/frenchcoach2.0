@@ -116,7 +116,7 @@ function XPToast() {
     if (!state.showXPModal) return;
     const id = setTimeout(() => dispatch({ type: 'DISMISS_XP_MODAL' }), 2500);
     return () => clearTimeout(id);
-  }, [state.showXPModal]);
+  }, [state.showXPModal, dispatch]);
   return (
     <AnimatePresence>
       {state.showXPModal && (

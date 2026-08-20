@@ -255,7 +255,7 @@ export function Learn() {
     setActiveResultEngine(null);
     resetSessionScopedState();
     setLearnState('question');
-  }, [selectedTopic, skillProfile, topicMastery, dispatch, resetSessionScopedState, focusTokenActive]);
+  }, [selectedTopic, skillProfile, topicMastery, selectedDifficulty, dispatch, resetSessionScopedState, focusTokenActive]);
 
   const startSingleQuestion = () => startSession('single');
 
@@ -677,7 +677,7 @@ export function Learn() {
       setIsReEvaluating(false);
       setReEvaluatingEngine(null);
     }
-  }, [currentQuestion, engineResults, isReEvaluating, recording.transcript]);
+  }, [currentQuestion, engineResults, isReEvaluating, recording.transcript, selectedDifficulty]);
 
   const handleSwitchEngine = useCallback((engine: AIEngine) => {
     const cached = engineResults.get(engine);

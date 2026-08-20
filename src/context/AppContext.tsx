@@ -551,12 +551,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [state.profile.total_xp, state.profile.gems, state.achievements, authUser?.id]);
 
   // Incremental session push — fires after each new session, gated on auth + hydration
+  const newestSessionId = state.recentSessions[0]?.id;
   useEffect(() => {
     const newest = state.recentSessions[0];
     if (!newest || !authUser || !hydrationComplete.current || sessionHydrationInProgress.current) return;
     void pushSessionToCloud(authUser.id, newest);
     void pushPendingEvidence(authUser.id);
-  }, [state.recentSessions[0]?.id, authUser?.id]);
+  }, [newestSessionId, authUser?.id]);
 
   // Flush pending session queue when network comes back online
   useEffect(() => {
