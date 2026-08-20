@@ -19,7 +19,7 @@ const ENGINE_OPTIONS: EngineOption[] = [
     label: 'Gemini',
     badge: 'Premium',
     tagline: 'Most detailed feedback',
-    speedHint: '~10 s',
+    speedHint: '~20 s',
     confidence: 'High confidence',
     badgeColor: 'text-amber-400 bg-amber-400/10 border-amber-400/20',
     ringColor: 'border-amber-400/60 bg-amber-400/5',
@@ -30,7 +30,7 @@ const ENGINE_OPTIONS: EngineOption[] = [
     label: 'Groq',
     badge: 'Free',
     tagline: 'Fast & accurate',
-    speedHint: '~3 s',
+    speedHint: '~7 s',
     confidence: 'Medium · High',
     badgeColor: 'text-violet-400 bg-violet-400/10 border-violet-400/20',
     ringColor: 'border-violet-500/60 bg-violet-500/5',
@@ -59,7 +59,7 @@ function HealthDot({ status }: { status: EngineHealth }) {
     return <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" title="Healthy" />;
   }
   if (status === 'degraded') {
-    return <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse inline-block" title="Degraded" />;
+    return <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse inline-block" title="Running slow" />;
   }
   return <span className="w-1.5 h-1.5 rounded-full bg-rose-500 inline-block" title="Unavailable" />;
 }
@@ -68,7 +68,7 @@ function healthLabel(status: EngineHealth, engine: AIEngine): string {
   if (engine === 'offline') return 'Always available';
   if (status === 'checking') return 'Checking…';
   if (status === 'healthy') return 'Healthy';
-  if (status === 'degraded') return 'Degraded';
+  if (status === 'degraded') return 'Running slow';
   return 'Unavailable';
 }
 

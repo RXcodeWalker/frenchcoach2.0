@@ -133,7 +133,7 @@ describe('normalizeToWav16kMono', () => {
   });
 
   it('throws AudioTooLongError for clips over the decode cap', async () => {
-    installFakeWebAudio(40);
+    installFakeWebAudio(70);
     const input = new Blob([new Uint8Array(10)], { type: 'audio/webm' });
     await expect(normalizeToWav16kMono(input)).rejects.toThrow(AudioTooLongError);
   });

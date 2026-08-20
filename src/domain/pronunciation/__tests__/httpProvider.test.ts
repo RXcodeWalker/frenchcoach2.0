@@ -7,9 +7,9 @@ import { PRONUNCIATION_GOLDEN_ASSESSMENT, buildPronunciationAssessment } from '.
 // exercise the real normalize-then-upload path (producing a WAV blob) rather
 // than silently falling back to the raw blob because jsdom has no Web Audio
 // support out of the box.
-function installFakeWebAudio() {
+function installFakeWebAudio(durationSec = 2.0) {
   const fakeDecoded = {
-    duration: 2.0,
+    duration: durationSec,
     sampleRate: 48_000,
     numberOfChannels: 1,
     length: 96_000,
@@ -133,7 +133,10 @@ describe('createHttpPronunciationProvider', () => {
     expect(formData.get('mode')).toBe('freeform');
   });
 
-  it('falls back to uploading the original blob when normalization fails', async () => {
+  it('does not upload the original webm when normalization fails — Azure would score it, wrongly', async () => {
+    // Previously this degraded to uploading the raw blob. Azure parses
+    // webm/opus just far enough to return a confident, wrong assessment, so
+    // the honest outcome is no assessment at all.
     class ThrowingAudioContext {
       async decodeAudioData(): Promise<never> {
         throw new Error('unsupported codec');
@@ -142,24 +145,18 @@ describe('createHttpPronunciationProvider', () => {
     }
     vi.stubGlobal('AudioContext', ThrowingAudioContext);
 
-    const fetchMock = vi.fn(async () => ({
-      ok: true,
-      json: async () => PRONUNCIATION_GOLDEN_ASSESSMENT,
-    })) as unknown as typeof fetch;
+    const fetchMock = vi.fn() as unknown as typeof fetch;
     vi.stubGlobal('fetch', fetchMock);
 
     const provider = createHttpPronunciationProvider('http://localhost:8000');
-    const result = await provider({
-      audioBlob: new Blob(['fake'], { type: 'audio/webm' }),
-      targetText: 'Un bon vin blanc.',
-      languageCode: 'fr-FR',
-    });
-
-    expect(result).toEqual(PRONUNCIATION_GOLDEN_ASSESSMENT);
-    const [, init] = (fetchMock as ReturnType<typeof vi.fn>).mock.calls[0];
-    const formData = init.body as FormData;
-    const uploaded = formData.get('audio') as File;
-    expect(uploaded.name).toBe('recording.webm');
+    await expect(
+      provider({
+        audioBlob: new Blob(['fake'], { type: 'audio/webm' }),
+        targetText: 'Un bon vin blanc.',
+        languageCode: 'fr-FR',
+      }),
+    ).rejects.toThrow('unsupported codec');
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it('throws on a non-ok response', async () => {
@@ -317,5 +314,53 @@ describe('createHttpPronunciationProvider', () => {
     ).rejects.toThrow(/failed validation/);
 
     vi.unstubAllGlobals();
+  });
+
+  it('reports the assessment as unavailable rather than uploading webm Azure would score wrongly', async () => {
+    // A recording past the normalizer's decode cap. Uploading the raw
+    // webm/opus anyway is what produced a confident, wrong assessment
+    // (correctly-spoken words marked mispronounced) on long answers.
+    installFakeWebAudio(90);
+    const fetchMock = vi.fn() as unknown as typeof fetch;
+    vi.stubGlobal('fetch', fetchMock);
+
+    const assess = createHttpPronunciationProvider('http://api.test');
+    await expect(
+      assess({ audioBlob: new Blob([new Uint8Array(10)], { type: 'audio/webm;codecs=opus' }), targetText: 'bonjour', languageCode: 'fr-FR' }),
+    ).rejects.toThrow();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('still degrades to the original blob when it is already in a format Azure accepts', async () => {
+    installFakeWebAudio(90);
+    const fetchMock = vi.fn(async () => ({
+      ok: true,
+      json: async () => PRONUNCIATION_GOLDEN_ASSESSMENT,
+    })) as unknown as typeof fetch;
+    vi.stubGlobal('fetch', fetchMock);
+
+    const assess = createHttpPronunciationProvider('http://api.test');
+    await assess({ audioBlob: new Blob([new Uint8Array(10)], { type: 'audio/ogg;codecs=opus' }), targetText: 'bonjour', languageCode: 'fr-FR' });
+
+    const body = (fetchMock as unknown as { mock: { calls: [string, { body: FormData }][] } }).mock.calls[0][1].body;
+    expect((body.get('audio') as File).name).toBe('recording.ogg');
+  });
+
+  it('normalizes a long-but-assessable answer instead of rejecting it', async () => {
+    // 45s is an ordinary long Learn answer; the old 35s cap rejected it.
+    installFakeWebAudio(45);
+    const fetchMock = vi.fn(async () => ({
+      ok: true,
+      json: async () => PRONUNCIATION_GOLDEN_ASSESSMENT,
+    })) as unknown as typeof fetch;
+    vi.stubGlobal('fetch', fetchMock);
+
+    const assess = createHttpPronunciationProvider('http://api.test');
+    await assess({ audioBlob: new Blob([new Uint8Array(10)], { type: 'audio/webm;codecs=opus' }), targetText: 'bonjour', languageCode: 'fr-FR' });
+
+    const body = (fetchMock as unknown as { mock: { calls: [string, { body: FormData }][] } }).mock.calls[0][1].body;
+    const uploaded = body.get('audio') as File;
+    expect(uploaded.name).toBe('recording.wav');
+    expect(uploaded.type).toBe('audio/wav');
   });
 });

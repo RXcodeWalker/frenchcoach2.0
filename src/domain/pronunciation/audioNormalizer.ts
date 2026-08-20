@@ -23,13 +23,16 @@
 
 const TARGET_SAMPLE_RATE = 16_000;
 
-// Hard cap on decoded audio length. Beyond this, the caller (Learn's
-// freeform answers) must chunk before normalizing — decoding is the memory
-// peak, not the WAV: a 3-minute clip at 48kHz stereo decodes to ~70MB
-// transient Float32. This cap keeps a single normalize() call bounded;
-// chunking-before-decode for answers longer than this is out of scope here
-// (accent-analyzer plan Phase 1, aggregation).
-const MAX_DECODE_DURATION_SEC = 35;
+// Hard cap on decoded audio length, set to Azure's own limit for the REST
+// short-audio endpoint (60s) because that — not memory — is the real ceiling
+// downstream: a longer clip cannot be assessed in one pass no matter how well
+// we normalize it. The previous 35s cap was well inside that limit and
+// rejected ordinary long answers (a 45s answer is normal in Learn), which sent
+// them down httpProvider's degrade path and produced a confidently wrong
+// assessment. Memory at the cap is fine: 60s of 48kHz stereo decodes to ~23MB
+// of transient Float32, released as soon as this call returns. Chunking-and-
+// aggregating past 60s remains out of scope (accent-analyzer plan Phase 1).
+const MAX_DECODE_DURATION_SEC = 60;
 
 const MIN_CLIP_DURATION_SEC = 0.4;
 

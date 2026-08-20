@@ -21,6 +21,11 @@
  * hard-fail on a best-effort step" pattern (see
  * services/pronunciation/fallback.py).
  *
+ * The one exception to that degrade rule is audio Azure cannot actually read
+ * (see AZURE_ASSESSABLE_MIME below): there, uploading anyway is not a
+ * best-effort fallback but a way to manufacture a wrong result, so the
+ * assessment is reported as unavailable instead.
+ *
  * `getAuthToken` (Phase 4 — Shadowing Mode) is called ONLY when
  * `coaching === 'full'`, so the fast (drill/Learn/SayItAgainCard) path gains
  * zero extra awaits. A null token is not an error — the backend degrades to
@@ -32,20 +37,51 @@ import { PronunciationAssessmentSchema } from '../../../services/pronunciation/p
 import type { PronunciationAssessor } from '../ports';
 import type { PronunciationAssessment } from '../types';
 
+/**
+ * Content-Types Azure's REST short-audio endpoint actually accepts, mirroring
+ * azure_client.py's _CONTENT_TYPE_BY_EXTENSION. Everything else — notably the
+ * audio/webm;codecs=opus Chrome records — is not merely suboptimal: Azure
+ * parses it just far enough to return a confident, wrong assessment, marking
+ * correctly-spoken words as mispronounced and reporting a low score for them.
+ * A wrong assessment is worse than no assessment for a learner, so raw audio
+ * in any other format is never uploaded.
+ */
+const AZURE_ASSESSABLE_MIME = new Set(['audio/wav', 'audio/wave', 'audio/x-wav', 'audio/ogg']);
+
+/** The type without its codecs/rate parameters, e.g. 'audio/ogg;codecs=opus' -> 'audio/ogg'. */
+function mimeEssence(blob: Blob): string {
+  return blob.type.split(';')[0].trim().toLowerCase();
+}
+
+function isAzureAssessable(blob: Blob): boolean {
+  return AZURE_ASSESSABLE_MIME.has(mimeEssence(blob));
+}
+
+/** Extension the backend maps back to an Azure-accepted Content-Type (azure_client.py). */
+function uploadFilenameFor(blob: Blob): string {
+  return mimeEssence(blob) === 'audio/ogg' ? 'recording.ogg' : 'recording.wav';
+}
+
 export function createHttpPronunciationProvider(
   apiBase: string,
   getAuthToken?: () => Promise<string | null>,
 ): PronunciationAssessor {
   return async ({ audioBlob, targetText, mode = 'scripted', coaching = 'none', coachingRequestId }) => {
     let uploadBlob = audioBlob;
-    let uploadFilename = 'recording.webm';
+    let uploadFilename = 'recording.wav';
     try {
       const normalized = await normalizeToWav16kMono(audioBlob);
       uploadBlob = normalized.blob;
       uploadFilename = 'recording.wav';
     } catch (err) {
       if (err instanceof AudioTooShortError) throw err;
+      // Degrading to the original blob is only safe when Azure can read it.
+      // For anything else (the usual webm/opus) the request would come back
+      // scored — and wrong — so fail instead and let the caller report the
+      // assessment as unavailable.
+      if (!isAzureAssessable(audioBlob)) throw err;
       console.warn('Audio normalization failed, uploading original blob:', err);
+      uploadFilename = uploadFilenameFor(audioBlob);
     }
 
     const formData = new FormData();

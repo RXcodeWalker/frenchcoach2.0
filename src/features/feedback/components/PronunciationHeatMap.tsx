@@ -74,7 +74,10 @@ export function PronunciationHeatMap({ assessment, onSpeakWord }: Props) {
   if (assessment.provider !== 'azure') return null;
 
   return (
-    <div className="px-1 mb-3 leading-loose">
+    // flex-wrap supplies the inter-word gap: the words are mapped adjacent
+    // inline-block spans, and JSX drops the whitespace between mapped
+    // elements, so without it the whole answer renders as one run-on string.
+    <div className="px-1 mb-3 leading-loose flex flex-wrap items-center gap-x-1.5 gap-y-1">
       {assessment.words.map((word, i) => (
         <WordSpan key={i} word={word} onSpeakWord={onSpeakWord} />
       ))}
