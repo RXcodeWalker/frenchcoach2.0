@@ -14,6 +14,21 @@ import { aimFromMigratedTier, computeSessionTarget } from '../domain/learn/selec
 import { planSlots, bandFor } from '../domain/learn/selection/planSlots';
 import { selectQuestions } from '../domain/learn/selection/selectQuestions';
 import type { DemandBand, SlotType } from '../domain/learn/selection/types';
+import type { CognitiveDemand } from '../domain/learn/demand/types';
+import { getActiveProblem } from '../services/coach/interventionService';
+
+/**
+ * docs §10 "Interventions" row: an active demand:* LearningProblem is pinned
+ * into target slots for as long as it stays unresolved (via coachFocusMatch +
+ * demandCoverageGap in scoreCandidate) — not a fixed session counter. The
+ * problem's own active -> monitoring -> resolved lifecycle (interventionService)
+ * already provides the "persists across sessions" behaviour for free.
+ */
+function activeDemandProblemCognitiveDemand(): CognitiveDemand | null {
+  const problem = getActiveProblem();
+  if (!problem || problem.status === 'resolved' || !problem.nodeId.startsWith('demand:')) return null;
+  return problem.nodeId.slice('demand:'.length) as CognitiveDemand;
+}
 
 /**
  * Coach loop: does this question exercise the skill the coach asked us to focus
@@ -179,7 +194,7 @@ function buildSessionQuestionsAdaptive(
       chosenIds: new Set<string>(),
       seenIds: seen,
       focusSkillIds: blend.focusSkillIds,
-      activeDemandProblem: null,
+      activeDemandProblem: activeDemandProblemCognitiveDemand(),
       getReviewQuestion: (chosenIds) => {
         if (!topicKey) return null;
         const alreadyInSession = new Set([...seen, ...chosenIds]);

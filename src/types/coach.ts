@@ -4,6 +4,7 @@ import type { Session, Question, FeedbackV2, AvoidanceSignal } from './index';
 import type { EvidenceEvent } from './evidence';
 import type { EvidenceBeliefSnapshot } from './beliefs';
 import type { LearningProblem } from './intervention';
+import type { CognitiveDemand } from '../domain/learn/demand/types';
 
 // ── Goal types ────────────────────────────────────────────────────────────────
 
@@ -103,6 +104,8 @@ export interface CandidateAction {
   score: number;            // composite score 0–100
   targetSkillIds: string[];
   targetTopicKey?: string;
+  /** Learn adaptive difficulty (docs §10) — set when this candidate targets a demand:* problem. */
+  targetDemand?: CognitiveDemand;
   rationale: string;
   suggestedMode: 'quick' | 'standard' | 'deep_dive';
 }
@@ -158,6 +161,8 @@ export interface CoachRecommendation {
   description: string;
   targetSkillIds: string[];
   targetTopicKey?: string;
+  /** Learn adaptive difficulty (docs §10) — set when this recommendation targets a demand:* problem. */
+  targetDemand?: CognitiveDemand;
   suggestedMode: 'quick' | 'standard' | 'deep_dive';
   rationale: RecommendationRationale;
   status: 'active' | 'accepted' | 'dismissed' | 'completed';

@@ -31,7 +31,7 @@ import { appendEvidenceEvents, getRecentEvidence } from './coachStorage';
 import { syncProfileFromServices } from './coachProfileService';
 import { invalidateDailyPlan } from './decisionEngine';
 import { detectRecurringGrammarDrill, hasMicroDrillForSkill } from './recurringGrammar';
-import { detectAndPersistProblem } from './interventionService';
+import { detectAndPersistProblem, detectAndPersistDemandProblem, refreshDemandProblems } from './interventionService';
 import { buildAchievementContext } from './achievementContextBuilder';
 import { projectSkillProfile } from './skillProfileProjection';
 import { writeSkillProfile } from '../coaching/diagnosticEngine';
@@ -122,6 +122,10 @@ export function orchestrateAttempt(input: OrchestratorInput): OrchestratorResult
 
   // 6. Detect recurring-grammar problems and decide whether to offer a MicroDrill.
   const activeProblem = detectAndPersistProblem(allEvidence, beliefSnapshot);
+  // 6b. Demand:* dimension (docs §10 "Problems" row) — no MicroDrill, so it
+  //     doesn't affect drillSkillId; resolved separately as mastery moves.
+  detectAndPersistDemandProblem(allEvidence, beliefSnapshot);
+  refreshDemandProblems(beliefSnapshot);
   const drillSkillId =
     activeProblem && hasMicroDrillForSkill(activeProblem.nodeId)
       ? activeProblem.nodeId
@@ -208,6 +212,8 @@ export function observeAttempt(input: ObserveAttemptInput): ObserveAttemptResult
   const beliefSnapshot = updateFromFeedback();
   persistDerivedSkillProfile(beliefSnapshot);
   detectAndPersistProblem(allEvidence, beliefSnapshot);
+  detectAndPersistDemandProblem(allEvidence, beliefSnapshot);
+  refreshDemandProblems(beliefSnapshot);
 
   const recommendation = generateRecommendation(beliefSnapshot, getRecentEvidence(20));
 

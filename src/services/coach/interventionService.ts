@@ -19,6 +19,8 @@ import type {
 import { LEARNER_ID } from './coachStorage';
 import { isGrammarSkill, hasMicroDrillForSkill } from './recurringGrammar';
 import { LANGUAGE_SUCCESS_SCORE } from '../../domain/scoring';
+import { MASTERY_WEAK, RELIABLE_CONFIDENCE } from '../../domain/learn/ability/thresholds';
+import type { CognitiveDemand } from '../../domain/learn/demand/types';
 
 const WEEK_MS = 7 * 86_400_000;
 /** Avoid drill fatigue: no second intervention for a node within this window. */
@@ -29,6 +31,8 @@ const DRILL_PASS = 0.67;
 const DRILL_FAIL = 0.5;
 /** Successful drills required to mark a problem resolved. */
 const RESOLVE_AFTER_SUCCESSES = 2;
+/** docs §6.2 MASTERY_STRONG-adjacent: a demand problem resolves once mastery clears this (no MicroDrill pass to key off). */
+const DEMAND_RESOLVE_MASTERY = 0.60;
 
 const MAX_PROBLEMS = 50;
 const MAX_INTERVENTIONS = 100;
@@ -128,6 +132,107 @@ export function detectProblem(
       isRecurring: recurring,
       recurrenceNote: evidenceIds.length >= 3 ? `Missed ${evidenceIds.length} times this week` : undefined,
     };
+  }
+
+  return null;
+}
+
+const ALL_DEMANDS: CognitiveDemand[] = ['describe', 'explain', 'justify', 'compare', 'hypothesize'];
+
+function demandFromNodeId(nodeId: string): CognitiveDemand | null {
+  if (!nodeId.startsWith('demand:')) return null;
+  const d = nodeId.slice('demand:'.length) as CognitiveDemand;
+  return ALL_DEMANDS.includes(d) ? d : null;
+}
+
+/**
+ * Detect a demand:* problem — docs §10 "Problems" row. Two independent
+ * triggers, since §9.3's asymmetric L1 never emits a demand *failure* event
+ * (only 'met' or 'not_attempted'), so this cannot reuse isLanguageFailure:
+ *
+ *   (a) avoidance — 2+ 'not_attempted' (behavior, avoided) events for the
+ *       same CognitiveDemand within 7 days (the ducking case).
+ *   (b) low_mastery — snapshot.demands[nodeId] has confidence >= RELIABLE_CONFIDENCE
+ *       and mastery < MASTERY_WEAK (the try-and-fail case; same constants as
+ *       deriveAbility's cap gate, docs §6.2).
+ *
+ * Same cooldown/severity shape as detectProblem; no MicroDrill gate (docs §10
+ * "Interventions" row: demand problems route to selection, not a drill).
+ */
+export function detectDemandProblem(
+  events: EvidenceEvent[],
+  snapshot: EvidenceBeliefSnapshot | null,
+  options: DetectProblemOptions = {},
+): LearningProblem | null {
+  const now = options.now ?? Date.now();
+  const cutoff = now - WEEK_MS;
+  const recentInterventions = options.recentInterventions ?? [];
+
+  const avoidByNode: Record<string, string[]> = {};
+  for (const ev of events) {
+    if (ev.evidenceType !== 'behavior' || ev.result.avoided !== true) continue;
+    if (new Date(ev.occurredAt).getTime() < cutoff) continue;
+    for (const nodeId of ev.targetNodeIds) {
+      if (!demandFromNodeId(nodeId)) continue;
+      (avoidByNode[nodeId] ??= []).push(ev.id);
+    }
+  }
+
+  const notOnCooldown = (nodeId: string): boolean =>
+    !recentInterventions.some(
+      iv => iv.nodeId === nodeId && now - new Date(iv.deliveredAt).getTime() < DRILL_COOLDOWN_MS,
+    );
+
+  const avoidanceCandidates = Object.entries(avoidByNode)
+    .filter(([nodeId, ids]) => ids.length >= 2 && notOnCooldown(nodeId))
+    .sort((a, b) => b[1].length - a[1].length);
+
+  const nowIso = new Date(now).toISOString();
+
+  if (avoidanceCandidates.length > 0) {
+    const [nodeId, evidenceIds] = avoidanceCandidates[0];
+    const severity = Math.min(1, evidenceIds.length / 3);
+    return {
+      id: makeId('prob'),
+      learnerId: LEARNER_ID,
+      nodeId,
+      problemType: 'error',
+      severity: Math.round(severity * 100) / 100,
+      evidenceIds: [...new Set(evidenceIds)],
+      status: 'active',
+      detectedAt: nowIso,
+      updatedAt: nowIso,
+      successfulDrills: 0,
+      failedDrills: 0,
+      isRecurring: evidenceIds.length >= 3,
+      recurrenceNote: evidenceIds.length >= 3 ? `Avoided ${evidenceIds.length} times this week` : undefined,
+    };
+  }
+
+  // (b) low_mastery — reliable, weak demand belief; no event scan needed.
+  if (snapshot?.demands) {
+    for (const d of ALL_DEMANDS) {
+      const nodeId = `demand:${d}`;
+      const belief = snapshot.demands[nodeId];
+      if (!belief) continue;
+      if (belief.confidence < RELIABLE_CONFIDENCE || belief.mastery >= MASTERY_WEAK) continue;
+      if (!notOnCooldown(nodeId)) continue;
+      return {
+        id: makeId('prob'),
+        learnerId: LEARNER_ID,
+        nodeId,
+        problemType: 'error',
+        severity: Math.round((1 - belief.mastery) * 100) / 100,
+        evidenceIds: [],
+        status: 'active',
+        detectedAt: nowIso,
+        updatedAt: nowIso,
+        successfulDrills: 0,
+        failedDrills: 0,
+        isRecurring: true,
+        recurrenceNote: `Mastery stuck around ${Math.round(belief.mastery * 100)}%`,
+      };
+    }
   }
 
   return null;
@@ -246,6 +351,80 @@ export function detectAndPersistProblem(
 
   saveProblems([detected, ...existing]);
   return detected;
+}
+
+/**
+ * Demand-problem counterpart to detectAndPersistProblem. Same merge-not-
+ * duplicate behaviour. Has no MicroDrill/intervention step (docs §10
+ * "Interventions" row — demand problems route to selection, not a drill), so
+ * callers resolve it via resolveDemandProblemIfMastered instead of
+ * recordIntervention/recordInterventionOutcome.
+ */
+export function detectAndPersistDemandProblem(
+  events: EvidenceEvent[],
+  snapshot: EvidenceBeliefSnapshot | null,
+): LearningProblem | null {
+  const existing = getProblems();
+  const detected = detectDemandProblem(events, snapshot, {
+    existingProblems: existing,
+    recentInterventions: getInterventions(),
+  });
+  if (!detected) return null;
+
+  const prior = existing.find(p => p.nodeId === detected.nodeId && p.status !== 'resolved');
+  if (prior) {
+    const merged: LearningProblem = {
+      ...prior,
+      evidenceIds: [...new Set([...prior.evidenceIds, ...detected.evidenceIds])],
+      severity: Math.max(prior.severity, detected.severity),
+      updatedAt: detected.detectedAt,
+      isRecurring: detected.isRecurring,
+      recurrenceNote: detected.recurrenceNote,
+    };
+    saveProblems(existing.map(p => (p.id === prior.id ? merged : p)));
+    return merged;
+  }
+
+  saveProblems([detected, ...existing]);
+  return detected;
+}
+
+/**
+ * Resolve an active/monitoring demand:* problem once its belief mastery
+ * clears DEMAND_RESOLVE_MASTERY at RELIABLE_CONFIDENCE — there is no drill
+ * outcome to key off (docs §10 "Interventions" row). Pure over the supplied
+ * problem + snapshot; no-op (returns the problem unchanged) when not yet
+ * mastered. Callers persist the result themselves via saveProblems-adjacent
+ * plumbing (kept symmetrical with applyOutcomeToProblem's pure-then-persist shape).
+ */
+export function resolveDemandProblemIfMastered(
+  problem: LearningProblem,
+  snapshot: EvidenceBeliefSnapshot | null,
+  now: number = Date.now(),
+): LearningProblem {
+  if (problem.status === 'resolved') return problem;
+  const belief = snapshot?.demands?.[problem.nodeId];
+  if (!belief) return problem;
+  if (belief.confidence < RELIABLE_CONFIDENCE || belief.mastery < DEMAND_RESOLVE_MASTERY) return problem;
+  return { ...problem, status: 'resolved', updatedAt: new Date(now).toISOString() };
+}
+
+/**
+ * Re-check every open demand:* problem against the latest snapshot and
+ * persist any that are now mastered. Called alongside detectAndPersistDemandProblem
+ * so a resolved demand problem stops being recommended without waiting for a
+ * drill outcome that will never come.
+ */
+export function refreshDemandProblems(snapshot: EvidenceBeliefSnapshot | null): void {
+  const problems = getProblems();
+  let changed = false;
+  const next = problems.map(p => {
+    if (!p.nodeId.startsWith('demand:') || p.status === 'resolved') return p;
+    const updated = resolveDemandProblemIfMastered(p, snapshot);
+    if (updated !== p) changed = true;
+    return updated;
+  });
+  if (changed) saveProblems(next);
 }
 
 /** Record that a recovery drill was delivered for a problem. */

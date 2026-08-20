@@ -8,6 +8,10 @@ import { STORAGE_KEYS, storageGet, storageSet } from '../persistence/storage';
 import { getSkillProfile } from '../coaching/diagnosticEngine';
 import { getStats, getStreakCount } from '../analytics/analyticsService';
 import { LEARNER_ID, migrateLegacyLearnerId } from './learnerId';
+import { getBeliefSnapshot } from './coachStorage';
+import { deriveAbility } from '../../domain/learn/ability/deriveAbility';
+import { demandScoreToAbilityLevel, CONFIDENCE_BAND_HIDDEN_BELOW } from '../../domain/learn/ability/thresholds';
+import type { EvidenceBeliefSnapshot } from '../../types/beliefs';
 
 // ── Default profile factory ───────────────────────────────────────────────────
 
@@ -116,13 +120,12 @@ export function syncProfileFromServices(): CoachProfile {
 
   const consistencyScore = computeConsistencyScore(streak, stats.totalSessions);
 
-  // ── CEFR estimate from aggregate scores ────────────────────────────────────
-  // No real average yet (no scored sessions) — keep the profile's existing estimate
-  // rather than deriving one from a fabricated score.
-  const cefrEstimate = stats.avgScore != null ? deriveCEFR(stats.avgScore) : profile.cefr.estimate;
-  const cefrConfidence = stats.avgScore != null
-    ? Math.min(0.9, Math.max(0.1, stats.totalSessions / 20))
-    : profile.cefr.confidence;
+  // ── CEFR estimate from deriveAbility (docs §10 "Profile" row) ──────────────
+  // Was deriveCEFR(avgScore): circular per docs §3.7 — avgScore is graded
+  // against the tier the learner chose, so picking Beginner inflated straight
+  // to a false C1. deriveAbility reads snapshot.demands only, which are
+  // resolved server-side and never see the learner's chosen difficulty tier.
+  const { cefrEstimate, cefrConfidence } = deriveCEFREstimate(getBeliefSnapshot(), profile);
 
   // ── Affect ─────────────────────────────────────────────────────────────────
   const recentAvg = computeRecentAvg(stats);
@@ -159,12 +162,37 @@ export function syncProfileFromServices(): CoachProfile {
 
 // ── Pure helpers ──────────────────────────────────────────────────────────────
 
-function deriveCEFR(avgScore: number): CEFRLevel {
-  if (avgScore >= 9.0) return 'C1';
-  if (avgScore >= 7.5) return 'B2';
-  if (avgScore >= 6.0) return 'B1';
-  if (avgScore >= 4.0) return 'A2';
-  return 'A1';
+/**
+ * docs §6.2/§6.3/§10 "Profile" row. Reads snapshot.demands via deriveAbility
+ * — never skills, never avgScore (kills the §3.7 circularity: avgScore is
+ * graded against the learner's own chosen tier).
+ *
+ * DemandLevel tops out at B2 (docs §7 has no CEFRLevel C1 concept — the
+ * demand ladder's anchors stop at hypothesize=8.0), while CoachProfile.cefr
+ * is typed CEFRLevel (A1-C1, types/coach.ts). deriveAbility structurally
+ * cannot produce 'C1'; this is not a lost case, just the ability model's own
+ * ceiling (§3.12 note: the two CEFRLevel unions already disagree pre-existing
+ * this change).
+ *
+ * Below CONFIDENCE_BAND_HIDDEN_BELOW (docs §6.3 "no band" gate), the profile
+ * keeps its existing estimate/confidence rather than asserting an unearned
+ * read — mirrors syncProfileFromServices' prior "no real average yet" guard.
+ */
+export function deriveCEFREstimate(
+  snapshot: EvidenceBeliefSnapshot | null,
+  profile: CoachProfile,
+): { cefrEstimate: CEFRLevel; cefrConfidence: number } {
+  if (!snapshot) return { cefrEstimate: profile.cefr.estimate, cefrConfidence: profile.cefr.confidence };
+
+  const ability = deriveAbility(snapshot);
+  if (ability.overallConfidence < CONFIDENCE_BAND_HIDDEN_BELOW) {
+    return { cefrEstimate: profile.cefr.estimate, cefrConfidence: profile.cefr.confidence };
+  }
+
+  return {
+    cefrEstimate: demandScoreToAbilityLevel(ability.abilityScore),
+    cefrConfidence: ability.overallConfidence,
+  };
 }
 
 function deriveMotivationPattern(

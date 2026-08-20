@@ -5,7 +5,7 @@
  */
 import type { QuestionDemands } from '../../domain/learn/demand/types';
 
-export const demandsVersion = "ddce193f9184df5619932cabfafd1fd39860f0df530e724d05cdff9cc5456dac";
+export const demandsVersion = "a2585e308c3cc05d9052806d3aaed40b0cdd46c6cedcd5fa6ae2fc0fc65a90bc";
 
 export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
   "art_01": {
@@ -274,8 +274,7 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "responseLoad": "developed",
     "lexicalReach": "abstract",
     "sufficientAnswer": "Use conditional to describe a bold environmental policy.",
-    "provenance": "inferred",
-    "inferenceConfidence": 0.85
+    "provenance": "reviewed"
   },
   "env_19": {
     "cognitiveDemand": "explain",
@@ -688,13 +687,13 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [
-      "justification"
+      "justification",
+      "comparison"
     ],
     "responseLoad": "extended",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe a funny family member and give examples of their humor.",
-    "provenance": "inferred",
-    "inferenceConfidence": 0.75
+    "sufficientAnswer": "Name the funniest family member (superlative comparison) and give at least one reason or example supporting why they are funny.",
+    "provenance": "reviewed"
   },
   "fam_10": {
     "cognitiveDemand": "describe",
@@ -1994,14 +1993,16 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
   "foo_64": {
     "cognitiveDemand": "hypothesize",
     "timeFrames": [
-      "present"
+      "present",
+      "conditional"
     ],
-    "structures": [],
+    "structures": [
+      "conditional"
+    ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "A complete answer should: Discuss entomophagy as a sustainable protein source.",
-    "provenance": "inferred",
-    "inferenceConfidence": 0.85
+    "sufficientAnswer": "State whether you would eat insects and give at least one reason tied to sustainability.",
+    "provenance": "reviewed"
   },
   "foo_65": {
     "cognitiveDemand": "explain",
@@ -2390,9 +2391,8 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     ],
     "responseLoad": "extended",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Mention at least two of: Discuss the advantages and disadvantages of fame.",
-    "provenance": "inferred",
-    "inferenceConfidence": 0.75
+    "sufficientAnswer": "State whether you would like to be famous and give at least two reasons covering both advantages and disadvantages of fame.",
+    "provenance": "reviewed"
   },
   "fut_20": {
     "cognitiveDemand": "justify",
@@ -3281,9 +3281,8 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     ],
     "responseLoad": "extended",
     "lexicalReach": "abstract",
-    "sufficientAnswer": "Discuss board games, rules, and playing with family or friends.",
-    "provenance": "inferred",
-    "inferenceConfidence": 0.8
+    "sufficientAnswer": "State a preference between simple and complex strategy games and give at least one reason for the comparison.",
+    "provenance": "reviewed"
   },
   "hob_44": {
     "cognitiveDemand": "describe",
@@ -3931,8 +3930,7 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "responseLoad": "developed",
     "lexicalReach": "everyday",
     "sufficientAnswer": "Use conditional to describe your ultimate luxury dream trip.",
-    "provenance": "inferred",
-    "inferenceConfidence": 0.85
+    "provenance": "reviewed"
   },
   "hol_16": {
     "cognitiveDemand": "explain",
@@ -4477,8 +4475,7 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "responseLoad": "developed",
     "lexicalReach": "everyday",
     "sufficientAnswer": "Use conditional to describe where you would move and why.",
-    "provenance": "inferred",
-    "inferenceConfidence": 0.85
+    "provenance": "reviewed"
   },
   "hom_11": {
     "cognitiveDemand": "describe",
@@ -5064,8 +5061,7 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "responseLoad": "developed",
     "lexicalReach": "everyday",
     "sufficientAnswer": "Use conditional tense to describe changes you would make to school life, facilities, or schedule.",
-    "provenance": "inferred",
-    "inferenceConfidence": 0.85
+    "provenance": "reviewed"
   },
   "sch_11": {
     "cognitiveDemand": "compare",

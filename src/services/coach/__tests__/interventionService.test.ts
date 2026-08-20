@@ -6,8 +6,14 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import type { EvidenceEvent } from '../../../types/evidence';
 import type { Intervention, LearningProblem } from '../../../types/intervention';
-import type { EvidenceBeliefSnapshot } from '../../../types/beliefs';
-import { detectProblem, applyOutcomeToProblem, detectAndPersistProblem } from '../interventionService';
+import type { EvidenceBeliefSnapshot, DemandBelief } from '../../../types/beliefs';
+import {
+  detectProblem,
+  applyOutcomeToProblem,
+  detectAndPersistProblem,
+  detectDemandProblem,
+  resolveDemandProblemIfMastered,
+} from '../interventionService';
 
 function makeFailure(
   nodeId: string,
@@ -143,6 +149,155 @@ describe('detectAndPersistProblem merge branch', () => {
     const second = detectAndPersistProblem(secondEvents, snapshot);
     expect(second?.isRecurring).toBe(true);
     expect(second?.id).toBe(first?.id); // merged, not duplicated
+  });
+});
+
+function makeAvoidance(nodeId: string, daysAgo = 0, id = `ev-${nodeId}-${daysAgo}`): EvidenceEvent {
+  return {
+    id,
+    learnerId: 'local-user',
+    occurredAt: new Date(Date.now() - daysAgo * 86_400_000).toISOString(),
+    sourceSessionId: 'sess-1',
+    evidenceType: 'behavior',
+    targetNodeIds: [nodeId],
+    observation: { avoidanceSkillIds: [nodeId], feedbackSummary: `demand:justify not attempted` },
+    result: { avoided: true },
+    reliability: {
+      assessmentConfidence: 0.5,
+      taskValidity: 0.6,
+      signalQuality: 0.9,
+      evaluator: 'heuristic',
+      rubricVersion: 'test',
+    },
+    context: { mode: 'practice', timed: false },
+  };
+}
+
+function makeDemandBelief(overrides: Partial<DemandBelief> = {}): DemandBelief {
+  return {
+    nodeId: 'demand:justify',
+    mastery: 0.3,
+    confidence: 0.6,
+    rawEvidenceCount: 5,
+    lastObservedAt: new Date().toISOString(),
+    ...overrides,
+  };
+}
+
+describe('detectDemandProblem', () => {
+  it('fires on two not_attempted events for the same demand within 7 days (avoidance trigger)', () => {
+    const events = [makeAvoidance('demand:justify', 2, 'a'), makeAvoidance('demand:justify', 0, 'b')];
+    const problem = detectDemandProblem(events, null);
+    expect(problem).not.toBeNull();
+    expect(problem?.nodeId).toBe('demand:justify');
+    expect(problem?.status).toBe('active');
+    expect(problem?.evidenceIds).toEqual(expect.arrayContaining(['a', 'b']));
+  });
+
+  it('does not fire on a single avoidance event', () => {
+    expect(detectDemandProblem([makeAvoidance('demand:justify')], null)).toBeNull();
+  });
+
+  it('ignores avoidance events older than 7 days', () => {
+    const events = [makeAvoidance('demand:justify', 9, 'a'), makeAvoidance('demand:justify', 8, 'b')];
+    expect(detectDemandProblem(events, null)).toBeNull();
+  });
+
+  it('respects the 24h cooldown for the avoidance trigger', () => {
+    const events = [makeAvoidance('demand:justify', 2, 'a'), makeAvoidance('demand:justify', 0, 'b')];
+    const recentInterventions: Intervention[] = [
+      {
+        id: 'iv-1',
+        learnerId: 'local-user',
+        problemId: 'prob-1',
+        nodeId: 'demand:justify',
+        strategyType: 'retrieval_practice',
+        targetNodeIds: ['demand:justify'],
+        deliveredAt: new Date(Date.now() - 3 * 3_600_000).toISOString(),
+      },
+    ];
+    expect(detectDemandProblem(events, null, { recentInterventions })).toBeNull();
+  });
+
+  it('fires on a reliably weak demand belief with no avoidance evidence (low_mastery trigger)', () => {
+    const snapshot = {
+      demands: { 'demand:justify': makeDemandBelief({ mastery: 0.25, confidence: 0.55 }) },
+    } as unknown as EvidenceBeliefSnapshot;
+    const problem = detectDemandProblem([], snapshot);
+    expect(problem).not.toBeNull();
+    expect(problem?.nodeId).toBe('demand:justify');
+    expect(problem?.evidenceIds).toEqual([]);
+  });
+
+  it('does not fire the low_mastery trigger when confidence is below RELIABLE_CONFIDENCE', () => {
+    const snapshot = {
+      demands: { 'demand:justify': makeDemandBelief({ mastery: 0.2, confidence: 0.3 }) },
+    } as unknown as EvidenceBeliefSnapshot;
+    expect(detectDemandProblem([], snapshot)).toBeNull();
+  });
+
+  it('does not fire the low_mastery trigger when mastery is at/above MASTERY_WEAK', () => {
+    const snapshot = {
+      demands: { 'demand:justify': makeDemandBelief({ mastery: 0.5, confidence: 0.6 }) },
+    } as unknown as EvidenceBeliefSnapshot;
+    expect(detectDemandProblem([], snapshot)).toBeNull();
+  });
+
+  it('prefers the avoidance trigger over low_mastery when both would fire', () => {
+    const events = [makeAvoidance('demand:compare', 2, 'a'), makeAvoidance('demand:compare', 0, 'b')];
+    const snapshot = {
+      demands: { 'demand:justify': makeDemandBelief({ mastery: 0.1, confidence: 0.6 }) },
+    } as unknown as EvidenceBeliefSnapshot;
+    const problem = detectDemandProblem(events, snapshot);
+    expect(problem?.nodeId).toBe('demand:compare');
+  });
+});
+
+describe('resolveDemandProblemIfMastered', () => {
+  function makeDemandProblem(overrides: Partial<LearningProblem> = {}): LearningProblem {
+    return {
+      id: 'prob-d1',
+      learnerId: 'local-user',
+      nodeId: 'demand:justify',
+      problemType: 'error',
+      severity: 0.5,
+      evidenceIds: [],
+      status: 'active',
+      detectedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      successfulDrills: 0,
+      failedDrills: 0,
+      ...overrides,
+    };
+  }
+
+  it('resolves once mastery clears DEMAND_RESOLVE_MASTERY at reliable confidence', () => {
+    const snapshot = {
+      demands: { 'demand:justify': makeDemandBelief({ mastery: 0.65, confidence: 0.55 }) },
+    } as unknown as EvidenceBeliefSnapshot;
+    const updated = resolveDemandProblemIfMastered(makeDemandProblem(), snapshot);
+    expect(updated.status).toBe('resolved');
+  });
+
+  it('leaves the problem unchanged when mastery has not cleared the threshold', () => {
+    const snapshot = {
+      demands: { 'demand:justify': makeDemandBelief({ mastery: 0.4, confidence: 0.6 }) },
+    } as unknown as EvidenceBeliefSnapshot;
+    const problem = makeDemandProblem();
+    expect(resolveDemandProblemIfMastered(problem, snapshot)).toBe(problem);
+  });
+
+  it('leaves the problem unchanged when confidence is too low even if mastery looks high', () => {
+    const snapshot = {
+      demands: { 'demand:justify': makeDemandBelief({ mastery: 0.9, confidence: 0.2 }) },
+    } as unknown as EvidenceBeliefSnapshot;
+    const problem = makeDemandProblem();
+    expect(resolveDemandProblemIfMastered(problem, snapshot)).toBe(problem);
+  });
+
+  it('is a no-op on an already-resolved problem', () => {
+    const problem = makeDemandProblem({ status: 'resolved' });
+    expect(resolveDemandProblemIfMastered(problem, null)).toBe(problem);
   });
 });
 

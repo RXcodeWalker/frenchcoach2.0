@@ -7,6 +7,7 @@
 import type { EvidenceBeliefSnapshot, EvidenceDerivedSkillBelief } from '../../types/beliefs';
 import type { EvidenceEvent } from '../../types/evidence';
 import type { CoachRecommendation, RecommendationRationale } from '../../types/coach';
+import type { CognitiveDemand } from '../../domain/learn/demand/types';
 import {
   LEARNER_ID,
   getRecommendation,
@@ -20,6 +21,20 @@ import { getActiveProblem } from './interventionService';
 
 const POLICY_VERSION = 'coach-mvp-1';
 const WEAK_MASTERY_THRESHOLD = 0.6;
+
+/** docs §7 CognitiveDemand vocabulary has no learner-facing label elsewhere; small and local. */
+const DEMAND_LABELS: Record<CognitiveDemand, string> = {
+  describe: 'describing things',
+  explain: 'explaining your reasoning',
+  justify: 'justifying an opinion',
+  compare: 'comparing options',
+  hypothesize: 'hypothetical (conditional) answers',
+};
+
+function demandLabel(nodeId: string): string {
+  const demand = nodeId.slice('demand:'.length) as CognitiveDemand;
+  return DEMAND_LABELS[demand] ?? nodeId;
+}
 
 function makeId(): string {
   return `rec-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -147,6 +162,44 @@ function buildProblemRecommendation(
   };
 }
 
+/**
+ * Forced recommendation when an unresolved demand:* problem exists (docs
+ * §10 "Recommendations" row). Lower priority than a grammar problem
+ * (buildProblemRecommendation) — see generateRecommendation's ordering.
+ */
+function buildDemandProblemRecommendation(nodeId: string): CoachRecommendation {
+  const label = demandLabel(nodeId);
+  const demand = nodeId.slice('demand:'.length) as CognitiveDemand;
+
+  const rationale: RecommendationRationale = {
+    primaryReason: `You keep struggling with ${label} — let's target that specifically.`,
+    evidenceSummary: `Recent answers show a pattern with ${label}, so it is now a tracked focus area.`,
+    goalLinks: [`Supports your goal: ${goalLabel()}.`],
+    targetWeaknesses: [`${label} (recurring demand problem).`],
+    successCriteria: [`Successfully handle a question that requires ${label}.`],
+    readinessReasons: [],
+    alternativesConsidered: [
+      { title: 'Move on to a new topic', whyNot: 'This demand keeps coming up short and will keep capping your scores.' },
+    ],
+    confidence: 0.6,
+  };
+
+  return {
+    id: makeId(),
+    learnerId: LEARNER_ID,
+    generatedAt: new Date().toISOString(),
+    policyVersion: POLICY_VERSION,
+    type: 'review_weak_skill',
+    title: `Practice ${label}`,
+    description: `A session with questions that push you to focus on ${label}.`,
+    targetSkillIds: [],
+    targetDemand: demand,
+    suggestedMode: 'standard',
+    rationale,
+    status: 'active',
+  };
+}
+
 function buildContinueTopic(topicKey: string): CoachRecommendation {
   const rationale: RecommendationRationale = {
     primaryReason: `Keep building momentum on ${topicKey}.`,
@@ -216,14 +269,23 @@ export function generateRecommendation(
   let recommendation: CoachRecommendation;
 
   // 1. Highest priority: an unresolved recurring-grammar problem. Force the
-  //    learner back to that node with a recovery-focused rationale.
+  //    learner back to that node with a recovery-focused rationale. Checked
+  //    before the general getActiveProblem() lookup so a grammar problem
+  //    always outranks a demand:* one when both are active (docs §10).
   const problem = getActiveProblem();
-  if (problem && problem.status === 'active') {
+  if (problem && problem.status === 'active' && !problem.nodeId.startsWith('demand:')) {
     recommendation = buildProblemRecommendation(
       problem.nodeId,
       problem.failedDrills ?? 0,
       snap?.skills[problem.nodeId],
     );
+    saveRecommendation(recommendation);
+    return recommendation;
+  }
+
+  // 1b. Next priority: an unresolved demand:* problem (docs §10).
+  if (problem && problem.status === 'active' && problem.nodeId.startsWith('demand:')) {
+    recommendation = buildDemandProblemRecommendation(problem.nodeId);
     saveRecommendation(recommendation);
     return recommendation;
   }
