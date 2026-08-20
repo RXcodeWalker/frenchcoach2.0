@@ -107,6 +107,8 @@ export const BackendFeedbackSchema = z.object({
   demands_met:           z.array(z.string()).optional(),
   demands_missed:        z.array(z.string()).optional(),
   difficulty_fit:        z.enum(['too easy', 'right level', 'too hard']).optional(),
+  /** True only when the backend resolved question demands server-side (docs §9.1) — Stage 8b's L2 gap-fill gate. */
+  demandsResolved:       z.boolean().optional(),
 }).passthrough();
 
 export type BackendFeedbackParsed = z.infer<typeof BackendFeedbackSchema>;

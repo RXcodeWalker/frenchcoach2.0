@@ -259,10 +259,18 @@ function summarise(feedback: FeedbackV2): string {
  * - `met`           -> a 'language' event, result.success: true (mastery UP).
  * - `not_attempted` -> a 'behavior' event (avoidance, never a Beta failure —
  *                      mirrors the existing grammar-avoidance event below).
- * - `unknown`       -> no event at all. beliefReducer's hasSuccessSignal gate
- *                      would already skip an event with no success/score, but
- *                      not emitting it in the first place is what keeps this
- *                      "zero evidence", not "evidence with no opinion".
+ * - `unknown`       -> L1 alone emits no event (beliefReducer's
+ *                      hasSuccessSignal gate would already skip an event
+ *                      with no success/score, but not emitting it in the
+ *                      first place is what keeps this "zero evidence", not
+ *                      "evidence with no opinion"). Stage 8b: when the
+ *                      backend actually resolved demands server-side AND the
+ *                      graded feedback carries an LLM read for this specific
+ *                      cognitiveDemand, that read fills the gap as a
+ *                      SEPARATE, lower-reliability 'llm' event (docs §9.3
+ *                      "L2 fills only the gaps") — this is the ONLY path
+ *                      that may emit result.success: false on a demand node;
+ *                      L1 met/not_attempted above are never overridden.
  *
  * Returns [] whenever the question carries no demands (legacy/un-inferred
  * question) — there is nothing to evaluate.
@@ -270,32 +278,21 @@ function summarise(feedback: FeedbackV2): string {
 function buildDemandEvidence(args: {
   sessionId: string;
   question: Question | null;
+  feedback: FeedbackV2;
   transcript: string;
   mode: string;
   topicKey?: string;
   occurredAt: string;
 }): EvidenceEvent[] {
-  const { question, transcript, occurredAt } = args;
+  const { question, feedback, transcript, occurredAt } = args;
   const demands = question?.demands;
   if (!demands) return [];
 
   const verdict = evaluateDemandSatisfaction(transcript, demands);
-  if (verdict === 'unknown') return [];
-
   const nodeId = demandNodeId(demands.cognitiveDemand);
   const demandScore = deriveDemandScore(demands);
   const demandLevel = demandScoreToLevel(demandScore);
   const taskValidity = PROVENANCE_TASK_VALIDITY[demands.provenance];
-
-  const reliability: EvidenceReliability = {
-    // L1 markers are closed-list regex detectors, not a calibrated model —
-    // 'heuristic' matches evaluatorFor's own non-LLM fallback.
-    assessmentConfidence: demands.provenance === 'inferred' ? (demands.inferenceConfidence ?? 0.5) : 0.9,
-    taskValidity,
-    signalQuality: 0.9,
-    evaluator: 'heuristic',
-    rubricVersion: RUBRIC_VERSION,
-  };
 
   const context = {
     mode: args.mode,
@@ -310,6 +307,15 @@ function buildDemandEvidence(args: {
   };
 
   if (verdict === 'met') {
+    const reliability: EvidenceReliability = {
+      // L1 markers are closed-list regex detectors, not a calibrated model —
+      // 'heuristic' matches evaluatorFor's own non-LLM fallback.
+      assessmentConfidence: demands.provenance === 'inferred' ? (demands.inferenceConfidence ?? 0.5) : 0.9,
+      taskValidity,
+      signalQuality: 0.9,
+      evaluator: 'heuristic',
+      rubricVersion: RUBRIC_VERSION,
+    };
     return [{
       id: computeObservationId('evidence-event', BRIDGE_DETECTOR_VERSION, 'demand', fullResponseSpan(transcript), args.sessionId),
       learnerId: LEARNER_ID,
@@ -326,19 +332,73 @@ function buildDemandEvidence(args: {
     }];
   }
 
-  // not_attempted -> avoidance, never a Beta-model failure (docs §9.3).
+  if (verdict === 'not_attempted') {
+    const reliability: EvidenceReliability = {
+      assessmentConfidence: demands.provenance === 'inferred' ? (demands.inferenceConfidence ?? 0.5) : 0.9,
+      taskValidity,
+      signalQuality: 0.9,
+      evaluator: 'heuristic',
+      rubricVersion: RUBRIC_VERSION,
+    };
+    // not_attempted -> avoidance, never a Beta-model failure (docs §9.3).
+    return [{
+      id: computeObservationId('evidence-event', BRIDGE_DETECTOR_VERSION, 'demand-avoidance', fullResponseSpan(transcript), args.sessionId),
+      learnerId: LEARNER_ID,
+      occurredAt,
+      sourceSessionId: args.sessionId,
+      evidenceType: 'behavior',
+      targetNodeIds: [nodeId],
+      observation: {
+        avoidanceSkillIds: [nodeId],
+        feedbackSummary: `demand:${demands.cognitiveDemand} not attempted`,
+      },
+      result: { avoided: true },
+      reliability,
+      context,
+    }];
+  }
+
+  // verdict === 'unknown' — Stage 8b L2 gap-fill (docs §9.3 "L2 fills only
+  // the gaps"). Requires ALL of:
+  //  1. the backend actually resolved demands server-side (demandsResolved) —
+  //     an unresolved spec means the LLM was never told what to judge
+  //     against, so its read is meaningless (docs §9.1);
+  //  2. the graded feedback names this specific cognitiveDemand in either
+  //     demands_met or demands_missed.
+  // Never overrides L1 met/not_attempted (those returned above already);
+  // this branch only ever runs when L1 itself had no opinion.
+  if (feedback.demandsResolved !== true) return [];
+
+  const demandKey = demands.cognitiveDemand;
+  const llmSaysMet = feedback.demands_met?.includes(demandKey) ?? false;
+  const llmSaysMissed = feedback.demands_missed?.includes(demandKey) ?? false;
+  if (!llmSaysMet && !llmSaysMissed) return [];
+  // Both arrays naming the same demand is a malformed/contradictory response
+  // — no reliable read exists, so emit nothing rather than guess.
+  if (llmSaysMet && llmSaysMissed) return [];
+
+  const reliability: EvidenceReliability = {
+    // An L2-only judgement must carry less weight than an L1 met/not_attempted
+    // read (docs §9.3) — assessmentConfidence is reduced below the L1 heuristic
+    // floor above, on top of EVALUATOR_CAPS's own 0.85 cap for 'llm'.
+    assessmentConfidence: 0.5,
+    taskValidity,
+    signalQuality: 0.7,
+    evaluator: 'llm',
+    rubricVersion: RUBRIC_VERSION,
+  };
+
   return [{
-    id: computeObservationId('evidence-event', BRIDGE_DETECTOR_VERSION, 'demand-avoidance', fullResponseSpan(transcript), args.sessionId),
+    id: computeObservationId('evidence-event', BRIDGE_DETECTOR_VERSION, 'demand-l2', fullResponseSpan(transcript), args.sessionId),
     learnerId: LEARNER_ID,
     occurredAt,
     sourceSessionId: args.sessionId,
-    evidenceType: 'behavior',
+    evidenceType: 'language',
     targetNodeIds: [nodeId],
     observation: {
-      avoidanceSkillIds: [nodeId],
-      feedbackSummary: `demand:${demands.cognitiveDemand} not attempted`,
+      feedbackSummary: `demand:${demandKey} ${llmSaysMet ? 'met' : 'missed'} (L2 gap-fill)`,
     },
-    result: { avoided: true },
+    result: { success: llmSaysMet },
     reliability,
     context,
   }];
@@ -486,6 +546,7 @@ export function buildEvidence(args: BuildEvidenceArgs): EvidenceEvent[] {
   events.push(...buildDemandEvidence({
     sessionId: args.sessionId,
     question: args.question,
+    feedback,
     transcript,
     mode: args.mode,
     topicKey: args.topicKey,

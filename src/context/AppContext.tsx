@@ -3,6 +3,8 @@ import type { User } from '@supabase/supabase-js';
 import type { UserProfile, Achievement, Session, XPAnimation, GemAnimation, SkillProfile, ActiveSession, TopicMasteryEntry, AIEngine, DifficultyTier } from '../types';
 import type { XpSource } from '../types/social';
 import { DEFAULT_DIFFICULTY } from '../utils/difficultyConfig';
+import type { Aim } from '../domain/learn/selection/sessionTarget';
+import { aimFromMigratedTier } from '../domain/learn/selection/sessionTarget';
 import { ACHIEVEMENTS } from '../data/gameData';
 import { validateAchievementRegistry } from '../data/achievements';
 import { getStats } from '../services/analytics/analyticsService';
@@ -43,6 +45,8 @@ interface AppState {
   justMasteredTopic: string | null;
   preferredEngine: AIEngine;
   selectedDifficulty: DifficultyTier;
+  /** docs §6/§6.4/§16 Stage 10 — replaces DifficultyTier as the learner control on the adaptive path. */
+  aim: Aim;
 }
 
 type Action =
@@ -66,7 +70,8 @@ type Action =
   | { type: 'UPDATE_TOPIC_MASTERY'; entry: TopicMasteryEntry; justMastered: boolean }
   | { type: 'CLEAR_JUST_MASTERED' }
   | { type: 'SET_AI_ENGINE'; engine: AIEngine }
-  | { type: 'SET_DIFFICULTY'; tier: DifficultyTier };
+  | { type: 'SET_DIFFICULTY'; tier: DifficultyTier }
+  | { type: 'SET_AIM'; aim: Aim };
 
 function buildInitialState(): AppState {
   const analytics = getStats();
@@ -115,6 +120,11 @@ function buildInitialState(): AppState {
 
   const preferredEngine: AIEngine = (localStorage.getItem(STORAGE_KEYS.aiEngine) as AIEngine | null) ?? 'groq';
   const selectedDifficulty: DifficultyTier = (localStorage.getItem(STORAGE_KEYS.difficulty) as DifficultyTier | null) ?? DEFAULT_DIFFICULTY;
+  // docs §6.4 — one-time migration: an existing `aim` value wins; otherwise
+  // seed from the migrated `difficulty` tier (beginner -> comfortable, expert
+  // -> push, otherwise balanced). `difficulty` itself is left untouched.
+  const storedAim = localStorage.getItem(STORAGE_KEYS.aim) as Aim | null;
+  const aim: Aim = storedAim ?? aimFromMigratedTier(selectedDifficulty);
 
   const topicMastery = storageGet<Record<string, TopicMasteryEntry>>(STORAGE_KEYS.topicMastery, {});
 
@@ -139,6 +149,7 @@ function buildInitialState(): AppState {
     justMasteredTopic: null,
     preferredEngine,
     selectedDifficulty,
+    aim,
   };
 }
 
@@ -278,6 +289,11 @@ function reducer(state: AppState, action: Action): AppState {
     case 'SET_DIFFICULTY': {
       storageSetRaw(STORAGE_KEYS.difficulty, action.tier);
       return { ...state, selectedDifficulty: action.tier };
+    }
+
+    case 'SET_AIM': {
+      storageSetRaw(STORAGE_KEYS.aim, action.aim);
+      return { ...state, aim: action.aim };
     }
 
     default:
@@ -597,6 +613,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
       if (e.key === STORAGE_KEYS.difficulty && e.newValue) {
         dispatch({ type: 'SET_DIFFICULTY', tier: e.newValue as DifficultyTier });
+        return;
+      }
+      if (e.key === STORAGE_KEYS.aim && e.newValue) {
+        dispatch({ type: 'SET_AIM', aim: e.newValue as Aim });
         return;
       }
       if (e.key === STORAGE_KEYS.progression || e.key === STORAGE_KEYS.analytics) {

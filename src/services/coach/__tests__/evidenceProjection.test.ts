@@ -9,9 +9,10 @@ import {
   deriveNodeOutcome,
   wrapFeedbackAsEvidenceObservations,
 } from '../evidenceProjection';
-import { reduceEvidenceToBeliefState } from '../beliefReducer';
-import type { FeedbackV2, CoachingIssue } from '../../../types';
+import { reduceEvidenceToBeliefState, projectDemandBeliefs } from '../beliefReducer';
+import type { FeedbackV2, CoachingIssue, Question } from '../../../types';
 import type { Observation } from '../../../domain/igcse/evidence/framework/observation';
+import type { QuestionDemands } from '../../../domain/learn/demand/types';
 
 function makeIssue(overrides: Partial<CoachingIssue> = {}): CoachingIssue {
   return {
@@ -306,5 +307,189 @@ describe('characterization: belief snapshot is same-or-richer post-Phase-2', () 
     });
     const behaviorEvent = events.find(e => e.evidenceType === 'behavior')!;
     expect(behaviorEvent.result).toEqual({ avoided: true, score: 6, wordCount: expect.any(Number) });
+  });
+});
+
+// ── buildEvidence: demand:* events (docs §9.3 / §10, Stage 8b L2 gap-fill) ──
+
+function makeDemands(overrides: Partial<QuestionDemands> = {}): QuestionDemands {
+  return {
+    cognitiveDemand: 'justify',
+    timeFrames: ['present'],
+    structures: ['justification'],
+    responseLoad: 'developed',
+    lexicalReach: 'everyday',
+    sufficientAnswer: 'State an opinion and give at least one reason.',
+    provenance: 'authored',
+    ...overrides,
+  };
+}
+
+function makeDemandQuestion(overrides: Partial<QuestionDemands> = {}): Question {
+  return {
+    id: 'q-demand-1',
+    topicKey: 'school',
+    text: 'Pourquoi aimes-tu ton collège?',
+    hint: 'reasons',
+    difficulty: 2,
+    followUps: [],
+    modelAnswer: 'Answer',
+    keyVocab: [],
+    demands: makeDemands(overrides),
+  };
+}
+
+// 40+ words, no justification/opinion marker, no conditional -> L1 'unknown'.
+const UNKNOWN_TRANSCRIPT =
+  "le chat mange la pomme dans le jardin avec mon ami aujourd'hui très joli le chat mange la pomme dans le jardin avec mon ami aujourd'hui très joli le chat mange";
+// Contains "parce que" -> L1 'met'.
+const MET_TRANSCRIPT = "je pense que c'est vrai parce que " + UNKNOWN_TRANSCRIPT;
+// Well under 0.4x the 40-word floor -> L1 'not_attempted'.
+const NOT_ATTEMPTED_TRANSCRIPT = 'oui bien';
+
+describe('buildEvidence: demand:* events', () => {
+  it('L1 met -> a single language event, result.success: true, evaluator heuristic', () => {
+    const question = makeDemandQuestion();
+    const events = buildEvidence({
+      sessionId: 's1', question, feedback: makeFeedback(), avoidanceSignals: [],
+      transcript: MET_TRANSCRIPT, finalScore: 8, mode: 'practice',
+    });
+    const demandEvents = events.filter(e => e.targetNodeIds.includes('demand:justify'));
+    expect(demandEvents).toHaveLength(1);
+    expect(demandEvents[0].evidenceType).toBe('language');
+    expect(demandEvents[0].result.success).toBe(true);
+    expect(demandEvents[0].reliability.evaluator).toBe('heuristic');
+  });
+
+  it('L1 not_attempted -> a single behavior (avoidance) event, never a Beta failure', () => {
+    const question = makeDemandQuestion();
+    const events = buildEvidence({
+      sessionId: 's1', question, feedback: makeFeedback(), avoidanceSignals: [],
+      transcript: NOT_ATTEMPTED_TRANSCRIPT, finalScore: 2, mode: 'practice',
+    });
+    const demandEvents = events.filter(e => e.targetNodeIds.includes('demand:justify'));
+    expect(demandEvents).toHaveLength(1);
+    expect(demandEvents[0].evidenceType).toBe('behavior');
+    expect(demandEvents[0].result).toEqual({ avoided: true });
+  });
+
+  it('L1 unknown + no demandsResolved -> zero demand events (Stage 8b never runs without a resolved spec)', () => {
+    const question = makeDemandQuestion();
+    const events = buildEvidence({
+      sessionId: 's1', question, feedback: makeFeedback(), avoidanceSignals: [],
+      transcript: UNKNOWN_TRANSCRIPT, finalScore: 6, mode: 'practice',
+    });
+    const demandEvents = events.filter(e => e.targetNodeIds.includes('demand:justify'));
+    expect(demandEvents).toHaveLength(0);
+  });
+
+  it('L1 unknown + demandsResolved:true + demands_missed names this demand -> Stage 8b emits result.success: false', () => {
+    const question = makeDemandQuestion();
+    const feedback = makeFeedback({ demandsResolved: true, demands_missed: ['justify'] });
+    const events = buildEvidence({
+      sessionId: 's1', question, feedback, avoidanceSignals: [],
+      transcript: UNKNOWN_TRANSCRIPT, finalScore: 6, mode: 'practice',
+    });
+    const demandEvents = events.filter(e => e.targetNodeIds.includes('demand:justify'));
+    expect(demandEvents).toHaveLength(1);
+    expect(demandEvents[0].evidenceType).toBe('language');
+    expect(demandEvents[0].result.success).toBe(false);
+    expect(demandEvents[0].reliability.evaluator).toBe('llm');
+  });
+
+  it('L1 unknown + demandsResolved:true + demands_met names this demand -> Stage 8b emits result.success: true', () => {
+    const question = makeDemandQuestion();
+    const feedback = makeFeedback({ demandsResolved: true, demands_met: ['justify'] });
+    const events = buildEvidence({
+      sessionId: 's1', question, feedback, avoidanceSignals: [],
+      transcript: UNKNOWN_TRANSCRIPT, finalScore: 8, mode: 'practice',
+    });
+    const demandEvents = events.filter(e => e.targetNodeIds.includes('demand:justify'));
+    expect(demandEvents).toHaveLength(1);
+    expect(demandEvents[0].result.success).toBe(true);
+  });
+
+  it('L1 met is NEVER overridden by an LLM demands_missed read for the same demand', () => {
+    const question = makeDemandQuestion();
+    const feedback = makeFeedback({ demandsResolved: true, demands_missed: ['justify'] });
+    const events = buildEvidence({
+      sessionId: 's1', question, feedback, avoidanceSignals: [],
+      transcript: MET_TRANSCRIPT, finalScore: 8, mode: 'practice',
+    });
+    const demandEvents = events.filter(e => e.targetNodeIds.includes('demand:justify'));
+    // L1 resolved 'met' -> the function returns before Stage 8b's branch is ever reached.
+    expect(demandEvents).toHaveLength(1);
+    expect(demandEvents[0].result.success).toBe(true);
+    expect(demandEvents[0].reliability.evaluator).toBe('heuristic');
+  });
+
+  it('L1 not_attempted is NEVER overridden by an LLM demands_met read for the same demand', () => {
+    const question = makeDemandQuestion();
+    const feedback = makeFeedback({ demandsResolved: true, demands_met: ['justify'] });
+    const events = buildEvidence({
+      sessionId: 's1', question, feedback, avoidanceSignals: [],
+      transcript: NOT_ATTEMPTED_TRANSCRIPT, finalScore: 2, mode: 'practice',
+    });
+    const demandEvents = events.filter(e => e.targetNodeIds.includes('demand:justify'));
+    expect(demandEvents).toHaveLength(1);
+    expect(demandEvents[0].evidenceType).toBe('behavior');
+    expect(demandEvents[0].result).toEqual({ avoided: true });
+  });
+
+  it('L1 unknown + demandsResolved:true but this demand named in neither array -> zero events', () => {
+    const question = makeDemandQuestion();
+    const feedback = makeFeedback({ demandsResolved: true, demands_met: ['compare'], demands_missed: ['explain'] });
+    const events = buildEvidence({
+      sessionId: 's1', question, feedback, avoidanceSignals: [],
+      transcript: UNKNOWN_TRANSCRIPT, finalScore: 6, mode: 'practice',
+    });
+    const demandEvents = events.filter(e => e.targetNodeIds.includes('demand:justify'));
+    expect(demandEvents).toHaveLength(0);
+  });
+
+  it('L1 unknown + this demand named in BOTH demands_met and demands_missed -> zero events (contradictory read)', () => {
+    const question = makeDemandQuestion();
+    const feedback = makeFeedback({ demandsResolved: true, demands_met: ['justify'], demands_missed: ['justify'] });
+    const events = buildEvidence({
+      sessionId: 's1', question, feedback, avoidanceSignals: [],
+      transcript: UNKNOWN_TRANSCRIPT, finalScore: 6, mode: 'practice',
+    });
+    const demandEvents = events.filter(e => e.targetNodeIds.includes('demand:justify'));
+    expect(demandEvents).toHaveLength(0);
+  });
+
+  it('a question with no demands at all -> zero demand events regardless of feedback', () => {
+    const question: Question = {
+      id: 'q-no-demands', topicKey: 'school', text: 'Question', hint: 'hint',
+      difficulty: 2, followUps: [], modelAnswer: 'Answer', keyVocab: [],
+    };
+    const feedback = makeFeedback({ demandsResolved: true, demands_missed: ['justify'] });
+    const events = buildEvidence({
+      sessionId: 's1', question, feedback, avoidanceSignals: [],
+      transcript: UNKNOWN_TRANSCRIPT, finalScore: 6, mode: 'practice',
+    });
+    expect(events.some(e => e.targetNodeIds.some(id => id.startsWith('demand:')))).toBe(false);
+  });
+
+  // ── Invariant: with Stage 8b wired in, demand mastery CAN fall below the
+  // 0.5 Laplace prior (docs §11 example C / §6.2's cap depends on this).
+  // Regression guard: if this ever goes back to only met/not_attempted/no-op,
+  // this test fails loudly instead of the cap silently becoming dead code.
+  it('regression guard: repeated L2 gap-fill failures can push demand mastery below 0.40 (MASTERY_WEAK)', () => {
+    const question = makeDemandQuestion();
+    const feedback = makeFeedback({ demandsResolved: true, demands_missed: ['justify'] });
+    const allEvents = [];
+    for (let i = 0; i < 8; i++) {
+      const events = buildEvidence({
+        sessionId: `s-${i}`, question, feedback, avoidanceSignals: [],
+        transcript: UNKNOWN_TRANSCRIPT, finalScore: 3, mode: 'practice',
+      });
+      allEvents.push(...events);
+    }
+    const state = reduceEvidenceToBeliefState(allEvents);
+    const demands = projectDemandBeliefs(state);
+    const belief = demands['demand:justify'];
+    expect(belief).toBeDefined();
+    expect(belief.mastery).toBeLessThan(0.40);
   });
 });

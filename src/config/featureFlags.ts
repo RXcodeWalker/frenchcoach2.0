@@ -28,7 +28,7 @@ export const FEATURE_FLAGS = {
   learnFollowUp: 'live',
   learnSpacedReview: 'live',
   shadowingMode: 'live',
-  learnAdaptiveDifficulty: 'coming-soon',
+  learnAdaptiveDifficulty: 'live',
 } satisfies Record<string, FeatureStatus>;
 
 export type FeatureFlagKey = keyof typeof FEATURE_FLAGS;

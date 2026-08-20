@@ -8,6 +8,11 @@ export const STORAGE_KEYS = {
   darkMode:       'frenchCoach_darkMode',
   aiEngine:       'frenchCoach_aiEngine',
   difficulty:     'frenchCoach_difficulty',
+  // docs (Learn adaptive difficulty) §6.4/§16 Stage 10 — replaces `difficulty`
+  // as the learner-facing control on the adaptive path. `difficulty` itself is
+  // left in place for one release (rollback safety) and is still read once by
+  // aimFromMigratedTier() as the seed when no `aim` value exists yet.
+  aim:            'frenchCoach_aim',
   roadmap:        'frenchCoach_roadmap',
   vault:          'frenchCoach_vault',
   contentCache:   'frenchCoach_questions_v1',

@@ -240,6 +240,12 @@ function mergeV2Fields(base: FeedbackV2, raw: BackendFeedbackV2): FeedbackV2 {
       expansionLevels: raw.expansionLevels,
       coachingLayer: raw.coachingLayer,
       confidence: raw.confidence,
+      // docs §9.2/§14 Stage 8b — L2 gap-fill telemetry, never rendered as a verdict directly.
+      answered_the_question: raw.answered_the_question,
+      demands_met: raw.demands_met,
+      demands_missed: raw.demands_missed,
+      difficulty_fit: raw.difficulty_fit,
+      demandsResolved: raw.demandsResolved,
     };
   }
   return base;

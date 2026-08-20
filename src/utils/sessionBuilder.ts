@@ -13,7 +13,7 @@ import { deriveAbility, coldStart } from '../domain/learn/ability/deriveAbility'
 import { aimFromMigratedTier, computeSessionTarget } from '../domain/learn/selection/sessionTarget';
 import { planSlots, bandFor } from '../domain/learn/selection/planSlots';
 import { selectQuestions } from '../domain/learn/selection/selectQuestions';
-import type { DemandBand, SlotType } from '../domain/learn/selection/types';
+import type { DemandBand, SelectionReason, SlotType } from '../domain/learn/selection/types';
 import type { CognitiveDemand } from '../domain/learn/demand/types';
 import { getActiveProblem } from '../services/coach/interventionService';
 
@@ -114,6 +114,8 @@ export interface BuiltSessionQuestionSlot {
   questionId: string;
   slotType: SlotType;
   slotBand: DemandBand | null;
+  /** docs §14 UX #2 "why this question" — present on the initial adaptive-path build; absent after a midSessionAdjust replacement (§8.4 doesn't thread a reason). */
+  selectionReason?: SelectionReason;
 }
 
 export interface BuiltSessionQuestions {
@@ -215,6 +217,7 @@ function buildSessionQuestionsAdaptive(
       questionId: s.question.id,
       slotType: s.slot,
       slotBand: bandFor(s.slot, sessionTarget),
+      selectionReason: s.reason,
     })),
   };
 }
@@ -332,6 +335,7 @@ export function makeSessionQuestion(
     isReview,
     slotType: slotInfo?.slotType,
     slotBand: slotInfo?.slotBand,
+    selectionReason: slotInfo?.selectionReason,
   };
 }
 

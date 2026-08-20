@@ -17,6 +17,10 @@ function enableAdaptiveFlag() {
   storageSet(STORAGE_KEYS.featureFlagOverrides, { learnAdaptiveDifficulty: 'live' });
 }
 
+function disableAdaptiveFlag() {
+  storageSet(STORAGE_KEYS.featureFlagOverrides, { learnAdaptiveDifficulty: 'coming-soon' });
+}
+
 beforeEach(() => {
   localStorage.clear();
   vi.restoreAllMocks();
@@ -26,7 +30,15 @@ afterEach(() => {
   localStorage.clear();
 });
 
-describe('buildSessionQuestions with learnAdaptiveDifficulty off (default)', () => {
+// docs §16 Stage 10 flipped the compile-time default to 'live' — this suite
+// must not rely on that default (it would silently stop testing the legacy
+// path the moment the default changes again). Each describe block sets its
+// own explicit override.
+describe('buildSessionQuestions with learnAdaptiveDifficulty off', () => {
+  beforeEach(() => {
+    disableAdaptiveFlag();
+  });
+
   it('uses the legacy path — returns SESSION_TARGET.quick questions', () => {
     const { questions } = buildSessionQuestions('school', 'quick', EMPTY_SKILL_PROFILE, null);
     expect(questions.length).toBeLessThanOrEqual(SESSION_TARGET.quick);

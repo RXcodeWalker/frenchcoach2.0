@@ -1,5 +1,35 @@
 import type { DifficultyConfig, DifficultyTier } from '../types';
 import type { Question } from '../types';
+import type { Aim } from '../domain/learn/selection/sessionTarget';
+
+/** docs §14 UX mock — Aim picker copy/icon, adaptive path only (learnAdaptiveDifficulty). */
+export interface AimConfig {
+  aim: Aim;
+  label: string;
+  description: string;
+  icon: string;
+}
+
+export const AIM_CONFIG: Record<Aim, AimConfig> = {
+  comfortable: {
+    aim: 'comfortable',
+    label: 'Comfortable',
+    description: 'Mostly easier questions, to build confidence.',
+    icon: '🌱',
+  },
+  balanced: {
+    aim: 'balanced',
+    label: 'Balanced',
+    description: "Mostly at your level, with a question or two that stretch you.",
+    icon: '🎯',
+  },
+  push: {
+    aim: 'push',
+    label: 'Push',
+    description: 'More questions that challenge you above your level.',
+    icon: '🔥',
+  },
+};
 
 export const DIFFICULTY_CONFIG: Record<DifficultyTier, DifficultyConfig> = {
   beginner: {

@@ -3,24 +3,35 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Trophy, Star, Shield, Zap, Target, BookOpen, Mic2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { getReport } from '../services/coaching/diagnosticEngine';
+import { getCoachProfile } from '../services/coach/coachProfileService';
+import { CONFIDENCE_BAND_HIDDEN_BELOW } from '../domain/learn/ability/thresholds';
 import { PageShell } from '../components/layout/PageShell';
 import { fadeUp } from '../components/motion/variants';
+
+const CEFR_LEVELS = [
+  { id: 'A1', name: 'Beginner', desc: 'Can understand and use familiar everyday expressions.' },
+  { id: 'A2', name: 'Elementary', desc: 'Can communicate in simple and routine tasks.' },
+  { id: 'B1', name: 'Intermediate', desc: 'Can deal with most situations while traveling.' },
+  { id: 'B2', name: 'Upper Intermediate', desc: 'Can interact with a degree of fluency.' },
+  { id: 'C1', name: 'Advanced', desc: 'Can express ideas fluently and spontaneously.' },
+];
 
 export function MasteryJourney() {
   const navigate = useNavigate();
   const { state } = useApp();
   const report = getReport();
 
-  const CEFR_LEVELS = [
-    { id: 'A1', name: 'Beginner', xp: 0, desc: 'Can understand and use familiar everyday expressions.' },
-    { id: 'A2', name: 'Elementary', xp: 500, desc: 'Can communicate in simple and routine tasks.' },
-    { id: 'B1', name: 'Intermediate', xp: 1500, desc: 'Can deal with most situations while traveling.' },
-    { id: 'B2', name: 'Upper Intermediate', xp: 3500, desc: 'Can interact with a degree of fluency.' },
-    { id: 'C1', name: 'Advanced', xp: 7000, desc: 'Can express ideas fluently and spontaneously.' },
-  ];
-
-  const currentCEFR = [...CEFR_LEVELS].reverse().find(l => (state.profile?.total_xp ?? 0) >= l.xp) || CEFR_LEVELS[0];
-  const nextCEFR = CEFR_LEVELS[CEFR_LEVELS.indexOf(currentCEFR) + 1];
+  // docs §14 "Deliberately not shown" — the old XP->CEFR ladder asserted a
+  // band nobody measured (any learner reaching 7000 XP was "C1" regardless of
+  // what they could actually do). CEFR now comes from deriveAbility via
+  // coachProfileService.deriveCEFREstimate (docs §10 "Profile" row), which
+  // reads snapshot.demands only, and is confidence-gated the same way
+  // SessionStartScreen's measured-level display is (docs §6.3).
+  const coachProfile = getCoachProfile();
+  const cefrKnown = coachProfile.cefr.confidence >= CONFIDENCE_BAND_HIDDEN_BELOW;
+  const currentCEFRIndex = cefrKnown ? CEFR_LEVELS.findIndex(l => l.id === coachProfile.cefr.estimate) : -1;
+  const currentCEFR = currentCEFRIndex >= 0 ? CEFR_LEVELS[currentCEFRIndex] : null;
+  const nextCEFR = currentCEFRIndex >= 0 ? CEFR_LEVELS[currentCEFRIndex + 1] : null;
 
   const categories = [
     { id: 'grammar', name: 'Grammar', icon: <Shield size={16} />, color: 'text-blue-400', bg: 'bg-blue-400/10' },
@@ -56,23 +67,25 @@ export function MasteryJourney() {
           <div className="flex items-center justify-between mb-2">
             <div>
               <span className="text-[10px] font-black text-violet-400 uppercase tracking-widest">Current Standing</span>
-              <h2 className="text-2xl font-black text-white">{currentCEFR?.id} - {currentCEFR?.name}</h2>
+              <h2 className="text-2xl font-black text-white">
+                {currentCEFR ? `${currentCEFR.id} - ${currentCEFR.name}` : 'Still getting to know your level'}
+              </h2>
             </div>
             <Trophy size={32} className="text-yellow-400" />
           </div>
 
           <div className="relative pt-8 pb-12">
             <div className="absolute top-1/2 left-0 w-full h-1 bg-white/5 -translate-y-1/2 rounded-full" />
-            <div 
+            <div
               className="absolute top-1/2 left-0 h-1 bg-gradient-to-r from-violet-500 to-fuchsia-500 -translate-y-1/2 rounded-full transition-all duration-1000"
-              style={{ width: `${((state.profile?.total_xp ?? 0) / 7000) * 100}%` }}
+              style={{ width: currentCEFRIndex >= 0 ? `${(currentCEFRIndex / (CEFR_LEVELS.length - 1)) * 100}%` : '0%' }}
             />
-            
+
             <div className="flex justify-between relative">
-              {CEFR_LEVELS.map((level) => {
-                const isReached = (state.profile?.total_xp ?? 0) >= level.xp;
-                const isCurrent = currentCEFR?.id === level.id;
-                
+              {CEFR_LEVELS.map((level, i) => {
+                const isReached = currentCEFRIndex >= 0 && i <= currentCEFRIndex;
+                const isCurrent = currentCEFRIndex === i;
+
                 return (
                   <div key={level.id} className="flex flex-col items-center gap-2">
                     <div className={`w-4 h-4 rounded-full border-2 transition-all duration-500 ${
@@ -87,25 +100,18 @@ export function MasteryJourney() {
             </div>
           </div>
 
+          {!cefrKnown && (
+            <p className="text-xs text-slate-500 text-center">Answer a few more questions to reveal your level.</p>
+          )}
+
           {nextCEFR && (
-            <div className="bg-white/5 rounded-2xl p-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-violet-500/10 rounded-lg text-violet-400">
-                  <Zap size={16} />
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold text-slate-500 uppercase">Next Goal</p>
-                  <p className="text-sm font-bold text-white">Reach {nextCEFR.id} level</p>
-                </div>
+            <div className="bg-white/5 rounded-2xl p-4 flex items-center gap-3">
+              <div className="p-2 bg-violet-500/10 rounded-lg text-violet-400">
+                <Zap size={16} />
               </div>
-              <div className="text-right">
-                <p className="text-sm font-black text-violet-400">{nextCEFR.xp - (state.profile?.total_xp ?? 0)} XP to go</p>
-                <div className="w-24 h-1 bg-white/5 rounded-full mt-1">
-                  <div 
-                    className="h-full bg-violet-500 rounded-full"
-                    style={{ width: `${Math.min(100, ((state.profile?.total_xp ?? 0) / nextCEFR.xp) * 100)}%` }}
-                  />
-                </div>
+              <div>
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Next Goal</p>
+                <p className="text-sm font-bold text-white">Reach {nextCEFR.id} level</p>
               </div>
             </div>
           )}

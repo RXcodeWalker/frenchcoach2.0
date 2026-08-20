@@ -4,10 +4,20 @@ import { Zap, MessageSquare, Flame, Gem, ArrowRight, RotateCcw, Home, TrendingUp
 import confetti from 'canvas-confetti';
 import { averageRealScores } from '../../domain/scoring';
 import type { ActiveSession, SkillProfile, TopicMasteryEntry } from '../../types';
+import type { DemandBelief } from '../../types/beliefs';
+import { demandNodeId } from '../../domain/learn/demand/nodeId';
+import type { CognitiveDemand } from '../../domain/learn/demand/types';
 
 interface SkillDelta {
   skillId: string;
   name: string;
+  before: number;
+  after: number;
+  delta: number;
+}
+
+interface DemandDelta {
+  demand: CognitiveDemand;
   before: number;
   after: number;
   delta: number;
@@ -22,7 +32,19 @@ interface Props {
   onContinueTopic: () => void;
   onNewTopic: () => void;
   onHome: () => void;
+  /** docs §14 UX #4 — present only on the adaptive path (learnAdaptiveDifficulty live). */
+  currentDemands?: Record<string, DemandBelief> | null;
 }
+
+const DEMAND_LABEL: Record<CognitiveDemand, string> = {
+  describe: 'Describe',
+  explain: 'Explain',
+  justify: 'Justify',
+  compare: 'Compare',
+  hypothesize: 'Hypothesize',
+};
+
+const ALL_DEMANDS: CognitiveDemand[] = ['describe', 'explain', 'justify', 'compare', 'hypothesize'];
 
 function computeSkillDeltas(session: ActiveSession, current: SkillProfile): SkillDelta[] {
   return Object.entries(current)
@@ -34,6 +56,22 @@ function computeSkillDeltas(session: ActiveSession, current: SkillProfile): Skil
     .filter(d => Math.abs(d.delta) > 0.02)
     .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
     .slice(0, 4);
+}
+
+function computeDemandDeltas(
+  before: Record<string, DemandBelief> | undefined,
+  after: Record<string, DemandBelief> | null | undefined,
+): DemandDelta[] {
+  if (!before || !after) return [];
+  return ALL_DEMANDS
+    .map((demand) => {
+      const id = demandNodeId(demand);
+      const beforeMastery = before[id]?.mastery ?? 0;
+      const afterMastery = after[id]?.mastery ?? 0;
+      return { demand, before: beforeMastery, after: afterMastery, delta: afterMastery - beforeMastery };
+    })
+    .filter(d => Math.abs(d.delta) > 0.02)
+    .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
 }
 
 function formatDuration(startedAt: string): string {
@@ -50,8 +88,10 @@ export function SessionSummary({
   onContinueTopic,
   onNewTopic,
   onHome,
+  currentDemands,
 }: Props) {
   const deltas = computeSkillDeltas(session, currentSkillProfile);
+  const demandDeltas = computeDemandDeltas(session.demandSnapshot, currentDemands);
   const completedQs = session.questions.filter(q => q.status === 'completed');
   const avgScore = averageRealScores(completedQs.map(q => q.bestScore));
 
@@ -148,6 +188,42 @@ export function SessionSummary({
                         width: `${Math.round(d.before * 100)}%`,
                         background: '#374151',
                       }}
+                    />
+                    <motion.div
+                      className="absolute top-0 left-0 h-full rounded-full"
+                      style={{ background: d.delta > 0 ? '#10B981' : '#EF4444' }}
+                      initial={{ width: `${Math.round(d.before * 100)}%` }}
+                      animate={{ width: `${Math.round(d.after * 100)}%` }}
+                      transition={{ duration: 1, delay: 0.5, ease: 'easeOut' }}
+                    />
+                  </div>
+                  <div className="flex items-center gap-1 w-14 flex-shrink-0 justify-end">
+                    {d.delta > 0
+                      ? <TrendingUp size={10} className="text-emerald-400" />
+                      : d.delta < 0
+                      ? <TrendingDown size={10} className="text-rose-400" />
+                      : <Minus size={10} className="text-slate-600" />
+                    }
+                    <span className={`text-[10px] font-bold ${d.delta > 0 ? 'text-emerald-400' : d.delta < 0 ? 'text-rose-400' : 'text-slate-600'}`}>
+                      {d.delta > 0 ? '+' : ''}{Math.round(d.delta * 100)}%
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* docs §14 UX #4 — demand readout, adaptive path only */}
+          {demandDeltas.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">This session's demands</p>
+              {demandDeltas.map(d => (
+                <div key={d.demand} className="flex items-center gap-3">
+                  <p className="text-xs text-slate-400 w-28 truncate flex-shrink-0">{DEMAND_LABEL[d.demand]}</p>
+                  <div className="flex-1 relative h-1.5 bg-white/5 rounded-full overflow-hidden">
+                    <div
+                      className="absolute top-0 left-0 h-full rounded-full transition-all"
+                      style={{ width: `${Math.round(d.before * 100)}%`, background: '#374151' }}
                     />
                     <motion.div
                       className="absolute top-0 left-0 h-full rounded-full"

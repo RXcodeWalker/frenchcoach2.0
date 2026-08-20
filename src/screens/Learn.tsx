@@ -34,6 +34,10 @@ import { getReviewItemFirstFailScore } from '../services/coach/reviewPool';
 import { useExtraTurnBudget } from './learn/useExtraTurnBudget';
 import { track } from '../services/telemetry/telemetryService';
 import { DIFFICULTY_CONFIG } from '../utils/difficultyConfig';
+import { deriveAbility, coldStart } from '../domain/learn/ability/deriveAbility';
+import type { AbilityResult } from '../domain/learn/ability/deriveAbility';
+import { STORAGE_KEYS, storageGet } from '../services/persistence/storage';
+import type { DifficultyTier } from '../types';
 import { updateTopicMastery } from '../services/analytics/analyticsService';
 import { computeXPGain, computeParticipationXPGain } from '../domain/xp';
 import { isUnscored, averageRealScores } from '../domain/scoring';
@@ -46,7 +50,8 @@ type LearnState = 'topics' | 'session_start' | 'question' | 'recording' | 'confi
 
 export function Learn() {
   const { state, dispatch } = useApp();
-  const { profile, skillProfile, topicMastery, preferredEngine, selectedDifficulty } = state;
+  const { profile, skillProfile, topicMastery, preferredEngine, selectedDifficulty, aim } = state;
+  const adaptiveDifficultyLive = resolveFeatureStatus('learnAdaptiveDifficulty') === 'live';
 
   const [learnState, setLearnState] = useState<LearnState>('topics');
   const [transcriptConfirmLive] = useState(() => resolveFeatureStatus('learnTranscriptConfirm') === 'live');
@@ -243,6 +248,7 @@ export function Learn() {
       totalWords: 0,
       startedAt: new Date().toISOString(),
       skillSnapshot: JSON.parse(JSON.stringify(skillProfile)),
+      demandSnapshot: adaptiveDifficultyLive ? getBeliefSnapshot()?.demands ?? {} : undefined,
     };
 
     setActiveSession(session);
@@ -255,9 +261,18 @@ export function Learn() {
     setActiveResultEngine(null);
     resetSessionScopedState();
     setLearnState('question');
-  }, [selectedTopic, skillProfile, topicMastery, selectedDifficulty, dispatch, resetSessionScopedState, focusTokenActive]);
+  }, [selectedTopic, skillProfile, topicMastery, selectedDifficulty, dispatch, resetSessionScopedState, focusTokenActive, adaptiveDifficultyLive]);
 
   const startSingleQuestion = () => startSession('single');
+
+  // docs §14 UX #1 — same read sessionBuilder.ts's adaptive path uses
+  // internally (belief snapshot + one-time migrated-tier seed), so the
+  // measured level shown here always matches what selection actually used.
+  const sessionStartAbility = (): AbilityResult => {
+    const snapshot = getBeliefSnapshot();
+    const migratedTier = storageGet<DifficultyTier | null>(STORAGE_KEYS.difficulty, null);
+    return snapshot ? deriveAbility(snapshot, migratedTier ?? undefined) : coldStart(migratedTier ?? undefined);
+  };
 
   // ── Recording + evaluation ────────────────────────────────────────────────────
 
@@ -1079,6 +1094,9 @@ export function Learn() {
                 focusTokenQty={profile.inventory['focus_token'] ?? 0}
                 focusTokenActive={focusTokenActive}
                 onUseFocusToken={useFocusToken}
+                ability={adaptiveDifficultyLive ? sessionStartAbility() : null}
+                aim={adaptiveDifficultyLive ? aim : undefined}
+                onAimChange={adaptiveDifficultyLive ? (nextAim) => dispatch({ type: 'SET_AIM', aim: nextAim }) : undefined}
               />
             </motion.div>
           )}
@@ -1110,6 +1128,7 @@ export function Learn() {
                   showHint={showHint}
                   onToggleHint={() => setShowHint(!showHint)}
                   isReview={isReviewQuestion}
+                  selectionReason={currentSessionQuestion?.selectionReason}
                 />
               )}
 
@@ -1280,6 +1299,7 @@ export function Learn() {
             onContinueTopic={handleContinueTopic}
             onNewTopic={handleNewTopic}
             onHome={handleHome}
+            currentDemands={adaptiveDifficultyLive ? getBeliefSnapshot()?.demands ?? null : null}
           />
         )}
       </AnimatePresence>

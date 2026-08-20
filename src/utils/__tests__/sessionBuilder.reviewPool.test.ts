@@ -8,6 +8,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { buildSessionQuestions, SESSION_TARGET } from '../sessionBuilder';
 import { recordReviewFailure, advanceReviewPoolSessions, REVIEW_MIN_INTERVAL_MS } from '../../services/coach/reviewPool';
+import { STORAGE_KEYS, storageSet } from '../../services/persistence/storage';
 import type { SkillProfile } from '../../types';
 
 const EMPTY_SKILL_PROFILE = {} as SkillProfile;
@@ -15,6 +16,11 @@ const EMPTY_SKILL_PROFILE = {} as SkillProfile;
 beforeEach(() => {
   localStorage.clear();
   vi.restoreAllMocks();
+  // This suite exercises the LEGACY review-slot splice specifically (docs §16
+  // Stage 6 accept criterion: "existing sessionBuilder.reviewPool.test.ts must
+  // still pass unmodified") — it must not silently start exercising the
+  // adaptive path just because the compile-time default flipped in Stage 10.
+  storageSet(STORAGE_KEYS.featureFlagOverrides, { learnAdaptiveDifficulty: 'coming-soon' });
 });
 
 function makeReviewQuestionEligible(questionId: string, topicKey: string) {

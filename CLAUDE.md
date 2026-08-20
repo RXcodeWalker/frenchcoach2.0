@@ -92,7 +92,7 @@ Tailwind CSS 3.4. Custom animations (`blob`, `fade-in`, `shake`, `glow`) defined
 
 ### Data
 
-- `src/data/questions.ts` — 8 topics, 60+ questions with metadata (difficulty, model answers, key vocab)
+- `src/data/questions.ts` — 16 topics (8 core + 8 advanced, the latter `isAdvanced`/coming-soon pending authoring), 428 questions with metadata (difficulty, model answers, key vocab, and — since Learn adaptive difficulty — `demands`)
 - `src/data/raw/` — JSON source files (papers, roleplays, IGCSE master list)
 - `src/data/scenarios/` — 30+ roleplay JSON state machines
 - `src/data/mocks/` — Fake stats/feedback for UI development

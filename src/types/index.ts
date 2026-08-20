@@ -1,5 +1,6 @@
 import type { QuestionDemands } from '../domain/learn/demand/types';
-import type { DemandBand, SlotType } from '../domain/learn/selection/types';
+import type { DemandBand, SelectionReason, SlotType } from '../domain/learn/selection/types';
+import type { DemandBelief } from './beliefs';
 
 export type Screen = 'home' | 'learn' | 'exam' | 'progress' | 'profile' | 'explore' | 'shop' | 'about' | 'challenges' | 'rapid-fire' | 'boss-battle' | 'story-mode' | 'survival' | 'speed-speaking' | 'emoji-master' | 'mystery-box' | 'study-groups' | 'pronunciation-lab' | 'roadmap' | 'friend-challenges' | 'rankings' | 'listening-mode' | 'fluency-heatmap' | 'speaking-arena' | 'accent-analyzer' | 'weakness-analysis' | 'sentence-rebuilder' | 'word-drop' | 'daily-news' | 'scenario-architect' | 'mastery';
 
@@ -562,6 +563,16 @@ export interface FeedbackV2 extends Feedback {
   confidence?: number;
   /** Set when this attempt was never actually graded — `scores` is a placeholder, not a real assessment. */
   unscored?: UnscoredReason;
+  // Learn adaptive-difficulty (docs §9.2/§9.3/§14 Stage 8b) — optional; only
+  // meaningful when the backend resolved demands server-side. Telemetry/L2
+  // gap-fill source only, never rendered as a verdict on their own — the
+  // learner sees exactly one verdict per demand, and it is L1's (docs §14 #5).
+  answered_the_question?: boolean;
+  demands_met?: string[];
+  demands_missed?: string[];
+  difficulty_fit?: 'too easy' | 'right level' | 'too hard';
+  /** True only when the backend resolved question demands by questionId + demandsVersion (docs §9.1); absent/false -> buildDemandEvidence's L2 gap-fill must not run. */
+  demandsResolved?: boolean;
 }
 
 /**
@@ -626,6 +637,8 @@ export interface SessionQuestion {
   slotType?: SlotType;
   /** docs §8.4 — the band this question was selected under, so a 'target' slot's band can be shifted by -1.0 on ease. Absent/null when the slot's band was ignored (e.g. review) or the question came from the legacy path. */
   slotBand?: DemandBand | null;
+  /** docs §14 UX #2 "why this question" — present on the initial adaptive-path build; absent after a midSessionAdjust replacement or on the legacy path. */
+  selectionReason?: SelectionReason;
 }
 
 export interface ActiveSession {
@@ -643,6 +656,8 @@ export interface ActiveSession {
   totalWords: number;
   startedAt: string;
   skillSnapshot: SkillProfile;
+  /** docs §14 UX #4 — demand:* beliefs at session start, for SessionSummary's demand-delta readout. Present only on the adaptive path (learnAdaptiveDifficulty live); absent on the legacy path. */
+  demandSnapshot?: Record<string, DemandBelief>;
 }
 
 export interface TopicMasteryEntry {
