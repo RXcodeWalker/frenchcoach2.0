@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import type { EngineHealth } from '../types';
+import { getWarmupPhase } from '../services/api/backendWarmup';
 
 export interface EngineHealthState {
   gemini: EngineHealth;
@@ -28,6 +29,15 @@ function mapProbeStatus(status: string | undefined): EngineHealth {
   return 'unavailable';
 }
 
+/**
+ * A failed probe while the app is still waking a sleeping Render instance is a
+ * cold start, not an outage — report it as 'checking' so the card doesn't
+ * flash "unavailable" for the first half-minute after load.
+ */
+function failureStatus(onSettled: EngineHealth): EngineHealth {
+  return getWarmupPhase() === 'warming' ? 'checking' : onSettled;
+}
+
 async function pingEngines(): Promise<{ gemini: EngineHealth; groq: EngineHealth }> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), HEALTH_TIMEOUT_MS);
@@ -45,11 +55,12 @@ async function pingEngines(): Promise<{ gemini: EngineHealth; groq: EngineHealth
       };
     }
     // 5xx → degraded (backend up but unwell); other non-OK → unavailable
-    const status: EngineHealth = res.status >= 500 ? 'degraded' : 'unavailable';
+    const status: EngineHealth = res.status >= 500 ? 'degraded' : failureStatus('unavailable');
     return { gemini: status, groq: status };
   } catch (err) {
     clearTimeout(timer);
-    const status: EngineHealth = (err as Error).name === 'AbortError' ? 'degraded' : 'unavailable';
+    const status: EngineHealth =
+      (err as Error).name === 'AbortError' ? 'degraded' : failureStatus('unavailable');
     return { gemini: status, groq: status };
   }
 }

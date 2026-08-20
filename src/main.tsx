@@ -3,12 +3,12 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import * as Sentry from '@sentry/react';
 import { initTelemetry } from './services/telemetry/telemetryService';
-import { pingContentServiceHealth } from './data/exam/bank/loader';
+import { startBackendWarmup } from './services/api/backendWarmup';
 import App from './App.tsx';
 import './index.css';
 
 initTelemetry();
-pingContentServiceHealth();
+startBackendWarmup();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

@@ -19,6 +19,7 @@ import { applyQualityGate } from '../coaching/qualityGate';
 import { validateBackendFeedback, SchemaValidationError } from './feedbackSchema';
 import { getGroundedExaminerFeedback, type ExaminerFeedback } from '../coaching/examinerFeedback';
 import type { NewsSnippet } from '../../data/mocks/mockNews';
+import { getWarmupPhase, noteBackendReachable } from './backendWarmup';
 
 // Prod: same-origin '/api/*' proxied to the backend by Vercel (see vercel.json)
 // to avoid CORS. Dev: call the backend directly.
@@ -35,6 +36,13 @@ const ENGINE_TIMEOUT_MS: Record<AIEngine, number> = {
   groq: 15000,
   offline: 0,
 };
+
+// Extra budget granted only while backendWarmup is still trying to wake a
+// sleeping Render instance. Without it, a request issued mid-boot burns the
+// normal budget, reads as "engine timed out", and silently downgrades to the
+// offline evaluator. Once warm-up settles either way the grace disappears, so a
+// genuinely dead backend still fails fast.
+const COLD_START_GRACE_MS = 45000;
 
 async function post<T>(path: string, body: unknown): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
@@ -276,12 +284,13 @@ async function tryNetworkFeedback(
   engine: AIEngine,
   startTime: number,
 ): Promise<{ result: FeedbackV2; actualEngine: AIEngine } | null> {
-  const timeoutMs = ENGINE_TIMEOUT_MS[engine];
+  const coldStart = getWarmupPhase() === 'warming';
+  const timeoutMs = ENGINE_TIMEOUT_MS[engine] + (coldStart ? COLD_START_GRACE_MS : 0);
   const engineParam = engine === 'offline' ? undefined : engine;
 
   const bodyWithEngine = engineParam ? { ...requestBody, enginePreference: engineParam } : requestBody;
 
-  console.log(`[AI Feedback] Attempting ${engine} (timeout: ${timeoutMs}ms)`);
+  console.log(`[AI Feedback] Attempting ${engine} (timeout: ${timeoutMs}ms${coldStart ? ', backend still warming' : ''})`);
   try {
     let raw: BackendFeedbackV2;
     if (audioBlob) {
@@ -300,6 +309,8 @@ async function tryNetworkFeedback(
         timeoutMs,
       );
     }
+    // A real round-trip is stronger evidence than a ping — reset the keepalive clock.
+    noteBackendReachable();
     logProviderAttempts(raw, 'v3');
     // Validate the response shape before trusting it — schema failures fall
     // through to the next engine in the chain just like network errors do.
@@ -325,7 +336,7 @@ async function tryNetworkFeedback(
   } catch (err) {
     const msg = (err as Error).message;
     if (msg === 'Request timed out') {
-      console.warn(`[AI Feedback] ${engine} timed out after ${ENGINE_TIMEOUT_MS[engine]}ms`);
+      console.warn(`[AI Feedback] ${engine} timed out after ${timeoutMs}ms`);
     } else {
       console.warn(`[AI Feedback] ${engine} failed — ${msg}`);
     }

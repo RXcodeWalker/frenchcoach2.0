@@ -48,11 +48,6 @@ async function fetchPublishedSet(questionSetId: string): Promise<AuthoredQuestio
   }
 }
 
-/** Fire-and-forget wake-up ping for the content backend — mirrors scoringApiClient.ts's pingScoringServiceHealth. Never throws. */
-export function pingContentServiceHealth(): void {
-  void fetch(`${API_BASE}/health`).catch(() => undefined);
-}
-
 type FetchFailureKind = 'timeout' | 'network' | 'http';
 
 interface FetchOutcome<T> {
