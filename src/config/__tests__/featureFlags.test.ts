@@ -23,13 +23,13 @@ describe('resolveFeatureStatus', () => {
       JSON.stringify({ speakingArena: 'live' }),
     );
     expect(resolveFeatureStatus('speakingArena')).toBe('live');
-    expect(resolveFeatureStatus('shop')).toBe('coming-soon');
+    expect(resolveFeatureStatus('shop')).toBe(FEATURE_FLAGS.shop);
   });
 
   it('does not throw and falls back to default on corrupt localStorage JSON', () => {
     localStorage.setItem(STORAGE_KEYS.featureFlagOverrides, '{{{not json');
     expect(() => resolveFeatureStatus('shop')).not.toThrow();
-    expect(resolveFeatureStatus('shop')).toBe('coming-soon');
+    expect(resolveFeatureStatus('shop')).toBe(FEATURE_FLAGS.shop);
   });
 
   it('ignores a garbage override value stored under a valid key', () => {
@@ -37,7 +37,7 @@ describe('resolveFeatureStatus', () => {
       STORAGE_KEYS.featureFlagOverrides,
       JSON.stringify({ shop: 'banana' }),
     );
-    expect(resolveFeatureStatus('shop')).toBe('coming-soon');
+    expect(resolveFeatureStatus('shop')).toBe(FEATURE_FLAGS.shop);
   });
 
   describe('query param', () => {
@@ -64,7 +64,7 @@ describe('resolveFeatureStatus', () => {
       window.history.replaceState(null, '', '?ff_shop=banana');
 
       expect(() => resolveFeatureStatus('shop')).not.toThrow();
-      expect(resolveFeatureStatus('shop')).toBe('coming-soon');
+      expect(resolveFeatureStatus('shop')).toBe(FEATURE_FLAGS.shop);
       expect(localStorage.getItem(STORAGE_KEYS.featureFlagOverrides)).toBeNull();
     });
   });
