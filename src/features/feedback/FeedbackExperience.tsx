@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Mic2 } from 'lucide-react';
+import { CollapsibleCard } from '../../components/ui/CollapsibleCard';
 import { stagger } from '../../components/motion/variants';
 import { FeedbackProvider } from './state/feedbackContext';
 import { useFeedbackState } from './hooks/useFeedbackState';
@@ -157,6 +158,21 @@ function FeedbackContent({
             <Loader2 size={14} className="text-cyan-400 animate-spin shrink-0" />
             <p className="text-[10px] text-slate-500">Analysing pronunciation…</p>
           </div>
+        ) : pronunciationStatus === 'failed' ? (
+          <CollapsibleCard
+            title="Pronunciation Analysis"
+            icon={<Mic2 size={13} className="text-cyan-400" />}
+            defaultOpen={true}
+            className="border border-cyan-500/15"
+          >
+            <div className="px-1 py-2">
+              <p className="text-[10px] font-semibold text-slate-300">Pronunciation analysis isn't available right now.</p>
+              <p className="text-[9px] text-slate-500 mt-1">
+                Our pronunciation service didn't respond in time — this can happen when it's just waking up.
+                Your recording and the rest of your feedback are safe. Try your next answer and it should be back.
+              </p>
+            </div>
+          </CollapsibleCard>
         ) : null
       ) : (
         <PronunciationCard feedback={feedback} />

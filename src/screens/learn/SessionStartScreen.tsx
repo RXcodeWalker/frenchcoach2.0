@@ -45,7 +45,7 @@ const AIMS: Aim[] = ['comfortable', 'balanced', 'push'];
 function measuredLevelDisplay(ability: AbilityResult): { band: string | null; caption: string } {
   const answerCaption = `from ${ability.measuredAnswers} answer${ability.measuredAnswers === 1 ? '' : 's'} we could measure`;
   if (ability.overallConfidence < CONFIDENCE_BAND_HIDDEN_BELOW) {
-    return { band: null, caption: 'Still getting to know your level.' };
+    return { band: null, caption: 'Your coach needs a few more practice sessions before it can estimate your level accurately.' };
   }
   const level = demandScoreToAbilityLevel(ability.abilityScore);
   if (ability.overallConfidence < CONFIDENCE_BAND_APPROXIMATE_BELOW) {
