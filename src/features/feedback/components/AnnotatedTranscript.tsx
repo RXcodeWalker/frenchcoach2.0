@@ -17,15 +17,20 @@ interface Segment {
   issue?: CoachingIssue;
 }
 
-function buildSegments(transcript: string, feedback: FeedbackV2): Segment[] {
+export function buildSegments(transcript: string, feedback: FeedbackV2): Segment[] {
   const annotations = feedback.transcriptAnnotations ?? [];
   if (!annotations.length) return [{ text: transcript }];
 
+  // The server guarantees non-overlapping, ordered spans (docs Stage 2), but
+  // this defends against that guarantee anyway (finding E): a span that
+  // starts before `cursor` would otherwise re-slice and re-emit text already
+  // rendered by the previous span, duplicating it on screen.
   const sorted = [...annotations].sort((a, b) => a.start - b.start);
   const segments: Segment[] = [];
   let cursor = 0;
 
   for (const span of sorted) {
+    if (span.start < cursor) continue; // fully/partially contained in a prior span — skip
     if (span.start > cursor) segments.push({ text: transcript.slice(cursor, span.start) });
     const issue = span.issueId ? feedback.issues?.find(i => i.id === span.issueId) : undefined;
     segments.push({ text: transcript.slice(span.start, span.end), span, issue });
@@ -54,7 +59,6 @@ export function AnnotatedTranscript({ transcript, feedback, onIssueClick }: Prop
           return (
             <button
               key={i}
-              role="button"
               aria-label={`Issue: ${seg.issue?.diagnostic ?? seg.span.category}`}
               className={`cursor-pointer ${underline} hover:opacity-80 transition-opacity`}
               onClick={() => {

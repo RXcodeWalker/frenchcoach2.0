@@ -1,4 +1,4 @@
-import type { FeedbackV2, Question, SkillContext, GeneratedScenario, AIEngine, EngineMetadata, DifficultyTier, UnscoredReason } from '../../types';
+import type { FeedbackV2, Question, SkillContext, GeneratedScenario, AIEngine, EngineMetadata, DifficultyTier, UnscoredReason, CoachingIssue, TranscriptSpan, MiniLesson, Severity } from '../../types';
 import { track } from '../telemetry/telemetryService';
 import { evaluate as offlineEvaluate } from '../coaching/coachService';
 import { DIFFICULTY_CONFIG, DEFAULT_DIFFICULTY } from '../../utils/difficultyConfig';
@@ -126,6 +126,31 @@ interface BackendFeedback {
   providerStatus?: string;
 }
 
+// Provider-neutral transport contract (docs Stage 2,
+// docs/architecture/learn-feedback-contract.md) — the backend's corrections[]
+// item shape and the quoteSpans[] the server resolves against the canonical
+// transcript. Kept separate from CoachingIssue/TranscriptSpan (the frontend
+// domain types): this is the wire shape, mapBackendCorrections adapts it.
+interface BackendCorrection {
+  id?: string;
+  severity?: string;
+  label?: string;
+  description?: string;
+  explanation?: string;
+  correction?: string;
+  quote?: string;
+  quoteContext?: string;
+  tip?: string;
+  priority?: number;
+  lesson?: MiniLesson | null;
+}
+
+interface BackendQuoteSpan {
+  correctionId?: string;
+  start?: number;
+  end?: number;
+}
+
 // Shape returned by /api/feedback/v2 or /api/feedback/v3 — superset of BackendFeedback
 type BackendFeedbackV2 = BackendFeedback & Partial<FeedbackV2> & {
   provider?: string;
@@ -134,6 +159,8 @@ type BackendFeedbackV2 = BackendFeedback & Partial<FeedbackV2> & {
   // (e.g. Gemini 429 quota → Groq). Without surfacing this a silent
   // Gemini→Groq fallback looks like "Gemini never works" with no reason.
   providerErrors?: { provider: string; type: string; message?: string }[];
+  corrections?: BackendCorrection[];
+  quoteSpans?: BackendQuoteSpan[];
 };
 
 function logProviderAttempts(raw: BackendFeedbackV2, endpoint: string): void {
@@ -247,9 +274,69 @@ function normalizeBackendFeedback(raw: BackendFeedbackV2, source: string): Feedb
   return mergeV2Fields(mapBackendFeedback(parsed), parsed);
 }
 
+// A free-text label like "Avoir vs Être" doesn't fit the closed IssueCategory
+// enum — 'grammar' is the safe default; themeLabel (rendered preferentially
+// by IssueRow) carries the actual category text.
+const DEFAULT_ISSUE_CATEGORY = 'grammar';
+const VALID_SEVERITIES: readonly Severity[] = ['major', 'minor', 'polish', 'strong', 'anglicism'];
+
+function toSeverity(raw: string | undefined): Severity {
+  return VALID_SEVERITIES.includes(raw as Severity) ? (raw as Severity) : 'minor';
+}
+
+function toPriority(raw: number | undefined): 0 | 1 | 2 | 3 {
+  const n = Math.round(raw ?? 0);
+  return (n >= 0 && n <= 3 ? n : Math.max(0, Math.min(3, n))) as 0 | 1 | 2 | 3;
+}
+
+/**
+ * Adapts the provider-neutral corrections[]/quoteSpans[] transport contract
+ * (docs Stage 2) to the frontend's CoachingIssue[]/TranscriptSpan[] domain
+ * shape. quoteSpans[] are resolved server-side against the canonical
+ * transcript (finding A0) — the client never resolves quote occurrences
+ * itself, it only splices the spans it's given (invariant #10).
+ */
+export function mapBackendCorrections(
+  corrections: BackendCorrection[] | undefined,
+  quoteSpans: BackendQuoteSpan[] | undefined,
+): { issues: CoachingIssue[]; transcriptAnnotations: TranscriptSpan[] } | undefined {
+  if (!corrections || corrections.length === 0) return undefined;
+
+  const issues: CoachingIssue[] = corrections
+    .filter((c): c is BackendCorrection & { id: string } => !!c.id)
+    .map(c => ({
+      id: c.id,
+      category: DEFAULT_ISSUE_CATEGORY,
+      severity: toSeverity(c.severity),
+      quote: c.quote ?? '',
+      diagnostic: c.explanation ?? c.description ?? '',
+      correction: c.correction ?? '',
+      marksImpact: toPriority(c.priority),
+      themeLabel: c.label,
+      masterTip: c.tip,
+      mini_lesson: c.lesson ?? undefined,
+    }));
+
+  const issueIds = new Set(issues.map(i => i.id));
+  const transcriptAnnotations: TranscriptSpan[] = (quoteSpans ?? [])
+    .filter((s): s is Required<BackendQuoteSpan> =>
+      typeof s.start === 'number' && typeof s.end === 'number' && !!s.correctionId && issueIds.has(s.correctionId))
+    .map(s => {
+      const issue = issues.find(i => i.id === s.correctionId)!;
+      return { start: s.start, end: s.end, severity: issue.severity, category: issue.category, issueId: issue.id };
+    });
+
+  return { issues, transcriptAnnotations };
+}
+
 function mergeV2Fields(base: FeedbackV2, raw: BackendFeedbackV2): FeedbackV2 {
   // Accept schemaVersion 2 or 3 (>= 2)
   if ((raw.schemaVersion ?? 0) >= 2) {
+    // corrections[]/quoteSpans[] (docs Stage 2) are the source of truth when
+    // present; older backends that only ever passed through raw.issues/
+    // raw.transcriptAnnotations (never actually populated server-side) still
+    // degrade safely since those fields are simply undefined.
+    const adapted = mapBackendCorrections(raw.corrections, raw.quoteSpans);
     return {
       ...base,
       schemaVersion: raw.schemaVersion,
@@ -265,8 +352,8 @@ function mergeV2Fields(base: FeedbackV2, raw: BackendFeedbackV2): FeedbackV2 {
       advanced_answer: raw.advanced_answer,
       expansion_ideas: raw.expansion_ideas,
       formatted_transcript: raw.formatted_transcript,
-      issues: raw.issues,
-      transcriptAnnotations: raw.transcriptAnnotations,
+      issues: adapted?.issues ?? raw.issues,
+      transcriptAnnotations: adapted?.transcriptAnnotations ?? raw.transcriptAnnotations,
       vocabularyV2: raw.vocabularyV2,
       pronunciation: raw.pronunciation ?? base.pronunciation,
       deepAnalysis: raw.deepAnalysis,
@@ -626,6 +713,15 @@ function mergeSection(acc: Partial<FeedbackV2>, type: string, data: Record<strin
     case 'pronunciation': {
       const raw = data as { pronunciation?: FeedbackV2['pronunciation'] };
       return { ...acc, pronunciation: raw.pronunciation };
+    }
+    case 'corrections': {
+      // quoteSpans[] are only resolved server-side against the fully
+      // assembled corrections list (docs Stage 2) — the mid-stream section
+      // carries issues with no transcriptAnnotations yet; the 'complete'
+      // event's normalizeBackendFeedback call supplies both.
+      const raw = data as { corrections?: BackendCorrection[] };
+      const adapted = mapBackendCorrections(raw.corrections, undefined);
+      return adapted ? { ...acc, issues: adapted.issues } : acc;
     }
     default:
       return acc;

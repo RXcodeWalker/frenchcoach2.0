@@ -7,3 +7,9 @@
 # LF so the checked-out bytes are the same on every machine.
 src/data/learn/demands/*.json text eol=lf
 src/data/learn/demandsManifest.ts text eol=lf
+
+# docs Stage 2 (learn-feedback-contract): same hash-parity requirement as
+# above, for the feedback-contract fixture set — this repo's copy is the
+# source of truth, synced to backend/tests/fixtures/feedback-contract/ via
+# `npm run feedback:sync-fixtures`.
+src/services/api/__fixtures__/feedback-contract/*.json text eol=lf

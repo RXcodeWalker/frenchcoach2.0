@@ -56,6 +56,40 @@ const PronunciationSchema = z.object({
   issues: z.array(PronunciationIssueSchema).default([]),
 });
 
+const MiniLessonSchema = z.object({
+  title:           z.string(),
+  rule:            z.string(),
+  examples:        z.array(z.string()).default([]),
+  common_mistake:  z.string(),
+  practice:        z.string(),
+}).nullable().optional();
+
+// Provider-neutral transport contract (docs Stage 2,
+// docs/architecture/learn-feedback-contract.md). `.catch([])` at the array
+// level (not per-item) — a single malformed item shouldn't invalidate every
+// correction, but there's no per-item degrade for a structurally broken
+// item here the way GrammarItemSchema.nullish()s each field individually,
+// so a bad item currently drops the whole list rather than just itself.
+const CorrectionSchema = z.object({
+  id:            z.string(),
+  severity:      z.enum(['major', 'minor']).catch('minor'),
+  label:         nullishString,
+  description:   nullishStringWithFallback(''),
+  explanation:   nullishString,
+  correction:    nullishStringWithFallback(''),
+  quote:         nullishString,
+  quoteContext:  nullishString,
+  tip:           nullishString,
+  priority:      z.number().min(0).max(3).catch(0),
+  lesson:        MiniLessonSchema,
+});
+
+const QuoteSpanSchema = z.object({
+  correctionId: z.string(),
+  start:        z.number(),
+  end:          z.number(),
+});
+
 // ── Critical fields — these must be present and valid ────────────────────────
 
 export const BackendFeedbackSchema = z.object({
@@ -104,6 +138,12 @@ export const BackendFeedbackSchema = z.object({
   // client drop any span computed against a transcript it didn't render.
   schemaVersion:   z.number().optional(),
   transcriptHash:  z.string().optional(),
+
+  // corrections[]/quoteSpans[] (docs Stage 2) — .catch([]) so a malformed
+  // list degrades to "no rich corrections this response" rather than
+  // failing the whole schema and falling back to the next engine.
+  corrections: z.array(CorrectionSchema).catch([]).optional(),
+  quoteSpans:  z.array(QuoteSpanSchema).catch([]).optional(),
 
   // Learn adaptive-difficulty (docs §9.2/§14) — optional; only meaningful
   // when the request resolved demands server-side. §14: demands_met/

@@ -20,7 +20,18 @@ export function IssueRow({ issue, isSelected }: Props) {
           <span className="text-[9px] text-slate-400 font-medium">{issue.themeLabel}</span>
         )}
         {issue.marksImpact > 0 && (
-          <span className="text-[9px] text-slate-600">−{issue.marksImpact} mark{issue.marksImpact > 1 ? 's' : ''}</span>
+          <span
+            className="flex items-center gap-0.5"
+            aria-label={`Priority: ${issue.marksImpact} of 3`}
+            title="Pedagogical priority — not a mark deduction"
+          >
+            {Array.from({ length: 3 }, (_, i) => (
+              <span
+                key={i}
+                className={`w-1 h-1 rounded-full ${i < issue.marksImpact ? 'bg-slate-500' : 'bg-slate-800'}`}
+              />
+            ))}
+          </span>
         )}
         {issue.isRecurring && (
           <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-[8px] font-bold text-amber-400 uppercase tracking-wide">

@@ -25,6 +25,7 @@
     "learn:check": "tsx scripts/authoring/checkLearnDemands.ts",
     "learn:review": "tsx scripts/authoring/learnReview.ts",
     "learn:status": "tsx scripts/authoring/learnStatus.ts",
+    "feedback:sync-fixtures": "tsx scripts/authoring/syncFeedbackContractFixtures.ts",
     "stt:ingest": "tsx scripts/stt/ingestSession.ts",
     "score:batch": "tsx scripts/scoring/batchScore.ts",
     "score:golden": "tsx scripts/scoring/goldenRegression.ts",
