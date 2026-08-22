@@ -117,7 +117,7 @@ interface BackendFeedback {
   fluency?: number;
   scores?: { overall?: number; comm?: number; know?: number; acc?: number };
   grammar?: { critical?: unknown[]; polish?: unknown[] } | unknown[];
-  vocabulary?: { basic?: string; upgrade?: string }[];
+  vocabulary?: { basic?: string; upgrade?: string; example?: string; nuance?: string }[];
   style?: { label?: string; suggestion?: string }[];
   fillers?: { word?: string; count?: number }[];
   wordCount?: number;
@@ -188,7 +188,7 @@ export function mapBackendFeedback(raw: BackendFeedback): FeedbackV2 {
       scores: { overall: 0, communication: 0, language: 0, fluency: 0 },
       unscored: unscoredReason,
       grammar,
-      vocabulary: (raw.vocabulary ?? []).map(v => ({ basic: v.basic ?? '', upgrade: v.upgrade ?? '' })),
+      vocabulary: (raw.vocabulary ?? []).map(v => ({ basic: v.basic ?? '', upgrade: v.upgrade ?? '', example: v.example, nuance: v.nuance })),
       style:      (raw.style      ?? []).map(s => ({ label: s.label ?? '', suggestion: s.suggestion ?? '' })),
       fillers:    (raw.fillers    ?? []).map(f => ({ word: f.word ?? '', count: f.count ?? 0 })),
       wordCount:  raw.wordCount ?? 0,
@@ -210,13 +210,41 @@ export function mapBackendFeedback(raw: BackendFeedback): FeedbackV2 {
       fluency:       raw.scores?.acc     ?? overall,
     },
     grammar,
-    vocabulary: (raw.vocabulary ?? []).map(v => ({ basic: v.basic ?? '', upgrade: v.upgrade ?? '' })),
+    vocabulary: (raw.vocabulary ?? []).map(v => ({ basic: v.basic ?? '', upgrade: v.upgrade ?? '', example: v.example, nuance: v.nuance })),
     style:      (raw.style      ?? []).map(s => ({ label: s.label ?? '', suggestion: s.suggestion ?? '' })),
     fillers:    (raw.fillers    ?? []).map(f => ({ word: f.word ?? '', count: f.count ?? 0 })),
     wordCount:  raw.wordCount ?? 0,
     cefrLevel:  raw.cefrLevel ?? 'A2',
     pronunciation: { score: null, issues: [] },
   };
+}
+
+/**
+ * Single normalization seam (docs Stage 1) — validates the raw backend
+ * payload, then maps + merges the *parsed* result rather than the raw one,
+ * so every `.nullish()`/`.catch()` default in feedbackSchema.ts actually
+ * takes effect. Used by both the non-streaming (/v3) and streaming
+ * (complete event) call sites so they cannot drift from each other.
+ *
+ * Returns null on schema failure — callers fall back to the next engine,
+ * exactly as a network error would.
+ */
+function normalizeBackendFeedback(raw: BackendFeedbackV2, source: string): FeedbackV2 | null {
+  let parsed: BackendFeedbackV2;
+  try {
+    // BackendFeedbackSchema is .passthrough(), so fields it doesn't declare
+    // (issues, transcriptAnnotations, vocabularyV2, examiner, ...) survive
+    // on the parsed object at runtime even though its static type doesn't
+    // name them — safe to treat as BackendFeedbackV2 here.
+    parsed = validateBackendFeedback(raw, source) as unknown as BackendFeedbackV2;
+  } catch (validationErr) {
+    if (validationErr instanceof SchemaValidationError) {
+      console.warn(`[AI Feedback] ${source} returned invalid schema — treating as failed`);
+      return null;
+    }
+    throw validationErr;
+  }
+  return mergeV2Fields(mapBackendFeedback(parsed), parsed);
 }
 
 function mergeV2Fields(base: FeedbackV2, raw: BackendFeedbackV2): FeedbackV2 {
@@ -314,15 +342,8 @@ async function tryNetworkFeedback(
     logProviderAttempts(raw, 'v3');
     // Validate the response shape before trusting it — schema failures fall
     // through to the next engine in the chain just like network errors do.
-    try {
-      validateBackendFeedback(raw, `${engine}/v3`);
-    } catch (validationErr) {
-      if (validationErr instanceof SchemaValidationError) {
-        console.warn(`[AI Feedback] ${engine} returned invalid schema — treating as failed`);
-        return null;
-      }
-    }
-    const result = mergeV2Fields(mapBackendFeedback(raw), raw);
+    const result = normalizeBackendFeedback(raw, `${engine}/v3`);
+    if (result === null) return null;
     result.provider = raw.provider;
     result.providerAttempts = raw.providerAttempts;
     result.engineMeta = {
@@ -707,7 +728,14 @@ export async function streamFeedback(
       } else if (type === 'complete') {
         const raw = data as BackendFeedbackV2;
         logProviderAttempts(raw, 'stream');
-        const base = mergeV2Fields(mapBackendFeedback(raw), raw);
+        // Validate + map + merge through the same seam the non-streaming
+        // path uses — the streaming complete payload was previously cast
+        // straight to BackendFeedbackV2 with no validation at all.
+        const base = normalizeBackendFeedback(raw, 'stream');
+        if (base === null) {
+          callbacks.onError?.('Backend response failed validation');
+          continue;
+        }
         base.provider = raw.provider;
         base.providerAttempts = raw.providerAttempts;
         base.engineMeta = {

@@ -130,7 +130,7 @@ export interface Feedback {
     critical: GrammarError[];
     polish: GrammarError[];
   };
-  vocabulary: { basic: string; upgrade: string }[];
+  vocabulary: { basic: string; upgrade: string; example?: string; nuance?: string }[];
   style: { label: string; suggestion: string }[];
   fillers: { word: string; count: number }[];
   wordCount: number;
@@ -552,6 +552,8 @@ export interface FeedbackV2 extends Feedback {
   pronunciation?: { score: number | null; issues: PronunciationIssue[] };
   deepAnalysis?: DeepAnalysis;
   schemaVersion?: 2 | 3;
+  /** Short hash of the canonical transcript this response was produced from (docs Stage 1, finding A0) — spans computed against a different transcript must be dropped, never rebased. */
+  transcriptHash?: string;
   avoidanceReport?: AvoidanceReportEntry[];
   skillContextUsed?: boolean;
   provider?: string;

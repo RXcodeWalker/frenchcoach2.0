@@ -99,6 +99,12 @@ export const BackendFeedbackSchema = z.object({
   providerErrors:  z.array(z.unknown()).optional(),
   wordCount:       z.number().optional(),
 
+  // Transport contract version (docs Stage 1) — gates whether mergeV2Fields
+  // trusts the rich coaching fields below, and transcriptHash lets the
+  // client drop any span computed against a transcript it didn't render.
+  schemaVersion:   z.number().optional(),
+  transcriptHash:  z.string().optional(),
+
   // Learn adaptive-difficulty (docs §9.2/§14) — optional; only meaningful
   // when the request resolved demands server-side. §14: demands_met/
   // demands_missed are telemetry only, never rendered as a verdict — the
