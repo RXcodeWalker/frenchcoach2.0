@@ -545,6 +545,15 @@ export interface FeedbackV2 extends Feedback {
   rephrase?: string;
   advanced_answer?: string;
   expansion_ideas?: string[];
+  /**
+   * Annotations over the client-computed diff between the transcript and
+   * improved_answer (docs Stage 3) — render-time only (invariant #4), never
+   * persisted. The diff structure itself comes from
+   * src/domain/learn/feedback/buildChanges.ts::diffWords, not from the
+   * backend; these are only the {quote, quoteContext, category, explanation}
+   * annotations attachChangeAnnotations resolves against it.
+   */
+  changes?: import('../domain/learn/feedback/buildChanges').ChangeAnnotation[];
   formatted_transcript?: string;
   issues?: CoachingIssue[];
   transcriptAnnotations?: TranscriptSpan[];

@@ -90,6 +90,18 @@ const QuoteSpanSchema = z.object({
   end:          z.number(),
 });
 
+// changes[] annotations (docs Stage 3) — the diff itself is computed
+// client-side (src/domain/learn/feedback/buildChanges.ts); this is only the
+// LLM's annotation over it. .catch([]) at the array level, matching
+// CorrectionSchema's degrade policy — a malformed item shouldn't invalidate
+// every annotation.
+const ChangeAnnotationSchema = z.object({
+  quote:        z.string(),
+  quoteContext: nullishString,
+  category:     z.string().catch('grammar'),
+  explanation:  nullishStringWithFallback(''),
+});
+
 // ── Critical fields — these must be present and valid ────────────────────────
 
 export const BackendFeedbackSchema = z.object({
@@ -144,6 +156,9 @@ export const BackendFeedbackSchema = z.object({
   // failing the whole schema and falling back to the next engine.
   corrections: z.array(CorrectionSchema).catch([]).optional(),
   quoteSpans:  z.array(QuoteSpanSchema).catch([]).optional(),
+
+  // changes[] annotations (docs Stage 3) — see ChangeAnnotationSchema.
+  changes: z.array(ChangeAnnotationSchema).catch([]).optional(),
 
   // Learn adaptive-difficulty (docs §9.2/§14) — optional; only meaningful
   // when the request resolved demands server-side. §14: demands_met/

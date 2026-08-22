@@ -1,4 +1,5 @@
-import type { FeedbackV2, Question, SkillContext, GeneratedScenario, AIEngine, EngineMetadata, DifficultyTier, UnscoredReason, CoachingIssue, TranscriptSpan, MiniLesson, Severity } from '../../types';
+import type { FeedbackV2, Question, SkillContext, GeneratedScenario, AIEngine, EngineMetadata, DifficultyTier, UnscoredReason, CoachingIssue, TranscriptSpan, MiniLesson, Severity, IssueCategory } from '../../types';
+import type { ChangeAnnotation } from '../../domain/learn/feedback/buildChanges';
 import { track } from '../telemetry/telemetryService';
 import { evaluate as offlineEvaluate } from '../coaching/coachService';
 import { DIFFICULTY_CONFIG, DEFAULT_DIFFICULTY } from '../../utils/difficultyConfig';
@@ -14,6 +15,8 @@ import {
 } from '../coaching/diagnosticEngine';
 import { wordCount as demandWordCount } from '../../domain/learn/demand/textCues';
 import { demandsVersion as LEARN_DEMANDS_VERSION } from '../../data/learn/demandsManifest';
+import { evaluateDemandSatisfaction } from '../../domain/learn/demand/satisfaction';
+import { computeDepth, type FeedbackDepth } from '../../domain/learn/feedback/computeDepth';
 import { classifyTier, buildTier0Result, buildTier1LocalResult } from '../coaching/responseTier';
 import { applyQualityGate } from '../coaching/qualityGate';
 import { validateBackendFeedback, SchemaValidationError } from './feedbackSchema';
@@ -87,6 +90,23 @@ function buildDemandSignals(transcript: string, question: Question): Record<stri
   };
 }
 
+/**
+ * Adaptive feedback depth (docs Stage 3) — computed client-side as a hint the
+ * server may clamp. Error/opportunity density comes from the offline
+ * evaluator's rule count (the same 23 rules coachService always runs,
+ * independent of which engine ends up answering) rather than re-implementing
+ * detection here; demand fit reuses evaluateDemandSatisfaction, the same
+ * detector the prompt's DETERMINISTIC SIGNALS section is built from.
+ */
+function buildRequestDepth(transcript: string, question: Question, tier: 0 | 1 | 2 | 3): FeedbackDepth {
+  const offline = offlineEvaluate(transcript, question);
+  const errorCount = (offline.grammar?.critical?.length ?? 0) + (offline.grammar?.polish?.length ?? 0);
+  const demandSatisfaction = question.demands
+    ? evaluateDemandSatisfaction(transcript, question.demands)
+    : undefined;
+  return computeDepth({ transcript, errorCount, demandSatisfaction, responseTier: tier });
+}
+
 export async function generateScenario(description: string): Promise<GeneratedScenario> {
   return post<GeneratedScenario>('/api/generate-scenario', { description });
 }
@@ -151,6 +171,16 @@ interface BackendQuoteSpan {
   end?: number;
 }
 
+// changes[] wire shape (docs Stage 3) — the LLM's annotation over a diff the
+// client computes itself; category is a loose string on the wire (mapped
+// through toIssueCategory), never trusted as IssueCategory directly.
+interface BackendChangeAnnotation {
+  quote?: string;
+  quoteContext?: string;
+  category?: string;
+  explanation?: string;
+}
+
 // Shape returned by /api/feedback/v2 or /api/feedback/v3 — superset of BackendFeedback
 type BackendFeedbackV2 = BackendFeedback & Partial<FeedbackV2> & {
   provider?: string;
@@ -161,6 +191,7 @@ type BackendFeedbackV2 = BackendFeedback & Partial<FeedbackV2> & {
   providerErrors?: { provider: string; type: string; message?: string }[];
   corrections?: BackendCorrection[];
   quoteSpans?: BackendQuoteSpan[];
+  changes?: BackendChangeAnnotation[];
 };
 
 function logProviderAttempts(raw: BackendFeedbackV2, endpoint: string): void {
@@ -279,9 +310,18 @@ function normalizeBackendFeedback(raw: BackendFeedbackV2, source: string): Feedb
 // by IssueRow) carries the actual category text.
 const DEFAULT_ISSUE_CATEGORY = 'grammar';
 const VALID_SEVERITIES: readonly Severity[] = ['major', 'minor', 'polish', 'strong', 'anglicism'];
+const VALID_ISSUE_CATEGORIES: readonly IssueCategory[] = [
+  'grammar', 'tense', 'gender', 'agreement', 'preposition',
+  'elision', 'auxiliary', 'subjunctive', 'anglicism',
+  'vocabulary', 'connectors', 'pronunciation', 'rhythm', 'fluency',
+];
 
 function toSeverity(raw: string | undefined): Severity {
   return VALID_SEVERITIES.includes(raw as Severity) ? (raw as Severity) : 'minor';
+}
+
+function toIssueCategory(raw: string | undefined): IssueCategory {
+  return VALID_ISSUE_CATEGORIES.includes(raw as IssueCategory) ? (raw as IssueCategory) : DEFAULT_ISSUE_CATEGORY;
 }
 
 function toPriority(raw: number | undefined): 0 | 1 | 2 | 3 {
@@ -329,6 +369,24 @@ export function mapBackendCorrections(
   return { issues, transcriptAnnotations };
 }
 
+/**
+ * Adapts the wire-shape changes[] (docs Stage 3) to the domain
+ * ChangeAnnotation[] — a quote-less item carries no targeting information
+ * and is dropped here rather than surfacing as an unattachable annotation
+ * downstream. buildChanges.ts::attachChangeAnnotations does the actual
+ * targeting against the client-computed diff at render time.
+ */
+export function mapBackendChanges(changes: BackendChangeAnnotation[] | undefined): ChangeAnnotation[] {
+  return (changes ?? [])
+    .filter((c): c is BackendChangeAnnotation & { quote: string } => !!c.quote)
+    .map(c => ({
+      quote: c.quote,
+      quoteContext: c.quoteContext,
+      category: toIssueCategory(c.category),
+      explanation: c.explanation ?? '',
+    }));
+}
+
 function mergeV2Fields(base: FeedbackV2, raw: BackendFeedbackV2): FeedbackV2 {
   // Accept schemaVersion 2 or 3 (>= 2)
   if ((raw.schemaVersion ?? 0) >= 2) {
@@ -354,6 +412,7 @@ function mergeV2Fields(base: FeedbackV2, raw: BackendFeedbackV2): FeedbackV2 {
       formatted_transcript: raw.formatted_transcript,
       issues: adapted?.issues ?? raw.issues,
       transcriptAnnotations: adapted?.transcriptAnnotations ?? raw.transcriptAnnotations,
+      changes: mapBackendChanges(raw.changes),
       vocabularyV2: raw.vocabularyV2,
       pronunciation: raw.pronunciation ?? base.pronunciation,
       deepAnalysis: raw.deepAnalysis,
@@ -558,6 +617,7 @@ export async function getAIFeedback(
     },
     ...buildDemandIdentity(question),
     demandSignals: buildDemandSignals(transcript, question),
+    depth: buildRequestDepth(transcript, question, tier),
   };
 
   // Build fallback chain based on preference
@@ -765,6 +825,7 @@ export async function streamFeedback(
     enginePreference,
     ...buildDemandIdentity(question),
     demandSignals: buildDemandSignals(transcript, question),
+    depth: buildRequestDepth(transcript, question, classifyTier(transcript)),
   };
 
   let res: Response;
