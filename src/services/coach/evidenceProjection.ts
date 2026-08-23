@@ -247,7 +247,12 @@ function summarise(feedback: FeedbackV2): string {
     feedback.biggest_opportunity ||
     feedback.best_moment ||
     feedback.examiner?.oneLiner ||
-    `CEFR ${feedback.cefrLevel}, overall ${feedback.scores.overall}/10`
+    // docs Stage 4 item 7: cefrLevel is now optional (offline never fabricates
+    // one) — omit it from the summary rather than writing "CEFR undefined"
+    // into durable coach evidence text.
+    (feedback.cefrLevel
+      ? `CEFR ${feedback.cefrLevel}, overall ${feedback.scores.overall}/10`
+      : `Overall ${feedback.scores.overall}/10`)
   );
 }
 

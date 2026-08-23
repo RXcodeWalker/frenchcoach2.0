@@ -259,6 +259,42 @@ describe('buildEvidence', () => {
 // the old builder always used. This test locks that: the new snapshot must
 // never be *less* informative than the old score-only signal would have been.
 
+// docs Stage 4 item 7: cefrLevel is optional — offline never fabricates one.
+// evidenceProjection.ts:250's summarise() fallback must never write
+// "CEFR undefined" into durable evidence text when it's absent.
+describe('summarise() guards absent cefrLevel (docs Stage 4 item 7)', () => {
+  it('offline feedback with no cefrLevel and no other summary source: omits "CEFR" entirely, never "CEFR undefined"', () => {
+    const feedback = makeFeedback({
+      cefrLevel: undefined,
+      biggest_opportunity: undefined,
+      best_moment: undefined,
+      examiner: undefined,
+      issues: [],
+    });
+    const [event] = buildEvidence({
+      sessionId: 's1', question: null, feedback, avoidanceSignals: [],
+      transcript: 'transcript', finalScore: 6, mode: 'practice',
+    });
+    expect(event.observation.feedbackSummary).not.toMatch(/undefined/);
+    expect(event.observation.feedbackSummary).toContain('Overall 6/10');
+  });
+
+  it('still uses cefrLevel in the summary when present', () => {
+    const feedback = makeFeedback({
+      cefrLevel: 'B1',
+      biggest_opportunity: undefined,
+      best_moment: undefined,
+      examiner: undefined,
+      issues: [],
+    });
+    const [event] = buildEvidence({
+      sessionId: 's1', question: null, feedback, avoidanceSignals: [],
+      transcript: 'transcript', finalScore: 6, mode: 'practice',
+    });
+    expect(event.observation.feedbackSummary).toBe('CEFR B1, overall 6/10');
+  });
+});
+
 describe('characterization: belief snapshot is same-or-richer post-Phase-2', () => {
   function prePhase2Success(finalScore: number): boolean {
     return finalScore >= 7;

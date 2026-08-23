@@ -124,6 +124,10 @@ export function Learn() {
   // call — belt-and-braces alongside AbortController so a race can never write stale
   // state even if an abort signal is slow to land.
   const attemptIdRef = useRef(0);
+  // Guards _finalizeAnswer against being called twice for the same attempt (e.g. a
+  // fatal stream `error` event racing the fallback path) — awarding XP/dispatching
+  // ADD_SESSION twice for one spoken answer would double-count it.
+  const finalizedAttemptIdRef = useRef(0);
 
   const recording = useRecording();
 
@@ -278,6 +282,7 @@ export function Learn() {
 
   // Not memoized — called only from handleStopRecording
   const _finalizeAnswer = (
+    attemptId: number,
     fb: FeedbackV2,
     transcript: string,
     elapsed: number,
@@ -285,6 +290,10 @@ export function Learn() {
     skillContext: ReturnType<typeof buildSkillContext>,
   ) => {
     if (!activeSession || !currentQuestion) return;
+    // A fatal stream `error` (falling through to getAIFeedback) can race a late
+    // onComplete for the same attempt — finalize it exactly once.
+    if (finalizedAttemptIdRef.current === attemptId) return;
+    finalizedAttemptIdRef.current = attemptId;
 
     // Apply avoidance signals
     if (avoidanceSignals.length > 0 && !fb.avoidanceReport?.length) {
@@ -550,9 +559,10 @@ export function Learn() {
       setPartialFeedback(null);
       try {
         const fb = await getAIFeedback(transcript, currentQuestion, skillContext, undefined, selectedEngine, selectedDifficulty);
-        _finalizeAnswer(fb, transcript, elapsed, avoidanceSignals, skillContext);
+        _finalizeAnswer(myAttemptId, fb, transcript, elapsed, avoidanceSignals, skillContext);
       } catch (fallbackErr) {
         console.warn('[Learn] offline feedback unavailable:', fallbackErr);
+        if (myAttemptId !== attemptIdRef.current) return;
         setIsLoadingFeedback(false);
         setFeedbackErrorMessage('Could not get feedback for that answer. Check your connection and try again.');
         setLearnState('question');
@@ -560,10 +570,40 @@ export function Learn() {
       return;
     }
 
+    // Shared by the stream's fatal onError and its outer catch (network/parse
+    // failure before any stream could even start) — both mean "the stream will
+    // never produce a complete event for this attempt", so both fall back to
+    // the non-streaming endpoint and, on total failure, an honest error.
+    // Stage 4 item 8: the backend no longer fabricates offline feedback on a
+    // fatal stream error (previously an `error` event was immediately followed
+    // by a synthesized `complete`); the stream now ends on `error` alone, so
+    // this fallback is what turns that into a real result instead of a
+    // permanently loading spinner.
+    const fallBackToNonStreaming = async (reason: unknown) => {
+      console.warn('[Stream] falling back to getAIFeedback:', reason);
+      if (myAttemptId !== attemptIdRef.current) return;
+      setIsLoadingFeedback(true);
+      setPartialFeedback(null);
+      try {
+        const fb = await getAIFeedback(transcript, currentQuestion, skillContext, undefined, selectedEngine, selectedDifficulty);
+        _finalizeAnswer(myAttemptId, fb, transcript, elapsed, avoidanceSignals, skillContext);
+      } catch (fallbackErr) {
+        // E1: total failure — no real feedback exists. Show an honest error and let the
+        // candidate retry, rather than inventing a score that flows into XP/achievements/
+        // the coach loop as if it were a real assessment.
+        console.warn('[Learn] feedback unavailable:', fallbackErr);
+        if (myAttemptId !== attemptIdRef.current) return;
+        setIsLoadingFeedback(false);
+        setFeedbackErrorMessage('Could not get feedback for that answer. Check your connection and try again.');
+        setLearnState('question');
+      }
+    };
+
     const t0 = Date.now();
     let tFirstChunk = 0;
     let tFirstCard = 0;
     let sectionsStreamed = false;
+    let streamSettled = false;
 
     try {
       await streamFeedback(
@@ -590,6 +630,7 @@ export function Learn() {
             setPartialFeedback(data as Partial<FeedbackV2>);
           },
           onComplete: (fb) => {
+            streamSettled = true;
             const tComplete = Date.now();
             track({
               name: 'feedback_stream_timing',
@@ -601,31 +642,29 @@ export function Learn() {
                 sections_streamed: sectionsStreamed,
               },
             });
-            _finalizeAnswer(fb, transcript, elapsed, avoidanceSignals, skillContext);
+            _finalizeAnswer(myAttemptId, fb, transcript, elapsed, avoidanceSignals, skillContext);
           },
           onError: (msg) => {
-            console.warn('[Stream] section error:', msg);
+            // Every server-emitted `error` event is now terminal by construction
+            // (Stage 4 item 8) — no `complete` will follow it in this stream —
+            // so this always means "fall back", never "log and keep waiting".
+            streamSettled = true;
+            void fallBackToNonStreaming(msg);
           },
         },
       );
     } catch (err) {
       if ((err as Error).name === 'AbortError') return;
-      // Fallback to non-streaming path
-      console.warn('[Stream] falling back to getAIFeedback:', err);
-      setIsLoadingFeedback(true);
-      setPartialFeedback(null);
-      try {
-        const fb = await getAIFeedback(transcript, currentQuestion, skillContext, undefined, selectedEngine, selectedDifficulty);
-        _finalizeAnswer(fb, transcript, elapsed, avoidanceSignals, skillContext);
-      } catch (fallbackErr) {
-        // E1: total failure — no real feedback exists. Show an honest error and let the
-        // candidate retry, rather than inventing a score that flows into XP/achievements/
-        // the coach loop as if it were a real assessment.
-        console.warn('[Learn] feedback unavailable:', fallbackErr);
-        setIsLoadingFeedback(false);
-        setFeedbackErrorMessage('Could not get feedback for that answer. Check your connection and try again.');
-        setLearnState('question');
-      }
+      streamSettled = true;
+      await fallBackToNonStreaming(err);
+      return;
+    }
+
+    // Backstop: the stream resolved without onComplete or onError ever firing
+    // (e.g. the connection closed with no NDJSON lines at all) — a resolved
+    // stream must never leave the screen stuck on a loading spinner.
+    if (!streamSettled && myAttemptId === attemptIdRef.current) {
+      await fallBackToNonStreaming(new Error('Stream ended with no result'));
     }
   };
 

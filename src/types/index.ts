@@ -134,7 +134,13 @@ export interface Feedback {
   style: { label: string; suggestion: string }[];
   fillers: { word: string; count: number }[];
   wordCount: number;
-  cefrLevel: string;
+  /**
+   * Optional (docs Stage 4 item 7) — offline never fabricates a level (was
+   * hardcoded 'A2'/'A1'). The online zod schema (feedbackSchema.ts) still
+   * requires it: the backend always `setdefault`s it, so no validation
+   * failure or fallback loop is possible from this relaxation.
+   */
+  cefrLevel?: string;
 }
 
 export interface Session {

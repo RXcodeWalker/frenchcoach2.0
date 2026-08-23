@@ -34,7 +34,7 @@ export function FeedbackPanel({ feedback, isLoading, onRetry, onComplete }: Prop
       <div className="rounded-xl glass-elevated p-5">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-bold text-white text-sm">Results</h3>
-          <span className="text-[9px] text-slate-600">{feedback.wordCount} words / {feedback.cefrLevel}</span>
+          <span className="text-[9px] text-slate-600">{feedback.wordCount} words{feedback.cefrLevel ? ` / ${feedback.cefrLevel}` : ''}</span>
         </div>
         {isUnscored(feedback) ? (
           <div>

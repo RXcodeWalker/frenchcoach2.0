@@ -46,7 +46,8 @@ export function buildTier0Result(): FeedbackV2 {
     style: [],
     fillers: [],
     wordCount: 0,
-    cefrLevel: 'A1',
+    // No cefrLevel (docs Stage 4 item 7) — an empty/near-empty response gives
+    // no evidence to honestly assign even a floor level.
     schemaVersion: 2,
     issues: [],
     avoidanceReport: [],
@@ -72,7 +73,7 @@ export function buildTier1LocalResult(transcript: string): FeedbackV2 {
     style: [],
     fillers: [],
     wordCount,
-    cefrLevel: 'A1',
+    // No cefrLevel (docs Stage 4 item 7) — same reasoning as tier 0.
     schemaVersion: 2,
     issues: [],
     avoidanceReport: [],
