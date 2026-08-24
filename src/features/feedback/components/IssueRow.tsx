@@ -7,9 +7,10 @@ import { TeachMeLesson } from './TeachMeLesson';
 interface Props {
   issue: CoachingIssue;
   isSelected?: boolean;
+  lessonDefaultOpen?: boolean;
 }
 
-export function IssueRow({ issue, isSelected }: Props) {
+export function IssueRow({ issue, isSelected, lessonDefaultOpen }: Props) {
   const bg = SEVERITY_BG[issue.severity] ?? '';
   return (
     <div className={`rounded-lg border p-3 ${bg} ${isSelected ? 'ring-1 ring-violet-400/40' : ''}`}>
@@ -77,7 +78,7 @@ export function IssueRow({ issue, isSelected }: Props) {
       )}
 
       {/* Prefer mini_lesson (new backend) over teachMe (offline legacy) */}
-      <TeachMeLesson mini_lesson={issue.mini_lesson} teachMe={issue.teachMe} />
+      <TeachMeLesson mini_lesson={issue.mini_lesson} teachMe={issue.teachMe} defaultOpen={lessonDefaultOpen} />
     </div>
   );
 }

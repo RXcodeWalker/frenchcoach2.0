@@ -3,9 +3,10 @@ import { CollapsibleCard } from '../../../components/ui/CollapsibleCard';
 
 interface Props {
   ideas?: string[];
+  defaultOpen?: boolean;
 }
 
-export function ExpansionIdeasCard({ ideas }: Props) {
+export function ExpansionIdeasCard({ ideas, defaultOpen = false }: Props) {
   if (!ideas?.length) return null;
 
   return (
@@ -13,7 +14,7 @@ export function ExpansionIdeasCard({ ideas }: Props) {
       title="How To Extend Your Answer"
       icon={<Lightbulb size={13} className="text-teal-400" />}
       badgeCount={ideas.length}
-      defaultOpen={false}
+      defaultOpen={defaultOpen}
       className="border border-teal-500/10"
     >
       <div className="space-y-2">

@@ -8,9 +8,10 @@ interface Props {
   issues: CoachingIssue[];
   polishIssues?: CoachingIssue[];
   feedback: FeedbackV2;
+  lessonsDefaultOpen?: boolean;
 }
 
-export function CorrectionsCard({ issues, polishIssues = [], feedback }: Props) {
+export function CorrectionsCard({ issues, polishIssues = [], feedback, lessonsDefaultOpen }: Props) {
   const { state } = useFeedbackContext();
   const highlighted = state.highlightedCardId === 'corrections';
 
@@ -50,7 +51,7 @@ export function CorrectionsCard({ issues, polishIssues = [], feedback }: Props) 
         >
           {criticalV2.length > 0
             ? criticalV2.map(issue => (
-                <IssueRow key={issue.id} issue={issue} isSelected={state.selectedIssueId === issue.id} />
+                <IssueRow key={issue.id} issue={issue} isSelected={state.selectedIssueId === issue.id} lessonDefaultOpen={lessonsDefaultOpen} />
               ))
             : legacyCritical.map((err, i) => (
                 <div key={i} className="p-2.5 rounded-lg bg-red-500/5 border border-red-500/10 mb-1.5">

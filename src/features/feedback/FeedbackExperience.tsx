@@ -6,7 +6,8 @@ import { stagger } from '../../components/motion/variants';
 import { FeedbackProvider } from './state/feedbackContext';
 import { useFeedbackState } from './hooks/useFeedbackState';
 import { SnapshotCard } from './components/SnapshotCard';
-import { AnnotatedTranscript } from './components/AnnotatedTranscript';
+import { MarkedUpScript } from './components/MarkedUpScript';
+import { BeforeAfterDiff } from './components/BeforeAfterDiff';
 import { StrongestMomentCard } from './components/StrongestMomentCard';
 import { BiggestOpportunityCard } from './components/BiggestOpportunityCard';
 import { ImprovedAnswerCard } from './components/ImprovedAnswerCard';
@@ -21,6 +22,7 @@ import { MinimalResponseCard } from './components/MinimalResponseCard';
 import { OfflineLimitationsBanner } from '../../screens/learn/OfflineLimitationsBanner';
 import { FailoverBadge } from '../../screens/learn/FailoverBadge';
 import { ReEvaluateBar } from '../../screens/learn/ReEvaluateBar';
+import { selectCardPlan } from './state/selectors';
 import type { FeedbackV2, AIEngine, EngineResult } from '../../types';
 import type { PronunciationAssessment } from '../../domain/pronunciation/types';
 
@@ -77,6 +79,7 @@ function FeedbackContent({
   onReEvaluate, onSwitchEngine, pronunciationResult, pronunciationStatus,
 }: Omit<Props, 'isLoading' | 'feedback'> & { feedback: FeedbackV2 }) {
   const { majorIssues, polishIssues, openCardFromIssue } = useFeedbackState(feedback);
+  const cardPlan = selectCardPlan(feedback);
 
   if (feedback.responseTier === 0 || feedback.responseTier === 1) {
     return (
@@ -119,12 +122,23 @@ function FeedbackContent({
         formattedTranscript={feedback.formatted_transcript}
       />
 
-      {/* Annotated transcript — clickable error highlighting */}
+      {/* Marked-up transcript — clickable error highlighting */}
       {transcript && (
-        <AnnotatedTranscript
+        <MarkedUpScript
           transcript={transcript}
           feedback={feedback}
           onIssueClick={openCardFromIssue}
+        />
+      )}
+
+      {/* Deterministic word-level diff, falling back to a "Safe corrections"
+          list when there's no complete improved_answer to diff against. */}
+      {transcript && (
+        <BeforeAfterDiff
+          transcript={transcript}
+          improvedAnswer={feedback.improved_answer}
+          changes={feedback.changes}
+          issues={majorIssues}
         />
       )}
 
@@ -133,13 +147,18 @@ function FeedbackContent({
         issues={majorIssues}
         polishIssues={polishIssues}
         feedback={feedback}
+        lessonsDefaultOpen={cardPlan.lessonsDefaultOpen}
       />
 
-      {/* How to extend — expansion ideas (collapsed) */}
-      <ExpansionIdeasCard ideas={feedback.expansion_ideas} />
+      {/* How to extend — expansion ideas, adaptive to depth */}
+      {cardPlan.showExpansionIdeas && (
+        <ExpansionIdeasCard ideas={feedback.expansion_ideas} defaultOpen={cardPlan.lessonsDefaultOpen} />
+      )}
 
-      {/* Advanced version (collapsed) */}
-      <AdvancedAnswerCard advancedAnswer={feedback.advanced_answer} />
+      {/* Advanced version, adaptive to depth */}
+      {cardPlan.showAdvancedAnswer && (
+        <AdvancedAnswerCard advancedAnswer={feedback.advanced_answer} defaultOpen={cardPlan.lessonsDefaultOpen} />
+      )}
 
       {/* Vocabulary upgrades */}
       <VocabularyCard feedback={feedback} />

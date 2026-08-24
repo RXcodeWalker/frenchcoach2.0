@@ -398,6 +398,7 @@ function mergeV2Fields(base: FeedbackV2, raw: BackendFeedbackV2): FeedbackV2 {
     return {
       ...base,
       schemaVersion: raw.schemaVersion,
+      effectiveDepth: raw.effectiveDepth,
       examiner: raw.examiner,
       topPriorityIssueId: raw.topPriorityIssueId,
       strongestMomentSpan: raw.strongestMomentSpan,

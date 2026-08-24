@@ -6,10 +6,11 @@ import type { TeachMe, MiniLesson } from '../../../types';
 interface Props {
   teachMe?: TeachMe;
   mini_lesson?: MiniLesson;
+  defaultOpen?: boolean;
 }
 
-export function TeachMeLesson({ teachMe, mini_lesson }: Props) {
-  const [open, setOpen] = useState(false);
+export function TeachMeLesson({ teachMe, mini_lesson, defaultOpen = false }: Props) {
+  const [open, setOpen] = useState(defaultOpen);
 
   // Prefer mini_lesson (new backend) over teachMe (offline / legacy)
   const hasLesson = !!(mini_lesson || teachMe);

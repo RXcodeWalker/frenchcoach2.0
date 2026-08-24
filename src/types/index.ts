@@ -569,6 +569,15 @@ export interface FeedbackV2 extends Feedback {
   schemaVersion?: 2 | 3;
   /** Short hash of the canonical transcript this response was produced from (docs Stage 1, finding A0) — spans computed against a different transcript must be dropped, never rebased. */
   transcriptHash?: string;
+  /**
+   * The feedback depth actually applied to this response (docs Stage 5) —
+   * not the client's requested hint (see src/domain/learn/feedback/computeDepth.ts).
+   * The server clamps depth to its own ceiling, so a request for 'deep' can
+   * come back 'standard'; the card-plan selector must read this field, never
+   * recompute the pre-clamp request. Absent on an old backend — the selector
+   * degrades to a data-shape-only plan rather than guessing.
+   */
+  effectiveDepth?: 'brief' | 'standard' | 'deep';
   avoidanceReport?: AvoidanceReportEntry[];
   skillContextUsed?: boolean;
   provider?: string;

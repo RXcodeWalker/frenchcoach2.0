@@ -3,16 +3,17 @@ import { CollapsibleCard } from '../../../components/ui/CollapsibleCard';
 
 interface Props {
   advancedAnswer?: string;
+  defaultOpen?: boolean;
 }
 
-export function AdvancedAnswerCard({ advancedAnswer }: Props) {
+export function AdvancedAnswerCard({ advancedAnswer, defaultOpen = false }: Props) {
   if (!advancedAnswer) return null;
 
   return (
     <CollapsibleCard
       title="Higher-Level Version"
       icon={<Rocket size={13} className="text-purple-400" />}
-      defaultOpen={false}
+      defaultOpen={defaultOpen}
       className="border border-purple-500/10"
     >
       <div className="space-y-2">

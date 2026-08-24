@@ -150,6 +150,12 @@ export const BackendFeedbackSchema = z.object({
   // client drop any span computed against a transcript it didn't render.
   schemaVersion:   z.number().optional(),
   transcriptHash:  z.string().optional(),
+  // The depth actually applied to this response (docs Stage 5), not the
+  // client's requested hint — set server-side by _apply_depth_item_caps
+  // after any clamping. Absent on an old backend; the client's card-plan
+  // selector must fall back to data-shape only, never recompute the
+  // pre-clamp request.
+  effectiveDepth:  z.enum(['brief', 'standard', 'deep']).optional(),
 
   // corrections[]/quoteSpans[] (docs Stage 2) — .catch([]) so a malformed
   // list degrades to "no rich corrections this response" rather than

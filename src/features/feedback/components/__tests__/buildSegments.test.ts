@@ -6,7 +6,7 @@
 // correctness property).
 
 import { describe, it, expect } from 'vitest';
-import { buildSegments } from '../AnnotatedTranscript';
+import { buildSegments } from '../MarkedUpScript';
 import type { FeedbackV2, TranscriptSpan } from '../../../../types';
 
 function feedbackWithAnnotations(annotations: TranscriptSpan[]): FeedbackV2 {

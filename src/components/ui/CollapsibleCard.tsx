@@ -1,6 +1,7 @@
 import { useState, useId, type ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
+import { fadeUp } from '../motion/variants';
 
 interface Props {
   title: string;
@@ -24,7 +25,8 @@ export function CollapsibleCard({
   const isOpen = forceOpen ?? open;
 
   return (
-    <div
+    <motion.div
+      variants={fadeUp}
       className={`rounded-xl glass overflow-hidden transition-shadow duration-300 ${highlight ? 'ring-1 ring-violet-400/60' : ''} ${className}`}
     >
       <button
@@ -61,6 +63,6 @@ export function CollapsibleCard({
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </motion.div>
   );
 }
