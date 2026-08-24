@@ -114,6 +114,17 @@ export function isAuthored(id: string): boolean {
   return id in AUTHORED_ENTRIES;
 }
 
+/**
+ * Whether a tree node can be entered right now. Stage 3: unlocked (today's
+ * static EXPLORE_TREE literal) AND authored (this registry). Stage 8 grows
+ * this into the real derived-progress selector (dependency ratios replacing
+ * the static `unlocked` literal) — call sites are meant to stay unchanged
+ * when that happens, only this function's body grows.
+ */
+export function isPlayable(nodeId: string, unlocked: boolean): boolean {
+  return unlocked && isAuthored(nodeId);
+}
+
 export function getScenario(id: string): ScenarioEntry | undefined {
   return REGISTRY[id as ScenarioId];
 }

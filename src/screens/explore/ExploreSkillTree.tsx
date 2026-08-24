@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Lock, CheckCircle2, Star, Compass } from 'lucide-react';
 import { EXPLORE_TREE, TreeNode } from '../../data/exploreTree';
+import { isPlayable } from '../../data/scenarios/registry';
 
 export function ExploreSkillTree() {
   return (
@@ -61,6 +62,7 @@ export function ExploreSkillTree() {
 
 function SkillNode({ node }: { node: TreeNode }) {
   const navigate = useNavigate();
+  const playable = isPlayable(node.id, node.unlocked);
   const colors = [
     'from-violet-600 to-indigo-700',
     'from-emerald-600 to-teal-700',
@@ -73,21 +75,21 @@ function SkillNode({ node }: { node: TreeNode }) {
   return (
     <div className="flex flex-col items-center group relative">
        <motion.button
-        onClick={() => node.unlocked && navigate('/story-mode')}
+        onClick={() => playable && navigate(`/scenario/${node.id}`)}
         className={`relative w-24 h-24 md:w-28 md:h-28 rounded-full flex items-center justify-center transition-all duration-300 z-10 ${
-          node.unlocked 
-            ? `bg-gradient-to-br ${colorClass} shadow-[0_0_30px_rgba(0,0,0,0.3)] border-4 border-white/10` 
+          playable
+            ? `bg-gradient-to-br ${colorClass} shadow-[0_0_30px_rgba(0,0,0,0.3)] border-4 border-white/10`
             : 'bg-navy-300 border-4 border-white/5 opacity-40 cursor-not-allowed'
         }`}
-        whileHover={node.unlocked ? { scale: 1.1, y: -5, rotate: 5 } : {}}
-        whileTap={node.unlocked ? { scale: 0.95 } : {}}
+        whileHover={playable ? { scale: 1.1, y: -5, rotate: 5 } : {}}
+        whileTap={playable ? { scale: 0.95 } : {}}
        >
          {/* Inner Glow */}
-         {node.unlocked && (
+         {playable && (
            <div className="absolute inset-0 rounded-full bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
          )}
 
-         {node.unlocked ? (
+         {playable ? (
            <div className="flex flex-col items-center">
              <span className="text-4xl md:text-5xl drop-shadow-lg">{node.icon}</span>
            </div>
@@ -96,7 +98,7 @@ function SkillNode({ node }: { node: TreeNode }) {
          )}
 
          {/* Progress Ring */}
-         {node.unlocked && (
+         {playable && (
            <svg className="absolute -inset-1 -rotate-90 w-[calc(100%+8px)] h-[calc(100%+8px)] overflow-visible pointer-events-none">
              <circle
                cx="50%" cy="50%" r="48%"
@@ -112,7 +114,7 @@ function SkillNode({ node }: { node: TreeNode }) {
          )}
 
          {/* Completed Badge */}
-         {node.mastery === 100 && (
+         {playable && node.mastery === 100 && (
            <motion.div 
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
@@ -125,18 +127,18 @@ function SkillNode({ node }: { node: TreeNode }) {
 
        {/* Label */}
        <div className="mt-4 text-center">
-         <h4 className={`text-xs font-black uppercase tracking-wider ${node.unlocked ? 'text-white' : 'text-slate-500'}`}>
+         <h4 className={`text-xs font-black uppercase tracking-wider ${playable ? 'text-white' : 'text-slate-500'}`}>
            {node.title}
          </h4>
          <p className="text-[9px] text-slate-400 font-black mt-0.5">{node.category}</p>
-         
-         {node.unlocked && (
+
+         {playable && (
            <div className="flex gap-1 justify-center mt-2">
              {[1, 2, 3].map(star => (
-               <Star 
-                key={star} 
-                size={10} 
-                className={`${node.mastery >= (star * 33) ? 'text-yellow-400 fill-yellow-400' : 'text-slate-800'} transition-colors`} 
+               <Star
+                key={star}
+                size={10}
+                className={`${node.mastery >= (star * 33) ? 'text-yellow-400 fill-yellow-400' : 'text-slate-800'} transition-colors`}
                />
              ))}
            </div>
@@ -147,6 +149,13 @@ function SkillNode({ node }: { node: TreeNode }) {
        {!node.unlocked && node.dependencies.length > 0 && (
          <div className="absolute top-0 -mt-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-navy-200 border border-white/10 px-2 py-1 rounded text-[8px] font-bold text-slate-400 whitespace-nowrap z-30">
            REQUIRES: {node.dependencies.join(', ').toUpperCase()}
+         </div>
+       )}
+
+       {/* Coming Soon Tooltip (unlocked but not yet authored) */}
+       {node.unlocked && !playable && (
+         <div className="absolute top-0 -mt-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-navy-200 border border-white/10 px-2 py-1 rounded text-[8px] font-bold text-slate-400 whitespace-nowrap z-30">
+           COMING SOON
          </div>
        )}
     </div>

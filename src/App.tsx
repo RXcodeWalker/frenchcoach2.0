@@ -36,6 +36,7 @@ import { FluencyHeatmap } from './screens/FluencyHeatmap';
 import { StoryMode } from './screens/StoryMode';
 import { ScenarioArchitect } from './screens/ScenarioArchitect';
 import { ScenarioArchitectSession } from './screens/ScenarioArchitectSession';
+import { RoleplaySession } from './screens/RoleplaySession';
 import { WordDrop } from './screens/WordDrop';
 import { MasteryJourney } from './screens/MasteryJourney';
 import { BossBattle } from './screens/BossBattle';
@@ -299,6 +300,7 @@ function AppShell() {
             </ComingSoonGate>
           } />
           <Route path="/story-mode" element={<StoryMode />} />
+          <Route path="/scenario/:scenarioId" element={<RoleplaySession />} />
           <Route path="/scenario-architect" element={<ScenarioArchitect />} />
           <Route path="/scenario-architect/session" element={<ScenarioArchitectSession />} />
           <Route path="/word-drop" element={
