@@ -13,6 +13,7 @@ interface AuthContextValue {
   signOut: () => Promise<void>;
   resetPasswordForEmail: (email: string) => Promise<void>;
   updateUserPassword: (newPassword: string) => Promise<void>;
+  signInWithOAuth: (provider: 'google' | 'azure') => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -95,11 +96,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw new Error(translateError(error));
   }
 
+  async function signInWithOAuth(provider: 'google' | 'azure') {
+    if (!supabaseConfigured) throw new Error('App is not configured.');
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    });
+    if (error) throw new Error(translateError(error));
+  }
+
   const isAdmin =
     (user?.app_metadata as { role?: string } | undefined)?.role === 'admin';
 
   return (
-    <AuthContext.Provider value={{ user, session, isAdmin, loading, configError: false, signIn, signUp, signOut, resetPasswordForEmail, updateUserPassword }}>
+    <AuthContext.Provider value={{ user, session, isAdmin, loading, configError: false, signIn, signUp, signOut, resetPasswordForEmail, updateUserPassword, signInWithOAuth }}>
       {children}
     </AuthContext.Provider>
   );
