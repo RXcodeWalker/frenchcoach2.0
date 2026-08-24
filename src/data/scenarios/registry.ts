@@ -33,6 +33,30 @@ interface ScenarioEntry {
 }
 
 /**
+ * Handoff note for Stage 4 (session reducer — not built yet):
+ *
+ * `OfflineScenarioState.memory` (e.g. hairdresser's `set_balayage` node
+ * carrying `memory: { service: 'Balayage' }`) has nowhere to land in the
+ * reducer state shape sketched in the plan
+ * (`{ scenarioId, branchId, currentState, outcomes[], slots{}, turnIndex,
+ * misfireCount, phase, rngSeed }`). It needs a `memory: Record<string,
+ * unknown>` accumulator alongside `slots{}`:
+ *   - a node's `memory` object is shallow-merged into the accumulator on
+ *     state entry
+ *   - later entries overwrite earlier keys on collision
+ *   - the accumulator is session-scoped only — it must never be written
+ *     back into the frozen graph (registry invariant #1)
+ *
+ * Open question Stage 4 still has to answer: is `memory` purely
+ * presentational (prompt interpolation, e.g. `go_to_cashier`'s
+ * `{price}`, and the debrief screen), or should it become a mission
+ * condition type (`{ kind: 'memory'; key; equals }` or similar)? It is
+ * currently neither — hairdresser's `set_*` nodes are the only evidence
+ * either way, and Stage 1 deliberately does not decide this; adding a
+ * condition type is a plan change, not an implementation detail.
+ */
+
+/**
  * Every scenario id known to the tree. Only `bakery` and `hairdresser` are
  * authored in Stage 1 (reference implementations — bakery for a shallow
  * multi-mission branch, hairdresser for deep branching + slot conditions +
