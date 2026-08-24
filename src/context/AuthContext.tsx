@@ -11,6 +11,8 @@ interface AuthContextValue {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<{ needsConfirmation: boolean }>;
   signOut: () => Promise<void>;
+  resetPasswordForEmail: (email: string) => Promise<void>;
+  updateUserPassword: (newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -79,11 +81,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
   }
 
+  async function resetPasswordForEmail(email: string) {
+    if (!supabaseConfigured) throw new Error('App is not configured.');
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/callback`,
+    });
+    if (error) throw new Error(translateError(error));
+  }
+
+  async function updateUserPassword(newPassword: string) {
+    if (!supabaseConfigured) throw new Error('App is not configured.');
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) throw new Error(translateError(error));
+  }
+
   const isAdmin =
     (user?.app_metadata as { role?: string } | undefined)?.role === 'admin';
 
   return (
-    <AuthContext.Provider value={{ user, session, isAdmin, loading, configError: false, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, session, isAdmin, loading, configError: false, signIn, signUp, signOut, resetPasswordForEmail, updateUserPassword }}>
       {children}
     </AuthContext.Provider>
   );

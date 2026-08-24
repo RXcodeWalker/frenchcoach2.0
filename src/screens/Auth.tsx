@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { useGuestMode } from '../hooks/useGuestMode';
 
 export function Auth() {
-  const { signIn, signUp, configError } = useAuth();
+  const { signIn, signUp, resetPasswordForEmail, configError } = useAuth();
   const { isGuest, enterGuestMode, exitGuestMode } = useGuestMode();
   const navigate = useNavigate();
   const location = useLocation();
@@ -21,6 +21,9 @@ export function Auth() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [needsConfirmation, setNeedsConfirmation] = useState(false);
+  const [forgotPassword, setForgotPassword] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -60,6 +63,20 @@ export function Auth() {
 
   function handleCancelConversion() {
     navigate('/', { replace: true });
+  }
+
+  async function handleForgotPassword(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setResetLoading(true);
+    try {
+      await resetPasswordForEmail(email);
+      setResetSent(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
+    } finally {
+      setResetLoading(false);
+    }
   }
 
   return (
@@ -111,6 +128,69 @@ export function Auth() {
                 Back to login
               </button>
             </div>
+          ) : forgotPassword ? (
+            resetSent ? (
+              /* Password reset email sent notice */
+              <div className="flex flex-col items-center gap-3 py-4 text-center">
+                <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                  <CheckCircle size={20} className="text-emerald-400" />
+                </div>
+                <p className="font-semibold dark:text-white text-slate-900 text-sm">Check your inbox</p>
+                <p className="text-xs dark:text-slate-400 text-slate-500">We sent a password reset link to <strong>{email}</strong>.</p>
+                <button
+                  className="mt-2 text-xs text-violet-400 underline underline-offset-2"
+                  onClick={() => { setForgotPassword(false); setResetSent(false); }}
+                >
+                  Back to login
+                </button>
+              </div>
+            ) : (
+              /* Forgot password form */
+              <form onSubmit={handleForgotPassword} className="space-y-3">
+                <p className="text-xs dark:text-slate-400 text-slate-500 mb-1">Enter your email and we'll send you a link to reset your password.</p>
+                <div className="relative">
+                  <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 dark:text-slate-500 text-slate-400" />
+                  <input
+                    type="email"
+                    placeholder="Email address"
+                    autoComplete="email"
+                    required
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2.5 rounded-lg dark:bg-slate-800/60 bg-slate-100 dark:text-white text-slate-900 placeholder:dark:text-slate-600 placeholder:text-slate-400 border dark:border-white/6 border-slate-200 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500/50 transition-all"
+                  />
+                </div>
+
+                <AnimatePresence>
+                  {error && (
+                    <motion.div
+                      className="flex items-start gap-2 p-2.5 rounded-lg bg-red-500/10 border border-red-500/20"
+                      initial={{ opacity: 0, y: -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                    >
+                      <AlertCircle size={13} className="text-red-400 mt-0.5 shrink-0" />
+                      <p className="text-xs text-red-300">{error}</p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <button
+                  type="submit"
+                  disabled={resetLoading}
+                  className="w-full py-2.5 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-500 text-white text-xs font-bold shadow-[0_0_16px_rgba(124,58,237,0.3)] hover:shadow-[0_0_20px_rgba(124,58,237,0.5)] transition-all disabled:opacity-60 disabled:cursor-not-allowed mt-1"
+                >
+                  {resetLoading ? 'Sending…' : 'Send reset link'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setForgotPassword(false); setError(null); }}
+                  className="w-full text-center text-xs text-violet-400 underline underline-offset-2"
+                >
+                  Back to login
+                </button>
+              </form>
+            )
           ) : (
             <>
               {isGuestConversion && (
@@ -171,6 +251,16 @@ export function Auth() {
                     {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
                   </button>
                 </div>
+
+                {tab === 'login' && (
+                  <button
+                    type="button"
+                    onClick={() => { setForgotPassword(true); setError(null); }}
+                    className="block text-xs text-violet-400 underline underline-offset-2"
+                  >
+                    Forgot password?
+                  </button>
+                )}
 
                 {/* Confirm Password (signup only) */}
                 <AnimatePresence>

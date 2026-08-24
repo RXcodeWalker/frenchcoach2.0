@@ -7,7 +7,7 @@ import { ROUTES } from '../routes';
 // static shell once prerendering exists. Any addition must be deliberate —
 // this list is the only thing that can excuse a routes.ts entry from having
 // a matching <Route path> below.
-const UNREGISTERED_PATHS = ['/login'];
+const UNREGISTERED_PATHS = ['/login', '/auth/callback', '/reset-password'];
 
 function readAppTsx(): string {
   const path = fileURLToPath(new URL('../../App.tsx', import.meta.url));

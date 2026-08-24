@@ -4,6 +4,8 @@ import { Landing } from './screens/Landing';
 import { AboutPublic } from './screens/AboutPublic';
 import { IgcseFrenchSpeaking } from './screens/IgcseFrenchSpeaking';
 import { FrenchRoleplayPractice } from './screens/FrenchRoleplayPractice';
+import { AuthCallback } from './screens/AuthCallback';
+import { ResetPassword } from './screens/ResetPassword';
 
 // Rendered by AppShell's early return for a logged-out, non-guest visitor
 // (App.tsx). AppShell's auth check is itself an early return, so this tree
@@ -20,6 +22,8 @@ export function PublicRoutes() {
       <Route path="/igcse-french-speaking" element={<IgcseFrenchSpeaking />} />
       <Route path="/french-roleplay-practice" element={<FrenchRoleplayPractice />} />
       <Route path="/login" element={<Auth />} />
+      <Route path="/auth/callback" element={<AuthCallback />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="*" element={<Auth />} />
     </Routes>
   );
