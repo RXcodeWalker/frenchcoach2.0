@@ -89,13 +89,120 @@ export const STORAGE_KEYS = {
 
 export type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS];
 
+// ── Identity-scoped storage (auth overhaul plan §5/§6) ──────────────────────
+// Device-scoped keys are never namespaced by identity — shared across whoever
+// uses this browser. Everything else defaults to `${base}::${identity}`.
+const DEVICE_SCOPED = new Set<string>([
+  STORAGE_KEYS.darkMode,
+  STORAGE_KEYS.aiEngine,
+  STORAGE_KEYS.contentCache,
+  STORAGE_KEYS.newsCache,
+  STORAGE_KEYS.guestMode,
+  STORAGE_KEYS.featureFlagOverrides,
+  STORAGE_KEYS.featureInterest,
+  STORAGE_KEYS.localCounters,
+]);
+
+let activeScope: string | null = null;
+
+/** Pure in-memory assignment — no I/O, safe to call from anywhere. */
+export function setStorageScope(identity: string): void {
+  activeScope = identity;
+}
+
+function scopedKey(base: string): string {
+  if (activeScope === null || DEVICE_SCOPED.has(base)) return base;
+  return `${base}::${activeScope}`;
+}
+
+/**
+ * Effectful — must only be called from an effect (never render/a lazy
+ * initializer). Implements the ownership-aware legacy/guest copy rules
+ * (plan §6, rules 1 and 2). Additive-only: never deletes a source key, and
+ * every individual key copy is idempotent (skips keys already present at
+ * the destination), so a crash mid-loop is always safe to retry.
+ */
+export function prepareStorageScope(identity: string): void {
+  const claimMarkerKey = `frenchCoach_scopeClaimed::${identity}`;
+  if (localStorage.getItem(claimMarkerKey) === 'true') return;
+
+  const legacyRecord = (() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEYS.migrationV1);
+      return raw === null ? null : (JSON.parse(raw) as { userId?: string } | null);
+    } catch {
+      return null;
+    }
+  })();
+
+  const legacyOwner = legacyRecord?.userId ?? null;
+
+  // Rule 1: no recorded owner — legacy pool belongs to guest.
+  // Rule 2: a recorded owner — legacy pool belongs only to that specific account.
+  const shouldClaimLegacy =
+    (legacyOwner === null && identity === 'guest') || legacyOwner === identity;
+
+  if (shouldClaimLegacy) {
+    for (const base of Object.values(STORAGE_KEYS)) {
+      if (DEVICE_SCOPED.has(base)) continue;
+      const destKey = `${base}::${identity}`;
+      if (localStorage.getItem(destKey) !== null) continue;
+      const legacyValue = localStorage.getItem(base);
+      if (legacyValue === null) continue;
+      try {
+        localStorage.setItem(destKey, legacyValue);
+      } catch {
+        // quota exceeded or storage unavailable — degrade silently, never throw
+      }
+    }
+  }
+
+  try {
+    localStorage.setItem(claimMarkerKey, 'true');
+  } catch {
+    // storage unavailable — next load safely retries, every copy is idempotent
+  }
+}
+
+/**
+ * True if this identity has never had any identity-scoped key written on
+ * this device yet — the trigger condition for plan §6 rule 3 (guest → a
+ * real account's first sign-in).
+ */
+export function hasNoScopedDataYet(identity: string): boolean {
+  return Object.values(STORAGE_KEYS).every(
+    (base) => DEVICE_SCOPED.has(base) || localStorage.getItem(`${base}::${identity}`) === null,
+  );
+}
+
+/**
+ * Additive-only, idempotent copy of every identity-scoped key from ::guest
+ * into ::identity (plan §6 rule 3). Never deletes the ::guest source. The
+ * caller (AppContext's hydrateFromCloud) is responsible for only invoking
+ * this on a real account's first resolution — see hasNoScopedDataYet.
+ */
+export function copyGuestScopeToIdentity(identity: string): void {
+  for (const base of Object.values(STORAGE_KEYS)) {
+    if (DEVICE_SCOPED.has(base)) continue;
+    const destKey = `${base}::${identity}`;
+    if (localStorage.getItem(destKey) !== null) continue;
+    const guestValue = localStorage.getItem(`${base}::guest`);
+    if (guestValue === null) continue;
+    try {
+      localStorage.setItem(destKey, guestValue);
+    } catch {
+      // quota exceeded or storage unavailable — degrade silently, never throw
+    }
+  }
+}
+
 /**
  * JSON-safe localStorage read. Returns `fallback` on missing key, corrupt JSON,
  * or any storage error — never throws, never white-screens on boot.
  */
 export function storageGet<T>(key: string, fallback: T): T {
   try {
-    const raw = localStorage.getItem(key);
+    const raw = localStorage.getItem(scopedKey(key));
     if (raw === null) return fallback;
     return JSON.parse(raw) as T;
   } catch {
@@ -108,7 +215,7 @@ export function storageGet<T>(key: string, fallback: T): T {
  */
 export function storageSet(key: string, value: unknown): void {
   try {
-    localStorage.setItem(key, JSON.stringify(value));
+    localStorage.setItem(scopedKey(key), JSON.stringify(value));
   } catch {
     // quota exceeded or storage unavailable — degrade silently, never throw
   }
@@ -119,7 +226,7 @@ export function storageSet(key: string, value: unknown): void {
  */
 export function storageSetRaw(key: string, value: string): void {
   try {
-    localStorage.setItem(key, value);
+    localStorage.setItem(scopedKey(key), value);
   } catch {
     // quota exceeded or storage unavailable — degrade silently, never throw
   }
@@ -127,7 +234,7 @@ export function storageSetRaw(key: string, value: string): void {
 
 export function storageRemove(key: string): void {
   try {
-    localStorage.removeItem(key);
+    localStorage.removeItem(scopedKey(key));
   } catch {
     // storage unavailable — degrade silently, never throw
   }

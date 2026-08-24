@@ -24,8 +24,9 @@ import { DuelDetail } from './screens/DuelDetail';
 import { WeaknessAnalysis } from './screens/WeaknessAnalysis';
 import { SentenceRebuilder } from './screens/SentenceRebuilder';
 import { Onboarding } from './screens/Onboarding';
-import { getCoachProfile } from './services/coach/coachProfileService';
 import { useGuestMode } from './hooks/useGuestMode';
+import { IdentityScopeGate } from './components/IdentityScopeGate';
+import { OnboardingCheck } from './components/OnboardingCheck';
 
 import { RapidFire } from './screens/RapidFire';
 import { SpeedSpeaking } from './screens/SpeedSpeaking';
@@ -211,15 +212,14 @@ function AppShell() {
     return <PublicRoutes />;
   }
 
-  const coachProfile = getCoachProfile();
-  if (!coachProfile.onboardingComplete && location.pathname !== '/onboarding') {
-    return <Navigate to="/onboarding" replace />;
-  }
+  const identity = user?.id ?? 'guest';
 
   return (
-    <AppProvider>
-      <MigrationGate />
-      <Routes location={location}>
+    <IdentityScopeGate key={identity} identity={identity}>
+      <OnboardingCheck>
+        <AppProvider identity={identity}>
+          <MigrationGate />
+          <Routes location={location}>
         <Route element={<MainLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/learn" element={<Learn />} />
@@ -375,8 +375,10 @@ function AppShell() {
             <Route path="/admin/scenarios/:id/history" element={<VersionHistory kind="scenarios" />} />
           </Route>
         </Route>
-      </Routes>
-    </AppProvider>
+          </Routes>
+        </AppProvider>
+      </OnboardingCheck>
+    </IdentityScopeGate>
   );
 }
 

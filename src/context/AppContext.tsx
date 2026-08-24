@@ -10,8 +10,8 @@ import { validateAchievementRegistry } from '../data/achievements';
 import { getStats } from '../services/analytics/analyticsService';
 import { getProgressionState, awardGemsForXP, levelFor, setProgressionData } from '../services/progression/progressionService';
 import { getSkillProfile } from '../services/coaching/diagnosticEngine';
-import { STORAGE_KEYS, storageGet, storageSet, storageSetRaw } from '../services/persistence/storage';
-import { supabase } from '../lib/supabase';
+import { STORAGE_KEYS, storageGet, storageSet, storageSetRaw, hasNoScopedDataYet, copyGuestScopeToIdentity } from '../services/persistence/storage';
+import { useAuth } from './AuthContext';
 import { pushProgressionToCloud, pullProgressionFromCloud, mergeProgressionData, cloudDiffersFromMerged, markNeedsSync } from '../services/sync/progressionSync';
 import { hydrateSessionsFromCloud, pushSessionToCloud, backfillSessionsToCloud, flushPendingQueue } from '../services/sync/sessionSync';
 import { hydrateCoachFromCloud, backfillEvidenceToCloud, pushPendingEvidence } from '../services/sync/coachSync';
@@ -303,9 +303,9 @@ function reducer(state: AppState, action: Action): AppState {
 
 const AppContext = createContext<{ state: AppState; dispatch: React.Dispatch<Action>; authUser: User | null; migrationPhase: MigrationPhase | null; dismissMigration: () => void } | null>(null);
 
-export function AppProvider({ children }: { children: ReactNode }) {
+export function AppProvider({ identity, children }: { identity: string; children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, undefined, buildInitialState);
-  const [authUser, setAuthUser] = useState<User | null>(null);
+  const { user: authUser } = useAuth();
   const [migrationPhase, setMigrationPhase] = useState<MigrationPhase | null>(null);
   const hydrationComplete = useRef(false);
   const sessionHydrationInProgress = useRef(false);
@@ -347,6 +347,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     async function hydrateFromCloud(userId: string) {
       // Step 0: suppress incremental session pushes during hydration
       sessionHydrationInProgress.current = true;
+
+      // Step 0.25: guest → this account's first sign-in (plan §6 rule 3) —
+      // additive-only, one-time copy, ahead of the migration check below so
+      // hasMeaningfulLocalData() sees the inherited guest data.
+      if (hasNoScopedDataYet(userId)) {
+        copyGuestScopeToIdentity(userId);
+      }
 
       // Step 0.5: first-login migration gate
       // pullProgressionFromCloud is called once and shared with Step 1 below.
@@ -523,33 +530,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
       hydrationComplete.current = true;
     }
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      const user = session?.user ?? null;
-      setAuthUser(user);
-      if (user) {
-        Sentry.setUser({ id: user.id, email: user.email ?? undefined });
-        hydrationComplete.current = false;
-        await hydrateFromCloud(user.id);
-      } else {
-        Sentry.setUser(null);
-        hydrationComplete.current = true;
-      }
-    });
-
-    // Check current session on mount
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      const user = session?.user ?? null;
-      setAuthUser(user);
-      if (user) {
-        hydrationComplete.current = false;
-        hydrateFromCloud(user.id);
-      } else {
-        hydrationComplete.current = true;
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
+    if (identity !== 'guest') {
+      Sentry.setUser({ id: identity, email: authUser?.email ?? undefined });
+      hydrationComplete.current = false;
+      void hydrateFromCloud(identity);
+    } else {
+      Sentry.setUser(null);
+      hydrationComplete.current = true;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [identity]);
 
   // Debounced cloud save — fires 2s after XP/gems/achievements change, gated on hydration
   useEffect(() => {
