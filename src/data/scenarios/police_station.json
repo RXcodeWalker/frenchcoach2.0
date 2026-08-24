@@ -8,7 +8,7 @@
     "intents": {
       "theft": "ask_theft_details",
       "loss": "ask_loss_details",
-      "complaint": "ask_complaint_subject",
+      "complaint": "complaint_subject",
       "noise": "ask_noise_complaint",
       "accident": "ask_accident_witness",
       "pet": "ask_lost_pet",
@@ -22,6 +22,14 @@
       "missing_person": "missing_person_start",
       "holiday_peace": "operation_tranquillite_vacances"
     }
+  },
+  "complaint_subject": {
+    "prompt": [
+      "Quel est l'objet de votre plainte ? Contre une personne connue ou inconnue ?",
+      "Pouvez-vous préciser ce qui s'est passé et à quelle date ?"
+    ],
+    "capture": "complaint_details",
+    "next": "ask_id"
   },
   "operation_tranquillite_vacances": {
     "prompt": [

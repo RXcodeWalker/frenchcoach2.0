@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Volume2 } from 'lucide-react';
+import { TTS } from '../../services/tts/ttsService';
 
 interface VocabItem {
   fr: string;
@@ -34,10 +35,10 @@ export const FlashcardDeck: React.FC<FlashcardDeckProps> = ({ items }) => {
 
   const speak = (e: React.MouseEvent, text: string) => {
     e.stopPropagation();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'fr-FR';
-    window.speechSynthesis.speak(utterance);
+    TTS.speak(text);
   };
+
+  if (items.length === 0) return null;
 
   return (
     <div className="flex flex-col items-center gap-8 py-4">
@@ -48,16 +49,17 @@ export const FlashcardDeck: React.FC<FlashcardDeckProps> = ({ items }) => {
           animate={{ rotateY: isFlipped ? 180 : 0 }}
           transition={{ duration: 0.6, type: "spring", stiffness: 260, damping: 20 }}
           onClick={() => setIsFlipped(!isFlipped)}
-          style={{ transformStyle: 'preserve-3d' }}
+          style={{ transformStyle: 'preserve-3d', WebkitTransformStyle: 'preserve-3d' } as React.CSSProperties}
         >
           {/* Front Side */}
-          <div 
+          <div
             className="absolute inset-0 bg-gradient-to-br from-violet-600 to-indigo-700 rounded-[2.5rem] flex flex-col items-center justify-center p-8 text-center shadow-2xl backface-hidden"
+            style={{ transform: 'rotateY(0deg)' }}
           >
             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-violet-200 mb-4 opacity-60">French</span>
             <h2 className="text-3xl font-black text-white italic tracking-tighter mb-4">{currentItem?.fr}</h2>
-            <button 
-              onClick={(e) => speak(e, currentItem?.fr)}
+            <button
+              onClick={(e) => speak(e, currentItem?.fr ?? '')}
               className="p-3 bg-white/10 rounded-full text-white hover:bg-white/20 transition-all"
             >
               <Volume2 size={24} />
@@ -66,7 +68,7 @@ export const FlashcardDeck: React.FC<FlashcardDeckProps> = ({ items }) => {
           </div>
 
           {/* Back Side */}
-          <div 
+          <div
             className="absolute inset-0 bg-slate-900 border-2 border-violet-500/30 rounded-[2.5rem] flex flex-col items-center justify-center p-8 text-center shadow-2xl backface-hidden"
             style={{ transform: 'rotateY(180deg)' }}
           >

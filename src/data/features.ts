@@ -15,20 +15,20 @@ export interface FeatureCard {
 
 export const FEATURES: FeatureCard[] = [
   { id: 'practice', title: 'Practice Speaking', description: '450+ IGCSE questions with AI feedback', icon: '📚', category: 'Core Learning', color: '#7C3AED', locked: false, screen: 'learn' },
-  { id: 'ai_chat', title: 'AI Conversations', description: 'Chat with an AI tutor in French', icon: '🤖', category: 'Core Learning', color: '#06B6D4', locked: false, badge: 'New' },
+  { id: 'ai_chat', title: 'AI Conversations', description: 'Chat with an AI tutor in French', icon: '🤖', category: 'Core Learning', color: '#06B6D4', locked: true, badge: 'New' },
   { id: 'exam_sim', title: 'Exam Simulation', description: 'Full IGCSE oral exam with timer', icon: '🎓', category: 'Core Learning', color: '#F59E0B', locked: false, screen: 'exam' },
   { id: 'pronunciation', title: 'Accent Analyzer', description: 'Perfect your accent with phonetic drills', icon: '🎙', category: 'Core Learning', color: '#10B981', locked: false, screen: 'accent-analyzer' },
   { id: 'listening', title: 'Listening Mode', description: 'Train your ear with native audio', icon: '🎧', category: 'Core Learning', color: '#EC4899', locked: false, screen: 'listening-mode' },
   { id: 'speaking', title: 'Speaking Arena', description: 'Timed speaking challenges', icon: '🎤', category: 'Core Learning', color: '#EF4444', locked: false, screen: 'speaking-arena' },
   { id: 'daily_news', title: 'Daily News Flash', description: 'Listen to news and report back', icon: '📻', category: 'Core Learning', color: '#7C3AED', locked: false, badge: 'New', screen: 'daily-news' },
-  { id: 'grammar_repair', title: 'Grammar Repair', description: 'Fix errors in your writing instantly', icon: '🔧', category: 'AI Tools', color: '#7C3AED', locked: false },
+  { id: 'grammar_repair', title: 'Grammar Repair', description: 'Fix errors in your writing instantly', icon: '🔧', category: 'AI Tools', color: '#7C3AED', locked: true },
 
   { id: 'accent', title: 'Accent Analyzer', description: 'AI-powered accent scoring', icon: '🎯', category: 'AI Tools', color: '#06B6D4', locked: false, screen: 'accent-analyzer' },
   { id: 'scenario_arch', title: 'Scenario Architect', description: 'Build custom AI roleplays on the fly', icon: '🏗️', category: 'AI Tools', color: '#7C3AED', locked: false, screen: 'scenario-architect', badge: 'AI' },
   { id: 'fluency_heat', title: 'Fluency Heatmap', description: 'Visualize your speaking patterns', icon: '🌡', category: 'AI Tools', color: '#F59E0B', locked: false, screen: 'fluency-heatmap' },
   { id: 'sentence_rebuild', title: 'Sentence Rebuilder', description: 'Reconstruct sentences from fragments', icon: '🧩', category: 'AI Tools', color: '#10B981', locked: false, screen: 'sentence-rebuilder' },
   { id: 'weakness', title: 'Weakness Analysis', description: 'AI identifies your weak spots', icon: '🔍', category: 'AI Tools', color: '#EF4444', locked: false, screen: 'weakness-analysis' },
-  { id: 'missions', title: 'Daily Missions', description: 'Complete 3 challenges for bonus XP', icon: '🎯', category: 'Gamification', color: '#7C3AED', locked: false },
+  { id: 'missions', title: 'Daily Missions', description: 'Complete 3 challenges for bonus XP', icon: '🎯', category: 'Gamification', color: '#7C3AED', locked: true },
   { id: 'xp_shop', title: 'XP Shop', description: 'Spend XP on themes and power-ups', icon: '🛍', category: 'Gamification', color: '#F59E0B', locked: false, screen: 'shop' },
   { id: 'achievements', title: 'Achievements', description: '12 milestones to unlock', icon: '🏆', category: 'Gamification', color: '#F59E0B', locked: false, screen: 'progress' },
   { id: 'challenges', title: 'Challenges', description: 'Weekly competitive events', icon: '⚔', category: 'Gamification', color: '#EF4444', locked: false, screen: 'challenges' },

@@ -32,7 +32,9 @@
       "quiet": "ask_quiet_enforcement",
       "charging": "ask_charging_station",
       "new_items": "ask_new_acquisitions",
-      "water": "ask_drinking_fountain"
+      "water": "ask_drinking_fountain",
+      "audiobooks": "ask_audiobooks",
+      "local_history": "ask_local_history"
     }
   },
   "ask_toilets_location": {
@@ -155,7 +157,8 @@
     ],
     "capture": "book_query",
     "intents": {
-      "manga": "ask_manga_section"
+      "manga": "ask_manga_section",
+      "suggest": "ask_suggestion_box"
     },
     "next": "check_availability"
   },
@@ -188,6 +191,9 @@
       "Nous avons ce titre, mais dans une édition différente. Est-ce que cela vous convient ?",
       "Il est dans notre réserve centrale. Si vous le commandez, il sera là demain. D'accord ?"
     ],
+    "intents": {
+      "other_library": "ask_inter_library_loan"
+    },
     "next": "provide_assistance"
   },
   "ask_staff_pick": {
@@ -250,7 +256,7 @@
       "Souhaitez-vous un reçu papier après avoir rendu vos documents ?",
       "Les livres sont-ils complets ? Pas de CD ou de supplément manquant à l'intérieur ?"
     ],
-    "next": "check_card"
+    "next": "confirm_return"
   },
   "confirm_return": {
     "prompt": [
@@ -265,6 +271,9 @@
       "Voilà, c'est enregistré. Souhaitez-vous une autre aide avant de partir ?",
       "Vos retours sont validés. N'oubliez pas de jeter un œil aux nouveautés en partant !"
     ],
+    "intents": {
+      "damaged": "handle_damaged_book"
+    },
     "next": "ask_other_needs"
   },
   "handle_late_fees": {
@@ -325,6 +334,9 @@
       "Il me faut aussi un numéro de téléphone pour vous prévenir quand vos réservations arrivent.",
       "Avez-vous une photo d'identité ou préférez-vous que j'utilise votre nom sur la carte ?"
     ],
+    "intents": {
+      "no_docs": "end_session_fail"
+    },
     "next": "confirm_registration"
   },
   "confirm_registration": {
@@ -415,6 +427,10 @@
       "Est-ce bien votre adresse actuelle qui s'affiche à l'écran ? 12 rue des Fleurs ?",
       "Votre carte est valide jusqu'au mois prochain. Pensez à la renouveler bientôt."
     ],
+    "intents": {
+      "late_fees": "handle_late_fees",
+      "lost_card": "handle_lost_card"
+    },
     "next": "confirm_loan"
   },
   "confirm_loan": {
@@ -773,7 +789,8 @@
     ],
     "intents": {
       "yes": "start",
-      "no": "end_session"
+      "no": "end_session",
+      "reminder": "end_session_warning"
     }
   },
   "end_session": {

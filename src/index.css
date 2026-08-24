@@ -195,6 +195,8 @@ html:not(.dark) .border-white\/\[0\.04\] { border-color: rgba(0,0,0,0.06); }
   .animate-liquid-wave { animation: liquidWave 2s ease-in-out infinite; }
   .animate-aurora-shift { animation: auroraShift 12s ease-in-out infinite; }
   .animate-icon-glow { animation: iconGlow 2s ease-in-out infinite; }
+  .perspective-1000 { perspective: 1000px; }
+  .backface-hidden  { -webkit-backface-visibility: hidden; backface-visibility: hidden; }
 }
 
 /* Keyframes */
