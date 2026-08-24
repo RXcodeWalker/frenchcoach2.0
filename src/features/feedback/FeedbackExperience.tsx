@@ -3,11 +3,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, Mic2 } from 'lucide-react';
 import { CollapsibleCard } from '../../components/ui/CollapsibleCard';
 import { stagger } from '../../components/motion/variants';
-import { FeedbackProvider } from './state/feedbackContext';
+import { FeedbackProvider, useFeedbackContext } from './state/feedbackContext';
 import { useFeedbackState } from './hooks/useFeedbackState';
 import { SnapshotCard } from './components/SnapshotCard';
 import { MarkedUpScript } from './components/MarkedUpScript';
 import { BeforeAfterDiff } from './components/BeforeAfterDiff';
+import { ReportView } from './components/ReportView';
 import { StrongestMomentCard } from './components/StrongestMomentCard';
 import { BiggestOpportunityCard } from './components/BiggestOpportunityCard';
 import { ImprovedAnswerCard } from './components/ImprovedAnswerCard';
@@ -44,6 +45,29 @@ function SectionGate({ ready, children }: { ready: boolean; children: React.Reac
   return <CardSkeleton />;
 }
 
+/** Docs Stage 6 — segmented control at the top of the feedback stack. Same FeedbackV2, no new route. */
+function ViewModeToggle() {
+  const { state, dispatch } = useFeedbackContext();
+  return (
+    <div className="flex p-0.5 rounded-lg bg-slate-800/60 border border-slate-700/40 w-fit">
+      {(['coach', 'report'] as const).map(mode => (
+        <button
+          key={mode}
+          onClick={() => dispatch({ type: 'SET_VIEW_MODE', mode })}
+          aria-pressed={state.viewMode === mode}
+          className={`px-3 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-colors ${
+            state.viewMode === mode
+              ? 'bg-violet-500/20 text-violet-300'
+              : 'text-slate-500 hover:text-slate-300'
+          }`}
+        >
+          {mode === 'coach' ? 'Coach' : 'Full report'}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 // Deprecated components — kept as files, no longer rendered in the main flow.
 // To re-enable any of them, import and add back to FeedbackContent.
 // - PersonalizedContextBanner (replaced by backend coaching voice in cards)
@@ -78,7 +102,7 @@ function FeedbackContent({
   engineResults, activeEngine, isReEvaluating, reEvaluatingEngine,
   onReEvaluate, onSwitchEngine, pronunciationResult, pronunciationStatus,
 }: Omit<Props, 'isLoading' | 'feedback'> & { feedback: FeedbackV2 }) {
-  const { majorIssues, polishIssues, openCardFromIssue } = useFeedbackState(feedback);
+  const { state, majorIssues, polishIssues, openCardFromIssue } = useFeedbackState(feedback);
   const cardPlan = selectCardPlan(feedback);
 
   if (feedback.responseTier === 0 || feedback.responseTier === 1) {
@@ -95,6 +119,24 @@ function FeedbackContent({
 
   const isOffline = feedback.engineMeta?.actualEngine === 'offline';
 
+  if (state.viewMode === 'report') {
+    return (
+      <motion.div variants={stagger} initial="hidden" animate="show" className="space-y-3">
+        {isOffline && <OfflineLimitationsBanner />}
+        <FailoverBadge engineMeta={feedback.engineMeta} />
+        <ViewModeToggle />
+        <ReportView
+          feedback={feedback}
+          transcript={transcript}
+          majorIssues={majorIssues}
+          polishIssues={polishIssues}
+          onIssueClick={openCardFromIssue}
+        />
+        <FeedbackFooter onRetry={onRetry} onComplete={onComplete} modelAnswer={modelAnswer} />
+      </motion.div>
+    );
+  }
+
   return (
     <motion.div
       variants={stagger}
@@ -104,6 +146,7 @@ function FeedbackContent({
     >
       {isOffline && <OfflineLimitationsBanner />}
       <FailoverBadge engineMeta={feedback.engineMeta} />
+      <ViewModeToggle />
 
       {/* Scores near the top — quick orientation before coaching content */}
       <SnapshotCard feedback={feedback} />

@@ -9,9 +9,11 @@ interface Props {
   polishIssues?: CoachingIssue[];
   feedback: FeedbackV2;
   lessonsDefaultOpen?: boolean;
+  /** Forces every lesson open/closed (report's "expand all" control). */
+  lessonsForceOpen?: boolean;
 }
 
-export function CorrectionsCard({ issues, polishIssues = [], feedback, lessonsDefaultOpen }: Props) {
+export function CorrectionsCard({ issues, polishIssues = [], feedback, lessonsDefaultOpen, lessonsForceOpen }: Props) {
   const { state } = useFeedbackContext();
   const highlighted = state.highlightedCardId === 'corrections';
 
@@ -51,7 +53,7 @@ export function CorrectionsCard({ issues, polishIssues = [], feedback, lessonsDe
         >
           {criticalV2.length > 0
             ? criticalV2.map(issue => (
-                <IssueRow key={issue.id} issue={issue} isSelected={state.selectedIssueId === issue.id} lessonDefaultOpen={lessonsDefaultOpen} />
+                <IssueRow key={issue.id} issue={issue} isSelected={state.selectedIssueId === issue.id} lessonDefaultOpen={lessonsDefaultOpen} lessonForceOpen={lessonsForceOpen} />
               ))
             : legacyCritical.map((err, i) => (
                 <div key={i} className="p-2.5 rounded-lg bg-red-500/5 border border-red-500/10 mb-1.5">
@@ -75,7 +77,7 @@ export function CorrectionsCard({ issues, polishIssues = [], feedback, lessonsDe
         >
           {polishV2.length > 0
             ? polishV2.map(issue => (
-                <IssueRow key={issue.id} issue={issue} isSelected={state.selectedIssueId === issue.id} />
+                <IssueRow key={issue.id} issue={issue} isSelected={state.selectedIssueId === issue.id} lessonForceOpen={lessonsForceOpen} />
               ))
             : legacyPolish.map((err, i) => (
                 <div key={i} className="p-2.5 rounded-lg bg-violet-500/5 border border-violet-500/10 mb-1.5">

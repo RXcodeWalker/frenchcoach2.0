@@ -7,10 +7,13 @@ interface Props {
   teachMe?: TeachMe;
   mini_lesson?: MiniLesson;
   defaultOpen?: boolean;
+  /** Forces open state from outside (e.g. the report's "expand all" control). */
+  forceOpen?: boolean;
 }
 
-export function TeachMeLesson({ teachMe, mini_lesson, defaultOpen = false }: Props) {
+export function TeachMeLesson({ teachMe, mini_lesson, defaultOpen = false, forceOpen }: Props) {
   const [open, setOpen] = useState(defaultOpen);
+  const isOpen = forceOpen ?? open;
 
   // Prefer mini_lesson (new backend) over teachMe (offline / legacy)
   const hasLesson = !!(mini_lesson || teachMe);
@@ -19,18 +22,18 @@ export function TeachMeLesson({ teachMe, mini_lesson, defaultOpen = false }: Pro
   return (
     <div className="mt-2">
       <button
-        onClick={() => setOpen(o => !o)}
+        onClick={() => { if (forceOpen === undefined) setOpen(o => !o); }}
         className="flex items-center gap-1.5 text-[10px] text-violet-400 hover:text-violet-300 transition-colors"
       >
         <BookOpen size={11} />
         {mini_lesson ? mini_lesson.title : 'Teach Me'}
-        <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
+        <motion.span animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
           <ChevronDown size={11} />
         </motion.span>
       </button>
 
       <AnimatePresence>
-        {open && (
+        {isOpen && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
