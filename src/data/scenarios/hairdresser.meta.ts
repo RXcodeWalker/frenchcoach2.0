@@ -58,6 +58,12 @@ export const hairdresserMeta: ScenarioMeta = {
           modelFr: 'Je paie par carte.',
           requires: [{ kind: 'intent', state: 'ask_payment', intent: 'card' }],
         },
+        {
+          id: 'hairdresser_decline_slot',
+          en: 'Say no to the offered slot (if it does not suit you)',
+          modelFr: "Non, ça ne m'arrange pas.",
+          requires: [{ kind: 'intent', state: 'check_availability', intent: 'no' }],
+        },
       ],
     },
     appointment: {
@@ -91,17 +97,6 @@ export const hairdresserMeta: ScenarioMeta = {
           en: 'Ask for a balayage',
           modelFr: 'Un balayage, s\'il vous plaît.',
           requires: [{ kind: 'intent', state: 'ask_color_details', intent: 'balayage' }],
-        },
-      ],
-    },
-    no_availability: {
-      labelEn: 'Try to get a slot when the salon is fully booked',
-      missions: [
-        {
-          id: 'hairdresser_decline_slot',
-          en: 'Say no to the offered slot',
-          modelFr: "Non, ça ne m'arrange pas.",
-          requires: [{ kind: 'intent', state: 'check_availability', intent: 'no' }],
         },
       ],
     },

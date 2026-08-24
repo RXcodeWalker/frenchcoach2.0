@@ -25,7 +25,7 @@ export const hairdresserDeck: ScenarioDeck = {
       register: 'neutral', usedInStates: ['ask_color_details', 'set_balayage'], rank: 'core',
     },
     {
-      fr: 'les pointes', en: 'ends (of hair)', pos: 'noun', gender: 'pl',
+      fr: 'les pointes', en: 'ends (of hair)', pos: 'noun', gender: 'pl', article: 'les',
       register: 'neutral', usedInStates: ['ask_cut_details'], rank: 'core',
     },
     {
@@ -54,7 +54,7 @@ export const hairdresserDeck: ScenarioDeck = {
       register: 'neutral', usedInStates: ['set_color_total'], rank: 'extend',
     },
     {
-      fr: 'les racines', en: 'roots', pos: 'noun', gender: 'pl',
+      fr: 'les racines', en: 'roots', pos: 'noun', gender: 'pl', article: 'les',
       register: 'neutral', usedInStates: ['set_color_roots'], rank: 'core',
     },
     {
