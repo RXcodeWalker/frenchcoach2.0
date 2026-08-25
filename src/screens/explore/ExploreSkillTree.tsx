@@ -1,16 +1,18 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Lock, CheckCircle2, Star, Compass } from 'lucide-react';
-import { EXPLORE_TREE, TreeNode } from '../../data/exploreTree';
+import { getExploreTree, TreeNode } from '../../data/exploreTree';
 import { isPlayable } from '../../data/scenarios/registry';
 
 export function ExploreSkillTree() {
+  const tree = getExploreTree();
+
   return (
     <div className="py-12 space-y-24 flex flex-col items-center relative">
       {/* Background path line */}
       <div className="absolute top-0 bottom-0 left-1/2 w-0.5 bg-gradient-to-b from-transparent via-white/[0.03] to-transparent -translate-x-1/2" />
 
-      {Object.entries(EXPLORE_TREE).map(([tier, nodes], tierIdx) => (
+      {Object.entries(tree).map(([tier, nodes], tierIdx) => (
         <div key={tier} className="relative flex flex-col items-center w-full max-w-lg">
           {/* Tier Label */}
           <div className="mb-8 flex flex-col items-center">
@@ -37,7 +39,7 @@ export function ExploreSkillTree() {
           </div>
 
           {/* Connector to next tier */}
-          {tierIdx < Object.keys(EXPLORE_TREE).length - 1 && (
+          {tierIdx < Object.keys(tree).length - 1 && (
             <div className="mt-16 flex flex-col items-center gap-2">
                <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
                <div className="w-px h-12 bg-gradient-to-b from-white/10 to-transparent" />

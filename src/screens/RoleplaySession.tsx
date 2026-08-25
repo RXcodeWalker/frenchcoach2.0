@@ -317,7 +317,7 @@ function PlayPhase({
   return (
     <VisualNovelView
       topic={entry.meta.title}
-      role={entry.meta.npc.roleEn}
+      npc={entry.meta.npc}
       expression={expression}
       messages={messages}
       objectives={objectives}

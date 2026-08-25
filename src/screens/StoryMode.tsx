@@ -399,9 +399,9 @@ export function StoryMode() {
     | undefined;
 
   return (
-    <VisualNovelView 
+    <VisualNovelView
       topic={selectedStory.scenario}
-      role={selectedStory.examiner_role || 'Friend'}
+      npc={{ nameFr: selectedStory.examiner_role || 'Friend', emoji: '👤' }}
       expression={expression}
       messages={messages}
       objectives={objectives}

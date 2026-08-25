@@ -3,24 +3,16 @@ import { motion } from 'framer-motion';
 
 export type Expression = 'neutral' | 'happy' | 'thinking' | 'confused' | 'excited';
 
-interface CharacterAvatarProps {
-  role: string;
-  expression?: Expression;
+/** Minimal slice of ScenarioMeta['npc'] this component needs to render. */
+export interface CharacterNpc {
+  nameFr: string;
+  emoji: string;
 }
 
-const ROLE_EMOJIS: Record<string, string> = {
-  'Baker': '🧑‍🍳',
-  'Doctor': '👩‍⚕️',
-  'Teacher': '👨‍🏫',
-  'Pharmacist': '👩‍🔬',
-  'Waiter': '🤵',
-  'Police Officer': '👮',
-  'Receptionist': '👩‍💼',
-  'Shop Assistant': '🛍️',
-  'Ticket Agent': '🎫',
-  'Traveler': '🧳',
-  'Friend': '👤',
-};
+interface CharacterAvatarProps {
+  npc: CharacterNpc;
+  expression?: Expression;
+}
 
 const EXPRESSION_VARIANTS = {
   neutral: { scale: 1, rotate: 0 },
@@ -30,8 +22,8 @@ const EXPRESSION_VARIANTS = {
   excited: { scale: 1.2, y: [0, -10, 0, -10, 0] },
 };
 
-export const CharacterAvatar: React.FC<CharacterAvatarProps> = ({ role, expression = 'neutral' }) => {
-  const emoji = ROLE_EMOJIS[role] || '👤';
+export const CharacterAvatar: React.FC<CharacterAvatarProps> = ({ npc, expression = 'neutral' }) => {
+  const emoji = npc.emoji;
 
   return (
     <div className="relative group">
@@ -56,7 +48,7 @@ export const CharacterAvatar: React.FC<CharacterAvatarProps> = ({ role, expressi
         animate={{ opacity: 1, y: 0 }}
         className="absolute -bottom-4 left-1/2 -translate-x-1/2 px-6 py-2 bg-white text-slate-950 font-black rounded-full shadow-xl uppercase italic tracking-wider text-xs whitespace-nowrap z-20"
       >
-        {role}
+        {npc.nameFr}
       </motion.div>
     </div>
   );

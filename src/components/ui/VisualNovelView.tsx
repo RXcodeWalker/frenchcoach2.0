@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CharacterAvatar, type Expression } from './CharacterAvatar';
+import { CharacterAvatar, type CharacterNpc, type Expression } from './CharacterAvatar';
 import { SpeechBubble } from './SpeechBubble';
 import { ScenarioBackground } from './ScenarioBackground';
 import { MissionObjectivesList, type Objective } from './MissionObjectivesList';
@@ -9,6 +9,7 @@ import { FeedbackPanel } from '../../screens/learn/FeedbackPanel';
 import { Info, Star, ArrowLeft, Volume2, VolumeX, Repeat } from 'lucide-react';
 import type { FeedbackV2 } from '../../types';
 import type { RecordingState } from '../../features/recording/useRecording';
+import { useApp } from '../../context/AppContext';
 import {
   speakExaminerText,
   getExaminerVoiceGeneration,
@@ -19,7 +20,7 @@ import {
 
 interface VisualNovelViewProps {
   topic: string;
-  role: string;
+  npc: CharacterNpc;
   expression: Expression;
   messages: { text: string; sender: 'ai' | 'user' }[];
   objectives: Objective[];
@@ -37,7 +38,7 @@ interface VisualNovelViewProps {
 
 export const VisualNovelView: React.FC<VisualNovelViewProps> = ({
   topic,
-  role,
+  npc,
   expression,
   messages,
   objectives,
@@ -55,6 +56,7 @@ export const VisualNovelView: React.FC<VisualNovelViewProps> = ({
   const latestMessage = messages[messages.length - 1];
   const [muted, setMuted] = useState(isExaminerVoiceMuted());
   const voiceAvailable = hasFrenchVoice();
+  const { state: appState } = useApp();
 
   const toggleMute = () => {
     const next = !muted;
@@ -92,7 +94,7 @@ export const VisualNovelView: React.FC<VisualNovelViewProps> = ({
           )}
            <div className="flex items-center gap-1 bg-white/5 px-4 py-2 rounded-full border border-white/10">
             <Star size={14} className="text-amber-400 fill-amber-400" />
-            <span className="text-xs font-black text-white italic">LVL 2</span>
+            <span className="text-xs font-black text-white italic">{appState.profile.current_level}</span>
           </div>
         </div>
       </div>
@@ -108,7 +110,7 @@ export const VisualNovelView: React.FC<VisualNovelViewProps> = ({
       <div className="flex-1 relative flex flex-col md:flex-row items-center justify-center gap-12 px-8 pb-32">
         {/* Left: Character & Speech */}
         <div className="flex-1 flex flex-col items-center justify-center gap-8 w-full">
-          <CharacterAvatar role={role} expression={expression} />
+          <CharacterAvatar npc={npc} expression={expression} />
           
           <div className="w-full max-w-2xl min-h-[120px]">
             <AnimatePresence mode="wait">
@@ -133,7 +135,7 @@ export const VisualNovelView: React.FC<VisualNovelViewProps> = ({
                 </motion.div>
               ) : latestMessage && latestMessage.sender === 'ai' ? (
                 <div className="relative">
-                  <SpeechBubble key={latestMessage.text} text={latestMessage.text} sender="ai" name={role} />
+                  <SpeechBubble key={latestMessage.text} text={latestMessage.text} sender="ai" name={npc.nameFr} />
                   {voiceAvailable && !muted && (
                     <button
                       onClick={replay}
