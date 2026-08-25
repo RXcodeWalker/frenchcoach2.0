@@ -47,6 +47,7 @@ export const ROUTES: RouteEntry[] = [
   { path: '/roadmap', kind: 'app', indexable: false },
   { path: '/fluency-heatmap', kind: 'app', indexable: false },
   { path: '/story-mode', kind: 'app', indexable: false },
+  { path: '/scenario/:scenarioId', kind: 'app', indexable: false },
   { path: '/scenario-architect', kind: 'app', indexable: false },
   { path: '/scenario-architect/session', kind: 'app', indexable: false },
   { path: '/word-drop', kind: 'app', indexable: false },

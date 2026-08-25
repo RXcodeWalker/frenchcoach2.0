@@ -946,6 +946,17 @@ export async function fetchScenarioVocab(topic: string): Promise<VocabPrepData> 
   return res.json() as Promise<VocabPrepData>;
 }
 
+/**
+ * Off-script improv for the roleplay runtime.
+ *
+ * `scenario_id` must name an entry of the backend's own `ROLEPLAY_SCENARIOS`
+ * table — the authored ids (`bakery`, `hairdresser`, …) are registered there.
+ * Do NOT add a `custom_scenario` field to this request: `/api/roleplay/turn`
+ * is unauthenticated and f-string-interpolates that field straight into the
+ * system prompt, so sending client-authored scenario text would turn it into
+ * an open LLM proxy and an unbounded prompt-injection surface. The client
+ * sends an id; the setting text stays server-authored.
+ */
 export interface RoleplayTurnRequest {
   scenario_id: string;
   turn_history: { speaker: 'examiner' | 'student'; text: string }[];

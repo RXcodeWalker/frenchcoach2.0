@@ -1,28 +1,50 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { getScenario, isAuthored } from '../data/scenarios/registry';
+import { useRoleplaySession } from '../features/roleplay/useRoleplaySession';
+import type { ScenarioDeck, ScenarioGraph, ScenarioMeta } from '../features/roleplay/types';
 
-type SessionPhase = 'briefing' | 'prep' | 'play' | 'debrief';
+interface ScenarioEntry {
+  meta: ScenarioMeta;
+  graph: ScenarioGraph;
+  deck: ScenarioDeck;
+}
 
 export function RoleplaySession() {
   const { scenarioId } = useParams<{ scenarioId: string }>();
   const navigate = useNavigate();
-  const [phase, setPhase] = useState<SessionPhase>('briefing');
 
   const entry = scenarioId ? getScenario(scenarioId) : undefined;
   const authored = scenarioId ? isAuthored(scenarioId) : false;
 
+  // Deep links and stale bookmarks bypass the Explore tree's gate, so this
+  // guard is permanent rather than belt-and-braces.
   useEffect(() => {
     if (!entry || !authored) {
       navigate('/explore');
     }
   }, [entry, authored, navigate]);
 
-  if (!entry || !authored) return null;
+  if (!entry || !authored || !scenarioId) return null;
 
+  return <RoleplaySessionView scenarioId={scenarioId} entry={entry} />;
+}
+
+/**
+ * Split from the guard above so the session hook is only ever mounted with a
+ * real scenario — no placeholder meta, and no conditional hook call.
+ *
+ * Stage 4 wires the phase machine onto the reducer, which now owns it, so the
+ * shell no longer keeps a duplicate copy in local state. The play-phase UI
+ * (NPC bubble, recording, mission checklist) belongs to Stages 5–7.
+ */
+function RoleplaySessionView({ scenarioId, entry }: { scenarioId: string; entry: ScenarioEntry }) {
+  const navigate = useNavigate();
   const { meta } = entry;
+  const session = useRoleplaySession(scenarioId, entry.graph, meta);
+  const { phase } = session.state;
 
   return (
     <div className="max-w-3xl mx-auto px-4 pt-6 pb-24 md:pb-8">
@@ -47,7 +69,7 @@ export function RoleplaySession() {
         <Card className="p-6">
           <p className="text-sm text-slate-300">{meta.briefingEn}</p>
           <button
-            onClick={() => setPhase('prep')}
+            onClick={() => session.setPhase('prep')}
             className="mt-6 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-widest transition-colors"
           >
             Continue
@@ -58,7 +80,7 @@ export function RoleplaySession() {
       {phase === 'prep' && (
         <Card className="p-6">
           <button
-            onClick={() => setPhase('play')}
+            onClick={session.start}
             className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-widest transition-colors"
           >
             Start Roleplay
@@ -69,7 +91,7 @@ export function RoleplaySession() {
       {phase === 'play' && (
         <Card className="p-6">
           <button
-            onClick={() => setPhase('debrief')}
+            onClick={() => session.setPhase('debrief')}
             className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-widest transition-colors"
           >
             End Session

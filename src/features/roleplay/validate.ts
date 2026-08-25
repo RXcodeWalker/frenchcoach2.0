@@ -10,6 +10,7 @@
  * Mirrors the Issue/ValidationReport shape already used by
  * src/data/exam/bank/validate.ts.
  */
+import { MAX_TURNS } from './constants';
 import type { BranchTrigger, ScenarioDeck, ScenarioGraph, ScenarioMeta } from './types';
 
 export interface Issue {
@@ -30,9 +31,6 @@ export interface ScenarioEntryForValidation {
   deck: ScenarioDeck;
   authored: boolean;
 }
-
-/** Above the deepest authored graph's turn count (hairdresser, 8) — see plan §"Recovery semantics". */
-const MAX_TURNS = 30;
 
 function normalizeForMatch(s: string): string {
   return s
