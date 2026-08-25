@@ -27,6 +27,14 @@ export function isTtsAvailable(): boolean {
   return typeof window !== 'undefined' && 'speechSynthesis' in window;
 }
 
+/** True once a real fr-FR/fr-* voice has been selected — false means no
+ * installed voice matched, so speaking would teach English-accented French
+ * rather than staying silent. Mirrors `services/tts/ttsService.ts`'s
+ * `hasFrenchVoice()` (kept separate per the one-voice-service-per-surface rule). */
+export function hasFrenchVoice(): boolean {
+  return selectedVoice !== null;
+}
+
 function selectVoice(): SpeechSynthesisVoice | null {
   if (!isTtsAvailable()) return null;
   const voices = window.speechSynthesis.getVoices();

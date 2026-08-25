@@ -15,6 +15,17 @@ import type { FeedbackV2, Question } from '../types';
 import { observeAttempt } from '../services/coach/sessionOrchestrator';
 import { getSkillProfile } from '../services/coaching/diagnosticEngine';
 import { isUnscored } from '../domain/scoring';
+import {
+  primeExaminerVoice,
+  speakExaminerText,
+  stopExaminerVoice,
+  getExaminerVoiceGeneration,
+  isExaminerVoiceMuted,
+  hasFrenchVoice,
+} from '../services/exam/examinerVoice';
+
+/** Pacing fallback when muted or no fr-* voice is installed, so silence doesn't collapse the beat a spoken line would otherwise hold. */
+const SILENT_TYPING_MS = 900;
 
 interface Roleplay {
   id: string;
@@ -57,6 +68,17 @@ export function StoryMode() {
     }
   }, [messages, isTyping]);
 
+  // The NPC's own voice would otherwise be picked up and transcribed by the
+  // live mic — cancel it the instant recording begins.
+  useEffect(() => {
+    return () => stopExaminerVoice();
+  }, []);
+
+  const startRecording = () => {
+    stopExaminerVoice();
+    recording.start();
+  };
+
   const selectStory = (story: Roleplay) => {
     setSelectedStory(story);
     setIsPrepping(true);
@@ -64,6 +86,9 @@ export function StoryMode() {
 
   const startStory = () => {
     if (!selectedStory) return;
+    // Must run inside this click handler's user gesture — Chrome/Edge boot
+    // the TTS engine lazily on the first speak() of a page.
+    primeExaminerVoice();
     setIsPrepping(false);
     setCurrentStep(0);
     setMessages([]);
@@ -83,16 +108,12 @@ export function StoryMode() {
       };
     });
     setObjectives(objs);
-    
+
     const firstQId = selectedStory.question_ids[0];
     const question = allQuestions.find(q => q.id === firstQId);
-    
+
     if (question) {
-      setIsTyping(true);
-      setTimeout(() => {
-        setIsTyping(false);
-        addMessage(question.text, 'ai');
-      }, 1000);
+      void speakNpcLine(question.text);
     }
   };
 
@@ -104,6 +125,26 @@ export function StoryMode() {
       timestamp: Date.now(),
     };
     setMessages(prev => [...prev, newMessage]);
+  };
+
+  /**
+   * Shows typing dots for the duration of the NPC line's speech, then adds it
+   * to the transcript. Falls back to a fixed pacing delay when muted or no
+   * fr-* voice is installed, so the beat doesn't collapse into an instant cut.
+   */
+  const speakNpcLine = async (text: string) => {
+    setIsTyping(true);
+    if (hasFrenchVoice() && !isExaminerVoiceMuted()) {
+      // No superseded-generation guard here: `stopExaminerVoice()` (unmount,
+      // exit, or the mic starting) only ever cuts the audio early — the line
+      // itself still needs to land in the transcript and hand control back
+      // to the user, so this always finishes below rather than bailing out.
+      await speakExaminerText(text, getExaminerVoiceGeneration());
+    } else {
+      await new Promise(resolve => setTimeout(resolve, SILENT_TYPING_MS));
+    }
+    setIsTyping(false);
+    addMessage(text, 'ai');
   };
 
   const handleStopRecording = async () => {
@@ -178,8 +219,7 @@ export function StoryMode() {
           is_final_turn: currentStep === selectedStory.question_ids.length - 1
         });
 
-        setIsTyping(false);
-        addMessage(turn.reply, 'ai');
+        await speakNpcLine(turn.reply);
         setExpression('thinking');
         // We stay on the current step if they are off-script to let them try again
         // or we can move forward if the LLM guided them back.
@@ -205,24 +245,16 @@ export function StoryMode() {
       setCurrentStep(nextStep);
       const nextQId = selectedStory.question_ids[nextStep];
       const question = allQuestions.find(q => q.id === nextQId);
-      
-      setIsTyping(true);
-      setTimeout(() => {
-        setIsTyping(false);
-        if (question) {
-          addMessage(question.text, 'ai');
-          setExpression('happy');
-        }
-      }, 1500);
+
+      if (question) {
+        await speakNpcLine(question.text);
+        setExpression('happy');
+      }
     } else {
-      setIsTyping(true);
-      setTimeout(() => {
-        setIsTyping(false);
-        addMessage("Excellent travail ! L'échange est terminé.", 'ai');
-        setExpression('excited');
-        setIsFinished(true);
-        dispatchAddXP(dispatch, 50, 'story');
-      }, 1000);
+      await speakNpcLine("Excellent travail ! L'échange est terminé.");
+      setExpression('excited');
+      setIsFinished(true);
+      dispatchAddXP(dispatch, 50, 'story');
     }
   };
 
@@ -326,12 +358,15 @@ export function StoryMode() {
       currentInstruction={currentQuestionData?.instruction}
       isTyping={isTyping}
       isProcessing={isProcessing}
-      recording={recording}
+      recording={{ ...recording, start: startRecording }}
       showFeedback={showFeedback}
       lastFeedback={lastFeedback}
       onStopRecording={handleStopRecording}
       onNextStep={handleNextStep}
-      onExit={() => setSelectedStory(null)}
+      onExit={() => {
+        stopExaminerVoice();
+        setSelectedStory(null);
+      }}
     />
   );
 }
