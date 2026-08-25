@@ -2,15 +2,10 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Volume2 } from 'lucide-react';
 import { TTS } from '../../services/tts/ttsService';
-
-interface VocabItem {
-  fr: string;
-  en: string;
-  type: string;
-}
+import type { VocabEntry } from '../../features/roleplay/types';
 
 interface FlashcardDeckProps {
-  items: VocabItem[];
+  items: VocabEntry[];
 }
 
 export const FlashcardDeck: React.FC<FlashcardDeckProps> = ({ items }) => {
@@ -57,7 +52,15 @@ export const FlashcardDeck: React.FC<FlashcardDeckProps> = ({ items }) => {
             style={{ transform: 'rotateY(0deg)' }}
           >
             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-violet-200 mb-4 opacity-60">French</span>
-            <h2 className="text-3xl font-black text-white italic tracking-tighter mb-4">{currentItem?.fr}</h2>
+            <h2 className="text-3xl font-black text-white italic tracking-tighter mb-2">
+              {currentItem?.pos === 'noun' && currentItem?.article ? `${currentItem.article} ` : ''}
+              {currentItem?.fr}
+            </h2>
+            {currentItem?.pos === 'noun' && currentItem?.gender && (
+              <span className="text-[10px] font-black text-violet-100 bg-white/10 rounded-md px-2 py-0.5 uppercase mb-2">
+                {currentItem.gender}
+              </span>
+            )}
             <button
               onClick={(e) => speak(e, currentItem?.fr ?? '')}
               className="p-3 bg-white/10 rounded-full text-white hover:bg-white/20 transition-all"
@@ -74,6 +77,19 @@ export const FlashcardDeck: React.FC<FlashcardDeckProps> = ({ items }) => {
           >
             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-4 opacity-60">English</span>
             <h2 className="text-3xl font-black text-white italic tracking-tighter">{currentItem?.en}</h2>
+            {currentItem?.literalEn && (
+              <p className="text-xs text-slate-400 italic mt-2">lit. "{currentItem.literalEn}"</p>
+            )}
+            {(currentItem?.note || currentItem?.register) && (
+              <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+                {currentItem?.register && (
+                  <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{currentItem.register}</span>
+                )}
+              </div>
+            )}
+            {currentItem?.note && (
+              <p className="text-[10px] text-amber-300/80 mt-2 max-w-[220px]">{currentItem.note}</p>
+            )}
             <p className="absolute bottom-8 text-[10px] font-bold text-slate-600 uppercase tracking-widest opacity-40">Click to flip back</p>
           </div>
         </motion.div>

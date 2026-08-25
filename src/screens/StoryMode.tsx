@@ -7,7 +7,6 @@ import roleplays from '../data/raw/roleplays.json';
 import allQuestions from '../data/raw/questions.json';
 import { useRecording } from '../features/recording/useRecording';
 import { getAIFeedback, getRoleplayTurn } from '../services/api/apiClient';
-import { ScenarioPrepScreen } from '../components/ui/ScenarioPrepScreen';
 import { VisualNovelView } from '../components/ui/VisualNovelView';
 import type { Expression } from '../components/ui/CharacterAvatar';
 import type { Objective } from '../components/ui/MissionObjectivesList';
@@ -381,9 +380,9 @@ export function StoryMode() {
           <h2 className="text-xl font-black text-white uppercase italic">Prep Phase</h2>
         </div>
         <div className="flex-1 overflow-hidden">
-          <ScenarioPrepScreen 
-            topic={selectedStory.scenario} 
-            onReady={startStory} 
+          <StoryModePrep
+            story={selectedStory}
+            onReady={startStory}
             onCancel={() => {
               setIsPrepping(false);
               setSelectedStory(null);
@@ -420,5 +419,60 @@ export function StoryMode() {
         setSelectedStory(null);
       }}
     />
+  );
+}
+
+/**
+ * Interim prep block for the roleplays.json-driven exam cards. Not
+ * ScenarioPrepScreen: that component now speaks the registry's ScenarioMeta /
+ * VocabEntry[] / Mission[] shapes (Stage 7 of the Explore & Roleplay
+ * overhaul), and StoryMode has none of that — no deck, and its "missions"
+ * are just per-question `instruction` strings on Roleplay.question_ids.
+ * Stage 10 (Story Mode rebuild, tracked separately) replaces roleplays.json
+ * with roleplayCards.ts's `prompt_en` task list and gives this screen a real
+ * mission briefing; until then this is deliberately minimal.
+ */
+function StoryModePrep({
+  story,
+  onReady,
+  onCancel,
+}: {
+  story: Roleplay;
+  onReady: () => void;
+  onCancel: () => void;
+}) {
+  return (
+    <div className="h-full flex flex-col bg-navy/60 backdrop-blur-xl rounded-[3rem] border border-white/5 overflow-hidden shadow-2xl">
+      <div className="p-8 pb-4 border-b border-white/5 bg-white/5 flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-black text-white italic tracking-tighter uppercase">Roleplay Card</h2>
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+            {story.question_ids.length} exchange{story.question_ids.length === 1 ? '' : 's'}
+          </p>
+        </div>
+        <button
+          onClick={onCancel}
+          className="text-xs font-black text-slate-500 hover:text-white transition-colors uppercase tracking-widest"
+        >
+          Cancel
+        </button>
+      </div>
+
+      <div className="flex-1 p-8 overflow-y-auto">
+        <p className="text-sm text-slate-300 leading-relaxed bg-white/5 border border-white/10 rounded-2xl p-4">
+          {story.scenario}
+        </p>
+      </div>
+
+      <div className="p-8 pt-0">
+        <button
+          onClick={onReady}
+          className="w-full py-5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-black rounded-2xl shadow-xl shadow-violet-500/20 hover:scale-[1.02] transition-all flex items-center justify-center gap-3 uppercase italic tracking-wider group"
+        >
+          Start Roleplay
+          <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
+        </button>
+      </div>
+    </div>
   );
 }

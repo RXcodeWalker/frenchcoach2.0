@@ -935,17 +935,6 @@ export async function getDailyNews(): Promise<NewsSnippet> {
   }
 }
 
-export interface VocabPrepData {
-  vocab: { fr: string; en: string; type: string }[];
-  phrases: { fr: string; en: string; type: string }[];
-}
-
-export async function fetchScenarioVocab(topic: string): Promise<VocabPrepData> {
-  const res = await fetch(`${API_BASE}/api/vocab-prep?topic=${encodeURIComponent(topic)}`);
-  if (!res.ok) throw new Error(`API vocab-prep → ${res.status}`);
-  return res.json() as Promise<VocabPrepData>;
-}
-
 /**
  * Off-script improv for the roleplay runtime.
  *

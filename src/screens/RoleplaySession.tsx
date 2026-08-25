@@ -4,7 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { getScenario, isAuthored } from '../data/scenarios/registry';
 import { useApp } from '../context/AppContext';
-import { useRecording } from '../features/recording/useRecording';
+import { useRecording, type RecordingState } from '../features/recording/useRecording';
 import { useRoleplaySession, pickPrompt, countWords } from '../features/roleplay/useRoleplaySession';
 import { toScoringInput } from '../features/roleplay/toScoringInput';
 import { getAIFeedback } from '../services/api/apiClient';
@@ -14,10 +14,12 @@ import { getSkillProfile } from '../services/coaching/diagnosticEngine';
 import { isUnscored } from '../domain/scoring';
 import { computeXPGain, computeParticipationXPGain } from '../domain/xp';
 import { VisualNovelView } from '../components/ui/VisualNovelView';
+import { ScenarioPrepScreen } from '../components/ui/ScenarioPrepScreen';
+import { hasFrenchVoice } from '../services/exam/examinerVoice';
 import type { Expression } from '../components/ui/CharacterAvatar';
 import type { Objective } from '../components/ui/MissionObjectivesList';
 import type { FeedbackV2, Question, Session } from '../types';
-import type { LanguageResult, ScenarioDeck, ScenarioGraph, ScenarioMeta, TurnOutcome } from '../features/roleplay/types';
+import type { LanguageResult, Mission, ScenarioDeck, ScenarioGraph, ScenarioMeta, TurnOutcome } from '../features/roleplay/types';
 
 interface ScenarioEntry {
   meta: ScenarioMeta;
@@ -51,9 +53,17 @@ export function RoleplaySession() {
  */
 function RoleplaySessionView({ scenarioId, entry }: { scenarioId: string; entry: ScenarioEntry }) {
   const navigate = useNavigate();
-  const { meta } = entry;
+  const { meta, deck } = entry;
   const session = useRoleplaySession(scenarioId, entry.graph, meta);
   const { phase } = session.state;
+  // Lifted here (not inside PlayPhase) so the prep screen's capability check
+  // reads the same sttSupported the play phase actually records with.
+  const recording = useRecording();
+
+  const allMissions: Mission[] = useMemo(
+    () => Object.values(meta.branches).flatMap((b) => b.missions),
+    [meta.branches],
+  );
 
   return (
     <div className="max-w-3xl mx-auto px-4 pt-6 pb-24 md:pb-8">
@@ -74,40 +84,26 @@ function RoleplaySessionView({ scenarioId, entry }: { scenarioId: string; entry:
         </div>
       </Card>
 
-      {phase === 'briefing' && (
-        <Card className="p-6">
-          <p className="text-sm text-slate-300">{meta.briefingEn}</p>
-          <button
-            onClick={() => session.setPhase('prep')}
-            className="mt-6 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-widest transition-colors"
-          >
-            Continue
-          </button>
-        </Card>
+      {(phase === 'briefing' || phase === 'prep') && (
+        <div className="h-[70vh]">
+          <ScenarioPrepScreen
+            meta={meta}
+            deck={deck.entries}
+            missions={allMissions}
+            sttSupported={recording.sttSupported}
+            hasFrenchVoice={hasFrenchVoice()}
+            onReady={session.start}
+            onCancel={() => navigate('/explore')}
+          />
+        </div>
       )}
 
-      {phase === 'prep' && (
-        <Card className="p-6">
-          <button
-            onClick={session.start}
-            className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-widest transition-colors"
-          >
-            Start Roleplay
-          </button>
-        </Card>
+      {phase === 'play' && (
+        <PlayPhase scenarioId={scenarioId} entry={entry} session={session} recording={recording} onExit={() => navigate('/explore')} />
       )}
-
-      {phase === 'play' && <PlayPhase scenarioId={scenarioId} entry={entry} session={session} onExit={() => navigate('/explore')} />}
 
       {phase === 'debrief' && (
-        <Card className="p-6">
-          <button
-            onClick={() => navigate('/explore')}
-            className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-widest transition-colors"
-          >
-            Back to Explore
-          </button>
-        </Card>
+        <DebriefPhase session={session} onExit={() => navigate('/explore')} />
       )}
     </div>
   );
@@ -118,9 +114,7 @@ function RoleplaySessionView({ scenarioId, entry }: { scenarioId: string; entry:
  * and orchestrateAttempt a real caller on the graph runtime. Reuses
  * VisualNovelView as-is rather than a parallel shell.
  *
- * Deliberately NOT built here (Stage 7's worklist, per the plan's staging —
- * briefing tab / prep screen / deck rendering / debrief polish are out of
- * scope for this stage): NPC voice (no speakExaminerText/typing-dot
+ * Deliberately NOT built here: NPC voice (no speakExaminerText/typing-dot
  * choreography — isTyping is always false here), a per-turn duration timer
  * (durationSec is passed as 0), and the "reveal next line only after
  * Continue" pacing StoryMode has — because submitTurn advances the reducer's
@@ -132,15 +126,16 @@ function PlayPhase({
   scenarioId,
   entry,
   session,
+  recording,
   onExit,
 }: {
   scenarioId: string;
   entry: ScenarioEntry;
   session: ReturnType<typeof useRoleplaySession>;
+  recording: RecordingState;
   onExit: () => void;
 }) {
   const { state: appState, dispatch } = useApp();
-  const recording = useRecording();
   const [showFeedback, setShowFeedback] = useState(false);
   const [lastFeedback, setLastFeedback] = useState<FeedbackV2 | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -337,5 +332,51 @@ function PlayPhase({
       onNextStep={handleContinue}
       onExit={onExit}
     />
+  );
+}
+
+/**
+ * Reached at a terminal state or MAX_TURNS. Reports Task (mission ratio) and
+ * whether the session got there via a recovery skip — a session that reached
+ * the end through `hadSkips` did not complete under its own steam, so the
+ * copy says so rather than presenting the ratio as an unqualified result.
+ */
+function DebriefPhase({
+  session,
+  onExit,
+}: {
+  session: ReturnType<typeof useRoleplaySession>;
+  onExit: () => void;
+}) {
+  const { status, ratio } = session;
+  const percent = Math.round(ratio * 100);
+
+  return (
+    <Card className="p-6">
+      <h2 className="text-lg font-black text-white italic tracking-tighter uppercase mb-1">Session Complete</h2>
+      <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-6">Task Summary</p>
+
+      <div className="flex items-center gap-4 mb-4">
+        <div className="text-3xl font-black text-white italic">{percent}%</div>
+        <div className="text-xs text-slate-400">
+          {status.completed.length} of {status.applicable} missions completed
+        </div>
+      </div>
+
+      {status.skipped && (
+        <div className="flex items-start gap-2 mb-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/25">
+          <p className="text-[11px] text-amber-300 leading-snug">
+            Moving on — this session included at least one step that wasn't completed and was skipped automatically. It reached the end via recovery, not entirely under your own steam.
+          </p>
+        </div>
+      )}
+
+      <button
+        onClick={onExit}
+        className="mt-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-widest transition-colors"
+      >
+        Back to Explore
+      </button>
+    </Card>
   );
 }
