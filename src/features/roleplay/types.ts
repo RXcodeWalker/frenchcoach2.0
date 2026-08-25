@@ -1,4 +1,4 @@
-import type { OfflineScenarioState } from '../../types/index';
+import type { OfflineScenarioState, FeedbackV2 } from '../../types/index';
 
 export interface MissionConditionIntent {
   kind: 'intent';
@@ -44,12 +44,14 @@ export type TurnOutcomeIntentResult =
 
 export interface LanguageResultScored {
   kind: 'scored';
-  feedback: unknown; // FeedbackV2 — wired in Stage 6
+  feedback: FeedbackV2;
 }
 
 export interface LanguageResultUnscored {
   kind: 'unscored';
-  feedback: unknown; // FeedbackV2 with .unscored set — wired in Stage 6
+  /** Null for a passthrough turn (PASSTHROUGH_LANGUAGE) — no utterance ever
+   *  existed to grade, so there is no FeedbackV2 to carry, honest or otherwise. */
+  feedback: FeedbackV2 | null;
 }
 
 export type LanguageResult = LanguageResultScored | LanguageResultUnscored;

@@ -18,9 +18,19 @@ import bakeryGraph from '../../../data/scenarios/bakery.json';
 import hairdresserGraph from '../../../data/scenarios/hairdresser.json';
 import { listScenarioIds } from '../../../data/scenarios/registry';
 import type { LanguageResult, ScenarioGraph, ScenarioMeta } from '../types';
-import type { OfflineScenarioState } from '../../../types/index';
+import type { FeedbackV2, OfflineScenarioState } from '../../../types/index';
 
 const LANG: LanguageResult = { kind: 'unscored', feedback: null };
+
+/** Minimal valid FeedbackV2 — only used to satisfy the type; these tests assert the reducer treats `language` as opaque, never its contents. */
+const MOCK_FEEDBACK: FeedbackV2 = {
+  scores: { overall: 9, communication: 9, language: 9, fluency: 9 },
+  grammar: { critical: [], polish: [] },
+  vocabulary: [],
+  style: [],
+  fillers: [],
+  wordCount: 4,
+};
 
 function ctxFor(graph: unknown, meta: ScenarioMeta): ReducerContext {
   return { graph: graph as ScenarioGraph, meta };
@@ -83,7 +93,7 @@ describe('reducer — a matched turn advances and records', () => {
   });
 
   it('records the transcript and language verbatim without inspecting either', () => {
-    const scored: LanguageResult = { kind: 'scored', feedback: { marker: 42 } };
+    const scored: LanguageResult = { kind: 'scored', feedback: MOCK_FEEDBACK };
     const state = run(bakeryCtx, [
       { type: 'SUBMIT_TURN', transcript: 'je voudrais du pain', language: scored },
     ]);

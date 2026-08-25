@@ -23,6 +23,7 @@ const MODE_TO_XP_SOURCE: Record<OrchestratorInput['mode'], XpSource> = {
   story: 'story',
   'daily-news': 'daily_news',
   'scenario-architect': 'roleplay',
+  roleplay: 'roleplay',
 };
 import { buildEvidence } from './evidenceBuilder';
 import { updateFromFeedback } from './beliefProjectionService';

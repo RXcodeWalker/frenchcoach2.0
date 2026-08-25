@@ -30,6 +30,7 @@ interface VisualNovelViewProps {
   showFeedback: boolean;
   lastFeedback: FeedbackV2 | null;
   onStopRecording: () => void;
+  onRetry: () => void;
   onNextStep: () => void;
   onExit: () => void;
 }
@@ -47,6 +48,7 @@ export const VisualNovelView: React.FC<VisualNovelViewProps> = ({
   showFeedback,
   lastFeedback,
   onStopRecording,
+  onRetry,
   onNextStep,
   onExit,
 }) => {
@@ -158,10 +160,10 @@ export const VisualNovelView: React.FC<VisualNovelViewProps> = ({
         <div className="max-w-4xl mx-auto">
           {showFeedback && lastFeedback ? (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-              <FeedbackPanel 
+              <FeedbackPanel
                 feedback={lastFeedback}
                 onComplete={onNextStep}
-                onRetry={() => {}} 
+                onRetry={onRetry}
               />
               <button 
                 onClick={onNextStep}

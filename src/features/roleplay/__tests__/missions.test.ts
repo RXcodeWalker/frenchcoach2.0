@@ -9,6 +9,17 @@ import {
 } from '../missions';
 import { bakeryMeta } from '../../../data/scenarios/bakery.meta';
 import type { LanguageResult, Mission, TurnOutcome, TurnOutcomeIntentResult } from '../types';
+import type { FeedbackV2 } from '../../../types/index';
+
+/** Minimal valid FeedbackV2 — only used to satisfy the type; invariant #6 asserts the fold never reads `language`'s contents. */
+const MOCK_FEEDBACK: FeedbackV2 = {
+  scores: { overall: 9, communication: 9, language: 9, fluency: 9 },
+  grammar: { critical: [], polish: [] },
+  vocabulary: [],
+  style: [],
+  fillers: [],
+  wordCount: 4,
+};
 
 /**
  * The fold never reads `language`, so every fixture here carries the same
@@ -241,7 +252,7 @@ describe('invariant #6 — task and language are independent', () => {
     const base = outcome('start', matched('bread'));
     const scored: TurnOutcome = {
       ...base,
-      language: { kind: 'scored', feedback: { scores: { overall: 9 } } },
+      language: { kind: 'scored', feedback: MOCK_FEEDBACK },
     };
     const unscored: TurnOutcome = { ...base, language: { kind: 'unscored', feedback: null } };
     expect(missionStatus(missions, [scored])).toEqual(missionStatus(missions, [unscored]));

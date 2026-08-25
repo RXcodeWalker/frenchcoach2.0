@@ -11,10 +11,12 @@ import { ScenarioPrepScreen } from '../components/ui/ScenarioPrepScreen';
 import { VisualNovelView } from '../components/ui/VisualNovelView';
 import type { Expression } from '../components/ui/CharacterAvatar';
 import type { Objective } from '../components/ui/MissionObjectivesList';
-import type { FeedbackV2, Question } from '../types';
-import { observeAttempt } from '../services/coach/sessionOrchestrator';
+import type { FeedbackV2, Question, Session } from '../types';
+import { orchestrateAttempt } from '../services/coach/sessionOrchestrator';
 import { getSkillProfile } from '../services/coaching/diagnosticEngine';
 import { isUnscored } from '../domain/scoring';
+import { buildTier0Result } from '../services/coaching/responseTier';
+import { computeXPGain, computeParticipationXPGain } from '../domain/xp';
 import {
   primeExaminerVoice,
   speakExaminerText,
@@ -44,7 +46,7 @@ interface Message {
 
 export function StoryMode() {
   const navigate = useNavigate();
-  const { dispatch } = useApp();
+  const { state, dispatch } = useApp();
   const recording = useRecording();
   
   const [selectedStory, setSelectedStory] = useState<Roleplay | null>(null);
@@ -149,51 +151,100 @@ export function StoryMode() {
 
   const handleStopRecording = async () => {
     if (!selectedStory) return;
-    
+
     setIsProcessing(true);
     const transcript = await recording.stop();
-    
+    const wordCount = transcript.split(/\s+/).filter(Boolean).length;
+
     const currentQId = selectedStory.question_ids[currentStep];
-    const question = allQuestions.find(q => q.id === currentQId) as unknown as Question;
-    
+    const question = allQuestions.find(q => q.id === currentQId) as Question | undefined;
+
     let fb: FeedbackV2;
-    try {
-      fb = await getAIFeedback(transcript, question);
-    } catch {
-      fb = { scores: { overall: 5, communication: 5, language: 5, fluency: 5 }, grammar: { critical: [], polish: [] }, vocabulary: [], style: [], fillers: [], wordCount: transcript.split(/\s+/).filter(Boolean).length, cefrLevel: 'A2' };
+    if (!question) {
+      // roleplays.json ↔ questions.json join is broken for most rows (Stage
+      // 10 retires it) — when this step's question doesn't resolve, there is
+      // nothing to score against. Report it honestly rather than fabricating
+      // a mark or crashing getAIFeedback on a missing question.
+      fb = { ...buildTier0Result(), unscored: 'evaluation_failed', wordCount };
+    } else {
+      try {
+        fb = await getAIFeedback(transcript, question);
+      } catch {
+        fb = { ...buildTier0Result(), unscored: 'no_llm_offline', wordCount };
+      }
     }
-    
+
     setIsProcessing(false);
     addMessage(transcript, 'user');
     setLastFeedbackV2(fb);
     setShowFeedbackV2(true);
 
     const unscored = isUnscored(fb);
+    const finalScore = fb.scores.overall;
     if (!unscored) {
-      setOverallScore(prev => prev + fb.scores.overall);
+      setOverallScore(prev => prev + finalScore);
     }
 
     // Update expression based on feedback — a placeholder offline score must
     // never drive the "confused" reaction; stay neutral instead.
     if (unscored) setExpression('thinking');
-    else if (fb.scores.overall >= 8) setExpression('excited');
-    else if (fb.scores.overall >= 6) setExpression('happy');
-    else if (fb.scores.overall <= 3) setExpression('confused');
+    else if (finalScore >= 8) setExpression('excited');
+    else if (finalScore >= 6) setExpression('happy');
+    else if (finalScore <= 3) setExpression('confused');
     else setExpression('thinking');
 
-    // Emit evidence + update beliefs for the coach system.
-    observeAttempt({
-      sessionId: `story-${Date.now()}-${currentStep}`,
+    const xpGain = unscored
+      ? computeParticipationXPGain(state.profile.streak_days)
+      : computeXPGain(finalScore, state.profile.streak_days);
+
+    const session: Session = {
+      id: `story-${Date.now()}-${currentStep}`,
+      mode: 'story',
+      topicKey: selectedStory.id,
+      questionText: question?.text,
+      transcript,
+      wordCount: fb.wordCount,
+      score: unscored ? null : finalScore,
+      xpEarned: xpGain.gain,
+      durationSec: recording.elapsedTime,
+      feedback: fb,
+      createdAt: new Date().toISOString(),
+    };
+
+    // All progression side effects (XP, session record, evidence/beliefs,
+    // achievements) flow through the same contract every other mode uses —
+    // never a raw dispatchAddXP from this runtime.
+    const orchestration = orchestrateAttempt({
+      session,
       question: question ?? null,
       feedback: fb,
+      avoidanceSignals: [],
       transcript,
-      finalScore: fb.scores.overall,
+      durationSec: recording.elapsedTime,
       mode: 'story',
-      topicKey: selectedStory?.id,
+      finalScore,
+      streakDays: state.profile.streak_days,
+      totalSessionsBefore: state.profile.sessions_count,
+    });
+
+    dispatch({
+      type: 'ADD_SESSION',
+      session,
+      xpResult: orchestration.xpResult,
+      newUnlockedAchievementIds: orchestration.newUnlockedAchievementIds,
+      newLevelName: orchestration.newLevelName,
     });
     dispatch({ type: 'UPDATE_SKILL_PROFILE', skillProfile: getSkillProfile() });
+  };
 
-    dispatchAddXP(dispatch, 10, 'story');
+  const handleRetryTurn = () => {
+    // No outcome log exists on this runtime (unlike the graph-based roleplay
+    // session) — retry means "let the user re-record this same question,"
+    // discarding the just-scored attempt rather than replaying an outcome.
+    setShowFeedbackV2(false);
+    setLastFeedbackV2(null);
+    setMessages(prev => prev.slice(0, -1));
+    setExpression('neutral');
   };
 
   const handleNextStep = async () => {
@@ -362,6 +413,7 @@ export function StoryMode() {
       showFeedback={showFeedback}
       lastFeedback={lastFeedback}
       onStopRecording={handleStopRecording}
+      onRetry={handleRetryTurn}
       onNextStep={handleNextStep}
       onExit={() => {
         stopExaminerVoice();

@@ -29,6 +29,8 @@ const ALLOWED: Record<string, string> = {
     'fire-and-forget coach-evidence side effect only (finalScore passthrough to observeAttempt) — never rendered',
   'src/screens/StoryMode.tsx':
     'data computation only (overallScore accumulator is never rendered; mood/expression and observeAttempt passthrough, both gated by isUnscored)',
+  'src/screens/RoleplaySession.tsx':
+    'data computation only (Session.score write, XP calc, and mood/expression selection) — all read inside the `unscored ? ... : finalScore` branch, same shape as StoryMode.tsx',
 };
 
 function listFiles(dir: string): string[] {

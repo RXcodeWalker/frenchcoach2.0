@@ -176,7 +176,7 @@ export interface OrchestratorInput {
   avoidanceSignals: AvoidanceSignal[];
   transcript: string;
   durationSec: number;
-  mode: 'practice' | 'exam' | 'story' | 'daily-news' | 'scenario-architect';
+  mode: 'practice' | 'exam' | 'story' | 'daily-news' | 'scenario-architect' | 'roleplay';
   topicsUsed?: string[];
   /**
    * Pre-computed final score (e.g. after a shield boost in Learn). Ignored for
