@@ -3,12 +3,21 @@ import type { ScenarioDeck, ScenarioGraph, ScenarioMeta } from '../../features/r
 import hairdresserGraph from './hairdresser.json';
 import bakeryGraph from './bakery.json';
 import gareGraph from './gare.json';
+import cafeGraph from './cafe.json';
+import marketGraph from './market.json';
+import storeGraph from './store.json';
 import { hairdresserMeta } from './hairdresser.meta';
 import { hairdresserDeck } from './hairdresser.deck';
 import { bakeryMeta } from './bakery.meta';
 import { bakeryDeck } from './bakery.deck';
 import { gareMeta } from './gare.meta';
 import { gareDeck } from './gare.deck';
+import { cafeMeta } from './cafe.meta';
+import { cafeDeck } from './cafe.deck';
+import { marketMeta } from './market.meta';
+import { marketDeck } from './market.deck';
+import { storeMeta } from './store.meta';
+import { storeDeck } from './store.deck';
 
 /**
  * Deep-freezes a value in place and returns it. Applied to every authored
@@ -63,12 +72,13 @@ interface ScenarioEntry {
  * Every scenario id known to the tree. `bakery` and `hairdresser` are
  * authored in Stage 1 (reference implementations — bakery for a shallow
  * multi-mission branch, hairdresser for deep branching + slot conditions +
- * a non-success terminal). `gare` is authored in Stage 9 as the canonical
- * worked example of graph deepening (see "9a. Deepen the graphs" in the
- * overhaul plan) — only its primary `ticket` branch; the other 15 `start`
- * side-intents remain unauthored graph content for a later Stage 9 pass.
- * The rest ship as `authored: false` stubs and render locked in the Explore
- * tree until their own Stage 9 pass.
+ * a non-success terminal). `gare`, `cafe`, `market`, and `store` are authored
+ * in Stage 9 (gare: canonical worked example; cafe/market/store: Tier 1) —
+ * each has only its primary branch authored; remaining `start` side-intents
+ * (and, for market/store, a parallel `vegetable`/`shoes` branch) remain
+ * unauthored graph content for a later Stage 9 pass. The rest ship as
+ * `authored: false` stubs and render locked in the Explore tree until their
+ * own Stage 9 pass.
  */
 const SCENARIO_IDS = [
   'airport', 'bakery', 'bank', 'bookstore', 'cafe', 'camping', 'car_rental',
@@ -100,6 +110,9 @@ const AUTHORED_ENTRIES: Partial<Record<ScenarioId, ScenarioEntry>> = {
   bakery: { meta: bakeryMeta, graph: bakeryGraph, deck: bakeryDeck },
   hairdresser: { meta: hairdresserMeta, graph: hairdresserGraph, deck: hairdresserDeck },
   gare: { meta: gareMeta, graph: gareGraph, deck: gareDeck },
+  cafe: { meta: cafeMeta, graph: cafeGraph, deck: cafeDeck },
+  market: { meta: marketMeta, graph: marketGraph, deck: marketDeck },
+  store: { meta: storeMeta, graph: storeGraph, deck: storeDeck },
 };
 
 const REGISTRY: Record<ScenarioId, ScenarioEntry> = Object.fromEntries(
@@ -114,7 +127,7 @@ const REGISTRY: Record<ScenarioId, ScenarioEntry> = Object.fromEntries(
   }),
 ) as Record<ScenarioId, ScenarioEntry>;
 
-/** True only for scenarios with real authored content (Stage 1: bakery, hairdresser; Stage 9: gare). */
+/** True only for scenarios with real authored content (Stage 1: bakery, hairdresser; Stage 9: gare, cafe, market, store). */
 export function isAuthored(id: string): boolean {
   return id in AUTHORED_ENTRIES;
 }

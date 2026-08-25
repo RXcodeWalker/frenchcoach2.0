@@ -3,7 +3,7 @@ import { listScenarios, isAuthored, getScenario, isPlayable } from '../registry'
 import { validateRegistry, type ScenarioEntryForValidation } from '../../../features/roleplay/validate';
 
 describe('registry — Stage 2 validator run across the real corpus', () => {
-  it('produces zero errors for every authored scenario (bakery, hairdresser, gare)', () => {
+  it('produces zero errors for every authored scenario (bakery, hairdresser, gare, cafe, market, store)', () => {
     const entries: ScenarioEntryForValidation[] = listScenarios().map((e) => ({
       id: e.meta.id,
       meta: e.meta,
@@ -16,9 +16,9 @@ describe('registry — Stage 2 validator run across the real corpus', () => {
   });
 
   it('skips unauthored scenarios entirely (no errors from empty stubs)', () => {
-    const cafe = getScenario('cafe');
-    expect(cafe).toBeDefined();
-    expect(isAuthored('cafe')).toBe(false);
+    const bank = getScenario('bank');
+    expect(bank).toBeDefined();
+    expect(isAuthored('bank')).toBe(false);
   });
 });
 
@@ -27,11 +27,14 @@ describe('registry — isPlayable (Stage 3 gate)', () => {
     expect(isPlayable('bakery', true)).toBe(true);
     expect(isPlayable('hairdresser', true)).toBe(true);
     expect(isPlayable('gare', true)).toBe(true);
+    expect(isPlayable('cafe', true)).toBe(true);
+    expect(isPlayable('market', true)).toBe(true);
+    expect(isPlayable('store', true)).toBe(true);
   });
 
-  it('is not playable when unlocked but unauthored (e.g. cafe)', () => {
-    expect(isAuthored('cafe')).toBe(false);
-    expect(isPlayable('cafe', true)).toBe(false);
+  it('is not playable when unlocked but unauthored (e.g. bank)', () => {
+    expect(isAuthored('bank')).toBe(false);
+    expect(isPlayable('bank', true)).toBe(false);
   });
 
   it('is not playable when authored but locked', () => {

@@ -192,16 +192,44 @@
 
   "ask_coffee": {
     "prompt": [
-      "Qu'est-ce que vous prendrez comme café — expresso, allongé, cappuccino, latte ?",
-      "Vous voulez quoi comme boisson ? Expresso, café au lait ou autre chose ?"
+      "Qu'est-ce que vous prendrez comme café ?",
+      "Vous voulez quoi comme boisson ?"
     ],
+    "capture": "coffee_order",
+    "next": "ask_milk_sugar"
+  },
+
+  "ask_milk_sugar": {
+    "prompt": [
+      "Avec du lait, du sucre, ou nature ?",
+      "Vous le prenez comment — lait, sucre, ou sans rien ?"
+    ],
+    "capture": "milk_sugar",
     "next": "show_total"
   },
 
   "show_total": {
     "prompt": [
-      "Ça vous fera 4 euros, s'il vous plaît !",
-      "Le total est de 4 euros. Vous payez par carte ou en espèces ?"
+      "Ça vous fera 4 euros. Vous payez par carte ou en espèces ?"
+    ],
+    "intents": {
+      "card": "confirm_payment_card",
+      "cash": "confirm_payment_cash"
+    }
+  },
+
+  "confirm_payment_card": {
+    "prompt": [
+      "Parfait, je vous apporte le terminal tout de suite.",
+      "Très bien, vous pouvez insérer ou sans contact."
+    ],
+    "next": "end_session"
+  },
+
+  "confirm_payment_cash": {
+    "prompt": [
+      "Très bien, en espèces alors. Voici votre monnaie.",
+      "Pas de problème, je prépare votre monnaie."
     ],
     "next": "end_session"
   },

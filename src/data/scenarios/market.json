@@ -192,9 +192,10 @@
 
   "ask_fruit_type": {
     "prompt": [
-      "Quels fruits est-ce que vous voulez — pommes, poires, fraises, raisins ? J'ai un beau choix !",
-      "Vous avez envie de quoi comme fruits ? Je peux vous montrer ce qui est le plus mûr."
+      "Quels fruits est-ce que vous voulez — des pommes, des fraises ?",
+      "Vous avez envie de quoi comme fruits ?"
     ],
+    "capture": "fruit_type",
     "next": "ask_quantity"
   },
 
@@ -208,9 +209,10 @@
 
   "ask_quantity": {
     "prompt": [
-      "Quelle quantité est-ce que je vous mets ? Un kilo, deux kilos ou vous m'indiquez ?",
-      "Combien il vous en faut ? Je pèse ça tout de suite."
+      "Quelle quantité est-ce que je vous mets — un kilo, deux kilos ?",
+      "Combien il vous en faut ?"
     ],
+    "capture": "quantity",
     "next": "ask_anything_else"
   },
 
@@ -235,8 +237,26 @@
 
   "ask_payment": {
     "prompt": [
-      "Comment vous réglez ? En espèces ou par carte ? On prend la carte depuis cette année !",
-      "C'est combien pour vous ? Vous payez en liquide ou par carte sans contact ?"
+      "Comment vous réglez ? En espèces ou par carte ?"
+    ],
+    "intents": {
+      "card": "confirm_payment_card",
+      "cash": "confirm_payment_cash"
+    }
+  },
+
+  "confirm_payment_card": {
+    "prompt": [
+      "Très bien, on prend la carte depuis cette année. Je vous fais le ticket.",
+      "Parfait, par carte alors. Voici votre reçu."
+    ],
+    "next": "end_session"
+  },
+
+  "confirm_payment_cash": {
+    "prompt": [
+      "Très bien, en espèces. Voici votre monnaie.",
+      "Pas de souci, en liquide. Je vous rends la monnaie."
     ],
     "next": "end_session"
   },

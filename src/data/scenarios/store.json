@@ -148,9 +148,10 @@
 
   "ask_clothing_type": {
     "prompt": [
-      "Quel type de vêtement cherchez-vous — manteau, pull, pantalon, robe ? Je vais vous guider.",
-      "C'est pour s'habiller comment — casual, habillé ou sportif ? Je peux vous montrer les nouvelles collections."
+      "Quel type de vêtement cherchez-vous — manteau, pull, pantalon, robe ?",
+      "Vous cherchez quel genre de vêtement ?"
     ],
+    "capture": "clothing_type",
     "next": "ask_size"
   },
 
@@ -164,9 +165,10 @@
 
   "ask_size": {
     "prompt": [
-      "Vous faites quelle taille — S, M, L ou XL ? Je regarde ce qu'on a en stock.",
-      "C'est pour vous ou pour offrir ? Vous connaissez la taille ? Je vérifie en réserve."
+      "Vous faites quelle taille ?",
+      "Quelle taille vous faut-il ?"
     ],
+    "capture": "clothing_size",
     "next": "check_stock"
   },
 
@@ -188,8 +190,26 @@
 
   "ask_payment": {
     "prompt": [
-      "Comment souhaitez-vous régler ? Carte bancaire, espèces ou chèque cadeau ?",
-      "Vous payez par carte ou en liquide ? On accepte aussi les chèques cadeaux de notre enseigne."
+      "Comment souhaitez-vous régler ? Carte bancaire ou espèces ?"
+    ],
+    "intents": {
+      "card": "confirm_payment_card",
+      "cash": "confirm_payment_cash"
+    }
+  },
+
+  "confirm_payment_card": {
+    "prompt": [
+      "Très bien, par carte. Voici votre ticket de caisse.",
+      "Parfait, je vous fais payer par carte. Voici votre reçu."
+    ],
+    "next": "end_session"
+  },
+
+  "confirm_payment_cash": {
+    "prompt": [
+      "Très bien, en espèces. Voici votre monnaie et votre ticket.",
+      "Pas de souci, en liquide. Je vous rends la monnaie."
     ],
     "next": "end_session"
   },
