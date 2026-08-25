@@ -19,6 +19,7 @@
     "authoring:review-sheet": "tsx scripts/authoring/reviewSheet.ts",
     "authoring:status": "tsx scripts/authoring/status.ts",
     "roleplay:check": "tsx scripts/roleplay/check.ts",
+    "roleplay:skeleton": "tsx scripts/roleplay/skeleton.ts",
     "learn:skeleton": "tsx scripts/authoring/learnSkeleton.ts",
     "learn:infer": "tsx scripts/authoring/inferLearnDemands.ts",
     "learn:build-manifest": "tsx scripts/authoring/buildDemandsManifest.ts",
