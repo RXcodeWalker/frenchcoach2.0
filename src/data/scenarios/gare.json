@@ -147,16 +147,64 @@
 
   "ask_destination": {
     "prompt": [
-      "Quelle est votre destination ? Et vous partez aujourd'hui ou pour une autre date ?",
+      "Quelle est votre destination ?",
       "Vous allez où ? Je cherche les meilleurs horaires et tarifs disponibles pour vous."
     ],
+    "capture": "destination",
+    "next": "ask_departure_time"
+  },
+
+  "ask_departure_time": {
+    "prompt": [
+      "Et vous partez aujourd'hui ou pour une autre date ?",
+      "C'est pour quand, ce voyage ? Aujourd'hui ou une autre date ?"
+    ],
+    "capture": "departure_time",
     "next": "show_total"
   },
 
   "show_total": {
     "prompt": [
       "J'ai trouvé un billet à 45 euros pour ce trajet. Vous le prenez ?",
-      "Le billet vous coûtera 45 euros en tarif normal. Il y a aussi une offre Prem's à 25 euros si vous avez une carte !"
+      "Le billet vous coûtera 45 euros en tarif normal. Il y a aussi une offre Prem's à 25 euros si vous avez une carte ! Vous le prenez ?"
+    ],
+    "intents": {
+      "yes": "ask_payment_method",
+      "no": "offer_alternative"
+    }
+  },
+
+  "offer_alternative": {
+    "prompt": [
+      "D'accord, pas de souci. Voulez-vous que je regarde un autre horaire, ou un tarif Prem's moins cher si vous avez une carte de réduction ?",
+      "Pas de problème. Je peux vérifier un train un peu plus tard, ou un tarif réduit si vous êtes éligible."
+    ],
+    "next": "end_session"
+  },
+
+  "ask_payment_method": {
+    "prompt": [
+      "Très bien ! Vous réglez par carte bancaire ou en espèces ?",
+      "Parfait, comment souhaitez-vous payer ? Carte ou espèces ?"
+    ],
+    "intents": {
+      "card": "confirm_purchase_card",
+      "cash": "confirm_purchase_cash"
+    }
+  },
+
+  "confirm_purchase_card": {
+    "prompt": [
+      "Voilà, c'est réglé par carte. Voici votre billet, bon voyage !",
+      "Paiement par carte accepté. Votre billet est imprimé, le voici."
+    ],
+    "next": "end_session"
+  },
+
+  "confirm_purchase_cash": {
+    "prompt": [
+      "Très bien, en espèces alors. Voici votre monnaie et votre billet.",
+      "Parfait, réglé en espèces. Voici votre billet et votre monnaie."
     ],
     "next": "end_session"
   },

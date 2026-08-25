@@ -108,7 +108,7 @@ function renderDeckSkeleton(scenarioId: string, entries: DeckSkeletonEntry[]): s
   lines.push(`  entries: [`);
   for (const entry of entries) {
     lines.push(`    {`);
-    lines.push(`      fr: '${entry.fr}', en: 'TODO', pos: 'noun',`);
+    lines.push(`      fr: ${JSON.stringify(entry.fr)}, en: 'TODO', pos: 'noun',`);
     lines.push(`      register: 'neutral', usedInStates: ${JSON.stringify(entry.usedInStates)}, rank: 'extend',`);
     lines.push(`    },`);
   }
