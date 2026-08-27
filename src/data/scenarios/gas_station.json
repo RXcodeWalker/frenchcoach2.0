@@ -61,7 +61,13 @@
   },
 
   "fuel_start": {
-    "prompt": ["Très bien, quelle pompe ?"],
+    "prompt": ["Très bien, c'est bien du Sans Plomb 95 ou du Gazole ?"],
+    "capture": "fuel_type",
+    "next": "ask_fuel_pump"
+  },
+
+  "ask_fuel_pump": {
+    "prompt": ["Quelle pompe avez-vous utilisée ?"],
     "capture": "pump_number",
     "next": "ask_payment"
   },

@@ -147,18 +147,30 @@
 
   "ask_drink": {
     "prompt": [
-      "Qu'est-ce que je vous sers à boire — eau, jus, soda, thé ou café ?",
-      "Boisson chaude ou froide ? On a aussi du vin et de la bière si vous le souhaitez."
+      "Qu'est-ce que je vous sers à boire ?",
+      "Boisson chaude ou froide ?"
     ],
+    "capture": "drink_choice",
     "next": "ask_meal"
   },
 
   "ask_meal": {
     "prompt": [
-      "Pour le repas, vous avez le choix entre le poulet rôti aux légumes ou le risotto végétarien. Votre préférence ?",
-      "Et pour manger, qu'est-ce que vous choisissez ? J'ai aussi un plateau végétarien si vous voulez."
+      "Pour le repas, qu'est-ce que vous choisissez ?",
+      "Et pour manger, qu'est-ce que vous prenez ?"
     ],
-    "next": "end_session"
+    "capture": "meal_choice",
+    "next": "ask_anything_else"
+  },
+
+  "ask_anything_else": {
+    "prompt": [
+      "Autre chose pour votre confort ?"
+    ],
+    "intents": {
+      "yes": "cabin_adjustment_start",
+      "no": "end_session"
+    }
   },
 
   "end_session": {

@@ -3,7 +3,7 @@ import { listScenarios, isAuthored, getScenario, isPlayable } from '../registry'
 import { validateRegistry, type ScenarioEntryForValidation } from '../../../features/roleplay/validate';
 
 describe('registry — Stage 2 validator run across the real corpus', () => {
-  it('produces zero errors for every authored scenario (bakery, hairdresser, gare, cafe, market, store, bank, post_office, pharmacy, bookstore)', () => {
+  it('produces zero errors for every authored scenario', () => {
     const entries: ScenarioEntryForValidation[] = listScenarios().map((e) => ({
       id: e.meta.id,
       meta: e.meta,
@@ -16,9 +16,9 @@ describe('registry — Stage 2 validator run across the real corpus', () => {
   });
 
   it('skips unauthored scenarios entirely (no errors from empty stubs)', () => {
-    const dentist = getScenario('dentist');
-    expect(dentist).toBeDefined();
-    expect(isAuthored('dentist')).toBe(false);
+    const museum = getScenario('museum');
+    expect(museum).toBeDefined();
+    expect(isAuthored('museum')).toBe(false);
   });
 });
 
@@ -34,11 +34,23 @@ describe('registry — isPlayable (Stage 3 gate)', () => {
     expect(isPlayable('post_office', true)).toBe(true);
     expect(isPlayable('pharmacy', true)).toBe(true);
     expect(isPlayable('bookstore', true)).toBe(true);
+    expect(isPlayable('airport', true)).toBe(true);
+    expect(isPlayable('camping', true)).toBe(true);
+    expect(isPlayable('car_rental', true)).toBe(true);
+    expect(isPlayable('cinema', true)).toBe(true);
+    expect(isPlayable('dentist', true)).toBe(true);
+    expect(isPlayable('doctor', true)).toBe(true);
+    expect(isPlayable('flight', true)).toBe(true);
+    expect(isPlayable('flower_shop', true)).toBe(true);
+    expect(isPlayable('gas_station', true)).toBe(true);
+    expect(isPlayable('gym', true)).toBe(true);
+    expect(isPlayable('hotel', true)).toBe(true);
+    expect(isPlayable('job_interview', true)).toBe(true);
   });
 
-  it('is not playable when unlocked but unauthored (e.g. dentist)', () => {
-    expect(isAuthored('dentist')).toBe(false);
-    expect(isPlayable('dentist', true)).toBe(false);
+  it('is not playable when unlocked but unauthored (e.g. museum)', () => {
+    expect(isAuthored('museum')).toBe(false);
+    expect(isPlayable('museum', true)).toBe(false);
   });
 
   it('is not playable when authored but locked', () => {

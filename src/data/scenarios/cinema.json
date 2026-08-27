@@ -148,16 +148,42 @@
 
   "ask_time": {
     "prompt": [
-      "Pour quelle séance souhaitez-vous des billets ? On a du monde à 19h et 21h30 ce soir.",
-      "Quelle heure vous conviendrait le mieux — la séance de 19h ou celle de 21h30 ?"
+      "Pour quelle séance souhaitez-vous des billets ?",
+      "Quelle heure vous conviendrait le mieux ?"
     ],
+    "capture": "showtime",
+    "next": "ask_ticket_count"
+  },
+
+  "ask_ticket_count": {
+    "prompt": [
+      "Combien de billets vous faut-il ?",
+      "Vous êtes combien de personnes ?"
+    ],
+    "capture": "ticket_count",
     "next": "show_total"
   },
 
   "show_total": {
     "prompt": [
-      "Ça vous fera 24 euros pour deux places. Vous payez par carte ou en liquide ?",
-      "Le total est de 24 euros. Je vous imprime vos billets et bonne séance !"
+      "Ça vous fera 24 euros pour deux places. Vous payez par carte ou en liquide ?"
+    ],
+    "intents": {
+      "card": "confirm_payment_card",
+      "cash": "confirm_payment_cash"
+    }
+  },
+
+  "confirm_payment_card": {
+    "prompt": [
+      "Très bien, par carte. Voici vos billets, bonne séance !"
+    ],
+    "next": "end_session"
+  },
+
+  "confirm_payment_cash": {
+    "prompt": [
+      "Très bien, en espèces. Voici votre monnaie et vos billets."
     ],
     "next": "end_session"
   },

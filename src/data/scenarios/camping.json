@@ -194,15 +194,41 @@
   "ask_reservation_name": {
     "prompt": [
       "Très bien ! Vous avez réservé sous quel nom, s'il vous plaît ?",
-      "La réservation est à quel nom ? Je cherche ça dans notre système."
+      "La réservation est à quel nom ?"
     ],
+    "capture": "reservation_name",
+    "next": "ask_nights"
+  },
+
+  "ask_nights": {
+    "prompt": [
+      "Combien de nuits restez-vous ?",
+      "Vous partez dans combien de jours ?"
+    ],
+    "capture": "nights",
     "next": "give_pitch"
   },
 
   "give_pitch": {
     "prompt": [
-      "Je vous ai trouvé ! C'est l'emplacement numéro 42, au bord du lac. C'est l'un des plus beaux !",
-      "Votre emplacement est le numéro 42. Vous avez de la chance, il est très bien placé à l'ombre."
+      "Je vous ai trouvé ! C'est l'emplacement numéro 42, au bord du lac. Vous réglez par carte ou en espèces ?"
+    ],
+    "intents": {
+      "card": "confirm_payment_card",
+      "cash": "confirm_payment_cash"
+    }
+  },
+
+  "confirm_payment_card": {
+    "prompt": [
+      "Très bien, par carte. Voici votre reçu et le code du portail."
+    ],
+    "next": "end_session"
+  },
+
+  "confirm_payment_cash": {
+    "prompt": [
+      "Très bien, en espèces. Voici votre monnaie et le code du portail."
     ],
     "next": "end_session"
   },

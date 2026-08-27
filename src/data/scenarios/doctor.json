@@ -104,16 +104,35 @@
 
   "ask_symptoms": {
     "prompt": [
-      "Décrivez-moi vos symptômes, s'il vous plaît. Depuis quand vous sentez-vous comme ça ?",
-      "Qu'est-ce qui ne va pas exactement ? Prenez votre temps, je vous écoute attentivement."
+      "Décrivez-moi vos symptômes, s'il vous plaît.",
+      "Qu'est-ce qui ne va pas exactement ?"
     ],
+    "capture": "symptoms",
+    "next": "ask_duration"
+  },
+
+  "ask_duration": {
+    "prompt": [
+      "Depuis quand vous sentez-vous comme ça ?",
+      "Ça dure depuis combien de temps ?"
+    ],
+    "capture": "symptom_duration",
     "next": "diagnosis"
   },
 
   "diagnosis": {
     "prompt": [
-      "D'après ce que vous me décrivez, voici mon diagnostic. Je vais vous faire une ordonnance adaptée.",
-      "Je pense savoir ce que c'est. Je vous prescris un traitement et on se revoit dans une semaine si ça ne va pas mieux."
+      "D'après ce que vous me décrivez, je vais vous prescrire un traitement. Vous voulez aussi un arrêt de travail ?"
+    ],
+    "intents": {
+      "yes": "confirm_sick_leave",
+      "no": "end_session"
+    }
+  },
+
+  "confirm_sick_leave": {
+    "prompt": [
+      "Très bien, je vous fais un arrêt de trois jours. Reposez-vous bien !"
     ],
     "next": "end_session"
   },

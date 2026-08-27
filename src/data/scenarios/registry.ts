@@ -10,6 +10,18 @@ import bankGraph from './bank.json';
 import postOfficeGraph from './post_office.json';
 import pharmacyGraph from './pharmacy.json';
 import bookstoreGraph from './bookstore.json';
+import airportGraph from './airport.json';
+import campingGraph from './camping.json';
+import carRentalGraph from './car_rental.json';
+import cinemaGraph from './cinema.json';
+import dentistGraph from './dentist.json';
+import doctorGraph from './doctor.json';
+import flightGraph from './flight.json';
+import flowerShopGraph from './flower_shop.json';
+import gasStationGraph from './gas_station.json';
+import gymGraph from './gym.json';
+import hotelGraph from './hotel.json';
+import jobInterviewGraph from './job_interview.json';
 import { hairdresserMeta } from './hairdresser.meta';
 import { hairdresserDeck } from './hairdresser.deck';
 import { bakeryMeta } from './bakery.meta';
@@ -30,6 +42,30 @@ import { pharmacyMeta } from './pharmacy.meta';
 import { pharmacyDeck } from './pharmacy.deck';
 import { bookstoreMeta } from './bookstore.meta';
 import { bookstoreDeck } from './bookstore.deck';
+import { airportMeta } from './airport.meta';
+import { airportDeck } from './airport.deck';
+import { campingMeta } from './camping.meta';
+import { campingDeck } from './camping.deck';
+import { carRentalMeta } from './car_rental.meta';
+import { carRentalDeck } from './car_rental.deck';
+import { cinemaMeta } from './cinema.meta';
+import { cinemaDeck } from './cinema.deck';
+import { dentistMeta } from './dentist.meta';
+import { dentistDeck } from './dentist.deck';
+import { doctorMeta } from './doctor.meta';
+import { doctorDeck } from './doctor.deck';
+import { flightMeta } from './flight.meta';
+import { flightDeck } from './flight.deck';
+import { flowerShopMeta } from './flower_shop.meta';
+import { flowerShopDeck } from './flower_shop.deck';
+import { gasStationMeta } from './gas_station.meta';
+import { gasStationDeck } from './gas_station.deck';
+import { gymMeta } from './gym.meta';
+import { gymDeck } from './gym.deck';
+import { hotelMeta } from './hotel.meta';
+import { hotelDeck } from './hotel.deck';
+import { jobInterviewMeta } from './job_interview.meta';
+import { jobInterviewDeck } from './job_interview.deck';
 
 /**
  * Deep-freezes a value in place and returns it. Applied to every authored
@@ -84,14 +120,15 @@ interface ScenarioEntry {
  * Every scenario id known to the tree. `bakery` and `hairdresser` are
  * authored in Stage 1 (reference implementations — bakery for a shallow
  * multi-mission branch, hairdresser for deep branching + slot conditions +
- * a non-success terminal). `gare`, `cafe`, `market`, `store`, `bank`,
- * `post_office`, `pharmacy`, and `bookstore` are authored in Stage 9 (gare:
- * canonical worked example; cafe/market/store: Tier 1; bank/post_office/
- * pharmacy/bookstore: Tier 2) — each has only its primary branch authored;
- * remaining `start` side-intents (and, for some, a parallel sibling branch)
- * remain unauthored graph content for a later Stage 9 pass. The rest ship
- * as `authored: false` stubs and render locked in the Explore tree until
- * their own Stage 9 pass.
+ * a non-success terminal). Stage 9 authors (in the plan's stated order):
+ * `gare` (canonical worked example); Tier 1 `cafe`/`market`/`store`; Tier 2
+ * `bank`/`post_office`/`pharmacy`/`bookstore`; Tier 3 `airport`/`camping`/
+ * `car_rental`/`cinema`/`dentist`/`doctor`/`flight`/`flower_shop`/
+ * `gas_station`/`gym`/`hotel`/`job_interview` — each has only its primary
+ * branch authored; remaining `start` side-intents (and, for some, a
+ * parallel sibling branch) remain unauthored graph content for a later
+ * Stage 9 pass. The rest ship as `authored: false` stubs and render locked
+ * in the Explore tree until their own Stage 9 pass.
  */
 const SCENARIO_IDS = [
   'airport', 'bakery', 'bank', 'bookstore', 'cafe', 'camping', 'car_rental',
@@ -130,6 +167,18 @@ const AUTHORED_ENTRIES: Partial<Record<ScenarioId, ScenarioEntry>> = {
   post_office: { meta: postOfficeMeta, graph: postOfficeGraph, deck: postOfficeDeck },
   pharmacy: { meta: pharmacyMeta, graph: pharmacyGraph, deck: pharmacyDeck },
   bookstore: { meta: bookstoreMeta, graph: bookstoreGraph, deck: bookstoreDeck },
+  airport: { meta: airportMeta, graph: airportGraph, deck: airportDeck },
+  camping: { meta: campingMeta, graph: campingGraph, deck: campingDeck },
+  car_rental: { meta: carRentalMeta, graph: carRentalGraph, deck: carRentalDeck },
+  cinema: { meta: cinemaMeta, graph: cinemaGraph, deck: cinemaDeck },
+  dentist: { meta: dentistMeta, graph: dentistGraph, deck: dentistDeck },
+  doctor: { meta: doctorMeta, graph: doctorGraph, deck: doctorDeck },
+  flight: { meta: flightMeta, graph: flightGraph, deck: flightDeck },
+  flower_shop: { meta: flowerShopMeta, graph: flowerShopGraph, deck: flowerShopDeck },
+  gas_station: { meta: gasStationMeta, graph: gasStationGraph, deck: gasStationDeck },
+  gym: { meta: gymMeta, graph: gymGraph, deck: gymDeck },
+  hotel: { meta: hotelMeta, graph: hotelGraph, deck: hotelDeck },
+  job_interview: { meta: jobInterviewMeta, graph: jobInterviewGraph, deck: jobInterviewDeck },
 };
 
 const REGISTRY: Record<ScenarioId, ScenarioEntry> = Object.fromEntries(
@@ -144,7 +193,7 @@ const REGISTRY: Record<ScenarioId, ScenarioEntry> = Object.fromEntries(
   }),
 ) as Record<ScenarioId, ScenarioEntry>;
 
-/** True only for scenarios with real authored content (Stage 1: bakery, hairdresser; Stage 9: gare, cafe, market, store, bank, post_office, pharmacy, bookstore). */
+/** True only for scenarios with real authored content (Stage 1: bakery, hairdresser; Stage 9: gare, cafe, market, store, bank, post_office, pharmacy, bookstore, airport, camping, car_rental, cinema, dentist, doctor, flight, flower_shop, gas_station, gym, hotel, job_interview). */
 export function isAuthored(id: string): boolean {
   return id in AUTHORED_ENTRIES;
 }

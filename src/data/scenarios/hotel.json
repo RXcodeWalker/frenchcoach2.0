@@ -203,23 +203,27 @@
       "Pas de problème, nous avons des chambres disponibles ! Pour combien de nuits souhaitez-vous rester ?",
       "Voyons ce qu'on a de libre. C'est pour combien de nuits ?"
     ],
+    "capture": "nights",
     "next": "offer_room"
   },
 
   "offer_room": {
     "prompt": [
       "Parfait ! Souhaitez-vous une chambre simple, une chambre double ou une suite ?",
-      "J'ai plusieurs types de chambres disponibles. Vous préférez une vue sur la mer ou sur le jardin ?"
+      "J'ai plusieurs types de chambres disponibles. Laquelle préférez-vous ?"
     ],
+    "capture": "room_type",
     "next": "ask_id"
   },
 
   "ask_id": {
     "prompt": [
-      "Pourriez-vous me présenter votre passeport ou une pièce d'identité, s'il vous plaît ?",
-      "J'ai juste besoin d'une pièce d'identité pour compléter l'enregistrement. Vous l'avez sur vous ?"
+      "Pourriez-vous me présenter votre passeport ou une pièce d'identité ?"
     ],
-    "next": "give_key"
+    "intents": {
+      "id_card": "give_key",
+      "passport": "give_key"
+    }
   },
 
   "give_key": {

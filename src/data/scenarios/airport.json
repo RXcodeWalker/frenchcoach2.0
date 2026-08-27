@@ -192,8 +192,36 @@
 
   "check_documents": {
     "prompt": [
-      "Très bien ! Puis-je voir votre passeport et votre billet de voyage, s'il vous plaît ?",
-      "Je vais vous enregistrer tout de suite. Votre passeport, s'il vous plaît !"
+      "Très bien ! Quelle est votre destination aujourd'hui ?",
+      "Je vais vous enregistrer. Où allez-vous ?"
+    ],
+    "capture": "flight_destination",
+    "next": "ask_baggage"
+  },
+
+  "ask_baggage": {
+    "prompt": [
+      "Combien de valises avez-vous à enregistrer ?",
+      "Vous avez des bagages à mettre en soute ?"
+    ],
+    "capture": "baggage_count",
+    "next": "ask_seat_preference"
+  },
+
+  "ask_seat_preference": {
+    "prompt": [
+      "Vous préférez un siège côté couloir ou côté hublot ?"
+    ],
+    "intents": {
+      "aisle": "confirm_checkin",
+      "window": "confirm_checkin"
+    }
+  },
+
+  "confirm_checkin": {
+    "prompt": [
+      "Parfait, voici votre carte d'embarquement. Embarquement à la porte B12 dans une heure.",
+      "Voilà, c'est fait ! Votre porte d'embarquement est la B12."
     ],
     "next": "end_session"
   },

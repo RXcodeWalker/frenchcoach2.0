@@ -22,10 +22,11 @@
 
   "membership_info_start": {
     "prompt": [
-      "On a plusieurs formules : l'abonnement mensuel sans engagement ou l'engagement annuel qui est moins cher. Laquelle vous tente ?",
-      "L'inscription donne accès à toutes nos salles 7 jours sur 7. Voulez-vous connaître nos tarifs étudiants ?"
+      "On a plusieurs formules : l'abonnement mensuel ou l'engagement annuel. Laquelle vous tente ?",
+      "Quelle formule d'abonnement préférez-vous ?"
     ],
-    "next": "registration_process"
+    "capture": "membership_plan",
+    "next": "goals_inquiry_start"
   },
 
   "trial_session_start": {
@@ -91,7 +92,15 @@
   },
 
   "registration_process": {
-    "prompt": ["Très bien. Il me faudra une pièce d'identité et un RIB pour le prélèvement automatique."],
+    "prompt": ["Très bien. Vous avez une pièce d'identité sur vous ?"],
+    "intents": {
+      "yes": "confirm_registration",
+      "no": "end_session"
+    }
+  },
+
+  "confirm_registration": {
+    "prompt": ["Parfait, votre inscription est finalisée. Bienvenue chez nous !"],
     "next": "end_session"
   },
 

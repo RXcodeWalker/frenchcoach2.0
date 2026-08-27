@@ -80,6 +80,7 @@
 
   "bouquet_start": {
     "prompt": ["Plutôt des tons pastel ou des couleurs vives ?"],
+    "capture": "bouquet_style",
     "next": "ask_colors"
   },
 
@@ -100,11 +101,25 @@
 
   "ask_budget": {
     "prompt": ["Quel budget avez-vous prévu ?"],
+    "capture": "budget",
     "next": "go_to_cashier"
   },
 
   "go_to_cashier": {
-    "prompt": ["Voilà, c'est prêt ! Ça fera 35 euros."],
+    "prompt": ["Voilà, c'est prêt ! Ça fera 35 euros. Vous payez par carte ou en espèces ?"],
+    "intents": {
+      "card": "confirm_payment_card",
+      "cash": "confirm_payment_cash"
+    }
+  },
+
+  "confirm_payment_card": {
+    "prompt": ["Très bien, par carte. Voici votre bouquet !"],
+    "next": "end_session"
+  },
+
+  "confirm_payment_cash": {
+    "prompt": ["Très bien, en espèces. Voici votre monnaie et votre bouquet !"],
     "next": "end_session"
   },
 

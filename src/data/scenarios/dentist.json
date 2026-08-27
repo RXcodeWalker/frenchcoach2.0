@@ -62,6 +62,7 @@
 
   "pain_start": {
     "prompt": ["Où avez-vous mal exactement ?"],
+    "capture": "pain_location",
     "next": "ask_how_long"
   },
 
@@ -87,6 +88,7 @@
 
   "ask_how_long": {
     "prompt": ["Depuis combien de temps avez-vous cette douleur ?"],
+    "capture": "pain_duration",
     "next": "diagnosis"
   },
 
@@ -97,6 +99,14 @@
 
   "appointment": {
     "prompt": ["Voulez-vous reprendre rendez-vous dans six mois ?"],
+    "intents": {
+      "yes": "confirm_next_appointment",
+      "no": "end_session"
+    }
+  },
+
+  "confirm_next_appointment": {
+    "prompt": ["Très bien, je vous note ça. À bientôt !"],
     "next": "end_session"
   },
 
