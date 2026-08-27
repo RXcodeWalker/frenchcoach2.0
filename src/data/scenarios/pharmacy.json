@@ -204,9 +204,10 @@
 
   "ask_prescription": {
     "prompt": [
-      "Avez-vous votre ordonnance ? Je vais voir ce que nous avons en stock et préparer vos médicaments.",
-      "Vous avez une ordonnance ? Montrez-la moi, je prépare tout ça pour vous."
+      "Avez-vous votre ordonnance ? Dites-moi le nom du médicament prescrit.",
+      "Vous avez une ordonnance ? Quel médicament vous a-t-on prescrit ?"
     ],
+    "capture": "prescribed_medication",
     "next": "prepare_meds"
   },
 
@@ -255,8 +256,26 @@
 
   "ask_payment": {
     "prompt": [
-      "Comment souhaitez-vous régler ? Carte bancaire ou espèces ?",
-      "Vous payez par carte ou en liquide ?"
+      "Comment souhaitez-vous régler ? Carte bancaire ou espèces ?"
+    ],
+    "intents": {
+      "card": "confirm_payment_card",
+      "cash": "confirm_payment_cash"
+    }
+  },
+
+  "confirm_payment_card": {
+    "prompt": [
+      "Très bien, par carte. Voici votre ticket et la notice des médicaments.",
+      "Parfait, je vous fais payer par carte."
+    ],
+    "next": "end_session"
+  },
+
+  "confirm_payment_cash": {
+    "prompt": [
+      "Très bien, en espèces. Voici votre monnaie et votre ticket.",
+      "Pas de souci, en liquide."
     ],
     "next": "end_session"
   },

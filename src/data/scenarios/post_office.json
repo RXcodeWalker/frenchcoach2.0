@@ -141,10 +141,22 @@
 
   "ask_destination": {
     "prompt": [
-      "Quelle est la destination de votre colis — en France, en Europe ou à l'international ?",
-      "C'est pour envoyer où exactement ? Le tarif change selon la destination et le délai souhaité."
+      "Quelle est la destination de votre colis ?",
+      "C'est pour envoyer où exactement ?"
     ],
-    "next": "show_total"
+    "capture": "destination",
+    "next": "ask_delivery_speed"
+  },
+
+  "ask_delivery_speed": {
+    "prompt": [
+      "Vous voulez un envoi standard ou en express ?",
+      "Vous préférez le tarif normal ou la livraison rapide ?"
+    ],
+    "intents": {
+      "standard": "show_total",
+      "express": "show_total"
+    }
   },
 
   "ask_stamp_count": {
@@ -157,8 +169,26 @@
 
   "show_total": {
     "prompt": [
-      "Ça vous fera 15 euros en tout, s'il vous plaît. Carte ou espèces ?",
-      "Le total est de 15 euros. Comment souhaitez-vous régler ?"
+      "Ça vous fera 15 euros en tout. Vous payez par carte ou en espèces ?"
+    ],
+    "intents": {
+      "card": "confirm_payment_card",
+      "cash": "confirm_payment_cash"
+    }
+  },
+
+  "confirm_payment_card": {
+    "prompt": [
+      "Parfait, je vous fais payer par carte. Voici votre reçu et le numéro de suivi.",
+      "Très bien, par carte. Voici votre ticket de dépôt."
+    ],
+    "next": "end_session"
+  },
+
+  "confirm_payment_cash": {
+    "prompt": [
+      "Très bien, en espèces. Voici votre monnaie et votre reçu.",
+      "Pas de souci, en liquide. Voici votre ticket de dépôt."
     ],
     "next": "end_session"
   },

@@ -149,7 +149,36 @@
   "ask_account": {
     "prompt": [
       "Vous souhaitez ouvrir quel type de compte — courant, épargne ou professionnel ?",
-      "Je vais vous présenter nos différents types de comptes. C'est pour une utilisation personnelle ou professionnelle ?"
+      "Je vais vous présenter nos différents types de comptes. Lequel vous intéresse ?"
+    ],
+    "capture": "account_type",
+    "next": "ask_account_purpose"
+  },
+
+  "ask_account_purpose": {
+    "prompt": [
+      "Très bien. C'est pour une utilisation personnelle ou professionnelle ?",
+      "D'accord. Vous comptez l'utiliser pour quoi principalement ?"
+    ],
+    "capture": "account_purpose",
+    "next": "ask_id_document"
+  },
+
+  "ask_id_document": {
+    "prompt": [
+      "Pour ouvrir le compte, j'ai besoin d'une pièce d'identité. Vous avez votre carte d'identité ou votre passeport ?",
+      "Avez-vous une pièce d'identité valide sur vous — carte nationale ou passeport ?"
+    ],
+    "intents": {
+      "id_card": "confirm_account_opening",
+      "passport": "confirm_account_opening"
+    }
+  },
+
+  "confirm_account_opening": {
+    "prompt": [
+      "Parfait, tout est en ordre. Votre compte sera ouvert d'ici deux jours ouvrés.",
+      "Merci, c'est noté. Vous recevrez votre carte bancaire par courrier sous une semaine."
     ],
     "next": "end_session"
   },

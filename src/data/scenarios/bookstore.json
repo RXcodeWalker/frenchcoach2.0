@@ -72,6 +72,7 @@
 
   "fiction_start": {
     "prompt": ["Plutôt roman policier, science-fiction ou classique ?"],
+    "capture": "fiction_genre",
     "next": "check_stock"
   },
 
@@ -99,7 +100,20 @@
   },
 
   "go_to_cashier": {
-    "prompt": ["Ça fera 15 euros 90, s'il vous plaît."],
+    "prompt": ["Ça fera 15 euros 90. Vous payez par carte ou en espèces ?"],
+    "intents": {
+      "card": "confirm_payment_card",
+      "cash": "confirm_payment_cash"
+    }
+  },
+
+  "confirm_payment_card": {
+    "prompt": ["Très bien, par carte. Voici votre ticket."],
+    "next": "end_session"
+  },
+
+  "confirm_payment_cash": {
+    "prompt": ["Très bien, en espèces. Voici votre monnaie."],
     "next": "end_session"
   },
 
