@@ -15,10 +15,8 @@ describe('registry — Stage 2 validator run across the real corpus', () => {
     expect(report.errors).toEqual([]);
   });
 
-  it('skips unauthored scenarios entirely (no errors from empty stubs)', () => {
-    const museum = getScenario('museum');
-    expect(museum).toBeDefined();
-    expect(isAuthored('museum')).toBe(false);
+  it('is false for an id not in the registry', () => {
+    expect(isAuthored('not_a_real_scenario')).toBe(false);
   });
 });
 
@@ -51,11 +49,14 @@ describe('registry — isPlayable (Stage 3 gate)', () => {
     expect(isPlayable('ski_resort', true)).toBe(true);
     expect(isPlayable('taxi', true)).toBe(true);
     expect(isPlayable('police_station', true)).toBe(true);
+    expect(isPlayable('museum', true)).toBe(true);
+    expect(isPlayable('library', true)).toBe(true);
+    expect(isPlayable('tourist_office', true)).toBe(true);
   });
 
-  it('is not playable when unlocked but unauthored (e.g. museum)', () => {
-    expect(isAuthored('museum')).toBe(false);
-    expect(isPlayable('museum', true)).toBe(false);
+  it('is not playable when unlocked but unauthored (id not in registry)', () => {
+    expect(isAuthored('not_a_real_scenario')).toBe(false);
+    expect(isPlayable('not_a_real_scenario', true)).toBe(false);
   });
 
   it('is not playable when authored but locked', () => {

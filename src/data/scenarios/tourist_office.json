@@ -328,10 +328,19 @@
     "next": "ask_other_needs"
   },
   "ask_payment": {
-    "prompt": ["Le règlement peut s'effectuer par carte bancaire ou espèces. Merci !"],
+    "prompt": ["Vous réglez par carte bancaire ou en espèces ?"],
     "intents": {
+      "card": "confirm_payment_card",
+      "cash": "confirm_payment_cash",
       "tax_refund": "provide_tax_refund_info"
-    },
+    }
+  },
+  "confirm_payment_card": {
+    "prompt": ["Très bien, par carte. Voici votre confirmation d'inscription."],
+    "next": "end_session"
+  },
+  "confirm_payment_cash": {
+    "prompt": ["Très bien, en espèces. Voici votre confirmation d'inscription."],
     "next": "end_session"
   },
   "provide_tax_refund_info": {

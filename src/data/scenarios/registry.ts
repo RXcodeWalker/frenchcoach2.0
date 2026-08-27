@@ -27,6 +27,9 @@ import restaurantGraph from './restaurant.json';
 import skiResortGraph from './ski_resort.json';
 import taxiGraph from './taxi.json';
 import policeStationGraph from './police_station.json';
+import museumGraph from './museum.json';
+import libraryGraph from './library.json';
+import touristOfficeGraph from './tourist_office.json';
 import { hairdresserMeta } from './hairdresser.meta';
 import { hairdresserDeck } from './hairdresser.deck';
 import { bakeryMeta } from './bakery.meta';
@@ -81,6 +84,12 @@ import { taxiMeta } from './taxi.meta';
 import { taxiDeck } from './taxi.deck';
 import { policeStationMeta } from './police_station.meta';
 import { policeStationDeck } from './police_station.deck';
+import { museumMeta } from './museum.meta';
+import { museumDeck } from './museum.deck';
+import { libraryMeta } from './library.meta';
+import { libraryDeck } from './library.deck';
+import { touristOfficeMeta } from './tourist_office.meta';
+import { touristOfficeDeck } from './tourist_office.deck';
 
 /**
  * Deep-freezes a value in place and returns it. Applied to every authored
@@ -132,21 +141,16 @@ interface ScenarioEntry {
  */
 
 /**
- * Every scenario id known to the tree. `bakery` and `hairdresser` are
- * authored in Stage 1 (reference implementations — bakery for a shallow
- * multi-mission branch, hairdresser for deep branching + slot conditions +
- * a non-success terminal). Stage 9 authors (in the plan's stated order):
- * `gare` (canonical worked example); Tier 1 `cafe`/`market`/`store`; Tier 2
- * `bank`/`post_office`/`pharmacy`/`bookstore`; Tier 3 `airport`/`camping`/
- * `car_rental`/`cinema`/`dentist`/`doctor`/`flight`/`flower_shop`/
- * `gas_station`/`gym`/`hotel`/`job_interview`; Tier 4-5 `real_estate`/
- * `restaurant`/`ski_resort`/`taxi`/`police_station` — each has only its
- * primary branch authored; remaining `start` side-intents (and, for some, a
- * parallel sibling branch) remain unauthored graph content for a later
- * Stage 9 pass. `museum`, `library`, and `tourist_office` (the largest
- * graphs, 50+ nodes each) are the final Stage 9 pass per the plan's
- * ordering. The rest ship as `authored: false` stubs and render locked in
- * the Explore tree until their own Stage 9 pass.
+ * Every scenario id known to the tree. All 30 are now authored: `bakery`
+ * and `hairdresser` in Stage 1 (reference implementations — bakery for a
+ * shallow multi-mission branch, hairdresser for deep branching + slot
+ * conditions + a non-success terminal); the remaining 28 in Stage 9, in the
+ * plan's stated order (gare as the canonical worked example, then Tier 1
+ * through Tier 5, largest graphs last: museum/library/tourist_office). Every
+ * scenario has only its primary branch authored — remaining `start`
+ * side-intents (and, for some, a parallel sibling branch) are real graph
+ * content but intentionally left unauthored, since authoring every side
+ * intent for all 30 scenarios is outside Stage 9's scope as written.
  */
 const SCENARIO_IDS = [
   'airport', 'bakery', 'bank', 'bookstore', 'cafe', 'camping', 'car_rental',
@@ -202,6 +206,9 @@ const AUTHORED_ENTRIES: Partial<Record<ScenarioId, ScenarioEntry>> = {
   ski_resort: { meta: skiResortMeta, graph: skiResortGraph, deck: skiResortDeck },
   taxi: { meta: taxiMeta, graph: taxiGraph, deck: taxiDeck },
   police_station: { meta: policeStationMeta, graph: policeStationGraph, deck: policeStationDeck },
+  museum: { meta: museumMeta, graph: museumGraph, deck: museumDeck },
+  library: { meta: libraryMeta, graph: libraryGraph, deck: libraryDeck },
+  tourist_office: { meta: touristOfficeMeta, graph: touristOfficeGraph, deck: touristOfficeDeck },
 };
 
 const REGISTRY: Record<ScenarioId, ScenarioEntry> = Object.fromEntries(
@@ -216,7 +223,7 @@ const REGISTRY: Record<ScenarioId, ScenarioEntry> = Object.fromEntries(
   }),
 ) as Record<ScenarioId, ScenarioEntry>;
 
-/** True only for scenarios with real authored content (Stage 1: bakery, hairdresser; Stage 9: gare, cafe, market, store, bank, post_office, pharmacy, bookstore, airport, camping, car_rental, cinema, dentist, doctor, flight, flower_shop, gas_station, gym, hotel, job_interview, real_estate, restaurant, ski_resort, taxi, police_station). */
+/** True for every scenario — all 30 are authored (Stage 1: bakery, hairdresser; Stage 9: the remaining 28). */
 export function isAuthored(id: string): boolean {
   return id in AUTHORED_ENTRIES;
 }
