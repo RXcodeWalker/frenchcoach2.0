@@ -46,6 +46,11 @@ describe('registry — isPlayable (Stage 3 gate)', () => {
     expect(isPlayable('gym', true)).toBe(true);
     expect(isPlayable('hotel', true)).toBe(true);
     expect(isPlayable('job_interview', true)).toBe(true);
+    expect(isPlayable('real_estate', true)).toBe(true);
+    expect(isPlayable('restaurant', true)).toBe(true);
+    expect(isPlayable('ski_resort', true)).toBe(true);
+    expect(isPlayable('taxi', true)).toBe(true);
+    expect(isPlayable('police_station', true)).toBe(true);
   });
 
   it('is not playable when unlocked but unauthored (e.g. museum)', () => {

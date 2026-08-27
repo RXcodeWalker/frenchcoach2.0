@@ -22,6 +22,11 @@ import gasStationGraph from './gas_station.json';
 import gymGraph from './gym.json';
 import hotelGraph from './hotel.json';
 import jobInterviewGraph from './job_interview.json';
+import realEstateGraph from './real_estate.json';
+import restaurantGraph from './restaurant.json';
+import skiResortGraph from './ski_resort.json';
+import taxiGraph from './taxi.json';
+import policeStationGraph from './police_station.json';
 import { hairdresserMeta } from './hairdresser.meta';
 import { hairdresserDeck } from './hairdresser.deck';
 import { bakeryMeta } from './bakery.meta';
@@ -66,6 +71,16 @@ import { hotelMeta } from './hotel.meta';
 import { hotelDeck } from './hotel.deck';
 import { jobInterviewMeta } from './job_interview.meta';
 import { jobInterviewDeck } from './job_interview.deck';
+import { realEstateMeta } from './real_estate.meta';
+import { realEstateDeck } from './real_estate.deck';
+import { restaurantMeta } from './restaurant.meta';
+import { restaurantDeck } from './restaurant.deck';
+import { skiResortMeta } from './ski_resort.meta';
+import { skiResortDeck } from './ski_resort.deck';
+import { taxiMeta } from './taxi.meta';
+import { taxiDeck } from './taxi.deck';
+import { policeStationMeta } from './police_station.meta';
+import { policeStationDeck } from './police_station.deck';
 
 /**
  * Deep-freezes a value in place and returns it. Applied to every authored
@@ -124,11 +139,14 @@ interface ScenarioEntry {
  * `gare` (canonical worked example); Tier 1 `cafe`/`market`/`store`; Tier 2
  * `bank`/`post_office`/`pharmacy`/`bookstore`; Tier 3 `airport`/`camping`/
  * `car_rental`/`cinema`/`dentist`/`doctor`/`flight`/`flower_shop`/
- * `gas_station`/`gym`/`hotel`/`job_interview` — each has only its primary
- * branch authored; remaining `start` side-intents (and, for some, a
+ * `gas_station`/`gym`/`hotel`/`job_interview`; Tier 4-5 `real_estate`/
+ * `restaurant`/`ski_resort`/`taxi`/`police_station` — each has only its
+ * primary branch authored; remaining `start` side-intents (and, for some, a
  * parallel sibling branch) remain unauthored graph content for a later
- * Stage 9 pass. The rest ship as `authored: false` stubs and render locked
- * in the Explore tree until their own Stage 9 pass.
+ * Stage 9 pass. `museum`, `library`, and `tourist_office` (the largest
+ * graphs, 50+ nodes each) are the final Stage 9 pass per the plan's
+ * ordering. The rest ship as `authored: false` stubs and render locked in
+ * the Explore tree until their own Stage 9 pass.
  */
 const SCENARIO_IDS = [
   'airport', 'bakery', 'bank', 'bookstore', 'cafe', 'camping', 'car_rental',
@@ -179,6 +197,11 @@ const AUTHORED_ENTRIES: Partial<Record<ScenarioId, ScenarioEntry>> = {
   gym: { meta: gymMeta, graph: gymGraph, deck: gymDeck },
   hotel: { meta: hotelMeta, graph: hotelGraph, deck: hotelDeck },
   job_interview: { meta: jobInterviewMeta, graph: jobInterviewGraph, deck: jobInterviewDeck },
+  real_estate: { meta: realEstateMeta, graph: realEstateGraph, deck: realEstateDeck },
+  restaurant: { meta: restaurantMeta, graph: restaurantGraph, deck: restaurantDeck },
+  ski_resort: { meta: skiResortMeta, graph: skiResortGraph, deck: skiResortDeck },
+  taxi: { meta: taxiMeta, graph: taxiGraph, deck: taxiDeck },
+  police_station: { meta: policeStationMeta, graph: policeStationGraph, deck: policeStationDeck },
 };
 
 const REGISTRY: Record<ScenarioId, ScenarioEntry> = Object.fromEntries(
@@ -193,7 +216,7 @@ const REGISTRY: Record<ScenarioId, ScenarioEntry> = Object.fromEntries(
   }),
 ) as Record<ScenarioId, ScenarioEntry>;
 
-/** True only for scenarios with real authored content (Stage 1: bakery, hairdresser; Stage 9: gare, cafe, market, store, bank, post_office, pharmacy, bookstore, airport, camping, car_rental, cinema, dentist, doctor, flight, flower_shop, gas_station, gym, hotel, job_interview). */
+/** True only for scenarios with real authored content (Stage 1: bakery, hairdresser; Stage 9: gare, cafe, market, store, bank, post_office, pharmacy, bookstore, airport, camping, car_rental, cinema, dentist, doctor, flight, flower_shop, gas_station, gym, hotel, job_interview, real_estate, restaurant, ski_resort, taxi, police_station). */
 export function isAuthored(id: string): boolean {
   return id in AUTHORED_ENTRIES;
 }

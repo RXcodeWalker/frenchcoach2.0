@@ -204,6 +204,7 @@
       "Pas de problème, nous avons de la place ! Vous êtes combien de personnes ce soir ?",
       "Je vais vérifier nos disponibilités. C'est pour combien de couverts ?"
     ],
+    "capture": "party_size",
     "next": "offer_table"
   },
 
@@ -238,6 +239,7 @@
       "Qu'est-ce que vous prenez comme plat ?",
       "Très bien ! Et pour le plat ?"
     ],
+    "capture": "main_dish",
     "next": "confirm_order"
   },
 
@@ -267,8 +269,24 @@
 
   "ask_payment": {
     "prompt": [
-      "Comment souhaitez-vous régler ? Carte bancaire ou espèces ?",
-      "Vous payez par carte ou en liquide ?"
+      "Comment souhaitez-vous régler ? Carte bancaire ou espèces ?"
+    ],
+    "intents": {
+      "card": "confirm_payment_card",
+      "cash": "confirm_payment_cash"
+    }
+  },
+
+  "confirm_payment_card": {
+    "prompt": [
+      "Très bien, par carte. Voici votre reçu."
+    ],
+    "next": "end_session"
+  },
+
+  "confirm_payment_cash": {
+    "prompt": [
+      "Très bien, en espèces. Voici votre monnaie."
     ],
     "next": "end_session"
   },

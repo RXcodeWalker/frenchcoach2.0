@@ -6,7 +6,7 @@
       "Bonjour, je vous dépose en centre-ville ou à la gare ?"
     ],
     "intents": {
-      "destination": "estimate_trip",
+      "destination": "ask_destination_address",
       "atm": "atm_stop_start",
       "change": "change_dest_start",
       "receipt": "business_receipt_start",
@@ -145,10 +145,45 @@
     "next": "estimate_trip"
   },
 
+  "ask_destination_address": {
+    "prompt": [
+      "Très bien, quelle est l'adresse exacte ?",
+      "D'accord, donnez-moi l'adresse précise."
+    ],
+    "capture": "destination_address",
+    "next": "estimate_trip"
+  },
+
   "estimate_trip": {
     "prompt": [
-      "Pour ce trajet, ça devrait faire environ 25 euros. Ça vous convient ?",
-      "D'après le compteur et la distance, on est sur environ 25 euros. On y va ?"
+      "Pour ce trajet, ça devrait faire environ 25 euros. Ça vous convient ?"
+    ],
+    "intents": {
+      "yes": "confirm_departure",
+      "no": "change_dest_start"
+    }
+  },
+
+  "confirm_departure": {
+    "prompt": [
+      "Parfait, en route ! Vous préférez payer par carte ou en espèces à l'arrivée ?"
+    ],
+    "intents": {
+      "card": "confirm_payment_card",
+      "cash": "confirm_payment_cash"
+    }
+  },
+
+  "confirm_payment_card": {
+    "prompt": [
+      "Très bien, par carte à l'arrivée."
+    ],
+    "next": "end_session"
+  },
+
+  "confirm_payment_cash": {
+    "prompt": [
+      "Très bien, en espèces à l'arrivée."
     ],
     "next": "end_session"
   },
