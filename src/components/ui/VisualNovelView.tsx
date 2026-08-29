@@ -5,9 +5,8 @@ import { SpeechBubble } from './SpeechBubble';
 import { ScenarioBackground } from './ScenarioBackground';
 import { MissionObjectivesList, type Objective } from './MissionObjectivesList';
 import { RecordingPanel } from '../../screens/learn/RecordingPanel';
-import { FeedbackPanel } from '../../screens/learn/FeedbackPanel';
-import { Info, Star, ArrowLeft, Volume2, VolumeX, Repeat } from 'lucide-react';
-import type { FeedbackV2 } from '../../types';
+import { LiveFeedbackPanel, type PanelEntry } from './LiveFeedbackPanel';
+import { Info, Star, ArrowLeft, Volume2, VolumeX, Repeat, MessageSquareText } from 'lucide-react';
 import type { RecordingState } from '../../features/recording/useRecording';
 import { useApp } from '../../context/AppContext';
 import {
@@ -26,13 +25,12 @@ interface VisualNovelViewProps {
   objectives: Objective[];
   currentInstruction?: string;
   isTyping: boolean;
-  isProcessing: boolean;
   recording: RecordingState;
-  showFeedback: boolean;
-  lastFeedback: FeedbackV2 | null;
+  panelEntries: PanelEntry[];
+  canRedo: (turnKey: number) => boolean;
+  redosLeft: (turnKey: number) => number;
   onStopRecording: () => void;
-  onRetry: () => void;
-  onNextStep: () => void;
+  onRedo: (turnKey: number) => void;
   onExit: () => void;
 }
 
@@ -44,17 +42,17 @@ export const VisualNovelView: React.FC<VisualNovelViewProps> = ({
   objectives,
   currentInstruction,
   isTyping,
-  isProcessing,
   recording,
-  showFeedback,
-  lastFeedback,
+  panelEntries,
+  canRedo,
+  redosLeft,
   onStopRecording,
-  onRetry,
-  onNextStep,
+  onRedo,
   onExit,
 }) => {
   const latestMessage = messages[messages.length - 1];
   const [muted, setMuted] = useState(isExaminerVoiceMuted());
+  const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
   const voiceAvailable = hasFrenchVoice();
   const { state: appState } = useApp();
 
@@ -151,66 +149,79 @@ export const VisualNovelView: React.FC<VisualNovelViewProps> = ({
           </div>
         </div>
 
-        {/* Right: Stats & Objectives (Desktop) */}
-        <div className="hidden lg:block w-80 shrink-0">
+        {/* Right: Stats & Objectives + Live Coaching (Desktop) */}
+        <div className="hidden lg:block w-80 shrink-0 space-y-4 max-h-full overflow-y-auto">
           <MissionObjectivesList objectives={objectives} />
+          <LiveFeedbackPanel entries={panelEntries} canRedo={canRedo} redosLeft={redosLeft} onRedo={onRedo} />
         </div>
       </div>
 
-      {/* Input Overlay */}
-      <div className="absolute bottom-0 left-0 right-0 p-8 pt-20 bg-gradient-to-t from-navy via-navy/80 to-transparent z-30">
-        <div className="max-w-4xl mx-auto">
-          {showFeedback && lastFeedback ? (
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-              <FeedbackPanel
-                feedback={lastFeedback}
-                onComplete={onNextStep}
-                onRetry={onRetry}
-              />
-              <button 
-                onClick={onNextStep}
-                className="mt-6 w-full py-5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-2xl shadow-2xl shadow-emerald-500/30 transition-all flex items-center justify-center gap-3 uppercase italic tracking-widest text-sm"
-              >
-                CONTINUE STORY <ArrowRight size={20} />
-              </button>
-            </motion.div>
-          ) : (
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-              {currentInstruction && !isTyping && (
-                <div className="flex items-center gap-4 p-4 bg-violet-500/10 border border-violet-500/20 rounded-2xl backdrop-blur-md max-w-2xl mx-auto shadow-xl">
-                  <div className="p-2 bg-violet-500/20 rounded-xl">
-                    <Info size={18} className="text-violet-400" />
-                  </div>
-                  <p className="text-sm font-bold text-slate-200">{currentInstruction}</p>
-                </div>
-              )}
+      {/* Mobile feedback tab */}
+      <button
+        onClick={() => setMobileSheetOpen(true)}
+        className="lg:hidden fixed right-4 bottom-40 z-40 flex items-center justify-center w-11 h-11 bg-violet-600 hover:bg-violet-500 rounded-full border border-white/10 shadow-lg transition-all text-white"
+        aria-label="Show coaching notes"
+      >
+        <MessageSquareText size={18} />
+        {panelEntries.some((e) => e.status === 'pending') && (
+          <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-amber-400 animate-pulse" />
+        )}
+      </button>
 
-              <div className="relative">
-                {isProcessing && (
-                  <div className="absolute inset-0 z-50 rounded-2xl glass flex flex-col items-center justify-center bg-navy/80 backdrop-blur-sm">
-                    <div className="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin mb-3 shadow-[0_0_15px_rgba(139,92,246,0.3)]" />
-                    <span className="text-xs font-black text-violet-400 uppercase tracking-widest italic">AI Analyzing Transcript...</span>
-                  </div>
-                )}
-                <div className="shadow-2xl rounded-2xl">
-                  <RecordingPanel 
-                    isActive={true}
-                    recording={recording}
-                    onStop={onStopRecording}
-                  />
-                </div>
+      <AnimatePresence>
+        {mobileSheetOpen && (
+          <>
+            <motion.div
+              className="lg:hidden fixed inset-0 z-[90] bg-black/50"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMobileSheetOpen(false)}
+            />
+            <motion.div
+              className="lg:hidden fixed bottom-0 left-0 right-0 z-[95] glass-elevated rounded-t-2xl p-5 pb-8 max-h-[70vh] overflow-y-auto"
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+              drag="y"
+              dragConstraints={{ top: 0, bottom: 0 }}
+              dragElastic={{ top: 0, bottom: 0.5 }}
+              onDragEnd={(_, info) => {
+                if (info.offset.y > 100) setMobileSheetOpen(false);
+              }}
+            >
+              <div className="w-10 h-1.5 rounded-full bg-white/10 mx-auto mb-4" />
+              <MissionObjectivesList objectives={objectives} />
+              <div className="mt-4">
+                <LiveFeedbackPanel entries={panelEntries} canRedo={canRedo} redosLeft={redosLeft} onRedo={onRedo} />
               </div>
             </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Input Overlay */}
+      <div className="absolute bottom-0 left-0 right-0 p-8 pt-20 bg-gradient-to-t from-navy via-navy/80 to-transparent z-30">
+        <div className="max-w-4xl mx-auto space-y-6">
+          {currentInstruction && !isTyping && (
+            <div className="flex items-center gap-4 p-4 bg-violet-500/10 border border-violet-500/20 rounded-2xl backdrop-blur-md max-w-2xl mx-auto shadow-xl">
+              <div className="p-2 bg-violet-500/20 rounded-xl">
+                <Info size={18} className="text-violet-400" />
+              </div>
+              <p className="text-sm font-bold text-slate-200">{currentInstruction}</p>
+            </div>
           )}
+
+          <div className="shadow-2xl rounded-2xl">
+            <RecordingPanel
+              isActive={true}
+              recording={recording}
+              onStop={onStopRecording}
+            />
+          </div>
         </div>
       </div>
     </div>
   );
 };
-
-// Internal icon helper
-const ArrowRight = ({ size, className }: { size: number, className?: string }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M5 12h14M12 5l7 7-7 7"/>
-  </svg>
-);

@@ -7,6 +7,7 @@ import { STORY_CARDS, type StoryCard } from '../data/storyCards';
 import { useRecording } from '../features/recording/useRecording';
 import { getAIFeedback } from '../services/api/apiClient';
 import { VisualNovelView } from '../components/ui/VisualNovelView';
+import type { PanelEntry } from '../components/ui/LiveFeedbackPanel';
 import type { Expression } from '../components/ui/CharacterAvatar';
 import type { Objective } from '../components/ui/MissionObjectivesList';
 import type { FeedbackV2, Question, Session } from '../types';
@@ -15,6 +16,7 @@ import { getSkillProfile } from '../services/coaching/diagnosticEngine';
 import { isUnscored } from '../domain/scoring';
 import { buildTier0Result } from '../services/coaching/responseTier';
 import { computeXPGain, computeParticipationXPGain } from '../domain/xp';
+import { TurnAttemptTracker, MAX_REDOS } from '../domain/turnAttempts';
 import {
   primeExaminerVoice,
   speakExaminerText,
@@ -32,7 +34,19 @@ interface Message {
   text: string;
   sender: 'ai' | 'user';
   timestamp: number;
+  /** Set on a user message: the task index it answers. Lets a redo replace
+   *  this exact message in place rather than popping the array's tail (which
+   *  would be wrong once the next NPC line has already been appended after it). */
+  stepIndex?: number;
 }
+
+/** A story-mode "language" result — mirrors roleplay's LanguageResult union
+ *  (scored / unscored / pending) but keyed to a bare FeedbackV2 since Story
+ *  Mode has no graph-runtime TurnOutcome to store it on. */
+type StoryLanguageResult =
+  | { kind: 'scored'; feedback: FeedbackV2 }
+  | { kind: 'unscored'; feedback: FeedbackV2 }
+  | { kind: 'pending' };
 
 /**
  * Narrow adapter from a StoryCard task to the minimal Question shape
@@ -72,15 +86,21 @@ export function StoryMode() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
-  const [showFeedback, setShowFeedbackV2] = useState(false);
-  const [lastFeedback, setLastFeedbackV2] = useState<FeedbackV2 | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [panelEntries, setPanelEntries] = useState<PanelEntry[]>([]);
   const [objectives, setObjectives] = useState<Objective[]>([]);
   const [expression, setExpression] = useState<Expression>('neutral');
   const [, setOverallScore] = useState(0);
   const [, setIsFinished] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
+  const trackerRef = useRef(new TurnAttemptTracker<Question | undefined, StoryLanguageResult>());
+  const tracker = trackerRef.current;
+  /** Non-null while re-recording a prior step — set by tapping "Redo" in the
+   *  panel, consumed by handleStopRecording. */
+  const redoTargetRef = useRef<number | null>(null);
+  /** The most recently answered step's key, locked the instant the *next*
+   *  fresh (non-redo) recording starts — mirrors RoleplaySession's pattern. */
+  const lastLockedStepRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -95,6 +115,13 @@ export function StoryMode() {
   }, []);
 
   const startRecording = () => {
+    // Locking is a synchronous flag flip on the *previous* step's key, done
+    // the instant a fresh (non-redo) recording begins — it never waits on
+    // that step's feedback to arrive.
+    if (lastLockedStepRef.current !== null) {
+      lockStep(lastLockedStepRef.current);
+      lastLockedStepRef.current = null;
+    }
     stopExaminerVoice();
     recording.start();
   };
@@ -112,11 +139,12 @@ export function StoryMode() {
     setIsPrepping(false);
     setCurrentStep(0);
     setMessages([]);
-    setShowFeedbackV2(false);
-    setLastFeedbackV2(null);
+    setPanelEntries([]);
     setOverallScore(0);
     setIsFinished(false);
     setExpression('happy');
+    trackerRef.current = new TurnAttemptTracker<Question | undefined, StoryLanguageResult>();
+    redoTargetRef.current = null;
 
     const objs: Objective[] = selectedStory.tasks.map((task, i) => ({
       id: `${selectedStory.id}:${task.taskId}`,
@@ -131,14 +159,32 @@ export function StoryMode() {
     }
   };
 
-  const addMessage = (text: string, sender: 'ai' | 'user') => {
+  const addMessage = (text: string, sender: 'ai' | 'user', stepIndex?: number) => {
     const newMessage: Message = {
       id: Math.random().toString(36).substring(2, 9),
       text,
       sender,
       timestamp: Date.now(),
+      ...(stepIndex !== undefined ? { stepIndex } : {}),
     };
     setMessages(prev => [...prev, newMessage]);
+  };
+
+  /** Redo replaces the tagged message at `stepIndex` in place — never pops
+   *  the array's tail, since the next scripted NPC line may already have
+   *  been appended after it (dialogue no longer waits on feedback). */
+  const replaceMessageAtStep = (stepIndex: number, text: string) => {
+    setMessages(prev => prev.map(m => (m.stepIndex === stepIndex && m.sender === 'user' ? { ...m, text } : m)));
+  };
+
+  const upsertPanelEntry = (entryPatch: PanelEntry) => {
+    setPanelEntries(prev => {
+      const idx = prev.findIndex(e => e.turnKey === entryPatch.turnKey);
+      if (idx === -1) return [...prev, entryPatch];
+      const next = [...prev];
+      next[idx] = entryPatch;
+      return next;
+    });
   };
 
   /**
@@ -161,31 +207,13 @@ export function StoryMode() {
     addMessage(text, 'ai');
   };
 
-  const handleStopRecording = async () => {
-    if (!selectedStory) return;
-
-    setIsProcessing(true);
-    const transcript = await recording.stop();
-    const wordCount = transcript.split(/\s+/).filter(Boolean).length;
-
-    const currentTask = selectedStory.tasks[currentStep];
-    const question = currentTask ? toStoryQuestion(selectedStory, currentTask) : undefined;
-
-    let fb: FeedbackV2;
-    if (!question) {
-      fb = { ...buildTier0Result(), unscored: 'evaluation_failed', wordCount };
-    } else {
-      try {
-        fb = await getAIFeedback(transcript, question);
-      } catch {
-        fb = { ...buildTier0Result(), unscored: 'no_llm_offline', wordCount };
-      }
-    }
-
-    setIsProcessing(false);
-    addMessage(transcript, 'user');
-    setLastFeedbackV2(fb);
-    setShowFeedbackV2(true);
+  /** All progression side effects (XP, session record, evidence/beliefs,
+   *  achievements) — moved here from the old synchronous handler so both the
+   *  fresh-answer and redo paths trigger it identically, only once locked
+   *  and resolved (see TurnAttemptTracker). */
+  const runOrchestration = (stepIndex: number, transcript: string, question: Question | undefined, language: StoryLanguageResult) => {
+    if (language.kind === 'pending') return;
+    const fb = language.feedback;
 
     const unscored = isUnscored(fb);
     const finalScore = fb.scores.overall;
@@ -206,7 +234,7 @@ export function StoryMode() {
       : computeXPGain(finalScore, state.profile.streak_days);
 
     const session: Session = {
-      id: `story-${Date.now()}-${currentStep}`,
+      id: `story-${Date.now()}-${stepIndex}`,
       mode: 'story',
       questionText: question?.text,
       transcript,
@@ -218,9 +246,6 @@ export function StoryMode() {
       createdAt: new Date().toISOString(),
     };
 
-    // All progression side effects (XP, session record, evidence/beliefs,
-    // achievements) flow through the same contract every other mode uses —
-    // never a raw dispatchAddXP from this runtime.
     const orchestration = orchestrateAttempt({
       session,
       question: question ?? null,
@@ -244,28 +269,68 @@ export function StoryMode() {
     dispatch({ type: 'UPDATE_SKILL_PROFILE', skillProfile: getSkillProfile() });
   };
 
-  const handleRetryTurn = () => {
-    // No outcome log exists on this runtime (unlike the graph-based roleplay
-    // session) — retry means "let the user re-record this same question,"
-    // discarding the just-scored attempt rather than replaying an outcome.
-    setShowFeedbackV2(false);
-    setLastFeedbackV2(null);
-    setMessages(prev => prev.slice(0, -1));
-    setExpression('neutral');
+  const lockStep = (stepIndex: number) => {
+    const record = tracker.lock(stepIndex);
+    if (record === null || record.language === null || record.language.kind === 'pending') return;
+    runOrchestration(stepIndex, record.transcript, record.question, record.language);
   };
 
-  const handleNextStep = async () => {
+  const submitAnswer = (stepIndex: number, transcript: string, question: Question | undefined, isRedo: boolean) => {
+    const attemptSeq = tracker.begin(stepIndex, transcript, question, isRedo);
+    upsertPanelEntry({ turnKey: stepIndex, transcript, status: 'pending', feedback: null });
+
+    void (async () => {
+      const wordCount = transcript.split(/\s+/).filter(Boolean).length;
+      let fb: FeedbackV2;
+      if (!question) {
+        fb = { ...buildTier0Result(), unscored: 'evaluation_failed', wordCount };
+      } else {
+        try {
+          fb = await getAIFeedback(transcript, question);
+        } catch {
+          fb = { ...buildTier0Result(), unscored: 'no_llm_offline', wordCount };
+        }
+      }
+      const language: StoryLanguageResult = isUnscored(fb) ? { kind: 'unscored', feedback: fb } : { kind: 'scored', feedback: fb };
+
+      const record = tracker.resolve(stepIndex, attemptSeq, language);
+      if (record === null) return; // stale — a redo has since superseded this attempt
+
+      upsertPanelEntry({ turnKey: stepIndex, transcript: record.transcript, status: 'resolved', feedback: fb });
+      runOrchestration(stepIndex, record.transcript, record.question, record.language as StoryLanguageResult);
+    })();
+  };
+
+  const handleStopRecording = async () => {
     if (!selectedStory) return;
 
-    // Mark current objective as completed
+    const redoTarget = redoTargetRef.current;
+
+    if (redoTarget !== null) {
+      redoTargetRef.current = null;
+      const transcript = await recording.stop();
+      const redoneTask = selectedStory.tasks[redoTarget];
+      const question = redoneTask ? toStoryQuestion(selectedStory, redoneTask) : undefined;
+
+      replaceMessageAtStep(redoTarget, transcript);
+      submitAnswer(redoTarget, transcript, question, true);
+      return;
+    }
+
+    const transcript = await recording.stop();
     const currentTask = selectedStory.tasks[currentStep];
+    const question = currentTask ? toStoryQuestion(selectedStory, currentTask) : undefined;
+
+    addMessage(transcript, 'user', currentStep);
+    submitAnswer(currentStep, transcript, question, false);
+    lastLockedStepRef.current = currentStep;
+
+    // Mark current objective as completed and advance — the dialogue moves
+    // on immediately rather than waiting for feedback to come back.
     const currentObjId = currentTask ? `${selectedStory.id}:${currentTask.taskId}` : undefined;
     setObjectives(prev => prev.map(obj =>
       obj.id === currentObjId ? { ...obj, isCompleted: true } : obj
     ));
-
-    setShowFeedbackV2(false);
-    setLastFeedbackV2(null);
     setExpression('neutral');
     const nextStep = currentStep + 1;
 
@@ -280,7 +345,20 @@ export function StoryMode() {
       await speakNpcLine("Excellent travail ! L'échange est terminé.");
       setExpression('excited');
       setIsFinished(true);
+      // Story end locks the final step the same way normal advance does —
+      // no separate "next mic-start" will ever come to trigger it.
+      if (lastLockedStepRef.current !== null) {
+        lockStep(lastLockedStepRef.current);
+        lastLockedStepRef.current = null;
+      }
     }
+  };
+
+  const handleRedo = (stepIndex: number) => {
+    if (!tracker.canRedo(stepIndex)) return;
+    redoTargetRef.current = stepIndex;
+    stopExaminerVoice();
+    recording.start();
   };
 
   if (!selectedStory) {
@@ -373,17 +451,16 @@ export function StoryMode() {
       topic={selectedStory.scenario}
       npc={selectedStory.npc}
       expression={expression}
-      messages={messages}
+      messages={messages.map(({ text, sender }) => ({ text, sender }))}
       objectives={objectives}
       currentInstruction={currentTask?.promptEn}
       isTyping={isTyping}
-      isProcessing={isProcessing}
       recording={{ ...recording, start: startRecording }}
-      showFeedback={showFeedback}
-      lastFeedback={lastFeedback}
+      panelEntries={panelEntries}
+      canRedo={(stepIndex) => tracker.canRedo(stepIndex)}
+      redosLeft={(stepIndex) => MAX_REDOS - (tracker.get(stepIndex)?.retryCount ?? 0)}
       onStopRecording={handleStopRecording}
-      onRetry={handleRetryTurn}
-      onNextStep={handleNextStep}
+      onRedo={handleRedo}
       onExit={() => {
         stopExaminerVoice();
         setSelectedStory(null);

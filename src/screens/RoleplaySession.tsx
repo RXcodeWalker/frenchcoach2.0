@@ -13,13 +13,15 @@ import { orchestrateAttempt } from '../services/coach/sessionOrchestrator';
 import { getSkillProfile } from '../services/coaching/diagnosticEngine';
 import { isUnscored } from '../domain/scoring';
 import { computeXPGain, computeParticipationXPGain } from '../domain/xp';
+import { TurnAttemptTracker, MAX_REDOS } from '../domain/turnAttempts';
 import { VisualNovelView } from '../components/ui/VisualNovelView';
+import type { PanelEntry } from '../components/ui/LiveFeedbackPanel';
 import { ScenarioPrepScreen } from '../components/ui/ScenarioPrepScreen';
 import { hasFrenchVoice } from '../services/exam/examinerVoice';
 import type { Expression } from '../components/ui/CharacterAvatar';
 import type { Objective } from '../components/ui/MissionObjectivesList';
 import type { FeedbackV2, Question, Session } from '../types';
-import type { LanguageResult, Mission, ScenarioDeck, ScenarioGraph, ScenarioMeta, TurnOutcome } from '../features/roleplay/types';
+import type { LanguageResult, Mission, ScenarioDeck, ScenarioGraph, ScenarioMeta } from '../features/roleplay/types';
 
 interface ScenarioEntry {
   meta: ScenarioMeta;
@@ -136,12 +138,18 @@ function PlayPhase({
   onExit: () => void;
 }) {
   const { state: appState, dispatch } = useApp();
-  const [showFeedback, setShowFeedback] = useState(false);
-  const [lastFeedback, setLastFeedback] = useState<FeedbackV2 | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
   const [expression, setExpression] = useState<Expression>('neutral');
+  const [panelEntries, setPanelEntries] = useState<PanelEntry[]>([]);
 
   const { state: sessionState, npcLine, kind, missions, status } = session;
+
+  const trackerRef = useRef(new TurnAttemptTracker<Question, LanguageResult>());
+  const tracker = trackerRef.current;
+  const lastLockedTurnKeyRef = useRef<number | null>(null);
+  /** Non-null while re-recording a prior turn — set by tapping "Redo" in the
+   *  panel, consumed by handleStop, which then knows this stop is a redo of
+   *  that turnKey rather than an answer to the current graph state. */
+  const redoTargetRef = useRef<number | null>(null);
 
   // Passthrough nodes (hairdresser's memory setters) are entered, spoken, and
   // passed through — nothing is asked of the user, so nothing to record.
@@ -171,37 +179,25 @@ function PlayPhase({
   }));
   const activeMission = missions.find((m) => !status.completed.includes(m.id));
 
-  // Progression side effects (evidence/beliefs/XP/achievements) run once per
-  // REAL outcome — never for a recovery skip (nothing was assessed) and never
-  // for a passthrough auto_advance (PASSTHROUGH_LANGUAGE carries no
-  // FeedbackV2 — there is no utterance to grade). Keyed on outcome identity,
-  // not array length, so a retry (which replaces the last entry without
-  // necessarily changing the array's length) still re-fires.
-  const lastOrchestratedRef = useRef<TurnOutcome | undefined>(undefined);
-  useEffect(() => {
-    const outcomes = sessionState.outcomes;
-    const last = outcomes[outcomes.length - 1];
-    if (!last || last === lastOrchestratedRef.current) return;
-    lastOrchestratedRef.current = last;
-    if (last.intentResult.kind === 'skipped') return;
-    const fb = last.language.feedback;
-    if (!fb) return;
-
-    // The exact Question handleStop scored against — not recomputed here,
-    // because missions/status have already moved past this outcome (this
-    // turn may itself have just completed the mission toScoringInput would
-    // pick), which would silently swap in a different modelFr/hint than what
-    // the learner actually saw when they answered.
-    const question = pendingQuestionRef.current ?? toScoringInput({
-      scenarioId,
-      state: last.state,
-      npcLine: pickPrompt(entry.graph[last.state]?.prompt ?? [], sessionState.rngSeed, last.state),
-      meta: entry.meta,
-      deck: entry.deck,
-      missions,
-      completedMissionIds: status.completed,
+  const upsertPanelEntry = (entryPatch: PanelEntry) => {
+    setPanelEntries((prev) => {
+      const idx = prev.findIndex((e) => e.turnKey === entryPatch.turnKey);
+      if (idx === -1) return [...prev, entryPatch];
+      const next = [...prev];
+      next[idx] = entryPatch;
+      return next;
     });
-    pendingQuestionRef.current = null;
+  };
+
+  const runOrchestration = (
+    turnKey: number,
+    transcript: string,
+    question: Question,
+    language: LanguageResult,
+  ) => {
+    if (language.kind === 'pending') return;
+    const fb = language.feedback;
+    if (!fb) return; // passthrough turn — nothing to grade, nothing to orchestrate
 
     const unscored = isUnscored(fb);
     const finalScore = fb.scores.overall;
@@ -210,12 +206,12 @@ function PlayPhase({
       : computeXPGain(finalScore, appState.profile.streak_days);
 
     const roleplaySession: Session = {
-      id: `roleplay-${scenarioId}-${last.turnIndex}-${Date.now()}`,
+      id: `roleplay-${scenarioId}-${turnKey}-${Date.now()}`,
       mode: 'roleplay',
       // Deliberately no topicKey — keeps this synthetic per-turn id out of
       // reviewPool (see toScoringInput.ts / Language scoring & failure semantics).
       questionText: question.text,
-      transcript: last.transcript,
+      transcript,
       wordCount: fb.wordCount,
       score: unscored ? null : finalScore,
       xpEarned: xp.gain,
@@ -229,7 +225,7 @@ function PlayPhase({
       question,
       feedback: fb,
       avoidanceSignals: [],
-      transcript: last.transcript,
+      transcript,
       durationSec: 0,
       mode: 'roleplay',
       finalScore,
@@ -251,14 +247,77 @@ function PlayPhase({
     else if (finalScore >= 6) setExpression('happy');
     else if (finalScore <= 3) setExpression('confused');
     else setExpression('thinking');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionState.outcomes]);
+  };
 
-  const retryingRef = useRef(false);
-  const pendingQuestionRef = useRef<Question | null>(null);
+  const submitAnswer = (turnKey: number, transcript: string, question: Question, isRedo: boolean) => {
+    const attemptSeq = tracker.begin(turnKey, transcript, question, isRedo);
+    upsertPanelEntry({ turnKey, transcript, status: 'pending', feedback: null });
+
+    // Advance the graph/NPC reply immediately with a pending placeholder —
+    // never wait on feedback to keep the dialogue moving.
+    if (isRedo) {
+      session.retry(transcript, { kind: 'pending' });
+    } else {
+      session.submitTurn(transcript, { kind: 'pending' });
+    }
+
+    void (async () => {
+      let fb: FeedbackV2;
+      try {
+        fb = await getAIFeedback(transcript, question);
+      } catch {
+        fb = { ...buildTier0Result(), unscored: 'no_llm_offline', wordCount: countWords(transcript) };
+      }
+      const language: LanguageResult = isUnscored(fb) ? { kind: 'unscored', feedback: fb } : { kind: 'scored', feedback: fb };
+
+      const record = tracker.resolve(turnKey, attemptSeq, language);
+      if (record === null) return; // stale — a redo has since superseded this attempt
+
+      upsertPanelEntry({ turnKey, transcript: record.transcript, status: 'resolved', feedback: fb });
+      runOrchestration(turnKey, record.transcript, record.question, record.language as LanguageResult);
+    })();
+  };
+
+  const lockTurn = (turnKey: number) => {
+    const record = tracker.lock(turnKey);
+    if (record === null || record.language === null || record.language.kind === 'pending') return;
+    runOrchestration(turnKey, record.transcript, record.question, record.language);
+  };
 
   const handleStop = async () => {
-    setIsProcessing(true);
+    const redoTarget = redoTargetRef.current;
+
+    if (redoTarget !== null) {
+      redoTargetRef.current = null;
+      const checkpoint = sessionState.checkpoint;
+      const preTurnState = checkpoint?.currentState ?? sessionState.currentState;
+      const transcript = await recording.stop();
+
+      // Rebuilt from the pre-turn state (checkpoint), not the live state —
+      // a redo re-scores the same question the learner originally answered.
+      const question: Question = toScoringInput({
+        scenarioId,
+        state: preTurnState,
+        npcLine: pickPrompt(entry.graph[preTurnState]?.prompt ?? [], sessionState.rngSeed, preTurnState),
+        meta: entry.meta,
+        deck: entry.deck,
+        missions,
+        completedMissionIds: status.completed,
+      });
+
+      submitAnswer(redoTarget, transcript, question, true);
+      return;
+    }
+
+    // Locking is a synchronous flag flip on the *previous* turn's key, done
+    // the instant a fresh (non-redo) recording is taken — it never waits on
+    // that turn's feedback to arrive.
+    if (lastLockedTurnKeyRef.current !== null) {
+      lockTurn(lastLockedTurnKeyRef.current);
+      lastLockedTurnKeyRef.current = null;
+    }
+
+    const turnKey = sessionState.turnIndex;
     const transcript = await recording.stop();
 
     const question: Question = toScoringInput({
@@ -270,41 +329,26 @@ function PlayPhase({
       missions,
       completedMissionIds: status.completed,
     });
-    // Handed to the orchestration effect below so it scores/records against
-    // the exact Question just used, not a recomputation after mission state
-    // has moved on.
-    pendingQuestionRef.current = question;
 
-    let fb: FeedbackV2;
-    try {
-      fb = await getAIFeedback(transcript, question);
-    } catch {
-      fb = { ...buildTier0Result(), unscored: 'no_llm_offline', wordCount: countWords(transcript) };
+    submitAnswer(turnKey, transcript, question, false);
+    lastLockedTurnKeyRef.current = turnKey;
+  };
+
+  const handleRedo = (turnKey: number) => {
+    if (!tracker.canRedo(turnKey)) return;
+    redoTargetRef.current = turnKey;
+    recording.start();
+  };
+
+  // Reaching debrief locks the last turn's key — locking never waits on
+  // feedback, so this fires even if that turn's AI call is still in flight.
+  useEffect(() => {
+    if (sessionState.phase === 'debrief' && lastLockedTurnKeyRef.current !== null) {
+      lockTurn(lastLockedTurnKeyRef.current);
+      lastLockedTurnKeyRef.current = null;
     }
-    const language: LanguageResult = isUnscored(fb) ? { kind: 'unscored', feedback: fb } : { kind: 'scored', feedback: fb };
-
-    setIsProcessing(false);
-    setLastFeedback(fb);
-    setShowFeedback(true);
-
-    if (retryingRef.current) {
-      retryingRef.current = false;
-      session.retry(transcript, language);
-    } else {
-      session.submitTurn(transcript, language);
-    }
-  };
-
-  const handleRetry = () => {
-    retryingRef.current = true;
-    setShowFeedback(false);
-    setLastFeedback(null);
-  };
-
-  const handleContinue = () => {
-    setShowFeedback(false);
-    setLastFeedback(null);
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionState.phase]);
 
   if (kind === 'passthrough') {
     return (
@@ -323,13 +367,12 @@ function PlayPhase({
       objectives={objectives}
       currentInstruction={activeMission?.en}
       isTyping={false}
-      isProcessing={isProcessing}
       recording={recording}
-      showFeedback={showFeedback}
-      lastFeedback={lastFeedback}
+      panelEntries={panelEntries}
+      canRedo={(turnKey) => tracker.canRedo(turnKey)}
+      redosLeft={(turnKey) => MAX_REDOS - (tracker.get(turnKey)?.retryCount ?? 0)}
       onStopRecording={handleStop}
-      onRetry={handleRetry}
-      onNextStep={handleContinue}
+      onRedo={handleRedo}
       onExit={onExit}
     />
   );

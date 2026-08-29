@@ -54,7 +54,14 @@ export interface LanguageResultUnscored {
   feedback: FeedbackV2 | null;
 }
 
-export type LanguageResult = LanguageResultScored | LanguageResultUnscored;
+/** A turn was spoken but its feedback hasn't come back yet — a real, distinct
+ *  state (not a default), so `TurnOutcome.language` can honestly stay this
+ *  for the rest of the in-memory session (nothing downstream reads it). */
+export interface LanguageResultPending {
+  kind: 'pending';
+}
+
+export type LanguageResult = LanguageResultScored | LanguageResultUnscored | LanguageResultPending;
 
 export interface TurnOutcome {
   turnIndex: number;
