@@ -8,6 +8,9 @@ dist/
 
 backend/
 
+french2.0/
+.VSCodeCounter/
+
 # S3 STT: teacher recordings + TN-derived material — never redistributed, never pooled.
 data/sessions/
 
