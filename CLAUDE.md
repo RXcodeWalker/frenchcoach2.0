@@ -45,13 +45,25 @@ A French speaking-practice app for IGCSE/A-Level learners (Vite + React + TypeSc
 
 ## Development Workflow
 
-**General app changes:** inspect the relevant screen/service and its existing contracts → implement the smallest correct change → `npm run typecheck` + `npm test` for touched areas → `npm run lint` → review the diff → update `README.md`/docs only if you changed documented behavior.
+**General app changes:** inspect the relevant screen/service and its existing contracts → implement the smallest correct change → `npm run typecheck` + `npm test` for touched areas → `npm run lint` → review the diff → **update `CLAUDE.md` in the same session if the change makes a claim in it stale or incomplete**, then update `README.md`/other docs if documented behavior changed.
 
 **Assessment Engine changes (`src/domain/igcse/`, `server/`, `scripts/scoring/`, `scripts/stt/`):** with no architecture docs to consult, treat this as higher-risk than a normal change.
 
 1. **Plan first, in a separate step from implementation**, even for a change that looks small — state what you intend to change and why before touching `evidence/`, `judgement/`, `guardrails/`, `envelope/`, or `rubric.ts`, and get it confirmed.
 2. Don't infer validation/calibration strategy, rubric weights, or rollout order from memory of the old docs — if you need to know one of those, ask rather than guess.
 3. On completion, append what you did and what you verified to `verification-log.md` (repo root) — it's the only remaining audit trail for this subsystem.
+
+## Keeping This File Current
+
+`CLAUDE.md` is only useful if it matches the repo. **Before ending any implementation task, check whether it made one of these true, and if so, edit the relevant section in the same session — don't defer it:**
+
+- A new top-level directory under `src/`, `scripts/`, or a new runtime surface (anything like `server/`'s split from `backend/`) → update **Repository Structure** / **Three Runtime Surfaces**.
+- A new invariant you had to introduce or enforce (a new "don't do X" you'd want the next session to know) → add it to **Core Architectural Rules** or **Known Traps**, not just the commit message.
+- A new or renamed `npm run` script meant for regular use (not a one-off) → add it to **Validation Commands**; remove ones that no longer exist.
+- A canonical-implementation claim in **Known Traps** turns out to be wrong (you find a second XP formula, a "dead code" path that's now wired up, etc.) → correct it, don't leave it for a future audit.
+- A doc `CLAUDE.md` points to (in **Source of Truth**) is added, moved, or deleted → update the pointer or the row.
+
+If none of these apply, don't touch `CLAUDE.md` — a diff here on every change is as bad as a stale file. When in doubt about whether something is "almost every session" material versus a one-off detail, leave it out; over-including degrades the file faster than under-including does.
 
 ## Validation Commands
 
