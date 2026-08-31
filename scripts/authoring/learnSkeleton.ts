@@ -3,7 +3,7 @@
  * question currently in that topic in src/data/questions.ts, cognitiveDemand
  * defaulted to "describe" (the conservative floor) so an unreviewed skeleton
  * never overstates demand. Authors/inference fill in every "TODO" per
- * docs/content/learn-demands-guide.md.
+ * docs/guides/learn-demands.md.
  *
  *   npm run learn:skeleton -- school
  *
@@ -69,7 +69,7 @@ function main(): void {
   mkdirSync(DATA_DIR, { recursive: true });
   writeFileSync(outPath, JSON.stringify(skeleton, null, 2) + '\n', 'utf-8');
   console.log(`Wrote skeleton: ${outPath} (${skeleton.entries.length} entries)`);
-  console.log(`Fill in every "${TODO}" per docs/content/learn-demands-guide.md, then run:`);
+  console.log(`Fill in every "${TODO}" per docs/guides/learn-demands.md, then run:`);
   console.log(`  npm run learn:check -- --draft`);
 }
 

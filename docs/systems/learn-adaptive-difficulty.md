@@ -1,4 +1,10 @@
-# Learn: Adaptive Difficulty & Progression System (rev 2)
+# Learn Adaptive Difficulty
+
+> **This is a live specification, not a plan.** Its `§`-numbered sections are cited by
+> ~183 sites across the codebase, including shipped UI copy, seven `UNVALIDATED` threshold
+> definitions, and a cross-repo trust boundary. **Do not renumber sections.** Any
+> "Stage"/"rev" narration below is historical context from when this was authored as an
+> implementation plan — it does not indicate the document itself is stale.
 
 > Checked into the repo during Stage 10 (2026-08-20). This document existed only as
 > conversational input to Stages 1–9's implementation sessions and was never saved —
@@ -689,14 +695,14 @@ event is emitted** and no belief moves — instead of a fabricated failure.
 
 ## 12. Question-authoring contract
 
-Modelled on the existing S11 workflow (`docs/content/authoring-guide.md`,
+Modelled on the existing S11 workflow (`docs/guides/content-authoring.md`,
 `src/data/exam/bank/{validate,lint,corpusLint}.ts`) — same skeleton → draft → check → gates
 discipline, separate types so the exam bank gains no dependency.
 
 `src/data/learn/demands/<topic>.json`, `schemaVersion: 'learn-demands-v1'`, one entry per
 question id with the §7 fields plus a `review: { status, reviewedBy, reviewedAt }` block.
 
-**Rules a generating model must follow** (`docs/content/learn-demands-guide.md`):
+**Rules a generating model must follow** (`docs/guides/learn-demands.md`):
 
 1. `cognitiveDemand` describes what the *question wording* forces, not what a good answer could
    optionally include. *"Parle-moi de ton école"* is `describe` even if a strong answer justifies.
@@ -891,7 +897,7 @@ optional `Question.demands`. *Tests:* derivation table incl. lexical cap and cla
 
 **Stage 2 — Authoring contract, validator, lint, scripts.**
 `demand/{validate,lint}.ts`, `scripts/authoring/{learnSkeleton,checkLearnDemands,learnReview}.ts`,
-`docs/content/learn-demands-guide.md`, `package.json`. *Tests:* pass+fail fixture per rule.
+`docs/guides/learn-demands.md`, `package.json`. *Tests:* pass+fail fixture per rule.
 *Accept:* every rule demonstrably fires; `learn:check --draft` clean on an empty corpus.
 
 **Stage 3 — Inference for all 428 + file-based review tooling.**
@@ -990,7 +996,7 @@ per core topic to span the demand ladder, so stretch slots can actually fill (§
 **New — elsewhere**
 `scripts/authoring/{inferLearnDemands,learnSkeleton,checkLearnDemands,learnReview}.ts` ·
 `src/data/learn/demands/*.json` + generated `demandsManifest.ts` ·
-`backend/data/learn/*.json` · `docs/content/learn-demands-guide.md`
+`backend/data/learn/*.json` · `docs/guides/learn-demands.md`
 
 **Modified — selection & session**
 `src/utils/sessionBuilder.ts` · `src/utils/difficultyConfig.ts` · `src/screens/Learn.tsx`

@@ -2,10 +2,10 @@
 
 Authoring plan for the 10-set / 150-item original question bank. `001` already exists
 (architecture-proof set); this matrix assigns the 9 new sets so the corpus has full,
-non-repeating coverage. See `docs/content/authoring-guide.md` for the wording/quality rules
+non-repeating coverage. See `docs/guides/content-authoring.md` for the wording/quality rules
 each row's content must satisfy.
 
-Topic areas (syllabus, `04-frontend-pipeline.md` §6.4): **A** Everyday activities,
+Topic areas (per the Cambridge IGCSE French 0520 syllabus): **A** Everyday activities,
 **B** Personal and social life, **C** World around us, **D** World of work,
 **E** International world.
 
@@ -120,7 +120,7 @@ placement. `near-future` and `conditional` are template-driven (P1/P2 Q4/Q5, or 
 future/conditional slots). The **rare-structure target** column in the main table places the
 four structures that would otherwise be under-exercised — `imperfect`, `simple-future`,
 `comparison`, `negation` — at least once each in 2–3 sets, so that **every `TargetStructure`
-appears in ≥3 sets** corpus-wide (rule from the S11 plan §1):
+appears in ≥3 sets** corpus-wide:
 
 | Structure | Placed in (rare-structure target column) | Count |
 | --- | --- | --- |

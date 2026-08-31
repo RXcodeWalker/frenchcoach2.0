@@ -1,5 +1,5 @@
 /**
- * Machine-readable mirror of docs/content/corpus-matrix.md's "Authoritative
+ * Machine-readable mirror of docs/guides/corpus-matrix.md's "Authoritative
  * per-set topic assignment" table. Source of truth is the doc; this module
  * exists only so the skeleton/status scripts don't hand-parse markdown.
  * Keep both in sync by hand — the doc is prose-first for human authors, this

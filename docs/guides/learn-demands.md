@@ -4,8 +4,8 @@ Content contract for `src/data/learn/demands/<topic>.json`. Normative for
 `npm run learn:check`. If the checker and this guide ever disagree, the
 checker is a bug — file it, don't route around it by re-approving an entry.
 
-See `i-want-you-to-ethereal-hopper.md` §7 (question model), §12 (this
-contract), §13 (migration of the 428 existing questions) for the full design.
+See `docs/systems/learn-adaptive-difficulty.md` for the full design this
+contract implements.
 
 ## 0. Before you write anything
 

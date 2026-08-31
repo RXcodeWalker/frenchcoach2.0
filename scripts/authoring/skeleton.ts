@@ -1,9 +1,9 @@
 /**
  * Emits a pre-tagged AuthoredQuestionSet skeleton for one corpus-matrix row —
  * ids, part, areas, partsExpected slots, and expectedTimeFrame all filled in
- * from docs/content/corpus-matrix.md (mirrored in ./matrix.ts). Authors fill
+ * from docs/guides/corpus-matrix.md (mirrored in ./matrix.ts). Authors fill
  * in only the French text (mainText/alternativeTexts/secondPartText/title/
- * subTopic/targetStructures/furtherQuestions) — see docs/content/authoring-guide.md.
+ * subTopic/targetStructures/furtherQuestions) — see docs/guides/content-authoring.md.
  *
  *   npm run authoring:skeleton -- 002
  *
@@ -62,7 +62,7 @@ function topicQuestionSkeleton(
 function buildSkeleton(setNumber: number): AuthoredQuestionSet {
   const row = matrixRowForSetNumber(setNumber);
   if (!row) {
-    throw new Error(`No corpus-matrix row for set ${setNumber}. Valid: 2-10 (see docs/content/corpus-matrix.md).`);
+    throw new Error(`No corpus-matrix row for set ${setNumber}. Valid: 2-10 (see docs/guides/corpus-matrix.md).`);
   }
 
   const topic1Frames = TIME_FRAME_TEMPLATES[row.topic1Template].frames;
@@ -117,7 +117,7 @@ function main(): void {
   mkdirSync(DATA_DIR, { recursive: true });
   writeFileSync(outPath, JSON.stringify(skeleton, null, 2) + '\n', 'utf-8');
   console.log(`Wrote skeleton: ${outPath}`);
-  console.log(`Fill in every "${TODO}" per docs/content/authoring-guide.md, then run:`);
+  console.log(`Fill in every "${TODO}" per docs/guides/content-authoring.md, then run:`);
   console.log(`  npm run authoring:check -- --draft`);
 }
 

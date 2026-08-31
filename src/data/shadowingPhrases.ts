@@ -1,14 +1,14 @@
 /**
  * Shadowing Mode phrase corpus (Phase 4). Original, app-authored sentences —
  * never Cambridge role-play cards, topic questions, or Teacher's Notes
- * wording (docs/architecture/04-frontend-pipeline.md §6.4 — copyright
- * constraint). This file is a practice-feature corpus, not part of the
- * audited IGCSE question bank, and is never read by the scoring engine.
+ * wording (copyright constraint). This file is a practice-feature corpus,
+ * not part of the audited IGCSE question bank, and is never read by the
+ * scoring engine.
  *
  * 6-14 words per phrase so a normal delivery is ~3-6s, far below the 30s
  * client-side recording cap (ShadowingPanel.tsx). Vocabulary is IGCSE-level
  * (CEFR A2 with light B1 lexis) and `tu`-register throughout, matching the
- * register convention in docs/content/authoring-guide.md §2-3 — but this
+ * register convention in docs/guides/content-authoring.md §2-3 — but this
  * corpus is NOT part of the exam question bank and is not subject to
  * authoring:check (no anaphora rule, no alternatives, no targetStructures).
  *

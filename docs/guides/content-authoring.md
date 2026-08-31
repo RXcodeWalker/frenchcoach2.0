@@ -9,11 +9,9 @@ disagree, the checker is a bug — file it, don't route around it by re-approvin
 
 ## 0. Before you write anything
 
-- Read `docs/architecture/04-frontend-pipeline.md` §6.4 (question authenticity/copyright)
-  and §6.5 (examiner-simulation conduct rules). Both shape what a valid item looks like.
-- Read `docs/content/corpus-matrix.md` and find your set's row: pair, role-play area,
+- Read `docs/guides/corpus-matrix.md` and find your set's row: pair, role-play area,
   archetype, time-frame template, rare-structure targets.
-- **Clean-room only.** Author from the public syllabus and §6.4 above. Never open, quote,
+- **Clean-room only.** Author from the public syllabus. Never open, quote,
   paraphrase, or "recall" a Teacher's Notes booklet or past paper. If you have ever seen the
   June 2024 TN booklet, do not author from memory of it — draft independently and let the
   originality review catch accidental overlap. See §3 (Originality) below.
@@ -34,14 +32,14 @@ disagree, the checker is a bug — file it, don't route around it by re-approvin
 
 ## 2. Vocabulary level
 
-CEFR **A2 with elements of B1** (`01-cambridge-rubric-source.md` §1.3). Concrete, everyday
+CEFR **A2 with elements of B1** (per the Cambridge IGCSE French 0520 syllabus). Concrete, everyday
 vocabulary; grammatical complexity may reach B1 (e.g. conditional, comparison) but the
 *lexis* should stay accessible to a strong A2 candidate. If a question needs a gloss to be
 understood, it's pitched too high.
 
 ## 3. Register
 
-`tu`-register throughout — every question, alternative, and further question (§6.5). The
+`tu`-register throughout — every question, alternative, and further question. The
 examiner voice is self-sufficient: because questions are **read exactly as printed** with
 repetition allowed but rephrasing forbidden, a question must never lean on how it "would
 obviously be asked out loud." Write it the way it will be read.

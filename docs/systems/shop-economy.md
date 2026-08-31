@@ -1,4 +1,11 @@
-# Shop Experience — Product, UX & Technical Plan (Rev. 2)
+# Shop Economy
+
+> **This is a live specification, not a plan.** Its `§`-numbered sections are cited by
+> ~221 sites across the codebase (tests, user-facing copy, a client/server trust boundary,
+> and several `UNVALIDATED` threshold definitions) as the current source of truth for the
+> shop/economy system. **Do not renumber sections.** Any "Phase"/"Rev."/stage narration
+> below is historical context from when this was authored as an implementation plan — it
+> does not indicate the document itself is stale.
 
 > Saved to the repo during Phase 2 implementation so amendments (deferrals, scope notes discovered during implementation) have a durable, versioned home instead of living only in chat history or code comments.
 
