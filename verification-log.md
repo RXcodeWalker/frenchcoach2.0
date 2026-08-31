@@ -73,3 +73,23 @@ Logged commitment for S3+:
 - Manually spot-check classifier output against the first **3-5 real teacher transcripts** once S3 ingestion is available.
 - Audit per-response `TimeFrame` output against the actual French.
 - Keep this signal **advisory** for Phase A until that held-out manual check passes.
+
+## docs/architecture/ removed
+
+Date: 2026-08-31
+
+All files under `docs/architecture/` (00-overview-and-rationale, 01-cambridge-rubric-source,
+02-scoring-pipeline-architecture, 03-validation-strategy, 04-frontend-pipeline,
+05-deprecated-v1-removals, roadmap, rubric-sources, learn-feedback-contract,
+pronunciation-practice-boundary, verification-log) were deleted from the working tree.
+
+Reason: the docs assumed validation against real teacher/examiner-graded transcripts
+(the S3/S6/S9/S12 phased corpus plan above, including the "3-5 real teacher transcripts"
+commitment logged for S2 just above this entry) — that plan no longer reflects the actual
+direction. The S-numbered roadmap phases referenced throughout this log predate the removal
+and should not be treated as the current plan.
+
+No replacement design docs exist yet. Until they do, treat `src/domain/igcse/` and its own
+tests as the only authority on scoring-pipeline behavior — do not infer rationale, validation
+strategy, or rollout order from git history of the deleted files. `CLAUDE.md` has been updated
+accordingly.
