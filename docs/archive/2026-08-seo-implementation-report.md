@@ -1,5 +1,9 @@
 # SEO Implementation Report — Français AI (french.beyondthebasics.me)
 
+> **ARCHIVED — NOT AUTHORITATIVE.** A retrospective of work already completed. Its
+> `docs/architecture/01-cambridge-rubric-source.md` citation points at a document that no
+> longer exists — see `docs/README.md`'s citation decoder. It is historical, not a live rule.
+
 What shipped across Stages A–C (`a220608`, `4e8443f`, `9c70c71`), measured against the codebase at `9c70c71` (clean tree). See `docs/seo-audit.md` for the pre-work state and reasoning; this report covers what was built.
 
 ## 1. What was wrong

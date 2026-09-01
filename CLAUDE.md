@@ -22,8 +22,8 @@ A French speaking-practice app for IGCSE/A-Level learners (Vite + React + TypeSc
 - `src/screens/` — top-level screens (Learn, ExamMode, Progress, Explore, Home, …), each with a matching sub-directory for extracted sub-components.
 - `scripts/authoring/`, `scripts/roleplay/` — content validation/authoring CLIs for `backend/data/igcse/*.json`, `src/data/scenarios/`, `src/data/learn/demands/*.json`.
 - `scripts/scoring/`, `scripts/stt/` — CLIs for the scoring pipeline (batch scoring against teacher marks, golden regression, STT ingestion, attempt inspection/review).
-- `docs/content/` — content-authoring rules for the IGCSE question bank. (`docs/architecture/` — the former Assessment Engine design docs — was removed as outdated; see the note under "What This Is".)
-- Root-level `plan.md`, `IMPLEMENTATION_CHECKLIST.md`, `COMPONENT_REFERENCE.md`, `QUICK_START.md`, `README_REDESIGN.md`, `REDESIGN_SUMMARY.md`, `UI_UX_IMPLEMENTATION_GUIDE.md` — historical planning docs, **not maintained**, not authoritative. Don't treat their contents as current behavior.
+- `docs/guides/` — content-authoring rules for the IGCSE question bank. (`docs/architecture/` — the former Assessment Engine design docs — was removed as outdated; see the note under "What This Is".)
+- `docs/systems/`, `docs/decisions/`, `docs/archive/` — a documentation system migration is in progress; see `docs/README.md` for the current map. `plan.md` and the 6 Bolt-era redesign docs formerly at repo root have been deleted or archived under `docs/archive/` as part of it — they no longer exist at root.
 
 ## Core Architectural Rules
 
@@ -40,8 +40,8 @@ A French speaking-practice app for IGCSE/A-Level learners (Vite + React + TypeSc
 | Assessment Engine design/rationale, validation strategy, roadmap order | **Nothing right now** — `docs/architecture/` was removed as outdated (2026-08-31) and not yet replaced. Don't invent or infer this from git history; ask instead. |
 | Current scoring pipeline behavior | `src/domain/igcse/` itself, and its `__tests__/` (especially golden-transcript regressions) |
 | What's actually been verified so far | `verification-log.md` (repo root) — append here, don't just claim a gate passed |
-| Content wording/register/authoring rules | `docs/content/authoring-guide.md`, `docs/content/corpus-matrix.md` |
-| Current runtime behavior of anything else | The code. `README.md` and the root planning `*.md` files describe intent, not necessarily current state. |
+| Content wording/register/authoring rules | `docs/guides/content-authoring.md`, `docs/guides/corpus-matrix.md` |
+| Current runtime behavior of anything else | The code. `README.md` describes intent, not necessarily current state. |
 
 ## Development Workflow
 

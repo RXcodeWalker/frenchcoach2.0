@@ -1,3 +1,8 @@
+> **ARCHIVED — NOT AUTHORITATIVE.** This document describes a May 2026 UI redesign
+> (`DashboardNew.tsx`, `PracticeNew.tsx`, `MomentumBuilder.tsx`, `ResultsShowcase.tsx`,
+> `SessionContext.tsx`, etc.) that was never implemented in this codebase — none of these
+> components exist. Kept for historical context only. See `docs/archive/README.md`.
+
 # FrenchCoach 2.0 — Quick Start Guide
 
 ## What You're Getting

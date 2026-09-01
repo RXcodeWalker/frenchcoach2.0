@@ -1,3 +1,6 @@
+> **ARCHIVED — NOT AUTHORITATIVE.** A checkbox plan for a `coming-soon` feature, with no
+> inbound references from source. See `docs/archive/README.md`.
+
 # Speed Speaking 2.0 Upgrade Plan
 
 Improve the "Speed Speaking" minigame to be more engaging, educational, and polished.

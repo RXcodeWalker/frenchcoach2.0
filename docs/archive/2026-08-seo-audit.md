@@ -1,5 +1,10 @@
 # SEO Audit — Français AI (french.beyondthebasics.me)
 
+> **ARCHIVED — NOT AUTHORITATIVE.** A retrospective of work already completed. Its several
+> `docs/architecture/*.md` and `docs/seo-implementation-report.md` § citations point at
+> documents that are deleted or since reorganized — see `docs/README.md`'s citation decoder.
+> They are historical (recording that a check was made at the time), not live rules.
+
 Pre-work state as of `e731f97` (last commit before SEO Stage A), and the reasoning behind the index/noindex decisions implemented across Stages A–C (`a220608`, `4e8443f`, `9c70c71`).
 
 ## Pre-work state

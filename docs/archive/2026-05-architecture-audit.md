@@ -1,3 +1,10 @@
+> **ARCHIVED — NOT AUTHORITATIVE.** Superseded in full by the current codebase. Describes a
+> 10-file, ~2,325 LOC mock-data prototype with no persistence layer and calls
+> `src/lib/supabase.ts` "DEAD CODE, never imported" — today the app is 700+ source files with
+> Supabase load-bearing for auth, sync, and social features (see `CLAUDE.md`'s Known Traps,
+> which exists specifically to rebut this document). Kept for historical context on the
+> origin of `src/`'s shape. See `docs/archive/README.md`.
+
 French 2.0 — Architecture Audit & Refactor Roadmap 0. What I read
 Active app at src/ (10 source files, ~2,325 LOC). Routing is reducer-driven (no React Router). Stack: React 18 + Vite + TypeScript + Tailwind + Framer Motion + Supabase (declared, unused) + canvas-confetti. There's also a near-identical, older copy of the project at french2.0/project/ — confirmed divergent via diff.
 
