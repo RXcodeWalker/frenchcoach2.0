@@ -93,3 +93,35 @@ No replacement design docs exist yet. Until they do, treat `src/domain/igcse/` a
 tests as the only authority on scoring-pipeline behavior — do not infer rationale, validation
 strategy, or rollout order from git history of the deleted files. `CLAUDE.md` has been updated
 accordingly.
+
+## Documentation migration Stage 6a — dead-citation repair touching Assessment Engine code
+
+Date: 2026-09-01
+
+Stage 6a of the documentation system migration repaired dead citations to the deleted
+`docs/architecture/` files across the repo. This entry covers only the Assessment Engine
+sites touched, since those fall under this file's scope per `CLAUDE.md`'s Assessment Engine
+change procedure — no other Assessment Engine behavior changed, comments only.
+
+- `src/domain/igcse/guardrails/__tests__/syntheticManifest.ts` — the five-item examiner-report
+  failure taxonomy was previously commented as a "verbatim" copy from the deleted
+  `03-validation-strategy.md §5.1`. Reclassified: this file is now documented as the source of
+  record for that taxonomy (the document it was originally transcribed from no longer exists
+  to verify fidelity against), not a copy of a surviving original.
+- `src/domain/igcse/guardrails/{types,config,quoteVerification,insufficientEvidence}.ts` — header
+  comments citing the deleted `02-scoring-pipeline-architecture.md §3.5` and `roadmap S6` were
+  repointed to `docs/systems/assessment-engine.md` (new in Stage 5) or restated without the dead
+  citation. No threshold, type, or logic changed; `GUARDRAILS_VERSION` was not bumped because no
+  guardrail behavior changed.
+- `src/domain/igcse/envelope/types.ts` — a comment claiming an "S4 entry" in
+  `docs/architecture/verification-log.md` was corrected: no such entry exists in this file (the
+  actual verification log), and the design doc that comment originally cited no longer exists.
+  The listed simplifications (temperature/seed dropped, predictedGrade omitted, etc.) are
+  restated as current fact without a false citation.
+- `scripts/scoring/providers/{groqJudge,geminiJudge}.ts` — same false
+  `docs/architecture/verification-log.md` citation for the Gemini/Groq provider-swap rationale,
+  corrected to note plainly that this rationale was never recorded anywhere that survives.
+
+Verified: `npm run score:golden` and the guardrails `__tests__/` suite (including
+`version-pin.test.ts`) still pass after these comment-only edits — see the Stage 6 gate run
+below for the full command list and result.

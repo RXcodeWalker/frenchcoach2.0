@@ -1,6 +1,7 @@
 /**
- * S5 guardrail — quote verification (02-scoring-pipeline-architecture.md §3.5).
- * Every evidence span quoted in an L2 assessment must be a substring of the
+ * Guardrail — quote verification (see docs/systems/assessment-engine.md for
+ * the three-layer pipeline this guardrail belongs to). Every evidence span
+ * quoted in an L2 assessment must be a substring of the
  * stored transcript (normalized). On real judge output this is silent by
  * construction — judgement/schema.ts::parseAndValidateJudgeOutput already
  * rejects ungrounded quotes at parse time. This guardrail exists as

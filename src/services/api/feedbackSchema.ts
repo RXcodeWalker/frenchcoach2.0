@@ -64,8 +64,9 @@ const MiniLessonSchema = z.object({
   practice:        z.string(),
 }).nullable().optional();
 
-// Provider-neutral transport contract (docs Stage 2,
-// docs/architecture/learn-feedback-contract.md). `.catch([])` at the array
+// Provider-neutral transport contract — the runtime-validated twin of
+// apiClient.ts's BackendCorrection/BackendQuoteSpan interfaces; keep them in
+// lockstep by hand, there is no shared source. `.catch([])` at the array
 // level (not per-item) — a single malformed item shouldn't invalidate every
 // correction, but there's no per-item degrade for a structurally broken
 // item here the way GrammarItemSchema.nullish()s each field individually,

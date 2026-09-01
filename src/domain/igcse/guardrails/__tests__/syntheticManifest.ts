@@ -1,9 +1,10 @@
 /**
- * Toolkit-only index over synthetic.ts (S5) fixtures — never edits or
- * duplicates their content, only tags each with the examiner-report failure
- * taxonomy item it targets (03-validation-strategy.md §5.1) and which
- * guardrail(s), if any, it is expected to trip. S6 (Phase A) is the owner of
- * extending synthetic.ts itself; this file just gets extended alongside it.
+ * Toolkit-only index over synthetic.ts fixtures — never edits or duplicates
+ * their content, only tags each with the examiner-report failure taxonomy
+ * item it targets and which guardrail(s), if any, it is expected to trip.
+ * This file is the source of record for the five-item taxonomy below (the
+ * document it was originally transcribed from no longer exists) — extend it
+ * carefully, and extend synthetic.ts itself alongside it.
  *
  * Two of the five entries below (CLEAN_LONG_TRANSCRIPT-based) pair a
  * SpeakingTranscript with a static SpeakingAssessment, so goldenRegression.ts
@@ -23,11 +24,12 @@ import type { SpeakingAssessment, SpeakingTranscript } from '../../judgement/typ
 import type { GuardrailId } from '../types';
 
 /**
- * Verbatim five-item taxonomy from 03-validation-strategy.md §5.1. Three of
- * these (misunderstoodInterrogatives, cEstVsCEtait, numberWithoutCurrency)
- * are L1/L2 signals, not guardrail triggers — no synthetic fixture exists for
- * them yet (see synthetic.ts's own S6 extension note), so their manifest
- * entries are commented, not fabricated as [] rows with fake fixtures.
+ * The five-item examiner-report failure taxonomy this manifest tags against.
+ * Three of these (misunderstoodInterrogatives, cEstVsCEtait,
+ * numberWithoutCurrency) are L1/L2 signals, not guardrail triggers — no
+ * synthetic fixture exists for them yet (see synthetic.ts's own extension
+ * note), so their manifest entries are commented, not fabricated as []
+ * rows with fake fixtures.
  */
 export type FailureTaxonomyTag =
   | 'wrongTimeFrameAfterCue'

@@ -1,5 +1,10 @@
 # OAuth (Step 4 of auth overhaul) — verification status
 
+> **ARCHIVED — NOT AUTHORITATIVE.** Its live fact (OAuth implemented but unverified; external
+> app registrations don't exist) has been promoted to `docs/systems/topology.md`. Its "auth
+> overhaul plan §N" citations point at a document that no longer exists — see `docs/README.md`'s
+> citation decoder. Historical only.
+
 **Status: code implemented, NOT verified. Do not treat as shipped to real users.**
 
 `signInWithOAuth` (`src/context/AuthContext.tsx`) and the Google/Microsoft buttons

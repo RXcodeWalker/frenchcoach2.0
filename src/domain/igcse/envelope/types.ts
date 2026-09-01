@@ -1,13 +1,13 @@
 /**
- * S4 ScoringEnvelope — the immutable, versioned record of one scoring attempt.
- * Field names deliberately mirror 02-scoring-pipeline-architecture.md §3.8,
- * with explicit, documented divergences (see docs/architecture/verification-log.md
- * S4 entry): llm.temperature/seed dropped (current models reject sampling params;
- * no seed param ever existed), predictedGrade omitted (not stubbed — S12's job),
- * stt embedded wholesale (SttMetadata is a strict superset of the doc's 4-field
- * sketch), evidencePromptVersion omitted (L1 is 100% deterministic, no LLM pass
- * to version), per-criterion confidence narrowed to the single literal
- * 'unassessed' (S5 has not built the guardrails that would justify high/medium/low).
+ * ScoringEnvelope — the immutable, versioned record of one scoring attempt.
+ * See docs/systems/assessment-engine.md for the pipeline this persists the
+ * output of. Current known simplifications, not sourced to any surviving
+ * document (the design doc that originally motivated these choices is gone —
+ * ask before assuming a rationale beyond what's stated here): llm.temperature/seed
+ * dropped (current models reject sampling params; no seed param ever existed),
+ * predictedGrade omitted (not yet built), stt embedded wholesale, per-criterion
+ * confidence narrowed to the single literal 'unassessed' (no guardrail yet
+ * justifies high/medium/low).
  */
 
 import type { EvidenceProfile } from '../evidence/types';

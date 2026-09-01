@@ -146,11 +146,12 @@ interface BackendFeedback {
   providerStatus?: string;
 }
 
-// Provider-neutral transport contract (docs Stage 2,
-// docs/architecture/learn-feedback-contract.md) — the backend's corrections[]
-// item shape and the quoteSpans[] the server resolves against the canonical
+// Provider-neutral transport contract — the backend's corrections[] item
+// shape and the quoteSpans[] the server resolves against the canonical
 // transcript. Kept separate from CoachingIssue/TranscriptSpan (the frontend
 // domain types): this is the wire shape, mapBackendCorrections adapts it.
+// feedbackSchema.ts's CorrectionSchema/QuoteSpanSchema is the runtime-validated
+// twin of this shape; keep them in lockstep by hand — there is no shared source.
 interface BackendCorrection {
   id?: string;
   severity?: string;
@@ -679,11 +680,15 @@ export type { EngineMetadata };
 // must never fabricate one.
 //
 // The rubric-sourced prompt (buildExaminerPrompt) is built HERE, client-side,
-// from src/domain/igcse/rubric.ts — the only place the sourced 0520 descriptor
-// text lives. The backend has no Python copy of the rubric; it only relays
-// whatever prompt this client sends to the LLM and returns raw JSON. Grounding
-// and the one-retry rule (getGroundedExaminerFeedback) also run client-side so
-// every quote is checked against the exact transcript this client holds.
+// from src/domain/igcse/rubric.ts — the only place the SOURCED 0520 descriptor
+// text lives, with every band citing exactSource(...). This /api/feedback/v3
+// call just relays that prompt to the LLM and returns raw JSON.
+// (backend/evaluator_service.py DOES contain a separate, unsourced Python
+// rubric, but it is unreached from src/ — see
+// docs/decisions/0003-node-engine-is-the-authoritative-scorer.md. It has
+// nothing to do with this examiner-mode call.) Grounding and the one-retry
+// rule (getGroundedExaminerFeedback) also run client-side so every quote is
+// checked against the exact transcript this client holds.
 
 export class ExaminerFeedbackUnavailableError extends Error {
   constructor() {

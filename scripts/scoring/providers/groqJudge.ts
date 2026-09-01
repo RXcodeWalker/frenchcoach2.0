@@ -2,8 +2,10 @@
  * Judge implementation wrapping the Groq SDK (groq-sdk). Automatic fallback
  * provider — only invoked when the primary Gemini judge fails on a genuine
  * request failure (network, timeout, provider unavailable, rate limit). See
- * judgeFactory.ts for the failover policy and docs/architecture/verification-log.md
- * for the provider swap rationale.
+ * judgeFactory.ts for the failover policy. (The rationale for the Gemini/Groq
+ * provider split was never recorded in verification-log.md despite an old
+ * comment here claiming otherwise — this is the only surviving documentation
+ * of the split.)
  *
  * Model: a Groq-hosted Llama model (see DEFAULT_MODEL). No effort/thinking
  * knobs — Anthropic-specific concepts with no Groq equivalent, so

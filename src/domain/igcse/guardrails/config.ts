@@ -1,13 +1,14 @@
 /**
- * S5 guardrail thresholds — UNVALIDATED starting values, tuned in Phase A
- * (roadmap S6). Editing any threshold here requires bumping GUARDRAILS_VERSION
- * (enforced by __tests__/version-pin.test.ts, which hashes this config
- * together with guardrail output).
+ * Guardrail thresholds — UNVALIDATED starting values, to be tuned once a
+ * calibration corpus exists (see docs/systems/assessment-engine.md). Editing
+ * any threshold here requires bumping GUARDRAILS_VERSION (enforced by
+ * __tests__/version-pin.test.ts, which hashes this config together with
+ * guardrail output).
  */
 
 import type { EvidenceCeiling, InsufficientEvidenceDurationConfig } from './types';
 
-// UNVALIDATED — starting values, tuned in Phase A (roadmap S6).
+// UNVALIDATED — starting values, to be tuned once a calibration corpus exists.
 export const DEFAULT_DURATION_CONFIG: InsufficientEvidenceDurationConfig = {
   minCombinedDurationS: 240,
   minCombinedWordCount: 200,

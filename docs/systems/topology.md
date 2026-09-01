@@ -56,6 +56,22 @@ These never call each other directly. The frontend is the only thing that talks 
 repo.** If you're debugging a report of exam scoring not working in production, check the Vercel
 project's environment variables directly rather than assuming.
 
+## OAuth — implemented, not verified
+
+`signInWithOAuth` (`src/context/AuthContext.tsx`) and the Google/Microsoft buttons
+(`src/screens/Auth.tsx`) are implemented, but two things block treating this as shipped:
+
+- **External app registrations don't exist yet**: no Google Cloud OAuth consent screen /
+  Client ID, no Microsoft/Azure App registration, and neither provider is configured in the
+  Supabase dashboard with real credentials.
+- **The five-case identity-linking behavior has not been verified** against a non-production
+  Supabase project (password → OAuth same-email merge, OAuth → OAuth same-email merge,
+  unconfirmed-password-signup must NOT silently merge, re-sign-in resolves to the existing
+  linked account). `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` passing
+  says nothing about this — it needs real-browser round-trips against real consent screens.
+
+Do not treat OAuth sign-in as production-ready until both are done.
+
 ## CI
 
 `.github/workflows/` currently runs three workflows, all scheduled Supabase RPC invocations

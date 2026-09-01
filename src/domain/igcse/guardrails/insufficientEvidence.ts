@@ -1,8 +1,9 @@
 /**
- * S5 guardrail — insufficient-evidence duration (02-scoring-pipeline-architecture.md
- * §3.5). If combined topic-conversation candidate material is below threshold,
- * this fires so downstream (Phase A, S6/S7) can widen uncertainty on
- * Communication + QoL. Role-play-only material is out of scope.
+ * Guardrail — insufficient-evidence duration (see docs/systems/assessment-engine.md
+ * for the three-layer pipeline this guardrail belongs to). If combined
+ * topic-conversation candidate material is below threshold, this fires so a
+ * future phase can widen uncertainty on Communication + QoL. Role-play-only
+ * material is out of scope.
  *
  * Missing-timing edge case: candidateSpeakingDurationS is 0 whenever no turn
  * carries candidateResponseDurationS (hand-authored transcripts with no

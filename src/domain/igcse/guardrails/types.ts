@@ -1,7 +1,8 @@
 /**
- * S5 Layer-3 guardrail types — deterministic, advisory triggers only (see
- * 02-scoring-pipeline-architecture.md §3.5). No mark-clamping / `unscored`
- * short-circuit in v1; that is Phase-A-gated (S6/S7).
+ * Layer-3 guardrail types — deterministic, advisory triggers only; see
+ * docs/systems/assessment-engine.md for the three-layer pipeline and why
+ * this layer never collapses into judgement. No mark-clamping / `unscored`
+ * short-circuit in v1; that remains a future-phase concern.
  */
 
 export type GuardrailId =

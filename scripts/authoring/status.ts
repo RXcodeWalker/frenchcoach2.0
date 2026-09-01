@@ -1,10 +1,10 @@
 /**
  * Status report over backend/data/igcse/*.json: how many sets are
  * reviewedBy:internal:* vs reviewedBy:teacher:* — the live distance from the
- * S11 exit criterion ("every item teacher-approved"). See the S11 plan's
- * M1 (pilot-ready, internal:*) / M2 (S11-complete, teacher:*) distinction.
- * Also echoes the corpus coverage diagnostics so authors don't need to
- * re-run `authoring:check` just to see the coverage numbers.
+ * teacher-review gate ("every item teacher-approved" before it counts as
+ * fully reviewed, vs. pilot-ready internal:* review). Also echoes the corpus
+ * coverage diagnostics so authors don't need to re-run `authoring:check`
+ * just to see the coverage numbers.
  *
  *   npm run authoring:status
  */
@@ -38,7 +38,7 @@ function main(): void {
   );
 
   const tierCounts = { internal: 0, teacher: 0, unset: 0, draft: 0 };
-  console.log(`=== S11 authoring status — ${sets.length} set(s) in ${DATA_DIR} ===\n`);
+  console.log(`=== Authoring status — ${sets.length} set(s) in ${DATA_DIR} ===\n`);
 
   for (const set of sets) {
     if (set.review.status !== 'approved') {
@@ -56,11 +56,11 @@ function main(): void {
   console.log('');
   if (tierCounts.teacher < sets.length) {
     console.log(
-      `S11 is NOT complete: ${sets.length - tierCounts.teacher} of ${sets.length} set(s) still need a 0520-familiar ` +
-        `teacher's G3 exam-realism review and reviewedBy: teacher:<name> before the roadmap's S11 exit criterion is met.`,
+      `Teacher-review gate NOT met: ${sets.length - tierCounts.teacher} of ${sets.length} set(s) still need a ` +
+        `0520-familiar teacher's exam-realism review and reviewedBy: teacher:<name>.`,
     );
   } else {
-    console.log('S11 exit criterion met: every set carries reviewedBy: teacher:*.');
+    console.log('Teacher-review gate met: every set carries reviewedBy: teacher:*.');
   }
 
   const approvedSets = sets.filter((s) => s.review.status === 'approved');

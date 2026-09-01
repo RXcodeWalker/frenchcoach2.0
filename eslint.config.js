@@ -79,7 +79,8 @@ export default tseslint.config(
     // Hard constraint: examiner-mode practice feedback must stay data-only
     // against the audited Cambridge scorer. It may read rubric descriptor
     // text and isQuoteGrounded, never the scoring/envelope/guardrails/session
-    // machinery — see the module doc comment and roadmap.md S7.
+    // machinery — see the module doc comment and
+    // docs/decisions/0005-examiner-feedback-emits-no-marks.md.
     files: ['src/services/coaching/examinerFeedback.ts'],
     rules: {
       'no-restricted-imports': [
@@ -94,7 +95,7 @@ export default tseslint.config(
                 '**/domain/igcse/session/**',
               ],
               message:
-                'examinerFeedback.ts may only import rubric descriptor data and isQuoteGrounded — not the scoring pipeline (roadmap.md S7).',
+                'examinerFeedback.ts may only import rubric descriptor data and isQuoteGrounded — not the scoring pipeline (docs/decisions/0005-examiner-feedback-emits-no-marks.md).',
             },
           ],
         },

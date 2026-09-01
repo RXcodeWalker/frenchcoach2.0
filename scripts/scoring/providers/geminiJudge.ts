@@ -1,7 +1,9 @@
 /**
  * Judge implementation wrapping the Google Gemini SDK (@google/genai).
- * Primary production provider as of the Gemini swap — see
- * docs/architecture/verification-log.md. Does NOT widen the Judge port
+ * Primary production provider (see groqJudge.ts for the automatic-fallback
+ * provider and judgeFactory.ts for the failover policy — the original
+ * rationale for choosing Gemini as primary was never recorded anywhere
+ * that survives). Does NOT widen the Judge port
  * ((req) => Promise<{raw: string}>) — captures per-call metadata (model,
  * responseId) in a closure exposed via getLastCallMetadata(), read by
  * scoreAttempt after scoreSpeaking resolves.

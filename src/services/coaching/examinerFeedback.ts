@@ -2,12 +2,13 @@
  * Examiner-voice practice feedback for a single Learn answer: real Cambridge
  * IGCSE French 0520 descriptor language (structures/vocabulary only), every
  * claim quote-verified against the candidate's own transcript, and NO mark,
- * band number, or /40 total — see roadmap.md S7/S10 framing ("practice
+ * band number, or /40 total — see
+ * docs/decisions/0005-examiner-feedback-emits-no-marks.md ("practice
  * feedback in examiner language, not a grade prediction").
  *
  * This is deliberately NOT the audited Cambridge scorer (src/domain/igcse/).
  * A single Learn answer cannot fill SpeakingTranscript's fixed shape (exactly
- * 5 role-play tasks + topic1/topic2), and roadmap S7 forbids building the
+ * 5 role-play tasks + topic1/topic2), and ADR-0005 forbids building the
  * Azure-into-Cambridge pipeline in this phase. This module only borrows two
  * things from that audited layer: rubric descriptor TEXT (data, not scoring
  * logic) and the quote-verification primitive `isQuoteGrounded`. It must
