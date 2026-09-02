@@ -10,8 +10,8 @@ export function AboutContent() {
   const techItems = [
     {
       icon: <Mic2 size={20} className="text-blue-400" />,
-      title: "Neural Speech-to-Text",
-      desc: "Advanced recognition that understands non-native French accents and provides phonetic feedback."
+      title: "Browser Speech Recognition",
+      desc: "Your spoken answers are transcribed using the browser's built-in Web Speech API."
     },
     {
       icon: <Brain size={20} className="text-violet-400" />,
@@ -129,8 +129,9 @@ export function AboutContent() {
         <div className="text-center md:text-left">
           <h3 className="text-xl font-bold text-white mb-2">Meet the Creator</h3>
           <p className="text-slate-400 text-sm leading-relaxed">
-            Built by a team of educators and engineers who saw students struggle with oral exams year after year.
-            Our mission is to democratize elite-level coaching, making high-quality speaking practice accessible to every student, everywhere.
+            Built by one person who struggled with oral exams as a student. The mission is to make
+            high-quality speaking practice accessible to every student, not just those with a
+            teacher's undivided attention.
           </p>
         </div>
       </div>
@@ -143,7 +144,7 @@ export function AboutContent() {
 
         <h2 className="text-3xl md:text-4xl font-black text-white mb-4 relative z-10">Ready to bridge the gap?</h2>
         <p className="text-violet-100 mb-8 max-w-lg mx-auto relative z-10 opacity-90">
-          Stop studying French. Start speaking it. The examiner is waiting.
+          Stop studying French. Start speaking it.
         </p>
         <a
           href="/exam"

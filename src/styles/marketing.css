@@ -1,0 +1,118 @@
+/* ============================================================
+   Marketing surface tokens — editorial ink-on-paper, scoped to
+   `.marketing`. Independent of the app's `.glass` design system;
+   nothing here is read by app screens, and nothing in index.css
+   is read by marketing pages.
+   ============================================================ */
+
+.marketing {
+  --mk-bg: #0A0B0D;
+  --mk-ink: #F4F2ED;
+  --mk-ink-muted: #B9B6AE;
+  --mk-ink-faint: #83807A;
+  --mk-hairline: rgba(244, 242, 237, 0.12);
+  --mk-hairline-strong: rgba(244, 242, 237, 0.22);
+  --mk-surface: rgba(244, 242, 237, 0.03);
+  --mk-accent: #8B5CF6;
+  --mk-accent-ink: #FFFFFF;
+  --mk-accent-soft: rgba(139, 92, 246, 0.12);
+  --mk-good: #34D399;
+  --mk-warn: #FBBF24;
+  --mk-bad: #F87171;
+}
+
+html:not(.dark) .marketing {
+  --mk-bg: #FAFAF8;
+  --mk-ink: #1A1A18;
+  --mk-ink-muted: #55534C;
+  --mk-ink-faint: #8A877E;
+  --mk-hairline: rgba(26, 26, 24, 0.1);
+  --mk-hairline-strong: rgba(26, 26, 24, 0.18);
+  --mk-surface: rgba(26, 26, 24, 0.025);
+  --mk-accent: #7C3AED;
+  --mk-accent-ink: #FFFFFF;
+  --mk-accent-soft: rgba(124, 58, 237, 0.08);
+  --mk-good: #059669;
+  --mk-warn: #B45309;
+  --mk-bad: #DC2626;
+}
+
+.marketing {
+  background: var(--mk-bg);
+  color: var(--mk-ink);
+}
+
+.marketing .font-display {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+.marketing .mk-hairline {
+  border-color: var(--mk-hairline);
+}
+
+.marketing .mk-hairline-strong {
+  border-color: var(--mk-hairline-strong);
+}
+
+.marketing .mk-surface {
+  background: var(--mk-surface);
+}
+
+.marketing .mk-eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--mk-accent);
+}
+
+.marketing .mk-cta {
+  background: var(--mk-accent);
+  color: var(--mk-accent-ink);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.marketing .mk-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px -6px var(--mk-accent-soft);
+}
+
+.marketing .mk-cta:active {
+  transform: translateY(0);
+}
+
+.marketing .mk-link {
+  color: var(--mk-ink);
+  text-underline-offset: 3px;
+  text-decoration-color: var(--mk-hairline-strong);
+  transition: text-decoration-color 0.15s ease, color 0.15s ease;
+}
+
+.marketing .mk-link:hover {
+  color: var(--mk-accent);
+  text-decoration-color: var(--mk-accent);
+}
+
+/* ── Reveal-on-scroll — static markup is always fully visible. CSS only
+   hides .mk-reveal once JS has proven it can un-hide it (documentElement
+   gets .mk-js on mount), so crawlers/no-JS visitors never see opacity:0. ── */
+.mk-js .mk-reveal {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.mk-js .mk-reveal.is-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mk-js .mk-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

@@ -44,7 +44,7 @@ export function Auth() {
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-500 shadow-[0_0_24px_rgba(124,58,237,0.4)] mb-3">
             <span className="text-2xl">🇫🇷</span>
           </div>
-          <h1 className="text-2xl font-black dark:text-white text-slate-900">FrenchCoach</h1>
+          <h1 className="text-2xl font-black dark:text-white text-slate-900">Français AI</h1>
           <p className="text-sm dark:text-slate-400 text-slate-500 mt-1">IGCSE & A-Level Speaking Practice</p>
         </div>
 

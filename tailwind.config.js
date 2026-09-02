@@ -6,6 +6,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['Instrument Serif', 'Georgia', 'serif'],
       },
       colors: {
         navy: {
