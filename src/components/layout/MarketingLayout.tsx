@@ -18,7 +18,7 @@ interface Props {
 const NAV_LINKS = [
   { label: 'Product', href: '/#how-it-works' },
   { label: 'Exam', href: '/igcse-french-speaking' },
-  { label: 'Story', href: '/about' },
+  { label: 'Story', href: '/story' },
 ];
 
 // Plain function, not a hook — safe to call from an onClick handler without
@@ -91,7 +91,7 @@ export function MarketingLayout({ children, breadcrumb, route }: Props) {
       <main className="flex-1">{children}</main>
 
       <footer className="border-t mk-hairline mt-12">
-        <div className="max-w-6xl mx-auto px-4 md:px-6 py-12 grid grid-cols-1 sm:grid-cols-3 gap-8 text-sm">
+        <div className="max-w-6xl mx-auto px-4 md:px-6 py-12 grid grid-cols-1 sm:grid-cols-4 gap-8 text-sm">
           <div>
             <p className="font-semibold mb-2 font-display text-lg">Français AI</p>
             <p className="text-xs leading-relaxed" style={{ color: 'var(--mk-ink-faint)' }}>
@@ -113,6 +113,18 @@ export function MarketingLayout({ children, breadcrumb, route }: Props) {
             <a href="/login" className="mk-link text-xs" style={{ color: 'var(--mk-ink-muted)' }}>
               Log in to your account
             </a>
+          </div>
+          <div className="flex flex-col gap-2">
+            <p className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: 'var(--mk-ink-faint)' }}>
+              Status
+            </p>
+            <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--mk-ink-muted)' }}>
+              <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--mk-ink-muted)' }} />
+              Early preview
+            </div>
+            <p className="text-xs leading-relaxed" style={{ color: 'var(--mk-ink-faint)' }}>
+              Not affiliated with Cambridge Assessment International Education.
+            </p>
           </div>
         </div>
       </footer>

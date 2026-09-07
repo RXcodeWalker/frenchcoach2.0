@@ -20,8 +20,8 @@ const STEPS = [
   },
   {
     n: '03',
-    title: 'See the pattern',
-    body: 'Mistakes are tracked by skill over time, so you can see which structures still need work.',
+    title: 'It remembers',
+    body: 'Mistakes are tracked by skill, with confidence that decays over time — so session four picks up where session one left off.',
     vignette: <MemoryVignette />,
   },
   {

@@ -77,4 +77,17 @@ export const PAGE_SEO: Record<string, PageSeo> = {
       ]),
     ],
   },
+  '/story': {
+    title: 'The Story Behind Français AI | Why I Built a Speaking Coach',
+    description:
+      'Ten years of French class taught grammar, never speaking. The founder story behind Français AI — the gap between reading French and being able to speak it.',
+    canonicalPath: '/story',
+    robots: 'index, follow',
+    jsonLd: [
+      buildBreadcrumbListSchema([
+        { name: 'Home', path: '/' },
+        { name: 'Story', path: '/story' },
+      ]),
+    ],
+  },
 };

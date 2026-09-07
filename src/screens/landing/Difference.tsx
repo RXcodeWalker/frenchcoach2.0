@@ -17,6 +17,11 @@ export function Difference() {
               A conversation partner that responds naturally, but leaves you to notice your own
               mistakes and figure out what to work on next.
             </p>
+            <div className="mt-4 space-y-2 text-sm" style={{ color: 'var(--mk-ink-faint)' }}>
+              <p>— no mark scheme</p>
+              <p>— no memory between sessions</p>
+              <p>— no way to know if it made the feedback up</p>
+            </div>
           </div>
           <div className="border-t pt-5" style={{ borderColor: 'var(--mk-accent)' }}>
             <p className="text-xs font-semibold uppercase tracking-wide mb-3" style={{ color: 'var(--mk-accent)' }}>
@@ -27,6 +32,11 @@ export function Difference() {
               checked against your own transcript, and the next question is chosen based on what
               you got wrong.
             </p>
+            <div className="mt-4 space-y-2 text-sm" style={{ color: 'var(--mk-ink-muted)' }}>
+              <div className="flex gap-2"><span style={{ color: 'var(--mk-good)' }}>✓</span><span>Cambridge 0520 bands, out of 40</span></div>
+              <div className="flex gap-2"><span style={{ color: 'var(--mk-good)' }}>✓</span><span>An append-only evidence log that remembers</span></div>
+              <div className="flex gap-2"><span style={{ color: 'var(--mk-good)' }}>✓</span><span>Unverifiable feedback is discarded, not shown</span></div>
+            </div>
           </div>
         </div>
       </Reveal>

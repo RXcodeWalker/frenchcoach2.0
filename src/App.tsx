@@ -52,6 +52,7 @@ import { CoachBeliefDebug } from './screens/CoachBeliefDebug';
 import { NotFound } from './screens/NotFound';
 import { IgcseFrenchSpeaking } from './screens/IgcseFrenchSpeaking';
 import { FrenchRoleplayPractice } from './screens/FrenchRoleplayPractice';
+import { Story } from './screens/Story';
 import { AdminRoute } from './components/auth/AdminRoute';
 import { AdminLayout } from './layouts/AdminLayout';
 import { AdminDashboard } from './screens/admin/AdminDashboard';
@@ -362,6 +363,7 @@ function AppShell() {
             MarketingLayout — no MainLayout/AppProvider chrome needed. */}
         <Route path="/igcse-french-speaking" element={<IgcseFrenchSpeaking />} />
         <Route path="/french-roleplay-practice" element={<FrenchRoleplayPractice />} />
+        <Route path="/story" element={<Story />} />
 
         {/* Admin content management — gated on JWT app_metadata.role */}
         <Route element={<AdminRoute />}>

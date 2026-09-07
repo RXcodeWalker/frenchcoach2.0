@@ -7,7 +7,7 @@ export function ExamResultVignette() {
     <DeviceFrame caption="Illustrative example — Exam Results screen">
       <div className="flex items-baseline justify-between mb-4">
         <p className="text-sm font-semibold">Practice Session Complete</p>
-        <p className="text-2xl font-display" style={{ color: 'var(--mk-accent)' }}>
+        <p className="text-[34px] font-display" style={{ color: 'var(--mk-accent)' }}>
           27<span className="text-sm" style={{ color: 'var(--mk-ink-faint)' }}>/40</span>
         </p>
       </div>
@@ -25,10 +25,15 @@ export function ExamResultVignette() {
         ))}
       </div>
 
-      <p className="mt-4 text-[11px] leading-relaxed" style={{ color: 'var(--mk-ink-faint)' }}>
-        Marks — Unvalidated Estimate. This score has never been checked against a real examiner.
-        Treat it as a rough signal, not a grade prediction.
-      </p>
+      <div
+        className="mt-4 rounded-lg border p-3"
+        style={{ borderColor: 'var(--mk-hairline-strong)', background: 'color-mix(in srgb, var(--mk-ink) 6%, transparent)' }}
+      >
+        <p className="text-[11px] leading-relaxed" style={{ color: 'var(--mk-ink-faint)' }}>
+          <strong style={{ color: 'var(--mk-ink)' }}>Marks — Unvalidated Estimate.</strong> This score has
+          never been checked against a real examiner. Treat it as a rough signal, not a grade prediction.
+        </p>
+      </div>
     </DeviceFrame>
   );
 }

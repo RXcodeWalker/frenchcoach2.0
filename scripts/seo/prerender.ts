@@ -10,6 +10,7 @@ import { Landing } from '../../src/screens/Landing';
 import { AboutPublic } from '../../src/screens/AboutPublic';
 import { IgcseFrenchSpeaking } from '../../src/screens/IgcseFrenchSpeaking';
 import { FrenchRoleplayPractice } from '../../src/screens/FrenchRoleplayPractice';
+import { Story } from '../../src/screens/Story';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DIST_DIR = join(__dirname, '../../dist');
@@ -23,6 +24,7 @@ const PUBLIC_PAGE_COMPONENTS: Record<string, () => import('react').ReactElement>
   '/about': () => createElement(AboutPublic),
   '/igcse-french-speaking': () => createElement(IgcseFrenchSpeaking),
   '/french-roleplay-practice': () => createElement(FrenchRoleplayPractice),
+  '/story': () => createElement(Story),
 };
 
 function readTemplate(): string {

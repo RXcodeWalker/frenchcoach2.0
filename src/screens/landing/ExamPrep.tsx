@@ -3,7 +3,7 @@ import { Reveal } from '../../components/marketing/Reveal';
 
 export function ExamPrep() {
   return (
-    <Section>
+    <Section divider={false}>
       <Reveal>
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-10 lg:gap-16">
           <div className="lg:col-span-2">

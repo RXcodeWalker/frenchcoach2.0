@@ -15,7 +15,7 @@ const WORDS: { word: string; status: 'good' | 'amber' | 'bad' }[] = [
 
 const COLOR: Record<(typeof WORDS)[number]['status'], string> = {
   good: 'var(--mk-good)',
-  amber: 'var(--mk-warn)',
+  amber: 'var(--mk-ink-muted)',
   bad: 'var(--mk-bad)',
 };
 

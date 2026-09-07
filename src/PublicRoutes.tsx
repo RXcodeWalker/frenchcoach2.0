@@ -4,6 +4,7 @@ import { Landing } from './screens/Landing';
 import { AboutPublic } from './screens/AboutPublic';
 import { IgcseFrenchSpeaking } from './screens/IgcseFrenchSpeaking';
 import { FrenchRoleplayPractice } from './screens/FrenchRoleplayPractice';
+import { Story } from './screens/Story';
 import { AuthCallback } from './screens/AuthCallback';
 import { ResetPassword } from './screens/ResetPassword';
 
@@ -21,6 +22,7 @@ export function PublicRoutes() {
       <Route path="/about" element={<AboutPublic />} />
       <Route path="/igcse-french-speaking" element={<IgcseFrenchSpeaking />} />
       <Route path="/french-roleplay-practice" element={<FrenchRoleplayPractice />} />
+      <Route path="/story" element={<Story />} />
       <Route path="/login" element={<Auth />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/reset-password" element={<ResetPassword />} />

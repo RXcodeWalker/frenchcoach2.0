@@ -21,6 +21,7 @@ export const ROUTES: RouteEntry[] = [
   { path: '/about', kind: 'public', indexable: true },
   { path: '/igcse-french-speaking', kind: 'public', indexable: true },
   { path: '/french-roleplay-practice', kind: 'public', indexable: true },
+  { path: '/story', kind: 'public', indexable: true },
 
   { path: '/login', kind: 'unregistered', indexable: false },
   { path: '/auth/callback', kind: 'unregistered', indexable: false },

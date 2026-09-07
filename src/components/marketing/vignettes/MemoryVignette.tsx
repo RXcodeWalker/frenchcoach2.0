@@ -1,31 +1,24 @@
 import { DeviceFrame } from '../DeviceFrame';
 
-// Belief trend across four sessions — mirrors the shape of data produced by
-// beliefReducer.ts's evidence-derived skill beliefs, not literal UI.
-const SESSIONS = [
-  { label: 'Session 1', value: 34 },
-  { label: 'Session 2', value: 41 },
-  { label: 'Session 3', value: 47 },
-  { label: 'Session 4', value: 58 },
+const SKILLS = [
+  { label: 'Passé composé agreement', pct: 31, color: 'var(--mk-bad)' },
+  { label: 'Justify an opinion', pct: 57, color: 'var(--mk-ink-muted)' },
+  { label: 'The French R', pct: 92, color: 'var(--mk-good)' },
 ];
 
 export function MemoryVignette() {
-  const max = Math.max(...SESSIONS.map((s) => s.value));
   return (
-    <DeviceFrame caption="Illustrative example — skill belief trend">
-      <p className="text-xs font-semibold mb-4" style={{ color: 'var(--mk-ink-muted)' }}>
-        Comparatives — mastery over time
-      </p>
-      <div className="flex items-end gap-3 h-24">
-        {SESSIONS.map((s) => (
-          <div key={s.label} className="flex-1 flex flex-col items-center gap-2">
-            <div
-              className="w-full rounded-t"
-              style={{ height: `${(s.value / max) * 100}%`, background: 'var(--mk-accent)', opacity: 0.85 }}
-            />
-            <span className="text-[9px]" style={{ color: 'var(--mk-ink-faint)' }}>
-              {s.label}
-            </span>
+    <DeviceFrame caption="Illustrative example — skill profile">
+      <div className="space-y-3.5">
+        {SKILLS.map((s) => (
+          <div key={s.label}>
+            <div className="flex justify-between text-xs mb-1.5">
+              <span style={{ color: 'var(--mk-ink-muted)' }}>{s.label}</span>
+              <span className="font-semibold" style={{ color: s.color }}>{s.pct}%</span>
+            </div>
+            <div className="h-1.5 rounded-full" style={{ background: 'var(--mk-hairline)' }}>
+              <div className="h-1.5 rounded-full" style={{ width: `${s.pct}%`, background: s.color }} />
+            </div>
           </div>
         ))}
       </div>

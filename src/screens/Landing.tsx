@@ -3,11 +3,9 @@ import { Hero } from './landing/Hero';
 import { Problem } from './landing/Problem';
 import { Difference } from './landing/Difference';
 import { HowItWorks } from './landing/HowItWorks';
-import { Capabilities } from './landing/Capabilities';
-import { ExamPrep } from './landing/ExamPrep';
-import { Memory } from './landing/Memory';
-import { Founder } from './landing/Founder';
 import { HowScoringWorks } from './landing/HowScoringWorks';
+import { ExamPrep } from './landing/ExamPrep';
+import { Founder } from './landing/Founder';
 import { FinalCta } from './landing/FinalCta';
 
 export function Landing() {
@@ -17,11 +15,9 @@ export function Landing() {
       <Problem />
       <Difference />
       <HowItWorks />
-      <Capabilities />
-      <ExamPrep />
-      <Memory />
-      <Founder />
       <HowScoringWorks />
+      <ExamPrep />
+      <Founder />
       <FinalCta />
     </MarketingLayout>
   );
