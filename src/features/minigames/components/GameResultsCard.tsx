@@ -24,7 +24,7 @@ interface GameResultsCardProps {
 
 export function GameResultsCard({
   grade,
-  gradeColor = 'text-slate-400',
+  gradeColor = 'text-ink-muted',
   title,
   subtitle,
   stats,
@@ -63,7 +63,7 @@ export function GameResultsCard({
           <h1 className="text-3xl font-black text-white mb-1 uppercase italic tracking-tighter">
             {title}
           </h1>
-          {subtitle && <p className="text-slate-400 text-sm">{subtitle}</p>}
+          {subtitle && <p className="text-ink-muted text-sm">{subtitle}</p>}
         </div>
 
         <div className="grid grid-cols-2 gap-4 py-2">
@@ -72,7 +72,7 @@ export function GameResultsCard({
               key={stat.label}
               className="p-4 rounded-xl bg-white/5 border border-white/10 text-center"
             >
-              <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">
+              <p className="text-[10px] text-ink-muted font-bold uppercase mb-1">
                 {stat.label}
               </p>
               <p className={`text-2xl font-black text-white ${stat.valueClassName ?? ''}`}>

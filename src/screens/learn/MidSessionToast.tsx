@@ -51,7 +51,7 @@ export function MidSessionToast({ show, variant = 'progress', questionsCompleted
                 <Zap size={14} className="text-violet-400" />
                 <p className="text-sm font-black text-white">Halfway there!</p>
               </div>
-              <p className="text-xs text-slate-400 leading-snug">
+              <p className="text-xs text-ink-muted leading-snug">
                 {questionsCompleted}/{targetCount} done
                 {avgScore !== null && ` · Avg ${avgScore.toFixed(1)}`}
               </p>
@@ -69,7 +69,7 @@ export function MidSessionToast({ show, variant = 'progress', questionsCompleted
                 )}
                 <p className="text-sm font-black text-white">{DIFFICULTY_COPY[variant].title}</p>
               </div>
-              <p className="text-xs text-slate-400 leading-snug">{DIFFICULTY_COPY[variant].body}</p>
+              <p className="text-xs text-ink-muted leading-snug">{DIFFICULTY_COPY[variant].body}</p>
             </div>
           )}
         </motion.div>

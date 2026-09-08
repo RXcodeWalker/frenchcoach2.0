@@ -128,7 +128,7 @@ export function DuelDetail() {
   if (view === 'loading' || view === 'finishing-up') {
     return (
       <PageShell maxWidth="sm">
-        <div className="text-center py-24 text-slate-500 text-sm">
+        <div className="text-center py-24 text-ink-muted text-sm">
           {view === 'finishing-up' ? 'Finishing up your last duel…' : 'Loading…'}
         </div>
       </PageShell>
@@ -151,7 +151,7 @@ export function DuelDetail() {
   if (!duel) {
     return (
       <PageShell maxWidth="sm">
-        <div className="text-center py-24 text-slate-500 text-sm">Duel not found.</div>
+        <div className="text-center py-24 text-ink-muted text-sm">Duel not found.</div>
       </PageShell>
     );
   }
@@ -181,7 +181,7 @@ export function DuelDetail() {
             <button
               onClick={() => void handleDecline()}
               disabled={actionBusy}
-              className="flex-1 py-3 rounded-xl font-bold text-xs border border-slate-700 text-slate-300 disabled:opacity-50"
+              className="flex-1 py-3 rounded-xl font-bold text-xs border border-slate-700 text-ink-muted disabled:opacity-50"
             >
               Decline
             </button>
@@ -198,7 +198,7 @@ export function DuelDetail() {
 
       {view === 'waiting-for-response' && (
         <div className="text-center py-16 space-y-2">
-          <Clock size={24} className="mx-auto text-slate-600" />
+          <Clock size={24} className="mx-auto text-ink-subtle" />
           <p className="text-sm font-bold text-white">Waiting for {opponentName} to respond</p>
         </div>
       )}
@@ -218,15 +218,15 @@ export function DuelDetail() {
 
       {view === 'waiting-for-opponent' && (
         <div className="text-center py-16 space-y-2">
-          <Clock size={24} className="mx-auto text-slate-600" />
+          <Clock size={24} className="mx-auto text-ink-subtle" />
           <p className="text-sm font-bold text-white">Waiting for {opponentName} to finish</p>
-          {myResult && <p className="text-xs text-slate-500">You scored {myResult.scoreTotal}/40</p>}
+          {myResult && <p className="text-xs text-ink-muted">You scored {myResult.scoreTotal}/40</p>}
         </div>
       )}
 
       {view === 'expired' && (
         <div className="text-center py-16 space-y-2">
-          <XCircle size={24} className="mx-auto text-slate-600" />
+          <XCircle size={24} className="mx-auto text-ink-subtle" />
           <p className="text-sm font-bold text-white">This duel expired</p>
         </div>
       )}
@@ -234,18 +234,18 @@ export function DuelDetail() {
       {view === 'completed' && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
           <div className={`rounded-2xl p-6 border text-center ${duel.isTie ? 'border-slate-500/20 bg-slate-500/5' : iWon ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-slate-700 bg-slate-800/30'}`}>
-            <Trophy size={28} className={`mx-auto mb-2 ${duel.isTie ? 'text-slate-400' : iWon ? 'text-emerald-400' : 'text-slate-600'}`} />
+            <Trophy size={28} className={`mx-auto mb-2 ${duel.isTie ? 'text-ink-muted' : iWon ? 'text-emerald-400' : 'text-ink-subtle'}`} />
             <p className="text-sm font-bold text-white">
               {duel.isTie ? 'It’s a tie!' : iWon ? 'You won!' : `${opponentName} won`}
             </p>
             {myResult && (
-              <p className="text-xs text-slate-400 mt-1">
+              <p className="text-xs text-ink-muted mt-1">
                 You: {myResult.scoreTotal}/40 · +{myResult.xpAwarded} XP
                 {myResult.outcome === 'forfeit_win' && ' (forfeit)'}
               </p>
             )}
             {theirResult && (
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs text-ink-muted mt-0.5">
                 {opponentName}: {theirResult.scoreTotal}/40
               </p>
             )}

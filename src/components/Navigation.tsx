@@ -52,7 +52,7 @@ export function SideRail() {
                 className={`group relative w-10 h-10 rounded-lg flex items-center justify-center transition-colors duration-200 ${
                   active
                     ? 'text-violet-400'
-                    : 'text-slate-600 hover:text-slate-300'
+                    : 'text-ink-subtle hover:text-ink-muted'
                 }`}
                 whileHover={{ scale: 1.08 }}
                 whileTap={{ scale: 0.92 }}
@@ -102,7 +102,7 @@ export function SideRail() {
           {authUser ? (
             <Cloud size={15} className="text-emerald-400" style={{ filter: 'drop-shadow(0 0 6px #34d399)' }} />
           ) : (
-            <CloudOff size={15} className="text-slate-500 group-hover:text-slate-300 transition-colors" />
+            <CloudOff size={15} className="text-ink-muted group-hover:text-ink-muted transition-colors" />
           )}
           <div className="absolute left-full ml-2.5 px-2 py-1 bg-navy-200 border border-white/10 rounded-md text-[10px] font-semibold text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl z-50">
             {authUser ? 'Synced' : 'Sync'}
@@ -134,7 +134,7 @@ export function SideRail() {
                   key={item.id}
                   onClick={() => navigate(toPath(item.id))}
                   className={`relative flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl transition-colors duration-200 ${
-                    active ? 'text-violet-400' : 'text-slate-400'
+                    active ? 'text-violet-400' : 'text-ink-muted'
                   }`}
                   whileTap={{ scale: 0.9 }}
                 >

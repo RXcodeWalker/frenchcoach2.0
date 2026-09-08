@@ -20,15 +20,15 @@ export function ComingSoonScreen({
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-sm bg-white/5 border border-white/10 rounded-2xl p-8 flex flex-col items-center gap-6 text-center">
         <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
-          <Lock size={28} className="text-slate-400" />
+          <Lock size={28} className="text-ink-muted" />
         </div>
 
         <div className="space-y-2">
           <h1 className="text-xl font-black text-white tracking-tight">{name}</h1>
           {description && (
-            <p className="text-sm text-slate-400 leading-relaxed">{description}</p>
+            <p className="text-sm text-ink-muted leading-relaxed">{description}</p>
           )}
-          <p className="text-xs text-slate-500 font-bold uppercase tracking-widest pt-1">Coming Soon</p>
+          <p className="text-xs text-ink-muted font-bold uppercase tracking-widest pt-1">Coming Soon</p>
         </div>
 
         <button
@@ -40,7 +40,7 @@ export function ComingSoonScreen({
 
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 hover:text-slate-300 transition-colors uppercase tracking-widest"
+          className="flex items-center gap-1.5 text-[10px] font-bold text-ink-muted hover:text-ink-muted transition-colors uppercase tracking-widest"
         >
           <ArrowLeft size={12} /> Back
         </button>

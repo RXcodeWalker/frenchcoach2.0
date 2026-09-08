@@ -12,10 +12,10 @@ export function FeedbackFooter({ onRetry, onComplete, modelAnswer }: Props) {
     <div className="space-y-2">
       {modelAnswer && (
         <details className="rounded-xl glass p-4">
-          <summary className="text-[10px] font-semibold text-slate-500 cursor-pointer select-none hover:text-slate-400 transition-colors">
+          <summary className="text-[10px] font-semibold text-ink-muted cursor-pointer select-none hover:text-ink-muted transition-colors">
             Show model answer
           </summary>
-          <p className="text-[11px] text-slate-300 mt-2 leading-relaxed italic">"{modelAnswer}"</p>
+          <p className="text-[11px] text-ink-muted mt-2 leading-relaxed italic">"{modelAnswer}"</p>
         </details>
       )}
 
@@ -31,7 +31,7 @@ export function FeedbackFooter({ onRetry, onComplete, modelAnswer }: Props) {
         <motion.button
           disabled
           title="Coming soon"
-          className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl glass-subtle text-slate-600 font-semibold text-xs cursor-not-allowed"
+          className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl glass-subtle text-ink-subtle font-semibold text-xs cursor-not-allowed"
         >
           <BookMarked size={12} />
         </motion.button>

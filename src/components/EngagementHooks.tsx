@@ -43,7 +43,7 @@ export const EngagementHook = forwardRef<HTMLDivElement, HookProps>(function Eng
         
         <div className="flex-1">
           <h4 className="text-white font-bold text-sm mb-0.5">{title}</h4>
-          <p className="text-slate-400 text-xs mb-3 leading-relaxed">{description}</p>
+          <p className="text-ink-muted text-xs mb-3 leading-relaxed">{description}</p>
           
           <button
             onClick={onClick}
@@ -61,7 +61,7 @@ export const EngagementHook = forwardRef<HTMLDivElement, HookProps>(function Eng
 
         <button 
           onClick={onClose}
-          className="text-slate-600 hover:text-white transition-colors"
+          className="text-ink-subtle hover:text-white transition-colors"
         >
           <XIcon size={14} />
         </button>

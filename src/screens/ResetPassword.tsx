@@ -54,7 +54,7 @@ export function ResetPassword() {
         <div className="rounded-2xl dark:bg-slate-900/60 bg-white/70 backdrop-blur-xl border dark:border-white/8 border-slate-200 shadow-2xl p-6">
           <form onSubmit={handleSubmit} className="space-y-3">
             <div className="relative">
-              <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 dark:text-slate-500 text-slate-400" />
+              <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 dark:text-ink-muted text-ink-muted" />
               <input
                 type={showPassword ? 'text' : 'password'}
                 placeholder="New password"
@@ -62,19 +62,19 @@ export function ResetPassword() {
                 required
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                className="w-full pl-9 pr-9 py-2.5 rounded-lg dark:bg-slate-800/60 bg-slate-100 dark:text-white text-slate-900 placeholder:dark:text-slate-600 placeholder:text-slate-400 border dark:border-white/6 border-slate-200 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500/50 transition-all"
+                className="w-full pl-9 pr-9 py-2.5 rounded-lg dark:bg-slate-800/60 bg-slate-100 dark:text-white text-slate-900 placeholder:dark:text-ink-subtle placeholder:text-ink-muted border dark:border-white/6 border-slate-200 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500/50 transition-all"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(s => !s)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 dark:text-slate-500 text-slate-400 hover:dark:text-slate-300 hover:text-slate-600 transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 dark:text-ink-muted text-ink-muted hover:dark:text-ink-muted hover:text-ink-subtle transition-colors"
               >
                 {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
               </button>
             </div>
 
             <div className="relative">
-              <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 dark:text-slate-500 text-slate-400" />
+              <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 dark:text-ink-muted text-ink-muted" />
               <input
                 type={showPassword ? 'text' : 'password'}
                 placeholder="Confirm new password"
@@ -82,7 +82,7 @@ export function ResetPassword() {
                 required
                 value={confirmPassword}
                 onChange={e => setConfirmPassword(e.target.value)}
-                className="w-full pl-9 pr-3 py-2.5 rounded-lg dark:bg-slate-800/60 bg-slate-100 dark:text-white text-slate-900 placeholder:dark:text-slate-600 placeholder:text-slate-400 border dark:border-white/6 border-slate-200 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500/50 transition-all"
+                className="w-full pl-9 pr-3 py-2.5 rounded-lg dark:bg-slate-800/60 bg-slate-100 dark:text-white text-slate-900 placeholder:dark:text-ink-subtle placeholder:text-ink-muted border dark:border-white/6 border-slate-200 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500/50 transition-all"
               />
             </div>
 

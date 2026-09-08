@@ -99,7 +99,7 @@ export const VisualNovelView: React.FC<VisualNovelViewProps> = ({
 
       {!voiceAvailable && (
         <div className="relative z-20 -mt-2 px-6">
-          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wide text-center">
+          <p className="text-[10px] text-ink-muted font-bold uppercase tracking-wide text-center">
             No French voice installed — playing text-only
           </p>
         </div>

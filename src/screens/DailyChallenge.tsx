@@ -132,7 +132,7 @@ export function DailyChallenge() {
   if (view === 'loading' || view === 'finishing-up') {
     return (
       <PageShell maxWidth="sm">
-        <div className="text-center py-24 text-slate-500 text-sm">
+        <div className="text-center py-24 text-ink-muted text-sm">
           {view === 'finishing-up' ? 'Finishing up your last challenge…' : 'Loading…'}
         </div>
       </PageShell>
@@ -143,9 +143,9 @@ export function DailyChallenge() {
     return (
       <PageShell maxWidth="sm">
         <div className="text-center py-24 space-y-2">
-          <CalendarClock size={28} className="mx-auto text-slate-600" />
+          <CalendarClock size={28} className="mx-auto text-ink-subtle" />
           <p className="text-sm font-bold text-white">No challenge yet today</p>
-          <p className="text-xs text-slate-500">Come back soon — today's challenge is on its way.</p>
+          <p className="text-xs text-ink-muted">Come back soon — today's challenge is on its way.</p>
         </div>
       </PageShell>
     );
@@ -172,7 +172,7 @@ export function DailyChallenge() {
           <span className="text-[10px] font-bold text-violet-400 uppercase tracking-wider">Daily Challenge</span>
         </div>
         <h1 className="text-2xl md:text-3xl font-black text-white">Today's Challenge</h1>
-        <p className="text-sm text-slate-500 mt-1">One set. One shot per day. Everyone gets the same question.</p>
+        <p className="text-sm text-ink-muted mt-1">One set. One shot per day. Everyone gets the same question.</p>
       </div>
 
       {view === 'completed' && (
@@ -185,7 +185,7 @@ export function DailyChallenge() {
             <Trophy size={28} className="mx-auto text-emerald-400 mb-2" />
             <p className="text-sm font-bold text-white">Challenge complete</p>
             {myResult && (
-              <p className="text-xs text-slate-400 mt-1">
+              <p className="text-xs text-ink-muted mt-1">
                 Scored {myResult.scoreTotal}/40 · +{myResult.xpAwarded} XP
               </p>
             )}
@@ -194,14 +194,14 @@ export function DailyChallenge() {
           <div className="space-y-2">
             <h3 className="text-sm font-bold text-white px-1">Today's Leaderboard</h3>
             {leaderboard.length === 0 ? (
-              <p className="text-xs text-slate-600 text-center py-8">No one's finished today's challenge yet.</p>
+              <p className="text-xs text-ink-subtle text-center py-8">No one's finished today's challenge yet.</p>
             ) : (
               leaderboard.map((row, i) => (
                 <div
                   key={row.userId}
                   className={`flex items-center gap-3 p-3 rounded-xl ${row.userId === authUserId ? 'bg-violet-electric/10 border border-violet-electric/30' : 'glass'}`}
                 >
-                  <span className="w-5 text-center text-xs font-black text-slate-600">{i + 1}</span>
+                  <span className="w-5 text-center text-xs font-black text-ink-subtle">{i + 1}</span>
                   <span className="text-lg">{row.avatarEmoji ?? '🙂'}</span>
                   <span className="flex-1 text-xs font-bold text-slate-200">{row.username}</span>
                   <span className="text-xs font-black text-white">{row.scoreTotal}/40</span>
@@ -220,7 +220,7 @@ export function DailyChallenge() {
         >
           <div>
             <h3 className="text-sm font-bold text-white">{authoredSet.content.rolePlay.title}</h3>
-            <p className="text-xs text-slate-500 mt-1 leading-relaxed">{authoredSet.content.rolePlay.setup}</p>
+            <p className="text-xs text-ink-muted mt-1 leading-relaxed">{authoredSet.content.rolePlay.setup}</p>
           </div>
           <button
             onClick={() => void handleStart()}
@@ -233,7 +233,7 @@ export function DailyChallenge() {
       )}
 
       {(view === 'preview' || view === 'starting') && !authoredSet && (
-        <div className="text-center py-12 text-slate-600 text-sm">Couldn't load today's question set.</div>
+        <div className="text-center py-12 text-ink-subtle text-sm">Couldn't load today's question set.</div>
       )}
     </PageShell>
   );

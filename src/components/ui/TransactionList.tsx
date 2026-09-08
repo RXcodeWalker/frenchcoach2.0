@@ -30,10 +30,10 @@ function describe(event: GemEvent): string {
  */
 export function TransactionList({ events, loading }: TransactionListProps) {
   if (loading) {
-    return <p className="text-xs text-slate-500 font-bold text-center py-6">Loading transactions…</p>;
+    return <p className="text-xs text-ink-muted font-bold text-center py-6">Loading transactions…</p>;
   }
   if (events.length === 0) {
-    return <p className="text-xs text-slate-500 font-bold text-center py-6">No transactions yet.</p>;
+    return <p className="text-xs text-ink-muted font-bold text-center py-6">No transactions yet.</p>;
   }
   return (
     <div className="divide-y divide-white/5">
@@ -41,11 +41,11 @@ export function TransactionList({ events, loading }: TransactionListProps) {
         <div key={event.id} className="flex items-center justify-between py-2.5">
           <div>
             <p className="text-xs font-bold text-white">{describe(event)}</p>
-            <p className="text-[10px] text-slate-500">
+            <p className="text-[10px] text-ink-muted">
               {new Date(event.occurredAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
             </p>
           </div>
-          <span className={`text-sm font-black ${event.delta > 0 ? 'text-emerald-400' : 'text-slate-400'}`}>
+          <span className={`text-sm font-black ${event.delta > 0 ? 'text-emerald-400' : 'text-ink-muted'}`}>
             {event.delta > 0 ? '+' : ''}{event.delta.toLocaleString()}
           </span>
         </div>

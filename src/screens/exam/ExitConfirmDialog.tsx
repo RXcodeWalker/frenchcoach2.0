@@ -25,7 +25,7 @@ export function ExitConfirmDialog({ open, onCancel, onConfirm }: Props) {
           >
             <div>
               <p className="text-sm font-bold text-white mb-1">Exit the exam?</p>
-              <p className="text-[11px] text-slate-500 leading-relaxed">Your progress won't be saved.</p>
+              <p className="text-[11px] text-ink-muted leading-relaxed">Your progress won't be saved.</p>
             </div>
             <div className="flex items-center justify-center gap-3">
               <motion.button

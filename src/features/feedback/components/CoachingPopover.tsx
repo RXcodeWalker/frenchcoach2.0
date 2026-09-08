@@ -22,7 +22,7 @@ export function CoachingPopover({ issue, onClose }: Props) {
       >
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 text-slate-600 hover:text-slate-400"
+          className="absolute top-3 right-3 text-ink-subtle hover:text-ink-muted"
           aria-label="Close"
         >
           <X size={12} />
@@ -30,7 +30,7 @@ export function CoachingPopover({ issue, onClose }: Props) {
 
         <div className="flex items-center gap-2 mb-2">
           <SeverityBadge level={issue.severity} />
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{issue.category}</span>
+          <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wide">{issue.category}</span>
         </div>
 
         <p
@@ -40,7 +40,7 @@ export function CoachingPopover({ issue, onClose }: Props) {
           "{issue.quote}"
         </p>
 
-        <p className="text-[10px] text-slate-400 mb-2">{issue.diagnostic}</p>
+        <p className="text-[10px] text-ink-muted mb-2">{issue.diagnostic}</p>
 
         <div className="flex items-center gap-1.5 text-[10px]">
           <CheckCircle size={10} className="text-emerald-400 flex-shrink-0" />

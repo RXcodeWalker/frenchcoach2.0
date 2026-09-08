@@ -92,7 +92,7 @@ export function SkillTreeTab() {
                       />
                     </div>
                     {isUnlocked && def?.desc && (
-                      <p className="text-[9px] text-slate-500 mt-1 italic leading-tight">
+                      <p className="text-[9px] text-ink-muted mt-1 italic leading-tight">
                         {def.desc}
                       </p>
                     )}

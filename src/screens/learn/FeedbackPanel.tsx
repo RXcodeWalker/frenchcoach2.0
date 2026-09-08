@@ -19,7 +19,7 @@ export function FeedbackPanel({ feedback, isLoading, onRetry, onComplete }: Prop
         animate={{ opacity: 1, y: 0 }}
       >
         <Loader2 size={24} className="text-violet-400 animate-spin" />
-        <p className="text-sm text-slate-500">Analysing your response…</p>
+        <p className="text-sm text-ink-muted">Analysing your response…</p>
       </motion.div>
     );
   }
@@ -34,12 +34,12 @@ export function FeedbackPanel({ feedback, isLoading, onRetry, onComplete }: Prop
       <div className="rounded-xl glass-elevated p-5">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-bold text-white text-sm">Results</h3>
-          <span className="text-[9px] text-slate-600">{feedback.wordCount} words{feedback.cefrLevel ? ` / ${feedback.cefrLevel}` : ''}</span>
+          <span className="text-[9px] text-ink-subtle">{feedback.wordCount} words{feedback.cefrLevel ? ` / ${feedback.cefrLevel}` : ''}</span>
         </div>
         {isUnscored(feedback) ? (
           <div>
-            <p className="text-sm text-slate-300 font-semibold">Practiced offline — not graded</p>
-            <p className="text-[11px] text-slate-500 mt-1 leading-snug">
+            <p className="text-sm text-ink-muted font-semibold">Practiced offline — not graded</p>
+            <p className="text-[11px] text-ink-muted mt-1 leading-snug">
               No AI grader was reachable for this attempt, so no score was assigned.
             </p>
           </div>
@@ -56,7 +56,7 @@ export function FeedbackPanel({ feedback, isLoading, onRetry, onComplete }: Prop
                 >
                   {val.toFixed(1)}
                 </motion.div>
-                <div className="text-[9px] text-slate-600">{label}</div>
+                <div className="text-[9px] text-ink-subtle">{label}</div>
                 <div className="mt-1.5 h-1 bg-navy-300 rounded-full overflow-hidden">
                   <motion.div
                     className="h-full rounded-full"
@@ -74,13 +74,13 @@ export function FeedbackPanel({ feedback, isLoading, onRetry, onComplete }: Prop
 
       {feedback.grammar.critical.length > 0 && (
         <div className="rounded-xl glass p-4">
-          <p className="text-[9px] font-bold text-slate-600 uppercase tracking-wider mb-2.5">Corrections</p>
+          <p className="text-[9px] font-bold text-ink-subtle uppercase tracking-wider mb-2.5">Corrections</p>
           {feedback.grammar.critical.map((err, i) => (
             <div key={i} className="flex items-start gap-2 p-2.5 rounded-lg bg-red-500/5 border border-red-500/10 mb-1.5">
               <XCircle size={12} className="text-red-400 flex-shrink-0 mt-0.5" />
               <div>
                 <p className="text-[10px] font-semibold text-red-300">{err.theme}</p>
-                <p className="text-[10px] text-slate-500 mt-0.5">{err.diagnostic}</p>
+                <p className="text-[10px] text-ink-muted mt-0.5">{err.diagnostic}</p>
                 <p className="text-[10px] text-emerald-400 mt-0.5"><CheckCircle size={9} className="inline mr-1" />{err.correction}</p>
               </div>
             </div>
@@ -90,11 +90,11 @@ export function FeedbackPanel({ feedback, isLoading, onRetry, onComplete }: Prop
 
       {feedback.vocabulary.length > 0 && (
         <div className="rounded-xl glass p-4">
-          <p className="text-[9px] font-bold text-slate-600 uppercase tracking-wider mb-2.5">Vocabulary Upgrades</p>
+          <p className="text-[9px] font-bold text-ink-subtle uppercase tracking-wider mb-2.5">Vocabulary Upgrades</p>
           {feedback.vocabulary.map((v, i) => (
             <div key={i} className="flex items-center gap-2 p-2 rounded-lg glass-subtle mb-1">
-              <span className="text-[10px] text-slate-600 line-through">{v.basic}</span>
-              <ChevronRight size={9} className="text-slate-700" />
+              <span className="text-[10px] text-ink-subtle line-through">{v.basic}</span>
+              <ChevronRight size={9} className="text-ink-subtle" />
               <span className="text-[10px] text-emerald-400 font-medium">{v.upgrade}</span>
             </div>
           ))}
@@ -103,11 +103,11 @@ export function FeedbackPanel({ feedback, isLoading, onRetry, onComplete }: Prop
 
       {feedback.style.length > 0 && (
         <div className="rounded-xl glass p-4">
-          <p className="text-[9px] font-bold text-slate-600 uppercase tracking-wider mb-2.5">Style Tips</p>
+          <p className="text-[9px] font-bold text-ink-subtle uppercase tracking-wider mb-2.5">Style Tips</p>
           {feedback.style.map((s, i) => (
             <div key={i} className="flex items-start gap-2 p-2.5 rounded-lg glass-subtle mb-1">
               <span className="text-[10px] font-semibold text-violet-300">{s.label}</span>
-              <span className="text-[10px] text-slate-500">{s.suggestion}</span>
+              <span className="text-[10px] text-ink-muted">{s.suggestion}</span>
             </div>
           ))}
         </div>

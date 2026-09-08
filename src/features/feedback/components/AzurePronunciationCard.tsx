@@ -35,8 +35,8 @@ export function AzurePronunciationCard({ result, correctedSentence }: Props) {
         className="border border-cyan-500/15"
       >
         <div className="px-1 py-2">
-          <p className="text-[10px] font-semibold text-slate-300">We couldn't assess this recording.</p>
-          <p className="text-[9px] text-slate-500 mt-1">
+          <p className="text-[10px] font-semibold text-ink-muted">We couldn't assess this recording.</p>
+          <p className="text-[9px] text-ink-muted mt-1">
             {result.couldNotAssessReason === 'silence' || result.couldNotAssessReason === 'no_speech_recognized'
               ? "We didn't hear any speech — try recording again."
               : "The recording was too unclear to analyse. Try again in a quieter spot."}
@@ -60,7 +60,7 @@ export function AzurePronunciationCard({ result, correctedSentence }: Props) {
       <div className="flex items-center gap-3 mb-1 px-1">
         <div className="relative w-10 h-10 shrink-0">
           <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
-            <circle cx="18" cy="18" r="15" fill="none" stroke="currentColor" strokeWidth="3" className="text-slate-700" />
+            <circle cx="18" cy="18" r="15" fill="none" stroke="currentColor" strokeWidth="3" className="text-ink-subtle" />
             <circle
               cx="18" cy="18" r="15" fill="none" strokeWidth="3"
               stroke={color}
@@ -73,8 +73,8 @@ export function AzurePronunciationCard({ result, correctedSentence }: Props) {
           </span>
         </div>
         <div>
-          <p className="text-[10px] font-semibold text-slate-300">Pronunciation score</p>
-          <p className="text-[9px] text-slate-500">Based on acoustic analysis of your recording.</p>
+          <p className="text-[10px] font-semibold text-ink-muted">Pronunciation score</p>
+          <p className="text-[9px] text-ink-muted">Based on acoustic analysis of your recording.</p>
         </div>
       </div>
 
@@ -100,7 +100,7 @@ export function AzurePronunciationCard({ result, correctedSentence }: Props) {
           ] as const).map(([label, value]) => (
             <div key={label} className="text-center p-2 rounded-lg bg-slate-800/50 border border-slate-700/40">
               <p className="text-[11px] font-bold text-slate-200">{value === null ? '—' : Math.round(value)}</p>
-              <p className="text-[8px] text-slate-500">{label}</p>
+              <p className="text-[8px] text-ink-muted">{label}</p>
             </div>
           ))}
         </div>
@@ -116,10 +116,10 @@ export function AzurePronunciationCard({ result, correctedSentence }: Props) {
                 <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${SEVERITY_DOT[issue.severity] ?? 'bg-slate-500'}`} />
                 <span className="text-[10px] font-bold text-slate-200">{issue.word}</span>
                 {issue.ipaExpected && (
-                  <span className="text-[9px] text-slate-500 font-mono ml-auto">/{issue.ipaExpected}/</span>
+                  <span className="text-[9px] text-ink-muted font-mono ml-auto">/{issue.ipaExpected}/</span>
                 )}
               </div>
-              <p className="text-[10px] text-slate-400 mb-1.5">{issue.problem}</p>
+              <p className="text-[10px] text-ink-muted mb-1.5">{issue.problem}</p>
               {issue.drill.repeatPhrase && (
                 <div className="flex items-center gap-1.5">
                   <Mic2 size={9} className="text-cyan-400 shrink-0" />

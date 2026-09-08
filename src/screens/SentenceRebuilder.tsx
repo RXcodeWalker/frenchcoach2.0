@@ -232,7 +232,7 @@ export function SentenceRebuilder() {
           <div className="flex items-center gap-4">
             <button 
               onClick={() => setMode(null)}
-              className="w-10 h-10 rounded-xl glass flex items-center justify-center text-slate-400 hover:text-white"
+              className="w-10 h-10 rounded-xl glass flex items-center justify-center text-ink-muted hover:text-white"
             >
               <ArrowLeft size={20} />
             </button>
@@ -247,7 +247,7 @@ export function SentenceRebuilder() {
 
           <div className="flex items-center gap-3">
             {mode === 'speed' && (
-              <div className={`px-3 py-1.5 rounded-full border flex items-center gap-2 ${timeLeft < 20 ? 'border-red-500 bg-red-500/10 text-red-400' : 'bg-white/5 border-white/10 text-slate-400'}`}>
+              <div className={`px-3 py-1.5 rounded-full border flex items-center gap-2 ${timeLeft < 20 ? 'border-red-500 bg-red-500/10 text-red-400' : 'bg-white/5 border-white/10 text-ink-muted'}`}>
                 <Timer size={14} />
                 <span className="text-xs font-bold font-mono">{timeLeft}s</span>
               </div>
@@ -265,12 +265,12 @@ export function SentenceRebuilder() {
         <motion.div key={currentIndex} variants={fadeUp} className="text-center mb-10 min-h-[80px]">
           {mode === 'blind' ? (
             <div className="flex flex-col items-center gap-2">
-              <Eye size={32} className="text-slate-700" />
-              <p className="text-slate-500 font-bold">Blind Mode: Build a valid sentence</p>
+              <Eye size={32} className="text-ink-subtle" />
+              <p className="text-ink-muted font-bold">Blind Mode: Build a valid sentence</p>
             </div>
           ) : (
             <>
-              <p className="text-[10px] font-bold text-slate-600 uppercase tracking-[0.3em] mb-2">Translate to French</p>
+              <p className="text-[10px] font-bold text-ink-subtle uppercase tracking-[0.3em] mb-2">Translate to French</p>
               <h2 className="text-3xl font-black text-white italic tracking-tighter leading-tight">
                 {currentQuestion.english}
               </h2>
@@ -292,7 +292,7 @@ export function SentenceRebuilder() {
             ) : (
               <div className="flex flex-wrap justify-center gap-3">
                 {targetFragments.length === 0 && (
-                  <p className="text-slate-700 font-medium italic mt-4">Tap or drag words here...</p>
+                  <p className="text-ink-subtle font-medium italic mt-4">Tap or drag words here...</p>
                 )}
                 {targetFragments.map((frag, i) => (
                   <motion.button
@@ -355,7 +355,7 @@ export function SentenceRebuilder() {
 
                 <div className="flex gap-4">
                   {feedback === 'incorrect' && (
-                    <button onClick={initQuestion} className="px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-slate-400 font-bold hover:text-white">
+                    <button onClick={initQuestion} className="px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-ink-muted font-bold hover:text-white">
                       <RefreshCcw size={18} />
                     </button>
                   )}
@@ -392,7 +392,7 @@ export function SentenceRebuilder() {
   );
 }
 
-function HintButton({ onClick, icon, label, active, color = "text-slate-400" }: {
+function HintButton({ onClick, icon, label, active, color = "text-ink-muted" }: {
   onClick: () => void; 
   icon: React.ReactNode; 
   label: string;
@@ -408,7 +408,7 @@ function HintButton({ onClick, icon, label, active, color = "text-slate-400" }: 
       }`}>
         {icon}
       </div>
-      <span className={`text-[8px] font-black uppercase tracking-widest transition-opacity ${active ? 'opacity-100 text-violet-400' : 'opacity-0 group-hover:opacity-100 text-slate-500'}`}>
+      <span className={`text-[8px] font-black uppercase tracking-widest transition-opacity ${active ? 'opacity-100 text-violet-400' : 'opacity-0 group-hover:opacity-100 text-ink-muted'}`}>
         {label}
       </span>
     </button>

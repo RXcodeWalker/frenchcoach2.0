@@ -326,9 +326,9 @@ export function ShadowingPanel() {
           <div className="min-w-0">
             <p className="text-xs font-bold text-white">Detailed feedback</p>
             {!authUser ? (
-              <p className="text-[10px] text-slate-500">Sign in to use detailed feedback</p>
+              <p className="text-[10px] text-ink-muted">Sign in to use detailed feedback</p>
             ) : quota ? (
-              <p className="text-[10px] text-slate-500">{quota.used} / {quota.limit} used today</p>
+              <p className="text-[10px] text-ink-muted">{quota.used} / {quota.limit} used today</p>
             ) : null}
           </div>
         </div>
@@ -352,7 +352,7 @@ export function ShadowingPanel() {
       <div className="glass rounded-3xl p-8 flex flex-col items-center text-center space-y-6 relative overflow-hidden">
         <div className="space-y-2 relative w-full">
           <div className="flex items-center justify-center gap-2">
-            <h3 className="text-slate-500 text-xs font-bold uppercase tracking-widest">{phrase.focus}</h3>
+            <h3 className="text-ink-muted text-xs font-bold uppercase tracking-widest">{phrase.focus}</h3>
             <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md ${
               phrase.difficulty === 'easy' ? 'bg-emerald-500/10 text-emerald-400' :
               phrase.difficulty === 'medium' ? 'bg-amber-500/10 text-amber-400' :
@@ -362,7 +362,7 @@ export function ShadowingPanel() {
             </span>
           </div>
           <p className="text-3xl font-black text-white leading-tight">{phrase.french}</p>
-          <p className="text-slate-500 text-sm">{phrase.english}</p>
+          <p className="text-ink-muted text-sm">{phrase.english}</p>
 
           {!hasFrenchVoice && (
             <div className="flex items-start gap-2 text-left bg-amber-500/10 rounded-xl p-3 border border-amber-500/20">
@@ -378,7 +378,7 @@ export function ShadowingPanel() {
               type="button"
               disabled={!hasFrenchVoice}
               onClick={() => speak()}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed text-slate-400 hover:text-white transition-all group"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed text-ink-muted hover:text-white transition-all group"
             >
               <Volume2 size={16} className="group-hover:scale-110 transition-transform" />
               <span className="text-[10px] font-bold">Listen</span>
@@ -387,7 +387,7 @@ export function ShadowingPanel() {
               type="button"
               disabled={!hasFrenchVoice}
               onClick={() => speak(0.6)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed text-slate-400 hover:text-white transition-all group"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed text-ink-muted hover:text-white transition-all group"
             >
               <Gauge size={16} className="group-hover:scale-110 transition-transform" />
               <span className="text-[10px] font-bold">Listen slowly</span>
@@ -396,7 +396,7 @@ export function ShadowingPanel() {
 
           <div className="pt-2 flex items-start gap-2 text-left bg-slate-900/40 rounded-xl p-3 border border-white/5">
             <Info size={12} className="flex-shrink-0 text-cyan-500 mt-0.5" />
-            <span className="text-[10px] text-slate-400">{phrase.tip}</span>
+            <span className="text-[10px] text-ink-muted">{phrase.tip}</span>
           </div>
         </div>
 
@@ -408,7 +408,7 @@ export function ShadowingPanel() {
                   <ShieldAlert size={28} className="text-amber-400" />
                 </div>
                 <p className="text-amber-400 font-bold text-sm">Microphone access needed</p>
-                <p className="text-slate-500 text-xs max-w-xs">Allow microphone access in your browser to record your pronunciation.</p>
+                <p className="text-ink-muted text-xs max-w-xs">Allow microphone access in your browser to record your pronunciation.</p>
                 <button onClick={reset} className="px-6 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-bold flex items-center gap-2 transition-all">
                   <RotateCcw size={14} /> Try Again
                 </button>
@@ -419,7 +419,7 @@ export function ShadowingPanel() {
                   <AlertTriangle size={28} className="text-amber-400" />
                 </div>
                 <p className="text-amber-400 font-bold text-sm">Recording too short</p>
-                <p className="text-slate-500 text-xs max-w-xs">Hold the mic a little longer and say the full phrase.</p>
+                <p className="text-ink-muted text-xs max-w-xs">Hold the mic a little longer and say the full phrase.</p>
                 <button onClick={reset} className="px-6 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-bold flex items-center gap-2 transition-all">
                   <RotateCcw size={14} /> Try Again
                 </button>
@@ -430,7 +430,7 @@ export function ShadowingPanel() {
                   <AlertTriangle size={28} className="text-amber-400" />
                 </div>
                 <p className="text-amber-400 font-bold text-sm">Recording too long</p>
-                <p className="text-slate-500 text-xs max-w-xs">Shadowing phrases are short — try again and stop within 30 seconds.</p>
+                <p className="text-ink-muted text-xs max-w-xs">Shadowing phrases are short — try again and stop within 30 seconds.</p>
                 <button onClick={reset} className="px-6 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-bold flex items-center gap-2 transition-all">
                   <RotateCcw size={14} /> Try Again
                 </button>
@@ -441,7 +441,7 @@ export function ShadowingPanel() {
                   <Info size={28} className="text-rose-400" />
                 </div>
                 <p className="text-rose-400 font-bold text-sm">Couldn't assess that recording</p>
-                <p className="text-slate-500 text-xs max-w-xs">
+                <p className="text-ink-muted text-xs max-w-xs">
                   {assessment?.couldNotAssessReason === 'silence' || assessment?.couldNotAssessReason === 'no_speech_recognized'
                     ? "We didn't hear anything — try recording again in a quiet space."
                     : 'We had trouble analyzing that clip. Please try again.'}
@@ -456,7 +456,7 @@ export function ShadowingPanel() {
                   <Info size={28} className="text-rose-400" />
                 </div>
                 <p className="text-rose-400 font-bold text-sm">Evaluation failed</p>
-                <p className="text-slate-500 text-xs max-w-xs">{errorMessage}</p>
+                <p className="text-ink-muted text-xs max-w-xs">{errorMessage}</p>
                 <button onClick={reset} className="px-6 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-bold flex items-center gap-2 transition-all">
                   <RotateCcw size={14} /> Try Again
                 </button>
@@ -469,7 +469,7 @@ export function ShadowingPanel() {
                 >
                   <Mic size={32} className="text-white group-hover:rotate-12 transition-transform" />
                 </button>
-                <p className="text-slate-500 font-bold text-[10px] uppercase tracking-wider">
+                <p className="text-ink-muted font-bold text-[10px] uppercase tracking-wider">
                   {screenState === 'listening' ? 'Playing reference audio...' : 'Tap to start recording'}
                 </p>
               </motion.div>
@@ -543,7 +543,7 @@ export function ShadowingPanel() {
                       ] as const).map(([label, value, color]) => (
                         <div key={label} className="space-y-1 w-40">
                           <div className="flex justify-between items-center">
-                            <span className="text-[9px] font-bold text-slate-500 uppercase">{label}</span>
+                            <span className="text-[9px] font-bold text-ink-muted uppercase">{label}</span>
                             <span className="text-[9px] font-bold text-white">{Math.round(value)}%</span>
                           </div>
                           <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
@@ -554,7 +554,7 @@ export function ShadowingPanel() {
                       {assessment.subScores.completeness !== null && (
                         <div className="space-y-1 w-40">
                           <div className="flex justify-between items-center">
-                            <span className="text-[9px] font-bold text-slate-500 uppercase">Said the whole phrase</span>
+                            <span className="text-[9px] font-bold text-ink-muted uppercase">Said the whole phrase</span>
                             <span className="text-[9px] font-bold text-white">{Math.round(assessment.subScores.completeness)}%</span>
                           </div>
                           <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
@@ -573,51 +573,51 @@ export function ShadowingPanel() {
                   {assessment.prosodyMetrics != null ? (
                     <div className="space-y-2 text-left bg-white/5 rounded-xl p-3 border border-white/5">
                       <div className="flex items-center justify-between">
-                        <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Rhythm</h3>
+                        <h3 className="text-[10px] font-bold text-ink-muted uppercase tracking-widest">Rhythm</h3>
                         <span className="text-[8px] font-bold px-1.5 py-0.5 rounded-md uppercase bg-cyan-500/10 text-cyan-400">derived</span>
                       </div>
                       <div className="grid grid-cols-3 gap-2 text-center">
                         <div>
                           <p className="text-sm font-black text-white">{assessment.prosodyMetrics.speechRateWpm !== null ? Math.round(assessment.prosodyMetrics.speechRateWpm) : '—'}</p>
-                          <p className="text-[8px] text-slate-500 uppercase">Words/min</p>
+                          <p className="text-[8px] text-ink-muted uppercase">Words/min</p>
                         </div>
                         <div>
                           <p className="text-sm font-black text-white">{assessment.prosodyMetrics.pauseCount ?? '—'}</p>
-                          <p className="text-[8px] text-slate-500 uppercase">Pauses</p>
+                          <p className="text-[8px] text-ink-muted uppercase">Pauses</p>
                         </div>
                         <div>
                           <p className="text-sm font-black text-white">
                             {assessment.prosodyMetrics.rhythmRegularity !== null ? Math.round(assessment.prosodyMetrics.rhythmRegularity * 100) : '—'}
                           </p>
-                          <p className="text-[8px] text-slate-500 uppercase">Regularity</p>
+                          <p className="text-[8px] text-ink-muted uppercase">Regularity</p>
                         </div>
                       </div>
                       {bestForPhrase && bestForPhrase.score !== null && (
-                        <p className="text-[10px] text-slate-500 pt-1">
+                        <p className="text-[10px] text-ink-muted pt-1">
                           Your best on this phrase so far: {Math.round(bestForPhrase.score)}
                         </p>
                       )}
                     </div>
                   ) : (
-                    <p className="text-[10px] text-slate-500 text-left px-1">
+                    <p className="text-[10px] text-ink-muted text-left px-1">
                       Rhythm analysis needs the full analyzer — not available for this attempt.
                     </p>
                   )}
 
                   {assessment.coaching && (
                     <div className="p-4 rounded-2xl bg-white/5 border border-white/5 text-left space-y-2">
-                      <p className="text-xs text-slate-300 leading-relaxed italic">"{assessment.coaching.summary}"</p>
+                      <p className="text-xs text-ink-muted leading-relaxed italic">"{assessment.coaching.summary}"</p>
                       <p className="text-[11px] text-cyan-400 font-bold">Next: {assessment.coaching.topPriority}</p>
                       {assessment.coaching.tips.map((tip, i) => (
-                        <p key={i} className="text-[10px] text-slate-400">• {tip}</p>
+                        <p key={i} className="text-[10px] text-ink-muted">• {tip}</p>
                       ))}
                     </div>
                   )}
 
                   {quotaReason && quotaReason !== 'could_not_assess' && (
                     <div className="flex items-start gap-2 text-left px-3 py-2 rounded-lg bg-slate-900/40 border border-white/5">
-                      <Lock size={12} className="flex-shrink-0 text-slate-500 mt-0.5" />
-                      <p className="text-[10px] text-slate-400">{QUOTA_REASON_COPY[quotaReason] ?? 'Detailed feedback is unavailable right now.'}</p>
+                      <Lock size={12} className="flex-shrink-0 text-ink-muted mt-0.5" />
+                      <p className="text-[10px] text-ink-muted">{QUOTA_REASON_COPY[quotaReason] ?? 'Detailed feedback is unavailable right now.'}</p>
                     </div>
                   )}
 

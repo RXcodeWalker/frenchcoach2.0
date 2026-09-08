@@ -219,7 +219,7 @@ export function WordDrop() {
       <div className="absolute top-8 left-4 md:left-8 z-50">
         <button 
           onClick={() => navigate('/explore')}
-          className="p-2 rounded-lg hover:bg-white/5 text-slate-400 transition-colors"
+          className="p-2 rounded-lg hover:bg-white/5 text-ink-muted transition-colors"
         >
           <ArrowLeft size={20} />
         </button>
@@ -232,16 +232,16 @@ export function WordDrop() {
             <h1 className="text-2xl font-black text-white flex items-center gap-2">
               Word Drop <span className="text-xs bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/20">BETA</span>
             </h1>
-            <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">Type the translation!</p>
+            <p className="text-xs text-ink-muted font-bold uppercase tracking-widest">Type the translation!</p>
           </div>
           
           <div className="flex items-center gap-6">
             <div className="text-right">
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Score</p>
+              <p className="text-[10px] font-bold text-ink-muted uppercase tracking-widest">Score</p>
               <p className="text-2xl font-black text-emerald-400">{score}</p>
             </div>
             <div className="text-right">
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Lives</p>
+              <p className="text-[10px] font-bold text-ink-muted uppercase tracking-widest">Lives</p>
               <div className="flex gap-1 justify-end">
                 {[...Array(3)].map((_, i) => (
                   <Heart 
@@ -272,20 +272,20 @@ export function WordDrop() {
                   <Zap size={40} className="text-emerald-400" />
                 </div>
                 <h2 className="text-3xl font-black text-white mb-2">Ready?</h2>
-                <p className="text-slate-400 text-sm mb-8 max-w-xs">
+                <p className="text-ink-muted text-sm mb-8 max-w-xs">
                   French words will fall from the sky. Type their English meaning to clear them!
                 </p>
 
                 <div className="flex flex-col gap-6 mb-8 w-full max-w-xs">
                   <div className="space-y-3">
-                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Game Speed</p>
+                    <p className="text-[10px] font-bold text-ink-muted uppercase tracking-widest">Game Speed</p>
                     <div className="flex gap-2 p-1 bg-white/5 rounded-xl border border-white/10">
                       {(['slow', 'normal', 'fast'] as const).map((s) => (
                         <button
                           key={s}
                           onClick={() => setGameSpeed(s)}
                           className={`flex-1 py-2 text-[10px] font-black uppercase rounded-lg transition-all ${
-                            gameSpeed === s ? 'bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/20' : 'text-slate-500 hover:text-white'
+                            gameSpeed === s ? 'bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/20' : 'text-ink-muted hover:text-white'
                           }`}
                         >
                           {s}
@@ -297,7 +297,7 @@ export function WordDrop() {
                   <button
                     onClick={() => setIsFunMode(!isFunMode)}
                     className={`flex items-center justify-between p-4 rounded-2xl border-2 transition-all ${
-                      isFunMode ? 'bg-violet-500/10 border-violet-500/50 text-violet-400' : 'bg-white/5 border-white/5 text-slate-500 hover:border-white/10'
+                      isFunMode ? 'bg-violet-500/10 border-violet-500/50 text-violet-400' : 'bg-white/5 border-white/5 text-ink-muted hover:border-white/10'
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -340,11 +340,11 @@ export function WordDrop() {
                 <h2 className="text-4xl font-black text-white mb-2">Game Over!</h2>
                 <div className="flex gap-8 mb-8">
                   <div className="text-center">
-                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Final Score</p>
+                    <p className="text-[10px] font-bold text-ink-muted uppercase tracking-widest">Final Score</p>
                     <p className="text-3xl font-black text-white">{score}</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">XP Gained</p>
+                    <p className="text-[10px] font-bold text-ink-muted uppercase tracking-widest">XP Gained</p>
                     <p className="text-3xl font-black text-emerald-400">+{Math.floor(score / 2)}</p>
                   </div>
                 </div>
@@ -417,11 +417,11 @@ export function WordDrop() {
             onChange={handleInputChange}
             disabled={!isPlaying || gameOver}
             placeholder={isPlaying ? "Type translation here..." : "Game paused"}
-            className="flex-1 bg-navy-200 border-2 border-white/5 rounded-2xl px-6 py-4 text-lg font-bold text-white placeholder:text-slate-600 focus:outline-none focus:border-emerald-500/50 transition-all disabled:opacity-50"
+            className="flex-1 bg-navy-200 border-2 border-white/5 rounded-2xl px-6 py-4 text-lg font-bold text-white placeholder:text-ink-subtle focus:outline-none focus:border-emerald-500/50 transition-all disabled:opacity-50"
           />
           <button 
             onClick={() => setIsPlaying(p => !p)}
-            className="p-4 bg-navy-200 border-2 border-white/5 rounded-2xl text-slate-400 hover:text-white transition-colors"
+            className="p-4 bg-navy-200 border-2 border-white/5 rounded-2xl text-ink-muted hover:text-white transition-colors"
           >
             {isPlaying ? <Zap size={24} /> : <Play size={24} />}
           </button>

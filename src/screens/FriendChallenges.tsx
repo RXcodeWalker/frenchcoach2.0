@@ -98,7 +98,7 @@ export function FriendChallenges() {
               <span className="text-[10px] font-bold text-blue-400 uppercase tracking-wider">Social Hub</span>
             </div>
             <h1 className="text-2xl md:text-3xl font-black text-white italic tracking-tighter">FRIEND CHALLENGES</h1>
-            <p className="text-sm text-slate-500 mt-1">Compete, collaborate, and climb together</p>
+            <p className="text-sm text-ink-muted mt-1">Compete, collaborate, and climb together</p>
           </div>
 
           <div className="flex bg-white/5 p-1 rounded-xl border border-white/5 self-start overflow-x-auto max-w-full">
@@ -112,7 +112,7 @@ export function FriendChallenges() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as 'duels' | 'co-op' | 'feed' | 'friends')}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-bold transition-all whitespace-nowrap ${
-                  activeTab === tab.id ? 'bg-blue-500/10 text-blue-400' : 'text-slate-500 hover:text-slate-300'
+                  activeTab === tab.id ? 'bg-blue-500/10 text-blue-400' : 'text-ink-muted hover:text-ink-muted'
                 }`}
               >
                 <tab.icon size={14} /> {tab.label}
@@ -139,13 +139,13 @@ export function FriendChallenges() {
                    <div className="h-1 w-24 bg-white/10 rounded-full overflow-hidden">
                      <div className="h-full w-1/2 bg-amber-500" />
                    </div>
-                   <span className="text-[10px] text-slate-400 font-bold">1/2</span>
+                   <span className="text-[10px] text-ink-muted font-bold">1/2</span>
                  </div>
                </div>
              </div>
              <div className="flex items-center gap-3">
                <div className="text-right hidden md:block">
-                 <p className="text-[10px] font-bold text-slate-500 uppercase">REWARD</p>
+                 <p className="text-[10px] font-bold text-ink-muted uppercase">REWARD</p>
                  <p className="text-xs font-black text-emerald-400">+250 XP • 10 💎</p>
                </div>
                <button className="px-4 py-2 bg-white text-slate-950 text-[10px] font-black rounded-lg hover:bg-slate-200 transition-colors italic">
@@ -165,15 +165,15 @@ export function FriendChallenges() {
               className="space-y-4"
             >
               <div className="flex items-center justify-between">
-                <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Your Duels</h2>
+                <h2 className="text-xs font-bold text-ink-muted uppercase tracking-widest">Your Duels</h2>
               </div>
 
               {duelsLoading ? (
-                <div className="py-12 text-center text-slate-600 text-sm">Loading duels…</div>
+                <div className="py-12 text-center text-ink-subtle text-sm">Loading duels…</div>
               ) : duels.length === 0 ? (
                 <div className="py-12 text-center border border-dashed border-white/5 rounded-2xl">
                   <Swords size={32} className="text-slate-800 mx-auto mb-3" />
-                  <p className="text-sm font-bold text-slate-600 italic">No duels yet. Challenge a friend to a head-to-head!</p>
+                  <p className="text-sm font-bold text-ink-subtle italic">No duels yet. Challenge a friend to a head-to-head!</p>
                 </div>
               ) : (
                 duels.map(duel => (
@@ -193,7 +193,7 @@ export function FriendChallenges() {
 
               <button
                 onClick={() => setIsCreateModalOpen(true)}
-                className="w-full py-6 border-2 border-dashed border-white/5 rounded-2xl flex flex-col items-center justify-center gap-2 text-slate-600 hover:border-blue-500/20 hover:text-blue-400 transition-all group"
+                className="w-full py-6 border-2 border-dashed border-white/5 rounded-2xl flex flex-col items-center justify-center gap-2 text-ink-subtle hover:border-blue-500/20 hover:text-blue-400 transition-all group"
               >
                 <Swords size={24} className="group-hover:scale-110 transition-transform" />
                 <span className="text-xs font-bold uppercase tracking-widest">Challenge a Friend</span>
@@ -210,18 +210,18 @@ export function FriendChallenges() {
               className="space-y-4"
             >
               <div className="flex items-center justify-between">
-                <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Ongoing Collaborations</h2>
+                <h2 className="text-xs font-bold text-ink-muted uppercase tracking-widest">Ongoing Collaborations</h2>
               </div>
 
               {activeCoops.length > 0 ? (
                 <div className="py-12 text-center border border-dashed border-white/5 rounded-2xl">
                   <Heart size={32} className="text-slate-800 mx-auto mb-3" />
-                  <p className="text-sm font-bold text-slate-600 italic">Co-op challenges are coming soon.</p>
+                  <p className="text-sm font-bold text-ink-subtle italic">Co-op challenges are coming soon.</p>
                 </div>
               ) : (
                 <div className="py-12 text-center border border-dashed border-white/5 rounded-2xl">
                   <Heart size={32} className="text-slate-800 mx-auto mb-3" />
-                  <p className="text-sm font-bold text-slate-600 italic">No active collaborations. Team up to reach goals faster!</p>
+                  <p className="text-sm font-bold text-ink-subtle italic">No active collaborations. Team up to reach goals faster!</p>
                 </div>
               )}
             </motion.div>
@@ -236,7 +236,7 @@ export function FriendChallenges() {
               className="space-y-4"
             >
                <div className="flex items-center justify-between">
-                <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Recent Activity</h2>
+                <h2 className="text-xs font-bold text-ink-muted uppercase tracking-widest">Recent Activity</h2>
               </div>
 
               <div className="space-y-3">
@@ -257,7 +257,7 @@ export function FriendChallenges() {
             >
               {/* Search */}
               <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" size={18} />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-subtle" size={18} />
                 <input
                   type="text"
                   placeholder="Find friends..."
@@ -268,7 +268,7 @@ export function FriendChallenges() {
               </div>
 
               {friendsLoading ? (
-                <div className="py-12 text-center text-slate-600 text-sm">Loading friends…</div>
+                <div className="py-12 text-center text-ink-subtle text-sm">Loading friends…</div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {filteredFriends.map(friend => (
@@ -347,7 +347,7 @@ function AddFriendBar({ onSent }: { onSent: () => void }) {
 
   return (
     <div className="pt-4 flex flex-col items-center gap-4">
-      <p className="text-xs text-slate-600 italic">Add a friend by username</p>
+      <p className="text-xs text-ink-subtle italic">Add a friend by username</p>
       <div className="w-full max-w-sm space-y-2">
         <input
           type="text"
@@ -475,10 +475,10 @@ function DuelCard({ duel, myUserId, onOpen, onRespond, onViewDetail }: {
           <span className="text-2xl">{opponentAvatar}</span>
           <div className="flex-1">
             <p className="text-sm font-bold text-white">vs {opponentName}</p>
-            <p className="text-[10px] font-bold text-slate-500 uppercase">{statusLabel[duel.status]}</p>
+            <p className="text-[10px] font-bold text-ink-muted uppercase">{statusLabel[duel.status]}</p>
           </div>
           {duel.status === 'completed' && (
-            <Trophy size={18} className={duel.isTie ? 'text-slate-400' : iWon ? 'text-emerald-400' : 'text-slate-600'} />
+            <Trophy size={18} className={duel.isTie ? 'text-ink-muted' : iWon ? 'text-emerald-400' : 'text-ink-subtle'} />
           )}
         </div>
 
@@ -488,7 +488,7 @@ function DuelCard({ duel, myUserId, onOpen, onRespond, onViewDetail }: {
               <button
                 onClick={() => { setBusy(true); void onRespond('decline').finally(() => setBusy(false)); }}
                 disabled={busy}
-                className="flex-1 py-2 px-4 bg-white/5 border border-white/10 rounded-lg text-[10px] font-black text-slate-400 hover:text-white transition-all disabled:opacity-50"
+                className="flex-1 py-2 px-4 bg-white/5 border border-white/10 rounded-lg text-[10px] font-black text-ink-muted hover:text-white transition-all disabled:opacity-50"
               >
                 DECLINE
               </button>
@@ -512,7 +512,7 @@ function DuelCard({ duel, myUserId, onOpen, onRespond, onViewDetail }: {
           {(duel.status === 'completed' || duel.status === 'expired' || duel.status === 'pending' && !iAmOpponent) && (
             <button
               onClick={onViewDetail}
-              className="w-full px-6 py-2 font-black rounded-xl transition-all text-xs italic tracking-tighter bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10"
+              className="w-full px-6 py-2 font-black rounded-xl transition-all text-xs italic tracking-tighter bg-white/5 border border-white/10 text-ink-muted hover:bg-white/10"
             >
               VIEW
             </button>
@@ -572,15 +572,15 @@ function CreateDuelModal({ friends, onClose, onCreated }: {
       >
         <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
           <h2 className="text-xl font-black text-white italic tracking-tighter">NEW DUEL</h2>
-          <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full text-slate-500"><X size={20} /></button>
+          <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full text-ink-muted"><X size={20} /></button>
         </div>
 
         <div className="p-8 space-y-6">
           {step === 1 && (
             <div className="space-y-4">
-              <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">SELECT OPPONENT</p>
+              <p className="text-[10px] font-black text-ink-muted uppercase tracking-widest text-center">SELECT OPPONENT</p>
               {friends.length === 0 ? (
-                <p className="text-xs text-slate-600 text-center py-8 italic">Add a friend first to challenge them to a duel.</p>
+                <p className="text-xs text-ink-subtle text-center py-8 italic">Add a friend first to challenge them to a duel.</p>
               ) : (
                 <div className="grid grid-cols-1 gap-2">
                   {friends.map(f => (
@@ -601,9 +601,9 @@ function CreateDuelModal({ friends, onClose, onCreated }: {
           {step === 2 && (
             <div className="space-y-6">
                <div className="space-y-3">
-                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">SELECT QUESTION SET</p>
+                <p className="text-[10px] font-black text-ink-muted uppercase tracking-widest">SELECT QUESTION SET</p>
                 {questionSetsLoading ? (
-                  <p className="text-xs text-slate-600 text-center py-8">Loading question sets…</p>
+                  <p className="text-xs text-ink-subtle text-center py-8">Loading question sets…</p>
                 ) : (
                   <div className="grid grid-cols-1 gap-2 max-h-64 overflow-y-auto custom-scrollbar">
                     {questionSets.map(set => (
@@ -624,7 +624,7 @@ function CreateDuelModal({ friends, onClose, onCreated }: {
                  <p className="text-xs text-red-400 text-center">Couldn't send duel: {errorReason}</p>
                )}
 
-               <button onClick={() => setStep(1)} className="w-full text-[10px] font-black text-slate-600 uppercase tracking-widest hover:text-white transition-colors">Back</button>
+               <button onClick={() => setStep(1)} className="w-full text-[10px] font-black text-ink-subtle uppercase tracking-widest hover:text-white transition-colors">Back</button>
             </div>
           )}
         </div>
@@ -650,9 +650,9 @@ function ActivityFeedCard({ item }: { item: ActivityFeedItem }) {
       </div>
       <div className="flex-1">
         <div className="flex items-center justify-between mb-1">
-          <span className="text-[10px] text-slate-600 uppercase font-bold">{new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+          <span className="text-[10px] text-ink-subtle uppercase font-bold">{new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
         </div>
-        <p className="text-sm text-slate-400 leading-tight mb-3">
+        <p className="text-sm text-ink-muted leading-tight mb-3">
           {item.content}
         </p>
         <div className="flex flex-wrap gap-2">
@@ -663,11 +663,11 @@ function ActivityFeedCard({ item }: { item: ActivityFeedItem }) {
               className="flex items-center gap-1.5 px-2 py-1 bg-white/5 border border-white/5 rounded-lg hover:bg-white/10 transition-colors"
             >
               <span className="text-xs">{emoji}</span>
-              <span className="text-[10px] font-black text-slate-500">{count}</span>
+              <span className="text-[10px] font-black text-ink-muted">{count}</span>
             </button>
           ))}
           <div className="relative group/react">
-            <button className="flex items-center justify-center w-7 h-7 bg-white/5 border border-dashed border-white/10 rounded-lg text-slate-600 hover:text-blue-400 hover:border-blue-500/30 transition-all">
+            <button className="flex items-center justify-center w-7 h-7 bg-white/5 border border-dashed border-white/10 rounded-lg text-ink-subtle hover:text-blue-400 hover:border-blue-500/30 transition-all">
               <Plus size={14} />
             </button>
             <div className="absolute left-0 bottom-full mb-2 bg-navy-900 border border-white/10 p-1.5 rounded-xl flex gap-1.5 shadow-2xl opacity-0 invisible group-hover/react:opacity-100 group-hover/react:visible transition-all">
@@ -709,7 +709,7 @@ function FriendRow({ friend, onCompare, onAccept, onDecline, onCancel, onRemove 
         <div>
           <h3 className="font-bold text-sm text-white group-hover:text-blue-400 transition-colors">{friend.username}</h3>
           {friend.status === 'pending' && (
-            <p className="text-[10px] text-slate-500 font-bold uppercase">
+            <p className="text-[10px] text-ink-muted font-bold uppercase">
               {friend.requestedByMe ? 'Request sent' : 'Wants to be friends'}
             </p>
           )}
@@ -722,26 +722,26 @@ function FriendRow({ friend, onCompare, onAccept, onDecline, onCancel, onRemove 
           </button>
         )}
         {onDecline && (
-          <button onClick={() => void run(onDecline)} disabled={busy} className="p-2.5 bg-white/5 text-slate-500 rounded-xl hover:bg-red-500/10 hover:text-red-400 transition-all disabled:opacity-50" title="Decline">
+          <button onClick={() => void run(onDecline)} disabled={busy} className="p-2.5 bg-white/5 text-ink-muted rounded-xl hover:bg-red-500/10 hover:text-red-400 transition-all disabled:opacity-50" title="Decline">
             <Ban size={16} />
           </button>
         )}
         {onCancel && (
-          <button onClick={() => void run(onCancel)} disabled={busy} className="p-2.5 bg-white/5 text-slate-500 rounded-xl hover:bg-red-500/10 hover:text-red-400 transition-all disabled:opacity-50" title="Cancel request">
+          <button onClick={() => void run(onCancel)} disabled={busy} className="p-2.5 bg-white/5 text-ink-muted rounded-xl hover:bg-red-500/10 hover:text-red-400 transition-all disabled:opacity-50" title="Cancel request">
             <X size={16} />
           </button>
         )}
         {onCompare && (
           <button
             onClick={onCompare}
-            className="p-2.5 bg-white/5 text-slate-500 rounded-xl hover:bg-violet-500/10 hover:text-violet-400 transition-all border border-transparent hover:border-violet-500/20"
+            className="p-2.5 bg-white/5 text-ink-muted rounded-xl hover:bg-violet-500/10 hover:text-violet-400 transition-all border border-transparent hover:border-violet-500/20"
             title="Compare Progress"
           >
             <BarChart2 size={16} />
           </button>
         )}
         {onRemove && (
-          <button onClick={() => void run(onRemove)} disabled={busy} className="p-2.5 bg-white/5 text-slate-500 rounded-xl hover:bg-red-500/10 hover:text-red-400 transition-all disabled:opacity-50" title="Remove friend">
+          <button onClick={() => void run(onRemove)} disabled={busy} className="p-2.5 bg-white/5 text-ink-muted rounded-xl hover:bg-red-500/10 hover:text-red-400 transition-all disabled:opacity-50" title="Remove friend">
             <X size={16} />
           </button>
         )}
@@ -814,12 +814,12 @@ function ComparisonModal({ friend, onClose }: { friend: Friend; onClose: () => v
             </div>
             <div>
               <h2 className="text-lg font-black text-white italic tracking-tighter uppercase">Head to Head</h2>
-              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Comparison 2.0</p>
+              <p className="text-[10px] text-ink-muted font-bold uppercase tracking-wider">Comparison 2.0</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-white/5 rounded-full text-slate-500 hover:text-white transition-colors"
+            className="p-2 hover:bg-white/5 rounded-full text-ink-muted hover:text-white transition-colors"
           >
             <X size={20} />
           </button>
@@ -841,7 +841,7 @@ function ComparisonModal({ friend, onClose }: { friend: Friend; onClose: () => v
             </div>
 
             <div className="flex flex-col items-center">
-              <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[10px] font-black text-slate-500 shadow-inner">VS</div>
+              <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[10px] font-black text-ink-muted shadow-inner">VS</div>
               <div className="h-16 w-px bg-gradient-to-b from-transparent via-white/10 to-transparent mt-2" />
             </div>
 
@@ -891,7 +891,7 @@ function ComparisonModal({ friend, onClose }: { friend: Friend; onClose: () => v
 
           {/* Skill Radar Chart */}
           <div className="flex flex-col items-center gap-4 py-4">
-             <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Mastery Comparison</h3>
+             <h3 className="text-[10px] font-black text-ink-muted uppercase tracking-[0.2em]">Mastery Comparison</h3>
              <SkillRadarChart data={skillData} friendName={friend.username} />
           </div>
 
@@ -899,7 +899,7 @@ function ComparisonModal({ friend, onClose }: { friend: Friend; onClose: () => v
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {compareStats.map(stat => (
               <div key={stat.label} className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 hover:bg-white/[0.04] transition-colors group">
-                <p className="text-[9px] font-bold text-slate-600 uppercase tracking-wider mb-2 group-hover:text-slate-400">{stat.label}</p>
+                <p className="text-[9px] font-bold text-ink-subtle uppercase tracking-wider mb-2 group-hover:text-ink-muted">{stat.label}</p>
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <p className={`text-base font-black ${Number(stat.user) >= Number(stat.friend) ? 'text-emerald-400' : 'text-white'}`}>
@@ -949,7 +949,7 @@ function ComparisonModal({ friend, onClose }: { friend: Friend; onClose: () => v
 
             <button
               onClick={onClose}
-              className="text-[10px] font-black text-slate-600 hover:text-white uppercase tracking-widest mt-2 transition-colors"
+              className="text-[10px] font-black text-ink-subtle hover:text-white uppercase tracking-widest mt-2 transition-colors"
             >
               Close Comparison
             </button>

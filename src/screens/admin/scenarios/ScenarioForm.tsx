@@ -78,17 +78,17 @@ export function ScenarioForm() {
     }
   }
 
-  if (loading) return <div className="flex items-center gap-2 text-sm text-slate-400 py-10"><Loader2 size={16} className="animate-spin" /> Loading…</div>;
+  if (loading) return <div className="flex items-center gap-2 text-sm text-ink-muted py-10"><Loader2 size={16} className="animate-spin" /> Loading…</div>;
 
   const inputCls = 'w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-sm focus:border-violet-500 focus:outline-none';
-  const labelCls = 'block text-xs font-semibold text-slate-400 mb-1';
+  const labelCls = 'block text-xs font-semibold text-ink-muted mb-1';
 
   return (
     <div className="max-w-3xl pb-16">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-black">{isEdit ? 'Edit Scenario' : 'New Scenario'}</h1>
         {isEdit && id && (
-          <Link to={`/admin/scenarios/${id}/history`} className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200">
+          <Link to={`/admin/scenarios/${id}/history`} className="flex items-center gap-1.5 text-xs text-ink-muted hover:text-slate-200">
             <History size={14} /> History
           </Link>
         )}
@@ -158,7 +158,7 @@ export function ScenarioForm() {
         <button onClick={save} disabled={saving || Boolean(jsonError) || graphErrors.length > 0} className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-violet-500 text-white text-sm font-semibold hover:bg-violet-400 disabled:opacity-50">
           {saving ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />} Save
         </button>
-        <button onClick={() => navigate('/admin/scenarios')} className="px-4 py-2 rounded-lg text-sm font-semibold text-slate-300 hover:bg-slate-800">Cancel</button>
+        <button onClick={() => navigate('/admin/scenarios')} className="px-4 py-2 rounded-lg text-sm font-semibold text-ink-muted hover:bg-slate-800">Cancel</button>
         {isEdit && meta.status !== 'archived' && (
           <button onClick={() => setArchiving(true)} className="flex items-center gap-1.5 ml-auto px-4 py-2 rounded-lg text-sm font-semibold text-amber-300 hover:bg-amber-500/10">
             <Archive size={15} /> Archive

@@ -65,13 +65,13 @@ const MODES: ModeCardDef[] = [
 function PbPill({ best }: { best?: ModeBestEntry }) {
   if (!best) {
     return (
-      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
+      <span className="text-[10px] font-bold uppercase tracking-wider text-ink-subtle">
         No best yet
       </span>
     );
   }
   return (
-    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+    <span className="text-[10px] font-bold uppercase tracking-wider text-ink-muted">
       Best {best.modeScore} · {best.bestGrade} · 🔥{best.maxStreak}
     </span>
   );
@@ -99,7 +99,7 @@ export function EmojiMasterPicker({
         <button
           type="button"
           onClick={onBack}
-          className="p-2 rounded-xl hover:bg-white/5 text-slate-400"
+          className="p-2 rounded-xl hover:bg-white/5 text-ink-muted"
         >
           <ArrowLeft size={20} />
         </button>
@@ -111,7 +111,7 @@ export function EmojiMasterPicker({
             </span>
           </div>
           <h1 className="text-3xl font-black text-white">Emoji Master</h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-ink-muted mt-1">
             Decode French from emojis — pick a mode and category
           </p>
         </div>
@@ -126,7 +126,7 @@ export function EmojiMasterPicker({
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
               category === c.id
                 ? 'bg-yellow-400/15 border-yellow-400/50 text-yellow-300'
-                : 'bg-white/5 border-white/10 text-slate-400 hover:border-white/20'
+                : 'bg-white/5 border-white/10 text-ink-muted hover:border-white/20'
             }`}
           >
             {c.label}
@@ -152,7 +152,7 @@ export function EmojiMasterPicker({
               </div>
               <h2 className="text-2xl font-black text-white">{hero.title}</h2>
             </div>
-            <p className="text-slate-400 text-sm max-w-xl">{hero.description}</p>
+            <p className="text-ink-muted text-sm max-w-xl">{hero.description}</p>
           </div>
           <PbPill best={getModeBest(hero.id)} />
         </div>
@@ -172,7 +172,7 @@ export function EmojiMasterPicker({
               {mode.icon}
             </div>
             <h3 className="text-lg font-black text-white mb-1">{mode.title}</h3>
-            <p className="text-slate-400 text-sm mb-3">{mode.description}</p>
+            <p className="text-ink-muted text-sm mb-3">{mode.description}</p>
             <PbPill best={getModeBest(mode.id)} />
           </motion.button>
         ))}

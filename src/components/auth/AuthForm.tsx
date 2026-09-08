@@ -82,7 +82,7 @@ export function AuthForm({ onAuthenticated, footer }: Props) {
           <AlertCircle size={20} className="text-red-400" />
         </div>
         <p className="font-semibold dark:text-white text-slate-900 text-sm">App not configured</p>
-        <p className="text-xs dark:text-slate-400 text-slate-500">Supabase environment variables are missing. Contact the developer.</p>
+        <p className="text-xs dark:text-ink-muted text-ink-muted">Supabase environment variables are missing. Contact the developer.</p>
       </div>
     );
   }
@@ -94,7 +94,7 @@ export function AuthForm({ onAuthenticated, footer }: Props) {
           <CheckCircle size={20} className="text-emerald-400" />
         </div>
         <p className="font-semibold dark:text-white text-slate-900 text-sm">Check your inbox</p>
-        <p className="text-xs dark:text-slate-400 text-slate-500">We sent a confirmation link to <strong>{email}</strong>. Click it to activate your account.</p>
+        <p className="text-xs dark:text-ink-muted text-ink-muted">We sent a confirmation link to <strong>{email}</strong>. Click it to activate your account.</p>
         <button
           className="mt-2 text-xs text-violet-400 underline underline-offset-2"
           onClick={() => setNeedsConfirmation(false)}
@@ -113,7 +113,7 @@ export function AuthForm({ onAuthenticated, footer }: Props) {
             <CheckCircle size={20} className="text-emerald-400" />
           </div>
           <p className="font-semibold dark:text-white text-slate-900 text-sm">Check your inbox</p>
-          <p className="text-xs dark:text-slate-400 text-slate-500">We sent a password reset link to <strong>{email}</strong>.</p>
+          <p className="text-xs dark:text-ink-muted text-ink-muted">We sent a password reset link to <strong>{email}</strong>.</p>
           <button
             className="mt-2 text-xs text-violet-400 underline underline-offset-2"
             onClick={() => { setForgotPassword(false); setResetSent(false); }}
@@ -126,9 +126,9 @@ export function AuthForm({ onAuthenticated, footer }: Props) {
 
     return (
       <form onSubmit={handleForgotPassword} className="space-y-3">
-        <p className="text-xs dark:text-slate-400 text-slate-500 mb-1">Enter your email and we'll send you a link to reset your password.</p>
+        <p className="text-xs dark:text-ink-muted text-ink-muted mb-1">Enter your email and we'll send you a link to reset your password.</p>
         <div className="relative">
-          <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 dark:text-slate-500 text-slate-400" />
+          <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 dark:text-ink-muted text-ink-muted" />
           <input
             type="email"
             placeholder="Email address"
@@ -136,7 +136,7 @@ export function AuthForm({ onAuthenticated, footer }: Props) {
             required
             value={email}
             onChange={e => setEmail(e.target.value)}
-            className="w-full pl-9 pr-3 py-2.5 rounded-lg dark:bg-slate-800/60 bg-slate-100 dark:text-white text-slate-900 placeholder:dark:text-slate-600 placeholder:text-slate-400 border dark:border-white/6 border-slate-200 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500/50 transition-all"
+            className="w-full pl-9 pr-3 py-2.5 rounded-lg dark:bg-slate-800/60 bg-slate-100 dark:text-white text-slate-900 placeholder:dark:text-ink-subtle placeholder:text-ink-muted border dark:border-white/6 border-slate-200 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500/50 transition-all"
           />
         </div>
 
@@ -180,7 +180,7 @@ export function AuthForm({ onAuthenticated, footer }: Props) {
           <button
             key={t}
             onClick={() => { setTab(t); setError(null); }}
-            className={`flex-1 py-1.5 rounded-md text-xs font-bold transition-all ${tab === t ? 'dark:bg-slate-700 bg-white dark:text-white text-slate-900 shadow-sm' : 'dark:text-slate-500 text-slate-400'}`}
+            className={`flex-1 py-1.5 rounded-md text-xs font-bold transition-all ${tab === t ? 'dark:bg-slate-700 bg-white dark:text-white text-slate-900 shadow-sm' : 'dark:text-ink-muted text-ink-muted'}`}
           >
             {t === 'login' ? 'Log In' : 'Sign Up'}
           </button>
@@ -190,7 +190,7 @@ export function AuthForm({ onAuthenticated, footer }: Props) {
       <form onSubmit={handleSubmit} className="space-y-3">
         {/* Email */}
         <div className="relative">
-          <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 dark:text-slate-500 text-slate-400" />
+          <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 dark:text-ink-muted text-ink-muted" />
           <input
             type="email"
             placeholder="Email address"
@@ -198,13 +198,13 @@ export function AuthForm({ onAuthenticated, footer }: Props) {
             required
             value={email}
             onChange={e => setEmail(e.target.value)}
-            className="w-full pl-9 pr-3 py-2.5 rounded-lg dark:bg-slate-800/60 bg-slate-100 dark:text-white text-slate-900 placeholder:dark:text-slate-600 placeholder:text-slate-400 border dark:border-white/6 border-slate-200 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500/50 transition-all"
+            className="w-full pl-9 pr-3 py-2.5 rounded-lg dark:bg-slate-800/60 bg-slate-100 dark:text-white text-slate-900 placeholder:dark:text-ink-subtle placeholder:text-ink-muted border dark:border-white/6 border-slate-200 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500/50 transition-all"
           />
         </div>
 
         {/* Password */}
         <div className="relative">
-          <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 dark:text-slate-500 text-slate-400" />
+          <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 dark:text-ink-muted text-ink-muted" />
           <input
             type={showPassword ? 'text' : 'password'}
             placeholder="Password"
@@ -212,12 +212,12 @@ export function AuthForm({ onAuthenticated, footer }: Props) {
             required
             value={password}
             onChange={e => setPassword(e.target.value)}
-            className="w-full pl-9 pr-9 py-2.5 rounded-lg dark:bg-slate-800/60 bg-slate-100 dark:text-white text-slate-900 placeholder:dark:text-slate-600 placeholder:text-slate-400 border dark:border-white/6 border-slate-200 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500/50 transition-all"
+            className="w-full pl-9 pr-9 py-2.5 rounded-lg dark:bg-slate-800/60 bg-slate-100 dark:text-white text-slate-900 placeholder:dark:text-ink-subtle placeholder:text-ink-muted border dark:border-white/6 border-slate-200 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500/50 transition-all"
           />
           <button
             type="button"
             onClick={() => setShowPassword(s => !s)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 dark:text-slate-500 text-slate-400 hover:dark:text-slate-300 hover:text-slate-600 transition-colors"
+            className="absolute right-3 top-1/2 -translate-y-1/2 dark:text-ink-muted text-ink-muted hover:dark:text-ink-muted hover:text-ink-subtle transition-colors"
           >
             {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
           </button>
@@ -243,7 +243,7 @@ export function AuthForm({ onAuthenticated, footer }: Props) {
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.15 }}
             >
-              <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 dark:text-slate-500 text-slate-400" />
+              <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 dark:text-ink-muted text-ink-muted" />
               <input
                 type={showPassword ? 'text' : 'password'}
                 placeholder="Confirm password"
@@ -251,7 +251,7 @@ export function AuthForm({ onAuthenticated, footer }: Props) {
                 required
                 value={confirmPassword}
                 onChange={e => setConfirmPassword(e.target.value)}
-                className="w-full pl-9 pr-3 py-2.5 rounded-lg dark:bg-slate-800/60 bg-slate-100 dark:text-white text-slate-900 placeholder:dark:text-slate-600 placeholder:text-slate-400 border dark:border-white/6 border-slate-200 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500/50 transition-all"
+                className="w-full pl-9 pr-3 py-2.5 rounded-lg dark:bg-slate-800/60 bg-slate-100 dark:text-white text-slate-900 placeholder:dark:text-ink-subtle placeholder:text-ink-muted border dark:border-white/6 border-slate-200 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500/50 transition-all"
               />
             </motion.div>
           )}
@@ -283,7 +283,7 @@ export function AuthForm({ onAuthenticated, footer }: Props) {
 
       <div className="flex items-center gap-2 my-4">
         <div className="flex-1 h-px dark:bg-white/8 bg-slate-200" />
-        <span className="text-[10px] dark:text-slate-500 text-slate-400 font-medium">OR</span>
+        <span className="text-[10px] dark:text-ink-muted text-ink-muted font-medium">OR</span>
         <div className="flex-1 h-px dark:bg-white/8 bg-slate-200" />
       </div>
 

@@ -84,7 +84,7 @@ export function ExamRunner({
       <div className="flex items-center justify-between px-5 py-3 border-b border-white/[0.03] glass">
         <motion.button
           onClick={() => setShowExitConfirm(true)}
-          className="flex items-center gap-1.5 text-slate-600 hover:text-white transition-colors text-[10px]"
+          className="flex items-center gap-1.5 text-ink-subtle hover:text-white transition-colors text-[10px]"
           whileHover={{ x: -2 }}
         >
           <ArrowLeft size={12} /> Exit
@@ -92,21 +92,21 @@ export function ExamRunner({
         <div className="flex items-center gap-1.5">
           {['rolePlay', 'topic1', 'topic2'].map((p) => (
             <div key={p} className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${
-              part === p ? 'bg-violet-electric text-white' : 'bg-navy-400 text-slate-500'
+              part === p ? 'bg-violet-electric text-white' : 'bg-navy-400 text-ink-muted'
             }`}>
               {p === 'rolePlay' ? 'Role Play' : p === 'topic1' ? 'Topic 1' : 'Topic 2'}
             </div>
           ))}
         </div>
         <div className="flex items-center gap-3">
-          <div className="text-[9px] text-slate-600 tabular-nums">
-            Total <span className="text-slate-500">{formatTime(Math.round(totalElapsedS))}</span>
+          <div className="text-[9px] text-ink-subtle tabular-nums">
+            Total <span className="text-ink-muted">{formatTime(Math.round(totalElapsedS))}</span>
           </div>
           <button
             onClick={onToggleVoice}
             aria-label={voiceMuted ? 'Unmute examiner voice' : 'Mute examiner voice'}
             title={voiceMuted ? 'Unmute examiner voice' : 'Mute examiner voice'}
-            className="text-slate-600 hover:text-white transition-colors"
+            className="text-ink-subtle hover:text-white transition-colors"
           >
             {voiceMuted ? <VolumeX size={14} /> : <Volume2 size={14} />}
           </button>
@@ -128,28 +128,28 @@ export function ExamRunner({
         {part === 'rolePlay' && rolePlayTitle && (
           <div className="mb-4 max-w-md text-center space-y-1.5">
             <div className="flex items-center justify-center gap-2">
-              <p className="text-[11px] text-slate-500 font-semibold">{rolePlayTitle}</p>
+              <p className="text-[11px] text-ink-muted font-semibold">{rolePlayTitle}</p>
               {taskProgress && (
-                <span className="px-2 py-0.5 rounded-full bg-navy-400 text-slate-500 text-[8px] font-bold uppercase tracking-wider">
+                <span className="px-2 py-0.5 rounded-full bg-navy-400 text-ink-muted text-[8px] font-bold uppercase tracking-wider">
                   Question {taskProgress.index + 1} of {taskProgress.total}
                 </span>
               )}
             </div>
             {rolePlaySetup && (
-              <p className="text-[10px] text-slate-600 leading-relaxed italic">{rolePlaySetup}</p>
+              <p className="text-[10px] text-ink-subtle leading-relaxed italic">{rolePlaySetup}</p>
             )}
           </div>
         )}
 
         {(part === 'topic1' || part === 'topic2') && (
-          <div className="mb-4 flex items-center gap-1.5 text-[8px] font-bold uppercase tracking-wider text-slate-600">
+          <div className="mb-4 flex items-center gap-1.5 text-[8px] font-bold uppercase tracking-wider text-ink-subtle">
             <span className="w-1.5 h-1.5 rounded-full bg-violet-electric animate-pulse" />
             {action?.kind === 'EXTENSION_PROMPT' || action?.kind === 'FURTHER_QUESTION' ? 'Extension question' : 'Conversation in progress'}
           </div>
         )}
 
         <div className="w-full rounded-xl glass-elevated p-5 mb-5 text-center">
-          <p className="text-[9px] text-slate-700 uppercase tracking-wider mb-1.5">{examinerLabel}</p>
+          <p className="text-[9px] text-ink-subtle uppercase tracking-wider mb-1.5">{examinerLabel}</p>
           <p className="text-base font-bold text-white leading-relaxed">{action?.text ?? '…'}</p>
         </div>
 
@@ -161,7 +161,7 @@ export function ExamRunner({
               animate={{ scale: 1, opacity: 1 }}
             >
               <p className="text-sm font-semibold text-white">We didn't hear an answer</p>
-              <p className="text-[10px] text-slate-500">Keep trying to record, or skip this question. Skipping will be scored as no answer, just like in the real exam.</p>
+              <p className="text-[10px] text-ink-muted">Keep trying to record, or skip this question. Skipping will be scored as no answer, just like in the real exam.</p>
               <div className="flex items-center justify-center gap-3 pt-1">
                 <motion.button
                   onClick={onKeepTrying}
@@ -172,7 +172,7 @@ export function ExamRunner({
                 </motion.button>
                 <motion.button
                   onClick={onSkipQuestion}
-                  className="px-4 py-2 rounded-lg glass-subtle hover:bg-white/[0.04] text-slate-400 transition-all font-semibold text-[10px]"
+                  className="px-4 py-2 rounded-lg glass-subtle hover:bg-white/[0.04] text-ink-muted transition-all font-semibold text-[10px]"
                   whileTap={{ scale: 0.95 }}
                 >
                   Skip question
@@ -182,10 +182,10 @@ export function ExamRunner({
           ) : (
             <>
               <ScrollingWaveform isRecording={recording.isRecording} source={recording.micLevel} />
-              <div className="text-center text-[10px] text-slate-600 tabular-nums">{formatTime(Math.round(elapsedS))}</div>
+              <div className="text-center text-[10px] text-ink-subtle tabular-nums">{formatTime(Math.round(elapsedS))}</div>
               {showSilenceNudge ? (
                 <motion.div
-                  className="flex items-center justify-center gap-1.5 text-center text-[10px] italic text-slate-500 glass-subtle rounded-lg py-1.5 px-3"
+                  className="flex items-center justify-center gap-1.5 text-center text-[10px] italic text-ink-muted glass-subtle rounded-lg py-1.5 px-3"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
@@ -197,7 +197,7 @@ export function ExamRunner({
                 recording.isRecording &&
                 elapsedS >= PACING_HINT_S && (
                   <motion.div
-                    className="flex items-center justify-center gap-1.5 text-center text-[10px] italic text-slate-600 glass-subtle rounded-lg py-1.5 px-3"
+                    className="flex items-center justify-center gap-1.5 text-center text-[10px] italic text-ink-subtle glass-subtle rounded-lg py-1.5 px-3"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
@@ -234,14 +234,14 @@ export function ExamRunner({
                 ) : action?.kind === 'REPEAT' ? (
                   <button
                     disabled
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-lg glass-subtle text-slate-700 font-semibold text-[10px] cursor-not-allowed"
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-lg glass-subtle text-ink-subtle font-semibold text-[10px] cursor-not-allowed"
                   >
                     <RotateCcw size={11} /> No repeats left
                   </button>
                 ) : (
                   <motion.button
                     onClick={onRequestRepeat}
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-lg glass-subtle hover:bg-white/[0.04] text-slate-400 transition-all font-semibold text-[10px]"
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-lg glass-subtle hover:bg-white/[0.04] text-ink-muted transition-all font-semibold text-[10px]"
                     whileTap={{ scale: 0.95 }}
                   >
                     <RotateCcw size={11} /> Repeat question

@@ -92,7 +92,7 @@ export function ListeningMode() {
               onClick={() => navigate('/explore')}
               className="p-2 rounded-lg glass hover:bg-white/5 transition-colors"
             >
-              <ChevronLeft size={20} className="text-slate-400" />
+              <ChevronLeft size={20} className="text-ink-muted" />
             </button>
           </div>
         </div>
@@ -112,12 +112,12 @@ export function ListeningMode() {
         <div className="flex items-center justify-between">
           <button
             onClick={() => setState('topics')}
-            className="flex items-center gap-2 text-sm text-slate-500 hover:text-white transition-colors"
+            className="flex items-center gap-2 text-sm text-ink-muted hover:text-white transition-colors"
           >
             <ArrowRight className="rotate-180" size={16} />
             Change Topic
           </button>
-          <div className="px-3 py-1 rounded-full glass text-[10px] font-bold text-slate-400">
+          <div className="px-3 py-1 rounded-full glass text-[10px] font-bold text-ink-muted">
             SCORE: {score}/{questionsDone}
           </div>
         </div>
@@ -148,7 +148,7 @@ export function ListeningMode() {
                 </div>
                 <div>
                   <h2 className="text-2xl font-black text-white">Ready to Listen?</h2>
-                  <p className="text-slate-500 mt-2">Hear a native speaker and complete the task.</p>
+                  <p className="text-ink-muted mt-2">Hear a native speaker and complete the task.</p>
                 </div>
                 <button
                   onClick={startPlaying}
@@ -198,13 +198,13 @@ export function ListeningMode() {
 
                 {currentQuestion.type === 'dictation' ? (
                   <div className="space-y-4">
-                    <p className="text-sm font-medium text-slate-400">Type what you heard in French:</p>
+                    <p className="text-sm font-medium text-ink-muted">Type what you heard in French:</p>
                     <textarea
                       autoFocus
                       value={userAnswer}
                       onChange={(e) => setUserAnswer(e.target.value)}
                       disabled={state === 'feedback'}
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white placeholder:text-slate-700 focus:outline-none focus:ring-2 focus:ring-pink-500/50 transition-all resize-none h-32"
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white placeholder:text-ink-subtle focus:outline-none focus:ring-2 focus:ring-pink-500/50 transition-all resize-none h-32"
                       placeholder="Votre réponse ici..."
                     />
                     {state === 'answering' && (
@@ -219,7 +219,7 @@ export function ListeningMode() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <p className="text-sm font-medium text-slate-400">Choose the correct translation:</p>
+                    <p className="text-sm font-medium text-ink-muted">Choose the correct translation:</p>
                     <div className="grid gap-3">
                       {currentQuestion.options?.map((option, idx) => (
                         <button
@@ -233,7 +233,7 @@ export function ListeningMode() {
                                 : option === userAnswer
                                 ? 'bg-red-500/20 border-red-500/50 text-red-400'
                                 : 'glass opacity-50'
-                              : 'glass hover:bg-white/5 text-slate-300'
+                              : 'glass hover:bg-white/5 text-ink-muted'
                           }`}
                         >
                           {option}
@@ -259,12 +259,12 @@ export function ListeningMode() {
 
               <div className="glass rounded-2xl p-6 text-left space-y-4">
                 <div>
-                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Correct French</p>
+                  <p className="text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-1">Correct French</p>
                   <p className="text-white font-medium">{currentQuestion.audioText}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Translation</p>
-                  <p className="text-slate-400 text-sm">{currentQuestion.translationEn}</p>
+                  <p className="text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-1">Translation</p>
+                  <p className="text-ink-muted text-sm">{currentQuestion.translationEn}</p>
                 </div>
               </div>
 

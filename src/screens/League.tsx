@@ -59,7 +59,7 @@ export function League() {
   if (view === 'loading') {
     return (
       <PageShell maxWidth="sm">
-        <div className="text-center py-24 text-slate-500 text-sm">Loading…</div>
+        <div className="text-center py-24 text-ink-muted text-sm">Loading…</div>
       </PageShell>
     );
   }
@@ -88,9 +88,9 @@ export function League() {
           <h1 className="text-2xl md:text-3xl font-black text-white">Leagues</h1>
         </div>
         <div className="text-center py-16 space-y-2">
-          <Trophy size={24} className="mx-auto text-slate-600" />
+          <Trophy size={24} className="mx-auto text-ink-subtle" />
           <p className="text-sm font-bold text-white">Not ranked yet</p>
-          <p className="text-xs text-slate-500 max-w-xs mx-auto">
+          <p className="text-xs text-ink-muted max-w-xs mx-auto">
             Earn XP this week and you'll be placed into a league cohort at the next weekly assignment.
           </p>
         </div>
@@ -135,7 +135,7 @@ export function League() {
         </div>
         <div>
           <p className="text-lg font-black text-white">{TIER_LABEL[standing.poolTier] ?? standing.poolTier}</p>
-          <p className="text-[10px] text-slate-500">Week {standing.weekKey}</p>
+          <p className="text-[10px] text-ink-muted">Week {standing.weekKey}</p>
         </div>
       </div>
 
@@ -159,7 +159,7 @@ export function League() {
           </div>
           <button
             onClick={() => setBannerDismissed(true)}
-            className="text-[10px] font-bold text-slate-500 hover:text-white transition-colors"
+            className="text-[10px] font-bold text-ink-muted hover:text-white transition-colors"
           >
             Dismiss
           </button>
@@ -181,7 +181,7 @@ export function League() {
                 m.isCurrentUser ? 'bg-violet-electric/10 border border-violet-electric/30' : 'glass'
               }`}
             >
-              <div className="w-6 text-center text-sm font-black text-slate-600">{rank}</div>
+              <div className="w-6 text-center text-sm font-black text-ink-subtle">{rank}</div>
               <span className="text-lg">{m.avatarEmoji ?? '🙂'}</span>
               <div className="flex-1">
                 <p className="text-sm font-bold text-slate-200">
@@ -192,7 +192,7 @@ export function League() {
               {inDemoteZone && <ArrowDown size={12} className="text-rose-400" />}
               <p className="text-sm font-black text-white">
                 {m.liveWeeklyXp.toLocaleString()}
-                <span className="text-[10px] font-bold text-slate-600 ml-1">XP</span>
+                <span className="text-[10px] font-bold text-ink-subtle ml-1">XP</span>
               </p>
             </motion.div>
           );

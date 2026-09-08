@@ -15,7 +15,7 @@ export function BiggestOpportunityCard({ opportunity }: Props) {
       defaultOpen={true}
       className="border border-amber-500/10"
     >
-      <p className="text-[11px] text-slate-300 leading-relaxed">{opportunity}</p>
+      <p className="text-[11px] text-ink-muted leading-relaxed">{opportunity}</p>
     </CollapsibleCard>
   );
 }

@@ -93,7 +93,7 @@ export function QuestionCard({ question, showHint, onToggleHint, isReview, selec
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={handleSpeak}
-              className={`w-10 h-10 rounded-xl glass border-white/10 flex items-center justify-center transition-colors ${isSpeaking ? 'text-violet-400 border-violet-400/30' : 'text-slate-400 hover:text-white'}`}
+              className={`w-10 h-10 rounded-xl glass border-white/10 flex items-center justify-center transition-colors ${isSpeaking ? 'text-violet-400 border-violet-400/30' : 'text-ink-muted hover:text-white'}`}
             >
               {isSpeaking ? <VolumeX size={18} /> : <Volume2 size={18} />}
             </motion.button>
@@ -129,7 +129,7 @@ export function QuestionCard({ question, showHint, onToggleHint, isReview, selec
             {selectionReason && (
               <motion.button
                 onClick={() => setShowWhy(!showWhy)}
-                className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-slate-300 transition-colors"
+                className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-ink-muted hover:text-ink-muted transition-colors"
                 whileTap={{ scale: 0.95 }}
               >
                 <Info size={14} />
@@ -155,7 +155,7 @@ export function QuestionCard({ question, showHint, onToggleHint, isReview, selec
           <AnimatePresence>
             {showWhy && selectionReason && (
               <motion.div
-                className="mt-2 p-4 rounded-xl bg-slate-500/5 border border-slate-500/15 text-xs text-slate-300 leading-relaxed"
+                className="mt-2 p-4 rounded-xl bg-slate-500/5 border border-slate-500/15 text-xs text-ink-muted leading-relaxed"
                 initial={{ opacity: 0, height: 0, y: -10 }}
                 animate={{ opacity: 1, height: 'auto', y: 0 }}
                 exit={{ opacity: 0, height: 0, y: -10 }}

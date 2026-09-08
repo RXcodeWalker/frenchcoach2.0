@@ -192,16 +192,12 @@ html:not(.dark) .glass-subtle {
   box-shadow: none;
 }
 
-/* Dark mode — brighter, bolder muted text */
-.text-slate-500 { color: #b8c7d9; font-weight: 500; }
-.text-slate-600 { color: #a8baca; font-weight: 500; }
-.text-slate-700 { color: #94a3b8; font-weight: 500; }
-
-/* Text color overrides for light mode */
+/* Text color overrides for light mode.
+   The former .text-slate-500/600/700 ink ramp (dark + light) was removed
+   with the text-ink-muted / text-ink-subtle sweep — those roles carry
+   both modes via the token layer now. text-slate-800 kept: it's still
+   used as dark-on-light chip text, part of the later legacy-alias pass. */
 html:not(.dark) .text-white { color: #0f172a; }
-html:not(.dark) .text-slate-500 { color: #64748b; font-weight: unset; }
-html:not(.dark) .text-slate-600 { color: #475569; font-weight: unset; }
-html:not(.dark) .text-slate-700 { color: #334155; font-weight: unset; }
 html:not(.dark) .text-slate-800 { color: #475569; }
 
 /* Elements that should always stay white (on colored backgrounds) */
@@ -210,14 +206,10 @@ html:not(.dark) .text-slate-800 { color: #475569; }
 /* Nav sidebar — dark theme */
 .nav-rail { background: rgba(10, 12, 16, 0.92) !important; border-color: rgba(255,255,255,0.04) !important; }
 .nav-rail .text-white { color: white !important; }
-.nav-rail .text-slate-600 { color: #475569 !important; }
-.nav-rail .text-slate-700 { color: #334155 !important; }
 
 /* Nav sidebar — light theme */
 html:not(.dark) .nav-rail { background: rgba(255, 255, 255, 0.92) !important; border-color: rgba(0, 0, 0, 0.06) !important; }
 html:not(.dark) .nav-rail .text-white { color: #0f172a !important; }
-html:not(.dark) .nav-rail .text-slate-600 { color: #64748b !important; }
-html:not(.dark) .nav-rail .text-slate-700 { color: #334155 !important; }
 html:not(.dark) .nav-rail .border-white\/10 { border-color: rgba(0, 0, 0, 0.08) !important; }
 
 /* Navy background overrides for light mode */

@@ -72,7 +72,7 @@ export function AuthCallback() {
               <AlertCircle size={20} className="text-red-400" />
             </div>
             <p className="font-semibold dark:text-white text-slate-900 text-sm">Sign-in link didn't work</p>
-            <p className="text-xs dark:text-slate-400 text-slate-500">{errorMessage}</p>
+            <p className="text-xs dark:text-ink-muted text-ink-muted">{errorMessage}</p>
             <a href="/login" className="mt-2 text-xs text-violet-400 underline underline-offset-2">
               Back to login
             </a>

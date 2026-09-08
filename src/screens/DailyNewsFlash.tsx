@@ -268,7 +268,7 @@ export function DailyNewsFlash() {
               className="w-16 h-16 rounded-full border-4 border-violet-500 border-t-transparent"
             />
             <h2 className="text-xl font-black text-white italic uppercase tracking-widest animate-pulse">Gathering Stories...</h2>
-            <p className="text-slate-500 text-sm">Our AI reporters are drafting today's broadcast.</p>
+            <p className="text-ink-muted text-sm">Our AI reporters are drafting today's broadcast.</p>
           </div>
         </PageShell>
       </div>
@@ -291,7 +291,7 @@ export function DailyNewsFlash() {
             <div className={`flex items-center gap-2 px-3 py-1 rounded-full border text-[10px] font-black uppercase tracking-widest ${
               isLive 
                 ? 'bg-rose-500/10 border-rose-500/20 text-rose-500 animate-pulse' 
-                : 'bg-slate-500/10 border-white/10 text-slate-500'
+                : 'bg-slate-500/10 border-white/10 text-ink-muted'
             }`}>
               <div className={`w-1.5 h-1.5 rounded-full ${isLive ? 'bg-rose-500' : 'bg-slate-500'}`} />
               {isLive ? 'Live Satellite Feed' : 'Archival Recording'}
@@ -327,7 +327,7 @@ export function DailyNewsFlash() {
                       <span className="text-[10px] font-bold text-violet-400 uppercase tracking-wider">Active Broadcast</span>
                     </div>
                     <h2 className="text-2xl font-black text-white italic uppercase tracking-tight">Phase 1: Listening</h2>
-                    <p className="text-slate-400 text-sm">Listen to the news snippet and prepare your verbal report.</p>
+                    <p className="text-ink-muted text-sm">Listen to the news snippet and prepare your verbal report.</p>
                   </div>
 
                   <div className="py-4">
@@ -359,7 +359,7 @@ export function DailyNewsFlash() {
                       disabled={showTranscript}
                       className={`flex items-center gap-2 mx-auto px-4 py-2 rounded-xl border text-[10px] font-bold uppercase tracking-widest transition-all ${
                         showTranscript 
-                          ? 'border-white/10 text-slate-500 bg-white/5' 
+                          ? 'border-white/10 text-ink-muted bg-white/5' 
                           : 'border-violet-500/30 text-violet-400 hover:bg-violet-500/10 active:scale-95'
                       }`}
                     >
@@ -375,7 +375,7 @@ export function DailyNewsFlash() {
                         animate={{ opacity: 1, height: 'auto' }}
                         className="bg-navy-300/50 rounded-2xl p-6 text-left border border-white/5"
                       >
-                        <p className="text-sm text-slate-300 leading-relaxed italic">"{currentNews.transcript}"</p>
+                        <p className="text-sm text-ink-muted leading-relaxed italic">"{currentNews.transcript}"</p>
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -402,7 +402,7 @@ export function DailyNewsFlash() {
                   <div className="space-y-2">
                     <span className="text-[10px] font-black text-violet-400 uppercase tracking-[0.3em]">Phase 2: Reporting</span>
                     <h2 className="text-2xl font-black text-white italic">Summarize the Broadcast</h2>
-                    <p className="text-slate-400 text-sm">Explain in French what you just heard. Be concise.</p>
+                    <p className="text-ink-muted text-sm">Explain in French what you just heard. Be concise.</p>
                   </div>
 
                   <div className="bg-violet-500/10 border border-violet-500/20 rounded-2xl p-5 flex gap-4 items-start text-left">
@@ -411,10 +411,10 @@ export function DailyNewsFlash() {
                     </div>
                     <div>
                       <p className="text-[10px] font-bold text-violet-400 uppercase tracking-widest mb-1.5">Editorial Guidelines</p>
-                      <p className="text-xs text-slate-300 mb-3 leading-relaxed">Try to include these keywords in your report:</p>
+                      <p className="text-xs text-ink-muted mb-3 leading-relaxed">Try to include these keywords in your report:</p>
                       <div className="flex flex-wrap gap-2">
                         {currentNews.keywords.map(kw => (
-                          <span key={kw} className="text-[10px] bg-white/5 border border-white/5 px-2 py-1 rounded-lg text-slate-400 font-bold uppercase tracking-tight">
+                          <span key={kw} className="text-[10px] bg-white/5 border border-white/5 px-2 py-1 rounded-lg text-ink-muted font-bold uppercase tracking-tight">
                             #{kw}
                           </span>
                         ))}
@@ -432,7 +432,7 @@ export function DailyNewsFlash() {
                         >
                           <div className="w-12 h-12 border-4 border-violet-500 border-t-transparent rounded-full animate-spin mb-4" />
                           <p className="text-violet-400 font-black uppercase tracking-widest italic text-lg">Analyzing Report...</p>
-                          <p className="text-slate-500 text-xs mt-2 italic">Our editors are reviewing your summary.</p>
+                          <p className="text-ink-muted text-xs mt-2 italic">Our editors are reviewing your summary.</p>
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -446,7 +446,7 @@ export function DailyNewsFlash() {
 
                 <button
                   onClick={() => setPhase('listening')}
-                  className="w-full py-4 bg-white/5 border border-white/10 text-slate-400 font-bold rounded-2xl hover:bg-white/10 transition-all uppercase text-[10px] tracking-widest"
+                  className="w-full py-4 bg-white/5 border border-white/10 text-ink-muted font-bold rounded-2xl hover:bg-white/10 transition-all uppercase text-[10px] tracking-widest"
                 >
                   Return to Broadcast
                 </button>
@@ -466,19 +466,19 @@ export function DailyNewsFlash() {
                       <Radio size={16} className="text-violet-400" />
                       <span className="text-[10px] font-black text-violet-400 uppercase tracking-widest">Edition Review</span>
                     </div>
-                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{currentNews.date}</span>
+                    <span className="text-[10px] font-bold text-ink-muted uppercase tracking-widest">{currentNews.date}</span>
                   </div>
 
                   <div className="p-6 space-y-6">
                     {/* Broadcast Review Section */}
                     <div className="space-y-4">
                       <div className="space-y-1">
-                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Original Broadcast (French)</p>
+                        <p className="text-[10px] font-black text-ink-muted uppercase tracking-widest">Original Broadcast (French)</p>
                         <p className="text-sm text-white leading-relaxed font-medium">{currentNews.transcript}</p>
                       </div>
                       <div className="space-y-1 p-4 bg-white/5 rounded-2xl border border-white/5">
                         <p className="text-[10px] font-black text-violet-400/70 uppercase tracking-widest">English Translation</p>
-                        <p className="text-xs text-slate-400 leading-relaxed italic">{currentNews.translation}</p>
+                        <p className="text-xs text-ink-muted leading-relaxed italic">{currentNews.translation}</p>
                       </div>
                     </div>
 

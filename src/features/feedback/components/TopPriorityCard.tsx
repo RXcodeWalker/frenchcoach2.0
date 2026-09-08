@@ -23,7 +23,7 @@ export function TopPriorityCard({ issue, isSelected }: Props) {
       highlight={highlighted}
       className="border border-red-500/15"
     >
-      <p className="text-[9px] text-slate-600 mb-2">
+      <p className="text-[9px] text-ink-subtle mb-2">
         This correction will have the biggest impact on your mark.
       </p>
       <IssueRow issue={issue} isSelected={isSelected} />

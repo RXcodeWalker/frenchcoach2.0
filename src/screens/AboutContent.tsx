@@ -41,7 +41,7 @@ export function AboutContent() {
             You can read French. You can write it. But when the examiner asks a question, <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-indigo-400">the words vanish.</span>
           </h1>
 
-          <p className="text-slate-400 text-lg leading-relaxed mb-8">
+          <p className="text-ink-muted text-lg leading-relaxed mb-8">
             It's a universal frustration for language learners: the "fluency gap." You've spent years mastering conjugations and vocabulary, yet in the high-pressure environment of an oral exam, your brain freezes.
           </p>
 
@@ -78,7 +78,7 @@ export function AboutContent() {
             <Target size={20} className="text-orange-400" />
           </div>
           <h3 className="text-2xl font-bold text-white mb-4">The Problem</h3>
-          <div className="space-y-4 text-slate-400 leading-relaxed">
+          <div className="space-y-4 text-ink-muted leading-relaxed">
             <p>
               For IGCSE students, the Speaking Test (Paper 3) is often the most intimidating part of the syllabus. It requires more than just knowing French—it requires <strong className="text-white">performance</strong>.
             </p>
@@ -93,7 +93,7 @@ export function AboutContent() {
             <Rocket size={20} className="text-blue-400" />
           </div>
           <h3 className="text-2xl font-bold text-white mb-4">The Solution</h3>
-          <div className="space-y-4 text-slate-400 leading-relaxed">
+          <div className="space-y-4 text-ink-muted leading-relaxed">
             <p>
               <strong className="text-white font-bold">Français AI</strong> is a speaking coach built specifically for the IGCSE French syllabus.
             </p>
@@ -114,7 +114,7 @@ export function AboutContent() {
                 {item.icon}
               </div>
               <h4 className="text-white font-bold">{item.title}</h4>
-              <p className="text-xs text-slate-500 leading-relaxed">{item.desc}</p>
+              <p className="text-xs text-ink-muted leading-relaxed">{item.desc}</p>
             </div>
           ))}
         </div>
@@ -127,7 +127,7 @@ export function AboutContent() {
         </div>
         <div className="text-center md:text-left">
           <h3 className="text-xl font-bold text-white mb-2">Meet the Creator</h3>
-          <p className="text-slate-400 text-sm leading-relaxed">
+          <p className="text-ink-muted text-sm leading-relaxed">
             Built by one person who struggled with oral exams as a student. The mission is to make
             high-quality speaking practice accessible to every student, not just those with a
             teacher's undivided attention.

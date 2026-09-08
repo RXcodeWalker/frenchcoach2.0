@@ -58,7 +58,7 @@ export function CorrectionsCard({ issues, polishIssues = [], feedback, lessonsDe
             : legacyCritical.map((err, i) => (
                 <div key={i} className="p-2.5 rounded-lg bg-red-500/5 border border-red-500/10 mb-1.5">
                   <p className="text-[10px] font-semibold text-red-300">{err.theme}</p>
-                  <p className="text-[10px] text-slate-500 mt-0.5">{err.diagnostic}</p>
+                  <p className="text-[10px] text-ink-muted mt-0.5">{err.diagnostic}</p>
                   <p className="text-[10px] text-emerald-400 mt-0.5">{err.correction}</p>
                 </div>
               ))
@@ -82,7 +82,7 @@ export function CorrectionsCard({ issues, polishIssues = [], feedback, lessonsDe
             : legacyPolish.map((err, i) => (
                 <div key={i} className="p-2.5 rounded-lg bg-violet-500/5 border border-violet-500/10 mb-1.5">
                   <p className="text-[10px] font-semibold text-violet-300">{err.theme}</p>
-                  <p className="text-[10px] text-slate-500 mt-0.5">{err.diagnostic}</p>
+                  <p className="text-[10px] text-ink-muted mt-0.5">{err.diagnostic}</p>
                   <p className="text-[10px] text-emerald-400 mt-0.5">{err.correction}</p>
                 </div>
               ))

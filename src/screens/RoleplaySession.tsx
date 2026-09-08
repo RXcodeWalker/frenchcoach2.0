@@ -71,7 +71,7 @@ function RoleplaySessionView({ scenarioId, entry }: { scenarioId: string; entry:
     <div className="max-w-3xl mx-auto px-4 pt-6 pb-24 md:pb-8">
       <button
         onClick={() => navigate('/explore')}
-        className="flex items-center gap-2 text-[10px] font-black text-slate-500 hover:text-white transition-colors uppercase tracking-widest mb-4"
+        className="flex items-center gap-2 text-[10px] font-black text-ink-muted hover:text-white transition-colors uppercase tracking-widest mb-4"
       >
         <ArrowLeft size={14} /> Back to Explore
       </button>
@@ -82,7 +82,7 @@ function RoleplaySessionView({ scenarioId, entry }: { scenarioId: string; entry:
         </div>
         <div>
           <h1 className="text-sm font-black text-white italic tracking-tight">{meta.title}</h1>
-          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">{meta.npc.nameFr} · {meta.npc.roleEn}</p>
+          <p className="text-[10px] text-ink-muted font-bold uppercase tracking-tighter">{meta.npc.nameFr} · {meta.npc.roleEn}</p>
         </div>
       </Card>
 
@@ -353,7 +353,7 @@ function PlayPhase({
   if (kind === 'passthrough') {
     return (
       <Card className="p-6">
-        <p className="text-sm text-slate-400">{npcLine}</p>
+        <p className="text-sm text-ink-muted">{npcLine}</p>
       </Card>
     );
   }
@@ -397,11 +397,11 @@ function DebriefPhase({
   return (
     <Card className="p-6">
       <h2 className="text-lg font-black text-white italic tracking-tighter uppercase mb-1">Session Complete</h2>
-      <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-6">Task Summary</p>
+      <p className="text-[10px] font-bold text-ink-muted uppercase tracking-widest mb-6">Task Summary</p>
 
       <div className="flex items-center gap-4 mb-4">
         <div className="text-3xl font-black text-white italic">{percent}%</div>
-        <div className="text-xs text-slate-400">
+        <div className="text-xs text-ink-muted">
           {status.completed.length} of {status.applicable} missions completed
         </div>
       </div>

@@ -53,24 +53,24 @@ export function ExamResults({ transcript, envelopeView, scoringError, onRetrySco
               <Trophy size={36} className="mx-auto text-amber-400 mb-3" style={{ filter: 'drop-shadow(0 0 10px rgba(245,158,11,0.4))' }} />
             </motion.div>
             <h2 className="text-2xl font-black text-white mb-1">Practice Session Complete</h2>
-            <p className="font-bold text-sm mb-4 text-slate-400">Component 3: Speaking (practice, not a grade prediction)</p>
+            <p className="font-bold text-sm mb-4 text-ink-muted">Component 3: Speaking (practice, not a grade prediction)</p>
 
             <div className="flex items-center justify-center gap-6 mb-2">
               <div className="text-center">
                 <div className="text-3xl font-black text-white">{candidateUtterances.length}</div>
-                <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Answers Given</p>
+                <p className="text-[10px] text-ink-muted uppercase tracking-widest font-bold">Answers Given</p>
               </div>
               <div className="w-px h-12 bg-white/10" />
               <div className="text-center">
                 <div className="text-3xl font-black text-white">{Math.round(totalSpeakingS)}s</div>
-                <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Speaking Time</p>
+                <p className="text-[10px] text-ink-muted uppercase tracking-widest font-bold">Speaking Time</p>
               </div>
               {envelopeView && (
                 <>
                   <div className="w-px h-12 bg-white/10" />
                   <div className="text-center">
-                    <div className="text-3xl font-black text-amber-400">{envelopeView.total}<span className="text-sm text-slate-500">/40</span></div>
-                    <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Marks</p>
+                    <div className="text-3xl font-black text-amber-400">{envelopeView.total}<span className="text-sm text-ink-muted">/40</span></div>
+                    <p className="text-[10px] text-ink-muted uppercase tracking-widest font-bold">Marks</p>
                   </div>
                 </>
               )}
@@ -84,7 +84,7 @@ export function ExamResults({ transcript, envelopeView, scoringError, onRetrySco
               <AlertTriangle size={16} className="text-red-400 flex-shrink-0 mt-0.5" />
               <div>
                 <h3 className="font-bold text-red-400 text-[11px] uppercase tracking-wider mb-1">Scoring failed</h3>
-                <p className="text-[11px] text-slate-400 leading-relaxed">{scoringError}</p>
+                <p className="text-[11px] text-ink-muted leading-relaxed">{scoringError}</p>
               </div>
             </div>
             <motion.button
@@ -100,8 +100,8 @@ export function ExamResults({ transcript, envelopeView, scoringError, onRetrySco
         {envelopeView && (
           <div className="rounded-xl glass p-5 space-y-4">
             <div>
-              <h3 className="font-bold text-slate-500 text-[10px] uppercase tracking-wider mb-1">Marks — Unvalidated Estimate</h3>
-              <p className="text-[10px] text-slate-500 leading-relaxed">
+              <h3 className="font-bold text-ink-muted text-[10px] uppercase tracking-wider mb-1">Marks — Unvalidated Estimate</h3>
+              <p className="text-[10px] text-ink-muted leading-relaxed">
                 This score has never been checked against a real examiner (calibration: {envelopeView.versions.calibrationVersion}). Treat it as a rough signal, not a grade prediction.
               </p>
             </div>
@@ -112,14 +112,14 @@ export function ExamResults({ transcript, envelopeView, scoringError, onRetrySco
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-[11px] font-bold text-white">{criterionLabel(c)}</span>
                     <span className="text-sm font-black text-amber-400">
-                      {c.mark}{c.band ? <span className="text-slate-500 text-[10px] font-medium"> ({c.band.label ?? `${c.band.min}-${c.band.max}`})</span> : null}
+                      {c.mark}{c.band ? <span className="text-ink-muted text-[10px] font-medium"> ({c.band.label ?? `${c.band.min}-${c.band.max}`})</span> : null}
                     </span>
                   </div>
-                  <p className="text-[10px] text-slate-400 leading-relaxed">{c.justification}</p>
+                  <p className="text-[10px] text-ink-muted leading-relaxed">{c.justification}</p>
                   {c.evidenceSpans.length > 0 && (
                     <div className="mt-2 space-y-1">
                       {c.evidenceSpans.map((span, j) => (
-                        <p key={j} className="text-[10px] text-slate-500 italic">"{span.quote}"</p>
+                        <p key={j} className="text-[10px] text-ink-muted italic">"{span.quote}"</p>
                       ))}
                     </div>
                   )}
@@ -134,7 +134,7 @@ export function ExamResults({ transcript, envelopeView, scoringError, onRetrySco
                   <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Guardrail Flags</span>
                 </div>
                 {envelopeView.guardrailTriggers.map((t, i) => (
-                  <p key={i} className="text-[10px] text-slate-400">{guardrailLabel(t.id)}</p>
+                  <p key={i} className="text-[10px] text-ink-muted">{guardrailLabel(t.id)}</p>
                 ))}
               </div>
             )}
@@ -147,14 +147,14 @@ export function ExamResults({ transcript, envelopeView, scoringError, onRetrySco
             className="w-full flex items-center justify-between"
           >
             <div className="text-left">
-              <h3 className="font-bold text-slate-500 text-[10px] uppercase tracking-wider mb-1">Transcript Saved</h3>
-              <p className="text-[11px] text-slate-400 leading-relaxed">
+              <h3 className="font-bold text-ink-muted text-[10px] uppercase tracking-wider mb-1">Transcript Saved</h3>
+              <p className="text-[11px] text-ink-muted leading-relaxed">
                 Your session transcript has been saved locally.
               </p>
             </div>
             <ChevronDown
               size={16}
-              className={`flex-shrink-0 text-slate-500 transition-transform ${transcriptOpen ? 'rotate-180' : ''}`}
+              className={`flex-shrink-0 text-ink-muted transition-transform ${transcriptOpen ? 'rotate-180' : ''}`}
             />
           </button>
           <AnimatePresence>
@@ -168,8 +168,8 @@ export function ExamResults({ transcript, envelopeView, scoringError, onRetrySco
                 <div className="mt-3 space-y-2.5 pt-3 border-t border-white/5">
                   {candidateUtterances.map((u, i) => (
                     <div key={u.utteranceId} className="p-2.5 rounded-lg bg-white/[0.03] border border-white/5">
-                      <p className="text-[9px] text-slate-600 uppercase tracking-wider mb-1">{u.part} &middot; Answer {i + 1}</p>
-                      <p className="text-[11px] text-slate-300 leading-relaxed">{u.text}</p>
+                      <p className="text-[9px] text-ink-subtle uppercase tracking-wider mb-1">{u.part} &middot; Answer {i + 1}</p>
+                      <p className="text-[11px] text-ink-muted leading-relaxed">{u.text}</p>
                     </div>
                   ))}
                 </div>
@@ -181,7 +181,7 @@ export function ExamResults({ transcript, envelopeView, scoringError, onRetrySco
         {import.meta.env.DEV && (
           <button
             onClick={() => downloadConductLog(transcript.sessionId)}
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl glass-subtle text-slate-400 hover:text-white text-[11px] font-semibold transition-colors"
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl glass-subtle text-ink-muted hover:text-white text-[11px] font-semibold transition-colors"
           >
             <Download size={13} /> Download session log (JSON)
           </button>

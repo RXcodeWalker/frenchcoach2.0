@@ -57,7 +57,7 @@ export function HeroMission({ todayCount, onLearn, onExam }: Props) {
               )}
             </h2>
             
-            <p className="text-slate-400 text-sm md:text-base mb-8 max-w-md leading-relaxed font-medium">
+            <p className="text-ink-muted text-sm md:text-base mb-8 max-w-md leading-relaxed font-medium">
               {goalComplete
                 ? "You've hit your goal for today! Keep practicing to build your streak."
                 : `Complete ${DAILY_GOAL - todayCount} more session${DAILY_GOAL - todayCount > 1 ? 's' : ''} to hit your daily goal.`}
@@ -77,7 +77,7 @@ export function HeroMission({ todayCount, onLearn, onExam }: Props) {
               
               <motion.button
                 onClick={onExam}
-                className="px-8 py-4 rounded-2xl font-bold text-sm border border-white/10 hover:border-white/20 text-slate-300 hover:text-white transition-all flex items-center justify-center gap-3 backdrop-blur-sm"
+                className="px-8 py-4 rounded-2xl font-bold text-sm border border-white/10 hover:border-white/20 text-ink-muted hover:text-white transition-all flex items-center justify-center gap-3 backdrop-blur-sm"
                 whileHover={{ scale: 1.02, y: -2 }}
                 whileTap={{ scale: 0.98 }}
               >

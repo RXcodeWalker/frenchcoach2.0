@@ -116,7 +116,7 @@ export function HardcoreMode({ run, onQuit }: HardcoreModeProps) {
           <button
             type="button"
             onClick={onQuit}
-            className="text-xs font-bold text-slate-500 hover:text-white"
+            className="text-xs font-bold text-ink-muted hover:text-white"
           >
             Quit
           </button>
@@ -158,7 +158,7 @@ export function HardcoreMode({ run, onQuit }: HardcoreModeProps) {
       >
         <FloatingXPOverlay items={floatingXPs} />
         <div className="text-8xl md:text-9xl leading-none">{q.emojis}</div>
-        <p className="mt-4 text-slate-400 font-bold">Type the French word</p>
+        <p className="mt-4 text-ink-muted font-bold">Type the French word</p>
         <GameFeedbackOverlay
           feedback={feedback}
           correctAnswer={q.french}

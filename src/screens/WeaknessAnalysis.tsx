@@ -59,11 +59,11 @@ export function WeaknessAnalysis() {
       <PageShell>
         <div className="min-h-[60vh] flex flex-col items-center justify-center text-center space-y-6">
           <div className="w-20 h-20 bg-slate-900/50 rounded-full flex items-center justify-center border border-white/5">
-            <Brain size={40} className="text-slate-700" />
+            <Brain size={40} className="text-ink-subtle" />
           </div>
           <div className="space-y-2">
             <h1 className="text-2xl font-black text-white italic uppercase tracking-tighter">Not enough data</h1>
-            <p className="text-slate-500 text-sm max-w-xs mx-auto">Complete at least 2 speaking sessions to unlock your personalized weakness analysis.</p>
+            <p className="text-ink-muted text-sm max-w-xs mx-auto">Complete at least 2 speaking sessions to unlock your personalized weakness analysis.</p>
           </div>
           <button
             onClick={() => navigate('/learn')}
@@ -83,7 +83,7 @@ export function WeaknessAnalysis() {
         <div className="flex items-center gap-4">
           <button 
             onClick={() => navigate(-1)}
-            className="w-10 h-10 rounded-xl glass flex items-center justify-center text-slate-400 hover:text-white transition-colors"
+            className="w-10 h-10 rounded-xl glass flex items-center justify-center text-ink-muted hover:text-white transition-colors"
           >
             <ArrowLeft size={20} />
           </button>
@@ -96,7 +96,7 @@ export function WeaknessAnalysis() {
           </div>
         </div>
         <div className="hidden md:flex flex-col items-end">
-          <p className="text-[10px] font-bold text-slate-600 uppercase">System Status</p>
+          <p className="text-[10px] font-bold text-ink-subtle uppercase">System Status</p>
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-xs font-bold text-white uppercase tracking-tighter italic">Engine Active</span>
@@ -110,7 +110,7 @@ export function WeaknessAnalysis() {
           <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
             <Brain size={80} />
           </div>
-          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Overall Mastery</p>
+          <p className="text-[10px] font-bold text-ink-muted uppercase tracking-widest mb-1">Overall Mastery</p>
           <div className="flex items-end gap-2">
             <p className="text-4xl font-black text-white italic tracking-tighter">{report.avgMastery}%</p>
             <div className="mb-1.5 flex items-center gap-1 text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">
@@ -122,14 +122,14 @@ export function WeaknessAnalysis() {
           <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
             <AlertCircle size={80} />
           </div>
-          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Critical Issues</p>
+          <p className="text-[10px] font-bold text-ink-muted uppercase tracking-widest mb-1">Critical Issues</p>
           <p className="text-4xl font-black text-rose-500 italic tracking-tighter">{report.topWeaknesses?.length ?? 0}</p>
         </div>
         <div className="glass-elevated p-6 rounded-3xl border-emerald-500/10 relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
             <CheckCircle2 size={80} />
           </div>
-          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Mastered Skills</p>
+          <p className="text-[10px] font-bold text-ink-muted uppercase tracking-widest mb-1">Mastered Skills</p>
           <p className="text-4xl font-black text-emerald-400 italic tracking-tighter">{report.topStrengths?.length ?? 0}</p>
         </div>
       </motion.div>
@@ -139,7 +139,7 @@ export function WeaknessAnalysis() {
         {/* Top Weaknesses - THE FOCUS LIST */}
         <motion.div variants={fadeUp} className="space-y-4">
           <div className="flex items-center justify-between px-1">
-            <h2 className="text-xs font-bold text-slate-600 uppercase tracking-[0.2em] flex items-center gap-2">
+            <h2 className="text-xs font-bold text-ink-subtle uppercase tracking-[0.2em] flex items-center gap-2">
               <Target size={14} className="text-rose-500" />
               High Priority Focus
             </h2>
@@ -163,35 +163,35 @@ export function WeaknessAnalysis() {
                       </div>
                       <div>
                         <h3 className="font-bold text-white group-hover:text-rose-400 transition-colors">{skill.name}</h3>
-                        <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">{skill.category}</p>
+                        <p className="text-[10px] text-ink-muted uppercase font-bold tracking-wider">{skill.category}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="text-right">
                         <p className="text-lg font-black text-white">{skill.mastery}%</p>
-                        <p className="text-[8px] font-bold text-slate-600 uppercase tracking-widest">Mastery</p>
+                        <p className="text-[8px] font-bold text-ink-subtle uppercase tracking-widest">Mastery</p>
                       </div>
                       <motion.div
                         animate={{ rotate: expandedSkillId === skill.id ? 180 : 0 }}
-                        className="text-slate-600"
+                        className="text-ink-subtle"
                       >
                         <ChevronDown size={16} />
                       </motion.div>
                     </div>
                   </div>
                   
-                  <p className="text-xs text-slate-400 leading-relaxed mb-4">
+                  <p className="text-xs text-ink-muted leading-relaxed mb-4">
                     {skill.desc} You've made mistakes in {Math.round(skill.errors / skill.observations * 100)}% of tracked instances.
                   </p>
 
                   <div className="flex items-center justify-between pt-2">
-                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-600">
+                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-ink-subtle">
                       <TrendingDown size={12} className="text-rose-500" />
                       TRENDING DOWN
                     </div>
                     <div className="flex items-center gap-4">
                       <button 
-                        className="flex items-center gap-1 text-[10px] font-bold text-slate-500 hover:text-white transition-colors"
+                        className="flex items-center gap-1 text-[10px] font-bold text-ink-muted hover:text-white transition-colors"
                         onClick={(e) => {
                           e.stopPropagation();
                           setExpandedSkillId(expandedSkillId === skill.id ? null : skill.id);
@@ -215,7 +215,7 @@ export function WeaknessAnalysis() {
                     <div className="mt-4 p-3 rounded-xl bg-violet-500/5 border border-violet-500/10 flex items-center justify-between group/suggest">
                       <div className="flex items-center gap-2">
                         <Lightbulb size={12} className="text-violet-400" />
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Recommended: </span>
+                        <span className="text-[10px] font-bold text-ink-muted uppercase tracking-tighter">Recommended: </span>
                         <span className="text-[10px] font-black text-white uppercase italic">{SKILL_TO_MODE[skill.id].label}</span>
                       </div>
                       <button 
@@ -241,7 +241,7 @@ export function WeaknessAnalysis() {
                       className="px-5 pb-5 border-t border-white/5 bg-navy/20"
                     >
                       <div className="pt-4">
-                        <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
+                        <h4 className="text-[10px] font-black text-ink-muted uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
                           <History size={12} /> Recent Mistakes & Corrections
                         </h4>
                         <MistakeLogViewer mistakes={skill.mistakes || []} />
@@ -264,7 +264,7 @@ export function WeaknessAnalysis() {
               </div>
               <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">AI Recommendation</h3>
             </div>
-            <p className="text-xs text-slate-400 leading-relaxed mb-6">
+            <p className="text-xs text-ink-muted leading-relaxed mb-6">
               Based on your recent performance, your biggest hurdle is <span className="text-white font-bold">{report.topWeaknesses?.[0]?.name || 'Grammar Consistency'}</span>.
               We've generated a specialized <span className="text-violet-400 font-bold">Sentence Rebuilder</span> session focusing on your weak spots.
             </p>
@@ -279,7 +279,7 @@ export function WeaknessAnalysis() {
 
           {/* Top Strengths */}
           <div className="space-y-4">
-            <h2 className="text-xs font-bold text-slate-600 uppercase tracking-[0.2em] flex items-center gap-2 px-1">
+            <h2 className="text-xs font-bold text-ink-subtle uppercase tracking-[0.2em] flex items-center gap-2 px-1">
               <CheckCircle2 size={14} className="text-emerald-500" />
               Strong Foundations
             </h2>
@@ -306,7 +306,7 @@ export function WeaknessAnalysis() {
           {/* Detailed Breakdown Link */}
           <button 
             onClick={() => navigate('/progress')}
-            className="w-full py-4 border-2 border-dashed border-white/5 rounded-2xl text-[10px] font-bold text-slate-600 hover:text-white hover:border-white/10 transition-all flex items-center justify-center gap-2"
+            className="w-full py-4 border-2 border-dashed border-white/5 rounded-2xl text-[10px] font-bold text-ink-subtle hover:text-white hover:border-white/10 transition-all flex items-center justify-center gap-2"
           >
             <BookOpen size={14} />
             VIEW FULL SKILL PROFILE

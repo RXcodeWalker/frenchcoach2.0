@@ -20,7 +20,7 @@ export function IssueRow({ issue, isSelected, lessonDefaultOpen, lessonForceOpen
         <SeverityBadge level={issue.severity} />
         {/* themeLabel from backend — more readable than raw category */}
         {issue.themeLabel && (
-          <span className="text-[9px] text-slate-400 font-medium">{issue.themeLabel}</span>
+          <span className="text-[9px] text-ink-muted font-medium">{issue.themeLabel}</span>
         )}
         {issue.marksImpact > 0 && (
           <span
@@ -53,7 +53,7 @@ export function IssueRow({ issue, isSelected, lessonDefaultOpen, lessonForceOpen
         </p>
       )}
 
-      <p className="text-[10px] text-slate-400 mb-1.5">{issue.diagnostic}</p>
+      <p className="text-[10px] text-ink-muted mb-1.5">{issue.diagnostic}</p>
 
       {issue.isRecurring && issue.recurrenceNote && (
         <p className="text-[9px] text-amber-500/80 italic mb-1.5">{issue.recurrenceNote}</p>

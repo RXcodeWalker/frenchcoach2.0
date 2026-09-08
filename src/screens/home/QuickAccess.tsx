@@ -18,7 +18,7 @@ const ITEMS: { icon: string; label: string; screen: Screen; badge?: string }[] =
 export function QuickAccess({ onNavigate }: Props) {
   return (
     <motion.div variants={fadeUp}>
-      <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2.5">Quick Access</h3>
+      <h3 className="text-[10px] font-black text-ink-muted uppercase tracking-wider mb-2.5">Quick Access</h3>
       <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
         {ITEMS.map(item => (
           <motion.button
@@ -34,7 +34,7 @@ export function QuickAccess({ onNavigate }: Props) {
               </div>
             )}
             <span className="text-xl group-hover:scale-110 transition-transform duration-200">{item.icon}</span>
-            <span className="text-[10px] font-bold text-slate-400 group-hover:text-white transition-colors">{item.label}</span>
+            <span className="text-[10px] font-bold text-ink-muted group-hover:text-white transition-colors">{item.label}</span>
           </motion.button>
         ))}
       </div>

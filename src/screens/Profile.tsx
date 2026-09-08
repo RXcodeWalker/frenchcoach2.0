@@ -106,7 +106,7 @@ export function Profile() {
                 <span className="text-[9px] font-bold uppercase tracking-wide bg-amber-500/10 text-amber-400 px-1.5 py-0.5 rounded-full border border-amber-500/15">Guest</span>
               )}
             </div>
-            <p className="text-xs text-slate-500">{current.icon} {current.level}</p>
+            <p className="text-xs text-ink-muted">{current.icon} {current.level}</p>
             {isGuest && (
               <p className="text-[9px] text-amber-400/80 mt-0.5">Your progress is saved on this device only</p>
             )}
@@ -124,7 +124,7 @@ export function Profile() {
               <Zap size={11} className="text-amber-400" />
               <span className="text-xs font-bold text-amber-400">{profile.total_xp.toLocaleString()}</span>
             </div>
-            <p className="text-[9px] text-slate-700 mt-1">Total XP</p>
+            <p className="text-[9px] text-ink-subtle mt-1">Total XP</p>
           </div>
         </div>
       </motion.div>
@@ -140,7 +140,7 @@ export function Profile() {
           <div key={s.label} className="rounded-lg glass p-2.5 text-center">
             <div className="flex justify-center mb-1">{s.icon}</div>
             <p className="text-base font-black text-white">{s.value}</p>
-            <p className="text-[8px] text-slate-700">{s.label}</p>
+            <p className="text-[8px] text-ink-subtle">{s.label}</p>
           </div>
         ))}
       </motion.div>
@@ -149,7 +149,7 @@ export function Profile() {
       <motion.div variants={fadeUp} className="rounded-xl glass p-4">
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-bold text-white text-sm">Achievements</h3>
-          <span className="text-[9px] text-slate-700">{unlockedCount}/{ACHIEVEMENTS.length}</span>
+          <span className="text-[9px] text-ink-subtle">{unlockedCount}/{ACHIEVEMENTS.length}</span>
         </div>
         <div className="grid grid-cols-6 gap-1.5">
           {state.achievements.slice(0, 12).map(achievement => (
@@ -159,7 +159,7 @@ export function Profile() {
               whileTap={{ scale: 0.9 }}
             >
               <span className="text-lg">{achievement.unlocked ? achievement.icon : '🔒'}</span>
-              <span className="text-[7px] text-slate-600 text-center leading-tight truncate w-full">{achievement.name.split(' ')[0]}</span>
+              <span className="text-[7px] text-ink-subtle text-center leading-tight truncate w-full">{achievement.name.split(' ')[0]}</span>
             </motion.div>
           ))}
         </div>
@@ -175,7 +175,7 @@ export function Profile() {
 
       {/* Username */}
       <motion.div variants={fadeUp} className="rounded-xl glass p-4">
-        <h3 className="font-bold text-slate-600 text-[10px] uppercase tracking-wider mb-2.5">Username</h3>
+        <h3 className="font-bold text-ink-subtle text-[10px] uppercase tracking-wider mb-2.5">Username</h3>
         {renaming ? (
           <form onSubmit={handleRename} className="space-y-2.5">
             <input
@@ -184,7 +184,7 @@ export function Profile() {
               onChange={e => { setRenameValue(e.target.value); setRenameError(null); }}
               placeholder={profile.username ?? 'marie_92'}
               maxLength={20}
-              className="w-full bg-navy-300/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-violet-electric/50 transition-colors"
+              className="w-full bg-navy-300/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder:text-ink-subtle focus:outline-none focus:border-violet-electric/50 transition-colors"
             />
             {renameError && <p className="text-[10px] text-rose-400">{renameError}</p>}
             <div className="flex gap-2">
@@ -199,12 +199,12 @@ export function Profile() {
               <button
                 type="button"
                 onClick={() => { setRenaming(false); setRenameError(null); setRenameValue(''); }}
-                className="px-3 py-2 rounded-lg text-[10px] font-semibold text-slate-500 hover:text-slate-300 transition-colors"
+                className="px-3 py-2 rounded-lg text-[10px] font-semibold text-ink-muted hover:text-ink-muted transition-colors"
               >
                 Cancel
               </button>
             </div>
-            <p className="text-[9px] text-slate-700">Usernames can be changed once every 30 days.</p>
+            <p className="text-[9px] text-ink-subtle">Usernames can be changed once every 30 days.</p>
           </form>
         ) : (
           <button
@@ -214,9 +214,9 @@ export function Profile() {
             <AtSign size={14} className="text-violet-400" />
             <div className="flex-1">
               <p className="text-[10px] font-semibold text-white">{profile.username ?? 'Claim a username'}</p>
-              <p className="text-[9px] text-slate-600">{profile.username ? 'Change your username' : 'Pick a name others will see on the leaderboard'}</p>
+              <p className="text-[9px] text-ink-subtle">{profile.username ? 'Change your username' : 'Pick a name others will see on the leaderboard'}</p>
             </div>
-            <ChevronRight size={12} className="text-slate-700" />
+            <ChevronRight size={12} className="text-ink-subtle" />
           </button>
         )}
       </motion.div>
@@ -224,7 +224,7 @@ export function Profile() {
       {/* Social Privacy */}
       {privacy && (
         <motion.div variants={fadeUp} className="rounded-xl glass p-4">
-          <h3 className="font-bold text-slate-600 text-[10px] uppercase tracking-wider mb-2.5">Social Privacy</h3>
+          <h3 className="font-bold text-ink-subtle text-[10px] uppercase tracking-wider mb-2.5">Social Privacy</h3>
           <div className="space-y-0.5">
             <SettingToggle
               icon={<Globe size={14} />}
@@ -261,7 +261,7 @@ export function Profile() {
                     className={`flex-1 px-2 py-1.5 rounded-md text-[10px] font-bold capitalize transition-all ${
                       privacy.leaderboardVisibility === v
                         ? 'bg-white/10 text-white'
-                        : 'text-slate-600 hover:text-slate-400'
+                        : 'text-ink-subtle hover:text-ink-muted'
                     }`}
                   >
                     {v}
@@ -275,7 +275,7 @@ export function Profile() {
 
       {/* Learning Goals */}
       <motion.div variants={fadeUp} className="rounded-xl glass p-4">
-        <h3 className="font-bold text-slate-600 text-[10px] uppercase tracking-wider mb-2.5">Learning Goals</h3>
+        <h3 className="font-bold text-ink-subtle text-[10px] uppercase tracking-wider mb-2.5">Learning Goals</h3>
         <button
           onClick={() => navigate('/onboarding?from=profile')}
           className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-white/[0.02] transition-colors text-left"
@@ -283,15 +283,15 @@ export function Profile() {
           <Target size={14} className="text-violet-400" />
           <div className="flex-1">
             <p className="text-[10px] font-semibold text-white">Update learning goals</p>
-            <p className="text-[9px] text-slate-600">Change exam board, target date, or goal type</p>
+            <p className="text-[9px] text-ink-subtle">Change exam board, target date, or goal type</p>
           </div>
-          <ChevronRight size={12} className="text-slate-700" />
+          <ChevronRight size={12} className="text-ink-subtle" />
         </button>
       </motion.div>
 
       {/* Preferences */}
       <motion.div variants={fadeUp} className="rounded-xl glass p-4">
-        <h3 className="font-bold text-slate-600 text-[10px] uppercase tracking-wider mb-2.5">Preferences</h3>
+        <h3 className="font-bold text-ink-subtle text-[10px] uppercase tracking-wider mb-2.5">Preferences</h3>
         <div className="space-y-0.5">
           <SettingToggle icon={<Volume2 size={14} />} label="Sound Effects" description="Play sounds for answers" enabled={state.soundEnabled} onToggle={() => dispatch({ type: 'TOGGLE_SOUND' })} />
           <SettingToggle icon={<Moon size={14} />} label="Dark Mode" description="Toggle dark or light theme" enabled={state.darkMode} onToggle={() => dispatch({ type: 'TOGGLE_DARK_MODE' })} />
@@ -301,7 +301,7 @@ export function Profile() {
 
       {/* AI Feedback Mode */}
       <motion.div variants={fadeUp} className="rounded-xl glass p-4">
-        <h3 className="font-bold text-slate-600 text-[10px] uppercase tracking-wider mb-2.5">AI Feedback</h3>
+        <h3 className="font-bold text-ink-subtle text-[10px] uppercase tracking-wider mb-2.5">AI Feedback</h3>
         <div className="space-y-1">
           {[
             { id: 'offline', label: 'Offline (Instant)', desc: 'Fast rule-based feedback', badge: 'Recommended' },
@@ -317,7 +317,7 @@ export function Profile() {
                   <span className="text-[10px] font-semibold text-white">{mode.label}</span>
                   {mode.badge && <span className="text-[8px] bg-emerald-500/10 text-emerald-400 px-1.5 py-0.5 rounded-full border border-emerald-500/15">{mode.badge}</span>}
                 </div>
-                <p className="text-[9px] text-slate-600 mt-0.5">{mode.desc}</p>
+                <p className="text-[9px] text-ink-subtle mt-0.5">{mode.desc}</p>
               </div>
             </label>
           ))}
@@ -326,48 +326,48 @@ export function Profile() {
 
       {/* Language */}
       <motion.div variants={fadeUp} className="rounded-xl glass p-4">
-        <h3 className="font-bold text-slate-600 text-[10px] uppercase tracking-wider mb-2.5">Language</h3>
+        <h3 className="font-bold text-ink-subtle text-[10px] uppercase tracking-wider mb-2.5">Language</h3>
         <div className="flex items-center gap-3 p-2.5 rounded-lg glass-subtle">
           <Globe size={14} className="text-violet-400" />
           <div className="flex-1">
             <p className="text-[10px] font-semibold text-white">Speech Recognition</p>
-            <p className="text-[9px] text-slate-600">French (fr-FR) — IGCSE standard</p>
+            <p className="text-[9px] text-ink-subtle">French (fr-FR) — IGCSE standard</p>
           </div>
-          <span className="text-[9px] text-slate-700 bg-navy-300 px-1.5 py-0.5 rounded">fr-FR</span>
+          <span className="text-[9px] text-ink-subtle bg-navy-300 px-1.5 py-0.5 rounded">fr-FR</span>
         </div>
       </motion.div>
 
       {/* Data */}
       <motion.div variants={fadeUp} className="rounded-xl glass p-4">
-        <h3 className="font-bold text-slate-600 text-[10px] uppercase tracking-wider mb-2.5">Data & Privacy</h3>
+        <h3 className="font-bold text-ink-subtle text-[10px] uppercase tracking-wider mb-2.5">Data & Privacy</h3>
         <div className="space-y-0.5">
           <button className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-white/[0.02] transition-colors text-left">
-            <Database size={14} className="text-slate-600" />
-            <div className="flex-1"><p className="text-[10px] font-semibold text-white">Export My Data</p><p className="text-[9px] text-slate-700">Download sessions and progress</p></div>
-            <ChevronRight size={12} className="text-slate-700" />
+            <Database size={14} className="text-ink-subtle" />
+            <div className="flex-1"><p className="text-[10px] font-semibold text-white">Export My Data</p><p className="text-[9px] text-ink-subtle">Download sessions and progress</p></div>
+            <ChevronRight size={12} className="text-ink-subtle" />
           </button>
           <button className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-white/[0.02] transition-colors text-left">
-            <Shield size={14} className="text-slate-600" />
-            <div className="flex-1"><p className="text-[10px] font-semibold text-white">Privacy Policy</p><p className="text-[9px] text-slate-700">How we handle your data</p></div>
-            <ChevronRight size={12} className="text-slate-700" />
+            <Shield size={14} className="text-ink-subtle" />
+            <div className="flex-1"><p className="text-[10px] font-semibold text-white">Privacy Policy</p><p className="text-[9px] text-ink-subtle">How we handle your data</p></div>
+            <ChevronRight size={12} className="text-ink-subtle" />
           </button>
           <button
             onClick={() => setShowBlockedList(v => !v)}
             className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-white/[0.02] transition-colors text-left"
           >
-            <UserX size={14} className="text-slate-600" />
-            <div className="flex-1"><p className="text-[10px] font-semibold text-white">Blocked Users</p><p className="text-[9px] text-slate-700">{blockedUsers.length > 0 ? `${blockedUsers.length} blocked` : 'Manage blocked learners'}</p></div>
-            <ChevronRight size={12} className={`text-slate-700 transition-transform ${showBlockedList ? 'rotate-90' : ''}`} />
+            <UserX size={14} className="text-ink-subtle" />
+            <div className="flex-1"><p className="text-[10px] font-semibold text-white">Blocked Users</p><p className="text-[9px] text-ink-subtle">{blockedUsers.length > 0 ? `${blockedUsers.length} blocked` : 'Manage blocked learners'}</p></div>
+            <ChevronRight size={12} className={`text-ink-subtle transition-transform ${showBlockedList ? 'rotate-90' : ''}`} />
           </button>
           {showBlockedList && (
             <div className="pl-2.5 space-y-1 pb-1">
               {blockedUsers.length === 0 ? (
-                <p className="text-[9px] text-slate-700 py-2">No blocked users.</p>
+                <p className="text-[9px] text-ink-subtle py-2">No blocked users.</p>
               ) : (
                 blockedUsers.map(u => (
                   <div key={u.userId} className="flex items-center gap-2.5 p-2 rounded-lg bg-white/[0.02]">
                     <span className="text-sm">{u.avatar ?? '👤'}</span>
-                    <p className="flex-1 text-[10px] text-slate-300">{u.username}</p>
+                    <p className="flex-1 text-[10px] text-ink-muted">{u.username}</p>
                     <button
                       onClick={() => handleUnblock(u.userId)}
                       className="text-[9px] font-bold text-violet-400 hover:text-violet-300 transition-colors"
@@ -385,8 +385,8 @@ export function Profile() {
               className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-violet-500/[0.06] transition-colors text-left group"
             >
               <SlidersHorizontal size={14} className="text-violet-400/70 group-hover:text-violet-400 transition-colors" />
-              <div className="flex-1"><p className="text-[10px] font-semibold text-violet-300">Content Admin</p><p className="text-[9px] text-slate-700">Manage questions & scenarios</p></div>
-              <ChevronRight size={12} className="text-slate-700" />
+              <div className="flex-1"><p className="text-[10px] font-semibold text-violet-300">Content Admin</p><p className="text-[9px] text-ink-subtle">Manage questions & scenarios</p></div>
+              <ChevronRight size={12} className="text-ink-subtle" />
             </button>
           )}
           {isGuest && (
@@ -397,9 +397,9 @@ export function Profile() {
               <LogOut size={14} className="text-violet-400/70 group-hover:text-violet-400 transition-colors rotate-180" />
               <div className="flex-1">
                 <p className="text-[10px] font-semibold text-violet-300">Log In / Create Account</p>
-                <p className="text-[9px] text-slate-700">Creating a new account backs up this device's data. Logging into an existing account may not preserve it.</p>
+                <p className="text-[9px] text-ink-subtle">Creating a new account backs up this device's data. Logging into an existing account may not preserve it.</p>
               </div>
-              <ChevronRight size={12} className="text-slate-700" />
+              <ChevronRight size={12} className="text-ink-subtle" />
             </button>
           )}
           <button
@@ -417,7 +417,7 @@ export function Profile() {
             <LogOut size={14} className="text-red-400/70 group-hover:text-red-400 transition-colors" />
             <div className="flex-1">
               <p className="text-[10px] font-semibold text-red-400/80 group-hover:text-red-400 transition-colors">{isGuest ? 'Exit Guest Mode' : 'Sign Out'}</p>
-              <p className="text-[9px] text-slate-700">{isGuest ? 'Clears local guest session' : 'Your local progress is preserved'}</p>
+              <p className="text-[9px] text-ink-subtle">{isGuest ? 'Clears local guest session' : 'Your local progress is preserved'}</p>
             </div>
           </button>
         </div>

@@ -31,20 +31,20 @@ export const VocabListView: React.FC<VocabListViewProps> = ({ items }) => {
                   {item.gender}
                 </span>
               )}
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{item.pos}</span>
+              <span className="text-[10px] font-bold text-ink-muted uppercase tracking-widest">{item.pos}</span>
             </div>
-            <p className="text-xs text-slate-400 font-medium italic">{item.en}</p>
+            <p className="text-xs text-ink-muted font-medium italic">{item.en}</p>
             {item.literalEn && (
-              <p className="text-[10px] text-slate-500 mt-0.5">lit. "{item.literalEn}"</p>
+              <p className="text-[10px] text-ink-muted mt-0.5">lit. "{item.literalEn}"</p>
             )}
             {item.note && (
               <p className="text-[10px] text-amber-300/80 mt-1">{item.note}</p>
             )}
-            <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest mt-1">{item.register}</p>
+            <p className="text-[9px] font-bold text-ink-subtle uppercase tracking-widest mt-1">{item.register}</p>
           </div>
           <button
             onClick={() => speak(item.fr)}
-            className="p-3 bg-white/5 rounded-xl text-slate-400 group-hover:text-violet-400 group-hover:bg-violet-500/10 transition-all shrink-0"
+            className="p-3 bg-white/5 rounded-xl text-ink-muted group-hover:text-violet-400 group-hover:bg-violet-500/10 transition-all shrink-0"
           >
             <Volume2 size={18} />
           </button>

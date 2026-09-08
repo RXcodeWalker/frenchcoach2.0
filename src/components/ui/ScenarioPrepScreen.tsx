@@ -52,12 +52,12 @@ export const ScenarioPrepScreen: React.FC<ScenarioPrepScreenProps> = ({
             </div>
             <div>
               <h2 className="text-xl font-black text-white italic tracking-tighter uppercase">Preparation Phase</h2>
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Master the keywords before you speak</p>
+              <p className="text-[10px] font-bold text-ink-muted uppercase tracking-widest">Master the keywords before you speak</p>
             </div>
           </div>
           <button
             onClick={onCancel}
-            className="text-xs font-black text-slate-500 hover:text-white transition-colors uppercase tracking-widest"
+            className="text-xs font-black text-ink-muted hover:text-white transition-colors uppercase tracking-widest"
           >
             Cancel
           </button>
@@ -67,7 +67,7 @@ export const ScenarioPrepScreen: React.FC<ScenarioPrepScreenProps> = ({
           <button
             onClick={() => setViewMode('briefing')}
             className={`flex items-center gap-2 px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-              viewMode === 'briefing' ? 'bg-violet-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'
+              viewMode === 'briefing' ? 'bg-violet-600 text-white shadow-lg' : 'text-ink-muted hover:text-white'
             }`}
           >
             <Info size={14} /> Briefing
@@ -75,7 +75,7 @@ export const ScenarioPrepScreen: React.FC<ScenarioPrepScreenProps> = ({
           <button
             onClick={() => setViewMode('list')}
             className={`flex items-center gap-2 px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-              viewMode === 'list' ? 'bg-violet-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'
+              viewMode === 'list' ? 'bg-violet-600 text-white shadow-lg' : 'text-ink-muted hover:text-white'
             }`}
           >
             <BookOpen size={14} /> Study List
@@ -83,7 +83,7 @@ export const ScenarioPrepScreen: React.FC<ScenarioPrepScreenProps> = ({
           <button
             onClick={() => setViewMode('flashcards')}
             className={`flex items-center gap-2 px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-              viewMode === 'flashcards' ? 'bg-violet-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'
+              viewMode === 'flashcards' ? 'bg-violet-600 text-white shadow-lg' : 'text-ink-muted hover:text-white'
             }`}
           >
             <Layers size={14} /> Flashcards
@@ -105,13 +105,13 @@ export const ScenarioPrepScreen: React.FC<ScenarioPrepScreenProps> = ({
               <div>
                 <div className="flex items-center gap-2 mb-4">
                   <Info size={14} className="text-violet-400" />
-                  <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">The Setting</h4>
+                  <h4 className="text-[10px] font-black text-ink-muted uppercase tracking-[0.2em]">The Setting</h4>
                 </div>
-                <p className="text-sm text-slate-300 leading-relaxed bg-white/5 border border-white/10 rounded-2xl p-4">
+                <p className="text-sm text-ink-muted leading-relaxed bg-white/5 border border-white/10 rounded-2xl p-4">
                   {meta.briefingEn}
                 </p>
-                <p className="text-xs text-slate-500 mt-2">
-                  You'll be speaking with <span className="text-slate-300 font-bold">{meta.npc.nameFr}</span>, the {meta.npc.roleEn}.
+                <p className="text-xs text-ink-muted mt-2">
+                  You'll be speaking with <span className="text-ink-muted font-bold">{meta.npc.nameFr}</span>, the {meta.npc.roleEn}.
                 </p>
               </div>
 
@@ -119,13 +119,13 @@ export const ScenarioPrepScreen: React.FC<ScenarioPrepScreenProps> = ({
                 <div>
                   <div className="flex items-center gap-2 mb-4">
                     <Zap size={14} className="text-amber-400 fill-amber-400" />
-                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Possible Missions</h4>
+                    <h4 className="text-[10px] font-black text-ink-muted uppercase tracking-[0.2em]">Possible Missions</h4>
                   </div>
                   <ul className="space-y-2">
                     {missions.map((m) => (
                       <li
                         key={m.id}
-                        className="flex items-start gap-3 bg-white/5 border border-white/10 rounded-2xl p-3 text-sm text-slate-300"
+                        className="flex items-start gap-3 bg-white/5 border border-white/10 rounded-2xl p-3 text-sm text-ink-muted"
                       >
                         <span className="text-violet-400 mt-0.5">•</span>
                         <span>{m.en}</span>
@@ -138,7 +138,7 @@ export const ScenarioPrepScreen: React.FC<ScenarioPrepScreenProps> = ({
               <div>
                 <div className="flex items-center gap-2 mb-4">
                   <CheckCircle2 size={14} className="text-emerald-400" />
-                  <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Capability Check</h4>
+                  <h4 className="text-[10px] font-black text-ink-muted uppercase tracking-[0.2em]">Capability Check</h4>
                 </div>
                 <div className="space-y-2">
                   {sttSupported ? (
@@ -174,7 +174,7 @@ export const ScenarioPrepScreen: React.FC<ScenarioPrepScreenProps> = ({
                 <div>
                   <div className="flex items-center gap-2 mb-4">
                     <Zap size={14} className="text-amber-400 fill-amber-400" />
-                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Essential Vocabulary</h4>
+                    <h4 className="text-[10px] font-black text-ink-muted uppercase tracking-[0.2em]">Essential Vocabulary</h4>
                   </div>
                   <VocabListView items={coreEntries} />
                 </div>
@@ -183,7 +183,7 @@ export const ScenarioPrepScreen: React.FC<ScenarioPrepScreenProps> = ({
                 <div>
                   <div className="flex items-center gap-2 mb-4">
                     <Zap size={14} className="text-violet-400 fill-violet-400" />
-                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Extend Your Vocabulary</h4>
+                    <h4 className="text-[10px] font-black text-ink-muted uppercase tracking-[0.2em]">Extend Your Vocabulary</h4>
                   </div>
                   <VocabListView items={extendEntries} />
                 </div>

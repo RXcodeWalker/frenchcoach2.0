@@ -122,14 +122,14 @@ export const MicroDrillModal: React.FC<MicroDrillModalProps> = ({ skillId, onClo
             </div>
             <div>
               <h2 className="text-lg font-black text-white italic tracking-tighter uppercase">Recovery Drill</h2>
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+              <p className="text-[10px] font-bold text-ink-muted uppercase tracking-widest flex items-center gap-1.5">
                 Targeting: {skillDef?.name || skillId}
               </p>
             </div>
           </div>
           <button 
             onClick={onClose}
-            className="p-2 rounded-xl hover:bg-white/5 text-slate-500 transition-colors"
+            className="p-2 rounded-xl hover:bg-white/5 text-ink-muted transition-colors"
           >
             <X size={20} />
           </button>
@@ -144,7 +144,7 @@ export const MicroDrillModal: React.FC<MicroDrillModalProps> = ({ skillId, onClo
                 animate={{ opacity: 1, y: 0 }}
                 className="text-center py-8"
               >
-                <p className="text-slate-400 text-sm mb-8">No drill available yet for this skill.</p>
+                <p className="text-ink-muted text-sm mb-8">No drill available yet for this skill.</p>
                 <button
                   onClick={onClose}
                   className="w-full py-4 bg-white text-slate-950 font-black rounded-2xl shadow-xl hover:scale-105 transition-all uppercase italic tracking-wider"
@@ -163,7 +163,7 @@ export const MicroDrillModal: React.FC<MicroDrillModalProps> = ({ skillId, onClo
                   <CheckCircle2 size={40} className="text-emerald-400" />
                 </div>
                 <h3 className="text-2xl font-black text-white italic uppercase tracking-tighter mb-2">Drill Complete!</h3>
-                <p className="text-slate-400 text-sm mb-8">You've successfully addressed your weak point and earned <span className="text-violet-400 font-bold">{score} XP</span>.</p>
+                <p className="text-ink-muted text-sm mb-8">You've successfully addressed your weak point and earned <span className="text-violet-400 font-bold">{score} XP</span>.</p>
                 <button 
                   onClick={onClose}
                   className="w-full py-4 bg-white text-slate-950 font-black rounded-2xl shadow-xl hover:scale-105 transition-all uppercase italic tracking-wider"
@@ -175,7 +175,7 @@ export const MicroDrillModal: React.FC<MicroDrillModalProps> = ({ skillId, onClo
               <motion.div key={currentIndex} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                 {/* Question Info */}
                 <div className="text-center mb-8">
-                  <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest mb-2">Question {currentIndex + 1} of {questions.length}</p>
+                  <p className="text-[10px] font-bold text-ink-subtle uppercase tracking-widest mb-2">Question {currentIndex + 1} of {questions.length}</p>
                   <h3 className="text-xl font-bold text-white leading-tight">
                     {currentQuestion.english}
                   </h3>
@@ -184,7 +184,7 @@ export const MicroDrillModal: React.FC<MicroDrillModalProps> = ({ skillId, onClo
                 {/* Building Area */}
                 <div className="bg-navy/40 border border-white/5 rounded-3xl p-6 mb-6 min-h-[120px] flex flex-wrap justify-center gap-2 items-center">
                   {targetFragments.length === 0 && (
-                    <p className="text-slate-700 italic text-sm">Assemble the sentence...</p>
+                    <p className="text-ink-subtle italic text-sm">Assemble the sentence...</p>
                   )}
                   {targetFragments.map((frag, i) => (
                     <motion.button
@@ -235,7 +235,7 @@ export const MicroDrillModal: React.FC<MicroDrillModalProps> = ({ skillId, onClo
                       <div className="flex gap-2 w-full">
                         <button 
                           onClick={initQuestion}
-                          className="flex-1 py-4 bg-white/5 border border-white/10 text-slate-400 font-bold rounded-2xl hover:text-white flex items-center justify-center gap-2"
+                          className="flex-1 py-4 bg-white/5 border border-white/10 text-ink-muted font-bold rounded-2xl hover:text-white flex items-center justify-center gap-2"
                         >
                           <RefreshCcw size={18} /> Retry
                         </button>
@@ -254,7 +254,7 @@ export const MicroDrillModal: React.FC<MicroDrillModalProps> = ({ skillId, onClo
                   {feedback && currentQuestion.explanation && (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-4 p-4 rounded-xl bg-white/5 border border-white/5 flex gap-3">
                       <Lightbulb size={18} className="text-amber-500 shrink-0 mt-0.5" />
-                      <p className="text-xs text-slate-400 leading-relaxed">{currentQuestion.explanation}</p>
+                      <p className="text-xs text-ink-muted leading-relaxed">{currentQuestion.explanation}</p>
                     </motion.div>
                   )}
                 </div>

@@ -9,7 +9,7 @@ interface Props {
 export function RecentActivity({ sessions }: Props) {
   return (
     <motion.div variants={fadeUp}>
-      <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2.5">Recent Activity</h3>
+      <h3 className="text-[10px] font-black text-ink-muted uppercase tracking-wider mb-2.5">Recent Activity</h3>
       <div className="space-y-1.5">
         {sessions.slice(0, 3).map(session => (
           <motion.div
@@ -26,10 +26,10 @@ export function RecentActivity({ sessions }: Props) {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-bold text-white capitalize">{session.mode}</p>
-              <p className="text-[10px] text-slate-400 font-bold truncate">{session.topicKey ?? 'General'}</p>
+              <p className="text-[10px] text-ink-muted font-bold truncate">{session.topicKey ?? 'General'}</p>
             </div>
             <div className="text-right flex-shrink-0">
-              <p className="text-xs font-black text-white">{session.score == null ? '—' : session.score.toFixed(1)}<span className="text-[9px] text-slate-400 font-bold">/10</span></p>
+              <p className="text-xs font-black text-white">{session.score == null ? '—' : session.score.toFixed(1)}<span className="text-[9px] text-ink-muted font-bold">/10</span></p>
               <p className="text-[9px] text-emerald-400 font-bold">+{session.xpEarned} XP</p>
             </div>
           </motion.div>

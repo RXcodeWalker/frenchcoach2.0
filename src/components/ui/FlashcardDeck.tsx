@@ -75,22 +75,22 @@ export const FlashcardDeck: React.FC<FlashcardDeckProps> = ({ items }) => {
             className="absolute inset-0 bg-slate-900 border-2 border-violet-500/30 rounded-[2.5rem] flex flex-col items-center justify-center p-8 text-center shadow-2xl backface-hidden"
             style={{ transform: 'rotateY(180deg)' }}
           >
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-4 opacity-60">English</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-ink-muted mb-4 opacity-60">English</span>
             <h2 className="text-3xl font-black text-white italic tracking-tighter">{currentItem?.en}</h2>
             {currentItem?.literalEn && (
-              <p className="text-xs text-slate-400 italic mt-2">lit. "{currentItem.literalEn}"</p>
+              <p className="text-xs text-ink-muted italic mt-2">lit. "{currentItem.literalEn}"</p>
             )}
             {(currentItem?.note || currentItem?.register) && (
               <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
                 {currentItem?.register && (
-                  <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{currentItem.register}</span>
+                  <span className="text-[9px] font-black text-ink-muted uppercase tracking-widest">{currentItem.register}</span>
                 )}
               </div>
             )}
             {currentItem?.note && (
               <p className="text-[10px] text-amber-300/80 mt-2 max-w-[220px]">{currentItem.note}</p>
             )}
-            <p className="absolute bottom-8 text-[10px] font-bold text-slate-600 uppercase tracking-widest opacity-40">Click to flip back</p>
+            <p className="absolute bottom-8 text-[10px] font-bold text-ink-subtle uppercase tracking-widest opacity-40">Click to flip back</p>
           </div>
         </motion.div>
       </div>
@@ -98,7 +98,7 @@ export const FlashcardDeck: React.FC<FlashcardDeckProps> = ({ items }) => {
       <div className="flex items-center gap-6">
         <button 
           onClick={prevCard}
-          className="p-4 bg-white/5 rounded-2xl text-slate-400 hover:text-white hover:bg-white/10 transition-all border border-white/5"
+          className="p-4 bg-white/5 rounded-2xl text-ink-muted hover:text-white hover:bg-white/10 transition-all border border-white/5"
         >
           <ChevronLeft size={24} />
         </button>
@@ -115,7 +115,7 @@ export const FlashcardDeck: React.FC<FlashcardDeckProps> = ({ items }) => {
         </div>
         <button 
           onClick={nextCard}
-          className="p-4 bg-white/5 rounded-2xl text-slate-400 hover:text-white hover:bg-white/10 transition-all border border-white/5"
+          className="p-4 bg-white/5 rounded-2xl text-ink-muted hover:text-white hover:bg-white/10 transition-all border border-white/5"
         >
           <ChevronRight size={24} />
         </button>

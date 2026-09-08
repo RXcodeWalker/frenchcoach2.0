@@ -40,12 +40,12 @@ export function FrenchRoadmap() {
               <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Growth Path</span>
             </div>
             <h1 className="text-2xl md:text-3xl font-black text-white">French Roadmap</h1>
-            <p className="text-sm text-slate-500 mt-1">Your data-driven path to French mastery</p>
+            <p className="text-sm text-ink-muted mt-1">Your data-driven path to French mastery</p>
           </div>
 
           <div className="flex items-center gap-3">
              <div className="px-4 py-2 bg-white/5 rounded-xl border border-white/10">
-                <p className="text-[8px] font-bold text-slate-500 uppercase">Current Level</p>
+                <p className="text-[8px] font-bold text-ink-muted uppercase">Current Level</p>
                 <div className="flex items-center gap-1.5">
                    <span className="text-lg">{currentLevel.icon}</span>
                    <span className="font-black text-white italic">{currentLevel.name.toUpperCase()}</span>
@@ -67,7 +67,7 @@ export function FrenchRoadmap() {
               </div>
               <div>
                 <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">AI Recovery Recommendation</h3>
-                <p className="text-xs text-slate-400 max-w-lg mt-1">
+                <p className="text-xs text-ink-muted max-w-lg mt-1">
                   We've detected a trend in your <span className="text-white font-bold">{report.topWeaknesses?.[0]?.name}</span> mistakes.
                   Diverting to <span className="text-violet-400 font-bold">Weakness Analysis</span> is recommended before proceeding to the next node.
                 </p>
@@ -104,7 +104,7 @@ export function FrenchRoadmap() {
                 )}
                 <span className="text-2xl">{info.icon}</span>
                 <div>
-                  <p className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">{info.label}</p>
+                  <p className="text-[9px] font-bold text-ink-muted uppercase tracking-tighter">{info.label}</p>
                   <p className="text-xl font-black text-white">{score.toFixed(1)}</p>
                 </div>
                 <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
@@ -137,15 +137,15 @@ export function FrenchRoadmap() {
                     className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl border-2 shadow-lg transition-all duration-500 ${
                       isCompleted ? 'bg-emerald-500 border-emerald-400 text-white' :
                       isCurrent ? 'bg-blue-600 border-blue-400 text-white animate-pulse' :
-                      'bg-slate-900 border-white/10 text-slate-600'
+                      'bg-slate-900 border-white/10 text-ink-subtle'
                     }`}
                   >
                     {isCompleted ? <CheckCircle2 size={24} /> : level.icon}
                   </motion.div>
-                  <h2 className={`mt-3 font-black italic text-xl tracking-tighter ${isLocked ? 'text-slate-700' : 'text-white'}`}>
+                  <h2 className={`mt-3 font-black italic text-xl tracking-tighter ${isLocked ? 'text-ink-subtle' : 'text-white'}`}>
                     {level.name.toUpperCase()}
                   </h2>
-                  <p className="text-xs text-slate-500 max-w-xs text-center mt-1 hidden md:block">{level.description}</p>
+                  <p className="text-xs text-ink-muted max-w-xs text-center mt-1 hidden md:block">{level.description}</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative">
@@ -177,15 +177,15 @@ export function FrenchRoadmap() {
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
-                              <h3 className={`font-bold text-sm ${isNodeDone ? 'text-emerald-400' : isLocked ? 'text-slate-700' : 'text-white'}`}>
+                              <h3 className={`font-bold text-sm ${isNodeDone ? 'text-emerald-400' : isLocked ? 'text-ink-subtle' : 'text-white'}`}>
                                 {node.title}
                               </h3>
                               {node.isGate && <Lock size={12} className="text-amber-500" />}
                               {isNextNode && <Sparkles size={10} className="text-blue-400" />}
                             </div>
-                            <p className="text-[10px] text-slate-500 leading-relaxed pr-8">{node.desc}</p>
+                            <p className="text-[10px] text-ink-muted leading-relaxed pr-8">{node.desc}</p>
                           </div>
-                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${isNodeDone ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/5 text-slate-600'}`}>
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${isNodeDone ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/5 text-ink-subtle'}`}>
                             {isNodeDone ? <CheckCircle2 size={16} /> : isNextNode ? <Play size={16} className="text-blue-400 fill-current" /> : <Target size={16} />}
                           </div>
                         </div>
@@ -212,29 +212,29 @@ export function FrenchRoadmap() {
                       </div>
                       <div>
                         <h4 className="text-xs font-black text-white uppercase italic">Level Gate Requirements</h4>
-                        <p className="text-[10px] text-slate-500">Master these metrics to unlock {level.name}</p>
+                        <p className="text-[10px] text-ink-muted">Master these metrics to unlock {level.name}</p>
                       </div>
                     </div>
                     
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                       <div className="space-y-1">
-                        <p className="text-[8px] font-bold text-slate-500 uppercase">Avg Skill</p>
-                        <p className="text-sm font-black text-white">{data.skills.pronunciation > 0 ? (Object.values(data.skills).reduce((a,b)=>a+b,0)/5).toFixed(1) : 0} <span className="text-slate-500">/ {level.gate.avgSkill}</span></p>
+                        <p className="text-[8px] font-bold text-ink-muted uppercase">Avg Skill</p>
+                        <p className="text-sm font-black text-white">{data.skills.pronunciation > 0 ? (Object.values(data.skills).reduce((a,b)=>a+b,0)/5).toFixed(1) : 0} <span className="text-ink-muted">/ {level.gate.avgSkill}</span></p>
                       </div>
                       <div className="space-y-1">
-                        <p className="text-[8px] font-bold text-slate-500 uppercase">Sessions</p>
-                        <p className="text-sm font-black text-white">0 <span className="text-slate-500">/ {level.gate.minSessions}</span></p>
+                        <p className="text-[8px] font-bold text-ink-muted uppercase">Sessions</p>
+                        <p className="text-sm font-black text-white">0 <span className="text-ink-muted">/ {level.gate.minSessions}</span></p>
                       </div>
                       {level.gate.fluency && (
                         <div className="space-y-1">
-                          <p className="text-[8px] font-bold text-slate-500 uppercase">Fluency</p>
-                          <p className="text-sm font-black text-white">{data.skills.fluency} <span className="text-slate-500">/ {level.gate.fluency}</span></p>
+                          <p className="text-[8px] font-bold text-ink-muted uppercase">Fluency</p>
+                          <p className="text-sm font-black text-white">{data.skills.fluency} <span className="text-ink-muted">/ {level.gate.fluency}</span></p>
                         </div>
                       )}
                       {level.gate.grammar && (
                         <div className="space-y-1">
-                          <p className="text-[8px] font-bold text-slate-500 uppercase">Grammar</p>
-                          <p className="text-sm font-black text-white">{data.skills.grammar} <span className="text-slate-500">/ {level.gate.grammar}</span></p>
+                          <p className="text-[8px] font-bold text-ink-muted uppercase">Grammar</p>
+                          <p className="text-sm font-black text-white">{data.skills.grammar} <span className="text-ink-muted">/ {level.gate.grammar}</span></p>
                         </div>
                       )}
                     </div>
@@ -253,7 +253,7 @@ export function FrenchRoadmap() {
               </div>
               <div>
                 <p className="font-bold text-sm text-white">How it works</p>
-                <p className="text-[10px] text-slate-500 max-w-md">Your roadmap is updated after every AI-evaluated session. We use Exponential Moving Averages (EMA) to ensure your scores reflect your current ability fairly.</p>
+                <p className="text-[10px] text-ink-muted max-w-md">Your roadmap is updated after every AI-evaluated session. We use Exponential Moving Averages (EMA) to ensure your scores reflect your current ability fairly.</p>
               </div>
            </div>
            <button 

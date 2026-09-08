@@ -30,10 +30,10 @@ export function HistoryTab({ sessions }: Props) {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-[10px] font-semibold text-white capitalize">{session.mode}</p>
-              <p className="text-[9px] text-slate-700">{session.wordCount} words / {Math.floor(session.durationSec / 60)}m</p>
+              <p className="text-[9px] text-ink-subtle">{session.wordCount} words / {Math.floor(session.durationSec / 60)}m</p>
             </div>
             <div className="text-right flex-shrink-0">
-              <p className="text-[10px] font-bold text-white">{session.score == null ? '—' : session.score.toFixed(1)}<span className="text-[8px] text-slate-700">/10</span></p>
+              <p className="text-[10px] font-bold text-white">{session.score == null ? '—' : session.score.toFixed(1)}<span className="text-[8px] text-ink-subtle">/10</span></p>
               <p className="text-[9px] text-emerald-400 font-semibold">+{session.xpEarned} XP</p>
             </div>
           </motion.div>

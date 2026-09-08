@@ -56,7 +56,7 @@ export function TimelineItem({ session, isExpanded, onToggle }: Props) {
               <span className={`text-[10px] font-black uppercase tracking-tighter px-1.5 py-0.5 rounded shadow-inner ${isExam ? 'bg-amber-500/20 text-amber-400' : 'bg-blue-500/20 text-blue-400'}`}>
                 {session.mode.replace('_', ' ')}
               </span>
-              <span className="text-[10px] text-slate-500 font-bold flex items-center gap-1">
+              <span className="text-[10px] text-ink-muted font-bold flex items-center gap-1">
                 <Clock size={10} /> {time}
               </span>
             </div>
@@ -64,9 +64,9 @@ export function TimelineItem({ session, isExpanded, onToggle }: Props) {
               {session.topicKey ? session.topicKey.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : 'General Practice'}
             </h4>
             <div className="flex items-center gap-3 mt-1.5">
-              <span className="text-[10px] text-slate-500 font-medium">{session.wordCount} words spoken</span>
-              <span className="text-slate-700">•</span>
-              <span className="text-[10px] text-slate-500 font-medium">{(session.durationSec / 60).toFixed(1)} mins</span>
+              <span className="text-[10px] text-ink-muted font-medium">{session.wordCount} words spoken</span>
+              <span className="text-ink-subtle">•</span>
+              <span className="text-[10px] text-ink-muted font-medium">{(session.durationSec / 60).toFixed(1)} mins</span>
             </div>
           </div>
         </div>
@@ -87,10 +87,10 @@ export function TimelineItem({ session, isExpanded, onToggle }: Props) {
                 {session.score == null ? '—' : session.score.toFixed(1)}
               </p>
             </div>
-            <p className="text-[9px] text-slate-600 font-bold uppercase tracking-widest">Score</p>
+            <p className="text-[9px] text-ink-subtle font-bold uppercase tracking-widest">Score</p>
           </div>
           
-          <button className={`p-2 rounded-lg bg-white/5 text-slate-600 group-hover:text-white group-hover:bg-violet-500/20 transition-all ${isExpanded ? 'rotate-90 bg-violet-500/20 text-white shadow-[0_0_10px_rgba(139,92,246,0.3)]' : ''}`}>
+          <button className={`p-2 rounded-lg bg-white/5 text-ink-subtle group-hover:text-white group-hover:bg-violet-500/20 transition-all ${isExpanded ? 'rotate-90 bg-violet-500/20 text-white shadow-[0_0_10px_rgba(139,92,246,0.3)]' : ''}`}>
             <ChevronRight size={18} />
           </button>
         </div>
@@ -127,7 +127,7 @@ export function TimelineItem({ session, isExpanded, onToggle }: Props) {
                   }}
                   className="p-3 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition-colors"
                 >
-                  <p className="text-[9px] font-bold text-slate-500 uppercase mb-2">{m.label}</p>
+                  <p className="text-[9px] font-bold text-ink-muted uppercase mb-2">{m.label}</p>
                   <div className="flex items-center justify-between gap-2">
                     <p className={`text-lg font-black ${m.color}`}>{m.value}</p>
                     <div className="w-8 h-8 relative">
@@ -155,10 +155,10 @@ export function TimelineItem({ session, isExpanded, onToggle }: Props) {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.3 }}
               >
-                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+                <p className="text-[9px] font-bold text-ink-muted uppercase tracking-widest flex items-center gap-1.5">
                   <span className="w-1 h-1 rounded-full bg-violet-500" /> Transcript Snippet
                 </p>
-                <div className="p-4 rounded-xl bg-navy-950/50 border border-white/5 italic text-sm text-slate-400 relative">
+                <div className="p-4 rounded-xl bg-navy-950/50 border border-white/5 italic text-sm text-ink-muted relative">
                   <div className="absolute top-0 left-0 w-1 h-full bg-violet-500/20 rounded-l-xl" />
                   "{session.transcript.length > 200 ? session.transcript.slice(0, 200) + '...' : session.transcript}"
                 </div>
@@ -172,15 +172,15 @@ export function TimelineItem({ session, isExpanded, onToggle }: Props) {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
               >
-                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Key Mistakes</p>
+                <p className="text-[9px] font-bold text-ink-muted uppercase tracking-widest">Key Mistakes</p>
                 <div className="space-y-2">
                   <div className="flex items-start gap-2 text-xs p-2 rounded-lg hover:bg-white/5 transition-colors">
                     <div className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 flex-shrink-0 shadow-[0_0_5px_rgba(239,68,68,0.5)]" />
-                    <p className="text-slate-300"><span className="text-red-400 font-bold">Gender Agreement:</span> "Le maison" → <span className="text-emerald-400 font-bold">"La maison"</span></p>
+                    <p className="text-ink-muted"><span className="text-red-400 font-bold">Gender Agreement:</span> "Le maison" → <span className="text-emerald-400 font-bold">"La maison"</span></p>
                   </div>
                   <div className="flex items-start gap-2 text-xs p-2 rounded-lg hover:bg-white/5 transition-colors">
                     <div className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 flex-shrink-0 shadow-[0_0_5px_rgba(245,158,11,0.5)]" />
-                    <p className="text-slate-300"><span className="text-amber-400 font-bold">Verb Tense:</span> "Je mangé" → <span className="text-emerald-400 font-bold">"J'ai mangé"</span></p>
+                    <p className="text-ink-muted"><span className="text-amber-400 font-bold">Verb Tense:</span> "Je mangé" → <span className="text-emerald-400 font-bold">"J'ai mangé"</span></p>
                   </div>
                 </div>
               </motion.div>
@@ -191,7 +191,7 @@ export function TimelineItem({ session, isExpanded, onToggle }: Props) {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
               >
-                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Vocabulary Boosts</p>
+                <p className="text-[9px] font-bold text-ink-muted uppercase tracking-widest">Vocabulary Boosts</p>
                 <div className="flex flex-wrap gap-2">
                   {['magnifique', 'quotidiennement', 'néanmoins'].map((word, i) => (
                     <motion.span 

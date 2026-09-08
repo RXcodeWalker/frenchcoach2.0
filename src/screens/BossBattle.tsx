@@ -409,13 +409,13 @@ export function BossBattle() {
         <div className="flex items-center gap-3 mb-8">
           <button 
             onClick={() => navigate('/explore')}
-            className="p-2 rounded-lg hover:bg-white/5 text-slate-400 transition-colors"
+            className="p-2 rounded-lg hover:bg-white/5 text-ink-muted transition-colors"
           >
             <ArrowLeft size={20} />
           </button>
           <div>
             <h1 className="text-2xl font-black text-white">Boss Battles</h1>
-            <p className="text-sm text-slate-500">Defeat the grammar masters to earn massive XP</p>
+            <p className="text-sm text-ink-muted">Defeat the grammar masters to earn massive XP</p>
           </div>
         </div>
 
@@ -440,9 +440,9 @@ export function BossBattle() {
               </div>
               <h3 className="text-lg font-black text-white mb-1">{boss.name}</h3>
               <p className="text-[10px] font-bold uppercase tracking-widest mb-4" style={{ color: boss.color }}>{boss.title}</p>
-              <p className="text-xs text-slate-500 leading-relaxed mb-6">{boss.description}</p>
+              <p className="text-xs text-ink-muted leading-relaxed mb-6">{boss.description}</p>
               
-              <div className="flex items-center justify-center gap-4 text-[10px] font-bold text-slate-400">
+              <div className="flex items-center justify-center gap-4 text-[10px] font-bold text-ink-muted">
                 <span className="flex items-center gap-1"><Heart size={12} className="text-red-500" /> {boss.hp} HP</span>
                 <span className={`px-2 py-0.5 rounded-full border ${
                   boss.difficulty === 'easy' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
@@ -639,7 +639,7 @@ export function BossBattle() {
                       <span className="text-xs font-black text-white uppercase tracking-widest">
                         {selectedBoss.name} {isPhase2 && <span className="text-red-500">[PHASE 2]</span>}
                       </span>
-                      <span className="text-xs font-black text-slate-400">{bossHp} / {selectedBoss.hp}</span>
+                      <span className="text-xs font-black text-ink-muted">{bossHp} / {selectedBoss.hp}</span>
                     </div>
                     <div className="h-4 w-full bg-slate-900 rounded-full border-2 border-white/5 overflow-hidden shadow-inner">
                       <motion.div 
@@ -742,7 +742,7 @@ export function BossBattle() {
                       />
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-black text-slate-400">{playerHp} / 100</span>
+                      <span className="text-xs font-black text-ink-muted">{playerHp} / 100</span>
                       <span className="text-xs font-black text-white uppercase tracking-widest">YOU</span>
                     </div>
                   </div>
@@ -765,7 +765,7 @@ export function BossBattle() {
                       isStunned ? 'opacity-50 grayscale cursor-not-allowed' :
                       selectedAction === action.id 
                         ? `${action.color} text-white shadow-lg scale-105` 
-                        : 'bg-white/5 text-slate-500 hover:bg-white/10'
+                        : 'bg-white/5 text-ink-muted hover:bg-white/10'
                     }`}
                   >
                     {action.icon}
@@ -797,7 +797,7 @@ export function BossBattle() {
 
                 <div className={`text-center space-y-8 transition-all duration-500 ${selectedBoss.mechanic === 'blur' && isPhase2 ? 'blur-md hover:blur-none' : ''}`}>
                   <div>
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-3 block">Translate to French</span>
+                    <span className="text-[10px] font-black text-ink-muted uppercase tracking-[0.3em] mb-3 block">Translate to French</span>
                     <h2 className="text-3xl md:text-4xl font-black text-white leading-tight drop-shadow-lg">
                       {currentQ?.english}
                     </h2>
@@ -854,7 +854,7 @@ export function BossBattle() {
                       key={log + i}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1 - i * 0.15, x: 0 }}
-                      className="text-xs font-bold text-slate-400 flex items-center gap-2"
+                      className="text-xs font-bold text-ink-muted flex items-center gap-2"
                     >
                       <div className={`w-1.5 h-1.5 rounded-full ${
                         log.includes('Correct') || log.includes('Heal') ? 'bg-emerald-500' : 
@@ -888,7 +888,7 @@ export function BossBattle() {
               <motion.div 
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                 transition={{ delay: 1 }}
-                className="mt-12 text-2xl font-bold text-slate-400"
+                className="mt-12 text-2xl font-bold text-ink-muted"
               >
                 {selectedBoss.name} has been erased.
               </motion.div>
@@ -913,7 +913,7 @@ export function BossBattle() {
                 <Trophy size={48} className="text-amber-400 fill-amber-400/20" />
               </div>
               <h1 className="text-4xl font-black text-white">VICTORY!</h1>
-              <p className="text-slate-400">You have defeated <b>{selectedBoss?.name}</b>! Your grammar skills are truly legendary.</p>
+              <p className="text-ink-muted">You have defeated <b>{selectedBoss?.name}</b>! Your grammar skills are truly legendary.</p>
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
@@ -932,10 +932,10 @@ export function BossBattle() {
                 <Skull size={48} className="text-red-400 fill-red-400/20" />
               </div>
               <h1 className="text-4xl font-black text-white">DEFEATED</h1>
-              <p className="text-slate-400"><b>{selectedBoss?.name}</b> was too strong this time. Review your notes and try again!</p>
+              <p className="text-ink-muted"><b>{selectedBoss?.name}</b> was too strong this time. Review your notes and try again!</p>
               
               <div className="p-4 rounded-xl bg-slate-500/10 border border-white/10">
-                <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">Max Combo</p>
+                <p className="text-[10px] text-ink-muted font-black uppercase tracking-widest mb-1">Max Combo</p>
                 <p className="text-2xl font-black text-white">x{maxCombo}</p>
               </div>
             </>

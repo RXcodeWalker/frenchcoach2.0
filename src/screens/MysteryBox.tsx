@@ -39,7 +39,7 @@ export function MysteryBox() {
       <div className="absolute top-8 left-4 md:left-8">
         <button 
           onClick={() => navigate('/explore')}
-          className="p-2 rounded-lg hover:bg-white/5 text-slate-400 transition-colors"
+          className="p-2 rounded-lg hover:bg-white/5 text-ink-muted transition-colors"
         >
           <ArrowLeft size={20} />
         </button>
@@ -56,7 +56,7 @@ export function MysteryBox() {
             <span className="text-[10px] font-black text-pink-500 uppercase tracking-widest">Daily Surprise</span>
           </div>
           <h1 className="text-3xl font-black text-white">Mystery Box</h1>
-          <p className="text-slate-500 text-sm">What's inside? Open it to find out!</p>
+          <p className="text-ink-muted text-sm">What's inside? Open it to find out!</p>
         </div>
 
         <div className="relative h-64 flex items-center justify-center">
@@ -107,10 +107,10 @@ export function MysteryBox() {
                 <h3 className="text-2xl font-black text-white mb-1">{reward?.title}</h3>
                 <div className="flex items-center justify-center gap-2 mb-6">
                   <span className="text-4xl font-black text-yellow-400">+{reward?.value}</span>
-                  <span className="text-xl font-bold text-slate-500 uppercase tracking-widest">XP</span>
+                  <span className="text-xl font-bold text-ink-muted uppercase tracking-widest">XP</span>
                 </div>
                 
-                <p className="text-xs text-slate-500 mb-8 leading-relaxed">
+                <p className="text-xs text-ink-muted mb-8 leading-relaxed">
                   Congratulations! You've found a {reward?.title.toLowerCase()}. 
                   Your French journey is getting even better!
                 </p>

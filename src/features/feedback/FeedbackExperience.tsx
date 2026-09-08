@@ -58,7 +58,7 @@ function ViewModeToggle() {
           className={`px-3 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-colors ${
             state.viewMode === mode
               ? 'bg-violet-500/20 text-violet-300'
-              : 'text-slate-500 hover:text-slate-300'
+              : 'text-ink-muted hover:text-ink-muted'
           }`}
         >
           {mode === 'coach' ? 'Coach' : 'Full report'}
@@ -218,7 +218,7 @@ function FeedbackContent({
         ) : pronunciationStatus === 'pending' ? (
           <div className="rounded-xl glass p-4 flex items-center gap-2.5">
             <Loader2 size={14} className="text-cyan-400 animate-spin shrink-0" />
-            <p className="text-[10px] text-slate-500">Analysing pronunciation…</p>
+            <p className="text-[10px] text-ink-muted">Analysing pronunciation…</p>
           </div>
         ) : pronunciationStatus === 'failed' ? (
           <CollapsibleCard
@@ -228,8 +228,8 @@ function FeedbackContent({
             className="border border-cyan-500/15"
           >
             <div className="px-1 py-2">
-              <p className="text-[10px] font-semibold text-slate-300">Pronunciation analysis isn't available right now.</p>
-              <p className="text-[9px] text-slate-500 mt-1">
+              <p className="text-[10px] font-semibold text-ink-muted">Pronunciation analysis isn't available right now.</p>
+              <p className="text-[9px] text-ink-muted mt-1">
                 Our pronunciation service didn't respond in time — this can happen when it's just waking up.
                 Your recording and the rest of your feedback are safe. Try your next answer and it should be back.
               </p>
@@ -280,7 +280,7 @@ export function FeedbackExperience({
         animate={{ opacity: 1, y: 0 }}
       >
         <Loader2 size={24} className="text-violet-400 animate-spin" />
-        <p className="text-sm text-slate-500">{phaseLabel}</p>
+        <p className="text-sm text-ink-muted">{phaseLabel}</p>
       </motion.div>
     );
   }

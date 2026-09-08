@@ -58,13 +58,13 @@ function MiniLessonContent({ lesson }: { lesson: MiniLesson }) {
   return (
     <>
       <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700/40">
-        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wide mb-1">Rule</p>
-        <p className="text-[10px] text-slate-300">{lesson.rule}</p>
+        <p className="text-[9px] font-bold text-ink-muted uppercase tracking-wide mb-1">Rule</p>
+        <p className="text-[10px] text-ink-muted">{lesson.rule}</p>
       </div>
 
       {lesson.examples.length > 0 && (
         <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700/40">
-          <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wide mb-2">
+          <p className="text-[9px] font-bold text-ink-muted uppercase tracking-wide mb-2">
             Examples
           </p>
           <div className="space-y-1.5">
@@ -92,13 +92,13 @@ function TeachMeContent({ teachMe }: { teachMe: TeachMe }) {
   return (
     <>
       <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700/40">
-        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wide mb-1">Rule</p>
-        <p className="text-[10px] text-slate-300">{teachMe.rule}</p>
+        <p className="text-[9px] font-bold text-ink-muted uppercase tracking-wide mb-1">Rule</p>
+        <p className="text-[10px] text-ink-muted">{teachMe.rule}</p>
       </div>
 
       <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700/40">
-        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wide mb-1">Why you got it wrong</p>
-        <p className="text-[10px] text-slate-400">{teachMe.why}</p>
+        <p className="text-[9px] font-bold text-ink-muted uppercase tracking-wide mb-1">Why you got it wrong</p>
+        <p className="text-[10px] text-ink-muted">{teachMe.why}</p>
       </div>
 
       {teachMe.mnemonic && (
@@ -110,18 +110,18 @@ function TeachMeContent({ teachMe }: { teachMe: TeachMe }) {
 
       {teachMe.examples.length > 0 && (
         <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700/40">
-          <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wide mb-2">
+          <p className="text-[9px] font-bold text-ink-muted uppercase tracking-wide mb-2">
             Mini-drills ({teachMe.examples.length})
           </p>
           <div className="space-y-2">
             {teachMe.examples.map((ex, i) => (
               <div key={i} className="flex items-start gap-2">
-                <span className="text-[8px] font-black text-slate-600 mt-0.5 shrink-0 w-10">
+                <span className="text-[8px] font-black text-ink-subtle mt-0.5 shrink-0 w-10">
                   Drill {i + 1}
                 </span>
                 <div>
                   <p className="text-[10px] text-emerald-300 font-medium">{ex.fr}</p>
-                  <p className="text-[10px] text-slate-500">{ex.en}</p>
+                  <p className="text-[10px] text-ink-muted">{ex.en}</p>
                 </div>
               </div>
             ))}

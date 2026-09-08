@@ -16,7 +16,7 @@ export function PersonalizedContextBanner({ sessionsAnalyzed, narrative }: Props
           Personalized · {sessionsAnalyzed} session{sessionsAnalyzed !== 1 ? 's' : ''} analyzed
         </p>
         {narrative && (
-          <p className="text-[10px] text-slate-400 leading-relaxed">{narrative}</p>
+          <p className="text-[10px] text-ink-muted leading-relaxed">{narrative}</p>
         )}
       </div>
     </div>

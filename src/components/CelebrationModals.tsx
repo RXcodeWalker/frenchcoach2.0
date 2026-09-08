@@ -91,12 +91,12 @@ export function LevelUpCelebration({ newLevel, onDismiss }: LevelUpProps) {
           >
             <div className="p-3 rounded-xl bg-white/5 border border-white/10">
               <Zap size={16} className="text-amber-400 mx-auto mb-1" />
-              <p className="text-[10px] text-slate-400 uppercase font-bold">New Bonus</p>
+              <p className="text-[10px] text-ink-muted uppercase font-bold">New Bonus</p>
               <p className="text-sm font-bold text-white">+5% XP</p>
             </div>
             <div className="p-3 rounded-xl bg-white/5 border border-white/10">
               <Star size={16} className="text-cyan-400 mx-auto mb-1" />
-              <p className="text-[10px] text-slate-400 uppercase font-bold">Unlocked</p>
+              <p className="text-[10px] text-ink-muted uppercase font-bold">Unlocked</p>
               <p className="text-sm font-bold text-white">Advanced Labs</p>
             </div>
           </motion.div>
@@ -154,14 +154,14 @@ export function AchievementUnlocked({ name, icon, description, xpReward, onDismi
             <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Achievement Unlocked</span>
           </div>
           <h3 className="text-white font-bold text-lg leading-tight">{name}</h3>
-          <p className="text-slate-400 text-xs mt-0.5">{description}</p>
+          <p className="text-ink-muted text-xs mt-0.5">{description}</p>
           <div className="mt-2 text-emerald-400 text-xs font-bold flex items-center gap-1">
             <Zap size={10} /> +{xpReward} XP REWARD
           </div>
         </div>
         <button 
           onClick={onDismiss}
-          className="text-slate-500 hover:text-white transition-colors p-1"
+          className="text-ink-muted hover:text-white transition-colors p-1"
         >
           <ChevronX size={16} />
         </button>

@@ -178,7 +178,7 @@ export function Onboarding() {
           {step === 1 && (
             <motion.div key="step1" variants={STEP_VARIANTS} initial="initial" animate="animate" exit="exit">
               <h1 className="text-2xl font-black text-white mb-1 text-center">What are you studying for?</h1>
-              <p className="text-sm text-slate-500 text-center mb-6">Your coach will personalise every session around your goal.</p>
+              <p className="text-sm text-ink-muted text-center mb-6">Your coach will personalise every session around your goal.</p>
               <div className="grid grid-cols-1 gap-2">
                 {BOARDS.map(({ value, label, sub, Icon }) => (
                   <button
@@ -193,11 +193,11 @@ export function Onboarding() {
                     <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
                       examBoard === value ? 'bg-violet-500/20' : 'bg-slate-800'
                     }`}>
-                      <Icon size={16} className={examBoard === value ? 'text-violet-400' : 'text-slate-500'} />
+                      <Icon size={16} className={examBoard === value ? 'text-violet-400' : 'text-ink-muted'} />
                     </div>
                     <div>
                       <p className="text-sm font-bold text-white">{label}</p>
-                      <p className="text-[10px] text-slate-600">{sub}</p>
+                      <p className="text-[10px] text-ink-subtle">{sub}</p>
                     </div>
                     {examBoard === value && (
                       <div className="ml-auto w-4 h-4 rounded-full bg-violet-500 flex items-center justify-center">
@@ -217,7 +217,7 @@ export function Onboarding() {
               {!isEditMode && (
                 <button
                   onClick={skipSurvey}
-                  className="mt-2 w-full py-2 rounded-xl font-semibold text-xs text-slate-500 hover:text-slate-400 transition-colors"
+                  className="mt-2 w-full py-2 rounded-xl font-semibold text-xs text-ink-muted hover:text-ink-muted transition-colors"
                 >
                   Skip for now
                 </button>
@@ -227,11 +227,11 @@ export function Onboarding() {
 
           {step === 2 && (
             <motion.div key="step2" variants={STEP_VARIANTS} initial="initial" animate="animate" exit="exit">
-              <button onClick={back} className="flex items-center gap-1 text-slate-500 text-xs mb-6 hover:text-slate-400 transition-colors">
+              <button onClick={back} className="flex items-center gap-1 text-ink-muted text-xs mb-6 hover:text-ink-muted transition-colors">
                 <ChevronLeft size={14} /> Back
               </button>
               <h1 className="text-2xl font-black text-white mb-1 text-center">When is your exam?</h1>
-              <p className="text-sm text-slate-500 text-center mb-6">Your coach will ramp up intensity as the date approaches.</p>
+              <p className="text-sm text-ink-muted text-center mb-6">Your coach will ramp up intensity as the date approaches.</p>
 
               {pastDateWarning && (
                 <div className="mb-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-400">
@@ -240,7 +240,7 @@ export function Onboarding() {
               )}
 
               <div className="rounded-xl border border-slate-700/50 bg-white/[0.02] p-4">
-                <label className="block text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-2">Exam date</label>
+                <label className="block text-[10px] font-semibold text-ink-muted uppercase tracking-wider mb-2">Exam date</label>
                 <input
                   type="date"
                   min={today}
@@ -259,7 +259,7 @@ export function Onboarding() {
               </button>
               <button
                 onClick={() => { setExamDateLocal(''); advance(); }}
-                className="mt-2 w-full py-2 rounded-xl font-semibold text-xs text-slate-500 hover:text-slate-400 transition-colors"
+                className="mt-2 w-full py-2 rounded-xl font-semibold text-xs text-ink-muted hover:text-ink-muted transition-colors"
               >
                 Skip — I'll add it later
               </button>
@@ -268,11 +268,11 @@ export function Onboarding() {
 
           {step === 3 && (
             <motion.div key="step3" variants={STEP_VARIANTS} initial="initial" animate="animate" exit="exit">
-              <button onClick={back} className="flex items-center gap-1 text-slate-500 text-xs mb-6 hover:text-slate-400 transition-colors">
+              <button onClick={back} className="flex items-center gap-1 text-ink-muted text-xs mb-6 hover:text-ink-muted transition-colors">
                 <ChevronLeft size={14} /> Back
               </button>
               <h1 className="text-2xl font-black text-white mb-1 text-center">What's your main goal?</h1>
-              <p className="text-sm text-slate-500 text-center mb-6">This shapes how your coach designs each session.</p>
+              <p className="text-sm text-ink-muted text-center mb-6">This shapes how your coach designs each session.</p>
               <div className="grid grid-cols-1 gap-2">
                 {INTENTS.map(({ value, label, sub, Icon }) => (
                   <button
@@ -287,11 +287,11 @@ export function Onboarding() {
                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
                       goalIntent === value ? 'bg-violet-500/20' : 'bg-slate-800'
                     }`}>
-                      <Icon size={18} className={goalIntent === value ? 'text-violet-400' : 'text-slate-500'} />
+                      <Icon size={18} className={goalIntent === value ? 'text-violet-400' : 'text-ink-muted'} />
                     </div>
                     <div>
                       <p className="text-sm font-bold text-white">{label}</p>
-                      <p className="text-[10px] text-slate-600">{sub}</p>
+                      <p className="text-[10px] text-ink-subtle">{sub}</p>
                     </div>
                     {goalIntent === value && (
                       <div className="ml-auto w-4 h-4 rounded-full bg-violet-500 flex items-center justify-center">
@@ -331,11 +331,11 @@ export function Onboarding() {
               transition={{ duration: 0.18 }}
             >
               <h3 className="font-black text-white text-base mb-1.5">Update learning goals?</h3>
-              <p className="text-[11px] text-slate-500 mb-5">Your coach recommendations will be regenerated to reflect your changes.</p>
+              <p className="text-[11px] text-ink-muted mb-5">Your coach recommendations will be regenerated to reflect your changes.</p>
               <div className="flex gap-2">
                 <button
                   onClick={() => setShowConfirm(false)}
-                  className="flex-1 py-2.5 rounded-lg border border-slate-700 text-xs font-semibold text-slate-400 hover:bg-white/[0.03] transition-colors"
+                  className="flex-1 py-2.5 rounded-lg border border-slate-700 text-xs font-semibold text-ink-muted hover:bg-white/[0.03] transition-colors"
                 >
                   Cancel
                 </button>

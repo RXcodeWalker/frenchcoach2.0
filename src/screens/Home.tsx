@@ -122,8 +122,8 @@ export function Home() {
               <Sparkles size={20} className="text-violet-400" />
             </div>
             <div>
-              <p className="text-sm font-medium italic text-slate-300">"{quote.text}"</p>
-              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-1">{quote.translation}</p>
+              <p className="text-sm font-medium italic text-ink-muted">"{quote.text}"</p>
+              <p className="text-[10px] text-ink-muted font-bold uppercase tracking-wider mt-1">{quote.translation}</p>
             </div>
           </motion.div>
 
@@ -166,7 +166,7 @@ export function Home() {
                     {dailyPlan.urgencyMessage ?? dailyPlan.explanation}
                   </p>
                   {dailyPlan.urgencyMessage && (
-                    <p className="text-xs text-slate-400 mt-1 line-clamp-1">{dailyPlan.explanation}</p>
+                    <p className="text-xs text-ink-muted mt-1 line-clamp-1">{dailyPlan.explanation}</p>
                   )}
                   {recommendation && (
                     <div className="mt-3 space-y-2">
@@ -183,13 +183,13 @@ export function Home() {
                         </div>
                       )}
                       {recommendation.rationale.evidenceSummary && (
-                        <p className="text-[11px] text-slate-400 leading-snug line-clamp-2">
-                          <span className="text-slate-500 font-semibold">Because I noticed: </span>
+                        <p className="text-[11px] text-ink-muted leading-snug line-clamp-2">
+                          <span className="text-ink-muted font-semibold">Because I noticed: </span>
                           {recommendation.rationale.evidenceSummary}
                         </p>
                       )}
                       {recommendation.rationale.successCriteria[0] && (
-                        <p className="text-[11px] text-slate-500 leading-snug line-clamp-1">
+                        <p className="text-[11px] text-ink-muted leading-snug line-clamp-1">
                           <span className="font-semibold">Success today: </span>
                           {recommendation.rationale.successCriteria[0]}
                         </p>
@@ -231,7 +231,7 @@ export function Home() {
                     <h3 className="text-white font-bold">{weakestTopic ?? 'General Practice'}</h3>
                   </div>
                 </div>
-                <p className="text-xs text-slate-400 mb-4">
+                <p className="text-xs text-ink-muted mb-4">
                   {weakestTopic ? 'Your lowest-scoring topic — target it to raise your overall score.' : 'Complete some sessions to unlock personalised topic focus.'}
                 </p>
                 <div className="mt-4 flex items-center gap-2 text-[10px] font-bold text-blue-400 group-hover:gap-3 transition-all">
@@ -265,7 +265,7 @@ export function Home() {
                       </div>
                     ))}
                   </div>
-                  <p className="text-xs text-slate-500 font-medium">{todayCount}/3 sessions today</p>
+                  <p className="text-xs text-ink-muted font-medium">{todayCount}/3 sessions today</p>
                 </div>
                 <div className="mt-4 flex items-center gap-2 text-[10px] font-bold text-amber-400 group-hover:gap-3 transition-all">
                   VIEW CHALLENGE <ArrowRight size={12} />
@@ -284,7 +284,7 @@ export function Home() {
                     <TrendingUp size={16} className="text-violet-400" />
                     <h3 className="font-bold text-white text-base">Weekly Momentum</h3>
                   </div>
-                  <div className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold text-slate-400">
+                  <div className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold text-ink-muted">
                     AVG SCORE: {stats.avgScore != null ? stats.avgScore.toFixed(1) : '—'}
                   </div>
                 </div>
@@ -316,7 +316,7 @@ export function Home() {
                     </div>
                     <div className={`${stat.color} mb-2`}>{stat.icon}</div>
                     <p className="text-2xl font-black text-white">{stat.value}</p>
-                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{stat.label}</p>
+                    <p className="text-[10px] text-ink-muted font-bold uppercase tracking-widest">{stat.label}</p>
                   </motion.div>
                 ))}
               </motion.div>

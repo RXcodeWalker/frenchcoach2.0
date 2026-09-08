@@ -52,7 +52,7 @@ export function ReportView({ feedback, transcript, majorIssues, polishIssues, on
       {allIssues.length > 0 && (
         <div className="rounded-xl glass p-4">
           <div className="flex items-center justify-between mb-2.5">
-            <p className="text-[9px] font-bold text-slate-600 uppercase tracking-wider">
+            <p className="text-[9px] font-bold text-ink-subtle uppercase tracking-wider">
               Corrections ({allIssues.length})
             </p>
             <button

@@ -108,7 +108,7 @@ export function Challenges() {
           <div className="flex items-center gap-4">
             <button 
               onClick={() => navigate(-1)}
-              className="w-10 h-10 rounded-xl glass flex items-center justify-center text-slate-400 hover:text-white transition-colors md:hidden"
+              className="w-10 h-10 rounded-xl glass flex items-center justify-center text-ink-muted hover:text-white transition-colors md:hidden"
             >
               <ArrowLeft size={20} />
             </button>
@@ -118,7 +118,7 @@ export function Challenges() {
                 <span className="text-[10px] font-bold text-rose-500 uppercase tracking-wider">Battlefield</span>
               </div>
               <h1 className="text-2xl md:text-3xl font-black text-white">Challenges</h1>
-              <p className="text-sm text-slate-500 mt-1">Push your limits and earn massive rewards</p>
+              <p className="text-sm text-ink-muted mt-1">Push your limits and earn massive rewards</p>
             </div>
           </div>
 
@@ -126,7 +126,7 @@ export function Challenges() {
             <button
               onClick={() => setActiveTab('weekly')}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-bold transition-all ${
-                activeTab === 'weekly' ? 'bg-rose-500/10 text-rose-500' : 'text-slate-500 hover:text-slate-300'
+                activeTab === 'weekly' ? 'bg-rose-500/10 text-rose-500' : 'text-ink-muted hover:text-ink-muted'
               }`}
             >
               <Star size={14} /> WEEKLY
@@ -134,7 +134,7 @@ export function Challenges() {
             <button
               onClick={() => setActiveTab('global')}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-bold transition-all ${
-                activeTab === 'global' ? 'bg-rose-500/10 text-rose-500' : 'text-slate-500 hover:text-slate-300'
+                activeTab === 'global' ? 'bg-rose-500/10 text-rose-500' : 'text-ink-muted hover:text-ink-muted'
               }`}
             >
               <Users size={14} /> GLOBAL
@@ -159,11 +159,11 @@ export function Challenges() {
                 <div className="relative flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                   <div>
                     <h2 className="text-xl font-black text-white italic tracking-tighter uppercase mb-1">Weekly Marathon</h2>
-                    <p className="text-xs text-slate-500">Challenges reset in 3 days 14 hours</p>
+                    <p className="text-xs text-ink-muted">Challenges reset in 3 days 14 hours</p>
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="text-right">
-                      <p className="text-[10px] font-bold text-slate-600 uppercase">Weekly XP</p>
+                      <p className="text-[10px] font-bold text-ink-subtle uppercase">Weekly XP</p>
                       <p className="text-xl font-black text-white">{userXpThisWeek} XP</p>
                     </div>
                     <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500">
@@ -196,17 +196,17 @@ export function Challenges() {
                         <div className="flex justify-between items-start">
                           <div>
                             <h3 className="font-bold text-white">{challenge.title}</h3>
-                            <p className="text-xs text-slate-500">{challenge.description}</p>
+                            <p className="text-xs text-ink-muted">{challenge.description}</p>
                           </div>
                           <div className="text-right">
                             <p className="text-[10px] font-bold text-amber-400">+{challenge.reward} XP</p>
-                            <p className="text-[9px] text-slate-600 font-medium">{challenge.timeLeft} left</p>
+                            <p className="text-[9px] text-ink-subtle font-medium">{challenge.timeLeft} left</p>
                           </div>
                         </div>
 
                         <div className="space-y-1.5">
                           <div className="flex justify-between text-[10px] font-bold">
-                            <span className="text-slate-600">Progress</span>
+                            <span className="text-ink-subtle">Progress</span>
                             <span className="text-white">{challenge.progress} / {challenge.goal}</span>
                           </div>
                           <div className="h-2 bg-white/5 rounded-full overflow-hidden">
@@ -228,7 +228,7 @@ export function Challenges() {
                             ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/20 hover:scale-105'
                             : isClaimed(challenge.id)
                             ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 cursor-default'
-                            : 'bg-white/5 text-slate-700 cursor-not-allowed'
+                            : 'bg-white/5 text-ink-subtle cursor-not-allowed'
                         }`}
                       >
                         {isClaimed(challenge.id) ? 'CLAIMED' : 'CLAIM XP'}
@@ -257,18 +257,18 @@ export function Challenges() {
                   </div>
                   <div>
                     <h2 className="text-3xl font-black text-white italic tracking-tighter uppercase">{GLOBAL_CHALLENGE.title}</h2>
-                    <p className="text-slate-400 max-w-md mx-auto">{GLOBAL_CHALLENGE.description}</p>
+                    <p className="text-ink-muted max-w-md mx-auto">{GLOBAL_CHALLENGE.description}</p>
                   </div>
                 </div>
 
                 <div className="relative space-y-4 max-w-xl mx-auto">
                   <div className="flex justify-between items-end">
                     <div className="text-left">
-                      <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Global Progress</p>
+                      <p className="text-[10px] font-bold text-ink-muted uppercase tracking-widest">Global Progress</p>
                       <p className="text-2xl font-black text-white tracking-tight">{GLOBAL_CHALLENGE.progress.toLocaleString()}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Goal</p>
+                      <p className="text-[10px] font-bold text-ink-muted uppercase tracking-widest">Goal</p>
                       <p className="text-lg font-bold text-blue-400">{GLOBAL_CHALLENGE.goal.toLocaleString()}</p>
                     </div>
                   </div>
@@ -284,12 +284,12 @@ export function Challenges() {
                   <div className="flex justify-center gap-8 pt-4">
                     <div className="text-center">
                       <p className="text-xl font-black text-white">{GLOBAL_CHALLENGE.participants.toLocaleString()}</p>
-                      <p className="text-[8px] font-bold text-slate-600 uppercase">Contributors</p>
+                      <p className="text-[8px] font-bold text-ink-subtle uppercase">Contributors</p>
                     </div>
                     <div className="w-px h-8 bg-white/5" />
                     <div className="text-center">
                       <p className="text-xl font-black text-emerald-400">74.5%</p>
-                      <p className="text-[8px] font-bold text-slate-600 uppercase">Complete</p>
+                      <p className="text-[8px] font-bold text-ink-subtle uppercase">Complete</p>
                     </div>
                   </div>
                 </div>

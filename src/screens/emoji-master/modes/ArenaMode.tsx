@@ -171,7 +171,7 @@ export function ArenaMode({ run, onQuit }: ArenaModeProps) {
           <button
             type="button"
             onClick={onQuit}
-            className="text-xs font-bold text-slate-500 hover:text-white"
+            className="text-xs font-bold text-ink-muted hover:text-white"
           >
             Quit
           </button>
@@ -185,7 +185,7 @@ export function ArenaMode({ run, onQuit }: ArenaModeProps) {
                 className={
                   i < hearts
                     ? 'text-red-500 fill-red-500'
-                    : 'text-slate-700 fill-slate-800'
+                    : 'text-ink-subtle fill-slate-800'
                 }
               />
             ))}
@@ -215,7 +215,7 @@ export function ArenaMode({ run, onQuit }: ArenaModeProps) {
               </p>
             </div>
           </div>
-          <span className="font-mono text-sm font-bold text-slate-300">
+          <span className="font-mono text-sm font-bold text-ink-muted">
             {bossHp}/{BOSS_HP}
           </span>
         </div>
@@ -282,7 +282,7 @@ export function ArenaMode({ run, onQuit }: ArenaModeProps) {
           </div>
         )}
         <div className="text-8xl md:text-9xl leading-none">{q.emojis}</div>
-        <p className="mt-4 text-slate-400 font-bold">Strike with the French word!</p>
+        <p className="mt-4 text-ink-muted font-bold">Strike with the French word!</p>
         <GameFeedbackOverlay
           feedback={feedback}
           correctAnswer={q.french}

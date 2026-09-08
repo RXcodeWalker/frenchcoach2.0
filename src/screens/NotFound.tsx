@@ -7,7 +7,7 @@ export function NotFound() {
     <MarketingLayout route="/404">
       <div className="max-w-2xl mx-auto px-4 md:px-6 py-20 text-center">
         <h1 className="text-3xl md:text-4xl font-black mb-4">Page not found</h1>
-        <p className="text-slate-500 text-lg leading-relaxed mb-8">
+        <p className="text-ink-muted text-lg leading-relaxed mb-8">
           That page doesn't exist. Here are a few places to go instead:
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">

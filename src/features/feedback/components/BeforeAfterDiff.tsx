@@ -20,7 +20,7 @@ function DiffChip({ op }: { op: AnnotatedDiffOp }) {
   return (
     <span className="inline">
       {op.type === 'delete' || op.type === 'replace' ? (
-        <span className="line-through decoration-red-400/70 decoration-2 text-slate-500">{op.beforeText}</span>
+        <span className="line-through decoration-red-400/70 decoration-2 text-ink-muted">{op.beforeText}</span>
       ) : null}
       {op.type === 'insert' || op.type === 'replace' ? (
         hasExplanation ? (
@@ -58,7 +58,7 @@ function SafeCorrectionsList({ issues }: { issues: CoachingIssue[] }) {
         <div key={issue.id} className="flex items-start gap-1.5 text-[10px] p-2 rounded-lg bg-slate-800/40 border border-slate-700/30">
           <CheckCircle size={10} className="text-emerald-400 flex-shrink-0 mt-0.5" />
           <div>
-            {issue.quote && <span className="font-mono text-slate-500 line-through mr-1">{issue.quote}</span>}
+            {issue.quote && <span className="font-mono text-ink-muted line-through mr-1">{issue.quote}</span>}
             <span className="text-emerald-300 font-medium">{issue.correction}</span>
           </div>
         </div>
@@ -76,7 +76,7 @@ export function BeforeAfterDiff({ transcript, improvedAnswer, changes, issues = 
     if (issues.length === 0) return null;
     return (
       <motion.div variants={fadeUp} initial="hidden" animate="show" className="rounded-xl glass p-4">
-        <p className="text-[9px] font-bold text-slate-600 uppercase tracking-wider mb-2.5">Safe Corrections</p>
+        <p className="text-[9px] font-bold text-ink-subtle uppercase tracking-wider mb-2.5">Safe Corrections</p>
         <SafeCorrectionsList issues={issues} />
       </motion.div>
     );
@@ -89,11 +89,11 @@ export function BeforeAfterDiff({ transcript, improvedAnswer, changes, issues = 
 
   return (
     <motion.div variants={fadeUp} initial="hidden" animate="show" className="rounded-xl glass p-4">
-      <p className="text-[9px] font-bold text-slate-600 uppercase tracking-wider mb-2.5">Before → After</p>
+      <p className="text-[9px] font-bold text-ink-subtle uppercase tracking-wider mb-2.5">Before → After</p>
       <div className="space-y-2">
         <div className="p-3 rounded-lg bg-slate-700/30 border border-slate-600/20">
-          <p className="text-[8px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">Your answer</p>
-          <p className="text-[10px] text-slate-400 leading-relaxed italic">{transcript}</p>
+          <p className="text-[8px] font-bold text-ink-subtle uppercase tracking-wider mb-1.5">Your answer</p>
+          <p className="text-[10px] text-ink-muted leading-relaxed italic">{transcript}</p>
         </div>
         <div className="flex justify-center">
           <ArrowDown size={14} className="text-sky-500/60" />
@@ -108,7 +108,7 @@ export function BeforeAfterDiff({ transcript, improvedAnswer, changes, issues = 
           </p>
         </div>
         {annotated.some(op => op.annotation) && (
-          <p className="text-[8px] text-slate-600 flex items-center gap-1">
+          <p className="text-[8px] text-ink-subtle flex items-center gap-1">
             <ChevronDown size={9} /> Tap a highlighted word for why it changed
           </p>
         )}

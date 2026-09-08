@@ -124,7 +124,7 @@ function XPToast() {
             </div>
             <div>
               <p className="font-black text-emerald-400 text-xs">+{state.lastXPGained} XP</p>
-              <p className="text-[9px] text-slate-500 font-bold uppercase tracking-tighter">You're crushing it!</p>
+              <p className="text-[9px] text-ink-muted font-bold uppercase tracking-tighter">You're crushing it!</p>
             </div>
           </div>
         </motion.div>

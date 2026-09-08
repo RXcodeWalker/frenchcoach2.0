@@ -74,7 +74,7 @@ export function QuestionList() {
             key={s}
             onClick={() => setFilter(s)}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize ${
-              filter === s ? 'bg-slate-700 text-white' : 'bg-slate-900 text-slate-400 hover:text-slate-200'
+              filter === s ? 'bg-slate-700 text-white' : 'bg-slate-900 text-ink-muted hover:text-slate-200'
             }`}
           >
             {s}
@@ -85,11 +85,11 @@ export function QuestionList() {
       {error && <div className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</div>}
 
       {loading ? (
-        <div className="flex items-center gap-2 text-sm text-slate-400 py-10"><Loader2 size={16} className="animate-spin" /> Loading…</div>
+        <div className="flex items-center gap-2 text-sm text-ink-muted py-10"><Loader2 size={16} className="animate-spin" /> Loading…</div>
       ) : (
         <div className="rounded-xl border border-slate-800 overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="bg-slate-900 text-slate-400 text-xs uppercase tracking-wide">
+            <thead className="bg-slate-900 text-ink-muted text-xs uppercase tracking-wide">
               <tr>
                 <th className="w-10 p-3"><input type="checkbox" checked={allSelected} onChange={toggleAll} /></th>
                 <th className="text-left p-3">ID</th>
@@ -105,15 +105,15 @@ export function QuestionList() {
                   <td className="p-3" onClick={e => e.stopPropagation()}>
                     <input type="checkbox" checked={selected.has(r.id)} onChange={() => toggle(r.id)} />
                   </td>
-                  <td className="p-3 font-mono text-xs text-slate-400">{r.id}</td>
+                  <td className="p-3 font-mono text-xs text-ink-muted">{r.id}</td>
                   <td className="p-3 max-w-md truncate">{r.text}</td>
-                  <td className="p-3 text-slate-400">{r.topic_key}</td>
-                  <td className="p-3 text-slate-400">{r.difficulty}</td>
+                  <td className="p-3 text-ink-muted">{r.topic_key}</td>
+                  <td className="p-3 text-ink-muted">{r.difficulty}</td>
                   <td className="p-3"><StatusBadge status={r.status} /></td>
                 </tr>
               ))}
               {rows.length === 0 && (
-                <tr><td colSpan={6} className="p-8 text-center text-slate-500">No questions.</td></tr>
+                <tr><td colSpan={6} className="p-8 text-center text-ink-muted">No questions.</td></tr>
               )}
             </tbody>
           </table>
@@ -123,13 +123,13 @@ export function QuestionList() {
       {selected.size > 0 && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 shadow-2xl">
           <span className="text-sm font-semibold mr-2">{selected.size} selected</span>
-          {busy ? <Loader2 size={16} className="animate-spin text-slate-400" /> : (
+          {busy ? <Loader2 size={16} className="animate-spin text-ink-muted" /> : (
             <>
               <button onClick={() => runBulk({ action: 'publish' })} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30">Publish</button>
               <button onClick={() => setArchiving(true)} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500/20 text-amber-300 hover:bg-amber-500/30">Archive</button>
-              <button onClick={() => runBulk({ action: 'draft' })} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-700 text-slate-300 hover:bg-slate-600">Draft</button>
+              <button onClick={() => runBulk({ action: 'draft' })} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-700 text-ink-muted hover:bg-slate-600">Draft</button>
               <div className="relative">
-                <button onClick={() => setPopover(popover === 'topic' ? null : 'topic')} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-700 text-slate-300 hover:bg-slate-600">Reassign Topic</button>
+                <button onClick={() => setPopover(popover === 'topic' ? null : 'topic')} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-700 text-ink-muted hover:bg-slate-600">Reassign Topic</button>
                 {popover === 'topic' && (
                   <div className="absolute bottom-full mb-2 left-0 w-48 max-h-60 overflow-y-auto rounded-lg border border-slate-700 bg-slate-800 p-1">
                     {TOPICS.map(t => (
@@ -139,7 +139,7 @@ export function QuestionList() {
                 )}
               </div>
               <div className="relative">
-                <button onClick={() => setPopover(popover === 'difficulty' ? null : 'difficulty')} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-700 text-slate-300 hover:bg-slate-600">Set Difficulty</button>
+                <button onClick={() => setPopover(popover === 'difficulty' ? null : 'difficulty')} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-700 text-ink-muted hover:bg-slate-600">Set Difficulty</button>
                 {popover === 'difficulty' && (
                   <div className="absolute bottom-full mb-2 left-0 rounded-lg border border-slate-700 bg-slate-800 p-1">
                     {[1, 2, 3].map(d => (

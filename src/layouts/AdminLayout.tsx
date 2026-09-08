@@ -11,10 +11,10 @@ function Breadcrumb() {
   const { pathname } = useLocation();
   const parts = pathname.split('/').filter(Boolean);
   return (
-    <nav className="text-xs text-slate-400 flex items-center gap-1.5">
+    <nav className="text-xs text-ink-muted flex items-center gap-1.5">
       {parts.map((p, i) => (
         <span key={i} className="flex items-center gap-1.5">
-          {i > 0 && <span className="text-slate-600">/</span>}
+          {i > 0 && <span className="text-ink-subtle">/</span>}
           <span className={i === parts.length - 1 ? 'text-slate-200 font-semibold' : ''}>{p}</span>
         </span>
       ))}
@@ -37,7 +37,7 @@ export function AdminLayout() {
                   end={end}
                   className={({ isActive }) =>
                     `flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
-                      isActive ? 'bg-violet-500/15 text-violet-300' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                      isActive ? 'bg-violet-500/15 text-violet-300' : 'text-ink-muted hover:text-slate-200 hover:bg-slate-800'
                     }`
                   }
                 >
@@ -47,7 +47,7 @@ export function AdminLayout() {
               ))}
             </div>
           </div>
-          <Link to="/" className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200">
+          <Link to="/" className="flex items-center gap-1.5 text-xs text-ink-muted hover:text-slate-200">
             <ArrowLeft size={14} /> Back to app
           </Link>
         </div>

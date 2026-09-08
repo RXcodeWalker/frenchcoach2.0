@@ -47,19 +47,19 @@ export function TranscriptReview({ transcript, onConfirm, onExit }: Props) {
           </div>
           <button
             onClick={() => setShowExitConfirm(true)}
-            className="flex items-center gap-1.5 text-slate-600 hover:text-white transition-colors text-[10px]"
+            className="flex items-center gap-1.5 text-ink-subtle hover:text-white transition-colors text-[10px]"
           >
             <ArrowLeft size={12} /> Exit
           </button>
         </div>
-        <p className="text-[11px] text-slate-500 mb-4">
+        <p className="text-[11px] text-ink-muted mb-4">
           Check what was recorded for each answer. Correct anything the microphone misheard before scoring.
         </p>
 
         <div className="space-y-3">
           {candidateUtterances.map((u, i) => (
             <div key={u.utteranceId} className="rounded-xl glass p-4">
-              <p className="text-[9px] text-slate-600 uppercase tracking-wider mb-1.5">
+              <p className="text-[9px] text-ink-subtle uppercase tracking-wider mb-1.5">
                 {u.part} · Answer {i + 1}
               </p>
               <textarea

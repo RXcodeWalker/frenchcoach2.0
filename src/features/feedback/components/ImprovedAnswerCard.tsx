@@ -36,8 +36,8 @@ export function ImprovedAnswerCard({ originalTranscript, improvedAnswer, rephras
       <div className="space-y-2">
         {/* Original */}
         <div className="p-3 rounded-lg bg-slate-700/30 border border-slate-600/20">
-          <p className="text-[8px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">Your answer</p>
-          <p className="text-[10px] text-slate-400 leading-relaxed italic">{yourAnswer}</p>
+          <p className="text-[8px] font-bold text-ink-subtle uppercase tracking-wider mb-1.5">Your answer</p>
+          <p className="text-[10px] text-ink-muted leading-relaxed italic">{yourAnswer}</p>
         </div>
 
         {/* Arrow */}
@@ -54,8 +54,8 @@ export function ImprovedAnswerCard({ originalTranscript, improvedAnswer, rephras
         {/* What changed — only when rephrase adds distinct value */}
         {whatChanged && (
           <div className="p-2.5 rounded-lg bg-slate-800/40 border border-slate-700/30">
-            <p className="text-[8px] font-bold text-slate-600 uppercase tracking-wider mb-1">What changed</p>
-            <p className="text-[9px] text-slate-500 leading-relaxed">{whatChanged}</p>
+            <p className="text-[8px] font-bold text-ink-subtle uppercase tracking-wider mb-1">What changed</p>
+            <p className="text-[9px] text-ink-muted leading-relaxed">{whatChanged}</p>
           </div>
         )}
       </div>

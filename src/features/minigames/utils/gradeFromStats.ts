@@ -26,7 +26,7 @@ const DEFAULT_GRADE_STYLES: Record<LetterGrade, GradeStyle> = {
   A: { gradeColor: 'text-purple-400' },
   B: { gradeColor: 'text-blue-400' },
   C: { gradeColor: 'text-emerald-400' },
-  D: { gradeColor: 'text-slate-400' },
+  D: { gradeColor: 'text-ink-muted' },
 };
 
 export const RUBRICS: {

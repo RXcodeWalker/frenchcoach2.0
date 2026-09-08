@@ -17,7 +17,7 @@ export function ExploreSkillTree() {
           {/* Tier Label */}
           <div className="mb-8 flex flex-col items-center">
             <div className="px-4 py-1 rounded-full bg-navy-200 border border-white/5 mb-2">
-              <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">
+              <span className="text-[9px] font-black text-ink-muted uppercase tracking-[0.2em]">
                 Tier {tierIdx + 1}
               </span>
             </div>
@@ -56,7 +56,7 @@ export function ExploreSkillTree() {
         >
           <Compass size={40} className="text-amber-500/50" />
         </motion.div>
-        <p className="mt-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Ultimate Mastery</p>
+        <p className="mt-4 text-[10px] font-black text-ink-muted uppercase tracking-widest">Ultimate Mastery</p>
       </div>
     </div>
   );
@@ -96,7 +96,7 @@ function SkillNode({ node }: { node: TreeNode }) {
              <span className="text-4xl md:text-5xl drop-shadow-lg">{node.icon}</span>
            </div>
          ) : (
-           <Lock size={28} className="text-slate-600" />
+           <Lock size={28} className="text-ink-subtle" />
          )}
 
          {/* Progress Ring */}
@@ -129,10 +129,10 @@ function SkillNode({ node }: { node: TreeNode }) {
 
        {/* Label */}
        <div className="mt-4 text-center">
-         <h4 className={`text-xs font-black uppercase tracking-wider ${playable ? 'text-white' : 'text-slate-500'}`}>
+         <h4 className={`text-xs font-black uppercase tracking-wider ${playable ? 'text-white' : 'text-ink-muted'}`}>
            {node.title}
          </h4>
-         <p className="text-[9px] text-slate-400 font-black mt-0.5">{node.category}</p>
+         <p className="text-[9px] text-ink-muted font-black mt-0.5">{node.category}</p>
 
          {playable && (
            <div className="flex gap-1 justify-center mt-2">
@@ -149,14 +149,14 @@ function SkillNode({ node }: { node: TreeNode }) {
 
        {/* Unlock Tooltip (if locked) */}
        {!node.unlocked && node.dependencies.length > 0 && (
-         <div className="absolute top-0 -mt-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-navy-200 border border-white/10 px-2 py-1 rounded text-[8px] font-bold text-slate-400 whitespace-nowrap z-30">
+         <div className="absolute top-0 -mt-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-navy-200 border border-white/10 px-2 py-1 rounded text-[8px] font-bold text-ink-muted whitespace-nowrap z-30">
            REQUIRES: {node.dependencies.join(', ').toUpperCase()}
          </div>
        )}
 
        {/* Coming Soon Tooltip (unlocked but not yet authored) */}
        {node.unlocked && !playable && (
-         <div className="absolute top-0 -mt-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-navy-200 border border-white/10 px-2 py-1 rounded text-[8px] font-bold text-slate-400 whitespace-nowrap z-30">
+         <div className="absolute top-0 -mt-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-navy-200 border border-white/10 px-2 py-1 rounded text-[8px] font-bold text-ink-muted whitespace-nowrap z-30">
            COMING SOON
          </div>
        )}

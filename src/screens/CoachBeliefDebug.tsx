@@ -40,7 +40,7 @@ function computeSnapshot(): DebugSnapshot {
 }
 
 function masteryColor(value: number | null): string {
-  if (value === null) return 'text-slate-600';
+  if (value === null) return 'text-ink-subtle';
   if (value >= 0.8) return 'text-emerald-400';
   if (value >= 0.6) return 'text-lime-400';
   if (value >= 0.3) return 'text-amber-400';
@@ -99,7 +99,7 @@ export function CoachBeliefDebug() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate(-1)}
-            className="w-10 h-10 rounded-xl glass border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors"
+            className="w-10 h-10 rounded-xl glass border-white/10 flex items-center justify-center text-ink-muted hover:text-white transition-colors"
           >
             <ChevronLeft size={20} />
           </button>
@@ -108,7 +108,7 @@ export function CoachBeliefDebug() {
               <FlaskConical size={18} className="text-violet-400" />
               Coach Belief Debug
             </h1>
-            <p className="text-[11px] text-slate-500 font-bold uppercase tracking-wide">
+            <p className="text-[11px] text-ink-muted font-bold uppercase tracking-wide">
               Dev only · diagnostic vs evidence-derived · read-only
             </p>
           </div>
@@ -133,7 +133,7 @@ export function CoachBeliefDebug() {
 
       {/* Tier-1 local product metrics (Phase 2 Slice 5) — this device only, never synced */}
       <div className="glass-elevated border-white/5 rounded-2xl p-4 mb-6">
-        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wide mb-3">
+        <p className="text-[10px] text-ink-muted font-bold uppercase tracking-wide mb-3">
           Local counters · this device only
         </p>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -157,9 +157,9 @@ export function CoachBeliefDebug() {
       {/* Comparison table */}
       {rows.length === 0 ? (
         <div className="glass-elevated border-white/5 rounded-2xl p-10 text-center">
-          <Database size={28} className="mx-auto text-slate-600 mb-3" />
-          <p className="text-slate-400 font-bold">No belief data yet.</p>
-          <p className="text-slate-600 text-sm mt-1">
+          <Database size={28} className="mx-auto text-ink-subtle mb-3" />
+          <p className="text-ink-muted font-bold">No belief data yet.</p>
+          <p className="text-ink-subtle text-sm mt-1">
             Complete a Learn or Exam session, then press Refresh.
           </p>
         </div>
@@ -168,7 +168,7 @@ export function CoachBeliefDebug() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-[10px] uppercase tracking-wider text-slate-500 border-b border-white/5">
+                <tr className="text-[10px] uppercase tracking-wider text-ink-muted border-b border-white/5">
                   <th className="text-left font-black px-4 py-3">Skill</th>
                   <th className="text-right font-black px-3 py-3" title="diagnosticEngine mastery">Diag</th>
                   <th className="text-right font-black px-3 py-3" title="evidence-derived mastery">Evid</th>
@@ -189,28 +189,28 @@ export function CoachBeliefDebug() {
                     <tr key={id} className="border-b border-white/5 last:border-0 hover:bg-white/[0.02]">
                       <td className="px-4 py-2.5">
                         <span className="font-bold text-slate-200">{ev?.label ?? diag?.name ?? id}</span>
-                        <span className="block text-[10px] text-slate-600 font-mono">{id}</span>
+                        <span className="block text-[10px] text-ink-subtle font-mono">{id}</span>
                       </td>
                       <td className={`text-right px-3 py-2.5 font-bold tabular-nums ${masteryColor(diagM)}`}>{pct(diagM)}</td>
                       <td className={`text-right px-3 py-2.5 font-bold tabular-nums ${masteryColor(evM)}`}>{pct(evM)}</td>
                       <td className={`text-right px-3 py-2.5 font-bold tabular-nums ${
-                        delta === null ? 'text-slate-600' : delta > 0.05 ? 'text-emerald-400' : delta < -0.05 ? 'text-rose-400' : 'text-slate-400'
+                        delta === null ? 'text-ink-subtle' : delta > 0.05 ? 'text-emerald-400' : delta < -0.05 ? 'text-rose-400' : 'text-ink-muted'
                       }`}>
                         {delta === null ? '—' : `${delta > 0 ? '+' : ''}${Math.round(delta * 100)}`}
                       </td>
-                      <td className="text-right px-3 py-2.5 tabular-nums text-slate-400">{ev ? pct(ev.uncertainty) : '—'}</td>
-                      <td className="text-right px-3 py-2.5 tabular-nums text-slate-400">{ev ? ev.weightedEvidence.toFixed(2) : '—'}</td>
-                      <td className="text-right px-3 py-2.5 tabular-nums text-slate-400">{ev ? ev.evidenceCount : '—'}</td>
+                      <td className="text-right px-3 py-2.5 tabular-nums text-ink-muted">{ev ? pct(ev.uncertainty) : '—'}</td>
+                      <td className="text-right px-3 py-2.5 tabular-nums text-ink-muted">{ev ? ev.weightedEvidence.toFixed(2) : '—'}</td>
+                      <td className="text-right px-3 py-2.5 tabular-nums text-ink-muted">{ev ? ev.evidenceCount : '—'}</td>
                       <td className="text-center px-3 py-2.5">
                         {ev?.fallbackUsed ? (
                           <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-amber-500/15 text-amber-400">diag</span>
                         ) : ev ? (
                           <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400">evid</span>
                         ) : (
-                          <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-slate-700/40 text-slate-500">none</span>
+                          <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-slate-700/40 text-ink-muted">none</span>
                         )}
                       </td>
-                      <td className="px-4 py-2.5 text-[11px] text-slate-500 font-mono whitespace-nowrap">{topSources(ev)}</td>
+                      <td className="px-4 py-2.5 text-[11px] text-ink-muted font-mono whitespace-nowrap">{topSources(ev)}</td>
                     </tr>
                   );
                 })}
@@ -220,7 +220,7 @@ export function CoachBeliefDebug() {
         </div>
       )}
 
-      <p className="text-[10px] text-slate-600 mt-4 leading-relaxed">
+      <p className="text-[10px] text-ink-subtle mt-4 leading-relaxed">
         Diag = diagnosticEngine mastery. Evid = evidence-derived mastery (blank when fallback is used).
         Δ = evidence − diagnostic, in mastery points. Unc = uncertainty. W.Ev = total weighted evidence.
         Src = which system produced the row. This screen never writes; Refresh recomputes from localStorage.
@@ -234,7 +234,7 @@ function SummaryCard({ label, value, tone }: { label: string; value: string; ton
   return (
     <div className="glass-elevated border-white/5 rounded-xl px-4 py-3">
       <p className={`text-lg font-black tabular-nums ${toneClass}`}>{value}</p>
-      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">{label}</p>
+      <p className="text-[10px] text-ink-muted font-bold uppercase tracking-wide">{label}</p>
     </div>
   );
 }
@@ -243,9 +243,9 @@ function ListCard({ title, ids, tone }: { title: string; ids: string[]; tone: 'r
   const toneClass = tone === 'rose' ? 'text-rose-400' : 'text-emerald-400';
   return (
     <div className="glass-elevated border-white/5 rounded-xl px-4 py-3">
-      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wide mb-2">{title}</p>
+      <p className="text-[10px] text-ink-muted font-bold uppercase tracking-wide mb-2">{title}</p>
       {ids.length === 0 ? (
-        <p className="text-slate-600 text-sm">— none yet —</p>
+        <p className="text-ink-subtle text-sm">— none yet —</p>
       ) : (
         <div className="flex flex-wrap gap-1.5">
           {ids.map(id => (

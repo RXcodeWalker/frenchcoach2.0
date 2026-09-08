@@ -52,7 +52,7 @@ export function GameShell({
         <button
           type="button"
           onClick={onBack}
-          className="mb-6 p-2 rounded-xl hover:bg-white/5 text-slate-400 flex items-center gap-2"
+          className="mb-6 p-2 rounded-xl hover:bg-white/5 text-ink-muted flex items-center gap-2"
         >
           <ArrowLeft size={20} />
           <span className="text-sm font-bold">Back</span>

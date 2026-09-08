@@ -47,37 +47,37 @@ export function ArchiveConfirmDialog({ kind, ids, title, onConfirm, onCancel }: 
           </div>
           <div>
             <h2 className="font-bold text-lg">Archive {title}?</h2>
-            <p className="text-sm text-slate-400">Archiving hides content from learners. It can be restored later.</p>
+            <p className="text-sm text-ink-muted">Archiving hides content from learners. It can be restored later.</p>
           </div>
         </div>
 
         {loading ? (
-          <div className="flex items-center gap-2 text-sm text-slate-400 py-6">
+          <div className="flex items-center gap-2 text-sm text-ink-muted py-6">
             <Loader2 size={16} className="animate-spin" /> Checking references…
           </div>
         ) : refs.length > 0 ? (
           <div className="mb-4">
-            <p className="text-sm font-semibold text-slate-300 mb-2">This is referenced by:</p>
+            <p className="text-sm font-semibold text-ink-muted mb-2">This is referenced by:</p>
             <ul className="space-y-1.5 max-h-48 overflow-y-auto">
               {refs.map(r => (
-                <li key={`${r.type}:${r.id}`} className="text-sm text-slate-400 flex items-center gap-2">
-                  <span className="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-slate-800 text-slate-500">{r.type}</span>
+                <li key={`${r.type}:${r.id}`} className="text-sm text-ink-muted flex items-center gap-2">
+                  <span className="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-slate-800 text-ink-muted">{r.type}</span>
                   {r.label}
                 </li>
               ))}
             </ul>
-            <p className="text-xs text-slate-500 mt-3">
+            <p className="text-xs text-ink-muted mt-3">
               References are not auto-removed — exam sets keep the item listed until edited manually.
             </p>
           </div>
         ) : (
-          <p className="text-sm text-slate-400 py-2 mb-2">No references found.</p>
+          <p className="text-sm text-ink-muted py-2 mb-2">No references found.</p>
         )}
 
         <div className="flex justify-end gap-2 mt-2">
           <button
             onClick={onCancel}
-            className="px-4 py-2 rounded-lg text-sm font-semibold text-slate-300 hover:bg-slate-800"
+            className="px-4 py-2 rounded-lg text-sm font-semibold text-ink-muted hover:bg-slate-800"
           >
             Cancel
           </button>

@@ -18,10 +18,10 @@ export function InsightsTab() {
     return (
       <motion.div variants={fadeUp} className="rounded-xl glass p-8 text-center">
         <div className="w-12 h-12 rounded-full bg-navy-300 flex items-center justify-center mx-auto mb-3">
-          <Target size={20} className="text-slate-600" />
+          <Target size={20} className="text-ink-subtle" />
         </div>
         <h3 className="text-white font-bold mb-1">No Insights Yet</h3>
-        <p className="text-slate-500 text-xs">Complete 2-3 sessions to unlock deep weakness analysis.</p>
+        <p className="text-ink-muted text-xs">Complete 2-3 sessions to unlock deep weakness analysis.</p>
       </motion.div>
     );
   }
@@ -64,7 +64,7 @@ export function InsightsTab() {
                       {tip && (
                         <div className="bg-navy-300/50 rounded-lg p-2.5 flex gap-2 items-start border border-white/[0.02]">
                           <Lightbulb size={12} className="text-amber-400 shrink-0 mt-0.5" />
-                          <p className="text-[10px] text-slate-300 leading-relaxed">
+                          <p className="text-[10px] text-ink-muted leading-relaxed">
                             <span className="font-bold text-amber-400/80">Pro Tip:</span> {tip}
                           </p>
                         </div>
@@ -87,7 +87,7 @@ export function InsightsTab() {
                         {w.mistakes && w.mistakes.length > 0 && (
                           <button 
                             onClick={() => setExpandedMistakes(isExpanded ? null : w.id)}
-                            className="flex items-center gap-1.5 text-[9px] font-bold text-slate-500 hover:text-white transition-colors"
+                            className="flex items-center gap-1.5 text-[9px] font-bold text-ink-muted hover:text-white transition-colors"
                           >
                             <ChevronDown size={10} className={`transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
                             {isExpanded ? 'Hide Recent Mistakes' : `View ${w.mistakes.length} Recent Mistakes`}
@@ -111,7 +111,7 @@ export function InsightsTab() {
                             <AlertCircle size={10} className="text-red-400/50 mt-1 shrink-0" />
                             <div className="flex-1">
                               {m.transcript && (
-                                <p className="text-[10px] text-slate-400 italic">"{m.transcript}"</p>
+                                <p className="text-[10px] text-ink-muted italic">"{m.transcript}"</p>
                               )}
                               <p className="text-[10px] text-emerald-400 font-bold mt-0.5">→ {m.corrected}</p>
                             </div>
@@ -126,7 +126,7 @@ export function InsightsTab() {
           })
         ) : (
           <div className="rounded-xl glass p-5 text-center border border-dashed border-white/5">
-            <p className="text-slate-500 text-[10px]">No major weaknesses detected yet. Keep it up!</p>
+            <p className="text-ink-muted text-[10px]">No major weaknesses detected yet. Keep it up!</p>
           </div>
         )}
       </div>
@@ -173,7 +173,7 @@ export function InsightsTab() {
           <p className="text-2xl font-black text-white">{report.avgMastery}%</p>
         </div>
         <div className="text-right">
-          <p className="text-[9px] text-slate-500 uppercase font-bold tracking-wider mb-0.5">Sessions Analyzed</p>
+          <p className="text-[9px] text-ink-muted uppercase font-bold tracking-wider mb-0.5">Sessions Analyzed</p>
           <p className="text-lg font-black text-white">{report.sessionsAnalyzed}</p>
         </div>
       </div>

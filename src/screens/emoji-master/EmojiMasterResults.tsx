@@ -94,7 +94,7 @@ export function EmojiMasterResults({
                   <p className="text-3xl mb-1">
                     {item.promptKind === 'french' ? item.french : item.emojis}
                   </p>
-                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">
+                  <p className="text-[10px] font-bold text-ink-muted uppercase tracking-widest mb-1">
                     {item.english}
                   </p>
                   <p className="text-lg font-bold text-white">{item.correctAnswer}</p>
@@ -113,7 +113,7 @@ export function EmojiMasterResults({
             </motion.div>
           ))}
           {rows.length === 0 && (
-            <p className="text-center text-slate-500 py-8">No answers recorded.</p>
+            <p className="text-center text-ink-muted py-8">No answers recorded.</p>
           )}
         </div>
       </div>
@@ -184,7 +184,7 @@ export function EmojiMasterResults({
           <button
             type="button"
             onClick={onBackToExplore}
-            className="text-xs font-bold text-slate-500 hover:text-white transition-colors py-2"
+            className="text-xs font-bold text-ink-muted hover:text-white transition-colors py-2"
           >
             Back to Explore
           </button>

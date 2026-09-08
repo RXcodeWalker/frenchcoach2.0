@@ -36,7 +36,7 @@ export function RolePlayCardPreview({ scenario, onBegin }: Props) {
             <p className="text-[13px] text-white leading-relaxed">{scenario.setup}</p>
           </motion.div>
 
-          <p className="text-[11px] text-slate-500 leading-relaxed mt-5">
+          <p className="text-[11px] text-ink-muted leading-relaxed mt-5">
             You'll play the role above. The examiner will set the scene, then ask you five
             questions in French — answer each one. You won't see the questions in advance.
           </p>

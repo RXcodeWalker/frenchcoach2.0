@@ -367,13 +367,13 @@ export function StoryMode() {
         <div className="flex items-center gap-3 mb-8">
           <button
             onClick={() => navigate('/explore')}
-            className="p-2 rounded-lg hover:bg-white/5 text-slate-400 transition-colors"
+            className="p-2 rounded-lg hover:bg-white/5 text-ink-muted transition-colors"
           >
             <ArrowLeft size={20} />
           </button>
           <div>
             <h1 className="text-2xl font-black text-white">Story Mode</h1>
-            <p className="text-sm text-slate-500">Immerse yourself in interactive French scenarios.</p>
+            <p className="text-sm text-ink-muted">Immerse yourself in interactive French scenarios.</p>
           </div>
         </div>
 
@@ -398,9 +398,9 @@ export function StoryMode() {
                 </div>
               </div>
               <h3 className="font-bold text-white mb-2 line-clamp-2 relative z-10">{story.scenario}</h3>
-              <p className="text-xs text-slate-400 mb-4 line-clamp-1"><b>Role:</b> {story.npc.nameFr}</p>
+              <p className="text-xs text-ink-muted mb-4 line-clamp-1"><b>Role:</b> {story.npc.nameFr}</p>
               <div className="flex items-center justify-between mt-6 relative z-10">
-                <span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest flex items-center gap-1.5">
+                <span className="text-[10px] font-bold text-ink-subtle uppercase tracking-widest flex items-center gap-1.5">
                   <MessageSquare size={12} />
                   {story.tasks.length} Exchanges
                 </span>
@@ -424,7 +424,7 @@ export function StoryMode() {
               setIsPrepping(false);
               setSelectedStory(null);
             }}
-            className="p-2 rounded-lg hover:bg-white/5 text-slate-400 transition-colors"
+            className="p-2 rounded-lg hover:bg-white/5 text-ink-muted transition-colors"
           >
             <ArrowLeft size={20} />
           </button>
@@ -483,24 +483,24 @@ function StoryModePrep({
       <div className="p-8 pb-4 border-b border-white/5 bg-white/5 flex items-center justify-between">
         <div>
           <h2 className="text-xl font-black text-white italic tracking-tighter uppercase">Roleplay Card</h2>
-          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+          <p className="text-[10px] font-bold text-ink-muted uppercase tracking-widest">
             {story.tasks.length} exchange{story.tasks.length === 1 ? '' : 's'}
           </p>
         </div>
         <button
           onClick={onCancel}
-          className="text-xs font-black text-slate-500 hover:text-white transition-colors uppercase tracking-widest"
+          className="text-xs font-black text-ink-muted hover:text-white transition-colors uppercase tracking-widest"
         >
           Cancel
         </button>
       </div>
 
       <div className="flex-1 p-8 overflow-y-auto">
-        <p className="text-sm text-slate-300 leading-relaxed bg-white/5 border border-white/10 rounded-2xl p-4">
+        <p className="text-sm text-ink-muted leading-relaxed bg-white/5 border border-white/10 rounded-2xl p-4">
           {story.scenario}
         </p>
-        <p className="text-xs text-slate-500 mt-4">
-          You'll be speaking with <span className="text-slate-300 font-bold">{story.npc.nameFr}</span>.
+        <p className="text-xs text-ink-muted mt-4">
+          You'll be speaking with <span className="text-ink-muted font-bold">{story.npc.nameFr}</span>.
         </p>
       </div>
 

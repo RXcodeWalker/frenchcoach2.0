@@ -22,7 +22,7 @@ export function DailyCards({ quote, weakestTopic, onLearn }: Props) {
               <Sparkles size={10} className="text-cyan-400" />
             </div>
             <p className="text-white font-semibold text-sm">Focus on <span className="text-cyan-300">{weakestTopic ?? 'General Practice'}</span></p>
-            <p className="text-[10px] text-slate-600 mt-0.5">Target this topic to raise your overall score.</p>
+            <p className="text-[10px] text-ink-subtle mt-0.5">Target this topic to raise your overall score.</p>
           </div>
           <motion.button
             onClick={onLearn}
@@ -42,7 +42,7 @@ export function DailyCards({ quote, weakestTopic, onLearn }: Props) {
           <div className="flex-1 min-w-0">
             <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Daily Motivation</span>
             <p className="text-white font-bold text-sm mt-0.5 italic leading-snug">{quote.text}</p>
-            <p className="text-[10px] text-slate-400 font-bold mt-0.5">{quote.translation}</p>
+            <p className="text-[10px] text-ink-muted font-bold mt-0.5">{quote.translation}</p>
           </div>
         </div>
       </div>

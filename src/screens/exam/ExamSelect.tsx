@@ -86,7 +86,7 @@ export function ExamSelect({ onSelect, onAutoFallback }: Props) {
       >
         <div>
           <h1 className="text-2xl md:text-3xl font-black text-white">Choose an Exam</h1>
-          <p className="text-sm text-slate-500 mt-1">Pick one of the Cambridge-style mock exams below</p>
+          <p className="text-sm text-ink-muted mt-1">Pick one of the Cambridge-style mock exams below</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -107,16 +107,16 @@ export function ExamSelect({ onSelect, onAutoFallback }: Props) {
                   <div className="flex items-center justify-between gap-2 mb-1">
                     <h3 className="font-bold text-white text-sm">{set.content.rolePlay.title}</h3>
                     {difficulty && (
-                      <span className="flex-shrink-0 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider bg-navy-400 text-slate-500">
+                      <span className="flex-shrink-0 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider bg-navy-400 text-ink-muted">
                         {DIFFICULTY_LABEL[difficulty]}
                       </span>
                     )}
                   </div>
-                  <p className="text-[10px] text-slate-600">
+                  <p className="text-[10px] text-ink-subtle">
                     {TOPIC_AREA_LABEL[set.content.topic1.topicArea] ?? set.content.topic1.topicArea} &middot;{' '}
                     {TOPIC_AREA_LABEL[set.content.topic2.topicArea] ?? set.content.topic2.topicArea}
                   </p>
-                  <p className="text-[9px] text-slate-700 mt-0.5">
+                  <p className="text-[9px] text-ink-subtle mt-0.5">
                     {set.content.topic1.subTopic} &middot; {set.content.topic2.subTopic}
                   </p>
                 </div>
@@ -134,7 +134,7 @@ export function ExamSelect({ onSelect, onAutoFallback }: Props) {
             <div className="w-5 h-5 flex-shrink-0 border-2 border-violet-electric/30 border-t-violet-electric rounded-full animate-spin" />
             <div>
               <p className="text-xs font-bold text-white">Loading the other exams…</p>
-              <p className="text-[11px] text-slate-500 mt-0.5">
+              <p className="text-[11px] text-ink-muted mt-0.5">
                 The server is waking up, which can take up to a minute. This only happens the first
                 time — you can start the practice exam above right now. Thanks for your patience!
               </p>
@@ -146,7 +146,7 @@ export function ExamSelect({ onSelect, onAutoFallback }: Props) {
           <div className="rounded-xl glass-subtle border-dashed border-white/8 p-4 flex items-center justify-between gap-3">
             <div>
               <p className="text-xs font-bold text-white">Offline mode</p>
-              <p className="text-[11px] text-slate-500 mt-0.5">
+              <p className="text-[11px] text-ink-muted mt-0.5">
                 We couldn't reach the exam catalog, so only the offline practice exam above is
                 available right now. Everything still works — your session runs and is scored locally.
               </p>
@@ -173,7 +173,7 @@ export function ExamSelect({ onSelect, onAutoFallback }: Props) {
             </div>
             <div className="flex-1">
               <p className="font-bold text-white text-sm">Surprise Me</p>
-              <p className="text-[10px] text-slate-600">Get a random exam</p>
+              <p className="text-[10px] text-ink-subtle">Get a random exam</p>
             </div>
           </div>
         </motion.button>

@@ -53,7 +53,7 @@ export function WeeklyChart({ data, uid = 'chart' }: Props) {
         })}
       </svg>
       <div className="absolute bottom-0 left-0 right-0 flex justify-between px-1 translate-y-5">
-        {points.map(p => <span key={p.day} className="text-[9px] text-slate-400 font-bold">{p.day}</span>)}
+        {points.map(p => <span key={p.day} className="text-[9px] text-ink-muted font-bold">{p.day}</span>)}
       </div>
     </div>
   );

@@ -18,13 +18,13 @@ export function ExamIntro({ onStart, onBack }: Props) {
         <div className="flex items-center gap-4 mb-2">
           <button 
             onClick={onBack}
-            className="w-10 h-10 rounded-xl glass flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all border border-white/5"
+            className="w-10 h-10 rounded-xl glass flex items-center justify-center text-ink-muted hover:text-white hover:bg-white/10 transition-all border border-white/5"
           >
             <ArrowLeft size={20} />
           </button>
           <div>
             <h1 className="text-xl font-black text-white uppercase tracking-tight">Exam Simulation</h1>
-            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Mock Oral Assessment</p>
+            <p className="text-[10px] text-ink-muted font-bold uppercase tracking-widest">Mock Oral Assessment</p>
           </div>
         </div>
 
@@ -39,7 +39,7 @@ export function ExamIntro({ onStart, onBack }: Props) {
               🎓
             </motion.div>
             <h2 className="text-2xl font-black text-white mb-2">IGCSE Exam Simulation</h2>
-            <p className="text-sm text-slate-500 leading-relaxed mb-6 max-w-md mx-auto">Experience a full IGCSE French oral exam. Self-paced preparation, then live speaking phases for each part.</p>
+            <p className="text-sm text-ink-muted leading-relaxed mb-6 max-w-md mx-auto">Experience a full IGCSE French oral exam. Self-paced preparation, then live speaking phases for each part.</p>
             <div className="grid grid-cols-3 gap-2 mb-7 max-w-sm mx-auto">
               {[
                 { value: '~10m', label: 'Prep (untimed)', color: 'text-amber-400' },
@@ -48,7 +48,7 @@ export function ExamIntro({ onStart, onBack }: Props) {
               ].map(s => (
                 <div key={s.label} className="p-2.5 rounded-xl glass-subtle">
                   <p className={`text-lg font-black ${s.color}`}>{s.value}</p>
-                  <p className="text-[9px] text-slate-600">{s.label}</p>
+                  <p className="text-[9px] text-ink-subtle">{s.label}</p>
                 </div>
               ))}
             </div>
@@ -64,7 +64,7 @@ export function ExamIntro({ onStart, onBack }: Props) {
         </div>
 
         <div className="rounded-xl glass p-5">
-          <h3 className="font-bold text-slate-500 text-[10px] uppercase tracking-wider mb-3">Exam Structure</h3>
+          <h3 className="font-bold text-ink-muted text-[10px] uppercase tracking-wider mb-3">Exam Structure</h3>
           <div className="space-y-1.5">
             {[
               { label: 'Preparation (untimed)', desc: 'Review your Role Play card and make notes — take as long as you like.' },
@@ -75,7 +75,7 @@ export function ExamIntro({ onStart, onBack }: Props) {
               <div key={item.label} className="flex items-center gap-3 p-2.5 rounded-lg glass-subtle">
                 <div className="flex-1">
                   <p className="text-[10px] font-semibold text-white">{item.label}</p>
-                  <p className="text-[9px] text-slate-600">{item.desc}</p>
+                  <p className="text-[9px] text-ink-subtle">{item.desc}</p>
                 </div>
               </div>
             ))}

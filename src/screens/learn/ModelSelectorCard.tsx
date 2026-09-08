@@ -43,7 +43,7 @@ const ENGINE_OPTIONS: EngineOption[] = [
     tagline: 'Works anywhere',
     speedHint: 'Instant',
     confidence: 'Limited',
-    badgeColor: 'text-slate-400 bg-slate-400/10 border-slate-400/20',
+    badgeColor: 'text-ink-muted bg-slate-400/10 border-slate-400/20',
     ringColor: 'border-slate-500/40 bg-slate-500/5',
     icon: '📴',
   },
@@ -81,7 +81,7 @@ interface Props {
 export function ModelSelectorCard({ selected, health, onChange }: Props) {
   return (
     <div className="space-y-2">
-      <p className="text-xs font-bold text-slate-500 uppercase tracking-wide px-1">
+      <p className="text-xs font-bold text-ink-muted uppercase tracking-wide px-1">
         Choose how your answer is evaluated
       </p>
 
@@ -126,18 +126,18 @@ export function ModelSelectorCard({ selected, health, onChange }: Props) {
               </div>
 
               {/* Tagline */}
-              <p className="text-[10px] text-slate-400 leading-snug">{tagline}</p>
+              <p className="text-[10px] text-ink-muted leading-snug">{tagline}</p>
 
               {/* Speed */}
-              <p className="text-[10px] text-slate-600 font-medium">{speedHint}</p>
+              <p className="text-[10px] text-ink-subtle font-medium">{speedHint}</p>
 
               {/* Confidence */}
-              <p className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide">{confidence}</p>
+              <p className="text-[9px] text-ink-muted font-semibold uppercase tracking-wide">{confidence}</p>
 
               {/* Health indicator */}
               <div className="flex items-center gap-1 mt-0.5">
                 <HealthDot status={engineHealth} />
-                <span className="text-[9px] text-slate-500">{healthLabel(engineHealth, engine)}</span>
+                <span className="text-[9px] text-ink-muted">{healthLabel(engineHealth, engine)}</span>
               </div>
             </motion.button>
           );

@@ -9,9 +9,9 @@ const ENGINE_ICON: Record<AIEngine, string> = { gemini: '✦', groq: '⚡', offl
 const ENGINE_TAB_COLOR: Record<AIEngine, string> = {
   gemini: 'border-amber-400/60 text-amber-300 bg-amber-400/10',
   groq: 'border-violet-400/60 text-violet-300 bg-violet-400/10',
-  offline: 'border-slate-500/40 text-slate-300 bg-slate-500/10',
+  offline: 'border-slate-500/40 text-ink-muted bg-slate-500/10',
 };
-const ENGINE_TAB_INACTIVE = 'border-transparent text-slate-500 hover:text-slate-300 hover:bg-white/5';
+const ENGINE_TAB_INACTIVE = 'border-transparent text-ink-muted hover:text-ink-muted hover:bg-white/5';
 
 const CONFIDENCE_LABEL: Record<AIEngine, string> = {
   gemini: 'High confidence',
@@ -51,7 +51,7 @@ export function ReEvaluateBar({
             animate={{ opacity: 1, y: 0 }}
             className="space-y-2"
           >
-            <p className="text-[9px] font-bold text-slate-600 uppercase tracking-wider">Compare evaluations</p>
+            <p className="text-[9px] font-bold text-ink-subtle uppercase tracking-wider">Compare evaluations</p>
             <div className="flex gap-1.5 flex-wrap">
               {evaluatedEngines.map(engine => {
                 const result = engineResults.get(engine)!;
@@ -67,7 +67,7 @@ export function ReEvaluateBar({
                   >
                     <span>{ENGINE_ICON[engine]}</span>
                     <span>{ENGINE_LABEL[engine]}</span>
-                    <span className={`text-[10px] font-black ${isActive ? '' : 'text-slate-600'}`}>
+                    <span className={`text-[10px] font-black ${isActive ? '' : 'text-ink-subtle'}`}>
                       {score === null ? 'not graded' : `${score}/10`}
                     </span>
                   </button>
@@ -76,7 +76,7 @@ export function ReEvaluateBar({
             </div>
             {/* Confidence indicator for active engine */}
             {activeEngine && (
-              <p className="text-[10px] text-slate-500">
+              <p className="text-[10px] text-ink-muted">
                 {ENGINE_ICON[activeEngine]} {ENGINE_LABEL[activeEngine]} · {CONFIDENCE_LABEL[activeEngine]}
               </p>
             )}
@@ -87,7 +87,7 @@ export function ReEvaluateBar({
       {/* Re-evaluate buttons for unevaluated engines */}
       {unevaluatedEngines.length > 0 && (
         <div className="space-y-1.5">
-          <p className="text-[9px] font-bold text-slate-600 uppercase tracking-wider">Get another opinion</p>
+          <p className="text-[9px] font-bold text-ink-subtle uppercase tracking-wider">Get another opinion</p>
           <div className="flex gap-2 flex-wrap">
             {unevaluatedEngines.map(engine => {
               const isLoading = isReEvaluating && reEvaluatingEngine === engine;
@@ -97,7 +97,7 @@ export function ReEvaluateBar({
                   onClick={() => !isReEvaluating && onReEvaluate(engine)}
                   disabled={isReEvaluating}
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-xl glass-subtle text-[11px] font-semibold transition-all ${
-                    isReEvaluating ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/5 text-slate-300'
+                    isReEvaluating ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/5 text-ink-muted'
                   }`}
                   whileTap={isReEvaluating ? {} : { scale: 0.96 }}
                 >

@@ -21,7 +21,7 @@ function trendChip(trend: WeeklyReview['confidenceTrend']) {
   if (trend === 'rising') return { label: 'Rising ↑', className: 'bg-emerald-500/15 text-emerald-400' };
   if (trend === 'falling') return { label: 'Falling ↓', className: 'bg-amber-500/15 text-amber-400' };
   if (trend === 'stable') return { label: 'Stable →', className: 'bg-blue-500/15 text-blue-400' };
-  return { label: 'Unknown', className: 'bg-slate-500/15 text-slate-400' };
+  return { label: 'Unknown', className: 'bg-slate-500/15 text-ink-muted' };
 }
 
 function formatDateRange(start: string, end: string) {
@@ -34,14 +34,14 @@ function DeltaBar({ before, after, delta }: { before: number; after: number; del
   const isUp = delta > 0;
   return (
     <div className="flex items-center gap-2 text-[10px]">
-      <span className="text-slate-500 w-5 text-right">{Math.round(before * 100)}%</span>
+      <span className="text-ink-muted w-5 text-right">{Math.round(before * 100)}%</span>
       <div className="flex-1 h-1.5 rounded-full bg-white/5 overflow-hidden">
         <div
           className={`h-full rounded-full transition-all ${isUp ? 'bg-emerald-500' : 'bg-amber-500'}`}
           style={{ width: `${Math.min(100, Math.max(4, pct * 2))}%` }}
         />
       </div>
-      <span className="text-slate-500 w-5">{Math.round(after * 100)}%</span>
+      <span className="text-ink-muted w-5">{Math.round(after * 100)}%</span>
       <span className={`font-bold ${isUp ? 'text-emerald-400' : 'text-amber-400'}`}>
         {isUp ? '+' : ''}{Math.round(delta * 100)}%
       </span>
@@ -62,25 +62,25 @@ export function WeeklyReviewCard({ review, variant, onDismiss }: WeeklyReviewCar
       >
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-2 min-w-0">
-            <CalendarDays size={14} className="text-slate-400 shrink-0" />
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Weekly Review</span>
-            <span className="text-[9px] text-slate-600">{formatDateRange(review.periodStart, review.periodEnd)}</span>
+            <CalendarDays size={14} className="text-ink-muted shrink-0" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-ink-muted">Weekly Review</span>
+            <span className="text-[9px] text-ink-subtle">{formatDateRange(review.periodStart, review.periodEnd)}</span>
           </div>
           <button
             onClick={onDismiss}
-            className="shrink-0 w-6 h-6 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors text-slate-500 hover:text-white"
+            className="shrink-0 w-6 h-6 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors text-ink-muted hover:text-white"
           >
             <X size={12} />
           </button>
         </div>
 
-        <p className="text-sm text-slate-300 mt-2 line-clamp-2">{review.tutorSummary}</p>
+        <p className="text-sm text-ink-muted mt-2 line-clamp-2">{review.tutorSummary}</p>
 
         <div className="flex items-center gap-3 mt-3 flex-wrap">
-          <span className="text-[10px] text-slate-500">
+          <span className="text-[10px] text-ink-muted">
             <span className="text-white font-bold">{review.sessionsCompleted}</span> sessions
           </span>
-          <span className="text-[10px] text-slate-500">
+          <span className="text-[10px] text-ink-muted">
             <span className="text-white font-bold">~{review.totalMinutes}</span> min
           </span>
           <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${chip.className}`}>{chip.label}</span>
@@ -99,9 +99,9 @@ export function WeeklyReviewCard({ review, variant, onDismiss }: WeeklyReviewCar
   if (!review) {
     return (
       <motion.div variants={fadeUp} className="rounded-xl glass p-8 text-center">
-        <CalendarDays size={32} className="text-slate-600 mx-auto mb-3" />
-        <p className="text-slate-500 font-medium">No weekly review yet</p>
-        <p className="text-slate-600 text-sm mt-1">Complete a session to get your first weekly summary.</p>
+        <CalendarDays size={32} className="text-ink-subtle mx-auto mb-3" />
+        <p className="text-ink-muted font-medium">No weekly review yet</p>
+        <p className="text-ink-subtle text-sm mt-1">Complete a session to get your first weekly summary.</p>
       </motion.div>
     );
   }
@@ -115,7 +115,7 @@ export function WeeklyReviewCard({ review, variant, onDismiss }: WeeklyReviewCar
         <CalendarDays size={16} className="text-violet-400 shrink-0" />
         <div>
           <p className="text-white font-bold text-sm">{formatDateRange(review.periodStart, review.periodEnd)}</p>
-          <p className="text-[10px] text-slate-500">Generated {new Date(review.generatedAt).toLocaleDateString()}</p>
+          <p className="text-[10px] text-ink-muted">Generated {new Date(review.generatedAt).toLocaleDateString()}</p>
         </div>
         <span className={`ml-auto text-[9px] font-bold px-2 py-0.5 rounded-full ${chip.className}`}>{chip.label}</span>
       </motion.div>
@@ -124,17 +124,17 @@ export function WeeklyReviewCard({ review, variant, onDismiss }: WeeklyReviewCar
       <motion.div variants={fadeUp} className="grid grid-cols-2 gap-2.5">
         <div className="rounded-xl glass p-3.5">
           <p className="text-lg font-black text-white">{review.sessionsCompleted}</p>
-          <p className="text-[9px] text-slate-600 font-medium">Sessions</p>
+          <p className="text-[9px] text-ink-subtle font-medium">Sessions</p>
         </div>
         <div className="rounded-xl glass p-3.5">
           <p className="text-lg font-black text-white">~{review.totalMinutes}</p>
-          <p className="text-[9px] text-slate-600 font-medium">Minutes</p>
+          <p className="text-[9px] text-ink-subtle font-medium">Minutes</p>
         </div>
       </motion.div>
 
       {/* Tutor summary */}
       <motion.div variants={fadeUp} className="rounded-xl glass-elevated p-5 border-l-4 border-l-violet-500">
-        <p className="text-sm text-slate-300 italic leading-relaxed">"{review.tutorSummary}"</p>
+        <p className="text-sm text-ink-muted italic leading-relaxed">"{review.tutorSummary}"</p>
       </motion.div>
 
       {/* Week focus */}
@@ -146,7 +146,7 @@ export function WeeklyReviewCard({ review, variant, onDismiss }: WeeklyReviewCar
           </div>
           <ol className="space-y-2">
             {review.weekFocusPriorities.map((p, i) => (
-              <li key={i} className="flex items-start gap-2.5 text-sm text-slate-300">
+              <li key={i} className="flex items-start gap-2.5 text-sm text-ink-muted">
                 <span className="shrink-0 w-5 h-5 rounded-full bg-violet-500/15 text-violet-400 text-[10px] font-black flex items-center justify-center mt-0.5">{i + 1}</span>
                 {p}
               </li>
@@ -172,7 +172,7 @@ export function WeeklyReviewCard({ review, variant, onDismiss }: WeeklyReviewCar
                 <div className="space-y-2.5">
                   {review.improved.map(m => (
                     <div key={m.skillId}>
-                      <p className="text-[11px] text-slate-300 mb-1">{m.label}</p>
+                      <p className="text-[11px] text-ink-muted mb-1">{m.label}</p>
                       <DeltaBar before={m.before} after={m.after} delta={m.delta} />
                     </div>
                   ))}
@@ -188,7 +188,7 @@ export function WeeklyReviewCard({ review, variant, onDismiss }: WeeklyReviewCar
                 <div className="space-y-2.5">
                   {review.slipping.map(m => (
                     <div key={m.skillId}>
-                      <p className="text-[11px] text-slate-300 mb-1">{m.label}</p>
+                      <p className="text-[11px] text-ink-muted mb-1">{m.label}</p>
                       <DeltaBar before={m.before} after={m.after} delta={m.delta} />
                     </div>
                   ))}
@@ -196,7 +196,7 @@ export function WeeklyReviewCard({ review, variant, onDismiss }: WeeklyReviewCar
               </div>
             )}
             {review.improved.length === 0 && review.slipping.length === 0 && (
-              <div className="flex items-center gap-2 text-slate-500 text-sm">
+              <div className="flex items-center gap-2 text-ink-muted text-sm">
                 <Minus size={14} />
                 No significant skill changes this week.
               </div>
@@ -217,8 +217,8 @@ export function WeeklyReviewCard({ review, variant, onDismiss }: WeeklyReviewCar
           <div className="flex items-center gap-6">
             <div className="text-center">
               <p className="text-3xl font-black text-white">{review.examReadiness.predictedScore}</p>
-              <p className="text-[10px] text-slate-500">Predicted Score</p>
-              <p className="text-[9px] text-slate-600">{review.examReadiness.confidenceInterval[0]}–{review.examReadiness.confidenceInterval[1]}</p>
+              <p className="text-[10px] text-ink-muted">Predicted Score</p>
+              <p className="text-[9px] text-ink-subtle">{review.examReadiness.confidenceInterval[0]}–{review.examReadiness.confidenceInterval[1]}</p>
             </div>
             <div className="flex-1">
               <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
@@ -231,7 +231,7 @@ export function WeeklyReviewCard({ review, variant, onDismiss }: WeeklyReviewCar
               {review.examReadiness.topRisks.length > 0 && (
                 <ul className="mt-2 space-y-1">
                   {review.examReadiness.topRisks.map((r, i) => (
-                    <li key={i} className="text-[11px] text-slate-400 flex items-start gap-1.5">
+                    <li key={i} className="text-[11px] text-ink-muted flex items-start gap-1.5">
                       <AlertTriangle size={10} className="text-amber-500 shrink-0 mt-0.5" />
                       {r}
                     </li>

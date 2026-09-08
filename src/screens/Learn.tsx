@@ -1094,11 +1094,11 @@ export function Learn() {
               <div className="flex items-start gap-3">
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-bold text-red-300">Feedback unavailable</p>
-                  <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed">{feedbackErrorMessage}</p>
+                  <p className="text-[11px] text-ink-muted mt-0.5 leading-relaxed">{feedbackErrorMessage}</p>
                 </div>
                 <button
                   onClick={() => setFeedbackErrorMessage(null)}
-                  className="flex-shrink-0 p-1 rounded-lg hover:bg-white/5 text-slate-500 hover:text-white transition-colors"
+                  className="flex-shrink-0 p-1 rounded-lg hover:bg-white/5 text-ink-muted hover:text-white transition-colors"
                 >
                   ✕
                 </button>
@@ -1188,7 +1188,7 @@ export function Learn() {
                             ? mode === 'examiner'
                               ? 'border-amber-400/50 text-amber-300 bg-amber-400/10'
                               : 'border-violet-400/50 text-violet-300 bg-violet-400/10'
-                            : 'border-transparent text-slate-500 hover:text-slate-300'
+                            : 'border-transparent text-ink-muted hover:text-ink-muted'
                         } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
                       >
                         {mode === 'examiner' ? 'Examiner voice' : 'Coach voice'}
@@ -1211,20 +1211,20 @@ export function Learn() {
                   className="rounded-xl glass-elevated p-5 space-y-4"
                 >
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-ink-muted mb-1.5">
                       We heard
                     </p>
                     {pendingTranscript.trim() ? (
                       <p className="text-sm text-white leading-relaxed">{pendingTranscript}</p>
                     ) : (
-                      <p className="text-sm text-slate-500 italic">Nothing was transcribed.</p>
+                      <p className="text-sm text-ink-muted italic">Nothing was transcribed.</p>
                     )}
                   </div>
                   <div className="flex gap-2">
                     <button
                       type="button"
                       onClick={handleRerecordTranscript}
-                      className="flex-1 py-2.5 rounded-xl text-xs font-bold border border-slate-700 text-slate-300 hover:bg-white/5 transition-colors"
+                      className="flex-1 py-2.5 rounded-xl text-xs font-bold border border-slate-700 text-ink-muted hover:bg-white/5 transition-colors"
                     >
                       Re-record
                     </button>
@@ -1250,7 +1250,7 @@ export function Learn() {
                       ? `${getSkillLabel(drillSkillId)} keeps coming back — this is a pattern worth fixing now.`
                       : `You've struggled with ${getSkillLabel(drillSkillId)} a few times recently.`}
                   </p>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-ink-muted">
                     A quick recovery drill can lock in the pattern before you move on.
                   </p>
                   <button

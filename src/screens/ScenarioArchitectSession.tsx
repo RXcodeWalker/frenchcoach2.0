@@ -141,7 +141,7 @@ export function ScenarioArchitectSession() {
         <div className="flex items-center justify-between mb-4">
           <button 
             onClick={() => navigate('/scenario-architect')}
-            className="flex items-center gap-2 text-[10px] font-black text-slate-500 hover:text-white transition-colors uppercase tracking-widest"
+            className="flex items-center gap-2 text-[10px] font-black text-ink-muted hover:text-white transition-colors uppercase tracking-widest"
           >
             <ArrowLeft size={14} /> ABORT SESSION
           </button>
@@ -157,17 +157,17 @@ export function ScenarioArchitectSession() {
         <Card variant="subtle" className="p-4 border-white/5 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center border border-white/5">
-              <User size={20} className="text-slate-400" />
+              <User size={20} className="text-ink-muted" />
             </div>
             <div>
               <h2 className="text-sm font-black text-white italic tracking-tight">{customScenario.npc_name}</h2>
-              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">{customScenario.title}</p>
+              <p className="text-[10px] text-ink-muted font-bold uppercase tracking-tighter">{customScenario.title}</p>
             </div>
           </div>
           
           <div className="hidden md:flex items-center gap-6">
             <div className="flex flex-col items-end">
-              <span className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-1">Objectives</span>
+              <span className="text-[8px] font-black text-ink-subtle uppercase tracking-widest mb-1">Objectives</span>
               <div className="flex gap-1">
                 {customScenario.objectives.map((_, i) => (
                   <div 
@@ -255,7 +255,7 @@ export function ScenarioArchitectSession() {
                   </button>
                   <div className="flex flex-col">
                     <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Listening...</span>
-                    <span className="text-xs text-slate-500 font-bold uppercase italic">Respond in French</span>
+                    <span className="text-xs text-ink-muted font-bold uppercase italic">Respond in French</span>
                   </div>
                 </div>
               </div>
@@ -265,13 +265,13 @@ export function ScenarioArchitectSession() {
               <button
                 onClick={() => recording.start()}
                 disabled={isTyping || isProcessing}
-                className="flex-1 flex items-center justify-center gap-3 py-4 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 disabled:text-slate-500 text-white font-black rounded-2xl shadow-xl shadow-emerald-600/20 transition-all uppercase italic tracking-widest group"
+                className="flex-1 flex items-center justify-center gap-3 py-4 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 disabled:text-ink-muted text-white font-black rounded-2xl shadow-xl shadow-emerald-600/20 transition-all uppercase italic tracking-widest group"
               >
                 <Mic size={20} className="group-hover:scale-110 transition-transform" />
                 Tap to Speak
               </button>
               
-              <div className="p-4 rounded-2xl bg-white/5 border border-white/10 text-slate-500 hover:text-white transition-colors cursor-help group relative">
+              <div className="p-4 rounded-2xl bg-white/5 border border-white/10 text-ink-muted hover:text-white transition-colors cursor-help group relative">
                 <Target size={20} />
                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 w-64 p-4 bg-slate-900 border border-white/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-2xl">
                   <span className="text-[10px] font-black text-violet-400 uppercase tracking-widest block mb-2">Objectives</span>
@@ -279,7 +279,7 @@ export function ScenarioArchitectSession() {
                     {customScenario.objectives.map((obj, i) => (
                       <div key={i} className="flex items-center gap-2">
                         <div className={`w-1.5 h-1.5 rounded-full ${completedObjectives.includes(i) ? 'bg-emerald-500' : 'bg-slate-700'}`} />
-                        <span className={`text-[10px] font-bold ${completedObjectives.includes(i) ? 'text-slate-200 line-through' : 'text-slate-400'}`}>{obj}</span>
+                        <span className={`text-[10px] font-bold ${completedObjectives.includes(i) ? 'text-slate-200 line-through' : 'text-ink-muted'}`}>{obj}</span>
                       </div>
                     ))}
                   </div>

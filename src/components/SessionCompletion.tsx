@@ -79,7 +79,7 @@ export function SessionCompletion({
             Session Complete!
           </motion.h2>
           <motion.p 
-            className="text-slate-400 font-medium text-lg mb-8"
+            className="text-ink-muted font-medium text-lg mb-8"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
@@ -153,12 +153,12 @@ function StatCard({ icon, label, value, subValue, trend }: { icon: React.ReactNo
       <div className="absolute top-0 right-0 p-2 opacity-20 group-hover:opacity-40 transition-opacity">
         {icon}
       </div>
-      <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">{label}</p>
+      <p className="text-[10px] font-bold text-ink-muted uppercase tracking-widest mb-1">{label}</p>
       <div className="flex items-end gap-2">
         <p className="text-2xl font-black text-white">{value}</p>
         {trend && <span className="text-[10px] font-bold text-emerald-400 mb-1.5">↑</span>}
       </div>
-      <p className="text-[10px] text-slate-600 font-bold mt-1">{subValue}</p>
+      <p className="text-[10px] text-ink-subtle font-bold mt-1">{subValue}</p>
     </div>
   );
 }

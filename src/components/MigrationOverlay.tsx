@@ -47,7 +47,7 @@ export function MigrationOverlay({ migrationPhase, onSkip }: Props) {
           transition={{ type: 'spring', stiffness: 120, damping: 20 }}
         >
           <h2 className="text-lg font-bold text-white mb-1">Setting up your account</h2>
-          <p className="text-sm text-slate-400 mb-6">Uploading your guest progress to the cloud…</p>
+          <p className="text-sm text-ink-muted mb-6">Uploading your guest progress to the cloud…</p>
 
           <div className="space-y-4">
             {PHASES.map(({ key, label }) => {
@@ -65,7 +65,7 @@ export function MigrationOverlay({ migrationPhase, onSkip }: Props) {
                       <div className="w-2 h-2 rounded-full bg-slate-600" />
                     )}
                   </div>
-                  <span className={`text-sm ${done ? 'text-emerald-400' : active ? 'text-white' : 'text-slate-500'}`}>
+                  <span className={`text-sm ${done ? 'text-emerald-400' : active ? 'text-white' : 'text-ink-muted'}`}>
                     {label}
                   </span>
                 </div>
@@ -76,7 +76,7 @@ export function MigrationOverlay({ migrationPhase, onSkip }: Props) {
           <AnimatePresence>
             {showSkip && (
               <motion.button
-                className="mt-6 w-full text-xs text-slate-400 hover:text-slate-200 transition-colors py-2"
+                className="mt-6 w-full text-xs text-ink-muted hover:text-slate-200 transition-colors py-2"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 onClick={onSkip}

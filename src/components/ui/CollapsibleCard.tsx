@@ -38,12 +38,12 @@ export function CollapsibleCard({
         {icon && <span className="text-base">{icon}</span>}
         <span className="flex-1 text-xs font-bold text-white">{title}</span>
         {badgeCount !== undefined && badgeCount > 0 && (
-          <span className="px-1.5 py-0.5 rounded-full bg-slate-700 text-[9px] font-bold text-slate-300">{badgeCount}</span>
+          <span className="px-1.5 py-0.5 rounded-full bg-slate-700 text-[9px] font-bold text-ink-muted">{badgeCount}</span>
         )}
         <motion.span
           animate={{ rotate: isOpen ? 180 : 0 }}
           transition={{ duration: 0.2 }}
-          className="text-slate-600"
+          className="text-ink-subtle"
         >
           <ChevronDown size={14} />
         </motion.span>

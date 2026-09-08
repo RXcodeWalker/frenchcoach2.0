@@ -139,7 +139,7 @@ export function SessionSummary({
           <div className="text-center">
             <div className="text-3xl mb-2">{topicIcon}</div>
             <h2 className="text-2xl font-black text-white">Session Complete!</h2>
-            <p className="text-slate-400 text-sm mt-1">
+            <p className="text-ink-muted text-sm mt-1">
               {topicLabel} · {completedQs.length} question{completedQs.length === 1 ? '' : 's'} · {formatDuration(session.startedAt)}
             </p>
           </div>
@@ -168,7 +168,7 @@ export function SessionSummary({
           {totalWords > 0 && (
             <div className="flex items-center gap-3 p-3 rounded-xl glass-subtle">
               <MessageSquare size={14} className="text-violet-400 flex-shrink-0" />
-              <span className="text-sm text-slate-300">
+              <span className="text-sm text-ink-muted">
                 <span className="font-bold text-white">{totalWords}</span> words spoken this session
               </span>
             </div>
@@ -177,10 +177,10 @@ export function SessionSummary({
           {/* Skill deltas */}
           {deltas.length > 0 && (
             <div className="space-y-2">
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Skills this session</p>
+              <p className="text-xs font-bold text-ink-muted uppercase tracking-wide">Skills this session</p>
               {deltas.map(d => (
                 <div key={d.skillId} className="flex items-center gap-3">
-                  <p className="text-xs text-slate-400 w-28 truncate flex-shrink-0">{d.name}</p>
+                  <p className="text-xs text-ink-muted w-28 truncate flex-shrink-0">{d.name}</p>
                   <div className="flex-1 relative h-1.5 bg-white/5 rounded-full overflow-hidden">
                     <div
                       className="absolute top-0 left-0 h-full rounded-full transition-all"
@@ -202,9 +202,9 @@ export function SessionSummary({
                       ? <TrendingUp size={10} className="text-emerald-400" />
                       : d.delta < 0
                       ? <TrendingDown size={10} className="text-rose-400" />
-                      : <Minus size={10} className="text-slate-600" />
+                      : <Minus size={10} className="text-ink-subtle" />
                     }
-                    <span className={`text-[10px] font-bold ${d.delta > 0 ? 'text-emerald-400' : d.delta < 0 ? 'text-rose-400' : 'text-slate-600'}`}>
+                    <span className={`text-[10px] font-bold ${d.delta > 0 ? 'text-emerald-400' : d.delta < 0 ? 'text-rose-400' : 'text-ink-subtle'}`}>
                       {d.delta > 0 ? '+' : ''}{Math.round(d.delta * 100)}%
                     </span>
                   </div>
@@ -216,10 +216,10 @@ export function SessionSummary({
           {/* docs §14 UX #4 — demand readout, adaptive path only */}
           {demandDeltas.length > 0 && (
             <div className="space-y-2">
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">This session's demands</p>
+              <p className="text-xs font-bold text-ink-muted uppercase tracking-wide">This session's demands</p>
               {demandDeltas.map(d => (
                 <div key={d.demand} className="flex items-center gap-3">
-                  <p className="text-xs text-slate-400 w-28 truncate flex-shrink-0">{DEMAND_LABEL[d.demand]}</p>
+                  <p className="text-xs text-ink-muted w-28 truncate flex-shrink-0">{DEMAND_LABEL[d.demand]}</p>
                   <div className="flex-1 relative h-1.5 bg-white/5 rounded-full overflow-hidden">
                     <div
                       className="absolute top-0 left-0 h-full rounded-full transition-all"
@@ -238,9 +238,9 @@ export function SessionSummary({
                       ? <TrendingUp size={10} className="text-emerald-400" />
                       : d.delta < 0
                       ? <TrendingDown size={10} className="text-rose-400" />
-                      : <Minus size={10} className="text-slate-600" />
+                      : <Minus size={10} className="text-ink-subtle" />
                     }
-                    <span className={`text-[10px] font-bold ${d.delta > 0 ? 'text-emerald-400' : d.delta < 0 ? 'text-rose-400' : 'text-slate-600'}`}>
+                    <span className={`text-[10px] font-bold ${d.delta > 0 ? 'text-emerald-400' : d.delta < 0 ? 'text-rose-400' : 'text-ink-subtle'}`}>
                       {d.delta > 0 ? '+' : ''}{Math.round(d.delta * 100)}%
                     </span>
                   </div>
@@ -252,8 +252,8 @@ export function SessionSummary({
           {/* Saved vocab */}
           {allSavedVocab.length > 0 && (
             <div className="p-3 rounded-xl glass-subtle space-y-1">
-              <p className="text-[10px] font-bold text-slate-600 uppercase tracking-wide">Saved vocabulary ({allSavedVocab.length})</p>
-              <p className="text-sm text-slate-300">{allSavedVocab.join(' · ')}</p>
+              <p className="text-[10px] font-bold text-ink-subtle uppercase tracking-wide">Saved vocabulary ({allSavedVocab.length})</p>
+              <p className="text-sm text-ink-muted">{allSavedVocab.join(' · ')}</p>
             </div>
           )}
 
@@ -291,7 +291,7 @@ export function SessionSummary({
               </motion.button>
               <motion.button
                 onClick={onHome}
-                className="flex-1 py-3 rounded-2xl border border-white/8 hover:border-white/15 text-slate-500 hover:text-white font-semibold text-sm flex items-center justify-center gap-2 transition-all"
+                className="flex-1 py-3 rounded-2xl border border-white/8 hover:border-white/15 text-ink-muted hover:text-white font-semibold text-sm flex items-center justify-center gap-2 transition-all"
                 whileTap={{ scale: 0.97 }}
               >
                 <Home size={14} /> Home
@@ -308,7 +308,7 @@ function StatTile({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
     <div className="p-3 rounded-xl glass-subtle text-center space-y-1">
       <div className="flex justify-center">{icon}</div>
-      <p className="text-[10px] font-bold text-slate-500 leading-tight">{label}</p>
+      <p className="text-[10px] font-bold text-ink-muted leading-tight">{label}</p>
     </div>
   );
 }

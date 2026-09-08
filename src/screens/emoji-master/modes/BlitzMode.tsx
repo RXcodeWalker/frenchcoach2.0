@@ -123,7 +123,7 @@ export function BlitzMode({ run, onQuit }: BlitzModeProps) {
           <button
             type="button"
             onClick={onQuit}
-            className="text-xs font-bold text-slate-500 hover:text-white"
+            className="text-xs font-bold text-ink-muted hover:text-white"
           >
             Quit
           </button>
@@ -133,7 +133,7 @@ export function BlitzMode({ run, onQuit }: BlitzModeProps) {
             className={`flex items-center gap-2 px-3 py-1.5 rounded-full border font-mono font-bold ${
               timer.isCritical
                 ? 'border-red-500/50 text-red-400 bg-red-500/10'
-                : 'border-white/10 text-slate-300'
+                : 'border-white/10 text-ink-muted'
             }`}
           >
             <Timer size={14} />
@@ -172,7 +172,7 @@ export function BlitzMode({ run, onQuit }: BlitzModeProps) {
       >
         <FloatingXPOverlay items={floatingXPs} />
         <div className="text-8xl md:text-9xl leading-none">{q.emojis}</div>
-        <p className="mt-4 text-slate-400 font-bold">Speed Blitz — type fast!</p>
+        <p className="mt-4 text-ink-muted font-bold">Speed Blitz — type fast!</p>
         <GameFeedbackOverlay
           feedback={feedback}
           correctAnswer={q.french}

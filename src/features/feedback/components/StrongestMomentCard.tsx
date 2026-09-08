@@ -31,18 +31,18 @@ export function StrongestMomentCard({ feedback, transcript }: Props) {
     >
       {bestMoment ? (
         // New backend field — rich coaching voice
-        <p className="text-[11px] text-slate-300 leading-relaxed">{bestMoment}</p>
+        <p className="text-[11px] text-ink-muted leading-relaxed">{bestMoment}</p>
       ) : spanText ? (
         // Legacy: span-derived quote + explanation
         <div className="p-3 rounded-lg bg-emerald-500/8 border border-emerald-500/15">
           <p className="text-[10px] text-emerald-300 font-medium italic">"{spanText}"</p>
           {legacyExplanation && (
-            <p className="text-[10px] text-slate-400 mt-1">{legacyExplanation}</p>
+            <p className="text-[10px] text-ink-muted mt-1">{legacyExplanation}</p>
           )}
         </div>
       ) : (
         // Explanation only
-        <p className="text-[10px] text-slate-400">{legacyExplanation}</p>
+        <p className="text-[10px] text-ink-muted">{legacyExplanation}</p>
       )}
     </CollapsibleCard>
   );

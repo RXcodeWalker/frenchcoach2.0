@@ -27,14 +27,14 @@ export function Explore() {
               <span className="text-[10px] font-bold text-violet-400 uppercase tracking-wider">Training Hub</span>
             </div>
             <h1 className="text-2xl md:text-3xl font-black text-white">Explore</h1>
-            <p className="text-sm text-slate-500 mt-1">Discover all learning modes, AI tools, and challenges</p>
+            <p className="text-sm text-ink-muted mt-1">Discover all learning modes, AI tools, and challenges</p>
           </div>
 
           <div className="flex bg-navy-200 p-1 rounded-xl border border-white/5 self-start">
             <button
               onClick={() => setViewMode('grid')}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
-                viewMode === 'grid' ? 'bg-violet-electric/10 text-violet-400' : 'text-slate-500 hover:text-slate-300'
+                viewMode === 'grid' ? 'bg-violet-electric/10 text-violet-400' : 'text-ink-muted hover:text-ink-muted'
               }`}
             >
               <LayoutGrid size={12} /> FEATURES
@@ -42,7 +42,7 @@ export function Explore() {
             <button
               onClick={() => setViewMode('tree')}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
-                viewMode === 'tree' ? 'bg-violet-electric/10 text-violet-400' : 'text-slate-500 hover:text-slate-300'
+                viewMode === 'tree' ? 'bg-violet-electric/10 text-violet-400' : 'text-ink-muted hover:text-ink-muted'
               }`}
             >
               <GitBranch size={12} /> SCENARIOS
@@ -63,7 +63,7 @@ export function Explore() {
                 <motion.button
                   onClick={() => setActiveCategory('all')}
                   className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all duration-200 ${
-                    activeCategory === 'all' ? 'bg-violet-electric/10 text-violet-400 border border-violet-electric/20' : 'text-slate-600 hover:text-white border border-white/[0.04]'
+                    activeCategory === 'all' ? 'bg-violet-electric/10 text-violet-400 border border-violet-electric/20' : 'text-ink-subtle hover:text-white border border-white/[0.04]'
                   }`}
                   whileTap={{ scale: 0.95 }}
                 >
@@ -74,7 +74,7 @@ export function Explore() {
                     key={cat}
                     onClick={() => setActiveCategory(cat)}
                     className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all duration-200 ${
-                      activeCategory === cat ? 'bg-violet-electric/10 text-violet-400 border border-violet-electric/20' : 'text-slate-600 hover:text-white border border-white/[0.04]'
+                      activeCategory === cat ? 'bg-violet-electric/10 text-violet-400 border border-violet-electric/20' : 'text-ink-subtle hover:text-white border border-white/[0.04]'
                     }`}
                     whileTap={{ scale: 0.95 }}
                   >
@@ -88,7 +88,7 @@ export function Explore() {
                 if (categoryFeatures.length === 0) return null;
                 return (
                   <div key={category} className="space-y-2.5">
-                    <h2 className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">{category}</h2>
+                    <h2 className="text-[10px] font-bold text-ink-subtle uppercase tracking-wider">{category}</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
                       {categoryFeatures.map(feature => (
                         <motion.button
@@ -122,14 +122,14 @@ export function Explore() {
                                   boxShadow: feature.locked ? 'none' : `0 0 8px ${feature.color}08`,
                                 }}
                               >
-                                {feature.locked ? <Lock size={14} className="text-slate-500" /> : feature.icon}
+                                {feature.locked ? <Lock size={14} className="text-ink-muted" /> : feature.icon}
                               </div>
                               {feature.badge && !feature.locked && (
                                 <span className="text-[8px] font-bold px-1.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/15">{feature.badge}</span>
                               )}
                             </div>
-                            <h3 className={`font-bold text-xs mb-0.5 ${feature.locked ? 'text-slate-500' : 'text-white'}`}>{feature.title}</h3>
-                            <p className={`text-[10px] leading-relaxed font-bold ${feature.locked ? 'text-slate-600' : 'text-slate-400'}`}>{feature.description}</p>
+                            <h3 className={`font-bold text-xs mb-0.5 ${feature.locked ? 'text-ink-muted' : 'text-white'}`}>{feature.title}</h3>
+                            <p className={`text-[10px] leading-relaxed font-bold ${feature.locked ? 'text-ink-subtle' : 'text-ink-muted'}`}>{feature.description}</p>
                             {!feature.locked && (
                               <div className="mt-2 flex items-center gap-1 text-[9px] font-semibold" style={{ color: feature.color }}>
                                 <span>Open</span>

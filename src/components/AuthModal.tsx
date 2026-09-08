@@ -35,7 +35,7 @@ export function AuthModal({ onClose }: Props) {
         >
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 text-slate-400 hover:text-slate-200 transition-colors"
+            className="absolute top-4 right-4 text-ink-muted hover:text-slate-200 transition-colors"
           >
             <X size={18} />
           </button>
@@ -47,7 +47,7 @@ export function AuthModal({ onClose }: Props) {
                 <Mail size={20} className="text-violet-400" />
               </div>
               <div className="text-center">
-                <p className="text-xs text-slate-400 mb-0.5">Signed in as</p>
+                <p className="text-xs text-ink-muted mb-0.5">Signed in as</p>
                 <p className="text-sm font-semibold text-white break-all">{user.email}</p>
                 <p className="text-[10px] text-emerald-400 mt-1">Progress syncing to cloud</p>
               </div>
@@ -64,7 +64,7 @@ export function AuthModal({ onClose }: Props) {
             <div className="flex flex-col gap-4">
               <div>
                 <h2 className="text-lg font-bold text-white mb-0.5">Sync your progress</h2>
-                <p className="text-slate-400 text-xs">
+                <p className="text-ink-muted text-xs">
                   Sign in to back up XP, achievements, and gems across devices.
                 </p>
               </div>

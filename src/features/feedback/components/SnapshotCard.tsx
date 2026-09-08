@@ -38,10 +38,10 @@ export function SnapshotCard({ feedback }: Props) {
       >
         <div className="flex items-start justify-between mb-2">
           <h3 className="font-bold text-white text-sm">Results</h3>
-          <span className="text-[9px] text-slate-600">{wordCount}w</span>
+          <span className="text-[9px] text-ink-subtle">{wordCount}w</span>
         </div>
-        <p className="text-sm text-slate-300 font-semibold">Practiced offline — not graded</p>
-        <p className="text-[11px] text-slate-500 mt-1 leading-snug">
+        <p className="text-sm text-ink-muted font-semibold">Practiced offline — not graded</p>
+        <p className="text-[11px] text-ink-muted mt-1 leading-snug">
           No AI grader was reachable for this attempt, so no score was assigned. Your evidence and coaching tips below are still real.
         </p>
       </motion.div>
@@ -59,7 +59,7 @@ export function SnapshotCard({ feedback }: Props) {
         <div>
           <h3 className="font-bold text-white text-sm">Results</h3>
           {examiner?.oneLiner && (
-            <p className="text-[11px] text-slate-400 italic mt-0.5 max-w-xs leading-snug">
+            <p className="text-[11px] text-ink-muted italic mt-0.5 max-w-xs leading-snug">
               "{examiner.oneLiner}"
             </p>
           )}
@@ -70,7 +70,7 @@ export function SnapshotCard({ feedback }: Props) {
               {BAND_LABEL[band] ?? band}
             </span>
           )}
-          <span className="text-[9px] text-slate-600">
+          <span className="text-[9px] text-ink-subtle">
             {wordCount != null ? `${wordCount}w` : '…'}
             {cefrLevel ? ` · ${cefrLevel}` : ''}
           </span>
@@ -89,7 +89,7 @@ export function SnapshotCard({ feedback }: Props) {
             >
               {val.toFixed(1)}
             </motion.div>
-            <div className="text-[9px] text-slate-600">{label}</div>
+            <div className="text-[9px] text-ink-subtle">{label}</div>
             <div className="mt-1.5 h-1 bg-slate-800 rounded-full overflow-hidden">
               <motion.div
                 className="h-full rounded-full"

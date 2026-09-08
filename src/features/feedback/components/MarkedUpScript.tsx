@@ -59,7 +59,7 @@ export function MarkedUpScript({ transcript, feedback, onIssueClick }: Props) {
 
   return (
     <motion.div variants={fadeUp} initial="hidden" animate="show" className="rounded-xl glass p-4">
-      <p className="text-[9px] font-bold text-slate-600 uppercase tracking-wider mb-2.5">Your Response — Marked Up</p>
+      <p className="text-[9px] font-bold text-ink-subtle uppercase tracking-wider mb-2.5">Your Response — Marked Up</p>
 
       <div className="flex gap-2">
         {/* Margin markers — one dot per correction, aligned by document order */}
@@ -74,7 +74,7 @@ export function MarkedUpScript({ transcript, feedback, onIssueClick }: Props) {
           </div>
         )}
 
-        <p className="text-[12px] text-slate-300 leading-relaxed flex-1">
+        <p className="text-[12px] text-ink-muted leading-relaxed flex-1">
           {segments.map((seg, i) => {
             if (!seg.span) return <span key={i}>{seg.text}</span>;
 
@@ -118,7 +118,7 @@ export function MarkedUpScript({ transcript, feedback, onIssueClick }: Props) {
       {hasAnnotations && (
         <div className="flex items-center gap-3 mt-3 pt-3 border-t border-slate-800">
           {(['major', 'minor', 'strong'] as const).map(s => (
-            <span key={s} className="flex items-center gap-1 text-[9px] text-slate-600">
+            <span key={s} className="flex items-center gap-1 text-[9px] text-ink-subtle">
               <span className={`inline-block w-3 h-0.5 rounded ${
                 s === 'major' ? 'bg-red-400' : s === 'minor' ? 'bg-amber-400' : 'bg-emerald-400'
               }`} />

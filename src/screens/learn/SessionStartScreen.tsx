@@ -88,7 +88,7 @@ export function SessionStartScreen({ topic, topicMastery, selectedEngine, onEngi
       <div className="flex items-center gap-4">
         <motion.button
           onClick={onBack}
-          className="p-2 rounded-xl glass-subtle text-slate-400 hover:text-white transition-colors"
+          className="p-2 rounded-xl glass-subtle text-ink-muted hover:text-white transition-colors"
           whileTap={{ scale: 0.95 }}
         >
           <ChevronRight size={18} className="rotate-180" />
@@ -101,7 +101,7 @@ export function SessionStartScreen({ topic, topicMastery, selectedEngine, onEngi
         </div>
         <div>
           <h1 className="text-xl font-black text-white">{topic.label}</h1>
-          <p className="text-sm text-slate-500">{topic.labelEn}</p>
+          <p className="text-sm text-ink-muted">{topic.labelEn}</p>
         </div>
       </div>
 
@@ -110,12 +110,12 @@ export function SessionStartScreen({ topic, topicMastery, selectedEngine, onEngi
         <div className="flex gap-3">
           <div className="flex-1 p-3 rounded-xl glass-subtle text-center">
             <p className="text-lg font-black text-white">{questionsAnswered}</p>
-            <p className="text-[10px] text-slate-500 uppercase tracking-wide">Questions done</p>
+            <p className="text-[10px] text-ink-muted uppercase tracking-wide">Questions done</p>
           </div>
           {avgScore != null && (
             <div className="flex-1 p-3 rounded-xl glass-subtle text-center">
               <p className="text-lg font-black text-white">{avgScore.toFixed(1)}</p>
-              <p className="text-[10px] text-slate-500 uppercase tracking-wide">Avg score</p>
+              <p className="text-[10px] text-ink-muted uppercase tracking-wide">Avg score</p>
             </div>
           )}
           {topicMastery?.mastered && (
@@ -150,8 +150,8 @@ export function SessionStartScreen({ topic, topicMastery, selectedEngine, onEngi
             </div>
           )}
           {coachRecommendation.rationale.evidenceSummary && (
-            <p className="text-[11px] text-slate-400 leading-snug">
-              <span className="text-slate-500 font-semibold">Because I noticed: </span>
+            <p className="text-[11px] text-ink-muted leading-snug">
+              <span className="text-ink-muted font-semibold">Because I noticed: </span>
               {coachRecommendation.rationale.evidenceSummary}
             </p>
           )}
@@ -164,7 +164,7 @@ export function SessionStartScreen({ topic, topicMastery, selectedEngine, onEngi
           </div>
           {topWeaknesses.map(w => (
             <div key={w.skillId} className="flex items-center justify-between">
-              <p className="text-sm text-slate-300">📍 {w.name}</p>
+              <p className="text-sm text-ink-muted">📍 {w.name}</p>
               <div className="flex items-center gap-2">
                 <div className="w-20 h-1.5 bg-white/5 rounded-full overflow-hidden">
                   <div
@@ -172,7 +172,7 @@ export function SessionStartScreen({ topic, topicMastery, selectedEngine, onEngi
                     style={{ width: `${Math.round(w.mastery * 100)}%` }}
                   />
                 </div>
-                <span className="text-[10px] text-slate-500">{Math.round(w.mastery * 100)}%</span>
+                <span className="text-[10px] text-ink-muted">{Math.round(w.mastery * 100)}%</span>
               </div>
             </div>
           ))}
@@ -184,7 +184,7 @@ export function SessionStartScreen({ topic, topicMastery, selectedEngine, onEngi
         <div className={`p-3 rounded-2xl glass-subtle flex items-center justify-between gap-3 ${focusTokenActive ? 'border-emerald-500/30' : 'border-transparent'}`}>
           <div className="flex items-center gap-2 min-w-0">
             <span className="text-lg flex-shrink-0">🎯</span>
-            <p className="text-xs text-slate-400 leading-snug">
+            <p className="text-xs text-ink-muted leading-snug">
               {focusTokenActive
                 ? 'Focus Token active — this session targets your weakest skill.'
                 : `Use a Focus Token to override today's focus (${focusTokenQty} owned).`}
@@ -196,7 +196,7 @@ export function SessionStartScreen({ topic, topicMastery, selectedEngine, onEngi
             className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest flex-shrink-0 transition-colors ${
               focusTokenActive
                 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/10'
+                : 'bg-white/5 text-ink-muted hover:bg-white/10 border border-white/10'
             }`}
             whileTap={{ scale: 0.97 }}
           >
@@ -216,20 +216,20 @@ export function SessionStartScreen({ topic, topicMastery, selectedEngine, onEngi
       {ability && aim && onAimChange ? (
         <div className="space-y-3">
           <div className="p-4 rounded-2xl glass-subtle space-y-1">
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Your level</p>
+            <p className="text-xs font-bold text-ink-muted uppercase tracking-wide">Your level</p>
             {(() => {
               const { band, caption } = measuredLevelDisplay(ability);
               return (
                 <>
                   <p className="text-2xl font-black text-white">{band ?? 'Still getting to know your level'}</p>
-                  <p className="text-[11px] text-slate-500">{caption}</p>
+                  <p className="text-[11px] text-ink-muted">{caption}</p>
                 </>
               );
             })()}
           </div>
 
           <div className="space-y-2">
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wide px-1">Today's aim</p>
+            <p className="text-xs font-bold text-ink-muted uppercase tracking-wide px-1">Today's aim</p>
             <div className="grid grid-cols-3 gap-2">
               {AIMS.map(a => {
                 const cfg = AIM_CONFIG[a];
@@ -246,17 +246,17 @@ export function SessionStartScreen({ topic, topicMastery, selectedEngine, onEngi
                     whileTap={{ scale: 0.97 }}
                   >
                     <span className="text-xl">{cfg.icon}</span>
-                    <p className={`font-bold text-sm ${isSelected ? 'text-white' : 'text-slate-300'}`}>{cfg.label}</p>
+                    <p className={`font-bold text-sm ${isSelected ? 'text-white' : 'text-ink-muted'}`}>{cfg.label}</p>
                   </motion.button>
                 );
               })}
             </div>
-            <p className="text-[11px] text-slate-500 px-1">{AIM_CONFIG[aim].description}</p>
+            <p className="text-[11px] text-ink-muted px-1">{AIM_CONFIG[aim].description}</p>
           </div>
         </div>
       ) : (
         <div className="space-y-2">
-          <p className="text-xs font-bold text-slate-500 uppercase tracking-wide px-1">Choose difficulty level</p>
+          <p className="text-xs font-bold text-ink-muted uppercase tracking-wide px-1">Choose difficulty level</p>
           <div className="grid grid-cols-2 gap-2">
             {DIFFICULTY_TIERS.map(tier => {
               const cfg = DIFFICULTY_CONFIG[tier];
@@ -274,19 +274,19 @@ export function SessionStartScreen({ topic, topicMastery, selectedEngine, onEngi
                   whileTap={{ scale: 0.97 }}
                 >
                   <span className="text-xl">{cfg.icon}</span>
-                  <p className={`font-bold text-sm ${isSelected ? 'text-white' : 'text-slate-300'}`}>{cfg.label}</p>
-                  <p className="text-[10px] text-slate-500">{cfg.cefr}</p>
+                  <p className={`font-bold text-sm ${isSelected ? 'text-white' : 'text-ink-muted'}`}>{cfg.label}</p>
+                  <p className="text-[10px] text-ink-muted">{cfg.cefr}</p>
                 </motion.button>
               );
             })}
           </div>
-          <p className="text-[11px] text-slate-500 px-1">{DIFFICULTY_CONFIG[selectedDifficulty].description}</p>
+          <p className="text-[11px] text-ink-muted px-1">{DIFFICULTY_CONFIG[selectedDifficulty].description}</p>
         </div>
       )}
 
       {/* Mode selection */}
       <div className="space-y-2">
-        <p className="text-xs font-bold text-slate-500 uppercase tracking-wide px-1">Choose session length</p>
+        <p className="text-xs font-bold text-ink-muted uppercase tracking-wide px-1">Choose session length</p>
         {MODES.map(({ mode, icon }) => (
           <motion.button
             key={mode}
@@ -302,8 +302,8 @@ export function SessionStartScreen({ topic, topicMastery, selectedEngine, onEngi
             <div className="flex-1">
               <p className="font-bold text-white text-sm">{SESSION_LABEL[mode]}</p>
               <div className="flex items-center gap-1 mt-0.5">
-                <Clock size={10} className="text-slate-600" />
-                <p className="text-[10px] text-slate-600">{SESSION_DURATION[mode]}</p>
+                <Clock size={10} className="text-ink-subtle" />
+                <p className="text-[10px] text-ink-subtle">{SESSION_DURATION[mode]}</p>
               </div>
             </div>
             <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
@@ -327,7 +327,7 @@ export function SessionStartScreen({ topic, topicMastery, selectedEngine, onEngi
         </motion.button>
         <motion.button
           onClick={onSingleQuestion}
-          className="w-full py-3 rounded-2xl glass-subtle text-slate-400 hover:text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors"
+          className="w-full py-3 rounded-2xl glass-subtle text-ink-muted hover:text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors"
           whileTap={{ scale: 0.97 }}
         >
           <BookOpen size={14} /> Just one question

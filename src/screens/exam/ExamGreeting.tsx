@@ -19,7 +19,7 @@ export function ExamGreeting({ recording, greetingText, onContinue }: Props) {
     <div className="fixed inset-0 bg-navy flex flex-col z-40">
       <div className="flex-1 flex flex-col items-center justify-center px-5 py-6 max-w-2xl mx-auto w-full">
         <motion.div
-          className="mb-4 px-3 py-1 rounded-full text-[9px] font-bold border bg-slate-500/8 text-slate-400 border-slate-500/15"
+          className="mb-4 px-3 py-1 rounded-full text-[9px] font-bold border bg-slate-500/8 text-ink-muted border-slate-500/15"
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
         >
@@ -27,7 +27,7 @@ export function ExamGreeting({ recording, greetingText, onContinue }: Props) {
         </motion.div>
 
         <div className="w-full rounded-xl glass-elevated p-5 mb-5 text-center">
-          <p className="text-[9px] text-slate-700 uppercase tracking-wider mb-1.5">Examiner</p>
+          <p className="text-[9px] text-ink-subtle uppercase tracking-wider mb-1.5">Examiner</p>
           <p className="text-base font-bold text-white leading-relaxed">
             {greetingText}
           </p>
@@ -61,7 +61,7 @@ export function ExamGreeting({ recording, greetingText, onContinue }: Props) {
             </motion.button>
           </div>
 
-          <p className="text-center text-[9px] text-slate-600">
+          <p className="text-center text-[9px] text-ink-subtle">
             This is a quick warm-up — your reply here isn't recorded or scored.
           </p>
         </div>

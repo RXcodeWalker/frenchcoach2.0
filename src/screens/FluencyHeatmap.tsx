@@ -191,7 +191,7 @@ export function FluencyHeatmap() {
         <div className="flex items-center gap-4 mb-2">
           <button 
             onClick={() => navigate('/explore')}
-            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 transition-all"
+            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-ink-muted transition-all"
           >
             <ChevronLeft size={20} />
           </button>
@@ -207,7 +207,7 @@ export function FluencyHeatmap() {
         {/* Filter Bar */}
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2 px-3 py-2 bg-white/5 rounded-xl border border-white/10">
-            <span className="text-[10px] font-bold text-slate-500 uppercase">Topic:</span>
+            <span className="text-[10px] font-bold text-ink-muted uppercase">Topic:</span>
             <select 
               value={topicFilter}
               onChange={(e) => setTopicFilter(e.target.value)}
@@ -218,7 +218,7 @@ export function FluencyHeatmap() {
             </select>
           </div>
           <div className="flex items-center gap-2 px-3 py-2 bg-white/5 rounded-xl border border-white/10">
-            <span className="text-[10px] font-bold text-slate-500 uppercase">Mode:</span>
+            <span className="text-[10px] font-bold text-ink-muted uppercase">Mode:</span>
             <select 
               value={modeFilter}
               onChange={(e) => setModeFilter(e.target.value)}
@@ -247,13 +247,13 @@ export function FluencyHeatmap() {
             </div>
             {!isLoading && (
               <div className="flex items-center gap-3">
-                <span className="text-[8px] font-bold text-slate-600 uppercase">Less</span>
+                <span className="text-[8px] font-bold text-ink-subtle uppercase">Less</span>
                 <div className="flex gap-1">
                   {[0, 2, 4, 6, 8, 10].map(s => (
                     <div key={s} className={`w-3 h-3 rounded-sm ${getHeatColor(s)}`} />
                   ))}
                 </div>
-                <span className="text-[8px] font-bold text-slate-600 uppercase">More</span>
+                <span className="text-[8px] font-bold text-ink-subtle uppercase">More</span>
               </div>
             )}
           </div>
@@ -278,7 +278,7 @@ export function FluencyHeatmap() {
                 {/* Day Labels */}
                 <div className="flex flex-col gap-1.5 pr-2 pt-6">
                   {DAYS_OF_WEEK.map((d, i) => (
-                    <span key={d} className="text-[8px] font-bold text-slate-700 h-3 flex items-center">
+                    <span key={d} className="text-[8px] font-bold text-ink-subtle h-3 flex items-center">
                       {i % 2 === 0 ? d : ''}
                     </span>
                   ))}
@@ -290,7 +290,7 @@ export function FluencyHeatmap() {
                     {/* Month Label */}
                     <div className="h-4 flex items-center">
                       {wIdx % 4 === 0 && (
-                        <span className="text-[8px] font-bold text-slate-500 uppercase">
+                        <span className="text-[8px] font-bold text-ink-muted uppercase">
                           {MONTHS[new Date(week[0].date).getMonth()]}
                         </span>
                       )}
@@ -333,7 +333,7 @@ export function FluencyHeatmap() {
             <div className="mt-8 border-t border-white/5 pt-6">
               <div className="flex items-center gap-2 mb-4">
                 <TrendingUp size={14} className="text-emerald-400" />
-                <span className="text-[10px] font-bold text-slate-500 uppercase">Progression Trend</span>
+                <span className="text-[10px] font-bold text-ink-muted uppercase">Progression Trend</span>
               </div>
               <div className="h-16 w-full">
                 <svg className="w-full h-full" viewBox={`0 0 ${trendData.length * 10} 100`} preserveAspectRatio="none">
@@ -375,7 +375,7 @@ export function FluencyHeatmap() {
               </div>
               <div>
                 <h3 className="text-xs font-bold text-white uppercase italic">Prime Performance</h3>
-                <p className="text-[10px] text-slate-500">Your most fluent time of day</p>
+                <p className="text-[10px] text-ink-muted">Your most fluent time of day</p>
               </div>
             </div>
             
@@ -390,7 +390,7 @@ export function FluencyHeatmap() {
                 <span className="text-[10px] font-bold text-blue-400 mb-2 uppercase">Peak Fluency</span>
               </div>
             ) : (
-              <p className="text-sm text-slate-600 italic">Complete more sessions to see insights</p>
+              <p className="text-sm text-ink-subtle italic">Complete more sessions to see insights</p>
             )}
 
             <div className="pt-2">
@@ -400,7 +400,7 @@ export function FluencyHeatmap() {
                   <div className="h-2 w-2/3 bg-white/5 animate-pulse rounded" />
                 </div>
               ) : (
-                <p className="text-[10px] text-slate-500 leading-relaxed">
+                <p className="text-[10px] text-ink-muted leading-relaxed">
                   You tend to express yourself most clearly during this window. Use this time for high-intensity practice!
                 </p>
               )}
@@ -414,7 +414,7 @@ export function FluencyHeatmap() {
               </div>
               <div>
                 <h3 className="text-xs font-bold text-white uppercase italic">Mastery Domain</h3>
-                <p className="text-[10px] text-slate-500">Your most fluent topic area</p>
+                <p className="text-[10px] text-ink-muted">Your most fluent topic area</p>
               </div>
             </div>
 
@@ -428,7 +428,7 @@ export function FluencyHeatmap() {
                 <Zap size={18} className="text-amber-400 mb-2" />
               </div>
             ) : (
-              <p className="text-sm text-slate-600 italic">Add some topic-based sessions first</p>
+              <p className="text-sm text-ink-subtle italic">Add some topic-based sessions first</p>
             )}
 
             <div className="pt-2">
@@ -438,7 +438,7 @@ export function FluencyHeatmap() {
                   <div className="h-2 w-2/3 bg-white/5 animate-pulse rounded" />
                 </div>
               ) : (
-                <p className="text-[10px] text-slate-500 leading-relaxed">
+                <p className="text-[10px] text-ink-muted leading-relaxed">
                   You have strong linguistic control in this area. Try pushing into more complex sub-topics.
                 </p>
               )}
@@ -457,7 +457,7 @@ export function FluencyHeatmap() {
                 </div>
               ) : (
                 <>
-                  <p className="text-[8px] font-bold text-slate-600 uppercase mb-1">
+                  <p className="text-[8px] font-bold text-ink-subtle uppercase mb-1">
                     {i === 1 ? 'Total Effort' : i === 2 ? 'Avg Fluency' : i === 3 ? 'Consistency' : 'Elite Days'}
                   </p>
                   <p className={`text-xl font-black ${i === 2 ? 'text-blue-400' : i === 3 ? 'text-emerald-400' : 'text-white'}`}>
@@ -472,7 +472,7 @@ export function FluencyHeatmap() {
         {/* Info Box */}
         <div className="p-4 bg-blue-500/5 border border-blue-500/10 rounded-xl flex items-start gap-3">
           <Info size={16} className="text-blue-400 mt-0.5" />
-          <p className="text-[10px] text-slate-500 leading-relaxed">
+          <p className="text-[10px] text-ink-muted leading-relaxed">
             The heatmap analyzes both the **frequency** of your practice and the **intensity** of your performance. White cells indicate "Elite Fluency" (score {'>'} 9.0), while darker blue shows emerging patterns.
           </p>
         </div>

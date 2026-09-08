@@ -17,7 +17,7 @@ const ENGINE_ICON: Record<AIEngine, string> = {
 const ENGINE_COLOR: Record<AIEngine, string> = {
   gemini: 'text-amber-400 bg-amber-400/10 border-amber-400/20',
   groq: 'text-violet-400 bg-violet-400/10 border-violet-400/20',
-  offline: 'text-slate-400 bg-slate-400/10 border-slate-400/20',
+  offline: 'text-ink-muted bg-slate-400/10 border-slate-400/20',
 };
 
 const ENGINE_RING: Record<AIEngine, string> = {
@@ -62,7 +62,7 @@ export function EngineIndicatorPill({ engine, disabled, onSwitch }: Props) {
               transition={{ duration: 0.12 }}
               className="absolute right-0 top-full mt-2 z-50 w-48 rounded-2xl glass-elevated border border-white/10 shadow-xl overflow-hidden"
             >
-              <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider px-3 pt-3 pb-1">
+              <p className="text-[9px] font-bold text-ink-muted uppercase tracking-wider px-3 pt-3 pb-1">
                 Switch engine (next eval)
               </p>
               {ALL_ENGINES.map(e => (
@@ -73,7 +73,7 @@ export function EngineIndicatorPill({ engine, disabled, onSwitch }: Props) {
                 >
                   <span className={`text-xs w-5 text-center ${ENGINE_COLOR[e].split(' ')[0]}`}>{ENGINE_ICON[e]}</span>
                   <div className="flex-1">
-                    <p className={`text-xs font-bold ${e === engine ? ENGINE_COLOR[e].split(' ')[0] : 'text-slate-300'}`}>
+                    <p className={`text-xs font-bold ${e === engine ? ENGINE_COLOR[e].split(' ')[0] : 'text-ink-muted'}`}>
                       {ENGINE_LABEL[e]}
                     </p>
                   </div>
@@ -84,7 +84,7 @@ export function EngineIndicatorPill({ engine, disabled, onSwitch }: Props) {
                   )}
                 </button>
               ))}
-              <p className="text-[9px] text-slate-600 px-3 pb-3 pt-1">Takes effect on next recording</p>
+              <p className="text-[9px] text-ink-subtle px-3 pb-3 pt-1">Takes effect on next recording</p>
             </motion.div>
           </>
         )}

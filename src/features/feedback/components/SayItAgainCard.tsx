@@ -160,7 +160,7 @@ export function SayItAgainCard({ targetSentence, questionId, onDone }: Props) {
           </button>
         </div>
         {attempt > 1 && retryHintWord && !outcome && (
-          <p className="text-[11px] text-slate-400 mt-1.5 flex items-center gap-1.5">
+          <p className="text-[11px] text-ink-muted mt-1.5 flex items-center gap-1.5">
             Focus on: <span className="text-violet-300 font-semibold">{retryHintWord}</span>
             <button
               type="button"
@@ -192,7 +192,7 @@ export function SayItAgainCard({ targetSentence, questionId, onDone }: Props) {
               {isRecording ? <MicOff size={20} className="text-white" /> : <Mic size={20} className="text-white" />}
             </motion.button>
           </div>
-          <p className="text-center text-[10px] text-slate-600">
+          <p className="text-center text-[10px] text-ink-subtle">
             {isAnalyzing ? 'Analysing…' : isRecording ? 'Tap to stop' : 'Tap to record'}
           </p>
         </>
@@ -217,7 +217,7 @@ export function SayItAgainCard({ targetSentence, questionId, onDone }: Props) {
 
       {outcome === 'advance-no-verdict' && (
         <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700/40">
-          <p className="text-[11px] text-slate-400">
+          <p className="text-[11px] text-ink-muted">
             {result && result.provider === 'azure'
               ? 'Good effort — moving on.'
               : 'Recorded — no automated score available for this attempt.'}

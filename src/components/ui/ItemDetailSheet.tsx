@@ -72,7 +72,7 @@ export function ItemDetailSheet({
           </RarityRing>
           <div className="flex-1">
             <h3 className="text-base font-bold text-white">{entry?.name ?? item.id}</h3>
-            <p className="text-xs text-slate-500 mt-0.5">{entry?.description ?? ''}</p>
+            <p className="text-xs text-ink-muted mt-0.5">{entry?.description ?? ''}</p>
             {rarity !== 'common' && (
               <span
                 className="text-[10px] font-black uppercase tracking-widest"
@@ -85,7 +85,7 @@ export function ItemDetailSheet({
         </div>
 
         {entry?.requirementLabel && (
-          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-600 mt-3 flex items-center gap-1">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-ink-subtle mt-3 flex items-center gap-1">
             {!unlocked && <Lock size={10} />}
             {entry.requirementLabel}
           </p>
@@ -98,7 +98,7 @@ export function ItemDetailSheet({
                 style={{ width: `${Math.round(progress.ratio * 100)}%` }}
               />
             </div>
-            <p className="text-[9px] font-bold text-slate-500 mt-1">{progress.label}</p>
+            <p className="text-[9px] font-bold text-ink-muted mt-1">{progress.label}</p>
           </div>
         )}
 
@@ -110,10 +110,10 @@ export function ItemDetailSheet({
             onClick={onPurchase}
             className={`w-full mt-5 py-3 min-h-[44px] rounded-lg text-sm font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 ${
               !unlocked
-                ? 'bg-white/5 text-slate-600 cursor-not-allowed'
+                ? 'bg-white/5 text-ink-subtle cursor-not-allowed'
                 : canAfford
                 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                : 'bg-white/5 text-slate-400 border border-white/10'
+                : 'bg-white/5 text-ink-muted border border-white/10'
             }`}
           >
             {pending ? (

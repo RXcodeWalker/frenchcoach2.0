@@ -222,18 +222,18 @@ export function SpeedSpeaking() {
           </div>
           <div>
             <h1 className="text-3xl font-black text-white mb-2 italic tracking-tighter uppercase">Speed Speaking 2.0</h1>
-            <p className="text-slate-400 text-sm">Speak the translations as fast as you can. Use the streak to earn Power-ups!</p>
+            <p className="text-ink-muted text-sm">Speak the translations as fast as you can. Use the streak to earn Power-ups!</p>
           </div>
 
           <div className="grid grid-cols-2 gap-4 py-4">
             <div className="p-3 rounded-xl bg-white/5 border border-white/10">
               <Timer size={18} className="text-blue-400 mx-auto mb-1" />
-              <p className="text-[10px] text-slate-500 font-bold uppercase">Time Limit</p>
+              <p className="text-[10px] text-ink-muted font-bold uppercase">Time Limit</p>
               <p className="text-lg font-black text-white">60s</p>
             </div>
             <div className="p-3 rounded-xl bg-white/5 border border-white/10">
               <Zap size={18} className="text-amber-400 mx-auto mb-1" />
-              <p className="text-[10px] text-slate-500 font-bold uppercase">XP Reward</p>
+              <p className="text-[10px] text-ink-muted font-bold uppercase">XP Reward</p>
               <p className="text-lg font-black text-white">Massive</p>
             </div>
           </div>
@@ -249,7 +249,7 @@ export function SpeedSpeaking() {
             </motion.button>
             <button
               onClick={() => navigate('/explore')}
-              className="text-xs font-bold text-slate-500 hover:text-white transition-colors flex items-center justify-center gap-1.5"
+              className="text-xs font-bold text-ink-muted hover:text-white transition-colors flex items-center justify-center gap-1.5"
             >
               <ArrowLeft size={12} />
               Back to Explore
@@ -358,7 +358,7 @@ export function SpeedSpeaking() {
 
           <div className="text-center space-y-8">
             <div className="min-h-[120px] flex flex-col items-center justify-center">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-3 block">Translate & Speak</span>
+              <span className="text-[10px] font-bold text-ink-muted uppercase tracking-[0.2em] mb-3 block">Translate & Speak</span>
               <AnimatePresence mode="wait">
                 <motion.h2
                   key={currentQ?.english}
@@ -379,13 +379,13 @@ export function SpeedSpeaking() {
               </div>
 
               <div className="min-h-[40px] px-4 py-2 rounded-lg bg-white/5 border border-white/5 w-full">
-                <p className="text-slate-400 text-sm italic font-medium">
+                <p className="text-ink-muted text-sm italic font-medium">
                   {transcript || 'Listening...'}
                 </p>
               </div>
 
               <button onClick={handleSkip} className="group flex flex-col items-center gap-2">
-                <span className="text-[10px] font-bold text-slate-500 group-hover:text-white transition-colors uppercase tracking-widest">
+                <span className="text-[10px] font-bold text-ink-muted group-hover:text-white transition-colors uppercase tracking-widest">
                   Can't say it? Skip (-3s)
                 </span>
                 <div className="w-12 h-1 bg-white/5 rounded-full overflow-hidden">

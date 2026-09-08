@@ -68,13 +68,13 @@ export const UsernameSetupModal: React.FC<UsernameSetupModalProps> = ({ onClose 
               </div>
               <h2 className="text-base font-black text-white">Claim your username</h2>
             </div>
-            <button onClick={onClose} className="text-slate-500 hover:text-white transition-colors">
+            <button onClick={onClose} className="text-ink-muted hover:text-white transition-colors">
               <X size={18} />
             </button>
           </div>
 
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-ink-muted">
               Pick a name other learners will see on the leaderboard and in friend requests.
             </p>
 
@@ -85,7 +85,7 @@ export const UsernameSetupModal: React.FC<UsernameSetupModalProps> = ({ onClose 
                 onChange={e => { setValue(e.target.value); setError(null); }}
                 placeholder="marie_92"
                 maxLength={20}
-                className="w-full bg-navy-300/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-violet-electric/50 transition-colors"
+                className="w-full bg-navy-300/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-ink-subtle focus:outline-none focus:border-violet-electric/50 transition-colors"
               />
               {valid && (
                 <CheckCircle2 size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-400" />
@@ -106,7 +106,7 @@ export const UsernameSetupModal: React.FC<UsernameSetupModalProps> = ({ onClose 
             <button
               type="button"
               onClick={onClose}
-              className="w-full text-center text-[11px] text-slate-600 hover:text-slate-400 transition-colors"
+              className="w-full text-center text-[11px] text-ink-subtle hover:text-ink-muted transition-colors"
             >
               Maybe later
             </button>

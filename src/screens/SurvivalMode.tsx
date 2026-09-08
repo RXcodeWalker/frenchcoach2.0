@@ -335,7 +335,7 @@ export function SurvivalMode() {
 
           <div>
             <h1 className="text-4xl font-black text-white mb-2 italic tracking-tighter">SURVIVAL BLITZ</h1>
-            <p className="text-slate-400 text-sm leading-relaxed">
+            <p className="text-ink-muted text-sm leading-relaxed">
               Translate phrases under intense pressure.
               <br/>
               <span className="text-orange-400 font-bold uppercase text-[10px] tracking-widest mt-2 block">20S TIMER • SPEED MULTIPLIERS • ENERGY POWER-UPS</span>
@@ -345,17 +345,17 @@ export function SurvivalMode() {
           <div className="grid grid-cols-3 gap-3 py-2">
             <div className="p-3 rounded-2xl bg-white/5 border border-white/10 hover:border-blue-500/30 transition-colors">
               <Clock size={16} className="text-blue-400 mx-auto mb-1" />
-              <p className="text-[8px] text-slate-500 font-bold uppercase">Timer</p>
+              <p className="text-[8px] text-ink-muted font-bold uppercase">Timer</p>
               <p className="text-sm font-black text-white">20s</p>
             </div>
             <div className="p-3 rounded-2xl bg-white/5 border border-white/10 hover:border-purple-500/30 transition-colors">
               <Zap size={16} className="text-purple-400 mx-auto mb-1" />
-              <p className="text-[8px] text-slate-500 font-bold uppercase">Energy</p>
+              <p className="text-[8px] text-ink-muted font-bold uppercase">Energy</p>
               <p className="text-sm font-black text-white">Earnable</p>
             </div>
             <div className="p-3 rounded-2xl bg-white/5 border border-white/10 hover:border-orange-500/30 transition-colors">
               <Star size={16} className="text-orange-400 mx-auto mb-1" />
-              <p className="text-[8px] text-slate-500 font-bold uppercase">Speed</p>
+              <p className="text-[8px] text-ink-muted font-bold uppercase">Speed</p>
               <p className="text-sm font-black text-white">Up to x3</p>
             </div>
           </div>
@@ -371,7 +371,7 @@ export function SurvivalMode() {
             </motion.button>
             <button
               onClick={() => navigate('/explore')}
-              className="text-xs font-bold text-slate-500 hover:text-white transition-colors flex items-center justify-center gap-1.5 py-2"
+              className="text-xs font-bold text-ink-muted hover:text-white transition-colors flex items-center justify-center gap-1.5 py-2"
             >
               <ArrowLeft size={12} />
               Abort Mission
@@ -500,11 +500,11 @@ export function SurvivalMode() {
 
           <div className="space-y-2">
             <div className="flex justify-between items-end px-1">
-              <span className={`text-[10px] font-black uppercase tracking-widest flex items-center gap-2 ${isTimeCritical ? 'text-red-500' : 'text-slate-500'}`}>
+              <span className={`text-[10px] font-black uppercase tracking-widest flex items-center gap-2 ${isTimeCritical ? 'text-red-500' : 'text-ink-muted'}`}>
                 <Clock size={12} className={isTimeCritical ? 'animate-spin' : ''} />
                 {isTimerPaused ? 'TIME FROZEN' : `${timer.timeLeft.toFixed(1)}s Remaining`}
               </span>
-              <span className="text-[10px] font-black text-slate-500 uppercase">Multiplier x{combinedMultiplier}</span>
+              <span className="text-[10px] font-black text-ink-muted uppercase">Multiplier x{combinedMultiplier}</span>
             </div>
             <div className={`w-full h-3 bg-white/5 rounded-full overflow-hidden border p-0.5 transition-colors duration-300 ${isTimeCritical ? 'border-red-500/50' : 'border-white/5'}`}>
               <motion.div
@@ -524,7 +524,7 @@ export function SurvivalMode() {
         <div className="flex justify-center gap-4 mb-8">
           <div className="glass-elevated px-4 py-2 rounded-2xl flex items-center gap-4 border-white/5">
             <div className="flex flex-col items-center">
-              <span className="text-[8px] font-black text-slate-500 uppercase mb-1">Energy</span>
+              <span className="text-[8px] font-black text-ink-muted uppercase mb-1">Energy</span>
               <div className="flex gap-1">
                 {[...Array(5)].map((_, i) => (
                   <div key={i} className={`w-2 h-4 rounded-sm ${i < runTokens ? 'bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.4)]' : 'bg-slate-800'}`} />
@@ -537,7 +537,7 @@ export function SurvivalMode() {
                 onClick={handleFreeze}
                 disabled={runTokens < 1 || isTimerPaused || feedback !== null}
                 className={`p-3 rounded-xl border-2 transition-all flex flex-col items-center gap-1 ${
-                  runTokens >= 1 && !isTimerPaused ? 'border-blue-500/50 bg-blue-500/10 text-blue-400 hover:scale-110 active:scale-95' : 'border-white/5 bg-white/5 text-slate-600'
+                  runTokens >= 1 && !isTimerPaused ? 'border-blue-500/50 bg-blue-500/10 text-blue-400 hover:scale-110 active:scale-95' : 'border-white/5 bg-white/5 text-ink-subtle'
                 }`}
               >
                 <ZapOff size={20} />
@@ -547,7 +547,7 @@ export function SurvivalMode() {
                 onClick={handleSkip}
                 disabled={runTokens < 1 || feedback !== null}
                 className={`p-3 rounded-xl border-2 transition-all flex flex-col items-center gap-1 ${
-                  runTokens >= 1 ? 'border-purple-500/50 bg-purple-500/10 text-purple-400 hover:scale-110 active:scale-95' : 'border-white/5 bg-white/5 text-slate-600'
+                  runTokens >= 1 ? 'border-purple-500/50 bg-purple-500/10 text-purple-400 hover:scale-110 active:scale-95' : 'border-white/5 bg-white/5 text-ink-subtle'
                 }`}
               >
                 <RefreshCw size={20} />
@@ -557,7 +557,7 @@ export function SurvivalMode() {
                 onClick={handleHint}
                 disabled={runTokens < 1 || showHint || feedback !== null}
                 className={`p-3 rounded-xl border-2 transition-all flex flex-col items-center gap-1 ${
-                  runTokens >= 1 && !showHint ? 'border-amber-500/50 bg-amber-500/10 text-amber-400 hover:scale-110 active:scale-95' : 'border-white/5 bg-white/5 text-slate-600'
+                  runTokens >= 1 && !showHint ? 'border-amber-500/50 bg-amber-500/10 text-amber-400 hover:scale-110 active:scale-95' : 'border-white/5 bg-white/5 text-ink-subtle'
                 }`}
               >
                 <Lightbulb size={20} />
@@ -606,7 +606,7 @@ export function SurvivalMode() {
                 className="flex items-center gap-2 mb-4"
               >
                 <div className="h-[1px] w-8 bg-slate-800" />
-                <span className="text-[11px] font-black text-slate-500 uppercase tracking-[0.3em]">English Phrase</span>
+                <span className="text-[11px] font-black text-ink-muted uppercase tracking-[0.3em]">English Phrase</span>
                 <div className="h-[1px] w-8 bg-slate-800" />
               </motion.div>
 
@@ -635,14 +635,14 @@ export function SurvivalMode() {
                 autoCorrect="off"
                 autoCapitalize="off"
                 spellCheck="false"
-                className={`w-full bg-slate-900/80 border-2 rounded-[2rem] px-8 py-6 text-2xl font-black text-white placeholder:text-slate-700 focus:outline-none transition-all text-center ${
+                className={`w-full bg-slate-900/80 border-2 rounded-[2rem] px-8 py-6 text-2xl font-black text-white placeholder:text-ink-subtle focus:outline-none transition-all text-center ${
                   isOverdrive ? 'border-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.1)] focus:border-orange-400' :
                   isDanger ? 'border-red-500/40 focus:border-red-500' :
                   isTimeCritical ? 'border-red-500/60 focus:border-red-500' : 'border-white/10 focus:border-orange-500/50'
                 }`}
               />
               <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-full">
-                <p className="text-[10px] text-slate-600 font-bold uppercase tracking-widest opacity-40 animate-pulse">
+                <p className="text-[10px] text-ink-subtle font-bold uppercase tracking-widest opacity-40 animate-pulse">
                   Press Enter to Submit
                 </p>
               </div>

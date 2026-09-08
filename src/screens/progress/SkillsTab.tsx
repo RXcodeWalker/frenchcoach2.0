@@ -23,7 +23,7 @@ export function SkillsTab() {
   if (!hasData) {
     return (
       <motion.div variants={fadeUp} className="rounded-xl glass p-8 text-center">
-        <p className="text-slate-500 text-sm">Complete a practice session to see your skill breakdown.</p>
+        <p className="text-ink-muted text-sm">Complete a practice session to see your skill breakdown.</p>
       </motion.div>
     );
   }
@@ -51,7 +51,7 @@ export function SkillsTab() {
                 return (
                   <div key={id}>
                     <div className="flex justify-between mb-1">
-                      <span className="text-[10px] text-slate-400">{def.name}</span>
+                      <span className="text-[10px] text-ink-muted">{def.name}</span>
                       <div className="flex items-center gap-1.5">
                         <span className="text-[10px] font-bold text-white">{pct}%</span>
                         <span className={`text-[8px] px-1.5 py-0.5 rounded-full font-bold ${

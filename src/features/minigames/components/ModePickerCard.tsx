@@ -40,7 +40,7 @@ export function ModePickerCard({
         {icon}
       </div>
       <h3 className={`text-xl font-black text-white mb-2 ${titleClassName}`}>{title}</h3>
-      <p className="text-slate-400 text-sm leading-relaxed">{description}</p>
+      <p className="text-ink-muted text-sm leading-relaxed">{description}</p>
     </motion.button>
   );
 }
@@ -77,13 +77,13 @@ export function ModePickerGrid({
         <button
           type="button"
           onClick={onBack}
-          className="p-2 rounded-xl hover:bg-white/5 text-slate-400"
+          className="p-2 rounded-xl hover:bg-white/5 text-ink-muted"
         >
           <ArrowLeft size={24} />
         </button>
         <div>
           <h1 className={`text-3xl font-black text-white ${titleClassName}`}>{title}</h1>
-          {subtitle && <p className="text-slate-400">{subtitle}</p>}
+          {subtitle && <p className="text-ink-muted">{subtitle}</p>}
         </div>
       </div>
 

@@ -52,13 +52,13 @@ export function MasteryJourney() {
         <motion.div variants={fadeUp} className="flex items-center gap-4">
           <button 
             onClick={() => navigate('/explore')}
-            className="p-2 rounded-lg hover:bg-white/5 text-slate-400 transition-colors"
+            className="p-2 rounded-lg hover:bg-white/5 text-ink-muted transition-colors"
           >
             <ArrowLeft size={20} />
           </button>
           <div>
             <h1 className="text-3xl font-black text-white">Mastery Journey</h1>
-            <p className="text-sm text-slate-500">Your roadmap to French fluency</p>
+            <p className="text-sm text-ink-muted">Your roadmap to French fluency</p>
           </div>
         </motion.div>
 
@@ -91,7 +91,7 @@ export function MasteryJourney() {
                     <div className={`w-4 h-4 rounded-full border-2 transition-all duration-500 ${
                       isReached ? 'bg-white border-violet-500 scale-125' : 'bg-navy-400 border-white/10'
                     } ${isCurrent ? 'ring-4 ring-violet-500/20' : ''}`} />
-                    <span className={`text-[10px] font-black ${isReached ? 'text-white' : 'text-slate-600'}`}>
+                    <span className={`text-[10px] font-black ${isReached ? 'text-white' : 'text-ink-subtle'}`}>
                       {level.id}
                     </span>
                   </div>
@@ -101,7 +101,7 @@ export function MasteryJourney() {
           </div>
 
           {!cefrKnown && (
-            <p className="text-xs text-slate-500 text-center">Answer a few more questions to reveal your level.</p>
+            <p className="text-xs text-ink-muted text-center">Answer a few more questions to reveal your level.</p>
           )}
 
           {nextCEFR && (
@@ -110,7 +110,7 @@ export function MasteryJourney() {
                 <Zap size={16} />
               </div>
               <div>
-                <p className="text-[10px] font-bold text-slate-500 uppercase">Next Goal</p>
+                <p className="text-[10px] font-bold text-ink-muted uppercase">Next Goal</p>
                 <p className="text-sm font-bold text-white">Reach {nextCEFR.id} level</p>
               </div>
             </div>
@@ -137,7 +137,7 @@ export function MasteryJourney() {
                 <div className="space-y-2">
                   <div className="flex items-end justify-between">
                     <span className="text-2xl font-black text-white">{mastery}%</span>
-                    <span className="text-[10px] font-bold text-slate-500 uppercase">Mastery</span>
+                    <span className="text-[10px] font-bold text-ink-muted uppercase">Mastery</span>
                   </div>
                   <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
                     <motion.div 
@@ -185,7 +185,7 @@ export function MasteryJourney() {
                 </div>
                 <div>
                   <p className="text-xs font-bold text-white">{state.profile?.streak_days ?? 0} Day Streak</p>
-                  <p className="text-[9px] text-slate-500 uppercase font-bold tracking-tighter">Consistency is key</p>
+                  <p className="text-[9px] text-ink-muted uppercase font-bold tracking-tighter">Consistency is key</p>
                 </div>
               </div>
               <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5 opacity-50">
@@ -194,7 +194,7 @@ export function MasteryJourney() {
                 </div>
                 <div>
                   <p className="text-xs font-bold text-white">First Exam Passed</p>
-                  <p className="text-[9px] text-slate-500 uppercase font-bold tracking-tighter">Unlock at B1 level</p>
+                  <p className="text-[9px] text-ink-muted uppercase font-bold tracking-tighter">Unlock at B1 level</p>
                 </div>
               </div>
             </div>

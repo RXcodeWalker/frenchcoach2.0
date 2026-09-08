@@ -48,7 +48,7 @@ export function RecordingPanel({ isActive, recording, onStop }: Props) {
             <span className="text-2xl font-black text-white tabular-nums">{formatTime(recording.elapsedTime)}</span>
             <div className="flex items-center justify-center gap-1.5 mt-1">
               <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
-              <span className="text-[10px] text-slate-500">Recording</span>
+              <span className="text-[10px] text-ink-muted">Recording</span>
             </div>
           </motion.div>
         )}
@@ -70,7 +70,7 @@ export function RecordingPanel({ isActive, recording, onStop }: Props) {
         </motion.button>
       </div>
 
-      <p className="text-center text-[10px] text-slate-600 mt-3">
+      <p className="text-center text-[10px] text-ink-subtle mt-3">
         {recording.isRecording ? 'Tap to stop' : 'Tap to start recording'}
       </p>
     </motion.div>

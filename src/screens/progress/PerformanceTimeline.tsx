@@ -51,9 +51,9 @@ export function PerformanceTimeline({ sessions }: Props) {
   if (sessions.length === 0) {
     return (
       <motion.div variants={fadeUp} className="py-20 text-center glass-elevated rounded-2xl border-dashed border-white/10">
-        <Activity size={40} className="mx-auto text-slate-700 mb-4" />
+        <Activity size={40} className="mx-auto text-ink-subtle mb-4" />
         <h3 className="text-white font-bold text-lg">No performance data yet</h3>
-        <p className="text-slate-500 max-w-xs mx-auto mt-2 text-sm italic">
+        <p className="text-ink-muted max-w-xs mx-auto mt-2 text-sm italic">
           Complete practice sessions or exams to see your progress timeline here.
         </p>
       </motion.div>
@@ -65,7 +65,7 @@ export function PerformanceTimeline({ sessions }: Props) {
       {/* Controls */}
       <motion.div variants={fadeUp} className="flex flex-col md:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" size={16} />
           <input
             type="text"
             placeholder="Search topics..."
@@ -78,7 +78,7 @@ export function PerformanceTimeline({ sessions }: Props) {
           <select
             value={modeFilter}
             onChange={(e) => setModeFilter(e.target.value)}
-            className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-slate-400 focus:outline-none focus:border-violet-500/30 transition-all appearance-none cursor-pointer"
+            className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-ink-muted focus:outline-none focus:border-violet-500/30 transition-all appearance-none cursor-pointer"
           >
             <option value="all">All Modes</option>
             <option value="practice">Practice</option>
@@ -87,7 +87,7 @@ export function PerformanceTimeline({ sessions }: Props) {
           </select>
           <button
             onClick={() => setSortOrder(prev => prev === 'newest' ? 'oldest' : 'newest')}
-            className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-slate-400 hover:text-white transition-all flex items-center gap-2"
+            className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-ink-muted hover:text-white transition-all flex items-center gap-2"
           >
             <ArrowUpDown size={14} />
             {sortOrder === 'newest' ? 'Newest' : 'Oldest'}
@@ -98,11 +98,11 @@ export function PerformanceTimeline({ sessions }: Props) {
       {/* Summary Stats */}
       <motion.div variants={fadeUp} className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div className="glass-subtle p-3 rounded-xl border border-white/5">
-          <p className="text-[9px] font-bold text-slate-600 uppercase mb-1">Total Sessions</p>
+          <p className="text-[9px] font-bold text-ink-subtle uppercase mb-1">Total Sessions</p>
           <p className="text-xl font-black text-white">{sessions.length}</p>
         </div>
         <div className="glass-subtle p-3 rounded-xl border border-white/5">
-          <p className="text-[9px] font-bold text-slate-600 uppercase mb-1">Average Score</p>
+          <p className="text-[9px] font-bold text-ink-subtle uppercase mb-1">Average Score</p>
           <p className="text-xl font-black text-emerald-400">
             {(() => {
               const scored = sessions.map(s => s.score).filter((s): s is number => typeof s === 'number');
@@ -111,11 +111,11 @@ export function PerformanceTimeline({ sessions }: Props) {
           </p>
         </div>
         <div className="glass-subtle p-3 rounded-xl border border-white/5">
-          <p className="text-[9px] font-bold text-slate-600 uppercase mb-1">Best Streak</p>
+          <p className="text-[9px] font-bold text-ink-subtle uppercase mb-1">Best Streak</p>
           <p className="text-xl font-black text-orange-400">12 Days</p>
         </div>
         <div className="glass-subtle p-3 rounded-xl border border-white/5">
-          <p className="text-[9px] font-bold text-slate-600 uppercase mb-1">XP Momentum</p>
+          <p className="text-[9px] font-bold text-ink-subtle uppercase mb-1">XP Momentum</p>
           <p className="text-xl font-black text-violet-400">+12%</p>
         </div>
       </motion.div>
@@ -206,7 +206,7 @@ export function PerformanceTimeline({ sessions }: Props) {
       {totalCount === 0 && (
         <div className="py-12 text-center">
           <Filter size={32} className="mx-auto text-slate-800 mb-3" />
-          <p className="text-slate-600 text-sm">No sessions match your filters</p>
+          <p className="text-ink-subtle text-sm">No sessions match your filters</p>
           <button 
             onClick={() => { setSearchQuery(''); setModeFilter('all'); }}
             className="mt-2 text-xs text-violet-400 hover:underline"

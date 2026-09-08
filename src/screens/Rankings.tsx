@@ -166,7 +166,7 @@ export function Rankings() {
           <span className="text-[10px] font-bold text-violet-400 uppercase tracking-wider">Hall of Fame</span>
         </div>
         <h1 className="text-2xl md:text-3xl font-black text-white">Rankings</h1>
-        <p className="text-sm text-slate-500 mt-1">Compete with learners worldwide</p>
+        <p className="text-sm text-ink-muted mt-1">Compete with learners worldwide</p>
       </div>
 
       {/* Tabs */}
@@ -178,7 +178,7 @@ export function Rankings() {
             className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-bold transition-all ${
               activeTab === tab
                 ? 'bg-violet-electric text-white shadow-lg'
-                : 'text-slate-500 hover:text-slate-300'
+                : 'text-ink-muted hover:text-ink-muted'
             }`}
           >
             {tab === 'global' && <Globe size={14} />}
@@ -208,7 +208,7 @@ export function Rankings() {
                 </div>
                 <div className="flex-1">
                   <p className="text-xs font-bold text-white">Daily Challenge</p>
-                  <p className="text-[10px] text-slate-500">Same question, everyone, once a day — see today's leaderboard</p>
+                  <p className="text-[10px] text-ink-muted">Same question, everyone, once a day — see today's leaderboard</p>
                 </div>
               </motion.div>
             </Link>
@@ -226,7 +226,7 @@ export function Rankings() {
                 </div>
                 <div className="flex-1">
                   <p className="text-xs font-bold text-white">League Power</p>
-                  <p className="text-[10px] text-slate-500">Weekly cohorts — climb the ranks, don't get demoted</p>
+                  <p className="text-[10px] text-ink-muted">Weekly cohorts — climb the ranks, don't get demoted</p>
                 </div>
               </motion.div>
             </Link>
@@ -240,14 +240,14 @@ export function Rankings() {
             >
               <div className="relative z-10 grid grid-cols-2 gap-3">
                 <div className="bg-white/5 rounded-xl p-3 border border-white/5">
-                  <p className="text-[10px] text-slate-500 uppercase font-bold mb-1">Week resets in</p>
+                  <p className="text-[10px] text-ink-muted uppercase font-bold mb-1">Week resets in</p>
                   <div className="flex items-center gap-2">
                     <Clock size={12} className="text-violet-400" />
                     <p className="text-sm font-bold text-white">{nextWeekRolloverLabel()}</p>
                   </div>
                 </div>
                 <div className="bg-white/5 rounded-xl p-3 border border-white/5">
-                  <p className="text-[10px] text-slate-500 uppercase font-bold mb-1">Your Rank</p>
+                  <p className="text-[10px] text-ink-muted uppercase font-bold mb-1">Your Rank</p>
                   <div className="flex items-center gap-2">
                     <Trophy size={12} className="text-amber-400" />
                     <p className="text-sm font-bold text-white">{myRank ? `#${myRank}` : 'Unranked'}</p>
@@ -267,7 +267,7 @@ export function Rankings() {
                     className={`px-3 py-1 rounded-md text-[10px] font-bold transition-all ${
                       timeframe === t
                         ? 'bg-white/10 text-white'
-                        : 'text-slate-600 hover:text-slate-400'
+                        : 'text-ink-subtle hover:text-ink-muted'
                     }`}
                   >
                     {t === 'weekly' ? 'Weekly' : 'All-Time'}
@@ -278,9 +278,9 @@ export function Rankings() {
 
             <div className="space-y-2 pb-24">
               {loading ? (
-                <div className="text-center py-12 text-slate-600 text-sm">Loading…</div>
+                <div className="text-center py-12 text-ink-subtle text-sm">Loading…</div>
               ) : users.length === 0 ? (
-                <div className="text-center py-12 text-slate-600 text-sm">
+                <div className="text-center py-12 text-ink-subtle text-sm">
                   No one has ranked in {timeframe === 'weekly' ? `week ${weekKey}` : 'the all-time board'} yet.
                 </div>
               ) : (
@@ -307,7 +307,7 @@ export function Rankings() {
                         ) : user.rank === 3 ? (
                           <span className="text-xl">🥉</span>
                         ) : (
-                          <span className="text-sm font-black text-slate-600 group-hover:text-slate-400">
+                          <span className="text-sm font-black text-ink-subtle group-hover:text-ink-muted">
                             {user.rank}
                           </span>
                         )}
@@ -340,7 +340,7 @@ export function Rankings() {
                       <div className="text-right">
                         <p className="text-sm font-black text-white">
                           {(timeframe === 'weekly' ? user.weeklyXP : user.totalXP).toLocaleString()}
-                          <span className="text-[10px] font-bold text-slate-600 ml-1">XP</span>
+                          <span className="text-[10px] font-bold text-ink-subtle ml-1">XP</span>
                         </p>
                       </div>
                     </motion.div>
@@ -354,18 +354,18 @@ export function Rankings() {
         {activeTab === 'friends' && (
           <div className="space-y-4 pb-24">
             <div className="relative">
-              <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-600" />
+              <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-subtle" />
               <input
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder="Search by username…"
-                className="w-full bg-navy-300/50 border border-white/10 rounded-xl pl-9 pr-4 py-2.5 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-violet-electric/50 transition-colors"
+                className="w-full bg-navy-300/50 border border-white/10 rounded-xl pl-9 pr-4 py-2.5 text-xs text-white placeholder:text-ink-subtle focus:outline-none focus:border-violet-electric/50 transition-colors"
               />
             </div>
 
             {searchResults.length > 0 && (
               <div className="space-y-2">
-                <h3 className="text-[10px] font-bold text-slate-600 uppercase tracking-wider px-1">Results</h3>
+                <h3 className="text-[10px] font-bold text-ink-subtle uppercase tracking-wider px-1">Results</h3>
                 {searchResults.map(r => (
                   <div key={r.userId} className="flex items-center gap-4 p-3 rounded-xl glass">
                     <CosmeticPreview
@@ -392,9 +392,9 @@ export function Rankings() {
             )}
 
             {friendsLoading ? (
-              <div className="text-center py-12 text-slate-600 text-sm">Loading…</div>
+              <div className="text-center py-12 text-ink-subtle text-sm">Loading…</div>
             ) : accepted.length === 0 ? (
-              <div className="text-center py-12 text-slate-600 text-sm">
+              <div className="text-center py-12 text-ink-subtle text-sm">
                 No friends yet. Accept a request from the Requests tab to get started.
               </div>
             ) : (
@@ -412,7 +412,7 @@ export function Rankings() {
                   </div>
                   <button
                     onClick={() => handleRemove(f.userId)}
-                    className="p-2 rounded-lg text-slate-600 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                    className="p-2 rounded-lg text-ink-subtle hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
                     title="Remove friend"
                   >
                     <UserMinus size={14} />
@@ -426,12 +426,12 @@ export function Rankings() {
         {activeTab === 'requests' && (
           <div className="space-y-6 pb-24">
             <div>
-              <h3 className="text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-2 px-1">Incoming</h3>
+              <h3 className="text-[10px] font-bold text-ink-subtle uppercase tracking-wider mb-2 px-1">Incoming</h3>
               <div className="space-y-2">
                 {friendsLoading ? (
-                  <div className="text-center py-8 text-slate-600 text-sm">Loading…</div>
+                  <div className="text-center py-8 text-ink-subtle text-sm">Loading…</div>
                 ) : incoming.length === 0 ? (
-                  <div className="text-center py-8 text-slate-600 text-sm">No incoming requests.</div>
+                  <div className="text-center py-8 text-ink-subtle text-sm">No incoming requests.</div>
                 ) : (
                   incoming.map(f => (
                     <div key={f.userId} className="flex items-center gap-4 p-4 rounded-xl glass">
@@ -454,7 +454,7 @@ export function Rankings() {
                       </button>
                       <button
                         onClick={() => handleDecline(f.userId)}
-                        className="p-2 rounded-lg text-slate-600 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                        className="p-2 rounded-lg text-ink-subtle hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
                         title="Decline"
                       >
                         <XIcon size={16} />
@@ -466,10 +466,10 @@ export function Rankings() {
             </div>
 
             <div>
-              <h3 className="text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-2 px-1">Sent</h3>
+              <h3 className="text-[10px] font-bold text-ink-subtle uppercase tracking-wider mb-2 px-1">Sent</h3>
               <div className="space-y-2">
                 {friendsLoading ? null : outgoing.length === 0 ? (
-                  <div className="text-center py-8 text-slate-600 text-sm">No sent requests.</div>
+                  <div className="text-center py-8 text-ink-subtle text-sm">No sent requests.</div>
                 ) : (
                   outgoing.map(f => (
                     <div key={f.userId} className="flex items-center gap-4 p-4 rounded-xl glass">
@@ -482,11 +482,11 @@ export function Rankings() {
                       />
                       <div className="flex-1">
                         <p className="text-sm font-bold text-slate-200" style={nameplateColorOf(f.equippedNameplate)}>{f.username}</p>
-                        <p className="text-[9px] text-slate-600">Pending</p>
+                        <p className="text-[9px] text-ink-subtle">Pending</p>
                       </div>
                       <button
                         onClick={() => handleCancel(f.userId)}
-                        className="px-3 py-1.5 rounded-lg text-[10px] font-bold text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                        className="px-3 py-1.5 rounded-lg text-[10px] font-bold text-ink-muted hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
                       >
                         Cancel
                       </button>

@@ -24,7 +24,7 @@ export function AvoidanceCard({ entries }: Props) {
     <motion.div variants={fadeUp} className="rounded-xl glass border border-amber-500/15 overflow-hidden">
       <div className="flex items-center gap-2 px-4 py-3 border-b border-amber-500/10">
         <AlertTriangle size={13} className="text-amber-400" />
-        <p className="text-[11px] font-bold text-slate-300">
+        <p className="text-[11px] font-bold text-ink-muted">
           Missed opportunities ({entries.length})
         </p>
         <span className="ml-auto text-[9px] text-amber-400/70 uppercase tracking-wide font-bold">Band boosters</span>
@@ -36,7 +36,7 @@ export function AvoidanceCard({ entries }: Props) {
             <p className="text-[10px] font-bold text-amber-400">
               {SKILL_LABELS[entry.skillId] ?? entry.skillId}
             </p>
-            <p className="text-[10px] text-slate-400">{entry.observation}</p>
+            <p className="text-[10px] text-ink-muted">{entry.observation}</p>
             <div className="flex items-start gap-1.5 mt-1">
               <Lightbulb size={10} className="text-emerald-400 shrink-0 mt-0.5" />
               <p className="text-[10px] text-emerald-300 font-medium">{entry.nudge}</p>

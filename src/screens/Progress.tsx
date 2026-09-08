@@ -61,7 +61,7 @@ export function Progress() {
       <motion.div variants={fadeUp} className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl md:text-3xl font-black text-white">Progress</h1>
-          <p className="text-sm text-slate-500 mt-1">Track your improvement</p>
+          <p className="text-sm text-ink-muted mt-1">Track your improvement</p>
         </div>
         <div className="flex gap-1 flex-wrap">
           {(['overview', 'skills', 'timeline', 'tree', 'insights', 'history', 'review'] as const).map(tab => (
@@ -69,7 +69,7 @@ export function Progress() {
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`px-3 py-1.5 rounded-lg text-[10px] font-bold capitalize transition-all duration-200 ${
-                activeTab === tab ? 'bg-violet-electric/10 text-violet-400 border border-violet-electric/20' : 'text-slate-600 hover:text-white border border-transparent'
+                activeTab === tab ? 'bg-violet-electric/10 text-violet-400 border border-violet-electric/20' : 'text-ink-subtle hover:text-white border border-transparent'
               }`}
               whileTap={{ scale: 0.95 }}
             >

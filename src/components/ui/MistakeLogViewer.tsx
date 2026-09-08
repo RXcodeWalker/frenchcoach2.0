@@ -11,7 +11,7 @@ export const MistakeLogViewer: React.FC<MistakeLogViewerProps> = ({ mistakes }) 
   if (!mistakes || mistakes.length === 0) {
     return (
       <div className="py-4 text-center">
-        <p className="text-xs text-slate-500 italic">No specific mistakes logged yet. Keep practicing!</p>
+        <p className="text-xs text-ink-muted italic">No specific mistakes logged yet. Keep practicing!</p>
       </div>
     );
   }
@@ -27,7 +27,7 @@ export const MistakeLogViewer: React.FC<MistakeLogViewerProps> = ({ mistakes }) 
           className="bg-navy/40 border border-white/5 rounded-xl p-3 overflow-hidden"
         >
           <div className="flex items-center justify-between mb-2 pb-2 border-b border-white/5">
-            <div className="flex items-center gap-1.5 text-[8px] font-black text-slate-500 uppercase tracking-widest">
+            <div className="flex items-center gap-1.5 text-[8px] font-black text-ink-muted uppercase tracking-widest">
               <Calendar size={10} />
               {new Date(log.timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
             </div>
@@ -45,7 +45,7 @@ export const MistakeLogViewer: React.FC<MistakeLogViewerProps> = ({ mistakes }) 
                   <AlertCircle size={10} />
                   What you said
                 </div>
-                <p className="text-xs text-slate-300 italic leading-relaxed pl-4 border-l border-rose-500/30">
+                <p className="text-xs text-ink-muted italic leading-relaxed pl-4 border-l border-rose-500/30">
                   "{log.transcript}"
                 </p>
               </div>

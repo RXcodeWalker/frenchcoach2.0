@@ -28,7 +28,7 @@ export function TopContextBar({ title, subtitle, showBack, onBack, actions }: Pr
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={onBack || (() => navigate(-1))}
-              className="w-10 h-10 rounded-xl glass border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors"
+              className="w-10 h-10 rounded-xl glass border-white/10 flex items-center justify-center text-ink-muted hover:text-white transition-colors"
             >
               <ChevronLeft size={20} />
             </motion.button>
@@ -36,7 +36,7 @@ export function TopContextBar({ title, subtitle, showBack, onBack, actions }: Pr
           
           <div>
             <h1 className="text-sm font-black text-white leading-tight uppercase tracking-widest">{title}</h1>
-            {subtitle && <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">{subtitle}</p>}
+            {subtitle && <p className="text-[10px] text-ink-muted font-bold uppercase tracking-tight">{subtitle}</p>}
           </div>
         </div>
 
@@ -68,7 +68,7 @@ export function TopContextBar({ title, subtitle, showBack, onBack, actions }: Pr
               <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
-                className="w-10 h-10 rounded-xl glass border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors relative"
+                className="w-10 h-10 rounded-xl glass border-white/10 flex items-center justify-center text-ink-muted hover:text-white transition-colors relative"
               >
                 <Bell size={18} />
                 <div className="absolute top-2.5 right-2.5 w-2 h-2 bg-pink-500 rounded-full border-2 border-navy" />
@@ -77,7 +77,7 @@ export function TopContextBar({ title, subtitle, showBack, onBack, actions }: Pr
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => navigate('/profile')}
-                className="rounded-xl glass border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors p-1"
+                className="rounded-xl glass border-white/10 flex items-center justify-center text-ink-muted hover:text-white transition-colors p-1"
               >
                 <CosmeticPreview
                   avatarEmoji={profile.equipped.avatar}
@@ -94,7 +94,7 @@ export function TopContextBar({ title, subtitle, showBack, onBack, actions }: Pr
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            className="md:hidden w-10 h-10 rounded-xl glass border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors"
+            className="md:hidden w-10 h-10 rounded-xl glass border-white/10 flex items-center justify-center text-ink-muted hover:text-white transition-colors"
           >
             <Menu size={18} />
           </motion.button>

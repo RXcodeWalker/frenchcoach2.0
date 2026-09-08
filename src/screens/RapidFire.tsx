@@ -271,11 +271,11 @@ export function RapidFire() {
           </div>
           <div>
             <h1 className="text-4xl font-black text-white mb-2 italic tracking-tighter">RAPID FIRE 2.0</h1>
-            <p className="text-slate-400 text-sm">Translate as fast as you can. Don't lose all your <span className="text-red-400 font-bold uppercase">hearts</span>!</p>
+            <p className="text-ink-muted text-sm">Translate as fast as you can. Don't lose all your <span className="text-red-400 font-bold uppercase">hearts</span>!</p>
           </div>
           
           <div className="space-y-3 text-left">
-            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Select Topic</p>
+            <p className="text-[10px] font-bold text-ink-muted uppercase tracking-widest ml-1">Select Topic</p>
             <div className="grid grid-cols-2 gap-2">
               {topics.map(topic => (
                 <button
@@ -284,7 +284,7 @@ export function RapidFire() {
                   className={`p-3 rounded-xl border-2 transition-all flex items-center gap-3 ${selectedTopic === topic.id ? 'border-amber-500 bg-amber-500/10' : 'border-white/5 bg-white/5 hover:bg-white/10'}`}
                 >
                   <span className="text-xl">{topic.icon}</span>
-                  <span className={`text-sm font-bold ${selectedTopic === topic.id ? 'text-white' : 'text-slate-400'}`}>{topic.label}</span>
+                  <span className={`text-sm font-bold ${selectedTopic === topic.id ? 'text-white' : 'text-ink-muted'}`}>{topic.label}</span>
                 </button>
               ))}
             </div>
@@ -293,12 +293,12 @@ export function RapidFire() {
           <div className="grid grid-cols-2 gap-4 py-2">
             <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-center">
               <Heart size={18} className="text-red-400 mx-auto mb-1 fill-red-400/20" />
-              <p className="text-[10px] text-slate-500 font-bold uppercase">Lives</p>
+              <p className="text-[10px] text-ink-muted font-bold uppercase">Lives</p>
               <p className="text-lg font-black text-white">3 Hearts</p>
             </div>
             <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-center">
               <Zap size={18} className="text-amber-400 mx-auto mb-1" />
-              <p className="text-[10px] text-slate-500 font-bold uppercase">XP Multiplier</p>
+              <p className="text-[10px] text-ink-muted font-bold uppercase">XP Multiplier</p>
               <p className="text-lg font-black text-white">Up to 5x</p>
             </div>
           </div>
@@ -314,7 +314,7 @@ export function RapidFire() {
             </motion.button>
             <button 
               onClick={() => navigate('/explore')}
-              className="text-xs font-bold text-slate-500 hover:text-white transition-colors flex items-center justify-center gap-1.5"
+              className="text-xs font-bold text-ink-muted hover:text-white transition-colors flex items-center justify-center gap-1.5"
             >
               <ArrowLeft size={12} />
               Back to Explore
@@ -349,7 +349,7 @@ export function RapidFire() {
                 <Heart 
                   key={i} 
                   size={16} 
-                  className={`transition-all duration-300 ${i < hearts ? 'text-red-500 fill-red-500' : 'text-slate-700'}`} 
+                  className={`transition-all duration-300 ${i < hearts ? 'text-red-500 fill-red-500' : 'text-ink-subtle'}`} 
                 />
               ))}
             </div>
@@ -386,7 +386,7 @@ export function RapidFire() {
 
           <div className="text-center space-y-8">
             <div className="min-h-[120px] flex flex-col items-center justify-center">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em] mb-4 block">Translate to French</span>
+              <span className="text-[10px] font-bold text-ink-muted uppercase tracking-[0.3em] mb-4 block">Translate to French</span>
               <AnimatePresence mode="wait">
                 <motion.h2 
                   key={currentQ?.english}
@@ -412,11 +412,11 @@ export function RapidFire() {
                 autoCorrect="off"
                 autoCapitalize="off"
                 spellCheck="false"
-                className={`w-full bg-slate-900/50 border-2 rounded-2xl px-8 py-6 text-2xl font-bold text-white placeholder:text-slate-700 focus:outline-none transition-all text-center ${isOverdrive ? 'border-amber-500/50 shadow-[0_0_20px_rgba(245,158,11,0.1)]' : 'border-white/10 focus:border-blue-500/50'}`}
+                className={`w-full bg-slate-900/50 border-2 rounded-2xl px-8 py-6 text-2xl font-bold text-white placeholder:text-ink-subtle focus:outline-none transition-all text-center ${isOverdrive ? 'border-amber-500/50 shadow-[0_0_20px_rgba(245,158,11,0.1)]' : 'border-white/10 focus:border-blue-500/50'}`}
               />
               <div className="mt-6 flex items-center justify-center gap-4">
                 <div className="h-px w-12 bg-white/5" />
-                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.3em] opacity-50">Press Enter</p>
+                <p className="text-[10px] text-ink-muted font-bold uppercase tracking-[0.3em] opacity-50">Press Enter</p>
                 <div className="h-px w-12 bg-white/5" />
               </div>
             </form>
@@ -457,7 +457,7 @@ export function RapidFire() {
               >
                 <div className="flex justify-between items-start gap-4">
                   <div>
-                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">{item.question.english}</p>
+                    <p className="text-[10px] font-bold text-ink-muted uppercase tracking-widest mb-1">{item.question.english}</p>
                     <p className="text-lg font-bold text-white">{Array.isArray(item.question.french) ? item.question.french[0] : item.question.french}</p>
                     {!item.isCorrect && (
                       <p className="text-sm text-red-400 mt-2 font-medium">Your answer: {item.userAnswer}</p>
@@ -514,7 +514,7 @@ export function RapidFire() {
             </motion.button>
             <button 
               onClick={() => navigate('/explore')}
-              className="text-xs font-bold text-slate-500 hover:text-white transition-colors py-2"
+              className="text-xs font-bold text-ink-muted hover:text-white transition-colors py-2"
             >
               Back to Explore
             </button>

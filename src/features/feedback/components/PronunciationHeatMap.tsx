@@ -12,7 +12,7 @@ const STATUS_CLASS: Record<'perfect' | 'good' | 'missed' | 'unknown', string> = 
   perfect: 'text-emerald-300',
   good: 'text-amber-300',
   missed: 'text-red-300',
-  unknown: 'text-slate-400',
+  unknown: 'text-ink-muted',
 };
 
 const ERROR_TYPE_CLASS: Record<string, string> = {
@@ -25,7 +25,7 @@ function phonemeColor(accuracyScore: number | null): string {
   const status = statusForAccuracy(accuracyScore);
   if (status === 'perfect') return 'text-emerald-300';
   if (status === 'good') return 'text-amber-300';
-  if (status === 'unknown') return 'text-slate-400';
+  if (status === 'unknown') return 'text-ink-muted';
   return 'text-red-300';
 }
 

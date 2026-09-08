@@ -21,11 +21,11 @@ function Tier0Card({ onRetry, onComplete, modelAnswer }: { onRetry: () => void; 
     >
       <div className="flex flex-col items-center text-center space-y-3 py-2">
         <div className="w-12 h-12 rounded-full bg-slate-700/60 flex items-center justify-center">
-          <MicOff size={20} className="text-slate-400" />
+          <MicOff size={20} className="text-ink-muted" />
         </div>
         <div>
           <p className="text-sm font-semibold text-slate-200">Je n'ai pas entendu de réponse.</p>
-          <p className="text-[11px] text-slate-500 mt-1">No audio was detected or the transcription was empty.</p>
+          <p className="text-[11px] text-ink-muted mt-1">No audio was detected or the transcription was empty.</p>
         </div>
       </div>
       <FeedbackFooter onRetry={onRetry} onComplete={onComplete} modelAnswer={modelAnswer} />
@@ -53,7 +53,7 @@ function Tier1Card({ feedback, transcript, onRetry, onComplete, modelAnswer }: P
           </div>
           <div>
             <p className="text-xs font-semibold text-amber-300 mb-0.5">Réponse minimale</p>
-            <p className="text-[11px] text-slate-400 leading-relaxed">
+            <p className="text-[11px] text-ink-muted leading-relaxed">
               Tu as donné une réponse de {wordCount === 1 ? 'un seul mot' : `${wordCount} mots`}. Je comprends le sujet, mais je ne peux pas évaluer ta grammaire, ta structure ou ta fluidité.
             </p>
           </div>
@@ -62,14 +62,14 @@ function Tier1Card({ feedback, transcript, onRetry, onComplete, modelAnswer }: P
 
       {/* What you said */}
       <div className="rounded-xl glass-elevated p-4">
-        <p className="text-[9px] text-slate-500 uppercase tracking-wider font-bold mb-2">Your answer</p>
+        <p className="text-[9px] text-ink-muted uppercase tracking-wider font-bold mb-2">Your answer</p>
         <p className="text-base text-slate-100 font-mono font-semibold">"{transcript.trim()}"</p>
       </div>
 
       {/* Teacher → Examiner → Coach pipeline */}
       {layer && (
         <div className="rounded-xl glass-elevated p-4 space-y-3.5">
-          <p className="text-[9px] text-slate-500 uppercase tracking-wider font-bold">Coaching feedback</p>
+          <p className="text-[9px] text-ink-muted uppercase tracking-wider font-bold">Coaching feedback</p>
 
           <div className="flex items-start gap-2.5">
             <div className="w-6 h-6 rounded-full bg-emerald-500/15 flex items-center justify-center shrink-0 mt-0.5">
@@ -77,7 +77,7 @@ function Tier1Card({ feedback, transcript, onRetry, onComplete, modelAnswer }: P
             </div>
             <div>
               <p className="text-[8px] text-emerald-400 uppercase tracking-wide font-bold mb-0.5">Teacher</p>
-              <p className="text-[10px] text-slate-300 leading-relaxed">{layer.teacher}</p>
+              <p className="text-[10px] text-ink-muted leading-relaxed">{layer.teacher}</p>
             </div>
           </div>
 
@@ -87,7 +87,7 @@ function Tier1Card({ feedback, transcript, onRetry, onComplete, modelAnswer }: P
             </div>
             <div>
               <p className="text-[8px] text-amber-400 uppercase tracking-wide font-bold mb-0.5">Examiner</p>
-              <p className="text-[10px] text-slate-300 leading-relaxed italic">{layer.examiner}</p>
+              <p className="text-[10px] text-ink-muted leading-relaxed italic">{layer.examiner}</p>
             </div>
           </div>
 
@@ -97,7 +97,7 @@ function Tier1Card({ feedback, transcript, onRetry, onComplete, modelAnswer }: P
             </div>
             <div>
               <p className="text-[8px] text-violet-400 uppercase tracking-wide font-bold mb-0.5">Coach</p>
-              <p className="text-[10px] text-slate-300 leading-relaxed">{layer.coach}</p>
+              <p className="text-[10px] text-ink-muted leading-relaxed">{layer.coach}</p>
             </div>
           </div>
         </div>

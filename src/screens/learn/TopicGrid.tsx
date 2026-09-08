@@ -33,7 +33,7 @@ export function TopicGrid({ onSelect, title = "Learn", subtitle = "Choose a topi
       >
         <div>
           <h1 className="text-2xl md:text-3xl font-black text-white">{title}</h1>
-          <p className="text-sm text-slate-500 mt-1">{subtitle}</p>
+          <p className="text-sm text-ink-muted mt-1">{subtitle}</p>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -72,8 +72,8 @@ export function TopicGrid({ onSelect, title = "Learn", subtitle = "Choose a topi
                     </span>
                   )}
                 </div>
-                <p className="text-[10px] text-slate-600">{topic.labelEn}</p>
-                <p className="text-[9px] text-slate-700 mt-2">{topic.questionsCount} questions</p>
+                <p className="text-[10px] text-ink-subtle">{topic.labelEn}</p>
+                <p className="text-[9px] text-ink-subtle mt-2">{topic.questionsCount} questions</p>
               </div>
             </motion.button>
           ))}
@@ -91,9 +91,9 @@ export function TopicGrid({ onSelect, title = "Learn", subtitle = "Choose a topi
             </div>
             <div className="flex-1">
               <p className="font-bold text-white text-sm">Random Question</p>
-              <p className="text-[10px] text-slate-600">Get a random question from any topic</p>
+              <p className="text-[10px] text-ink-subtle">Get a random question from any topic</p>
             </div>
-            <ChevronRight size={14} className="text-slate-700 group-hover:text-white group-hover:translate-x-1 transition-all" />
+            <ChevronRight size={14} className="text-ink-subtle group-hover:text-white group-hover:translate-x-1 transition-all" />
           </div>
         </motion.button>
       </motion.div>
@@ -114,7 +114,7 @@ export function TopicGrid({ onSelect, title = "Learn", subtitle = "Choose a topi
                 </div>
                 
                 <h2 className="text-xl font-black text-white mb-2">Advanced Content!</h2>
-                <p className="text-slate-400 text-sm mb-6">
+                <p className="text-ink-muted text-sm mb-6">
                   Are you sure you want to continue? This section contains <span className="text-amber-400 font-bold">advanced content</span>, complex grammar, and specialized vocabulary.
                 </p>
 
@@ -132,7 +132,7 @@ export function TopicGrid({ onSelect, title = "Learn", subtitle = "Choose a topi
                   
                   <button
                     onClick={() => setSelectedAdvanced(null)}
-                    className="w-full py-3 text-slate-500 hover:text-white font-bold transition-colors"
+                    className="w-full py-3 text-ink-muted hover:text-white font-bold transition-colors"
                   >
                     Go Back
                   </button>

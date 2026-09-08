@@ -33,7 +33,7 @@ export function OverviewTab({ profile }: Props) {
           <div key={s.label} className="rounded-xl glass p-3.5">
             <div className="mb-1.5">{s.icon}</div>
             <p className="text-lg font-black text-white">{s.value}</p>
-            <p className="text-[9px] text-slate-600 font-medium">{s.label}</p>
+            <p className="text-[9px] text-ink-subtle font-medium">{s.label}</p>
           </div>
         ))}
       </motion.div>
@@ -57,8 +57,8 @@ export function OverviewTab({ profile }: Props) {
                   }`}>
                     {isPast ? '✓' : isCurrent ? '★' : ''}
                   </div>
-                  <span className={`text-[10px] ${isCurrent ? 'text-white font-bold' : isPast ? 'text-slate-500' : 'text-slate-700'}`}>{lvl.icon} {lvl.level}</span>
-                  <span className="text-[9px] text-slate-700 ml-auto">{lvl.minXP.toLocaleString()} XP</span>
+                  <span className={`text-[10px] ${isCurrent ? 'text-white font-bold' : isPast ? 'text-ink-muted' : 'text-ink-subtle'}`}>{lvl.icon} {lvl.level}</span>
+                  <span className="text-[9px] text-ink-subtle ml-auto">{lvl.minXP.toLocaleString()} XP</span>
                 </div>
               );
             })}
@@ -72,12 +72,12 @@ export function OverviewTab({ profile }: Props) {
             <TrendingUp size={14} className="text-violet-400" />
             <h3 className="font-bold text-white text-sm">7-Day Performance</h3>
           </div>
-          <span className="text-[9px] text-slate-600">{weeklyAvg === null ? 'No sessions yet' : `Avg: ${weeklyAvg.toFixed(1)}`}</span>
+          <span className="text-[9px] text-ink-subtle">{weeklyAvg === null ? 'No sessions yet' : `Avg: ${weeklyAvg.toFixed(1)}`}</span>
         </div>
         {scoredDays.length > 0 ? (
           <WeeklyChart data={dailyStats} uid="progress" />
         ) : (
-          <p className="text-[11px] text-slate-600 italic py-6 text-center">Complete a session to see your weekly trend.</p>
+          <p className="text-[11px] text-ink-subtle italic py-6 text-center">Complete a session to see your weekly trend.</p>
         )}
       </motion.div>
 
@@ -95,7 +95,7 @@ export function OverviewTab({ profile }: Props) {
           ].map(skill => (
             <div key={skill.label} className="flex flex-col items-center gap-1.5">
               <ProgressRing value={skill.value} size={65} strokeWidth={6} color={skill.color} label={`${skill.value}%`} />
-              <span className="text-[9px] text-slate-600 font-medium">{skill.label}</span>
+              <span className="text-[9px] text-ink-subtle font-medium">{skill.label}</span>
             </div>
           ))}
         </div>

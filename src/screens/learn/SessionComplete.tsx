@@ -35,7 +35,7 @@ export function SessionComplete({ scores, unscored, wordCount, xpEarned, cefrLev
               🎉
             </motion.div>
             <h2 className="text-2xl font-black text-white mb-1">Session Complete</h2>
-            <p className="text-slate-500 text-sm mb-5">You're crushing it!</p>
+            <p className="text-ink-muted text-sm mb-5">You're crushing it!</p>
 
             <motion.div
               className="text-5xl font-black mb-1"
@@ -46,7 +46,7 @@ export function SessionComplete({ scores, unscored, wordCount, xpEarned, cefrLev
             >
               {unscored ? 'Not graded' : scores.overall.toFixed(1)}
             </motion.div>
-            <p className="text-[10px] text-slate-600 mb-5">{unscored ? 'Practiced offline' : 'out of 10.0'}</p>
+            <p className="text-[10px] text-ink-subtle mb-5">{unscored ? 'Practiced offline' : 'out of 10.0'}</p>
 
             <div className="grid grid-cols-3 gap-2 mb-5">
               {[
@@ -56,7 +56,7 @@ export function SessionComplete({ scores, unscored, wordCount, xpEarned, cefrLev
               ].map(stat => (
                 <div key={stat.label} className="p-2.5 rounded-xl glass-subtle">
                   <p className={`text-lg font-black ${stat.color}`}>{stat.value}</p>
-                  <p className="text-[9px] text-slate-600">{stat.label}</p>
+                  <p className="text-[9px] text-ink-subtle">{stat.label}</p>
                 </div>
               ))}
             </div>
@@ -80,7 +80,7 @@ export function SessionComplete({ scores, unscored, wordCount, xpEarned, cefrLev
                 </motion.button>
                 <motion.button
                   onClick={onBack}
-                  className="flex-1 py-2.5 rounded-xl border border-white/8 hover:border-white/15 text-slate-500 hover:text-white font-semibold text-xs transition-all"
+                  className="flex-1 py-2.5 rounded-xl border border-white/8 hover:border-white/15 text-ink-muted hover:text-white font-semibold text-xs transition-all"
                   whileTap={{ scale: 0.97 }}
                 >
                   Back

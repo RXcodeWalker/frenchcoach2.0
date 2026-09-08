@@ -29,8 +29,8 @@ export function SessionProgressBar({ session, topicLabel, topicIcon, selectedEng
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2 flex-1 min-w-0">
           <span className="text-sm">{topicIcon}</span>
-          <span className="text-xs font-bold text-slate-400 truncate">{topicLabel}</span>
-          <span className="text-slate-700">·</span>
+          <span className="text-xs font-bold text-ink-muted truncate">{topicLabel}</span>
+          <span className="text-ink-subtle">·</span>
           <span className="text-xs font-black text-white whitespace-nowrap">
             Q{questionNumber}/{targetCount}
           </span>
@@ -38,7 +38,7 @@ export function SessionProgressBar({ session, topicLabel, topicIcon, selectedEng
 
         <div className="flex items-center gap-2">
           {avgScore !== null && (
-            <span className="text-xs font-bold text-slate-400 whitespace-nowrap">
+            <span className="text-xs font-bold text-ink-muted whitespace-nowrap">
               avg {avgScore.toFixed(1)}
             </span>
           )}
@@ -66,7 +66,7 @@ export function SessionProgressBar({ session, topicLabel, topicIcon, selectedEng
 
           <button
             onClick={onEndSession}
-            className="p-1.5 rounded-lg glass-subtle text-slate-600 hover:text-white hover:bg-white/5 transition-colors"
+            className="p-1.5 rounded-lg glass-subtle text-ink-subtle hover:text-white hover:bg-white/5 transition-colors"
             title="End session early"
           >
             <X size={12} />

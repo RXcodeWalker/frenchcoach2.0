@@ -253,14 +253,14 @@ export function Shop() {
                 transition={{ type: 'spring', duration: 0.4 }}
               />
             )}
-            <span className={`relative z-10 ${tab === t.id ? 'text-violet-300' : 'text-slate-500'}`}>{t.label}</span>
+            <span className={`relative z-10 ${tab === t.id ? 'text-violet-300' : 'text-ink-muted'}`}>{t.label}</span>
           </button>
         ))}
       </motion.div>
 
       {tab === 'locker' && (
         <motion.div variants={fadeUp} className="flex items-center justify-between">
-          <p className="text-xs font-black uppercase tracking-widest text-slate-500">
+          <p className="text-xs font-black uppercase tracking-widest text-ink-muted">
             Collection · {ownedCount}/{itemsByTab.locker.length}
           </p>
         </motion.div>
@@ -315,7 +315,7 @@ export function Shop() {
         {activeItems.length === 0 && (
           <motion.div variants={fadeUp} className="col-span-full">
             <Card variant="subtle" className="text-center py-10">
-              <p className="text-sm text-slate-500 font-bold">Nothing here yet.</p>
+              <p className="text-sm text-ink-muted font-bold">Nothing here yet.</p>
             </Card>
           </motion.div>
         )}
@@ -324,7 +324,7 @@ export function Shop() {
       {tab === 'locker' && (
         <motion.div variants={fadeUp}>
           <Card variant="subtle">
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Transaction history</p>
+            <p className="text-[10px] font-black uppercase tracking-widest text-ink-muted mb-2">Transaction history</p>
             <TransactionList events={transactions} loading={transactionsLoading} />
           </Card>
         </motion.div>
@@ -392,7 +392,7 @@ function ShopHeader({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="relative text-xs font-bold text-slate-400 mt-3"
+            className="relative text-xs font-bold text-ink-muted mt-3"
           >
             {coachLine}
           </motion.p>
@@ -472,9 +472,9 @@ function ShopItemCard({
 
         <div className="flex-1 md:cursor-default cursor-pointer" onClick={onOpenDetail}>
           <h3 className="text-sm font-bold text-white">{entry?.name ?? item.id}</h3>
-          <p className="text-xs text-slate-500 mt-0.5">{entry?.description ?? ''}</p>
+          <p className="text-xs text-ink-muted mt-0.5">{entry?.description ?? ''}</p>
           {entry?.requirementLabel && (
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-600 mt-1.5 flex items-center gap-1">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-ink-subtle mt-1.5 flex items-center gap-1">
               {!unlocked && <Lock size={10} />}
               {entry.requirementLabel}
             </p>
@@ -487,7 +487,7 @@ function ShopItemCard({
                   style={{ width: `${Math.round(progress.ratio * 100)}%` }}
                 />
               </div>
-              <p className="text-[9px] font-bold text-slate-500 mt-1">{progress.label}</p>
+              <p className="text-[9px] font-bold text-ink-muted mt-1">{progress.label}</p>
             </div>
           )}
         </div>
@@ -502,7 +502,7 @@ function ShopItemCard({
               className={`w-full py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 ${
                 equipped
                   ? 'bg-violet-500/20 text-violet-300 border border-violet-500/30'
-                  : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/10'
+                  : 'bg-white/5 text-ink-muted hover:bg-white/10 border border-white/10'
               }`}
             >
               {pending ? <RefreshCw size={12} className="animate-spin" /> : equipped ? <Check size={12} /> : null}
@@ -516,7 +516,7 @@ function ShopItemCard({
               Repair Streak{qty > 1 ? ` (${qty})` : ''}
             </button>
           ) : (
-            <div className="w-full py-2 rounded-lg text-xs font-black uppercase tracking-widest text-center bg-white/5 text-slate-400 border border-white/10">
+            <div className="w-full py-2 rounded-lg text-xs font-black uppercase tracking-widest text-center bg-white/5 text-ink-muted border border-white/10">
               Owned{qty > 1 ? ` × ${qty}` : ''}
             </div>
           )
@@ -526,10 +526,10 @@ function ShopItemCard({
             onClick={onPurchase}
             className={`w-full py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 ${
               !unlocked
-                ? 'bg-white/5 text-slate-600 cursor-not-allowed'
+                ? 'bg-white/5 text-ink-subtle cursor-not-allowed'
                 : canAfford
                 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30'
-                : 'bg-white/5 text-slate-400 border border-white/10'
+                : 'bg-white/5 text-ink-muted border border-white/10'
             }`}
           >
             {pending ? (
@@ -547,7 +547,7 @@ function ShopItemCard({
           </button>
         )}
         {!owned && unlocked && !canAfford && (
-          <p className="text-[9px] font-bold text-slate-600 text-center -mt-1">
+          <p className="text-[9px] font-bold text-ink-subtle text-center -mt-1">
             ≈{Math.max(1, Math.ceil((item.priceGems - balance) / AVG_GEMS_PER_SESSION))} more session
             {Math.ceil((item.priceGems - balance) / AVG_GEMS_PER_SESSION) === 1 ? '' : 's'}
           </p>

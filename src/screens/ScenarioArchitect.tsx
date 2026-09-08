@@ -65,7 +65,7 @@ export function ScenarioArchitect() {
         <div className="flex items-center justify-between">
           <button 
             onClick={() => navigate('/explore')}
-            className="p-2 -ml-2 rounded-full hover:bg-white/5 text-slate-400 transition-colors"
+            className="p-2 -ml-2 rounded-full hover:bg-white/5 text-ink-muted transition-colors"
           >
             <ArrowLeft size={20} />
           </button>
@@ -77,7 +77,7 @@ export function ScenarioArchitect() {
 
         <div className="space-y-2">
           <h1 className="text-3xl md:text-4xl font-black text-white italic tracking-tighter">Scenario Architect</h1>
-          <p className="text-slate-500 max-w-xl">Describe any situation, and our AI will build a custom roleplay environment for you to practice.</p>
+          <p className="text-ink-muted max-w-xl">Describe any situation, and our AI will build a custom roleplay environment for you to practice.</p>
         </div>
 
         {!scenario ? (
@@ -90,10 +90,10 @@ export function ScenarioArchitect() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Describe your scenario (e.g., I'm ordering a coffee but I've forgotten how to say 'milk'...)"
-                className="w-full h-40 bg-transparent p-6 text-lg md:text-xl font-medium text-white placeholder:text-slate-700 focus:outline-none resize-none"
+                className="w-full h-40 bg-transparent p-6 text-lg md:text-xl font-medium text-white placeholder:text-ink-subtle focus:outline-none resize-none"
               />
               <div className="p-4 border-t border-white/5 flex items-center justify-between bg-white/[0.02]">
-                <span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest px-2">
+                <span className="text-[10px] font-bold text-ink-subtle uppercase tracking-widest px-2">
                   {description.length} characters
                 </span>
                 <button
@@ -102,7 +102,7 @@ export function ScenarioArchitect() {
                   className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${
                     description.trim() && !isGenerating
                       ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/20 hover:scale-105 active:scale-95'
-                      : 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                      : 'bg-slate-800 text-ink-muted cursor-not-allowed'
                   }`}
                 >
                   {isGenerating ? (
@@ -123,14 +123,14 @@ export function ScenarioArchitect() {
             <div className="space-y-3">
               <div className="flex items-center gap-2 px-1">
                 <Lightbulb size={12} className="text-amber-400" />
-                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Quick Prompts</span>
+                <span className="text-[10px] font-black text-ink-muted uppercase tracking-widest">Quick Prompts</span>
               </div>
               <div className="flex flex-wrap gap-2">
                 {SUGGESTIONS.map((s, i) => (
                   <button
                     key={i}
                     onClick={() => setDescription(s)}
-                    className="px-4 py-2 rounded-xl bg-white/5 border border-white/5 text-xs text-slate-400 hover:text-white hover:bg-white/10 hover:border-white/10 transition-all text-left max-w-xs truncate"
+                    className="px-4 py-2 rounded-xl bg-white/5 border border-white/5 text-xs text-ink-muted hover:text-white hover:bg-white/10 hover:border-white/10 transition-all text-left max-w-xs truncate"
                   >
                     {s}
                   </button>
@@ -163,16 +163,16 @@ export function ScenarioArchitect() {
                     </div>
                     <h2 className="text-2xl font-black text-white italic tracking-tight">{scenario.title}</h2>
                   </div>
-                  <p className="text-slate-400 leading-relaxed">{scenario.scenario}</p>
+                  <p className="text-ink-muted leading-relaxed">{scenario.scenario}</p>
                 </div>
                 
                 <div className="flex flex-col items-center p-6 rounded-2xl bg-white/5 border border-white/5 min-w-[200px]">
                   <div className="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center mb-3">
-                    <User size={32} className="text-slate-400" />
+                    <User size={32} className="text-ink-muted" />
                   </div>
-                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">NPC Profile</span>
+                  <span className="text-[10px] font-black text-ink-muted uppercase tracking-[0.2em] mb-1">NPC Profile</span>
                   <p className="font-black text-white text-lg">{scenario.npc_name}</p>
-                  <p className="text-[10px] text-center text-slate-500 mt-2 italic px-4 line-clamp-2">
+                  <p className="text-[10px] text-center text-ink-muted mt-2 italic px-4 line-clamp-2">
                     {scenario.npc_personality}
                   </p>
                 </div>
@@ -182,15 +182,15 @@ export function ScenarioArchitect() {
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
                     <Target size={14} className="text-red-400" />
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Objectives</span>
+                    <span className="text-[10px] font-black text-ink-muted uppercase tracking-widest">Objectives</span>
                   </div>
                   <div className="space-y-2">
                     {scenario.objectives.map((obj, i) => (
                       <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5">
-                        <div className="w-5 h-5 rounded-full bg-slate-800 flex items-center justify-center text-[10px] font-black text-slate-400">
+                        <div className="w-5 h-5 rounded-full bg-slate-800 flex items-center justify-center text-[10px] font-black text-ink-muted">
                           {i + 1}
                         </div>
-                        <span className="text-sm font-medium text-slate-300">{obj}</span>
+                        <span className="text-sm font-medium text-ink-muted">{obj}</span>
                       </div>
                     ))}
                   </div>
@@ -199,13 +199,13 @@ export function ScenarioArchitect() {
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
                     <Book size={14} className="text-emerald-400" />
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Essential Vocabulary</span>
+                    <span className="text-[10px] font-black text-ink-muted uppercase tracking-widest">Essential Vocabulary</span>
                   </div>
                   <div className="grid grid-cols-1 gap-2">
                     {scenario.key_vocab.map((v, i) => (
                       <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5 group hover:bg-emerald-500/5 hover:border-emerald-500/20 transition-all">
                         <span className="font-black text-white italic">{v.fr}</span>
-                        <span className="text-xs font-medium text-slate-500 group-hover:text-emerald-400">{v.en}</span>
+                        <span className="text-xs font-medium text-ink-muted group-hover:text-emerald-400">{v.en}</span>
                       </div>
                     ))}
                   </div>
@@ -222,14 +222,14 @@ export function ScenarioArchitect() {
                 </button>
                 <button
                   onClick={() => setScenario(null)}
-                  className="px-8 py-4 bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 font-black rounded-2xl transition-all uppercase text-[10px] tracking-widest"
+                  className="px-8 py-4 bg-white/5 border border-white/10 text-ink-muted hover:text-white hover:bg-white/10 font-black rounded-2xl transition-all uppercase text-[10px] tracking-widest"
                 >
                   Discard & Re-Architect
                 </button>
               </div>
             </Card>
 
-            <p className="text-center text-[10px] text-slate-600 font-bold uppercase tracking-widest">
+            <p className="text-center text-[10px] text-ink-subtle font-bold uppercase tracking-widest">
               Generated by Scenario Architect v1.0 • Gemini 2.0 Flash
             </p>
           </motion.div>

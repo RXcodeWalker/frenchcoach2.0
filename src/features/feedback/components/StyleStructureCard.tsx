@@ -23,7 +23,7 @@ export function StyleStructureCard({ feedback, polishIssues }: Props) {
         <div className="space-y-2">
           {polishIssues.map(issue => (
             <div key={issue.id} className="p-2.5 rounded-lg bg-violet-500/8 border border-violet-500/15">
-              <p className="text-[10px] text-slate-400 mb-1">{issue.diagnostic}</p>
+              <p className="text-[10px] text-ink-muted mb-1">{issue.diagnostic}</p>
               {issue.stronger && (
                 <p className="text-[10px] text-violet-300 font-medium">Try: {issue.stronger}</p>
               )}
@@ -35,7 +35,7 @@ export function StyleStructureCard({ feedback, polishIssues }: Props) {
           {legacyStyle.map((s, i) => (
             <div key={i} className="flex items-start gap-2 p-2.5 rounded-lg glass-subtle">
               <span className="text-[10px] font-semibold text-violet-300 flex-shrink-0">{s.label}</span>
-              <span className="text-[10px] text-slate-500">{s.suggestion}</span>
+              <span className="text-[10px] text-ink-muted">{s.suggestion}</span>
             </div>
           ))}
         </div>
