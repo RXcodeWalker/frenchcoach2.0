@@ -11,7 +11,7 @@ export function FeedbackFooter({ onRetry, onComplete, modelAnswer }: Props) {
   return (
     <div className="space-y-2">
       {modelAnswer && (
-        <details className="rounded-xl glass p-4">
+        <details className="rounded-xl surface p-4">
           <summary className="text-[10px] font-semibold text-ink-muted cursor-pointer select-none hover:text-ink-muted transition-colors">
             Show model answer
           </summary>
@@ -22,7 +22,7 @@ export function FeedbackFooter({ onRetry, onComplete, modelAnswer }: Props) {
       <div className="flex gap-2">
         <motion.button
           onClick={onRetry}
-          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl glass-subtle text-white font-semibold text-xs"
+          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl surface-recessed text-white font-semibold text-xs"
           whileTap={{ scale: 0.97 }}
         >
           <RotateCcw size={12} /> Retry
@@ -31,7 +31,7 @@ export function FeedbackFooter({ onRetry, onComplete, modelAnswer }: Props) {
         <motion.button
           disabled
           title="Coming soon"
-          className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl glass-subtle text-ink-subtle font-semibold text-xs cursor-not-allowed"
+          className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl surface-recessed text-ink-subtle font-semibold text-xs cursor-not-allowed"
         >
           <BookMarked size={12} />
         </motion.button>

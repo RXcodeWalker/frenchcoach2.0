@@ -99,7 +99,7 @@ export function MysteryBox() {
                 key="revealed"
                 initial={{ scale: 0.5, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                className="glass-elevated p-8 rounded-3xl border-yellow-500/20 w-full"
+                className="surface-raised p-8 rounded-3xl border-yellow-500/20 w-full"
               >
                 <div className="w-20 h-20 bg-yellow-500/10 rounded-full flex items-center justify-center mx-auto border-2 border-yellow-500/20 mb-4">
                   <Trophy size={40} className="text-yellow-400" />

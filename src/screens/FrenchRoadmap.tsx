@@ -59,7 +59,7 @@ export function FrenchRoadmap() {
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="glass rounded-3xl p-6 border-violet-500/20 bg-gradient-to-r from-violet-600/10 via-transparent to-transparent flex flex-col md:flex-row items-center justify-between gap-6"
+            className="surface rounded-3xl p-6 border-violet-500/20 bg-gradient-to-r from-violet-600/10 via-transparent to-transparent flex flex-col md:flex-row items-center justify-between gap-6"
           >
             <div className="flex items-center gap-5">
               <div className="w-14 h-14 rounded-2xl bg-violet-500/10 flex items-center justify-center text-violet-400 shrink-0">
@@ -92,7 +92,7 @@ export function FrenchRoadmap() {
             return (
               <motion.div 
                 key={key}
-                className={`glass-elevated p-4 rounded-2xl border flex flex-col items-center text-center space-y-2 relative transition-colors ${
+                className={`surface-raised p-4 rounded-2xl border flex flex-col items-center text-center space-y-2 relative transition-colors ${
                   isWeak ? 'border-rose-500/30 bg-rose-500/5' : 'border-white/5'
                 }`}
                 whileHover={{ y: -4 }}
@@ -157,7 +157,7 @@ export function FrenchRoadmap() {
                       <motion.div
                         key={node.id}
                         onClick={() => setSelectedNode(selectedNode === node.id ? null : node.id)}
-                        className={`glass-elevated p-5 rounded-2xl border transition-all cursor-pointer relative overflow-hidden group ${
+                        className={`surface-raised p-5 rounded-2xl border transition-all cursor-pointer relative overflow-hidden group ${
                           isNodeDone ? 'border-emerald-500/30 bg-emerald-500/5' : 
                           isLocked ? 'border-white/[0.02] opacity-40' : 
                           isNextNode ? 'border-blue-500/40 ring-1 ring-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.1)]' :
@@ -205,7 +205,7 @@ export function FrenchRoadmap() {
 
                 {/* Level Gate Overlay/Requirement */}
                 {isNext && level.gate && (
-                  <div className="mt-8 glass-elevated p-6 rounded-2xl border-amber-500/20 bg-amber-500/5 max-w-2xl mx-auto">
+                  <div className="mt-8 surface-raised p-6 rounded-2xl border-amber-500/20 bg-amber-500/5 max-w-2xl mx-auto">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="p-2 bg-amber-500/10 rounded-lg">
                         <Lock size={18} className="text-amber-400" />
@@ -246,7 +246,7 @@ export function FrenchRoadmap() {
         </div>
 
         {/* Footer Info */}
-        <div className="glass-elevated p-6 rounded-2xl border-white/5 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="surface-raised p-6 rounded-2xl border-white/5 flex flex-col md:flex-row items-center justify-between gap-6">
            <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-blue-500/10 rounded-full flex items-center justify-center text-blue-400">
                 <Info size={24} />

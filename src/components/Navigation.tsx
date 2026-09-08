@@ -30,7 +30,7 @@ export function SideRail() {
   return (
     <>
       {/* Desktop Side Rail */}
-      <nav className="nav-rail fixed left-0 top-0 bottom-0 w-[64px] glass border-r border-white/[0.04] z-50 hidden md:flex flex-col items-center py-5 gap-1">
+      <nav className="nav-rail fixed left-0 top-0 bottom-0 w-[64px] surface border-r border-white/[0.04] z-50 hidden md:flex flex-col items-center py-5 gap-1">
         {/* Logo */}
         <motion.div
           className="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-electric to-indigo-500 flex items-center justify-center mb-8"
@@ -125,7 +125,7 @@ export function SideRail() {
 
       {/* Mobile Bottom Dock */}
       <nav className="nav-rail fixed bottom-0 left-0 right-0 z-50 md:hidden">
-        <div className="mx-3 mb-3 px-1.5 py-1.5 glass-elevated rounded-2xl">
+        <div className="mx-3 mb-3 px-1.5 py-1.5 surface-raised rounded-2xl">
           <div className="flex items-center justify-around">
             {NAV_ITEMS.slice(0, 5).map(item => {
               const active = location.pathname === toPath(item.id);

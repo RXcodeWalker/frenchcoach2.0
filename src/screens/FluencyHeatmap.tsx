@@ -239,7 +239,7 @@ export function FluencyHeatmap() {
         </div>
 
         {/* Heatmap Section */}
-        <div className="glass-elevated p-6 rounded-2xl border-white/5 overflow-hidden">
+        <div className="surface-raised p-6 rounded-2xl border-white/5 overflow-hidden">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-2">
               <Calendar size={18} className="text-blue-400" />
@@ -319,7 +319,7 @@ export function FluencyHeatmap() {
                   exit={{ opacity: 0 }}
                   className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 pointer-events-none"
                 >
-                  <div className="glass-elevated px-3 py-2 rounded-lg border-blue-500/20 whitespace-nowrap text-center">
+                  <div className="surface-raised px-3 py-2 rounded-lg border-blue-500/20 whitespace-nowrap text-center">
                     <p className="text-[8px] font-bold text-blue-400 uppercase mb-0.5">{new Date(hoveredDay.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</p>
                     <p className="text-xs font-black text-white">{hoveredDay.count} sessions • {hoveredDay.score.toFixed(1)} fluency</p>
                   </div>
@@ -368,7 +368,7 @@ export function FluencyHeatmap() {
 
         {/* Insights Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="glass-elevated p-6 rounded-2xl border-blue-500/20 space-y-4">
+          <div className="surface-raised p-6 rounded-2xl border-blue-500/20 space-y-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-blue-500/10 rounded-xl">
                 <Clock size={20} className="text-blue-400" />
@@ -407,7 +407,7 @@ export function FluencyHeatmap() {
             </div>
           </div>
 
-          <div className="glass-elevated p-6 rounded-2xl border-purple-500/20 space-y-4">
+          <div className="surface-raised p-6 rounded-2xl border-purple-500/20 space-y-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-purple-500/10 rounded-xl">
                 <BookOpen size={20} className="text-purple-400" />
@@ -449,7 +449,7 @@ export function FluencyHeatmap() {
         {/* Global Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[1,2,3,4].map(i => (
-            <div key={i} className="glass p-4 rounded-xl text-center">
+            <div key={i} className="surface p-4 rounded-xl text-center">
               {isLoading ? (
                 <div className="space-y-2 flex flex-col items-center">
                   <div className="h-2 w-12 bg-white/5 animate-pulse rounded" />

@@ -24,7 +24,7 @@ export function QuickAccess({ onNavigate }: Props) {
           <motion.button
             key={item.label}
             onClick={() => onNavigate(item.screen)}
-            className="group relative flex flex-col items-center gap-1.5 p-3 rounded-xl glass-subtle hover:bg-white/[0.04] transition-all duration-200"
+            className="group relative flex flex-col items-center gap-1.5 p-3 rounded-xl surface-recessed hover:bg-white/[0.04] transition-all duration-200"
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
           >

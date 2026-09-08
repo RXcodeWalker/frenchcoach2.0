@@ -19,7 +19,7 @@ interface Props {
 export function ExaminerFeedbackCard({ status, result, onSwitchToCoach, onRetry }: Props) {
   if (status === 'pending') {
     return (
-      <div className="rounded-xl glass-elevated p-8 flex flex-col items-center gap-3">
+      <div className="rounded-xl surface-raised p-8 flex flex-col items-center gap-3">
         <Loader2 size={24} className="text-amber-400 animate-spin" />
         <p className="text-sm text-ink-muted">Preparing examiner commentary…</p>
       </div>
@@ -28,7 +28,7 @@ export function ExaminerFeedbackCard({ status, result, onSwitchToCoach, onRetry 
 
   if (status === 'failed' || !result) {
     return (
-      <div className="rounded-xl glass-elevated p-6 space-y-3 text-center">
+      <div className="rounded-xl surface-raised p-6 space-y-3 text-center">
         <p className="text-sm text-ink-muted font-semibold">
           Couldn't produce evidence-backed examiner feedback for this answer.
         </p>
@@ -39,7 +39,7 @@ export function ExaminerFeedbackCard({ status, result, onSwitchToCoach, onRetry 
           <button
             type="button"
             onClick={onRetry}
-            className="px-4 py-2 rounded-xl glass-subtle text-xs font-bold text-ink-muted hover:bg-white/5 transition-colors"
+            className="px-4 py-2 rounded-xl surface-recessed text-xs font-bold text-ink-muted hover:bg-white/5 transition-colors"
           >
             Try again
           </button>
@@ -66,7 +66,7 @@ export function ExaminerFeedbackCard({ status, result, onSwitchToCoach, onRetry 
       </div>
 
       {result.currentDescriptorCommentary.length > 0 && (
-        <div className="rounded-xl glass-elevated p-4 space-y-2.5">
+        <div className="rounded-xl surface-raised p-4 space-y-2.5">
           <p className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">What this answer currently shows</p>
           {result.currentDescriptorCommentary.map((c, i) => (
             <div key={i} className="space-y-1">
@@ -78,7 +78,7 @@ export function ExaminerFeedbackCard({ status, result, onSwitchToCoach, onRetry 
       )}
 
       {result.improvementCommentary.length > 0 && (
-        <div className="rounded-xl glass-elevated p-4 space-y-2.5">
+        <div className="rounded-xl surface-raised p-4 space-y-2.5">
           <p className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">What would move this up a band</p>
           {result.improvementCommentary.map((c, i) => (
             <div key={i} className="space-y-1">

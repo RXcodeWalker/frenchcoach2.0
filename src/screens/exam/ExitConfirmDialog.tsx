@@ -18,7 +18,7 @@ export function ExitConfirmDialog({ open, onCancel, onConfirm }: Props) {
           exit={{ opacity: 0 }}
         >
           <motion.div
-            className="w-full max-w-xs rounded-2xl glass-elevated p-5 text-center space-y-4"
+            className="w-full max-w-xs rounded-2xl surface-raised p-5 text-center space-y-4"
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
@@ -30,7 +30,7 @@ export function ExitConfirmDialog({ open, onCancel, onConfirm }: Props) {
             <div className="flex items-center justify-center gap-3">
               <motion.button
                 onClick={onCancel}
-                className="flex-1 px-4 py-2 rounded-lg glass-subtle hover:bg-white/[0.04] text-white transition-all font-semibold text-[10px]"
+                className="flex-1 px-4 py-2 rounded-lg surface-recessed hover:bg-white/[0.04] text-white transition-all font-semibold text-[10px]"
                 whileTap={{ scale: 0.95 }}
               >
                 Keep going

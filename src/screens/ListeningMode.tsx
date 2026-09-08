@@ -90,7 +90,7 @@ export function ListeningMode() {
            <div className="flex items-center gap-3">
             <button 
               onClick={() => navigate('/explore')}
-              className="p-2 rounded-lg glass hover:bg-white/5 transition-colors"
+              className="p-2 rounded-lg surface hover:bg-white/5 transition-colors"
             >
               <ChevronLeft size={20} className="text-ink-muted" />
             </button>
@@ -117,7 +117,7 @@ export function ListeningMode() {
             <ArrowRight className="rotate-180" size={16} />
             Change Topic
           </button>
-          <div className="px-3 py-1 rounded-full glass text-[10px] font-bold text-ink-muted">
+          <div className="px-3 py-1 rounded-full surface text-[10px] font-bold text-ink-muted">
             SCORE: {score}/{questionsDone}
           </div>
         </div>
@@ -125,7 +125,7 @@ export function ListeningMode() {
         {/* Main Card */}
         <motion.div
           layout
-          className="glass-elevated rounded-3xl p-8 md:p-12 text-center space-y-8 relative overflow-hidden"
+          className="surface-raised rounded-3xl p-8 md:p-12 text-center space-y-8 relative overflow-hidden"
         >
           {selectedTopic && (
             <div 
@@ -189,7 +189,7 @@ export function ListeningMode() {
                 <div className="flex justify-center gap-4">
                    <button
                     onClick={replayAudio}
-                    className="p-4 rounded-2xl glass hover:bg-white/5 text-pink-500 transition-all"
+                    className="p-4 rounded-2xl surface hover:bg-white/5 text-pink-500 transition-all"
                     title="Replay Audio"
                   >
                     <RotateCcw size={24} />
@@ -232,8 +232,8 @@ export function ListeningMode() {
                                 ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400'
                                 : option === userAnswer
                                 ? 'bg-red-500/20 border-red-500/50 text-red-400'
-                                : 'glass opacity-50'
-                              : 'glass hover:bg-white/5 text-ink-muted'
+                                : 'surface opacity-50'
+                              : 'surface hover:bg-white/5 text-ink-muted'
                           }`}
                         >
                           {option}
@@ -257,7 +257,7 @@ export function ListeningMode() {
                 <span className="text-xl font-black">{isCorrect ? 'Excellent!' : 'Pas tout à fait...'}</span>
               </div>
 
-              <div className="glass rounded-2xl p-6 text-left space-y-4">
+              <div className="surface rounded-2xl p-6 text-left space-y-4">
                 <div>
                   <p className="text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-1">Correct French</p>
                   <p className="text-white font-medium">{currentQuestion.audioText}</p>

@@ -21,7 +21,7 @@ export function PronunciationSourceBadge({ provider }: Props) {
   if (provider === 'azure') return null;
 
   return (
-    <div className="flex items-start gap-2.5 px-3 py-2 rounded-lg glass-subtle">
+    <div className="flex items-start gap-2.5 px-3 py-2 rounded-lg surface-recessed">
       <span className="text-xs leading-none flex-shrink-0 mt-0.5">🎙️</span>
       <div className="flex-1 min-w-0">
         <p className="text-[11px] font-bold text-ink-muted">Estimated pronunciation score</p>

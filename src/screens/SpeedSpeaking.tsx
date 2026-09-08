@@ -213,7 +213,7 @@ export function SpeedSpeaking() {
     return (
       <div className="min-h-[80vh] flex flex-col items-center justify-center p-6">
         <motion.div
-          className="max-w-md w-full glass-elevated p-8 text-center space-y-6"
+          className="max-w-md w-full surface-raised p-8 text-center space-y-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
@@ -277,7 +277,7 @@ export function SpeedSpeaking() {
       <div className="max-w-2xl mx-auto px-4 pt-12 relative">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-4">
-            <div className={`glass-elevated px-4 py-2 rounded-xl flex items-center gap-2 transition-all duration-500 relative ${isOverdrive ? getOverdriveClasses(true) : 'border-blue-500/20'}`}>
+            <div className={`surface-raised px-4 py-2 rounded-xl flex items-center gap-2 transition-all duration-500 relative ${isOverdrive ? getOverdriveClasses(true) : 'border-blue-500/20'}`}>
               <Zap size={16} className={`text-amber-400 ${isOverdrive ? 'animate-pulse' : ''}`} />
               <span className="text-xl font-black text-white">{score}</span>
               <FloatingXPOverlay items={floatingXPs} animateY={-60} />
@@ -287,7 +287,7 @@ export function SpeedSpeaking() {
           </div>
 
           <div
-            className={`glass-elevated px-4 py-2 rounded-xl flex items-center gap-2 transition-colors ${
+            className={`surface-raised px-4 py-2 rounded-xl flex items-center gap-2 transition-colors ${
               isTimeFrozen
                 ? 'border-cyan-400 bg-cyan-400/20 text-cyan-400'
                 : timer.isCritical
@@ -325,7 +325,7 @@ export function SpeedSpeaking() {
         />
 
         <motion.div
-          className={`glass-elevated p-8 rounded-2xl relative overflow-hidden transition-all duration-500 ${getOverdriveCardClasses(isOverdrive)}`}
+          className={`surface-raised p-8 rounded-2xl relative overflow-hidden transition-all duration-500 ${getOverdriveCardClasses(isOverdrive)}`}
           animate={isShaking ? shakeAnimation : { x: 0 }}
           transition={shakeTransition}
           layout

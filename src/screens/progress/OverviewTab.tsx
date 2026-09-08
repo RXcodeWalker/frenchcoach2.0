@@ -30,7 +30,7 @@ export function OverviewTab({ profile }: Props) {
           { icon: <span className="text-sm">📚</span>, value: profile.sessions_count, label: 'Sessions' },
           { icon: <span className="text-sm">💬</span>, value: profile.total_words_spoken.toLocaleString(), label: 'Words' },
         ].map(s => (
-          <div key={s.label} className="rounded-xl glass p-3.5">
+          <div key={s.label} className="rounded-xl surface p-3.5">
             <div className="mb-1.5">{s.icon}</div>
             <p className="text-lg font-black text-white">{s.value}</p>
             <p className="text-[9px] text-ink-subtle font-medium">{s.label}</p>
@@ -38,7 +38,7 @@ export function OverviewTab({ profile }: Props) {
         ))}
       </motion.div>
 
-      <motion.div variants={fadeUp} className="rounded-xl glass-elevated p-5">
+      <motion.div variants={fadeUp} className="rounded-xl surface-raised p-5">
         <div className="flex items-center gap-2 mb-4">
           <Trophy size={14} className="text-amber-400" />
           <h3 className="font-bold text-white text-sm">Level Progress</h3>
@@ -66,7 +66,7 @@ export function OverviewTab({ profile }: Props) {
         </div>
       </motion.div>
 
-      <motion.div variants={fadeUp} className="rounded-xl glass-elevated p-5">
+      <motion.div variants={fadeUp} className="rounded-xl surface-raised p-5">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <TrendingUp size={14} className="text-violet-400" />
@@ -81,7 +81,7 @@ export function OverviewTab({ profile }: Props) {
         )}
       </motion.div>
 
-      <motion.div variants={fadeUp} className="rounded-xl glass-elevated p-5">
+      <motion.div variants={fadeUp} className="rounded-xl surface-raised p-5">
         <div className="flex items-center gap-2 mb-4">
           <Target size={14} className="text-emerald-400" />
           <h3 className="font-bold text-white text-sm">Core Skills</h3>

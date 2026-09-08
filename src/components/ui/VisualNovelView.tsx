@@ -179,7 +179,7 @@ export const VisualNovelView: React.FC<VisualNovelViewProps> = ({
               onClick={() => setMobileSheetOpen(false)}
             />
             <motion.div
-              className="lg:hidden fixed bottom-0 left-0 right-0 z-[95] glass-elevated rounded-t-2xl p-5 pb-8 max-h-[70vh] overflow-y-auto"
+              className="lg:hidden fixed bottom-0 left-0 right-0 z-[95] surface-raised rounded-t-2xl p-5 pb-8 max-h-[70vh] overflow-y-auto"
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}

@@ -239,7 +239,7 @@ export function AccentAnalyzer() {
         <div className="flex items-center justify-between">
           <button
             onClick={() => navigate(-1)}
-            className="w-10 h-10 rounded-xl glass flex items-center justify-center text-ink-muted hover:text-white transition-colors"
+            className="w-10 h-10 rounded-xl surface flex items-center justify-center text-ink-muted hover:text-white transition-colors"
           >
             <ArrowLeft size={20} />
           </button>
@@ -326,7 +326,7 @@ export function AccentAnalyzer() {
 
           {/* Analysis Area */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="glass rounded-3xl p-8 flex flex-col items-center text-center space-y-6 relative overflow-hidden">
+            <div className="surface rounded-3xl p-8 flex flex-col items-center text-center space-y-6 relative overflow-hidden">
               <div className="absolute top-0 right-0 p-4 opacity-10">
                 <Target size={120} className="text-cyan-500" />
               </div>
@@ -554,7 +554,7 @@ export function AccentAnalyzer() {
 
             {/* Real stats — no fabricated numbers */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="glass rounded-2xl p-4 flex items-center gap-4">
+              <div className="surface rounded-2xl p-4 flex items-center gap-4">
                 <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400">
                   <Crown size={20} />
                 </div>
@@ -563,7 +563,7 @@ export function AccentAnalyzer() {
                   <p className="text-lg font-black text-white">{masteredCount} / {PRONUNCIATION_DRILLS.length}</p>
                 </div>
               </div>
-              <div className="glass rounded-2xl p-4 flex items-center gap-4">
+              <div className="surface rounded-2xl p-4 flex items-center gap-4">
                 <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center text-violet-400">
                   <Trophy size={20} />
                 </div>
@@ -576,7 +576,7 @@ export function AccentAnalyzer() {
 
             {/* History strip — segmented by (assessorVersion, provider), plan §13/§16 */}
             {historySegments.length > 0 && (
-              <div className="glass rounded-2xl p-4 space-y-3">
+              <div className="surface rounded-2xl p-4 space-y-3">
                 <h3 className="text-[10px] font-bold text-ink-muted uppercase tracking-widest">Recent History</h3>
                 <div className="space-y-3">
                   {historySegments.slice(-3).map((segment, segIdx) => (

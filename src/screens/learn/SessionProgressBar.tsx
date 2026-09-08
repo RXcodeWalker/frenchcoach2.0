@@ -66,7 +66,7 @@ export function SessionProgressBar({ session, topicLabel, topicIcon, selectedEng
 
           <button
             onClick={onEndSession}
-            className="p-1.5 rounded-lg glass-subtle text-ink-subtle hover:text-white hover:bg-white/5 transition-colors"
+            className="p-1.5 rounded-lg surface-recessed text-ink-subtle hover:text-white hover:bg-white/5 transition-colors"
             title="End session early"
           >
             <X size={12} />

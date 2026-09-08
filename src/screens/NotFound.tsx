@@ -19,13 +19,13 @@ export function NotFound() {
           </a>
           <a
             href="/igcse-french-speaking"
-            className="px-6 py-3 glass border-white/10 rounded-xl font-bold hover:text-violet-400 transition-colors"
+            className="px-6 py-3 surface border-white/10 rounded-xl font-bold hover:text-violet-400 transition-colors"
           >
             IGCSE Speaking exam guide
           </a>
           <a
             href="/french-roleplay-practice"
-            className="px-6 py-3 glass border-white/10 rounded-xl font-bold hover:text-violet-400 transition-colors"
+            className="px-6 py-3 surface border-white/10 rounded-xl font-bold hover:text-violet-400 transition-colors"
           >
             Roleplay practice
           </a>

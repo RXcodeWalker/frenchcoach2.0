@@ -58,7 +58,7 @@ export function TranscriptReview({ transcript, onConfirm, onExit }: Props) {
 
         <div className="space-y-3">
           {candidateUtterances.map((u, i) => (
-            <div key={u.utteranceId} className="rounded-xl glass p-4">
+            <div key={u.utteranceId} className="rounded-xl surface p-4">
               <p className="text-[9px] text-ink-subtle uppercase tracking-wider mb-1.5">
                 {u.part} · Answer {i + 1}
               </p>

@@ -47,7 +47,7 @@ export function LevelUpCelebration({ newLevel, onDismiss }: LevelUpProps) {
       <div className="absolute inset-0 bg-navy/80 backdrop-blur-xl" onClick={onDismiss} />
       
       <motion.div 
-        className="relative z-10 w-full max-w-sm glass-elevated border-violet-electric/30 p-8 text-center"
+        className="relative z-10 w-full max-w-sm surface-raised border-violet-electric/30 p-8 text-center"
         initial={{ scale: 0.8, y: 20, opacity: 0 }}
         animate={{ scale: 1, y: 0, opacity: 1 }}
         transition={{ type: 'spring', damping: 15, stiffness: 200 }}
@@ -144,7 +144,7 @@ export function AchievementUnlocked({ name, icon, description, xpReward, onDismi
       exit={{ x: 400, opacity: 0 }}
       transition={{ type: 'spring', damping: 20, stiffness: 100 }}
     >
-      <div className="glass-elevated border-amber-500/30 p-5 flex gap-4 items-center">
+      <div className="surface-raised border-amber-500/30 p-5 flex gap-4 items-center">
         <div className="flex-shrink-0 w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-3xl">
           {icon}
         </div>

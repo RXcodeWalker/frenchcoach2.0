@@ -262,7 +262,7 @@ export function RapidFire() {
     return (
       <div className="min-h-[80vh] flex flex-col items-center justify-center p-6">
         <motion.div 
-          className="max-w-md w-full glass-elevated p-8 text-center space-y-6"
+          className="max-w-md w-full surface-raised p-8 text-center space-y-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
@@ -338,13 +338,13 @@ export function RapidFire() {
       <div className="max-w-2xl mx-auto px-4 pt-12">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className={`glass-elevated px-4 py-2 rounded-xl flex items-center gap-2 transition-all duration-500 relative ${getOverdriveClasses(isOverdrive)}`}>
+            <div className={`surface-raised px-4 py-2 rounded-xl flex items-center gap-2 transition-all duration-500 relative ${getOverdriveClasses(isOverdrive)}`}>
               <Zap size={16} className={`text-amber-400 ${isOverdrive ? 'animate-pulse' : ''}`} />
               <span className="text-xl font-black text-white tabular-nums">{score}</span>
               <FloatingXPOverlay items={floatingXPs} />
             </div>
 
-            <div className="glass-elevated px-4 py-2 rounded-xl flex items-center gap-1.5 border-red-500/20">
+            <div className="surface-raised px-4 py-2 rounded-xl flex items-center gap-1.5 border-red-500/20">
               {[...Array(3)].map((_, i) => (
                 <Heart 
                   key={i} 
@@ -357,7 +357,7 @@ export function RapidFire() {
 
           <div className="flex items-center gap-3">
             <StreakBadge streak={streak} isOverdrive={isOverdrive} />
-            <div className={`glass-elevated px-4 py-2 rounded-xl flex items-center gap-2 transition-colors ${timer.isCritical ? 'border-red-500 animate-pulse text-red-400' : 'border-blue-500/20 text-blue-400'}`}>
+            <div className={`surface-raised px-4 py-2 rounded-xl flex items-center gap-2 transition-colors ${timer.isCritical ? 'border-red-500 animate-pulse text-red-400' : 'border-blue-500/20 text-blue-400'}`}>
               <Timer size={16} />
               <span className="text-xl font-black tabular-nums">{timer.timeLeft}s</span>
             </div>
@@ -374,7 +374,7 @@ export function RapidFire() {
         />
 
         <motion.div 
-          className={`glass-elevated p-8 rounded-2xl relative overflow-hidden transition-all duration-500 ${getOverdriveCardClasses(isOverdrive)}`}
+          className={`surface-raised p-8 rounded-2xl relative overflow-hidden transition-all duration-500 ${getOverdriveCardClasses(isOverdrive)}`}
           animate={isShaking ? shakeAnimation : { x: 0 }}
           transition={shakeTransition}
           layout
@@ -453,7 +453,7 @@ export function RapidFire() {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: idx * 0.05 }}
-                className={`glass-elevated p-4 rounded-xl border-l-4 ${item.isCorrect ? 'border-l-emerald-500' : 'border-l-red-500'}`}
+                className={`surface-raised p-4 rounded-xl border-l-4 ${item.isCorrect ? 'border-l-emerald-500' : 'border-l-red-500'}`}
               >
                 <div className="flex justify-between items-start gap-4">
                   <div>

@@ -100,7 +100,7 @@ export function Explore() {
                               navigate(path + search);
                             }
                           }}
-                          className={`group relative overflow-hidden rounded-xl glass p-4 text-left transition-all duration-300 ${
+                          className={`group relative overflow-hidden rounded-xl surface p-4 text-left transition-all duration-300 ${
                             feature.locked ? 'opacity-40 cursor-not-allowed' : 'hover:border-white/10 cursor-pointer'
                           }`}
                           whileHover={feature.locked ? {} : { scale: 1.02, y: -2 }}

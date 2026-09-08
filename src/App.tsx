@@ -118,7 +118,7 @@ function XPToast() {
           exit={{ opacity: 0, y: 10 }}
           transition={{ type: 'spring', stiffness: 100, damping: 20 }}
         >
-          <div className="flex items-center gap-3 glass-elevated border-emerald-500/20 rounded-xl px-4 py-2.5 shadow-2xl">
+          <div className="flex items-center gap-3 surface-raised border-emerald-500/20 rounded-xl px-4 py-2.5 shadow-2xl">
             <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
               <Zap size={14} className="text-emerald-400 fill-emerald-400/20" />
             </div>

@@ -28,7 +28,7 @@ export function AboutContent() {
   return (
     <div className="space-y-12 pb-24 md:pb-12">
       {/* Hero Section */}
-      <div className="glass-elevated rounded-3xl p-8 md:p-12 relative overflow-hidden group">
+      <div className="surface-raised rounded-3xl p-8 md:p-12 relative overflow-hidden group">
         <div className="relative z-10 max-w-3xl">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-12 h-12 rounded-2xl bg-violet-electric/20 flex items-center justify-center">
@@ -73,7 +73,7 @@ export function AboutContent() {
 
       {/* The Problem Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="glass border-white/5 rounded-3xl p-8">
+        <div className="surface border-white/5 rounded-3xl p-8">
           <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center mb-6">
             <Target size={20} className="text-orange-400" />
           </div>
@@ -88,7 +88,7 @@ export function AboutContent() {
           </div>
         </div>
 
-        <div className="glass border-white/5 rounded-3xl p-8">
+        <div className="surface border-white/5 rounded-3xl p-8">
           <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center mb-6">
             <Rocket size={20} className="text-blue-400" />
           </div>
@@ -105,7 +105,7 @@ export function AboutContent() {
       </div>
 
       {/* Tech Section */}
-      <div className="glass-elevated rounded-3xl p-8 border-violet-500/10">
+      <div className="surface-raised rounded-3xl p-8 border-violet-500/10">
         <h3 className="text-2xl font-bold text-white mb-8 text-center">The Technology Behind the Coach</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {techItems.map((item, i) => (
@@ -121,7 +121,7 @@ export function AboutContent() {
       </div>
 
       {/* Founder Section */}
-      <div className="glass border-white/5 rounded-3xl p-8 flex flex-col md:flex-row items-center gap-8">
+      <div className="surface border-white/5 rounded-3xl p-8 flex flex-col md:flex-row items-center gap-8">
         <div className="w-24 h-24 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center text-4xl shrink-0">
           👨‍💻
         </div>

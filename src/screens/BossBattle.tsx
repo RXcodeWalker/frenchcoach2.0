@@ -424,7 +424,7 @@ export function BossBattle() {
             <motion.button
               key={boss.id}
               onClick={() => startBattle(boss)}
-              className="glass-elevated p-8 text-center group hover:border-white/20 transition-all relative overflow-hidden"
+              className="surface-raised p-8 text-center group hover:border-white/20 transition-all relative overflow-hidden"
               whileHover={{ y: -5 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -776,7 +776,7 @@ export function BossBattle() {
 
               {/* Input Area */}
               <motion.div 
-                className={`glass-elevated p-10 rounded-3xl mb-8 relative overflow-hidden border-2 transition-all duration-300 ${
+                className={`surface-raised p-10 rounded-3xl mb-8 relative overflow-hidden border-2 transition-all duration-300 ${
                   isStunned ? 'border-amber-500/50 bg-amber-500/5' :
                   inputFeedback === 'correct' ? 'border-emerald-500 shadow-[0_0_30px_rgba(16,185,129,0.2)] bg-emerald-500/5' :
                   inputFeedback === 'incorrect' ? 'border-red-500 shadow-[0_0_30px_rgba(239,68,68,0.2)] bg-red-500/5' :
@@ -903,7 +903,7 @@ export function BossBattle() {
     return (
       <div className="min-h-[80vh] flex flex-col items-center justify-center p-6">
         <motion.div 
-          className="max-w-md w-full glass-elevated p-8 text-center space-y-6"
+          className="max-w-md w-full surface-raised p-8 text-center space-y-6"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
         >

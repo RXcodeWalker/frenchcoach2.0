@@ -1090,7 +1090,7 @@ export function Learn() {
             transition={{ duration: 0.2 }}
             className="fixed top-16 right-4 z-50 max-w-xs w-full"
           >
-            <div className="rounded-2xl glass-elevated border border-red-400/20 p-4 shadow-xl">
+            <div className="rounded-2xl surface-raised border border-red-400/20 p-4 shadow-xl">
               <div className="flex items-start gap-3">
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-bold text-red-300">Feedback unavailable</p>
@@ -1208,7 +1208,7 @@ export function Learn() {
                 <motion.div
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="rounded-xl glass-elevated p-5 space-y-4"
+                  className="rounded-xl surface-raised p-5 space-y-4"
                 >
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-widest text-ink-muted mb-1.5">
@@ -1243,7 +1243,7 @@ export function Learn() {
                 <motion.div
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="p-4 rounded-2xl glass-elevated border-rose-500/25 space-y-3"
+                  className="p-4 rounded-2xl surface-raised border-rose-500/25 space-y-3"
                 >
                   <p className="text-sm text-white font-semibold leading-snug">
                     {activeProblem?.isRecurring

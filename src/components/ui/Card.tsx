@@ -7,9 +7,9 @@ interface Props {
 }
 
 const variantClass = {
-  subtle: 'glass-subtle',
-  default: 'glass',
-  elevated: 'glass-elevated',
+  subtle: 'surface-recessed',
+  default: 'surface',
+  elevated: 'surface-raised',
 };
 
 export function Card({ variant = 'default', className = '', children }: Props) {

@@ -21,7 +21,7 @@ export function TimelineItem({ session, isExpanded, onToggle }: Props) {
   return (
     <motion.div
       layout
-      className={`glass-elevated p-4 rounded-2xl border-white/5 group hover:border-violet-500/30 transition-all cursor-pointer relative overflow-hidden perspective-1000`}
+      className={`surface-raised p-4 rounded-2xl border-white/5 group hover:border-violet-500/30 transition-all cursor-pointer relative overflow-hidden perspective-1000`}
       onClick={onToggle}
       whileHover={{ 
         rotateX: 2, 

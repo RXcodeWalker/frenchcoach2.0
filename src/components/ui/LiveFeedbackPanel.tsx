@@ -22,7 +22,7 @@ interface Props {
 export function LiveFeedbackPanel({ entries, canRedo, redosLeft, onRedo }: Props) {
   if (entries.length === 0) {
     return (
-      <div className="glass-elevated rounded-3xl p-6 border-white/5 bg-navy/40 backdrop-blur-md">
+      <div className="surface-raised rounded-3xl p-6 border-white/5 bg-navy/40 backdrop-blur-md">
         <p className="text-[10px] font-bold text-ink-subtle uppercase tracking-widest text-center">
           Coaching notes will appear here after your first answer
         </p>
@@ -66,7 +66,7 @@ function LiveFeedbackEntry({
 }) {
   if (entry.status === 'pending' || !entry.feedback) {
     return (
-      <div className="rounded-xl glass-elevated p-5 flex items-center gap-3">
+      <div className="rounded-xl surface-raised p-5 flex items-center gap-3">
         <Loader2 size={18} className="text-violet-400 animate-spin shrink-0" />
         <p className="text-xs text-ink-muted">AI evaluating…</p>
       </div>
@@ -78,7 +78,7 @@ function LiveFeedbackEntry({
   if (isUnscored(feedback)) {
     return (
       <div className="space-y-3">
-        <div className="rounded-xl glass-elevated p-5">
+        <div className="rounded-xl surface-raised p-5">
           <p className="text-sm text-ink-muted font-semibold">Practiced offline — not graded</p>
           <p className="text-[11px] text-ink-muted mt-1 leading-snug">
             No AI grader was reachable for this attempt, so no score was assigned.
@@ -97,7 +97,7 @@ function LiveFeedbackEntry({
       <BiggestOpportunityCard opportunity={feedback.biggest_opportunity} />
 
       {suggestion && (
-        <div className="rounded-xl glass p-4">
+        <div className="rounded-xl surface p-4">
           <p className="text-[9px] font-bold text-ink-subtle uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
             <MessageCircleQuestion size={11} /> You could have said…
           </p>
@@ -106,7 +106,7 @@ function LiveFeedbackEntry({
       )}
 
       {feedback.grammar.critical.length > 0 && (
-        <div className="rounded-xl glass p-4">
+        <div className="rounded-xl surface p-4">
           <p className="text-[9px] font-bold text-ink-subtle uppercase tracking-wider mb-2.5">Corrections</p>
           {feedback.grammar.critical.map((err, i) => (
             <div key={i} className="flex items-start gap-2 p-2.5 rounded-lg bg-red-500/5 border border-red-500/10 mb-1.5">
@@ -122,10 +122,10 @@ function LiveFeedbackEntry({
       )}
 
       {feedback.vocabulary.length > 0 && (
-        <div className="rounded-xl glass p-4">
+        <div className="rounded-xl surface p-4">
           <p className="text-[9px] font-bold text-ink-subtle uppercase tracking-wider mb-2.5">Vocabulary Upgrades</p>
           {feedback.vocabulary.map((v, i) => (
-            <div key={i} className="flex items-center gap-2 p-2 rounded-lg glass-subtle mb-1">
+            <div key={i} className="flex items-center gap-2 p-2 rounded-lg surface-recessed mb-1">
               <span className="text-[10px] text-ink-subtle line-through">{v.basic}</span>
               <ChevronRight size={9} className="text-ink-subtle" />
               <span className="text-[10px] text-emerald-400 font-medium">{v.upgrade}</span>
@@ -135,10 +135,10 @@ function LiveFeedbackEntry({
       )}
 
       {feedback.style.length > 0 && (
-        <div className="rounded-xl glass p-4">
+        <div className="rounded-xl surface p-4">
           <p className="text-[9px] font-bold text-ink-subtle uppercase tracking-wider mb-2.5">Style Tips</p>
           {feedback.style.map((s, i) => (
-            <div key={i} className="flex items-start gap-2 p-2.5 rounded-lg glass-subtle mb-1">
+            <div key={i} className="flex items-start gap-2 p-2.5 rounded-lg surface-recessed mb-1">
               <span className="text-[10px] font-semibold text-violet-300">{s.label}</span>
               <span className="text-[10px] text-ink-muted">{s.suggestion}</span>
             </div>
@@ -155,7 +155,7 @@ function RedoButton({ onRedo, redosLeft }: { onRedo: () => void; redosLeft: numb
   return (
     <motion.button
       onClick={onRedo}
-      className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl glass-subtle text-white font-semibold text-xs"
+      className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl surface-recessed text-white font-semibold text-xs"
       whileTap={{ scale: 0.97 }}
     >
       <RotateCcw size={12} /> Redo ({redosLeft} left)

@@ -127,7 +127,7 @@ export function SessionSummary({
       <div className="absolute inset-0 bg-navy/90 backdrop-blur-2xl" />
 
       <motion.div
-        className="relative z-10 w-full max-w-xl glass-elevated border-white/10 overflow-hidden my-auto"
+        className="relative z-10 w-full max-w-xl surface-raised border-white/10 overflow-hidden my-auto"
         initial={{ scale: 0.9, opacity: 0, y: 30 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         transition={{ type: 'spring', damping: 20, stiffness: 150 }}
@@ -166,7 +166,7 @@ export function SessionSummary({
 
           {/* Words spoken */}
           {totalWords > 0 && (
-            <div className="flex items-center gap-3 p-3 rounded-xl glass-subtle">
+            <div className="flex items-center gap-3 p-3 rounded-xl surface-recessed">
               <MessageSquare size={14} className="text-violet-400 flex-shrink-0" />
               <span className="text-sm text-ink-muted">
                 <span className="font-bold text-white">{totalWords}</span> words spoken this session
@@ -251,7 +251,7 @@ export function SessionSummary({
 
           {/* Saved vocab */}
           {allSavedVocab.length > 0 && (
-            <div className="p-3 rounded-xl glass-subtle space-y-1">
+            <div className="p-3 rounded-xl surface-recessed space-y-1">
               <p className="text-[10px] font-bold text-ink-subtle uppercase tracking-wide">Saved vocabulary ({allSavedVocab.length})</p>
               <p className="text-sm text-ink-muted">{allSavedVocab.join(' · ')}</p>
             </div>
@@ -284,7 +284,7 @@ export function SessionSummary({
             <div className="flex gap-2">
               <motion.button
                 onClick={onNewTopic}
-                className="flex-1 py-3 rounded-2xl glass-subtle text-white font-semibold text-sm flex items-center justify-center gap-2"
+                className="flex-1 py-3 rounded-2xl surface-recessed text-white font-semibold text-sm flex items-center justify-center gap-2"
                 whileTap={{ scale: 0.97 }}
               >
                 <RotateCcw size={14} /> New topic
@@ -306,7 +306,7 @@ export function SessionSummary({
 
 function StatTile({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
-    <div className="p-3 rounded-xl glass-subtle text-center space-y-1">
+    <div className="p-3 rounded-xl surface-recessed text-center space-y-1">
       <div className="flex justify-center">{icon}</div>
       <p className="text-[10px] font-bold text-ink-muted leading-tight">{label}</p>
     </div>

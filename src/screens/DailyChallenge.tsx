@@ -199,7 +199,7 @@ export function DailyChallenge() {
               leaderboard.map((row, i) => (
                 <div
                   key={row.userId}
-                  className={`flex items-center gap-3 p-3 rounded-xl ${row.userId === authUserId ? 'bg-violet-electric/10 border border-violet-electric/30' : 'glass'}`}
+                  className={`flex items-center gap-3 p-3 rounded-xl ${row.userId === authUserId ? 'bg-violet-electric/10 border border-violet-electric/30' : 'surface'}`}
                 >
                   <span className="w-5 text-center text-xs font-black text-ink-subtle">{i + 1}</span>
                   <span className="text-lg">{row.avatarEmoji ?? '🙂'}</span>
@@ -216,7 +216,7 @@ export function DailyChallenge() {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl p-6 glass-elevated space-y-4"
+          className="rounded-2xl p-6 surface-raised space-y-4"
         >
           <div>
             <h3 className="text-sm font-bold text-white">{authoredSet.content.rolePlay.title}</h3>

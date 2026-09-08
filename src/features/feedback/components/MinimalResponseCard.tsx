@@ -17,7 +17,7 @@ function Tier0Card({ onRetry, onComplete, modelAnswer }: { onRetry: () => void; 
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-xl glass-elevated p-6 space-y-5"
+      className="rounded-xl surface-raised p-6 space-y-5"
     >
       <div className="flex flex-col items-center text-center space-y-3 py-2">
         <div className="w-12 h-12 rounded-full bg-slate-700/60 flex items-center justify-center">
@@ -46,7 +46,7 @@ function Tier1Card({ feedback, transcript, onRetry, onComplete, modelAnswer }: P
       className="space-y-3"
     >
       {/* Minimal response banner */}
-      <div className="rounded-xl glass-elevated p-4 border border-amber-500/20">
+      <div className="rounded-xl surface-raised p-4 border border-amber-500/20">
         <div className="flex items-start gap-3">
           <div className="w-8 h-8 rounded-lg bg-amber-500/15 flex items-center justify-center shrink-0 mt-0.5">
             <GraduationCap size={14} className="text-amber-400" />
@@ -61,14 +61,14 @@ function Tier1Card({ feedback, transcript, onRetry, onComplete, modelAnswer }: P
       </div>
 
       {/* What you said */}
-      <div className="rounded-xl glass-elevated p-4">
+      <div className="rounded-xl surface-raised p-4">
         <p className="text-[9px] text-ink-muted uppercase tracking-wider font-bold mb-2">Your answer</p>
         <p className="text-base text-slate-100 font-mono font-semibold">"{transcript.trim()}"</p>
       </div>
 
       {/* Teacher → Examiner → Coach pipeline */}
       {layer && (
-        <div className="rounded-xl glass-elevated p-4 space-y-3.5">
+        <div className="rounded-xl surface-raised p-4 space-y-3.5">
           <p className="text-[9px] text-ink-muted uppercase tracking-wider font-bold">Coaching feedback</p>
 
           <div className="flex items-start gap-2.5">
@@ -108,7 +108,7 @@ function Tier1Card({ feedback, transcript, onRetry, onComplete, modelAnswer }: P
 
       {/* Examiner insight */}
       {feedback.examiner?.examinerInsight && (
-        <div className="rounded-xl glass-elevated p-3.5 border border-amber-500/15">
+        <div className="rounded-xl surface-raised p-3.5 border border-amber-500/15">
           <p className="text-[9px] text-amber-400/70 uppercase tracking-wide font-bold mb-1">Key improvement</p>
           <p className="text-[10px] text-amber-200 leading-relaxed">{feedback.examiner.examinerInsight}</p>
         </div>

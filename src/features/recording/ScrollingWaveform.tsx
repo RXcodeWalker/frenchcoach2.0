@@ -18,7 +18,7 @@ const BASELINE_H = 1.5;
 const CAPACITY = 512; // comfortably more bars than any panel width / SLOT
 const CATCHUP_LIMIT_MS = 1000; // beyond this (backgrounded tab) we snap instead of catching up
 
-const BASELINE_COLOR = 'rgba(148,163,184,0.45)'; // readable on both the navy shell and light-mode glass
+const BASELINE_COLOR = 'rgba(148,163,184,0.45)'; // readable on both the navy shell and light-mode surface
 
 export function ScrollingWaveform({ isRecording, source }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);

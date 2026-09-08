@@ -16,7 +16,7 @@ export function HeroMission({ todayCount, onLearn, onExam }: Props) {
 
   return (
     <motion.div variants={fadeUp}>
-      <div className="relative overflow-hidden rounded-3xl glass-elevated border-violet-electric/20 p-8 md:p-10">
+      <div className="relative overflow-hidden rounded-3xl surface-raised border-violet-electric/20 p-8 md:p-10">
         <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 md:gap-12">
           {/* Progress Section */}
           <div className="relative shrink-0">

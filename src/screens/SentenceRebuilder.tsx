@@ -232,7 +232,7 @@ export function SentenceRebuilder() {
           <div className="flex items-center gap-4">
             <button 
               onClick={() => setMode(null)}
-              className="w-10 h-10 rounded-xl glass flex items-center justify-center text-ink-muted hover:text-white"
+              className="w-10 h-10 rounded-xl surface flex items-center justify-center text-ink-muted hover:text-white"
             >
               <ArrowLeft size={20} />
             </button>
@@ -279,7 +279,7 @@ export function SentenceRebuilder() {
         </motion.div>
 
         {/* Building Area */}
-        <div className="glass-elevated p-8 rounded-[2.5rem] border-white/5 bg-slate-950/40 relative mb-8 min-h-[160px]">
+        <div className="surface-raised p-8 rounded-[2.5rem] border-white/5 bg-slate-950/40 relative mb-8 min-h-[160px]">
           <AnimatePresence mode="wait">
             {showPeek ? (
               <motion.div 

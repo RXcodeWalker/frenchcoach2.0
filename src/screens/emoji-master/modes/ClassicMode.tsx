@@ -102,7 +102,7 @@ export function ClassicMode({ run, reverse = false, onQuit }: McqModeProps) {
         right={
           <>
             <StreakBadge streak={run.streak} isOverdrive={run.isOverdrive} />
-            <div className="glass-elevated px-3 py-1.5 rounded-full text-sm font-black text-white">
+            <div className="surface-raised px-3 py-1.5 rounded-full text-sm font-black text-white">
               {run.score}
             </div>
           </>
@@ -118,7 +118,7 @@ export function ClassicMode({ run, reverse = false, onQuit }: McqModeProps) {
             : { scale: 1, opacity: 1, x: 0 }
         }
         transition={shaking ? shakeTransition : { type: 'spring', damping: 14 }}
-        className={`glass-elevated p-8 rounded-3xl text-center relative ${getOverdriveCardClasses(run.isOverdrive)}`}
+        className={`surface-raised p-8 rounded-3xl text-center relative ${getOverdriveCardClasses(run.isOverdrive)}`}
       >
         <FloatingXPOverlay items={floatingXPs} />
         {reverse ? (
@@ -154,7 +154,7 @@ export function ClassicMode({ run, reverse = false, onQuit }: McqModeProps) {
               type="button"
               disabled={!!feedback}
               onClick={() => handleSelect(option)}
-              className={`glass-elevated p-5 rounded-2xl text-lg font-bold transition-all text-center relative ${status}`}
+              className={`surface-raised p-5 rounded-2xl text-lg font-bold transition-all text-center relative ${status}`}
               whileHover={!feedback ? { y: -2, scale: 1.02 } : {}}
               whileTap={!feedback ? { scale: 0.98 } : {}}
               initial={{ opacity: 0, y: 10 }}

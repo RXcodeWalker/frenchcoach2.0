@@ -42,7 +42,7 @@ export function ExamResults({ transcript, envelopeView, scoringError, onRetrySco
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
-        <div className="relative overflow-hidden rounded-2xl glass-elevated border-amber-500/15 p-8 text-center">
+        <div className="relative overflow-hidden rounded-2xl surface-raised border-amber-500/15 p-8 text-center">
           <div className="absolute inset-0 bg-gradient-to-b from-amber-500/3 to-transparent pointer-events-none" />
           <div className="relative">
             <motion.div
@@ -79,7 +79,7 @@ export function ExamResults({ transcript, envelopeView, scoringError, onRetrySco
         </div>
 
         {scoringError && (
-          <div className="rounded-xl glass p-5 border border-red-500/20 space-y-3">
+          <div className="rounded-xl surface p-5 border border-red-500/20 space-y-3">
             <div className="flex items-start gap-2">
               <AlertTriangle size={16} className="text-red-400 flex-shrink-0 mt-0.5" />
               <div>
@@ -98,7 +98,7 @@ export function ExamResults({ transcript, envelopeView, scoringError, onRetrySco
         )}
 
         {envelopeView && (
-          <div className="rounded-xl glass p-5 space-y-4">
+          <div className="rounded-xl surface p-5 space-y-4">
             <div>
               <h3 className="font-bold text-ink-muted text-[10px] uppercase tracking-wider mb-1">Marks — Unvalidated Estimate</h3>
               <p className="text-[10px] text-ink-muted leading-relaxed">
@@ -141,7 +141,7 @@ export function ExamResults({ transcript, envelopeView, scoringError, onRetrySco
           </div>
         )}
 
-        <div className="rounded-xl glass p-5">
+        <div className="rounded-xl surface p-5">
           <button
             onClick={() => setTranscriptOpen((v) => !v)}
             className="w-full flex items-center justify-between"
@@ -181,14 +181,14 @@ export function ExamResults({ transcript, envelopeView, scoringError, onRetrySco
         {import.meta.env.DEV && (
           <button
             onClick={() => downloadConductLog(transcript.sessionId)}
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl glass-subtle text-ink-muted hover:text-white text-[11px] font-semibold transition-colors"
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl surface-recessed text-ink-muted hover:text-white text-[11px] font-semibold transition-colors"
           >
             <Download size={13} /> Download session log (JSON)
           </button>
         )}
 
         <div className="flex gap-2">
-          <motion.button onClick={onRetake} className="flex-1 py-3 rounded-xl glass-subtle text-white font-bold text-xs" whileTap={{ scale: 0.97 }}>New Mock Exam</motion.button>
+          <motion.button onClick={onRetake} className="flex-1 py-3 rounded-xl surface-recessed text-white font-bold text-xs" whileTap={{ scale: 0.97 }}>New Mock Exam</motion.button>
           <motion.button onClick={onHome} className="flex-1 btn-primary py-3 rounded-xl font-bold text-xs" whileTap={{ scale: 0.97 }}>Dashboard</motion.button>
         </div>
       </motion.div>

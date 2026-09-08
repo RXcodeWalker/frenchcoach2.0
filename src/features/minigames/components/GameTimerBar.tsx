@@ -37,7 +37,7 @@ export function GameTimerBar({
     <div className={className}>
       {showLabel && (
         <div
-          className={`glass-elevated px-4 py-2 rounded-xl flex items-center gap-2 transition-colors ${
+          className={`surface-raised px-4 py-2 rounded-xl flex items-center gap-2 transition-colors ${
             showBar ? 'mb-4' : ''
           } ${
             critical

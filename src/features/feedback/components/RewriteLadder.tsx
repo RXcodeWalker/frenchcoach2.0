@@ -30,7 +30,7 @@ interface Props {
 export function RewriteLadder({ levels, title }: Props) {
   if (levels.length === 0) return null;
   return (
-    <div className="rounded-xl glass-elevated p-4 space-y-2">
+    <div className="rounded-xl surface-raised p-4 space-y-2">
       <p className="text-[9px] text-ink-muted uppercase tracking-wider font-bold mb-3">{title}</p>
       <div className="space-y-2">
         {levels.map((lvl, i) => (

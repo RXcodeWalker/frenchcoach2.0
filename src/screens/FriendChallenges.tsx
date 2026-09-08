@@ -467,7 +467,7 @@ function DuelCard({ duel, myUserId, onOpen, onRespond, onViewDetail }: {
 
   return (
     <motion.div
-      className="glass-elevated p-6 rounded-2xl border-white/5 relative overflow-hidden group"
+      className="surface-raised p-6 rounded-2xl border-white/5 relative overflow-hidden group"
       whileHover={{ scale: 1.01 }}
     >
       <div className="flex flex-col md:flex-row gap-4 items-center relative z-10">
@@ -644,7 +644,7 @@ function ActivityFeedCard({ item }: { item: ActivityFeedItem }) {
   };
 
   return (
-    <div className="glass-elevated p-4 rounded-2xl border-white/5 flex items-start gap-4 hover:border-white/10 transition-colors group">
+    <div className="surface-raised p-4 rounded-2xl border-white/5 flex items-start gap-4 hover:border-white/10 transition-colors group">
       <div className="w-10 h-10 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full flex items-center justify-center border border-white/10 overflow-hidden flex-shrink-0">
         <span className="text-sm font-black text-white">{item.content[0]}</span>
       </div>
@@ -699,7 +699,7 @@ function FriendRow({ friend, onCompare, onAccept, onDecline, onCancel, onRemove 
   }
 
   return (
-    <div className="glass-elevated p-4 rounded-2xl border-white/5 flex items-center justify-between group">
+    <div className="surface-raised p-4 rounded-2xl border-white/5 flex items-center justify-between group">
       <div className="flex items-center gap-4">
         <div className="relative">
           <div className="w-12 h-12 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-full flex items-center justify-center border border-white/10 overflow-hidden text-lg">

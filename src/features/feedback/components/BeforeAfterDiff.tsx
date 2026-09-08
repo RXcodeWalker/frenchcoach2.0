@@ -75,7 +75,7 @@ export function BeforeAfterDiff({ transcript, improvedAnswer, changes, issues = 
   if (!improvedAnswer) {
     if (issues.length === 0) return null;
     return (
-      <motion.div variants={fadeUp} initial="hidden" animate="show" className="rounded-xl glass p-4">
+      <motion.div variants={fadeUp} initial="hidden" animate="show" className="rounded-xl surface p-4">
         <p className="text-[9px] font-bold text-ink-subtle uppercase tracking-wider mb-2.5">Safe Corrections</p>
         <SafeCorrectionsList issues={issues} />
       </motion.div>
@@ -88,7 +88,7 @@ export function BeforeAfterDiff({ transcript, improvedAnswer, changes, issues = 
   if (!hasChange) return null;
 
   return (
-    <motion.div variants={fadeUp} initial="hidden" animate="show" className="rounded-xl glass p-4">
+    <motion.div variants={fadeUp} initial="hidden" animate="show" className="rounded-xl surface p-4">
       <p className="text-[9px] font-bold text-ink-subtle uppercase tracking-wider mb-2.5">Before → After</p>
       <div className="space-y-2">
         <div className="p-3 rounded-lg bg-slate-700/30 border border-slate-600/20">

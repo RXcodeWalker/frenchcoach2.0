@@ -96,7 +96,7 @@ export function ReEvaluateBar({
                   key={engine}
                   onClick={() => !isReEvaluating && onReEvaluate(engine)}
                   disabled={isReEvaluating}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl glass-subtle text-[11px] font-semibold transition-all ${
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl surface-recessed text-[11px] font-semibold transition-all ${
                     isReEvaluating ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/5 text-ink-muted'
                   }`}
                   whileTap={isReEvaluating ? {} : { scale: 0.96 }}

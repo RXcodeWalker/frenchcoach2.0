@@ -56,7 +56,7 @@ export function QuestionCard({ question, showHint, onToggleHint, isReview, selec
     <AnimatePresence mode="wait">
       <motion.div
         key={question.id}
-        className="relative overflow-hidden rounded-2xl glass-elevated p-6 md:p-8 border-white/5"
+        className="relative overflow-hidden rounded-2xl surface-raised p-6 md:p-8 border-white/5"
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -12 }}
@@ -93,7 +93,7 @@ export function QuestionCard({ question, showHint, onToggleHint, isReview, selec
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={handleSpeak}
-              className={`w-10 h-10 rounded-xl glass border-white/10 flex items-center justify-center transition-colors ${isSpeaking ? 'text-violet-400 border-violet-400/30' : 'text-ink-muted hover:text-white'}`}
+              className={`w-10 h-10 rounded-xl surface border-white/10 flex items-center justify-center transition-colors ${isSpeaking ? 'text-violet-400 border-violet-400/30' : 'text-ink-muted hover:text-white'}`}
             >
               {isSpeaking ? <VolumeX size={18} /> : <Volume2 size={18} />}
             </motion.button>

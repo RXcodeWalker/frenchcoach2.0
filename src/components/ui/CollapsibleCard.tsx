@@ -27,7 +27,7 @@ export function CollapsibleCard({
   return (
     <motion.div
       variants={fadeUp}
-      className={`rounded-xl glass overflow-hidden transition-shadow duration-300 ${highlight ? 'ring-1 ring-violet-400/60' : ''} ${className}`}
+      className={`rounded-xl surface overflow-hidden transition-shadow duration-300 ${highlight ? 'ring-1 ring-violet-400/60' : ''} ${className}`}
     >
       <button
         aria-expanded={isOpen}

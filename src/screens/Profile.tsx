@@ -86,7 +86,7 @@ export function Profile() {
   return (
     <PageShell maxWidth="sm">
       {/* Profile Header */}
-      <motion.div variants={fadeUp} className="relative overflow-hidden rounded-2xl glass-elevated border-violet-electric/12 p-6">
+      <motion.div variants={fadeUp} className="relative overflow-hidden rounded-2xl surface-raised border-violet-electric/12 p-6">
         <div className="relative flex items-center gap-4">
           <motion.div whileHover={{ scale: 1.05 }}>
             <CosmeticPreview
@@ -137,7 +137,7 @@ export function Profile() {
           { icon: <TrendingUp size={13} className="text-emerald-400" />, value: '7.8', label: 'Avg' },
           { icon: <Trophy size={13} className="text-amber-400" />, value: unlockedCount, label: 'Unlocked' },
         ].map(s => (
-          <div key={s.label} className="rounded-lg glass p-2.5 text-center">
+          <div key={s.label} className="rounded-lg surface p-2.5 text-center">
             <div className="flex justify-center mb-1">{s.icon}</div>
             <p className="text-base font-black text-white">{s.value}</p>
             <p className="text-[8px] text-ink-subtle">{s.label}</p>
@@ -146,7 +146,7 @@ export function Profile() {
       </motion.div>
 
       {/* Achievements */}
-      <motion.div variants={fadeUp} className="rounded-xl glass p-4">
+      <motion.div variants={fadeUp} className="rounded-xl surface p-4">
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-bold text-white text-sm">Achievements</h3>
           <span className="text-[9px] text-ink-subtle">{unlockedCount}/{ACHIEVEMENTS.length}</span>
@@ -174,7 +174,7 @@ export function Profile() {
       </motion.div>
 
       {/* Username */}
-      <motion.div variants={fadeUp} className="rounded-xl glass p-4">
+      <motion.div variants={fadeUp} className="rounded-xl surface p-4">
         <h3 className="font-bold text-ink-subtle text-[10px] uppercase tracking-wider mb-2.5">Username</h3>
         {renaming ? (
           <form onSubmit={handleRename} className="space-y-2.5">
@@ -223,7 +223,7 @@ export function Profile() {
 
       {/* Social Privacy */}
       {privacy && (
-        <motion.div variants={fadeUp} className="rounded-xl glass p-4">
+        <motion.div variants={fadeUp} className="rounded-xl surface p-4">
           <h3 className="font-bold text-ink-subtle text-[10px] uppercase tracking-wider mb-2.5">Social Privacy</h3>
           <div className="space-y-0.5">
             <SettingToggle
@@ -274,7 +274,7 @@ export function Profile() {
       )}
 
       {/* Learning Goals */}
-      <motion.div variants={fadeUp} className="rounded-xl glass p-4">
+      <motion.div variants={fadeUp} className="rounded-xl surface p-4">
         <h3 className="font-bold text-ink-subtle text-[10px] uppercase tracking-wider mb-2.5">Learning Goals</h3>
         <button
           onClick={() => navigate('/onboarding?from=profile')}
@@ -290,7 +290,7 @@ export function Profile() {
       </motion.div>
 
       {/* Preferences */}
-      <motion.div variants={fadeUp} className="rounded-xl glass p-4">
+      <motion.div variants={fadeUp} className="rounded-xl surface p-4">
         <h3 className="font-bold text-ink-subtle text-[10px] uppercase tracking-wider mb-2.5">Preferences</h3>
         <div className="space-y-0.5">
           <SettingToggle icon={<Volume2 size={14} />} label="Sound Effects" description="Play sounds for answers" enabled={state.soundEnabled} onToggle={() => dispatch({ type: 'TOGGLE_SOUND' })} />
@@ -300,7 +300,7 @@ export function Profile() {
       </motion.div>
 
       {/* AI Feedback Mode */}
-      <motion.div variants={fadeUp} className="rounded-xl glass p-4">
+      <motion.div variants={fadeUp} className="rounded-xl surface p-4">
         <h3 className="font-bold text-ink-subtle text-[10px] uppercase tracking-wider mb-2.5">AI Feedback</h3>
         <div className="space-y-1">
           {[
@@ -325,9 +325,9 @@ export function Profile() {
       </motion.div>
 
       {/* Language */}
-      <motion.div variants={fadeUp} className="rounded-xl glass p-4">
+      <motion.div variants={fadeUp} className="rounded-xl surface p-4">
         <h3 className="font-bold text-ink-subtle text-[10px] uppercase tracking-wider mb-2.5">Language</h3>
-        <div className="flex items-center gap-3 p-2.5 rounded-lg glass-subtle">
+        <div className="flex items-center gap-3 p-2.5 rounded-lg surface-recessed">
           <Globe size={14} className="text-violet-400" />
           <div className="flex-1">
             <p className="text-[10px] font-semibold text-white">Speech Recognition</p>
@@ -338,7 +338,7 @@ export function Profile() {
       </motion.div>
 
       {/* Data */}
-      <motion.div variants={fadeUp} className="rounded-xl glass p-4">
+      <motion.div variants={fadeUp} className="rounded-xl surface p-4">
         <h3 className="font-bold text-ink-subtle text-[10px] uppercase tracking-wider mb-2.5">Data & Privacy</h3>
         <div className="space-y-0.5">
           <button className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-white/[0.02] transition-colors text-left">

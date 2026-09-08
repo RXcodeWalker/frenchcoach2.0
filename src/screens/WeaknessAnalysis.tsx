@@ -83,7 +83,7 @@ export function WeaknessAnalysis() {
         <div className="flex items-center gap-4">
           <button 
             onClick={() => navigate(-1)}
-            className="w-10 h-10 rounded-xl glass flex items-center justify-center text-ink-muted hover:text-white transition-colors"
+            className="w-10 h-10 rounded-xl surface flex items-center justify-center text-ink-muted hover:text-white transition-colors"
           >
             <ArrowLeft size={20} />
           </button>
@@ -106,7 +106,7 @@ export function WeaknessAnalysis() {
 
       {/* Overview Stats */}
       <motion.div variants={fadeUp} className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="glass-elevated p-6 rounded-3xl border-violet-500/10 relative overflow-hidden group">
+        <div className="surface-raised p-6 rounded-3xl border-violet-500/10 relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
             <Brain size={80} />
           </div>
@@ -118,14 +118,14 @@ export function WeaknessAnalysis() {
             </div>
           </div>
         </div>
-        <div className="glass-elevated p-6 rounded-3xl border-rose-500/10 relative overflow-hidden group">
+        <div className="surface-raised p-6 rounded-3xl border-rose-500/10 relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
             <AlertCircle size={80} />
           </div>
           <p className="text-[10px] font-bold text-ink-muted uppercase tracking-widest mb-1">Critical Issues</p>
           <p className="text-4xl font-black text-rose-500 italic tracking-tighter">{report.topWeaknesses?.length ?? 0}</p>
         </div>
-        <div className="glass-elevated p-6 rounded-3xl border-emerald-500/10 relative overflow-hidden group">
+        <div className="surface-raised p-6 rounded-3xl border-emerald-500/10 relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
             <CheckCircle2 size={80} />
           </div>
@@ -148,7 +148,7 @@ export function WeaknessAnalysis() {
             {report.topWeaknesses?.map(skill => (
               <div 
                 key={skill.id} 
-                className={`glass-elevated rounded-2xl border-l-4 border-l-rose-500 overflow-hidden transition-all duration-300 ${
+                className={`surface-raised rounded-2xl border-l-4 border-l-rose-500 overflow-hidden transition-all duration-300 ${
                   expandedSkillId === skill.id ? 'bg-white/[0.03] ring-1 ring-white/10' : 'hover:bg-white/[0.02]'
                 }`}
               >
@@ -257,7 +257,7 @@ export function WeaknessAnalysis() {
         {/* Action Center & Strengths */}
         <motion.div variants={fadeUp} className="space-y-8">
           {/* AI Recommendation */}
-          <div className="glass rounded-3xl p-6 bg-gradient-to-br from-violet-600/10 via-transparent to-transparent border-violet-500/20">
+          <div className="surface rounded-3xl p-6 bg-gradient-to-br from-violet-600/10 via-transparent to-transparent border-violet-500/20">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-8 h-8 rounded-lg bg-violet-500/20 flex items-center justify-center text-violet-400">
                 <Sparkles size={16} />
@@ -285,7 +285,7 @@ export function WeaknessAnalysis() {
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {report.topStrengths?.map(skill => (
-                <div key={skill.id} className="glass-elevated p-4 rounded-2xl border-emerald-500/10 group">
+                <div key={skill.id} className="surface-raised p-4 rounded-2xl border-emerald-500/10 group">
                   <div className="flex items-center gap-3 mb-2">
                     <span className="text-lg">{skill.icon}</span>
                     <h3 className="font-bold text-white text-xs">{skill.name}</h3>

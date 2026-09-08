@@ -258,7 +258,7 @@ export function WordDrop() {
         {/* Game Area */}
         <div 
           ref={containerRef}
-          className="flex-1 glass-elevated rounded-3xl relative overflow-hidden border-white/5 bg-slate-950/20"
+          className="flex-1 surface-raised rounded-3xl relative overflow-hidden border-white/5 bg-slate-950/20"
         >
           <AnimatePresence>
             {!isPlaying && !gameOver && (

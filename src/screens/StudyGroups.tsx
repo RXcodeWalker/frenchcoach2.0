@@ -53,7 +53,7 @@ export function StudyGroups() {
 
       {/* Global Stats */}
       <motion.div variants={fadeUp} className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="glass-elevated p-4 rounded-2xl border-emerald-500/20">
+        <div className="surface-raised p-4 rounded-2xl border-emerald-500/20">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 bg-emerald-500/10 rounded-lg">
               <Trophy size={18} className="text-emerald-400" />
@@ -62,7 +62,7 @@ export function StudyGroups() {
           </div>
           <p className="text-2xl font-black text-white">#12 <span className="text-xs font-normal text-ink-muted italic">global leaderboard</span></p>
         </div>
-        <div className="glass-elevated p-4 rounded-2xl border-blue-500/20">
+        <div className="surface-raised p-4 rounded-2xl border-blue-500/20">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 bg-blue-500/10 rounded-lg">
               <Zap size={18} className="text-blue-400" />
@@ -71,7 +71,7 @@ export function StudyGroups() {
           </div>
           <p className="text-2xl font-black text-white">4,400 <span className="text-xs font-normal text-ink-muted italic">combined effort</span></p>
         </div>
-        <div className="glass-elevated p-4 rounded-2xl border-amber-500/20">
+        <div className="surface-raised p-4 rounded-2xl border-amber-500/20">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 bg-amber-500/10 rounded-lg">
               <MessageSquare size={18} className="text-amber-400" />
@@ -166,7 +166,7 @@ function GroupCard({ group, isMember }: { group: StudyGroup; isMember: boolean }
 
   return (
     <motion.div
-      className="glass-elevated p-6 rounded-2xl border-white/5 relative overflow-hidden group"
+      className="surface-raised p-6 rounded-2xl border-white/5 relative overflow-hidden group"
       whileHover={{ scale: 1.01 }}
     >
       <div className="flex flex-col md:flex-row gap-6">

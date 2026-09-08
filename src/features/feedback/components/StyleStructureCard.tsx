@@ -33,7 +33,7 @@ export function StyleStructureCard({ feedback, polishIssues }: Props) {
       ) : (
         <div className="space-y-1.5">
           {legacyStyle.map((s, i) => (
-            <div key={i} className="flex items-start gap-2 p-2.5 rounded-lg glass-subtle">
+            <div key={i} className="flex items-start gap-2 p-2.5 rounded-lg surface-recessed">
               <span className="text-[10px] font-semibold text-violet-300 flex-shrink-0">{s.label}</span>
               <span className="text-[10px] text-ink-muted">{s.suggestion}</span>
             </div>

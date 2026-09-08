@@ -37,7 +37,7 @@ export function GameResultsCard({
   return (
     <div className={`min-h-[80vh] flex flex-col items-center justify-center p-6 ${className}`}>
       <motion.div
-        className={`max-w-md w-full glass-elevated p-8 text-center space-y-6 ${borderClassName}`}
+        className={`max-w-md w-full surface-raised p-8 text-center space-y-6 ${borderClassName}`}
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
       >

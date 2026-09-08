@@ -18,7 +18,7 @@ export function CoachingPopover({ issue, onClose }: Props) {
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 8, scale: 0.96 }}
         transition={{ duration: 0.18 }}
-        className="relative rounded-xl glass-elevated border border-slate-700/50 p-4 shadow-xl z-10"
+        className="relative rounded-xl surface-raised border border-slate-700/50 p-4 shadow-xl z-10"
       >
         <button
           onClick={onClose}

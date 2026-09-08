@@ -322,7 +322,7 @@ export function SurvivalMode() {
     return (
       <div className="min-h-[80vh] flex flex-col items-center justify-center p-6">
         <motion.div
-          className="max-w-md w-full glass-elevated p-8 text-center space-y-6 relative overflow-hidden"
+          className="max-w-md w-full surface-raised p-8 text-center space-y-6 relative overflow-hidden"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
@@ -442,7 +442,7 @@ export function SurvivalMode() {
         <div className="flex flex-col gap-6 mb-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className={`glass-elevated px-5 py-2.5 rounded-2xl flex items-center gap-3 transition-all duration-500 relative border-2 ${isOverdrive ? 'border-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.3)]' : 'border-white/5'}`}>
+              <div className={`surface-raised px-5 py-2.5 rounded-2xl flex items-center gap-3 transition-all duration-500 relative border-2 ${isOverdrive ? 'border-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.3)]' : 'border-white/5'}`}>
                 <Zap size={18} className={`text-orange-400 ${isOverdrive ? 'animate-pulse' : ''}`} />
                 <span className="text-2xl font-black text-white tabular-nums">{score}</span>
                 <FloatingXPOverlay items={floatingXPs} className="text-orange-400 text-2xl" animateY={-80} />
@@ -522,7 +522,7 @@ export function SurvivalMode() {
         </div>
 
         <div className="flex justify-center gap-4 mb-8">
-          <div className="glass-elevated px-4 py-2 rounded-2xl flex items-center gap-4 border-white/5">
+          <div className="surface-raised px-4 py-2 rounded-2xl flex items-center gap-4 border-white/5">
             <div className="flex flex-col items-center">
               <span className="text-[8px] font-black text-ink-muted uppercase mb-1">Energy</span>
               <div className="flex gap-1">
@@ -568,7 +568,7 @@ export function SurvivalMode() {
         </div>
 
         <motion.div
-          className={`glass-elevated p-10 rounded-[2.5rem] relative overflow-hidden transition-all duration-700 border-2 ${
+          className={`surface-raised p-10 rounded-[2.5rem] relative overflow-hidden transition-all duration-700 border-2 ${
             isOverdrive ? `border-orange-500 shadow-[0_0_50px_rgba(249,115,22,0.15)] bg-orange-500/[0.02] ${getOverdriveCardClasses(isOverdrive)}` :
             isDanger ? 'border-red-500/30 bg-red-500/[0.02]' :
             isTimeCritical ? 'border-red-500/40 bg-red-500/[0.01]' : 'border-white/10'

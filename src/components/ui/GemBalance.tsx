@@ -45,7 +45,7 @@ export function GemBalance({ balance, shake }: GemBalanceProps) {
   return (
     <motion.div
       animate={shake ? { x: [0, -6, 6, -4, 4, 0] } : {}}
-      className="flex items-center gap-2 px-4 py-2 rounded-xl glass border-emerald-500/20 bg-emerald-500/10"
+      className="flex items-center gap-2 px-4 py-2 rounded-xl surface border-emerald-500/20 bg-emerald-500/10"
     >
       <Gem size={16} className="text-emerald-400" />
       <span className="text-lg font-black text-white flex overflow-hidden">

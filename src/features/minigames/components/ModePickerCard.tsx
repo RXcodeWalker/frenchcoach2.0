@@ -32,7 +32,7 @@ export function ModePickerCard({
     <motion.button
       type="button"
       onClick={onClick}
-      className={`glass-elevated p-8 rounded-3xl text-left transition-all border border-white/10 group ${getModeCardClasses(color)}`}
+      className={`surface-raised p-8 rounded-3xl text-left transition-all border border-white/10 group ${getModeCardClasses(color)}`}
       whileHover={{ y: -4, scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
     >

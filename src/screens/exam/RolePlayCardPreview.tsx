@@ -24,11 +24,11 @@ export function RolePlayCardPreview({ scenario, onBegin }: Props) {
           Role Play Card &middot; Preparation
         </motion.div>
 
-        <div className="rounded-2xl glass-elevated p-6">
+        <div className="rounded-2xl surface-raised p-6">
           <h1 className="text-xl font-black text-white mb-4">{scenario.title}</h1>
 
           <motion.div
-            className="rounded-xl glass-subtle p-4"
+            className="rounded-xl surface-recessed p-4"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}

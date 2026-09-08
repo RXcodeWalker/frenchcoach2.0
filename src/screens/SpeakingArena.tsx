@@ -323,7 +323,7 @@ export function SpeakingArena() {
     return (
       <div className="min-h-[80vh] flex flex-col items-center justify-center p-6">
         <motion.div 
-          className="max-w-md w-full glass-elevated p-8 text-center space-y-6 border-red-500/20"
+          className="max-w-md w-full surface-raised p-8 text-center space-y-6 border-red-500/20"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
@@ -380,7 +380,7 @@ export function SpeakingArena() {
     return (
       <div className="min-h-[80vh] flex flex-col items-center justify-center p-6">
         <motion.div 
-          className="max-w-md w-full glass-elevated p-8 text-center space-y-6 border-red-500/20"
+          className="max-w-md w-full surface-raised p-8 text-center space-y-6 border-red-500/20"
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
         >
@@ -451,7 +451,7 @@ export function SpeakingArena() {
       <div className={`max-w-2xl mx-auto px-4 pt-12 transition-all duration-700 ${isOverdrive ? 'bg-red-900/5' : ''}`}>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-4">
-            <div className={`glass-elevated px-4 py-2 rounded-xl flex items-center gap-2 transition-all duration-500 relative ${isOverdrive ? 'border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.3)]' : 'border-red-500/20'}`}>
+            <div className={`surface-raised px-4 py-2 rounded-xl flex items-center gap-2 transition-all duration-500 relative ${isOverdrive ? 'border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.3)]' : 'border-red-500/20'}`}>
               <Zap size={16} className={`text-amber-400 ${isOverdrive ? 'animate-pulse' : ''}`} />
               <span className="text-xl font-black text-white">{state.score}</span>
               
@@ -486,7 +486,7 @@ export function SpeakingArena() {
             )}
           </div>
           
-          <div className={`glass-elevated px-4 py-2 rounded-xl flex items-center gap-2 transition-colors ${state.timeLeft < 10 ? 'border-red-500 animate-pulse text-red-400' : 'border-blue-500/20 text-blue-400'}`}>
+          <div className={`surface-raised px-4 py-2 rounded-xl flex items-center gap-2 transition-colors ${state.timeLeft < 10 ? 'border-red-500 animate-pulse text-red-400' : 'border-blue-500/20 text-blue-400'}`}>
             <Timer size={16} />
             <span className="text-xl font-black tabular-nums">{state.timeLeft}s</span>
           </div>
@@ -513,7 +513,7 @@ export function SpeakingArena() {
         </div>
 
         <motion.div 
-          className={`glass-elevated p-8 rounded-2xl relative overflow-hidden transition-all duration-500 ${isOverdrive ? 'border-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.2)]' : 'border-red-500/20'}`}
+          className={`surface-raised p-8 rounded-2xl relative overflow-hidden transition-all duration-500 ${isOverdrive ? 'border-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.2)]' : 'border-red-500/20'}`}
           animate={state.isShaking ? { x: [-4, 4, -4, 4, 0] } : { x: 0 }}
           transition={{ duration: 0.4 }}
           layout
@@ -617,7 +617,7 @@ export function SpeakingArena() {
                 key={pid}
                 onClick={() => consumePowerUp(pid)}
                 disabled={isUsed}
-                className={`w-14 h-14 rounded-2xl glass border flex flex-col items-center justify-center transition-all ${
+                className={`w-14 h-14 rounded-2xl surface border flex flex-col items-center justify-center transition-all ${
                   isUsed ? 'opacity-20 border-white/5 grayscale' : 'border-white/10 text-white hover:border-white/30 hover:scale-110 active:scale-95'
                 }`}
               >

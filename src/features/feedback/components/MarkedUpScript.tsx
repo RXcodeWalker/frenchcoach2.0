@@ -58,7 +58,7 @@ export function MarkedUpScript({ transcript, feedback, onIssueClick }: Props) {
   const markers = segments.filter(s => s.span);
 
   return (
-    <motion.div variants={fadeUp} initial="hidden" animate="show" className="rounded-xl glass p-4">
+    <motion.div variants={fadeUp} initial="hidden" animate="show" className="rounded-xl surface p-4">
       <p className="text-[9px] font-bold text-ink-subtle uppercase tracking-wider mb-2.5">Your Response — Marked Up</p>
 
       <div className="flex gap-2">

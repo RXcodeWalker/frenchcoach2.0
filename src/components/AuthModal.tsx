@@ -27,7 +27,7 @@ export function AuthModal({ onClose }: Props) {
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
         <motion.div
-          className="relative w-full max-w-sm glass border border-white/10 rounded-2xl p-6 shadow-2xl"
+          className="relative w-full max-w-sm surface border border-white/10 rounded-2xl p-6 shadow-2xl"
           initial={{ scale: 0.92, opacity: 0, y: 16 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.92, opacity: 0, y: 16 }}

@@ -50,7 +50,7 @@ export function PerformanceTimeline({ sessions }: Props) {
 
   if (sessions.length === 0) {
     return (
-      <motion.div variants={fadeUp} className="py-20 text-center glass-elevated rounded-2xl border-dashed border-white/10">
+      <motion.div variants={fadeUp} className="py-20 text-center surface-raised rounded-2xl border-dashed border-white/10">
         <Activity size={40} className="mx-auto text-ink-subtle mb-4" />
         <h3 className="text-white font-bold text-lg">No performance data yet</h3>
         <p className="text-ink-muted max-w-xs mx-auto mt-2 text-sm italic">
@@ -97,11 +97,11 @@ export function PerformanceTimeline({ sessions }: Props) {
 
       {/* Summary Stats */}
       <motion.div variants={fadeUp} className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="glass-subtle p-3 rounded-xl border border-white/5">
+        <div className="surface-recessed p-3 rounded-xl border border-white/5">
           <p className="text-[9px] font-bold text-ink-subtle uppercase mb-1">Total Sessions</p>
           <p className="text-xl font-black text-white">{sessions.length}</p>
         </div>
-        <div className="glass-subtle p-3 rounded-xl border border-white/5">
+        <div className="surface-recessed p-3 rounded-xl border border-white/5">
           <p className="text-[9px] font-bold text-ink-subtle uppercase mb-1">Average Score</p>
           <p className="text-xl font-black text-emerald-400">
             {(() => {
@@ -110,11 +110,11 @@ export function PerformanceTimeline({ sessions }: Props) {
             })()}
           </p>
         </div>
-        <div className="glass-subtle p-3 rounded-xl border border-white/5">
+        <div className="surface-recessed p-3 rounded-xl border border-white/5">
           <p className="text-[9px] font-bold text-ink-subtle uppercase mb-1">Best Streak</p>
           <p className="text-xl font-black text-orange-400">12 Days</p>
         </div>
-        <div className="glass-subtle p-3 rounded-xl border border-white/5">
+        <div className="surface-recessed p-3 rounded-xl border border-white/5">
           <p className="text-[9px] font-bold text-ink-subtle uppercase mb-1">XP Momentum</p>
           <p className="text-xl font-black text-violet-400">+12%</p>
         </div>
@@ -172,7 +172,7 @@ export function PerformanceTimeline({ sessions }: Props) {
               {/* Date Header */}
               <div className="flex items-center gap-4">
                 <div className="relative hidden md:block">
-                  <div className="w-10 h-10 rounded-full glass border-white/10 flex items-center justify-center relative z-10 overflow-hidden group">
+                  <div className="w-10 h-10 rounded-full surface border-white/10 flex items-center justify-center relative z-10 overflow-hidden group">
                     <motion.div 
                       className="absolute inset-0 bg-gradient-to-br from-violet-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity"
                     />

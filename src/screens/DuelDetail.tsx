@@ -174,7 +174,7 @@ export function DuelDetail() {
       </div>
 
       {view === 'pending-invite' && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl p-6 glass-elevated space-y-4 text-center">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl p-6 surface-raised space-y-4 text-center">
           <span className="text-3xl">{opponentAvatar}</span>
           <p className="text-sm font-bold text-white">{opponentName} challenged you to a duel</p>
           <div className="flex gap-3">
@@ -204,7 +204,7 @@ export function DuelDetail() {
       )}
 
       {view === 'ready-to-play' && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl p-6 glass-elevated space-y-4 text-center">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl p-6 surface-raised space-y-4 text-center">
           <p className="text-sm font-bold text-white">Ready when you are</p>
           <button
             onClick={() => void handleStart()}

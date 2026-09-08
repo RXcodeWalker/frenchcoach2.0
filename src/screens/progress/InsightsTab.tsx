@@ -16,7 +16,7 @@ export function InsightsTab() {
 
   if (!report.hasData) {
     return (
-      <motion.div variants={fadeUp} className="rounded-xl glass p-8 text-center">
+      <motion.div variants={fadeUp} className="rounded-xl surface p-8 text-center">
         <div className="w-12 h-12 rounded-full bg-navy-300 flex items-center justify-center mx-auto mb-3">
           <Target size={20} className="text-ink-subtle" />
         </div>
@@ -43,7 +43,7 @@ export function InsightsTab() {
             return (
               <motion.div 
                 key={w.id} 
-                className="rounded-xl glass-elevated border border-red-500/10 overflow-hidden"
+                className="rounded-xl surface-raised border border-red-500/10 overflow-hidden"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
               >
@@ -125,7 +125,7 @@ export function InsightsTab() {
             );
           })
         ) : (
-          <div className="rounded-xl glass p-5 text-center border border-dashed border-white/5">
+          <div className="rounded-xl surface p-5 text-center border border-dashed border-white/5">
             <p className="text-ink-muted text-[10px]">No major weaknesses detected yet. Keep it up!</p>
           </div>
         )}
@@ -142,7 +142,7 @@ export function InsightsTab() {
           {report.topStrengths?.map((s) => (
             <motion.div 
               key={s.id} 
-              className="rounded-xl glass border border-emerald-500/10 p-3 flex items-center gap-3"
+              className="rounded-xl surface border border-emerald-500/10 p-3 flex items-center gap-3"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
             >

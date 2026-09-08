@@ -382,7 +382,7 @@ export function StoryMode() {
             <motion.button
               key={story.id}
               onClick={() => selectStory(story)}
-              className="glass-elevated p-6 text-left group hover:border-emerald-500/30 transition-all relative overflow-hidden"
+              className="surface-raised p-6 text-left group hover:border-emerald-500/30 transition-all relative overflow-hidden"
               whileHover={{ scale: 1.02, y: -2 }}
               whileTap={{ scale: 0.98 }}
             >

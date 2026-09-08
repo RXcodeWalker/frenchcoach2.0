@@ -96,7 +96,7 @@ export function ExamSelect({ onSelect, onAutoFallback }: Props) {
               <motion.button
                 key={set.questionSetId}
                 onClick={() => onSelect(set)}
-                className="group relative overflow-hidden rounded-xl glass p-5 text-left hover:border-white/10 transition-all duration-300"
+                className="group relative overflow-hidden rounded-xl surface p-5 text-left hover:border-white/10 transition-all duration-300"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.05, duration: 0.4 }}
@@ -127,7 +127,7 @@ export function ExamSelect({ onSelect, onAutoFallback }: Props) {
 
         {remote.phase === 'loading' && (
           <motion.div
-            className="rounded-xl glass-subtle border-dashed border-white/8 p-4 flex items-center gap-3"
+            className="rounded-xl surface-recessed border-dashed border-white/8 p-4 flex items-center gap-3"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
           >
@@ -143,7 +143,7 @@ export function ExamSelect({ onSelect, onAutoFallback }: Props) {
         )}
 
         {remote.phase === 'offline-only' && (
-          <div className="rounded-xl glass-subtle border-dashed border-white/8 p-4 flex items-center justify-between gap-3">
+          <div className="rounded-xl surface-recessed border-dashed border-white/8 p-4 flex items-center justify-between gap-3">
             <div>
               <p className="text-xs font-bold text-white">Offline mode</p>
               <p className="text-[11px] text-ink-muted mt-0.5">
@@ -153,7 +153,7 @@ export function ExamSelect({ onSelect, onAutoFallback }: Props) {
             </div>
             <motion.button
               onClick={() => setRetryCount((n) => n + 1)}
-              className="flex-shrink-0 px-3 py-1.5 rounded-lg glass-subtle hover:bg-white/[0.04] text-white transition-all font-semibold text-[10px]"
+              className="flex-shrink-0 px-3 py-1.5 rounded-lg surface-recessed hover:bg-white/[0.04] text-white transition-all font-semibold text-[10px]"
               whileTap={{ scale: 0.95 }}
             >
               Try again
@@ -163,7 +163,7 @@ export function ExamSelect({ onSelect, onAutoFallback }: Props) {
 
         <motion.button
           onClick={onAutoFallback}
-          className="w-full group relative overflow-hidden rounded-xl glass-subtle border-dashed border-white/8 p-4 text-left hover:bg-white/[0.02] transition-all duration-300"
+          className="w-full group relative overflow-hidden rounded-xl surface-recessed border-dashed border-white/8 p-4 text-left hover:bg-white/[0.02] transition-all duration-300"
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.98 }}
         >

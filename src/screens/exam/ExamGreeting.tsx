@@ -26,7 +26,7 @@ export function ExamGreeting({ recording, greetingText, onContinue }: Props) {
           Not assessed
         </motion.div>
 
-        <div className="w-full rounded-xl glass-elevated p-5 mb-5 text-center">
+        <div className="w-full rounded-xl surface-raised p-5 mb-5 text-center">
           <p className="text-[9px] text-ink-subtle uppercase tracking-wider mb-1.5">Examiner</p>
           <p className="text-base font-bold text-white leading-relaxed">
             {greetingText}
@@ -54,7 +54,7 @@ export function ExamGreeting({ recording, greetingText, onContinue }: Props) {
 
             <motion.button
               onClick={onContinue}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg glass-subtle hover:bg-white/[0.04] text-white transition-all font-semibold text-[10px]"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg surface-recessed hover:bg-white/[0.04] text-white transition-all font-semibold text-[10px]"
               whileTap={{ scale: 0.95 }}
             >
               Start exam <ArrowRight size={11} />

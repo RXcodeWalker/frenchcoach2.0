@@ -312,7 +312,7 @@ export function DailyNewsFlash() {
                 exit={{ opacity: 0, y: -20 }}
                 className="space-y-8"
               >
-                <div className="glass-elevated p-8 rounded-3xl text-center space-y-6 relative overflow-hidden">
+                <div className="surface-raised p-8 rounded-3xl text-center space-y-6 relative overflow-hidden">
                   <div className="absolute top-0 right-0 p-6 opacity-5">
                     <Radio size={120} className="text-violet-400" />
                   </div>
@@ -398,7 +398,7 @@ export function DailyNewsFlash() {
                 exit={{ opacity: 0, y: -20 }}
                 className="space-y-6"
               >
-                <div className="glass-elevated p-8 rounded-3xl text-center space-y-6 relative overflow-hidden">
+                <div className="surface-raised p-8 rounded-3xl text-center space-y-6 relative overflow-hidden">
                   <div className="space-y-2">
                     <span className="text-[10px] font-black text-violet-400 uppercase tracking-[0.3em]">Phase 2: Reporting</span>
                     <h2 className="text-2xl font-black text-white italic">Summarize the Broadcast</h2>
@@ -428,7 +428,7 @@ export function DailyNewsFlash() {
                         <motion.div 
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
-                          className="absolute inset-0 z-20 glass rounded-2xl flex flex-col items-center justify-center bg-navy/80 backdrop-blur-sm"
+                          className="absolute inset-0 z-20 surface rounded-2xl flex flex-col items-center justify-center bg-navy/80 backdrop-blur-sm"
                         >
                           <div className="w-12 h-12 border-4 border-violet-500 border-t-transparent rounded-full animate-spin mb-4" />
                           <p className="text-violet-400 font-black uppercase tracking-widest italic text-lg">Analyzing Report...</p>
@@ -460,7 +460,7 @@ export function DailyNewsFlash() {
                 animate={{ opacity: 1, y: 0 }}
                 className="space-y-6"
               >
-                <div className="glass-elevated rounded-3xl overflow-hidden border border-violet-500/20">
+                <div className="surface-raised rounded-3xl overflow-hidden border border-violet-500/20">
                   <div className="bg-violet-500/10 p-4 border-b border-violet-500/10 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Radio size={16} className="text-violet-400" />

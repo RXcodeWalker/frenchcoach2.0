@@ -29,7 +29,7 @@ export function StreakToast({ streak, show, onDismiss }: Props) {
           <div className={`px-5 py-3 rounded-2xl border shadow-xl flex items-center gap-3 ${
             isOnFire
               ? 'bg-orange-500/15 border-orange-500/30'
-              : 'glass-elevated border-orange-500/20'
+              : 'surface-raised border-orange-500/20'
           }`}>
             <span className="text-xl">{isOnFire ? '🔥🔥' : '🔥'}</span>
             <div>

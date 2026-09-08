@@ -21,7 +21,7 @@ export function AvoidanceCard({ entries }: Props) {
   if (!entries.length) return null;
 
   return (
-    <motion.div variants={fadeUp} className="rounded-xl glass border border-amber-500/15 overflow-hidden">
+    <motion.div variants={fadeUp} className="rounded-xl surface border border-amber-500/15 overflow-hidden">
       <div className="flex items-center gap-2 px-4 py-3 border-b border-amber-500/10">
         <AlertTriangle size={13} className="text-amber-400" />
         <p className="text-[11px] font-bold text-ink-muted">

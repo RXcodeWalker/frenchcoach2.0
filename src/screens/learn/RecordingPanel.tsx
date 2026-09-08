@@ -14,7 +14,7 @@ export function RecordingPanel({ isActive, recording, onStop }: Props) {
   if (!isActive) return null;
   return (
     <motion.div
-      className="relative overflow-hidden rounded-xl glass p-6 md:p-7"
+      className="relative overflow-hidden rounded-xl surface p-6 md:p-7"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
     >

@@ -88,7 +88,7 @@ export function SessionStartScreen({ topic, topicMastery, selectedEngine, onEngi
       <div className="flex items-center gap-4">
         <motion.button
           onClick={onBack}
-          className="p-2 rounded-xl glass-subtle text-ink-muted hover:text-white transition-colors"
+          className="p-2 rounded-xl surface-recessed text-ink-muted hover:text-white transition-colors"
           whileTap={{ scale: 0.95 }}
         >
           <ChevronRight size={18} className="rotate-180" />
@@ -108,18 +108,18 @@ export function SessionStartScreen({ topic, topicMastery, selectedEngine, onEngi
       {/* Progress stats */}
       {questionsAnswered > 0 && (
         <div className="flex gap-3">
-          <div className="flex-1 p-3 rounded-xl glass-subtle text-center">
+          <div className="flex-1 p-3 rounded-xl surface-recessed text-center">
             <p className="text-lg font-black text-white">{questionsAnswered}</p>
             <p className="text-[10px] text-ink-muted uppercase tracking-wide">Questions done</p>
           </div>
           {avgScore != null && (
-            <div className="flex-1 p-3 rounded-xl glass-subtle text-center">
+            <div className="flex-1 p-3 rounded-xl surface-recessed text-center">
               <p className="text-lg font-black text-white">{avgScore.toFixed(1)}</p>
               <p className="text-[10px] text-ink-muted uppercase tracking-wide">Avg score</p>
             </div>
           )}
           {topicMastery?.mastered && (
-            <div className="flex-1 p-3 rounded-xl glass-subtle text-center bg-amber-500/5 border-amber-500/20">
+            <div className="flex-1 p-3 rounded-xl surface-recessed text-center bg-amber-500/5 border-amber-500/20">
               <p className="text-lg font-black text-amber-400">🏆</p>
               <p className="text-[10px] text-amber-500 uppercase tracking-wide">Mastered</p>
             </div>
@@ -129,7 +129,7 @@ export function SessionStartScreen({ topic, topicMastery, selectedEngine, onEngi
 
       {/* Coach recommendation banner */}
       {coachRecommendation ? (
-        <div className="p-4 rounded-2xl glass-subtle border-violet-electric/15 space-y-3">
+        <div className="p-4 rounded-2xl surface-recessed border-violet-electric/15 space-y-3">
           <div className="flex items-center gap-2">
             <Target size={14} className="text-violet-400" />
             <p className="text-xs font-bold text-violet-400 uppercase tracking-wide">Coach recommendation</p>
@@ -157,7 +157,7 @@ export function SessionStartScreen({ topic, topicMastery, selectedEngine, onEngi
           )}
         </div>
       ) : topWeaknesses.length > 0 ? (
-        <div className="p-4 rounded-2xl glass-subtle border-violet-electric/15 space-y-2">
+        <div className="p-4 rounded-2xl surface-recessed border-violet-electric/15 space-y-2">
           <div className="flex items-center gap-2 mb-3">
             <Target size={14} className="text-violet-400" />
             <p className="text-xs font-bold text-violet-400 uppercase tracking-wide">Your focus today</p>
@@ -181,7 +181,7 @@ export function SessionStartScreen({ topic, topicMastery, selectedEngine, onEngi
 
       {/* Focus Token (Shop plan §14.4): override today's focus for this sitting only */}
       {focusTokenQty > 0 && (
-        <div className={`p-3 rounded-2xl glass-subtle flex items-center justify-between gap-3 ${focusTokenActive ? 'border-emerald-500/30' : 'border-transparent'}`}>
+        <div className={`p-3 rounded-2xl surface-recessed flex items-center justify-between gap-3 ${focusTokenActive ? 'border-emerald-500/30' : 'border-transparent'}`}>
           <div className="flex items-center gap-2 min-w-0">
             <span className="text-lg flex-shrink-0">🎯</span>
             <p className="text-xs text-ink-muted leading-snug">
@@ -215,7 +215,7 @@ export function SessionStartScreen({ topic, topicMastery, selectedEngine, onEngi
       {/* docs §14 UX #1 — measured level + Aim (adaptive path) replaces the difficulty grid */}
       {ability && aim && onAimChange ? (
         <div className="space-y-3">
-          <div className="p-4 rounded-2xl glass-subtle space-y-1">
+          <div className="p-4 rounded-2xl surface-recessed space-y-1">
             <p className="text-xs font-bold text-ink-muted uppercase tracking-wide">Your level</p>
             {(() => {
               const { band, caption } = measuredLevelDisplay(ability);
@@ -241,7 +241,7 @@ export function SessionStartScreen({ topic, topicMastery, selectedEngine, onEngi
                     className={`flex flex-col items-center gap-1 p-3 rounded-2xl border transition-all duration-200 text-center ${
                       isSelected
                         ? 'bg-violet-electric/10 border-violet-electric/40 ring-1 ring-violet-electric/30'
-                        : 'glass-subtle border-transparent hover:border-white/10'
+                        : 'surface-recessed border-transparent hover:border-white/10'
                     }`}
                     whileTap={{ scale: 0.97 }}
                   >
@@ -269,7 +269,7 @@ export function SessionStartScreen({ topic, topicMastery, selectedEngine, onEngi
                   className={`flex flex-col items-center gap-1 p-3 rounded-2xl border transition-all duration-200 text-center ${
                     isSelected
                       ? `bg-${color}-500/10 border-${color}-500/40 ring-1 ring-${color}-500/30`
-                      : 'glass-subtle border-transparent hover:border-white/10'
+                      : 'surface-recessed border-transparent hover:border-white/10'
                   }`}
                   whileTap={{ scale: 0.97 }}
                 >
@@ -294,7 +294,7 @@ export function SessionStartScreen({ topic, topicMastery, selectedEngine, onEngi
             className={`w-full flex items-center gap-4 p-4 rounded-2xl border transition-all duration-200 text-left ${
               selected === mode
                 ? 'bg-violet-electric/10 border-violet-electric/40'
-                : 'glass-subtle border-transparent hover:border-white/10'
+                : 'surface-recessed border-transparent hover:border-white/10'
             }`}
             whileTap={{ scale: 0.98 }}
           >
@@ -327,7 +327,7 @@ export function SessionStartScreen({ topic, topicMastery, selectedEngine, onEngi
         </motion.button>
         <motion.button
           onClick={onSingleQuestion}
-          className="w-full py-3 rounded-2xl glass-subtle text-ink-muted hover:text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors"
+          className="w-full py-3 rounded-2xl surface-recessed text-ink-muted hover:text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors"
           whileTap={{ scale: 0.97 }}
         >
           <BookOpen size={14} /> Just one question

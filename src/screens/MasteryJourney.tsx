@@ -63,7 +63,7 @@ export function MasteryJourney() {
         </motion.div>
 
         {/* CEFR Progress Path */}
-        <motion.div variants={fadeUp} className="glass-elevated p-6 rounded-3xl space-y-6">
+        <motion.div variants={fadeUp} className="surface-raised p-6 rounded-3xl space-y-6">
           <div className="flex items-center justify-between mb-2">
             <div>
               <span className="text-[10px] font-black text-violet-400 uppercase tracking-widest">Current Standing</span>
@@ -125,7 +125,7 @@ export function MasteryJourney() {
               <motion.div 
                 key={cat.id}
                 variants={fadeUp}
-                className="glass-elevated p-5 rounded-2xl space-y-4"
+                className="surface-raised p-5 rounded-2xl space-y-4"
               >
                 <div className="flex items-center gap-3">
                   <div className={`p-2 ${cat.bg} ${cat.color} rounded-lg`}>
@@ -155,7 +155,7 @@ export function MasteryJourney() {
 
         {/* Growth Insights */}
         <motion.div variants={fadeUp} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="glass-elevated p-6 rounded-3xl border-emerald-500/10">
+          <div className="surface-raised p-6 rounded-3xl border-emerald-500/10">
             <div className="flex items-center gap-2 mb-4">
               <Target size={16} className="text-emerald-400" />
               <h3 className="font-bold text-white text-sm uppercase tracking-wider">Top Skills</h3>
@@ -173,7 +173,7 @@ export function MasteryJourney() {
             </div>
           </div>
 
-          <div className="glass-elevated p-6 rounded-3xl border-violet-500/10">
+          <div className="surface-raised p-6 rounded-3xl border-violet-500/10">
             <div className="flex items-center gap-2 mb-4">
               <Star size={16} className="text-violet-400" />
               <h3 className="font-bold text-white text-sm uppercase tracking-wider">Milestones</h3>

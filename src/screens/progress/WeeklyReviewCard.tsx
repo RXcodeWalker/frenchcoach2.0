@@ -58,7 +58,7 @@ export function WeeklyReviewCard({ review, variant, onDismiss }: WeeklyReviewCar
     return (
       <motion.div
         variants={fadeUp}
-        className={`glass border-l-4 rounded-2xl p-4 ${trendColor(review.confidenceTrend)}`}
+        className={`surface border-l-4 rounded-2xl p-4 ${trendColor(review.confidenceTrend)}`}
       >
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-2 min-w-0">
@@ -98,7 +98,7 @@ export function WeeklyReviewCard({ review, variant, onDismiss }: WeeklyReviewCar
   // Full variant
   if (!review) {
     return (
-      <motion.div variants={fadeUp} className="rounded-xl glass p-8 text-center">
+      <motion.div variants={fadeUp} className="rounded-xl surface p-8 text-center">
         <CalendarDays size={32} className="text-ink-subtle mx-auto mb-3" />
         <p className="text-ink-muted font-medium">No weekly review yet</p>
         <p className="text-ink-subtle text-sm mt-1">Complete a session to get your first weekly summary.</p>
@@ -111,7 +111,7 @@ export function WeeklyReviewCard({ review, variant, onDismiss }: WeeklyReviewCar
   return (
     <div className="space-y-4">
       {/* Header */}
-      <motion.div variants={fadeUp} className="rounded-xl glass p-4 flex items-center gap-3 flex-wrap">
+      <motion.div variants={fadeUp} className="rounded-xl surface p-4 flex items-center gap-3 flex-wrap">
         <CalendarDays size={16} className="text-violet-400 shrink-0" />
         <div>
           <p className="text-white font-bold text-sm">{formatDateRange(review.periodStart, review.periodEnd)}</p>
@@ -122,24 +122,24 @@ export function WeeklyReviewCard({ review, variant, onDismiss }: WeeklyReviewCar
 
       {/* Stats strip */}
       <motion.div variants={fadeUp} className="grid grid-cols-2 gap-2.5">
-        <div className="rounded-xl glass p-3.5">
+        <div className="rounded-xl surface p-3.5">
           <p className="text-lg font-black text-white">{review.sessionsCompleted}</p>
           <p className="text-[9px] text-ink-subtle font-medium">Sessions</p>
         </div>
-        <div className="rounded-xl glass p-3.5">
+        <div className="rounded-xl surface p-3.5">
           <p className="text-lg font-black text-white">~{review.totalMinutes}</p>
           <p className="text-[9px] text-ink-subtle font-medium">Minutes</p>
         </div>
       </motion.div>
 
       {/* Tutor summary */}
-      <motion.div variants={fadeUp} className="rounded-xl glass-elevated p-5 border-l-4 border-l-violet-500">
+      <motion.div variants={fadeUp} className="rounded-xl surface-raised p-5 border-l-4 border-l-violet-500">
         <p className="text-sm text-ink-muted italic leading-relaxed">"{review.tutorSummary}"</p>
       </motion.div>
 
       {/* Week focus */}
       {review.weekFocusPriorities.length > 0 && (
-        <motion.div variants={fadeUp} className="rounded-xl glass-elevated p-5">
+        <motion.div variants={fadeUp} className="rounded-xl surface-raised p-5">
           <div className="flex items-center gap-2 mb-3">
             <TrendingUp size={14} className="text-violet-400" />
             <h3 className="font-bold text-white text-sm">This Week's Focus</h3>
@@ -157,7 +157,7 @@ export function WeeklyReviewCard({ review, variant, onDismiss }: WeeklyReviewCar
 
       {/* Skill movements */}
       {(review.improved.length > 0 || review.slipping.length > 0) && (
-        <motion.div variants={fadeUp} className="rounded-xl glass-elevated p-5">
+        <motion.div variants={fadeUp} className="rounded-xl surface-raised p-5">
           <div className="flex items-center gap-2 mb-4">
             <TrendingUp size={14} className="text-emerald-400" />
             <h3 className="font-bold text-white text-sm">Skill Movements</h3>
@@ -207,7 +207,7 @@ export function WeeklyReviewCard({ review, variant, onDismiss }: WeeklyReviewCar
 
       {/* Exam readiness */}
       {review.examReadiness && (
-        <motion.div variants={fadeUp} className="rounded-xl glass-elevated p-5">
+        <motion.div variants={fadeUp} className="rounded-xl surface-raised p-5">
           <div className="flex items-center gap-2 mb-4">
             {review.examReadiness.readinessLevel === 'on_track'
               ? <CheckCircle size={14} className="text-emerald-400" />

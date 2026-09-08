@@ -42,8 +42,8 @@ export default {
       },
       colors: {
         /* role-named tokens — resolve to the CSS vars in index.css.
-           Additive; the .glass→.surface sweep and legacy-alias remap
-           are a later reviewed pass. */
+           The .glass→.surface sweep is done; the legacy-alias remap
+           is still a later reviewed pass. */
         bg: 'var(--bg)',
         surface: {
           DEFAULT: 'var(--surface)',

@@ -14,7 +14,7 @@ interface MissionObjectivesListProps {
 
 export const MissionObjectivesList: React.FC<MissionObjectivesListProps> = ({ objectives }) => {
   return (
-    <div className="glass-elevated rounded-3xl p-6 border-violet-500/20 bg-navy/40 backdrop-blur-md">
+    <div className="surface-raised rounded-3xl p-6 border-violet-500/20 bg-navy/40 backdrop-blur-md">
       <div className="flex items-center gap-2 mb-4">
         <Target size={16} className="text-violet-400" />
         <h3 className="text-[10px] font-black text-ink-muted uppercase tracking-[0.2em]">Mission Objectives</h3>

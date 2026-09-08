@@ -324,7 +324,7 @@ export function Onboarding() {
           >
             <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm" onClick={() => setShowConfirm(false)} />
             <motion.div
-              className="relative z-10 w-full max-w-xs rounded-2xl glass-elevated border border-slate-700/50 p-5"
+              className="relative z-10 w-full max-w-xs rounded-2xl surface-raised border border-slate-700/50 p-5"
               initial={{ opacity: 0, scale: 0.95, y: 8 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 8 }}

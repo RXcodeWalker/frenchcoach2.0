@@ -37,7 +37,7 @@ export function SessionCompletion({
       <div className="absolute inset-0 bg-navy/90 backdrop-blur-2xl" />
       
       <motion.div 
-        className="relative z-10 w-full max-w-2xl glass-elevated border-white/10 overflow-hidden"
+        className="relative z-10 w-full max-w-2xl surface-raised border-white/10 overflow-hidden"
         initial={{ scale: 0.9, opacity: 0, y: 30 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         transition={{ type: 'spring', damping: 20, stiffness: 150 }}
@@ -129,13 +129,13 @@ export function SessionCompletion({
             <div className="flex gap-3">
               <button
                 onClick={onRetry}
-                className="flex-1 px-6 py-4 rounded-2xl glass border-white/10 text-white font-bold hover:bg-white/5 transition-colors flex items-center justify-center gap-2"
+                className="flex-1 px-6 py-4 rounded-2xl surface border-white/10 text-white font-bold hover:bg-white/5 transition-colors flex items-center justify-center gap-2"
               >
                 <RotateCcw size={18} /> Retry
               </button>
               <button
                 onClick={onBack}
-                className="flex-1 px-6 py-4 rounded-2xl glass border-white/10 text-white font-bold hover:bg-white/5 transition-colors flex items-center justify-center gap-2"
+                className="flex-1 px-6 py-4 rounded-2xl surface border-white/10 text-white font-bold hover:bg-white/5 transition-colors flex items-center justify-center gap-2"
               >
                 <Home size={18} /> Home
               </button>

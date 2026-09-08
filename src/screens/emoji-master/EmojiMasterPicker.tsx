@@ -137,7 +137,7 @@ export function EmojiMasterPicker({
       <motion.button
         type="button"
         onClick={() => onSelect({ mode: hero.id, category })}
-        className={`w-full glass-elevated p-8 rounded-3xl text-left border transition-all ${hero.accent}`}
+        className={`w-full surface-raised p-8 rounded-3xl text-left border transition-all ${hero.accent}`}
         whileHover={{ y: -3, scale: 1.01 }}
         whileTap={{ scale: 0.99 }}
       >
@@ -164,7 +164,7 @@ export function EmojiMasterPicker({
             key={mode.id}
             type="button"
             onClick={() => onSelect({ mode: mode.id, category })}
-            className={`glass-elevated p-6 rounded-3xl text-left border transition-all ${mode.accent}`}
+            className={`surface-raised p-6 rounded-3xl text-left border transition-all ${mode.accent}`}
             whileHover={{ y: -3, scale: 1.01 }}
             whileTap={{ scale: 0.99 }}
           >

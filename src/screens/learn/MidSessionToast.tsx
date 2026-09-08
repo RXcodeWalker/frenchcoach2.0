@@ -46,7 +46,7 @@ export function MidSessionToast({ show, variant = 'progress', questionsCompleted
           transition={{ type: 'spring', damping: 20, stiffness: 200 }}
         >
           {variant === 'progress' ? (
-            <div className="glass-elevated border-violet-electric/25 p-4 rounded-2xl shadow-xl space-y-1">
+            <div className="surface-raised border-violet-electric/25 p-4 rounded-2xl shadow-xl space-y-1">
               <div className="flex items-center gap-2">
                 <Zap size={14} className="text-violet-400" />
                 <p className="text-sm font-black text-white">Halfway there!</p>
@@ -60,7 +60,7 @@ export function MidSessionToast({ show, variant = 'progress', questionsCompleted
               )}
             </div>
           ) : (
-            <div className="glass-elevated border-violet-electric/25 p-4 rounded-2xl shadow-xl space-y-1">
+            <div className="surface-raised border-violet-electric/25 p-4 rounded-2xl shadow-xl space-y-1">
               <div className="flex items-center gap-2">
                 {variant === 'difficulty-down' ? (
                   <ArrowDown size={14} className="text-violet-400" />

@@ -124,7 +124,7 @@ export function League() {
       </div>
 
       <div
-        className="rounded-2xl p-5 glass-elevated flex items-center gap-4"
+        className="rounded-2xl p-5 surface-raised flex items-center gap-4"
         style={{ borderColor: `${TIER_COLOR[standing.poolTier]}40` }}
       >
         <div
@@ -178,7 +178,7 @@ export function League() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: i * 0.02 }}
               className={`flex items-center gap-3 p-3 rounded-xl ${
-                m.isCurrentUser ? 'bg-violet-electric/10 border border-violet-electric/30' : 'glass'
+                m.isCurrentUser ? 'bg-violet-electric/10 border border-violet-electric/30' : 'surface'
               }`}
             >
               <div className="w-6 text-center text-sm font-black text-ink-subtle">{rank}</div>

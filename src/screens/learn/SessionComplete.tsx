@@ -25,7 +25,7 @@ export function SessionComplete({ scores, unscored, wordCount, xpEarned, cefrLev
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
       >
-        <div className="relative overflow-hidden rounded-2xl glass-elevated border-violet-electric/20 p-8 text-center">
+        <div className="relative overflow-hidden rounded-2xl surface-raised border-violet-electric/20 p-8 text-center">
           <div className="relative">
             <motion.div
               className="text-5xl mb-4"
@@ -54,7 +54,7 @@ export function SessionComplete({ scores, unscored, wordCount, xpEarned, cefrLev
                 { value: String(wordCount ?? '—'), label: 'Words', color: 'text-violet-400' },
                 { value: cefrLevel ?? '—', label: 'CEFR', color: 'text-amber-400' },
               ].map(stat => (
-                <div key={stat.label} className="p-2.5 rounded-xl glass-subtle">
+                <div key={stat.label} className="p-2.5 rounded-xl surface-recessed">
                   <p className={`text-lg font-black ${stat.color}`}>{stat.value}</p>
                   <p className="text-[9px] text-ink-subtle">{stat.label}</p>
                 </div>
@@ -73,7 +73,7 @@ export function SessionComplete({ scores, unscored, wordCount, xpEarned, cefrLev
               <div className="flex gap-2">
                 <motion.button
                   onClick={onRetry}
-                  className="flex-1 py-2.5 rounded-xl glass-subtle text-white font-semibold text-xs flex items-center justify-center gap-1"
+                  className="flex-1 py-2.5 rounded-xl surface-recessed text-white font-semibold text-xs flex items-center justify-center gap-1"
                   whileTap={{ scale: 0.97 }}
                 >
                   <RotateCcw size={11} /> Retry

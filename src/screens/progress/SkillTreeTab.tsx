@@ -39,7 +39,7 @@ export function SkillTreeTab() {
           initial="initial"
           animate="animate"
           transition={{ delay: tIdx * 0.1 }}
-          className="rounded-xl glass-elevated p-5"
+          className="rounded-xl surface-raised p-5"
         >
           <h3 className="font-bold text-white text-[10px] uppercase tracking-wider mb-4 opacity-50">
             Tier {tIdx + 1}: {tier.name}

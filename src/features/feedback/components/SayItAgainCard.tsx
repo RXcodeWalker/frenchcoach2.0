@@ -142,7 +142,7 @@ export function SayItAgainCard({ targetSentence, questionId, onDone }: Props) {
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-xl glass-elevated p-5 space-y-4 border border-violet-500/15"
+      className="rounded-xl surface-raised p-5 space-y-4 border border-violet-500/15"
     >
       <div>
         <p className="text-[10px] font-bold uppercase tracking-widest text-violet-400 mb-1.5">

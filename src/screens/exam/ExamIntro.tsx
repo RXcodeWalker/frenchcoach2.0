@@ -18,7 +18,7 @@ export function ExamIntro({ onStart, onBack }: Props) {
         <div className="flex items-center gap-4 mb-2">
           <button 
             onClick={onBack}
-            className="w-10 h-10 rounded-xl glass flex items-center justify-center text-ink-muted hover:text-white hover:bg-white/10 transition-all border border-white/5"
+            className="w-10 h-10 rounded-xl surface flex items-center justify-center text-ink-muted hover:text-white hover:bg-white/10 transition-all border border-white/5"
           >
             <ArrowLeft size={20} />
           </button>
@@ -28,7 +28,7 @@ export function ExamIntro({ onStart, onBack }: Props) {
           </div>
         </div>
 
-        <div className="relative overflow-hidden rounded-2xl glass-elevated border-amber-500/15 p-8 text-center">
+        <div className="relative overflow-hidden rounded-2xl surface-raised border-amber-500/15 p-8 text-center">
           <div className="relative">
             <motion.div
               className="w-14 h-14 rounded-xl bg-amber-500/8 border border-amber-500/15 flex items-center justify-center text-2xl mx-auto mb-5"
@@ -46,7 +46,7 @@ export function ExamIntro({ onStart, onBack }: Props) {
                 { value: '~2m', label: 'Role Play', color: 'text-violet-400' },
                 { value: '~4m ea.', label: 'Topics', color: 'text-emerald-400' },
               ].map(s => (
-                <div key={s.label} className="p-2.5 rounded-xl glass-subtle">
+                <div key={s.label} className="p-2.5 rounded-xl surface-recessed">
                   <p className={`text-lg font-black ${s.color}`}>{s.value}</p>
                   <p className="text-[9px] text-ink-subtle">{s.label}</p>
                 </div>
@@ -63,7 +63,7 @@ export function ExamIntro({ onStart, onBack }: Props) {
           </div>
         </div>
 
-        <div className="rounded-xl glass p-5">
+        <div className="rounded-xl surface p-5">
           <h3 className="font-bold text-ink-muted text-[10px] uppercase tracking-wider mb-3">Exam Structure</h3>
           <div className="space-y-1.5">
             {[
@@ -72,7 +72,7 @@ export function ExamIntro({ onStart, onBack }: Props) {
               { label: 'Part 2: Topic 1', desc: '~4 min conversation on Everyday Life topics (may extend with follow-up questions).' },
               { label: 'Part 3: Topic 2', desc: '~4 min conversation on The World topics (may extend with follow-up questions).' },
             ].map(item => (
-              <div key={item.label} className="flex items-center gap-3 p-2.5 rounded-lg glass-subtle">
+              <div key={item.label} className="flex items-center gap-3 p-2.5 rounded-lg surface-recessed">
                 <div className="flex-1">
                   <p className="text-[10px] font-semibold text-white">{item.label}</p>
                   <p className="text-[9px] text-ink-subtle">{item.desc}</p>

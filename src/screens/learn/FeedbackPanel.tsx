@@ -14,7 +14,7 @@ export function FeedbackPanel({ feedback, isLoading, onRetry, onComplete }: Prop
   if (isLoading || !feedback) {
     return (
       <motion.div
-        className="rounded-xl glass-elevated p-8 flex flex-col items-center gap-3"
+        className="rounded-xl surface-raised p-8 flex flex-col items-center gap-3"
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
       >
@@ -31,7 +31,7 @@ export function FeedbackPanel({ feedback, isLoading, onRetry, onComplete }: Prop
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
     >
-      <div className="rounded-xl glass-elevated p-5">
+      <div className="rounded-xl surface-raised p-5">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-bold text-white text-sm">Results</h3>
           <span className="text-[9px] text-ink-subtle">{feedback.wordCount} words{feedback.cefrLevel ? ` / ${feedback.cefrLevel}` : ''}</span>
@@ -73,7 +73,7 @@ export function FeedbackPanel({ feedback, isLoading, onRetry, onComplete }: Prop
       </div>
 
       {feedback.grammar.critical.length > 0 && (
-        <div className="rounded-xl glass p-4">
+        <div className="rounded-xl surface p-4">
           <p className="text-[9px] font-bold text-ink-subtle uppercase tracking-wider mb-2.5">Corrections</p>
           {feedback.grammar.critical.map((err, i) => (
             <div key={i} className="flex items-start gap-2 p-2.5 rounded-lg bg-red-500/5 border border-red-500/10 mb-1.5">
@@ -89,10 +89,10 @@ export function FeedbackPanel({ feedback, isLoading, onRetry, onComplete }: Prop
       )}
 
       {feedback.vocabulary.length > 0 && (
-        <div className="rounded-xl glass p-4">
+        <div className="rounded-xl surface p-4">
           <p className="text-[9px] font-bold text-ink-subtle uppercase tracking-wider mb-2.5">Vocabulary Upgrades</p>
           {feedback.vocabulary.map((v, i) => (
-            <div key={i} className="flex items-center gap-2 p-2 rounded-lg glass-subtle mb-1">
+            <div key={i} className="flex items-center gap-2 p-2 rounded-lg surface-recessed mb-1">
               <span className="text-[10px] text-ink-subtle line-through">{v.basic}</span>
               <ChevronRight size={9} className="text-ink-subtle" />
               <span className="text-[10px] text-emerald-400 font-medium">{v.upgrade}</span>
@@ -102,10 +102,10 @@ export function FeedbackPanel({ feedback, isLoading, onRetry, onComplete }: Prop
       )}
 
       {feedback.style.length > 0 && (
-        <div className="rounded-xl glass p-4">
+        <div className="rounded-xl surface p-4">
           <p className="text-[9px] font-bold text-ink-subtle uppercase tracking-wider mb-2.5">Style Tips</p>
           {feedback.style.map((s, i) => (
-            <div key={i} className="flex items-start gap-2 p-2.5 rounded-lg glass-subtle mb-1">
+            <div key={i} className="flex items-start gap-2 p-2.5 rounded-lg surface-recessed mb-1">
               <span className="text-[10px] font-semibold text-violet-300">{s.label}</span>
               <span className="text-[10px] text-ink-muted">{s.suggestion}</span>
             </div>
@@ -116,7 +116,7 @@ export function FeedbackPanel({ feedback, isLoading, onRetry, onComplete }: Prop
       <div className="flex gap-2">
         <motion.button
           onClick={onRetry}
-          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl glass-subtle text-white font-semibold text-xs"
+          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl surface-recessed text-white font-semibold text-xs"
           whileTap={{ scale: 0.97 }}
         >
           <RotateCcw size={12} /> Retry

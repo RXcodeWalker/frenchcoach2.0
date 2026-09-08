@@ -32,12 +32,12 @@ export const EngagementHook = forwardRef<HTMLDivElement, HookProps>(function Eng
       initial={{ x: 300, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: 300, opacity: 0 }}
-      className={`glass-elevated ${config.border} p-4 mb-3 w-80 relative overflow-hidden group`}
+      className={`surface-raised ${config.border} p-4 mb-3 w-80 relative overflow-hidden group`}
     >
       <div className={`absolute inset-0 ${config.bg} opacity-50 group-hover:opacity-100 transition-opacity`} />
       
       <div className="relative flex gap-3">
-        <div className={`w-10 h-10 rounded-xl glass border-white/5 flex items-center justify-center shrink-0`}>
+        <div className={`w-10 h-10 rounded-xl surface border-white/5 flex items-center justify-center shrink-0`}>
           {config.icon}
         </div>
         

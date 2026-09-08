@@ -41,7 +41,7 @@ export function TopicGrid({ onSelect, title = "Learn", subtitle = "Choose a topi
             <motion.button
               key={topic.key}
               onClick={() => handleTopicClick(topic)}
-              className="group relative overflow-hidden rounded-xl glass p-5 text-left hover:border-white/10 transition-all duration-300 perspective"
+              className="group relative overflow-hidden rounded-xl surface p-5 text-left hover:border-white/10 transition-all duration-300 perspective"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.05, duration: 0.4 }}
@@ -81,7 +81,7 @@ export function TopicGrid({ onSelect, title = "Learn", subtitle = "Choose a topi
 
         <motion.button
           onClick={() => onSelect(TOPICS[Math.floor(Math.random() * TOPICS.length)])}
-          className="w-full group relative overflow-hidden rounded-xl glass-subtle border-dashed border-white/8 p-4 text-left hover:bg-white/[0.02] transition-all duration-300"
+          className="w-full group relative overflow-hidden rounded-xl surface-recessed border-dashed border-white/8 p-4 text-left hover:bg-white/[0.02] transition-all duration-300"
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.98 }}
         >
@@ -106,7 +106,7 @@ export function TopicGrid({ onSelect, title = "Learn", subtitle = "Choose a topi
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="w-full max-w-md glass border-amber-500/30 overflow-hidden rounded-2xl"
+              className="w-full max-w-md surface border-amber-500/30 overflow-hidden rounded-2xl"
             >
               <div className="p-6 text-center">
                 <div className="w-16 h-16 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-amber-500/30">

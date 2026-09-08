@@ -85,7 +85,7 @@ export function EmojiMasterResults({
               initial={{ opacity: 0, x: -16 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: idx * 0.04 }}
-              className={`glass-elevated p-4 rounded-xl border-l-4 ${
+              className={`surface-raised p-4 rounded-xl border-l-4 ${
                 item.isCorrect ? 'border-l-emerald-500' : 'border-l-red-500'
               }`}
             >

@@ -12,7 +12,7 @@ export function DeepAnalysisToggle() {
         className={`flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-semibold border transition-colors ${
           state.deepMode
             ? 'bg-violet-500/20 text-violet-300 border-violet-500/30'
-            : 'glass-subtle text-ink-muted border-slate-700/40 hover:text-ink-muted'
+            : 'surface-recessed text-ink-muted border-slate-700/40 hover:text-ink-muted'
         }`}
         whileTap={{ scale: 0.97 }}
       >

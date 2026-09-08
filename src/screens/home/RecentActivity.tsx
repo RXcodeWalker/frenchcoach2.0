@@ -14,7 +14,7 @@ export function RecentActivity({ sessions }: Props) {
         {sessions.slice(0, 3).map(session => (
           <motion.div
             key={session.id}
-            className="flex items-center gap-3 p-3 rounded-xl glass-subtle hover:bg-white/[0.03] transition-all duration-200 cursor-pointer"
+            className="flex items-center gap-3 p-3 rounded-xl surface-recessed hover:bg-white/[0.03] transition-all duration-200 cursor-pointer"
             whileHover={{ x: 4 }}
           >
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm flex-shrink-0 ${

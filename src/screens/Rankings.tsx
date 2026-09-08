@@ -296,7 +296,7 @@ export function Rankings() {
                       className={`group relative flex items-center gap-4 p-4 rounded-xl transition-all ${
                         user.isCurrentUser
                           ? 'bg-violet-electric/10 border border-violet-electric/30'
-                          : 'glass hover:bg-white/[0.04]'
+                          : 'surface hover:bg-white/[0.04]'
                       }`}
                     >
                       <div className="w-6 text-center">
@@ -367,7 +367,7 @@ export function Rankings() {
               <div className="space-y-2">
                 <h3 className="text-[10px] font-bold text-ink-subtle uppercase tracking-wider px-1">Results</h3>
                 {searchResults.map(r => (
-                  <div key={r.userId} className="flex items-center gap-4 p-3 rounded-xl glass">
+                  <div key={r.userId} className="flex items-center gap-4 p-3 rounded-xl surface">
                     <CosmeticPreview
                       avatarEmoji={r.avatar ?? null}
                       frameItemId={r.equippedFrame ?? null}
@@ -399,7 +399,7 @@ export function Rankings() {
               </div>
             ) : (
               accepted.map(f => (
-                <div key={f.userId} className="flex items-center gap-4 p-4 rounded-xl glass">
+                <div key={f.userId} className="flex items-center gap-4 p-4 rounded-xl surface">
                   <CosmeticPreview
                     avatarEmoji={f.avatar ?? null}
                     frameItemId={f.equippedFrame ?? null}
@@ -434,7 +434,7 @@ export function Rankings() {
                   <div className="text-center py-8 text-ink-subtle text-sm">No incoming requests.</div>
                 ) : (
                   incoming.map(f => (
-                    <div key={f.userId} className="flex items-center gap-4 p-4 rounded-xl glass">
+                    <div key={f.userId} className="flex items-center gap-4 p-4 rounded-xl surface">
                       <CosmeticPreview
                         avatarEmoji={f.avatar ?? null}
                         frameItemId={f.equippedFrame ?? null}
@@ -472,7 +472,7 @@ export function Rankings() {
                   <div className="text-center py-8 text-ink-subtle text-sm">No sent requests.</div>
                 ) : (
                   outgoing.map(f => (
-                    <div key={f.userId} className="flex items-center gap-4 p-4 rounded-xl glass">
+                    <div key={f.userId} className="flex items-center gap-4 p-4 rounded-xl surface">
                       <CosmeticPreview
                         avatarEmoji={f.avatar ?? null}
                         frameItemId={f.equippedFrame ?? null}

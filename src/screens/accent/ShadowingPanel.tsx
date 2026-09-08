@@ -320,7 +320,7 @@ export function ShadowingPanel() {
   return (
     <div className="space-y-6">
       {/* Detailed feedback toggle */}
-      <div className="glass rounded-2xl p-4 flex items-center justify-between gap-3">
+      <div className="surface rounded-2xl p-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 min-w-0">
           <Sparkles size={16} className="text-cyan-400 flex-shrink-0" />
           <div className="min-w-0">
@@ -349,7 +349,7 @@ export function ShadowingPanel() {
         </button>
       </div>
 
-      <div className="glass rounded-3xl p-8 flex flex-col items-center text-center space-y-6 relative overflow-hidden">
+      <div className="surface rounded-3xl p-8 flex flex-col items-center text-center space-y-6 relative overflow-hidden">
         <div className="space-y-2 relative w-full">
           <div className="flex items-center justify-center gap-2">
             <h3 className="text-ink-muted text-xs font-bold uppercase tracking-widest">{phrase.focus}</h3>

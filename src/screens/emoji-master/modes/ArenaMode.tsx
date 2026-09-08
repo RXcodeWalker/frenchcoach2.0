@@ -194,7 +194,7 @@ export function ArenaMode({ run, onQuit }: ArenaModeProps) {
         right={
           <>
             <StreakBadge streak={run.streak} isOverdrive={overdrive} />
-            <div className="glass-elevated px-3 py-1.5 rounded-full text-sm font-black text-amber-300">
+            <div className="surface-raised px-3 py-1.5 rounded-full text-sm font-black text-amber-300">
               DMG {run.score}
             </div>
           </>
@@ -202,7 +202,7 @@ export function ArenaMode({ run, onQuit }: ArenaModeProps) {
       />
 
       {/* Boss spirit */}
-      <div className="relative glass-elevated p-5 rounded-3xl border border-yellow-500/20">
+      <div className="relative surface-raised p-5 rounded-3xl border border-yellow-500/20">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <span className="text-3xl">{spiritEmoji}</span>
@@ -273,7 +273,7 @@ export function ArenaMode({ run, onQuit }: ArenaModeProps) {
             : { scale: 1, opacity: 1, x: 0 }
         }
         transition={shaking ? shakeTransition : { type: 'spring', damping: 14 }}
-        className={`glass-elevated p-8 rounded-3xl text-center relative ${getOverdriveCardClasses(overdrive)}`}
+        className={`surface-raised p-8 rounded-3xl text-center relative ${getOverdriveCardClasses(overdrive)}`}
       >
         <FloatingXPOverlay items={floatingXPs} />
         {overdrive && (

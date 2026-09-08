@@ -9,7 +9,7 @@ interface Props {
 
 export function HistoryTab({ sessions }: Props) {
   return (
-    <motion.div variants={fadeUp} className="rounded-xl glass p-4">
+    <motion.div variants={fadeUp} className="rounded-xl surface p-4">
       <div className="flex items-center gap-2 mb-4">
         <Calendar size={14} className="text-violet-400" />
         <h3 className="font-bold text-white text-sm">Session History</h3>
@@ -18,7 +18,7 @@ export function HistoryTab({ sessions }: Props) {
         {sessions.map(session => (
           <motion.div
             key={session.id}
-            className="flex items-center gap-3 p-2.5 rounded-lg glass-subtle hover:bg-white/[0.02] transition-all cursor-pointer"
+            className="flex items-center gap-3 p-2.5 rounded-lg surface-recessed hover:bg-white/[0.02] transition-all cursor-pointer"
             whileHover={{ x: 4 }}
           >
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm flex-shrink-0 ${

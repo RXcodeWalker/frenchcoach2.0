@@ -98,7 +98,7 @@ export function ModelSelectorCard({ selected, health, onChange }: Props) {
               disabled={isUnavailable}
               className={`
                 relative flex flex-col gap-1.5 p-3 rounded-2xl border-2 text-left transition-all duration-200
-                ${isSelected ? ringColor + ' border-2' : 'glass-subtle border-transparent hover:border-white/10'}
+                ${isSelected ? ringColor + ' border-2' : 'surface-recessed border-transparent hover:border-white/10'}
                 ${isUnavailable ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}
               `}
               whileTap={isUnavailable ? {} : { scale: 0.97 }}

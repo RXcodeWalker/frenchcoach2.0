@@ -99,7 +99,7 @@ export function CoachBeliefDebug() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate(-1)}
-            className="w-10 h-10 rounded-xl glass border-white/10 flex items-center justify-center text-ink-muted hover:text-white transition-colors"
+            className="w-10 h-10 rounded-xl surface border-white/10 flex items-center justify-center text-ink-muted hover:text-white transition-colors"
           >
             <ChevronLeft size={20} />
           </button>
@@ -132,7 +132,7 @@ export function CoachBeliefDebug() {
       </div>
 
       {/* Tier-1 local product metrics (Phase 2 Slice 5) — this device only, never synced */}
-      <div className="glass-elevated border-white/5 rounded-2xl p-4 mb-6">
+      <div className="surface-raised border-white/5 rounded-2xl p-4 mb-6">
         <p className="text-[10px] text-ink-muted font-bold uppercase tracking-wide mb-3">
           Local counters · this device only
         </p>
@@ -156,7 +156,7 @@ export function CoachBeliefDebug() {
 
       {/* Comparison table */}
       {rows.length === 0 ? (
-        <div className="glass-elevated border-white/5 rounded-2xl p-10 text-center">
+        <div className="surface-raised border-white/5 rounded-2xl p-10 text-center">
           <Database size={28} className="mx-auto text-ink-subtle mb-3" />
           <p className="text-ink-muted font-bold">No belief data yet.</p>
           <p className="text-ink-subtle text-sm mt-1">
@@ -164,7 +164,7 @@ export function CoachBeliefDebug() {
           </p>
         </div>
       ) : (
-        <div className="glass-elevated border-white/5 rounded-2xl overflow-hidden">
+        <div className="surface-raised border-white/5 rounded-2xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -232,7 +232,7 @@ export function CoachBeliefDebug() {
 function SummaryCard({ label, value, tone }: { label: string; value: string; tone?: 'emerald' | 'amber' }) {
   const toneClass = tone === 'emerald' ? 'text-emerald-400' : tone === 'amber' ? 'text-amber-400' : 'text-white';
   return (
-    <div className="glass-elevated border-white/5 rounded-xl px-4 py-3">
+    <div className="surface-raised border-white/5 rounded-xl px-4 py-3">
       <p className={`text-lg font-black tabular-nums ${toneClass}`}>{value}</p>
       <p className="text-[10px] text-ink-muted font-bold uppercase tracking-wide">{label}</p>
     </div>
@@ -242,7 +242,7 @@ function SummaryCard({ label, value, tone }: { label: string; value: string; ton
 function ListCard({ title, ids, tone }: { title: string; ids: string[]; tone: 'rose' | 'emerald' }) {
   const toneClass = tone === 'rose' ? 'text-rose-400' : 'text-emerald-400';
   return (
-    <div className="glass-elevated border-white/5 rounded-xl px-4 py-3">
+    <div className="surface-raised border-white/5 rounded-xl px-4 py-3">
       <p className="text-[10px] text-ink-muted font-bold uppercase tracking-wide mb-2">{title}</p>
       {ids.length === 0 ? (
         <p className="text-ink-subtle text-sm">— none yet —</p>

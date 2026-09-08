@@ -34,7 +34,7 @@ export function SnapshotCard({ feedback }: Props) {
         variants={fadeUp}
         initial="hidden"
         animate="show"
-        className="rounded-xl glass-elevated p-5"
+        className="rounded-xl surface-raised p-5"
       >
         <div className="flex items-start justify-between mb-2">
           <h3 className="font-bold text-white text-sm">Results</h3>
@@ -53,7 +53,7 @@ export function SnapshotCard({ feedback }: Props) {
       variants={fadeUp}
       initial="hidden"
       animate="show"
-      className="rounded-xl glass-elevated p-5"
+      className="rounded-xl surface-raised p-5"
     >
       <div className="flex items-start justify-between mb-4">
         <div>

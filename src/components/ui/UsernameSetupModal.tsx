@@ -59,7 +59,7 @@ export const UsernameSetupModal: React.FC<UsernameSetupModalProps> = ({ onClose 
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: 20 }}
-          className="relative w-full max-w-sm glass-elevated rounded-[2rem] border-white/10 overflow-hidden"
+          className="relative w-full max-w-sm surface-raised rounded-[2rem] border-white/10 overflow-hidden"
         >
           <div className="p-6 flex items-center justify-between border-b border-white/5">
             <div className="flex items-center gap-3">

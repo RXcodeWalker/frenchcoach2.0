@@ -108,7 +108,7 @@ export function Challenges() {
           <div className="flex items-center gap-4">
             <button 
               onClick={() => navigate(-1)}
-              className="w-10 h-10 rounded-xl glass flex items-center justify-center text-ink-muted hover:text-white transition-colors md:hidden"
+              className="w-10 h-10 rounded-xl surface flex items-center justify-center text-ink-muted hover:text-white transition-colors md:hidden"
             >
               <ArrowLeft size={20} />
             </button>
@@ -152,7 +152,7 @@ export function Challenges() {
               className="space-y-6"
             >
               {/* Weekly Progress Overview */}
-              <div className="glass-elevated p-6 rounded-3xl relative overflow-hidden group">
+              <div className="surface-raised p-6 rounded-3xl relative overflow-hidden group">
                 <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
                   <Clock size={120} className="text-white" />
                 </div>
@@ -178,7 +178,7 @@ export function Challenges() {
                 {WEEKLY_CHALLENGES.map(challenge => (
                   <div 
                     key={challenge.id}
-                    className="glass-elevated p-6 rounded-2xl border-white/5 hover:border-white/10 transition-all group"
+                    className="surface-raised p-6 rounded-2xl border-white/5 hover:border-white/10 transition-all group"
                   >
                     <div className="flex flex-col md:flex-row items-center gap-6">
                       <div 
@@ -248,7 +248,7 @@ export function Challenges() {
               exit={{ opacity: 0, y: -10 }}
               className="space-y-6"
             >
-              <div className="glass-elevated p-8 rounded-3xl text-center space-y-8 relative overflow-hidden">
+              <div className="surface-raised p-8 rounded-3xl text-center space-y-8 relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5" />
                 
                 <div className="relative space-y-4">

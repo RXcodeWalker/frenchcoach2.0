@@ -34,7 +34,7 @@ export function VocabularyCard({ feedback }: Props) {
           {v2vocab.map((entry, i) => {
             const cfg = TIER_CONFIG[entry.tier];
             return (
-              <div key={i} className="p-3 rounded-lg glass-subtle">
+              <div key={i} className="p-3 rounded-lg surface-recessed">
                 <div className="flex items-center gap-2 mb-1.5">
                   <span className="text-[10px] text-ink-muted line-through">{entry.basic}</span>
                   <span className={`text-[9px] font-bold ${cfg.color}`}>{cfg.label}</span>
@@ -58,7 +58,7 @@ export function VocabularyCard({ feedback }: Props) {
       ) : (
         <div className="space-y-1.5">
           {legacyVocab.map((v, i) => (
-            <div key={i} className="flex items-center gap-2 p-2 rounded-lg glass-subtle">
+            <div key={i} className="flex items-center gap-2 p-2 rounded-lg surface-recessed">
               <span className="text-[10px] text-ink-subtle line-through">{v.basic}</span>
               <ChevronRight size={9} className="text-ink-subtle" />
               <span className="text-[10px] text-emerald-400 font-medium">{v.upgrade}</span>

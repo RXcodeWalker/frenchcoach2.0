@@ -81,7 +81,7 @@ export function ExamRunner({
 
   return (
     <div className="fixed inset-0 bg-navy flex flex-col z-40">
-      <div className="flex items-center justify-between px-5 py-3 border-b border-white/[0.03] glass">
+      <div className="flex items-center justify-between px-5 py-3 border-b border-white/[0.03] surface">
         <motion.button
           onClick={() => setShowExitConfirm(true)}
           className="flex items-center gap-1.5 text-ink-subtle hover:text-white transition-colors text-[10px]"
@@ -148,7 +148,7 @@ export function ExamRunner({
           </div>
         )}
 
-        <div className="w-full rounded-xl glass-elevated p-5 mb-5 text-center">
+        <div className="w-full rounded-xl surface-raised p-5 mb-5 text-center">
           <p className="text-[9px] text-ink-subtle uppercase tracking-wider mb-1.5">{examinerLabel}</p>
           <p className="text-base font-bold text-white leading-relaxed">{action?.text ?? '…'}</p>
         </div>
@@ -156,7 +156,7 @@ export function ExamRunner({
         <div className="w-full space-y-4">
           {pendingSilentSkip ? (
             <motion.div
-              className="w-full rounded-xl glass-elevated p-5 text-center space-y-3"
+              className="w-full rounded-xl surface-raised p-5 text-center space-y-3"
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
             >
@@ -172,7 +172,7 @@ export function ExamRunner({
                 </motion.button>
                 <motion.button
                   onClick={onSkipQuestion}
-                  className="px-4 py-2 rounded-lg glass-subtle hover:bg-white/[0.04] text-ink-muted transition-all font-semibold text-[10px]"
+                  className="px-4 py-2 rounded-lg surface-recessed hover:bg-white/[0.04] text-ink-muted transition-all font-semibold text-[10px]"
                   whileTap={{ scale: 0.95 }}
                 >
                   Skip question
@@ -185,7 +185,7 @@ export function ExamRunner({
               <div className="text-center text-[10px] text-ink-subtle tabular-nums">{formatTime(Math.round(elapsedS))}</div>
               {showSilenceNudge ? (
                 <motion.div
-                  className="flex items-center justify-center gap-1.5 text-center text-[10px] italic text-ink-muted glass-subtle rounded-lg py-1.5 px-3"
+                  className="flex items-center justify-center gap-1.5 text-center text-[10px] italic text-ink-muted surface-recessed rounded-lg py-1.5 px-3"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
@@ -197,7 +197,7 @@ export function ExamRunner({
                 recording.isRecording &&
                 elapsedS >= PACING_HINT_S && (
                   <motion.div
-                    className="flex items-center justify-center gap-1.5 text-center text-[10px] italic text-ink-subtle glass-subtle rounded-lg py-1.5 px-3"
+                    className="flex items-center justify-center gap-1.5 text-center text-[10px] italic text-ink-subtle surface-recessed rounded-lg py-1.5 px-3"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
@@ -226,7 +226,7 @@ export function ExamRunner({
                 {recording.isRecording ? (
                   <motion.button
                     onClick={onSubmitTurn}
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-lg glass-subtle hover:bg-white/[0.04] text-white transition-all font-semibold text-[10px]"
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-lg surface-recessed hover:bg-white/[0.04] text-white transition-all font-semibold text-[10px]"
                     whileTap={{ scale: 0.95 }}
                   >
                     Stop &amp; Submit
@@ -234,14 +234,14 @@ export function ExamRunner({
                 ) : action?.kind === 'REPEAT' ? (
                   <button
                     disabled
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-lg glass-subtle text-ink-subtle font-semibold text-[10px] cursor-not-allowed"
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-lg surface-recessed text-ink-subtle font-semibold text-[10px] cursor-not-allowed"
                   >
                     <RotateCcw size={11} /> No repeats left
                   </button>
                 ) : (
                   <motion.button
                     onClick={onRequestRepeat}
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-lg glass-subtle hover:bg-white/[0.04] text-ink-muted transition-all font-semibold text-[10px]"
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-lg surface-recessed hover:bg-white/[0.04] text-ink-muted transition-all font-semibold text-[10px]"
                     whileTap={{ scale: 0.95 }}
                   >
                     <RotateCcw size={11} /> Repeat question

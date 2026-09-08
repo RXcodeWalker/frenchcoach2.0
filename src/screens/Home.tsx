@@ -116,7 +116,7 @@ export function Home() {
           {/* Motivation Quote */}
           <motion.div 
             variants={fadeUp}
-            className="glass border-white/5 rounded-2xl p-4 flex items-center gap-4 group"
+            className="surface border-white/5 rounded-2xl p-4 flex items-center gap-4 group"
           >
             <div className="w-12 h-12 rounded-xl bg-violet-electric/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
               <Sparkles size={20} className="text-violet-400" />
@@ -134,7 +134,7 @@ export function Home() {
             <motion.div
               variants={fadeUp}
               onClick={() => navigate('/learn')}
-              className={`group relative overflow-hidden rounded-2xl glass-elevated cursor-pointer border ${
+              className={`group relative overflow-hidden rounded-2xl surface-raised cursor-pointer border ${
                 dailyPlan.urgency === 'exam_soon' ? 'border-red-500/30' :
                 dailyPlan.urgency === 'streak_at_risk' ? 'border-orange-500/30' :
                 dailyPlan.urgency === 'confidence_drop' ? 'border-yellow-500/30' :
@@ -219,7 +219,7 @@ export function Home() {
               variants={fadeUp}
               whileHover={{ scale: 1.01, translateY: -2 }}
               onClick={() => navigate('/learn')}
-              className="group relative overflow-hidden rounded-2xl glass-elevated border-blue-500/20 p-6 cursor-pointer"
+              className="group relative overflow-hidden rounded-2xl surface-raised border-blue-500/20 p-6 cursor-pointer"
             >
               <div className="relative z-10">
                 <div className="flex items-center gap-3 mb-4">
@@ -245,7 +245,7 @@ export function Home() {
               variants={fadeUp}
               whileHover={{ scale: 1.01, translateY: -2 }}
               onClick={() => navigate('/learn')}
-              className="group relative overflow-hidden rounded-2xl glass-elevated border-amber-500/20 p-6 cursor-pointer"
+              className="group relative overflow-hidden rounded-2xl surface-raised border-amber-500/20 p-6 cursor-pointer"
             >
               <div className="relative z-10">
                 <div className="flex items-center gap-3 mb-4">
@@ -278,7 +278,7 @@ export function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
               {/* 7-Day Performance Chart */}
-              <motion.div variants={fadeUp} className="rounded-2xl glass-elevated p-6 border-white/5">
+              <motion.div variants={fadeUp} className="rounded-2xl surface-raised p-6 border-white/5">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-2">
                     <TrendingUp size={16} className="text-violet-400" />
@@ -305,7 +305,7 @@ export function Home() {
                 ].map((stat, i) => (
                   <motion.div
                     key={stat.label}
-                    className={`rounded-2xl glass p-4 border ${stat.border} group cursor-pointer overflow-hidden relative`}
+                    className={`rounded-2xl surface p-4 border ${stat.border} group cursor-pointer overflow-hidden relative`}
                     whileHover={{ scale: 1.02, y: -2 }}
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}

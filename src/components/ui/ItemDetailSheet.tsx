@@ -50,7 +50,7 @@ export function ItemDetailSheet({
         onClick={onClose}
       />
       <motion.div
-        className="fixed bottom-0 left-0 right-0 z-[95] md:hidden glass-elevated rounded-t-2xl p-5 pb-8"
+        className="fixed bottom-0 left-0 right-0 z-[95] md:hidden surface-raised rounded-t-2xl p-5 pb-8"
         initial={{ y: '100%' }}
         animate={{ y: 0 }}
         exit={{ y: '100%' }}

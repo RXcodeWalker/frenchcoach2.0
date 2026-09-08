@@ -29,7 +29,7 @@ import type { PronunciationAssessment } from '../../domain/pronunciation/types';
 
 function CardSkeleton() {
   return (
-    <div className="rounded-xl glass-elevated p-5 animate-pulse">
+    <div className="rounded-xl surface-raised p-5 animate-pulse">
       <div className="h-3 bg-slate-700/60 rounded w-1/3 mb-3" />
       <div className="space-y-2">
         <div className="h-2.5 bg-slate-700/40 rounded w-full" />
@@ -216,7 +216,7 @@ function FeedbackContent({
             correctedSentence={feedback.improved_answer ?? feedback.rephrase}
           />
         ) : pronunciationStatus === 'pending' ? (
-          <div className="rounded-xl glass p-4 flex items-center gap-2.5">
+          <div className="rounded-xl surface p-4 flex items-center gap-2.5">
             <Loader2 size={14} className="text-cyan-400 animate-spin shrink-0" />
             <p className="text-[10px] text-ink-muted">Analysing pronunciation…</p>
           </div>
@@ -275,7 +275,7 @@ export function FeedbackExperience({
       : 'Analysing your response…';
     return (
       <motion.div
-        className="rounded-xl glass-elevated p-8 flex flex-col items-center gap-3"
+        className="rounded-xl surface-raised p-8 flex flex-col items-center gap-3"
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
       >

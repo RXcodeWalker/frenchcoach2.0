@@ -60,7 +60,7 @@ export function EngineIndicatorPill({ engine, disabled, onSwitch }: Props) {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -6, scale: 0.95 }}
               transition={{ duration: 0.12 }}
-              className="absolute right-0 top-full mt-2 z-50 w-48 rounded-2xl glass-elevated border border-white/10 shadow-xl overflow-hidden"
+              className="absolute right-0 top-full mt-2 z-50 w-48 rounded-2xl surface-raised border border-white/10 shadow-xl overflow-hidden"
             >
               <p className="text-[9px] font-bold text-ink-muted uppercase tracking-wider px-3 pt-3 pb-1">
                 Switch engine (next eval)

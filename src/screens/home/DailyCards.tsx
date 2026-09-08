@@ -11,7 +11,7 @@ interface Props {
 export function DailyCards({ quote, weakestTopic, onLearn }: Props) {
   return (
     <motion.div variants={fadeUp} className="grid grid-cols-1 md:grid-cols-2 gap-3">
-      <div className="relative overflow-hidden rounded-xl glass border-cyan-500/10 p-4">
+      <div className="relative overflow-hidden rounded-xl surface border-cyan-500/10 p-4">
         <div className="flex items-start gap-3">
           <div className="w-9 h-9 rounded-lg bg-cyan-500/8 border border-cyan-500/15 flex items-center justify-center flex-shrink-0">
             <Brain size={15} className="text-cyan-400" />
@@ -34,7 +34,7 @@ export function DailyCards({ quote, weakestTopic, onLearn }: Props) {
         </div>
       </div>
 
-      <div className="relative overflow-hidden rounded-xl glass border-amber-500/10 p-4">
+      <div className="relative overflow-hidden rounded-xl surface border-amber-500/10 p-4">
         <div className="flex items-start gap-3">
           <div className="w-9 h-9 rounded-lg bg-amber-500/8 border border-amber-500/15 flex items-center justify-center flex-shrink-0">
             <Quote size={15} className="text-amber-400" />

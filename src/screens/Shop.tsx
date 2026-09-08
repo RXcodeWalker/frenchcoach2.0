@@ -239,7 +239,7 @@ export function Shop() {
         />
       </motion.div>
 
-      <motion.div variants={fadeUp} className="flex items-center gap-1 glass rounded-xl p-1 w-fit">
+      <motion.div variants={fadeUp} className="flex items-center gap-1 surface rounded-xl p-1 w-fit">
         {TABS.map(t => (
           <button
             key={t.id}

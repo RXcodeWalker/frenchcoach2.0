@@ -129,7 +129,7 @@ export function HardcoreMode({ run, onQuit }: HardcoreModeProps) {
         right={
           <>
             <StreakBadge streak={run.streak} isOverdrive={run.isOverdrive} />
-            <div className="glass-elevated px-3 py-1.5 rounded-full text-sm font-black text-white">
+            <div className="surface-raised px-3 py-1.5 rounded-full text-sm font-black text-white">
               {run.score}
             </div>
           </>
@@ -154,7 +154,7 @@ export function HardcoreMode({ run, onQuit }: HardcoreModeProps) {
             : { scale: 1, opacity: 1, x: 0 }
         }
         transition={shaking ? shakeTransition : { type: 'spring', damping: 14 }}
-        className={`glass-elevated p-8 rounded-3xl text-center relative ${getOverdriveCardClasses(run.isOverdrive)}`}
+        className={`surface-raised p-8 rounded-3xl text-center relative ${getOverdriveCardClasses(run.isOverdrive)}`}
       >
         <FloatingXPOverlay items={floatingXPs} />
         <div className="text-8xl md:text-9xl leading-none">{q.emojis}</div>

@@ -112,7 +112,7 @@ export const MicroDrillModal: React.FC<MicroDrillModalProps> = ({ skillId, onClo
         initial={{ opacity: 0, scale: 0.9, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.9, y: 20 }}
-        className="relative w-full max-w-xl glass-elevated rounded-[2.5rem] border-white/10 overflow-hidden"
+        className="relative w-full max-w-xl surface-raised rounded-[2.5rem] border-white/10 overflow-hidden"
       >
         {/* Header */}
         <div className="bg-white/5 p-6 flex items-center justify-between border-b border-white/5">
