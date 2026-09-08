@@ -19,7 +19,7 @@ type Props = ButtonProps | AnchorProps;
 
 const PRIMARY_CLASS = 'mk-cta px-7 py-3.5 rounded-full font-semibold text-sm';
 const SECONDARY_CLASS =
-  'px-7 py-3.5 rounded-full font-semibold text-sm border mk-hairline-strong hover:mk-surface transition-colors';
+  'mk-cta-secondary px-7 py-3.5 rounded-full font-semibold text-sm border mk-hairline-strong';
 
 export function CtaButton(props: Props) {
   const variant = props.variant ?? 'primary';

@@ -84,6 +84,19 @@ html:not(.dark) .marketing {
   transform: translateY(0);
 }
 
+.marketing .mk-cta-secondary {
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.marketing .mk-cta-secondary:hover {
+  background: var(--mk-surface);
+  border-color: var(--mk-hairline-strong);
+}
+
+.marketing .mk-cta-secondary:active {
+  transform: translateY(0);
+}
+
 .marketing .mk-link {
   color: var(--mk-ink);
   text-underline-offset: 3px;
@@ -115,5 +128,18 @@ html:not(.dark) .marketing {
     opacity: 1;
     transform: none;
     transition: none;
+  }
+}
+
+/* ── Smooth in-page anchor scroll (e.g. Hero's "See how it works"), gated on
+   .mk-js so it only applies once a marketing page has actually mounted —
+   app screens never add this class, so app navigation is unaffected. ── */
+html.mk-js {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.mk-js {
+    scroll-behavior: auto;
   }
 }

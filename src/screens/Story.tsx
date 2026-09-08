@@ -6,10 +6,11 @@ import { enterGuestMode } from '../hooks/useGuestMode';
 
 // Long-form founder narrative, linked from landing/Founder.tsx and the footer.
 // Public marketing page — MarketingLayout gives it the `.marketing` editorial
-// token scope, the SSR-safe shell, and its own <Seo route="/story">. No motion
-// hooks: the CSS-only <Reveal> is the whole animation budget here, matching the
-// rest of the marketing tree. Reading measure is deliberately tighter than the
-// landing page — 760px for the framing sections, 640px for the article body.
+// token scope, the SSR-safe shell, and its own <Seo route="/story">. The
+// CSS-only <Reveal> (immediate on the hero, scroll-triggered everywhere else)
+// is the whole animation budget here, matching the rest of the marketing tree.
+// Reading measure is deliberately tighter than the landing page — 760px for
+// the framing sections, 640px for the article body.
 
 function startPractisingFree() {
   enterGuestMode();
@@ -69,7 +70,7 @@ export function Story() {
   return (
     <MarketingLayout route="/story" breadcrumb={BREADCRUMB}>
       {/* Hero */}
-      <section className="max-w-[760px] mx-auto px-4 md:px-6 pt-14 md:pt-20 pb-12">
+      <Reveal immediate className="block max-w-[760px] mx-auto px-4 md:px-6 pt-14 md:pt-20 pb-12">
         <p
           className="text-[11px] font-semibold uppercase tracking-[0.14em] mb-6"
           style={{ color: 'var(--mk-accent)' }}
@@ -105,7 +106,7 @@ export function Story() {
           <span aria-hidden="true">·</span>
           <span>8 min read</span>
         </div>
-      </section>
+      </Reveal>
 
       {/* Stat strip */}
       <section className="border-t mk-hairline">
@@ -286,7 +287,7 @@ export function Story() {
 
       {/* Closing */}
       <section className="border-t mk-hairline">
-        <div className="max-w-[700px] mx-auto px-4 md:px-6 py-20 md:py-24 text-center">
+        <Reveal className="block max-w-[700px] mx-auto px-4 md:px-6 py-20 md:py-24 text-center">
           <p className="font-display text-3xl md:text-4xl leading-[1.35] mb-9">
             Language isn&rsquo;t a puzzle to solve on paper.
             <br />
@@ -301,7 +302,7 @@ export function Story() {
           <p className="text-xs" style={{ color: 'var(--mk-ink-faint)' }}>
             No account, no card. Your first session takes twelve minutes.
           </p>
-        </div>
+        </Reveal>
       </section>
     </MarketingLayout>
   );

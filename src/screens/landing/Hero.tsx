@@ -1,5 +1,6 @@
 import { Eyebrow } from '../../components/marketing/Eyebrow';
 import { CtaButton } from '../../components/marketing/CtaButton';
+import { Reveal } from '../../components/marketing/Reveal';
 import { ExamResultVignette } from '../../components/marketing/vignettes/ExamResultVignette';
 import { enterGuestMode } from '../../hooks/useGuestMode';
 
@@ -12,7 +13,7 @@ export function Hero() {
   return (
     <section className="pt-14 md:pt-20 pb-16 md:pb-24">
       <div className="max-w-6xl mx-auto px-4 md:px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-        <div>
+        <Reveal immediate>
           <Eyebrow>AI speaking practice for IGCSE French</Eyebrow>
           <h1 className="font-display text-4xl md:text-6xl leading-[1.05] mb-6">
             Speak French.<br />For real.
@@ -30,9 +31,11 @@ export function Hero() {
           <p className="text-xs" style={{ color: 'var(--mk-ink-faint)' }}>
             Early preview — in active development
           </p>
-        </div>
+        </Reveal>
 
-        <ExamResultVignette />
+        <Reveal immediate delayMs={120}>
+          <ExamResultVignette />
+        </Reveal>
       </div>
     </section>
   );

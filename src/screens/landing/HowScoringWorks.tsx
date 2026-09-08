@@ -21,8 +21,8 @@ export function HowScoringWorks() {
       </Reveal>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-        {LAYERS.map((layer) => (
-          <Reveal key={layer.n}>
+        {LAYERS.map((layer, i) => (
+          <Reveal key={layer.n} delayMs={i * 90}>
             <div className="border-t mk-hairline-strong pt-4">
               <p className="font-display text-xl mb-2" style={{ color: 'var(--mk-accent)' }}>
                 {layer.n}
