@@ -121,12 +121,6 @@ export function PerformanceTimeline({ sessions }: Props) {
       </motion.div>
 
       <div className="relative">
-        {/* Ambient Background Blobs */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-1/4 -left-20 w-64 h-64 bg-violet-600/5 rounded-full blur-[100px] animate-pulse" />
-          <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-blue-600/5 rounded-full blur-[100px] animate-pulse animation-delay-2000" />
-        </div>
-
         {/* Dynamic SVG Energy Line */}
         <div className="absolute left-[19px] top-4 bottom-4 w-[2px] hidden md:block">
           <svg className="h-full w-full overflow-visible" preserveAspectRatio="none">

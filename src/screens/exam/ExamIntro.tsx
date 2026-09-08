@@ -29,7 +29,6 @@ export function ExamIntro({ onStart, onBack }: Props) {
         </div>
 
         <div className="relative overflow-hidden rounded-2xl glass-elevated border-amber-500/15 p-8 text-center">
-          <div className="absolute top-0 right-0 w-56 h-56 bg-amber-500/4 rounded-full blur-3xl pointer-events-none" />
           <div className="relative">
             <motion.div
               className="w-14 h-14 rounded-xl bg-amber-500/8 border border-amber-500/15 flex items-center justify-center text-2xl mx-auto mb-5"

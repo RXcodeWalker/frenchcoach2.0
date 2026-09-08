@@ -62,8 +62,6 @@ export function QuestionCard({ question, showHint, onToggleHint, isReview, selec
         exit={{ opacity: 0, y: -12 }}
         transition={{ duration: 0.3 }}
       >
-        <div className="absolute top-0 right-0 w-64 h-64 bg-violet-electric/5 rounded-full blur-3xl pointer-events-none" />
-        
         <div className="relative">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2 flex-wrap">

@@ -275,7 +275,7 @@ export function Challenges() {
 
                   <div className="h-4 bg-white/5 rounded-full p-1 border border-white/5">
                     <motion.div 
-                      className="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-400 shadow-[0_0_15px_rgba(37,99,235,0.3)] shimmer-bar"
+                      className="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-400 shadow-[0_0_15px_rgba(37,99,235,0.3)]"
                       initial={{ width: 0 }}
                       animate={{ width: `${(GLOBAL_CHALLENGE.progress / GLOBAL_CHALLENGE.goal) * 100}%` }}
                     />

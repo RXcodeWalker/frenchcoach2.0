@@ -73,7 +73,6 @@ export function MysteryBox() {
                 } : {}}
                 whileHover={boxState === 'closed' ? { scale: 1.05 } : {}}
               >
-                <div className="absolute inset-0 bg-pink-500/20 blur-3xl rounded-full group-hover:bg-pink-500/30 transition-colors" />
                 <Gift size={120} className="text-pink-500 relative z-10 drop-shadow-[0_0_15px_rgba(236,72,153,0.5)]" />
                 {boxState === 'closed' && (
                   <motion.div 

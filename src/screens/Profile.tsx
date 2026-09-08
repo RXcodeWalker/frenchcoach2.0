@@ -87,7 +87,6 @@ export function Profile() {
     <PageShell maxWidth="sm">
       {/* Profile Header */}
       <motion.div variants={fadeUp} className="relative overflow-hidden rounded-2xl glass-elevated border-violet-electric/12 p-6">
-        <div className="absolute top-0 right-0 w-40 h-40 bg-violet-electric/4 rounded-full blur-3xl pointer-events-none" />
         <div className="relative flex items-center gap-4">
           <motion.div whileHover={{ scale: 1.05 }}>
             <CosmeticPreview
@@ -113,7 +112,7 @@ export function Profile() {
             )}
             <div className="mt-2 h-1 bg-navy-300 rounded-full overflow-hidden w-44">
               <motion.div
-                className="h-full rounded-full bg-gradient-to-r from-violet-electric to-indigo-400 shimmer-bar"
+                className="h-full rounded-full bg-gradient-to-r from-violet-electric to-indigo-400"
                 initial={{ width: 0 }}
                 animate={{ width: `${progress}%` }}
                 transition={{ duration: 0.8 }}
@@ -166,7 +165,7 @@ export function Profile() {
         </div>
         <div className="mt-2.5 h-1 bg-navy-300 rounded-full overflow-hidden">
           <motion.div
-            className="h-full rounded-full bg-gradient-to-r from-amber-500 to-yellow-400 shimmer-bar"
+            className="h-full rounded-full bg-gradient-to-r from-amber-500 to-yellow-400"
             initial={{ width: 0 }}
             animate={{ width: `${(unlockedCount / ACHIEVEMENTS.length) * 100}%` }}
             transition={{ duration: 0.8 }}

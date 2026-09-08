@@ -861,7 +861,6 @@ function ComparisonModal({ friend, onClose }: { friend: Friend; onClose: () => v
           {/* AI Insight Box */}
           <div className="space-y-4">
             <div className="relative overflow-hidden bg-gradient-to-br from-violet-600/10 to-transparent border border-violet-500/20 rounded-2xl p-5">
-              <div className="absolute -top-6 -right-6 w-24 h-24 bg-violet-500/10 rounded-full blur-2xl" />
               <div className="flex items-start gap-4">
                 <div className="p-2.5 bg-violet-500/20 rounded-xl text-violet-400 animate-pulse">
                   <Sparkles size={20} />

@@ -275,19 +275,6 @@ export function SpeedSpeaking() {
 
     return (
       <div className="max-w-2xl mx-auto px-4 pt-12 relative">
-        <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
-          <motion.div
-            className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-[120px] opacity-20 transition-colors duration-1000 ${
-              isOverdrive ? 'bg-amber-500' : streak >= 5 ? 'bg-purple-500' : 'bg-blue-500'
-            }`}
-            animate={{
-              scale: [1, 1.2, 1],
-              opacity: [0.1, 0.2, 0.1],
-            }}
-            transition={{ duration: 4, repeat: Infinity }}
-          />
-        </div>
-
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-4">
             <div className={`glass-elevated px-4 py-2 rounded-xl flex items-center gap-2 transition-all duration-500 relative ${isOverdrive ? getOverdriveClasses(true) : 'border-blue-500/20'}`}>

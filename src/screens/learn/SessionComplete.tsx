@@ -26,7 +26,6 @@ export function SessionComplete({ scores, unscored, wordCount, xpEarned, cefrLev
         transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
       >
         <div className="relative overflow-hidden rounded-2xl glass-elevated border-violet-electric/20 p-8 text-center">
-          <div className="absolute top-0 right-0 w-40 h-40 bg-violet-electric/5 rounded-full blur-3xl pointer-events-none" />
           <div className="relative">
             <motion.div
               className="text-5xl mb-4"

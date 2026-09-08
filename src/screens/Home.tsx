@@ -142,7 +142,6 @@ export function Home() {
               } p-5`}
               whileHover={{ scale: 1.01, translateY: -2 }}
             >
-              <div className="absolute top-0 right-0 w-40 h-40 bg-violet-500/5 rounded-full blur-3xl group-hover:bg-violet-500/10 transition-colors" />
               <div className="relative z-10 flex items-start gap-4">
                 <div className={`shrink-0 w-10 h-10 rounded-xl flex items-center justify-center ${
                   dailyPlan.urgency !== 'none' ? 'bg-orange-500/10' : 'bg-violet-500/10'
@@ -222,7 +221,6 @@ export function Home() {
               onClick={() => navigate('/learn')}
               className="group relative overflow-hidden rounded-2xl glass-elevated border-blue-500/20 p-6 cursor-pointer"
             >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl group-hover:bg-blue-500/20 transition-colors" />
               <div className="relative z-10">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
@@ -249,7 +247,6 @@ export function Home() {
               onClick={() => navigate('/learn')}
               className="group relative overflow-hidden rounded-2xl glass-elevated border-amber-500/20 p-6 cursor-pointer"
             >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-3xl group-hover:bg-amber-500/20 transition-colors" />
               <div className="relative z-10">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center">

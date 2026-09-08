@@ -373,7 +373,6 @@ function ShopHeader({
 }) {
   return (
     <Card variant="elevated" className="relative overflow-hidden">
-      <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-emerald-500/20 blur-3xl" />
       <div className="relative flex flex-wrap items-center justify-between gap-4">
         <motion.div layoutId={flyingSlot ? `equip-home-${flyingSlot}` : undefined}>
           <CosmeticPreview

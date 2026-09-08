@@ -17,23 +17,9 @@ export function HeroMission({ todayCount, onLearn, onExam }: Props) {
   return (
     <motion.div variants={fadeUp}>
       <div className="relative overflow-hidden rounded-3xl glass-elevated border-violet-electric/20 p-8 md:p-10">
-        {/* Animated Background Orbs */}
-        <div className="absolute -top-24 -right-24 w-64 h-64 bg-violet-600/10 rounded-full blur-[80px] animate-pulse" />
-        <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-blue-600/10 rounded-full blur-[80px] animate-pulse delay-1000" />
-        
         <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 md:gap-12">
           {/* Progress Section */}
           <div className="relative shrink-0">
-            <div className="absolute inset-0 flex items-center justify-center">
-              <motion.div 
-                className="w-32 h-32 rounded-full bg-violet-electric/10 blur-2xl"
-                animate={{ 
-                  scale: [1, 1.2, 1],
-                  opacity: [0.5, 0.8, 0.5]
-                }}
-                transition={{ duration: 3, repeat: Infinity }}
-              />
-            </div>
             <ProgressRing
               value={todayCount}
               max={DAILY_GOAL}

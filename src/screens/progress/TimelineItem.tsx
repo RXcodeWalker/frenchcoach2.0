@@ -35,11 +35,6 @@ export function TimelineItem({ session, isExpanded, onToggle }: Props) {
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:animate-shimmer-sweep pointer-events-none" />
       )}
 
-      {/* Performance Glow */}
-      {isHighPerformance && (
-        <div className={`absolute top-0 right-0 w-32 h-32 ${isPerfect ? 'bg-amber-500/10' : 'bg-emerald-500/5'} rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none`} />
-      )}
-      
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
         <div className="flex items-start gap-4">
           <motion.div 

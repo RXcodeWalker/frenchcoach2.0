@@ -63,7 +63,7 @@ export function SkillsTab() {
                     </div>
                     <div className="h-1.5 bg-navy-300 rounded-full overflow-hidden">
                       <motion.div
-                        className="h-full rounded-full liquid-wave"
+                        className="h-full rounded-full"
                         style={{
                           background: pct >= 70
                             ? 'linear-gradient(90deg, rgba(16, 185, 129, 0.3) 0%, rgba(16, 185, 129, 0.6) 50%, rgba(16, 185, 129, 0.3) 100%)'

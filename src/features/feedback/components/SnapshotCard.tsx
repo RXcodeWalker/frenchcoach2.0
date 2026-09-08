@@ -92,7 +92,7 @@ export function SnapshotCard({ feedback }: Props) {
             <div className="text-[9px] text-slate-600">{label}</div>
             <div className="mt-1.5 h-1 bg-slate-800 rounded-full overflow-hidden">
               <motion.div
-                className="h-full rounded-full shimmer-bar"
+                className="h-full rounded-full"
                 style={{ background: scoreColor(val) }}
                 initial={{ width: 0 }}
                 animate={{ width: `${(val / 10) * 100}%` }}

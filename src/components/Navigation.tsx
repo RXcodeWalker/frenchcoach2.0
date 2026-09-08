@@ -33,7 +33,7 @@ export function SideRail() {
       <nav className="nav-rail fixed left-0 top-0 bottom-0 w-[64px] glass border-r border-white/[0.04] z-50 hidden md:flex flex-col items-center py-5 gap-1">
         {/* Logo */}
         <motion.div
-          className="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-electric to-indigo-500 flex items-center justify-center mb-8 animate-icon-glow"
+          className="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-electric to-indigo-500 flex items-center justify-center mb-8"
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
           style={{ boxShadow: '0 0 20px rgba(124, 58, 237, 0.35)' }}
