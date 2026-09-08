@@ -40,7 +40,64 @@
   html:not(.dark) * { scrollbar-color: rgba(0,0,0,0.12) transparent; }
 }
 
+/* ============================================================
+   ROLE-NAMED TOKEN LAYER — design-system migration (additive)
+   Dark = :root · Light = html:not(.dark). Both values ARE the token;
+   never patch a colour in a light-mode override.
+   Nothing consumes these yet — the .glass→.surface sweep and the
+   legacy-alias remap are a separate, reviewed pass. See README
+   "Design tokens".
+   ============================================================ */
+:root {
+  --bg:#0A0C10; --surface:#12151C; --surface-recessed:#0E1116; --surface-raised:#161A23;
+  --hairline:rgba(255,255,255,.08); --hairline-strong:rgba(255,255,255,.14);
+  --ink:#EEF0F5; --ink-muted:#98A0AE; --ink-subtle:#7E8794;
+  --action:#7C3AED; --action-hover:#8B5CF6; --action-press:#6D28D9;
+  --action-ink:#FFFFFF; --action-text:#A78BFA; --action-soft:rgba(124,58,237,.14);
+  --progress:#10B981; --progress-text:#34D399; --progress-soft:rgba(16,185,129,.12);
+  --reward:#F59E0B; --reward-text:#FBBF24; --reward-soft:rgba(245,158,11,.12);
+  --streak:#FB923C; --streak-text:#FDBA74;
+  --correction:#F43F5E; --correction-text:#FB7185; --correction-soft:rgba(244,63,94,.10);
+  --focus:#A78BFA;
+  --track:rgba(255,255,255,.07); --scrim:rgba(8,9,11,.72);
+  --shadow-card:0 1px 2px rgba(0,0,0,.4); --shadow-overlay:0 24px 60px -20px rgba(0,0,0,.75);
+  --radius-control:8px; --radius-card:12px; --radius-pill:999px;
+  --dur-state:120ms; --dur-enter:200ms; --dur-overlay:320ms; --dur-celebrate:600ms;
+  --ease:cubic-bezier(.2,0,.2,1); --ease-out:cubic-bezier(.16,1,.3,1);
+}
+
+html:not(.dark) {
+  --bg:#FAFAF8; --surface:#FFFFFF; --surface-recessed:#F4F3F0; --surface-raised:#FFFFFF;
+  --hairline:rgba(26,26,24,.10); --hairline-strong:rgba(26,26,24,.18);
+  --ink:#1A1A18; --ink-muted:#55534C; --ink-subtle:#6E6B63;
+  --action:#7C3AED; --action-hover:#6D28D9; --action-press:#5B21B6;
+  --action-ink:#FFFFFF; --action-text:#6D28D9; --action-soft:rgba(124,58,237,.08);
+  --progress:#059669; --progress-text:#047857; --progress-soft:rgba(5,150,105,.10);
+  --reward:#B45309; --reward-text:#92400E; --reward-soft:rgba(180,83,9,.10);
+  --streak:#C2410C; --streak-text:#C2410C;
+  --correction:#DC2626; --correction-text:#B91C1C; --correction-soft:rgba(220,38,38,.07);
+  --focus:#7C3AED;
+  --track:rgba(26,26,24,.09); --scrim:rgba(26,26,24,.35);
+  --shadow-card:0 1px 2px rgba(26,26,24,.06); --shadow-overlay:0 24px 60px -20px rgba(26,26,24,.25);
+}
+
 @layer components {
+  /* Flat surfaces — the .glass* successors. Hierarchy comes from
+     surface + 1px hairline, never blur or glow. Unused until the sweep. */
+  .surface {
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+  }
+  .surface-raised {
+    background: var(--surface-raised);
+    border: 1px solid var(--hairline-strong);
+    box-shadow: var(--shadow-overlay);
+  }
+  .surface-recessed {
+    background: var(--surface-recessed);
+    border: 1px solid var(--hairline);
+  }
+
   /* Glassmorphism Card — Primary with Gradient Border */
   .glass {
     background: rgba(14, 17, 23, 0.5);
