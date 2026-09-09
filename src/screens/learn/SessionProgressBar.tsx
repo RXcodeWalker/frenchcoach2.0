@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import { EngineIndicatorPill } from './EngineIndicatorPill';
 import { averageRealScores } from '../../domain/scoring';
@@ -14,6 +13,13 @@ interface Props {
   onEndSession: () => void;
 }
 
+/**
+ * The session header + segmented position bar (Component Kit §06): one 4px
+ * segment per question in --action, the current one outlined rather than
+ * pulsing. Completed segments keep an honest score tint — a real band colour,
+ * or neutral --ink-subtle when every attempt on that question was unscored
+ * (never a fabricated red/amber from a placeholder 0; see CLAUDE.md).
+ */
 export function SessionProgressBar({ session, topicLabel, topicIcon, selectedEngine, isEvaluating, onEngineSwitch, onEndSession }: Props) {
   const { currentIndex, targetCount, answerStreak, xpAccumulated } = session;
   const questionNumber = Math.min(currentIndex + 1, targetCount);
@@ -29,31 +35,26 @@ export function SessionProgressBar({ session, topicLabel, topicIcon, selectedEng
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2 flex-1 min-w-0">
           <span className="text-sm">{topicIcon}</span>
-          <span className="text-xs font-bold text-ink-muted truncate">{topicLabel}</span>
+          <span className="text-xs font-semibold text-ink-muted truncate">{topicLabel}</span>
           <span className="text-ink-subtle">·</span>
-          <span className="text-xs font-black text-white whitespace-nowrap">
+          <span className="font-numeral text-xs text-ink tabular-nums whitespace-nowrap">
             Q{questionNumber}/{targetCount}
           </span>
         </div>
 
         <div className="flex items-center gap-2">
           {avgScore !== null && (
-            <span className="text-xs font-bold text-ink-muted whitespace-nowrap">
+            <span className="font-numeral text-xs text-ink-muted tabular-nums whitespace-nowrap">
               avg {avgScore.toFixed(1)}
             </span>
           )}
           {answerStreak >= 3 && (
-            <motion.span
-              className="text-xs font-black text-orange-400 whitespace-nowrap"
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              key={answerStreak}
-            >
+            <span className="font-numeral text-xs text-streak-text tabular-nums whitespace-nowrap">
               🔥 {answerStreak}
-            </motion.span>
+            </span>
           )}
           {xpAccumulated > 0 && (
-            <span className="text-[10px] font-bold text-emerald-400 whitespace-nowrap">
+            <span className="font-numeral text-[10px] text-reward-text tabular-nums whitespace-nowrap">
               +{xpAccumulated} XP
             </span>
           )}
@@ -66,7 +67,7 @@ export function SessionProgressBar({ session, topicLabel, topicIcon, selectedEng
 
           <button
             onClick={onEndSession}
-            className="p-1.5 rounded-lg surface-recessed text-ink-subtle hover:text-white hover:bg-white/5 transition-colors"
+            className="p-1.5 rounded-control surface-recessed text-ink-subtle hover:text-ink transition-colors duration-state ease-smooth"
             title="End session early"
           >
             <X size={12} />
@@ -74,30 +75,34 @@ export function SessionProgressBar({ session, topicLabel, topicIcon, selectedEng
         </div>
       </div>
 
-      {/* Progress dots */}
-      <div className="flex gap-1 items-center">
+      {/* Segmented position bar — one 4px segment per question */}
+      <div className="flex gap-1 items-center h-1">
         {Array.from({ length: targetCount }, (_, i) => {
           const q = session.questions[i];
           const isCompleted = q?.status === 'completed';
           const isActive = i === currentIndex;
           const score = q?.bestScore ?? null;
 
-          let dotColor = 'bg-white/10';
+          let segClass = 'bg-track';
           if (isCompleted) {
-            // null = every attempt on this question was unscored (offline) —
-            // neutral color, never fabricated red/amber from a placeholder 0.
-            dotColor = score == null ? 'bg-slate-500' : score >= 8 ? 'bg-emerald-500' : score >= 6 ? 'bg-amber-500' : 'bg-rose-500';
+            segClass =
+              score == null
+                ? 'bg-ink-subtle'
+                : score >= 8
+                  ? 'bg-progress'
+                  : score >= 6
+                    ? 'bg-reward'
+                    : 'bg-correction';
           } else if (isActive) {
-            dotColor = 'bg-violet-500 animate-pulse';
+            // outlined, not filled or pulsing
+            segClass = 'bg-transparent ring-1 ring-inset ring-action';
           }
 
           return (
-            <motion.div
+            <div
               key={i}
-              className={`h-1.5 rounded-full transition-all duration-300 ${dotColor}`}
+              className={`h-1 rounded-full transition-colors duration-state ease-smooth ${segClass}`}
               style={{ flex: 1 }}
-              initial={false}
-              animate={{ opacity: isActive ? 1 : isCompleted ? 0.9 : 0.4 }}
             />
           );
         })}

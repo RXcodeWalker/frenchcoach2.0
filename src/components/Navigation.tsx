@@ -1,25 +1,50 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import type { Screen } from '../types';
 import { Home, BookOpen, GraduationCap, BarChart3, User, Compass, Flame, Users, ShoppingBag, Trophy, Info, Cloud, CloudOff } from 'lucide-react';
 import { AuthModal } from './AuthModal';
 
-const NAV_ITEMS: { id: Screen; label: string; icon: React.ReactNode; glowColor: string }[] = [
-  { id: 'home', label: 'Home', icon: <Home size={18} />, glowColor: '#7C3AED' },
-  { id: 'learn', label: 'Learn', icon: <BookOpen size={18} />, glowColor: '#0EA5E9' },
-  { id: 'exam', label: 'Exam', icon: <GraduationCap size={18} />, glowColor: '#F59E0B' },
-  { id: 'shop', label: 'Shop', icon: <ShoppingBag size={18} />, glowColor: '#EC4899' },
-  { id: 'explore', label: 'Explore', icon: <Compass size={18} />, glowColor: '#06B6D4' },
-  { id: 'study-groups', label: 'Groups', icon: <Users size={18} />, glowColor: '#10B981' },
-  { id: 'rankings', label: 'Rankings', icon: <Trophy size={18} />, glowColor: '#F59E0B' },
-  { id: 'progress', label: 'Progress', icon: <BarChart3 size={18} />, glowColor: '#8B5CF6' },
-  { id: 'profile', label: 'Profile', icon: <User size={18} />, glowColor: '#EC4899' },
-  { id: 'about', label: 'About', icon: <Info size={18} />, glowColor: '#94A3B8' },
+// Four primary destinations, then the game layer below the divider (Component
+// Kit §03). No per-item colour — the rail has one active treatment.
+const PRIMARY_ITEMS: { id: Screen; label: string; icon: React.ReactNode }[] = [
+  { id: 'home', label: 'Home', icon: <Home size={19} /> },
+  { id: 'learn', label: 'Learn', icon: <BookOpen size={19} /> },
+  { id: 'exam', label: 'Exam', icon: <GraduationCap size={19} /> },
+  { id: 'progress', label: 'Progress', icon: <BarChart3 size={19} /> },
 ];
 
+const GAME_ITEMS: { id: Screen; label: string; icon: React.ReactNode }[] = [
+  { id: 'explore', label: 'Explore', icon: <Compass size={19} /> },
+  { id: 'shop', label: 'Shop', icon: <ShoppingBag size={19} /> },
+  { id: 'rankings', label: 'Rankings', icon: <Trophy size={19} /> },
+  { id: 'study-groups', label: 'Groups', icon: <Users size={19} /> },
+  { id: 'profile', label: 'Profile', icon: <User size={19} /> },
+  { id: 'about', label: 'About', icon: <Info size={19} /> },
+];
+
+const MOBILE_ITEMS = [...PRIMARY_ITEMS, GAME_ITEMS[0]];
+
 const toPath = (id: Screen): string => id === 'home' ? '/' : `/${id}`;
+
+function RailItem({ id, label, icon, active, onClick }: { id: Screen; label: string; icon: React.ReactNode; active: boolean; onClick: () => void }) {
+  return (
+    <button
+      key={id}
+      onClick={onClick}
+      className={`group relative w-full rounded-control flex flex-col items-center gap-1 py-2
+        transition-colors duration-state ease-smooth
+        ${active ? 'bg-action-soft text-action-text' : 'text-ink-subtle hover:text-ink-muted'}`}
+    >
+      {/* 3px active tab, flush to the rail edge */}
+      {active && (
+        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-action" />
+      )}
+      <span className="relative z-10">{icon}</span>
+      <span className="relative z-10 text-[11px] font-semibold">{label}</span>
+    </button>
+  );
+}
 
 export function SideRail() {
   const { state, authUser } = useApp();
@@ -29,141 +54,70 @@ export function SideRail() {
 
   return (
     <>
-      {/* Desktop Side Rail */}
-      <nav className="nav-rail fixed left-0 top-0 bottom-0 w-[64px] surface border-r border-white/[0.04] z-50 hidden md:flex flex-col items-center py-5 gap-1">
-        {/* Logo */}
-        <motion.div
-          className="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-electric to-indigo-500 flex items-center justify-center mb-8"
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
-          style={{ boxShadow: '0 0 20px rgba(124, 58, 237, 0.35)' }}
-        >
-          <span className="text-sm font-black text-white">F</span>
-        </motion.div>
-
-        {/* Nav Items */}
-        <div className="flex-1 flex flex-col items-center gap-0.5">
-          {NAV_ITEMS.map(item => {
-            const active = location.pathname === toPath(item.id);
-            return (
-              <motion.button
-                key={item.id}
-                onClick={() => navigate(toPath(item.id))}
-                className={`group relative w-10 h-10 rounded-lg flex items-center justify-center transition-colors duration-200 ${
-                  active
-                    ? 'text-violet-400'
-                    : 'text-ink-subtle hover:text-ink-muted'
-                }`}
-                whileHover={{ scale: 1.08 }}
-                whileTap={{ scale: 0.92 }}
-              >
-                {/* Active glow background */}
-                {active && (
-                  <motion.div
-                    layoutId="nav-glow"
-                    className="absolute inset-0 rounded-lg bg-violet-electric/10"
-                    style={{ boxShadow: '0 0 16px rgba(124, 58, 237, 0.2)' }}
-                    transition={{ type: 'spring', stiffness: 350, damping: 30 }}
-                  />
-                )}
-                {/* Active indicator line (rendered without layout animation to avoid misalignment) */}
-                {active && (
-                  <div
-                    className="absolute left-0 top-1/2 -translate-y-1/2 w-[2.5px] h-4 bg-violet-400 rounded-r-full"
-                    style={{ boxShadow: '0 0 8px rgba(124, 58, 237, 0.7)' }}
-                  />
-                )}
-                <span
-                  className="relative z-10"
-                  style={{
-                    color: active ? item.glowColor : undefined,
-                    filter: active ? `drop-shadow(0 0 6px ${item.glowColor})` : undefined,
-                  }}
-                >
-                  {item.icon}
-                </span>
-                {/* Tooltip */}
-                <div className="absolute left-full ml-2.5 px-2 py-1 bg-navy-200 border border-white/10 rounded-md text-[10px] font-semibold text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl z-50">
-                  {item.label}
-                </div>
-              </motion.button>
-            );
-          })}
+      {/* Desktop Side Rail — 88px, one active treatment for every item */}
+      <nav className="nav-rail fixed left-0 top-0 bottom-0 w-[88px] surface border-r border-hairline z-50 hidden md:flex flex-col items-center py-5 px-2 gap-1">
+        <div className="w-9 h-9 rounded-control bg-action flex items-center justify-center mb-6">
+          <span className="text-sm font-semibold text-action-ink">F</span>
         </div>
 
-        {/* Cloud sync button */}
-        <motion.button
+        <div className="flex-1 flex flex-col items-stretch gap-0.5 w-full">
+          {PRIMARY_ITEMS.map(item => (
+            <RailItem
+              key={item.id}
+              {...item}
+              active={location.pathname === toPath(item.id)}
+              onClick={() => navigate(toPath(item.id))}
+            />
+          ))}
+
+          {/* Divider: work above, reward below */}
+          <div className="h-px bg-hairline my-2 mx-1.5" />
+
+          {GAME_ITEMS.map(item => (
+            <RailItem
+              key={item.id}
+              {...item}
+              active={location.pathname === toPath(item.id)}
+              onClick={() => navigate(toPath(item.id))}
+            />
+          ))}
+        </div>
+
+        {/* Cloud sync */}
+        <button
           onClick={() => setShowAuth(true)}
-          className="group relative w-9 h-9 rounded-lg flex items-center justify-center mb-1"
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.92 }}
+          className="w-9 h-9 rounded-control flex items-center justify-center mb-1 transition-colors duration-state ease-smooth text-ink-subtle hover:text-ink-muted"
           title={authUser ? `Signed in: ${authUser.email}` : 'Sign in to sync'}
         >
-          {authUser ? (
-            <Cloud size={15} className="text-emerald-400" style={{ filter: 'drop-shadow(0 0 6px #34d399)' }} />
-          ) : (
-            <CloudOff size={15} className="text-ink-muted group-hover:text-ink-muted transition-colors" />
-          )}
-          <div className="absolute left-full ml-2.5 px-2 py-1 bg-navy-200 border border-white/10 rounded-md text-[10px] font-semibold text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl z-50">
-            {authUser ? 'Synced' : 'Sync'}
-          </div>
-        </motion.button>
+          {authUser ? <Cloud size={16} className="text-progress-text" /> : <CloudOff size={16} />}
+        </button>
 
         {/* Streak */}
-        <div className="flex flex-col items-center gap-1.5 mb-1">
-          <motion.div
-            className="w-9 h-9 rounded-lg bg-orange-500/8 border border-orange-500/15 flex items-center justify-center"
-            whileHover={{ scale: 1.1 }}
-          >
-            <Flame size={14} className="text-orange-400" />
-          </motion.div>
-          <span className="text-[9px] font-bold text-orange-400">{state.profile.streak_days}</span>
+        <div className="flex flex-col items-center gap-1 mb-1">
+          <Flame size={16} className="text-streak-text" />
+          <span className="font-numeral text-[11px] text-streak-text tabular-nums">{state.profile.streak_days}</span>
         </div>
       </nav>
 
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
 
-      {/* Mobile Bottom Dock */}
+      {/* Mobile Bottom Dock — the rail is replaced, not shrunk */}
       <nav className="nav-rail fixed bottom-0 left-0 right-0 z-50 md:hidden">
-        <div className="mx-3 mb-3 px-1.5 py-1.5 surface-raised rounded-2xl">
+        <div className="mx-3 mb-3 px-1.5 py-1.5 surface-raised rounded-xl">
           <div className="flex items-center justify-around">
-            {NAV_ITEMS.slice(0, 5).map(item => {
+            {MOBILE_ITEMS.map(item => {
               const active = location.pathname === toPath(item.id);
               return (
-                <motion.button
+                <button
                   key={item.id}
                   onClick={() => navigate(toPath(item.id))}
-                  className={`relative flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl transition-colors duration-200 ${
-                    active ? 'text-violet-400' : 'text-ink-muted'
-                  }`}
-                  whileTap={{ scale: 0.9 }}
+                  className={`relative flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-control min-h-[44px] justify-center
+                    transition-colors duration-state ease-smooth
+                    ${active ? 'bg-action-soft text-action-text' : 'text-ink-subtle'}`}
                 >
-                  {active && (
-                    <motion.div
-                      layoutId="mobile-nav-glow"
-                      className="absolute inset-0 rounded-xl bg-violet-electric/8"
-                      transition={{ type: 'spring', stiffness: 350, damping: 30 }}
-                    />
-                  )}
-                  <div
-                    className="relative z-10"
-                    style={{
-                      color: active ? item.glowColor : undefined,
-                      filter: active ? `drop-shadow(0 0 4px ${item.glowColor})` : undefined,
-                    }}
-                  >
-                    {item.icon}
-                  </div>
-                  <span className="text-[9px] font-bold relative z-10">{item.label}</span>
-                  {active && (
-                    <motion.div
-                      layoutId="mobile-nav-dot"
-                      className="w-1 h-1 rounded-full bg-violet-400"
-                      style={{ boxShadow: '0 0 6px rgba(124, 58, 237, 0.8)' }}
-                      transition={{ type: 'spring', stiffness: 350, damping: 30 }}
-                    />
-                  )}
-                </motion.button>
+                  <span className="relative z-10">{item.icon}</span>
+                  <span className="text-[11px] font-semibold relative z-10">{item.label}</span>
+                </button>
               );
             })}
           </div>
