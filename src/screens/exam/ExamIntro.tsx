@@ -1,81 +1,78 @@
 import { motion } from 'framer-motion';
-import { Play, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
+import { Button } from '../../components/ui/Button';
 
 interface Props {
   onStart: () => void;
   onBack: () => void;
 }
 
+const PAPER = [
+  { n: '01', label: 'Role play — à la boulangerie', meta: '5 prompts · you have the card for 1 min' },
+  { n: '02', label: 'Topic conversation — les loisirs', meta: '3 min · your chosen topic' },
+  { n: '03', label: 'General conversation', meta: '3 min · unseen questions' },
+];
+
 export function ExamIntro({ onStart, onBack }: Props) {
   return (
-    <div className="min-h-screen pb-24 md:pb-8">
+    <div data-hatch="immersive" className="min-h-screen bg-bg pb-24 md:pb-8">
       <motion.div
-        className="max-w-2xl mx-auto px-4 md:px-6 pt-6 md:pt-8 space-y-5"
+        className="max-w-2xl mx-auto px-4 md:px-6 pt-14 md:pt-16 space-y-6"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4 }}
       >
-        <div className="flex items-center gap-4 mb-2">
-          <button 
+        <div className="flex items-center gap-3">
+          <button
             onClick={onBack}
-            className="w-10 h-10 rounded-xl surface flex items-center justify-center text-ink-muted hover:text-white hover:bg-white/10 transition-all border border-white/5"
+            aria-label="Back"
+            className="w-9 h-9 rounded-control surface flex items-center justify-center
+              text-ink-muted hover:text-ink transition-colors duration-state ease-smooth"
           >
-            <ArrowLeft size={20} />
+            <ArrowLeft size={18} />
           </button>
-          <div>
-            <h1 className="text-xl font-black text-white uppercase tracking-tight">Exam Simulation</h1>
-            <p className="text-[10px] text-ink-muted font-bold uppercase tracking-widest">Mock Oral Assessment</p>
-          </div>
-        </div>
-
-        <div className="relative overflow-hidden rounded-2xl surface-raised border-amber-500/15 p-8 text-center">
-          <div className="relative">
-            <motion.div
-              className="w-14 h-14 rounded-xl bg-amber-500/8 border border-amber-500/15 flex items-center justify-center text-2xl mx-auto mb-5"
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-            >
-              🎓
-            </motion.div>
-            <h2 className="text-2xl font-black text-white mb-2">IGCSE Exam Simulation</h2>
-            <p className="text-sm text-ink-muted leading-relaxed mb-6 max-w-md mx-auto">Experience a full IGCSE French oral exam. Self-paced preparation, then live speaking phases for each part.</p>
-            <div className="grid grid-cols-3 gap-2 mb-7 max-w-sm mx-auto">
-              {[
-                { value: '~10m', label: 'Prep (untimed)', color: 'text-amber-400' },
-                { value: '~2m', label: 'Role Play', color: 'text-violet-400' },
-                { value: '~4m ea.', label: 'Topics', color: 'text-emerald-400' },
-              ].map(s => (
-                <div key={s.label} className="p-2.5 rounded-xl surface-recessed">
-                  <p className={`text-lg font-black ${s.color}`}>{s.value}</p>
-                  <p className="text-[9px] text-ink-subtle">{s.label}</p>
-                </div>
-              ))}
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-pill bg-action text-action-ink flex items-center justify-center exam-serif text-body-l">
+              C
             </div>
-            <motion.button
-              onClick={onStart}
-              className="btn-primary px-7 py-3.5 rounded-xl font-bold text-sm flex items-center gap-2 mx-auto"
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-            >
-              <Play size={15} /> Begin Mock Exam
-            </motion.button>
+            <div>
+              <div className="exam-serif text-subtitle text-ink leading-tight">Claire</div>
+              <div className="text-body-s text-ink-subtle">your examiner tonight</div>
+            </div>
           </div>
+          <span className="ml-auto font-numeral text-body-s text-ink-subtle tabular-nums">
+            0520 · Paper 4
+          </span>
         </div>
 
-        <div className="rounded-xl surface p-5">
-          <h3 className="font-bold text-ink-muted text-[10px] uppercase tracking-wider mb-3">Exam Structure</h3>
-          <div className="space-y-1.5">
-            {[
-              { label: 'Preparation (untimed)', desc: 'Review your Role Play card and make notes — take as long as you like.' },
-              { label: 'Part 1: Role Play', desc: "Answer the examiner's 5 questions in a role-play scenario." },
-              { label: 'Part 2: Topic 1', desc: '~4 min conversation on Everyday Life topics (may extend with follow-up questions).' },
-              { label: 'Part 3: Topic 2', desc: '~4 min conversation on The World topics (may extend with follow-up questions).' },
-            ].map(item => (
-              <div key={item.label} className="flex items-center gap-3 p-2.5 rounded-lg surface-recessed">
-                <div className="flex-1">
-                  <p className="text-[10px] font-semibold text-white">{item.label}</p>
-                  <p className="text-[9px] text-ink-subtle">{item.desc}</p>
+        <div className="rounded-card surface p-6">
+          <p className="exam-serif text-display-m text-ink leading-snug">
+            Bonsoir. On commence par tes loisirs — trois minutes, comme le jour de l&rsquo;examen.
+          </p>
+          <p className="text-body-l text-ink-muted mt-3 leading-relaxed">
+            Good evening. We&rsquo;ll start with your hobbies — three minutes, exactly like exam day.
+            I won&rsquo;t interrupt you, and I won&rsquo;t show you a mark until the end.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <Button variant="primary" size="lg" onClick={onStart}>
+            Je suis prêt · start
+          </Button>
+          <Button variant="quiet" size="lg" onClick={onStart}>
+            Hear the card first
+          </Button>
+        </div>
+
+        <div className="border-t border-hairline pt-6">
+          <div className="text-eyebrow uppercase text-ink-subtle mb-4">Tonight&rsquo;s paper</div>
+          <div className="space-y-4">
+            {PAPER.map((item) => (
+              <div key={item.n} className="flex gap-4">
+                <span className="font-numeral text-body-s text-ink-subtle tabular-nums pt-1">{item.n}</span>
+                <div>
+                  <div className="exam-serif text-subtitle text-ink">{item.label}</div>
+                  <div className="text-body-s text-ink-subtle">{item.meta}</div>
                 </div>
               </div>
             ))}

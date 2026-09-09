@@ -6,6 +6,8 @@ export const STORAGE_KEYS = {
   topicMastery:   'frenchCoach_topicMastery',
   masteredDrills: 'frenchCoach_masteredDrills',
   darkMode:       'frenchCoach_darkMode',
+  // 'paper' (the warm exam voice) | 'app' (follow the core token theme)
+  examVoice:      'frenchCoach_examVoice',
   aiEngine:       'frenchCoach_aiEngine',
   difficulty:     'frenchCoach_difficulty',
   // docs (Learn adaptive difficulty) §6.4/§16 Stage 10 — replaces `difficulty`

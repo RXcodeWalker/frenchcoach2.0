@@ -1,0 +1,91 @@
+/* ============================================================
+   Exam voice — the warm-paper "different room" for exam mode and
+   the returned script (FrenchCoach Enhanced, screens 4/9/10).
+   Scoped to `.exam-voice`; forced regardless of the app's
+   light/dark theme, because the switch itself is the signal that
+   the learner is in an assessment, not practice.
+
+   It works by re-pointing the core token *utility classes* the
+   exam screens already use (`.bg-bg`, `.surface`, `.text-ink`,
+   `.bg-action`, …), so the same JSX renders in either voice with
+   no per-screen branching. When the learner toggles to "App
+   theme" the wrapper drops this class and the core tokens apply.
+   ============================================================ */
+
+.exam-voice {
+  --paper-bg: #F3EDE1;
+  --paper-surface: #EBE1CD;          /* the examiner speech bubble / cards */
+  --paper-recessed: #FFFFFF;         /* insets on paper */
+  --paper-ink: #201E1A;
+  --paper-ink-muted: #57503F;
+  --paper-ink-subtle: #6B6353;
+  --paper-hairline: #DED3BB;
+  --paper-hairline-strong: #C9BDA4;
+  --paper-accent: #1F4D3F;           /* dark green — the exam primary */
+  --paper-accent-ink: #F3EDE1;
+  --paper-accent-soft: rgba(31, 77, 63, 0.10);
+
+  background: var(--paper-bg);
+  color: var(--paper-ink);
+}
+
+/* ---- ground + text ---- */
+.exam-voice .bg-bg { background-color: var(--paper-bg) !important; }
+.exam-voice .text-ink { color: var(--paper-ink) !important; }
+.exam-voice .text-ink-muted { color: var(--paper-ink-muted) !important; }
+.exam-voice .text-ink-subtle { color: var(--paper-ink-subtle) !important; }
+
+/* ---- surfaces: all three collapse toward warm paper, hierarchy is
+        the 1px rule, not elevation ---- */
+.exam-voice .surface,
+.exam-voice .surface-raised,
+.exam-voice .surface-recessed {
+  background: var(--paper-surface) !important;
+  border-color: var(--paper-hairline) !important;
+  box-shadow: none !important;
+}
+.exam-voice .surface-recessed {
+  background: var(--paper-recessed) !important;
+}
+
+/* ---- hairlines ---- */
+.exam-voice .border-hairline { border-color: var(--paper-hairline) !important; }
+.exam-voice .border-hairline-strong { border-color: var(--paper-hairline-strong) !important; }
+
+/* ---- action → dark green ---- */
+.exam-voice .bg-action { background-color: var(--paper-accent) !important; }
+.exam-voice .bg-action:hover,
+.exam-voice .hover\:bg-action-hover:hover { background-color: #17382E !important; }
+.exam-voice .text-action-ink { color: var(--paper-accent-ink) !important; }
+.exam-voice .text-action-text { color: var(--paper-accent) !important; }
+.exam-voice .bg-action-soft { background-color: var(--paper-accent-soft) !important; }
+.exam-voice .border-action,
+.exam-voice .border-t-action { border-color: var(--paper-accent) !important; }
+.exam-voice .border-action-soft { border-color: var(--paper-accent-soft) !important; }
+.exam-voice .ring-action { --tw-ring-color: var(--paper-accent) !important; }
+.exam-voice .bg-track { background-color: var(--paper-hairline) !important; }
+
+/* ---- the Button primitive's variant classes ---- */
+.exam-voice .bg-action.text-action-ink { color: var(--paper-accent-ink) !important; }
+
+/* No correction red in the exam voice — a destructive control here is ink +
+   a firm border, matching the returned-script screens. */
+.exam-voice .text-correction-text { color: var(--paper-ink) !important; }
+.exam-voice .border-correction-soft { border-color: var(--paper-hairline-strong) !important; }
+.exam-voice .hover\:border-correction:hover { border-color: var(--paper-ink) !important; }
+
+/* ---- serif voice ----
+   `.exam-serif` is the exam screens' one serif slot. In the core token theme
+   it is Instrument Serif (the app's --font-display); the paper voice swaps it
+   for Newsreader to match the design screens. */
+.exam-serif {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+.exam-voice .exam-serif {
+  font-family: 'Newsreader', Georgia, serif;
+}
+
+/* ---- scrim stays a dim ---- */
+.exam-voice { --scrim: rgba(32, 30, 26, 0.45); }

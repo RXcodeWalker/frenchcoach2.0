@@ -180,9 +180,9 @@ export function ExamRunner({
           </div>
         )}
 
-        <div className={`w-full rounded-card surface-recessed p-5 mb-5 text-center ${rec ? 'opacity-70' : ''}`}>
+        <div className={`w-full rounded-card surface p-5 mb-5 text-center ${rec ? 'opacity-70' : ''}`}>
           <p className="text-eyebrow uppercase text-ink-subtle mb-1.5">{examinerLabel}</p>
-          <p className={`text-body-l font-semibold ${rec ? 'text-ink-subtle' : 'text-ink'}`}>
+          <p className={`exam-serif text-display-m leading-snug ${rec ? 'text-ink-subtle' : 'text-ink'}`}>
             {action?.text ?? '…'}
           </p>
         </div>
