@@ -3,23 +3,36 @@ import { motion } from 'framer-motion';
 interface ProgressRingProps {
   value: number;
   max?: number;
+  /** 74 by default; 120 on result screens only (Component Kit §06). */
   size?: number;
   strokeWidth?: number;
+  /** Fill colour. Defaults to the --progress role; pass a token for anything else. */
   color?: string;
   label?: string;
   sublabel?: string;
+  /**
+   * @deprecated The design system forbids a glow on the ring — hierarchy is
+   * surface + hairline, never a coloured halo. Kept so existing call sites
+   * compile; it is a no-op.
+   */
   glow?: boolean;
 }
 
+/**
+ * A progress ring (Component Kit §06). Achievement — how much is mastered —
+ * on a --track ring, value in mono at the centre. The fill animates once,
+ * 320ms on --ease-out, when the value changes: no shimmer, no glow, no
+ * indeterminate pulse (an indeterminate state is a skeleton, not a ring
+ * pretending to make progress).
+ */
 export function ProgressRing({
   value,
   max = 100,
-  size = 100,
+  size = 74,
   strokeWidth = 8,
-  color = '#7C3AED',
+  color = 'var(--progress)',
   label,
   sublabel,
-  glow = true,
 }: ProgressRingProps) {
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
@@ -29,16 +42,14 @@ export function ProgressRing({
   return (
     <div className="relative inline-flex items-center justify-center">
       <svg width={size} height={size} className="-rotate-90">
-        {/* Background track */}
         <circle
           cx={size / 2}
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="rgba(255,255,255,0.04)"
+          stroke="var(--track)"
           strokeWidth={strokeWidth}
         />
-        {/* Progress arc */}
         <motion.circle
           cx={size / 2}
           cy={size / 2}
@@ -50,26 +61,18 @@ export function ProgressRing({
           strokeLinecap="round"
           initial={{ strokeDashoffset: circumference }}
           animate={{ strokeDashoffset }}
-          transition={{ duration: 1.2, ease: [0.4, 0, 0.2, 1] }}
-          style={{
-            filter: glow ? `drop-shadow(0 0 8px ${color})` : undefined,
-          }}
+          transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
         />
       </svg>
       {(label !== undefined || sublabel !== undefined) && (
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           {label !== undefined && (
-            <motion.span
-              className="text-white font-black text-lg leading-none"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.5, duration: 0.3 }}
-            >
+            <span className="font-numeral text-ink text-base leading-none tabular-nums">
               {label}
-            </motion.span>
+            </span>
           )}
           {sublabel && (
-            <span className="text-ink-muted text-[10px] mt-0.5">{sublabel}</span>
+            <span className="text-ink-subtle text-[10px] mt-0.5">{sublabel}</span>
           )}
         </div>
       )}
