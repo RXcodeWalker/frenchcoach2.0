@@ -161,7 +161,7 @@ function MainLayout() {
 
 function ExamLayout() {
   return (
-    <div className="min-h-screen dark:bg-navy bg-slate-100 dark:text-white text-slate-900 overflow-hidden">
+    <div data-hatch="immersive" className="min-h-screen bg-bg text-ink overflow-hidden">
       <main className="relative z-10">
         <Outlet />
       </main>

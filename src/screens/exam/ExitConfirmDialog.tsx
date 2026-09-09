@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
+import { Button } from '../../components/ui/Button';
 
 interface Props {
   open: boolean;
@@ -6,42 +7,44 @@ interface Props {
   onConfirm: () => void;
 }
 
-/** Shared exit confirmation for the live exam, transcript review, and scoring screens — no autosave exists today, so exiting mid-exam genuinely discards progress. */
+/**
+ * The exam-exit confirm (SCREENS §4): 480px, plain — no celebration surface,
+ * a --scrim dim rather than a blur. Shared by the live exam, transcript review
+ * and the scoring wait; the copy is accurate for all three (the recording so
+ * far is saved, the timed attempt will not count).
+ */
 export function ExitConfirmDialog({ open, onCancel, onConfirm }: Props) {
   return (
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-6"
+          className="fixed inset-0 z-50 flex items-center justify-center px-6"
+          style={{ background: 'var(--scrim)' }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
         >
           <motion.div
-            className="w-full max-w-xs rounded-2xl surface-raised p-5 text-center space-y-4"
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.95, opacity: 0 }}
+            className="w-full max-w-[480px] rounded-card surface-raised p-6 space-y-4"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
           >
             <div>
-              <p className="text-sm font-bold text-white mb-1">Exit the exam?</p>
-              <p className="text-[11px] text-ink-muted leading-relaxed">Your progress won't be saved.</p>
+              <p className="text-subtitle text-ink mb-1">End the exam?</p>
+              <p className="text-body-s text-ink-muted leading-relaxed">
+                Your recording so far is saved, but the timed attempt will not count.
+              </p>
             </div>
-            <div className="flex items-center justify-center gap-3">
-              <motion.button
-                onClick={onCancel}
-                className="flex-1 px-4 py-2 rounded-lg surface-recessed hover:bg-white/[0.04] text-white transition-all font-semibold text-[10px]"
-                whileTap={{ scale: 0.95 }}
-              >
+            <div className="flex items-center gap-3">
+              <Button variant="quiet" size="md" onClick={onCancel}>
                 Keep going
-              </motion.button>
-              <motion.button
-                onClick={onConfirm}
-                className="flex-1 px-4 py-2 rounded-lg bg-red-500/15 hover:bg-red-500/25 text-red-300 transition-all font-semibold text-[10px]"
-                whileTap={{ scale: 0.95 }}
-              >
-                Exit
-              </motion.button>
+              </Button>
+              <Button variant="destructive" size="md" onClick={onConfirm}>
+                End exam
+              </Button>
             </div>
           </motion.div>
         </motion.div>

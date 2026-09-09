@@ -634,18 +634,18 @@ export function ExamMode() {
     // of one static spinner for a process that can legitimately run for minutes.
     const isRecovering = scoringMachine.phase === 'Recovering' || scoringMachine.phase === 'WaitingForScore';
     return (
-      <div className="min-h-screen flex items-center justify-center px-6">
+      <div data-hatch="immersive" className="min-h-screen bg-bg flex items-center justify-center px-6">
         <div className="text-center space-y-3 max-w-xs">
-          <div className="w-10 h-10 mx-auto border-2 border-violet-electric/30 border-t-violet-electric rounded-full animate-spin" />
-          <p className="text-sm font-bold text-white">{isRecovering ? 'Still working…' : 'Scoring your session…'}</p>
-          <p className="text-[11px] text-ink-muted">
+          <div className="w-10 h-10 mx-auto border-2 border-action-soft border-t-action rounded-full animate-spin" />
+          <p className="text-body-base font-semibold text-ink">{isRecovering ? 'Still working…' : 'Scoring your session…'}</p>
+          <p className="text-body-s text-ink-muted">
             {isRecovering
               ? 'Your answers are safe — checking again shortly.'
               : 'This can take up to a minute.'}
           </p>
           <button
             onClick={() => setShowScoringExitConfirm(true)}
-            className="text-[10px] text-ink-subtle hover:text-white transition-colors underline underline-offset-2"
+            className="text-body-s text-ink-subtle hover:text-ink transition-colors duration-state ease-smooth underline underline-offset-2"
           >
             Exit
           </button>

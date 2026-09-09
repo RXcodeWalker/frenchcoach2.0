@@ -1,8 +1,8 @@
-import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
-import { Mic, MicOff, ArrowLeft, Volume2, VolumeX, RotateCcw, Info } from 'lucide-react';
+import { Volume2, VolumeX, RotateCcw, Info } from 'lucide-react';
 import { ScrollingWaveform } from '../../features/recording/ScrollingWaveform';
 import { formatTime } from '../../domain/time';
+import { Button } from '../../components/ui/Button';
 import type { RecordingState } from '../../features/recording/useRecording';
 import type { ExaminerAction } from '../../domain/igcse/session/types';
 import { ExitConfirmDialog } from './ExitConfirmDialog';
@@ -10,6 +10,22 @@ import { ExitConfirmDialog } from './ExitConfirmDialog';
 // UI-only pacing heuristics (approximate VAD / pacing) — never logged or scored.
 const NUDGE_QUIET_S = 5;
 const PACING_HINT_S = 45;
+
+// Target minutes per part, advertised on the intro screen. The exam engine has
+// no hard limit, so the header timer counts down from these and simply holds at
+// 0:00 — it is a pacing aid, never a cutoff.
+const PART_TARGET_S: Record<string, number> = {
+  rolePlay: 2 * 60,
+  topic1: 4 * 60,
+  topic2: 4 * 60,
+};
+
+const PARTS = ['rolePlay', 'topic1', 'topic2'] as const;
+const PART_SHORT: Record<string, string> = {
+  rolePlay: 'Role Play',
+  topic1: 'Topic 1',
+  topic2: 'Topic 2',
+};
 
 interface Props {
   action: ExaminerAction | null;
@@ -79,173 +95,159 @@ export function ExamRunner({
     return () => window.clearInterval(interval);
   }, [recording.isRecording, recording.lastActivityAt]);
 
+  // Countdown from the part target, held at 0 (never negative). Exam mode shows
+  // this instead of the session's count-up.
+  const remainingS = Math.max(Math.round((PART_TARGET_S[part] ?? 0) - totalElapsedS), 0);
+  const currentPartIndex = PARTS.indexOf(part as (typeof PARTS)[number]);
+
+  const rec = recording.isRecording;
+  // While recording, everything that isn't the live control steps back.
+  const quietInk = rec ? 'text-ink-subtle' : 'text-ink-muted';
+
   return (
-    <div className="fixed inset-0 bg-navy flex flex-col z-40">
-      <div className="flex items-center justify-between px-5 py-3 border-b border-white/[0.03] surface">
-        <motion.button
-          onClick={() => setShowExitConfirm(true)}
-          className="flex items-center gap-1.5 text-ink-subtle hover:text-white transition-colors text-[10px]"
-          whileHover={{ x: -2 }}
-        >
-          <ArrowLeft size={12} /> Exit
-        </motion.button>
+    <div data-hatch="immersive" className="fixed inset-0 bg-bg flex flex-col z-40">
+      <header className="grid grid-cols-3 items-center px-5 py-3 border-b border-hairline surface">
+        {/* Segmented position bar — answered parts in --action, current outlined */}
         <div className="flex items-center gap-1.5">
-          {['rolePlay', 'topic1', 'topic2'].map((p) => (
-            <div key={p} className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${
-              part === p ? 'bg-violet-electric text-white' : 'bg-navy-400 text-ink-muted'
-            }`}>
-              {p === 'rolePlay' ? 'Role Play' : p === 'topic1' ? 'Topic 1' : 'Topic 2'}
-            </div>
-          ))}
+          {PARTS.map((p, i) => {
+            const answered = i < currentPartIndex;
+            const current = i === currentPartIndex;
+            return (
+              <span
+                key={p}
+                title={PART_SHORT[p]}
+                className={`h-1 w-10 rounded-pill ${
+                  answered
+                    ? 'bg-action'
+                    : current
+                      ? 'bg-transparent ring-1 ring-inset ring-action'
+                      : 'bg-track'
+                }`}
+              />
+            );
+          })}
         </div>
-        <div className="flex items-center gap-3">
-          <div className="text-[9px] text-ink-subtle tabular-nums">
-            Total <span className="text-ink-muted">{formatTime(Math.round(totalElapsedS))}</span>
-          </div>
+
+        {/* Countdown — top-centre, mono, title size */}
+        <div className="justify-self-center font-numeral text-title text-ink tabular-nums">
+          {formatTime(remainingS)}
+        </div>
+
+        <div className="justify-self-end flex items-center gap-3">
+          <span className="font-numeral text-body-s text-ink-subtle tabular-nums">
+            {formatTime(Math.round(totalElapsedS))}
+          </span>
           <button
             onClick={onToggleVoice}
             aria-label={voiceMuted ? 'Unmute examiner voice' : 'Mute examiner voice'}
             title={voiceMuted ? 'Unmute examiner voice' : 'Mute examiner voice'}
-            className="text-ink-subtle hover:text-white transition-colors"
+            className="text-ink-subtle hover:text-ink transition-colors duration-state ease-smooth"
           >
-            {voiceMuted ? <VolumeX size={14} /> : <Volume2 size={14} />}
+            {voiceMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
           </button>
+          <Button variant="destructive" size="sm" onClick={() => setShowExitConfirm(true)}>
+            End exam
+          </Button>
         </div>
-      </div>
+      </header>
 
       <div className="flex-1 flex flex-col items-center justify-center px-5 py-6 max-w-2xl mx-auto w-full">
-        <motion.div
-          className={`px-3 py-1 rounded-full text-[9px] font-bold border bg-violet-electric/8 text-violet-400 border-violet-electric/15 ${
-            part === 'rolePlay' && rolePlayTitle ? 'mb-1.5' : 'mb-4'
-          }`}
-          key={phaseLabel}
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-        >
+        <div className={`text-eyebrow uppercase ${quietInk} ${part === 'rolePlay' && rolePlayTitle ? 'mb-1.5' : 'mb-4'}`}>
           {phaseLabel}
-        </motion.div>
+        </div>
 
         {part === 'rolePlay' && rolePlayTitle && (
           <div className="mb-4 max-w-md text-center space-y-1.5">
             <div className="flex items-center justify-center gap-2">
-              <p className="text-[11px] text-ink-muted font-semibold">{rolePlayTitle}</p>
+              <p className={`text-body-s font-semibold ${quietInk}`}>{rolePlayTitle}</p>
               {taskProgress && (
-                <span className="px-2 py-0.5 rounded-full bg-navy-400 text-ink-muted text-[8px] font-bold uppercase tracking-wider">
+                <span className={`text-eyebrow uppercase ${rec ? 'text-ink-subtle' : 'text-ink-subtle'}`}>
                   Question {taskProgress.index + 1} of {taskProgress.total}
                 </span>
               )}
             </div>
             {rolePlaySetup && (
-              <p className="text-[10px] text-ink-subtle leading-relaxed italic">{rolePlaySetup}</p>
+              <p className="text-body-s text-ink-subtle leading-relaxed">{rolePlaySetup}</p>
             )}
           </div>
         )}
 
         {(part === 'topic1' || part === 'topic2') && (
-          <div className="mb-4 flex items-center gap-1.5 text-[8px] font-bold uppercase tracking-wider text-ink-subtle">
-            <span className="w-1.5 h-1.5 rounded-full bg-violet-electric animate-pulse" />
-            {action?.kind === 'EXTENSION_PROMPT' || action?.kind === 'FURTHER_QUESTION' ? 'Extension question' : 'Conversation in progress'}
+          <div className={`mb-4 text-eyebrow uppercase ${quietInk}`}>
+            {action?.kind === 'EXTENSION_PROMPT' || action?.kind === 'FURTHER_QUESTION'
+              ? 'Extension question'
+              : 'Conversation in progress'}
           </div>
         )}
 
-        <div className="w-full rounded-xl surface-raised p-5 mb-5 text-center">
-          <p className="text-[9px] text-ink-subtle uppercase tracking-wider mb-1.5">{examinerLabel}</p>
-          <p className="text-base font-bold text-white leading-relaxed">{action?.text ?? '…'}</p>
+        <div className={`w-full rounded-card surface-recessed p-5 mb-5 text-center ${rec ? 'opacity-70' : ''}`}>
+          <p className="text-eyebrow uppercase text-ink-subtle mb-1.5">{examinerLabel}</p>
+          <p className={`text-body-l font-semibold ${rec ? 'text-ink-subtle' : 'text-ink'}`}>
+            {action?.text ?? '…'}
+          </p>
         </div>
 
         <div className="w-full space-y-4">
           {pendingSilentSkip ? (
-            <motion.div
-              className="w-full rounded-xl surface-raised p-5 text-center space-y-3"
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-            >
-              <p className="text-sm font-semibold text-white">We didn't hear an answer</p>
-              <p className="text-[10px] text-ink-muted">Keep trying to record, or skip this question. Skipping will be scored as no answer, just like in the real exam.</p>
+            <div className="w-full rounded-card surface-recessed p-5 text-center space-y-3">
+              <p className="text-body-base font-semibold text-ink">We can&rsquo;t hear you — check your mic</p>
+              <p className="text-body-s text-ink-muted">
+                Keep trying to record, or skip this question. Skipping is scored as no answer, just like in the real exam.
+              </p>
               <div className="flex items-center justify-center gap-3 pt-1">
-                <motion.button
-                  onClick={onKeepTrying}
-                  className="px-4 py-2 rounded-lg bg-gradient-to-br from-violet-electric to-indigo-500 text-white transition-all font-semibold text-[10px]"
-                  whileTap={{ scale: 0.95 }}
-                >
+                <Button variant="primary" size="sm" onClick={onKeepTrying}>
                   Keep trying
-                </motion.button>
-                <motion.button
-                  onClick={onSkipQuestion}
-                  className="px-4 py-2 rounded-lg surface-recessed hover:bg-white/[0.04] text-ink-muted transition-all font-semibold text-[10px]"
-                  whileTap={{ scale: 0.95 }}
-                >
+                </Button>
+                <Button variant="secondary" size="sm" onClick={onSkipQuestion}>
                   Skip question
-                </motion.button>
+                </Button>
               </div>
-            </motion.div>
+            </div>
           ) : (
             <>
-              <ScrollingWaveform isRecording={recording.isRecording} source={recording.micLevel} />
-              <div className="text-center text-[10px] text-ink-subtle tabular-nums">{formatTime(Math.round(elapsedS))}</div>
+              <ScrollingWaveform isRecording={rec} source={recording.micLevel} />
+              <div className="text-center font-numeral text-body-s text-ink-subtle tabular-nums">
+                {formatTime(Math.round(elapsedS))}
+              </div>
               {showSilenceNudge ? (
-                <motion.div
-                  className="flex items-center justify-center gap-1.5 text-center text-[10px] italic text-ink-muted surface-recessed rounded-lg py-1.5 px-3"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                >
-                  <Info size={10} className="flex-shrink-0 opacity-60" />
-                  Fini ? Soumets ta réponse — ou continue à parler.
-                </motion.div>
+                <div className="flex items-center justify-center gap-1.5 text-center text-body-s text-ink-muted surface-recessed rounded-control py-1.5 px-3">
+                  <Info size={12} className="flex-shrink-0 opacity-60" />
+                  Fini&nbsp;? Soumets ta réponse — ou continue à parler.
+                </div>
               ) : (
-                recording.isRecording &&
-                elapsedS >= PACING_HINT_S && (
-                  <motion.div
-                    className="flex items-center justify-center gap-1.5 text-center text-[10px] italic text-ink-subtle surface-recessed rounded-lg py-1.5 px-3"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                  >
-                    <Info size={10} className="flex-shrink-0 opacity-60" />
+                rec && elapsedS >= PACING_HINT_S && (
+                  <div className="flex items-center justify-center gap-1.5 text-center text-body-s text-ink-subtle surface-recessed rounded-control py-1.5 px-3">
+                    <Info size={12} className="flex-shrink-0 opacity-60" />
                     Pense à conclure ta réponse.
-                  </motion.div>
+                  </div>
                 )
               )}
               <div className="flex items-center justify-center gap-3">
-                <motion.button
-                  onClick={recording.isRecording ? undefined : recording.start}
-                  disabled={recording.isRecording}
-                  className={`relative w-14 h-14 rounded-full flex items-center justify-center ${
-                    recording.isRecording
-                      ? 'bg-red-500 shadow-[0_0_20px_rgba(239,68,68,0.4)]'
-                      : 'bg-gradient-to-br from-violet-electric to-indigo-500 shadow-[0_0_20px_rgba(124,58,237,0.3)]'
-                  }`}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
+                <button
+                  onClick={rec ? onSubmitTurn : recording.start}
+                  aria-label={rec ? 'Stop and submit' : 'Start recording'}
+                  className="w-[60px] h-[60px] rounded-pill bg-action hover:bg-action-hover
+                    flex items-center justify-center transition-colors duration-state ease-smooth"
                 >
-                  {recording.isRecording ? <MicOff size={20} className="text-white" /> : <Mic size={20} className="text-white" />}
-                  {recording.isRecording && <span className="absolute inset-0 rounded-full border-2 border-red-400 animate-ping opacity-20" />}
-                </motion.button>
+                  <span
+                    className={`bg-action-ink transition-all duration-state ease-smooth ${
+                      rec ? 'w-[18px] h-[18px] rounded-[4px]' : 'w-4 h-4 rounded-pill'
+                    }`}
+                  />
+                </button>
 
-                {recording.isRecording ? (
-                  <motion.button
-                    onClick={onSubmitTurn}
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-lg surface-recessed hover:bg-white/[0.04] text-white transition-all font-semibold text-[10px]"
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    Stop &amp; Submit
-                  </motion.button>
+                {rec ? (
+                  <Button variant="secondary" size="sm" onClick={onSubmitTurn}>
+                    Stop &amp; submit
+                  </Button>
                 ) : action?.kind === 'REPEAT' ? (
-                  <button
-                    disabled
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-lg surface-recessed text-ink-subtle font-semibold text-[10px] cursor-not-allowed"
-                  >
-                    <RotateCcw size={11} /> No repeats left
-                  </button>
+                  <Button variant="secondary" size="sm" disabled>
+                    <RotateCcw size={12} /> No repeats left
+                  </Button>
                 ) : (
-                  <motion.button
-                    onClick={onRequestRepeat}
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-lg surface-recessed hover:bg-white/[0.04] text-ink-muted transition-all font-semibold text-[10px]"
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <RotateCcw size={11} /> Repeat question
-                  </motion.button>
+                  <Button variant="quiet" size="sm" onClick={onRequestRepeat}>
+                    <RotateCcw size={12} /> Repeat question
+                  </Button>
                 )}
               </div>
             </>
