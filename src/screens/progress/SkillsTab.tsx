@@ -1,89 +1,84 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { fadeUp } from '../../components/motion/variants';
 import { useApp } from '../../context/AppContext';
+import { Table, type Column } from '../../components/ui/Table';
 import { SKILL_DEFS } from '../../services/coaching/diagnosticEngine';
 
-const CATEGORY_MAP: Record<string, string> = {
-  grammar: 'Grammar',
-  vocabulary: 'Vocabulary',
-  fluency: 'Fluency',
-  structure: 'Structure',
-};
+interface Row {
+  id: string;
+  name: string;
+  pct: number;
+  daysSince: number | null;
+}
 
-function masteryPct(score: number): number {
-  return Math.min(100, Math.round(score * 100));
+function daysSince(ts: number): number | null {
+  if (!ts) return null;
+  return Math.max(0, Math.floor((Date.now() - ts) / 86400000));
 }
 
 export function SkillsTab() {
   const { state } = useApp();
   const { skillProfile } = state;
+  const [sortDesc, setSortDesc] = useState(true);
 
-  const hasData = Object.keys(skillProfile).length > 0;
+  const rows: Row[] = Object.entries(SKILL_DEFS)
+    .map(([id, def]) => ({ id, def, entry: skillProfile[id] }))
+    .filter((r) => r.entry !== undefined)
+    .map((r) => ({
+      id: r.id,
+      name: r.def.name,
+      pct: Math.min(100, Math.round(r.entry!.score * 100)),
+      daysSince: daysSince(r.entry!.lastSeen),
+    }))
+    .sort((a, b) => (sortDesc ? b.pct - a.pct : a.pct - b.pct));
 
-  if (!hasData) {
+  if (rows.length === 0) {
     return (
-      <motion.div variants={fadeUp} className="rounded-xl surface p-8 text-center">
-        <p className="text-ink-muted text-sm">Complete a practice session to see your skill breakdown.</p>
+      <motion.div variants={fadeUp} className="surface rounded-card p-8 text-center">
+        <p className="text-body-s text-ink-muted">
+          Complete a practice session to see your skill breakdown.
+        </p>
       </motion.div>
     );
   }
 
-  const categories = Array.from(new Set(Object.values(SKILL_DEFS).map(d => d.category)));
+  const columns: Column<Row>[] = [
+    { header: 'Skill', cell: (r) => r.name },
+    {
+      header: (
+        <button
+          type="button"
+          onClick={() => setSortDesc((v) => !v)}
+          className="text-eyebrow uppercase text-ink-subtle hover:text-ink-muted transition-colors duration-state ease-smooth"
+        >
+          Mastery {sortDesc ? '↓' : '↑'}
+        </button>
+      ),
+      numeric: true,
+      width: '96px',
+      cell: (r) => `${r.pct}`,
+    },
+    {
+      header: '',
+      width: '120px',
+      cell: (r) => (
+        <div className="h-1.5 w-full rounded-pill bg-track overflow-hidden">
+          <div className="h-full rounded-pill bg-progress" style={{ width: `${r.pct}%` }} />
+        </div>
+      ),
+    },
+    {
+      header: 'Days',
+      numeric: true,
+      width: '56px',
+      cell: (r) => <span className="text-ink-subtle">{r.daysSince == null ? '—' : r.daysSince}</span>,
+    },
+  ];
 
   return (
-    <motion.div variants={fadeUp} className="space-y-3">
-      {categories.map(cat => {
-        const catSkills = Object.entries(SKILL_DEFS)
-          .filter(([, def]) => def.category === cat)
-          .map(([id, def]) => ({ id, def, entry: skillProfile[id] }))
-          .filter(({ entry }) => entry !== undefined);
-
-        if (catSkills.length === 0) return null;
-
-        return (
-          <div key={cat} className="rounded-xl surface p-4">
-            <h3 className="font-bold text-white text-[10px] uppercase tracking-wider mb-3">
-              {CATEGORY_MAP[cat] ?? cat}
-            </h3>
-            <div className="space-y-2.5">
-              {catSkills.map(({ id, def, entry }) => {
-                const pct = masteryPct(entry!.score);
-                return (
-                  <div key={id}>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-[10px] text-ink-muted">{def.name}</span>
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] font-bold text-white">{pct}%</span>
-                        <span className={`text-[8px] px-1.5 py-0.5 rounded-full font-bold ${
-                          pct >= 70 ? 'bg-emerald-500/10 text-emerald-400' : pct >= 50 ? 'bg-amber-500/10 text-amber-400' : 'bg-red-500/10 text-red-400'
-                        }`}>
-                          {pct >= 70 ? 'Strong' : pct >= 50 ? 'Improving' : 'Focus'}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="h-1.5 bg-navy-300 rounded-full overflow-hidden">
-                      <motion.div
-                        className="h-full rounded-full"
-                        style={{
-                          background: pct >= 70
-                            ? 'linear-gradient(90deg, rgba(16, 185, 129, 0.3) 0%, rgba(16, 185, 129, 0.6) 50%, rgba(16, 185, 129, 0.3) 100%)'
-                            : pct >= 50
-                            ? 'linear-gradient(90deg, rgba(245, 158, 11, 0.3) 0%, rgba(245, 158, 11, 0.6) 50%, rgba(245, 158, 11, 0.3) 100%)'
-                            : 'linear-gradient(90deg, rgba(239, 68, 68, 0.3) 0%, rgba(239, 68, 68, 0.6) 50%, rgba(239, 68, 68, 0.3) 100%)',
-                          backgroundSize: '200% 100%',
-                        }}
-                        initial={{ width: 0 }}
-                        animate={{ width: `${pct}%` }}
-                        transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] as const }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        );
-      })}
+    <motion.div variants={fadeUp}>
+      <Table columns={columns} rows={rows} rowKey={(r) => r.id} />
     </motion.div>
   );
 }
