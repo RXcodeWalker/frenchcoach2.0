@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { Calendar } from 'lucide-react';
 import { fadeUp } from '../../components/motion/variants';
 import type { Session } from '../../types/index';
 
@@ -7,39 +8,37 @@ interface Props {
 }
 
 export function HistoryTab({ sessions }: Props) {
-  if (sessions.length === 0) {
-    return (
-      <motion.div variants={fadeUp} className="surface-recessed rounded-card p-8 text-center">
-        <p className="text-body-s text-ink-muted">Your sessions will appear here.</p>
-      </motion.div>
-    );
-  }
-
   return (
-    <motion.div variants={fadeUp} className="surface-recessed rounded-card overflow-hidden">
-      {sessions.map((session, i) => (
-        <div
-          key={session.id}
-          className={`grid items-center gap-3 px-3.5 min-h-[44px] py-2
-            ${i > 0 ? 'border-t border-hairline' : ''}`}
-          style={{ gridTemplateColumns: 'minmax(0,1fr) 64px 72px' }}
-        >
-          <div className="min-w-0">
-            <p className="text-body-s text-ink-muted capitalize truncate">
-              {session.mode} · {session.topicKey ?? 'General'}
-            </p>
-            <p className="text-body-s text-ink-subtle">
-              {session.wordCount} words · {Math.floor(session.durationSec / 60)}m
-            </p>
-          </div>
-          <span className="text-right font-numeral text-body-s text-ink tabular-nums">
-            {session.score == null ? '—' : session.score.toFixed(1)}
-          </span>
-          <span className="text-right font-numeral text-body-s text-progress-text tabular-nums">
-            +{session.xpEarned} XP
-          </span>
-        </div>
-      ))}
+    <motion.div variants={fadeUp} className="rounded-xl surface p-4">
+      <div className="flex items-center gap-2 mb-4">
+        <Calendar size={14} className="text-violet-400" />
+        <h3 className="font-bold text-white text-sm">Session History</h3>
+      </div>
+      <div className="space-y-1.5">
+        {sessions.map(session => (
+          <motion.div
+            key={session.id}
+            className="flex items-center gap-3 p-2.5 rounded-lg surface-recessed hover:bg-white/[0.02] transition-all cursor-pointer"
+            whileHover={{ x: 4 }}
+          >
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm flex-shrink-0 ${
+              session.mode === 'practice' ? 'bg-violet-electric/8 border border-violet-electric/15' :
+              session.mode === 'exam' ? 'bg-amber-500/8 border border-amber-500/15' :
+              'bg-emerald-500/8 border border-emerald-500/15'
+            }`}>
+              {session.mode === 'practice' ? '📚' : session.mode === 'exam' ? '📝' : '💬'}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] font-semibold text-white capitalize">{session.mode}</p>
+              <p className="text-[9px] text-ink-subtle">{session.wordCount} words / {Math.floor(session.durationSec / 60)}m</p>
+            </div>
+            <div className="text-right flex-shrink-0">
+              <p className="text-[10px] font-bold text-white">{session.score == null ? '—' : session.score.toFixed(1)}<span className="text-[8px] text-ink-subtle">/10</span></p>
+              <p className="text-[9px] text-emerald-400 font-semibold">+{session.xpEarned} XP</p>
+            </div>
+          </motion.div>
+        ))}
+      </div>
     </motion.div>
   );
 }
