@@ -6,34 +6,46 @@ interface Props {
   sessions: Session[];
 }
 
+/**
+ * Recent activity (SCREENS §3): a --surface-recessed list, 44px rows on
+ * hairline rules, no zebra, no card-per-row. Scores are mono --ink, not
+ * tinted by quality; XP is the reward role.
+ */
 export function RecentActivity({ sessions }: Props) {
+  const rows = sessions.slice(0, 4);
+
   return (
     <motion.div variants={fadeUp}>
-      <h3 className="text-[10px] font-black text-ink-muted uppercase tracking-wider mb-2.5">Recent Activity</h3>
-      <div className="space-y-1.5">
-        {sessions.slice(0, 3).map(session => (
-          <motion.div
-            key={session.id}
-            className="flex items-center gap-3 p-3 rounded-xl surface-recessed hover:bg-white/[0.03] transition-all duration-200 cursor-pointer"
-            whileHover={{ x: 4 }}
-          >
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm flex-shrink-0 ${
-              session.mode === 'practice' ? 'bg-blue-500/8 border border-blue-500/15' :
-              session.mode === 'exam' ? 'bg-amber-500/8 border border-amber-500/15' :
-              'bg-emerald-500/8 border border-emerald-500/15'
-            }`}>
-              {session.mode === 'practice' ? '📚' : session.mode === 'exam' ? '📝' : '💬'}
+      <h3 className="text-eyebrow uppercase text-ink-subtle mb-2.5">Recent activity</h3>
+      <div className="surface-recessed rounded-card overflow-hidden">
+        {rows.length === 0 ? (
+          <div className="px-4 py-4 min-h-[44px] flex items-center">
+            <span className="text-body-s text-ink-subtle">
+              Your sessions will appear here.{' '}
+              <span className="text-action-text">Record your first answer</span>
+            </span>
+          </div>
+        ) : (
+          rows.map((session, i) => (
+            <div
+              key={session.id}
+              className={`flex items-center gap-3 px-4 min-h-[44px] py-2.5
+                ${i > 0 ? 'border-t border-hairline' : ''}`}
+            >
+              <div className="flex-1 min-w-0">
+                <p className="text-body-s text-ink-muted capitalize truncate">
+                  {session.mode} · {session.topicKey ?? 'General'}
+                </p>
+              </div>
+              <span className="font-numeral text-body-s text-ink tabular-nums shrink-0">
+                {session.score == null ? '—' : session.score.toFixed(1)}
+              </span>
+              <span className="font-numeral text-body-s text-progress-text tabular-nums shrink-0 w-16 text-right">
+                +{session.xpEarned} XP
+              </span>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-bold text-white capitalize">{session.mode}</p>
-              <p className="text-[10px] text-ink-muted font-bold truncate">{session.topicKey ?? 'General'}</p>
-            </div>
-            <div className="text-right flex-shrink-0">
-              <p className="text-xs font-black text-white">{session.score == null ? '—' : session.score.toFixed(1)}<span className="text-[9px] text-ink-muted font-bold">/10</span></p>
-              <p className="text-[9px] text-emerald-400 font-bold">+{session.xpEarned} XP</p>
-            </div>
-          </motion.div>
-        ))}
+          ))
+        )}
       </div>
     </motion.div>
   );

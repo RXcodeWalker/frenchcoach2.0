@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Flame, Zap, TrendingUp, Trophy, Star, Target, Sparkles, ArrowRight, Play, BrainCircuit, AlertTriangle, ChevronRight } from 'lucide-react';
 import { generateDailyPlan } from '../services/coach/decisionEngine';
 import { getActiveRecommendation } from '../services/coach/recommendationEngine';
 import { getSkillLabel } from '../services/coach/skillGraph';
@@ -17,21 +16,11 @@ import { HeroMission } from './home/HeroMission';
 import { QuickAccess } from './home/QuickAccess';
 import { RecentActivity } from './home/RecentActivity';
 import { TopContextBar } from '../components/TopContextBar';
-import { HookStack } from '../components/EngagementHooks';
-
-const FRENCH_QUOTES = [
-  { text: "La vie est belle quand on la regarde avec le coeur.", translation: "Life is beautiful when you look at it with the heart." },
-  { text: "Chaque jour est une nouvelle chance de progresser.", translation: "Every day is a new chance to improve." },
-  { text: "Le succès est la somme de petits efforts répétés.", translation: "Success is the sum of small efforts repeated." },
-  { text: "Apprendre une langue, c'est ouvrir une fenetre sur le monde.", translation: "Learning a language is opening a window to the world." },
-  { text: "La patience est la cle de toute reussite.", translation: "Patience is the key to all success." },
-];
 
 export function Home() {
   const { state } = useApp();
   const { profile } = state;
   const navigate = useNavigate();
-  const [quote] = useState(() => FRENCH_QUOTES[Math.floor(Math.random() * FRENCH_QUOTES.length)]);
   const [dailyPlan, setDailyPlan] = useState<DailyPlan | null>(null);
   const [recommendation, setRecommendation] = useState<CoachRecommendation | null>(null);
   const [weeklyReview, setWeeklyReview] = useState<WeeklyReview | null>(null);
@@ -75,134 +64,17 @@ export function Home() {
     ? recommendation.targetSkillIds
     : dailyPlan?.topAction.targetSkillIds ?? [];
 
-  const streakAtRisk = useMemo(() => {
-    if (!profile.streak_days || todayCount > 0) return false;
-    const lastSession = profile.last_session_date;
-    if (!lastSession) return false;
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    return lastSession.startsWith(yesterday.toISOString().slice(0, 10));
-  }, [profile.streak_days, profile.last_session_date, todayCount]);
-
-  const hoursToMidnight = useMemo(() => {
-    const now = new Date();
-    const midnight = new Date(now);
-    midnight.setHours(24, 0, 0, 0);
-    return Math.ceil((midnight.getTime() - now.getTime()) / 3600000);
-  }, []);
-
-  const [hooks, setHooks] = useState(() =>
-    streakAtRisk
-      ? [{
-          type: 'streak' as const,
-          title: 'Streak at Risk!',
-          description: `Your ${profile.streak_days}-day streak ends in ${hoursToMidnight} hour${hoursToMidnight === 1 ? '' : 's'}. Practice now!`,
-          cta: 'Save My Streak',
-          onClick: () => navigate('/learn'),
-          onClose: () => setHooks(h => h.slice(1))
-        }]
-      : []
-  );
-
   return (
     <div className="flex flex-col min-h-screen">
-      <TopContextBar 
-        title="Dashboard" 
+      <TopContextBar
+        title="Today"
         subtitle={`Welcome back, ${profile.username ?? 'French Learner'}`}
       />
-      
+
       <PageShell>
         <div className="space-y-6 pb-24 md:pb-8">
-          {/* Motivation Quote */}
-          <motion.div 
-            variants={fadeUp}
-            className="surface border-white/5 rounded-2xl p-4 flex items-center gap-4 group"
-          >
-            <div className="w-12 h-12 rounded-xl bg-violet-electric/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-              <Sparkles size={20} className="text-violet-400" />
-            </div>
-            <div>
-              <p className="text-sm font-medium italic text-ink-muted">"{quote.text}"</p>
-              <p className="text-[10px] text-ink-muted font-bold uppercase tracking-wider mt-1">{quote.translation}</p>
-            </div>
-          </motion.div>
-
+          {/* The one mission card — the only primary action on the screen */}
           <HeroMission todayCount={todayCount} onLearn={() => navigate('/learn')} onExam={() => navigate('/exam')} />
-
-          {/* Today's AI Coach Card */}
-          {dailyPlan && (
-            <motion.div
-              variants={fadeUp}
-              onClick={() => navigate('/learn')}
-              className={`group relative overflow-hidden rounded-2xl surface-raised cursor-pointer border ${
-                dailyPlan.urgency === 'exam_soon' ? 'border-red-500/30' :
-                dailyPlan.urgency === 'streak_at_risk' ? 'border-orange-500/30' :
-                dailyPlan.urgency === 'confidence_drop' ? 'border-yellow-500/30' :
-                'border-violet-500/20'
-              } p-5`}
-              whileHover={{ scale: 1.01, translateY: -2 }}
-            >
-              <div className="relative z-10 flex items-start gap-4">
-                <div className={`shrink-0 w-10 h-10 rounded-xl flex items-center justify-center ${
-                  dailyPlan.urgency !== 'none' ? 'bg-orange-500/10' : 'bg-violet-500/10'
-                }`}>
-                  {dailyPlan.urgency !== 'none'
-                    ? <AlertTriangle size={18} className="text-orange-400" />
-                    : <BrainCircuit size={18} className="text-violet-400" />
-                  }
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-violet-400">
-                      Today's Coach
-                    </span>
-                    {dailyPlan.urgency !== 'none' && (
-                      <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-orange-500/15 text-orange-400 uppercase tracking-wide">
-                        {dailyPlan.urgency.replace(/_/g, ' ')}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-sm text-white font-semibold leading-snug line-clamp-2">
-                    {dailyPlan.urgencyMessage ?? dailyPlan.explanation}
-                  </p>
-                  {dailyPlan.urgencyMessage && (
-                    <p className="text-xs text-ink-muted mt-1 line-clamp-1">{dailyPlan.explanation}</p>
-                  )}
-                  {recommendation && (
-                    <div className="mt-3 space-y-2">
-                      {coachSkillIds.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5">
-                          {coachSkillIds.slice(0, 3).map(id => (
-                            <span
-                              key={id}
-                              className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-violet-500/15 text-violet-300 uppercase tracking-wide"
-                            >
-                              {getSkillLabel(id)}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                      {recommendation.rationale.evidenceSummary && (
-                        <p className="text-[11px] text-ink-muted leading-snug line-clamp-2">
-                          <span className="text-ink-muted font-semibold">Because I noticed: </span>
-                          {recommendation.rationale.evidenceSummary}
-                        </p>
-                      )}
-                      {recommendation.rationale.successCriteria[0] && (
-                        <p className="text-[11px] text-ink-muted leading-snug line-clamp-1">
-                          <span className="font-semibold">Success today: </span>
-                          {recommendation.rationale.successCriteria[0]}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                  <div className="mt-3 flex items-center gap-2 text-[10px] font-bold text-violet-400 group-hover:gap-3 transition-all">
-                    START SESSION <ChevronRight size={12} />
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
 
           {showReviewBanner && weeklyReview && (
             <WeeklyReviewCard
@@ -212,81 +84,64 @@ export function Home() {
             />
           )}
 
-          {/* Engagement Grid */}
+          {/* 2-up: continue topic / weak skill — --surface cards, no primary,
+              the whole card is the link (Component Kit §02) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Quick Action: Practice Focus */}
-            <motion.div
+            <motion.button
+              type="button"
               variants={fadeUp}
-              whileHover={{ scale: 1.01, translateY: -2 }}
               onClick={() => navigate('/learn')}
-              className="group relative overflow-hidden rounded-2xl surface-raised border-blue-500/20 p-6 cursor-pointer"
+              className="surface rounded-card p-5 text-left transition-colors duration-state ease-smooth
+                hover:border-hairline-strong hover:bg-[color-mix(in_srgb,var(--ink)_2%,transparent)]"
             >
-              <div className="relative z-10">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
-                    <Play size={18} className="text-blue-400 fill-blue-400/20" />
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Practice Focus</span>
-                    <h3 className="text-white font-bold">{weakestTopic ?? 'General Practice'}</h3>
-                  </div>
+              <div className="text-eyebrow uppercase text-action-text">Your coach picked this</div>
+              <h3 className="mt-2 text-subtitle text-ink">
+                {dailyPlan?.topAction.targetTopicKey ?? weakestTopic ?? 'Justify an opinion, in the past'}
+              </h3>
+              <p className="mt-1.5 text-body-s text-ink-muted line-clamp-2">
+                {dailyPlan?.explanation ??
+                  'Three questions pitched just above what you managed last session.'}
+              </p>
+              {coachSkillIds.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {coachSkillIds.slice(0, 3).map(id => (
+                    <span
+                      key={id}
+                      className="text-eyebrow uppercase rounded-pill border border-hairline-strong px-2 py-0.5 text-ink-subtle"
+                    >
+                      {getSkillLabel(id)}
+                    </span>
+                  ))}
                 </div>
-                <p className="text-xs text-ink-muted mb-4">
-                  {weakestTopic ? 'Your lowest-scoring topic — target it to raise your overall score.' : 'Complete some sessions to unlock personalised topic focus.'}
-                </p>
-                <div className="mt-4 flex items-center gap-2 text-[10px] font-bold text-blue-400 group-hover:gap-3 transition-all">
-                  START NOW <ArrowRight size={12} />
-                </div>
-              </div>
-            </motion.div>
+              )}
+            </motion.button>
 
-            {/* Daily Challenge */}
-            <motion.div
+            <motion.button
+              type="button"
               variants={fadeUp}
-              whileHover={{ scale: 1.01, translateY: -2 }}
               onClick={() => navigate('/learn')}
-              className="group relative overflow-hidden rounded-2xl surface-raised border-amber-500/20 p-6 cursor-pointer"
+              className="surface rounded-card p-5 text-left transition-colors duration-state ease-smooth
+                hover:border-hairline-strong hover:bg-[color-mix(in_srgb,var(--ink)_2%,transparent)]"
             >
-              <div className="relative z-10">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center">
-                    <Target size={18} className="text-amber-400" />
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest">Daily Challenge</span>
-                    <h3 className="text-white font-bold">Describe your routine</h3>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="flex -space-x-2">
-                    {[1, 2, 3].map(i => (
-                      <div key={i} className="w-6 h-6 rounded-full border-2 border-navy bg-slate-800 flex items-center justify-center text-[8px] font-bold text-white">
-                        {i <= todayCount ? '✅' : i}
-                      </div>
-                    ))}
-                  </div>
-                  <p className="text-xs text-ink-muted font-medium">{todayCount}/3 sessions today</p>
-                </div>
-                <div className="mt-4 flex items-center gap-2 text-[10px] font-bold text-amber-400 group-hover:gap-3 transition-all">
-                  VIEW CHALLENGE <ArrowRight size={12} />
-                </div>
-              </div>
-            </motion.div>
+              <div className="text-eyebrow uppercase text-ink-subtle">Weakest topic</div>
+              <h3 className="mt-2 text-subtitle text-ink">{weakestTopic ?? 'General practice'}</h3>
+              <p className="mt-1.5 text-body-s text-ink-muted">
+                {weakestTopic
+                  ? 'Your lowest-scoring topic — target it to raise your overall score.'
+                  : 'Complete some sessions to unlock a personalised topic focus.'}
+              </p>
+            </motion.button>
           </div>
 
-          {/* Stats & Activity */}
+          {/* Stats & activity */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
-              {/* 7-Day Performance Chart */}
-              <motion.div variants={fadeUp} className="rounded-2xl surface-raised p-6 border-white/5">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-2">
-                    <TrendingUp size={16} className="text-violet-400" />
-                    <h3 className="font-bold text-white text-base">Weekly Momentum</h3>
-                  </div>
-                  <div className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold text-ink-muted">
-                    AVG SCORE: {stats.avgScore != null ? stats.avgScore.toFixed(1) : '—'}
-                  </div>
+              <motion.div variants={fadeUp} className="surface rounded-card p-5">
+                <div className="flex items-center justify-between mb-5">
+                  <h3 className="text-subtitle text-ink">This week</h3>
+                  <span className="font-numeral text-body-s text-ink-subtle tabular-nums">
+                    avg {stats.avgScore != null ? stats.avgScore.toFixed(1) : '—'}
+                  </span>
                 </div>
                 <WeeklyChart data={chartData} uid="home" />
               </motion.div>
@@ -295,29 +150,17 @@ export function Home() {
             </div>
 
             <div className="space-y-6">
-              {/* Stats Vertical Grid */}
               <motion.div variants={fadeUp} className="grid grid-cols-2 lg:grid-cols-1 gap-3">
                 {[
-                  { icon: <Flame size={18} />, value: profile.streak_days, label: 'Day Streak', color: 'text-orange-400', border: 'border-orange-500/20' },
-                  { icon: <Zap size={18} />, value: profile.total_xp.toLocaleString(), label: 'Total XP', color: 'text-violet-400', border: 'border-violet-electric/20' },
-                  { icon: <Star size={18} />, value: stats.avgScore != null ? stats.avgScore.toFixed(1) : '—', label: 'Avg Score', color: 'text-emerald-400', border: 'border-emerald-500/20' },
-                  { icon: <Trophy size={18} />, value: state.achievements.filter(a => a.unlocked).length, label: 'Badges', color: 'text-amber-400', border: 'border-amber-500/20' },
-                ].map((stat, i) => (
-                  <motion.div
-                    key={stat.label}
-                    className={`rounded-2xl surface p-4 border ${stat.border} group cursor-pointer overflow-hidden relative`}
-                    whileHover={{ scale: 1.02, y: -2 }}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.1 * i }}
-                  >
-                    <div className="absolute top-0 right-0 p-3 opacity-5 group-hover:opacity-10 group-hover:scale-150 transition-all duration-500">
-                      {stat.icon}
-                    </div>
-                    <div className={`${stat.color} mb-2`}>{stat.icon}</div>
-                    <p className="text-2xl font-black text-white">{stat.value}</p>
-                    <p className="text-[10px] text-ink-muted font-bold uppercase tracking-widest">{stat.label}</p>
-                  </motion.div>
+                  { value: profile.streak_days, label: 'Day streak' },
+                  { value: profile.total_xp.toLocaleString(), label: 'Total XP' },
+                  { value: stats.avgScore != null ? stats.avgScore.toFixed(1) : '—', label: 'Avg score' },
+                  { value: state.achievements.filter(a => a.unlocked).length, label: 'Badges' },
+                ].map(stat => (
+                  <div key={stat.label} className="surface-recessed rounded-card p-4">
+                    <p className="font-numeral text-title text-ink tabular-nums">{stat.value}</p>
+                    <p className="text-eyebrow uppercase text-ink-subtle mt-1">{stat.label}</p>
+                  </div>
                 ))}
               </motion.div>
 
@@ -326,9 +169,6 @@ export function Home() {
           </div>
         </div>
       </PageShell>
-
-      <HookStack hooks={hooks} />
     </div>
   );
 }
-
