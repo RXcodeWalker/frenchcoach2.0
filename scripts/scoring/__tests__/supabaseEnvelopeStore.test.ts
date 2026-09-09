@@ -136,8 +136,9 @@ describe('SupabaseEnvelopeStore', () => {
         error: null,
       }));
       const is = vi.fn(() => ({ single }));
-      const eq = vi.fn(() => ({ is }));
-      const select = vi.fn(() => ({ eq }));
+      const eqUser = vi.fn(() => ({ is }));
+      const eqSession = vi.fn(() => ({ eq: eqUser }));
+      const select = vi.fn(() => ({ eq: eqSession }));
       fromSpy.mockReturnValue({ insert, select });
 
       const store = createSupabaseEnvelopeStore({ url: 'https://x.supabase.co', serviceKey: 'key', userId: 'u1' });
@@ -146,7 +147,10 @@ describe('SupabaseEnvelopeStore', () => {
       const result = await store.saveOriginal(envelope);
       expect(result.attemptId).toBe('a1');
       expect(select).toHaveBeenCalledWith('envelope');
-      expect(eq).toHaveBeenCalledWith('session_id', 's1');
+      expect(eqSession).toHaveBeenCalledWith('session_id', 's1');
+      // A lost idempotency race must never return a foreign envelope — the
+      // recovery select is scoped to the authenticated caller (Phase 1.1).
+      expect(eqUser).toHaveBeenCalledWith('user_id', 'u1');
       expect(is).toHaveBeenCalledWith('regraded_from', null);
     });
 
@@ -161,10 +165,49 @@ describe('SupabaseEnvelopeStore', () => {
     });
   });
 
+  describe('reads are scoped to the authenticated caller (Phase 1.1 — exam IDOR)', () => {
+    it('load() filters user_id, so a foreign attemptId cannot be read', async () => {
+      const single = vi.fn(async () => ({ data: null, error: { message: 'no rows' } }));
+      const eqUser = vi.fn(() => ({ single }));
+      const eqAttempt = vi.fn(() => ({ eq: eqUser }));
+      const select = vi.fn(() => ({ eq: eqAttempt }));
+      fromSpy.mockReturnValue({ select });
+
+      const store = createSupabaseEnvelopeStore({ url: 'https://x.supabase.co', serviceKey: 'key', userId: 'u1' });
+      await expect(store.load('foreign-attempt')).rejects.toThrow();
+      expect(eqAttempt).toHaveBeenCalledWith('attempt_id', 'foreign-attempt');
+      expect(eqUser).toHaveBeenCalledWith('user_id', 'u1');
+    });
+
+    it('list() filters user_id', async () => {
+      const eq = vi.fn(async () => ({ data: [], error: null }));
+      const select = vi.fn(() => ({ eq }));
+      fromSpy.mockReturnValue({ select });
+
+      const store = createSupabaseEnvelopeStore({ url: 'https://x.supabase.co', serviceKey: 'key', userId: 'u1' });
+      await store.list();
+      expect(eq).toHaveBeenCalledWith('user_id', 'u1');
+    });
+
+    it('listBySession() filters user_id, so a foreign session returns nothing', async () => {
+      const eqUser = vi.fn(async () => ({ data: [], error: null }));
+      const eqSession = vi.fn(() => ({ eq: eqUser }));
+      const select = vi.fn(() => ({ eq: eqSession }));
+      fromSpy.mockReturnValue({ select });
+
+      const store = createSupabaseEnvelopeStore({ url: 'https://x.supabase.co', serviceKey: 'key', userId: 'u1' });
+      const result = await store.listBySession('someone-elses-session');
+      expect(result).toEqual([]);
+      expect(eqSession).toHaveBeenCalledWith('session_id', 'someone-elses-session');
+      expect(eqUser).toHaveBeenCalledWith('user_id', 'u1');
+    });
+  });
+
   describe('listBySession() (C0 skip-and-report)', () => {
     function mockRows(rows: unknown[]): void {
-      const eq = vi.fn(async () => ({ data: rows.map((envelope) => ({ envelope })), error: null }));
-      const select = vi.fn(() => ({ eq }));
+      const eqUser = vi.fn(async () => ({ data: rows.map((envelope) => ({ envelope })), error: null }));
+      const eqSession = vi.fn(() => ({ eq: eqUser }));
+      const select = vi.fn(() => ({ eq: eqSession }));
       fromSpy.mockReturnValue({ select });
     }
 

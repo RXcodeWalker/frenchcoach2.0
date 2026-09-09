@@ -28,7 +28,14 @@ const UNIQUE_VIOLATION = '23505';
 export interface SupabaseEnvelopeStoreOptions {
   url: string;
   serviceKey: string;
-  /** Caller-supplied at construction, once per authenticated request (A3/A6). */
+  /**
+   * Caller-supplied at construction, once per authenticated request (A3/A6).
+   * The service key bypasses RLS, so this is the *only* owner-enforcement
+   * point for the server path: every read (load/list/listBySession and the
+   * saveOriginal 23505-recovery select) filters `user_id = options.userId`
+   * so a foreign `sessionId`/`attemptId` can never return another user's
+   * envelope. Exam IDOR fix (Phase 1.1).
+   */
   userId: string;
 }
 
@@ -95,6 +102,7 @@ export function createSupabaseEnvelopeStore(options: SupabaseEnvelopeStoreOption
         .from('scoring_envelopes')
         .select('envelope')
         .eq('session_id', envelope.sessionId)
+        .eq('user_id', options.userId)
         .is('regraded_from', null)
         .single();
       if (selectError || !data) {
@@ -109,6 +117,7 @@ export function createSupabaseEnvelopeStore(options: SupabaseEnvelopeStoreOption
         .from('scoring_envelopes')
         .select('envelope')
         .eq('attempt_id', attemptId)
+        .eq('user_id', options.userId)
         .single();
       if (error || !data) {
         throw new Error(`SupabaseEnvelopeStore.load failed for "${attemptId}": ${error?.message}`);
@@ -116,7 +125,10 @@ export function createSupabaseEnvelopeStore(options: SupabaseEnvelopeStoreOption
       return parseScoringEnvelope(data.envelope);
     },
     async list(): Promise<string[]> {
-      const { data, error } = await client.from('scoring_envelopes').select('attempt_id');
+      const { data, error } = await client
+        .from('scoring_envelopes')
+        .select('attempt_id')
+        .eq('user_id', options.userId);
       if (error) {
         throw new Error(`SupabaseEnvelopeStore.list failed: ${error.message}`);
       }
@@ -126,7 +138,8 @@ export function createSupabaseEnvelopeStore(options: SupabaseEnvelopeStoreOption
       const { data, error } = await client
         .from('scoring_envelopes')
         .select('envelope')
-        .eq('session_id', sessionId);
+        .eq('session_id', sessionId)
+        .eq('user_id', options.userId);
       if (error) {
         throw new Error(`SupabaseEnvelopeStore.listBySession failed: ${error.message}`);
       }

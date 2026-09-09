@@ -253,11 +253,16 @@ export function ExamMode() {
     // instead of minting a client one — this is what lets
     // submit_daily_challenge_attempt / submit_duel_attempt later prove the
     // run was entered through the respective flow (Fix 2's pattern, reused).
+    // Free-play: a random id, not `Date.now()` — an enumerable free-play
+    // sessionId let a foreign user probe GET /score for someone else's
+    // envelope. The store-level user_id scoping is the actual fix; this is
+    // defence-in-depth. The `exam-sim-` prefix is kept for log readability
+    // only; nothing parses it (verified single call site).
     const sessionId = isDailyChallengeRun && dailyChallengeSessionId
       ? dailyChallengeSessionId
       : isDuelRun && duelSessionId
         ? duelSessionId
-        : `exam-sim-${Date.now()}`;
+        : `exam-sim-${crypto.randomUUID()}`;
     sessionIdRef.current = sessionId;
     clock.start();
     totalClock.start();

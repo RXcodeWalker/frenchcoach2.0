@@ -125,3 +125,55 @@ change procedure — no other Assessment Engine behavior changed, comments only.
 Verified: `npm run score:golden` and the guardrails `__tests__/` suite (including
 `version-pin.test.ts`) still pass after these comment-only edits — see the Stage 6 gate run
 below for the full command list and result.
+
+## Phase 1.1 — Exam IDOR fix (store-level owner scoping)
+
+Date: 2026-09-09
+
+Closed the cross-user read/overwrite hole on the server scoring path. The
+scoring service (`server/index.ts`) uses the Supabase **service key**, so RLS
+`owner read` policies do nothing for it; the store code is the only
+enforcement point.
+
+Changes:
+- `scripts/scoring/supabaseEnvelopeStore.ts` — `load`, `list`, `listBySession`,
+  and the `saveOriginal` 23505-recovery select now filter
+  `.eq('user_id', options.userId)`. A lost idempotency race can no longer
+  return a foreign envelope.
+- `scripts/stt/supabaseTranscriptStore.ts` — `load`, `list`, `getLastAttemptAt`
+  now filter `.eq('user_id', options.userId)`. `save()` does an ownership
+  pre-check (`select('user_id').eq('session_id', …)`) and throws a new typed
+  `TranscriptOwnershipError` instead of upserting over a row owned by another
+  user (PK is `session_id` alone). Table PK unchanged — app-level check is the
+  smaller fix.
+- `backend/supabase/migrations/20260909120000_scope_original_envelope_index_by_user.sql`
+  (separate repo) — drops `scoring_envelopes_one_original_per_session`
+  (`unique (session_id) where regraded_from is null`), recreates it as
+  `unique (user_id, session_id) where regraded_from is null`; adds a covering
+  `(user_id, session_id)` index.
+- `src/screens/ExamMode.tsx` — free-play sessionId is now
+  `exam-sim-${crypto.randomUUID()}` (was `exam-sim-${Date.now()}`, enumerable).
+  Defence-in-depth; the store scoping is the actual fix. Single call site
+  verified; nothing parses the prefix.
+- `server/index.ts` — `POST /score` 500 handler no longer echoes the raw
+  exception string to the client (generic `"scoring failed"` + server-side
+  `console.error` with the stack). With the scoped stores, `GET /score` for a
+  foreign sessionId already falls through to 404 (no code change needed — no
+  403 existed on that path).
+
+Verified:
+- `npx vitest run scripts/` → 18 files, 89 passed (includes the extended
+  `supabaseEnvelopeStore.test.ts` / `supabaseTranscriptStore.test.ts`:
+  scoped-read `.eq('user_id', …)` assertions, foreign-row-filtered read cases,
+  and a `save()` foreign-owner rejection case).
+- `npm run score:golden` → 5/5 goldens match (no pipeline behavior change).
+- `npm run typecheck` / `typecheck:server` clean. `typecheck:scripts` shows
+  the 3 pre-existing errors in the two store test files (unrelated fixture
+  shape / tuple-index issues present before this change); no new errors.
+- `eslint` clean on all touched files.
+- `backend/supabase/tests/exam_idor.test.mjs` (new) — written to the existing
+  `.test.mjs` pattern (two anon users; asserts B cannot read/overwrite A's
+  envelope/transcript rows, A can read its own, and the migration's
+  per-(user,session) unique index behaves). **Not executed locally — Docker /
+  `npx supabase start` was unavailable in this session.** To run in backend CI
+  or against a local stack.

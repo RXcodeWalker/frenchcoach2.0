@@ -5,8 +5,30 @@ vi.mock('@supabase/supabase-js', () => ({
   createClient: vi.fn(() => ({ from: fromSpy })),
 }));
 
-import { createSupabaseTranscriptStore, getLastAttemptAt } from '../supabaseTranscriptStore';
+import {
+  createSupabaseTranscriptStore,
+  getLastAttemptAt,
+  TranscriptOwnershipError,
+} from '../supabaseTranscriptStore';
 import type { SessionTranscript } from '../../../src/domain/igcse/stt/types';
+
+/**
+ * save() now does an ownership pre-check —
+ * `from('session_transcripts').select('user_id').eq('session_id', …).maybeSingle()`
+ * — before the upsert. This helper stubs that pre-check to report the given
+ * owner (or no row), and returns the upsert spy for assertions.
+ */
+function mockSaveChain(existingOwner: string | null) {
+  const upsert = vi.fn(async () => ({ error: null }));
+  const maybeSingle = vi.fn(async () => ({
+    data: existingOwner === null ? null : { user_id: existingOwner },
+    error: null,
+  }));
+  const eq = vi.fn(() => ({ maybeSingle }));
+  const select = vi.fn(() => ({ eq }));
+  fromSpy.mockReturnValue({ select, upsert });
+  return { upsert, select, eq };
+}
 
 function buildSession(contentProvenance: SessionTranscript['contentProvenance']): SessionTranscript {
   return {
@@ -49,8 +71,7 @@ describe('SupabaseTranscriptStore', () => {
   });
 
   it('save() proceeds to the network call for original-practice, writing the real userId', async () => {
-    const upsert = vi.fn(async () => ({ error: null }));
-    fromSpy.mockReturnValue({ upsert });
+    const { upsert } = mockSaveChain(null);
 
     const store = createSupabaseTranscriptStore({ url: 'https://x.supabase.co', serviceKey: 'key', userId: 'u1' });
     const session = buildSession('original-practice');
@@ -60,9 +81,24 @@ describe('SupabaseTranscriptStore', () => {
     expect(upsert).toHaveBeenCalledWith(expect.objectContaining({ user_id: 'u1' }));
   });
 
+  it('save() upserts when an existing row is owned by the same user', async () => {
+    const { upsert } = mockSaveChain('u1');
+
+    const store = createSupabaseTranscriptStore({ url: 'https://x.supabase.co', serviceKey: 'key', userId: 'u1' });
+    await store.save(buildSession('original-practice'));
+    expect(upsert).toHaveBeenCalledWith(expect.objectContaining({ user_id: 'u1' }));
+  });
+
+  it('save() throws TranscriptOwnershipError and does NOT upsert over a row owned by another user (Phase 1.1 — exam IDOR)', async () => {
+    const { upsert } = mockSaveChain('someone-else');
+
+    const store = createSupabaseTranscriptStore({ url: 'https://x.supabase.co', serviceKey: 'key', userId: 'u1' });
+    await expect(store.save(buildSession('original-practice'))).rejects.toBeInstanceOf(TranscriptOwnershipError);
+    expect(upsert).not.toHaveBeenCalled();
+  });
+
   it('save() stamps last_attempt_at on every call, not just insert (reliability plan §A)', async () => {
-    const upsert = vi.fn(async () => ({ error: null }));
-    fromSpy.mockReturnValue({ upsert });
+    const { upsert } = mockSaveChain(null);
 
     const store = createSupabaseTranscriptStore({ url: 'https://x.supabase.co', serviceKey: 'key', userId: 'u1' });
     const before = Date.now();
@@ -75,13 +111,37 @@ describe('SupabaseTranscriptStore', () => {
     expect(stamped).toBeGreaterThanOrEqual(before);
     expect(stamped).toBeLessThanOrEqual(after);
   });
+
+  it('load() filters user_id, so a foreign sessionId cannot be read (Phase 1.1)', async () => {
+    const single = vi.fn(async () => ({ data: null, error: { message: 'no rows' } }));
+    const eqUser = vi.fn(() => ({ single }));
+    const eqSession = vi.fn(() => ({ eq: eqUser }));
+    const select = vi.fn(() => ({ eq: eqSession }));
+    fromSpy.mockReturnValue({ select });
+
+    const store = createSupabaseTranscriptStore({ url: 'https://x.supabase.co', serviceKey: 'key', userId: 'u1' });
+    await expect(store.load('foreign-session')).rejects.toThrow();
+    expect(eqSession).toHaveBeenCalledWith('session_id', 'foreign-session');
+    expect(eqUser).toHaveBeenCalledWith('user_id', 'u1');
+  });
+
+  it('list() filters user_id (Phase 1.1)', async () => {
+    const eq = vi.fn(async () => ({ data: [], error: null }));
+    const select = vi.fn(() => ({ eq }));
+    fromSpy.mockReturnValue({ select });
+
+    const store = createSupabaseTranscriptStore({ url: 'https://x.supabase.co', serviceKey: 'key', userId: 'u1' });
+    await store.list();
+    expect(eq).toHaveBeenCalledWith('user_id', 'u1');
+  });
 });
 
 describe('getLastAttemptAt', () => {
   it('returns null when no transcript row exists for the sessionId', async () => {
     const maybeSingle = vi.fn(async () => ({ data: null, error: null }));
-    const eq = vi.fn(() => ({ maybeSingle }));
-    const select = vi.fn(() => ({ eq }));
+    const eqUser = vi.fn(() => ({ maybeSingle }));
+    const eqSession = vi.fn(() => ({ eq: eqUser }));
+    const select = vi.fn(() => ({ eq: eqSession }));
     fromSpy.mockReturnValue({ select });
 
     const result = await getLastAttemptAt({ url: 'https://x.supabase.co', serviceKey: 'key', userId: 'u1' }, 'missing');
@@ -91,11 +151,24 @@ describe('getLastAttemptAt', () => {
   it('returns the parsed timestamp when a row exists', async () => {
     const iso = '2026-07-22T09:00:00.000Z';
     const maybeSingle = vi.fn(async () => ({ data: { last_attempt_at: iso }, error: null }));
-    const eq = vi.fn(() => ({ maybeSingle }));
-    const select = vi.fn(() => ({ eq }));
+    const eqUser = vi.fn(() => ({ maybeSingle }));
+    const eqSession = vi.fn(() => ({ eq: eqUser }));
+    const select = vi.fn(() => ({ eq: eqSession }));
     fromSpy.mockReturnValue({ select });
 
     const result = await getLastAttemptAt({ url: 'https://x.supabase.co', serviceKey: 'key', userId: 'u1' }, 's1');
     expect(result).toEqual(new Date(iso));
+  });
+
+  it('filters by user_id, so a foreign sessionId reads as absent (Phase 1.1)', async () => {
+    const maybeSingle = vi.fn(async () => ({ data: null, error: null }));
+    const eqUser = vi.fn(() => ({ maybeSingle }));
+    const eqSession = vi.fn(() => ({ eq: eqUser }));
+    const select = vi.fn(() => ({ eq: eqSession }));
+    fromSpy.mockReturnValue({ select });
+
+    await getLastAttemptAt({ url: 'https://x.supabase.co', serviceKey: 'key', userId: 'u1' }, 'foreign-session');
+    expect(eqSession).toHaveBeenCalledWith('session_id', 'foreign-session');
+    expect(eqUser).toHaveBeenCalledWith('user_id', 'u1');
   });
 });

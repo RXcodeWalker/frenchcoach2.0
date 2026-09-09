@@ -166,8 +166,15 @@ app.post('/score', async (req: Request, res: Response) => {
     // still within its abort window hangs until its own timeout, and the
     // resulting message ("may still finish in the background") is false.
     logRequest(transcript.sessionId, undefined, Date.now() - startedAt, 'error');
-    const message = err instanceof Error ? err.message : 'scoring failed unexpectedly';
-    res.status(500).json({ error: message });
+    // Don't echo the raw exception string to the client — it can carry
+    // provider error text, stack fragments, or internal identifiers. Log the
+    // detail server-side; return a generic message. (Phase 1.1 minimal
+    // version of Phase 6.3.)
+    console.error(
+      `[POST /score] scoring failed for session "${transcript.sessionId}":`,
+      err instanceof Error ? err.stack ?? err.message : err,
+    );
+    res.status(500).json({ error: 'scoring failed' });
   }
 });
 
