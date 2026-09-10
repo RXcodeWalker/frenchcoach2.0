@@ -8,7 +8,8 @@ import { aimFromMigratedTier } from '../domain/learn/selection/sessionTarget';
 import { ACHIEVEMENTS } from '../data/gameData';
 import { validateAchievementRegistry } from '../data/achievements';
 import { getStats } from '../services/analytics/analyticsService';
-import { getProgressionState, awardGemsForXP, levelFor, setProgressionData } from '../services/progression/progressionService';
+import { getProgressionState, awardGemsForXP, levelFor, setProgressionData, reconcileTotalFromLedger } from '../services/progression/progressionService';
+import { getMyAllTimeXp } from '../services/social/leaderboardService';
 import { getSkillProfile } from '../services/coaching/diagnosticEngine';
 import { STORAGE_KEYS, storageGet, storageSet, storageSetRaw, scopedKey, matchesScopedKey, hasNoScopedDataYet, copyGuestScopeToIdentity } from '../services/persistence/storage';
 import { useAuth } from './AuthContext';
@@ -437,7 +438,9 @@ export function AppProvider({ identity, children }: { identity: string; children
           sessionHydrationInProgress.current = false;
           void flushPendingQueue(userId);
           void hydratePronunciationFromCloud(userId);
-          void hydrateXpEventsFromCloud(userId).then(({ mergedEvents, cloudIds }) => {
+          void hydrateXpEventsFromCloud(userId).then(async ({ mergedEvents, cloudIds }) => {
+            const ledgerTotal = await getMyAllTimeXp(userId);
+            if (ledgerTotal !== null) reconcileTotalFromLedger(ledgerTotal);
             void backfillXpEventsToCloud(userId, mergedEvents, cloudIds);
           });
           void flushMintQueue().then(() => refetchEconomy(userId));
@@ -498,6 +501,15 @@ export function AppProvider({ identity, children }: { identity: string; children
 
       // Step 2.7: XP ledger — pull, merge, write localStorage
       const { mergedEvents, cloudIds: cloudXpEventIds } = await hydrateXpEventsFromCloud(userId);
+
+      // Step 2.8: reconcile the user's own Total XP display against the cloud
+      // ledger basis (xp_baseline + SUM(xp_events)). Phase 1.3 removed
+      // profiles.total_xp from the sync path, so this is what restores the
+      // real number for a returning user on a fresh device (was
+      // mergeProgressionData's Math.max(local, cloud.total_xp)). Monotonic;
+      // emits no ledger event.
+      const ledgerTotal = await getMyAllTimeXp(userId);
+      if (ledgerTotal !== null) reconcileTotalFromLedger(ledgerTotal);
 
       // Step 3: re-read analytics (now includes merged sessions) and emit final profile
       const analytics = getStats();

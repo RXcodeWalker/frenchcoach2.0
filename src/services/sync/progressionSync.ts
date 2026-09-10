@@ -3,7 +3,6 @@ import type { ProgressionData } from '../progression/progressionService';
 import { getProgressionState, clearNeedsSync, markNeedsSync, levelFor } from '../progression/progressionService';
 
 export type CloudProgressionRow = {
-  total_xp: number;
   gems: number;
   achievements: string[];
   inventory: Record<string, number>;
@@ -37,12 +36,15 @@ export async function pushProgressionToCloud(
 
     // gems/inventory/active_boosters are no longer client-writable on profiles
     // (Shop Phase 1 §14.2 — REVOKE UPDATE backs gem_events as the sole balance
-    // authority). Sending them here would 42501 the whole upsert, including
-    // total_xp/achievements.
+    // authority). total_xp is likewise no longer client-writable (Phase 1.3 —
+    // all_time_leaderboard is ledger-backed: xp_baseline + SUM(xp_events), and
+    // the client's XP now flows to the cloud only via submit_xp_event through
+    // xpLedger). Sending total_xp here would 42501 the whole upsert.
+    // achievements stays client-written for now (no server derivation exists —
+    // known accepted risk, carried unchanged from before 1.3).
     const { error } = await supabase.from('profiles').upsert(
       {
         id: userId,
-        total_xp: source.totalXP,
         achievements: source.achievements,
       },
       { onConflict: 'id' }
@@ -68,7 +70,7 @@ export async function pullProgressionFromCloud(
   try {
     const { data, error } = await supabase
       .from('profiles')
-      .select('total_xp, gems, achievements, inventory, active_boosters, migration_version, username, avatar_emoji, equipped_frame, equipped_nameplate')
+      .select('gems, achievements, inventory, active_boosters, migration_version, username, avatar_emoji, equipped_frame, equipped_nameplate')
       .eq('id', userId)
       .single();
 
@@ -80,7 +82,6 @@ export async function pullProgressionFromCloud(
     }
 
     return {
-      total_xp: data.total_xp ?? 0,
       gems: data.gems ?? 0,
       achievements: (data.achievements as string[]) ?? [],
       inventory: (data.inventory as Record<string, number>) ?? {},
@@ -101,7 +102,12 @@ export function mergeProgressionData(
   local: ProgressionData,
   cloud: CloudProgressionRow
 ): ProgressionData {
-  const mergedTotalXP = Math.max(local.totalXP, cloud.total_xp);
+  // total_xp is no longer carried on the profiles row (Phase 1.3 — the
+  // all-time board is ledger-backed and the client's XP syncs via
+  // submit_xp_event). Local progression XP, reconciled against the cloud
+  // xp_events ledger by xpLedger's own sync, is the source for the user's
+  // own display. Nothing to merge from `cloud` here anymore.
+  const mergedTotalXP = local.totalXP;
   // Gems are no longer client-asserted (Shop Phase 1: gem_events/mint_gems
   // is the sole balance authority) — local.gems is a display cache, never
   // merged with a stale cloud value.
@@ -144,8 +150,9 @@ export function mergeProgressionData(
 }
 
 function cloudDiffersFromMerged(merged: ProgressionData, cloud: CloudProgressionRow): boolean {
+  // total_xp is no longer on the cloud row (Phase 1.3) — only achievements
+  // still round-trip through profiles from the client.
   return (
-    merged.totalXP !== cloud.total_xp ||
     merged.gems !== cloud.gems ||
     merged.achievements.length !== cloud.achievements.length
   );

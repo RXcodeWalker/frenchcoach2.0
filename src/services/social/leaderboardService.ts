@@ -174,6 +174,38 @@ export async function getMyWeeklyRank(myWeeklyXp: number): Promise<number | null
   }
 }
 
+/**
+ * The caller's own all-time total on the SAME basis the board uses:
+ * profiles.xp_baseline + SUM(xp_events.amount). Not local progression XP —
+ * that can drift from the ledger (unsynced events, a frozen baseline that
+ * differs from the last local total), which would make getMyAllTimeRank
+ * compare against a different number than the board is ranked by (Phase 1.3).
+ * profiles' SELECT policy is self-scoped (auth.uid() = id) and xp_events is
+ * self-readable, so the client can compute this for itself.
+ */
+export async function getMyAllTimeXp(userId: string): Promise<number | null> {
+  if (!supabaseConfigured) return null;
+  try {
+    const [{ data: profileRow, error: pErr }, { data: eventRows, error: eErr }] = await Promise.all([
+      supabase.from('profiles').select('xp_baseline').eq('id', userId).single(),
+      supabase.from('xp_events').select('amount').eq('user_id', userId),
+    ]);
+    if (pErr && pErr.code !== 'PGRST116') {
+      console.warn('[leaderboardService] xp_baseline fetch failed:', pErr.message);
+    }
+    if (eErr) {
+      console.warn('[leaderboardService] xp_events sum fetch failed:', eErr.message);
+      return null;
+    }
+    const baseline = (profileRow?.xp_baseline as number | undefined) ?? 0;
+    const ledgerSum = ((eventRows as { amount: number }[]) ?? []).reduce((s, r) => s + r.amount, 0);
+    return baseline + ledgerSum;
+  } catch (err) {
+    console.warn('[leaderboardService] getMyAllTimeXp error:', err);
+    return null;
+  }
+}
+
 export async function getMyAllTimeRank(myTotalXp: number): Promise<number | null> {
   if (!supabaseConfigured) return null;
   try {

@@ -154,6 +154,25 @@ export function getProgressionState() {
   return { xp, totalXP, gems: gems || 0, level, levelProgress: _progressPct(xp), achievements, inventory: inventory || {}, activeBoosters: activeBoosters || [] };
 }
 
+/**
+ * Bring local progression XP up to the cloud ledger total
+ * (profiles.xp_baseline + SUM(xp_events)) after a cross-device sync — so a
+ * returning user on a fresh device sees their real Total XP, not 0, on their
+ * own screens. Phase 1.3: profiles.total_xp is no longer read on the sync
+ * path (the all-time board is ledger-backed), so this is the reconciliation
+ * that mergeProgressionData's old Math.max(local, cloud.total_xp) used to do.
+ * Monotonic (only raises), and deliberately does NOT emit a ledger event —
+ * this is reconciliation of already-earned XP, not a new award.
+ */
+export function reconcileTotalFromLedger(ledgerTotal: number): void {
+  if (!Number.isFinite(ledgerTotal) || ledgerTotal <= 0) return;
+  const data = _load();
+  if (ledgerTotal <= (data.totalXP || 0)) return;
+  data.xp = ledgerTotal;
+  data.totalXP = ledgerTotal;
+  _save(data);
+}
+
 // Phase 4 A9 fix (Shop plan §14.4, amended): server user_inventory
 // (populated by purchase_shop_item) is the authority for whether a freeze is
 // owned. analyticsService.updateStreak runs synchronously inside

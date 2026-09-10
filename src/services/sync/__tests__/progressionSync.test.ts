@@ -18,7 +18,6 @@ function makeLocal(overrides: Partial<ProgressionData> = {}): ProgressionData {
 
 function makeCloud(overrides: Partial<CloudProgressionRow> = {}): CloudProgressionRow {
   return {
-    total_xp: 50,
     gems: 30,
     achievements: ['streak_7'],
     inventory: {},
@@ -33,11 +32,15 @@ function makeCloud(overrides: Partial<CloudProgressionRow> = {}): CloudProgressi
 }
 
 describe('mergeProgressionData', () => {
-  it('takes the max of local and cloud totalXP', () => {
-    const merged = mergeProgressionData(makeLocal({ totalXP: 100 }), makeCloud({ total_xp: 200 }));
-    expect(merged.totalXP).toBe(200);
+  it('total_xp is no longer carried on the cloud row — merged.totalXP is always local (Phase 1.3)', () => {
+    // The all-time board is ledger-backed (xp_baseline + SUM(xp_events)) and
+    // the client's XP syncs via submit_xp_event, so profiles.total_xp is no
+    // longer read here at all; a stale/forged cloud value can't influence the
+    // local display.
+    const merged = mergeProgressionData(makeLocal({ totalXP: 100 }), makeCloud());
+    expect(merged.totalXP).toBe(100);
 
-    const merged2 = mergeProgressionData(makeLocal({ totalXP: 300 }), makeCloud({ total_xp: 50 }));
+    const merged2 = mergeProgressionData(makeLocal({ totalXP: 300 }), makeCloud());
     expect(merged2.totalXP).toBe(300);
   });
 
@@ -83,26 +86,32 @@ describe('mergeProgressionData', () => {
     // has no identity awareness. Correctness of "local" meaning "this
     // identity's local progression" is entirely the caller's (now
     // identity-scoped storageGet's) responsibility.
-    const merged = mergeProgressionData(makeLocal({ totalXP: 42, achievements: [] }), makeCloud({ total_xp: 0, achievements: [] }));
+    const merged = mergeProgressionData(makeLocal({ totalXP: 42, achievements: [] }), makeCloud({ achievements: [] }));
     expect(merged.totalXP).toBe(42);
     expect(merged.achievements).toEqual([]);
   });
 });
 
 describe('cloudDiffersFromMerged', () => {
-  it('returns false when merged matches cloud exactly', () => {
-    // cloudDiffersFromMerged compares totalXP, gems, and achievements.length.
-    // mergeProgressionData always sets merged.gems = local.gems, and unions
-    // achievements — so for this to read as "no diff", local must already
-    // match cloud on gems and on the achievement set.
-    const cloud = makeCloud({ total_xp: 100, gems: 20, achievements: ['a'] });
-    const merged = mergeProgressionData(makeLocal({ totalXP: 100, gems: 20, achievements: ['a'] }), cloud);
+  it('returns false when merged matches cloud on gems and achievement count', () => {
+    // total_xp is no longer compared (Phase 1.3) — only gems and
+    // achievements.length. mergeProgressionData always sets merged.gems =
+    // local.gems and unions achievements, so for "no diff" local must
+    // already match cloud on both.
+    const cloud = makeCloud({ gems: 20, achievements: ['a'] });
+    const merged = mergeProgressionData(makeLocal({ gems: 20, achievements: ['a'] }), cloud);
     expect(cloudDiffersFromMerged(merged, cloud)).toBe(false);
   });
 
-  it('returns true when merged totalXP differs from cloud', () => {
-    const cloud = makeCloud({ total_xp: 50 });
-    const merged = mergeProgressionData(makeLocal({ totalXP: 200 }), cloud);
+  it('returns true when the merged achievement set is larger than cloud', () => {
+    const cloud = makeCloud({ gems: 20, achievements: ['a'] });
+    const merged = mergeProgressionData(makeLocal({ gems: 20, achievements: ['a', 'b'] }), cloud);
+    expect(cloudDiffersFromMerged(merged, cloud)).toBe(true);
+  });
+
+  it('returns true when local gems differ from cloud gems', () => {
+    const cloud = makeCloud({ gems: 99, achievements: ['a'] });
+    const merged = mergeProgressionData(makeLocal({ gems: 20, achievements: ['a'] }), cloud);
     expect(cloudDiffersFromMerged(merged, cloud)).toBe(true);
   });
 });

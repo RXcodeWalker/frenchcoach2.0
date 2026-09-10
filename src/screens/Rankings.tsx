@@ -6,7 +6,7 @@ import { PageShell } from '../components/layout/PageShell';
 import { UsernameSetupModal } from '../components/ui/UsernameSetupModal';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
-import { getWeeklyLeaderboard, getAllTimeLeaderboard, getMyWeeklyRank, getMyAllTimeRank, type Timeframe } from '../services/social/leaderboardService';
+import { getWeeklyLeaderboard, getAllTimeLeaderboard, getMyWeeklyRank, getMyAllTimeRank, getMyAllTimeXp, type Timeframe } from '../services/social/leaderboardService';
 import {
   listFriendships, acceptFriendRequest, declineFriendRequest, cancelFriendRequest, removeFriend, sendFriendRequest,
   type FriendEntry,
@@ -78,11 +78,13 @@ export function Rankings() {
     const mine = rows.find(u => u.isCurrentUser);
     if (mine) {
       setMyRank(mine.rank ?? null);
+    } else if (timeframe === 'weekly') {
+      setMyRank(await getMyWeeklyRank(0));
     } else {
-      const rank = timeframe === 'weekly'
-        ? await getMyWeeklyRank(0)
-        : await getMyAllTimeRank(profile.total_xp);
-      setMyRank(rank);
+      // Rank against the same basis the board is ranked by
+      // (xp_baseline + SUM(xp_events)), not local progression XP (Phase 1.3).
+      const myXp = authUserId ? await getMyAllTimeXp(authUserId) : null;
+      setMyRank(await getMyAllTimeRank(myXp ?? profile.total_xp));
     }
     setLoading(false);
   }, [timeframe, authUserId, profile.total_xp]);
