@@ -1,5 +1,5 @@
 // Copied verbatim from progression.js — strips DOM calls, keeps XP/level logic
-import { STORAGE_KEYS, storageGet, storageSet } from '../persistence/storage';
+import { STORAGE_KEYS, storageGet, storageSet, storageSetRaw, storageRemove } from '../persistence/storage';
 import { computeXPGain, computeParticipationXPGain } from '../../domain/xp';
 import { evaluateAchievements, type AchievementContext } from '../../data/achievements';
 import { logXpEvent } from '../social/xpLedger';
@@ -7,11 +7,16 @@ import { enqueueMint } from '../shop/mintQueue';
 import { consume, makeIdempotencyKey } from '../shop/shopService';
 import type { XpSource } from '../../types/social';
 const KEY = STORAGE_KEYS.progression;
-const NEEDS_SYNC_KEY = 'frenchCoach_needsSync';
+const NEEDS_SYNC_KEY = STORAGE_KEYS.needsSync;
 
-export function markNeedsSync() { try { localStorage.setItem(NEEDS_SYNC_KEY, '1'); } catch { /* storage unavailable — degrade silently */ } }
-export function clearNeedsSync() { try { localStorage.removeItem(NEEDS_SYNC_KEY); } catch { /* storage unavailable — degrade silently */ } }
-export function hasPendingSync(): boolean { return localStorage.getItem(NEEDS_SYNC_KEY) === '1'; }
+// Stored as the raw string '1' (not JSON) for backward-compat with the value
+// the v2 re-migration copies over from the old bare key. storageGet JSON-parses,
+// so '1' reads back as the number 1 — hasPendingSync coerces and checks.
+export function markNeedsSync() { storageSetRaw(NEEDS_SYNC_KEY, '1'); }
+export function clearNeedsSync() { storageRemove(NEEDS_SYNC_KEY); }
+export function hasPendingSync(): boolean {
+  return String(storageGet<number | string | null>(NEEDS_SYNC_KEY, '')) === '1';
+}
 
 export interface ProgressionData {
   xp: number; totalXP: number; gems: number; achievements: string[];
@@ -20,18 +25,18 @@ export interface ProgressionData {
   grammarCoachUses: number; roleplayCount: number;
 }
 
+const EMPTY_PROGRESSION = (): ProgressionData => ({
+  xp: 0, totalXP: 0, gems: 0, achievements: [],
+  inventory: {}, activeBoosters: [], grammarCoachUses: 0, roleplayCount: 0,
+});
+
 function _load(): ProgressionData {
-  try {
-    const raw = localStorage.getItem(KEY);
-    return raw ? { 
-      xp: 0, totalXP: 0, gems: 0, achievements: [], 
-      inventory: {}, activeBoosters: [], grammarCoachUses: 0, roleplayCount: 0, ...JSON.parse(raw) 
-    } : { xp: 0, totalXP: 0, gems: 0, achievements: [], inventory: {}, activeBoosters: [], grammarCoachUses: 0, roleplayCount: 0 };
-  } catch { return { xp: 0, totalXP: 0, gems: 0, achievements: [], inventory: {}, activeBoosters: [], grammarCoachUses: 0, roleplayCount: 0 }; }
+  const raw = storageGet<Partial<ProgressionData> | null>(KEY, null);
+  return raw ? { ...EMPTY_PROGRESSION(), ...raw } : EMPTY_PROGRESSION();
 }
 
 function _save(data: ProgressionData) {
-  try { localStorage.setItem(KEY, JSON.stringify(data)); } catch { /* quota exceeded — degrade silently */ }
+  storageSet(KEY, data);
 }
 
 const LEVELS = [

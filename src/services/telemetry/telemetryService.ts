@@ -1,5 +1,6 @@
 import * as Sentry from '@sentry/react';
 import type { AIEngine } from '../../types';
+import { setStorageErrorReporter } from '../persistence/storage';
 
 interface SessionCompletedProps {
   mode: 'practice' | 'exam' | 'story';
@@ -122,6 +123,13 @@ export function initTelemetry(): void {
     enabled: import.meta.env.PROD && !!dsn,
     environment: import.meta.env.MODE,
     tracesSampleRate: import.meta.env.PROD ? 0.1 : 1.0,
+  });
+
+  // Make silent localStorage-write failures (quota exceeded, storage
+  // unavailable) visible — otherwise a full analytics blob just stops
+  // persisting sessions/streak/XP with no signal (Phase 1.5).
+  setStorageErrorReporter((err, context) => {
+    captureError(err, { store: context.key, op: context.op });
   });
 }
 

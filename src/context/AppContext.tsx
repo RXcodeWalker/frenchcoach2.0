@@ -10,7 +10,7 @@ import { validateAchievementRegistry } from '../data/achievements';
 import { getStats } from '../services/analytics/analyticsService';
 import { getProgressionState, awardGemsForXP, levelFor, setProgressionData } from '../services/progression/progressionService';
 import { getSkillProfile } from '../services/coaching/diagnosticEngine';
-import { STORAGE_KEYS, storageGet, storageSet, storageSetRaw, hasNoScopedDataYet, copyGuestScopeToIdentity } from '../services/persistence/storage';
+import { STORAGE_KEYS, storageGet, storageSet, storageSetRaw, scopedKey, matchesScopedKey, hasNoScopedDataYet, copyGuestScopeToIdentity } from '../services/persistence/storage';
 import { useAuth } from './AuthContext';
 import { pushProgressionToCloud, pullProgressionFromCloud, mergeProgressionData, cloudDiffersFromMerged, markNeedsSync } from '../services/sync/progressionSync';
 import { hydrateSessionsFromCloud, pushSessionToCloud, backfillSessionsToCloud, flushPendingQueue } from '../services/sync/sessionSync';
@@ -115,15 +115,20 @@ function buildInitialState(): AppState {
     unlocked: unlockedIds.has(a.id),
   }));
 
-  const savedDark = localStorage.getItem(STORAGE_KEYS.darkMode);
+  // darkMode / aiEngine are device-scoped — scopedKey() returns the bare key
+  // for them. difficulty / aim are identity-scoped and are written with
+  // storageSetRaw (plain strings, not JSON), so they must be read raw through
+  // the resolved key — a bare localStorage.getItem here was a read/write
+  // mismatch that silently ignored a returning user's saved values.
+  const savedDark = localStorage.getItem(scopedKey(STORAGE_KEYS.darkMode));
   const darkMode = savedDark === null ? true : savedDark === 'true';
 
-  const preferredEngine: AIEngine = (localStorage.getItem(STORAGE_KEYS.aiEngine) as AIEngine | null) ?? 'groq';
-  const selectedDifficulty: DifficultyTier = (localStorage.getItem(STORAGE_KEYS.difficulty) as DifficultyTier | null) ?? DEFAULT_DIFFICULTY;
+  const preferredEngine: AIEngine = (localStorage.getItem(scopedKey(STORAGE_KEYS.aiEngine)) as AIEngine | null) ?? 'groq';
+  const selectedDifficulty: DifficultyTier = (localStorage.getItem(scopedKey(STORAGE_KEYS.difficulty)) as DifficultyTier | null) ?? DEFAULT_DIFFICULTY;
   // docs §6.4 — one-time migration: an existing `aim` value wins; otherwise
   // seed from the migrated `difficulty` tier (beginner -> comfortable, expert
   // -> push, otherwise balanced). `difficulty` itself is left untouched.
-  const storedAim = localStorage.getItem(STORAGE_KEYS.aim) as Aim | null;
+  const storedAim = localStorage.getItem(scopedKey(STORAGE_KEYS.aim)) as Aim | null;
   const aim: Aim = storedAim ?? aimFromMigratedTier(selectedDifficulty);
 
   const topicMastery = storageGet<Record<string, TopicMasteryEntry>>(STORAGE_KEYS.topicMastery, {});
@@ -597,19 +602,22 @@ export function AppProvider({ identity, children }: { identity: string; children
   // Sync state when localStorage changes in other tabs or through direct service calls
   useEffect(() => {
     const handleStorage = (e: StorageEvent) => {
-      if (e.key === STORAGE_KEYS.aiEngine && e.newValue) {
+      // Writes go through the scoped API, so a cross-tab StorageEvent's `e.key`
+      // is the real key: bare for device-scoped (aiEngine), `base::identity`
+      // for the rest. Compare against the resolved key, not the bare constant.
+      if (matchesScopedKey(e.key, STORAGE_KEYS.aiEngine) && e.newValue) {
         dispatch({ type: 'SET_AI_ENGINE', engine: e.newValue as AIEngine });
         return;
       }
-      if (e.key === STORAGE_KEYS.difficulty && e.newValue) {
+      if (matchesScopedKey(e.key, STORAGE_KEYS.difficulty) && e.newValue) {
         dispatch({ type: 'SET_DIFFICULTY', tier: e.newValue as DifficultyTier });
         return;
       }
-      if (e.key === STORAGE_KEYS.aim && e.newValue) {
+      if (matchesScopedKey(e.key, STORAGE_KEYS.aim) && e.newValue) {
         dispatch({ type: 'SET_AIM', aim: e.newValue as Aim });
         return;
       }
-      if (e.key === STORAGE_KEYS.progression || e.key === STORAGE_KEYS.analytics) {
+      if (matchesScopedKey(e.key, STORAGE_KEYS.progression) || matchesScopedKey(e.key, STORAGE_KEYS.analytics)) {
         const progression = getProgressionState();
         const analytics = getStats();
         const updatedProfile = {

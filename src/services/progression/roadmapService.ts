@@ -1,6 +1,6 @@
 import { RoadmapLevel, RoadmapData, Feedback } from '../../types';
 import { getStats } from '../analytics/analyticsService';
-import { STORAGE_KEYS, storageGet } from '../persistence/storage';
+import { STORAGE_KEYS, storageGet, storageSet } from '../persistence/storage';
 
 export const ROADMAP_LEVELS: RoadmapLevel[] = [
   {
@@ -84,12 +84,8 @@ export const SKILL_INFO = {
 const KEY = STORAGE_KEYS.roadmap;
 
 function loadData(): RoadmapData {
-  try {
-    const raw = localStorage.getItem(KEY);
-    return raw ? { ...defaultData(), ...JSON.parse(raw) } : defaultData();
-  } catch {
-    return defaultData();
-  }
+  const raw = storageGet<Partial<RoadmapData> | null>(KEY, null);
+  return raw ? { ...defaultData(), ...raw } : defaultData();
 }
 
 function defaultData(): RoadmapData {
@@ -102,11 +98,7 @@ function defaultData(): RoadmapData {
 }
 
 function save(data: RoadmapData) {
-  try {
-    localStorage.setItem(KEY, JSON.stringify(data));
-  } catch {
-    // quota exceeded or storage unavailable — degrade silently, never throw
-  }
+  storageSet(KEY, data);
 }
 
 function blend(old: number, fresh: number) {

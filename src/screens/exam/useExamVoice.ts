@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { STORAGE_KEYS } from '../../services/persistence/storage';
+import { STORAGE_KEYS, scopedKey, storageSetRaw, matchesScopedKey } from '../../services/persistence/storage';
 
 export type ExamVoice = 'paper' | 'app';
 
@@ -7,7 +7,9 @@ const KEY = STORAGE_KEYS.examVoice;
 
 function read(): ExamVoice {
   try {
-    return localStorage.getItem(KEY) === 'app' ? 'app' : 'paper';
+    // Plain-string enum, written with storageSetRaw — read raw through the
+    // resolved (identity-scoped) key.
+    return localStorage.getItem(scopedKey(KEY)) === 'app' ? 'app' : 'paper';
   } catch {
     return 'paper';
   }
@@ -23,7 +25,7 @@ export function useExamVoice(): [ExamVoice, () => void] {
 
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
-      if (e.key === KEY) setVoice(read());
+      if (matchesScopedKey(e.key, KEY)) setVoice(read());
     };
     window.addEventListener('storage', onStorage);
     return () => window.removeEventListener('storage', onStorage);
@@ -32,11 +34,7 @@ export function useExamVoice(): [ExamVoice, () => void] {
   const toggle = useCallback(() => {
     setVoice((v) => {
       const next: ExamVoice = v === 'paper' ? 'app' : 'paper';
-      try {
-        localStorage.setItem(KEY, next);
-      } catch {
-        // non-critical — the choice just won't persist
-      }
+      storageSetRaw(KEY, next);
       return next;
     });
   }, []);

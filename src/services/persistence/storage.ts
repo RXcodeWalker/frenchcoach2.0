@@ -87,6 +87,8 @@ export const STORAGE_KEYS = {
   syncedShadowingIds:            'frenchCoach_syncedShadowingIds',
   pendingSyncShadowingIds:       'frenchCoach_pendingSyncShadowingIds',
   shadowingDetailedFeedback:     'frenchCoach_shadowingDetailedFeedback',
+  // ── progressionService "needs cloud sync" dirty flag (was a bare literal) ───────
+  needsSync:                     'frenchCoach_needsSync',
 } as const;
 
 export type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS];
@@ -105,6 +107,24 @@ const DEVICE_SCOPED = new Set<string>([
   STORAGE_KEYS.localCounters,
 ]);
 
+/**
+ * Keys that were being read/written through raw `localStorage` (bare, unscoped)
+ * before the identity-scoping fix, so an account that signed in before that
+ * change has its data sitting at the bare key with no `::identity` copy. The
+ * v1 scope-claim marker is already set for those identities, so
+ * prepareStorageScope's main copy loop is skipped for them — these keys need
+ * a one-shot re-copy gated on a separate v2 marker. Additive/idempotent, same
+ * as the v1 copy.
+ */
+const V2_REMIGRATION_KEYS: readonly string[] = [
+  STORAGE_KEYS.analytics,
+  STORAGE_KEYS.progression,
+  STORAGE_KEYS.roadmap,
+  STORAGE_KEYS.diagnosticSDE,
+  STORAGE_KEYS.topicMastery,
+  STORAGE_KEYS.needsSync,
+];
+
 let activeScope: string | null = null;
 
 /** Pure in-memory assignment — no I/O, safe to call from anywhere. */
@@ -112,9 +132,37 @@ export function setStorageScope(identity: string): void {
   activeScope = identity;
 }
 
-function scopedKey(base: string): string {
+/**
+ * Optional sink for storage-write failures (quota exceeded, storage
+ * unavailable). Registered by the app at init (wired to telemetry) so a
+ * silent degrade becomes visible in Sentry instead of vanishing. storage.ts
+ * itself never imports telemetry — keeps this low-level module dependency-free
+ * and testable without Sentry.
+ */
+type StorageErrorReporter = (err: unknown, context: { key: string; op: 'set' | 'setRaw' | 'remove' }) => void;
+let reportStorageError: StorageErrorReporter = () => {};
+
+export function setStorageErrorReporter(reporter: StorageErrorReporter): void {
+  reportStorageError = reporter;
+}
+
+/**
+ * The actual localStorage key a given base resolves to under the active scope.
+ * Exported so cross-tab `storage` event handlers can compare `event.key`
+ * against the real (`::identity`-suffixed) key that writes produce.
+ */
+export function scopedKey(base: string): string {
   if (activeScope === null || DEVICE_SCOPED.has(base)) return base;
   return `${base}::${activeScope}`;
+}
+
+/**
+ * True when a `storage` StorageEvent's `key` refers to `base` under the
+ * active scope. Handles both the device-scoped (bare) and identity-scoped
+ * (`base::identity`) cases.
+ */
+export function matchesScopedKey(eventKey: string | null, base: string): boolean {
+  return eventKey !== null && eventKey === scopedKey(base);
 }
 
 /**
@@ -126,7 +174,10 @@ function scopedKey(base: string): string {
  */
 export function prepareStorageScope(identity: string): void {
   const claimMarkerKey = `frenchCoach_scopeClaimed::${identity}`;
-  if (localStorage.getItem(claimMarkerKey) === 'true') return;
+  const v2MarkerKey = `frenchCoach_scopeClaimed_v2::${identity}`;
+  const v1Claimed = localStorage.getItem(claimMarkerKey) === 'true';
+  const v2Claimed = localStorage.getItem(v2MarkerKey) === 'true';
+  if (v1Claimed && v2Claimed) return;
 
   const legacyRecord = (() => {
     try {
@@ -144,8 +195,16 @@ export function prepareStorageScope(identity: string): void {
   const shouldClaimLegacy =
     (legacyOwner === null && identity === 'guest') || legacyOwner === identity;
 
+  // The set of bare keys to copy into ::identity. On a first-ever claim
+  // (v1 marker absent) this is every scoped key. For an identity that
+  // already claimed under v1 but not v2, it's only the keys that used to be
+  // written bare through raw localStorage (see V2_REMIGRATION_KEYS) — their
+  // ::identity copies were never made because those services bypassed the
+  // scoped API when the v1 claim ran.
+  const basesToCopy = v1Claimed ? V2_REMIGRATION_KEYS : Object.values(STORAGE_KEYS);
+
   if (shouldClaimLegacy) {
-    for (const base of Object.values(STORAGE_KEYS)) {
+    for (const base of basesToCopy) {
       if (DEVICE_SCOPED.has(base)) continue;
       const destKey = `${base}::${identity}`;
       if (localStorage.getItem(destKey) !== null) continue;
@@ -161,6 +220,7 @@ export function prepareStorageScope(identity: string): void {
 
   try {
     localStorage.setItem(claimMarkerKey, 'true');
+    localStorage.setItem(v2MarkerKey, 'true');
   } catch {
     // storage unavailable — next load safely retries, every copy is idempotent
   }
@@ -218,8 +278,10 @@ export function storageGet<T>(key: string, fallback: T): T {
 export function storageSet(key: string, value: unknown): void {
   try {
     localStorage.setItem(scopedKey(key), JSON.stringify(value));
-  } catch {
-    // quota exceeded or storage unavailable — degrade silently, never throw
+  } catch (err) {
+    // quota exceeded or storage unavailable — degrade silently, never throw,
+    // but surface it so a silent persistence failure is visible.
+    reportStorageError(err, { key, op: 'set' });
   }
 }
 
@@ -229,15 +291,15 @@ export function storageSet(key: string, value: unknown): void {
 export function storageSetRaw(key: string, value: string): void {
   try {
     localStorage.setItem(scopedKey(key), value);
-  } catch {
-    // quota exceeded or storage unavailable — degrade silently, never throw
+  } catch (err) {
+    reportStorageError(err, { key, op: 'setRaw' });
   }
 }
 
 export function storageRemove(key: string): void {
   try {
     localStorage.removeItem(scopedKey(key));
-  } catch {
-    // storage unavailable — degrade silently, never throw
+  } catch (err) {
+    reportStorageError(err, { key, op: 'remove' });
   }
 }

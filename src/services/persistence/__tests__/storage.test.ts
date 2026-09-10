@@ -127,6 +127,64 @@ describe('prepareStorageScope: idempotency and retry safety', () => {
   });
 });
 
+describe('prepareStorageScope: v2 re-migration for keys that used to be written bare', () => {
+  beforeEach(() => localStorage.clear());
+
+  it('an identity already claimed under v1 gets its bare analytics/progression/roadmap/etc. copied on the v2 pass', () => {
+    // Simulate a user who signed in before the raw-localStorage offenders were
+    // routed through the scoped API: the v1 claim marker is set, and the
+    // formerly-bare keys still sit at their bare location with no ::identity copy.
+    localStorage.setItem('frenchCoach_scopeClaimed::guest', 'true');
+    localStorage.setItem(STORAGE_KEYS.analytics, JSON.stringify({ sessions: [{ id: 's1' }] }));
+    localStorage.setItem(STORAGE_KEYS.progression, JSON.stringify({ totalXP: 250 }));
+    localStorage.setItem(STORAGE_KEYS.roadmap, JSON.stringify({ levelIndex: 3 }));
+    localStorage.setItem(STORAGE_KEYS.diagnosticSDE, JSON.stringify({ sessionsAnalyzed: 5 }));
+    localStorage.setItem(STORAGE_KEYS.topicMastery, JSON.stringify({ school: {} }));
+    localStorage.setItem(STORAGE_KEYS.needsSync, '1');
+
+    prepareStorageScope('guest');
+
+    expect(JSON.parse(localStorage.getItem(`${STORAGE_KEYS.analytics}::guest`)!)).toEqual({ sessions: [{ id: 's1' }] });
+    expect(JSON.parse(localStorage.getItem(`${STORAGE_KEYS.progression}::guest`)!)).toEqual({ totalXP: 250 });
+    expect(JSON.parse(localStorage.getItem(`${STORAGE_KEYS.roadmap}::guest`)!)).toEqual({ levelIndex: 3 });
+    expect(JSON.parse(localStorage.getItem(`${STORAGE_KEYS.diagnosticSDE}::guest`)!)).toEqual({ sessionsAnalyzed: 5 });
+    expect(JSON.parse(localStorage.getItem(`${STORAGE_KEYS.topicMastery}::guest`)!)).toEqual({ school: {} });
+    expect(localStorage.getItem(`${STORAGE_KEYS.needsSync}::guest`)).toBe('1');
+    expect(localStorage.getItem('frenchCoach_scopeClaimed_v2::guest')).toBe('true');
+  });
+
+  it('the v2 pass is additive — it never clobbers an existing ::identity value', () => {
+    localStorage.setItem('frenchCoach_scopeClaimed::guest', 'true');
+    localStorage.setItem(STORAGE_KEYS.progression, JSON.stringify({ totalXP: 100 }));
+    localStorage.setItem(`${STORAGE_KEYS.progression}::guest`, JSON.stringify({ totalXP: 999 }));
+
+    prepareStorageScope('guest');
+
+    expect(JSON.parse(localStorage.getItem(`${STORAGE_KEYS.progression}::guest`)!)).toEqual({ totalXP: 999 });
+  });
+
+  it('once v2 is claimed, a later resolution does nothing', () => {
+    localStorage.setItem('frenchCoach_scopeClaimed::guest', 'true');
+    localStorage.setItem('frenchCoach_scopeClaimed_v2::guest', 'true');
+    localStorage.setItem(STORAGE_KEYS.progression, JSON.stringify({ totalXP: 100 }));
+
+    prepareStorageScope('guest');
+
+    expect(localStorage.getItem(`${STORAGE_KEYS.progression}::guest`)).toBeNull();
+  });
+
+  it('v2 re-migration respects the same ownership rule — a recorded owner\'s bare keys do not leak to guest', () => {
+    localStorage.setItem('frenchCoach_scopeClaimed::guest', 'true');
+    localStorage.setItem(STORAGE_KEYS.migrationV1, JSON.stringify({ userId: 'realAccount' }));
+    localStorage.setItem(STORAGE_KEYS.progression, JSON.stringify({ totalXP: 500 }));
+
+    prepareStorageScope('guest');
+
+    // migrationV1 says the bare pool belongs to realAccount, not guest.
+    expect(localStorage.getItem(`${STORAGE_KEYS.progression}::guest`)).toBeNull();
+  });
+});
+
 describe('the core acceptance criterion: account A data must never become visible to account B', () => {
   beforeEach(() => localStorage.clear());
 

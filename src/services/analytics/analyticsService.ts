@@ -2,7 +2,7 @@
 import type { Session, FeedbackV2, TopicMasteryEntry } from '../../types';
 
 import { hasStreakFreeze, consumeStreakFreeze, consumeItem } from '../progression/progressionService';
-import { STORAGE_KEYS } from '../persistence/storage';
+import { STORAGE_KEYS, storageGet, storageSet, storageRemove } from '../persistence/storage';
 
 const STORAGE_KEY = STORAGE_KEYS.analytics;
 const MASTERY_KEY_CONST = STORAGE_KEYS.topicMastery;
@@ -59,30 +59,45 @@ function dateKey(date = new Date()): string {
   return date.toISOString().slice(0, 10);
 }
 
+const emptyAnalytics = (): AnalyticsData => ({
+  sessions: [], totalWords: 0, streak: { count: 0, lastDate: null }, challengeLog: {},
+});
+
 function load(): AnalyticsData {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { sessions: [], totalWords: 0, streak: { count: 0, lastDate: null }, challengeLog: {} };
-    const parsed = JSON.parse(raw);
-    const seen = new Set<string>();
-    const sessions = (parsed.sessions || []).filter((s: StoredSession) => {
-      if (seen.has(s.id)) return false;
-      seen.add(s.id);
-      return true;
-    });
-    return {
-      sessions,
-      totalWords: parsed.totalWords || 0,
-      streak: parsed.streak || { count: 0, lastDate: null },
-      challengeLog: parsed.challengeLog || {},
-    };
-  } catch {
-    return { sessions: [], totalWords: 0, streak: { count: 0, lastDate: null }, challengeLog: {} };
-  }
+  const parsed = storageGet<Partial<AnalyticsData> | null>(STORAGE_KEY, null);
+  if (!parsed) return emptyAnalytics();
+  const seen = new Set<string>();
+  const sessions = (parsed.sessions || []).filter((s: StoredSession) => {
+    if (seen.has(s.id)) return false;
+    seen.add(s.id);
+    return true;
+  });
+  return {
+    sessions,
+    totalWords: parsed.totalWords || 0,
+    streak: parsed.streak || { count: 0, lastDate: null },
+    challengeLog: parsed.challengeLog || {},
+  };
+}
+
+/**
+ * Every sibling store caps its list (MAX_EVIDENCE_EVENTS=150,
+ * MAX_STORED_TRANSCRIPTS=20, MAX_QUEUE=500, MAX_XP_EVENTS=2000); analytics
+ * did not, so at a few thousand sessions the blob crossed the 5MB quota,
+ * save() swallowed the QuotaExceededError, and sessions/streak/XP silently
+ * stopped persisting. getSessionHistory/getStats reverse the array (newest
+ * last in storage), and streak/daily-stats only look back 7-90 days, so
+ * keeping the newest N via slice(-N) is safe. Exported so sessionSync's
+ * cloud-hydration merge can apply the same bound.
+ */
+export const MAX_STORED_SESSIONS = 500;
+
+export function capSessions(sessions: StoredSession[]): StoredSession[] {
+  return sessions.length > MAX_STORED_SESSIONS ? sessions.slice(-MAX_STORED_SESSIONS) : sessions;
 }
 
 function save(data: AnalyticsData) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch { /* quota exceeded — degrade silently */ }
+  storageSet(STORAGE_KEY, data);
 }
 
 function updateStreak(data: AnalyticsData) {
@@ -139,6 +154,7 @@ export function recordSession(session: Session, options?: RecordSessionOptions):
   };
   if (data.sessions.some(s => s.id === stored.id)) return stored;
   data.sessions.push(stored);
+  data.sessions = capSessions(data.sessions);
   data.totalWords = (data.totalWords || 0) + session.wordCount;
   updateStreak(data);
   save(data);
@@ -258,7 +274,7 @@ export function isTodayChallengeComplete(): boolean {
   return !!load().challengeLog[dateKey()];
 }
 
-export function resetAll() { localStorage.removeItem(STORAGE_KEY); }
+export function resetAll() { storageRemove(STORAGE_KEY); }
 export function exportData() { return JSON.stringify(load(), null, 2); }
 
 // ── Topic mastery persistence ──────────────────────────────────────────────────
@@ -266,19 +282,11 @@ export function exportData() { return JSON.stringify(load(), null, 2); }
 const MASTERY_KEY = MASTERY_KEY_CONST;
 
 export function updateTopicMastery(entry: TopicMasteryEntry) {
-  try {
-    const raw = localStorage.getItem(MASTERY_KEY);
-    const current = raw ? JSON.parse(raw) : {};
-    current[entry.topicKey] = entry;
-    localStorage.setItem(MASTERY_KEY, JSON.stringify(current));
-  } catch { /* quota exceeded — degrade silently */ }
+  const current = storageGet<Record<string, TopicMasteryEntry>>(MASTERY_KEY, {});
+  current[entry.topicKey] = entry;
+  storageSet(MASTERY_KEY, current);
 }
 
 export function getTopicMasteryAll(): Record<string, TopicMasteryEntry> {
-  try {
-    const raw = localStorage.getItem(MASTERY_KEY);
-    return raw ? JSON.parse(raw) : {};
-  } catch {
-    return {};
-  }
+  return storageGet<Record<string, TopicMasteryEntry>>(MASTERY_KEY, {});
 }

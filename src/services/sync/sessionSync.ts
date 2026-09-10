@@ -1,5 +1,6 @@
 import { supabase, supabaseConfigured } from '../../lib/supabase';
 import { STORAGE_KEYS, storageGet, storageSet } from '../persistence/storage';
+import { MAX_STORED_SESSIONS } from '../analytics/analyticsService';
 import type { Session } from '../../types';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -251,7 +252,10 @@ export function mergeSessionLists(local: StoredSession[], cloud: StoredSession[]
   for (const s of cloud) {
     if (!byId.has(s.id)) byId.set(s.id, s);
   }
-  return Array.from(byId.values()).sort((a, b) => a.date.localeCompare(b.date));
+  const merged = Array.from(byId.values()).sort((a, b) => a.date.localeCompare(b.date));
+  // Same bound analyticsService.recordSession applies — cloud hydration must
+  // not be able to reinflate the array past the quota-safe cap (Phase 1.5).
+  return merged.length > MAX_STORED_SESSIONS ? merged.slice(-MAX_STORED_SESSIONS) : merged;
 }
 
 export async function hydrateSessionsFromCloud(
@@ -273,7 +277,7 @@ export async function hydrateSessionsFromCloud(
       streak,
     };
 
-    localStorage.setItem(STORAGE_KEYS.analytics, JSON.stringify(mergedData));
+    storageSet(STORAGE_KEYS.analytics, mergedData);
     return { mergedSessions: merged, cloudIds };
   } catch (err) {
     console.warn('[sessionSync] hydrateSessionsFromCloud error:', err);

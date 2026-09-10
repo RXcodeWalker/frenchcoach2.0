@@ -1,6 +1,6 @@
 import type { FeedbackV2, SkillProfile, MistakeLog, SkillContext, AvoidanceSignal, Question, DifficultyEvalExpectations } from '../../types';
 import { DEFAULT_DIFFICULTY, DIFFICULTY_CONFIG } from '../../utils/difficultyConfig';
-import { STORAGE_KEYS } from '../persistence/storage';
+import { STORAGE_KEYS, storageGet, storageSet } from '../persistence/storage';
 import { nodeForGrammarTheme } from '../../domain/igcse/evidence/framework/nodeMap';
 import { LANGUAGE_SUCCESS_SCORE } from '../../domain/scoring';
 
@@ -38,16 +38,18 @@ export const SKILL_DEFS: Record<string, { name: string; desc: string; category: 
 // evidence/framework/nodeMap.ts) instead of a private copy — see
 // i-am-building-an-cosmic-cascade.md Phase 2 / Resolved Decisions.
 
-function _load() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { skills: {} as Record<string, unknown>, sessionsAnalyzed: 0 };
-    return JSON.parse(raw);
-  } catch { return { skills: {} as Record<string, unknown>, sessionsAnalyzed: 0 }; }
+interface DiagnosticState {
+  skills: Record<string, unknown>;
+  sessionsAnalyzed: number;
+  lastUpdated?: string;
+}
+
+function _load(): DiagnosticState {
+  return storageGet<DiagnosticState>(STORAGE_KEY, { skills: {}, sessionsAnalyzed: 0 });
 }
 
 function _save(data: unknown) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch { /* quota exceeded — degrade silently */ }
+  storageSet(STORAGE_KEY, data);
 }
 
 /**
