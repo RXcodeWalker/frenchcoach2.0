@@ -2,12 +2,23 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase, supabaseConfigured } from '../lib/supabase';
 
+// Phase 1.6 Part C. 'unknown' means "not fetched yet" (or offline/guest) —
+// distinct from '13_plus_not_required' so AgeBandCheck can tell "still
+// loading, don't redirect yet" from "confirmed, no guardian step needed".
+export type AgeBand = 'under_13' | '13_plus' | null;
+export type ConsentStatus = '13_plus_not_required' | 'pending' | 'granted' | 'revoked' | 'unknown';
+
 interface AuthContextValue {
   user: User | null;
   session: Session | null;
   isAdmin: boolean;
   loading: boolean;
   configError: boolean;
+  /** null once loaded for a user who has never set one (pre-Phase-1.6 account). */
+  ageBand: AgeBand;
+  consentStatus: ConsentStatus;
+  /** Re-reads age_band/consent_status from profiles — call after an RPC changes either. */
+  refreshConsentStatus: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<{ needsConfirmation: boolean }>;
   signOut: () => Promise<void>;
@@ -43,6 +54,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [ageBand, setAgeBand] = useState<AgeBand>(null);
+  const [consentStatus, setConsentStatus] = useState<ConsentStatus>('unknown');
+
+  async function loadConsentStatus(userId: string) {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('age_band, consent_status')
+      .eq('id', userId)
+      .single();
+    if (error || !data) {
+      // A missing/unreadable row reads as "not required" rather than staying
+      // 'unknown' forever — AgeBandCheck would otherwise never redirect a
+      // user whose profile row genuinely has no age_band yet (new signup
+      // whose profile insert hasn't landed) into the age-band step.
+      setAgeBand(null);
+      setConsentStatus('unknown');
+      return;
+    }
+    setAgeBand((data.age_band as AgeBand) ?? null);
+    setConsentStatus((data.consent_status as ConsentStatus) ?? '13_plus_not_required');
+  }
 
   useEffect(() => {
     if (!supabaseConfigured) {
@@ -54,15 +86,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(data.session);
       setUser(data.session?.user ?? null);
       setLoading(false);
+      if (data.session?.user) void loadConsentStatus(data.session.user.id);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession);
       setUser(newSession?.user ?? null);
+      if (newSession?.user) {
+        void loadConsentStatus(newSession.user.id);
+      } else {
+        setAgeBand(null);
+        setConsentStatus('unknown');
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  async function refreshConsentStatus() {
+    if (user) await loadConsentStatus(user.id);
+  }
 
   async function signIn(email: string, password: string) {
     if (!supabaseConfigured) throw new Error('App is not configured.');
@@ -109,7 +152,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     (user?.app_metadata as { role?: string } | undefined)?.role === 'admin';
 
   return (
-    <AuthContext.Provider value={{ user, session, isAdmin, loading, configError: false, signIn, signUp, signOut, resetPasswordForEmail, updateUserPassword, signInWithOAuth }}>
+    <AuthContext.Provider value={{ user, session, isAdmin, loading, configError: false, ageBand, consentStatus, refreshConsentStatus, signIn, signUp, signOut, resetPasswordForEmail, updateUserPassword, signInWithOAuth }}>
       {children}
     </AuthContext.Provider>
   );

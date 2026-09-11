@@ -28,6 +28,8 @@ import { useGuestMode } from './hooks/useGuestMode';
 import { useExamVoice } from './screens/exam/useExamVoice';
 import { IdentityScopeGate } from './components/IdentityScopeGate';
 import { OnboardingCheck } from './components/OnboardingCheck';
+import { AgeBandCheck } from './components/AgeBandCheck';
+import { AgeBand } from './screens/AgeBand';
 
 import { RapidFire } from './screens/RapidFire';
 import { SpeedSpeaking } from './screens/SpeedSpeaking';
@@ -54,6 +56,8 @@ import { NotFound } from './screens/NotFound';
 import { IgcseFrenchSpeaking } from './screens/IgcseFrenchSpeaking';
 import { FrenchRoleplayPractice } from './screens/FrenchRoleplayPractice';
 import { Story } from './screens/Story';
+import { PrivacyPolicy } from './screens/PrivacyPolicy';
+import { TermsOfService } from './screens/TermsOfService';
 import { AdminRoute } from './components/auth/AdminRoute';
 import { AdminLayout } from './layouts/AdminLayout';
 import { AdminDashboard } from './screens/admin/AdminDashboard';
@@ -220,6 +224,7 @@ function AppShell() {
 
   return (
     <IdentityScopeGate key={identity} identity={identity}>
+      <AgeBandCheck>
       <OnboardingCheck>
         <AppProvider identity={identity}>
           <MigrationGate />
@@ -366,6 +371,9 @@ function AppShell() {
         <Route path="/igcse-french-speaking" element={<IgcseFrenchSpeaking />} />
         <Route path="/french-roleplay-practice" element={<FrenchRoleplayPractice />} />
         <Route path="/story" element={<Story />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/age-band" element={<AgeBand />} />
 
         {/* Admin content management — gated on JWT app_metadata.role */}
         <Route element={<AdminRoute />}>
@@ -384,6 +392,7 @@ function AppShell() {
           </Routes>
         </AppProvider>
       </OnboardingCheck>
+      </AgeBandCheck>
     </IdentityScopeGate>
   );
 }

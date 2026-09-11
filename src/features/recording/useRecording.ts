@@ -56,7 +56,14 @@ export interface RecordingState {
   sttError: string | null;
 }
 
-export function useRecording(): RecordingState {
+/**
+ * @param blocked Phase 1.6 Part C defence-in-depth: when true, start() is a
+ * no-op — getUserMedia/SpeechRecognition are never invoked. The UI-level
+ * gate (SpeakingConsentGate) is the primary control; this guard exists so a
+ * consent-pending mic can't be armed even if some future call site renders
+ * a record control without that wrapper.
+ */
+export function useRecording(blocked = false): RecordingState {
   const [isRecording, setIsRecording]   = useState(false);
   const [elapsedTime, setElapsedTime]   = useState(0);
   const [waveData, setWaveData]         = useState<number[]>(Array(WAVE_BARS).fill(4));
@@ -97,6 +104,7 @@ export function useRecording(): RecordingState {
   }, []);
 
   const start = useCallback(() => {
+    if (blocked) return;
     setIsRecording(true);
     setElapsedTime(0);
     setTranscript('');
@@ -168,7 +176,7 @@ export function useRecording(): RecordingState {
       recogRef.current = recog;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [blocked]);
 
   const stop = useCallback((): Promise<string> => {
     setIsRecording(false);

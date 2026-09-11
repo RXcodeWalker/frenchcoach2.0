@@ -15,6 +15,8 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { useApp, dispatchAddXP } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
+import { SpeakingConsentGate } from '../components/SpeakingConsentGate';
 import { useRecording } from '../features/recording/useRecording';
 import { Waveform } from '../features/recording/Waveform';
 import { RecordingPanel } from './learn/RecordingPanel';
@@ -38,8 +40,9 @@ const CACHE_KEY = STORAGE_KEYS.newsCache;
 export function DailyNewsFlash() {
   const navigate = useNavigate();
   const { state, dispatch } = useApp();
-  const recording = useRecording();
-  
+  const { consentStatus } = useAuth();
+  const recording = useRecording(consentStatus === 'pending');
+
   const [phase, setPhase] = useState<Phase>('listening');
   const [currentNews, setCurrentNews] = useState<NewsSnippet | null>(null);
   const [isLoadingNews, setIsLoadingNews] = useState(true);
@@ -381,12 +384,14 @@ export function DailyNewsFlash() {
                   </AnimatePresence>
                 </div>
 
-                <button
-                  onClick={handleStartRecording}
-                  className="w-full py-5 bg-white text-slate-950 font-black rounded-2xl hover:bg-slate-200 transition-all uppercase italic tracking-wider flex items-center justify-center gap-3 shadow-xl active:scale-95"
-                >
-                  <Mic size={22} /> I'm Ready to Report
-                </button>
+                <SpeakingConsentGate>
+                  <button
+                    onClick={handleStartRecording}
+                    className="w-full py-5 bg-white text-slate-950 font-black rounded-2xl hover:bg-slate-200 transition-all uppercase italic tracking-wider flex items-center justify-center gap-3 shadow-xl active:scale-95"
+                  >
+                    <Mic size={22} /> I'm Ready to Report
+                  </button>
+                </SpeakingConsentGate>
               </motion.div>
             )}
 

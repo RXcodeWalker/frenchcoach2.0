@@ -113,6 +113,12 @@ export function MarketingLayout({ children, breadcrumb, route }: Props) {
             <a href="/login" className="mk-link text-xs" style={{ color: 'var(--mk-ink-muted)' }}>
               Log in to your account
             </a>
+            <a href="/privacy" className="mk-link text-xs" style={{ color: 'var(--mk-ink-muted)' }}>
+              Privacy Policy
+            </a>
+            <a href="/terms" className="mk-link text-xs" style={{ color: 'var(--mk-ink-muted)' }}>
+              Terms of Service
+            </a>
           </div>
           <div className="flex flex-col gap-2">
             <p className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: 'var(--mk-ink-faint)' }}>

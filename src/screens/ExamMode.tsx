@@ -3,6 +3,8 @@ import { track, captureError } from '../services/telemetry/telemetryService';
 import confetti from 'canvas-confetti';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
+import { SpeakingConsentGate } from '../components/SpeakingConsentGate';
 import { getSkillProfile } from '../services/coaching/diagnosticEngine';
 import { checkAchievements, getProgressionState, awardParticipationXP } from '../services/progression/progressionService';
 import { recordSession as persistSession } from '../services/analytics/analyticsService';
@@ -113,7 +115,8 @@ export function ExamMode() {
   const [rolePlayMeta, setRolePlayMeta] = useState<RolePlayMeta | undefined>(undefined);
   const [showScoringExitConfirm, setShowScoringExitConfirm] = useState(false);
 
-  const recording = useRecording();
+  const { consentStatus } = useAuth();
+  const recording = useRecording(consentStatus === 'pending');
   const clock = useSessionClock();
   const totalClock = useElapsedClock();
   const sessionRef = useRef<SimulationSession | null>(null);
@@ -620,7 +623,18 @@ export function ExamMode() {
     );
   }
 
-  if (examState === 'intro') return <ExamIntro onStart={enterGreeting} onBack={() => navigate('/')} />;
+  if (examState === 'intro') {
+    if (consentStatus === 'pending') {
+      return (
+        <div className="min-h-screen flex items-center justify-center p-6">
+          <SpeakingConsentGate>
+            <ExamIntro onStart={enterGreeting} onBack={() => navigate('/')} />
+          </SpeakingConsentGate>
+        </div>
+      );
+    }
+    return <ExamIntro onStart={enterGreeting} onBack={() => navigate('/')} />;
+  }
 
   if (examState === 'greeting') {
     return <ExamGreeting recording={recording} greetingText={GREETING_TEXT} onContinue={() => void enterCardPreview()} />;

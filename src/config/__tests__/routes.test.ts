@@ -6,8 +6,10 @@ import { ROUTES } from '../routes';
 // Paths that are never a <Route> in App.tsx by design, but still need a
 // static shell once prerendering exists. Any addition must be deliberate —
 // this list is the only thing that can excuse a routes.ts entry from having
-// a matching <Route path> below.
-const UNREGISTERED_PATHS = ['/login', '/auth/callback', '/reset-password'];
+// a matching <Route path> below. '/guardian-consent' (Phase 1.6 Part C) is
+// PublicRoutes-only — a guardian confirming by emailed link is never a
+// signed-in app user, so it has no App.tsx <Route>.
+const UNREGISTERED_PATHS = ['/login', '/auth/callback', '/reset-password', '/guardian-consent'];
 
 function readAppTsx(): string {
   const path = fileURLToPath(new URL('../../App.tsx', import.meta.url));

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Volume2, Moon, Bell, Globe, Database, Shield, ChevronRight, Zap, Trophy, Flame, TrendingUp, BookOpen, LogOut, Target, SlidersHorizontal, AtSign, Loader2, Check, UserX, Users } from 'lucide-react';
+import { Volume2, Moon, Globe, Database, Shield, ChevronRight, Zap, Trophy, Flame, TrendingUp, BookOpen, LogOut, Target, SlidersHorizontal, AtSign, Loader2, Check, UserX, Users, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
@@ -19,6 +19,7 @@ import { listBlockedUsers, unblockUser, type BlockedUserEntry } from '../service
 import { CosmeticPreview } from '../components/ui/CosmeticPreview';
 import { useCatalogue } from '../services/shop/useCatalogue';
 import { rarityOf, RARITY_COLOR } from '../services/shop/rarity';
+import { exportMyData, deleteMyAccount, AccountError } from '../services/account/accountService';
 
 const RENAME_REASON_COPY: Record<string, string> = {
   invalid_format: 'Start with a letter, 3–20 characters, letters/numbers/underscore only.',
@@ -53,6 +54,12 @@ export function Profile() {
   const [blockedUsers, setBlockedUsers] = useState<BlockedUserEntry[]>([]);
   const [showBlockedList, setShowBlockedList] = useState(false);
 
+  const [exportingData, setExportingData] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
   useEffect(() => {
     if (!profile.id) return;
     void getPrivacySettings(profile.id).then(setPrivacy);
@@ -65,6 +72,37 @@ export function Profile() {
   async function handleUnblock(userId: string) {
     const result = await unblockUser(userId);
     if (result.ok) setBlockedUsers(prev => prev.filter(u => u.userId !== userId));
+  }
+
+  async function handleExportData() {
+    if (exportingData) return;
+    setExportingData(true);
+    setExportError(null);
+    try {
+      await exportMyData();
+    } catch (err) {
+      setExportError(
+        err instanceof AccountError && err.code === 'not_authenticated'
+          ? 'Sign in to export your data.'
+          : 'Export failed. Try again.',
+      );
+    } finally {
+      setExportingData(false);
+    }
+  }
+
+  async function handleDeleteAccount() {
+    if (deleting) return;
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      await deleteMyAccount();
+      await signOut();
+      navigate('/', { replace: true });
+    } catch {
+      setDeleteError('Deletion failed. Try again, or contact us if this keeps happening.');
+      setDeleting(false);
+    }
   }
 
   async function handleRename(e: React.FormEvent) {
@@ -295,7 +333,6 @@ export function Profile() {
         <div className="space-y-0.5">
           <SettingToggle icon={<Volume2 size={14} />} label="Sound Effects" description="Play sounds for answers" enabled={state.soundEnabled} onToggle={() => dispatch({ type: 'TOGGLE_SOUND' })} />
           <SettingToggle icon={<Moon size={14} />} label="Dark Mode" description="Toggle dark or light theme" enabled={state.darkMode} onToggle={() => dispatch({ type: 'TOGGLE_DARK_MODE' })} />
-          <SettingToggle icon={<Bell size={14} />} label="Daily Reminders" description="Streak notifications" enabled={true} onToggle={() => {}} />
         </div>
       </motion.div>
 
@@ -341,14 +378,29 @@ export function Profile() {
       <motion.div variants={fadeUp} className="rounded-xl surface p-4">
         <h3 className="font-bold text-ink-subtle text-[10px] uppercase tracking-wider mb-2.5">Data & Privacy</h3>
         <div className="space-y-0.5">
-          <button className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-white/[0.02] transition-colors text-left">
-            <Database size={14} className="text-ink-subtle" />
-            <div className="flex-1"><p className="text-[10px] font-semibold text-white">Export My Data</p><p className="text-[9px] text-ink-subtle">Download sessions and progress</p></div>
+          <button
+            onClick={handleExportData}
+            disabled={exportingData}
+            className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-white/[0.02] transition-colors text-left disabled:opacity-60"
+          >
+            {exportingData ? <Loader2 size={14} className="text-ink-subtle animate-spin" /> : <Database size={14} className="text-ink-subtle" />}
+            <div className="flex-1"><p className="text-[10px] font-semibold text-white">Export My Data</p><p className="text-[9px] text-ink-subtle">{exportError ?? 'Download sessions and progress'}</p></div>
             <ChevronRight size={12} className="text-ink-subtle" />
           </button>
-          <button className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-white/[0.02] transition-colors text-left">
+          <button
+            onClick={() => navigate('/privacy')}
+            className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-white/[0.02] transition-colors text-left"
+          >
             <Shield size={14} className="text-ink-subtle" />
             <div className="flex-1"><p className="text-[10px] font-semibold text-white">Privacy Policy</p><p className="text-[9px] text-ink-subtle">How we handle your data</p></div>
+            <ChevronRight size={12} className="text-ink-subtle" />
+          </button>
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-red-500/[0.06] transition-colors text-left"
+          >
+            <Trash2 size={14} className="text-red-400" />
+            <div className="flex-1"><p className="text-[10px] font-semibold text-red-400">Delete My Account</p><p className="text-[9px] text-ink-subtle">Permanently erase your account and data</p></div>
             <ChevronRight size={12} className="text-ink-subtle" />
           </button>
           <button
@@ -422,6 +474,41 @@ export function Profile() {
           </button>
         </div>
       </motion.div>
+
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-6 bg-black/60">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="w-full max-w-sm rounded-xl surface-raised p-5 space-y-4"
+          >
+            <div>
+              <p className="text-sm font-bold text-white mb-1">Delete your account?</p>
+              <p className="text-[11px] text-ink-subtle leading-relaxed">
+                This permanently erases your sessions, transcripts, scores, XP, and progress. It
+                cannot be undone.
+              </p>
+            </div>
+            {deleteError && <p className="text-[10px] text-red-400">{deleteError}</p>}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={deleting}
+                className="flex-1 py-2 rounded-lg bg-navy-300 text-ink-subtle text-xs font-semibold disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deleting}
+                className="flex-1 py-2 rounded-lg bg-red-500/90 text-white text-xs font-semibold disabled:opacity-60"
+              >
+                {deleting ? 'Deleting…' : 'Delete permanently'}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
 
       <p className="text-center text-[9px] text-slate-800 pb-4">FrenchCoach v3.0</p>
     </PageShell>

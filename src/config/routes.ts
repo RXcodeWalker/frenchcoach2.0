@@ -13,7 +13,10 @@ export interface RouteEntry {
 // Routes renders) but still needs a static shell once prerendering exists, so it
 // belongs in this table. '/login' (App.tsx:199-203); '/auth/callback' and
 // '/reset-password' are PublicRoutes-only (pre-auth PKCE callback + password
-// reset), also never a <Route> in App.tsx's own <Routes>.
+// reset), also never a <Route> in App.tsx's own <Routes>. '/guardian-consent'
+// (Phase 1.6 Part C) joins this group for the same reason: it's a
+// PublicRoutes-only landing page for a guardian who is never a signed-in app
+// user, so it has no App.tsx <Route>.
 // kind:'dev-only' — a <Route> guarded by import.meta.env.DEV; tree-shaken out of
 // production builds, so it must never get a prod shell.
 export const ROUTES: RouteEntry[] = [
@@ -22,10 +25,15 @@ export const ROUTES: RouteEntry[] = [
   { path: '/igcse-french-speaking', kind: 'public', indexable: true },
   { path: '/french-roleplay-practice', kind: 'public', indexable: true },
   { path: '/story', kind: 'public', indexable: true },
+  { path: '/privacy', kind: 'public', indexable: false },
+  { path: '/terms', kind: 'public', indexable: false },
 
   { path: '/login', kind: 'unregistered', indexable: false },
   { path: '/auth/callback', kind: 'unregistered', indexable: false },
   { path: '/reset-password', kind: 'unregistered', indexable: false },
+  { path: '/guardian-consent', kind: 'unregistered', indexable: false },
+
+  { path: '/age-band', kind: 'app', indexable: false },
 
   { path: '/learn', kind: 'app', indexable: false },
   { path: '/exam', kind: 'app', indexable: false },

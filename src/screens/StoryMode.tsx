@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { BookOpen, ArrowLeft, MessageSquare, Star, ChevronRight } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
+import { SpeakingConsentGate } from '../components/SpeakingConsentGate';
 import { STORY_CARDS, type StoryCard } from '../data/storyCards';
 import { useRecording } from '../features/recording/useRecording';
 import { getAIFeedback } from '../services/api/apiClient';
@@ -79,7 +81,8 @@ function toStoryQuestion(card: StoryCard, task: StoryCard['tasks'][number]): Que
 export function StoryMode() {
   const navigate = useNavigate();
   const { state, dispatch } = useApp();
-  const recording = useRecording();
+  const { consentStatus } = useAuth();
+  const recording = useRecording(consentStatus === 'pending');
 
   const [selectedStory, setSelectedStory] = useState<StoryCard | null>(null);
   const [isPrepping, setIsPrepping] = useState(false);
@@ -431,14 +434,20 @@ export function StoryMode() {
           <h2 className="text-xl font-black text-white uppercase italic">Prep Phase</h2>
         </div>
         <div className="flex-1 overflow-hidden">
-          <StoryModePrep
-            story={selectedStory}
-            onReady={startStory}
-            onCancel={() => {
-              setIsPrepping(false);
-              setSelectedStory(null);
-            }}
-          />
+          {consentStatus === 'pending' ? (
+            <SpeakingConsentGate>
+              <span />
+            </SpeakingConsentGate>
+          ) : (
+            <StoryModePrep
+              story={selectedStory}
+              onReady={startStory}
+              onCancel={() => {
+                setIsPrepping(false);
+                setSelectedStory(null);
+              }}
+            />
+          )}
         </div>
       </div>
     );

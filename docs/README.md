@@ -16,11 +16,12 @@ Depth 2. Four live categories, one archive.
 - `systems/topology.md` — the three runtime surfaces, deploy wiring, env vars, known unknowns
 - `systems/assessment-engine.md` — the three-layer scoring pipeline and the three-scorer situation
 - `systems/data-model.md` — the Supabase privilege rule, economy invariant, session-binding pattern, and gotchas (not a table/RPC catalogue)
+- `systems/child-safety-consent.md` — the three-concept consent separation, the guardian_consents/age_band data model, the RPC contracts, and client enforcement (Phase 1.6 Part C)
 - `guides/content-authoring.md` — content-authoring rules for the question bank
 - `guides/corpus-matrix.md` — corpus coverage rules
 - `guides/learn-demands.md` — Learn demand-tagging rules
 - `guides/development.md` — commands, the three test suites, the Assessment-Engine change procedure
-- `decisions/0001-cambridge-0520-only.md` through `0005-examiner-feedback-emits-no-marks.md` — ADRs
+- `decisions/0001-cambridge-0520-only.md` through `0006-under-13-guardian-consent-model.md` — ADRs
 - `archive/` — historical documents; see `archive/README.md`
 
 ## Authority model

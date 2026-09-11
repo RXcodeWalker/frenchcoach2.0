@@ -132,6 +132,11 @@ export function setStorageScope(identity: string): void {
   activeScope = identity;
 }
 
+/** The identity the active scope is namespaced to, or null pre-scope-set. */
+export function getStorageScope(): string | null {
+  return activeScope;
+}
+
 /**
  * Optional sink for storage-write failures (quota exceeded, storage
  * unavailable). Registered by the app at init (wired to telemetry) so a

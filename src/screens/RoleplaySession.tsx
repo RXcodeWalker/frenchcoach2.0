@@ -4,6 +4,8 @@ import { ArrowLeft } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { getScenario, isAuthored } from '../data/scenarios/registry';
 import { useApp } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
+import { SpeakingConsentGate } from '../components/SpeakingConsentGate';
 import { useRecording, type RecordingState } from '../features/recording/useRecording';
 import { useRoleplaySession, pickPrompt, countWords } from '../features/roleplay/useRoleplaySession';
 import { toScoringInput } from '../features/roleplay/toScoringInput';
@@ -58,9 +60,10 @@ function RoleplaySessionView({ scenarioId, entry }: { scenarioId: string; entry:
   const { meta, deck } = entry;
   const session = useRoleplaySession(scenarioId, entry.graph, meta);
   const { phase } = session.state;
+  const { consentStatus } = useAuth();
   // Lifted here (not inside PlayPhase) so the prep screen's capability check
   // reads the same sttSupported the play phase actually records with.
-  const recording = useRecording();
+  const recording = useRecording(consentStatus === 'pending');
 
   const allMissions: Mission[] = useMemo(
     () => Object.values(meta.branches).flatMap((b) => b.missions),
@@ -88,15 +91,23 @@ function RoleplaySessionView({ scenarioId, entry }: { scenarioId: string; entry:
 
       {(phase === 'briefing' || phase === 'prep') && (
         <div className="h-[70vh]">
-          <ScenarioPrepScreen
-            meta={meta}
-            deck={deck.entries}
-            missions={allMissions}
-            sttSupported={recording.sttSupported}
-            hasFrenchVoice={hasFrenchVoice()}
-            onReady={session.start}
-            onCancel={() => navigate('/explore')}
-          />
+          {consentStatus === 'pending' ? (
+            <SpeakingConsentGate>
+              {/* Never rendered while pending — SpeakingConsentGate shows the
+                  waiting message instead. Present only so children is non-empty. */}
+              <span />
+            </SpeakingConsentGate>
+          ) : (
+            <ScenarioPrepScreen
+              meta={meta}
+              deck={deck.entries}
+              missions={allMissions}
+              sttSupported={recording.sttSupported}
+              hasFrenchVoice={hasFrenchVoice()}
+              onReady={session.start}
+              onCancel={() => navigate('/explore')}
+            />
+          )}
         </div>
       )}
 

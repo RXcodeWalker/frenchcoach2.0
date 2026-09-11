@@ -130,6 +130,7 @@ production and then treated as the record. **Last repo pass: 2026-09-09.**
 | 3 | FastAPI: `ADMIN_SETUP_SECRET` **and** `ADMIN_SETUP_ENABLED` both **unset**? (Phase 1.2 code now also requires the flag, but keep both unset) | same | _pending_ |
 | 3 | FastAPI: `ENABLE_API_DOCS` **unset** in prod? (docs off by default; only set in staging) | same | _pending_ |
 | 3 | FastAPI: `AZURE_SPEECH_KEY` / `AZURE_SPEECH_REGION` present? | same | _pending_ |
+| 3 | FastAPI: `SMTP_HOST`/`SMTP_USER`/`SMTP_PASSWORD`/`SMTP_FROM`/`APP_ORIGIN` set? (Phase 1.6 Part C guardian-consent email — all blank by default; `POST /api/consent/send-guardian-email` 503s and the client falls back to a copy-link UI until these are configured) | same | _pending_ |
 | 4 | `POST $SCORING/score` with a real JWT — 200 envelope, or 500 "Both judge providers failed"? | curl / probe below | _pending_ |
 | 5 | Groq / Gemini / Azure consoles — anomalous spend since the backend went public unauthenticated? | provider dashboards | _pending_ |
 

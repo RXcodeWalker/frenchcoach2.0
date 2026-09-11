@@ -18,6 +18,8 @@ import { consumeItem } from '../services/progression/progressionService';
 import { MicroDrillModal } from '../components/ui/MicroDrillModal';
 import type { LearningProblem } from '../types/intervention';
 import { useRecording } from '../features/recording/useRecording';
+import { useAuth } from '../context/AuthContext';
+import { SpeakingConsentGate } from '../components/SpeakingConsentGate';
 import { TopicGrid } from './learn/TopicGrid';
 import { QuestionCard } from './learn/QuestionCard';
 import { RecordingPanel } from './learn/RecordingPanel';
@@ -129,7 +131,8 @@ export function Learn() {
   // ADD_SESSION twice for one spoken answer would double-count it.
   const finalizedAttemptIdRef = useRef(0);
 
-  const recording = useRecording();
+  const { consentStatus } = useAuth();
+  const recording = useRecording(consentStatus === 'pending');
 
   // Abort stream + pronunciation call on unmount
   useEffect(() => {
@@ -1198,11 +1201,13 @@ export function Learn() {
                 </div>
               )}
 
-              <RecordingPanel
-                isActive={learnState === 'question' || learnState === 'recording'}
-                recording={recording}
-                onStop={handleStopRecording}
-              />
+              <SpeakingConsentGate>
+                <RecordingPanel
+                  isActive={learnState === 'question' || learnState === 'recording'}
+                  recording={recording}
+                  onStop={handleStopRecording}
+                />
+              </SpeakingConsentGate>
 
               {learnState === 'confirm' && pendingTranscript !== null && (
                 <motion.div

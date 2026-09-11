@@ -200,3 +200,45 @@ describe('useRecording — sttSupported / sttError', () => {
     expect(result.current.sttError).toBeNull();
   });
 });
+
+describe('useRecording — blocked (Phase 1.6 Part C consent gate)', () => {
+  beforeEach(() => {
+    Object.defineProperty(globalThis.navigator, 'mediaDevices', {
+      configurable: true,
+      value: { getUserMedia: vi.fn().mockResolvedValue({ getTracks: () => [{ stop: vi.fn() }] }) },
+    });
+    delete (globalThis as Record<string, unknown>).SpeechRecognition;
+    delete (globalThis as Record<string, unknown>).webkitSpeechRecognition;
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('start() is a no-op when blocked=true — never arms isRecording or getUserMedia', async () => {
+    const getUserMediaSpy = vi.fn().mockResolvedValue({ getTracks: () => [{ stop: vi.fn() }] });
+    Object.defineProperty(globalThis.navigator, 'mediaDevices', {
+      configurable: true,
+      value: { getUserMedia: getUserMediaSpy },
+    });
+
+    const { result } = renderHook(() => useRecording(true));
+
+    act(() => {
+      result.current.start();
+    });
+
+    expect(result.current.isRecording).toBe(false);
+    expect(getUserMediaSpy).not.toHaveBeenCalled();
+  });
+
+  it('start() works normally when blocked=false (default)', () => {
+    const { result } = renderHook(() => useRecording());
+
+    act(() => {
+      result.current.start();
+    });
+
+    expect(result.current.isRecording).toBe(true);
+  });
+});

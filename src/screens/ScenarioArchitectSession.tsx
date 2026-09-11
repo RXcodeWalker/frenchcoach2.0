@@ -14,6 +14,8 @@ import { Card } from '../components/ui/Card';
 import { useRecording } from '../features/recording/useRecording';
 import { Waveform } from '../features/recording/Waveform';
 import { useApp, dispatchAddXP } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
+import { SpeakingConsentGate } from '../components/SpeakingConsentGate';
 import { roleplayTurn, getAIFeedback } from '../services/api/apiClient';
 import { observeAttempt } from '../services/coach/sessionOrchestrator';
 import { getSkillProfile } from '../services/coaching/diagnosticEngine';
@@ -30,7 +32,8 @@ export function ScenarioArchitectSession() {
   const location = useLocation();
   const navigate = useNavigate();
   const { dispatch } = useApp();
-  const recording = useRecording();
+  const { consentStatus } = useAuth();
+  const recording = useRecording(consentStatus === 'pending');
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const customScenario = location.state?.customScenario as GeneratedScenario;
@@ -262,15 +265,17 @@ export function ScenarioArchitectSession() {
             </Card>
           ) : (
             <div className="flex items-center gap-4">
-              <button
-                onClick={() => recording.start()}
-                disabled={isTyping || isProcessing}
-                className="flex-1 flex items-center justify-center gap-3 py-4 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 disabled:text-ink-muted text-white font-black rounded-2xl shadow-xl shadow-emerald-600/20 transition-all uppercase italic tracking-widest group"
-              >
-                <Mic size={20} className="group-hover:scale-110 transition-transform" />
-                Tap to Speak
-              </button>
-              
+              <SpeakingConsentGate>
+                <button
+                  onClick={() => recording.start()}
+                  disabled={isTyping || isProcessing}
+                  className="flex-1 flex items-center justify-center gap-3 py-4 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 disabled:text-ink-muted text-white font-black rounded-2xl shadow-xl shadow-emerald-600/20 transition-all uppercase italic tracking-widest group"
+                >
+                  <Mic size={20} className="group-hover:scale-110 transition-transform" />
+                  Tap to Speak
+                </button>
+              </SpeakingConsentGate>
+
               <div className="p-4 rounded-2xl bg-white/5 border border-white/10 text-ink-muted hover:text-white transition-colors cursor-help group relative">
                 <Target size={20} />
                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 w-64 p-4 bg-slate-900 border border-white/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-2xl">
