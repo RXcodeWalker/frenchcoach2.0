@@ -56,6 +56,117 @@ These never call each other directly. The frontend is the only thing that talks 
 repo.** If you're debugging a report of exam scoring not working in production, check the Vercel
 project's environment variables directly rather than assuming.
 
+## Production reality checks (ship-readiness Phase 0)
+
+The ship-readiness roadmap's Phase 0 asks five questions the repo can't answer on its own. What
+the code confirms is recorded here; the dashboard / live-service findings are filled in against
+production and then treated as the record. **Last repo pass: 2026-09-09.**
+
+### What the repo confirms (verified 2026-09-09)
+
+- **The committed `dist/` build has the scoring path dead-code-eliminated.**
+  `src/services/exam/scoringApiClient.ts:18` resolves `SCORING_API_BASE` from
+  `import.meta.env.VITE_SCORING_API_URL ?? ''`. In the committed `dist/assets/index-*.js`,
+  `submitForScoring` and `pollScoreStatus` are both minified to
+  `function(){throw new oc("Scoring service is not configured (VITE_SCORING_API_URL unset)")}` —
+  i.e. the last local build ran with the var unset. This says nothing about Vercel's build, but
+  it does mean any build shipped without the var makes exam scoring throw synchronously inside
+  `submitForScoring` (a hard fail, not an infinite spinner — the spinner-hang failure mode is
+  the separate no-deadline polling bug in `ExamMode.tsx`).
+- **`.env.local` sets only** `VITE_API_URL`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` —
+  no `VITE_SCORING_API_URL`, no `VITE_SENTRY_DSN`.
+- **`.env.example`** ships `VITE_SCORING_API_URL=` empty, commented "Empty/unset means ExamMode
+  shows no marks."
+- **`render.yaml` `french-scoring`** declares `GEMINI_API_KEY`, `GROQ_API_KEY`, `SUPABASE_URL`,
+  `SUPABASE_SERVICE_KEY`, `CORS_ORIGINS` (all `sync: false`) and `SCORING_DEBUG='1'`. It does
+  **not** declare `VITE_API_URL`, `GEMINI_MODEL`, or `GROQ_MODEL`.
+- **`CORS_ORIGINS` unset ⇒ reflect every origin.** `server/index.ts:83` —
+  `cors({ origin: CORS_ORIGINS.length > 0 ? CORS_ORIGINS : true })`.
+- **`VITE_API_URL` unset in the scoring service ⇒ `http://localhost:8000`.**
+  `server/resolveQuestionSet.ts:20`. In production this means published question sets never
+  resolve; only the in-repo fixture (`original-practice-001`) can hash-match — every other set
+  400s.
+- **The scoring service's judge models are hardcoded and have no prod override path.**
+  `scripts/scoring/providers/geminiJudge.ts:43` — `DEFAULT_MODEL = 'gemini-2.5-flash-lite'`;
+  `scripts/scoring/providers/groqJudge.ts:44` — `DEFAULT_MODEL = 'llama-3.3-70b-versatile'`.
+  `server/index.ts:157` calls `createJudgeWithFallback()` with no options and there is no env
+  read on this path. `backend/main.py:99,106` documents **both of these exact IDs** as now
+  404-ing ("no longer available to new users" / `model_not_found`). The FastAPI backend has
+  already migrated to `gemini-3.5-flash` / `openai/gpt-oss-120b` via `GEMINI_MODEL` /
+  `GROQ_MODEL`; the Node scoring service has **not**. Strong prior that `POST /score` 500s with
+  "Both judge providers failed" in production — item 4 below confirms.
+- **FastAPI has no IaC.** Its env is Render-dashboard-only. `backend/README.md` documents the
+  start command as `uvicorn main:app --host 0.0.0.0 --port $PORT` — no `--proxy-headers` /
+  `--forwarded-allow-ips`, so slowapi's `get_remote_address` sees Render's edge IP and every
+  user shares one rate-limit bucket.
+- **`POST /api/admin/roles` now needs a two-key handshake (Phase 1.2).** It grants the `admin`
+  role only when **both** `ADMIN_SETUP_ENABLED=true` **and** a matching `ADMIN_SETUP_SECRET` are
+  set; otherwise it 404s (not 403 — the route is not advertised). Previously it was gated on the
+  secret alone, so setting `ADMIN_SETUP_SECRET` at all made it a live unauthenticated
+  admin-grant path. Both vars still stay unset in prod once the first admin is seeded — the code
+  change is defence-in-depth on top of that.
+- **FastAPI interactive docs are OFF by default (Phase 1.2).** `/docs`, `/redoc`, `/openapi.json`
+  return 404 unless `ENABLE_API_DOCS=true` (intended for staging only). `GET /metrics` is now
+  `Depends(require_admin)` — it returns 401/403 (or 503 if `SUPABASE_JWT_SECRET` is unset) rather
+  than serving the `by_endpoint` traffic map anonymously.
+- **CORS on FastAPI is an explicit origin list, no wildcard fallback.** `backend/main.py:143-153`
+  reads `CORS_ORIGINS` (comma-separated, trailing slashes stripped), defaulting to
+  `localhost:5173,localhost:3000,frenchcoach.vercel.app,french.beyondthebasics.me`. Unlike the
+  Node `server/` (which reflects every origin when `CORS_ORIGINS` is unset), this is safe as-is.
+- **Also on dead model IDs (informs the roadmap's Phase 2.1, not Phase 0):**
+  `backend/exam_controller.py:119,137,224`, `backend/scenario_generator.py:72,91,106`, and
+  `backend/evaluator_service.py:217,235` still hardcode `llama-3.3-70b-versatile` /
+  `gemini-2.0-flash` / `gemini-1.5-flash` and ignore `main.py`'s env overrides.
+
+### To verify against production and record here
+
+| # | Check | Where | Finding |
+|---|---|---|---|
+| 1 | `VITE_SCORING_API_URL` set, HTTPS? | Vercel → Project → Settings → Environment Variables | _pending_ |
+| 1 | `VITE_API_URL`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_SENTRY_DSN` set? | same | _pending_ |
+| 2 | `french-scoring`: `CORS_ORIGINS` = the real frontend origin(s), no trailing slash? | Render → `french-scoring` → Environment | _pending_ |
+| 2 | `french-scoring`: `VITE_API_URL` = the FastAPI host? (else question-set resolution is broken) | same | _pending_ |
+| 3 | FastAPI service: full env var list + start command — paste into "FastAPI env (captured)" below | Render → FastAPI service → Environment / Settings | _pending_ |
+| 3 | FastAPI: `ADMIN_SETUP_SECRET` **and** `ADMIN_SETUP_ENABLED` both **unset**? (Phase 1.2 code now also requires the flag, but keep both unset) | same | _pending_ |
+| 3 | FastAPI: `ENABLE_API_DOCS` **unset** in prod? (docs off by default; only set in staging) | same | _pending_ |
+| 3 | FastAPI: `AZURE_SPEECH_KEY` / `AZURE_SPEECH_REGION` present? | same | _pending_ |
+| 4 | `POST $SCORING/score` with a real JWT — 200 envelope, or 500 "Both judge providers failed"? | curl / probe below | _pending_ |
+| 5 | Groq / Gemini / Azure consoles — anomalous spend since the backend went public unauthenticated? | provider dashboards | _pending_ |
+
+### Item 4 — the check that says whether exam mode works at all
+
+Set `SCORING` to the `french-scoring` host and `JWT` to a real Supabase access token (dev
+console: `(await supabase.auth.getSession()).data.session.access_token`).
+
+```bash
+# (a) Reachability + auth only — judge NOT exercised.
+curl -sS -i -X POST "$SCORING/score" \
+  -H "Authorization: Bearer $JWT" -H "Content-Type: application/json" -d '{}'
+# 401            -> JWT rejected
+# 400 "invalid transcript" -> service up, auth OK (does not prove scoring works)
+# 5xx / no response        -> boot/deploy problem, stop here
+```
+
+```bash
+# (b) Exercises the exact provider path POST /score uses, with the prod keys.
+# Run from the repo root with GEMINI_API_KEY / GROQ_API_KEY exported to the
+# values configured on the french-scoring Render service.
+npx tsx -e "
+import { createJudgeWithFallback } from './scripts/scoring/providers/judgeFactory';
+const { judge, getLastCallMetadata } = createJudgeWithFallback();
+judge({ prompt: 'Reply with the JSON {\"ok\":true} and nothing else.' })
+  .then((r) => console.log('OK', getLastCallMetadata(), r))
+  .catch((e) => { console.error('FAIL', e.message); process.exit(1); });
+"
+# 'FAIL Both judge providers failed. ... model_not_found / not available'
+#   -> confirmed: scoring is dead in prod until the DEFAULT_MODEL constants
+#      (+ GEMINI_MODEL / GROQ_MODEL env reads + render.yaml entries) are fixed.
+```
+
+### FastAPI env (captured)
+
+_pending — paste the Render dashboard env var list and start command here once captured._
+
 ## OAuth — implemented, not verified
 
 `signInWithOAuth` (`src/context/AuthContext.tsx`) and the Google/Microsoft buttons
