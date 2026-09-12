@@ -73,6 +73,8 @@ export interface PronunciationAssessmentRequest {
   coaching?: 'none' | 'full';
   /** Idempotency key for the coaching quota consume/refund RPCs. Only read when coaching === 'full'. */
   coachingRequestId?: string;
+  /** Reliability plan §2.5: caller-supplied abort signal, e.g. a new attempt superseding this one. */
+  signal?: AbortSignal;
 }
 
 export interface PronunciationPhoneme {

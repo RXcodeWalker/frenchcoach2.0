@@ -20,6 +20,14 @@ const SCORING_API_BASE = (import.meta.env.VITE_SCORING_API_URL as string | undef
 /** A9: client-side cap on POST /score. The server keeps scoring past this — see pollScoreStatus. */
 const SCORE_TIMEOUT_MS = 90_000;
 
+/**
+ * Reliability plan §2.5: cap on a single GET /score poll, so a hung request
+ * can never block the Recovering effect from re-running (and therefore from
+ * ever scheduling its own wall-clock deadline check). Generous for a GET,
+ * well under SCORE_TIMEOUT_MS.
+ */
+const POLL_TIMEOUT_MS = 20_000;
+
 export class ScoringApiError extends Error {
   constructor(message: string, public status?: number) {
     super(message);
@@ -103,9 +111,24 @@ export async function pollScoreStatus(sessionId: string): Promise<ScoreStatus> {
     throw new ScoringApiError('Scoring service is not configured (VITE_SCORING_API_URL unset)');
   }
 
-  const res = await fetch(`${SCORING_API_BASE}/score?sessionId=${encodeURIComponent(sessionId)}`, {
-    headers: await authHeaders(),
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), POLL_TIMEOUT_MS);
+
+  let res: Response;
+  try {
+    res = await fetch(`${SCORING_API_BASE}/score?sessionId=${encodeURIComponent(sessionId)}`, {
+      headers: await authHeaders(),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof DOMException && err.name === 'AbortError') {
+      throw new ScoringApiError('Polling the scoring service timed out.');
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+
   if (res.status === 404) return { status: 'not_found' };
   if (res.status === 202) return { status: 'in_progress' };
   const envelope = await parseEnvelopeResponse(res);

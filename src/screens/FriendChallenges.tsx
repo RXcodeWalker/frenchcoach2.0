@@ -4,12 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import {
   Users, Swords, Search, UserPlus, Trophy,
   BarChart2, X, TrendingUp,
-  Sparkles, Heart, MessageSquare, Star, Plus, Check, Ban
+  Sparkles, Heart, MessageSquare, Star, Check, Ban
 } from 'lucide-react';
-import { MOCK_CHALLENGES, MOCK_ACTIVITY_FEED } from '../data/mocks/mockFriends';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
-import { Friend, ActivityFeedItem } from '../types';
+import { Friend } from '../types';
 import type { DuelChallenge } from '../types/duels';
 import {
   listFriendships, sendFriendRequest, acceptFriendRequest, declineFriendRequest,
@@ -76,9 +75,9 @@ export function FriendChallenges() {
     f.username.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const activeCoops = MOCK_CHALLENGES.filter(c =>
-    c.status === 'active' && (c.type.includes('co_op') || c.type === 'boss_raid')
-  );
+  // co_op/boss_raid duel types aren't implemented — DuelChallenge (types/duels.ts)
+  // has no `type` field to distinguish them from a plain head-to-head duel.
+  const activeCoops: never[] = [];
 
   const comparingFriend = friends.find(f => f.userId === comparingFriendId);
   const vsDuel = duels.find(d => d.duelId === vsChallengeId);
@@ -239,10 +238,9 @@ export function FriendChallenges() {
                 <h2 className="text-xs font-bold text-ink-muted uppercase tracking-widest">Recent Activity</h2>
               </div>
 
-              <div className="space-y-3">
-                {MOCK_ACTIVITY_FEED.map(item => (
-                  <ActivityFeedCard key={item.id} item={item} />
-                ))}
+              <div className="py-12 text-center border border-dashed border-white/5 rounded-2xl">
+                <MessageSquare size={32} className="text-slate-800 mx-auto mb-3" />
+                <p className="text-sm font-bold text-ink-subtle italic">Activity feed is coming soon.</p>
               </div>
             </motion.div>
           )}
@@ -630,55 +628,6 @@ function CreateDuelModal({ friends, onClose, onCreated }: {
         </div>
       </motion.div>
     </motion.div>
-  );
-}
-
-function ActivityFeedCard({ item }: { item: ActivityFeedItem }) {
-  const [reactions, setReactions] = useState(item.reactions);
-
-  const addReaction = (emoji: string) => {
-    setReactions(prev => ({
-      ...prev,
-      [emoji]: (prev[emoji] || 0) + 1
-    }));
-  };
-
-  return (
-    <div className="surface-raised p-4 rounded-2xl border-white/5 flex items-start gap-4 hover:border-white/10 transition-colors group">
-      <div className="w-10 h-10 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full flex items-center justify-center border border-white/10 overflow-hidden flex-shrink-0">
-        <span className="text-sm font-black text-white">{item.content[0]}</span>
-      </div>
-      <div className="flex-1">
-        <div className="flex items-center justify-between mb-1">
-          <span className="text-[10px] text-ink-subtle uppercase font-bold">{new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-        </div>
-        <p className="text-sm text-ink-muted leading-tight mb-3">
-          {item.content}
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {Object.entries(reactions).map(([emoji, count]) => (
-            <button
-              key={emoji}
-              onClick={() => addReaction(emoji)}
-              className="flex items-center gap-1.5 px-2 py-1 bg-white/5 border border-white/5 rounded-lg hover:bg-white/10 transition-colors"
-            >
-              <span className="text-xs">{emoji}</span>
-              <span className="text-[10px] font-black text-ink-muted">{count}</span>
-            </button>
-          ))}
-          <div className="relative group/react">
-            <button className="flex items-center justify-center w-7 h-7 bg-white/5 border border-dashed border-white/10 rounded-lg text-ink-subtle hover:text-blue-400 hover:border-blue-500/30 transition-all">
-              <Plus size={14} />
-            </button>
-            <div className="absolute left-0 bottom-full mb-2 bg-navy-900 border border-white/10 p-1.5 rounded-xl flex gap-1.5 shadow-2xl opacity-0 invisible group-hover/react:opacity-100 group-hover/react:visible transition-all">
-              {['🔥', '🙌', '🎯', '⚡', '❤️'].map(e => (
-                <button key={e} onClick={() => addReaction(e)} className="hover:scale-125 transition-transform text-lg">{e}</button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
   );
 }
 

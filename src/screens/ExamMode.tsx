@@ -40,9 +40,11 @@ import {
   initialScoringMachineState,
   transitionScoringMachine,
   recoveringBackoffMs,
+  RECOVERING_MAX_MS,
   type ScoringMachineState,
 } from '../services/exam/examScoringMachine';
 import { pingInterpretServiceHealth } from '../services/exam/interpretUtterance';
+import { transcribeAudio } from '../services/api/apiClient';
 import { getOriginalQuestionSet, getAuthoredQuestionSet, listPublishedQuestionSetIdsWithRetry } from '../data/exam/bank/loader';
 import type { ExaminerAction } from '../domain/igcse/session/types';
 import type { SessionTranscript } from '../domain/igcse/stt/types';
@@ -109,6 +111,13 @@ export function ExamMode() {
   const [voiceMuted, setVoiceMuted] = useState(isExaminerVoiceMuted());
   const [transcript, setTranscript] = useState<SessionTranscript | null>(null);
   const [pendingSilentSkip, setPendingSilentSkip] = useState(false);
+  // Reliability plan §2.4: distinct from pendingSilentSkip — set when the
+  // /api/transcribe fallback (browser has no Web Speech API) explicitly
+  // fails (source: 'transcription-unavailable', a network error, or a
+  // timeout), so a real transcription failure isn't presented to the
+  // candidate as "did you mean to submit nothing?". Shares the same
+  // handleKeepTrying/handleSkipQuestion recovery handlers.
+  const [pendingTranscriptionFailure, setPendingTranscriptionFailure] = useState(false);
   const [scoringMachine, setScoringMachine] = useState<ScoringMachineState>(initialScoringMachineState());
   const [envelopeView, setEnvelopeView] = useState<EnvelopeView | null>(null);
   const [rolePlayScenario, setRolePlayScenario] = useState<RolePlayScenario | undefined>(undefined);
@@ -309,7 +318,31 @@ export function ExamMode() {
 
     try {
       const responseDurationS = Math.max(clock.nowS() - turnStartRef.current, 0.1);
-      const transcriptText = await recording.stop();
+      let transcriptText = await recording.stop();
+
+      // Reliability plan §2.4: only taken when the browser has no Web Speech
+      // API — recording.stop() never produced a live transcript, so fall
+      // back to the backend's /api/transcribe on the recorded audio blob.
+      if (!recording.sttSupported) {
+        const audioBlob = await recording.audioBlobPromise();
+        if (!audioBlob) {
+          setPendingTranscriptionFailure(true);
+          return;
+        }
+        try {
+          const transcribed = await transcribeAudio(audioBlob);
+          if (transcribed.source === 'transcription-unavailable') {
+            // Explicit backend failure — never present this as "did you mean to submit nothing?".
+            setPendingTranscriptionFailure(true);
+            return;
+          }
+          transcriptText = transcribed.text;
+        } catch (err) {
+          captureError(err, { stage: 'transcribeAudio', sessionId: transcript?.sessionId });
+          setPendingTranscriptionFailure(true);
+          return;
+        }
+      }
 
       if (transcriptText.trim().length === 0) {
         // Don't auto-forward an empty submit as an intentional non-answer — could be an
@@ -342,6 +375,7 @@ export function ExamMode() {
   const handleKeepTrying = () => {
     if (turnBusyRef.current) return;
     setPendingSilentSkip(false);
+    setPendingTranscriptionFailure(false);
     turnStartRef.current = clock.nowS();
     recording.start();
   };
@@ -351,6 +385,7 @@ export function ExamMode() {
     if (!session || turnBusyRef.current) return;
     turnBusyRef.current = true;
     setPendingSilentSkip(false);
+    setPendingTranscriptionFailure(false);
 
     try {
       const responseDurationS = Math.max(clock.nowS() - turnStartRef.current, 0.1);
@@ -467,8 +502,22 @@ export function ExamMode() {
     }
 
     if (scoringMachine.phase === 'WaitingForScore' || scoringMachine.phase === 'Recovering') {
-      const delayMs = scoringMachine.phase === 'Recovering' ? recoveringBackoffMs(scoringMachine.pollCount) : 0;
+      const recovering = scoringMachine.phase === 'Recovering' ? scoringMachine : null;
+      const delayMs = recovering
+        ? Math.min(
+            recoveringBackoffMs(recovering.pollCount),
+            Math.max(0, RECOVERING_MAX_MS - (Date.now() - recovering.enteredRecoveringAt)),
+          )
+        : 0;
       const timeoutId = setTimeout(() => {
+        // Deadline check happens on the timer callback itself, before any
+        // fetch — reliability plan §2.5: this is what makes the deadline an
+        // actual scheduled state-machine event, independent of whether the
+        // next poll's network call would otherwise hang or resolve.
+        if (recovering && Date.now() - recovering.enteredRecoveringAt >= RECOVERING_MAX_MS) {
+          if (!cancelled) setScoringMachine((s) => transitionScoringMachine(s, { type: 'RECOVERING_DEADLINE_EXCEEDED' }));
+          return;
+        }
         void (async () => {
           let result: Awaited<ReturnType<typeof pollScoreStatus>>;
           try {
@@ -716,6 +765,7 @@ export function ExamMode() {
       voiceMuted={voiceMuted}
       onToggleVoice={toggleVoice}
       pendingSilentSkip={pendingSilentSkip}
+      pendingTranscriptionFailure={pendingTranscriptionFailure}
       onKeepTrying={handleKeepTrying}
       onSkipQuestion={() => void handleSkipQuestion()}
       rolePlayTitle={rolePlayMeta?.title}

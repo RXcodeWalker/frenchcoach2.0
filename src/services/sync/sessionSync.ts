@@ -41,6 +41,9 @@ export interface StoredSession {
   wordCount: number;
   score: number | null;
   durationSec: number;
+  /** Reliability plan §2.6: optional so pre-existing stored sessions (recorded before
+   * this field existed) deserialize fine — callers fall back to 0, never undefined. */
+  xpEarned?: number;
   feedbackSummary?: string;
   targetSkillIds?: string[];
   cefrLevel?: string;
@@ -162,6 +165,7 @@ function rowToStoredSession(row: CloudSessionRow): StoredSession {
     wordCount: row.word_count,
     score: row.score,
     durationSec: row.duration_sec,
+    xpEarned: row.xp_earned,
     feedbackSummary: fb?.biggest_opportunity ?? fb?.examiner_oneLiner ?? undefined,
     cefrLevel: fb?.cefrLevel,
     criticalIssueCount: typeof fb?.critical_count === 'number' ? fb.critical_count : undefined,
@@ -307,7 +311,7 @@ export async function backfillSessionsToCloud(
         transcript: stored.transcript.slice(0, 2000),
         word_count: stored.wordCount,
         score: stored.score,
-        xp_earned: 0,
+        xp_earned: stored.xpEarned ?? 0,
         duration_sec: stored.durationSec,
         feedback: stored.feedbackSummary
           ? { biggest_opportunity: stored.feedbackSummary, cefrLevel: stored.cefrLevel, critical_count: stored.criticalIssueCount }
@@ -351,7 +355,7 @@ export async function flushPendingQueue(userId: string): Promise<void> {
         transcript: stored.transcript.slice(0, 2000),
         word_count: stored.wordCount,
         score: stored.score,
-        xp_earned: 0,
+        xp_earned: stored.xpEarned ?? 0,
         duration_sec: stored.durationSec,
         feedback: stored.feedbackSummary
           ? { biggest_opportunity: stored.feedbackSummary, cefrLevel: stored.cefrLevel, critical_count: stored.criticalIssueCount }

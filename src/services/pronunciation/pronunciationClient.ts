@@ -52,6 +52,14 @@ export interface AssessPronunciationArgs {
   coaching?: 'none' | 'full';
   /** Idempotency key for the coaching quota RPCs. Only meaningful when coaching === 'full'. */
   coachingRequestId?: string;
+  /**
+   * Reliability plan §2.5: caller-supplied abort signal (e.g. Learn.tsx's
+   * pronunciationAbortRef, fired when a new attempt supersedes this one).
+   * Previously accepted nowhere in this call chain, so aborting the ref did
+   * nothing — this call's own internal ASSESS_TIMEOUT_MS controller was the
+   * only thing that could ever cancel the underlying fetch.
+   */
+  signal?: AbortSignal;
 }
 
 export async function assessPronunciation({
@@ -61,14 +69,20 @@ export async function assessPronunciation({
   mode = 'scripted',
   coaching = 'none',
   coachingRequestId,
+  signal,
 }: AssessPronunciationArgs): Promise<PronunciationAssessment> {
   const start = performance.now();
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), ASSESS_TIMEOUT_MS);
+  // A caller-supplied abort (e.g. a new attempt superseding this one) cancels
+  // the same underlying fetch as the internal timeout does.
+  const onCallerAbort = () => controller.abort();
+  signal?.addEventListener('abort', onCallerAbort);
+  if (signal?.aborted) controller.abort();
 
   try {
     const result = await Promise.race([
-      provider({ audioBlob, targetText, languageCode: 'fr-FR', mode, coaching, coachingRequestId }),
+      provider({ audioBlob, targetText, languageCode: 'fr-FR', mode, coaching, coachingRequestId, signal: controller.signal }),
       new Promise<never>((_, reject) => {
         controller.signal.addEventListener('abort', () =>
           reject(new Error('Pronunciation assessment timed out')),
@@ -98,5 +112,6 @@ export async function assessPronunciation({
     throw err;
   } finally {
     clearTimeout(timeoutId);
+    signal?.removeEventListener('abort', onCallerAbort);
   }
 }

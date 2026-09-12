@@ -17,6 +17,9 @@ export interface StoredSession {
   wordCount: number;
   score: number | null;
   durationSec: number;
+  /** Reliability plan §2.6: optional so pre-existing stored sessions (recorded before
+   * this field existed) deserialize fine — callers fall back to 0, never undefined. */
+  xpEarned?: number;
   // ── Coach MVP: compact coaching summary (all optional, backward compatible) ──
   /** Short examiner/opportunity one-liner derived from FeedbackV2. */
   feedbackSummary?: string;
@@ -147,6 +150,7 @@ export function recordSession(session: Session, options?: RecordSessionOptions):
     wordCount:    session.wordCount,
     score:        session.score,
     durationSec:  session.durationSec,
+    xpEarned:     session.xpEarned,
     feedbackSummary:    deriveFeedbackSummary(feedback),
     targetSkillIds:     options?.targetSkillIds,
     cefrLevel:          feedback?.cefrLevel,

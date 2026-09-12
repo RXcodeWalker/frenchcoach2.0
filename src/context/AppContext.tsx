@@ -159,7 +159,8 @@ function buildInitialState(): AppState {
   };
 }
 
-function reducer(state: AppState, action: Action): AppState {
+/** Exported for reducer-level unit tests only — not part of the app's public surface. */
+export function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
     case 'MARK_DRILL_MASTERED': {
       if (state.masteredDrills.includes(action.drillId)) return state;
@@ -171,7 +172,8 @@ function reducer(state: AppState, action: Action): AppState {
       const { totalXP, totalGems, gemGain, activeBoosters } = action;
       const animId = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
       const newLevel = levelFor(totalXP);
-      const newLevelReached = newLevel.name !== state.profile.current_level ? newLevel.name : state.newLevelReached;
+      const prevLevel = levelFor(state.profile.total_xp);
+      const newLevelReached = newLevel.index > prevLevel.index ? newLevel.name : state.newLevelReached;
       const newGemAnimations = gemGain > 0
         ? [...state.gemAnimations, { id: 'g' + animId, amount: gemGain, x: (action.x ?? 50) + 5, y: action.y ?? 50 }]
         : state.gemAnimations;

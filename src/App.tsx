@@ -128,7 +128,7 @@ function XPToast() {
               <Zap size={14} className="text-emerald-400 fill-emerald-400/20" />
             </div>
             <div>
-              <p className="font-black text-emerald-400 text-xs">+{state.lastXPGained} XP</p>
+              <p className="font-black text-emerald-400 text-xs">{state.lastXPGained >= 0 ? '+' : ''}{state.lastXPGained} XP</p>
               <p className="text-[9px] text-ink-muted font-bold uppercase tracking-tighter">You're crushing it!</p>
             </div>
           </div>

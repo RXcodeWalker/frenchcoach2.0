@@ -54,6 +54,17 @@ describe('createGeminiJudge', () => {
     expect(getLastCallMetadata()?.model).toBe('gemini-2.5-pro');
   });
 
+  it('sends a maxOutputTokens cap and a request timeout, not left to provider defaults (reliability plan §2.5)', async () => {
+    const client = fakeGeminiClient('{}');
+    const { judge } = createGeminiJudge({ client });
+
+    await judge({ prompt: 'p' });
+
+    const call = (client.models.generateContent as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    expect(call.config?.maxOutputTokens).toBeGreaterThan(0);
+    expect(call.config?.httpOptions?.timeout).toBeGreaterThan(0);
+  });
+
   it('throws if the response contains no text', async () => {
     const client: GeminiClientLike = {
       models: { generateContent: vi.fn(async () => ({ text: undefined, responseId: 'resp_x' })) },

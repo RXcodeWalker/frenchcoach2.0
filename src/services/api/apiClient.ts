@@ -23,6 +23,7 @@ import { validateBackendFeedback, SchemaValidationError } from './feedbackSchema
 import { getGroundedExaminerFeedback, type ExaminerFeedback } from '../coaching/examinerFeedback';
 import type { NewsSnippet } from '../../data/mocks/mockNews';
 import { getWarmupPhase, noteBackendReachable } from './backendWarmup';
+import { supabase } from '../../lib/supabase';
 
 // Prod: same-origin '/api/*' proxied to the backend by Vercel (see vercel.json)
 // to avoid CORS. Dev: call the backend directly.
@@ -47,12 +48,35 @@ const ENGINE_TIMEOUT_MS: Record<AIEngine, number> = {
 // genuinely dead backend still fails fast.
 const COLD_START_GRACE_MS = 45000;
 
+/**
+ * Reliability plan §2.5: previously a bare fetch with no timeout at all.
+ * All 3 current callers (generateScenario, roleplayTurn, getRoleplayTurn) are
+ * latency-sensitive/blocking UI calls, none background/best-effort, so a
+ * shared default timeout here is safe without risk to an unconsidered
+ * background caller. Backend is on the same Render service as other
+ * cold-start-prone endpoints, hence the generous budget.
+ */
+const POST_DEFAULT_TIMEOUT_MS = 40000;
+
 async function post<T>(path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), POST_DEFAULT_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${path}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof DOMException && err.name === 'AbortError') {
+      throw new Error(`API ${path} → timed out`);
+    }
+    throw err;
+  } finally {
+    clearTimeout(timer);
+  }
   if (!res.ok) throw new Error(`API ${path} → ${res.status}`);
   return res.json() as Promise<T>;
 }
@@ -435,6 +459,18 @@ function mergeV2Fields(base: FeedbackV2, raw: BackendFeedbackV2): FeedbackV2 {
   return base;
 }
 
+/**
+ * Reliability plan §2.4: the two multipart upload sites hardcoded
+ * 'recording.webm' regardless of the blob's actual negotiated mime type
+ * (useRecording.ts picks the first of audio/webm, audio/ogg, audio/mp4 the
+ * browser supports) — derive the extension from the real type instead.
+ */
+function audioFileNameFor(blob: Blob): string {
+  const subtype = blob.type.split(';')[0]?.split('/')[1];
+  const ext = subtype === 'ogg' ? 'ogg' : subtype === 'mp4' ? 'mp4' : 'webm';
+  return `recording.${ext}`;
+}
+
 async function fetchWithTimeout<T>(
   fetcher: (signal: AbortSignal) => Promise<T>,
   timeoutMs: number,
@@ -472,7 +508,7 @@ async function tryNetworkFeedback(
     if (audioBlob) {
       const formData = new FormData();
       const questionText = (requestBody.question as Record<string, unknown> | null)?.text ?? '';
-      formData.append('audio', audioBlob, 'recording.webm');
+      formData.append('audio', audioBlob, audioFileNameFor(audioBlob));
       formData.append('question', String(questionText));
       formData.append('data', JSON.stringify(bodyWithEngine));
       raw = await fetchWithTimeout(
@@ -536,6 +572,52 @@ async function postMultipartWithSignal<T>(path: string, formData: FormData, sign
   });
   if (!res.ok) throw new Error(`API ${path} → ${res.status}`);
   return res.json() as Promise<T>;
+}
+
+/**
+ * Reliability plan §2.4: ExamMode's fallback path when the browser has no
+ * Web Speech API (recording.sttSupported === false). Backend/api's `source`
+ * field discriminates a genuine (possibly-empty) transcription result from
+ * an explicit provider failure — see backend/main.py's _groq_whisper /
+ * _faster_whisper / the 'transcription-unavailable' branch. Timeout budget
+ * mirrors ENGINE_TIMEOUT_MS's magnitude, generous for a single exam turn's
+ * audio (seconds long).
+ */
+const TRANSCRIBE_TIMEOUT_MS = 30000;
+
+export interface TranscribeAudioResult {
+  text: string;
+  source: string;
+}
+
+export async function transcribeAudio(audioBlob: Blob, language = 'fr'): Promise<TranscribeAudioResult> {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+
+  const formData = new FormData();
+  formData.append('audio', audioBlob, audioFileNameFor(audioBlob));
+  formData.append('language', language);
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TRANSCRIBE_TIMEOUT_MS);
+  try {
+    const res = await fetch(`${API_BASE}/api/transcribe`, {
+      method: 'POST',
+      body: formData,
+      signal: controller.signal,
+      ...(token ? { headers: { Authorization: `Bearer ${token}` } } : {}),
+    });
+    if (!res.ok) throw new Error(`API /api/transcribe → ${res.status}`);
+    const body = (await res.json()) as { text?: string; source?: string };
+    return { text: body.text ?? '', source: body.source ?? 'unknown' };
+  } catch (err) {
+    if ((err as Error).name === 'AbortError') {
+      throw new Error('Transcription request timed out');
+    }
+    throw err;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 /**
@@ -837,7 +919,7 @@ export async function streamFeedback(
   let res: Response;
   if (audioBlob) {
     const formData = new FormData();
-    formData.append('audio', audioBlob, 'recording.webm');
+    formData.append('audio', audioBlob, audioFileNameFor(audioBlob));
     formData.append('question', question.text);
     formData.append('data', JSON.stringify(requestBody));
     res = await fetch(`${API_BASE}/api/feedback/stream`, {

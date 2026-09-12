@@ -31,6 +31,8 @@ import cors from 'cors';
 import express from 'express';
 import type { Request, Response } from 'express';
 import { createClient } from '@supabase/supabase-js';
+import { GoogleGenAI } from '@google/genai';
+import Groq from 'groq-sdk';
 
 import { parseSessionTranscript, SessionTranscriptValidationError } from '../src/domain/igcse/stt/schema';
 import type { SessionTranscript } from '../src/domain/igcse/stt/types';
@@ -41,6 +43,7 @@ import { createJudgeWithFallback } from '../scripts/scoring/providers/judgeFacto
 import { buildEnvelopeView } from '../src/domain/igcse/envelope/envelopeView';
 import { isScoringDebugEnabled } from '../scripts/scoring/observability/logger';
 import { resolveAndVerifyQuestionSet, QuestionSetNotFoundError, QuestionSetHashMismatchError } from './resolveQuestionSet';
+import { createTtlCache, probeGroq, probeGemini, type ProviderProbeStatus } from './healthProbe';
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3000;
 
@@ -51,6 +54,27 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
 }
 
 const CORS_ORIGINS = (process.env.CORS_ORIGINS ?? '').split(',').map((s) => s.trim()).filter(Boolean);
+
+/** Same defaults as geminiJudge.ts/groqJudge.ts — kept in sync manually, no shared import to avoid coupling /health to judge internals. */
+const GEMINI_MODEL = process.env.GEMINI_MODEL?.trim() || 'gemini-2.5-flash-lite';
+const GROQ_MODEL = process.env.GROQ_MODEL?.trim() || 'llama-3.3-70b-versatile';
+
+const healthProbeCache = createTtlCache<ProviderProbeStatus>();
+const groqHealthClient = process.env.GROQ_API_KEY ? new Groq({ apiKey: process.env.GROQ_API_KEY }) : undefined;
+const geminiHealthClient = process.env.GEMINI_API_KEY ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY }) : undefined;
+
+async function getProviderProbeStatus(): Promise<ProviderProbeStatus> {
+  const cached = healthProbeCache.get();
+  if (cached) return cached;
+
+  const groq = groqHealthClient ? await probeGroq(groqHealthClient, GROQ_MODEL) : 'not_configured';
+  const gemini = geminiHealthClient ? await probeGemini(geminiHealthClient, GEMINI_MODEL) : 'not_configured';
+  const status: ProviderProbeStatus = { groq, gemini };
+
+  const bothHealthy = groq !== 'degraded' && gemini !== 'degraded';
+  healthProbeCache.set(status, bothHealthy ? 60_000 : 5_000);
+  return status;
+}
 
 /**
  * Reliability plan §A — how long a session_transcripts row's last_attempt_at
@@ -83,8 +107,9 @@ const app = express();
 app.use(cors({ origin: CORS_ORIGINS.length > 0 ? CORS_ORIGINS : true }));
 app.use(express.json({ limit: '5mb' }));
 
-app.get('/health', (_req: Request, res: Response) => {
-  res.status(200).json({ ok: true });
+app.get('/health', async (_req: Request, res: Response) => {
+  const providers = await getProviderProbeStatus();
+  res.status(200).json({ ok: true, providers });
 });
 
 app.post('/score', async (req: Request, res: Response) => {

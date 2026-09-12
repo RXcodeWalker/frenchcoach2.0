@@ -201,6 +201,98 @@ describe('useRecording — sttSupported / sttError', () => {
   });
 });
 
+describe('useRecording — stop() timeout fallback and generation guard (reliability plan §2.3)', () => {
+  class HangingSpeechRecognition {
+    lang = ''; continuous = false; interimResults = false; maxAlternatives = 1;
+    onresult: ((e: { resultIndex: number; results: ArrayLike<{ isFinal: boolean; [i: number]: { transcript: string } }> }) => void) | null = null;
+    onerror: ((e: { error: string }) => void) | null = null;
+    onend: (() => void) | null = null;
+    start() {}
+    stop() { /* never calls onend — simulates a hung recognizer */ }
+    abort() {}
+  }
+
+  const originalSpeechRecognition = (globalThis as Record<string, unknown>).SpeechRecognition;
+  const originalWebkitSpeechRecognition = (globalThis as Record<string, unknown>).webkitSpeechRecognition;
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    Object.defineProperty(globalThis.navigator, 'mediaDevices', {
+      configurable: true,
+      value: { getUserMedia: vi.fn().mockRejectedValue(new Error('no mic in this test')) },
+    });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    (globalThis as Record<string, unknown>).SpeechRecognition = originalSpeechRecognition;
+    (globalThis as Record<string, unknown>).webkitSpeechRecognition = originalWebkitSpeechRecognition;
+    vi.restoreAllMocks();
+  });
+
+  it('stop() still resolves via the timeout fallback when the recognizer never fires onend', async () => {
+    (globalThis as Record<string, unknown>).SpeechRecognition = HangingSpeechRecognition;
+    delete (globalThis as Record<string, unknown>).webkitSpeechRecognition;
+
+    const { result } = renderHook(() => useRecording());
+
+    act(() => {
+      result.current.start();
+    });
+
+    let transcript = '';
+    await act(async () => {
+      const stopPromise = result.current.stop().then((t) => { transcript = t; });
+      await vi.advanceTimersByTimeAsync(3_000);
+      await stopPromise;
+    });
+
+    expect(transcript).toBe('');
+  });
+
+  it('a stale onend from a superseded generation does not clobber the next recording', async () => {
+    const instances: HangingSpeechRecognition[] = [];
+    class TrackedFakeSpeechRecognition extends HangingSpeechRecognition {
+      constructor() {
+        super();
+        instances.push(this);
+      }
+    }
+    (globalThis as Record<string, unknown>).SpeechRecognition = TrackedFakeSpeechRecognition;
+    delete (globalThis as Record<string, unknown>).webkitSpeechRecognition;
+
+    const { result } = renderHook(() => useRecording());
+
+    // First recording: start, then stop without awaiting (mirrors
+    // SpeedSpeaking.tsx/SpeakingArena.tsx's un-awaited stop() call sites).
+    act(() => {
+      result.current.start();
+    });
+    const firstRecognizer = instances[0];
+    act(() => {
+      result.current.stop();
+    });
+
+    // Second recording starts immediately, before the first recognizer's
+    // onend has fired.
+    act(() => {
+      result.current.start();
+    });
+    expect(instances.length).toBe(2);
+
+    // Simulate the first (superseded) recognizer's onresult/onend firing late.
+    act(() => {
+      firstRecognizer.onresult?.({
+        resultIndex: 0,
+        results: [{ isFinal: true, 0: { transcript: 'stale transcript' } }] as unknown as ArrayLike<{ isFinal: boolean; [i: number]: { transcript: string } }>,
+      });
+      firstRecognizer.onend?.();
+    });
+
+    expect(result.current.transcript).not.toContain('stale transcript');
+  });
+});
+
 describe('useRecording — blocked (Phase 1.6 Part C consent gate)', () => {
   beforeEach(() => {
     Object.defineProperty(globalThis.navigator, 'mediaDevices', {

@@ -27,7 +27,11 @@ export interface GeminiJudgeCallMetadata {
 
 export interface GeminiClientLike {
   models: {
-    generateContent: (params: { model: string; contents: string }) => Promise<{
+    generateContent: (params: {
+      model: string;
+      contents: string;
+      config?: { maxOutputTokens?: number; httpOptions?: { timeout?: number } };
+    }) => Promise<{
       text?: string;
       responseId?: string;
     }>;
@@ -40,7 +44,20 @@ export interface GeminiJudgeOptions {
   client?: GeminiClientLike;
 }
 
-const DEFAULT_MODEL = 'gemini-2.5-flash-lite';
+const DEFAULT_MODEL = process.env.GEMINI_MODEL?.trim() || 'gemini-2.5-flash-lite';
+
+/**
+ * Reliability plan §2.5: sized near gemini-2.5-flash-lite's actual maximum
+ * safe output ceiling (published as 65536), not "expected" response length —
+ * JudgeResponse.raw is a full multi-KB structured JSON payload and a
+ * schema-validation failure from truncation is a terminal, non-retried error
+ * (see judgeFactory.ts). Re-verify this ceiling against Gemini's current docs
+ * if the model id in GEMINI_MODEL ever changes.
+ */
+const MAX_OUTPUT_TOKENS = 65536;
+
+/** Request timeout, ms — leaves headroom under submitForScoring's 90s client ceiling. */
+const REQUEST_TIMEOUT_MS = 60_000;
 
 /**
  * Fresh-per-attempt factory. Call once per scoring attempt; never share the
@@ -59,6 +76,7 @@ export function createGeminiJudge(options: GeminiJudgeOptions = {}): {
     const response = await client.models.generateContent({
       model,
       contents: req.prompt,
+      config: { maxOutputTokens: MAX_OUTPUT_TOKENS, httpOptions: { timeout: REQUEST_TIMEOUT_MS } },
     });
 
     lastCallMetadata = {

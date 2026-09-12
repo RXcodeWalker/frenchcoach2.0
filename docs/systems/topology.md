@@ -77,24 +77,34 @@ production and then treated as the record. **Last repo pass: 2026-09-09.**
   no `VITE_SCORING_API_URL`, no `VITE_SENTRY_DSN`.
 - **`.env.example`** ships `VITE_SCORING_API_URL=` empty, commented "Empty/unset means ExamMode
   shows no marks."
-- **`render.yaml` `french-scoring`** declares `GEMINI_API_KEY`, `GROQ_API_KEY`, `SUPABASE_URL`,
-  `SUPABASE_SERVICE_KEY`, `CORS_ORIGINS` (all `sync: false`) and `SCORING_DEBUG='1'`. It does
-  **not** declare `VITE_API_URL`, `GEMINI_MODEL`, or `GROQ_MODEL`.
+- **`render.yaml` `french-scoring`** declares `GEMINI_API_KEY`, `GEMINI_MODEL`, `GROQ_API_KEY`,
+  `GROQ_MODEL`, `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `CORS_ORIGINS` (all `sync: false`) and
+  `SCORING_DEBUG='1'`. It does **not** declare `VITE_API_URL`.
 - **`CORS_ORIGINS` unset ⇒ reflect every origin.** `server/index.ts:83` —
   `cors({ origin: CORS_ORIGINS.length > 0 ? CORS_ORIGINS : true })`.
 - **`VITE_API_URL` unset in the scoring service ⇒ `http://localhost:8000`.**
   `server/resolveQuestionSet.ts:20`. In production this means published question sets never
   resolve; only the in-repo fixture (`original-practice-001`) can hash-match — every other set
   400s.
-- **The scoring service's judge models are hardcoded and have no prod override path.**
-  `scripts/scoring/providers/geminiJudge.ts:43` — `DEFAULT_MODEL = 'gemini-2.5-flash-lite'`;
-  `scripts/scoring/providers/groqJudge.ts:44` — `DEFAULT_MODEL = 'llama-3.3-70b-versatile'`.
-  `server/index.ts:157` calls `createJudgeWithFallback()` with no options and there is no env
-  read on this path. `backend/main.py:99,106` documents **both of these exact IDs** as now
-  404-ing ("no longer available to new users" / `model_not_found`). The FastAPI backend has
-  already migrated to `gemini-3.5-flash` / `openai/gpt-oss-120b` via `GEMINI_MODEL` /
-  `GROQ_MODEL`; the Node scoring service has **not**. Strong prior that `POST /score` 500s with
-  "Both judge providers failed" in production — item 4 below confirms.
+- **Judge model IDs are now env-driven everywhere (Phase 2.1, resolved).** Node's
+  `scripts/scoring/providers/geminiJudge.ts`/`groqJudge.ts` read `process.env.GEMINI_MODEL` /
+  `GROQ_MODEL` (falling back to `gemini-2.5-flash-lite` / `llama-3.3-70b-versatile` only when
+  unset), matching `backend/main.py`'s existing `GEMINI_MODEL`/`GROQ_MODEL` pattern;
+  `render.yaml`'s `french-scoring` service now declares both as `sync: false` envVars.
+  `backend/exam_controller.py` and `backend/scenario_generator.py` were also migrated onto the
+  same two env vars (previously hardcoded `llama-3.3-70b-versatile` / `gemini-2.0-flash` /
+  `gemini-1.5-flash`, ignoring `main.py`'s overrides). Verify whichever literal is currently the
+  fallback default is still a live model ID before relying on the fallback in prod —
+  `/health` (see below) now surfaces a `model_not_found`-shaped failure without inference cost.
+  `backend/evaluator_service.py` still hardcodes dead IDs — unreached from `src/`, out of scope
+  (slated for deletion under Phase 6.1).
+- **`/health` on the Node scoring service now probes provider model IDs without paying for
+  inference (Phase 2.1).** `server/index.ts` calls `groqClient.models.retrieve(model)` /
+  `geminiClient.models.get({ model })` — metadata-only SDK calls, not `generateContent`/
+  `chat.completions.create` — cached 60s on success / 5s on failure
+  (`server/healthProbe.ts`), mirroring `backend/main.py`'s `_probe_groq`/`_probe_gemini` cache
+  shape without that endpoint's per-poll paid-inference cost (a residual issue on the FastAPI
+  side, not fixed here — out of scope for this Node-service change).
 - **FastAPI has no IaC.** Its env is Render-dashboard-only. `backend/README.md` documents the
   start command as `uvicorn main:app --host 0.0.0.0 --port $PORT` — no `--proxy-headers` /
   `--forwarded-allow-ips`, so slowapi's `get_remote_address` sees Render's edge IP and every
@@ -113,10 +123,8 @@ production and then treated as the record. **Last repo pass: 2026-09-09.**
   reads `CORS_ORIGINS` (comma-separated, trailing slashes stripped), defaulting to
   `localhost:5173,localhost:3000,frenchcoach.vercel.app,french.beyondthebasics.me`. Unlike the
   Node `server/` (which reflects every origin when `CORS_ORIGINS` is unset), this is safe as-is.
-- **Also on dead model IDs (informs the roadmap's Phase 2.1, not Phase 0):**
-  `backend/exam_controller.py:119,137,224`, `backend/scenario_generator.py:72,91,106`, and
-  `backend/evaluator_service.py:217,235` still hardcode `llama-3.3-70b-versatile` /
-  `gemini-2.0-flash` / `gemini-1.5-flash` and ignore `main.py`'s env overrides.
+- **`backend/evaluator_service.py:217,235` is the one remaining hardcoded-model-ID site** — see
+  the judge-models entry above; unreached from `src/`, out of scope (Phase 6.1 deletion).
 
 ### To verify against production and record here
 
@@ -160,8 +168,10 @@ judge({ prompt: 'Reply with the JSON {\"ok\":true} and nothing else.' })
   .catch((e) => { console.error('FAIL', e.message); process.exit(1); });
 "
 # 'FAIL Both judge providers failed. ... model_not_found / not available'
-#   -> confirmed: scoring is dead in prod until the DEFAULT_MODEL constants
-#      (+ GEMINI_MODEL / GROQ_MODEL env reads + render.yaml entries) are fixed.
+#   -> the DEFAULT_MODEL fallback literals, GEMINI_MODEL/GROQ_MODEL env reads, and
+#      render.yaml entries are all in place (Phase 2.1) — a failure here now most
+#      likely means the *configured* GEMINI_MODEL/GROQ_MODEL values on Render (or
+#      the fallback literals, if unset) are themselves no longer live model IDs.
 ```
 
 ### FastAPI env (captured)

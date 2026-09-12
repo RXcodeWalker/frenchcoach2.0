@@ -60,9 +60,14 @@ describe('WaitingForScore', () => {
     expect(next).toEqual({ phase: 'Completed' });
   });
 
-  it('POLL_IN_PROGRESS -> Recovering, poll count reset to 0', () => {
-    const next = transitionScoringMachine({ phase: 'WaitingForScore', attempt: 1 }, { type: 'POLL_IN_PROGRESS' });
-    expect(next).toEqual({ phase: 'Recovering', pollCount: 0 });
+  it('POLL_IN_PROGRESS -> Recovering, poll count reset to 0, attempt carried, deadline stamped', () => {
+    const before = Date.now();
+    const next = transitionScoringMachine({ phase: 'WaitingForScore', attempt: 2 }, { type: 'POLL_IN_PROGRESS' });
+    expect(next.phase).toBe('Recovering');
+    if (next.phase !== 'Recovering') throw new Error('unreachable');
+    expect(next.pollCount).toBe(0);
+    expect(next.attempt).toBe(2);
+    expect(next.enteredRecoveringAt).toBeGreaterThanOrEqual(before);
   });
 
   it('POLL_NOT_FOUND under the attempt cap -> Submitting, attempt incremented', () => {
@@ -89,26 +94,51 @@ describe('WaitingForScore', () => {
 
 describe('Recovering', () => {
   it('POLL_DONE -> Completed', () => {
-    const next = transitionScoringMachine({ phase: 'Recovering', pollCount: 3 }, { type: 'POLL_DONE' });
+    const next = transitionScoringMachine(
+      { phase: 'Recovering', pollCount: 3, attempt: 1, enteredRecoveringAt: 0 },
+      { type: 'POLL_DONE' },
+    );
     expect(next).toEqual({ phase: 'Completed' });
   });
 
-  it('POLL_IN_PROGRESS -> stays Recovering, increments pollCount (never re-POSTs)', () => {
-    const next = transitionScoringMachine({ phase: 'Recovering', pollCount: 1 }, { type: 'POLL_IN_PROGRESS' });
-    expect(next).toEqual({ phase: 'Recovering', pollCount: 2 });
+  it('POLL_IN_PROGRESS -> stays Recovering, increments pollCount, keeps attempt/deadline (never re-POSTs)', () => {
+    const next = transitionScoringMachine(
+      { phase: 'Recovering', pollCount: 1, attempt: 2, enteredRecoveringAt: 1000 },
+      { type: 'POLL_IN_PROGRESS' },
+    );
+    expect(next).toEqual({ phase: 'Recovering', pollCount: 2, attempt: 2, enteredRecoveringAt: 1000 });
   });
 
-  it('POLL_NOT_FOUND -> Submitting attempt 1 (staleness window lapsed, presumed-dead attempt)', () => {
-    const next = transitionScoringMachine({ phase: 'Recovering', pollCount: 5 }, { type: 'POLL_NOT_FOUND' });
-    expect(next).toEqual({ phase: 'Submitting', attempt: 1 });
+  it('POLL_NOT_FOUND under the attempt cap -> Submitting, attempt incremented (staleness window lapsed, presumed-dead attempt)', () => {
+    const next = transitionScoringMachine(
+      { phase: 'Recovering', pollCount: 5, attempt: 1, enteredRecoveringAt: 0 },
+      { type: 'POLL_NOT_FOUND' },
+    );
+    expect(next).toEqual({ phase: 'Submitting', attempt: 2 });
+  });
+
+  it('POLL_NOT_FOUND at the attempt cap -> FailedTerminal instead of resubmitting forever', () => {
+    const next = transitionScoringMachine(
+      { phase: 'Recovering', pollCount: 5, attempt: MAX_SUBMIT_ATTEMPTS, enteredRecoveringAt: 0 },
+      { type: 'POLL_NOT_FOUND' },
+    );
+    expect(next.phase).toBe('FailedTerminal');
   });
 
   it('POLL_TERMINAL_ERROR -> FailedTerminal', () => {
     const next = transitionScoringMachine(
-      { phase: 'Recovering', pollCount: 2 },
+      { phase: 'Recovering', pollCount: 2, attempt: 1, enteredRecoveringAt: 0 },
       { type: 'POLL_TERMINAL_ERROR', reason: 'unauthorized' },
     );
     expect(next).toEqual({ phase: 'FailedTerminal', reason: 'unauthorized' });
+  });
+
+  it('RECOVERING_DEADLINE_EXCEEDED -> FailedTerminal (wall-clock budget exhausted, independent of poll responses)', () => {
+    const next = transitionScoringMachine(
+      { phase: 'Recovering', pollCount: 8, attempt: 1, enteredRecoveringAt: 0 },
+      { type: 'RECOVERING_DEADLINE_EXCEEDED' },
+    );
+    expect(next.phase).toBe('FailedTerminal');
   });
 });
 
@@ -154,11 +184,24 @@ describe('a full recovery sequence (server crash mid-attempt)', () => {
   });
 
   it('Recovering -> 404 after staleness lapses -> Submitting (resubmit) -> Completed', () => {
-    let state: ScoringMachineState = { phase: 'Recovering', pollCount: 4 };
+    let state: ScoringMachineState = { phase: 'Recovering', pollCount: 4, attempt: 1, enteredRecoveringAt: 0 };
     state = transitionScoringMachine(state, { type: 'POLL_NOT_FOUND' });
-    expect(state).toEqual({ phase: 'Submitting', attempt: 1 });
+    expect(state).toEqual({ phase: 'Submitting', attempt: 2 });
     state = transitionScoringMachine(state, { type: 'SUBMIT_OK' });
     expect(state).toEqual({ phase: 'Completed' });
+  });
+
+  it('Recovering -> repeated 404s reach FailedTerminal via the shared attempt cap, instead of looping forever', () => {
+    let state: ScoringMachineState = { phase: 'Recovering', pollCount: 1, attempt: 1, enteredRecoveringAt: 0 };
+    for (let i = 0; i < MAX_SUBMIT_ATTEMPTS - 1; i++) {
+      state = transitionScoringMachine(state, { type: 'POLL_NOT_FOUND' });
+      expect(state.phase).toBe('Submitting');
+      state = transitionScoringMachine(state, { type: 'SUBMIT_IN_PROGRESS' });
+      state = transitionScoringMachine(state, { type: 'POLL_IN_PROGRESS' });
+      expect(state.phase).toBe('Recovering');
+    }
+    state = transitionScoringMachine(state, { type: 'POLL_NOT_FOUND' });
+    expect(state.phase).toBe('FailedTerminal');
   });
 });
 

@@ -66,7 +66,7 @@ export function createHttpPronunciationProvider(
   apiBase: string,
   getAuthToken?: () => Promise<string | null>,
 ): PronunciationAssessor {
-  return async ({ audioBlob, targetText, mode = 'scripted', coaching = 'none', coachingRequestId }) => {
+  return async ({ audioBlob, targetText, mode = 'scripted', coaching = 'none', coachingRequestId, signal }) => {
     let uploadBlob = audioBlob;
     let uploadFilename = 'recording.wav';
     try {
@@ -101,6 +101,7 @@ export function createHttpPronunciationProvider(
       method: 'POST',
       headers,
       body: formData,
+      signal,
     });
     if (!res.ok) throw new Error(`API pronunciation → ${res.status}`);
 

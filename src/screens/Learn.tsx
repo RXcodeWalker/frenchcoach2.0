@@ -509,6 +509,7 @@ export function Learn() {
           targetText: transcript,
           source: 'learn',
           mode: 'freeform',
+          signal: pronunciationController.signal,
         });
         if (myAttemptId !== attemptIdRef.current) return;
         setPronunciationResult(result);

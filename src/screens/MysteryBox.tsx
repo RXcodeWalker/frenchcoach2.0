@@ -2,35 +2,44 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Gift, Sparkles, Trophy } from 'lucide-react';
-import { useApp, dispatchAddXP } from '../context/AppContext';
+import { claimMysteryBox } from '../services/mysteryBox/mysteryBoxService';
 
-type BoxState = 'closed' | 'shaking' | 'opening' | 'revealed';
+type BoxState = 'closed' | 'shaking' | 'opening' | 'revealed' | 'already-claimed' | 'error';
+
+/** Reliability plan §2.6: display-only titles keyed by the server's chosen amount — the
+ * reward tiers themselves (50/100/250) live server-side in claim_mystery_box now. */
+const REWARD_TITLES: Record<number, string> = {
+  50: 'Mini XP Boost',
+  100: 'Mega XP Boost',
+  250: 'Legendary XP Cache',
+};
 
 export function MysteryBox() {
   const navigate = useNavigate();
-  const { dispatch } = useApp();
-  
-  const [boxState, setBoxState] = useState<BoxState>('closed');
-  const [reward, setReward] = useState<{ type: string; value: number; title: string } | null>(null);
 
-  const REWARDS = [
-    { type: 'xp', value: 50, title: 'Mini XP Boost', icon: '⚡' },
-    { type: 'xp', value: 100, title: 'Mega XP Boost', icon: '⚡⚡' },
-    { type: 'xp', value: 250, title: 'Legendary XP Cache', icon: '💎' },
-  ];
+  const [boxState, setBoxState] = useState<BoxState>('closed');
+  const [reward, setReward] = useState<{ value: number; title: string } | null>(null);
 
   const openBox = () => {
     setBoxState('shaking');
-    
+
     setTimeout(() => {
       setBoxState('opening');
-      const randomReward = REWARDS[Math.floor(Math.random() * REWARDS.length)];
-      setReward(randomReward);
-      
-      setTimeout(() => {
-        setBoxState('revealed');
-        dispatchAddXP(dispatch, randomReward.value, 'mystery_box');
-      }, 1000);
+
+      void claimMysteryBox().then((result) => {
+        setTimeout(() => {
+          if (!result.ok) {
+            setBoxState('error');
+            return;
+          }
+          if (result.alreadyClaimed) {
+            setBoxState('already-claimed');
+            return;
+          }
+          setReward({ value: result.xpAwarded, title: REWARD_TITLES[result.xpAwarded] ?? 'XP Reward' });
+          setBoxState('revealed');
+        }, 1000);
+      });
     }, 1500);
   };
 
@@ -93,6 +102,53 @@ export function MysteryBox() {
                 className="text-white"
               >
                 <Sparkles size={80} className="animate-spin text-yellow-400" />
+              </motion.div>
+            ) : boxState === 'already-claimed' ? (
+              <motion.div
+                key="already-claimed"
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="surface-raised p-8 rounded-3xl border-yellow-500/20 w-full"
+              >
+                <div className="w-20 h-20 bg-yellow-500/10 rounded-full flex items-center justify-center mx-auto border-2 border-yellow-500/20 mb-4">
+                  <Gift size={40} className="text-yellow-400" />
+                </div>
+                <h3 className="text-2xl font-black text-white mb-1">Already opened today</h3>
+                <p className="text-xs text-ink-muted mb-8 leading-relaxed">
+                  Come back tomorrow for another Mystery Box.
+                </p>
+                <div className="flex flex-col gap-3">
+                  <motion.button
+                    onClick={() => navigate('/explore')}
+                    className="w-full py-4 bg-white text-slate-950 font-black rounded-xl hover:bg-slate-200 transition-all"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    OK
+                  </motion.button>
+                </div>
+              </motion.div>
+            ) : boxState === 'error' ? (
+              <motion.div
+                key="error"
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="surface-raised p-8 rounded-3xl border-yellow-500/20 w-full"
+              >
+                <h3 className="text-xl font-black text-white mb-1">Couldn&rsquo;t open the box</h3>
+                <p className="text-xs text-ink-muted mb-8 leading-relaxed">
+                  Something went wrong. Please try again in a moment.
+                </p>
+                <div className="flex flex-col gap-3">
+                  <motion.button
+                    onClick={() => setBoxState('closed')}
+                    className="w-full py-4 bg-white text-slate-950 font-black rounded-xl hover:bg-slate-200 transition-all"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    Try again
+                  </motion.button>
+                </div>
               </motion.div>
             ) : (
               <motion.div

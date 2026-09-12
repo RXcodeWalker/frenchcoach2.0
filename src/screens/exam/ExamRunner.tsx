@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Volume2, VolumeX, RotateCcw, Info } from 'lucide-react';
+import { Volume2, VolumeX, RotateCcw, Info, AlertTriangle } from 'lucide-react';
 import { ScrollingWaveform } from '../../features/recording/ScrollingWaveform';
 import { formatTime } from '../../domain/time';
 import { Button } from '../../components/ui/Button';
@@ -38,6 +38,7 @@ interface Props {
   voiceMuted: boolean;
   onToggleVoice: () => void;
   pendingSilentSkip: boolean;
+  pendingTranscriptionFailure: boolean;
   onKeepTrying: () => void;
   onSkipQuestion: () => void;
   rolePlayTitle?: string;
@@ -70,6 +71,7 @@ export function ExamRunner({
   voiceMuted,
   onToggleVoice,
   pendingSilentSkip,
+  pendingTranscriptionFailure,
   onKeepTrying,
   onSkipQuestion,
   rolePlayTitle,
@@ -188,7 +190,22 @@ export function ExamRunner({
         </div>
 
         <div className="w-full space-y-4">
-          {pendingSilentSkip ? (
+          {pendingTranscriptionFailure ? (
+            <div className="w-full rounded-card surface-recessed p-5 text-center space-y-3">
+              <p className="text-body-base font-semibold text-ink">We couldn&rsquo;t transcribe your answer</p>
+              <p className="text-body-s text-ink-muted">
+                Something went wrong on our end, not with your answer. You can try again or skip this question.
+              </p>
+              <div className="flex items-center justify-center gap-3 pt-1">
+                <Button variant="primary" size="sm" onClick={onKeepTrying}>
+                  Try again
+                </Button>
+                <Button variant="secondary" size="sm" onClick={onSkipQuestion}>
+                  Skip question
+                </Button>
+              </div>
+            </div>
+          ) : pendingSilentSkip ? (
             <div className="w-full rounded-card surface-recessed p-5 text-center space-y-3">
               <p className="text-body-base font-semibold text-ink">We can&rsquo;t hear you — check your mic</p>
               <p className="text-body-s text-ink-muted">
@@ -205,6 +222,14 @@ export function ExamRunner({
             </div>
           ) : (
             <>
+              {!recording.sttSupported && (
+                <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/25">
+                  <AlertTriangle size={14} className="text-amber-400 shrink-0 mt-0.5" />
+                  <p className="text-[11px] text-amber-300 leading-snug">
+                    This browser doesn&rsquo;t support live speech transcription — your answer will be transcribed after you submit. Try Chrome or Edge for the best experience.
+                  </p>
+                </div>
+              )}
               <ScrollingWaveform isRecording={rec} source={recording.micLevel} />
               <div className="text-center font-numeral text-body-s text-ink-subtle tabular-nums">
                 {formatTime(Math.round(elapsedS))}

@@ -87,6 +87,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(data.session?.user ?? null);
       setLoading(false);
       if (data.session?.user) void loadConsentStatus(data.session.user.id);
+    }).catch(err => {
+      // A rejected getSession() must not leave loading stuck true forever
+      // (reliability plan §2.5) — treat it as "no session" rather than hang.
+      console.error(err);
+      setLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {

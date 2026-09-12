@@ -27,7 +27,10 @@ export interface GroqJudgeCallMetadata {
 export interface GroqClientLike {
   chat: {
     completions: {
-      create: (params: { model: string; messages: Array<{ role: 'user'; content: string }> }) => Promise<{
+      create: (
+        params: { model: string; messages: Array<{ role: 'user'; content: string }>; max_completion_tokens?: number },
+        options?: { timeout?: number },
+      ) => Promise<{
         id?: string;
         choices: Array<{ message: { content: string | null } }>;
       }>;
@@ -41,7 +44,20 @@ export interface GroqJudgeOptions {
   client?: GroqClientLike;
 }
 
-const DEFAULT_MODEL = 'llama-3.3-70b-versatile';
+const DEFAULT_MODEL = process.env.GROQ_MODEL?.trim() || 'llama-3.3-70b-versatile';
+
+/**
+ * Reliability plan §2.5: sized near llama-3.3-70b-versatile's actual maximum
+ * safe output ceiling on Groq (published as 32768), not "expected" response
+ * length — JudgeResponse.raw is a full multi-KB structured JSON payload and a
+ * schema-validation failure from truncation is a terminal, non-retried error
+ * (see judgeFactory.ts). Re-verify this ceiling against Groq's current docs
+ * if the model id in GROQ_MODEL ever changes.
+ */
+const MAX_COMPLETION_TOKENS = 32768;
+
+/** Request timeout, ms — leaves headroom under submitForScoring's 90s client ceiling. */
+const REQUEST_TIMEOUT_MS = 60_000;
 
 /**
  * Fresh-per-attempt factory. Call once per scoring attempt; never share the
@@ -57,10 +73,14 @@ export function createGroqJudge(options: GroqJudgeOptions = {}): {
   let lastCallMetadata: GroqJudgeCallMetadata | undefined;
 
   const judge: Judge = async (req: JudgeRequest): Promise<JudgeResponse> => {
-    const response = await client.chat.completions.create({
-      model,
-      messages: [{ role: 'user', content: req.prompt }],
-    });
+    const response = await client.chat.completions.create(
+      {
+        model,
+        messages: [{ role: 'user', content: req.prompt }],
+        max_completion_tokens: MAX_COMPLETION_TOKENS,
+      },
+      { timeout: REQUEST_TIMEOUT_MS },
+    );
 
     lastCallMetadata = {
       model,

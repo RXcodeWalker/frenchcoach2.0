@@ -3,6 +3,17 @@ import { useMicLevel, type MicLevelController } from './useMicLevel';
 
 const WAVE_BARS = 40;
 
+/**
+ * Reliability plan §2.3: how long stop() waits for the recognizer/recorder's
+ * own onend/onstop before falling back to whatever was captured so far.
+ * Two consumers (SpeedSpeaking.tsx, SpeakingArena.tsx) call stop() without
+ * awaiting it before a later start() — safe only because every callback
+ * bound during a given start() is generation-guarded (see generationRef
+ * below): a stale onend/onstop from a superseded recording is a no-op, so a
+ * timeout resolving stop() early can never be clobbered by a late arrival.
+ */
+const STOP_TIMEOUT_MS = 3_000;
+
 // Web Speech API types (not in standard lib)
 interface SpeechRecognitionEvent extends Event {
   results: SpeechRecognitionResultList;
@@ -63,6 +74,17 @@ export interface RecordingState {
  * consent-pending mic can't be armed even if some future call site renders
  * a record control without that wrapper.
  */
+/** Races `promise` against a timeout that resolves (never rejects) with `fallback()`. */
+function withTimeout<T>(promise: Promise<T>, ms: number, fallback: () => T): Promise<T> {
+  return new Promise<T>((resolve) => {
+    const timeoutId = setTimeout(() => resolve(fallback()), ms);
+    promise.then((value) => {
+      clearTimeout(timeoutId);
+      resolve(value);
+    });
+  });
+}
+
 export function useRecording(blocked = false): RecordingState {
   const [isRecording, setIsRecording]   = useState(false);
   const [elapsedTime, setElapsedTime]   = useState(0);
@@ -81,6 +103,14 @@ export function useRecording(blocked = false): RecordingState {
   const finalTextRef  = useRef('');
   const resolveRef    = useRef<((t: string) => void) | null>(null);
   const startedAtRef  = useRef<number>(0);
+  // Reliability plan §2.3: start() has no session/generation concept today,
+  // but resets and reuses shared refs (finalTextRef, chunksRef, resolveRef,
+  // blobResolveRef) across calls rather than instance-scoped state. Every
+  // callback bound during a given start() captures its own generation number
+  // and no-ops if superseded — this is what makes it safe for a caller to
+  // call stop() without awaiting it before the next start() (SpeedSpeaking,
+  // SpeakingArena both do this today).
+  const generationRef = useRef(0);
 
   // MediaRecorder for audio blob capture (pronunciation pipeline)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -99,12 +129,24 @@ export function useRecording(blocked = false): RecordingState {
       recogRef.current?.abort();
       mediaRecorderRef.current?.stop();
       streamRef.current?.getTracks().forEach(t => t.stop());
+      // A stop() call in flight at unmount would otherwise leave its promise
+      // pending forever — resolve it with whatever was captured so far.
+      if (resolveRef.current) {
+        resolveRef.current(finalTextRef.current.trim());
+        resolveRef.current = null;
+      }
+      if (blobResolveRef.current) {
+        blobResolveRef.current(null);
+        blobResolveRef.current = null;
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const start = useCallback(() => {
     if (blocked) return;
+    generationRef.current += 1;
+    const myGeneration = generationRef.current;
     setIsRecording(true);
     setElapsedTime(0);
     setTranscript('');
@@ -122,13 +164,22 @@ export function useRecording(blocked = false): RecordingState {
 
     // Start MediaRecorder for audio blob (best-effort — ignore if permissions denied)
     navigator.mediaDevices?.getUserMedia({ audio: true }).then(stream => {
+      if (myGeneration !== generationRef.current) {
+        // A later start()/stop() has already superseded this recording —
+        // don't attach a recorder or stream that nothing will ever stop.
+        stream.getTracks().forEach(t => t.stop());
+        return;
+      }
       streamRef.current = stream;
       micLevel.attach(stream);
       const mimeType = ['audio/webm', 'audio/ogg', 'audio/mp4']
         .find(t => MediaRecorder.isTypeSupported(t)) ?? '';
       const mr = new MediaRecorder(stream, mimeType ? { mimeType } : {});
       mediaRecorderRef.current = mr;
-      mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
+      mr.ondataavailable = (e) => {
+        if (myGeneration !== generationRef.current) return;
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
       mr.start(250);
     }).catch(() => {
       // Pronunciation analysis won't be available — continue without audio blob
@@ -148,6 +199,7 @@ export function useRecording(blocked = false): RecordingState {
       recog.maxAlternatives = 1;
 
       recog.onresult = (e: SpeechRecognitionEvent) => {
+        if (myGeneration !== generationRef.current) return;
         let interim = '';
         let final   = finalTextRef.current;
         for (let i = e.resultIndex; i < e.results.length; i++) {
@@ -161,6 +213,7 @@ export function useRecording(blocked = false): RecordingState {
       };
 
       recog.onend = () => {
+        if (myGeneration !== generationRef.current) return;
         if (resolveRef.current) {
           resolveRef.current(finalTextRef.current.trim());
           resolveRef.current = null;
@@ -168,6 +221,7 @@ export function useRecording(blocked = false): RecordingState {
       };
 
       recog.onerror = (e: SpeechRecognitionErrorEvent) => {
+        if (myGeneration !== generationRef.current) return;
         // Waveform still animates; transcript stays whatever was captured so far.
         setSttError(e.error || 'unknown');
       };
@@ -179,6 +233,7 @@ export function useRecording(blocked = false): RecordingState {
   }, [blocked]);
 
   const stop = useCallback((): Promise<string> => {
+    const myGeneration = generationRef.current;
     setIsRecording(false);
     if (timerRef.current)  { clearInterval(timerRef.current); timerRef.current = null; }
     micLevel.detach();
@@ -186,8 +241,9 @@ export function useRecording(blocked = false): RecordingState {
 
     // Finalize audio blob
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      blobPromiseRef.current = new Promise(resolve => { blobResolveRef.current = resolve; });
+      const rawBlobPromise = new Promise<Blob | null>(resolve => { blobResolveRef.current = resolve; });
       mediaRecorderRef.current.onstop = () => {
+        if (myGeneration !== generationRef.current) return;
         const blob = new Blob(chunksRef.current, {
           type: mediaRecorderRef.current?.mimeType || 'audio/webm',
         });
@@ -198,12 +254,18 @@ export function useRecording(blocked = false): RecordingState {
         blobResolveRef.current = null;
       };
       mediaRecorderRef.current.stop();
+      // If onstop never fires (or fires for a superseded generation), fall
+      // back to whatever chunks were captured so far rather than hanging —
+      // safe because a stale onstop arriving after this fallback is a no-op.
+      blobPromiseRef.current = withTimeout(rawBlobPromise, STOP_TIMEOUT_MS, () =>
+        chunksRef.current.length > 0 ? new Blob(chunksRef.current, { type: 'audio/webm' }) : null,
+      );
     } else {
       // No active recorder (e.g. permission denied) — resolve null immediately.
       blobPromiseRef.current = Promise.resolve(null);
     }
 
-    return new Promise(resolve => {
+    const rawTranscriptPromise = new Promise<string>(resolve => {
       if (recogRef.current) {
         resolveRef.current = resolve;
         recogRef.current.stop();
@@ -212,6 +274,7 @@ export function useRecording(blocked = false): RecordingState {
         resolve(finalTextRef.current.trim());
       }
     });
+    return withTimeout(rawTranscriptPromise, STOP_TIMEOUT_MS, () => finalTextRef.current.trim());
   }, [micLevel]);
 
   const audioBlobPromise = useCallback((): Promise<Blob | null> => {

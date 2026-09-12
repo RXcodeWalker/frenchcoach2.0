@@ -94,6 +94,26 @@ describe('createHttpPronunciationProvider', () => {
     expect(uploaded.type).toBe('audio/wav');
   });
 
+  it('forwards a caller-supplied signal to fetch (reliability plan §2.5)', async () => {
+    const fetchMock = vi.fn(async () => ({
+      ok: true,
+      json: async () => PRONUNCIATION_GOLDEN_ASSESSMENT,
+    })) as unknown as typeof fetch;
+    vi.stubGlobal('fetch', fetchMock);
+
+    const controller = new AbortController();
+    const provider = createHttpPronunciationProvider('http://localhost:8000');
+    await provider({
+      audioBlob: new Blob(['fake'], { type: 'audio/webm' }),
+      targetText: 'Un bon vin blanc.',
+      languageCode: 'fr-FR',
+      signal: controller.signal,
+    });
+
+    const [, init] = (fetchMock as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(init.signal).toBe(controller.signal);
+  });
+
   it('defaults to mode=scripted in the form data when mode is omitted', async () => {
     const fetchMock = vi.fn(async () => ({
       ok: true,

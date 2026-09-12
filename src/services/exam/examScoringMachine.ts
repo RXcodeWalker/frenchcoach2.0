@@ -23,11 +23,21 @@ export const MAX_SUBMIT_ATTEMPTS = 3;
 /** Recovering poll backoff, ms — 5s, 10s, 20s, then steady at 30s. */
 export const RECOVERING_BACKOFF_MS = [5_000, 10_000, 20_000, 30_000];
 
+/**
+ * Wall-clock budget for the Recovering phase, ms, before giving up rather
+ * than polling forever. Reliability plan §2.5: comfortably above
+ * MAX_SUBMIT_ATTEMPTS x submitForScoring's 90s client timeout plus polling
+ * overhead, but not backed by production p99 scoring-latency data — this is
+ * a conservative starting value, not a derived one. Revisit if this fires on
+ * legitimate slow-but-successful attempts in production.
+ */
+export const RECOVERING_MAX_MS = 5 * 60 * 1000;
+
 export type ScoringMachineState =
   | { phase: 'Queued' }
   | { phase: 'Submitting'; attempt: number }
   | { phase: 'WaitingForScore'; attempt: number }
-  | { phase: 'Recovering'; pollCount: number }
+  | { phase: 'Recovering'; pollCount: number; attempt: number; enteredRecoveringAt: number }
   | { phase: 'Completed' }
   | { phase: 'FailedTerminal'; reason: string };
 
@@ -40,6 +50,7 @@ export type ScoringMachineEvent =
   | { type: 'POLL_IN_PROGRESS' }
   | { type: 'POLL_NOT_FOUND' }
   | { type: 'POLL_TERMINAL_ERROR'; reason: string }
+  | { type: 'RECOVERING_DEADLINE_EXCEEDED' }
   | { type: 'RETRY' };
 
 export function initialScoringMachineState(): ScoringMachineState {
@@ -86,7 +97,7 @@ export function transitionScoringMachine(
         case 'POLL_DONE':
           return { phase: 'Completed' };
         case 'POLL_IN_PROGRESS':
-          return { phase: 'Recovering', pollCount: 0 };
+          return { phase: 'Recovering', pollCount: 0, attempt: state.attempt, enteredRecoveringAt: Date.now() };
         case 'POLL_NOT_FOUND':
           return state.attempt >= MAX_SUBMIT_ATTEMPTS
             ? { phase: 'FailedTerminal', reason: 'Scoring service is not responding. Please try again later.' }
@@ -105,14 +116,20 @@ export function transitionScoringMachine(
         case 'POLL_IN_PROGRESS':
           // A 202 means "within the staleness window," not a guarantee — keep
           // waiting, never re-POST purely because we're in this state.
-          return { phase: 'Recovering', pollCount: state.pollCount + 1 };
+          return { ...state, pollCount: state.pollCount + 1 };
         case 'POLL_NOT_FOUND':
           // The staleness window lapsed with no envelope — the earlier
           // attempt is presumed dead (crashed/restarted process). Route back
-          // through Submitting's own attempt cap, same bound as WaitingForScore.
-          return { phase: 'Submitting', attempt: 1 };
+          // through Submitting, subject to the same MAX_SUBMIT_ATTEMPTS cap
+          // WaitingForScore already enforces — this used to reset to attempt: 1
+          // unconditionally, making the retry loop unbounded from this path.
+          return state.attempt >= MAX_SUBMIT_ATTEMPTS
+            ? { phase: 'FailedTerminal', reason: 'Scoring service is not responding. Please try again later.' }
+            : { phase: 'Submitting', attempt: state.attempt + 1 };
         case 'POLL_TERMINAL_ERROR':
           return { phase: 'FailedTerminal', reason: event.reason };
+        case 'RECOVERING_DEADLINE_EXCEEDED':
+          return { phase: 'FailedTerminal', reason: 'Scoring is taking longer than expected. Please try again later.' };
         default:
           return state;
       }

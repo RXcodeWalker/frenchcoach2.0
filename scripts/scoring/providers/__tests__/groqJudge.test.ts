@@ -54,6 +54,18 @@ describe('createGroqJudge', () => {
     expect(getLastCallMetadata()?.model).toBe('llama-3.1-8b-instant');
   });
 
+  it('sends a max_completion_tokens cap and a request timeout, not left to provider defaults (reliability plan §2.5)', async () => {
+    const client = fakeGroqClient('{}');
+    const { judge } = createGroqJudge({ client });
+
+    await judge({ prompt: 'p' });
+
+    const mock = client.chat.completions.create as ReturnType<typeof vi.fn>;
+    const [body, options] = mock.mock.calls[0];
+    expect(body.max_completion_tokens).toBeGreaterThan(0);
+    expect(options?.timeout).toBeGreaterThan(0);
+  });
+
   it('throws if the response contains no message content', async () => {
     const client: GroqClientLike = {
       chat: { completions: { create: vi.fn(async () => ({ id: 'x', choices: [{ message: { content: null } }] })) } },
