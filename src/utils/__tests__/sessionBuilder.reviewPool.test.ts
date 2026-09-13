@@ -7,11 +7,12 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { buildSessionQuestions, SESSION_TARGET } from '../sessionBuilder';
-import { recordReviewFailure, advanceReviewPoolSessions, REVIEW_MIN_INTERVAL_MS } from '../../services/coach/reviewPool';
+import { recordReviewOutcome } from '../../services/coach/reviewPool';
 import { STORAGE_KEYS, storageSet } from '../../services/persistence/storage';
 import type { SkillProfile } from '../../types';
 
 const EMPTY_SKILL_PROFILE = {} as SkillProfile;
+const ONE_DAY_MS = 86_400_000;
 
 beforeEach(() => {
   localStorage.clear();
@@ -24,9 +25,10 @@ beforeEach(() => {
 });
 
 function makeReviewQuestionEligible(questionId: string, topicKey: string) {
-  recordReviewFailure({ questionId, topicKey });
-  advanceReviewPoolSessions();
-  vi.spyOn(Date, 'now').mockReturnValue(Date.now() + REVIEW_MIN_INTERVAL_MS + 1000);
+  // A failing score (quality<3) schedules intervalDays=1 — advance one day
+  // so the item is due.
+  recordReviewOutcome({ questionId, topicKey, score: 4 });
+  vi.spyOn(Date, 'now').mockReturnValue(Date.now() + ONE_DAY_MS + 1000);
 }
 
 describe('buildSessionQuestions review-slot integration', () => {

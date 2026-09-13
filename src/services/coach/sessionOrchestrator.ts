@@ -8,8 +8,8 @@
 
 import { recordSession } from '../analytics/analyticsService';
 import { awardXP, awardParticipationXP, checkAchievements, getProgressionState } from '../progression/progressionService';
-import { isUnscored, LANGUAGE_SUCCESS_SCORE } from '../../domain/scoring';
-import { recordReviewFailure } from './reviewPool';
+import { isUnscored } from '../../domain/scoring';
+import { recordReviewOutcome } from './reviewPool';
 import type { OrchestratorInput, OrchestratorResult, CoachRecommendation } from '../../types/coach';
 import type { Question, FeedbackV2, AvoidanceSignal } from '../../types';
 import type { EvidenceEvent } from '../../types/evidence';
@@ -141,11 +141,12 @@ export function orchestrateAttempt(input: OrchestratorInput): OrchestratorResult
   syncProfileFromServices();
   invalidateDailyPlan();
 
-  // 9. Best-effort: record a failure into the spaced-review pool. Never blocks
-  //    the return — this store is derived, not authoritative.
+  // 9. Best-effort: record this outcome into the spaced-review (SM-2) pool, on
+  //    every scored answer, pass or fail. Never blocks the return — this
+  //    store is derived, not authoritative.
   try {
-    if (!unscored && finalScore < LANGUAGE_SUCCESS_SCORE && question && session.topicKey) {
-      recordReviewFailure({ questionId: question.id, topicKey: session.topicKey, score: finalScore });
+    if (!unscored && question && session.topicKey) {
+      recordReviewOutcome({ questionId: question.id, topicKey: session.topicKey, score: finalScore });
     }
   } catch {
     // A review-pool write failure must never break orchestrateAttempt's contract.

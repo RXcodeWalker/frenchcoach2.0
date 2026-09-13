@@ -84,7 +84,7 @@ export function QuestionCard({ question, showHint, onToggleHint, isReview, selec
               )}
               {isReview && (
                 <span className="text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-widest bg-cyan-500/10 text-cyan-300 border border-cyan-500/15">
-                  Seen before — let's retry it
+                  Review
                 </span>
               )}
             </div>

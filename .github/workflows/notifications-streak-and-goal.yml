@@ -1,0 +1,32 @@
+name: Streak and Daily Goal Notifications
+
+# Departs from the scheduled-rpc.yml reusable-workflow pattern (a single RPC
+# call) because sendNotifications.ts must make external HTTP calls (Web Push,
+# Resend) the database can't make itself — see sendNotifications.ts's header
+# for the full claim-before-send / push-then-email-fallback design.
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch: {}
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        notif-type: [streak_at_risk, daily_goal]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npx tsx scripts/scheduledJobs/sendNotifications.ts ${{ matrix.notif-type }}
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+          VAPID_SUBJECT: ${{ secrets.VAPID_SUBJECT }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}

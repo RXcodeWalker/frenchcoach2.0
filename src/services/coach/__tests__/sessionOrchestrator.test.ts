@@ -171,8 +171,8 @@ describe('orchestrateAttempt with a follow-up-shaped question (Phase 3 Slice D)'
   });
 });
 
-describe('orchestrateAttempt review-pool step 9 (Phase 3 Slice E)', () => {
-  it('records a review-pool failure for a genuinely failed, scored attempt (finalScore < LANGUAGE_SUCCESS_SCORE)', () => {
+describe('orchestrateAttempt review-pool step 9 (Phase 4.2 — real SM-2)', () => {
+  it('records a review-pool outcome for a failing, scored attempt', () => {
     const question = makeQuestion();
     const feedback = makeFeedback({ scores: { overall: 4, communication: 4, language: 4, fluency: 4 } });
     const session = makeSession({ score: 4, feedback, topicKey: 'school' });
@@ -187,7 +187,7 @@ describe('orchestrateAttempt review-pool step 9 (Phase 3 Slice E)', () => {
     expect(stored.items[question.id]).toBeDefined();
   });
 
-  it('does not record a review-pool failure for a passing score', () => {
+  it('also records a review-pool outcome for a passing score (SM-2 enters on every scored answer, not just failures)', () => {
     const question = makeQuestion();
     const feedback = makeFeedback({ scores: { overall: 8, communication: 8, language: 8, fluency: 8 } });
     const session = makeSession({ score: 8, feedback, topicKey: 'school' });
@@ -198,9 +198,9 @@ describe('orchestrateAttempt review-pool step 9 (Phase 3 Slice E)', () => {
       finalScore: 8, streakDays: 0, totalSessionsBefore: 0,
     });
 
-    const stored = localStorage.getItem(STORAGE_KEYS.reviewPool);
-    const items = stored ? JSON.parse(stored).items : {};
-    expect(items[question.id]).toBeUndefined();
+    const stored = JSON.parse(localStorage.getItem(STORAGE_KEYS.reviewPool)!);
+    expect(stored.items[question.id]).toBeDefined();
+    expect(stored.items[question.id].repetitions).toBe(1);
   });
 
   it('the review-pool write step never blocks orchestrateAttempt\'s return, even if the store write throws', () => {
@@ -223,5 +223,24 @@ describe('orchestrateAttempt review-pool step 9 (Phase 3 Slice E)', () => {
     expect(result).toBeDefined();
 
     setItemSpy.mockRestore();
+  });
+
+  it('an unscored attempt never records a review-pool outcome (quality is score-derived and unscored has no usable score)', () => {
+    const question = makeQuestion();
+    const feedback = makeFeedback({
+      scores: { overall: 0, communication: 0, language: 0, fluency: 0 },
+      unscored: 'no_llm_offline',
+    });
+    const session = makeSession({ score: null, feedback, topicKey: 'school' });
+
+    orchestrateAttempt({
+      session, question, feedback, avoidanceSignals: [],
+      transcript: session.transcript!, durationSec: 30, mode: 'practice',
+      finalScore: 0, streakDays: 0, totalSessionsBefore: 0,
+    });
+
+    const stored = localStorage.getItem(STORAGE_KEYS.reviewPool);
+    const items = stored ? JSON.parse(stored).items : {};
+    expect(items[question.id]).toBeUndefined();
   });
 });

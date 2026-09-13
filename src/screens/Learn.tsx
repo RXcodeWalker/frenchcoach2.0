@@ -32,7 +32,7 @@ import { MidSessionToast } from './learn/MidSessionToast';
 import { StreakToast } from './learn/StreakToast';
 import { buildSessionQuestions, makeSessionQuestion, SESSION_TARGET } from '../utils/sessionBuilder';
 import { midSessionAdjust } from '../domain/learn/selection/midSessionAdjust';
-import { getReviewItemFirstFailScore } from '../services/coach/reviewPool';
+import { getReviewItemFirstRecordedScore } from '../services/coach/reviewPool';
 import { useExtraTurnBudget } from './learn/useExtraTurnBudget';
 import { track } from '../services/telemetry/telemetryService';
 import { DIFFICULTY_CONFIG } from '../utils/difficultyConfig';
@@ -367,7 +367,7 @@ export function Learn() {
           question_id: baseQuestion!.id,
           topic_key: selectedTopic.key,
           score: unscored ? null : finalScore,
-          first_fail_score: getReviewItemFirstFailScore(baseQuestion!.id),
+          first_fail_score: getReviewItemFirstRecordedScore(baseQuestion!.id),
         },
       });
       incrementCounter('review_item_answered');

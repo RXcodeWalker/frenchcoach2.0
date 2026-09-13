@@ -7,7 +7,9 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { buildSessionQuestions, SESSION_TARGET } from '../sessionBuilder';
-import { recordReviewFailure, advanceReviewPoolSessions, REVIEW_MIN_INTERVAL_MS } from '../../services/coach/reviewPool';
+import { recordReviewOutcome } from '../../services/coach/reviewPool';
+
+const ONE_DAY_MS = 86_400_000;
 import { STORAGE_KEYS, storageSet } from '../../services/persistence/storage';
 import type { SkillProfile } from '../../types';
 
@@ -65,9 +67,8 @@ describe('buildSessionQuestions with learnAdaptiveDifficulty live', () => {
   });
 
   it('the review pool still integrates: an eligible review question is selected and flagged', () => {
-    recordReviewFailure({ questionId: 'sch_11', topicKey: 'school' });
-    advanceReviewPoolSessions();
-    vi.spyOn(Date, 'now').mockReturnValue(Date.now() + REVIEW_MIN_INTERVAL_MS + 1000);
+    recordReviewOutcome({ questionId: 'sch_11', topicKey: 'school', score: 4 });
+    vi.spyOn(Date, 'now').mockReturnValue(Date.now() + ONE_DAY_MS + 1000);
 
     const { questions, reviewQuestionId } = buildSessionQuestions('school', 'standard', EMPTY_SKILL_PROFILE, null);
     expect(reviewQuestionId).toBe('sch_11');

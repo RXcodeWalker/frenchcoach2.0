@@ -61,6 +61,10 @@ const ALLOWED: Record<string, string> = {
     '(reduceEvidenceToBeliefState, verified sound in this fix plan\'s audit) — ' +
     'Bayesian-style belief-state confidence over evidence volume, not a ' +
     'Cambridge mark or a detector threshold',
+  'src/services/coach/reviewPool.ts':
+    'recordReviewOutcome implements the standard, externally-sourced SM-2 ' +
+    'spaced-repetition ease-factor update (Phase 4.2) — a scheduling interval ' +
+    'for the review queue, never a Cambridge mark or fed into scoring',
 };
 
 function listFiles(dir: string): string[] {

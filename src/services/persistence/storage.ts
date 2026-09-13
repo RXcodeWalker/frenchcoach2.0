@@ -90,6 +90,9 @@ export const STORAGE_KEYS = {
   shadowingDetailedFeedback:     'frenchCoach_shadowingDetailedFeedback',
   // ── progressionService "needs cloud sync" dirty flag (was a bare literal) ───────
   needsSync:                     'frenchCoach_needsSync',
+  // ── Phase 4.3: notification preferences (push-only mirror to profiles) ──────────
+  notifyStreak:                  'frenchCoach_notifyStreak',
+  notifyDailyGoal:               'frenchCoach_notifyDailyGoal',
 } as const;
 
 export type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS];

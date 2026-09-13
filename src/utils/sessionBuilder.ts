@@ -5,7 +5,7 @@ import type { QuestionV2 } from '../types/questions';
 import { inferQuestionMetadata } from '../services/content/questionMetadata';
 import { isSkillReady } from '../services/coach/skillGraph';
 import { getBeliefSnapshot } from '../services/coach/coachStorage';
-import { getEligibleReviewQuestion, advanceReviewPoolSessions } from '../services/coach/reviewPool';
+import { getEligibleReviewQuestion } from '../services/coach/reviewPool';
 import type { SessionBlend } from '../types/coach';
 import { resolveFeatureStatus } from '../config/featureFlags';
 import { STORAGE_KEYS, storageGet } from '../services/persistence/storage';
@@ -188,7 +188,6 @@ function buildSessionQuestionsAdaptive(
 
   const slots = planSlots({ sessionBlend: blend, sessionTarget, count: target });
 
-  advanceReviewPoolSessions();
   const { selected } = selectQuestions(
     {
       pool,
@@ -296,13 +295,10 @@ function buildSessionQuestionsLegacy(
     }
   }
 
-  // Phase 3 Slice E: advance the cooldown counter for every pooled item once
-  // per new session start, then (deliberately not touching
-  // applyDifficultyDistribution's math above) splice an eligible failed
+  // Phase 3 Slice E (updated for 4.2's real SM-2): splice an eligible due
   // question into the LAST slot — never touches how the other target-1
   // questions were chosen. Sessions <4 questions get no reserved slot; the
   // last valid index is always used, never an out-of-range one.
-  advanceReviewPoolSessions();
   let reviewQuestionId: string | null = null;
   if (topicKey && target >= 4) {
     // Exclude questions already in this session's selection, not just the

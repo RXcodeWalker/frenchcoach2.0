@@ -10,6 +10,12 @@ import './index.css';
 initTelemetry();
 startBackendWarmup();
 
+// Best-effort — no user-visible error on failure (unsupported browser,
+// insecure context, etc). Needed for Phase 4.3's Web Push notifications.
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Sentry.ErrorBoundary fallback={<p>Something went wrong.</p>}>

@@ -23,6 +23,8 @@ import { getEconomySnapshot } from '../services/shop/shopService';
 import { flushMintQueue } from '../services/shop/mintQueue';
 import { getEvidenceEvents } from '../services/coach/coachStorage';
 import { isMigrationNeeded, markMigrationComplete, runMigration, type MigrationPhase, type MigrationRecord } from '../services/sync/migrationService';
+import { pushProfileSettingsToCloud } from '../services/sync/profileSettingsSync';
+import { getNotificationPreferences } from '../services/notifications/notificationPreferences';
 import * as Sentry from '@sentry/react';
 
 interface AppState {
@@ -604,6 +606,21 @@ export function AppProvider({ identity, children }: { identity: string; children
     }, 2000);
     return () => clearTimeout(timer);
   }, [state.profile.total_xp, state.profile.gems, state.achievements, authUser?.id]);
+
+  // Phase 4.3: debounced push-only mirror of daily_goal/notify_* to profiles,
+  // for the notification cron's benefit — never read back (see
+  // profileSettingsSync.ts header). Notify preferences live outside the
+  // reducer (Profile.tsx's toggles write them directly to localStorage), so
+  // this effect re-reads them fresh each time it fires rather than tracking
+  // them as dependencies.
+  useEffect(() => {
+    if (!authUser || !hydrationComplete.current) return;
+    const timer = setTimeout(() => {
+      const { notifyStreak, notifyDailyGoal } = getNotificationPreferences();
+      void pushProfileSettingsToCloud(authUser.id, { dailyGoal: state.dailyGoal, notifyStreak, notifyDailyGoal });
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [state.dailyGoal, authUser?.id]);
 
   // Incremental session push — fires after each new session, gated on auth + hydration
   const newestSessionId = state.recentSessions[0]?.id;

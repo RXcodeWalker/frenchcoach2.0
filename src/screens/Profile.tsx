@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Volume2, Moon, Globe, Database, Shield, ChevronRight, Zap, Trophy, Flame, TrendingUp, BookOpen, LogOut, Target, SlidersHorizontal, AtSign, Loader2, Check, UserX, Users, Trash2, Minus, Plus } from 'lucide-react';
+import { Volume2, Moon, Globe, Database, Shield, ChevronRight, Zap, Trophy, Flame, TrendingUp, BookOpen, LogOut, Target, SlidersHorizontal, AtSign, Loader2, Check, UserX, Users, Trash2, Minus, Plus, Bell } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useApp, DAILY_GOAL_MIN, DAILY_GOAL_MAX } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
@@ -20,6 +20,12 @@ import { CosmeticPreview } from '../components/ui/CosmeticPreview';
 import { useCatalogue } from '../services/shop/useCatalogue';
 import { rarityOf, RARITY_COLOR } from '../services/shop/rarity';
 import { exportMyData, deleteMyAccount, AccountError } from '../services/account/accountService';
+import {
+  getNotifyStreakPreference, setNotifyStreakPreference,
+  getNotifyDailyGoalPreference, setNotifyDailyGoalPreference,
+} from '../services/notifications/notificationPreferences';
+import { requestAndSubscribe, unsubscribe, isPushSupported } from '../services/notifications/pushService';
+import { pushProfileSettingsToCloud } from '../services/sync/profileSettingsSync';
 
 const RENAME_REASON_COPY: Record<string, string> = {
   invalid_format: 'Start with a letter, 3–20 characters, letters/numbers/underscore only.',
@@ -53,6 +59,41 @@ export function Profile() {
   const [privacy, setPrivacy] = useState<PrivacySettings | null>(null);
   const [blockedUsers, setBlockedUsers] = useState<BlockedUserEntry[]>([]);
   const [showBlockedList, setShowBlockedList] = useState(false);
+
+  const [notifyStreak, setNotifyStreakState] = useState(getNotifyStreakPreference);
+  const [notifyDailyGoal, setNotifyDailyGoalState] = useState(getNotifyDailyGoalPreference);
+  const [notifPermission, setNotifPermission] = useState<NotificationPermission | null>(
+    typeof Notification !== 'undefined' ? Notification.permission : null,
+  );
+
+  async function handleToggleNotifyPreference(kind: 'streak' | 'dailyGoal') {
+    if (!user) return;
+    const wasOn = kind === 'streak' ? notifyStreak : notifyDailyGoal;
+    let nextStreak = notifyStreak;
+    let nextDailyGoal = notifyDailyGoal;
+
+    if (wasOn) {
+      // Turning off never revokes actual browser permission — it only
+      // clears the preference (and the subscription row, once both
+      // preferences are off).
+      if (kind === 'streak') nextStreak = false; else nextDailyGoal = false;
+      if (!nextStreak && !nextDailyGoal) void unsubscribe(user.id);
+    } else {
+      // Turning on: the preference is persisted only after a successful
+      // subscribe (permission granted + row written) — never shows "on"
+      // with nothing actually arriving.
+      const subscribed = await requestAndSubscribe(user.id);
+      setNotifPermission(typeof Notification !== 'undefined' ? Notification.permission : null);
+      if (!subscribed) return;
+      if (kind === 'streak') nextStreak = true; else nextDailyGoal = true;
+    }
+
+    setNotifyStreakState(nextStreak);
+    setNotifyDailyGoalState(nextDailyGoal);
+    setNotifyStreakPreference(nextStreak);
+    setNotifyDailyGoalPreference(nextDailyGoal);
+    void pushProfileSettingsToCloud(user.id, { dailyGoal: state.dailyGoal, notifyStreak: nextStreak, notifyDailyGoal: nextDailyGoal });
+  }
 
   const [exportingData, setExportingData] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
@@ -363,6 +404,40 @@ export function Profile() {
           </div>
         </div>
       </motion.div>
+
+      {/* Notifications */}
+      {isPushSupported() && (
+        <motion.div variants={fadeUp} className="rounded-xl surface p-4">
+          <h3 className="font-bold text-ink-subtle text-[10px] uppercase tracking-wider mb-2.5">Notifications</h3>
+          <div className="space-y-0.5">
+            {([
+              { kind: 'streak' as const, on: notifyStreak, label: 'Streak reminders', description: "Don't lose your streak — practice today" },
+              { kind: 'dailyGoal' as const, on: notifyDailyGoal, label: 'Daily goal reminders', description: "Nudge me if I haven't hit today's goal" },
+            ]).map(({ kind, on, label, description }) => {
+              const blocked = on && notifPermission === 'denied';
+              const enabled = on && notifPermission === 'granted';
+              return (
+                <div
+                  key={kind}
+                  className={`flex items-center gap-3 p-2.5 rounded-lg transition-colors ${blocked ? '' : 'hover:bg-white/[0.02] cursor-pointer'}`}
+                  onClick={() => void handleToggleNotifyPreference(kind)}
+                >
+                  <div className="text-ink-subtle"><Bell size={14} /></div>
+                  <div className="flex-1">
+                    <p className="text-[10px] font-semibold text-white">{label}</p>
+                    <p className="text-[9px] text-ink-subtle">
+                      {blocked ? 'Blocked — enable notifications in your browser settings' : description}
+                    </p>
+                  </div>
+                  <div className={`relative w-8 h-[18px] rounded-full transition-all duration-200 ${enabled ? 'bg-violet-electric' : 'bg-navy-400'}`}>
+                    <div className={`absolute top-[2px] w-[14px] h-[14px] bg-white rounded-full shadow transition-transform duration-200 ${enabled ? 'left-[15px]' : 'left-[2px]'}`} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </motion.div>
+      )}
 
       {/* AI Feedback Mode */}
       <motion.div variants={fadeUp} className="rounded-xl surface p-4">
