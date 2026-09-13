@@ -74,7 +74,13 @@ export function Home() {
       <PageShell>
         <div className="space-y-6 pb-24 md:pb-8">
           {/* The one mission card — the only primary action on the screen */}
-          <HeroMission todayCount={todayCount} onLearn={() => navigate('/learn')} onExam={() => navigate('/exam')} />
+          <HeroMission
+            todayCount={todayCount}
+            dailyGoal={state.dailyGoal}
+            dailyPlan={dailyPlan}
+            onLearn={() => navigate('/learn')}
+            onExam={() => navigate('/exam')}
+          />
 
           {showReviewBanner && weeklyReview && (
             <WeeklyReviewCard
@@ -96,7 +102,7 @@ export function Home() {
             >
               <div className="text-eyebrow uppercase text-action-text">Your coach picked this</div>
               <h3 className="mt-2 text-subtitle text-ink">
-                {dailyPlan?.topAction.targetTopicKey ?? weakestTopic ?? 'Justify an opinion, in the past'}
+                {dailyPlan?.topAction.targetTopicKey ?? weakestTopic ?? 'Complete a session to get a personalised topic recommendation.'}
               </h3>
               <p className="mt-1.5 text-body-s text-ink-muted line-clamp-2">
                 {dailyPlan?.explanation ??

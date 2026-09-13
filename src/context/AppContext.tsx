@@ -48,6 +48,28 @@ interface AppState {
   selectedDifficulty: DifficultyTier;
   /** docs §6/§6.4/§16 Stage 10 — replaces DifficultyTier as the learner control on the adaptive path. */
   aim: Aim;
+  dailyGoal: number;
+}
+
+export const DAILY_GOAL_MIN = 1;
+export const DAILY_GOAL_MAX = 10;
+const DAILY_GOAL_DEFAULT = 3;
+
+function clampDailyGoal(value: number): number {
+  return Math.min(Math.max(Math.round(value), DAILY_GOAL_MIN), DAILY_GOAL_MAX);
+}
+
+/** Phase 4 plan §4.6 — unlike darkMode/selectedDifficulty's raw string reads,
+ * dailyGoal is a free-form number, so a corrupted/tampered stored value
+ * ("-5", "Infinity", "abc") must be validated before it reaches HeroMission's
+ * ring math instead of producing nonsensical UI. */
+/** Exported for boot-time-read unit tests only — not part of the app's public surface. */
+export function readDailyGoal(): number {
+  const stored = localStorage.getItem(scopedKey(STORAGE_KEYS.dailyGoal));
+  if (!stored) return DAILY_GOAL_DEFAULT;
+  const raw = Number(stored);
+  if (!Number.isFinite(raw) || raw < DAILY_GOAL_MIN) return DAILY_GOAL_DEFAULT;
+  return clampDailyGoal(raw);
 }
 
 type Action =
@@ -72,7 +94,8 @@ type Action =
   | { type: 'CLEAR_JUST_MASTERED' }
   | { type: 'SET_AI_ENGINE'; engine: AIEngine }
   | { type: 'SET_DIFFICULTY'; tier: DifficultyTier }
-  | { type: 'SET_AIM'; aim: Aim };
+  | { type: 'SET_AIM'; aim: Aim }
+  | { type: 'SET_DAILY_GOAL'; goal: number };
 
 function buildInitialState(): AppState {
   const analytics = getStats();
@@ -156,6 +179,7 @@ function buildInitialState(): AppState {
     preferredEngine,
     selectedDifficulty,
     aim,
+    dailyGoal: readDailyGoal(),
   };
 }
 
@@ -302,6 +326,12 @@ export function reducer(state: AppState, action: Action): AppState {
     case 'SET_AIM': {
       storageSetRaw(STORAGE_KEYS.aim, action.aim);
       return { ...state, aim: action.aim };
+    }
+
+    case 'SET_DAILY_GOAL': {
+      const goal = clampDailyGoal(action.goal);
+      storageSetRaw(STORAGE_KEYS.dailyGoal, String(goal));
+      return { ...state, dailyGoal: goal };
     }
 
     default:

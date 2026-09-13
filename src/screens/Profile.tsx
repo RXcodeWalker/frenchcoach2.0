@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Volume2, Moon, Globe, Database, Shield, ChevronRight, Zap, Trophy, Flame, TrendingUp, BookOpen, LogOut, Target, SlidersHorizontal, AtSign, Loader2, Check, UserX, Users, Trash2 } from 'lucide-react';
+import { Volume2, Moon, Globe, Database, Shield, ChevronRight, Zap, Trophy, Flame, TrendingUp, BookOpen, LogOut, Target, SlidersHorizontal, AtSign, Loader2, Check, UserX, Users, Trash2, Minus, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useApp } from '../context/AppContext';
+import { useApp, DAILY_GOAL_MIN, DAILY_GOAL_MAX } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { getLevelInfo } from '../domain/levels';
 import { ACHIEVEMENTS } from '../data/gameData';
@@ -333,6 +333,34 @@ export function Profile() {
         <div className="space-y-0.5">
           <SettingToggle icon={<Volume2 size={14} />} label="Sound Effects" description="Play sounds for answers" enabled={state.soundEnabled} onToggle={() => dispatch({ type: 'TOGGLE_SOUND' })} />
           <SettingToggle icon={<Moon size={14} />} label="Dark Mode" description="Toggle dark or light theme" enabled={state.darkMode} onToggle={() => dispatch({ type: 'TOGGLE_DARK_MODE' })} />
+          <div className="flex items-center gap-3 p-2.5 rounded-lg">
+            <Target size={14} className="text-violet-400" />
+            <div className="flex-1">
+              <p className="text-[10px] font-semibold text-white">Daily Goal</p>
+              <p className="text-[9px] text-ink-subtle">Sessions per day to hit your streak</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => dispatch({ type: 'SET_DAILY_GOAL', goal: state.dailyGoal - 1 })}
+                disabled={state.dailyGoal <= DAILY_GOAL_MIN}
+                className="w-6 h-6 rounded-full flex items-center justify-center bg-white/[0.05] text-ink-muted disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/[0.08] transition-colors"
+                aria-label="Decrease daily goal"
+              >
+                <Minus size={12} />
+              </button>
+              <span className="w-4 text-center text-xs font-bold text-white tabular-nums">{state.dailyGoal}</span>
+              <button
+                type="button"
+                onClick={() => dispatch({ type: 'SET_DAILY_GOAL', goal: state.dailyGoal + 1 })}
+                disabled={state.dailyGoal >= DAILY_GOAL_MAX}
+                className="w-6 h-6 rounded-full flex items-center justify-center bg-white/[0.05] text-ink-muted disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/[0.08] transition-colors"
+                aria-label="Increase daily goal"
+              >
+                <Plus size={12} />
+              </button>
+            </div>
+          </div>
         </div>
       </motion.div>
 

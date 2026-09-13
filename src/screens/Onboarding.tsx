@@ -9,6 +9,7 @@ import {
   getCoachProfile, setActiveGoal, setExamDate, getActiveGoal, updateCoachProfile,
 } from '../services/coach/coachProfileService';
 import { invalidateDailyPlan } from '../services/coach/decisionEngine';
+import { isSafeReturnTo } from '../utils/routeSafety';
 import type { CoachGoalType } from '../types/coach';
 
 type WizardStep = 1 | 2 | 3;
@@ -51,6 +52,9 @@ export function Onboarding() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const isEditMode = searchParams.get('from') === 'profile';
+  const rawReturnTo = searchParams.get('returnTo');
+  const destination = isSafeReturnTo(rawReturnTo) ? rawReturnTo : '/';
+  const placementUrl = `/onboarding/placement?returnTo=${encodeURIComponent(destination)}`;
 
   const [step, setStep] = useState<WizardStep>(1);
   const [examBoard, setExamBoard] = useState<ExamBoard | null>(null);
@@ -123,7 +127,7 @@ export function Onboarding() {
       updateCoachProfile({ examDate: undefined });
     }
     invalidateDailyPlan();
-    navigate('/', { replace: true });
+    navigate(destination, { replace: true });
   }
 
   function handleComplete() {
@@ -149,7 +153,7 @@ export function Onboarding() {
       invalidateDailyPlan();
     }
 
-    navigate(isEditMode ? '/profile' : '/', { replace: true });
+    navigate(isEditMode ? '/profile' : placementUrl, { replace: true });
   }
 
   const canProceedStep1 = examBoard !== null;

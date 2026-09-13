@@ -15,6 +15,7 @@ export const STORAGE_KEYS = {
   // left in place for one release (rollback safety) and is still read once by
   // aimFromMigratedTier() as the seed when no `aim` value exists yet.
   aim:            'frenchCoach_aim',
+  dailyGoal:      'frenchCoach_dailyGoal',
   roadmap:        'frenchCoach_roadmap',
   vault:          'frenchCoach_vault',
   contentCache:   'frenchCoach_questions_v1',

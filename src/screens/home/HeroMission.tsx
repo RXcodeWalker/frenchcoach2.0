@@ -2,11 +2,12 @@ import { motion } from 'framer-motion';
 import { ProgressRing } from '../../components/ProgressRing';
 import { Button } from '../../components/ui/Button';
 import { fadeUp } from '../../components/motion/variants';
-
-const DAILY_GOAL = 3;
+import type { DailyPlan } from '../../types/coach';
 
 interface Props {
   todayCount: number;
+  dailyGoal: number;
+  dailyPlan: DailyPlan | null;
   onLearn: () => void;
   onExam: () => void;
 }
@@ -17,8 +18,8 @@ interface Props {
  * The daily-goal ring uses --progress. No gradient fills, no glow, no scale
  * hover — exactly one primary action on the screen lives here.
  */
-export function HeroMission({ todayCount, onLearn, onExam }: Props) {
-  const remaining = Math.max(DAILY_GOAL - todayCount, 0);
+export function HeroMission({ todayCount, dailyGoal, dailyPlan, onLearn, onExam }: Props) {
+  const remaining = Math.max(dailyGoal - todayCount, 0);
   const goalComplete = remaining === 0;
 
   return (
@@ -27,11 +28,11 @@ export function HeroMission({ todayCount, onLearn, onExam }: Props) {
         <div className="shrink-0 self-center sm:self-auto">
           <ProgressRing
             value={todayCount}
-            max={DAILY_GOAL}
+            max={dailyGoal}
             size={96}
             strokeWidth={8}
             color="var(--progress)"
-            label={`${todayCount}/${DAILY_GOAL}`}
+            label={`${todayCount}/${dailyGoal}`}
             sublabel="sessions"
           />
         </div>
@@ -41,7 +42,7 @@ export function HeroMission({ todayCount, onLearn, onExam }: Props) {
           <h2 className="mt-2 text-title text-ink">
             {goalComplete
               ? 'Daily goal complete'
-              : `Justify an opinion, in the past tense`}
+              : dailyPlan?.topAction.rationale ?? 'Complete a session to get your personalised focus for today.'}
           </h2>
           <p className="mt-1.5 text-body-s text-ink-subtle">
             {goalComplete

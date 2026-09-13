@@ -176,7 +176,7 @@ export interface ObserveAttemptInput {
   avoidanceSignals?: AvoidanceSignal[];
   transcript: string;
   finalScore: number;
-  mode: 'practice' | 'exam' | 'story' | 'daily-news' | 'scenario-architect';
+  mode: 'practice' | 'exam' | 'story' | 'daily-news' | 'scenario-architect' | 'diagnostic';
   topicKey?: string;
 }
 

@@ -1,4 +1,5 @@
 ﻿import type { Question, Topic } from '../types';
+import { byQuestionId as DEMANDS_BY_QUESTION_ID } from './learn/demandsManifest';
 
 // Topic metadata — keys match old repo so question topicKeys are consistent
 export const TOPICS: Topic[] = [
@@ -14110,6 +14111,11 @@ export const QUESTIONS: Question[] = [
     ],
   },
 ];
+
+for (const q of QUESTIONS) {
+  const demands = DEMANDS_BY_QUESTION_ID[q.id];
+  if (demands) q.demands = demands;
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  EXAM SIMULATION SETS — curated sets for timed practice

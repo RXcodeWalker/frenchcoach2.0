@@ -48,6 +48,7 @@ function baseState(overrides: { profile?: Partial<UserProfile> } = {}) {
     preferredEngine: 'groq' as never,
     selectedDifficulty: 'A2' as never,
     aim: 'balanced' as never,
+    dailyGoal: 3,
   };
 }
 

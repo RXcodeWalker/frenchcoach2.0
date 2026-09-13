@@ -24,6 +24,7 @@ import { DuelDetail } from './screens/DuelDetail';
 import { WeaknessAnalysis } from './screens/WeaknessAnalysis';
 import { SentenceRebuilder } from './screens/SentenceRebuilder';
 import { Onboarding } from './screens/Onboarding';
+import { OnboardingPlacement } from './screens/OnboardingPlacement';
 import { useGuestMode } from './hooks/useGuestMode';
 import { useExamVoice } from './screens/exam/useExamVoice';
 import { IdentityScopeGate } from './components/IdentityScopeGate';
@@ -363,6 +364,7 @@ function AppShell() {
         <Route element={<ExamLayout />}>
           <Route path="/exam" element={<ExamMode />} />
           <Route path="/onboarding" element={<Onboarding />} />
+          <Route path="/onboarding/placement" element={<OnboardingPlacement />} />
         </Route>
 
         {/* Marketing pages, reachable for signed-in/guest users via footer

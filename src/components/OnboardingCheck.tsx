@@ -25,7 +25,8 @@ export function OnboardingCheck({ children }: Props) {
     location.pathname !== '/onboarding' &&
     location.pathname !== '/age-band'
   ) {
-    return <Navigate to="/onboarding" replace />;
+    const returnTo = encodeURIComponent(location.pathname + location.search + location.hash);
+    return <Navigate to={`/onboarding?returnTo=${returnTo}`} replace />;
   }
 
   return <>{children}</>;

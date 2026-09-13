@@ -31,6 +31,8 @@ const ALLOWED: Record<string, string> = {
     'data computation only (overallScore accumulator is never rendered; mood/expression and observeAttempt passthrough, both gated by isUnscored)',
   'src/screens/RoleplaySession.tsx':
     'data computation only (Session.score write, XP calc, and mood/expression selection) — all read inside the `unscored ? ... : finalScore` branch, same shape as StoryMode.tsx',
+  'src/screens/OnboardingPlacement.tsx':
+    'data computation only (finalScore passthrough to observeAttempt, gated by isUnscored before use) — the placement diagnostic never renders a mark/band/grade to the user',
 };
 
 function listFiles(dir: string): string[] {
