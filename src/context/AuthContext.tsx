@@ -7,6 +7,11 @@ import { supabase, supabaseConfigured } from '../lib/supabase';
 // loading, don't redirect yet" from "confirmed, no guardian step needed".
 export type AgeBand = 'under_13' | '13_plus' | null;
 export type ConsentStatus = '13_plus_not_required' | 'pending' | 'granted' | 'revoked' | 'unknown';
+// Phase 3 (invite gate). 'unknown' means "not fetched yet" — same
+// loading-vs-confirmed distinction as ConsentStatus's 'unknown', so
+// InviteGateCheck can tell "still loading, don't redirect yet" from
+// "confirmed unredeemed, redirect to the gate screen".
+export type InviteStatus = 'unredeemed' | 'redeemed' | 'unknown';
 
 interface AuthContextValue {
   user: User | null;
@@ -17,8 +22,11 @@ interface AuthContextValue {
   /** null once loaded for a user who has never set one (pre-Phase-1.6 account). */
   ageBand: AgeBand;
   consentStatus: ConsentStatus;
+  inviteStatus: InviteStatus;
   /** Re-reads age_band/consent_status from profiles — call after an RPC changes either. */
   refreshConsentStatus: () => Promise<void>;
+  /** Re-reads invite_status from profiles — call after redeem_invite_code grants access. */
+  refreshInviteStatus: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<{ needsConfirmation: boolean }>;
   signOut: () => Promise<void>;
@@ -56,24 +64,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [ageBand, setAgeBand] = useState<AgeBand>(null);
   const [consentStatus, setConsentStatus] = useState<ConsentStatus>('unknown');
+  const [inviteStatus, setInviteStatus] = useState<InviteStatus>('unknown');
 
   async function loadConsentStatus(userId: string) {
     const { data, error } = await supabase
       .from('profiles')
-      .select('age_band, consent_status')
+      .select('age_band, consent_status, invite_status')
       .eq('id', userId)
       .single();
     if (error || !data) {
       // A missing/unreadable row reads as "not required" rather than staying
       // 'unknown' forever — AgeBandCheck would otherwise never redirect a
       // user whose profile row genuinely has no age_band yet (new signup
-      // whose profile insert hasn't landed) into the age-band step.
+      // whose profile insert hasn't landed) into the age-band step. For
+      // invite_status specifically, a missing row is NOT treated as
+      // "redeemed" here — it stays 'unknown', matching the server-side RPC's
+      // own IS DISTINCT FROM 'redeemed' treatment of a missing row as "not
+      // redeemed" (this is UX-only gating; real enforcement is server-side).
       setAgeBand(null);
       setConsentStatus('unknown');
+      setInviteStatus('unknown');
       return;
     }
     setAgeBand((data.age_band as AgeBand) ?? null);
     setConsentStatus((data.consent_status as ConsentStatus) ?? '13_plus_not_required');
+    setInviteStatus((data.invite_status as InviteStatus) ?? 'unredeemed');
   }
 
   useEffect(() => {
@@ -102,6 +117,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         setAgeBand(null);
         setConsentStatus('unknown');
+        setInviteStatus('unknown');
       }
     });
 
@@ -109,6 +125,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   async function refreshConsentStatus() {
+    if (user) await loadConsentStatus(user.id);
+  }
+
+  async function refreshInviteStatus() {
     if (user) await loadConsentStatus(user.id);
   }
 
@@ -157,7 +177,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     (user?.app_metadata as { role?: string } | undefined)?.role === 'admin';
 
   return (
-    <AuthContext.Provider value={{ user, session, isAdmin, loading, configError: false, ageBand, consentStatus, refreshConsentStatus, signIn, signUp, signOut, resetPasswordForEmail, updateUserPassword, signInWithOAuth }}>
+    <AuthContext.Provider value={{ user, session, isAdmin, loading, configError: false, ageBand, consentStatus, inviteStatus, refreshConsentStatus, refreshInviteStatus, signIn, signUp, signOut, resetPasswordForEmail, updateUserPassword, signInWithOAuth }}>
       {children}
     </AuthContext.Provider>
   );

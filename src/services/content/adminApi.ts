@@ -170,3 +170,30 @@ export interface Reference { type: string; id: string; label: string }
 
 export const getReferences = (kind: Kind, id: string) =>
   request<{ id: string; references: Reference[] }>('GET', `/api/admin/${kind}/${id}/references`);
+
+// ── Invite codes (Phase 3, phase-3-plan-tidy-widget.md §1e) ─────────────────
+export interface InviteCodeRecord {
+  code: string;
+  max_uses: number;
+  use_count: number;
+  created_by: string | null;
+  created_at: string;
+  expires_at: string | null;
+  note: string | null;
+}
+
+export interface InviteCodeBulkCreate {
+  count: number;
+  max_uses: number;
+  expires_at?: string | null;
+  note?: string | null;
+}
+
+export const listInviteCodes = () =>
+  request<{ codes: InviteCodeRecord[] }>('GET', '/api/admin/invite-codes');
+
+export const createInviteCodes = (body: InviteCodeBulkCreate) =>
+  request<{ codes: InviteCodeRecord[] }>('POST', '/api/admin/invite-codes', body);
+
+export const revokeInviteCode = (code: string) =>
+  request<InviteCodeRecord>('POST', `/api/admin/invite-codes/${encodeURIComponent(code)}/revoke`);

@@ -31,6 +31,8 @@ import { IdentityScopeGate } from './components/IdentityScopeGate';
 import { OnboardingCheck } from './components/OnboardingCheck';
 import { AgeBandCheck } from './components/AgeBandCheck';
 import { AgeBand } from './screens/AgeBand';
+import { InviteGateCheck } from './components/InviteGateCheck';
+import { InviteCode } from './screens/InviteCode';
 
 import { RapidFire } from './screens/RapidFire';
 import { SpeedSpeaking } from './screens/SpeedSpeaking';
@@ -62,6 +64,7 @@ import { TermsOfService } from './screens/TermsOfService';
 import { AdminRoute } from './components/auth/AdminRoute';
 import { AdminLayout } from './layouts/AdminLayout';
 import { AdminDashboard } from './screens/admin/AdminDashboard';
+import { InviteCodeList } from './screens/admin/InviteCodeList';
 import { QuestionList } from './screens/admin/questions/QuestionList';
 import { QuestionForm } from './screens/admin/questions/QuestionForm';
 import { ScenarioList } from './screens/admin/scenarios/ScenarioList';
@@ -225,6 +228,7 @@ function AppShell() {
 
   return (
     <IdentityScopeGate key={identity} identity={identity}>
+      <InviteGateCheck>
       <AgeBandCheck>
       <OnboardingCheck>
         <AppProvider identity={identity}>
@@ -376,6 +380,7 @@ function AppShell() {
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfService />} />
         <Route path="/age-band" element={<AgeBand />} />
+        <Route path="/invite-code" element={<InviteCode />} />
 
         {/* Admin content management — gated on JWT app_metadata.role */}
         <Route element={<AdminRoute />}>
@@ -389,12 +394,14 @@ function AppShell() {
             <Route path="/admin/scenarios/new" element={<ScenarioForm />} />
             <Route path="/admin/scenarios/:id/edit" element={<ScenarioForm />} />
             <Route path="/admin/scenarios/:id/history" element={<VersionHistory kind="scenarios" />} />
+            <Route path="/admin/invite-codes" element={<InviteCodeList />} />
           </Route>
         </Route>
           </Routes>
         </AppProvider>
       </OnboardingCheck>
       </AgeBandCheck>
+      </InviteGateCheck>
     </IdentityScopeGate>
   );
 }

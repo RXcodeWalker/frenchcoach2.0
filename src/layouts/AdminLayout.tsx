@@ -1,10 +1,11 @@
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
-import { LayoutDashboard, FileQuestion, MessagesSquare, ArrowLeft } from 'lucide-react';
+import { LayoutDashboard, FileQuestion, MessagesSquare, Ticket, ArrowLeft } from 'lucide-react';
 
 const navItems = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: '/admin/questions', label: 'Questions', icon: FileQuestion, end: false },
   { to: '/admin/scenarios', label: 'Scenarios', icon: MessagesSquare, end: false },
+  { to: '/admin/invite-codes', label: 'Invite codes', icon: Ticket, end: false },
 ];
 
 function Breadcrumb() {

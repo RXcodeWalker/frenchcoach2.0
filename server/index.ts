@@ -44,6 +44,7 @@ import { buildEnvelopeView } from '../src/domain/igcse/envelope/envelopeView';
 import { isScoringDebugEnabled } from '../scripts/scoring/observability/logger';
 import { resolveAndVerifyQuestionSet, QuestionSetNotFoundError, QuestionSetHashMismatchError } from './resolveQuestionSet';
 import { createTtlCache, probeGroq, probeGemini, type ProviderProbeStatus } from './healthProbe';
+import { consumeAiQuotaOr503, QuotaDeniedError } from './aiQuota';
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3000;
 
@@ -170,6 +171,28 @@ app.post('/score', async (req: Request, res: Response) => {
       return;
     }
     throw err;
+  }
+
+  // Quota consumed only once the request is actually about to reach a
+  // scoreAttempt()/LLM call — the existingOriginal fast path above (an
+  // already-scored session) and GET /score's polling never charge quota,
+  // matching the "consume on cache-miss, not before" principle used
+  // throughout this plan (phase-3-plan-tidy-widget.md §2 correction #6).
+  // sessionId is a crypto.randomUUID() minted once per attempt and resent
+  // verbatim on retry (ExamMode.tsx), so it doubles as the idempotency key.
+  try {
+    await consumeAiQuotaOr503(userId, 'score', transcript.sessionId);
+  } catch (err) {
+    if (err instanceof QuotaDeniedError) {
+      res.status(err.statusCode).json({ error: err.reason, ...err.data });
+      return;
+    }
+    // QuotaServiceUnavailableError, or anything else — must not propagate
+    // unhandled (root cause #1 above: an Express 4 async handler whose
+    // promise rejects here never sends a response at all).
+    console.error(`[POST /score] quota check failed for session "${transcript.sessionId}":`, err);
+    res.status(503).json({ error: 'quota_service_unavailable' });
+    return;
   }
 
   const transcriptStoreOptions = { url: SUPABASE_URL, serviceKey: SUPABASE_SERVICE_KEY, userId };

@@ -58,6 +58,19 @@ const COLD_START_GRACE_MS = 45000;
  */
 const POST_DEFAULT_TIMEOUT_MS = 40000;
 
+/**
+ * Phase 3 (AI-cost quota): several of these endpoints now require auth
+ * server-side (main.py's verify_jwt), same pattern already proven by
+ * transcribeAudio below. Returns {} when signed out rather than throwing —
+ * the request still goes out and the backend is the one that 401s, so a
+ * guest session's error handling doesn't change shape.
+ */
+async function authHeader(): Promise<Record<string, string>> {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 async function post<T>(path: string, body: unknown): Promise<T> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), POST_DEFAULT_TIMEOUT_MS);
@@ -65,7 +78,7 @@ async function post<T>(path: string, body: unknown): Promise<T> {
   try {
     res = await fetch(`${API_BASE}${path}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...(await authHeader()) },
       body: JSON.stringify(body),
       signal: controller.signal,
     });
@@ -134,27 +147,6 @@ function buildRequestDepth(transcript: string, question: Question, tier: 0 | 1 |
 export async function generateScenario(description: string): Promise<GeneratedScenario> {
   return post<GeneratedScenario>('/api/generate-scenario', { description });
 }
-
-export interface RoleplayTurnResponse {
-  reply: string;
-  is_done: boolean;
-  hint: string | null;
-}
-
-export async function roleplayTurn(
-  scenarioId: string,
-  turnHistory: { speaker: 'examiner' | 'student'; text: string }[],
-  transcript: string,
-  customScenario?: GeneratedScenario
-): Promise<RoleplayTurnResponse> {
-  return post<RoleplayTurnResponse>('/api/roleplay/turn', {
-    scenario_id: scenarioId,
-    turn_history: turnHistory,
-    student_transcript: transcript,
-    custom_scenario: customScenario
-  });
-}
-
 
 // Shape returned by the old Python backend /api/feedback
 interface BackendFeedback {
@@ -552,7 +544,7 @@ async function tryNetworkFeedback(
 async function postWithSignal<T>(path: string, body: unknown, signal: AbortSignal): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...(await authHeader()) },
     body: JSON.stringify(body),
     signal,
   });
@@ -569,6 +561,7 @@ async function postMultipartWithSignal<T>(path: string, formData: FormData, sign
     method: 'POST',
     body: formData,
     signal,
+    headers: await authHeader(),
   });
   if (!res.ok) throw new Error(`API ${path} → ${res.status}`);
   return res.json() as Promise<T>;
@@ -916,6 +909,7 @@ export async function streamFeedback(
     depth: buildRequestDepth(transcript, question, classifyTier(transcript)),
   };
 
+  const streamAuthHeader = await authHeader();
   let res: Response;
   if (audioBlob) {
     const formData = new FormData();
@@ -926,11 +920,12 @@ export async function streamFeedback(
       method: 'POST',
       body: formData,
       signal,
+      headers: streamAuthHeader,
     });
   } else {
     res = await fetch(`${API_BASE}/api/feedback/stream`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...streamAuthHeader },
       body: JSON.stringify(requestBody),
       signal,
     });
@@ -1025,19 +1020,37 @@ export async function getDailyNews(): Promise<NewsSnippet> {
 /**
  * Off-script improv for the roleplay runtime.
  *
- * `scenario_id` must name an entry of the backend's own `ROLEPLAY_SCENARIOS`
- * table — the authored ids (`bakery`, `hairdresser`, …) are registered there.
- * Do NOT add a `custom_scenario` field to this request: `/api/roleplay/turn`
- * is unauthenticated and f-string-interpolates that field straight into the
- * system prompt, so sending client-authored scenario text would turn it into
- * an open LLM proxy and an unbounded prompt-injection surface. The client
- * sends an id; the setting text stays server-authored.
+ * `scenario_id` must either name an entry of the backend's own
+ * `ROLEPLAY_SCENARIOS` table (the authored ids `bakery`, `hairdresser`, …),
+ * or be the literal `'custom'` paired with `custom_scenario` — used by
+ * ScenarioArchitectSession.tsx for an AI-generated scenario with no
+ * catalog id. `/api/roleplay/turn` now requires auth (Phase 3) and applies
+ * a per-field length cap server-side before interpolating custom_scenario
+ * into the prompt, which is what makes accepting client-authored scenario
+ * text safe here (it wasn't, back when this endpoint was unauthenticated).
+ *
+ * turn_id (Phase 3, phase-3-plan-tidy-widget.md §2 correction #5): a
+ * client-generated UUID minted once per turn attempt and resent unchanged
+ * on retry, used directly as the AI-quota idempotency key server-side. A
+ * hash of scenario_id+turn_history+transcript would collide across two
+ * different sessions' first turns (turn_history always starts at [] with
+ * no conversation identifier), so a real per-attempt id is required.
  */
+export interface CustomScenario {
+  title: string;
+  scenario: string;
+  npc_name: string;
+  npc_personality: string;
+  objectives: string[];
+}
+
 export interface RoleplayTurnRequest {
   scenario_id: string;
   turn_history: { speaker: 'examiner' | 'student'; text: string }[];
   student_transcript: string;
   is_final_turn?: boolean;
+  custom_scenario?: CustomScenario;
+  turn_id: string;
 }
 
 export interface RoleplayTurnResponse {

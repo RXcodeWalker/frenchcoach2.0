@@ -108,7 +108,13 @@ production and then treated as the record. **Last repo pass: 2026-09-09.**
 - **FastAPI has no IaC.** Its env is Render-dashboard-only. `backend/README.md` documents the
   start command as `uvicorn main:app --host 0.0.0.0 --port $PORT` — no `--proxy-headers` /
   `--forwarded-allow-ips`, so slowapi's `get_remote_address` sees Render's edge IP and every
-  user shares one rate-limit bucket.
+  user shares one rate-limit bucket. **Still open** (phase-3-plan-tidy-widget.md §3, §4 step 4):
+  fixing this requires confirming Render's actual proxy topology first — not verifiable from
+  code — before setting `--forwarded-allow-ips`; the recommended default once confirmed is
+  `127.0.0.1` (the typical single-hop PaaS edge-connects-as-local-peer model), not `'*'`. Per-user
+  AI-cost quota (Phase 3, `consume_ai_quota`) is unaffected by this bug — it keys off the
+  JWT-verified `user_id`, not IP — but any rate limiting on a still-unauthenticated route (e.g.
+  `/api/exam/*`) is effectively a single global limit across all anonymous users until this lands.
 - **`POST /api/admin/roles` now needs a two-key handshake (Phase 1.2).** It grants the `admin`
   role only when **both** `ADMIN_SETUP_ENABLED=true` **and** a matching `ADMIN_SETUP_SECRET` are
   set; otherwise it 404s (not 403 — the route is not advertised). Previously it was gated on the

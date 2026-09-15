@@ -91,8 +91,11 @@ export function createHttpPronunciationProvider(
     formData.append('coaching', coaching);
     if (coachingRequestId) formData.append('coaching_request_id', coachingRequestId);
 
+    // Phase 3 (AI-cost quota): the base assessment itself now requires auth
+    // server-side, not just the coaching='full' sub-feature — attach the
+    // token on every call, not only when coaching is requested.
     const headers: Record<string, string> = {};
-    if (coaching === 'full' && getAuthToken) {
+    if (getAuthToken) {
       const token = await getAuthToken();
       if (token) headers['Authorization'] = `Bearer ${token}`;
     }

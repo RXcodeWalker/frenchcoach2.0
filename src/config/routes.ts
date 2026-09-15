@@ -34,6 +34,7 @@ export const ROUTES: RouteEntry[] = [
   { path: '/guardian-consent', kind: 'unregistered', indexable: false },
 
   { path: '/age-band', kind: 'app', indexable: false },
+  { path: '/invite-code', kind: 'app', indexable: false },
 
   { path: '/learn', kind: 'app', indexable: false },
   { path: '/exam', kind: 'app', indexable: false },
@@ -76,6 +77,7 @@ export const ROUTES: RouteEntry[] = [
   { path: '/admin/questions/new', kind: 'app', indexable: false },
   { path: '/admin/scenarios', kind: 'app', indexable: false },
   { path: '/admin/scenarios/new', kind: 'app', indexable: false },
+  { path: '/admin/invite-codes', kind: 'app', indexable: false },
 
   { path: '/admin/questions/:id/edit', kind: 'dynamic', indexable: false },
   { path: '/admin/questions/:id/history', kind: 'dynamic', indexable: false },

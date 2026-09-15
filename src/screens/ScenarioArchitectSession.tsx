@@ -16,7 +16,7 @@ import { Waveform } from '../features/recording/Waveform';
 import { useApp, dispatchAddXP } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { SpeakingConsentGate } from '../components/SpeakingConsentGate';
-import { roleplayTurn, getAIFeedback } from '../services/api/apiClient';
+import { getRoleplayTurn, getAIFeedback } from '../services/api/apiClient';
 import { observeAttempt } from '../services/coach/sessionOrchestrator';
 import { getSkillProfile } from '../services/coaching/diagnosticEngine';
 import type { FeedbackV2, GeneratedScenario } from '../types';
@@ -93,12 +93,19 @@ export function ScenarioArchitectSession() {
         text: m.text
       }));
 
-      const data = await roleplayTurn(
-        'custom',
-        turnHistory,
-        transcript,
-        customScenario
-      );
+      const data = await getRoleplayTurn({
+        scenario_id: 'custom',
+        turn_history: turnHistory,
+        student_transcript: transcript,
+        custom_scenario: {
+          title: customScenario.title,
+          scenario: customScenario.scenario,
+          npc_name: customScenario.npc_name,
+          npc_personality: customScenario.npc_personality,
+          objectives: customScenario.objectives,
+        },
+        turn_id: crypto.randomUUID(),
+      });
 
       setIsTyping(false);
       addMessage(data.reply, 'ai');
