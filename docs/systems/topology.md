@@ -136,17 +136,67 @@ production and then treated as the record. **Last repo pass: 2026-09-09.**
 
 | # | Check | Where | Finding |
 |---|---|---|---|
-| 1 | `VITE_SCORING_API_URL` set, HTTPS? | Vercel → Project → Settings → Environment Variables | _pending_ |
-| 1 | `VITE_API_URL`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_SENTRY_DSN` set? | same | _pending_ |
-| 2 | `french-scoring`: `CORS_ORIGINS` = the real frontend origin(s), no trailing slash? | Render → `french-scoring` → Environment | _pending_ |
-| 2 | `french-scoring`: `VITE_API_URL` = the FastAPI host? (else question-set resolution is broken) | same | _pending_ |
-| 3 | FastAPI service: full env var list + start command — paste into "FastAPI env (captured)" below | Render → FastAPI service → Environment / Settings | _pending_ |
-| 3 | FastAPI: `ADMIN_SETUP_SECRET` **and** `ADMIN_SETUP_ENABLED` both **unset**? (Phase 1.2 code now also requires the flag, but keep both unset) | same | _pending_ |
-| 3 | FastAPI: `ENABLE_API_DOCS` **unset** in prod? (docs off by default; only set in staging) | same | _pending_ |
-| 3 | FastAPI: `AZURE_SPEECH_KEY` / `AZURE_SPEECH_REGION` present? | same | _pending_ |
-| 3 | FastAPI: `SMTP_HOST`/`SMTP_USER`/`SMTP_PASSWORD`/`SMTP_FROM`/`APP_ORIGIN` set? (Phase 1.6 Part C guardian-consent email — all blank by default; `POST /api/consent/send-guardian-email` 503s and the client falls back to a copy-link UI until these are configured) | same | _pending_ |
-| 4 | `POST $SCORING/score` with a real JWT — 200 envelope, or 500 "Both judge providers failed"? | curl / probe below | _pending_ |
+| 1 | `VITE_SCORING_API_URL` set, HTTPS? | Vercel → Project → Settings → Environment Variables | ⚠️ **not yet confirmed which Render service it points to** — see "scoring service identity" below |
+| 1 | `VITE_API_URL`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` set? | same | ✅ set (2026-09-15) |
+| 1 | `VITE_SENTRY_DSN` set? | same | ❌ **not set** — Sentry is not receiving prod errors (2026-09-15) |
+| 2 | `french-scoring`: `CORS_ORIGINS` = the real frontend origin(s), no trailing slash? | Render → `french-scoring` → Environment | ⚠️ see "scoring service identity" below |
+| 2 | `french-scoring`: `VITE_API_URL` = the FastAPI host? (else question-set resolution is broken) | same | ⚠️ see "scoring service identity" below |
+| 3 | FastAPI service: full env var list + start command — paste into "FastAPI env (captured)" below | Render → FastAPI service → Environment / Settings | ✅ 11 vars captured 2026-09-15, see below; start command not yet captured |
+| 3 | FastAPI: `ADMIN_SETUP_SECRET` **and** `ADMIN_SETUP_ENABLED` both **unset**? | same | ✅ neither appears in the captured list (2026-09-15) |
+| 3 | FastAPI: `ENABLE_API_DOCS` **unset** in prod? | same | ✅ not in the captured list |
+| 3 | FastAPI: `AZURE_SPEECH_KEY` / `AZURE_SPEECH_REGION` present? | same | ✅ both present (2026-09-15) |
+| 3 | FastAPI: `SMTP_HOST`/`SMTP_USER`/`SMTP_PASSWORD`/`SMTP_FROM`/`APP_ORIGIN` set? | same | ❌ **none present** — guardian-consent email is on the copy-link fallback in prod |
+| 4 | `POST $SCORING/score` with a real JWT — 200 envelope, or 500 "Both judge providers failed"? | curl / probe below | ⛔ **blocked — cannot obtain a JWT**, see "auth is broken" below |
 | 5 | Groq / Gemini / Azure consoles — anomalous spend since the backend went public unauthenticated? | provider dashboards | _pending_ |
+
+### ⛔ Auth is broken in production, found 2026-09-15 — blocks item 4 and all manual testing
+
+Both sign-up paths fail end to end. Nothing in either repo can fix this — both are pure Supabase /
+Google Cloud dashboard configuration:
+
+- **Email/password sign-up**: the confirmation email never arrives (checked, not in spam).
+  `signUp()` (`src/context/AuthContext.tsx:139`) is a bare `supabase.auth.signUp()` — delivery is
+  entirely Supabase Auth's email config. Default Supabase SMTP has a very low hourly send cap and
+  is commonly spam-filtered. **Fix**: Supabase Dashboard → Authentication → Emails, check
+  rate-limit/logs; then set up custom SMTP (Authentication → Settings → SMTP Settings) — **Resend
+  is already paid for and wired** (`RESEND_API_KEY`, used by `sendNotifications.ts`), so pointing
+  Supabase Auth's SMTP at the same Resend account is the natural fix rather than a new vendor.
+- **Google OAuth**: fails with `Error 401: deleted_client` — "The OAuth client was deleted."
+  `signInWithOAuth('google')` (`AuthContext.tsx:167`) just calls
+  `supabase.auth.signInWithOAuth({ provider: 'google' })`; the Google Cloud OAuth 2.0 Client ID
+  that Supabase's Google provider references has been deleted from Google Cloud Console (or the
+  whole GCP project was). This **confirms and supersedes** the "External app registrations don't
+  exist yet" line in the OAuth section below — one did exist and is now gone. **Fix**: Google
+  Cloud Console → APIs & Services → Credentials → new OAuth 2.0 Client ID (Web application,
+  authorized redirect URI = `https://<project-ref>.supabase.co/auth/v1/callback`) → paste the new
+  Client ID + Secret into Supabase Dashboard → Authentication → Providers → Google.
+- **Net effect**: no one can currently create an account or sign in on this deploy. This blocks
+  more than Phase 0 item 4 — it blocks manually verifying *any* of the Phase 1–4 work already
+  landed. Treat as higher priority than finishing the rest of this checklist.
+
+### ⚠️ Scoring service identity is unresolved — two Render services exist
+
+- **`french-coach-backend`** (`srv-d7k8bl5ckfvc73bh0obg`, Python, repo
+  `RXcodeWalker/french-coach-backend`) — the FastAPI `backend/` service. 11 env vars captured,
+  see below.
+- **`french-scoring-a11-stub`** (`srv-d9d05i57vvec73einlg0`, Node, repo
+  `RXcodeWalker/frenchcoach2.0`, `https://french-scoring-a11-stub.onrender.com`) — **not** the
+  `french-scoring` name `render.yaml` declares, and carries only 4 env vars: `GEMINI_API_KEY`,
+  `GROQ_API_KEY`, `SUPABASE_SERVICE_KEY`, `SUPABASE_URL`. No `CORS_ORIGINS`, no `VITE_API_URL`, no
+  `SCORING_DEBUG`, no `GEMINI_MODEL`/`GROQ_MODEL`. The `-a11-stub` name strongly suggests this was
+  a throwaway service used to verify the "A11" client-disconnect behavior noted in
+  `server/index.ts`'s header docblock, left running rather than the real deploy.
+
+**Resolve before trusting anything else in this section**: check what `VITE_SCORING_API_URL` is
+actually set to in Vercel.
+- If it points at `french-scoring-a11-stub.onrender.com` (or no other scoring service exists under
+  the account), **that stub is production** — it needs `CORS_ORIGINS` and `VITE_API_URL` added
+  immediately (right now it reflects every CORS origin per `server/index.ts:83`, and question-set
+  resolution falls back to `localhost:8000` per `resolveQuestionSet.ts:20`), and should be
+  renamed/redeployed to match `render.yaml`'s `french-scoring` so infra-as-code actually describes
+  what's running.
+- If it's confirmed unused, delete it — it's a live instance holding real `GEMINI_API_KEY` /
+  `GROQ_API_KEY` / `SUPABASE_SERVICE_KEY` values with no CORS restriction and no rate limiting.
 
 ### Item 4 — the check that says whether exam mode works at all
 
@@ -180,18 +230,28 @@ judge({ prompt: 'Reply with the JSON {\"ok\":true} and nothing else.' })
 #      the fallback literals, if unset) are themselves no longer live model IDs.
 ```
 
-### FastAPI env (captured)
+### FastAPI env (captured, 2026-09-15 — `french-coach-backend`, `srv-d7k8bl5ckfvc73bh0obg`)
 
-_pending — paste the Render dashboard env var list and start command here once captured._
+Start command: not yet captured (Settings tab).
 
-## OAuth — implemented, not verified
+11 variables set: `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION`, `CORS_ORIGINS`, `GEMINI_API_KEY`,
+`GROQ_API_KEY`, `SUPABASE_JWT_SECRET`, `SUPABASE_SERVICE_KEY`, `SUPABASE_URL`,
+`WHISPER_COMPUTE_TYPE`, `WHISPER_DEVICE`, `WHISPER_MODEL`. Not present: `ADMIN_SETUP_SECRET`,
+`ADMIN_SETUP_ENABLED`, `ENABLE_API_DOCS`, `GEMINI_MODEL`, `GROQ_MODEL` (so both ride their code
+fallback defaults in prod — re-verify those defaults are still live model IDs), any `SMTP_*` /
+`APP_ORIGIN` var, `LOCAL_WHISPER_ENABLED` / `PRONUNCIATION_LOCAL_WHISPER` (local Whisper stays off
+by default, consistent with the 512MB-instance constraint). Values themselves are masked in the
+dashboard — only presence/absence was checked.
+
+## OAuth — Google provider is broken in production (found 2026-09-15)
 
 `signInWithOAuth` (`src/context/AuthContext.tsx`) and the Google/Microsoft buttons
 (`src/screens/Auth.tsx`) are implemented, but two things block treating this as shipped:
 
-- **External app registrations don't exist yet**: no Google Cloud OAuth consent screen /
-  Client ID, no Microsoft/Azure App registration, and neither provider is configured in the
-  Supabase dashboard with real credentials.
+- **The Google OAuth Client ID has been deleted from Google Cloud Console** (`Error 401:
+  deleted_client` on sign-in attempt, 2026-09-15) — a registration did exist at some point and is
+  now gone; see the "Auth is broken" callout above for the fix. Microsoft/Azure AD status is
+  unverified — check the same way.
 - **The five-case identity-linking behavior has not been verified** against a non-production
   Supabase project (password → OAuth same-email merge, OAuth → OAuth same-email merge,
   unconfirmed-password-signup must NOT silently merge, re-sign-in resolves to the existing
