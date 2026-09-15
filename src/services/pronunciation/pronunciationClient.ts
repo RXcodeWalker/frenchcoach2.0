@@ -15,7 +15,7 @@
 
 import { createHttpPronunciationProvider } from '../../domain/pronunciation/providers/httpProvider';
 import type { PronunciationAssessment } from '../../domain/pronunciation/types';
-import { supabase } from '../../lib/supabase';
+import { getAccessToken } from '../../lib/authToken';
 import { track } from '../telemetry/telemetryService';
 
 // Prod: same-origin '/api/*' proxied to the backend by Vercel (see vercel.json).
@@ -26,13 +26,10 @@ const API_BASE = import.meta.env.PROD
 
 const ASSESS_TIMEOUT_MS = 25_000;
 
-// Same accessor shape as scoringApiClient.ts's authHeaders() — only called
-// when coaching === 'full' (see httpProvider.ts), so the fast path never pays
-// for a session lookup.
-async function getAuthToken(): Promise<string | null> {
-  const { data } = await supabase.auth.getSession();
-  return data.session?.access_token ?? null;
-}
+// Phase 3: /api/pronunciation requires a verified JWT, so this is called on
+// every assessment (see httpProvider.ts) and a near-expiry token is refreshed
+// rather than sent — src/lib/authToken.ts is the single source for both.
+const getAuthToken = getAccessToken;
 
 const provider = createHttpPronunciationProvider(API_BASE, getAuthToken);
 

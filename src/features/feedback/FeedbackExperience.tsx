@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { Loader2, Mic2 } from 'lucide-react';
 import { CollapsibleCard } from '../../components/ui/CollapsibleCard';
 import { stagger } from '../../components/motion/variants';
@@ -21,6 +22,7 @@ import { AzurePronunciationCard } from './components/AzurePronunciationCard';
 import { FeedbackFooter } from './components/FeedbackFooter';
 import { MinimalResponseCard } from './components/MinimalResponseCard';
 import { OfflineLimitationsBanner } from '../../screens/learn/OfflineLimitationsBanner';
+import { SIGNED_OUT_FEEDBACK_REASON } from '../../services/api/apiClient';
 import { FailoverBadge } from '../../screens/learn/FailoverBadge';
 import { ReEvaluateBar } from '../../screens/learn/ReEvaluateBar';
 import { selectCardPlan } from './state/selectors';
@@ -94,7 +96,12 @@ interface Props {
   onSwitchEngine: (engine: AIEngine) => void;
   /** Azure pronunciation (Learn-only). When present/pending, suppresses the legacy 0-10 card. */
   pronunciationResult?: PronunciationAssessment | null;
-  pronunciationStatus?: 'idle' | 'pending' | 'done' | 'failed';
+  /**
+   * 'signed-out' is distinct from 'failed': the assessment endpoint requires a
+   * signed-in account (Phase 3 AI-cost quota), so telling a guest the service
+   * "didn't respond in time" would send them to retry forever.
+   */
+  pronunciationStatus?: 'idle' | 'pending' | 'done' | 'failed' | 'signed-out';
 }
 
 function FeedbackContent({
@@ -118,11 +125,12 @@ function FeedbackContent({
   }
 
   const isOffline = feedback.engineMeta?.actualEngine === 'offline';
+  const offlineBecauseSignedOut = feedback.engineMeta?.failoverReason === SIGNED_OUT_FEEDBACK_REASON;
 
   if (state.viewMode === 'report') {
     return (
       <motion.div variants={stagger} initial="hidden" animate="show" className="space-y-3">
-        {isOffline && <OfflineLimitationsBanner />}
+        {isOffline && <OfflineLimitationsBanner signedOut={offlineBecauseSignedOut} />}
         <FailoverBadge engineMeta={feedback.engineMeta} />
         <ViewModeToggle />
         <ReportView
@@ -144,7 +152,7 @@ function FeedbackContent({
       animate="show"
       className="space-y-3"
     >
-      {isOffline && <OfflineLimitationsBanner />}
+      {isOffline && <OfflineLimitationsBanner signedOut={offlineBecauseSignedOut} />}
       <FailoverBadge engineMeta={feedback.engineMeta} />
       <ViewModeToggle />
 
@@ -220,6 +228,27 @@ function FeedbackContent({
             <Loader2 size={14} className="text-cyan-400 animate-spin shrink-0" />
             <p className="text-[10px] text-ink-muted">Analysing pronunciation…</p>
           </div>
+        ) : pronunciationStatus === 'signed-out' ? (
+          <CollapsibleCard
+            title="Pronunciation Analysis"
+            icon={<Mic2 size={13} className="text-cyan-400" />}
+            defaultOpen={true}
+            className="border border-cyan-500/15"
+          >
+            <div className="px-1 py-2">
+              <p className="text-[10px] font-semibold text-ink-muted">Sign in for pronunciation analysis.</p>
+              <p className="text-[9px] text-ink-muted mt-1">
+                Pronunciation scoring runs on your account, so it's not available while you're practising as a guest.
+                Create a free account or sign in, and it'll run on your next answer.
+              </p>
+              <Link
+                to="/login"
+                className="inline-block mt-2 text-[9px] font-semibold text-cyan-300 underline underline-offset-2"
+              >
+                Sign in
+              </Link>
+            </div>
+          </CollapsibleCard>
         ) : pronunciationStatus === 'failed' ? (
           <CollapsibleCard
             title="Pronunciation Analysis"

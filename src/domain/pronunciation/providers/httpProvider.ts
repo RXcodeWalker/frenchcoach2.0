@@ -26,12 +26,13 @@
  * best-effort fallback but a way to manufacture a wrong result, so the
  * assessment is reported as unavailable instead.
  *
- * `getAuthToken` (Phase 4 — Shadowing Mode) is called ONLY when
- * `coaching === 'full'`, so the fast (drill/Learn/SayItAgainCard) path gains
- * zero extra awaits. A null token is not an error — the backend degrades to
- * an 'unauthenticated' coachingQuota rather than failing the assessment.
+ * `getAuthToken` is called on EVERY call (Phase 3 — AI-cost quota), not only
+ * when `coaching === 'full'`: the base assessment itself now requires a
+ * verified JWT server-side. A null token is therefore fatal here and raises
+ * AuthRequiredError before any upload — a guest's request could only 401.
  */
 
+import { AuthRequiredError } from '../../../lib/authToken';
 import { normalizeToWav16kMono, AudioTooShortError } from '../audioNormalizer';
 import { PronunciationAssessmentSchema } from '../../../services/pronunciation/pronunciationSchema';
 import type { PronunciationAssessor } from '../ports';
@@ -67,6 +68,18 @@ export function createHttpPronunciationProvider(
   getAuthToken?: () => Promise<string | null>,
 ): PronunciationAssessor {
   return async ({ audioBlob, targetText, mode = 'scripted', coaching = 'none', coachingRequestId, signal }) => {
+    // Phase 3: /api/pronunciation requires a verified JWT. Resolve the token
+    // FIRST — before normalizing, which decodes and re-renders the whole clip
+    // — so a signed-out (guest) caller spends no CPU and no round-trip on a
+    // request that can only 401. A provider built without an accessor at all
+    // keeps the pre-Phase-3 behaviour of sending no header.
+    let authHeaders: Record<string, string> = {};
+    if (getAuthToken) {
+      const token = await getAuthToken();
+      if (!token) throw new AuthRequiredError('Sign in to get pronunciation feedback.');
+      authHeaders = { Authorization: `Bearer ${token}` };
+    }
+
     let uploadBlob = audioBlob;
     let uploadFilename = 'recording.wav';
     try {
@@ -91,22 +104,18 @@ export function createHttpPronunciationProvider(
     formData.append('coaching', coaching);
     if (coachingRequestId) formData.append('coaching_request_id', coachingRequestId);
 
-    // Phase 3 (AI-cost quota): the base assessment itself now requires auth
-    // server-side, not just the coaching='full' sub-feature — attach the
-    // token on every call, not only when coaching is requested.
-    const headers: Record<string, string> = {};
-    if (getAuthToken) {
-      const token = await getAuthToken();
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-    }
-
     const res = await fetch(`${apiBase}/api/pronunciation`, {
       method: 'POST',
-      headers,
+      headers: authHeaders,
       body: formData,
       signal,
     });
-    if (!res.ok) throw new Error(`API pronunciation → ${res.status}`);
+    if (!res.ok) {
+      if (res.status === 401 || res.status === 403) {
+        throw new AuthRequiredError('Your session has expired. Sign in again for pronunciation feedback.');
+      }
+      throw new Error(`API pronunciation → ${res.status}`);
+    }
 
     const raw: unknown = await res.json();
     const parsed = PronunciationAssessmentSchema.safeParse(raw);

@@ -23,7 +23,15 @@ import { validateBackendFeedback, SchemaValidationError } from './feedbackSchema
 import { getGroundedExaminerFeedback, type ExaminerFeedback } from '../coaching/examinerFeedback';
 import type { NewsSnippet } from '../../data/mocks/mockNews';
 import { getWarmupPhase, noteBackendReachable } from './backendWarmup';
-import { supabase } from '../../lib/supabase';
+import { AuthRequiredError, getAccessToken, isAuthRequiredError, requireAuthHeader } from '../../lib/authToken';
+
+/**
+ * engineMeta.failoverReason set when the offline evaluator ran because nobody
+ * is signed in — as opposed to a network/provider failure. The UI compares
+ * against this exact string to pick the right explanation (a guest has a
+ * perfectly good connection, so "you're offline" would be a lie).
+ */
+export const SIGNED_OUT_FEEDBACK_REASON = 'Sign in to get AI feedback — offline evaluation was used instead.';
 
 // Prod: same-origin '/api/*' proxied to the backend by Vercel (see vercel.json)
 // to avoid CORS. Dev: call the backend directly.
@@ -59,26 +67,56 @@ const COLD_START_GRACE_MS = 45000;
 const POST_DEFAULT_TIMEOUT_MS = 40000;
 
 /**
- * Phase 3 (AI-cost quota): several of these endpoints now require auth
- * server-side (main.py's verify_jwt), same pattern already proven by
- * transcribeAudio below. Returns {} when signed out rather than throwing —
- * the request still goes out and the backend is the one that 401s, so a
- * guest session's error handling doesn't change shape.
+ * Phase 3 (AI-cost quota): these endpoints require auth server-side (main.py's
+ * verify_jwt). Signed out — which guest mode is, permanently — there is no
+ * token to send and the request can only come back 401, so this THROWS
+ * AuthRequiredError rather than returning {} and letting a doomed request go
+ * out. Callers turn that into offline evaluation or an honest "sign in"
+ * message; see src/lib/authToken.ts.
  */
 async function authHeader(): Promise<Record<string, string>> {
-  const { data } = await supabase.auth.getSession();
-  const token = data.session?.access_token;
+  return requireAuthHeader();
+}
+
+/**
+ * For the endpoints that do NOT gate on verify_jwt (/api/generate-scenario).
+ * A guest must still be able to call those, so a missing token is not an
+ * error here — the header is simply omitted.
+ */
+async function optionalAuthHeader(): Promise<Record<string, string>> {
+  const token = await getAccessToken();
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-async function post<T>(path: string, body: unknown): Promise<T> {
+/**
+ * A 401 from an endpoint we *did* send a token to means the token was
+ * rejected (revoked, or a refresh that failed) — same user-facing remedy as
+ * having no token at all, so it surfaces as the same error type.
+ */
+function assertNotAuthFailure(path: string, status: number): void {
+  if (status === 401 || status === 403) {
+    throw new AuthRequiredError('Your session has expired. Sign in again to get AI feedback.');
+  }
+  void path;
+}
+
+/**
+ * `requiresAuth` mirrors whether the endpoint is behind verify_jwt in
+ * backend/main.py: true short-circuits a signed-out caller with
+ * AuthRequiredError instead of spending a round-trip on a certain 401; false
+ * (the default) keeps the endpoint usable in guest mode.
+ */
+async function post<T>(path: string, body: unknown, requiresAuth = false): Promise<T> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), POST_DEFAULT_TIMEOUT_MS);
   let res: Response;
   try {
     res = await fetch(`${API_BASE}${path}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...(await authHeader()) },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(requiresAuth ? await authHeader() : await optionalAuthHeader()),
+      },
       body: JSON.stringify(body),
       signal: controller.signal,
     });
@@ -90,7 +128,10 @@ async function post<T>(path: string, body: unknown): Promise<T> {
   } finally {
     clearTimeout(timer);
   }
-  if (!res.ok) throw new Error(`API ${path} → ${res.status}`);
+  if (!res.ok) {
+    assertNotAuthFailure(path, res.status);
+    throw new Error(`API ${path} → ${res.status}`);
+  }
   return res.json() as Promise<T>;
 }
 
@@ -531,6 +572,10 @@ async function tryNetworkFeedback(
     };
     return { result, actualEngine: result.engineMeta.actualEngine };
   } catch (err) {
+    // An auth failure is not "this engine is down" — the next engine shares the
+    // same token and would fail identically, so it propagates instead of being
+    // swallowed into a silent engine-by-engine retry.
+    if (isAuthRequiredError(err)) throw err;
     const msg = (err as Error).message;
     if (msg === 'Request timed out') {
       console.warn(`[AI Feedback] ${engine} timed out after ${timeoutMs}ms`);
@@ -551,6 +596,7 @@ async function postWithSignal<T>(path: string, body: unknown, signal: AbortSigna
   if (!res.ok) {
     const text = await res.text().catch(() => '');
     console.error(`[API] ${path} → ${res.status}`, text.slice(0, 300));
+    assertNotAuthFailure(path, res.status);
     throw new Error(`API ${path} → ${res.status}`);
   }
   return res.json() as Promise<T>;
@@ -563,7 +609,10 @@ async function postMultipartWithSignal<T>(path: string, formData: FormData, sign
     signal,
     headers: await authHeader(),
   });
-  if (!res.ok) throw new Error(`API ${path} → ${res.status}`);
+  if (!res.ok) {
+    assertNotAuthFailure(path, res.status);
+    throw new Error(`API ${path} → ${res.status}`);
+  }
   return res.json() as Promise<T>;
 }
 
@@ -584,8 +633,9 @@ export interface TranscribeAudioResult {
 }
 
 export async function transcribeAudio(audioBlob: Blob, language = 'fr'): Promise<TranscribeAudioResult> {
-  const { data } = await supabase.auth.getSession();
-  const token = data.session?.access_token;
+  // Same Phase 3 gate as the feedback endpoints: no token, no point sending.
+  const token = await getAccessToken();
+  if (!token) throw new AuthRequiredError('Sign in to use speech transcription.');
 
   const formData = new FormData();
   formData.append('audio', audioBlob, audioFileNameFor(audioBlob));
@@ -600,7 +650,10 @@ export async function transcribeAudio(audioBlob: Blob, language = 'fr'): Promise
       signal: controller.signal,
       ...(token ? { headers: { Authorization: `Bearer ${token}` } } : {}),
     });
-    if (!res.ok) throw new Error(`API /api/transcribe → ${res.status}`);
+    if (!res.ok) {
+      assertNotAuthFailure('/api/transcribe', res.status);
+      throw new Error(`API /api/transcribe → ${res.status}`);
+    }
     const body = (await res.json()) as { text?: string; source?: string };
     return { text: body.text ?? '', source: body.source ?? 'unknown' };
   } catch (err) {
@@ -696,6 +749,27 @@ export async function getAIFeedback(
     demandSignals: buildDemandSignals(transcript, question),
     depth: buildRequestDepth(transcript, question, tier),
   };
+
+  // Signed out (guest mode) there is no token to send, and every endpoint in
+  // the chain below requires one since Phase 3 — firing them would just burn
+  // two round-trips on guaranteed 401s before landing here anyway. Go straight
+  // to offline evaluation, and say why, so the UI can prompt a sign-in instead
+  // of blaming the network.
+  if (!(await getAccessToken())) {
+    const signedOutReason = SIGNED_OUT_FEEDBACK_REASON;
+    console.log('[AI Feedback] No session — skipping network engines, using offline evaluation');
+    track({ name: 'ai_failover', props: { requested_engine: enginePreference, actual_engine: 'offline', reason: 'signed_out', latency_ms: Date.now() - startTime } });
+    const signedOutResult = offlineEvaluate(transcript, question);
+    signedOutResult.engineMeta = {
+      requestedEngine: enginePreference,
+      actualEngine: 'offline',
+      fallbackUsed: true,
+      failoverReason: signedOutReason,
+      latencyMs: Date.now() - startTime,
+      evaluatedAt: new Date().toISOString(),
+    };
+    return signedOutResult;
+  }
 
   // Build fallback chain based on preference
   console.log(`[AI Feedback] Engine preference received: ${enginePreference}`);
@@ -932,6 +1006,7 @@ export async function streamFeedback(
   }
 
   if (!res.ok) {
+    assertNotAuthFailure('/api/feedback/stream', res.status);
     throw new Error(`API /api/feedback/stream → ${res.status}`);
   }
 
@@ -1060,6 +1135,6 @@ export interface RoleplayTurnResponse {
 }
 
 export async function getRoleplayTurn(req: RoleplayTurnRequest): Promise<RoleplayTurnResponse> {
-  return post<RoleplayTurnResponse>('/api/roleplay/turn', req);
+  return post<RoleplayTurnResponse>('/api/roleplay/turn', req, true);
 }
 

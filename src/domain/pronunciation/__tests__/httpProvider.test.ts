@@ -383,4 +383,42 @@ describe('createHttpPronunciationProvider', () => {
     expect(uploaded.name).toBe('recording.wav');
     expect(uploaded.type).toBe('audio/wav');
   });
+  // Phase 3: /api/pronunciation is behind verify_jwt, so a guest's request can
+  // only come back 401 — the provider must say so instead of spending an
+  // upload (and an audio decode) on it.
+  it('throws AuthRequiredError without fetching when the token accessor returns null', async () => {
+    const fetchMock = vi.fn() as unknown as typeof fetch;
+    vi.stubGlobal('fetch', fetchMock);
+
+    const assess = createHttpPronunciationProvider('http://api.test', async () => null);
+    await expect(
+      assess({ audioBlob: new Blob([new Uint8Array(10)], { type: 'audio/webm;codecs=opus' }), targetText: 'bonjour', languageCode: 'fr-FR' }),
+    ).rejects.toMatchObject({ name: 'AuthRequiredError' });
+
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('sends the bearer token on an ordinary assessment, not just coaching requests', async () => {
+    const fetchMock = vi.fn(async () => ({
+      ok: true,
+      json: async () => PRONUNCIATION_GOLDEN_ASSESSMENT,
+    })) as unknown as typeof fetch;
+    vi.stubGlobal('fetch', fetchMock);
+
+    const assess = createHttpPronunciationProvider('http://api.test', async () => 'jwt-123');
+    await assess({ audioBlob: new Blob([new Uint8Array(10)], { type: 'audio/webm;codecs=opus' }), targetText: 'bonjour', languageCode: 'fr-FR' });
+
+    const init = (fetchMock as unknown as { mock: { calls: [string, { headers: Record<string, string> }][] } }).mock.calls[0][1];
+    expect(init.headers.Authorization).toBe('Bearer jwt-123');
+  });
+
+  it('reports a 401 from the server as an auth failure, not a generic API error', async () => {
+    const fetchMock = vi.fn(async () => ({ ok: false, status: 401 })) as unknown as typeof fetch;
+    vi.stubGlobal('fetch', fetchMock);
+
+    const assess = createHttpPronunciationProvider('http://api.test', async () => 'stale-jwt');
+    await expect(
+      assess({ audioBlob: new Blob([new Uint8Array(10)], { type: 'audio/webm;codecs=opus' }), targetText: 'bonjour', languageCode: 'fr-FR' }),
+    ).rejects.toMatchObject({ name: 'AuthRequiredError' });
+  });
 });

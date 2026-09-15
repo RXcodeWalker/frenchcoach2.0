@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { TOPICS, getTopicQuestions } from '../data/gameData';
 import { getAIFeedback, streamFeedback, getExaminerFeedback } from '../services/api/apiClient';
+import { isAuthRequiredError } from '../lib/authToken';
 import { assessPronunciation } from '../services/pronunciation/pronunciationClient';
 import type { PronunciationAssessment } from '../domain/pronunciation/types';
 import { ExaminerFeedbackCard } from '../features/feedback/components/ExaminerFeedbackCard';
@@ -119,7 +120,7 @@ export function Learn() {
 
   // Azure pronunciation (Learn-only; separate lifecycle from the coaching stream —
   // never delays feedback, never blurs into FeedbackV2's legacy 0-10 field).
-  const [pronunciationStatus, setPronunciationStatus] = useState<'idle' | 'pending' | 'done' | 'failed'>('idle');
+  const [pronunciationStatus, setPronunciationStatus] = useState<'idle' | 'pending' | 'done' | 'failed' | 'signed-out'>('idle');
   const [pronunciationResult, setPronunciationResult] = useState<PronunciationAssessment | null>(null);
   const pronunciationAbortRef = useRef<AbortController | null>(null);
   // Single generation counter guarding both the feedback stream and the pronunciation
@@ -514,9 +515,12 @@ export function Learn() {
         if (myAttemptId !== attemptIdRef.current) return;
         setPronunciationResult(result);
         setPronunciationStatus('done');
-      } catch {
+      } catch (err) {
         if (myAttemptId !== attemptIdRef.current) return;
-        setPronunciationStatus('failed');
+        // A guest has no account for the assessment to run under — that is a
+        // different message from "the service is down", so it gets its own
+        // state rather than the generic retry copy.
+        setPronunciationStatus(isAuthRequiredError(err) ? 'signed-out' : 'failed');
       } finally {
         if (myAttemptId === attemptIdRef.current) {
           pronunciationAbortRef.current = null;
@@ -584,7 +588,14 @@ export function Learn() {
     // this fallback is what turns that into a real result instead of a
     // permanently loading spinner.
     const fallBackToNonStreaming = async (reason: unknown) => {
-      console.warn('[Stream] falling back to getAIFeedback:', reason);
+      // Signed out, the stream endpoint rejects before it ever opens; that is
+      // expected, not a malfunction, so it doesn't get a warning. getAIFeedback
+      // below detects the same thing and returns an offline evaluation.
+      if (isAuthRequiredError(reason)) {
+        console.log('[Stream] no session — using offline evaluation');
+      } else {
+        console.warn('[Stream] falling back to getAIFeedback:', reason);
+      }
       if (myAttemptId !== attemptIdRef.current) return;
       setIsLoadingFeedback(true);
       setPartialFeedback(null);
