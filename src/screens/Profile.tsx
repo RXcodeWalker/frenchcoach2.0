@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Volume2, Moon, Globe, Database, Shield, ChevronRight, Zap, Trophy, Flame, TrendingUp, BookOpen, LogOut, Target, SlidersHorizontal, AtSign, Loader2, Check, UserX, Users, Trash2, Minus, Plus, Bell } from 'lucide-react';
+import { Volume2, Moon, Globe, Database, Shield, ShieldCheck, ChevronRight, Zap, Trophy, Flame, TrendingUp, BookOpen, LogOut, Target, SlidersHorizontal, AtSign, Loader2, Check, Copy, UserX, Users, Trash2, Minus, Plus, Bell } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useApp, DAILY_GOAL_MIN, DAILY_GOAL_MAX } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
@@ -21,6 +21,9 @@ import { useCatalogue } from '../services/shop/useCatalogue';
 import { rarityOf, RARITY_COLOR } from '../services/shop/rarity';
 import { exportMyData, deleteMyAccount, AccountError } from '../services/account/accountService';
 import {
+  correctAgeBand, requestGuardianConsent, sendGuardianConsentEmail, buildGuardianConsentLink, ConsentError,
+} from '../services/account/consentService';
+import {
   getNotifyStreakPreference, setNotifyStreakPreference,
   getNotifyDailyGoalPreference, setNotifyDailyGoalPreference,
 } from '../services/notifications/notificationPreferences';
@@ -39,7 +42,7 @@ const RENAME_REASON_COPY: Record<string, string> = {
 
 export function Profile() {
   const { state, dispatch } = useApp();
-  const { user, signOut, isAdmin } = useAuth();
+  const { user, signOut, isAdmin, ageBand, consentStatus, refreshConsentStatus } = useAuth();
   const { isGuest, exitGuestMode } = useGuestMode();
   const navigate = useNavigate();
   const { profile } = state;
@@ -93,6 +96,69 @@ export function Profile() {
     setNotifyStreakPreference(nextStreak);
     setNotifyDailyGoalPreference(nextDailyGoal);
     void pushProfileSettingsToCloud(user.id, { dailyGoal: state.dailyGoal, notifyStreak: nextStreak, notifyDailyGoal: nextDailyGoal });
+  }
+
+  type AgeBandStep = 'idle' | 'guardian-email' | 'guardian-sent';
+  const [ageBandStep, setAgeBandStep] = useState<AgeBandStep>('idle');
+  const [ageBandSubmitting, setAgeBandSubmitting] = useState(false);
+  const [ageBandError, setAgeBandError] = useState<string | null>(null);
+  const [guardianEmailInput, setGuardianEmailInput] = useState('');
+  const [guardianLink, setGuardianLink] = useState<string | null>(null);
+  const [guardianEmailSent, setGuardianEmailSent] = useState(false);
+  const [guardianCopied, setGuardianCopied] = useState(false);
+
+  async function handleSwitchTo13Plus() {
+    if (ageBandSubmitting) return;
+    setAgeBandSubmitting(true);
+    setAgeBandError(null);
+    try {
+      await correctAgeBand('13_plus');
+      await refreshConsentStatus();
+    } catch {
+      setAgeBandError('Something went wrong. Try again.');
+    } finally {
+      setAgeBandSubmitting(false);
+    }
+  }
+
+  async function handleSwitchToUnder13(e: React.FormEvent) {
+    e.preventDefault();
+    if (ageBandSubmitting) return;
+    setAgeBandSubmitting(true);
+    setAgeBandError(null);
+    try {
+      await correctAgeBand('under_13');
+      await refreshConsentStatus();
+      const { token } = await requestGuardianConsent(guardianEmailInput);
+      const link = buildGuardianConsentLink(token);
+      setGuardianLink(link);
+      setGuardianEmailSent(await sendGuardianConsentEmail(guardianEmailInput, token));
+      setAgeBandStep('guardian-sent');
+    } catch (err) {
+      setAgeBandError(
+        err instanceof ConsentError && err.code === 'invalid_email'
+          ? 'Enter a valid email address.'
+          : 'Something went wrong. Try again.',
+      );
+    } finally {
+      setAgeBandSubmitting(false);
+    }
+  }
+
+  function resetAgeBandFlow() {
+    setAgeBandStep('idle');
+    setAgeBandError(null);
+    setGuardianEmailInput('');
+    setGuardianLink(null);
+    setGuardianEmailSent(false);
+  }
+
+  function copyGuardianLink() {
+    if (!guardianLink) return;
+    void navigator.clipboard.writeText(guardianLink).then(() => {
+      setGuardianCopied(true);
+      setTimeout(() => setGuardianCopied(false), 2000);
+    });
   }
 
   const [exportingData, setExportingData] = useState(false);
@@ -367,6 +433,116 @@ export function Profile() {
           <ChevronRight size={12} className="text-ink-subtle" />
         </button>
       </motion.div>
+
+      {/* Age Band */}
+      {ageBand && (
+        <motion.div variants={fadeUp} className="rounded-xl surface p-4">
+          <h3 className="font-bold text-ink-subtle text-[10px] uppercase tracking-wider mb-2.5">Age Band</h3>
+          {ageBandStep === 'idle' && (
+            <div className="space-y-2.5">
+              <div className="flex items-center gap-3 p-2.5 rounded-lg surface-recessed">
+                <ShieldCheck size={14} className="text-violet-400" />
+                <div className="flex-1">
+                  <p className="text-[10px] font-semibold text-white">{ageBand === 'under_13' ? 'Under 13' : '13 or older'}</p>
+                  <p className="text-[9px] text-ink-subtle">
+                    {ageBand === 'under_13'
+                      ? consentStatus === 'granted'
+                        ? 'Parent/guardian confirmed'
+                        : consentStatus === 'pending'
+                          ? 'Waiting on parent/guardian confirmation'
+                          : 'Requires guardian confirmation for speaking practice'
+                      : 'No guardian confirmation required'}
+                  </p>
+                </div>
+              </div>
+              {ageBandError && <p className="text-[10px] text-red-400">{ageBandError}</p>}
+              {ageBand === 'under_13' ? (
+                <button
+                  onClick={() => void handleSwitchTo13Plus()}
+                  disabled={ageBandSubmitting}
+                  className="w-full py-2.5 rounded-lg bg-navy-300 text-ink-subtle text-[10px] font-bold disabled:opacity-60"
+                >
+                  {ageBandSubmitting ? 'Updating…' : "Actually, I'm 13 or older"}
+                </button>
+              ) : (
+                <button
+                  onClick={() => setAgeBandStep('guardian-email')}
+                  disabled={ageBandSubmitting}
+                  className="w-full py-2.5 rounded-lg bg-navy-300 text-ink-subtle text-[10px] font-bold disabled:opacity-60"
+                >
+                  Actually, I'm under 13
+                </button>
+              )}
+            </div>
+          )}
+
+          {ageBandStep === 'guardian-email' && (
+            <form onSubmit={(e) => void handleSwitchToUnder13(e)} className="space-y-2.5">
+              <p className="text-[9px] text-ink-subtle leading-relaxed">
+                A parent or guardian will need to confirm by email before speaking practice turns
+                back on.
+              </p>
+              <input
+                type="email"
+                required
+                placeholder="parent@example.com"
+                value={guardianEmailInput}
+                onChange={(e) => setGuardianEmailInput(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-navy-300/50 border border-white/10 text-xs text-white placeholder:text-ink-subtle focus:outline-none focus:border-violet-electric/50 transition-colors"
+              />
+              {ageBandError && <p className="text-[10px] text-red-400">{ageBandError}</p>}
+              <div className="flex gap-2">
+                <button
+                  type="submit"
+                  disabled={ageBandSubmitting}
+                  className="flex-1 py-2 rounded-lg bg-violet-electric text-white text-[10px] font-bold disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {ageBandSubmitting ? 'Sending…' : 'Send request'}
+                </button>
+                <button
+                  type="button"
+                  onClick={resetAgeBandFlow}
+                  className="px-3 py-2 rounded-lg text-[10px] font-semibold text-ink-muted"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          )}
+
+          {ageBandStep === 'guardian-sent' && (
+            <div className="space-y-2.5 text-center">
+              {guardianEmailSent ? (
+                <p className="text-[10px] text-ink-subtle leading-relaxed">
+                  We emailed <strong className="text-white">{guardianEmailInput}</strong>. Speaking
+                  practice turns off until they confirm.
+                </p>
+              ) : (
+                <>
+                  <p className="text-[10px] text-ink-subtle leading-relaxed">
+                    We couldn't send the email automatically. Copy this link and send it yourself:
+                  </p>
+                  {guardianLink && (
+                    <button
+                      onClick={copyGuardianLink}
+                      className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-navy-300 text-[10px] text-ink-subtle break-all"
+                    >
+                      {guardianCopied ? <Check size={12} className="text-emerald-400 shrink-0" /> : <Copy size={12} className="shrink-0" />}
+                      <span className="truncate">{guardianCopied ? 'Copied!' : guardianLink}</span>
+                    </button>
+                  )}
+                </>
+              )}
+              <button
+                onClick={resetAgeBandFlow}
+                className="w-full py-2 rounded-lg bg-navy-300 text-ink-subtle text-[10px] font-bold"
+              >
+                Done
+              </button>
+            </div>
+          )}
+        </motion.div>
+      )}
 
       {/* Preferences */}
       <motion.div variants={fadeUp} className="rounded-xl surface p-4">

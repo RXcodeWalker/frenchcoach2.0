@@ -17,6 +17,7 @@ vi.mock('../../../lib/supabase', () => ({
 
 import {
   setAgeBand,
+  correctAgeBand,
   requestGuardianConsent,
   grantGuardianConsent,
   revokeGuardianConsent,
@@ -51,6 +52,22 @@ describe('setAgeBand', () => {
     const err = await setAgeBand('13_plus').catch((e: unknown) => e);
     expect(err).toBeInstanceOf(ConsentError);
     expect((err as ConsentError).code).toBe('unknown');
+  });
+});
+
+describe('correctAgeBand', () => {
+  it('calls correct_age_band with the chosen band', async () => {
+    rpcMock.mockResolvedValueOnce({ data: { ok: true }, error: null });
+    await correctAgeBand('13_plus');
+    expect(rpcMock).toHaveBeenCalledWith('correct_age_band', { p_band: '13_plus' });
+  });
+
+  it('maps age_band_unchanged to a typed ConsentError', async () => {
+    rpcMock.mockResolvedValueOnce({ data: null, error: { message: 'age_band_unchanged' } });
+    await expect(correctAgeBand('under_13')).rejects.toMatchObject({
+      name: 'ConsentError',
+      code: 'age_band_unchanged',
+    });
   });
 });
 

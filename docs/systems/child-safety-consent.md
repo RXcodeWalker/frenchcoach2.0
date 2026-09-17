@@ -41,6 +41,18 @@ All `SECURITY DEFINER`, pinned `search_path`, standard `REVOKE ... FROM PUBLIC` 
   `age_band_already_set` on a second call). Sets `age_band` and the initial
   `consent_status` (`'pending'` for `under_13`, `'13_plus_not_required'`
   otherwise).
+- **`correct_age_band(p_band)`** — `authenticated` only, the Profile-settings
+  "I mis-selected my age band" correction path, added alongside `set_age_band`
+  rather than relaxing its one-time check (that check stays exact for the
+  onboarding flow). Requires `age_band` to already be set (`age_band_not_set`
+  otherwise) and rejects a no-op call (`age_band_unchanged`). Same
+  `consent_status` transition as `set_age_band`. `under_13 → 13_plus` is a
+  deliberate, product-confirmed instant/self-serve change — no
+  re-verification, no guardian involvement — so an under-13 account can
+  remove its own guardian gate with one client-side action; `13_plus →
+  under_13` flips `consent_status` back to `'pending'`, and the client
+  follows up with the existing `request_guardian_consent` flow to re-arm
+  guardian confirmation.
 - **`request_guardian_consent(p_guardian_email)`** — `authenticated` only,
   callable only when the caller's own `age_band = 'under_13'` (errors
   `not_under_13` otherwise). Mints a `guardian_consents` row + a random
@@ -79,7 +91,15 @@ All `SECURITY DEFINER`, pinned `search_path`, standard `REVOKE ... FROM PUBLIC` 
   redirect so the two gates don't loop against each other.
 - **`AgeBand.tsx`** — the band-select screen, the under-13 persuasion
   interstitial, and the guardian-email step, in one component keyed by a
-  local `Step` state machine.
+  local `Step` state machine. This is the one-time onboarding step only
+  (`set_age_band`); it is not reused for later correction.
+- **`Profile.tsx`**'s "Age Band" card — the later correction UI
+  (`correct_age_band`), separate from `AgeBand.tsx`. Shows the current band
+  and consent status; `under_13 → 13_plus` is a single button with no
+  confirmation step; `13_plus → under_13` opens an inline guardian-email
+  form (same `requestGuardianConsent` / `sendGuardianConsentEmail` /
+  `buildGuardianConsentLink` calls `AgeBand.tsx` uses) before re-arming the
+  guardian gate.
 - **`SpeakingConsentGate`** (`src/components/SpeakingConsentGate.tsx`) —
   wraps a record control; renders a "waiting for your parent/guardian"
   message instead of it whenever `consentStatus === 'pending'`. Wired into

@@ -21,6 +21,8 @@ export type ConsentErrorCode =
   | 'not_authenticated'
   | 'invalid_age_band'
   | 'age_band_already_set'
+  | 'age_band_not_set'
+  | 'age_band_unchanged'
   | 'invalid_email'
   | 'not_under_13'
   | 'network_error'
@@ -39,6 +41,8 @@ const KNOWN_CODES: ConsentErrorCode[] = [
   'not_authenticated',
   'invalid_age_band',
   'age_band_already_set',
+  'age_band_not_set',
+  'age_band_unchanged',
   'invalid_email',
   'not_under_13',
 ];
@@ -80,6 +84,19 @@ function mapRpcError(message: string): ConsentError {
 export async function setAgeBand(band: 'under_13' | '13_plus'): Promise<void> {
   if (!supabaseConfigured) throw new ConsentError('network_error', 'offline');
   const { error } = await supabase.rpc('set_age_band', { p_band: band });
+  if (error) throw mapRpcError(error.message);
+}
+
+/**
+ * "I mis-selected my age band" correction (Profile settings), distinct from
+ * the one-time onboarding setAgeBand() above. -> '13_plus' takes effect
+ * immediately (no re-verification). -> 'under_13' flips consent_status back
+ * to 'pending' — the caller should follow up with requestGuardianConsent()
+ * same as the first-time flow.
+ */
+export async function correctAgeBand(band: 'under_13' | '13_plus'): Promise<void> {
+  if (!supabaseConfigured) throw new ConsentError('network_error', 'offline');
+  const { error } = await supabase.rpc('correct_age_band', { p_band: band });
   if (error) throw mapRpcError(error.message);
 }
 

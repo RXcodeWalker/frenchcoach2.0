@@ -53,6 +53,8 @@ Some source comments cite design documents that no longer exist (`docs/architect
 
 ## Development Workflow
 
+**Always push after committing — no exceptions, no "I'll push later."** This repo commits straight to `main` (no feature branches). Every `git commit` in this repo is followed by `git push` in the same turn, and every commit made inside `backend/` (its own separate git repository — see **Three Runtime Surfaces**) is followed by `git -C backend push` (or `git push` from within `backend/`) in the same turn. A commit that isn't pushed doesn't count as done.
+
 **General app changes:** inspect the relevant screen/service and its existing contracts → implement the smallest correct change → `npm run typecheck` + `npm test` for touched areas → `npm run lint` → review the diff → **update `CLAUDE.md` in the same session if the change makes a claim in it stale or incomplete**, then update `README.md`/other docs if documented behavior changed.
 
 **Assessment Engine changes** (`src/domain/igcse/`, `server/`, `scripts/scoring/`, `scripts/stt/`): higher-risk than a normal change — see `src/domain/igcse/CLAUDE.md` and `docs/guides/development.md`'s Assessment-Engine change procedure before touching `evidence/`, `judgement/`, `guardrails/`, `envelope/`, or `rubric.ts`.
