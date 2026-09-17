@@ -31,9 +31,26 @@ import {
   removePendingId,
 } from '../sync/syncQueue';
 import { getXpEventLog, appendXpEvent, setXpEventLog } from './xpLedgerStorage';
+import { SERVER_ONLY_XP_SOURCES } from '../../types/social';
 import type { XpEventRecord, XpSource } from '../../types/social';
 
 const SYNC_WINDOW_DAYS = 90; // matches SYNC_WINDOW_DAYS precedent in pronunciationSync.ts
+
+/**
+ * True for an event the client must not offer to submit_xp_event — the RPC
+ * rejects it with `source_not_client_submittable` (see
+ * SERVER_ONLY_XP_SOURCES). These rows only ever arrive by cloud pull, so
+ * "cloud doesn't have it" is not evidence it needs pushing.
+ *
+ * Callers mark them synced rather than merely skipping them: an unmarked
+ * event is retried on every hydrate, backfill and flush, which is how stale
+ * local mystery_box events turned into a 400 on every sign-in. Marking is
+ * safe because the server row (if any) is authoritative and was never ours
+ * to write.
+ */
+function isServerOnly(record: XpEventRecord): boolean {
+  return SERVER_ONLY_XP_SOURCES.has(record.source);
+}
 
 export function makeXpEventId(): string {
   return `xp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -144,6 +161,12 @@ async function pullXpEventsFromCloud(userId: string): Promise<XpEventRecord[] | 
 export async function pushXpEvent(_userId: string, record: XpEventRecord): Promise<boolean> {
   if (!supabaseConfigured) return false;
 
+  if (isServerOnly(record)) {
+    addSyncedId(STORAGE_KEYS.syncedXpEventIds, record.id);
+    removePendingId(STORAGE_KEYS.pendingSyncXpEventIds, record.id);
+    return true;
+  }
+
   const syncedIds = getSyncedIds(STORAGE_KEYS.syncedXpEventIds);
   if (syncedIds.has(record.id)) return true;
 
@@ -181,7 +204,12 @@ export async function backfillXpEventsToCloud(
 ): Promise<number> {
   if (!supabaseConfigured) return 0;
   const syncedIds = getSyncedIds(STORAGE_KEYS.syncedXpEventIds);
-  const toBackfill = local.filter(r => !cloudIds.has(r.id) && !syncedIds.has(r.id));
+  const candidates = local.filter(r => !cloudIds.has(r.id) && !syncedIds.has(r.id));
+  const toBackfill = candidates.filter(r => {
+    if (!isServerOnly(r)) return true;
+    addSyncedId(STORAGE_KEYS.syncedXpEventIds, r.id);
+    return false;
+  });
   if (toBackfill.length === 0) return 0;
 
   let pushed = 0;
@@ -225,6 +253,11 @@ export async function flushPendingXpEventQueue(): Promise<void> {
   for (const id of pending) {
     const record = byId.get(id);
     if (!record) {
+      removePendingId(STORAGE_KEYS.pendingSyncXpEventIds, id);
+      continue;
+    }
+    if (isServerOnly(record)) {
+      addSyncedId(STORAGE_KEYS.syncedXpEventIds, id);
       removePendingId(STORAGE_KEYS.pendingSyncXpEventIds, id);
       continue;
     }

@@ -36,6 +36,27 @@ export type XpSource =
   // 20260816120000_phase4_shadowing_xp_source.sql.
   | 'shadowing';
 
+/**
+ * Sources `submit_xp_event` refuses from a client, raising
+ * `source_not_client_submittable` (20260815090000_league_xp_event_hardening
+ * .sql, extended with mystery_box by 20260912093000_mystery_box_server_claim
+ * .sql). They are written server-side by award_xp inside the RPCs that grant
+ * them, and reach the local ledger only by being pulled back down from
+ * xp_events.
+ *
+ * The push/backfill paths in services/social/xpLedger.ts must skip these:
+ * mystery_box events logged locally *before* the box became server-claimed
+ * are still sitting in users' local ledgers, and every sync retries them
+ * forever because a rejected event is never marked synced. Keep this in sync
+ * with the RPC's own IN-list — a source added there and not here reintroduces
+ * exactly that retry loop.
+ */
+export const SERVER_ONLY_XP_SOURCES: ReadonlySet<XpSource> = new Set<XpSource>([
+  'daily_challenge',
+  'friend_challenge',
+  'mystery_box',
+]);
+
 /** A single local XP ledger entry, appended synchronously at award time. */
 export interface XpEventRecord {
   id: string;

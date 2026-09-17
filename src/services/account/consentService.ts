@@ -13,6 +13,7 @@
  */
 
 import { supabase, supabaseConfigured } from '../../lib/supabase';
+import { getAccessToken } from '../../lib/authToken';
 
 const API_BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000';
 
@@ -109,8 +110,11 @@ export function buildGuardianConsentLink(token: string): string {
  * as a copy-link fallback instead.
  */
 export async function sendGuardianConsentEmail(guardianEmail: string, token: string): Promise<boolean> {
-  const { data } = await supabase.auth.getSession();
-  const accessToken = data.session?.access_token;
+  // getAccessToken, not a bare getSession(): the route is behind verify_jwt, and
+  // a near-expiry token from getSession() arrives dead and 401s — which this
+  // function reports as "email not sent", silently degrading a signed-in user
+  // to the copy-link fallback for no reason.
+  const accessToken = await getAccessToken();
   if (!accessToken) return false;
 
   try {

@@ -1,4 +1,5 @@
 import { supabase } from '../../lib/supabase';
+import { AuthRequiredError, getAccessToken } from '../../lib/authToken';
 import type { ContentStatus, QuestionInput, ScenarioInput } from '../../schemas/content';
 
 // Authenticated admin CRUD client. Every call attaches the current Supabase
@@ -13,12 +14,19 @@ export class ConflictError extends Error {
   }
 }
 
+// getAccessToken, not a bare getSession(): getSession() hands back a token that
+// is seconds from expiry unchanged, and lib/auth.py answers that with a flat
+// 401 ("Token expired") — indistinguishable in the UI from "you aren't an
+// admin", which is a 403. Throwing rather than sending a header-less request
+// also gives the admin screens something to show: they render err.message, and
+// a bare request could only have come back 401 anyway. The message is
+// admin-specific, not authToken's AI-feedback default.
 async function authHeaders(): Promise<Record<string, string>> {
-  const { data } = await supabase.auth.getSession();
-  const token = data.session?.access_token;
+  const token = await getAccessToken();
+  if (!token) throw new AuthRequiredError('Your session has expired. Sign in again to continue.');
   return {
     'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    Authorization: `Bearer ${token}`,
   };
 }
 
