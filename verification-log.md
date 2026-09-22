@@ -411,3 +411,60 @@ Verified:
   correctness of the code as written, not the live UX; flagged per the
   root `CLAUDE.md` instruction to say so explicitly rather than claim
   feature-level success from tests alone.
+
+## IGCSE Exam Mode overhaul — W3 pre-implementation decision: no `observeAttempt` from the rail
+
+Date: 2026-09-22
+
+Correction to the exam-overhaul plan's original W3 text ("Feed
+`observeAttempt({mode:'exam', ...})` per turn for evidence capture without
+XP") — decided before any W3 code was written, so this is recorded here
+instead of in code comments. **The corrected instruction for whoever
+implements W3: do not call `observeAttempt` from the exam rail at all.**
+
+Why: `ExaminerFeedback` (`{currentDescriptorCommentary,
+improvementCommentary}`) carries no score/issues by construction (ADR-0005 —
+examiner-voice feedback never emits a mark), so there's no structured
+judgement to derive skill-node evidence from. Two options were considered and
+rejected:
+- **Mapping `ExaminerFeedback` into `FeedbackV2.issues`** — rejected outright:
+  inventing category/severity/correction fields from prose claim/quote pairs
+  fabricates structured judgement from unstructured commentary, against the
+  spirit of ADR-0005 even though it's not a literal numeric grade.
+- **An "unscored shell" call** (`observeAttempt` with empty issues, ignored
+  `finalScore`, just recording that the turn happened) — looked safe at
+  first (`evidenceProjection.ts::buildEvidence` does handle an issue-free
+  feedback object safely: `targetNodeIds` comes out empty, `realScore` is
+  `null`, `eventSuccess` is `undefined`, and the belief reducer's
+  `hasSuccessSignal` gate skips the update — verified in code). **But
+  rejected**: `observeAttempt` also calls
+  `generateRecommendation(beliefSnapshot, getRecentEvidence(20))`, and
+  `coachStorage.ts::getRecentEvidence` is a flat `reverse().slice(0, limit)`
+  over the *entire* evidence log (verified in code) — it has no per-source
+  weighting. A 15-turn exam session would silently write 15 zero-signal
+  events into that 20-event window, evicting the real Learn evidence the
+  recommendation engine depends on. That's real, silent harm to an unrelated
+  feature, not a hypothetical.
+
+Decision: **the rail renders `ExaminerFeedbackCard` and nothing else. No
+`observeAttempt` call, no evidence-log write, no belief update, per turn.**
+This matches the existing precedent one screen over —
+`Learn.tsx`'s `feedbackMode === 'examiner'` branch (around line 535) returns
+early, before the coach/orchestrator path, precisely because there's no score
+to record; W3's rail is the same shape of "examiner voice, entirely outside
+the coach loop," just in a different screen.
+
+Explicitly **out of scope** for W3 (noted so a later batch doesn't reach for
+it as a substitute): exam mode does have a real, structured evidence source —
+the `ScoringEnvelope` built once at end-of-session, with quote-verified
+per-criterion marks and per-question `wordCount`/`fillerDensity`/
+`timeFrameAlignment` (`envelopeView.ts`'s `evidenceGroups`, extended in W1
+with `typedTurnCount`). If exam sessions are ever meant to feed the Learn
+skill model, that end-of-session envelope is the correct input — a single
+write at submission, never a per-turn write from mark-free rail commentary.
+That wiring is not part of any workstream in the current plan and needs its
+own design pass if it's ever wanted.
+
+No files changed in this entry — W3 itself is not yet implemented. This is a
+recorded design decision so the correct behavior survives into whichever
+session/batch actually builds the rail.
