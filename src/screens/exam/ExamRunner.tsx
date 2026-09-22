@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Volume2, VolumeX, RotateCcw, Info, AlertTriangle } from 'lucide-react';
-import { ScrollingWaveform } from '../../features/recording/ScrollingWaveform';
+import { Volume2, VolumeX, RotateCcw, Info, MessageSquareText } from 'lucide-react';
 import { formatTime } from '../../domain/time';
 import { Button } from '../../components/ui/Button';
+import { ExamTranscript } from './ExamTranscript';
+import { ExamComposer } from './ExamComposer';
 import type { RecordingState } from '../../features/recording/useRecording';
-import type { ExaminerAction } from '../../domain/igcse/session/types';
+import type { ExaminerAction, ConductLogEntry } from '../../domain/igcse/session/types';
 import { ExitConfirmDialog } from './ExitConfirmDialog';
 
 // UI-only pacing heuristics (approximate VAD / pacing) — never logged or scored.
@@ -27,12 +28,22 @@ const PART_SHORT: Record<string, string> = {
   topic2: 'Topic 2',
 };
 
+const PART_LABEL: Record<string, string> = {
+  rolePlay: 'Part 1: Role Play',
+  topic1: 'Part 2: Topic Conversation 1',
+  topic2: 'Part 3: Topic Conversation 2',
+};
+
 interface Props {
   action: ExaminerAction | null;
-  elapsedS: number;
+  entries: ConductLogEntry[];
   totalElapsedS: number;
   recording: RecordingState;
-  onSubmitTurn: () => void;
+  /** True while a submitted turn is awaiting the next examiner action (network round-trip). */
+  turnBusy: boolean;
+  onStartRecording: () => void;
+  onSubmitSpeech: () => void;
+  onSubmitText: (text: string) => void;
   onRequestRepeat: () => void;
   onExit: () => void;
   voiceMuted: boolean;
@@ -46,26 +57,15 @@ interface Props {
   taskProgress?: { index: number; total: number };
 }
 
-const PART_LABEL: Record<string, string> = {
-  rolePlay: 'Part 1: Role Play',
-  topic1: 'Part 2: Topic Conversation 1',
-  topic2: 'Part 3: Topic Conversation 2',
-};
-
-const ACTION_LABEL: Record<string, string> = {
-  READ_MAIN: 'Examiner',
-  REPEAT: 'Examiner (repeating)',
-  READ_ALTERNATIVE: 'Examiner (alternative question)',
-  EXTENSION_PROMPT: 'Examiner',
-  FURTHER_QUESTION: 'Examiner',
-};
-
 export function ExamRunner({
   action,
-  elapsedS,
+  entries,
   totalElapsedS,
   recording,
-  onSubmitTurn,
+  turnBusy,
+  onStartRecording,
+  onSubmitSpeech,
+  onSubmitText,
   onRequestRepeat,
   onExit,
   voiceMuted,
@@ -80,10 +80,10 @@ export function ExamRunner({
 }: Props) {
   const part = action?.part ?? 'rolePlay';
   const phaseLabel = PART_LABEL[part] ?? part;
-  const examinerLabel = action ? (ACTION_LABEL[action.kind] ?? 'Examiner') : 'Examiner';
 
   const [showSilenceNudge, setShowSilenceNudge] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
 
   useEffect(() => {
     if (!recording.isRecording) {
@@ -103,12 +103,12 @@ export function ExamRunner({
   const currentPartIndex = PARTS.indexOf(part as (typeof PARTS)[number]);
 
   const rec = recording.isRecording;
-  // While recording, everything that isn't the live control steps back.
-  const quietInk = rec ? 'text-ink-subtle' : 'text-ink-muted';
+  const composerDisabled = turnBusy || pendingSilentSkip || pendingTranscriptionFailure;
+  const canRepeat = !rec && action?.kind !== 'REPEAT';
 
   return (
     <div data-hatch="immersive" className="fixed inset-0 bg-bg flex flex-col z-40">
-      <header className="grid grid-cols-3 items-center px-5 py-3 border-b border-hairline surface">
+      <header className="grid grid-cols-3 items-center px-5 py-3 border-b border-hairline surface shrink-0">
         {/* Segmented position bar — answered parts in --action, current outlined */}
         <div className="flex items-center gap-1.5">
           {PARTS.map((p, i) => {
@@ -153,138 +153,149 @@ export function ExamRunner({
         </div>
       </header>
 
-      <div className="flex-1 flex flex-col items-center justify-center px-5 py-6 max-w-2xl mx-auto w-full">
-        <div className={`text-eyebrow uppercase ${quietInk} ${part === 'rolePlay' && rolePlayTitle ? 'mb-1.5' : 'mb-4'}`}>
-          {phaseLabel}
-        </div>
-
-        {part === 'rolePlay' && rolePlayTitle && (
-          <div className="mb-4 max-w-md text-center space-y-1.5">
-            <div className="flex items-center justify-center gap-2">
-              <p className={`text-body-s font-semibold ${quietInk}`}>{rolePlayTitle}</p>
+      <div className="px-5 py-2 border-b border-hairline shrink-0">
+        <div className="max-w-2xl mx-auto flex items-center gap-2">
+          <span className="text-eyebrow uppercase text-ink-subtle">{phaseLabel}</span>
+          {part === 'rolePlay' && rolePlayTitle && (
+            <>
+              <span className="text-ink-subtle">·</span>
+              <span className="text-body-s font-semibold text-ink-muted truncate">{rolePlayTitle}</span>
               {taskProgress && (
-                <span className={`text-eyebrow uppercase ${rec ? 'text-ink-subtle' : 'text-ink-subtle'}`}>
+                <span className="ml-auto text-eyebrow uppercase text-ink-subtle shrink-0">
                   Question {taskProgress.index + 1} of {taskProgress.total}
                 </span>
               )}
-            </div>
-            {rolePlaySetup && (
-              <p className="text-body-s text-ink-subtle leading-relaxed">{rolePlaySetup}</p>
-            )}
-          </div>
-        )}
-
-        {(part === 'topic1' || part === 'topic2') && (
-          <div className={`mb-4 text-eyebrow uppercase ${quietInk}`}>
-            {action?.kind === 'EXTENSION_PROMPT' || action?.kind === 'FURTHER_QUESTION'
-              ? 'Extension question'
-              : 'Conversation in progress'}
-          </div>
-        )}
-
-        <div className={`w-full rounded-card surface p-5 mb-5 text-center ${rec ? 'opacity-70' : ''}`}>
-          <p className="text-eyebrow uppercase text-ink-subtle mb-1.5">{examinerLabel}</p>
-          <p className={`exam-serif text-display-m leading-snug ${rec ? 'text-ink-subtle' : 'text-ink'}`}>
-            {action?.text ?? '…'}
-          </p>
-        </div>
-
-        <div className="w-full space-y-4">
-          {pendingTranscriptionFailure ? (
-            <div className="w-full rounded-card surface-recessed p-5 text-center space-y-3">
-              <p className="text-body-base font-semibold text-ink">We couldn&rsquo;t transcribe your answer</p>
-              <p className="text-body-s text-ink-muted">
-                Something went wrong on our end, not with your answer. You can try again or skip this question.
-              </p>
-              <div className="flex items-center justify-center gap-3 pt-1">
-                <Button variant="primary" size="sm" onClick={onKeepTrying}>
-                  Try again
-                </Button>
-                <Button variant="secondary" size="sm" onClick={onSkipQuestion}>
-                  Skip question
-                </Button>
-              </div>
-            </div>
-          ) : pendingSilentSkip ? (
-            <div className="w-full rounded-card surface-recessed p-5 text-center space-y-3">
-              <p className="text-body-base font-semibold text-ink">We can&rsquo;t hear you — check your mic</p>
-              <p className="text-body-s text-ink-muted">
-                Keep trying to record, or skip this question. Skipping is scored as no answer, just like in the real exam.
-              </p>
-              <div className="flex items-center justify-center gap-3 pt-1">
-                <Button variant="primary" size="sm" onClick={onKeepTrying}>
-                  Keep trying
-                </Button>
-                <Button variant="secondary" size="sm" onClick={onSkipQuestion}>
-                  Skip question
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <>
-              {!recording.sttSupported && (
-                <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/25">
-                  <AlertTriangle size={14} className="text-amber-400 shrink-0 mt-0.5" />
-                  <p className="text-[11px] text-amber-300 leading-snug">
-                    This browser doesn&rsquo;t support live speech transcription — your answer will be transcribed after you submit. Try Chrome or Edge for the best experience.
-                  </p>
-                </div>
-              )}
-              <ScrollingWaveform isRecording={rec} source={recording.micLevel} />
-              <div className="text-center font-numeral text-body-s text-ink-subtle tabular-nums">
-                {formatTime(Math.round(elapsedS))}
-              </div>
-              {showSilenceNudge ? (
-                <div className="flex items-center justify-center gap-1.5 text-center text-body-s text-ink-muted surface-recessed rounded-control py-1.5 px-3">
-                  <Info size={12} className="flex-shrink-0 opacity-60" />
-                  Fini&nbsp;? Soumets ta réponse — ou continue à parler.
-                </div>
-              ) : (
-                rec && elapsedS >= PACING_HINT_S && (
-                  <div className="flex items-center justify-center gap-1.5 text-center text-body-s text-ink-subtle surface-recessed rounded-control py-1.5 px-3">
-                    <Info size={12} className="flex-shrink-0 opacity-60" />
-                    Pense à conclure ta réponse.
-                  </div>
-                )
-              )}
-              <div className="flex items-center justify-center gap-3">
-                <button
-                  onClick={rec ? onSubmitTurn : recording.start}
-                  aria-label={rec ? 'Stop and submit' : 'Start recording'}
-                  className="w-[60px] h-[60px] rounded-pill bg-action hover:bg-action-hover
-                    flex items-center justify-center transition-colors duration-state ease-smooth"
-                >
-                  <span
-                    className={`bg-action-ink transition-all duration-state ease-smooth ${
-                      rec ? 'w-[18px] h-[18px] rounded-[4px]' : 'w-4 h-4 rounded-pill'
-                    }`}
-                  />
-                </button>
-
-                {rec ? (
-                  <Button variant="secondary" size="sm" onClick={onSubmitTurn}>
-                    Stop &amp; submit
-                  </Button>
-                ) : action?.kind === 'REPEAT' ? (
-                  <Button variant="secondary" size="sm" disabled>
-                    <RotateCcw size={12} /> No repeats left
-                  </Button>
-                ) : (
-                  <Button variant="quiet" size="sm" onClick={onRequestRepeat}>
-                    <RotateCcw size={12} /> Repeat question
-                  </Button>
-                )}
-              </div>
             </>
           )}
         </div>
+        {part === 'rolePlay' && rolePlaySetup && (
+          <p className="max-w-2xl mx-auto text-body-s text-ink-subtle leading-relaxed mt-1">{rolePlaySetup}</p>
+        )}
       </div>
+
+      <div className="flex-1 flex md:flex-row overflow-hidden">
+        <div className="flex-1 flex flex-col min-w-0 max-w-2xl mx-auto w-full">
+          <ExamTranscript entries={entries} voiceMuted={voiceMuted} isAwaitingExaminer={turnBusy} />
+
+          <div className="px-5 pb-5 pt-2 space-y-3 shrink-0">
+            {pendingTranscriptionFailure ? (
+              <div className="w-full rounded-card surface-recessed p-5 text-center space-y-3">
+                <p className="text-body-base font-semibold text-ink">We couldn&rsquo;t transcribe your answer</p>
+                <p className="text-body-s text-ink-muted">
+                  Something went wrong on our end, not with your answer. You can try again or skip this question.
+                </p>
+                <div className="flex items-center justify-center gap-3 pt-1">
+                  <Button variant="primary" size="sm" onClick={onKeepTrying}>
+                    Try again
+                  </Button>
+                  <Button variant="secondary" size="sm" onClick={onSkipQuestion}>
+                    Skip question
+                  </Button>
+                </div>
+              </div>
+            ) : pendingSilentSkip ? (
+              <div className="w-full rounded-card surface-recessed p-5 text-center space-y-3">
+                <p className="text-body-base font-semibold text-ink">We can&rsquo;t hear you — check your mic</p>
+                <p className="text-body-s text-ink-muted">
+                  Keep trying to record, or skip this question. Skipping is scored as no answer, just like in the real exam.
+                </p>
+                <div className="flex items-center justify-center gap-3 pt-1">
+                  <Button variant="primary" size="sm" onClick={onKeepTrying}>
+                    Keep trying
+                  </Button>
+                  <Button variant="secondary" size="sm" onClick={onSkipQuestion}>
+                    Skip question
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <>
+                {showSilenceNudge ? (
+                  <div className="flex items-center justify-center gap-1.5 text-center text-body-s text-ink-muted surface-recessed rounded-control py-1.5 px-3">
+                    <Info size={12} className="flex-shrink-0 opacity-60" />
+                    Fini&nbsp;? Soumets ta réponse — ou continue à parler.
+                  </div>
+                ) : (
+                  rec && recording.elapsedTime >= PACING_HINT_S && (
+                    <div className="flex items-center justify-center gap-1.5 text-center text-body-s text-ink-subtle surface-recessed rounded-control py-1.5 px-3">
+                      <Info size={12} className="flex-shrink-0 opacity-60" />
+                      Pense à conclure ta réponse.
+                    </div>
+                  )
+                )}
+
+                <ExamComposer
+                  recording={recording}
+                  disabled={composerDisabled}
+                  onStartRecording={onStartRecording}
+                  onSubmitSpeech={onSubmitSpeech}
+                  onSubmitText={onSubmitText}
+                />
+
+                <div className="flex items-center justify-center">
+                  {canRepeat ? (
+                    <Button variant="quiet" size="sm" onClick={onRequestRepeat} disabled={composerDisabled}>
+                      <RotateCcw size={12} /> Repeat question
+                    </Button>
+                  ) : (
+                    !rec && (
+                      <Button variant="quiet" size="sm" disabled>
+                        <RotateCcw size={12} /> No repeats left
+                      </Button>
+                    )
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        <div className="hidden lg:block w-80 shrink-0 border-l border-hairline p-4 overflow-y-auto">
+          <ExamRailPlaceholder />
+        </div>
+      </div>
+
+      <button
+        onClick={() => setMobileSheetOpen(true)}
+        className="lg:hidden fixed right-4 bottom-40 z-40 flex items-center justify-center w-11 h-11 rounded-pill
+          bg-action text-action-ink shadow-lg transition-colors duration-state ease-smooth"
+        aria-label="Show live corrections"
+      >
+        <MessageSquareText size={18} />
+      </button>
+
+      {mobileSheetOpen && (
+        <>
+          <div
+            className="lg:hidden fixed inset-0 z-[90] bg-black/50"
+            onClick={() => setMobileSheetOpen(false)}
+          />
+          <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[95] surface-raised rounded-t-2xl p-5 pb-8 max-h-[70vh] overflow-y-auto">
+            <div className="w-10 h-1.5 rounded-full bg-hairline-strong mx-auto mb-4" />
+            <ExamRailPlaceholder />
+          </div>
+        </>
+      )}
 
       <ExitConfirmDialog
         open={showExitConfirm}
         onCancel={() => setShowExitConfirm(false)}
         onConfirm={onExit}
       />
+    </div>
+  );
+}
+
+/**
+ * W3 (the live corrections rail — ExamCorrectionsRail.tsx + turnFeedback.ts)
+ * isn't built yet, so this slot is a sealed, static placeholder: no
+ * getExaminerFeedback calls, no per-turn state. Swap this out once W3 lands.
+ */
+function ExamRailPlaceholder() {
+  return (
+    <div className="rounded-card surface p-4 text-center space-y-1.5">
+      <p className="text-eyebrow uppercase text-ink-subtle">Live corrections</p>
+      <p className="text-body-s text-ink-muted">Coming in a later update.</p>
     </div>
   );
 }

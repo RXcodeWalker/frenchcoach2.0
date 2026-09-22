@@ -119,6 +119,9 @@ export function ExamMode() {
   // handleKeepTrying/handleSkipQuestion recovery handlers.
   const [pendingTranscriptionFailure, setPendingTranscriptionFailure] = useState(false);
   const [scoringMachine, setScoringMachine] = useState<ScoringMachineState>(initialScoringMachineState());
+  // W2/W4: true while a submitted turn is awaiting the next examiner action
+  // (drives ExamTranscript's typing indicator and disables the composer).
+  const [turnPending, setTurnPending] = useState(false);
   const [envelopeView, setEnvelopeView] = useState<EnvelopeView | null>(null);
   const [rolePlayScenario, setRolePlayScenario] = useState<RolePlayScenario | undefined>(undefined);
   const [rolePlayMeta, setRolePlayMeta] = useState<RolePlayMeta | undefined>(undefined);
@@ -307,6 +310,12 @@ export function ExamMode() {
     const firstAction = await session.begin();
     setAction(firstAction);
     await wait(PRE_LISTEN_PAUSE_MS);
+    // W4: recording is no longer auto-started here — the candidate chooses
+    // mic or keyboard from ExamComposer each turn (see handleStartRecording).
+  };
+
+  /** W4: bound to ExamComposer's mic button — the only place a turn's speaking clock starts. */
+  const handleStartRecording = () => {
     turnStartRef.current = clock.nowS();
     recording.start();
   };
@@ -315,6 +324,7 @@ export function ExamMode() {
     const session = sessionRef.current;
     if (!session || turnBusyRef.current) return;
     turnBusyRef.current = true;
+    setTurnPending(true);
 
     try {
       const responseDurationS = Math.max(clock.nowS() - turnStartRef.current, 0.1);
@@ -365,10 +375,43 @@ export function ExamMode() {
       }
 
       await wait(PRE_LISTEN_PAUSE_MS);
-      turnStartRef.current = clock.nowS();
-      recording.start();
     } finally {
       turnBusyRef.current = false;
+      setTurnPending(false);
+    }
+  };
+
+  /** W4: the composer's typed-submit path. Zero speaking duration by
+   * construction (no recording ran) — inputMode: 'text' is what exempts this
+   * turn from the duration guardrail's speech-only baseline, see
+   * insufficientEvidence.ts / typedTurnCount. Never calls recording.stop():
+   * ExamComposer already stops (and discards) any in-progress recording the
+   * moment the candidate starts typing, so there is nothing left to stop by
+   * the time Send is pressed. */
+  const handleSubmitTypedTurn = async (text: string) => {
+    const session = sessionRef.current;
+    if (!session || turnBusyRef.current) return;
+    turnBusyRef.current = true;
+    setTurnPending(true);
+
+    try {
+      const nextAction = await session.submitTurn({
+        transcript: text,
+        responseDurationS: 0,
+        requestedRepeat: false,
+        inputMode: 'text',
+      });
+      setAction(nextAction);
+
+      if (session.isComplete) {
+        await finishSession(session);
+        return;
+      }
+
+      await wait(PRE_LISTEN_PAUSE_MS);
+    } finally {
+      turnBusyRef.current = false;
+      setTurnPending(false);
     }
   };
 
@@ -384,6 +427,7 @@ export function ExamMode() {
     const session = sessionRef.current;
     if (!session || turnBusyRef.current) return;
     turnBusyRef.current = true;
+    setTurnPending(true);
     setPendingSilentSkip(false);
     setPendingTranscriptionFailure(false);
 
@@ -403,10 +447,9 @@ export function ExamMode() {
       }
 
       await wait(PRE_LISTEN_PAUSE_MS);
-      turnStartRef.current = clock.nowS();
-      recording.start();
     } finally {
       turnBusyRef.current = false;
+      setTurnPending(false);
     }
   };
 
@@ -414,6 +457,7 @@ export function ExamMode() {
     const session = sessionRef.current;
     if (!session || turnBusyRef.current) return;
     turnBusyRef.current = true;
+    setTurnPending(true);
 
     try {
       const nextAction = await session.submitTurn({
@@ -429,10 +473,9 @@ export function ExamMode() {
       }
 
       await wait(PRE_LISTEN_PAUSE_MS);
-      turnStartRef.current = clock.nowS();
-      recording.start();
     } finally {
       turnBusyRef.current = false;
+      setTurnPending(false);
     }
   };
 
@@ -756,10 +799,13 @@ export function ExamMode() {
   return (
     <ExamRunner
       action={action}
-      elapsedS={recording.elapsedTime}
+      entries={sessionRef.current?.getConductLog().entries ?? []}
       totalElapsedS={totalClock.elapsedS}
       recording={recording}
-      onSubmitTurn={() => void handleSubmitTurn()}
+      turnBusy={turnPending}
+      onStartRecording={handleStartRecording}
+      onSubmitSpeech={() => void handleSubmitTurn()}
+      onSubmitText={(text) => void handleSubmitTypedTurn(text)}
       onRequestRepeat={() => void handleRequestRepeat()}
       onExit={() => navigate('/')}
       voiceMuted={voiceMuted}

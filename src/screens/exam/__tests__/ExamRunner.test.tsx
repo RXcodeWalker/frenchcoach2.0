@@ -12,6 +12,12 @@ vi.mock('../../../features/recording/ScrollingWaveform', () => ({
   ScrollingWaveform: () => null,
 }));
 
+// AuthContext backs ExamComposer's consent gate — not under test here, and
+// every case below wants the composer's normal (non-gated) rendering.
+vi.mock('../../../context/AuthContext', () => ({
+  useAuth: () => ({ consentStatus: 'confirmed' }),
+}));
+
 afterEach(() => {
   cleanup();
 });
@@ -36,9 +42,12 @@ function baseRecording(overrides: Partial<RecordingState> = {}): RecordingState 
 
 const baseProps = {
   action: { kind: 'READ_MAIN', part: 'rolePlay', text: 'Bonjour', questionId: 'q1' } as never,
-  elapsedS: 0,
+  entries: [],
   totalElapsedS: 0,
-  onSubmitTurn: vi.fn(),
+  turnBusy: false,
+  onStartRecording: vi.fn(),
+  onSubmitSpeech: vi.fn(),
+  onSubmitText: vi.fn(),
   onRequestRepeat: vi.fn(),
   onExit: vi.fn(),
   voiceMuted: false,
@@ -76,7 +85,7 @@ describe('ExamRunner — reliability plan §2.4 transcription-failure banner', (
     expect(screen.queryByText(/We couldn.t transcribe your answer/)).toBeNull();
   });
 
-  it('shows the STT-unsupported banner when sttSupported is false and no failure is pending', () => {
+  it('shows the STT-unsupported banner (via the composer) when sttSupported is false and no failure is pending', () => {
     render(
       <ExamRunner
         {...baseProps}

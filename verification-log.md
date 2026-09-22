@@ -294,3 +294,120 @@ Not yet done (later workstreams per the plan): wiring the Coached/Exam Sim
 toggle into `ExamMode.tsx`/`ExamSelect.tsx` (W5), the rail itself and its own
 boundary test mirroring `interpreterBoundary.test.ts` (W3), the
 `ExamComposer` mic/text input UI and its consent-pending test (W4).
+
+## IGCSE Exam Mode overhaul — W2 + W4 (chat-transcript runner + dual mic/text input)
+
+Date: 2026-09-22
+
+Second slice of the exam-mode overhaul plan, built on top of W1's `coached`
+flag / `inputMode` plumbing. UI-only — no `src/domain/igcse/` engine files
+touched, so no stage `version.ts` bump and no golden-transcript risk (verified
+below: 5/5 still match).
+
+**W2 — chat-transcript runner** (`screens/exam/`):
+- `ExamRunner.tsx` rewritten: keeps the existing immersive shell/header
+  (segmented part bar, countdown, mute, End exam, `ExitConfirmDialog`) and the
+  `pendingSilentSkip`/`pendingTranscriptionFailure` recovery banners
+  verbatim, but the single-question focus card is replaced by a scrolling
+  chat transcript + a two-pane `md:flex-row` / `hidden lg:block w-80` rail
+  slot + `lg:hidden` mobile sheet, adopting `VisualNovelView.tsx`'s layout.
+- New `ExamTranscript.tsx` — derives the visible bubble list via `useMemo`
+  from `SimulationSession.getConductLog().entries` (never a parallel mutable
+  array, matching `RoleplaySession.tsx`'s discipline), auto-scrolls on new
+  entries, renders a typing-dots bubble while a turn is in flight.
+- New `ExamTurnBubble.tsx` — one bubble per `ConductLogEntry`. Examiner
+  bubbles carry their `ACTION_LABEL` and a replay button
+  (`speakExaminerText`); candidate bubbles show `(typed)` when
+  `inputMode === 'text'`. Empty-transcript entries (silent skips, button
+  repeats — `transcript: ''` by construction) and textless examiner entries
+  (`ADVANCE`) are filtered out rather than rendered as blank bubbles.
+- **Documented deviation**: the plan's "candidate bubbles render through
+  `MarkedUpScript` so a wavy-underlined error is clickable →
+  `openCardFromIssue`" is **not** wired up. That interaction needs per-turn
+  `ExaminerFeedback` data, which only W3's corrections rail
+  (`getExaminerFeedback` + `turnFeedback.ts`) produces — W3 doesn't exist
+  yet. Candidate bubbles render the transcript verbatim for now; the rail
+  slot is a static, sealed placeholder ("Live corrections — coming in a
+  later update") that makes zero calls in either mode, so this is additive
+  (no scored/live-signal boundary exists yet to violate) and leaves a single
+  swap point (`ExamRailPlaceholder` in `ExamRunner.tsx`,
+  `ExamTurnBubble`'s header comment) for W3 to land against. Flagged per the
+  task's "adapt without changing intended behavior and document the
+  deviation" instruction rather than treated as a blocker, since the plan
+  itself scopes the rail to a separate workstream (W3).
+
+**W4 — dual mic/text input**:
+- New `ExamComposer.tsx` — mic button + always-available text field + Send,
+  per turn. Enter submits (Shift+Enter newlines); Space toggles
+  recording when the field is empty and the field isn't focused.
+- **Design decision** (the plan states the *what*, not the *how*, here):
+  recording is no longer auto-started by `ExamMode.tsx` at the top of each
+  turn — the candidate now explicitly starts it (mic tap / Space), matching
+  the chat metaphor the plan's competitor-take section asks for. The old
+  code auto-called `recording.start()` in `startExam`/`handleSubmitTurn`/
+  `handleSkipQuestion`/`handleRequestRepeat`; those calls (and the
+  `turnStartRef` bookkeeping that went with them) are removed and replaced
+  by `ExamMode.tsx::handleStartRecording`, bound to the composer's mic
+  control. This was necessary to make "skips recording.stop()" for a typed
+  turn actually safe: with auto-start, a typed submission would otherwise
+  either have to stop a recognizer it doesn't need (defeating the point) or
+  leave one running unbounded — a real mic-left-hot risk in a codebase whose
+  child-safety model treats "browser mic permission" as never equivalent to
+  consent (ADR 0006). `handleKeepTrying`'s own explicit `recording.start()`
+  (the "Keep trying" retry button) is untouched — that's a deliberate
+  candidate action, not an auto-start.
+- To keep that safe without a redesign, `ExamComposer` itself stops (and
+  discards the transcript of) an in-progress recording the instant the
+  candidate types a character — "typing takes over from speech" — so a
+  typed `onSubmitText` truly never needs to call `recording.stop()` by the
+  time Send is pressed, satisfying the plan's line literally rather than by
+  leaving a recognizer abandoned.
+- Typed turns call `session.submitTurn({ transcript, responseDurationS: 0,
+  requestedRepeat: false, inputMode: 'text' })` — zero speaking duration by
+  construction (no recording ran), letting W1's `typedTurnCount` guardrail
+  exemption do its job without needing to fake a duration.
+- **Consent** (Phase 1.6 Part C / ADR 0006): `SpeakingConsentGate` wraps only
+  the mic button. Since the gate's waiting card is full-width chrome, not an
+  icon-sized affordance, it renders as its own row above the input bar when
+  `consentStatus === 'pending'` (mic button simply absent from the row that
+  turn) rather than being squeezed into the mic button's slot —
+  `RoleplaySession.tsx`'s `<span />` placeholder pattern, adapted: the real
+  mic button lives in the sibling `!consentPending` branch, not inside the
+  gate's children. The text field and Send button are never gated. New test:
+  `screens/exam/__tests__/ExamComposer.test.tsx` — consent-pending hides the
+  mic control and shows the guardian-wait message while the text field stays
+  fully usable (typed submit still fires `onSubmitText`); plus Enter-submits/
+  Shift+Enter-newlines and the typing-stops-an-in-progress-recording behavior.
+- `ExamMode.tsx` gained a `turnPending` state (distinct from the pre-existing
+  `turnBusyRef` re-entrancy guard) so the transcript's typing-dots indicator
+  and the composer's disabled state reflect the in-flight
+  `session.submitTurn` round-trip.
+
+**Not done here** (later workstreams, unchanged from W1's note): the
+Coached/Exam Sim toggle (W5), the live corrections rail itself + its
+`interpreterBoundary.test.ts`-style boundary test (W3), `ExamResults.tsx`'s
+`evidenceGroups`/mode-badge surfacing (W6), reliability/persistence (W7),
+design-token normalisation of any *other* exam-adjacent legacy component
+(W8) — `ExamRunner`/`ExamTranscript`/`ExamTurnBubble`/`ExamComposer` were all
+written against the already-migrated token set from the start, so there was
+nothing to normalise in the files this slice touched.
+
+Verified:
+- `npm run typecheck` clean.
+- `npx vitest run src/domain/igcse src/screens/exam src/services/exam` → 78
+  files, 541 tests, all pass (was 76/534 after W1; +1 new test file
+  (`ExamComposer.test.tsx`, 4 tests) + `ExamRunner.test.tsx`'s 3 existing
+  tests updated to the new prop contract, still 3/3 green).
+- `npm test` (repo-wide) → 235 files, 2155/2157 tests pass. Same 2
+  pre-existing failures as W1 recorded (missing `backend/` checkout;
+  unrelated Learn-domain corpus assertion) — confirmed unrelated to this
+  slice, no new failures.
+- `npm run lint` → 0 errors (same pre-existing warning set as before this
+  change, none in touched files).
+- `npm run score:golden` → 5/5 match (expected — no engine files touched).
+- Manual in-browser verification (mic permission prompts, actual TTS replay,
+  drag-dismiss mobile sheet, real STT) was **not** performed in this
+  session — no browser available. Typecheck/lint/unit tests verify
+  correctness of the code as written, not the live UX; flagged per the
+  root `CLAUDE.md` instruction to say so explicitly rather than claim
+  feature-level success from tests alone.
