@@ -7,9 +7,33 @@ describe('topicConversationDurationByConversation', () => {
   it('is zero when no turn carries candidateResponseDurationS (hand-authored transcript)', () => {
     const rows = topicConversationDurationByConversation(EVIDENCE_GOLDEN_TRANSCRIPT);
     expect(rows).toEqual([
-      { conversationId: 'topic1', candidateSpeakingDurationS: 0, candidateWordCount: 11 },
-      { conversationId: 'topic2', candidateSpeakingDurationS: 0, candidateWordCount: 17 },
+      { conversationId: 'topic1', candidateSpeakingDurationS: 0, candidateWordCount: 11, typedTurnCount: 0 },
+      { conversationId: 'topic2', candidateSpeakingDurationS: 0, candidateWordCount: 17, typedTurnCount: 0 },
     ]);
+  });
+
+  it('counts turns whose inputMode is text into typedTurnCount, without touching candidateSpeakingDurationS', () => {
+    const transcript: SpeakingTranscript = {
+      ...EVIDENCE_GOLDEN_TRANSCRIPT,
+      topicConversations: [
+        {
+          ...EVIDENCE_GOLDEN_TRANSCRIPT.topicConversations[0],
+          turns: EVIDENCE_GOLDEN_TRANSCRIPT.topicConversations[0].turns.map((turn, i) => ({
+            ...turn,
+            ...(i === 0 ? { inputMode: 'text' as const } : {}),
+          })),
+        },
+        EVIDENCE_GOLDEN_TRANSCRIPT.topicConversations[1],
+      ],
+    };
+
+    const rows = topicConversationDurationByConversation(transcript);
+    const topic1 = rows.find((row) => row.conversationId === 'topic1');
+    const topic2 = rows.find((row) => row.conversationId === 'topic2');
+
+    expect(topic1?.typedTurnCount).toBe(1);
+    expect(topic1?.candidateSpeakingDurationS).toBe(0);
+    expect(topic2?.typedTurnCount).toBe(0);
   });
 
   it('sums candidateResponseDurationS across turns in a conversation', () => {

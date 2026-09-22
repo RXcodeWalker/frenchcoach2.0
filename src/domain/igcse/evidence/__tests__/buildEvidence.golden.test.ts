@@ -61,8 +61,8 @@ describe('buildEvidenceSubset golden regression', () => {
         { taskId: 't5', partsExpected: 1, partsAddressed: 1 },
       ],
       topicConversationDurationByConversation: [
-        { conversationId: 'topic1', candidateSpeakingDurationS: 0, candidateWordCount: 11 },
-        { conversationId: 'topic2', candidateSpeakingDurationS: 0, candidateWordCount: 17 },
+        { conversationId: 'topic1', candidateSpeakingDurationS: 0, candidateWordCount: 11, typedTurnCount: 0 },
+        { conversationId: 'topic2', candidateSpeakingDurationS: 0, candidateWordCount: 17, typedTurnCount: 0 },
       ],
     });
   });

@@ -17,6 +17,7 @@ export class SessionTranscriptValidationError extends Error {
 }
 
 const SpeakerRoleSchema = z.enum(['examiner', 'candidate']);
+const CandidateInputModeSchema = z.enum(['speech', 'text']);
 const ContentProvenanceSchema = z.enum(['original-practice', 'confidential-internal']);
 const SessionPartSchema = z.enum(['rolePlay', 'topic1', 'topic2']);
 const ConfidenceSourceSchema = z.enum(['whisperx-align-score', 'faster-whisper-probability']);
@@ -46,6 +47,7 @@ const UtteranceSchema = z.object({
   endS: z.number().min(0),
   text: z.string(),
   words: z.array(WordSchema),
+  inputMode: CandidateInputModeSchema.optional(),
 });
 
 const ExaminerEventSchema = z.object({

@@ -7884,12 +7884,14 @@
       {
         "conversationId": "topic1",
         "candidateSpeakingDurationS": 0,
-        "candidateWordCount": 115
+        "candidateWordCount": 115,
+        "typedTurnCount": 0
       },
       {
         "conversationId": "topic2",
         "candidateSpeakingDurationS": 0,
-        "candidateWordCount": 97
+        "candidateWordCount": 97,
+        "typedTurnCount": 0
       }
     ]
   },

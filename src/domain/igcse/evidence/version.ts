@@ -23,5 +23,14 @@
  * EvidenceProfile. buildEvidenceSubset's own output is STILL byte-identical
  * (I2 — EVIDENCE_DETECTOR_FIXTURE_HASH unchanged); only buildEvidenceProfile's
  * full output changes, so again it's EVIDENCE_PROFILE_FIXTURE_HASH that moves.
+ *
+ * Exam-overhaul W1 (typed-turn duration fix): topicConversationDurationByConversation
+ * gained `typedTurnCount` (evidence/duration.ts), read by the insufficient-
+ * evidence-duration guardrail so a mixed speech/text session's necessarily-
+ * zero typed-turn duration no longer spuriously trips it. buildEvidenceSubset's
+ * own output shape widens (new key, value 0 on every existing fixture — no
+ * detector's computed VALUE changes), so both EVIDENCE_DETECTOR_FIXTURE_HASH
+ * and EVIDENCE_PROFILE_FIXTURE_HASH move even though no mark-relevant number
+ * does.
  */
-export const EVIDENCE_DETECTOR_VERSION = 'detectors-v0.5';
+export const EVIDENCE_DETECTOR_VERSION = 'detectors-v0.6';

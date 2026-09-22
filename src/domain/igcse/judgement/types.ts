@@ -52,6 +52,16 @@ export interface ConversationTurn {
    * transcripts with no timing source (unit fixtures, manual entry).
    */
   candidateResponseDurationS?: number;
+  /**
+   * W1: which input channel produced this turn's candidate utterance(s) — see
+   * stt/types.ts's CandidateInputMode. 'text' when every candidate utterance
+   * behind this turn was typed; 'speech' when at least one was spoken; absent
+   * when there is no live-session provenance (hand-authored fixtures,
+   * ASR-annotated recordings). Read only by the insufficient-evidence-duration
+   * guardrail, to avoid penalizing a typed turn's necessarily-zero speaking
+   * duration — see guardrails/insufficientEvidence.ts.
+   */
+  inputMode?: 'speech' | 'text';
 }
 
 /** Injected LLM seam — no model/temperature/retry in S1. */

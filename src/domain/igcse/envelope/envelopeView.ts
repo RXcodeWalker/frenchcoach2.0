@@ -69,6 +69,8 @@ export interface EnvelopeView {
   criteria: CriterionView[];
   guardrailTriggers: GuardrailTriggerView[];
   evidenceGroups: EvidenceGroupView[];
+  /** W1: count of topic-conversation turns whose candidate material was typed — see evidence/types.ts TopicConversationDurationEvidence.typedTurnCount. */
+  typedTurnCount: number;
   teacherMarkSet?: TeacherMarkSet;
 }
 
@@ -186,6 +188,11 @@ export function buildEnvelopeView(envelope: ScoringEnvelope, teacherMarkSet?: Te
     }
   }
 
+  const typedTurnCount = transcript.topicConversations.reduce(
+    (sum, conversation) => sum + conversation.turns.filter((turn) => turn.inputMode === 'text').length,
+    0,
+  );
+
   const view: EnvelopeView = {
     attemptId: envelope.attemptId,
     sessionId: envelope.sessionId,
@@ -198,6 +205,7 @@ export function buildEnvelopeView(envelope: ScoringEnvelope, teacherMarkSet?: Te
     criteria,
     guardrailTriggers: envelope.guardrailTriggers.map((id) => ({ id })),
     evidenceGroups,
+    typedTurnCount,
   };
 
   if (teacherMarkSet !== undefined) {

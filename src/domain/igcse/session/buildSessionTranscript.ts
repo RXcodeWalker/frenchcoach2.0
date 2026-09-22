@@ -94,6 +94,7 @@ function candidateEntryToUtterance(entry: ConductLogCandidateEntry, index: numbe
     endS: entry.endS,
     text,
     words: blank ? [] : synthesizeWords(entry.transcript, entry.startS, entry.endS),
+    ...(entry.inputMode !== undefined ? { inputMode: entry.inputMode } : {}),
   };
 }
 

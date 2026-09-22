@@ -1644,12 +1644,14 @@
       {
         "conversationId": "topic1",
         "candidateSpeakingDurationS": 0,
-        "candidateWordCount": 4
+        "candidateWordCount": 4,
+        "typedTurnCount": 0
       },
       {
         "conversationId": "topic2",
         "candidateSpeakingDurationS": 0,
-        "candidateWordCount": 5
+        "candidateWordCount": 5,
+        "typedTurnCount": 0
       }
     ]
   },

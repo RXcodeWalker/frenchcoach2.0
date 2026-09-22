@@ -28,7 +28,7 @@ import type {
   SessionQuestionSet,
 } from '../../domain/igcse/session/types';
 import type { SessionPart } from '../../domain/igcse/stt/types';
-import type { ContentProvenance, SessionTranscript } from '../../domain/igcse/stt/types';
+import type { CandidateInputMode, ContentProvenance, SessionTranscript } from '../../domain/igcse/stt/types';
 import { speakExaminerText } from './examinerVoice';
 import { wait, INTER_ACTION_PAUSE_MS } from './examinerPacing';
 
@@ -38,6 +38,8 @@ export interface SimulationTurnInput {
   requestedRepeat: boolean;
   /** Explicit "Skip question" after a silence prompt — see CandidateTurnResult.skipConfirmed. */
   skipConfirmed?: boolean;
+  /** W1: mic vs text field this turn came from. Optional — absent means 'speech'. */
+  inputMode?: CandidateInputMode;
 }
 
 export interface SimulationSessionCallbacks {
@@ -62,18 +64,32 @@ export class SimulationSession {
   private seq = 1;
   private currentAction: ExaminerAction | null = null;
   private readonly callbacks: SimulationSessionCallbacks;
+  private readonly _coached: boolean;
 
   constructor(
     sessionId: string,
     questionSet: SessionQuestionSet,
     getClockS: () => number,
     callbacks: SimulationSessionCallbacks = {},
+    /**
+     * W1: Coached Practice (rail live every turn) vs Exam Sim (rail sealed
+     * until submission) — see the exam-overhaul plan's "Decisions locked"
+     * section. Read only by the caller (W3's rail gating); never passed to
+     * conductEngine/startConduct/step, so it cannot influence the deterministic
+     * ConductLog — see simulationSession.test.ts's conduct-parity test.
+     */
+    coached: boolean = false,
   ) {
     this.sessionId = sessionId;
     this.questionSet = questionSet;
     this.getClockS = getClockS;
     this.callbacks = callbacks;
+    this._coached = coached;
     this.engineState = initConductEngineState(questionSet);
+  }
+
+  get coached(): boolean {
+    return this._coached;
   }
 
   /** Starts the session: emits the first examiner action (role play task 1). Speaks it via TTS if enabled. */
@@ -132,6 +148,7 @@ export class SimulationSession {
       responseDurationS: turn.responseDurationS,
       requestedRepeat: turn.requestedRepeat || intent === 'repeat_request',
       skipConfirmed: turn.skipConfirmed,
+      inputMode: turn.inputMode,
     };
     candidateResult.relevant = intent === 'answer' ? computeRelevance(candidateResult, part) : false;
 

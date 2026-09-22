@@ -16,6 +16,14 @@ export type ContentProvenance = 'original-practice' | 'confidential-internal';
 
 export type SessionPart = 'rolePlay' | 'topic1' | 'topic2';
 
+/**
+ * W1: which input channel produced a candidate utterance — mic (STT) or the
+ * always-available text field (see the exam-overhaul plan's W4). Optional:
+ * absent for every pre-existing ASR-annotated/hand-authored transcript, which
+ * predates dual input and is speech by construction.
+ */
+export type CandidateInputMode = 'speech' | 'text';
+
 export interface Word {
   text: string;
   startS: number;
@@ -37,6 +45,8 @@ export interface Utterance {
   /** == words.map(w => w.text).join(' ') */
   text: string;
   words: Word[];
+  /** Candidate utterances only — undefined for examiner utterances and for any transcript predating dual input. */
+  inputMode?: CandidateInputMode;
 }
 
 export type ExaminerEventKind =

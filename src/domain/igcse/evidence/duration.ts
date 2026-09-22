@@ -15,5 +15,6 @@ export function topicConversationDurationByConversation(
       (sum, turn) => sum + countWords(turn.candidateResponse),
       0,
     ),
+    typedTurnCount: conversation.turns.filter((turn) => turn.inputMode === 'text').length,
   }));
 }

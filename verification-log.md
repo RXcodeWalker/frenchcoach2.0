@@ -177,3 +177,120 @@ Verified:
   per-(user,session) unique index behaves). **Not executed locally — Docker /
   `npx supabase start` was unavailable in this session.** To run in backend CI
   or against a local stack.
+
+## IGCSE Exam Mode overhaul — W1 (session model: `coached` flag + `inputMode`)
+
+Date: 2026-09-22
+
+First workstream of the exam-mode overhaul plan (persistent chat transcript +
+live corrections rail + dual mic/text input for `ExamRunner`). W1 is
+session-model plumbing only — no UI changes.
+
+**Coached flag** (`SimulationSession`):
+- `services/exam/simulationSession.ts` — new constructor param `coached:
+  boolean = false`, exposed via a read-only `coached` getter. Stored only on
+  the runtime driver; never passed to `initConductEngineState`/`startConduct`/
+  `step`, so it cannot influence the deterministic `ConductLog`. Existing
+  `ExamMode.tsx` call site is untouched (default `false` = Exam Sim); wiring
+  the actual Coached/Exam Sim toggle is W5 (`ExamSelect.tsx`) scope.
+- New test `services/exam/__tests__/simulationSession.test.ts` proves
+  byte-identical `ConductLog` for `coached: true` vs `coached: false` given
+  the same scripted turn sequence — the parity test the plan calls for.
+
+**`inputMode` threading** (mic vs the always-available text field, W4 scope
+to actually use):
+- `domain/igcse/stt/types.ts` — new `CandidateInputMode = 'speech' | 'text'`;
+  `Utterance.inputMode?` (candidate utterances only). `stt/schema.ts` zod
+  updated to accept it (optional, so every pre-existing transcript still
+  validates).
+- `domain/igcse/session/types.ts` — `CandidateTurnResult.inputMode?` and
+  `ConductLogCandidateEntry.inputMode?`, both optional (absent = 'speech') to
+  avoid touching the ~50 existing `CandidateTurnResult` test fixtures.
+  `conductEngine.ts::candidateTurnToLogEntry` and
+  `session/buildSessionTranscript.ts::candidateEntryToUtterance` carry it
+  through unchanged (dropped when absent, matching the file's other optional
+  fields).
+- `services/exam/simulationSession.ts` — `SimulationTurnInput.inputMode?`,
+  threaded into `submitTurn`'s `CandidateTurnResult`.
+
+**Typed-turn duration guardrail fix** (the plan's "must be solved explicitly"
+hazard): a mixed speech/text session's typed turns read 0s speaking duration
+by construction, which could spuriously trip
+`insufficient_evidence_duration` on duration alone even with ample word-count
+evidence.
+- `domain/igcse/judgement/types.ts` — `ConversationTurn.inputMode?: 'speech' |
+  'text'` (topic-conversation turns only — role-play is out of this
+  guardrail's scope, per its own header comment).
+- `domain/igcse/stt/project/toSpeakingTranscript.ts` — derives a turn's
+  `inputMode` from its candidate utterance(s): `'text'` only if every
+  utterance behind the turn was typed, `'speech'` if any was spoken, else
+  undefined (ASR-annotated/hand-authored transcripts, unaffected).
+- `domain/igcse/evidence/types.ts` /
+  `evidence/duration.ts::topicConversationDurationByConversation` — new
+  `typedTurnCount` per topic conversation.
+- `domain/igcse/guardrails/insufficientEvidence.ts` — the duration sub-check
+  now also requires combined `typedTurnCount === 0` before it can fire (same
+  "duration isn't a trustworthy signal here" reasoning as the pre-existing
+  missing-timing bypass, generalized to "partly missing because it was
+  typed"). The word-count sub-check is unchanged and always applies.
+- `domain/igcse/envelope/envelopeView.ts` — new `EnvelopeView.typedTurnCount`
+  (summed from `transcriptSnapshot`), per the plan's "carry typedTurnCount
+  into EnvelopeView."
+
+**Deviations from the plan's literal file list** (documented per the task's
+"adapt without changing intended behavior" instruction — none affect
+architecture, scoring behavior, or data integrity):
+- No `envelope/version.ts` exists in this codebase — that stage's version pin
+  is `ENVELOPE_SCHEMA_VERSION` in `envelope/types.ts`. It was **not** bumped:
+  `ScoringEnvelope`'s own top-level shape is unchanged, and both
+  `evidenceProfileSnapshot`/`transcriptSnapshot` are already loosely-typed
+  audit blobs (`z.record(string, unknown())`) in `envelope/schema.ts`, so
+  nested additive fields don't affect envelope validation or migration.
+  `envelope/schemaMigration.test.ts` needed no changes and was left as-is.
+- `coached` was **not** added to `SessionTranscript`/`stt/types.ts`. The
+  plan's "the report states which mode produced it" is a W6 (results screen)
+  UI concern that can read the mode from wherever `ExamMode`'s own session
+  state holds it; putting `coached` on the audited, scored `SessionTranscript`
+  would blur invariant 2's boundary ("live LLM signal / rail state never
+  reaches the scored pipeline") for no W1 benefit. `stt/types.ts` was still
+  touched, for `Utterance.inputMode`.
+- Per `src/domain/igcse/CLAUDE.md` policy ("bump the relevant stage's
+  `version.ts` whenever you change that stage's behavior"), bumped
+  `EVIDENCE_DETECTOR_VERSION` (`detectors-v0.5` → `v0.6`) and
+  `GUARDRAILS_VERSION` (`guardrails-v0.3` → `v0.4`), each with a dated
+  rationale comment in its `version.ts`.
+
+**Golden regeneration** (flagged here explicitly per the plan's "a moved
+golden means scoring behavior changed — that's a bug in this work, not a test
+to update"): `npm run score:golden` initially failed all 5 cases after this
+change. Verified by hand (`computeGoldenCase` diffed field-by-field against
+the checked-in goldens) that **no mark, band, total, or guardrail trigger
+moved** on any of the 5 fixtures — the only diff was the new
+`typedTurnCount: 0` key inside `topicConversationDurationByConversation` (none
+of the 5 synthetic fixtures use typed turns) plus the two version-string
+bumps above. This is the same class of additive-only widening as the
+pre-existing Phase 1 / Phase 3 / Workstream E `EVIDENCE_DETECTOR_VERSION`
+bumps recorded in `evidence/version.ts`'s own history. Regenerated via the
+script's documented escape hatch (`npm run score:golden -- --update-goldens`,
+never hand-edited), then re-ran plain `npm run score:golden` → **5/5 match**.
+
+Verified:
+- `npm run typecheck` / `typecheck:server` clean. `typecheck:scripts` shows
+  the same 3 pre-existing errors as before this change (unrelated fixture
+  shape / tuple-index issues in `supabaseEnvelopeStore.test.ts` /
+  `supabaseTranscriptStore.test.ts`); no new errors.
+- `npx vitest run src/domain/igcse src/services/exam` → 76 files, 534 tests,
+  all pass.
+- `npm test` (repo-wide) → 234 files, 2151/2153 tests pass. The 2 failures
+  (`src/services/api/__tests__/feedbackContractFixtures.test.ts` — missing
+  `backend/` checkout in this session; `src/domain/learn/demand/__tests__/infer.test.ts`
+  — an unrelated Learn-domain corpus assertion) are confirmed pre-existing on
+  a clean tree (`git stash` + re-run) and untouched by this work.
+- `npm run lint` → 0 errors (pre-existing warnings only, none in touched
+  files).
+- `npm run score:golden` → 5/5 match (see regeneration note above).
+
+Not yet done (later workstreams per the plan): wiring the Coached/Exam Sim
+toggle into `ExamMode.tsx`/`ExamSelect.tsx` (W5), the rail itself and its own
+boundary test mirroring `interpreterBoundary.test.ts` (W3), the
+`ExamComposer` mic/text input UI and its consent-pending test (W4).

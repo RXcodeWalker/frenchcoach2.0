@@ -825,6 +825,7 @@ export function candidateTurnToLogEntry(
     requestedRepeat: result.requestedRepeat,
     relevant,
     intent,
+    inputMode: result.inputMode,
   };
 }
 

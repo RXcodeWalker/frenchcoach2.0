@@ -5,6 +5,7 @@ import {
   CLEAN_NO_TIMING_TRANSCRIPT,
   LOW_DURATION_TRANSCRIPT,
   LOW_WORD_COUNT_TRANSCRIPT,
+  MIXED_TYPED_SPEECH_TRANSCRIPT,
 } from './synthetic';
 
 describe('checkInsufficientEvidence', () => {
@@ -45,6 +46,28 @@ describe('checkInsufficientEvidence', () => {
       0,
     );
     expect(totalDuration).toBe(0);
+
+    const triggers = checkInsufficientEvidence(evidence);
+    expect(triggers).toEqual([]);
+  });
+
+  it('W1: does not trip the duration sub-check on a mixed speech/text session — low combined duration is explained by typed turns, not insufficient speaking', () => {
+    const evidence = buildEvidenceSubset(MIXED_TYPED_SPEECH_TRANSCRIPT);
+    const totals = evidence.topicConversationDurationByConversation.reduce(
+      (acc, c) => ({
+        durationS: acc.durationS + c.candidateSpeakingDurationS,
+        wordCount: acc.wordCount + c.candidateWordCount,
+        typedTurnCount: acc.typedTurnCount + c.typedTurnCount,
+      }),
+      { durationS: 0, wordCount: 0, typedTurnCount: 0 },
+    );
+    // Sanity-check the fixture actually exercises the hazard: low duration
+    // (would have tripped the old, typed-blind check), sufficient words, and
+    // at least one typed turn.
+    expect(totals.durationS).toBeGreaterThan(0);
+    expect(totals.durationS).toBeLessThan(240);
+    expect(totals.wordCount).toBeGreaterThanOrEqual(200);
+    expect(totals.typedTurnCount).toBeGreaterThan(0);
 
     const triggers = checkInsufficientEvidence(evidence);
     expect(triggers).toEqual([]);

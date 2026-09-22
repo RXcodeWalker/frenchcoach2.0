@@ -24,6 +24,19 @@ function sumCandidateDuration(utterances: Utterance[]): number {
   return utterances.reduce((sum, u) => sum + (u.endS - u.startS), 0);
 }
 
+/**
+ * W1: 'text' only when every candidate utterance behind this turn was typed —
+ * any real speech (or no inputMode provenance at all, e.g. ASR-annotated
+ * recordings) means the turn is not exempt from the duration guardrail's
+ * speech-only baseline. See judgement/types.ts ConversationTurn.inputMode.
+ */
+function turnInputMode(utterances: Utterance[]): 'speech' | 'text' | undefined {
+  if (utterances.length === 0) return undefined;
+  if (utterances.every((u) => u.inputMode === 'text')) return 'text';
+  if (utterances.some((u) => u.inputMode === 'speech')) return 'speech';
+  return undefined;
+}
+
 function findQuestion(questionSet: SessionQuestionSet, questionId: string | null): SessionQuestion | undefined {
   if (questionId === null) return undefined;
   return questionSet.questions.find((q) => q.questionId === questionId);
@@ -60,6 +73,7 @@ function buildTopicConversation(
     const candidateUtterances = session.utterances.filter(
       (u) => u.role === 'candidate' && u.part === conversationId && u.questionId === question.questionId,
     );
+    const inputMode = turnInputMode(candidateUtterances);
     return {
       turnId: question.questionId,
       questionPrompt: question.mainText,
@@ -70,6 +84,7 @@ function buildTopicConversation(
       ...(candidateUtterances.length > 0
         ? { candidateResponseDurationS: sumCandidateDuration(candidateUtterances) }
         : {}),
+      ...(inputMode !== undefined ? { inputMode } : {}),
     };
   });
 

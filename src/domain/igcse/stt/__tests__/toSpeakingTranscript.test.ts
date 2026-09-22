@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { toSpeakingTranscript } from '../project/toSpeakingTranscript';
 import { assembleSession } from '../assemble/assembleSession';
 import type { AssembleSessionMeta } from '../assemble/assembleSession';
-import type { RawAsrResult, SessionQuestionSet } from '../types';
+import type { RawAsrResult, SessionQuestionSet, SessionTranscript, Utterance } from '../types';
 
 import structGolden from './fixtures/structurally-complete.golden.json';
 import structRaw from './fixtures/structurally-complete-raw-asr.json';
@@ -80,5 +80,95 @@ describe('toSpeakingTranscript', () => {
         expect(turn.candidateResponseDurationS).toBe(expectedDuration);
       }
     }
+  });
+
+  it('leaves ConversationTurn.inputMode undefined for ASR-annotated recordings (no dual-input provenance)', () => {
+    const session = assembleSession(structRaw as RawAsrResult, structQuestions as SessionQuestionSet, meta);
+    const transcript = toSpeakingTranscript(session, structQuestions as SessionQuestionSet);
+
+    for (const conversation of transcript.topicConversations) {
+      for (const turn of conversation.turns) {
+        expect(turn.inputMode).toBeUndefined();
+      }
+    }
+  });
+
+  describe('W1: ConversationTurn.inputMode derivation', () => {
+    const qs: SessionQuestionSet = {
+      questionSetId: 'input-mode-qs',
+      questions: [
+        { questionId: 'q1', part: 'topic1', mainText: 'Q1?', alternativeTexts: [] },
+        { questionId: 'q2', part: 'topic1', mainText: 'Q2?', alternativeTexts: [] },
+        { questionId: 'q3', part: 'topic1', mainText: 'Q3?', alternativeTexts: [] },
+      ],
+      furtherQuestions: { topic1: ['f1', 'f2'], topic2: ['f1', 'f2'] },
+    };
+
+    function candidateUtterance(over: Partial<Utterance>): Utterance {
+      return {
+        utteranceId: 'u',
+        role: 'candidate',
+        speakerCluster: 'user',
+        part: 'topic1',
+        questionId: 'q1',
+        startS: 0,
+        endS: 1,
+        text: 'Réponse.',
+        words: [],
+        ...over,
+      };
+    }
+
+    function sessionWith(utterances: Utterance[]): SessionTranscript {
+      return {
+        schemaVersion: 'session-transcript-v1',
+        assemblerVersion: 'test',
+        sessionId: 'input-mode-session',
+        recordedAt: '2026-01-01T00:00:00.000Z',
+        contentProvenance: 'original-practice',
+        userCorrected: false,
+        audio: { sha256: '0'.repeat(64), durationS: 10, sampleRateHz: 16000, channels: 1 },
+        stt: {
+          model: 'test',
+          modelVersion: 'test',
+          provider: 'test',
+          languageCode: 'fr',
+          alignmentModel: null,
+          diarizationModel: null,
+          decodeParamsHash: '0'.repeat(64),
+          confidenceSource: 'faster-whisper-probability',
+          promptBiasedRetries: 0,
+          transcribedAt: '2026-01-01T00:00:00.000Z',
+        },
+        annotationSource: 'session-engine-log',
+        questionSetId: qs.questionSetId,
+        questionSetHash: '1'.repeat(64),
+        matchThreshold: 1,
+        roleLabelConfidence: 1,
+        utterances,
+        examinerEvents: [],
+      };
+    }
+
+    it("is 'text' when every candidate utterance behind the turn was typed", () => {
+      const session = sessionWith([candidateUtterance({ questionId: 'q1', inputMode: 'text' })]);
+      const transcript = toSpeakingTranscript(session, qs);
+      expect(transcript.topicConversations[0].turns.find((t) => t.turnId === 'q1')?.inputMode).toBe('text');
+    });
+
+    it("is 'speech' when at least one candidate utterance behind the turn was spoken", () => {
+      const session = sessionWith([
+        candidateUtterance({ utteranceId: 'u1', questionId: 'q2', inputMode: 'text' }),
+        candidateUtterance({ utteranceId: 'u2', questionId: 'q2', inputMode: 'speech' }),
+      ]);
+      const transcript = toSpeakingTranscript(session, qs);
+      expect(transcript.topicConversations[0].turns.find((t) => t.turnId === 'q2')?.inputMode).toBe('speech');
+    });
+
+    it('is undefined when no candidate utterance carries inputMode provenance', () => {
+      const session = sessionWith([candidateUtterance({ questionId: 'q3', inputMode: undefined })]);
+      const transcript = toSpeakingTranscript(session, qs);
+      expect(transcript.topicConversations[0].turns.find((t) => t.turnId === 'q3')?.inputMode).toBeUndefined();
+    });
   });
 });

@@ -9,7 +9,8 @@ import type { SessionPart } from '../stt/types';
 
 // ── Question set (re-exported from stt/types — this IS the S3-defined shape) ──
 
-export type { SessionQuestion, SessionQuestionSet } from '../stt/types';
+export type { SessionQuestion, SessionQuestionSet, CandidateInputMode } from '../stt/types';
+import type { CandidateInputMode } from '../stt/types';
 
 // ── Examiner actions ──────────────────────────────────────────────────────────
 
@@ -65,6 +66,8 @@ export interface CandidateTurnResult {
    * already declined to keep trying.
    */
   skipConfirmed?: boolean;
+  /** W1: mic vs text field. Optional — absent means 'speech' (every pre-dual-input call site). */
+  inputMode?: CandidateInputMode;
 }
 
 /**
@@ -115,6 +118,8 @@ export interface ConductLogCandidateEntry {
    * see that file's header for the intentional-coupling note. Never serialized.
    */
   intent?: import('./utteranceIntents').UtteranceIntent;
+  /** W1: carried from CandidateTurnResult.inputMode onto the Utterance by buildSessionTranscript. */
+  inputMode?: CandidateInputMode;
 }
 
 export type ConductLogEntry = ConductLogExaminerEntry | ConductLogCandidateEntry;

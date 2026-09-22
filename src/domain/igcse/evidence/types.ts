@@ -41,11 +41,20 @@ export interface RolePlayPartsEvidence {
  * §3.5). `candidateSpeakingDurationS` is 0 when no turn in the conversation
  * carries `candidateResponseDurationS` (hand-authored transcripts with no
  * timing source) — absence is not a penalty signal here, L3 decides that.
+ *
+ * W1: `typedTurnCount` counts turns whose candidate material was typed
+ * (ConversationTurn.inputMode === 'text') — a typed turn contributes real
+ * wordCount but necessarily zero speaking duration, so a mixed speech/text
+ * session under-reports candidateSpeakingDurationS relative to a threshold
+ * calibrated for an all-spoken session. The guardrail uses this to skip the
+ * duration sub-check (word count alone still applies) whenever any material
+ * was typed, the same way it already skips when there's no timing at all.
  */
 export interface TopicConversationDurationEvidence {
   conversationId: 'topic1' | 'topic2';
   candidateSpeakingDurationS: number;
   candidateWordCount: number;
+  typedTurnCount: number;
 }
 
 export interface EvidenceProfileSubset {

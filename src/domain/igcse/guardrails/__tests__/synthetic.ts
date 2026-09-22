@@ -181,3 +181,58 @@ export const LOW_DURATION_TRANSCRIPT: SpeakingTranscript = {
  * because absence of timing is not a penalty signal (word count carries it).
  */
 export const CLEAN_NO_TIMING_TRANSCRIPT: SpeakingTranscript = CLEAN_LONG_TRANSCRIPT;
+
+/**
+ * W1 silent (mixed speech/text guard): one turn per topic conversation is
+ * spoken with a short real duration (well under minCombinedDurationS=240 on
+ * its own), the other is typed (0s by construction) — combined duration stays
+ * low, but combined word count clears minCombinedWordCount=200 and no turn is
+ * untimed-but-spoken. Before the W1 fix this spuriously tripped the duration
+ * sub-check even though the low duration is fully explained by typed turns,
+ * not insufficient speaking; it must stay silent now.
+ */
+export const MIXED_TYPED_SPEECH_TRANSCRIPT: SpeakingTranscript = {
+  ...PRACTICE_TRANSCRIPT,
+  topicConversations: [
+    {
+      conversationId: 'topic1',
+      topicArea: 'A',
+      turns: [
+        {
+          turnId: 'q1',
+          questionPrompt: 'What do you do at weekends?',
+          candidateResponse: LONG_RESPONSE,
+          candidateResponseDurationS: 30,
+          inputMode: 'speech',
+        },
+        {
+          turnId: 'q2',
+          questionPrompt: 'Do you prefer sport or cinema?',
+          candidateResponse: LONG_RESPONSE,
+          candidateResponseDurationS: 0,
+          inputMode: 'text',
+        },
+      ],
+    },
+    {
+      conversationId: 'topic2',
+      topicArea: 'B',
+      turns: [
+        {
+          turnId: 'q1',
+          questionPrompt: 'Describe your best friend.',
+          candidateResponse: LONG_RESPONSE,
+          candidateResponseDurationS: 0,
+          inputMode: 'text',
+        },
+        {
+          turnId: 'q2',
+          questionPrompt: 'What do you do together?',
+          candidateResponse: LONG_RESPONSE,
+          candidateResponseDurationS: 20,
+          inputMode: 'speech',
+        },
+      ],
+    },
+  ],
+};

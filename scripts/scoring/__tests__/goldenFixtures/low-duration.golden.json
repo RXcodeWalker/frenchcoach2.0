@@ -10652,12 +10652,14 @@
       {
         "conversationId": "topic1",
         "candidateSpeakingDurationS": 100,
-        "candidateWordCount": 156
+        "candidateWordCount": 156,
+        "typedTurnCount": 0
       },
       {
         "conversationId": "topic2",
         "candidateSpeakingDurationS": 100,
-        "candidateWordCount": 156
+        "candidateWordCount": 156,
+        "typedTurnCount": 0
       }
     ]
   },
