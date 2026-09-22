@@ -7,6 +7,7 @@ import { parseSessionTranscript } from '../../domain/igcse/stt/schema';
 import type { TranscriptStore } from '../../domain/igcse/stt/ports';
 import type { SessionTranscript } from '../../domain/igcse/stt/types';
 import { STORAGE_KEYS, storageGet, storageSet } from '../persistence/storage';
+import type { SimulationSessionSnapshot } from './simulationSession';
 
 type TranscriptMap = Record<string, SessionTranscript>;
 
@@ -79,4 +80,35 @@ export function setPendingScoreSessionId(sessionId: string): void {
 
 export function clearPendingScoreSessionId(): void {
   storageSet(STORAGE_KEYS.examPendingScoreSessionId, null);
+}
+
+/**
+ * W7 reliability: mid-exam (running-phase) resume-on-reload. A SessionTranscript
+ * can't represent this — buildTranscript() throws until the session reaches
+ * 'complete' — so this stores enough of SimulationSession's own state
+ * (ConductEngineState + the ConductLog entries so far + the last examiner action)
+ * to reconstruct it. `questionSetId` is re-resolved through the normal
+ * loader.ts path on resume (backend-first, offline-fixture fallback) rather
+ * than persisting the question set itself. A plain object, not a set — like
+ * examPendingScoreSessionId, ExamMode only ever runs one exam session at a time.
+ */
+export interface RunningSessionSnapshot {
+  sessionId: string;
+  questionSetId: string;
+  coached: boolean;
+  /** Value useElapsedClock's start() should resume from, so the on-screen total doesn't reset to 0. */
+  totalElapsedS: number;
+  session: SimulationSessionSnapshot;
+}
+
+export function getRunningSession(): RunningSessionSnapshot | null {
+  return storageGet<RunningSessionSnapshot | null>(STORAGE_KEYS.examRunningSession, null);
+}
+
+export function saveRunningSession(snapshot: RunningSessionSnapshot): void {
+  storageSet(STORAGE_KEYS.examRunningSession, snapshot);
+}
+
+export function clearRunningSession(): void {
+  storageSet(STORAGE_KEYS.examRunningSession, null);
 }

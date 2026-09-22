@@ -25,6 +25,9 @@ import {
   getPendingScoreSessionId,
   setPendingScoreSessionId,
   clearPendingScoreSessionId,
+  getRunningSession,
+  saveRunningSession,
+  clearRunningSession,
 } from '../services/exam/localTranscriptStore';
 import {
   isExaminerVoiceMuted,
@@ -170,6 +173,67 @@ export function ExamMode() {
     setScoringMachine({ phase: 'WaitingForScore', attempt: 1 });
   }, []);
 
+  // W7 reliability: mid-exam (running-phase) resume-on-reload. Sibling of the
+  // scoring resume-on-reload effect above — that one only covers a reload
+  // during 'scoring'; before this, 'running' had no resume at all and a
+  // reload silently dropped the candidate back to 'select' mid-attempt even
+  // though SimulationSession's state (ConductEngineState + ConductLog
+  // entries so far) is plain, durable data. Scoring resume still takes
+  // priority (an attempt already submitted for scoring is further along than
+  // one still running). The clocks are re-started with an offset so newly
+  // logged entries stay monotonic against the ones already in the snapshot
+  // (see useSessionClock/useElapsedClock's offsetS).
+  useEffect(() => {
+    if (getPendingScoreSessionId()) return;
+    const snapshot = getRunningSession();
+    if (!snapshot) return;
+    void (async () => {
+      try {
+        const questionSet = await getOriginalQuestionSet(snapshot.questionSetId);
+        if (!questionSet) {
+          clearRunningSession();
+          return;
+        }
+
+        const authoredSet = await getAuthoredQuestionSet(snapshot.questionSetId);
+        const scenario = authoredSet?.content.rolePlay;
+        if (scenario) {
+          setRolePlayMeta({
+            title: scenario.title,
+            setup: scenario.setup,
+            taskIds: scenario.tasks.map((t) => t.questionId),
+          });
+        }
+
+        selectedQuestionSetIdRef.current = snapshot.questionSetId;
+        sessionIdRef.current = snapshot.sessionId;
+
+        const lastLoggedS = snapshot.session.entries.reduce(
+          (max, e) => Math.max(max, e.kind === 'examiner' ? e.atS : e.endS),
+          0,
+        );
+        clock.start(lastLoggedS);
+        totalClock.start(snapshot.totalElapsedS);
+
+        const session = new SimulationSession(
+          snapshot.sessionId,
+          questionSet,
+          clock.nowS,
+          { onExaminerAction: (a) => setAction(a) },
+          snapshot.coached,
+          snapshot.session,
+        );
+        sessionRef.current = session;
+        setAction(snapshot.session.currentAction);
+        setExamState('running');
+      } catch (err) {
+        captureError(err, { stage: 'resumeRunningSession', sessionId: snapshot.sessionId });
+        clearRunningSession();
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Daily Challenge lifecycle step 4: skip ExamSelect entirely, load the
   // server-assigned question set, and run the exact same intro -> greeting ->
   // card -> running flow as a normal exam. Only fires when the resume-on-
@@ -178,6 +242,7 @@ export function ExamMode() {
   useEffect(() => {
     if (!isDailyChallengeRun || !dailyChallengeQuestionSetId) return;
     if (getPendingScoreSessionId()) return; // resume-on-reload takes priority
+    if (getRunningSession()) return; // mid-exam resume takes priority
     selectedQuestionSetIdRef.current = dailyChallengeQuestionSetId;
     void (async () => {
       const authoredSet = await getAuthoredQuestionSet(dailyChallengeQuestionSetId);
@@ -192,6 +257,7 @@ export function ExamMode() {
   useEffect(() => {
     if (!isDuelRun || !duelQuestionSetId) return;
     if (getPendingScoreSessionId()) return; // resume-on-reload takes priority
+    if (getRunningSession()) return; // mid-exam resume takes priority
     selectedQuestionSetIdRef.current = duelQuestionSetId;
     void (async () => {
       const authoredSet = await getAuthoredQuestionSet(duelQuestionSetId);
@@ -240,6 +306,25 @@ export function ExamMode() {
 
     setRolePlayScenario(scenario);
     setExamState('card');
+  };
+
+  /**
+   * W7 reliability: mid-exam resume-on-reload. Persisted after every
+   * examiner action (the initial one from begin(), and one per turn after)
+   * so a reload during 'running' can reconstruct SimulationSession exactly
+   * where it left off — see localTranscriptStore's RunningSessionSnapshot.
+   * finishSession() clears it once the attempt reaches 'review'.
+   */
+  const persistRunningSnapshot = () => {
+    const session = sessionRef.current;
+    if (!session || !sessionIdRef.current || !selectedQuestionSetIdRef.current) return;
+    saveRunningSession({
+      sessionId: sessionIdRef.current,
+      questionSetId: selectedQuestionSetIdRef.current,
+      coached: session.coached,
+      totalElapsedS: totalClock.elapsedS,
+      session: session.getSnapshot(),
+    });
   };
 
   const startExam = async () => {
@@ -309,6 +394,7 @@ export function ExamMode() {
 
     const firstAction = await session.begin();
     setAction(firstAction);
+    persistRunningSnapshot();
     await wait(PRE_LISTEN_PAUSE_MS);
     // W4: recording is no longer auto-started here — the candidate chooses
     // mic or keyboard from ExamComposer each turn (see handleStartRecording).
@@ -368,6 +454,7 @@ export function ExamMode() {
         requestedRepeat: false,
       });
       setAction(nextAction);
+      persistRunningSnapshot();
 
       if (session.isComplete) {
         await finishSession(session);
@@ -402,6 +489,7 @@ export function ExamMode() {
         inputMode: 'text',
       });
       setAction(nextAction);
+      persistRunningSnapshot();
 
       if (session.isComplete) {
         await finishSession(session);
@@ -440,6 +528,7 @@ export function ExamMode() {
         skipConfirmed: true,
       });
       setAction(nextAction);
+      persistRunningSnapshot();
 
       if (session.isComplete) {
         await finishSession(session);
@@ -466,6 +555,7 @@ export function ExamMode() {
         requestedRepeat: true,
       });
       setAction(nextAction);
+      persistRunningSnapshot();
 
       if (session.isComplete) {
         await finishSession(session);
@@ -483,6 +573,10 @@ export function ExamMode() {
     totalClock.stop();
     stopExaminerVoice();
     saveConductLog(session.getConductLog());
+    // W7: the running-phase resume snapshot is superseded the moment there's
+    // a real (or reviewable) transcript — clearPendingScoreSessionId (called
+    // once scoring reaches Completed) is this same store's existing sibling.
+    clearRunningSession();
     const built = await session.buildTranscript();
     setTranscript(built);
     setExamState('review');
@@ -807,7 +901,13 @@ export function ExamMode() {
       onSubmitSpeech={() => void handleSubmitTurn()}
       onSubmitText={(text) => void handleSubmitTypedTurn(text)}
       onRequestRepeat={() => void handleRequestRepeat()}
-      onExit={() => navigate('/')}
+      onExit={() => {
+        // A deliberate exit is not a crash to recover from — clear the
+        // resume snapshot so the next visit to Exam mode starts fresh
+        // instead of resurrecting an attempt the candidate chose to abandon.
+        clearRunningSession();
+        navigate('/');
+      }}
       voiceMuted={voiceMuted}
       onToggleVoice={toggleVoice}
       pendingSilentSkip={pendingSilentSkip}

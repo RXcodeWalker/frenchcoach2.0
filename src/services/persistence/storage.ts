@@ -51,6 +51,8 @@ export const STORAGE_KEYS = {
   examConductLogs:  'frenchCoach_examConductLogs',
   // ── Exam scoring reliability §D: resume-on-reload marker ──────────────────────
   examPendingScoreSessionId: 'frenchCoach_examPendingScoreSessionId',
+  // ── Exam overhaul W7: mid-exam (running-phase) resume-on-reload snapshot ──────
+  examRunningSession: 'frenchCoach_examRunningSession',
   // ── Guest mode (local-only auth bypass) ────────────────────────────────────────
   guestMode: 'frenchCoach_guestMode',
   // ── Feature flag runtime overrides (Phase 0.1) ─────────────────────────────────

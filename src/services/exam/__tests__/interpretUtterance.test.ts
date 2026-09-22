@@ -4,13 +4,27 @@
  * latency beyond the timeout budget, so the exam runs fully offline.
  */
 
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+// W7 reliability: /api/exam/interpret now requires verify_jwt, so
+// interpretUtterance needs a resolvable access token before it will even
+// attempt the round-trip. Mocked directly (not via lib/supabase) so each
+// test can control presence/absence of a token without touching session
+// shape — defaults to a signed-in user; the "guest" describe block below
+// overrides it to null per test.
+vi.mock('../../../lib/authToken', () => ({ getAccessToken: vi.fn() }));
+
+import { getAccessToken } from '../../../lib/authToken';
 import {
   interpretUtterance,
   deriveObservationFromIntent,
   __resetInterpretCircuitForTests,
   CONFIDENCE_FLOOR,
 } from '../interpretUtterance';
+
+beforeEach(() => {
+  vi.mocked(getAccessToken).mockResolvedValue('test-token');
+});
 
 describe('deriveObservationFromIntent (the deterministic fallback)', () => {
   it('maps each UtteranceIntent to its corresponding speechAct, 1:1', () => {
@@ -126,6 +140,58 @@ describe('interpretUtterance reliability (Change A, "fall back IMMEDIATELY")', (
     const obs = await promise;
     expect(obs.fallback).toBe(true);
     expect(obs.speechAct).toBe('substantive_answer');
+  });
+});
+
+describe('W7 reliability: verify_jwt auth', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    __resetInterpretCircuitForTests();
+  });
+
+  it('sends the resolved access token as a Bearer Authorization header', async () => {
+    const fetchSpy = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ speechAct: 'affirmation', confidence: 0.9 }), { status: 200 }),
+    );
+    vi.stubGlobal('fetch', fetchSpy);
+
+    await interpretUtterance('Oui.', { part: 'topic1' });
+
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    const [, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
+    expect((init.headers as Record<string, string>).Authorization).toBe('Bearer test-token');
+  });
+
+  it('a guest (no access token) never round-trips — falls back deterministically with zero network calls', async () => {
+    vi.mocked(getAccessToken).mockResolvedValue(null);
+    const fetchSpy = vi.fn();
+    vi.stubGlobal('fetch', fetchSpy);
+
+    const obs = await interpretUtterance('Je fais mes devoirs.', { part: 'topic1' });
+    expect(obs.fallback).toBe(true);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it('a 401 (missing/invalid token) trips the breaker — later turns skip the doomed round-trip', async () => {
+    const fetchSpy = vi.fn().mockResolvedValue(new Response('Unauthorized', { status: 401 }));
+    vi.stubGlobal('fetch', fetchSpy);
+
+    const first = await interpretUtterance('Je fais mes devoirs.', { part: 'topic1' });
+    expect(first.fallback).toBe(true);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+
+    const second = await interpretUtterance('Je joue au foot.', { part: 'topic1' });
+    expect(second.fallback).toBe(true);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('a 403 (denied) also trips the breaker', async () => {
+    const fetchSpy = vi.fn().mockResolvedValue(new Response('Forbidden', { status: 403 }));
+    vi.stubGlobal('fetch', fetchSpy);
+
+    await interpretUtterance('Je fais mes devoirs.', { part: 'topic1' });
+    await interpretUtterance('Je joue au foot.', { part: 'topic1' });
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
   });
 });
 

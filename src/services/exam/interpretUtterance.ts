@@ -28,6 +28,7 @@
  */
 
 import { classifyUtteranceIntent, type UtteranceIntent } from '../../domain/igcse/session/utteranceIntents';
+import { getAccessToken } from '../../lib/authToken';
 
 export type SpeechAct =
   | 'substantive_answer'
@@ -81,9 +82,12 @@ export interface InterpretContext {
  * turn would otherwise pay a doomed round-trip and log a fresh 404 to the console.
  * The deterministic classifier is a complete substitute, so once we see a 404 we
  * stop calling the endpoint entirely for the rest of the session. Reset on full
- * page reload (module re-init) — and on demand in tests. Only a definitive 404
- * trips it: 5xx/timeout/network failures may be transient cold-start hiccups and
- * must keep retrying on later turns.
+ * page reload (module re-init) — and on demand in tests. Only a definitive 404,
+ * 401, or 403 trips it: 5xx/timeout/network failures may be transient cold-start
+ * hiccups and must keep retrying on later turns. 401/403 were added alongside
+ * verify_jwt (W7 reliability) — a token that's missing/invalid/expired mid-session
+ * won't fix itself turn-to-turn, so treat it the same as a genuinely-missing route
+ * rather than repeating a doomed round-trip every remaining turn.
  */
 let interpretEndpointGone = false;
 
@@ -155,8 +159,20 @@ export async function interpretUtterance(
     return deriveObservationFromIntent(transcript);
   }
 
-  // Endpoint already known-absent this session — skip the doomed round-trip.
+  // Endpoint already known-absent/unauthenticated this session — skip the doomed round-trip.
   if (interpretEndpointGone) {
+    return deriveObservationFromIntent(transcript);
+  }
+
+  // W7 reliability: /api/exam/interpret now requires verify_jwt. A guest has
+  // no Supabase session and can only ever get 401 — don't fire the request,
+  // same posture as an empty transcript above. Unlike other AI call sites
+  // (apiClient.ts's requireAuthHeader), this never throws AuthRequiredError:
+  // interpret is an optional routing hint, not a user-facing action, and
+  // must never interrupt an exam turn — deriveObservationFromIntent is a
+  // complete substitute.
+  const token = await getAccessToken();
+  if (!token) {
     return deriveObservationFromIntent(transcript);
   }
 
@@ -166,15 +182,16 @@ export async function interpretUtterance(
   try {
     const res = await fetch(`${API_BASE}/api/exam/interpret`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ transcript, part: ctx.part }),
       signal: controller.signal,
     });
 
     if (!res.ok) {
-      // A 404 means the route isn't deployed — trip the breaker so later turns
-      // don't repeat it. Other statuses may be transient; keep trying next turn.
-      if (res.status === 404) interpretEndpointGone = true;
+      // 404 (route not deployed) or 401/403 (token missing/invalid/expired) —
+      // none of these fix themselves turn-to-turn, so trip the breaker. Other
+      // statuses may be transient; keep trying next turn.
+      if (res.status === 404 || res.status === 401 || res.status === 403) interpretEndpointGone = true;
       return deriveObservationFromIntent(transcript);
     }
 

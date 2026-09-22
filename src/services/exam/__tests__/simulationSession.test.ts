@@ -23,8 +23,8 @@ const SCRIPT: SimulationTurnInput[] = [
   { transcript: 'Non merci, ce sera tout pour aujourd\'hui.', responseDurationS: 0, requestedRepeat: false, inputMode: 'text' },
 ];
 
-function makeClock() {
-  let t = 0;
+function makeClock(initialT = 0) {
+  let t = initialT;
   return {
     now: () => t,
     advance: (deltaS: number) => {
@@ -82,5 +82,67 @@ describe('SimulationSession — coached flag / inputMode plumbing (W1)', () => {
     candidateEntries.forEach((entry, i) => {
       expect(entry.kind === 'candidate' && entry.inputMode).toBe(SCRIPT[i].inputMode);
     });
+  });
+});
+
+describe('SimulationSession — reload-resume snapshot (W7)', () => {
+  beforeEach(() => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('no network in test')));
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('getSnapshot() throws before begin() — nothing to resume from yet', () => {
+    const session = new SimulationSession('s1', qs, () => 0);
+    expect(() => session.getSnapshot()).toThrow();
+  });
+
+  it('a session resumed mid-script from getSnapshot() produces the same ConductLog as one driven straight through, uninterrupted', async () => {
+    const SPLIT = 3; // resume partway through SCRIPT, not at either end
+
+    // Uninterrupted control run.
+    const controlClock = makeClock();
+    const control = new SimulationSession('resume-parity', qs, controlClock.now);
+    await control.begin();
+    for (const turn of SCRIPT) {
+      controlClock.advance(turn.responseDurationS);
+      await control.submitTurn(turn);
+    }
+
+    // "Reload" run: real SimulationSession up to SPLIT, snapshot, then a
+    // brand-new instance (a fresh clock too — a real reload restarts
+    // performance.now()) picks up from exactly there.
+    const firstHalfClock = makeClock();
+    const firstHalf = new SimulationSession('resume-parity', qs, firstHalfClock.now);
+    await firstHalf.begin();
+    for (const turn of SCRIPT.slice(0, SPLIT)) {
+      firstHalfClock.advance(turn.responseDurationS);
+      await firstHalf.submitTurn(turn);
+    }
+    const snapshot = firstHalf.getSnapshot();
+
+    // Mirrors ExamMode's resume effect: a real reload restarts performance.now()
+    // at 0, so the new clock is offset to continue monotonically from the last
+    // timestamp already in the snapshot's entries, not reset alongside it.
+    const offsetS = snapshot.entries.reduce(
+      (max, e) => Math.max(max, e.kind === 'examiner' ? e.atS : e.endS),
+      0,
+    );
+    const secondHalfClock = makeClock(offsetS);
+    const resumed = new SimulationSession('resume-parity', qs, secondHalfClock.now, {}, false, snapshot);
+    // No begin() on resume — the snapshot's currentAction is already what the
+    // candidate should see, exactly like ExamMode's resume effect.
+    expect(resumed.action).toEqual(snapshot.currentAction);
+    expect(resumed.getConductLog().entries).toEqual(snapshot.entries);
+
+    for (const turn of SCRIPT.slice(SPLIT)) {
+      secondHalfClock.advance(turn.responseDurationS);
+      await resumed.submitTurn(turn);
+    }
+
+    expect(JSON.stringify(resumed.getConductLog().entries)).toBe(JSON.stringify(control.getConductLog().entries));
+    expect(resumed.isComplete).toBe(control.isComplete);
   });
 });

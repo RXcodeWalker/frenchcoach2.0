@@ -49,6 +49,22 @@ export interface SimulationSessionCallbacks {
   onComplete?: () => void;
 }
 
+/**
+ * W7: everything needed to reconstruct a SimulationSession exactly where it
+ * left off, for mid-exam reload resume. `ConductEngineState` is plain,
+ * JSON-serializable data (no functions/Maps/Sets — see types.ts), so this is
+ * a direct state restore, not a replay through the reducer: replaying via
+ * step() would need the interpretUtterance conductHint that produced each
+ * historical action, and that hint is deliberately never persisted (the
+ * interpreter/scored-pipeline boundary), so it can't be recovered faithfully.
+ */
+export interface SimulationSessionSnapshot {
+  engineState: ConductEngineState;
+  entries: ConductLogEntry[];
+  seq: number;
+  currentAction: ExaminerAction;
+}
+
 function wordCount(text: string): number {
   const trimmed = text.trim();
   return trimmed.length === 0 ? 0 : trimmed.split(/\s+/).length;
@@ -79,13 +95,22 @@ export class SimulationSession {
      * ConductLog — see simulationSession.test.ts's conduct-parity test.
      */
     coached: boolean = false,
+    /** W7: reload-resume — when set, restores state instead of starting fresh. Do not call begin() when resuming; the caller already has a currentAction to display. */
+    resumeFrom?: SimulationSessionSnapshot,
   ) {
     this.sessionId = sessionId;
     this.questionSet = questionSet;
     this.getClockS = getClockS;
     this.callbacks = callbacks;
     this._coached = coached;
-    this.engineState = initConductEngineState(questionSet);
+    if (resumeFrom) {
+      this.engineState = resumeFrom.engineState;
+      this.entries.push(...resumeFrom.entries);
+      this.seq = resumeFrom.seq;
+      this.currentAction = resumeFrom.currentAction;
+    } else {
+      this.engineState = initConductEngineState(questionSet);
+    }
   }
 
   get coached(): boolean {
@@ -97,6 +122,19 @@ export class SimulationSession {
     const result = startConduct(this.questionSet, this.engineState);
     this.engineState = result.state;
     return this.emitActions(result.actions);
+  }
+
+  /** W7: snapshot of everything needed to resume this session after a reload — see SimulationSessionSnapshot. */
+  getSnapshot(): SimulationSessionSnapshot {
+    if (!this.currentAction) {
+      throw new Error('SimulationSession: getSnapshot called before begin()');
+    }
+    return {
+      engineState: this.engineState,
+      entries: this.entries.slice(),
+      seq: this.seq,
+      currentAction: this.currentAction,
+    };
   }
 
   get isComplete(): boolean {

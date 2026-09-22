@@ -468,3 +468,260 @@ own design pass if it's ever wanted.
 No files changed in this entry — W3 itself is not yet implemented. This is a
 recorded design decision so the correct behavior survives into whichever
 session/batch actually builds the rail.
+
+## IGCSE Exam Mode overhaul — W7 (reliability)
+
+Date: 2026-09-22
+
+Implements W7 as written, with two deliberate deviations from the plan's
+literal text, decided before writing code and confirmed with the user (this
+session asked before touching auth/schema, since the plan's phrasing didn't
+survive contact with the actual quota schema and the actual guest-mode
+contract). Recorded here per the plan's own "record it in verification-log.md
+the same way the W3 observeAttempt decision was recorded" instruction.
+
+### Deviation 1 — `/api/exam/interpret`: `verify_jwt` only, no `consume_ai_quota_or_503`
+
+The plan said "matching `/api/transcribe`" without checking what that
+actually requires: `consume_ai_quota_or_503` needs a `feature` key already
+present in `ai_quota_limits` (FK constraint) or every call 503s. The only
+candidate was the existing `('exam', 10)` row — seeded but consumed by no
+Python code path today (grep confirms `consume_ai_quota_or_503` is called
+only for `feedback`/`transcribe`/`roleplay_turn`/`pronunciation`), so it was
+provisioned for the orphaned `/api/exam/finish|evaluate` routes, not for a
+per-turn call. `/interpret` fires on every candidate turn — reusing `exam`
+would exhaust a 10/day cap within one or two exams and start hard-failing
+mid-exam for every signed-in user; minting a new feature row for it would be
+a real migration for a call whose actual cost (`max_tokens=60`,
+`temperature=0.0`, fixed server-side prompt, output constrained to a 7-value
+enum) is a rounding error, and `consume_ai_quota_or_503` is deliberately
+fail-closed, so metering it would turn a Supabase blip into a dropped
+live-routing hint on every remaining turn of a session already metered where
+the real cost is (transcribe, score, and — once W3 lands — the rail's
+examiner-feedback call).
+
+**Decision: `verify_jwt` closes the actual gap (the route was fully
+unauthenticated — `exam_controller.py`'s old "Rate limiting" comment
+documented this as the known Phase 1.2 item). No quota call. The existing
+per-IP 20/minute rate limit (`set_rate_limiter`) stays the volume backstop.**
+A comment on the route itself (`exam_controller.py`) records why, so the
+exemption gets revisited rather than silently inherited if `max_tokens` or
+the prompt ever loosens.
+
+Required frontend changes in the same commit (adding auth server-side without
+these would 401 every real user, not just close a hole):
+- `interpretUtterance.ts` now resolves a token via `getAccessToken()`
+  (`lib/authToken.ts` — never a bare `getSession()`, matching the app's
+  existing convention) and sends `Authorization: Bearer <token>`.
+- No token (guest, no Supabase session) → skip the round-trip entirely and
+  return `deriveObservationFromIntent(transcript)` directly, same posture as
+  the existing empty-transcript short-circuit. Never raises
+  `AuthRequiredError` — interpret is an optional routing hint, not a
+  user-facing action, and must never interrupt an exam turn.
+- The 404 circuit breaker (`interpretEndpointGone`) now also trips on 401/403
+  — a bad/expired token doesn't fix itself turn-to-turn, so repeating the
+  doomed round-trip every remaining turn would be pure waste.
+- `GET /api/exam/interpret/health` stays unauthenticated on purpose — it's
+  `pingInterpretServiceHealth`'s pre-exam warm-up probe, fired before any
+  auth context is guaranteed, and makes no model call.
+
+**Accepted consequence, stated explicitly so it reads as a decision and not a
+regression:** a guest exam session now loses LLM-assisted conduct routing
+entirely (falls back to the deterministic classifier for the whole session,
+which — per `interpretUtterance.ts`'s own header — is a complete substitute,
+just without the messy-STT recall boost). This was already true for a signed-
+in user whose token expired mid-session before this change (interpret failing
+silently is the norm, not new), and is now also true for every guest by
+construction. Scoring is entirely unaffected — the interpreter only ever
+produces a `conductHint` and is enforced unreachable from the scored pipeline
+(`interpreterBoundary.test.ts`).
+
+### Deviation 2 — `/api/content/igcse-sets` (and the rest of `routers/content.py`): stays public, gains rate limiting instead
+
+The plan listed this endpoint alongside `/interpret` for the same
+`verify_jwt` + quota treatment. Rejected on inspection, for reasons that
+don't apply to `/interpret`:
+- **Zero provider cost.** It's a cached (5-min TTL) Supabase read behind
+  `status = 'published'` RLS. Charging AI-cost quota for a request with no AI
+  cost is definitionally wrong, independent of the auth question.
+- **RLS already does the actual access control.** Only published rows are
+  reachable regardless of caller identity — there's no data-exposure gap for
+  `verify_jwt` to close.
+- **Guests are a supported entry path into Exam mode**, and
+  `data/exam/bank/loader.ts` already treats any non-2xx response
+  (`!res.ok`) as "fall back to the offline fixture registry" — indistinguish-
+  able from a backend outage. Gating this with `verify_jwt` would silently
+  collapse every guest's exam catalog from (eventually, per W5) 10 sets to
+  the 1 bundled today, with no error surfaced anywhere — a guest-mode
+  regression, not a security fix, since the plausible threat (a competitor
+  scraping the question bank) is only deterred by "create a free account,"
+  which costs an adversary thirty seconds.
+
+**Decision: leave the whole `routers/content.py` router (`/questions`,
+`/scenarios`, `/igcse-sets`, `/igcse-sets/{id}`) unauthenticated and
+unquota'd. Add the same per-IP `set_rate_limiter` pattern already used by
+`exam_controller.py`/`routers/pronunciation.py` (30/minute — sized so
+ExamSelect's normal flow, one catalog call plus a fetch per set, up to 10
+today, is nowhere near it).** This was the router's actual gap (unlike
+`/api/exam/*`, it had no rate limiting of any kind before this change), and
+per-IP limiting doesn't have the guest-lockout failure mode `verify_jwt`
+would.
+
+Noted for whoever picks up W5: the real resilience fix for the "one backend
+hiccup collapses the picker to one set" problem is bundling all 10
+`AuthoredQuestionSet` fixtures into `loader.ts`'s `OFFLINE_FIXTURES`, not
+anything auth-related — out of scope here, not touched.
+
+### W7's third item — mid-exam (running-phase) resume-on-reload
+
+Before this change, `ExamMode.tsx` only resumed a reload during `'scoring'`
+(`getPendingScoreSessionId`); a reload during `'running'` silently dropped
+the candidate back to `'select'`, discarding an in-progress attempt even
+though nothing about `SimulationSession`'s state actually required that.
+
+The plan's literal wording ("persist turn-by-turn to `localTranscriptStore`")
+doesn't work as written: a `SessionTranscript` can't represent an in-progress
+session — `SimulationSession.buildTranscript()` throws until the engine
+reaches `'complete'`. What actually gets persisted is a new
+`RunningSessionSnapshot` (added to `localTranscriptStore.ts`, the module the
+plan named, since it's the same "resume-on-reload marker" role as the
+existing `examPendingScoreSessionId`) holding `SimulationSession`'s own
+resumable state.
+
+**Design: direct state restore, not event replay.** `ConductEngineState`
+(`domain/igcse/session/types.ts`) is already plain, JSON-serializable data —
+no functions, Maps, Sets, or class instances — so the snapshot persists it
+verbatim (`{engineState, entries, seq, currentAction}`, via
+`SimulationSession.getSnapshot()`) and a new resume-constructor parameter
+restores it directly. This was chosen over replaying the `ConductLog`
+entries back through `conductEngine.step()`, which was considered and
+rejected: `step()`'s branching for a role-play repeat/advance/clarification
+can depend on `interpretUtterance`'s live `conductHint`
+(`conductEngine.ts::applyConductHint`), and that hint is *deliberately never
+persisted* — it's the determinism-boundary invariant `interpreterBoundary.
+test.ts` enforces (never written to `CandidateTurnResult`/the `ConductLog`).
+A replay without the original hint could therefore choose a different branch
+than what actually happened and silently desync from the real `ConductLog`
+already on record (e.g. `repeatUsed`/`partsAddressed` state disagreeing with
+the logged entries). Direct state restore has no such gap — no reducer call,
+no hint needed, byte-identical either way. Proven in
+`simulationSession.test.ts`'s new "reload-resume snapshot" describe block: a
+session interrupted mid-script and resumed via `getSnapshot()`/the resume
+constructor produces a byte-identical `ConductLog` to one driven straight
+through uninterrupted (same script, split at an arbitrary turn).
+
+Also required (not called out explicitly in the plan, but necessary for the
+persisted timestamps to stay meaningful): `useSessionClock`/`useElapsedClock`
+gained an optional resume-offset param on `start()`. A real reload restarts
+`performance.now()`/`Date.now()` at zero; without an offset, entries logged
+after a resume would carry smaller `atS`/`startS`/`endS` values than the
+ones already in the snapshot, corrupting the append-only log's monotonic
+ordering. The offset is computed from the snapshot's own entries
+(`max(atS | endS)`), not tracked separately, so it can't drift from what was
+actually logged.
+
+Persistence points: after `begin()`'s first action and after every
+`submitTurn` resolves (`persistRunningSnapshot()` in `ExamMode.tsx`).
+Cleared: on reaching `finishSession` (superseded by the real/reviewable
+transcript — mirrors `clearPendingScoreSessionId`'s existing role) and on a
+deliberate exit-confirm from `ExamRunner` (an abandoned attempt should not
+resurrect itself on the next visit). The daily-challenge and duel entry
+effects were given the same `getRunningSession()` guard the scoring-resume
+effect already has, so a running snapshot always wins over re-entering
+`'intro'` from stale `location.state`.
+
+**Known limitation, not fixed here:** if the interrupted attempt was a
+Daily Challenge or Friend Duel run, the resume effect does not restore
+`isDailyChallengeRun`/`isDuelRun` (those come from React Router
+`location.state`, not the snapshot) — the exam itself resumes and scores
+correctly using the snapshot's own `sessionId`, but `onHome`'s post-results
+navigation would fall back to `/` instead of back to the daily-challenge/duel
+screen. Solving this needs storing that context in the snapshot too, which
+the plan didn't call for and this session didn't add speculatively.
+
+`primeExaminerVoice`/`pingScoringServiceHealth` keepalive: verified already
+wired (`ExamMode.tsx`'s `KEEPALIVE_INTERVAL_MS` effect gated on
+`examState === 'running'`, plus the one-shot pings in `startExam`) — no
+change needed, nothing in this workstream touched them.
+
+### Files changed
+
+`frenchcoach2.0` (frontend):
+- `src/services/exam/interpretUtterance.ts` — auth header, no-token
+  short-circuit, 401/403 circuit-breaker trip.
+- `src/services/exam/simulationSession.ts` — `SimulationSessionSnapshot`
+  type, resume constructor param, `getSnapshot()`.
+- `src/services/exam/localTranscriptStore.ts` — `RunningSessionSnapshot`
+  type + `getRunningSession`/`saveRunningSession`/`clearRunningSession`.
+- `src/services/persistence/storage.ts` — new `examRunningSession` key.
+- `src/features/recording/useSessionClock.ts`,
+  `src/features/recording/useElapsedClock.ts` — optional resume-offset param
+  on `start()`.
+- `src/screens/ExamMode.tsx` — resume-on-reload effect, snapshot persistence
+  at every turn, clear-on-finish/clear-on-exit, daily-challenge/duel guard.
+- Tests: `src/services/exam/__tests__/interpretUtterance.test.ts` (auth
+  mocking + 4 new cases), `src/services/exam/__tests__/simulationSession.
+  test.ts` (2 new cases: `getSnapshot()` pre-`begin()` throw, resume parity).
+
+`french-coach-backend` (separate repo):
+- `exam_controller.py` — `verify_jwt` on `POST /api/exam/interpret`
+  (`/interpret/health` untouched); updated rate-limiting section comment.
+- `routers/content.py` — `Request` param added to all four handlers (needed
+  by slowapi's decorator), `set_rate_limiter` (30/minute, mirrors
+  `exam_controller.py`'s pattern).
+- `main.py` — wires `routers.content.set_rate_limiter` in after
+  `app.include_router(_content_router)`.
+- New test: `tests/test_exam_interpret_auth.py` (requires-auth, rejects
+  bogus token, processes normally once authenticated, health stays
+  unauthenticated).
+
+### Verified
+
+Frontend (`frenchcoach2.0`):
+- `npm run typecheck` clean.
+- `npx vitest run src/screens/exam src/services/exam src/domain/igcse/session
+  src/features/recording src/data/exam` → 18 files, 232 tests, all pass.
+- `npm test` (repo-wide) → 235 files, 2161/2163 tests pass. Same 2
+  pre-existing failures as prior W1/W2 entries recorded (missing `backend/`
+  checkout for `feedbackContractFixtures.test.ts`; unrelated Learn-domain
+  corpus assertion in `infer.test.ts`) — confirmed unrelated to this slice
+  (neither file touched), no new failures.
+- `npm run lint` → 0 errors, same pre-existing warning set, none in touched
+  files.
+- `score:golden` not re-run — no `src/domain/igcse/**` evidence/judgement/
+  guardrails/envelope/rubric.ts file was touched (only `session/types.ts`
+  was *read*, never edited).
+- Manual in-browser verification (an actual reload mid-exam, mic-denied
+  guest path, Firefox/no-Web-Speech text path) was **not** performed — no
+  browser available in this session. `simulationSession.test.ts`'s resume-
+  parity test verifies the engine-state/ConductLog mechanics exactly; it
+  does not verify the live React effect wiring end-to-end.
+
+Backend (`french-coach-backend`):
+- `python3 -m py_compile exam_controller.py routers/content.py main.py` —
+  syntax valid.
+- `python3 -m pytest tests/` → 239 files' worth of tests collected,
+  238/239 pass. The one failure
+  (`test_transcribe_endpoint.py::test_transcribe_rejects_a_bogus_bearer_
+  token`) is pre-existing and environment-only — this sandbox has no
+  `SUPABASE_JWT_SECRET`/JWKS configured at all, so a bogus token 503s
+  ("Auth not configured") instead of 401ing; confirmed the same test fails
+  identically before this change, and `test_api_surface_lockdown.py`'s
+  `/metrics` equivalent already tolerates exactly this (`in (401, 403,
+  503)`). The new `test_exam_interpret_auth.py` uses that same tolerant
+  assertion for its own bogus-token case.
+- Manual `TestClient` smoke test confirmed `/api/content/*` routes still
+  reach `_db()` correctly after adding the `Request` param each handler
+  needed for `slowapi`'s rate-limit decorator (503 "Database not
+  configured" in this sandbox — expected, no Supabase env vars set; not a
+  422/500 from the routing change itself).
+
+### Not done here (deferred, in scope for later workstreams only)
+
+Everything W1/W2/W3/W4's own "not done here" notes already listed and are
+still true (Coached/Exam Sim toggle, the live corrections rail, `ExamResults.
+tsx` surfacing, W8 token normalisation) — this entry adds nothing new to that
+list. W7 itself is now fully implemented: keepalives (already wired, verified
+only), mid-exam resume-on-reload (implemented), and the `/api/exam/interpret`
++ `/api/content/*` security gap (closed, with the two deviations above).
+session/batch actually builds the rail.
