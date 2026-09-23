@@ -297,3 +297,17 @@ describe('recoveringBackoffMs', () => {
     expect(recoveringBackoffMs(10)).toBe(30_000);
   });
 });
+
+describe('POLL_AMBIGUOUS_ERROR (a failed poll must schedule another, never freeze)', () => {
+  it('WaitingForScore → Recovering, keeping the attempt count', () => {
+    const next = transitionScoringMachine({ phase: 'WaitingForScore', attempt: 2 }, { type: 'POLL_AMBIGUOUS_ERROR' });
+    expect(next).toMatchObject({ phase: 'Recovering', pollCount: 0, attempt: 2 });
+  });
+
+  it('Recovering → a new state object with pollCount+1 and the same deadline start', () => {
+    const state = { phase: 'Recovering' as const, pollCount: 1, attempt: 1, enteredRecoveringAt: 123 };
+    const next = transitionScoringMachine(state, { type: 'POLL_AMBIGUOUS_ERROR' });
+    expect(next).not.toBe(state);
+    expect(next).toEqual({ ...state, pollCount: 2 });
+  });
+});

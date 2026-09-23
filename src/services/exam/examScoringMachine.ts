@@ -72,6 +72,13 @@ export type ScoringMachineEvent =
   | { type: 'POLL_IN_PROGRESS' }
   | { type: 'POLL_NOT_FOUND' }
   | { type: 'POLL_TERMINAL_ERROR'; reason: string }
+  /**
+   * The poll itself failed without a usable answer (network/CORS error,
+   * timeout, a gateway 5xx while the host restarts). Must change state so the
+   * driver schedules another poll — "stay put" left the effect with nothing to
+   * re-run on, freezing the loading screen forever.
+   */
+  | { type: 'POLL_AMBIGUOUS_ERROR' }
   | { type: 'RECOVERING_DEADLINE_EXCEEDED' }
   | { type: 'RETRY' };
 
@@ -134,6 +141,8 @@ export function transitionScoringMachine(
             : { phase: 'Submitting', attempt: state.attempt + 1 };
         case 'POLL_TERMINAL_ERROR':
           return { phase: 'FailedTerminal', reason: event.reason };
+        case 'POLL_AMBIGUOUS_ERROR':
+          return { phase: 'Recovering', pollCount: 0, attempt: state.attempt, enteredRecoveringAt: Date.now() };
         default:
           return state;
       }
@@ -158,6 +167,9 @@ export function transitionScoringMachine(
             : { phase: 'Submitting', attempt: state.attempt + 1 };
         case 'POLL_TERMINAL_ERROR':
           return { phase: 'FailedTerminal', reason: event.reason };
+        case 'POLL_AMBIGUOUS_ERROR':
+          // Same backoff + RECOVERING_MAX_MS deadline as a 202 — bounded.
+          return { ...state, pollCount: state.pollCount + 1 };
         case 'RECOVERING_DEADLINE_EXCEEDED':
           return { phase: 'FailedTerminal', reason: 'Scoring is taking longer than expected. Please try again later.' };
         default:

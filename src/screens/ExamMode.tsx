@@ -733,7 +733,9 @@ export function ExamMode() {
             if (err instanceof ScoringApiError && isTerminalScoringStatus(err.status)) {
               setScoringMachine((s) => transitionScoringMachine(s, { type: 'POLL_TERMINAL_ERROR', reason }));
             } else {
-              // Ambiguous — stay put; the next scheduled poll will retry.
+              // Ambiguous — must still change state, or this effect never
+              // re-runs and no further poll is ever scheduled.
+              setScoringMachine((s) => transitionScoringMachine(s, { type: 'POLL_AMBIGUOUS_ERROR' }));
             }
             return;
           }
