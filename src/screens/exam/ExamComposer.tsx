@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { AlertTriangle, Mic, Send, Square } from 'lucide-react';
 import { ScrollingWaveform } from '../../features/recording/ScrollingWaveform';
 import { SpeakingConsentGate } from '../../components/SpeakingConsentGate';
@@ -24,12 +24,82 @@ interface Props {
  * lets a typed submit "skip recording.stop()" per the plan, since by the
  * time Send is pressed nothing is left running to stop.
  */
+/** Default autosize cap: grows up to this many lines, then scrolls internally. */
+const AUTO_MAX_LINES = 4;
+/** Manual drag-from-top resize handle can stretch the box up to this many lines. */
+const MANUAL_MAX_LINES = 6;
+
 export function ExamComposer({ recording, disabled, onStartRecording, onSubmitSpeech, onSubmitText }: Props) {
   const [text, setText] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  /** Explicit height (px) set by dragging the resize handle; null means "autosize". */
+  const [manualHeight, setManualHeight] = useState<number | null>(null);
   const rec = recording.isRecording;
   const { consentStatus } = useAuth();
   const consentPending = consentStatus === 'pending';
+
+  const measureBox = () => {
+    const el = textareaRef.current;
+    if (!el) return null;
+    const styles = getComputedStyle(el);
+    const lineHeight = parseFloat(styles.lineHeight) || 20;
+    const paddingTop = parseFloat(styles.paddingTop) || 0;
+    const paddingBottom = parseFloat(styles.paddingBottom) || 0;
+    const vertical = paddingTop + paddingBottom;
+    return {
+      lineHeight,
+      vertical,
+      minHeight: lineHeight + vertical,
+      autoMaxHeight: lineHeight * AUTO_MAX_LINES + vertical,
+      manualMaxHeight: lineHeight * MANUAL_MAX_LINES + vertical,
+    };
+  };
+
+  // Autosize on content change (typing, pasting, or programmatic clears) —
+  // grows with the answer up to AUTO_MAX_LINES, then scrolls internally
+  // instead of growing further. Skipped once the user has manually resized.
+  useLayoutEffect(() => {
+    const el = textareaRef.current;
+    const box = measureBox();
+    if (!el || !box) return;
+    if (manualHeight != null) return;
+    el.style.height = 'auto';
+    const next = Math.min(el.scrollHeight, box.autoMaxHeight);
+    el.style.height = `${Math.max(next, box.minHeight)}px`;
+    el.style.overflowY = el.scrollHeight > box.autoMaxHeight ? 'auto' : 'hidden';
+  }, [text, manualHeight]);
+
+  // Manually resized height still needs to keep scroll in sync as content changes.
+  useLayoutEffect(() => {
+    const el = textareaRef.current;
+    if (!el || manualHeight == null) return;
+    el.style.height = `${manualHeight}px`;
+    el.style.overflowY = el.scrollHeight > manualHeight ? 'auto' : 'hidden';
+  }, [text, manualHeight]);
+
+  const handleResizeStart = (e: React.PointerEvent) => {
+    const el = textareaRef.current;
+    const box = measureBox();
+    if (!el || !box) return;
+    e.preventDefault();
+    const startY = e.clientY;
+    const startHeight = el.getBoundingClientRect().height;
+    const pointerId = e.pointerId;
+    (e.currentTarget as Element).setPointerCapture(pointerId);
+
+    const onMove = (ev: PointerEvent) => {
+      // Dragging the top edge upward should grow the box.
+      const delta = startY - ev.clientY;
+      const next = Math.min(box.manualMaxHeight, Math.max(box.minHeight, startHeight + delta));
+      setManualHeight(next);
+    };
+    const onUp = () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+    };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+  };
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -54,6 +124,7 @@ export function ExamComposer({ recording, disabled, onStartRecording, onSubmitSp
     const trimmed = text.trim();
     if (!trimmed || disabled) return;
     setText('');
+    setManualHeight(null);
     onSubmitText(trimmed);
   };
 
@@ -111,17 +182,28 @@ export function ExamComposer({ recording, disabled, onStartRecording, onSubmitSp
           </button>
         )}
 
-        <textarea
-          ref={textareaRef}
-          value={text}
-          onChange={(e) => handleTextChange(e.target.value)}
-          onKeyDown={handleKeyDown}
-          disabled={disabled}
-          rows={1}
-          placeholder="Écris ta réponse…"
-          className="flex-1 resize-none rounded-control surface-recessed px-3 py-2.5 text-body-base text-ink
-            placeholder:text-ink-subtle focus:outline-none focus:ring-1 focus:ring-action disabled:opacity-40 max-h-32"
-        />
+        <div className="relative flex-1">
+          {/* Drag-from-top resize handle — grows the box up to MANUAL_MAX_LINES lines. */}
+          <div
+            onPointerDown={handleResizeStart}
+            className="absolute -top-1 left-1/2 -translate-x-1/2 w-10 h-3 flex items-center justify-center
+              cursor-row-resize touch-none z-10"
+            aria-hidden="true"
+          >
+            <div className="w-8 h-1 rounded-pill bg-hairline-strong" />
+          </div>
+          <textarea
+            ref={textareaRef}
+            value={text}
+            onChange={(e) => handleTextChange(e.target.value)}
+            onKeyDown={handleKeyDown}
+            disabled={disabled}
+            rows={1}
+            placeholder="Écris ta réponse…"
+            className="w-full resize-none rounded-control surface-recessed px-3 py-2.5 text-body-base text-ink
+              placeholder:text-ink-subtle focus:outline-none focus:ring-1 focus:ring-action disabled:opacity-40"
+          />
+        </div>
 
         <button
           onClick={submitText}

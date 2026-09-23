@@ -74,8 +74,8 @@ export function ExaminerFeedbackCard({ status, result, onSwitchToCoach, onRetry,
           <p className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">What this answer currently shows</p>
           {result.currentDescriptorCommentary.map((c, i) => (
             <div key={i} className="space-y-1">
-              <p className="text-xs text-slate-200 leading-relaxed">{c.claim}</p>
-              <p className="text-[11px] text-amber-300/80 italic">« {c.quote} »</p>
+              <p className="text-xs text-ink leading-relaxed">{c.claim}</p>
+              <p className="text-[11px] text-amber-700 dark:text-amber-300/80 italic">« {c.quote} »</p>
             </div>
           ))}
         </div>
@@ -86,8 +86,8 @@ export function ExaminerFeedbackCard({ status, result, onSwitchToCoach, onRetry,
           <p className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">What would move this up a band</p>
           {result.improvementCommentary.map((c, i) => (
             <div key={i} className="space-y-1">
-              <p className="text-xs text-slate-200 leading-relaxed">{c.claim}</p>
-              <p className="text-[11px] text-amber-300/80 italic">« {c.quote} »</p>
+              <p className="text-xs text-ink leading-relaxed">{c.claim}</p>
+              <p className="text-[11px] text-amber-700 dark:text-amber-300/80 italic">« {c.quote} »</p>
             </div>
           ))}
         </div>

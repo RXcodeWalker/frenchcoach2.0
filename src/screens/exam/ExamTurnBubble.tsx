@@ -109,7 +109,8 @@ export function ExamTurnBubble({ entry, voiceMuted, railResult, onIssueClick }: 
                   key={i}
                   type="button"
                   onClick={onIssueClick}
-                  className="underline decoration-wavy decoration-2 underline-offset-2 decoration-action-ink/70 hover:opacity-80"
+                  className="inline p-0 m-0 border-0 bg-transparent font-inherit text-inherit align-baseline cursor-pointer
+                    underline decoration-wavy decoration-2 underline-offset-2 decoration-action-ink/70 hover:opacity-80"
                 >
                   {seg.text}
                 </button>
