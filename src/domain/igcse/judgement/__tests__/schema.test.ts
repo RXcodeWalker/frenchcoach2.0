@@ -127,6 +127,26 @@ describe('parseAndValidateJudgeOutput — descriptor traceability', () => {
     );
   });
 
+  it('accepts several canonical bullets for the mark quoted together', () => {
+    const output = buildValidJudgeOutput();
+    output.rolePlay.tasks[0].descriptorApplied = RP_MARK_2.join(' ');
+    expect(() => parseAndValidateJudgeOutput(output, PRACTICE_TRANSCRIPT)).not.toThrow();
+    output.rolePlay.tasks[0].descriptorApplied = `- ${RP_MARK_2[1]}\n- ${RP_MARK_2[0]}`;
+    expect(() => parseAndValidateJudgeOutput(output, PRACTICE_TRANSCRIPT)).not.toThrow();
+  });
+
+  it('rejects canonical bullets joined with extra, non-canonical words', () => {
+    const output = buildValidJudgeOutput();
+    output.rolePlay.tasks[0].descriptorApplied = `${RP_MARK_2[0]} Mostly fine. ${RP_MARK_2[1]}`;
+    expect(() => parseAndValidateJudgeOutput(output, PRACTICE_TRANSCRIPT)).toThrow(/got: /);
+  });
+
+  it('rejects mixing a bullet from another mark into the sequence', () => {
+    const output = buildValidJudgeOutput();
+    output.rolePlay.tasks[0].descriptorApplied = `${RP_MARK_2[0]} ${RP_MARK_1[1]}`;
+    expect(() => parseAndValidateJudgeOutput(output, PRACTICE_TRANSCRIPT)).toThrow(JudgementValidationError);
+  });
+
   it('rejects descriptor from wrong mark band', () => {
     const output = buildValidJudgeOutput();
     output.rolePlay.tasks[0].descriptorApplied = RP_MARK_1[0];

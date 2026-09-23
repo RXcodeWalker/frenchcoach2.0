@@ -1191,3 +1191,32 @@ Each step is its own commit and reverts cleanly.
 - `markAttemptFailed` only writes `last_attempt_at`, and the next `save()`
   re-stamps it.
 - The fixture registry move has no behavior change for the browser.
+
+## 2026-09-23 — Production scoring failure root-caused (session exam-sim-7d977620…)
+
+Render log for the real failing session showed every judge attempt (both
+attempts, across several POSTs) rejected with
+`Role play task rp1: descriptorApplied does not match canonical text for mark 2`,
+and a later attempt failing with Gemini 404 (`gemini-2.5-flash-lite` "no
+longer available to new users", Google's message recommending
+`gemini-3.5-flash-lite`) plus a Groq 429 (8k TPM on-demand tier).
+
+Changes:
+- `judgement/schema.ts`: a role-play `descriptorApplied` consisting of one or
+  more canonical bullets for that mark, joined only by punctuation/whitespace,
+  is accepted. Paraphrase, extra words, or bullets from another mark are still
+  rejected (tests added). The error now includes the rejected text (rubric
+  wording, not candidate speech) so the next failure is diagnosable from logs.
+  `SCORING_PROMPT_VERSION` → `scoring-prompt-v0.4`; prompt text unchanged.
+- Gemini default model → `gemini-3.5-flash-lite` (`geminiJudge.ts`,
+  `server/index.ts`), taken from Google's own 404 message.
+
+Verified: typecheck, typecheck:server, 707 tests across igcse/exam/server/scripts,
+`score:golden` 5/5 with marks unchanged (only the version string moved).
+
+Not verified: that the rejected production descriptor was in fact a bullet
+concatenation — the old error message didn't record the text. If it was a
+paraphrase, this fix won't cover it; the new error message will show it.
+`/health` reported Gemini `ok` while generation 404'd — `models.get` still
+resolves a model that new keys can't call, so `/health` is not proof of a
+working Gemini path.

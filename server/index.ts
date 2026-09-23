@@ -60,7 +60,7 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
 const CORS_ORIGINS = (process.env.CORS_ORIGINS ?? '').split(',').map((s) => s.trim()).filter(Boolean);
 
 /** Same defaults as geminiJudge.ts/groqJudge.ts — kept in sync manually, no shared import to avoid coupling /health to judge internals. */
-const GEMINI_MODEL = process.env.GEMINI_MODEL?.trim() || 'gemini-2.5-flash-lite';
+const GEMINI_MODEL = process.env.GEMINI_MODEL?.trim() || 'gemini-3.5-flash-lite';
 const GROQ_MODEL = process.env.GROQ_MODEL?.trim() || 'openai/gpt-oss-120b';
 
 const healthProbeCache = createTtlCache<ProviderProbeStatus>();

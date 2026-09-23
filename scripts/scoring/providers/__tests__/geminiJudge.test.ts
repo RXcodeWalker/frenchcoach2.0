@@ -19,7 +19,7 @@ describe('createGeminiJudge', () => {
 
     expect(client.models.generateContent).toHaveBeenCalledOnce();
     const call = (client.models.generateContent as ReturnType<typeof vi.fn>).mock.calls[0][0];
-    expect(call.model).toBe('gemini-2.5-flash-lite');
+    expect(call.model).toBe('gemini-3.5-flash-lite');
     expect(call.contents).toBe('hello');
   });
 
@@ -39,7 +39,7 @@ describe('createGeminiJudge', () => {
     expect(getLastCallMetadata()).toBeUndefined();
     await judge({ prompt: 'p' });
 
-    expect(getLastCallMetadata()).toEqual({ model: 'gemini-2.5-flash-lite', responseId: 'resp_abc123' });
+    expect(getLastCallMetadata()).toEqual({ model: 'gemini-3.5-flash-lite', responseId: 'resp_abc123' });
   });
 
   it('respects a custom model option', async () => {

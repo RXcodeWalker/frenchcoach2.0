@@ -44,7 +44,7 @@ export interface GeminiJudgeOptions {
   client?: GeminiClientLike;
 }
 
-const DEFAULT_MODEL = process.env.GEMINI_MODEL?.trim() || 'gemini-2.5-flash-lite';
+const DEFAULT_MODEL = process.env.GEMINI_MODEL?.trim() || 'gemini-3.5-flash-lite';
 
 /**
  * Reliability plan §2.5: sized near gemini-2.5-flash-lite's actual maximum

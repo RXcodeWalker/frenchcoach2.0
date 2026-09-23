@@ -7,5 +7,9 @@
  *
  * v0.3: scoreSpeaking strips one wrapping ```json fence before JSON.parse.
  * The rendered prompt is unchanged (the fixture hash did not move).
+ *
+ * v0.4: a role-play descriptorApplied made of several canonical bullets for
+ * that mark (quoted together) is accepted; anything else is still rejected.
+ * Prompt unchanged.
  */
-export const SCORING_PROMPT_VERSION = 'scoring-prompt-v0.3';
+export const SCORING_PROMPT_VERSION = 'scoring-prompt-v0.4';

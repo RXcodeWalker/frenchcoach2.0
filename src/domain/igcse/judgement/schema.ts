@@ -158,12 +158,32 @@ export function expectedMarkForPlacement(
 
 // ── Validators ────────────────────────────────────────────────────────────────
 
+/**
+ * True when `normalized` is one or more canonical bullets from `allowed`,
+ * joined only by punctuation/whitespace. The field holds one string but a
+ * mark carries several bullets (RP mark 2 has three), and judges were seen
+ * in production to quote them all together — every attempt then failed.
+ * Still strict: any word that isn't a canonical bullet is rejected.
+ */
+function isCanonicalBulletSequence(normalized: string, allowed: Set<string>): boolean {
+  let rest = normalized;
+  while (rest.length > 0) {
+    const bullet = [...allowed].find((b) => rest.startsWith(b));
+    if (!bullet) return false;
+    rest = canonicalizeForMatch(rest.slice(bullet.length));
+  }
+  return true;
+}
+
 function validateRolePlayDescriptor(task: RolePlayTaskMark): void {
   const allowed = RP_DESCRIPTORS_BY_MARK[task.mark];
   const normalized = canonicalizeForMatch(task.descriptorApplied);
-  if (!allowed.has(normalized)) {
+  if (!allowed.has(normalized) && !isCanonicalBulletSequence(normalized, allowed)) {
+    // The rejected text is rubric wording, not candidate speech — safe to
+    // log, and without it this failure can't be diagnosed from the server log.
     throw new JudgementValidationError(
-      `Role play task ${task.taskId}: descriptorApplied does not match canonical text for mark ${task.mark}`,
+      `Role play task ${task.taskId}: descriptorApplied does not match canonical text for mark ${task.mark} ` +
+        `(got: ${JSON.stringify(task.descriptorApplied.slice(0, 200))})`,
     );
   }
 }

@@ -43,7 +43,7 @@ describe('createJudgeWithFallback', () => {
     expect(groq.chat.completions.create).not.toHaveBeenCalled();
     expect(getLastCallMetadata()).toEqual({
       provider: 'gemini',
-      model: 'gemini-2.5-flash-lite',
+      model: 'gemini-3.5-flash-lite',
       responseId: 'gemini-resp-1',
     });
   });
