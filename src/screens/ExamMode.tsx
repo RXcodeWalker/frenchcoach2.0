@@ -917,6 +917,7 @@ export function ExamMode() {
       rolePlayTitle={rolePlayMeta?.title}
       rolePlaySetup={rolePlayMeta?.setup}
       taskProgress={taskProgress}
+      coached={sessionRef.current?.coached ?? false}
     />
   );
 }

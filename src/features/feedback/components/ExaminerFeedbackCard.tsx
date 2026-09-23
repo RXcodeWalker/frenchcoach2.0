@@ -6,6 +6,8 @@ interface Props {
   result: ExaminerFeedback | null;
   onSwitchToCoach: () => void;
   onRetry: () => void;
+  /** Exam mode has no "coach mode" to switch to — hides that escape hatch on the failed state. */
+  hideSwitchToCoach?: boolean;
 }
 
 /**
@@ -16,7 +18,7 @@ interface Props {
  * FeedbackV2-shaped card — that type always carries a numeric score, and this
  * mode must never fabricate one.
  */
-export function ExaminerFeedbackCard({ status, result, onSwitchToCoach, onRetry }: Props) {
+export function ExaminerFeedbackCard({ status, result, onSwitchToCoach, onRetry, hideSwitchToCoach }: Props) {
   if (status === 'pending') {
     return (
       <div className="rounded-xl surface-raised p-8 flex flex-col items-center gap-3">
@@ -43,13 +45,15 @@ export function ExaminerFeedbackCard({ status, result, onSwitchToCoach, onRetry 
           >
             Try again
           </button>
-          <button
-            type="button"
-            onClick={onSwitchToCoach}
-            className="px-4 py-2 rounded-xl bg-violet-500/15 border border-violet-500/30 text-violet-300 text-xs font-bold hover:bg-violet-500/25 transition-colors"
-          >
-            Switch to coach mode
-          </button>
+          {!hideSwitchToCoach && (
+            <button
+              type="button"
+              onClick={onSwitchToCoach}
+              className="px-4 py-2 rounded-xl bg-violet-500/15 border border-violet-500/30 text-violet-300 text-xs font-bold hover:bg-violet-500/25 transition-colors"
+            >
+              Switch to coach mode
+            </button>
+          )}
         </div>
       </div>
     );

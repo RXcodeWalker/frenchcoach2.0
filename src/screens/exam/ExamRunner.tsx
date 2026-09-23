@@ -4,6 +4,8 @@ import { formatTime } from '../../domain/time';
 import { Button } from '../../components/ui/Button';
 import { ExamTranscript } from './ExamTranscript';
 import { ExamComposer } from './ExamComposer';
+import { ExamCorrectionsRail } from './ExamCorrectionsRail';
+import { useExamCorrectionsRail } from '../../services/exam/turnFeedback';
 import type { RecordingState } from '../../features/recording/useRecording';
 import type { ExaminerAction, ConductLogEntry } from '../../domain/igcse/session/types';
 import { ExitConfirmDialog } from './ExitConfirmDialog';
@@ -55,6 +57,8 @@ interface Props {
   rolePlayTitle?: string;
   rolePlaySetup?: string;
   taskProgress?: { index: number; total: number };
+  /** W1/W5: Coached Practice (rail live every turn) vs Exam Sim (rail sealed until submission). Defaults to false (sealed) so existing callers/tests are unaffected. */
+  coached?: boolean;
 }
 
 export function ExamRunner({
@@ -77,6 +81,7 @@ export function ExamRunner({
   rolePlayTitle,
   rolePlaySetup,
   taskProgress,
+  coached = false,
 }: Props) {
   const part = action?.part ?? 'rolePlay';
   const phaseLabel = PART_LABEL[part] ?? part;
@@ -84,6 +89,20 @@ export function ExamRunner({
   const [showSilenceNudge, setShowSilenceNudge] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
+  const [highlightedTurnKey, setHighlightedTurnKey] = useState<number | null>(null);
+
+  const rail = useExamCorrectionsRail(entries, coached);
+
+  const handleIssueClick = (turnKey: number) => {
+    setMobileSheetOpen(true);
+    setHighlightedTurnKey(turnKey);
+    window.setTimeout(() => setHighlightedTurnKey(null), 1200);
+    window.setTimeout(() => {
+      document
+        .querySelectorAll(`[data-turn-key="${turnKey}"]`)
+        .forEach((el) => el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
+    }, 0);
+  };
 
   useEffect(() => {
     if (!recording.isRecording) {
@@ -175,7 +194,13 @@ export function ExamRunner({
 
       <div className="flex-1 flex md:flex-row overflow-hidden">
         <div className="flex-1 flex flex-col min-w-0 max-w-2xl mx-auto w-full">
-          <ExamTranscript entries={entries} voiceMuted={voiceMuted} isAwaitingExaminer={turnBusy} />
+          <ExamTranscript
+            entries={entries}
+            voiceMuted={voiceMuted}
+            isAwaitingExaminer={turnBusy}
+            railEntries={rail.entries}
+            onIssueClick={handleIssueClick}
+          />
 
           <div className="px-5 pb-5 pt-2 space-y-3 shrink-0">
             {pendingTranscriptionFailure ? (
@@ -251,7 +276,13 @@ export function ExamRunner({
         </div>
 
         <div className="hidden lg:block w-80 shrink-0 border-l border-hairline p-4 overflow-y-auto">
-          <ExamRailPlaceholder />
+          <ExamCorrectionsRail
+            coached={coached}
+            entries={rail.entries}
+            disabledReason={rail.disabledReason}
+            onRetry={rail.retry}
+            highlightedTurnKey={highlightedTurnKey}
+          />
         </div>
       </div>
 
@@ -272,7 +303,13 @@ export function ExamRunner({
           />
           <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[95] surface-raised rounded-t-2xl p-5 pb-8 max-h-[70vh] overflow-y-auto">
             <div className="w-10 h-1.5 rounded-full bg-hairline-strong mx-auto mb-4" />
-            <ExamRailPlaceholder />
+            <ExamCorrectionsRail
+              coached={coached}
+              entries={rail.entries}
+              disabledReason={rail.disabledReason}
+              onRetry={rail.retry}
+              highlightedTurnKey={highlightedTurnKey}
+            />
           </div>
         </>
       )}
@@ -282,20 +319,6 @@ export function ExamRunner({
         onCancel={() => setShowExitConfirm(false)}
         onConfirm={onExit}
       />
-    </div>
-  );
-}
-
-/**
- * W3 (the live corrections rail — ExamCorrectionsRail.tsx + turnFeedback.ts)
- * isn't built yet, so this slot is a sealed, static placeholder: no
- * getExaminerFeedback calls, no per-turn state. Swap this out once W3 lands.
- */
-function ExamRailPlaceholder() {
-  return (
-    <div className="rounded-card surface p-4 text-center space-y-1.5">
-      <p className="text-eyebrow uppercase text-ink-subtle">Live corrections</p>
-      <p className="text-body-s text-ink-muted">Coming in a later update.</p>
     </div>
   );
 }

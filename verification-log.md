@@ -725,3 +725,154 @@ list. W7 itself is now fully implemented: keepalives (already wired, verified
 only), mid-exam resume-on-reload (implemented), and the `/api/exam/interpret`
 + `/api/content/*` security gap (closed, with the two deviations above).
 session/batch actually builds the rail.
+
+## IGCSE Exam Mode overhaul — W3: live corrections rail
+
+Date: 2026-09-23
+
+Builds the live corrections rail into the seam W2/W4 already left in
+`ExamRunner.tsx` (the `w-80` desktop column and mobile sheet, both
+previously filled by a static `ExamRailPlaceholder`). Implements the design
+locked in this file's "W3 pre-implementation decision" entry above: the rail
+renders `ExaminerFeedbackCard` and nothing else — no `observeAttempt` call,
+no evidence-log write, no belief update, per turn.
+
+### What changed
+
+- New `src/services/exam/turnFeedback.ts` — `useExamCorrectionsRail(entries,
+  coached)`. Watches the running session's `ConductLogEntry[]` reactively
+  (never a parallel mutable array) and, in coached mode only, fires one
+  `getExaminerFeedback` (`feedbackMode: 'examiner'`) call per new candidate
+  turn that clears `classifyTier`'s gate (tier 0/1 — silent or <=3 words —
+  never spends a call; a button/verbal repeat request is skipped too, since
+  it isn't an answer to comment on). Exam Sim (`coached === false`) returns
+  before touching the network at all — a genuinely sealed rail, not a hidden
+  call — verified by a dedicated test (`useExamCorrectionsRail` unit tests,
+  "Exam Sim makes zero calls" + "tier gate"/"repeat-request" cases).
+  Fire-and-forget: nothing here blocks `ExamMode.tsx`'s `submitTurn` flow,
+  which reads an entirely separate piece of state. Each in-flight request is
+  tracked by a per-`turnKey` request-id counter — this module's analogue of
+  Learn.tsx's screen-wide `attemptIdRef`/`finalizedAttemptIdRef`, scoped per
+  turn here because many turns can be in flight at once (not just one
+  attempt), so a stale or retried response can never overwrite a newer one
+  for the same turn. A guest/expired-session failure (`isAuthRequiredError`,
+  same check as Learn.tsx) degrades the whole rail quietly
+  (`disabledReason: 'signed-out'`, entry removed) rather than showing a
+  per-turn failed card; any other failure shows the existing
+  `ExaminerFeedbackCard` failed state with retry.
+- New `src/screens/exam/ExamCorrectionsRail.tsx` — presentational fork of
+  `LiveFeedbackPanel`, written against the current token set from the start
+  (`surface`, `rounded-card`, `text-eyebrow`, etc. — same discipline as
+  `ExamRunner`/`ExamTranscript`/`ExamTurnBubble`/`ExamComposer`, so there is
+  nothing here for a later W8 pass to normalise). Renders the sealed
+  placeholder, the quiet signed-out state, the empty state, or the list of
+  `ExaminerFeedbackCard`s keyed by `turnKey`, each `data-turn-key`-tagged for
+  the highlight/scroll wiring below.
+- `ExaminerFeedbackCard.tsx` gained one optional prop, `hideSwitchToCoach` —
+  exam mode has no "coach mode" to switch to, so the failed-state escape
+  hatch is hidden there; Learn's usage is unaffected (prop defaults to
+  showing it, as before).
+- `ExamTurnBubble.tsx` — lands the wavy-underline wiring the W2 header
+  comment deferred. **Deviation from the plan text, documented per root
+  `CLAUDE.md`'s "adapt without changing intended behavior" instruction**:
+  the plan named `MarkedUpScript`/`buildSegments`/`openCardFromIssue` for
+  this, but those are built for `FeedbackV2`'s `issues`/`transcriptAnnotations`
+  (category, severity, character-offset spans) — a structure this file's own
+  W3 pre-implementation decision explicitly rejected mapping `ExaminerFeedback`
+  into ("inventing category/severity/correction fields from prose claim/quote
+  pairs fabricates structured judgement, against the spirit of ADR-0005").
+  `ExaminerFeedback` is prose claim/quote pairs with no such structure by
+  design, and `ExaminerFeedbackCard` has no per-citation anchor (one card per
+  turn, not one per citation) — so a new, local `buildQuoteSegments` finds
+  each citation's verbatim quote occurrence in the transcript (the same
+  verbatim-match guarantee `isQuoteGrounded`/`groundExaminerFeedback` already
+  enforce upstream) and renders it as a clickable wavy-underlined span; every
+  quoted span in a turn points at that turn's single rail card, which is the
+  actual available granularity. Same end-user behavior the plan asked for
+  (click an underlined error, the rail highlights), correctly scoped to the
+  real data shape rather than fabricating one.
+- `ExamTranscript.tsx` — threads `railEntries`/`onIssueClick` through to each
+  candidate `ExamTurnBubble`, looked up by `turnKey` (`entry.seq`).
+- `ExamRunner.tsx` — new optional `coached` prop (default `false`, so the
+  existing `ExamRunner.test.tsx` cases are unaffected without modification);
+  calls `useExamCorrectionsRail` once and passes its output to both rail
+  slots (desktop column, mobile sheet) and to `ExamTranscript`. Click-to-rail
+  wiring: `handleIssueClick(turnKey)` opens the mobile sheet (harmless,
+  CSS-hidden at desktop widths), sets a `highlightedTurnKey` that both rail
+  instances ring-highlight for 1.2s (same duration as `useFeedbackState`'s
+  `HIGHLIGHT_CARD` pattern), and scrolls every `[data-turn-key="N"]` element
+  into view — `querySelectorAll` rather than `id` because the desktop column
+  and mobile sheet can both be mounted at once and IDs must be unique.
+  Removed the now-dead `ExamRailPlaceholder` function and its stale header
+  comment.
+- `ExamMode.tsx` — one line: `coached={sessionRef.current?.coached ?? false}`
+  on the `<ExamRunner>` call. `SimulationSession.coached` was already
+  plumbed in W1; this is the first read of it outside `simulationSession.
+  test.ts`'s parity test, which was not touched.
+- New `src/services/exam/__tests__/turnFeedbackBoundary.test.ts` — the
+  rail's own boundary test, mirroring `domain/igcse/session/__tests__/
+  interpreterBoundary.test.ts` as the plan asked: (1) a source-text scan
+  confirms `src/domain/igcse/**` and `scripts/scoring/**` never reference
+  `turnFeedback`/`ExamCorrectionsRail`/`useExamCorrectionsRail`; (2) a scan
+  of `turnFeedback.ts`/`ExamCorrectionsRail.tsx` themselves confirms neither
+  references `observeAttempt`, `sessionOrchestrator`, or either ConductLog-
+  writing function (`candidateTurnToLogEntry`/`examinerActionToLogEntry`) —
+  codifying the "no observeAttempt from the rail" decision in a test, not
+  just a comment.
+- New `src/services/exam/__tests__/turnFeedback.test.ts` — `renderHook`-based
+  unit tests for `useExamCorrectionsRail`: Exam Sim makes zero calls; coached
+  mode fires and resolves; tier gate; repeat-request skip; guest/expired
+  degrades quietly; non-auth failure + retry; a turn is only ever requested
+  once across re-renders (the stale/duplicate-request guard).
+
+### Discrepancy note (backend quota status codes)
+
+The plan's W3 text says "Guest / quota-denied (`aiQuota` 403/429) degrade to
+a quiet disabled state." Checked `french-coach-backend/main.py`: `/api/
+feedback/v3` calls `consume_ai_quota_or_503`, so a real quota denial comes
+back as **503**, not 403/429 — 403 is `assertNotAuthFailure`'s auth-failure
+status (already the "signed-out" quiet-degrade path), and 429 doesn't occur
+on this endpoint at all. The frontend's `postWithSignal` doesn't distinguish
+a quota-503 from any other server error — both surface as a plain `Error`,
+not a typed `QuotaDenied`. Minor implementation discrepancy, adapted per
+root `CLAUDE.md`: the rail only distinguishes what the existing client
+plumbing actually can — `isAuthRequiredError` (guest/expired session, quiet
+disabled state) vs. everything else (per-turn failed card with retry, which
+already covers a quota-503 the same way a network blip would be covered).
+Giving quota-denial its own distinct UI state would need a new typed error
+surfaced from `apiClient.ts`, which is out of scope for this workstream.
+
+### Not done here (deferred, in scope for later workstreams only)
+
+The Coached/Exam Sim *toggle* itself (W5 — this slice only *reads*
+`session.coached`, which W1 already plumbed; there is still no UI to choose
+it, so `coached` is always `false` until W5 lands), `ExamResults.tsx`
+surfacing (W6), and W8 token normalisation of any *other* exam-adjacent
+legacy component — not needed for any file this slice touched, all written
+against the current token set from the start.
+
+### Verified
+
+- `npm run typecheck` clean.
+- `npx vitest run src/domain/igcse src/screens/exam src/services/exam` → 80
+  files, 560 tests, all pass (was 78/541 after W7; +2 new test files
+  (`turnFeedback.test.ts` 7 tests, `turnFeedbackBoundary.test.ts` 6 tests) +
+  `ExamRunner.test.tsx`'s 3 existing tests unchanged and still passing with
+  no edits, confirming the new `coached` prop's default kept the old
+  contract intact).
+- `npm test` (repo-wide) → 237 files, 2174/2176 tests pass. Same 2
+  pre-existing failures as every prior workstream entry (missing `backend/`
+  checkout for `feedbackContractFixtures.test.ts`; unrelated Learn-domain
+  corpus assertion in `infer.test.ts`) — neither file touched, confirmed
+  unrelated, no new failures.
+- `npm run lint` → 0 errors, same pre-existing warning set, none in touched
+  files.
+- `npm run score:golden` → 5/5 match (no `src/domain/igcse/**` scoring file
+  touched).
+- Manual in-browser verification (mic-permission prompts, an actual
+  concurrent-turn race with real network latency, the wavy-underline click
+  actually scrolling/highlighting in a real viewport, mobile drag-sheet)
+  was **not** performed in this session — no browser available.
+  Typecheck/lint/unit tests verify correctness of the code as written, not
+  the live UX; flagged per the root `CLAUDE.md` instruction to say so
+  explicitly rather than claim feature-level success from tests alone.
