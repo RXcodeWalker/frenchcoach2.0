@@ -19,7 +19,7 @@ describe('createGroqJudge', () => {
 
     expect(client.chat.completions.create).toHaveBeenCalledOnce();
     const call = (client.chat.completions.create as ReturnType<typeof vi.fn>).mock.calls[0][0];
-    expect(call.model).toBe('llama-3.3-70b-versatile');
+    expect(call.model).toBe('openai/gpt-oss-120b');
     expect(call.messages).toEqual([{ role: 'user', content: 'hello' }]);
   });
 
@@ -39,7 +39,7 @@ describe('createGroqJudge', () => {
     expect(getLastCallMetadata()).toBeUndefined();
     await judge({ prompt: 'p' });
 
-    expect(getLastCallMetadata()).toEqual({ model: 'llama-3.3-70b-versatile', responseId: 'chatcmpl_abc123' });
+    expect(getLastCallMetadata()).toEqual({ model: 'openai/gpt-oss-120b', responseId: 'chatcmpl_abc123' });
   });
 
   it('respects a custom model option', async () => {
@@ -64,6 +64,17 @@ describe('createGroqJudge', () => {
     const [body, options] = mock.mock.calls[0];
     expect(body.max_completion_tokens).toBeGreaterThan(0);
     expect(options?.timeout).toBeGreaterThan(0);
+  });
+
+  it('sends reasoning_effort "low" and tops the token budget up by the reasoning reserve (gpt-oss default)', async () => {
+    const client = fakeGroqClient('{}');
+    const { judge } = createGroqJudge({ client });
+
+    await judge({ prompt: 'p' });
+
+    const body = (client.chat.completions.create as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    expect(body.reasoning_effort).toBe('low');
+    expect(body.max_completion_tokens).toBe(32768 + 512);
   });
 
   it('throws if the response contains no message content', async () => {

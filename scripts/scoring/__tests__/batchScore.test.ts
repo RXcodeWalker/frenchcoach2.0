@@ -117,8 +117,9 @@ describe('runBatchScore', () => {
     let callCount = 0;
     const createJudge = () => {
       callCount += 1;
-      if (callCount === 1) {
-        // First session's judge returns invalid JSON -> JudgementValidationError
+      if (callCount <= 2) {
+        // First session's judge returns invalid JSON -> JudgementValidationError,
+        // on both its first call and scoreAttempt's one retry (calls 1 and 2).
         return { judge: async () => ({ raw: 'not json' }), getLastCallMetadata: () => ({ provider: 'gemini' as const, model: 'x' }) };
       }
       return buildGoodJudgeFactory()();

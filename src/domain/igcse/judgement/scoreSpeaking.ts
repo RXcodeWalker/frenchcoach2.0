@@ -40,6 +40,18 @@ export function assertRedistributable(transcript: SpeakingTranscript): void {
 }
 
 /**
+ * Strips one wrapping markdown code fence (```json … ``` or ``` … ```) from a
+ * judge reply. Some providers fence their JSON even when asked for bare JSON;
+ * before this, that fence alone made JSON.parse throw a terminal
+ * JudgementValidationError. Only a fence enclosing the whole reply is removed —
+ * the content itself is never rewritten, and schema validation still runs on it.
+ */
+export function stripJsonFence(raw: string): string {
+  const match = /^```(?:json)?[ \t]*\r?\n?([\s\S]*?)\r?\n?[ \t]*```$/i.exec(raw.trim());
+  return match ? match[1] : raw;
+}
+
+/**
  * Score a speaking transcript via an injected LLM judge port.
  * No network, retries, caching, or guardrails in S1.
  *
@@ -62,7 +74,7 @@ export async function scoreSpeaking(
 
   let parsed: unknown;
   try {
-    parsed = JSON.parse(raw);
+    parsed = JSON.parse(stripJsonFence(raw));
   } catch {
     throw new JudgementValidationError('Judge response is not valid JSON');
   }

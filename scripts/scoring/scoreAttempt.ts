@@ -4,6 +4,11 @@
  *
  * Errors (ProvenanceError, JudgementValidationError) propagate unchanged —
  * the batch harness decides how to handle a failed attempt, not this function.
+ * One exception: a JudgementValidationError (the judge replied, but the reply
+ * failed parsing/validation) gets exactly one retry with a fresh createJudge()
+ * instance before it propagates. Both failures are logged, and the number of
+ * judge calls is recorded as `judgeAttempts` in the scoring logs (never in the
+ * envelope, whose shape is unchanged).
  *
  * createJudge is a factory dependency, called fresh once per attempt (never
  * memoized/shared) — see anthropicJudge.ts header for the race this avoids.
@@ -16,7 +21,7 @@ import { buildScoringEnvelope } from '../../src/domain/igcse/envelope/buildEnvel
 import type { ScoringEnvelope } from '../../src/domain/igcse/envelope/types';
 import { runGuardrails } from '../../src/domain/igcse/guardrails/runGuardrails';
 import { GUARDRAILS_VERSION } from '../../src/domain/igcse/guardrails/version';
-import { scoreSpeaking } from '../../src/domain/igcse/judgement/scoreSpeaking';
+import { JudgementValidationError, scoreSpeaking } from '../../src/domain/igcse/judgement/scoreSpeaking';
 import type { Judge, SpeakingAssessment } from '../../src/domain/igcse/judgement/types';
 import { SCORING_PROMPT_VERSION } from '../../src/domain/igcse/judgement/version';
 import { RUBRIC_VERSION } from '../../src/domain/igcse/rubric';
@@ -26,7 +31,14 @@ import type { SessionQuestionSet } from '../../src/domain/igcse/stt/types';
 import type { TranscriptStore } from '../../src/domain/igcse/stt/ports';
 import { resolveScoringEngineVersion } from './engineVersion';
 import type { LlmProviderName } from '../../src/domain/igcse/envelope/types';
-import { logStage } from './observability/logger';
+import { logJudgeAttempts, logJudgeValidationFailure, logStage } from './observability/logger';
+
+/**
+ * Judge calls per scoring attempt: the first, plus one retry on a
+ * JudgementValidationError. A provider-call failure is not retried here —
+ * judgeFactory.ts already falls back from Gemini to Groq for those.
+ */
+const MAX_JUDGE_ATTEMPTS = 2;
 
 export interface CreateJudgeResult {
   judge: Judge;
@@ -75,11 +87,26 @@ export async function scoreAttempt(
     buildEvidenceProfile(speakingTranscript),
   );
 
-  const { judge, getLastCallMetadata } = deps.createJudge();
-  const assessment: SpeakingAssessment = await logStage(attemptId, 'scoreSpeaking', () =>
-    scoreSpeaking(speakingTranscript, evidenceProfile, judge),
-  );
-  const llmMetadata = getLastCallMetadata();
+  let assessment: SpeakingAssessment | undefined;
+  let llmMetadata: ReturnType<CreateJudgeResult['getLastCallMetadata']>;
+  let judgeAttempts = 0;
+  while (assessment === undefined) {
+    judgeAttempts += 1;
+    // Fresh factory call per judge call, including the retry — never reuse
+    // an instance (see the header on concurrent-call metadata bleed).
+    const { judge, getLastCallMetadata } = deps.createJudge();
+    try {
+      assessment = await logStage(attemptId, 'scoreSpeaking', () =>
+        scoreSpeaking(speakingTranscript, evidenceProfile, judge),
+      );
+      llmMetadata = getLastCallMetadata();
+    } catch (err) {
+      if (!(err instanceof JudgementValidationError)) throw err;
+      logJudgeValidationFailure(attemptId, input.sessionId, judgeAttempts, err);
+      if (judgeAttempts >= MAX_JUDGE_ATTEMPTS) throw err;
+    }
+  }
+  logJudgeAttempts(attemptId, input.sessionId, judgeAttempts);
   if (!llmMetadata) {
     throw new Error('scoreAttempt: createJudge() instance produced no call metadata after scoreSpeaking');
   }

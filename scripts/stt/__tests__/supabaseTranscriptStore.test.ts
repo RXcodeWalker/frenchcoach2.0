@@ -8,6 +8,7 @@ vi.mock('@supabase/supabase-js', () => ({
 import {
   createSupabaseTranscriptStore,
   getLastAttemptAt,
+  markAttemptFailed,
   TranscriptOwnershipError,
 } from '../supabaseTranscriptStore';
 import type { SessionTranscript } from '../../../src/domain/igcse/stt/types';
@@ -170,5 +171,37 @@ describe('getLastAttemptAt', () => {
     await getLastAttemptAt({ url: 'https://x.supabase.co', serviceKey: 'key', userId: 'u1' }, 'foreign-session');
     expect(eqSession).toHaveBeenCalledWith('session_id', 'foreign-session');
     expect(eqUser).toHaveBeenCalledWith('user_id', 'u1');
+  });
+});
+
+describe('markAttemptFailed', () => {
+  function mockUpdateChain(result: { error: { message: string } | null }) {
+    const eqUser = vi.fn(async () => result);
+    const eqSession = vi.fn(() => ({ eq: eqUser }));
+    const update = vi.fn(() => ({ eq: eqSession }));
+    fromSpy.mockReturnValue({ update });
+    return { update, eqSession, eqUser };
+  }
+
+  it('resets last_attempt_at to the epoch for this user\'s session, so GET /score 404s at once', async () => {
+    const { update, eqSession, eqUser } = mockUpdateChain({ error: null });
+
+    await markAttemptFailed({ url: 'https://x.supabase.co', serviceKey: 'key', userId: 'u1' }, 's1');
+
+    expect(fromSpy).toHaveBeenCalledWith('session_transcripts');
+    expect(update).toHaveBeenCalledWith({ last_attempt_at: '1970-01-01T00:00:00.000Z' });
+    expect(eqSession).toHaveBeenCalledWith('session_id', 's1');
+    expect(eqUser).toHaveBeenCalledWith('user_id', 'u1');
+  });
+
+  it('never throws, even when the update fails (it runs inside the 500 path)', async () => {
+    mockUpdateChain({ error: { message: 'boom' } });
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    await expect(
+      markAttemptFailed({ url: 'https://x.supabase.co', serviceKey: 'key', userId: 'u1' }, 's1'),
+    ).resolves.toBeUndefined();
+    expect(consoleError).toHaveBeenCalled();
+    consoleError.mockRestore();
   });
 });

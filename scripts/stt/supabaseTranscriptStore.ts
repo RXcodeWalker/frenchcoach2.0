@@ -70,6 +70,37 @@ export async function getLastAttemptAt(
   return new Date(data.last_attempt_at as string);
 }
 
+/**
+ * Server-only: a POST /score attempt definitively failed (it caught an error
+ * and is about to answer 500). Resets last_attempt_at to the epoch (the
+ * column is NOT NULL) so GET /score answers 404 straight away instead of
+ * 202 "in progress" for the whole STALE_THRESHOLD_MS window, and the client's
+ * retry POST is not turned away as a duplicate. Best-effort: never throws —
+ * it runs inside the handler's catch, and a failure here must not replace
+ * the 500 the client is owed; the worst case is the old 202 window.
+ */
+export async function markAttemptFailed(
+  options: SupabaseTranscriptStoreOptions,
+  sessionId: string,
+): Promise<void> {
+  try {
+    const client = createClient(options.url, options.serviceKey);
+    const { error } = await client
+      .from('session_transcripts')
+      .update({ last_attempt_at: new Date(0).toISOString() })
+      .eq('session_id', sessionId)
+      .eq('user_id', options.userId);
+    if (error) {
+      console.error(`[markAttemptFailed] reset failed for session "${sessionId}": ${error.message}`);
+    }
+  } catch (err) {
+    console.error(
+      `[markAttemptFailed] reset failed for session "${sessionId}":`,
+      err instanceof Error ? err.message : err,
+    );
+  }
+}
+
 export function createSupabaseTranscriptStore(options: SupabaseTranscriptStoreOptions): TranscriptStore {
   const client = createClient(options.url, options.serviceKey);
 

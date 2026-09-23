@@ -65,6 +65,16 @@ describe('createGeminiJudge', () => {
     expect(call.config?.httpOptions?.timeout).toBeGreaterThan(0);
   });
 
+  it('requests JSON mode so the reply is not wrapped in a markdown fence', async () => {
+    const client = fakeGeminiClient('{}');
+    const { judge } = createGeminiJudge({ client });
+
+    await judge({ prompt: 'p' });
+
+    const call = (client.models.generateContent as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    expect(call.config?.responseMimeType).toBe('application/json');
+  });
+
   it('throws if the response contains no text', async () => {
     const client: GeminiClientLike = {
       models: { generateContent: vi.fn(async () => ({ text: undefined, responseId: 'resp_x' })) },

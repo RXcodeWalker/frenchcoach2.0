@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createJudgeWithFallback } from '../judgeFactory';
+import { createJudgeWithFallback, JudgeUnavailableError } from '../judgeFactory';
 import type { GeminiClientLike } from '../geminiJudge';
 import type { GroqClientLike } from '../groqJudge';
 
@@ -63,7 +63,7 @@ describe('createJudgeWithFallback', () => {
     expect(groq.chat.completions.create).toHaveBeenCalledOnce();
     expect(getLastCallMetadata()).toEqual({
       provider: 'groq',
-      model: 'llama-3.3-70b-versatile',
+      model: 'openai/gpt-oss-120b',
       responseId: 'groq-resp-1',
     });
   });
@@ -86,6 +86,7 @@ describe('createJudgeWithFallback', () => {
     const { judge } = createJudgeWithFallback({ gemini: { client: gemini }, groq: { client: groq } });
 
     await expect(judge({ prompt: 'hello' })).rejects.toThrow(/rate limited.*also down/s);
+    await expect(judge({ prompt: 'hello' })).rejects.toBeInstanceOf(JudgeUnavailableError);
   });
 
   it('does not fall back to Groq for a low-quality (but successful) Gemini response', async () => {

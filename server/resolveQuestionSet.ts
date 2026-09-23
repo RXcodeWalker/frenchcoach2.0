@@ -8,21 +8,22 @@
  * process.env instead, then hash-guards the result against the transcript's
  * declared questionSetHash (A5) — the only thing standing between a session
  * scored against the fixture and one scored against the published set.
+ *
+ * The offline registry is the same 10-set OFFLINE_FIXTURES the browser loader
+ * uses (src/data/exam/bank/fixtures/index.ts). It used to hold only set 001,
+ * so wherever the content API was unreachable or rate-limited (or
+ * VITE_API_URL unset), sets 002–010 got a terminal 400.
  */
 
 import { parseAuthoredQuestionSet } from '../src/data/exam/bank/validate';
 import { toSessionQuestionSet } from '../src/data/exam/bank/adapter';
-import { ORIGINAL_PRACTICE_001 } from '../src/data/exam/bank/fixtures/original-practice-001';
+import { OFFLINE_FIXTURES } from '../src/data/exam/bank/fixtures';
 import { hashQuestionSet } from '../src/domain/igcse/content/hashQuestionSet';
 import type { SessionQuestionSet } from '../src/domain/igcse/session/types';
 import type { AuthoredQuestionSet } from '../src/data/exam/bank/types';
 
 const API_BASE = process.env.VITE_API_URL ?? 'http://localhost:8000';
 const FETCH_TIMEOUT_MS = 2500;
-
-const OFFLINE_FIXTURES: Record<string, AuthoredQuestionSet> = {
-  [ORIGINAL_PRACTICE_001.questionSetId]: ORIGINAL_PRACTICE_001,
-};
 
 async function fetchPublishedSet(questionSetId: string): Promise<AuthoredQuestionSet | null> {
   const controller = new AbortController();

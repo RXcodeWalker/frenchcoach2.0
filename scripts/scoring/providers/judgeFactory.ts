@@ -9,7 +9,8 @@
  * provider SDK call rejected). A response that comes back successfully but
  * fails JudgementValidationError downstream (bad JSON, ungrounded evidence,
  * schema mismatch) is a low-quality response, NOT a request failure — it is
- * NOT retried and NOT a trigger for fallback, because scoreSpeaking calls the
+ * NOT retried here and NOT a trigger for fallback (scoreAttempt.ts owns the
+ * one fresh-judge retry for that case), because scoreSpeaking calls the
  * judge before parsing, so this composite judge never even sees that error;
  * it only sees provider-call exceptions raised directly by createGeminiJudge's
  * `judge()` fn (network/timeout/4xx/5xx from the SDK).
@@ -33,6 +34,18 @@ import { createGeminiJudge } from './geminiJudge';
 import type { GeminiJudgeOptions } from './geminiJudge';
 import { createGroqJudge } from './groqJudge';
 import type { GroqJudgeOptions } from './groqJudge';
+
+/**
+ * Both providers' calls rejected — no judge reply exists at all. Typed so the
+ * scoring server can answer `code: 'judge_unavailable'` instead of lumping it
+ * in with an invalid reply or an internal error. Message format unchanged.
+ */
+export class JudgeUnavailableError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'JudgeUnavailableError';
+  }
+}
 
 export interface JudgeFactoryCallMetadata {
   provider: LlmProviderName;
@@ -82,7 +95,7 @@ export function createJudgeWithFallback(options: CreateJudgeWithFallbackOptions 
       } catch (groqError) {
         const geminiMsg = geminiError instanceof Error ? geminiError.message : String(geminiError);
         const groqMsg = groqError instanceof Error ? groqError.message : String(groqError);
-        throw new Error(
+        throw new JudgeUnavailableError(
           `Both judge providers failed. Gemini: ${geminiMsg}. Groq fallback: ${groqMsg}`,
         );
       }

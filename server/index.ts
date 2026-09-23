@@ -15,6 +15,8 @@
  *   5. hash guard (A5): resolved question set's hash must match the transcript's
  *      declared questionSetHash, else 409, nothing written
  *   6. transcriptStore.save(transcript, userId) -> scoreAttempt() loads it back
+ *      (any failure from here on: last_attempt_at reset via markAttemptFailed,
+ *      then 500 {error, code} — code from scoringFailure.ts)
  *   7. envelopeStore.saveOriginal() — Phase B: scoring_envelopes_one_original_per_session
  *      (20260717130000) is a partial unique index on session_id where regraded_from
  *      is null. On a losing 23505 (another concurrent request won), saveOriginal loads
@@ -36,7 +38,7 @@ import Groq from 'groq-sdk';
 
 import { parseSessionTranscript, SessionTranscriptValidationError } from '../src/domain/igcse/stt/schema';
 import type { SessionTranscript } from '../src/domain/igcse/stt/types';
-import { createSupabaseTranscriptStore, getLastAttemptAt } from '../scripts/stt/supabaseTranscriptStore';
+import { createSupabaseTranscriptStore, getLastAttemptAt, markAttemptFailed } from '../scripts/stt/supabaseTranscriptStore';
 import { createSupabaseEnvelopeStore } from '../scripts/scoring/supabaseEnvelopeStore';
 import { scoreAttempt } from '../scripts/scoring/scoreAttempt';
 import { createJudgeWithFallback } from '../scripts/scoring/providers/judgeFactory';
@@ -45,6 +47,7 @@ import { isScoringDebugEnabled } from '../scripts/scoring/observability/logger';
 import { resolveAndVerifyQuestionSet, QuestionSetNotFoundError, QuestionSetHashMismatchError } from './resolveQuestionSet';
 import { createTtlCache, probeGroq, probeGemini, type ProviderProbeStatus } from './healthProbe';
 import { consumeAiQuotaOr503, QuotaDeniedError } from './aiQuota';
+import { classifyScoringFailure } from './scoringFailure';
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3000;
 
@@ -58,7 +61,7 @@ const CORS_ORIGINS = (process.env.CORS_ORIGINS ?? '').split(',').map((s) => s.tr
 
 /** Same defaults as geminiJudge.ts/groqJudge.ts — kept in sync manually, no shared import to avoid coupling /health to judge internals. */
 const GEMINI_MODEL = process.env.GEMINI_MODEL?.trim() || 'gemini-2.5-flash-lite';
-const GROQ_MODEL = process.env.GROQ_MODEL?.trim() || 'llama-3.3-70b-versatile';
+const GROQ_MODEL = process.env.GROQ_MODEL?.trim() || 'openai/gpt-oss-120b';
 
 const healthProbeCache = createTtlCache<ProviderProbeStatus>();
 const groqHealthClient = process.env.GROQ_API_KEY ? new Groq({ apiKey: process.env.GROQ_API_KEY }) : undefined;
@@ -197,10 +200,13 @@ app.post('/score', async (req: Request, res: Response) => {
 
   const transcriptStoreOptions = { url: SUPABASE_URL, serviceKey: SUPABASE_SERVICE_KEY, userId };
   const transcriptStore = createSupabaseTranscriptStore(transcriptStoreOptions);
-  await transcriptStore.save(transcript);
 
   const startedAt = Date.now();
   try {
+    // Inside the try (it wasn't before): a save failure — Supabase error,
+    // TranscriptOwnershipError — must reach the same logged, coded 500 as a
+    // scoring failure, not an unhandled rejection.
+    await transcriptStore.save(transcript);
     const envelope = await scoreAttempt(
       { transcriptStore, createJudge: () => createJudgeWithFallback() },
       { sessionId: transcript.sessionId, questionSet },
@@ -222,7 +228,13 @@ app.post('/score', async (req: Request, res: Response) => {
       `[POST /score] scoring failed for session "${transcript.sessionId}":`,
       err instanceof Error ? err.stack ?? err.message : err,
     );
-    res.status(500).json({ error: 'scoring failed' });
+    // This attempt is over, not "in progress": un-stamp last_attempt_at so
+    // GET /score answers 404 now rather than 202 for STALE_THRESHOLD_MS, and
+    // the client's retry POST isn't turned away as an in-flight duplicate.
+    await markAttemptFailed(transcriptStoreOptions, transcript.sessionId);
+    // `code` marks this 500 as a definitive failure the client may retry
+    // with a fresh POST (see scoringFailure.ts).
+    res.status(500).json({ error: 'scoring failed', code: classifyScoringFailure(err) });
   }
 });
 

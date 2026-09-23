@@ -5,6 +5,7 @@ import type { SessionQuestionSet, SessionTranscript } from '../../../src/domain/
 import { scoreAttempt, replayEnvelope } from '../scoreAttempt';
 import type { ScoreAttemptDeps } from '../scoreAttempt';
 import { createGenericFakeJudge } from './fixtures';
+import { JudgementValidationError } from '../../../src/domain/igcse/judgement/schema';
 
 import structGolden from '../../../src/domain/igcse/stt/__tests__/fixtures/structurally-complete.golden.json';
 import structQuestions from '../../../src/domain/igcse/stt/__tests__/fixtures/structurally-complete-questions.json';
@@ -72,6 +73,70 @@ describe('scoreAttempt', () => {
     await expect(
       scoreAttempt(deps, { sessionId: SESSION_ID, questionSet: structQuestions as SessionQuestionSet }),
     ).rejects.toThrow(/JSON/);
+  });
+});
+
+describe('scoreAttempt judge retry on JudgementValidationError', () => {
+  it('makes one fresh judge call after an invalid reply, and scores from the second (judgeAttempts = 2)', async () => {
+    const deps = makeDeps();
+    const realCreateJudge = deps.createJudge;
+    let calls = 0;
+    deps.createJudge = vi.fn(() => {
+      calls += 1;
+      if (calls === 1) {
+        return {
+          judge: async () => ({ raw: 'not json' }),
+          getLastCallMetadata: () => ({ provider: 'gemini' as const, model: 'bad' }),
+        };
+      }
+      return realCreateJudge();
+    });
+    const stderr = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+
+    const envelope = await scoreAttempt(deps, {
+      sessionId: SESSION_ID,
+      questionSet: structQuestions as SessionQuestionSet,
+    });
+
+    expect(deps.createJudge).toHaveBeenCalledTimes(2);
+    expect(envelope.llm.model).toBe('fake-model');
+    const lines = stderr.mock.calls.map((c) => String(c[0]));
+    expect(lines.some((l) => l.includes('"judgeAttempt":1') && l.includes('JudgementValidationError'))).toBe(true);
+    expect(lines.some((l) => l.includes('"judgeAttempts":2'))).toBe(true);
+    stderr.mockRestore();
+  });
+
+  it('gives up after the second invalid reply, logging both failures', async () => {
+    const deps = makeDeps();
+    deps.createJudge = vi.fn(() => ({
+      judge: async () => ({ raw: 'not json' }),
+      getLastCallMetadata: () => ({ provider: 'gemini' as const, model: 'x' }),
+    }));
+    const stderr = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+
+    await expect(
+      scoreAttempt(deps, { sessionId: SESSION_ID, questionSet: structQuestions as SessionQuestionSet }),
+    ).rejects.toThrow(JudgementValidationError);
+
+    expect(deps.createJudge).toHaveBeenCalledTimes(2);
+    const failureLines = stderr.mock.calls.map((c) => String(c[0])).filter((l) => l.includes('JudgementValidationError'));
+    expect(failureLines).toHaveLength(2);
+    stderr.mockRestore();
+  });
+
+  it('does not retry a provider-call failure (judgeFactory.ts owns that fallback)', async () => {
+    const deps = makeDeps();
+    deps.createJudge = vi.fn(() => ({
+      judge: async () => {
+        throw new Error('Both judge providers failed');
+      },
+      getLastCallMetadata: () => undefined,
+    }));
+
+    await expect(
+      scoreAttempt(deps, { sessionId: SESSION_ID, questionSet: structQuestions as SessionQuestionSet }),
+    ).rejects.toThrow(/Both judge providers failed/);
+    expect(deps.createJudge).toHaveBeenCalledTimes(1);
   });
 });
 

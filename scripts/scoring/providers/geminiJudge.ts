@@ -30,7 +30,7 @@ export interface GeminiClientLike {
     generateContent: (params: {
       model: string;
       contents: string;
-      config?: { maxOutputTokens?: number; httpOptions?: { timeout?: number } };
+      config?: { maxOutputTokens?: number; responseMimeType?: string; httpOptions?: { timeout?: number } };
     }) => Promise<{
       text?: string;
       responseId?: string;
@@ -50,14 +50,22 @@ const DEFAULT_MODEL = process.env.GEMINI_MODEL?.trim() || 'gemini-2.5-flash-lite
  * Reliability plan §2.5: sized near gemini-2.5-flash-lite's actual maximum
  * safe output ceiling (published as 65536), not "expected" response length —
  * JudgeResponse.raw is a full multi-KB structured JSON payload and a
- * schema-validation failure from truncation is a terminal, non-retried error
- * (see judgeFactory.ts). Re-verify this ceiling against Gemini's current docs
+ * schema-validation failure from truncation gets only scoreAttempt.ts's one
+ * retry, and is terminal after that (see judgeFactory.ts). Re-verify this ceiling against Gemini's current docs
  * if the model id in GEMINI_MODEL ever changes.
  */
 const MAX_OUTPUT_TOKENS = 65536;
 
 /** Request timeout, ms — leaves headroom under submitForScoring's 90s client ceiling. */
 const REQUEST_TIMEOUT_MS = 60_000;
+
+/**
+ * JSON mode: without it the model may wrap its reply in a ```json fence,
+ * which scoreSpeaking's JSON.parse rejected as a terminal
+ * JudgementValidationError. scoreSpeaking also strips one fence as a second
+ * line of defence (Groq has no equivalent knob on this call).
+ */
+const RESPONSE_MIME_TYPE = 'application/json';
 
 /**
  * Fresh-per-attempt factory. Call once per scoring attempt; never share the
@@ -76,7 +84,11 @@ export function createGeminiJudge(options: GeminiJudgeOptions = {}): {
     const response = await client.models.generateContent({
       model,
       contents: req.prompt,
-      config: { maxOutputTokens: MAX_OUTPUT_TOKENS, httpOptions: { timeout: REQUEST_TIMEOUT_MS } },
+      config: {
+        maxOutputTokens: MAX_OUTPUT_TOKENS,
+        responseMimeType: RESPONSE_MIME_TYPE,
+        httpOptions: { timeout: REQUEST_TIMEOUT_MS },
+      },
     });
 
     lastCallMetadata = {

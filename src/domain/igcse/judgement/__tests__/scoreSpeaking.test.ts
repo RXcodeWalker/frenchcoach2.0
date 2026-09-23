@@ -64,6 +64,26 @@ describe('scoreSpeaking', () => {
     );
   });
 
+  it('accepts a reply wrapped in one ```json fence', async () => {
+    const raw = '```json\n' + JSON.stringify(buildValidJudgeOutput()) + '\n```';
+    const judge = vi.fn(async () => ({ raw }));
+    const result = await scoreSpeaking(PRACTICE_TRANSCRIPT, EVIDENCE, judge);
+    expect(result.total).toBe(25);
+  });
+
+  it('accepts a reply wrapped in a bare ``` fence with surrounding whitespace', async () => {
+    const raw = '  \n```\n' + JSON.stringify(buildValidJudgeOutput()) + '\n```  \n';
+    const judge = vi.fn(async () => ({ raw }));
+    const result = await scoreSpeaking(PRACTICE_TRANSCRIPT, EVIDENCE, judge);
+    expect(result.total).toBe(25);
+  });
+
+  it('still rejects prose around a fenced reply (only a whole-reply fence is stripped)', async () => {
+    const raw = 'Here is the JSON:\n```json\n' + JSON.stringify(buildValidJudgeOutput()) + '\n```';
+    const judge = vi.fn(async () => ({ raw }));
+    await expect(scoreSpeaking(PRACTICE_TRANSCRIPT, EVIDENCE, judge)).rejects.toThrow(JudgementValidationError);
+  });
+
   it('rejects judge output failing validation (near-miss accent quote)', async () => {
     const output = buildValidJudgeOutput();
     output.communication.evidenceSpans = [

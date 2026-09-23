@@ -83,13 +83,19 @@ production and then treated as the record. **Last repo pass: 2026-09-09.**
 - **`CORS_ORIGINS` unset ⇒ reflect every origin.** `server/index.ts:83` —
   `cors({ origin: CORS_ORIGINS.length > 0 ? CORS_ORIGINS : true })`.
 - **`VITE_API_URL` unset in the scoring service ⇒ `http://localhost:8000`.**
-  `server/resolveQuestionSet.ts:20`. In production this means published question sets never
-  resolve; only the in-repo fixture (`original-practice-001`) can hash-match — every other set
-  400s.
+  `server/resolveQuestionSet.ts`. In production this means published question sets never
+  resolve from the content API, so every set falls back to the in-repo fixture. Since the exam
+  overhaul's fix step A (2026-09-23) the server's offline registry is the same 10-set
+  `src/data/exam/bank/fixtures/index.ts` the browser uses (previously only
+  `original-practice-001`, so sets 002–010 400'd). Fixture ↔ backend-JSON hash parity is
+  checked by `npx tsx scripts/authoring/checkFixtureParity.ts <backend>/data/igcse`; drift
+  would 409.
 - **Judge model IDs are now env-driven everywhere (Phase 2.1, resolved).** Node's
   `scripts/scoring/providers/geminiJudge.ts`/`groqJudge.ts` read `process.env.GEMINI_MODEL` /
-  `GROQ_MODEL` (falling back to `gemini-2.5-flash-lite` / `llama-3.3-70b-versatile` only when
-  unset), matching `backend/main.py`'s existing `GEMINI_MODEL`/`GROQ_MODEL` pattern;
+  `GROQ_MODEL` (falling back to `gemini-2.5-flash-lite` / `openai/gpt-oss-120b` only when
+  unset; the Groq default was `llama-3.3-70b-versatile` until 2026-09-23, which Groq has
+  retired, so the fallback was dead wherever `GROQ_MODEL` was unset. `main.py` records
+  `gemini-2.5-flash-lite` as retired for new keys too, so set `GEMINI_MODEL` explicitly), matching `backend/main.py`'s existing `GEMINI_MODEL`/`GROQ_MODEL` pattern;
   `render.yaml`'s `french-scoring` service now declares both as `sync: false` envVars.
   `backend/exam_controller.py` and `backend/scenario_generator.py` were also migrated onto the
   same two env vars (previously hardcoded `llama-3.3-70b-versatile` / `gemini-2.0-flash` /
