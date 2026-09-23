@@ -29,7 +29,12 @@ const SCORE_TIMEOUT_MS = 90_000;
 const POLL_TIMEOUT_MS = 20_000;
 
 export class ScoringApiError extends Error {
-  constructor(message: string, public status?: number) {
+  /**
+   * `code`: the machine-readable failure code from the error body, when the
+   * server sent one (POST /score's 500 carries judge_invalid_output |
+   * judge_unavailable | internal — see server/scoringFailure.ts).
+   */
+  constructor(message: string, public status?: number, public code?: string) {
     super(message);
     this.name = 'ScoringApiError';
   }
@@ -38,6 +43,24 @@ export class ScoringApiError extends Error {
 /** True for a status that will never succeed by repeating the same request unchanged. */
 export function isTerminalScoringStatus(status: number | undefined): boolean {
   return status === 400 || status === 401 || status === 403 || status === 409;
+}
+
+/**
+ * True when the server definitively failed this attempt: a 5xx whose body
+ * carries a `code`. The scoring server only sends a coded 5xx after it has
+ * given up on the attempt and cleared its in-progress mark, so the caller
+ * should re-POST (SUBMIT_SERVER_FAILED), not poll. A network error, a
+ * timeout, or an uncoded 5xx (a proxy/gateway page, an older server) stays
+ * ambiguous.
+ */
+export function isDefinitiveServerFailure(err: unknown): boolean {
+  return (
+    err instanceof ScoringApiError &&
+    err.status !== undefined &&
+    err.status >= 500 &&
+    typeof err.code === 'string' &&
+    err.code.length > 0
+  );
 }
 
 export type ScoreStatus =
@@ -138,13 +161,15 @@ export async function pollScoreStatus(sessionId: string): Promise<ScoreStatus> {
 async function parseEnvelopeResponse(res: Response): Promise<EnvelopeView> {
   if (!res.ok) {
     let message = `Scoring request failed (${res.status})`;
+    let code: string | undefined;
     try {
       const body = await res.json();
       if (body?.error) message = body.error;
+      if (typeof body?.code === 'string') code = body.code;
     } catch {
       /* keep default message */
     }
-    throw new ScoringApiError(message, res.status);
+    throw new ScoringApiError(message, res.status, code);
   }
   return res.json() as Promise<EnvelopeView>;
 }

@@ -1043,3 +1043,151 @@ of this era's components as a light-mode liability and was left alone as
 explicitly out of this session's scope (W5 + W6 only). `TranscriptReview.tsx`
 is the one exception, restyled per the plan's own explicit instruction for
 that file.
+
+## IGCSE Exam overhaul — audit fix steps 0 + A + B: scoring server hardening + client retry (2026-09-23)
+
+Context: in a real run the user never got a /40 report. POST /score answered
+500, the client treated that as ambiguous, GET answered 202 for the 5-minute
+staleness window, and the cycle repeated for up to 3 attempts (10–15 min of
+"Still working…"). Step A hardens the server's judge path and makes a failed
+attempt answer 404 at once. Step B makes the client re-POST on a definitive
+server failure instead of polling. The Render log line for the original
+failure was not available this session, so the root cause of the production
+500 is still unconfirmed (see "Not verified" below).
+
+### Step 0 — baseline (before any change)
+
+- `npm run typecheck`, `typecheck:server`: clean. `npm run lint`: 0 errors,
+  22 pre-existing warnings.
+- `npm run typecheck:scripts`: 3 pre-existing errors in 2 test files
+  (`supabaseEnvelopeStore.test.ts`, `supabaseTranscriptStore.test.ts`).
+- `npx vitest run src/domain/igcse src/screens/exam src/services/exam server`:
+  84 files, 581 tests, all pass. `npm run score:golden`: 5/5.
+- `npm test` (repo-wide): 2 pre-existing failures, both reading the
+  `backend/` checkout (absent here). With `backend/` symlinked to a clone of
+  french-coach-backend `e86df01`, `feedbackContractFixtures.test.ts` passes.
+  `infer.test.ts` (Learn corpus, "expected 7 to be >= 8") still fails, with
+  or without this session's changes. It is unrelated to this work.
+
+### Step A — what changed
+
+- `geminiJudge.ts`: `responseMimeType: 'application/json'` in `config`.
+- `judgement/scoreSpeaking.ts`: `stripJsonFence` removes one fence wrapping
+  the whole reply before `JSON.parse`. Prose around a fence is still rejected.
+  `SCORING_PROMPT_VERSION` → `scoring-prompt-v0.3`.
+- `scripts/scoring/scoreAttempt.ts`: on `JudgementValidationError`, one
+  fresh `createJudge()` call. Each failure is logged as a JSON line on
+  stderr (always, not gated on debug). `judgeAttempts` is logged when a retry
+  happened, or under `SCORING_DEBUG`. The envelope shape is unchanged.
+  Provider-call failures are not retried here, because `judgeFactory.ts`
+  already falls back to Groq.
+- `groqJudge.ts` + `server/index.ts` `/health`: the `GROQ_MODEL` default is
+  now `openai/gpt-oss-120b`. The judge also sends `reasoning_effort: 'low'`
+  (env `GROQ_REASONING_EFFORT`, where `""` disables it) and adds a 512-token
+  reserve (env `GROQ_REASONING_TOKEN_RESERVE`), mirroring
+  french-coach-backend `main.py`.
+- `server/index.ts`: `transcriptStore.save` moved inside the try. On any
+  failure, the new `markAttemptFailed()` (`scripts/stt/supabaseTranscriptStore.ts`)
+  resets `last_attempt_at` to the epoch. The column is NOT NULL, so the
+  epoch is used rather than null. The 500 body is `{error: 'scoring failed',
+  code}`, where `code` comes from the new `server/scoringFailure.ts`:
+  `judge_invalid_output` | `judge_unavailable` | `internal`.
+- `server/resolveQuestionSet.ts` and `loader.ts` both import the new
+  Node-safe `src/data/exam/bank/fixtures/index.ts`, which holds all 10 sets.
+- New `scripts/authoring/checkFixtureParity.ts`.
+
+### Step B — what changed
+
+- `scoringApiClient.ts`: `ScoringApiError` carries `code` from the error
+  body. `isDefinitiveServerFailure(err)` is true only for a 5xx that has a
+  `code`. Network errors, timeouts and uncoded 5xx (such as a gateway page
+  or an older server) stay ambiguous.
+- `examScoringMachine.ts`: new event `SUBMIT_SERVER_FAILED` → `Submitting
+  (attempt+1, delayMs 3s then 10s)`, which reaches `FailedTerminal` at
+  `MAX_SUBMIT_ATTEMPTS` with `SERVER_FAILED_TERMINAL_REASON`. It shares one
+  cap with the 404-resubmit path.
+- `ExamMode.tsx`: dispatches `SUBMIT_SERVER_FAILED` for a coded 5xx and waits
+  `delayMs` before POSTing. The copy for Submitting at attempt > 1 is
+  "Retrying (attempt n of 3)".
+
+### Deviations from the plan text (minor, intended behavior kept)
+
+1. **"Bump the judgement stage `version.ts`"**: the file's only constant is
+   `SCORING_PROMPT_VERSION`, which is also the only judgement-stage version
+   the envelope records. It was bumped to v0.3 and its doc comment now also
+   covers reply parsing. The rendered prompt did not change (the fixture hash
+   in `version-pin.test.ts` is unchanged). Goldens: 2 files changed only
+   their `scoringPromptVersion` line. Marks and all other fields are
+   identical (5/5 after `--update-goldens`, diff checked by hand).
+2. Classifying `judge_unavailable` needed a typed error. `judgeFactory.ts`
+   now throws `JudgeUnavailableError` (same message) instead of a bare
+   `Error`. The classifier lives in `server/scoringFailure.ts` so it can be
+   unit-tested, because `server/index.ts` starts a listener on import.
+3. The parity script is not wired into `package.json` (the plan calls it
+   one-off). Run it with `npx tsx scripts/authoring/checkFixtureParity.ts
+   <backend>/data/igcse`.
+4. The machine stays pure. The backoff is `Submitting.delayMs` and the timer
+   lives in the ExamMode effect. A side effect: every Submitting POST now
+   goes through `setTimeout(…, delayMs ?? 0)` with cleanup, so a StrictMode
+   double-invoked effect no longer sends two POSTs.
+5. `scripts/scoring/__tests__/batchScore.test.ts`: the "isolates a scoring
+   failure" fixture now fails both judge calls for its first session, because
+   one failing call is now retried. The test's intent is unchanged.
+
+### Verified
+
+- Typecheck (all three), lint and the Step 0 failures are unchanged from
+  the baseline. No new errors or warnings.
+- `npx vitest run src/domain/igcse src/screens/exam src/services/exam server
+  scripts/scoring scripts/stt src/data/exam src/screens/__tests__/ExamMode.scoringRetry.test.tsx`:
+  109 files, 763 tests, all pass. `npm test` repo-wide: 2209/2211, with the
+  same 2 pre-existing failures as the baseline.
+- `npm run score:golden`: 5/5 (version line only, see Deviation 1).
+- `npm run build` and `npm run build:server` succeed. The built `dist/server.js`
+  was started locally with dummy Supabase env: `/health` → `{ok:true,
+  providers:{groq:'not_configured',gemini:'not_configured'}}`, and an
+  unauthenticated POST /score → 401.
+- New tests:
+  - The fence-strip cases (`scoreSpeaking.test.ts`).
+  - Gemini JSON mode, and Groq's default, reasoning effort and budget.
+  - `JudgeUnavailableError`.
+  - `judgeAttempts` retry with a fake judge that fails once (scores from
+    call 2), fails twice (throws, 2 logged failures), and a provider failure
+    (no retry).
+  - `markAttemptFailed` (epoch, user-scoped, never throws).
+  - `classifyScoringFailure`.
+  - The server resolves and hash-verifies all 10 sets offline and on a 429.
+  - Machine transitions, including a full 500 → 500 → 500 sequence with
+    13 s of total backoff.
+  - The client's coded/uncoded/network/4xx classification.
+  - `src/screens/__tests__/ExamMode.scoringRetry.test.tsx`: the real
+    ExamMode effect with fake timers. Coded 500s reach the error screen
+    10 s after the first POST on resume and 13 s on a manual retry, never
+    re-polling. "Retrying (attempt 3 of 3)" shows during the backoff, and an
+    uncoded 502 still polls rather than re-POSTing.
+- Fixture parity: all 10 fixtures hash-match french-coach-backend `e86df01`
+  `data/igcse/*.json`. A hand-mutated copy of set 004 is caught with exit 1.
+
+### Not verified
+
+- **Live end-to-end** against a real scoring service. This sandbox has no
+  Supabase credentials or provider keys, and the server requires a real
+  `auth.getUser`. The plan's local end-to-end run (a forced 500 via a bad
+  `GEMINI_MODEL`) is therefore still owed.
+- **The production root cause.** It still needs the Render log line for
+  `exam-sim-7d977620…`.
+- **Whether the new Groq default and the existing Gemini default are live.**
+  french-coach-backend `main.py` records `gemini-2.5-flash-lite` as no
+  longer available to new keys. That default was not changed here (out of
+  this plan's scope), so set `GEMINI_MODEL` explicitly on the scoring
+  service and check `/health`.
+
+### Rollback
+
+Each step is its own commit and reverts cleanly.
+- `code` is an additive body field. An older client ignores it. The new
+  client against an older server sees an uncoded 500, which it treats as
+  ambiguous, which is the old behavior.
+- `markAttemptFailed` only writes `last_attempt_at`, and the next `save()`
+  re-stamps it.
+- The fixture registry move has no behavior change for the browser.

@@ -38,12 +38,20 @@ import {
   getExaminerVoiceGeneration,
 } from '../services/exam/examinerVoice';
 import { wait, PRE_SPEECH_LEAD_MS, PRE_LISTEN_PAUSE_MS } from '../services/exam/examinerPacing';
-import { pingScoringServiceHealth, submitForScoring, pollScoreStatus, isTerminalScoringStatus, ScoringApiError } from '../services/exam/scoringApiClient';
+import {
+  pingScoringServiceHealth,
+  submitForScoring,
+  pollScoreStatus,
+  isTerminalScoringStatus,
+  isDefinitiveServerFailure,
+  ScoringApiError,
+} from '../services/exam/scoringApiClient';
 import {
   initialScoringMachineState,
   transitionScoringMachine,
   recoveringBackoffMs,
   RECOVERING_MAX_MS,
+  MAX_SUBMIT_ATTEMPTS,
   type ScoringMachineState,
 } from '../services/exam/examScoringMachine';
 import { pingInterpretServiceHealth } from '../services/exam/interpretUtterance';
@@ -83,7 +91,14 @@ export const GREETING_TEXT = 'Bonjour ! Comment ça va ? Es-tu prêt ? On va com
 function scoringPhaseCopy(machine: ScoringMachineState): { title: string; detail: string } {
   switch (machine.phase) {
     case 'Queued':
+      return { title: 'Submitting your session…', detail: 'Sending your answers to be scored. This can take up to a minute.' };
     case 'Submitting':
+      if (machine.attempt > 1) {
+        return {
+          title: `Retrying (attempt ${machine.attempt} of ${MAX_SUBMIT_ATTEMPTS})`,
+          detail: 'Scoring hit a problem, so we are trying again. Your answers are safe.',
+        };
+      }
       return { title: 'Submitting your session…', detail: 'Sending your answers to be scored. This can take up to a minute.' };
     case 'WaitingForScore':
       return { title: 'Scoring your session…', detail: 'This can take up to a minute.' };
@@ -656,29 +671,38 @@ export function ExamMode() {
     let cancelled = false;
 
     if (scoringMachine.phase === 'Submitting') {
-      void (async () => {
-        let result: Awaited<ReturnType<typeof submitForScoring>>;
-        try {
-          result = await submitForScoring(transcript);
-        } catch (err) {
-          if (cancelled) return;
-          captureError(err, { stage: 'submitForScoring', sessionId: transcript.sessionId });
-          if (err instanceof ScoringApiError && isTerminalScoringStatus(err.status)) {
-            setScoringMachine((s) => transitionScoringMachine(s, { type: 'SUBMIT_TERMINAL_ERROR', reason: err.message }));
-          } else {
-            setScoringMachine((s) => transitionScoringMachine(s, { type: 'SUBMIT_AMBIGUOUS_ERROR' }));
+      // delayMs is set only on a resubmit after SUBMIT_SERVER_FAILED (the
+      // machine's backoff); every other entry into Submitting POSTs at once.
+      const timeoutId = setTimeout(() => {
+        void (async () => {
+          let result: Awaited<ReturnType<typeof submitForScoring>>;
+          try {
+            result = await submitForScoring(transcript);
+          } catch (err) {
+            if (cancelled) return;
+            captureError(err, { stage: 'submitForScoring', sessionId: transcript.sessionId });
+            if (err instanceof ScoringApiError && isTerminalScoringStatus(err.status)) {
+              setScoringMachine((s) => transitionScoringMachine(s, { type: 'SUBMIT_TERMINAL_ERROR', reason: err.message }));
+            } else if (isDefinitiveServerFailure(err)) {
+              // Coded 5xx: the server gave up on this attempt and cleared its
+              // in-progress mark — re-POST after a backoff instead of polling
+              // a 202 window that no longer exists.
+              setScoringMachine((s) => transitionScoringMachine(s, { type: 'SUBMIT_SERVER_FAILED' }));
+            } else {
+              setScoringMachine((s) => transitionScoringMachine(s, { type: 'SUBMIT_AMBIGUOUS_ERROR' }));
+            }
+            return;
           }
-          return;
-        }
-        if (cancelled) return;
-        if (result.status === 'done') {
-          setEnvelopeView(result.envelope);
-          setScoringMachine((s) => transitionScoringMachine(s, { type: 'SUBMIT_OK' }));
-        } else {
-          setScoringMachine((s) => transitionScoringMachine(s, { type: 'SUBMIT_IN_PROGRESS' }));
-        }
-      })();
-      return () => { cancelled = true; };
+          if (cancelled) return;
+          if (result.status === 'done') {
+            setEnvelopeView(result.envelope);
+            setScoringMachine((s) => transitionScoringMachine(s, { type: 'SUBMIT_OK' }));
+          } else {
+            setScoringMachine((s) => transitionScoringMachine(s, { type: 'SUBMIT_IN_PROGRESS' }));
+          }
+        })();
+      }, scoringMachine.delayMs ?? 0);
+      return () => { cancelled = true; clearTimeout(timeoutId); };
     }
 
     if (scoringMachine.phase === 'WaitingForScore' || scoringMachine.phase === 'Recovering') {

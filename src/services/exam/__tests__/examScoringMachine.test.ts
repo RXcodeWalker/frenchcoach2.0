@@ -7,7 +7,9 @@ import {
   initialScoringMachineState,
   transitionScoringMachine,
   recoveringBackoffMs,
+  serverFailedBackoffMs,
   MAX_SUBMIT_ATTEMPTS,
+  SERVER_FAILED_TERMINAL_REASON,
   type ScoringMachineState,
 } from '../examScoringMachine';
 
@@ -51,6 +53,42 @@ describe('Submitting', () => {
   it('SUBMIT_AMBIGUOUS_ERROR -> WaitingForScore, never guesses retryable-vs-not', () => {
     const next = transitionScoringMachine({ phase: 'Submitting', attempt: 1 }, { type: 'SUBMIT_AMBIGUOUS_ERROR' });
     expect(next).toEqual({ phase: 'WaitingForScore', attempt: 1 });
+  });
+});
+
+describe('Submitting — SUBMIT_SERVER_FAILED (coded 5xx: the server definitively failed)', () => {
+  it('under the cap -> Submitting attempt+1 with a 3s backoff after attempt 1 (re-POST, not poll)', () => {
+    const next = transitionScoringMachine({ phase: 'Submitting', attempt: 1 }, { type: 'SUBMIT_SERVER_FAILED' });
+    expect(next).toEqual({ phase: 'Submitting', attempt: 2, delayMs: 3_000 });
+  });
+
+  it('after attempt 2 -> Submitting attempt 3 with a 10s backoff', () => {
+    const next = transitionScoringMachine(
+      { phase: 'Submitting', attempt: 2, delayMs: 3_000 },
+      { type: 'SUBMIT_SERVER_FAILED' },
+    );
+    expect(next).toEqual({ phase: 'Submitting', attempt: 3, delayMs: 10_000 });
+  });
+
+  it('at the attempt cap -> FailedTerminal with a human message', () => {
+    const next = transitionScoringMachine(
+      { phase: 'Submitting', attempt: MAX_SUBMIT_ATTEMPTS },
+      { type: 'SUBMIT_SERVER_FAILED' },
+    );
+    expect(next).toEqual({ phase: 'FailedTerminal', reason: SERVER_FAILED_TERMINAL_REASON });
+  });
+
+  it('is a no-op outside Submitting', () => {
+    const waiting: ScoringMachineState = { phase: 'WaitingForScore', attempt: 1 };
+    expect(transitionScoringMachine(waiting, { type: 'SUBMIT_SERVER_FAILED' })).toEqual(waiting);
+  });
+
+  it('a manual RETRY after the terminal failure starts over at attempt 1 with no backoff', () => {
+    const next = transitionScoringMachine(
+      { phase: 'FailedTerminal', reason: SERVER_FAILED_TERMINAL_REASON },
+      { type: 'RETRY' },
+    );
+    expect(next).toEqual({ phase: 'Submitting', attempt: 1 });
   });
 });
 
@@ -202,6 +240,51 @@ describe('a full recovery sequence (server crash mid-attempt)', () => {
     }
     state = transitionScoringMachine(state, { type: 'POLL_NOT_FOUND' });
     expect(state.phase).toBe('FailedTerminal');
+  });
+});
+
+describe('a full server-failure sequence (the judge keeps failing)', () => {
+  it('500 -> fast retry -> 500 -> retry -> 500 -> FailedTerminal, never polling, within ~15s of backoff', () => {
+    let state = initialScoringMachineState();
+    state = transitionScoringMachine(state, { type: 'SUBMIT_OK' }); // Submitting attempt 1
+    let totalBackoffMs = 0;
+    const phases: string[] = [];
+    while (state.phase === 'Submitting') {
+      totalBackoffMs += state.delayMs ?? 0;
+      state = transitionScoringMachine(state, { type: 'SUBMIT_SERVER_FAILED' });
+      phases.push(state.phase);
+    }
+    expect(phases).toEqual(['Submitting', 'Submitting', 'FailedTerminal']);
+    expect(state).toEqual({ phase: 'FailedTerminal', reason: SERVER_FAILED_TERMINAL_REASON });
+    // Before step B, a 500 was "ambiguous" and each attempt sat through a
+    // ~5 min 202 window: 10-15 min in total. Now it is backoff only.
+    expect(totalBackoffMs).toBe(13_000);
+    expect(totalBackoffMs).toBeLessThanOrEqual(15_000);
+  });
+
+  it('a server failure followed by a successful retry completes', () => {
+    let state: ScoringMachineState = { phase: 'Submitting', attempt: 1 };
+    state = transitionScoringMachine(state, { type: 'SUBMIT_SERVER_FAILED' });
+    state = transitionScoringMachine(state, { type: 'SUBMIT_OK' });
+    expect(state).toEqual({ phase: 'Completed' });
+  });
+
+  it('server failures and 404-resubmits share one attempt cap', () => {
+    let state: ScoringMachineState = { phase: 'Submitting', attempt: 1 };
+    state = transitionScoringMachine(state, { type: 'SUBMIT_AMBIGUOUS_ERROR' }); // WaitingForScore 1
+    state = transitionScoringMachine(state, { type: 'POLL_NOT_FOUND' }); // Submitting 2
+    state = transitionScoringMachine(state, { type: 'SUBMIT_SERVER_FAILED' }); // Submitting 3
+    expect(state).toEqual({ phase: 'Submitting', attempt: 3, delayMs: 10_000 });
+    state = transitionScoringMachine(state, { type: 'SUBMIT_SERVER_FAILED' });
+    expect(state.phase).toBe('FailedTerminal');
+  });
+});
+
+describe('serverFailedBackoffMs', () => {
+  it('is 3s after attempt 1, then 10s (clamped)', () => {
+    expect(serverFailedBackoffMs(1)).toBe(3_000);
+    expect(serverFailedBackoffMs(2)).toBe(10_000);
+    expect(serverFailedBackoffMs(5)).toBe(10_000);
   });
 });
 
