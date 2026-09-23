@@ -30,14 +30,19 @@ describe('createTtlCache', () => {
 });
 
 describe('probeGroq', () => {
-  it('returns degraded on a model_not_found-shaped error without throwing', async () => {
-    const client = { models: { retrieve: vi.fn().mockRejectedValue(new Error('model_not_found')) } };
+  it('returns degraded when the list call fails, without throwing', async () => {
+    const client = { models: { list: vi.fn().mockRejectedValue(new Error('unauthorized')) } };
     await expect(probeGroq(client, 'bad-model')).resolves.toBe('degraded');
   });
 
   it('returns ok when the model resolves', async () => {
-    const client = { models: { retrieve: vi.fn().mockResolvedValue({ id: 'good-model' }) } };
-    await expect(probeGroq(client, 'good-model')).resolves.toBe('ok');
+    const client = { models: { list: vi.fn().mockResolvedValue({ data: [{ id: 'openai/gpt-oss-120b' }] }) } };
+    await expect(probeGroq(client, 'openai/gpt-oss-120b')).resolves.toBe('ok');
+  });
+
+  it('returns degraded when the model is not in the list', async () => {
+    const client = { models: { list: vi.fn().mockResolvedValue({ data: [{ id: 'other-model' }] }) } };
+    await expect(probeGroq(client, 'openai/gpt-oss-120b')).resolves.toBe('degraded');
   });
 });
 

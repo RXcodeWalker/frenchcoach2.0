@@ -2,7 +2,9 @@
  * Metadata-only provider health probes for /health. Deliberately does NOT run
  * inference (no generateContent/chat.completions.create) — validates that the
  * configured model ID resolves via each SDK's cheap metadata endpoint:
- *   - Groq: client.models.retrieve(model)
+ *   - Groq: client.models.list(), then match the ID. Not models.retrieve():
+ *     groq-sdk URL-encodes the path, so a slashed ID like
+ *     "openai/gpt-oss-120b" becomes openai%2F… and always 404s.
  *   - Gemini: ai.models.get({ model })
  * Mirrors backend/main.py's /health cache split (60s on success, 5s on
  * failure) so a transient blip re-probes soon but a healthy result isn't
@@ -33,18 +35,20 @@ export function createTtlCache<T>(now: () => number = Date.now) {
   };
 }
 
-export interface GroqRetrieveClient {
-  models: { retrieve: (model: string) => Promise<unknown> };
+export interface GroqListClient {
+  models: { list: () => Promise<{ data: Array<{ id: string }> }> };
 }
 
 export interface GeminiGetClient {
   models: { get: (params: { model: string }) => Promise<unknown> };
 }
 
-export async function probeGroq(client: GroqRetrieveClient, model: string): Promise<'ok' | 'degraded'> {
+export async function probeGroq(client: GroqListClient, model: string): Promise<'ok' | 'degraded'> {
   try {
-    await client.models.retrieve(model);
-    return 'ok';
+    const { data } = await client.models.list();
+    if (data.some((m) => m.id === model)) return 'ok';
+    console.error(`[health] groq model "${model}" not in this key's model list`);
+    return 'degraded';
   } catch (err) {
     console.error(`[health] groq model check failed for "${model}":`, err instanceof Error ? err.message : err);
     return 'degraded';
