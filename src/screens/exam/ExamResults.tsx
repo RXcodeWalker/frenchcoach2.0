@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, Download, AlertTriangle, RefreshCw, ChevronDown } from 'lucide-react';
+import { Trophy, Download, AlertTriangle, RefreshCw, ChevronDown, GraduationCap } from 'lucide-react';
 import type { SessionTranscript } from '../../domain/igcse/stt/types';
-import type { EnvelopeView, CriterionView } from '../../domain/igcse/envelope/envelopeView';
+import type { EnvelopeView, CriterionView, EvidenceGroupView } from '../../domain/igcse/envelope/envelopeView';
 import { downloadConductLog } from '../../services/exam/conductLogStore';
+import { ExaminerFeedbackCard } from '../../features/feedback/components/ExaminerFeedbackCard';
+import type { RailEntry } from '../../services/exam/turnFeedback';
 
 interface Props {
   transcript: SessionTranscript;
@@ -12,6 +14,10 @@ interface Props {
   onRetryScoring: () => void;
   onRetake: () => void;
   onHome: () => void;
+  /** W5/W6: which mode this session ran in — drives the mode badge and the rail section below. */
+  coached: boolean;
+  /** W6: the accumulated live-corrections-rail entries gathered during the running session (empty in Exam Sim, or if the session predates W3/W6). */
+  railEntries: RailEntry[];
 }
 
 function criterionLabel(criterion: CriterionView): string {
@@ -19,6 +25,12 @@ function criterionLabel(criterion: CriterionView): string {
   if (criterion.criterion === 'communication') return 'Communication';
   return 'Quality of Language';
 }
+
+const PART_LABEL: Record<EvidenceGroupView['part'], string> = {
+  rolePlay: 'Role Play',
+  topic1: 'Topic 1',
+  topic2: 'Topic 2',
+};
 
 const GUARDRAIL_LABEL: Record<string, string> = {
   insufficient_evidence_duration: 'Not enough spoken evidence to fully justify this mark — treat it as provisional.',
@@ -29,7 +41,55 @@ function guardrailLabel(id: string): string {
   return GUARDRAIL_LABEL[id] ?? id;
 }
 
-export function ExamResults({ transcript, envelopeView, scoringError, onRetryScoring, onRetake, onHome }: Props) {
+/** Collapsible section — same disclosure pattern the "Transcript Saved" block already used. */
+function Disclosure({
+  title,
+  subtitle,
+  children,
+}: {
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="rounded-xl surface p-5">
+      <button onClick={() => setOpen((v) => !v)} className="w-full flex items-center justify-between">
+        <div className="text-left">
+          <h3 className="font-bold text-ink-muted text-[10px] uppercase tracking-wider mb-1">{title}</h3>
+          {subtitle && <p className="text-[11px] text-ink-muted leading-relaxed">{subtitle}</p>}
+        </div>
+        <ChevronDown
+          size={16}
+          className={`flex-shrink-0 text-ink-muted transition-transform ${open ? 'rotate-180' : ''}`}
+        />
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="mt-3 space-y-2.5 pt-3 border-t border-white/5">{children}</div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+export function ExamResults({
+  transcript,
+  envelopeView,
+  scoringError,
+  onRetryScoring,
+  onRetake,
+  onHome,
+  coached,
+  railEntries,
+}: Props) {
   const candidateUtterances = transcript.utterances.filter((u) => u.role === 'candidate');
   const totalSpeakingS = candidateUtterances.reduce((sum, u) => sum + (u.endS - u.startS), 0);
   const [transcriptOpen, setTranscriptOpen] = useState(false);
@@ -45,6 +105,16 @@ export function ExamResults({ transcript, envelopeView, scoringError, onRetrySco
         <div className="relative overflow-hidden rounded-2xl surface-raised border-amber-500/15 p-8 text-center">
           <div className="absolute inset-0 bg-gradient-to-b from-amber-500/3 to-transparent pointer-events-none" />
           <div className="relative">
+            <div className="flex items-center justify-center gap-1.5 mb-2">
+              <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-white/5 text-ink-muted border border-white/10">
+                {coached ? 'Coached Practice' : 'Exam Sim'}
+              </span>
+              {envelopeView && envelopeView.typedTurnCount > 0 && (
+                <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-white/5 text-ink-muted border border-white/10">
+                  {envelopeView.typedTurnCount} typed answer{envelopeView.typedTurnCount === 1 ? '' : 's'}
+                </span>
+              )}
+            </div>
             <motion.div
               initial={{ scale: 0, rotate: -20 }}
               animate={{ scale: 1, rotate: 0 }}
@@ -115,6 +185,7 @@ export function ExamResults({ transcript, envelopeView, scoringError, onRetrySco
                       {c.mark}{c.band ? <span className="text-ink-muted text-[10px] font-medium"> ({c.band.label ?? `${c.band.min}-${c.band.max}`})</span> : null}
                     </span>
                   </div>
+                  <p className="text-[9px] text-ink-subtle uppercase tracking-wider mb-1">Confidence: {c.confidence}</p>
                   <p className="text-[10px] text-ink-muted leading-relaxed">{c.justification}</p>
                   {c.evidenceSpans.length > 0 && (
                     <div className="mt-2 space-y-1">
@@ -139,6 +210,77 @@ export function ExamResults({ transcript, envelopeView, scoringError, onRetrySco
               </div>
             )}
           </div>
+        )}
+
+        {envelopeView && envelopeView.evidenceGroups.length > 0 && (
+          <Disclosure title="Turn-by-Turn Breakdown" subtitle="What each answer actually showed the scorer.">
+            {envelopeView.evidenceGroups.map((g, i) => (
+              <div key={i} className="p-2.5 rounded-lg bg-white/[0.03] border border-white/5 space-y-1">
+                <p className="text-[9px] text-ink-subtle uppercase tracking-wider">
+                  {PART_LABEL[g.part]} &middot; {g.questionOrTaskId}
+                </p>
+                <p className="text-[10px] text-ink-subtle italic leading-relaxed">{g.prompt}</p>
+                <p className="text-[11px] text-ink-muted leading-relaxed">{g.candidateResponse}</p>
+                {(g.wordCount !== undefined || g.fillerDensity !== undefined || g.timeFrameAlignment) && (
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {g.wordCount !== undefined && (
+                      <span className="text-[9px] text-ink-subtle">{g.wordCount} words</span>
+                    )}
+                    {g.fillerDensity !== undefined && (
+                      <span className="text-[9px] text-ink-subtle">filler density {(g.fillerDensity * 100).toFixed(0)}%</span>
+                    )}
+                    {g.timeFrameAlignment && (
+                      <span className="text-[9px] text-ink-subtle">time frame: {g.timeFrameAlignment}</span>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </Disclosure>
+        )}
+
+        {coached && railEntries.length > 0 && (
+          <Disclosure
+            title="Live Corrections From This Session"
+            subtitle="Examiner commentary shown to you turn-by-turn while you practiced — collapsed here for reference."
+          >
+            <div className="flex items-center gap-1.5 mb-1">
+              <GraduationCap size={12} className="text-amber-400" />
+              <span className="text-[9px] text-ink-muted">Practice feedback — not a grade prediction</span>
+            </div>
+            {railEntries.map((entry) => (
+              <ExaminerFeedbackCard
+                key={entry.turnKey}
+                status={entry.status}
+                result={entry.result}
+                onRetry={() => {}}
+                onSwitchToCoach={() => {}}
+                hideSwitchToCoach
+              />
+            ))}
+          </Disclosure>
+        )}
+
+        {envelopeView && (
+          <Disclosure title="How This Was Scored" subtitle="Transcript confidence and model provenance for this attempt.">
+            <div className="grid grid-cols-2 gap-2">
+              <div className="p-2.5 rounded-lg bg-white/[0.03] border border-white/5">
+                <p className="text-[9px] text-ink-subtle uppercase tracking-wider mb-0.5">Transcript confidence</p>
+                <p className="text-[11px] text-ink-muted">
+                  {(envelopeView.transcriptConfidence.meanWordConfidence * 100).toFixed(0)}% mean word confidence
+                </p>
+                <p className="text-[10px] text-ink-subtle mt-0.5">
+                  {envelopeView.transcriptConfidence.lowConfidenceSpanCount} low-confidence span{envelopeView.transcriptConfidence.lowConfidenceSpanCount === 1 ? '' : 's'}
+                  {envelopeView.transcriptConfidence.userCorrected ? ' · you corrected this transcript' : ''}
+                </p>
+              </div>
+              <div className="p-2.5 rounded-lg bg-white/[0.03] border border-white/5">
+                <p className="text-[9px] text-ink-subtle uppercase tracking-wider mb-0.5">Judgement model</p>
+                <p className="text-[11px] text-ink-muted">{envelopeView.llm.provider} &middot; {envelopeView.llm.model}</p>
+                <p className="text-[10px] text-ink-subtle mt-0.5">rubric {envelopeView.versions.rubricVersion} &middot; engine {envelopeView.versions.scoringEngineVersion}</p>
+              </div>
+            </div>
+          </Disclosure>
         )}
 
         <div className="rounded-xl surface p-5">

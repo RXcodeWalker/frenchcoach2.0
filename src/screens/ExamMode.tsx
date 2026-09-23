@@ -47,6 +47,7 @@ import {
   type ScoringMachineState,
 } from '../services/exam/examScoringMachine';
 import { pingInterpretServiceHealth } from '../services/exam/interpretUtterance';
+import { useExamCorrectionsRail } from '../services/exam/turnFeedback';
 import { transcribeAudio } from '../services/api/apiClient';
 import { getOriginalQuestionSet, getAuthoredQuestionSet, listPublishedQuestionSetIdsWithRetry } from '../data/exam/bank/loader';
 import type { ExaminerAction } from '../domain/igcse/session/types';
@@ -72,6 +73,31 @@ interface RolePlayMeta {
 const KEEPALIVE_INTERVAL_MS = 5 * 60 * 1000;
 
 export const GREETING_TEXT = 'Bonjour ! Comment ça va ? Es-tu prêt ? On va commencer.';
+
+/**
+ * W5: maps every reachable `examState === 'scoring'` phase to real copy —
+ * FailedTerminal is excluded (that phase's effect routes straight to
+ * 'results', never rendering this block) and Completed is momentary (the
+ * same effect fires finishWithScore synchronously on entry).
+ */
+function scoringPhaseCopy(machine: ScoringMachineState): { title: string; detail: string } {
+  switch (machine.phase) {
+    case 'Queued':
+    case 'Submitting':
+      return { title: 'Submitting your session…', detail: 'Sending your answers to be scored. This can take up to a minute.' };
+    case 'WaitingForScore':
+      return { title: 'Scoring your session…', detail: 'This can take up to a minute.' };
+    case 'Recovering':
+      return {
+        title: 'Still working…',
+        detail: `Your answers are safe — checking again shortly (attempt ${machine.attempt}).`,
+      };
+    case 'Completed':
+      return { title: 'Scoring your session…', detail: 'This can take up to a minute.' };
+    case 'FailedTerminal':
+      return { title: 'Scoring your session…', detail: 'This can take up to a minute.' };
+  }
+}
 
 interface DailyChallengeLocationState {
   dailyChallengeDate?: string;
@@ -126,6 +152,11 @@ export function ExamMode() {
   // (drives ExamTranscript's typing indicator and disables the composer).
   const [turnPending, setTurnPending] = useState(false);
   const [envelopeView, setEnvelopeView] = useState<EnvelopeView | null>(null);
+  // W5: the ExamSelect toggle's choice, applied when startExam() constructs the
+  // SimulationSession. Daily Challenge / Duel / resume-on-reload flows skip
+  // ExamSelect and keep the default (Coached) — resume instead restores the
+  // already-decided value from the persisted snapshot (session.coached).
+  const [coachedMode, setCoachedMode] = useState(true);
   const [rolePlayScenario, setRolePlayScenario] = useState<RolePlayScenario | undefined>(undefined);
   const [rolePlayMeta, setRolePlayMeta] = useState<RolePlayMeta | undefined>(undefined);
   const [showScoringExitConfirm, setShowScoringExitConfirm] = useState(false);
@@ -141,6 +172,18 @@ export function ExamMode() {
   const selectedAuthoredSetRef = useRef<AuthoredQuestionSet | undefined>(undefined);
   const turnBusyRef = useRef(false);
   const startExamBusyRef = useRef(false);
+
+  // W1's authoritative coached flag once a session exists; coachedMode (the
+  // ExamSelect toggle's choice) is the pre-session fallback so ExamIntro can
+  // read it before startExam() constructs the SimulationSession.
+  const coached = sessionRef.current?.coached ?? coachedMode;
+
+  // W6: lifted out of ExamRunner (which used to own this hook itself) so the
+  // accumulated rail entries survive past 'running' into the /40 report —
+  // see ExamResults.tsx's "Live corrections from this session" section.
+  // Reads sessionRef.current fresh on every render, same pattern as the
+  // entries prop already passed to ExamRunner below.
+  const rail = useExamCorrectionsRail(sessionRef.current?.getConductLog().entries ?? [], coached);
 
   // A8: keepalive ping while the exam runs, so the scoring service stays warm
   // through the ~15 min Render free-tier idle window until scoring is needed.
@@ -383,7 +426,7 @@ export function ExamMode() {
 
     const session = new SimulationSession(sessionId, questionSet, clock.nowS, {
       onExaminerAction: (a) => setAction(a),
-    });
+    }, coachedMode);
     sessionRef.current = session;
     setExamState('running');
 
@@ -795,14 +838,16 @@ export function ExamMode() {
   if (examState === 'select') {
     return (
       <ExamSelect
-        onSelect={(set) => {
+        onSelect={(set, coached) => {
           selectedQuestionSetIdRef.current = set.questionSetId;
           selectedAuthoredSetRef.current = set;
+          setCoachedMode(coached);
           setExamState('intro');
         }}
-        onAutoFallback={() => {
+        onAutoFallback={(coached) => {
           selectedQuestionSetIdRef.current = undefined;
           selectedAuthoredSetRef.current = undefined;
+          setCoachedMode(coached);
           setExamState('intro');
         }}
       />
@@ -814,12 +859,12 @@ export function ExamMode() {
       return (
         <div className="min-h-screen flex items-center justify-center p-6">
           <SpeakingConsentGate>
-            <ExamIntro onStart={enterGreeting} onBack={() => navigate('/')} />
+            <ExamIntro coached={coached} onStart={enterGreeting} onBack={() => navigate('/')} />
           </SpeakingConsentGate>
         </div>
       );
     }
-    return <ExamIntro onStart={enterGreeting} onBack={() => navigate('/')} />;
+    return <ExamIntro coached={coached} onStart={enterGreeting} onBack={() => navigate('/')} />;
   }
 
   if (examState === 'greeting') {
@@ -835,19 +880,16 @@ export function ExamMode() {
   }
 
   if (examState === 'scoring') {
-    // Reliability plan §C: the loading state reflects the real phase instead
-    // of one static spinner for a process that can legitimately run for minutes.
-    const isRecovering = scoringMachine.phase === 'Recovering' || scoringMachine.phase === 'WaitingForScore';
+    // W5 / Reliability plan §C: surface the real state-machine phase instead of
+    // one static spinner for a process that can legitimately run for minutes —
+    // see examScoringMachine.ts's phase diagram.
+    const { title, detail } = scoringPhaseCopy(scoringMachine);
     return (
       <div data-hatch="immersive" className="min-h-screen bg-bg flex items-center justify-center px-6">
         <div className="text-center space-y-3 max-w-xs">
           <div className="w-10 h-10 mx-auto border-2 border-action-soft border-t-action rounded-full animate-spin" />
-          <p className="text-body-base font-semibold text-ink">{isRecovering ? 'Still working…' : 'Scoring your session…'}</p>
-          <p className="text-body-s text-ink-muted">
-            {isRecovering
-              ? 'Your answers are safe — checking again shortly.'
-              : 'This can take up to a minute.'}
-          </p>
+          <p className="text-body-base font-semibold text-ink">{title}</p>
+          <p className="text-body-s text-ink-muted">{detail}</p>
           <button
             onClick={() => setShowScoringExitConfirm(true)}
             className="text-body-s text-ink-subtle hover:text-ink transition-colors duration-state ease-smooth underline underline-offset-2"
@@ -871,6 +913,8 @@ export function ExamMode() {
         envelopeView={envelopeView}
         scoringError={scoringFailedTerminal}
         onRetryScoring={retryScoring}
+        coached={coached}
+        railEntries={rail.entries}
         onRetake={() => {
           selectedQuestionSetIdRef.current = undefined;
           selectedAuthoredSetRef.current = undefined;
@@ -917,7 +961,8 @@ export function ExamMode() {
       rolePlayTitle={rolePlayMeta?.title}
       rolePlaySetup={rolePlayMeta?.setup}
       taskProgress={taskProgress}
-      coached={sessionRef.current?.coached ?? false}
+      coached={coached}
+      rail={rail}
     />
   );
 }

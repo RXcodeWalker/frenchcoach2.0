@@ -1,0 +1,247 @@
+/**
+ * S11 offline/dev fixture — generated from french-coach-backend's
+ * data/igcse/original-practice-008.json (the canonical authored content,
+ * validated by that repo's `npm run authoring:check`) via the exam-overhaul
+ * W5 fixture-bundling pass. Same shape as original-practice-001.ts's
+ * hand-authored fixture; kept as a literal object (not a JSON import) so it
+ * type-checks against AuthoredQuestionSet directly, same as 001.
+ */
+
+import type { AuthoredQuestionSet } from '../types';
+
+export const ORIGINAL_PRACTICE_008: AuthoredQuestionSet = {
+  questionSetId: 'original-practice-008',
+  schemaVersion: 'question-bank-v1',
+  provenance: 'original-practice',
+  review: {
+    status: 'approved',
+    reviewedBy: 'internal:s11-author',
+    reviewedAt: '2026-07-17T00:00:00.000Z',
+    notes: "Clean-room authored from the public 0520 syllabus and 04-frontend-pipeline.md §6.4 only; no Teacher's Notes booklet consulted. Archetype: information request (pair C+D, role-play area C). Self-review + linguistic pass complete; independent originality review complete. G3 exam-realism review pending a 0520-familiar teacher (S11 M2).",
+  },
+  content: {
+    rolePlay: {
+      scenarioId: 'rp-original-practice-008',
+      topicArea: 'C',
+      title: "Demander des renseignements à l'office de tourisme",
+      setup: "Tu es en vacances et tu vas à l'office de tourisme pour demander des renseignements sur la ville. Je suis l'employé(e) de l'office de tourisme.",
+      tasks: [
+        {
+          questionId: 'rp1',
+          part: 'rolePlay',
+          mainText: 'Bonjour, comment puis-je vous renseigner ?',
+          alternativeTexts: [],
+          partsExpected: 1,
+        },
+        {
+          questionId: 'rp2',
+          part: 'rolePlay',
+          mainText: 'Voulez-vous une carte de la région ?',
+          alternativeTexts: [],
+          partsExpected: 1,
+        },
+        {
+          questionId: 'rp3',
+          part: 'rolePlay',
+          mainText: "Préférez-vous visiter un musée ou un monument près d'ici ?",
+          alternativeTexts: [],
+          partsExpected: 2,
+          secondPartText: "Voulez-vous savoir si c'est gratuit pour les étudiants ?",
+        },
+        {
+          questionId: 'rp4',
+          part: 'rolePlay',
+          mainText: 'Comment voulez-vous y aller, à pied ou en bus ?',
+          alternativeTexts: [],
+          partsExpected: 1,
+        },
+        {
+          questionId: 'rp5',
+          part: 'rolePlay',
+          mainText: "Voici une brochure. Avez-vous d'autres questions ?",
+          alternativeTexts: [],
+          partsExpected: 1,
+        },
+      ],
+    },
+    topic1: {
+      topicArea: 'C',
+      subTopic: 'Environment and Nature',
+      furtherQuestions: [
+        'Ta famille recycle-t-elle beaucoup à la maison ?',
+        'Quelle serait la meilleure solution pour réduire la pollution en ville ?',
+      ],
+      questions: [
+        {
+          questionId: 't1q1',
+          part: 'topic1',
+          mainText: "Comment est l'environnement près de chez toi ?",
+          alternativeTexts: [],
+          topicArea: 'C',
+          subTopic: 'Environment and Nature',
+          difficulty: 'foundation',
+          targetStructures: [
+            'present',
+          ],
+          expectedTimeFrame: 'present',
+          partsExpected: 1,
+        },
+        {
+          questionId: 't1q2',
+          part: 'topic1',
+          mainText: "Que fait ta famille pour économiser l'énergie ?",
+          alternativeTexts: [],
+          topicArea: 'C',
+          subTopic: 'Environment and Nature',
+          difficulty: 'core',
+          targetStructures: [
+            'present',
+          ],
+          expectedTimeFrame: 'present',
+          partsExpected: 1,
+        },
+        {
+          questionId: 't1q3',
+          part: 'topic1',
+          mainText: "Raconte une action que tu as menée pour aider l'environnement.",
+          alternativeTexts: [
+            "As-tu déjà recyclé ou nettoyé un endroit avec d'autres personnes ?",
+          ],
+          topicArea: 'C',
+          subTopic: 'Environment and Nature',
+          difficulty: 'core',
+          targetStructures: [
+            'perfect',
+          ],
+          expectedTimeFrame: 'past',
+          partsExpected: 1,
+        },
+        {
+          questionId: 't1q4',
+          part: 'topic1',
+          mainText: 'Un mode de transport pollue-t-il plus que les autres selon toi ?',
+          secondPartText: 'Pourquoi ?',
+          alternativeTexts: [
+            "La voiture est-elle pire pour l'environnement que l'avion ?",
+          ],
+          topicArea: 'C',
+          subTopic: 'Environment and Nature',
+          difficulty: 'higher',
+          targetStructures: [
+            'comparison',
+            'justification',
+          ],
+          expectedTimeFrame: 'present',
+          partsExpected: 2,
+        },
+        {
+          questionId: 't1q5',
+          part: 'topic1',
+          mainText: "Qu'est-ce que ton lycée va faire pour protéger l'environnement cette année ?",
+          alternativeTexts: [
+            'Quel projet écologique ta ville va-t-elle lancer bientôt ?',
+          ],
+          topicArea: 'C',
+          subTopic: 'Environment and Nature',
+          difficulty: 'core',
+          targetStructures: [
+            'near-future',
+          ],
+          expectedTimeFrame: 'future',
+          partsExpected: 1,
+        },
+      ],
+    },
+    topic2: {
+      topicArea: 'D',
+      subTopic: 'Work Experience',
+      furtherQuestions: [
+        "Quelqu'un de ta famille t'a-t-il déjà expliqué son métier en détail ?",
+        'Que penses-tu faire pendant les vacances pour préparer ton avenir professionnel ?',
+      ],
+      questions: [
+        {
+          questionId: 't2q1',
+          part: 'topic2',
+          mainText: "Décris une visite que tu as faite sur le lieu de travail d'un parent.",
+          alternativeTexts: [
+            "As-tu déjà observé quelqu'un au travail pendant une journée ?",
+          ],
+          topicArea: 'D',
+          subTopic: 'Work Experience',
+          difficulty: 'foundation',
+          targetStructures: [
+            'perfect',
+          ],
+          expectedTimeFrame: 'past',
+          partsExpected: 1,
+        },
+        {
+          questionId: 't2q2',
+          part: 'topic2',
+          mainText: "Quelles compétences sont nécessaires pour le métier qui t'intéresse ?",
+          alternativeTexts: [],
+          topicArea: 'D',
+          subTopic: 'Work Experience',
+          difficulty: 'core',
+          targetStructures: [
+            'present',
+          ],
+          expectedTimeFrame: 'present',
+          partsExpected: 1,
+        },
+        {
+          questionId: 't2q3',
+          part: 'topic2',
+          mainText: "Feras-tu un stage l'été prochain ?",
+          alternativeTexts: [
+            'Dans quelle entreprise voudrais-tu faire un stage bientôt ?',
+          ],
+          topicArea: 'D',
+          subTopic: 'Work Experience',
+          difficulty: 'core',
+          targetStructures: [
+            'simple-future',
+          ],
+          expectedTimeFrame: 'future',
+          partsExpected: 1,
+        },
+        {
+          questionId: 't2q4',
+          part: 'topic2',
+          mainText: "Un travail manuel te plairait-il autant qu'un travail de bureau ?",
+          alternativeTexts: [
+            "Un métier créatif te conviendrait-il mieux qu'un métier scientifique ?",
+          ],
+          topicArea: 'D',
+          subTopic: 'Work Experience',
+          difficulty: 'higher',
+          targetStructures: [
+            'conditional',
+            'comparison',
+          ],
+          expectedTimeFrame: 'conditional',
+          partsExpected: 1,
+        },
+        {
+          questionId: 't2q5',
+          part: 'topic2',
+          mainText: 'Est-il important de faire un stage avant de choisir sa carrière ?',
+          secondPartText: 'Pourquoi ?',
+          alternativeTexts: [
+            "Un stage t'aiderait-il à mieux choisir tes études futures ?",
+          ],
+          topicArea: 'D',
+          subTopic: 'Work Experience',
+          difficulty: 'core',
+          targetStructures: [
+            'opinion',
+            'justification',
+          ],
+          expectedTimeFrame: 'present',
+          partsExpected: 2,
+        },
+      ],
+    },
+  }
+};

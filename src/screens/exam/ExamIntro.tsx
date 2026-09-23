@@ -1,8 +1,12 @@
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, VolumeX } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
+import { isTtsAvailable, hasFrenchVoice, ensureVoiceReady } from '../../services/exam/examinerVoice';
 
 interface Props {
+  /** W5: which mode ExamSelect's toggle chose — this screen states what it does/doesn't give before the candidate commits. */
+  coached: boolean;
   onStart: () => void;
   onBack: () => void;
 }
@@ -13,7 +17,15 @@ const PAPER = [
   { n: '03', label: 'General conversation', meta: '3 min · unseen questions' },
 ];
 
-export function ExamIntro({ onStart, onBack }: Props) {
+export function ExamIntro({ coached, onStart, onBack }: Props) {
+  // W5: surfaced here, before the mic is ever opened — not silently mid-exam.
+  // Voice list can still be loading on mount (voiceschanged is async), so
+  // re-check once it settles rather than trusting a synchronous read.
+  const [voiceUnavailable, setVoiceUnavailable] = useState(isTtsAvailable() && !hasFrenchVoice());
+  useEffect(() => {
+    if (!isTtsAvailable()) return;
+    void ensureVoiceReady().then(() => setVoiceUnavailable(!hasFrenchVoice()));
+  }, []);
   return (
     <div data-hatch="immersive" className="min-h-screen bg-bg pb-24 md:pb-8">
       <motion.div
@@ -54,6 +66,27 @@ export function ExamIntro({ onStart, onBack }: Props) {
             I won&rsquo;t interrupt you, and I won&rsquo;t show you a mark until the end.
           </p>
         </div>
+
+        <div className="rounded-card surface-recessed p-4">
+          <div className="text-eyebrow uppercase text-ink-subtle mb-1">
+            {coached ? 'Coached Practice' : 'Exam Sim'}
+          </div>
+          <p className="text-body-s text-ink-muted leading-relaxed">
+            {coached
+              ? 'Examiner commentary appears after each answer, in a side panel — it never carries a mark or a band. Your /40 report still only appears at the end.'
+              : 'No commentary until you submit — the corrections panel stays sealed for the whole session, exactly like the real exam. Your /40 report appears at the end either way.'}
+          </p>
+        </div>
+
+        {voiceUnavailable && (
+          <div className="rounded-card surface-recessed border border-amber-500/20 p-4 flex items-start gap-3">
+            <VolumeX size={16} className="text-amber-400 flex-shrink-0 mt-0.5" />
+            <p className="text-body-s text-ink-muted leading-relaxed">
+              No French voice was found on this device, so Claire&rsquo;s questions will be shown as text only,
+              not spoken aloud. Everything else works the same.
+            </p>
+          </div>
+        )}
 
         <div className="flex flex-wrap items-center gap-3">
           <Button variant="primary" size="lg" onClick={onStart}>

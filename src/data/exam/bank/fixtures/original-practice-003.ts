@@ -1,0 +1,248 @@
+/**
+ * S11 offline/dev fixture — generated from french-coach-backend's
+ * data/igcse/original-practice-003.json (the canonical authored content,
+ * validated by that repo's `npm run authoring:check`) via the exam-overhaul
+ * W5 fixture-bundling pass. Same shape as original-practice-001.ts's
+ * hand-authored fixture; kept as a literal object (not a JSON import) so it
+ * type-checks against AuthoredQuestionSet directly, same as 001.
+ */
+
+import type { AuthoredQuestionSet } from '../types';
+
+export const ORIGINAL_PRACTICE_003: AuthoredQuestionSet = {
+  questionSetId: 'original-practice-003',
+  schemaVersion: 'question-bank-v1',
+  provenance: 'original-practice',
+  review: {
+    status: 'approved',
+    reviewedBy: 'internal:s11-author',
+    reviewedAt: '2026-07-17T00:00:00.000Z',
+    notes: "Clean-room authored from the public 0520 syllabus and 04-frontend-pipeline.md §6.4 only; no Teacher's Notes booklet consulted. Archetype: work-experience enquiry (pair A+D, role-play area D). Self-review + linguistic pass complete; independent originality review complete. G3 exam-realism review pending a 0520-familiar teacher (S11 M2).",
+  },
+  content: {
+    rolePlay: {
+      scenarioId: 'rp-original-practice-003',
+      topicArea: 'D',
+      title: 'Se renseigner sur un stage en entreprise',
+      setup: 'Tu veux faire un stage dans une entreprise française et tu téléphones pour te renseigner. Je suis le responsable / la responsable du recrutement.',
+      tasks: [
+        {
+          questionId: 'rp1',
+          part: 'rolePlay',
+          mainText: 'Bonjour, que puis-je faire pour vous ?',
+          alternativeTexts: [],
+          partsExpected: 1,
+        },
+        {
+          questionId: 'rp2',
+          part: 'rolePlay',
+          mainText: 'Dans quel domaine voulez-vous travailler ?',
+          alternativeTexts: [],
+          partsExpected: 1,
+        },
+        {
+          questionId: 'rp3',
+          part: 'rolePlay',
+          mainText: "Préférez-vous un stage d'une semaine ou de deux semaines ?",
+          alternativeTexts: [],
+          partsExpected: 2,
+          secondPartText: 'Voulez-vous savoir si le stage est payé ?',
+        },
+        {
+          questionId: 'rp4',
+          part: 'rolePlay',
+          mainText: 'Quand êtes-vous disponible pour commencer ?',
+          alternativeTexts: [],
+          partsExpected: 1,
+        },
+        {
+          questionId: 'rp5',
+          part: 'rolePlay',
+          mainText: 'Je vous enverrai les détails par courriel. Avez-vous des questions ?',
+          alternativeTexts: [],
+          partsExpected: 1,
+        },
+      ],
+    },
+    topic1: {
+      topicArea: 'A',
+      subTopic: 'School and Daily Routine',
+      furtherQuestions: [
+        "Qu'est-ce que tu changerais dans ton emploi du temps scolaire si tu pouvais ?",
+        'Comment te déplaces-tu pour aller au lycée chaque jour ?',
+      ],
+      questions: [
+        {
+          questionId: 't1q1',
+          part: 'topic1',
+          mainText: "À quelle heure commence ta journée scolaire d'habitude ?",
+          alternativeTexts: [],
+          topicArea: 'A',
+          subTopic: 'School and Daily Routine',
+          difficulty: 'foundation',
+          targetStructures: [
+            'present',
+          ],
+          expectedTimeFrame: 'present',
+          partsExpected: 1,
+        },
+        {
+          questionId: 't1q2',
+          part: 'topic1',
+          mainText: 'Quelle matière préfères-tu au lycée ?',
+          alternativeTexts: [],
+          topicArea: 'A',
+          subTopic: 'School and Daily Routine',
+          difficulty: 'core',
+          targetStructures: [
+            'present',
+          ],
+          expectedTimeFrame: 'present',
+          partsExpected: 1,
+        },
+        {
+          questionId: 't1q3',
+          part: 'topic1',
+          mainText: 'As-tu appris quelque chose de nouveau en cours cette année ?',
+          alternativeTexts: [
+            "Parle-moi d'un projet scolaire que tu as terminé récemment.",
+          ],
+          topicArea: 'A',
+          subTopic: 'School and Daily Routine',
+          difficulty: 'core',
+          targetStructures: [
+            'perfect',
+          ],
+          expectedTimeFrame: 'past',
+          partsExpected: 1,
+        },
+        {
+          questionId: 't1q4',
+          part: 'topic1',
+          mainText: "Crois-tu que tu ne travailles pas assez dur à l'école ?",
+          secondPartText: 'Pourquoi ?',
+          alternativeTexts: [
+            "Y a-t-il une matière que tu n'aimes pas du tout ?",
+          ],
+          topicArea: 'A',
+          subTopic: 'School and Daily Routine',
+          difficulty: 'core',
+          targetStructures: [
+            'opinion',
+            'justification',
+            'negation',
+          ],
+          expectedTimeFrame: 'present',
+          partsExpected: 2,
+        },
+        {
+          questionId: 't1q5',
+          part: 'topic1',
+          mainText: "Qu'est-ce que tu vas étudier l'année prochaine ?",
+          alternativeTexts: [
+            'Quels examens vas-tu passer bientôt ?',
+          ],
+          topicArea: 'A',
+          subTopic: 'School and Daily Routine',
+          difficulty: 'higher',
+          targetStructures: [
+            'near-future',
+          ],
+          expectedTimeFrame: 'future',
+          partsExpected: 1,
+        },
+      ],
+    },
+    topic2: {
+      topicArea: 'D',
+      subTopic: 'Future Career Plans',
+      furtherQuestions: [
+        "Est-ce qu'un membre de ta famille t'a donné des conseils sur ton avenir professionnel ?",
+        "Aimerais-tu travailler à l'étranger un jour ?",
+      ],
+      questions: [
+        {
+          questionId: 't2q1',
+          part: 'topic2',
+          mainText: 'Quel métier feras-tu après tes études ?',
+          alternativeTexts: [],
+          topicArea: 'D',
+          subTopic: 'Future Career Plans',
+          difficulty: 'foundation',
+          targetStructures: [
+            'simple-future',
+          ],
+          expectedTimeFrame: 'future',
+          partsExpected: 1,
+        },
+        {
+          questionId: 't2q2',
+          part: 'topic2',
+          mainText: 'As-tu déjà fait un petit boulot ?',
+          alternativeTexts: [
+            "As-tu déjà aidé quelqu'un dans son travail ?",
+          ],
+          topicArea: 'D',
+          subTopic: 'Future Career Plans',
+          difficulty: 'core',
+          targetStructures: [
+            'perfect',
+          ],
+          expectedTimeFrame: 'past',
+          partsExpected: 1,
+        },
+        {
+          questionId: 't2q3',
+          part: 'topic2',
+          mainText: 'Quand tu étais enfant, quel métier rêvais-tu de faire ?',
+          alternativeTexts: [
+            "Qu'est-ce que tu voulais devenir à l'âge de huit ans ?",
+          ],
+          topicArea: 'D',
+          subTopic: 'Future Career Plans',
+          difficulty: 'core',
+          targetStructures: [
+            'imperfect',
+          ],
+          expectedTimeFrame: 'past',
+          partsExpected: 1,
+        },
+        {
+          questionId: 't2q4',
+          part: 'topic2',
+          mainText: 'Ne préfères-tu pas un métier bien payé à un métier intéressant mais moins payé ?',
+          secondPartText: 'Pourquoi ?',
+          alternativeTexts: [
+            "Qu'est-ce qui compte le plus pour toi dans un futur métier ?",
+          ],
+          topicArea: 'D',
+          subTopic: 'Future Career Plans',
+          difficulty: 'higher',
+          targetStructures: [
+            'opinion',
+            'justification',
+            'negation',
+          ],
+          expectedTimeFrame: 'present',
+          partsExpected: 2,
+        },
+        {
+          questionId: 't2q5',
+          part: 'topic2',
+          mainText: "Si tu pouvais choisir n'importe quel métier, que ferais-tu ?",
+          alternativeTexts: [
+            'Dans quel pays aimerais-tu travailler un jour ?',
+          ],
+          topicArea: 'D',
+          subTopic: 'Future Career Plans',
+          difficulty: 'core',
+          targetStructures: [
+            'conditional',
+          ],
+          expectedTimeFrame: 'conditional',
+          partsExpected: 1,
+        },
+      ],
+    },
+  }
+};

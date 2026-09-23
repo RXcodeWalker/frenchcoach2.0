@@ -9,6 +9,15 @@
 import { parseAuthoredQuestionSet } from './validate';
 import { toSessionQuestionSet } from './adapter';
 import { ORIGINAL_PRACTICE_001 } from './fixtures/original-practice-001';
+import { ORIGINAL_PRACTICE_002 } from './fixtures/original-practice-002';
+import { ORIGINAL_PRACTICE_003 } from './fixtures/original-practice-003';
+import { ORIGINAL_PRACTICE_004 } from './fixtures/original-practice-004';
+import { ORIGINAL_PRACTICE_005 } from './fixtures/original-practice-005';
+import { ORIGINAL_PRACTICE_006 } from './fixtures/original-practice-006';
+import { ORIGINAL_PRACTICE_007 } from './fixtures/original-practice-007';
+import { ORIGINAL_PRACTICE_008 } from './fixtures/original-practice-008';
+import { ORIGINAL_PRACTICE_009 } from './fixtures/original-practice-009';
+import { ORIGINAL_PRACTICE_010 } from './fixtures/original-practice-010';
 import type { SessionQuestionSet } from '../../../domain/igcse/session/types';
 import type { AuthoredQuestionSet } from './types';
 
@@ -26,9 +35,26 @@ const API_BASE = import.meta.env.PROD
  */
 const FETCH_TIMEOUT_MS = 2500;
 
-/** In-repo fixtures, keyed by questionSetId — the dev/offline fallback registry. */
+/**
+ * In-repo fixtures, keyed by questionSetId — the dev/offline fallback registry.
+ * W5: all 10 published sets are bundled here (not just 001) so a catalog-fetch
+ * failure/cold-start degrades to the real 10-exam picker instead of collapsing
+ * it to a single offline exam — see ExamSelect.tsx. Content is generated
+ * 1:1 from french-coach-backend's data/igcse/original-practice-*.json (the
+ * canonical authored source, validated there by `npm run authoring:check`);
+ * see each fixture file's own header.
+ */
 const OFFLINE_FIXTURES: Record<string, AuthoredQuestionSet> = {
   [ORIGINAL_PRACTICE_001.questionSetId]: ORIGINAL_PRACTICE_001,
+  [ORIGINAL_PRACTICE_002.questionSetId]: ORIGINAL_PRACTICE_002,
+  [ORIGINAL_PRACTICE_003.questionSetId]: ORIGINAL_PRACTICE_003,
+  [ORIGINAL_PRACTICE_004.questionSetId]: ORIGINAL_PRACTICE_004,
+  [ORIGINAL_PRACTICE_005.questionSetId]: ORIGINAL_PRACTICE_005,
+  [ORIGINAL_PRACTICE_006.questionSetId]: ORIGINAL_PRACTICE_006,
+  [ORIGINAL_PRACTICE_007.questionSetId]: ORIGINAL_PRACTICE_007,
+  [ORIGINAL_PRACTICE_008.questionSetId]: ORIGINAL_PRACTICE_008,
+  [ORIGINAL_PRACTICE_009.questionSetId]: ORIGINAL_PRACTICE_009,
+  [ORIGINAL_PRACTICE_010.questionSetId]: ORIGINAL_PRACTICE_010,
 };
 
 async function fetchPublishedSet(questionSetId: string): Promise<AuthoredQuestionSet | null> {

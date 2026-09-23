@@ -1,0 +1,248 @@
+/**
+ * S11 offline/dev fixture — generated from french-coach-backend's
+ * data/igcse/original-practice-010.json (the canonical authored content,
+ * validated by that repo's `npm run authoring:check`) via the exam-overhaul
+ * W5 fixture-bundling pass. Same shape as original-practice-001.ts's
+ * hand-authored fixture; kept as a literal object (not a JSON import) so it
+ * type-checks against AuthoredQuestionSet directly, same as 001.
+ */
+
+import type { AuthoredQuestionSet } from '../types';
+
+export const ORIGINAL_PRACTICE_010: AuthoredQuestionSet = {
+  questionSetId: 'original-practice-010',
+  schemaVersion: 'question-bank-v1',
+  provenance: 'original-practice',
+  review: {
+    status: 'approved',
+    reviewedBy: 'internal:s11-author',
+    reviewedAt: '2026-07-17T00:00:00.000Z',
+    notes: "Clean-room authored from the public 0520 syllabus and 04-frontend-pipeline.md §6.4 only; no Teacher's Notes booklet consulted. Archetype: reservation / booking (pair D+E, role-play area D). Self-review + linguistic pass complete; independent originality review complete. G3 exam-realism review pending a 0520-familiar teacher (S11 M2).",
+  },
+  content: {
+    rolePlay: {
+      scenarioId: 'rp-original-practice-010',
+      topicArea: 'D',
+      title: 'Réserver une table dans un restaurant',
+      setup: 'Tu téléphones à un restaurant pour réserver une table pour ce soir. Je suis le patron / la patronne du restaurant.',
+      tasks: [
+        {
+          questionId: 'rp1',
+          part: 'rolePlay',
+          mainText: 'Restaurant Le Provençal, bonjour. Que puis-je faire pour vous ?',
+          alternativeTexts: [],
+          partsExpected: 1,
+        },
+        {
+          questionId: 'rp2',
+          part: 'rolePlay',
+          mainText: "Pour combien de personnes, s'il vous plaît ?",
+          alternativeTexts: [],
+          partsExpected: 1,
+        },
+        {
+          questionId: 'rp3',
+          part: 'rolePlay',
+          mainText: 'Préférez-vous une table à 19h ou à 20h30 ?',
+          alternativeTexts: [],
+          partsExpected: 2,
+          secondPartText: 'Voulez-vous une table près de la fenêtre ?',
+        },
+        {
+          questionId: 'rp4',
+          part: 'rolePlay',
+          mainText: 'Avez-vous des allergies ou des préférences alimentaires ?',
+          alternativeTexts: [],
+          partsExpected: 1,
+        },
+        {
+          questionId: 'rp5',
+          part: 'rolePlay',
+          mainText: 'Parfait, votre table est réservée. Autre chose ?',
+          alternativeTexts: [],
+          partsExpected: 1,
+        },
+      ],
+    },
+    topic1: {
+      topicArea: 'D',
+      subTopic: 'Part-time and Future Work',
+      furtherQuestions: [
+        "Quelqu'un dans ta famille a-t-il changé de métier récemment ?",
+        'Voudrais-tu créer ta propre entreprise un jour ?',
+      ],
+      questions: [
+        {
+          questionId: 't1q1',
+          part: 'topic1',
+          mainText: "Qu'aimes-tu faire quand tu aides à la maison ?",
+          alternativeTexts: [],
+          topicArea: 'D',
+          subTopic: 'Part-time and Future Work',
+          difficulty: 'foundation',
+          targetStructures: [
+            'present',
+          ],
+          expectedTimeFrame: 'present',
+          partsExpected: 1,
+        },
+        {
+          questionId: 't1q2',
+          part: 'topic1',
+          mainText: "Postuleras-tu pour un job d'été cette année ?",
+          alternativeTexts: [
+            'Chercheras-tu du travail pendant les grandes vacances ?',
+          ],
+          topicArea: 'D',
+          subTopic: 'Part-time and Future Work',
+          difficulty: 'core',
+          targetStructures: [
+            'simple-future',
+          ],
+          expectedTimeFrame: 'future',
+          partsExpected: 1,
+        },
+        {
+          questionId: 't1q3',
+          part: 'topic1',
+          mainText: 'Décris un métier que tu as observé de près.',
+          alternativeTexts: [
+            "Raconte un jour où tu as aidé quelqu'un dans son travail.",
+          ],
+          topicArea: 'D',
+          subTopic: 'Part-time and Future Work',
+          difficulty: 'core',
+          targetStructures: [
+            'perfect',
+          ],
+          expectedTimeFrame: 'past',
+          partsExpected: 1,
+        },
+        {
+          questionId: 't1q4',
+          part: 'topic1',
+          mainText: 'Quel serait le domaine de ta propre entreprise si tu en créais une ?',
+          alternativeTexts: [
+            'Quel métier inventerais-tu si tu le pouvais ?',
+          ],
+          topicArea: 'D',
+          subTopic: 'Part-time and Future Work',
+          difficulty: 'higher',
+          targetStructures: [
+            'conditional',
+          ],
+          expectedTimeFrame: 'conditional',
+          partsExpected: 1,
+        },
+        {
+          questionId: 't1q5',
+          part: 'topic1',
+          mainText: 'Un salaire élevé compte-t-il plus que la satisfaction au travail ?',
+          secondPartText: 'Pourquoi ?',
+          alternativeTexts: [
+            "Une carrière stable te semble-t-elle meilleure qu'une carrière risquée mais passionnante ?",
+          ],
+          topicArea: 'D',
+          subTopic: 'Part-time and Future Work',
+          difficulty: 'core',
+          targetStructures: [
+            'comparison',
+            'opinion',
+            'justification',
+          ],
+          expectedTimeFrame: 'present',
+          partsExpected: 2,
+        },
+      ],
+    },
+    topic2: {
+      topicArea: 'E',
+      subTopic: 'Global Issues',
+      furtherQuestions: [
+        'Quel problème mondial te préoccupe le plus ?',
+        'Une organisation internationale a-t-elle déjà aidé ta région ?',
+      ],
+      questions: [
+        {
+          questionId: 't2q1',
+          part: 'topic2',
+          mainText: 'Quel événement international as-tu suivi récemment aux informations ?',
+          alternativeTexts: [],
+          topicArea: 'E',
+          subTopic: 'Global Issues',
+          difficulty: 'foundation',
+          targetStructures: [
+            'perfect',
+          ],
+          expectedTimeFrame: 'past',
+          partsExpected: 1,
+        },
+        {
+          questionId: 't2q2',
+          part: 'topic2',
+          mainText: "Comment t'informes-tu sur l'actualité mondiale ?",
+          alternativeTexts: [],
+          topicArea: 'E',
+          subTopic: 'Global Issues',
+          difficulty: 'core',
+          targetStructures: [
+            'present',
+          ],
+          expectedTimeFrame: 'present',
+          partsExpected: 1,
+        },
+        {
+          questionId: 't2q3',
+          part: 'topic2',
+          mainText: 'Le monde sera-t-il très différent dans vingt ans ?',
+          alternativeTexts: [
+            "Quels changements verra-t-on dans le monde d'ici dix ans ?",
+          ],
+          topicArea: 'E',
+          subTopic: 'Global Issues',
+          difficulty: 'core',
+          targetStructures: [
+            'simple-future',
+          ],
+          expectedTimeFrame: 'future',
+          partsExpected: 1,
+        },
+        {
+          questionId: 't2q4',
+          part: 'topic2',
+          mainText: 'Si tu pouvais résoudre un problème mondial, lequel choisirais-tu ?',
+          alternativeTexts: [
+            "Quelle cause internationale soutiendrais-tu si tu avais de l'argent à donner ?",
+          ],
+          topicArea: 'E',
+          subTopic: 'Global Issues',
+          difficulty: 'higher',
+          targetStructures: [
+            'conditional',
+          ],
+          expectedTimeFrame: 'conditional',
+          partsExpected: 1,
+        },
+        {
+          questionId: 't2q5',
+          part: 'topic2',
+          mainText: "Les jeunes ne s'intéressent-ils pas assez à la politique internationale ?",
+          secondPartText: 'Pourquoi ?',
+          alternativeTexts: [
+            'Ta génération se sent-elle concernée par les problèmes mondiaux ?',
+          ],
+          topicArea: 'E',
+          subTopic: 'Global Issues',
+          difficulty: 'core',
+          targetStructures: [
+            'negation',
+            'opinion',
+            'justification',
+          ],
+          expectedTimeFrame: 'present',
+          partsExpected: 2,
+        },
+      ],
+    },
+  }
+};

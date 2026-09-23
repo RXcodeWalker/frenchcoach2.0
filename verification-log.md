@@ -876,3 +876,170 @@ against the current token set from the start.
   Typecheck/lint/unit tests verify correctness of the code as written, not
   the live UX; flagged per the root `CLAUDE.md` instruction to say so
   explicitly rather than claim feature-level success from tests alone.
+
+## IGCSE Exam Mode overhaul — W5 + W6: flow stages + the /40 report
+
+Date: 2026-09-23
+
+W1–W4/W7 were already on this branch (see the entries above). This slice
+covers the two remaining workstreams named for this session — W5 (flow
+stages: select/intro/card/review/scoring) and W6 (surfacing the discarded
+parts of `EnvelopeView` in `ExamResults.tsx`) — plus the "Coached/Exam Sim
+toggle" and "accumulated rail entries" wiring both workstreams' text
+requires but that belonged to neither file in isolation. W8 (design-token
+consolidation) and the remaining out-of-scope workstreams were not touched.
+
+### What changed
+
+**Catalog collapse fix (W5, `ExamSelect.tsx`'s stated bug).** The offline
+fixture registry in `data/exam/bank/loader.ts` held only
+`original-practice-001` — a catalog-fetch failure/cold-start collapsed the
+picker from 10 sets to 1, exactly as the plan described. The other 9 sets
+already exist as canonical, `authoring:check`-validated content in
+`french-coach-backend/data/igcse/original-practice-{002..010}.json` (verified
+byte-identical in shape to `original-practice-001.json`, which
+`original-practice-001.ts` is the hand-authored frontend copy of). Generated
+`src/data/exam/bank/fixtures/original-practice-{002..010}.ts` 1:1 from that
+JSON (a small one-off Python script did the JSON->TS-literal transcription;
+not committed, it's not project tooling) and registered all 10 in
+`OFFLINE_FIXTURES`. `corpusLint.test.ts`/`validate.test.ts`/`loader.test.ts`
+all exercise the real fixtures and pass, which is the frontend-side
+correctness check available in this repo (no nested `backend/` checkout
+here to run `authoring:check` itself against — same known gap
+`feedbackContractFixtures.test.ts` already documents).
+
+**Coached/Exam Sim toggle (W5).** `ExamSelect.tsx` gained a segmented
+toggle (defaults to Coached); its choice threads through `ExamMode.tsx`'s
+new `coachedMode` state into `SimulationSession`'s existing (W1-plumbed)
+`coached` constructor arg — previously always `false` because nothing set
+it. `ExamIntro.tsx` now states in plain language what the chosen mode
+does/doesn't give (mirroring the plan's own two-line framing for each).
+
+**Voice-unavailable warning surfaced at intro, not mid-exam (W5).**
+`ExamIntro.tsx` now checks `hasFrenchVoice()` (re-checked once
+`ensureVoiceReady()` settles, since the voice list can still be loading on
+mount) and shows a banner before the mic is ever opened, instead of the
+examiner silently never speaking.
+
+**Real role-play prep affordance (W5, `RolePlayCardPreview.tsx`).**
+`ExamIntro.tsx`'s paper summary has always promised "you have the card for
+1 min" with no timer behind it. Added a 60s countdown (pacing only, never a
+cutoff — Begin stays clickable throughout, same discipline as
+`ExamRunner`'s part countdown) and a 5-slot task-shape indicator. The slots
+are deliberately content-free (a lock icon + number, not the task text) —
+showing the actual `mainText` here would contradict this same screen's own
+"you won't see the questions in advance" copy and the exam-realism intent;
+the card's *shape* (5 tasks) is real, its *content* stays hidden.
+
+**TranscriptReview.tsx restyled + inputMode shown (W5).** Migrated off the
+pre-token-set classes (`text-[9px]`, `bg-white/[0.03]`, `btn-primary`) onto
+the current token set (`rounded-card`, `surface`, `text-eyebrow`, the shared
+`Button` component) — the plan named this file specifically for a restyle,
+unlike the other W5 screens where only new content was added. Each answer
+now shows a Mic/Type badge from `Utterance.inputMode` (W1's field, unused
+until now).
+
+**Scoring phases surfaced (W5, `ExamMode.tsx`).** The `examState ===
+'scoring'` block previously collapsed `examScoringMachine.ts`'s five
+reachable phases into one binary (`isRecovering`). New
+`scoringPhaseCopy(machine)` gives each phase (Queued/Submitting,
+WaitingForScore, Recovering — with its attempt count, Completed) its own
+copy; `FailedTerminal` is excluded by construction (that phase's effect
+routes straight to `results`, so this block never renders for it).
+
+**Live-corrections rail lifted out of `ExamRunner` into `ExamMode` (W6
+prerequisite).** `useExamCorrectionsRail` was previously called inside
+`ExamRunner`, so its accumulated entries were lost the moment `ExamRunner`
+unmounted at session end — unusable for a results-screen "what the rail
+showed you" section. Moved the hook call up to `ExamMode.tsx` (computing
+`entries`/`coached` the same way the existing `entries` prop to
+`ExamRunner` already did) and threaded the resulting `rail` object down as
+a new optional prop on `ExamRunner` (defaulting to an inert empty rail, so
+`ExamRunner.test.tsx`'s existing 3 cases needed no changes — same
+default-prop courtesy the `coached` prop already established in W3) and a
+new `railEntries`/`coached` pair of props on `ExamResults`.
+
+**`ExamResults.tsx` rewritten (W6).** Every item the plan named as
+"discarded by `ExamResults.tsx`" is now surfaced, all from the existing
+`buildEnvelopeView` output — no `envelope/`, `evidence/`, `judgement/`, or
+`guardrails/` file was touched, so no stage `version.ts` bump applies here:
+- Mode badge (Coached Practice / Exam Sim) + typed-answer count
+  (`typedTurnCount`) in the hero.
+- Per-criterion `confidence` now rendered alongside `justification` (was
+  computed, never shown).
+- New "Turn-by-Turn Breakdown" disclosure: `evidenceGroups` — prompt,
+  candidate response, word count, filler density, time-frame alignment per
+  turn.
+- New "Live Corrections From This Session" disclosure, coached-mode only,
+  reusing `ExaminerFeedbackCard` per accumulated rail entry (the "collapsed
+  per turn" framing from the plan — a closed-by-default disclosure holding
+  one card per turn, consistent with the existing "Transcript Saved"
+  disclosure pattern already in this file, not a live-updating view).
+- New "How This Was Scored" disclosure: `transcriptConfidence` (mean word
+  confidence, low-confidence span count, user-corrected flag) and `llm`
+  provenance (provider/model) + `rubricVersion`/`scoringEngineVersion`.
+- "Marks — Unvalidated Estimate" copy kept verbatim, per the plan's
+  explicit instruction.
+
+### Verified
+
+- `npm run typecheck` clean.
+- `npm run typecheck:scripts` / `npm run typecheck:server` — same 2
+  pre-existing errors as before this session (`supabaseEnvelopeStore.test.ts`,
+  `supabaseTranscriptStore.test.ts`, neither touched); confirmed by
+  `git stash`/re-run/`git stash pop` that both predate this session's diff.
+- `npm run lint` → 0 errors, same 22 pre-existing warnings, none in touched
+  files.
+- `npx vitest run src/domain/igcse src/screens/exam src/services/exam
+  src/data/exam/bank` → 86 files, 622 tests, all pass (was 85/619 before
+  this slice; +1 new file, `ExamResults.test.tsx`, 3 tests — see below).
+- `npm test` (repo-wide) → 237 files, 2174/2176 tests pass. Same 2
+  pre-existing failures as every prior workstream entry (missing `backend/`
+  checkout for `feedbackContractFixtures.test.ts`; unrelated Learn-domain
+  corpus assertion in `infer.test.ts`) — neither file touched.
+- `npm run score:golden` → 5/5 match.
+- `npm run build` → succeeds (pre-existing CSS-minify and chunk-size
+  warnings only, neither new).
+- New `src/screens/exam/__tests__/ExamResults.test.tsx`: drives a full
+  simulated session through the *unchanged* scoring pipeline (same pattern
+  as `scoreEndToEnd.test.ts` — real `conductEngine` -> `buildSessionTranscript`
+  -> `scoreAttempt` (fake judge) -> `buildEnvelopeView`) to get a real
+  `EnvelopeView`, then renders `ExamResults` and asserts every new section
+  (hero mode badge, criteria, Turn-by-Turn Breakdown, Live Corrections, How
+  This Was Scored) is present; a second case checks the Exam Sim badge and
+  that the rail section is correctly absent with no rail entries; a third
+  renders the pre-existing scoring-failed path. All 3 pass.
+- **Manual, in a real headless browser this session** (Playwright against
+  the actual Vite dev server, not just unit tests — the prior W1–W4/W7
+  entries above could not do this and said so explicitly): clicked through
+  select -> toggle to Exam Sim -> intro -> greeting -> role-play card
+  preview -> running, screenshotting each screen. Confirmed: the
+  Coached/Exam Sim toggle renders and all 10 sets show (offline-fixture
+  fallback, since the backend is unreachable from this sandbox); the
+  Exam-Sim-mode explanation card and the "no French voice found" banner
+  (headless Chromium genuinely has no TTS voice, so this exercised the real
+  branch) both render correctly; the role-play card's 60s countdown and
+  5-task-slot indicator render and count down; the running exam reaches the
+  first examiner question with no console errors. Did **not** verify a full
+  session through real scoring (the scoring service is unreachable from
+  this sandbox — the same reason `feedbackContractFixtures.test.ts` is
+  skipped) or coached-mode's live rail against a real network call; the new
+  `ExamResults.test.tsx` above is what actually exercises a populated
+  `EnvelopeView` and the rail-entries section, against the real (unchanged)
+  scoring pipeline rather than a hand-built mock. Also not verified live:
+  mic-denied path, Firefox's no-Web-Speech text-only path, light mode
+  specifically (the app's actual default theme is the warm/cream token
+  theme seen in the screenshots, not a light-mode variant of a dark
+  default — nothing here suggested a light/dark-mode-specific defect).
+
+### Not done here
+
+W8 (design-token consolidation) — `ExamSelect.tsx`'s exam-card grid and
+"Surprise Me" button are still on the pre-token-set classes
+(`bg-navy-400`, `text-white`, `text-[10px]`) predating this session, visibly
+low-contrast in the headless-browser screenshot taken this session against
+this sandbox's light background; this matches the plan's own W8 description
+of this era's components as a light-mode liability and was left alone as
+explicitly out of this session's scope (W5 + W6 only). `TranscriptReview.tsx`
+is the one exception, restyled per the plan's own explicit instruction for
+that file.

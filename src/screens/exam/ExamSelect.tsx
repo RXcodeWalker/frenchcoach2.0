@@ -31,9 +31,16 @@ function dominantDifficulty(set: AuthoredQuestionSet): Difficulty | undefined {
 }
 
 interface Props {
-  onSelect: (set: AuthoredQuestionSet) => void;
-  onAutoFallback: () => void;
+  onSelect: (set: AuthoredQuestionSet, coached: boolean) => void;
+  onAutoFallback: (coached: boolean) => void;
 }
+
+type ExamModeChoice = 'coached' | 'sim';
+
+const MODE_COPY: Record<ExamModeChoice, { label: string; blurb: string }> = {
+  coached: { label: 'Coached Practice', blurb: 'Examiner commentary appears after every answer' },
+  sim: { label: 'Exam Sim', blurb: 'No feedback until you submit — like the real thing' },
+};
 
 // The remote catalog rides out a Render free-tier cold start (up to ~45s) in the
 // background. Rather than block the whole screen on a spinner for that long, we
@@ -50,6 +57,10 @@ export function ExamSelect({ onSelect, onAutoFallback }: Props) {
   const [remote, setRemote] = useState<RemoteState>({ phase: 'loading' });
   // Bumped on manual retry to re-run the fetch effect below without remounting the screen.
   const [retryCount, setRetryCount] = useState(0);
+  // W5: Coached Practice (rail live every turn) vs Exam Sim (rail sealed until
+  // submission) — see simulationSession.ts's `coached` flag. Defaults to
+  // Coached, the more helpful choice for a practice app.
+  const [mode, setMode] = useState<ExamModeChoice>('coached');
 
   useEffect(() => {
     let cancelled = false;
@@ -89,13 +100,29 @@ export function ExamSelect({ onSelect, onAutoFallback }: Props) {
           <p className="text-sm text-ink-muted mt-1">Pick one of the Cambridge-style mock exams below</p>
         </div>
 
+        <div className="rounded-xl surface-recessed p-1.5 flex gap-1.5">
+          {(Object.keys(MODE_COPY) as ExamModeChoice[]).map((m) => (
+            <button
+              key={m}
+              onClick={() => setMode(m)}
+              aria-pressed={mode === m}
+              className={`flex-1 rounded-lg px-3 py-2.5 text-left transition-all duration-200 ${
+                mode === m ? 'bg-navy-400 border border-white/10' : 'hover:bg-white/[0.02]'
+              }`}
+            >
+              <p className="text-xs font-bold text-white">{MODE_COPY[m].label}</p>
+              <p className="text-[10px] text-ink-subtle mt-0.5">{MODE_COPY[m].blurb}</p>
+            </button>
+          ))}
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {sets.map((set, idx) => {
             const difficulty = dominantDifficulty(set);
             return (
               <motion.button
                 key={set.questionSetId}
-                onClick={() => onSelect(set)}
+                onClick={() => onSelect(set, mode === 'coached')}
                 className="group relative overflow-hidden rounded-xl surface p-5 text-left hover:border-white/10 transition-all duration-300"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -162,7 +189,7 @@ export function ExamSelect({ onSelect, onAutoFallback }: Props) {
         )}
 
         <motion.button
-          onClick={onAutoFallback}
+          onClick={() => onAutoFallback(mode === 'coached')}
           className="w-full group relative overflow-hidden rounded-xl surface-recessed border-dashed border-white/8 p-4 text-left hover:bg-white/[0.02] transition-all duration-300"
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.98 }}

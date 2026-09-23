@@ -1,0 +1,250 @@
+/**
+ * S11 offline/dev fixture — generated from french-coach-backend's
+ * data/igcse/original-practice-007.json (the canonical authored content,
+ * validated by that repo's `npm run authoring:check`) via the exam-overhaul
+ * W5 fixture-bundling pass. Same shape as original-practice-001.ts's
+ * hand-authored fixture; kept as a literal object (not a JSON import) so it
+ * type-checks against AuthoredQuestionSet directly, same as 001.
+ */
+
+import type { AuthoredQuestionSet } from '../types';
+
+export const ORIGINAL_PRACTICE_007: AuthoredQuestionSet = {
+  questionSetId: 'original-practice-007',
+  schemaVersion: 'question-bank-v1',
+  provenance: 'original-practice',
+  review: {
+    status: 'approved',
+    reviewedBy: 'internal:s11-author',
+    reviewedAt: '2026-07-17T00:00:00.000Z',
+    notes: "Clean-room authored from the public 0520 syllabus and 04-frontend-pipeline.md §6.4 only; no Teacher's Notes booklet consulted. Archetype: lost property abroad (pair B+E, role-play area E). Self-review + linguistic pass complete; independent originality review complete. G3 exam-realism review pending a 0520-familiar teacher (S11 M2).",
+  },
+  content: {
+    rolePlay: {
+      scenarioId: 'rp-original-practice-007',
+      topicArea: 'E',
+      title: "Signaler un objet perdu à l'étranger",
+      setup: "Tu as perdu ton sac pendant un voyage à l'étranger et tu vas au bureau des objets trouvés. Je suis l'agent / l'agente.",
+      tasks: [
+        {
+          questionId: 'rp1',
+          part: 'rolePlay',
+          mainText: "Bonjour, qu'avez-vous perdu exactement ?",
+          alternativeTexts: [],
+          partsExpected: 1,
+        },
+        {
+          questionId: 'rp2',
+          part: 'rolePlay',
+          mainText: 'De quelle couleur est votre sac ?',
+          alternativeTexts: [],
+          partsExpected: 1,
+        },
+        {
+          questionId: 'rp3',
+          part: 'rolePlay',
+          mainText: "Où pensez-vous l'avoir perdu ?",
+          alternativeTexts: [],
+          partsExpected: 2,
+          secondPartText: "À quelle heure l'avez-vous remarqué ?",
+        },
+        {
+          questionId: 'rp4',
+          part: 'rolePlay',
+          mainText: "Qu'est-ce qu'il y avait de précieux dans le sac ?",
+          alternativeTexts: [],
+          partsExpected: 1,
+        },
+        {
+          questionId: 'rp5',
+          part: 'rolePlay',
+          mainText: 'Je vais noter votre déclaration. Quel est votre numéro de téléphone ?',
+          alternativeTexts: [],
+          partsExpected: 1,
+        },
+      ],
+    },
+    topic1: {
+      topicArea: 'B',
+      subTopic: 'Social Media and Technology',
+      furtherQuestions: [
+        'Combien de temps passes-tu sur ton téléphone chaque jour ?',
+        "Un réseau social t'a-t-il déjà causé un problème ?",
+      ],
+      questions: [
+        {
+          questionId: 't1q1',
+          part: 'topic1',
+          mainText: 'Quelles applications utilises-tu le plus souvent ?',
+          alternativeTexts: [],
+          topicArea: 'B',
+          subTopic: 'Social Media and Technology',
+          difficulty: 'foundation',
+          targetStructures: [
+            'present',
+          ],
+          expectedTimeFrame: 'present',
+          partsExpected: 1,
+        },
+        {
+          questionId: 't1q2',
+          part: 'topic1',
+          mainText: 'Les réseaux sociaux vont-ils continuer à changer nos vies ?',
+          alternativeTexts: [
+            'Comment ton téléphone changera-t-il ta journée de demain ?',
+          ],
+          topicArea: 'B',
+          subTopic: 'Social Media and Technology',
+          difficulty: 'core',
+          targetStructures: [
+            'simple-future',
+          ],
+          expectedTimeFrame: 'future',
+          partsExpected: 1,
+        },
+        {
+          questionId: 't1q3',
+          part: 'topic1',
+          mainText: 'Avant, comment restais-tu en contact avec tes amis sans smartphone ?',
+          alternativeTexts: [
+            'Comment communiquais-tu avec tes amis quand tu étais plus jeune ?',
+          ],
+          topicArea: 'B',
+          subTopic: 'Social Media and Technology',
+          difficulty: 'core',
+          targetStructures: [
+            'imperfect',
+          ],
+          expectedTimeFrame: 'past',
+          partsExpected: 1,
+        },
+        {
+          questionId: 't1q4',
+          part: 'topic1',
+          mainText: 'Vivrais-tu heureux sans internet pendant une semaine ?',
+          secondPartText: 'Pourquoi ?',
+          alternativeTexts: [
+            'Que ferais-tu si tu perdais ton téléphone pendant tes vacances ?',
+          ],
+          topicArea: 'B',
+          subTopic: 'Social Media and Technology',
+          difficulty: 'higher',
+          targetStructures: [
+            'conditional',
+            'justification',
+          ],
+          expectedTimeFrame: 'conditional',
+          partsExpected: 2,
+        },
+        {
+          questionId: 't1q5',
+          part: 'topic1',
+          mainText: 'Les jeunes ne passent-ils pas trop de temps sur leur téléphone selon toi ?',
+          alternativeTexts: [
+            "Ton téléphone t'aide-t-il plus qu'il ne te distrait ?",
+          ],
+          topicArea: 'B',
+          subTopic: 'Social Media and Technology',
+          difficulty: 'core',
+          targetStructures: [
+            'negation',
+            'opinion',
+            'comparison',
+          ],
+          expectedTimeFrame: 'present',
+          partsExpected: 1,
+        },
+      ],
+    },
+    topic2: {
+      topicArea: 'E',
+      subTopic: 'Life in Other Countries',
+      furtherQuestions: [
+        'Quelle langue étrangère voudrais-tu maîtriser un jour ?',
+        'As-tu de la famille qui habite dans un autre pays ?',
+      ],
+      questions: [
+        {
+          questionId: 't2q1',
+          part: 'topic2',
+          mainText: "Quel pays francophone t'intéresse le plus ?",
+          alternativeTexts: [],
+          topicArea: 'E',
+          subTopic: 'Life in Other Countries',
+          difficulty: 'foundation',
+          targetStructures: [
+            'present',
+          ],
+          expectedTimeFrame: 'present',
+          partsExpected: 1,
+        },
+        {
+          questionId: 't2q2',
+          part: 'topic2',
+          mainText: 'Enfant, imaginais-tu la vie dans un autre pays ?',
+          alternativeTexts: [
+            'À quoi ressemblait ta vie avant de commencer à apprendre le français ?',
+          ],
+          topicArea: 'E',
+          subTopic: 'Life in Other Countries',
+          difficulty: 'core',
+          targetStructures: [
+            'opinion',
+          ],
+          expectedTimeFrame: 'past',
+          partsExpected: 1,
+        },
+        {
+          questionId: 't2q3',
+          part: 'topic2',
+          mainText: "As-tu déjà rencontré quelqu'un d'un pays différent du tien ?",
+          alternativeTexts: [
+            'Décris un échange culturel que tu as vécu.',
+          ],
+          topicArea: 'E',
+          subTopic: 'Life in Other Countries',
+          difficulty: 'core',
+          targetStructures: [
+            'perfect',
+          ],
+          expectedTimeFrame: 'past',
+          partsExpected: 1,
+        },
+        {
+          questionId: 't2q4',
+          part: 'topic2',
+          mainText: "L'année prochaine, correspondras-tu avec un(e) élève à l'étranger ?",
+          alternativeTexts: [
+            'Où voyageras-tu pour pratiquer une langue étrangère bientôt ?',
+          ],
+          topicArea: 'E',
+          subTopic: 'Life in Other Countries',
+          difficulty: 'core',
+          targetStructures: [
+            'simple-future',
+          ],
+          expectedTimeFrame: 'future',
+          partsExpected: 1,
+        },
+        {
+          questionId: 't2q5',
+          part: 'topic2',
+          mainText: "Trouves-tu qu'apprendre une langue est plus facile qu'apprendre les mathématiques ?",
+          secondPartText: 'Pourquoi ?',
+          alternativeTexts: [
+            'Le français te semble-t-il plus utile que les autres matières ?',
+          ],
+          topicArea: 'E',
+          subTopic: 'Life in Other Countries',
+          difficulty: 'higher',
+          targetStructures: [
+            'comparison',
+            'justification',
+          ],
+          expectedTimeFrame: 'present',
+          partsExpected: 2,
+        },
+      ],
+    },
+  }
+};

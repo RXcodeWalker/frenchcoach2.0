@@ -1,0 +1,246 @@
+/**
+ * S11 offline/dev fixture — generated from french-coach-backend's
+ * data/igcse/original-practice-004.json (the canonical authored content,
+ * validated by that repo's `npm run authoring:check`) via the exam-overhaul
+ * W5 fixture-bundling pass. Same shape as original-practice-001.ts's
+ * hand-authored fixture; kept as a literal object (not a JSON import) so it
+ * type-checks against AuthoredQuestionSet directly, same as 001.
+ */
+
+import type { AuthoredQuestionSet } from '../types';
+
+export const ORIGINAL_PRACTICE_004: AuthoredQuestionSet = {
+  questionSetId: 'original-practice-004',
+  schemaVersion: 'question-bank-v1',
+  provenance: 'original-practice',
+  review: {
+    status: 'approved',
+    reviewedBy: 'internal:s11-author',
+    reviewedAt: '2026-07-17T00:00:00.000Z',
+    notes: "Clean-room authored from the public 0520 syllabus and 04-frontend-pipeline.md §6.4 only; no Teacher's Notes booklet consulted. Archetype: travel disruption (pair A+E, role-play area E). Self-review + linguistic pass complete; independent originality review complete. G3 exam-realism review pending a 0520-familiar teacher (S11 M2).",
+  },
+  content: {
+    rolePlay: {
+      scenarioId: 'rp-original-practice-004',
+      topicArea: 'E',
+      title: 'Un train annulé à la gare',
+      setup: "Ton train est annulé et tu vas au guichet pour demander de l'aide. Je suis l'employé(e) de la gare.",
+      tasks: [
+        {
+          questionId: 'rp1',
+          part: 'rolePlay',
+          mainText: 'Bonjour, comment puis-je vous aider ?',
+          alternativeTexts: [],
+          partsExpected: 1,
+        },
+        {
+          questionId: 'rp2',
+          part: 'rolePlay',
+          mainText: 'Quelle est votre destination ?',
+          alternativeTexts: [],
+          partsExpected: 1,
+        },
+        {
+          questionId: 'rp3',
+          part: 'rolePlay',
+          mainText: 'Voulez-vous prendre le prochain train ou attendre demain ?',
+          alternativeTexts: [],
+          partsExpected: 2,
+          secondPartText: 'Savez-vous à quel quai il faut aller ?',
+        },
+        {
+          questionId: 'rp4',
+          part: 'rolePlay',
+          mainText: 'Voulez-vous un remboursement ou un autre billet ?',
+          alternativeTexts: [],
+          partsExpected: 1,
+        },
+        {
+          questionId: 'rp5',
+          part: 'rolePlay',
+          mainText: 'Je suis vraiment désolé(e) pour ce retard. Autre chose ?',
+          alternativeTexts: [],
+          partsExpected: 1,
+        },
+      ],
+    },
+    topic1: {
+      topicArea: 'A',
+      subTopic: 'Food and Meals',
+      furtherQuestions: [
+        "Qui prépare les repas chez toi d'habitude ?",
+        'Quel plat aimerais-tu apprendre à cuisiner ?',
+      ],
+      questions: [
+        {
+          questionId: 't1q1',
+          part: 'topic1',
+          mainText: 'Que manges-tu normalement au petit-déjeuner ?',
+          alternativeTexts: [],
+          topicArea: 'A',
+          subTopic: 'Food and Meals',
+          difficulty: 'foundation',
+          targetStructures: [
+            'present',
+          ],
+          expectedTimeFrame: 'present',
+          partsExpected: 1,
+        },
+        {
+          questionId: 't1q2',
+          part: 'topic1',
+          mainText: 'Que vas-tu préparer pour le dîner ce soir ?',
+          alternativeTexts: [],
+          topicArea: 'A',
+          subTopic: 'Food and Meals',
+          difficulty: 'core',
+          targetStructures: [
+            'near-future',
+          ],
+          expectedTimeFrame: 'future',
+          partsExpected: 1,
+        },
+        {
+          questionId: 't1q3',
+          part: 'topic1',
+          mainText: 'Quand as-tu mangé dans un restaurant pour la dernière fois ?',
+          alternativeTexts: [
+            'Décris un bon repas que tu as pris récemment.',
+          ],
+          topicArea: 'A',
+          subTopic: 'Food and Meals',
+          difficulty: 'core',
+          targetStructures: [
+            'perfect',
+          ],
+          expectedTimeFrame: 'past',
+          partsExpected: 1,
+        },
+        {
+          questionId: 't1q4',
+          part: 'topic1',
+          mainText: 'Quelle personne célèbre choisirais-tu comme invité(e) pour un dîner ?',
+          alternativeTexts: [
+            "Où voudrais-tu manger si l'argent n'était pas un problème ?",
+          ],
+          topicArea: 'A',
+          subTopic: 'Food and Meals',
+          difficulty: 'higher',
+          targetStructures: [
+            'conditional',
+          ],
+          expectedTimeFrame: 'conditional',
+          partsExpected: 1,
+        },
+        {
+          questionId: 't1q5',
+          part: 'topic1',
+          mainText: 'Trouves-tu la nourriture de ton pays meilleure que la cuisine étrangère ?',
+          secondPartText: 'Pourquoi ?',
+          alternativeTexts: [
+            'Comment compares-tu la cuisine de ta région à celle du reste du pays ?',
+          ],
+          topicArea: 'A',
+          subTopic: 'Food and Meals',
+          difficulty: 'core',
+          targetStructures: [
+            'opinion',
+            'justification',
+            'comparison',
+          ],
+          expectedTimeFrame: 'present',
+          partsExpected: 2,
+        },
+      ],
+    },
+    topic2: {
+      topicArea: 'E',
+      subTopic: 'Holidays and Travel',
+      furtherQuestions: [
+        'Voyages-tu plutôt en avion, en train ou en voiture ?',
+        'Quel pays voisin du tien as-tu envie de visiter ?',
+      ],
+      questions: [
+        {
+          questionId: 't2q1',
+          part: 'topic2',
+          mainText: 'Comment préfères-tu voyager en vacances ?',
+          alternativeTexts: [],
+          topicArea: 'E',
+          subTopic: 'Holidays and Travel',
+          difficulty: 'foundation',
+          targetStructures: [
+            'present',
+          ],
+          expectedTimeFrame: 'present',
+          partsExpected: 1,
+        },
+        {
+          questionId: 't2q2',
+          part: 'topic2',
+          mainText: 'Décris un pays étranger que tu as visité.',
+          alternativeTexts: [],
+          topicArea: 'E',
+          subTopic: 'Holidays and Travel',
+          difficulty: 'core',
+          targetStructures: [
+            'perfect',
+          ],
+          expectedTimeFrame: 'past',
+          partsExpected: 1,
+        },
+        {
+          questionId: 't2q3',
+          part: 'topic2',
+          mainText: "Où iras-tu en vacances l'été prochain ?",
+          alternativeTexts: [
+            'Quelle destination voudrais-tu découvrir bientôt ?',
+          ],
+          topicArea: 'E',
+          subTopic: 'Holidays and Travel',
+          difficulty: 'core',
+          targetStructures: [
+            'simple-future',
+          ],
+          expectedTimeFrame: 'future',
+          partsExpected: 1,
+        },
+        {
+          questionId: 't2q4',
+          part: 'topic2',
+          mainText: 'Si tu gagnais un grand voyage, où irais-tu ?',
+          alternativeTexts: [
+            'Dans quel pays aimerais-tu vivre un jour ?',
+          ],
+          topicArea: 'E',
+          subTopic: 'Holidays and Travel',
+          difficulty: 'core',
+          targetStructures: [
+            'conditional',
+          ],
+          expectedTimeFrame: 'conditional',
+          partsExpected: 1,
+        },
+        {
+          questionId: 't2q5',
+          part: 'topic2',
+          mainText: 'Préfères-tu les vacances à la plage ou à la montagne ?',
+          secondPartText: 'Pourquoi ?',
+          alternativeTexts: [
+            'Trouves-tu les voyages organisés meilleurs que les voyages indépendants ?',
+          ],
+          topicArea: 'E',
+          subTopic: 'Holidays and Travel',
+          difficulty: 'core',
+          targetStructures: [
+            'opinion',
+            'justification',
+            'comparison',
+          ],
+          expectedTimeFrame: 'present',
+          partsExpected: 2,
+        },
+      ],
+    },
+  }
+};

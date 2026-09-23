@@ -5,7 +5,7 @@ import { Button } from '../../components/ui/Button';
 import { ExamTranscript } from './ExamTranscript';
 import { ExamComposer } from './ExamComposer';
 import { ExamCorrectionsRail } from './ExamCorrectionsRail';
-import { useExamCorrectionsRail } from '../../services/exam/turnFeedback';
+import type { UseExamCorrectionsRail } from '../../services/exam/turnFeedback';
 import type { RecordingState } from '../../features/recording/useRecording';
 import type { ExaminerAction, ConductLogEntry } from '../../domain/igcse/session/types';
 import { ExitConfirmDialog } from './ExitConfirmDialog';
@@ -59,7 +59,15 @@ interface Props {
   taskProgress?: { index: number; total: number };
   /** W1/W5: Coached Practice (rail live every turn) vs Exam Sim (rail sealed until submission). Defaults to false (sealed) so existing callers/tests are unaffected. */
   coached?: boolean;
+  /**
+   * W6: lifted up to ExamMode (was previously owned by this component) so the
+   * accumulated entries survive past 'running' into the results screen.
+   * Defaults to an empty, inert rail so existing callers/tests are unaffected.
+   */
+  rail?: UseExamCorrectionsRail;
 }
+
+const EMPTY_RAIL: UseExamCorrectionsRail = { entries: [], disabledReason: null, retry: () => {} };
 
 export function ExamRunner({
   action,
@@ -82,6 +90,7 @@ export function ExamRunner({
   rolePlaySetup,
   taskProgress,
   coached = false,
+  rail = EMPTY_RAIL,
 }: Props) {
   const part = action?.part ?? 'rolePlay';
   const phaseLabel = PART_LABEL[part] ?? part;
@@ -90,8 +99,6 @@ export function ExamRunner({
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
   const [highlightedTurnKey, setHighlightedTurnKey] = useState<number | null>(null);
-
-  const rail = useExamCorrectionsRail(entries, coached);
 
   const handleIssueClick = (turnKey: number) => {
     setMobileSheetOpen(true);
