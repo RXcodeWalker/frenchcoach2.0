@@ -1559,3 +1559,45 @@ Not in this entry: Step 7's remaining item beyond what's folded in above —
 none; ADR-0007, the `docs/systems/assessment-engine.md` allow-list/
 projection note, and the two new root `CLAUDE.md` Known Traps entries are
 all included in this same session.
+
+## 2026-09-24 — Manual verification of the P0 plan's live exam flow (Steps 1, 5, 6)
+
+The Step 5/6 entry above recorded the plan's manual checklist as owed. Ran
+it against the actual dev server (`npm run dev`), driven headlessly
+(`playwright-core` against the container's pre-installed Chromium — no
+`chromium-cli`/project run-skill available, so this was a one-off driver
+script, not a committed skill) rather than the test suite.
+
+Sandbox constraints (same as prior entries): no Supabase/provider
+credentials, `VITE_SCORING_API_URL` unset, and headless Chromium has no
+`webkitSpeechRecognition` and no real mic. So the parts of the checklist
+that need live speech recognition or a live scoring service (submitting an
+Exam Sim session end-to-end to a real judge, seeing an actual `/40` with
+`/2`/`/10`/`/15` subtotals, the Coached "doesn't count" banner, the
+"practice" history tag) were **not exercised** — those still rest on the
+unit/component tests the Step 5/6 entry already lists. What *was*
+exercised live:
+
+- **Exam Sim default.** Fresh session -> `/exam` -> `ExamSelect`'s mode
+  toggle shows `aria-pressed="true"` on "Exam Sim" with no interaction.
+- **Exam Sim is mic-only.** In `ExamSim`, the running screen has 0
+  `<textarea>` elements and exactly 1 mic button; the corrections rail
+  reads "Sealed until you submit — this is Exam Sim." (no live feedback).
+- **The Step 1 fix, live:** switched to Coached Practice (typed input,
+  since headless Chromium can't drive real speech), answered role play
+  with a full sentence, then answered topic1's first scripted question
+  ("Que fais-tu pour aider à la maison ?") with the one-word answer
+  "L'été." The examiner's next line was "Donne-moi plus de détails." —
+  `AUTHORIZED_EXTENSION_PROMPTS[0]` — not a repeat of the same question and
+  not the alternative question. This is the exact behavior
+  `RELEVANCE_WORD_THRESHOLD` 3->1 was meant to produce, confirmed against
+  the running UI, not just the unit test added for it.
+- No console errors from the app itself; the only browser console errors
+  were expected sandbox noise (Google Fonts blocked by the proxy's TLS
+  interception, `localhost:8000` connection-refused from the coach
+  backend/rail not being reachable here).
+
+Not re-verified here (unchanged from the Step 5/6 entry, still owed): the
+mic-required messaging path, the full role-play second-part repeat live
+(exercised only in the unit test added in the Step 1 entry), and anything
+requiring a reachable scoring service.
