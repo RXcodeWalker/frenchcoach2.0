@@ -29,6 +29,33 @@ export interface RolePlayTaskResponse {
   candidateResponse: string;
   /** S2 optional detector hint for two-part tasks. */
   partsExpected?: 1 | 2;
+  /**
+   * Second-part prompt of a two-part task (SessionQuestion.secondPartText),
+   * so the judge can apply "partly communicated" against the whole task.
+   * Absent for one-part tasks and hand-authored fixtures.
+   */
+  secondPartPrompt?: string;
+  /**
+   * How many times the examiner repeated this task, from the session's
+   * examinerEvents. Absent when there is no session provenance.
+   */
+  repetitions?: number;
+}
+
+/**
+ * What the examiner had to do to get this answer, projected from the
+ * session's examinerEvents + examiner utterance text (toSpeakingTranscript).
+ * The first bullet of every Communication band turns on exactly this
+ * (repetition / alternative-question use), so the judge reads it from here
+ * rather than guessing from the candidate's words.
+ */
+export interface ExaminerSupport {
+  repetitions: number;
+  /** Text of the alternative question actually asked, or null if the main question was used. */
+  alternativeAsked: string | null;
+  /** Text of the second part actually asked, or null if none was asked. */
+  secondPartAsked: string | null;
+  extensionPrompts: number;
 }
 
 export interface TopicConversation {
@@ -62,6 +89,12 @@ export interface ConversationTurn {
    * duration — see guardrails/insufficientEvidence.ts.
    */
   inputMode?: 'speech' | 'text';
+  /**
+   * Examiner support recorded for this turn — see ExaminerSupport. Absent for
+   * hand-authored transcripts and for further-question turns (turnId
+   * 'further1' | 'further2'), which the examiner asks once with no support.
+   */
+  examinerSupport?: ExaminerSupport;
 }
 
 /** Injected LLM seam — no model/temperature/retry in S1. */

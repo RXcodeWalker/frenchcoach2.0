@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { RP_MARK_1, RP_MARK_2, COMM_7_9 } from '../../canonical';
+import { RP_MARK_0, RP_MARK_1, RP_MARK_2, COMM_7_9 } from '../../canonical';
 import {
   canonicalizeForMatch,
   normalizeForMatch,
@@ -256,5 +256,57 @@ describe('parseAndValidateJudgeOutput — structural invariants', () => {
 describe('descriptorsEqual', () => {
   it('matches canonical RP_MARK_2[0] with case/whitespace variants', () => {
     expect(descriptorsEqual(RP_MARK_2[0], 'the information is communicated.')).toBe(true);
+  });
+});
+
+describe('parseAndValidateJudgeOutput — per-task role-play marking (P0 step 4)', () => {
+  it("rejects a role-play quote taken from another task's response", () => {
+    const output = buildValidJudgeOutput();
+    // 'Merci, au revoir' is t5's response, cited for t1.
+    output.rolePlay.tasks[0].evidenceSpans = [{ source: 'rolePlay', quote: 'Merci, au revoir' }];
+    expect(() => parseAndValidateJudgeOutput(output, PRACTICE_TRANSCRIPT)).toThrow(
+      /rolePlay task t1: evidence quote not grounded in that task's response/,
+    );
+  });
+
+  it('rejects a role-play quote taken from a topic conversation, whatever its source label', () => {
+    const output = buildValidJudgeOutput();
+    output.rolePlay.tasks[0].evidenceSpans = [{ source: 'topic1', quote: 'Je préfère le sport' }];
+    expect(() => parseAndValidateJudgeOutput(output, PRACTICE_TRANSCRIPT)).toThrow(JudgementValidationError);
+  });
+
+  it('rejects duplicate taskIds even when five tasks are returned', () => {
+    const output = buildValidJudgeOutput();
+    output.rolePlay.tasks[4] = { ...output.rolePlay.tasks[0] };
+    expect(() => parseAndValidateJudgeOutput(output, PRACTICE_TRANSCRIPT)).toThrow(
+      /Duplicate role play taskId: t1/,
+    );
+  });
+
+  it('accepts a silent task marked 0 with no evidence spans', () => {
+    const transcript = {
+      ...PRACTICE_TRANSCRIPT,
+      rolePlay: PRACTICE_TRANSCRIPT.rolePlay.map((t, i) => (i === 2 ? { ...t, candidateResponse: '' } : t)),
+    };
+    const output = buildValidJudgeOutput();
+    output.rolePlay.tasks[2] = { taskId: 't3', mark: 0, descriptorApplied: RP_MARK_0[0], evidenceSpans: [] };
+    const result = parseAndValidateJudgeOutput(output, transcript);
+    expect(result.rolePlay.tasks[2].mark).toBe(0);
+    expect(result.rolePlay.total).toBe(8);
+  });
+
+  it('rejects a mark of 1 or 2 with no evidence spans', () => {
+    for (const mark of [1, 2] as const) {
+      const output = buildValidJudgeOutput();
+      output.rolePlay.tasks[0] = {
+        taskId: 't1',
+        mark,
+        descriptorApplied: mark === 2 ? RP_MARK_2[0] : RP_MARK_1[0],
+        evidenceSpans: [],
+      };
+      expect(() => parseAndValidateJudgeOutput(output, PRACTICE_TRANSCRIPT)).toThrow(
+        /evidenceSpans: mark \d requires at least one evidence span/,
+      );
+    }
   });
 });

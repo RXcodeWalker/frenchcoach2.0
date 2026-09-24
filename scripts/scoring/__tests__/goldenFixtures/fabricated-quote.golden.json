@@ -7908,8 +7908,8 @@
       "rubricVersion": "rubric-v0.1",
       "scoringEngineVersion": "golden-fixture",
       "evidenceDetectorVersion": "detectors-v0.6",
-      "scoringPromptVersion": "scoring-prompt-v0.4",
-      "guardrailsVersion": "guardrails-v0.4",
+      "scoringPromptVersion": "scoring-prompt-v0.5",
+      "guardrailsVersion": "guardrails-v0.5",
       "calibrationVersion": "none",
       "gradeBoundarySeries": "none"
     },

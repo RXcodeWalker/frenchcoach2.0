@@ -11,7 +11,7 @@ import { buildJudgementPrompt } from '../prompt';
 import { SCORING_PROMPT_VERSION } from '../version';
 import { PRACTICE_TRANSCRIPT } from './fixtures';
 
-const SCORING_PROMPT_FIXTURE_HASH = 'a8576c5876c96b9f2bc6c02479c0863bb4170dd8df0298d4fd1d18e7961ff01e';
+const SCORING_PROMPT_FIXTURE_HASH = '9ffd1c03b1d47bd40cbd1321ab11c2b6dbadbafea20af3f44adff8662359a504';
 
 function sha256(value: string): string {
   return createHash('sha256').update(value).digest('hex');

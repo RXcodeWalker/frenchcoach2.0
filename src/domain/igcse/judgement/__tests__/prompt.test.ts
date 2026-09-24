@@ -10,6 +10,7 @@ import {
 import { buildEvidenceProfile } from '../../evidence/buildEvidence';
 import { buildJudgementPrompt, _PROMPT_EVIDENCE_ALLOW_LIST } from '../prompt';
 import { PRACTICE_TRANSCRIPT } from './fixtures';
+import type { SpeakingTranscript } from '../types';
 
 describe('buildJudgementPrompt', () => {
   const evidence = buildEvidenceProfile(PRACTICE_TRANSCRIPT);
@@ -89,14 +90,9 @@ describe('buildJudgementPrompt', () => {
   it('includes the Layer 1 EvidenceProfile, not just the raw transcript', () => {
     expect(prompt).toContain('Layer 1 evidence');
 
-    const firstTimeFrameRow = evidence.timeFrameAlignmentByQuestion[0];
+    const firstCountRow = evidence.responseCountsByQuestion[0];
     expect(prompt).toContain(
-      `${firstTimeFrameRow.questionId}: expected=${firstTimeFrameRow.expectedTimeFrame ?? 'n/a'}`,
-    );
-
-    const firstPartsRow = evidence.rolePlayPartsByTask[0];
-    expect(prompt).toContain(
-      `${firstPartsRow.taskId}: partsExpected=${firstPartsRow.partsExpected}, partsAddressed=${firstPartsRow.partsAddressed}`,
+      `${firstCountRow.questionId}: wordCount=${firstCountRow.wordCount}, responseCount=${firstCountRow.responseCount}`,
     );
 
     const firstDurationRow = evidence.topicConversationDurationByConversation[0];
@@ -105,14 +101,25 @@ describe('buildJudgementPrompt', () => {
     );
   });
 
-  it('rendered-field-set snapshot: prompt evidence allow-list is exactly the five Phase-0 subset fields (§10.3/Phase 3 exit criterion)', () => {
+  it('rendered-field-set snapshot: prompt evidence allow-list is exactly the two factual count fields (P0 step 3)', () => {
     expect(_PROMPT_EVIDENCE_ALLOW_LIST).toEqual([
-      'timeFrameAlignmentByQuestion',
       'responseCountsByQuestion',
-      'fillerDensityByQuestion',
-      'rolePlayPartsByTask',
       'topicConversationDurationByConversation',
     ]);
+  });
+
+  it('P0 step 3: unvalidated L1 heuristics (time frame, filler density, role-play parts) never reach the prompt', () => {
+    // Still computed for the envelope's audit snapshot…
+    expect(evidence.timeFrameAlignmentByQuestion.length).toBeGreaterThan(0);
+    expect(evidence.fillerDensityByQuestion.length).toBeGreaterThan(0);
+    expect(evidence.rolePlayPartsByTask.length).toBeGreaterThan(0);
+    // …but not rendered.
+    expect(prompt).not.toContain('Time-frame alignment');
+    expect(prompt).not.toMatch(/alignment=/);
+    expect(prompt).not.toContain('Filler density');
+    expect(prompt).not.toMatch(/fillerCount=/);
+    expect(prompt).not.toContain('Role-play parts addressed');
+    expect(prompt).not.toMatch(/partsAddressed=/);
   });
 
   it('D1: the RENDERED prompt carries no Phase-3-only evidence field marker (observations, features, detectorRuns, detectorVersions)', () => {
@@ -126,5 +133,78 @@ describe('buildJudgementPrompt', () => {
     expect(prompt).not.toMatch(/\bobservationId\b/);
     expect(prompt).not.toMatch(/\bmarkInfluence\b/);
     expect(prompt).not.toMatch(/\bskillNodeId\b/);
+  });
+
+  describe('P0 step 2: examiner support, further questions, ASR and delivery instructions', () => {
+    const supported: SpeakingTranscript = {
+      ...PRACTICE_TRANSCRIPT,
+      rolePlay: PRACTICE_TRANSCRIPT.rolePlay.map((task, i) =>
+        i === 0 ? { ...task, secondPartPrompt: 'Et pour combien de personnes ?', repetitions: 1 } : task,
+      ),
+      topicConversations: [
+        {
+          ...PRACTICE_TRANSCRIPT.topicConversations[0],
+          turns: [
+            {
+              ...PRACTICE_TRANSCRIPT.topicConversations[0].turns[0],
+              examinerSupport: {
+                repetitions: 1,
+                alternativeAsked: 'Où voudrais-tu aller en vacances ?',
+                secondPartAsked: 'Pourquoi ?',
+                extensionPrompts: 2,
+              },
+            },
+            ...PRACTICE_TRANSCRIPT.topicConversations[0].turns.slice(1),
+            {
+              turnId: 'further1',
+              questionPrompt: 'Que fais-tu le week-end ?',
+              candidateResponse: 'Je vais au cinéma avec mes amis.',
+            },
+          ],
+        },
+        PRACTICE_TRANSCRIPT.topicConversations[1],
+      ],
+    };
+    const supportedPrompt = buildJudgementPrompt(supported, buildEvidenceProfile(supported));
+
+    it('renders the examiner support on the Asked line', () => {
+      const turn = supported.topicConversations[0].turns[0];
+      expect(supportedPrompt).toContain(
+        `Asked: ${turn.questionPrompt} | Repeated ×1 | Alternative question used: 'Où voudrais-tu aller en vacances ?' | Second part asked: 'Pourquoi ?' | Extension prompts: 2`,
+      );
+    });
+
+    it('renders a turn with no recorded support as a bare Asked line', () => {
+      const turn = supported.topicConversations[1].turns[0];
+      expect(supportedPrompt).toContain(`Asked: ${turn.questionPrompt}\nCandidate response:`);
+    });
+
+    it("renders a role-play task's second part and repetitions", () => {
+      const task = supported.rolePlay[0];
+      expect(supportedPrompt).toContain(
+        `Instruction: ${task.taskPrompt} | Second part: 'Et pour combien de personnes ?' | Repeated ×1`,
+      );
+    });
+
+    it('labels a further-question turn as the examiner\'s choice and includes its answer', () => {
+      expect(supportedPrompt).toContain("Turn further1 — Further question (examiner's choice)");
+      expect(supportedPrompt).toContain('Asked: Que fais-tu le week-end ?');
+      expect(supportedPrompt).toContain('Candidate response: Je vais au cinéma avec mes amis.');
+    });
+
+    it('instructs the judge to read repetition/alternative use only from the recorded support', () => {
+      expect(prompt).toMatch(/first Communication bullet.*ONLY from the examiner support recorded/);
+    });
+
+    it('tells the judge the transcript is speech-recognition output', () => {
+      expect(prompt).toContain('The transcript is speech-recognition output.');
+      expect(prompt).toContain('-é/-er/-ez');
+      expect(prompt).toMatch(/ignore all punctuation/);
+    });
+
+    it('tells the judge delivery cannot be heard and must be stated as not assessed', () => {
+      expect(prompt).toContain('Pronunciation, intonation and expression cannot be heard');
+      expect(prompt).toMatch(/state in the Quality of Language justification that delivery .* was not assessed/);
+    });
   });
 });

@@ -26,5 +26,11 @@
  * all-hand-authored) fixture is unchanged — typedTurnCount is 0 for all of
  * them — but the function's behavior did change, so this is a real bump per
  * CLAUDE.md policy even though GUARDRAILS_FIXTURE_HASH does not move.
+ *
+ * v0.5 (P0 step 4): verifyQuotes grounds each role-play task's quotes against
+ * that task's own response, not the pooled role-play text, matching the
+ * parse-time rule in judgement/schema.ts. Output on every pre-existing fixture
+ * is unchanged (each already quotes its own task), so GUARDRAILS_FIXTURE_HASH
+ * does not move, but a cross-task quote now triggers quote_verification_failed.
  */
-export const GUARDRAILS_VERSION = 'guardrails-v0.4';
+export const GUARDRAILS_VERSION = 'guardrails-v0.5';

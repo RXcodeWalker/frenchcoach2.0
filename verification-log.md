@@ -1275,3 +1275,143 @@ scoring further questions and examiner-support projection (Step 2),
 removing unvalidated L1 heuristics from the judge prompt (Step 3), per-task
 role-play grounding (Step 4), Exam Sim vs. Coached Practice /
 `practiceOnly` (Step 5), results-page fixes (Step 6).
+
+## 2026-09-24 — Cambridge 0520 examiner audit, phase 1 steps 2–4: judge inputs and per-task role play
+
+Scope: Steps 2, 3 and 4 of the approved P0 implementation plan, under one
+`SCORING_PROMPT_VERSION` bump as the plan specifies. Files:
+`stt/project/toSpeakingTranscript.ts`, `judgement/{types,prompt,schema,version}.ts`,
+`guardrails/{quoteVerification,version}.ts`. No change to the conduct engine,
+the ConductLog/SessionTranscript format, `evidence/` detectors, `rubric.ts`, or
+`envelope/`.
+
+Changes:
+- **Step 2, further questions scored.** `toSpeakingTranscript` walks each topic
+  part's utterances in order and groups every candidate utterance with
+  `questionId === null` under the examiner utterance just before it (the
+  FURTHER_QUESTION prompt, callback or authored). Each group is emitted as a
+  turn `further1` / `further2`, after Q5. Its `questionPrompt` is that examiner
+  text, and duration and `inputMode` are computed as for other turns. These
+  answers now reach the judge, the evidence word/duration counts, and the
+  envelope's `transcriptSnapshot`. Before this change they were conducted and
+  then dropped.
+- **Step 2, examiner support projected.** Each scripted topic turn gets
+  `examinerSupport: { repetitions, alternativeAsked, secondPartAsked,
+  extensionPrompts }`.
+  - It is derived from `session.examinerEvents` and the examiner utterance
+    text. An event with a null `questionId`, as in an ASR-annotated extension
+    prompt, falls back to its utterance's attribution.
+  - A further question has null on both, so it is never counted as an
+    extension prompt on Q5.
+  - `secondPartAsked` is read from an examiner utterance for that question
+    whose text matches `secondPartText`, because the second part has no event
+    kind of its own.
+  - Role-play tasks get `secondPartPrompt` (from `secondPartText`) and
+    `repetitions`.
+  - All new fields are optional on `ConversationTurn` and
+    `RolePlayTaskResponse`, so hand-authored fixtures stay valid.
+- **Step 2, prompt.**
+  - Each turn now renders `Asked: … | Repeated ×n | Alternative question used:
+    '…' | Second part asked: '…' | Extension prompts: n`. A turn with no
+    recorded support renders a bare `Asked:` line.
+  - Role-play lines render `Second part: '…' | Repeated ×n`.
+  - Further turns are labelled `Further question (examiner's choice)`.
+  - New marking instructions:
+    - (8) judge the first Communication bullet only from the recorded support;
+    - (9) the transcript is ASR output, so ignore inaudible spelling
+      differences and punctuation;
+    - (10) delivery cannot be heard, so best-fit QoL on its other bullets and
+      say in the justification that delivery was not assessed.
+- **Step 3, heuristics out of the mark.** `PROMPT_EVIDENCE_ALLOW_LIST` is now
+  `responseCountsByQuestion` and `topicConversationDurationByConversation`
+  only. `timeFrameAlignmentByQuestion`, `fillerDensityByQuestion` and
+  `rolePlayPartsByTask` are still computed and snapshotted in the envelope for
+  audit, and their files are untouched. Both allow-list snapshots are updated:
+  `judgement/__tests__/prompt.test.ts` and
+  `guardrails/__tests__/no-uncalibrated-influence.test.ts`.
+- **Step 4, per-task role play.**
+  - `parseAndValidateJudgeOutput` grounds each RP task's quotes against that
+    task's own response, using the new `buildRolePlayTaskCorpora`. This
+    applies whatever the span's `source` label; the `EvidenceSource` enum is
+    unchanged.
+  - Duplicate `taskId`s are rejected.
+  - `RolePlayTaskMarkSchema` allows empty `evidenceSpans` only when
+    `mark === 0` (zod `superRefine`).
+  - `guardrails/quoteVerification.ts` applies the same per-task grounding as
+    defence in depth.
+- Versions:
+  - `SCORING_PROMPT_VERSION` `scoring-prompt-v0.4` → `scoring-prompt-v0.5`,
+    with `SCORING_PROMPT_FIXTURE_HASH` re-pinned to `9ffd1c03…a504`.
+  - `GUARDRAILS_VERSION` `guardrails-v0.4` → `guardrails-v0.5`.
+    `GUARDRAILS_FIXTURE_HASH` does not move, because the pin fixture already
+    quotes each task's own words; same precedent as v0.4.
+
+Deviations from the plan (minor, behaviour-preserving):
+- The plan named the branch `claude/determined-allen-d311fw`. This session's
+  git instructions designate `claude/vibrant-cori-x0fgjx`, and Step 1 was
+  already pushed there, so steps 2–4 went there too.
+- **Added prompt instruction 11** (role play: quote only from that task's own
+  response; a task with no creditable response gets 0 and an empty
+  `evidenceSpans`). Without it, a judge following instruction 5 ("for EVERY
+  mark decision, quote…") would cite another task's words for a silent task.
+  That passed under the pooled corpus but now fails validation on every retry,
+  so the attempt would fail instead of scoring the task 0. It ships under the
+  same v0.5 bump the plan assigns to Step 4.
+- **Changed the Layer 1 evidence header** from "Use it as instructed under
+  'Marking instructions'" (no instruction ever referenced it) to "factual
+  counts only … context for your judgement". This is the dangling-instruction
+  defect from audit item 5, which Step 3 otherwise left in place.
+- Further turns are recognised in `prompt.ts` by `turnId` matching
+  `/^further\d+$/`. No new marker field was added. Authored ids are `rp*` and
+  `t*q*`, and evidence rows are keyed `${conversationId}:${turnId}`, so
+  `further1` in topic1 and topic2 don't collide.
+
+Tests added:
+- `stt/__tests__/toSpeakingTranscript.test.ts` (5, on a hand-built engine
+  ConductLog run through `buildSessionTranscript`):
+  - further answers become `further1`/`further2` turns after Q5, carrying the
+    examiner's prompt, duration and `inputMode`;
+  - no further turns appear where none was asked;
+  - repeat, alternative, second-part and extension events land on the right
+    turn;
+  - a further question is not counted as an extension prompt;
+  - RP gets `secondPartPrompt` and `repetitions`.
+- `judgement/__tests__/prompt.test.ts` (8):
+  - the support line, bare `Asked` line, RP second-part line and further-turn
+    label render;
+  - instructions (8)–(10) render;
+  - the allow-list snapshot now has 2 fields, and the time frame, filler and
+    parts sections are absent from the rendered prompt.
+- `judgement/__tests__/schema.test.ts` (5):
+  - cross-task RP quote rejected;
+  - topic quote cited for an RP task rejected;
+  - duplicate taskIds rejected;
+  - silent task marked 0 with no spans accepted;
+  - mark 1 or 2 with no spans rejected.
+- `guardrails/__tests__/quoteVerification.test.ts` (1): a cross-task RP quote
+  fires `quote_verification_failed`.
+
+Verified:
+- `npm run typecheck` and `npm run typecheck:server`: clean.
+- `npm run typecheck:scripts`: the same 3 pre-existing errors as the Step 1
+  entry, reproduced identically on a clean stash.
+- `npm run lint`: 0 errors, the same 22 pre-existing warnings.
+- `npm test`: 2236/2238 passed. The same 2 pre-existing failures
+  (`feedbackContractFixtures.test.ts`, `learn/demand/__tests__/infer.test.ts`)
+  reproduce identically on a clean stash. `src/domain/igcse` + `scripts` +
+  `server`: all green.
+- `npm run score:golden`: all goldens matched after Steps 2 and 3. After the
+  version bumps, 2 goldens drifted (`clean-long-quote-verification`,
+  `fabricated-quote`). The diff was only `scoringPromptVersion` and
+  `guardrailsVersion` strings, with no shape change, and it was refreshed with
+  `--update-goldens`. The goldens are hand-authored `SpeakingTranscript`s, so
+  the new projected fields and further turns can't appear in them. Those are
+  covered by the toSpeakingTranscript tests above.
+- Rendered-prompt spot check: `ORIGINAL_QUESTION_SET_1` was driven through the
+  engine with short answers and some silences. Further answers render as their
+  own turns in both topics, and support counts match the conduct. rp3 shows its
+  second part, and the evidence block carries counts only.
+
+Not in this entry: Step 5 (Exam Sim vs Coached, `practiceOnly`), Step 6
+(results-page fixes), Step 7 (ADR 0007, `docs/systems/assessment-engine.md`
+allow-list/projection note, root `CLAUDE.md` invariants).

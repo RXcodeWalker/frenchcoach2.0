@@ -165,15 +165,13 @@ describe('no uncalibrated mark influence', () => {
     expect(CALIBRATION_REFERENCES).toEqual([]);
   });
 
-  it('the L2 prompt allow-list has not grown past the five audited subset fields', () => {
+  it('the L2 prompt allow-list carries only the two factual count fields', () => {
     // The prompt is the *other* mark-influence channel (§9.5 R2 point 4).
-    // Promotion to `advisory` adds a field here and bumps SCORING_PROMPT_VERSION;
-    // nothing may enter silently.
+    // P0 step 3 (scoring-prompt-v0.5) removed the unvalidated L1 heuristics
+    // (time frame, filler density, role-play parts). A field re-enters only
+    // once validated, with a SCORING_PROMPT_VERSION bump; nothing may enter silently.
     expect([..._PROMPT_EVIDENCE_ALLOW_LIST]).toEqual([
-      'timeFrameAlignmentByQuestion',
       'responseCountsByQuestion',
-      'fillerDensityByQuestion',
-      'rolePlayPartsByTask',
       'topicConversationDurationByConversation',
     ]);
   });

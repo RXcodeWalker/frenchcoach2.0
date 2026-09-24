@@ -45,12 +45,26 @@ const EvidenceSpanSchema = z.object({
   quote: z.string(),
 });
 
-const RolePlayTaskMarkSchema = z.object({
-  taskId: z.string(),
-  mark: z.union([z.literal(0), z.literal(1), z.literal(2)]),
-  descriptorApplied: z.string(),
-  evidenceSpans: z.array(EvidenceSpanSchema).min(1),
-});
+// P0 step 4: a silent task (nothing said) can only be marked 0 — and has no
+// words to quote, so an empty evidenceSpans is allowed for mark 0 only.
+// Requiring a span there forced the judge to cite another task's words or
+// fail the whole attempt.
+const RolePlayTaskMarkSchema = z
+  .object({
+    taskId: z.string(),
+    mark: z.union([z.literal(0), z.literal(1), z.literal(2)]),
+    descriptorApplied: z.string(),
+    evidenceSpans: z.array(EvidenceSpanSchema),
+  })
+  .superRefine((task, ctx) => {
+    if (task.mark !== 0 && task.evidenceSpans.length === 0) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['evidenceSpans'],
+        message: `mark ${task.mark} requires at least one evidence span`,
+      });
+    }
+  });
 
 const BandLabelSchema = z.enum(['Poor', 'Weak', 'Satisfactory', 'Good', 'Very good']).nullable();
 
@@ -127,6 +141,16 @@ export function buildEvidenceCorpora(transcript: SpeakingTranscript): Record<Evi
     topic1: topic1.turns.map((t) => t.candidateResponse).join(' '),
     topic2: topic2.turns.map((t) => t.candidateResponse).join(' '),
   };
+}
+
+/**
+ * P0 step 4: role-play evidence is grounded per task — taskId → that task's
+ * candidate response only. Cambridge applies the role-play mark scheme
+ * separately to each response, so a task can't be credited with another
+ * task's words (the pooled `rolePlay` corpus above allowed exactly that).
+ */
+export function buildRolePlayTaskCorpora(transcript: SpeakingTranscript): Map<string, string> {
+  return new Map(transcript.rolePlay.map((t) => [t.taskId, t.candidateResponse]));
 }
 
 export function isQuoteGrounded(quote: string, corpus: string): boolean {
@@ -237,6 +261,18 @@ function validateEvidenceSpans(
   }
 }
 
+/** Role-play task spans ground against that task's own response, whatever their `source`. */
+function validateRolePlayTaskSpans(task: RolePlayTaskMark, taskCorpora: Map<string, string>): void {
+  const corpus = taskCorpora.get(task.taskId) ?? '';
+  for (const span of task.evidenceSpans) {
+    if (!isQuoteGrounded(span.quote, corpus)) {
+      throw new JudgementValidationError(
+        `rolePlay task ${task.taskId}: evidence quote not grounded in that task's response: "${span.quote}"`,
+      );
+    }
+  }
+}
+
 function validateTranscriptStructure(transcript: SpeakingTranscript): void {
   if (transcript.rolePlay.length !== ROLE_PLAY.tasks) {
     throw new JudgementValidationError(
@@ -267,15 +303,21 @@ export function parseAndValidateJudgeOutput(
 
   const output = zodResult.data;
   const corpora = buildEvidenceCorpora(transcript);
+  const taskCorpora = buildRolePlayTaskCorpora(transcript);
 
   // Role play
   const expectedTaskIds = new Set(transcript.rolePlay.map((t) => t.taskId));
+  const seenTaskIds = new Set<string>();
   for (const task of output.rolePlay.tasks) {
     if (!expectedTaskIds.has(task.taskId)) {
       throw new JudgementValidationError(`Unexpected role play taskId: ${task.taskId}`);
     }
+    if (seenTaskIds.has(task.taskId)) {
+      throw new JudgementValidationError(`Duplicate role play taskId: ${task.taskId}`);
+    }
+    seenTaskIds.add(task.taskId);
     validateRolePlayDescriptor(task);
-    validateEvidenceSpans(task.evidenceSpans, corpora, `rolePlay task ${task.taskId}`);
+    validateRolePlayTaskSpans(task, taskCorpora);
   }
 
   // Communication

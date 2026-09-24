@@ -5,7 +5,7 @@
 import { IGCSE_0520_SPEAKING } from '../rubric';
 import type { MarkBand } from '../rubric';
 import type { EvidenceProfile } from '../evidence/types';
-import type { SpeakingTranscript } from './types';
+import type { ConversationTurn, ExaminerSupport, SpeakingTranscript } from './types';
 
 interface BandCriterion {
   table: string;
@@ -96,13 +96,38 @@ function formatBandRubric(tableName: string, criterion: BandCriterion): string {
   return lines.join('\n');
 }
 
+/** Further-question turns (toSpeakingTranscript) carry turnId 'further1' | 'further2'. */
+const FURTHER_TURN_ID = /^further\d+$/;
+
+function formatSupport(support: ExaminerSupport): string {
+  const quoted = (text: string | null) => (text === null ? 'none' : `'${text}'`);
+  return [
+    `Repeated ×${support.repetitions}`,
+    `Alternative question used: ${quoted(support.alternativeAsked)}`,
+    `Second part asked: ${quoted(support.secondPartAsked)}`,
+    `Extension prompts: ${support.extensionPrompts}`,
+  ].join(' | ');
+}
+
+function formatRolePlayTaskLine(task: SpeakingTranscript['rolePlay'][number]): string {
+  const parts = [`Instruction: ${task.taskPrompt}`];
+  if (task.secondPartPrompt !== undefined) parts.push(`Second part: '${task.secondPartPrompt}'`);
+  if (task.repetitions !== undefined) parts.push(`Repeated ×${task.repetitions}`);
+  return parts.join(' | ');
+}
+
+function formatTurnLine(turn: ConversationTurn): string {
+  const asked = `Asked: ${turn.questionPrompt}`;
+  return turn.examinerSupport ? `${asked} | ${formatSupport(turn.examinerSupport)}` : asked;
+}
+
 function formatTranscript(transcript: SpeakingTranscript): string {
   const lines: string[] = ['## Candidate transcript (responses only)', ''];
 
   lines.push('### Role play [evidence source: rolePlay]');
   for (const task of transcript.rolePlay) {
     lines.push(`Task ${task.taskId}`);
-    lines.push(`Instruction: ${task.taskPrompt}`);
+    lines.push(formatRolePlayTaskLine(task));
     lines.push(`Candidate response: ${task.candidateResponse}`);
     lines.push('');
   }
@@ -113,8 +138,12 @@ function formatTranscript(transcript: SpeakingTranscript): string {
       lines.push(`Topic area: ${conv.topicArea}`);
     }
     for (const turn of conv.turns) {
-      lines.push(`Turn ${turn.turnId}`);
-      lines.push(`Question: ${turn.questionPrompt}`);
+      lines.push(
+        FURTHER_TURN_ID.test(turn.turnId)
+          ? `Turn ${turn.turnId} — Further question (examiner's choice)`
+          : `Turn ${turn.turnId}`,
+      );
+      lines.push(formatTurnLine(turn));
       lines.push(`Candidate response: ${turn.candidateResponse}`);
       lines.push('');
     }
@@ -125,53 +154,35 @@ function formatTranscript(transcript: SpeakingTranscript): string {
 
 /**
  * Phase 1 (§10.3 "Prompt-field allow-list", §9.5 R2 point 4): renders ONLY
- * these five EvidenceProfileSubset fields, never the whole EvidenceProfile.
- * New Phase-3 fields (observations, features, detectorRuns, ...) must NOT be
+ * these EvidenceProfileSubset fields, never the whole EvidenceProfile.
+ * New fields (observations, features, detectorRuns, ...) must NOT be
  * added here without bumping SCORING_PROMPT_VERSION — see prompt.test.ts's
  * rendered-field-set snapshot, which fails if this list silently grows.
  *
  * D1: `formatEvidence` below is driven BY this array (iterated in this
  * order), not merely asserted equal to it — an unlisted field is now
  * structurally unrenderable rather than just untested.
+ *
+ * P0 step 3 (scoring-prompt-v0.5): only the two FACTUAL counts remain.
+ * timeFrameAlignmentByQuestion, fillerDensityByQuestion and
+ * rolePlayPartsByTask are unvalidated L1 heuristics (verification-log.md:
+ * "keep this signal advisory until [real-transcript] check passes"; that check
+ * never ran) that mislabel ordinary French, so they no longer reach the judge.
+ * They are still computed and snapshotted in the envelope for audit. An L1
+ * heuristic re-enters this list only once it has been validated.
  */
 const PROMPT_EVIDENCE_ALLOW_LIST = [
-  'timeFrameAlignmentByQuestion',
   'responseCountsByQuestion',
-  'fillerDensityByQuestion',
-  'rolePlayPartsByTask',
   'topicConversationDurationByConversation',
 ] as const;
 
 type AllowedEvidenceField = (typeof PROMPT_EVIDENCE_ALLOW_LIST)[number];
 
 const EVIDENCE_SECTION_RENDERERS: Record<AllowedEvidenceField, (evidence: EvidenceProfile) => string[]> = {
-  timeFrameAlignmentByQuestion: (evidence) => [
-    '### Time-frame alignment (per question)',
-    ...evidence.timeFrameAlignmentByQuestion.map(
-      (row) =>
-        `- ${row.questionId}: expected=${row.expectedTimeFrame ?? 'n/a'}, detected=${row.detectedTimeFrame ?? 'n/a'}, alignment=${row.alignment}`,
-    ),
-    '',
-  ],
   responseCountsByQuestion: (evidence) => [
     '### Response word/utterance counts (per question or task)',
     ...evidence.responseCountsByQuestion.map(
       (row) => `- ${row.questionId}: wordCount=${row.wordCount}, responseCount=${row.responseCount}`,
-    ),
-    '',
-  ],
-  fillerDensityByQuestion: (evidence) => [
-    '### Filler density (per question or task)',
-    ...evidence.fillerDensityByQuestion.map(
-      (row) =>
-        `- ${row.questionId}: fillerCount=${row.fillerCount}, wordCount=${row.wordCount}, density=${row.density.toFixed(3)}`,
-    ),
-    '',
-  ],
-  rolePlayPartsByTask: (evidence) => [
-    '### Role-play parts addressed (per task)',
-    ...evidence.rolePlayPartsByTask.map(
-      (row) => `- ${row.taskId}: partsExpected=${row.partsExpected}, partsAddressed=${row.partsAddressed}`,
     ),
     '',
   ],
@@ -189,7 +200,7 @@ function formatEvidence(evidence: EvidenceProfile): string {
   const lines: string[] = [
     '## Layer 1 evidence (deterministic detector output — an input to your judgement, not a mark)',
     '',
-    'This evidence is measured, not judged. Use it as instructed under "Marking instructions" below; do not treat it as a substitute for reading the transcript.',
+    'This evidence is factual counts only (words, responses, speaking time), measured, not judged. It is context for your judgement; do not treat it as a substitute for reading the transcript.',
     '',
   ];
 
@@ -233,6 +244,10 @@ export function buildJudgementPrompt(
     '5. For EVERY mark decision, quote specific spans from the candidate transcript as evidence.',
     '6. NEVER invent evidence not present in the transcript. If there is no creditable response, award 0.',
     '7. Mark positively — reward achievement.',
+    "8. Judge the first Communication bullet (repetition / use of the alternative question) ONLY from the examiner support recorded on each turn's \"Asked:\" line (Repeated ×n, Alternative question used). Do not infer repetition or alternative-question use from the candidate's words. Where an alternative question was used, the candidate was answering that question, not the main one.",
+    '9. The transcript is speech-recognition output. Ignore spelling-only differences that cannot be heard (-é/-er/-ez endings, silent agreement endings) and ignore all punctuation.',
+    '10. Pronunciation, intonation and expression cannot be heard from a transcript. Best-fit the Quality of Language band on its other bullets, and state in the Quality of Language justification that delivery (pronunciation, intonation and expression) was not assessed.',
+    "11. Role play: quote each task's evidence ONLY from that task's own candidate response, never from another task. If a task has no creditable response, award 0 and give an empty evidenceSpans array for that task.",
     '',
     '## Output format',
     '',
