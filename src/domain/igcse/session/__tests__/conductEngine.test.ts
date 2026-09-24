@@ -3,6 +3,7 @@ import {
   initConductEngineState,
   startConduct,
   step,
+  computeRelevance,
   decideExtension,
   selectVerbatimSpan,
   latestCallbackFor,
@@ -139,6 +140,33 @@ describe('conductEngine: role play', () => {
     expect(afterPart2.action).toMatchObject({ kind: 'READ_MAIN', questionId: 'rp4' });
     expect(state.rolePlayTasks[2].partsAddressed).toBe(2);
   });
+
+  it('repeats the DISTINCT part-2 prompt (never part 1\'s mainText) on a failed second-part attempt', () => {
+    let state = initConductEngineState(qs);
+    state = startConduct(qs, state).state;
+    // rp1, rp2 answered normally
+    state = driveOne(qs, state, answer()).state;
+    state = driveOne(qs, state, answer()).state;
+
+    // rp3 part 1 answered -> engine reads the distinct part-2 prompt.
+    state = driveOne(qs, state, answer()).state;
+    expect(state.rolePlayTasks[2].partsAddressed).toBe(1);
+
+    // Part 2 gets no response: the repeat must re-read secondPartText, not mainText.
+    const repeat = driveOne(qs, state, noResponse());
+    state = repeat.state;
+    expect(repeat.action).toMatchObject({
+      kind: 'REPEAT',
+      questionId: 'rp3',
+      text: qs.questions[2].secondPartText,
+      trigger: 'no_response',
+    });
+    expect(repeat.action.text).not.toBe(qs.questions[2].mainText);
+
+    // Failed repeat: advance to rp4 regardless.
+    const afterFailedRepeat = driveOne(qs, state, noResponse());
+    expect(afterFailedRepeat.action).toMatchObject({ kind: 'READ_MAIN', questionId: 'rp4' });
+  });
 });
 
 describe('decideExtension (C1: authorized, original extension prompts)', () => {
@@ -190,6 +218,25 @@ describe('conductEngine: topic conversation', () => {
     }
     return state;
   }
+
+  it('a brief but relevant French answer ("L\'été.") takes the extension-prompt path, not repeat/alternative', () => {
+    expect(computeRelevance({ didRespond: true, wordCount: 1 }, 'topic1')).toBe(true);
+
+    const state = toTopic1();
+    const shortAnswer: CandidateTurnResult = {
+      didRespond: true,
+      relevant: computeRelevance({ didRespond: true, wordCount: 1 }, 'topic1'),
+      transcript: "L'été.",
+      wordCount: 1,
+      responseDurationS: 1,
+      requestedRepeat: false,
+    };
+
+    const r = driveStep(qs, state, shortAnswer);
+    expect(r.actions.some((a) => a.kind === 'EXTENSION_PROMPT')).toBe(true);
+    expect(r.actions.some((a) => a.kind === 'REPEAT')).toBe(false);
+    expect(r.actions.some((a) => a.kind === 'READ_ALTERNATIVE')).toBe(false);
+  });
 
   it('offers an alternative only for questions with alternativeTexts (data-driven, not positional), after a failed repeat', () => {
     let state = toTopic1();

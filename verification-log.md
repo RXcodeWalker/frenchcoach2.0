@@ -1220,3 +1220,58 @@ paraphrase, this fix won't cover it; the new error message will show it.
 `/health` reported Gemini `ok` while generation 404'd — `models.get` still
 resolves a model that new keys can't call, so `/health` is not proof of a
 working Gemini path.
+
+## 2026-09-24 — Cambridge 0520 examiner audit, phase 1 step 1: conduct fixes
+
+Scope: `src/domain/igcse/session/conductEngine.ts` only (Step 1 of the
+approved P0 implementation plan; full plan covers Steps 1-7, this entry is
+Step 1 alone).
+
+Changes:
+- `RELEVANCE_WORD_THRESHOLD` 3 → 1: a topic-conversation answer of any length
+  (once it clears `didRespond` and isn't a `dont_know`/`repeat_request`/
+  `clarification_request`/`non_french` intent) now counts as answered and
+  routes through the existing extension-prompt funnel
+  (`moveToSecondPartOrExtension` → `moveToExtensionOrAdvance` →
+  `decideExtension`), instead of being treated as a non-answer that triggers
+  a REPEAT then the alternative question. Role play is unaffected —
+  `computeRelevance` already short-circuits to `true` for `part === 'rolePlay'`
+  regardless of the threshold.
+- `stepRolePlay`'s repeat branch: on a failed second-part attempt of a
+  `partsExpected: 2` task (`taskState.partsAddressed === 1`), the REPEAT
+  action now re-reads `task.secondPartText` instead of always re-reading
+  `task.mainText` (part 1's prompt). Part-1 repeats are unaffected.
+- `SESSION_ENGINE_VERSION` `session-engine-v2` → `session-engine-v3`
+  (`session/version.ts`); the one hardcoded assertion of the old string
+  (`session/__tests__/scoreEndToEnd.test.ts`) updated to match.
+
+Tests added (`session/__tests__/conductEngine.test.ts`):
+- `computeRelevance({ didRespond: true, wordCount: 1 }, 'topic1')` is `true`,
+  and a one-word topic answer (`"L'été."`) drives the engine to an
+  `EXTENSION_PROMPT`, never a `REPEAT` or `READ_ALTERNATIVE`.
+- A failed second-part role-play attempt (rp3, `partsExpected: 2`) is
+  repeated with `secondPartText`, not `mainText`, then advances to rp4 on a
+  second failure.
+
+Verified:
+- `npm run typecheck` — clean.
+- `npm run typecheck:server` — clean.
+- `npm run typecheck:scripts` — 3 pre-existing errors in
+  `scripts/scoring/__tests__/supabaseEnvelopeStore.test.ts` and
+  `scripts/stt/__tests__/supabaseTranscriptStore.test.ts`, unrelated to this
+  change and reproduced identically on a clean stash of these edits.
+- `npm run lint` — 0 errors (22 pre-existing warnings, same before/after).
+- `npm test` — 2217/2219 passed, 100/100 in `src/domain/igcse/session/`
+  (98 pre-existing + 2 new). The 2 failures
+  (`src/services/api/__tests__/feedbackContractFixtures.test.ts` — missing
+  `backend/tests/fixtures/feedback-contract` directory — and
+  `src/domain/learn/demand/__tests__/infer.test.ts`) are pre-existing and
+  unrelated to `session/`; reproduced identically on a clean stash.
+- `npm run score:golden` — 5/5 goldens match, no shape change (these fixtures
+  don't exercise the two conduct paths touched here).
+
+Not in this entry (later steps of the same plan, not yet implemented):
+scoring further questions and examiner-support projection (Step 2),
+removing unvalidated L1 heuristics from the judge prompt (Step 3), per-task
+role-play grounding (Step 4), Exam Sim vs. Coached Practice /
+`practiceOnly` (Step 5), results-page fixes (Step 6).

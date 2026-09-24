@@ -33,7 +33,7 @@ import { canonicalizeForMatch, normalizeForMatch } from '../text/normalize';
 import { stripFillers } from './utteranceIntents';
 
 /** Below this word count, a candidate turn is treated as a non-answer (S10 scope — no LLM relevance grading). */
-export const RELEVANCE_WORD_THRESHOLD = 3;
+export const RELEVANCE_WORD_THRESHOLD = 1;
 
 /** Cambridge 0520 conduct rule: at most 2 examiner-chosen further questions per topic. */
 export const MAX_FURTHER_QUESTIONS_PER_TOPIC = 2;
@@ -410,7 +410,11 @@ function stepRolePlay(
         : result.didRespond
           ? 'irrelevant_answer'
           : 'no_response';
-    const action = makeAction(nextState, 'REPEAT', 'rolePlay', task.questionId, 'main', task.mainText, trigger);
+    // A pending second part (part 1 already addressed on a partsExpected:2 task) is
+    // repeated with secondPartText, never a re-read of part 1's mainText.
+    const secondPartPending = task.partsExpected === 2 && taskState.partsAddressed === 1;
+    const repeatText = secondPartPending ? (task.secondPartText ?? task.mainText) : task.mainText;
+    const action = makeAction(nextState, 'REPEAT', 'rolePlay', task.questionId, 'main', repeatText, trigger);
     return { state: bumpSeq(nextState), actions: [action] };
   }
 
