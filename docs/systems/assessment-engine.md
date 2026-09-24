@@ -50,6 +50,28 @@ a wider wrapper around it changed (the evidence stage's Phase-3 note is the clea
 narrow detector output was untouched, but the profile-building wrapper around it wasn't, so the
 version pin covering the wrapper still needed bumping).
 
+## What actually reaches the judge prompt
+
+Layer 1 (`evidence/`) computes more signals than Layer 2 is allowed to see. `judgement/prompt.ts`'s
+`PROMPT_EVIDENCE_ALLOW_LIST` is the only gate: as of `scoring-prompt-v0.5` it admits
+`responseCountsByQuestion` and `topicConversationDurationByConversation` only — both factual counts,
+never a heuristic judgement. `timeFrameAlignmentByQuestion`, `fillerDensityByQuestion`, and
+`rolePlayPartsByTask` are still computed and snapshotted in the envelope for audit (and still render
+in the results page's evidence groups where applicable), but none of the three has been validated
+against real graded transcripts, so none reaches the prompt. A new Layer-1 detector joins this
+allow-list only once it's been validated — an uncalibrated signal never gets to influence a mark by
+being added to the prompt, whatever its apparent usefulness.
+
+The transcript rendered into the prompt (`judgement/prompt.ts`'s `formatTranscript`) also carries
+per-turn projected fields beyond the five authored questions: `further1`/`further2` turns (Cambridge's
+"≤3½ min → up to 2 further questions" padding, previously conducted but never marked), and each
+turn's recorded examiner support — repetitions, whether the alternative question was used, whether a
+role-play task's second part was asked, extension-prompt count. These are derived from the
+transcript alone in `stt/project/toSpeakingTranscript.ts` (no engine or log format change), and exist
+so the judge can apply the first Communication-band bullet ("may occasionally need repetition" /
+"occasional use of the alternative question(s)") from the actual recorded support instead of
+guessing from the response text.
+
 ## Golden tests
 
 `npm run score:golden` runs `scripts/scoring/goldenRegression.ts` over

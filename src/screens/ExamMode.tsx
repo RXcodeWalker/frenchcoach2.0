@@ -56,6 +56,7 @@ import {
 } from '../services/exam/examScoringMachine';
 import { pingInterpretServiceHealth } from '../services/exam/interpretUtterance';
 import { useExamCorrectionsRail } from '../services/exam/turnFeedback';
+import { countsTowardProgress, resolveCoachedMode } from '../services/exam/attemptStatus';
 import { transcribeAudio } from '../services/api/apiClient';
 import { getOriginalQuestionSet, getAuthoredQuestionSet, listPublishedQuestionSetIdsWithRetry } from '../data/exam/bank/loader';
 import type { ExaminerAction } from '../domain/igcse/session/types';
@@ -169,9 +170,11 @@ export function ExamMode() {
   const [envelopeView, setEnvelopeView] = useState<EnvelopeView | null>(null);
   // W5: the ExamSelect toggle's choice, applied when startExam() constructs the
   // SimulationSession. Daily Challenge / Duel / resume-on-reload flows skip
-  // ExamSelect and keep the default (Coached) — resume instead restores the
+  // ExamSelect and keep the default (Exam Sim) — resume instead restores the
   // already-decided value from the persisted snapshot (session.coached).
-  const [coachedMode, setCoachedMode] = useState(true);
+  // Step 5: defaults to Exam Sim (false) so a candidate who never touches the
+  // toggle still gets a mark that counts.
+  const [coachedMode, setCoachedMode] = useState(false);
   const [rolePlayScenario, setRolePlayScenario] = useState<RolePlayScenario | undefined>(undefined);
   const [rolePlayMeta, setRolePlayMeta] = useState<RolePlayMeta | undefined>(undefined);
   const [showScoringExitConfirm, setShowScoringExitConfirm] = useState(false);
@@ -190,8 +193,11 @@ export function ExamMode() {
 
   // W1's authoritative coached flag once a session exists; coachedMode (the
   // ExamSelect toggle's choice) is the pre-session fallback so ExamIntro can
-  // read it before startExam() constructs the SimulationSession.
-  const coached = sessionRef.current?.coached ?? coachedMode;
+  // read it before startExam() constructs the SimulationSession. Step 5:
+  // Daily Challenge / Duel runs are always Exam Sim, whatever the toggle says
+  // — those flows skip ExamSelect entirely, so this is defence-in-depth, not
+  // the only place it's enforced (see startExam()).
+  const coached = sessionRef.current?.coached ?? resolveCoachedMode(coachedMode, isDailyChallengeRun || isDuelRun);
 
   // W6: lifted out of ExamRunner (which used to own this hook itself) so the
   // accumulated rail entries survive past 'running' into the /40 report —
@@ -441,7 +447,7 @@ export function ExamMode() {
 
     const session = new SimulationSession(sessionId, questionSet, clock.nowS, {
       onExaminerAction: (a) => setAction(a),
-    }, coachedMode);
+    }, resolveCoachedMode(coachedMode, isDailyChallengeRun || isDuelRun));
     sessionRef.current = session;
     setExamState('running');
 
@@ -535,7 +541,10 @@ export function ExamMode() {
    * the time Send is pressed. */
   const handleSubmitTypedTurn = async (text: string) => {
     const session = sessionRef.current;
-    if (!session || turnBusyRef.current) return;
+    // Step 5: Exam Sim is microphone-only, real-exam conditions — the composer
+    // never renders a keyboard in this mode, but this is the defence-in-depth
+    // backstop against any other caller reaching this handler.
+    if (!session || turnBusyRef.current || !session.coached) return;
     turnBusyRef.current = true;
     setTurnPending(true);
 
@@ -810,6 +819,10 @@ export function ExamMode() {
       // null when scoring failed — never a fabricated placeholder.
       const finalScore = view ? Math.round((view.total / 40) * 10 * 10) / 10 : null;
 
+      // Step 5 / ADR-0007: a coached, edited, or partly-typed attempt still gets
+      // its full /40 report, but is tagged so it never counts toward progress.
+      const attemptStatus = countsTowardProgress({ coached, transcript: finalTranscript });
+
       const appSession: Session = {
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
         mode: 'exam',
@@ -818,6 +831,7 @@ export function ExamMode() {
         xpEarned: 0,
         durationSec: Math.round(totalSec),
         createdAt: new Date().toISOString(),
+        practiceOnly: !attemptStatus.countsTowardProgress,
       };
 
       persistSession(appSession);
@@ -902,7 +916,7 @@ export function ExamMode() {
   }
 
   if (examState === 'review' && transcript) {
-    return <TranscriptReview transcript={transcript} onConfirm={handleReviewConfirm} onExit={() => navigate('/')} />;
+    return <TranscriptReview transcript={transcript} onConfirm={handleReviewConfirm} onExit={() => navigate('/')} coached={coached} />;
   }
 
   if (examState === 'scoring') {

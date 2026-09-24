@@ -11,6 +11,8 @@ interface Props {
   onStartRecording: () => void;
   onSubmitSpeech: () => void;
   onSubmitText: (text: string) => void;
+  /** Step 5: Exam Sim (false) is microphone-only — no typed answers, no keyboard affordance. */
+  coached: boolean;
 }
 
 /**
@@ -29,7 +31,7 @@ const AUTO_MAX_LINES = 4;
 /** Manual drag-from-top resize handle can stretch the box up to this many lines. */
 const MANUAL_MAX_LINES = 6;
 
-export function ExamComposer({ recording, disabled, onStartRecording, onSubmitSpeech, onSubmitText }: Props) {
+export function ExamComposer({ recording, disabled, onStartRecording, onSubmitSpeech, onSubmitText, coached }: Props) {
   const [text, setText] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   /** Explicit height (px) set by dragging the resize handle; null means "autosize". */
@@ -169,53 +171,69 @@ export function ExamComposer({ recording, disabled, onStartRecording, onSubmitSp
         </SpeakingConsentGate>
       )}
 
-      <div className="flex items-end gap-2">
-        {!consentPending && (
-          <button
-            onClick={rec ? onSubmitSpeech : onStartRecording}
-            disabled={disabled}
-            aria-label={rec ? 'Stop and submit' : 'Start recording'}
-            className="shrink-0 w-11 h-11 rounded-pill bg-action hover:bg-action-hover disabled:opacity-40
-              flex items-center justify-center transition-colors duration-state ease-smooth"
-          >
-            {rec ? <Square size={16} className="fill-action-ink text-action-ink" /> : <Mic size={18} className="text-action-ink" />}
-          </button>
-        )}
+      {/*
+       * Step 5: Exam Sim is microphone-only — real-exam conditions, no
+       * keyboard fallback. If the mic can't be used (guardian consent still
+       * pending), there is nothing left for this candidate to answer with in
+       * this mode, so say so rather than silently rendering an empty bar.
+       */}
+      {!coached && consentPending ? (
+        <p className="text-body-s text-ink-muted text-center py-2">
+          Exam Sim needs a microphone — switch to Coached Practice to type.
+        </p>
+      ) : (
+        <div className="flex items-end gap-2">
+          {!consentPending && (
+            <button
+              onClick={rec ? onSubmitSpeech : onStartRecording}
+              disabled={disabled}
+              aria-label={rec ? 'Stop and submit' : 'Start recording'}
+              className="shrink-0 w-11 h-11 rounded-pill bg-action hover:bg-action-hover disabled:opacity-40
+                flex items-center justify-center transition-colors duration-state ease-smooth"
+            >
+              {rec ? <Square size={16} className="fill-action-ink text-action-ink" /> : <Mic size={18} className="text-action-ink" />}
+            </button>
+          )}
 
-        <div className="relative flex-1">
-          {/* Drag-from-top resize handle — grows the box up to MANUAL_MAX_LINES lines. */}
-          <div
-            onPointerDown={handleResizeStart}
-            className="absolute -top-1 left-1/2 -translate-x-1/2 w-10 h-3 flex items-center justify-center
-              cursor-row-resize touch-none z-10"
-            aria-hidden="true"
-          >
-            <div className="w-8 h-1 rounded-pill bg-hairline-strong" />
-          </div>
-          <textarea
-            ref={textareaRef}
-            value={text}
-            onChange={(e) => handleTextChange(e.target.value)}
-            onKeyDown={handleKeyDown}
-            disabled={disabled}
-            rows={1}
-            placeholder="Écris ta réponse…"
-            className="w-full resize-none rounded-control surface-recessed px-3 py-2.5 text-body-base text-ink
-              placeholder:text-ink-subtle focus:outline-none focus:ring-1 focus:ring-action disabled:opacity-40"
-          />
+          {coached && (
+            <>
+              <div className="relative flex-1">
+                {/* Drag-from-top resize handle — grows the box up to MANUAL_MAX_LINES lines. */}
+                <div
+                  onPointerDown={handleResizeStart}
+                  className="absolute -top-1 left-1/2 -translate-x-1/2 w-10 h-3 flex items-center justify-center
+                    cursor-row-resize touch-none z-10"
+                  aria-hidden="true"
+                >
+                  <div className="w-8 h-1 rounded-pill bg-hairline-strong" />
+                </div>
+                <textarea
+                  ref={textareaRef}
+                  value={text}
+                  onChange={(e) => handleTextChange(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  disabled={disabled}
+                  rows={1}
+                  placeholder="Écris ta réponse…"
+                  className="w-full resize-none rounded-control surface-recessed px-3 py-2.5 text-body-base text-ink
+                    placeholder:text-ink-subtle focus:outline-none focus:ring-1 focus:ring-action disabled:opacity-40"
+                />
+              </div>
+
+              <button
+                onClick={submitText}
+                disabled={disabled || text.trim().length === 0}
+                aria-label="Send"
+                className="shrink-0 w-11 h-11 rounded-pill border border-hairline-strong text-ink disabled:opacity-30
+                  hover:bg-[color-mix(in_srgb,var(--ink)_5%,transparent)] flex items-center justify-center
+                  transition-colors duration-state ease-smooth"
+              >
+                <Send size={16} />
+              </button>
+            </>
+          )}
         </div>
-
-        <button
-          onClick={submitText}
-          disabled={disabled || text.trim().length === 0}
-          aria-label="Send"
-          className="shrink-0 w-11 h-11 rounded-pill border border-hairline-strong text-ink disabled:opacity-30
-            hover:bg-[color-mix(in_srgb,var(--ink)_5%,transparent)] flex items-center justify-center
-            transition-colors duration-state ease-smooth"
-        >
-          <Send size={16} />
-        </button>
-      </div>
+      )}
     </div>
   );
 }

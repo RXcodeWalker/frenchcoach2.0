@@ -6,6 +6,7 @@ import type { EnvelopeView, CriterionView, EvidenceGroupView } from '../../domai
 import { downloadConductLog } from '../../services/exam/conductLogStore';
 import { ExaminerFeedbackCard } from '../../features/feedback/components/ExaminerFeedbackCard';
 import type { RailEntry } from '../../services/exam/turnFeedback';
+import { countsTowardProgress } from '../../services/exam/attemptStatus';
 
 interface Props {
   transcript: SessionTranscript;
@@ -24,6 +25,11 @@ function criterionLabel(criterion: CriterionView): string {
   if (criterion.criterion === 'rolePlayTask') return `Role-Play${criterion.taskId ? ` (${criterion.taskId})` : ''}`;
   if (criterion.criterion === 'communication') return 'Communication';
   return 'Quality of Language';
+}
+
+/** Step 6: each criterion's mark denominator — role-play tasks are /2, the other two are /15. */
+function criterionMax(criterion: CriterionView): number {
+  return criterion.criterion === 'rolePlayTask' ? 2 : 15;
 }
 
 const PART_LABEL: Record<EvidenceGroupView['part'], string> = {
@@ -94,6 +100,18 @@ export function ExamResults({
   const totalSpeakingS = candidateUtterances.reduce((sum, u) => sum + (u.endS - u.startS), 0);
   const [transcriptOpen, setTranscriptOpen] = useState(false);
 
+  // Step 5 / ADR-0007: same check ExamMode used to set Session.practiceOnly —
+  // recomputed here (not read off the saved session) so this banner is
+  // correct even before ADD_SESSION's side effects have run.
+  const attemptStatus = countsTowardProgress({ coached, transcript });
+  const modeBadgeLabel = `${coached ? 'Coached Practice' : 'Exam Sim'}${
+    attemptStatus.countsTowardProgress ? '' : ' — doesn’t count'
+  }`;
+
+  const rolePlaySubtotal = envelopeView
+    ? envelopeView.criteria.filter((c) => c.criterion === 'rolePlayTask').reduce((sum, c) => sum + c.mark, 0)
+    : 0;
+
   return (
     <div className="min-h-screen pb-24 md:pb-8">
       <motion.div
@@ -107,7 +125,7 @@ export function ExamResults({
           <div className="relative">
             <div className="flex items-center justify-center gap-1.5 mb-2">
               <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-white/5 text-ink-muted border border-white/10">
-                {coached ? 'Coached Practice' : 'Exam Sim'}
+                {modeBadgeLabel}
               </span>
               {envelopeView && envelopeView.typedTurnCount > 0 && (
                 <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-white/5 text-ink-muted border border-white/10">
@@ -148,6 +166,15 @@ export function ExamResults({
           </div>
         </div>
 
+        {!attemptStatus.countsTowardProgress && (
+          <div className="rounded-xl surface p-4 border border-amber-500/25 bg-amber-500/5 space-y-1.5">
+            <p className="font-bold text-amber-400 text-[11px] uppercase tracking-wider">Practice mark — doesn&rsquo;t count</p>
+            {attemptStatus.reasons.map((reason, i) => (
+              <p key={i} className="text-[11px] text-ink-muted leading-relaxed">{reason}</p>
+            ))}
+          </div>
+        )}
+
         {scoringError && (
           <div className="rounded-xl surface p-5 border border-red-500/20 space-y-3">
             <div className="flex items-start gap-2">
@@ -177,15 +204,21 @@ export function ExamResults({
             </div>
 
             <div className="space-y-3">
+              {envelopeView.criteria.some((c) => c.criterion === 'rolePlayTask') && (
+                <div className="flex items-center justify-between px-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-ink-muted">Role play</span>
+                  <span className="text-[11px] font-bold text-white">{rolePlaySubtotal}/10</span>
+                </div>
+              )}
               {envelopeView.criteria.map((c, i) => (
                 <div key={i} className="p-3 rounded-lg bg-white/[0.03] border border-white/5">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-[11px] font-bold text-white">{criterionLabel(c)}</span>
                     <span className="text-sm font-black text-amber-400">
-                      {c.mark}{c.band ? <span className="text-ink-muted text-[10px] font-medium"> ({c.band.label ?? `${c.band.min}-${c.band.max}`})</span> : null}
+                      {c.mark}<span className="text-ink-muted text-[10px] font-medium">/{criterionMax(c)}</span>
+                      {c.band ? <span className="text-ink-muted text-[10px] font-medium"> ({c.band.label ?? `${c.band.min}-${c.band.max}`})</span> : null}
                     </span>
                   </div>
-                  <p className="text-[9px] text-ink-subtle uppercase tracking-wider mb-1">Confidence: {c.confidence}</p>
                   <p className="text-[10px] text-ink-muted leading-relaxed">{c.justification}</p>
                   {c.evidenceSpans.length > 0 && (
                     <div className="mt-2 space-y-1">
@@ -221,17 +254,9 @@ export function ExamResults({
                 </p>
                 <p className="text-[10px] text-ink-subtle italic leading-relaxed">{g.prompt}</p>
                 <p className="text-[11px] text-ink-muted leading-relaxed">{g.candidateResponse}</p>
-                {(g.wordCount !== undefined || g.fillerDensity !== undefined || g.timeFrameAlignment) && (
+                {g.wordCount !== undefined && (
                   <div className="flex flex-wrap gap-2 pt-1">
-                    {g.wordCount !== undefined && (
-                      <span className="text-[9px] text-ink-subtle">{g.wordCount} words</span>
-                    )}
-                    {g.fillerDensity !== undefined && (
-                      <span className="text-[9px] text-ink-subtle">filler density {(g.fillerDensity * 100).toFixed(0)}%</span>
-                    )}
-                    {g.timeFrameAlignment && (
-                      <span className="text-[9px] text-ink-subtle">time frame: {g.timeFrameAlignment}</span>
-                    )}
+                    <span className="text-[9px] text-ink-subtle">{g.wordCount} words</span>
                   </div>
                 )}
               </div>
@@ -266,13 +291,19 @@ export function ExamResults({
             <div className="grid grid-cols-2 gap-2">
               <div className="p-2.5 rounded-lg bg-white/[0.03] border border-white/5">
                 <p className="text-[9px] text-ink-subtle uppercase tracking-wider mb-0.5">Transcript confidence</p>
-                <p className="text-[11px] text-ink-muted">
-                  {(envelopeView.transcriptConfidence.meanWordConfidence * 100).toFixed(0)}% mean word confidence
-                </p>
-                <p className="text-[10px] text-ink-subtle mt-0.5">
-                  {envelopeView.transcriptConfidence.lowConfidenceSpanCount} low-confidence span{envelopeView.transcriptConfidence.lowConfidenceSpanCount === 1 ? '' : 's'}
-                  {envelopeView.transcriptConfidence.userCorrected ? ' · you corrected this transcript' : ''}
-                </p>
+                {transcript.stt.provider === 'session-engine' ? (
+                  <p className="text-[11px] text-ink-muted">Not measured</p>
+                ) : (
+                  <>
+                    <p className="text-[11px] text-ink-muted">
+                      {(envelopeView.transcriptConfidence.meanWordConfidence * 100).toFixed(0)}% mean word confidence
+                    </p>
+                    <p className="text-[10px] text-ink-subtle mt-0.5">
+                      {envelopeView.transcriptConfidence.lowConfidenceSpanCount} low-confidence span{envelopeView.transcriptConfidence.lowConfidenceSpanCount === 1 ? '' : 's'}
+                      {envelopeView.transcriptConfidence.userCorrected ? ' · you corrected this transcript' : ''}
+                    </p>
+                  </>
+                )}
               </div>
               <div className="p-2.5 rounded-lg bg-white/[0.03] border border-white/5">
                 <p className="text-[9px] text-ink-subtle uppercase tracking-wider mb-0.5">Judgement model</p>

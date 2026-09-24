@@ -119,7 +119,7 @@ export function evaluateRoadmap(): RoadmapData {
 
   if (sessions.length === 0) return data;
 
-  const recent = sessions.filter(s => (s as { aiFeedback?: Feedback }).aiFeedback).slice(0, 15);
+  const recent = sessions.filter(s => !s.practiceOnly && (s as { aiFeedback?: Feedback }).aiFeedback).slice(0, 15);
   if (recent.length > 0) {
     let fluencySum = 0, fluencyN = 0;
     let grammarSum = 0, grammarN = 0;
@@ -187,7 +187,7 @@ export function evaluateRoadmap(): RoadmapData {
   const avgSkill = calculateAvgSkill(data.skills);
   const maxWords = sessions.reduce((m, s) => Math.max(m, s.wordCount || 0), 0);
   const challenges = sessions.filter(s => s.mode === 'challenge' || s.mode === 'rapid_fire').length;
-  const igcse = sessions.filter(s => s.mode === 'exam');
+  const igcse = sessions.filter(s => s.mode === 'exam' && !s.practiceOnly);
   const roleplay = sessions.filter(s => s.mode === 'roleplay').length;
   const topicSet = new Set(sessions.filter(s => s.topicKey).map(s => s.topicKey));
   const maxIScore = igcse.reduce((m, s) => typeof s.score === 'number' ? Math.max(m, s.score) : m, 0);

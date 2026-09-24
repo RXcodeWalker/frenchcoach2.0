@@ -262,6 +262,7 @@ export function ExamRunner({
                   onStartRecording={onStartRecording}
                   onSubmitSpeech={onSubmitSpeech}
                   onSubmitText={onSubmitText}
+                  coached={coached}
                 />
 
                 <div className="flex items-center justify-center">

@@ -9,6 +9,8 @@ interface Props {
   transcript: SessionTranscript;
   onConfirm: (finalTranscript: SessionTranscript) => void;
   onExit: () => void;
+  /** Step 5: Exam Sim is read-only here — marked exactly as recorded, like the real exam. */
+  coached: boolean;
 }
 
 const PART_LABEL: Record<string, string> = {
@@ -18,7 +20,7 @@ const PART_LABEL: Record<string, string> = {
 };
 
 /** 04 §6.1 transcript-review step: candidate sees the assembled transcript and may correct it; edits set userCorrected: true. */
-export function TranscriptReview({ transcript, onConfirm, onExit }: Props) {
+export function TranscriptReview({ transcript, onConfirm, onExit, coached }: Props) {
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const candidateUtterances = transcript.utterances.filter((u) => u.role === 'candidate');
   const [edits, setEdits] = useState<Record<string, string>>(() =>
@@ -60,7 +62,9 @@ export function TranscriptReview({ transcript, onConfirm, onExit }: Props) {
           </button>
         </div>
         <p className="text-body-s text-ink-muted">
-          Check what was recorded for each answer. Correct anything the microphone misheard before scoring.
+          {coached
+            ? 'Check what was recorded for each answer. Correct anything the microphone misheard before scoring.'
+            : 'In Exam Sim your answers are marked exactly as recorded, like the real exam.'}
         </p>
 
         <div className="space-y-3">
@@ -75,18 +79,22 @@ export function TranscriptReview({ transcript, onConfirm, onExit }: Props) {
                   {u.inputMode === 'text' ? 'Typed' : 'Spoken'}
                 </span>
               </div>
-              <textarea
-                value={edits[u.utteranceId]}
-                onChange={(e) => setEdits((prev) => ({ ...prev, [u.utteranceId]: e.target.value }))}
-                className="w-full bg-transparent border border-hairline rounded-control p-2.5 text-body-base text-ink resize-none focus:outline-none focus:border-action/40"
-                rows={2}
-              />
+              {coached ? (
+                <textarea
+                  value={edits[u.utteranceId]}
+                  onChange={(e) => setEdits((prev) => ({ ...prev, [u.utteranceId]: e.target.value }))}
+                  className="w-full bg-transparent border border-hairline rounded-control p-2.5 text-body-base text-ink resize-none focus:outline-none focus:border-action/40"
+                  rows={2}
+                />
+              ) : (
+                <p className="text-body-base text-ink">{u.text}</p>
+              )}
             </div>
           ))}
         </div>
 
         <Button variant="primary" size="lg" onClick={handleConfirm} className="w-full">
-          <Check size={15} /> Confirm &amp; Finish
+          <Check size={15} /> {coached ? 'Confirm & Finish' : 'Submit for marking'}
         </Button>
       </motion.div>
 

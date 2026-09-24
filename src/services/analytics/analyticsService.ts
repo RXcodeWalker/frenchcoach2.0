@@ -27,6 +27,8 @@ export interface StoredSession {
   targetSkillIds?: string[];
   cefrLevel?: string;
   criticalIssueCount?: number;
+  /** Step 5 / ADR-0007: a Coached Practice (or otherwise non-counting) exam attempt — see types/index.ts's Session.practiceOnly. */
+  practiceOnly?: boolean;
 }
 
 /** Options the coach orchestrator can pass to enrich the stored session. */
@@ -155,6 +157,7 @@ export function recordSession(session: Session, options?: RecordSessionOptions):
     targetSkillIds:     options?.targetSkillIds,
     cefrLevel:          feedback?.cefrLevel,
     criticalIssueCount: feedback?.grammar?.critical?.length,
+    practiceOnly:       session.practiceOnly,
   };
   if (data.sessions.some(s => s.id === stored.id)) return stored;
   data.sessions.push(stored);

@@ -8,7 +8,7 @@
  * renders every new section without throwing.
  */
 import { describe, expect, it, vi, afterEach } from 'vitest';
-import { render, screen, cleanup } from '@testing-library/react';
+import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import {
   initConductEngineState,
   startConduct,
@@ -129,7 +129,8 @@ describe('ExamResults (W6)', () => {
     expect(screen.getByText('Turn-by-Turn Breakdown')).not.toBeNull();
     expect(screen.getByText('How This Was Scored')).not.toBeNull();
     expect(screen.getByText('Live Corrections From This Session')).not.toBeNull();
-    expect(screen.getByText('Coached Practice')).not.toBeNull();
+    expect(screen.getByText('Coached Practice — doesn’t count')).not.toBeNull();
+    expect(screen.getByText('Practice mark — doesn’t count')).not.toBeNull();
   });
 
   it('renders the Exam Sim badge and omits the rail section when there are no accumulated rail entries', async () => {
@@ -150,6 +151,40 @@ describe('ExamResults (W6)', () => {
 
     expect(screen.getByText('Exam Sim')).not.toBeNull();
     expect(screen.queryByText('Live Corrections From This Session')).toBeNull();
+    expect(screen.queryByText(/Practice mark/)).toBeNull();
+  });
+
+  it('Step 6: shows /2 per role-play task, a /10 role-play subtotal, /15 per other criterion, and "not measured" transcript confidence for a session-engine transcript', async () => {
+    const { transcript, envelopeView } = await buildFixtures();
+
+    render(
+      <ExamResults
+        transcript={transcript}
+        envelopeView={envelopeView}
+        scoringError={null}
+        onRetryScoring={vi.fn()}
+        onRetake={vi.fn()}
+        onHome={vi.fn()}
+        coached={false}
+        railEntries={[]}
+      />,
+    );
+
+    expect(screen.getByText('Role play')).not.toBeNull();
+    const rolePlayTaskMarks = envelopeView.criteria.filter((c) => c.criterion === 'rolePlayTask');
+    const rolePlaySubtotal = rolePlayTaskMarks.reduce((sum, c) => sum + c.mark, 0);
+    expect(screen.getByText(`${rolePlaySubtotal}/10`)).not.toBeNull();
+    expect(screen.getAllByText('/2').length).toBe(rolePlayTaskMarks.length);
+    expect(screen.getAllByText('/15').length).toBe(2);
+    expect(screen.queryByText(/Confidence: unassessed/)).toBeNull();
+
+    fireEvent.click(screen.getByText('How This Was Scored'));
+    expect(screen.getByText('Not measured')).not.toBeNull();
+    expect(screen.queryByText(/mean word confidence/)).toBeNull();
+
+    fireEvent.click(screen.getByText('Turn-by-Turn Breakdown'));
+    expect(screen.queryByText(/filler density/)).toBeNull();
+    expect(screen.queryByText(/time frame:/)).toBeNull();
   });
 
   it('renders the scoring-failed state (no envelope yet) without throwing', () => {

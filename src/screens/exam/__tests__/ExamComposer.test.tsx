@@ -51,6 +51,7 @@ describe('ExamComposer', () => {
         onStartRecording={vi.fn()}
         onSubmitSpeech={vi.fn()}
         onSubmitText={vi.fn()}
+        coached={true}
       />,
     );
     expect(screen.getByLabelText('Start recording')).not.toBeNull();
@@ -67,6 +68,7 @@ describe('ExamComposer', () => {
         onStartRecording={onStartRecording}
         onSubmitSpeech={vi.fn()}
         onSubmitText={onSubmitText}
+        coached={true}
       />,
     );
 
@@ -91,6 +93,7 @@ describe('ExamComposer', () => {
         onStartRecording={vi.fn()}
         onSubmitSpeech={vi.fn()}
         onSubmitText={onSubmitText}
+        coached={true}
       />,
     );
 
@@ -114,11 +117,48 @@ describe('ExamComposer', () => {
         onStartRecording={vi.fn()}
         onSubmitSpeech={vi.fn()}
         onSubmitText={vi.fn()}
+        coached={true}
       />,
     );
 
     const textarea = screen.getByPlaceholderText('Écris ta réponse…');
     fireEvent.change(textarea, { target: { value: 'j' } });
     expect(stop).toHaveBeenCalled();
+  });
+
+  it('Exam Sim (coached=false): hides the keyboard entirely, mic only', () => {
+    useAuthMock.mockReturnValue({ consentStatus: 'granted' });
+    render(
+      <ExamComposer
+        recording={baseRecording()}
+        disabled={false}
+        onStartRecording={vi.fn()}
+        onSubmitSpeech={vi.fn()}
+        onSubmitText={vi.fn()}
+        coached={false}
+      />,
+    );
+
+    expect(screen.getByLabelText('Start recording')).not.toBeNull();
+    expect(screen.queryByPlaceholderText('Écris ta réponse…')).toBeNull();
+    expect(screen.queryByLabelText('Send')).toBeNull();
+  });
+
+  it('Exam Sim + guardian consent pending: no mic, no keyboard, tells the candidate to switch modes', () => {
+    useAuthMock.mockReturnValue({ consentStatus: 'pending' });
+    render(
+      <ExamComposer
+        recording={baseRecording()}
+        disabled={false}
+        onStartRecording={vi.fn()}
+        onSubmitSpeech={vi.fn()}
+        onSubmitText={vi.fn()}
+        coached={false}
+      />,
+    );
+
+    expect(screen.queryByLabelText('Start recording')).toBeNull();
+    expect(screen.queryByPlaceholderText('Écris ta réponse…')).toBeNull();
+    expect(screen.getByText(/Exam Sim needs a microphone/)).not.toBeNull();
   });
 });

@@ -156,6 +156,8 @@ export interface Session {
   durationSec: number;
   feedback?: Feedback;
   createdAt: string;
+  /** True for an exam session run in Coached Practice (or otherwise not marked under real-exam conditions) — its /40 is shown but excluded from progress/averages. See ADR-0007. */
+  practiceOnly?: boolean;
 }
 
 export interface SkillData {

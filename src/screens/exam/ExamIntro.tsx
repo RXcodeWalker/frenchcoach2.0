@@ -73,8 +73,8 @@ export function ExamIntro({ coached, onStart, onBack }: Props) {
           </div>
           <p className="text-body-s text-ink-muted leading-relaxed">
             {coached
-              ? 'Examiner commentary appears after each answer, in a side panel — it never carries a mark or a band. Your /40 report still only appears at the end.'
-              : 'No commentary until you submit — the corrections panel stays sealed for the whole session, exactly like the real exam. Your /40 report appears at the end either way.'}
+              ? "Examiner commentary after each answer; you can type and correct your transcript. You'll still get a /40, but it's a practice mark and doesn't count."
+              : "Microphone only, no commentary, no transcript editing — exactly like the real exam. Your /40 counts."}
           </p>
         </div>
 

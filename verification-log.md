@@ -1415,3 +1415,147 @@ Verified:
 Not in this entry: Step 5 (Exam Sim vs Coached, `practiceOnly`), Step 6
 (results-page fixes), Step 7 (ADR 0007, `docs/systems/assessment-engine.md`
 allow-list/projection note, root `CLAUDE.md` invariants).
+
+## Exam-mode audit, Phase 1 — Steps 5 & 6
+
+Date: 2026-09-24
+
+Implements Steps 5–6 of the P0-scoring-integrity plan exactly as specified
+(Steps 1–4 landed in the two entries above). No file under
+`src/domain/igcse/` was touched — this is UI/mode-gating and progression
+plumbing only, so none of the version-pinned pipeline stages moved and
+`npm run score:golden` needed no `--update-goldens`.
+
+- **Step 5 — Exam Sim is the real exam; Coached still gets a `/40` that
+  doesn't count** (revised per this session's instruction: both modes
+  produce a full `/40` report, not just Exam Sim).
+  - `src/services/exam/attemptStatus.ts` (new): `countsTowardProgress({
+    coached, transcript })` — false if `coached`, if
+    `transcript.userCorrected`, or if any candidate utterance has
+    `inputMode === 'text'`; returns the human-readable reasons for the
+    banner. `resolveCoachedMode(requestedCoached, isCompetitiveRun)` forces
+    Exam Sim for Daily Challenge/Duel runs regardless of the picker.
+  - `src/types/index.ts`'s `Session` and
+    `src/services/analytics/analyticsService.ts`'s `StoredSession` both gain
+    `practiceOnly?: boolean`. `recordSession()` now copies it through —
+    without this, `roadmapService`'s filtering below would read a field that
+    never survives the `Session -> StoredSession` projection.
+  - `ExamComposer.tsx` takes a new `coached` prop: Exam Sim renders mic-only
+    (no textarea, no Send button); if guardian consent is pending in Exam
+    Sim (no mic use possible), it shows "Exam Sim needs a microphone —
+    switch to Coached Practice to type" instead of an empty bar.
+    `ExamRunner.tsx` threads its own `coached` prop through.
+  - `ExamMode.tsx`: `handleSubmitTypedTurn` refuses a typed turn unless
+    `session.coached` (defence in depth — the composer itself already never
+    renders the keyboard in Exam Sim). `coachedMode` now defaults to `false`
+    (Exam Sim); `startExam()` and the pre-session `coached` fallback both go
+    through `resolveCoachedMode(coachedMode, isDailyChallengeRun ||
+    isDuelRun)`. `finishWithScore` computes `attemptStatus =
+    countsTowardProgress({ coached, transcript })` and sets
+    `Session.practiceOnly = !attemptStatus.countsTowardProgress`.
+  - `TranscriptReview.tsx` takes a `coached` prop: Exam Sim renders each
+    answer as plain (non-editable) text and a "Submit for marking" button
+    plus "In Exam Sim your answers are marked exactly as recorded, like the
+    real exam."; Coached keeps the existing editable textarea + "Confirm &
+    Finish".
+  - `ExamSelect.tsx`'s mode toggle now defaults to Exam Sim and its blurbs
+    state the practice-mark/counts distinction; `ExamIntro.tsx`'s per-mode
+    copy matches the plan's wording verbatim.
+  - `roadmapService.ts`: the exam-derived skill average (`recent.forEach`)
+    and the `igcse`/`igcseScore` milestone nodes (`Exam Preview`, `Exam
+    Technique`, `Exam Champion`) now filter on `!session.practiceOnly`. The
+    pre-existing `/20`-rescale drift this forEach also has (documented in
+    root `CLAUDE.md`'s Known Traps and the audit's P2 item 5) was left
+    alone — out of this phase's scope, and fixing it would be a scoring
+    -meaning change, not a `practiceOnly` filter.
+  - `HistoryTab.tsx` shows a small "practice" tag next to a `practiceOnly`
+    session's mode label; `Progress.tsx`'s `storedToSession` now carries
+    `practiceOnly` through from `StoredSession`.
+  - Server-side enforcement for Daily Challenge/Duel submission (rejecting a
+    typed/edited envelope in `submit_daily_challenge_attempt`/
+    `submit_duel_attempt`) is **not** in this phase, per the plan — noted as
+    a follow-up requiring a `french-coach-backend` migration.
+
+- **Step 6 — results page.**
+  - `ExamResults.tsx`'s Turn-by-Turn panel no longer renders the `filler
+    density` or `time frame:` chips (word count stays).
+  - "Transcript confidence" reads "Not measured" instead of a synthetic
+    100% when `transcript.stt.provider === 'session-engine'` (the ASR-vs-
+    session-engine distinction lives on `SessionTranscript.stt`, already
+    passed into `ExamResults` — no `envelope/envelopeView.ts` projection was
+    needed).
+  - Each criterion mark now shows its denominator (`/2` for a role-play
+    task, `/15` for Communication/Quality of Language), plus a `Role play
+    N/10` subtotal row above the per-task marks.
+  - The per-criterion "Confidence: unassessed" line is removed — every
+    criterion's `confidence` is unconditionally the literal `'unassessed'`
+    by design (single-run, no standardisation yet — `envelope/types.ts`),
+    so the line carried no information.
+  - The mode badge and a new banner ("Practice mark — doesn't count" plus
+    its reasons) both read `countsTowardProgress` directly, so they're
+    correct even before `ADD_SESSION`'s side effects (which set
+    `Session.practiceOnly`) have run.
+
+Deviations from the plan (minor, behaviour-preserving):
+- This session's own instructions revised Step 5's premise before
+  implementation started: both Exam Sim and Coached Practice produce a full
+  `/40` report (not just Exam Sim), with Coached tagged `practiceOnly`
+  rather than withheld. Implemented exactly as that revision specifies.
+- `attemptStatus.ts`'s typed-answer reason string is always plural ("N
+  answers were typed"), matching the plan's literal example text, rather
+  than grammatically agreeing with `N === 1`.
+
+Tests added:
+- `src/services/exam/__tests__/attemptStatus.test.ts` (7): `
+  countsTowardProgress`'s four inputs (Exam Sim/coached/edited/typed) and
+  their combination; `resolveCoachedMode`'s pass-through vs forced-Exam-Sim
+  cases.
+- `src/screens/exam/__tests__/ExamComposer.test.tsx` (+2): Exam Sim hides
+  the keyboard entirely; Exam Sim + consent-pending shows neither control
+  and the "switch to Coached Practice" message. (Existing cases updated to
+  pass the new required `coached` prop.)
+- `src/screens/exam/__tests__/TranscriptReview.test.tsx` (new, 2): Coached
+  edits set `userCorrected`; Exam Sim is read-only with the "Submit for
+  marking" copy and confirms the transcript unchanged.
+- `src/screens/exam/__tests__/ExamResults.test.tsx` (+2, existing 2
+  updated for the new badge/banner text): `/2`/`/10`/`/15` labels and "Not
+  measured" confidence render, and the filler/time-frame chips don't; the
+  Exam Sim case has no "Practice mark" banner.
+- `src/services/progression/__tests__/roadmapService.practiceOnly.test.ts`
+  (new, 3): a `practiceOnly` session is excluded from `examResponse`'s
+  average and from completing the `igcse` milestone node; a counting
+  session does complete it.
+- `src/services/analytics/__tests__/analyticsService.practiceOnly.test.ts`
+  (new, 1): `recordSession`/`getStats` round-trip `practiceOnly` through
+  `StoredSession` — this is what makes the roadmapService filtering above
+  non-vacuous.
+- `src/screens/progress/__tests__/HistoryTab.test.tsx` (new, 2): the
+  "practice" tag renders only for a `practiceOnly` session.
+- `useExamCorrectionsRail`'s existing "Exam Sim (coached=false) makes zero
+  calls" test (`src/services/exam/__tests__/turnFeedback.test.ts`) already
+  locks the "no live feedback in Exam Sim" invariant the plan asked for —
+  no new test needed there.
+
+Verified:
+- `npm run typecheck`, `npm run typecheck:server`: clean.
+- `npm run typecheck:scripts`: the same 3 pre-existing errors reproduced
+  identically (unrelated fixture-typing issues in
+  `supabaseEnvelopeStore.test.ts`/`supabaseTranscriptStore.test.ts`).
+- `npm run lint`: 0 errors, the same 22 pre-existing warnings.
+- `npm test`: 2254/2256 passed (2256, up from 2238 pre-Step-5 — 25 new
+  tests). The same 2 pre-existing failures
+  (`feedbackContractFixtures.test.ts`, `learn/demand/__tests__/infer.test.ts`)
+  reproduce identically.
+- `npm run score:golden`: all 5 goldens match, no `--update-goldens` run —
+  expected, since no pipeline stage under `src/domain/igcse/` changed.
+- Manual verification (via the `run` skill) was not performed this session
+  — the plan's manual checklist (mic-only Exam Sim flow, extension prompt on
+  a short answer, read-only review, further-question turn in the
+  Turn-by-Turn panel; typed+edited Coached flow with the "doesn't count"
+  banner and "practice" history tag) is recorded here as **not yet run**,
+  not as passed.
+
+Not in this entry: Step 7's remaining item beyond what's folded in above —
+none; ADR-0007, the `docs/systems/assessment-engine.md` allow-list/
+projection note, and the two new root `CLAUDE.md` Known Traps entries are
+all included in this same session.

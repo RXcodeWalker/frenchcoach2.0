@@ -38,8 +38,8 @@ interface Props {
 type ExamModeChoice = 'coached' | 'sim';
 
 const MODE_COPY: Record<ExamModeChoice, { label: string; blurb: string }> = {
-  coached: { label: 'Coached Practice', blurb: 'Examiner commentary appears after every answer' },
-  sim: { label: 'Exam Sim', blurb: 'No feedback until you submit — like the real thing' },
+  coached: { label: 'Coached Practice', blurb: 'Commentary, typing and edits allowed — your /40 is a practice mark and doesn’t count' },
+  sim: { label: 'Exam Sim', blurb: 'Microphone only, no commentary, no edits — exactly like the real exam, and your /40 counts' },
 };
 
 // The remote catalog rides out a Render free-tier cold start (up to ~45s) in the
@@ -58,9 +58,10 @@ export function ExamSelect({ onSelect, onAutoFallback }: Props) {
   // Bumped on manual retry to re-run the fetch effect below without remounting the screen.
   const [retryCount, setRetryCount] = useState(0);
   // W5: Coached Practice (rail live every turn) vs Exam Sim (rail sealed until
-  // submission) — see simulationSession.ts's `coached` flag. Defaults to
-  // Coached, the more helpful choice for a practice app.
-  const [mode, setMode] = useState<ExamModeChoice>('coached');
+  // submission) — see simulationSession.ts's `coached` flag. Step 5: defaults
+  // to Exam Sim, so a candidate who doesn't notice the toggle still gets a
+  // mark that counts.
+  const [mode, setMode] = useState<ExamModeChoice>('sim');
 
   useEffect(() => {
     let cancelled = false;

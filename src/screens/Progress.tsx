@@ -28,6 +28,7 @@ function storedToSession(s: ReturnType<typeof getSessionHistory>[number]): Sessi
     xpEarned: 0,
     durationSec: s.durationSec,
     createdAt: s.date,
+    practiceOnly: s.practiceOnly,
   };
 }
 

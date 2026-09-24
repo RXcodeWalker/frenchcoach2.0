@@ -29,7 +29,14 @@ export function HistoryTab({ sessions }: Props) {
               {session.mode === 'practice' ? '📚' : session.mode === 'exam' ? '📝' : '💬'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[10px] font-semibold text-white capitalize">{session.mode}</p>
+              <p className="text-[10px] font-semibold text-white capitalize flex items-center gap-1.5">
+                {session.mode}
+                {session.practiceOnly && (
+                  <span className="px-1 py-0 rounded text-[8px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                    practice
+                  </span>
+                )}
+              </p>
               <p className="text-[9px] text-ink-subtle">{session.wordCount} words / {Math.floor(session.durationSec / 60)}m</p>
             </div>
             <div className="text-right flex-shrink-0">
