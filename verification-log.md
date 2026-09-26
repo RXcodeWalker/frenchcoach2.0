@@ -1601,3 +1601,172 @@ Not re-verified here (unchanged from the Step 5/6 entry, still owed): the
 mic-required messaging path, the full role-play second-part repeat live
 (exercised only in the unit test added in the Step 1 entry), and anything
 requiring a reachable scoring service.
+
+## 2026-09-26 — Real end-to-end coverage: fake-judge Playwright harness + real Gemini judge check
+
+Two independent pieces of work, both closing gaps the prior entries left
+"not yet run" for lack of credentials.
+
+### Part 1 — `npm run e2e:exam`: a committed, reusable Playwright harness
+
+New files: `playwright.config.ts`, `scripts/e2e/fakeScoringServer.ts`,
+`e2e/fixtures/fakeSpeechRecognition.js`, `e2e/exam.spec.ts`. `tsconfig.scripts.json`'s
+`include` gained `e2e` and `playwright.config.ts` so this is typechecked by
+`npm run typecheck:scripts` (verified: only the 3 pre-existing, unrelated
+errors in `supabaseEnvelopeStore.test.ts`/`supabaseTranscriptStore.test.ts`
+remain). `@playwright/test` added as a devDependency; the harness uses the
+container's pre-installed Chromium (`launchOptions.executablePath`), no
+browser download.
+
+**`scripts/e2e/fakeScoringServer.ts`** — test-only, never imported by
+`server/index.ts` or referenced by `render.yaml`. Mirrors `server/index.ts`'s
+`GET /health` / `POST /score` / `GET /score` contract exactly (same status
+codes: 200 done, 202 in-progress, 404 not found) so `scoringApiClient.ts`
+talks to it unmodified, but skips auth entirely and uses in-memory
+transcript/envelope stores instead of Supabase. Runs the **real** production
+pipeline otherwise — `parseSessionTranscript` -> `resolveAndVerifyQuestionSet`
+(the same one `server/index.ts` uses, offline-fixture fallback, no backend
+needed) -> `scoreAttempt` (real evidence extraction, real guardrails, real
+envelope building) — injecting a fake judge through the exact
+`createJudge: () => CreateJudgeResult` seam `scoreAttempt.ts` already takes
+as a dependency (the same seam `server/index.ts` fills with
+`createJudgeWithFallback()`). The fake judge returns a **fixed** top-band
+mark (`RP_MARK_2`/`COMM_13_15`/`QOL_13_15`, 40/40) but every evidence quote
+is pulled live from that request's own transcript (via
+`toSpeakingTranscript` + `buildRolePlayTaskCorpora`, computed the same way
+`scoreAttempt` computes it internally) — never a hardcoded quote — so real
+schema/grounding validation still runs and would still catch a real bug in
+that layer. A role-play task with no words is correctly scored 0 with no
+spans (Step 4's silent-task rule).
+
+**`e2e/fixtures/fakeSpeechRecognition.js`** — injected via
+`page.addInitScript`. Overrides **both** `window.SpeechRecognition` and
+`window.webkitSpeechRecognition` — the first debug pass only overrode the
+webkit-prefixed one and every turn silently used Chromium's real (headless,
+backend-less) `SpeechRecognition`, which never fires a result, surfacing as
+`ExamRunner`'s "We can't hear you" dead-end. `start()` fires one final
+`onresult` with whatever `window.__fakeSpeechNextAnswer` was set to;
+`stop()`/`abort()` fire `onend()` asynchronously — enough of the real
+`SpeechRecognition` shape for `useRecording.ts`'s reader.
+
+**`e2e/exam.spec.ts`** — four scenarios, run against a throwaway `vite`
+dev server (port 5180) pointed at the fake scoring service via
+`VITE_SCORING_API_URL`, both booted by Playwright's own `webServer` config.
+No Supabase mocking was needed for Exam Sim/Coached — confirmed empirically
+that guest mode (no `VITE_SUPABASE_URL` set) makes no network calls on this
+path (`src/lib/supabase.ts`'s client reads a null local session, no fetch).
+
+1. **Exam Sim (spoken)** — drives real role play + two topic conversations
+   via the fake recognizer, including a deliberate one-word answer
+   ("L'été.") to the first scripted topic question. Asserts, live: the next
+   examiner line is one of `AUTHORIZED_EXTENSION_PROMPTS` (Step 1's fix,
+   confirmed end-to-end here, not just unit-tested), never a repeat; 0
+   `<textarea>`s anywhere (mic-only); the review screen is read-only
+   ("marked exactly as recorded"); the final report shows `2/2` per
+   role-play task, a `/10` role-play subtotal, and `15/15` per criterion
+   (Step 6); no `time frame`/`filler density` text anywhere; the
+   Turn-by-Turn panel (expanded via its own disclosure button) includes a
+   `FURTHER1`/`FURTHER2` turn (Step 2's further-question projection). A
+   guardrail flag ("Not enough spoken evidence...") also fired correctly
+   given the short/repetitive scripted answers — the real guardrail layer
+   ran, not a stub.
+2. **Coached Practice (typed + edited)** — types every answer, edits one
+   utterance in the (editable, Step 5) review screen, confirms. Asserts the
+   `/40` report shows the "Practice mark — doesn't count" banner with its
+   reasons, the "Coached Practice" mode badge, and — navigating to
+   `/progress?tab=history` — a "practice" tag on that session in history.
+3–4. **Daily Challenge / Duel force Exam Sim** — see the limitation below;
+   asserts that `ExamMode`'s two mount-time effects (`isDailyChallengeRun`/
+   `isDuelRun`, keyed off `location.state`) skip `ExamSelect` entirely and
+   render with the `EXAM SIM` badge, never `COACHED PRACTICE`, when arriving
+   via that state shape — reproduced with a `history.replaceState` +
+   `page.reload()` (the same state React Router's own `navigate(path,
+   {state})` leaves behind), not an app-internal hook.
+
+**Known flake fixed during development** (kept as comments in the spec,
+not just here): the mic button is `disabled` for up to ~900ms of examiner
+pacing (`examinerPacing.ts`'s leads) between turns, more when a turn emits
+several actions back-to-back (e.g. TRANSITION + READ_MAIN); the harness
+waits for the button to actually become enabled (and, after submitting,
+for either the next turn or the review screen) rather than a fixed sleep —
+a fixed-sleep version was flaky under exactly this timing. Global test
+timeout raised to 180s (a full spoken run is legitimately ~1–1.5 min).
+**Verified stable across 2 consecutive full runs, 4/4 passing both times.**
+
+**Explicit limitation — Daily Challenge / Duel's own start lifecycle is
+NOT exercised.** `dailyChallengeService.ts`/`duelsService.ts` gate on
+`supabaseConfigured` (`src/lib/supabase.ts`) and this sandbox has no
+Supabase project, real or stubbed — so their actual Start buttons
+(assignment fetch, `start_daily_challenge`/`start_duel_attempt` RPCs,
+later `submit_*_attempt`) were never driven. What tests 3–4 verify is
+real and was the thing the audit actually asked for (ExamMode enforces
+Exam Sim once such a run begins) — but a regression in
+`dailyChallengeService.ts` itself, or in the RPCs' own SQL, would not be
+caught by this harness. Standing up a stub PostgREST/Supabase-Auth server
+for that full lifecycle was scoped out as materially larger than the rest
+of this harness combined, for a payoff (SQL-level daily-challenge/duel
+correctness) this plan was never about.
+
+Verified: `npm run typecheck`, `typecheck:server`, `typecheck:scripts`
+(pre-existing errors only), `npm run lint` (0 errors, same 22 pre-existing
+warnings), `npm test` (2254/2256 — the same 2 pre-existing failures,
+unrelated), `npm run score:golden` (5/5, unchanged).
+
+### Part 2 — Real Gemini judge check on 5 scripted transcripts
+
+Confirmed `GEMINI_API_KEY` is present in this environment (39 characters)
+via `[ -n "$GEMINI_API_KEY" ]` — the value itself was never read into any
+tool output, file, or commit. A throwaway script (not committed — deleted
+immediately after the run; nothing in `src/`, `scripts/`, or `server/` was
+touched for this) called `createGeminiJudge()` from
+`scripts/scoring/providers/geminiJudge.ts` with no `apiKey` option, so the
+`@google/genai` SDK read the key from `process.env` itself — this
+conversation never saw it. Five hand-authored transcripts (same
+`rolePlay`/`topicConversations` shape as
+`judgement/__tests__/fixtures.ts`'s `PRACTICE_TRANSCRIPT`, only
+`candidateResponse` text varied) went through the real, unmodified
+`buildEvidenceProfile` -> `scoreSpeaking` -> real Gemini call pipeline —
+model resolved to `gemini-3.5-flash-lite` (the live `GEMINI_MODEL`
+default). No production code was changed to make this pass.
+
+| Case | Total /40 | Role play /10 | Communication /15 | QoL /15 |
+|---|---|---|---|---|
+| 1. Weak | 18 | 8 | 5 (Weak) | 5 (Weak) |
+| 2. Middling | 38 | 10 | 14 (Very good) | 14 (Very good) |
+| 3. Strong | 40 | 10 | 15 (Very good) | 15 (Very good) |
+| 4. Borderline (fluent, frequent basic errors) | 31 | 9 | 11 (Good) | 11 (Good) |
+| 5. Very short/poor | 10 | 8 | 1 (Poor) | 1 (Poor) |
+
+Every mark's `evidenceSpans` were genuine verbatim quotes from that case's
+own transcript (schema-validated, so a fabricated quote would have thrown),
+and each justification named the actual behaviour driving the mark (e.g.
+case 5: "only communicates a single basic word per response"; case 4:
+"preferring cinema because they do not like running" — correctly citing
+that transcript's own opinion+reason). Ordering is monotonic and
+directionally sensible (weak < borderline < middling ≈ strong), including
+role play correctly crediting short-but-correct answers (a bare "Bonjour."
+or "Combien?" scored 2/2, matching the rubric's positive-marking /
+concise-answer principle) while still docking single-word non-answers
+("Croissant.", "Carte.") to 1/2 for ambiguity.
+
+**One authoring artifact worth naming, not a scoring bug:** case 2
+("middling") scored 38/40, nearly identical to case 3 ("strong", 40/40).
+The transcript I wrote for "middling" turned out to already be fluent,
+accurate, well-formed French with no real errors — the judge scored the
+*language actually produced*, correctly, rather than the label I gave the
+case. A genuinely middling transcript (accurate but simple, register-flat,
+minimal development) would need to be written more deliberately to land
+mid-band; this is a caveat about my five hand-written samples, not a
+finding about the judge.
+
+**Explicitly not claimed:** this is 5 samples from one session against one
+model snapshot — it verifies the real Gemini-backed path *works* and
+produces schema-valid, evidence-grounded, directionally sensible output.
+It is not a calibration result and says nothing about agreement with a
+real examiner (that remains contingent on the real 2025/26 TN booklet +
+marked exemplars, per the original plan's explicitly deferred
+standardisation phase).
+
+**`GEMINI_API_KEY` was not printed, logged, committed, or exposed at any
+point in this work** — only its presence and length were checked, and the
+throwaway verification script was deleted after the run.

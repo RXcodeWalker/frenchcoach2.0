@@ -34,7 +34,8 @@
     "score:inspect": "tsx scripts/scoring/inspectAttempt.ts",
     "score:review": "tsx scripts/scoring/reviewAttempt.ts",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "e2e:exam": "playwright test -c playwright.config.ts"
   },
   "dependencies": {
     "@google/genai": "^2.11.0",
@@ -56,6 +57,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",
+    "@playwright/test": "^1.63.0",
     "@testing-library/react": "^16.3.2",
     "@types/canvas-confetti": "^1.9.0",
     "@types/cors": "^2.8.19",

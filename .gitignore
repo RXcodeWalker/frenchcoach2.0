@@ -16,3 +16,8 @@ data/sessions/
 
 # Toolkit-generated reports (inspectAttempt HTML/terminal output, batch reports) — regenerable, not source.
 data/reports/
+
+# Playwright E2E run artifacts (npm run e2e:exam) — regenerable, not source.
+test-results/
+playwright-report/
+blob-report/

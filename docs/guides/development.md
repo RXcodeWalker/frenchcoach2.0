@@ -38,6 +38,17 @@ Other CLIs exist under `scripts/scoring/` (`score:batch`, `score:inspect`, `scor
 `scripts/stt/` (`stt:ingest`) for validation work outside the everyday loop — read each script's
 own header comment before using it.
 
+```bash
+npm run e2e:exam            # Playwright: drives the exam UI against a fake, no-credentials
+                             # scoring service (scripts/e2e/fakeScoringServer.ts) — no Supabase,
+                             # no Gemini/Groq key needed. Real speech input is faked
+                             # (e2e/fixtures/fakeSpeechRecognition.js); Daily Challenge/Duel's own
+                             # Supabase-backed start/submit RPCs are NOT exercised, only that
+                             # ExamMode forces Exam Sim once such a run begins — see
+                             # e2e/exam.spec.ts's own header and verification-log.md's 2026-09-26
+                             # entry for what is and isn't covered.
+```
+
 ## The three test suites
 
 This repo's testing is genuinely three disjoint suites with three separate invocations and three
