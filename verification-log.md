@@ -1937,3 +1937,155 @@ re-run for the QoL prompt fix).
 **Explicitly not verified here:** Batch 3 (verification-log entries (a) the M/J/26 booklet check
 and (b) the pre-change split/rewritten experiment tables, and the `assessment-engine.md` update)
 — out of scope for this session, per the plan's own batch boundaries.
+
+## 2026-09-27 — 0520 Phase 1 completion, Batch 3: gate on verbatim pre-change transcripts + docs (branch `claude/vibrant-cori-x0fgjx`)
+
+**(c) Batch 2 correction — the earlier "4/4 pass 3/3" is WITHDRAWN as gate evidence.** Every one of
+Batch 2's 8 fixtures was hand-authored: 5 reconstructed only from a logged *description* of the
+pre-change experiment, 2 (split A, split B) reconstructed from the plan's own quoted phrases with
+no access to the original transcript, and 1 new. Two of the four gated fixtures (`weak`, split A)
+were then iterated — edited — until they cleared their pass-bar, which makes a gate meaningless as
+a test of the judge. This session re-ran the gate against the **exact verbatim transcripts** the
+pre-change single-call experiment used (given directly in this session's task message, copied
+without any edits). The 8 iterated Batch-2 fixtures were renamed `<id>-reconstructed` with their
+`expect` blocks removed — they still run and report every time (for continuity), but never gate.
+
+### (b) Pre-change experiment (never logged until now)
+
+Model `gemini-3.5-flash-lite`, single-call judge, `scoring-prompt-v0.5`. Per-run marks
+(total/RP/Comm/QoL), 5 runs per fixture except split A/split B/middling-rewritten (3 runs):
+
+| Fixture | Runs (total/RP/Comm/QoL) |
+|---|---|
+| weak | 18/8/5/5, 18/8/5/5, 18/8/5/5, 19/9/5/5, 19/9/5/5 |
+| middling-original | 34/10/12/12, 38/10/14/14, 38/10/14/14, 34/10/12/12, 38/10/14/14 |
+| strong | 40/10/15/15 ×5 |
+| borderline | 31/9/11/11, 30/9/11/10, 31/9/11/11, 32/10/11/11, 31/9/11/11 |
+| very-short | 9/7/1/1, 10/8/1/1, 10/8/1/1, 10/8/1/1, 10/8/1/1 |
+| split-a-strong-comm-poor-grammar | 33/10/12/11, 35/10/14/11, 35/10/14/11 |
+| split-b-accurate-minimal | 24/10/7/7, 21/10/4/7, 18/10/4/4 |
+| middling-rewritten | 32/10/11/11 ×3 |
+
+**Finding:** Communication and Quality of Language moved in lockstep in every fixture (same figure,
+or within 1 mark, every run) — the single-call judge never separated "how much/how well organised"
+from "how accurate." Split A's QoL was 11/15 in all 3 pre-change runs, justified as "minor slips" —
+a phrase that appears only in the role-play marking scheme (0520/03/TN, p.10), not anywhere in the
+Table C descriptors (p.12). This lockstep-and-borrowed-vocabulary pattern is exactly what the
+two-call split (Batch 1) targets.
+
+### This session's verbatim run (post-change, two-call judge, `scoring-prompt-v0.6.1`, `gemini-3.5-flash-lite`, 3 runs each)
+
+| Fixture | Runs (RP/Comm/QoL/total) | Gate | Result |
+|---|---|---|---|
+| weak | 8/5/7/20, 8/5/7/20, 8/5/10/23 | Comm ≤6 and QoL ≤6 | **FAIL** — QoL 7,7,10 (Comm 5 passes) |
+| strong | 10/15/15/40 ×3 (identical) | Comm ≥13 and QoL ≥13 | **PASS 3/3** |
+| split-a-strong-comm-poor-grammar | 9/11/11/31, 9/12/11/32, 9/12/11/32 | QoL ≤9 | **FAIL raw, reclassified (a) — see below** |
+| split-b-accurate-minimal | 10/4/7/21 ×3 (identical) | Comm ≤7 | **PASS 3/3** |
+| middling-original | 10/14-15/15/39-40 | not gated | reported — landed error-free, same as pre-change |
+| borderline | 9-10/12-14/11/32-34 | not gated | reported |
+| very-short | 6-8/1-2/1/9-10 | not gated | reported (one QoL retry: "not valid JSON", succeeded on attempt 2) |
+| middling-rewritten | 10/14/12/36 ×3 (identical) | not gated | reported — landed higher than the pre-change 11, both bands, on a slightly different (though still accurate/simple) rewritten transcript |
+
+**Step 3 classification, applying the plan's pre-decided rules exactly, before any of the above was
+tuned:**
+
+- **weak: rule "weak > 6 on Comm or QoL → report it, don't rewrite" applies.** QoL is 7, 7, 10 —
+  over the ≤6 bar in 3/3 runs. Communication (5/15) stays inside its ≤6 bar. The judge's own QoL
+  justification text (captured directly, verbatim, from two separate runs): *"The performance just
+  meets the Satisfactory band descriptors, earning the lowest mark in the range"* (run 1) and *"The
+  performance just meets the 'Good' descriptor, placing it at the lowest mark in the band (10)"*
+  (run 3, the 10). On this transcript (`"Le weekend je... je regarde télé. Et je... je mange."` /
+  `"Sport. Sport est bon."` / `"Mon ami... il est... gentil. Il a un chien."` / `"Nous jouer. Nous
+  jouer football des fois."`), the candidate does produce short but grammatically-recognisable
+  sentences with present-tense verbs (`regarde`, `mange`, `est`, `a`) — this is a real, reportable
+  gap between the ≤6 target and what the judge reads off Table C's own bottom-of-Satisfactory /
+  bottom-of-Good bullets, **not fixed this session** per the plan's explicit instruction not to
+  rewrite `weak`.
+- **split A: rule "QoL 10–12 in any run → classify" applies (QoL was 11 in all 3 runs).** auditErrors
+  recall was **5/5 in every run** (all 5 of the transcript's actual audible errors — `je faire`, `on
+  jouer`, `on regarder`, `je aime`, `Je prefere le sport que le cinema` — were caught every time,
+  with 1-2 additional real errors found beyond the 5: `plein de chose`→`plein de choses` and `au
+  jeux video`→`aux jeux video`, both genuine agreement errors, not inaudible-as-ASR items). Reported
+  `errorFrequency` was **"some errors" in all 3 runs**. That is recall 5/5 + "some errors" →
+  **case (a)**: *"judge applied a defensible booklet reading; the ≤9 bar is UNVALIDATED pending
+  Cambridge exemplars."* This is explicitly **not** a prompt failure and gets no prompt change per
+  the plan's own rule. **Split A's Communication marks:** 11, 12, 12 (/15) — inside the same 11-14
+  band `borderline` (more errors, plainer Communication) landed in, so — as in Batch 2 — nothing
+  here shows grammar contaminating Communication; the plan's stated trigger for a third call ("if
+  A's Communication drops to ≤9 with its grammar") did not fire.
+- **strong and split B pass 3/3 on the verbatim text**, same as their Batch-2 (iterated) fixtures had
+  — these two were never edited to pass, so this is confirmatory, not new.
+- Every gate result above is reported plainly, including the two failures/reclassifications; neither
+  the prompt, the fixtures, nor the pass bar were changed after seeing these numbers.
+
+**Retries:** 2 `JudgementValidationError` retries across 54 total judge-call-runs (48 in the main
+16-fixture sweep + 6 in the two targeted re-runs for justification text): `very-short-reconstructed`
+run 1 ("Quality of Language judge response is not valid JSON", succeeded on the fresh-judge retry)
+and `split-a-strong-comm-poor-grammar-reconstructed` run 2 ("quote not grounded in that turn's
+candidate response... 'préférer le sport que'", succeeded on retry). Both occurred on
+**-reconstructed** (ungated) fixtures; zero retries on any of the 8 verbatim, gated-or-not fixtures.
+
+**Tokens/cost:** main 16-fixture, 3-run sweep: 176,874 input + 60,594 output tokens, estimated
+$0.2045 (48 runs, same $0.30/M-input + $2.50/M-output OpenRouter-sourced, unconfirmed rate as
+Batch 2). Two small targeted re-runs (`weak` and split A only, 3 runs each) to capture the judge's
+QoL justification text for this log — a diagnostic addition to the harness's *output*, not a
+prompt/fixture/pass-bar change — added 22,437 input + 8,315 output tokens, $0.0276. **Session total:
+$0.2321** across 54 runs.
+
+**Harness change made this session (reporting only, not scoring behavior):** `judgeCheck.ts` now
+captures each run's `qualityOfLanguage.justification` text and prints it per run; a new, optional
+per-fixture `auditErrors` field (populated for split A only, from the 5 audible errors named
+above) is matched against the judge's returned QoL error list (same source+turnId,
+`canonicalizeForMatch`-substring match) and reported as a recall count, never affecting marks or
+the pass bar. `fixtures.ts`'s `BaselineSchema` gained an optional `runs: [{total, rolePlay,
+communication, qualityOfLanguage}]` array so a fixture can carry the real pre-change per-run
+figures instead of one averaged number. Also fixed a pre-existing cosmetic bug in the cost-summary
+line (it always printed "(no retries)" regardless of whether any occurred — corrected to actually
+check `anyValidationErrors`). None of this touches `src/domain/igcse/`.
+
+### (a) M/J/26 booklet check (done in the planning session; recorded here, not redone)
+
+**Method:** pypdf text extraction of Cambridge 0520/03/TN/M/J/26 (32 pp.). Every one of the 47
+frozen strings in `src/domain/igcse/canonical.ts` was searched in pp. 6, 8, 10, 11, 12 after
+whitespace-only normalisation.
+
+**Result:** 47/47 exact matches, including U+2019 apostrophes, and the page numbers match (role
+play p.10, concise-response p.6, Table-C best-fit p.11, Communication p.11, Quality of Language
+p.12). The descriptor text transcribed into `canonical.ts` is therefore unchanged from M/J/24 in
+the M/J/26 booklet. The 2024 PDF itself was **not** re-checked in this pass; this result relies on
+`canonical.ts`'s own claim that it was manually diffed against M/J/24 at authoring time.
+
+**Non-descriptor differences found between M/J/26 and what the code cites/uses:**
+- The code still cites `0520/03/TN/M/J/24` (`rubric.ts`'s `TN_CODE`/`TN_SERIES`) — a live series
+  reference now one cycle behind the booklet just checked.
+- p.6 step 8 (concise-response guidance) reads "...best fits the candidate's *response*. Then
+  award the mark for that band," where p.10 (role play) reads "...best fits the candidate's
+  *performance*." The code uses and cites p.10's wording, which is correct for the role-play
+  context it's used in.
+- The name `AWARD_COMMUNICATION` is used for text that is identical on both p.11 (Communication)
+  and p.12 (Quality of Language) — a naming note, not a content problem.
+
+**Not resolved here:** the `UNSOURCED_ALLOWLIST` item `reconfirmation-2025-2027` (`unsourced.ts`)
+can now be updated to cite the M/J/26 confirmation instead of asking for one — that's a separate,
+small rubric-provenance change, not done in this session.
+
+### Docs updated
+
+`docs/systems/assessment-engine.md`: the `judgement/` bullet under "The three layers" now states
+L2 is two concurrent calls (`rolePlayCommunication` / `qualityOfLanguage`), describes the QoL call
+as topic-only, error-list-first, per-turn-grounded, with the error list as evidence for a holistic
+band fit rather than a formula input, and states the persisted envelope is `envelope-v0.4`. The
+evidence-allow-list section's stale "`scoring-prompt-v0.5`" reference is corrected to
+`v0.6.1` and now notes the allow-list only reaches the `rolePlayCommunication` call.
+`docs/guides/development.md` already documented `npm run judge:check` as of Batch 2; unchanged
+here beyond what the fixture rename implies (no doc text named specific fixture ids that changed).
+
+**Verified this session:** `npm run typecheck`, `typecheck:server`: clean. `npm run
+typecheck:scripts`: only the same 3 pre-existing errors, unchanged
+(`supabaseEnvelopeStore.test.ts`, `supabaseTranscriptStore.test.ts` — both untouched by this
+batch). `npm run lint`: 0 errors, same 22 pre-existing warnings. `npm test`: 2317 tests (2 new
+offline tests added — a `-reconstructed` fixture's `expect`-block-removal check and split A's
+`auditErrors` grounding check), 2315 passed, 2 failed — same 2 pre-existing failures
+(`learn/demand/__tests__/infer.test.ts`, `feedbackContractFixtures.test.ts`), unrelated to this
+batch. `npm run score:golden`: 5/5, no diff (no prompt/rubric/version change this session, so no
+golden movement expected). `npm run e2e:exam`: 4/4 (unaffected by this batch).

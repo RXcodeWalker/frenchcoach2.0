@@ -1,14 +1,14 @@
 {
   "id": "split-a-strong-comm-poor-grammar",
-  "description": "Split A: strong communication (developed, relevant, opinions with reasons) but frequent basic grammar errors — the QoL-under-penalisation defect case from the plan's own text. Embeds the plan's exact audible-error phrases verbatim ('moi je faire', 'on jouer', 'on regarder', 'je aime', 'préfère … que' ×2) plus the inaudible-as-ASR items the plan says are correctly NOT errors ('deux croissant', 'plein de chose', missing accents, 'meilleur amie'). Baseline QoL was 11/15 in 3/3 runs pre-change (single-call judge called these 'minor slips', a phrase absent from the QoL descriptors). The full pre-change Communication figure and the exact original transcript text were given in an earlier chat message, not logged in verification-log.md, and are unavailable in this session — this transcript is reconstructed from the plan's own quoted phrases, not copied from that message. Iterated once: the first reconstruction's ~6 audible errors landed post-change QoL in a 7-11 spread (borderline between 'frequent' and 'some'), so a few more instances of the same error types (still only the plan's named categories: infinitive-for-conjugated verb, 'préfère … que') were added to land more reliably in the frequent-errors band, not to change how the judge reads frequency.",
+  "description": "Split A, verbatim: the exact pre-change transcript text, copied verbatim from the 2026-09-27 task message. Strong communication (developed, relevant, opinions with reasons) with frequent basic grammar errors — the QoL-under-penalisation defect case. Baseline QoL was 11 in 3/3 pre-change runs, justified as 'minor slips' (a phrase absent from the QoL descriptors, p.12; it appears only in the role-play scheme, p.10). Gated at qualityOfLanguageMax 9. Carries auditErrors (the 5 audible errors this transcript actually contains) so judge:check can report the judge's recall against them. Do not edit this transcript to change a result — see 'split-a-strong-comm-poor-grammar-reconstructed' for the earlier, iterated stand-in withdrawn as gate evidence this session.",
   "transcript": {
     "contentProvenance": "original-practice",
     "rolePlay": [
-      { "taskId": "t1", "taskPrompt": "Greet the shop assistant.", "candidateResponse": "Bonjour madame." },
-      { "taskId": "t2", "taskPrompt": "Say you want two croissants.", "candidateResponse": "Je voudrais deux croissant, s il vous plaît." },
-      { "taskId": "t3", "taskPrompt": "Ask the price.", "candidateResponse": "C est combien?" },
-      { "taskId": "t4", "taskPrompt": "Say you will pay by card.", "candidateResponse": "Je paie par carte." },
-      { "taskId": "t5", "taskPrompt": "Thank and say goodbye.", "candidateResponse": "Merci, au revoir." }
+      { "taskId": "t1", "taskPrompt": "Greet the shop assistant.", "candidateResponse": "Bonjour! Je veux deux croissant pour mon petit-dejeuner." },
+      { "taskId": "t2", "taskPrompt": "Say you want two croissants.", "candidateResponse": "Je voudrais deux croissant, s'il vous plait, ils sont pour ma famille." },
+      { "taskId": "t3", "taskPrompt": "Ask the price.", "candidateResponse": "Combien il coute, le tout, avec les deux?" },
+      { "taskId": "t4", "taskPrompt": "Say you will pay by card.", "candidateResponse": "Je vais payer avec la carte, c'est plus facile pour moi." },
+      { "taskId": "t5", "taskPrompt": "Thank and say goodbye.", "candidateResponse": "Merci beaucoup madame, bonne journee a vous et a bientot!" }
     ],
     "topicConversations": [
       {
@@ -18,12 +18,12 @@
           {
             "turnId": "q1",
             "questionPrompt": "What do you do at weekends?",
-            "candidateResponse": "Le week-end, moi je faire beaucoup de choses avec ma famille. On jouer au foot dans le parc, ou parfois on regarder un film ensemble."
+            "candidateResponse": "Le week-end, moi je faire beaucoup de chose avec mes amis: on va au parc, on jouer au foot, et parfois on regarder un film ensemble parce que c'est amusant et je aime bien passer du temps avec eux."
           },
           {
             "turnId": "q2",
             "questionPrompt": "Do you prefer sport or cinema?",
-            "candidateResponse": "Je aime le sport, et je préfère le sport que le cinéma parce que c est plus actif. Je préfère aussi jouer dehors que rester dans le maison."
+            "candidateResponse": "Je prefere le sport que le cinema parce que le sport il est plus actif et je peux etre avec mes amis dehors, mais des fois quand il pleut on regarde un film a la maison, c'est bien aussi."
           }
         ]
       },
@@ -34,22 +34,33 @@
           {
             "turnId": "q1",
             "questionPrompt": "Describe your best friend.",
-            "candidateResponse": "Ma meilleur amie s appelle Sarah. Elle est tres gentille et drole, et nous avons plein de chose en commun."
+            "candidateResponse": "Mon meilleur ami il s'appelle Karim, il est tres drole et il est toujours la pour moi quand j'ai un probleme, je peux parler avec lui de tout et il me comprend bien."
           },
           {
             "turnId": "q2",
             "questionPrompt": "What do you do together?",
-            "candidateResponse": "Nous aimons faire du shopping ensemble, et je préfère ça que rester à la maison. On regarder des série tout le temps aussi."
+            "candidateResponse": "Nous, on fait plein de chose ensemble: on joue au jeux video, on va au cinema le samedi, et on parle beaucoup au telephone le soir apres les devoirs."
           }
         ]
       }
     ]
   },
   "baseline": {
-    "qualityOfLanguage": 11,
-    "note": "Pre-change single-call judge (gemini-3.5-flash-lite): QoL 11/15 in 3/3 runs, justified as 'minor slips' — a phrase absent from the QoL descriptors (plan context, not verification-log.md). Communication and total were not recorded in this session's available context."
+    "note": "Pre-change single-call judge, gemini-3.5-flash-lite, scoring-prompt-v0.5. Per-run marks (total/RP/Comm/QoL) in runs[]; QoL was 11/15 in all 3 runs, justified as 'minor slips'.",
+    "runs": [
+      { "total": 33, "rolePlay": 10, "communication": 12, "qualityOfLanguage": 11 },
+      { "total": 35, "rolePlay": 10, "communication": 14, "qualityOfLanguage": 11 },
+      { "total": 35, "rolePlay": 10, "communication": 14, "qualityOfLanguage": 11 }
+    ]
   },
   "expect": {
     "qualityOfLanguageMax": 9
-  }
+  },
+  "auditErrors": [
+    { "source": "topic1", "turnId": "q1", "quote": "je faire" },
+    { "source": "topic1", "turnId": "q1", "quote": "on jouer" },
+    { "source": "topic1", "turnId": "q1", "quote": "on regarder" },
+    { "source": "topic1", "turnId": "q1", "quote": "je aime" },
+    { "source": "topic1", "turnId": "q2", "quote": "Je prefere le sport que le cinema" }
+  ]
 }

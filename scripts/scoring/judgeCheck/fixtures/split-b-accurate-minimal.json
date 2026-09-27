@@ -1,13 +1,13 @@
 {
   "id": "split-b-accurate-minimal",
-  "description": "Split B: accurate but minimal French — short, grammatically correct answers with almost no development or opinion. The plan's 'thin, unstable' transcript: pre-change, this was the only one of the split pair where Communication and QoL diverged across runs, and its accurate-but-minimal content dragged QoL down to 4-7 even though the language itself had few errors (the lockstep-and-quantity defect this whole change targets). The exact original transcript text and per-run numbers were given in an earlier chat message, not logged in verification-log.md, and are unavailable in this session — this transcript is reconstructed from the plan's own description, not copied from that message.",
+  "description": "Split B, verbatim: the exact pre-change transcript text, copied verbatim from the 2026-09-27 task message. Accurate but minimal French — short, grammatically correct answers with almost no development or opinion. Gated at communicationMax 7. See 'split-b-accurate-minimal-reconstructed' for the earlier, iterated stand-in used (and withdrawn) in Batch 2.",
   "transcript": {
     "contentProvenance": "original-practice",
     "rolePlay": [
       { "taskId": "t1", "taskPrompt": "Greet the shop assistant.", "candidateResponse": "Bonjour." },
-      { "taskId": "t2", "taskPrompt": "Say you want two croissants.", "candidateResponse": "Je voudrais deux croissants, s il vous plaît." },
-      { "taskId": "t3", "taskPrompt": "Ask the price.", "candidateResponse": "C est combien?" },
-      { "taskId": "t4", "taskPrompt": "Say you will pay by card.", "candidateResponse": "Je paie par carte." },
+      { "taskId": "t2", "taskPrompt": "Say you want two croissants.", "candidateResponse": "Deux croissants, merci." },
+      { "taskId": "t3", "taskPrompt": "Ask the price.", "candidateResponse": "C'est combien?" },
+      { "taskId": "t4", "taskPrompt": "Say you will pay by card.", "candidateResponse": "Par carte." },
       { "taskId": "t5", "taskPrompt": "Thank and say goodbye.", "candidateResponse": "Merci, au revoir." }
     ],
     "topicConversations": [
@@ -15,22 +15,27 @@
         "conversationId": "topic1",
         "topicArea": "A",
         "turns": [
-          { "turnId": "q1", "questionPrompt": "What do you do at weekends?", "candidateResponse": "Le weekend, je fais du sport avec mes amis." },
-          { "turnId": "q2", "questionPrompt": "Do you prefer sport or cinema?", "candidateResponse": "Je préfère le sport." }
+          { "turnId": "q1", "questionPrompt": "What do you do at weekends?", "candidateResponse": "Je regarde la télévision." },
+          { "turnId": "q2", "questionPrompt": "Do you prefer sport or cinema?", "candidateResponse": "Je préfère le cinéma." }
         ]
       },
       {
         "conversationId": "topic2",
         "topicArea": "B",
         "turns": [
-          { "turnId": "q1", "questionPrompt": "Describe your best friend.", "candidateResponse": "Mon ami s appelle Marc." },
-          { "turnId": "q2", "questionPrompt": "What do you do together?", "candidateResponse": "Nous jouons au football ensemble." }
+          { "turnId": "q1", "questionPrompt": "Describe your best friend.", "candidateResponse": "Il s'appelle Paul." },
+          { "turnId": "q2", "questionPrompt": "What do you do together?", "candidateResponse": "Nous jouons aux cartes." }
         ]
       }
     ]
   },
   "baseline": {
-    "note": "Pre-change single-call judge: QoL 4-7 across runs despite accurate language, tracking how little the candidate said rather than error rate (plan context, not verification-log.md). Communication and total were not recorded in this session's available context."
+    "note": "Pre-change single-call judge, gemini-3.5-flash-lite, scoring-prompt-v0.5. Per-run marks (total/RP/Comm/QoL) in runs[].",
+    "runs": [
+      { "total": 24, "rolePlay": 10, "communication": 7, "qualityOfLanguage": 7 },
+      { "total": 21, "rolePlay": 10, "communication": 4, "qualityOfLanguage": 7 },
+      { "total": 18, "rolePlay": 10, "communication": 4, "qualityOfLanguage": 4 }
+    ]
   },
   "expect": {
     "communicationMax": 7

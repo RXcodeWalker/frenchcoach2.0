@@ -1,0 +1,55 @@
+{
+  "id": "strong-reconstructed",
+  "description": "Reconstructed/iterated, NOT the pre-change experiment text; ungated — see strong. Strong: fluent, accurate, well-developed French with opinions and reasons. Reconstructed to match the pre-change experiment's case 3 description and marks (verification-log.md, 2026-09-27 Part 2) — exact original wording was not logged.",
+  "transcript": {
+    "contentProvenance": "original-practice",
+    "rolePlay": [
+      { "taskId": "t1", "taskPrompt": "Greet the shop assistant.", "candidateResponse": "Bonjour madame, comment allez-vous?" },
+      { "taskId": "t2", "taskPrompt": "Say you want two croissants.", "candidateResponse": "Je voudrais deux croissants, s il vous plaît." },
+      { "taskId": "t3", "taskPrompt": "Ask the price.", "candidateResponse": "Combien ça coûte, s il vous plaît?" },
+      { "taskId": "t4", "taskPrompt": "Say you will pay by card.", "candidateResponse": "Je vais régler par carte bancaire." },
+      { "taskId": "t5", "taskPrompt": "Thank and say goodbye.", "candidateResponse": "Merci beaucoup madame, bonne journée, au revoir." }
+    ],
+    "topicConversations": [
+      {
+        "conversationId": "topic1",
+        "topicArea": "A",
+        "turns": [
+          {
+            "turnId": "q1",
+            "questionPrompt": "What do you do at weekends?",
+            "candidateResponse": "En général, le samedi matin je fais du sport avec mon équipe de basket, et l après-midi je retrouve mes amis en ville. Le dimanche est plus calme, je reste souvent à la maison pour lire ou regarder un film avec ma famille."
+          },
+          {
+            "turnId": "q2",
+            "questionPrompt": "Do you prefer sport or cinema?",
+            "candidateResponse": "Je préfère nettement le sport au cinéma, car cela me permet de rester en forme tout en passant du temps avec mes amis. Cela dit, j apprécie aussi aller au cinéma de temps en temps, surtout quand il fait mauvais temps."
+          }
+        ]
+      },
+      {
+        "conversationId": "topic2",
+        "topicArea": "B",
+        "turns": [
+          {
+            "turnId": "q1",
+            "questionPrompt": "Describe your best friend.",
+            "candidateResponse": "Ma meilleure amie s appelle Camille. Elle est très gentille, drôle et toujours prête à m aider quand j en ai besoin. On se connaît depuis l école primaire."
+          },
+          {
+            "turnId": "q2",
+            "questionPrompt": "What do you do together?",
+            "candidateResponse": "Nous aimons faire du shopping ensemble et discuter pendant des heures. L année dernière, nous sommes parties en vacances avec nos familles, ce qui était une expérience inoubliable."
+          }
+        ]
+      }
+    ]
+  },
+  "baseline": {
+    "total": 40,
+    "rolePlay": 10,
+    "communication": 15,
+    "qualityOfLanguage": 15,
+    "note": "Pre-change single-call judge, gemini-3.5-flash-lite (verification-log.md 2026-09-27, Part 2, case 3). Both bands labelled Very good."
+  }
+}

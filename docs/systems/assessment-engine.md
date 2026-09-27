@@ -15,7 +15,24 @@ deterministic guardrails → persisted `ScoringEnvelope`.
   `dependsOn` without colliding with a legacy id. `registeredDetectors()` is exposed read-only so
   Layer 3 and a CI guard can enumerate every detector's declared mark-influence.
 - **`judgement/`** — `scoreSpeaking.ts` is the Layer-2 orchestration: provenance guard → prompt →
-  judge → parse → validate. This is the only layer that calls an LLM.
+  judge → parse → validate. This is the only layer that calls an LLM. As of `scoring-prompt-v0.6`,
+  L2 is **two concurrent judge calls** (`Promise.all`, each with its own fresh judge instance and
+  own retry), not one:
+  - `scoreRolePlayAndCommunication` — Table A (role play) + Table B (Communication), the full
+    transcript with examiner support and the L1 counts allow-list.
+  - `scoreQualityOfLanguage` — Table C only, **topic conversations only** (no role play, no
+    examiner support, no L1 counts). It is **error-list-first**: the contract puts `errors` before
+    the band, so the judge lists every QoL error with a per-turn verbatim quote and states the
+    booklet frequency wording (`errorFrequency`, recorded for audit, never mapped to a mark by
+    formula) before best-fitting the Table C band holistically — the error list is evidence the
+    judge reasons from, not an input to a scoring formula. Each error's quote is grounded in that
+    one turn's own candidate response (`buildTopicTurnCorpora`) — never the examiner's question,
+    never a different turn, never role play.
+  - `combineAssessment` merges the two calls' results into one `SpeakingAssessment` before
+    guardrails run. The persisted `ScoringEnvelope` is `ENVELOPE_SCHEMA_VERSION = 'envelope-v0.4'`.
+  - `npm run judge:check` (`scripts/scoring/judgeCheck.ts`, see `docs/guides/development.md`) is
+    the permanent real-judge harness for this stage — see `verification-log.md`'s Batch 2/Batch 3
+    entries for what it found and measured.
 - **`guardrails/`** — `runGuardrails.ts` is a pure, deterministic composition entry point (no I/O)
   that returns combined triggers, including an evidence-ceiling hook — the only path by which a
   Layer-1 signal may cap a Layer-2 mark. The ceiling is applied in `envelope/`, not by mutating
@@ -53,9 +70,11 @@ version pin covering the wrapper still needed bumping).
 ## What actually reaches the judge prompt
 
 Layer 1 (`evidence/`) computes more signals than Layer 2 is allowed to see. `judgement/prompt.ts`'s
-`PROMPT_EVIDENCE_ALLOW_LIST` is the only gate: as of `scoring-prompt-v0.5` it admits
+`PROMPT_EVIDENCE_ALLOW_LIST` is the only gate: as of `scoring-prompt-v0.6.1` it admits
 `responseCountsByQuestion` and `topicConversationDurationByConversation` only — both factual counts,
-never a heuristic judgement. `timeFrameAlignmentByQuestion`, `fillerDensityByQuestion`, and
+never a heuristic judgement. Since `v0.6` this allow-list only reaches the
+`rolePlayCommunication` call — the `qualityOfLanguage` call renders topic conversations alone and
+receives no L1 evidence at all. `timeFrameAlignmentByQuestion`, `fillerDensityByQuestion`, and
 `rolePlayPartsByTask` are still computed and snapshotted in the envelope for audit (and still render
 in the results page's evidence groups where applicable), but none of the three has been validated
 against real graded transcripts, so none reaches the prompt. A new Layer-1 detector joins this

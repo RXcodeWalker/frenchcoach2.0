@@ -1,56 +1,43 @@
 {
   "id": "strong",
-  "description": "Strong: fluent, accurate, well-developed French with opinions and reasons. Reconstructed to match the pre-change experiment's case 3 description and marks (verification-log.md, 2026-09-27 Part 2) — exact original wording was not logged.",
+  "description": "Strong, verbatim: the exact pre-change transcript text, copied verbatim from the 2026-09-27 task message. Fluent, accurate, well-developed French with opinions and reasons. See 'strong-reconstructed' for the earlier, iterated stand-in used (and withdrawn) in Batch 2.",
   "transcript": {
     "contentProvenance": "original-practice",
     "rolePlay": [
-      { "taskId": "t1", "taskPrompt": "Greet the shop assistant.", "candidateResponse": "Bonjour madame, comment allez-vous?" },
-      { "taskId": "t2", "taskPrompt": "Say you want two croissants.", "candidateResponse": "Je voudrais deux croissants, s il vous plaît." },
-      { "taskId": "t3", "taskPrompt": "Ask the price.", "candidateResponse": "Combien ça coûte, s il vous plaît?" },
-      { "taskId": "t4", "taskPrompt": "Say you will pay by card.", "candidateResponse": "Je vais régler par carte bancaire." },
-      { "taskId": "t5", "taskPrompt": "Thank and say goodbye.", "candidateResponse": "Merci beaucoup madame, bonne journée, au revoir." }
+      { "taskId": "t1", "taskPrompt": "Greet the shop assistant.", "candidateResponse": "Bonjour madame, comment allez-vous aujourd'hui?" },
+      { "taskId": "t2", "taskPrompt": "Say you want two croissants.", "candidateResponse": "Bonjour, je voudrais acheter deux croissants au beurre, s'il vous plaît." },
+      { "taskId": "t3", "taskPrompt": "Ask the price.", "candidateResponse": "Pourriez-vous me dire combien cela coûte au total, s'il vous plaît?" },
+      { "taskId": "t4", "taskPrompt": "Say you will pay by card.", "candidateResponse": "Très bien, je préférerais régler par carte bancaire si c'est possible." },
+      { "taskId": "t5", "taskPrompt": "Thank and say goodbye.", "candidateResponse": "Je vous remercie infiniment pour votre aide, madame. Au revoir et bonne journée!" }
     ],
     "topicConversations": [
       {
         "conversationId": "topic1",
         "topicArea": "A",
         "turns": [
-          {
-            "turnId": "q1",
-            "questionPrompt": "What do you do at weekends?",
-            "candidateResponse": "En général, le samedi matin je fais du sport avec mon équipe de basket, et l après-midi je retrouve mes amis en ville. Le dimanche est plus calme, je reste souvent à la maison pour lire ou regarder un film avec ma famille."
-          },
-          {
-            "turnId": "q2",
-            "questionPrompt": "Do you prefer sport or cinema?",
-            "candidateResponse": "Je préfère nettement le sport au cinéma, car cela me permet de rester en forme tout en passant du temps avec mes amis. Cela dit, j apprécie aussi aller au cinéma de temps en temps, surtout quand il fait mauvais temps."
-          }
+          { "turnId": "q1", "questionPrompt": "What do you do at weekends?", "candidateResponse": "En général, le week-end dernier, j'ai fait beaucoup d'activités différentes : samedi matin j'ai joué au tennis avec mon frère, puis l'après-midi nous sommes allés au cinéma voir un film d'action qui était vraiment passionnant." },
+          { "turnId": "q2", "questionPrompt": "Do you prefer sport or cinema?", "candidateResponse": "À mon avis, je préfère nettement le sport au cinéma parce que le sport me permet de rester en forme et de passer du temps avec mes amis en plein air, tandis que le cinéma est plus passif, même si j'apprécie occasionnellement une bonne comédie." }
         ]
       },
       {
         "conversationId": "topic2",
         "topicArea": "B",
         "turns": [
-          {
-            "turnId": "q1",
-            "questionPrompt": "Describe your best friend.",
-            "candidateResponse": "Ma meilleure amie s appelle Camille. Elle est très gentille, drôle et toujours prête à m aider quand j en ai besoin. On se connaît depuis l école primaire."
-          },
-          {
-            "turnId": "q2",
-            "questionPrompt": "What do you do together?",
-            "candidateResponse": "Nous aimons faire du shopping ensemble et discuter pendant des heures. L année dernière, nous sommes parties en vacances avec nos familles, ce qui était une expérience inoubliable."
-          }
+          { "turnId": "q1", "questionPrompt": "Describe your best friend.", "candidateResponse": "Mon meilleur ami s'appelle Antoine et nous nous connaissons depuis l'école primaire. Il est extrêmement loyal, toujours prêt à m'aider, et il a un excellent sens de l'humour qui me fait rire même dans les moments difficiles." },
+          { "turnId": "q2", "questionPrompt": "What do you do together?", "candidateResponse": "Nous partageons de nombreuses passions communes : nous jouons de la guitare ensemble presque tous les week-ends, nous participons à des compétitions sportives locales, et récemment nous avons commencé à apprendre l'espagnol ensemble pour un futur voyage en Amérique du Sud." }
         ]
       }
     ]
   },
   "baseline": {
-    "total": 40,
-    "rolePlay": 10,
-    "communication": 15,
-    "qualityOfLanguage": 15,
-    "note": "Pre-change single-call judge, gemini-3.5-flash-lite (verification-log.md 2026-09-27, Part 2, case 3). Both bands labelled Very good."
+    "note": "Pre-change single-call judge, gemini-3.5-flash-lite, scoring-prompt-v0.5. Per-run marks (total/RP/Comm/QoL) in runs[].",
+    "runs": [
+      { "total": 40, "rolePlay": 10, "communication": 15, "qualityOfLanguage": 15 },
+      { "total": 40, "rolePlay": 10, "communication": 15, "qualityOfLanguage": 15 },
+      { "total": 40, "rolePlay": 10, "communication": 15, "qualityOfLanguage": 15 },
+      { "total": 40, "rolePlay": 10, "communication": 15, "qualityOfLanguage": 15 },
+      { "total": 40, "rolePlay": 10, "communication": 15, "qualityOfLanguage": 15 }
+    ]
   },
   "expect": {
     "communicationMin": 13,

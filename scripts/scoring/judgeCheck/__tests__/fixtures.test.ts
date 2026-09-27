@@ -38,6 +38,27 @@ describe('judge:check fixtures', () => {
     const fixture = loadFixture('weak');
     expect(fixture.id).toBe('weak');
   });
+
+  it('every -reconstructed fixture carries no expect block (reported only, never gated)', () => {
+    for (const id of FIXTURE_IDS) {
+      if (!id.endsWith('-reconstructed')) continue;
+      const fixture = loadFixture(id);
+      expect(fixture.expect === undefined || Object.keys(fixture.expect).length === 0).toBe(true);
+    }
+  });
+
+  it('split-a-strong-comm-poor-grammar carries auditErrors grounded in its own transcript', () => {
+    const fixture = loadFixture('split-a-strong-comm-poor-grammar');
+    expect(fixture.auditErrors).toBeDefined();
+    expect(fixture.auditErrors).toHaveLength(5);
+    for (const audit of fixture.auditErrors ?? []) {
+      const conv = fixture.transcript.topicConversations.find((c) => c.conversationId === audit.source);
+      expect(conv).toBeDefined();
+      const turn = conv?.turns.find((t) => t.turnId === audit.turnId);
+      expect(turn).toBeDefined();
+      expect(turn?.candidateResponse.includes(audit.quote)).toBe(true);
+    }
+  });
 });
 
 describe('evaluateExpectation (pass-bar evaluator, fake data)', () => {

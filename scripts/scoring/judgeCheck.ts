@@ -21,13 +21,14 @@ import {
   scoreQualityOfLanguage,
   scoreRolePlayAndCommunication,
 } from '../../src/domain/igcse/judgement/scoreSpeaking';
-import type { Judge, JudgeKind, SpeakingAssessment } from '../../src/domain/igcse/judgement/types';
+import type { Judge, JudgeKind, QolError, SpeakingAssessment } from '../../src/domain/igcse/judgement/types';
+import { canonicalizeForMatch } from '../../src/domain/igcse/text/normalize';
 import { createGeminiJudge } from './providers/geminiJudge';
 import type { GeminiJudgeCallMetadata } from './providers/geminiJudge';
 import { createGroqJudge } from './providers/groqJudge';
 import type { GroqJudgeCallMetadata } from './providers/groqJudge';
 import { FIXTURE_IDS, loadFixture } from './judgeCheck/fixtures';
-import type { JudgeCheckFixture } from './judgeCheck/fixtures';
+import type { JudgeCheckAuditError, JudgeCheckFixture } from './judgeCheck/fixtures';
 import { allExpectationsPassed, evaluateExpectation } from './judgeCheck/passBar';
 import type { ExpectationResult } from './judgeCheck/passBar';
 
@@ -166,11 +167,33 @@ interface SingleRunResult {
   total: number;
   errorCount: number;
   errorFrequency: string;
+  errors: QolError[];
+  qolJustification: string;
   mainAttempts: number;
   qolAttempts: number;
   validationErrors: string[];
   mainUsage?: { inputTokens: number; outputTokens: number };
   qolUsage?: { inputTokens: number; outputTokens: number };
+  auditErrorsRecall?: { quote: string; caught: boolean }[];
+}
+
+/**
+ * Matches a fixture's known audible errors (`auditErrors`) against the
+ * judge's returned QoL error list, for recall reporting only — never
+ * affects marks or the pass bar. A match is same source+turnId with one
+ * quote containing the other after canonicalizeForMatch, since the judge
+ * may quote a shorter or longer span of the same error.
+ */
+function matchAuditErrors(auditErrors: JudgeCheckAuditError[], judgeErrors: QolError[]): { quote: string; caught: boolean }[] {
+  return auditErrors.map((audit) => {
+    const auditQuote = canonicalizeForMatch(audit.quote);
+    const caught = judgeErrors.some((judgeError) => {
+      if (judgeError.source !== audit.source || judgeError.turnId !== audit.turnId) return false;
+      const judgeQuote = canonicalizeForMatch(judgeError.quote);
+      return judgeQuote.includes(auditQuote) || auditQuote.includes(judgeQuote);
+    });
+    return { quote: audit.quote, caught };
+  });
 }
 
 async function runOnce(fixture: JudgeCheckFixture, provider: Provider): Promise<SingleRunResult> {
@@ -194,6 +217,8 @@ async function runOnce(fixture: JudgeCheckFixture, provider: Provider): Promise<
     total: assessment.total,
     errorCount: assessment.qualityOfLanguage.errors.length,
     errorFrequency: assessment.qualityOfLanguage.errorFrequency,
+    errors: assessment.qualityOfLanguage.errors,
+    qolJustification: assessment.qualityOfLanguage.justification,
     mainAttempts: main.attempts,
     qolAttempts: qol.attempts,
     validationErrors: [...main.validationErrors, ...qol.validationErrors],
@@ -279,6 +304,18 @@ async function main(): Promise<void> {
           `  total ${result.total}/40  errors=${result.errorCount} (${result.errorFrequency})` +
           `  attempts main=${result.mainAttempts} qol=${result.qolAttempts}\n`,
       );
+      process.stdout.write(`    QoL justification: ${result.qolJustification}\n`);
+      if (fixture.auditErrors && fixture.auditErrors.length > 0) {
+        const recall = matchAuditErrors(fixture.auditErrors, result.errors);
+        result.auditErrorsRecall = recall;
+        const caughtCount = recall.filter((r) => r.caught).length;
+        process.stdout.write(`    auditErrors recall: ${caughtCount}/${recall.length}\n`);
+        for (const r of recall) process.stdout.write(`      - [${r.caught ? 'caught' : 'MISSED'}] "${r.quote}"\n`);
+        process.stdout.write(`    judge's full QoL error list (${result.errors.length}):\n`);
+        for (const e of result.errors) {
+          process.stdout.write(`      - [${e.source} ${e.turnId}] "${e.quote}" (${e.kind}) -> ${e.correction}\n`);
+        }
+      }
     }
 
     process.stdout.write(
@@ -297,14 +334,18 @@ async function main(): Promise<void> {
     );
     for (const failure of expectation.failures) process.stdout.write(`    - ${failure}\n`);
 
-    (report.cases as Record<string, unknown>)[fixture.id] = { runs, expectation, failedRuns };
+    (report.cases as Record<string, unknown>)[fixture.id] = { baseline: fixture.baseline, runs, expectation, failedRuns };
   }
 
   const costUsd = estimateCostUsd(totalInputTokens, totalOutputTokens);
   process.stdout.write(
     `\n--- Token usage (${args.provider}) ---\n` +
       `input=${totalInputTokens} output=${totalOutputTokens}` +
-      (args.provider === 'gemini' ? ` estimated cost=$${costUsd.toFixed(4)} total across ${args.runs * fixtures.length} attempts (no retries)\n` : '\n'),
+      (args.provider === 'gemini'
+        ? ` estimated cost=$${costUsd.toFixed(4)} total across ${args.runs * fixtures.length} run(s)` +
+          ` (only the last, successful attempt's tokens counted per call — a retried attempt's tokens are not` +
+          ` separately summed)${anyValidationErrors ? '; at least one retry occurred, see "! retry" above' : '; no retries'}\n`
+        : '\n'),
   );
   report.tokenUsage = { totalInputTokens, totalOutputTokens, estimatedCostUsd: args.provider === 'gemini' ? costUsd : undefined };
 

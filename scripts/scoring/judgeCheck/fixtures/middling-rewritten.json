@@ -1,51 +1,40 @@
 {
   "id": "middling-rewritten",
-  "description": "Middling (deliberately rewritten): accurate but simple, register-flat, with minimal development — written to actually land mid-band, unlike 'middling-original' which turned out fluent and error-free. Target QoL 8-10 (reported, not gated — see the plan's own pass-bar table).",
+  "description": "Middling (deliberately rewritten), verbatim: the exact pre-change transcript text, copied verbatim from the 2026-09-27 task message. Accurate but simple, register-flat, minimal development — written to actually land mid-band, unlike 'middling-original' which turned out fluent and error-free. Not gated. See 'middling-rewritten-reconstructed' for the earlier stand-in used in Batch 2.",
   "transcript": {
     "contentProvenance": "original-practice",
     "rolePlay": [
-      { "taskId": "t1", "taskPrompt": "Greet the shop assistant.", "candidateResponse": "Bonjour madame." },
-      { "taskId": "t2", "taskPrompt": "Say you want two croissants.", "candidateResponse": "Je voudrais deux croissants, s il vous plaît." },
-      { "taskId": "t3", "taskPrompt": "Ask the price.", "candidateResponse": "C est combien, s il vous plaît?" },
+      { "taskId": "t1", "taskPrompt": "Greet the shop assistant.", "candidateResponse": "Bonjour." },
+      { "taskId": "t2", "taskPrompt": "Say you want two croissants.", "candidateResponse": "Je voudrais deux croissants." },
+      { "taskId": "t3", "taskPrompt": "Ask the price.", "candidateResponse": "C'est combien?" },
       { "taskId": "t4", "taskPrompt": "Say you will pay by card.", "candidateResponse": "Je paie par carte." },
-      { "taskId": "t5", "taskPrompt": "Thank and say goodbye.", "candidateResponse": "Merci beaucoup, au revoir." }
+      { "taskId": "t5", "taskPrompt": "Thank and say goodbye.", "candidateResponse": "Merci, au revoir." }
     ],
     "topicConversations": [
       {
         "conversationId": "topic1",
         "topicArea": "A",
         "turns": [
-          {
-            "turnId": "q1",
-            "questionPrompt": "What do you do at weekends?",
-            "candidateResponse": "Le weekend, je fais du sport. Je joue au foot avec mes amis dans le parc."
-          },
-          {
-            "turnId": "q2",
-            "questionPrompt": "Do you prefer sport or cinema?",
-            "candidateResponse": "Je préfère le sport parce que c est bon pour la santé. Le cinéma est bien aussi mais je préfère le sport."
-          }
+          { "turnId": "q1", "questionPrompt": "What do you do at weekends?", "candidateResponse": "Le week-end, je regarde la télé et je sors avec mes amis." },
+          { "turnId": "q2", "questionPrompt": "Do you prefer sport or cinema?", "candidateResponse": "Je préfère le sport parce que j'aime bouger." }
         ]
       },
       {
         "conversationId": "topic2",
         "topicArea": "B",
         "turns": [
-          {
-            "turnId": "q1",
-            "questionPrompt": "Describe your best friend.",
-            "candidateResponse": "Ma meilleure amie s appelle Julie. Elle est gentille et elle aime la musique."
-          },
-          {
-            "turnId": "q2",
-            "questionPrompt": "What do you do together?",
-            "candidateResponse": "Nous écoutons de la musique et nous parlons ensemble. C est amusant."
-          }
+          { "turnId": "q1", "questionPrompt": "Describe your best friend.", "candidateResponse": "Mon meilleur ami s'appelle Karim. Il est gentil et sympa." },
+          { "turnId": "q2", "questionPrompt": "What do you do together?", "candidateResponse": "Nous jouons au foot et nous regardons des films ensemble." }
         ]
       }
     ]
   },
   "baseline": {
-    "note": "New transcript, never run pre-change — no pre-change baseline exists."
+    "note": "Pre-change single-call judge, gemini-3.5-flash-lite, scoring-prompt-v0.5. Per-run marks (total/RP/Comm/QoL) in runs[].",
+    "runs": [
+      { "total": 32, "rolePlay": 10, "communication": 11, "qualityOfLanguage": 11 },
+      { "total": 32, "rolePlay": 10, "communication": 11, "qualityOfLanguage": 11 },
+      { "total": 32, "rolePlay": 10, "communication": 11, "qualityOfLanguage": 11 }
+    ]
   }
 }

@@ -1,0 +1,39 @@
+{
+  "id": "weak-reconstructed",
+  "description": "Reconstructed/iterated, NOT the pre-change experiment text; ungated — see weak. Very short, telegraphic answers, almost no connected sentences, and near-constant basic errors (wrong/missing verb, wrong gender, no connectors). Reconstructed to match the pre-change experiment's case 1 description and marks (verification-log.md, 2026-09-27 Part 2) — exact original wording was not logged. Iterated three times: v1 and v2 (Comm 7-8/QoL 7, both fully error-ridden but still structurally complete sentences) stayed just inside Table C's 7-9 'frequent errors' band; removing almost all sentence structure (isolated words/short fragments, no subordination, no connectors) in this v3 dropped it into the 1-3 'almost always inaccurate' band and cleared both gates 3/3 (Comm 4-5/15, QoL 1/15) before this session withdrew reconstructed fixtures as gate evidence.",
+  "transcript": {
+    "contentProvenance": "original-practice",
+    "rolePlay": [
+      { "taskId": "t1", "taskPrompt": "Greet the shop assistant.", "candidateResponse": "Bonjour." },
+      { "taskId": "t2", "taskPrompt": "Say you want two croissants.", "candidateResponse": "Je voudrais un croissant." },
+      { "taskId": "t3", "taskPrompt": "Ask the price.", "candidateResponse": "C est combien?" },
+      { "taskId": "t4", "taskPrompt": "Say you will pay by card.", "candidateResponse": "Carte." },
+      { "taskId": "t5", "taskPrompt": "Thank and say goodbye.", "candidateResponse": "Au revoir." }
+    ],
+    "topicConversations": [
+      {
+        "conversationId": "topic1",
+        "topicArea": "A",
+        "turns": [
+          { "turnId": "q1", "questionPrompt": "What do you do at weekends?", "candidateResponse": "Le weekend... télé. Jouer. Ami. Football, oui." },
+          { "turnId": "q2", "questionPrompt": "Do you prefer sport or cinema?", "candidateResponse": "Sport. Amusant. Oui, sport." }
+        ]
+      },
+      {
+        "conversationId": "topic2",
+        "topicArea": "B",
+        "turns": [
+          { "turnId": "q1", "questionPrompt": "Describe your best friend.", "candidateResponse": "Paul. Ami. Gentil. Foot, euh, jeux." },
+          { "turnId": "q2", "questionPrompt": "What do you do together?", "candidateResponse": "Jouer foot. Télé. Ensemble, oui." }
+        ]
+      }
+    ]
+  },
+  "baseline": {
+    "total": 18,
+    "rolePlay": 8,
+    "communication": 5,
+    "qualityOfLanguage": 5,
+    "note": "Pre-change single-call judge, gemini-3.5-flash-lite (verification-log.md 2026-09-27, Part 2, case 1). Both bands labelled Weak."
+  }
+}

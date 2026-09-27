@@ -1,12 +1,14 @@
 /**
  * judge:check fixture loader — scripts/scoring/judgeCheck/fixtures/*.json.
  *
- * Each fixture is a hand-authored SpeakingTranscript (same 5 role-play tasks
- * and 4 topic questions as judgement/__tests__/fixtures.ts's
- * PRACTICE_TRANSCRIPT, only candidateResponse text varies) plus a
- * description, an optional pre-change baseline (for before/after), and an
- * optional pass-bar `expect` block. Loaded via fs + zod at runtime (not a
- * static import) so this stays a plain JSON file, per the plan.
+ * Each fixture is a SpeakingTranscript (same 5 role-play tasks and 4 topic
+ * questions as judgement/__tests__/fixtures.ts's PRACTICE_TRANSCRIPT, only
+ * candidateResponse text varies) plus a description, an optional pre-change
+ * baseline (a single figure or a `runs[]` array, for before/after), an
+ * optional pass-bar `expect` block, and (split A only) an `auditErrors[]`
+ * list of known audible errors for measuring the judge's QoL recall. Loaded
+ * via fs + zod at runtime (not a static import) so this stays a plain JSON
+ * file, per the plan.
  */
 
 import * as fs from 'node:fs';
@@ -48,6 +50,14 @@ const SpeakingTranscriptSchema = z.object({
   topicConversations: z.tuple([TopicConversationSchema, TopicConversationSchema]),
 });
 
+/** One pre-change run's marks, for fixtures whose baseline is a set of per-run numbers rather than a single agreed figure. */
+const BaselineRunSchema = z.object({
+  total: z.number().optional(),
+  rolePlay: z.number().optional(),
+  communication: z.number().optional(),
+  qualityOfLanguage: z.number().optional(),
+});
+
 const BaselineSchema = z
   .object({
     total: z.number().optional(),
@@ -55,6 +65,7 @@ const BaselineSchema = z
     communication: z.number().optional(),
     qualityOfLanguage: z.number().optional(),
     note: z.string().optional(),
+    runs: z.array(BaselineRunSchema).optional(),
   })
   .optional();
 
@@ -67,16 +78,25 @@ const ExpectSchema = z
   })
   .optional();
 
+/** A known audible error a fixture's transcript actually contains — reported-only, for measuring the judge's QoL error-list recall. */
+const AuditErrorSchema = z.object({
+  source: EvidenceSourceSchema,
+  turnId: z.string(),
+  quote: z.string(),
+});
+
 const JudgeCheckFixtureSchema = z.object({
   id: z.string(),
   description: z.string(),
   transcript: SpeakingTranscriptSchema,
   baseline: BaselineSchema,
   expect: ExpectSchema,
+  auditErrors: z.array(AuditErrorSchema).optional(),
 });
 
 export type JudgeCheckExpect = z.infer<typeof ExpectSchema>;
 export type JudgeCheckBaseline = z.infer<typeof BaselineSchema>;
+export type JudgeCheckAuditError = z.infer<typeof AuditErrorSchema>;
 
 export interface JudgeCheckFixture {
   id: string;
@@ -84,9 +104,17 @@ export interface JudgeCheckFixture {
   transcript: SpeakingTranscript;
   baseline?: JudgeCheckBaseline;
   expect?: JudgeCheckExpect;
+  auditErrors?: JudgeCheckAuditError[];
 }
 
-/** Fixture ids in a fixed, deliberate order — not directory-listing order. */
+/**
+ * Fixture ids in a fixed, deliberate order — not directory-listing order.
+ * The first 8 are the verbatim pre-change experiment transcripts (the real
+ * before/after comparison, and the only ones any `expect` gate applies to).
+ * The `-reconstructed` 8 are the earlier, hand-authored/iterated stand-ins
+ * used in Batch 2 before the verbatim text was available — reported only,
+ * never gated, kept for continuity of that report.
+ */
 export const FIXTURE_IDS = [
   'weak',
   'middling-original',
@@ -96,6 +124,14 @@ export const FIXTURE_IDS = [
   'split-a-strong-comm-poor-grammar',
   'split-b-accurate-minimal',
   'middling-rewritten',
+  'weak-reconstructed',
+  'middling-original-reconstructed',
+  'strong-reconstructed',
+  'borderline-reconstructed',
+  'very-short-reconstructed',
+  'split-a-strong-comm-poor-grammar-reconstructed',
+  'split-b-accurate-minimal-reconstructed',
+  'middling-rewritten-reconstructed',
 ] as const;
 
 export function loadFixture(id: string): JudgeCheckFixture {

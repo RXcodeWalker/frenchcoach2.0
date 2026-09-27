@@ -1,11 +1,11 @@
 {
   "id": "very-short",
-  "description": "Very short/poor: single-word or near single-word answers throughout — the case whose real justification named 'only communicates a single basic word per response' (verification-log.md, 2026-09-27 Part 2, case 5). Reconstructed to match that description and its marks, including the quoted role-play examples ('Bonjour.'/'Combien?' scoring 2/2, 'Croissant.'/'Carte.' docked to 1/2 for ambiguity); exact original wording beyond those quotes was not logged.",
+  "description": "Very short/poor, verbatim: the exact pre-change transcript text, copied verbatim from the 2026-09-27 task message. Single-word or near single-word answers throughout. Not gated. See 'very-short-reconstructed' for the earlier, iterated stand-in used (and withdrawn) in Batch 2.",
   "transcript": {
     "contentProvenance": "original-practice",
     "rolePlay": [
       { "taskId": "t1", "taskPrompt": "Greet the shop assistant.", "candidateResponse": "Bonjour." },
-      { "taskId": "t2", "taskPrompt": "Say you want two croissants.", "candidateResponse": "Croissant." },
+      { "taskId": "t2", "taskPrompt": "Say you want two croissants.", "candidateResponse": "Croissants." },
       { "taskId": "t3", "taskPrompt": "Ask the price.", "candidateResponse": "Combien?" },
       { "taskId": "t4", "taskPrompt": "Say you will pay by card.", "candidateResponse": "Carte." },
       { "taskId": "t5", "taskPrompt": "Thank and say goodbye.", "candidateResponse": "Merci." }
@@ -15,25 +15,28 @@
         "conversationId": "topic1",
         "topicArea": "A",
         "turns": [
-          { "turnId": "q1", "questionPrompt": "What do you do at weekends?", "candidateResponse": "Foot." },
-          { "turnId": "q2", "questionPrompt": "Do you prefer sport or cinema?", "candidateResponse": "Cinéma." }
+          { "turnId": "q1", "questionPrompt": "What do you do at weekends?", "candidateResponse": "Rien." },
+          { "turnId": "q2", "questionPrompt": "Do you prefer sport or cinema?", "candidateResponse": "Sport." }
         ]
       },
       {
         "conversationId": "topic2",
         "topicArea": "B",
         "turns": [
-          { "turnId": "q1", "questionPrompt": "Describe your best friend.", "candidateResponse": "Thomas." },
-          { "turnId": "q2", "questionPrompt": "What do you do together?", "candidateResponse": "Musique." }
+          { "turnId": "q1", "questionPrompt": "Describe your best friend.", "candidateResponse": "Ami." },
+          { "turnId": "q2", "questionPrompt": "What do you do together?", "candidateResponse": "Rien." }
         ]
       }
     ]
   },
   "baseline": {
-    "total": 10,
-    "rolePlay": 8,
-    "communication": 1,
-    "qualityOfLanguage": 1,
-    "note": "Pre-change single-call judge, gemini-3.5-flash-lite (verification-log.md 2026-09-27, Part 2, case 5). Both bands labelled Poor."
+    "note": "Pre-change single-call judge, gemini-3.5-flash-lite, scoring-prompt-v0.5. Per-run marks (total/RP/Comm/QoL) in runs[].",
+    "runs": [
+      { "total": 9, "rolePlay": 7, "communication": 1, "qualityOfLanguage": 1 },
+      { "total": 10, "rolePlay": 8, "communication": 1, "qualityOfLanguage": 1 },
+      { "total": 10, "rolePlay": 8, "communication": 1, "qualityOfLanguage": 1 },
+      { "total": 10, "rolePlay": 8, "communication": 1, "qualityOfLanguage": 1 },
+      { "total": 10, "rolePlay": 8, "communication": 1, "qualityOfLanguage": 1 }
+    ]
   }
 }
