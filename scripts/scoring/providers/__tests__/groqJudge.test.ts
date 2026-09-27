@@ -15,7 +15,7 @@ describe('createGroqJudge', () => {
     const client = fakeGroqClient('{"ok":true}');
     const { judge } = createGroqJudge({ client });
 
-    await judge({ prompt: 'hello' });
+    await judge({ kind: 'rolePlayCommunication', prompt: 'hello' });
 
     expect(client.chat.completions.create).toHaveBeenCalledOnce();
     const call = (client.chat.completions.create as ReturnType<typeof vi.fn>).mock.calls[0][0];
@@ -27,7 +27,7 @@ describe('createGroqJudge', () => {
     const client = fakeGroqClient('{"result":"x"}');
     const { judge } = createGroqJudge({ client });
 
-    const result = await judge({ prompt: 'p' });
+    const result = await judge({ kind: 'rolePlayCommunication', prompt: 'p' });
 
     expect(result).toEqual({ raw: '{"result":"x"}' });
   });
@@ -37,7 +37,7 @@ describe('createGroqJudge', () => {
     const { judge, getLastCallMetadata } = createGroqJudge({ client });
 
     expect(getLastCallMetadata()).toBeUndefined();
-    await judge({ prompt: 'p' });
+    await judge({ kind: 'rolePlayCommunication', prompt: 'p' });
 
     expect(getLastCallMetadata()).toEqual({ model: 'openai/gpt-oss-120b', responseId: 'chatcmpl_abc123' });
   });
@@ -46,7 +46,7 @@ describe('createGroqJudge', () => {
     const client = fakeGroqClient('{}');
     const { judge, getLastCallMetadata } = createGroqJudge({ client, model: 'llama-3.1-8b-instant' });
 
-    await judge({ prompt: 'p' });
+    await judge({ kind: 'rolePlayCommunication', prompt: 'p' });
 
     expect(
       (client.chat.completions.create as ReturnType<typeof vi.fn>).mock.calls[0][0].model,
@@ -58,7 +58,7 @@ describe('createGroqJudge', () => {
     const client = fakeGroqClient('{}');
     const { judge } = createGroqJudge({ client });
 
-    await judge({ prompt: 'p' });
+    await judge({ kind: 'rolePlayCommunication', prompt: 'p' });
 
     const mock = client.chat.completions.create as ReturnType<typeof vi.fn>;
     const [body, options] = mock.mock.calls[0];
@@ -70,7 +70,7 @@ describe('createGroqJudge', () => {
     const client = fakeGroqClient('{}');
     const { judge } = createGroqJudge({ client });
 
-    await judge({ prompt: 'p' });
+    await judge({ kind: 'rolePlayCommunication', prompt: 'p' });
 
     const body = (client.chat.completions.create as ReturnType<typeof vi.fn>).mock.calls[0][0];
     expect(body.reasoning_effort).toBe('low');
@@ -83,6 +83,6 @@ describe('createGroqJudge', () => {
     };
     const { judge } = createGroqJudge({ client });
 
-    await expect(judge({ prompt: 'p' })).rejects.toThrow(/no message content/);
+    await expect(judge({ kind: 'rolePlayCommunication', prompt: 'p' })).rejects.toThrow(/no message content/);
   });
 });

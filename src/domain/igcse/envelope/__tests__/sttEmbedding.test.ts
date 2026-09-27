@@ -5,8 +5,7 @@
 
 import { describe, expect, it } from 'vitest';
 import { buildEvidenceProfile } from '../../evidence/buildEvidence';
-import { buildValidJudgeOutput, PRACTICE_TRANSCRIPT } from '../../judgement/__tests__/fixtures';
-import { parseAndValidateJudgeOutput } from '../../judgement/schema';
+import { buildValidAssessment, PRACTICE_TRANSCRIPT } from '../../judgement/__tests__/fixtures';
 import { buildScoringEnvelope } from '../buildEnvelope';
 import type { SttMetadata } from '../../stt/types';
 
@@ -25,7 +24,7 @@ describe('ScoringEnvelope.stt wholesale embedding', () => {
       transcribedAt: '2026-07-09T00:00:00.000Z',
     };
 
-    const assessment = parseAndValidateJudgeOutput(buildValidJudgeOutput(), PRACTICE_TRANSCRIPT);
+    const assessment = buildValidAssessment();
     const envelope = buildScoringEnvelope({
       attemptId: 'attempt-1',
       sessionId: 'session-1',
@@ -38,6 +37,11 @@ describe('ScoringEnvelope.stt wholesale embedding', () => {
       transcriptQuality: { meanWordConfidence: 0.95, lowConfidenceSpanRatio: 0.02, lowConfidenceSpanCount: 1 },
       userCorrected: false,
       llm: {
+        provider: 'gemini',
+        model: 'gemini-2.5-flash-lite',
+        selfConsistencyRuns: 1,
+      },
+      qualityOfLanguageLlm: {
         provider: 'gemini',
         model: 'gemini-2.5-flash-lite',
         selfConsistencyRuns: 1,

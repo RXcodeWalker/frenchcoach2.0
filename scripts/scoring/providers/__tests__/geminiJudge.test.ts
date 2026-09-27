@@ -15,7 +15,7 @@ describe('createGeminiJudge', () => {
     const client = fakeGeminiClient('{"ok":true}');
     const { judge } = createGeminiJudge({ client });
 
-    await judge({ prompt: 'hello' });
+    await judge({ kind: 'rolePlayCommunication', prompt: 'hello' });
 
     expect(client.models.generateContent).toHaveBeenCalledOnce();
     const call = (client.models.generateContent as ReturnType<typeof vi.fn>).mock.calls[0][0];
@@ -27,7 +27,7 @@ describe('createGeminiJudge', () => {
     const client = fakeGeminiClient('{"result":"x"}');
     const { judge } = createGeminiJudge({ client });
 
-    const result = await judge({ prompt: 'p' });
+    const result = await judge({ kind: 'rolePlayCommunication', prompt: 'p' });
 
     expect(result).toEqual({ raw: '{"result":"x"}' });
   });
@@ -37,7 +37,7 @@ describe('createGeminiJudge', () => {
     const { judge, getLastCallMetadata } = createGeminiJudge({ client });
 
     expect(getLastCallMetadata()).toBeUndefined();
-    await judge({ prompt: 'p' });
+    await judge({ kind: 'rolePlayCommunication', prompt: 'p' });
 
     expect(getLastCallMetadata()).toEqual({ model: 'gemini-3.5-flash-lite', responseId: 'resp_abc123' });
   });
@@ -46,7 +46,7 @@ describe('createGeminiJudge', () => {
     const client = fakeGeminiClient('{}');
     const { judge, getLastCallMetadata } = createGeminiJudge({ client, model: 'gemini-2.5-pro' });
 
-    await judge({ prompt: 'p' });
+    await judge({ kind: 'rolePlayCommunication', prompt: 'p' });
 
     expect((client.models.generateContent as ReturnType<typeof vi.fn>).mock.calls[0][0].model).toBe(
       'gemini-2.5-pro',
@@ -58,7 +58,7 @@ describe('createGeminiJudge', () => {
     const client = fakeGeminiClient('{}');
     const { judge } = createGeminiJudge({ client });
 
-    await judge({ prompt: 'p' });
+    await judge({ kind: 'rolePlayCommunication', prompt: 'p' });
 
     const call = (client.models.generateContent as ReturnType<typeof vi.fn>).mock.calls[0][0];
     expect(call.config?.maxOutputTokens).toBeGreaterThan(0);
@@ -69,7 +69,7 @@ describe('createGeminiJudge', () => {
     const client = fakeGeminiClient('{}');
     const { judge } = createGeminiJudge({ client });
 
-    await judge({ prompt: 'p' });
+    await judge({ kind: 'rolePlayCommunication', prompt: 'p' });
 
     const call = (client.models.generateContent as ReturnType<typeof vi.fn>).mock.calls[0][0];
     expect(call.config?.responseMimeType).toBe('application/json');
@@ -81,6 +81,6 @@ describe('createGeminiJudge', () => {
     };
     const { judge } = createGeminiJudge({ client });
 
-    await expect(judge({ prompt: 'p' })).rejects.toThrow(/no text/);
+    await expect(judge({ kind: 'rolePlayCommunication', prompt: 'p' })).rejects.toThrow(/no text/);
   });
 });

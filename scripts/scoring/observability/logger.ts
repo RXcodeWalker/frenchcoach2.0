@@ -9,6 +9,8 @@
  * contract that batchScore.ts's per-session try/catch relies on.
  */
 
+import type { JudgeKind } from '../../../src/domain/igcse/judgement/types';
+
 let debugEnabled = process.env.SCORING_DEBUG === '1';
 
 /** Call once from a CLI's arg parsing to turn on debug logging via --debug, independent of the env var. */
@@ -51,21 +53,35 @@ export async function logStage<T>(traceId: string, stage: string, fn: () => Prom
 export function logJudgeValidationFailure(
   traceId: string,
   sessionId: string,
+  judgeKind: JudgeKind,
   judgeAttempt: number,
   err: Error,
 ): void {
   process.stderr.write(
-    JSON.stringify({ traceId, sessionId, stage: 'scoreSpeaking', judgeAttempt, error: err.name, message: err.message }) +
-      '\n',
+    JSON.stringify({
+      traceId,
+      sessionId,
+      stage: 'scoreSpeaking',
+      judgeKind,
+      judgeAttempt,
+      error: err.name,
+      message: err.message,
+    }) + '\n',
   );
 }
 
 /**
- * How many judge calls a scored attempt took (1, or 2 after a validation
- * retry). Debug-gated like logStage, except when a retry happened — that is
- * always worth a line.
+ * How many judge calls one L2 call kind took in a scored attempt (1, or 2
+ * after a validation retry). scoring-prompt-v0.6: logged per kind, since the
+ * two calls retry independently. Debug-gated like logStage, except when a
+ * retry happened — that is always worth a line.
  */
-export function logJudgeAttempts(traceId: string, sessionId: string, judgeAttempts: number): void {
+export function logJudgeAttempts(
+  traceId: string,
+  sessionId: string,
+  judgeKind: JudgeKind,
+  judgeAttempts: number,
+): void {
   if (!debugEnabled && judgeAttempts <= 1) return;
-  process.stderr.write(JSON.stringify({ traceId, sessionId, stage: 'judgeAttempts', judgeAttempts }) + '\n');
+  process.stderr.write(JSON.stringify({ traceId, sessionId, stage: 'judgeAttempts', judgeKind, judgeAttempts }) + '\n');
 }

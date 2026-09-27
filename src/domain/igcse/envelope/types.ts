@@ -12,7 +12,13 @@
 
 import type { EvidenceProfile } from '../evidence/types';
 import type { CriterionAdjustment } from '../guardrails/types';
-import type { ContentProvenance, EvidenceSpan, SpeakingTranscript } from '../judgement/types';
+import type {
+  ContentProvenance,
+  ErrorFrequency,
+  EvidenceSpan,
+  QolError,
+  SpeakingTranscript,
+} from '../judgement/types';
 import type { SttMetadata } from '../stt/types';
 
 /**
@@ -20,7 +26,15 @@ import type { SttMetadata } from '../stt/types';
  * evidence ceiling applied to a criterion mark. Always [] while
  * EVIDENCE_CEILINGS is empty.
  */
-export const ENVELOPE_SCHEMA_VERSION = 'envelope-v0.3';
+/*
+ * v0.4 (scoring-prompt-v0.6, QoL in its own judge call): `qualityOfLanguage`
+ * gained `errors` and `errorFrequency` (the basis the QoL judge listed before
+ * choosing its band), and `qualityOfLanguageLlm` records the second call's
+ * provider/model/responseId. All three are optional in the type because a
+ * pre-v0.4 envelope never had them and the migration does not fabricate them;
+ * every v0.4 writer sets them.
+ */
+export const ENVELOPE_SCHEMA_VERSION = 'envelope-v0.4';
 
 export interface VersionStack {
   /** Versions this envelope's own SHAPE — dispatched on like stt/schema.ts's schemaVersion. */
@@ -76,6 +90,14 @@ export interface EnvelopeBandCriterion {
   evidenceSpans: EvidenceSpan[];
 }
 
+/** v0.4: QoL carries the judge's error list and frequency reading. */
+export interface EnvelopeQualityOfLanguageCriterion extends EnvelopeBandCriterion {
+  /** Absent on pre-v0.4 envelopes (no error list existed). */
+  errors?: QolError[];
+  /** Absent on pre-v0.4 envelopes. Recorded, never mapped to the mark. */
+  errorFrequency?: ErrorFrequency;
+}
+
 export interface TranscriptVersion {
   schemaVersion: string;
   assemblerVersion: string;
@@ -95,7 +117,14 @@ export interface ScoringEnvelope {
   scoredAt: string;
   contentProvenance: ContentProvenance;
   versions: VersionStack;
+  /** Provenance of the L2 'rolePlayCommunication' call (the only L2 call before v0.4). */
   llm: LlmProvenance;
+  /**
+   * v0.4: provenance of the separate 'qualityOfLanguage' call. Can differ from
+   * `llm` after a Gemini→Groq fallback on one call only. Absent pre-v0.4, when
+   * `llm` served all three criteria.
+   */
+  qualityOfLanguageLlm?: LlmProvenance;
   /** Embedded wholesale — see file header. */
   stt: SttMetadata;
   transcriptVersion: TranscriptVersion;
@@ -118,7 +147,7 @@ export interface ScoringEnvelope {
   /** Post-clamp. When a ceiling applied, `criterionAdjustments` holds L2's proposed mark. */
   communication: EnvelopeBandCriterion;
   /** Post-clamp — see `communication`. */
-  qualityOfLanguage: EnvelopeBandCriterion;
+  qualityOfLanguage: EnvelopeQualityOfLanguageCriterion;
   /** rolePlay.total + communication.mark + qualityOfLanguage.mark, recomputed after any clamp. */
   total: number;
 

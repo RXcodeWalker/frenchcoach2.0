@@ -74,6 +74,25 @@ const BandCriterionSchema = z.object({
 // Loosely validated — these are audit snapshots (evidenceProfileSnapshot,
 // transcriptSnapshot) and stt, not re-derived contracts; ScoringEnvelope's own
 // TypeScript types are the source of truth for their exact shape.
+// v0.4: optional — pre-v0.4 envelopes have no error list, and the migration
+// leaves absent as absent rather than fabricating an empty (i.e. "no errors") list.
+const QualityOfLanguageCriterionSchema = BandCriterionSchema.extend({
+  errors: z
+    .array(
+      z.object({
+        source: z.enum(['topic1', 'topic2']),
+        turnId: z.string(),
+        quote: z.string(),
+        kind: z.enum(['grammar', 'vocabulary']),
+        correction: z.string(),
+      }),
+    )
+    .optional(),
+  errorFrequency: z
+    .enum(['no errors', 'occasional errors', 'some errors', 'frequent errors', 'rarely accurate', 'almost always inaccurate'])
+    .optional(),
+});
+
 const ScoringEnvelopeSchema = z.object({
   attemptId: z.string(),
   sessionId: z.string(),
@@ -81,6 +100,7 @@ const ScoringEnvelopeSchema = z.object({
   contentProvenance: z.enum(['original-practice', 'confidential-internal']),
   versions: VersionStackSchema,
   llm: LlmProvenanceSchema,
+  qualityOfLanguageLlm: LlmProvenanceSchema.optional(),
   stt: z.record(z.string(), z.unknown()),
   transcriptVersion: z.object({ schemaVersion: z.string(), assemblerVersion: z.string() }),
   transcriptConfidence: z.object({
@@ -94,7 +114,7 @@ const ScoringEnvelopeSchema = z.object({
   questionSetHash: z.string().optional(),
   rolePlayTasks: z.array(RolePlayTaskSchema),
   communication: BandCriterionSchema,
-  qualityOfLanguage: BandCriterionSchema,
+  qualityOfLanguage: QualityOfLanguageCriterionSchema,
   total: z.number(),
   // Required at v0.3. C0's migrateEnvelope backfills it to [] for every
   // pre-v0.3 envelope, so it is always present by the time zod sees it.
@@ -125,6 +145,7 @@ export const KNOWN_ENVELOPE_SCHEMA_VERSIONS = [
   'envelope-v0.1',
   'envelope-v0.2',
   'envelope-v0.3',
+  'envelope-v0.4',
 ] as const;
 
 export type KnownEnvelopeSchemaVersion = (typeof KNOWN_ENVELOPE_SCHEMA_VERSIONS)[number];
@@ -160,6 +181,10 @@ function isNewerThanThisBuild(version: KnownEnvelopeSchemaVersion): boolean {
  *   was written by a build with no ceiling application at all, so [] is the
  *   only truthful backfill — it asserts "no clamp was applied", which is
  *   exactly what was the case.
+ * v0.3 -> v0.4: qualityOfLanguage.errors/errorFrequency and
+ *   qualityOfLanguageLlm added (QoL in its own judge call). Nothing to
+ *   backfill: a pre-v0.4 attempt listed no errors and made no second call, so
+ *   absent stays absent (as with v0.1 -> v0.2's questionSetId). Version stamp only.
  */
 export function migrateEnvelope(raw: unknown, from: KnownEnvelopeSchemaVersion): unknown {
   if (typeof raw !== 'object' || raw === null) return raw;

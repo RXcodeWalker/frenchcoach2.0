@@ -117,6 +117,7 @@ describe('envelope schema forward migration (C0)', () => {
   it('is append-only — v0.1 and v0.2 are never dropped, so an old row stays readable after a revert', () => {
     expect(KNOWN_ENVELOPE_SCHEMA_VERSIONS).toContain('envelope-v0.1');
     expect(KNOWN_ENVELOPE_SCHEMA_VERSIONS).toContain('envelope-v0.2');
+    expect(KNOWN_ENVELOPE_SCHEMA_VERSIONS).toContain('envelope-v0.3');
   });
 
   it('parses a persisted envelope-v0.1 envelope and stamps it at the current version', () => {
@@ -154,6 +155,49 @@ describe('envelope schema forward migration (C0)', () => {
       criterionAdjustments: unknown;
     };
     expect(migrated.criterionAdjustments).toEqual([]);
+  });
+
+  it('parses a persisted envelope-v0.3 envelope: no QoL error list or second-call provenance is fabricated', () => {
+    const raw = { ...persistedEnvelope('envelope-v0.3'), criterionAdjustments: [] };
+    const parsed = parseScoringEnvelope(raw);
+    expect(parsed.versions.envelopeSchemaVersion).toBe(ENVELOPE_SCHEMA_VERSION);
+    expect(parsed.qualityOfLanguage.mark).toBe(8);
+    expect(parsed.qualityOfLanguage).not.toHaveProperty('errors');
+    expect(parsed.qualityOfLanguage).not.toHaveProperty('errorFrequency');
+    expect(parsed).not.toHaveProperty('qualityOfLanguageLlm');
+  });
+
+  it('parses an envelope-v0.4 envelope with QoL errors, errorFrequency and qualityOfLanguageLlm', () => {
+    const base = persistedEnvelope('envelope-v0.4');
+    const raw = {
+      ...base,
+      criterionAdjustments: [],
+      qualityOfLanguageLlm: { provider: 'groq', model: 'llama', selfConsistencyRuns: 1, responseId: 'r-2' },
+      qualityOfLanguage: {
+        ...(base.qualityOfLanguage as Record<string, unknown>),
+        errors: [{ source: 'topic1', turnId: 'q1', quote: 'je faire', kind: 'grammar', correction: 'je fais' }],
+        errorFrequency: 'frequent errors',
+      },
+    };
+    const parsed = parseScoringEnvelope(raw);
+    expect(parsed.qualityOfLanguage.errors).toHaveLength(1);
+    expect(parsed.qualityOfLanguage.errorFrequency).toBe('frequent errors');
+    expect(parsed.qualityOfLanguageLlm?.provider).toBe('groq');
+    expect(parsed.llm.provider).toBe('gemini');
+  });
+
+  it('rejects a v0.4 QoL error citing role play', () => {
+    const base = persistedEnvelope('envelope-v0.4');
+    const raw = {
+      ...base,
+      criterionAdjustments: [],
+      qualityOfLanguage: {
+        ...(base.qualityOfLanguage as Record<string, unknown>),
+        errors: [{ source: 'rolePlay', turnId: 't1', quote: 'x', kind: 'grammar', correction: 'y' }],
+        errorFrequency: 'some errors',
+      },
+    };
+    expect(() => parseScoringEnvelope(raw)).toThrow(ScoringEnvelopeValidationError);
   });
 
   it('throws on an entirely unknown envelopeSchemaVersion', () => {

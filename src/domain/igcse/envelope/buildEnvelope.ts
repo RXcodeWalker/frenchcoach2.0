@@ -28,6 +28,7 @@ import { ENVELOPE_SCHEMA_VERSION } from './types';
 import type {
   Criterion,
   EnvelopeBandCriterion,
+  EnvelopeQualityOfLanguageCriterion,
   EnvelopeRolePlayTask,
   LlmProvenance,
   ScoringEnvelope,
@@ -46,7 +47,10 @@ export interface BuildScoringEnvelopeInput {
   transcriptVersion: TranscriptVersion;
   transcriptQuality: TranscriptQuality;
   userCorrected: boolean;
+  /** Provenance of the 'rolePlayCommunication' L2 call. */
   llm: LlmProvenance;
+  /** v0.4: provenance of the 'qualityOfLanguage' L2 call. */
+  qualityOfLanguageLlm: LlmProvenance;
   versions: {
     rubricVersion: string;
     scoringEngineVersion: string;
@@ -164,11 +168,17 @@ export function buildScoringEnvelope(input: BuildScoringEnvelopeInput): ScoringE
     'communication',
     adjustmentFor('communication'),
   );
-  const qualityOfLanguage = toEnvelopeBandCriterion(
-    input.assessment.qualityOfLanguage,
-    'qualityOfLanguage',
-    adjustmentFor('qualityOfLanguage'),
-  );
+  // v0.4: the error list and frequency reading ride along unchanged — a
+  // clamp moves the mark/band, never the evidence the judge recorded.
+  const qualityOfLanguage: EnvelopeQualityOfLanguageCriterion = {
+    ...toEnvelopeBandCriterion(
+      input.assessment.qualityOfLanguage,
+      'qualityOfLanguage',
+      adjustmentFor('qualityOfLanguage'),
+    ),
+    errors: input.assessment.qualityOfLanguage.errors,
+    errorFrequency: input.assessment.qualityOfLanguage.errorFrequency,
+  };
 
   // Recomputed from the post-clamp marks rather than taken from
   // assessment.total, which is L2's pre-clamp sum. Role play is out of a
@@ -182,6 +192,7 @@ export function buildScoringEnvelope(input: BuildScoringEnvelopeInput): ScoringE
     contentProvenance: input.transcript.contentProvenance,
     versions,
     llm: input.llm,
+    qualityOfLanguageLlm: input.qualityOfLanguageLlm,
     stt: input.stt,
     transcriptVersion: input.transcriptVersion,
     transcriptConfidence: {

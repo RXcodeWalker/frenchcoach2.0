@@ -65,6 +65,7 @@ function envelopeInput(
     transcriptQuality: { meanWordConfidence: 1, lowConfidenceSpanRatio: 0, lowConfidenceSpanCount: 0 },
     userCorrected: false,
     llm: { provider: 'gemini', model: 'pin', selfConsistencyRuns: 1 },
+    qualityOfLanguageLlm: { provider: 'gemini', model: 'pin', selfConsistencyRuns: 1 },
     versions: {
       rubricVersion: 'pin',
       scoringEngineVersion: 'pin',

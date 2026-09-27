@@ -1,17 +1,25 @@
 /**
  * S4 orchestration: transcriptStore.load -> toSpeakingTranscript ->
- * buildEvidenceSubset -> scoreSpeaking -> buildScoringEnvelope.
+ * buildEvidenceSubset -> (L2 main call || L2 QoL call) -> runGuardrails -> buildScoringEnvelope.
+ *
+ * scoring-prompt-v0.6: L2 is two judge calls run CONCURRENTLY —
+ * 'rolePlayCommunication' and 'qualityOfLanguage' — so wall time is roughly
+ * the slower call, not the sum.
  *
  * Errors (ProvenanceError, JudgementValidationError) propagate unchanged —
  * the batch harness decides how to handle a failed attempt, not this function.
  * One exception: a JudgementValidationError (the judge replied, but the reply
  * failed parsing/validation) gets exactly one retry with a fresh createJudge()
- * instance before it propagates. Both failures are logged, and the number of
- * judge calls is recorded as `judgeAttempts` in the scoring logs (never in the
- * envelope, whose shape is unchanged).
+ * instance before it propagates. Each call kind has its OWN retry, so a bad
+ * QoL reply never re-runs role play/Communication (and vice versa). Failures
+ * are logged, and the number of judge calls per kind is recorded as
+ * `judgeAttempts` in the scoring logs (never in the envelope). A terminal
+ * failure of either call fails the whole attempt — no partial marks.
  *
- * createJudge is a factory dependency, called fresh once per attempt (never
- * memoized/shared) — see anthropicJudge.ts header for the race this avoids.
+ * createJudge is a factory dependency, called fresh once per judge call
+ * (never memoized/shared) — see anthropicJudge.ts header for the race this
+ * avoids; with two concurrent calls, sharing an instance would let one call's
+ * metadata overwrite the other's.
  */
 
 import * as crypto from 'node:crypto';
@@ -21,8 +29,13 @@ import { buildScoringEnvelope } from '../../src/domain/igcse/envelope/buildEnvel
 import type { ScoringEnvelope } from '../../src/domain/igcse/envelope/types';
 import { runGuardrails } from '../../src/domain/igcse/guardrails/runGuardrails';
 import { GUARDRAILS_VERSION } from '../../src/domain/igcse/guardrails/version';
-import { JudgementValidationError, scoreSpeaking } from '../../src/domain/igcse/judgement/scoreSpeaking';
-import type { Judge, SpeakingAssessment } from '../../src/domain/igcse/judgement/types';
+import {
+  combineAssessment,
+  JudgementValidationError,
+  scoreQualityOfLanguage,
+  scoreRolePlayAndCommunication,
+} from '../../src/domain/igcse/judgement/scoreSpeaking';
+import type { Judge, JudgeKind } from '../../src/domain/igcse/judgement/types';
 import { SCORING_PROMPT_VERSION } from '../../src/domain/igcse/judgement/version';
 import { RUBRIC_VERSION } from '../../src/domain/igcse/rubric';
 import { toSpeakingTranscript } from '../../src/domain/igcse/stt/project/toSpeakingTranscript';
@@ -30,19 +43,25 @@ import { summariseQuality } from '../../src/domain/igcse/stt/quality/summariseQu
 import type { SessionQuestionSet } from '../../src/domain/igcse/stt/types';
 import type { TranscriptStore } from '../../src/domain/igcse/stt/ports';
 import { resolveScoringEngineVersion } from './engineVersion';
-import type { LlmProviderName } from '../../src/domain/igcse/envelope/types';
+import type { LlmProvenance, LlmProviderName } from '../../src/domain/igcse/envelope/types';
 import { logJudgeAttempts, logJudgeValidationFailure, logStage } from './observability/logger';
 
 /**
- * Judge calls per scoring attempt: the first, plus one retry on a
- * JudgementValidationError. A provider-call failure is not retried here —
+ * Judge calls per L2 call kind per scoring attempt: the first, plus one retry
+ * on a JudgementValidationError. A provider-call failure is not retried here —
  * judgeFactory.ts already falls back from Gemini to Groq for those.
  */
 const MAX_JUDGE_ATTEMPTS = 2;
 
+export interface JudgeCallMetadata {
+  provider: LlmProviderName;
+  model: string;
+  responseId?: string;
+}
+
 export interface CreateJudgeResult {
   judge: Judge;
-  getLastCallMetadata: () => { provider: LlmProviderName; model: string; responseId?: string } | undefined;
+  getLastCallMetadata: () => JudgeCallMetadata | undefined;
 }
 
 export interface ScoreAttemptDeps {
@@ -81,35 +100,22 @@ export async function scoreAttempt(
   const session = await logStage(attemptId, 'transcriptStore.load', () => deps.transcriptStore.load(input.sessionId));
   const speakingTranscript = toSpeakingTranscript(session, input.questionSet);
   // Single build site (§9.4 R1): this same evidenceProfile object is injected
-  // into both scoreSpeaking (the prompt the LLM sees) and buildScoringEnvelope
+  // into both the main L2 call (the prompt the LLM sees) and buildScoringEnvelope
   // (the audited snapshot) — so they can never desync.
   const evidenceProfile = await logStage(attemptId, 'buildEvidenceProfile', async () =>
     buildEvidenceProfile(speakingTranscript),
   );
 
-  let assessment: SpeakingAssessment | undefined;
-  let llmMetadata: ReturnType<CreateJudgeResult['getLastCallMetadata']>;
-  let judgeAttempts = 0;
-  while (assessment === undefined) {
-    judgeAttempts += 1;
-    // Fresh factory call per judge call, including the retry — never reuse
-    // an instance (see the header on concurrent-call metadata bleed).
-    const { judge, getLastCallMetadata } = deps.createJudge();
-    try {
-      assessment = await logStage(attemptId, 'scoreSpeaking', () =>
-        scoreSpeaking(speakingTranscript, evidenceProfile, judge),
-      );
-      llmMetadata = getLastCallMetadata();
-    } catch (err) {
-      if (!(err instanceof JudgementValidationError)) throw err;
-      logJudgeValidationFailure(attemptId, input.sessionId, judgeAttempts, err);
-      if (judgeAttempts >= MAX_JUDGE_ATTEMPTS) throw err;
-    }
-  }
-  logJudgeAttempts(attemptId, input.sessionId, judgeAttempts);
-  if (!llmMetadata) {
-    throw new Error('scoreAttempt: createJudge() instance produced no call metadata after scoreSpeaking');
-  }
+  const judgeCall = <T>(kind: JudgeKind, call: (judge: Judge) => Promise<T>) =>
+    runJudgeCall(deps, attemptId, input.sessionId, kind, call);
+  // Concurrent: each call gets its own fresh judge instance(s) and its own retry.
+  const [main, qol] = await Promise.all([
+    judgeCall('rolePlayCommunication', (judge) =>
+      scoreRolePlayAndCommunication(speakingTranscript, evidenceProfile, judge),
+    ),
+    judgeCall('qualityOfLanguage', (judge) => scoreQualityOfLanguage(speakingTranscript, judge)),
+  ]);
+  const assessment = combineAssessment(main.result, qol.result);
 
   const guardrailReport = await logStage(attemptId, 'runGuardrails', async () =>
     runGuardrails(assessment, evidenceProfile, speakingTranscript),
@@ -131,12 +137,10 @@ export async function scoreAttempt(
     userCorrected: session.userCorrected,
     questionSetId: session.questionSetId,
     questionSetHash: session.questionSetHash,
-    llm: {
-      provider: llmMetadata.provider,
-      model: llmMetadata.model,
-      selfConsistencyRuns: 1,
-      ...(llmMetadata.responseId !== undefined ? { responseId: llmMetadata.responseId } : {}),
-    },
+    llm: toLlmProvenance(main.metadata),
+    // Recorded separately: after a Gemini→Groq fallback on one call only, the
+    // two calls can be served by different providers.
+    qualityOfLanguageLlm: toLlmProvenance(qol.metadata),
     versions: {
       rubricVersion: deps.versions?.rubricVersion ?? RUBRIC_VERSION,
       scoringEngineVersion: deps.versions?.scoringEngineVersion ?? resolveScoringEngineVersion(),
@@ -153,6 +157,51 @@ export async function scoreAttempt(
   });
 
   return envelope;
+}
+
+function toLlmProvenance(metadata: JudgeCallMetadata): LlmProvenance {
+  return {
+    provider: metadata.provider,
+    model: metadata.model,
+    selfConsistencyRuns: 1,
+    ...(metadata.responseId !== undefined ? { responseId: metadata.responseId } : {}),
+  };
+}
+
+const STAGE_BY_KIND: Record<JudgeKind, string> = {
+  rolePlayCommunication: 'scoreRolePlayAndCommunication',
+  qualityOfLanguage: 'scoreQualityOfLanguage',
+};
+
+/**
+ * One L2 call kind with its own retry: a fresh createJudge() per judge call,
+ * including the retry — never reuse an instance (see the header).
+ */
+async function runJudgeCall<T>(
+  deps: ScoreAttemptDeps,
+  attemptId: string,
+  sessionId: string,
+  kind: JudgeKind,
+  call: (judge: Judge) => Promise<T>,
+): Promise<{ result: T; metadata: JudgeCallMetadata }> {
+  for (let judgeAttempts = 1; ; judgeAttempts += 1) {
+    const { judge, getLastCallMetadata } = deps.createJudge();
+    let result: T;
+    try {
+      result = await logStage(attemptId, STAGE_BY_KIND[kind], () => call(judge));
+    } catch (err) {
+      if (!(err instanceof JudgementValidationError)) throw err;
+      logJudgeValidationFailure(attemptId, sessionId, kind, judgeAttempts, err);
+      if (judgeAttempts >= MAX_JUDGE_ATTEMPTS) throw err;
+      continue;
+    }
+    logJudgeAttempts(attemptId, sessionId, kind, judgeAttempts);
+    const metadata = getLastCallMetadata();
+    if (!metadata) {
+      throw new Error(`scoreAttempt: createJudge() instance produced no call metadata after the ${kind} call`);
+    }
+    return { result, metadata };
+  }
 }
 
 /**

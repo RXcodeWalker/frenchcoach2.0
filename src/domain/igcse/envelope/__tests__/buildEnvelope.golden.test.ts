@@ -1,13 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { buildEvidenceProfile } from '../../evidence/buildEvidence';
-import { buildValidJudgeOutput, PRACTICE_TRANSCRIPT } from '../../judgement/__tests__/fixtures';
-import { parseAndValidateJudgeOutput } from '../../judgement/schema';
+import { buildValidAssessment, PRACTICE_TRANSCRIPT } from '../../judgement/__tests__/fixtures';
 import { buildScoringEnvelope } from '../buildEnvelope';
 
 const FIXED_SCORED_AT = '2026-07-10T00:00:00.000Z';
 
 function buildInput() {
-  const assessment = parseAndValidateJudgeOutput(buildValidJudgeOutput(), PRACTICE_TRANSCRIPT);
+  const assessment = buildValidAssessment();
   const evidenceProfile = buildEvidenceProfile(PRACTICE_TRANSCRIPT);
 
   return {
@@ -38,6 +37,12 @@ function buildInput() {
       selfConsistencyRuns: 1 as const,
       responseId: 'resp-1',
     },
+    qualityOfLanguageLlm: {
+      provider: 'gemini' as const,
+      model: 'gemini-2.5-flash-lite',
+      selfConsistencyRuns: 1 as const,
+      responseId: 'resp-1',
+    },
     versions: {
       rubricVersion: 'rubric-v0.1',
       scoringEngineVersion: 'engine-v0.1',
@@ -59,7 +64,7 @@ describe('buildScoringEnvelope golden regression', () => {
       scoredAt: FIXED_SCORED_AT,
       contentProvenance: 'original-practice',
       versions: {
-        envelopeSchemaVersion: 'envelope-v0.3',
+        envelopeSchemaVersion: 'envelope-v0.4',
         rubricVersion: 'rubric-v0.1',
         scoringEngineVersion: 'engine-v0.1',
         evidenceDetectorVersion: 'detectors-v0.1',
@@ -69,6 +74,12 @@ describe('buildScoringEnvelope golden regression', () => {
         gradeBoundarySeries: 'none',
       },
       llm: {
+        provider: 'gemini',
+        model: 'gemini-2.5-flash-lite',
+        selfConsistencyRuns: 1,
+        responseId: 'resp-1',
+      },
+      qualityOfLanguageLlm: {
         provider: 'gemini',
         model: 'gemini-2.5-flash-lite',
         selfConsistencyRuns: 1,
@@ -114,6 +125,17 @@ describe('buildScoringEnvelope golden regression', () => {
         confidence: 'unassessed',
         justification: expect.any(String),
         evidenceSpans: expect.any(Array),
+        // envelope-v0.4: the QoL judge's error list and frequency reading.
+        errors: [
+          {
+            source: 'topic1',
+            turnId: 'q1',
+            quote: 'Le samedi j\u2019ai joué',
+            kind: 'grammar',
+            correction: 'Samedi dernier, j\u2019ai joué',
+          },
+        ],
+        errorFrequency: 'some errors',
       },
       // Unchanged by Workstream C: with no clamp, recomputing
       // rolePlay.total + communication.mark + qualityOfLanguage.mark is

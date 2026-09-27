@@ -97,8 +97,17 @@ export interface ConversationTurn {
   examinerSupport?: ExaminerSupport;
 }
 
+/**
+ * Which L2 call a request belongs to (scoring-prompt-v0.6). Role play and
+ * Communication are marked in one call; Quality of Language in its own call,
+ * so the QoL band is not judged in the same context as Communication. Real
+ * providers ignore `kind` (they only send `prompt`); fake judges switch on it.
+ */
+export type JudgeKind = 'rolePlayCommunication' | 'qualityOfLanguage';
+
 /** Injected LLM seam — no model/temperature/retry in S1. */
 export interface JudgeRequest {
+  kind: JudgeKind;
   prompt: string;
 }
 
@@ -140,9 +149,46 @@ export interface BandAssessment {
   evidenceSpans: EvidenceSpan[];
 }
 
+/**
+ * One grammar/vocabulary error the QoL judge listed before choosing a band.
+ * `quote` is grounded in that one turn's candidate response only — see
+ * judgement/schema.ts::buildTopicTurnCorpora.
+ */
+export interface QolError {
+  source: 'topic1' | 'topic2';
+  turnId: string;
+  quote: string;
+  kind: 'grammar' | 'vocabulary';
+  correction: string;
+}
+
+/**
+ * The booklet's own frequency wordings (Table C, 0520/03/TN, p.12), plus
+ * 'no errors'. Recorded as the judge's reading of its error list — never
+ * mapped to a band or mark.
+ */
+export type ErrorFrequency =
+  | 'no errors'
+  | 'occasional errors'
+  | 'some errors'
+  | 'frequent errors'
+  | 'rarely accurate'
+  | 'almost always inaccurate';
+
+export interface QualityOfLanguageAssessment extends BandAssessment {
+  errors: QolError[];
+  errorFrequency: ErrorFrequency;
+}
+
+/** Output of the 'rolePlayCommunication' L2 call. */
+export interface RolePlayCommunicationAssessment {
+  rolePlay: { tasks: RolePlayTaskMark[]; total: number };
+  communication: BandAssessment;
+}
+
 export interface SpeakingAssessment {
   rolePlay: { tasks: RolePlayTaskMark[]; total: number };
   communication: BandAssessment;
-  qualityOfLanguage: BandAssessment;
+  qualityOfLanguage: QualityOfLanguageAssessment;
   total: number;
 }

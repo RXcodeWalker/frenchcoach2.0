@@ -3,7 +3,7 @@
  * the three-layer pipeline this guardrail belongs to). Every evidence span
  * quoted in an L2 assessment must be a substring of the
  * stored transcript (normalized). On real judge output this is silent by
- * construction — judgement/schema.ts::parseAndValidateJudgeOutput already
+ * construction — judgement/schema.ts (parseRolePlayCommunicationOutput / parseQualityOfLanguageOutput) already
  * rejects ungrounded quotes at parse time. This guardrail exists as
  * defense-in-depth for any future path that builds a SpeakingAssessment
  * without going through L2 parse, and as an independently testable L3 unit.
@@ -11,9 +11,19 @@
  * Role-play spans are grounded per task (P0 step 4), matching the parse-time
  * rule in judgement/schema.ts: a task's quote must come from that task's own
  * response, not from any role-play response.
+ *
+ * scoring-prompt-v0.6: QoL `errors[].quote` is verified per turn, against the
+ * same buildTopicTurnCorpora the parse-time rule uses — each error quote must
+ * come from the candidate response of the (source, turnId) it names.
  */
 
-import { buildEvidenceCorpora, buildRolePlayTaskCorpora, isQuoteGrounded } from '../judgement/schema';
+import {
+  buildEvidenceCorpora,
+  buildRolePlayTaskCorpora,
+  buildTopicTurnCorpora,
+  isQuoteGrounded,
+  topicTurnKey,
+} from '../judgement/schema';
 import type { EvidenceSpan, SpeakingAssessment, SpeakingTranscript } from '../judgement/types';
 import type { GuardrailTrigger } from './types';
 
@@ -51,5 +61,19 @@ export function verifyQuotes(
     ),
     ...verifySpans(assessment.communication.evidenceSpans, bySource, 'communication'),
     ...verifySpans(assessment.qualityOfLanguage.evidenceSpans, bySource, 'qualityOfLanguage'),
+    ...verifyQolErrors(assessment, transcript),
   ];
+}
+
+function verifyQolErrors(assessment: SpeakingAssessment, transcript: SpeakingTranscript): GuardrailTrigger[] {
+  const turnCorpora = buildTopicTurnCorpora(transcript);
+  return assessment.qualityOfLanguage.errors
+    .filter((error) => !isQuoteGrounded(error.quote, turnCorpora.get(topicTurnKey(error.source, error.turnId)) ?? ''))
+    .map((error) => ({
+      id: 'quote_verification_failed',
+      message: `qualityOfLanguage error: quote not grounded in that turn's candidate response (source=${error.source}, turnId=${error.turnId}): "${error.quote}"`,
+      criterion: 'qualityOfLanguage',
+      source: error.source,
+      quote: error.quote,
+    }));
 }

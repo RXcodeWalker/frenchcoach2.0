@@ -8,13 +8,22 @@ import {
   PRINCIPLE_TC_JUST,
 } from '../../canonical';
 import { buildEvidenceProfile } from '../../evidence/buildEvidence';
-import { buildJudgementPrompt, _PROMPT_EVIDENCE_ALLOW_LIST } from '../prompt';
+import {
+  buildQualityOfLanguagePrompt,
+  buildRolePlayCommunicationPrompt,
+  QOL_NO_MINOR_ALLOWANCE_LINE,
+  QOL_NO_QUANTITY_LINE,
+  QOL_NOT_A_FORMULA_LINE,
+  QOL_QUOTE_RULE_LINE,
+  _PROMPT_EVIDENCE_ALLOW_LIST,
+  _QOL_JSON_OUTPUT_CONTRACT,
+} from '../prompt';
 import { PRACTICE_TRANSCRIPT } from './fixtures';
 import type { SpeakingTranscript } from '../types';
 
-describe('buildJudgementPrompt', () => {
+describe('buildRolePlayCommunicationPrompt', () => {
   const evidence = buildEvidenceProfile(PRACTICE_TRANSCRIPT);
-  const prompt = buildJudgementPrompt(PRACTICE_TRANSCRIPT, evidence);
+  const prompt = buildRolePlayCommunicationPrompt(PRACTICE_TRANSCRIPT, evidence);
 
   it('states examiner role', () => {
     expect(prompt).toContain('Cambridge IGCSE French 0520 Paper 3 Speaking examiner');
@@ -32,10 +41,14 @@ describe('buildJudgementPrompt', () => {
     }
   });
 
-  it('includes verbatim quality of language band descriptors', () => {
+  it('scoring-prompt-v0.6: carries no Table C and says QoL is marked separately', () => {
+    expect(prompt).not.toContain('Table C');
     for (const bullet of QOL_13_15) {
-      expect(prompt).toContain(bullet);
+      expect(prompt).not.toContain(bullet);
     }
+    expect(prompt).toContain(
+      "Quality of Language is marked in a separate step. Mark Communication on Table B's descriptors only.",
+    );
   });
 
   it('includes topic conversation placement principles', () => {
@@ -77,7 +90,7 @@ describe('buildJudgementPrompt', () => {
   it('includes JSON output contract', () => {
     expect(prompt).toContain('"rolePlay"');
     expect(prompt).toContain('"communication"');
-    expect(prompt).toContain('"qualityOfLanguage"');
+    expect(prompt).not.toContain('"qualityOfLanguage"');
     expect(prompt).toContain('bestFitPlacement');
   });
 
@@ -165,7 +178,7 @@ describe('buildJudgementPrompt', () => {
         PRACTICE_TRANSCRIPT.topicConversations[1],
       ],
     };
-    const supportedPrompt = buildJudgementPrompt(supported, buildEvidenceProfile(supported));
+    const supportedPrompt = buildRolePlayCommunicationPrompt(supported, buildEvidenceProfile(supported));
 
     it('renders the examiner support on the Asked line', () => {
       const turn = supported.topicConversations[0].turns[0];
@@ -202,9 +215,120 @@ describe('buildJudgementPrompt', () => {
       expect(prompt).toMatch(/ignore all punctuation/);
     });
 
-    it('tells the judge delivery cannot be heard and must be stated as not assessed', () => {
-      expect(prompt).toContain('Pronunciation, intonation and expression cannot be heard');
-      expect(prompt).toMatch(/state in the Quality of Language justification that delivery .* was not assessed/);
+    it('leaves the delivery rule to the QoL call', () => {
+      expect(prompt).not.toContain('Pronunciation, intonation and expression cannot be heard');
     });
+  });
+});
+
+describe('buildQualityOfLanguagePrompt (scoring-prompt-v0.6)', () => {
+  const prompt = buildQualityOfLanguagePrompt(PRACTICE_TRANSCRIPT);
+  const evidence = buildEvidenceProfile(PRACTICE_TRANSCRIPT);
+
+  it('includes Table C only — no Table A, no Table B', () => {
+    expect(prompt).toContain('Table C');
+    for (const bullet of QOL_13_15) expect(prompt).toContain(bullet);
+    expect(prompt).not.toContain('Table A');
+    expect(prompt).not.toContain('Table B');
+    for (const bullet of COMM_13_15) expect(prompt).not.toContain(bullet);
+    for (const bullet of RP_MARK_2) expect(prompt).not.toContain(bullet);
+  });
+
+  it('includes the topic-conversation placement principles', () => {
+    expect(prompt).toContain(PRINCIPLE_TC_CONVINCINGLY);
+    expect(prompt).toContain(PRINCIPLE_TC_ADEQUATELY);
+    expect(prompt).toContain(PRINCIPLE_TC_JUST);
+  });
+
+  it('includes the topic conversations only — no role play', () => {
+    for (const conv of PRACTICE_TRANSCRIPT.topicConversations) {
+      for (const turn of conv.turns) {
+        expect(prompt).toContain(`Asked: ${turn.questionPrompt}\nCandidate response: ${turn.candidateResponse}`);
+      }
+    }
+    for (const task of PRACTICE_TRANSCRIPT.rolePlay) {
+      expect(prompt).not.toContain(task.taskPrompt);
+    }
+    expect(prompt).not.toContain('[evidence source: rolePlay]');
+    expect(prompt).not.toContain('### Role play');
+  });
+
+  it('carries no L1 word counts or evidence section', () => {
+    expect(prompt).not.toContain('Layer 1 evidence');
+    expect(prompt).not.toMatch(/wordCount=/);
+    expect(prompt).not.toMatch(/candidateWordCount=/);
+    expect(prompt).not.toMatch(/candidateSpeakingDurationS=/);
+    expect(evidence.responseCountsByQuestion.length).toBeGreaterThan(0);
+  });
+
+  it('carries no examiner-support line', () => {
+    const supported = {
+      ...PRACTICE_TRANSCRIPT,
+      topicConversations: [
+        {
+          ...PRACTICE_TRANSCRIPT.topicConversations[0],
+          turns: [
+            {
+              ...PRACTICE_TRANSCRIPT.topicConversations[0].turns[0],
+              examinerSupport: { repetitions: 2, alternativeAsked: 'Alt ?', secondPartAsked: 'Pourquoi ?', extensionPrompts: 1 },
+            },
+            ...PRACTICE_TRANSCRIPT.topicConversations[0].turns.slice(1),
+          ],
+        },
+        PRACTICE_TRANSCRIPT.topicConversations[1],
+      ],
+    } as SpeakingTranscript;
+    const supportedPrompt = buildQualityOfLanguagePrompt(supported);
+    expect(supportedPrompt).not.toMatch(/Repeated ×/);
+    expect(supportedPrompt).not.toContain('Alternative question used');
+    expect(supportedPrompt).not.toContain('Extension prompts');
+  });
+
+  it("puts errors before the band in the JSON contract", () => {
+    const contract = _QOL_JSON_OUTPUT_CONTRACT;
+    expect(prompt).toContain(contract);
+    const errorsAt = contract.indexOf('"errors"');
+    expect(errorsAt).toBeGreaterThan(-1);
+    expect(errorsAt).toBeLessThan(contract.indexOf('"errorFrequency"'));
+    expect(contract.indexOf('"errorFrequency"')).toBeLessThan(contract.indexOf('"mark"'));
+    expect(contract.indexOf('"errorFrequency"')).toBeLessThan(contract.indexOf('"band"'));
+    expect(contract).not.toContain('"rolePlay"');
+  });
+
+  it('asks for every error, with a quote, before the band is chosen', () => {
+    expect(prompt).toMatch(/First list EVERY grammar and vocabulary error.*Only then choose the band\./);
+  });
+
+  it('contains the no-quantity and no-minor-allowance lines verbatim', () => {
+    expect(prompt).toContain(QOL_NO_QUANTITY_LINE);
+    expect(prompt).toContain(QOL_NO_MINOR_ALLOWANCE_LINE);
+  });
+
+  it('contains the not-a-formula invariant, right before the band instructions', () => {
+    expect(prompt).toContain(QOL_NOT_A_FORMULA_LINE);
+    expect(prompt.indexOf(QOL_NOT_A_FORMULA_LINE)).toBeLessThan(prompt.indexOf('Work bottom-up'));
+  });
+
+  it('contains the quote rule', () => {
+    expect(prompt).toContain(QOL_QUOTE_RULE_LINE);
+  });
+
+  it('reads the frequency wordings qualitatively, not as counts', () => {
+    expect(prompt).toContain(
+      "Read 'occasional', 'some' and 'frequent' against what the candidate actually said, not as counts.",
+    );
+    expect(prompt).toContain('13–15 allows only occasional errors in more complex language.');
+  });
+
+  it('carries the ASR rule (missing accents are not errors) and the delivery rule', () => {
+    expect(prompt).toContain('The transcript is speech-recognition output.');
+    expect(prompt).toContain('missing accents');
+    expect(prompt).toContain('Such differences are not errors.');
+    expect(prompt).toContain('Pronunciation, intonation and expression cannot be heard');
+    expect(prompt).toMatch(/state in the justification that delivery .* was not assessed/);
+  });
+
+  it('keeps positive marking', () => {
+    expect(prompt).toMatch(/Mark positively/);
   });
 });

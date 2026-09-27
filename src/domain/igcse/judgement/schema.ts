@@ -6,7 +6,6 @@
 import { z } from 'zod';
 import {
   COMMUNICATION,
-  IGCSE_0520_SPEAKING,
   QUALITY_OF_LANGUAGE,
   ROLE_PLAY,
 } from '../rubric';
@@ -15,8 +14,9 @@ import type {
   BandAssessment,
   BestFitPlacement,
   EvidenceSource,
+  QualityOfLanguageAssessment,
+  RolePlayCommunicationAssessment,
   RolePlayTaskMark,
-  SpeakingAssessment,
   SpeakingTranscript,
 } from './types';
 
@@ -85,15 +85,43 @@ const BandAssessmentSchema = z.object({
   evidenceSpans: z.array(EvidenceSpanSchema).min(1),
 });
 
-export const JudgeOutputSchema = z.object({
+/** scoring-prompt-v0.6 main call ('rolePlayCommunication'). */
+export const RolePlayCommunicationOutputSchema = z.object({
   rolePlay: z.object({
     tasks: z.array(RolePlayTaskMarkSchema).length(ROLE_PLAY.tasks),
   }),
   communication: BandAssessmentSchema,
-  qualityOfLanguage: BandAssessmentSchema,
 });
 
-export type JudgeOutput = z.infer<typeof JudgeOutputSchema>;
+export type RolePlayCommunicationOutput = z.infer<typeof RolePlayCommunicationOutputSchema>;
+
+// QoL is for "performance in both topic conversations" (p.12): its error
+// quotes and evidence spans may cite topic1/topic2 only — never role play.
+const TopicSourceSchema = z.enum(['topic1', 'topic2']);
+
+const QolErrorSchema = z.object({
+  source: TopicSourceSchema,
+  turnId: z.string(),
+  quote: z.string(),
+  kind: z.enum(['grammar', 'vocabulary']),
+  correction: z.string(),
+});
+
+/** scoring-prompt-v0.6 QoL call ('qualityOfLanguage'). */
+export const QualityOfLanguageOutputSchema = BandAssessmentSchema.extend({
+  errors: z.array(QolErrorSchema),
+  errorFrequency: z.enum([
+    'no errors',
+    'occasional errors',
+    'some errors',
+    'frequent errors',
+    'rarely accurate',
+    'almost always inaccurate',
+  ]),
+  evidenceSpans: z.array(z.object({ source: TopicSourceSchema, quote: z.string() })).min(1),
+});
+
+export type QualityOfLanguageOutput = z.infer<typeof QualityOfLanguageOutputSchema>;
 
 // ── Canonical descriptor index ────────────────────────────────────────────────
 
@@ -151,6 +179,27 @@ export function buildEvidenceCorpora(transcript: SpeakingTranscript): Record<Evi
  */
 export function buildRolePlayTaskCorpora(transcript: SpeakingTranscript): Map<string, string> {
   return new Map(transcript.rolePlay.map((t) => [t.taskId, t.candidateResponse]));
+}
+
+/**
+ * scoring-prompt-v0.6: QoL error quotes are grounded per turn —
+ * `${conversationId}:${turnId}` → that turn's candidateResponse only. Same
+ * precedent as buildRolePlayTaskCorpora: the pooled topic corpus (answers
+ * joined with spaces) would accept a quote straddling two answers, or one
+ * attributed to no particular answer. The key needs both fields because turn
+ * ids repeat across topics (q1/q2 in both). Examiner text (questionPrompt,
+ * examinerSupport) is never in a corpus, so it can never ground a quote.
+ */
+export function buildTopicTurnCorpora(transcript: SpeakingTranscript): Map<string, string> {
+  return new Map(
+    transcript.topicConversations.flatMap((conv) =>
+      conv.turns.map((turn) => [topicTurnKey(conv.conversationId, turn.turnId), turn.candidateResponse] as const),
+    ),
+  );
+}
+
+export function topicTurnKey(conversationId: 'topic1' | 'topic2', turnId: string): string {
+  return `${conversationId}:${turnId}`;
 }
 
 export function isQuoteGrounded(quote: string, corpus: string): boolean {
@@ -285,20 +334,23 @@ function validateTranscriptStructure(transcript: SpeakingTranscript): void {
   }
 }
 
+function zodIssues(error: z.ZodError): string {
+  return error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ');
+}
+
 /**
- * Parse raw judge JSON, validate structure/traceability/evidence/placement,
- * derive totals, and return a typed SpeakingAssessment.
+ * Parse the 'rolePlayCommunication' judge reply: validate structure,
+ * traceability, per-task grounding and placement; derive the role-play total.
  */
-export function parseAndValidateJudgeOutput(
+export function parseRolePlayCommunicationOutput(
   raw: unknown,
   transcript: SpeakingTranscript,
-): SpeakingAssessment {
+): RolePlayCommunicationAssessment {
   validateTranscriptStructure(transcript);
 
-  const zodResult = JudgeOutputSchema.safeParse(raw);
+  const zodResult = RolePlayCommunicationOutputSchema.safeParse(raw);
   if (!zodResult.success) {
-    const issues = zodResult.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ');
-    throw new JudgementValidationError(`Judge output failed schema validation: ${issues}`);
+    throw new JudgementValidationError(`Judge output failed schema validation: ${zodIssues(zodResult.error)}`);
   }
 
   const output = zodResult.data;
@@ -325,26 +377,74 @@ export function parseAndValidateJudgeOutput(
   validateBandPlacement(output.communication, 'communication');
   validateEvidenceSpans(output.communication.evidenceSpans, corpora, 'communication');
 
-  // Quality of Language
-  validateBandDescriptors(output.qualityOfLanguage, qolDescriptorSet, 'qualityOfLanguage');
-  validateBandPlacement(output.qualityOfLanguage, 'qualityOfLanguage');
-  validateEvidenceSpans(output.qualityOfLanguage.evidenceSpans, corpora, 'qualityOfLanguage');
-
   const rolePlayTotal = output.rolePlay.tasks.reduce((sum, t) => sum + t.mark, 0);
   if (rolePlayTotal < 0 || rolePlayTotal > ROLE_PLAY.maxMarks) {
     throw new JudgementValidationError(`rolePlay total ${rolePlayTotal} out of range`);
   }
 
-  const total = rolePlayTotal + output.communication.mark + output.qualityOfLanguage.mark;
-  if (total < 0 || total > IGCSE_0520_SPEAKING.totalMarks) {
-    throw new JudgementValidationError(`total ${total} out of range`);
-  }
-
   return {
     rolePlay: { tasks: output.rolePlay.tasks, total: rolePlayTotal },
     communication: output.communication,
-    qualityOfLanguage: output.qualityOfLanguage,
-    total,
+  };
+}
+
+/**
+ * Each error must name an existing (source, turnId) and its quote must be
+ * grounded in THAT turn's candidate response only. Messages quote only the
+ * rejected span (candidate speech already in the envelope snapshot) — never
+ * examiner text.
+ */
+function validateQolErrors(output: QualityOfLanguageOutput, turnCorpora: Map<string, string>): void {
+  for (const error of output.errors) {
+    const corpus = turnCorpora.get(topicTurnKey(error.source, error.turnId));
+    if (corpus === undefined) {
+      throw new JudgementValidationError(
+        `qualityOfLanguage error: unknown turn (source=${error.source}, turnId=${JSON.stringify(error.turnId)})`,
+      );
+    }
+    if (!isQuoteGrounded(error.quote, corpus)) {
+      throw new JudgementValidationError(
+        `qualityOfLanguage error quote not grounded in that turn's candidate response (source=${error.source}, turnId=${error.turnId}): "${error.quote}"`,
+      );
+    }
+  }
+}
+
+/**
+ * Parse the 'qualityOfLanguage' judge reply: validate the error list's
+ * per-turn grounding, then the band block exactly as before (descriptors,
+ * placement, topic-level evidence grounding). errorFrequency is recorded, not
+ * enforced — no mapping from errors to band is applied here.
+ */
+export function parseQualityOfLanguageOutput(
+  raw: unknown,
+  transcript: SpeakingTranscript,
+): QualityOfLanguageAssessment {
+  validateTranscriptStructure(transcript);
+
+  const zodResult = QualityOfLanguageOutputSchema.safeParse(raw);
+  if (!zodResult.success) {
+    throw new JudgementValidationError(
+      `Quality of Language judge output failed schema validation: ${zodIssues(zodResult.error)}`,
+    );
+  }
+
+  const output = zodResult.data;
+  validateQolErrors(output, buildTopicTurnCorpora(transcript));
+
+  validateBandDescriptors(output, qolDescriptorSet, 'qualityOfLanguage');
+  validateBandPlacement(output, 'qualityOfLanguage');
+  validateEvidenceSpans(output.evidenceSpans, buildEvidenceCorpora(transcript), 'qualityOfLanguage');
+
+  return {
+    mark: output.mark,
+    band: output.band,
+    bestFitPlacement: output.bestFitPlacement,
+    descriptorsApplied: output.descriptorsApplied,
+    justification: output.justification,
+    evidenceSpans: output.evidenceSpans,
+    errors: output.errors,
+    errorFrequency: output.errorFrequency,
   };
 }
 

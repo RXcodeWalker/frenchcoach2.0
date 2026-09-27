@@ -7902,16 +7902,21 @@
     "scoredAt": "2025-01-01T00:00:00.000Z",
     "contentProvenance": "original-practice",
     "versions": {
-      "envelopeSchemaVersion": "envelope-v0.3",
+      "envelopeSchemaVersion": "envelope-v0.4",
       "rubricVersion": "rubric-v0.1",
       "scoringEngineVersion": "golden-fixture",
       "evidenceDetectorVersion": "detectors-v0.6",
-      "scoringPromptVersion": "scoring-prompt-v0.5",
-      "guardrailsVersion": "guardrails-v0.5",
+      "scoringPromptVersion": "scoring-prompt-v0.6",
+      "guardrailsVersion": "guardrails-v0.6",
       "calibrationVersion": "none",
       "gradeBoundarySeries": "none"
     },
     "llm": {
+      "provider": "gemini",
+      "model": "golden-fixture-no-llm",
+      "selfConsistencyRuns": 1
+    },
+    "qualityOfLanguageLlm": {
       "provider": "gemini",
       "model": "golden-fixture-no-llm",
       "selfConsistencyRuns": 1
@@ -8039,7 +8044,17 @@
           "source": "topic1",
           "quote": "Je préfère le sport"
         }
-      ]
+      ],
+      "errors": [
+        {
+          "source": "topic1",
+          "turnId": "q1",
+          "quote": "Le samedi j’ai joué",
+          "kind": "grammar",
+          "correction": "Samedi dernier, j’ai joué"
+        }
+      ],
+      "errorFrequency": "some errors"
     },
     "total": 25,
     "criterionAdjustments": [],

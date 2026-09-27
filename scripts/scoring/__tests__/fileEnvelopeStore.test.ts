@@ -5,8 +5,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createFileEnvelopeStore } from '../fileEnvelopeStore';
 import { buildScoringEnvelope } from '../../../src/domain/igcse/envelope/buildEnvelope';
 import { buildEvidenceProfile } from '../../../src/domain/igcse/evidence/buildEvidence';
-import { buildValidJudgeOutput, PRACTICE_TRANSCRIPT } from '../../../src/domain/igcse/judgement/__tests__/fixtures';
-import { parseAndValidateJudgeOutput } from '../../../src/domain/igcse/judgement/schema';
+import { buildValidAssessment, PRACTICE_TRANSCRIPT } from '../../../src/domain/igcse/judgement/__tests__/fixtures';
 
 let tmpRoot: string;
 
@@ -19,7 +18,7 @@ afterEach(async () => {
 });
 
 function buildTestEnvelope(attemptId: string, sessionId: string) {
-  const assessment = parseAndValidateJudgeOutput(buildValidJudgeOutput(), PRACTICE_TRANSCRIPT);
+  const assessment = buildValidAssessment();
   return buildScoringEnvelope({
     attemptId,
     sessionId,
@@ -43,6 +42,11 @@ function buildTestEnvelope(attemptId: string, sessionId: string) {
     transcriptQuality: { meanWordConfidence: 0.9, lowConfidenceSpanRatio: 0, lowConfidenceSpanCount: 0 },
     userCorrected: false,
     llm: {
+      provider: 'gemini',
+      model: 'gemini-2.5-flash-lite',
+      selfConsistencyRuns: 1,
+    },
+    qualityOfLanguageLlm: {
       provider: 'gemini',
       model: 'gemini-2.5-flash-lite',
       selfConsistencyRuns: 1,

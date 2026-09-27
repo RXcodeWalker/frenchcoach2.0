@@ -21,15 +21,14 @@ import { describe, expect, it } from 'vitest';
 import { buildEvidenceProfile } from '../../evidence/buildEvidence';
 import { EVIDENCE_CEILINGS } from '../../guardrails/config';
 import type { CriterionAdjustment } from '../../guardrails/types';
-import { buildValidJudgeOutput, PRACTICE_TRANSCRIPT } from '../../judgement/__tests__/fixtures';
-import { parseAndValidateJudgeOutput } from '../../judgement/schema';
+import { buildValidAssessment, PRACTICE_TRANSCRIPT } from '../../judgement/__tests__/fixtures';
 import { COMMUNICATION, QUALITY_OF_LANGUAGE } from '../../rubric';
 import type { MarkBand } from '../../rubric';
 import { buildScoringEnvelope } from '../buildEnvelope';
 import type { BuildScoringEnvelopeInput } from '../buildEnvelope';
 
 function buildInput(criterionAdjustments?: CriterionAdjustment[]): BuildScoringEnvelopeInput {
-  const assessment = parseAndValidateJudgeOutput(buildValidJudgeOutput(), PRACTICE_TRANSCRIPT);
+  const assessment = buildValidAssessment();
   return {
     attemptId: 'attempt-ceiling',
     sessionId: 'session-ceiling',
@@ -53,6 +52,7 @@ function buildInput(criterionAdjustments?: CriterionAdjustment[]): BuildScoringE
     transcriptQuality: { meanWordConfidence: 0.95, lowConfidenceSpanRatio: 0.02, lowConfidenceSpanCount: 1 },
     userCorrected: false,
     llm: { provider: 'gemini', model: 'gemini-2.5-flash-lite', selfConsistencyRuns: 1 },
+    qualityOfLanguageLlm: { provider: 'gemini', model: 'gemini-2.5-flash-lite', selfConsistencyRuns: 1 },
     versions: {
       rubricVersion: 'rubric-v0.1',
       scoringEngineVersion: 'engine-v0.1',
@@ -76,7 +76,7 @@ describe('L3 evidence ceiling application (Workstream C)', () => {
   const unclamped = buildScoringEnvelope(buildInput());
 
   it('is a no-op when no adjustment is present — the live path today', () => {
-    const assessment = parseAndValidateJudgeOutput(buildValidJudgeOutput(), PRACTICE_TRANSCRIPT);
+    const assessment = buildValidAssessment();
     expect(unclamped.criterionAdjustments).toEqual([]);
     // Marks and bands pass through from L2 untouched (I1).
     expect(unclamped.communication.mark).toBe(assessment.communication.mark);

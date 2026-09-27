@@ -22,7 +22,11 @@ import {
 } from '../../evidence/framework/markInfluence';
 import { buildEvidenceProfile } from '../../evidence/buildEvidence';
 import { EVIDENCE_CEILINGS } from '../config';
-import { _PROMPT_EVIDENCE_ALLOW_LIST, buildJudgementPrompt } from '../../judgement/prompt';
+import {
+  _PROMPT_EVIDENCE_ALLOW_LIST,
+  buildQualityOfLanguagePrompt,
+  buildRolePlayCommunicationPrompt,
+} from '../../judgement/prompt';
 import { PRACTICE_TRANSCRIPT } from '../../judgement/__tests__/fixtures';
 
 describe('no uncalibrated mark influence', () => {
@@ -182,14 +186,18 @@ describe('no uncalibrated mark influence', () => {
     // what the LLM receives — carries none of observations/features/
     // detectorRuns/detectorVersions, the other four EvidenceProfile fields.
     const evidence = buildEvidenceProfile(PRACTICE_TRANSCRIPT);
-    const prompt = buildJudgementPrompt(PRACTICE_TRANSCRIPT, evidence);
-
-    expect(prompt).not.toContain('"observations"');
-    expect(prompt).not.toContain('"features"');
-    expect(prompt).not.toContain('"detectorRuns"');
-    expect(prompt).not.toContain('"detectorVersions"');
-    expect(prompt).not.toMatch(/\bobservationId\b/);
-    expect(prompt).not.toMatch(/\bmarkInfluence\b/);
-    expect(prompt).not.toMatch(/\bskillNodeId\b/);
+    // scoring-prompt-v0.6: both L2 prompts are mark-influence channels.
+    for (const prompt of [
+      buildRolePlayCommunicationPrompt(PRACTICE_TRANSCRIPT, evidence),
+      buildQualityOfLanguagePrompt(PRACTICE_TRANSCRIPT),
+    ]) {
+      expect(prompt).not.toContain('"observations"');
+      expect(prompt).not.toContain('"features"');
+      expect(prompt).not.toContain('"detectorRuns"');
+      expect(prompt).not.toContain('"detectorVersions"');
+      expect(prompt).not.toMatch(/\bobservationId\b/);
+      expect(prompt).not.toMatch(/\bmarkInfluence\b/);
+      expect(prompt).not.toMatch(/\bskillNodeId\b/);
+    }
   });
 });

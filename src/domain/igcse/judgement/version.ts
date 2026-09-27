@@ -26,4 +26,18 @@
  *   rejected, and a silent task may be marked 0 with no evidence spans (with a
  *   matching prompt instruction).
  */
-export const SCORING_PROMPT_VERSION = 'scoring-prompt-v0.5';
+/*
+ * v0.6 (0520 Phase 1 completion — Quality of Language in its own judge call):
+ * L2 is now TWO prompts, each pinned in __tests__/version-pin.test.ts.
+ * - buildRolePlayCommunicationPrompt: Table A + Table B, full transcript with
+ *   examiner support and the L1 counts allow-list. Table C and the
+ *   qualityOfLanguage block are gone; a line says QoL is marked separately.
+ * - buildQualityOfLanguagePrompt: Table C only, topic conversations only (no
+ *   role play, no examiner support, no L1 word counts). The contract puts
+ *   `errors` first: the judge lists every error with a per-turn verbatim quote,
+ *   states the booklet frequency wording (`errorFrequency`, recorded, never
+ *   mapped to a mark), then best-fits the band holistically.
+ * - Parsing: QoL error quotes are grounded in that one turn's candidate
+ *   response (buildTopicTurnCorpora); QoL sources exclude rolePlay.
+ */
+export const SCORING_PROMPT_VERSION = 'scoring-prompt-v0.6';

@@ -1770,3 +1770,58 @@ standardisation phase).
 **`GEMINI_API_KEY` was not printed, logged, committed, or exposed at any
 point in this work** — only its presence and length were checked, and the
 throwaway verification script was deleted after the run.
+
+## 2026-09-27 — 0520 Phase 1 completion, Batch 1: Quality of Language in its own judge call (engine change)
+
+**What changed (implementation steps 1–8 and 10–12 of the approved plan; step 9 token capture, `judge:check`, and log entries a–c are Batches 2–3, not done here):**
+
+- **L2 is two judge calls**, run concurrently in `scoreAttempt` (`Promise.all`):
+  `'rolePlayCommunication'` (Tables A+B, full transcript with examiner support, L1 counts allow-list) and
+  `'qualityOfLanguage'` (Table C with its CEFR line, the TC best-fit principles and positive marking; topic
+  conversations only — no role play, no examiner-support lines, no L1 word counts). `JudgeRequest` gained `kind`;
+  real providers ignore it, fake judges switch on it.
+- **QoL contract puts `errors` first**: the judge lists every error (`source`, `turnId`, verbatim `quote`, `kind`,
+  `correction`), states `errorFrequency` in the booklet's own wording, then best-fits the band. `errorFrequency` is
+  recorded, never mapped to a mark (the not-a-formula invariant sits right before the band instructions). The
+  no-minor-allowance, no-quantity and quote-rule lines are rendered verbatim and pinned by `prompt.test.ts`.
+- **Per-turn grounding for error quotes** (`buildTopicTurnCorpora`, keyed `conversationId:turnId`): a quote must be
+  grounded in that one turn's candidate response. Rejected: unknown turn, wrong turn, right id in the other topic, a
+  quote straddling two answers, examiner question text, and any `rolePlay` source (errors and QoL evidence spans).
+  No accent folding — the strictness is unchanged.
+- **Retry per call** (`MAX_JUDGE_ATTEMPTS = 2` each, fresh `createJudge()` per judge call): a bad QoL reply never
+  re-runs RP/Communication. `logJudgeAttempts`/`logJudgeValidationFailure` now carry `judgeKind`. A terminal failure
+  of either call fails the attempt — no partial marks.
+- **Envelope `envelope-v0.4`** (appended to `KNOWN_ENVELOPE_SCHEMA_VERSIONS`): `qualityOfLanguage.errors` /
+  `errorFrequency` and `qualityOfLanguageLlm`. **Deviation from the plan's wording, same intent:** the three fields are
+  *optional* in the type and zod schema, because a migrated v0.3 envelope never had them and backfilling `[]` would
+  falsely assert "no errors found" — absent stays absent (the v0.1→v0.2 `questionSetId` precedent). Every v0.4 writer
+  sets all three.
+- **Guardrail** `verifyQuotes` also verifies QoL `errors[].quote` per turn → `GUARDRAILS_VERSION` `guardrails-v0.6`.
+  `GUARDRAILS_FIXTURE_HASH` did not move (clean fixtures produce no trigger), same as the v0.4/v0.5 bumps.
+- **Versions**: `SCORING_PROMPT_VERSION` `scoring-prompt-v0.6`; `version-pin.test.ts` pins two hashes
+  (main `59d95748…`, QoL `f1da2708…`). `RUBRIC_VERSION` unchanged — no rubric text changed.
+- **Minor implementation adaptations (behaviour as planned):** `scoreSpeaking()` is kept as a no-retry convenience that
+  runs both calls against one judge (production goes through `scoreAttempt`); `parseAndValidateJudgeOutput` /
+  `JudgeOutputSchema` / `buildJudgementPrompt` are replaced by the per-call functions. Test callers that only needed
+  "a valid SpeakingAssessment" now use the `buildValidAssessment()` fixture.
+
+**Verified (this session, branch `claude/vibrant-cori-x0fgjx`):**
+
+- `npm run typecheck`: clean. `npm run typecheck:server`: clean. `npm run typecheck:scripts`: only the 3 errors that
+  exist on the untouched base commit (`scripts/scoring/__tests__/supabaseEnvelopeStore.test.ts`,
+  `scripts/stt/__tests__/supabaseTranscriptStore.test.ts` ×2) — checked in a clean worktree of 7a97972; not touched.
+- `npm run lint`: 0 errors (22 pre-existing warnings, none in touched files).
+- `npm test`: 2298 passed, 2 failed — the same 2 pre-existing failures as the baseline run on 7a97972 before any
+  change (`learn/demand/__tests__/infer.test.ts`, `feedbackContractFixtures.test.ts`); baseline was 2254 passed.
+- `npm run score:golden`: two goldens (`clean-long-quote-verification`, `fabricated-quote`) updated deliberately with
+  `--update-goldens`. The diff is exactly the expected fields: `envelopeSchemaVersion` v0.3→v0.4,
+  `scoringPromptVersion` v0.5→v0.6, `guardrailsVersion` v0.5→v0.6, new `qualityOfLanguageLlm`, and new
+  `qualityOfLanguage.errors` / `errorFrequency`. No mark, band, total, trigger or evidence field moved; the three
+  assessment-less goldens are byte-identical. (A first update also moved a fixture justification string I had edited;
+  that edit was reverted so the diff is limited to the planned shape change.)
+- `npm run e2e:exam` (Playwright against the updated fake scoring server, which answers each call kind): 4/4 passed —
+  also confirms `envelopeView`/ExamResults read a v0.4 envelope end to end.
+
+**Explicitly not verified here:** any real-judge behaviour. Whether split A's QoL actually drops to ≤ 9, the
+Communication decision-rule signal, retry rates from per-turn grounding on real replies, and the measured cost of the
+second call are all Batch 2 (`npm run judge:check`) — nothing in this entry is evidence about them.

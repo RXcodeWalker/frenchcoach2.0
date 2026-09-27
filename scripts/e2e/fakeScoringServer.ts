@@ -25,7 +25,7 @@ import type { SessionTranscript } from '../../src/domain/igcse/stt/types';
 import type { TranscriptStore } from '../../src/domain/igcse/stt/ports';
 import { toSpeakingTranscript } from '../../src/domain/igcse/stt/project/toSpeakingTranscript';
 import type { SpeakingTranscript } from '../../src/domain/igcse/judgement/types';
-import type { JudgeOutput } from '../../src/domain/igcse/judgement/schema';
+import type { QualityOfLanguageOutput, RolePlayCommunicationOutput } from '../../src/domain/igcse/judgement/schema';
 import { buildRolePlayTaskCorpora } from '../../src/domain/igcse/judgement/schema';
 import { RP_MARK_2, COMM_13_15, QOL_13_15 } from '../../src/domain/igcse/canonical';
 import { buildEnvelopeView } from '../../src/domain/igcse/envelope/envelopeView';
@@ -60,13 +60,16 @@ function firstWords(text: string, n: number): string {
 }
 
 /**
- * Fixed valid top-band JudgeOutput, built from the REAL transcript's task ids
+ * Fixed valid top-band replies to both L2 calls (scoring-prompt-v0.6), built from the REAL transcript's task ids
  * and candidate text so every evidence span is genuinely grounded (never
  * fabricated quotes) — only the *marks* are fixed, not the traceability.
  * A silent role-play task (no words at all) is scored 0 with no spans, since
  * the schema forbids a non-zero mark with an empty evidenceSpans.
  */
-function buildFixedJudgeOutput(transcript: SpeakingTranscript): JudgeOutput {
+function buildFixedJudgeOutputs(transcript: SpeakingTranscript): {
+  main: RolePlayCommunicationOutput;
+  qualityOfLanguage: QualityOfLanguageOutput;
+} {
   const taskCorpora = buildRolePlayTaskCorpora(transcript);
 
   const tasks = transcript.rolePlay.map((t) => {
@@ -98,22 +101,28 @@ function buildFixedJudgeOutput(transcript: SpeakingTranscript): JudgeOutput {
 
   const band = { min: 13, max: 15, label: 'Very good' as const };
   return {
-    rolePlay: { tasks },
-    communication: {
-      mark: 15,
-      band,
-      bestFitPlacement: 'convincingly',
-      descriptorsApplied: [...COMM_13_15],
-      justification: '[fake-fixed-judge] Fixed top-band mark for E2E verification — not a real assessment.',
-      evidenceSpans: safeSpans,
+    main: {
+      rolePlay: { tasks },
+      communication: {
+        mark: 15,
+        band,
+        bestFitPlacement: 'convincingly',
+        descriptorsApplied: [...COMM_13_15],
+        justification: '[fake-fixed-judge] Fixed top-band mark for E2E verification — not a real assessment.',
+        evidenceSpans: safeSpans,
+      },
     },
+    // QoL may cite topic conversations only, so it gets no role-play fallback:
+    // an all-silent topic section cannot validate here (nor with a real judge).
     qualityOfLanguage: {
+      errors: [],
+      errorFrequency: 'no errors',
       mark: 15,
       band,
       bestFitPlacement: 'convincingly',
       descriptorsApplied: [...QOL_13_15],
       justification: '[fake-fixed-judge] Fixed top-band mark for E2E verification — not a real assessment.',
-      evidenceSpans: safeSpans,
+      evidenceSpans,
     },
   };
 }
@@ -165,13 +174,15 @@ app.post('/score', async (req: Request, res: Response) => {
   try {
     await transcriptStore.save(transcript);
     const speaking = toSpeakingTranscript(transcript, questionSet);
-    const fixedOutput = buildFixedJudgeOutput(speaking);
+    const fixedOutputs = buildFixedJudgeOutputs(speaking);
 
     const envelope = await scoreAttempt(
       {
         transcriptStore,
         createJudge: () => ({
-          judge: async () => ({ raw: JSON.stringify(fixedOutput) }),
+          judge: async (req) => ({
+            raw: JSON.stringify(req.kind === 'qualityOfLanguage' ? fixedOutputs.qualityOfLanguage : fixedOutputs.main),
+          }),
           getLastCallMetadata: () => ({ provider: 'gemini', model: 'e2e-fake-fixed-judge' }),
         }),
       },

@@ -4,8 +4,13 @@
  */
 
 import { RP_MARK_2, COMM_7_9, QOL_7_9 } from '../../canonical';
-import type { JudgeOutput } from '../schema';
-import type { SpeakingTranscript } from '../types';
+import {
+  parseQualityOfLanguageOutput,
+  parseRolePlayCommunicationOutput,
+} from '../schema';
+import type { QualityOfLanguageOutput, RolePlayCommunicationOutput } from '../schema';
+import { combineAssessment } from '../scoreSpeaking';
+import type { Judge, SpeakingAssessment, SpeakingTranscript } from '../types';
 
 /** Curly apostrophe (U+2019) in j'ai — tests apostrophe normalization. */
 const CURLY_APOSTROPHE = '\u2019';
@@ -75,8 +80,9 @@ export const PRACTICE_TRANSCRIPT: SpeakingTranscript = {
   ],
 };
 
-export function buildValidJudgeOutput(overrides?: Partial<JudgeOutput>): JudgeOutput {
-  const base: JudgeOutput = {
+/** Valid reply to the 'rolePlayCommunication' call for PRACTICE_TRANSCRIPT. */
+export function buildValidMainOutput(overrides?: Partial<RolePlayCommunicationOutput>): RolePlayCommunicationOutput {
+  const base: RolePlayCommunicationOutput = {
     rolePlay: {
       tasks: [
         {
@@ -122,21 +128,53 @@ export function buildValidJudgeOutput(overrides?: Partial<JudgeOutput>): JudgeOu
         { source: 'topic2', quote: 'Mon meilleur ami' },
       ],
     },
-    qualityOfLanguage: {
-      mark: 8,
-      band: { min: 7, max: 9, label: 'Satisfactory' },
-      bestFitPlacement: 'adequately',
-      descriptorsApplied: [QOL_7_9[0]],
-      justification: 'Satisfactory structures with frequent errors.',
-      evidenceSpans: [{ source: 'topic1', quote: 'Je préfère le sport' }],
-    },
   };
 
-  if (!overrides) return base;
+  return { ...base, ...overrides };
+}
 
-  return {
-    rolePlay: overrides.rolePlay ?? base.rolePlay,
-    communication: overrides.communication ?? base.communication,
-    qualityOfLanguage: overrides.qualityOfLanguage ?? base.qualityOfLanguage,
+/** Valid reply to the 'qualityOfLanguage' call for PRACTICE_TRANSCRIPT. */
+export function buildValidQolOutput(overrides?: Partial<QualityOfLanguageOutput>): QualityOfLanguageOutput {
+  const base: QualityOfLanguageOutput = {
+    errors: [
+      {
+        source: 'topic1',
+        turnId: 'q1',
+        quote: `Le samedi j${CURLY_APOSTROPHE}ai joué`,
+        kind: 'grammar',
+        correction: `Samedi dernier, j${CURLY_APOSTROPHE}ai joué`,
+      },
+    ],
+    errorFrequency: 'some errors',
+    mark: 8,
+    band: { min: 7, max: 9, label: 'Satisfactory' },
+    bestFitPlacement: 'adequately',
+    descriptorsApplied: [QOL_7_9[0]],
+    justification: 'Satisfactory structures with frequent errors.',
+    evidenceSpans: [{ source: 'topic1', quote: 'Je préfère le sport' }],
   };
+
+  return { ...base, ...overrides };
+}
+
+/** A Judge that answers each L2 call kind with the matching reply. */
+export function fakeJudgeFor(
+  main: unknown = buildValidMainOutput(),
+  qol: unknown = buildValidQolOutput(),
+): Judge {
+  return async (req) => ({
+    raw: JSON.stringify(req.kind === 'qualityOfLanguage' ? qol : main),
+  });
+}
+
+/** The SpeakingAssessment the two valid replies above parse to. */
+export function buildValidAssessment(
+  main: RolePlayCommunicationOutput = buildValidMainOutput(),
+  qol: QualityOfLanguageOutput = buildValidQolOutput(),
+  transcript: SpeakingTranscript = PRACTICE_TRANSCRIPT,
+): SpeakingAssessment {
+  return combineAssessment(
+    parseRolePlayCommunicationOutput(main, transcript),
+    parseQualityOfLanguageOutput(qol, transcript),
+  );
 }

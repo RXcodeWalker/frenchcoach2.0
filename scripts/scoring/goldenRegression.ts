@@ -79,6 +79,7 @@ export function computeGoldenCase(entry: (typeof SYNTHETIC_MANIFEST)[number]): G
       transcriptQuality: { meanWordConfidence: 1, lowConfidenceSpanRatio: 0, lowConfidenceSpanCount: 0 },
       userCorrected: false,
       llm: { provider: 'gemini', model: 'golden-fixture-no-llm', selfConsistencyRuns: 1 },
+      qualityOfLanguageLlm: { provider: 'gemini', model: 'golden-fixture-no-llm', selfConsistencyRuns: 1 },
       versions: {
         rubricVersion: RUBRIC_VERSION,
         scoringEngineVersion: 'golden-fixture',

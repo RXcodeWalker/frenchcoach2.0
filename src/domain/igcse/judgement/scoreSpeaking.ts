@@ -1,12 +1,28 @@
 /**
  * S1 Layer-2 scoring orchestration — provenance guard → prompt → judge → parse → validate.
+ *
+ * scoring-prompt-v0.6: L2 is two judge calls — role play + Communication
+ * (scoreRolePlayAndCommunication) and Quality of Language
+ * (scoreQualityOfLanguage) — combined by the pure combineAssessment. Retry
+ * policy is the caller's (scoreAttempt retries each call independently).
  */
 
 import type { EvidenceProfile } from '../evidence/types';
-import { parseAndValidateJudgeOutput } from './schema';
-import { JudgementValidationError } from './schema';
-import { buildJudgementPrompt } from './prompt';
-import type { Judge, SpeakingAssessment, SpeakingTranscript } from './types';
+import { IGCSE_0520_SPEAKING } from '../rubric';
+import {
+  JudgementValidationError,
+  parseQualityOfLanguageOutput,
+  parseRolePlayCommunicationOutput,
+} from './schema';
+import { buildQualityOfLanguagePrompt, buildRolePlayCommunicationPrompt } from './prompt';
+import type {
+  Judge,
+  JudgeKind,
+  QualityOfLanguageAssessment,
+  RolePlayCommunicationAssessment,
+  SpeakingAssessment,
+  SpeakingTranscript,
+} from './types';
 
 export class ProvenanceError extends Error {
   constructor(message: string) {
@@ -51,16 +67,63 @@ export function stripJsonFence(raw: string): string {
   return match ? match[1] : raw;
 }
 
+async function callJudge(judge: Judge, kind: JudgeKind, prompt: string): Promise<unknown> {
+  const { raw } = await judge({ kind, prompt });
+  try {
+    return JSON.parse(stripJsonFence(raw));
+  } catch {
+    throw new JudgementValidationError(
+      kind === 'qualityOfLanguage'
+        ? 'Quality of Language judge response is not valid JSON'
+        : 'Judge response is not valid JSON',
+    );
+  }
+}
+
 /**
- * Score a speaking transcript via an injected LLM judge port.
- * No network, retries, caching, or guardrails in S1.
+ * The 'rolePlayCommunication' L2 call.
  *
- * Phase 1 (§9.4 R1): evidence is now a parameter, not built internally — the
+ * Phase 1 (§9.4 R1): evidence is a parameter, not built internally — the
  * caller (scoreAttempt) builds the EvidenceProfile once and injects the same
  * object into both this prompt path and the envelope snapshot, so "the
- * profile the LLM saw === the audited snapshot" is a structural guarantee
- * rather than a coincidence of two independent, incidentally-deterministic
- * computations.
+ * profile the LLM saw === the audited snapshot" is a structural guarantee.
+ */
+export async function scoreRolePlayAndCommunication(
+  transcript: SpeakingTranscript,
+  evidence: EvidenceProfile,
+  judge: Judge,
+): Promise<RolePlayCommunicationAssessment> {
+  assertProvenance(transcript);
+  const parsed = await callJudge(judge, 'rolePlayCommunication', buildRolePlayCommunicationPrompt(transcript, evidence));
+  return parseRolePlayCommunicationOutput(parsed, transcript);
+}
+
+/** The 'qualityOfLanguage' L2 call — topic conversations only, no L1 counts. */
+export async function scoreQualityOfLanguage(
+  transcript: SpeakingTranscript,
+  judge: Judge,
+): Promise<QualityOfLanguageAssessment> {
+  assertProvenance(transcript);
+  const parsed = await callJudge(judge, 'qualityOfLanguage', buildQualityOfLanguagePrompt(transcript));
+  return parseQualityOfLanguageOutput(parsed, transcript);
+}
+
+/** Pure: joins the two L2 results and derives the total (never trusted from the judge). */
+export function combineAssessment(
+  main: RolePlayCommunicationAssessment,
+  qualityOfLanguage: QualityOfLanguageAssessment,
+): SpeakingAssessment {
+  const total = main.rolePlay.total + main.communication.mark + qualityOfLanguage.mark;
+  if (total < 0 || total > IGCSE_0520_SPEAKING.totalMarks) {
+    throw new JudgementValidationError(`total ${total} out of range`);
+  }
+  return { rolePlay: main.rolePlay, communication: main.communication, qualityOfLanguage, total };
+}
+
+/**
+ * Convenience: both L2 calls concurrently against one judge, no retry. The
+ * production path (scoreAttempt) calls the two functions above directly so it
+ * can give each call its own fresh judge instance and its own retry.
  */
 export async function scoreSpeaking(
   transcript: SpeakingTranscript,
@@ -68,18 +131,11 @@ export async function scoreSpeaking(
   judge: Judge,
 ): Promise<SpeakingAssessment> {
   assertProvenance(transcript);
-
-  const prompt = buildJudgementPrompt(transcript, evidence);
-  const { raw } = await judge({ prompt });
-
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(stripJsonFence(raw));
-  } catch {
-    throw new JudgementValidationError('Judge response is not valid JSON');
-  }
-
-  return parseAndValidateJudgeOutput(parsed, transcript);
+  const [main, qualityOfLanguage] = await Promise.all([
+    scoreRolePlayAndCommunication(transcript, evidence, judge),
+    scoreQualityOfLanguage(transcript, judge),
+  ]);
+  return combineAssessment(main, qualityOfLanguage);
 }
 
 export { JudgementValidationError };

@@ -36,7 +36,7 @@ describe('createJudgeWithFallback', () => {
       groq: { client: groq },
     });
 
-    const result = await judge({ prompt: 'hello' });
+    const result = await judge({ kind: 'rolePlayCommunication', prompt: 'hello' });
 
     expect(result).toEqual({ raw: '{"ok":true}' });
     expect(gemini.models.generateContent).toHaveBeenCalledOnce();
@@ -56,7 +56,7 @@ describe('createJudgeWithFallback', () => {
       groq: { client: groq },
     });
 
-    const result = await judge({ prompt: 'hello' });
+    const result = await judge({ kind: 'rolePlayCommunication', prompt: 'hello' });
 
     expect(result).toEqual({ raw: '{"fallback":true}' });
     expect(gemini.models.generateContent).toHaveBeenCalledOnce();
@@ -73,7 +73,7 @@ describe('createJudgeWithFallback', () => {
     const groq = groqClient('succeed');
     const { judge } = createJudgeWithFallback({ gemini: { client: gemini }, groq: { client: groq } });
 
-    await judge({ prompt: 'hello' });
+    await judge({ kind: 'rolePlayCommunication', prompt: 'hello' });
 
     const geminiCalls = (gemini.models.generateContent as ReturnType<typeof vi.fn>).mock.calls.length;
     const groqCalls = (groq.chat.completions.create as ReturnType<typeof vi.fn>).mock.calls.length;
@@ -85,8 +85,8 @@ describe('createJudgeWithFallback', () => {
     const groq = groqClient('fail');
     const { judge } = createJudgeWithFallback({ gemini: { client: gemini }, groq: { client: groq } });
 
-    await expect(judge({ prompt: 'hello' })).rejects.toThrow(/rate limited.*also down/s);
-    await expect(judge({ prompt: 'hello' })).rejects.toBeInstanceOf(JudgeUnavailableError);
+    await expect(judge({ kind: 'rolePlayCommunication', prompt: 'hello' })).rejects.toThrow(/rate limited.*also down/s);
+    await expect(judge({ kind: 'rolePlayCommunication', prompt: 'hello' })).rejects.toBeInstanceOf(JudgeUnavailableError);
   });
 
   it('does not fall back to Groq for a low-quality (but successful) Gemini response', async () => {
@@ -97,7 +97,7 @@ describe('createJudgeWithFallback', () => {
     const groq = groqClient('succeed');
     const { judge } = createJudgeWithFallback({ gemini: { client: gemini }, groq: { client: groq } });
 
-    const result = await judge({ prompt: 'hello' });
+    const result = await judge({ kind: 'rolePlayCommunication', prompt: 'hello' });
 
     expect(result).toEqual({ raw: 'not json at all' });
     expect(groq.chat.completions.create).not.toHaveBeenCalled();
@@ -112,7 +112,7 @@ describe('createJudgeWithFallback', () => {
       // never be reached on the success path, so this must not throw.
       const { judge, getLastCallMetadata } = createJudgeWithFallback({ gemini: { client: gemini } });
 
-      const result = await judge({ prompt: 'hello' });
+      const result = await judge({ kind: 'rolePlayCommunication', prompt: 'hello' });
 
       expect(result).toEqual({ raw: '{"ok":true}' });
       expect(getLastCallMetadata()?.provider).toBe('gemini');
@@ -128,7 +128,7 @@ describe('createJudgeWithFallback', () => {
       return createJudgeWithFallback({ gemini: { client: gemini }, groq: { client: groq } });
     });
 
-    const results = await Promise.all(factories.map((f) => f.judge({ prompt: 'p' })));
+    const results = await Promise.all(factories.map((f) => f.judge({ kind: 'rolePlayCommunication', prompt: 'p' })));
     results.forEach((r, i) => expect(r).toEqual({ raw: `{"n":${i}}` }));
 
     factories.forEach((f) => {

@@ -33,4 +33,12 @@
  * is unchanged (each already quotes its own task), so GUARDRAILS_FIXTURE_HASH
  * does not move, but a cross-task quote now triggers quote_verification_failed.
  */
-export const GUARDRAILS_VERSION = 'guardrails-v0.5';
+/*
+ * v0.6 (scoring-prompt-v0.6, QoL in its own judge call): verifyQuotes also
+ * verifies each QoL errors[].quote against the candidate response of the turn
+ * it names (buildTopicTurnCorpora), matching the new parse-time rule. Output
+ * on every clean fixture is unchanged (their error quotes are grounded), but
+ * an ungrounded or misattributed error quote now triggers
+ * quote_verification_failed.
+ */
+export const GUARDRAILS_VERSION = 'guardrails-v0.6';

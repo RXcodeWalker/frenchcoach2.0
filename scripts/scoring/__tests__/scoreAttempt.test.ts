@@ -6,6 +6,7 @@ import { scoreAttempt, replayEnvelope } from '../scoreAttempt';
 import type { ScoreAttemptDeps } from '../scoreAttempt';
 import { createGenericFakeJudge } from './fixtures';
 import { JudgementValidationError } from '../../../src/domain/igcse/judgement/schema';
+import type { Judge, JudgeKind, JudgeRequest, JudgeResponse } from '../../../src/domain/igcse/judgement/types';
 
 import structGolden from '../../../src/domain/igcse/stt/__tests__/fixtures/structurally-complete.golden.json';
 import structQuestions from '../../../src/domain/igcse/stt/__tests__/fixtures/structurally-complete-questions.json';
@@ -76,21 +77,45 @@ describe('scoreAttempt', () => {
   });
 });
 
+/**
+ * A createJudge whose judges delegate to the good generic fake, except where
+ * `override` returns a reply (or throws) for a given call kind and per-kind
+ * call number. Records every judge call's kind so tests can count per kind.
+ */
+function makeKindAwareDeps(
+  override: (req: JudgeRequest, callOfKind: number) => Promise<JudgeResponse> | undefined,
+  metadataFor: (kind: JudgeKind) => { provider: 'gemini' | 'groq'; model: string; responseId?: string } = () => ({
+    provider: 'gemini',
+    model: 'fake-model',
+    responseId: 'resp-fake',
+  }),
+) {
+  const deps = makeDeps();
+  const good = createGenericFakeJudge(() =>
+    toSpeakingTranscript(structGolden as unknown as SessionTranscript, structQuestions as SessionQuestionSet),
+  );
+  const judgeCalls: JudgeKind[] = [];
+  deps.createJudge = vi.fn(() => {
+    let meta: ReturnType<typeof metadataFor> | undefined;
+    const judge: Judge = async (req) => {
+      judgeCalls.push(req.kind);
+      const callOfKind = judgeCalls.filter((k) => k === req.kind).length;
+      const reply = await (override(req, callOfKind) ?? good(req));
+      meta = metadataFor(req.kind);
+      return reply;
+    };
+    return { judge, getLastCallMetadata: () => meta };
+  });
+  return { deps, judgeCalls };
+}
+
+const NOT_JSON = async (): Promise<JudgeResponse> => ({ raw: 'not json' });
+
 describe('scoreAttempt judge retry on JudgementValidationError', () => {
-  it('makes one fresh judge call after an invalid reply, and scores from the second (judgeAttempts = 2)', async () => {
-    const deps = makeDeps();
-    const realCreateJudge = deps.createJudge;
-    let calls = 0;
-    deps.createJudge = vi.fn(() => {
-      calls += 1;
-      if (calls === 1) {
-        return {
-          judge: async () => ({ raw: 'not json' }),
-          getLastCallMetadata: () => ({ provider: 'gemini' as const, model: 'bad' }),
-        };
-      }
-      return realCreateJudge();
-    });
+  it('makes one fresh judge call after an invalid main reply, and scores from the second (judgeAttempts = 2)', async () => {
+    const { deps, judgeCalls } = makeKindAwareDeps((req, n) =>
+      req.kind === 'rolePlayCommunication' && n === 1 ? NOT_JSON() : undefined,
+    );
     const stderr = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
 
     const envelope = await scoreAttempt(deps, {
@@ -98,45 +123,127 @@ describe('scoreAttempt judge retry on JudgementValidationError', () => {
       questionSet: structQuestions as SessionQuestionSet,
     });
 
-    expect(deps.createJudge).toHaveBeenCalledTimes(2);
+    // main, QoL, main retry — each judge call on a fresh createJudge() instance.
+    expect(deps.createJudge).toHaveBeenCalledTimes(3);
+    expect(judgeCalls.filter((k) => k === 'rolePlayCommunication')).toHaveLength(2);
+    expect(judgeCalls.filter((k) => k === 'qualityOfLanguage')).toHaveLength(1);
     expect(envelope.llm.model).toBe('fake-model');
     const lines = stderr.mock.calls.map((c) => String(c[0]));
-    expect(lines.some((l) => l.includes('"judgeAttempt":1') && l.includes('JudgementValidationError'))).toBe(true);
-    expect(lines.some((l) => l.includes('"judgeAttempts":2'))).toBe(true);
+    expect(
+      lines.some(
+        (l) => l.includes('"judgeAttempt":1') && l.includes('"judgeKind":"rolePlayCommunication"') && l.includes('JudgementValidationError'),
+      ),
+    ).toBe(true);
+    expect(lines.some((l) => l.includes('"judgeAttempts":2') && l.includes('"judgeKind":"rolePlayCommunication"'))).toBe(true);
     stderr.mockRestore();
   });
 
-  it('gives up after the second invalid reply, logging both failures', async () => {
-    const deps = makeDeps();
-    deps.createJudge = vi.fn(() => ({
-      judge: async () => ({ raw: 'not json' }),
-      getLastCallMetadata: () => ({ provider: 'gemini' as const, model: 'x' }),
-    }));
+  it('a QoL-only retry does not re-call the main judge', async () => {
+    const { deps, judgeCalls } = makeKindAwareDeps((req, n) =>
+      req.kind === 'qualityOfLanguage' && n === 1 ? NOT_JSON() : undefined,
+    );
+    const stderr = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+
+    const envelope = await scoreAttempt(deps, { sessionId: SESSION_ID, questionSet: structQuestions as SessionQuestionSet });
+
+    expect(judgeCalls.filter((k) => k === 'rolePlayCommunication')).toHaveLength(1);
+    expect(judgeCalls.filter((k) => k === 'qualityOfLanguage')).toHaveLength(2);
+    expect(envelope.qualityOfLanguage.errors).toHaveLength(1);
+    const lines = stderr.mock.calls.map((c) => String(c[0]));
+    expect(lines.some((l) => l.includes('"judgeAttempts":2') && l.includes('"judgeKind":"qualityOfLanguage"'))).toBe(true);
+    stderr.mockRestore();
+  });
+
+  it('gives up after the second invalid reply of a kind, logging every failure — no partial marks', async () => {
+    const { deps } = makeKindAwareDeps(() => NOT_JSON());
     const stderr = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
 
     await expect(
       scoreAttempt(deps, { sessionId: SESSION_ID, questionSet: structQuestions as SessionQuestionSet }),
     ).rejects.toThrow(JudgementValidationError);
 
-    expect(deps.createJudge).toHaveBeenCalledTimes(2);
+    // Both kinds, first call + one retry each.
+    expect(deps.createJudge).toHaveBeenCalledTimes(4);
     const failureLines = stderr.mock.calls.map((c) => String(c[0])).filter((l) => l.includes('JudgementValidationError'));
-    expect(failureLines).toHaveLength(2);
+    expect(failureLines).toHaveLength(4);
+    stderr.mockRestore();
+  });
+
+  it('a terminal QoL failure fails the whole attempt even when the main call succeeded', async () => {
+    const { deps } = makeKindAwareDeps((req) => (req.kind === 'qualityOfLanguage' ? NOT_JSON() : undefined));
+    const stderr = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+    await expect(
+      scoreAttempt(deps, { sessionId: SESSION_ID, questionSet: structQuestions as SessionQuestionSet }),
+    ).rejects.toThrow(/Quality of Language judge response is not valid JSON/);
     stderr.mockRestore();
   });
 
   it('does not retry a provider-call failure (judgeFactory.ts owns that fallback)', async () => {
-    const deps = makeDeps();
-    deps.createJudge = vi.fn(() => ({
-      judge: async () => {
-        throw new Error('Both judge providers failed');
-      },
-      getLastCallMetadata: () => undefined,
-    }));
+    const { deps, judgeCalls } = makeKindAwareDeps(() => Promise.reject(new Error('Both judge providers failed')));
 
     await expect(
       scoreAttempt(deps, { sessionId: SESSION_ID, questionSet: structQuestions as SessionQuestionSet }),
     ).rejects.toThrow(/Both judge providers failed/);
-    expect(deps.createJudge).toHaveBeenCalledTimes(1);
+    // One call per kind, neither retried.
+    expect(deps.createJudge).toHaveBeenCalledTimes(2);
+    expect(judgeCalls.filter((k) => k === 'rolePlayCommunication')).toHaveLength(1);
+    expect(judgeCalls.filter((k) => k === 'qualityOfLanguage')).toHaveLength(1);
+  });
+});
+
+describe('scoreAttempt — two concurrent L2 calls (scoring-prompt-v0.6)', () => {
+  it('starts both calls before either finishes', async () => {
+    const started: JudgeKind[] = [];
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const good = createGenericFakeJudge(() =>
+      toSpeakingTranscript(structGolden as unknown as SessionTranscript, structQuestions as SessionQuestionSet),
+    );
+    const { deps } = makeKindAwareDeps((req) => {
+      started.push(req.kind);
+      if (started.length === 2) release();
+      return gate.then(() => good(req));
+    });
+
+    const envelope = await scoreAttempt(deps, { sessionId: SESSION_ID, questionSet: structQuestions as SessionQuestionSet });
+
+    // If the calls were sequential, the first would wait on a gate only the
+    // second can open, and this test would time out.
+    expect([...started].sort()).toEqual(['qualityOfLanguage', 'rolePlayCommunication']);
+    expect(envelope.total).toBeGreaterThan(0);
+  });
+
+  it('records mixed providers: llm for the main call, qualityOfLanguageLlm for the QoL call', async () => {
+    const { deps } = makeKindAwareDeps(
+      () => undefined,
+      (kind) =>
+        kind === 'qualityOfLanguage'
+          ? { provider: 'groq', model: 'groq-model', responseId: 'resp-qol' }
+          : { provider: 'gemini', model: 'gemini-model', responseId: 'resp-main' },
+    );
+
+    const envelope = await scoreAttempt(deps, { sessionId: SESSION_ID, questionSet: structQuestions as SessionQuestionSet });
+
+    expect(envelope.llm).toEqual({ provider: 'gemini', model: 'gemini-model', selfConsistencyRuns: 1, responseId: 'resp-main' });
+    expect(envelope.qualityOfLanguageLlm).toEqual({
+      provider: 'groq',
+      model: 'groq-model',
+      selfConsistencyRuns: 1,
+      responseId: 'resp-qol',
+    });
+  });
+
+  it('writes the QoL error list and frequency into the envelope (v0.4)', async () => {
+    const envelope = await scoreAttempt(makeDeps(), {
+      sessionId: SESSION_ID,
+      questionSet: structQuestions as SessionQuestionSet,
+    });
+    expect(envelope.versions.envelopeSchemaVersion).toBe('envelope-v0.4');
+    expect(envelope.qualityOfLanguage.errors).toHaveLength(1);
+    expect(envelope.qualityOfLanguage.errorFrequency).toBe('frequent errors');
+    expect(envelope.qualityOfLanguageLlm?.model).toBe('fake-model');
   });
 });
 

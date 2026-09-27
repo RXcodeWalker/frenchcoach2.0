@@ -8,13 +8,12 @@
  * Original practice fixtures — NOT UCLES copyright exam scripts.
  */
 
-import { PRACTICE_TRANSCRIPT, buildValidJudgeOutput } from '../../judgement/__tests__/fixtures';
-import { parseAndValidateJudgeOutput } from '../../judgement/schema';
+import { PRACTICE_TRANSCRIPT, buildValidAssessment } from '../../judgement/__tests__/fixtures';
 import type { SpeakingAssessment, SpeakingTranscript } from '../../judgement/types';
 
 /**
  * Clean, sufficiently long transcript: same role play as PRACTICE_TRANSCRIPT
- * (so buildValidJudgeOutput()'s role-play evidence spans stay grounded), but
+ * (so buildValidMainOutput()'s role-play evidence spans stay grounded), but
  * with topic-conversation responses long enough (>=200 combined words) that
  * neither insufficient-evidence sub-check trips — the "silent on clean input"
  * fixture for both guardrails.
@@ -74,13 +73,14 @@ export const CLEAN_LONG_TRANSCRIPT: SpeakingTranscript = {
 // ── Quote verification ────────────────────────────────────────────────────────
 
 /** Clean assessment: every span is a real substring of CLEAN_LONG_TRANSCRIPT. */
-export const CLEAN_ASSESSMENT: SpeakingAssessment = parseAndValidateJudgeOutput(
-  buildValidJudgeOutput(),
+export const CLEAN_ASSESSMENT: SpeakingAssessment = buildValidAssessment(
+  undefined,
+  undefined,
   CLEAN_LONG_TRANSCRIPT,
 );
 
 /**
- * Fabricated-quote assessment: built by hand (not through parseAndValidateJudgeOutput,
+ * Fabricated-quote assessment: built by hand (not through the L2 parsers,
  * which would reject it) to prove verifyQuotes independently catches an
  * ungrounded quote — the "no evidence fabrication" failure mode.
  */
