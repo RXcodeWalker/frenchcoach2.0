@@ -45,7 +45,7 @@ function driveRolePlay(): ConductLog {
     seq += 1;
     clock += turn.responseDurationS;
 
-    result = step(qs, state, { kind: 'candidateTurn', result: turn });
+    result = step(qs, state, { kind: 'candidateTurn', result: turn, clockS: clock });
     state = result.state;
     logAction();
   }
@@ -233,7 +233,7 @@ describe('buildSessionTranscript', () => {
       entries.push(candidateTurnToLogEntry(developedAnswer, seq, clock, lastAction.part, lastAction.questionId, true));
       seq += 1;
       clock += developedAnswer.responseDurationS;
-      result = step(qs, state, { kind: 'candidateTurn', result: developedAnswer });
+      result = step(qs, state, { kind: 'candidateTurn', result: developedAnswer, clockS: clock });
       state = result.state;
       logActions();
     };

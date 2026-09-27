@@ -63,7 +63,7 @@ function driveFullSession(): ConductLog {
     entries.push(candidateTurnToLogEntry(turn, seq, clock, lastAction.part, lastAction.questionId, true));
     seq += 1;
     clock += turn.responseDurationS;
-    result = step(qs, state, { kind: 'candidateTurn', result: turn });
+    result = step(qs, state, { kind: 'candidateTurn', result: turn, clockS: clock });
     state = result.state;
     logActions();
   }

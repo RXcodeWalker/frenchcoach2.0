@@ -2225,3 +2225,78 @@ scoring behavior, and `score:golden`'s 5/5 no-diff result confirms it.
 3 scoreSpeaking, 2 logger, 3 scoreAttempt — plus batchScore's existing test updated in place, not
 counted as new), 2323 passed, 2 failed — same 2 pre-existing failures. `npm run score:golden`: 5/5,
 no diff. `npm run e2e:exam`: 4/4.
+
+## 2026-09-27 — 0520 conduct plan, Batches 0–2: conduct rules spec, repro tests, mode-aware engine (`session-engine-v4`)
+
+**Scope.** Only the conduct engine and its driver: `session/conductEngine.ts`, `session/types.ts`,
+`session/version.ts`, `services/exam/simulationSession.ts`, plus one projection fix in
+`stt/project/toSpeakingTranscript.ts` (below). No change to `evidence/`, `judgement/`,
+`guardrails/`, `envelope/` or `rubric.ts`. New live spec `docs/systems/exam-conduct-0520.md`
+(rules cited by Teacher's Notes page, no script text) and ADR 0008.
+
+**Baseline before any change** (`npm ci`, `backend` symlinked to the sibling
+`french-coach-backend` clone, not committed): `npm test` 2324/2325, one pre-existing failure
+(`learn/demand/__tests__/infer.test.ts`, 8-word floor; `feedbackContractFixtures.test.ts` passes
+once `backend/` exists). `typecheck:scripts`: the same 3 pre-existing errors. `lint`: 0 errors,
+22 warnings. `score:golden`: 5/5.
+
+**Repro tests, run against the unchanged engine first.** `session/__tests__/conductRules0520.test.ts`
+(24 tests, one `describe` per `exam-conduct §N`): 16 failed for the reasons the plan gives, 8
+characterization tests passed. Confirmed failure reasons included: 002 t1q2 unanswered twice got
+`READ_ALTERNATIVE`; after a skipped t1q5 alternative, silence on the further question re-read
+t1q5's alternative with trigger `failed_repeat`; a 40-word part 1 + 4-word part 2 drew an
+extension prompt; a 4:10 conversation of 25 s answers (or of typed answers) still got a further
+question; the first further question was a callback ("Tu as parlé de « … ». Peux-tu
+développer ?"); a Repeat request on an extension prompt or further question moved on instead; a
+skipped extension prompt or further question was followed by a `TRANSITION`; Coached got further
+questions. UI repros whose fixes are Batch 3 (`ExamRunner` part-2 label and per-part countdown,
+`ExamIntro` copy ×4, `ExamSelect` hiding topics in Exam Sim) all failed for the stated reason when
+run as plain `it`, and are committed as `it.fails` (7 "expected fail") so the suite stays green;
+Batch 3 flips them.
+
+**Engine changes (Batch 2).**
+- `ConductPolicy { mode: 'examSim' | 'coached' }` passed to `initConductEngineState` and kept in
+  state. `SimulationSession` derives it from `coached`.
+- `StepInput.candidateTurn.clockS` (required) = `SimulationSession.getClockS()`.
+  `ConductEngineState.partStartS` records each topic's start; the conversation's length is
+  `clockS − partStartS`. `topicSpeakingS` (candidate-only time) is gone.
+- Further questions: Exam Sim only, when the conversation has lasted ≤ 210 s (`<=`, "3½ minutes or
+  less"), authored text only, re-checked after each. Own phase (`ConductPhase` kind `further`) with
+  one verbatim repeat, so Q5's sub-state never bleeds into them. Callbacks and conversational memory
+  removed (D6); the `callback` trigger stays in the type for old logs.
+- Alternatives only for question index ≥ 2 (`FIRST_ALTERNATIVE_QUESTION_INDEX`).
+- D9: `alternativeTexts` walked as the alternative's ordered parts, one repeat per part. Current
+  content has exactly one alternative per Q3–Q5, so behaviour on it is unchanged.
+- Extension decision on the whole answer to the question (`answerWords`/`answerSpeechS` summed over
+  answered parts). One verbatim repeat of an extension prompt. Extension cutoff at 240 s is
+  wall-clock and Exam Sim only.
+- No `TRANSITION` after an unanswered extension prompt or further question.
+- `AUTHORIZED_EXTENSION_PROMPTS` comment corrected: they are the notes' own example prompts (D16).
+- `SimulationSession` refuses to restore a pre-v4 snapshot (no `policy`/`partStartS`); ExamMode's
+  resume effect catches that and discards the snapshot. The proper resume guard (hash + engine
+  version, with a message) is Batch 3.
+- `SESSION_ENGINE_VERSION` `session-engine-v3` → `session-engine-v4`.
+
+**Projection fix (judge input).** A further question can now be repeated, and `buildFurtherTurns`
+previously opened a new `furtherN` turn at every examiner utterance, so a repeat would have produced
+a blank `further1` and pushed the answer to `further2`. A verbatim repeat of the open further
+question (null `questionId`, same canonical text) now continues that turn. New test fails without
+the fix (3 further turns instead of 2). Transcripts from `session-engine-v3` never contain such a
+repeat, so their projection is unchanged.
+
+**Known limitation, not changed:** with a multi-part alternative, `examinerSupport.alternativeAsked`
+still records only the alternative's first part (it lives in `toSpeakingTranscript`'s support
+derivation, read by the judge prompt). No current content has a multi-part alternative.
+
+**Existing tests updated:** `conductEngine.test.ts` (clock added to `driveStep`, advancing by each
+turn's duration; floor/C8 assertions read the clock; callback and memory tests removed with the
+feature; the failed-second-part test now asserts no `TRANSITION`), `simulationSession.test.ts`
+(parity test kept for role play only, plus per-mode policy, clock-driven floor, Coached no-further,
+pre-v4 snapshot refusal), `buildSessionTranscript.test.ts`, `scoreEndToEnd.test.ts` (version
+string), `ExamResults.test.tsx` (pass `clockS`).
+
+**Verified after the change:** `npm run typecheck` and `typecheck:server`: clean.
+`typecheck:scripts`: the same 3 pre-existing errors. `npm run lint`: 0 errors, same 22 warnings.
+`npm test`: 2351 tests, 2343 passed, 7 expected-fail (the Batch 3 UI repros), 1 failed (the same
+pre-existing `infer.test.ts`). `npm run score:golden`: 5/5, output byte-identical to the baseline
+run — no shape change. `npm run e2e:exam`: 4/4.

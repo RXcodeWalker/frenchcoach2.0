@@ -10,7 +10,8 @@ export {
   findQuestionById,
   RELEVANCE_WORD_THRESHOLD,
   MAX_FURTHER_QUESTIONS_PER_TOPIC,
-  TOPIC_SPEAKING_FLOOR_S,
+  TOPIC_FURTHER_QUESTION_FLOOR_S,
+  EXAM_SIM_POLICY,
 } from './conductEngine';
 export { buildSessionTranscript } from './buildSessionTranscript';
 export type { BuildSessionTranscriptMeta } from './buildSessionTranscript';

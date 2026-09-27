@@ -173,8 +173,9 @@ function buildTopicConversation(
  * Further-question turns for one topic part, in time order. Walks the part's
  * utterances in order; each candidate utterance with questionId null is
  * grouped under the examiner utterance just before it (the FURTHER_QUESTION
- * prompt, whether callback or authored), and that prompt becomes the turn's
- * questionPrompt.
+ * prompt), and that prompt becomes the turn's questionPrompt. A verbatim repeat
+ * of the further question just asked (session-engine-v4, exam-conduct §15)
+ * continues that question's turn rather than opening a new one.
  */
 function buildFurtherTurns(session: SessionTranscript, conversationId: 'topic1' | 'topic2'): ConversationTurn[] {
   const groups: { prompt: string; utterances: Utterance[] }[] = [];
@@ -184,7 +185,13 @@ function buildFurtherTurns(session: SessionTranscript, conversationId: 'topic1' 
   for (const utterance of session.utterances) {
     if (utterance.part !== conversationId) continue;
     if (utterance.role === 'examiner') {
-      lastExaminer = utterance;
+      const openGroup = groups[groups.length - 1];
+      const repeatsOpenGroup =
+        openGroup !== undefined &&
+        lastExaminer === lastGroupFor &&
+        utterance.questionId === null &&
+        canonicalizeForMatch(utterance.text) === canonicalizeForMatch(openGroup.prompt);
+      if (!repeatsOpenGroup) lastExaminer = utterance;
       continue;
     }
     if (utterance.questionId !== null || lastExaminer === null) continue;
