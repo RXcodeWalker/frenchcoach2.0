@@ -47,5 +47,32 @@
  * validateQolErrors rejected as an unknown turn on every run. Both now say
  * explicitly that turnId is the BARE id ("q1"), never "Turn q1". No contract
  * shape change, no rubric change.
+ *
+ * v0.6.2 TRIED AND REVERTED (judge:check, verbatim "weak" regression) — the
+ * prompt still reads scoring-prompt-v0.6.1; this version number was never
+ * released. On the verbatim pre-change "weak" transcript, QoL rose from a
+ * pre-change 5 to 7-10 — QOL_NO_QUANTITY_LINE was being read as "do not
+ * penalise a lack of language" rather than "do not reward length as such."
+ * Tried adding a QOL_QUANTITY_BALANCE_LINE directly after it: Table C's own
+ * 4-6/1-3 booklet wording (0520/03/TN, p.12) on range and completeness,
+ * stating that one-word/fragment answers and sentences missing a required
+ * verb form or article count as evidence under those bullets, while
+ * accurate complete sentences are not penalised for being short. No
+ * numbers, counts or thresholds were added, and no other prompt, schema, or
+ * guardrail was touched.
+ *
+ * Result (3 verbatim runs, gemini-3.5-flash-lite): weak's QoL was 7, 7, 7 —
+ * unchanged from v0.6.1's 7, 7, 10 in the sense that mattered (still over
+ * the <=6 pass bar in 3/3 runs); the pre-decided SUCCESS rule required
+ * weak's QoL <=6 in 3/3, so this attempt failed it and was reverted per the
+ * one-attempt-only instruction. strong (QoL 15 x3) and split-b (Comm 4,
+ * QoL 9 x3 — the accurate-short-answer guard) were unaffected; split-a's
+ * QoL stayed at 11 in all 3 runs (not higher, but not lower either). See
+ * verification-log.md's corresponding entry for the full table, the
+ * judge's own QoL justification text (it kept citing "Satisfactory"/"Good"
+ * band language even with the new instruction present), and the
+ * -reconstructed hold-out comparison. Not retried with different wording,
+ * per the task's one-attempt-only instruction — a genuine open finding,
+ * left for a future session.
  */
 export const SCORING_PROMPT_VERSION = 'scoring-prompt-v0.6.1';

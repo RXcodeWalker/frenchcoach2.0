@@ -2089,3 +2089,87 @@ offline tests added — a `-reconstructed` fixture's `expect`-block-removal chec
 (`learn/demand/__tests__/infer.test.ts`, `feedbackContractFixtures.test.ts`), unrelated to this
 batch. `npm run score:golden`: 5/5, no diff (no prompt/rubric/version change this session, so no
 golden movement expected). `npm run e2e:exam`: 4/4 (unaffected by this batch).
+
+## 2026-09-27 — 0520 Phase 1: QoL quantity-balance line for the "weak" regression — TRIED, REVERTED
+
+**Problem:** on the verbatim pre-change `weak` fixture, the previous entry's gate run showed QoL at
+7-10/15, over the plan's ≤6 pass bar in 3/3 runs, versus a pre-change 5/15. Hypothesis: the QoL
+prompt's `QOL_NO_QUANTITY_LINE` ("Do not reward the quantity of speech... 'Range' means variety of
+structures and vocabulary, not length") was being read by the judge as "do not penalise a lack of
+language," when Table C (0520/03/TN, p.12) does grade range and completeness, not just error
+frequency.
+
+**Change made (one attempt, per instruction):** added a new line, `QOL_QUANTITY_BALANCE_LINE`,
+directly after `QOL_NO_QUANTITY_LINE` in `buildQualityOfLanguagePrompt` (instruction 9,
+renumbering 9-13 to 10-14), quoting Table C's own 4-6/1-3 band descriptors verbatim and stating that
+one-word/fragment answers and sentences missing a required verb form or article count as evidence
+under those bullets, while accurate complete sentences are not penalised for being short. No
+numbers, counts, or thresholds were added. `SCORING_PROMPT_VERSION` was bumped to
+`scoring-prompt-v0.6.2`, the QoL prompt hash pin and its `prompt.test.ts` assertion were updated,
+and the 2 assessment-bearing goldens picked up the version-string change only (confirmed via diff
+before running the gate).
+
+**Gate run (3 verbatim runs, `gemini-3.5-flash-lite`, all 16 fixtures):**
+
+| Fixture | Runs (RP/Comm/QoL/total) | Guard | v0.6.1 (prior) | v0.6.2 (this attempt) |
+|---|---|---|---|---|
+| weak | 8/4/7/19, 8/5/7/20, 8/5/7/20 | Comm≤6 and QoL≤6 | QoL 7,7,10 (FAIL) | **QoL 7,7,7 (still FAIL)** |
+| strong | 10/15/15/40 ×3 | Comm≥13 and QoL≥13 | PASS 3/3 | **PASS 3/3, unchanged** |
+| split-a | 9/14/11/34, 9/11/11/31, 9/12/11/32 | QoL not > 11 | QoL 11,11,11 | **QoL 11,11,11, unchanged** |
+| split-b | 10/4/9/23 ×3 | Comm≤7 and QoL≥7 (guard) | Comm 4, QoL 7-7 | **Comm 4 (unchanged), QoL 9,9,9 (up 2, still clears the ≥7 guard)** |
+
+**Outcome, applying the pre-decided SUCCESS rule exactly (all four conditions required, none
+renegotiated after seeing the numbers):** weak's QoL is 7, 7, 7 — still over the ≤6 bar in 3/3 runs.
+The SUCCESS rule requires weak QoL ≤6 in 3/3 as one of its four ANDed conditions; that condition is
+false, so **the overall rule is FAIL regardless of the other three passing**. Per the task's
+explicit instruction, this attempt is **REVERTED**: `prompt.ts`, `prompt.test.ts`,
+`version-pin.test.ts`, and both goldens are back to their exact pre-attempt (`scoring-prompt-v0.6.1`)
+content (confirmed via `git diff --stat` showing only `version.ts` touched, and `score:golden`
+reporting 5/5 with no diff after the revert). `version.ts` keeps a "TRIED AND REVERTED" note under
+a `v0.6.2` heading so a future session doesn't re-attempt the identical wording without reading why
+it didn't work; `SCORING_PROMPT_VERSION` itself is back to `'scoring-prompt-v0.6.1'` — v0.6.2 was
+never a released version. **No second wording was tried**, per the one-attempt-only instruction.
+
+**What the judge's own justification text shows (weak, all 3 runs, quantity-balance line present):**
+it still explicitly frames the transcript as "just meets the satisfactory level" / "the lowest mark
+in the [7-9] band" — i.e. it is choosing the bottom of Table C's Satisfactory band (7-9) rather than
+reading down into Weak (4-6) or Poor (1-3), even with the new line telling it that fragments count
+as evidence for the lower bands. One justification explicitly cites "present tense verbs and simple
+adjectives ('il est gentil', 'il a un chien')" as its basis for placing the candidate in
+Satisfactory — the new instruction didn't change which existing structures the judge treats as
+sufficient to clear the Satisfactory floor. This suggests the miss is not really about the
+no-quantity line's phrasing at all, but about how much credit the judge gives `weak`'s handful of
+genuinely well-formed fragments ("il est gentil", "Il a un chien") against the many broken ones —
+a different mechanism than the one this attempt targeted. Left as an open finding for a future
+session, not re-attempted here.
+
+**Hold-out check — the 8 ungated `-reconstructed` fixtures, QoL spread before (v0.6.1, prior entry)
+vs. after (this attempt), before the revert:**
+
+| Fixture | QoL before | QoL after | Move ≥3? |
+|---|---|---|---|
+| weak-reconstructed | 1-2 | 1-5 | **YES** (+3 on the upper end) |
+| middling-original-reconstructed | 15-15 | 15-15 | no |
+| strong-reconstructed | 15-15 | 15-15 | no |
+| borderline-reconstructed | 11-11 | 11-11 | no |
+| very-short-reconstructed | 1-4 | 1-1 | **YES** (-3 on the upper end — but confounded: this run had only 2/3 successful attempts, one run failed terminally on "Quality of Language judge response is not valid JSON" twice, unrelated to the prompt wording change; the 2 surviving runs both landed at QoL 1, same as 2 of 3 pre-attempt runs) |
+| split-a-strong-comm-poor-grammar-reconstructed | 7-7 | 7-7 | no |
+| split-b-accurate-minimal-reconstructed | 7-9 | 9-9 | no (min moved +2, under the 3+ threshold) |
+| middling-rewritten-reconstructed | 15-15 | 13-15 | no (min moved -2, under the 3+ threshold) |
+
+Two fixtures cross the 3+ threshold, both `weak`-shaped cases (weak-reconstructed's near-fragment
+transcript, and very-short-reconstructed's single-word answers) — consistent with the change's
+target being exactly this kind of transcript, though neither move is large enough or clean enough
+(the second is sample-size confounded) to change the overall REVERT decision, since these are
+ungated hold-outs, not gate criteria.
+
+**Tokens/cost:** this attempt's gate run: 178,163 input + 60,293 output tokens, estimated $0.2042
+across 48 runs (one retry: `very-short-reconstructed` JSON-parse failure exhausted both attempts on
+run 2, terminal; one retry on `strong`'s `rolePlayCommunication` call, ungrounded evidence quote,
+succeeded on attempt 2; one retry on `split-b`'s QoL call, invalid `bestFitPlacement` enum value,
+succeeded on attempt 2 — all three unrelated to the QoL wording change itself).
+
+**Verified:** `npm run typecheck`, `typecheck:server`: clean. `npm run typecheck:scripts`: only the
+same 3 pre-existing errors. `npm run lint`: 0 errors, same 22 pre-existing warnings. `npm test`:
+2317 tests, 2315 passed, 2 failed — same 2 pre-existing failures, unrelated. `npm run score:golden`:
+5/5, no diff (confirms the revert is exact). `npm run e2e:exam`: 4/4.
