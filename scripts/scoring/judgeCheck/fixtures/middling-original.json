@@ -1,0 +1,55 @@
+{
+  "id": "middling-original",
+  "description": "Middling (original authoring): intended as mid-band but turned out fluent, accurate, well-formed French with no real errors — nearly identical to the 'strong' case (verification-log.md, 2026-09-27 Part 2, case 2's own caveat). Kept as-is for before/after comparability; see 'middling-rewritten' for a deliberately mid-band transcript.",
+  "transcript": {
+    "contentProvenance": "original-practice",
+    "rolePlay": [
+      { "taskId": "t1", "taskPrompt": "Greet the shop assistant.", "candidateResponse": "Bonjour madame." },
+      { "taskId": "t2", "taskPrompt": "Say you want two croissants.", "candidateResponse": "Je voudrais deux croissants, s il vous plaît." },
+      { "taskId": "t3", "taskPrompt": "Ask the price.", "candidateResponse": "C est combien, s il vous plaît?" },
+      { "taskId": "t4", "taskPrompt": "Say you will pay by card.", "candidateResponse": "Je vais payer par carte." },
+      { "taskId": "t5", "taskPrompt": "Thank and say goodbye.", "candidateResponse": "Merci beaucoup, au revoir." }
+    ],
+    "topicConversations": [
+      {
+        "conversationId": "topic1",
+        "topicArea": "A",
+        "turns": [
+          {
+            "turnId": "q1",
+            "questionPrompt": "What do you do at weekends?",
+            "candidateResponse": "Le samedi, je joue au football avec mes amis, et le dimanche je regarde un film avec ma famille."
+          },
+          {
+            "turnId": "q2",
+            "questionPrompt": "Do you prefer sport or cinema?",
+            "candidateResponse": "Je préfère le sport au cinéma parce que c est plus actif et je peux passer du temps avec mes amis en même temps."
+          }
+        ]
+      },
+      {
+        "conversationId": "topic2",
+        "topicArea": "B",
+        "turns": [
+          {
+            "turnId": "q1",
+            "questionPrompt": "Describe your best friend.",
+            "candidateResponse": "Mon meilleur ami s appelle Lucas. Il est très drôle et il adore le sport, comme moi."
+          },
+          {
+            "turnId": "q2",
+            "questionPrompt": "What do you do together?",
+            "candidateResponse": "Nous jouons souvent au tennis ensemble, et parfois nous allons au cinéma le weekend."
+          }
+        ]
+      }
+    ]
+  },
+  "baseline": {
+    "total": 38,
+    "rolePlay": 10,
+    "communication": 14,
+    "qualityOfLanguage": 14,
+    "note": "Pre-change single-call judge, gemini-3.5-flash-lite (verification-log.md 2026-09-27, Part 2, case 2). Labelled 'Very good' on both bands."
+  }
+}

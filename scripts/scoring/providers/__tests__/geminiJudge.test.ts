@@ -75,6 +75,29 @@ describe('createGeminiJudge', () => {
     expect(call.config?.responseMimeType).toBe('application/json');
   });
 
+  it('captures token usage via getLastCallMetadata when the response carries usageMetadata (step 9)', async () => {
+    const generateContent = vi.fn(async () => ({
+      text: '{}',
+      responseId: 'resp_usage',
+      usageMetadata: { promptTokenCount: 1234, candidatesTokenCount: 567, totalTokenCount: 1801 },
+    }));
+    const client: GeminiClientLike = { models: { generateContent } };
+    const { judge, getLastCallMetadata } = createGeminiJudge({ client });
+
+    await judge({ kind: 'qualityOfLanguage', prompt: 'p' });
+
+    expect(getLastCallMetadata()?.usage).toEqual({ inputTokens: 1234, outputTokens: 567, totalTokens: 1801 });
+  });
+
+  it('omits usage when the response carries no usageMetadata', async () => {
+    const client = fakeGeminiClient('{}');
+    const { judge, getLastCallMetadata } = createGeminiJudge({ client });
+
+    await judge({ kind: 'rolePlayCommunication', prompt: 'p' });
+
+    expect(getLastCallMetadata()?.usage).toBeUndefined();
+  });
+
   it('throws if the response contains no text', async () => {
     const client: GeminiClientLike = {
       models: { generateContent: vi.fn(async () => ({ text: undefined, responseId: 'resp_x' })) },

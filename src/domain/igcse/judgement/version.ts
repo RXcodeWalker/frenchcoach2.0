@@ -39,5 +39,13 @@
  *   mapped to a mark), then best-fits the band holistically.
  * - Parsing: QoL error quotes are grounded in that one turn's candidate
  *   response (buildTopicTurnCorpora); QoL sources exclude rolePlay.
+ *
+ * v0.6.1 (judge:check, real-Gemini run): the QoL contract's turnId
+ * placeholder ("<turn id as rendered>") and the quote-rule line were
+ * ambiguous against the transcript's own "Turn q1" heading — a real Gemini
+ * reply echoed "Turn q1" as the turnId itself, which
+ * validateQolErrors rejected as an unknown turn on every run. Both now say
+ * explicitly that turnId is the BARE id ("q1"), never "Turn q1". No contract
+ * shape change, no rubric change.
  */
-export const SCORING_PROMPT_VERSION = 'scoring-prompt-v0.6';
+export const SCORING_PROMPT_VERSION = 'scoring-prompt-v0.6.1';

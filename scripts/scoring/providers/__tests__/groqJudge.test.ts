@@ -77,6 +77,29 @@ describe('createGroqJudge', () => {
     expect(body.max_completion_tokens).toBe(32768 + 512);
   });
 
+  it('captures token usage via getLastCallMetadata when the response carries usage (step 9)', async () => {
+    const create = vi.fn(async () => ({
+      id: 'chatcmpl_usage',
+      choices: [{ message: { content: '{}' } }],
+      usage: { prompt_tokens: 2000, completion_tokens: 800, total_tokens: 2800 },
+    }));
+    const client: GroqClientLike = { chat: { completions: { create } } };
+    const { judge, getLastCallMetadata } = createGroqJudge({ client });
+
+    await judge({ kind: 'qualityOfLanguage', prompt: 'p' });
+
+    expect(getLastCallMetadata()?.usage).toEqual({ inputTokens: 2000, outputTokens: 800, totalTokens: 2800 });
+  });
+
+  it('omits usage when the response carries no usage', async () => {
+    const client = fakeGroqClient('{}');
+    const { judge, getLastCallMetadata } = createGroqJudge({ client });
+
+    await judge({ kind: 'rolePlayCommunication', prompt: 'p' });
+
+    expect(getLastCallMetadata()?.usage).toBeUndefined();
+  });
+
   it('throws if the response contains no message content', async () => {
     const client: GroqClientLike = {
       chat: { completions: { create: vi.fn(async () => ({ id: 'x', choices: [{ message: { content: null } }] })) } },

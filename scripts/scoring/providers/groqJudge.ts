@@ -19,10 +19,13 @@
 
 import Groq from 'groq-sdk';
 import type { Judge, JudgeRequest, JudgeResponse } from '../../../src/domain/igcse/judgement/types';
+import type { JudgeCallTokenUsage } from './geminiJudge';
 
 export interface GroqJudgeCallMetadata {
   model: string;
   responseId?: string;
+  /** From response.usage — logs and judge:check only, never the envelope (step 9). */
+  usage?: JudgeCallTokenUsage;
 }
 
 export interface GroqClientLike {
@@ -39,6 +42,7 @@ export interface GroqClientLike {
       ) => Promise<{
         id?: string;
         choices: Array<{ message: { content: string | null } }>;
+        usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number };
       }>;
     };
   };
@@ -115,9 +119,19 @@ export function createGroqJudge(options: GroqJudgeOptions = {}): {
       { timeout: REQUEST_TIMEOUT_MS },
     );
 
+    const usage: JudgeCallTokenUsage | undefined =
+      response.usage?.prompt_tokens !== undefined && response.usage?.completion_tokens !== undefined
+        ? {
+            inputTokens: response.usage.prompt_tokens,
+            outputTokens: response.usage.completion_tokens,
+            ...(response.usage.total_tokens !== undefined ? { totalTokens: response.usage.total_tokens } : {}),
+          }
+        : undefined;
+
     lastCallMetadata = {
       model,
       ...(response.id !== undefined ? { responseId: response.id } : {}),
+      ...(usage !== undefined ? { usage } : {}),
     };
 
     const content = response.choices[0]?.message.content;

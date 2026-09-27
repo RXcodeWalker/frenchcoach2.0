@@ -11,9 +11,10 @@ import { buildQualityOfLanguagePrompt, buildRolePlayCommunicationPrompt } from '
 import { SCORING_PROMPT_VERSION } from '../version';
 import { PRACTICE_TRANSCRIPT } from './fixtures';
 
-// scoring-prompt-v0.6: two prompts, two pins.
+// scoring-prompt-v0.6.1: two prompts, two pins. Main call unchanged since
+// v0.6 (turnId ambiguity fix only touched the QoL prompt).
 const SCORING_PROMPT_FIXTURE_HASH = '59d9574804c4a858577d538e13352c20decc5e7d5c4bd3f85a417f27932c4a62';
-const QOL_PROMPT_FIXTURE_HASH = 'f1da2708391b9d3115bd250ea4746817c9ecf2937bb23a3029bce0c676558273';
+const QOL_PROMPT_FIXTURE_HASH = 'e9b7700da7304c59c68fc836117d3df0d55f29292c8432db673c1faa5d786853';
 
 function sha256(value: string): string {
   return createHash('sha256').update(value).digest('hex');

@@ -20,9 +20,18 @@
 import { GoogleGenAI } from '@google/genai';
 import type { Judge, JudgeRequest, JudgeResponse } from '../../../src/domain/igcse/judgement/types';
 
+/** Token usage for one call, read from the SDK's own count — never estimated. */
+export interface JudgeCallTokenUsage {
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens?: number;
+}
+
 export interface GeminiJudgeCallMetadata {
   model: string;
   responseId?: string;
+  /** From response.usageMetadata — logs and judge:check only, never the envelope (step 9). */
+  usage?: JudgeCallTokenUsage;
 }
 
 export interface GeminiClientLike {
@@ -34,6 +43,11 @@ export interface GeminiClientLike {
     }) => Promise<{
       text?: string;
       responseId?: string;
+      usageMetadata?: {
+        promptTokenCount?: number;
+        candidatesTokenCount?: number;
+        totalTokenCount?: number;
+      };
     }>;
   };
 }
@@ -91,9 +105,20 @@ export function createGeminiJudge(options: GeminiJudgeOptions = {}): {
       },
     });
 
+    const usageMetadata = response.usageMetadata;
+    const usage: JudgeCallTokenUsage | undefined =
+      usageMetadata?.promptTokenCount !== undefined && usageMetadata?.candidatesTokenCount !== undefined
+        ? {
+            inputTokens: usageMetadata.promptTokenCount,
+            outputTokens: usageMetadata.candidatesTokenCount,
+            ...(usageMetadata.totalTokenCount !== undefined ? { totalTokens: usageMetadata.totalTokenCount } : {}),
+          }
+        : undefined;
+
     lastCallMetadata = {
       model,
       ...(response.responseId !== undefined ? { responseId: response.responseId } : {}),
+      ...(usage !== undefined ? { usage } : {}),
     };
 
     if (!response.text) {

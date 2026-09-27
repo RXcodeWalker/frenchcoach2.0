@@ -45,7 +45,7 @@ const QOL_JSON_OUTPUT_CONTRACT = `{
   "errors": [
     {
       "source": "topic1" | "topic2",
-      "turnId": "<turn id as rendered>",
+      "turnId": "<bare turn id, e.g. \\"q1\\" — never include the word 'Turn' or the topic id>",
       "quote": "<verbatim substring of THAT turn's candidate response>",
       "kind": "grammar" | "vocabulary",
       "correction": "<correct French>"
@@ -318,7 +318,7 @@ export const QOL_NOT_A_FORMULA_LINE =
 
 /** Error quotes are grounded per turn, accents and all. Exported for prompt.test.ts. */
 export const QOL_QUOTE_RULE_LINE =
-  "Each error's turnId is the turn whose Candidate response contains it. Copy the quote exactly as written there, including any missing accents or ASR spellings. Never quote the examiner's question.";
+  'Each error\'s turnId is the BARE id of the turn whose Candidate response contains it — e.g. for a transcript line reading "Turn q1", the turnId is "q1", never "Turn q1" or "topic1 q1". Copy the quote exactly as written there, including any missing accents or ASR spellings. Never quote the examiner\'s question.';
 
 /**
  * scoring-prompt-v0.6 second L2 call ('qualityOfLanguage'): Table C (with its

@@ -1,0 +1,55 @@
+{
+  "id": "borderline",
+  "description": "Borderline: fluent with frequent basic errors — the case whose real justification named 'preferring cinema because they do not like running' (verification-log.md, 2026-09-27 Part 2, case 4). Reconstructed to match that description and its marks; exact original wording was not logged.",
+  "transcript": {
+    "contentProvenance": "original-practice",
+    "rolePlay": [
+      { "taskId": "t1", "taskPrompt": "Greet the shop assistant.", "candidateResponse": "Bonjour madame." },
+      { "taskId": "t2", "taskPrompt": "Say you want two croissants.", "candidateResponse": "Je veux deux croissant s il vous plaît." },
+      { "taskId": "t3", "taskPrompt": "Ask the price.", "candidateResponse": "C est combien ça coûte?" },
+      { "taskId": "t4", "taskPrompt": "Say you will pay by card.", "candidateResponse": "Je paye avec ma carte." },
+      { "taskId": "t5", "taskPrompt": "Thank and say goodbye.", "candidateResponse": "Merci, au revoir madame." }
+    ],
+    "topicConversations": [
+      {
+        "conversationId": "topic1",
+        "topicArea": "A",
+        "turns": [
+          {
+            "turnId": "q1",
+            "questionPrompt": "What do you do at weekends?",
+            "candidateResponse": "Le weekend moi je fais beaucoup de chose, je regarde des film, je sors avec mes amis et parfois je reste à la maison."
+          },
+          {
+            "turnId": "q2",
+            "questionPrompt": "Do you prefer sport or cinema?",
+            "candidateResponse": "Je préfère le cinéma que le sport parce que je n aime pas courir, c est fatigant pour moi."
+          }
+        ]
+      },
+      {
+        "conversationId": "topic2",
+        "topicArea": "B",
+        "turns": [
+          {
+            "turnId": "q1",
+            "questionPrompt": "Describe your best friend.",
+            "candidateResponse": "Ma meilleur amie elle s appelle Chloé, elle est gentille et on se connaît depuis longtemps."
+          },
+          {
+            "turnId": "q2",
+            "questionPrompt": "What do you do together?",
+            "candidateResponse": "On regarde des série ensemble et on parle beaucoup au téléphone chaque jour."
+          }
+        ]
+      }
+    ]
+  },
+  "baseline": {
+    "total": 31,
+    "rolePlay": 9,
+    "communication": 11,
+    "qualityOfLanguage": 11,
+    "note": "Pre-change single-call judge, gemini-3.5-flash-lite (verification-log.md 2026-09-27, Part 2, case 4). Both bands labelled Good."
+  }
+}

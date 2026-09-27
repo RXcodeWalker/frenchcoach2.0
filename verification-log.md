@@ -1825,3 +1825,115 @@ throwaway verification script was deleted after the run.
 **Explicitly not verified here:** any real-judge behaviour. Whether split A's QoL actually drops to ≤ 9, the
 Communication decision-rule signal, retry rates from per-turn grounding on real replies, and the measured cost of the
 second call are all Batch 2 (`npm run judge:check`) — nothing in this entry is evidence about them.
+
+## 2026-09-27 — 0520 Phase 1 completion, Batch 2: `judge:check` + measurement (branch `claude/vibrant-cori-x0fgjx`)
+
+**What changed (implementation step 9, the harness, fixtures, offline test, the real 3-run check):**
+
+- **Token usage capture** (`getLastCallMetadata().usage`) added to `geminiJudge.ts` (from
+  `response.usageMetadata.{promptTokenCount,candidatesTokenCount,totalTokenCount}`) and
+  `groqJudge.ts` (from `response.usage.{prompt_tokens,completion_tokens,total_tokens}`). Optional,
+  omitted when the provider's response carries none; never reaches the envelope, logs/`judge:check`
+  only.
+- **`npm run judge:check`** (`scripts/scoring/judgeCheck.ts`): runs the real
+  `buildEvidenceProfile` → both L2 calls (each with its own fresh judge + its own retry, mirroring
+  `scoreAttempt.ts`) → `runGuardrails`, against Gemini by default (`--provider groq` available).
+  Flags: `--runs` (default 3), `--case`. Prints a per-fixture, per-run table (RP/Comm/QoL/total,
+  error count, `errorFrequency`, attempts per call kind), a spread line, and PASS/FAIL against each
+  fixture's pass-bar `expect` block; writes a JSON report to `data/reports/judge-check/`
+  (gitignored) with token totals and an estimated Gemini cost. Not run in CI.
+  - **Rate-limit handling added after the first real run hit it**: the Gemini free tier caps
+    `generate_content_free_tier_requests` at 15/min. `runJudgeCallWithRetry` now retries a
+    `RESOURCE_EXHAUSTED` (HTTP 429) response using the server's own `retryDelay`, uncounted
+    against the per-call `JudgementValidationError` retry (that response was never a judged
+    reply); the harness also paces successive runs ~9s apart so the limit is rarely hit at all.
+  - **Per-run failure isolation added after the same run**: a terminal failure (rate limit
+    exhausted, a call that returns non-JSON after both attempts) no longer crashes the whole
+    harness — it's caught, logged, and the remaining runs/fixtures continue. A gated fixture with
+    any failed run fails its pass-bar automatically (can't confirm 3-of-3 without 3 completed
+    runs).
+- **8 fixtures** (`scripts/scoring/judgeCheck/fixtures/*.json`, loaded via `fs` + zod, not a static
+  import, so they stay plain JSON): `weak`, `middling-original`, `strong`, `borderline`,
+  `very-short` reconstruct the pre-change 5-case experiment already logged above (same marks/
+  descriptions, since the exact original wording was never logged); `split-a-strong-comm-poor-
+  grammar` and `split-b-accurate-minimal` reconstruct the plan's own split-pair description (its
+  exact original transcript and per-run numbers were given in an earlier chat message that is not
+  in this session's context — not copied, only the plan's own quoted phrases and figures were
+  used); `middling-rewritten` is new. Each file's `description` says exactly what is reconstructed
+  vs. quoted vs. new.
+- **Offline test** (`scripts/scoring/judgeCheck/__tests__/fixtures.test.ts`, 11 tests, no network):
+  every fixture parses, has 5 role-play tasks + 2×2 topic turns, is `original-practice`, and the 4
+  gated fixtures carry an `expect` block; `passBar.ts`'s pure evaluator is tested against fake
+  run data (max/min bounds, 3-of-3 required, multi-fixture aggregation).
+- **One real-judge prompt bug found and fixed by the harness's first live run** (this is what
+  `judge:check` is for): the QoL contract's `turnId` placeholder ("<turn id as rendered>") and
+  `QOL_QUOTE_RULE_LINE` were ambiguous against the transcript's own "Turn q1" heading — Gemini's
+  real reply echoed `"turnId": "Turn q1"` literally, which `validateQolErrors` correctly rejected
+  as an unknown turn on every single run (100% failure rate before the fix). Fixed by stating
+  explicitly, in both the JSON contract and the quote-rule line, that `turnId` is the bare id
+  ("q1"), never "Turn q1". **`SCORING_PROMPT_VERSION` → `scoring-prompt-v0.6.1`** (QoL prompt hash
+  changed: `f1da2708…` → `e9b77...`; main-call hash unchanged, confirmed by direct hash
+  recomputation). `score:golden` goldens updated deliberately (`scoringPromptVersion` string only,
+  no mark/band/trigger moved).
+
+**Fixture iteration (reported, not a scoring-engine change):** two of the eight fixtures needed
+more than one iteration to reliably clear their pass-bar, and in both cases the *fixture* was
+adjusted, never the prompt or the scorer, per the plan's own instruction not to force a number:
+- `weak`: v1/v2 (verb-form and article errors in otherwise complete sentences) landed a stable
+  Comm 7-8/QoL 7 — one point over each gate, inside Table C's 7-9 "frequent errors" band. v3
+  (near-total loss of sentence structure — isolated words/fragments, no connectors) landed
+  Comm 4-5/QoL 1, inside the 1-3 "almost always inaccurate" band, and passed 3/3.
+- `split-a-strong-comm-poor-grammar`: v1 (~6-8 audible errors, the plan's own phrases) landed
+  QoL 7-11 across runs — borderline between "frequent" (7-9) and "some" (10-12). v2 (a few more
+  instances of the same error *types* — infinitive-for-conjugated, "préfère … que") landed QoL 7
+  in all 3 runs.
+
+**Real Gemini `judge:check` result — final run, `gemini-3.5-flash-lite`, 3 runs, all 8 fixtures:**
+
+| Fixture | Runs (RP / Comm / QoL / total) | Pass-bar | Result |
+|---|---|---|---|
+| weak | 9/4/1/14 (×3, identical) | Comm ≤6 and QoL ≤6 | **PASS 3/3** |
+| middling-original | 10/15/15/40 (×3) | not gated | reported |
+| strong | 10/15/15/40 (×3) | Comm ≥13 and QoL ≥13 | **PASS 3/3** |
+| borderline | 10/12/11/33 (×3, identical) | not gated | reported |
+| very-short | 7-8/1-2/1-4/9-13 | not gated | reported |
+| split-a-strong-comm-poor-grammar | 10/12-14/7/29-31 | QoL ≤9 | **PASS 3/3** |
+| split-b-accurate-minimal | 10/7/9/26 (×3, identical) | Comm ≤7 | **PASS 3/3** |
+| middling-rewritten | 10/14/15/39 (×3) | not gated (target 8-10) | reported — landed error-free like `middling-original`, same authoring caveat |
+
+**All four gated pass-bar items pass in 3/3** (the plan's stated Batch 2 gate). One
+`JudgementValidationError` retry occurred across the 48 real calls in this final run
+(`very-short` run 1, main call: "Judge response is not valid JSON" — succeeded on the fresh-judge
+retry, attempt 2); no other retries. Token usage this run: 88,065 input + 29,589 output tokens
+across 24 attempts (no QoL-call retries) → **estimated cost $0.1004** for the full 8-fixture,
+3-run sweep at $0.30/M input + $2.50/M output (unconfirmed against Google's own pricing page —
+see the plan's own caveat on the OpenRouter-sourced price). Per-exam net extra from adding the QoL
+call is therefore in the same ballpark as the plan's pre-measurement estimate ($0.004-0.007);
+this run's own average (~$0.0042/attempt-pair) sits inside that range, though it is not a
+production-traffic sample.
+
+**Signal for the plan's own decision rule** (not gated): `split-a`'s Communication (12-14) did not
+drop with its grammar — it stayed inside the same 12-14 band `borderline`'s Communication landed
+in with fewer errors. Nothing here indicates grammar is contaminating Communication; the plan's
+stated trigger for giving Communication its own call ("if A's Communication drops with its
+grammar to ≤ 9") did not fire.
+
+**Explicitly not claimed:** these are 8 hand-authored (five reconstructed from a logged
+description, two reconstructed from the plan's own quoted phrases with no access to the original
+transcript, one new) fixtures against one model snapshot in one session — not a calibration
+result, not agreement with a real examiner, and not evidence about any transcript this harness
+didn't run. The reconstructed fixtures' exact wording differs from whatever produced the original
+pre-change numbers; only the marks/behavior they were built to reproduce are attested here.
+
+**Verified:** `npm run typecheck`, `typecheck:server`: clean. `npm run typecheck:scripts`: only the
+same 3 pre-existing errors (untouched). `npm run lint`: 0 errors, 22 pre-existing warnings, none
+in touched files. `npm test`: 2313 passed, 2 failed — same 2 pre-existing failures
+(`learn/demand/__tests__/infer.test.ts`, `feedbackContractFixtures.test.ts`); 15 new tests added
+(provider usage capture ×4, fixture/pass-bar offline suite ×11), all passing. `npm run
+score:golden`: 5/5, diff limited to `scoringPromptVersion` v0.6→v0.6.1 on the two
+assessment-bearing goldens. `npm run e2e:exam`: 4/4 passed (unaffected by this batch's changes;
+re-run for the QoL prompt fix).
+
+**Explicitly not verified here:** Batch 3 (verification-log entries (a) the M/J/26 booklet check
+and (b) the pre-change split/rewritten experiment tables, and the `assessment-engine.md` update)
+— out of scope for this session, per the plan's own batch boundaries.
