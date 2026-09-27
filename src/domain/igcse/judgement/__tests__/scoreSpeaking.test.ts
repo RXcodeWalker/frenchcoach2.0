@@ -67,6 +67,45 @@ describe('scoreSpeaking', () => {
     );
   });
 
+  it('a JSON-parse failure carries reply diagnostics (length + truncation signal), never the reply text', async () => {
+    const judge: Judge = async () => ({ raw: 'not json at all' });
+    try {
+      await scoreSpeaking(PRACTICE_TRANSCRIPT, EVIDENCE, judge);
+      expect.unreachable('scoreSpeaking should have thrown');
+    } catch (err) {
+      expect(err).toBeInstanceOf(JudgementValidationError);
+      const validationErr = err as JudgementValidationError;
+      expect(validationErr.replyDiagnostics).toEqual({ replyLength: 'not json at all'.length, looksTruncated: true });
+      expect(JSON.stringify(validationErr.replyDiagnostics)).not.toContain('not json');
+    }
+  });
+
+  it('does not flag looksTruncated when the malformed reply still ends with a closing brace', async () => {
+    const judge: Judge = async () => ({ raw: '{not valid json}' });
+    try {
+      await scoreSpeaking(PRACTICE_TRANSCRIPT, EVIDENCE, judge);
+      expect.unreachable('scoreSpeaking should have thrown');
+    } catch (err) {
+      expect((err as JudgementValidationError).replyDiagnostics?.looksTruncated).toBe(false);
+    }
+  });
+
+  it('does not attach reply diagnostics to a schema/grounding validation failure (only the JSON.parse site sets them)', async () => {
+    const output = buildValidMainOutput();
+    output.communication.evidenceSpans = [
+      { source: 'topic1', quote: "j'ai joue au football" },
+      { source: 'topic2', quote: 'Mon meilleur ami' },
+    ];
+    const judge = fakeJudge(output);
+    try {
+      await scoreSpeaking(PRACTICE_TRANSCRIPT, EVIDENCE, judge);
+      expect.unreachable('scoreSpeaking should have thrown');
+    } catch (err) {
+      expect(err).toBeInstanceOf(JudgementValidationError);
+      expect((err as JudgementValidationError).replyDiagnostics).toBeUndefined();
+    }
+  });
+
   it('accepts a reply wrapped in one ```json fence', async () => {
     const judge: Judge = async (req) => ({
       raw: '```json\n' + JSON.stringify(req.kind === 'qualityOfLanguage' ? buildValidQolOutput() : buildValidMainOutput()) + '\n```',

@@ -71,6 +71,37 @@ export function logJudgeValidationFailure(
 }
 
 /**
+ * Diagnostics for a JudgementValidationError that came specifically from
+ * scoreSpeaking.ts's JSON.parse failure (schema.ts's JudgementReplyDiagnostics
+ * — undefined for every other validation failure, e.g. a bad quote or an
+ * out-of-range total). Debug-gated: this is extra detail on top of
+ * logJudgeValidationFailure's always-on line, not a replacement for it.
+ * Never includes the reply text itself — only its length and whether it
+ * looks cut off.
+ */
+export function logJudgeParseFailureDiagnostics(
+  traceId: string,
+  sessionId: string,
+  judgeKind: JudgeKind,
+  provider: string | undefined,
+  model: string | undefined,
+  diagnostics: { replyLength: number; looksTruncated: boolean },
+): void {
+  if (!debugEnabled) return;
+  process.stderr.write(
+    JSON.stringify({
+      traceId,
+      sessionId,
+      stage: 'judgeParseFailureDiagnostics',
+      judgeKind,
+      provider,
+      model,
+      ...diagnostics,
+    }) + '\n',
+  );
+}
+
+/**
  * How many judge calls one L2 call kind took in a scored attempt (1, or 2
  * after a validation retry). scoring-prompt-v0.6: logged per kind, since the
  * two calls retry independently. Debug-gated like logStage, except when a

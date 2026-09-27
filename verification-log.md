@@ -2173,3 +2173,55 @@ succeeded on attempt 2 — all three unrelated to the QoL wording change itself)
 same 3 pre-existing errors. `npm run lint`: 0 errors, same 22 pre-existing warnings. `npm test`:
 2317 tests, 2315 passed, 2 failed — same 2 pre-existing failures, unrelated. `npm run score:golden`:
 5/5, no diff (confirms the revert is exact). `npm run e2e:exam`: 4/4.
+
+## 2026-09-27 — JSON-parse reliability follow-up: retry count + debug-gated parse diagnostics
+
+**Context:** a real `judge:check` run (previous entry) hit one terminal failure —
+`very-short-reconstructed` failed both attempts of its QoL call on "Quality of Language judge
+response is not valid JSON." Investigated the actual production impact before changing anything:
+`scoreAttempt.ts`'s `runJudgeCall` already retries a `JudgementValidationError` up to
+`MAX_JUDGE_ATTEMPTS` times per call kind, and if a whole `scoreAttempt()` still fails, the client
+(`examScoringMachine.ts`) auto-resubmits up to `MAX_SUBMIT_ATTEMPTS = 3` times with backoff before
+showing the student anything — so a real exam attempt already gets far more chances than
+`judge:check`'s bare 2-attempt harness run suggested, and the transcript is saved throughout. This
+isn't "the student gets no score"; it's "may need to wait and retry," already handled. Confirmed
+before implementing anything, per `src/domain/igcse/CLAUDE.md`'s plan-first rule.
+
+**Change 1 — retry count, 2 -> 3 (`scoreAttempt.ts`, `judgeCheck.ts`):** `MAX_JUDGE_ATTEMPTS` raised
+from 2 to 3 in both the production path and the harness (which explicitly claims to mirror it). A
+pure retry-count change — no parsing rule touched. In particular, `stripJsonFence`/`callJudge` in
+`scoreSpeaking.ts` still deliberately refuses to hunt for a JSON blob inside surrounding prose (see
+its own test, `'still rejects prose around a fenced reply'`) — that design decision was explicitly
+NOT reopened, per the user's own instruction ("Don't change any parsing rules").
+
+**Change 2 — debug-gated parse-failure diagnostics, never the reply text:** `JudgementValidationError`
+(`schema.ts`) gained an optional `replyDiagnostics?: { replyLength: number; looksTruncated: boolean }`,
+populated ONLY at `scoreSpeaking.ts`'s `callJudge()` JSON.parse-failure site (every other
+throw site — schema/grounding/range failures — leaves it `undefined`). `looksTruncated` is a cheap
+signal (does the parsed-for string end with `}` after trimming?), not a claim about root cause.
+`scoreAttempt.ts`'s `runJudgeCall` catch block reads it and, only when
+`isScoringDebugEnabled()` (env `SCORING_DEBUG=1` or `--debug`), logs one line via a new
+`logJudgeParseFailureDiagnostics` (`observability/logger.ts`) carrying `judgeKind`, `provider`,
+`model`, `replyLength`, `looksTruncated` — never the reply text itself, since it can carry the
+candidate's own spoken words. The existing always-on `logJudgeValidationFailure` line is unchanged.
+
+**Tests added:** `scoreSpeaking.test.ts` (3: diagnostics present + correct on a parse failure,
+`looksTruncated` false when the malformed reply still ends with `}`, diagnostics absent on a
+schema/grounding failure). `logger.test.ts` (2: `logJudgeParseFailureDiagnostics` is a no-op when
+debug is off, logs the exact fields with no reply text when debug is on — ordered around the
+module's one-way debug-enable ratchet, same pattern as the existing `logStage` tests).
+`scoreAttempt.test.ts` (updated the old "gives up after the second invalid reply" test to 3
+attempts/6 calls; added a new test proving recovery specifically on the 3rd attempt; added 2 tests
+for the debug-gated diagnostic line end-to-end, on/off). `batchScore.test.ts`'s
+"isolates a scoring failure" test hardcoded the old 4-call (2 kind x 2 attempts) failure window —
+updated to 6 calls; this was a real, caught regression (all-good, then all-invalid, then good
+across all attempts would have silently made that fixture's "always fails" case start succeeding).
+
+**No envelope/prompt/rubric/guardrails change, no version bump** — retry count and logging are not
+scoring behavior, and `score:golden`'s 5/5 no-diff result confirms it.
+
+**Verified:** `npm run typecheck`, `typecheck:server`, `typecheck:scripts`: same pre-existing
+3 scripts errors only. `npm run lint`: 0 errors, same 22 warnings. `npm test`: 2325 tests (8 new:
+3 scoreSpeaking, 2 logger, 3 scoreAttempt — plus batchScore's existing test updated in place, not
+counted as new), 2323 passed, 2 failed — same 2 pre-existing failures. `npm run score:golden`: 5/5,
+no diff. `npm run e2e:exam`: 4/4.

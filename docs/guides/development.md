@@ -47,17 +47,21 @@ npm run judge:check -- --provider groq   # Groq instead of Gemini (needs GROQ_AP
 
 `judge:check` (`scripts/scoring/judgeCheck.ts`) runs the real `buildEvidenceProfile` → both L2
 judge calls → `runGuardrails` path against a **live** judge — Gemini by default, needs
-`GEMINI_API_KEY` — over 8 fixtures in `scripts/scoring/judgeCheck/fixtures/*.json` (`weak`,
-`middling-original`, `strong`, `borderline`, `very-short`, `split-a-strong-comm-poor-grammar`,
-`split-b-accurate-minimal`, `middling-rewritten`). Four of the eight carry a pass-bar `expect`
-block (`weak`, `strong`, the two split cases) that must hold in every run, not just one; the rest
-are reported only. It costs money, needs a key, and is nondeterministic, so it is **not run in
-CI** — `scripts/scoring/judgeCheck/__tests__/fixtures.test.ts` is the CI-safe part (fixture
-validity + the pure pass-bar evaluator against a fake judge). It paces requests and retries
-`RESOURCE_EXHAUSTED` (free-tier rate limit) with the server's own backoff, uncounted against the
-per-call judgement retry; a `JudgementValidationError` gets one retry per call kind (same policy
-as `scoreAttempt.ts`) and is printed, never silently masked. It writes a JSON report to
-`data/reports/judge-check/` (gitignored) with token usage and an estimated Gemini cost.
+`GEMINI_API_KEY` — over 16 fixtures in `scripts/scoring/judgeCheck/fixtures/*.json`: the 8 verbatim
+pre-change-experiment transcripts (`weak`, `middling-original`, `strong`, `borderline`,
+`very-short`, `split-a-strong-comm-poor-grammar`, `split-b-accurate-minimal`, `middling-rewritten`)
+plus their `-reconstructed` counterparts (the earlier, hand-iterated Batch-2 stand-ins, kept for
+continuity, reported only, never gated). Four of the 8 verbatim fixtures carry a pass-bar `expect`
+block (`weak`, `strong`, the two split cases) that must hold in every run, not just one; every
+`-reconstructed` fixture and the other 4 verbatim ones are reported only. It costs money, needs a
+key, and is nondeterministic, so it is **not run in CI** — `scripts/scoring/judgeCheck/__tests__/fixtures.test.ts`
+is the CI-safe part (fixture validity + the pure pass-bar evaluator against a fake judge). It paces
+requests and retries `RESOURCE_EXHAUSTED` (free-tier rate limit) with the server's own backoff,
+uncounted against the per-call judgement retry; a `JudgementValidationError` gets up to 2 retries
+per call kind (3 attempts total, same `MAX_JUDGE_ATTEMPTS` policy as `scoreAttempt.ts`, raised from
+1 retry in the 2026-09-27 reliability follow-up) and is printed, never silently masked. It writes a
+JSON report to `data/reports/judge-check/` (gitignored) with token usage and an estimated Gemini
+cost.
 
 ```bash
 npm run e2e:exam            # Playwright: drives the exam UI against a fake, no-credentials

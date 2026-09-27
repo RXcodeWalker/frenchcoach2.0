@@ -9,12 +9,16 @@
  * Errors (ProvenanceError, JudgementValidationError) propagate unchanged —
  * the batch harness decides how to handle a failed attempt, not this function.
  * One exception: a JudgementValidationError (the judge replied, but the reply
- * failed parsing/validation) gets exactly one retry with a fresh createJudge()
- * instance before it propagates. Each call kind has its OWN retry, so a bad
- * QoL reply never re-runs role play/Communication (and vice versa). Failures
- * are logged, and the number of judge calls per kind is recorded as
- * `judgeAttempts` in the scoring logs (never in the envelope). A terminal
- * failure of either call fails the whole attempt — no partial marks.
+ * failed parsing/validation) gets up to MAX_JUDGE_ATTEMPTS - 1 retries, each
+ * with a fresh createJudge() instance, before it propagates. Each call kind
+ * has its OWN retry, so a bad QoL reply never re-runs role play/Communication
+ * (and vice versa). Failures are logged, and the number of judge calls per
+ * kind is recorded as `judgeAttempts` in the scoring logs (never in the
+ * envelope). A terminal failure of either call fails the whole attempt — no
+ * partial marks. This is one layer below the client's own resubmit retries
+ * (examScoringMachine.ts's MAX_SUBMIT_ATTEMPTS) — a whole scoreAttempt() call
+ * failing here still gets re-POSTed by the client with backoff, so the two
+ * retry layers compound, not substitute for each other.
  *
  * createJudge is a factory dependency, called fresh once per judge call
  * (never memoized/shared) — see anthropicJudge.ts header for the race this
@@ -44,14 +48,23 @@ import type { SessionQuestionSet } from '../../src/domain/igcse/stt/types';
 import type { TranscriptStore } from '../../src/domain/igcse/stt/ports';
 import { resolveScoringEngineVersion } from './engineVersion';
 import type { LlmProvenance, LlmProviderName } from '../../src/domain/igcse/envelope/types';
-import { logJudgeAttempts, logJudgeValidationFailure, logStage } from './observability/logger';
+import { logJudgeAttempts, logJudgeParseFailureDiagnostics, logJudgeValidationFailure, logStage } from './observability/logger';
 
 /**
- * Judge calls per L2 call kind per scoring attempt: the first, plus one retry
- * on a JudgementValidationError. A provider-call failure is not retried here —
- * judgeFactory.ts already falls back from Gemini to Groq for those.
+ * Judge calls per L2 call kind per scoring attempt: the first, plus up to two
+ * retries on a JudgementValidationError. A provider-call failure is not
+ * retried here — judgeFactory.ts already falls back from Gemini to Groq for
+ * those.
+ *
+ * Raised 2 -> 3 (0520 Phase 1 reliability follow-up, 2026-09-27): a real
+ * judge:check run hit a JSON-parse failure on both of 2 attempts for one
+ * fixture. This is a pure retry-count change — no parsing rule changed (see
+ * scoreSpeaking.ts's stripJsonFence, which still deliberately refuses to hunt
+ * for JSON inside prose). judge:check's own MAX_JUDGE_ATTEMPTS is bumped to
+ * match, per docs/guides/development.md's "same policy as scoreAttempt.ts"
+ * claim.
  */
-const MAX_JUDGE_ATTEMPTS = 2;
+const MAX_JUDGE_ATTEMPTS = 3;
 
 export interface JudgeCallMetadata {
   provider: LlmProviderName;
@@ -192,6 +205,17 @@ async function runJudgeCall<T>(
     } catch (err) {
       if (!(err instanceof JudgementValidationError)) throw err;
       logJudgeValidationFailure(attemptId, sessionId, kind, judgeAttempts, err);
+      if (err.replyDiagnostics) {
+        const failedCallMetadata = getLastCallMetadata();
+        logJudgeParseFailureDiagnostics(
+          attemptId,
+          sessionId,
+          kind,
+          failedCallMetadata?.provider,
+          failedCallMetadata?.model,
+          err.replyDiagnostics,
+        );
+      }
       if (judgeAttempts >= MAX_JUDGE_ATTEMPTS) throw err;
       continue;
     }

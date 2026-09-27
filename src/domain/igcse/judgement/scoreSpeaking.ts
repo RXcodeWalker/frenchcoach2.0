@@ -69,13 +69,18 @@ export function stripJsonFence(raw: string): string {
 
 async function callJudge(judge: Judge, kind: JudgeKind, prompt: string): Promise<unknown> {
   const { raw } = await judge({ kind, prompt });
+  const stripped = stripJsonFence(raw);
   try {
-    return JSON.parse(stripJsonFence(raw));
+    return JSON.parse(stripped);
   } catch {
+    // Diagnostics only — never the reply text itself (it can carry the
+    // candidate's own words). looksTruncated is a cheap truncation signal,
+    // not a claim about why parsing failed.
     throw new JudgementValidationError(
       kind === 'qualityOfLanguage'
         ? 'Quality of Language judge response is not valid JSON'
         : 'Judge response is not valid JSON',
+      { replyLength: raw.length, looksTruncated: !stripped.trim().endsWith('}') },
     );
   }
 }

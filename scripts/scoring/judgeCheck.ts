@@ -109,7 +109,8 @@ function createProviderJudge(provider: Provider): { judge: Judge; getLastCallMet
   return { judge, getLastCallMetadata: () => getLastCallMetadata() as GroqJudgeCallMetadata | undefined };
 }
 
-const MAX_JUDGE_ATTEMPTS = 2;
+/** Mirrors scoreAttempt.ts's own MAX_JUDGE_ATTEMPTS (bumped 2 -> 3, 2026-09-27 reliability follow-up). */
+const MAX_JUDGE_ATTEMPTS = 3;
 
 /** A call kind exhausted its retries — carries every attempt's message so the caller can report them. */
 class JudgeCallExhaustedError extends Error {

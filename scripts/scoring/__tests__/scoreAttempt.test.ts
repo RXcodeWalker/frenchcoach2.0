@@ -7,6 +7,7 @@ import type { ScoreAttemptDeps } from '../scoreAttempt';
 import { createGenericFakeJudge } from './fixtures';
 import { JudgementValidationError } from '../../../src/domain/igcse/judgement/schema';
 import type { Judge, JudgeKind, JudgeRequest, JudgeResponse } from '../../../src/domain/igcse/judgement/types';
+import { enableScoringDebug } from '../observability/logger';
 
 import structGolden from '../../../src/domain/igcse/stt/__tests__/fixtures/structurally-complete.golden.json';
 import structQuestions from '../../../src/domain/igcse/stt/__tests__/fixtures/structurally-complete-questions.json';
@@ -154,7 +155,27 @@ describe('scoreAttempt judge retry on JudgementValidationError', () => {
     stderr.mockRestore();
   });
 
-  it('gives up after the second invalid reply of a kind, logging every failure — no partial marks', async () => {
+  it('recovers on the third attempt after two invalid replies of a kind (MAX_JUDGE_ATTEMPTS = 3)', async () => {
+    const { deps, judgeCalls } = makeKindAwareDeps((req, n) =>
+      req.kind === 'rolePlayCommunication' && n <= 2 ? NOT_JSON() : undefined,
+    );
+    const stderr = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+
+    const envelope = await scoreAttempt(deps, {
+      sessionId: SESSION_ID,
+      questionSet: structQuestions as SessionQuestionSet,
+    });
+
+    expect(envelope.total).toBeGreaterThan(0);
+    expect(judgeCalls.filter((k) => k === 'rolePlayCommunication')).toHaveLength(3);
+    expect(judgeCalls.filter((k) => k === 'qualityOfLanguage')).toHaveLength(1);
+    const lines = stderr.mock.calls.map((c) => String(c[0]));
+    expect(lines.filter((l) => l.includes('JudgementValidationError') && l.includes('rolePlayCommunication'))).toHaveLength(2);
+    expect(lines.some((l) => l.includes('"judgeAttempts":3') && l.includes('"judgeKind":"rolePlayCommunication"'))).toBe(true);
+    stderr.mockRestore();
+  });
+
+  it('gives up after exhausting all 3 attempts of a kind, logging every failure — no partial marks', async () => {
     const { deps } = makeKindAwareDeps(() => NOT_JSON());
     const stderr = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
 
@@ -162,10 +183,10 @@ describe('scoreAttempt judge retry on JudgementValidationError', () => {
       scoreAttempt(deps, { sessionId: SESSION_ID, questionSet: structQuestions as SessionQuestionSet }),
     ).rejects.toThrow(JudgementValidationError);
 
-    // Both kinds, first call + one retry each.
-    expect(deps.createJudge).toHaveBeenCalledTimes(4);
+    // Both kinds, 3 attempts each.
+    expect(deps.createJudge).toHaveBeenCalledTimes(6);
     const failureLines = stderr.mock.calls.map((c) => String(c[0])).filter((l) => l.includes('JudgementValidationError'));
-    expect(failureLines).toHaveLength(4);
+    expect(failureLines).toHaveLength(6);
     stderr.mockRestore();
   });
 
@@ -305,5 +326,54 @@ describe('replayEnvelope', () => {
     expect(replayed.evidenceProfileSnapshot).not.toEqual({ corrupted: true });
     expect(replayed.transcriptSnapshot).not.toEqual({ corrupted: true });
     expect(replayed.rolePlayTasks).toHaveLength(5);
+  });
+});
+
+describe('scoreAttempt JSON-parse failure diagnostics (2026-09-27 reliability follow-up)', () => {
+  // debugEnabled is a one-way module-level ratchet (see logger.ts) — the
+  // "disabled" case must run before enableScoringDebug() anywhere in this
+  // file, so this describe block's tests are ordered disabled-then-enabled
+  // and nothing above this point in the file may call enableScoringDebug().
+
+  it('does not log parse diagnostics when scoring debug is off (the always-on failure line still does)', async () => {
+    const { deps } = makeKindAwareDeps((req, n) =>
+      req.kind === 'qualityOfLanguage' && n === 1 ? NOT_JSON() : undefined,
+    );
+    const stderr = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+
+    await scoreAttempt(deps, { sessionId: SESSION_ID, questionSet: structQuestions as SessionQuestionSet });
+
+    const lines = stderr.mock.calls.map((c) => String(c[0]));
+    expect(lines.some((l) => l.includes('JudgementValidationError'))).toBe(true);
+    expect(lines.some((l) => l.includes('judgeParseFailureDiagnostics'))).toBe(false);
+    stderr.mockRestore();
+  });
+
+  it('logs provider/model/length/truncation once scoring debug is on, never the reply text', async () => {
+    enableScoringDebug();
+    const { deps } = makeKindAwareDeps(
+      (req, n) => (req.kind === 'qualityOfLanguage' && n === 1 ? NOT_JSON() : undefined),
+      (kind) =>
+        kind === 'qualityOfLanguage'
+          ? { provider: 'gemini', model: 'gemini-2.5-flash', responseId: 'resp-qol' }
+          : { provider: 'gemini', model: 'fake-model', responseId: 'resp-fake' },
+    );
+    const stderr = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+
+    await scoreAttempt(deps, { sessionId: SESSION_ID, questionSet: structQuestions as SessionQuestionSet });
+
+    const lines = stderr.mock.calls.map((c) => String(c[0]));
+    const diagnosticsLine = lines.find((l) => l.includes('judgeParseFailureDiagnostics'));
+    expect(diagnosticsLine).toBeDefined();
+    const parsed = JSON.parse(diagnosticsLine!);
+    expect(parsed).toMatchObject({
+      judgeKind: 'qualityOfLanguage',
+      provider: 'gemini',
+      model: 'gemini-2.5-flash',
+      replyLength: 'not json'.length,
+      looksTruncated: true,
+    });
+    expect(diagnosticsLine).not.toContain('not json');
+    stderr.mockRestore();
   });
 });

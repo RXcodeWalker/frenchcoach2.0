@@ -29,8 +29,24 @@ import { normalizeForMatch, canonicalizeForMatch } from '../text/normalize';
 
 // ── Errors ────────────────────────────────────────────────────────────────────
 
+/**
+ * `replyDiagnostics` is set ONLY when this error comes from scoreSpeaking.ts's
+ * JSON.parse failure site — never the reply text itself (it may contain the
+ * candidate's own words), just its length and whether it looks cut off.
+ * Every other throw site (schema/grounding/range failures below) leaves it
+ * undefined. The caller (scoreAttempt.ts) logs it, debug-gated, alongside
+ * provider/model metadata it already has.
+ */
+export interface JudgementReplyDiagnostics {
+  replyLength: number;
+  looksTruncated: boolean;
+}
+
 export class JudgementValidationError extends Error {
-  constructor(message: string) {
+  constructor(
+    message: string,
+    public readonly replyDiagnostics?: JudgementReplyDiagnostics,
+  ) {
     super(message);
     this.name = 'JudgementValidationError';
   }
