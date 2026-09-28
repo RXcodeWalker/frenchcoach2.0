@@ -93,7 +93,8 @@ describe('conductEngine: role play', () => {
     state = first.state;
     expect(first.actions[0]).toMatchObject({ kind: 'READ_MAIN', questionId: 'rp1', part: 'rolePlay' });
 
-    const next = driveOne(qs, state, answer());
+    // rp1 fully answered advances into rp2 with an in-role TRANSITION first (D13) — driveStep, not driveOne.
+    const next = driveStep(qs, state, answer());
     state = next.state;
     expect(next.action).toMatchObject({ kind: 'READ_MAIN', questionId: 'rp2', part: 'rolePlay' });
   });
@@ -115,7 +116,7 @@ describe('conductEngine: role play', () => {
     let state = initConductEngineState(qs);
     state = startConduct(qs, state).state;
     for (let i = 0; i < 5; i++) {
-      const r = driveOne(qs, state, answer());
+      const r = driveStep(qs, state, answer());
       state = r.state;
       expect(r.action.kind).not.toBe('EXTENSION_PROMPT');
       expect(r.action.kind).not.toBe('FURTHER_QUESTION');
@@ -125,19 +126,20 @@ describe('conductEngine: role play', () => {
   it('tracks partsAddressed for a PAUSE (two-part) task and reads part 2 before advancing', () => {
     let state = initConductEngineState(qs);
     state = startConduct(qs, state).state;
-    // rp1, rp2 answered normally
-    state = driveOne(qs, state, answer()).state;
-    state = driveOne(qs, state, answer()).state;
+    // rp1, rp2 answered normally — each advance now emits [TRANSITION, READ_MAIN] (D13).
+    state = driveStep(qs, state, answer()).state;
+    state = driveStep(qs, state, answer()).state;
 
     // rp3 is partsExpected: 2 — first answer should deliver the DISTINCT part-2
     // prompt (rp3.secondPartText), not advance to rp4 and not re-read mainText.
+    // Delivering part 2 is not an "advance" — no TRANSITION, single action.
     const part2 = driveOne(qs, state, answer());
     state = part2.state;
     expect(part2.action).toMatchObject({ kind: 'READ_MAIN', questionId: 'rp3', text: qs.questions[2].secondPartText });
     expect(part2.action.text).not.toBe(qs.questions[2].mainText);
     expect(state.rolePlayTasks[2].partsAddressed).toBe(1);
 
-    const afterPart2 = driveOne(qs, state, answer());
+    const afterPart2 = driveStep(qs, state, answer());
     state = afterPart2.state;
     expect(afterPart2.action).toMatchObject({ kind: 'READ_MAIN', questionId: 'rp4' });
     expect(state.rolePlayTasks[2].partsAddressed).toBe(2);
@@ -146,11 +148,11 @@ describe('conductEngine: role play', () => {
   it('repeats the DISTINCT part-2 prompt (never part 1\'s mainText) on a failed second-part attempt', () => {
     let state = initConductEngineState(qs);
     state = startConduct(qs, state).state;
-    // rp1, rp2 answered normally
-    state = driveOne(qs, state, answer()).state;
-    state = driveOne(qs, state, answer()).state;
+    // rp1, rp2 answered normally — each advance now emits [TRANSITION, READ_MAIN] (D13).
+    state = driveStep(qs, state, answer()).state;
+    state = driveStep(qs, state, answer()).state;
 
-    // rp3 part 1 answered -> engine reads the distinct part-2 prompt.
+    // rp3 part 1 answered -> engine reads the distinct part-2 prompt (not an advance, single action).
     state = driveOne(qs, state, answer()).state;
     expect(state.rolePlayTasks[2].partsAddressed).toBe(1);
 
@@ -215,8 +217,10 @@ describe('conductEngine: topic conversation', () => {
     let state = initConductEngineState(qs);
     state = startConduct(qs, state).state;
     for (let i = 0; i < 6; i++) {
-      // 5 role play tasks, rp3 needs 2 answers
-      state = driveOne(qs, state, answer()).state;
+      // 5 role play tasks, rp3 needs 2 answers. Some of these advances now emit
+      // [TRANSITION, READ_MAIN] (D13) — driveStep, not driveOne, since only the
+      // final action count matters here.
+      state = driveStep(qs, state, answer()).state;
     }
     return state;
   }
@@ -468,7 +472,8 @@ describe('conductEngine: TRANSITION markers (C6)', () => {
     let state = initConductEngineState(qs);
     state = startConduct(qs, state).state;
     for (let i = 0; i < 6; i++) {
-      state = driveOne(qs, state, answer()).state;
+      // Some of these advances now emit [TRANSITION, READ_MAIN] (D13).
+      state = driveStep(qs, state, answer()).state;
     }
     return state;
   }
@@ -477,14 +482,22 @@ describe('conductEngine: TRANSITION markers (C6)', () => {
     return answer({ wordCount: 15, responseDurationS: 15, ...overrides });
   }
 
-  it('never emits TRANSITION during role play', () => {
+  it('D13 (Batch 3): emits an in-role TRANSITION between answered role-play tasks, but never crossing into topic 1', () => {
     let state = initConductEngineState(qs);
     state = startConduct(qs, state).state;
+    let transitionCount = 0;
     for (let i = 0; i < 6; i++) {
       const r = driveStep(qs, state, answer());
       state = r.state;
-      expect(r.actions.some((a) => a.kind === 'TRANSITION')).toBe(false);
+      if (r.actions.some((a) => a.kind === 'TRANSITION')) transitionCount += 1;
+      // The boundary into topic1 (the 6th, final iteration) never carries a role-play
+      // TRANSITION — the UI speaks its own "role play finished" line instead.
+      if (state.phase.kind === 'topic') {
+        expect(r.actions.some((a) => a.kind === 'TRANSITION')).toBe(false);
+      }
     }
+    // 5 tasks answered in order -> 4 in-role boundaries (rp1-2, rp2-3, rp3-4, rp4-5).
+    expect(transitionCount).toBe(4);
   });
 
   it('emits exactly [TRANSITION, READ_MAIN] after a successfully-answered developed question', () => {
@@ -569,7 +582,8 @@ describe('conductEngine: clarification conduct-hint (Change B)', () => {
     let state = initConductEngineState(qs);
     state = startConduct(qs, state).state;
     for (let i = 0; i < 6; i++) {
-      state = driveOne(qs, state, answer()).state;
+      // Some of these advances now emit [TRANSITION, READ_MAIN] (D13).
+      state = driveStep(qs, state, answer()).state;
     }
     return state;
   }

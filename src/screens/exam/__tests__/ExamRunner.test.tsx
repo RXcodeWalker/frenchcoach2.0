@@ -100,16 +100,13 @@ describe('ExamRunner — reliability plan §2.4 transcription-failure banner', (
 });
 
 /**
- * 0520 conduct plan, Batch 1 repros whose fix lands in Batch 3 (ExamRunner UI).
- * `it.fails` pins today's wrong behaviour without committing a red suite: each
- * passes only while its assertion still fails. When Batch 3 fixes the UI, the
- * test starts "unexpectedly passing" and fails — flip it to `it` then.
+ * 0520 conduct plan, Batch 1 repros, fixed in Batch 3 (ExamRunner UI).
  */
 describe('ExamRunner — 0520 conduct repros (fixed in Batch 3)', () => {
   const RP3_PART1 = 'Voulez-vous un aller simple ou un aller-retour ?';
   const RP3_PART2 = 'Y a-t-il une réduction pour les étudiants ?';
 
-  it.fails('exam-conduct §7: the second part of a two-part role-play task gets its own "part 2" label (Bug 1)', () => {
+  it('exam-conduct §7: the second part of a two-part role-play task gets its own "part 2" label (Bug 1)', () => {
     render(
       <ExamRunner
         {...baseProps}
@@ -129,7 +126,7 @@ describe('ExamRunner — 0520 conduct repros (fixed in Batch 3)', () => {
     expect(screen.getByText(/part 2/i)).not.toBeNull();
   });
 
-  it.fails('exam-conduct §10: Exam Sim counts down from the start of the current part, not the whole exam', () => {
+  it('exam-conduct §10: Exam Sim counts down from the start of the current part, not the whole exam', () => {
     // Topic 2 started at 6:20 of the exam; it is now 6:40 → 3:40 of its 4:00 left.
     render(
       <ExamRunner
@@ -145,5 +142,23 @@ describe('ExamRunner — 0520 conduct repros (fixed in Batch 3)', () => {
       />,
     );
     expect(screen.getByText('3:40')).not.toBeNull();
+  });
+
+  it('exam-conduct §24: Coached has no time-based countdown', () => {
+    render(
+      <ExamRunner
+        {...baseProps}
+        action={{ kind: 'READ_MAIN', part: 'topic2', questionId: 't2q1', variant: 'main', text: 'Question', trigger: 'scripted' }}
+        entries={[
+          { kind: 'examiner', seq: 30, atS: 380, part: 'topic2', action: 'READ_MAIN', questionId: 't2q1', variant: 'main', text: 'Question', trigger: 'scripted' },
+        ]}
+        totalElapsedS={400}
+        coached={true}
+        recording={baseRecording()}
+        pendingSilentSkip={false}
+        pendingTranscriptionFailure={false}
+      />,
+    );
+    expect(screen.queryByText('3:40')).toBeNull();
   });
 });

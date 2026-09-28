@@ -56,31 +56,50 @@ export class QuestionSetHashMismatchError extends Error {
   }
 }
 
-/** Resolves one question set by id: backend (published) first, in-repo fixture fallback. */
-export async function resolveQuestionSet(questionSetId: string): Promise<SessionQuestionSet> {
+/**
+ * Both sources for this id, remote first, whichever exist. A mid-deploy
+ * window can have the remote and the in-repo fixture carrying different
+ * content revisions (0520 conduct plan, Batch 6) — resolveAndVerifyQuestionSet
+ * needs both candidates to hash-match against, not just the first one found.
+ */
+async function resolveCandidates(questionSetId: string): Promise<SessionQuestionSet[]> {
+  const candidates: SessionQuestionSet[] = [];
+
   const remote = await fetchPublishedSet(questionSetId);
-  if (remote) return toSessionQuestionSet(remote);
+  if (remote) candidates.push(toSessionQuestionSet(remote));
 
   const fixture = OFFLINE_FIXTURES[questionSetId];
-  if (!fixture) throw new QuestionSetNotFoundError(questionSetId);
-  const validated = parseAuthoredQuestionSet(fixture);
-  return toSessionQuestionSet(validated);
+  if (fixture) candidates.push(toSessionQuestionSet(parseAuthoredQuestionSet(fixture)));
+
+  if (candidates.length === 0) throw new QuestionSetNotFoundError(questionSetId);
+  return candidates;
+}
+
+/** Resolves one question set by id: backend (published) first, in-repo fixture fallback. */
+export async function resolveQuestionSet(questionSetId: string): Promise<SessionQuestionSet> {
+  const [first] = await resolveCandidates(questionSetId);
+  return first;
 }
 
 /**
  * Resolves the question set and asserts its hash matches the transcript's
- * declared questionSetHash. Throws QuestionSetHashMismatchError, never
- * silently substitutes — a session must be scored against the exact
- * question wording it was actually conducted against (A5).
+ * declared questionSetHash. Never silently substitutes — a session must be
+ * scored against the exact question wording it was actually conducted
+ * against (A5) — but during a mid-deploy window the remote and the in-repo
+ * fixture can carry different content revisions, and a session run against
+ * either one is equally legitimate: SHA-256 equality *is* proof the candidate
+ * ran against this exact content (0520 conduct plan, Batch 6). So every
+ * resolved candidate is hash-checked in turn, and the first match wins;
+ * only when NEITHER matches does this throw QuestionSetHashMismatchError.
  */
 export async function resolveAndVerifyQuestionSet(
   questionSetId: string,
   expectedHash: string,
 ): Promise<SessionQuestionSet> {
-  const resolved = await resolveQuestionSet(questionSetId);
-  const actualHash = await hashQuestionSet(resolved);
-  if (actualHash !== expectedHash) {
-    throw new QuestionSetHashMismatchError(questionSetId);
+  const candidates = await resolveCandidates(questionSetId);
+  for (const candidate of candidates) {
+    const actualHash = await hashQuestionSet(candidate);
+    if (actualHash === expectedHash) return candidate;
   }
-  return resolved;
+  throw new QuestionSetHashMismatchError(questionSetId);
 }

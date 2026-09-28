@@ -75,4 +75,44 @@ describe('resolveAndVerifyQuestionSet', () => {
       resolveAndVerifyQuestionSet(ORIGINAL_PRACTICE_001.questionSetId, '0'.repeat(64)),
     ).rejects.toThrow(QuestionSetHashMismatchError);
   });
+
+  it('Batch 6: accepts the FIXTURE hash even when the remote answers with different content (mid-deploy window)', async () => {
+    // The remote is reachable but serves a different (already-updated) revision
+    // than the fixture the candidate actually ran their attempt against.
+    const differentRemote = {
+      ...ORIGINAL_PRACTICE_001,
+      content: {
+        ...ORIGINAL_PRACTICE_001.content,
+        rolePlay: { ...ORIGINAL_PRACTICE_001.content.rolePlay, setup: 'Une scène différente.' },
+      },
+    };
+    global.fetch = vi.fn(async () => new Response(JSON.stringify(differentRemote), { status: 200 })) as unknown as typeof fetch;
+
+    const fixtureHash = await hashQuestionSet(toSessionQuestionSet(ORIGINAL_PRACTICE_001));
+    const resolved = await resolveAndVerifyQuestionSet(ORIGINAL_PRACTICE_001.questionSetId, fixtureHash);
+    expect(resolved).toEqual(toSessionQuestionSet(ORIGINAL_PRACTICE_001));
+  });
+
+  it('Batch 6: accepts the REMOTE hash even when the fixture is a stale revision', async () => {
+    const differentRemote = {
+      ...ORIGINAL_PRACTICE_001,
+      content: {
+        ...ORIGINAL_PRACTICE_001.content,
+        rolePlay: { ...ORIGINAL_PRACTICE_001.content.rolePlay, setup: 'Une scène différente, mais valide.' },
+      },
+    };
+    global.fetch = vi.fn(async () => new Response(JSON.stringify(differentRemote), { status: 200 })) as unknown as typeof fetch;
+
+    const remoteHash = await hashQuestionSet(toSessionQuestionSet(differentRemote));
+    const resolved = await resolveAndVerifyQuestionSet(ORIGINAL_PRACTICE_001.questionSetId, remoteHash);
+    expect(resolved).toEqual(toSessionQuestionSet(differentRemote));
+  });
+
+  it('Batch 6: still throws QuestionSetHashMismatchError when neither candidate matches', async () => {
+    global.fetch = vi.fn(async () => new Response(JSON.stringify(ORIGINAL_PRACTICE_001), { status: 200 })) as unknown as typeof fetch;
+
+    await expect(
+      resolveAndVerifyQuestionSet(ORIGINAL_PRACTICE_001.questionSetId, '0'.repeat(64)),
+    ).rejects.toThrow(QuestionSetHashMismatchError);
+  });
 });

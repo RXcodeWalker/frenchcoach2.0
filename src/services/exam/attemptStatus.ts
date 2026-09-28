@@ -12,6 +12,18 @@ import type { SessionTranscript } from '../../domain/igcse/stt/types';
 export interface AttemptStatusInput {
   coached: boolean;
   transcript: Pick<SessionTranscript, 'userCorrected' | 'utterances'>;
+  /**
+   * D3 (exam-conduct §2): Exam Sim's 10-minute preparation is a fixed
+   * countdown with no early start — "Start now" is offered anyway, but it
+   * makes the attempt practice-only, the same treatment as a typed answer.
+   */
+  earlyStart?: boolean;
+  /**
+   * D15 (exam-conduct §19): the notes require an uninterrupted recording, but
+   * a reload mid-exam is still allowed to resume — it just makes the attempt
+   * practice-only, the same treatment as a typed answer.
+   */
+  resumed?: boolean;
 }
 
 export interface AttemptStatus {
@@ -20,11 +32,17 @@ export interface AttemptStatus {
   reasons: string[];
 }
 
-export function countsTowardProgress({ coached, transcript }: AttemptStatusInput): AttemptStatus {
+export function countsTowardProgress({ coached, transcript, earlyStart, resumed }: AttemptStatusInput): AttemptStatus {
   const reasons: string[] = [];
 
   if (coached) {
     reasons.push('You had examiner feedback during the test');
+  }
+  if (earlyStart) {
+    reasons.push('You started before the preparation time was over');
+  }
+  if (resumed) {
+    reasons.push('Your exam was resumed after a reload');
   }
   if (transcript.userCorrected) {
     reasons.push('You edited your transcript');

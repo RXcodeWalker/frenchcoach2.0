@@ -19,6 +19,10 @@ interface Props {
   coached: boolean;
   /** W6: the accumulated live-corrections-rail entries gathered during the running session (empty in Exam Sim, or if the session predates W3/W6). */
   railEntries: RailEntry[];
+  /** D3 (Batch 3): the candidate used the Exam Sim "Start now" escape hatch — same practice-only treatment as a typed answer. */
+  earlyStart?: boolean;
+  /** D15 (Batch 3): the attempt was resumed after a reload — same practice-only treatment. */
+  resumed?: boolean;
 }
 
 function criterionLabel(criterion: CriterionView): string {
@@ -95,6 +99,8 @@ export function ExamResults({
   onHome,
   coached,
   railEntries,
+  earlyStart = false,
+  resumed = false,
 }: Props) {
   const candidateUtterances = transcript.utterances.filter((u) => u.role === 'candidate');
   const totalSpeakingS = candidateUtterances.reduce((sum, u) => sum + (u.endS - u.startS), 0);
@@ -102,8 +108,10 @@ export function ExamResults({
 
   // Step 5 / ADR-0007: same check ExamMode used to set Session.practiceOnly —
   // recomputed here (not read off the saved session) so this banner is
-  // correct even before ADD_SESSION's side effects have run.
-  const attemptStatus = countsTowardProgress({ coached, transcript });
+  // correct even before ADD_SESSION's side effects have run. earlyStart/resumed
+  // (Batch 3, D3/D15) are passed through from ExamMode's own refs, since
+  // neither is recoverable from the transcript alone.
+  const attemptStatus = countsTowardProgress({ coached, transcript, earlyStart, resumed });
   const modeBadgeLabel = `${coached ? 'Coached Practice' : 'Exam Sim'}${
     attemptStatus.countsTowardProgress ? '' : ' — doesn’t count'
   }`;

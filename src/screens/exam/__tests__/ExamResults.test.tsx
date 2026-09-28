@@ -154,6 +154,48 @@ describe('ExamResults (W6)', () => {
     expect(screen.queryByText(/Practice mark/)).toBeNull();
   });
 
+  it('D3 (Batch 3): an Exam Sim attempt started early ("Start now") shows the doesn’t-count banner and its reason', async () => {
+    const { transcript, envelopeView } = await buildFixtures();
+
+    render(
+      <ExamResults
+        transcript={transcript}
+        envelopeView={envelopeView}
+        scoringError={null}
+        onRetryScoring={vi.fn()}
+        onRetake={vi.fn()}
+        onHome={vi.fn()}
+        coached={false}
+        railEntries={[]}
+        earlyStart={true}
+      />,
+    );
+
+    expect(screen.getByText('Exam Sim — doesn’t count')).not.toBeNull();
+    expect(screen.getByText('You started before the preparation time was over')).not.toBeNull();
+  });
+
+  it('D15 (Batch 3): a resumed Exam Sim attempt shows the doesn’t-count banner and its reason', async () => {
+    const { transcript, envelopeView } = await buildFixtures();
+
+    render(
+      <ExamResults
+        transcript={transcript}
+        envelopeView={envelopeView}
+        scoringError={null}
+        onRetryScoring={vi.fn()}
+        onRetake={vi.fn()}
+        onHome={vi.fn()}
+        coached={false}
+        railEntries={[]}
+        resumed={true}
+      />,
+    );
+
+    expect(screen.getByText('Exam Sim — doesn’t count')).not.toBeNull();
+    expect(screen.getByText('Your exam was resumed after a reload')).not.toBeNull();
+  });
+
   it('Step 6: shows /2 per role-play task, a /10 role-play subtotal, /15 per other criterion, and "not measured" transcript confidence for a session-engine transcript', async () => {
     const { transcript, envelopeView } = await buildFixtures();
 

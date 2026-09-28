@@ -69,6 +69,35 @@ describe('countsTowardProgress', () => {
     });
     expect(status.reasons).toHaveLength(3);
   });
+
+  it('D3 (Batch 3): is false when the candidate started early via "Start now", even in Exam Sim', () => {
+    const status = countsTowardProgress({
+      coached: false,
+      earlyStart: true,
+      transcript: { userCorrected: false, utterances: [candidateUtterance({ inputMode: 'speech' })] },
+    });
+    expect(status.countsTowardProgress).toBe(false);
+    expect(status.reasons).toContain('You started before the preparation time was over');
+  });
+
+  it('D15 (Batch 3): is false when the attempt was resumed after a reload, even in Exam Sim', () => {
+    const status = countsTowardProgress({
+      coached: false,
+      resumed: true,
+      transcript: { userCorrected: false, utterances: [candidateUtterance({ inputMode: 'speech' })] },
+    });
+    expect(status.countsTowardProgress).toBe(false);
+    expect(status.reasons).toContain('Your exam was resumed after a reload');
+  });
+
+  it('earlyStart: false or omitted does not add the reason', () => {
+    const status = countsTowardProgress({
+      coached: false,
+      earlyStart: false,
+      transcript: { userCorrected: false, utterances: [candidateUtterance({ inputMode: 'speech' })] },
+    });
+    expect(status).toEqual({ countsTowardProgress: true, reasons: [] });
+  });
 });
 
 describe('resolveCoachedMode', () => {

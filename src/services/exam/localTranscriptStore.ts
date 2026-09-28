@@ -99,6 +99,15 @@ export interface RunningSessionSnapshot {
   /** Value useElapsedClock's start() should resume from, so the on-screen total doesn't reset to 0. */
   totalElapsedS: number;
   session: SimulationSessionSnapshot;
+  /**
+   * Batch 3 resume guard: the content hash and engine version this session
+   * was actually conducted under. A reload that re-resolves a since-changed
+   * question set, or ships a new engine version, must never mix old and new
+   * wording or run v3 engine state under v4 logic — see ExamMode.tsx's resume
+   * effect, which discards the snapshot on a mismatch instead of resuming it.
+   */
+  questionSetHash: string;
+  engineVersion: string;
 }
 
 export function getRunningSession(): RunningSessionSnapshot | null {

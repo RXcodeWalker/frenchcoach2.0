@@ -2300,3 +2300,150 @@ string), `ExamResults.test.tsx` (pass `clockS`).
 `npm test`: 2351 tests, 2343 passed, 7 expected-fail (the Batch 3 UI repros), 1 failed (the same
 pre-existing `infer.test.ts`). `npm run score:golden`: 5/5, output byte-identical to the baseline
 run — no shape change. `npm run e2e:exam`: 4/4.
+
+## 2026-09-28 — 0520 conduct plan, Batch 3: exam flow/UI, and Batch 6: two-candidate hash match
+
+**Scope.** Session A landed Batches 0–2 (conduct rules spec + repro tests + the mode-aware v4
+engine, entry above). This session executed Batch 3 (exam flow and UI: the fixed 10:00 prep,
+hiding topics/the card before prep, topic announcements, the per-part countdown, the part-2 label,
+the `ExamIntro` rewrite, the resume guard, the 409 message) and Batch 6 (`server/resolveQuestionSet.ts`'s
+two-candidate hash match). Batches 4/5/7/8 (schema/lint/content/CI/docs sweep) are out of scope for
+this session.
+
+**Two engine changes landed here, not in Batch 2** (both flagged as "planned (Batch 3)" or decided
+after Batch 2 shipped, per the plan's own Batch 3 section):
+- **D5 revised: Coached Practice now always asks both authored further questions per topic, never
+  time-gated** (`checkFloorOrAdvancePart`, `conductEngine.ts`) — supersedes Batch 2's "Coached asks
+  none" before it reached `main`. Judge input effect: a Coached transcript now carries `further1`/
+  `further2` turns it never did before.
+- **D13: an in-role `TRANSITION` acknowledgement between answered role-play tasks**
+  (`advanceRolePlayWithTransition`), never crossing into topic 1 (that boundary is the UI's own
+  "role play finished" line, not an engine action). Judge input effect: none — `TRANSITION` carries
+  `questionId: null` and `buildRolePlayTasks`/`countRepetitions` in `toSpeakingTranscript.ts` only
+  ever query role-play entries by `questionId`, so these entries are simply never read (confirmed
+  by a new test asserting the projection is unaffected).
+
+Per the Assessment-Engine change procedure: `npm run score:golden` matches with no shape change
+(the 5 golden fixtures are fixed synthetic transcripts that never reach a further question or a
+role-play advance mid-task, so neither change is exercised by them — expected, per the plan's own
+note that `score:golden` can't show a conduct-only change). `SESSION_ENGINE_VERSION` stays
+`session-engine-v4` (Batch 2's version, not re-bumped — these are the same version's rules settling
+before `main`, not a second engine revision).
+
+**Audit #15 (repeat re-reads the currently-awaited part) — confirmed fixed, not re-fixed.** Added
+one regression test per repeatable part (role-play part 1, role-play part 2, a topic main question,
+a topic second part, and each part of a D9 multi-part alternative — extension prompts and further
+questions were already covered by Batch 2's own tests) to
+`session/__tests__/conductRules0520.test.ts`. All 7 passed against the unchanged v4 engine on the
+first run — no engine fix was needed here; role-play part 2 was already fixed in `session-engine-v3`
+(commit `d1b74c0`), and the rest were already correct in v4.
+
+**UI changes:**
+- `RolePlayCardPreview.tsx`: `PREP_SECONDS` 60 → 600 (10:00). Exam Sim: fixed countdown,
+  auto-advances at 0:00 (no "Begin" button); a "Start now" button is offered instead, which calls
+  `onBegin(earlyStart: true)`. Coached: untimed, plain "Begin", no countdown shown. Two-topic
+  reminder added to the card copy.
+- `attemptStatus.ts`: `earlyStart`/`resumed` added to `AttemptStatusInput`, each with its own
+  practice-only reason. `ExamMode.tsx` tracks both in refs (`earlyStartRef`, `resumedRef`, reset on
+  retake) and passes them into `countsTowardProgress` at `finishWithScore`. **Also had to pass both
+  through to `ExamResults.tsx`** — it independently recomputes `countsTowardProgress` from
+  `coached`+`transcript` alone for its own "doesn't count" banner (so the banner is right before
+  `ADD_SESSION`'s side effects run), and neither flag is recoverable from the transcript. Missing
+  this would have left the results banner silently wrong (showing "counts" when
+  `Session.practiceOnly` was actually `true`) — caught by a new `ExamResults.test.tsx` case before
+  it shipped.
+- `ExamSelect.tsx`: Exam Sim mode now renders a single "Start Exam Sim" button (the existing
+  uniform-random pick via `onAutoFallback`) and skips the remote-catalog fetch entirely; Coached
+  keeps the full picker (topic areas, sub-topics, role-play titles). `DailyChallenge.tsx`
+  (always Exam Sim) no longer previews the assigned set's title/scenario before prep.
+- `ExamIntro.tsx`: rewritten from set data — "Paper 3, Speaking" (not "Paper 4"), the real part
+  structure and timings (no "three minutes"/"general conversation"), mentions two topic
+  conversations and 10 minutes of preparation, never names a topic. Removed the "Hear the card
+  first" button, which duplicated the primary Start button's `onStart` call with no different
+  behavior.
+- `ExamRunner.tsx`: the header countdown now counts down from the CURRENT part's own start
+  (`partStartS`, derived from the `ConductLogEntry[]` already passed in — no new prop needed),
+  Exam Sim only; Coached shows no countdown. A two-part role-play task's part 2 gets its own
+  "· part 2" label (`isSecondPart`, counts `READ_MAIN` entries per `(part, questionId)`).
+- Topic/role-play announcements and the scene read aloud (audit #12, TN p.6 #5): `ExamMode.tsx`
+  now speaks the role-play `setup` aloud before rp1 (previously never spoken — only shown on the
+  card and in the `ExamRunner` header), and speaks an original French "role play finished" line
+  plus a topic-transition line at each part boundary (`announceIfPartChanged`, keyed off the
+  previous action's `part`). **Known, documented gap:** the topic-transition lines announce that a
+  new conversation is starting but do NOT name the actual sub-topic, since `AuthoredTopic.title`
+  doesn't exist yet (Batch 4 schema + Batch 5 content) — this is UI-only, unscored, outside the
+  ConductLog/hash/judge input either way.
+- Resume guard: `RunningSessionSnapshot` gained `questionSetHash`/`engineVersion`
+  (`localTranscriptStore.ts`); `ExamMode.tsx`'s resume effect hashes the freshly-resolved question
+  set and compares both fields before resuming, discarding (with a one-line banner on `ExamSelect`)
+  on a mismatch instead of mixing old/new content or running stale engine state.
+- 409 terminal message: `scoringApiClient.ts`'s new `terminalScoringMessage()` replaces a 409's raw
+  `"...hash does not match..."` server text with plain language ("this exam's questions were
+  updated... please retake"); every other terminal status still shows the server's own message.
+- `useRecording.ts`: `onend` now restarts the recognizer (keeping `finalTextRef`) when it fires
+  while still recording (`recogRef.current === recog`, i.e. nobody called `stop()`) instead of
+  silently ending the turn and dropping the rest of the answer — a real Bug 3 contributor per the
+  plan's Batch 3 section. Also moved `recogRef.current = null` to BEFORE calling `recog.stop()`
+  (was after) so the same `recogRef.current === recog` check reads correctly even when a
+  recognizer's `stop()` invokes `onend` synchronously (true of every fake recognizer in this
+  file's own test suite, and not excluded for real engines either).
+
+**Batch 6 — `server/resolveQuestionSet.ts`:** `resolveAndVerifyQuestionSet` now hashes BOTH
+candidates (remote and in-repo fixture, whichever exist) and accepts whichever matches the
+transcript's declared `questionSetHash`, instead of only ever trying the first-resolved candidate
+(remote-first) and failing permanently if the deploy has already updated one source but not the
+other. `resolveQuestionSet` (used everywhere else) is unchanged — still remote-first,
+fixture-fallback. New tests in `server/__tests__/resolveQuestionSet.test.ts` cover: fixture hash
+matches when the remote serves different content, remote hash matches when the fixture is stale,
+and the mismatch error still fires when neither matches.
+
+**Tests added/changed:** `session/__tests__/conductRules0520.test.ts` (D5 test rewritten for the
+revised policy; role-play prompt-count characterization updated to exclude `TRANSITION` entries
+from the "scripted prompts" count; new "audit #15" describe block, 7 tests); `conductEngine.test.ts`
+(role-play `driveOne`→`driveStep` at every call site where an advance now emits
+`[TRANSITION, READ_MAIN]`, i.e. everywhere except a second-part delivery or a failed-repeat
+advance; "never emits TRANSITION during role play" rewritten to assert the new, intended
+behaviour); `simulationSession.test.ts` (Coached further-question test rewritten for D5);
+`buildSessionTranscript.test.ts` (the `annotateExaminer` cross-check now matches by `utteranceId`,
+not array index, since `TRANSITION` utterances during role play break the old 1:1 index alignment);
+`ExamSelect.test.tsx`, `ExamIntro.test.tsx`, `ExamRunner.test.tsx` (Batch 1's 7 `it.fails` all
+flipped to normal, passing `it`s, plus new Coached-still-shows-catalog / "part 2" absent-when-
+first-time / Coached-no-countdown cases); `ExamResults.test.tsx` (2 new: `earlyStart`/`resumed`
+banners); `attemptStatus.test.ts` (2 new); `scoringApiClient.test.ts` (2 new: `terminalScoringMessage`);
+`useRecording.test.tsx` (1 new: onend-restarts-mid-recording); `resolveQuestionSet.test.ts` (3 new,
+Batch 6).
+
+**`e2e/exam.spec.ts` updated per the plan's §6:** `enterExam`'s Exam Sim path now clicks
+"Start Exam Sim" (no set grid) and "Start now" (not "Begin") — the full multi-turn flows use the
+practice-only escape hatch rather than driving Playwright's fake clock through the ENTIRE exam
+(examinerPacing's own real `setTimeout` waits, TTS, etc.), which would be a lot of surface to keep
+synchronized with a faked clock for no assertion gain, since D3 conduct itself doesn't change.
+Both full-flow tests' assertions updated accordingly (Sim now expects "practice mark" + the
+`earlyStart` reason; Coached gains a `further1`/`further2` presence assertion per D5, plus a loop
+cap raised 40→50 to fit the 4 extra always-asked further-question turns). A NEW, separate, short
+test (`Exam Sim prep countdown (D3)`) covers the real countdown path: `page.clock.install()`
+before navigation (a clock installed after `RolePlayCardPreview` already created its real,
+unfaked `setInterval` can't see or fast-forward it), then `runFor` (not `fastForward` — the latter
+jumps straight to the end and fires the interval once, which would never satisfy the component's
+`remainingS === 0` equality check) in two steps, confirming the on-screen countdown itself
+moves (`9:30` after 30s) before relying on it to auto-advance at 0:00 into a COUNTING (non-
+practice-only) running exam. **Verified: `npm run e2e:exam` — 5/5, including this new test
+(20.5s).**
+
+**Verified:** `npm run typecheck`, `npm run typecheck:server`: clean. `npm run typecheck:scripts`:
+the same 3 pre-existing errors (unrelated: `supabaseEnvelopeStore.test.ts`,
+`supabaseTranscriptStore.test.ts`). `npm run lint`: 0 errors, same 22 pre-existing warnings.
+`npm test`: 2374 tests, 2373 passed, 1 failed — the same pre-existing `infer.test.ts` floor
+failure (unrelated to this plan); zero expected-fails remain (all 7 from Batch 2 flipped to
+passing `it`s). `npm run score:golden`: 5/5, byte-identical to the Batch 2 baseline — no scoring
+shape change. `npm run e2e:exam`: 5/5 (see above).
+
+**Manual verification (the `run` skill):** one Exam Sim run and one Coached Practice run driven
+live — see the session's chat summary for what was observed; not re-transcribed here since it
+covers UI/UX impressions rather than a specific claim this log needs to preserve.
+
+**Known gaps carried forward, not fixed here (out of scope for Batches 3/6):** topic announcements
+don't name the actual sub-topic (needs Batch 4's `AuthoredTopic.title` + Batch 5 content); the
+candidate card has no English gloss in Coached (D14's "English instructions" half); Batches 4/5/7/8
+(schema/lint rules, the 10-set content rewrite, CI, and the doc/CLAUDE.md sweep for those) are
+untouched.

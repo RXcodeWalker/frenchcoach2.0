@@ -332,7 +332,7 @@ function stepRolePlay(
       const action = makeAction(nextState, 'READ_MAIN', 'rolePlay', task.questionId, 'main', secondPartText, 'scripted');
       return { state: bumpSeq(nextState), actions: [action] };
     }
-    return advanceRolePlay(questionSet, nextState, phase.taskIndex);
+    return advanceRolePlayWithTransition(questionSet, nextState, phase.taskIndex);
   }
 
   // No response / irrelevant / clarification: repeat once (verbatim, never rephrase
@@ -387,6 +387,34 @@ function advanceRolePlay(
   const nextState: ConductEngineState = { ...state, phase: { kind: 'rolePlay', taskIndex: nextIndex } };
   const action = makeAction(nextState, 'READ_MAIN', 'rolePlay', nextTask.questionId, 'main', nextTask.mainText, 'scripted');
   return { state: bumpSeq(nextState), actions: [action] };
+}
+
+/**
+ * After a role-play task is fully answered, the examiner responds in role
+ * before the next task (exam-conduct §9, D13) — the same neutral TRANSITION
+ * acknowledgement topics already use, never authored per task. No
+ * acknowledgement crosses from role play into topic 1: that boundary gets the
+ * UI's own "role play finished" line instead (exam-conduct §5, spoken, never
+ * a conduct-engine action, so it stays outside the ConductLog/hash/judge
+ * input — see ExamMode.tsx).
+ */
+function advanceRolePlayWithTransition(
+  questionSet: SessionQuestionSet,
+  state: ConductEngineState,
+  taskIndex: number,
+): StepResult {
+  const rpQuestions = rolePlayQuestions(questionSet);
+  const nextIndex = taskIndex + 1;
+
+  if (nextIndex >= rpQuestions.length) {
+    return advanceRolePlay(questionSet, state, taskIndex);
+  }
+
+  const text = decideTransition(state.transitionCount);
+  const nextState: ConductEngineState = { ...state, transitionCount: state.transitionCount + 1 };
+  const transitionAction = makeAction(nextState, 'TRANSITION', 'rolePlay', null, null, text, 'scripted');
+  const advanced = advanceRolePlay(questionSet, bumpSeq(nextState), taskIndex);
+  return { state: advanced.state, actions: [transitionAction, ...advanced.actions] };
 }
 
 // ── Topic conversations (Q1-Q5, alternatives, extension, further questions) ──
@@ -696,7 +724,9 @@ function advanceTopicQuestion(
 /**
  * Exam Sim: if the conversation has lasted 3½ min or less (wall clock), ask the
  * next authored further question, up to 2 (exam-conduct §15-§16). Re-checked after
- * each one. Coached Practice asks none (exam-conduct §24, D5).
+ * each one. Coached Practice always asks both authored further questions,
+ * never time-gated — they exist to give the candidate practice with them, not
+ * to fill dead air (exam-conduct §24, §25, D5, Batch 3).
  */
 function checkFloorOrAdvancePart(
   questionSet: SessionQuestionSet,
@@ -705,12 +735,14 @@ function checkFloorOrAdvancePart(
 ): StepResult {
   const askedSoFar = state.furtherAskedCount[part];
   const promptText = questionSet.furtherQuestions[part][askedSoFar];
+  const timeAllows = state.policy.mode === 'examSim'
+    ? conversationElapsedS(state, part) <= TOPIC_FURTHER_QUESTION_FLOOR_S
+    : true;
 
   if (
-    state.policy.mode === 'examSim' &&
     askedSoFar < MAX_FURTHER_QUESTIONS_PER_TOPIC &&
     promptText !== undefined &&
-    conversationElapsedS(state, part) <= TOPIC_FURTHER_QUESTION_FLOOR_S
+    timeAllows
   ) {
     const nextState: ConductEngineState = {
       ...state,

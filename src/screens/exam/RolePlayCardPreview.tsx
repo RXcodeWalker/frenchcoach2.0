@@ -7,21 +7,38 @@ import type { RolePlayScenario } from '../../data/exam/bank/types';
 
 interface Props {
   scenario: RolePlayScenario;
-  onBegin: () => void;
+  /**
+   * D3 (exam-conduct §2): Exam Sim gets the real 10-minute supervised
+   * preparation window, a fixed countdown with no early start (the "Start
+   * now" escape hatch is offered anyway, but marks the attempt practice-only
+   * — see attemptStatus.ts's `earlyStart`). Coached is untimed.
+   */
+  coached: boolean;
+  /** `earlyStart` is true only for the Exam Sim "Start now" escape hatch. */
+  onBegin: (earlyStart: boolean) => void;
 }
 
-/** ExamIntro's PAPER copy already promises "you have the card for 1 min" — this is that prep window, made real. Pacing only, never a cutoff: Begin stays available throughout. */
-const PREP_SECONDS = 60;
+/** TN p.1/p.5, Syl p.19: 10 minutes of supervised preparation. Exam Sim only. */
+const PREP_SECONDS = 10 * 60;
 
-export function RolePlayCardPreview({ scenario, onBegin }: Props) {
+export function RolePlayCardPreview({ scenario, coached, onBegin }: Props) {
   const [remainingS, setRemainingS] = useState(PREP_SECONDS);
 
   useEffect(() => {
+    if (coached) return; // Coached: untimed, start when ready.
     const interval = window.setInterval(() => {
       setRemainingS((s) => Math.max(s - 1, 0));
     }, 1000);
     return () => window.clearInterval(interval);
-  }, []);
+  }, [coached]);
+
+  // Auto-advance to the greeting at 0:00 (D3) — no early start in Exam Sim by
+  // default. A separate effect (not folded into the interval above) so it
+  // fires exactly once, the instant the countdown reaches zero.
+  useEffect(() => {
+    if (!coached && remainingS === 0) onBegin(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [remainingS, coached]);
 
   return (
     <div data-hatch="immersive" className="min-h-screen bg-bg pb-24 md:pb-8">
@@ -33,12 +50,14 @@ export function RolePlayCardPreview({ scenario, onBegin }: Props) {
       >
         <div className="flex items-center justify-between">
           <div className="text-eyebrow uppercase text-ink-subtle">Role play card · preparation</div>
-          <div
-            className="font-numeral text-body-s tabular-nums text-ink-subtle"
-            aria-label="Preparation time remaining"
-          >
-            {formatTime(remainingS)}
-          </div>
+          {!coached && (
+            <div
+              className="font-numeral text-body-s tabular-nums text-ink-subtle"
+              aria-label="Preparation time remaining"
+            >
+              {formatTime(remainingS)}
+            </div>
+          )}
         </div>
 
         <div className="rounded-card surface p-6">
@@ -50,7 +69,9 @@ export function RolePlayCardPreview({ scenario, onBegin }: Props) {
 
           <p className="text-body-s text-ink-muted leading-relaxed mt-5">
             You&rsquo;ll play the role above. The examiner will set the scene, then ask you five
-            questions in French — answer each one. You won&rsquo;t see the questions in advance.
+            tasks in French — some in two parts. Answer each one; you won&rsquo;t see them in
+            advance. Keep this card in view: after the role play, there are two topic
+            conversations, and you&rsquo;ll see this card until the whole test ends.
           </p>
 
           <div className="mt-5 border-t border-hairline pt-4">
@@ -73,9 +94,21 @@ export function RolePlayCardPreview({ scenario, onBegin }: Props) {
           </div>
         </div>
 
-        <Button variant="primary" size="lg" onClick={onBegin} className="w-full">
-          Begin
-        </Button>
+        {coached ? (
+          <Button variant="primary" size="lg" onClick={() => onBegin(false)} className="w-full">
+            Begin
+          </Button>
+        ) : (
+          <div className="space-y-2">
+            <Button variant="primary" size="lg" onClick={() => onBegin(true)} className="w-full">
+              Start now
+            </Button>
+            <p className="text-body-s text-ink-subtle text-center leading-relaxed">
+              The exam starts on its own at 0:00, exactly like the real preparation time. Starting
+              early makes this attempt practice-only — it won&rsquo;t count.
+            </p>
+          </div>
+        )}
       </motion.div>
     </div>
   );

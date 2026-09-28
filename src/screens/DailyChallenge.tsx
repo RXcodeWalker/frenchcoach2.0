@@ -219,8 +219,14 @@ export function DailyChallenge() {
           className="rounded-2xl p-6 surface-raised space-y-4"
         >
           <div>
-            <h3 className="text-sm font-bold text-white">{authoredSet.content.rolePlay.title}</h3>
-            <p className="text-xs text-ink-muted mt-1 leading-relaxed">{authoredSet.content.rolePlay.setup}</p>
+            {/* exam-conduct §4 (D4): the role-play scenario must not reach the
+                candidate before preparation starts — Daily Challenge is always
+                Exam Sim (attemptStatus.ts's resolveCoachedMode), so it never
+                shows the set's title or scenario here. */}
+            <h3 className="text-sm font-bold text-white">Today's set is ready</h3>
+            <p className="text-xs text-ink-muted mt-1 leading-relaxed">
+              You'll see the role play card once your 10 minutes of preparation begin.
+            </p>
           </div>
           <button
             onClick={() => void handleStart()}

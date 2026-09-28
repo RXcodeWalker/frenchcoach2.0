@@ -34,29 +34,34 @@ plan's batches. Update the status in the same change that implements the rule.
 2 min) → topic conversation 1 (4 min) → topic conversation 2 (4 min). About 10 minutes in all
 (TN p.1, p.3, p.6 #3–4; Syl p.19).
 
-**Status.** The engine runs role play → topic 1 → topic 2 (`startConduct`, `advanceRolePlay`,
-`advancePart`). The intro screen's copy (`ExamIntro.tsx`) is wrong about the paper, the timings
-and the parts. Planned (Batch 3).
+**Status.** Enforced. The engine runs role play → topic 1 → topic 2 (`startConduct`,
+`advanceRolePlay`, `advancePart`). `ExamIntro.tsx` names Paper 3, the real part structure, and no
+topic (Batch 3).
 
 ### §2 — Preparation time
 
 **Rule.** 10 minutes, supervised, under exam conditions. The candidate may not write anything or
 use a dictionary (TN p.1, p.5; Syl p.19).
 
-**App policy (D3).** Exam Sim: a fixed 10:00 countdown that moves to the greeting at 0:00, with no
-early start. Coached: untimed; start when ready.
+**App policy (D3).** Exam Sim: a fixed 10:00 countdown that auto-advances to the greeting at 0:00.
+A "Start now" button is offered anyway, but using it makes the attempt practice-only (the same
+treatment as a typed answer) — see `attemptStatus.ts`'s `earlyStart`. Coached: untimed; start when
+ready.
 
-**Status.** Planned (Batch 3). Today prep is a 60 s pacing aid with Begin always enabled.
+**Status.** Enforced (Batch 3): `RolePlayCardPreview.tsx`'s 600 s countdown, `ExamMode.tsx`'s
+`earlyStart` plumbing into `countsTowardProgress`.
 
 ### §3 — The candidate card
 
 **Rule.** The card gives the role-play information and reminds the candidate that two topic
 conversations follow. The candidate keeps it until the test ends (TN p.14, p.9 #23; Syl p.19).
 
-**App policy (D14).** The scenario is shown in French, with an English gloss in Coached only. It
-stays visible throughout the role play.
+**App policy (D14).** The scenario is shown in French. It stays visible throughout the role play
+(the `ExamRunner` header keeps `rolePlaySetup`/`rolePlayTitle` on screen for the whole part).
 
-**Status.** Planned (Batch 3).
+**Status.** Enforced (Batch 3): the two-topic reminder and updated task-count copy are in
+`RolePlayCardPreview.tsx`. An English gloss for Coached is not implemented — a known gap, not a
+design decision.
 
 ### §4 — Topics are not shared in advance
 
@@ -67,8 +72,10 @@ preparation (TN p.5). The card must not reach the candidate before preparation s
 preparation; each topic is named only when its conversation starts (§5). Coached may show the set
 picker.
 
-**Status.** Planned (Batch 3). Today the set picker shows topic areas, sub-topics and the
-role-play title, and Daily Challenge shows the card's scenario before the test.
+**Status.** Enforced (Batch 3): `ExamSelect.tsx` renders only a "Start Exam Sim" button in Exam
+Sim mode (no fetch of the catalog, no topic areas/sub-topics/role-play titles); Coached still shows
+the full picker. `DailyChallenge.tsx` no longer previews the set's title or scenario before the
+test starts.
 
 ### §5 — Announcing each part
 
@@ -76,9 +83,14 @@ role-play title, and Daily Challenge shows the card's scenario before the test.
 topic conversation by naming its topic (TN p.6 #10, p.7 #12, p.8 #17).
 
 **App policy.** Original French transition lines, spoken by the UI the same way the role-play
-scenario is. Needs an unhashed per-topic title (`AuthoredTopic.title`).
+scenario is. Naming each topic's actual sub-topic needs an unhashed per-topic title
+(`AuthoredTopic.title`), which is Batch 4 schema + Batch 5 content.
 
-**Status.** Planned (Batch 3, with the schema field in Batch 4).
+**Status.** Partly enforced (Batch 3): `ExamMode.tsx` speaks an original "the role play has
+finished" line, then a transition line announcing each topic conversation's *start* — but without
+naming the actual topic, since `AuthoredTopic.title` doesn't exist yet. A known, documented gap
+until Batch 4/5 land, not a design decision. The role-play scenario itself is now spoken aloud too
+(audit #12, TN p.6 #5) — see §6.
 
 ---
 
@@ -89,7 +101,10 @@ scenario is. Needs an unhashed per-topic title (`AuthoredTopic.title`).
 **Rule.** The scenario and every question are read exactly as printed. The examiner plays the
 role (TN p.6 #5–6).
 
-**Status.** Enforced. The engine only ever speaks authored text for scripted prompts.
+**Status.** Enforced. The engine only ever speaks authored text for scripted prompts. The scenario
+itself (`setup`) is now spoken by the UI too (Batch 3, audit #12) — after the greeting and before
+rp1, via `speakExaminerText`, never as a conduct-engine action, so it stays outside the
+ConductLog/hash/judge input, the same way `setup` was already excluded from the content hash.
 
 ### §7 — Two-part questions
 
@@ -99,9 +114,9 @@ applies to role-play tasks and topic questions alike (TN p.6 #6, p.7 #13, p.8 #1
 
 **App policy (D2).** Part 2 is always asked, in both modes.
 
-**Status.** Enforced (`stepRolePlay`, `moveToSecondPartOrExtension`). The runner labels part 2 as
-"Question N of 5" a second time; a distinct part-2 label is planned (Batch 3). Content: rp3 is the
-only two-part task in every current set. Planned (Batch 5).
+**Status.** Enforced (`stepRolePlay`, `moveToSecondPartOrExtension`). The runner now labels part 2
+distinctly ("Question N of 5 · part 2", Batch 3, `ExamRunner.tsx`'s `isSecondPart`). Content: rp3 is
+the only two-part task in every current set. Planned (Batch 5).
 
 ### §8 — Role-play repeats
 
@@ -119,16 +134,19 @@ question, and closes the exchange after the last task (TN pp.16–24).
 
 **App policy (D13).** A short generic acknowledgement from a fixed list, not authored per task.
 
-**Status.** Not implemented, and not yet assigned to a batch.
+**Status.** Enforced (Batch 3): the engine emits a `TRANSITION` (the same neutral acknowledgement
+topics use) between rp1–rp5, but never crossing into topic 1 — that boundary gets the UI's own
+"role play finished" line instead (§5), so it is never doubled
+(`advanceRolePlayWithTransition`, `conductEngine.ts`).
 
 ### §10 — Role-play length
 
 **Rule.** About 2 minutes. If shorter, add no questions. If longer, don't shorten the topic
 conversations (TN p.3).
 
-**Status.** Enforced by the engine: no role-play cutoff, no extra questions. The runner's
-countdown uses whole-exam time instead of the current part's time. Planned (Batch 3; Exam Sim
-only, Coached has no countdown).
+**Status.** Enforced by the engine: no role-play cutoff, no extra questions. The runner's countdown
+now counts down from the current part's own start (Batch 3, `ExamRunner.tsx`'s `partStartS`),
+Exam Sim only — Coached shows no countdown at all (§24).
 
 ---
 
@@ -190,11 +208,14 @@ up to two further questions on the same topic, to bring it to 4 minutes (TN p.3,
 **App policy (D6, D5).**
 - Further questions are the authored `furtherQuestions` only. The engine never builds one from
   the candidate's own words.
-- The 3½-minute check is re-made after each further question.
+- Exam Sim: the 3½-minute check is re-made after each further question.
 - A candidate may ask for a further question to be repeated. It is repeated once, verbatim.
-- Coached Practice asks no further questions: they exist only to fill time.
+- Coached Practice always asks both authored further questions per topic, never time-gated — they
+  are authored content worth practising, not a device for filling dead air (D5, revised from an
+  earlier "Coached asks none" draft — see §24, §25).
 
-**Status.** Enforced, Exam Sim only (`checkFloorOrAdvancePart`, the `further` phase).
+**Status.** Enforced (`checkFloorOrAdvancePart`, the `further` phase): Exam Sim gates on the
+3½-minute wall-clock floor; Coached has no such gate.
 
 ### §16 — How the 3½ minutes are measured
 
@@ -241,7 +262,10 @@ p.6 #1).
 **App policy (D15).** Exam Sim may resume after a reload, but a resumed attempt becomes practice
 only (it doesn't count), the same as a typed answer.
 
-**Status.** Planned (Batch 3). Today resume is allowed and the attempt still counts.
+**Status.** Enforced (Batch 3): a resume guard (`localTranscriptStore.ts`'s `RunningSessionSnapshot.
+questionSetHash`/`engineVersion`) discards a snapshot saved under since-changed content or an older
+engine version rather than resuming it; a snapshot that DOES still match is resumed and marks the
+attempt practice-only via `attemptStatus.ts`'s `resumed` reason.
 
 ### §20 — Language
 
@@ -293,14 +317,14 @@ The engine takes a `ConductPolicy` (`{ mode: 'examSim' | 'coached' }`) at
 | Scripted Q1–Q5 and second parts, in order (§7, §11) | Yes | Yes |
 | Repeat and alternative ladders (§12, §13) | Yes | Yes |
 | Extension prompts (§14) | Brief answers only | Brief answers only |
-| Further questions (§15) | Up to 2, when ≤3½ min | None |
+| Further questions (§15) | Up to 2, when ≤3½ min | Up to 2, always (not time-based, D5) |
 | Time-based decisions (§16, §17) | Yes (wall clock) | None |
 | Countdown in the runner (§10) | Per part | None |
 | Feedback after each answer | None | Yes |
 | Typing and transcript editing | No | Yes |
-| Counts toward progress | Yes | No (ADR-0007) |
+| Counts toward progress | Yes (unless earlyStart/resumed) | No (ADR-0007) |
 
-Rows for §2, §4 and the countdown are planned (Batch 3). The engine rows are enforced.
+All rows enforced as of Batch 3.
 
 ## §25 — Where the notes are silent
 
@@ -309,8 +333,8 @@ Things the notes don't cover and the app has had to decide:
 | Question | Decision |
 |---|---|
 | Skip part 2 when part 1 already gave a reason? (D2) | No, in either mode (§7) |
-| Early start from preparation in Exam Sim? (D3) | No (§2) |
-| Extension prompts / further questions in Coached? (D5) | Extension prompts on, further questions off (§24) |
+| Early start from preparation in Exam Sim? (D3) | "Start now" offered, but makes the attempt practice-only (§2) |
+| Extension prompts / further questions in Coached? (D5) | Both on; further questions always asked, not time-based (§24) |
 | Further questions quoting the candidate's words? (D6) | No; authored only (§15) |
 | What is "very briefly"? (D7) | The whole answer to the question, `UNVALIDATED` thresholds (§14) |
 | Endpoints of the 3½-min clock (D8) | §16 |

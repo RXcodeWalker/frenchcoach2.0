@@ -1,8 +1,9 @@
 /**
  * W1 session-model tests: `coached` selects the engine's ConductPolicy
- * (docs/systems/exam-conduct-0520.md §24 — Coached has no time rules), the
- * session clock reaches the engine on every turn, and `inputMode` threads
- * through unchanged into the ConductLog's candidate entries.
+ * (docs/systems/exam-conduct-0520.md §24 — Coached has no time-BASED gating,
+ * but always asks both authored further questions, D5), the session clock
+ * reaches the engine on every turn, and `inputMode` threads through unchanged
+ * into the ConductLog's candidate entries.
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -102,8 +103,9 @@ describe('SimulationSession — coached flag / inputMode plumbing (W1)', () => {
     expect(await topic1FurtherQuestions(false, 50)).toHaveLength(0); // ~5 min conversation
   });
 
-  it('coached: never asks a further question (exam-conduct §24, D5)', async () => {
-    expect(await topic1FurtherQuestions(true, 10)).toHaveLength(0);
+  it('coached (D5, Batch 3): always asks both further questions, not time-gated', async () => {
+    expect(await topic1FurtherQuestions(true, 10)).toHaveLength(2); // ~1 min conversation
+    expect(await topic1FurtherQuestions(true, 50)).toHaveLength(2); // ~5 min conversation — still asked
   });
 
   it('exposes `coached` via a read-only getter, defaulting to false when omitted', () => {

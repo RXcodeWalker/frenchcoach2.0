@@ -189,15 +189,20 @@ describe('buildSessionTranscript', () => {
     // (it Jaccard-matches no question above threshold) rather than a second
     // 'main_question' — a real, expected divergence for two-part tasks only.
     // Every other (single-part) question must agree exactly.
+    //
+    // Matched by utteranceId, not array index: D13's in-role TRANSITION between
+    // role-play tasks is an Utterance annotateExaminer re-annotates (as
+    // 'unmatched', since "D'accord."/"Merci." match no question) but that
+    // buildSessionTranscript never turns into an ExaminerEvent (see the C6 test
+    // below) — so the two arrays no longer line up index-for-index.
     const reAnnotated = annotateExaminer(transcript.utterances, qs);
-    const singlePartIndices = transcript.examinerEvents
-      .map((e, i) => ({ e, i }))
-      .filter(({ e }) => e.questionId !== 'rp3')
-      .map(({ i }) => i);
+    const reAnnotatedByUtteranceId = new Map(reAnnotated.map((e) => [e.utteranceId, e]));
+    const singlePartEvents = transcript.examinerEvents.filter((e) => e.questionId !== 'rp3');
 
-    for (const i of singlePartIndices) {
-      expect(reAnnotated[i].kind).toBe(transcript.examinerEvents[i].kind);
-      expect(reAnnotated[i].questionId).toBe(transcript.examinerEvents[i].questionId);
+    for (const event of singlePartEvents) {
+      const match = reAnnotatedByUtteranceId.get(event.utteranceId);
+      expect(match?.kind).toBe(event.kind);
+      expect(match?.questionId).toBe(event.questionId);
     }
   });
 

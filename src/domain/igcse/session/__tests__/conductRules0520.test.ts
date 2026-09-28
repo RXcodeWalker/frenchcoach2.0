@@ -156,22 +156,39 @@ function furtherQuestions(actions: ExaminerAction[], part: 'topic1' | 'topic2'):
 // ── exam-conduct §7/§8: role play (Bug 1) ────────────────────────────────────
 
 describe('exam-conduct §7-§8 — role play prompt count (Bug 1, characterization)', () => {
-  it('all five tasks answered: the examiner speaks 6 prompts (rp3 is two-part), every one belonging to rp1-rp5', () => {
+  it('all five tasks answered: the examiner speaks 6 scripted prompts (rp3 is two-part), every one belonging to rp1-rp5', () => {
     const exam = new Exam(SET_001).clearRolePlay();
-    const rolePlayPrompts = exam.log.filter((a) => a.part === 'rolePlay');
+    const rolePlayPrompts = exam.log.filter((a) => a.part === 'rolePlay' && a.questionId !== null);
     expect(rolePlayPrompts).toHaveLength(6);
     for (const a of rolePlayPrompts) expect(['rp1', 'rp2', 'rp3', 'rp4', 'rp5']).toContain(a.questionId);
   });
 
-  it('one "je ne sais pas" adds one verbatim repeat — 7 prompts, still only rp1-rp5', () => {
+  it('exam-conduct §9 (D13): an in-role TRANSITION separates each answered task, but never crosses into topic 1', () => {
+    const exam = new Exam(SET_001).clearRolePlay();
+    const rolePlayTransitions = exam.log.filter((a) => a.part === 'rolePlay' && a.kind === 'TRANSITION');
+    // 5 tasks answered in order → 4 boundaries (1-2, 2-3, 3-4, 4-5), none after rp5.
+    expect(rolePlayTransitions).toHaveLength(4);
+    expect(exam.log[exam.log.length - 1]).toMatchObject({ kind: 'READ_MAIN', part: 'topic1', questionId: 't1q1' });
+  });
+
+  it('one "je ne sais pas" adds one verbatim repeat — 7 scripted prompts, still only rp1-rp5', () => {
     const exam = new Exam(SET_001);
     exam.turn(said('Je voudrais aller à Paris.', 3, 'rolePlay'));
     exam.turn(said('Je ne sais pas.', 2, 'rolePlay'));
     expect(exam.current).toMatchObject({ kind: 'REPEAT', questionId: 'rp2', text: question(SET_001, 'rp2').mainText });
     exam.clearRolePlay();
-    const rolePlayPrompts = exam.log.filter((a) => a.part === 'rolePlay');
+    const rolePlayPrompts = exam.log.filter((a) => a.part === 'rolePlay' && a.questionId !== null);
     expect(rolePlayPrompts).toHaveLength(7);
     for (const a of rolePlayPrompts) expect(['rp1', 'rp2', 'rp3', 'rp4', 'rp5']).toContain(a.questionId);
+  });
+
+  it('exam-conduct §18/§9 (D13): a failed repeat that advances to the next task gets no TRANSITION', () => {
+    const exam = new Exam(SET_001);
+    exam.turn(said('Je voudrais aller à Paris.', 3, 'rolePlay')); // rp1 answered
+    exam.turn(said('', 0, 'rolePlay')); // rp2: silence → repeat
+    const afterFailedRepeat = exam.turn(said('', 0, 'rolePlay')); // rp2: still silent → advance, no ack
+    expect(kinds(afterFailedRepeat)).toEqual(['READ_MAIN']);
+    expect(afterFailedRepeat[0]).toMatchObject({ questionId: 'rp3' });
   });
 });
 
@@ -378,11 +395,19 @@ describe('exam-conduct §15-§16 — further questions only when the conversatio
     ]);
   });
 
-  it('coached (D5): no further questions, however short the conversation', () => {
+  it('coached (D5, Batch 3): always asks both authored further questions, not time-gated', () => {
+    // 250 s of conversation — well past the 3½-min floor that would suppress
+    // further questions in Exam Sim. Coached asks them anyway (D5): they exist
+    // to give the candidate practice, not to fill dead air.
     const exam = new Exam(SET_001, 'coached').clearRolePlay();
     const from = exam.log.length;
-    for (let i = 0; i < 6; i++) exam.answer(20, 5, 10);
-    expect(furtherQuestions(exam.since(from), 'topic1')).toHaveLength(0);
+    for (let i = 0; i < 6; i++) {
+      exam.turn(said("J'aime jouer au tennis avec mon frère parce que c'est vraiment amusant le week-end.", 15, 'topic1'), 250 / 6);
+    }
+    exam.turn(said("J'aime le sport parce que c'est amusant et je retrouve mes amis au club.", 15, 'topic1'), 20); // answers further1
+    exam.turn(said("Oui, je regarde aussi le foot à la télé avec ma famille le dimanche.", 15, 'topic1'), 20); // answers further2
+    const asked = furtherQuestions(exam.since(from), 'topic1');
+    expect(asked.map((a) => a.text)).toEqual(SET_001.furtherQuestions.topic1);
     expect(exam.part).toBe('topic2');
   });
 });
@@ -400,5 +425,73 @@ describe('exam-conduct §17 — past 4 min of conversation, no more extension pr
     const exam = new Exam(SET_001, 'coached').clearRolePlay();
     const actions = exam.answer(3, 5, 245);
     expect(kinds(actions)).toEqual(['EXTENSION_PROMPT']);
+  });
+});
+
+// ── Audit #15 (Batch 3): a Repeat request re-reads the part currently awaiting
+// an answer, never the wrong part. Extension-prompt and further-question
+// repeats are already covered above (exam-conduct §14/§15); this block is the
+// rest of the checklist: role-play part 1, role-play part 2, a topic main
+// question, a topic second part, and each part of an alternative (D9). Role
+// play's own part-2 repeat was already fixed in session-engine-v3
+// (`conductEngine.ts`'s `secondPartPending` branch); the rest are
+// characterizations of session-engine-v4 behaviour, confirmed here rather
+// than newly fixed — see verification-log.md's Batch 3 entry. ──────────────
+
+describe('audit #15 — Repeat re-reads the currently-awaited part, not the wrong one', () => {
+  it('role play, part 1 (rp1 has no second part): Repeat re-reads rp1.mainText', () => {
+    const exam = new Exam(SET_001);
+    expect(exam.askRepeat()).toEqual([
+      expect.objectContaining({ kind: 'REPEAT', part: 'rolePlay', questionId: 'rp1', text: question(SET_001, 'rp1').mainText }),
+    ]);
+  });
+
+  it('role play, part 2 (rp3 is two-part): Repeat re-reads rp3.secondPartText, never mainText', () => {
+    const exam = new Exam(SET_001);
+    exam.turn(said('Oui, un billet pour Paris.', 3, 'rolePlay')); // rp1
+    exam.turn(said('Oui, un aller simple.', 3, 'rolePlay')); // rp2
+    exam.turn(said('Un aller-retour, s\'il vous plaît.', 3, 'rolePlay')); // rp3 part 1 -> reads part 2
+    expect(exam.current).toMatchObject({ kind: 'READ_MAIN', questionId: 'rp3', text: question(SET_001, 'rp3').secondPartText });
+    expect(exam.askRepeat()).toEqual([
+      expect.objectContaining({ kind: 'REPEAT', part: 'rolePlay', questionId: 'rp3', text: question(SET_001, 'rp3').secondPartText }),
+    ]);
+  });
+
+  it('topic main question: Repeat re-reads t1q1.mainText', () => {
+    const exam = new Exam(SET_001).clearRolePlay();
+    expect(exam.current).toMatchObject({ kind: 'READ_MAIN', questionId: 't1q1' });
+    expect(exam.askRepeat()).toEqual([
+      expect.objectContaining({ kind: 'REPEAT', part: 'topic1', questionId: 't1q1', text: question(SET_001, 't1q1').mainText }),
+    ]);
+  });
+
+  it('topic second part (t1q4 is two-part): Repeat re-reads t1q4.secondPartText, never mainText', () => {
+    const exam = new Exam(SET_001).clearRolePlay().answerUntil('t1q4');
+    exam.answer(20, 20); // t1q4 main answered -> reads secondPartText
+    expect(exam.current).toMatchObject({ kind: 'READ_MAIN', questionId: 't1q4', text: question(SET_001, 't1q4').secondPartText });
+    expect(exam.askRepeat()).toEqual([
+      expect.objectContaining({ kind: 'REPEAT', part: 'topic1', questionId: 't1q4', text: question(SET_001, 't1q4').secondPartText }),
+    ]);
+  });
+
+  it('D9 — alternative part 1: Repeat re-reads alternativeTexts[0]', () => {
+    const exam = new Exam(SET_001_TWO_PART_ALT).clearRolePlay().answerUntil('t1q3');
+    exam.silence(); // repeat of main
+    exam.silence(); // -> alternative part 1 (index 0)
+    expect(exam.current).toMatchObject({ kind: 'READ_ALTERNATIVE', questionId: 't1q3', text: question(SET_001_TWO_PART_ALT, 't1q3').alternativeTexts[0] });
+    expect(exam.askRepeat()).toEqual([
+      expect.objectContaining({ kind: 'REPEAT', questionId: 't1q3', variant: 'alternative', text: question(SET_001_TWO_PART_ALT, 't1q3').alternativeTexts[0] }),
+    ]);
+  });
+
+  it('D9 — alternative part 2: Repeat re-reads alternativeTexts[1], never part 1', () => {
+    const exam = new Exam(SET_001_TWO_PART_ALT).clearRolePlay().answerUntil('t1q3');
+    exam.silence();
+    exam.silence(); // -> alternative part 1
+    exam.answer(20, 20); // answers part 1 -> alternative part 2
+    expect(exam.current).toMatchObject({ kind: 'READ_ALTERNATIVE', questionId: 't1q3', text: 'Et avec qui ?' });
+    expect(exam.askRepeat()).toEqual([
+      expect.objectContaining({ kind: 'REPEAT', questionId: 't1q3', variant: 'alternative', text: 'Et avec qui ?' }),
+    ]);
   });
 });

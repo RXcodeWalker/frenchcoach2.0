@@ -46,6 +46,23 @@ export function isTerminalScoringStatus(status: number | undefined): boolean {
 }
 
 /**
+ * Batch 3: a terminal 409 means the server's `resolveAndVerifyQuestionSet`
+ * (server/resolveQuestionSet.ts) couldn't hash-match this transcript against
+ * EITHER the remote question set or the in-repo fixture — the content was
+ * updated after this attempt ran, and per A5 the server will never score
+ * against substituted content. That's a real, if unusual, outcome for a
+ * candidate to hit — the raw server text ("declared questionSetHash does not
+ * match…") means nothing to them, so replace it with plain language rather
+ * than showing every other terminal status's server-provided message as-is.
+ */
+export function terminalScoringMessage(err: ScoringApiError): string {
+  if (err.status === 409) {
+    return "This exam's questions were updated after you took it, so this attempt can't be marked. Please retake the exam.";
+  }
+  return err.message;
+}
+
+/**
  * True when the server definitively failed this attempt: a 5xx whose body
  * carries a `code`. The scoring server only sends a coded 5xx after it has
  * given up on the attempt and cleared its in-progress mark, so the caller

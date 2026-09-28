@@ -293,6 +293,90 @@ describe('useRecording — stop() timeout fallback and generation guard (reliabi
   });
 });
 
+describe('useRecording — onend restarts recognition mid-recording (Batch 3)', () => {
+  class RestartableSpeechRecognition {
+    lang = ''; continuous = false; interimResults = false; maxAlternatives = 1;
+    onresult: ((e: { resultIndex: number; results: ArrayLike<{ isFinal: boolean; [i: number]: { transcript: string } }> }) => void) | null = null;
+    onerror: ((e: { error: string }) => void) | null = null;
+    onend: (() => void) | null = null;
+    startCount = 0;
+    start() { this.startCount += 1; }
+    stop() { /* real stop() is asynchronous — the test fires onend itself */ }
+    abort() {}
+  }
+
+  const originalSpeechRecognition = (globalThis as Record<string, unknown>).SpeechRecognition;
+  const originalWebkitSpeechRecognition = (globalThis as Record<string, unknown>).webkitSpeechRecognition;
+
+  beforeEach(() => {
+    Object.defineProperty(globalThis.navigator, 'mediaDevices', {
+      configurable: true,
+      value: { getUserMedia: vi.fn().mockRejectedValue(new Error('no mic in this test')) },
+    });
+  });
+
+  afterEach(() => {
+    (globalThis as Record<string, unknown>).SpeechRecognition = originalSpeechRecognition;
+    (globalThis as Record<string, unknown>).webkitSpeechRecognition = originalWebkitSpeechRecognition;
+    vi.restoreAllMocks();
+  });
+
+  it('restarts recognition (keeping finalTextRef) when onend fires while still recording, never resolving stop()', async () => {
+    const instances: RestartableSpeechRecognition[] = [];
+    class TrackedRecognition extends RestartableSpeechRecognition {
+      constructor() {
+        super();
+        instances.push(this);
+      }
+    }
+    (globalThis as Record<string, unknown>).SpeechRecognition = TrackedRecognition;
+    delete (globalThis as Record<string, unknown>).webkitSpeechRecognition;
+
+    const { result } = renderHook(() => useRecording());
+
+    act(() => {
+      result.current.start();
+    });
+    const recog = instances[0];
+    expect(recog.startCount).toBe(1);
+
+    // Some speech before the browser cuts the continuous session off on its own.
+    act(() => {
+      recog.onresult?.({
+        resultIndex: 0,
+        results: [{ isFinal: true, 0: { transcript: 'Je voudrais' } }] as unknown as ArrayLike<{ isFinal: boolean; [i: number]: { transcript: string } }>,
+      });
+    });
+
+    // Nobody called the hook's stop() — this is a spontaneous onend while the
+    // candidate is still recording (e.g. the browser cutting off a
+    // `continuous` session after a pause).
+    act(() => {
+      recog.onend?.();
+    });
+
+    expect(recog.startCount).toBe(2); // restarted
+    expect(result.current.isRecording).toBe(true); // never stopped
+    expect(result.current.transcript).toBe('Je voudrais ');
+
+    // More speech after the restart (finalTextRef keeps accumulating), then a real stop().
+    act(() => {
+      recog.onresult?.({
+        resultIndex: 0,
+        results: [{ isFinal: true, 0: { transcript: 'aller à Paris.' } }] as unknown as ArrayLike<{ isFinal: boolean; [i: number]: { transcript: string } }>,
+      });
+    });
+
+    let finalTranscript = '';
+    await act(async () => {
+      const stopPromise = result.current.stop().then((t) => { finalTranscript = t; });
+      recog.onend?.(); // this time it's the real stop() — recogRef is already cleared
+      await stopPromise;
+    });
+    expect(finalTranscript).toBe('Je voudrais aller à Paris.');
+  });
+});
+
 describe('useRecording — blocked (Phase 1.6 Part C consent gate)', () => {
   beforeEach(() => {
     Object.defineProperty(globalThis.navigator, 'mediaDevices', {

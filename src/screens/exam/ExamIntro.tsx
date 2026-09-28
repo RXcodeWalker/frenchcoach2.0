@@ -11,10 +11,15 @@ interface Props {
   onBack: () => void;
 }
 
+/**
+ * exam-conduct §1 (TN p.1, p.3, p.6 #3-4; Syl p.19): the real structure and
+ * timings of the 0520/03 speaking test. No topic is named here (§4) — each
+ * topic conversation is announced only when it starts.
+ */
 const PAPER = [
-  { n: '01', label: 'Role play — à la boulangerie', meta: '5 prompts · you have the card for 1 min' },
-  { n: '02', label: 'Topic conversation — les loisirs', meta: '3 min · your chosen topic' },
-  { n: '03', label: 'General conversation', meta: '3 min · unseen questions' },
+  { n: '01', label: 'Role play', meta: 'about 2 min · 5 tasks, some in two parts' },
+  { n: '02', label: 'Topic conversation 1', meta: 'about 4 min · topic revealed when it starts' },
+  { n: '03', label: 'Topic conversation 2', meta: 'about 4 min · topic revealed when it starts' },
 ];
 
 export function ExamIntro({ coached, onStart, onBack }: Props) {
@@ -53,17 +58,19 @@ export function ExamIntro({ coached, onStart, onBack }: Props) {
             </div>
           </div>
           <span className="ml-auto font-numeral text-body-s text-ink-subtle tabular-nums">
-            0520 · Paper 4
+            0520 · Paper 3, Speaking
           </span>
         </div>
 
         <div className="rounded-card surface p-6">
           <p className="exam-serif text-display-m text-ink leading-snug">
-            Bonsoir. On commence par tes loisirs — trois minutes, comme le jour de l&rsquo;examen.
+            Bonsoir. On commence par dix minutes de préparation, puis le jeu de rôle et deux
+            conversations sur des sujets différents.
           </p>
           <p className="text-body-l text-ink-muted mt-3 leading-relaxed">
-            Good evening. We&rsquo;ll start with your hobbies — three minutes, exactly like exam day.
-            I won&rsquo;t interrupt you, and I won&rsquo;t show you a mark until the end.
+            Good evening. First, 10 minutes of preparation, then the role play, then two topic
+            conversations — you won&rsquo;t see their topics until each one starts. I won&rsquo;t
+            interrupt you, and I won&rsquo;t show you a mark until the end.
           </p>
         </div>
 
@@ -88,14 +95,9 @@ export function ExamIntro({ coached, onStart, onBack }: Props) {
           </div>
         )}
 
-        <div className="flex flex-wrap items-center gap-3">
-          <Button variant="primary" size="lg" onClick={onStart}>
-            Je suis prêt · start
-          </Button>
-          <Button variant="quiet" size="lg" onClick={onStart}>
-            Hear the card first
-          </Button>
-        </div>
+        <Button variant="primary" size="lg" onClick={onStart} className="w-full">
+          Je suis prêt · start
+        </Button>
 
         <div className="border-t border-hairline pt-6">
           <div className="text-eyebrow uppercase text-ink-subtle mb-4">Tonight&rsquo;s paper</div>

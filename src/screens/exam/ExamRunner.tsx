@@ -23,6 +23,33 @@ const PART_TARGET_S: Record<string, number> = {
   topic2: 4 * 60,
 };
 
+/**
+ * exam-conduct §10: the current PART's elapsed time (the session clock at its
+ * first examiner action, subtracted from the current total), not the whole
+ * exam's — a role play running long must never eat into topic time on
+ * screen. Derived from the ConductLog entries already passed in, no new prop
+ * needed.
+ */
+function partStartS(entries: ConductLogEntry[], part: string): number {
+  const first = entries.find((e) => e.kind === 'examiner' && e.part === part);
+  return first && first.kind === 'examiner' ? first.atS : 0;
+}
+
+/**
+ * exam-conduct §7 (Bug 1): a PAUSE (two-part) task's part 2 re-emits
+ * READ_MAIN/REPEAT for the SAME questionId+part as part 1, with different
+ * text — the label must call it out as part 2 rather than showing "Question N
+ * of 5" twice with no distinction. Two or more READ_MAIN entries logged for
+ * the same (part, questionId) means the current one is the second part.
+ */
+function isSecondPart(action: ExaminerAction | null, entries: ConductLogEntry[]): boolean {
+  if (!action || !action.questionId || (action.kind !== 'READ_MAIN' && action.kind !== 'REPEAT')) return false;
+  const mainReads = entries.filter(
+    (e) => e.kind === 'examiner' && e.action === 'READ_MAIN' && e.part === action.part && e.questionId === action.questionId,
+  );
+  return mainReads.length >= 2;
+}
+
 const PARTS = ['rolePlay', 'topic1', 'topic2'] as const;
 const PART_SHORT: Record<string, string> = {
   rolePlay: 'Role Play',
@@ -123,10 +150,14 @@ export function ExamRunner({
     return () => window.clearInterval(interval);
   }, [recording.isRecording, recording.lastActivityAt]);
 
-  // Countdown from the part target, held at 0 (never negative). Exam mode shows
-  // this instead of the session's count-up.
-  const remainingS = Math.max(Math.round((PART_TARGET_S[part] ?? 0) - totalElapsedS), 0);
+  // exam-conduct §10: countdown from the CURRENT part's own target, counting
+  // down from when that part started (not the whole exam) — held at 0, never
+  // negative. Exam Sim only; Coached has no time-based countdown (§24).
+  const currentPartStartS = partStartS(entries, part);
+  const partElapsedS = Math.max(totalElapsedS - currentPartStartS, 0);
+  const remainingS = Math.max(Math.round((PART_TARGET_S[part] ?? 0) - partElapsedS), 0);
   const currentPartIndex = PARTS.indexOf(part as (typeof PARTS)[number]);
+  const secondPart = isSecondPart(action, entries);
 
   const rec = recording.isRecording;
   const composerDisabled = turnBusy || pendingSilentSkip || pendingTranscriptionFailure;
@@ -156,9 +187,9 @@ export function ExamRunner({
           })}
         </div>
 
-        {/* Countdown — top-centre, mono, title size */}
+        {/* Countdown — top-centre, mono, title size. exam-conduct §24: Coached has no time-based countdown. */}
         <div className="justify-self-center font-numeral text-title text-ink tabular-nums">
-          {formatTime(remainingS)}
+          {!coached && formatTime(remainingS)}
         </div>
 
         <div className="justify-self-end flex items-center gap-3">
@@ -189,6 +220,7 @@ export function ExamRunner({
               {taskProgress && (
                 <span className="ml-auto text-eyebrow uppercase text-ink-subtle shrink-0">
                   Question {taskProgress.index + 1} of {taskProgress.total}
+                  {secondPart && ' · part 2'}
                 </span>
               )}
             </>
