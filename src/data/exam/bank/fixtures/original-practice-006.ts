@@ -14,7 +14,7 @@ export const ORIGINAL_PRACTICE_006: AuthoredQuestionSet = {
     "status": "approved",
     "reviewedBy": "internal:claude",
     "reviewedAt": "2026-09-28T00:00:00.000Z",
-    "notes": "Rewritten in the 0520 conduct plan, Batch 5: structure modeled on the 0520/03 Teacher/Examiner Notes (June 2026) per ADR 0008, wording original. G1 self-review done (internal:claude). G2 native-speaker review PENDING — do not seed or merge before it. Originality check against the Teacher's Notes text PENDING (the booklet was not available in the authoring session; run scripts/authoring/originalityCheck.ts before seeding). Role play: ordering a meal in a restaurant."
+    "notes": "Rewritten in the 0520 conduct plan, Batch 5: structure modeled on the 0520/03 Teacher/Examiner Notes (June 2026) per ADR 0008, wording original. G1 self-review done (internal:claude). Originality check against the June 2026 Teacher's Notes text: clean (2026-09-28). G2 native-speaker review PENDING — do not seed or merge before it. Role play: ordering a meal in a restaurant."
   },
   "content": {
     "rolePlay": {
@@ -44,7 +44,7 @@ export const ORIGINAL_PRACTICE_006: AuthoredQuestionSet = {
           "mainText": "Qu'allez-vous prendre comme plat principal ?",
           "alternativeTexts": [],
           "partsExpected": 2,
-          "secondPartText": "Qu'est-ce que vous ne mangez pas ?"
+          "secondPartText": "Quels aliments ne mangez-vous pas ?"
         },
         {
           "questionId": "rp4",
@@ -69,7 +69,7 @@ export const ORIGINAL_PRACTICE_006: AuthoredQuestionSet = {
       "title": "La santé",
       "furtherQuestions": [
         "Qu'est-ce qui est mauvais pour la santé, à ton avis ?",
-        "Comment te détends-tu après les cours ?"
+        "Combien d'eau bois-tu par jour ?"
       ],
       "questions": [
         {
@@ -120,11 +120,11 @@ export const ORIGINAL_PRACTICE_006: AuthoredQuestionSet = {
         {
           "questionId": "t1q4",
           "part": "topic1",
-          "mainText": "Les jeunes font-ils assez de sport aujourd'hui ?",
-          "secondPartText": "Pourquoi ?",
+          "mainText": "Quelles sont les causes du stress chez les jeunes ?",
+          "secondPartText": "Comment peut-on l'éviter ?",
           "alternativeTexts": [
-            "Combien de sport fais-tu par semaine ?",
-            "C'est assez ?"
+            "Qu'est-ce qui te stresse ?",
+            "Que fais-tu contre le stress ?"
           ],
           "topicArea": "A",
           "subTopic": "The human body and health",
@@ -139,10 +139,10 @@ export const ORIGINAL_PRACTICE_006: AuthoredQuestionSet = {
         {
           "questionId": "t1q5",
           "part": "topic1",
-          "mainText": "Que vas-tu changer pour être en meilleure santé ?",
+          "mainText": "Quelle habitude vas-tu prendre pour mieux dormir ?",
           "secondPartText": "Pourquoi ?",
           "alternativeTexts": [
-            "Quel sport vas-tu essayer cette année ?",
+            "À quelle heure vas-tu te coucher ce soir ?",
             "Pourquoi ?"
           ],
           "topicArea": "A",
@@ -163,7 +163,7 @@ export const ORIGINAL_PRACTICE_006: AuthoredQuestionSet = {
       "subTopic": "Work",
       "title": "Le monde du travail",
       "furtherQuestions": [
-        "Quels sont les avantages de travailler à la maison ?",
+        "Que penses-tu du travail à la maison ?",
         "Quel métier ne voudrais-tu jamais faire ?"
       ],
       "questions": [
@@ -216,10 +216,10 @@ export const ORIGINAL_PRACTICE_006: AuthoredQuestionSet = {
         {
           "questionId": "t2q4",
           "part": "topic2",
-          "mainText": "Vaut-il mieux avoir un travail intéressant ou bien payé ?",
-          "secondPartText": "Pourquoi ?",
+          "mainText": "À ton avis, pourquoi le travail en équipe est-il utile ?",
+          "secondPartText": "Et quand est-il difficile ?",
           "alternativeTexts": [
-            "Qu'est-ce qu'un bon travail pour toi ?",
+            "Aimes-tu travailler en groupe à l'école ?",
             "Pourquoi ?"
           ],
           "topicArea": "D",
@@ -227,7 +227,6 @@ export const ORIGINAL_PRACTICE_006: AuthoredQuestionSet = {
           "difficulty": "core",
           "targetStructures": [
             "opinion",
-            "comparison",
             "justification"
           ],
           "expectedTimeFrame": "present",

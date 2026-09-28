@@ -23,7 +23,7 @@ every set has been reviewed.
 # Review sheet — original-practice-001
 
 Status: **approved** · reviewedBy: internal:claude  
-Notes: Rewritten in the 0520 conduct plan, Batch 5: structure modeled on the 0520/03 Teacher/Examiner Notes (June 2026) per ADR 0008, wording original. G1 self-review done (internal:claude). G2 native-speaker review PENDING — do not seed or merge before it. Originality check against the Teacher's Notes text PENDING (the booklet was not available in the authoring session; run scripts/authoring/originalityCheck.ts before seeding). Role play: a missed train at the station.  
+Notes: Rewritten in the 0520 conduct plan, Batch 5: structure modeled on the 0520/03 Teacher/Examiner Notes (June 2026) per ADR 0008, wording original. G1 self-review done (internal:claude). Originality check against the June 2026 Teacher's Notes text: clean (2026-09-28). G2 native-speaker review PENDING — do not seed or merge before it. Role play: a missed train at the station.  
 
 ---
 
@@ -74,19 +74,19 @@ _Setup (read aloud by the examiner):_ Vous êtes à la gare de Lyon, en France. 
 
 **Q3.** Parle-moi d'un voyage que tu as fait.  
   *EN: Tell me about a journey you have made.*  
-  ↳ *(second part)* C'était comment ?  
-  *EN: What was it like?*  
+  ↳ *(second part)* Comment ça s'est passé ?  
+  *EN: How did it go?*  
   _area=A · subTopic="Travel and transport" · difficulty=core · timeFrame=past · structures=[perfect, imperfect, opinion] · partsExpected=2_  
   _alternative, part 1:_ Où es-tu allé(e) le week-end dernier ?  
   *EN: Where did you go last weekend?*  
-  _alternative, part 2:_ C'était comment ?  
-  *EN: What was it like?*  
+  _alternative, part 2:_ Comment ça s'est passé ?  
+  *EN: How did it go?*  
 
 **Q4.** À ton avis, quel est le moyen de transport le plus pratique en ville ?  
   *EN: In your opinion, what is the most practical means of transport in town?*  
   _area=A · subTopic="Travel and transport" · difficulty=core · timeFrame=present · structures=[opinion, comparison] · partsExpected=1_  
-  _alternative, part 1:_ Quel moyen de transport aimes-tu le plus ?  
-  *EN: Which means of transport do you like most?*  
+  _alternative, part 1:_ Comment préfères-tu te déplacer en ville ?  
+  *EN: How do you prefer to get around town?*  
 
 **Q5.** Si tu pouvais faire un grand voyage, où irais-tu ?  
   *EN: If you could go on a big trip, where would you go?*  
@@ -117,11 +117,11 @@ _Setup (read aloud by the examiner):_ Vous êtes à la gare de Lyon, en France. 
   *EN: What do you do when the weather is nice?*  
   _area=C · subTopic="The natural world, the environment, the climate and the weather" · difficulty=foundation · timeFrame=present · structures=[present] · partsExpected=1_  
 
-**Q3.** Qu'as-tu fait récemment pour protéger la planète ?  
-  *EN: What have you done recently to protect the planet?*  
-  _area=C · subTopic="The natural world, the environment, the climate and the weather" · difficulty=core · timeFrame=past · structures=[perfect] · partsExpected=1_  
-  _alternative, part 1:_ Qu'est-ce que tu as recyclé cette semaine ?  
-  *EN: What have you recycled this week?*  
+**Q3.** Raconte une journée où il a fait très mauvais temps.  
+  *EN: Tell me about a day when the weather was very bad.*  
+  _area=C · subTopic="The natural world, the environment, the climate and the weather" · difficulty=core · timeFrame=past · structures=[perfect, imperfect] · partsExpected=1_  
+  _alternative, part 1:_ Qu'as-tu fait la dernière fois qu'il a plu ?  
+  *EN: What did you do the last time it rained?*  
 
 **Q4.** Quel est le plus grand problème pour l'environnement aujourd'hui ?  
   *EN: What is the biggest problem for the environment today?*  
@@ -133,19 +133,19 @@ _Setup (read aloud by the examiner):_ Vous êtes à la gare de Lyon, en France. 
   _alternative, part 2:_ Pourquoi ?  
   *EN: Why?*  
 
-**Q5.** Que vas-tu faire à l'avenir pour aider l'environnement ?  
-  *EN: What are you going to do in the future to help the environment?*  
-  ↳ *(second part)* Et que devrait faire le gouvernement ?  
-  *EN: And what should the government do?*  
-  _area=C · subTopic="The natural world, the environment, the climate and the weather" · difficulty=higher · timeFrame=future · structures=[near-future, conditional, opinion] · partsExpected=2_  
-  _alternative, part 1:_ Comment vas-tu économiser l'énergie cette semaine ?  
-  *EN: How are you going to save energy this week?*  
-  _alternative, part 2:_ Et ta famille ?  
-  *EN: And your family?*  
+**Q5.** Selon toi, comment sera le temps dans ta région dans cinquante ans ?  
+  *EN: In your view, what will the weather be like in your area in fifty years?*  
+  ↳ *(second part)* Pourquoi ?  
+  *EN: Why?*  
+  _area=C · subTopic="The natural world, the environment, the climate and the weather" · difficulty=higher · timeFrame=future · structures=[simple-future, comparison, justification] · partsExpected=2_  
+  _alternative, part 1:_ Fera-t-il plus chaud ou plus froid plus tard chez toi ?  
+  *EN: Will it be hotter or colder where you live in the future?*  
+  _alternative, part 2:_ Pourquoi ?  
+  *EN: Why?*  
 
 **Further questions** (Exam Sim: only if the conversation lasts 3½ min or less; Coached: always):  
-1. Comment est le climat dans ta région ?  
-  *EN: What is the climate like in your area?*  
+1. Quelle est la saison la plus agréable dans ta région ?  
+  *EN: Which is the most pleasant season in your area?*  
 2. Que penses-tu des voitures électriques ?  
   *EN: What do you think of electric cars?*  
 
@@ -155,17 +155,17 @@ _Setup (read aloud by the examiner):_ Vous êtes à la gare de Lyon, en France. 
 # Review sheet — original-practice-002
 
 Status: **approved** · reviewedBy: internal:claude  
-Notes: Rewritten in the 0520 conduct plan, Batch 5: structure modeled on the 0520/03 Teacher/Examiner Notes (June 2026) per ADR 0008, wording original. G1 self-review done (internal:claude). G2 native-speaker review PENDING — do not seed or merge before it. Originality check against the Teacher's Notes text PENDING (the booklet was not available in the authoring session; run scripts/authoring/originalityCheck.ts before seeding). Role play: planning an outing with a French friend.  
+Notes: Rewritten in the 0520 conduct plan, Batch 5: structure modeled on the 0520/03 Teacher/Examiner Notes (June 2026) per ADR 0008, wording original. G1 self-review done (internal:claude). Originality check against the June 2026 Teacher's Notes text: clean (2026-09-28). G2 native-speaker review PENDING — do not seed or merge before it. Role play: planning an outing with a French friend.  
 
 ---
 
 ## Role play — "Une sortie avec Camille" (area B, examiner uses *tu*)
   *EN: An outing with Camille*  
 
-_Setup (read aloud by the examiner):_ Tu es en France chez ton ami(e) Camille. Tu organises une sortie avec Camille pour samedi. Je suis Camille.  
-  *EN: You are in France at your friend Camille's house. You are planning an outing with Camille for Saturday. I am Camille.*  
+_Setup (read aloud by the examiner):_ Vous êtes en France chez votre ami(e) Camille. Vous organisez une sortie ensemble pour samedi. Je suis Camille.  
+  *EN: You are in France at your friend Camille's home. You are planning an outing together for Saturday. I am Camille.*  
 
-**T1.** Salut ! Qu'est-ce que tu veux faire samedi ?  
+**T1.** Salut ! Que veux-tu faire samedi ?  
   *EN: Hi! What do you want to do on Saturday?*  
   _partsExpected=1_  
 
@@ -179,8 +179,8 @@ _Setup (read aloud by the examiner):_ Tu es en France chez ton ami(e) Camille. T
   *EN: Who with?*  
   _partsExpected=2_  
 
-**T4.** Comment est-ce qu'on va aller en ville ?  
-  *EN: How are we going to get into town?*  
+**T4.** Pour aller en ville, on prend quel transport ?  
+  *EN: What transport shall we take into town?*  
   _partsExpected=1_  
 
 **T5.** Après la sortie, qu'aimerais-tu manger ?  
@@ -194,8 +194,8 @@ _Setup (read aloud by the examiner):_ Tu es en France chez ton ami(e) Camille. T
 ### Topic 1 — "La maison" · In the home (area B)
   *EN: Home*  
 
-**Q1.** Qu'y a-t-il dans ta chambre ?  
-  *EN: What is there in your bedroom?*  
+**Q1.** Quels meubles as-tu dans ta chambre ?  
+  *EN: What furniture do you have in your bedroom?*  
   _area=B · subTopic="In the home" · difficulty=foundation · timeFrame=present · structures=[present] · partsExpected=1_  
 
 **Q2.** Qui fait le ménage chez toi ?  
@@ -204,17 +204,17 @@ _Setup (read aloud by the examiner):_ Tu es en France chez ton ami(e) Camille. T
 
 **Q3.** Comment as-tu aidé à la maison le week-end dernier ?  
   *EN: How did you help at home last weekend?*  
-  ↳ *(second part)* C'était comment ?  
-  *EN: What was it like?*  
+  ↳ *(second part)* Comment ça s'est passé ?  
+  *EN: How did it go?*  
   _area=B · subTopic="In the home" · difficulty=core · timeFrame=past · structures=[perfect, imperfect] · partsExpected=2_  
   _alternative, part 1:_ Quelle tâche ménagère as-tu faite hier ?  
   *EN: Which household chore did you do yesterday?*  
-  _alternative, part 2:_ C'était comment ?  
-  *EN: What was it like?*  
+  _alternative, part 2:_ Comment ça s'est passé ?  
+  *EN: How did it go?*  
 
-**Q4.** Qu'est-ce que tu aimes dans ta maison ?  
-  *EN: What do you like about your home?*  
-  ↳ *(second part)* Et qu'est-ce que tu n'aimes pas ?  
+**Q4.** Que préfères-tu dans ta maison ?  
+  *EN: What do you like best about your home?*  
+  ↳ *(second part)* Et que n'aimes-tu pas ?  
   *EN: And what don't you like?*  
   _area=B · subTopic="In the home" · difficulty=core · timeFrame=present · structures=[opinion, negation] · partsExpected=2_  
   _alternative, part 1:_ Quelle pièce de ta maison préfères-tu ?  
@@ -222,11 +222,11 @@ _Setup (read aloud by the examiner):_ Tu es en France chez ton ami(e) Camille. T
   _alternative, part 2:_ Et quelle pièce n'aimes-tu pas ?  
   *EN: And which room don't you like?*  
 
-**Q5.** Comment serait ta maison idéale ?  
-  *EN: What would your ideal home be like?*  
-  _area=B · subTopic="In the home" · difficulty=higher · timeFrame=conditional · structures=[conditional] · partsExpected=1_  
-  _alternative, part 1:_ Quelle maison voudrais-tu avoir plus tard ?  
-  *EN: What kind of house would you like to have later on?*  
+**Q5.** Quelle chose changerais-tu chez toi si c'était possible ?  
+  *EN: What would you change about your home if you could?*  
+  _area=B · subTopic="In the home" · difficulty=higher · timeFrame=conditional · structures=[conditional, imperfect] · partsExpected=1_  
+  _alternative, part 1:_ Quelle pièce voudrais-tu ajouter à ta maison ?  
+  *EN: Which room would you like to add to your home?*  
 
 **Further questions** (Exam Sim: only if the conversation lasts 3½ min or less; Coached: always):  
 1. Dans quelle pièce passes-tu le plus de temps ?  
@@ -239,16 +239,16 @@ _Setup (read aloud by the examiner):_ Tu es en France chez ton ami(e) Camille. T
 ### Topic 2 — "La technologie" · Communications and technology (area C)
   *EN: Technology*  
 
-**Q1.** Qu'est-ce que tu fais sur Internet ?  
-  *EN: What do you do on the internet?*  
+**Q1.** À quoi te sert Internet ?  
+  *EN: What do you use the internet for?*  
   _area=C · subTopic="Communications and technology" · difficulty=foundation · timeFrame=present · structures=[present] · partsExpected=1_  
 
 **Q2.** Quelle application utilises-tu le plus souvent ?  
   *EN: Which app do you use most often?*  
   _area=C · subTopic="Communications and technology" · difficulty=foundation · timeFrame=present · structures=[present] · partsExpected=1_  
 
-**Q3.** Comment communiquais-tu avec tes amis quand tu étais petit(e) ?  
-  *EN: How did you use to communicate with your friends when you were little?*  
+**Q3.** Comment communiquais-tu avec tes amis quand tu avais huit ans ?  
+  *EN: How did you use to communicate with your friends when you were eight?*  
   ↳ *(second part)* Et maintenant ?  
   *EN: And now?*  
   _area=C · subTopic="Communications and technology" · difficulty=core · timeFrame=past · structures=[imperfect, present, comparison] · partsExpected=2_  
@@ -285,7 +285,7 @@ _Setup (read aloud by the examiner):_ Tu es en France chez ton ami(e) Camille. T
 # Review sheet — original-practice-003
 
 Status: **approved** · reviewedBy: internal:claude  
-Notes: Rewritten in the 0520 conduct plan, Batch 5: structure modeled on the 0520/03 Teacher/Examiner Notes (June 2026) per ADR 0008, wording original. G1 self-review done (internal:claude). G2 native-speaker review PENDING — do not seed or merge before it. Originality check against the Teacher's Notes text PENDING (the booklet was not available in the authoring session; run scripts/authoring/originalityCheck.ts before seeding). Role play: asking for information at a tourist office.  
+Notes: Rewritten in the 0520 conduct plan, Batch 5: structure modeled on the 0520/03 Teacher/Examiner Notes (June 2026) per ADR 0008, wording original. G1 self-review done (internal:claude). Originality check against the June 2026 Teacher's Notes text: clean (2026-09-28). G2 native-speaker review PENDING — do not seed or merge before it. Role play: asking for information at a tourist office.  
 
 ---
 
@@ -392,10 +392,10 @@ _Setup (read aloud by the examiner):_ Vous êtes en vacances dans une petite vil
   ↳ *(second part)* Et les inconvénients ?  
   *EN: And the disadvantages?*  
   _area=D · subTopic="Education" · difficulty=core · timeFrame=present · structures=[opinion, justification] · partsExpected=2_  
-  _alternative, part 1:_ Combien de devoirs as-tu chaque soir ?  
-  *EN: How much homework do you have each evening?*  
-  _alternative, part 2:_ Qu'en penses-tu ?  
-  *EN: What do you think about that?*  
+  _alternative, part 1:_ Aimes-tu faire tes devoirs ?  
+  *EN: Do you like doing your homework?*  
+  _alternative, part 2:_ Pourquoi ?  
+  *EN: Why?*  
 
 **Q5.** Que feras-tu après tes examens ?  
   *EN: What will you do after your exams?*  
@@ -404,7 +404,7 @@ _Setup (read aloud by the examiner):_ Vous êtes en vacances dans une petite vil
   *EN: Which subjects are you going to study next year?*  
 
 **Further questions** (Exam Sim: only if the conversation lasts 3½ min or less; Coached: always):  
-1. Qu'est-ce qu'il faudrait changer dans ton école ?  
+1. Que faudrait-il changer dans ton école ?  
   *EN: What should be changed in your school?*  
 2. Quelles activités y a-t-il après les cours dans ton école ?  
   *EN: What activities are there after lessons at your school?*  
@@ -415,40 +415,40 @@ _Setup (read aloud by the examiner):_ Vous êtes en vacances dans une petite vil
 # Review sheet — original-practice-004
 
 Status: **approved** · reviewedBy: internal:claude  
-Notes: Rewritten in the 0520 conduct plan, Batch 5: structure modeled on the 0520/03 Teacher/Examiner Notes (June 2026) per ADR 0008, wording original. G1 self-review done (internal:claude). G2 native-speaker review PENDING — do not seed or merge before it. Originality check against the Teacher's Notes text PENDING (the booklet was not available in the authoring session; run scripts/authoring/originalityCheck.ts before seeding). Role play: interview for a summer job at a campsite.  
+Notes: Rewritten in the 0520 conduct plan, Batch 5: structure modeled on the 0520/03 Teacher/Examiner Notes (June 2026) per ADR 0008, wording original. G1 self-review done (internal:claude). Originality check against the June 2026 Teacher's Notes text: clean (2026-09-28). G2 native-speaker review PENDING — do not seed or merge before it. Role play: first day of a work placement in a sports shop.  
 
 ---
 
-## Role play — "Un travail dans un camping" (area D, examiner uses *vous*)
-  *EN: A job at a campsite*  
+## Role play — "Un stage dans un magasin de sport" (area D, examiner uses *vous*)
+  *EN: A work placement in a sports shop*  
 
-_Setup (read aloud by the examiner):_ Vous voulez travailler cet été dans un camping en France. Vous avez un entretien avec moi. Je dirige le camping.  
-  *EN: You want to work at a campsite in France this summer. You have an interview with me. I run the campsite.*  
+_Setup (read aloud by the examiner):_ Vous commencez un stage d'une semaine dans un magasin de sport en France. C'est votre premier jour. Je suis le/la responsable du magasin.  
+  *EN: You are starting a one-week work placement in a sports shop in France. It is your first day. I am the shop manager.*  
 
-**T1.** Bonjour. Quel âge avez-vous ?  
-  *EN: Hello. How old are you?*  
+**T1.** Bonjour et bienvenue ! Vous habitez dans quel quartier ?  
+  *EN: Hello and welcome! Which part of town do you live in?*  
   _partsExpected=1_  
 
-**T2.** Quelles langues parlez-vous ?  
-  *EN: Which languages do you speak?*  
+**T2.** Combien d'heures pouvez-vous travailler par jour ?  
+  *EN: How many hours can you work a day?*  
   _partsExpected=1_  
 
-**T3.** Qu'avez-vous fait l'été dernier ?  
-  *EN: What did you do last summer?*  
-  ↳ *(second part)* C'était comment ?  
-  *EN: What was it like?*  
+**T3.** Pourquoi avez-vous choisi un stage dans un magasin de sport ?  
+  *EN: Why did you choose a placement in a sports shop?*  
+  ↳ *(second part)* Que voudriez-vous apprendre ici ?  
+  *EN: What would you like to learn here?*  
   _partsExpected=2_  
 
-**T4.** Pourquoi voulez-vous travailler dans un camping ?  
-  *EN: Why do you want to work at a campsite?*  
-  ↳ *(second part)* Qu'aimeriez-vous faire ici ?  
-  *EN: What would you like to do here?*  
+**T4.** Quel sport avez-vous pratiqué récemment ?  
+  *EN: What sport have you done recently?*  
+  ↳ *(second part)* Comment ça s'est passé ?  
+  *EN: How did it go?*  
   _partsExpected=2_  
 
-**T5.** Quand pouvez-vous commencer ?  
-  *EN: When can you start?*  
-  ↳ *(second part)* Et combien de semaines pouvez-vous rester ?  
-  *EN: And how many weeks can you stay?*  
+**T5.** Que ferez-vous après votre stage ?  
+  *EN: What will you do after your placement?*  
+  ↳ *(second part)* Et plus tard, quel métier voudriez-vous faire ?  
+  *EN: And later on, what job would you like to do?*  
   _partsExpected=2_  
 
 ---
@@ -456,8 +456,8 @@ _Setup (read aloud by the examiner):_ Vous voulez travailler cet été dans un c
 ### Topic 1 — "Les repas" · Food and drink (area A)
   *EN: Meals*  
 
-**Q1.** Que manges-tu le matin ?  
-  *EN: What do you eat in the morning?*  
+**Q1.** Quel est ton goûter préféré ?  
+  *EN: What is your favourite afternoon snack?*  
   _area=A · subTopic="Food and drink" · difficulty=foundation · timeFrame=present · structures=[present] · partsExpected=1_  
 
 **Q2.** Qui prépare le dîner chez toi ?  
@@ -491,8 +491,8 @@ _Setup (read aloud by the examiner):_ Vous voulez travailler cet été dans un c
   *EN: Why?*  
 
 **Further questions** (Exam Sim: only if the conversation lasts 3½ min or less; Coached: always):  
-1. Que manges-tu pendant les fêtes ?  
-  *EN: What do you eat during celebrations?*  
+1. Quel plat typique de ton pays préfères-tu ?  
+  *EN: Which traditional dish from your country do you like best?*  
 2. Comment peut-on manger plus sainement ?  
   *EN: How can people eat more healthily?*  
 
@@ -543,14 +543,14 @@ _Setup (read aloud by the examiner):_ Vous voulez travailler cet été dans un c
 # Review sheet — original-practice-005
 
 Status: **approved** · reviewedBy: internal:claude  
-Notes: Rewritten in the 0520 conduct plan, Batch 5: structure modeled on the 0520/03 Teacher/Examiner Notes (June 2026) per ADR 0008, wording original. G1 self-review done (internal:claude). G2 native-speaker review PENDING — do not seed or merge before it. Originality check against the Teacher's Notes text PENDING (the booklet was not available in the authoring session; run scripts/authoring/originalityCheck.ts before seeding). Role play: a French friend's family celebration.  
+Notes: Rewritten in the 0520 conduct plan, Batch 5: structure modeled on the 0520/03 Teacher/Examiner Notes (June 2026) per ADR 0008, wording original. G1 self-review done (internal:claude). Originality check against the June 2026 Teacher's Notes text: clean (2026-09-28). G2 native-speaker review PENDING — do not seed or merge before it. Role play: a French friend's family celebration.  
 
 ---
 
 ## Role play — "Une fête de famille en France" (area E, examiner uses *tu*)
   *EN: A family celebration in France*  
 
-_Setup (read aloud by the examiner):_ Tu passes une semaine chez ton ami(e) Camille, en France. Ce soir, sa famille fait une grande fête. Je suis Camille.  
+_Setup (read aloud by the examiner):_ Vous passez une semaine chez votre ami(e) Camille, en France. Ce soir, sa famille fait une grande fête. Je suis Camille.  
   *EN: You are spending a week at your friend Camille's home in France. Tonight, Camille's family is having a big party. I am Camille.*  
 
 **T1.** Salut ! Tu vas porter quoi ce soir ?  
@@ -592,13 +592,13 @@ _Setup (read aloud by the examiner):_ Tu passes une semaine chez ton ami(e) Cami
 
 **Q3.** Qu'as-tu fait avec ta famille le week-end dernier ?  
   *EN: What did you do with your family last weekend?*  
-  ↳ *(second part)* C'était comment ?  
-  *EN: What was it like?*  
+  ↳ *(second part)* Comment ça s'est passé ?  
+  *EN: How did it go?*  
   _area=B · subTopic="Self, family and friends" · difficulty=core · timeFrame=past · structures=[perfect, imperfect] · partsExpected=2_  
   _alternative, part 1:_ Où es-tu allé(e) avec ta famille récemment ?  
   *EN: Where have you been with your family recently?*  
-  _alternative, part 2:_ C'était comment ?  
-  *EN: What was it like?*  
+  _alternative, part 2:_ Comment ça s'est passé ?  
+  *EN: How did it go?*  
 
 **Q4.** Qu'est-ce qui est important dans une amitié ?  
   *EN: What is important in a friendship?*  
@@ -627,29 +627,29 @@ _Setup (read aloud by the examiner):_ Tu passes une semaine chez ton ami(e) Cami
 ### Topic 2 — "La ville" · The built environment (area C)
   *EN: The town*  
 
-**Q1.** Qu'y a-t-il dans ton quartier ?  
-  *EN: What is there in your neighbourhood?*  
+**Q1.** Quels bâtiments y a-t-il près de chez toi ?  
+  *EN: What buildings are there near where you live?*  
   _area=C · subTopic="The built environment" · difficulty=foundation · timeFrame=present · structures=[present] · partsExpected=1_  
 
 **Q2.** Quel est ton endroit préféré en ville ?  
   *EN: What is your favourite place in town?*  
   _area=C · subTopic="The built environment" · difficulty=foundation · timeFrame=present · structures=[present] · partsExpected=1_  
 
-**Q3.** Comment était ta ville quand tu étais petit(e) ?  
-  *EN: What was your town like when you were little?*  
+**Q3.** Comment était ta ville il y a dix ans ?  
+  *EN: What was your town like ten years ago?*  
   ↳ *(second part)* Qu'est-ce qui a changé ?  
   *EN: What has changed?*  
   _area=C · subTopic="The built environment" · difficulty=core · timeFrame=past · structures=[imperfect, perfect, comparison] · partsExpected=2_  
-  _alternative, part 1:_ Quel magasin aimais-tu quand tu étais petit(e) ?  
-  *EN: Which shop did you like when you were little?*  
+  _alternative, part 1:_ Quel magasin aimais-tu à l'âge de sept ans ?  
+  *EN: Which shop did you like when you were seven?*  
   _alternative, part 2:_ Pourquoi ?  
   *EN: Why?*  
 
 **Q4.** Qu'est-ce qui manque dans ta ville pour les jeunes ?  
   *EN: What is missing in your town for young people?*  
   _area=C · subTopic="The built environment" · difficulty=core · timeFrame=present · structures=[opinion, negation] · partsExpected=1_  
-  _alternative, part 1:_ Qu'est-ce qu'il n'y a pas dans ta ville ?  
-  *EN: What isn't there in your town?*  
+  _alternative, part 1:_ Quel endroit n'existe pas dans ta ville ?  
+  *EN: What kind of place doesn't exist in your town?*  
 
 **Q5.** Si tu étais maire, quel bâtiment construirais-tu ?  
   *EN: If you were mayor, which building would you build?*  
@@ -673,7 +673,7 @@ _Setup (read aloud by the examiner):_ Tu passes une semaine chez ton ami(e) Cami
 # Review sheet — original-practice-006
 
 Status: **approved** · reviewedBy: internal:claude  
-Notes: Rewritten in the 0520 conduct plan, Batch 5: structure modeled on the 0520/03 Teacher/Examiner Notes (June 2026) per ADR 0008, wording original. G1 self-review done (internal:claude). G2 native-speaker review PENDING — do not seed or merge before it. Originality check against the Teacher's Notes text PENDING (the booklet was not available in the authoring session; run scripts/authoring/originalityCheck.ts before seeding). Role play: ordering a meal in a restaurant.  
+Notes: Rewritten in the 0520 conduct plan, Batch 5: structure modeled on the 0520/03 Teacher/Examiner Notes (June 2026) per ADR 0008, wording original. G1 self-review done (internal:claude). Originality check against the June 2026 Teacher's Notes text: clean (2026-09-28). G2 native-speaker review PENDING — do not seed or merge before it. Role play: ordering a meal in a restaurant.  
 
 ---
 
@@ -693,8 +693,8 @@ _Setup (read aloud by the examiner):_ Vous êtes dans un restaurant en France av
 
 **T3.** Qu'allez-vous prendre comme plat principal ?  
   *EN: What are you going to have as a main course?*  
-  ↳ *(second part)* Qu'est-ce que vous ne mangez pas ?  
-  *EN: What don't you eat?*  
+  ↳ *(second part)* Quels aliments ne mangez-vous pas ?  
+  *EN: Which foods don't you eat?*  
   _partsExpected=2_  
 
 **T4.** Comment avez-vous connu notre restaurant ?  
@@ -726,31 +726,31 @@ _Setup (read aloud by the examiner):_ Vous êtes dans un restaurant en France av
   _alternative, part 1:_ Quand es-tu allé(e) chez le médecin ?  
   *EN: When did you go to the doctor?*  
 
-**Q4.** Les jeunes font-ils assez de sport aujourd'hui ?  
-  *EN: Do young people do enough sport today?*  
-  ↳ *(second part)* Pourquoi ?  
-  *EN: Why?*  
+**Q4.** Quelles sont les causes du stress chez les jeunes ?  
+  *EN: What causes stress in young people?*  
+  ↳ *(second part)* Comment peut-on l'éviter ?  
+  *EN: How can it be avoided?*  
   _area=A · subTopic="The human body and health" · difficulty=core · timeFrame=present · structures=[opinion, justification] · partsExpected=2_  
-  _alternative, part 1:_ Combien de sport fais-tu par semaine ?  
-  *EN: How much sport do you do a week?*  
-  _alternative, part 2:_ C'est assez ?  
-  *EN: Is that enough?*  
+  _alternative, part 1:_ Qu'est-ce qui te stresse ?  
+  *EN: What stresses you?*  
+  _alternative, part 2:_ Que fais-tu contre le stress ?  
+  *EN: What do you do about stress?*  
 
-**Q5.** Que vas-tu changer pour être en meilleure santé ?  
-  *EN: What are you going to change to be healthier?*  
+**Q5.** Quelle habitude vas-tu prendre pour mieux dormir ?  
+  *EN: What habit are you going to take up to sleep better?*  
   ↳ *(second part)* Pourquoi ?  
   *EN: Why?*  
   _area=A · subTopic="The human body and health" · difficulty=higher · timeFrame=future · structures=[near-future, comparison, justification] · partsExpected=2_  
-  _alternative, part 1:_ Quel sport vas-tu essayer cette année ?  
-  *EN: Which sport are you going to try this year?*  
+  _alternative, part 1:_ À quelle heure vas-tu te coucher ce soir ?  
+  *EN: What time are you going to bed tonight?*  
   _alternative, part 2:_ Pourquoi ?  
   *EN: Why?*  
 
 **Further questions** (Exam Sim: only if the conversation lasts 3½ min or less; Coached: always):  
 1. Qu'est-ce qui est mauvais pour la santé, à ton avis ?  
   *EN: What is bad for your health, in your opinion?*  
-2. Comment te détends-tu après les cours ?  
-  *EN: How do you relax after lessons?*  
+2. Combien d'eau bois-tu par jour ?  
+  *EN: How much water do you drink a day?*  
 
 ---
 
@@ -775,13 +775,13 @@ _Setup (read aloud by the examiner):_ Vous êtes dans un restaurant en France av
   _alternative, part 2:_ Qu'en as-tu pensé ?  
   *EN: What did you think of it?*  
 
-**Q4.** Vaut-il mieux avoir un travail intéressant ou bien payé ?  
-  *EN: Is it better to have an interesting job or a well-paid one?*  
-  ↳ *(second part)* Pourquoi ?  
-  *EN: Why?*  
-  _area=D · subTopic="Work" · difficulty=core · timeFrame=present · structures=[opinion, comparison, justification] · partsExpected=2_  
-  _alternative, part 1:_ Qu'est-ce qu'un bon travail pour toi ?  
-  *EN: What is a good job, for you?*  
+**Q4.** À ton avis, pourquoi le travail en équipe est-il utile ?  
+  *EN: In your opinion, why is teamwork useful?*  
+  ↳ *(second part)* Et quand est-il difficile ?  
+  *EN: And when is it difficult?*  
+  _area=D · subTopic="Work" · difficulty=core · timeFrame=present · structures=[opinion, justification] · partsExpected=2_  
+  _alternative, part 1:_ Aimes-tu travailler en groupe à l'école ?  
+  *EN: Do you like working in groups at school?*  
   _alternative, part 2:_ Pourquoi ?  
   *EN: Why?*  
 
@@ -792,8 +792,8 @@ _Setup (read aloud by the examiner):_ Vous êtes dans un restaurant en France av
   *EN: Which job would you like to work in?*  
 
 **Further questions** (Exam Sim: only if the conversation lasts 3½ min or less; Coached: always):  
-1. Quels sont les avantages de travailler à la maison ?  
-  *EN: What are the advantages of working from home?*  
+1. Que penses-tu du travail à la maison ?  
+  *EN: What do you think of working from home?*  
 2. Quel métier ne voudrais-tu jamais faire ?  
   *EN: Which job would you never want to do?*  
 
@@ -803,17 +803,17 @@ _Setup (read aloud by the examiner):_ Vous êtes dans un restaurant en France av
 # Review sheet — original-practice-007
 
 Status: **approved** · reviewedBy: internal:claude  
-Notes: Rewritten in the 0520 conduct plan, Batch 5: structure modeled on the 0520/03 Teacher/Examiner Notes (June 2026) per ADR 0008, wording original. G1 self-review done (internal:claude). G2 native-speaker review PENDING — do not seed or merge before it. Originality check against the Teacher's Notes text PENDING (the booklet was not available in the authoring session; run scripts/authoring/originalityCheck.ts before seeding). Role play: shopping for clothes with a French friend.  
+Notes: Rewritten in the 0520 conduct plan, Batch 5: structure modeled on the 0520/03 Teacher/Examiner Notes (June 2026) per ADR 0008, wording original. G1 self-review done (internal:claude). Originality check against the June 2026 Teacher's Notes text: clean (2026-09-28). G2 native-speaker review PENDING — do not seed or merge before it. Role play: shopping for clothes with a French friend.  
 
 ---
 
 ## Role play — "Des vêtements pour une fête" (area B, examiner uses *tu*)
   *EN: Clothes for a party*  
 
-_Setup (read aloud by the examiner):_ Tu es en France. Tu fais les magasins avec ton ami(e) Camille parce que tu vas à une fête samedi. Je suis Camille.  
+_Setup (read aloud by the examiner):_ Vous êtes en France. Vous faites les magasins avec votre ami(e) Camille parce que vous allez à une fête samedi. Je suis Camille.  
   *EN: You are in France. You are going round the shops with your friend Camille because you are going to a party on Saturday. I am Camille.*  
 
-**T1.** Alors, qu'est-ce que tu cherches ?  
+**T1.** Alors, que cherches-tu ?  
   *EN: So, what are you looking for?*  
   _partsExpected=1_  
 
@@ -823,8 +823,8 @@ _Setup (read aloud by the examiner):_ Tu es en France. Tu fais les magasins avec
 
 **T3.** Qu'as-tu porté pour ta dernière fête ?  
   *EN: What did you wear to the last party you went to?*  
-  ↳ *(second part)* C'était comment, cette fête ?  
-  *EN: What was that party like?*  
+  ↳ *(second part)* Comment s'est passée cette fête ?  
+  *EN: How did that party go?*  
   _partsExpected=2_  
 
 **T4.** Tu préfères ce pull bleu ou ce t-shirt noir ?  
@@ -833,8 +833,8 @@ _Setup (read aloud by the examiner):_ Tu es en France. Tu fais les magasins avec
   *EN: Why?*  
   _partsExpected=2_  
 
-**T5.** Qu'est-ce qu'on va faire après les magasins ?  
-  *EN: What are we going to do after the shops?*  
+**T5.** Samedi, comment vas-tu aller à la fête ?  
+  *EN: On Saturday, how are you going to get to the party?*  
   ↳ *(second part)* À quelle heure veux-tu rentrer ?  
   *EN: What time do you want to go home?*  
   _partsExpected=2_  
@@ -857,8 +857,8 @@ _Setup (read aloud by the examiner):_ Tu es en France. Tu fais les magasins avec
   ↳ *(second part)* Et maintenant ?  
   *EN: And now?*  
   _area=B · subTopic="Leisure time" · difficulty=core · timeFrame=past · structures=[imperfect, present, comparison] · partsExpected=2_  
-  _alternative, part 1:_ À quoi jouais-tu quand tu étais petit(e) ?  
-  *EN: What did you use to play when you were little?*  
+  _alternative, part 1:_ À quoi jouais-tu à l'école primaire ?  
+  *EN: What did you use to play at primary school?*  
   _alternative, part 2:_ Et maintenant ?  
   *EN: And now?*  
 
@@ -881,8 +881,8 @@ _Setup (read aloud by the examiner):_ Tu es en France. Tu fais les magasins avec
 **Further questions** (Exam Sim: only if the conversation lasts 3½ min or less; Coached: always):  
 1. Combien de temps libre as-tu pendant la semaine ?  
   *EN: How much free time do you have during the week?*  
-2. Quel nouveau loisir aimerais-tu essayer ?  
-  *EN: Which new hobby would you like to try?*  
+2. Quel loisir coûte trop cher, à ton avis ?  
+  *EN: Which hobby costs too much, in your opinion?*  
 
 ---
 
@@ -900,34 +900,34 @@ _Setup (read aloud by the examiner):_ Tu es en France. Tu fais les magasins avec
 **Q3.** Comment as-tu fêté ton dernier anniversaire ?  
   *EN: How did you celebrate your last birthday?*  
   _area=E · subTopic="Culture, customs, faiths and celebrations" · difficulty=core · timeFrame=past · structures=[perfect] · partsExpected=1_  
-  _alternative, part 1:_ Qu'as-tu reçu pour ton anniversaire ?  
-  *EN: What did you get for your birthday?*  
+  _alternative, part 1:_ Qui était à ton dernier anniversaire ?  
+  *EN: Who was at your last birthday?*  
 
-**Q4.** Les fêtes traditionnelles sont-elles encore importantes pour les jeunes ?  
-  *EN: Are traditional festivals still important for young people?*  
+**Q4.** Quelle tradition de ton pays trouves-tu la plus belle ?  
+  *EN: Which tradition in your country do you find the most beautiful?*  
   ↳ *(second part)* Pourquoi ?  
   *EN: Why?*  
   _area=E · subTopic="Culture, customs, faiths and celebrations" · difficulty=core · timeFrame=present · structures=[opinion, justification] · partsExpected=2_  
-  _alternative, part 1:_ Aimes-tu les fêtes de famille ?  
-  *EN: Do you like family celebrations?*  
+  _alternative, part 1:_ Quelle fête de ton pays aimes-tu ?  
+  *EN: Which festival in your country do you like?*  
   _alternative, part 2:_ Pourquoi ?  
   *EN: Why?*  
 
-**Q5.** Comment serait ta fête idéale ?  
-  *EN: What would your ideal party be like?*  
-  ↳ *(second part)* Qui inviterais-tu ?  
-  *EN: Who would you invite?*  
-  _area=E · subTopic="Culture, customs, faiths and celebrations" · difficulty=higher · timeFrame=conditional · structures=[conditional, imperfect] · partsExpected=2_  
-  _alternative, part 1:_ Quelle fête voudrais-tu organiser ?  
-  *EN: What kind of party would you like to organise?*  
-  _alternative, part 2:_ Qui inviterais-tu ?  
-  *EN: Who would you invite?*  
+**Q5.** Quelle fête d'un autre pays aimerais-tu vivre un jour ?  
+  *EN: Which festival from another country would you like to experience one day?*  
+  ↳ *(second part)* Avec qui voudrais-tu y aller ?  
+  *EN: Who would you like to go with?*  
+  _area=E · subTopic="Culture, customs, faiths and celebrations" · difficulty=higher · timeFrame=conditional · structures=[conditional] · partsExpected=2_  
+  _alternative, part 1:_ Quelle fête étrangère voudrais-tu découvrir ?  
+  *EN: Which foreign festival would you like to discover?*  
+  _alternative, part 2:_ Avec qui ?  
+  *EN: Who with?*  
 
 **Further questions** (Exam Sim: only if the conversation lasts 3½ min or less; Coached: always):  
-1. Que mange-t-on pendant une fête importante chez toi ?  
-  *EN: What do people eat during an important celebration where you live?*  
-2. Quelle tradition d'un autre pays trouves-tu intéressante ?  
-  *EN: Which tradition from another country do you find interesting?*  
+1. Quelle tradition de ta famille aimerais-tu garder plus tard ?  
+  *EN: Which family tradition would you like to keep later on?*  
+2. Comment décore-t-on les maisons pour les fêtes chez toi ?  
+  *EN: How are homes decorated for celebrations where you live?*  
 
 
 ---
@@ -935,25 +935,25 @@ _Setup (read aloud by the examiner):_ Tu es en France. Tu fais les magasins avec
 # Review sheet — original-practice-008
 
 Status: **approved** · reviewedBy: internal:claude  
-Notes: Rewritten in the 0520 conduct plan, Batch 5: structure modeled on the 0520/03 Teacher/Examiner Notes (June 2026) per ADR 0008, wording original. G1 self-review done (internal:claude). G2 native-speaker review PENDING — do not seed or merge before it. Originality check against the Teacher's Notes text PENDING (the booklet was not available in the authoring session; run scripts/authoring/originalityCheck.ts before seeding). Role play: a friend organising a park clean-up.  
+Notes: Rewritten in the 0520 conduct plan, Batch 5: structure modeled on the 0520/03 Teacher/Examiner Notes (June 2026) per ADR 0008, wording original. G1 self-review done (internal:claude). Originality check against the June 2026 Teacher's Notes text: clean (2026-09-28). G2 native-speaker review PENDING — do not seed or merge before it. Role play: a friend organising a park clean-up.  
 
 ---
 
 ## Role play — "Nettoyer le parc" (area C, examiner uses *tu*)
   *EN: Cleaning up the park*  
 
-_Setup (read aloud by the examiner):_ Tu es en France chez ton ami(e) Camille. Ce week-end, Camille organise le nettoyage du parc de son quartier. Je suis Camille.  
+_Setup (read aloud by the examiner):_ Vous êtes en France chez votre ami(e) Camille. Ce week-end, Camille organise le nettoyage du parc de son quartier. Je suis Camille.  
   *EN: You are in France at your friend Camille's home. This weekend, Camille is organising a clean-up of the local park. I am Camille.*  
 
 **T1.** Salut ! Que fais-tu samedi matin ?  
   *EN: Hi! What are you doing on Saturday morning?*  
   _partsExpected=1_  
 
-**T2.** Qu'est-ce que tu peux apporter ?  
+**T2.** Que peux-tu apporter ?  
   *EN: What can you bring?*  
   _partsExpected=1_  
 
-**T3.** Comment est-ce qu'on va aller au parc ?  
+**T3.** Comment va-t-on aller au parc ?  
   *EN: How are we going to get to the park?*  
   _partsExpected=1_  
 
@@ -963,10 +963,10 @@ _Setup (read aloud by the examiner):_ Tu es en France chez ton ami(e) Camille. C
   *EN: Why is it important to you?*  
   _partsExpected=2_  
 
-**T5.** Qu'est-ce qu'on pourrait faire après le nettoyage ?  
-  *EN: What could we do after the clean-up?*  
-  ↳ *(second part)* Et pour manger, que proposes-tu ?  
-  *EN: And for food, what do you suggest?*  
+**T5.** Samedi soir, que voudrais-tu faire pour fêter la fin du nettoyage ?  
+  *EN: On Saturday evening, what would you like to do to celebrate the end of the clean-up?*  
+  ↳ *(second part)* Pourquoi ?  
+  *EN: Why?*  
   _partsExpected=2_  
 
 ---
@@ -978,12 +978,12 @@ _Setup (read aloud by the examiner):_ Tu es en France chez ton ami(e) Camille. C
   *EN: Where does your family do the food shopping?*  
   _area=A · subTopic="Food and drink" · difficulty=foundation · timeFrame=present · structures=[present] · partsExpected=1_  
 
-**Q2.** Qu'est-ce que tu ne manges jamais ?  
-  *EN: What do you never eat?*  
+**Q2.** Quel aliment ne manges-tu jamais ?  
+  *EN: Which food do you never eat?*  
   _area=A · subTopic="Food and drink" · difficulty=foundation · timeFrame=present · structures=[present, negation] · partsExpected=1_  
 
-**Q3.** Raconte la dernière fois que tu as préparé un repas.  
-  *EN: Tell me about the last time you made a meal.*  
+**Q3.** Raconte comment tu as préparé un repas toi-même.  
+  *EN: Tell me how you made a meal yourself.*  
   ↳ *(second part)* Qui t'a aidé(e) ?  
   *EN: Who helped you?*  
   _area=A · subTopic="Food and drink" · difficulty=core · timeFrame=past · structures=[perfect] · partsExpected=2_  
@@ -1002,46 +1002,46 @@ _Setup (read aloud by the examiner):_ Tu es en France chez ton ami(e) Camille. C
   _alternative, part 2:_ Pourquoi ?  
   *EN: Why?*  
 
-**Q5.** Que mangeras-tu pour ton prochain anniversaire ?  
-  *EN: What will you eat on your next birthday?*  
+**Q5.** Quel plat prépareras-tu pour tes amis cet été ?  
+  *EN: What dish will you make for your friends this summer?*  
   _area=A · subTopic="Food and drink" · difficulty=higher · timeFrame=future · structures=[simple-future] · partsExpected=1_  
-  _alternative, part 1:_ Que vas-tu manger ce soir ?  
-  *EN: What are you going to eat tonight?*  
+  _alternative, part 1:_ Que vas-tu cuisiner ce week-end ?  
+  *EN: What are you going to cook this weekend?*  
 
 **Further questions** (Exam Sim: only if the conversation lasts 3½ min or less; Coached: always):  
 1. Que sais-tu cuisiner ?  
   *EN: What can you cook?*  
-2. Que penses-tu de la nourriture végétarienne ?  
-  *EN: What do you think of vegetarian food?*  
+2. Que penses-tu des repas rapides comme les hamburgers ?  
+  *EN: What do you think of fast food like burgers?*  
 
 ---
 
-### Topic 2 — "Ma région" · People and places (area C)
-  *EN: My area*  
+### Topic 2 — "Les gens de mon quartier" · People and places (area C)
+  *EN: The people in my neighbourhood*  
 
-**Q1.** Dans quelle région habites-tu ?  
-  *EN: Which region do you live in?*  
+**Q1.** Qui sont tes voisins ?  
+  *EN: Who are your neighbours?*  
   _area=C · subTopic="People and places" · difficulty=foundation · timeFrame=present · structures=[present] · partsExpected=1_  
 
 **Q2.** Comment sont les gens de ton quartier ?  
   *EN: What are the people in your neighbourhood like?*  
   _area=C · subTopic="People and places" · difficulty=foundation · timeFrame=present · structures=[present] · partsExpected=1_  
 
-**Q3.** Quel endroit de ta région as-tu visité récemment ?  
-  *EN: Which place in your area have you visited recently?*  
-  ↳ *(second part)* Qu'as-tu fait là-bas ?  
-  *EN: What did you do there?*  
-  _area=C · subTopic="People and places" · difficulty=core · timeFrame=past · structures=[perfect] · partsExpected=2_  
-  _alternative, part 1:_ Quel parc ou quel musée près de chez toi as-tu visité ?  
-  *EN: Which park or museum near where you live have you visited?*  
-  _alternative, part 2:_ Qu'as-tu fait ?  
-  *EN: What did you do?*  
+**Q3.** Décris un événement qui a eu lieu dans ton quartier.  
+  *EN: Describe an event that took place in your neighbourhood.*  
+  ↳ *(second part)* Qui était là ?  
+  *EN: Who was there?*  
+  _area=C · subTopic="People and places" · difficulty=core · timeFrame=past · structures=[perfect, imperfect] · partsExpected=2_  
+  _alternative, part 1:_ Quelle fête de quartier as-tu vue récemment ?  
+  *EN: Which neighbourhood party have you seen recently?*  
+  _alternative, part 2:_ Qui était là ?  
+  *EN: Who was there?*  
 
-**Q4.** Qu'est-ce qu'il faut voir dans ta région, à ton avis ?  
-  *EN: What is worth seeing in your area, in your opinion?*  
+**Q4.** Qu'est-ce qui rend un quartier agréable, à ton avis ?  
+  *EN: What makes a neighbourhood pleasant, in your opinion?*  
   _area=C · subTopic="People and places" · difficulty=core · timeFrame=present · structures=[opinion] · partsExpected=1_  
-  _alternative, part 1:_ Quel est le plus bel endroit de ta région ?  
-  *EN: What is the most beautiful place in your area?*  
+  _alternative, part 1:_ Que préfères-tu dans ton quartier ?  
+  *EN: What do you like best about your neighbourhood?*  
 
 **Q5.** Si un ami étranger venait chez toi, où l'emmènerais-tu ?  
   *EN: If a friend from abroad came to stay, where would you take them?*  
@@ -1054,8 +1054,8 @@ _Setup (read aloud by the examiner):_ Tu es en France chez ton ami(e) Camille. C
   *EN: Why?*  
 
 **Further questions** (Exam Sim: only if the conversation lasts 3½ min or less; Coached: always):  
-1. Quels sont les avantages de vivre à la campagne ?  
-  *EN: What are the advantages of living in the countryside?*  
+1. Comment peut-on aider les personnes âgées de son quartier ?  
+  *EN: How can people help the elderly in their neighbourhood?*  
 2. Quelle personne célèbre vient de ta région ?  
   *EN: Which famous person comes from your area?*  
 
@@ -1065,14 +1065,14 @@ _Setup (read aloud by the examiner):_ Tu es en France chez ton ami(e) Camille. C
 # Review sheet — original-practice-009
 
 Status: **approved** · reviewedBy: internal:claude  
-Notes: Rewritten in the 0520 conduct plan, Batch 5: structure modeled on the 0520/03 Teacher/Examiner Notes (June 2026) per ADR 0008, wording original. G1 self-review done (internal:claude). G2 native-speaker review PENDING — do not seed or merge before it. Originality check against the Teacher's Notes text PENDING (the booklet was not available in the authoring session; run scripts/authoring/originalityCheck.ts before seeding). Role play: first day at a French school, with a classmate.  
+Notes: Rewritten in the 0520 conduct plan, Batch 5: structure modeled on the 0520/03 Teacher/Examiner Notes (June 2026) per ADR 0008, wording original. G1 self-review done (internal:claude). Originality check against the June 2026 Teacher's Notes text: clean (2026-09-28). G2 native-speaker review PENDING — do not seed or merge before it. Role play: first day at a French school, with a classmate.  
 
 ---
 
 ## Role play — "Premier jour au collège" (area D, examiner uses *tu*)
   *EN: First day at school*  
 
-_Setup (read aloud by the examiner):_ Tu es dans un collège français pour une semaine d'échange. C'est ton premier jour. Je suis un(e) élève de ta classe.  
+_Setup (read aloud by the examiner):_ Vous êtes dans un collège français pour une semaine d'échange. C'est votre premier jour. Je suis un(e) élève de votre classe.  
   *EN: You are at a French secondary school for an exchange week. It is your first day. I am a student in your class.*  
 
 **T1.** Salut ! Tu t'appelles comment ?  
@@ -1167,8 +1167,8 @@ _Setup (read aloud by the examiner):_ Tu es dans un collège français pour une 
   _alternative, part 2:_ Avec qui étais-tu ?  
   *EN: Who were you with?*  
 
-**Q4.** Le climat change-t-il dans ton pays ?  
-  *EN: Is the climate changing in your country?*  
+**Q4.** Le climat de ton pays change-t-il ?  
+  *EN: Is your country's climate changing?*  
   ↳ *(second part)* Comment le sais-tu ?  
   *EN: How do you know?*  
   _area=C · subTopic="The natural world, the environment, the climate and the weather" · difficulty=core · timeFrame=present · structures=[opinion, comparison, justification] · partsExpected=2_  
@@ -1195,40 +1195,40 @@ _Setup (read aloud by the examiner):_ Tu es dans un collège français pour une 
 # Review sheet — original-practice-010
 
 Status: **approved** · reviewedBy: internal:claude  
-Notes: Rewritten in the 0520 conduct plan, Batch 5: structure modeled on the 0520/03 Teacher/Examiner Notes (June 2026) per ADR 0008, wording original. G1 self-review done (internal:claude). G2 native-speaker review PENDING — do not seed or merge before it. Originality check against the Teacher's Notes text PENDING (the booklet was not available in the authoring session; run scripts/authoring/originalityCheck.ts before seeding). Role play: enrolling on a French course at a language school.  
+Notes: Rewritten in the 0520 conduct plan, Batch 5: structure modeled on the 0520/03 Teacher/Examiner Notes (June 2026) per ADR 0008, wording original. G1 self-review done (internal:claude). Originality check against the June 2026 Teacher's Notes text: clean (2026-09-28). G2 native-speaker review PENDING — do not seed or merge before it. Role play: a guided tour on holiday in Quebec.  
 
 ---
 
-## Role play — "Un cours de français à Nice" (area E, examiner uses *vous*)
-  *EN: A French course in Nice*  
+## Role play — "Une visite guidée au Québec" (area E, examiner uses *vous*)
+  *EN: A guided tour in Quebec*  
 
-_Setup (read aloud by the examiner):_ Vous voulez suivre un cours de français cet été dans une école de langues à Nice. Vous téléphonez à l'école. Je travaille à l'accueil de l'école.  
-  *EN: You want to take a French course this summer at a language school in Nice. You phone the school. I work on the school's reception desk.*  
+_Setup (read aloud by the examiner):_ Vous êtes en vacances au Québec, au Canada. Vous commencez une visite guidée de la ville. Je suis votre guide.  
+  *EN: You are on holiday in Quebec, Canada. You are starting a guided tour of the city. I am your guide.*  
 
-**T1.** Bonjour. Quel est votre nom ?  
-  *EN: Hello. What is your name?*  
+**T1.** Bonjour ! Quelle est votre nationalité ?  
+  *EN: Hello! What is your nationality?*  
   _partsExpected=1_  
 
-**T2.** De quelle nationalité êtes-vous ?  
-  *EN: What nationality are you?*  
+**T2.** Vous êtes au Québec pour combien de jours ?  
+  *EN: How many days are you in Quebec for?*  
   _partsExpected=1_  
 
-**T3.** Comment avez-vous appris le français jusqu'à maintenant ?  
-  *EN: How have you learned French up to now?*  
-  ↳ *(second part)* Qu'est-ce qui a été difficile ?  
-  *EN: What has been difficult?*  
+**T3.** Qu'avez-vous déjà découvert au Québec ?  
+  *EN: What have you already discovered in Quebec?*  
+  ↳ *(second part)* Qu'en avez-vous pensé ?  
+  *EN: What did you think of it?*  
   _partsExpected=2_  
 
-**T4.** Pourquoi voulez-vous suivre ce cours ?  
-  *EN: Why do you want to take this course?*  
-  ↳ *(second part)* Et que voudriez-vous améliorer ?  
-  *EN: And what would you like to improve?*  
+**T4.** Quelle fête de votre pays aimeriez-vous faire découvrir aux Québécois ?  
+  *EN: Which festival from your country would you like to introduce to the people of Quebec?*  
+  ↳ *(second part)* Pourquoi ?  
+  *EN: Why?*  
   _partsExpected=2_  
 
-**T5.** Qu'allez-vous faire à Nice pendant votre temps libre ?  
-  *EN: What are you going to do in Nice in your free time?*  
-  ↳ *(second part)* Où allez-vous loger ?  
-  *EN: Where are you going to stay?*  
+**T5.** Qu'allez-vous visiter demain ?  
+  *EN: What are you going to visit tomorrow?*  
+  ↳ *(second part)* Comment allez-vous y aller ?  
+  *EN: How are you going to get there?*  
   _partsExpected=2_  
 
 ---
@@ -1289,16 +1289,16 @@ _Setup (read aloud by the examiner):_ Vous voulez suivre un cours de français c
   *EN: Who helps you choose your future career?*  
   _area=D · subTopic="Work" · difficulty=foundation · timeFrame=present · structures=[present] · partsExpected=1_  
 
-**Q3.** Quel métier voulais-tu faire quand tu étais petit(e) ?  
-  *EN: What job did you want to do when you were little?*  
-  _area=D · subTopic="Work" · difficulty=core · timeFrame=past · structures=[imperfect] · partsExpected=1_  
-  _alternative, part 1:_ Tu voulais faire quel travail à six ans ?  
-  *EN: What job did you want to do when you were six?*  
+**Q3.** Qu'as-tu appris sur le monde du travail cette année ?  
+  *EN: What have you learned about the world of work this year?*  
+  _area=D · subTopic="Work" · difficulty=core · timeFrame=past · structures=[perfect] · partsExpected=1_  
+  _alternative, part 1:_ Quel métier as-tu étudié en classe cette année ?  
+  *EN: Which job have you studied in class this year?*  
 
-**Q4.** Quels sont les avantages de travailler dans un autre pays ?  
-  *EN: What are the advantages of working in another country?*  
-  ↳ *(second part)* Et les inconvénients ?  
-  *EN: And the disadvantages?*  
+**Q4.** Quels sont les points positifs du travail à l'étranger ?  
+  *EN: What are the positives of working abroad?*  
+  ↳ *(second part)* Et les points négatifs ?  
+  *EN: And the negatives?*  
   _area=D · subTopic="Work" · difficulty=core · timeFrame=present · structures=[opinion, comparison] · partsExpected=2_  
   _alternative, part 1:_ Qu'est-ce qui est bien quand on travaille à l'étranger ?  
   *EN: What is good about working abroad?*  

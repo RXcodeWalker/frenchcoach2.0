@@ -212,11 +212,19 @@ function lintRolePlay(content: AuthoredContent, issues: PatternIssue[]): void {
     }
   }
 
-  // register-mismatch (warning): the role play's texts against its declared register.
-  const rpTexts: TextRef[] = [
-    { path: 'rolePlay.setup', text: rolePlay.setup },
-    ...rolePlay.tasks.flatMap((t, i) => questionTexts(t, `rolePlay.tasks[${i}]`)),
-  ];
+  // register-mismatch (warning). The scenario is always read to the candidate
+  // in vous, whatever role the examiner then plays (every card in TN pp.16–24);
+  // the tasks follow the declared examinerRegister.
+  const setupTu = hasAny(rolePlay.setup, TU_MARKERS);
+  if (setupTu) {
+    issues.push({
+      code: 'register-mismatch',
+      severity: 'warning',
+      message: `rolePlay.setup uses "${setupTu}"; the scenario is always read in vous (TN pp.16–24 pattern)`,
+      path: 'rolePlay.setup',
+    });
+  }
+  const rpTexts: TextRef[] = rolePlay.tasks.flatMap((t, i) => questionTexts(t, `rolePlay.tasks[${i}]`));
   const wrongMarkers = rolePlay.examinerRegister === 'vous' ? TU_MARKERS : VOUS_MARKERS;
   for (const ref of rpTexts) {
     const found = hasAny(ref.text, wrongMarkers);

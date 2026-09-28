@@ -14,7 +14,7 @@ export const ORIGINAL_PRACTICE_003: AuthoredQuestionSet = {
     "status": "approved",
     "reviewedBy": "internal:claude",
     "reviewedAt": "2026-09-28T00:00:00.000Z",
-    "notes": "Rewritten in the 0520 conduct plan, Batch 5: structure modeled on the 0520/03 Teacher/Examiner Notes (June 2026) per ADR 0008, wording original. G1 self-review done (internal:claude). G2 native-speaker review PENDING — do not seed or merge before it. Originality check against the Teacher's Notes text PENDING (the booklet was not available in the authoring session; run scripts/authoring/originalityCheck.ts before seeding). Role play: asking for information at a tourist office."
+    "notes": "Rewritten in the 0520 conduct plan, Batch 5: structure modeled on the 0520/03 Teacher/Examiner Notes (June 2026) per ADR 0008, wording original. G1 self-review done (internal:claude). Originality check against the June 2026 Teacher's Notes text: clean (2026-09-28). G2 native-speaker review PENDING — do not seed or merge before it. Role play: asking for information at a tourist office."
   },
   "content": {
     "rolePlay": {
@@ -161,7 +161,7 @@ export const ORIGINAL_PRACTICE_003: AuthoredQuestionSet = {
       "subTopic": "Education",
       "title": "L'école",
       "furtherQuestions": [
-        "Qu'est-ce qu'il faudrait changer dans ton école ?",
+        "Que faudrait-il changer dans ton école ?",
         "Quelles activités y a-t-il après les cours dans ton école ?"
       ],
       "questions": [
@@ -218,8 +218,8 @@ export const ORIGINAL_PRACTICE_003: AuthoredQuestionSet = {
           "mainText": "À ton avis, quels sont les avantages des devoirs ?",
           "secondPartText": "Et les inconvénients ?",
           "alternativeTexts": [
-            "Combien de devoirs as-tu chaque soir ?",
-            "Qu'en penses-tu ?"
+            "Aimes-tu faire tes devoirs ?",
+            "Pourquoi ?"
           ],
           "topicArea": "D",
           "subTopic": "Education",

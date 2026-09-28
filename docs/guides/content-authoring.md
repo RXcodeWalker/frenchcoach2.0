@@ -54,10 +54,12 @@ understood, it's pitched too high.
   scripts always use *tu*).
 - **Role play**: the examiner's role decides. A friend or someone the candidate's age uses *tu*;
   a stranger or official (ticket clerk, waiter, receptionist, interviewer) uses *vous*. Record it
-  as `rolePlay.examinerRegister` (`'tu'` or `'vous'`), and write the `setup` in the same
-  register, since the examiner reads it aloud. Pattern lint `register-mismatch` (a warning)
-  flags a *vous*-set task containing *tu/ton/ta/tes/te/toi*, or the reverse, and any topic
-  question containing *vous/votre/vos*.
+  as `rolePlay.examinerRegister` (`'tu'` or `'vous'`).
+- **Role-play scenario (`setup`)**: always *vous*, whatever the role — the notes' scenarios
+  address the candidate formally even when the examiner then plays a friend (TN pp.16–24).
+  Pattern lint `register-mismatch` (a warning) flags *tu/ton/ta/tes/te/toi* in a `setup`, a
+  *vous*-set task containing *tu* forms or the reverse, and any topic question containing
+  *vous/votre/vos*.
 
 The examiner voice is self-sufficient: because questions are **read exactly as printed** with
 repetition allowed but rephrasing forbidden, a question must never lean on how it "would
@@ -101,6 +103,10 @@ Human rules (checklist §16):
   clerk asks about the journey; they never ask the customer about a discount.
 - Every task is answerable from the scenario plus the candidate's own invention. The candidate
   never needs a fact only the examiner could know.
+- **Never re-use a scenario from the notes' cards** (or a topic question's idea plus its
+  alternative from the notes' topic scripts). Modeling the structure is the point; mirroring a
+  card's situation and question order is copying, even in new words. The originality check (§0)
+  only catches wording, so this is a human check.
 
 `secondPartText` must not equal `mainText` (validator: `second-part-equals-main`). Both parts
 must be independently answerable — Cambridge awards full marks only when both parts are

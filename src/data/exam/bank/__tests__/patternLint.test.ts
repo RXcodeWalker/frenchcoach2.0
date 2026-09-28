@@ -105,6 +105,28 @@ describe('register-mismatch (warning)', () => {
     expect(issuesFor('register-mismatch', set).map((h) => h.path)).toEqual(['rolePlay.tasks[4].mainText']);
   });
 
+  it('passes a tu role play whose scenario is read in vous (TN pp.16–24)', () => {
+    const set = buildCleanSet();
+    set.content.rolePlay.examinerRegister = 'tu';
+    set.content.rolePlay.setup = 'Votre ami est chez vous. Je suis votre ami.';
+    for (const t of set.content.rolePlay.tasks) {
+      t.mainText = 'Que veux-tu faire ?';
+      if (t.secondPartText) t.secondPartText = 'Avec qui ?';
+    }
+    expect(issuesFor('register-mismatch', set)).toEqual([]);
+  });
+
+  it('fires on tu in the scenario, even for a tu role play', () => {
+    const set = buildCleanSet();
+    set.content.rolePlay.examinerRegister = 'tu';
+    set.content.rolePlay.setup = 'Tu es chez ton ami. Je suis ton ami.';
+    for (const t of set.content.rolePlay.tasks) {
+      t.mainText = 'Que veux-tu faire ?';
+      if (t.secondPartText) t.secondPartText = 'Avec qui ?';
+    }
+    expect(issuesFor('register-mismatch', set).map((h) => h.path)).toEqual(['rolePlay.setup']);
+  });
+
   it('fires on vous in a topic question', () => {
     const set = buildCleanSet();
     set.content.topic1.questions[0].mainText = 'Que mangez-vous au petit-déjeuner ?';
@@ -114,7 +136,7 @@ describe('register-mismatch (warning)', () => {
   it('fires on vous in a tu role play', () => {
     const set = buildCleanSet();
     set.content.rolePlay.examinerRegister = 'tu';
-    set.content.rolePlay.setup = 'Tu es chez ton ami. Je suis ton ami.';
+    set.content.rolePlay.setup = 'Vous êtes chez votre ami. Je suis votre ami.';
     for (const t of set.content.rolePlay.tasks) {
       t.mainText = 'Que veux-tu faire ?';
       if (t.secondPartText) t.secondPartText = 'Avec qui ?';

@@ -25,7 +25,9 @@ the skeleton script. Keep the two in sync by hand.
 - **Role-play areas are spread across A–E**: each area twice.
 - **Examiner register is mixed**: friend roles use *tu*, stranger/official roles use *vous*,
   roughly half each (TN pp.16–24 script pattern). Recorded per set as
-  `rolePlay.examinerRegister`.
+  `rolePlay.examinerRegister`. The scenario itself is always read in *vous*, whatever the role.
+- **No role play re-uses a notes card's scenario.** Structure is modeled on the notes; a
+  scenario and question sequence that mirror a real card are too close even with new wording.
 - **Two-part positions (TN pp.16–31 script pattern).** Role play: 2–3 of rp3–rp5 are two-part,
   never rp1–rp2. Topics: two-part questions only among Q3–Q5, never Q1–Q2. Machine checks:
   `two-part-position`, `roleplay-two-part-count` (authoring-only pattern lint).
@@ -46,16 +48,16 @@ the skeleton script. Keep the two in sync by hand.
 
 | Set | Topic 1 (A/B) | Topic 2 (C/D/E) | Role play (area) | Register | RP 2p | T1 2p | T2 2p |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 001 | A · Travel and transport | C · The natural world, the environment… | A · buying a train ticket at the station | vous | rp3, rp4, rp5 | Q3, Q5 | Q4, Q5 |
+| 001 | A · Travel and transport | C · The natural world, the environment… | A · a missed train: buying a new ticket at the station | vous | rp3, rp4, rp5 | Q3, Q5 | Q4, Q5 |
 | 002 | B · In the home | C · Communications and technology | B · planning an outing with a French friend | tu | rp3, rp5 | Q3, Q4 | Q3, Q5 |
 | 003 | B · Clothes and accessories | D · Education | C · asking at a tourist office | vous | rp4, rp5 | Q4, Q5 | Q3, Q4 |
-| 004 | A · Food and drink | E · Countries, nationalities and languages | D · interview for a summer job at a campsite | vous | rp3, rp4, rp5 | Q3, Q5 | Q4 |
+| 004 | A · Food and drink | E · Countries, nationalities and languages | D · first day of a work placement in a sports shop | vous | rp3, rp4, rp5 | Q3, Q5 | Q4 |
 | 005 | B · Self, family and friends | C · The built environment | E · a French friend's family celebration | tu | rp3, rp4 | Q3, Q4 | Q3, Q5 |
 | 006 | A · The human body and health | D · Work | A · ordering a meal in a restaurant | vous | rp3, rp5 | Q4, Q5 | Q3, Q4 |
 | 007 | B · Leisure time | E · Culture, customs, faiths and celebrations | B · shopping for clothes with a French friend | tu | rp3, rp4, rp5 | Q3, Q5 | Q4, Q5 |
 | 008 | A · Food and drink | C · People and places | C · a friend organising a park clean-up | tu | rp4, rp5 | Q3, Q4 | Q3, Q5 |
 | 009 | B · Self, family and friends | C · The natural world, the environment… | D · first day at a French school, with a classmate | tu | rp3, rp4 | Q4, Q5 | Q3, Q4 |
-| 010 | B · Leisure time | D · Work | E · enrolling on a French course at a language school | vous | rp3, rp4, rp5 | Q3, Q5 | Q4, Q5 |
+| 010 | B · Leisure time | D · Work | E · a guided tour on holiday in Quebec | vous | rp3, rp4, rp5 | Q3, Q5 | Q4, Q5 |
 
 ### Balance, derived from the table
 

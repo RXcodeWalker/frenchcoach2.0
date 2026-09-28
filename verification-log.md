@@ -2522,3 +2522,47 @@ content fails the new validator (free-text sub-topics, no titles). So once this 
 the pre-rewrite remote content is no longer a hash candidate. Re-seed the hosted content **before**
 deploying this commit: the pre-change TS validator and pydantic model both accept the new JSON
 (checked), so the live old build scores both old- and new-content sessions during that window.
+
+## 2026-09-28 — 0520 Batch 5 follow-up: originality check run against the Teacher's Notes
+
+**Scope.** The June 2026 0520/03 Teacher/Examiner Notes PDF was supplied after the entry above.
+It was extracted to text in the session scratchpad (outside both repos; never committed) and used
+for three things: the originality check, a manual comparison with the notes' scripts, and a check
+of the pattern-lint rules against the real cards and topics.
+
+**Originality check** (`scripts/authoring/originalityCheck.ts`, 5-gram overlap + line similarity
+≥0.6). First run: **41 findings** (33 five-gram, 8 similar-line) across all 10 sets. Most were
+common French frames ("qu'est-ce que tu …", "quand tu étais petit(e)", "C'était comment ?"), but
+every flagged item was rewritten. Final run: **0 findings**. A stricter self-check at ≥0.45 left
+only generic fragments ("Et les inconvénients ?", a title "Les loisirs").
+
+**Manual comparison found closer copies than the checker could see:**
+- 004's role play (a summer job at a campsite) and 010's (phoning a language school) mirrored two
+  notes cards' situations and question order, with different wording. Both were replaced with new
+  scenarios: a work placement in a sports shop (D) and a guided tour in Quebec (E).
+- Several topic questions mirrored a notes question plus its alternative (e.g. the job you wanted
+  as a child; an interesting vs a well-paid job; your ideal home; recycling this week; food at
+  celebrations; activities after an outing). All rewritten.
+- content-authoring §5 and corpus-matrix.md now say never to re-use a notes card's scenario, or a
+  topic question with its alternative, since the originality check only sees wording.
+
+**Pattern rules checked against the notes.** Across the 9 cards: 2–3 two-part tasks, always among
+rp3–rp5 (`two-part-position`, `roleplay-two-part-count` hold). Across the 7 topics: no alternative
+on Q1–Q2, alternatives on Q3–Q5 keeping the main question's shape, including multi-part ones (D9),
+and a past and a future/conditional among Q3–Q5 (`q3-q5-time-frames` holds). One rule was wrong:
+**every scenario is read in *vous*, even for friend roles**, so `register-mismatch` now expects
+`setup` in *vous* and applies `examinerRegister` to the tasks only. The five *tu* sets' setups
+were rewritten in *vous*. content-authoring §3 updated.
+
+**New hashes** (first 12 hex; Python seed dry-run and TS parity agree): 001 `30708da138d2`, 002
+`d362bfc8631a`, 003 `e48f9f1a94fe`, 004 `7e574ecc00cc`, 005 `718fe2610d9f`, 006 `57649524e1ae`,
+007 `0b10dc4e3bd0`, 008 `deb9d877753e`, 009 `ec3dd3ebc53c`, 010 `235516059200`. The pre-change TS
+validator and pydantic model still accept every revised set, so the re-seed-before-deploy order
+above still holds.
+
+**Verified.** `authoring:check` 0 errors/0 warnings; `authoring:parity` 10/10; typecheck and
+typecheck:server clean, typecheck:scripts the same 3 pre-existing errors; lint 0 errors/22
+pre-existing warnings; `npm test` 2439/2440 (the pre-existing `infer.test.ts` failure);
+`score:golden` 5/5 byte-identical to baseline; `e2e:exam` 5/5; backend pytest 272 passed, 1
+pre-existing failure. Review notes now record the originality check as clean; G2 native-speaker
+review remains PENDING.
