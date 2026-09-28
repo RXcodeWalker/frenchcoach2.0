@@ -43,9 +43,77 @@ describe('lintCorpus — quiet on a clean multi-set corpus', () => {
     setB.content.topic2.questions[4].alternativeTexts = ['Ou aimerais-tu habiter plus tard ?'];
     setB.content.topic1.furtherQuestions = ['Question supplementaire unique un.', 'Question supplementaire unique deux.'];
     setB.content.topic2.furtherQuestions = ['Autre question totalement differente.', 'Encore une question bien distincte.'];
+    // A different topic1+topic2 sub-topic pair (duplicate-area-subtopic-pair).
+    setB.content.topic1.subTopic = 'Travel and transport';
+    for (const q of setB.content.topic1.questions) q.subTopic = 'Travel and transport';
 
     const report = lintCorpus([setA, setB]);
     expect(report.issues).toEqual([]);
+  });
+});
+
+function withSubTopics(id: string, t1: AuthoredQuestionSet['content']['topic1']['subTopic'], t2: AuthoredQuestionSet['content']['topic2']['subTopic']): AuthoredQuestionSet {
+  const set = cloneSet(buildCleanSet(), id);
+  set.content.topic1.subTopic = t1;
+  set.content.topic2.subTopic = t2;
+  return set;
+}
+
+describe('lintCorpus — sub-topic matrix rules (corpus-matrix.md)', () => {
+  it('thin-sub-topic: flags a thin syllabus sub-topic used as a standalone topic', () => {
+    const report = lintCorpus([withSubTopics('s1', 'Colours', 'Education')]);
+    expect(report.issues.filter((i) => i.code === 'thin-sub-topic').map((i) => i.path)).toEqual(['topic1.subTopic']);
+  });
+
+  it('thin-sub-topic: silent for a full sub-topic', () => {
+    const report = lintCorpus([withSubTopics('s1', 'Leisure time', 'Education')]);
+    expect(report.issues.some((i) => i.code === 'thin-sub-topic')).toBe(false);
+  });
+
+  it('duplicate-sub-topic-slot: flags a sub-topic used 3 times in one slot', () => {
+    const report = lintCorpus([
+      withSubTopics('s1', 'Leisure time', 'Education'),
+      withSubTopics('s2', 'Leisure time', 'Work'),
+      withSubTopics('s3', 'Leisure time', 'People and places'),
+    ]);
+    const hit = report.issues.find((i) => i.code === 'duplicate-sub-topic-slot');
+    expect(hit?.setId).toBe('s1,s2,s3');
+  });
+
+  it('duplicate-sub-topic-slot: allows the same sub-topic twice per slot', () => {
+    const report = lintCorpus([
+      withSubTopics('s1', 'Leisure time', 'Education'),
+      withSubTopics('s2', 'Leisure time', 'Work'),
+    ]);
+    expect(report.issues.some((i) => i.code === 'duplicate-sub-topic-slot')).toBe(false);
+  });
+
+  it('duplicate-area-subtopic-pair: flags two sets with the same topic1+topic2 pair', () => {
+    const report = lintCorpus([withSubTopics('s1', 'Leisure time', 'Education'), withSubTopics('s2', 'Leisure time', 'Education')]);
+    expect(report.issues.some((i) => i.code === 'duplicate-area-subtopic-pair' && i.setId === 's1,s2')).toBe(true);
+  });
+
+  it('duplicate-area-subtopic-pair: silent when either sub-topic differs', () => {
+    const report = lintCorpus([withSubTopics('s1', 'Leisure time', 'Education'), withSubTopics('s2', 'Leisure time', 'Work')]);
+    expect(report.issues.some((i) => i.code === 'duplicate-area-subtopic-pair')).toBe(false);
+  });
+});
+
+describe('lintCorpus — alternative parts (D9)', () => {
+  it('ignores a repeated later part of an alternative across sets ("Pourquoi ?" repeats by design)', () => {
+    const setA = withSubTopics('s1', 'Leisure time', 'Education');
+    const setB = withSubTopics('s2', 'Food and drink', 'Work');
+    setA.content.topic1.questions[3].alternativeTexts = ['Quel sport regardes-tu à la télé ?', 'Pourquoi ?'];
+    setB.content.topic1.questions[3].alternativeTexts = ['Quel gâteau prépares-tu pour les fêtes ?', 'Pourquoi ?'];
+    const report = lintCorpus([setA, setB]);
+    expect(report.issues.some((i) => i.code === 'cross-set-duplicate-alternative' && i.path.includes('alternativeTexts[1]'))).toBe(false);
+  });
+
+  it('still flags a repeated first part', () => {
+    const setA = withSubTopics('s1', 'Leisure time', 'Education');
+    const setB = withSubTopics('s2', 'Food and drink', 'Work');
+    const report = lintCorpus([setA, setB]);
+    expect(report.issues.some((i) => i.code === 'cross-set-duplicate-alternative' && i.path.endsWith('alternativeTexts[0]'))).toBe(true);
   });
 });
 
@@ -132,6 +200,14 @@ describe('lintCorpus — coverage diagnostics', () => {
     expect(codes.has('corpus-structure-coverage')).toBe(true);
     expect(codes.has('corpus-conditional-topic-count')).toBe(true);
     expect(codes.has('corpus-difficulty-coverage')).toBe(true);
+  });
+
+  it('keys the pair as ordered topic1+topic2 (one of the six legal A/B + C/D/E pairs)', () => {
+    const set = buildCleanSet();
+    set.content.topic1.topicArea = 'B';
+    set.content.topic2.topicArea = 'D';
+    const report = lintCorpus([set]);
+    expect(report.coverage.some((c) => c.code === 'corpus-pair-coverage' && c.value === 'B+D:1')).toBe(true);
   });
 
   it('counts the A+C pair once for the clean fixture (topic1=A, topic2=C)', () => {

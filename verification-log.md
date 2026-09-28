@@ -2447,3 +2447,78 @@ don't name the actual sub-topic (needs Batch 4's `AuthoredTopic.title` + Batch 5
 candidate card has no English gloss in Coached (D14's "English instructions" half); Batches 4/5/7/8
 (schema/lint rules, the 10-set content rewrite, CI, and the doc/CLAUDE.md sweep for those) are
 untouched.
+
+## 2026-09-28 — 0520 conduct plan, Batches 4–5: question-bank rules and the 10-set content rewrite
+
+**Scope.** Batch 4 (schema + authoring rules) and Batch 5 (all 10 sets rewritten, fixture
+generator, originality check, G2 review sheet), across both repos on
+`claude/igcse-0520-conduct-rules-e4npbq`. No scoring code changed (`evidence/`, `judgement/`,
+`guardrails/`, `envelope/`, `rubric.ts`, `conductEngine.ts` untouched). What changes for scoring is
+the *content* new sessions run on, so the judge sees different questions and more two-part turns —
+intended, per the plan's "what 'don't change scoring' covers" note.
+
+**Rules (Batch 4).**
+- Runtime validator (`validate.ts`, fatal; mirrored in `backend/models/igcse.py`):
+  `topic-area-slot`, `alternative-on-q1-q2`, `roleplay-alternative`, `sub-topic-not-in-area` (closed
+  Syl p.14 enum, `SUB_TOPICS_BY_AREA`), plus required `AuthoredTopic.title` and
+  `rolePlay.examinerRegister` (both unhashed). The backend also gained topic/question tag agreement
+  and topic question `part` checks, which the TS validator already had.
+- Authoring-only pattern lint (`patternLint.ts`, run by `authoring:check`, D12): errors
+  `two-part-position`, `roleplay-two-part-count`, `q3-q5-time-frames`, `echo-choice`,
+  `trivial-closing`, `loaded-negative`; warnings `register-mismatch`, `yes-no-question`,
+  `assumed-experience`. `expectedTimeFrame` already had `future` and `conditional`, so
+  `q3-q5-time-frames` needed no hashed-tag change.
+- Corpus lint: `thin-sub-topic`, `duplicate-sub-topic-slot` (max 2 per slot),
+  `duplicate-area-subtopic-pair`; `cross-set-duplicate-alternative` now compares only an
+  alternative's first part (D9); pair coverage is keyed ordered topic1+topic2.
+- `lint.ts`'s `time-frame-monotony` warning now accepts a conditional as the forward frame (same as
+  `q3-q5-time-frames`). `check.ts`'s legacy-overlap exemption for 001 is removed.
+- Every new rule has a passing and a failing test (`patternLint.test.ts`, `validate.test.ts`,
+  `corpusLint.test.ts`; backend `tests/test_igcse_content.py`).
+
+**Content (Batch 5).** All 10 sets rewritten to the new `corpus-matrix.md` (ids kept, D11): topic 1
+always A/B, topic 2 always C/D/E, six legal area pairs, no sub-topic pair repeated, each role-play
+area twice, 5 *tu* / 5 *vous* role plays, 2–3 two-part role-play tasks among rp3–rp5, two-part
+topic questions only among Q3–Q5, alternatives keep the main question's shape. Every set's hash
+changed (first 12 hex): 001 `bf2f5f398fb3`, 002 `4644f9619e2c`, 003 `2274545efa8e`, 004
+`32d33b01c5af`, 005 `96e93375813c`, 006 `a19c8e5b7014`, 007 `24f5f2544818`, 008 `31f7277bf7cc`,
+009 `84789ef4ce99`, 010 `9737c22285cd`. `seed_igcse_questions.py --dry-run` computed the same ten
+hashes in Python, so the TS and Python canonicalizations still agree on the new content.
+- `review.status: approved` / `reviewedBy: internal:claude`, with notes saying G2 native-speaker
+  review and the originality check are PENDING — "do not seed or merge before" them. `approved` is
+  required for sets to load at all.
+- **Originality check NOT run against the notes.** `scripts/authoring/originalityCheck.ts` exists
+  and is tested (synthetic text; refuses paths inside either repo), but the Teacher's Notes PDF was
+  not available in this session's container, so there are no first-run/final findings yet.
+- G2 sheet: `docs/guides/review/0520-g2-review.md`, generated from the JSON with an English gloss
+  per line (`docs/guides/review/0520-g2-glosses.json`).
+
+**Other changes.** `ExamMode.tsx` now names each topic when its conversation starts, from
+`AuthoredTopic.title` (`src/screens/exam/examAnnouncements.ts`; closes Batch 3's documented §5
+gap). `conductRules0520.test.ts` updated to the new 001 shape (rp3–rp5 two-part; topic-1 Q3 and Q5
+two-part) — the Q1–Q2 "alternative anyway" case now uses a synthetic variant, since content can no
+longer carry one. No engine assertion changed meaning.
+
+**Verified.**
+- `npm run authoring:check` (no `--draft`): 0 errors, 0 warnings across 10 files.
+- `npm run authoring:parity`: 10/10 fixtures match the backend JSON.
+- `npm run typecheck`, `npm run typecheck:server`: clean. `npm run typecheck:scripts`: the same 3
+  pre-existing errors. `npm run lint`: 0 errors, the same 22 pre-existing warnings.
+- `npm test`: 2438 tests, 2437 passed, 1 failed — the same pre-existing `infer.test.ts` failure.
+- `npm run score:golden`: 5/5, output byte-identical to the pre-change baseline.
+- `npm run e2e:exam`: 5/5.
+- Backend `pytest tests/ -q`: 272 passed, 1 failed — `test_transcribe_endpoint.py::
+  test_transcribe_rejects_a_bogus_bearer_token` (503 vs 401), which fails identically on untouched
+  `main` (238 passed, 1 failed). `test_hash_question_set.py` is now collected (it had no `test_`
+  function). The new JSON also passes the pre-change pydantic model, so backend commit 1 is green
+  on its own.
+
+**Still needs a human.** G2 native-speaker review (required before seeding or merging); the
+originality run against the notes text; G3 teacher exam-realism review (optional).
+
+**Deploy-order consequence (found while checking the resolver).** `server/resolveQuestionSet.ts`
+drops a remote set that fails validation (`fetchPublishedSet` returns `null`), and the old seeded
+content fails the new validator (free-text sub-topics, no titles). So once this code is deployed,
+the pre-rewrite remote content is no longer a hash candidate. Re-seed the hosted content **before**
+deploying this commit: the pre-change TS validator and pydantic model both accept the new JSON
+(checked), so the live old build scores both old- and new-content sessions during that window.

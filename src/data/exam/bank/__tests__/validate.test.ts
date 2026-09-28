@@ -194,9 +194,83 @@ describe('validateAuthoredQuestionSet — tag duplication (finding #4)', () => {
 
   it('flags a question-level subTopic that disagrees with its topic-level subTopic', () => {
     const set = buildCleanSet();
-    set.content.topic1.questions[0].subTopic = 'Something Else';
+    set.content.topic1.questions[0].subTopic = 'In the home';
     const report = validateAuthoredQuestionSet(set);
     expect(report.errors.some((e) => e.code === 'sub-topic-mismatch')).toBe(true);
+  });
+});
+
+describe('validateAuthoredQuestionSet — 0520 structural rules the notes state (Batch 4)', () => {
+  it('topic-area-slot: accepts topic1 from A/B and topic2 from C/D/E', () => {
+    const report = validateAuthoredQuestionSet(buildCleanSet());
+    expect(report.errors.some((e) => e.code === 'topic-area-slot')).toBe(false);
+  });
+
+  it('topic-area-slot: rejects topic1 from C–E (TN p.3)', () => {
+    const set = buildCleanSet();
+    set.content.topic1.topicArea = 'D';
+    for (const q of set.content.topic1.questions) q.topicArea = 'D';
+    const report = validateAuthoredQuestionSet(set);
+    expect(report.errors.some((e) => e.code === 'topic-area-slot' && e.path === 'topic1.topicArea')).toBe(true);
+  });
+
+  it('topic-area-slot: rejects topic2 from A/B (TN p.3)', () => {
+    const set = buildCleanSet();
+    set.content.topic2.topicArea = 'B';
+    for (const q of set.content.topic2.questions) q.topicArea = 'B';
+    const report = validateAuthoredQuestionSet(set);
+    expect(report.errors.some((e) => e.code === 'topic-area-slot' && e.path === 'topic2.topicArea')).toBe(true);
+  });
+
+  it('alternative-on-q1-q2: rejects an alternative on topic Q1 or Q2 (TN p.7)', () => {
+    const set = buildCleanSet();
+    set.content.topic2.questions[1].alternativeTexts = ['Quel temps fait-il aujourd\'hui ?'];
+    const report = validateAuthoredQuestionSet(set);
+    expect(report.errors.filter((e) => e.code === 'alternative-on-q1-q2').map((e) => e.path)).toEqual(['topic2.questions[1]']);
+  });
+
+  it('alternative-on-q1-q2: allows alternatives on Q3–Q5', () => {
+    const report = validateAuthoredQuestionSet(buildCleanSet());
+    expect(report.errors.some((e) => e.code === 'alternative-on-q1-q2')).toBe(false);
+  });
+
+  it('roleplay-alternative: rejects an alternative on a role-play task (TN p.6)', () => {
+    const set = buildCleanSet();
+    set.content.rolePlay.tasks[2].alternativeTexts = ['Vous allez où ?'];
+    const report = validateAuthoredQuestionSet(set);
+    expect(report.errors.filter((e) => e.code === 'roleplay-alternative').map((e) => e.path)).toEqual(['rolePlay.tasks[2]']);
+  });
+
+  it('roleplay-alternative: silent when no task has an alternative', () => {
+    const report = validateAuthoredQuestionSet(buildCleanSet());
+    expect(report.errors.some((e) => e.code === 'roleplay-alternative')).toBe(false);
+  });
+
+  it('sub-topic-not-in-area: rejects a sub-topic from another area (Syl p.14)', () => {
+    const set = buildCleanSet();
+    set.content.topic1.subTopic = 'Education';
+    for (const q of set.content.topic1.questions) q.subTopic = 'Education';
+    const report = validateAuthoredQuestionSet(set);
+    const hit = report.errors.find((e) => e.code === 'sub-topic-not-in-area');
+    expect(hit?.path).toBe('topic1.subTopic');
+    expect(hit?.message).toContain('belongs to area D');
+  });
+
+  it('sub-topic-not-in-area: rejects a free-text sub-topic that is not in the syllabus list', () => {
+    const set = buildCleanSet();
+    (set.content.topic2 as { subTopic: string }).subTopic = 'Everyday Life';
+    for (const q of set.content.topic2.questions) (q as { subTopic?: string }).subTopic = 'Everyday Life';
+    const report = validateAuthoredQuestionSet(set);
+    expect(report.errors.some((e) => e.code === 'sub-topic-not-in-area' && e.path === 'topic2.subTopic')).toBe(true);
+  });
+
+  it('requires a French title on each topic and an examinerRegister on the role play', () => {
+    const set = buildCleanSet() as unknown as { content: { topic1: Record<string, unknown>; rolePlay: Record<string, unknown> } };
+    delete set.content.topic1.title;
+    delete set.content.rolePlay.examinerRegister;
+    const report = validateAuthoredQuestionSet(set);
+    const paths = report.errors.filter((e) => e.code === 'shape').map((e) => e.path);
+    expect(paths).toEqual(expect.arrayContaining(['content.topic1.title', 'content.rolePlay.examinerRegister']));
   });
 });
 

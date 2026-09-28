@@ -3,8 +3,9 @@
  * plan finding #6: content lives in a separate git repo, so this cannot run
  * as ordinary frontend CI). Runs validateAuthoredQuestionSet (which already
  * folds lintAuthoredContent in as the warnings bucket — do not call the lint
- * a second time, see validate.ts:298) per file, then lintCorpus once across
- * every file for cross-set problems.
+ * a second time) per file, then the authoring-only pattern lint
+ * (patternLint.ts, D12: its errors fail this check, its warnings are only
+ * printed), then lintCorpus once across every file for cross-set problems.
  *
  *   npm run authoring:check                  # real gate — must be clean to seed
  *   npm run authoring:check -- --draft        # suppresses only "not-approved"
@@ -15,6 +16,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { validateAuthoredQuestionSet } from '../../src/data/exam/bank/validate';
 import { lintCorpus } from '../../src/data/exam/bank/corpusLint';
+import { lintPatterns } from '../../src/data/exam/bank/patternLint';
 import { QUESTIONS } from '../../src/data/questions';
 import type { AuthoredQuestionSet } from '../../src/data/exam/bank/types';
 
@@ -22,18 +24,6 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const DEFAULT_DATA_DIR = join(__dirname, '..', '..', 'backend', 'data', 'igcse');
 
 const DRAFT_SUPPRESSED_CODE = 'not-approved';
-
-/**
- * original-practice-001 predates the legacy-bank-overlap rule and shares two
- * questions verbatim with the legacy src/data/questions.ts app bank
- * (t1q2/"Décris ta maison ou ton appartement.", t2q1/"Qu'est-ce que tu fais
- * pour protéger l'environnement ?"). Per the S11 plan's explicit non-goal,
- * 001's content is frozen — editing it would change its content_hash for no
- * product benefit (same reasoning as the apostrophe-normalization non-goal).
- * Excluded here, not in corpusLint.ts itself, since the rule is correct and
- * general; this is a one-time grandfather for a specific frozen set.
- */
-const LEGACY_OVERLAP_EXEMPT_SET_IDS = new Set(['original-practice-001']);
 
 function loadSets(dataDir: string): { filename: string; raw: unknown }[] {
   let filenames: string[];
@@ -79,19 +69,26 @@ function main(): void {
     }
 
     const errors = draft ? report.errors.filter((e) => e.code !== DRAFT_SUPPRESSED_CODE) : report.errors;
+    // Pattern lint needs a structurally valid set; skip it when validation already failed.
+    const patternIssues = errors.length === 0 ? lintPatterns((raw as AuthoredQuestionSet).content) : [];
+    const patternErrors = patternIssues.filter((p) => p.severity === 'error');
+    const patternWarnings = patternIssues.filter((p) => p.severity === 'warning');
 
     for (const err of errors) {
       console.log(`  ERROR [${err.code}] ${err.path}: ${err.message}`);
     }
-    for (const warn of report.warnings) {
+    for (const err of patternErrors) {
+      console.log(`  ERROR [${err.code}] ${err.path}: ${err.message}`);
+    }
+    for (const warn of [...report.warnings, ...patternWarnings]) {
       console.log(`  WARN  [${warn.code}] ${warn.path}: ${warn.message}`);
     }
-    if (errors.length === 0 && report.warnings.length === 0) {
+    if (errors.length + patternIssues.length === 0 && report.warnings.length === 0) {
       console.log('  clean');
     }
 
-    totalErrors += errors.length;
-    totalWarnings += report.warnings.length;
+    totalErrors += errors.length + patternErrors.length;
+    totalWarnings += report.warnings.length + patternWarnings.length;
 
     if (errors.length === 0) {
       validSets.push(raw as AuthoredQuestionSet);
@@ -103,9 +100,6 @@ function main(): void {
     console.log(`-- corpus check (${validSets.length} sets) --`);
     const legacyTexts = QUESTIONS.map((q) => q.text);
     const corpusReport = lintCorpus(validSets, legacyTexts);
-    corpusReport.issues = corpusReport.issues.filter(
-      (issue) => !(issue.code === 'legacy-bank-overlap' && LEGACY_OVERLAP_EXEMPT_SET_IDS.has(issue.setId)),
-    );
     for (const issue of corpusReport.issues) {
       console.log(`  ERROR [${issue.code}] ${issue.setId} ${issue.path}: ${issue.message}`);
     }

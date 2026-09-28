@@ -69,6 +69,7 @@ import type { AuthoredQuestionSet, RolePlayScenario } from '../data/exam/bank/ty
 import { ExamGreeting } from './exam/ExamGreeting';
 import { ExamSelect } from './exam/ExamSelect';
 import { RolePlayCardPreview } from './exam/RolePlayCardPreview';
+import { ROLE_PLAY_FINISHED_TEXT, topicAnnouncementText } from './exam/examAnnouncements';
 import { ExitConfirmDialog } from './exam/ExitConfirmDialog';
 import { savePendingClaim, clearPendingClaim, submitDailyChallengeAttempt } from '../services/dailyChallenge/dailyChallengeService';
 import { savePendingDuelClaim, clearPendingDuelClaim, submitDuelAttempt } from '../services/duels/duelsService';
@@ -86,17 +87,6 @@ const KEEPALIVE_INTERVAL_MS = 5 * 60 * 1000;
 
 export const GREETING_TEXT = 'Bonjour ! Comment ça va ? Es-tu prêt ? On va commencer.';
 
-/**
- * exam-conduct §5/§9 (D13): original French lines the UI speaks at each part
- * boundary, never a conduct-engine action — they stay outside the ConductLog,
- * the hash, and the judge input, the same way `setup` does (Batch 3). Naming
- * each topic's actual sub-topic needs `AuthoredTopic.title` (Batch 4 schema +
- * Batch 5 content); until then these announce the transition without naming
- * the topic — a known, documented gap, not a design decision.
- */
-export const ROLE_PLAY_FINISHED_TEXT = 'Très bien, merci. Le jeu de rôle est terminé.';
-export const TOPIC1_ANNOUNCEMENT_TEXT = 'Passons maintenant à la première conversation.';
-export const TOPIC2_ANNOUNCEMENT_TEXT = 'Merci beaucoup. Passons maintenant à la seconde conversation.';
 
 /**
  * W5: maps every reachable `examState === 'scoring'` phase to real copy —
@@ -207,6 +197,8 @@ export function ExamMode() {
   const turnStartRef = useRef<number>(0);
   const selectedQuestionSetIdRef = useRef<string | undefined>(undefined);
   const selectedAuthoredSetRef = useRef<AuthoredQuestionSet | undefined>(undefined);
+  /** exam-conduct §5: each topic's unhashed French title, spoken when its conversation starts. */
+  const topicTitlesRef = useRef<{ topic1?: string; topic2?: string }>({});
   const turnBusyRef = useRef(false);
   const startExamBusyRef = useRef(false);
   /** D3: true only when the candidate used the Exam Sim "Start now" escape hatch — makes the attempt practice-only. */
@@ -302,6 +294,7 @@ export function ExamMode() {
 
         const authoredSet = await getAuthoredQuestionSet(snapshot.questionSetId);
         const scenario = authoredSet?.content.rolePlay;
+        topicTitlesRef.current = { topic1: authoredSet?.content.topic1.title, topic2: authoredSet?.content.topic2.title };
         if (scenario) {
           setRolePlayMeta({
             title: scenario.title,
@@ -396,9 +389,9 @@ export function ExamMode() {
     if (prevPart !== undefined && prevPart !== action.part) {
       if (prevPart === 'rolePlay' && action.part === 'topic1') {
         void speakExaminerText(ROLE_PLAY_FINISHED_TEXT);
-        void speakExaminerText(TOPIC1_ANNOUNCEMENT_TEXT);
+        void speakExaminerText(topicAnnouncementText('topic1', topicTitlesRef.current.topic1));
       } else if (prevPart === 'topic1' && action.part === 'topic2') {
-        void speakExaminerText(TOPIC2_ANNOUNCEMENT_TEXT);
+        void speakExaminerText(topicAnnouncementText('topic2', topicTitlesRef.current.topic2));
       }
     }
     prevActionPartRef.current = action.part;
@@ -425,6 +418,8 @@ export function ExamMode() {
     stopExaminerVoice();
 
     let scenario: RolePlayScenario | undefined = selectedAuthoredSetRef.current?.content.rolePlay;
+    const selectedContent = selectedAuthoredSetRef.current?.content;
+    topicTitlesRef.current = { topic1: selectedContent?.topic1.title, topic2: selectedContent?.topic2.title };
 
     if (!scenario) {
       const publishedIds = await listPublishedQuestionSetIdsWithRetry();
@@ -435,6 +430,7 @@ export function ExamMode() {
       selectedQuestionSetIdRef.current = fallbackId;
       const authoredSet = await getAuthoredQuestionSet(fallbackId);
       scenario = authoredSet?.content.rolePlay;
+      topicTitlesRef.current = { topic1: authoredSet?.content.topic1.title, topic2: authoredSet?.content.topic2.title };
     }
 
     if (!scenario) {

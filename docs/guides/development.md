@@ -25,11 +25,14 @@ than one surface.
 ```bash
 npm run score:golden                     # deterministic scoring regression (no LLM/network) — run
                                           # after any change to evidence/judgement/guardrails/envelope/rubric
-npm run authoring:check                  # content gate: validate + lint + cross-set corpus check
+npm run authoring:check                  # content gate: validate + pattern lint + per-set lint + cross-set corpus check
 npm run authoring:check -- --draft       # same, minus the "not-approved" error (work-in-progress sets)
 npm run authoring:skeleton -- <NN>       # emit a pre-tagged question-set skeleton
-npm run authoring:review-sheet -- <NN>   # render one set as readable Markdown for reviewers
+npm run authoring:review-sheet -- <NN>   # render one set as readable Markdown for reviewers (--all, --glosses <file>)
 npm run authoring:status                 # review-tier counts + corpus coverage
+npm run authoring:generate               # regenerate src/data/exam/bank/fixtures/ from backend/data/igcse/*.json (never hand-edit)
+npm run authoring:parity                 # every fixture hashes identically to its backend JSON
+npx tsx scripts/authoring/originalityCheck.ts <TN-text>   # local-only; the notes text must live outside both repos (ADR 0008)
 npm run roleplay:check                   # validate roleplay scenario registry (graph/meta/deck)
 npm run learn:check                      # validate src/data/learn/demands/*.json against the question bank
 ```

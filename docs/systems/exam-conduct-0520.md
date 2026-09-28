@@ -56,12 +56,13 @@ ready.
 **Rule.** The card gives the role-play information and reminds the candidate that two topic
 conversations follow. The candidate keeps it until the test ends (TN p.14, p.9 #23; Syl p.19).
 
-**App policy (D14).** The scenario is shown in French. It stays visible throughout the role play
-(the `ExamRunner` header keeps `rolePlaySetup`/`rolePlayTitle` on screen for the whole part).
+**App policy (D14).** The card's instructions are in English and the scenario is in French. It
+names both topic conversations (that they follow, never their topics — §4) and lists no tasks. It
+stays visible throughout the role play (the `ExamRunner` header keeps `rolePlaySetup`/
+`rolePlayTitle` on screen for the whole part).
 
-**Status.** Enforced (Batch 3): the two-topic reminder and updated task-count copy are in
-`RolePlayCardPreview.tsx`. An English gloss for Coached is not implemented — a known gap, not a
-design decision.
+**Status.** Enforced (Batch 3): `RolePlayCardPreview.tsx` shows English instructions, the French
+`setup`, the two-topic reminder, and five locked task tiles with no task text.
 
 ### §4 — Topics are not shared in advance
 
@@ -83,14 +84,13 @@ test starts.
 topic conversation by naming its topic (TN p.6 #10, p.7 #12, p.8 #17).
 
 **App policy.** Original French transition lines, spoken by the UI the same way the role-play
-scenario is. Naming each topic's actual sub-topic needs an unhashed per-topic title
-(`AuthoredTopic.title`), which is Batch 4 schema + Batch 5 content.
+scenario is. Each topic is named from its unhashed French `AuthoredTopic.title` (required by the
+validator since Batch 4).
 
-**Status.** Partly enforced (Batch 3): `ExamMode.tsx` speaks an original "the role play has
-finished" line, then a transition line announcing each topic conversation's *start* — but without
-naming the actual topic, since `AuthoredTopic.title` doesn't exist yet. A known, documented gap
-until Batch 4/5 land, not a design decision. The role-play scenario itself is now spoken aloud too
-(audit #12, TN p.6 #5) — see §6.
+**Status.** Enforced: `ExamMode.tsx` speaks an original "the role play has finished" line, then a
+line opening each topic conversation that names its topic (`topicAnnouncementText` in
+`src/screens/exam/examAnnouncements.ts`, Batch 4/5). The role-play scenario itself is spoken aloud
+too (audit #12, TN p.6 #5) — see §6.
 
 ---
 
@@ -114,9 +114,11 @@ applies to role-play tasks and topic questions alike (TN p.6 #6, p.7 #13, p.8 #1
 
 **App policy (D2).** Part 2 is always asked, in both modes.
 
-**Status.** Enforced (`stepRolePlay`, `moveToSecondPartOrExtension`). The runner now labels part 2
-distinctly ("Question N of 5 · part 2", Batch 3, `ExamRunner.tsx`'s `isSecondPart`). Content: rp3 is
-the only two-part task in every current set. Planned (Batch 5).
+**Status.** Enforced (`stepRolePlay`, `moveToSecondPartOrExtension`). The runner labels part 2
+distinctly ("Question N of 5 · part 2", Batch 3, `ExamRunner.tsx`'s `isSecondPart`). Content
+(Batch 5): every set has 2–3 two-part tasks among rp3–rp5 and its two-part topic questions among
+Q3–Q5 only, the notes' script pattern — checked by the authoring-only pattern lint
+(`two-part-position`, `roleplay-two-part-count`; `src/data/exam/bank/patternLint.ts`).
 
 ### §8 — Role-play repeats
 
@@ -124,8 +126,9 @@ the only two-part task in every current set. Planned (Batch 5).
 rephrase it. If they still can't answer after the repeat, move to the next task. There are no
 alternative or extension questions in the role play (TN p.6 note).
 
-**Status.** Enforced: one verbatim repeat, then advance (`stepRolePlay`). A lint rule forbidding
-alternatives on role-play tasks is planned (Batch 4).
+**Status.** Enforced: one verbatim repeat, then advance (`stepRolePlay`). Content can't carry a
+role-play alternative: validator error `roleplay-alternative` (Batch 4), mirrored in the backend's
+pydantic model.
 
 ### §9 — Responding in role
 
@@ -165,8 +168,8 @@ Exam Sim only — Coached shows no countdown at all (§24).
 p.8 table). Q1–Q2 have no alternative question.
 
 **Status.** Enforced: the engine offers an alternative only from Q3 on
-(`FIRST_ALTERNATIVE_QUESTION_INDEX`), even if content carries one on Q1–Q2. A lint rule forbidding
-alternatives on Q1–Q2 is planned (Batch 4).
+(`FIRST_ALTERNATIVE_QUESTION_INDEX`), even if content carries one on Q1–Q2, and content can't carry
+one: validator error `alternative-on-q1-q2` (Batch 4), mirrored in the backend.
 
 ### §13 — Repeat ladder, Q3–Q5
 
@@ -179,7 +182,8 @@ list of separate alternatives. The engine asks them in order, pausing for an ans
 exactly like a main question's second part. Each part gets one verbatim repeat. An unanswered
 part moves on to the next question.
 
-**Status.** Enforced (`afterFailedMain`, the `alternative` sub-state).
+**Status.** Enforced (`afterFailedMain`, the `alternative` sub-state). Content (Batch 5): a
+two-part question's alternative keeps the two-part shape (content-authoring §9).
 
 ### §14 — Extension questions
 
@@ -282,17 +286,21 @@ after 30 candidates and each day. Topic conversation 1 comes from Area A or B; t
 **App policy (D4).** The app keeps fixed sets (card + topic 1 + topic 2), because question-set
 hashes, duels and the Daily Challenge are all set-based. Each set must still follow the pairing.
 
-**Status.** Planned: a `topic-area-slot` validator rule (Batch 4) and rewritten content (Batch 5).
-Four current sets break the pairing.
+**Status.** Enforced: validator error `topic-area-slot` (Batch 4), mirrored in the backend; all 10
+sets were rewritten to follow the pairing (Batch 5, `docs/guides/corpus-matrix.md`).
 
 ### §22 — Sub-topics
 
 **Rule.** Each conversation is on one specific sub-topic of its area (TN p.3). The syllabus lists
 sub-topics as examples, not a prescriptive list (Syl p.14).
 
-**App policy.** `subTopic` becomes a closed list per area, taken from Syl p.14.
+**App policy.** `subTopic` is a closed list per area, taken from Syl p.14 (`SUB_TOPICS_BY_AREA`
+in `src/data/exam/bank/types.ts`). All five questions and both further questions stay on the one
+declared sub-topic (a human check, content-authoring §16).
 
-**Status.** Planned (Batch 4).
+**Status.** Enforced: validator error `sub-topic-not-in-area` (Batch 4), mirrored in the backend.
+The corpus lint also keeps thin sub-topics (Time expressions, Colours, Measurements, Materials)
+from being standalone topics.
 
 ### §23 — Marks
 

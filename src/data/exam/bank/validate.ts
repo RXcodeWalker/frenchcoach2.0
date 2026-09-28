@@ -5,7 +5,11 @@
  * rejects unknown/retired versions loudly before structural validation (8.3).
  *
  * Three severities (3.2):
- *  - errors: blocking structural violations - refuse load/seed.
+ *  - errors: blocking structural violations - refuse load/seed. Errors are
+ *    fatal at runtime (the loader and server/resolveQuestionSet.ts fall back
+ *    to the fixture), so only rules the Teacher's Notes or syllabus STATE go
+ *    here. Script patterns the notes merely follow go in patternLint.ts,
+ *    which only `authoring:check` runs (D12).
  *  - warnings: lint.ts content-quality smells - surfaced, never blocking.
  *  - info: coverage diagnostics for authors and the future S8 anchor/selection pipeline.
  *
@@ -16,7 +20,8 @@
 import { z } from 'zod';
 import { lintAuthoredContent } from './lint';
 import { QUESTION_BANK_SCHEMA_VERSION } from './version';
-import type { AuthoredQuestion, AuthoredQuestionSet, AuthoredTopic } from './types';
+import { SUB_TOPICS_BY_AREA, TOPIC_SLOT_AREAS } from './types';
+import type { AuthoredQuestion, AuthoredQuestionSet, AuthoredTopic, TopicArea } from './types';
 
 export class QuestionBankValidationError extends Error {
   constructor(message: string) {
@@ -126,17 +131,20 @@ const AuthoredContentShapeSchema = z.object({
     topicArea: z.enum(['A', 'B', 'C', 'D', 'E']),
     title: z.string().min(1),
     setup: z.string().min(1),
+    examinerRegister: z.enum(['tu', 'vous']),
     tasks: z.array(AuthoredQuestionShapeSchema),
   }),
   topic1: z.object({
     topicArea: z.enum(['A', 'B', 'C', 'D', 'E']),
     subTopic: z.string(),
+    title: z.string().min(1),
     questions: z.array(AuthoredQuestionShapeSchema),
     furtherQuestions: z.tuple([z.string(), z.string()]),
   }),
   topic2: z.object({
     topicArea: z.enum(['A', 'B', 'C', 'D', 'E']),
     subTopic: z.string(),
+    title: z.string().min(1),
     questions: z.array(AuthoredQuestionShapeSchema),
     furtherQuestions: z.tuple([z.string(), z.string()]),
   }),
@@ -200,7 +208,33 @@ function validateQuestionShapeInvariants(
   }
 }
 
+/** Syl p.14: the sub-topic must be one of its area's listed sub-topics (exam-conduct §22). */
+function checkSubTopicInArea(subTopic: string, area: TopicArea, path: string, errors: Issue[]): void {
+  if ((SUB_TOPICS_BY_AREA[area] as readonly string[]).includes(subTopic)) return;
+  const owner = (Object.keys(SUB_TOPICS_BY_AREA) as TopicArea[]).find((a) =>
+    (SUB_TOPICS_BY_AREA[a] as readonly string[]).includes(subTopic),
+  );
+  errors.push({
+    code: 'sub-topic-not-in-area',
+    message: owner
+      ? `${path} "${subTopic}" belongs to area ${owner}, not ${area} (Syl p.14)`
+      : `${path} "${subTopic}" is not a syllabus sub-topic of area ${area} (Syl p.14)`,
+    path,
+  });
+}
+
 function validateTopic(topic: AuthoredTopic, topicPath: 'topic1' | 'topic2', errors: Issue[]): void {
+  // TN p.3, Syl p.19 (exam-conduct §21): TC1 from A or B, TC2 from C, D or E.
+  const allowedAreas = TOPIC_SLOT_AREAS[topicPath];
+  if (!allowedAreas.includes(topic.topicArea)) {
+    errors.push({
+      code: 'topic-area-slot',
+      message: `${topicPath}.topicArea "${topic.topicArea}" must be one of ${allowedAreas.join('/')} (TN p.3)`,
+      path: `${topicPath}.topicArea`,
+    });
+  }
+  checkSubTopicInArea(topic.subTopic, topic.topicArea, `${topicPath}.subTopic`, errors);
+  checkCanonicalizationSafety(topic.title, `${topicPath}.title`, errors);
   if (topic.questions.length !== 5) {
     errors.push({
       code: 'wrong-question-count',
@@ -214,9 +248,16 @@ function validateTopic(topic: AuthoredTopic, topicPath: 'topic1' | 'topic2', err
       errors.push({ code: 'wrong-part', message: `${path}.part must be "${topicPath}", got "${q.part}"`, path });
     }
     validateQuestionShapeInvariants(q, path, true, errors);
-    // Q3-Q5 (index 2..4) require >=1 alternative.
+    // Q3-Q5 (index 2..4) require an alternative; Q1-Q2 never have one (TN p.7/p.8 table; exam-conduct §12).
     if (i >= 2 && q.alternativeTexts.length === 0) {
       errors.push({ code: 'missing-alternative', message: `${path}: topic Q${i + 1} requires >=1 alternativeText`, path });
+    }
+    if (i < 2 && q.alternativeTexts.length > 0) {
+      errors.push({
+        code: 'alternative-on-q1-q2',
+        message: `${path}: topic Q${i + 1} must not carry an alternative (TN p.7: repeat, then the next question)`,
+        path,
+      });
     }
     if (q.topicArea !== undefined && q.topicArea !== topic.topicArea) {
       errors.push({
@@ -276,6 +317,7 @@ export function validateAuthoredQuestionSet(raw: unknown): ValidationReport {
   const { rolePlay, topic1, topic2 } = set.content;
 
   checkCanonicalizationSafety(rolePlay.setup, 'rolePlay.setup', errors);
+  checkCanonicalizationSafety(rolePlay.title, 'rolePlay.title', errors);
 
   if (rolePlay.tasks.length !== 5) {
     errors.push({ code: 'wrong-task-count', message: `rolePlay.tasks must have exactly 5 tasks, got ${rolePlay.tasks.length}`, path: 'rolePlay.tasks' });
@@ -286,6 +328,14 @@ export function validateAuthoredQuestionSet(raw: unknown): ValidationReport {
       errors.push({ code: 'wrong-part', message: `${path}.part must be "rolePlay", got "${task.part}"`, path });
     }
     validateQuestionShapeInvariants(task, path, false, errors);
+    // TN p.6 note (exam-conduct §8): no alternative questions in the role play.
+    if (task.alternativeTexts.length > 0) {
+      errors.push({
+        code: 'roleplay-alternative',
+        message: `${path}: role-play tasks must not carry an alternative (TN p.6: repeat, then the next task)`,
+        path,
+      });
+    }
   });
 
   validateTopic(topic1, 'topic1', errors);
