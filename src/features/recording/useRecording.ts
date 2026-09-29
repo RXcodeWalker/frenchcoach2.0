@@ -214,6 +214,24 @@ export function useRecording(blocked = false): RecordingState {
 
       recog.onend = () => {
         if (myGeneration !== generationRef.current) return;
+        // `recogRef.current` is cleared to null by stop() synchronously, BEFORE
+        // it calls recog.stop() — so if it still points at this exact instance,
+        // nobody asked this recording to end: the browser ended a `continuous`
+        // session on its own (commonly after a pause), and the rest of the
+        // answer would otherwise be silently lost. Restart it, keeping
+        // finalTextRef so nothing already transcribed is dropped. The
+        // generation guard (not call-site awaiting) is still what keeps this
+        // safe if a caller has since moved on to a new start() (CLAUDE.md
+        // Known Traps: useRecording's callbacks are generation-guarded).
+        if (recogRef.current === recog) {
+          try {
+            recog.start();
+            return;
+          } catch {
+            // Restarting failed (e.g. already-started or a torn-down engine) —
+            // fall through and resolve with whatever was captured so far.
+          }
+        }
         if (resolveRef.current) {
           resolveRef.current(finalTextRef.current.trim());
           resolveRef.current = null;
@@ -267,9 +285,14 @@ export function useRecording(blocked = false): RecordingState {
 
     const rawTranscriptPromise = new Promise<string>(resolve => {
       if (recogRef.current) {
-        resolveRef.current = resolve;
-        recogRef.current.stop();
+        // Cleared BEFORE calling stop() — onend's "was this an explicit
+        // stop()?" check reads recogRef.current, and some engines (and every
+        // fake recognizer in this file's tests) call onend synchronously
+        // from inside stop() itself.
+        const recog = recogRef.current;
         recogRef.current = null;
+        resolveRef.current = resolve;
+        recog.stop();
       } else {
         resolve(finalTextRef.current.trim());
       }

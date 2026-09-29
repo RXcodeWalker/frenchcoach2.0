@@ -25,11 +25,14 @@ than one surface.
 ```bash
 npm run score:golden                     # deterministic scoring regression (no LLM/network) — run
                                           # after any change to evidence/judgement/guardrails/envelope/rubric
-npm run authoring:check                  # content gate: validate + lint + cross-set corpus check
+npm run authoring:check                  # content gate: validate + pattern lint + per-set lint + cross-set corpus check
 npm run authoring:check -- --draft       # same, minus the "not-approved" error (work-in-progress sets)
 npm run authoring:skeleton -- <NN>       # emit a pre-tagged question-set skeleton
-npm run authoring:review-sheet -- <NN>   # render one set as readable Markdown for reviewers
+npm run authoring:review-sheet -- <NN>   # render one set as readable Markdown for reviewers (--all, --glosses <file>)
 npm run authoring:status                 # review-tier counts + corpus coverage
+npm run authoring:generate               # regenerate src/data/exam/bank/fixtures/ from backend/data/igcse/*.json (never hand-edit)
+npm run authoring:parity                 # every fixture hashes identically to its backend JSON
+npx tsx scripts/authoring/originalityCheck.ts <TN-text>   # local-only; the notes text must live outside both repos (ADR 0008)
 npm run roleplay:check                   # validate roleplay scenario registry (graph/meta/deck)
 npm run learn:check                      # validate src/data/learn/demands/*.json against the question bank
 ```
@@ -79,10 +82,11 @@ npm run e2e:exam            # Playwright: drives the exam UI against a fake, no-
 This repo's testing is genuinely three disjoint suites with three separate invocations and three
 different infrastructure requirements — don't assume passing one says anything about the others.
 
-1. **vitest** (`npm test`) — this repo, `src/`/`scripts/`/`server/`. **No CI wired up for it**;
-   `.github/workflows/` currently contains only scheduled Supabase RPC cron jobs
-   (`daily-challenge-seed.yml`, `league-weekly-assignment.yml`), none of which run tests, lint, or
-   typecheck. The only place this suite's result is known is wherever it was last run locally.
+1. **vitest** (`npm test`) — this repo, `src/`/`scripts/`/`server/`. **CI covers only the exam
+   surface**: `.github/workflows/ci.yml` runs typecheck, lint and the `src/data/exam`,
+   `src/domain/igcse`, `src/services/exam`, `src/screens/exam` suites (plus `authoring:check` /
+   `authoring:parity`). The full `npm test` is not in CI because `learn/demand/__tests__/infer.test.ts`
+   fails on a Learn question (`ani_21`); everything else passes with `backend/` present.
 2. **pytest** (`backend/tests/`) — the separate `backend/` repo. Has its own CI
    (`backend/.github/workflows/ci.yml`): byte-compiles all Python sources, installs
    `requirements.txt`, runs `pytest tests/ -q` on every push/PR to that repo.

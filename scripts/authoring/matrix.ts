@@ -1,49 +1,41 @@
 /**
- * Machine-readable mirror of docs/guides/corpus-matrix.md's "Authoritative
- * per-set topic assignment" table. Source of truth is the doc; this module
- * exists only so the skeleton/status scripts don't hand-parse markdown.
- * Keep both in sync by hand — the doc is prose-first for human authors, this
- * is data-first for tooling.
+ * Machine-readable mirror of docs/guides/corpus-matrix.md's matrix table.
+ * Source of truth is the doc; this module exists only so the skeleton script
+ * doesn't hand-parse markdown. Keep both in sync by hand — the doc is
+ * prose-first for human authors, this is data-first for tooling.
  */
 
-export type TopicArea = 'A' | 'B' | 'C' | 'D' | 'E';
-
-export type TimeFrameTemplateId = 'P0' | 'P1' | 'P2';
-
-export interface TimeFrameTemplate {
-  id: TimeFrameTemplateId;
-  frames: readonly ['present' | 'past' | 'future', 'present' | 'past' | 'future', 'present' | 'past' | 'future', 'present' | 'past' | 'future' | 'conditional', 'present' | 'past' | 'future' | 'conditional'];
-}
-
-export const TIME_FRAME_TEMPLATES: Record<TimeFrameTemplateId, TimeFrameTemplate> = {
-  P0: { id: 'P0', frames: ['present', 'present', 'past', 'present', 'future'] },
-  P1: { id: 'P1', frames: ['present', 'past', 'present', 'future', 'conditional'] },
-  P2: { id: 'P2', frames: ['present', 'future', 'past', 'conditional', 'present'] },
-};
+import type { ExaminerRegister, SubTopic, TopicArea } from '../../src/data/exam/bank/types';
 
 export interface CorpusMatrixRow {
-  setNumber: number; // 2..10
+  setNumber: number; // 1..10
   questionSetId: string;
   topic1Area: TopicArea;
+  topic1SubTopic: SubTopic;
   topic2Area: TopicArea;
+  topic2SubTopic: SubTopic;
   rolePlayArea: TopicArea;
   archetype: string;
-  topic1Template: TimeFrameTemplateId;
-  topic2Template: TimeFrameTemplateId;
-  rareStructureTarget: string;
+  examinerRegister: ExaminerRegister;
+  /** 1-based task/question numbers that are two-part (rp3–rp5, Q3–Q5 only). */
+  rolePlayTwoPart: number[];
+  topic1TwoPart: number[];
+  topic2TwoPart: number[];
 }
 
-/** Rows 002-010; 001 (A+C, role-play A) already exists and is not regenerated. */
+const NATURE: SubTopic = 'The natural world, the environment, the climate and the weather';
+
 export const CORPUS_MATRIX: CorpusMatrixRow[] = [
-  { setNumber: 2, questionSetId: 'original-practice-002', topic1Area: 'A', topic2Area: 'B', rolePlayArea: 'A', archetype: 'social arrangement', topic1Template: 'P1', topic2Template: 'P0', rareStructureTarget: 'imperfect' },
-  { setNumber: 3, questionSetId: 'original-practice-003', topic1Area: 'A', topic2Area: 'D', rolePlayArea: 'D', archetype: 'work-experience enquiry', topic1Template: 'P0', topic2Template: 'P1', rareStructureTarget: 'negation' },
-  { setNumber: 4, questionSetId: 'original-practice-004', topic1Area: 'A', topic2Area: 'E', rolePlayArea: 'E', archetype: 'travel disruption', topic1Template: 'P2', topic2Template: 'P0', rareStructureTarget: 'comparison' },
-  { setNumber: 5, questionSetId: 'original-practice-005', topic1Area: 'B', topic2Area: 'C', rolePlayArea: 'B', archetype: 'appointment booking', topic1Template: 'P0', topic2Template: 'P2', rareStructureTarget: 'simple-future' },
-  { setNumber: 6, questionSetId: 'original-practice-006', topic1Area: 'B', topic2Area: 'D', rolePlayArea: 'B', archetype: 'problem / complaint', topic1Template: 'P1', topic2Template: 'P2', rareStructureTarget: 'negation' },
-  { setNumber: 7, questionSetId: 'original-practice-007', topic1Area: 'B', topic2Area: 'E', rolePlayArea: 'E', archetype: 'lost property abroad', topic1Template: 'P2', topic2Template: 'P1', rareStructureTarget: 'imperfect' },
-  { setNumber: 8, questionSetId: 'original-practice-008', topic1Area: 'C', topic2Area: 'D', rolePlayArea: 'C', archetype: 'information request', topic1Template: 'P0', topic2Template: 'P1', rareStructureTarget: 'comparison' },
-  { setNumber: 9, questionSetId: 'original-practice-009', topic1Area: 'C', topic2Area: 'E', rolePlayArea: 'C', archetype: 'service encounter', topic1Template: 'P1', topic2Template: 'P0', rareStructureTarget: 'simple-future' },
-  { setNumber: 10, questionSetId: 'original-practice-010', topic1Area: 'D', topic2Area: 'E', rolePlayArea: 'D', archetype: 'reservation / booking', topic1Template: 'P2', topic2Template: 'P2', rareStructureTarget: 'conditional' },
+  { setNumber: 1, questionSetId: 'original-practice-001', topic1Area: 'A', topic1SubTopic: 'Travel and transport', topic2Area: 'C', topic2SubTopic: NATURE, rolePlayArea: 'A', archetype: 'a missed train: buying a new ticket at the station', examinerRegister: 'vous', rolePlayTwoPart: [3, 4, 5], topic1TwoPart: [3, 5], topic2TwoPart: [4, 5] },
+  { setNumber: 2, questionSetId: 'original-practice-002', topic1Area: 'B', topic1SubTopic: 'In the home', topic2Area: 'C', topic2SubTopic: 'Communications and technology', rolePlayArea: 'B', archetype: 'planning an outing with a French friend', examinerRegister: 'tu', rolePlayTwoPart: [3, 5], topic1TwoPart: [3, 4], topic2TwoPart: [3, 5] },
+  { setNumber: 3, questionSetId: 'original-practice-003', topic1Area: 'B', topic1SubTopic: 'Clothes and accessories', topic2Area: 'D', topic2SubTopic: 'Education', rolePlayArea: 'C', archetype: 'asking at a tourist office', examinerRegister: 'vous', rolePlayTwoPart: [4, 5], topic1TwoPart: [4, 5], topic2TwoPart: [3, 4] },
+  { setNumber: 4, questionSetId: 'original-practice-004', topic1Area: 'A', topic1SubTopic: 'Food and drink', topic2Area: 'E', topic2SubTopic: 'Countries, nationalities and languages', rolePlayArea: 'D', archetype: 'first day of a work placement in a sports shop', examinerRegister: 'vous', rolePlayTwoPart: [3, 4, 5], topic1TwoPart: [3, 5], topic2TwoPart: [4] },
+  { setNumber: 5, questionSetId: 'original-practice-005', topic1Area: 'B', topic1SubTopic: 'Self, family and friends', topic2Area: 'C', topic2SubTopic: 'The built environment', rolePlayArea: 'E', archetype: "a French friend's family celebration", examinerRegister: 'tu', rolePlayTwoPart: [3, 4], topic1TwoPart: [3, 4], topic2TwoPart: [3, 5] },
+  { setNumber: 6, questionSetId: 'original-practice-006', topic1Area: 'A', topic1SubTopic: 'The human body and health', topic2Area: 'D', topic2SubTopic: 'Work', rolePlayArea: 'A', archetype: 'ordering a meal in a restaurant', examinerRegister: 'vous', rolePlayTwoPart: [3, 5], topic1TwoPart: [4, 5], topic2TwoPart: [3, 4] },
+  { setNumber: 7, questionSetId: 'original-practice-007', topic1Area: 'B', topic1SubTopic: 'Leisure time', topic2Area: 'E', topic2SubTopic: 'Culture, customs, faiths and celebrations', rolePlayArea: 'B', archetype: 'shopping for clothes with a French friend', examinerRegister: 'tu', rolePlayTwoPart: [3, 4, 5], topic1TwoPart: [3, 5], topic2TwoPart: [4, 5] },
+  { setNumber: 8, questionSetId: 'original-practice-008', topic1Area: 'A', topic1SubTopic: 'Food and drink', topic2Area: 'C', topic2SubTopic: 'People and places', rolePlayArea: 'C', archetype: 'a friend organising a park clean-up', examinerRegister: 'tu', rolePlayTwoPart: [4, 5], topic1TwoPart: [3, 4], topic2TwoPart: [3, 5] },
+  { setNumber: 9, questionSetId: 'original-practice-009', topic1Area: 'B', topic1SubTopic: 'Self, family and friends', topic2Area: 'C', topic2SubTopic: NATURE, rolePlayArea: 'D', archetype: 'first day at a French school, with a classmate', examinerRegister: 'tu', rolePlayTwoPart: [3, 4], topic1TwoPart: [4, 5], topic2TwoPart: [3, 4] },
+  { setNumber: 10, questionSetId: 'original-practice-010', topic1Area: 'B', topic1SubTopic: 'Leisure time', topic2Area: 'D', topic2SubTopic: 'Work', rolePlayArea: 'E', archetype: 'a guided tour on holiday in Quebec', examinerRegister: 'vous', rolePlayTwoPart: [3, 4, 5], topic1TwoPart: [3, 5], topic2TwoPart: [4, 5] },
 ];
 
 export function matrixRowForSetNumber(n: number): CorpusMatrixRow | undefined {

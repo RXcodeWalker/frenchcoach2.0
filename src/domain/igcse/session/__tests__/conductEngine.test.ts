@@ -5,13 +5,10 @@ import {
   step,
   computeRelevance,
   decideExtension,
-  selectVerbatimSpan,
-  latestCallbackFor,
   AUTHORIZED_EXTENSION_PROMPTS,
-  CALLBACK_TEMPLATES,
   MAX_FURTHER_QUESTIONS_PER_TOPIC,
   MAX_EXTENSIONS_PER_TOPIC,
-  TOPIC_SPEAKING_FLOOR_S,
+  TOPIC_FURTHER_QUESTION_FLOOR_S,
   TOPIC_TARGET_S,
   TRANSITION_MARKERS,
 } from '../conductEngine';
@@ -33,15 +30,15 @@ function answer(overrides: Partial<CandidateTurnResult> = {}): CandidateTurnResu
   };
 }
 
-/**
- * A "successful" answer whose transcript yields no qualifying memory span (Change
- * C: selectVerbatimSpan requires >=2 content tokens after filler-stripping) — used
- * to exercise the authored-further-question fallback path without a callback
- * pre-empting it. wordCount/relevance still satisfy computeRelevance's word-count
- * gate independently of the transcript's own (short) content.
- */
+/** A thin, one-token answer — wordCount/relevance still satisfy computeRelevance's word-count gate. */
 function noSpanAnswer(overrides: Partial<CandidateTurnResult> = {}): CandidateTurnResult {
   return answer({ transcript: 'euh', ...overrides });
+}
+
+/** How long the current topic conversation has lasted on the engine's clock (exam-conduct §16). */
+function topicElapsedS(state: ConductEngineState, part: 'topic1' | 'topic2'): number {
+  const startS = state.partStartS[part];
+  return startS === null ? 0 : state.clockS - startS;
 }
 
 function noResponse(): CandidateTurnResult {
@@ -61,6 +58,10 @@ function noResponse(): CandidateTurnResult {
  * topic answer). `action` is a convenience alias for the LAST action — what the
  * runtime driver (simulationSession.ts) settles on as "current" — for call
  * sites that only care about the terminal action, not the full sequence.
+ *
+ * The clock advances by the turn's own duration only, so in these tests a
+ * conversation lasts exactly as long as the candidate spoke. conductRules0520.test.ts
+ * covers wall-clock time that includes examiner speech and pauses.
  */
 function driveStep(
   qsSet: SessionQuestionSet,
@@ -68,7 +69,8 @@ function driveStep(
   result: CandidateTurnResult,
   conductHint?: ConductHint,
 ): { state: ConductEngineState; actions: ExaminerAction[]; action: ExaminerAction } {
-  const stepResult = step(qsSet, state, { kind: 'candidateTurn', result, ...(conductHint ? { conductHint } : {}) });
+  const clockS = state.clockS + result.responseDurationS;
+  const stepResult = step(qsSet, state, { kind: 'candidateTurn', result, clockS, ...(conductHint ? { conductHint } : {}) });
   return { state: stepResult.state, actions: stepResult.actions, action: stepResult.actions[stepResult.actions.length - 1] };
 }
 
@@ -91,7 +93,8 @@ describe('conductEngine: role play', () => {
     state = first.state;
     expect(first.actions[0]).toMatchObject({ kind: 'READ_MAIN', questionId: 'rp1', part: 'rolePlay' });
 
-    const next = driveOne(qs, state, answer());
+    // rp1 fully answered advances into rp2 with an in-role TRANSITION first (D13) — driveStep, not driveOne.
+    const next = driveStep(qs, state, answer());
     state = next.state;
     expect(next.action).toMatchObject({ kind: 'READ_MAIN', questionId: 'rp2', part: 'rolePlay' });
   });
@@ -113,7 +116,7 @@ describe('conductEngine: role play', () => {
     let state = initConductEngineState(qs);
     state = startConduct(qs, state).state;
     for (let i = 0; i < 5; i++) {
-      const r = driveOne(qs, state, answer());
+      const r = driveStep(qs, state, answer());
       state = r.state;
       expect(r.action.kind).not.toBe('EXTENSION_PROMPT');
       expect(r.action.kind).not.toBe('FURTHER_QUESTION');
@@ -123,19 +126,20 @@ describe('conductEngine: role play', () => {
   it('tracks partsAddressed for a PAUSE (two-part) task and reads part 2 before advancing', () => {
     let state = initConductEngineState(qs);
     state = startConduct(qs, state).state;
-    // rp1, rp2 answered normally
-    state = driveOne(qs, state, answer()).state;
-    state = driveOne(qs, state, answer()).state;
+    // rp1, rp2 answered normally — each advance now emits [TRANSITION, READ_MAIN] (D13).
+    state = driveStep(qs, state, answer()).state;
+    state = driveStep(qs, state, answer()).state;
 
     // rp3 is partsExpected: 2 — first answer should deliver the DISTINCT part-2
     // prompt (rp3.secondPartText), not advance to rp4 and not re-read mainText.
+    // Delivering part 2 is not an "advance" — no TRANSITION, single action.
     const part2 = driveOne(qs, state, answer());
     state = part2.state;
     expect(part2.action).toMatchObject({ kind: 'READ_MAIN', questionId: 'rp3', text: qs.questions[2].secondPartText });
     expect(part2.action.text).not.toBe(qs.questions[2].mainText);
     expect(state.rolePlayTasks[2].partsAddressed).toBe(1);
 
-    const afterPart2 = driveOne(qs, state, answer());
+    const afterPart2 = driveStep(qs, state, answer());
     state = afterPart2.state;
     expect(afterPart2.action).toMatchObject({ kind: 'READ_MAIN', questionId: 'rp4' });
     expect(state.rolePlayTasks[2].partsAddressed).toBe(2);
@@ -144,11 +148,11 @@ describe('conductEngine: role play', () => {
   it('repeats the DISTINCT part-2 prompt (never part 1\'s mainText) on a failed second-part attempt', () => {
     let state = initConductEngineState(qs);
     state = startConduct(qs, state).state;
-    // rp1, rp2 answered normally
-    state = driveOne(qs, state, answer()).state;
-    state = driveOne(qs, state, answer()).state;
+    // rp1, rp2 answered normally — each advance now emits [TRANSITION, READ_MAIN] (D13).
+    state = driveStep(qs, state, answer()).state;
+    state = driveStep(qs, state, answer()).state;
 
-    // rp3 part 1 answered -> engine reads the distinct part-2 prompt.
+    // rp3 part 1 answered -> engine reads the distinct part-2 prompt (not an advance, single action).
     state = driveOne(qs, state, answer()).state;
     expect(state.rolePlayTasks[2].partsAddressed).toBe(1);
 
@@ -213,8 +217,10 @@ describe('conductEngine: topic conversation', () => {
     let state = initConductEngineState(qs);
     state = startConduct(qs, state).state;
     for (let i = 0; i < 6; i++) {
-      // 5 role play tasks, rp3 needs 2 answers
-      state = driveOne(qs, state, answer()).state;
+      // 5 role play tasks, rp3 needs 2 answers. Some of these advances now emit
+      // [TRANSITION, READ_MAIN] (D13) — driveStep, not driveOne, since only the
+      // final action count matters here.
+      state = driveStep(qs, state, answer()).state;
     }
     return state;
   }
@@ -238,7 +244,7 @@ describe('conductEngine: topic conversation', () => {
     expect(r.actions.some((a) => a.kind === 'READ_ALTERNATIVE')).toBe(false);
   });
 
-  it('offers an alternative only for questions with alternativeTexts (data-driven, not positional), after a failed repeat', () => {
+  it('never offers an alternative on a question without alternativeTexts, after a failed repeat', () => {
     let state = toTopic1();
     // t1q1 has no alternatives -> fails main + repeat -> advances to t1q2 (no alternative offered)
     state = driveOne(qs, state, noResponse()).state; // repeat
@@ -261,11 +267,10 @@ describe('conductEngine: topic conversation', () => {
     expect(alt.action).toMatchObject({ kind: 'READ_ALTERNATIVE', questionId: 't1q3', variant: 'alternative' });
   });
 
-  it('caps further-questions at 2 per topic when the 4-min floor is not met', () => {
+  it('caps further-questions at 2 per topic when the 3½-min floor is not met', () => {
     let state = toTopic1();
-    // Answer all 5 topic1 questions with short, thin, span-less answers (below
-    // floor, below developed threshold, and no qualifying memory span — see
-    // noSpanAnswer — so this test exercises the authored-fallback path, not callbacks).
+    // Answer all 5 topic1 questions with short, thin answers (below the floor and
+    // below the developed threshold).
     for (let i = 0; i < 5; i++) {
       let r = driveStep(qs, state, noSpanAnswer({ responseDurationS: 5 }));
       state = r.state;
@@ -275,8 +280,8 @@ describe('conductEngine: topic conversation', () => {
       }
     }
 
-    // Now should be in further-question territory (speakingS well under 3.5 min floor)
-    expect(state.topicSpeakingS.topic1).toBeLessThan(TOPIC_SPEAKING_FLOOR_S);
+    // Now should be in further-question territory (well under the 3½-min floor)
+    expect(topicElapsedS(state, 'topic1')).toBeLessThan(TOPIC_FURTHER_QUESTION_FLOOR_S);
 
     const furtherTexts: (string | null)[] = [];
     let guard = 0;
@@ -295,8 +300,8 @@ describe('conductEngine: topic conversation', () => {
 
   it('C2: further questions are the authored on-topic strings, asked in order, never the synthesized placeholder', () => {
     let state = toTopic1();
-    // Drive all 5 topic1 questions with short, thin, below-floor, span-less answers
-    // so we reliably reach the authored-further-question fallback (not a callback).
+    // Drive all 5 topic1 questions with short, thin, below-floor answers so we
+    // reliably reach the further questions.
     for (let i = 0; i < 5; i++) {
       let r = driveStep(qs, state, noSpanAnswer({ responseDurationS: 1, wordCount: 1 }));
       state = r.state;
@@ -318,27 +323,6 @@ describe('conductEngine: topic conversation', () => {
     }
   });
 
-  it('Change C: a fresh callback pre-empts the authored further-question, quoting the immediately-preceding answer verbatim', () => {
-    let state = toTopic1();
-    // Drive all 5 topic1 questions with thin, below-floor answers that DO carry a
-    // qualifying memory span (the default `answer()` transcript).
-    for (let i = 0; i < 5; i++) {
-      let r = driveStep(qs, state, answer({ responseDurationS: 1, wordCount: 1 }));
-      state = r.state;
-      if (r.action.kind === 'EXTENSION_PROMPT') {
-        r = driveStep(qs, state, answer({ responseDurationS: 1, wordCount: 1 }));
-        state = r.state;
-      }
-    }
-
-    expect(state.conversationMemory.length).toBeGreaterThan(0);
-
-    const first = driveStep(qs, state, answer({ responseDurationS: 1, wordCount: 1 }));
-    expect(first.action.kind).toBe('FURTHER_QUESTION');
-    expect(first.action.text).toContain('Tu as parlé de');
-    expect(first.action.text).not.toBe(qs.furtherQuestions.topic1[0]);
-  });
-
   it('extensionAskedCount never exceeds MAX_EXTENSIONS_PER_TOPIC even with all-thin answers', () => {
     let state = toTopic1();
     let guard = 0;
@@ -349,14 +333,14 @@ describe('conductEngine: topic conversation', () => {
     expect(state.extensionAskedCount.topic1).toBeLessThanOrEqual(MAX_EXTENSIONS_PER_TOPIC);
   });
 
-  it('C8: suppresses extension prompts once accumulated topic speaking reaches TOPIC_TARGET_S, but still advances through scripted questions', () => {
+  it('C8: suppresses extension prompts once the conversation reaches TOPIC_TARGET_S, but still advances through scripted questions', () => {
     let state = toTopic1();
     // Drive one long, thin (undeveloped) answer that alone crosses the 4-min target.
     // Thin by word count/duration so decideExtension WOULD normally fire.
     const r = driveStep(qs, state, answer({ wordCount: 4, responseDurationS: TOPIC_TARGET_S }));
     state = r.state;
 
-    expect(state.topicSpeakingS.topic1).toBeGreaterThanOrEqual(TOPIC_TARGET_S);
+    expect(topicElapsedS(state, 'topic1')).toBeGreaterThanOrEqual(TOPIC_TARGET_S);
     // No extension should be offered for this answer since the target is already met.
     expect(r.action.kind).not.toBe('EXTENSION_PROMPT');
     // Scripted advance still happens (either next question or further-question/floor logic).
@@ -435,13 +419,11 @@ describe('conductEngine: topic conversation', () => {
     expect(repeat.action.kind).not.toBe('READ_ALTERNATIVE');
     expect(state.topic1Questions[3].secondPartRepeatUsed).toBe(true);
 
-    // Failed repeat -> advance to t1q5 via the success funnel (+ TRANSITION); the
-    // alternative is NEVER offered for a second part, and a FAILED repeat still
-    // funnels through advanceWithTransition here because advanceTopicQuestion is
-    // reached unconditionally once the one-repeat budget is exhausted.
+    // Failed repeat -> straight to t1q5: the alternative is NEVER offered for a
+    // second part, and an unanswered part is never acknowledged (exam-conduct §18).
     const afterFailed = driveStep(qs, state, noResponse());
     state = afterFailed.state;
-    expect(afterFailed.action.kind).not.toBe('READ_ALTERNATIVE');
+    expect(afterFailed.actions.map((a) => a.kind)).toEqual(['READ_MAIN']);
     expect(afterFailed.action).toMatchObject({ kind: 'READ_MAIN', questionId: 't1q5' });
   });
 
@@ -476,7 +458,7 @@ describe('conductEngine: topic conversation', () => {
     let sawEnd = false;
     while (guard < 200 && !sawEnd) {
       guard += 1;
-      const r = driveStep(qs, state, answer({ responseDurationS: 60 })); // long answers to clear the 4-min floor fast
+      const r = driveStep(qs, state, answer({ responseDurationS: 60 })); // long answers to clear the 3½-min floor fast
       state = r.state;
       if (r.action.kind === 'END') sawEnd = true;
     }
@@ -490,7 +472,8 @@ describe('conductEngine: TRANSITION markers (C6)', () => {
     let state = initConductEngineState(qs);
     state = startConduct(qs, state).state;
     for (let i = 0; i < 6; i++) {
-      state = driveOne(qs, state, answer()).state;
+      // Some of these advances now emit [TRANSITION, READ_MAIN] (D13).
+      state = driveStep(qs, state, answer()).state;
     }
     return state;
   }
@@ -499,14 +482,22 @@ describe('conductEngine: TRANSITION markers (C6)', () => {
     return answer({ wordCount: 15, responseDurationS: 15, ...overrides });
   }
 
-  it('never emits TRANSITION during role play', () => {
+  it('D13 (Batch 3): emits an in-role TRANSITION between answered role-play tasks, but never crossing into topic 1', () => {
     let state = initConductEngineState(qs);
     state = startConduct(qs, state).state;
+    let transitionCount = 0;
     for (let i = 0; i < 6; i++) {
       const r = driveStep(qs, state, answer());
       state = r.state;
-      expect(r.actions.some((a) => a.kind === 'TRANSITION')).toBe(false);
+      if (r.actions.some((a) => a.kind === 'TRANSITION')) transitionCount += 1;
+      // The boundary into topic1 (the 6th, final iteration) never carries a role-play
+      // TRANSITION — the UI speaks its own "role play finished" line instead.
+      if (state.phase.kind === 'topic') {
+        expect(r.actions.some((a) => a.kind === 'TRANSITION')).toBe(false);
+      }
     }
+    // 5 tasks answered in order -> 4 in-role boundaries (rp1-2, rp2-3, rp3-4, rp4-5).
+    expect(transitionCount).toBe(4);
   });
 
   it('emits exactly [TRANSITION, READ_MAIN] after a successfully-answered developed question', () => {
@@ -591,7 +582,8 @@ describe('conductEngine: clarification conduct-hint (Change B)', () => {
     let state = initConductEngineState(qs);
     state = startConduct(qs, state).state;
     for (let i = 0; i < 6; i++) {
-      state = driveOne(qs, state, answer()).state;
+      // Some of these advances now emit [TRANSITION, READ_MAIN] (D13).
+      state = driveStep(qs, state, answer()).state;
     }
     return state;
   }
@@ -660,126 +652,5 @@ describe('conductEngine: clarification conduct-hint (Change B)', () => {
     expect(classifyUtteranceIntent(transcript)).toBe('answer');
     // step()'s StepResult carries no `intent` field for the caller to (mis)use.
     expect(r.action).not.toHaveProperty('intent');
-  });
-});
-
-describe('conductEngine: conversational memory + callbacks (Change C)', () => {
-  function toTopic1(): ConductEngineState {
-    let state = initConductEngineState(qs);
-    state = startConduct(qs, state).state;
-    for (let i = 0; i < 6; i++) {
-      state = driveOne(qs, state, answer()).state;
-    }
-    return state;
-  }
-
-  it('selectVerbatimSpan strips leading fillers and caps span length, deterministically', () => {
-    const withFiller = selectVerbatimSpan('Euh, je fais mes devoirs et je range ma chambre le soir tous les jours.');
-    expect(withFiller).not.toBeNull();
-    expect(withFiller?.verbatimSpan.startsWith('euh')).toBe(false);
-    expect(withFiller?.verbatimSpan.split(' ').length).toBeLessThanOrEqual(6);
-  });
-
-  it('selectVerbatimSpan returns null for filler-only or too-short transcripts (skip-if-empty source)', () => {
-    expect(selectVerbatimSpan('euh')).toBeNull();
-    expect(selectVerbatimSpan('')).toBeNull();
-    expect(selectVerbatimSpan('oui')).toBeNull();
-  });
-
-  it('is fully deterministic and provider-independent: same transcript always yields the same span', () => {
-    const a = selectVerbatimSpan('Je joue au football avec mes amis le weekend.');
-    const b = selectVerbatimSpan('Je joue au football avec mes amis le weekend.');
-    expect(a).toEqual(b);
-  });
-
-  it('records a memory entry scoped to the current topic part only, after a successful topic answer', () => {
-    let state = toTopic1();
-    expect(state.conversationMemory).toHaveLength(0);
-    const r = driveStep(qs, state, answer({ responseDurationS: 1, wordCount: 1 }));
-    state = r.state;
-    expect(state.conversationMemory.length).toBeGreaterThan(0);
-    expect(state.conversationMemory.every((m) => m.part === 'topic1')).toBe(true);
-  });
-
-  it('dedupes by normalizedKey within the same part — an identical answer twice does not double the memory', () => {
-    let state = toTopic1();
-    const sameAnswer = answer({ transcript: 'Je joue au foot avec mes amis.', responseDurationS: 1, wordCount: 1 });
-    state = driveStep(qs, state, sameAnswer).state;
-    const countAfterFirst = state.conversationMemory.length;
-    state = driveStep(qs, state, sameAnswer).state;
-    expect(state.conversationMemory.length).toBe(countAfterFirst);
-  });
-
-  it('caps conversationMemory at a bounded size even across a long session of distinct answers', () => {
-    let state = toTopic1();
-    let guard = 0;
-    while (guard < 30 && state.phase.kind === 'topic') {
-      guard += 1;
-      state = driveStep(qs, state, answer({
-        transcript: `Réponse numéro ${guard} avec plusieurs mots distincts pour tester la mémoire.`,
-        responseDurationS: 1,
-        wordCount: 1,
-      })).state;
-    }
-    expect(state.conversationMemory.length).toBeLessThanOrEqual(8);
-  });
-
-  it('a callback quotes a verbatim substring of the immediately-preceding answer and consumes a further-question slot', () => {
-    let state = toTopic1();
-    for (let i = 0; i < 5; i++) {
-      let r = driveStep(qs, state, answer({ responseDurationS: 1, wordCount: 1 }));
-      state = r.state;
-      if (r.action.kind === 'EXTENSION_PROMPT') {
-        r = driveStep(qs, state, answer({ responseDurationS: 1, wordCount: 1 }));
-        state = r.state;
-      }
-    }
-    const lastMemory = state.conversationMemory[state.conversationMemory.length - 1];
-    expect(lastMemory).toBeDefined();
-
-    const before = state.furtherAskedCount.topic1;
-    const r = driveStep(qs, state, answer({ responseDurationS: 1, wordCount: 1 }));
-    expect(r.action.kind).toBe('FURTHER_QUESTION');
-    expect(r.action.text).toContain(lastMemory.verbatimSpan);
-    expect(r.state.furtherAskedCount.topic1).toBe(before + 1);
-  });
-
-  it('never quotes a topic1 memory entry in a topic2 callback (part-scoped): latestCallbackFor returns null right after entering topic2', () => {
-    let guard = 0;
-    let state = initConductEngineState(qs);
-    state = startConduct(qs, state).state;
-    for (let i = 0; i < 6; i++) state = driveOne(qs, state, answer()).state; // clear role play
-
-    // Drive to topic2 using long/developed answers (no further-questions triggered in topic1).
-    while (guard < 60 && !(state.phase.kind === 'topic' && state.phase.part === 'topic2')) {
-      guard += 1;
-      state = driveStep(qs, state, answer({ wordCount: 15, responseDurationS: 60 })).state;
-    }
-    expect(state.phase).toMatchObject({ kind: 'topic', part: 'topic2' });
-
-    const topic1Keys = new Set(state.conversationMemory.filter((m) => m.part === 'topic1').map((m) => m.normalizedKey));
-    expect(topic1Keys.size).toBeGreaterThan(0);
-
-    // Freshest memory is still topic1's (no topic2 answer yet) — the recency+scope
-    // rule means topic2 has NO eligible callback candidate at this point.
-    expect(latestCallbackFor(state, 'topic2')).toBeNull();
-
-    // Once a topic2 answer is recorded, the callback candidate is scoped to topic2.
-    const afterTopic2Answer = driveStep(qs, state, answer({ wordCount: 1, responseDurationS: 1 })).state;
-    const topic2Callback = latestCallbackFor(afterTopic2Answer, 'topic2');
-    if (topic2Callback) expect(topic2Callback.part).toBe('topic2');
-  });
-
-  it('Invariant 4 (wording provenance): a rendered callback text is authored template + a verbatim substring of a prior candidate transcript — never free model text', () => {
-    const transcript = 'Je fais du sport tous les samedis avec mon frère.';
-    const selected = selectVerbatimSpan(transcript);
-    expect(selected).not.toBeNull();
-    if (!selected) return;
-
-    const rendered = CALLBACK_TEMPLATES[0].replace('{verbatimSpan}', selected.verbatimSpan);
-    // The quoted span must appear verbatim inside the original transcript (case-insensitively,
-    // since selection normalizes/lowercases) — provably candidate-sourced, not model-generated.
-    expect(transcript.toLowerCase()).toContain(selected.verbatimSpan);
-    expect(rendered).toContain(selected.verbatimSpan);
   });
 });

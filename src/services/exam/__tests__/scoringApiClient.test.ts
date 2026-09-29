@@ -5,7 +5,7 @@ vi.mock('../../../lib/supabase', () => ({
   supabaseConfigured: true,
 }));
 
-import { pollScoreStatus, ScoringApiError } from '../scoringApiClient';
+import { pollScoreStatus, ScoringApiError, terminalScoringMessage } from '../scoringApiClient';
 
 const originalFetch = global.fetch;
 const originalEnv = { ...import.meta.env };
@@ -35,6 +35,23 @@ describe('pollScoreStatus', () => {
 
     await vi.advanceTimersByTimeAsync(20_000);
     await assertion;
+  });
+});
+
+describe('terminalScoringMessage (Batch 3)', () => {
+  it('replaces a 409\'s raw hash-mismatch text with plain language', () => {
+    const err = new ScoringApiError(
+      'Resolved question set "original-practice-001" hash does not match the transcript\'s declared questionSetHash',
+      409,
+    );
+    expect(terminalScoringMessage(err)).toBe(
+      "This exam's questions were updated after you took it, so this attempt can't be marked. Please retake the exam.",
+    );
+  });
+
+  it('leaves every other terminal status\'s message as-is', () => {
+    const err = new ScoringApiError('Not authorized', 401);
+    expect(terminalScoringMessage(err)).toBe('Not authorized');
   });
 });
 

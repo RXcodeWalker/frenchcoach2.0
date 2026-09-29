@@ -1,5 +1,5 @@
 /**
- * One-off parity check: every in-repo offline fixture
+ * Parity check (`npm run authoring:parity`): every in-repo offline fixture
  * (src/data/exam/bank/fixtures/, OFFLINE_FIXTURES) must hash identically to
  * its canonical authored source in french-coach-backend's data/igcse/*.json.
  * The scoring server falls back to these fixtures when the content API is
@@ -9,8 +9,8 @@
  * Hashes the engine-facing SessionQuestionSet (validate -> adapt ->
  * hashQuestionSet), the exact value the scoring server compares.
  *
- *   npx tsx scripts/authoring/checkFixtureParity.ts            # default: backend/data/igcse
- *   npx tsx scripts/authoring/checkFixtureParity.ts <dir>      # override the data dir
+ *   npm run authoring:parity                               # default: backend/data/igcse
+ *   npm run authoring:parity -- <dir>                      # override the data dir
  *
  * Exits 1 on any mismatch, or a set present on only one side.
  */

@@ -33,6 +33,7 @@ export type ExaminerTrigger =
   | 'failed_repeat'
   | 'below_min_duration'
   | 'extension'
+  /** Legacy (session-engine-v3 and earlier): a further question built from the candidate's own words. No longer emitted. */
   | 'callback';
 
 /** One instruction from the reducer to the runtime driver. */
@@ -83,8 +84,32 @@ export interface CandidateTurnResult {
 export type ConductHint = 'clarification_request' | 'repeat_request';
 
 export type StepInput =
-  | { kind: 'candidateTurn'; result: CandidateTurnResult; conductHint?: ConductHint }
+  | {
+      kind: 'candidateTurn';
+      result: CandidateTurnResult;
+      conductHint?: ConductHint;
+      /**
+       * Session wall clock (s) at the end of this turn — SimulationSession.getClockS().
+       * The 3½-min further-question rule and the 4-min extension cutoff measure how
+       * long the conversation lasts, not how long the candidate spoke
+       * (exam-conduct §16), so the engine needs the clock, not just the turn's duration.
+       */
+      clockS: number;
+    }
   | { kind: 'clockTick' };
+
+// ── Conduct policy (exam-conduct §24) ─────────────────────────────────────────
+
+/**
+ * Exam Sim runs the real 0520 conduct, including its time rules. Coached
+ * Practice follows the same script but has no time rules: no further questions
+ * and no time-based extension cutoff (exam-conduct §24, D5).
+ */
+export type ConductMode = 'examSim' | 'coached';
+
+export interface ConductPolicy {
+  mode: ConductMode;
+}
 
 // ── ConductLog (append-only, durable debug/replay artifact) ───────────────────
 
@@ -132,15 +157,34 @@ export interface ConductLog {
 
 // ── Reducer internal state ────────────────────────────────────────────────────
 
-export type TopicSubState = 'awaitingAnswer' | 'repeated' | 'alternative' | 'secondPart' | 'extending' | 'further';
+/**
+ * 'extending' = an extension prompt has been asked and awaits its answer.
+ * 'done' = the question is finished (answered, no extension needed); the engine has moved on.
+ */
+export type TopicSubState = 'awaitingAnswer' | 'repeated' | 'alternative' | 'secondPart' | 'extending' | 'done';
 
 export interface TopicQuestionState {
   questionId: string;
   subState: TopicSubState;
   /** true once the main question has been offered its one repeat. */
   repeatUsed: boolean;
-  /** true once the alternative (if any) has been offered its one repeat. */
+  /** true once the current alternative part has been offered its one repeat. */
   alternativeRepeatUsed: boolean;
+  /**
+   * Which part of the alternative question is being asked (exam-conduct §13, D9:
+   * `alternativeTexts` holds the alternative's ordered parts). 0 until/unless the
+   * alternative is reached.
+   */
+  alternativePartIndex: number;
+  /** true once the pending extension prompt has been offered its one repeat. */
+  extensionRepeatUsed: boolean;
+  /**
+   * Words / seconds of speech across every answered part of this question (main
+   * parts, or alternative parts). The extension decision is made on the whole
+   * answer, not the last turn (exam-conduct §14).
+   */
+  answerWords: number;
+  answerSpeechS: number;
   /**
    * true once a two-part question's second part has been offered its one repeat.
    * Distinct from repeatUsed/alternativeRepeatUsed so the 'secondPart' sub-state
@@ -159,24 +203,17 @@ export interface RolePlayTaskState {
 export type ConductPhase =
   | { kind: 'rolePlay'; taskIndex: number }
   | { kind: 'topic'; part: 'topic1' | 'topic2'; questionIndex: number }
+  /**
+   * A further question (exam-conduct §15) — its own phase, so it never reads or
+   * writes Q5's sub-state (exam-conduct §11). `furtherIndex` indexes
+   * questionSet.furtherQuestions[part].
+   */
+  | { kind: 'further'; part: 'topic1' | 'topic2'; furtherIndex: number; repeatUsed: boolean }
   | { kind: 'complete' };
 
-/**
- * One deterministic, transcript-derived memory of a candidate answer (Change C).
- * Entirely reconstructable from the ConductLog — no LLM output ever writes here,
- * so callbacks are identical across model/provider changes. `verbatimSpan` is a
- * fixed-rule substring of the candidate's transcript (filler-stripped, first
- * content span up to N tokens); `normalizedKey` is its canonicalized form, used
- * for dedupe.
- */
-export interface MemoryEntry {
-  part: 'topic1' | 'topic2';
-  questionId: string | null;
-  verbatimSpan: string;
-  normalizedKey: string;
-}
-
 export interface ConductEngineState {
+  /** Fixed at init; stored here so a snapshot restore (W7) keeps the mode. */
+  policy: ConductPolicy;
   phase: ConductPhase;
   rolePlayTasks: RolePlayTaskState[];
   topic1Questions: TopicQuestionState[];
@@ -187,8 +224,12 @@ export interface ConductEngineState {
   extensionAskedCount: Record<'topic1' | 'topic2', number>;
   /** Index into AUTHORIZED_EXTENSION_PROMPTS of the most recently asked extension, so successive extensions alternate. */
   lastExtensionIndex: 0 | 1 | null;
-  /** Accumulated candidate speaking seconds, keyed by topic part (4-min floor). */
-  topicSpeakingS: Record<'topic1' | 'topic2', number>;
+  /**
+   * Session clock (s) at the step that started each topic — the handling of the
+   * previous part's last answer. null until that topic starts. The conversation's
+   * length is `clockS - partStartS[part]` (exam-conduct §16, D8).
+   */
+  partStartS: Record<'topic1' | 'topic2', number | null>;
   /**
    * Count of TRANSITION actions emitted so far (C6). Dedicated deterministic key
    * for alternating transition wording — NOT nextSeq parity, since nextSeq is a
@@ -196,18 +237,7 @@ export interface ConductEngineState {
    * its parity a fragile basis for wording choice.
    */
   transitionCount: number;
-  /**
-   * Deterministic conversational memory (Change C): capped list of transcript-
-   * derived answer spans, appended after each successful topic answer. Scoped and
-   * deduped by the callback logic — never an LLM artifact, so replayable from the log.
-   */
-  conversationMemory: MemoryEntry[];
-  /**
-   * normalizedKey of the most recently quoted callback (Change C), so a second
-   * further-question slot never re-quotes the same span even if no fresher answer
-   * qualified in between. null until the first callback is emitted.
-   */
-  lastCallbackKey: string | null;
+  /** Session clock (s) at the latest candidate turn (StepInput.clockS). */
   clockS: number;
   nextSeq: number;
 }

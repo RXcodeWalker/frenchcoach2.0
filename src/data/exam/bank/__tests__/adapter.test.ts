@@ -53,7 +53,7 @@ describe('content hash excludes operational + non-scoring metadata (architecture
 
     set.review = { status: 'approved', reviewedBy: 'someone-else', notes: 'edited later' };
     set.content.topic1.questions[0].difficulty = 'higher';
-    set.content.topic1.questions[0].subTopic = 'A different sub-topic label';
+    set.content.topic1.questions[0].subTopic = 'Leisure time';
 
     const afterEdit = await hashQuestionSet(toSessionQuestionSet(set));
     expect(afterEdit).toBe(baseline);

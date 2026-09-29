@@ -1,9 +1,11 @@
 /**
  * Emits a pre-tagged AuthoredQuestionSet skeleton for one corpus-matrix row —
- * ids, part, areas, partsExpected slots, and expectedTimeFrame all filled in
- * from docs/guides/corpus-matrix.md (mirrored in ./matrix.ts). Authors fill
- * in only the French text (mainText/alternativeTexts/secondPartText/title/
- * subTopic/targetStructures/furtherQuestions) — see docs/guides/content-authoring.md.
+ * ids, part, areas, sub-topics, examiner register and partsExpected slots all
+ * filled in from docs/guides/corpus-matrix.md (mirrored in ./matrix.ts).
+ * Authors fill in the French text (mainText/alternativeTexts/secondPartText/
+ * titles/furtherQuestions), the expectedTimeFrame of Q3–Q5 (one past, one
+ * future or conditional — content-authoring §8) and targetStructures — see
+ * docs/guides/content-authoring.md.
  *
  *   npm run authoring:skeleton -- 002
  *
@@ -13,8 +15,8 @@
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { matrixRowForSetNumber, TIME_FRAME_TEMPLATES } from './matrix';
-import type { AuthoredQuestion, AuthoredQuestionSet } from '../../src/data/exam/bank/types';
+import { matrixRowForSetNumber } from './matrix';
+import type { AuthoredQuestion, AuthoredQuestionSet, SubTopic } from '../../src/data/exam/bank/types';
 import type { TimeFrame } from '../../src/domain/igcse/evidence/types';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -22,9 +24,12 @@ const DATA_DIR = join(__dirname, '..', '..', 'backend', 'data', 'igcse');
 
 const TODO = 'TODO';
 
-function roleplayTaskSkeleton(index: number, twoPartIndices: number[]): AuthoredQuestion {
+/** Q1–Q2 present; Q3 past, Q4 present (opinion), Q5 future — a starting point only: reorder per topic. */
+const DEFAULT_FRAMES: readonly TimeFrame[] = ['present', 'present', 'past', 'present', 'future'];
+
+function roleplayTaskSkeleton(index: number, twoPartNumbers: number[]): AuthoredQuestion {
   const id = `rp${index + 1}`;
-  const twoPart = twoPartIndices.includes(index);
+  const twoPart = twoPartNumbers.includes(index + 1);
   return {
     questionId: id,
     part: 'rolePlay',
@@ -39,59 +44,65 @@ function topicQuestionSkeleton(
   topicNum: 1 | 2,
   index: number,
   area: string,
-  frame: TimeFrame,
+  subTopic: SubTopic,
+  twoPartNumbers: number[],
 ): AuthoredQuestion {
   const id = `t${topicNum}q${index + 1}`;
-  const requiresAlternative = index >= 2; // Q3-Q5
-  const isOpinionSlot = index === 3; // Q4 conventionally carries opinion+justification, per 001
+  const requiresAlternative = index >= 2; // Q3-Q5; never Q1-Q2 (validator alternative-on-q1-q2)
+  const twoPart = twoPartNumbers.includes(index + 1);
   return {
     questionId: id,
     part: `topic${topicNum}` as AuthoredQuestion['part'],
     mainText: TODO,
-    alternativeTexts: requiresAlternative ? [TODO] : [],
+    // D9: an alternative keeps its main question's shape — one part per part.
+    alternativeTexts: requiresAlternative ? (twoPart ? [TODO, TODO] : [TODO]) : [],
     topicArea: area as AuthoredQuestion['topicArea'],
-    subTopic: TODO,
+    subTopic,
     difficulty: index === 0 ? 'foundation' : index === 4 ? 'higher' : 'core',
     targetStructures: ['present'],
-    expectedTimeFrame: frame,
-    partsExpected: isOpinionSlot ? 2 : 1,
-    ...(isOpinionSlot ? { secondPartText: 'Pourquoi ?' } : {}),
+    expectedTimeFrame: DEFAULT_FRAMES[index],
+    partsExpected: twoPart ? 2 : 1,
+    ...(twoPart ? { secondPartText: TODO } : {}),
   };
 }
 
 function buildSkeleton(setNumber: number): AuthoredQuestionSet {
   const row = matrixRowForSetNumber(setNumber);
   if (!row) {
-    throw new Error(`No corpus-matrix row for set ${setNumber}. Valid: 2-10 (see docs/guides/corpus-matrix.md).`);
+    throw new Error(`No corpus-matrix row for set ${setNumber}. Valid: 1-10 (see docs/guides/corpus-matrix.md).`);
   }
-
-  const topic1Frames = TIME_FRAME_TEMPLATES[row.topic1Template].frames;
-  const topic2Frames = TIME_FRAME_TEMPLATES[row.topic2Template].frames;
 
   return {
     questionSetId: row.questionSetId,
     schemaVersion: 'question-bank-v1',
     provenance: 'original-practice',
-    review: { status: 'draft', notes: `Author: ${TODO}. Clean-room attestation pending. Archetype: ${row.archetype}. Rare-structure target: ${row.rareStructureTarget}.` },
+    review: { status: 'draft', notes: `Author: ${TODO}. Originality check pending (content-authoring §0). Role play: ${row.archetype}.` },
     content: {
       rolePlay: {
         scenarioId: `rp-${row.questionSetId}`,
         topicArea: row.rolePlayArea,
         title: TODO,
         setup: TODO,
-        tasks: Array.from({ length: 5 }, (_, i) => roleplayTaskSkeleton(i, [2])),
+        examinerRegister: row.examinerRegister,
+        tasks: Array.from({ length: 5 }, (_, i) => roleplayTaskSkeleton(i, row.rolePlayTwoPart)),
       },
       topic1: {
         topicArea: row.topic1Area,
-        subTopic: TODO,
+        subTopic: row.topic1SubTopic,
+        title: TODO,
         furtherQuestions: [TODO, TODO],
-        questions: Array.from({ length: 5 }, (_, i) => topicQuestionSkeleton(1, i, row.topic1Area, topic1Frames[i])),
+        questions: Array.from({ length: 5 }, (_, i) =>
+          topicQuestionSkeleton(1, i, row.topic1Area, row.topic1SubTopic, row.topic1TwoPart),
+        ),
       },
       topic2: {
         topicArea: row.topic2Area,
-        subTopic: TODO,
+        subTopic: row.topic2SubTopic,
+        title: TODO,
         furtherQuestions: [TODO, TODO],
-        questions: Array.from({ length: 5 }, (_, i) => topicQuestionSkeleton(2, i, row.topic2Area, topic2Frames[i])),
+        questions: Array.from({ length: 5 }, (_, i) =>
+          topicQuestionSkeleton(2, i, row.topic2Area, row.topic2SubTopic, row.topic2TwoPart),
+        ),
       },
     },
   };

@@ -19,6 +19,8 @@ import { ExamRunner } from './exam/ExamRunner';
 import { TranscriptReview } from './exam/TranscriptReview';
 import { SimulationSession } from '../services/exam/simulationSession';
 import { saveConductLog } from '../services/exam/conductLogStore';
+import { hashQuestionSet } from '../domain/igcse/content/hashQuestionSet';
+import { SESSION_ENGINE_VERSION } from '../domain/igcse/session/version';
 import {
   saveStoredTranscript,
   getStoredTranscript,
@@ -43,6 +45,7 @@ import {
   submitForScoring,
   pollScoreStatus,
   isTerminalScoringStatus,
+  terminalScoringMessage,
   isDefinitiveServerFailure,
   ScoringApiError,
 } from '../services/exam/scoringApiClient';
@@ -66,6 +69,7 @@ import type { AuthoredQuestionSet, RolePlayScenario } from '../data/exam/bank/ty
 import { ExamGreeting } from './exam/ExamGreeting';
 import { ExamSelect } from './exam/ExamSelect';
 import { RolePlayCardPreview } from './exam/RolePlayCardPreview';
+import { ROLE_PLAY_FINISHED_TEXT, topicAnnouncementText } from './exam/examAnnouncements';
 import { ExitConfirmDialog } from './exam/ExitConfirmDialog';
 import { savePendingClaim, clearPendingClaim, submitDailyChallengeAttempt } from '../services/dailyChallenge/dailyChallengeService';
 import { savePendingDuelClaim, clearPendingDuelClaim, submitDuelAttempt } from '../services/duels/duelsService';
@@ -82,6 +86,7 @@ interface RolePlayMeta {
 const KEEPALIVE_INTERVAL_MS = 5 * 60 * 1000;
 
 export const GREETING_TEXT = 'Bonjour ! Comment ça va ? Es-tu prêt ? On va commencer.';
+
 
 /**
  * W5: maps every reachable `examState === 'scoring'` phase to real copy —
@@ -178,6 +183,10 @@ export function ExamMode() {
   const [rolePlayScenario, setRolePlayScenario] = useState<RolePlayScenario | undefined>(undefined);
   const [rolePlayMeta, setRolePlayMeta] = useState<RolePlayMeta | undefined>(undefined);
   const [showScoringExitConfirm, setShowScoringExitConfirm] = useState(false);
+  // Batch 3 resume guard: set when a running-session snapshot is discarded
+  // because it was saved under a since-changed question set or an older
+  // engine version — surfaced once, on the 'select' screen.
+  const [resumeDiscardedMessage, setResumeDiscardedMessage] = useState<string | null>(null);
 
   const { consentStatus } = useAuth();
   const recording = useRecording(consentStatus === 'pending');
@@ -188,8 +197,18 @@ export function ExamMode() {
   const turnStartRef = useRef<number>(0);
   const selectedQuestionSetIdRef = useRef<string | undefined>(undefined);
   const selectedAuthoredSetRef = useRef<AuthoredQuestionSet | undefined>(undefined);
+  /** exam-conduct §5: each topic's unhashed French title, spoken when its conversation starts. */
+  const topicTitlesRef = useRef<{ topic1?: string; topic2?: string }>({});
   const turnBusyRef = useRef(false);
   const startExamBusyRef = useRef(false);
+  /** D3: true only when the candidate used the Exam Sim "Start now" escape hatch — makes the attempt practice-only. */
+  const earlyStartRef = useRef(false);
+  /** Batch 3 resume guard: the content hash of the question set the running session was actually conducted under. */
+  const currentQuestionSetHashRef = useRef<string | undefined>(undefined);
+  /** D15: true once a running session has been resumed after a reload — makes the attempt practice-only. */
+  const resumedRef = useRef(false);
+  /** exam-conduct §5/§9: tracks the previous action's part so a part boundary is announced exactly once (Batch 3). */
+  const prevActionPartRef = useRef<string | undefined>(undefined);
 
   // W1's authoritative coached flag once a session exists; coachedMode (the
   // ExamSelect toggle's choice) is the pre-session fallback so ExamIntro can
@@ -259,8 +278,23 @@ export function ExamMode() {
           return;
         }
 
+        // Resume guard (Batch 3): a snapshot saved under a since-changed
+        // question set, or an older engine version, must never be resumed —
+        // it would mix old and new wording, or run stale ConductEngineState
+        // fields under current logic. Discard and tell the candidate why,
+        // rather than silently resuming into mismatched content.
+        const resolvedHash = await hashQuestionSet(questionSet);
+        if (snapshot.questionSetHash !== resolvedHash || snapshot.engineVersion !== SESSION_ENGINE_VERSION) {
+          clearRunningSession();
+          setResumeDiscardedMessage(
+            'Your in-progress exam couldn’t be resumed because its questions were updated. Please start again.',
+          );
+          return;
+        }
+
         const authoredSet = await getAuthoredQuestionSet(snapshot.questionSetId);
         const scenario = authoredSet?.content.rolePlay;
+        topicTitlesRef.current = { topic1: authoredSet?.content.topic1.title, topic2: authoredSet?.content.topic2.title };
         if (scenario) {
           setRolePlayMeta({
             title: scenario.title,
@@ -271,6 +305,11 @@ export function ExamMode() {
 
         selectedQuestionSetIdRef.current = snapshot.questionSetId;
         sessionIdRef.current = snapshot.sessionId;
+        currentQuestionSetHashRef.current = resolvedHash;
+        // D15: a mid-exam resume is allowed, but the notes require an
+        // uninterrupted recording, so this attempt no longer counts.
+        resumedRef.current = true;
+        prevActionPartRef.current = snapshot.session.currentAction.part;
 
         const lastLoggedS = snapshot.session.entries.reduce(
           (max, e) => Math.max(max, e.kind === 'examiner' ? e.atS : e.endS),
@@ -283,7 +322,12 @@ export function ExamMode() {
           snapshot.sessionId,
           questionSet,
           clock.nowS,
-          { onExaminerAction: (a) => setAction(a) },
+          {
+            onExaminerAction: (a) => {
+              announceIfPartChanged(a);
+              setAction(a);
+            },
+          },
           snapshot.coached,
           snapshot.session,
         );
@@ -331,6 +375,28 @@ export function ExamMode() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  /**
+   * exam-conduct §5/§9 (D13, Batch 3): fires an unscored, UI-only French
+   * announcement exactly once at each part boundary — never a conduct-engine
+   * action, so it never enters the ConductLog, the hash, or the judge input.
+   * Fire-and-forget: `speakExaminerText` internally queues on the browser's
+   * native SpeechSynthesis queue, so calling it here (before the caller's own
+   * `await speakExaminerText(action.text)` for the action itself) is enough
+   * to have it play first — see SimulationSession.emitActions.
+   */
+  const announceIfPartChanged = (action: ExaminerAction) => {
+    const prevPart = prevActionPartRef.current;
+    if (prevPart !== undefined && prevPart !== action.part) {
+      if (prevPart === 'rolePlay' && action.part === 'topic1') {
+        void speakExaminerText(ROLE_PLAY_FINISHED_TEXT);
+        void speakExaminerText(topicAnnouncementText('topic1', topicTitlesRef.current.topic1));
+      } else if (prevPart === 'topic1' && action.part === 'topic2') {
+        void speakExaminerText(topicAnnouncementText('topic2', topicTitlesRef.current.topic2));
+      }
+    }
+    prevActionPartRef.current = action.part;
+  };
+
   const enterGreeting = () => {
     // Fresh attempt (first run, or a retake reusing this same mounted component) —
     // clear the startExam re-entrancy guard so the new attempt can actually start.
@@ -352,6 +418,8 @@ export function ExamMode() {
     stopExaminerVoice();
 
     let scenario: RolePlayScenario | undefined = selectedAuthoredSetRef.current?.content.rolePlay;
+    const selectedContent = selectedAuthoredSetRef.current?.content;
+    topicTitlesRef.current = { topic1: selectedContent?.topic1.title, topic2: selectedContent?.topic2.title };
 
     if (!scenario) {
       const publishedIds = await listPublishedQuestionSetIdsWithRetry();
@@ -362,6 +430,7 @@ export function ExamMode() {
       selectedQuestionSetIdRef.current = fallbackId;
       const authoredSet = await getAuthoredQuestionSet(fallbackId);
       scenario = authoredSet?.content.rolePlay;
+      topicTitlesRef.current = { topic1: authoredSet?.content.topic1.title, topic2: authoredSet?.content.topic2.title };
     }
 
     if (!scenario) {
@@ -381,23 +450,27 @@ export function ExamMode() {
    */
   const persistRunningSnapshot = () => {
     const session = sessionRef.current;
-    if (!session || !sessionIdRef.current || !selectedQuestionSetIdRef.current) return;
+    if (!session || !sessionIdRef.current || !selectedQuestionSetIdRef.current || !currentQuestionSetHashRef.current) return;
     saveRunningSession({
       sessionId: sessionIdRef.current,
       questionSetId: selectedQuestionSetIdRef.current,
       coached: session.coached,
       totalElapsedS: totalClock.elapsedS,
       session: session.getSnapshot(),
+      questionSetHash: currentQuestionSetHashRef.current,
+      engineVersion: SESSION_ENGINE_VERSION,
     });
   };
 
-  const startExam = async () => {
+  const startExam = async (earlyStart: boolean = false) => {
     // Guards against a double-click on "Begin" re-entering this whole async
     // flow — without this, two overlapping runs would each speak the first
     // question and each start a recording, sounding like everything was
     // read/started twice.
     if (startExamBusyRef.current) return;
     startExamBusyRef.current = true;
+    earlyStartRef.current = earlyStart;
+    prevActionPartRef.current = undefined;
 
     const questionSetId = selectedQuestionSetIdRef.current;
     // A8: the exam itself is the warm-up window — ping now, invisibly, so the
@@ -436,25 +509,33 @@ export function ExamMode() {
     if (!questionSet) {
       throw new Error(`ExamMode: question set "${questionSetId ?? '(none)'}" could not be resolved (backend and offline fixture both failed)`);
     }
+    currentQuestionSetHashRef.current = await hashQuestionSet(questionSet);
 
-    if (rolePlayScenario) {
+    const scenario = rolePlayScenario;
+    if (scenario) {
       setRolePlayMeta({
-        title: rolePlayScenario.title,
-        setup: rolePlayScenario.setup,
-        taskIds: rolePlayScenario.tasks.map((t) => t.questionId),
+        title: scenario.title,
+        setup: scenario.setup,
+        taskIds: scenario.tasks.map((t) => t.questionId),
       });
     }
 
     const session = new SimulationSession(sessionId, questionSet, clock.nowS, {
-      onExaminerAction: (a) => setAction(a),
+      onExaminerAction: (a) => {
+        announceIfPartChanged(a);
+        setAction(a);
+      },
     }, resolveCoachedMode(coachedMode, isDailyChallengeRun || isDuelRun));
     sessionRef.current = session;
     setExamState('running');
 
     // The candidate already read the setup untimed on the preparation card —
-    // it's shown again in the ExamRunner header, but never spoken here; the
-    // examiner's first spoken line is the first role-play question itself.
+    // it's shown again in the ExamRunner header. Audit #12 (TN p.6 #5): the
+    // examiner reads the scenario aloud too, after the greeting and before
+    // rp1 — UI-spoken, never a conduct-engine action, so it stays outside the
+    // ConductLog/hash/judge input (same as the part-boundary announcements).
     setRolePlayScenario(undefined);
+    if (scenario) await speakExaminerText(scenario.setup);
 
     const firstAction = await session.begin();
     setAction(firstAction);
@@ -691,7 +772,7 @@ export function ExamMode() {
             if (cancelled) return;
             captureError(err, { stage: 'submitForScoring', sessionId: transcript.sessionId });
             if (err instanceof ScoringApiError && isTerminalScoringStatus(err.status)) {
-              setScoringMachine((s) => transitionScoringMachine(s, { type: 'SUBMIT_TERMINAL_ERROR', reason: err.message }));
+              setScoringMachine((s) => transitionScoringMachine(s, { type: 'SUBMIT_TERMINAL_ERROR', reason: terminalScoringMessage(err) }));
             } else if (isDefinitiveServerFailure(err)) {
               // Coded 5xx: the server gave up on this attempt and cleared its
               // in-progress mark — re-POST after a backoff instead of polling
@@ -738,7 +819,7 @@ export function ExamMode() {
           } catch (err) {
             if (cancelled) return;
             captureError(err, { stage: 'pollScoreStatus', sessionId: transcript.sessionId });
-            const reason = err instanceof ScoringApiError ? err.message : 'Scoring failed unexpectedly.';
+            const reason = err instanceof ScoringApiError ? terminalScoringMessage(err) : 'Scoring failed unexpectedly.';
             if (err instanceof ScoringApiError && isTerminalScoringStatus(err.status)) {
               setScoringMachine((s) => transitionScoringMachine(s, { type: 'POLL_TERMINAL_ERROR', reason }));
             } else {
@@ -821,7 +902,12 @@ export function ExamMode() {
 
       // Step 5 / ADR-0007: a coached, edited, or partly-typed attempt still gets
       // its full /40 report, but is tagged so it never counts toward progress.
-      const attemptStatus = countsTowardProgress({ coached, transcript: finalTranscript });
+      const attemptStatus = countsTowardProgress({
+        coached,
+        transcript: finalTranscript,
+        earlyStart: earlyStartRef.current,
+        resumed: resumedRef.current,
+      });
 
       const appSession: Session = {
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -878,6 +964,8 @@ export function ExamMode() {
   if (examState === 'select') {
     return (
       <ExamSelect
+        notice={resumeDiscardedMessage}
+        onDismissNotice={() => setResumeDiscardedMessage(null)}
         onSelect={(set, coached) => {
           selectedQuestionSetIdRef.current = set.questionSetId;
           selectedAuthoredSetRef.current = set;
@@ -912,7 +1000,7 @@ export function ExamMode() {
   }
 
   if (examState === 'card' && rolePlayScenario) {
-    return <RolePlayCardPreview scenario={rolePlayScenario} onBegin={() => void startExam()} />;
+    return <RolePlayCardPreview scenario={rolePlayScenario} coached={coached} onBegin={(earlyStart) => void startExam(earlyStart)} />;
   }
 
   if (examState === 'review' && transcript) {
@@ -955,11 +1043,15 @@ export function ExamMode() {
         onRetryScoring={retryScoring}
         coached={coached}
         railEntries={rail.entries}
+        earlyStart={earlyStartRef.current}
+        resumed={resumedRef.current}
         onRetake={() => {
           selectedQuestionSetIdRef.current = undefined;
           selectedAuthoredSetRef.current = undefined;
           setRolePlayScenario(undefined);
           setRolePlayMeta(undefined);
+          earlyStartRef.current = false;
+          resumedRef.current = false;
           setExamState('select');
         }}
         onHome={() => navigate(isDailyChallengeRun ? '/daily-challenge' : isDuelRun && duelId ? `/duel/${duelId}` : '/')}

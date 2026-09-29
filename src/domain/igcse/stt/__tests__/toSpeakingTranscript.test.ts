@@ -327,6 +327,34 @@ describe('P0 step 2: further-question turns and examiner support (engine-conduct
     expect(further2.candidateResponseDurationS).toBe(7);
   });
 
+  it('keeps a further question repeated verbatim (session-engine-v4) as one turn', () => {
+    const repeated: Step[] = [
+      ...STEPS.slice(0, STEPS.findIndex((s) => s.kind === 'examiner' && s.action === 'FURTHER_QUESTION')),
+      E('FURTHER_QUESTION', 'topic1', null, 'Que fais-tu le week-end ?'),
+      C('topic1', null, ''),
+      E('REPEAT', 'topic1', null, 'Que fais-tu le week-end ?'),
+      C('topic1', null, 'Je vais au cinéma avec mes amis.', 7),
+      E('TRANSITION', 'topic1', null, 'Merci.'),
+      E('FURTHER_QUESTION', 'topic1', null, 'Et ta famille ?'),
+      C('topic1', null, 'Ma famille est petite.', 5),
+      ...STEPS.slice(STEPS.findIndex((s) => s.kind === 'examiner' && s.part === 'topic2')),
+    ];
+    const session = buildSessionTranscript(log(repeated), qs, {
+      sessionId: 'support-session',
+      recordedAt: '2026-01-01T00:00:00.000Z',
+      contentProvenance: 'original-practice',
+      audio: { sha256: '0'.repeat(64), durationS: 200, sampleRateHz: 16000, channels: 1 },
+      questionSetHash: '1'.repeat(64),
+    });
+    const topic1 = toSpeakingTranscript(session, qs).topicConversations[0];
+    expect(topic1.turns.map((t) => t.turnId)).toEqual(['t1q1', 't1q2', 't1q3', 'further1', 'further2']);
+    const [further1, further2] = topic1.turns.slice(3);
+    expect(further1.questionPrompt).toBe('Que fais-tu le week-end ?');
+    expect(further1.candidateResponse.trim()).toBe('Je vais au cinéma avec mes amis.');
+    expect(further2.questionPrompt).toBe('Et ta famille ?');
+    expect(further2.candidateResponse).toBe('Ma famille est petite.');
+  });
+
   it('emits no further turns for a part where none was asked', () => {
     const topic2 = project().topicConversations[1];
     expect(topic2.turns.map((t) => t.turnId)).toEqual(['t2q1']);

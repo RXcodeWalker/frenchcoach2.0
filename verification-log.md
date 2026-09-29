@@ -2225,3 +2225,454 @@ scoring behavior, and `score:golden`'s 5/5 no-diff result confirms it.
 3 scoreSpeaking, 2 logger, 3 scoreAttempt — plus batchScore's existing test updated in place, not
 counted as new), 2323 passed, 2 failed — same 2 pre-existing failures. `npm run score:golden`: 5/5,
 no diff. `npm run e2e:exam`: 4/4.
+
+## 2026-09-27 — 0520 conduct plan, Batches 0–2: conduct rules spec, repro tests, mode-aware engine (`session-engine-v4`)
+
+**Scope.** Only the conduct engine and its driver: `session/conductEngine.ts`, `session/types.ts`,
+`session/version.ts`, `services/exam/simulationSession.ts`, plus one projection fix in
+`stt/project/toSpeakingTranscript.ts` (below). No change to `evidence/`, `judgement/`,
+`guardrails/`, `envelope/` or `rubric.ts`. New live spec `docs/systems/exam-conduct-0520.md`
+(rules cited by Teacher's Notes page, no script text) and ADR 0008.
+
+**Baseline before any change** (`npm ci`, `backend` symlinked to the sibling
+`french-coach-backend` clone, not committed): `npm test` 2324/2325, one pre-existing failure
+(`learn/demand/__tests__/infer.test.ts`, 8-word floor; `feedbackContractFixtures.test.ts` passes
+once `backend/` exists). `typecheck:scripts`: the same 3 pre-existing errors. `lint`: 0 errors,
+22 warnings. `score:golden`: 5/5.
+
+**Repro tests, run against the unchanged engine first.** `session/__tests__/conductRules0520.test.ts`
+(24 tests, one `describe` per `exam-conduct §N`): 16 failed for the reasons the plan gives, 8
+characterization tests passed. Confirmed failure reasons included: 002 t1q2 unanswered twice got
+`READ_ALTERNATIVE`; after a skipped t1q5 alternative, silence on the further question re-read
+t1q5's alternative with trigger `failed_repeat`; a 40-word part 1 + 4-word part 2 drew an
+extension prompt; a 4:10 conversation of 25 s answers (or of typed answers) still got a further
+question; the first further question was a callback ("Tu as parlé de « … ». Peux-tu
+développer ?"); a Repeat request on an extension prompt or further question moved on instead; a
+skipped extension prompt or further question was followed by a `TRANSITION`; Coached got further
+questions. UI repros whose fixes are Batch 3 (`ExamRunner` part-2 label and per-part countdown,
+`ExamIntro` copy ×4, `ExamSelect` hiding topics in Exam Sim) all failed for the stated reason when
+run as plain `it`, and are committed as `it.fails` (7 "expected fail") so the suite stays green;
+Batch 3 flips them.
+
+**Engine changes (Batch 2).**
+- `ConductPolicy { mode: 'examSim' | 'coached' }` passed to `initConductEngineState` and kept in
+  state. `SimulationSession` derives it from `coached`.
+- `StepInput.candidateTurn.clockS` (required) = `SimulationSession.getClockS()`.
+  `ConductEngineState.partStartS` records each topic's start; the conversation's length is
+  `clockS − partStartS`. `topicSpeakingS` (candidate-only time) is gone.
+- Further questions: Exam Sim only, when the conversation has lasted ≤ 210 s (`<=`, "3½ minutes or
+  less"), authored text only, re-checked after each. Own phase (`ConductPhase` kind `further`) with
+  one verbatim repeat, so Q5's sub-state never bleeds into them. Callbacks and conversational memory
+  removed (D6); the `callback` trigger stays in the type for old logs.
+- Alternatives only for question index ≥ 2 (`FIRST_ALTERNATIVE_QUESTION_INDEX`).
+- D9: `alternativeTexts` walked as the alternative's ordered parts, one repeat per part. Current
+  content has exactly one alternative per Q3–Q5, so behaviour on it is unchanged.
+- Extension decision on the whole answer to the question (`answerWords`/`answerSpeechS` summed over
+  answered parts). One verbatim repeat of an extension prompt. Extension cutoff at 240 s is
+  wall-clock and Exam Sim only.
+- No `TRANSITION` after an unanswered extension prompt or further question.
+- `AUTHORIZED_EXTENSION_PROMPTS` comment corrected: they are the notes' own example prompts (D16).
+- `SimulationSession` refuses to restore a pre-v4 snapshot (no `policy`/`partStartS`); ExamMode's
+  resume effect catches that and discards the snapshot. The proper resume guard (hash + engine
+  version, with a message) is Batch 3.
+- `SESSION_ENGINE_VERSION` `session-engine-v3` → `session-engine-v4`.
+
+**Projection fix (judge input).** A further question can now be repeated, and `buildFurtherTurns`
+previously opened a new `furtherN` turn at every examiner utterance, so a repeat would have produced
+a blank `further1` and pushed the answer to `further2`. A verbatim repeat of the open further
+question (null `questionId`, same canonical text) now continues that turn. New test fails without
+the fix (3 further turns instead of 2). Transcripts from `session-engine-v3` never contain such a
+repeat, so their projection is unchanged.
+
+**Known limitation, not changed:** with a multi-part alternative, `examinerSupport.alternativeAsked`
+still records only the alternative's first part (it lives in `toSpeakingTranscript`'s support
+derivation, read by the judge prompt). No current content has a multi-part alternative.
+
+**Existing tests updated:** `conductEngine.test.ts` (clock added to `driveStep`, advancing by each
+turn's duration; floor/C8 assertions read the clock; callback and memory tests removed with the
+feature; the failed-second-part test now asserts no `TRANSITION`), `simulationSession.test.ts`
+(parity test kept for role play only, plus per-mode policy, clock-driven floor, Coached no-further,
+pre-v4 snapshot refusal), `buildSessionTranscript.test.ts`, `scoreEndToEnd.test.ts` (version
+string), `ExamResults.test.tsx` (pass `clockS`).
+
+**Verified after the change:** `npm run typecheck` and `typecheck:server`: clean.
+`typecheck:scripts`: the same 3 pre-existing errors. `npm run lint`: 0 errors, same 22 warnings.
+`npm test`: 2351 tests, 2343 passed, 7 expected-fail (the Batch 3 UI repros), 1 failed (the same
+pre-existing `infer.test.ts`). `npm run score:golden`: 5/5, output byte-identical to the baseline
+run — no shape change. `npm run e2e:exam`: 4/4.
+
+## 2026-09-28 — 0520 conduct plan, Batch 3: exam flow/UI, and Batch 6: two-candidate hash match
+
+**Scope.** Session A landed Batches 0–2 (conduct rules spec + repro tests + the mode-aware v4
+engine, entry above). This session executed Batch 3 (exam flow and UI: the fixed 10:00 prep,
+hiding topics/the card before prep, topic announcements, the per-part countdown, the part-2 label,
+the `ExamIntro` rewrite, the resume guard, the 409 message) and Batch 6 (`server/resolveQuestionSet.ts`'s
+two-candidate hash match). Batches 4/5/7/8 (schema/lint/content/CI/docs sweep) are out of scope for
+this session.
+
+**Two engine changes landed here, not in Batch 2** (both flagged as "planned (Batch 3)" or decided
+after Batch 2 shipped, per the plan's own Batch 3 section):
+- **D5 revised: Coached Practice now always asks both authored further questions per topic, never
+  time-gated** (`checkFloorOrAdvancePart`, `conductEngine.ts`) — supersedes Batch 2's "Coached asks
+  none" before it reached `main`. Judge input effect: a Coached transcript now carries `further1`/
+  `further2` turns it never did before.
+- **D13: an in-role `TRANSITION` acknowledgement between answered role-play tasks**
+  (`advanceRolePlayWithTransition`), never crossing into topic 1 (that boundary is the UI's own
+  "role play finished" line, not an engine action). Judge input effect: none — `TRANSITION` carries
+  `questionId: null` and `buildRolePlayTasks`/`countRepetitions` in `toSpeakingTranscript.ts` only
+  ever query role-play entries by `questionId`, so these entries are simply never read (confirmed
+  by a new test asserting the projection is unaffected).
+
+Per the Assessment-Engine change procedure: `npm run score:golden` matches with no shape change
+(the 5 golden fixtures are fixed synthetic transcripts that never reach a further question or a
+role-play advance mid-task, so neither change is exercised by them — expected, per the plan's own
+note that `score:golden` can't show a conduct-only change). `SESSION_ENGINE_VERSION` stays
+`session-engine-v4` (Batch 2's version, not re-bumped — these are the same version's rules settling
+before `main`, not a second engine revision).
+
+**Audit #15 (repeat re-reads the currently-awaited part) — confirmed fixed, not re-fixed.** Added
+one regression test per repeatable part (role-play part 1, role-play part 2, a topic main question,
+a topic second part, and each part of a D9 multi-part alternative — extension prompts and further
+questions were already covered by Batch 2's own tests) to
+`session/__tests__/conductRules0520.test.ts`. All 7 passed against the unchanged v4 engine on the
+first run — no engine fix was needed here; role-play part 2 was already fixed in `session-engine-v3`
+(commit `d1b74c0`), and the rest were already correct in v4.
+
+**UI changes:**
+- `RolePlayCardPreview.tsx`: `PREP_SECONDS` 60 → 600 (10:00). Exam Sim: fixed countdown,
+  auto-advances at 0:00 (no "Begin" button); a "Start now" button is offered instead, which calls
+  `onBegin(earlyStart: true)`. Coached: untimed, plain "Begin", no countdown shown. Two-topic
+  reminder added to the card copy.
+- `attemptStatus.ts`: `earlyStart`/`resumed` added to `AttemptStatusInput`, each with its own
+  practice-only reason. `ExamMode.tsx` tracks both in refs (`earlyStartRef`, `resumedRef`, reset on
+  retake) and passes them into `countsTowardProgress` at `finishWithScore`. **Also had to pass both
+  through to `ExamResults.tsx`** — it independently recomputes `countsTowardProgress` from
+  `coached`+`transcript` alone for its own "doesn't count" banner (so the banner is right before
+  `ADD_SESSION`'s side effects run), and neither flag is recoverable from the transcript. Missing
+  this would have left the results banner silently wrong (showing "counts" when
+  `Session.practiceOnly` was actually `true`) — caught by a new `ExamResults.test.tsx` case before
+  it shipped.
+- `ExamSelect.tsx`: Exam Sim mode now renders a single "Start Exam Sim" button (the existing
+  uniform-random pick via `onAutoFallback`) and skips the remote-catalog fetch entirely; Coached
+  keeps the full picker (topic areas, sub-topics, role-play titles). `DailyChallenge.tsx`
+  (always Exam Sim) no longer previews the assigned set's title/scenario before prep.
+- `ExamIntro.tsx`: rewritten from set data — "Paper 3, Speaking" (not "Paper 4"), the real part
+  structure and timings (no "three minutes"/"general conversation"), mentions two topic
+  conversations and 10 minutes of preparation, never names a topic. Removed the "Hear the card
+  first" button, which duplicated the primary Start button's `onStart` call with no different
+  behavior.
+- `ExamRunner.tsx`: the header countdown now counts down from the CURRENT part's own start
+  (`partStartS`, derived from the `ConductLogEntry[]` already passed in — no new prop needed),
+  Exam Sim only; Coached shows no countdown. A two-part role-play task's part 2 gets its own
+  "· part 2" label (`isSecondPart`, counts `READ_MAIN` entries per `(part, questionId)`).
+- Topic/role-play announcements and the scene read aloud (audit #12, TN p.6 #5): `ExamMode.tsx`
+  now speaks the role-play `setup` aloud before rp1 (previously never spoken — only shown on the
+  card and in the `ExamRunner` header), and speaks an original French "role play finished" line
+  plus a topic-transition line at each part boundary (`announceIfPartChanged`, keyed off the
+  previous action's `part`). **Known, documented gap:** the topic-transition lines announce that a
+  new conversation is starting but do NOT name the actual sub-topic, since `AuthoredTopic.title`
+  doesn't exist yet (Batch 4 schema + Batch 5 content) — this is UI-only, unscored, outside the
+  ConductLog/hash/judge input either way.
+- Resume guard: `RunningSessionSnapshot` gained `questionSetHash`/`engineVersion`
+  (`localTranscriptStore.ts`); `ExamMode.tsx`'s resume effect hashes the freshly-resolved question
+  set and compares both fields before resuming, discarding (with a one-line banner on `ExamSelect`)
+  on a mismatch instead of mixing old/new content or running stale engine state.
+- 409 terminal message: `scoringApiClient.ts`'s new `terminalScoringMessage()` replaces a 409's raw
+  `"...hash does not match..."` server text with plain language ("this exam's questions were
+  updated... please retake"); every other terminal status still shows the server's own message.
+- `useRecording.ts`: `onend` now restarts the recognizer (keeping `finalTextRef`) when it fires
+  while still recording (`recogRef.current === recog`, i.e. nobody called `stop()`) instead of
+  silently ending the turn and dropping the rest of the answer — a real Bug 3 contributor per the
+  plan's Batch 3 section. Also moved `recogRef.current = null` to BEFORE calling `recog.stop()`
+  (was after) so the same `recogRef.current === recog` check reads correctly even when a
+  recognizer's `stop()` invokes `onend` synchronously (true of every fake recognizer in this
+  file's own test suite, and not excluded for real engines either).
+
+**Batch 6 — `server/resolveQuestionSet.ts`:** `resolveAndVerifyQuestionSet` now hashes BOTH
+candidates (remote and in-repo fixture, whichever exist) and accepts whichever matches the
+transcript's declared `questionSetHash`, instead of only ever trying the first-resolved candidate
+(remote-first) and failing permanently if the deploy has already updated one source but not the
+other. `resolveQuestionSet` (used everywhere else) is unchanged — still remote-first,
+fixture-fallback. New tests in `server/__tests__/resolveQuestionSet.test.ts` cover: fixture hash
+matches when the remote serves different content, remote hash matches when the fixture is stale,
+and the mismatch error still fires when neither matches.
+
+**Tests added/changed:** `session/__tests__/conductRules0520.test.ts` (D5 test rewritten for the
+revised policy; role-play prompt-count characterization updated to exclude `TRANSITION` entries
+from the "scripted prompts" count; new "audit #15" describe block, 7 tests); `conductEngine.test.ts`
+(role-play `driveOne`→`driveStep` at every call site where an advance now emits
+`[TRANSITION, READ_MAIN]`, i.e. everywhere except a second-part delivery or a failed-repeat
+advance; "never emits TRANSITION during role play" rewritten to assert the new, intended
+behaviour); `simulationSession.test.ts` (Coached further-question test rewritten for D5);
+`buildSessionTranscript.test.ts` (the `annotateExaminer` cross-check now matches by `utteranceId`,
+not array index, since `TRANSITION` utterances during role play break the old 1:1 index alignment);
+`ExamSelect.test.tsx`, `ExamIntro.test.tsx`, `ExamRunner.test.tsx` (Batch 1's 7 `it.fails` all
+flipped to normal, passing `it`s, plus new Coached-still-shows-catalog / "part 2" absent-when-
+first-time / Coached-no-countdown cases); `ExamResults.test.tsx` (2 new: `earlyStart`/`resumed`
+banners); `attemptStatus.test.ts` (2 new); `scoringApiClient.test.ts` (2 new: `terminalScoringMessage`);
+`useRecording.test.tsx` (1 new: onend-restarts-mid-recording); `resolveQuestionSet.test.ts` (3 new,
+Batch 6).
+
+**`e2e/exam.spec.ts` updated per the plan's §6:** `enterExam`'s Exam Sim path now clicks
+"Start Exam Sim" (no set grid) and "Start now" (not "Begin") — the full multi-turn flows use the
+practice-only escape hatch rather than driving Playwright's fake clock through the ENTIRE exam
+(examinerPacing's own real `setTimeout` waits, TTS, etc.), which would be a lot of surface to keep
+synchronized with a faked clock for no assertion gain, since D3 conduct itself doesn't change.
+Both full-flow tests' assertions updated accordingly (Sim now expects "practice mark" + the
+`earlyStart` reason; Coached gains a `further1`/`further2` presence assertion per D5, plus a loop
+cap raised 40→50 to fit the 4 extra always-asked further-question turns). A NEW, separate, short
+test (`Exam Sim prep countdown (D3)`) covers the real countdown path: `page.clock.install()`
+before navigation (a clock installed after `RolePlayCardPreview` already created its real,
+unfaked `setInterval` can't see or fast-forward it), then `runFor` (not `fastForward` — the latter
+jumps straight to the end and fires the interval once, which would never satisfy the component's
+`remainingS === 0` equality check) in two steps, confirming the on-screen countdown itself
+moves (`9:30` after 30s) before relying on it to auto-advance at 0:00 into a COUNTING (non-
+practice-only) running exam. **Verified: `npm run e2e:exam` — 5/5, including this new test
+(20.5s).**
+
+**Verified:** `npm run typecheck`, `npm run typecheck:server`: clean. `npm run typecheck:scripts`:
+the same 3 pre-existing errors (unrelated: `supabaseEnvelopeStore.test.ts`,
+`supabaseTranscriptStore.test.ts`). `npm run lint`: 0 errors, same 22 pre-existing warnings.
+`npm test`: 2374 tests, 2373 passed, 1 failed — the same pre-existing `infer.test.ts` floor
+failure (unrelated to this plan); zero expected-fails remain (all 7 from Batch 2 flipped to
+passing `it`s). `npm run score:golden`: 5/5, byte-identical to the Batch 2 baseline — no scoring
+shape change. `npm run e2e:exam`: 5/5 (see above).
+
+**Manual verification (the `run` skill):** one Exam Sim run and one Coached Practice run driven
+live — see the session's chat summary for what was observed; not re-transcribed here since it
+covers UI/UX impressions rather than a specific claim this log needs to preserve.
+
+**Known gaps carried forward, not fixed here (out of scope for Batches 3/6):** topic announcements
+don't name the actual sub-topic (needs Batch 4's `AuthoredTopic.title` + Batch 5 content); the
+candidate card has no English gloss in Coached (D14's "English instructions" half); Batches 4/5/7/8
+(schema/lint rules, the 10-set content rewrite, CI, and the doc/CLAUDE.md sweep for those) are
+untouched.
+
+## 2026-09-28 — 0520 conduct plan, Batches 4–5: question-bank rules and the 10-set content rewrite
+
+**Scope.** Batch 4 (schema + authoring rules) and Batch 5 (all 10 sets rewritten, fixture
+generator, originality check, G2 review sheet), across both repos on
+`claude/igcse-0520-conduct-rules-e4npbq`. No scoring code changed (`evidence/`, `judgement/`,
+`guardrails/`, `envelope/`, `rubric.ts`, `conductEngine.ts` untouched). What changes for scoring is
+the *content* new sessions run on, so the judge sees different questions and more two-part turns —
+intended, per the plan's "what 'don't change scoring' covers" note.
+
+**Rules (Batch 4).**
+- Runtime validator (`validate.ts`, fatal; mirrored in `backend/models/igcse.py`):
+  `topic-area-slot`, `alternative-on-q1-q2`, `roleplay-alternative`, `sub-topic-not-in-area` (closed
+  Syl p.14 enum, `SUB_TOPICS_BY_AREA`), plus required `AuthoredTopic.title` and
+  `rolePlay.examinerRegister` (both unhashed). The backend also gained topic/question tag agreement
+  and topic question `part` checks, which the TS validator already had.
+- Authoring-only pattern lint (`patternLint.ts`, run by `authoring:check`, D12): errors
+  `two-part-position`, `roleplay-two-part-count`, `q3-q5-time-frames`, `echo-choice`,
+  `trivial-closing`, `loaded-negative`; warnings `register-mismatch`, `yes-no-question`,
+  `assumed-experience`. `expectedTimeFrame` already had `future` and `conditional`, so
+  `q3-q5-time-frames` needed no hashed-tag change.
+- Corpus lint: `thin-sub-topic`, `duplicate-sub-topic-slot` (max 2 per slot),
+  `duplicate-area-subtopic-pair`; `cross-set-duplicate-alternative` now compares only an
+  alternative's first part (D9); pair coverage is keyed ordered topic1+topic2.
+- `lint.ts`'s `time-frame-monotony` warning now accepts a conditional as the forward frame (same as
+  `q3-q5-time-frames`). `check.ts`'s legacy-overlap exemption for 001 is removed.
+- Every new rule has a passing and a failing test (`patternLint.test.ts`, `validate.test.ts`,
+  `corpusLint.test.ts`; backend `tests/test_igcse_content.py`).
+
+**Content (Batch 5).** All 10 sets rewritten to the new `corpus-matrix.md` (ids kept, D11): topic 1
+always A/B, topic 2 always C/D/E, six legal area pairs, no sub-topic pair repeated, each role-play
+area twice, 5 *tu* / 5 *vous* role plays, 2–3 two-part role-play tasks among rp3–rp5, two-part
+topic questions only among Q3–Q5, alternatives keep the main question's shape. Every set's hash
+changed (first 12 hex): 001 `bf2f5f398fb3`, 002 `4644f9619e2c`, 003 `2274545efa8e`, 004
+`32d33b01c5af`, 005 `96e93375813c`, 006 `a19c8e5b7014`, 007 `24f5f2544818`, 008 `31f7277bf7cc`,
+009 `84789ef4ce99`, 010 `9737c22285cd`. `seed_igcse_questions.py --dry-run` computed the same ten
+hashes in Python, so the TS and Python canonicalizations still agree on the new content.
+- `review.status: approved` / `reviewedBy: internal:claude`, with notes saying G2 native-speaker
+  review and the originality check are PENDING — "do not seed or merge before" them. `approved` is
+  required for sets to load at all.
+- **Originality check NOT run against the notes.** `scripts/authoring/originalityCheck.ts` exists
+  and is tested (synthetic text; refuses paths inside either repo), but the Teacher's Notes PDF was
+  not available in this session's container, so there are no first-run/final findings yet.
+- G2 sheet: `docs/guides/review/0520-g2-review.md`, generated from the JSON with an English gloss
+  per line (`docs/guides/review/0520-g2-glosses.json`).
+
+**Other changes.** `ExamMode.tsx` now names each topic when its conversation starts, from
+`AuthoredTopic.title` (`src/screens/exam/examAnnouncements.ts`; closes Batch 3's documented §5
+gap). `conductRules0520.test.ts` updated to the new 001 shape (rp3–rp5 two-part; topic-1 Q3 and Q5
+two-part) — the Q1–Q2 "alternative anyway" case now uses a synthetic variant, since content can no
+longer carry one. No engine assertion changed meaning.
+
+**Verified.**
+- `npm run authoring:check` (no `--draft`): 0 errors, 0 warnings across 10 files.
+- `npm run authoring:parity`: 10/10 fixtures match the backend JSON.
+- `npm run typecheck`, `npm run typecheck:server`: clean. `npm run typecheck:scripts`: the same 3
+  pre-existing errors. `npm run lint`: 0 errors, the same 22 pre-existing warnings.
+- `npm test`: 2438 tests, 2437 passed, 1 failed — the same pre-existing `infer.test.ts` failure.
+- `npm run score:golden`: 5/5, output byte-identical to the pre-change baseline.
+- `npm run e2e:exam`: 5/5.
+- Backend `pytest tests/ -q`: 272 passed, 1 failed — `test_transcribe_endpoint.py::
+  test_transcribe_rejects_a_bogus_bearer_token` (503 vs 401), which fails identically on untouched
+  `main` (238 passed, 1 failed). `test_hash_question_set.py` is now collected (it had no `test_`
+  function). The new JSON also passes the pre-change pydantic model, so backend commit 1 is green
+  on its own.
+
+**Still needs a human.** G2 native-speaker review (required before seeding or merging); the
+originality run against the notes text; G3 teacher exam-realism review (optional).
+
+**Deploy-order consequence (found while checking the resolver).** `server/resolveQuestionSet.ts`
+drops a remote set that fails validation (`fetchPublishedSet` returns `null`), and the old seeded
+content fails the new validator (free-text sub-topics, no titles). So once this code is deployed,
+the pre-rewrite remote content is no longer a hash candidate. Re-seed the hosted content **before**
+deploying this commit: the pre-change TS validator and pydantic model both accept the new JSON
+(checked), so the live old build scores both old- and new-content sessions during that window.
+
+## 2026-09-28 — 0520 Batch 5 follow-up: originality check run against the Teacher's Notes
+
+**Scope.** The June 2026 0520/03 Teacher/Examiner Notes PDF was supplied after the entry above.
+It was extracted to text in the session scratchpad (outside both repos; never committed) and used
+for three things: the originality check, a manual comparison with the notes' scripts, and a check
+of the pattern-lint rules against the real cards and topics.
+
+**Originality check** (`scripts/authoring/originalityCheck.ts`, 5-gram overlap + line similarity
+≥0.6). First run: **41 findings** (33 five-gram, 8 similar-line) across all 10 sets. Most were
+common French frames ("qu'est-ce que tu …", "quand tu étais petit(e)", "C'était comment ?"), but
+every flagged item was rewritten. Final run: **0 findings**. A stricter self-check at ≥0.45 left
+only generic fragments ("Et les inconvénients ?", a title "Les loisirs").
+
+**Manual comparison found closer copies than the checker could see:**
+- 004's role play (a summer job at a campsite) and 010's (phoning a language school) mirrored two
+  notes cards' situations and question order, with different wording. Both were replaced with new
+  scenarios: a work placement in a sports shop (D) and a guided tour in Quebec (E).
+- Several topic questions mirrored a notes question plus its alternative (e.g. the job you wanted
+  as a child; an interesting vs a well-paid job; your ideal home; recycling this week; food at
+  celebrations; activities after an outing). All rewritten.
+- content-authoring §5 and corpus-matrix.md now say never to re-use a notes card's scenario, or a
+  topic question with its alternative, since the originality check only sees wording.
+
+**Pattern rules checked against the notes.** Across the 9 cards: 2–3 two-part tasks, always among
+rp3–rp5 (`two-part-position`, `roleplay-two-part-count` hold). Across the 7 topics: no alternative
+on Q1–Q2, alternatives on Q3–Q5 keeping the main question's shape, including multi-part ones (D9),
+and a past and a future/conditional among Q3–Q5 (`q3-q5-time-frames` holds). One rule was wrong:
+**every scenario is read in *vous*, even for friend roles**, so `register-mismatch` now expects
+`setup` in *vous* and applies `examinerRegister` to the tasks only. The five *tu* sets' setups
+were rewritten in *vous*. content-authoring §3 updated.
+
+**New hashes** (first 12 hex; Python seed dry-run and TS parity agree): 001 `30708da138d2`, 002
+`d362bfc8631a`, 003 `e48f9f1a94fe`, 004 `7e574ecc00cc`, 005 `718fe2610d9f`, 006 `57649524e1ae`,
+007 `0b10dc4e3bd0`, 008 `deb9d877753e`, 009 `ec3dd3ebc53c`, 010 `235516059200`. The pre-change TS
+validator and pydantic model still accept every revised set, so the re-seed-before-deploy order
+above still holds.
+
+**Verified.** `authoring:check` 0 errors/0 warnings; `authoring:parity` 10/10; typecheck and
+typecheck:server clean, typecheck:scripts the same 3 pre-existing errors; lint 0 errors/22
+pre-existing warnings; `npm test` 2439/2440 (the pre-existing `infer.test.ts` failure);
+`score:golden` 5/5 byte-identical to baseline; `e2e:exam` 5/5; backend pytest 272 passed, 1
+pre-existing failure. Review notes now record the originality check as clean; G2 native-speaker
+review remains PENDING.
+
+## 2026-09-29 — 0520 conduct plan, Batches 7–8: CI, backend CI root cause, duel-expiry SQL, docs
+
+**Batch 7 — `.github/workflows/ci.yml` (first frontend CI).** Checks out the public
+`RXcodeWalker/french-coach-backend` into `backend/` (same-named branch if `git ls-remote` finds it,
+else `main`), then `npm ci`, `typecheck`, `typecheck:server`, `lint`, `vitest run src/data/exam
+src/domain/igcse src/services/exam src/screens/exam`, `authoring:check`, `authoring:parity`.
+Reproduced locally first with `backend/` symlinked to the sibling clone: typecheck and
+typecheck:server clean; lint 0 errors / 22 pre-existing warnings; targeted vitest 93 files / 825 tests
+pass; `authoring:check` 0 errors / 0 warnings over 10 files; `authoring:parity` "All 10 fixture(s)
+match the backend JSON."
+
+**Full `npm test` — NOT widened into CI.** With `backend/` present: 2440 tests, 2439 pass, 1 fails —
+`src/domain/learn/demand/__tests__/infer.test.ts` "never produces a sufficientAnswer under the
+8-word validator floor across the real corpus". Cause: Learn question `ani_21` ("Est-ce que tu es
+allergique à des animaux ?") infers `sufficientAnswer` "A complete answer should: Discuss pet
+allergies." = 7 words. Not an exam-surface issue; reported, not skipped or patched here. (The other
+formerly-known failure, `feedbackContractFixtures`, passes once `backend/` exists.)
+`typecheck:scripts` and `score:golden` / `e2e:exam` are not in CI (unchanged; no engine code
+touched this batch).
+
+**Backend CI — root cause of `test_transcribe_rejects_a_bogus_bearer_token`.** It asserted 401 but got
+503. `lib/auth.py`'s `decode_supabase_jwt` raises 503 "Auth not configured on server" when neither
+`SUPABASE_JWT_SECRET` nor `SUPABASE_URL` is set, before it looks at the token. CI has no `.env`, so
+the 401 branch was unreachable; it only passed on machines with a `.env`. It is a test-setup bug,
+not a product bug (503-when-unconfigured is intended). Fix: the test now
+`monkeypatch.setattr(main, "SUPABASE_JWT_SECRET", …)` like the other auth tests. `env -u
+SUPABASE_JWT_SECRET -u SUPABASE_URL pytest tests/ -q`: 273 passed. Backend CI run 47 on the branch:
+success.
+
+**D11 — expire open duels (written, NOT run).** `backend/supabase/ops/expire_open_duels_at_deploy.sql`
+(outside `migrations/` on purpose). Read `20260814140000_phase2_duel_tables.sql` and
+`20260814140100_phase2_duel_rpcs.sql` first: open = `pending`/`accepted`; `expired` needs
+`completed_at`, no winner, `is_tie=false`. It sets those on open duels for `original-practice-%`
+sets, deliberately NOT via `resolve_expired_duel` (which would award a forfeit win + XP to a lone
+submitter). Has a preview query and ends in `ROLLBACK` until edited to `COMMIT`. Not exercised
+against any database.
+
+**Batch 8 — docs.** CLAUDE.md: added Known Traps for the UI-spoken role-play `setup` (unhashed,
+never a conduct-engine action) and for the exam-surface-only CI + its `backend/` dependency. The
+other Batch 8 items (mode-aware engine, wall-clock 3½-min rule, part 2 always asked, area-slot
+rule) were already present from Batches 2–5 and were left as they are. `docs/systems/topology.md`
+CI section and `docs/guides/development.md` suite 1 no longer say "no frontend CI". README does not
+describe the exam, so it is unchanged.
+
+## 2026-09-29 — G2 waived by owner; naturalness self-review pass over the 10 sets
+
+**Waiver.** The owner waived the G2 native-speaker review for `original-practice-001`–`010`. In all
+10 backend JSON sets `review.notes` had "G2 native-speaker review PENDING — do not seed or merge
+before it." replaced with "G2 waived by owner 2026-09-29; content is machine-authored and
+self-reviewed (G1)."; `reviewedAt` set to 2026-09-29. ADR 0008 got an "Amendment — 2026-09-29"
+section; `content-authoring.md` §14 step 6, §15 (table + a waiver paragraph) and §16 (new
+naturalness item) and the review-sheet header (`reviewSheet.ts` `G2_HEADER`, regenerated
+`docs/guides/review/0520-g2-review.md`, glosses for every changed line) were updated to match. The
+waiver is per set; G2 remains the gate for any new or changed set. The content is **not**
+native-reviewed.
+
+**Extra naturalness pass (G1), all 150 spoken items** (10 setups, 50 role-play tasks + second
+parts, 100 topic questions + second parts, alternatives and 40 further questions), read as an
+examiner would say them aloud. 23 lines changed (id: before → after):
+- 001 t2q5: "…comment sera le temps dans ta région…" → "…quel temps fera-t-il dans ta région dans cinquante ans ?"
+- 001 t2q5 alt: "…plus froid plus tard chez toi ?" → "Dans vingt ans, fera-t-il plus chaud ou plus froid chez toi ?"
+- 002 t1q5: "Quelle chose changerais-tu chez toi si c'était possible ?" → "Que changerais-tu chez toi si c'était possible ?"
+- 004 setup: "Je suis le/la responsable du magasin." → "Je suis responsable du magasin." (no slash form read aloud)
+- 004 further: "Que sais-tu sur un pays francophone ?" → "Que sais-tu d'un pays francophone ?"
+- 005 t1q5 alt: "Où vas-tu habiter plus tard ?" → "Où aimerais-tu habiter plus tard ?"
+- 005 t2q3 alt: "…à l'âge de sept ans ?" → "Quel magasin aimais-tu quand tu avais sept ans ?"
+- 005 t2q4 alt: "Quel endroit n'existe pas dans ta ville ?" → "Y a-t-il assez d'activités pour les jeunes dans ta ville ?"
+- 005 t2q5 alt: "Que voudrais-tu avoir de nouveau dans ta ville ?" → "Quel nouvel endroit voudrais-tu dans ta ville ?"
+- 006 t2q5: "…si tu pouvais faire n'importe lequel ?" → "Parmi tous les métiers, lequel choisirais-tu ?"
+- 006 further: "Que penses-tu du travail à la maison ?" (ambiguous: housework?) → "…du télétravail ?"
+- 007 t2q5: "…aimerais-tu vivre un jour ?" → "…aimerais-tu connaître un jour ?"
+- 008 rp4 part 2: "Pourquoi c'est important pour toi ?" (register mix) → "Pourquoi est-ce important pour toi ?"
+- 008 t1q3: "Raconte comment tu as préparé un repas toi-même." (assumed experience) → "Raconte-moi un repas que tu as préparé ou aidé à préparer."; part 2 and the alternative's part 2 "Qui t'a aidé(e) ?" (contradicted "toi-même") → "Qui était avec toi ?"
+- 008 t2q1/q2: "Qui sont tes voisins ?" → "Comment sont tes voisins ?"; q2 (now a duplicate) → "Comment est l'ambiance dans ton quartier ?"
+- 008 further: "…personnes âgées de son quartier ?" → "…de ton quartier ?"
+- 009 t1q1: "Comment es-tu de caractère ?" → "Comment est ton caractère ?"
+- 009 t1q4 alt part 2: "C'est important pour toi ?" → "Est-ce important pour toi ?"
+- 009 t2q5: "…si tu avais le pouvoir ?" → "Que ferais-tu pour protéger les animaux, si tu en avais le pouvoir ?"
+- 010 t1q3 alt part 2: "Il était comment ?" → "Comment était-il ?"
+- 010 further: "…pour les étudiants ?" → "…pour les jeunes ?"
+
+My first pass of these edits tripped `corpus-overused-stem` (over 3 sets for "Parle-moi d'un" and
+"Si tu"); three of the rewrites were re-phrased (008 t1q3, 002 t1q5, 006 t2q5, 009 t2q5) so the
+stems are back within the limit, rather than loosening the lint.
+
+**Gates after the pass:** `authoring:generate` (10 fixtures), `authoring:check` 0 errors / 0
+warnings, `authoring:parity` "All 10 fixture(s) match the backend JSON", targeted vitest 93 files /
+825 tests, `typecheck` clean, `lint` 0 errors / 22 pre-existing warnings, backend `pytest tests/` 273
+passed. All content hashes changed (as expected for any wording change; nothing is seeded yet).
+
+**Not re-run:** the local-only originality check. The Teacher's Notes text is not in this container,
+so the 23 rewritten lines were not re-checked against it; they are generic rewordings of earlier
+clean lines, but re-run `originalityCheck.ts` against your extraction before seeding.
+
+## 2026-09-29 — 0520 content: originality re-check after the naturalness pass
+
+Re-ran `scripts/authoring/originalityCheck.ts` against a text extraction of the June 2026
+Teacher's Notes (kept in the session scratchpad, outside both repos; not committed).
+
+- First run: 1 finding — `original-practice-008` `topic1.questions[2].mainText`, one shared
+  5-gram (a line reworded in the naturalness pass).
+- Fix: reworded that main question only (same meaning, time frame, two-part shape and
+  alternative). Gloss and G2 sheet regenerated.
+- Final run: 0 findings (0 five-gram, 0 similar-line).
+
+Gates after the fix: `authoring:generate` (10 fixtures), `authoring:check` 0 errors / 0
+warnings, `authoring:parity` 10/10, targeted vitest (`src/data/exam`, `src/domain/igcse`,
+`src/services/exam`, `src/screens/exam`, `server`) 853/853, `typecheck` clean, backend
+`pytest tests/ -q` 273 passed, `e2e:exam` 5/5.

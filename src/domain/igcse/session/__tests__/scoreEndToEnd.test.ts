@@ -69,7 +69,7 @@ function driveFullSession(): ConductLog {
     const turn = respond(
       `Réponse numéro ${guard} avec plusieurs mots pour dépasser le seuil de pertinence.`,
       12,
-      65, // long enough that 5 questions clears the ~4-min (210s) floor without further-questions
+      65, // long enough that each conversation passes the 3½-min (210 s) floor, so no further questions
     );
     entries.push(
       candidateTurnToLogEntry(turn, seq, clock, lastAction.part, lastAction.questionId, true),
@@ -77,7 +77,7 @@ function driveFullSession(): ConductLog {
     seq += 1;
     clock += turn.responseDurationS;
 
-    result = step(qs, state, { kind: 'candidateTurn', result: turn });
+    result = step(qs, state, { kind: 'candidateTurn', result: turn, clockS: clock });
     state = result.state;
     logActions();
   }
@@ -116,7 +116,7 @@ describe('S10 exit criterion: engine transcript -> scoreAttempt -> ScoringEnvelo
     expect(envelope.sessionId).toBe(SESSION_ID);
     expect(envelope.rolePlayTasks.length).toBe(5);
     expect(typeof envelope.total).toBe('number');
-    expect(envelope.transcriptVersion.assemblerVersion).toBe('session-engine-v3');
+    expect(envelope.transcriptVersion.assemblerVersion).toBe('session-engine-v4');
   });
 });
 
@@ -152,7 +152,7 @@ function driveFullSessionFor(questionSet: SessionQuestionSet, sessionId: string)
     seq += 1;
     clock += turn.responseDurationS;
 
-    result = step(questionSet, state, { kind: 'candidateTurn', result: turn });
+    result = step(questionSet, state, { kind: 'candidateTurn', result: turn, clockS: clock });
     state = result.state;
     logActions();
   }

@@ -76,10 +76,12 @@ export function lintAuthoredContent(content: AuthoredContent): LintIssue[] {
     ['topic2', content.topic2],
   ] as const) {
     const frames = new Set(topic.questions.map((q) => q.expectedTimeFrame).filter(Boolean));
-    if (!frames.has('past') || !frames.has('future')) {
+    // A conditional counts as the forward-looking frame, same as patternLint's
+    // q3-q5-time-frames ("a future or conditional question", TN pp.25–31 pattern).
+    if (!frames.has('past') || !(frames.has('future') || frames.has('conditional'))) {
       issues.push({
         code: 'time-frame-monotony',
-        message: `${topicPath} does not exercise both a past and a future time frame across its 5 questions`,
+        message: `${topicPath} does not exercise both a past and a future/conditional time frame across its 5 questions`,
         path: topicPath,
       });
     }

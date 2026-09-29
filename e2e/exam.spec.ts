@@ -92,6 +92,22 @@ async function submitSpokenAnswer(page: Page, text: string) {
   await page.waitForTimeout(150);
 }
 
+/**
+ * D3/D4 (0520 conduct plan, Batch 3): Exam Sim no longer offers set picking
+ * (a single "Start Exam Sim" button instead — the set is chosen for the
+ * candidate) and the role-play prep card is a real 10:00 countdown, not a
+ * Begin button.
+ *
+ * These full-exam flows use the "Start now" escape hatch rather than
+ * fast-forwarding the real countdown — driving 600 fake-clock ticks through
+ * the rest of a multi-turn exam (examinerPacing's own real setTimeout waits,
+ * TTS, etc.) is a lot of surface to keep synchronized with a faked clock for
+ * no assertion gain here, since D3 conduct itself doesn't change. "Start now"
+ * makes the attempt practice-only (D3), which the assertions below now
+ * expect. The real 10:00 countdown path (page.clock driving the component's
+ * own setInterval, then auto-advancing at 0:00 into a COUNTING attempt) is
+ * covered on its own, much shorter, in the dedicated test below.
+ */
 async function enterExam(page: Page, mode: 'sim' | 'coached') {
   await page.goto('/exam');
   await skipOnboardingIfShown(page);
@@ -99,17 +115,59 @@ async function enterExam(page: Page, mode: 'sim' | 'coached') {
 
   if (mode === 'coached') {
     await page.getByRole('button', { name: /Coached Practice/ }).click({ force: true });
+    await page.locator('.grid button').first().click({ force: true });
+  } else {
+    await clickButton(page, 'Start Exam Sim');
   }
 
-  await page.locator('.grid button').first().click({ force: true });
   await page.waitForTimeout(600);
   await clickButton(page, /Je suis prêt/);
   await page.waitForTimeout(800);
   await clickButton(page, 'Start exam');
   await page.waitForTimeout(800);
-  await clickButton(page, 'Begin');
+
+  if (mode === 'sim') {
+    await clickButton(page, 'Start now');
+  } else {
+    await clickButton(page, 'Begin');
+  }
   await page.waitForTimeout(800);
 }
+
+test.describe('Exam Sim prep countdown (D3)', () => {
+  test('the real 10:00 countdown runs down and auto-advances at 0:00 — a COUNTING attempt, not "Start now"', async ({ page }) => {
+    // Installed before navigation (Playwright's documented pattern) so the
+    // fake clock is in place before RolePlayCardPreview's setInterval is ever
+    // created — a clock installed after that point can't see, or fast-forward,
+    // a timer the real (unfaked) window.setInterval already scheduled. No
+    // pauseAt: the clock auto-ticks with real time until explicitly advanced.
+    await page.clock.install();
+    await page.goto('/exam');
+    await skipOnboardingIfShown(page);
+    await page.waitForSelector('text=Choose an Exam', { timeout: 15000 });
+    await clickButton(page, 'Start Exam Sim');
+    await page.waitForTimeout(600);
+    await clickButton(page, /Je suis prêt/);
+    await page.waitForTimeout(800);
+    await clickButton(page, 'Start exam');
+    await page.waitForTimeout(800);
+
+    await page.waitForSelector('text=Role play card · preparation', { timeout: 8000 });
+
+    // runFor (not fastForward) is what actually fires the component's
+    // setInterval tick-by-tick, rather than jumping straight to the end and
+    // firing the interval once — confirmed here by the on-screen countdown
+    // itself moving, not just by the eventual auto-advance.
+    await page.clock.runFor(30_000);
+    await page.waitForSelector('text=9:30', { timeout: 4000 }); // 10:00 - 0:30
+
+    await page.clock.runFor(570_000); // the remaining 9:30, down to 0:00
+
+    // Auto-advanced into the running exam with no "Start now"/Begin click.
+    await page.waitForSelector('text=Role play card · preparation', { state: 'detached', timeout: 8000 });
+    await expect(page.getByRole('button', { name: 'End exam' })).toBeVisible({ timeout: 8000 });
+  });
+});
 
 test.describe('Exam Sim (spoken)', () => {
   test.beforeEach(async ({ page }) => {
@@ -125,6 +183,9 @@ test.describe('Exam Sim (spoken)', () => {
     let shortAnswerSubmitted = false;
     let extensionAsserted = false;
 
+    // exam-conduct §7/§9 (D13): a role-play advance can now also emit an
+    // in-role TRANSITION, but that's an extra EXAMINER action, not an extra
+    // candidate turn — this loop counts turns, so the cap is unchanged by D13.
     for (let i = 0; i < 45; i++) {
       const before = await bodyText(page);
       if (before.includes('Review Your Transcript')) break;
@@ -165,7 +226,9 @@ test.describe('Exam Sim (spoken)', () => {
     await page.waitForSelector('text=Practice Session Complete', { timeout: 20000 });
     const results = await bodyText(page);
     expect(results).toContain('/40');
-    expect(results.toLowerCase()).not.toContain('practice mark');
+    // D3 (Batch 3): entering via "Start now" makes this attempt practice-only.
+    expect(results.toLowerCase()).toContain('practice mark');
+    expect(results).toContain('You started before the preparation time was over');
 
     // Subtotal labels (Step 6): /2 per role-play task, /10 subtotal, /15 per criterion.
     expect(results).toMatch(/2\/2/);
@@ -195,10 +258,12 @@ test.describe('Coached Practice (typed + edited)', () => {
     }
 
     // Role play (up to 6 turns — rp3 is two-part), then topic1+topic2 with
-    // typed, developed answers (avoids extension/further-question detours
-    // here — those conduct paths are already asserted in the Exam Sim test
-    // above) until the review screen.
-    for (let i = 0; i < 40; i++) {
+    // typed, developed answers (avoids extension detours here — that conduct
+    // path is already asserted in the Exam Sim test above). D5 (Batch 3):
+    // Coached now always asks both authored further questions per topic,
+    // never time-gated, so this loop budgets 4 extra turns (2 topics x 2
+    // further questions) beyond the pre-D5 cap.
+    for (let i = 0; i < 50; i++) {
       const current = await bodyText(page);
       if (current.includes('Review Your Transcript')) break;
       const answer = /TOPIC CONVERSATION/.test(current)
@@ -220,6 +285,12 @@ test.describe('Coached Practice (typed + edited)', () => {
     expect(results.toLowerCase()).toContain('practice mark');
     expect(results.toLowerCase()).toContain('doesn');
     expect(results.toLowerCase()).toContain('coached practice');
+
+    // D5 (Batch 3): Coached always asks both authored further questions per
+    // topic (not time-based) — their answers must still reach the panel.
+    await clickButton(page, 'Turn-by-Turn Breakdown');
+    const withTurns = await bodyText(page);
+    expect(withTurns).toMatch(/further1|further2/i);
 
     // History tag: navigate to the Progress screen's History tab directly.
     // domcontentloaded, not the default 'load' — a lingering background poll

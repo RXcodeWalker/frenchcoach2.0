@@ -19,8 +19,47 @@ import type { TimeFrame } from '../../../domain/igcse/evidence/types';
 
 export type TopicArea = 'A' | 'B' | 'C' | 'D' | 'E';
 
-/** Free-form within a topic area; validator requires non-empty. */
-export type SubTopic = string;
+/**
+ * The closed sub-topic list per topic area, from the 0520 syllabus 2025–27
+ * (Syl p.14; exam-conduct §22). The syllabus lists these as examples of what
+ * each area covers; the app uses them as its closed `subTopic` vocabulary so a
+ * conversation is always declared against one real sub-topic, and the
+ * validator can check it belongs to the topic's area (`sub-topic-not-in-area`).
+ * Strings are the syllabus's own English headings, verbatim.
+ */
+export const SUB_TOPICS_BY_AREA = {
+  A: ['Time expressions', 'Food and drink', 'The human body and health', 'Travel and transport'],
+  B: ['Self, family and friends', 'In the home', 'Colours', 'Clothes and accessories', 'Leisure time'],
+  C: [
+    'People and places',
+    'The natural world, the environment, the climate and the weather',
+    'Communications and technology',
+    'The built environment',
+    'Measurements',
+    'Materials',
+  ],
+  D: ['Education', 'Work'],
+  E: ['Countries, nationalities and languages', 'Culture, customs, faiths and celebrations'],
+} as const satisfies Record<TopicArea, readonly string[]>;
+
+export type SubTopic = (typeof SUB_TOPICS_BY_AREA)[TopicArea][number];
+
+/**
+ * Syllabus sub-topics too thin to carry a 4-minute conversation on their own.
+ * Valid `subTopic` values (they're in the syllabus), but never a standalone
+ * topic — enforced authoring-side by corpusLint's `thin-sub-topic`, never at
+ * runtime (see docs/guides/corpus-matrix.md).
+ */
+export const THIN_SUB_TOPICS: readonly SubTopic[] = ['Time expressions', 'Colours', 'Measurements', 'Materials'];
+
+/** Topic conversation 1 draws from A or B; topic conversation 2 from C, D or E (TN p.3, Syl p.19; exam-conduct §21). */
+export const TOPIC_SLOT_AREAS: Readonly<Record<'topic1' | 'topic2', readonly TopicArea[]>> = {
+  topic1: ['A', 'B'],
+  topic2: ['C', 'D', 'E'],
+};
+
+/** How the examiner addresses the candidate in the role play (TN pp.16–24 pattern): friend roles tu, stranger/official roles vous. */
+export type ExaminerRegister = 'tu' | 'vous';
 
 export type Difficulty = 'foundation' | 'core' | 'higher';
 
@@ -44,7 +83,15 @@ export interface AuthoredQuestion {
   questionId: string;
   part: SessionPart;
   mainText: string;
-  /** Topic Q3–Q5 MUST be non-empty — enforced by the validator, not the type. */
+  /**
+   * The alternative question's **ordered parts** (D9, exam-conduct §13) — not a
+   * list of separate alternatives. The engine asks `[0]`, waits for an answer,
+   * then `[1]`, the same way a main question's second part works; a two-part
+   * main question's alternative keeps the two-part shape.
+   *
+   * Topic Q3–Q5 MUST be non-empty; topic Q1–Q2 and role-play tasks MUST be
+   * empty (TN p.6, p.7) — all enforced by the validator, not the type.
+   */
   alternativeTexts: string[];
   /** Required for topic questions; role-play tasks carry the set-level topicArea instead. */
   topicArea?: TopicArea;
@@ -68,6 +115,13 @@ export interface RolePlayScenario {
   topicArea: TopicArea;
   title: string;
   /**
+   * How the examiner addresses the candidate, set by the examiner's role
+   * (content-authoring §3). Unhashed, like `setup`: it never reaches
+   * SessionQuestionSet. Checked authoring-side only (patternLint's
+   * `register-mismatch` warning).
+   */
+  examinerRegister: ExaminerRegister;
+  /**
    * French scene-setting paragraph: who the candidate is, the situation, and
    * who the examiner plays ("Je suis…"). Spoken by the examiner and shown on
    * the candidate prep card; NOT projected into SessionQuestionSet (UI layer
@@ -81,6 +135,13 @@ export interface RolePlayScenario {
 export interface AuthoredTopic {
   topicArea: TopicArea;
   subTopic: SubTopic;
+  /**
+   * Short French name of the conversation's subject, spoken by the UI when the
+   * conversation starts (TN p.7 #12, p.8 #17; exam-conduct §5). Unhashed, like
+   * `setup`: never projected into SessionQuestionSet, so it never enters the
+   * content hash, the ConductLog or the judge input.
+   */
+  title: string;
   /** Validator: exactly 5 (Q1..Q5), every question.part matches the topic slot. */
   questions: AuthoredQuestion[];
   /** Extends the existing SessionQuestionSet.furtherQuestions tuple guard. */

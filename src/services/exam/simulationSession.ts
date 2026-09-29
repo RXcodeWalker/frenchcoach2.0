@@ -65,6 +65,18 @@ export interface SimulationSessionSnapshot {
   currentAction: ExaminerAction;
 }
 
+/**
+ * A snapshot saved by an older engine (session-engine-v3 or earlier) has no
+ * conduct policy or topic start times, so v4 logic can't safely continue it.
+ * Throwing here lands in ExamMode's resume effect, which discards the snapshot.
+ */
+function assertCurrentEngineState(state: ConductEngineState): void {
+  const fields = state as Partial<ConductEngineState>;
+  if (fields.policy === undefined || fields.partStartS === undefined) {
+    throw new Error('SimulationSession: snapshot was saved by an older session engine and cannot be resumed');
+  }
+}
+
 function wordCount(text: string): number {
   const trimmed = text.trim();
   return trimmed.length === 0 ? 0 : trimmed.split(/\s+/).length;
@@ -89,10 +101,10 @@ export class SimulationSession {
     callbacks: SimulationSessionCallbacks = {},
     /**
      * W1: Coached Practice (rail live every turn) vs Exam Sim (rail sealed
-     * until submission) — see the exam-overhaul plan's "Decisions locked"
-     * section. Read only by the caller (W3's rail gating); never passed to
-     * conductEngine/startConduct/step, so it cannot influence the deterministic
-     * ConductLog — see simulationSession.test.ts's conduct-parity test.
+     * until submission). Also the engine's ConductPolicy: Coached has no time
+     * rules — no further questions, no time-based extension cutoff
+     * (docs/systems/exam-conduct-0520.md §24). Role-play conduct is identical in
+     * both modes.
      */
     coached: boolean = false,
     /** W7: reload-resume — when set, restores state instead of starting fresh. Do not call begin() when resuming; the caller already has a currentAction to display. */
@@ -104,12 +116,13 @@ export class SimulationSession {
     this.callbacks = callbacks;
     this._coached = coached;
     if (resumeFrom) {
+      assertCurrentEngineState(resumeFrom.engineState);
       this.engineState = resumeFrom.engineState;
       this.entries.push(...resumeFrom.entries);
       this.seq = resumeFrom.seq;
       this.currentAction = resumeFrom.currentAction;
     } else {
-      this.engineState = initConductEngineState(questionSet);
+      this.engineState = initConductEngineState(questionSet, { mode: coached ? 'coached' : 'examSim' });
     }
   }
 
@@ -207,6 +220,7 @@ export class SimulationSession {
     const result = step(this.questionSet, this.engineState, {
       kind: 'candidateTurn',
       result: candidateResult,
+      clockS: this.getClockS(),
       ...(conductHint ? { conductHint } : {}),
     });
     this.engineState = result.state;

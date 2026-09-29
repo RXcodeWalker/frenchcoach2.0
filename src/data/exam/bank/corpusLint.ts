@@ -12,6 +12,7 @@
 
 import { canonicalizeForMatch } from '../../../domain/igcse/text/normalize';
 import { tokenSetSimilarity } from './lint';
+import { THIN_SUB_TOPICS } from './types';
 import type { AuthoredQuestionSet, TargetStructure } from './types';
 import type { TimeFrame } from '../../../domain/igcse/evidence/types';
 
@@ -35,6 +36,8 @@ export interface CorpusLintReport {
 
 const DUPLICATE_SIMILARITY_THRESHOLD = 0.8;
 const OVERUSED_STEM_THRESHOLD = 3; // a stem appearing in > N sets is corpus-overused
+/** docs/guides/corpus-matrix.md: a sub-topic appears at most twice per topic slot. */
+const MAX_SUB_TOPIC_PER_SLOT = 2;
 
 interface TextItem {
   setId: string;
@@ -75,9 +78,13 @@ function alternativeTextItems(sets: AuthoredQuestionSet[]): TextItem[] {
       ['topic2', set.content.topic2],
     ] as const) {
       topic.questions.forEach((q, i) => {
-        q.alternativeTexts.forEach((alt, j) => {
-          items.push({ setId: set.questionSetId, path: `${topicPath}.questions[${i}].alternativeTexts[${j}]`, text: alt });
-        });
+        // Only the alternative's first part (D9: alternativeTexts is the
+        // alternative's ordered parts). Later parts are short follow-ups
+        // ("Pourquoi ?", "C'était comment ?") that repeat across sets by design.
+        const first = q.alternativeTexts[0];
+        if (first !== undefined) {
+          items.push({ setId: set.questionSetId, path: `${topicPath}.questions[${i}].alternativeTexts[0]`, text: first });
+        }
       });
     }
   }
@@ -170,6 +177,59 @@ function legacyBankOverlap(sets: AuthoredQuestionSet[], legacyTexts: readonly st
   return issues;
 }
 
+/**
+ * docs/guides/corpus-matrix.md rules on the sub-topic matrix: thin sub-topics
+ * are never standalone topics, a sub-topic appears at most twice per slot,
+ * and no two sets share the same topic1+topic2 sub-topic pair.
+ */
+function subTopicMatrix(sets: AuthoredQuestionSet[]): CorpusLintIssue[] {
+  const issues: CorpusLintIssue[] = [];
+  const slotCounts = { topic1: new Map<string, string[]>(), topic2: new Map<string, string[]>() };
+  const pairs = new Map<string, string[]>();
+
+  for (const set of sets) {
+    for (const topicPath of ['topic1', 'topic2'] as const) {
+      const sub = set.content[topicPath].subTopic;
+      if ((THIN_SUB_TOPICS as readonly string[]).includes(sub)) {
+        issues.push({
+          code: 'thin-sub-topic',
+          message: `${topicPath}.subTopic "${sub}" is too thin to carry a 4-minute conversation on its own`,
+          setId: set.questionSetId,
+          path: `${topicPath}.subTopic`,
+        });
+      }
+      const bucket = slotCounts[topicPath];
+      bucket.set(sub, [...(bucket.get(sub) ?? []), set.questionSetId]);
+    }
+    const pairKey = `${set.content.topic1.subTopic} + ${set.content.topic2.subTopic}`;
+    pairs.set(pairKey, [...(pairs.get(pairKey) ?? []), set.questionSetId]);
+  }
+
+  for (const topicPath of ['topic1', 'topic2'] as const) {
+    for (const [sub, setIds] of slotCounts[topicPath]) {
+      if (setIds.length > MAX_SUB_TOPIC_PER_SLOT) {
+        issues.push({
+          code: 'duplicate-sub-topic-slot',
+          message: `${topicPath} sub-topic "${sub}" is used in ${setIds.length} sets (max ${MAX_SUB_TOPIC_PER_SLOT})`,
+          setId: [...setIds].sort().join(','),
+          path: `${topicPath}.subTopic`,
+        });
+      }
+    }
+  }
+  for (const [pair, setIds] of pairs) {
+    if (setIds.length > 1) {
+      issues.push({
+        code: 'duplicate-area-subtopic-pair',
+        message: `topic1+topic2 sub-topic pair "${pair}" is used by ${setIds.length} sets`,
+        setId: [...setIds].sort().join(','),
+        path: 'content',
+      });
+    }
+  }
+  return issues;
+}
+
 function coverageDiagnostics(sets: AuthoredQuestionSet[]): CorpusCoverageDiagnostic[] {
   const diagnostics: CorpusCoverageDiagnostic[] = [];
 
@@ -181,8 +241,8 @@ function coverageDiagnostics(sets: AuthoredQuestionSet[]): CorpusCoverageDiagnos
   const difficultyCounts = new Map<string, number>();
 
   for (const set of sets) {
-    const areas = [set.content.topic1.topicArea, set.content.topic2.topicArea].sort();
-    const pairKey = areas.join('+');
+    // Ordered topic1+topic2: with the topic-area-slot rule there are six legal pairs (A/B + C/D/E).
+    const pairKey = `${set.content.topic1.topicArea}+${set.content.topic2.topicArea}`;
     pairCounts.set(pairKey, (pairCounts.get(pairKey) ?? 0) + 1);
 
     const rpArea = set.content.rolePlay.topicArea;
@@ -206,7 +266,7 @@ function coverageDiagnostics(sets: AuthoredQuestionSet[]): CorpusCoverageDiagnos
   }
 
   for (const [pair, count] of [...pairCounts.entries()].sort()) {
-    diagnostics.push({ code: 'corpus-pair-coverage', message: `topic-area pair "${pair}" appears in N sets`, value: `${pair}:${count}` });
+    diagnostics.push({ code: 'corpus-pair-coverage', message: `topic1+topic2 area pair "${pair}" appears in N sets`, value: `${pair}:${count}` });
   }
   for (const [area, count] of [...rolePlayAreaCounts.entries()].sort()) {
     diagnostics.push({ code: 'corpus-roleplay-area-coverage', message: `role-play area "${area}" count`, value: `${area}:${count}` });
@@ -237,6 +297,7 @@ export function lintCorpus(sets: AuthoredQuestionSet[], legacyBankTexts: readonl
     ...crossSetDuplicates(furtherQuestionTextItems(sets), 'cross-set-duplicate-further-question'),
     ...rolePlayNearDuplicates(sets),
     ...overusedStems(mainTextItems(sets)),
+    ...subTopicMatrix(sets),
   ];
   if (legacyBankTexts.length > 0) {
     issues.push(...legacyBankOverlap(sets, legacyBankTexts));

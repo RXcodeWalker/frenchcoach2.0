@@ -1,15 +1,21 @@
 /**
- * W1 session-model tests: the `coached` flag and per-turn `inputMode` are pure
- * plumbing on SimulationSession — `coached` must never reach conductEngine
- * (see the exam-overhaul plan's Invariant 1: "the rail is not a fourth
- * scoring layer"), and `inputMode` must thread through unchanged into the
- * built SessionTranscript's candidate utterances.
+ * W1 session-model tests: `coached` selects the engine's ConductPolicy
+ * (docs/systems/exam-conduct-0520.md §24 — Coached has no time-BASED gating,
+ * but always asks both authored further questions, D5), the session clock
+ * reaches the engine on every turn, and `inputMode` threads through unchanged
+ * into the ConductLog's candidate entries.
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { SimulationSession } from '../simulationSession';
 import type { SimulationTurnInput } from '../simulationSession';
 import { ORIGINAL_QUESTION_SET_1 } from '../../../data/exam/originalQuestionSets';
+
+// The driver's inter-action pauses are real timers; they don't affect conduct, so skip them.
+vi.mock('../examinerPacing', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../examinerPacing')>()),
+  wait: () => Promise.resolve(),
+}));
 
 const qs = ORIGINAL_QUESTION_SET_1;
 
@@ -56,11 +62,50 @@ describe('SimulationSession — coached flag / inputMode plumbing (W1)', () => {
     vi.unstubAllGlobals();
   });
 
-  it('produces a byte-identical ConductLog for coached:true and coached:false given the same scripted turns', async () => {
+  it('role-play conduct is identical in both modes: same ConductLog for coached:true and coached:false', async () => {
     const coachedLog = await driveScript(true);
     const uncoachedLog = await driveScript(false);
 
     expect(JSON.stringify(coachedLog)).toBe(JSON.stringify(uncoachedLog));
+  });
+
+  it('passes the mode to the engine as its ConductPolicy', async () => {
+    const sim = new SimulationSession('s-sim', qs, () => 0, {}, false);
+    const coached = new SimulationSession('s-coached', qs, () => 0, {}, true);
+    await sim.begin();
+    await coached.begin();
+    expect(sim.getSnapshot().engineState.policy).toEqual({ mode: 'examSim' });
+    expect(coached.getSnapshot().engineState.policy).toEqual({ mode: 'coached' });
+  });
+
+  /** Drives role play + topic 1 with developed answers, `gapS` of session clock per turn; returns the FURTHER_QUESTIONs asked in topic 1. */
+  async function topic1FurtherQuestions(coached: boolean, gapS: number) {
+    const clock = makeClock();
+    const session = new SimulationSession('floor-session', qs, clock.now, {}, coached);
+    await session.begin();
+    let guard = 0;
+    while (session.action?.part !== 'topic2' && guard++ < 40) {
+      clock.advance(gapS);
+      await session.submitTurn({
+        transcript: "Je joue souvent au tennis avec mon frère le samedi parce que c'est amusant.",
+        responseDurationS: 5,
+        requestedRepeat: false,
+      });
+    }
+    return session.getConductLog().entries.filter(
+      (e) => e.kind === 'examiner' && e.action === 'FURTHER_QUESTION' && e.part === 'topic1',
+    );
+  }
+
+  it('examSim: measures the 3½-min floor on the session clock, not the candidate\'s speaking time (exam-conduct §16)', async () => {
+    // 5 s of speech per answer either way; only the clock between turns differs.
+    expect(await topic1FurtherQuestions(false, 10)).toHaveLength(2); // ~1 min conversation
+    expect(await topic1FurtherQuestions(false, 50)).toHaveLength(0); // ~5 min conversation
+  });
+
+  it('coached (D5, Batch 3): always asks both further questions, not time-gated', async () => {
+    expect(await topic1FurtherQuestions(true, 10)).toHaveLength(2); // ~1 min conversation
+    expect(await topic1FurtherQuestions(true, 50)).toHaveLength(2); // ~5 min conversation — still asked
   });
 
   it('exposes `coached` via a read-only getter, defaulting to false when omitted', () => {
@@ -92,6 +137,17 @@ describe('SimulationSession — reload-resume snapshot (W7)', () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
+  });
+
+  it('refuses to resume a snapshot saved by an older engine (no ConductPolicy / topic start times)', async () => {
+    const session = new SimulationSession('old-engine', qs, () => 0);
+    await session.begin();
+    const snapshot = session.getSnapshot();
+    const { policy: _policy, partStartS: _partStartS, ...v3EngineState } = snapshot.engineState;
+    void _policy;
+    void _partStartS;
+    const v3Snapshot = { ...snapshot, engineState: v3EngineState as typeof snapshot.engineState };
+    expect(() => new SimulationSession('old-engine', qs, () => 0, {}, false, v3Snapshot)).toThrow(/older session engine/);
   });
 
   it('getSnapshot() throws before begin() — nothing to resume from yet', () => {

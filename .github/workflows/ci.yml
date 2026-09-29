@@ -1,0 +1,64 @@
+name: CI
+
+# The first frontend CI in this repo. Scope is deliberately the exam surface
+# (docs/systems/topology.md, "CI"): typecheck, lint, the targeted vitest suites,
+# and the question-bank checks against the backend repo's JSON. The full
+# `npm test` is NOT run: src/domain/learn/demand/__tests__/infer.test.ts has a
+# known pre-existing failure (Learn question ani_21's inferred sufficientAnswer
+# is 7 words, under the 8-word floor). Widen to `npm test` once that is fixed.
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      # backend/ is a separate, public repo (see CLAUDE.md). authoring:check and
+      # authoring:parity read backend/data/igcse; a few tests read backend/tests
+      # fixtures. Use the same-named branch when it exists, otherwise main.
+      - name: Pick the backend ref
+        id: backend_ref
+        env:
+          BRANCH: ${{ github.head_ref || github.ref_name }}
+        run: |
+          if git ls-remote --exit-code --heads https://github.com/RXcodeWalker/french-coach-backend "$BRANCH" >/dev/null 2>&1; then
+            echo "ref=$BRANCH" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=main" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        with:
+          repository: RXcodeWalker/french-coach-backend
+          ref: ${{ steps.backend_ref.outputs.ref }}
+          path: backend
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - name: Typecheck (app)
+        run: npm run typecheck
+      - name: Typecheck (server)
+        run: npm run typecheck:server
+      - name: Lint
+        run: npm run lint
+      - name: Exam-surface tests
+        run: npx vitest run src/data/exam src/domain/igcse src/services/exam src/screens/exam
+      - name: Question-bank authoring check
+        run: npm run authoring:check
+      - name: Fixture / backend JSON parity
+        run: npm run authoring:parity

@@ -17,11 +17,13 @@ Depth 2. Four live categories, one archive.
 - `systems/assessment-engine.md` — the three-layer scoring pipeline and the three-scorer situation
 - `systems/data-model.md` — the Supabase privilege rule, economy invariant, session-binding pattern, and gotchas (not a table/RPC catalogue)
 - `systems/child-safety-consent.md` — the three-concept consent separation, the guardian_consents/age_band data model, the RPC contracts, and client enforcement (Phase 1.6 Part C)
+- `systems/exam-conduct-0520.md` — the Cambridge 0520/03 examiner conduct rules and the Exam Sim / Coached mode split (§-numbered, cited as `exam-conduct §N` — do not renumber)
 - `guides/content-authoring.md` — content-authoring rules for the question bank
+- `guides/review/` — generated G2 review sheet (`0520-g2-review.md`) and its English glosses source; regenerate, never hand-edit
 - `guides/corpus-matrix.md` — corpus coverage rules
 - `guides/learn-demands.md` — Learn demand-tagging rules
 - `guides/development.md` — commands, the three test suites, the Assessment-Engine change procedure
-- `decisions/0001-cambridge-0520-only.md` through `0006-under-13-guardian-consent-model.md` — ADRs
+- `decisions/0001-cambridge-0520-only.md` through `0008-exam-content-modeled-on-tn-structure.md` — ADRs
 - `archive/` — historical documents; see `archive/README.md`
 
 ## Authority model
