@@ -986,8 +986,8 @@ _Setup (read aloud by the examiner):_ Vous êtes en France chez votre ami(e) Cam
   *EN: Which food do you never eat?*  
   _area=A · subTopic="Food and drink" · difficulty=foundation · timeFrame=present · structures=[present, negation] · partsExpected=1_  
 
-**Q3.** Raconte-moi un repas que tu as préparé ou aidé à préparer.  
-  *EN: Tell me about a meal you prepared or helped to prepare.*  
+**Q3.** Raconte-moi une fois où tu as aidé à préparer à manger.  
+  *EN: Tell me about a time you helped to prepare food.*  
   ↳ *(second part)* Qui était avec toi ?  
   *EN: Who was with you?*  
   _area=A · subTopic="Food and drink" · difficulty=core · timeFrame=past · structures=[perfect] · partsExpected=2_  

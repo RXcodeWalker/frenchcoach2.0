@@ -2660,3 +2660,19 @@ passed. All content hashes changed (as expected for any wording change; nothing 
 **Not re-run:** the local-only originality check. The Teacher's Notes text is not in this container,
 so the 23 rewritten lines were not re-checked against it; they are generic rewordings of earlier
 clean lines, but re-run `originalityCheck.ts` against your extraction before seeding.
+
+## 2026-09-29 — 0520 content: originality re-check after the naturalness pass
+
+Re-ran `scripts/authoring/originalityCheck.ts` against a text extraction of the June 2026
+Teacher's Notes (kept in the session scratchpad, outside both repos; not committed).
+
+- First run: 1 finding — `original-practice-008` `topic1.questions[2].mainText`, one shared
+  5-gram (a line reworded in the naturalness pass).
+- Fix: reworded that main question only (same meaning, time frame, two-part shape and
+  alternative). Gloss and G2 sheet regenerated.
+- Final run: 0 findings (0 five-gram, 0 similar-line).
+
+Gates after the fix: `authoring:generate` (10 fixtures), `authoring:check` 0 errors / 0
+warnings, `authoring:parity` 10/10, targeted vitest (`src/data/exam`, `src/domain/igcse`,
+`src/services/exam`, `src/screens/exam`, `server`) 853/853, `typecheck` clean, backend
+`pytest tests/ -q` 273 passed, `e2e:exam` 5/5.
