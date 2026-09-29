@@ -2566,3 +2566,47 @@ pre-existing warnings; `npm test` 2439/2440 (the pre-existing `infer.test.ts` fa
 `score:golden` 5/5 byte-identical to baseline; `e2e:exam` 5/5; backend pytest 272 passed, 1
 pre-existing failure. Review notes now record the originality check as clean; G2 native-speaker
 review remains PENDING.
+
+## 2026-09-29 — 0520 conduct plan, Batches 7–8: CI, backend CI root cause, duel-expiry SQL, docs
+
+**Batch 7 — `.github/workflows/ci.yml` (first frontend CI).** Checks out the public
+`RXcodeWalker/french-coach-backend` into `backend/` (same-named branch if `git ls-remote` finds it,
+else `main`), then `npm ci`, `typecheck`, `typecheck:server`, `lint`, `vitest run src/data/exam
+src/domain/igcse src/services/exam src/screens/exam`, `authoring:check`, `authoring:parity`.
+Reproduced locally first with `backend/` symlinked to the sibling clone: typecheck and
+typecheck:server clean; lint 0 errors / 22 pre-existing warnings; targeted vitest 93 files / 825 tests
+pass; `authoring:check` 0 errors / 0 warnings over 10 files; `authoring:parity` "All 10 fixture(s)
+match the backend JSON."
+
+**Full `npm test` — NOT widened into CI.** With `backend/` present: 2440 tests, 2439 pass, 1 fails —
+`src/domain/learn/demand/__tests__/infer.test.ts` "never produces a sufficientAnswer under the
+8-word validator floor across the real corpus". Cause: Learn question `ani_21` ("Est-ce que tu es
+allergique à des animaux ?") infers `sufficientAnswer` "A complete answer should: Discuss pet
+allergies." = 7 words. Not an exam-surface issue; reported, not skipped or patched here. (The other
+formerly-known failure, `feedbackContractFixtures`, passes once `backend/` exists.)
+`typecheck:scripts` and `score:golden` / `e2e:exam` are not in CI (unchanged; no engine code
+touched this batch).
+
+**Backend CI — root cause of `test_transcribe_rejects_a_bogus_bearer_token`.** It asserted 401 but got
+503. `lib/auth.py`'s `decode_supabase_jwt` raises 503 "Auth not configured on server" when neither
+`SUPABASE_JWT_SECRET` nor `SUPABASE_URL` is set, before it looks at the token. CI has no `.env`, so
+the 401 branch was unreachable; it only passed on machines with a `.env`. It is a test-setup bug,
+not a product bug (503-when-unconfigured is intended). Fix: the test now
+`monkeypatch.setattr(main, "SUPABASE_JWT_SECRET", …)` like the other auth tests. `env -u
+SUPABASE_JWT_SECRET -u SUPABASE_URL pytest tests/ -q`: 273 passed. Backend CI run 47 on the branch:
+success.
+
+**D11 — expire open duels (written, NOT run).** `backend/supabase/ops/expire_open_duels_at_deploy.sql`
+(outside `migrations/` on purpose). Read `20260814140000_phase2_duel_tables.sql` and
+`20260814140100_phase2_duel_rpcs.sql` first: open = `pending`/`accepted`; `expired` needs
+`completed_at`, no winner, `is_tie=false`. It sets those on open duels for `original-practice-%`
+sets, deliberately NOT via `resolve_expired_duel` (which would award a forfeit win + XP to a lone
+submitter). Has a preview query and ends in `ROLLBACK` until edited to `COMMIT`. Not exercised
+against any database.
+
+**Batch 8 — docs.** CLAUDE.md: added Known Traps for the UI-spoken role-play `setup` (unhashed,
+never a conduct-engine action) and for the exam-surface-only CI + its `backend/` dependency. The
+other Batch 8 items (mode-aware engine, wall-clock 3½-min rule, part 2 always asked, area-slot
+rule) were already present from Batches 2–5 and were left as they are. `docs/systems/topology.md`
+CI section and `docs/guides/development.md` suite 1 no longer say "no frontend CI". README does not
+describe the exam, so it is unchanged.

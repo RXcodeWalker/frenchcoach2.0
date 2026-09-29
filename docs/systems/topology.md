@@ -268,9 +268,19 @@ Do not treat OAuth sign-in as production-ready until both are done.
 
 ## CI
 
-`.github/workflows/` runs four scheduled workflows — none of them run `npm test`,
-`npm run typecheck`, or `npm run lint`. **There is no frontend CI.** Test/typecheck/lint
-status is only ever known locally, at the time someone runs it — see `guides/development.md`.
+`.github/workflows/ci.yml` (added with the 0520 conduct plan, Batch 7) runs on every push and
+pull request: it checks out the public `french-coach-backend` repo into `backend/` (same-named
+branch, else `main`), then `npm run typecheck`, `typecheck:server`, `lint`, the targeted vitest
+suites (`src/data/exam`, `src/domain/igcse`, `src/services/exam`, `src/screens/exam`),
+`authoring:check` and `authoring:parity` (fixtures vs `backend/data/igcse/*.json`). It does **not**
+run the full `npm test` — `learn/demand/__tests__/infer.test.ts` is a known failure — and it does
+not run `typecheck:scripts` (3 known errors), `score:golden` or `e2e:exam`; those stay local.
+The backend repo has its own CI (`pytest tests/ -q`). The four workflows below are scheduled
+jobs, none of which run tests.
+
+**Deploy-time step, manual, not in CI:** when the rewritten 0520 sets go live, expire open duels
+on them with `backend/supabase/ops/expire_open_duels_at_deploy.sql` (D11; run by hand right after
+`python seed_igcse_questions.py`; deliberately not a migration).
 
 - `daily-challenge-seed.yml`, `league-weekly-assignment.yml`, and the reusable
   `scheduled-rpc.yml` they call — a single Supabase RPC invocation per run, no outbound
