@@ -13,8 +13,8 @@ export const ORIGINAL_PRACTICE_006: AuthoredQuestionSet = {
   "review": {
     "status": "approved",
     "reviewedBy": "internal:claude",
-    "reviewedAt": "2026-09-28T00:00:00.000Z",
-    "notes": "Rewritten in the 0520 conduct plan, Batch 5: structure modeled on the 0520/03 Teacher/Examiner Notes (June 2026) per ADR 0008, wording original. G1 self-review done (internal:claude). Originality check against the June 2026 Teacher's Notes text: clean (2026-09-28). G2 native-speaker review PENDING — do not seed or merge before it. Role play: ordering a meal in a restaurant."
+    "reviewedAt": "2026-09-29T00:00:00.000Z",
+    "notes": "Rewritten in the 0520 conduct plan, Batch 5: structure modeled on the 0520/03 Teacher/Examiner Notes (June 2026) per ADR 0008, wording original. G1 self-review done (internal:claude). Originality check against the June 2026 Teacher's Notes text: clean (2026-09-28). G2 waived by owner 2026-09-29; content is machine-authored and self-reviewed (G1). Role play: ordering a meal in a restaurant."
   },
   "content": {
     "rolePlay": {
@@ -163,7 +163,7 @@ export const ORIGINAL_PRACTICE_006: AuthoredQuestionSet = {
       "subTopic": "Work",
       "title": "Le monde du travail",
       "furtherQuestions": [
-        "Que penses-tu du travail à la maison ?",
+        "Que penses-tu du télétravail ?",
         "Quel métier ne voudrais-tu jamais faire ?"
       ],
       "questions": [
@@ -235,7 +235,7 @@ export const ORIGINAL_PRACTICE_006: AuthoredQuestionSet = {
         {
           "questionId": "t2q5",
           "part": "topic2",
-          "mainText": "Quel métier choisirais-tu si tu pouvais faire n'importe lequel ?",
+          "mainText": "Parmi tous les métiers, lequel choisirais-tu ?",
           "alternativeTexts": [
             "Dans quel métier aimerais-tu travailler ?"
           ],

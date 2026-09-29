@@ -44,3 +44,7 @@ text in either repository.
   review, not on authors never having seen them.
 - If a later notes booklet changes a structural pattern, the authoring rules follow the newer
   booklet.
+
+## Amendment — 2026-09-29: G2 waived for the ten 0520 sets
+
+The Decision above says a set becomes `status: approved` only after native or near-native linguistic review (gate G2). The owner has **waived G2** for `original-practice-001`–`010`: they are approved on G0 (machine checks), G1 (self-review, including a naturalness pass over every spoken line) and the originality check, and their `review.notes` record "G2 waived by owner 2026-09-29; content is machine-authored and self-reviewed (G1)". Nothing else in this ADR changes: structure-modeled, original wording and the local-only originality check still apply, and G2 remains the gate for any new or changed set unless the owner waives it again.

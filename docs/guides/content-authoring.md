@@ -250,7 +250,8 @@ hash changed anyway, and it follows the same convention.
 4. Re-read every `targetStructures` tag against what the text actually elicits (§7).
 5. `npm run authoring:check -- --draft` — fixes everything **except** `not-approved`, which
    `--draft` suppresses on purpose (see below). Iterate until clean.
-6. Originality check (§0) → self-review checklist (G1, §16) → linguistic review (G2).
+6. Originality check (§0) → self-review checklist (G1, §16) → linguistic review (G2, **waived** for
+   the 0520 sets — see §15).
 7. Flip `review.status: approved`, set `reviewedBy: internal:<author>` (or
    `teacher:<name>` if a 0520-familiar teacher has done the exam-realism pass — see the
    S11 plan's M1/M2 distinction), set `reviewedAt`.
@@ -267,7 +268,7 @@ review discipline the gate exists to enforce.
 `authoring:check --draft` exists to prevent that shortcut: it suppresses **exactly one**
 error code, `not-approved`, and nothing else. Every other error and warning still fails the
 check. Never flip a set to `approved` just to get a clean run — flip it because it passed
-G0–G2 and (for `teacher:*`) G3.
+G0, G1 (and G2 unless waived, §15) and (for `teacher:*`) G3.
 
 ## 15. Quality gates
 
@@ -275,13 +276,25 @@ G0–G2 and (for `teacher:*`) G3.
 | --- | --- | --- | --- |
 | G0 Machine | validator 0 errors; 0 lint warnings (or justified in `review.notes`); corpus check clean; hash parity | Seed | Automated |
 | G1 Self-review | checklist: tags match text; alternatives easier + frame-preserving; no anaphora | Seed | Author |
-| G2 Linguistic | native/near-native French: naturalness, A2/B1 level, register | Seed | Reviewer |
+| G2 Linguistic | native/near-native French: naturalness, A2/B1 level, register | Seed, **unless waived** | Reviewer |
 | G3 Exam realism | 0520-familiar teacher, item by item | S11 exit | Teacher (deferred until sourced) |
 | G4 Approval | `status: approved` + `reviewedBy` tier + `reviewedAt` | Seed | Author/reviewer |
 
 Pilot-publishable = G0 + G1 + G2 + G4(`internal:*`). S11-complete = + G3 + G4(`teacher:*`).
 
+**G2 waiver (2026-09-29, owner decision; ADR 0008 Amendment).** The owner waived G2 for the ten
+rewritten 0520 sets (`original-practice-001`–`010`). Each set's `review.notes` says so ("G2 waived
+by owner 2026-09-29; content is machine-authored and self-reviewed (G1)"), and a second,
+naturalness-only G1 pass over every spoken line was done before approval (see `verification-log.md`).
+The waiver is per set and per owner decision: it does **not** remove G2 as a gate for new or
+changed sets, and it does not make the content native-reviewed. A reviewer can still run G2 at any
+time (`npm run authoring:review-sheet -- --all …`); anything they report is fixed like any other
+authoring change.
+
 ## 16. Checklist before flipping `approved` (G1 self-review)
+
+G1 is now the only linguistic check the 0520 sets received (G2 waived, §15), so the last item below
+is not optional: read every line aloud as an examiner would before approving.
 
 Structure (mostly machine-checked; confirm anyway):
 
@@ -308,6 +321,10 @@ Human judgement (no machine check can do these):
 - [ ] **Role play rp3–rp5 together call for a past, a future or conditional, and a reason.**
 - [ ] No role-play task can be answered by echoing a word of the question; rp5 asks for real
       content (§5).
+- [ ] **Naturalness pass:** every spoken line (setup, tasks, second parts, topic questions,
+      alternatives, further questions) sounds like something an examiner would say aloud, in one
+      breath, in its register — no stacked prepositions ("dans … dans"), no `le/la` slash forms in
+      the examiner's own speech, no mixed inversion/colloquial register inside one line.
 - [ ] No loaded negatives ("Ne penses-tu pas… ?") and no bare yes/no questions: a yes/no opener
       always has a second part.
 - [ ] No question or alternative references a previous answer (§6).

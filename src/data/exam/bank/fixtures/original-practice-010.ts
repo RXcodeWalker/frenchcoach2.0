@@ -13,8 +13,8 @@ export const ORIGINAL_PRACTICE_010: AuthoredQuestionSet = {
   "review": {
     "status": "approved",
     "reviewedBy": "internal:claude",
-    "reviewedAt": "2026-09-28T00:00:00.000Z",
-    "notes": "Rewritten in the 0520 conduct plan, Batch 5: structure modeled on the 0520/03 Teacher/Examiner Notes (June 2026) per ADR 0008, wording original. G1 self-review done (internal:claude). Originality check against the June 2026 Teacher's Notes text: clean (2026-09-28). G2 native-speaker review PENDING — do not seed or merge before it. Role play: a guided tour on holiday in Quebec."
+    "reviewedAt": "2026-09-29T00:00:00.000Z",
+    "notes": "Rewritten in the 0520 conduct plan, Batch 5: structure modeled on the 0520/03 Teacher/Examiner Notes (June 2026) per ADR 0008, wording original. G1 self-review done (internal:claude). Originality check against the June 2026 Teacher's Notes text: clean (2026-09-28). G2 waived by owner 2026-09-29; content is machine-authored and self-reviewed (G1). Role play: a guided tour on holiday in Quebec."
   },
   "content": {
     "rolePlay": {
@@ -108,7 +108,7 @@ export const ORIGINAL_PRACTICE_010: AuthoredQuestionSet = {
           "secondPartText": "Qu'en as-tu pensé ?",
           "alternativeTexts": [
             "Quel film as-tu regardé le week-end dernier ?",
-            "Il était comment ?"
+            "Comment était-il ?"
           ],
           "topicArea": "B",
           "subTopic": "Leisure time",
@@ -165,7 +165,7 @@ export const ORIGINAL_PRACTICE_010: AuthoredQuestionSet = {
       "subTopic": "Work",
       "title": "Le travail et l'avenir",
       "furtherQuestions": [
-        "Que penses-tu du travail le week-end pour les étudiants ?",
+        "Que penses-tu du travail le week-end pour les jeunes ?",
         "Quelles qualités faut-il pour trouver un bon travail ?"
       ],
       "questions": [

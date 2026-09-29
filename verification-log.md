@@ -2610,3 +2610,53 @@ other Batch 8 items (mode-aware engine, wall-clock 3½-min rule, part 2 always a
 rule) were already present from Batches 2–5 and were left as they are. `docs/systems/topology.md`
 CI section and `docs/guides/development.md` suite 1 no longer say "no frontend CI". README does not
 describe the exam, so it is unchanged.
+
+## 2026-09-29 — G2 waived by owner; naturalness self-review pass over the 10 sets
+
+**Waiver.** The owner waived the G2 native-speaker review for `original-practice-001`–`010`. In all
+10 backend JSON sets `review.notes` had "G2 native-speaker review PENDING — do not seed or merge
+before it." replaced with "G2 waived by owner 2026-09-29; content is machine-authored and
+self-reviewed (G1)."; `reviewedAt` set to 2026-09-29. ADR 0008 got an "Amendment — 2026-09-29"
+section; `content-authoring.md` §14 step 6, §15 (table + a waiver paragraph) and §16 (new
+naturalness item) and the review-sheet header (`reviewSheet.ts` `G2_HEADER`, regenerated
+`docs/guides/review/0520-g2-review.md`, glosses for every changed line) were updated to match. The
+waiver is per set; G2 remains the gate for any new or changed set. The content is **not**
+native-reviewed.
+
+**Extra naturalness pass (G1), all 150 spoken items** (10 setups, 50 role-play tasks + second
+parts, 100 topic questions + second parts, alternatives and 40 further questions), read as an
+examiner would say them aloud. 23 lines changed (id: before → after):
+- 001 t2q5: "…comment sera le temps dans ta région…" → "…quel temps fera-t-il dans ta région dans cinquante ans ?"
+- 001 t2q5 alt: "…plus froid plus tard chez toi ?" → "Dans vingt ans, fera-t-il plus chaud ou plus froid chez toi ?"
+- 002 t1q5: "Quelle chose changerais-tu chez toi si c'était possible ?" → "Que changerais-tu chez toi si c'était possible ?"
+- 004 setup: "Je suis le/la responsable du magasin." → "Je suis responsable du magasin." (no slash form read aloud)
+- 004 further: "Que sais-tu sur un pays francophone ?" → "Que sais-tu d'un pays francophone ?"
+- 005 t1q5 alt: "Où vas-tu habiter plus tard ?" → "Où aimerais-tu habiter plus tard ?"
+- 005 t2q3 alt: "…à l'âge de sept ans ?" → "Quel magasin aimais-tu quand tu avais sept ans ?"
+- 005 t2q4 alt: "Quel endroit n'existe pas dans ta ville ?" → "Y a-t-il assez d'activités pour les jeunes dans ta ville ?"
+- 005 t2q5 alt: "Que voudrais-tu avoir de nouveau dans ta ville ?" → "Quel nouvel endroit voudrais-tu dans ta ville ?"
+- 006 t2q5: "…si tu pouvais faire n'importe lequel ?" → "Parmi tous les métiers, lequel choisirais-tu ?"
+- 006 further: "Que penses-tu du travail à la maison ?" (ambiguous: housework?) → "…du télétravail ?"
+- 007 t2q5: "…aimerais-tu vivre un jour ?" → "…aimerais-tu connaître un jour ?"
+- 008 rp4 part 2: "Pourquoi c'est important pour toi ?" (register mix) → "Pourquoi est-ce important pour toi ?"
+- 008 t1q3: "Raconte comment tu as préparé un repas toi-même." (assumed experience) → "Raconte-moi un repas que tu as préparé ou aidé à préparer."; part 2 and the alternative's part 2 "Qui t'a aidé(e) ?" (contradicted "toi-même") → "Qui était avec toi ?"
+- 008 t2q1/q2: "Qui sont tes voisins ?" → "Comment sont tes voisins ?"; q2 (now a duplicate) → "Comment est l'ambiance dans ton quartier ?"
+- 008 further: "…personnes âgées de son quartier ?" → "…de ton quartier ?"
+- 009 t1q1: "Comment es-tu de caractère ?" → "Comment est ton caractère ?"
+- 009 t1q4 alt part 2: "C'est important pour toi ?" → "Est-ce important pour toi ?"
+- 009 t2q5: "…si tu avais le pouvoir ?" → "Que ferais-tu pour protéger les animaux, si tu en avais le pouvoir ?"
+- 010 t1q3 alt part 2: "Il était comment ?" → "Comment était-il ?"
+- 010 further: "…pour les étudiants ?" → "…pour les jeunes ?"
+
+My first pass of these edits tripped `corpus-overused-stem` (over 3 sets for "Parle-moi d'un" and
+"Si tu"); three of the rewrites were re-phrased (008 t1q3, 002 t1q5, 006 t2q5, 009 t2q5) so the
+stems are back within the limit, rather than loosening the lint.
+
+**Gates after the pass:** `authoring:generate` (10 fixtures), `authoring:check` 0 errors / 0
+warnings, `authoring:parity` "All 10 fixture(s) match the backend JSON", targeted vitest 93 files /
+825 tests, `typecheck` clean, `lint` 0 errors / 22 pre-existing warnings, backend `pytest tests/` 273
+passed. All content hashes changed (as expected for any wording change; nothing is seeded yet).
+
+**Not re-run:** the local-only originality check. The Teacher's Notes text is not in this container,
+so the 23 rewritten lines were not re-checked against it; they are generic rewordings of earlier
+clean lines, but re-run `originalityCheck.ts` against your extraction before seeding.

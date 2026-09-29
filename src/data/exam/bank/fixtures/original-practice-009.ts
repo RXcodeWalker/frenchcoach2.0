@@ -13,8 +13,8 @@ export const ORIGINAL_PRACTICE_009: AuthoredQuestionSet = {
   "review": {
     "status": "approved",
     "reviewedBy": "internal:claude",
-    "reviewedAt": "2026-09-28T00:00:00.000Z",
-    "notes": "Rewritten in the 0520 conduct plan, Batch 5: structure modeled on the 0520/03 Teacher/Examiner Notes (June 2026) per ADR 0008, wording original. G1 self-review done (internal:claude). Originality check against the June 2026 Teacher's Notes text: clean (2026-09-28). G2 native-speaker review PENDING — do not seed or merge before it. Role play: first day at a French school, with a classmate."
+    "reviewedAt": "2026-09-29T00:00:00.000Z",
+    "notes": "Rewritten in the 0520 conduct plan, Batch 5: structure modeled on the 0520/03 Teacher/Examiner Notes (June 2026) per ADR 0008, wording original. G1 self-review done (internal:claude). Originality check against the June 2026 Teacher's Notes text: clean (2026-09-28). G2 waived by owner 2026-09-29; content is machine-authored and self-reviewed (G1). Role play: first day at a French school, with a classmate."
   },
   "content": {
     "rolePlay": {
@@ -75,7 +75,7 @@ export const ORIGINAL_PRACTICE_009: AuthoredQuestionSet = {
         {
           "questionId": "t1q1",
           "part": "topic1",
-          "mainText": "Comment es-tu de caractère ?",
+          "mainText": "Comment est ton caractère ?",
           "alternativeTexts": [],
           "topicArea": "B",
           "subTopic": "Self, family and friends",
@@ -123,7 +123,7 @@ export const ORIGINAL_PRACTICE_009: AuthoredQuestionSet = {
           "secondPartText": "Pourquoi ?",
           "alternativeTexts": [
             "As-tu beaucoup d'amis ?",
-            "C'est important pour toi ?"
+            "Est-ce important pour toi ?"
           ],
           "topicArea": "B",
           "subTopic": "Self, family and friends",
@@ -236,7 +236,7 @@ export const ORIGINAL_PRACTICE_009: AuthoredQuestionSet = {
         {
           "questionId": "t2q5",
           "part": "topic2",
-          "mainText": "Que ferais-tu pour protéger les animaux si tu avais le pouvoir ?",
+          "mainText": "Que ferais-tu pour protéger les animaux, si tu en avais le pouvoir ?",
           "alternativeTexts": [
             "Comment voudrais-tu aider les animaux ?"
           ],

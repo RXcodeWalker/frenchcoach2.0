@@ -13,8 +13,8 @@ export const ORIGINAL_PRACTICE_008: AuthoredQuestionSet = {
   "review": {
     "status": "approved",
     "reviewedBy": "internal:claude",
-    "reviewedAt": "2026-09-28T00:00:00.000Z",
-    "notes": "Rewritten in the 0520 conduct plan, Batch 5: structure modeled on the 0520/03 Teacher/Examiner Notes (June 2026) per ADR 0008, wording original. G1 self-review done (internal:claude). Originality check against the June 2026 Teacher's Notes text: clean (2026-09-28). G2 native-speaker review PENDING — do not seed or merge before it. Role play: a friend organising a park clean-up."
+    "reviewedAt": "2026-09-29T00:00:00.000Z",
+    "notes": "Rewritten in the 0520 conduct plan, Batch 5: structure modeled on the 0520/03 Teacher/Examiner Notes (June 2026) per ADR 0008, wording original. G1 self-review done (internal:claude). Originality check against the June 2026 Teacher's Notes text: clean (2026-09-28). G2 waived by owner 2026-09-29; content is machine-authored and self-reviewed (G1). Role play: a friend organising a park clean-up."
   },
   "content": {
     "rolePlay": {
@@ -51,7 +51,7 @@ export const ORIGINAL_PRACTICE_008: AuthoredQuestionSet = {
           "mainText": "Qu'as-tu déjà fait pour l'environnement ?",
           "alternativeTexts": [],
           "partsExpected": 2,
-          "secondPartText": "Pourquoi c'est important pour toi ?"
+          "secondPartText": "Pourquoi est-ce important pour toi ?"
         },
         {
           "questionId": "rp5",
@@ -104,11 +104,11 @@ export const ORIGINAL_PRACTICE_008: AuthoredQuestionSet = {
         {
           "questionId": "t1q3",
           "part": "topic1",
-          "mainText": "Raconte comment tu as préparé un repas toi-même.",
-          "secondPartText": "Qui t'a aidé(e) ?",
+          "mainText": "Raconte-moi un repas que tu as préparé ou aidé à préparer.",
+          "secondPartText": "Qui était avec toi ?",
           "alternativeTexts": [
             "Qu'as-tu cuisiné récemment ?",
-            "Qui t'a aidé(e) ?"
+            "Qui était avec toi ?"
           ],
           "topicArea": "A",
           "subTopic": "Food and drink",
@@ -162,14 +162,14 @@ export const ORIGINAL_PRACTICE_008: AuthoredQuestionSet = {
       "subTopic": "People and places",
       "title": "Les gens de mon quartier",
       "furtherQuestions": [
-        "Comment peut-on aider les personnes âgées de son quartier ?",
+        "Comment peut-on aider les personnes âgées de ton quartier ?",
         "Quelle personne célèbre vient de ta région ?"
       ],
       "questions": [
         {
           "questionId": "t2q1",
           "part": "topic2",
-          "mainText": "Qui sont tes voisins ?",
+          "mainText": "Comment sont tes voisins ?",
           "alternativeTexts": [],
           "topicArea": "C",
           "subTopic": "People and places",
@@ -183,7 +183,7 @@ export const ORIGINAL_PRACTICE_008: AuthoredQuestionSet = {
         {
           "questionId": "t2q2",
           "part": "topic2",
-          "mainText": "Comment sont les gens de ton quartier ?",
+          "mainText": "Comment est l'ambiance dans ton quartier ?",
           "alternativeTexts": [],
           "topicArea": "C",
           "subTopic": "People and places",
