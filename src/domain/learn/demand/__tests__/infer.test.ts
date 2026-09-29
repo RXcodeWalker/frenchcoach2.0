@@ -170,6 +170,26 @@ describe('inferSufficientAnswer', () => {
     expect(result).toContain(hint);
   });
 
+  it('clears the 8-word floor even for a very short single-clause hint', () => {
+    const hint = 'Discuss pet allergies.';
+    const result = inferSufficientAnswer(hint);
+    expect(result.split(/\s+/).length).toBeGreaterThanOrEqual(8);
+    expect(result).toContain(hint);
+  });
+
+  it('clears the 8-word floor even for a very short list-style hint', () => {
+    const hint = 'Cats, dogs.';
+    const result = inferSufficientAnswer(hint);
+    expect(result.split(/\s+/).length).toBeGreaterThanOrEqual(8);
+    expect(result).toContain(hint);
+  });
+
+  it('keeps the short scaffold wording when it already clears the floor', () => {
+    expect(inferSufficientAnswer('Compare country life with city life.')).toBe(
+      'A complete answer should: Compare country life with city life.',
+    );
+  });
+
   it('never introduces a banned vague phrase', () => {
     const banned = ['something about it', 'talks about it', 'gives some information', 'says something'];
     for (const q of QUESTIONS) {
