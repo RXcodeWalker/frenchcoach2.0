@@ -270,10 +270,8 @@ Do not treat OAuth sign-in as production-ready until both are done.
 
 `.github/workflows/ci.yml` (added with the 0520 conduct plan, Batch 7) runs on every push and
 pull request: it checks out the public `french-coach-backend` repo into `backend/` (same-named
-branch, else `main`), then `npm run typecheck`, `typecheck:server`, `lint`, the targeted vitest
-suites (`src/data/exam`, `src/domain/igcse`, `src/services/exam`, `src/screens/exam`),
-`authoring:check` and `authoring:parity` (fixtures vs `backend/data/igcse/*.json`). It does **not**
-run the full `npm test` — `learn/demand/__tests__/infer.test.ts` is a known failure — and it does
+branch, else `main`), then `npm run typecheck`, `typecheck:server`, `lint`, the full `npm test`,
+`authoring:check` and `authoring:parity` (fixtures vs `backend/data/igcse/*.json`). It does
 not run `typecheck:scripts` (3 known errors), `score:golden` or `e2e:exam`; those stay local.
 The backend repo has its own CI (`pytest tests/ -q`). The four workflows below are scheduled
 jobs, none of which run tests.

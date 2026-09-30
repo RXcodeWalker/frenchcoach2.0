@@ -251,14 +251,29 @@ function countListItems(hint: string): number {
     .filter((p) => p.length > 0).length;
 }
 
+function countWords(text: string): number {
+  return text.split(/\s+/).filter(Boolean).length;
+}
+
 export function inferSufficientAnswer(hint: string): string {
   const trimmed = hint.trim();
-  const wordCount = trimmed.split(/\s+/).filter(Boolean).length;
-  if (wordCount >= MIN_SUFFICIENT_ANSWER_WORDS) return trimmed;
-  if (countListItems(trimmed) >= 2) return `Mention at least two of: ${trimmed}`;
+  if (countWords(trimmed) >= MIN_SUFFICIENT_ANSWER_WORDS) return trimmed;
+  // Each scaffold has a short form and a long form that still only restates the
+  // hint. The long form is used only when the short one would stay under the
+  // floor (a very short hint, e.g. "Discuss pet allergies."), so every output
+  // clears MIN_SUFFICIENT_ANSWER_WORDS and existing short-form outputs are unchanged.
+  if (countListItems(trimmed) >= 2) {
+    const short = `Mention at least two of: ${trimmed}`;
+    return countWords(short) >= MIN_SUFFICIENT_ANSWER_WORDS
+      ? short
+      : `Mention at least two of the following: ${trimmed}`;
+  }
   // Single-clause hint (e.g. "Compare X with Y.") still under the floor —
   // prefixing restates the hint's own instruction rather than inventing content.
-  return `A complete answer should: ${trimmed}`;
+  const short = `A complete answer should: ${trimmed}`;
+  return countWords(short) >= MIN_SUFFICIENT_ANSWER_WORDS
+    ? short
+    : `A complete answer should fully address this: ${trimmed}`;
 }
 
 // ── Composition ──────────────────────────────────────────────────────────────

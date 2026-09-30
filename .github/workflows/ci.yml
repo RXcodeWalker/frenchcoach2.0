@@ -1,11 +1,7 @@
 name: CI
 
-# The first frontend CI in this repo. Scope is deliberately the exam surface
-# (docs/systems/topology.md, "CI"): typecheck, lint, the targeted vitest suites,
-# and the question-bank checks against the backend repo's JSON. The full
-# `npm test` is NOT run: src/domain/learn/demand/__tests__/infer.test.ts has a
-# known pre-existing failure (Learn question ani_21's inferred sufficientAnswer
-# is 7 words, under the 8-word floor). Widen to `npm test` once that is fixed.
+# Frontend CI (docs/systems/topology.md, "CI"): typecheck, lint, the full vitest
+# suite, and the question-bank checks against the backend repo's JSON.
 
 on:
   push:
@@ -56,8 +52,8 @@ jobs:
         run: npm run typecheck:server
       - name: Lint
         run: npm run lint
-      - name: Exam-surface tests
-        run: npx vitest run src/data/exam src/domain/igcse src/services/exam src/screens/exam
+      - name: Tests (full suite)
+        run: npm test
       - name: Question-bank authoring check
         run: npm run authoring:check
       - name: Fixture / backend JSON parity
