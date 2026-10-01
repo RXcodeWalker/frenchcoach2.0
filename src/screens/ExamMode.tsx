@@ -323,10 +323,8 @@ export function ExamMode() {
           questionSet,
           clock.nowS,
           {
-            onExaminerAction: (a) => {
-              announceIfPartChanged(a);
-              setAction(a);
-            },
+            beforeExaminerAction: announceIfPartChanged,
+            onExaminerAction: (a) => setAction(a),
           },
           snapshot.coached,
           snapshot.session,
@@ -376,25 +374,23 @@ export function ExamMode() {
   }, []);
 
   /**
-   * exam-conduct §5/§9 (D13, Batch 3): fires an unscored, UI-only French
+   * exam-conduct §5/§9 (D13, Batch 3): speaks an unscored, UI-only French
    * announcement exactly once at each part boundary — never a conduct-engine
    * action, so it never enters the ConductLog, the hash, or the judge input.
-   * Fire-and-forget: `speakExaminerText` internally queues on the browser's
-   * native SpeechSynthesis queue, so calling it here (before the caller's own
-   * `await speakExaminerText(action.text)` for the action itself) is enough
-   * to have it play first — see SimulationSession.emitActions.
+   * Passed as SimulationSession's `beforeExaminerAction`, so it finishes
+   * before the next part's first question is logged and shown (the question
+   * text used to appear while the announcement was still being spoken).
    */
-  const announceIfPartChanged = (action: ExaminerAction) => {
+  const announceIfPartChanged = async (action: ExaminerAction): Promise<void> => {
     const prevPart = prevActionPartRef.current;
-    if (prevPart !== undefined && prevPart !== action.part) {
-      if (prevPart === 'rolePlay' && action.part === 'topic1') {
-        void speakExaminerText(ROLE_PLAY_FINISHED_TEXT);
-        void speakExaminerText(topicAnnouncementText('topic1', topicTitlesRef.current.topic1));
-      } else if (prevPart === 'topic1' && action.part === 'topic2') {
-        void speakExaminerText(topicAnnouncementText('topic2', topicTitlesRef.current.topic2));
-      }
-    }
     prevActionPartRef.current = action.part;
+    if (prevPart === undefined || prevPart === action.part) return;
+    if (prevPart === 'rolePlay' && action.part === 'topic1') {
+      await speakExaminerText(ROLE_PLAY_FINISHED_TEXT);
+      await speakExaminerText(topicAnnouncementText('topic1', topicTitlesRef.current.topic1));
+    } else if (prevPart === 'topic1' && action.part === 'topic2') {
+      await speakExaminerText(topicAnnouncementText('topic2', topicTitlesRef.current.topic2));
+    }
   };
 
   const enterGreeting = () => {
@@ -521,10 +517,8 @@ export function ExamMode() {
     }
 
     const session = new SimulationSession(sessionId, questionSet, clock.nowS, {
-      onExaminerAction: (a) => {
-        announceIfPartChanged(a);
-        setAction(a);
-      },
+      beforeExaminerAction: announceIfPartChanged,
+      onExaminerAction: (a) => setAction(a),
     }, resolveCoachedMode(coachedMode, isDailyChallengeRun || isDuelRun));
     sessionRef.current = session;
     setExamState('running');

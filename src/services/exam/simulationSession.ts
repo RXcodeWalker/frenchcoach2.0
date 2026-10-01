@@ -43,6 +43,13 @@ export interface SimulationTurnInput {
 }
 
 export interface SimulationSessionCallbacks {
+  /**
+   * Awaited before each examiner action is logged or shown, e.g. the UI's
+   * part-boundary announcement, so the next question's text never appears
+   * while the announcement is still being spoken. The action's log time is
+   * taken before this runs, so the ConductLog timing is unchanged.
+   */
+  beforeExaminerAction?: (action: ExaminerAction) => Promise<void>;
   /** Called whenever the examiner has a new action to display/speak. */
   onExaminerAction?: (action: ExaminerAction) => void;
   /** Called once the session reaches 'complete'. */
@@ -163,6 +170,7 @@ export class SimulationSession {
     for (let i = 0; i < actions.length; i++) {
       const action = actions[i];
       const atS = this.getClockS();
+      await this.callbacks.beforeExaminerAction?.(action);
       this.entries.push(examinerActionToLogEntry(action, this.seq, atS));
       this.seq += 1;
       this.callbacks.onExaminerAction?.(action);
