@@ -202,3 +202,45 @@ describe('SimulationSession — reload-resume snapshot (W7)', () => {
     expect(resumed.isComplete).toBe(control.isComplete);
   });
 });
+
+describe('SimulationSession — beforeExaminerAction (part-boundary announcements)', () => {
+  beforeEach(() => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('no network in test')));
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('is awaited before each action is logged or shown, and the log time is taken before it runs', async () => {
+    const clock = makeClock();
+    const events: string[] = [];
+    // The callbacks only run from begin()/submitTurn(), after `session` is assigned.
+    const session: SimulationSession = new SimulationSession('announce-session', qs, clock.now, {
+      beforeExaminerAction: async (a) => {
+        // Not logged yet: the UI renders the log, so the text isn't on screen.
+        const logged = session.getConductLog().entries.filter((e) => e.kind === 'examiner').length;
+        events.push(`before:${a.kind}:${a.part}:${logged}`);
+        // Simulate a 4 s spoken announcement.
+        await Promise.resolve();
+        clock.advance(4);
+      },
+      onExaminerAction: (a) => {
+        const logged = session.getConductLog().entries.filter((e) => e.kind === 'examiner').length;
+        events.push(`shown:${a.kind}:${a.part}:${logged}`);
+      },
+    }, false);
+
+    const t0 = clock.now();
+    await session.begin();
+    const first = session.getConductLog().entries[0];
+    expect(first.kind === 'examiner' && first.atS).toBe(t0);
+
+    expect(events[0]).toMatch(/^before:[A-Z_]+:rolePlay:0$/);
+    expect(events[1]).toMatch(/^shown:[A-Z_]+:rolePlay:1$/);
+    // Every action: the hook runs with the entry not yet logged, then it is shown with it logged.
+    for (let i = 0; i < events.length; i += 2) {
+      const n = Number(events[i].split(':')[3]);
+      expect(events[i + 1].endsWith(`:${n + 1}`)).toBe(true);
+    }
+  });
+});
