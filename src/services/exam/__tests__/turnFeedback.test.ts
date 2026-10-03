@@ -60,6 +60,7 @@ const okFeedback: ExaminerFeedback = {
   profile: 'rail',
   turnKind: 'topic',
   errors: [{ quote: "j'aime le sport", correction: "j'aime le sport", category: 'other' }],
+  strength: null,
 };
 
 describe('useExamCorrectionsRail', () => {

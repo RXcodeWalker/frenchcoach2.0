@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { GraduationCap } from 'lucide-react';
 import { ExaminerFeedbackCard } from '../../features/feedback/components/ExaminerFeedbackCard';
+import type { TurnLabel } from './turnLabels';
 import type { RailDisabledReason, RailEntry } from '../../services/exam/turnFeedback';
 
 interface Props {
@@ -11,6 +12,8 @@ interface Props {
   highlightedTurnKey: number | null;
   /** The specific quote clicked in the transcript, within the highlighted turn. */
   highlightedQuote?: string | null;
+  /** turnKey -> "Q3"/"A3" labels, matching the transcript. */
+  turnLabels?: Map<number, TurnLabel>;
 }
 
 /**
@@ -19,7 +22,7 @@ interface Props {
  * instead of the legacy FeedbackV2 card, and gated by `coached` (Exam Sim
  * shows a sealed placeholder and makes no calls at all — see turnFeedback.ts).
  */
-export function ExamCorrectionsRail({ coached, entries, disabledReason, onRetry, highlightedTurnKey, highlightedQuote }: Props) {
+export function ExamCorrectionsRail({ coached, entries, disabledReason, onRetry, highlightedTurnKey, highlightedQuote, turnLabels }: Props) {
   if (!coached) {
     return (
       <div className="rounded-card surface p-4 text-center space-y-1.5">
@@ -77,6 +80,13 @@ export function ExamCorrectionsRail({ coached, entries, disabledReason, onRetry,
                 : 'rounded-card'
             }
           >
+            {turnLabels?.get(entry.turnKey) && (
+              <p className="px-1 pb-1 text-eyebrow uppercase text-ink-subtle">
+                <span className="font-bold text-ink">Q{turnLabels.get(entry.turnKey)!.n}</span>
+                <span aria-hidden="true"> · </span>
+                <span className="font-bold text-ink">A{turnLabels.get(entry.turnKey)!.n}</span>
+              </p>
+            )}
             <ExaminerFeedbackCard
               status={entry.status}
               result={entry.result}

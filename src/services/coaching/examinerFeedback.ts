@@ -66,11 +66,16 @@ export interface LearnExaminerFeedback {
   nextStep: ExaminerNextStep | null;
 }
 
-/** Coached-exam rail, topic-conversation turn: mistakes only, at most two. */
+/**
+ * Coached-exam rail, topic-conversation turn: mistakes only, at most two. When
+ * there are none, `strength` is the one best thing the candidate did (examiner-v3+;
+ * always null while there are mistakes, and null from older prompt versions).
+ */
 export interface RailTopicExaminerFeedback {
   profile: 'rail';
   turnKind: 'topic';
   errors: ExaminerErrorItem[];
+  strength: ExaminerCitedClaim | null;
 }
 
 /**
@@ -157,8 +162,11 @@ const ALL_CANONICAL_BULLETS: readonly string[] = [
 /** v1 (Batch 0): the original two-array output. Kept in the file for one release so an old client still works. */
 export const EXAMINER_FEEDBACK_PROMPT_VERSION_V1 = 'examiner-v1';
 
+/** v2 (Batch B): kept in the file for one release so an old client still works. */
+export const EXAMINER_FEEDBACK_PROMPT_VERSION_V2 = 'examiner-v2';
+
 /** The template version this client expects. The backend 409s a version it doesn't hold. */
-export const EXAMINER_FEEDBACK_PROMPT_VERSION = 'examiner-v2';
+export const EXAMINER_FEEDBACK_PROMPT_VERSION = 'examiner-v3';
 
 export const EXAMINER_DATA_BEGIN = '<<<BEGIN_DATA>>>';
 export const EXAMINER_DATA_END = '<<<END_DATA>>>';
@@ -339,6 +347,29 @@ function buildLearnTemplateV2(): string {
   );
 }
 
+function buildRailTopicTemplateV3(): string {
+  return (
+    framing() +
+    `QUESTION (French):\n${dataBlock('question')}\n\n` +
+    `EARLIER QUESTION(S) THIS ANSWER BUILDS ON (French; empty means none):\n${dataBlock('contextQuestion')}\n\n` +
+    `CANDIDATE TRANSCRIPT (French):\n${dataBlock('transcript')}\n\n` +
+    answerModeBlock() +
+    languageRules() +
+    `Task: list the candidate's real mistakes in this one answer — at most ${RAIL_TOPIC_MAX_ERRORS}, ` +
+    `the ones most worth fixing first. ${errorRules().trim()} If there is nothing worth fixing, ` +
+    `return an empty "errors" array and instead give "strength": the single best thing the ` +
+    `candidate did in this answer, as one short English sentence of at most ${RAIL_CLAIM_MAX_CHARS} ` +
+    `characters with a quote of at least three words copied word for word from the transcript. ` +
+    `If you report any mistake, "strength" must be null. Be brief.\n\n` +
+    `Return ONLY this JSON (nothing else):\n` +
+    `{\n` +
+    `  "errors": [ { "quote": "<verbatim>", "correction": "<correct French>", "category": "<one of: ${CATEGORY_LIST}>" } ],\n` +
+    `  "strength": { "claim": "<English>", "quote": "<verbatim>" } or null\n` +
+    `}\n\n` +
+    `Never put a number, mark, band, grade or total in any value.`
+  );
+}
+
 function buildRailTopicTemplateV2(): string {
   return (
     framing() +
@@ -418,15 +449,20 @@ export function buildExaminerPromptTemplates(): ExaminerPromptTemplates {
   });
   const learn = v2('learn', buildLearnTemplateV2(), ['strengths', 'errors', 'nextStep']);
   const railTopic = v2('rail', buildRailTopicTemplateV2(), ['errors']);
+  const railTopicV3 = v2('rail', buildRailTopicTemplateV3(), ['errors', 'strength']);
   const railRolePlay = v2('rail', buildRailRolePlayTemplateV2(), ['task', 'clarity', 'error']);
   return {
     [EXAMINER_FEEDBACK_PROMPT_VERSION_V1]: {
       learn: { topic: v1, rolePlay: v1 },
       rail: { topic: v1, rolePlay: v1 },
     },
-    [EXAMINER_FEEDBACK_PROMPT_VERSION]: {
+    [EXAMINER_FEEDBACK_PROMPT_VERSION_V2]: {
       learn: { topic: learn, rolePlay: learn },
       rail: { topic: railTopic, rolePlay: railRolePlay },
+    },
+    [EXAMINER_FEEDBACK_PROMPT_VERSION]: {
+      learn: { topic: learn, rolePlay: learn },
+      rail: { topic: railTopicV3, rolePlay: railRolePlay },
     },
   };
 }
@@ -553,7 +589,14 @@ function parseRailTopic(raw: Rec, input: ExaminerParseInput): RailTopicExaminerF
   const errors = parseErrors(raw.errors, input, tally, RAIL_TOPIC_MAX_ERRORS);
   // An empty `errors` array is a valid "nothing to fix"; only an all-ungrounded reply is retried.
   if (tally.proposed > 0 && tally.grounded === 0) return null;
-  return { profile: 'rail', turnKind: 'topic', errors };
+  // The one best thing, only when there is nothing to fix. Tallied apart from the
+  // errors: an ungrounded strength is dropped, never a reason to retry the turn.
+  let strength: ExaminerCitedClaim | null = null;
+  if (errors.length === 0 && isRec(raw.strength)) {
+    strength = parseCited(raw.strength, input, new Tally(), errors);
+    if (strength && strength.claim.length > RAIL_CLAIM_MAX_CHARS) strength = null;
+  }
+  return { profile: 'rail', turnKind: 'topic', errors, strength };
 }
 
 function parseRailRolePlay(raw: Rec, input: ExaminerParseInput): RailRolePlayExaminerFeedback | null {
@@ -607,7 +650,7 @@ export function isExaminerFeedbackEmpty(feedback: ExaminerFeedback): boolean {
   if (feedback.profile === 'learn') {
     return feedback.strengths.length === 0 && feedback.errors.length === 0 && feedback.nextStep === null;
   }
-  if (feedback.turnKind === 'topic') return feedback.errors.length === 0;
+  if (feedback.turnKind === 'topic') return feedback.errors.length === 0 && !feedback.strength; // `strength` is undefined on results stored before examiner-v3
   return feedback.task === null && feedback.clarity === null && feedback.error === null;
 }
 
@@ -620,7 +663,9 @@ export function collectExaminerQuotes(feedback: ExaminerFeedback): string[] {
       ...(feedback.nextStep?.quote ? [feedback.nextStep.quote] : []),
     ];
   }
-  if (feedback.turnKind === 'topic') return feedback.errors.map((e) => e.quote);
+  if (feedback.turnKind === 'topic') {
+    return [...feedback.errors.map((e) => e.quote), ...(feedback.strength ? [feedback.strength.quote] : [])];
+  }
   return [feedback.task?.quote, feedback.clarity?.quote, feedback.error?.quote].filter((q): q is string => !!q);
 }
 
@@ -641,7 +686,7 @@ export function collectExaminerQuoteItems(feedback: ExaminerFeedback): ExaminerQ
       ...good(feedback.nextStep?.quote),
     ];
   }
-  if (feedback.turnKind === 'topic') return feedback.errors.flatMap((e) => bad(e.quote));
+  if (feedback.turnKind === 'topic') return [...feedback.errors.flatMap((e) => bad(e.quote)), ...good(feedback.strength?.quote)];
   return [...good(feedback.task?.quote), ...good(feedback.clarity?.quote), ...bad(feedback.error?.quote)];
 }
 

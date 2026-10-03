@@ -20,6 +20,7 @@ const RAIL_TOPIC: RailTopicExaminerFeedback = {
   profile: 'rail',
   turnKind: 'topic',
   errors: [{ quote: 'je suis alle', correction: 'je suis allé', category: 'agreement' }],
+  strength: null,
 };
 
 const RAIL_RP: RailRolePlayExaminerFeedback = {
@@ -124,5 +125,28 @@ describe('ExaminerFeedbackCard — shared states (both variants)', () => {
   it('an empty learn result says there is no commentary', () => {
     renderCard({ result: { profile: 'learn', strengths: [], errors: [], nextStep: null } });
     expect(screen.getByText('No examiner commentary for this answer.')).not.toBeNull();
+  });
+});
+
+describe('ExaminerFeedbackCard — rail topic turn with nothing to fix', () => {
+  const CLEAN: RailTopicExaminerFeedback = {
+    profile: 'rail',
+    turnKind: 'topic',
+    errors: [],
+    strength: { claim: 'You gave a clear reason for your choice.', quote: 'parce que ma famille habite la' },
+  };
+
+  it('shows the one best thing in a green box, anchored to its quote, instead of a bare line', () => {
+    const { container } = renderCard({ result: CLEAN, variant: 'compact', highlightedQuote: CLEAN.strength!.quote });
+    expect(screen.getByText('What you did well')).not.toBeNull();
+    expect(screen.queryByText('No clear mistakes to fix in this answer.')).toBeNull();
+    const row = container.querySelector('[data-quote]') as HTMLElement;
+    expect(row.dataset.quote).toBe('parce que ma famille habite la');
+    expect(row.className).toMatch(/ring-2/);
+  });
+
+  it('still falls back to the plain line for a stored result with no strength', () => {
+    renderCard({ result: { ...CLEAN, strength: null }, variant: 'compact' });
+    expect(screen.getByText('No clear mistakes to fix in this answer.')).not.toBeNull();
   });
 });

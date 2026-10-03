@@ -135,11 +135,18 @@ function FeedbackSections({ result, compact, hl }: { result: ExaminerFeedback; c
   }
 
   if (result.turnKind === 'topic') {
-    return result.errors.length > 0 ? (
-      <Section heading="Mistakes to fix" tone="bad" compact={compact}>
-        {result.errors.map((e, i) => (
-          <ErrorRow key={i} item={e} compact={compact} hl={hl} />
-        ))}
+    if (result.errors.length > 0) {
+      return (
+        <Section heading="Mistakes to fix" tone="bad" compact={compact}>
+          {result.errors.map((e, i) => (
+            <ErrorRow key={i} item={e} compact={compact} hl={hl} />
+          ))}
+        </Section>
+      );
+    }
+    return result.strength ? (
+      <Section heading="What you did well" tone="good" compact={compact}>
+        <CitedClaim item={result.strength} compact={compact} hl={hl} />
       </Section>
     ) : null;
   }

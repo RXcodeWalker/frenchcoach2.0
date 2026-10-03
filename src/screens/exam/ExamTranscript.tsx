@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { ExamTurnBubble } from './ExamTurnBubble';
 import type { ConductLogEntry } from '../../domain/igcse/session/types';
+import { buildTurnLabels } from './turnLabels';
 import type { RailEntry } from '../../services/exam/turnFeedback';
 
 interface Props {
@@ -28,6 +29,8 @@ export function ExamTranscript({ entries, voiceMuted, isAwaitingExaminer, railEn
     [entries],
   );
 
+  const turnLabels = useMemo(() => buildTurnLabels(entries), [entries]);
+
   const railByTurnKey = useMemo(() => {
     const map = new Map<number, RailEntry>();
     for (const e of railEntries ?? []) map.set(e.turnKey, e);
@@ -48,6 +51,7 @@ export function ExamTranscript({ entries, voiceMuted, isAwaitingExaminer, railEn
           <ExamTurnBubble
             key={`${entry.kind}-${entry.seq}`}
             entry={entry}
+            turnLabel={turnLabels.get(entry.seq)?.label}
             voiceMuted={voiceMuted}
             railResult={railEntry?.status === 'done' ? railEntry.result : undefined}
             onIssueClick={railEntry && onIssueClick ? (quote: string) => onIssueClick(railEntry.turnKey, quote) : undefined}

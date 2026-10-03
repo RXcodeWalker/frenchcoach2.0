@@ -3038,3 +3038,15 @@ learner-visible effect of the changed default target on feedback tone is unmeasu
 
 **Deploy:** backend `main` first, then frontend `main`. Between the two, an old client's coach
 calls get 422 and Learn falls back to offline evaluation.
+
+## 2026-10-03 — Coached rail: `examiner-v3` (strength when nothing to fix) + Q/A labels
+
+Rail topic turns with no mistakes now return `strength` (one grounded, ≥3-word-quote claim, ≤160
+chars; null whenever a mistake is reported). It is parsed apart from `errors`: an ungrounded
+strength is dropped, never a retry. `examiner-v3` is v2 with only the rail-topic template changed;
+v2 and v1 stay in `prompts.json` for one release. No scoring file touched; the scored pipeline's
+import graph is unchanged. **Verified:** `npm run typecheck`, full `vitest run src` (2562 pass),
+`examiner:parity`, backend `tests/test_examiner_feedback.py` (42 pass), new parser/card tests.
+**Not verified:** a live model call (does it actually return a usable `strength`?).
+
+**Deploy:** backend `main` first, then frontend `main`; an old client keeps working on v2.

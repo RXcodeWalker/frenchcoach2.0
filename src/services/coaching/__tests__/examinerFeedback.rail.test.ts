@@ -29,7 +29,7 @@ describe('rail profile — topic turn', () => {
       'rail',
       input,
     ) as RailTopicExaminerFeedback;
-    expect(Object.keys(r).sort()).toEqual(['errors', 'profile', 'turnKind']);
+    expect(Object.keys(r).sort()).toEqual(['errors', 'profile', 'strength', 'turnKind']);
   });
 
   it('nothing to fix is a valid empty result', () => {
@@ -37,7 +37,33 @@ describe('rail profile — topic turn', () => {
       profile: 'rail',
       turnKind: 'topic',
       errors: [],
+      strength: null,
     });
+  });
+
+  it('keeps the one best thing (strength) when there is nothing to fix', () => {
+    const r = parseAndGroundExaminerFeedback(
+      { errors: [], strength: { claim: 'You named a clear reason for your choice.', quote: 'avec mes amis' } },
+      'rail',
+      input,
+    ) as RailTopicExaminerFeedback;
+    expect(r.errors).toEqual([]);
+    expect(r.strength).toEqual({ claim: 'You named a clear reason for your choice.', quote: 'avec mes amis' });
+  });
+
+  it('drops a strength while there are mistakes, and an ungrounded one without retrying', () => {
+    const withError = parseAndGroundExaminerFeedback(
+      { errors: [e1], strength: { claim: 'You gave a clear reason.', quote: 'avec mes amis' } },
+      'rail',
+      input,
+    ) as RailTopicExaminerFeedback;
+    expect(withError.strength).toBeNull();
+    const ungrounded = parseAndGroundExaminerFeedback(
+      { errors: [], strength: { claim: 'You gave a clear reason.', quote: 'rien de tel ici' } },
+      'rail',
+      input,
+    ) as RailTopicExaminerFeedback;
+    expect(ungrounded).toEqual({ profile: 'rail', turnKind: 'topic', errors: [], strength: null });
   });
 
   it('retries (null) when every proposed error is ungrounded, or the reply has no errors array', () => {

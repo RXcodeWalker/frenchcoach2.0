@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { buildTurnLabels } from './turnLabels';
 import { Volume2, VolumeX, RotateCcw, Info, MessageSquareText } from 'lucide-react';
 import { formatTime } from '../../domain/time';
 import { Button } from '../../components/ui/Button';
@@ -128,6 +129,7 @@ export function ExamRunner({
   const [highlightedTurnKey, setHighlightedTurnKey] = useState<number | null>(null);
 
   const [highlightedQuote, setHighlightedQuote] = useState<string | null>(null);
+  const turnLabels = useMemo(() => buildTurnLabels(entries), [entries]);
   const highlightTimer = useRef<number | undefined>(undefined);
 
   const handleIssueClick = (turnKey: number, quote: string) => {
@@ -336,6 +338,7 @@ export function ExamRunner({
             onRetry={rail.retry}
             highlightedTurnKey={highlightedTurnKey}
             highlightedQuote={highlightedQuote}
+            turnLabels={turnLabels}
           />
         </div>
       </div>
@@ -364,6 +367,7 @@ export function ExamRunner({
               onRetry={rail.retry}
               highlightedTurnKey={highlightedTurnKey}
             highlightedQuote={highlightedQuote}
+            turnLabels={turnLabels}
             />
           </div>
         </>

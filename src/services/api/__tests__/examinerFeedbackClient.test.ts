@@ -57,7 +57,7 @@ describe('getExaminerFeedback (server-rendered examiner prompt)', () => {
     } as never);
   });
 
-  it('Learn sends structured fields with profile learn, the v2 version, speech and attempt 1 — no prompt', async () => {
+  it('Learn sends structured fields with profile learn, the v3 version, speech and attempt 1 — no prompt', async () => {
     const fetchMock = vi.fn().mockResolvedValue(jsonResponse(GROUNDED));
     vi.stubGlobal('fetch', fetchMock);
 
@@ -75,7 +75,7 @@ describe('getExaminerFeedback (server-rendered examiner prompt)', () => {
       turnKind: 'topic',
       inputMode: 'speech',
     });
-    expect(EXAMINER_FEEDBACK_PROMPT_VERSION).toBe('examiner-v2');
+    expect(EXAMINER_FEEDBACK_PROMPT_VERSION).toBe('examiner-v3');
     expect(body).not.toHaveProperty('prompt');
   });
 

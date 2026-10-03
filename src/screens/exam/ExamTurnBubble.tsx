@@ -15,6 +15,8 @@ const ACTION_LABEL: Record<string, string> = {
 
 interface Props {
   entry: ConductLogEntry;
+  /** "Q3" / "A3" — this turn's place in the conversation. */
+  turnLabel?: string;
   voiceMuted: boolean;
   /** W3: this candidate turn's rail result, when the corrections rail has one (coached mode only). */
   railResult?: ExaminerFeedback | null;
@@ -70,7 +72,7 @@ function buildQuoteSegments(transcript: string, feedback: ExaminerFeedback): Quo
   return segments;
 }
 
-export function ExamTurnBubble({ entry, voiceMuted, railResult, onIssueClick }: Props) {
+export function ExamTurnBubble({ entry, turnLabel, voiceMuted, railResult, onIssueClick }: Props) {
   const isExaminer = entry.kind === 'examiner';
 
   if (isExaminer) {
@@ -79,7 +81,10 @@ export function ExamTurnBubble({ entry, voiceMuted, railResult, onIssueClick }: 
     return (
       <div className="flex justify-start">
         <div className="flex flex-col gap-1 max-w-[85%]">
-          <p className="text-eyebrow uppercase text-ink-subtle">{label}</p>
+          <p className="text-eyebrow uppercase text-ink-subtle">
+            {turnLabel && <span className="font-bold text-ink mr-1.5">{turnLabel}</span>}
+            {label}
+          </p>
           <div className="relative rounded-card rounded-tl-none surface px-4 py-3">
             <p className="exam-serif text-body-l text-ink leading-snug">{entry.text}</p>
             {canReplay && (
@@ -105,6 +110,7 @@ export function ExamTurnBubble({ entry, voiceMuted, railResult, onIssueClick }: 
     <div className="flex justify-end">
       <div className="flex flex-col gap-1 items-end max-w-[85%]">
         <p className="text-eyebrow uppercase text-ink-subtle">
+          {turnLabel && <span className="font-bold text-ink mr-1.5">{turnLabel}</span>}
           You{entry.inputMode === 'text' ? ' (typed)' : ''}
         </p>
         <div className="rounded-card rounded-tr-none bg-action text-action-ink px-4 py-3">

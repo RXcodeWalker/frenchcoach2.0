@@ -10,6 +10,7 @@ import {
   EXAMINER_DESCRIPTORS,
   EXAMINER_FEEDBACK_PROMPT_VERSION,
   EXAMINER_FEEDBACK_PROMPT_VERSION_V1,
+  EXAMINER_FEEDBACK_PROMPT_VERSION_V2,
   ExaminerGroundingFailedError,
   getGroundedExaminerFeedback,
   isExaminerFeedbackEmpty,
@@ -48,9 +49,9 @@ describe('buildExaminerPromptTemplates', () => {
   const v1 = templates[EXAMINER_FEEDBACK_PROMPT_VERSION_V1];
   const v2 = templates[EXAMINER_FEEDBACK_PROMPT_VERSION];
 
-  it('serves both versions: v2 for this client, v1 kept for one release', () => {
-    expect(EXAMINER_FEEDBACK_PROMPT_VERSION).toBe('examiner-v2');
-    expect(Object.keys(templates).sort()).toEqual(['examiner-v1', 'examiner-v2']);
+  it('serves v3 for this client, with v2 and v1 kept for one release', () => {
+    expect(EXAMINER_FEEDBACK_PROMPT_VERSION).toBe('examiner-v3');
+    expect(Object.keys(templates).sort()).toEqual(['examiner-v1', 'examiner-v2', 'examiner-v3']);
   });
 
   it('v1 is the Batch 0 prompt content, byte for byte', () => {
@@ -62,9 +63,12 @@ describe('buildExaminerPromptTemplates', () => {
     expect(v1.rail.rolePlay.template).toBe(prompt);
   });
 
-  it('pins the v2 templates: changing them requires a new prompt version', () => {
-    const hash = createHash('sha256').update(JSON.stringify(v2)).digest('hex');
-    expect(hash).toBe('239fd3316eef9d5eb91ab7d06553236f82a1f397cb1a835443c2f561b50967cf');
+  it('pins the v2 and v3 templates: changing either requires a new prompt version', () => {
+    const v2Frozen = templates[EXAMINER_FEEDBACK_PROMPT_VERSION_V2];
+    expect(createHash('sha256').update(JSON.stringify(v2Frozen)).digest('hex')).toBe(
+      '239fd3316eef9d5eb91ab7d06553236f82a1f397cb1a835443c2f561b50967cf',
+    );
+    expect(createHash('sha256').update(JSON.stringify(v2)).digest('hex')).toBe('e9b4ef8828bf29f2af1e19dc94c0cad2e22d3ec5a4be9d3981102644336e2a11');
   });
 
   it('v2 has no band labels and no marking-principles lines', () => {
@@ -139,7 +143,8 @@ describe('buildExaminerPromptTemplates', () => {
     expect(v2.rail.topic.maxOutputTokens).toBe(300);
     expect(v2.rail.rolePlay.maxOutputTokens).toBe(300);
     expect(v2.learn.topic.responseKeys).toEqual(['strengths', 'errors', 'nextStep']);
-    expect(v2.rail.topic.responseKeys).toEqual(['errors']);
+    expect(v2.rail.topic.responseKeys).toEqual(['errors', 'strength']);
+    expect(templates[EXAMINER_FEEDBACK_PROMPT_VERSION_V2].rail.topic.responseKeys).toEqual(['errors']);
     expect(v2.rail.rolePlay.responseKeys).toEqual(['task', 'clarity', 'error']);
   });
 
@@ -151,7 +156,7 @@ describe('buildExaminerPromptTemplates', () => {
 describe('isExaminerFeedbackEmpty', () => {
   it('is true for an empty result of each shape', () => {
     expect(isExaminerFeedbackEmpty({ profile: 'learn', strengths: [], errors: [], nextStep: null })).toBe(true);
-    expect(isExaminerFeedbackEmpty({ profile: 'rail', turnKind: 'topic', errors: [] })).toBe(true);
+    expect(isExaminerFeedbackEmpty({ profile: 'rail', turnKind: 'topic', errors: [], strength: null })).toBe(true);
     expect(
       isExaminerFeedbackEmpty({ profile: 'rail', turnKind: 'rolePlay', task: null, clarity: null, error: null }),
     ).toBe(true);
@@ -163,6 +168,15 @@ describe('isExaminerFeedbackEmpty', () => {
         profile: 'rail',
         turnKind: 'topic',
         errors: [{ quote: 'je fais', correction: 'je fais', category: 'other' }],
+        strength: null,
+      }),
+    ).toBe(false);
+    expect(
+      isExaminerFeedbackEmpty({
+        profile: 'rail',
+        turnKind: 'topic',
+        errors: [],
+        strength: { claim: 'You gave a clear reason.', quote: 'avec mes amis' },
       }),
     ).toBe(false);
   });
@@ -227,7 +241,7 @@ describe('getGroundedExaminerFeedback retry behavior', () => {
       return { errors: [] };
     });
     expect(calls).toBe(1);
-    expect(result).toEqual({ profile: 'rail', turnKind: 'topic', errors: [] });
+    expect(result).toEqual({ profile: 'rail', turnKind: 'topic', errors: [], strength: null });
   });
 });
 
