@@ -7,7 +7,16 @@ import type { ConductLogEntry } from '../../../domain/igcse/session/types';
 import type { ExaminerFeedback } from '../../coaching/examinerFeedback';
 
 const { getExaminerFeedback } = vi.hoisted(() => ({ getExaminerFeedback: vi.fn() }));
-vi.mock('../../api/apiClient', () => ({ getExaminerFeedback }));
+vi.mock('../../api/apiClient', () => ({
+  getExaminerFeedback,
+  isExaminerQuotaExceededError: (err: unknown) => err instanceof Error && err.name === 'ExaminerQuotaExceededError',
+}));
+
+function quotaError(): Error {
+  const err = new Error("You've used today's AI feedback allowance.");
+  err.name = 'ExaminerQuotaExceededError';
+  return err;
+}
 
 afterEach(() => {
   vi.clearAllMocks();
@@ -70,7 +79,37 @@ describe('useExamCorrectionsRail', () => {
       "J'aime le sport parce que c'est amusant.",
       expect.objectContaining({ text: 'Question?' }),
       expect.anything(),
+      { profile: 'rail', turnKind: 'topic' },
     );
+  });
+
+  it('a role-play turn is sent as turnKind rolePlay', async () => {
+    getExaminerFeedback.mockResolvedValue(okFeedback);
+    const entries = [
+      { ...examinerEntry(1, 'Bonjour. Je peux vous aider ?'), part: 'rolePlay' } as ConductLogEntry,
+      candidateEntry(2, "Je voudrais réserver une table pour quatre personnes.", { part: 'rolePlay' }),
+    ];
+    renderHook(() => useExamCorrectionsRail(entries, true));
+
+    await waitFor(() => expect(getExaminerFeedback).toHaveBeenCalledTimes(1));
+    expect(getExaminerFeedback.mock.calls[0][3]).toEqual({ profile: 'rail', turnKind: 'rolePlay' });
+  });
+
+  it('quota exhausted: one quiet state, no failed card, and no further calls', async () => {
+    getExaminerFeedback.mockRejectedValue(quotaError());
+    const first = [examinerEntry(1, 'Question?'), candidateEntry(2, "J'aime le sport parce que c'est amusant.")];
+    const { result, rerender } = renderHook(({ entries: e }) => useExamCorrectionsRail(e, true), {
+      initialProps: { entries: first },
+    });
+
+    await waitFor(() => expect(result.current.disabledReason).toBe('quota-exhausted'));
+    expect(result.current.entries).toEqual([]);
+
+    rerender({
+      entries: [...first, examinerEntry(3, 'Et après ?'), candidateEntry(4, 'Après je regarde la télé avec ma famille.')],
+    });
+    expect(getExaminerFeedback).toHaveBeenCalledTimes(1);
+    expect(result.current.entries).toEqual([]);
   });
 
   it('tier gate: a <=3-word turn never spends a call', () => {

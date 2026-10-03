@@ -1,12 +1,12 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { GraduationCap } from 'lucide-react';
 import { ExaminerFeedbackCard } from '../../features/feedback/components/ExaminerFeedbackCard';
-import type { RailEntry } from '../../services/exam/turnFeedback';
+import type { RailDisabledReason, RailEntry } from '../../services/exam/turnFeedback';
 
 interface Props {
   coached: boolean;
   entries: RailEntry[];
-  disabledReason: 'signed-out' | null;
+  disabledReason: RailDisabledReason;
   onRetry: (turnKey: number) => void;
   highlightedTurnKey: number | null;
 }
@@ -32,6 +32,17 @@ export function ExamCorrectionsRail({ coached, entries, disabledReason, onRetry,
       <div className="rounded-card surface p-4 text-center space-y-1.5">
         <p className="text-eyebrow uppercase text-ink-subtle">Live corrections</p>
         <p className="text-body-s text-ink-muted">Sign in to see examiner commentary as you go.</p>
+      </div>
+    );
+  }
+
+  if (disabledReason === 'quota-exhausted') {
+    return (
+      <div className="rounded-card surface p-4 text-center space-y-1.5">
+        <p className="text-eyebrow uppercase text-ink-subtle">Live corrections</p>
+        <p className="text-body-s text-ink-muted">
+          Live feedback limit reached for today. Your exam still gets its full report when you submit.
+        </p>
       </div>
     );
   }

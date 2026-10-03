@@ -2676,3 +2676,48 @@ Gates after the fix: `authoring:generate` (10 fixtures), `authoring:check` 0 err
 warnings, `authoring:parity` 10/10, targeted vitest (`src/data/exam`, `src/domain/igcse`,
 `src/services/exam`, `src/screens/exam`, `server`) 853/853, `typecheck` clean, backend
 `pytest tests/ -q` 273 passed, `e2e:exam` 5/5.
+
+## 2026-10-03 — Phase 3 Batch 0: examiner-feedback security
+
+The examiner branch of `/api/feedback` (`/v2`, `/v3`) relayed a client-built `prompt` to the
+model unchanged: no length cap, no quota, Gemini fallback under the coach `SYSTEM_PROMPT`.
+
+**Changed (backend):** `ExaminerFeedbackRequest` (`extra='forbid'`, so `prompt` → 422; caps:
+question/context/setup ≤2000, transcript ≤8000 learn / ≤2000 rail). Prompt rendered server-side
+from `data/examiner_feedback/prompts.json[promptVersion][profile][turnKind]` (409
+`unknown_prompt_version` if absent), with client text stripped of `<<<`/`>>>` and substituted
+in one pass inside the DATA BOUNDARY delimiters. Metered: Learn → `feedback`, rail →
+`exam_turn_feedback` (new row, 60/day, migration `20261003090000`). Key =
+sha256(profile|promptVersion|attempt|question|context|transcript). Replay → per-user cache or 409
+`already_generated`, never a model call. Provider failure → `release_ai_quota_grant`. Gemini
+fallback uses `get_gemini_examiner()` (examiner system instruction, `GEMINI_MODEL`).
+`exam_controller.py`'s `/interpret` docstring now points at the real metering.
+
+**Changed (frontend):** `examinerFeedback.ts` builds the templates (`examiner-v1` = today's
+prompt content, boundary-wrapped); `npm run examiner:generate` / `examiner:parity` (in CI).
+`getExaminerFeedback` sends structured fields + `attempt` 1/2; rethrows `AuthRequiredError` (D3);
+429 → `ExaminerQuotaExceededError`. Rail: quiet `quota-exhausted` state and no further calls;
+Learn: quota message with Continue.
+
+**Deviations from the plan, all minor:**
+- Branch is `claude/friendly-goldberg-hqnh6w` in both repos (the session's assigned branch),
+  not `claude/pensive-bardeen-6rhzzx`.
+- Each template carries `retryReminder` and `maxOutputTokens`. v1 sets 1200 for **both**
+  profiles because v1 rail output is still the full Learn shape, and 300 would truncate the JSON.
+  The ≈300 rail cap belongs to the smaller v2 rail shape (Batch B). The backend clamps at 1500,
+  the old call's budget.
+- The key's "context" part also includes `turnKind`.
+
+**Gates:** backend `pytest tests/ -q` 303 passed (30 new in `test_examiner_feedback.py`).
+Local-stack `phase3_invite_and_quota.test.mjs`: 55/57 pass, including the new test 22
+(`exam_turn_feedback` = 60, consumable, replay uncharged). The 2 failures are test 20:
+anon/authenticated can EXECUTE the quota RPCs on the **local** stack only, because of the
+CLI's default grants; this predates this batch. Hosted ACL checked (read-only): service_role
+only, so it is not a production issue. Frontend `typecheck`, `typecheck:server` clean;
+`typecheck:scripts` 3 pre-existing errors; `lint` 0 errors; `npm test` 253 files / 2457 tests;
+`authoring:check` 0/0; `authoring:parity` 10/10; `examiner:parity` ✓.
+
+**Deploy order (not done here):** apply the migration to the hosted project (no
+`exam_turn_feedback` row there as of this entry) → merge backend → merge frontend. Old
+clients get 422 on examiner feedback during the window. **Rollback:** revert frontend, then
+backend; the migration row is harmless to leave.

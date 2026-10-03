@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { TOPICS, getTopicQuestions } from '../data/gameData';
-import { getAIFeedback, streamFeedback, getExaminerFeedback } from '../services/api/apiClient';
+import { getAIFeedback, streamFeedback, getExaminerFeedback, isExaminerQuotaExceededError } from '../services/api/apiClient';
 import { isAuthRequiredError } from '../lib/authToken';
 import { assessPronunciation } from '../services/pronunciation/pronunciationClient';
 import type { PronunciationAssessment } from '../domain/pronunciation/types';
@@ -106,7 +106,7 @@ export function Learn() {
   // Examiner mode result — separate from FeedbackV2 (which always carries a numeric
   // score); examiner mode must never fabricate one. No session/XP finalization runs
   // for an examiner-mode attempt — there is no score to record.
-  const [examinerStatus, setExaminerStatus] = useState<'idle' | 'pending' | 'done' | 'failed'>('idle');
+  const [examinerStatus, setExaminerStatus] = useState<'idle' | 'pending' | 'done' | 'failed' | 'quota-exhausted'>('idle');
   const [examinerFeedbackResult, setExaminerFeedbackResult] = useState<ExaminerFeedback | null>(null);
   const [drillSkillId, setDrillSkillId] = useState<string | null>(null);
   const [showDrillModal, setShowDrillModal] = useState(false);
@@ -543,7 +543,7 @@ export function Learn() {
       } catch (err) {
         if ((err as Error).name === 'AbortError') return;
         if (myAttemptId !== attemptIdRef.current) return;
-        setExaminerStatus('failed');
+        setExaminerStatus(isExaminerQuotaExceededError(err) ? 'quota-exhausted' : 'failed');
       }
       return;
     }
@@ -1288,7 +1288,7 @@ export function Learn() {
                     onSwitchToCoach={handleSwitchToCoachMode}
                     onRetry={handleRetry}
                   />
-                  {examinerStatus === 'done' && (
+                  {(examinerStatus === 'done' || examinerStatus === 'quota-exhausted') && (
                     <button
                       type="button"
                       onClick={advanceQuestion}
