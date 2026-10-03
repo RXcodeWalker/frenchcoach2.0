@@ -3021,3 +3021,20 @@ then revocation is unavailable in production; no UI calls it.
 fails, a wrong token is rejected (`no_active_consent`) and the profile survives, the guardian's
 own token revokes and erases. `consentService` unit tests 17/17. The under-13 / age
 self-declaration flow is unchanged (owner instruction).
+
+## 2026-10-03 — Phase 3 Batch F: difficulty context
+
+**Change:** `difficultyContext` is `{ tier }` only; the backend owns the per-tier CEFR/tone/rubric
+text and rejects an unknown tier or extra key with 422. No tier is sent while
+`learnAdaptiveDifficulty` is live; the backend then targets "A2 with elements of B1" (TN p.11).
+`LEARN_PROMPT_VERSION` `learn-prompt-v3` → `v4` (the TARGET LEVEL line is always rendered).
+Two `coachService.ts` `examinerNote`s no longer claim an error "costs marks".
+
+**Verified (local):** backend `pytest tests` 320/320 (new: tier→text mapping, default target,
+422 on free-text/unknown/extra keys); frontend `typecheck` clean, `npm test` 2732/2732 (new:
+`difficultyContext.test.ts`, "costs marks" scan), `lint` 0 errors. Marks unaffected: no scoring
+file touched. **Not verified:** a live coach call against the deployed backend; the exact
+learner-visible effect of the changed default target on feedback tone is unmeasured.
+
+**Deploy:** backend `main` first, then frontend `main`. Between the two, an old client's coach
+calls get 422 and Learn falls back to offline evaluation.
