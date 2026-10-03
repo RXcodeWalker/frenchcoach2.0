@@ -31,8 +31,8 @@ function _buildTier1CoachingLayer(word: string, wordCount: number): CoachingLaye
   const displayWord = word || 'ce mot';
   return {
     teacher: `You identified a topic with '${displayWord}' — you're thinking in the right direction.`,
-    examiner: `I can see the student is attempting to communicate, but ${wordCount === 1 ? 'a single word' : `only ${wordCount} words`} cannot earn Communication or Language marks. There is no complete sentence structure, no tense, and no developed idea to assess.`,
-    coach: `Turn '${displayWord}' into a sentence — add a subject, a verb, and a reason. Even 'J'aime ${displayWord} parce que…' immediately earns marks.`,
+    examiner: `I can see the student is attempting to communicate (${wordCount === 1 ? 'a single word' : `${wordCount} words`}). A one-to-three-word answer gives the examiner very little to credit; in topic conversations the higher Communication descriptors describe developing ideas and opinions and giving reasons (TN p.11). There is no complete sentence structure, no tense, and no developed idea to assess.`,
+    coach: `Turn '${displayWord}' into a sentence — add a subject, a verb, and a reason. Even 'J'aime ${displayWord} parce que…' gives the examiner something to credit.`,
   };
 }
 

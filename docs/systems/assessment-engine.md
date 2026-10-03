@@ -141,9 +141,10 @@ is not an intentional dual rubric — the Python bands predate the audited engin
 project's own sourcing rule (ADR-0001). Do not "fix" `evaluator_service.py`'s rubric to match; it
 is out of scope and the module is unreached.
 
-**3. Dead HTTP surface — `POST /api/feedback/igcse`** in `backend/main.py`. Zero callers in `src/`.
-`src/services/api/apiClient.ts` calls this "the legacy invented scorer" in a nearby comment — that
-description is accurate.
+**3. ~~Dead HTTP surface — `POST /api/feedback/igcse`~~ — removed 2026-10 (Phase 3 Batch C).** It had
+zero callers in `src/` and zero requests in 30 days of Render logs; the route, its request model,
+prompt, provider callers and offline evaluator are deleted. A request now returns 404.
+`evaluator_service.py` (scorer 2) remains, unreached and out of scope.
 
 ### A known-stale claim in `CLAUDE.md`
 

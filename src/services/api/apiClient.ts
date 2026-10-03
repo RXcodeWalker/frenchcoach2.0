@@ -735,8 +735,8 @@ export async function getAIFeedback(
   }
 
   // Tier 1: very short answer (1-3 words) — return local result immediately.
-  // No network round-trip: a 1-3 word answer cannot earn Communication marks
-  // regardless of which engine evaluates it.
+  // No network round-trip: a 1-3 word answer gives any engine too little to
+  // assess for a topic-conversation answer (TN p.11), so there is nothing to send.
   if (tier === 1) {
     const localResult = buildTier1LocalResult(transcript);
     localResult.engineMeta = {
@@ -846,9 +846,9 @@ export type { EngineMetadata };
 //
 // Deliberately routed through the same /api/feedback/v3 endpoint (Groq→Gemini
 // chain) with a `feedbackMode: 'examiner'` flag — not a separate endpoint, and
-// NOT /api/feedback/igcse (that is the legacy invented scorer, unrelated to
-// the audited src/domain/igcse engine or to this examiner-voice practice
-// commentary). The response shape is ExaminerFeedback, never merged into
+// NOT a scorer: the legacy /api/feedback/igcse route (an invented scorer
+// unrelated to the audited src/domain/igcse engine) was removed in Phase 3
+// Batch C. This is examiner-voice practice commentary only. The response shape is ExaminerFeedback, never merged into
 // FeedbackV2 — that type always carries a numeric `scores`, and examiner mode
 // must never fabricate one.
 //

@@ -73,7 +73,7 @@ export const TEACHME_LIBRARY: Record<string, Partial<TeachMe>> = {
       { fr: "J'ai besoin d'eau.", en: "I need water. (not de eau)" },
     ],
     advanced: "Il s'agit d'une question d'une complexité remarquable.",
-    examinerNote: "Missing d' before vowels is a Tier 1 accuracy error on Cambridge mark schemes.",
+    examinerNote: "Missing d' before a vowel is a common accuracy slip — say \"beaucoup d'amis\", \"besoin d'eau\".",
   },
   el_que: {
     why: "Que must elide to qu' before a vowel. English 'that' never changes form, so French learners often forget the apostrophe.",
@@ -123,7 +123,7 @@ export const TEACHME_LIBRARY: Record<string, Partial<TeachMe>> = {
       { fr: "Nous avons froid en hiver.", en: "We are cold in winter." },
     ],
     advanced: "Avoir l'air + adjectif: Il a l'air fatigué (He looks/seems tired).",
-    examinerNote: "Avoir expressions with physical states are tested at GCSE and beyond. Systematic errors here lower the Language mark.",
+    examinerNote: "Avoir expressions with physical states are tested at GCSE and beyond. A wrong avoir expression counts as a Quality of Language error; QoL is judged on how often errors occur across both conversations (TN p.12).",
   },
   gen_probleme: {
     why: "English has no grammatical gender, so 'la problème' feels as natural as 'le problème'. But problème is masculine (-ème suffix pattern is typically masculine). Gender must be memorized with each noun.",
@@ -133,7 +133,7 @@ export const TEACHME_LIBRARY: Record<string, Partial<TeachMe>> = {
       { fr: "Quel problème ! (not quelle)", en: "What a problem!" },
     ],
     advanced: "Le véritable problème réside dans l'absence de volonté politique.",
-    examinerNote: "Gender errors are systematic accuracy failures. Examiners note them cumulatively — two or three in a response reduce the Language band.",
+    examinerNote: "A gender error counts as a Quality of Language error; QoL is judged on how often errors occur across both conversations (TN p.12).",
   },
   prep_jouer: {
     why: "English 'play football' has no preposition. French 'jouer à' is obligatory for sports and games: jouer au (à + le) foot, jouer à la pétanque, jouer aux échecs.",
@@ -151,7 +151,7 @@ export const TEACHME_LIBRARY: Record<string, Partial<TeachMe>> = {
       { fr: "J'écoute de la musique.", en: "I listen to music. (not écouter à)" },
     ],
     advanced: "Les verbes transitifs directs comme écouter se distinguent de leur équivalent anglais qui exige une préposition.",
-    examinerNote: "Examiners consider preposition errors with common verbs a sign of intermediate-level interference. Fix these for Core-Secure access.",
+    examinerNote: "Preposition errors with common verbs usually come from English interference — learn each verb together with its preposition.",
   },
   subj_il_faut: {
     why: "Il faut que triggers the subjunctive because it expresses necessity — a subjective stance. English uses the infinitive ('I have to go'), so learners write 'il faut que je vais', directly translating the indicative.",
@@ -161,7 +161,7 @@ export const TEACHME_LIBRARY: Record<string, Partial<TeachMe>> = {
       { fr: "Il faut que nous prenions une décision.", en: "We need to make a decision." },
     ],
     advanced: "Il est impératif que chacun prenne ses responsabilités au sérieux.",
-    examinerNote: "Using the subjunctive correctly after il faut que is one of the top Extended-band discriminators in IGCSE speaking assessments.",
+    examinerNote: "Using the subjunctive correctly after il faut que shows control of a more complex structure.",
   },
   si_clause: {
     why: "English conditionals can use 'if + would' ('If I had money, I would buy'). French does not allow conditional in the si clause: si + imparfait → main clause + conditional. The si clause stays in imparfait.",
@@ -171,7 +171,7 @@ export const TEACHME_LIBRARY: Record<string, Partial<TeachMe>> = {
       { fr: "Si tu travaillais plus, tu réussirais.", en: "If you worked more, you would succeed." },
     ],
     advanced: "Si j'avais su, je m'y serais préparé davantage.",
-    examinerNote: "A correctly formed si clause with imparfait + conditional is an Extended-High discriminator. Even one correct example boosts your Language score.",
+    examinerNote: "A correctly formed si clause with imparfait + conditional is a complex structure worth practising — even one correct example shows you can use it.",
   },
   pron_placement: {
     why: "English places object pronouns after the verb ('I see him', 'I call her'). French reverses this: the pronoun goes before the verb. This is a deeply embedded English word-order habit.",
@@ -191,7 +191,7 @@ export const TEACHME_LIBRARY: Record<string, Partial<TeachMe>> = {
       { fr: "Nous ne pouvons pas y aller.", en: "We can't go there." },
     ],
     advanced: "Je ne saurais dire avec certitude ce qui l'a motivé.",
-    examinerNote: "Cambridge speaking rubrics specifically require formal register. Missing ne repeatedly will reduce your Fluency band.",
+    examinerNote: "Dropping ne is normal in casual speech, but keep ne … pas when you want to sound formal.",
   },
   rel_qui_subj: {
     why: "Qui introduces a relative clause where the relative pronoun is the SUBJECT of the clause. If a personal pronoun (je, tu, il…) follows qui, that relative pronoun should be que (object), not qui.",
@@ -201,7 +201,7 @@ export const TEACHME_LIBRARY: Record<string, Partial<TeachMe>> = {
       { fr: "L'ami qui m'a aidé s'appelle Marc.", en: "The friend who helped me is called Marc." },
     ],
     advanced: "Ce dont j'ai besoin, c'est d'une formation plus spécialisée.",
-    examinerNote: "Relative pronoun mastery (qui/que/dont/où) is tested at B1-B2 level and distinguishes Extended from Core performance.",
+    examinerNote: "Relative pronoun mastery (qui/que/dont/où) lets you build longer, more precise sentences than short separate ones.",
   },
   comp_meilleur: {
     why: "English 'more good' is incorrect — we say 'better'. French has the same irregularity: 'plus bon' is wrong, the correct form is meilleur (adjective comparative of bon).",
@@ -795,7 +795,7 @@ function _findStrongestMoment(
     const s = _sentenceAt(transcript, pcMatch.index);
     return {
       span: { start: s.start, end: s.end, severity: 'strong', category: 'tense' },
-      explanation: `Your phrase '${s.text.length > 60 ? s.text.slice(0, 60) + '…' : s.text}' shows correct use of the passé composé — using a past tense is one of the clearest signs of progress beyond Foundation level.`,
+      explanation: `Your phrase '${s.text.length > 60 ? s.text.slice(0, 60) + '…' : s.text}' shows correct use of the passé composé — using a past tense shows you can talk about events, not just the present.`,
     };
   }
 
@@ -806,7 +806,7 @@ function _findStrongestMoment(
     const s = _sentenceAt(transcript, reasonMatch.index);
     return {
       span: { start: s.start, end: s.end, severity: 'strong', category: 'fluency' },
-      explanation: `'${s.text.length > 60 ? s.text.slice(0, 60) + '…' : s.text}' is your strongest moment — giving a reason is exactly what IGCSE Communication marks reward. Examiners look for justified opinions at every band.`,
+      explanation: `'${s.text.length > 60 ? s.text.slice(0, 60) + '…' : s.text}' is your strongest moment — giving a reason is what the Communication descriptors describe as justifying and explaining answers (TN p.11).`,
     };
   }
 
@@ -818,7 +818,7 @@ function _findStrongestMoment(
     const s = _sentenceAt(transcript, connMatch.index);
     return {
       span: { start: s.start, end: s.end, severity: 'strong', category: 'fluency' },
-      explanation: `Your use of '${word}' to link ideas shows you can organise your response logically — this is a mark booster at every level, including Foundation.`,
+      explanation: `Your use of '${word}' to link ideas shows you can organise your response logically — linking ideas makes your answer easier to follow.`,
     };
   }
 
@@ -829,7 +829,7 @@ function _findStrongestMoment(
     const s = _sentenceAt(transcript, relMatch.index);
     return {
       span: { start: s.start, end: s.end, severity: 'strong', category: 'grammar' },
-      explanation: `'${s.text.length > 60 ? s.text.slice(0, 60) + '…' : s.text}' uses a relative clause to connect ideas — this is a Core-to-Extended grammar marker that examiners reward.`,
+      explanation: `'${s.text.length > 60 ? s.text.slice(0, 60) + '…' : s.text}' uses a relative clause to connect ideas — relative clauses let you say more in one sentence.`,
     };
   }
 
@@ -841,7 +841,7 @@ function _findStrongestMoment(
     const isCond = /ais|ait|aient|ions|iez/.test(futMatch[0]);
     return {
       span: { start: s.start, end: s.end, severity: 'strong', category: 'tense' },
-      explanation: `Your ${isCond ? 'conditional' : 'future'} form in '${s.text.length > 60 ? s.text.slice(0, 60) + '…' : s.text}' shows tense range beyond the present — exactly what Language marks reward.`,
+      explanation: `Your ${isCond ? 'conditional' : 'future'} form in '${s.text.length > 60 ? s.text.slice(0, 60) + '…' : s.text}' shows tense range beyond the present.`,
     };
   }
 
@@ -852,7 +852,7 @@ function _findStrongestMoment(
     const s = _sentenceAt(transcript, advMatch.index);
     return {
       span: { start: s.start, end: s.end, severity: 'strong', category: 'grammar' },
-      explanation: `'${s.text.length > 60 ? s.text.slice(0, 60) + '…' : s.text}' demonstrates an advanced grammatical structure — this is a strong indicator of Extended-band performance.`,
+      explanation: `'${s.text.length > 60 ? s.text.slice(0, 60) + '…' : s.text}' demonstrates an advanced grammatical structure — a more complex structure, used well here.`,
     };
   }
 
@@ -868,7 +868,7 @@ function _findStrongestMoment(
     const snippet = longest.length > 60 ? longest.slice(0, 60) + '…' : longest;
     return {
       span: { start, end: start + longest.length, severity: 'strong', category: 'fluency' },
-      explanation: `'${snippet}' communicates your point clearly and directly — effective communication is the foundation of the IGCSE mark scheme.`,
+      explanation: `'${snippet}' communicates your point clearly and directly — a clear, direct sentence like this is a good base to build on.`,
     };
   }
 

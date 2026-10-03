@@ -2759,3 +2759,27 @@ in `diagnosticEngine.ts`, the gems bonus (`xp.ts`), placement `aim` seeding (`On
 `DailyNewsFlash.tsx`'s own non-AI `overall`.
 
 Gates: `typecheck` clean; `lint` 0 errors; targeted suites (domain, services/api|coaching|sync|progression) pass.
+
+## 2026-10-03 — Phase 3 Batch C: invented Cambridge claims removed; `/api/feedback/igcse` deleted
+
+**Frontend.** `coachService.ts` examiner notes and `_findStrongestMoment` explanations lose the invented
+"Tier 1 / Core-Secure / Extended-band / Extended-High / mark booster / Fluency band" claims (grammar
+teaching kept); QoL claims now cite TN p.12 (checked against the booklet: QoL is one mark out of 15 across
+both conversations, with "occasional/some/frequent errors"), the giving-a-reason line cites TN p.11.
+`responseTier.ts` examiner line now says a one-to-three-word answer gives the examiner very little to
+credit (TN p.11; not claimed for role play, where TN p.10 credits any communicated information); coach
+line: "gives the examiner something to credit". Comment in `apiClient.ts` fixed. New
+`noInventedCambridgeClaims.test.ts` (banned-phrase scan over `coachService.ts`, `responseTier.ts`,
+`MinimalResponseCard.tsx`). Not touched (not in plan): two `coachService.ts` notes saying an error "costs marks".
+
+**Backend** (`french-coach-backend`, pushed first). `SYSTEM_PROMPT`/`MULTIMODAL_SYSTEM_PROMPT`: `igcseLevel`
+removed (the optional `feedbackSchema.ts` field is left); `acc` is a holistic practice judgement, not a
+formula; "earn IGCSE marks", "directly earns marks", "one IGCSE band higher" reworded.
+`LEARN_PROMPT_VERSION` v2 → v3 (system prompt text changed; the user-prompt fixture hash is unchanged).
+`/api/feedback/igcse` and its model, prompt, provider callers and offline evaluator deleted; evidence in the
+ADR 0003 amendment (0 requests in 30 days of Render logs, 0 code callers). `evaluator_service.py` and the
+`exam_controller.py` `grade_band` passthrough untouched. Tests: route is 404; prompts contain no
+`igcseLevel`/"subtract"/"Extended —". Backend `pytest tests/ -q`: 305 passed.
+
+**Rollback.** Revert the frontend commit and the backend commit independently; neither depends on the other
+at runtime (nothing in `src/` called the deleted route; `igcseLevel` was never rendered).
