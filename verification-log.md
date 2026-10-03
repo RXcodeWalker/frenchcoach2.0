@@ -2733,3 +2733,69 @@ step. Same SQL (an idempotent `INSERT … ON CONFLICT DO NOTHING`).
 Checked afterwards (read-only): `ai_quota_limits` now has `exam_turn_feedback = 60`; the other
 six rows are unchanged (score 20, feedback 20, roleplay_turn 30, transcribe 30,
 pronunciation 30, exam 10). Remaining deploy steps: merge backend → merge frontend.
+
+## 2026-10-03 — Phase 3 Batch B: one examiner engine, two profiles
+
+**Scope:** examiner-style feedback for Learn and the Coached rail (not the exam report — that is
+Batch A). No scored-pipeline file changed (`git diff -- src/domain/igcse scripts/scoring server` is
+empty), so `SCORING_PROMPT_VERSION`, `GUARDRAILS_VERSION`, `RUBRIC_VERSION` and
+`ENVELOPE_SCHEMA_VERSION` are untouched and no `judge:check` / `score:golden` run was needed for
+this batch. Branch `claude/inspiring-ride-f9s3d5` in both repos (the session's assigned branch).
+
+**Changed (frontend):**
+- `src/domain/examFeedback/shared/` (new, pure): `errorCategories` (9), `markClaimFilter`,
+  `descriptorCopyFilter` (whole bullet or 8+ words; bullets passed in), `quoteRules` (grounded,
+  min length, overlap, claim budget), `spellingOnly` (sound-alike filter, spoken turns only).
+  Imports only `igcse/text/normalize` and `igcse/judgement/schema` (`isQuoteGrounded`).
+- `examinerFeedback.ts`: `ExaminerFeedback` is a union on profile (`learn`; rail `topic`;
+  rail `rolePlay`) with no numeric field (compile-time test); `parseAndGroundExaminerFeedback`;
+  `EXAMINER_FEEDBACK_PROMPT_VERSION = 'examiner-v2'` (v1 still generated for one release).
+  v2 has no band labels and no marking-principles lines; descriptor bullets are listed unlabelled
+  by id (C1–C5, S1–S3, V1–V3, read from `rubric.ts`, only single-answer ones); a next step must
+  name one of those ids; `{{inputMode}}` drives the spoken/typed sound-alike rule.
+- `apiClient.getExaminerFeedback` sends `inputMode`; `turnFeedback.ts` sends the rail's context
+  (`resolveRailPrompt`: REPEAT/TRANSITION skipped; an extension carries every READ_MAIN /
+  READ_ALTERNATIVE of its question in that part, in log order; a further question carries none) and
+  the role-play setup (`ExamMode` passes it). `ExaminerFeedbackCard` has the new headings and a
+  `variant="compact"` prop for the rail and the results replay.
+- ESLint: `examinerFeedback.ts` may import `domain/examFeedback/shared/**` only (checked with
+  positive and negative probes); `shared/` itself is fenced. ADR 0009 (amends 0005); `CLAUDE.md`
+  Known Traps updated.
+
+**Changed (backend):** `ExaminerFeedbackRequest.inputMode` (optional; in the idempotency key only
+when sent, so v1 keys are unchanged; absent renders as typed); a template's `responseKeys` is the
+allowlist of relayed top-level keys (v1 keeps its two legacy keys); regenerated `prompts.json`
+(v1 byte-identical, v2 added; learn cap 1200 tokens, rail 300).
+
+**Deviations from the plan, all minor:**
+- The role-play rail card's section is headed "This task", not "What worked": a task note may say
+  what is *missing*, which is not something that "worked".
+- The learn card also prints the aimed-at descriptor's text and TN page under the next step (the
+  full card only; the id would otherwise go unused).
+- `parseAndGroundExaminerFeedback` returns `null` for "unusable, retry once" (malformed, or nothing
+  proposed was grounded) and a real, possibly empty, result otherwise — so a rail turn with nothing
+  to fix is not retried (a retry costs quota). Learn with zero proposed items is retried.
+- Silent `s`/`x` stripping applies only where the stem keeps 3+ letters, plus `aux`→`au`: `les`/`le`,
+  `des`/`de`, `ils`/`il` differ in what is heard. When unsure the error is kept.
+- The existing builder keeps its name `buildExaminerPromptTemplates` (the plan says
+  `buildExaminerTemplates`). `isQuoteGrounded` now reaches `examinerFeedback.ts` through `shared/`.
+- `CandidateInputMode` is restated structurally in `spellingOnly.ts` so `shared/` imports nothing
+  but the normalizer and `isQuoteGrounded`.
+- Batches D and C were reported done but are **not in this checkout** (no `computeOverall`,
+  `igcseLevel` and `/api/feedback/igcse` still present). Batch B does not depend on them; flagged
+  for the owner, nothing here touches them.
+
+**Not verified:** no live model call was made, so how well Groq/Gemini follow the v2 prompts
+(JSON shape, quote fidelity, category choice, whether the sound-alike rule is respected) is
+unmeasured. The display filters are deterministic and unit-tested, but their recall on real
+transcripts (does a filter eat a true error?) is what `judge:check --feedback` in Batch A is for.
+The minimum-quote lengths remain `UNVALIDATED` app policy.
+
+**Gates:** backend `pytest tests/ -q` 315 passed (12 new). Frontend `typecheck` and
+`typecheck:server` clean; `typecheck:scripts` the 3 pre-existing errors only; `lint` 0 errors
+(22 pre-existing warnings); `npm test` 262 files / 2625 tests; `authoring:check` 0/0;
+`authoring:parity` 10/10; `examiner:parity` ✓.
+
+**Deploy order:** merge backend first (serves v1 and v2; an old client keeps working), then
+frontend (sends v2; against an old backend it would get 409 `unknown_prompt_version`). **Rollback:**
+revert the frontend, then the backend; v1 stays in the file for exactly this reason.

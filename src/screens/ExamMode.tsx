@@ -223,7 +223,9 @@ export function ExamMode() {
   // see ExamResults.tsx's "Live corrections from this session" section.
   // Reads sessionRef.current fresh on every render, same pattern as the
   // entries prop already passed to ExamRunner below.
-  const rail = useExamCorrectionsRail(sessionRef.current?.getConductLog().entries ?? [], coached);
+  const rail = useExamCorrectionsRail(sessionRef.current?.getConductLog().entries ?? [], coached, {
+    rolePlaySetup: rolePlayMeta?.setup,
+  });
 
   // A8: keepalive ping while the exam runs, so the scoring service stays warm
   // through the ~15 min Render free-tier idle window until scoring is needed.

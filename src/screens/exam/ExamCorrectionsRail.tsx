@@ -81,6 +81,7 @@ export function ExamCorrectionsRail({ coached, entries, disabledReason, onRetry,
               onRetry={() => onRetry(entry.turnKey)}
               onSwitchToCoach={() => {}}
               hideSwitchToCoach
+              variant="compact"
             />
           </motion.div>
         ))}
