@@ -204,6 +204,12 @@ describe('aux_aller (accent-boundary bug fix)', () => {
 });
 
 describe('unsourced examiner statistic removed', () => {
+  it('no examinerNote claims an error "costs marks" (no sourced mark cost per error type)', () => {
+    for (const [id, entry] of Object.entries(TEACHME_LIBRARY)) {
+      expect(entry.examinerNote ?? '', id).not.toMatch(/costs? marks/i);
+    }
+  });
+
   it('aux_aller examinerNote does not contain a bare percentage', () => {
     expect(TEACHME_LIBRARY.aux_aller?.examinerNote ?? '').not.toMatch(/\d+%/);
   });
