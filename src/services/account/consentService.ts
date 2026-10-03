@@ -164,8 +164,9 @@ export async function grantGuardianConsent(token: string, relationship: string):
   return { childUserId: result.child_user_id };
 }
 
-export async function revokeGuardianConsent(childUserId: string): Promise<void> {
+/** The guardian proves who they are with the same email-link token that granted consent. */
+export async function revokeGuardianConsent(token: string): Promise<void> {
   if (!supabaseConfigured) throw new GuardianActionError('network_error', 'offline');
-  const { error } = await supabase.rpc('revoke_guardian_consent', { p_child_user_id: childUserId });
+  const { error } = await supabase.rpc('revoke_guardian_consent', { p_token: token });
   if (error) throw mapGuardianRpcError(error.message);
 }

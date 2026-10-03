@@ -3003,3 +3003,21 @@ called as `service_role`). Those are noted, not fixed here.
 
 **Not changed (owner instruction):** `revoke_guardian_consent` is callable by `anon` with only a
 child user id and erases that child's profile; the age self-declaration flow is unchanged.
+
+## 2026-10-03 — `revoke_guardian_consent` no longer erasable by child id
+
+**Problem:** `revoke_guardian_consent(p_child_user_id uuid)` was callable by `anon` with only a
+child's user id, and erases that child's profile (cascading their data).
+
+**Production:** `20261003113012_close_revoke_guardian_consent_by_child_id` applied —
+`anon`/`authenticated` can no longer execute the child-id form (checked afterwards: both false).
+The replacement `revoke_guardian_consent(p_token text)` (`20261003113100`, the guardian presents
+the email-link token that granted consent) is **not yet applied**: the Supabase MCP held the
+statement (its body contains a `DELETE`) for a confirmation that timed out, three times; nothing
+was half-applied (checked after each attempt). It must be run in the Supabase SQL editor. Until
+then revocation is unavailable in production; no UI calls it.
+
+**Local stack (fresh `db reset`):** `guardian_consent.test.mjs` 18/18 — revoking by child id
+fails, a wrong token is rejected (`no_active_consent`) and the profile survives, the guardian's
+own token revokes and erases. `consentService` unit tests 17/17. The under-13 / age
+self-declaration flow is unchanged (owner instruction).
