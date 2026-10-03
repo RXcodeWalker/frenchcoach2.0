@@ -67,9 +67,14 @@ All `SECURITY DEFINER`, pinned `search_path`, standard `REVOKE ... FROM PUBLIC` 
   "already used" — no distinction is leaked). On success, stamps
   `granted_at` + the guardian's stated relationship, and flips the child's
   `consent_status` to `'granted'`.
-- **`revoke_guardian_consent(p_child_user_id)`** — `authenticated` and
-  `anon`. Requires an active (granted, not yet revoked) consent row for that
-  child. Flips `consent_status` to `'revoked'` **and** deletes the child's
+- **`revoke_guardian_consent(p_token)`** — `authenticated` and
+  `anon`. The guardian presents the same email-link token that granted
+  consent (matched by its sha256); a child id alone can no longer revoke
+  (changed 2026-10-03 — the old `p_child_user_id` form let anyone erase a
+  child's account; that form is now callable by no role). Requires an active
+  (granted, not yet revoked) consent row. **Production status:** the child-id
+  form is closed; the token form (`20261003113100`) still has to be applied in
+  the Supabase SQL editor — until then revocation is unavailable (no UI uses it). Flips `consent_status` to `'revoked'` **and** deletes the child's
   `profiles` row in the same call — revocation means stop processing *and*
   erase, not two separate guardian actions.
 - **`export_my_data(p_subject_user_id default null)`** /

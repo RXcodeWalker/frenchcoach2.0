@@ -101,15 +101,15 @@ describe('grantGuardianConsent / revokeGuardianConsent', () => {
     });
   });
 
-  it('revoke calls the RPC with the child id and resolves on success', async () => {
+  it('revoke calls the RPC with the guardian token and resolves on success', async () => {
     rpcMock.mockResolvedValueOnce({ data: { ok: true }, error: null });
-    await expect(revokeGuardianConsent('child-1')).resolves.toBeUndefined();
-    expect(rpcMock).toHaveBeenCalledWith('revoke_guardian_consent', { p_child_user_id: 'child-1' });
+    await expect(revokeGuardianConsent('guardian-token')).resolves.toBeUndefined();
+    expect(rpcMock).toHaveBeenCalledWith('revoke_guardian_consent', { p_token: 'guardian-token' });
   });
 
   it('revoke maps no_active_consent to a typed error', async () => {
     rpcMock.mockResolvedValueOnce({ data: null, error: { message: 'no_active_consent' } });
-    await expect(revokeGuardianConsent('child-1')).rejects.toMatchObject({
+    await expect(revokeGuardianConsent('guardian-token')).rejects.toMatchObject({
       code: 'no_active_consent',
     });
   });
