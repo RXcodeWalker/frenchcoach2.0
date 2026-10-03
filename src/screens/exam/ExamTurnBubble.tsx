@@ -1,7 +1,7 @@
 import { Repeat } from 'lucide-react';
 import { speakExaminerText, getExaminerVoiceGeneration, hasFrenchVoice } from '../../services/exam/examinerVoice';
 import type { ConductLogEntry } from '../../domain/igcse/session/types';
-import { collectExaminerQuotes, type ExaminerFeedback } from '../../services/coaching/examinerFeedback';
+import { collectExaminerQuoteItems, type ExaminerFeedback } from '../../services/coaching/examinerFeedback';
 
 const ACTION_LABEL: Record<string, string> = {
   READ_MAIN: 'Examiner',
@@ -19,12 +19,13 @@ interface Props {
   /** W3: this candidate turn's rail result, when the corrections rail has one (coached mode only). */
   railResult?: ExaminerFeedback | null;
   /** Scrolls to and highlights this turn's card in the corrections rail. */
-  onIssueClick?: () => void;
+  onIssueClick?: (quote: string) => void;
 }
 
 interface QuoteSegment {
   text: string;
   matched: boolean;
+  kind?: 'mistake' | 'good';
 }
 
 /**
@@ -37,17 +38,23 @@ interface QuoteSegment {
  * mapping one into the other's shape was explicitly rejected — see
  * verification-log.md's W3 pre-implementation decision). This only finds
  * each quote's verbatim occurrence in the transcript and marks it clickable;
- * all quoted spans in a turn point at the same rail card, since
- * ExaminerFeedbackCard has no finer-grained per-citation anchor.
+ * the rail card anchors each row by its quote, so a click passes the quote
+ * and the rail scrolls to and highlights that exact row.
  */
 function buildQuoteSegments(transcript: string, feedback: ExaminerFeedback): QuoteSegment[] {
-  const quotes = collectExaminerQuotes(feedback).filter(Boolean);
+  const items = collectExaminerQuoteItems(feedback).filter((i) => i.quote);
 
-  const ranges: { start: number; end: number }[] = [];
-  for (const quote of quotes) {
+  const ranges: { start: number; end: number; kind: 'mistake' | 'good' }[] = [];
+  for (const { quote, kind } of items) {
     const start = transcript.indexOf(quote);
     if (start === -1) continue;
-    ranges.push({ start, end: start + quote.length });
+    const existing = ranges.find((r) => r.start === start && r.end === start + quote.length);
+    // The same words cited as both fine and wrong: the mistake wins.
+    if (existing) {
+      if (kind === 'mistake') existing.kind = 'mistake';
+      continue;
+    }
+    ranges.push({ start, end: start + quote.length, kind });
   }
   ranges.sort((a, b) => a.start - b.start);
 
@@ -56,7 +63,7 @@ function buildQuoteSegments(transcript: string, feedback: ExaminerFeedback): Quo
   for (const range of ranges) {
     if (range.start < cursor) continue; // overlapping quote — keep the earlier one
     if (range.start > cursor) segments.push({ text: transcript.slice(cursor, range.start), matched: false });
-    segments.push({ text: transcript.slice(range.start, range.end), matched: true });
+    segments.push({ text: transcript.slice(range.start, range.end), matched: true, kind: range.kind });
     cursor = range.end;
   }
   if (cursor < transcript.length) segments.push({ text: transcript.slice(cursor), matched: false });
@@ -107,9 +114,14 @@ export function ExamTurnBubble({ entry, voiceMuted, railResult, onIssueClick }: 
                 <button
                   key={i}
                   type="button"
-                  onClick={onIssueClick}
-                  className="inline p-0 m-0 border-0 bg-transparent font-inherit text-inherit align-baseline cursor-pointer
-                    underline decoration-wavy decoration-2 underline-offset-2 decoration-action-ink/70 hover:opacity-80"
+                  onClick={() => onIssueClick?.(seg.text)}
+                  title={seg.kind === 'mistake' ? 'Mistake — see the correction' : 'Correct — see the examiner note'}
+                  className={`inline m-0 border-0 border-b-2 rounded-sm px-0.5 font-inherit text-inherit align-baseline cursor-pointer
+                    transition-colors duration-state ease-smooth ${
+                      seg.kind === 'mistake'
+                        ? 'bg-orange-300/25 border-orange-300 hover:bg-orange-300/40'
+                        : 'bg-emerald-300/25 border-emerald-300 hover:bg-emerald-300/40'
+                    }`}
                 >
                   {seg.text}
                 </button>

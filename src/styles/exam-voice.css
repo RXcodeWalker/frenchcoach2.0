@@ -1,15 +1,14 @@
 /* ============================================================
    Exam voice — the warm-paper "different room" for exam mode and
    the returned script (FrenchCoach Enhanced, screens 4/9/10).
-   Scoped to `.exam-voice`; forced regardless of the app's
+   Scoped to `.exam-voice` (always applied by ExamLayout); forced regardless of the app's
    light/dark theme, because the switch itself is the signal that
    the learner is in an assessment, not practice.
 
    It works by re-pointing the core token *utility classes* the
    exam screens already use (`.bg-bg`, `.surface`, `.text-ink`,
    `.bg-action`, …), so the same JSX renders in either voice with
-   no per-screen branching. When the learner toggles to "App
-   theme" the wrapper drops this class and the core tokens apply.
+   no per-screen branching.
    ============================================================ */
 
 .exam-voice {
@@ -24,6 +23,18 @@
   --paper-accent: #1F4D3F;           /* dark green — the exam primary */
   --paper-accent-ink: #F3EDE1;
   --paper-accent-soft: rgba(31, 77, 63, 0.10);
+
+  /* Pin the core tokens to the paper palette so nothing inside an exam screen
+     resolves against the app's dark theme. */
+  color-scheme: light;
+  --bg: var(--paper-bg); --surface: var(--paper-surface); --surface-raised: var(--paper-surface);
+  --surface-recessed: var(--paper-recessed);
+  --hairline: var(--paper-hairline); --hairline-strong: var(--paper-hairline-strong);
+  --ink: var(--paper-ink); --ink-muted: var(--paper-ink-muted); --ink-subtle: var(--paper-ink-subtle);
+  --action: var(--paper-accent); --action-hover: #17382E; --action-press: #12302A;
+  --action-ink: var(--paper-accent-ink); --action-text: var(--paper-accent); --action-soft: var(--paper-accent-soft);
+  --focus: var(--paper-accent); --track: var(--paper-hairline);
+  --shadow-card: none; --shadow-overlay: 0 24px 60px -20px rgba(26, 26, 24, 0.25);
 
   background: var(--paper-bg);
   color: var(--paper-ink);
@@ -89,3 +100,19 @@
 
 /* ---- scrim stays a dim ---- */
 .exam-voice { --scrim: rgba(32, 30, 26, 0.45); }
+
+/* ---- same text hack the light theme applies, so dark mode can't change it ---- */
+.exam-voice .text-white { color: #0f172a; }
+.exam-voice .text-slate-800 { color: #475569; }
+
+/* ---- feedback: mistake vs. correct must read differently at a glance ---- */
+.exam-voice .exam-quote { color: #9A4A1E !important; }
+.exam-voice .fb-good {
+  background: #DCEBDD; border-color: #8FBF9B;
+}
+.exam-voice .fb-good .fb-heading { color: #1B5E3A; }
+.exam-voice .fb-bad {
+  background: #F7E1D9; border-color: #DDA896;
+}
+.exam-voice .fb-bad .fb-heading { color: #9A3B1C; }
+.exam-voice .fb-active { box-shadow: 0 0 0 2px var(--paper-accent) !important; }

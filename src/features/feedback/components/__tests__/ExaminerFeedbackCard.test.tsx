@@ -89,7 +89,7 @@ describe('ExaminerFeedbackCard — compact variant', () => {
 
   it('role-play turn: the task note and the one error, no marks', () => {
     const { container } = renderCard({ variant: 'compact', result: RAIL_RP });
-    expect(screen.getByText('This task')).not.toBeNull();
+    expect(screen.getByText('No problem — correct')).not.toBeNull();
     expect(screen.getByText('You asked for a table and gave the time.')).not.toBeNull();
     expect(screen.getByText('Preposition')).not.toBeNull();
     expect(container.textContent ?? '').not.toMatch(/\d\s*\/\s*\d|\bmarks?\b|\bband|\bgrade|\bscore/i);

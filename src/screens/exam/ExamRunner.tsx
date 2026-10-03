@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Volume2, VolumeX, RotateCcw, Info, MessageSquareText } from 'lucide-react';
 import { formatTime } from '../../domain/time';
 import { Button } from '../../components/ui/Button';
@@ -127,15 +127,28 @@ export function ExamRunner({
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
   const [highlightedTurnKey, setHighlightedTurnKey] = useState<number | null>(null);
 
-  const handleIssueClick = (turnKey: number) => {
+  const [highlightedQuote, setHighlightedQuote] = useState<string | null>(null);
+  const highlightTimer = useRef<number | undefined>(undefined);
+
+  const handleIssueClick = (turnKey: number, quote: string) => {
     setMobileSheetOpen(true);
     setHighlightedTurnKey(turnKey);
-    window.setTimeout(() => setHighlightedTurnKey(null), 1200);
+    setHighlightedQuote(quote);
+    window.clearTimeout(highlightTimer.current);
+    highlightTimer.current = window.setTimeout(() => {
+      setHighlightedTurnKey(null);
+      setHighlightedQuote(null);
+    }, 2500);
+    // After the render that mounts the highlight (and the mobile sheet), scroll
+    // each rail copy to the exact clicked row, falling back to the turn's card.
     window.setTimeout(() => {
-      document
-        .querySelectorAll(`[data-turn-key="${turnKey}"]`)
-        .forEach((el) => el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
-    }, 0);
+      document.querySelectorAll(`[data-turn-key="${turnKey}"]`).forEach((card) => {
+        const row = Array.from(card.querySelectorAll<HTMLElement>('[data-quote]')).find(
+          (el) => el.dataset.quote === quote,
+        );
+        (row ?? card).scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+    }, 50);
   };
 
   useEffect(() => {
@@ -322,6 +335,7 @@ export function ExamRunner({
             disabledReason={rail.disabledReason}
             onRetry={rail.retry}
             highlightedTurnKey={highlightedTurnKey}
+            highlightedQuote={highlightedQuote}
           />
         </div>
       </div>
@@ -349,6 +363,7 @@ export function ExamRunner({
               disabledReason={rail.disabledReason}
               onRetry={rail.retry}
               highlightedTurnKey={highlightedTurnKey}
+            highlightedQuote={highlightedQuote}
             />
           </div>
         </>

@@ -26,7 +26,6 @@ import { SentenceRebuilder } from './screens/SentenceRebuilder';
 import { Onboarding } from './screens/Onboarding';
 import { OnboardingPlacement } from './screens/OnboardingPlacement';
 import { useGuestMode } from './hooks/useGuestMode';
-import { useExamVoice } from './screens/exam/useExamVoice';
 import { IdentityScopeGate } from './components/IdentityScopeGate';
 import { OnboardingCheck } from './components/OnboardingCheck';
 import { AgeBandCheck } from './components/AgeBandCheck';
@@ -169,23 +168,10 @@ function MainLayout() {
 }
 
 function ExamLayout() {
-  const [voice, toggleVoice] = useExamVoice();
+  // The warm-paper exam voice is the only exam presentation, and it ignores the
+  // app's light/dark theme (see styles/exam-voice.css).
   return (
-    <div
-      data-hatch="immersive"
-      data-exam-voice={voice}
-      className={`min-h-screen bg-bg text-ink overflow-hidden ${voice === 'paper' ? 'exam-voice' : ''}`}
-    >
-      <button
-        type="button"
-        onClick={toggleVoice}
-        className="fixed bottom-3 left-1/2 -translate-x-1/2 z-[60] inline-flex items-center gap-2
-          rounded-pill border border-hairline-strong px-3 h-7 text-eyebrow uppercase
-          text-ink-subtle hover:text-ink transition-colors duration-state ease-smooth bg-bg"
-        title="Switch exam presentation"
-      >
-        {voice === 'paper' ? 'Exam voice · on' : 'Exam voice · off'}
-      </button>
+    <div data-hatch="immersive" className="min-h-screen bg-bg text-ink overflow-hidden exam-voice">
       <main className="relative z-10">
         <Outlet />
       </main>

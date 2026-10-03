@@ -9,6 +9,8 @@ interface Props {
   disabledReason: RailDisabledReason;
   onRetry: (turnKey: number) => void;
   highlightedTurnKey: number | null;
+  /** The specific quote clicked in the transcript, within the highlighted turn. */
+  highlightedQuote?: string | null;
 }
 
 /**
@@ -17,7 +19,7 @@ interface Props {
  * instead of the legacy FeedbackV2 card, and gated by `coached` (Exam Sim
  * shows a sealed placeholder and makes no calls at all — see turnFeedback.ts).
  */
-export function ExamCorrectionsRail({ coached, entries, disabledReason, onRetry, highlightedTurnKey }: Props) {
+export function ExamCorrectionsRail({ coached, entries, disabledReason, onRetry, highlightedTurnKey, highlightedQuote }: Props) {
   if (!coached) {
     return (
       <div className="rounded-card surface p-4 text-center space-y-1.5">
@@ -71,7 +73,7 @@ export function ExamCorrectionsRail({ coached, entries, disabledReason, onRetry,
             exit={{ opacity: 0 }}
             className={
               highlightedTurnKey === entry.turnKey
-                ? 'rounded-card ring-2 ring-action transition-shadow duration-state ease-smooth'
+                ? 'rounded-card transition-shadow duration-state ease-smooth'
                 : 'rounded-card'
             }
           >
@@ -82,6 +84,7 @@ export function ExamCorrectionsRail({ coached, entries, disabledReason, onRetry,
               onSwitchToCoach={() => {}}
               hideSwitchToCoach
               variant="compact"
+              highlightedQuote={highlightedTurnKey === entry.turnKey ? highlightedQuote : null}
             />
           </motion.div>
         ))}

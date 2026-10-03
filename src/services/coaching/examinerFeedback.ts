@@ -624,6 +624,27 @@ export function collectExaminerQuotes(feedback: ExaminerFeedback): string[] {
   return [feedback.task?.quote, feedback.clarity?.quote, feedback.error?.quote].filter((q): q is string => !!q);
 }
 
+export interface ExaminerQuoteItem {
+  quote: string;
+  /** 'mistake' = a quote with a correction; 'good' = a quote the examiner found correct. */
+  kind: 'mistake' | 'good';
+}
+
+/** Like collectExaminerQuotes, but says which quotes are mistakes and which are fine. */
+export function collectExaminerQuoteItems(feedback: ExaminerFeedback): ExaminerQuoteItem[] {
+  const good = (q?: string | null): ExaminerQuoteItem[] => (q ? [{ quote: q, kind: 'good' }] : []);
+  const bad = (q?: string | null): ExaminerQuoteItem[] => (q ? [{ quote: q, kind: 'mistake' }] : []);
+  if (feedback.profile === 'learn') {
+    return [
+      ...feedback.strengths.flatMap((s) => good(s.quote)),
+      ...feedback.errors.flatMap((e) => bad(e.quote)),
+      ...good(feedback.nextStep?.quote),
+    ];
+  }
+  if (feedback.turnKind === 'topic') return feedback.errors.flatMap((e) => bad(e.quote));
+  return [...good(feedback.task?.quote), ...good(feedback.clarity?.quote), ...bad(feedback.error?.quote)];
+}
+
 export class ExaminerGroundingFailedError extends Error {
   constructor() {
     super("Couldn't produce evidence-backed examiner feedback for this answer");

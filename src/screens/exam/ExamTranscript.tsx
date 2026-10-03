@@ -7,9 +7,9 @@ interface Props {
   entries: ConductLogEntry[];
   voiceMuted: boolean;
   isAwaitingExaminer: boolean;
-  /** W3: rail results keyed by candidate turnKey (== entry.seq), for the wavy-underline -> rail-card wiring. */
+  /** W3: rail results keyed by candidate turnKey (== entry.seq), for the clickable-quote -> rail-card wiring. */
   railEntries?: RailEntry[];
-  onIssueClick?: (turnKey: number) => void;
+  onIssueClick?: (turnKey: number, quote: string) => void;
 }
 
 /**
@@ -50,7 +50,7 @@ export function ExamTranscript({ entries, voiceMuted, isAwaitingExaminer, railEn
             entry={entry}
             voiceMuted={voiceMuted}
             railResult={railEntry?.status === 'done' ? railEntry.result : undefined}
-            onIssueClick={railEntry && onIssueClick ? () => onIssueClick(railEntry.turnKey) : undefined}
+            onIssueClick={railEntry && onIssueClick ? (quote: string) => onIssueClick(railEntry.turnKey, quote) : undefined}
           />
         );
       })}
