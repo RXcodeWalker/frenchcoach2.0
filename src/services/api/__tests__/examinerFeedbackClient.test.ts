@@ -1,10 +1,12 @@
 // @vitest-environment jsdom
 //
-// Phase 3 Batch 0: getExaminerFeedback sends structured fields (never a
-// prompt) and the template version it expects; the backend renders the
-// prompt and meters the call. A 429 becomes ExaminerQuotaExceededError, and
-// AuthRequiredError is rethrown rather than swallowed into "unavailable" (D3),
-// so callers can show their signed-out / quota states.
+// Phase 3 Batches 0 and B: getExaminerFeedback sends structured fields (never
+// a prompt), the template version it expects and the answer's inputMode; the
+// backend renders the prompt and meters the call. The reply is parsed,
+// filtered and grounded client-side into the typed feedback for the caller's
+// profile. A 429 becomes ExaminerQuotaExceededError, and AuthRequiredError is
+// rethrown rather than swallowed into "unavailable" (D3), so callers can show
+// their signed-out / quota states.
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('../../../lib/supabase', () => ({
@@ -27,12 +29,14 @@ import type { Question } from '../../../types';
 const QUESTION = { text: 'Que fais-tu le weekend ?' } as Question;
 const TRANSCRIPT = 'Le weekend je joue au foot avec mes amis.';
 const GROUNDED = {
-  currentDescriptorCommentary: [{ claim: 'Uses the present tense', quote: 'je joue au foot' }],
-  improvementCommentary: [],
+  strengths: [{ claim: 'A clear present-tense sentence.', quote: 'je joue au foot' }],
+  errors: [],
+  nextStep: { claim: 'Add a reason for it.', quote: null, descriptorId: 'C3' },
 };
 const UNGROUNDED = {
-  currentDescriptorCommentary: [{ claim: 'x', quote: 'not in the transcript' }],
-  improvementCommentary: [],
+  strengths: [{ claim: 'x', quote: 'not in the transcript' }],
+  errors: [],
+  nextStep: null,
 };
 
 function jsonResponse(body: unknown, status = 200): Response {
@@ -53,13 +57,13 @@ describe('getExaminerFeedback (server-rendered examiner prompt)', () => {
     } as never);
   });
 
-  it('Learn sends structured fields with profile learn, the expected version and attempt 1 — no prompt', async () => {
+  it('Learn sends structured fields with profile learn, the v2 version, speech and attempt 1 — no prompt', async () => {
     const fetchMock = vi.fn().mockResolvedValue(jsonResponse(GROUNDED));
     vi.stubGlobal('fetch', fetchMock);
 
     const result = await getExaminerFeedback(TRANSCRIPT, QUESTION, new AbortController().signal);
 
-    expect(result.currentDescriptorCommentary).toHaveLength(1);
+    expect(result.profile).toBe('learn');
     const [body] = sentBodies(fetchMock);
     expect(body).toEqual({
       feedbackMode: 'examiner',
@@ -69,20 +73,34 @@ describe('getExaminerFeedback (server-rendered examiner prompt)', () => {
       question: QUESTION.text,
       transcript: TRANSCRIPT,
       turnKind: 'topic',
+      inputMode: 'speech',
     });
+    expect(EXAMINER_FEEDBACK_PROMPT_VERSION).toBe('examiner-v2');
     expect(body).not.toHaveProperty('prompt');
   });
 
-  it('the rail sends profile rail and its turnKind', async () => {
-    const fetchMock = vi.fn().mockResolvedValue(jsonResponse(GROUNDED));
+  it('the rail sends profile rail, its turnKind, inputMode, context and setup', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      jsonResponse({ task: { claim: 'You asked for a table.', quote: 'je joue au foot' }, clarity: null, error: null }),
+    );
     vi.stubGlobal('fetch', fetchMock);
 
-    await getExaminerFeedback(TRANSCRIPT, QUESTION, new AbortController().signal, {
+    const result = await getExaminerFeedback(TRANSCRIPT, QUESTION, new AbortController().signal, {
       profile: 'rail',
       turnKind: 'rolePlay',
+      inputMode: 'text',
+      contextQuestion: 'Question précédente ?',
+      rolePlaySetup: 'Vous êtes au camping.',
     });
 
-    expect(sentBodies(fetchMock)[0]).toMatchObject({ profile: 'rail', turnKind: 'rolePlay' });
+    expect(result).toMatchObject({ profile: 'rail', turnKind: 'rolePlay' });
+    expect(sentBodies(fetchMock)[0]).toMatchObject({
+      profile: 'rail',
+      turnKind: 'rolePlay',
+      inputMode: 'text',
+      contextQuestion: 'Question précédente ?',
+      rolePlaySetup: 'Vous êtes au camping.',
+    });
   });
 
   it('the grounding retry is sent as attempt 2', async () => {
@@ -95,6 +113,13 @@ describe('getExaminerFeedback (server-rendered examiner prompt)', () => {
     await getExaminerFeedback(TRANSCRIPT, QUESTION, new AbortController().signal);
 
     expect(sentBodies(fetchMock).map((b) => b.attempt)).toEqual([1, 2]);
+  });
+
+  it('two unusable replies become ExaminerGroundingFailedError, not "unavailable"', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockImplementation(async () => jsonResponse(UNGROUNDED)));
+
+    const err = await getExaminerFeedback(TRANSCRIPT, QUESTION, new AbortController().signal).catch((e) => e);
+    expect(err.name).toBe('ExaminerGroundingFailedError');
   });
 
   it('a 429 becomes ExaminerQuotaExceededError', async () => {

@@ -50,6 +50,14 @@ function assertPlaceholdersInsideBoundary(templates: ExaminerPromptTemplates): v
         if (!Number.isInteger(t.maxOutputTokens) || t.maxOutputTokens <= 0) {
           throw new Error(`${where}: maxOutputTokens must be a positive integer`);
         }
+        if (
+          t.responseKeys !== undefined &&
+          (!Array.isArray(t.responseKeys) ||
+            t.responseKeys.length === 0 ||
+            t.responseKeys.some((k) => typeof k !== 'string' || k === ''))
+        ) {
+          throw new Error(`${where}: responseKeys must be a non-empty list of key names`);
+        }
       }
     }
   }

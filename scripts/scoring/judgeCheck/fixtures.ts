@@ -6,7 +6,9 @@
  * candidateResponse text varies) plus a description, an optional pre-change
  * baseline (a single figure or a `runs[]` array, for before/after), an
  * optional pass-bar `expect` block, and (split A only) an `auditErrors[]`
- * list of known audible errors for measuring the judge's QoL recall. Loaded
+ * list of known audible errors for measuring the judge's QoL recall (each
+ * with its expected correction, Phase 3 Batch A) plus an
+ * `inaudibleWatchList[]` of spelling-only artefacts — both report-only. Loaded
  * via fs + zod at runtime (not a static import) so this stays a plain JSON
  * file, per the plan.
  */
@@ -83,6 +85,25 @@ const AuditErrorSchema = z.object({
   source: EvidenceSourceSchema,
   turnId: z.string(),
   quote: z.string(),
+  /**
+   * Phase 3 Batch A, report-only: the expected correct French, compared with
+   * the correction the report shows (`judge:check --feedback`). Never a gate.
+   */
+  correction: z.string().optional(),
+});
+
+/**
+ * Phase 3 Batch A, report-only: spelling-only differences in a SPOKEN
+ * transcript that cannot be heard (chose/choses, au/aux jeux). Not errors and
+ * not recall targets — `judge:check` prints any the judge or the feedback
+ * reports under "inaudible errors counted", as evidence for a later scoring
+ * decision.
+ */
+const InaudibleWatchSchema = z.object({
+  source: EvidenceSourceSchema,
+  turnId: z.string(),
+  quote: z.string(),
+  note: z.string(),
 });
 
 const JudgeCheckFixtureSchema = z.object({
@@ -92,11 +113,13 @@ const JudgeCheckFixtureSchema = z.object({
   baseline: BaselineSchema,
   expect: ExpectSchema,
   auditErrors: z.array(AuditErrorSchema).optional(),
+  inaudibleWatchList: z.array(InaudibleWatchSchema).optional(),
 });
 
 export type JudgeCheckExpect = z.infer<typeof ExpectSchema>;
 export type JudgeCheckBaseline = z.infer<typeof BaselineSchema>;
 export type JudgeCheckAuditError = z.infer<typeof AuditErrorSchema>;
+export type JudgeCheckInaudibleWatch = z.infer<typeof InaudibleWatchSchema>;
 
 export interface JudgeCheckFixture {
   id: string;
@@ -105,6 +128,7 @@ export interface JudgeCheckFixture {
   baseline?: JudgeCheckBaseline;
   expect?: JudgeCheckExpect;
   auditErrors?: JudgeCheckAuditError[];
+  inaudibleWatchList?: JudgeCheckInaudibleWatch[];
 }
 
 /**

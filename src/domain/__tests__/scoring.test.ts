@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { isUnscored, displayScore, averageRealScores } from '../scoring';
+import { isUnscored, displayScore, averageRealScores, computeOverall, coachScoreGrid, NoScoreInFeedbackError } from '../scoring';
 import type { FeedbackV2 } from '../../types';
 
 function makeFeedback(overrides: Partial<FeedbackV2> = {}): Pick<FeedbackV2, 'unscored' | 'scores'> {
@@ -55,5 +55,38 @@ describe('averageRealScores', () => {
 
   it('ignores non-finite values defensively', () => {
     expect(averageRealScores([10, NaN, 2])).toBe(6);
+  });
+});
+
+describe('computeOverall', () => {
+  it('is the equal-weight mean of all four sub-scores, 1 decimal', () => {
+    expect(computeOverall({ communication: 7, language: 6, accuracy: 5, fluency: 4 })).toBe(5.5);
+    expect(computeOverall({ communication: 7, language: 7, accuracy: 6, fluency: 6 })).toBe(6.5);
+    expect(computeOverall({ communication: 7, language: 6, accuracy: 6, fluency: 6 })).toBe(6.3);
+  });
+
+  it('averages only the sub-scores that are present', () => {
+    expect(computeOverall({ communication: 8, fluency: 6 })).toBe(7);
+  });
+
+  it('throws NoScoreInFeedbackError when none are present', () => {
+    expect(() => computeOverall({})).toThrow(NoScoreInFeedbackError);
+  });
+});
+
+describe('coachScoreGrid', () => {
+  it('labels each field with the field it reads', () => {
+    const grid = coachScoreGrid({ overall: 6, communication: 1, language: 2, accuracy: 3, fluency: 4 });
+    expect(grid).toEqual([
+      { label: 'Comm', val: 1 },
+      { label: 'Lang', val: 2 },
+      { label: 'Accuracy', val: 3 },
+      { label: 'Fluency', val: 4 },
+    ]);
+  });
+
+  it('omits Accuracy for sessions stored before it existed', () => {
+    const grid = coachScoreGrid({ overall: 6, communication: 1, language: 2, fluency: 4 });
+    expect(grid.map(g => g.label)).toEqual(['Comm', 'Lang', 'Fluency']);
   });
 });

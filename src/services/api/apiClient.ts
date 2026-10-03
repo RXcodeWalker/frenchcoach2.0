@@ -27,8 +27,10 @@ import {
   type ExaminerFeedbackProfile,
   type ExaminerTurnKind,
 } from '../coaching/examinerFeedback';
+import type { CandidateInputMode } from '../../domain/igcse/stt/types';
 import type { NewsSnippet } from '../../data/mocks/mockNews';
 import { getWarmupPhase, noteBackendReachable } from './backendWarmup';
+import { NoScoreInFeedbackError, computeOverall } from '../../domain/scoring';
 import { AuthRequiredError, getAccessToken, isAuthRequiredError, requireAuthHeader } from '../../lib/authToken';
 
 /**
@@ -280,13 +282,7 @@ function logProviderAttempts(raw: BackendFeedbackV2, endpoint: string): void {
   }
 }
 
-/** E2: a response with no real score anywhere is invalid input, not a "5" — callers must treat this as a failure and let the fallback chain run. */
-export class NoScoreInFeedbackError extends Error {
-  constructor() {
-    super('Backend feedback contained no usable score');
-    this.name = 'NoScoreInFeedbackError';
-  }
-}
+export { NoScoreInFeedbackError };
 
 // Backend markers for "this attempt was never actually graded" — checked
 // before and independently of scores/fluency, since a malformed response can
@@ -297,6 +293,28 @@ const UNSCORED_PROVIDER_STATUS: Record<string, UnscoredReason> = {
   offline_fallback: 'backend_offline_fallback',
   malformed_response: 'backend_malformed_response',
 };
+
+/**
+ * Coach scores, each field from its real backend source: communication=comm,
+ * language=know, accuracy=acc, fluency=raw.fluency. `overall` is the backend's
+ * own if it sent one, else the equal-weight mean of whatever is present
+ * (computeOverall — throws NoScoreInFeedbackError when nothing is). A missing
+ * sub-score falls back to overall so the required fields stay numeric.
+ */
+function mapCoachScores(raw: Pick<BackendFeedback, 'scores' | 'fluency'>): FeedbackV2['scores'] {
+  const communication = raw.scores?.comm;
+  const language = raw.scores?.know;
+  const accuracy = raw.scores?.acc;
+  const fluency = raw.fluency;
+  const overall = raw.scores?.overall ?? computeOverall({ communication, language, accuracy, fluency });
+  return {
+    overall,
+    communication: communication ?? overall,
+    language: language ?? overall,
+    ...(accuracy !== undefined ? { accuracy } : {}),
+    fluency: fluency ?? overall,
+  };
+}
 
 export function mapBackendFeedback(raw: BackendFeedback): FeedbackV2 {
   const unscoredReason = raw.providerStatus ? UNSCORED_PROVIDER_STATUS[raw.providerStatus] : undefined;
@@ -319,18 +337,8 @@ export function mapBackendFeedback(raw: BackendFeedback): FeedbackV2 {
     };
   }
 
-  const overall = raw.scores?.overall ?? raw.fluency;
-  if (overall === undefined) {
-    throw new NoScoreInFeedbackError();
-  }
-
   return {
-    scores: {
-      overall,
-      communication: raw.scores?.comm    ?? overall,
-      language:      raw.scores?.know    ?? overall,
-      fluency:       raw.scores?.acc     ?? overall,
-    },
+    scores: mapCoachScores(raw),
     grammar,
     vocabulary: (raw.vocabulary ?? []).map(v => ({ basic: v.basic ?? '', upgrade: v.upgrade ?? '', example: v.example, nuance: v.nuance })),
     style:      (raw.style      ?? []).map(s => ({ label: s.label ?? '', suggestion: s.suggestion ?? '' })),
@@ -728,8 +736,8 @@ export async function getAIFeedback(
   }
 
   // Tier 1: very short answer (1-3 words) — return local result immediately.
-  // No network round-trip: a 1-3 word answer cannot earn Communication marks
-  // regardless of which engine evaluates it.
+  // No network round-trip: a 1-3 word answer gives any engine too little to
+  // assess for a topic-conversation answer (TN p.11), so there is nothing to send.
   if (tier === 1) {
     const localResult = buildTier1LocalResult(transcript);
     localResult.engineMeta = {
@@ -839,9 +847,9 @@ export type { EngineMetadata };
 //
 // Deliberately routed through the same /api/feedback/v3 endpoint (Groq→Gemini
 // chain) with a `feedbackMode: 'examiner'` flag — not a separate endpoint, and
-// NOT /api/feedback/igcse (that is the legacy invented scorer, unrelated to
-// the audited src/domain/igcse engine or to this examiner-voice practice
-// commentary). The response shape is ExaminerFeedback, never merged into
+// NOT a scorer: the legacy /api/feedback/igcse route (an invented scorer
+// unrelated to the audited src/domain/igcse engine) was removed in Phase 3
+// Batch C. This is examiner-voice practice commentary only. The response shape is ExaminerFeedback, never merged into
 // FeedbackV2 — that type always carries a numeric `scores`, and examiner mode
 // must never fabricate one.
 //
@@ -853,10 +861,14 @@ export type { EngineMetadata };
 // it doesn't hold. (backend/evaluator_service.py DOES contain a separate,
 // unsourced Python rubric, but it is unreached from src/ — see
 // docs/decisions/0003-node-engine-is-the-authoritative-scorer.md. It has
-// nothing to do with this examiner-mode call.) Grounding and the one-retry
-// rule (getGroundedExaminerFeedback) still run client-side so every quote is
+// nothing to do with this examiner-mode call.) Parsing, the display filters
+// and grounding (parseAndGroundExaminerFeedback) plus the one-retry rule
+// (getGroundedExaminerFeedback) still run client-side so every quote is
 // checked against the exact transcript this client holds; the retry is sent
-// as `attempt: 2`, a separately metered call.
+// as `attempt: 2`, a separately metered call. Batch B: the reply shape depends
+// on the profile (learn / rail topic / rail role play), and the client sends
+// `inputMode` so the prompt and the sound-alike filter treat a spoken answer
+// differently from a typed one.
 
 export class ExaminerFeedbackUnavailableError extends Error {
   constructor() {
@@ -881,11 +893,13 @@ export function isExaminerQuotaExceededError(err: unknown): err is ExaminerQuota
 export interface ExaminerFeedbackContext {
   profile: ExaminerFeedbackProfile;
   turnKind: ExaminerTurnKind;
+  /** Whether the answer was spoken (transcribed) or typed. Absent means speech. It steers the sound-alike rule, client and server. */
+  inputMode?: CandidateInputMode;
   contextQuestion?: string;
   rolePlaySetup?: string;
 }
 
-const LEARN_EXAMINER_CONTEXT: ExaminerFeedbackContext = { profile: 'learn', turnKind: 'topic' };
+const LEARN_EXAMINER_CONTEXT: ExaminerFeedbackContext = { profile: 'learn', turnKind: 'topic', inputMode: 'speech' };
 
 async function callExaminerModel(
   question: string,
@@ -893,8 +907,8 @@ async function callExaminerModel(
   context: ExaminerFeedbackContext,
   attempt: 1 | 2,
   signal: AbortSignal,
-): Promise<ExaminerFeedback> {
-  const raw = await postWithSignal<Partial<ExaminerFeedback>>(
+): Promise<unknown> {
+  return postWithSignal<unknown>(
     '/api/feedback/v3',
     {
       feedbackMode: 'examiner' as const,
@@ -904,15 +918,12 @@ async function callExaminerModel(
       question,
       transcript,
       turnKind: context.turnKind,
+      inputMode: context.inputMode ?? 'speech',
       ...(context.contextQuestion ? { contextQuestion: context.contextQuestion } : {}),
       ...(context.rolePlaySetup ? { rolePlaySetup: context.rolePlaySetup } : {}),
     },
     signal,
   );
-  return {
-    currentDescriptorCommentary: raw.currentDescriptorCommentary ?? [],
-    improvementCommentary: raw.improvementCommentary ?? [],
-  };
 }
 
 export async function getExaminerFeedback(
@@ -922,8 +933,10 @@ export async function getExaminerFeedback(
   context: ExaminerFeedbackContext = LEARN_EXAMINER_CONTEXT,
 ): Promise<ExaminerFeedback> {
   try {
-    return await getGroundedExaminerFeedback(transcript, (attempt) =>
-      callExaminerModel(question.text, transcript, context, attempt, signal),
+    return await getGroundedExaminerFeedback(
+      context.profile,
+      { transcript, turnKind: context.turnKind, inputMode: context.inputMode },
+      (attempt) => callExaminerModel(question.text, transcript, context, attempt, signal),
     );
   } catch (err) {
     if ((err as Error).name === 'AbortError') throw err;
@@ -954,22 +967,14 @@ function mergeSection(acc: Partial<FeedbackV2>, type: string, data: Record<strin
   switch (type) {
     case 'snapshot': {
       const raw = data as { scores?: { comm?: number; know?: number; acc?: number; overall?: number }; fluency?: number; cefrLevel?: string; wordCount?: number };
-      const overall = raw.scores?.overall ?? raw.fluency;
+      // E2: this is a live preview (partialFeedback), never the recorded score — omit
+      // scores entirely rather than fabricating an "overall: 5" placeholder when the
+      // snapshot doesn't carry a real one yet. The 'complete' event supplies the real score.
+      let scores: FeedbackV2['scores'] | undefined;
+      try { scores = mapCoachScores(raw); } catch (e) { if (!(e instanceof NoScoreInFeedbackError)) throw e; }
       return {
         ...acc,
-        // E2: this is a live preview (partialFeedback), never the recorded score — omit
-        // scores entirely rather than fabricating an "overall: 5" placeholder when the
-        // snapshot doesn't carry a real one yet. The 'complete' event supplies the real score.
-        ...(overall !== undefined
-          ? {
-              scores: {
-                overall,
-                communication: raw.scores?.comm ?? overall,
-                language: raw.scores?.know ?? overall,
-                fluency: raw.scores?.acc ?? overall,
-              },
-            }
-          : {}),
+        ...(scores ? { scores } : {}),
         cefrLevel: raw.cefrLevel ?? acc.cefrLevel,
         wordCount: raw.wordCount ?? acc.wordCount,
       };

@@ -14,6 +14,8 @@
 import { supabase } from '../../lib/supabase';
 import type { SessionTranscript } from '../../domain/igcse/stt/types';
 import type { EnvelopeView } from '../../domain/igcse/envelope/envelopeView';
+import type { ExamFeedbackReport } from '../../domain/examFeedback/types';
+import { isExamFeedbackReport } from '../../domain/examFeedback/schema';
 
 const SCORING_API_BASE = (import.meta.env.VITE_SCORING_API_URL as string | undefined) ?? '';
 
@@ -189,4 +191,59 @@ async function parseEnvelopeResponse(res: Response): Promise<EnvelopeView> {
     throw new ScoringApiError(message, res.status, code);
   }
   return res.json() as Promise<EnvelopeView>;
+}
+
+/** Phase 3 Batch A: client cap on POST /feedback (one model call, plus at most one retry server-side). */
+const FEEDBACK_TIMEOUT_MS = 90_000;
+
+/**
+ * Phase 3 Batch A: the post-marking exam report for an already-scored
+ * session (server/feedbackRoute.ts). Returns the stored report when one
+ * exists (no charge); otherwise the server generates one (charged to the
+ * `score` quota). Never affects the marks, which come only from the
+ * envelope. Throws ScoringApiError on any non-200 (404: no envelope yet;
+ * 429: daily limit reached; 500 `feedback_failed`: generation failed and was
+ * not charged — safe to retry).
+ */
+export async function requestExamFeedback(sessionId: string): Promise<ExamFeedbackReport> {
+  if (!SCORING_API_BASE) {
+    throw new ScoringApiError('Scoring service is not configured (VITE_SCORING_API_URL unset)');
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), FEEDBACK_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${SCORING_API_BASE}/feedback`, {
+      method: 'POST',
+      headers: await authHeaders(),
+      body: JSON.stringify({ sessionId }),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof DOMException && err.name === 'AbortError') {
+      throw new ScoringApiError('Feedback is taking longer than expected.');
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+
+  if (!res.ok) {
+    let message = `Feedback request failed (${res.status})`;
+    let code: string | undefined;
+    try {
+      const body = await res.json();
+      if (typeof body?.error === 'string') message = body.error;
+      if (typeof body?.code === 'string') code = body.code;
+    } catch {
+      /* keep default message */
+    }
+    throw new ScoringApiError(message, res.status, code);
+  }
+  const body = (await res.json()) as { report?: unknown };
+  if (!isExamFeedbackReport(body.report)) {
+    throw new ScoringApiError('Feedback response was not a report');
+  }
+  return body.report;
 }

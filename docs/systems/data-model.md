@@ -27,6 +27,14 @@ A function's tier is readable from its grant footer, without opening the functio
   these functions, add the explicit revoke/grant pair rather than assuming the omission was
   intentional.
 
+**`REVOKE ... FROM PUBLIC` is not enough on its own.** Supabase's default privileges can grant
+`EXECUTE` on every new `public` function to `anon` and `authenticated` *directly* (a fresh local
+`supabase start` does; production, checked 2026-10-03, does not). A server-only function must
+therefore also `REVOKE EXECUTE ... FROM anon, authenticated` explicitly, as
+`20261003101130_revoke_server_only_rpcs_from_clients.sql` now does for every existing one — never
+rely on the environment's defaults. The same applies to tables (`revoke all ... from anon,
+authenticated`, e.g. `exam_feedback_reports`).
+
 ## 2. The economy invariant
 
 - **`gem_events` is the sole balance authority.** Balance is always computed as

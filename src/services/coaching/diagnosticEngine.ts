@@ -525,7 +525,7 @@ export function runAfterSession(feedback: FeedbackV2, avoidanceSignals?: Avoidan
   _observe(skills, "word_count", feedback.wordCount < 40, date);
 
   // Fluency
-  _observe(skills, "fluency_score", feedback.scores.overall < 6, date);
+  _observe(skills, "fluency_score", feedback.scores.fluency < 6, date);
 
   // Vocabulary
   if (feedback.vocabulary && feedback.vocabulary.length >= 2) {

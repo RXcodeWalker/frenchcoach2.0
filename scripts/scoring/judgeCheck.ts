@@ -8,7 +8,15 @@
  * passBar.ts for the offline-safe parts of this harness.
  *
  * Usage:
- *   npm run judge:check -- [--runs N] [--case <id>] [--provider gemini|groq]
+ *   npm run judge:check -- [--runs N] [--case <id>] [--provider gemini|groq] [--feedback]
+ *
+ * --feedback (Phase 3 Batch A): after each successful run, also generates the
+ * post-marking exam report (src/domain/examFeedback) from that run's envelope
+ * and reports — never gates — feedback recall vs `auditErrors` (separately
+ * from judge recall), shown vs expected corrections, every error reported on
+ * `strong` (candidate false positives), errors dropped by the display
+ * filters, the inaudible watch-list, and the feedback calls' token cost. The
+ * judge calls and the marks are exactly those of the run without the flag.
  */
 
 import * as fs from 'node:fs';
@@ -31,6 +39,9 @@ import { FIXTURE_IDS, loadFixture } from './judgeCheck/fixtures';
 import type { JudgeCheckAuditError, JudgeCheckFixture } from './judgeCheck/fixtures';
 import { allExpectationsPassed, evaluateExpectation } from './judgeCheck/passBar';
 import type { ExpectationResult } from './judgeCheck/passBar';
+import type { EvidenceProfile } from '../../src/domain/igcse/evidence/types';
+import { generateExamFeedback } from '../../src/domain/examFeedback/generate';
+import { buildCheckEnvelope, measureFeedback, type FeedbackMeasurement } from './judgeCheck/feedbackCheck';
 
 type Provider = 'gemini' | 'groq';
 
@@ -73,12 +84,14 @@ interface CliArgs {
   runs: number;
   caseId?: string;
   provider: Provider;
+  feedback: boolean;
 }
 
 function parseArgs(argv: string[]): CliArgs {
   let runs = 3;
   let caseId: string | undefined;
   let provider: Provider = 'gemini';
+  let feedback = false;
   for (let i = 0; i < argv.length; i += 1) {
     if (argv[i] === '--runs') {
       runs = Number(argv[++i]);
@@ -88,10 +101,12 @@ function parseArgs(argv: string[]): CliArgs {
       const v = argv[++i];
       if (v !== 'gemini' && v !== 'groq') throw new Error(`--provider must be "gemini" or "groq", got "${v}"`);
       provider = v;
+    } else if (argv[i] === '--feedback') {
+      feedback = true;
     }
   }
   if (!Number.isInteger(runs) || runs < 1) throw new Error(`--runs must be a positive integer, got "${runs}"`);
-  return { runs, caseId, provider };
+  return { runs, caseId, provider, feedback };
 }
 
 interface CallMetadata {
@@ -176,6 +191,15 @@ interface SingleRunResult {
   mainUsage?: { inputTokens: number; outputTokens: number };
   qolUsage?: { inputTokens: number; outputTokens: number };
   auditErrorsRecall?: { quote: string; caught: boolean }[];
+  /** --feedback only. */
+  feedback?: FeedbackMeasurement & { usage: { inputTokens: number; outputTokens: number }; calls: number };
+  feedbackError?: string;
+}
+
+/** What one run needs for --feedback, kept out of the JSON report. */
+interface RunArtifacts {
+  assessment: SpeakingAssessment;
+  evidence: EvidenceProfile;
 }
 
 /**
@@ -197,7 +221,10 @@ function matchAuditErrors(auditErrors: JudgeCheckAuditError[], judgeErrors: QolE
   });
 }
 
-async function runOnce(fixture: JudgeCheckFixture, provider: Provider): Promise<SingleRunResult> {
+async function runOnce(
+  fixture: JudgeCheckFixture,
+  provider: Provider,
+): Promise<{ result: SingleRunResult; artifacts: RunArtifacts }> {
   const evidence = buildEvidenceProfile(fixture.transcript);
 
   const [main, qol] = await Promise.all([
@@ -211,7 +238,7 @@ async function runOnce(fixture: JudgeCheckFixture, provider: Provider): Promise<
   // Real guardrails run, unused here beyond surfacing a broken fixture loudly.
   runGuardrails(assessment, evidence, fixture.transcript);
 
-  return {
+  const result: SingleRunResult = {
     rolePlay: assessment.rolePlay.total,
     communication: assessment.communication.mark,
     qualityOfLanguage: assessment.qualityOfLanguage.mark,
@@ -226,6 +253,77 @@ async function runOnce(fixture: JudgeCheckFixture, provider: Provider): Promise<
     ...(main.metadata.usage ? { mainUsage: main.metadata.usage } : {}),
     ...(qol.metadata.usage ? { qolUsage: qol.metadata.usage } : {}),
   };
+  return { result, artifacts: { assessment, evidence } };
+}
+
+/**
+ * --feedback: one post-marking report for this run, through the same
+ * generateExamFeedback the scoring service uses (one retry inside), with the
+ * chosen provider as the generator. Rate limits wait and retry, uncounted, as
+ * the judge calls do. Token usage is summed over every feedback call.
+ */
+async function runFeedback(
+  fixture: JudgeCheckFixture,
+  artifacts: RunArtifacts,
+  provider: Provider,
+): Promise<NonNullable<SingleRunResult['feedback']>> {
+  const envelope = buildCheckEnvelope(fixture.id, fixture.transcript, artifacts.assessment, artifacts.evidence);
+  const usage = { inputTokens: 0, outputTokens: 0 };
+  let calls = 0;
+  const report = await generateExamFeedback(envelope, async (prompt) => {
+    for (let rateLimitRetries = 0; ; rateLimitRetries += 1) {
+      const { judge, getLastCallMetadata } = createProviderJudge(provider);
+      try {
+        // Real providers ignore `kind` and send only `prompt`.
+        const { raw } = await judge({ kind: 'qualityOfLanguage', prompt });
+        calls += 1;
+        const meta = getLastCallMetadata();
+        if (meta?.usage) {
+          usage.inputTokens += meta.usage.inputTokens;
+          usage.outputTokens += meta.usage.outputTokens;
+        }
+        return raw;
+      } catch (err) {
+        if (!isRateLimitError(err) || rateLimitRetries >= MAX_RATE_LIMIT_RETRIES) throw err;
+        const delayMs = parseRateLimitDelayMs(err);
+        process.stdout.write(`  ! rate limit on feedback, waiting ${Math.round(delayMs / 1000)}s before retrying (uncounted)\n`);
+        await sleep(delayMs);
+      }
+    }
+  });
+  return { ...measureFeedback(fixture, envelope, report), usage, calls };
+}
+
+function printFeedback(fixture: JudgeCheckFixture, feedback: NonNullable<SingleRunResult['feedback']>): void {
+  if (feedback.recall.length > 0) {
+    const caught = feedback.recall.filter((r) => r.caught).length;
+    process.stdout.write(`    feedback recall (shown in the report, after display filters): ${caught}/${feedback.recall.length}\n`);
+    for (const r of feedback.recall) process.stdout.write(`      - [${r.caught ? 'shown' : 'MISSED'}] "${r.quote}"\n`);
+  }
+  for (const c of feedback.corrections) {
+    process.stdout.write(
+      `    correction "${c.quote}": shown "${c.shown}" vs expected "${c.expected}" -> ${c.matches ? 'matches' : 'DIFFERS'}\n`,
+    );
+  }
+  if (feedback.dropped.length > 0) {
+    process.stdout.write(`    dropped by display filters (${feedback.dropped.length}):\n`);
+    for (const d of feedback.dropped) {
+      process.stdout.write(`      - [${d.error.source} ${d.error.turnId}] "${d.error.quote}" -> ${d.error.correction} (${d.dropReason})\n`);
+    }
+  }
+  if (feedback.inaudibleCounted.length > 0) {
+    process.stdout.write(`    inaudible errors counted (${feedback.inaudibleCounted.length}):\n`);
+    for (const w of feedback.inaudibleCounted) process.stdout.write(`      - [${w.by}] "${w.quote}" — ${w.note}\n`);
+  }
+  if (fixture.id.startsWith('strong')) {
+    process.stdout.write(`    errors reported on ${fixture.id} (${feedback.reported.length}, each a candidate false positive):\n`);
+    for (const e of feedback.reported) {
+      process.stdout.write(`      - [${e.source} ${e.turnId}] "${e.quote}" -> ${e.correction} (${e.category})\n`);
+    }
+  }
+  process.stdout.write(
+    `    feedback tokens: input=${feedback.usage.inputTokens} output=${feedback.usage.outputTokens} over ${feedback.calls} call(s)\n`,
+  );
 }
 
 function spread(values: number[]): string {
@@ -258,6 +356,8 @@ async function main(): Promise<void> {
   const report: Record<string, unknown> = { provider: args.provider, runs: args.runs, cases: {} };
   let totalInputTokens = 0;
   let totalOutputTokens = 0;
+  let feedbackInputTokens = 0;
+  let feedbackOutputTokens = 0;
   let anyValidationErrors = false;
   let isFirstRunOverall = true;
 
@@ -274,8 +374,9 @@ async function main(): Promise<void> {
         await sleep(INTER_RUN_DELAY_MS);
       }
       let result: SingleRunResult;
+      let artifacts: RunArtifacts;
       try {
-        result = await runOnce(fixture, args.provider);
+        ({ result, artifacts } = await runOnce(fixture, args.provider));
       } catch (err) {
         anyValidationErrors = true;
         failedRuns += 1;
@@ -317,6 +418,18 @@ async function main(): Promise<void> {
           process.stdout.write(`      - [${e.source} ${e.turnId}] "${e.quote}" (${e.kind}) -> ${e.correction}\n`);
         }
       }
+      if (args.feedback) {
+        try {
+          result.feedback = await runFeedback(fixture, artifacts, args.provider);
+          feedbackInputTokens += result.feedback.usage.inputTokens;
+          feedbackOutputTokens += result.feedback.usage.outputTokens;
+          printFeedback(fixture, result.feedback);
+        } catch (err) {
+          // Reported, never gated: the marks above are unaffected by the report.
+          result.feedbackError = err instanceof Error ? err.message : String(err);
+          process.stdout.write(`    feedback: FAILED — ${result.feedbackError}\n`);
+        }
+      }
     }
 
     process.stdout.write(
@@ -349,6 +462,20 @@ async function main(): Promise<void> {
         : '\n'),
   );
   report.tokenUsage = { totalInputTokens, totalOutputTokens, estimatedCostUsd: args.provider === 'gemini' ? costUsd : undefined };
+
+  if (args.feedback) {
+    const feedbackCostUsd = estimateCostUsd(feedbackInputTokens, feedbackOutputTokens);
+    process.stdout.write(
+      `\n--- Feedback token usage (${args.provider}, separate from the judge calls above) ---\n` +
+        `input=${feedbackInputTokens} output=${feedbackOutputTokens}` +
+        (args.provider === 'gemini' ? ` estimated cost=$${feedbackCostUsd.toFixed(4)} (every feedback call, retries included)\n` : '\n'),
+    );
+    report.feedbackTokenUsage = {
+      inputTokens: feedbackInputTokens,
+      outputTokens: feedbackOutputTokens,
+      estimatedCostUsd: args.provider === 'gemini' ? feedbackCostUsd : undefined,
+    };
+  }
 
   if (anyValidationErrors) {
     process.stdout.write('\nAt least one judge call needed a retry — see "! retry" lines above.\n');

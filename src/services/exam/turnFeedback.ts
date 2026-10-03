@@ -9,6 +9,15 @@
  * ConductLog-writing function — enforced by __tests__/turnFeedbackBoundary.test.ts,
  * mirroring domain/igcse/session/__tests__/interpreterBoundary.test.ts.
  *
+ * Context sent with each turn (resolveRailPrompt): the effective examiner
+ * prompt (REPEAT and TRANSITION lines are skipped, so a repeated extension is
+ * still an extension); an extension prompt ("Donne-moi plus de détails.") is
+ * generic, so it also carries the question it extends — every READ_MAIN /
+ * READ_ALTERNATIVE text with its questionId in that part, in log order, so a
+ * two-part question's part 2 is included. A further question is a complete
+ * authored question and gets NO context. Role-play turns carry the scenario
+ * setup; every turn carries its inputMode (speech unless typed).
+ *
  * Engine: getExaminerFeedback (feedbackMode: 'examiner', profile 'rail') —
  * the only mark-free path (ADR-0005), metered per turn under the backend's
  * `exam_turn_feedback` quota row. classifyTier gates it so a silent or <=3-word turn never
@@ -26,7 +35,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { getExaminerFeedback, isExaminerQuotaExceededError } from '../api/apiClient';
+import { getExaminerFeedback, isExaminerQuotaExceededError, type ExaminerFeedbackContext } from '../api/apiClient';
 import { classifyTier } from '../coaching/responseTier';
 import { isAuthRequiredError } from '../../lib/authToken';
 import type { ExaminerFeedback, ExaminerTurnKind } from '../coaching/examinerFeedback';
@@ -59,12 +68,46 @@ export interface UseExamCorrectionsRail {
   retry: (turnKey: number) => void;
 }
 
-function findPrecedingExaminerText(entries: ConductLogEntry[], candidateIndex: number): string {
+/** What the candidate at `candidateIndex` was answering, as the rail sends it to the model. */
+export interface RailPrompt {
+  question: string;
+  contextQuestion?: string;
+}
+
+/**
+ * The effective examiner prompt for the candidate entry at `candidateIndex`:
+ * the nearest earlier examiner entry that is not a REPEAT or a TRANSITION.
+ * An EXTENSION_PROMPT additionally gets `contextQuestion` (see the header).
+ * Returns an empty question when no examiner line precedes the answer.
+ */
+export function resolveRailPrompt(entries: readonly ConductLogEntry[], candidateIndex: number): RailPrompt {
+  let promptIndex = -1;
   for (let i = candidateIndex - 1; i >= 0; i--) {
     const e = entries[i];
-    if (e.kind === 'examiner') return e.text;
+    if (e.kind !== 'examiner') continue;
+    if (e.action === 'REPEAT' || e.action === 'TRANSITION') continue;
+    promptIndex = i;
+    break;
   }
-  return '';
+  if (promptIndex === -1) return { question: '' };
+
+  const prompt = entries[promptIndex];
+  if (prompt.kind !== 'examiner') return { question: '' };
+  if (prompt.action !== 'EXTENSION_PROMPT' || prompt.questionId === null) return { question: prompt.text };
+
+  const parts: string[] = [];
+  for (let i = 0; i < promptIndex; i++) {
+    const e = entries[i];
+    if (
+      e.kind === 'examiner' &&
+      (e.action === 'READ_MAIN' || e.action === 'READ_ALTERNATIVE') &&
+      e.questionId === prompt.questionId &&
+      e.part === prompt.part
+    ) {
+      parts.push(e.text);
+    }
+  }
+  return parts.length > 0 ? { question: prompt.text, contextQuestion: parts.join(' ') } : { question: prompt.text };
 }
 
 /**
@@ -73,26 +116,34 @@ function findPrecedingExaminerText(entries: ConductLogEntry[], candidateIndex: n
  * only, fires one getExaminerFeedback call per new candidate turn that
  * clears the tier gate.
  */
-export function useExamCorrectionsRail(entries: ConductLogEntry[], coached: boolean): UseExamCorrectionsRail {
+export function useExamCorrectionsRail(
+  entries: ConductLogEntry[],
+  coached: boolean,
+  options: { rolePlaySetup?: string } = {},
+): UseExamCorrectionsRail {
   const [railEntries, setRailEntries] = useState<RailEntry[]>([]);
   const [disabledReason, setDisabledReason] = useState<RailDisabledReason>(null);
   const quotaExhaustedRef = useRef(false);
 
+  // The scenario's setup, read when a role-play turn is first processed.
+  const rolePlaySetupRef = useRef(options.rolePlaySetup);
+  rolePlaySetupRef.current = options.rolePlaySetup;
+
   const processedSeqRef = useRef(new Set<number>());
-  const questionTextRef = useRef(new Map<number, string>());
-  const turnKindRef = useRef(new Map<number, ExaminerTurnKind>());
+  // What was sent for each turn, kept so a retry re-sends exactly the same request.
+  const requestRef = useRef(new Map<number, { questionText: string; context: ExaminerFeedbackContext }>());
   const requestIdRef = useRef(new Map<number, number>());
   const controllersRef = useRef(new Map<number, AbortController>());
 
   const runRequest = useCallback(
-    (turnKey: number, transcript: string, questionText: string, turnKind: ExaminerTurnKind, requestId: number) => {
+    (turnKey: number, transcript: string, questionText: string, context: ExaminerFeedbackContext, requestId: number) => {
       controllersRef.current.get(turnKey)?.abort();
       const controller = new AbortController();
       controllersRef.current.set(turnKey, controller);
 
       const question = { text: questionText } as Question;
 
-      void getExaminerFeedback(transcript, question, controller.signal, { profile: 'rail', turnKind })
+      void getExaminerFeedback(transcript, question, controller.signal, context)
         .then((result) => {
           // Stale-response guard: a retry for this same turn superseded this request.
           if (requestIdRef.current.get(turnKey) !== requestId) return;
@@ -142,10 +193,16 @@ export function useExamCorrectionsRail(entries: ConductLogEntry[], coached: bool
       if (quotaExhaustedRef.current) return;
 
       const turnKey = entry.seq;
-      const questionText = findPrecedingExaminerText(entries, i);
-      questionTextRef.current.set(turnKey, questionText);
+      const { question: questionText, contextQuestion } = resolveRailPrompt(entries, i);
       const turnKind: ExaminerTurnKind = entry.part === 'rolePlay' ? 'rolePlay' : 'topic';
-      turnKindRef.current.set(turnKey, turnKind);
+      const context: ExaminerFeedbackContext = {
+        profile: 'rail',
+        turnKind,
+        inputMode: entry.inputMode ?? 'speech',
+        ...(contextQuestion ? { contextQuestion } : {}),
+        ...(turnKind === 'rolePlay' && rolePlaySetupRef.current ? { rolePlaySetup: rolePlaySetupRef.current } : {}),
+      };
+      requestRef.current.set(turnKey, { questionText, context });
 
       setRailEntries((prev) => [
         ...prev,
@@ -154,7 +211,7 @@ export function useExamCorrectionsRail(entries: ConductLogEntry[], coached: bool
 
       const requestId = (requestIdRef.current.get(turnKey) ?? 0) + 1;
       requestIdRef.current.set(turnKey, requestId);
-      runRequest(turnKey, entry.transcript, questionText, turnKind, requestId);
+      runRequest(turnKey, entry.transcript, questionText, context, requestId);
     });
   }, [entries, coached, runRequest]);
 
@@ -171,11 +228,12 @@ export function useExamCorrectionsRail(entries: ConductLogEntry[], coached: bool
       setRailEntries((prev) => {
         const entry = prev.find((e) => e.turnKey === turnKey);
         if (!entry) return prev;
-        const questionText = questionTextRef.current.get(turnKey) ?? '';
-        const turnKind = turnKindRef.current.get(turnKey) ?? 'topic';
+        const sent = requestRef.current.get(turnKey);
+        const questionText = sent?.questionText ?? '';
+        const context: ExaminerFeedbackContext = sent?.context ?? { profile: 'rail', turnKind: 'topic', inputMode: entry.inputMode ?? 'speech' };
         const requestId = (requestIdRef.current.get(turnKey) ?? 0) + 1;
         requestIdRef.current.set(turnKey, requestId);
-        runRequest(turnKey, entry.transcript, questionText, turnKind, requestId);
+        runRequest(turnKey, entry.transcript, questionText, context, requestId);
         return prev.map((e) => (e.turnKey === turnKey ? { ...e, status: 'pending', result: null } : e));
       });
     },

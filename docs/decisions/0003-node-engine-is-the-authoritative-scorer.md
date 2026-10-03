@@ -40,3 +40,13 @@ authoritative:
 - `CLAUDE.md`'s claim that "there is no Python rubric or scoring prompt anywhere" is stale — see
   `docs/systems/assessment-engine.md`'s "A known-stale claim in CLAUDE.md" section. This ADR
   records the actual, current three-scorer situation regardless of that claim's state.
+
+## Amendment — 2026-10 (Phase 3 Batch C)
+
+The third scorer's HTTP surface, `POST /api/feedback/igcse`, was removed from `backend/main.py`
+(route, `IGCSEFeedbackRequest`, `build_igcse_prompt`, `IGCSE_SYSTEM_PROMPT`, the Gemini/Groq
+callers and `_offline_igcse_feedback`). Evidence: zero code callers in either repo, and zero
+requests in 30 days of Render logs (the maximum retained; a control search for `/api/feedback*`
+in the same window showed normal `/api/feedback/v3` traffic). A deleted route returns 404, never
+wrong marks. `backend/evaluator_service.py` and the `exam_controller.py` `grade_band` passthrough
+are untouched and remain out of scope, as above.

@@ -40,11 +40,30 @@ describe('evaluateRoadmap — practiceOnly exclusion', () => {
     const { evaluateRoadmap } = await import('../roadmapService');
     const data = evaluateRoadmap();
 
-    // Only the counting session's score (8) should have blended in — a low
-    // practiceOnly score (2) dragging the average down is the failure mode
-    // this test catches. (roadmapService's existing exam/20 rescale is
-    // untouched by this phase, so the expected value follows that formula.)
-    expect(data.skills.examResponse).toBe((8 / 20) * 10);
+    // Only the counting session's score (8, already /10) should have counted —
+    // a low practiceOnly score (2) dragging the average down is the failure
+    // mode this test catches.
+    expect(data.skills.examResponse).toBe(8);
+  });
+
+  it('counts a 7.5 Exam Sim session (no aiFeedback) as 7.5, unscaled', async () => {
+    getStats.mockReturnValue({
+      totalSessions: 1,
+      allSessions: [examSession({ score: 7.5 })],
+    });
+
+    const { evaluateRoadmap } = await import('../roadmapService');
+    expect(evaluateRoadmap().skills.examResponse).toBe(7.5);
+  });
+
+  it('ignores a practice-only exam session entirely for examResponse', async () => {
+    getStats.mockReturnValue({
+      totalSessions: 1,
+      allSessions: [examSession({ score: 7.5, practiceOnly: true })],
+    });
+
+    const { evaluateRoadmap } = await import('../roadmapService');
+    expect(evaluateRoadmap().skills.examResponse).toBe(0);
   });
 
   it('skips a practiceOnly exam session for the "Exam Preview" (igcse) milestone', async () => {

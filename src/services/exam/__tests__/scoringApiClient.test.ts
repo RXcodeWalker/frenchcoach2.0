@@ -116,3 +116,52 @@ describe('submitForScoring failure classification (fix step B)', () => {
     expect(client.isTerminalScoringStatus((err as InstanceType<typeof client.ScoringApiError>).status)).toBe(true);
   });
 });
+
+describe('requestExamFeedback (Phase 3 Batch A)', () => {
+  async function loadClient() {
+    vi.resetModules();
+    vi.stubEnv('VITE_SCORING_API_URL', 'https://scoring.example');
+    return import('../scoringApiClient');
+  }
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  const REPORT = {
+    feedbackVersion: 'exam-feedback-v0.1',
+    rolePlay: { tasks: [], strengths: [], nextStep: null },
+    communication: { strengths: [], nextStep: null },
+    qualityOfLanguage: { strengths: [], errors: [], nextStep: null },
+  };
+
+  it('POSTs {sessionId} with the bearer token to /feedback and returns the report', async () => {
+    const client = await loadClient();
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ report: REPORT }), { status: 200 }));
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    await expect(client.requestExamFeedback('s1')).resolves.toEqual(REPORT);
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    expect(url).toBe('https://scoring.example/feedback');
+    expect(init.method).toBe('POST');
+    expect(JSON.parse(init.body as string)).toEqual({ sessionId: 's1' });
+    expect((init.headers as Record<string, string>).Authorization).toBe('Bearer test-token');
+  });
+
+  it('a non-200 throws ScoringApiError with status and code', async () => {
+    const client = await loadClient();
+    global.fetch = vi.fn(async () =>
+      new Response(JSON.stringify({ error: 'feedback failed', code: 'feedback_failed' }), { status: 500 }),
+    ) as unknown as typeof fetch;
+    const err = await client.requestExamFeedback('s1').catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(client.ScoringApiError);
+    expect((err as InstanceType<typeof client.ScoringApiError>).status).toBe(500);
+    expect((err as InstanceType<typeof client.ScoringApiError>).code).toBe('feedback_failed');
+  });
+
+  it('a 200 whose body is not a report is rejected', async () => {
+    const client = await loadClient();
+    global.fetch = vi.fn(async () => new Response(JSON.stringify({ report: { total: 40 } }), { status: 200 })) as unknown as typeof fetch;
+    await expect(client.requestExamFeedback('s1')).rejects.toBeInstanceOf(client.ScoringApiError);
+  });
+});

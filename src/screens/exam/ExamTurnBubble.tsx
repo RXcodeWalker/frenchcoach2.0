@@ -1,7 +1,7 @@
 import { Repeat } from 'lucide-react';
 import { speakExaminerText, getExaminerVoiceGeneration, hasFrenchVoice } from '../../services/exam/examinerVoice';
 import type { ConductLogEntry } from '../../domain/igcse/session/types';
-import type { ExaminerFeedback } from '../../services/coaching/examinerFeedback';
+import { collectExaminerQuotes, type ExaminerFeedback } from '../../services/coaching/examinerFeedback';
 
 const ACTION_LABEL: Record<string, string> = {
   READ_MAIN: 'Examiner',
@@ -29,10 +29,11 @@ interface QuoteSegment {
 
 /**
  * Splits a candidate transcript into plain/quoted segments from the rail's
- * ExaminerFeedback citations. Deliberately NOT MarkedUpScript/buildSegments
+ * ExaminerFeedback citations (collectExaminerQuotes). Deliberately NOT MarkedUpScript/buildSegments
  * — those are built for FeedbackV2's `issues`/`transcriptAnnotations`
  * (category, severity, character-offset spans), and ExaminerFeedback is
- * prose claim/quote pairs with no such structure by design (ADR-0005;
+ * prose claim/quote pairs and quote/correction/category items with no
+ * character offsets by design (ADR-0005;
  * mapping one into the other's shape was explicitly rejected — see
  * verification-log.md's W3 pre-implementation decision). This only finds
  * each quote's verbatim occurrence in the transcript and marks it clickable;
@@ -40,9 +41,7 @@ interface QuoteSegment {
  * ExaminerFeedbackCard has no finer-grained per-citation anchor.
  */
 function buildQuoteSegments(transcript: string, feedback: ExaminerFeedback): QuoteSegment[] {
-  const quotes = [...feedback.currentDescriptorCommentary, ...feedback.improvementCommentary]
-    .map((c) => c.quote)
-    .filter(Boolean);
+  const quotes = collectExaminerQuotes(feedback).filter(Boolean);
 
   const ranges: { start: number; end: number }[] = [];
   for (const quote of quotes) {

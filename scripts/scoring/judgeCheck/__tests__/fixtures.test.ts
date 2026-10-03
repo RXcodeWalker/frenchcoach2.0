@@ -59,6 +59,24 @@ describe('judge:check fixtures', () => {
       expect(turn?.candidateResponse.includes(audit.quote)).toBe(true);
     }
   });
+
+  it('split-a carries a report-only correction for every audit error, and a grounded inaudible watch-list (Phase 3 Batch A)', () => {
+    const fixture = loadFixture('split-a-strong-comm-poor-grammar');
+    expect(fixture.auditErrors?.map((a) => a.correction)).toEqual([
+      'je fais',
+      'on joue',
+      'on regarde',
+      "j'aime",
+      'je préfère le sport au cinéma',
+    ]);
+    expect(fixture.inaudibleWatchList).toHaveLength(3);
+    for (const watch of fixture.inaudibleWatchList ?? []) {
+      const turn = fixture.transcript.topicConversations
+        .find((c) => c.conversationId === watch.source)
+        ?.turns.find((t) => t.turnId === watch.turnId);
+      expect(turn?.candidateResponse.includes(watch.quote)).toBe(true);
+    }
+  });
 });
 
 describe('evaluateExpectation (pass-bar evaluator, fake data)', () => {

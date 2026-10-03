@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, Download, AlertTriangle, RefreshCw, ChevronDown, GraduationCap } from 'lucide-react';
 import type { SessionTranscript } from '../../domain/igcse/stt/types';
@@ -7,6 +7,9 @@ import { downloadConductLog } from '../../services/exam/conductLogStore';
 import { ExaminerFeedbackCard } from '../../features/feedback/components/ExaminerFeedbackCard';
 import type { RailEntry } from '../../services/exam/turnFeedback';
 import { countsTowardProgress } from '../../services/exam/attemptStatus';
+import { requestExamFeedback, ScoringApiError } from '../../services/exam/scoringApiClient';
+import type { ExamFeedbackReport } from '../../domain/examFeedback/types';
+import { ExamCriterionFeedback, MistakeList } from './ExamCriterionFeedback';
 
 interface Props {
   transcript: SessionTranscript;
@@ -23,7 +26,15 @@ interface Props {
   earlyStart?: boolean;
   /** D15 (Batch 3): the attempt was resumed after a reload — same practice-only treatment. */
   resumed?: boolean;
+  /** Phase 3 Batch A: fetches the post-marking report. Injected for tests; defaults to the scoring service. */
+  requestFeedback?: (sessionId: string) => Promise<ExamFeedbackReport>;
 }
+
+type FeedbackState =
+  | { status: 'idle' }
+  | { status: 'pending' }
+  | { status: 'ready'; report: ExamFeedbackReport }
+  | { status: 'failed'; limitReached: boolean };
 
 function criterionLabel(criterion: CriterionView): string {
   if (criterion.criterion === 'rolePlayTask') return `Role-Play${criterion.taskId ? ` (${criterion.taskId})` : ''}`;
@@ -101,6 +112,7 @@ export function ExamResults({
   railEntries,
   earlyStart = false,
   resumed = false,
+  requestFeedback = requestExamFeedback,
 }: Props) {
   const candidateUtterances = transcript.utterances.filter((u) => u.role === 'candidate');
   const totalSpeakingS = candidateUtterances.reduce((sum, u) => sum + (u.endS - u.startS), 0);
@@ -115,6 +127,37 @@ export function ExamResults({
   const modeBadgeLabel = `${coached ? 'Coached Practice' : 'Exam Sim'}${
     attemptStatus.countsTowardProgress ? '' : ' — doesn’t count'
   }`;
+
+  // Phase 3 Batch A: the report is requested only once marks exist, and the
+  // marks above render first and never wait on it — it cannot change them.
+  const sessionIdForFeedback = envelopeView?.sessionId ?? null;
+  const [feedback, setFeedback] = useState<FeedbackState>({ status: 'idle' });
+  const loadFeedback = useCallback(
+    (sessionId: string, isCurrent: () => boolean = () => true) => {
+      setFeedback({ status: 'pending' });
+      requestFeedback(sessionId).then(
+        (report) => {
+          if (isCurrent()) setFeedback({ status: 'ready', report });
+        },
+        (err: unknown) => {
+          if (isCurrent()) {
+            setFeedback({ status: 'failed', limitReached: err instanceof ScoringApiError && err.status === 429 });
+          }
+        },
+      );
+    },
+    [requestFeedback],
+  );
+  useEffect(() => {
+    if (!sessionIdForFeedback) return;
+    let current = true;
+    loadFeedback(sessionIdForFeedback, () => current);
+    return () => {
+      current = false;
+    };
+  }, [sessionIdForFeedback, loadFeedback]);
+  const feedbackReport = feedback.status === 'ready' ? feedback.report : null;
+  const envelopeQolErrors = envelopeView?.criteria.find((c) => c.criterion === 'qualityOfLanguage')?.errors ?? [];
 
   const rolePlaySubtotal = envelopeView
     ? envelopeView.criteria.filter((c) => c.criterion === 'rolePlayTask').reduce((sum, c) => sum + c.mark, 0)
@@ -228,6 +271,19 @@ export function ExamResults({
                     </span>
                   </div>
                   <p className="text-[10px] text-ink-muted leading-relaxed">{c.justification}</p>
+                  {(() => {
+                    const task =
+                      c.criterion === 'rolePlayTask'
+                        ? feedbackReport?.rolePlay.tasks.find((t) => t.taskId === c.taskId)
+                        : undefined;
+                    if (!task?.reason) return null;
+                    return (
+                      <div data-testid="rp-reason" className="mt-1.5 space-y-0.5">
+                        <p className="text-[11px] text-white leading-relaxed">{task.reason}</p>
+                        {task.error && <MistakeList mistakes={[task.error]} />}
+                      </div>
+                    );
+                  })()}
                   {c.evidenceSpans.length > 0 && (
                     <div className="mt-2 space-y-1">
                       {c.evidenceSpans.map((span, j) => (
@@ -248,6 +304,67 @@ export function ExamResults({
                 {envelopeView.guardrailTriggers.map((t, i) => (
                   <p key={i} className="text-[10px] text-ink-muted">{guardrailLabel(t.id)}</p>
                 ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {envelopeView && feedback.status !== 'idle' && (
+          <div data-testid="exam-feedback" className="rounded-xl surface p-5 space-y-3">
+            <div>
+              <h3 className="font-bold text-ink-muted text-[10px] uppercase tracking-wider mb-1">Examiner Feedback</h3>
+              <p className="text-[10px] text-ink-muted leading-relaxed">
+                Practice feedback written after marking. It never changes your marks.
+              </p>
+            </div>
+
+            {feedback.status === 'pending' && (
+              <p className="text-[11px] text-ink-muted">Writing your feedback…</p>
+            )}
+
+            {feedback.status === 'failed' && (
+              <div className="space-y-3">
+                <p className="text-[11px] text-ink-muted leading-relaxed">
+                  {feedback.limitReached
+                    ? 'You have reached today’s limit for exam feedback. Your marks above are unaffected.'
+                    : 'Your feedback could not be written this time. Your marks above are unaffected.'}
+                </p>
+                {envelopeQolErrors.length > 0 && (
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-red-400">Mistakes</p>
+                    <MistakeList mistakes={envelopeQolErrors} />
+                  </div>
+                )}
+                {!feedback.limitReached && sessionIdForFeedback && (
+                  <motion.button
+                    onClick={() => loadFeedback(sessionIdForFeedback)}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/5 text-ink-muted hover:text-white text-[11px] font-bold transition-colors"
+                    whileTap={{ scale: 0.97 }}
+                  >
+                    <RefreshCw size={13} /> Retry feedback
+                  </motion.button>
+                )}
+              </div>
+            )}
+
+            {feedbackReport && (
+              <div className="space-y-2.5">
+                <ExamCriterionFeedback
+                  title="Role play"
+                  strengths={feedbackReport.rolePlay.strengths}
+                  nextStep={feedbackReport.rolePlay.nextStep}
+                />
+                <ExamCriterionFeedback
+                  title="Communication"
+                  strengths={feedbackReport.communication.strengths}
+                  nextStep={feedbackReport.communication.nextStep}
+                />
+                <ExamCriterionFeedback
+                  title="Quality of Language"
+                  strengths={feedbackReport.qualityOfLanguage.strengths}
+                  mistakes={feedbackReport.qualityOfLanguage.errors}
+                  nextStep={feedbackReport.qualityOfLanguage.nextStep}
+                />
               </div>
             )}
           </div>
@@ -289,6 +406,7 @@ export function ExamResults({
                 onRetry={() => {}}
                 onSwitchToCoach={() => {}}
                 hideSwitchToCoach
+                variant="compact"
               />
             ))}
           </Disclosure>

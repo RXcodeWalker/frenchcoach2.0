@@ -47,3 +47,10 @@ repairs those citations).
   refactor to wave through.
 - If Learn-mode practice ever needs an actual predicted mark, that requires a new, separate
   decision — not a loosening of this one.
+
+## Amendment (2026-10-03)
+
+The output type and import list above are amended by
+`docs/decisions/0009-feedback-after-marking-cannot-change-marks.md`: `ExaminerFeedback` is now a union
+on profile (still with no numeric, band or mark field), and the module may also import
+`src/domain/examFeedback/shared/**`. The core rule — qualitative, quote-verified, never a mark — stands.

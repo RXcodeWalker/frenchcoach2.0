@@ -11,14 +11,16 @@
  * Covers Step 1 (extension-prompt-not-repeat on a short answer), Step 2
  * (a further question's answer reaching the Turn-by-Turn panel), Step 5/6
  * (Exam Sim mic-only/read-only/full /40 with subtotals vs Coached's
- * practice-mark banner and history tag), and that Daily Challenge/Duel runs
- * are forced into Exam Sim.
+ * practice-mark banner and history tag), that Daily Challenge/Duel runs
+ * are forced into Exam Sim, and (Phase 3 Batch A) the post-marking report's
+ * sections, a task-specific role-play reason, and no N/N in the feedback.
  */
 import { test, expect, type Page } from '@playwright/test';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { AUTHORIZED_EXTENSION_PROMPTS } from '../src/domain/igcse/session/conductEngine';
+import { RP_MARK_2 } from '../src/domain/igcse/canonical';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const FAKE_SR_SCRIPT = fs.readFileSync(path.join(__dirname, 'fixtures/fakeSpeechRecognition.js'), 'utf-8');
@@ -234,6 +236,19 @@ test.describe('Exam Sim (spoken)', () => {
     expect(results).toMatch(/2\/2/);
     expect(results).toMatch(/\/10/);
     expect(results).toMatch(/15\/15/);
+
+    // Phase 3 Batch A: the post-marking report (fake model reply, real
+    // generateExamFeedback validation) renders under the marks.
+    const feedbackSection = page.getByTestId('exam-feedback');
+    await expect(feedbackSection.getByText('What you did well').first()).toBeVisible({ timeout: 15000 });
+    await expect(feedbackSection.getByText('Mistakes')).toBeVisible();
+    await expect(feedbackSection.getByText('Verb form').first()).toBeVisible(); // the category chip
+    await expect(feedbackSection.getByText('Next step').first()).toBeVisible();
+    const feedbackText = (await feedbackSection.innerText()) ?? '';
+    expect(feedbackText).not.toMatch(/\d+\s*\/\s*\d+/);
+    const reasons = await page.getByTestId('rp-reason').allInnerTexts();
+    expect(reasons.length).toBeGreaterThan(0);
+    expect(reasons.some((r) => !r.includes(RP_MARK_2[0]))).toBe(true);
 
     // Step 6: no time-frame/filler mis-teaching in the Turn-by-Turn panel.
     await clickButton(page, 'Turn-by-Turn Breakdown');

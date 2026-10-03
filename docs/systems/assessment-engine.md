@@ -43,6 +43,18 @@ deterministic guardrails → persisted `ScoringEnvelope`.
   the immutable `ScoringEnvelope`. `envelope/index.ts` is the only import surface
   `scripts/scoring` is meant to use.
 
+## After marking: the exam report (not part of the pipeline)
+
+`src/domain/examFeedback/` writes examiner-style feedback — what the candidate did well, their
+mistakes by category, and one next step per criterion aimed at the next band's descriptor — **after**
+an envelope is persisted, in a separate model call served by `server/feedbackRoute.ts` and stored
+in `exam_feedback_reports`. It is deliberately outside `src/domain/igcse/`: the scorer's import
+graph never reaches it (`scoredPipelineBoundary.test.ts`), the judge prompts are untouched, and it
+carries its own `EXAM_FEEDBACK_VERSION` rather than bumping any stage pin below. The QoL errors it
+shows are the envelope's own (quote and correction copied; only the category is the model's).
+`npm run judge:check -- --feedback` measures its recall against `auditErrors` separately from the
+judge's. See ADR 0009 and its Batch A amendment.
+
 ## Per-stage version pins
 
 Four of the five pipeline stages carry a `version.ts` with a version-string constant, each paired
@@ -141,9 +153,10 @@ is not an intentional dual rubric — the Python bands predate the audited engin
 project's own sourcing rule (ADR-0001). Do not "fix" `evaluator_service.py`'s rubric to match; it
 is out of scope and the module is unreached.
 
-**3. Dead HTTP surface — `POST /api/feedback/igcse`** in `backend/main.py`. Zero callers in `src/`.
-`src/services/api/apiClient.ts` calls this "the legacy invented scorer" in a nearby comment — that
-description is accurate.
+**3. ~~Dead HTTP surface — `POST /api/feedback/igcse`~~ — removed 2026-10 (Phase 3 Batch C).** It had
+zero callers in `src/` and zero requests in 30 days of Render logs; the route, its request model,
+prompt, provider callers and offline evaluator are deleted. A request now returns 404.
+`evaluator_service.py` (scorer 2) remains, unreached and out of scope.
 
 ### A known-stale claim in `CLAUDE.md`
 

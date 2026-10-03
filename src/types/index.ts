@@ -112,7 +112,11 @@ export interface RebuildQuestion {
 export interface FeedbackScore {
   communication: number;
   language: number;
+  /** Backend `scores.acc` (optional: sessions stored before this field existed lack it). */
+  accuracy?: number;
+  /** Backend `fluency` — the coach's fluency judgement, distinct from accuracy. */
   fluency: number;
+  /** Backend `scores.overall` if sent, else computeOverall(comm, lang, accuracy, fluency). */
   overall: number;
 }
 
