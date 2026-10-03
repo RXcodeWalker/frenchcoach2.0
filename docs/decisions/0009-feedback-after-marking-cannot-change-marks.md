@@ -90,7 +90,7 @@ by measurement: the two judge prompts are byte-identical, and `SCORING_PROMPT_VE
   mutates it — a deep-freeze test proves it.
 - **Its own route and table.** `server/feedbackRoute.ts` (`POST /feedback {sessionId}`,
   `GET /feedback?sessionId=`) on the scoring service, storing to `exam_feedback_reports` (backend
-  migration `20261003120000`: one row per envelope, RLS on with no policies, service key only)
+  migration `20261003101119`: one row per envelope, RLS on with no policies, service key only)
   through `scripts/scoring/supabaseFeedbackStore.ts`. A stored report is returned without a model
   call or a charge; generation is charged to the `score` quota under the key
   `feedback:{sessionId}`; a failed generation releases the grant and stores nothing.

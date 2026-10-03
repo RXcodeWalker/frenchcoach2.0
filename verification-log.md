@@ -2971,3 +2971,35 @@ the exam report (Batch 0/B traps — `prompt` rejected, `prompts.json` generated
 `docs/systems/assessment-engine.md` ("After marking: the exam report"), `docs/systems/topology.md`
 (the route, the table, deploy order), `docs/guides/development.md` (`judge:check --feedback`).
 `data-model.md` unchanged: it is deliberately not a table catalogue.
+
+## 2026-10-03 — Server-only RPC grants hardened; Batch A table applied to production
+
+**Production (project `mlukwnhpazxbgaqyskjl`, via the Supabase MCP):** applied
+`exam_feedback_reports` (recorded as `20261003101119`, so the backend file was renamed from the
+`20261003120000` named in the Batch A entry above) and `revoke_server_only_rpcs_from_clients`
+(`20261003101130`). Checked afterwards: the table has RLS on, `anon`/`authenticated` hold no
+privilege on it, `service_role` holds select/insert; none of the 13 server-only functions is
+executable by `anon` or `authenticated`; `service_role` still executes them (except
+`resolve_expired_duel`, which production grants to no role).
+
+**The gap:** on a fresh local stack, `anon`/`authenticated` could execute every server-only RPC
+(`award_xp`, `consume_ai_quota`, `release_ai_quota_grant`, the shadowing quota pair, league
+assignment/reset, daily-challenge seeding, `get_notification_candidates`, `_league_week_key`),
+because their migrations only `REVOKE … FROM PUBLIC` and the local default privileges grant
+`anon`/`authenticated` directly. A read-only check found production **not** exposed (it already
+denied all of them), so the migration is a no-op there; it makes the migrations correct on any
+fresh database. Client-facing RPCs, and the under-13 / guardian-consent flow, were deliberately
+left unchanged (owner instruction).
+
+**Local stack, after `supabase db reset` with the new migration:** `phase3_invite_and_quota`
+57/57 (was 55/57 — the two anon/authenticated `consume_ai_quota` checks), `phase2_friend_duels`
+80/80 (was 79/80 — `service_role` on `resolve_expired_duel`), `league_power` 67/67 on one fresh
+run and 66/67 on another (the only failure, "bottom-ranked diamond-origin user demotes to
+platinum", is a ranking flake: without the migration it fails 6 grant checks this migration
+fixes, and the flake is independent of grants); all other suites pass except two pre-existing,
+grant-unrelated failures: `account_data_rpcs` (5 — `export_my_data`/`delete_my_account` overload
+ambiguity) and `notifications` (2 — `get_notification_candidates` result-type mismatch, also when
+called as `service_role`). Those are noted, not fixed here.
+
+**Not changed (owner instruction):** `revoke_guardian_consent` is callable by `anon` with only a
+child user id and erases that child's profile; the age self-declaration flow is unchanged.

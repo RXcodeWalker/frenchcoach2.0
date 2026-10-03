@@ -37,7 +37,7 @@ These never call each other directly. The frontend is the only thing that talks 
 - The scoring service (`french-scoring`) is reached directly by the browser via
   `VITE_SCORING_API_URL` — it is not proxied through `vercel.json`.
 - **Deploy order for the exam report (Phase 3 Batch A):** backend migration
-  `20261003120000_exam_feedback_reports.sql` applied → `server/` (`french-scoring`) → frontend.
+  `20261003101119_exam_feedback_reports.sql` applied → `server/` (`french-scoring`) → frontend.
   Without the table, `POST /feedback` fails its stored-report lookup and answers 500 before any
   quota charge or model call; without the route, the frontend's report request 404s. Either way
   `ExamResults` falls back to the uncategorised envelope errors. Marks are
