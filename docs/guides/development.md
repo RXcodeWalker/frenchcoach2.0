@@ -46,6 +46,7 @@ npm run judge:check                      # real-judge harness (0520 Phase 1 Batc
 npm run judge:check -- --case weak       # one fixture only
 npm run judge:check -- --runs 5          # more runs per fixture (default 3)
 npm run judge:check -- --provider groq   # Groq instead of Gemini (needs GROQ_API_KEY)
+npm run judge:check -- --feedback        # also generate + measure the post-marking exam report (Phase 3 Batch A)
 ```
 
 `judge:check` (`scripts/scoring/judgeCheck.ts`) runs the real `buildEvidenceProfile` → both L2
@@ -65,6 +66,17 @@ per call kind (3 attempts total, same `MAX_JUDGE_ATTEMPTS` policy as `scoreAttem
 1 retry in the 2026-09-27 reliability follow-up) and is printed, never silently masked. It writes a
 JSON report to `data/reports/judge-check/` (gitignored) with token usage and an estimated Gemini
 cost.
+
+`--feedback` adds, after each successful run, the post-marking exam report
+(`src/domain/examFeedback/generate.ts`, the same generator the scoring service's `/feedback` route
+uses) built from that run's own envelope, and reports — never gates — feedback recall against
+`auditErrors` separately from judge recall, each shown correction against the fixture's
+report-only `auditErrors[].correction`, every error shown on `strong` (candidate false positives),
+the errors the display filters dropped, the `inaudibleWatchList` items the judge or the feedback
+counted (spelling-only artefacts of a spoken transcript), and the feedback calls' own token cost.
+The fixtures carry no `inputMode`, so for the report their topic turns are treated as spoken. The
+judge calls and marks are those of the same run without the flag. `__tests__/feedbackCheck.test.ts`
+is the offline part.
 
 ```bash
 npm run e2e:exam            # Playwright: drives the exam UI against a fake, no-credentials

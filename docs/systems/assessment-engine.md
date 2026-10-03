@@ -43,6 +43,18 @@ deterministic guardrails → persisted `ScoringEnvelope`.
   the immutable `ScoringEnvelope`. `envelope/index.ts` is the only import surface
   `scripts/scoring` is meant to use.
 
+## After marking: the exam report (not part of the pipeline)
+
+`src/domain/examFeedback/` writes examiner-style feedback — what the candidate did well, their
+mistakes by category, and one next step per criterion aimed at the next band's descriptor — **after**
+an envelope is persisted, in a separate model call served by `server/feedbackRoute.ts` and stored
+in `exam_feedback_reports`. It is deliberately outside `src/domain/igcse/`: the scorer's import
+graph never reaches it (`scoredPipelineBoundary.test.ts`), the judge prompts are untouched, and it
+carries its own `EXAM_FEEDBACK_VERSION` rather than bumping any stage pin below. The QoL errors it
+shows are the envelope's own (quote and correction copied; only the category is the model's).
+`npm run judge:check -- --feedback` measures its recall against `auditErrors` separately from the
+judge's. See ADR 0009 and its Batch A amendment.
+
 ## Per-stage version pins
 
 Four of the five pipeline stages carry a `version.ts` with a version-string constant, each paired

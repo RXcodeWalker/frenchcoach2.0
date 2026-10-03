@@ -75,3 +75,43 @@ model asked for examiner-style prose will drift toward band talk and pasted desc
 - The post-marking exam **report** (a separate model call on an already-persisted envelope, with its
   own server route and table) is covered by the same rule; its implementation is Phase 3 Batch A and
   will extend this record with an amendment.
+
+## Amendment — the post-marking exam report (Phase 3 Batch A, 2026-10-03)
+
+The exam report anticipated under **Consequences** now exists. It is a **separate model call on an
+already-persisted envelope**, so "feedback cannot change marks" holds by construction rather than
+by measurement: the two judge prompts are byte-identical, and `SCORING_PROMPT_VERSION`,
+`GUARDRAILS_VERSION`, `RUBRIC_VERSION` and `ENVELOPE_SCHEMA_VERSION` are unchanged.
+
+- **Where it lives.** `src/domain/examFeedback/` (`prompt.ts`, `schema.ts`, `generate.ts`,
+  `types.ts`, `version.ts` — `EXAM_FEEDBACK_VERSION = 'exam-feedback-v0.1'`, pinned with a prompt
+  hash). The generator is injected as `(prompt) => Promise<string>`, with one retry on an unusable
+  reply. It reads the envelope (its `transcriptSnapshot` is the turn-id transcript) and never
+  mutates it — a deep-freeze test proves it.
+- **Its own route and table.** `server/feedbackRoute.ts` (`POST /feedback {sessionId}`,
+  `GET /feedback?sessionId=`) on the scoring service, storing to `exam_feedback_reports` (backend
+  migration `20261003120000`: one row per envelope, RLS on with no policies, service key only)
+  through `scripts/scoring/supabaseFeedbackStore.ts`. A stored report is returned without a model
+  call or a charge; generation is charged to the `score` quota under the key
+  `feedback:{sessionId}`; a failed generation releases the grant and stores nothing.
+- **The boundary, restated.** Point 1 above said nothing under `server/` or `scripts/scoring/` may
+  import the feedback modules. The report's route and store necessarily sit there, so the rule is
+  now: **only** the named feedback-surface files — `server/feedbackRoute.ts`,
+  `scripts/scoring/supabaseFeedbackStore.ts`, `scripts/scoring/judgeCheck.ts` and
+  `scripts/scoring/judgeCheck/feedbackCheck.ts` — may, and the **transitive import graph** of the
+  scorer (`scoreAttempt.ts` and every non-test file under `src/domain/igcse/`) must never reach
+  `src/domain/examFeedback/` or any of those files. `scoredPipelineBoundary.test.ts` enforces both.
+  `server/index.ts` mounts the route but its `/score` handler is unchanged.
+- **What the model may and may not decide.** The report's types have no mark field (a type test;
+  the only number is `errorIndex`, an index into the envelope's QoL error list). The QoL errors'
+  quote and correction are **copied from the envelope** — the model only assigns one of the nine
+  categories, and an unclassified error is `other`, never dropped. The same shared filters as the
+  Learn/rail profiles apply (mark/band, descriptor copy, quote grounding per turn — per task for role
+  play — quote minimums, no praise of a reported mistake, the spoken-only sound-alike filter, which
+  applies at display only: the envelope keeps every error). A role-play task error is kept only on
+  a task credited below the top mark (Table A, TN p.10). A next step must aim at a canonical bullet
+  of the band above the awarded one (the awarded band's at the top band; a mark-2 bullet for role
+  play), named by id and stored verbatim from `canonical.ts`.
+- **Display.** `ExamResults` renders the marks first and never waits on the report; a failed report
+  shows the envelope's QoL errors uncategorised with a retry. `buildEnvelopeView` now exposes the
+  QoL errors on the `qualityOfLanguage` row (display only; the envelope schema is unchanged).

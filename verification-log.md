@@ -2848,3 +2848,126 @@ The minimum-quote lengths remain `UNVALIDATED` app policy.
 **Deploy order:** merge backend first (serves v1 and v2; an old client keeps working), then
 frontend (sends v2; against an old backend it would get 409 `unknown_prompt_version`). **Rollback:**
 revert the frontend, then the backend; v1 stays in the file for exactly this reason.
+
+## 2026-10-03 — Phase 3 Batch A: post-marking exam report
+
+**Scope:** the exam results report — a separate model call on an already-persisted envelope that
+cannot change a mark (ADR 0009 + its Batch A amendment). Branch `claude/serene-cori-wxl3r8` in both
+repos (the session's assigned branch), based on `claude/examiner-feedback-phase-3-64grfu`, where
+Batches 0, D, C and B live (not yet on `main`).
+
+**Changed (frontend repo):**
+- `src/domain/examFeedback/` (new): `types.ts` (no mark field; type test), `prompt.ts` (turn-id
+  transcript, read-only marks, QoL errors indexed `[i]`, next-band target bullets by id),
+  `schema.ts` (validation; drops, never rewrites), `generate.ts` (injected
+  `(prompt) => Promise<string>`, one retry), `version.ts` (`EXAM_FEEDBACK_VERSION =
+  'exam-feedback-v0.1'`, prompt hash pinned). QoL quote/correction copied from the envelope; the
+  model only categorises (unclassified → `other`). Role-play task errors only below the top mark.
+- `envelope/envelopeView.ts`: the `qualityOfLanguage` row exposes the envelope's QoL `errors`
+  (display only; `ENVELOPE_SCHEMA_VERSION` unchanged).
+- `server/feedbackRoute.ts` (`POST /feedback {sessionId}`, `GET /feedback?sessionId=`, injected
+  deps), mounted in `server/index.ts`; `scripts/scoring/supabaseFeedbackStore.ts` (user-scoped
+  reads, race-safe save). Generator = the judge's env-driven Gemini→Groq providers.
+- `scoringApiClient.requestExamFeedback`; `ExamResults.tsx` + `ExamCriterionFeedback.tsx`: marks
+  first, then "What you did well" / "Mistakes" (by category chip) / "Next step" + "Target:
+  <descriptor> (TN p.N)" per criterion, a task-specific reason under each role-play task; failure
+  shows the envelope's errors uncategorised + retry; 429 shows a daily-limit note, no retry.
+- `fakeScoringServer.ts`: fake `/feedback` (real `generateExamFeedback`, fake reply) and one
+  grounded QoL error in the fake judge; `e2e/exam.spec.ts` asserts the report.
+- `judgeCheck.ts --feedback` + `judgeCheck/feedbackCheck.ts`; split-A fixture gains report-only
+  `auditErrors[].correction` and `inaudibleWatchList` (chose ×2, au jeux).
+- `scoredPipelineBoundary.test.ts`: names the four feedback-surface files as the only exemptions in
+  `server/` / `scripts/scoring/`, and adds a transitive import-closure check from `scoreAttempt.ts`
+  and all of `src/domain/igcse/`.
+
+**Changed (backend repo):** migration `20261003120000_exam_feedback_reports.sql` (one row per
+envelope, FK to `scoring_envelopes.attempt_id` with cascade, RLS on with no policies,
+`revoke all … from anon, authenticated`); `supabase/tests/exam_feedback_reports.test.mjs`.
+
+**Deviations from the plan (minor; behaviour as intended):**
+- The route uses the envelope's own `transcriptSnapshot` as "the transcript" rather than loading
+  `session_transcripts` separately — it is the exact turn-id transcript that was scored.
+- A quota replay of `feedback:{sessionId}` is not short-circuited (unlike the FastAPI examiner
+  route): the stored report is checked first and is durable, so a replay only reaches the model if
+  no report exists (crash mid-generation, concurrent duplicate); every failed generation releases
+  its grant. A save failure after a successful generation returns the report (200) unstored.
+- Strengths and next steps carry a `ref` (task id or `topic1:q1`) so each quote is grounded in one
+  turn; a role-play quote may be the task's whole answer when it is under 3 words. Strengths are
+  capped at 3 per criterion (same as Learn). The target's page is a string (`'TN p.11'`) so the
+  only number in the report is `errorIndex`.
+- ADR 0009 said `server/` and `scripts/scoring/` may not import the feedback modules at all; the
+  plan puts the route and store there, so the rule is amended (named exemptions + transitive check).
+
+**Verified:**
+- Unit/integration: `npm test` 272 files / 2727 tests (63 new, incl. version pin, no-mutation on a
+  deep-frozen envelope, validation table, route, store, client, `ExamResults` pending / ready /
+  failed / limit / empty / no-envelope, boundary). `typecheck`, `typecheck:server` clean;
+  `typecheck:scripts` the 3 pre-existing errors only; `lint` 0 errors (22 pre-existing warnings,
+  none in touched files); `authoring:check` 0/0; `authoring:parity` 10/10; `examiner:parity` ✓;
+  `score:golden` 5/5, no diff; `build:server` bundles. Backend `pytest tests/ -q` 317 passed.
+- Marks untouched by construction: `git diff` against the base is empty for `judgement/`,
+  `guardrails/`, `evidence/`, `rubric.ts`, `canonical.ts`, `envelope/types.ts`,
+  `buildEnvelope.ts`, `scoreAttempt.ts` and `providers/`; `SCORING_PROMPT_VERSION`,
+  `GUARDRAILS_VERSION`, `RUBRIC_VERSION`, `ENVELOPE_SCHEMA_VERSION` unchanged.
+- Local Supabase stack (`npx supabase start`, every migration applied cleanly incl. the new one):
+  `exam_feedback_reports.test.mjs` 9/9 (owner/anon cannot read or write; service can; 23505 on a
+  second report; 23503 on a dangling envelope; cascade on envelope delete). The real
+  `supabaseFeedbackStore` against it: lost race returns the winner; another user reads null.
+- Real end-to-end, local: built `server/` + local Supabase + real Gemini, envelope row inserted for
+  a test user: GET before → 404; POST unauthenticated → 401; POST by another user → 404 (no grant);
+  POST → 200 in ~3 s with one `score` grant; second POST → 200 in ~50 ms, deep-equal stored report,
+  still one grant; GET → 200, other user → 404; the envelope row deep-equal afterwards. The spoken
+  sound-alike error (`c est` → `c'est`) was dropped from display; the audible one shown as `tense`.
+- `npm run e2e:exam` 5/5 (the report's three headings, a category chip, a role-play reason that is
+  not `RP_MARK_2[0]`, no `N/N` in the feedback section).
+- `judge:check` (Gemini `gemini-3.5-flash-lite`, 3 runs × 16 fixtures), **before** (base commit,
+  no flag) and **after** (`--feedback`), same day:
+
+  | Gated fixture | Before (RP/Comm/QoL) | After | Pass bar before → after |
+  |---|---|---|---|
+  | weak | 8-9 / 4 / 7 | 8 / 5-6 / 7-11 | FAIL → FAIL |
+  | strong | 10 / 15 / 15 | 10 / 15 / 15 | PASS → PASS |
+  | split-a | 10 / 14 / 11 | 10 / 14 / 11 | FAIL → FAIL |
+  | split-b | 10 / 4-5 / 7-9 | 10 / 7 / 7-9 | PASS → PASS |
+
+  Every gated outcome is unchanged. Two per-run values sit outside today's "before" and the
+  earlier logged spreads: weak QoL 11 in one run (logged 7-10) and split-b Comm 7 (before 4-5;
+  Batch 2 logged 7, the reverted-v0.6.2 entry logged 4). The judge's inputs are byte-identical in
+  both passes (empty diff above; `--feedback` runs only after the marks), so these are model
+  sampling variance, not this change. The weak / split-a FAILs are the pre-existing open finding
+  (weak QoL logged 7-10 FAIL; split-a QoL 11), not new.
+- `--feedback` measurements (48 reports, 51 calls — 3 needed the one retry, 0 failed): **split-A
+  feedback recall 5/5 in 3/3 runs** (judge recall equal — the display filters ate no real error);
+  corrections match 4/5 every run, the fifth matching in 1/3 — the judge's correction for
+  `Je prefere le sport que le cinema` was unaccented (`Je prefere le sport au cinema`) in 2 runs;
+  inaudible watch-list: the judge counted `plein de chose` and `au jeux video` in 3/3 runs, and the
+  display filter dropped both each time (never shown); **0 errors shown on `strong` and
+  `strong-reconstructed`** (no candidate false positives); borderline's `beaucoup de chose` /
+  `des série` dropped as sound-alike. Feedback tokens: 83,936 in / 53,211 out ≈ **$0.158 for 48
+  reports ≈ $0.0033 per report** (~1.5-1.9k in / ~1k out each — below the plan's ~5k / 1.5-2k
+  estimate), at the unconfirmed $0.30/M in, $2.50/M out.
+
+**Not verified:** Groq as the report generator (no `GROQ_API_KEY` here); the hosted Supabase
+project (the migration has not been applied to production). The minimum-quote lengths stay
+`UNVALIDATED` app policy.
+
+**Found, pre-existing, out of scope (not changed):** on the local stack, `anon` and
+`authenticated` hold `EXECUTE` on server-only RPCs (`consume_ai_quota`, `release_ai_quota_grant`,
+`award_xp`, `mint_gems_from_envelope`, …): their migrations `REVOKE … FROM PUBLIC` only, but
+Supabase's default privileges grant `anon`/`authenticated` directly. `phase3_invite_and_quota.test.mjs`
+fails exactly these two checks (55/57). Whether production has the same grants is unchecked.
+
+**Deploy order:** apply the migration → merge backend → merge frontend (`server/` and the
+frontend deploy together from the frontend repo; the route 500s on lookup without the table, before
+any charge). **Rollback:** revert the frontend merge (the route and UI go; marks unaffected); the
+table can stay (unused) or be dropped.
+
+## 2026-10-03 — Phase 3 Batch E: docs
+
+ADR 0009 gains its Batch A amendment (route, table, boundary exemptions + transitive check, what
+the model may decide). `CLAUDE.md`: the `server/` surface now names `/feedback`; a Known Trap for
+the exam report (Batch 0/B traps — `prompt` rejected, `prompts.json` generated and versioned,
+`exam_turn_feedback`, the replay rule, the `examFeedback` boundary — were already present).
+`docs/systems/assessment-engine.md` ("After marking: the exam report"), `docs/systems/topology.md`
+(the route, the table, deploy order), `docs/guides/development.md` (`judge:check --feedback`).
+`data-model.md` unchanged: it is deliberately not a table catalogue.

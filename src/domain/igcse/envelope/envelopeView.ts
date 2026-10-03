@@ -29,6 +29,18 @@ export interface EvidenceQuoteView {
   quote: string;
 }
 
+/**
+ * Phase 3 Batch A: one QoL error the judge listed, as stored in the envelope
+ * (quote and correction verbatim). Display only — the exam report reuses
+ * these, and ExamResults shows them uncategorised when the report is missing.
+ */
+export interface QolErrorView {
+  source: 'topic1' | 'topic2';
+  turnId: string;
+  quote: string;
+  correction: string;
+}
+
 export interface CriterionView {
   criterion: 'rolePlayTask' | 'communication' | 'qualityOfLanguage';
   taskId?: string;
@@ -41,6 +53,8 @@ export interface CriterionView {
   /** S8 anchor-selection key — see file header. Undefined when not derivable (role-play tasks). */
   topicArea?: 'A' | 'B' | 'C' | 'D' | 'E';
   responseLength?: ResponseLengthBracket;
+  /** qualityOfLanguage only: the envelope's QoL error list (absent on pre-v0.4 envelopes). */
+  errors?: QolErrorView[];
 }
 
 export interface GuardrailTriggerView {
@@ -158,6 +172,16 @@ export function buildEnvelopeView(envelope: ScoringEnvelope, teacherMarkSet?: Te
     teacherMark: findTeacherMark(marks, 'qualityOfLanguage'),
     topicArea: sharedTopicArea,
     responseLength: bracketResponseLength(combinedTopicWordCount),
+    ...(envelope.qualityOfLanguage.errors
+      ? {
+          errors: envelope.qualityOfLanguage.errors.map((e) => ({
+            source: e.source,
+            turnId: e.turnId,
+            quote: e.quote,
+            correction: e.correction,
+          })),
+        }
+      : {}),
   });
 
   const evidenceGroups: EvidenceGroupView[] = [];

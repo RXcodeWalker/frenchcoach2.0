@@ -37,3 +37,30 @@ describe('buildEnvelopeView', () => {
     expect(rolePlayRow?.topicArea).toBeUndefined();
   });
 });
+
+describe('buildEnvelopeView — QoL errors (Phase 3 Batch A, display only)', () => {
+  it('exposes the envelope QoL errors verbatim on the qualityOfLanguage row only', () => {
+    const { envelope } = computeGoldenCase(CLEAN_ENTRY);
+    const withErrors = {
+      ...envelope!,
+      qualityOfLanguage: {
+        ...envelope!.qualityOfLanguage,
+        errors: [{ source: 'topic1' as const, turnId: 'q1', quote: 'je faire', kind: 'grammar' as const, correction: 'je fais' }],
+      },
+    };
+    const view = buildEnvelopeView(withErrors);
+    const qol = view.criteria.find((c) => c.criterion === 'qualityOfLanguage')!;
+    expect(qol.errors).toEqual([{ source: 'topic1', turnId: 'q1', quote: 'je faire', correction: 'je fais' }]);
+    expect(view.criteria.filter((c) => c.criterion !== 'qualityOfLanguage').every((c) => c.errors === undefined)).toBe(true);
+    // Display only: the envelope's marks are what the view renders, unchanged.
+    expect(qol.mark).toBe(envelope!.qualityOfLanguage.mark);
+  });
+
+  it('omits errors on a pre-v0.4 envelope that never had a list', () => {
+    const { envelope } = computeGoldenCase(CLEAN_ENTRY);
+    const { errors: _drop, ...qolWithout } = envelope!.qualityOfLanguage;
+    void _drop;
+    const view = buildEnvelopeView({ ...envelope!, qualityOfLanguage: qolWithout });
+    expect(view.criteria.find((c) => c.criterion === 'qualityOfLanguage')!.errors).toBeUndefined();
+  });
+});

@@ -9,8 +9,11 @@ together. This is the map to read before touching anything cross-surface.
 2. **`server/`** — a Node web service that hosts the Cambridge scoring API. It imports
    `scoreAttempt` from `scripts/scoring/scoreAttempt.ts` directly (`batchScore.ts`'s CLI is the
    only other caller). Its entry point, `server/index.ts`, documents its own 8-step request
-   handler in a header docblock — read that, don't restate it here. Deployed by `render.yaml` as
-   the `french-scoring` service.
+   handler in a header docblock — read that, don't restate it here. It also hosts
+   `POST`/`GET /feedback` (Phase 3 Batch A, `server/feedbackRoute.ts`): the post-marking exam
+   report, a separate model call that reads the already-persisted envelope and writes only the
+   `exam_feedback_reports` table (service key only) — it cannot change a mark (ADR 0009). Deployed
+   by `render.yaml` as the `french-scoring` service.
 3. **`backend/`** — a **separate git repository** (own remote, own `.gitignore`; listed in this
    repo's root `.gitignore`) running FastAPI. It handles general coaching feedback, transcription,
    and exam endpoints — **not** Cambridge scoring (see `assessment-engine.md` for why one of its
@@ -33,6 +36,13 @@ These never call each other directly. The frontend is the only thing that talks 
   browser reaches `backend/` same-origin, avoiding CORS.
 - The scoring service (`french-scoring`) is reached directly by the browser via
   `VITE_SCORING_API_URL` — it is not proxied through `vercel.json`.
+- **Deploy order for the exam report (Phase 3 Batch A):** backend migration
+  `20261003120000_exam_feedback_reports.sql` applied → `server/` (`french-scoring`) → frontend.
+  Without the table, `POST /feedback` fails its stored-report lookup and answers 500 before any
+  quota charge or model call; without the route, the frontend's report request 404s. Either way
+  `ExamResults` falls back to the uncategorised envelope errors. Marks are
+  unaffected either way. `/feedback` charges the existing `score` quota row
+  (`feedback:{sessionId}`), so no new `ai_quota_limits` row is needed.
 
 ## Environment variables
 

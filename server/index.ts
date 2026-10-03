@@ -4,6 +4,9 @@
  * scoreAttempt unchanged from scripts/scoring/scoreAttempt.ts; this file is
  * its second caller (batchScore.ts's CLI is the first). No Python rubric or
  * prompt exists — FastAPI's diff outside this file/its migrations is zero.
+ * Also hosts POST/GET /feedback, the post-marking exam report (Phase 3
+ * Batch A, server/feedbackRoute.ts) — a separate model call on an already
+ * persisted envelope that cannot change a mark (ADR 0009).
  *
  * Handler order (each step gates the next — see plan A2):
  *   1. auth: supabase.auth.getUser(token) -> user_id, else 401
@@ -46,8 +49,10 @@ import { buildEnvelopeView } from '../src/domain/igcse/envelope/envelopeView';
 import { isScoringDebugEnabled } from '../scripts/scoring/observability/logger';
 import { resolveAndVerifyQuestionSet, QuestionSetNotFoundError, QuestionSetHashMismatchError } from './resolveQuestionSet';
 import { createTtlCache, probeGroq, probeGemini, type ProviderProbeStatus } from './healthProbe';
-import { consumeAiQuotaOr503, QuotaDeniedError } from './aiQuota';
+import { consumeAiQuotaOr503, QuotaDeniedError, releaseAiQuotaGrant } from './aiQuota';
 import { classifyScoringFailure } from './scoringFailure';
+import { createFeedbackHandlers } from './feedbackRoute';
+import { createSupabaseFeedbackStore } from '../scripts/scoring/supabaseFeedbackStore';
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3000;
 
@@ -278,6 +283,30 @@ app.get('/score', async (req: Request, res: Response) => {
 
   res.status(404).json({ error: 'no envelope for this sessionId' });
 });
+
+// Phase 3 Batch A: the post-marking exam report (server/feedbackRoute.ts).
+// It reads the persisted original envelope and writes only
+// exam_feedback_reports — the /score path above never reaches it (ADR 0009).
+const feedbackHandlers = createFeedbackHandlers({
+  authenticate,
+  async loadOriginalEnvelope(userId, sessionId) {
+    const store = createSupabaseEnvelopeStore({ url: SUPABASE_URL, serviceKey: SUPABASE_SERVICE_KEY, userId });
+    const envelopes = await store.listBySession(sessionId);
+    return envelopes.find((e) => e.regradedFrom === undefined) ?? null;
+  },
+  feedbackStore: (userId) => createSupabaseFeedbackStore({ url: SUPABASE_URL, serviceKey: SUPABASE_SERVICE_KEY, userId }),
+  consumeQuota: consumeAiQuotaOr503,
+  releaseQuota: releaseAiQuotaGrant,
+  // Same env-driven Gemini-primary / Groq-fallback providers as the judge
+  // (GEMINI_MODEL / GROQ_MODEL). Real providers ignore `kind` and send only
+  // `prompt`; the judge prompts themselves are not involved.
+  createGenerator() {
+    const { judge } = createJudgeWithFallback();
+    return async (prompt) => (await judge({ kind: 'qualityOfLanguage', prompt })).raw;
+  },
+});
+app.post('/feedback', feedbackHandlers.post);
+app.get('/feedback', feedbackHandlers.get);
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Scoring service listening on 0.0.0.0:${PORT}`);

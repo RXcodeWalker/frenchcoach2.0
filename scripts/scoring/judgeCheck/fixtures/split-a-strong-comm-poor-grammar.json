@@ -57,10 +57,15 @@
     "qualityOfLanguageMax": 9
   },
   "auditErrors": [
-    { "source": "topic1", "turnId": "q1", "quote": "je faire" },
-    { "source": "topic1", "turnId": "q1", "quote": "on jouer" },
-    { "source": "topic1", "turnId": "q1", "quote": "on regarder" },
-    { "source": "topic1", "turnId": "q1", "quote": "je aime" },
-    { "source": "topic1", "turnId": "q2", "quote": "Je prefere le sport que le cinema" }
+    { "source": "topic1", "turnId": "q1", "quote": "je faire", "correction": "je fais" },
+    { "source": "topic1", "turnId": "q1", "quote": "on jouer", "correction": "on joue" },
+    { "source": "topic1", "turnId": "q1", "quote": "on regarder", "correction": "on regarde" },
+    { "source": "topic1", "turnId": "q1", "quote": "je aime", "correction": "j'aime" },
+    { "source": "topic1", "turnId": "q2", "quote": "Je prefere le sport que le cinema", "correction": "je préfère le sport au cinéma" }
+  ],
+  "inaudibleWatchList": [
+    { "source": "topic1", "turnId": "q1", "quote": "beaucoup de chose", "note": "chose/choses: the plural is silent" },
+    { "source": "topic2", "turnId": "q2", "quote": "plein de chose", "note": "chose/choses: the plural is silent" },
+    { "source": "topic2", "turnId": "q2", "quote": "au jeux video", "note": "au/aux jeux: the plural is silent" }
   ]
 }
