@@ -44,4 +44,31 @@ describe('mapBackendFeedback: providerStatus-based unscored detection', () => {
     const raw = { providerStatus: 'primary', wordCount: 5 };
     expect(() => mapBackendFeedback(raw)).toThrow(NoScoreInFeedbackError);
   });
+
+  it('maps each coach score from its real backend source', () => {
+    const result = mapBackendFeedback({
+      providerStatus: 'primary',
+      scores: { comm: 7, know: 6, acc: 5, overall: 6.1 },
+      fluency: 4,
+      wordCount: 30,
+    });
+    expect(result.scores).toEqual({ overall: 6.1, communication: 7, language: 6, accuracy: 5, fluency: 4 });
+  });
+
+  it('derives overall as the mean of the four sub-scores when the backend sends none', () => {
+    const result = mapBackendFeedback({
+      providerStatus: 'primary',
+      scores: { comm: 7, know: 6, acc: 5 },
+      fluency: 4,
+      wordCount: 30,
+    });
+    expect(result.scores.overall).toBe(5.5);
+    expect(result.scores.fluency).toBe(4);
+  });
+
+  it('does not use accuracy as fluency', () => {
+    const result = mapBackendFeedback({ providerStatus: 'primary', scores: { comm: 8, know: 8, acc: 3 }, fluency: 9, wordCount: 30 });
+    expect(result.scores.fluency).toBe(9);
+    expect(result.scores.accuracy).toBe(3);
+  });
 });

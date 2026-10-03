@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { scoreColor, isUnscored } from '../../../domain/scoring';
+import { scoreColor, isUnscored, coachScoreGrid } from '../../../domain/scoring';
 import { fadeUp } from '../../../components/motion/variants';
 import type { FeedbackV2 } from '../../../types';
 
@@ -21,12 +21,7 @@ export function SnapshotCard({ feedback }: Props) {
   const band = examiner?.predictedBand;
   const unscored = isUnscored(feedback);
 
-  const scoreEntries = [
-    { label: 'Comm', val: scores.communication },
-    { label: 'Lang', val: scores.language },
-    { label: 'Fluency', val: scores.fluency },
-    { label: 'Overall', val: scores.overall },
-  ];
+  const scoreEntries = coachScoreGrid(scores);
 
   if (unscored) {
     return (
@@ -75,6 +70,11 @@ export function SnapshotCard({ feedback }: Props) {
             {cefrLevel ? ` · ${cefrLevel}` : ''}
           </span>
         </div>
+      </div>
+
+      <div className="flex items-baseline gap-2 mb-3">
+        <span className="text-3xl font-black" style={{ color: scoreColor(scores.overall) }}>{scores.overall.toFixed(1)}</span>
+        <span className="text-[10px] text-ink-subtle uppercase tracking-wide">Overall</span>
       </div>
 
       <div className="grid grid-cols-4 gap-3 max-[380px]:grid-cols-2">

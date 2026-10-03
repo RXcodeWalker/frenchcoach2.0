@@ -119,12 +119,13 @@ export function evaluateRoadmap(): RoadmapData {
 
   if (sessions.length === 0) return data;
 
+  let examSum = 0, examN = 0;
+
   const recent = sessions.filter(s => !s.practiceOnly && (s as { aiFeedback?: Feedback }).aiFeedback).slice(0, 15);
   if (recent.length > 0) {
     let fluencySum = 0, fluencyN = 0;
     let grammarSum = 0, grammarN = 0;
     let vocabSum = 0, vocabN = 0;
-    let examSum = 0, examN = 0;
 
     recent.forEach(s => {
       const ai = (s as { aiFeedback?: Feedback }).aiFeedback;
@@ -145,10 +146,8 @@ export function evaluateRoadmap(): RoadmapData {
       vocabSum += Math.max(2, Math.min(9, 9 - sugg * 0.8));
       vocabN++;
 
-      if (s.mode === "exam" && typeof s.score === "number") {
-        examSum += (s.score / 20) * 10;
-        examN++;
-      } else if (typeof s.score === "number" && s.score > 0) {
+      // Exam sessions are counted once, in the dedicated pass below.
+      if (s.mode !== "exam" && typeof s.score === "number" && s.score > 0) {
         examSum += s.score;
         examN++;
       }
@@ -157,8 +156,22 @@ export function evaluateRoadmap(): RoadmapData {
     if (fluencyN > 0) data.skills.fluency = blend(data.skills.fluency, fluencySum / fluencyN);
     if (grammarN > 0) data.skills.grammar = blend(data.skills.grammar, grammarSum / grammarN);
     if (vocabN > 0) data.skills.vocabulary = blend(data.skills.vocabulary, vocabSum / vocabN);
-    if (examN > 0) data.skills.examResponse = blend(data.skills.examResponse, examSum / examN);
   }
+
+  // Counting (Exam Sim) exam attempts feed examResponse. Session.score is
+  // already /10 (ExamMode.tsx), so it is added unchanged. Practice-only
+  // (Coached / early-start / resumed) attempts are excluded (ADR-0007).
+  sessions
+    .filter(s => !s.practiceOnly && s.mode === "exam")
+    .slice(0, 15)
+    .forEach(s => {
+      if (typeof s.score === "number") {
+        examSum += s.score;
+        examN++;
+      }
+    });
+
+  if (examN > 0) data.skills.examResponse = blend(data.skills.examResponse, examSum / examN);
 
   data.lastEvalDate = new Date().toISOString();
 

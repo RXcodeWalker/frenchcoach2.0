@@ -2733,3 +2733,29 @@ step. Same SQL (an idempotent `INSERT … ON CONFLICT DO NOTHING`).
 Checked afterwards (read-only): `ai_quota_limits` now has `exam_turn_feedback = 60`; the other
 six rows are unchanged (score 20, feedback 20, roleplay_turn 30, transcribe 30,
 pronunciation 30, exam 10). Remaining deploy steps: merge backend → merge frontend.
+
+## 2026-10-03 — Phase 3 Batch D: roadmap exam scores, coach score definitions
+
+**D1 (`roadmapService.ts`).** Exam Sim sessions (`mode === 'exam' && !practiceOnly`, latest 15) now feed
+`examResponse` via their `Session.score` unchanged (already /10); the dead `/20*10` branch is gone.
+Intended visible change: Exam Sim results now reach the level-3 `examResponse` gate (7.0), as ADR 0007
+assumes. Learn session scores still average into `examResponse` (pre-existing, untouched). Tests: 7.5 counts
+as 7.5; practice-only ignored.
+
+**D2 (coach scores).** `scores.communication=comm`, `language=know`, new `accuracy=acc`,
+`fluency=raw.fluency`, `overall=raw.scores.overall ?? computeOverall(...)` (equal-weight mean of present
+sub-scores, 1 dp; `NoScoreInFeedbackError` if none). One mapper (`mapCoachScores`) serves both the
+non-streaming and streaming paths. Deviation, minor: a missing sub-score still falls back to `overall` so the
+required numeric fields stay numeric; `NoScoreInFeedbackError` now lives in `domain/scoring.ts` (re-exported
+from `apiClient`) so `computeOverall` can throw it without `domain/` importing a service. `feedbackSchema.ts`
+already required `acc`, so it needed no change. Grids show Overall as a headline with Comm/Lang/Accuracy/
+Fluency beneath (`coachScoreGrid`). `diagnosticEngine` `fluency_score` now reads `scores.fluency`.
+`accuracy` is added to the `sessionSync` summary blob.
+
+**UNVALIDATED, not retuned:** thresholds reading `overall` keep their numbers but its distribution changes
+(a four-way mean tends to sit higher than the old strict fluency number): `LANGUAGE_SUCCESS_SCORE` and `>= 8`
+in `diagnosticEngine.ts`, the gems bonus (`xp.ts`), placement `aim` seeding (`OnboardingPlacement.tsx`),
+`scoreColor`. Owner: clear local sessions once after deploy; old entries keep the old meaning. Out of scope:
+`DailyNewsFlash.tsx`'s own non-AI `overall`.
+
+Gates: `typecheck` clean; `lint` 0 errors; targeted suites (domain, services/api|coaching|sync|progression) pass.

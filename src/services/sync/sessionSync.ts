@@ -22,7 +22,7 @@ type CloudSessionRow = {
 
 type FeedbackSummaryBlob = {
   schemaVersion?: number;
-  scores?: { overall: number | null; communication?: number; language?: number; fluency?: number };
+  scores?: { overall: number | null; communication?: number; language?: number; accuracy?: number; fluency?: number };
   unscored?: string;
   cefrLevel?: string;
   biggest_opportunity?: string;
@@ -113,6 +113,7 @@ function stripFeedback(feedback: unknown): FeedbackSummaryBlob | null {
       overall: typeof scores.overall === 'number' ? scores.overall : null,
       communication: scores.communication as number | undefined,
       language: scores.language as number | undefined,
+      accuracy: scores.accuracy as number | undefined,
       fluency: scores.fluency as number | undefined,
     };
   }

@@ -8,6 +8,46 @@ import type { ExaminerVerdict, FeedbackV2 } from '../types';
  */
 export const LANGUAGE_SUCCESS_SCORE = 7;
 
+/** E2: a response with no real score anywhere is invalid input, not a "5" — callers must treat this as a failure and let the fallback chain run. */
+export class NoScoreInFeedbackError extends Error {
+  constructor() {
+    super('Backend feedback contained no usable score');
+    this.name = 'NoScoreInFeedbackError';
+  }
+}
+
+/**
+ * The coach "overall": equal-weight mean of whichever coach sub-scores are
+ * present, rounded to 1 decimal. Throws NoScoreInFeedbackError when none are —
+ * never a fabricated number. Used only when the backend sent no `scores.overall`.
+ */
+export function computeOverall(parts: {
+  communication?: number;
+  language?: number;
+  accuracy?: number;
+  fluency?: number;
+}): number {
+  const present = [parts.communication, parts.language, parts.accuracy, parts.fluency]
+    .filter((v): v is number => typeof v === 'number' && Number.isFinite(v));
+  if (present.length === 0) throw new NoScoreInFeedbackError();
+  const mean = present.reduce((a, b) => a + b, 0) / present.length;
+  return Math.round(mean * 10) / 10;
+}
+
+/**
+ * The labelled sub-score grid shown under the Overall headline. Labels match
+ * the fields they read; Accuracy is omitted for sessions stored before
+ * `scores.accuracy` existed rather than shown as a made-up number.
+ */
+export function coachScoreGrid(scores: FeedbackV2['scores']): { label: string; val: number }[] {
+  return [
+    { label: 'Comm', val: scores.communication },
+    { label: 'Lang', val: scores.language },
+    ...(typeof scores.accuracy === 'number' ? [{ label: 'Accuracy', val: scores.accuracy }] : []),
+    { label: 'Fluency', val: scores.fluency },
+  ];
+}
+
 export const scoreColor = (val: number): string =>
   val >= 8 ? '#10B981' : val >= 6 ? '#F59E0B' : '#EF4444';
 

@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { ChevronRight, XCircle, CheckCircle, RotateCcw, Loader2 } from 'lucide-react';
-import { scoreColor, isUnscored } from '../../domain/scoring';
+import { scoreColor, isUnscored, coachScoreGrid } from '../../domain/scoring';
 import type { FeedbackV2 } from '../../types';
 
 interface Props {
@@ -44,8 +44,13 @@ export function FeedbackPanel({ feedback, isLoading, onRetry, onComplete }: Prop
             </p>
           </div>
         ) : (
+          <>
+          <div className="flex items-baseline gap-2 mb-3">
+            <span className="text-3xl font-black" style={{ color: scoreColor(feedback.scores.overall) }}>{feedback.scores.overall.toFixed(1)}</span>
+            <span className="text-[10px] text-ink-subtle uppercase tracking-wide">Overall</span>
+          </div>
           <div className="grid grid-cols-4 gap-3">
-            {Object.entries({ Comm: feedback.scores.communication, Lang: feedback.scores.language, Fluency: feedback.scores.fluency, Overall: feedback.scores.overall }).map(([label, val]) => (
+            {coachScoreGrid(feedback.scores).map(({ label, val }) => (
               <div key={label} className="text-center">
                 <motion.div
                   className="text-xl font-black mb-1"
@@ -69,6 +74,7 @@ export function FeedbackPanel({ feedback, isLoading, onRetry, onComplete }: Prop
               </div>
             ))}
           </div>
+          </>
         )}
       </div>
 

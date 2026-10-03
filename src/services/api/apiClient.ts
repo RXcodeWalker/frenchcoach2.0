@@ -29,6 +29,7 @@ import {
 } from '../coaching/examinerFeedback';
 import type { NewsSnippet } from '../../data/mocks/mockNews';
 import { getWarmupPhase, noteBackendReachable } from './backendWarmup';
+import { NoScoreInFeedbackError, computeOverall } from '../../domain/scoring';
 import { AuthRequiredError, getAccessToken, isAuthRequiredError, requireAuthHeader } from '../../lib/authToken';
 
 /**
@@ -280,13 +281,7 @@ function logProviderAttempts(raw: BackendFeedbackV2, endpoint: string): void {
   }
 }
 
-/** E2: a response with no real score anywhere is invalid input, not a "5" — callers must treat this as a failure and let the fallback chain run. */
-export class NoScoreInFeedbackError extends Error {
-  constructor() {
-    super('Backend feedback contained no usable score');
-    this.name = 'NoScoreInFeedbackError';
-  }
-}
+export { NoScoreInFeedbackError };
 
 // Backend markers for "this attempt was never actually graded" — checked
 // before and independently of scores/fluency, since a malformed response can
@@ -297,6 +292,28 @@ const UNSCORED_PROVIDER_STATUS: Record<string, UnscoredReason> = {
   offline_fallback: 'backend_offline_fallback',
   malformed_response: 'backend_malformed_response',
 };
+
+/**
+ * Coach scores, each field from its real backend source: communication=comm,
+ * language=know, accuracy=acc, fluency=raw.fluency. `overall` is the backend's
+ * own if it sent one, else the equal-weight mean of whatever is present
+ * (computeOverall — throws NoScoreInFeedbackError when nothing is). A missing
+ * sub-score falls back to overall so the required fields stay numeric.
+ */
+function mapCoachScores(raw: Pick<BackendFeedback, 'scores' | 'fluency'>): FeedbackV2['scores'] {
+  const communication = raw.scores?.comm;
+  const language = raw.scores?.know;
+  const accuracy = raw.scores?.acc;
+  const fluency = raw.fluency;
+  const overall = raw.scores?.overall ?? computeOverall({ communication, language, accuracy, fluency });
+  return {
+    overall,
+    communication: communication ?? overall,
+    language: language ?? overall,
+    ...(accuracy !== undefined ? { accuracy } : {}),
+    fluency: fluency ?? overall,
+  };
+}
 
 export function mapBackendFeedback(raw: BackendFeedback): FeedbackV2 {
   const unscoredReason = raw.providerStatus ? UNSCORED_PROVIDER_STATUS[raw.providerStatus] : undefined;
@@ -319,18 +336,8 @@ export function mapBackendFeedback(raw: BackendFeedback): FeedbackV2 {
     };
   }
 
-  const overall = raw.scores?.overall ?? raw.fluency;
-  if (overall === undefined) {
-    throw new NoScoreInFeedbackError();
-  }
-
   return {
-    scores: {
-      overall,
-      communication: raw.scores?.comm    ?? overall,
-      language:      raw.scores?.know    ?? overall,
-      fluency:       raw.scores?.acc     ?? overall,
-    },
+    scores: mapCoachScores(raw),
     grammar,
     vocabulary: (raw.vocabulary ?? []).map(v => ({ basic: v.basic ?? '', upgrade: v.upgrade ?? '', example: v.example, nuance: v.nuance })),
     style:      (raw.style      ?? []).map(s => ({ label: s.label ?? '', suggestion: s.suggestion ?? '' })),
@@ -954,22 +961,14 @@ function mergeSection(acc: Partial<FeedbackV2>, type: string, data: Record<strin
   switch (type) {
     case 'snapshot': {
       const raw = data as { scores?: { comm?: number; know?: number; acc?: number; overall?: number }; fluency?: number; cefrLevel?: string; wordCount?: number };
-      const overall = raw.scores?.overall ?? raw.fluency;
+      // E2: this is a live preview (partialFeedback), never the recorded score — omit
+      // scores entirely rather than fabricating an "overall: 5" placeholder when the
+      // snapshot doesn't carry a real one yet. The 'complete' event supplies the real score.
+      let scores: FeedbackV2['scores'] | undefined;
+      try { scores = mapCoachScores(raw); } catch (e) { if (!(e instanceof NoScoreInFeedbackError)) throw e; }
       return {
         ...acc,
-        // E2: this is a live preview (partialFeedback), never the recorded score — omit
-        // scores entirely rather than fabricating an "overall: 5" placeholder when the
-        // snapshot doesn't carry a real one yet. The 'complete' event supplies the real score.
-        ...(overall !== undefined
-          ? {
-              scores: {
-                overall,
-                communication: raw.scores?.comm ?? overall,
-                language: raw.scores?.know ?? overall,
-                fluency: raw.scores?.acc ?? overall,
-              },
-            }
-          : {}),
+        ...(scores ? { scores } : {}),
         cefrLevel: raw.cefrLevel ?? acc.cefrLevel,
         wordCount: raw.wordCount ?? acc.wordCount,
       };
