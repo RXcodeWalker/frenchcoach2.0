@@ -2721,3 +2721,15 @@ only, so it is not a production issue. Frontend `typecheck`, `typecheck:server` 
 `exam_turn_feedback` row there as of this entry) → merge backend → merge frontend. Old
 clients get 422 on examiner feedback during the window. **Rollback:** revert frontend, then
 backend; the migration row is harmless to leave.
+
+## 2026-10-03 — Phase 3 Batch 0: `exam_turn_feedback` row applied to production
+
+Applied through the Supabase MCP `apply_migration` to the hosted French Coach project
+(`mlukwnhpazxbgaqyskjl`), on the owner's request. Production recorded it as version
+`20261003064654`, so the backend file was renamed from `20261003090000_…` to
+`20261003064654_exam_turn_feedback_quota.sql` to keep the repo and `schema_migrations` in
+step. Same SQL (an idempotent `INSERT … ON CONFLICT DO NOTHING`).
+
+Checked afterwards (read-only): `ai_quota_limits` now has `exam_turn_feedback = 60`; the other
+six rows are unchanged (score 20, feedback 20, roleplay_turn 30, transcribe 30,
+pronunciation 30, exam 10). Remaining deploy steps: merge backend → merge frontend.
