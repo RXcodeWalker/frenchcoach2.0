@@ -289,6 +289,7 @@ export function ExamResults({
                 onRetry={() => {}}
                 onSwitchToCoach={() => {}}
                 hideSwitchToCoach
+                variant="compact"
               />
             ))}
           </Disclosure>

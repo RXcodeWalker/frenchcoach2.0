@@ -27,6 +27,7 @@ import {
   type ExaminerFeedbackProfile,
   type ExaminerTurnKind,
 } from '../coaching/examinerFeedback';
+import type { CandidateInputMode } from '../../domain/igcse/stt/types';
 import type { NewsSnippet } from '../../data/mocks/mockNews';
 import { getWarmupPhase, noteBackendReachable } from './backendWarmup';
 import { NoScoreInFeedbackError, computeOverall } from '../../domain/scoring';
@@ -860,10 +861,14 @@ export type { EngineMetadata };
 // it doesn't hold. (backend/evaluator_service.py DOES contain a separate,
 // unsourced Python rubric, but it is unreached from src/ — see
 // docs/decisions/0003-node-engine-is-the-authoritative-scorer.md. It has
-// nothing to do with this examiner-mode call.) Grounding and the one-retry
-// rule (getGroundedExaminerFeedback) still run client-side so every quote is
+// nothing to do with this examiner-mode call.) Parsing, the display filters
+// and grounding (parseAndGroundExaminerFeedback) plus the one-retry rule
+// (getGroundedExaminerFeedback) still run client-side so every quote is
 // checked against the exact transcript this client holds; the retry is sent
-// as `attempt: 2`, a separately metered call.
+// as `attempt: 2`, a separately metered call. Batch B: the reply shape depends
+// on the profile (learn / rail topic / rail role play), and the client sends
+// `inputMode` so the prompt and the sound-alike filter treat a spoken answer
+// differently from a typed one.
 
 export class ExaminerFeedbackUnavailableError extends Error {
   constructor() {
@@ -888,11 +893,13 @@ export function isExaminerQuotaExceededError(err: unknown): err is ExaminerQuota
 export interface ExaminerFeedbackContext {
   profile: ExaminerFeedbackProfile;
   turnKind: ExaminerTurnKind;
+  /** Whether the answer was spoken (transcribed) or typed. Absent means speech. It steers the sound-alike rule, client and server. */
+  inputMode?: CandidateInputMode;
   contextQuestion?: string;
   rolePlaySetup?: string;
 }
 
-const LEARN_EXAMINER_CONTEXT: ExaminerFeedbackContext = { profile: 'learn', turnKind: 'topic' };
+const LEARN_EXAMINER_CONTEXT: ExaminerFeedbackContext = { profile: 'learn', turnKind: 'topic', inputMode: 'speech' };
 
 async function callExaminerModel(
   question: string,
@@ -900,8 +907,8 @@ async function callExaminerModel(
   context: ExaminerFeedbackContext,
   attempt: 1 | 2,
   signal: AbortSignal,
-): Promise<ExaminerFeedback> {
-  const raw = await postWithSignal<Partial<ExaminerFeedback>>(
+): Promise<unknown> {
+  return postWithSignal<unknown>(
     '/api/feedback/v3',
     {
       feedbackMode: 'examiner' as const,
@@ -911,15 +918,12 @@ async function callExaminerModel(
       question,
       transcript,
       turnKind: context.turnKind,
+      inputMode: context.inputMode ?? 'speech',
       ...(context.contextQuestion ? { contextQuestion: context.contextQuestion } : {}),
       ...(context.rolePlaySetup ? { rolePlaySetup: context.rolePlaySetup } : {}),
     },
     signal,
   );
-  return {
-    currentDescriptorCommentary: raw.currentDescriptorCommentary ?? [],
-    improvementCommentary: raw.improvementCommentary ?? [],
-  };
 }
 
 export async function getExaminerFeedback(
@@ -929,8 +933,10 @@ export async function getExaminerFeedback(
   context: ExaminerFeedbackContext = LEARN_EXAMINER_CONTEXT,
 ): Promise<ExaminerFeedback> {
   try {
-    return await getGroundedExaminerFeedback(transcript, (attempt) =>
-      callExaminerModel(question.text, transcript, context, attempt, signal),
+    return await getGroundedExaminerFeedback(
+      context.profile,
+      { transcript, turnKind: context.turnKind, inputMode: context.inputMode },
+      (attempt) => callExaminerModel(question.text, transcript, context, attempt, signal),
     );
   } catch (err) {
     if ((err as Error).name === 'AbortError') throw err;

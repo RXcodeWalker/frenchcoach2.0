@@ -100,8 +100,9 @@ const FAKE_RAIL_ENTRIES: RailEntry[] = [
     inputMode: 'speech',
     status: 'done',
     result: {
-      currentDescriptorCommentary: [{ claim: 'Uses a simple present-tense request.', quote: 'Je voudrais un billet.' }],
-      improvementCommentary: [],
+      profile: 'rail',
+      turnKind: 'topic',
+      errors: [{ quote: 'Je voudrais un billet', correction: 'Je voudrais un billet', category: 'other' }],
     },
   },
 ];
