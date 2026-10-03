@@ -20,7 +20,13 @@ import { computeDepth, type FeedbackDepth } from '../../domain/learn/feedback/co
 import { classifyTier, buildTier0Result, buildTier1LocalResult } from '../coaching/responseTier';
 import { applyQualityGate } from '../coaching/qualityGate';
 import { validateBackendFeedback, SchemaValidationError } from './feedbackSchema';
-import { getGroundedExaminerFeedback, type ExaminerFeedback } from '../coaching/examinerFeedback';
+import {
+  EXAMINER_FEEDBACK_PROMPT_VERSION,
+  getGroundedExaminerFeedback,
+  type ExaminerFeedback,
+  type ExaminerFeedbackProfile,
+  type ExaminerTurnKind,
+} from '../coaching/examinerFeedback';
 import type { NewsSnippet } from '../../data/mocks/mockNews';
 import { getWarmupPhase, noteBackendReachable } from './backendWarmup';
 import { AuthRequiredError, getAccessToken, isAuthRequiredError, requireAuthHeader } from '../../lib/authToken';
@@ -586,6 +592,17 @@ async function tryNetworkFeedback(
   }
 }
 
+/** A non-2xx response; the message is the same `API <path> → <status>` text callers already log. */
+class ApiHttpError extends Error {
+  constructor(
+    path: string,
+    readonly status: number,
+  ) {
+    super(`API ${path} → ${status}`);
+    this.name = 'ApiHttpError';
+  }
+}
+
 async function postWithSignal<T>(path: string, body: unknown, signal: AbortSignal): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
     method: 'POST',
@@ -597,7 +614,7 @@ async function postWithSignal<T>(path: string, body: unknown, signal: AbortSigna
     const text = await res.text().catch(() => '');
     console.error(`[API] ${path} → ${res.status}`, text.slice(0, 300));
     assertNotAuthFailure(path, res.status);
-    throw new Error(`API ${path} → ${res.status}`);
+    throw new ApiHttpError(path, res.status);
   }
   return res.json() as Promise<T>;
 }
@@ -820,7 +837,7 @@ export type { EngineMetadata };
 
 // ── Examiner-mode feedback ──────────────────────────────────────────────────
 //
-// Deliberately routed through the same /api/feedback/v3 endpoint (Gemini→Groq
+// Deliberately routed through the same /api/feedback/v3 endpoint (Groq→Gemini
 // chain) with a `feedbackMode: 'examiner'` flag — not a separate endpoint, and
 // NOT /api/feedback/igcse (that is the legacy invented scorer, unrelated to
 // the audited src/domain/igcse engine or to this examiner-voice practice
@@ -828,16 +845,18 @@ export type { EngineMetadata };
 // FeedbackV2 — that type always carries a numeric `scores`, and examiner mode
 // must never fabricate one.
 //
-// The rubric-sourced prompt (buildExaminerPrompt) is built HERE, client-side,
-// from src/domain/igcse/rubric.ts — the only place the SOURCED 0520 descriptor
-// text lives, with every band citing exactSource(...). This /api/feedback/v3
-// call just relays that prompt to the LLM and returns raw JSON.
-// (backend/evaluator_service.py DOES contain a separate, unsourced Python
-// rubric, but it is unreached from src/ — see
+// Phase 3 Batch 0: the client no longer builds or sends a prompt. It sends
+// structured fields plus EXAMINER_FEEDBACK_PROMPT_VERSION; the backend renders
+// the rubric-sourced template from backend/data/examiner_feedback/prompts.json
+// (generated from examinerFeedback.ts by `npm run examiner:generate`), meters
+// the call (Learn: `feedback`, rail: `exam_turn_feedback`) and 409s a version
+// it doesn't hold. (backend/evaluator_service.py DOES contain a separate,
+// unsourced Python rubric, but it is unreached from src/ — see
 // docs/decisions/0003-node-engine-is-the-authoritative-scorer.md. It has
 // nothing to do with this examiner-mode call.) Grounding and the one-retry
-// rule (getGroundedExaminerFeedback) also run client-side so every quote is
-// checked against the exact transcript this client holds.
+// rule (getGroundedExaminerFeedback) still run client-side so every quote is
+// checked against the exact transcript this client holds; the retry is sent
+// as `attempt: 2`, a separately metered call.
 
 export class ExaminerFeedbackUnavailableError extends Error {
   constructor() {
@@ -846,10 +865,48 @@ export class ExaminerFeedbackUnavailableError extends Error {
   }
 }
 
-async function callExaminerModel(prompt: string, signal: AbortSignal): Promise<ExaminerFeedback> {
+/** The backend's daily examiner-feedback quota is used up (HTTP 429). */
+export class ExaminerQuotaExceededError extends Error {
+  constructor() {
+    super("You've used today's AI feedback allowance. It resets at midnight UTC.");
+    this.name = 'ExaminerQuotaExceededError';
+  }
+}
+
+export function isExaminerQuotaExceededError(err: unknown): err is ExaminerQuotaExceededError {
+  return err instanceof Error && err.name === 'ExaminerQuotaExceededError';
+}
+
+/** Which caller is asking, and what kind of turn this is. Learn is always a topic-style answer. */
+export interface ExaminerFeedbackContext {
+  profile: ExaminerFeedbackProfile;
+  turnKind: ExaminerTurnKind;
+  contextQuestion?: string;
+  rolePlaySetup?: string;
+}
+
+const LEARN_EXAMINER_CONTEXT: ExaminerFeedbackContext = { profile: 'learn', turnKind: 'topic' };
+
+async function callExaminerModel(
+  question: string,
+  transcript: string,
+  context: ExaminerFeedbackContext,
+  attempt: 1 | 2,
+  signal: AbortSignal,
+): Promise<ExaminerFeedback> {
   const raw = await postWithSignal<Partial<ExaminerFeedback>>(
     '/api/feedback/v3',
-    { feedbackMode: 'examiner' as const, prompt },
+    {
+      feedbackMode: 'examiner' as const,
+      profile: context.profile,
+      promptVersion: EXAMINER_FEEDBACK_PROMPT_VERSION,
+      attempt,
+      question,
+      transcript,
+      turnKind: context.turnKind,
+      ...(context.contextQuestion ? { contextQuestion: context.contextQuestion } : {}),
+      ...(context.rolePlaySetup ? { rolePlaySetup: context.rolePlaySetup } : {}),
+    },
     signal,
   );
   return {
@@ -862,14 +919,18 @@ export async function getExaminerFeedback(
   transcript: string,
   question: Question,
   signal: AbortSignal,
+  context: ExaminerFeedbackContext = LEARN_EXAMINER_CONTEXT,
 ): Promise<ExaminerFeedback> {
   try {
-    return await getGroundedExaminerFeedback(question.text, transcript, (prompt) =>
-      callExaminerModel(prompt, signal),
+    return await getGroundedExaminerFeedback(transcript, (attempt) =>
+      callExaminerModel(question.text, transcript, context, attempt, signal),
     );
   } catch (err) {
     if ((err as Error).name === 'AbortError') throw err;
     if (err instanceof Error && err.name === 'ExaminerGroundingFailedError') throw err;
+    // No usable session: the caller shows its signed-out state, not "failed".
+    if (isAuthRequiredError(err)) throw err;
+    if (err instanceof ApiHttpError && err.status === 429) throw new ExaminerQuotaExceededError();
     // E1 parity: examiner mode has no offline fallback voice — a total
     // network failure must surface an honest error, never coach-voice
     // offline output silently substituted in.

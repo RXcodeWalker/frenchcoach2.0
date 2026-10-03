@@ -1,7 +1,8 @@
 name: CI
 
 # Frontend CI (docs/systems/topology.md, "CI"): typecheck, lint, the full vitest
-# suite, and the question-bank checks against the backend repo's JSON.
+# suite, the question-bank checks against the backend repo's JSON, and the
+# examiner prompt-template parity check (backend/data/examiner_feedback).
 
 on:
   push:
@@ -58,3 +59,5 @@ jobs:
         run: npm run authoring:check
       - name: Fixture / backend JSON parity
         run: npm run authoring:parity
+      - name: Examiner prompt templates / backend parity
+        run: npm run examiner:parity

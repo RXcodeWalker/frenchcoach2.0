@@ -2,7 +2,10 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
-  buildExaminerPrompt,
+  buildExaminerPromptTemplates,
+  EXAMINER_DATA_BEGIN,
+  EXAMINER_DATA_END,
+  EXAMINER_FEEDBACK_PROMPT_VERSION,
   groundExaminerFeedback,
   isExaminerFeedbackEmpty,
   getGroundedExaminerFeedback,
@@ -12,11 +15,18 @@ import {
 
 const SOURCE_PATH = join(__dirname, '../examinerFeedback.ts');
 
-describe('buildExaminerPrompt', () => {
-  const prompt = buildExaminerPrompt(
-    'Décris ta routine quotidienne.',
-    "Je me réveille à sept heures et je prends le petit déjeuner.",
-  );
+describe('buildExaminerPromptTemplates (server-rendered, v1)', () => {
+  const templates = buildExaminerPromptTemplates();
+  const v1 = templates[EXAMINER_FEEDBACK_PROMPT_VERSION];
+  const prompt = v1.learn.topic.template;
+
+  it('holds the version this client sends, for both profiles and both turn kinds', () => {
+    for (const profile of ['learn', 'rail'] as const) {
+      for (const kind of ['topic', 'rolePlay'] as const) {
+        expect(v1[profile][kind].template).toBe(prompt);
+      }
+    }
+  });
 
   it('forbids mark/band/total output', () => {
     expect(prompt).toMatch(/NEVER output a mark/i);
@@ -34,6 +44,21 @@ describe('buildExaminerPrompt', () => {
   it('includes the real rubric descriptor language, not invented bands', () => {
     expect(prompt).toMatch(/Very good/);
     expect(prompt).not.toMatch(/Foundation-Developing|Core-Secure|Extended-High/);
+  });
+
+  it('puts the question and transcript placeholders only inside the DATA BOUNDARY', () => {
+    const blocks = [...prompt.matchAll(new RegExp(`${EXAMINER_DATA_BEGIN}\\n(.*?)\\n${EXAMINER_DATA_END}`, 'g'))].map(
+      (m) => m[1],
+    );
+    expect(blocks).toEqual(['{{question}}', '{{transcript}}']);
+    const outside = prompt.replace(new RegExp(`${EXAMINER_DATA_BEGIN}\\n.*?\\n${EXAMINER_DATA_END}`, 'g'), '');
+    expect(outside).not.toMatch(/\{\{/);
+    expect(prompt).toMatch(/DATA BOUNDARY/);
+  });
+
+  it('keeps the verbatim-quoting reminder for the retry attempt', () => {
+    expect(v1.learn.topic.retryReminder).toMatch(/Copy the candidate's exact words/);
+    expect(v1.learn.topic.retryReminder).not.toMatch(/\{\{/);
   });
 });
 
@@ -77,7 +102,6 @@ describe('isExaminerFeedbackEmpty', () => {
 
 describe('getGroundedExaminerFeedback retry behavior', () => {
   const transcript = 'Je joue au football le weekend.';
-  const question = 'Que fais-tu le weekend ?';
 
   it('returns the first result when it grounds successfully, without retrying', async () => {
     let calls = 0;
@@ -88,7 +112,7 @@ describe('getGroundedExaminerFeedback retry behavior', () => {
         improvementCommentary: [],
       };
     };
-    const result = await getGroundedExaminerFeedback(question, transcript, generate);
+    const result = await getGroundedExaminerFeedback(transcript, generate);
     expect(calls).toBe(1);
     expect(result.currentDescriptorCommentary).toHaveLength(1);
   });
@@ -108,9 +132,19 @@ describe('getGroundedExaminerFeedback retry behavior', () => {
         improvementCommentary: [],
       };
     };
-    const result = await getGroundedExaminerFeedback(question, transcript, generate);
+    const result = await getGroundedExaminerFeedback(transcript, generate);
     expect(calls).toBe(2);
     expect(result.currentDescriptorCommentary).toHaveLength(1);
+  });
+
+  it('asks for attempt 1, then attempt 2 on the one retry (the backend appends the reminder)', async () => {
+    const attempts: number[] = [];
+    const generate = async (attempt: 1 | 2): Promise<ExaminerFeedback> => {
+      attempts.push(attempt);
+      return { currentDescriptorCommentary: [{ claim: 'x', quote: 'fabricated' }], improvementCommentary: [] };
+    };
+    await expect(getGroundedExaminerFeedback(transcript, generate)).rejects.toThrow(ExaminerGroundingFailedError);
+    expect(attempts).toEqual([1, 2]);
   });
 
   it('throws ExaminerGroundingFailedError after exactly one retry when both attempts are fully ungrounded', async () => {
@@ -122,7 +156,7 @@ describe('getGroundedExaminerFeedback retry behavior', () => {
         improvementCommentary: [{ claim: 'y', quote: 'another fabrication' }],
       };
     };
-    await expect(getGroundedExaminerFeedback(question, transcript, generate)).rejects.toThrow(
+    await expect(getGroundedExaminerFeedback(transcript, generate)).rejects.toThrow(
       ExaminerGroundingFailedError,
     );
     expect(calls).toBe(2);

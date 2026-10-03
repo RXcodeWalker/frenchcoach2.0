@@ -9,8 +9,9 @@
  * ConductLog-writing function — enforced by __tests__/turnFeedbackBoundary.test.ts,
  * mirroring domain/igcse/session/__tests__/interpreterBoundary.test.ts.
  *
- * Engine: getExaminerFeedback (feedbackMode: 'examiner') — the only mark-free
- * path (ADR-0005). classifyTier gates it so a silent or <=3-word turn never
+ * Engine: getExaminerFeedback (feedbackMode: 'examiner', profile 'rail') —
+ * the only mark-free path (ADR-0005), metered per turn under the backend's
+ * `exam_turn_feedback` quota row. classifyTier gates it so a silent or <=3-word turn never
  * spends a call. Exam Sim (coached === false) makes zero calls at all, not a
  * hidden one — the effect below returns before touching the network.
  *
@@ -25,15 +26,17 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { getExaminerFeedback } from '../api/apiClient';
+import { getExaminerFeedback, isExaminerQuotaExceededError } from '../api/apiClient';
 import { classifyTier } from '../coaching/responseTier';
 import { isAuthRequiredError } from '../../lib/authToken';
-import type { ExaminerFeedback } from '../coaching/examinerFeedback';
+import type { ExaminerFeedback, ExaminerTurnKind } from '../coaching/examinerFeedback';
 import type { ConductLogEntry } from '../../domain/igcse/session/types';
 import type { CandidateInputMode } from '../../domain/igcse/stt/types';
 import type { Question } from '../../types';
 
 export type RailEntryStatus = 'pending' | 'done' | 'failed';
+
+export type RailDisabledReason = 'signed-out' | 'quota-exhausted' | null;
 
 export interface RailEntry {
   /** The candidate ConductLog entry's `seq` — stable and unique per turn. */
@@ -46,8 +49,13 @@ export interface RailEntry {
 
 export interface UseExamCorrectionsRail {
   entries: RailEntry[];
-  /** Set when the last request failed because there's no usable session (guest, or an expired one) — the rail degrades quietly rather than showing per-turn failed cards. */
-  disabledReason: 'signed-out' | null;
+  /**
+   * Set when the last request failed because there's no usable session
+   * (guest, or an expired one), or because today's `exam_turn_feedback`
+   * quota is used up — the rail degrades quietly rather than showing per-turn
+   * failed cards. Once the quota is exhausted no further calls are made.
+   */
+  disabledReason: RailDisabledReason;
   retry: (turnKey: number) => void;
 }
 
@@ -67,42 +75,55 @@ function findPrecedingExaminerText(entries: ConductLogEntry[], candidateIndex: n
  */
 export function useExamCorrectionsRail(entries: ConductLogEntry[], coached: boolean): UseExamCorrectionsRail {
   const [railEntries, setRailEntries] = useState<RailEntry[]>([]);
-  const [disabledReason, setDisabledReason] = useState<'signed-out' | null>(null);
+  const [disabledReason, setDisabledReason] = useState<RailDisabledReason>(null);
+  const quotaExhaustedRef = useRef(false);
 
   const processedSeqRef = useRef(new Set<number>());
   const questionTextRef = useRef(new Map<number, string>());
+  const turnKindRef = useRef(new Map<number, ExaminerTurnKind>());
   const requestIdRef = useRef(new Map<number, number>());
   const controllersRef = useRef(new Map<number, AbortController>());
 
-  const runRequest = useCallback((turnKey: number, transcript: string, questionText: string, requestId: number) => {
-    controllersRef.current.get(turnKey)?.abort();
-    const controller = new AbortController();
-    controllersRef.current.set(turnKey, controller);
+  const runRequest = useCallback(
+    (turnKey: number, transcript: string, questionText: string, turnKind: ExaminerTurnKind, requestId: number) => {
+      controllersRef.current.get(turnKey)?.abort();
+      const controller = new AbortController();
+      controllersRef.current.set(turnKey, controller);
 
-    const question = { text: questionText } as Question;
+      const question = { text: questionText } as Question;
 
-    void getExaminerFeedback(transcript, question, controller.signal)
-      .then((result) => {
-        // Stale-response guard: a retry for this same turn superseded this request.
-        if (requestIdRef.current.get(turnKey) !== requestId) return;
-        setDisabledReason(null);
-        setRailEntries((prev) => prev.map((e) => (e.turnKey === turnKey ? { ...e, status: 'done', result } : e)));
-      })
-      .catch((err: unknown) => {
-        if (err instanceof Error && err.name === 'AbortError') return;
-        // Double-finalize guard: an older attempt's rejection arriving after a retry already resolved/failed.
-        if (requestIdRef.current.get(turnKey) !== requestId) return;
-        if (isAuthRequiredError(err)) {
-          // Quiet degrade, not a per-turn failed card — matches Learn.tsx's
-          // isAuthRequiredError handling (a guest or expired session is a
-          // different situation from "the service is down").
-          setDisabledReason('signed-out');
-          setRailEntries((prev) => prev.filter((e) => e.turnKey !== turnKey));
-          return;
-        }
-        setRailEntries((prev) => prev.map((e) => (e.turnKey === turnKey ? { ...e, status: 'failed' } : e)));
-      });
-  }, []);
+      void getExaminerFeedback(transcript, question, controller.signal, { profile: 'rail', turnKind })
+        .then((result) => {
+          // Stale-response guard: a retry for this same turn superseded this request.
+          if (requestIdRef.current.get(turnKey) !== requestId) return;
+          setDisabledReason(null);
+          setRailEntries((prev) => prev.map((e) => (e.turnKey === turnKey ? { ...e, status: 'done', result } : e)));
+        })
+        .catch((err: unknown) => {
+          if (err instanceof Error && err.name === 'AbortError') return;
+          // Double-finalize guard: an older attempt's rejection arriving after a retry already resolved/failed.
+          if (requestIdRef.current.get(turnKey) !== requestId) return;
+          if (isAuthRequiredError(err)) {
+            // Quiet degrade, not a per-turn failed card — matches Learn.tsx's
+            // isAuthRequiredError handling (a guest or expired session is a
+            // different situation from "the service is down").
+            setDisabledReason('signed-out');
+            setRailEntries((prev) => prev.filter((e) => e.turnKey !== turnKey));
+            return;
+          }
+          if (isExaminerQuotaExceededError(err)) {
+            // One quiet "limit reached today" state, not a failed card on
+            // every remaining turn; stop spending requests on certain 429s.
+            quotaExhaustedRef.current = true;
+            setDisabledReason('quota-exhausted');
+            setRailEntries((prev) => prev.filter((e) => e.turnKey !== turnKey));
+            return;
+          }
+          setRailEntries((prev) => prev.map((e) => (e.turnKey === turnKey ? { ...e, status: 'failed' } : e)));
+        });
+    },
+    [],
+  );
 
   useEffect(() => {
     // Exam Sim: sealed until submission — no calls at all, not a hidden one.
@@ -117,10 +138,14 @@ export function useExamCorrectionsRail(entries: ConductLogEntry[], coached: bool
       if (entry.requestedRepeat) return;
       // Tier 0 (silent) / tier 1 (<=3 words): never spends a call.
       if (classifyTier(entry.transcript) <= 1) return;
+      // Today's rail quota is used up: no more calls this session.
+      if (quotaExhaustedRef.current) return;
 
       const turnKey = entry.seq;
       const questionText = findPrecedingExaminerText(entries, i);
       questionTextRef.current.set(turnKey, questionText);
+      const turnKind: ExaminerTurnKind = entry.part === 'rolePlay' ? 'rolePlay' : 'topic';
+      turnKindRef.current.set(turnKey, turnKind);
 
       setRailEntries((prev) => [
         ...prev,
@@ -129,7 +154,7 @@ export function useExamCorrectionsRail(entries: ConductLogEntry[], coached: bool
 
       const requestId = (requestIdRef.current.get(turnKey) ?? 0) + 1;
       requestIdRef.current.set(turnKey, requestId);
-      runRequest(turnKey, entry.transcript, questionText, requestId);
+      runRequest(turnKey, entry.transcript, questionText, turnKind, requestId);
     });
   }, [entries, coached, runRequest]);
 
@@ -147,9 +172,10 @@ export function useExamCorrectionsRail(entries: ConductLogEntry[], coached: bool
         const entry = prev.find((e) => e.turnKey === turnKey);
         if (!entry) return prev;
         const questionText = questionTextRef.current.get(turnKey) ?? '';
+        const turnKind = turnKindRef.current.get(turnKey) ?? 'topic';
         const requestId = (requestIdRef.current.get(turnKey) ?? 0) + 1;
         requestIdRef.current.set(turnKey, requestId);
-        runRequest(turnKey, entry.transcript, questionText, requestId);
+        runRequest(turnKey, entry.transcript, questionText, turnKind, requestId);
         return prev.map((e) => (e.turnKey === turnKey ? { ...e, status: 'pending', result: null } : e));
       });
     },

@@ -2,7 +2,8 @@ import { GraduationCap, Loader2 } from 'lucide-react';
 import type { ExaminerFeedback } from '../../../services/coaching/examinerFeedback';
 
 interface Props {
-  status: 'pending' | 'done' | 'failed';
+  /** 'quota-exhausted': today's AI feedback allowance is used up (HTTP 429) — no retry offered. */
+  status: 'pending' | 'done' | 'failed' | 'quota-exhausted';
   result: ExaminerFeedback | null;
   onSwitchToCoach: () => void;
   onRetry: () => void;
@@ -24,6 +25,15 @@ export function ExaminerFeedbackCard({ status, result, onSwitchToCoach, onRetry,
       <div className="rounded-xl surface-raised p-8 flex flex-col items-center gap-3">
         <Loader2 size={24} className="text-amber-400 animate-spin" />
         <p className="text-sm text-ink-muted">Preparing examiner commentary…</p>
+      </div>
+    );
+  }
+
+  if (status === 'quota-exhausted') {
+    return (
+      <div className="rounded-xl surface-raised p-6 space-y-2 text-center">
+        <p className="text-sm text-ink-muted font-semibold">You've used today's AI feedback allowance.</p>
+        <p className="text-xs text-ink-muted">It resets at midnight UTC.</p>
       </div>
     );
   }
