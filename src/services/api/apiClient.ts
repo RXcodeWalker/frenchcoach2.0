@@ -2,7 +2,8 @@ import type { FeedbackV2, Question, SkillContext, GeneratedScenario, AIEngine, E
 import type { ChangeAnnotation } from '../../domain/learn/feedback/buildChanges';
 import { track } from '../telemetry/telemetryService';
 import { evaluate as offlineEvaluate } from '../coaching/coachService';
-import { DIFFICULTY_CONFIG, DEFAULT_DIFFICULTY } from '../../utils/difficultyConfig';
+import { DEFAULT_DIFFICULTY } from '../../utils/difficultyConfig';
+import { resolveFeatureStatus } from '../../config/featureFlags';
 import {
   buildSkillContext,
   hasJustification,
@@ -697,6 +698,22 @@ export async function transcribeAudio(audioBlob: Blob, language = 'fr'): Promise
  * Tier 1 (1-3 words): immediate local result — too short for AI to add value.
  * Tier 2-3: full AI evaluation (Gemini → Groq → Offline fallback chain).
  */
+/**
+ * The only difficulty data sent to the coach backend. The CEFR target, tone and
+ * rubric sentences are prompt text, so the backend owns them per tier; the
+ * client names the tier and nothing else.
+ *
+ * While the adaptive Aim picker is live the learner never sees or picks a
+ * tier (the grid is hidden), yet the persisted `selectedDifficulty` still
+ * exists — sending it would apply a rubric the learner cannot see or change.
+ * So no tier is sent and the backend uses its default IGCSE target (A2 with
+ * elements of B1, TN p.11). The tier travels only on the legacy-grid path.
+ */
+export function buildDifficultyContext(difficulty: DifficultyTier): { tier: DifficultyTier } | undefined {
+  if (resolveFeatureStatus('learnAdaptiveDifficulty') === 'live') return undefined;
+  return { tier: difficulty };
+}
+
 export async function getAIFeedback(
   transcript: string,
   question: Question,
@@ -706,7 +723,6 @@ export async function getAIFeedback(
   difficulty: DifficultyTier = DEFAULT_DIFFICULTY,
 ): Promise<FeedbackV2> {
   const startTime = Date.now();
-  const cfg = DIFFICULTY_CONFIG[difficulty];
   const tier = classifyTier(transcript);
 
   // Tier 0: no response at all — skip everything
@@ -763,13 +779,7 @@ export async function getAIFeedback(
       keyVocab: question.keyVocab,
     },
     skillContext: ctx,
-    difficultyContext: {
-      tier: cfg.tier,
-      label: cfg.label,
-      cefrTarget: cfg.cefrTarget,
-      coachingTone: cfg.coachingTone,
-      coachingRubric: cfg.coachingRubric,
-    },
+    difficultyContext: buildDifficultyContext(difficulty),
     ...buildDemandIdentity(question),
     demandSignals: buildDemandSignals(transcript, question),
     depth: buildRequestDepth(transcript, question, tier),
@@ -1019,7 +1029,6 @@ export async function streamFeedback(
   signal: AbortSignal,
   callbacks: StreamFeedbackCallbacks,
 ): Promise<void> {
-  const cfg = DIFFICULTY_CONFIG[difficulty];
   const ctx = skillContext ?? buildSkillContext();
 
   const requestBody = {
@@ -1033,13 +1042,7 @@ export async function streamFeedback(
       keyVocab: question.keyVocab,
     },
     skillContext: ctx,
-    difficultyContext: {
-      tier: cfg.tier,
-      label: cfg.label,
-      cefrTarget: cfg.cefrTarget,
-      coachingTone: cfg.coachingTone,
-      coachingRubric: cfg.coachingRubric,
-    },
+    difficultyContext: buildDifficultyContext(difficulty),
     // Bug fix (docs §3.12/§9.2): this was never sent, so the backend's
     // _parse_feedback_request fell through to its "groq" default regardless
     // of what the user selected — the engine selector was inert on this path.

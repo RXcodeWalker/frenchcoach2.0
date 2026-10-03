@@ -33,7 +33,7 @@ export const TEACHME_LIBRARY: Record<string, Partial<TeachMe>> = {
       { fr: "Nous sommes arrivés en retard.", en: "We arrived late. (not nous avons arrivé)" },
     ],
     advanced: "Les délégués sont tous partis avant midi, ce qui a surpris l'organisateur.",
-    examinerNote: "Missing être for DR MRS VANDERTRAMP verbs costs marks in every paper.",
+    examinerNote: "Missing être for DR MRS VANDERTRAMP verbs is an error the examiner will notice.",
   },
   aux_venir: {
     why: "Same anglicism as aller: 'I have come' → 'j'ai venu' is a direct English translation. Venir is a movement verb; movement verbs use être.",
@@ -43,7 +43,7 @@ export const TEACHME_LIBRARY: Record<string, Partial<TeachMe>> = {
       { fr: "Elles sont venues tôt ce matin.", en: "They came early this morning." },
     ],
     advanced: "Dès qu'il est venu, l'atmosphère a changé.",
-    examinerNote: "Agreement error (venu/venue) also costs marks — add -e for feminine, -s for plural.",
+    examinerNote: "Agreement error (venu/venue) is another slip to avoid — add -e for feminine, -s for plural.",
   },
   el_je: {
     why: "English has no elision rule, so 'je aime' feels natural. But French phonetics forbid a vowel clash: je + any vowel → j'. This is one of the most basic rules examiners expect at every level.",

@@ -413,14 +413,11 @@ export interface DifficultyConfig {
   tier: DifficultyTier;
   label: string;
   cefr: string;
-  cefrTarget: string;
   icon: string;
   color: string;
   description: string;
   preferredQuestionDifficulty: (1 | 2 | 3)[];
   expectations: DifficultyEvalExpectations;
-  coachingTone: string;
-  coachingRubric: string;
 }
 
 export type EngineHealth = 'healthy' | 'degraded' | 'unavailable' | 'checking';

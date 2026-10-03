@@ -579,6 +579,14 @@ A `LEARN_PROMPT_VERSION` constant is added and snapshot-asserted, mirroring
 `difficultyConfig.coachingRubric` — the four hand-written paragraphs — is **retired**: it is
 exactly the "grade this as B2" instruction the brief calls insufficient. `coachingTone` stays.
 
+> **Amendment (Phase 3 Batch F, 2026-10-03):** the client no longer carries any prompt text. The
+> frontend sends `difficultyContext: { tier }` only, and the backend (`_TIER_PROMPTS` in
+> `main.py`) owns the per-tier CEFR target, `coachingTone` and rubric sentence — so, contrary to
+> the paragraph above, a rubric sentence per tier still exists, but server-side and unreachable
+> from client input (unknown tier or any extra key → 422). While `learnAdaptiveDifficulty` is
+> live no tier is sent at all and the backend uses its default target, "A2 with elements of B1"
+> (TN p.11). `DifficultyConfig` keeps display fields and `expectations` only.
+
 Per CLAUDE.md: verify `git -C backend status` is clean first; commit and push `backend/` separately.
 
 ### 9.3 L1 is **asymmetric** — the correction that matters most
