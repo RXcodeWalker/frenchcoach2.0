@@ -32,7 +32,7 @@
  * AuthRequiredError before any upload — a guest's request could only 401.
  */
 
-import { AuthRequiredError } from '../../../lib/authToken';
+import { AuthRequiredError, guestAiEnabled } from '../../../lib/authToken';
 import { normalizeToWav16kMono, AudioTooShortError } from '../audioNormalizer';
 import { PronunciationAssessmentSchema } from '../../../services/pronunciation/pronunciationSchema';
 import type { PronunciationAssessor } from '../ports';
@@ -76,8 +76,8 @@ export function createHttpPronunciationProvider(
     let authHeaders: Record<string, string> = {};
     if (getAuthToken) {
       const token = await getAuthToken();
-      if (!token) throw new AuthRequiredError('Sign in to get pronunciation feedback.');
-      authHeaders = { Authorization: `Bearer ${token}` };
+      if (token) authHeaders = { Authorization: `Bearer ${token}` };
+      else if (!guestAiEnabled()) throw new AuthRequiredError('Sign in to get pronunciation feedback.');
     }
 
     let uploadBlob = audioBlob;

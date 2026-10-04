@@ -5,7 +5,7 @@
 // /api/feedback/stream and then both /api/feedback/v3 engines, each coming
 // back 401 "Missing or invalid Authorization header", before finally landing
 // on the offline evaluator anyway.
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 vi.mock('../../../lib/supabase', () => ({
   supabase: { auth: { getSession: vi.fn(), refreshSession: vi.fn() } },
@@ -29,10 +29,13 @@ const QUESTION = {
 
 const TRANSCRIPT = "J'habite avec ma famille dans une grande maison près de Paris.";
 
-describe('signed-out (guest) AI calls', () => {
+describe('signed-out AI calls with guest access disabled', () => {
+  afterEach(() => vi.unstubAllEnvs());
+
   beforeEach(() => {
     vi.clearAllMocks();
     getSession.mockResolvedValue({ data: { session: null }, error: null });
+    vi.stubEnv('VITE_GUEST_AI_ENABLED', '0'); // sign-in-only mode
   });
 
   it('getAIFeedback goes straight to offline evaluation without touching the network', async () => {
@@ -55,5 +58,32 @@ describe('signed-out (guest) AI calls', () => {
     ).rejects.toMatchObject({ name: 'AuthRequiredError' });
 
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
+describe('guest AI calls with guest access enabled (default)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    getSession.mockResolvedValue({ data: { session: null }, error: null });
+  });
+
+  it('streamFeedback opens the request without an Authorization header', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: false, status: 500, body: null });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await streamFeedback(TRANSCRIPT, QUESTION, undefined, undefined, 'groq', 'intermediate', new AbortController().signal, { onComplete: vi.fn() }).catch(() => undefined);
+
+    expect(fetchMock).toHaveBeenCalled();
+    const init = fetchMock.mock.calls[0][1] as { headers: Record<string, string> };
+    expect(init.headers.Authorization).toBeUndefined();
+  });
+
+  it('getAIFeedback tries the network instead of short-circuiting to offline', async () => {
+    const fetchMock = vi.fn().mockRejectedValue(new Error('network down'));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await getAIFeedback(TRANSCRIPT, QUESTION);
+
+    expect(fetchMock).toHaveBeenCalled();
   });
 });

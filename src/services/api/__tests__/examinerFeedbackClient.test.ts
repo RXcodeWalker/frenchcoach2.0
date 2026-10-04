@@ -7,7 +7,7 @@
 // profile. A 429 becomes ExaminerQuotaExceededError, and AuthRequiredError is
 // rethrown rather than swallowed into "unavailable" (D3), so callers can show
 // their signed-out / quota states.
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 vi.mock('../../../lib/supabase', () => ({
   supabase: { auth: { getSession: vi.fn(), refreshSession: vi.fn() } },
@@ -48,6 +48,8 @@ function sentBodies(fetchMock: ReturnType<typeof vi.fn>): Record<string, unknown
 }
 
 describe('getExaminerFeedback (server-rendered examiner prompt)', () => {
+  afterEach(() => vi.unstubAllEnvs());
+
   beforeEach(() => {
     vi.clearAllMocks();
     vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -131,6 +133,7 @@ describe('getExaminerFeedback (server-rendered examiner prompt)', () => {
   });
 
   it('a signed-out caller gets AuthRequiredError, not "unavailable", and no request is made', async () => {
+    vi.stubEnv('VITE_GUEST_AI_ENABLED', '0');
     getSession.mockResolvedValue({ data: { session: null }, error: null });
     const fetchMock = vi.fn();
     vi.stubGlobal('fetch', fetchMock);

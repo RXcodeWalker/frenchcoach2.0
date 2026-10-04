@@ -16,6 +16,15 @@
  */
 import { supabase } from './supabase';
 
+/**
+ * Temporary: guests may call the AI endpoints without a token (the backend
+ * accepts a header-less request as `guest:<ip>` under a small daily cap — see
+ * backend/lib/guest.py). Build with VITE_GUEST_AI_ENABLED=0, and set
+ * GUEST_AI_ENABLED=0 on the backend, to restore the sign-in-only behaviour
+ * described above; every AuthRequiredError path below then works as before.
+ */
+export const guestAiEnabled = (): boolean => import.meta.env.VITE_GUEST_AI_ENABLED !== '0';
+
 /** A token this close to expiry is refreshed before use rather than sent. */
 const REFRESH_SKEW_SEC = 60;
 
@@ -50,9 +59,15 @@ export async function getAccessToken(): Promise<string | null> {
   return refreshed.session?.access_token ?? null;
 }
 
-/** `{ Authorization }` for a signed-in user; throws AuthRequiredError otherwise. */
+/**
+ * `{ Authorization }` for a signed-in user. A guest gets `{}` while
+ * guestAiEnabled, else AuthRequiredError.
+ */
 export async function requireAuthHeader(): Promise<Record<string, string>> {
   const token = await getAccessToken();
-  if (!token) throw new AuthRequiredError();
+  if (!token) {
+    if (guestAiEnabled()) return {};
+    throw new AuthRequiredError();
+  }
   return { Authorization: `Bearer ${token}` };
 }

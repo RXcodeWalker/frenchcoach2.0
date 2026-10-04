@@ -49,6 +49,7 @@ describe('createHttpPronunciationProvider', () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
   });
 
   it('POSTs FormData to /api/pronunciation and validates the response through the Zod schema', async () => {
@@ -387,6 +388,7 @@ describe('createHttpPronunciationProvider', () => {
   // only come back 401 — the provider must say so instead of spending an
   // upload (and an audio decode) on it.
   it('throws AuthRequiredError without fetching when the token accessor returns null', async () => {
+    vi.stubEnv('VITE_GUEST_AI_ENABLED', '0');
     const fetchMock = vi.fn() as unknown as typeof fetch;
     vi.stubGlobal('fetch', fetchMock);
 
