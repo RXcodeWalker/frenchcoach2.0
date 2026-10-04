@@ -182,12 +182,38 @@ describe('useExamCorrectionsRail', () => {
     expect(result.current.entries).toEqual([]);
   });
 
-  it('tier gate: a <=3-word turn never spends a call', () => {
+  it('tier gate: a <=3-word turn never spends a call, but shows a skipped card', () => {
     const entries = [examinerEntry(1, 'Question?'), candidateEntry(2, 'Oui bien')];
     const { result } = renderHook(() => useExamCorrectionsRail(entries, true));
 
     expect(getExaminerFeedback).not.toHaveBeenCalled();
-    expect(result.current.entries).toEqual([]);
+    expect(result.current.entries).toEqual([
+      expect.objectContaining({ turnKey: 2, status: 'skipped', result: null }),
+    ]);
+
+    act(() => {
+      result.current.retry(2);
+    });
+    expect(getExaminerFeedback).not.toHaveBeenCalled();
+    expect(result.current.entries[0].status).toBe('skipped');
+  });
+
+  it('a request failure is marked unavailable; a grounding failure is marked ungrounded', async () => {
+    const grounding = new Error("Couldn't produce evidence-backed examiner feedback for this answer");
+    grounding.name = 'ExaminerGroundingFailedError';
+    getExaminerFeedback.mockRejectedValueOnce(new Error('Could not get examiner feedback'));
+    getExaminerFeedback.mockRejectedValueOnce(grounding);
+    const entries = [
+      examinerEntry(1, 'Question?'),
+      candidateEntry(2, "J'aime le sport parce que c'est amusant."),
+      examinerEntry(3, 'Et après ?'),
+      candidateEntry(4, 'Après je regarde la télé avec ma famille.'),
+    ];
+    const { result } = renderHook(() => useExamCorrectionsRail(entries, true));
+
+    await waitFor(() => expect(result.current.entries.every((e) => e.status === 'failed')).toBe(true));
+    expect(result.current.entries.find((e) => e.turnKey === 2)?.failureKind).toBe('unavailable');
+    expect(result.current.entries.find((e) => e.turnKey === 4)?.failureKind).toBe('ungrounded');
   });
 
   it('a repeat-request turn never spends a call', () => {

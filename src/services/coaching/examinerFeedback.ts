@@ -690,6 +690,17 @@ export function collectExaminerQuoteItems(feedback: ExaminerFeedback): ExaminerQ
   return [...good(feedback.task?.quote), ...good(feedback.clarity?.quote), ...bad(feedback.error?.quote)];
 }
 
+/**
+ * Why examiner feedback failed. 'unavailable': the request itself failed (the
+ * AI providers are rate-limited or down) — the answer is not the problem.
+ * 'ungrounded': the model replied twice but no quote matched the transcript.
+ */
+export type ExaminerFailureKind = 'unavailable' | 'ungrounded';
+
+export function examinerFailureKind(err: unknown): ExaminerFailureKind {
+  return err instanceof Error && err.name === 'ExaminerGroundingFailedError' ? 'ungrounded' : 'unavailable';
+}
+
 export class ExaminerGroundingFailedError extends Error {
   constructor() {
     super("Couldn't produce evidence-backed examiner feedback for this answer");

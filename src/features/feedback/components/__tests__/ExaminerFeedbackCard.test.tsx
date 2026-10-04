@@ -117,6 +117,24 @@ describe('ExaminerFeedbackCard — shared states (both variants)', () => {
     expect(screen.getByText('Switch to coach mode')).not.toBeNull();
   });
 
+  it('failed with failureKind unavailable blames the service, not the answer', () => {
+    renderCard({ status: 'failed', result: null, failureKind: 'unavailable', variant: 'compact' });
+    expect(screen.getByText('Examiner commentary is unavailable right now.')).not.toBeNull();
+    expect(screen.queryByText(/too short/)).toBeNull();
+    expect(screen.getByText('Try again')).not.toBeNull();
+  });
+
+  it('failed defaults to the grounding message', () => {
+    renderCard({ status: 'failed', result: null, variant: 'compact' });
+    expect(screen.getByText("Couldn't produce evidence-backed examiner feedback for this answer.")).not.toBeNull();
+  });
+
+  it('skipped says the answer was too short and offers no retry', () => {
+    renderCard({ status: 'skipped', result: null, variant: 'compact' });
+    expect(screen.getByText('No commentary for this answer.')).not.toBeNull();
+    expect(screen.queryByText('Try again')).toBeNull();
+  });
+
   it('hideSwitchToCoach hides the coach-mode escape hatch', () => {
     renderCard({ status: 'failed', result: null, hideSwitchToCoach: true, variant: 'compact' });
     expect(screen.queryByText('Switch to coach mode')).toBeNull();

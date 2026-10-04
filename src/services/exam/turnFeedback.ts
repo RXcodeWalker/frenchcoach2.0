@@ -38,12 +38,13 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { getExaminerFeedback, isExaminerQuotaExceededError, type ExaminerFeedbackContext } from '../api/apiClient';
 import { classifyTier } from '../coaching/responseTier';
 import { isAuthRequiredError } from '../../lib/authToken';
-import type { ExaminerFeedback, ExaminerTurnKind } from '../coaching/examinerFeedback';
+import { examinerFailureKind, type ExaminerFailureKind, type ExaminerFeedback, type ExaminerTurnKind } from '../coaching/examinerFeedback';
 import type { ConductLogEntry } from '../../domain/igcse/session/types';
 import type { CandidateInputMode } from '../../domain/igcse/stt/types';
 import type { Question } from '../../types';
 
-export type RailEntryStatus = 'pending' | 'done' | 'failed';
+/** 'skipped': a silent or <=3-word answer — shown so the turn isn't silently missing, but no call is made. */
+export type RailEntryStatus = 'pending' | 'done' | 'failed' | 'skipped';
 
 export type RailDisabledReason = 'signed-out' | 'quota-exhausted' | null;
 
@@ -54,6 +55,8 @@ export interface RailEntry {
   inputMode?: CandidateInputMode;
   status: RailEntryStatus;
   result: ExaminerFeedback | null;
+  /** Set on a 'failed' entry: did the request fail, or did the reply fail grounding? */
+  failureKind?: ExaminerFailureKind;
 }
 
 export interface UseExamCorrectionsRail {
@@ -170,7 +173,8 @@ export function useExamCorrectionsRail(
             setRailEntries((prev) => prev.filter((e) => e.turnKey !== turnKey));
             return;
           }
-          setRailEntries((prev) => prev.map((e) => (e.turnKey === turnKey ? { ...e, status: 'failed' } : e)));
+          const failureKind = examinerFailureKind(err);
+          setRailEntries((prev) => prev.map((e) => (e.turnKey === turnKey ? { ...e, status: 'failed', failureKind } : e)));
         });
     },
     [],
@@ -187,12 +191,19 @@ export function useExamCorrectionsRail(
 
       // A button/verbal repeat request isn't an answer to comment on.
       if (entry.requestedRepeat) return;
-      // Tier 0 (silent) / tier 1 (<=3 words): never spends a call.
-      if (classifyTier(entry.transcript) <= 1) return;
+      const turnKey = entry.seq;
+      // Tier 0 (silent) / tier 1 (<=3 words): never spends a call, but gets a
+      // 'skipped' card so the turn isn't silently missing from the rail.
+      if (classifyTier(entry.transcript) <= 1) {
+        setRailEntries((prev) => [
+          ...prev,
+          { turnKey, transcript: entry.transcript, inputMode: entry.inputMode, status: 'skipped', result: null },
+        ]);
+        return;
+      }
       // Today's rail quota is used up: no more calls this session.
       if (quotaExhaustedRef.current) return;
 
-      const turnKey = entry.seq;
       const { question: questionText, contextQuestion } = resolveRailPrompt(entries, i);
       const turnKind: ExaminerTurnKind = entry.part === 'rolePlay' ? 'rolePlay' : 'topic';
       const context: ExaminerFeedbackContext = {
@@ -227,14 +238,14 @@ export function useExamCorrectionsRail(
     (turnKey: number) => {
       setRailEntries((prev) => {
         const entry = prev.find((e) => e.turnKey === turnKey);
-        if (!entry) return prev;
+        if (!entry || entry.status === 'skipped') return prev;
         const sent = requestRef.current.get(turnKey);
         const questionText = sent?.questionText ?? '';
         const context: ExaminerFeedbackContext = sent?.context ?? { profile: 'rail', turnKind: 'topic', inputMode: entry.inputMode ?? 'speech' };
         const requestId = (requestIdRef.current.get(turnKey) ?? 0) + 1;
         requestIdRef.current.set(turnKey, requestId);
         runRequest(turnKey, entry.transcript, questionText, context, requestId);
-        return prev.map((e) => (e.turnKey === turnKey ? { ...e, status: 'pending', result: null } : e));
+        return prev.map((e) => (e.turnKey === turnKey ? { ...e, status: 'pending', result: null, failureKind: undefined } : e));
       });
     },
     [runRequest],

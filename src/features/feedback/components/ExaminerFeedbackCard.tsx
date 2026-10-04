@@ -5,14 +5,20 @@ import {
   isExaminerFeedbackEmpty,
   type ExaminerCitedClaim,
   type ExaminerErrorItem,
+  type ExaminerFailureKind,
   type ExaminerFeedback,
 } from '../../../services/coaching/examinerFeedback';
 import { ERROR_CATEGORY_LABELS } from '../../../domain/examFeedback/shared/errorCategories';
 
 interface Props {
-  /** 'quota-exhausted': today's AI feedback allowance is used up (HTTP 429) — no retry offered. */
-  status: 'pending' | 'done' | 'failed' | 'quota-exhausted';
+  /**
+   * 'quota-exhausted': today's AI feedback allowance is used up (HTTP 429) — no retry offered.
+   * 'skipped': the answer was too short to comment on, so no call was made (the rail's tier gate).
+   */
+  status: 'pending' | 'done' | 'failed' | 'quota-exhausted' | 'skipped';
   result: ExaminerFeedback | null;
+  /** Why a 'failed' card failed; defaults to 'ungrounded'. */
+  failureKind?: ExaminerFailureKind;
   onSwitchToCoach: () => void;
   onRetry: () => void;
   /** Exam mode has no "coach mode" to switch to — hides that escape hatch on the failed state. */
@@ -179,6 +185,7 @@ function FeedbackSections({ result, compact, hl }: { result: ExaminerFeedback; c
 export function ExaminerFeedbackCard({
   status,
   result,
+  failureKind = 'ungrounded',
   onSwitchToCoach,
   onRetry,
   hideSwitchToCoach,
@@ -206,14 +213,28 @@ export function ExaminerFeedbackCard({
     );
   }
 
+  if (status === 'skipped') {
+    return (
+      <div className={`${stateBox} space-y-1 text-center`}>
+        <p className="text-sm text-ink-muted font-semibold">No commentary for this answer.</p>
+        <p className="text-xs text-ink-muted">It's too short to comment on (three words or fewer).</p>
+      </div>
+    );
+  }
+
   if (status === 'failed' || !result) {
+    const unavailable = failureKind === 'unavailable';
     return (
       <div className={`${stateBox} space-y-3 text-center`}>
         <p className="text-sm text-ink-muted font-semibold">
-          Couldn't produce evidence-backed examiner feedback for this answer.
+          {unavailable
+            ? 'Examiner commentary is unavailable right now.'
+            : "Couldn't produce evidence-backed examiner feedback for this answer."}
         </p>
         <p className="text-xs text-ink-muted">
-          This can happen when an answer is too short to quote from directly.
+          {unavailable
+            ? 'The feedback service is busy. Wait a moment, then try again.'
+            : 'This can happen when an answer is too short to quote from directly.'}
         </p>
         <div className="flex items-center justify-center gap-2 pt-1">
           <button

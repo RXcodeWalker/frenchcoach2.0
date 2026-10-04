@@ -403,6 +403,7 @@ export function ExamResults({
                 key={entry.turnKey}
                 status={entry.status}
                 result={entry.result}
+                failureKind={entry.failureKind}
                 onRetry={() => {}}
                 onSwitchToCoach={() => {}}
                 hideSwitchToCoach

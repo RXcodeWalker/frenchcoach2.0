@@ -90,6 +90,7 @@ export function ExamCorrectionsRail({ coached, entries, disabledReason, onRetry,
             <ExaminerFeedbackCard
               status={entry.status}
               result={entry.result}
+              failureKind={entry.failureKind}
               onRetry={() => onRetry(entry.turnKey)}
               onSwitchToCoach={() => {}}
               hideSwitchToCoach

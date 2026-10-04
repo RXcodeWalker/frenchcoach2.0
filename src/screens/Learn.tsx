@@ -7,7 +7,7 @@ import { isAuthRequiredError } from '../lib/authToken';
 import { assessPronunciation } from '../services/pronunciation/pronunciationClient';
 import type { PronunciationAssessment } from '../domain/pronunciation/types';
 import { ExaminerFeedbackCard } from '../features/feedback/components/ExaminerFeedbackCard';
-import type { ExaminerFeedback } from '../services/coaching/examinerFeedback';
+import { examinerFailureKind, type ExaminerFailureKind, type ExaminerFeedback } from '../services/coaching/examinerFeedback';
 import { getSkillProfile, buildSkillContext, detectAvoidance } from '../services/coaching/diagnosticEngine';
 import { orchestrateAttempt } from '../services/coach/sessionOrchestrator';
 import { getActiveRecommendation, setRecommendationStatus, generateRecommendation } from '../services/coach/recommendationEngine';
@@ -107,6 +107,7 @@ export function Learn() {
   // score); examiner mode must never fabricate one. No session/XP finalization runs
   // for an examiner-mode attempt — there is no score to record.
   const [examinerStatus, setExaminerStatus] = useState<'idle' | 'pending' | 'done' | 'failed' | 'quota-exhausted'>('idle');
+  const [examinerFailure, setExaminerFailure] = useState<ExaminerFailureKind>('ungrounded');
   const [examinerFeedbackResult, setExaminerFeedbackResult] = useState<ExaminerFeedback | null>(null);
   const [drillSkillId, setDrillSkillId] = useState<string | null>(null);
   const [showDrillModal, setShowDrillModal] = useState(false);
@@ -543,6 +544,7 @@ export function Learn() {
       } catch (err) {
         if ((err as Error).name === 'AbortError') return;
         if (myAttemptId !== attemptIdRef.current) return;
+        setExaminerFailure(examinerFailureKind(err));
         setExaminerStatus(isExaminerQuotaExceededError(err) ? 'quota-exhausted' : 'failed');
       }
       return;
@@ -1285,6 +1287,7 @@ export function Learn() {
                   <ExaminerFeedbackCard
                     status={examinerStatus === 'idle' ? 'pending' : examinerStatus}
                     result={examinerFeedbackResult}
+                    failureKind={examinerFailure}
                     onSwitchToCoach={handleSwitchToCoachMode}
                     onRetry={handleRetry}
                   />
