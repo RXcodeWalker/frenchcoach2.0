@@ -3050,3 +3050,15 @@ import graph is unchanged. **Verified:** `npm run typecheck`, full `vitest run s
 **Not verified:** a live model call (does it actually return a usable `strength`?).
 
 **Deploy:** backend `main` first, then frontend `main`; an old client keeps working on v2.
+
+## 2026-10-04 — `/api/exam/interpret` model 404 (backend)
+
+Render logs showed every interpret call failing with Groq `model_not_found` for
+`llama-3.3-70b-versatile`: `exam_controller.py` (and `scenario_generator.py`) kept their own
+fallback defaults after `main.py` moved to `openai/gpt-oss-120b`, so the endpoint silently returned
+its confidence-0 fallback and live routing ran on the deterministic classifier only. Model IDs and
+the reasoning settings now live once in `backend/lib/model_config.py`; interpret, the legacy topic
+examiner and scenario generation also pass `reasoning_effort` and top up their token budget so the
+reasoning phase can't eat a 60-token answer. **Verified:** backend pytest (328 pass, incl. new
+`tests/test_model_config.py`). **Not verified:** a live interpret call after deploy — check the
+Render logs for the `Interpret Groq failed` warning disappearing.
