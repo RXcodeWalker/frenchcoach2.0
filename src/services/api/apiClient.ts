@@ -32,7 +32,7 @@ import type { CandidateInputMode } from '../../domain/igcse/stt/types';
 import type { NewsSnippet } from '../../data/mocks/mockNews';
 import { getWarmupPhase, noteBackendReachable } from './backendWarmup';
 import { NoScoreInFeedbackError, computeOverall } from '../../domain/scoring';
-import { AuthRequiredError, guestAiEnabled, getAccessToken, isAuthRequiredError, requireAuthHeader } from '../../lib/authToken';
+import { AuthRequiredError, GUEST_LIMIT_MESSAGE, checkGuestAttempt, guestAiEnabled, guestHasFreeAttempt, getAccessToken, isAuthRequiredError, requireAuthHeader } from '../../lib/authToken';
 
 /**
  * engineMeta.failoverReason set when the offline evaluator ran because nobody
@@ -661,7 +661,7 @@ export interface TranscribeAudioResult {
 export async function transcribeAudio(audioBlob: Blob, language = 'fr'): Promise<TranscribeAudioResult> {
   // Same Phase 3 gate as the feedback endpoints: no token, no point sending.
   const token = await getAccessToken();
-  if (!token && !guestAiEnabled()) throw new AuthRequiredError('Sign in to use speech transcription.');
+  if (!token && !guestHasFreeAttempt()) throw new AuthRequiredError(guestAiEnabled() ? GUEST_LIMIT_MESSAGE : 'Sign in to use speech transcription.');
 
   const formData = new FormData();
   formData.append('audio', audioBlob, audioFileNameFor(audioBlob));
@@ -790,7 +790,7 @@ export async function getAIFeedback(
   // two round-trips on guaranteed 401s before landing here anyway. Go straight
   // to offline evaluation, and say why, so the UI can prompt a sign-in instead
   // of blaming the network.
-  if (!guestAiEnabled() && !(await getAccessToken())) {
+  if ((await checkGuestAttempt(question.id, transcript)) === 'guest-limit') {
     const signedOutReason = SIGNED_OUT_FEEDBACK_REASON;
     console.log('[AI Feedback] No session — skipping network engines, using offline evaluation');
     track({ name: 'ai_failover', props: { requested_engine: enginePreference, actual_engine: 'offline', reason: 'signed_out', latency_ms: Date.now() - startTime } });
@@ -943,6 +943,9 @@ export async function getExaminerFeedback(
   context: ExaminerFeedbackContext = LEARN_EXAMINER_CONTEXT,
 ): Promise<ExaminerFeedback> {
   try {
+    if ((await checkGuestAttempt(question.id, transcript)) === 'guest-limit') {
+      throw new AuthRequiredError(GUEST_LIMIT_MESSAGE);
+    }
     return await getGroundedExaminerFeedback(
       context.profile,
       { transcript, turnKind: context.turnKind, inputMode: context.inputMode },
@@ -1052,6 +1055,9 @@ export async function streamFeedback(
     depth: buildRequestDepth(transcript, question, classifyTier(transcript)),
   };
 
+  if ((await checkGuestAttempt(question.id, transcript)) === 'guest-limit') {
+    throw new AuthRequiredError(GUEST_LIMIT_MESSAGE);
+  }
   const streamAuthHeader = await authHeader();
   let res: Response;
   if (audioBlob) {

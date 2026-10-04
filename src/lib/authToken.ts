@@ -71,3 +71,55 @@ export async function requireAuthHeader(): Promise<Record<string, string>> {
   }
   return { Authorization: `Bearer ${token}` };
 }
+
+/** Free AI attempts a signed-out guest gets before being asked to sign in. */
+export const FREE_GUEST_ATTEMPTS = 3;
+export const GUEST_LIMIT_MESSAGE = `You've used your ${FREE_GUEST_ATTEMPTS} free AI attempts. Sign in to keep going.`;
+const GUEST_ATTEMPTS_KEY = 'frenchCoach_guestAiAttempts';
+
+function readGuestAttempts(): string[] {
+  try {
+    const raw = JSON.parse(localStorage.getItem(GUEST_ATTEMPTS_KEY) ?? '[]') as unknown;
+    return Array.isArray(raw) ? raw.filter((k): k is string => typeof k === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
+function attemptKey(questionKey: string, transcript: string): string {
+  let h = 5381;
+  const s = `${questionKey}|${transcript}`;
+  for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
+  return String(h >>> 0);
+}
+
+/** True while a new guest attempt (one that isn't already counted) is still free. */
+export function guestHasFreeAttempt(): boolean {
+  return guestAiEnabled() && readGuestAttempts().length < FREE_GUEST_ATTEMPTS;
+}
+
+/**
+ * Gate for one AI feedback attempt. Signed in → 'member'. A guest → 'guest-ok'
+ * and the attempt is counted (the same question+transcript is only counted
+ * once, so the stream→non-stream fallback and retries are free), or
+ * 'guest-limit' once the free attempts are spent or guest access is off. The
+ * count lives in localStorage — a UX gate; the backend's per-IP cap is the
+ * actual spend backstop.
+ */
+export async function checkGuestAttempt(
+  questionKey: string,
+  transcript: string,
+): Promise<'member' | 'guest-ok' | 'guest-limit'> {
+  if (await getAccessToken()) return 'member';
+  if (!guestAiEnabled()) return 'guest-limit';
+  const key = attemptKey(questionKey, transcript);
+  const seen = readGuestAttempts();
+  if (seen.includes(key)) return 'guest-ok';
+  if (seen.length >= FREE_GUEST_ATTEMPTS) return 'guest-limit';
+  try {
+    localStorage.setItem(GUEST_ATTEMPTS_KEY, JSON.stringify([...seen, key]));
+  } catch {
+    /* storage blocked: the server cap still applies */
+  }
+  return 'guest-ok';
+}

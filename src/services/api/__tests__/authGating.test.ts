@@ -64,6 +64,7 @@ describe('signed-out AI calls with guest access disabled', () => {
 describe('guest AI calls with guest access enabled (default)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.clear();
     getSession.mockResolvedValue({ data: { session: null }, error: null });
   });
 
@@ -85,5 +86,40 @@ describe('guest AI calls with guest access enabled (default)', () => {
     await getAIFeedback(TRANSCRIPT, QUESTION);
 
     expect(fetchMock).toHaveBeenCalled();
+  });
+});
+
+describe('guest free-attempt limit', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+    getSession.mockResolvedValue({ data: { session: null }, error: null });
+  });
+
+  it('allows 3 distinct attempts, then falls back to the sign-in prompt', async () => {
+    const fetchMock = vi.fn().mockRejectedValue(new Error('network down'));
+    vi.stubGlobal('fetch', fetchMock);
+
+    for (const t of ['un', 'deux', 'trois'].map((w) => `${TRANSCRIPT} ${w}`)) {
+      await getAIFeedback(t, QUESTION);
+    }
+    const callsAfterThree = fetchMock.mock.calls.length;
+    expect(callsAfterThree).toBeGreaterThan(0);
+
+    const fourth = await getAIFeedback(`${TRANSCRIPT} quatre`, QUESTION);
+    expect(fetchMock.mock.calls.length).toBe(callsAfterThree);
+    expect(fourth.engineMeta?.failoverReason).toMatch(/sign in/i);
+
+    await expect(
+      streamFeedback(`${TRANSCRIPT} quatre`, QUESTION, undefined, undefined, 'groq', 'intermediate', new AbortController().signal, { onComplete: vi.fn() }),
+    ).rejects.toMatchObject({ name: 'AuthRequiredError', message: expect.stringMatching(/3 free/) });
+  });
+
+  it('re-running an already-counted attempt (stream → fallback) is free', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network down')));
+    for (const w of ['a', 'b', 'c']) await getAIFeedback(`${TRANSCRIPT} ${w}`, QUESTION);
+
+    const again = await getAIFeedback(`${TRANSCRIPT} a`, QUESTION);
+    expect(again.engineMeta?.failoverReason ?? '').not.toMatch(/sign in/i);
   });
 });
