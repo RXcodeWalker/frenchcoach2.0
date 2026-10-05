@@ -64,9 +64,11 @@ import { transcribeAudio } from '../services/api/apiClient';
 import { clearExamAudio } from '../services/exam/pronunciation/examAudioStore';
 import { captureTurnAudio } from '../services/exam/pronunciation/captureTurnAudio';
 import { measureExamAudio } from '../services/exam/pronunciation/measureExamAudio';
+import { examPronunciationUiEnabled } from '../features/exam/pronunciation/access';
+import { useExamPronunciation } from '../features/exam/pronunciation/useExamPronunciation';
 import { getOriginalQuestionSet, getAuthoredQuestionSet, listPublishedQuestionSetIdsWithRetry } from '../data/exam/bank/loader';
 import type { ExaminerAction } from '../domain/igcse/session/types';
-import type { SessionTranscript } from '../domain/igcse/stt/types';
+import type { SessionPart, SessionTranscript } from '../domain/igcse/stt/types';
 import type { EnvelopeView } from '../domain/igcse/envelope/envelopeView';
 import type { AuthoredQuestionSet, RolePlayScenario } from '../data/exam/bank/types';
 import { ExamGreeting } from './exam/ExamGreeting';
@@ -191,7 +193,7 @@ export function ExamMode() {
   // engine version — surfaced once, on the 'select' screen.
   const [resumeDiscardedMessage, setResumeDiscardedMessage] = useState<string | null>(null);
 
-  const { consentStatus } = useAuth();
+  const { consentStatus, isAdmin } = useAuth();
   const recording = useRecording(consentStatus === 'pending');
   const clock = useSessionClock();
   const totalClock = useElapsedClock();
@@ -230,6 +232,18 @@ export function ExamMode() {
   // entries prop already passed to ExamRunner below.
   const rail = useExamCorrectionsRail(sessionRef.current?.getConductLog().entries ?? [], coached, {
     rolePlaySetup: rolePlayMeta?.setup,
+  });
+
+  // Exam-pronunciation Batch 6: opt-in, feedback-only. Owned here so a Coached
+  // part card's result is still there when the report opens. Nothing is sent
+  // until the candidate taps Analyse; it never touches the transcript, the
+  // ConductLog or /score (plan §3c).
+  const pronunciation = useExamPronunciation({
+    enabled: examPronunciationUiEnabled({ isAdmin, consentStatus }),
+    getSessionId: () => sessionIdRef.current,
+    getEntries: () => sessionRef.current?.getConductLog().entries ?? [],
+    recognizer: recording.sttSupported ? 'webspeech' : 'whisper',
+    settled: () => pendingAudioCaptureRef.current,
   });
 
   // A8: keepalive ping while the exam runs, so the scoring service stays warm
@@ -399,6 +413,8 @@ export function ExamMode() {
     const prevPart = prevActionPartRef.current;
     prevActionPartRef.current = action.part;
     if (prevPart === undefined || prevPart === action.part) return;
+    // The part that just ended gets its Coached pronunciation card (a no-op in Exam Sim, where the rail shows none).
+    pronunciation.markPartEnded(prevPart as SessionPart);
     if (prevPart === 'rolePlay' && action.part === 'topic1') {
       await speakExaminerText(ROLE_PLAY_FINISHED_TEXT);
       await speakExaminerText(topicAnnouncementText('topic1', topicTitlesRef.current.topic1));
@@ -511,6 +527,7 @@ export function ExamMode() {
         ? duelSessionId
         : `exam-sim-${crypto.randomUUID()}`;
     clearExamAudio(sessionIdRef.current);
+    pronunciation.reset();
     sessionIdRef.current = sessionId;
     clock.start();
     totalClock.start();
@@ -740,6 +757,9 @@ export function ExamMode() {
     totalClock.stop();
     stopExaminerVoice();
     saveConductLog(session.getConductLog());
+    // The final part has no next-part boundary to announce it ended.
+    const finalEntries = session.getConductLog().entries;
+    if (finalEntries.length > 0) pronunciation.markPartEnded(finalEntries[finalEntries.length - 1].part);
     // Dark pronunciation measurement (durations to telemetry only) — fire and
     // forget; it never throws and never touches the transcript or any mark.
     const measuredSessionId = sessionIdRef.current;
@@ -1069,8 +1089,10 @@ export function ExamMode() {
         railEntries={rail.entries}
         earlyStart={earlyStartRef.current}
         resumed={resumedRef.current}
+        pronunciation={pronunciation}
         onRetake={() => {
           clearExamAudio(sessionIdRef.current);
+          pronunciation.reset();
           selectedQuestionSetIdRef.current = undefined;
           selectedAuthoredSetRef.current = undefined;
           setRolePlayScenario(undefined);
@@ -1120,6 +1142,7 @@ export function ExamMode() {
       taskProgress={taskProgress}
       coached={coached}
       rail={rail}
+      pronunciation={pronunciation}
     />
   );
 }

@@ -3262,3 +3262,70 @@ calibration; the access mode must stay `off`/`admin` until then. No real browser
 client (Web Audio and fetch are faked). Process note: Batch 3 was on
 `claude/inspiring-johnson-2djemo`, one commit ahead of Batch 2 on `main`; this work fast-forwarded
 onto it, so this branch carries Batches 3–5.
+
+## 2026-10-05 — Exam-pronunciation plan Batch 6 (frontend): UI — report section and Coached card
+
+**Change:** the opt-in surfaces, still feedback only. `src/features/exam/pronunciation/`:
+`useExamPronunciation` (owned by `ExamMode`; per-part status, stored evidence, the Batch 5 report
+builders), `access.ts` (admin, or `VITE_EXAM_PRONUNCIATION_PUBLIC=1`; never a `pending` account),
+`messages.ts` (one sentence per state), `ExamPronunciationSection` (report: transcript with reported
+words highlighted, tap a word for "You" from the in-memory recording via `playClip.ts` and "Model"
+via browser TTS when `hasFrenchVoice()`, the top patterns labelled *Inferred*, one fluency sentence,
+a link to `/accent-analyzer`) and `ExamPronunciationPartCard` (Coached rail: ≤2 words and 1 pattern,
+no number). Wired into `ExamResults` (after the Examiner Feedback block, never inside the marks or
+`ExamFeedbackReport`), `ExamCorrectionsRail`/`ExamRunner` (desktop rail and mobile sheet) and
+`ExamMode` (`markPartEnded` from `announceIfPartChanged` and `finishSession`; `reset` on a new
+attempt/retake). No engine change, so `session-engine-v4` is unchanged; nothing under
+`src/domain/igcse/`, `server/` or `scripts/scoring/` changed (`git status` there is empty).
+Nothing is analysed on its own: the only automatic call is the read-only stored-rows GET when the
+report opens. Backend: no change in this batch.
+
+**Deviations from the plan text (behaviour unchanged):** (1) The e2e is its own spec
+(`e2e/examPronunciation.spec.ts`) and Playwright project (`exam-pronunciation`) on a second Vite
+server, not inside `exam.spec.ts`: the feature is admin-gated and `AuthProvider` loads a Supabase
+session only when `VITE_SUPABASE_URL` is set, which the main e2e server deliberately leaves unset
+(its guest/offline path). The second server points that URL at a non-existent host; the spec
+answers every call to it with `page.route`, plus a stubbed admin session and profile and a stub of
+`/api/exam/pronunciation`. Shared drivers moved to `e2e/helpers/examFlow.ts` (Playwright cannot
+import one spec from another). (2) Topic 2 has no *live* card: the rail is unmounted when the exam
+ends, so its end-of-part marker is recorded at completion but its analysis is reached from the
+report section. (3) A retry sends only the turns with no stored result (a client-side filter ahead
+of `analysePart`), so a mid-part failure does not re-upload turns already stored. (4) On the report,
+the single button runs parts in exam order and stops at the first part that does not finish; the
+blocking state (budget, daily cap, consent, signed out, not enabled) is one sentence for the whole
+section. (5) The mobile sheet is closed by default, so a card that appears while it is closed is
+seen when the sheet is opened — the same as the existing live corrections.
+
+**Found in review, fixed:** the hook's unmount cleanup aborted its controller without replacing it,
+so under React StrictMode's simulated unmount/remount (the app uses StrictMode) a later analysis
+would have started already aborted and stuck on "running". The e2e did not catch it only because
+`reset()` on attempt start replaced the controller. Fixed; the regression test fails on the old
+code and passes on the fix (checked by temporarily restoring the old cleanup).
+
+**Verified (local):** `npm run typecheck`, `typecheck:server` clean; `npm run lint` 0 errors (22
+warnings, all pre-existing); `npm test` — 296 files, 2953 tests pass (+5 files, +58 tests, with
+`backend/` linked to the backend clone); `authoring:check` 0 errors, `authoring:parity` 10/10;
+`npm run score:golden` all 5 goldens match. New RTL: `ExamResults.pronunciation` (opt-in only, one
+button after the marks, marks and the rest of the page byte-identical before and after, every
+state sentence, highlights, word playback, "Recording not kept", reopen from stored rows, nothing
+reads as a mark/band/score) and `ExamRunner.pronunciation` (a card only after a part ends, Coached
+only, enabled only, ≤2 words + 1 pattern with no numeric value, desktop and mobile copies share one
+result). E2E, all 8 passing on a clean run — the 5 existing `exam` tests unchanged, plus: Exam Sim
+(no POST before the tap; the section fills in; the `/40` text identical before and after), Exam Sim
+with the allowance spent (message shown, role play kept, exam complete), and Coached (no card
+mid-part; a card after the role play; nothing sent until tapped; no digit on the card). The
+browser's fake microphone supplied the real recordings, so normalise → trim → upload is exercised
+up to the stubbed network call.
+
+**Not verified:** no real backend, Azure or Whisper in any run (all stubbed), so the end-to-end
+wire contract with the Batch 4 route is covered only by the Batch 4/5 tests and the shared
+`ExamPronunciationTurnEvidence` shape. "You" playback (`playClip.ts`, Web Audio) has no test of its
+own — jsdom has no `AudioContext`; the RTL tests mock it and the e2e only asserts the button is
+offered, so nobody has heard a clip. "Model" is covered with a mocked TTS only (headless Chromium
+has no French voice). No visual review at phone width. Every `FAIRNESS_CONFIG` number is still
+UNVALIDATED until Batch 7; `EXAM_PRONUNCIATION_ACCESS` must stay `off`/`admin` until then.
+Process notes: Batches 3–5 were committed on `claude/lucid-ptolemy-xdc7pt`, not on this session's
+branch, so this branch (and the backend's) was fast-forwarded onto it: the frontend branch now
+carries Batches 1–6, the backend branch Batches 1 and 4.
+An earlier e2e run was invalidated by my own source edit mid-run (Vite's full reload hit the
+browser); it was re-run clean with nothing else running.

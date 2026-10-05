@@ -11,6 +11,14 @@ import { defineConfig } from '@playwright/test';
 
 const FAKE_SCORING_PORT = 4100;
 const APP_PORT = 5180;
+/**
+ * A second Vite server, with a (non-existent) Supabase URL configured, for the
+ * exam-pronunciation spec: that feature is admin-gated and the app only loads
+ * a Supabase session when VITE_SUPABASE_URL is set, which the main server
+ * deliberately leaves unset (guest/offline path). Every call to that host is
+ * answered by `page.route` in e2e/examPronunciation.spec.ts.
+ */
+const APP_PORT_AUTH = 5181;
 
 export default defineConfig({
   testDir: './e2e',
@@ -23,6 +31,14 @@ export default defineConfig({
   workers: 1,
   retries: 0,
   reporter: [['list']],
+  projects: [
+    { name: 'exam', testIgnore: /examPronunciation\.spec\.ts/ },
+    {
+      name: 'exam-pronunciation',
+      testMatch: /examPronunciation\.spec\.ts/,
+      use: { baseURL: `http://localhost:${APP_PORT_AUTH}` },
+    },
+  ],
   use: {
     baseURL: `http://localhost:${APP_PORT}`,
     trace: 'retain-on-failure',
@@ -44,6 +60,17 @@ export default defineConfig({
       command: `vite --port ${APP_PORT} --strictPort`,
       env: { VITE_SCORING_API_URL: `http://127.0.0.1:${FAKE_SCORING_PORT}` },
       url: `http://localhost:${APP_PORT}`,
+      reuseExistingServer: false,
+      timeout: 30_000,
+    },
+    {
+      command: `vite --port ${APP_PORT_AUTH} --strictPort`,
+      env: {
+        VITE_SCORING_API_URL: `http://127.0.0.1:${FAKE_SCORING_PORT}`,
+        VITE_SUPABASE_URL: 'https://e2e-stub.supabase.test',
+        VITE_SUPABASE_ANON_KEY: 'e2e-anon-key',
+      },
+      url: `http://localhost:${APP_PORT_AUTH}`,
       reuseExistingServer: false,
       timeout: 30_000,
     },

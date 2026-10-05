@@ -10,6 +10,8 @@ import { countsTowardProgress } from '../../services/exam/attemptStatus';
 import { requestExamFeedback, ScoringApiError } from '../../services/exam/scoringApiClient';
 import type { ExamFeedbackReport } from '../../domain/examFeedback/types';
 import { ExamCriterionFeedback, MistakeList } from './ExamCriterionFeedback';
+import { ExamPronunciationSection } from '../../features/exam/pronunciation/ExamPronunciationSection';
+import type { UseExamPronunciation } from '../../features/exam/pronunciation/useExamPronunciation';
 
 interface Props {
   transcript: SessionTranscript;
@@ -28,6 +30,12 @@ interface Props {
   resumed?: boolean;
   /** Phase 3 Batch A: fetches the post-marking report. Injected for tests; defaults to the scoring service. */
   requestFeedback?: (sessionId: string) => Promise<ExamFeedbackReport>;
+  /**
+   * Exam-pronunciation Batch 6: the opt-in pronunciation section (feedback
+   * only, never a mark). Owned by ExamMode so a Coached part card's result is
+   * still here. Omitted (or `enabled: false`) renders nothing.
+   */
+  pronunciation?: UseExamPronunciation;
 }
 
 type FeedbackState =
@@ -113,6 +121,7 @@ export function ExamResults({
   earlyStart = false,
   resumed = false,
   requestFeedback = requestExamFeedback,
+  pronunciation,
 }: Props) {
   const candidateUtterances = transcript.utterances.filter((u) => u.role === 'candidate');
   const totalSpeakingS = candidateUtterances.reduce((sum, u) => sum + (u.endS - u.startS), 0);
@@ -369,6 +378,9 @@ export function ExamResults({
             )}
           </div>
         )}
+
+        {/* Exam-pronunciation Batch 6: after the marks and the examiner report, never inside either. */}
+        {envelopeView && pronunciation?.enabled && <ExamPronunciationSection pronunciation={pronunciation} />}
 
         {envelopeView && envelopeView.evidenceGroups.length > 0 && (
           <Disclosure title="Turn-by-Turn Breakdown" subtitle="What each answer actually showed the scorer.">

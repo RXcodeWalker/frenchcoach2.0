@@ -87,6 +87,11 @@ npm run e2e:exam            # Playwright: drives the exam UI against a fake, no-
                              # ExamMode forces Exam Sim once such a run begins — see
                              # e2e/exam.spec.ts's own header and verification-log.md's 2026-09-26
                              # entry for what is and isn't covered.
+                             # Two Playwright projects: `exam` (guest/offline, no Supabase URL) and
+                             # `exam-pronunciation` (e2e/examPronunciation.spec.ts: a second Vite
+                             # server with a stub Supabase host + admin session, since that feature
+                             # is admin-gated; /api/exam/pronunciation is stubbed with page.route).
+                             # Shared drivers live in e2e/helpers/examFlow.ts.
 ```
 
 ## The three test suites

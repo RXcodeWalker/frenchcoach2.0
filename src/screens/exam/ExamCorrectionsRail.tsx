@@ -3,6 +3,8 @@ import { GraduationCap } from 'lucide-react';
 import { ExaminerFeedbackCard } from '../../features/feedback/components/ExaminerFeedbackCard';
 import type { TurnLabel } from './turnLabels';
 import type { RailDisabledReason, RailEntry } from '../../services/exam/turnFeedback';
+import { ExamPronunciationPartCard } from '../../features/exam/pronunciation/ExamPronunciationPartCard';
+import type { UseExamPronunciation } from '../../features/exam/pronunciation/useExamPronunciation';
 
 interface Props {
   coached: boolean;
@@ -14,6 +16,11 @@ interface Props {
   highlightedQuote?: string | null;
   /** turnKey -> "Q3"/"A3" labels, matching the transcript. */
   turnLabels?: Map<number, TurnLabel>;
+  /**
+   * Exam-pronunciation Batch 6: a card per finished part, Coached only. Omitted
+   * (or not enabled) leaves the rail exactly as it was.
+   */
+  pronunciation?: UseExamPronunciation;
 }
 
 /**
@@ -22,7 +29,21 @@ interface Props {
  * instead of the legacy FeedbackV2 card, and gated by `coached` (Exam Sim
  * shows a sealed placeholder and makes no calls at all — see turnFeedback.ts).
  */
-export function ExamCorrectionsRail({ coached, entries, disabledReason, onRetry, highlightedTurnKey, highlightedQuote, turnLabels }: Props) {
+export function ExamCorrectionsRail({ pronunciation, ...rest }: Props) {
+  const body = <CorrectionsRailBody {...rest} />;
+  const endedParts = rest.coached && pronunciation?.enabled ? pronunciation.endedParts : [];
+  if (!pronunciation || endedParts.length === 0) return body;
+  return (
+    <div className="space-y-3">
+      {body}
+      {endedParts.map((part) => (
+        <ExamPronunciationPartCard key={part} part={part} pronunciation={pronunciation} />
+      ))}
+    </div>
+  );
+}
+
+function CorrectionsRailBody({ coached, entries, disabledReason, onRetry, highlightedTurnKey, highlightedQuote, turnLabels }: Omit<Props, 'pronunciation'>) {
   if (!coached) {
     return (
       <div className="rounded-card surface p-4 text-center space-y-1.5">

@@ -10,6 +10,7 @@ import type { UseExamCorrectionsRail } from '../../services/exam/turnFeedback';
 import type { RecordingState } from '../../features/recording/useRecording';
 import type { ExaminerAction, ConductLogEntry } from '../../domain/igcse/session/types';
 import { ExitConfirmDialog } from './ExitConfirmDialog';
+import type { UseExamPronunciation } from '../../features/exam/pronunciation/useExamPronunciation';
 
 // UI-only pacing heuristics (approximate VAD / pacing) — never logged or scored.
 const NUDGE_QUIET_S = 5;
@@ -93,6 +94,8 @@ interface Props {
    * Defaults to an empty, inert rail so existing callers/tests are unaffected.
    */
   rail?: UseExamCorrectionsRail;
+  /** Exam-pronunciation Batch 6: the Coached rail's end-of-part pronunciation cards. Omitted leaves the rail as it was. */
+  pronunciation?: UseExamPronunciation;
 }
 
 const EMPTY_RAIL: UseExamCorrectionsRail = { entries: [], disabledReason: null, retry: () => {} };
@@ -119,6 +122,7 @@ export function ExamRunner({
   taskProgress,
   coached = false,
   rail = EMPTY_RAIL,
+  pronunciation,
 }: Props) {
   const part = action?.part ?? 'rolePlay';
   const phaseLabel = PART_LABEL[part] ?? part;
@@ -339,6 +343,7 @@ export function ExamRunner({
             highlightedTurnKey={highlightedTurnKey}
             highlightedQuote={highlightedQuote}
             turnLabels={turnLabels}
+            pronunciation={pronunciation}
           />
         </div>
       </div>
@@ -368,6 +373,7 @@ export function ExamRunner({
               highlightedTurnKey={highlightedTurnKey}
             highlightedQuote={highlightedQuote}
             turnLabels={turnLabels}
+            pronunciation={pronunciation}
             />
           </div>
         </>
