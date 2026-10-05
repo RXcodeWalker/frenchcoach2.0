@@ -138,6 +138,23 @@ describe('normalizeToWav16kMono', () => {
     await expect(normalizeToWav16kMono(input)).rejects.toThrow(AudioTooLongError);
   });
 
+  it('accepts a longer clip when maxSeconds is raised, and still rejects past it', async () => {
+    installFakeWebAudio(70);
+    const input = new Blob([new Uint8Array(10)], { type: 'audio/webm' });
+    const result = await normalizeToWav16kMono(input, { maxSeconds: 180 });
+    expect(result.durationSec).toBeCloseTo(70, 0);
+
+    installFakeWebAudio(190);
+    await expect(normalizeToWav16kMono(input, { maxSeconds: 180 })).rejects.toThrow(AudioTooLongError);
+  });
+
+  it('keeps the 60s default when no options are passed (Learn is unchanged)', async () => {
+    installFakeWebAudio(61);
+    const input = new Blob([new Uint8Array(10)], { type: 'audio/webm' });
+    await expect(normalizeToWav16kMono(input)).rejects.toThrow(AudioTooLongError);
+    await expect(normalizeToWav16kMono(input, {})).rejects.toThrow(AudioTooLongError);
+  });
+
   it('closes the decode AudioContext after use (does not leak a live context)', async () => {
     const input = new Blob([new Uint8Array(100)], { type: 'audio/webm' });
     await normalizeToWav16kMono(input);

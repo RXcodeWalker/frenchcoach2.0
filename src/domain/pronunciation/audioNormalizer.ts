@@ -44,10 +44,20 @@ export class AudioTooShortError extends Error {
 }
 
 export class AudioTooLongError extends Error {
-  constructor(durationSec: number) {
-    super(`Recording too long to normalize in one pass (${durationSec.toFixed(1)}s > ${MAX_DECODE_DURATION_SEC}s)`);
+  constructor(durationSec: number, maxSeconds: number = MAX_DECODE_DURATION_SEC) {
+    super(`Recording too long to normalize in one pass (${durationSec.toFixed(1)}s > ${maxSeconds}s)`);
     this.name = 'AudioTooLongError';
   }
+}
+
+export interface NormalizeOptions {
+  /**
+   * Longest clip to accept, in seconds. Defaults to 60 (Azure's REST
+   * short-audio limit, which is what Learn's single-request path needs). The
+   * exam-pronunciation path passes a larger value because the backend chunks
+   * long turns itself — see src/services/exam/pronunciation/measureExamAudio.ts.
+   */
+  maxSeconds?: number;
 }
 
 export interface NormalizedAudio {
@@ -66,7 +76,11 @@ export interface NormalizedAudio {
  * captures it in a closure or ref, so it's eligible for GC as soon as this
  * function returns.
  */
-export async function normalizeToWav16kMono(input: Blob): Promise<NormalizedAudio> {
+export async function normalizeToWav16kMono(
+  input: Blob,
+  options: NormalizeOptions = {},
+): Promise<NormalizedAudio> {
+  const maxSeconds = options.maxSeconds ?? MAX_DECODE_DURATION_SEC;
   const arrayBuffer = await input.arrayBuffer();
 
   // Decoding requires a context; a short-lived AudioContext (not Offline)
@@ -89,8 +103,8 @@ export async function normalizeToWav16kMono(input: Blob): Promise<NormalizedAudi
   if (durationSec < MIN_CLIP_DURATION_SEC) {
     throw new AudioTooShortError(durationSec);
   }
-  if (durationSec > MAX_DECODE_DURATION_SEC) {
-    throw new AudioTooLongError(durationSec);
+  if (durationSec > maxSeconds) {
+    throw new AudioTooLongError(durationSec, maxSeconds);
   }
 
   const targetFrameCount = Math.ceil(durationSec * TARGET_SAMPLE_RATE);

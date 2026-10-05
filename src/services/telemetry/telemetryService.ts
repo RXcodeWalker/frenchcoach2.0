@@ -100,6 +100,30 @@ interface ReviewItemAnsweredProps {
   first_fail_score: number | null;
 }
 
+/**
+ * Exam-mode pronunciation analysis, Batch 3 (dark — no network call exists
+ * yet). One event per candidate speech turn at the end of an exam: how much
+ * audio there was and how much remains after silence trimming. Durations only;
+ * never audio, never a transcript. This is the data that sizes the Azure
+ * allowance ("minutes per exam") before any cap is chosen.
+ */
+interface ExamPronunciationAudioMeasuredProps {
+  session_id: string;
+  part: 'rolePlay' | 'topic1' | 'topic2';
+  turn_key: number;
+  /**
+   * 'no_audio': the turn had no recording (denied mic / no MediaRecorder);
+   * 'no_speech': a recording exists but nothing cleared the silence gate;
+   * 'too_short' / 'too_long': outside the normaliser's accepted range;
+   * 'decode_failed': the browser could not decode the recording.
+   */
+  status: 'measured' | 'no_audio' | 'no_speech' | 'too_short' | 'too_long' | 'decode_failed';
+  /** Seconds of recorded audio before trimming; null when unknown. */
+  raw_s: number | null;
+  /** Seconds that would be uploaded after trimming; null when unknown. */
+  trimmed_s: number | null;
+}
+
 type TelemetryEvent =
   | { name: 'session_completed';       props: SessionCompletedProps }
   | { name: 'feedback_received';       props: FeedbackReceivedProps }
@@ -114,7 +138,8 @@ type TelemetryEvent =
   | { name: 'transcript_confirmed';    props: TranscriptConfirmedProps }
   | { name: 'transcript_rerecorded';   props: TranscriptRerecordedProps }
   | { name: 'review_item_shown';       props: ReviewItemShownProps }
-  | { name: 'review_item_answered';    props: ReviewItemAnsweredProps };
+  | { name: 'review_item_answered';    props: ReviewItemAnsweredProps }
+  | { name: 'exam_pronunciation_audio_measured'; props: ExamPronunciationAudioMeasuredProps };
 
 export function initTelemetry(): void {
   const dsn = import.meta.env.VITE_SENTRY_DSN as string | undefined;

@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase, supabaseConfigured } from '../lib/supabase';
+import { clearAllExamAudio } from '../services/exam/pronunciation/examAudioStore';
 
 // Phase 1.6 Part C. 'unknown' means "not fetched yet" (or offline/guest) —
 // distinct from '13_plus_not_required' so AgeBandCheck can tell "still
@@ -115,6 +116,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (newSession?.user) {
         void loadConsentStatus(newSession.user.id);
       } else {
+        // Signed out (or the session ended): exam recordings held in memory
+        // for pronunciation analysis must not outlive the account.
+        clearAllExamAudio();
         setAgeBand(null);
         setConsentStatus('unknown');
         setInviteStatus('unknown');
@@ -146,6 +150,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function signOut() {
+    clearAllExamAudio();
     if (!supabaseConfigured) return;
     await supabase.auth.signOut();
   }

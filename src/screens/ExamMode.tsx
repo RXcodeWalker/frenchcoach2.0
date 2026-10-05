@@ -61,6 +61,9 @@ import { pingInterpretServiceHealth } from '../services/exam/interpretUtterance'
 import { useExamCorrectionsRail } from '../services/exam/turnFeedback';
 import { countsTowardProgress, resolveCoachedMode } from '../services/exam/attemptStatus';
 import { transcribeAudio } from '../services/api/apiClient';
+import { clearExamAudio } from '../services/exam/pronunciation/examAudioStore';
+import { captureTurnAudio } from '../services/exam/pronunciation/captureTurnAudio';
+import { measureExamAudio } from '../services/exam/pronunciation/measureExamAudio';
 import { getOriginalQuestionSet, getAuthoredQuestionSet, listPublishedQuestionSetIdsWithRetry } from '../data/exam/bank/loader';
 import type { ExaminerAction } from '../domain/igcse/session/types';
 import type { SessionTranscript } from '../domain/igcse/stt/types';
@@ -200,6 +203,8 @@ export function ExamMode() {
   /** exam-conduct §5: each topic's unhashed French title, spoken when its conversation starts. */
   const topicTitlesRef = useRef<{ topic1?: string; topic2?: string }>({});
   const turnBusyRef = useRef(false);
+  /** Settles once the latest turn's recording is in the audio store; the end-of-exam measurement waits on it. */
+  const pendingAudioCaptureRef = useRef<Promise<void>>(Promise.resolve());
   const startExamBusyRef = useRef(false);
   /** D3: true only when the candidate used the Exam Sim "Start now" escape hatch — makes the attempt practice-only. */
   const earlyStartRef = useRef(false);
@@ -238,6 +243,13 @@ export function ExamMode() {
   // Leaving exam mode (exit, navigation away) must never leave the examiner
   // talking over another screen.
   useEffect(() => stopExaminerVoice, []);
+
+  // Pronunciation analysis keeps each turn's recording in browser memory only
+  // (examAudioStore) and forgets it when the candidate leaves the exam screen.
+  useEffect(() => {
+    const sessionId = sessionIdRef; // read `.current` at unmount, not at mount
+    return () => clearExamAudio(sessionId.current);
+  }, []);
 
   // Reliability plan §D: resume-on-reload. A reload during 'scoring' (or
   // after a failure) used to drop the user back to 'select' with the pending
@@ -498,6 +510,7 @@ export function ExamMode() {
       : isDuelRun && duelSessionId
         ? duelSessionId
         : `exam-sim-${crypto.randomUUID()}`;
+    clearExamAudio(sessionIdRef.current);
     sessionIdRef.current = sessionId;
     clock.start();
     totalClock.start();
@@ -556,12 +569,15 @@ export function ExamMode() {
     try {
       const responseDurationS = Math.max(clock.nowS() - turnStartRef.current, 0.1);
       let transcriptText = await recording.stop();
+      // Resolved by MediaRecorder's onstop; handed to the pronunciation audio
+      // store once the turn is logged (below). Never awaited on the happy path.
+      const turnAudioPromise = recording.audioBlobPromise();
 
       // Reliability plan §2.4: only taken when the browser has no Web Speech
       // API — recording.stop() never produced a live transcript, so fall
       // back to the backend's /api/transcribe on the recorded audio blob.
       if (!recording.sttSupported) {
-        const audioBlob = await recording.audioBlobPromise();
+        const audioBlob = await turnAudioPromise;
         if (!audioBlob) {
           setPendingTranscriptionFailure(true);
           return;
@@ -594,6 +610,13 @@ export function ExamMode() {
         responseDurationS,
         requestedRepeat: false,
       });
+      // Fire-and-forget: keyed by the candidate entry's seq, which exists only
+      // now that submitTurn has logged it. Adds no submit latency.
+      pendingAudioCaptureRef.current = captureTurnAudio(
+        sessionIdRef.current,
+        session.getConductLog().entries,
+        turnAudioPromise,
+      );
       setAction(nextAction);
       persistRunningSnapshot();
 
@@ -717,6 +740,11 @@ export function ExamMode() {
     totalClock.stop();
     stopExaminerVoice();
     saveConductLog(session.getConductLog());
+    // Dark pronunciation measurement (durations to telemetry only) — fire and
+    // forget; it never throws and never touches the transcript or any mark.
+    const measuredSessionId = sessionIdRef.current;
+    const measuredEntries = session.getConductLog().entries;
+    void pendingAudioCaptureRef.current.then(() => measureExamAudio(measuredSessionId, measuredEntries));
     // W7: the running-phase resume snapshot is superseded the moment there's
     // a real (or reviewable) transcript — clearPendingScoreSessionId (called
     // once scoring reaches Completed) is this same store's existing sibling.
@@ -1042,6 +1070,7 @@ export function ExamMode() {
         earlyStart={earlyStartRef.current}
         resumed={resumedRef.current}
         onRetake={() => {
+          clearExamAudio(sessionIdRef.current);
           selectedQuestionSetIdRef.current = undefined;
           selectedAuthoredSetRef.current = undefined;
           setRolePlayScenario(undefined);

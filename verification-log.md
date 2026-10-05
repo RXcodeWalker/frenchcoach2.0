@@ -3112,3 +3112,50 @@ shadowing; Say-It-Again counts as learn) — attribution only.
 `SayItAgainCard.consent.test.tsx`). Marks unaffected: nothing under `src/domain/igcse/`,
 `server/` or `scripts/scoring/` touched. **Not verified:** a real `pending` account against the
 deployed backend.
+
+## 2026-10-05 — Exam-pronunciation plan Batch 3 (frontend): audio capture and measurement, dark
+
+**Change:** no network call, no UI, nothing shown. `ExamMode.handleSubmitTurn` takes the blob
+promise from `recording.audioBlobPromise()` (the same promise the Firefox transcribe fallback
+already awaited) and, once `submitTurn` has logged the candidate entry, hands it to the new
+in-memory `examAudioStore` (`Map<sessionId, Map<turnKey, Blob>>`) via `captureTurnAudio`,
+keyed by that entry's `seq` (the rail's `turnKey`). It is fire-and-forget — the submit path
+does not wait on it. Only genuine speech turns are stored (`isSpeechTurn`): typed turns, repeat
+requests and `dont_know`/`clarification_request`/`non_french` intents are skipped, and the
+greeting reply is discarded before the engine ever sees it. The store forgets a session on
+`ExamMode` unmount, on a new attempt / retake, on sign-out (`AuthContext`, both `signOut()` and
+the `onAuthStateChange` null-session branch), and after 60 minutes untouched. At `finishSession`,
+`measureExamAudio` waits for the last turn's blob to land, then — one turn at a time — normalises
+(`normalizeToWav16kMono(blob, { maxSeconds: 180 })`), trims silence and emits
+`exam_pronunciation_audio_measured` (`raw_s`, `trimmed_s`, `status`, `part`, `turn_key`,
+`session_id`; durations only). `normalizeToWav16kMono` gained an optional `{ maxSeconds }`; the
+default stays 60, so Learn is unchanged. New pure modules under `src/domain/examPronunciation/`:
+`segment.ts` (ConductLog → speech turns by part) and `trim.ts` (edge pad 150 ms, internal silence
+capped at 600 ms, pause stats computed before trimming).
+
+**Deviations from the plan text (behaviour unchanged):** (1) `trim.ts` also returns `segments` and
+`trimmedToOriginalS`, which map an in-clip offset back to the original recording — Azure's offsets
+are relative to the *trimmed* clip, and the Batch 6 "You" playback slices the original blob, so
+without the map every clip would start in the wrong place. (2) `trim.ts` returns the pause stats
+(`pausesOver2s`, `longestPauseS`) that the plan says are computed before trimming; the fluency
+note that consumes them is still Batch 5. (3) The store is cleared in `ExamMode` and
+`AuthContext` rather than in a store-owned lifecycle hook, so the store itself stays a plain
+module. (4) `captureTurnAudio` returns a promise that `finishSession` chains the measurement
+onto; the plan does not mention it, it only prevents the final turn being reported `no_audio`.
+
+**Verified (local):** `npm run typecheck`, `typecheck:server` clean; `npm run lint` 0 errors (22
+warnings, all pre-existing); `npm test` all pass, including new `segment`, `trim`,
+`examAudioStore`, `captureTurnAudio`, `measureExamAudio` tests and the extended
+`audioNormalizer` test (typed and greeting turns excluded; idle expiry; sequential decode;
+never rejects). `npm run score:golden`: all 5 goldens match. Marks unaffected: nothing under
+`src/domain/igcse/`, `server/` or `scripts/scoring/` touched, and no scored-pipeline file imports
+the new modules.
+
+**Not verified:** the silence-gate numbers in `TRIM_CONFIG` (floor 0.004 RMS, 8% of the 95th
+percentile, 20 ms frames) are tuned on synthetic PCM only — UNVALIDATED until real
+`raw_s`/`trimmed_s` data is read. No real browser run: `MediaRecorder`/`decodeAudioData` paths are
+exercised through fakes, so a real Chrome/Safari/Firefox exam has not been observed to fill the
+store. `track()` is a Sentry breadcrumb in production (capped, attached only to errors), so the
+telemetry is only readable from a captured error or the dev console until a real sink exists —
+the server-side ledger (`azure_speech_usage`) is what will give authoritative minutes once Batch
+4 lands.
