@@ -11,6 +11,10 @@
  * (FEEDBACK_SURFACE_FILES); in exchange, the transitive import graph of the
  * scorer itself (scoreAttempt.ts and everything under src/domain/igcse) must
  * never reach src/domain/examFeedback or any of those files.
+ *
+ * Exam pronunciation analysis (exam-pronunciation plan §3c) is held to the
+ * same boundary with NO exemptions: its route is in FastAPI, so nothing in
+ * server/ or scripts/scoring/ has any reason to reference it.
  */
 import { describe, it, expect } from 'vitest';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
@@ -35,6 +39,9 @@ const FEEDBACK_REFERENCE_PATTERNS = [
   /coaching\/examinerFeedback/,
   /ExaminerFeedbackCard/,
   /services\/exam\/turnFeedback/,
+  /domain\/examPronunciation/,
+  /exam\/pronunciation/,
+  /ExamPronunciation/,
 ];
 
 const SCORED_PIPELINE_DIRS = ['src/domain/igcse', 'scripts/scoring', 'server'].map((d) => join(REPO_ROOT, d));
@@ -78,6 +85,8 @@ describe('examiner feedback is unreachable from the scored pipeline', () => {
   it('lives outside src/domain/igcse', () => {
     expect(existsSync(join(REPO_ROOT, 'src/domain/examFeedback/shared'))).toBe(true);
     expect(existsSync(join(REPO_ROOT, 'src/domain/igcse/examFeedback'))).toBe(false);
+    expect(existsSync(join(REPO_ROOT, 'src/domain/examPronunciation'))).toBe(true);
+    expect(existsSync(join(REPO_ROOT, 'src/domain/igcse/examPronunciation'))).toBe(false);
   });
 
   for (const dir of SCORED_PIPELINE_DIRS) {
@@ -105,7 +114,12 @@ describe('examiner feedback is unreachable from the scored pipeline', () => {
     const closure = importClosure(scorerEntries);
     expect(closure.size).toBeGreaterThan(scorerEntries.length);
     const reached = [...closure].filter(
-      (f) => f.includes(`${join('src', 'domain', 'examFeedback')}`) || FEEDBACK_SURFACE_FILES.includes(f),
+      (f) =>
+        f.includes(`${join('src', 'domain', 'examFeedback')}`) ||
+        f.includes(`${join('src', 'domain', 'examPronunciation')}`) ||
+        f.includes(`${join('services', 'exam', 'pronunciation')}`) ||
+        f.includes(`${join('features', 'exam', 'pronunciation')}`) ||
+        FEEDBACK_SURFACE_FILES.includes(f),
     );
     expect(reached).toEqual([]);
   });

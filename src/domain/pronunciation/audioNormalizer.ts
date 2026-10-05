@@ -131,8 +131,15 @@ export async function normalizeToWav16kMono(
 
 /** Encodes a mono Float32 AudioBuffer as a 16-bit PCM WAV Blob. */
 function encodeWavPcm16(buffer: AudioBuffer): Blob {
-  const samples = buffer.getChannelData(0);
-  const sampleRate = buffer.sampleRate;
+  return encodePcm16Wav(buffer.getChannelData(0), buffer.sampleRate);
+}
+
+/**
+ * Encodes mono Float32 samples as a canonical 44-byte-header 16-bit PCM WAV
+ * Blob. Exported for the exam-pronunciation client, which re-encodes a turn
+ * after trimming its silence.
+ */
+export function encodePcm16Wav(samples: Float32Array, sampleRate: number): Blob {
   const bytesPerSample = 2;
   const blockAlign = bytesPerSample; // mono
   const byteRate = sampleRate * blockAlign;

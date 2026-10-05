@@ -112,6 +112,66 @@ export default tseslint.config(
     },
   },
   {
+    // Exam pronunciation analysis is feedback only (exam-pronunciation plan
+    // §3c, ADR 0009 boundary): the scored pipeline may never import it.
+    // scoredPipelineBoundary.test.ts checks the same thing across
+    // scripts/scoring and server, plus the scorer's transitive import graph.
+    files: ['src/domain/igcse/**/*.ts'],
+    ignores: ['**/__tests__/**'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['**/examPronunciation/**', '**/exam/pronunciation/**'],
+              message:
+                'The scored pipeline must not import exam pronunciation analysis — it is feedback only and cannot change a mark (exam-pronunciation plan §3c, ADR 0009).',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // The exam-pronunciation domain is pure, like domain/examFeedback/shared:
+    // no app layers, nothing from the scoring/envelope/guardrail machinery,
+    // and from the rest of the engine only the ConductLog/transcript types and
+    // the filler counter. From examFeedback, only the shared mark/band filter.
+    files: ['src/domain/examPronunciation/**/*.ts'],
+    ignores: ['**/__tests__/**'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['**/services/**', '**/screens/**', '**/features/**', '**/components/**', '**/lib/**', '**/context/**'],
+              message: 'domain/examPronunciation/ is pure: no app-layer imports (exam-pronunciation plan §3c).',
+            },
+            {
+              group: [
+                '**/igcse/envelope/**',
+                '**/igcse/guardrails/**',
+                '**/igcse/judgement/**',
+                '**/igcse/session/*',
+                '!**/igcse/session/types',
+                '**/igcse/evidence/*',
+                '!**/igcse/evidence/fillers',
+              ],
+              message:
+                'domain/examPronunciation/ may read only the ConductLog/transcript types and the filler counter from the engine — never the scoring machinery (exam-pronunciation plan §3c).',
+            },
+            {
+              group: ['**/domain/examFeedback/*', '!**/domain/examFeedback/shared'],
+              message: 'domain/examPronunciation/ may import only domain/examFeedback/shared/** (the mark/band filter).',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     // The shared helpers are pure: they import only the text normalizer and
     // isQuoteGrounded from the audited engine (and each other), and nothing
     // from the app layers or the rest of the scoring pipeline. The import-graph

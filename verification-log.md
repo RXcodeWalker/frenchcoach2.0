@@ -3159,3 +3159,106 @@ store. `track()` is a Sentry breadcrumb in production (capped, attached only to 
 telemetry is only readable from a captured error or the dev console until a real sink exists —
 the server-side ledger (`azure_speech_usage`) is what will give authoritative minutes once Batch
 4 lands.
+
+## 2026-10-05 — Exam-pronunciation plan Batch 4 (backend): exam route and evidence table
+
+**Change (backend repo):** migration `20261005100000_exam_pronunciation_evidence.sql` adds
+`exam_pronunciation_evidence` (unique `(user_id, session_id, turn_key, assessor_version)`, FK
+`user_id → profiles ON DELETE CASCADE`, RLS on with a select-own policy, INSERT for the service
+role only) and re-creates `export_my_data(uuid)` with an `exam_pronunciation_evidence` key (body
+otherwise identical to `20260911110000`). New `routers/exam_pronunciation.py`:
+`POST /api/exam/pronunciation` (multipart, one turn per request) runs access mode
+(`EXAM_PRONUNCIATION_ACCESS`, default `off`; `admin` checks `app_metadata.role`; anything else
+403 `{status:"not_enabled"}`) → `verify_supabase_jwt` (no guests; `user_id` only from `sub`) →
+consent → cache (the stored row; no Azure, no charge) → daily quota (`exam_pronunciation`, key
+`exam-pron:{session}:{part}`) → Whisper → Azure freeform, chunked on Whisper boundaries at
+`AZURE_SPEECH_MAX_CONCURRENCY`, one ledger reservation (`source='exam'`, session/part/turn) per
+Azure request → settle, store, return. `budget_exhausted` (cap or Azure quota) is a 200 status.
+On any failure the part grant is released only if no turn of that part is stored.
+`GET /api/exam/pronunciation?session_id=` returns stored rows for the JWT subject only, never
+analyses. `EXAM_PRONUNCIATION_ASSESSOR_VERSION = "exam-pronunciation-v1"`. Wired in `main.py`
+with the same Whisper/retry DI seam as `/api/pronunciation`. New `services/pronunciation/wav.py`
+(read/slice PCM WAV), `models/exam_pronunciation.py`.
+
+**Deviations from the plan text (behaviour unchanged):** (1) The ledger reservation (plan step 6)
+is taken per Azure request inside step 8, after Whisper: chunk boundaries come from Whisper's
+timings, and the ledger is one row per Azure HTTP request. (2) Extra form fields the later steps
+need: `fairness_version` (stored in the `fairness_version` column), `recognizer`
+(`webspeech`|`whisper`, for single-recogniser mode), and optional `raw_s`, `pauses_over_2s`,
+`longest_pause_s`, `clipped_ratio` — the pause stats and clipping ratio are stored in `result` so
+the fluency note and the "not clipped" rule survive a report reopen, when the recording is gone.
+(3) The `suppressed` column holds the assessor's threshold-free recognition-trust reasons
+(`asr_disagreement`, `near_seam`, `short_word`, `number`). Threshold-based reasons are applied
+client-side from `FAIRNESS_CONFIG` after the response, so they are not stored; they are
+reproducible from `result` + `fairness_version`. (4) No overall score, sub-score or fluency score
+is stored or returned — per-word accuracy only. (5) `nearChunkBoundary` is recomputed for internal
+seams only (the aggregator also flags the clip's own start, which the client's 150 ms edge pad
+would trip on every first word). (6) Groq Whisper has segment timings only, so windows use
+segments; a window still over 29.5 s is cut evenly, and a piece with no reference text is not
+sent (counted as a failed chunk). (7) Uploads must be PCM WAV (415) of at most 180 s (413, matching
+the client's `EXAM_TURN_MAX_SECONDS`); a missing audio part or blank transcript (a typed or empty
+turn) is 422. (8) Whisper hearing nothing → `done` with `couldNotAssess: no_speech_recognized`,
+not stored and not billed; Whisper failing → `failed` (`transcription_failed`); Azure not
+configured → 503 before any charge. (9) No route rate limit (the plan names none; the per-part
+quota bounds it).
+
+**Verified (local):** `pytest tests/ -q` — 448 passed, incl. the new
+`tests/test_exam_pronunciation.py` (35): access off/unknown/admin/all, no guests, cache hit = no
+Azure and no charge, consent pending/missing → 403 before any charge, budget exhausted and Azure
+quota-exceeded → 200 `budget_exhausted` + releases, failure releases reservation and grant,
+grant kept when another turn of the part is stored, a 40 s turn → 2 serial chunks (max in flight
+1, ledger 19 s + 21 s), per-part key replays across turns, rejected requests never charge, a form
+`user_id` is ignored, user B with A's `session_id` gets separate rows and leaves A's untouched,
+B's GET for A's session returns nothing. `test_quota_features_seeded.py` passes (the call site
+uses the `'exam_pronunciation'` literal).
+
+**Not verified:** the migration has not been applied to any database (no local Supabase stack run,
+not applied to production). No live Azure or Groq call. Deploy order: apply
+`20261005100000` before setting `EXAM_PRONUNCIATION_ACCESS` to `admin`; until then the route
+answers 403 `not_enabled` (default `off`).
+
+## 2026-10-05 — Exam-pronunciation plan Batch 5 (frontend): domain, client, mark-safety tests
+
+**Change:** dark — nothing calls `analysePart` yet (UI is Batch 6). New pure modules under
+`src/domain/examPronunciation/`: `types.ts` (evidence vs display types), `version.ts`
+(`EXAM_PRONUNCIATION_VERSION = 'exam-pronunciation-fairness-v1'`, pins the `FAIRNESS_CONFIG`
+hash), `fairness.ts` (rules 1–4), `patterns.ts` (rule 5, ≥2 distinct words, ≤3 examples,
+`inferred`), `fluencyNote.ts` (pause stats + the existing `countFillers`, one descriptive
+sentence), `buildReport.ts` (report section + Coached part card, display strings through the
+shared mark/band filter). `src/services/exam/pronunciation/client.ts`: normalise → trim → one
+sequential POST per turn (60 s timeout, one retry), the plan's state set, `fetchStoredEvidence`
+for reopen. Guards: `scoredPipelineBoundary.test.ts` extended (`/domain\/examPronunciation/`,
+`/exam\/pronunciation/`, `/ExamPronunciation/`, no exemptions, transitive closure checked),
+new `dataIsolation`, `marksUnchanged`, `versionsUnchanged`, `types`, `version` tests, and two
+ESLint blocks (the scored pipeline may not import exam pronunciation; the domain is pure).
+
+**Deviations from the plan text (behaviour unchanged):** (1) Category inference is orthographic:
+fr-FR Azure returns no phoneme names, so the backend's IPA-keyed phonology rules produce nothing
+for these words. The word lists (minimal-pair vowels, obligatory-liaison triggers, pronounced
+finals, loanwords) sit in `FAIRNESS_CONFIG.lexicon` and are covered by the version hash.
+(2) "French R is never reported" is enforced conservatively: any word containing an r is
+suppressed (`may_be_french_r`), because without phoneme names a low score on it may be the R
+alone. This costs some true positives; calibration may relax it. (3) Proper noun = a capitalised
+exam-transcript word that is not the turn's first word; loanword = the closed list. (4) Suppressed
+verdicts are returned by `judgeTurns` for calibration and never displayed or stored (see Batch 4
+deviation 3). (5) `audioNormalizer.ts` now exports `encodePcm16Wav(samples, sampleRate)`; the
+private AudioBuffer encoder delegates to it, so Learn's output is byte-identical. (6) A guest
+(`requireAuthHeader()` returns no `Authorization`) resolves `signed_out` without a request.
+(7) The client takes injectable dependencies so it is testable without Web Audio. (8)
+`versionsUnchanged.test.ts` deliberately duplicates the existing scoring pins, so an
+exam-pronunciation change that reaches the scorer fails in this feature's own suite.
+
+**Verified (local):** `npm run typecheck`, `typecheck:server` clean; `npm run lint` 0 errors (22
+warnings, all pre-existing); `npm test` — 291 files, 2895 tests pass (with `backend/` linked to the
+backend clone); `authoring:check` 0 errors, `authoring:parity` 10/10; `npm run score:golden` all 5
+goldens match. `marksUnchanged`: `scoreAttempt` (fake judges) gives deep-equal mark fields with
+and without exam audio + pronunciation evidence in state; the `/score` body equals the transcript
+and contains no pronunciation key. Probe files confirmed both ESLint blocks fire (and allow the
+ConductLog types and `countFillers`). `typecheck:scripts` has 3 pre-existing errors in
+`scripts/**/supabase*Store.test.ts` (identical on a clean checkout; not run by CI).
+
+**Not verified:** every `FAIRNESS_CONFIG` number and list is UNVALIDATED until the Batch 7
+calibration; the access mode must stay `off`/`admin` until then. No real browser run of the
+client (Web Audio and fetch are faked). Process note: Batch 3 was on
+`claude/inspiring-johnson-2djemo`, one commit ahead of Batch 2 on `main`; this work fast-forwarded
+onto it, so this branch carries Batches 3–5.
