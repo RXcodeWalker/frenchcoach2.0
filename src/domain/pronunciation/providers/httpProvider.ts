@@ -33,6 +33,7 @@
  */
 
 import { AuthRequiredError, guestAiEnabled } from '../../../lib/authToken';
+import { ConsentRequiredError, isConsentRequiredBody } from '../../../lib/consentRequired';
 import { normalizeToWav16kMono, AudioTooShortError } from '../audioNormalizer';
 import { PronunciationAssessmentSchema } from '../../../services/pronunciation/pronunciationSchema';
 import type { PronunciationAssessor } from '../ports';
@@ -67,7 +68,7 @@ export function createHttpPronunciationProvider(
   apiBase: string,
   getAuthToken?: () => Promise<string | null>,
 ): PronunciationAssessor {
-  return async ({ audioBlob, targetText, mode = 'scripted', coaching = 'none', coachingRequestId, signal }) => {
+  return async ({ audioBlob, targetText, mode = 'scripted', coaching = 'none', coachingRequestId, usageSource, signal }) => {
     // Phase 3: /api/pronunciation requires a verified JWT. Resolve the token
     // FIRST — before normalizing, which decodes and re-renders the whole clip
     // — so a signed-out (guest) caller spends no CPU and no round-trip on a
@@ -103,6 +104,7 @@ export function createHttpPronunciationProvider(
     formData.append('mode', mode);
     formData.append('coaching', coaching);
     if (coachingRequestId) formData.append('coaching_request_id', coachingRequestId);
+    if (usageSource) formData.append('source', usageSource);
 
     const res = await fetch(`${apiBase}/api/pronunciation`, {
       method: 'POST',
@@ -111,6 +113,11 @@ export function createHttpPronunciationProvider(
       signal,
     });
     if (!res.ok) {
+      // The server-side consent gate: a signed-in `pending` account. Not a
+      // session problem, so it must not read as "sign in again".
+      if (res.status === 403 && isConsentRequiredBody(await res.json().catch(() => null))) {
+        throw new ConsentRequiredError();
+      }
       if (res.status === 401 || res.status === 403) {
         throw new AuthRequiredError('Your session has expired. Sign in again for pronunciation feedback.');
       }

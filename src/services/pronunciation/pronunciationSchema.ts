@@ -124,6 +124,9 @@ export const PronunciationAssessmentSchema = z.object({
   confidence: ConfidenceSchema.nullable().optional(),
   coaching: CoachingSchema.nullable().optional(),
   coachingQuota: CoachingQuotaSchema.nullable().optional(),
+  // Exam-pronunciation plan Batch 1/2: Azure skipped because its budget is
+  // spent. Optional so every older response still parses.
+  azureBudgetExhausted: z.boolean().optional(),
 }).passthrough();
 
 export type ParsedPronunciationAssessment = z.infer<typeof PronunciationAssessmentSchema>;

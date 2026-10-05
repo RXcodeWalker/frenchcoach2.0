@@ -259,6 +259,14 @@ fallback defaults in prod — re-verify those defaults are still live model IDs)
 by default, consistent with the 512MB-instance constraint). Values themselves are masked in the
 dashboard — only presence/absence was checked.
 
+**Single instance, single worker is a prerequisite** (exam-pronunciation plan, 2026-10-05): the
+service runs `numInstances: 1` with no `--workers`, and every Azure Speech call is serialised by a
+process-local `asyncio.Semaphore` sized by the optional env var `AZURE_SPEECH_MAX_CONCURRENCY`
+(unset = 1, the F0 limit). That is dashboard config, not code — if the service ever scales out
+(`numInstances > 1`, `--workers`, autoscaling), replace the semaphore with a Supabase lease row
+held per Azure call. Render's deploy overlap (old + new instance briefly together) surfaces as an
+Azure 429, which `_run_with_retries` retries.
+
 ## OAuth — Google provider is broken in production (found 2026-09-15)
 
 `signInWithOAuth` (`src/context/AuthContext.tsx`) and the Google/Microsoft buttons

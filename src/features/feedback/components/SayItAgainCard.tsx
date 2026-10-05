@@ -4,6 +4,8 @@ import { Mic, MicOff, ChevronRight, CheckCircle2, RotateCcw, Volume2 } from 'luc
 import { Waveform } from '../../recording/Waveform';
 import { useAudioBlobRecorder } from '../../recording/useAudioBlobRecorder';
 import { assessPronunciation } from '../../../services/pronunciation/pronunciationClient';
+import { isConsentRequiredError } from '../../../lib/consentRequired';
+import { GuardianConsentNotice } from '../../../components/GuardianConsentNotice';
 import { TTS } from '../../../services/tts/ttsService';
 import {
   PRACTICE_PASS_SCORE,
@@ -65,6 +67,9 @@ export function SayItAgainCard({ targetSentence, questionId, onDone }: Props) {
   // weakest word, from a `result` that gets cleared to drive the fresh
   // recording UI. Null unless the previous attempt was a near miss.
   const [retryHintWord, setRetryHintWord] = useState<string | null>(null);
+  // The backend's consent gate refused the audio (a `pending` under-13
+  // account): show the guardian message, then let the student move on.
+  const [consentRequired, setConsentRequired] = useState(false);
 
   const trackCompleted = (
     completedOutcome: 'pass' | 'advance-no-verdict',
@@ -103,9 +108,13 @@ export function SayItAgainCard({ targetSentence, questionId, onDone }: Props) {
         if (nextOutcome === 'pass' || nextOutcome === 'advance-no-verdict') {
           trackCompleted(nextOutcome, assessment.provider, attempt);
         }
-      } catch {
+      } catch (err) {
         // Throw / timeout: advance, credit participation — never trap the student.
         trackCompleted('advance-no-verdict', null, attempt);
+        if (isConsentRequiredError(err)) {
+          setConsentRequired(true);
+          return;
+        }
         onDone();
         return;
       } finally {
@@ -137,6 +146,23 @@ export function SayItAgainCard({ targetSentence, questionId, onDone }: Props) {
     setResult(null);
     setOutcome(null);
   };
+
+  if (consentRequired) {
+    return (
+      <div className="space-y-3">
+        <GuardianConsentNotice />
+        <div className="flex justify-center">
+          <button
+            type="button"
+            onClick={onDone}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-bold"
+          >
+            Continue <ChevronRight size={14} />
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <motion.div

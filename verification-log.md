@@ -3062,3 +3062,53 @@ examiner and scenario generation also pass `reasoning_effort` and top up their t
 reasoning phase can't eat a 60-token answer. **Verified:** backend pytest (328 pass, incl. new
 `tests/test_model_config.py`). **Not verified:** a live interpret call after deploy — check the
 Render logs for the `Interpret Groq failed` warning disappearing.
+
+## 2026-10-05 — Exam-pronunciation plan Batch 1 (backend): Azure safety, metering, consent
+
+**Change:** migration `20261005090000_azure_speech_usage_and_budget.sql` adds the
+`azure_speech_usage` ledger (reserve → settle | release, `user_id` ON DELETE SET NULL), the
+single-row `azure_speech_budget` (`cap_seconds` NULL = unlimited — no number chosen),
+`reserve/settle/release_azure_seconds` + `azure_speech_usage_summary` (service role only, advisory
+lock in `reserve`), and `('exam_pronunciation', 1000)`. `lib/azure_budget.py` measures seconds from
+the WAV header; `lib/consent.py` is the first server-side consent check (`pending` or no profile →
+403 `consent_required`, unreadable → 503, guests not gated) on `/api/pronunciation` and
+`/api/transcribe`. `azure_client.py`: process-wide semaphore (`AZURE_SPEECH_MAX_CONCURRENCY`,
+default 1; the chunker's fan-out reads it too), Azure quota refusals → `AzureQuotaExceeded` (not
+retried), UnexpectedBreak/MissingBreak/Monotone/unknown → `errorType: null` instead of
+`"correct"`. `/api/pronunciation` meters every Azure call, releases the `pronunciation` grant when
+the assessment raises or nothing was assessed and Azure never ran, and returns the
+whisper-heuristic result with `azureBudgetExhausted: true` when the cap (or Azure's quota) is
+spent. `/api/repair` and its tests are deleted. `GET /api/admin/azure-usage` (admin) reads the
+summary RPC.
+
+**Verified (local):** backend `pytest tests/ -q` 414 pass (was 333; −3 deleted repair tests). New:
+`test_azure_budget.py` (WAV header, wrapper fail-open, and the SQL itself — reserve to cap, NULL
+cap, settle, release, month rollover, a 10-way concurrent-reserve race, client grants, the
+`exam_pronunciation` row — against a throwaway local Postgres 16 with a stub `profiles` /
+`ai_quota_limits`), `test_consent_gate.py`, `test_quota_features_seeded.py`,
+`test_azure_semaphore.py`, `test_azure_quota_and_break_mapping.py`, `test_azure_client_request.py`
+(no `storeAudio`, base endpoint only), `test_pronunciation.py` (+release, ledger, budget, source).
+
+**Not verified:** `supabase/tests/azure_budget.test.mjs` was written but not run — the local
+Supabase stack's images can't be pulled from this environment. The Azure quota-exceeded response
+shape is ASSUMED (no exhausted resource to probe). The migration is not applied to production.
+
+**Deploy:** apply the migration in the Supabase SQL editor first (until then `reserve` fails open
+with a WARNING and `/api/admin/azure-usage` errors), then backend `main`.
+
+## 2026-10-05 — Exam-pronunciation plan Batch 2 (frontend): Learn handles the new backend states
+
+**Change:** `pronunciationSchema.ts`/`types.ts` accept optional `azureBudgetExhausted`;
+`AzurePronunciationCard` shows "Pronunciation analysis is unavailable until next month." (instead
+of "couldn't assess" when that's why). `httpProvider.ts` maps 403 `consent_required` to
+`ConsentRequiredError` (`src/lib/consentRequired.ts`); any other 403 keeps the sign-in path. Learn
+(`pronunciationStatus: 'consent-required'`), Accent Analyzer and Shadowing (`consent-required`
+screen state) and Say-It-Again (notice + Continue) render `GuardianConsentNotice`, the copy now
+shared with `SpeakingConsentGate`. Requests send the screen's ledger `source` (learn / lab /
+shadowing; Say-It-Again counts as learn) — attribution only.
+
+**Verified (local):** `npm run typecheck`, `typecheck:server` clean; `npm run lint` 0 errors;
+`npm test` 2760 pass (new: `consentAndBudget.test.ts`, `AzurePronunciationCard.test.tsx`,
+`SayItAgainCard.consent.test.tsx`). Marks unaffected: nothing under `src/domain/igcse/`,
+`server/` or `scripts/scoring/` touched. **Not verified:** a real `pending` account against the
+deployed backend.

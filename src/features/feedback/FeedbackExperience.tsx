@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Loader2, Mic2 } from 'lucide-react';
 import { CollapsibleCard } from '../../components/ui/CollapsibleCard';
+import { GuardianConsentNotice } from '../../components/GuardianConsentNotice';
 import { stagger } from '../../components/motion/variants';
 import { FeedbackProvider, useFeedbackContext } from './state/feedbackContext';
 import { useFeedbackState } from './hooks/useFeedbackState';
@@ -100,9 +101,13 @@ interface Props {
    * 'signed-out' is distinct from 'failed': the assessment endpoint requires a
    * signed-in account (Phase 3 AI-cost quota), so telling a guest the service
    * "didn't respond in time" would send them to retry forever.
+   * 'consent-required': the backend's consent gate refused the audio (a
+   * `pending` under-13 account) — guardian copy, never a retry.
    */
-  pronunciationStatus?: 'idle' | 'pending' | 'done' | 'failed' | 'signed-out';
+  pronunciationStatus?: PronunciationStatus;
 }
+
+export type PronunciationStatus = 'idle' | 'pending' | 'done' | 'failed' | 'signed-out' | 'consent-required';
 
 function FeedbackContent({
   feedback, transcript, modelAnswer, onRetry, onComplete,
@@ -249,6 +254,8 @@ function FeedbackContent({
               </Link>
             </div>
           </CollapsibleCard>
+        ) : pronunciationStatus === 'consent-required' ? (
+          <GuardianConsentNotice />
         ) : pronunciationStatus === 'failed' ? (
           <CollapsibleCard
             title="Pronunciation Analysis"

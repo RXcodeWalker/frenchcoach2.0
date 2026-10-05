@@ -23,8 +23,37 @@ function azureScoreColor(score: number): string {
   return '#f87171';
 }
 
+/** Shown whenever the backend skipped Azure because its budget is spent. */
+const AZURE_BUDGET_EXHAUSTED_COPY = 'Pronunciation analysis is unavailable until next month.';
+
+function BudgetExhaustedLine() {
+  return (
+    <p className="text-[10px] font-semibold text-ink-muted" data-testid="azure-budget-exhausted">
+      {AZURE_BUDGET_EXHAUSTED_COPY}
+    </p>
+  );
+}
+
 export function AzurePronunciationCard({ result, correctedSentence }: Props) {
   const circumference = 94.2;
+
+  // The budget is spent, so this answer got no acoustic analysis: say that,
+  // instead of "we couldn't assess this recording" (which blames the audio).
+  if (result.azureBudgetExhausted && (result.couldNotAssess || result.score === null)) {
+    return (
+      <CollapsibleCard
+        title="Pronunciation Analysis"
+        icon={<Mic2 size={13} className="text-cyan-400" />}
+        defaultOpen={true}
+        className="border border-cyan-500/15"
+      >
+        <div className="px-1 py-2">
+          <BudgetExhaustedLine />
+          <p className="text-[9px] text-ink-muted mt-1">The rest of your feedback is unaffected.</p>
+        </div>
+      </CollapsibleCard>
+    );
+  }
 
   if (result.couldNotAssess || result.score === null) {
     return (
@@ -77,6 +106,12 @@ export function AzurePronunciationCard({ result, correctedSentence }: Props) {
           <p className="text-[9px] text-ink-muted">Based on acoustic analysis of your recording.</p>
         </div>
       </div>
+
+      {result.azureBudgetExhausted && (
+        <div className="px-1 mb-2">
+          <BudgetExhaustedLine />
+        </div>
+      )}
 
       <div className="px-1 mb-2 flex items-center gap-2">
         <PronunciationSourceBadge provider={result.provider} />

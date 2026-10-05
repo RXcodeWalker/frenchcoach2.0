@@ -73,9 +73,18 @@ export interface PronunciationAssessmentRequest {
   coaching?: 'none' | 'full';
   /** Idempotency key for the coaching quota consume/refund RPCs. Only read when coaching === 'full'. */
   coachingRequestId?: string;
+  /**
+   * Which product surface is spending Azure seconds — attribution only, for
+   * the backend's azure_speech_usage ledger (exam-pronunciation plan §4).
+   * Never affects the assessment. Omitted: the backend infers it.
+   */
+  usageSource?: PronunciationUsageSource;
   /** Reliability plan §2.5: caller-supplied abort signal, e.g. a new attempt superseding this one. */
   signal?: AbortSignal;
 }
+
+/** azure_speech_usage.source values a client screen may claim on /api/pronunciation. */
+export type PronunciationUsageSource = 'learn' | 'lab' | 'shadowing';
 
 export interface PronunciationPhoneme {
   phoneme: string;
@@ -205,4 +214,10 @@ export interface PronunciationAssessment {
   coaching?: PronunciationCoaching | null;
   /** Present only when the request sent coaching: 'full'. Display-only — the server is always authoritative. */
   coachingQuota?: PronunciationCoachingQuota | null;
+  /**
+   * True when the backend skipped Azure because the Azure Speech budget is
+   * spent (the project's monthly cap, or Azure's own quota). The result is
+   * then the whisper-heuristic tier's. Absent on older responses.
+   */
+  azureBudgetExhausted?: boolean;
 }

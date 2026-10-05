@@ -14,7 +14,7 @@
  */
 
 import { createHttpPronunciationProvider } from '../../domain/pronunciation/providers/httpProvider';
-import type { PronunciationAssessment } from '../../domain/pronunciation/types';
+import type { PronunciationAssessment, PronunciationUsageSource } from '../../domain/pronunciation/types';
 import { getAccessToken } from '../../lib/authToken';
 import { track } from '../telemetry/telemetryService';
 
@@ -32,6 +32,23 @@ const ASSESS_TIMEOUT_MS = 25_000;
 const getAuthToken = getAccessToken;
 
 const provider = createHttpPronunciationProvider(API_BASE, getAuthToken);
+
+/**
+ * Telemetry `source` -> the backend's Azure usage-ledger source
+ * (azure_speech_usage.source). Attribution only. Learn's Say-It-Again
+ * practice step counts as Learn; an unknown screen sends nothing and the
+ * backend infers it.
+ */
+const USAGE_SOURCE: Record<string, PronunciationUsageSource> = {
+  learn: 'learn',
+  learn_practice: 'learn',
+  accent_analyzer: 'lab',
+  shadowing: 'shadowing',
+};
+
+export function usageSourceFor(source: string): PronunciationUsageSource | undefined {
+  return USAGE_SOURCE[source];
+}
 
 export interface AssessPronunciationArgs {
   audioBlob: Blob;
@@ -79,7 +96,10 @@ export async function assessPronunciation({
 
   try {
     const result = await Promise.race([
-      provider({ audioBlob, targetText, languageCode: 'fr-FR', mode, coaching, coachingRequestId, signal: controller.signal }),
+      provider({
+        audioBlob, targetText, languageCode: 'fr-FR', mode, coaching, coachingRequestId,
+        usageSource: usageSourceFor(source), signal: controller.signal,
+      }),
       new Promise<never>((_, reject) => {
         controller.signal.addEventListener('abort', () =>
           reject(new Error('Pronunciation assessment timed out')),

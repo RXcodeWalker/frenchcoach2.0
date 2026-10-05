@@ -34,6 +34,8 @@ import { useAudioBlobRecorder } from '../features/recording/useAudioBlobRecorder
 import { Waveform } from '../features/recording/Waveform';
 import { assessPronunciation } from '../services/pronunciation/pronunciationClient';
 import { AudioTooShortError } from '../domain/pronunciation/audioNormalizer';
+import { isConsentRequiredError } from '../lib/consentRequired';
+import { GuardianConsentNotice } from '../components/GuardianConsentNotice';
 import { PronunciationSourceBadge } from './learn/PronunciationSourceBadge';
 import { PronunciationHeatMap } from '../features/feedback/components/PronunciationHeatMap';
 import { PRACTICE_PASS_SCORE } from '../domain/pronunciation/practiceThresholds';
@@ -61,6 +63,7 @@ type ScreenState =
   | 'low-confidence'
   | 'could-not-assess'
   | 'offline-tier'
+  | 'consent-required'
   | 'error';
 
 const MIN_RECORDING_MS = 400; // plan §9: reject <0.4s clips client-side
@@ -187,6 +190,12 @@ export function AccentAnalyzer() {
         // handleStop's wall-clock guard — route it to the same "say a bit
         // more" affordance rather than a dead-end "Evaluation failed".
         setScreenState('too-short');
+        return;
+      }
+      if (isConsentRequiredError(err)) {
+        // The backend's consent gate: a `pending` under-13 account. Retrying
+        // can't help until a parent/guardian confirms.
+        setScreenState('consent-required');
         return;
       }
       setErrorMessage(err instanceof Error ? err.message : 'Evaluation failed. Please try again.');
@@ -395,6 +404,10 @@ export function AccentAnalyzer() {
                       <button onClick={reset} className="px-6 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-bold flex items-center gap-2 transition-all">
                         <RotateCcw size={14} /> Try Again
                       </button>
+                    </motion.div>
+                  ) : screenState === 'consent-required' ? (
+                    <motion.div key="consent-required" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                      <GuardianConsentNotice />
                     </motion.div>
                   ) : screenState === 'error' ? (
                     <motion.div key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center space-y-4 text-center">
