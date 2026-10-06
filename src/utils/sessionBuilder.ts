@@ -213,10 +213,12 @@ function buildSessionQuestionsAdaptive(
       seenIds: seen,
       focusSkillIds: blend.focusSkillIds,
       activeDemandProblem: activeDemandProblemCognitiveDemand(),
+      // docs §8.3 — exclude only this session's picks. Every review item was
+      // answered before (so it is always in `seen`); excluding `seen` here
+      // meant spaced review never fired (Learn overhaul Batch 1b).
       getReviewQuestion: (chosenIds) => {
         if (!topicKey) return null;
-        const alreadyInSession = new Set([...seen, ...chosenIds]);
-        return getEligibleReviewQuestion(topicKey, alreadyInSession);
+        return getEligibleReviewQuestion(topicKey, new Set(chosenIds));
       },
     },
     { beliefSnapshot: snapshot },
@@ -318,10 +320,11 @@ function buildSessionQuestionsLegacy(
   // last valid index is always used, never an out-of-range one.
   let reviewQuestionId: string | null = null;
   if (topicKey && target >= 4) {
-    // Exclude questions already in this session's selection, not just the
-    // learner's historical `seen` set — otherwise a question the difficulty
-    // distribution already picked could be spliced in a second time.
-    const alreadyInSession = new Set([...seen, ...selected.map(q => q.id)]);
+    // Exclude only questions already in this session's selection, so a
+    // question the difficulty distribution already picked is never spliced in
+    // a second time. Never the historical `seen` set: every review item was
+    // answered before, so excluding it meant review never fired (Batch 1b).
+    const alreadyInSession = new Set(selected.map(q => q.id));
     const reviewCandidate = getEligibleReviewQuestion(topicKey, alreadyInSession);
     if (reviewCandidate && selected.length === target) {
       selected[target - 1] = reviewCandidate;
