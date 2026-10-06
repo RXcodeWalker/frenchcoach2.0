@@ -8,9 +8,8 @@ import { getBeliefSnapshot } from '../services/coach/coachStorage';
 import { getEligibleReviewQuestion } from '../services/coach/reviewPool';
 import type { SessionBlend } from '../types/coach';
 import { resolveFeatureStatus } from '../config/featureFlags';
-import { STORAGE_KEYS, storageGet } from '../services/persistence/storage';
-import { deriveAbility, coldStart } from '../domain/learn/ability/deriveAbility';
-import { aimFromMigratedTier, computeSessionTarget } from '../domain/learn/selection/sessionTarget';
+import { deriveAbility, coldStart, type AbilityResult } from '../domain/learn/ability/deriveAbility';
+import { computeSessionTarget, type Aim } from '../domain/learn/selection/sessionTarget';
 import { planSlots, bandFor } from '../domain/learn/selection/planSlots';
 import { selectQuestions } from '../domain/learn/selection/selectQuestions';
 import type { DemandBand, SelectionReason, SlotType } from '../domain/learn/selection/types';
@@ -127,11 +126,32 @@ export interface BuiltSessionQuestions {
 }
 
 /**
- * docs (Learn adaptive difficulty) §16 Stage 6 — flag-gated dispatcher. The
- * signature is unchanged from the legacy function so Learn.tsx's call site
- * needs no changes; `learnAdaptiveDifficulty` stays 'coming-soon' until
- * Stage 10 wires the UI (Aim picker, measured-level display) that makes the
- * adaptive path's output meaningful to show a learner.
+ * Learn overhaul Batch 1a — the learner's Today's aim and stored tier, taken
+ * from AppState by the caller. The builder never reads them from storage: the
+ * old `storageGet(difficulty)` JSON-parsed a value SET_DIFFICULTY writes raw,
+ * so it always came back null and every learner got 'balanced' + the 4.5 seed.
+ */
+export interface SessionSelectionOptions {
+  aim?: Aim;
+  /** docs §6.4 — seeds coldStart() only; absent -> the 4.5 default seed. */
+  migratedTier?: DifficultyTier;
+}
+
+/**
+ * docs §6.2/§6.4 — the ability read selection uses. Exported so the setup
+ * screen shows exactly the read the adaptive path selects from.
+ */
+export function sessionAbility(migratedTier?: DifficultyTier): AbilityResult {
+  const snapshot = getBeliefSnapshot();
+  // No snapshot at all yet (brand-new learner, no evidence log) -> the same
+  // coldStart() path deriveAbility itself falls back to when totalWeight is 0.
+  return snapshot ? deriveAbility(snapshot, migratedTier) : coldStart(migratedTier);
+}
+
+/**
+ * docs (Learn adaptive difficulty) §16 Stage 6 — flag-gated dispatcher.
+ * `options` carries AppState's aim and tier into the adaptive path; the
+ * legacy path keeps reading `difficulty` as before.
  */
 export function buildSessionQuestions(
   topicKey: string | null,
@@ -141,36 +161,33 @@ export function buildSessionQuestions(
   difficulty: DifficultyTier = DEFAULT_DIFFICULTY,
   focusedSkillId: string | null = null,
   sessionBlend: SessionBlend | null = null,
+  options: SessionSelectionOptions = {},
 ): BuiltSessionQuestions {
   if (resolveFeatureStatus('learnAdaptiveDifficulty') !== 'live') {
     return buildSessionQuestionsLegacy(topicKey, mode, skillProfile, topicMastery, difficulty, focusedSkillId, sessionBlend);
   }
-  return buildSessionQuestionsAdaptive(topicKey, mode, topicMastery, sessionBlend);
+  return buildSessionQuestionsAdaptive(topicKey, mode, topicMastery, sessionBlend, options);
 }
 
 /**
  * docs §8 — slot-based selector path. Reads ability from the belief snapshot
  * directly (same source buildSessionQuestionsLegacy already reads at the
- * prerequisite gate below) rather than taking it as a parameter, exactly as
- * the legacy function reads getBeliefSnapshot() itself. Aim resolves from the
- * one-time migrated `frenchCoach_difficulty` read (docs §6.4) — no SET_AIM
- * reducer action exists yet; that lands in Stage 10.
+ * prerequisite gate below). Aim and the cold-start tier come from the caller
+ * (AppState), never from storage.
  */
 function buildSessionQuestionsAdaptive(
   topicKey: string | null,
   mode: SessionMode,
   topicMastery: TopicMasteryEntry | null,
   sessionBlend: SessionBlend | null,
+  options: SessionSelectionOptions,
 ): BuiltSessionQuestions {
   const pool = topicKey ? getTopicQuestions(topicKey) : [...QUESTIONS];
   const seen = new Set<string>(topicMastery?.uniqueQuestionsAnswered ?? []);
 
   const snapshot = getBeliefSnapshot();
-  const migratedTier = storageGet<DifficultyTier | null>(STORAGE_KEYS.difficulty, null);
-  // No snapshot at all yet (brand-new learner, no evidence log) -> the same
-  // coldStart() path deriveAbility itself falls back to when totalWeight is 0.
-  const ability = snapshot ? deriveAbility(snapshot, migratedTier ?? undefined) : coldStart(migratedTier ?? undefined);
-  const aim = aimFromMigratedTier(migratedTier);
+  const ability = sessionAbility(options.migratedTier);
+  const aim: Aim = options.aim ?? 'balanced';
   const sessionTarget = computeSessionTarget(ability.abilityScore, aim);
 
   const target = mode === 'full_topic'

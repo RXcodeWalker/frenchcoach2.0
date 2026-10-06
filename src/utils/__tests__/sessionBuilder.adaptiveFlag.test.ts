@@ -6,11 +6,11 @@
 // left unmodified per docs §16 Stage 6 acceptance criterion.
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { buildSessionQuestions, SESSION_TARGET } from '../sessionBuilder';
+import { buildSessionQuestions, sessionAbility, SESSION_TARGET } from '../sessionBuilder';
 import { recordReviewOutcome } from '../../services/coach/reviewPool';
 
 const ONE_DAY_MS = 86_400_000;
-import { STORAGE_KEYS, storageSet } from '../../services/persistence/storage';
+import { STORAGE_KEYS, scopedKey, storageSet } from '../../services/persistence/storage';
 import type { SkillProfile } from '../../types';
 
 const EMPTY_SKILL_PROFILE = {} as SkillProfile;
@@ -78,5 +78,44 @@ describe('buildSessionQuestions with learnAdaptiveDifficulty live', () => {
   it('single mode (target=1) returns at most one question', () => {
     const { questions } = buildSessionQuestions('school', 'single', EMPTY_SKILL_PROFILE, null);
     expect(questions.length).toBeLessThanOrEqual(1);
+  });
+});
+
+// ── Learn overhaul Batch 1a — Today's aim and the stored tier reach selection ─
+// Before the fix the adaptive path recomputed aim from a JSON-parsed read of a
+// key SET_DIFFICULTY writes raw, so it always fell back to 'balanced' and the
+// 4.5 default seed whatever the learner chose.
+describe('buildSessionQuestions honours aim and the stored tier (adaptive path)', () => {
+  beforeEach(() => {
+    enableAdaptiveFlag();
+  });
+
+  function targetBand(result: ReturnType<typeof buildSessionQuestions>) {
+    const slot = result.slots?.find((s) => s.slotType === 'target');
+    expect(slot).toBeDefined();
+    return slot!.slotBand;
+  }
+
+  it('push and comfortable produce different session targets (bands)', () => {
+    const push = buildSessionQuestions('school', 'standard', EMPTY_SKILL_PROFILE, null, 'intermediate', null, null, { aim: 'push', migratedTier: 'intermediate' });
+    const comfortable = buildSessionQuestions('school', 'standard', EMPTY_SKILL_PROFILE, null, 'intermediate', null, null, { aim: 'comfortable', migratedTier: 'intermediate' });
+    // Cold start seed 4.5: push -> T=5.5, comfortable -> T=3.5.
+    expect(targetBand(push)).toEqual({ lo: 5.0, hi: 6.0 });
+    expect(targetBand(comfortable)).toEqual({ lo: 3.0, hi: 4.0 });
+  });
+
+  it('the stored tier, written raw by SET_DIFFICULTY, still seeds cold start', () => {
+    // Exactly what AppContext's SET_DIFFICULTY writes: a raw string, not JSON.
+    localStorage.setItem(scopedKey(STORAGE_KEYS.difficulty), 'beginner');
+    const beginner = buildSessionQuestions('school', 'standard', EMPTY_SKILL_PROFILE, null, 'beginner', null, null, { aim: 'balanced', migratedTier: 'beginner' });
+    const expert = buildSessionQuestions('school', 'standard', EMPTY_SKILL_PROFILE, null, 'expert', null, null, { aim: 'balanced', migratedTier: 'expert' });
+    expect(targetBand(beginner)).toEqual({ lo: 2.0, hi: 3.0 });
+    expect(targetBand(expert)).toEqual({ lo: 7.5, hi: 8.5 });
+  });
+
+  it('sessionAbility (what the setup screen shows) uses the same seed as selection', () => {
+    expect(sessionAbility('beginner').abilityScore).toBe(2.5);
+    expect(sessionAbility('expert').abilityScore).toBe(8.0);
+    expect(sessionAbility(undefined).abilityScore).toBe(4.5);
   });
 });

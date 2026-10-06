@@ -33,16 +33,13 @@ import { SessionProgressBar } from './learn/SessionProgressBar';
 import { SessionSummary } from './learn/SessionSummary';
 import { MidSessionToast } from './learn/MidSessionToast';
 import { StreakToast } from './learn/StreakToast';
-import { buildSessionQuestions, makeSessionQuestion, SESSION_TARGET } from '../utils/sessionBuilder';
+import { buildSessionQuestions, makeSessionQuestion, sessionAbility, SESSION_TARGET } from '../utils/sessionBuilder';
 import { midSessionAdjust } from '../domain/learn/selection/midSessionAdjust';
 import { getReviewItemFirstRecordedScore } from '../services/coach/reviewPool';
 import { useExtraTurnBudget } from './learn/useExtraTurnBudget';
 import { track } from '../services/telemetry/telemetryService';
 import { DIFFICULTY_CONFIG } from '../utils/difficultyConfig';
-import { deriveAbility, coldStart } from '../domain/learn/ability/deriveAbility';
 import type { AbilityResult } from '../domain/learn/ability/deriveAbility';
-import { STORAGE_KEYS, storageGet } from '../services/persistence/storage';
-import type { DifficultyTier } from '../types';
 import { updateTopicMastery } from '../services/analytics/analyticsService';
 import { computeXPGain, computeParticipationXPGain } from '../domain/xp';
 import { isUnscored, averageRealScores } from '../domain/scoring';
@@ -236,6 +233,7 @@ export function Learn() {
       selectedDifficulty,
       focusedSkillId,
       sessionBlend,
+      { aim, migratedTier: selectedDifficulty },
     );
 
     const target = mode === 'full_topic' ? questions.length : SESSION_TARGET[mode];
@@ -272,18 +270,14 @@ export function Learn() {
     setActiveResultEngine(null);
     resetSessionScopedState();
     setLearnState('question');
-  }, [selectedTopic, skillProfile, topicMastery, selectedDifficulty, dispatch, resetSessionScopedState, focusTokenActive, adaptiveDifficultyLive]);
+  }, [selectedTopic, skillProfile, topicMastery, selectedDifficulty, aim, dispatch, resetSessionScopedState, focusTokenActive, adaptiveDifficultyLive]);
 
   const startSingleQuestion = () => startSession('single');
 
-  // docs §14 UX #1 — same read sessionBuilder.ts's adaptive path uses
-  // internally (belief snapshot + one-time migrated-tier seed), so the
-  // measured level shown here always matches what selection actually used.
-  const sessionStartAbility = (): AbilityResult => {
-    const snapshot = getBeliefSnapshot();
-    const migratedTier = storageGet<DifficultyTier | null>(STORAGE_KEYS.difficulty, null);
-    return snapshot ? deriveAbility(snapshot, migratedTier ?? undefined) : coldStart(migratedTier ?? undefined);
-  };
+  // docs §14 UX #1 — the same read sessionBuilder.ts's adaptive path selects
+  // from (belief snapshot + AppState's tier as the cold-start seed), so the
+  // level shown here always matches what selection actually used.
+  const sessionStartAbility = (): AbilityResult => sessionAbility(selectedDifficulty);
 
   // ── Recording + evaluation ────────────────────────────────────────────────────
 
