@@ -10,7 +10,7 @@ import type { PronunciationAssessment } from '../domain/pronunciation/types';
 import { ExaminerFeedbackCard } from '../features/feedback/components/ExaminerFeedbackCard';
 import { examinerFailureKind, type ExaminerFailureKind, type ExaminerFeedback } from '../services/coaching/examinerFeedback';
 import { getSkillProfile, buildSkillContext, detectAvoidance } from '../services/coaching/diagnosticEngine';
-import { orchestrateAttempt } from '../services/coach/sessionOrchestrator';
+import { orchestrateAttempt, recordDemandOnlyAttempt } from '../services/coach/sessionOrchestrator';
 import { getActiveRecommendation, setRecommendationStatus, generateRecommendation } from '../services/coach/recommendationEngine';
 import { getDailyPlan, invalidateDailyPlan, applyFocusTokenOverride } from '../services/coach/decisionEngine';
 import { getBeliefSnapshot } from '../services/coach/coachStorage';
@@ -541,6 +541,18 @@ export function Learn() {
         if (myAttemptId !== attemptIdRef.current) return;
         setExaminerFeedbackResult(result);
         setExaminerStatus('done');
+        // Batch 1f / docs §9.4 — the answer still tells us which demand the
+        // learner met: L1 demand evidence only, recorded once per answered
+        // attempt (a failed call can be retried with the same transcript).
+        // No Session, XP, topic mastery or review write; nothing numeric shown.
+        if (activeSession) {
+          recordDemandOnlyAttempt({
+            sessionId: activeSession.id,
+            question: currentQuestion,
+            transcript,
+            topicKey: activeSession.topicKey,
+          });
+        }
       } catch (err) {
         if ((err as Error).name === 'AbortError') return;
         if (myAttemptId !== attemptIdRef.current) return;

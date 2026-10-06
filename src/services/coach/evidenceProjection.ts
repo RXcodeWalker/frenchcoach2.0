@@ -283,7 +283,8 @@ function summarise(feedback: FeedbackV2): string {
 function buildDemandEvidence(args: {
   sessionId: string;
   question: Question | null;
-  feedback: FeedbackV2;
+  /** Only the L2 gap-fill fields are read; `{}` means "no L2" (demand-only path). */
+  feedback: Pick<FeedbackV2, 'demandsResolved' | 'demands_met' | 'demands_missed'>;
   transcript: string;
   mode: string;
   topicKey?: string;
@@ -559,4 +560,28 @@ export function buildEvidence(args: BuildEvidenceArgs): EvidenceEvent[] {
   }));
 
   return events;
+}
+
+/**
+ * Learn overhaul Batch 1f / docs §9.4 — an Examiner-voice Learn answer has no
+ * score (ADR 0005), so it records only the L1 demand read of its transcript:
+ * one demand:* event (met → success, far too short → avoidance) or none.
+ * `demandsResolved` is absent, so the L2 gap-fill — the only path that can
+ * emit success:false on a demand node — never runs. No language event, no
+ * score, nothing over skill nodes.
+ */
+export function buildDemandOnlyEvidence(
+  question: Question | null,
+  transcript: string,
+  ctx: { sessionId: string; topicKey?: string; mode?: string },
+): EvidenceEvent[] {
+  return buildDemandEvidence({
+    sessionId: ctx.sessionId,
+    question,
+    feedback: {},
+    transcript,
+    mode: ctx.mode ?? 'practice',
+    topicKey: ctx.topicKey ?? question?.topicKey,
+    occurredAt: new Date().toISOString(),
+  });
 }
