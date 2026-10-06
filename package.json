@@ -40,7 +40,10 @@
     "judge:check": "tsx --tsconfig tsconfig.scripts.json scripts/scoring/judgeCheck.ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "e2e:exam": "playwright test -c playwright.config.ts"
+    "e2e:exam": "playwright test -c playwright.config.ts",
+    "pronunciation:calibration:prepare": "tsx scripts/examPronunciation/prepareCalibration.ts",
+    "pronunciation:calibration:report": "tsx scripts/examPronunciation/calibrationReport.ts",
+    "pronunciation:calibration:select-cv": "tsx scripts/examPronunciation/selectCommonVoice.ts"
   },
   "dependencies": {
     "@google/genai": "^2.11.0",

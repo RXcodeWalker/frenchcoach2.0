@@ -3364,3 +3364,47 @@ still `UNVALIDATED`. `EXAM_PRONUNCIATION_ACCESS` must not be set to `all`. Migra
 consent doc still says it must be applied in the SQL editor); this session cannot check production.
 Cost/capacity is not computed (no real exam traffic through the ledger yet). The Batch 1 `azure_budget`
 Supabase test and the Batch 4 migrations remain unapplied to production per their own entries.
+
+## 2026-10-06 — Exam-pronunciation plan Batch 7 (calibration slice): tooling built, calibration NOT run, gate stays closed
+
+**Change.** Backend: migration `20261006090000_azure_speech_probe_source.sql` (adds `probe` to the
+ledger's `source` CHECK and to `reserve_azure_seconds`, resolving the deviation the docs slice
+recorded) and `AZURE_SPEECH_SOURCES`; `services/pronunciation/calibration_replay.py` (recorded Azure
+JSON → the evidence the route would store, using the route's own `build_evidence`/`_row_to_turn` and
+the Azure client's normaliser); `scripts/probe_exam_pronunciation.py` (live recorder: production Groq
+Whisper call, `plan_chunks`, production Azure request, ledger as `probe`);
+`tests/test_exam_pronunciation_calibration_replay.py`. Frontend: `prepareDecodedTurn.ts` split out of
+the exam client unchanged in behaviour, so calibration clips are trimmed and measured by the
+production code; `scripts/examPronunciation/` — `selectCommonVoice.ts`, `prepareCalibration.ts`,
+`calibration.ts` (the pass criteria), `calibrationReport.ts`, `calibration.test.ts`,
+`set3Selection.json` (the minimal-pair script); three `pronunciation:calibration:*` npm scripts. Spec
+`docs/systems/exam-pronunciation.md` "Calibration" rewritten as the runbook; CLAUDE.md trap updated.
+No fairness threshold, version or scorer file changed.
+
+**Verified.** Backend `test_azure_budget.py` 31 passed (SQL tests ran against a local Postgres with both
+migrations; a new test shows `probe` is metered; the unknown-source tests now use `bogus`). Replay test:
+its synthetic case passes; the per-fixture cases are empty (no fixtures). Frontend: the evaluator's 9
+synthetic tests pass (not_run is never a pass; incomplete; each set's failure mode; confirmed
+misreadings; French R never reported); the 3 recorded-fixture gate tests are skipped because no fixture
+exists. `pronunciation:calibration:report` prints `NOT_RUN` and exits 1. Smoke: a synthetic tone went
+through select-cv (the `teens` row was excluded) → prepare (6.3 s → 3.25 s, the 3 s pause counted
+before trimming) → probe manifest loading. Every set-3 target word was checked to infer a reportable
+category. Full command results are in the session summary.
+
+**Interpretations (stricter than the plan text, never looser).** Set 3's correct readings are held to
+the clear rule (0 reports); a swap reading that reports a non-swapped word fails; a set passes only
+with ≥1 assessed clip; "accent-only" means a report not listed in the clip's human-confirmed
+`knownMisreadings`.
+
+**Not done — calibration has NOT been run, so `EXAM_PRONUNCIATION_ACCESS` must not be set to `all`.**
+- No Common Voice clips were downloaded. The owner set up Mozilla Data Collective API access, but the
+  session's safety check refused sending that key to an external host; it was not worked around.
+- Set 3 has not been recorded (needs a human voice; the owner has not chosen who records it).
+- Set 2 has no source yet: the curated 26.0 segments found are native accents (France, Canada); a
+  learner-accent segment, or the full 27.0 French release's accent labels, is still needed.
+- Release condition 2 is unverified: the Supabase connector returned an authorization error, so
+  whether `20261003113100` is applied to production is still unknown.
+- Migration `20261006090000` is not applied to production; until it is, a metered probe run's
+  reservation fails and falls back to unmetered (logged), it does not crash.
+- Open risk recorded in the spec: freeform assessment probably cannot see a cleanly pronounced swap,
+  so set 3 may fail for a reason no threshold fixes.

@@ -16,7 +16,7 @@
  */
 
 import { segmentSpeechTurns, type SpeechTurn } from '../../../domain/examPronunciation/segment';
-import { trimSilence, type TrimSegment } from '../../../domain/examPronunciation/trim';
+import type { TrimSegment } from '../../../domain/examPronunciation/trim';
 import type { ExamPronunciationTurnEvidence } from '../../../domain/examPronunciation/types';
 import { EXAM_PRONUNCIATION_VERSION } from '../../../domain/examPronunciation/version';
 import type { ConductLogEntry } from '../../../domain/igcse/session/types';
@@ -24,13 +24,13 @@ import type { SessionPart } from '../../../domain/igcse/stt/types';
 import {
   AudioTooLongError,
   AudioTooShortError,
-  encodePcm16Wav,
   normalizeToWav16kMono,
 } from '../../../domain/pronunciation/audioNormalizer';
 import { isAuthRequiredError, requireAuthHeader } from '../../../lib/authToken';
 import { isConsentRequiredBody } from '../../../lib/consentRequired';
 import { getTurnAudio } from './examAudioStore';
 import { EXAM_TURN_MAX_SECONDS, readWavPcm16Mono } from './measureExamAudio';
+import { prepareDecodedTurn, type PreparedTurnAudio } from './prepareDecodedTurn';
 
 // Prod: same-origin '/api/*' proxied to the backend by Vercel (see vercel.json).
 const API_BASE = import.meta.env.PROD
@@ -38,8 +38,6 @@ const API_BASE = import.meta.env.PROD
   : ((import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000');
 
 export const EXAM_PRONUNCIATION_TIMEOUT_MS = 60_000;
-/** A sample at or beyond this magnitude counts as clipped. */
-const CLIP_LEVEL = 0.999;
 
 /** Every state the UI has a sentence for (plan §2). */
 export type ExamPronunciationState =
@@ -73,14 +71,7 @@ export interface PartAnalysis {
   turns: TurnOutcome[];
 }
 
-export interface PreparedTurnAudio {
-  wav: Blob;
-  rawS: number;
-  segments: TrimSegment[];
-  pausesOver2s: number;
-  longestPauseS: number;
-  clippedRatio: number;
-}
+export type { PreparedTurnAudio };
 
 export type PrepareResult = PreparedTurnAudio | Exclude<TurnStatus, 'done' | 'no_audio'>;
 
@@ -89,18 +80,7 @@ export async function prepareTurnAudio(blob: Blob): Promise<PrepareResult> {
   try {
     const normalized = await normalizeToWav16kMono(blob, { maxSeconds: EXAM_TURN_MAX_SECONDS });
     const { samples, sampleRate } = await readWavPcm16Mono(normalized.blob);
-    let clipped = 0;
-    for (let i = 0; i < samples.length; i++) if (Math.abs(samples[i]) >= CLIP_LEVEL) clipped += 1;
-    const trimmed = trimSilence(samples, sampleRate);
-    if (!trimmed.hasSpeech) return 'no_speech';
-    return {
-      wav: encodePcm16Wav(trimmed.samples, sampleRate),
-      rawS: Math.round(trimmed.rawS * 1000) / 1000,
-      segments: trimmed.segments,
-      pausesOver2s: trimmed.pauses.pausesOver2s,
-      longestPauseS: Math.round(trimmed.pauses.longestPauseS * 1000) / 1000,
-      clippedRatio: samples.length > 0 ? Math.round((clipped / samples.length) * 10_000) / 10_000 : 0,
-    };
+    return prepareDecodedTurn(samples, sampleRate) ?? 'no_speech';
   } catch (err) {
     if (err instanceof AudioTooShortError) return 'too_short';
     if (err instanceof AudioTooLongError) return 'too_long';

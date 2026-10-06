@@ -1,0 +1,248 @@
+{
+  "_about": "Batch 7 set 3 (genuinely unclear words). Each line is read twice: once normally, once with the one deliberate swap. Recorded by a consenting adult or a person 13+, never an under-13 voice. examTranscript is the intended sentence (an idealised second recogniser). Put the recordings at the audioPath shown, relative to this file's copy.",
+  "clips": [
+    {
+      "clipId": "set3-01-correct",
+      "set": "unclear",
+      "reading": "correct",
+      "audioPath": "set3/01-correct.m4a",
+      "examTranscript": "Il a mangé tout le gâteau.",
+      "source": {
+        "corpus": "owner-recorded-set3",
+        "line": "01",
+        "instruction": "read normally"
+      }
+    },
+    {
+      "clipId": "set3-01-swap",
+      "set": "unclear",
+      "reading": "swap",
+      "audioPath": "set3/01-swap.m4a",
+      "examTranscript": "Il a mangé tout le gâteau.",
+      "source": {
+        "corpus": "owner-recorded-set3",
+        "line": "01",
+        "instruction": "say “tout” as “tu”"
+      },
+      "expectedReported": [
+        "tout"
+      ]
+    },
+    {
+      "clipId": "set3-02-correct",
+      "set": "unclear",
+      "reading": "correct",
+      "audioPath": "set3/02-correct.m4a",
+      "examTranscript": "Vous aimez le chocolat ?",
+      "source": {
+        "corpus": "owner-recorded-set3",
+        "line": "02",
+        "instruction": "read normally"
+      }
+    },
+    {
+      "clipId": "set3-02-swap",
+      "set": "unclear",
+      "reading": "swap",
+      "audioPath": "set3/02-swap.m4a",
+      "examTranscript": "Vous aimez le chocolat ?",
+      "source": {
+        "corpus": "owner-recorded-set3",
+        "line": "02",
+        "instruction": "say “vous” as “vu”"
+      },
+      "expectedReported": [
+        "vous"
+      ]
+    },
+    {
+      "clipId": "set3-03-correct",
+      "set": "unclear",
+      "reading": "correct",
+      "audioPath": "set3/03-correct.m4a",
+      "examTranscript": "C'est un bon film.",
+      "source": {
+        "corpus": "owner-recorded-set3",
+        "line": "03",
+        "instruction": "read normally"
+      }
+    },
+    {
+      "clipId": "set3-03-swap",
+      "set": "unclear",
+      "reading": "swap",
+      "audioPath": "set3/03-swap.m4a",
+      "examTranscript": "C'est un bon film.",
+      "source": {
+        "corpus": "owner-recorded-set3",
+        "line": "03",
+        "instruction": "say “bon” as “beau”"
+      },
+      "expectedReported": [
+        "bon"
+      ]
+    },
+    {
+      "clipId": "set3-04-correct",
+      "set": "unclear",
+      "reading": "correct",
+      "audioPath": "set3/04-correct.m4a",
+      "examTranscript": "Je mange du pain le matin.",
+      "source": {
+        "corpus": "owner-recorded-set3",
+        "line": "04",
+        "instruction": "read normally"
+      }
+    },
+    {
+      "clipId": "set3-04-swap",
+      "set": "unclear",
+      "reading": "swap",
+      "audioPath": "set3/04-swap.m4a",
+      "examTranscript": "Je mange du pain le matin.",
+      "source": {
+        "corpus": "owner-recorded-set3",
+        "line": "04",
+        "instruction": "say “pain” as “pè” (no nasal)"
+      },
+      "expectedReported": [
+        "pain"
+      ]
+    },
+    {
+      "clipId": "set3-05-correct",
+      "set": "unclear",
+      "reading": "correct",
+      "audioPath": "set3/05-correct.m4a",
+      "examTranscript": "Ils ont un chien.",
+      "source": {
+        "corpus": "owner-recorded-set3",
+        "line": "05",
+        "instruction": "read normally"
+      }
+    },
+    {
+      "clipId": "set3-05-swap",
+      "set": "unclear",
+      "reading": "swap",
+      "audioPath": "set3/05-swap.m4a",
+      "examTranscript": "Ils ont un chien.",
+      "source": {
+        "corpus": "owner-recorded-set3",
+        "line": "05",
+        "instruction": "say “ils ont” as “ils sont” (s, not z)"
+      },
+      "expectedReported": [
+        "ont"
+      ]
+    },
+    {
+      "clipId": "set3-06-correct",
+      "set": "unclear",
+      "reading": "correct",
+      "audioPath": "set3/06-correct.m4a",
+      "examTranscript": "Ils mangent à midi.",
+      "source": {
+        "corpus": "owner-recorded-set3",
+        "line": "06",
+        "instruction": "read normally"
+      }
+    },
+    {
+      "clipId": "set3-06-swap",
+      "set": "unclear",
+      "reading": "swap",
+      "audioPath": "set3/06-swap.m4a",
+      "examTranscript": "Ils mangent à midi.",
+      "source": {
+        "corpus": "owner-recorded-set3",
+        "line": "06",
+        "instruction": "pronounce the ending: “man-jent”"
+      },
+      "expectedReported": [
+        "mangent"
+      ]
+    },
+    {
+      "clipId": "set3-07-correct",
+      "set": "unclear",
+      "reading": "correct",
+      "audioPath": "set3/07-correct.m4a",
+      "examTranscript": "Elle a les clés.",
+      "source": {
+        "corpus": "owner-recorded-set3",
+        "line": "07",
+        "instruction": "read normally"
+      }
+    },
+    {
+      "clipId": "set3-07-swap",
+      "set": "unclear",
+      "reading": "swap",
+      "audioPath": "set3/07-swap.m4a",
+      "examTranscript": "Elle a les clés.",
+      "source": {
+        "corpus": "owner-recorded-set3",
+        "line": "07",
+        "instruction": "say “les” as “le”"
+      },
+      "expectedReported": [
+        "les"
+      ]
+    },
+    {
+      "clipId": "set3-08-correct",
+      "set": "unclear",
+      "reading": "correct",
+      "audioPath": "set3/08-correct.m4a",
+      "examTranscript": "J'ai deux chats.",
+      "source": {
+        "corpus": "owner-recorded-set3",
+        "line": "08",
+        "instruction": "read normally"
+      }
+    },
+    {
+      "clipId": "set3-08-swap",
+      "set": "unclear",
+      "reading": "swap",
+      "audioPath": "set3/08-swap.m4a",
+      "examTranscript": "J'ai deux chats.",
+      "source": {
+        "corpus": "owner-recorded-set3",
+        "line": "08",
+        "instruction": "say “deux” as “doo”"
+      },
+      "expectedReported": [
+        "deux"
+      ]
+    },
+    {
+      "clipId": "set3-09-correct",
+      "set": "unclear",
+      "reading": "correct",
+      "audioPath": "set3/09-correct.m4a",
+      "examTranscript": "Il boit du vin blanc.",
+      "source": {
+        "corpus": "owner-recorded-set3",
+        "line": "09",
+        "instruction": "read normally"
+      }
+    },
+    {
+      "clipId": "set3-09-swap",
+      "set": "unclear",
+      "reading": "swap",
+      "audioPath": "set3/09-swap.m4a",
+      "examTranscript": "Il boit du vin blanc.",
+      "source": {
+        "corpus": "owner-recorded-set3",
+        "line": "09",
+        "instruction": "say “vin” as “vent”"
+      },
+      "expectedReported": [
+        "vin"
+      ]
+    }
+  ]
+}

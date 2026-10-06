@@ -6,7 +6,8 @@ way, and the rules it must keep: `docs/decisions/0010-pronunciation-evidence-is-
 tests are the current behavior.
 
 **Release status: closed.** The feature is built and dark for learners. Every threshold is
-`UNVALIDATED`, and the calibration that would validate them (below) has **not been run**. Until it
+`UNVALIDATED`, and the calibration that would validate them (below) has **not been run** (its tooling
+exists; no audio has been recorded through it). Until it
 has, `EXAM_PRONUNCIATION_ACCESS` stays `off` or `admin`.
 
 ## What the candidate sees
@@ -93,7 +94,7 @@ reasons live in the stored evidence only; display types carry no score.
 Mechanisms exist; **no numeric cap is set**. `azure_speech_budget.cap_seconds` is NULL (unlimited)
 until the owner runs one `UPDATE`; the `exam_pronunciation` daily row is seeded at 1000 only because
 an unseeded feature 503s every call (FK), not as a real limit. The `azure_speech_usage` ledger
-(`source` is a closed set: `exam`, `learn`, `lab`, `shadowing`, and the now-unused `repair`) and a
+(`source` is a closed set: `exam`, `learn`, `lab`, `shadowing`, `probe` for calibration runs, and the now-unused `repair`) and a
 structured log line per call make real usage visible; `GET /api/admin/azure-usage` summarises it.
 Under the free tier Azure still stops at its own monthly limit, which maps to `budget_exhausted`.
 The server re-measures seconds from the WAV header and that figure is authoritative; the client logs
@@ -132,22 +133,64 @@ for a `pending` account.
 If calibration moves a threshold, bump `EXAM_PRONUNCIATION_VERSION` (and
 `EXAM_PRONUNCIATION_ASSESSOR_VERSION` if the backend logic changed) and re-run it.
 
-### Calibration (not yet run)
+### Calibration (tooling built, not yet run)
 
 Three fixed audio sets: (1) clear French, (2) a strong but understandable accent, (3) genuinely
 unclear words (minimal-pair swaps). Rules: no under-13 voices, everyone recorded consents, no
-Teacher's-Notes-derived scripts. **No such corpus is assumed to exist.** Intended sources: sets 1–2
-from Mozilla Common Voice French (CC0, adult speakers; accent metadata picks clear vs accented;
-accepting the dataset terms is required); set 3 is a short script of minimal-pair sentences
-(*tu/tout*, *vin/vent*, *ils ont/ils sont*) read once correctly and once with the swap, by a
-consenting adult or a person 13 or over, never an under-13 voice.
+Teacher's-Notes-derived scripts. **No such corpus is assumed to exist.** Sources: sets 1–2 from
+Mozilla Common Voice French (CC0, adult speakers, via the Mozilla Data Collective; accepting the
+dataset terms is required); set 3 is `scripts/examPronunciation/set3Selection.json` — nine
+minimal-pair sentences, each read once normally and once with one deliberate swap, by a consenting
+adult or a person 13 or over, never an under-13 voice. Every set-3 target word is one the fairness
+rules can report (no *r*, ≥3 letters, a meaning-carrying category).
 
-CI replays recorded Azure JSON responses as fixtures (CI never calls Azure) and passes only if set 1
-yields **0 reported words**, set 2 **0 accent-only reports**, set 3 **reports the swapped words**.
-`backend/scripts/probe_exam_pronunciation.py` is meant to re-record the responses live. Neither it nor
-the fixtures exist yet, and the ledger's `source` check has no `probe` value (the original plan assumed
-one), so the script needs either a migration adding it or an unmetered path; decide that when it is
-written.
+**Pipeline** (the audio is never committed; only Azure's JSON is):
+
+1. `npm run pronunciation:calibration:select-cv -- --tsv … --set clear|accented …` picks Common
+   Voice clips from `validated.tsv` (≥2 up-votes, 0 down-votes, one clip per speaker, no `teens` or
+   unknown age, seeded and reproducible).
+2. `npm run pronunciation:calibration:prepare -- --clips <selection.json> --out <dir>` decodes with
+   ffmpeg, then trims and measures every clip with `prepareDecodedTurn` — the exact function the exam
+   client uses — and writes the WAVs plus `manifest.json`.
+3. `python backend/scripts/probe_exam_pronunciation.py --manifest <dir>/manifest.json` (live; needs
+   `AZURE_SPEECH_KEY`/`AZURE_SPEECH_REGION`/`GROQ_API_KEY`) runs the production Whisper call, the
+   route's chunk plan and the production Azure request, and writes
+   `backend/tests/fixtures/exam_pronunciation_calibration/<set>/<clipId>.json`: Whisper's output,
+   the chunks, Azure's raw JSON, and the evidence they replay to
+   (`services/pronunciation/calibration_replay.py`). Calls are metered in the ledger as source
+   `probe` (migration `20261006090000`) when `SUPABASE_URL`/`SUPABASE_SERVICE_KEY` are set, otherwise
+   unmetered with a printed warning.
+4. `npm run pronunciation:calibration:report` prints the verdict (exit 0 only on `pass`).
+
+**CI never calls Azure.** Backend `tests/test_exam_pronunciation_calibration_replay.py` re-derives
+each fixture's evidence from its raw JSON (so an assessor change fails until the fixtures are
+re-recorded and `EXAM_PRONUNCIATION_ASSESSOR_VERSION` bumped). Frontend
+`scripts/examPronunciation/calibration.test.ts` runs the current fairness rules over the stored
+evidence once any fixture exists. Pass criteria (`calibration.ts`):
+
+- **clear:** 0 reported words. Set 3's *correct* readings are held to this rule too.
+- **accented:** 0 accent-only reports. A report is accent-only unless a human confirmed the speaker
+  said a different word (`knownMisreadings` on the clip).
+- **unclear:** every swapped word reported, and no other word reported in a swap reading.
+
+The last two refinements are stricter than the plan's wording, never looser. A set passes only with
+≥1 assessed clip; a clip Whisper could not hear is listed, never counted as clean. The status is
+`not_run` / `incomplete` / `fail` / `pass`; only `pass` satisfies release condition 1. The report also
+lists the swapped words caught (their accuracy shows the margin under the floor) and the *near
+misses*: words in clear/accented clips suppressed only by an accuracy floor — that is the threshold
+check.
+
+**Known limits of the calibration itself:**
+
+- `examTranscript` is the sentence the speaker read, an idealised second recogniser. Real Web Speech
+  disagrees with Whisper more often, which in production only suppresses more.
+- Decoding uses ffmpeg rather than the browser's `OfflineAudioContext`. Everything after decoding is
+  the production code.
+- **Freeform mode cannot see a clean substitution.** Azure grades the audio against Whisper's
+  transcript of it, so a cleanly pronounced *tout* where *tu* was meant is likely transcribed and
+  scored as a good *tout*. Set 3 can only pass on swaps that stay ambiguous enough for Whisper to
+  keep the intended word. If set 3 fails that way, the finding is "the feature does not catch clean
+  swaps", not "lower the floor"; lowering it would trade accent fairness for it.
 
 ## Structural guarantees
 
