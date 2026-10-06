@@ -3329,3 +3329,38 @@ branch, so this branch (and the backend's) was fast-forwarded onto it: the front
 carries Batches 1–6, the backend branch Batches 1 and 4.
 An earlier e2e run was invalidated by my own source edit mid-run (Vite's full reload hit the
 browser); it was re-run clean with nothing else running.
+
+## 2026-10-06 — Exam-pronunciation plan Batch 7 (docs slice): ADR 0010, system spec, consent/topology docs
+
+**Change:** documentation only, written against the code on `main` (frontend `35fed68`, backend
+`a80572a`; Batches 1–6). New: `docs/decisions/0010-pronunciation-evidence-is-post-hoc-mark-free-and-gated.md`
+(amends 0009's boundary list: no exemptions, because the route is FastAPI) and
+`docs/systems/exam-pronunciation.md` (UI, fairness rules, evidence table and route, auth scoping,
+metering, privacy, release gate, calibration plan, known gaps). Updated:
+`docs/systems/child-safety-consent.md` (the server-side `require_speaking_consent` gate and the
+subprocessor check), `docs/systems/topology.md` (`EXAM_PRONUNCIATION_ACCESS`,
+`AZURE_SPEECH_MAX_CONCURRENCY`, `VITE_EXAM_PRONUNCIATION_PUBLIC`, and the migration → backend →
+frontend deploy order; the single-instance prerequisite and lease fallback were already there from
+Batch 1), `docs/README.md` (map and ADR range), and `CLAUDE.md` (Documentation map pointer, and the
+existing exam-pronunciation Known Trap now points at the spec/ADR and states both release
+preconditions). Nothing in `src/`, `server/`, `scripts/` or the backend code changed.
+
+**Verified:** `GuardianConsent.tsx` already names Groq, Google Gemini and Microsoft Azure Speech as
+processors, so no copy change was needed. The doc claims about the route's step order, the evidence
+table's columns/FK/RLS, `export_my_data`, the access-mode default and the Azure `storeAudio`
+assertion were read from the migration, `routers/exam_pronunciation.py` and the tests, not from the
+plan.
+
+**Deviation from the plan text:** the plan said calibration probe runs log to the ledger as source
+`probe`. The ledger's `source` CHECK (`20261005090000`) allows only `learn`, `exam`, `repair`, `lab`,
+`shadowing`, so the spec records that the probe script needs a migration or an unmetered path, to be
+decided when it is written.
+
+**Not done — the release gate is still closed:** the Batch 7 *calibration* has not been run. No
+Common Voice download, no recorded minimal-pair set, no replay fixtures, no
+`probe_exam_pronunciation.py`, and no CI pass criteria exist, so every `FAIRNESS_CONFIG` number is
+still `UNVALIDATED`. `EXAM_PRONUNCIATION_ACCESS` must not be set to `all`. Migration
+`20261003113100_revoke_guardian_consent_by_token.sql` is not confirmed applied to production (the
+consent doc still says it must be applied in the SQL editor); this session cannot check production.
+Cost/capacity is not computed (no real exam traffic through the ledger yet). The Batch 1 `azure_budget`
+Supabase test and the Batch 4 migrations remain unapplied to production per their own entries.

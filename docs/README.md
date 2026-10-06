@@ -18,12 +18,13 @@ Depth 2. Four live categories, one archive.
 - `systems/data-model.md` — the Supabase privilege rule, economy invariant, session-binding pattern, and gotchas (not a table/RPC catalogue)
 - `systems/child-safety-consent.md` — the three-concept consent separation, the guardian_consents/age_band data model, the RPC contracts, and client enforcement (Phase 1.6 Part C)
 - `systems/exam-conduct-0520.md` — the Cambridge 0520/03 examiner conduct rules and the Exam Sim / Coached mode split (§-numbered, cited as `exam-conduct §N` — do not renumber)
+- `systems/exam-pronunciation.md` — opt-in, feedback-only exam pronunciation analysis: fairness rules, the evidence table and route, metering, privacy, and the release gate (closed until calibration passes)
 - `guides/content-authoring.md` — content-authoring rules for the question bank
 - `guides/review/` — generated G2 review sheet (`0520-g2-review.md`) and its English glosses source; regenerate, never hand-edit
 - `guides/corpus-matrix.md` — corpus coverage rules
 - `guides/learn-demands.md` — Learn demand-tagging rules
 - `guides/development.md` — commands, the three test suites, the Assessment-Engine change procedure
-- `decisions/0001-cambridge-0520-only.md` through `0008-exam-content-modeled-on-tn-structure.md` — ADRs
+- `decisions/0001-cambridge-0520-only.md` through `0010-pronunciation-evidence-is-post-hoc-mark-free-and-gated.md` — ADRs
 - `archive/` — historical documents; see `archive/README.md`
 
 ## Authority model

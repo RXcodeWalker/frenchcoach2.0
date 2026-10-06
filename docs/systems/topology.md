@@ -55,6 +55,25 @@ These never call each other directly. The frontend is the only thing that talks 
   deployed environment has it set — check, and consider adding it to the example file as part of
   that change.
 
+### Exam-pronunciation variables (2026-10-06)
+
+- **`EXAM_PRONUNCIATION_ACCESS`** (FastAPI; `off` | `admin` | `all`; unset or anything else = `off`).
+  Checked first by `POST`/`GET /api/exam/pronunciation`; anyone it excludes gets 403 `not_enabled`.
+  Keep it `off` or `admin` until the calibration and the production guardian-revocation migration
+  described in `docs/systems/exam-pronunciation.md` are both done.
+- **`AZURE_SPEECH_MAX_CONCURRENCY`** (FastAPI; optional, unset = 1, the F0 limit). Sizes the
+  process-wide Azure semaphore and the exam chunker's fan-out. Only valid under the
+  single-instance prerequisite in "FastAPI env" below.
+- **`VITE_EXAM_PRONUNCIATION_PUBLIC`** (frontend build; `1` shows the UI to non-admins). Convenience
+  only — the backend access mode is authoritative.
+- None of these is in `backend/.env.example` yet.
+
+**Deploy order for exam pronunciation.** Supabase migrations `20261005090000` (ledger, budget,
+`('exam_pronunciation', 1000)` quota row) and `20261005100000` (evidence table, `export_my_data`) are
+applied in the SQL editor **first** — an unseeded quota feature 503s every call, and without the
+ledger `reserve` fails open with a warning — then backend `main`, then the frontend. Until the
+migrations are applied the route cannot store evidence.
+
 ### `VITE_SCORING_API_URL` — no fallback
 
 `src/services/exam/scoringApiClient.ts` reads `VITE_SCORING_API_URL`. If it's unset:

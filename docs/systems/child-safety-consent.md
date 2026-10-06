@@ -126,6 +126,31 @@ All `SECURITY DEFINER`, pinned `search_path`, standard `REVOKE ... FROM PUBLIC` 
   collected and which subprocessors are involved, collects a stated
   relationship, calls `grant_guardian_consent`.
 
+## Server-side gate on audio routes
+
+The client gate above is a convenience, not a control: some audio screens (Say-It-Again, Accent
+Analyzer, Shadowing, SpeakingArena/SpeedSpeaking) have no client gate. `backend/lib/consent.py`'s
+`require_speaking_consent` is the first server-side check. It reads `profiles.consent_status` with
+the service key, right after authentication and before the upload is processed, and is applied to
+`/api/pronunciation`, `/api/transcribe` and `POST /api/exam/pronunciation`:
+
+- `pending` → 403 `{"error": "consent_required"}`.
+- No `profiles` row at all → 403 (deny): a deleted account, or a request racing a guardian
+  revocation, must not reach a provider.
+- Status cannot be read (no service client, RPC error) → 503. Fail closed.
+- Guests are not gated: they have no account or profile, and the client gate only blocks a
+  signed-in `pending` account. (The exam-pronunciation route excludes guests outright.)
+
+The client maps the 403 to `ConsentRequiredError` (`src/lib/consentRequired.ts`) and renders
+`GuardianConsentNotice` ("waiting for your parent/guardian"), never "sign in again". So a pending
+account can still *record* on the screens with no client gate, but the upload never reaches a
+provider. `docs/systems/exam-pronunciation.md` depends on this gate and on revocation erasing the
+child's `exam_pronunciation_evidence` through the `profiles` cascade.
+
+**Subprocessors.** `GuardianConsent.tsx` names Groq, Google Gemini and Microsoft Azure Speech as the
+parties that process audio/text on our behalf (checked 2026-10-06 against exam-pronunciation, which
+adds no new provider).
+
 ## Email delivery
 
 `request_guardian_consent` only mints the row/token — it cannot send email
