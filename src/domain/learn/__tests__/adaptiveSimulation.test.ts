@@ -17,7 +17,7 @@ import { describe, it, expect } from 'vitest';
 import { buildEvidence } from '../../../services/coach/evidenceProjection';
 import { reduceEvidenceToBeliefState, projectEvidenceBeliefSnapshot } from '../../../services/coach/beliefReducer';
 import { deriveAbility } from '../ability/deriveAbility';
-import { DEMAND_ANCHORS, MASTERY_WEAK } from '../ability/thresholds';
+import { CONFIDENCE_BAND_HIDDEN_BELOW, DEMAND_ANCHORS, MASTERY_WEAK } from '../ability/thresholds';
 import { planSlots } from '../selection/planSlots';
 import { selectQuestions } from '../selection/selectQuestions';
 import { computeSessionTarget } from '../selection/sessionTarget';
@@ -641,5 +641,82 @@ describe('adaptive simulation — K: corpus-only inferred provenance', () => {
     // sessions still produced picks (didn't silently error out to zero).
     const totalPicks = result.sessionLogs.reduce((sum, l) => sum + l.verdicts.length, 0);
     expect(totalPicks).toBeGreaterThan(0);
+  });
+});
+
+// ── Learn overhaul Batch 1e — simulation check (no engine change) ───────────
+// Is "Around A2" (docs §6.3: overallConfidence >= CONFIDENCE_BAND_HIDDEN_BELOW)
+// reachable for a realistic learner once the bank is reviewed? A learner at
+// A2 practises 4 sessions a week for 3 weeks on a reviewed pool whose demand
+// mix mirrors the real bank (describe 63% · explain 14% · justify 15% ·
+// compare 6% · hypothesize 2%), with a realistic L1 'unknown' rate filled by
+// L2. Events span the 3 weeks, so the 14-day half-life decay is real. The
+// numbers here are the evidence for (or against) a §6.3 display-only gate
+// change after Batch 3's review; the engine maths is not changed by Batch 1.
+describe('adaptive simulation — L: realistic reviewed-bank learner over 3 weeks (Batch 1e)', () => {
+  const MIX: [CognitiveDemand, number, ResponseLoad][] = [
+    ['describe', 38, 'developed'],
+    ['explain', 9, 'developed'],
+    ['justify', 9, 'developed'],
+    ['compare', 3, 'developed'],
+    ['hypothesize', 1, 'extended'],
+  ];
+
+  function reviewedPool(): Question[] {
+    const pool: Question[] = [];
+    for (const [demand, n, responseLoad] of MIX) {
+      for (let i = 0; i < n; i++) pool.push(makeQuestion(demand, { responseLoad }, 'reviewed'));
+    }
+    return pool;
+  }
+
+  function run3Weeks(seed: number) {
+    const pool = reviewedPool();
+    const rng = mulberry32(seed);
+    const events: EvidenceEvent[] = [];
+    const seen = new Set<string>();
+    const SESSIONS = 12; // 4 a week for 3 weeks
+    const PER_SESSION = 5;
+    const DAY = 86_400_000;
+    const trueAbility: Record<CognitiveDemand, number> = { describe: 5, explain: 4.5, justify: 4, compare: 3.5, hypothesize: 3 };
+    for (let s = 0; s < SESSIONS; s++) {
+      const occurredAt = new Date(Date.now() - (21 - (21 * s) / (SESSIONS - 1)) * DAY).toISOString();
+      const before = snapshotFrom(events);
+      const ability = deriveAbility(before).abilityScore;
+      const slots = planSlots({ sessionBlend: DEFAULT_BLEND, sessionTarget: computeSessionTarget(ability, 'balanced'), count: PER_SESSION });
+      const { selected } = selectQuestions(
+        { pool, slots, chosenIds: new Set(), seenIds: seen, focusSkillIds: [], activeDemandProblem: null, getReviewQuestion: () => null, targetLevel: computeSessionTarget(ability, 'balanced') },
+        { beliefSnapshot: before },
+      );
+      for (const sel of selected) {
+        seen.add(sel.question.id);
+        const outcome = simulateAttempt({
+          question: sel.question,
+          trueAbility: trueAbility[sel.question.demands!.cognitiveDemand],
+          rng,
+          unknownRate: 0.3,
+          sessionId: `sim-l-${s}`,
+          occurredAt,
+        });
+        events.push(...outcome.events);
+      }
+    }
+    return deriveAbility(snapshotFrom(events));
+  }
+
+  it('records whether the "Around A2" confidence gate is reachable after 3 weeks', () => {
+    const results = [11, 12, 13].map(run3Weeks);
+    for (const r of results) {
+      expect(r.measuredAnswers).toBeGreaterThan(0);
+      expect(r.overallConfidence).toBeGreaterThan(0);
+      // FINDING (Batch 1, 2026-10-06): even with every question reviewed, the
+      // gate is NOT reached — overallConfidence ≈ 0.18–0.21 for seeds 11–13
+      // (it averages over all 5 demands while the bank is ~63% describe), and
+      // abilityScore settles ≈ 1.8–2.1 because describe's anchor is 2.0. This
+      // pins the shortfall as evidence for a §6.3 display-only proposal after
+      // Batch 3 (verification-log.md "Learn overhaul Batch 1e"). If a later
+      // change makes the gate reachable, flip this assertion deliberately.
+      expect(r.overallConfidence).toBeLessThan(CONFIDENCE_BAND_HIDDEN_BELOW);
+    }
   });
 });

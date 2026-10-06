@@ -6,15 +6,11 @@ import { ModelSelectorCard } from './ModelSelectorCard';
 import { useEngineHealth } from '../../hooks/useEngineHealth';
 import { getSkillLabel } from '../../services/coach/skillGraph';
 import type { CoachRecommendation } from '../../types/coach';
-import type { Topic, SessionMode, TopicMasteryEntry, AIEngine, DifficultyTier } from '../../types';
+import type { Topic, SessionMode, TopicMasteryEntry, AIEngine } from '../../types';
 import { SESSION_LABEL, SESSION_DURATION } from '../../utils/sessionBuilder';
-import { DIFFICULTY_CONFIG, AIM_CONFIG } from '../../utils/difficultyConfig';
+import { AIM_CONFIG } from '../../utils/difficultyConfig';
 import type { Aim } from '../../domain/learn/selection/sessionTarget';
-import {
-  demandScoreToAbilityLevel,
-  CONFIDENCE_BAND_HIDDEN_BELOW,
-  CONFIDENCE_BAND_APPROXIMATE_BELOW,
-} from '../../domain/learn/ability/thresholds';
+import { measuredLevelDisplay } from '../../domain/learn/ability/levelLabel';
 import type { AbilityResult } from '../../domain/learn/ability/deriveAbility';
 
 interface Props {
@@ -22,8 +18,6 @@ interface Props {
   topicMastery: TopicMasteryEntry | null;
   selectedEngine: AIEngine;
   onEngineChange: (engine: AIEngine) => void;
-  selectedDifficulty: DifficultyTier;
-  onDifficultyChange: (tier: DifficultyTier) => void;
   onStart: (mode: SessionMode) => void;
   onSingleQuestion: () => void;
   onBack: () => void;
@@ -33,7 +27,7 @@ interface Props {
   /** True once "Use Focus Token" has been tapped for this sitting — the override then applies to onStart. */
   focusTokenActive?: boolean;
   onUseFocusToken?: () => void;
-  /** docs §14 UX #1 — present only when learnAdaptiveDifficulty is live. Absent -> legacy difficulty grid renders instead. */
+  /** docs §14 UX #1 — present only when learnAdaptiveDifficulty is live. The tier grid is gone (Batch 1e): Aim is the one difficulty control. */
   ability?: AbilityResult | null;
   aim?: Aim;
   onAimChange?: (aim: Aim) => void;
@@ -41,35 +35,13 @@ interface Props {
 
 const AIMS: Aim[] = ['comfortable', 'balanced', 'push'];
 
-/** docs §6.3 — confidence-gated level string; never asserts a band it hasn't earned. */
-function measuredLevelDisplay(ability: AbilityResult): { band: string | null; caption: string } {
-  const answerCaption = `from ${ability.measuredAnswers} answer${ability.measuredAnswers === 1 ? '' : 's'} we could measure`;
-  if (ability.overallConfidence < CONFIDENCE_BAND_HIDDEN_BELOW) {
-    return { band: null, caption: 'Your coach needs a few more practice sessions before it can estimate your level accurately.' };
-  }
-  const level = demandScoreToAbilityLevel(ability.abilityScore);
-  if (ability.overallConfidence < CONFIDENCE_BAND_APPROXIMATE_BELOW) {
-    return { band: `Around ${level}`, caption: answerCaption };
-  }
-  return { band: level, caption: answerCaption };
-}
-
 const MODES: { mode: SessionMode; icon: string }[] = [
   { mode: 'quick', icon: '⚡' },
   { mode: 'standard', icon: '📚' },
   { mode: 'deep_dive', icon: '🎯' },
 ];
 
-const DIFFICULTY_TIERS: DifficultyTier[] = ['beginner', 'intermediate', 'advanced', 'expert'];
-
-const TIER_COLORS: Record<DifficultyTier, string> = {
-  beginner:     'emerald',
-  intermediate: 'blue',
-  advanced:     'violet',
-  expert:       'amber',
-};
-
-export function SessionStartScreen({ topic, topicMastery, selectedEngine, onEngineChange, selectedDifficulty, onDifficultyChange, onStart, onSingleQuestion, onBack, coachRecommendation, focusTokenQty = 0, focusTokenActive = false, onUseFocusToken, ability, aim, onAimChange }: Props) {
+export function SessionStartScreen({ topic, topicMastery, selectedEngine, onEngineChange, onStart, onSingleQuestion, onBack, coachRecommendation, focusTokenQty = 0, focusTokenActive = false, onUseFocusToken, ability, aim, onAimChange }: Props) {
   const [selected, setSelected] = useState<SessionMode>('standard');
   const health = useEngineHealth();
   const skillContext = buildSkillContext();
@@ -223,7 +195,7 @@ export function SessionStartScreen({ topic, topicMastery, selectedEngine, onEngi
               const { band, caption } = measuredLevelDisplay(ability);
               return (
                 <>
-                  <p className="text-2xl font-black text-white">{band ?? 'Still getting to know your level'}</p>
+                  <p className="text-2xl font-black text-white">{band}</p>
                   <p className="text-[11px] text-ink-muted">{caption}</p>
                 </>
               );
@@ -256,35 +228,7 @@ export function SessionStartScreen({ topic, topicMastery, selectedEngine, onEngi
             <p className="text-[11px] text-ink-muted px-1">{AIM_CONFIG[aim].description}</p>
           </div>
         </div>
-      ) : (
-        <div className="space-y-2">
-          <p className="text-xs font-bold text-ink-muted uppercase tracking-wide px-1">Choose difficulty level</p>
-          <div className="grid grid-cols-2 gap-2">
-            {DIFFICULTY_TIERS.map(tier => {
-              const cfg = DIFFICULTY_CONFIG[tier];
-              const color = TIER_COLORS[tier];
-              const isSelected = selectedDifficulty === tier;
-              return (
-                <motion.button
-                  key={tier}
-                  onClick={() => onDifficultyChange(tier)}
-                  className={`flex flex-col items-center gap-1 p-3 rounded-2xl border transition-all duration-200 text-center ${
-                    isSelected
-                      ? `bg-${color}-500/10 border-${color}-500/40 ring-1 ring-${color}-500/30`
-                      : 'surface-recessed border-transparent hover:border-white/10'
-                  }`}
-                  whileTap={{ scale: 0.97 }}
-                >
-                  <span className="text-xl">{cfg.icon}</span>
-                  <p className={`font-bold text-sm ${isSelected ? 'text-white' : 'text-ink-muted'}`}>{cfg.label}</p>
-                  <p className="text-[10px] text-ink-muted">{cfg.cefr}</p>
-                </motion.button>
-              );
-            })}
-          </div>
-          <p className="text-[11px] text-ink-muted px-1">{DIFFICULTY_CONFIG[selectedDifficulty].description}</p>
-        </div>
-      )}
+      ) : null}
 
       {/* Mode selection */}
       <div className="space-y-2">

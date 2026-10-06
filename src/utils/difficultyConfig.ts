@@ -115,6 +115,22 @@ export const DIFFICULTY_CONFIG: Record<DifficultyTier, DifficultyConfig> = {
 
 export const DEFAULT_DIFFICULTY: DifficultyTier = 'intermediate';
 
+/**
+ * Learn overhaul Batch 1e — the one expectation set Learn's avoidance checks
+ * use, replacing the hidden tier (the tier grid is gone; a stored 'expert'
+ * used to demand the subjunctive). 0520 speaking targets "A2 with elements of
+ * B1" (Teacher's Notes p.11): A2 word counts, plus the two B1 elements that
+ * every Learn question can invite — linking ideas and giving reasons. Tense
+ * variety is left to each question's own time frames (a present-tense
+ * question shouldn't be nagged for a past tense); the subjunctive and
+ * multiple perspectives are above the target and never required.
+ */
+export const IGCSE_EXPECTATIONS: DifficultyConfig['expectations'] = {
+  ...DIFFICULTY_CONFIG.intermediate.expectations,
+  requireConnectors: true,
+  requireDetailedJustification: true,
+};
+
 export function preferredFirst(questions: Question[], difficulty: DifficultyTier): Question[] {
   const preferred = DIFFICULTY_CONFIG[difficulty].preferredQuestionDifficulty;
   const primary = questions.filter(q => preferred.includes(q.difficulty as 1 | 2 | 3));

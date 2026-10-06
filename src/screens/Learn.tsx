@@ -38,7 +38,7 @@ import { midSessionAdjust } from '../domain/learn/selection/midSessionAdjust';
 import { getReviewItemFirstRecordedScore } from '../services/coach/reviewPool';
 import { useExtraTurnBudget } from './learn/useExtraTurnBudget';
 import { track } from '../services/telemetry/telemetryService';
-import { DIFFICULTY_CONFIG } from '../utils/difficultyConfig';
+import { IGCSE_EXPECTATIONS } from '../utils/difficultyConfig';
 import type { AbilityResult } from '../domain/learn/ability/deriveAbility';
 import { updateTopicMastery } from '../services/analytics/analyticsService';
 import { computeXPGain, computeParticipationXPGain } from '../domain/xp';
@@ -552,7 +552,7 @@ export function Learn() {
 
     const elapsed = recording.elapsedTime;
     const skillContext = buildSkillContext();
-    const avoidanceSignals = detectAvoidance(transcript, currentQuestion, DIFFICULTY_CONFIG[selectedDifficulty].expectations);
+    const avoidanceSignals = detectAvoidance(transcript, currentQuestion, IGCSE_EXPECTATIONS);
 
     // The transcript above comes from the Web Speech API only. Audio is never
     // sent to the feedback endpoints — it goes exclusively to /api/pronunciation
@@ -1115,8 +1115,6 @@ export function Learn() {
                 topicMastery={topicMastery[selectedTopic.key] ?? null}
                 selectedEngine={selectedEngine}
                 onEngineChange={handleEngineChange}
-                selectedDifficulty={selectedDifficulty}
-                onDifficultyChange={(tier) => dispatch({ type: 'SET_DIFFICULTY', tier })}
                 onStart={startSession}
                 onSingleQuestion={startSingleQuestion}
                 onBack={() => { setSelectedTopic(null); setLearnState('topics'); }}
