@@ -113,7 +113,7 @@ export interface BuiltSessionQuestionSlot {
   questionId: string;
   slotType: SlotType;
   slotBand: DemandBand | null;
-  /** docs §14 UX #2 "why this question" — present on the initial adaptive-path build; absent after a midSessionAdjust replacement (§8.4 doesn't thread a reason). */
+  /** docs §14 UX #2 "why this question" — present on the adaptive path; midSessionAdjust replacements carry their own (Batch 1d). */
   selectionReason?: SelectionReason;
 }
 
@@ -213,6 +213,7 @@ function buildSessionQuestionsAdaptive(
       seenIds: seen,
       focusSkillIds: blend.focusSkillIds,
       activeDemandProblem: activeDemandProblemCognitiveDemand(),
+      targetLevel: sessionTarget,
       // docs §8.3 — exclude only this session's picks. Every review item was
       // answered before (so it is always in `seen`); excluding `seen` here
       // meant spaced review never fired (Learn overhaul Batch 1b).

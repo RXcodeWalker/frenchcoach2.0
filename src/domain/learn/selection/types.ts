@@ -67,11 +67,20 @@ export interface SelectQuestionsArgs {
   activeDemandProblem: CognitiveDemand | null;
   /** Injected so review-slot filling stays the caller's existing reviewPool contract — docs §8.3 slot 1. */
   getReviewQuestion: (chosenIds: Set<string>) => Question | null;
+  /**
+   * Today's sessionTarget (docs §6). When present, a downgraded stretch slot
+   * uses bandFor('target', targetLevel) (docs §8.1) and "Why this question?"
+   * compares each pick's real level against it. Optional for callers that
+   * plan bands themselves.
+   */
+  targetLevel?: number;
 }
 
 export interface SelectedQuestion {
   question: Question;
   slot: SlotType;
+  /** docs §8.3 ladder rung that produced the pick (0 band as planned … 4 no demands); 0 for review. */
+  rung: number;
   reason: SelectionReason;
 }
 

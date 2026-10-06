@@ -5,6 +5,8 @@ import { fnv1a } from '../../../services/coach/evidenceProjection';
 import { deriveDemandScore } from '../demand/deriveDemandLevel';
 import { demandNodeId } from '../demand/nodeId';
 import { scoreCandidate } from './scoreCandidate';
+import { explainSelection } from './explainSelection';
+import { bandFor } from './planSlots';
 import type {
   SelectedQuestion,
   SelectionCandidate,
@@ -23,21 +25,22 @@ function widenBand(band: { lo: number; hi: number }, amount: number): { lo: numb
   return { lo: band.lo - amount, hi: band.hi + amount };
 }
 
-function explanationFor(slot: SlotType, question: Question): string {
-  switch (slot) {
-    case 'warmup':
-      return 'A comfortable question to start with a win.';
-    case 'review':
-      return 'A question you found tricky before — worth another try.';
-    case 'stretch':
-      return "A question that pushes you a bit beyond today's level.";
-    case 'target':
-      return question.demands
-        ? `Right at your level: ${question.demands.cognitiveDemand}.`
-        : 'Right at your level.';
-    case 'choice':
-      return 'A change of pace to keep things varied.';
-  }
+/** A pick and the docs §8.3 ladder rung that produced it. */
+interface RungHit {
+  question: Question;
+  rung: number;
+}
+
+function reasonFor(slot: SlotType, question: Question, rung: number, targetLevel: number | null) {
+  return {
+    slot,
+    explanation: explainSelection({
+      slot,
+      rung,
+      questionLevel: question.demands ? deriveDemandScore(question.demands) : null,
+      targetLevel,
+    }),
+  };
 }
 
 function buildCandidate(
@@ -99,6 +102,7 @@ function pickBest(
  *   3. allow seen questions
  *   4. allow questions without `demands`
  * Rung 5 (return fewer) is the caller's responsibility once this returns null.
+ * Returns the rung that produced the pick, for "Why this question?" (Batch 1d).
  */
 function fillNonStretchSlot(
   pool: Question[],
@@ -106,7 +110,7 @@ function fillNonStretchSlot(
   args: SelectQuestionsArgs,
   usedCognitiveDemands: Set<string>,
   snapshot: EvidenceBeliefSnapshot | null,
-): Question | null {
+): RungHit | null {
   const { focusSkillIds, activeDemandProblem, seenIds, chosenIds } = args;
   const available = pool.filter((q) => !chosenIds.has(q.id));
 
@@ -115,13 +119,13 @@ function fillNonStretchSlot(
 
   // Rung 0 (band as planned).
   let hit = pickBest(unseenWithDemands, slot, focusSkillIds, activeDemandProblem, seenIds, usedCognitiveDemands, snapshot);
-  if (hit) return hit;
+  if (hit) return { question: hit, rung: 0 };
 
   // Rung 1: widen the band by +-1.0.
   if (slot.band) {
     const widened: SessionSlot = { ...slot, band: widenBand(slot.band, 1.0) };
     hit = pickBest(unseenWithDemands, widened, focusSkillIds, activeDemandProblem, seenIds, usedCognitiveDemands, snapshot);
-    if (hit) return hit;
+    if (hit) return { question: hit, rung: 1 };
   }
 
   // Rung 2: drop the bandFit term entirely (band: null makes scoreCandidate's
@@ -129,21 +133,23 @@ function fillNonStretchSlot(
   // equivalent to ranking on the remaining terms only).
   const noBand: SessionSlot = { ...slot, band: null };
   hit = pickBest(unseenWithDemands, noBand, focusSkillIds, activeDemandProblem, seenIds, usedCognitiveDemands, snapshot);
-  if (hit) return hit;
+  if (hit) return { question: hit, rung: 2 };
 
   // Rung 3: allow the historical seen set back in.
   hit = pickBest(withDemands, noBand, focusSkillIds, activeDemandProblem, seenIds, usedCognitiveDemands, snapshot);
-  if (hit) return hit;
+  if (hit) return { question: hit, rung: 3 };
 
   // Rung 4: allow questions without demands (bandFit omitted for them by scoreCandidate).
   hit = pickBest(available, noBand, focusSkillIds, activeDemandProblem, seenIds, usedCognitiveDemands, snapshot);
-  return hit;
+  return hit ? { question: hit, rung: 4 } : null;
 }
 
 /**
  * docs §8.3. `stretch` may only be filled by non-inferred, demand-bearing
  * questions. If none fit even after widening, the slot downgrades to
- * `target` and re-enters the normal ladder (docs §8.1).
+ * `target` and re-enters the normal ladder (docs §8.1) under the *target*
+ * band — "the session simply has no stretch that day" — never the stretch
+ * band relabelled as target (Learn overhaul Batch 1d).
  */
 function fillStretchSlot(
   pool: Question[],
@@ -151,27 +157,30 @@ function fillStretchSlot(
   args: SelectQuestionsArgs,
   usedCognitiveDemands: Set<string>,
   snapshot: EvidenceBeliefSnapshot | null,
-): { question: Question; slotType: SlotType } | null {
+): (RungHit & { slotType: SlotType }) | null {
   const { focusSkillIds, activeDemandProblem, seenIds, chosenIds } = args;
   const trusted = pool.filter(
     (q) => !chosenIds.has(q.id) && !seenIds.has(q.id) && q.demands && q.demands.provenance !== 'inferred',
   );
 
   let hit = pickBest(trusted, slot, focusSkillIds, activeDemandProblem, seenIds, usedCognitiveDemands, snapshot);
-  if (hit) return { question: hit, slotType: 'stretch' };
+  if (hit) return { question: hit, rung: 0, slotType: 'stretch' };
 
   if (slot.band) {
     const widened: SessionSlot = { ...slot, band: widenBand(slot.band, 1.0) };
     hit = pickBest(trusted, widened, focusSkillIds, activeDemandProblem, seenIds, usedCognitiveDemands, snapshot);
-    if (hit) return { question: hit, slotType: 'stretch' };
+    if (hit) return { question: hit, rung: 1, slotType: 'stretch' };
   }
 
   // No trusted candidate fits even widened -> downgrade to target, re-run
   // the full non-stretch ladder (which may itself fall back to seen/no-demand
-  // questions, per §8.3).
-  const targetSlot: SessionSlot = { type: 'target', band: slot.band };
+  // questions, per §8.3). The target band comes from today's target when the
+  // caller passes it; otherwise the slot's own band is kept (midSessionAdjust's
+  // raise slot already carries the target band).
+  const targetBand = args.targetLevel !== undefined ? bandFor('target', args.targetLevel) : slot.band;
+  const targetSlot: SessionSlot = { type: 'target', band: targetBand };
   const downgraded = fillNonStretchSlot(pool, targetSlot, args, usedCognitiveDemands, snapshot);
-  return downgraded ? { question: downgraded, slotType: 'target' } : null;
+  return downgraded ? { ...downgraded, slotType: 'target' } : null;
 }
 
 export interface SelectQuestionsExtraArgs {
@@ -188,6 +197,7 @@ export function selectQuestions(
   extra: SelectQuestionsExtraArgs = { beliefSnapshot: null },
 ): { selected: SelectedQuestion[]; targetCount: number } {
   const { pool, slots, getReviewQuestion } = args;
+  const targetLevel = args.targetLevel ?? null;
   const chosenIds = new Set(args.chosenIds);
   const usedCognitiveDemands = new Set<string>();
   const selected: SelectedQuestion[] = [];
@@ -207,7 +217,7 @@ export function selectQuestions(
         if (!reviewQuestion) continue; // no eligible review question -> slot simply not filled (§8.3)
         chosenIds.add(reviewQuestion.id);
         if (reviewQuestion.demands) usedCognitiveDemands.add(reviewQuestion.demands.cognitiveDemand);
-        selected.push({ question: reviewQuestion, slot: 'review', reason: { slot: 'review', explanation: explanationFor('review', reviewQuestion) } });
+        selected.push({ question: reviewQuestion, slot: 'review', rung: 0, reason: reasonFor('review', reviewQuestion, 0, targetLevel) });
         continue;
       }
 
@@ -219,16 +229,18 @@ export function selectQuestions(
         selected.push({
           question: result.question,
           slot: result.slotType,
-          reason: { slot: result.slotType, explanation: explanationFor(result.slotType, result.question) },
+          rung: result.rung,
+          reason: reasonFor(result.slotType, result.question, result.rung, targetLevel),
         });
         continue;
       }
 
-      const question = fillNonStretchSlot(pool, slot, { ...args, chosenIds }, usedCognitiveDemands, extra.beliefSnapshot);
-      if (!question) continue; // rung 5: skip this slot rather than duplicate or throw
+      const hit = fillNonStretchSlot(pool, slot, { ...args, chosenIds }, usedCognitiveDemands, extra.beliefSnapshot);
+      if (!hit) continue; // rung 5: skip this slot rather than duplicate or throw
+      const { question, rung } = hit;
       chosenIds.add(question.id);
       if (question.demands) usedCognitiveDemands.add(question.demands.cognitiveDemand);
-      selected.push({ question, slot: slotType, reason: { slot: slotType, explanation: explanationFor(slotType, question) } });
+      selected.push({ question, slot: slotType, rung, reason: reasonFor(slotType, question, rung, targetLevel) });
     }
   }
 
