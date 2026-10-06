@@ -3364,3 +3364,49 @@ still `UNVALIDATED`. `EXAM_PRONUNCIATION_ACCESS` must not be set to `all`. Migra
 consent doc still says it must be applied in the SQL editor); this session cannot check production.
 Cost/capacity is not computed (no real exam traffic through the ledger yet). The Batch 1 `azure_budget`
 Supabase test and the Batch 4 migrations remain unapplied to production per their own entries.
+
+## 2026-10-06 — Learn overhaul Batch 1 (frontend): aim, review pool, average, "Why this question?", hidden tier, examiner evidence
+
+Scope: `src/` only; no backend change, no demands/content change (corpus hash untouched, so no
+L2-off window). Each bug was reproduced by a failing test before its fix; the test is named in
+each slice's commit.
+
+- **1a Aim honoured.** `buildSessionQuestions(…, { aim, migratedTier })` from `AppState`; the
+  builder no longer reads `storageGet(difficulty)` (always null: `SET_DIFFICULTY` writes raw).
+  `sessionBuilder.adaptiveFlag.test.ts` "honours aim and the stored tier".
+- **1b Review pool reaches learners.** Review candidates exclude this session's picks only, on
+  both paths. `sessionBuilder.reviewExclusion.test.ts` (realistic `topicMastery`).
+- **1c Average.** `features/learn/topicAverage.ts` (`nextTopicMastery`,
+  `normalizeTopicMastery` at `AppContext` initial state); `averageScore: number | null`. Read-time
+  repair only: `averageScore === 0 && !(scoredSessionsCompleted > 0)` → no average. Already
+  deflated non-zero legacy averages are not repairable deterministically and are left as they are.
+  `topicAverage.test.ts`.
+- **1d "Why this question?"** Rung returned by `selectQuestions`; a downgraded stretch uses
+  `bandFor('target')`; `explainSelection`; `midSessionAdjust` replacements carry a reason (a raise
+  that came back downgraded is labelled `target`, so label and reason agree).
+  `selectionReason.test.ts`.
+- **1e Hidden tier gone + level wording.** `IGCSE_EXPECTATIONS` = intermediate (A2) word counts +
+  `requireConnectors` + `requireDetailedJustification` (the B1 elements, TN p.11);
+  `requirePastTense` left off so a present-tense question isn't nagged for tense variety — an
+  implementer's reading of "A2+B1 set", open to the owner's review. This changes which avoidance
+  signals Learn emits (connectors on >30-word answers, reasons on >15-word answers) and therefore
+  avoidance evidence. Tier grid and `TIER_COLORS` deleted. `levelLabel` + starting-point copy.
+  `igcseExpectations.test.ts`, `levelLabel.test.ts`.
+  **Simulation check (no engine change)**, `adaptiveSimulation.test.ts` scenario L: realistic A2
+  learner, 12 sessions × 5 over 21 days, fully *reviewed* bank-shaped pool (describe 63%), L1
+  unknown rate 0.3 filled by L2 → `overallConfidence` 0.180 / 0.208 / 0.192 (seeds 11–13), below
+  the 0.25 gate; `abilityScore` 1.76 / 2.05 / 1.76. Reviewing the bank alone does not make
+  "Around A2" reachable in 3 weeks; evidence for a §6.3 display-only proposal after Batch 3.
+- **1f Examiner voice → L1 demand evidence only.** `buildDemandOnlyEvidence` +
+  `recordDemandOnlyAttempt`, called once the examiner reply succeeds. **D4b decided: no XP** —
+  `awardParticipationXP` writes the `xp_events` ledger behind `all_time_leaderboard` and mints
+  gems, and the examiner path has no Tier 0/1 gate, so criterion (2) "can't be farmed" is not met.
+  `demandOnlyEvidence.test.ts`; `scoredPipelineBoundary.test.ts` and `examinerFeedback.test.ts`
+  still green.
+
+Gate at commit: `npm run typecheck` clean · `npm run typecheck:server` clean · `npm run lint`
+0 errors (22 pre-existing warnings) · `npm test` **302 files / 2998 tests passed** ·
+`npm run learn:check -- --draft` 0 errors (63 warnings; without `--draft` the 420 inferred tags
+are errors, unchanged) · `authoring:check` 0/0 · `authoring:parity` 10/10. Not run: backend
+pytest (no backend change); Playwright end-to-end (Batch 1 has no UI flow the plan's §5 e2e list
+can check until Batch 2's setup screen).

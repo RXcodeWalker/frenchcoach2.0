@@ -326,9 +326,16 @@ Display is **gated on `overallConfidence`** — the app never shows a precise ba
 
 | `overallConfidence` | UI |
 |---|---|
-| `< 0.25` | **No band.** *"Still getting to know your level."* |
-| `0.25 – 0.50` | *"Around B1"* + a low-confidence indicator |
-| `> 0.50` | *"B1"* plainly |
+| `< 0.25` | **No measured band.** *"Starting point: Exam level (A2) — we'll adjust as you answer"* (the level selection is using, labelled as a starting point, never as a measurement) |
+| `0.25 – 0.50` | *"Around Stretch (B1)"* + a low-confidence indicator |
+| `> 0.50` | *"Stretch (B1)"* plainly |
+
+**Display labels (Learn overhaul Batch 1, 2026-10-06).** The learner sees levels relative to
+the 0520 target ("A2 with elements of B1", TN p.11), CEFR code in brackets:
+`A1` → **Warm-up (A1)** · `A2` → **Exam level (A2)** · `B1` → **Stretch (B1)** · anything higher →
+**Stretch (B1+)**. B2 and C1 are never shown (`levelLabel()` in
+`src/domain/learn/ability/levelLabel.ts`). Display only — `demandScoreToLevel` and the gates
+above are unchanged.
 
 The supporting caption is **`measuredAnswers`**, which is directly available as
 `Σ rawEvidenceCount` over `demand:*` nodes. Rev 1's *"based on your last 12 answers"* was not
@@ -353,7 +360,10 @@ coldStart():
 - With `overallConfidence: 0` the UI shows **no band** (§6.3). The seed silently shapes question
   selection but is never presented as a measurement.
 - Old evidence **cannot** contribute to demand ability — it has no demand nodes. Stated in the
-  UI as *"still getting to know your level"*, not hidden.
+  UI as a *starting point* (§6.3), not hidden and not presented as a measurement.
+- The seed is AppState's `selectedDifficulty`, passed in by the caller (Batch 1a). Reading it
+  with `storageGet` never worked: `SET_DIFFICULTY` writes the tier raw, `storageGet` JSON-parses,
+  so every learner got the 4.5 default seed and aim `balanced` until 2026-10-06.
 - The seed decays out naturally: as soon as any demand node clears `MIN_DEMAND_CONFIDENCE`, the
   weighted mean takes over and the seed is no longer consulted.
 
@@ -431,7 +441,9 @@ stay valid and every current call site compiles unchanged.
 **Stretch rule (resolves the rev-1 contradiction).** Sessions of ≥5 questions **plan** at least
 one stretch slot. A stretch slot may only be filled by a question with
 `provenance !== 'inferred'`. **If no trusted candidate fits the stretch band, the slot is
-downgraded to `target`** and the session simply has no stretch that day. One unambiguous rule;
+downgraded to `target`** and the session simply has no stretch that day. The downgraded slot is
+filled under the **target band** (`T−0.5 … T+0.5`), never the stretch band relabelled as target
+(fixed in Batch 1d, 2026-10-06). One unambiguous rule;
 the quota never forces an inappropriate challenge, and the system never deliberately challenges
 a learner on a guessed label.
 
@@ -478,6 +490,10 @@ Slots are filled in a **fixed order**, hardest constraint first, so the outcome 
 Candidate pool per slot: questions of **this topic only** (no cross-topic borrowing — that would
 break topic mastery and the learner's explicit choice), carrying `demands`, minus a `chosenIds`
 `Set<string>` threaded through the whole fill.
+
+The **review slot excludes only this session's picks** (`chosenIds`), never the historical `seen`
+set: every review item was answered before, so excluding `seen` meant review never fired (bug
+fixed in Batch 1b, 2026-10-06; both the adaptive and legacy paths).
 
 Escalation ladder when nothing scores above zero:
 
@@ -637,6 +653,19 @@ never override an L1 `met`/`not_attempted`. Disagreements emit
 **Bug to fix explicitly and separately:** the `hasConditional` regex at
 `diagnosticEngine.ts:240` never matches. It currently feeds `detectAvoidance` — real evidence,
 so fixing it is a behaviour change and gets its own commit and test, not a silent ride-along.
+
+### 9.4 Examiner-voice attempts emit L1 demand evidence only (added 2026-10-06, Batch 1f)
+
+An Examiner-voice Learn answer has no score (ADR 0005), so it never goes through
+`orchestrateAttempt`: that would record a `Session` (counts, cloud sync, achievements) and a
+language event with no success signal that the reducer still adds to skill confidence. Once the
+examiner reply succeeds, `recordDemandOnlyAttempt` (`sessionOrchestrator.ts`) records
+`buildDemandOnlyEvidence(question, transcript)` (`evidenceProjection.ts`): the §9.3 L1 read only —
+one `demand:*` event (`met` → success, `not_attempted` → avoidance) or none. `demandsResolved` is
+absent, so the L2 gap-fill (the only path that can emit `success: false`) never runs. No Session,
+no XP (decision D4b: participation XP writes the `xp_events` ledger and mints gems, and an
+examiner answer can't yet be shown to be unfarmable), no topic mastery, no review-pool write,
+nothing numeric shown. `src/domain/igcse/` is untouched.
 
 ---
 
@@ -820,6 +849,12 @@ level"*, which is what every existing user sees on day one (§6.4).
 
 **2. "Why this question"** — a one-line tappable disclosure on `QuestionCard.tsx` from
 `SelectionReason.explanation`. Highest trust-per-pixel item in the plan.
+The text comes from **slot + ladder rung + the question's real level versus today's target**
+(`explainSelection`, Batch 1d), never from the slot type alone: rung 0 can still hit far off-band,
+so only an in-band, rung 0–1 target pick says *"Right at your level today"*; rung ≥ 2 never says
+"at your level". Review reads *"Due for a spaced review — coming back to a question after a gap
+helps it stick"* (the old "found tricky" has been wrong since SM-2, Phase 4.2). No raw demand ids.
+`midSessionAdjust` replacements carry their own reason.
 
 **3. Demand chip replaces the difficulty chip** (`QuestionCard.tsx:50-56`, currently just
 restating `difficulty` 1/2/3): **`Justify an opinion · present + past · B1`**.
@@ -1172,3 +1207,25 @@ for a future stage if pursued.
 
 **Corrected §16 Stage 8 file list:** `evidenceProjection.ts` should be treated as part of Stage
 8's scope going forward, not just Stage 5's.
+
+## Amendment: Learn overhaul Batch 1 (2026-10-06)
+
+**Stage 9 content gate shortfall.** §16 Stage 9's prerequisite (a first review batch producing
+non-inferred questions) was never met before the flag flip: 420 of 428 demand tags are
+`inferred`, 8 `reviewed`. Inferred L1 events weigh `inferenceConfidence × 0.6 × 0.9 × 0.6` —
+≈ 0.13 at confidence 0.4 (113 questions, below `MIN_RELIABLE_WEIGHT` 0.15, so dropped) and ≈ 0.23
+at 0.7. Consequences: almost no stretch slots (§8.1), and the level read-out never leaves the
+starting point. No engine weight was changed (the review batch is the designed fix). A seeded
+simulation (`adaptiveSimulation.test.ts` scenario L) shows that **even with every question
+reviewed**, a realistic A2 learner (4 sessions a week for 3 weeks, bank-shaped pool: describe 63%)
+reaches `overallConfidence` 0.18–0.21 — below the 0.25 gate — and `abilityScore` ≈ 1.8–2.1,
+because `overallConfidence` averages over all five demands and describe's anchor is 2.0. That
+test pins the shortfall as evidence for a §6.3 display-only proposal after Batch 3; it is not a
+decision.
+
+**Bugs fixed in Batch 1.** Today's aim and the stored tier never reached selection (§6.4);
+spaced review excluded every due item (§8.3); a downgraded stretch kept the stretch band (§8.1);
+"Why this question?" contradicted the level (§14 #2); a session with no real score saved a
+fabricated topic average of 0 (`features/learn/topicAverage.ts`, read-time repair only, no
+migration). Learn's avoidance checks use one fixed `IGCSE_EXPECTATIONS` set instead of the hidden
+tier, and the tier grid is gone — Aim is the one difficulty control.
