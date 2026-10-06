@@ -112,12 +112,14 @@ export function SessionStartScreen({ topic, topicMastery, selectedEngine, onEngi
             <p className="text-lg font-black text-white">{questionsAnswered}</p>
             <p className="text-[10px] text-ink-muted uppercase tracking-wide">Questions done</p>
           </div>
-          {avgScore != null && (
-            <div className="flex-1 p-3 rounded-xl surface-recessed text-center">
-              <p className="text-lg font-black text-white">{avgScore.toFixed(1)}</p>
-              <p className="text-[10px] text-ink-muted uppercase tracking-wide">Avg score</p>
-            </div>
-          )}
+          {/* Batch 1c — "—" until a scored session exists; never a fabricated 0.0. */}
+          <div className="flex-1 p-3 rounded-xl surface-recessed text-center">
+            <p className="text-lg font-black text-white">{avgScore != null ? avgScore.toFixed(1) : '—'}</p>
+            <p className="text-[10px] text-ink-muted uppercase tracking-wide">Avg score</p>
+            {avgScore == null && (
+              <p className="text-[10px] text-ink-muted mt-1">No scored answers yet. Examiner style isn&apos;t scored.</p>
+            )}
+          </div>
           {topicMastery?.mastered && (
             <div className="flex-1 p-3 rounded-xl surface-recessed text-center bg-amber-500/5 border-amber-500/20">
               <p className="text-lg font-black text-amber-400">🏆</p>

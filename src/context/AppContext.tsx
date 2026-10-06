@@ -5,6 +5,7 @@ import type { XpSource } from '../types/social';
 import { DEFAULT_DIFFICULTY } from '../utils/difficultyConfig';
 import type { Aim } from '../domain/learn/selection/sessionTarget';
 import { aimFromMigratedTier } from '../domain/learn/selection/sessionTarget';
+import { normalizeTopicMasteryAll } from '../features/learn/topicAverage';
 import { ACHIEVEMENTS } from '../data/gameData';
 import { validateAchievementRegistry } from '../data/achievements';
 import { getStats } from '../services/analytics/analyticsService';
@@ -157,7 +158,8 @@ function buildInitialState(): AppState {
   const storedAim = localStorage.getItem(scopedKey(STORAGE_KEYS.aim)) as Aim | null;
   const aim: Aim = storedAim ?? aimFromMigratedTier(selectedDifficulty);
 
-  const topicMastery = storageGet<Record<string, TopicMasteryEntry>>(STORAGE_KEYS.topicMastery, {});
+  // Batch 1c — read-time repair of a legacy fabricated 0 average (no migration).
+  const topicMastery = normalizeTopicMasteryAll(storageGet<Record<string, TopicMasteryEntry>>(STORAGE_KEYS.topicMastery, {}));
 
   return {
     profile,

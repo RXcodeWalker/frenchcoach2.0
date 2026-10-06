@@ -43,6 +43,7 @@ import type { AbilityResult } from '../domain/learn/ability/deriveAbility';
 import { updateTopicMastery } from '../services/analytics/analyticsService';
 import { computeXPGain, computeParticipationXPGain } from '../domain/xp';
 import { isUnscored, averageRealScores } from '../domain/scoring';
+import { nextTopicMastery } from '../features/learn/topicAverage';
 import { resolveFeatureStatus } from '../config/featureFlags';
 import { SayItAgainCard } from '../features/feedback/components/SayItAgainCard';
 import { incrementCounter } from '../services/telemetry/localCounters';
@@ -946,40 +947,14 @@ export function Learn() {
     dispatch({ type: 'END_SESSION' });
 
     const completedQs = session.questions.filter(q => q.status === 'completed');
-    const newAnsweredIds = completedQs.map(q => q.question.id);
-    const existing = topicMastery[selectedTopic.key];
-    const allAnswered = Array.from(new Set([...(existing?.uniqueQuestionsAnswered ?? []), ...newAnsweredIds]));
-    // null when every question this session was unscored (offline) — a
-    // session with no real scores must not fold a phantom 0 into the running
-    // topic average or nudge the mastery threshold.
-    const avgScore = averageRealScores(completedQs.map(q => q.bestScore));
-
-    const priorAvg = existing?.averageScore ?? avgScore ?? 0;
-    // Weight by scoredSessionsCompleted, not sessionsCompleted — a fully-
-    // unscored (offline) session must not dilute the running average's
-    // denominator (A6). Falls back to sessionsCompleted for entries written
-    // before this field existed.
-    const priorScoredSessions = existing?.scoredSessionsCompleted ?? existing?.sessionsCompleted ?? 0;
-    const newAvg = avgScore === null
-      ? priorAvg
-      : priorScoredSessions > 0
-      ? (priorAvg * priorScoredSessions + avgScore) / (priorScoredSessions + 1)
-      : avgScore;
-
-    const wasMastered = existing?.mastered ?? false;
-    const nowMastered = !wasMastered && newAvg >= 7.5 && allAnswered.length >= 10;
-
-    const entry = {
+    // Unscored questions (offline, Examiner voice, guests past the free tries)
+    // contribute nothing to the average — never a fabricated 0 (Batch 1c).
+    const { entry, justMastered: nowMastered } = nextTopicMastery(topicMastery[selectedTopic.key], {
       topicKey: selectedTopic.key,
-      sessionsCompleted: (existing?.sessionsCompleted ?? 0) + 1,
-      scoredSessionsCompleted: priorScoredSessions + (avgScore === null ? 0 : 1),
-      uniqueQuestionsAnswered: allAnswered,
-      averageScore: newAvg,
-      lastSessionAt: new Date().toISOString(),
-      mastered: wasMastered || nowMastered,
-      masteredAt: nowMastered ? new Date().toISOString() : existing?.masteredAt,
-      badge: (wasMastered || nowMastered) ? ('gold' as const) : undefined,
-    };
+      completedScores: completedQs.map(q => q.bestScore),
+      answeredIds: completedQs.map(q => q.question.id),
+      now: new Date().toISOString(),
+    });
 
     updateTopicMastery(entry);
     dispatch({ type: 'UPDATE_TOPIC_MASTERY', entry, justMastered: nowMastered });

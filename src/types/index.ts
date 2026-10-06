@@ -695,7 +695,8 @@ export interface TopicMasteryEntry {
   /** Sessions that contributed a real score to averageScore — the correct weight for its running mean. Defaults to sessionsCompleted on read for entries written before this field existed. */
   scoredSessionsCompleted?: number;
   uniqueQuestionsAnswered: string[];
-  averageScore: number;
+  /** Mean of real scores only; null until a scored session exists (never a fabricated 0 — see features/learn/topicAverage.ts). */
+  averageScore: number | null;
   lastSessionAt: string;
   mastered: boolean;
   masteredAt?: string;
