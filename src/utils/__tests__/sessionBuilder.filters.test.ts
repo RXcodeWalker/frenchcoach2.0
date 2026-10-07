@@ -9,14 +9,25 @@ import { buildSessionQuestions, makeSessionQuestion, topicPool } from '../sessio
 import { recordReviewOutcome } from '../../services/coach/reviewPool';
 import { STORAGE_KEYS, storageSet } from '../../services/persistence/storage';
 import { midSessionAdjust } from '../../domain/learn/selection/midSessionAdjust';
-import { filterPool, matchesFilters, type LearnFilters } from '../../domain/learn/selection/filters';
+import { filterPool, matchesFilters, type GrammarFocus, type LearnFilters } from '../../domain/learn/selection/filters';
 import { getTopicQuestions } from '../../data/gameData';
 import type { ActiveSession, Question, SkillProfile, TopicMasteryEntry } from '../../types';
 
 const EMPTY_SKILL_PROFILE = {} as SkillProfile;
 const ONE_DAY_MS = 86_400_000;
 const PAST: LearnFilters = { grammar: 'past' };
-const TOPIC = 'hobbies'; // 77 tagged questions, 6 of them past
+const TOPIC = 'hobbies';
+// A 'standard' session plans 10 slots, 3 of them review; with nothing due those 3
+// stay empty, so at most 7 questions can come back. The "fewer matches than
+// requested" tests need a focus with 1–6 matches. Pick it from the bank so
+// ordinary content edits (which re-tag time frames) can't break them.
+const FEW_MATCHES: LearnFilters =
+  (['future', 'past', 'present', 'opinion'] as GrammarFocus[])
+    .map((grammar) => ({ grammar }))
+    .find((f) => {
+      const n = filterPool(getTopicQuestions(TOPIC), f).length;
+      return n >= 1 && n <= 6;
+    }) ?? PAST;
 
 function mastery(answered: string[]): TopicMasteryEntry {
   return {
@@ -57,17 +68,17 @@ describe('filters narrow the pool before slotting', () => {
   });
 
   it('fewer matches than requested returns exactly the matches, never padded with non-matching questions', () => {
-    const matches = pastIds();
+    const matches = filterPool(getTopicQuestions(TOPIC), FEW_MATCHES).map((q) => q.id);
     expect(matches.length).toBeGreaterThan(0);
-    expect(matches.length).toBeLessThan(10);
-    const { questions, slots } = buildSessionQuestions(TOPIC, 'standard', EMPTY_SKILL_PROFILE, null, undefined, null, null, { filters: PAST });
+    expect(matches.length).toBeLessThan(7);
+    const { questions, slots } = buildSessionQuestions(TOPIC, 'standard', EMPTY_SKILL_PROFILE, null, undefined, null, null, { filters: FEW_MATCHES });
     expect(questions.map((q) => q.id).sort()).toEqual([...matches].sort());
     expect(slots).toHaveLength(questions.length);
   });
 
   it('seen matching questions are still reused (the ladder never reaches outside the filtered pool)', () => {
-    const matches = pastIds();
-    const { questions } = buildSessionQuestions(TOPIC, 'standard', EMPTY_SKILL_PROFILE, mastery(matches), undefined, null, null, { filters: PAST });
+    const matches = filterPool(getTopicQuestions(TOPIC), FEW_MATCHES).map((q) => q.id);
+    const { questions } = buildSessionQuestions(TOPIC, 'standard', EMPTY_SKILL_PROFILE, mastery(matches), undefined, null, null, { filters: FEW_MATCHES });
     expect(questions.map((q) => q.id).sort()).toEqual([...matches].sort());
   });
 

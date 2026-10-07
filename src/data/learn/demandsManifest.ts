@@ -5,7 +5,7 @@
  */
 import type { QuestionDemands } from '../../domain/learn/demand/types';
 
-export const demandsVersion = "fb658477e6f9fc358d210158aceb3cf192de9693f0f7258ccbaa0dfb9f0c6913";
+export const demandsVersion = "5f749ff9dfa7bca3d14161a49bb28c8f08554619ace2da6e9fb9c3bc91a21c4c";
 
 export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
   "art_01": {
@@ -53,22 +53,22 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     ],
     "structures": [],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Discuss specific eco-friendly actions you take at home, school, or in your community.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Describe at least two things you do to protect the environment, at home, at school or in your community.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "env_02": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
     "structures": [],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Discuss how technology affects your daily life — positives and negatives.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Say whether technology plays an important role in your life and explain how, with at least two examples.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "env_03": {
     "cognitiveDemand": "describe",
@@ -76,25 +76,25 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Identify and discuss major environmental issues like climate change, pollution, or deforestation.",
+    "responseLoad": "developed",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Name at least two big environmental problems today, such as climate change, pollution or deforestation, and say why they matter.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "env_04": {
-    "cognitiveDemand": "justify",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
     "structures": [
       "justification"
     ],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss your use of bus, train, or metro, and its environmental impact.",
+    "sufficientAnswer": "Say how often you use public transport and give at least one reason.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.75
+    "inferenceConfidence": 0.8
   },
   "env_05": {
     "cognitiveDemand": "justify",
@@ -106,7 +106,7 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Give your opinion on recycling, explain what you recycle and why it's important.",
+    "sufficientAnswer": "Give your opinion on recycling, say what you recycle and give at least one reason it matters.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
@@ -119,8 +119,8 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "opinion"
     ],
     "responseLoad": "developed",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the pros and cons of electric vehicles for the environment.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Give your opinion on electric cars, with at least one advantage and one drawback.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
@@ -130,11 +130,11 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "short",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "A complete answer should: Talk about environmental initiatives at your school.",
+    "responseLoad": "developed",
+    "lexicalReach": "everyday",
+    "sufficientAnswer": "Say whether your school is eco-friendly and name at least two things it does.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "env_08": {
     "cognitiveDemand": "describe",
@@ -142,23 +142,25 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "short",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Suggest practical ways to reduce water consumption at home.",
+    "sufficientAnswer": "Suggest at least two practical ways to save water at home.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "env_09": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
-    "structures": [],
+    "structures": [
+      "justification"
+    ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about littering and cleanliness in your area.",
+    "sufficientAnswer": "Say whether there is a lot of litter in your town and give at least one reason why.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "env_10": {
     "cognitiveDemand": "justify",
@@ -166,38 +168,40 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [
-      "opinion"
+      "opinion",
+      "justification"
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the impact of single-use plastics and possible alternatives.",
+    "sufficientAnswer": "Say whether plastic bags should be banned and give at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
   "env_11": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
     "structures": [],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Suggest ways to save species like pandas, polar bears, or bees.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Suggest at least two ways to protect endangered animals, such as protecting habitats or reducing pollution.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "env_12": {
     "cognitiveDemand": "describe",
     "timeFrames": [
-      "present",
       "past"
     ],
-    "structures": [],
+    "structures": [
+      "perfect"
+    ],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Describe any green activity like planting trees or a beach clean-up (past tense).",
+    "lexicalReach": "everyday",
+    "sufficientAnswer": "Describe a green project you took part in, using the past tense, with at least two details.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "env_13": {
     "cognitiveDemand": "justify",
@@ -205,37 +209,40 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [
-      "opinion"
+      "opinion",
+      "justification"
     ],
     "responseLoad": "developed",
     "lexicalReach": "abstract",
-    "sufficientAnswer": "Give your opinion on the gravity of climate change.",
+    "sufficientAnswer": "Say whether global warming is the biggest threat to humanity and give at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
   "env_14": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "justify",
     "timeFrames": [
       "present"
     ],
-    "structures": [],
+    "structures": [
+      "justification"
+    ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the impact of fast fashion on the environment and workers.",
+    "sufficientAnswer": "Say whether ethical fashion matters and give at least two reasons, such as pollution or working conditions.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "env_15": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
     "structures": [],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Discuss flights, hotel waste, and the destruction of natural sites.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Explain at least two effects of tourism on the environment, such as flights, waste or damage to natural sites.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "env_16": {
     "cognitiveDemand": "justify",
@@ -243,11 +250,12 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [
-      "opinion"
+      "opinion",
+      "justification"
     ],
     "responseLoad": "developed",
     "lexicalReach": "abstract",
-    "sufficientAnswer": "Discuss solar, wind, and hydraulic energy vs. fossil fuels.",
+    "sufficientAnswer": "Say whether renewable energy is the solution and give at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
@@ -259,9 +267,9 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Suggest ideas like better education, more bins, or financial incentives.",
+    "sufficientAnswer": "Suggest at least two ways to encourage people to recycle more, such as education or more bins.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.55
+    "inferenceConfidence": 0.8
   },
   "env_18": {
     "cognitiveDemand": "hypothesize",
@@ -285,10 +293,10 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "justification"
     ],
     "responseLoad": "developed",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss plastic pollution, marine life, and the role of oceans in the climate.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Explain why protecting the oceans matters, with at least two reasons such as marine life, plastic or climate.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.65
+    "inferenceConfidence": 0.8
   },
   "env_20": {
     "cognitiveDemand": "justify",
@@ -300,7 +308,7 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss planting more trees and parks in cities.",
+    "sufficientAnswer": "Give your opinion on planting more trees and parks in cities, with at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
@@ -311,10 +319,10 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     ],
     "structures": [],
     "responseLoad": "developed",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about your personal actions like transport, diet, and consumption.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Explain at least two things you do to reduce your carbon footprint, such as transport, food or shopping.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.55
+    "inferenceConfidence": 0.8
   },
   "env_22": {
     "cognitiveDemand": "explain",
@@ -325,10 +333,10 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "justification"
     ],
     "responseLoad": "developed",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the role of insects in pollination and the food chain.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Explain why bees and insects matter, with at least two reasons such as pollination or the food chain.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.65
+    "inferenceConfidence": 0.8
   },
   "env_23": {
     "cognitiveDemand": "justify",
@@ -339,39 +347,36 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "opinion"
     ],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Discuss how noise and too much light affect people and wildlife in cities.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Give your opinion on noise and light pollution in cities, with at least one effect on people or animals.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
   "env_24": {
     "cognitiveDemand": "describe",
     "timeFrames": [
-      "present",
       "past"
     ],
     "structures": [
-      "comparison"
+      "perfect"
     ],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Talk about environmental activism, protests, or school campaigns.",
+    "lexicalReach": "everyday",
+    "sufficientAnswer": "Say whether you have taken part in an environmental campaign and describe it in the past tense, with at least two details.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "env_25": {
-    "cognitiveDemand": "explain",
+    "cognitiveDemand": "describe",
     "timeFrames": [
       "present"
     ],
-    "structures": [
-      "comparison"
-    ],
+    "structures": [],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Discuss air pollution levels where you live and what causes them.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Describe the air quality where you live and name at least one cause of pollution.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.55
+    "inferenceConfidence": 0.8
   },
   "env_26": {
     "cognitiveDemand": "explain",
@@ -380,10 +385,10 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     ],
     "structures": [],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Discuss ways to use less paper at home or school using technology.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Suggest at least two ways to use less paper in the digital age, such as tablets or online reading.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.55
+    "inferenceConfidence": 0.8
   },
   "env_27": {
     "cognitiveDemand": "describe",
@@ -391,11 +396,11 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "short",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Describe the features of a sustainable house using the conditional.",
+    "responseLoad": "developed",
+    "lexicalReach": "everyday",
+    "sufficientAnswer": "Describe an ideal eco-friendly house with at least three features, such as solar panels or good insulation.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "env_28": {
     "cognitiveDemand": "explain",
@@ -403,11 +408,11 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "short",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Discuss how you can influence your peers to adopt greener habits.",
+    "responseLoad": "developed",
+    "lexicalReach": "everyday",
+    "sufficientAnswer": "Explain at least two ways to encourage friends to be greener, such as setting an example.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.55
+    "inferenceConfidence": 0.8
   },
   "env_29": {
     "cognitiveDemand": "justify",
@@ -415,26 +420,25 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [
-      "opinion",
-      "comparison"
+      "opinion"
     ],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Discuss if sharing resources like cars or homes helps the planet.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Give your opinion on whether the sharing economy helps the planet, with at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
   "env_30": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
     "structures": [],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Discuss the role of protected areas for nature and tourism.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Explain why national parks are important, with at least two reasons.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "env_31": {
     "cognitiveDemand": "justify",
@@ -446,7 +450,7 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss upcycling and fixing broken items instead of buying new ones.",
+    "sufficientAnswer": "Give your opinion on repairing instead of replacing, with at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
@@ -460,21 +464,23 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the excessive use of plastic packaging and its impact.",
+    "sufficientAnswer": "Give your opinion on excess packaging in supermarkets, with at least one example and one reason.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
   "env_33": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
-    "structures": [],
+    "structures": [
+      "justification"
+    ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Explain what composting is and how it helps reduce landfill waste.",
+    "sufficientAnswer": "Say whether you compost at home and give at least one reason why or why not.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "env_34": {
     "cognitiveDemand": "justify",
@@ -482,25 +488,26 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [
-      "opinion"
+      "opinion",
+      "justification"
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the challenges and benefits of trying to eliminate waste completely.",
+    "sufficientAnswer": "Say whether a zero-waste lifestyle is possible and give at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
   "env_35": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
     "structures": [],
-    "responseLoad": "short",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about the mental health impact of climate change on the younger generation.",
+    "responseLoad": "developed",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Say whether you hear about eco-anxiety and explain it, with at least two reasons why young people feel it.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "env_36": {
     "cognitiveDemand": "justify",
@@ -510,9 +517,9 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [
       "opinion"
     ],
-    "responseLoad": "extended",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss digital pollution, such as energy used by data centers and streaming.",
+    "responseLoad": "developed",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Give your opinion on the internet's carbon footprint, with at least one example such as streaming or data centres.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
@@ -525,10 +532,10 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "justification"
     ],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Discuss the role of trees in absorbing CO2 and protecting biodiversity.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Explain why protecting forests matters, with at least two reasons such as CO2 or animal habitats.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.65
+    "inferenceConfidence": 0.8
   },
   "env_38": {
     "cognitiveDemand": "justify",
@@ -539,8 +546,8 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "opinion"
     ],
     "responseLoad": "developed",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the impact of chemicals on bees, biodiversity, and human health.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Give your opinion on pesticides in farming, with at least two effects on nature or health.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
@@ -553,34 +560,36 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "opinion"
     ],
     "responseLoad": "developed",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the trend of growing food and plants in city centers or on buildings.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Give your opinion on vertical gardens and urban farms, with at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
   "env_40": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
     "structures": [],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Discuss the environmental cost of the mass production of cheap clothing.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Explain what fast fashion is and describe at least two effects on the environment.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "env_41": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
-    "structures": [],
+    "structures": [
+      "justification"
+    ],
     "responseLoad": "developed",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about solar panels, heat pumps, or insulation improvements.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Say whether it is easy to install renewable energy at home and give at least two reasons such as cost or space.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "fam_01": {
     "cognitiveDemand": "describe",
@@ -1186,21 +1195,21 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe your typical lunch — what, where, with whom. Include a past example.",
+    "sufficientAnswer": "Describe your usual lunch with at least three details, such as what you eat, where and with whom.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "foo_02": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Discuss healthy habits — diet, exercise, sleep, screen time. Be honest!",
+    "responseLoad": "developed",
+    "lexicalReach": "everyday",
+    "sufficientAnswer": "Say whether you look after your health and explain how, with at least two habits such as diet, exercise or sleep.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "foo_03": {
     "cognitiveDemand": "describe",
@@ -1208,24 +1217,25 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe your favourite dish, its ingredients, whether you can cook it.",
+    "sufficientAnswer": "Name your favourite dish with at least two ingredients and say whether you can cook it.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "foo_04": {
     "cognitiveDemand": "describe",
     "timeFrames": [
-      "present",
       "past"
     ],
-    "structures": [],
-    "responseLoad": "short",
+    "structures": [
+      "perfect"
+    ],
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe your dinner from last night using the past tense.",
+    "sufficientAnswer": "Describe what you ate last night in the past tense, with at least two items.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "foo_05": {
     "cognitiveDemand": "compare",
@@ -1233,37 +1243,40 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [
-      "comparison"
+      "comparison",
+      "justification"
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Compare eating at home and dining out, giving reasons for your preference.",
+    "sufficientAnswer": "Say whether you prefer eating at home or in a restaurant and give at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
   "foo_06": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "justify",
     "timeFrames": [
       "present"
     ],
     "structures": [],
-    "responseLoad": "short",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Give your opinion on fast food — convenience vs. health concerns.",
+    "sufficientAnswer": "Give your opinion on fast food, with at least one advantage such as speed and one drawback such as health.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "foo_07": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "justify",
     "timeFrames": [
       "present"
     ],
-    "structures": [],
-    "responseLoad": "short",
+    "structures": [
+      "justification"
+    ],
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss whether cooking should be a mandatory subject in school.",
+    "sufficientAnswer": "Say whether learning to cook at school is important and give at least two reasons.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "foo_08": {
     "cognitiveDemand": "justify",
@@ -1273,23 +1286,25 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [
       "justification"
     ],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss foods you dislike — taste, texture, or health reasons.",
+    "sufficientAnswer": "Name at least one food you dislike and give a reason such as taste, texture or health.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.75
+    "inferenceConfidence": 0.8
   },
   "foo_09": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
-    "structures": [],
+    "structures": [
+      "justification"
+    ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss organic food — health benefits, cost, and environment.",
+    "sufficientAnswer": "Say whether you often eat organic food and give at least one reason, such as health, cost or the environment.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "foo_10": {
     "cognitiveDemand": "describe",
@@ -1299,33 +1314,37 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about French pastries or desserts you enjoy.",
+    "sufficientAnswer": "Name your favourite French dessert and say at least two things about it.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "foo_11": {
     "cognitiveDemand": "describe",
     "timeFrames": [
-      "present"
+      "past"
     ],
-    "structures": [],
+    "structures": [
+      "perfect"
+    ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe a special meal — celebration, restaurant, or home-cooked (past tense).",
+    "sufficientAnswer": "Describe a recent special meal in the past tense, with at least three details such as where, who and what you ate.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.9
+    "inferenceConfidence": 0.8
   },
   "foo_12": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
-    "structures": [],
+    "structures": [
+      "justification"
+    ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss your hydration habits and why water is important.",
+    "sufficientAnswer": "Say whether you drink enough water and explain why water is important, with at least one reason.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "foo_13": {
     "cognitiveDemand": "describe",
@@ -1335,9 +1354,9 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe what you eat and drink in the morning.",
+    "sufficientAnswer": "Describe your favourite breakfast with at least two things you eat or drink.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "foo_14": {
     "cognitiveDemand": "justify",
@@ -1345,28 +1364,28 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [
-      "opinion"
+      "opinion",
+      "justification"
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Evaluate the nutritional value of your school lunches.",
+    "sufficientAnswer": "Say whether school canteen meals are balanced and give at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
   "foo_15": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
-      "present",
       "past"
     ],
     "structures": [
-      "comparison"
+      "perfect"
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about your experience or opinion on meat-free diets.",
+    "sufficientAnswer": "Say whether you have tried a vegetarian or vegan diet and describe what it was like, with at least one detail.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "foo_16": {
     "cognitiveDemand": "describe",
@@ -1376,9 +1395,9 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Explain the steps and ingredients of a dish you can cook.",
+    "sufficientAnswer": "Describe a recipe you can make alone, with at least two ingredients and two steps.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.9
+    "inferenceConfidence": 0.8
   },
   "foo_17": {
     "cognitiveDemand": "describe",
@@ -1388,22 +1407,23 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about your snacking habits and if they are healthy.",
+    "sufficientAnswer": "Say whether you snack between meals, name at least two snacks and say whether they are healthy.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "foo_18": {
     "cognitiveDemand": "describe",
     "timeFrames": [
-      "present",
       "past"
     ],
-    "structures": [],
+    "structures": [
+      "perfect"
+    ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe a food experience that was unusual or surprising (past tense).",
+    "sufficientAnswer": "Describe the strangest dish you have tasted, in the past tense, with at least two details.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "foo_19": {
     "cognitiveDemand": "explain",
@@ -1415,9 +1435,9 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the benefits of conversation and social bonding during meals.",
+    "sufficientAnswer": "Explain why eating together without screens matters, with at least two reasons.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.65
+    "inferenceConfidence": 0.8
   },
   "foo_20": {
     "cognitiveDemand": "justify",
@@ -1425,11 +1445,12 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [
-      "opinion"
+      "opinion",
+      "justification"
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss if shows like Top Chef or Masterchef inspire people to cook.",
+    "sufficientAnswer": "Say whether cooking shows on TV are useful and give at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
@@ -1440,10 +1461,10 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     ],
     "structures": [],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Discuss solutions like better planning, donating leftovers, or buying 'ugly' fruit.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Explain at least two ways to reduce food waste, such as planning meals or giving away leftovers.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.55
+    "inferenceConfidence": 0.8
   },
   "foo_22": {
     "cognitiveDemand": "compare",
@@ -1451,11 +1472,12 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [
-      "comparison"
+      "comparison",
+      "justification"
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "A complete answer should: Compare quick takeaway food with home-cooked meals.",
+    "sufficientAnswer": "Say whether you prefer fast food or home-cooked meals and give at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
@@ -1466,22 +1488,25 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     ],
     "structures": [],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Discuss beverage culture and social habits around coffee/tea.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Say what role coffee and tea play in your culture, with at least two details.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "foo_24": {
-    "cognitiveDemand": "explain",
+    "cognitiveDemand": "compare",
     "timeFrames": [
+      "past",
       "present"
     ],
-    "structures": [],
-    "responseLoad": "short",
+    "structures": [
+      "imperfect"
+    ],
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Compare what you ate as a child with your diet now.",
+    "sufficientAnswer": "Compare what you ate as a child with what you eat now, with at least two differences.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.55
+    "inferenceConfidence": 0.8
   },
   "foo_25": {
     "cognitiveDemand": "justify",
@@ -1489,14 +1514,13 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [
-      "justification",
-      "comparison"
+      "justification"
     ],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Compare supermarkets and local markets for food shopping.",
+    "sufficientAnswer": "Say where you prefer to buy food and give at least two reasons.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.75
+    "inferenceConfidence": 0.8
   },
   "foo_26": {
     "cognitiveDemand": "describe",
@@ -1506,23 +1530,21 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about your favorite non-alcoholic drink and when you enjoy it.",
+    "sufficientAnswer": "Name your favourite drink and say when you drink it.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "foo_27": {
     "cognitiveDemand": "describe",
     "timeFrames": [
       "present"
     ],
-    "structures": [
-      "comparison"
-    ],
+    "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss traditional or festive meals in your culture or family.",
+    "sufficientAnswer": "Name at least two special dishes you prepare for celebrations and say what is in them.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "foo_28": {
     "cognitiveDemand": "justify",
@@ -1534,36 +1556,36 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Give your opinion on street food — variety, speed, and quality.",
+    "sufficientAnswer": "Give your opinion on street food and food trucks, with at least one advantage and one drawback.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
   "foo_29": {
     "cognitiveDemand": "describe",
     "timeFrames": [
-      "present",
-      "past"
+      "past",
+      "present"
     ],
-    "structures": [],
-    "responseLoad": "short",
+    "structures": [
+      "imperfect"
+    ],
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about a childhood favorite dish that you still enjoy today.",
+    "sufficientAnswer": "Name a dish you loved as a child and still like, and say why, using the imperfect for the past.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "foo_30": {
     "cognitiveDemand": "describe",
     "timeFrames": [
       "present"
     ],
-    "structures": [
-      "comparison"
-    ],
-    "responseLoad": "short",
+    "structures": [],
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Identify one specific ingredient you love using when you cook.",
+    "sufficientAnswer": "Name your favourite ingredient or spice and say how you use it.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "foo_31": {
     "cognitiveDemand": "justify",
@@ -1574,8 +1596,8 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "opinion"
     ],
     "responseLoad": "developed",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss modern food technology and its ethical or environmental benefits.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Give your opinion on lab-grown meat and the future of food, with at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
@@ -1585,11 +1607,11 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about hosting friends and what you like to cook for them.",
+    "sufficientAnswer": "Say whether you like inviting friends to dinner and name at least two things you prepare.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "foo_33": {
     "cognitiveDemand": "explain",
@@ -1601,9 +1623,9 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the benefits of eating fruits and vegetables that are currently in season.",
+    "sufficientAnswer": "Explain why eating seasonal food matters, with at least two reasons.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.65
+    "inferenceConfidence": 0.8
   },
   "foo_34": {
     "cognitiveDemand": "compare",
@@ -1611,11 +1633,12 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [
-      "comparison"
+      "comparison",
+      "justification"
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss your preference for local food vs. food from other countries.",
+    "sufficientAnswer": "Say whether you prefer local or imported food and give at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
@@ -1629,50 +1652,47 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the convenience versus the cost and health impact of delivery apps.",
+    "sufficientAnswer": "Give your opinion on food delivery apps, with at least one advantage and one drawback.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
   "foo_36": {
-    "cognitiveDemand": "justify",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
     "structures": [
       "justification"
     ],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about your tolerance for spicy food and any specific dishes you like.",
+    "sufficientAnswer": "Say whether you like spicy food, give a reason and name at least one dish.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.75
+    "inferenceConfidence": 0.8
   },
   "foo_37": {
     "cognitiveDemand": "describe",
     "timeFrames": [
-      "present",
-      "future"
+      "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe an outdoor eating experience, the food you take, and the location.",
+    "sufficientAnswer": "Say whether you like picnics, where you go and what you take.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "foo_38": {
     "cognitiveDemand": "describe",
     "timeFrames": [
       "present"
     ],
-    "structures": [
-      "comparison"
-    ],
+    "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss learning to cook from family members and sharing traditional recipes.",
+    "sufficientAnswer": "Say whether you cook with parents or grandparents and name at least two dishes you make together.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "foo_39": {
     "cognitiveDemand": "justify",
@@ -1680,11 +1700,12 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [
-      "opinion"
+      "opinion",
+      "justification"
     ],
     "responseLoad": "developed",
     "lexicalReach": "abstract",
-    "sufficientAnswer": "Discuss the health risks of processed foods and hidden additives.",
+    "sufficientAnswer": "Say whether there is too much sugar and salt in our food and give at least two reasons or examples.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
@@ -1694,11 +1715,11 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about food intolerances or allergies and how they affect daily life.",
+    "sufficientAnswer": "Say whether you know someone with a food allergy and explain how they manage, with at least two details.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.55
+    "inferenceConfidence": 0.8
   },
   "foo_41": {
     "cognitiveDemand": "describe",
@@ -1706,11 +1727,11 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss fruits that aren't native to your area and their availability.",
+    "sufficientAnswer": "Say whether you like exotic fruit and name at least two.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "foo_42": {
     "cognitiveDemand": "describe",
@@ -1720,9 +1741,9 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Explain the ingredients and preparation of a culturally significant dish.",
+    "sufficientAnswer": "Describe a traditional dish from your country to a foreigner, with at least two ingredients and one step.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.9
+    "inferenceConfidence": 0.8
   },
   "foo_43": {
     "cognitiveDemand": "describe",
@@ -1732,9 +1753,9 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe a special morning meal for a birthday or holiday.",
+    "sufficientAnswer": "Describe a festive breakfast, with at least two things you would eat or drink.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "foo_44": {
     "cognitiveDemand": "justify",
@@ -1742,11 +1763,12 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [
-      "opinion"
+      "opinion",
+      "justification"
     ],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Discuss hygiene and safety measures when preparing food.",
+    "lexicalReach": "everyday",
+    "sufficientAnswer": "Say whether safety in the kitchen is important and give at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
@@ -1759,8 +1781,8 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "opinion"
     ],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Discuss how Instagram or TikTok affect what and where people eat.",
+    "lexicalReach": "everyday",
+    "sufficientAnswer": "Give your opinion on how social media influences food choices, with at least one example.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
@@ -1773,23 +1795,23 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [
       "conditional"
     ],
-    "responseLoad": "extended",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the fusion of science and cooking (foams, spheres, etc.).",
+    "responseLoad": "developed",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Say whether you know molecular cooking and whether you would taste it, with at least one reason.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "foo_47": {
-    "cognitiveDemand": "justify",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
     "structures": [
-      "opinion"
+      "justification"
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the possibility of printing meals and its benefits.",
+    "sufficientAnswer": "Say whether you buy ready meals and give at least two reasons, such as speed, price or health.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
@@ -1799,11 +1821,12 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [
-      "opinion"
+      "opinion",
+      "justification"
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Compare school lunches globally (e.g., France vs. USA vs. Japan).",
+    "sufficientAnswer": "Say whether school meals are better in some countries and give at least two reasons or examples.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
@@ -1816,37 +1839,36 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "opinion"
     ],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Discuss the health risks of caffeine and sugar for students.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Give your opinion on energy drinks among young people, with at least two risks or reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
   "foo_50": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "justify",
     "timeFrames": [
       "present"
     ],
     "structures": [
-      "comparison"
+      "justification"
     ],
     "responseLoad": "developed",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the ethics and safety of genetically modified food.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Say whether you are for or against GM food and give at least two reasons.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "foo_51": {
     "cognitiveDemand": "describe",
     "timeFrames": [
-      "present",
-      "past"
+      "present"
     ],
     "structures": [],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Discuss food festivals and their role in celebrating culture.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Say whether you know the French Gastronomy Festival and describe one food festival in your country.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "foo_52": {
     "cognitiveDemand": "justify",
@@ -1854,11 +1876,12 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [
-      "opinion"
+      "opinion",
+      "justification"
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss cooking as a creative and relaxing hobby.",
+    "sufficientAnswer": "Say whether cooking can reduce stress and give at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
@@ -1872,24 +1895,23 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the ethics of marketing junk food to minors.",
+    "sufficientAnswer": "Give your opinion on food adverts aimed at children, with at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
   "foo_54": {
     "cognitiveDemand": "describe",
     "timeFrames": [
-      "present",
       "past"
     ],
     "structures": [
-      "comparison"
+      "perfect"
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss foraging for wild food and the risks/benefits.",
+    "sufficientAnswer": "Say whether you have picked wild fruit or mushrooms and say where and with whom.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "foo_55": {
     "cognitiveDemand": "justify",
@@ -1897,11 +1919,12 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [
-      "opinion"
+      "opinion",
+      "justification"
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "A complete answer should: Discuss government measures to reduce obesity.",
+    "sufficientAnswer": "Say whether a sugar tax is a good idea and give at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
@@ -1911,28 +1934,26 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [
-      "comparison"
+      "comparison",
+      "justification"
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Compare packed lunches from home with school-provided meals.",
+    "sufficientAnswer": "Say whether you prefer a packed lunch or the canteen and give at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
   "foo_57": {
     "cognitiveDemand": "describe",
     "timeFrames": [
-      "present",
-      "past"
+      "present"
     ],
-    "structures": [
-      "comparison"
-    ],
+    "structures": [],
     "responseLoad": "developed",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Mention at least two of: Discuss nutrient-dense foods and their popularity.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Say whether you know about superfoods and name at least one you eat.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "foo_58": {
     "cognitiveDemand": "justify",
@@ -1940,12 +1961,11 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [
-      "opinion",
-      "comparison"
+      "opinion"
     ],
     "responseLoad": "developed",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss foods with probiotics and their impact on digestion.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Give your opinion on fermented foods such as yoghurt or kimchi, with at least one reason.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
@@ -1955,62 +1975,66 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [
-      "justification",
-      "comparison"
+      "justification"
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the 'third space' concept and working in public.",
+    "sufficientAnswer": "Explain why cafés are popular for working or studying, with at least two reasons.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.65
+    "inferenceConfidence": 0.8
   },
   "foo_60": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "justify",
     "timeFrames": [
-      "present"
+      "conditional"
     ],
-    "structures": [],
+    "structures": [
+      "conditional",
+      "justification"
+    ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss food tourism and the importance of gastronomy in travel.",
+    "sufficientAnswer": "Say whether you would travel to a country just for its food and give at least two reasons.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "foo_61": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "justify",
     "timeFrames": [
       "present"
     ],
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the pros and cons of all-you-can-eat restaurants.",
+    "sufficientAnswer": "Give your opinion on all-you-can-eat restaurants, with at least one advantage and one drawback.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "foo_62": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
     "structures": [],
     "responseLoad": "developed",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss food charity and helping people in need.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Say whether you know what food banks do and explain how they help people, with at least two points.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "foo_63": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
-    "structures": [],
+    "structures": [
+      "justification"
+    ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss shows like MasterChef or Great British Bake Off.",
+    "sufficientAnswer": "Say whether you like watching cooking competitions on TV and give at least one reason.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "foo_64": {
     "cognitiveDemand": "hypothesize",
@@ -2035,22 +2059,24 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "justification"
     ],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Discuss the cultural history and importance of French bread.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Explain why the baguette is a symbol of France, with at least two reasons.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.65
+    "inferenceConfidence": 0.8
   },
   "foo_66": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
-    "structures": [],
+    "structures": [
+      "justification"
+    ],
     "responseLoad": "developed",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Mention at least two of: Discuss nutritional labeling and making healthy choices.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Say whether you check the Nutri-Score before buying and give at least one reason.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "foo_67": {
     "cognitiveDemand": "justify",
@@ -2061,8 +2087,8 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "opinion"
     ],
     "responseLoad": "developed",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Mention at least two of: Discuss urban agriculture and local production.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Give your opinion on vertical farms in city centres, with at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
@@ -2072,11 +2098,12 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [
-      "comparison"
+      "comparison",
+      "justification"
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Compare home-made snacks like cookies with store-bought ones.",
+    "sufficientAnswer": "Say whether you prefer home-made or shop-bought snacks and give at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
@@ -2089,8 +2116,8 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "opinion"
     ],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Discuss alternatives to dairy and why people choose them.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Give your opinion on plant-based milks, with at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
@@ -2103,23 +2130,22 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "justification"
     ],
     "responseLoad": "developed",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Mention at least two of: Discuss overfishing and ocean conservation.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Explain why sustainable fishing matters, with at least two reasons.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.65
+    "inferenceConfidence": 0.8
   },
   "foo_71": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
-      "present",
-      "past"
+      "present"
     ],
     "structures": [],
     "responseLoad": "developed",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the philosophy of eating slowly and valuing local traditions.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Say whether you know the Slow Food movement and describe what it stands for, with at least two ideas.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "foo_72": {
     "cognitiveDemand": "explain",
@@ -2127,37 +2153,35 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "short",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "A complete answer should: Discuss how rising temperatures threaten certain crops.",
+    "responseLoad": "developed",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Explain how climate change affects chocolate and coffee, with at least two effects.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.55
+    "inferenceConfidence": 0.8
   },
   "foo_73": {
     "cognitiveDemand": "describe",
     "timeFrames": [
       "present"
     ],
-    "structures": [
-      "comparison"
-    ],
+    "structures": [],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Discuss the link between food and memory (like Proust's Madeleine).",
+    "lexicalReach": "everyday",
+    "sufficientAnswer": "Say whether a smell or taste reminds you of a childhood memory, and describe it.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "foo_74": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
     "structures": [],
-    "responseLoad": "short",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Discuss how the French stay healthy despite a rich diet.",
+    "responseLoad": "developed",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Say whether you know the French paradox and explain it, with at least two possible reasons.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "fut_01": {
     "cognitiveDemand": "describe",

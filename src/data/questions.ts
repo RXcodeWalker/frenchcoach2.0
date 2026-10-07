@@ -707,6 +707,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Qu'est-ce que tu manges normalement au déjeuner ?",
     hint: "Describe your typical lunch — what, where, with whom. Include a past example.",
+    subTopic: "meals-and-habits",
+    coachHint: {
+      ideas: ["Say what you eat (a sandwich, a hot meal, school lunch)", "Say where you eat it", "Say who you eat with"],
+      phrase: { fr: "Au déjeuner, je mange normalement… à… avec…", en: "At lunch I normally eat… at… with…" },
+    },
     difficulty: 1,
     followUps: [
       "Tu apportes ton déjeuner de chez toi ou tu manges à la cantine ?",
@@ -726,8 +731,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_02",
     topicKey: "food",
-    text: "Est-ce que tu fais attention à ta santé ?",
+    text: "Est-ce que tu fais attention à ta santé ? Comment ?",
     hint: "Discuss healthy habits — diet, exercise, sleep, screen time. Be honest!",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Say yes or no", "Name two habits (diet, sport, sleep)", "Say one thing you could do better"],
+      phrase: { fr: "Je fais attention à ma santé en… et en…", en: "I look after my health by… and by…" },
+    },
     difficulty: 2,
     followUps: [
       "Tu fais de l'exercice régulièrement ?",
@@ -749,6 +759,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Quel est ton plat préféré ? Est-ce que tu sais le préparer ?",
     hint: "Describe your favourite dish, its ingredients, whether you can cook it.",
+    subTopic: "favourite-foods",
+    coachHint: {
+      ideas: ["Name the dish", "Name two ingredients", "Say whether you can cook it, or who does"],
+      phrase: { fr: "Mon plat préféré, c'est… avec…", en: "My favourite dish is… with…" },
+    },
     difficulty: 1,
     followUps: [
       "Tu aimes cuisiner ? Qu'est-ce que tu sais faire ?",
@@ -772,6 +787,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Qu'est-ce que tu fais pour protéger l'environnement ?",
     hint: "Discuss specific eco-friendly actions you take at home, school, or in your community.",
+    subTopic: "everyday-eco-habits",
+    coachHint: {
+      ideas: ["Name two actions (recycling, cycling, saving energy)", "Say where you do them (home, school)", "Say why you do them"],
+      phrase: { fr: "Pour protéger l'environnement, je recycle et je…", en: "To protect the environment I recycle and I…" },
+    },
     difficulty: 2,
     followUps: [
       "Penses-tu que les gouvernements font assez pour l'environnement ?",
@@ -791,8 +811,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "env_02",
     topicKey: "environment",
-    text: "Est-ce que la technologie joue un rôle important dans ta vie ?",
+    text: "Est-ce que la technologie joue un rôle important dans ta vie ? Comment ?",
     hint: "Discuss how technology affects your daily life — positives and negatives.",
+    subTopic: "technology",
+    coachHint: {
+      ideas: ["Say yes or no", "Name two uses (phone, homework, music)", "Mention one drawback"],
+      phrase: { fr: "La technologie est importante pour moi parce que…", en: "Technology is important for me because…" },
+    },
     difficulty: 2,
     followUps: [
       "Tu penses que les jeunes sont trop dépendants de la technologie ?",
@@ -1426,6 +1451,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Qu'est-ce que tu as mangé hier soir ?",
     hint: "Describe your dinner from last night using the past tense.",
+    subTopic: "meals-and-habits",
+    coachHint: {
+      ideas: ["Name what you ate last night", "Say who cooked it", "Say whether you liked it"],
+      phrase: { fr: "Hier soir, j'ai mangé… et on a…", en: "Last night I ate… and we…" },
+    },
     difficulty: 1,
     followUps: [
       "C'était bon ?",
@@ -1445,8 +1475,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_05",
     topicKey: "food",
-    text: "Est-ce que tu préfères manger à la maison ou au restaurant ?",
+    text: "Est-ce que tu préfères manger à la maison ou au restaurant ? Pourquoi ?",
     hint: "Compare eating at home and dining out, giving reasons for your preference.",
+    subTopic: "eating-out-and-shopping",
+    coachHint: {
+      ideas: ["Say which you prefer", "Give two reasons (price, atmosphere, taste)", "Say how often you eat out"],
+      phrase: { fr: "Je préfère manger… parce que…", en: "I prefer eating… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Quel est ton restaurant préféré ?",
@@ -1468,6 +1503,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Qu'est-ce que tu penses des fast-foods ?",
     hint: "Give your opinion on fast food — convenience vs. health concerns.",
+    subTopic: "eating-out-and-shopping",
+    coachHint: {
+      ideas: ["Say what you think of fast food", "Give one advantage (quick, cheap)", "Give one drawback (unhealthy)"],
+      phrase: { fr: "Je trouve que le fast-food est… mais…", en: "I find that fast food is… but…" },
+    },
     difficulty: 2,
     followUps: [
       "À quelle fréquence manges-tu du fast-food ?",
@@ -1487,8 +1527,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_07",
     topicKey: "food",
-    text: "Est-il important d'apprendre à cuisiner à l'école ?",
+    text: "Est-il important d'apprendre à cuisiner à l'école ? Pourquoi ?",
     hint: "Discuss whether cooking should be a mandatory subject in school.",
+    subTopic: "cooking",
+    coachHint: {
+      ideas: ["Say yes or no", "Give two reasons (independence, health, money)", "Say what dish you would teach"],
+      phrase: { fr: "Il est important d'apprendre à cuisiner parce que…", en: "It is important to learn to cook because…" },
+    },
     difficulty: 3,
     followUps: [
       "Est-ce que tu avez des cours de cuisine dans ton école ?",
@@ -1512,6 +1557,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Quels sont les plus grands problèmes environnementaux aujourd'hui ?",
     hint: "Identify and discuss major environmental issues like climate change, pollution, or deforestation.",
+    subTopic: "climate-and-energy",
+    coachHint: {
+      ideas: ["Name two problems (warming, pollution, forests)", "Say what causes each", "Say which worries you most"],
+      phrase: { fr: "Je pense au réchauffement, à… et à…", en: "I think of warming, of… and of…" },
+    },
     difficulty: 3,
     followUps: [
       "Lequel de ces problèmes t'inquiète le plus ?",
@@ -1533,6 +1583,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Est-ce que tu utilises souvent les transports en commun ? Pourquoi ?",
     hint: "Discuss your use of bus, train, or metro, and its environmental impact.",
+    subTopic: "everyday-eco-habits",
+    coachHint: {
+      ideas: ["Say how often you use it and for what", "Give one reason (cheap, practical, green)", "Say what you would use otherwise"],
+      phrase: { fr: "J'utilise les transports en commun parce que…", en: "I use public transport because…" },
+    },
     difficulty: 1,
     followUps: [
       "Quels transports en commun y a-t-il dans ta ville ?",
@@ -1554,6 +1609,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Que penses-tu du recyclage ?",
     hint: "Give your opinion on recycling, explain what you recycle and why it's important.",
+    subTopic: "waste-and-recycling",
+    coachHint: {
+      ideas: ["Say what you think", "Name what you recycle", "Say who does it at home"],
+      phrase: { fr: "Je pense que le recyclage est… parce que…", en: "I think recycling is… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que c'est facile de recycler dans ton quartier ?",
@@ -2187,6 +2247,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Qu'est-ce que tu n'aimes pas manger ? Pourquoi ?",
     hint: "Discuss foods you dislike — taste, texture, or health reasons.",
+    subTopic: "favourite-foods",
+    coachHint: {
+      ideas: ["Name a food you dislike", "Say why (taste, texture, health)", "Say whether you eat it anyway"],
+      phrase: { fr: "Je n'aime pas… parce que…", en: "I don't like… because…" },
+    },
     difficulty: 1,
     followUps: [
       "Y a-t-il un légume que tu détestes ?",
@@ -2206,8 +2271,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_09",
     topicKey: "food",
-    text: "Est-ce que tu manges souvent des produits bio ?",
+    text: "Est-ce que tu manges souvent des produits bio ? Pourquoi (pas) ?",
     hint: "Discuss organic food — health benefits, cost, and environment.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Say whether you buy organic", "Give a reason (health, price, nature)", "Say who decides at home"],
+      phrase: { fr: "Je mange des produits bio parce que… / parce que c'est cher.", en: "I eat organic food because… / because it is expensive." },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que c'est plus cher ?",
@@ -2229,6 +2299,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Quel est le dessert français que tu préfères ?",
     hint: "Talk about French pastries or desserts you enjoy.",
+    subTopic: "favourite-foods",
+    coachHint: {
+      ideas: ["Name the dessert", "Say what it contains or looks like", "Say when you eat it"],
+      phrase: { fr: "Mon dessert français préféré, c'est… parce que…", en: "My favourite French dessert is… because…" },
+    },
     difficulty: 1,
     followUps: [
       "Tu préfères les gâteaux ou les tartes ?",
@@ -2248,8 +2323,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_11",
     topicKey: "food",
-    text: "Parle-moi d'un repas spécial que tu as mangé récemment.",
+    text: "Qu'est-ce que tu as mangé lors de ton dernier repas spécial ?",
     hint: "Describe a special meal — celebration, restaurant, or home-cooked (past tense).",
+    subTopic: "meals-and-habits",
+    coachHint: {
+      ideas: ["Say what the occasion was and where", "Name two dishes", "Say who came and how it was"],
+      phrase: { fr: "La dernière fois, pour fêter…, j'ai mangé…", en: "Last time, to celebrate…, I ate…" },
+    },
     difficulty: 2,
     followUps: [
       "C'était pour quelle occasion ?",
@@ -2273,6 +2353,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Que penses-tu des voitures électriques ?",
     hint: "Discuss the pros and cons of electric vehicles for the environment.",
+    subTopic: "technology",
+    coachHint: {
+      ideas: ["Say what you think", "Give one advantage (no fumes, quiet)", "Give one drawback (price, charging)"],
+      phrase: { fr: "Les voitures électriques sont… mais…", en: "Electric cars are… but…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que tes parents ont une voiture électrique ?",
@@ -2292,8 +2377,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "env_07",
     topicKey: "environment",
-    text: "Est-ce que ton école est écologique ?",
+    text: "Est-ce que ton école est écologique ? Quelles actions fait-elle ?",
     hint: "Talk about environmental initiatives at your school.",
+    subTopic: "everyday-eco-habits",
+    coachHint: {
+      ideas: ["Say yes or no", "Name two things (bins, lights off, garden)", "Say what could be better"],
+      phrase: { fr: "Dans mon école, il y a des bacs pour…", en: "In my school there are bins for…" },
+    },
     difficulty: 2,
     followUps: [
       "Qu'est-ce que ton école fait pour recycler ?",
@@ -2315,6 +2405,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Qu'est-ce qu'on peut faire pour économiser l'eau à la maison ?",
     hint: "Suggest practical ways to reduce water consumption at home.",
+    subTopic: "everyday-eco-habits",
+    coachHint: {
+      ideas: ["Name two ways (short showers, taps off, rainwater)", "Say how much it saves", "Say what you do"],
+      phrase: { fr: "On peut prendre des douches courtes et…", en: "You can take short showers and…" },
+    },
     difficulty: 1,
     followUps: [
       "Prends-tu des douches ou des bains ?",
@@ -3128,8 +3223,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_12",
     topicKey: "food",
-    text: "Est-ce que tu bois assez d'eau chaque jour ?",
+    text: "Est-ce que tu bois assez d'eau chaque jour ? Pourquoi est-ce important ?",
     hint: "Discuss your hydration habits and why water is important.",
+    subTopic: "meals-and-habits",
+    coachHint: {
+      ideas: ["Say yes or no", "Give a reason water matters (health, energy)", "Say what else you drink"],
+      phrase: { fr: "Je bois… par jour parce que l'eau est importante pour…", en: "I drink… a day because water is important for…" },
+    },
     difficulty: 1,
     followUps: [
       "Combien de litres bois-tu environ ?",
@@ -3151,6 +3251,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Quel est ton petit-déjeuner préféré ?",
     hint: "Describe what you eat and drink in the morning.",
+    subTopic: "meals-and-habits",
+    coachHint: {
+      ideas: ["Name what you eat", "Name what you drink", "Say when and where"],
+      phrase: { fr: "Au petit-déjeuner, je mange… et je bois…", en: "For breakfast I eat… and I drink…" },
+    },
     difficulty: 1,
     followUps: [
       "Est-ce que tu manges salé ou sucré le matin ?",
@@ -3170,8 +3275,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_14",
     topicKey: "food",
-    text: "Penses-tu que les repas à la cantine sont équilibrés ?",
+    text: "Penses-tu que les repas à la cantine sont équilibrés ? Pourquoi (pas) ?",
     hint: "Evaluate the nutritional value of your school lunches.",
+    subTopic: "meals-and-habits",
+    coachHint: {
+      ideas: ["Say whether the meals are balanced", "Give one example (vegetables, chips)", "Say what you would change"],
+      phrase: { fr: "Je trouve les menus plutôt… parce que…", en: "I find the menus rather… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Qu'est-ce qu'on mange d'habitude ?",
@@ -3191,8 +3301,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_15",
     topicKey: "food",
-    text: "As-tu déjà essayé un régime végétarien ou végan ?",
+    text: "As-tu déjà essayé un régime végétarien ou végan ? Comment c'était ?",
     hint: "Talk about your experience or opinion on meat-free diets.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Say yes or no", "Say how long and why", "Say how it felt"],
+      phrase: { fr: "Oui, j'ai essayé… et c'était… / Non, jamais.", en: "Yes, I tried… and it was… / No, never." },
+    },
     difficulty: 2,
     followUps: [
       "Pourquoi les gens choisissent-ils d'être végétariens ?",
@@ -3214,6 +3329,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Parle-moi d'une recette que tu sais préparer tout(e) seul(e).",
     hint: "Explain the steps and ingredients of a dish you can cook.",
+    subTopic: "cooking",
+    coachHint: {
+      ideas: ["Name the dish", "List two ingredients", "Give two steps"],
+      phrase: { fr: "Pour faire…, il faut… et d'abord on…", en: "To make…, you need… and first you…" },
+    },
     difficulty: 2,
     followUps: [
       "C'est difficile à faire ?",
@@ -3235,8 +3355,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "env_09",
     topicKey: "environment",
-    text: "Est-ce qu'il y a beaucoup de déchets dans ta ville ?",
+    text: "Est-ce qu'il y a beaucoup de déchets dans ta ville ? Pourquoi, à ton avis ?",
     hint: "Talk about littering and cleanliness in your area.",
+    subTopic: "waste-and-recycling",
+    coachHint: {
+      ideas: ["Say whether there is a lot of litter", "Say where you see it", "Give a reason (people, few bins)"],
+      phrase: { fr: "Dans ma ville, il y a des déchets parce que…", en: "In my town there is litter because…" },
+    },
     difficulty: 1,
     followUps: [
       "Y a-t-il assez de poubelles publiques ?",
@@ -3256,8 +3381,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "env_10",
     topicKey: "environment",
-    text: "Penses-tu qu'on devrait interdire les sacs en plastique ?",
+    text: "Penses-tu qu'on devrait interdire les sacs en plastique ? Pourquoi (pas) ?",
     hint: "Discuss the impact of single-use plastics and possible alternatives.",
+    subTopic: "waste-and-recycling",
+    coachHint: {
+      ideas: ["Say whether you agree", "Give two reasons (oceans, animals, alternatives)", "Name an alternative"],
+      phrase: { fr: "Je pense qu'il faut interdire… parce que…", en: "I think we should ban… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Qu'est-ce qu'on peut utiliser à la place ?",
@@ -3279,6 +3409,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Que peut-on faire pour protéger les animaux en voie de disparition ?",
     hint: "Suggest ways to save species like pandas, polar bears, or bees.",
+    subTopic: "nature-and-wildlife",
+    coachHint: {
+      ideas: ["Name two ways (protect habitats, stop hunting, less pollution)", "Name an animal", "Say what individuals can do"],
+      phrase: { fr: "Pour protéger les animaux, il faut…", en: "To protect animals we must…" },
+    },
     difficulty: 3,
     followUps: [
       "Quel animal aimerais-tu sauver en priorité ?",
@@ -3298,8 +3433,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "env_12",
     topicKey: "environment",
-    text: "As-tu déjà participé à un projet écologique ?",
+    text: "As-tu déjà participé à un projet écologique ? Comment c'était ?",
     hint: "Describe any green activity like planting trees or a beach clean-up (past tense).",
+    subTopic: "everyday-eco-habits",
+    coachHint: {
+      ideas: ["Say what the project was", "Say what you did and who with", "Say how you felt"],
+      phrase: { fr: "L'année dernière, j'ai participé à… et on a…", en: "Last year I took part in… and we…" },
+    },
     difficulty: 2,
     followUps: [
       "C'était quoi exactement ?",
@@ -3319,8 +3459,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "env_13",
     topicKey: "environment",
-    text: "Penses-tu que le réchauffement climatique est la plus grande menace pour l'humanité ?",
+    text: "Penses-tu que le réchauffement climatique est la plus grande menace pour l'humanité ? Pourquoi (pas) ?",
     hint: "Give your opinion on the gravity of climate change.",
+    subTopic: "climate-and-energy",
+    coachHint: {
+      ideas: ["Say whether you agree", "Give two reasons (food, water, weather)", "Mention another big threat"],
+      phrase: { fr: "Je pense que le réchauffement est… parce que…", en: "I think global warming is… because…" },
+    },
     difficulty: 3,
     followUps: [
       "Pourquoi est-ce une menace ?",
@@ -4134,8 +4279,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_17",
     topicKey: "food",
-    text: "Est-ce que tu manges beaucoup de collations entre les repas ?",
+    text: "Est-ce que tu manges beaucoup de collations entre les repas ? Lesquelles ?",
     hint: "Talk about your snacking habits and if they are healthy.",
+    subTopic: "meals-and-habits",
+    coachHint: {
+      ideas: ["Say yes or no", "Name two snacks", "Say whether they are healthy"],
+      phrase: { fr: "Entre les repas, je mange souvent…", en: "Between meals I often eat…" },
+    },
     difficulty: 1,
     followUps: [
       "Qu'est-ce que tu manges d'habitude ?",
@@ -4157,6 +4307,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Quel est le plat le plus étrange que tu as déjà goûté ?",
     hint: "Describe a food experience that was unusual or surprising (past tense).",
+    subTopic: "favourite-foods",
+    coachHint: {
+      ideas: ["Name the dish and where you tried it", "Say what it was like", "Say whether you would try it again"],
+      phrase: { fr: "Le plat le plus étrange que j'ai goûté, c'était…", en: "The strangest dish I tasted was…" },
+    },
     difficulty: 2,
     followUps: [
       "C'était où ?",
@@ -4178,6 +4333,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Pourquoi est-il important de manger en famille sans écrans ?",
     hint: "Discuss the benefits of conversation and social bonding during meals.",
+    subTopic: "meals-and-habits",
+    coachHint: {
+      ideas: ["Give two reasons (talking, closeness, attention)", "Say what happens at your table", "Say whether phones are allowed"],
+      phrase: { fr: "Manger sans écrans est important parce que…", en: "Eating without screens is important because…" },
+    },
     difficulty: 2,
     followUps: [
       "Manges-tu souvent devant la télé ?",
@@ -4197,8 +4357,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_20",
     topicKey: "food",
-    text: "Penses-tu que les émissions de cuisine à la télé sont utiles ?",
+    text: "Penses-tu que les émissions de cuisine à la télé sont utiles ? Pourquoi (pas) ?",
     hint: "Discuss if shows like Top Chef or Masterchef inspire people to cook.",
+    subTopic: "cooking",
+    coachHint: {
+      ideas: ["Say whether they are useful", "Give two reasons (ideas, motivation)", "Name a show you know"],
+      phrase: { fr: "Ces émissions donnent des idées parce que…", en: "These shows give ideas because…" },
+    },
     difficulty: 2,
     followUps: [
       "Regardes-tu ce genre d'émissions ?",
@@ -4220,6 +4385,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Comment peut-on réduire le gaspillage alimentaire au niveau mondial ?",
     hint: "Discuss solutions like better planning, donating leftovers, or buying 'ugly' fruit.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Name two ways (plan meals, freeze food, give away)", "Say who should act (families, shops)", "Say what you do at home"],
+      phrase: { fr: "On peut mieux planifier les repas et donner…", en: "You can plan meals better and give away…" },
+    },
     difficulty: 3,
     followUps: [
       "Est-ce que tu jettes beaucoup de nourriture ?",
@@ -4241,8 +4411,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "env_14",
     topicKey: "environment",
-    text: "Est-ce que tu penses que la mode éthique est importante ?",
+    text: "Est-ce que tu penses que la mode éthique est importante ? Pourquoi ?",
     hint: "Discuss the impact of fast fashion on the environment and workers.",
+    subTopic: "everyday-eco-habits",
+    coachHint: {
+      ideas: ["Say whether you agree", "Give two reasons (pollution, workers)", "Say what you do when you buy clothes"],
+      phrase: { fr: "Je trouve ça important car… et aussi…", en: "I find it important because… and also…" },
+    },
     difficulty: 2,
     followUps: [
       "Achètes-tu souvent des vêtements ?",
@@ -4264,6 +4439,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Quel est l'impact du tourisme sur l'environnement ?",
     hint: "Discuss flights, hotel waste, and the destruction of natural sites.",
+    subTopic: "climate-and-energy",
+    coachHint: {
+      ideas: ["Name two effects (flights, waste, damaged places)", "Give an example place", "Say what tourists can do"],
+      phrase: { fr: "Le tourisme pollue à cause de…", en: "Tourism pollutes because of…" },
+    },
     difficulty: 3,
     followUps: [
       "Peut-on voyager de façon écologique ?",
@@ -4283,8 +4463,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "env_16",
     topicKey: "environment",
-    text: "Penses-tu que les énergies renouvelables sont la solution ?",
+    text: "Penses-tu que les énergies renouvelables sont la solution ? Pourquoi (pas) ?",
     hint: "Discuss solar, wind, and hydraulic energy vs. fossil fuels.",
+    subTopic: "climate-and-energy",
+    coachHint: {
+      ideas: ["Say whether renewables are the answer", "Name two types (solar, wind)", "Give one limit"],
+      phrase: { fr: "Le solaire et l'éolien sont… parce que…", en: "Solar and wind power are… because…" },
+    },
     difficulty: 3,
     followUps: [
       "Y a-t-il des éoliennes dans ta région ?",
@@ -4306,6 +4491,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Comment peut-on encourager les gens à recycler davantage ?",
     hint: "Suggest ideas like better education, more bins, or financial incentives.",
+    subTopic: "waste-and-recycling",
+    coachHint: {
+      ideas: ["Name two ideas (education, more bins, rewards)", "Say who should act", "Say what worked for you"],
+      phrase: { fr: "Pour encourager le recyclage, on peut…", en: "To encourage recycling you can…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que tu recycles tout ce que tu peux ?",
@@ -4327,6 +4517,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Si tu étais ministre de l'Environnement, quelle serait ta première mesure ?",
     hint: "Use conditional to describe a bold environmental policy.",
+    subTopic: "climate-and-energy",
+    coachHint: {
+      ideas: ["Name one bold measure", "Say why it would help", "Say who would complain"],
+      phrase: { fr: "Si j'étais ministre, je ferais… pour…", en: "If I were minister I would do… to…" },
+    },
     difficulty: 3,
     followUps: [
       "Interdirais-tu les voitures en ville ?",
@@ -4984,8 +5179,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_22",
     topicKey: "food",
-    text: "Tu préfères le fast-food ou les repas faits maison ?",
+    text: "Tu préfères le fast-food ou les repas faits maison ? Pourquoi ?",
     hint: "Compare quick takeaway food with home-cooked meals.",
+    subTopic: "eating-out-and-shopping",
+    coachHint: {
+      ideas: ["Say which you prefer", "Give two reasons (taste, health, speed)", "Say how often you eat each"],
+      phrase: { fr: "Je préfère… parce que…", en: "I prefer… because…" },
+    },
     difficulty: 1,
     followUps: [
       "Pourquoi le fast-food est-il si populaire ?",
@@ -5007,6 +5207,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Quelle est l'importance du café et du thé dans ta culture ?",
     hint: "Discuss beverage culture and social habits around coffee/tea.",
+    subTopic: "meals-and-habits",
+    coachHint: {
+      ideas: ["Say which you drink (coffee, tea, mint tea)", "Say when and with whom", "Say what it means socially"],
+      phrase: { fr: "Dans ma culture, le thé est…", en: "In my culture tea is…" },
+    },
     difficulty: 2,
     followUps: [
       "Que bois-tu le matin ?",
@@ -5026,8 +5231,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_24",
     topicKey: "food",
-    text: "Comment est-ce que tes habitudes alimentaires ont changé ?",
+    text: "Qu'est-ce que tu mangeais quand tu étais petit(e) ? Comment tes habitudes alimentaires ont-elles changé ?",
     hint: "Compare what you ate as a child with your diet now.",
+    subTopic: "meals-and-habits",
+    coachHint: {
+      ideas: ["Say what you ate as a child", "Say what you eat now", "Say why it changed"],
+      phrase: { fr: "Quand j'étais petit(e), je mangeais… mais maintenant…", en: "When I was little I ate… but now…" },
+    },
     difficulty: 2,
     followUps: [
       "Mangeais-tu plus de bonbons avant ?",
@@ -5051,6 +5261,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Pourquoi est-il crucial de protéger les océans ?",
     hint: "Discuss plastic pollution, marine life, and the role of oceans in the climate.",
+    subTopic: "nature-and-wildlife",
+    coachHint: {
+      ideas: ["Give two reasons (oxygen, marine life, climate)", "Mention plastic pollution", "Say what we can do"],
+      phrase: { fr: "Il est crucial de protéger les océans parce que…", en: "It is crucial to protect the oceans because…" },
+    },
     difficulty: 3,
     followUps: [
       "Quelles sont les plus grandes menaces ?",
@@ -5072,6 +5287,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Que penses-tu du verdissement urbain ?",
     hint: "Discuss planting more trees and parks in cities.",
+    subTopic: "nature-and-wildlife",
+    coachHint: {
+      ideas: ["Say whether you like it", "Give two reasons (air, heat, well-being)", "Say where you would plant trees"],
+      phrase: { fr: "Les arbres en ville sont utiles parce que…", en: "Trees in cities are useful because…" },
+    },
     difficulty: 2,
     followUps: [
       "Y a-t-il assez de parcs dans ta ville ?",
@@ -5093,6 +5313,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Comment essaies-tu de réduire ton empreinte carbone ?",
     hint: "Talk about your personal actions like transport, diet, and consumption.",
+    subTopic: "everyday-eco-habits",
+    coachHint: {
+      ideas: ["Name two actions (transport, food, shopping)", "Say how often", "Say what is hardest"],
+      phrase: { fr: "Pour réduire mon empreinte carbone, je…", en: "To reduce my carbon footprint I…" },
+    },
     difficulty: 3,
     followUps: [
       "Utilises-tu moins la voiture ?",
@@ -5879,7 +6104,7 @@ export const QUESTIONS: Question[] = [
       "Est-ce que tu le fais seul ou en groupe ?",
       "À quelle fréquence pratiques-tu ces activités ?"
     ],
-    modelAnswer: "J'ai commencé la méditation l'année dernière pour mieux dormir. Au début, je trouvais ça un peu difficile de rester immobile, mais maintenant je trouve ça très apaisant. Je pratique pendant dix minutes chaque matin avant d'aller à l'école. Cela m'aide à commencer la journée avec calme and concentration. Je pense que de plus en plus de jeunes devraient essayer car cela aide vraiment à gérer l'anxiété scolaire.",
+    modelAnswer: "J'ai commencé la méditation l'année dernière pour mieux dormir. Au début, je trouvais ça un peu difficile de rester immobile, mais maintenant je trouve ça très apaisant. Je pratique pendant dix minutes chaque matin avant d'aller à l'école. Cela m'aide à commencer la journée avec calme et concentration. Je pense que de plus en plus de jeunes devraient essayer car cela aide vraiment à gérer l'anxiété scolaire.",
     keyVocab: [
       { fr: "la méditation", en: "meditation" },
       { fr: "immobile", en: "still / motionless" },
@@ -9014,6 +9239,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Où préfères-tu faire les courses alimentaires et pourquoi ?",
     hint: "Compare supermarkets and local markets for food shopping.",
+    subTopic: "eating-out-and-shopping",
+    coachHint: {
+      ideas: ["Say where you prefer (market, supermarket)", "Give two reasons", "Say who goes with you"],
+      phrase: { fr: "Je préfère acheter au… parce que…", en: "I prefer buying at the… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que les marchés sont plus chers que les supermarchés ?",
@@ -9035,6 +9265,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Quelle est ta boisson préférée et quand la bois-tu ?",
     hint: "Talk about your favorite non-alcoholic drink and when you enjoy it.",
+    subTopic: "favourite-foods",
+    coachHint: {
+      ideas: ["Name the drink", "Say when you drink it", "Say why you like it"],
+      phrase: { fr: "Ma boisson préférée, c'est… et je la bois…", en: "My favourite drink is… and I drink it…" },
+    },
     difficulty: 1,
     followUps: [
       "Est-ce que tu bois beaucoup de boissons sucrées ?",
@@ -9056,6 +9291,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Quels plats spéciaux prépares-tu pour les fêtes comme Noël ou l'Aïd ?",
     hint: "Discuss traditional or festive meals in your culture or family.",
+    subTopic: "cooking",
+    coachHint: {
+      ideas: ["Name two dishes", "Say who prepares them", "Say what is in them"],
+      phrase: { fr: "Pour Noël, on prépare…", en: "For Christmas we prepare…" },
+    },
     difficulty: 2,
     followUps: [
       "Quelle est ta fête préférée pour la nourriture ?",
@@ -9077,6 +9317,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Que penses-tu de la cuisine de rue (le street food) et des food trucks ?",
     hint: "Give your opinion on street food — variety, speed, and quality.",
+    subTopic: "eating-out-and-shopping",
+    coachHint: {
+      ideas: ["Say what you think", "Give one advantage (variety, speed)", "Give one drawback (hygiene, health)"],
+      phrase: { fr: "Je trouve que la cuisine de rue est… mais…", en: "I find street food is… but…" },
+    },
     difficulty: 2,
     followUps: [
       "As-tu déjà mangé dans un food truck ?",
@@ -9096,15 +9341,20 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_29",
     topicKey: "food",
-    text: "Y a-t-il un plat que tu adorais quand tu étais petit et que tu aimes toujours ?",
+    text: "Y a-t-il un plat que tu adorais quand tu étais petit et que tu aimes toujours ? Lequel ?",
     hint: "Talk about a childhood favorite dish that you still enjoy today.",
+    subTopic: "favourite-foods",
+    coachHint: {
+      ideas: ["Name the dish", "Say who made it", "Say why you still like it"],
+      phrase: { fr: "Quand j'étais petit(e), j'adorais… et j'aime toujours…", en: "When I was little I loved… and I still like…" },
+    },
     difficulty: 1,
     followUps: [
       "Qui cuisinait ce plat pour toi ?",
       "Est-ce que c'est un plat sucré ou salé ?",
       "Sais-tu le cuisiner toi-même maintenant ?"
     ],
-    modelAnswer: "Quand j'étais petit, j'adorer les pâtes à la sauce tomate que mon père préparait le mercredi. C'est un plat très simple mais il me rappelle de bons souvenirs d'enfance. Aujourd'hui, j'aime toujours autant ça, surtout avec beaucoup de fromage râpé. C'est ma nourriture de réconfort préférée quand je suis fatigué après l'école.",
+    modelAnswer: "Quand j'étais petit, j'adorais les pâtes à la sauce tomate que mon père préparait le mercredi. C'est un plat très simple mais il me rappelle de bons souvenirs d'enfance. Aujourd'hui, j'aime toujours autant ça, surtout avec beaucoup de fromage râpé. C'est ma nourriture de réconfort préférée quand je suis fatigué après l'école.",
     keyVocab: [
       { fr: "quand j'étais petit", en: "when I was little" },
       { fr: "un souvenir d'enfance", en: "a childhood memory" },
@@ -9119,6 +9369,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Quel est ton ingrédient ou ton épice préférée en cuisine ?",
     hint: "Identify one specific ingredient you love using when you cook.",
+    subTopic: "cooking",
+    coachHint: {
+      ideas: ["Name the ingredient", "Say what you cook with it", "Say why you like it"],
+      phrase: { fr: "Mon ingrédient préféré, c'est… que j'utilise pour…", en: "My favourite ingredient is… which I use for…" },
+    },
     difficulty: 1,
     followUps: [
       "Dans quels plats utilises-tu cet ingrédient ?",
@@ -9140,6 +9395,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Que penses-tu du futur de la nourriture, comme la viande cultivée en laboratoire ?",
     hint: "Discuss modern food technology and its ethical or environmental benefits.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Say what you think of lab-grown meat", "Give one benefit (animals, environment)", "Give one doubt"],
+      phrase: { fr: "Je pense que la viande cultivée est… parce que…", en: "I think lab-grown meat is… because…" },
+    },
     difficulty: 3,
     followUps: [
       "Serais-tu prêt à goûter de la viande de laboratoire ?",
@@ -9161,6 +9421,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Est-ce que tu aimes inviter des amis à dîner chez toi ? Qu'est-ce que tu prépares ?",
     hint: "Talk about hosting friends and what you like to cook for them.",
+    subTopic: "cooking",
+    coachHint: {
+      ideas: ["Say yes or no", "Name two dishes", "Say what you do while they eat"],
+      phrase: { fr: "Quand j'invite des amis, je prépare…", en: "When I invite friends I prepare…" },
+    },
     difficulty: 2,
     followUps: [
       "Préfères-tu cuisiner seul ou avec tes amis ?",
@@ -9182,6 +9447,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Pourquoi est-il important de manger des produits de saison ?",
     hint: "Discuss the benefits of eating fruits and vegetables that are currently in season.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Give two reasons (taste, price, environment)", "Name a fruit or vegetable of the season", "Say where you buy it"],
+      phrase: { fr: "Manger de saison est important parce que…", en: "Eating seasonally is important because…" },
+    },
     difficulty: 2,
     followUps: [
       "Quels sont tes fruits préférés en été et en hiver ?",
@@ -9201,8 +9471,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_34",
     topicKey: "food",
-    text: "Préfères-tu acheter des produits locaux ou des produits importés ?",
+    text: "Préfères-tu acheter des produits locaux ou des produits importés ? Pourquoi ?",
     hint: "Discuss your preference for local food vs. food from other countries.",
+    subTopic: "eating-out-and-shopping",
+    coachHint: {
+      ideas: ["Say which you prefer", "Give two reasons (taste, nature, price)", "Say what you buy locally"],
+      phrase: { fr: "Je préfère acheter des produits… parce que…", en: "I prefer buying… products because…" },
+    },
     difficulty: 3,
     followUps: [
       "Quels sont les avantages des produits locaux ?",
@@ -9224,6 +9499,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Que penses-tu des applications de livraison de nourriture comme UberEats ?",
     hint: "Discuss the convenience versus the cost and health impact of delivery apps.",
+    subTopic: "eating-out-and-shopping",
+    coachHint: {
+      ideas: ["Say whether you use them", "Give one advantage (speed, comfort)", "Give one drawback (cost, packaging)"],
+      phrase: { fr: "Les applications de livraison sont… mais…", en: "Delivery apps are… but…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que tu les utilises souvent ?",
@@ -9245,6 +9525,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Est-ce que tu aimes la nourriture épicée ? Pourquoi ?",
     hint: "Talk about your tolerance for spicy food and any specific dishes you like.",
+    subTopic: "favourite-foods",
+    coachHint: {
+      ideas: ["Say yes or no", "Name a spicy dish", "Say how you feel when you eat it"],
+      phrase: { fr: "J'aime la nourriture épicée parce que… / Je n'aime pas parce que…", en: "I like spicy food because… / I don't like it because…" },
+    },
     difficulty: 1,
     followUps: [
       "Quelle est la chose la plus épicée que tu as mangée ?",
@@ -9266,6 +9551,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Est-ce que tu aimes faire des pique-niques ? Où vas-tu d'habitude ?",
     hint: "Describe an outdoor eating experience, the food you take, and the location.",
+    subTopic: "meals-and-habits",
+    coachHint: {
+      ideas: ["Say yes or no", "Say where you go", "Say what you take"],
+      phrase: { fr: "Pour un pique-nique, on aime aller… et on prend…", en: "For a picnic we like to go… and we take…" },
+    },
     difficulty: 1,
     followUps: [
       "Qu'est-ce que tu mets dans ton panier de pique-nique ?",
@@ -9285,8 +9575,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_38",
     topicKey: "food",
-    text: "Est-ce que tu cuisines souvent avec tes parents ou tes grands-parents ?",
+    text: "Est-ce que tu cuisines souvent avec tes parents ou tes grands-parents ? Quels plats préparez-vous ensemble ?",
     hint: "Discuss learning to cook from family members and sharing traditional recipes.",
+    subTopic: "cooking",
+    coachHint: {
+      ideas: ["Say yes or no", "Name two dishes", "Say who teaches whom"],
+      phrase: { fr: "Avec ma grand-mère, on prépare…", en: "With my grandmother we make…" },
+    },
     difficulty: 2,
     followUps: [
       "Quelle recette t'ont-ils apprise ?",
@@ -9306,8 +9601,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_39",
     topicKey: "food",
-    text: "Penses-tu qu'il y a trop de sucre et de sel dans notre alimentation ?",
+    text: "Penses-tu qu'il y a trop de sucre et de sel dans notre alimentation ? Pourquoi (pas) ?",
     hint: "Discuss the health risks of processed foods and hidden additives.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Say whether you agree", "Give an example (sodas, crisps, ready meals)", "Say what could be done"],
+      phrase: { fr: "Je pense qu'il y a trop de… dans…", en: "I think there is too much… in…" },
+    },
     difficulty: 3,
     followUps: [
       "Quels sont les dangers pour la santé ?",
@@ -9329,6 +9629,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Connais-tu quelqu'un qui a des allergies alimentaires ? Comment font-ils ?",
     hint: "Talk about food intolerances or allergies and how they affect daily life.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Say whether you know someone", "Name the allergy", "Say how they avoid it"],
+      phrase: { fr: "Mon ami est allergique à… et il doit…", en: "My friend is allergic to… and has to…" },
+    },
     difficulty: 2,
     followUps: [
       "Es-tu allergique à quelque chose ?",
@@ -9350,6 +9655,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Aimes-tu les fruits exotiques ? Lesquels ?",
     hint: "Discuss fruits that aren't native to your area and their availability.",
+    subTopic: "favourite-foods",
+    coachHint: {
+      ideas: ["Say yes or no", "Name two fruits (mango, lychee, papaya)", "Say where you find them"],
+      phrase: { fr: "J'aime les fruits exotiques comme…", en: "I like exotic fruit such as…" },
+    },
     difficulty: 1,
     followUps: [
       "Quel est le fruit le plus bizarre que tu as goûté ?",
@@ -9371,6 +9681,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Décris un plat traditionnel de ton pays à un étranger.",
     hint: "Explain the ingredients and preparation of a culturally significant dish.",
+    subTopic: "cooking",
+    coachHint: {
+      ideas: ["Name the dish", "List two ingredients", "Say how it is prepared"],
+      phrase: { fr: "Un plat traditionnel de mon pays, c'est… avec…", en: "A traditional dish from my country is… with…" },
+    },
     difficulty: 2,
     followUps: [
       "À quelle occasion mange-t-on ce plat ?",
@@ -9392,6 +9707,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Qu'est-ce que tu mangerais pour un petit-déjeuner de fête ?",
     hint: "Describe a special morning meal for a birthday or holiday.",
+    subTopic: "meals-and-habits",
+    coachHint: {
+      ideas: ["Say what you would eat", "Say what you would drink", "Say who would be there"],
+      phrase: { fr: "Pour un petit-déjeuner de fête, je mange…", en: "For a festive breakfast I eat…" },
+    },
     difficulty: 1,
     followUps: [
       "Qui préparerait ce repas ?",
@@ -9411,8 +9731,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_44",
     topicKey: "food",
-    text: "Penses-tu que la sécurité dans la cuisine est importante ?",
+    text: "Penses-tu que la sécurité dans la cuisine est importante ? Pourquoi ?",
     hint: "Discuss hygiene and safety measures when preparing food.",
+    subTopic: "cooking",
+    coachHint: {
+      ideas: ["Say whether it matters", "Give two reasons (cuts, burns, hygiene)", "Give one safety rule"],
+      phrase: { fr: "La sécurité en cuisine est importante parce que…", en: "Kitchen safety is important because…" },
+    },
     difficulty: 2,
     followUps: [
       "Quelles sont les règles de base dans la cuisine ?",
@@ -9434,6 +9759,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Pourquoi les abeilles et les insectes sont-ils importants pour notre planète ?",
     hint: "Discuss the role of insects in pollination and the food chain.",
+    subTopic: "nature-and-wildlife",
+    coachHint: {
+      ideas: ["Say what bees do", "Give two reasons (food, biodiversity)", "Say what threatens them"],
+      phrase: { fr: "Les abeilles sont importantes parce que…", en: "Bees are important because…" },
+    },
     difficulty: 3,
     followUps: [
       "Qu'est-ce qui menace les abeilles aujourd'hui ?",
@@ -9455,6 +9785,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Que penses-tu de la pollution sonore et lumineuse dans les villes ?",
     hint: "Discuss how noise and too much light affect people and wildlife in cities.",
+    subTopic: "climate-and-energy",
+    coachHint: {
+      ideas: ["Say which is worse (noise or light)", "Give one effect on people", "Give one effect on animals"],
+      phrase: { fr: "La pollution sonore est… parce que…", en: "Noise pollution is… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que ton quartier est bruyant le soir ?",
@@ -9474,8 +9809,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "env_24",
     topicKey: "environment",
-    text: "As-tu déjà participé à une manifestation ou une campagne pour l'environnement ?",
+    text: "As-tu déjà participé à une manifestation ou une campagne pour l'environnement ? Comment c'était ?",
     hint: "Talk about environmental activism, protests, or school campaigns.",
+    subTopic: "everyday-eco-habits",
+    coachHint: {
+      ideas: ["Say what the campaign was", "Say what you did", "Say how you felt"],
+      phrase: { fr: "L'année dernière, j'ai participé à… avec…", en: "Last year I took part in… with…" },
+    },
     difficulty: 2,
     followUps: [
       "Quelles sont les causes qui te tiennent le plus à cœur ?",
@@ -9497,6 +9837,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Comment est la qualité de l'air dans ta ville ou ton village ?",
     hint: "Discuss air pollution levels where you live and what causes them.",
+    subTopic: "climate-and-energy",
+    coachHint: {
+      ideas: ["Say whether the air is clean or dirty", "Name a cause (traffic, factories)", "Say how it affects you"],
+      phrase: { fr: "Dans ma ville, l'air est… à cause de…", en: "In my town the air is… because of…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce qu'il y a beaucoup de smog ou de fumée ?",
@@ -9518,6 +9863,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Comment pouvons-nous réduire notre consommation de papier à l'ère numérique ?",
     hint: "Discuss ways to use less paper at home or school using technology.",
+    subTopic: "technology",
+    coachHint: {
+      ideas: ["Name two ways (tablets, emails, reading online)", "Say what you do", "Say what is still hard to replace"],
+      phrase: { fr: "Pour utiliser moins de papier, on peut…", en: "To use less paper you can…" },
+    },
     difficulty: 1,
     followUps: [
       "Utilises-tu des cahiers en papier ou une tablette à l'école ?",
@@ -9539,6 +9889,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "À quoi ressemblerait une maison écologique idéale selon toi ?",
     hint: "Describe the features of a sustainable house using the conditional.",
+    subTopic: "climate-and-energy",
+    coachHint: {
+      ideas: ["Name three features (solar panels, insulation, rainwater)", "Say what it is made of", "Say where it is"],
+      phrase: { fr: "Ma maison écologique a des panneaux solaires et…", en: "My eco-house has solar panels and…" },
+    },
     difficulty: 3,
     followUps: [
       "Quels matériaux utiliserais-tu ?",
@@ -9560,6 +9915,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Comment peux-tu encourager tes amis à être plus respectueux de l'environnement ?",
     hint: "Discuss how you can influence your peers to adopt greener habits.",
+    subTopic: "everyday-eco-habits",
+    coachHint: {
+      ideas: ["Name two ideas (set an example, share facts, reusable bottle)", "Say what works with your friends", "Say what to avoid"],
+      phrase: { fr: "Pour convaincre mes amis, je leur montre…", en: "To convince my friends I show them…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce difficile de changer les habitudes des autres ?",
@@ -9581,6 +9941,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Que penses-tu de l'économie de partage (comme Uber ou Airbnb) pour l'environnement ?",
     hint: "Discuss if sharing resources like cars or homes helps the planet.",
+    subTopic: "technology",
+    coachHint: {
+      ideas: ["Say what you think", "Give one benefit (fewer cars, shared homes)", "Give one doubt (travel, tourism)"],
+      phrase: { fr: "L'économie de partage est… parce que…", en: "The sharing economy is… because…" },
+    },
     difficulty: 2,
     followUps: [
       "As-tu déjà utilisé un service de partage ?",
@@ -9602,6 +9967,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Quelle est l'importance des parcs nationaux dans ton pays ?",
     hint: "Discuss the role of protected areas for nature and tourism.",
+    subTopic: "nature-and-wildlife",
+    coachHint: {
+      ideas: ["Say what a national park is", "Give two reasons (wildlife, tourism, calm)", "Name one in your country"],
+      phrase: { fr: "Les parcs nationaux sont importants parce que…", en: "National parks are important because…" },
+    },
     difficulty: 1,
     followUps: [
       "As-tu déjà visité un parc national ?",
@@ -9623,6 +9993,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Que penses-tu du concept de 'réparer au lieu de remplacer' ?",
     hint: "Discuss upcycling and fixing broken items instead of buying new ones.",
+    subTopic: "waste-and-recycling",
+    coachHint: {
+      ideas: ["Say what you think", "Give two reasons (waste, money)", "Give an example you repaired"],
+      phrase: { fr: "Je trouve que réparer est… parce que…", en: "I find that repairing is… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Sais-tu réparer tes vêtements ou tes appareils ?",
@@ -9644,6 +10019,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Que penses-tu du suremballage des produits dans les supermarchés ?",
     hint: "Discuss the excessive use of plastic packaging and its impact.",
+    subTopic: "waste-and-recycling",
+    coachHint: {
+      ideas: ["Say what you think", "Give an example (fruit in plastic)", "Say what you would do"],
+      phrase: { fr: "Le suremballage est… parce que…", en: "Excess packaging is… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que cela t'énerve quand tu fais les courses ?",
@@ -9663,8 +10043,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "env_33",
     topicKey: "environment",
-    text: "Est-ce que tu fais du compostage chez toi ?",
+    text: "Est-ce que tu fais du compostage chez toi ? Pourquoi (pas) ?",
     hint: "Explain what composting is and how it helps reduce landfill waste.",
+    subTopic: "waste-and-recycling",
+    coachHint: {
+      ideas: ["Say yes or no", "Say what goes in the compost", "Say why it helps"],
+      phrase: { fr: "Chez moi, on met… dans le compost.", en: "At home we put… in the compost." },
+    },
     difficulty: 1,
     followUps: [
       "Quels déchets peut-on mettre dans le compost ?",
@@ -9684,8 +10069,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "env_34",
     topicKey: "environment",
-    text: "Penses-tu qu'il est possible de vivre un mode de vie 'zéro déchet' ?",
+    text: "Penses-tu qu'il est possible de vivre un mode de vie 'zéro déchet' ? Pourquoi (pas) ?",
     hint: "Discuss the challenges and benefits of trying to eliminate waste completely.",
+    subTopic: "waste-and-recycling",
+    coachHint: {
+      ideas: ["Say yes or no", "Give one challenge (shops, time)", "Give one benefit (money, planet)"],
+      phrase: { fr: "Je pense qu'un mode de vie zéro déchet est… parce que…", en: "I think a zero-waste life is… because…" },
+    },
     difficulty: 3,
     followUps: [
       "Quels sont les plus gros obstacles ?",
@@ -9705,8 +10095,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "env_35",
     topicKey: "environment",
-    text: "Entends-tu souvent parler de 'l'éco-anxiété' chez les jeunes ?",
+    text: "Entends-tu souvent parler de 'l'éco-anxiété' chez les jeunes ? Comment l'expliques-tu ?",
     hint: "Talk about the mental health impact of climate change on the younger generation.",
+    subTopic: "climate-and-energy",
+    coachHint: {
+      ideas: ["Say whether you know the word", "Give two reasons (news, future, fear)", "Say what helps"],
+      phrase: { fr: "L'éco-anxiété existe parce que…", en: "Eco-anxiety exists because…" },
+    },
     difficulty: 3,
     followUps: [
       "Est-ce que tu t'inquiètes pour l'avenir de la planète ?",
@@ -9728,6 +10123,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Savais-tu qu'Internet a une empreinte carbone ? Qu'en penses-tu ?",
     hint: "Discuss digital pollution, such as energy used by data centers and streaming.",
+    subTopic: "technology",
+    coachHint: {
+      ideas: ["Say what surprises you", "Give an example (streaming, data centres)", "Say what you could change"],
+      phrase: { fr: "Internet consomme beaucoup d'énergie à cause de…", en: "The internet uses a lot of energy because of…" },
+    },
     difficulty: 3,
     followUps: [
       "Est-ce que tu supprimes tes vieux e-mails ?",
@@ -9749,6 +10149,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Pourquoi est-il important de protéger les forêts contre la déforestation ?",
     hint: "Discuss the role of trees in absorbing CO2 and protecting biodiversity.",
+    subTopic: "nature-and-wildlife",
+    coachHint: {
+      ideas: ["Give two reasons (CO2, habitats, rain)", "Name an animal that depends on forests", "Say what we can do"],
+      phrase: { fr: "Les forêts sont importantes parce qu'elles…", en: "Forests are important because they…" },
+    },
     difficulty: 2,
     followUps: [
       "Y a-t-il beaucoup de forêts dans ton pays ?",
@@ -9770,6 +10175,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Que penses-tu de l'usage des pesticides dans l'agriculture ?",
     hint: "Discuss the impact of chemicals on bees, biodiversity, and human health.",
+    subTopic: "nature-and-wildlife",
+    coachHint: {
+      ideas: ["Say what you think", "Give two effects (bees, soil, health)", "Say what alternative exists"],
+      phrase: { fr: "Les pesticides sont dangereux parce que…", en: "Pesticides are dangerous because…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que les produits bio sont une bonne solution ?",
@@ -9791,6 +10201,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Que penses-tu des jardins verticaux et des fermes urbaines ?",
     hint: "Discuss the trend of growing food and plants in city centers or on buildings.",
+    subTopic: "nature-and-wildlife",
+    coachHint: {
+      ideas: ["Say whether you like the idea", "Give two reasons (fresh air, local food)", "Say where you could put one"],
+      phrase: { fr: "Les jardins verticaux sont une bonne idée parce que…", en: "Vertical gardens are a good idea because…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce qu'il y en a dans ta ville ?",
@@ -9810,8 +10225,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "env_40",
     topicKey: "environment",
-    text: "Savais-tu qu'est-ce que c'est la 'fast fashion' ? Quel est son impact sur l'environnement ?",
+    text: "Sais-tu ce qu'est la 'fast fashion' ? Quel est son impact sur l'environnement ?",
     hint: "Discuss the environmental cost of the mass production of cheap clothing.",
+    subTopic: "waste-and-recycling",
+    coachHint: {
+      ideas: ["Say what fast fashion is", "Give two effects (water, chemicals, waste)", "Say what you do to avoid it"],
+      phrase: { fr: "La fast fashion est… et elle cause…", en: "Fast fashion is… and it causes…" },
+    },
     difficulty: 2,
     followUps: [
       "Achètes-tu souvent de nouveaux vêtements ?",
@@ -9831,8 +10251,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "env_41",
     topicKey: "environment",
-    text: "Est-ce qu'il est facile d'installer de l'énergie renouvelable à la maison ?",
+    text: "Est-ce qu'il est facile d'installer de l'énergie renouvelable à la maison ? Pourquoi (pas) ?",
     hint: "Talk about solar panels, heat pumps, or insulation improvements.",
+    subTopic: "climate-and-energy",
+    coachHint: {
+      ideas: ["Say yes or no", "Give two reasons (cost, space, rules)", "Name a type (solar panels, heat pump)"],
+      phrase: { fr: "Installer des panneaux solaires est… parce que…", en: "Installing solar panels is… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que ta maison a des panneaux solaires ?",
@@ -15010,6 +15435,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Que penses-tu de l'influence des réseaux sociaux sur nos choix alimentaires ?",
     hint: "Discuss how Instagram or TikTok affect what and where people eat.",
+    subTopic: "eating-out-and-shopping",
+    coachHint: {
+      ideas: ["Say whether social media influences you", "Name an app", "Give an example of a dish or place"],
+      phrase: { fr: "Les réseaux sociaux influencent mes choix parce que…", en: "Social media influences my choices because…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que tu prends des photos de tes plats avant de manger ?",
@@ -15031,6 +15461,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Connais-tu la cuisine moléculaire ? Aimerais-tu la goûter ?",
     hint: "Discuss the fusion of science and cooking (foams, spheres, etc.).",
+    subTopic: "cooking",
+    coachHint: {
+      ideas: ["Say whether you know it", "Explain it in one sentence", "Say whether you would taste it and why"],
+      phrase: { fr: "J'aimerais goûter la cuisine moléculaire parce que…", en: "I would like to taste molecular cooking because…" },
+    },
     difficulty: 3,
     followUps: [
       "Penses-tu que c'est de l'art ou de la science ?",
@@ -15050,29 +15485,39 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_47",
     topicKey: "food",
-    text: "Que penses-tu de la nourriture imprimée en 3D ?",
-    hint: "Discuss the possibility of printing meals and its benefits.",
+    text: "Est-ce que tu achètes des plats préparés au supermarché ? Pourquoi (pas) ?",
+    hint: "Say whether you buy ready meals, give reasons (speed, price, taste) and say whether you think they are healthy.",
+    subTopic: "eating-out-and-shopping",
+    coachHint: {
+      ideas: ["Say yes or no", "Give two reasons (speed, price, taste)", "Say whether you think they are healthy"],
+      phrase: { fr: "J'achète des plats préparés parce que… / Je n'en achète pas parce que…", en: "I buy ready meals because… / I don't buy them because…" },
+    },
     difficulty: 3,
     followUps: [
-      "Serais-tu prêt à manger un steak imprimé en 3D ?",
-      "Quels sont les avantages pour l'environnement ?",
-      "Est-ce que cela va remplacer les chefs ?"
+      "Qu'est-ce que tu prépares quand tu es seul(e) à la maison ?",
+      "Penses-tu que les plats préparés sont chers ?",
+      "Qui fait les courses chez toi ?"
     ],
-    modelAnswer: "C'est une technologie incroyable qui pourrait aider à réduire le gaspillage en utilisant des ingrédients précis. On pourrait créer des formes impossibles à faire à la main. Cependant, je ne suis pas sûr que ce soit aussi savoureux que la cuisine faite par un humain. Pour l'environnement, cela pourrait réduire les émissions de carbone si on utilise des protéines végétales au lieu de viande.",
+    modelAnswer: "Oui, j'en achète de temps en temps quand mes parents n'ont pas le temps de cuisiner, par exemple des pizzas ou des lasagnes. C'est rapide et assez bon marché, mais je trouve que ce n'est pas très sain parce qu'il y a beaucoup de sel et de graisse. Je préfère les repas faits maison, surtout avec des légumes frais.",
     keyVocab: [
-      { fr: "imprimé en 3D", en: "3D printed" },
-      { fr: "le gaspillage", en: "waste" },
-      { fr: "précis(e)", en: "precise" },
-      { fr: "savoureux / savoureuse", en: "tasty / flavorful" },
-      { fr: "les émissions de carbone", en: "carbon emissions" },
-      { fr: "remplacer", en: "to replace" }
+      { fr: "un plat préparé", en: "ready meal" },
+      { fr: "bon marché", en: "cheap" },
+      { fr: "sain(e)", en: "healthy" },
+      { fr: "le sel", en: "salt" },
+      { fr: "la graisse", en: "fat" },
+      { fr: "fait(e) maison", en: "home-made" }
     ],
   },
   {
     id: "foo_48",
     topicKey: "food",
-    text: "Penses-tu que les repas scolaires sont meilleurs dans certains pays que dans d'autres ?",
+    text: "Penses-tu que les repas scolaires sont meilleurs dans certains pays que dans d'autres ? Pourquoi (pas) ?",
     hint: "Compare school lunches globally (e.g., France vs. USA vs. Japan).",
+    subTopic: "meals-and-habits",
+    coachHint: {
+      ideas: ["Say whether you think so", "Give an example country", "Give a reason (taste, price, variety)"],
+      phrase: { fr: "Je pense que les repas sont meilleurs en… parce que…", en: "I think meals are better in… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Qu'est-ce que tu sais des repas scolaires en France ?",
@@ -15094,6 +15539,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Que penses-tu de la consommation excessive de boissons énergisantes chez les jeunes ?",
     hint: "Discuss the health risks of caffeine and sugar for students.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Say what you think of energy drinks", "Give two risks (sugar, sleep, heart)", "Say whether they should be sold to teenagers"],
+      phrase: { fr: "Les boissons énergisantes sont dangereuses parce que…", en: "Energy drinks are dangerous because…" },
+    },
     difficulty: 2,
     followUps: [
       "En bois-tu pour réviser tes examens ?",
@@ -15113,8 +15563,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_50",
     topicKey: "food",
-    text: "Es-tu pour ou contre les OGM (organismes génétiquement modifiés) ?",
+    text: "Es-tu pour ou contre les OGM (organismes génétiquement modifiés) ? Pourquoi ?",
     hint: "Discuss the ethics and safety of genetically modified food.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Say for or against", "Give one benefit (food supply)", "Give one risk (health, nature)"],
+      phrase: { fr: "Je suis pour / contre les OGM parce que…", en: "I am for / against GMOs because…" },
+    },
     difficulty: 3,
     followUps: [
       "Peuvent-ils aider à résoudre la faim dans le monde ?",
@@ -15134,8 +15589,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_51",
     topicKey: "food",
-    text: "As-tu déjà entendu parler de la Fête de la Gastronomie en France ?",
+    text: "As-tu déjà entendu parler de la Fête de la Gastronomie en France ? Quelle fête de la nourriture existe dans ton pays ?",
     hint: "Discuss food festivals and their role in celebrating culture.",
+    subTopic: "eating-out-and-shopping",
+    coachHint: {
+      ideas: ["Say whether you know it", "Say what a food festival celebrates", "Describe one in your country"],
+      phrase: { fr: "Dans mon pays, il y a une fête de…", en: "In my country there is a festival of…" },
+    },
     difficulty: 2,
     followUps: [
       "Y a-t-il des festivals de nourriture dans ton pays ?",
@@ -15155,8 +15615,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_52",
     topicKey: "food",
-    text: "Penses-tu que cuisiner peut aider à réduire le stress ?",
+    text: "Penses-tu que cuisiner peut aider à réduire le stress ? Pourquoi (pas) ?",
     hint: "Discuss cooking as a creative and relaxing hobby.",
+    subTopic: "cooking",
+    coachHint: {
+      ideas: ["Say whether cooking relaxes you", "Give two reasons (focus, creativity, result)", "Say what you cook when stressed"],
+      phrase: { fr: "Cuisiner aide à réduire le stress parce que…", en: "Cooking helps reduce stress because…" },
+    },
     difficulty: 1,
     followUps: [
       "Cuisines-tu quand tu es stressé(e) ?",
@@ -15178,6 +15643,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Que penses-tu des publicités pour la nourriture s'adressant aux enfants ?",
     hint: "Discuss the ethics of marketing junk food to minors.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Say what you think", "Give two reasons (children trust adverts, unhealthy food)", "Say what should change"],
+      phrase: { fr: "Je pense que les publicités pour les enfants sont… parce que…", en: "I think adverts for children are… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Les publicités t'influencent-elles ?",
@@ -15197,8 +15667,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_54",
     topicKey: "food",
-    text: "As-tu déjà ramassé des fruits ou des champignons dans la nature ?",
+    text: "As-tu déjà ramassé des fruits ou des champignons dans la nature ? Où et avec qui ?",
     hint: "Discuss foraging for wild food and the risks/benefits.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Say yes or no", "Say what you picked and where", "Say who you were with"],
+      phrase: { fr: "Oui, j'ai ramassé des… avec…", en: "Yes, I picked… with…" },
+    },
     difficulty: 2,
     followUps: [
       "Sais-tu différencier les champignons comestibles des toxiques ?",
@@ -15218,8 +15693,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_55",
     topicKey: "food",
-    text: "Penses-tu qu'une taxe sur le sucre est une bonne idée ?",
+    text: "Penses-tu qu'une taxe sur le sucre est une bonne idée ? Pourquoi (pas) ?",
     hint: "Discuss government measures to reduce obesity.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Say whether it is a good idea", "Give two reasons (health, price, habits)", "Say what else could help"],
+      phrase: { fr: "Je suis pour cette mesure parce que… mais…", en: "I am for this measure because… but…" },
+    },
     difficulty: 3,
     followUps: [
       "Est-ce que cela décourage vraiment les gens d'acheter des sodas ?",
@@ -15239,8 +15719,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_56",
     topicKey: "food",
-    text: "Tu préfères apporter ton 'lunch box' ou manger à la cantine ?",
+    text: "Tu préfères apporter ton 'lunch box' ou manger à la cantine ? Pourquoi ?",
     hint: "Compare packed lunches from home with school-provided meals.",
+    subTopic: "meals-and-habits",
+    coachHint: {
+      ideas: ["Say which you prefer", "Give two reasons (price, choice, time)", "Say what is in your lunch box"],
+      phrase: { fr: "Je préfère… parce que…", en: "I prefer… because…" },
+    },
     difficulty: 1,
     followUps: [
       "Qu'est-ce qu'on met dans ton lunch box d'habitude ?",
@@ -15260,8 +15745,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_57",
     topicKey: "food",
-    text: "As-tu déjà entendu parler des 'super-aliments' comme le quinoa ou le chou kale ?",
+    text: "As-tu déjà entendu parler des 'super-aliments' comme le quinoa ou le chou kale ? Lesquels manges-tu ?",
     hint: "Discuss nutrient-dense foods and their popularity.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Say whether you know them", "Name one you eat", "Say whether you think they are a fashion"],
+      phrase: { fr: "Les super-aliments, comme le quinoa, sont…", en: "Superfoods, like quinoa, are…" },
+    },
     difficulty: 2,
     followUps: [
       "En manges-tu souvent ?",
@@ -15283,6 +15773,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Que penses-tu des aliments fermentés comme le yaourt ou le kimchi ?",
     hint: "Discuss foods with probiotics and their impact on digestion.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Say whether you like them", "Give one benefit (digestion)", "Name a food"],
+      phrase: { fr: "Je pense que les aliments fermentés sont… parce que…", en: "I think fermented foods are… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Aimes-tu le goût acide de ces aliments ?",
@@ -15304,6 +15799,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Pourquoi les cafés (coffee shops) sont-ils si populaires pour travailler ou étudier ?",
     hint: "Discuss the 'third space' concept and working in public.",
+    subTopic: "eating-out-and-shopping",
+    coachHint: {
+      ideas: ["Give two reasons (wifi, atmosphere, coffee)", "Say whether you go there to work", "Say what you order"],
+      phrase: { fr: "Les cafés sont populaires parce que…", en: "Cafés are popular because…" },
+    },
     difficulty: 2,
     followUps: [
       "Préfères-tu réviser dans une bibliothèque ou dans un café ?",
@@ -15323,8 +15823,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_60",
     topicKey: "food",
-    text: "Voyagerais-tu dans un pays uniquement pour sa nourriture ?",
+    text: "Aimerais-tu voyager dans un pays uniquement pour sa nourriture ? Pourquoi (pas) ?",
     hint: "Discuss food tourism and the importance of gastronomy in travel.",
+    subTopic: "eating-out-and-shopping",
+    coachHint: {
+      ideas: ["Say yes or no", "Name the country and the food", "Give a reason (culture, taste)"],
+      phrase: { fr: "J'aimerais aller en… pour goûter…", en: "I would like to go to… to taste…" },
+    },
     difficulty: 2,
     followUps: [
       "Quel pays choisirais-tu pour un voyage gastronomique ?",
@@ -15346,6 +15851,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Qu'est-ce que tu penses des restaurants à volonté (les buffets) ?",
     hint: "Discuss the pros and cons of all-you-can-eat restaurants.",
+    subTopic: "eating-out-and-shopping",
+    coachHint: {
+      ideas: ["Say what you think", "Give one advantage (choice, price)", "Give one drawback (waste, eating too much)"],
+      phrase: { fr: "Les buffets à volonté sont… mais…", en: "All-you-can-eat buffets are… but…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que tu manges trop quand tu y vas ?",
@@ -15365,8 +15875,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_62",
     topicKey: "food",
-    text: "Connais-tu le rôle des banques alimentaires dans ta communauté ?",
+    text: "Connais-tu le rôle des banques alimentaires dans ta communauté ? Comment aident-elles les gens ?",
     hint: "Discuss food charity and helping people in need.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Say whether you know them", "Say who they help", "Say where food comes from"],
+      phrase: { fr: "Elles donnent des repas aux familles qui…", en: "They give meals to families who…" },
+    },
     difficulty: 2,
     followUps: [
       "As-tu déjà donné de la nourriture à une association ?",
@@ -15386,8 +15901,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_63",
     topicKey: "food",
-    text: "Aimes-tu regarder des concours de cuisine à la télé ?",
+    text: "Aimes-tu regarder des concours de cuisine à la télé ? Pourquoi (pas) ?",
     hint: "Discuss shows like MasterChef or Great British Bake Off.",
+    subTopic: "cooking",
+    coachHint: {
+      ideas: ["Say yes or no", "Name a show", "Give a reason"],
+      phrase: { fr: "J'aime regarder… parce que…", en: "I like watching… because…" },
+    },
     difficulty: 1,
     followUps: [
       "Qui est ton chef préféré ?",
@@ -15409,6 +15929,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Serais-tu prêt(e) à manger des insectes si c'était meilleur pour la planète ?",
     hint: "Discuss entomophagy as a sustainable protein source.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Say yes or no", "Give one reason (planet, protein)", "Say what would stop you"],
+      phrase: { fr: "Je serais prêt(e) à manger des insectes parce que…", en: "I would be ready to eat insects because…" },
+    },
     difficulty: 3,
     followUps: [
       "Penses-tu que c'est le futur de l'alimentation ?",
@@ -15430,6 +15955,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Pourquoi la baguette est-elle si emblématique de la France ?",
     hint: "Discuss the cultural history and importance of French bread.",
+    subTopic: "favourite-foods",
+    coachHint: {
+      ideas: ["Give two reasons (history, price, daily life)", "Say when people buy it", "Say what you eat it with"],
+      phrase: { fr: "La baguette est un symbole de la France parce que…", en: "The baguette is a symbol of France because…" },
+    },
     difficulty: 2,
     followUps: [
       "En manges-tu souvent ?",
@@ -15449,8 +15979,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_66",
     topicKey: "food",
-    text: "Est-ce que tu regardes le 'Nutri-Score' sur les emballages avant d'acheter ?",
+    text: "Est-ce que tu regardes le 'Nutri-Score' sur les emballages avant d'acheter ? Pourquoi (pas) ?",
     hint: "Discuss nutritional labeling and making healthy choices.",
+    subTopic: "eating-out-and-shopping",
+    coachHint: {
+      ideas: ["Say yes or no", "Say what it tells you", "Say whether it changes your choices"],
+      phrase: { fr: "Je regarde le Nutri-Score parce que… / je ne le regarde pas parce que…", en: "I look at the Nutri-Score because… / I don't look at it because…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que cela influence ton choix ?",
@@ -15472,6 +16007,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Que penses-tu des fermes verticales en plein centre-ville ?",
     hint: "Discuss urban agriculture and local production.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Say what you think", "Give two reasons (fresh food, space, cost)", "Say whether you would buy from one"],
+      phrase: { fr: "Les fermes verticales sont… parce que…", en: "Vertical farms are… because…" },
+    },
     difficulty: 3,
     followUps: [
       "Est-ce une solution contre la pollution des transports ?",
@@ -15491,8 +16031,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_68",
     topicKey: "food",
-    text: "Préfères-tu les collations faites maison ou celles achetées au magasin ?",
+    text: "Préfères-tu les collations faites maison ou celles achetées au magasin ? Pourquoi ?",
     hint: "Compare home-made snacks like cookies with store-bought ones.",
+    subTopic: "meals-and-habits",
+    coachHint: {
+      ideas: ["Say which you prefer", "Give two reasons (taste, price, health)", "Name your favourite snack"],
+      phrase: { fr: "Je préfère les collations… parce que…", en: "I prefer… snacks because…" },
+    },
     difficulty: 1,
     followUps: [
       "Quelle est ta collation préférée ?",
@@ -15514,6 +16059,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Que penses-tu de l'augmentation des laits végétaux (avoine, amande, soja) ?",
     hint: "Discuss alternatives to dairy and why people choose them.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Say what you think", "Give two reasons (allergies, animals, taste)", "Say which one you like"],
+      phrase: { fr: "Les laits végétaux sont… parce que…", en: "Plant milks are… because…" },
+    },
     difficulty: 2,
     followUps: [
       "En bois-tu à la place du lait de vache ?",
@@ -15535,6 +16085,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Pourquoi est-il important de choisir du poisson issu de la pêche durable ?",
     hint: "Discuss overfishing and ocean conservation.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Give two reasons (fish stocks, oceans, jobs)", "Say how you can choose", "Say whether you eat fish"],
+      phrase: { fr: "Il faut choisir du poisson durable parce que…", en: "We must choose sustainable fish because…" },
+    },
     difficulty: 3,
     followUps: [
       "Est-ce que tu manges souvent du poisson ?",
@@ -15554,8 +16109,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_71",
     topicKey: "food",
-    text: "As-tu déjà entendu parler du mouvement 'Slow Food' ?",
+    text: "As-tu déjà entendu parler du mouvement 'Slow Food' ? Comment décrirais-tu ce mouvement ?",
     hint: "Discuss the philosophy of eating slowly and valuing local traditions.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Say yes or no", "Give two ideas (slow, local, pleasure)", "Say how it differs from fast food"],
+      phrase: { fr: "Le mouvement Slow Food encourage les gens à…", en: "The Slow Food movement encourages people to…" },
+    },
     difficulty: 2,
     followUps: [
       "Prends-tu le temps de savourer tes repas ?",
@@ -15577,6 +16137,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Comment le changement climatique affecte-t-il la production de chocolat et de café ?",
     hint: "Discuss how rising temperatures threaten certain crops.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Name two effects (hotter climate, drought, higher prices)", "Say who is affected", "Say what could be done"],
+      phrase: { fr: "Quand il fait trop chaud, les récoltes… et les prix…", en: "When it is too hot, harvests… and prices…" },
+    },
     difficulty: 3,
     followUps: [
       "Seras-tu triste si ces produits deviennent trop chers ?",
@@ -15596,8 +16161,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_73",
     topicKey: "food",
-    text: "Est-ce qu'une odeur ou un goût particulier te rappelle un souvenir d'enfance ?",
+    text: "Est-ce qu'une odeur ou un goût particulier te rappelle un souvenir d'enfance ? Lequel ?",
     hint: "Discuss the link between food and memory (like Proust's Madeleine).",
+    subTopic: "favourite-foods",
+    coachHint: {
+      ideas: ["Say yes or no", "Name the smell or taste", "Say what memory it brings back"],
+      phrase: { fr: "L'odeur de… me rappelle…", en: "The smell of… reminds me of…" },
+    },
     difficulty: 2,
     followUps: [
       "Quel est ce souvenir ?",
@@ -15617,8 +16187,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_74",
     topicKey: "food",
-    text: "Connais-tu le 'paradoxe français' concernant l'alimentation et la santé ?",
+    text: "Connais-tu le 'paradoxe français' concernant l'alimentation et la santé ? Comment l'expliques-tu ?",
     hint: "Discuss how the French stay healthy despite a rich diet.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Say whether you know it", "Give two possible reasons (small portions, slow meals)", "Say whether you agree"],
+      phrase: { fr: "On dit que les Français sont en bonne santé parce que…", en: "They say the French are healthy because…" },
+    },
     difficulty: 3,
     followUps: [
       "Penses-tu que c'est grâce au vin rouge ou aux petites portions ?",
