@@ -5,7 +5,7 @@
  */
 import type { QuestionDemands } from '../../domain/learn/demand/types';
 
-export const demandsVersion = "1e0fcf6f1bc58fc75d06fd838315a94ce8ac8af933ffec03e7c3f1de19f6994f";
+export const demandsVersion = "25cdbba03f296bb071ed7c207c3107532099579ee06c49d5d961618f08c186e3";
 
 export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
   "art_01": {
@@ -588,11 +588,11 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe family members — their appearance, personality, job, and your relationship.",
+    "sufficientAnswer": "Describe at least three family members, giving for each one a detail such as appearance, personality or job.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.9
+    "inferenceConfidence": 0.8
   },
   "fam_02": {
     "cognitiveDemand": "explain",
@@ -601,10 +601,10 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     ],
     "structures": [],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Explain how you get along — what you do together, any conflicts, how they support you.",
+    "lexicalReach": "everyday",
+    "sufficientAnswer": "Say how you get on with your parents, with at least two details such as what you do together or how they support you.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.55
+    "inferenceConfidence": 0.8
   },
   "fam_03": {
     "cognitiveDemand": "describe",
@@ -612,11 +612,11 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe their appearance, personality, how you met, what you do together.",
+    "sufficientAnswer": "Describe your best friend with at least three details, such as appearance, personality, how you met or what you do together.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.9
+    "inferenceConfidence": 0.8
   },
   "fam_04": {
     "cognitiveDemand": "describe",
@@ -626,9 +626,9 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about typical weekend activities with friends — where you go, what you do.",
+    "sufficientAnswer": "Say what you do with friends at the weekend, with at least two activities and where you go.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "fam_05": {
     "cognitiveDemand": "describe",
@@ -636,11 +636,11 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe your pet (or one you would like), its name, appearance, and personality.",
+    "sufficientAnswer": "Say whether you have a pet and describe it, with its name and at least two details about appearance or personality.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.9
+    "inferenceConfidence": 0.8
   },
   "fam_06": {
     "cognitiveDemand": "explain",
@@ -648,38 +648,40 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "short",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about household chores you do to help your family.",
+    "sufficientAnswer": "Say how you help your parents at home, naming at least two household jobs.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.55
+    "inferenceConfidence": 0.8
   },
   "fam_07": {
     "cognitiveDemand": "describe",
     "timeFrames": [
-      "present",
       "past"
     ],
-    "structures": [],
+    "structures": [
+      "perfect"
+    ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe a recent family outing or activity using the past tense.",
+    "sufficientAnswer": "Describe something you did with your family recently, using the past tense, with at least two details.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "fam_08": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "compare",
     "timeFrames": [
       "present"
     ],
     "structures": [
-      "comparison"
+      "comparison",
+      "justification"
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Express and justify your opinion on friendship, quality vs quantity.",
+    "sufficientAnswer": "Say whether you prefer many friends or a few close ones and give at least two reasons.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "fam_09": {
     "cognitiveDemand": "justify",
@@ -703,21 +705,23 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss common hobbies or differences between you and your parents.",
+    "sufficientAnswer": "Say whether you share interests with your parents and name at least one activity you do together or one difference.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "fam_11": {
     "cognitiveDemand": "describe",
     "timeFrames": [
-      "present"
+      "past"
     ],
-    "structures": [],
+    "structures": [
+      "perfect"
+    ],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Describe a family event like a birthday, wedding, or festival using the past tense.",
+    "lexicalReach": "everyday",
+    "sufficientAnswer": "Describe your last family celebration in the past tense, with at least three details such as where, who and what you did.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.9
+    "inferenceConfidence": 0.8
   },
   "fam_12": {
     "cognitiveDemand": "justify",
@@ -727,11 +731,11 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [
       "justification"
     ],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Explain the importance of family time for relationships and well-being.",
+    "sufficientAnswer": "Say whether family time is important and give at least two reasons.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.75
+    "inferenceConfidence": 0.8
   },
   "fam_13": {
     "cognitiveDemand": "describe",
@@ -739,11 +743,11 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about your extended family and your relationship with them.",
+    "sufficientAnswer": "Say how many cousins you have and how often you see them, with at least one detail about them.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "fam_14": {
     "cognitiveDemand": "describe",
@@ -753,23 +757,24 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Identify the family member or friend you trust most.",
+    "sufficientAnswer": "Say who you talk to when you have a problem and give one reason you trust them.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "fam_15": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "compare",
     "timeFrames": [
       "present"
     ],
     "structures": [
-      "comparison"
+      "comparison",
+      "justification"
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Compare the two situations and give your opinion.",
+    "sufficientAnswer": "Say whether it is better to be an only child or to have siblings and give at least two reasons.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "fam_16": {
     "cognitiveDemand": "describe",
@@ -779,9 +784,9 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Walk through your family's Sunday routine — meals, activities, relaxation.",
+    "sufficientAnswer": "Describe a typical Sunday with your family, with at least three activities such as meals or outings.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.9
+    "inferenceConfidence": 0.8
   },
   "fam_17": {
     "cognitiveDemand": "justify",
@@ -789,11 +794,12 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [
-      "opinion"
+      "opinion",
+      "justification"
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the value of elderly people's experience and wisdom.",
+    "sufficientAnswer": "Give your opinion on whether young people should listen more to their grandparents, with at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
@@ -805,9 +811,9 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe what your family usually does for Christmas, Eid, or other celebrations.",
+    "sufficientAnswer": "Say whether your family has special traditions for celebrations and describe at least one, such as what you eat or do.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "fam_19": {
     "cognitiveDemand": "describe",
@@ -817,9 +823,9 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about rules regarding bedtime or returning home in the evening.",
+    "sufficientAnswer": "Say whether your parents are strict about times and describe at least one rule and what happens if you break it.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "fam_20": {
     "cognitiveDemand": "describe",
@@ -829,9 +835,9 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe a relative who lives far away or you haven't visited recently.",
+    "sufficientAnswer": "Describe a relative you have not seen for a long time, with at least three details such as where they live and what they are like.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.9
+    "inferenceConfidence": 0.8
   },
   "fam_21": {
     "cognitiveDemand": "justify",
@@ -839,11 +845,12 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [
-      "opinion"
+      "opinion",
+      "justification"
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the balance between authority and friendship in family relationships.",
+    "sufficientAnswer": "Give your opinion on whether parents and teenagers can be friends, with at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
@@ -853,11 +860,11 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss traits like patience, support, honesty, and listening.",
+    "sufficientAnswer": "Name at least three qualities of a good parent and give a reason for one of them.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "fam_23": {
     "cognitiveDemand": "describe",
@@ -867,9 +874,9 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about your pets and how they are treated like family members.",
+    "sufficientAnswer": "Say what role pets play in your family, with at least two details such as who looks after them or how they are treated.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "fam_24": {
     "cognitiveDemand": "explain",
@@ -879,35 +886,36 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss house rules, punishments, and how your parents maintain order.",
+    "sufficientAnswer": "Describe the rules at home and explain how your parents keep order, with at least two examples.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.55
+    "inferenceConfidence": 0.8
   },
   "fam_25": {
     "cognitiveDemand": "justify",
     "timeFrames": [
-      "present"
+      "future"
     ],
     "structures": [
-      "opinion"
+      "opinion",
+      "justification"
     ],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Discuss the emotional and practical aspects of moving away from home.",
+    "lexicalReach": "everyday",
+    "sufficientAnswer": "Say whether you think leaving your family for university will be hard and give at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
   "fam_26": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "justify",
     "timeFrames": [
       "present"
     ],
     "structures": [],
     "responseLoad": "developed",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the differences in ideas and values between young people and older relatives.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Give your opinion on the generation gap, with at least one difference in ideas or values between young and old.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "fam_27": {
     "cognitiveDemand": "justify",
@@ -915,49 +923,57 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [
-      "opinion"
+      "opinion",
+      "justification"
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the impact of social media on family interactions and quality time.",
+    "sufficientAnswer": "Say whether social media harms family life and give at least two reasons or examples.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
   "fam_28": {
     "cognitiveDemand": "describe",
     "timeFrames": [
-      "present"
+      "past"
     ],
-    "structures": [],
-    "responseLoad": "short",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Describe a happy memory from when you were younger involving your family members.",
+    "structures": [
+      "imperfect",
+      "perfect"
+    ],
+    "responseLoad": "developed",
+    "lexicalReach": "everyday",
+    "sufficientAnswer": "Describe one happy childhood memory with your family, using the past tense, with at least three details.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.9
+    "inferenceConfidence": 0.8
   },
   "fam_29": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "justify",
     "timeFrames": [
       "present"
     ],
-    "structures": [],
+    "structures": [
+      "justification"
+    ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the advantages and disadvantages of having siblings versus being an only child.",
+    "sufficientAnswer": "Say whether it is important to have brothers and sisters and give at least two reasons.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "fam_30": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
-    "structures": [],
+    "structures": [
+      "justification"
+    ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe a family member you look up to and explain why they inspire you.",
+    "sufficientAnswer": "Say whether a family member is a role model for you, name them and explain why.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "fam_31": {
     "cognitiveDemand": "describe",
@@ -967,21 +983,21 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss multigenerational living and what younger people can learn from older generations.",
+    "sufficientAnswer": "Give at least two advantages of living with grandparents, such as help, stories or company.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "fam_32": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Explain who in your family gives the best advice and why you trust them.",
+    "sufficientAnswer": "Say who you turn to for advice and explain why you trust them.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "fam_33": {
     "cognitiveDemand": "describe",
@@ -991,59 +1007,62 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about a traditional family dish and its significance to you.",
+    "sufficientAnswer": "Say whether your family has a special recipe and describe it, with at least two details about the dish.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "fam_34": {
     "cognitiveDemand": "explain",
     "timeFrames": [
-      "present",
-      "past"
+      "past",
+      "present"
     ],
-    "structures": [],
+    "structures": [
+      "perfect"
+    ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Reflect on how your family dynamics or situation has evolved recently.",
+    "sufficientAnswer": "Explain how your family has changed over the last five years, with at least two changes.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.55
+    "inferenceConfidence": 0.8
   },
   "fam_35": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "justify",
     "timeFrames": [
-      "present",
       "future"
     ],
-    "structures": [],
+    "structures": [
+      "justification"
+    ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Consider the pros and cons of raising a family in another country.",
+    "sufficientAnswer": "Say whether you would like to raise a family abroad later and give at least one advantage and one drawback.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "fam_36": {
-    "cognitiveDemand": "describe",
-    "timeFrames": [
-      "present"
-    ],
-    "structures": [],
-    "responseLoad": "short",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Give your opinion on the most important values for a happy family life.",
-    "provenance": "inferred",
-    "inferenceConfidence": 0.4
-  },
-  "fam_37": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "justify",
     "timeFrames": [
       "present"
     ],
     "structures": [],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Discuss how siblings shape your personality — being responsible, funny, or competitive.",
+    "lexicalReach": "everyday",
+    "sufficientAnswer": "Say what makes a happy family for you, with at least two values or things that matter.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
+  },
+  "fam_37": {
+    "cognitiveDemand": "explain",
+    "timeFrames": [
+      "present"
+    ],
+    "structures": [],
+    "responseLoad": "developed",
+    "lexicalReach": "everyday",
+    "sufficientAnswer": "Explain how your brothers or sisters influence your character, with at least one example.",
+    "provenance": "inferred",
+    "inferenceConfidence": 0.8
   },
   "fam_38": {
     "cognitiveDemand": "describe",
@@ -1053,9 +1072,9 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about common sources of conflict — chores, screen time, or sharing things.",
+    "sufficientAnswer": "Name at least two common causes of arguments in your family, such as chores, screens or sharing.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "fam_39": {
     "cognitiveDemand": "describe",
@@ -1065,9 +1084,9 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe shared fun activities like hobbies, sports, or games.",
+    "sufficientAnswer": "Name at least two activities you do with your parents for fun and say how often.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "fam_40": {
     "cognitiveDemand": "explain",
@@ -1079,22 +1098,23 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the social and emotional benefits of shared family meals.",
+    "sufficientAnswer": "Explain why eating together as a family matters, with at least two reasons.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.65
+    "inferenceConfidence": 0.8
   },
   "fam_41": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "justify",
     "timeFrames": [
-      "present",
       "future"
     ],
-    "structures": [],
+    "structures": [
+      "justification"
+    ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about your future family aspirations — marriage, children, lifestyle.",
+    "sufficientAnswer": "Say whether you want to start your own family later and give at least two reasons.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "fam_42": {
     "cognitiveDemand": "describe",
@@ -1102,23 +1122,25 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the pros (company, support) and cons (noise, lack of space) of a big family.",
+    "sufficientAnswer": "Give at least two advantages and one drawback of living in a big family.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "fam_43": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "justify",
     "timeFrames": [
       "present"
     ],
-    "structures": [],
+    "structures": [
+      "justification"
+    ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the importance of heritage, ancestry, and family stories.",
+    "sufficientAnswer": "Say whether it is important to know your family history and give at least two reasons.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "fam_44": {
     "cognitiveDemand": "explain",
@@ -1127,22 +1149,22 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     ],
     "structures": [],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Talk about family expectations, support, or pressure regarding your career.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Explain how your family influences your career choices, with at least one example of support or pressure.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.55
+    "inferenceConfidence": 0.8
   },
   "fam_45": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
     "structures": [],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Discuss the evolution of grandparents' roles — childcare, wisdom, or modern connection.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Explain the role of grandparents in society today, with at least two examples such as childcare or passing on wisdom.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "fam_46": {
     "cognitiveDemand": "explain",
@@ -1152,9 +1174,9 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss technology, visits, or letters to stay close with distant relatives.",
+    "sufficientAnswer": "Explain how you keep in touch with relatives who live far away, with at least two ways.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.55
+    "inferenceConfidence": 0.8
   },
   "foo_01": {
     "cognitiveDemand": "describe",
@@ -2718,9 +2740,9 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe 2-3 hobbies in detail — how often, who with, why you enjoy them.",
+    "sufficientAnswer": "Name at least two things you do in your free time and say how often or with whom.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hob_02": {
     "cognitiveDemand": "justify",
@@ -2730,25 +2752,23 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [
       "justification"
     ],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about sports you play or watch. Include how often and where.",
+    "sufficientAnswer": "Say which sport you prefer, give a reason, and say how often or where you do it.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.75
+    "inferenceConfidence": 0.8
   },
   "hob_03": {
     "cognitiveDemand": "describe",
     "timeFrames": [
       "present"
     ],
-    "structures": [
-      "comparison"
-    ],
-    "responseLoad": "extended",
+    "structures": [],
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss any musical activity — playing, singing, concerts, favourite music genres.",
+    "sufficientAnswer": "Say whether you play an instrument or sing, how long you have done it, and one detail about the music you like.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hob_04": {
     "cognitiveDemand": "describe",
@@ -2756,51 +2776,49 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe your reading habits, favourite genres, specific books or authors.",
+    "sufficientAnswer": "Say how much you read and name at least one kind of book or author you like.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hob_05": {
     "cognitiveDemand": "describe",
     "timeFrames": [
       "present"
     ],
-    "structures": [
-      "comparison"
-    ],
-    "responseLoad": "extended",
+    "structures": [],
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss screen time habits — TV shows, YouTube, streaming, how much time per day.",
+    "sufficientAnswer": "Say how much TV or online video you watch and give at least two details, such as channels, shows or time per day.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hob_06": {
     "cognitiveDemand": "describe",
     "timeFrames": [
-      "present",
       "past"
     ],
-    "structures": [],
-    "responseLoad": "short",
+    "structures": [
+      "perfect"
+    ],
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe your recent weekend activities using the past tense (passé composé).",
+    "sufficientAnswer": "Describe at least two things you did last weekend to relax, using the past tense.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hob_07": {
     "cognitiveDemand": "describe",
     "timeFrames": [
-      "present",
       "future"
     ],
     "structures": [],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Talk about a new hobby or sport you want to try, explain why it interests you.",
+    "lexicalReach": "everyday",
+    "sufficientAnswer": "Name one activity you would like to try in the future and give at least one reason why it interests you.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hob_08": {
     "cognitiveDemand": "compare",
@@ -2810,36 +2828,40 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [
       "comparison"
     ],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Compare individual and team sports, giving advantages and disadvantages of each.",
+    "sufficientAnswer": "Say whether you prefer individual or team sports, with one advantage of your choice and one drawback of the other.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
   "hob_09": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "justify",
     "timeFrames": [
       "present"
     ],
-    "structures": [],
+    "structures": [
+      "justification"
+    ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the impact of technology and social media on young people's leisure time.",
+    "sufficientAnswer": "Give your opinion on whether young people spend too long on screens, with at least two reasons or examples.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hob_10": {
     "cognitiveDemand": "explain",
     "timeFrames": [
-      "present",
       "past"
     ],
-    "structures": [],
-    "responseLoad": "extended",
+    "structures": [
+      "perfect",
+      "imperfect"
+    ],
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe a recent movie experience — plot, opinion, and actors.",
+    "sufficientAnswer": "Name the last film you saw and say what it was like, with at least two details such as plot, actors or your opinion.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.55
+    "inferenceConfidence": 0.8
   },
   "hob_11": {
     "cognitiveDemand": "explain",
@@ -2849,11 +2871,11 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [
       "justification"
     ],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss your gaming habits or why you don't enjoy gaming.",
+    "sufficientAnswer": "Say whether you play video games and give at least one reason why or why not.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.65
+    "inferenceConfidence": 0.8
   },
   "hob_12": {
     "cognitiveDemand": "compare",
@@ -2861,12 +2883,12 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [
-      "justification",
-      "comparison"
+      "comparison",
+      "justification"
     ],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Compare reading and watching films, giving your preference.",
+    "sufficientAnswer": "Say whether you prefer reading a book or watching a film and give at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
@@ -2878,9 +2900,9 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe your evening routine and leisure activities after school.",
+    "sufficientAnswer": "Describe what you do on a typical evening after school, with at least three activities.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hob_14": {
     "cognitiveDemand": "compare",
@@ -2892,14 +2914,13 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Compare online shopping with going to physical stores.",
+    "sufficientAnswer": "Say whether you prefer shopping online or in shops, with one advantage of your choice and one drawback of the other.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
   "hob_15": {
     "cognitiveDemand": "describe",
     "timeFrames": [
-      "present",
       "conditional"
     ],
     "structures": [
@@ -2907,23 +2928,24 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about an actor, singer, or athlete you admire.",
+    "sufficientAnswer": "Name a famous person you would like to meet and give at least two reasons or things you would ask them.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hob_16": {
     "cognitiveDemand": "describe",
     "timeFrames": [
-      "present"
+      "present",
+      "past"
     ],
     "structures": [
-      "comparison"
+      "perfect"
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Mention at least two of: Discuss your interest in culture and exhibitions.",
+    "sufficientAnswer": "Say whether you like museums or galleries and describe the last one you visited, with at least one detail.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hob_17": {
     "cognitiveDemand": "explain",
@@ -2934,24 +2956,22 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "justification"
     ],
     "responseLoad": "developed",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss how hobbies help reduce stress and improve well-being.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Explain why hobbies matter for mental health, giving at least two reasons such as less stress or more confidence.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.65
+    "inferenceConfidence": 0.8
   },
   "hob_18": {
     "cognitiveDemand": "describe",
     "timeFrames": [
       "present"
     ],
-    "structures": [
-      "negation"
-    ],
+    "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about indoor activities like reading, watching movies, or games.",
+    "sufficientAnswer": "Say what you do indoors when it rains, with at least two activities.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hob_19": {
     "cognitiveDemand": "compare",
@@ -2959,11 +2979,12 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [
-      "comparison"
+      "comparison",
+      "justification"
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "A complete answer should: Compare hobbies like reading/drawing with sports/dancing.",
+    "sufficientAnswer": "Say whether you prefer calm or active hobbies and give at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
@@ -2973,11 +2994,11 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about any collections you have — stamps, coins, posters, digital items.",
+    "sufficientAnswer": "Say whether you like collecting things and name at least one thing you collect or used to collect.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hob_21": {
     "cognitiveDemand": "justify",
@@ -2987,66 +3008,72 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [
       "justification"
     ],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss your musical tastes and how they make you feel.",
+    "sufficientAnswer": "Name your favourite music genre and give at least two reasons, such as how it makes you feel.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.75
+    "inferenceConfidence": 0.8
   },
   "hob_22": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "justify",
     "timeFrames": [
       "present"
     ],
-    "structures": [],
+    "structures": [
+      "opinion"
+    ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the benefits of volunteering for others and for oneself.",
+    "sufficientAnswer": "Give your opinion on volunteering as a hobby, with at least one benefit for others and one for yourself.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hob_23": {
+    "cognitiveDemand": "compare",
+    "timeFrames": [
+      "past",
+      "present"
+    ],
+    "structures": [
+      "imperfect"
+    ],
+    "responseLoad": "developed",
+    "lexicalReach": "everyday",
+    "sufficientAnswer": "Compare what you did in your free time as a child with what you do now, with at least two differences.",
+    "provenance": "inferred",
+    "inferenceConfidence": 0.8
+  },
+  "hob_24": {
     "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
-    "structures": [],
-    "responseLoad": "short",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Compare your childhood activities with your current hobbies.",
-    "provenance": "inferred",
-    "inferenceConfidence": 0.55
-  },
-  "hob_24": {
-    "cognitiveDemand": "describe",
-    "timeFrames": [
-      "present"
+    "structures": [
+      "justification"
     ],
-    "structures": [],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss your use of TikTok, Instagram, etc., as a leisure activity.",
+    "sufficientAnswer": "Say whether you see social media as a hobby and give at least one reason, naming an app you use.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hob_25": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
     "structures": [
-      "comparison"
+      "justification"
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about making things, crafts, or DIY projects.",
+    "sufficientAnswer": "Say whether you enjoy DIY and crafts and give at least one reason, with an example of something you made or would make.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hob_26": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
-      "present",
       "conditional"
     ],
     "structures": [
@@ -3054,9 +3081,9 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss activities like skydiving, bungee jumping, or rock climbing.",
+    "sufficientAnswer": "Say whether you would try an extreme sport, name one, and give at least one reason.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hob_27": {
     "cognitiveDemand": "compare",
@@ -3068,7 +3095,7 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Contrast watching matches with participating in physical activities.",
+    "sufficientAnswer": "Say whether you prefer watching or playing sport, with one advantage of your choice and one drawback of the other.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
@@ -3080,23 +3107,21 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about taking photos, your equipment, and what you like to capture.",
+    "sufficientAnswer": "Say whether you like photography and name at least two things you photograph or the equipment you use.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hob_29": {
     "cognitiveDemand": "describe",
     "timeFrames": [
       "present"
     ],
-    "structures": [
-      "comparison"
-    ],
+    "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss cooking as a hobby, your favorite recipes, and who you cook for.",
+    "sufficientAnswer": "Say whether you like cooking or baking in your free time and name one dish you make.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hob_30": {
     "cognitiveDemand": "describe",
@@ -3104,39 +3129,35 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe local youth facilities and the activities they offer.",
+    "sufficientAnswer": "Say whether there is a youth centre in your town and name at least two activities you can do there.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hob_31": {
     "cognitiveDemand": "describe",
     "timeFrames": [
       "present"
     ],
-    "structures": [
-      "comparison"
-    ],
+    "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about your creative arts hobbies and your favorite style.",
+    "sufficientAnswer": "Say whether you are good at drawing or painting and say where you find your inspiration.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hob_32": {
     "cognitiveDemand": "describe",
     "timeFrames": [
       "present"
     ],
-    "structures": [
-      "comparison"
-    ],
-    "responseLoad": "extended",
+    "structures": [],
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss dancing as a hobby, whether you take lessons or dance for fun.",
+    "sufficientAnswer": "Say whether you like dancing and name the style you prefer, with one reason or detail.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hob_33": {
     "cognitiveDemand": "describe",
@@ -3146,9 +3167,9 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about gardening, plants, or spending time in the garden.",
+    "sufficientAnswer": "Say whether you help your parents with gardening and name at least two jobs you do.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hob_34": {
     "cognitiveDemand": "describe",
@@ -3158,9 +3179,9 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss looking after pets as a daily commitment and hobby.",
+    "sufficientAnswer": "Name at least two responsibilities of owning a pet, such as feeding, walking or visits to the vet.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hob_35": {
     "cognitiveDemand": "explain",
@@ -3170,106 +3191,110 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [
       "justification"
     ],
-    "responseLoad": "short",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the mental health benefits of having hobbies outside of school.",
+    "responseLoad": "developed",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Explain why hobbies help reduce stress, giving at least two reasons.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.65
+    "inferenceConfidence": 0.8
   },
   "hob_36": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
     "structures": [
-      "comparison"
+      "justification"
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about acting, watching plays, or participating in drama workshops.",
+    "sufficientAnswer": "Say whether you are interested in theatre or drama and give at least one reason.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hob_37": {
+    "cognitiveDemand": "describe",
+    "timeFrames": [
+      "past"
+    ],
+    "structures": [
+      "perfect"
+    ],
+    "responseLoad": "developed",
+    "lexicalReach": "everyday",
+    "sufficientAnswer": "Say whether you have tried yoga or meditation and describe what it was like, with at least one detail.",
+    "provenance": "inferred",
+    "inferenceConfidence": 0.8
+  },
+  "hob_38": {
+    "cognitiveDemand": "explain",
+    "timeFrames": [
+      "present"
+    ],
+    "structures": [
+      "justification"
+    ],
+    "responseLoad": "developed",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Say whether you are interested in coding or robotics and give at least one reason.",
+    "provenance": "inferred",
+    "inferenceConfidence": 0.8
+  },
+  "hob_39": {
+    "cognitiveDemand": "explain",
+    "timeFrames": [
+      "present"
+    ],
+    "structures": [
+      "justification"
+    ],
+    "responseLoad": "developed",
+    "lexicalReach": "everyday",
+    "sufficientAnswer": "Say whether you are interested in fashion or making clothes and give at least one reason.",
+    "provenance": "inferred",
+    "inferenceConfidence": 0.8
+  },
+  "hob_40": {
+    "cognitiveDemand": "explain",
+    "timeFrames": [
+      "present"
+    ],
+    "structures": [
+      "justification"
+    ],
+    "responseLoad": "developed",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Say whether you like stargazing or astronomy and give at least one reason.",
+    "provenance": "inferred",
+    "inferenceConfidence": 0.8
+  },
+  "hob_41": {
+    "cognitiveDemand": "explain",
+    "timeFrames": [
+      "present"
+    ],
+    "structures": [
+      "justification"
+    ],
+    "responseLoad": "developed",
+    "lexicalReach": "everyday",
+    "sufficientAnswer": "Say whether you do volunteering and give at least one reason, with an example if you do.",
+    "provenance": "inferred",
+    "inferenceConfidence": 0.8
+  },
+  "hob_42": {
     "cognitiveDemand": "describe",
     "timeFrames": [
       "present",
       "past"
     ],
     "structures": [
-      "comparison"
-    ],
-    "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Discuss wellness activities and how they affect your physical/mental state.",
-    "provenance": "inferred",
-    "inferenceConfidence": 0.4
-  },
-  "hob_38": {
-    "cognitiveDemand": "describe",
-    "timeFrames": [
-      "present"
-    ],
-    "structures": [
-      "comparison"
+      "perfect"
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about technology-based hobbies and creating software or machines.",
+    "sufficientAnswer": "Say whether you like visiting historic sites and describe the last one you visited, with at least one detail.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
-  },
-  "hob_39": {
-    "cognitiveDemand": "describe",
-    "timeFrames": [
-      "present"
-    ],
-    "structures": [],
-    "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Discuss fashion as a creative outlet, sewing, or following trends.",
-    "provenance": "inferred",
-    "inferenceConfidence": 0.4
-  },
-  "hob_40": {
-    "cognitiveDemand": "describe",
-    "timeFrames": [
-      "present"
-    ],
-    "structures": [
-      "comparison"
-    ],
-    "responseLoad": "developed",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about space, planets, and using a telescope.",
-    "provenance": "inferred",
-    "inferenceConfidence": 0.4
-  },
-  "hob_41": {
-    "cognitiveDemand": "describe",
-    "timeFrames": [
-      "present"
-    ],
-    "structures": [],
-    "responseLoad": "developed",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about helping others, charity work, or local community events.",
-    "provenance": "inferred",
-    "inferenceConfidence": 0.4
-  },
-  "hob_42": {
-    "cognitiveDemand": "describe",
-    "timeFrames": [
-      "present"
-    ],
-    "structures": [
-      "comparison"
-    ],
-    "responseLoad": "developed",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about cultural trips, museums, and historical interests.",
-    "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hob_43": {
     "cognitiveDemand": "compare",
@@ -3285,72 +3310,66 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "provenance": "reviewed"
   },
   "hob_44": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
-    "structures": [],
-    "responseLoad": "short",
+    "structures": [
+      "justification"
+    ],
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the atmosphere of live sports vs. watching on TV.",
+    "sufficientAnswer": "Say whether you like watching live sport at the stadium and give at least one reason, such as the atmosphere.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hob_45": {
     "cognitiveDemand": "describe",
     "timeFrames": [
       "present"
     ],
-    "structures": [
-      "comparison"
-    ],
+    "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about learning unique skills or talents for entertainment.",
+    "sufficientAnswer": "Say whether you have a special talent or can do magic tricks, and describe it with at least one detail.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hob_46": {
     "cognitiveDemand": "describe",
     "timeFrames": [
       "present"
     ],
-    "structures": [
-      "comparison"
-    ],
+    "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss walking in nature, equipment, and how it makes you feel.",
+    "sufficientAnswer": "Say whether you like hiking or forest walks and say where you go and who you go with.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hob_47": {
     "cognitiveDemand": "describe",
     "timeFrames": [
       "present"
     ],
-    "structures": [
-      "comparison"
-    ],
+    "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss modern ways of consuming stories or information.",
+    "sufficientAnswer": "Say whether you listen to podcasts or audiobooks and name at least one that you like.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hob_48": {
     "cognitiveDemand": "describe",
     "timeFrames": [
       "present"
     ],
-    "structures": [
-      "comparison"
-    ],
+    "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about DIY projects, making things at home, or fixing things.",
+    "sufficientAnswer": "Say whether you like making things with your hands and describe your favourite project.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hob_49": {
     "cognitiveDemand": "describe",
@@ -3358,25 +3377,25 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss growing plants, flowers, or vegetables in a garden or on a balcony.",
+    "sufficientAnswer": "Say whether you like gardening and name at least two plants or vegetables you like.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hob_50": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
     "structures": [
-      "comparison"
+      "justification"
     ],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Talk about coding, making websites, or game development as a hobby.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Say whether you do programming or coding as a hobby and give at least one reason why or why not.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hob_51": {
     "cognitiveDemand": "describe",
@@ -3386,117 +3405,117 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Mention at least two of: Discuss baking cakes, cookies, or bread.",
+    "sufficientAnswer": "Say whether you like baking at the weekend and name the cake or bread you make most often.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hob_52": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
     "structures": [
-      "comparison"
+      "justification"
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about creative writing, journaling, or writing poems.",
+    "sufficientAnswer": "Say whether you write stories or poems in your free time and give at least one reason why or why not.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hob_53": {
     "cognitiveDemand": "describe",
     "timeFrames": [
-      "present",
       "past"
     ],
     "structures": [
-      "comparison"
+      "perfect"
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss making pottery, working with clay, or taking art classes.",
+    "sufficientAnswer": "Say whether you have tried pottery or ceramics and describe what it was like, with at least one detail.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hob_54": {
     "cognitiveDemand": "describe",
     "timeFrames": [
       "present"
     ],
-    "structures": [
-      "comparison"
-    ],
-    "responseLoad": "extended",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Talk about yoga, stretching, mindfulness, or meditation practices.",
+    "structures": [],
+    "responseLoad": "developed",
+    "lexicalReach": "everyday",
+    "sufficientAnswer": "Say whether you do yoga or meditation to relax and describe how you relax, with at least one detail.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hob_55": {
     "cognitiveDemand": "describe",
     "timeFrames": [
       "present"
     ],
-    "structures": [
-      "comparison"
-    ],
+    "structures": [],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Discuss board games, strategy games, or family game nights.",
+    "lexicalReach": "everyday",
+    "sufficientAnswer": "Say whether you like board games and name your favourite one, with who you play with.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hob_56": {
     "cognitiveDemand": "describe",
     "timeFrames": [
-      "present",
       "past"
     ],
-    "structures": [],
+    "structures": [
+      "perfect"
+    ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about escape rooms, solving puzzles, and teamwork.",
+    "sufficientAnswer": "Say whether you have done an escape room and describe what it was like, with at least one detail.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hob_57": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
     "structures": [
-      "comparison"
+      "justification"
     ],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Discuss learning magic tricks, card tricks, and entertaining others.",
+    "lexicalReach": "everyday",
+    "sufficientAnswer": "Say whether you are interested in magic tricks and give at least one reason why or why not.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hob_58": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
-    "structures": [],
+    "structures": [
+      "justification"
+    ],
     "responseLoad": "developed",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about stargazing, telescopes, and learning about space.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Say whether you do astronomy by watching the stars and give at least one reason why or why not.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hob_59": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
-    "structures": [],
+    "structures": [
+      "justification"
+    ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss flying drones, taking aerial photos, or racing drones.",
+    "sufficientAnswer": "Say whether you like flying a drone and give at least one reason why or why not.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hob_60": {
     "cognitiveDemand": "describe",
@@ -3504,27 +3523,41 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about skateboarding, skateparks, learning tricks, and skate culture.",
+    "sufficientAnswer": "Say whether you skateboard and say where you go and who you go with.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hob_61": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
     "structures": [
-      "comparison"
+      "justification"
     ],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss sewing, making clothes, fashion, or upcycling fabrics.",
+    "sufficientAnswer": "Say whether you like sewing or making your own clothes and give at least one reason.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hob_62": {
+    "cognitiveDemand": "explain",
+    "timeFrames": [
+      "present"
+    ],
+    "structures": [
+      "justification"
+    ],
+    "responseLoad": "developed",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Say whether you play tabletop role-playing games and give at least one reason why or why not.",
+    "provenance": "inferred",
+    "inferenceConfidence": 0.8
+  },
+  "hob_63": {
     "cognitiveDemand": "describe",
     "timeFrames": [
       "present"
@@ -3532,23 +3565,9 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about tabletop RPGs, creating characters, and storytelling.",
+    "sufficientAnswer": "Say whether you do volunteering or help charities and name at least one organisation or activity.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
-  },
-  "hob_63": {
-    "cognitiveDemand": "describe",
-    "timeFrames": [
-      "present"
-    ],
-    "structures": [
-      "comparison"
-    ],
-    "responseLoad": "developed",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Mention at least two of: Discuss volunteering, helping charities, or community service.",
-    "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hob_64": {
     "cognitiveDemand": "describe",
@@ -3558,51 +3577,51 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about language learning apps, motivation, and which languages you study.",
+    "sufficientAnswer": "Say whether you are learning another foreign language and name it, with how you learn it.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hob_65": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
     "structures": [
-      "comparison"
-    ],
-    "responseLoad": "extended",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss acting, drama club, stage fright, and performances.",
-    "provenance": "inferred",
-    "inferenceConfidence": 0.4
-  },
-  "hob_66": {
-    "cognitiveDemand": "describe",
-    "timeFrames": [
-      "present"
-    ],
-    "structures": [
-      "comparison"
+      "justification"
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about DIY upcycling, restoring old furniture, or transforming clothes.",
+    "sufficientAnswer": "Say whether you do theatre or comedy and give at least one reason why or why not.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
-  "hob_67": {
-    "cognitiveDemand": "describe",
+  "hob_66": {
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
     "structures": [
-      "comparison"
+      "justification"
     ],
-    "responseLoad": "extended",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Mention at least two of: Discuss juggling, circus skills, acrobatics, and coordination.",
+    "responseLoad": "developed",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Say whether you like upcycling old objects and give at least one reason, with an example.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
+  },
+  "hob_67": {
+    "cognitiveDemand": "explain",
+    "timeFrames": [
+      "present"
+    ],
+    "structures": [
+      "justification"
+    ],
+    "responseLoad": "developed",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Say whether you can juggle or do circus skills and give at least one reason why or why not.",
+    "provenance": "inferred",
+    "inferenceConfidence": 0.8
   },
   "hob_68": {
     "cognitiveDemand": "describe",
@@ -3610,27 +3629,111 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about martial arts, belts, discipline, and physical fitness.",
+    "sufficientAnswer": "Say whether you do martial arts and name which one, with at least one detail about training.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hob_69": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
     "structures": [
-      "comparison"
+      "justification"
     ],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Mention at least two of: Discuss painting, drawing, watercolors, and artistic expression.",
+    "sufficientAnswer": "Say whether you like painting or creative drawing and give at least one reason.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hob_70": {
+    "cognitiveDemand": "explain",
+    "timeFrames": [
+      "present"
+    ],
+    "structures": [
+      "justification"
+    ],
+    "responseLoad": "developed",
+    "lexicalReach": "everyday",
+    "sufficientAnswer": "Say whether you collect anything and give at least one reason why or why not, naming what you collect.",
+    "provenance": "inferred",
+    "inferenceConfidence": 0.8
+  },
+  "hob_71": {
+    "cognitiveDemand": "explain",
+    "timeFrames": [
+      "present"
+    ],
+    "structures": [
+      "justification"
+    ],
+    "responseLoad": "developed",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Say whether you are interested in bird watching and give at least one reason why or why not.",
+    "provenance": "inferred",
+    "inferenceConfidence": 0.8
+  },
+  "hob_72": {
+    "cognitiveDemand": "explain",
+    "timeFrames": [
+      "present"
+    ],
+    "structures": [
+      "justification"
+    ],
+    "responseLoad": "developed",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Say whether you take part in e-sports tournaments and give at least one reason why or why not.",
+    "provenance": "inferred",
+    "inferenceConfidence": 0.8
+  },
+  "hob_73": {
+    "cognitiveDemand": "describe",
+    "timeFrames": [
+      "past"
+    ],
+    "structures": [
+      "perfect"
+    ],
+    "responseLoad": "developed",
+    "lexicalReach": "everyday",
+    "sufficientAnswer": "Say whether you have tried geocaching and describe what it was like, with at least one detail.",
+    "provenance": "inferred",
+    "inferenceConfidence": 0.8
+  },
+  "hob_74": {
+    "cognitiveDemand": "explain",
+    "timeFrames": [
+      "present"
+    ],
+    "structures": [
+      "justification"
+    ],
+    "responseLoad": "developed",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Say whether you practise calligraphy or hand lettering and give at least one reason why or why not.",
+    "provenance": "inferred",
+    "inferenceConfidence": 0.8
+  },
+  "hob_75": {
+    "cognitiveDemand": "explain",
+    "timeFrames": [
+      "present"
+    ],
+    "structures": [
+      "justification"
+    ],
+    "responseLoad": "developed",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Say whether you like scrapbooking and give at least one reason, such as keeping memories.",
+    "provenance": "inferred",
+    "inferenceConfidence": 0.8
+  },
+  "hob_76": {
     "cognitiveDemand": "describe",
     "timeFrames": [
       "present"
@@ -3638,111 +3741,37 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about collecting items, finding rare pieces, and organizing the collection.",
+    "sufficientAnswer": "Say whether you surf or do water sports on holiday, and say where and when you do it.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
-  },
-  "hob_71": {
-    "cognitiveDemand": "describe",
-    "timeFrames": [
-      "present"
-    ],
-    "structures": [],
-    "responseLoad": "extended",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Discuss bird watching, nature walks, binoculars, and identifying species.",
-    "provenance": "inferred",
-    "inferenceConfidence": 0.4
-  },
-  "hob_72": {
-    "cognitiveDemand": "describe",
-    "timeFrames": [
-      "present"
-    ],
-    "structures": [],
-    "responseLoad": "extended",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about competitive gaming, e-sports, team communication, and practice.",
-    "provenance": "inferred",
-    "inferenceConfidence": 0.4
-  },
-  "hob_73": {
-    "cognitiveDemand": "describe",
-    "timeFrames": [
-      "present",
-      "past"
-    ],
-    "structures": [],
-    "responseLoad": "extended",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss geocaching, outdoor treasure hunts, using a phone GPS, and hiding small items.",
-    "provenance": "inferred",
-    "inferenceConfidence": 0.4
-  },
-  "hob_74": {
-    "cognitiveDemand": "describe",
-    "timeFrames": [
-      "present"
-    ],
-    "structures": [
-      "comparison"
-    ],
-    "responseLoad": "extended",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about beautiful handwriting, calligraphy pens, ink, and artistic writing.",
-    "provenance": "inferred",
-    "inferenceConfidence": 0.4
-  },
-  "hob_75": {
-    "cognitiveDemand": "describe",
-    "timeFrames": [
-      "present"
-    ],
-    "structures": [],
-    "responseLoad": "extended",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss making memory albums, photos, decorating pages, and crafting.",
-    "provenance": "inferred",
-    "inferenceConfidence": 0.4
-  },
-  "hob_76": {
-    "cognitiveDemand": "describe",
-    "timeFrames": [
-      "present"
-    ],
-    "structures": [
-      "comparison"
-    ],
-    "responseLoad": "extended",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about surfing, beach holidays, water sports, and waves.",
-    "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hob_77": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
-    "structures": [],
-    "responseLoad": "extended",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss origami, paper folding, patience, and Japanese culture.",
+    "structures": [
+      "justification"
+    ],
+    "responseLoad": "developed",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Say whether you do origami and give at least one reason why or why not.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hol_01": {
     "cognitiveDemand": "describe",
     "timeFrames": [
-      "present",
       "past"
     ],
-    "structures": [],
-    "responseLoad": "extended",
+    "structures": [
+      "perfect"
+    ],
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe a recent holiday — where, who with, what you did, how you felt.",
+    "sufficientAnswer": "Describe your last holiday in the past tense: say where you went, who with and at least two things you did.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hol_02": {
     "cognitiveDemand": "compare",
@@ -3750,12 +3779,12 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [
-      "justification",
-      "comparison"
+      "comparison",
+      "justification"
     ],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Compare both types of holiday, give strong reasons for your preference.",
+    "sufficientAnswer": "Say whether you prefer the sea or the mountains for a holiday and give at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
@@ -3767,9 +3796,9 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Paint a picture of your dream holiday — use conditional tense (j'irais, je ferais).",
+    "sufficientAnswer": "Describe your dream holiday with at least three details, such as where, who with and what you would do.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.9
+    "inferenceConfidence": 0.8
   },
   "hol_04": {
     "cognitiveDemand": "describe",
@@ -3777,24 +3806,26 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Name specific countries, explain what appeals to you about each one.",
+    "sufficientAnswer": "Name at least two countries you would like to visit and say what appeals to you about each.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hol_05": {
     "cognitiveDemand": "describe",
     "timeFrames": [
-      "present",
       "future"
     ],
-    "structures": [],
-    "responseLoad": "short",
+    "structures": [
+      "near-future",
+      "simple-future"
+    ],
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Use future tense to describe your upcoming holiday plans.",
+    "sufficientAnswer": "Say where you are going on your next holiday, with at least two details such as who with, how long or what you will do.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hol_06": {
     "cognitiveDemand": "compare",
@@ -3802,12 +3833,12 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [
-      "justification",
-      "comparison"
+      "comparison",
+      "justification"
     ],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Compare traveling with family vs. friends, mentioning pros and cons.",
+    "sufficientAnswer": "Say whether you prefer holidays with family or friends and give at least one pro and one con.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
@@ -3817,23 +3848,23 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Choose a French city (Paris, Nice, Lyon, etc.) and explain why you want to go there.",
+    "sufficientAnswer": "Name a French city you want to visit and give at least two reasons why.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.9
+    "inferenceConfidence": 0.8
   },
   "hol_08": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
     "structures": [],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Discuss the impact of tourism on the economy and the environment.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Give at least two advantages and two disadvantages of tourism, such as jobs, money, crowds or pollution.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hol_09": {
     "cognitiveDemand": "compare",
@@ -3841,27 +3872,28 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [
-      "justification",
-      "comparison"
+      "comparison",
+      "justification"
     ],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "A complete answer should: Contrast sightseeing/sports holidays with beach/rest holidays.",
+    "sufficientAnswer": "Say whether you prefer active or relaxing holidays and give at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
   "hol_10": {
     "cognitiveDemand": "describe",
     "timeFrames": [
-      "present",
       "past"
     ],
-    "structures": [],
+    "structures": [
+      "perfect"
+    ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe a winter trip or activity using the past tense.",
+    "sufficientAnswer": "Say where you went last winter and describe at least two things you did, using the past tense.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hol_11": {
     "cognitiveDemand": "justify",
@@ -3871,24 +3903,26 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [
       "justification"
     ],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss your favorite travel destination and what made it special.",
+    "sufficientAnswer": "Name the country you liked visiting most and give at least two reasons, using the past tense for what you did.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.75
+    "inferenceConfidence": 0.8
   },
   "hol_12": {
     "cognitiveDemand": "explain",
     "timeFrames": [
-      "present",
       "past"
     ],
-    "structures": [],
-    "responseLoad": "extended",
+    "structures": [
+      "perfect",
+      "imperfect"
+    ],
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe a camping experience or your opinion on it.",
+    "sufficientAnswer": "Say whether you have been camping and describe what it was like, with at least two details.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.55
+    "inferenceConfidence": 0.8
   },
   "hol_13": {
     "cognitiveDemand": "compare",
@@ -3896,27 +3930,29 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [
-      "justification",
-      "comparison"
+      "comparison",
+      "justification"
     ],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "A complete answer should: Compare beach/sun holidays with skiing/snow holidays.",
+    "sufficientAnswer": "Say whether you prefer summer or winter holidays and give at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
   "hol_14": {
     "cognitiveDemand": "describe",
     "timeFrames": [
-      "present",
       "past"
     ],
-    "structures": [],
+    "structures": [
+      "perfect",
+      "imperfect"
+    ],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Describe a trip that went wrong — delays, weather, or illness (past tense).",
+    "lexicalReach": "everyday",
+    "sufficientAnswer": "Describe a bad holiday experience in the past tense, with at least two details such as what went wrong and how you felt.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hol_15": {
     "cognitiveDemand": "hypothesize",
@@ -3942,9 +3978,9 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the link between food, culture, and travel experience.",
+    "sufficientAnswer": "Explain why trying local food abroad matters, with at least two reasons.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.65
+    "inferenceConfidence": 0.8
   },
   "hol_17": {
     "cognitiveDemand": "compare",
@@ -3952,12 +3988,12 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [
-      "justification",
-      "comparison"
+      "comparison",
+      "justification"
     ],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Compare the convenience, cost, and environmental impact of both.",
+    "sufficientAnswer": "Say whether you prefer to travel by plane or by train and give at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
@@ -3967,11 +4003,12 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [
-      "comparison"
+      "comparison",
+      "justification"
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Compare the energy and activities of a city with the peace of a village.",
+    "sufficientAnswer": "Say whether you prefer cities or villages for holidays and give at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
@@ -3981,11 +4018,11 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "short",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about something essential you always take with you.",
+    "sufficientAnswer": "Name the most important item in your travel bag and give at least one reason.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hol_20": {
     "cognitiveDemand": "justify",
@@ -3993,42 +4030,43 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [
-      "opinion"
+      "opinion",
+      "justification"
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss how exposure to new cultures and experiences helps us grow.",
+    "sufficientAnswer": "Say whether travelling makes you smarter and give at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
   "hol_21": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss your preferred season or time of year for traveling.",
+    "sufficientAnswer": "Say when the best time to go on holiday is and give at least two reasons.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hol_22": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "justify",
     "timeFrames": [
-      "present",
       "past",
       "conditional"
     ],
     "structures": [
-      "comparison",
-      "conditional"
+      "perfect",
+      "conditional",
+      "justification"
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss combining travel with helping a community or environmental project.",
+    "sufficientAnswer": "Say whether you have done volunteer travel or would like to, and give at least one reason.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hol_23": {
     "cognitiveDemand": "compare",
@@ -4036,12 +4074,12 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [
-      "justification",
-      "comparison"
+      "comparison",
+      "justification"
     ],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Contrast solo travel with group or family trips.",
+    "sufficientAnswer": "Say whether you prefer to travel alone or with others and give at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
@@ -4053,9 +4091,9 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about booking, research, and organizing your trips.",
+    "sufficientAnswer": "Explain how you plan your holidays, with at least two steps such as research, booking or packing.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.55
+    "inferenceConfidence": 0.8
   },
   "hol_25": {
     "cognitiveDemand": "describe",
@@ -4065,33 +4103,37 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss what items you bring back and why they are important.",
+    "sufficientAnswer": "Say whether you buy souvenirs, name at least two, and say why they matter to you.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hol_26": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
-    "structures": [],
-    "responseLoad": "short",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about trips to see relatives in other countries.",
-    "provenance": "inferred",
-    "inferenceConfidence": 0.4
-  },
-  "hol_27": {
-    "cognitiveDemand": "describe",
-    "timeFrames": [
-      "present"
+    "structures": [
+      "justification"
     ],
-    "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the benefits of knowing the local language for cultural immersion and practical reasons.",
+    "sufficientAnswer": "Say whether you like visiting relatives abroad and give at least one reason.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
+  },
+  "hol_27": {
+    "cognitiveDemand": "justify",
+    "timeFrames": [
+      "present"
+    ],
+    "structures": [
+      "justification"
+    ],
+    "responseLoad": "developed",
+    "lexicalReach": "everyday",
+    "sufficientAnswer": "Say whether it is important to speak the local language when travelling and give at least two reasons.",
+    "provenance": "inferred",
+    "inferenceConfidence": 0.8
   },
   "hol_28": {
     "cognitiveDemand": "justify",
@@ -4102,8 +4144,8 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "opinion"
     ],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Discuss eco-friendly travel options and how to reduce your carbon footprint while on holiday.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Give your opinion on sustainable tourism, with at least two ways to travel in an eco-friendly way.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
@@ -4113,11 +4155,12 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [
-      "comparison"
+      "comparison",
+      "justification"
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Compare 'staycations' (holidays at home) with traveling abroad.",
+    "sufficientAnswer": "Say whether you prefer holidays in your own country or abroad and give at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
@@ -4126,14 +4169,12 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "timeFrames": [
       "present"
     ],
-    "structures": [
-      "comparison"
-    ],
+    "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about a specific event like Carnival in Rio, Bastille Day in France, or Holi in India.",
+    "sufficientAnswer": "Name a festival or event abroad you would like to see and give at least one reason.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hol_31": {
     "cognitiveDemand": "describe",
@@ -4143,14 +4184,13 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "List the items you cannot travel without and explain why.",
+    "sufficientAnswer": "Name at least three things that are essential in your suitcase and say why one of them matters.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hol_32": {
     "cognitiveDemand": "describe",
     "timeFrames": [
-      "present",
       "conditional"
     ],
     "structures": [
@@ -4158,21 +4198,21 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss holidays focused on activities like skiing, surfing, or hiking.",
+    "sufficientAnswer": "Say whether you would take a trip to do a sport, name the sport and give at least one reason.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hol_33": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Compare walking, bus tours, cycling, or using public transport to see a city.",
+    "sufficientAnswer": "Give the best way to explore a new city, with at least two reasons.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hol_34": {
     "cognitiveDemand": "explain",
@@ -4180,11 +4220,11 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Discuss the use of apps for maps, translation, booking, and social media on holiday.",
+    "responseLoad": "developed",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Explain how technology helps you travel, with at least two examples such as maps, translation or booking apps.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.55
+    "inferenceConfidence": 0.8
   },
   "hol_35": {
     "cognitiveDemand": "compare",
@@ -4192,11 +4232,12 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [
-      "comparison"
+      "comparison",
+      "justification"
     ],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Contrast high-end hotels and dining with hostels, camping, and budget travel.",
+    "sufficientAnswer": "Say whether you prefer luxury or budget holidays and give at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
@@ -4210,9 +4251,9 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the role of photography in preserving memories and sharing experiences.",
+    "sufficientAnswer": "Explain why taking photos on holiday matters, with at least two reasons.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.65
+    "inferenceConfidence": 0.8
   },
   "hol_37": {
     "cognitiveDemand": "compare",
@@ -4220,11 +4261,12 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [
-      "comparison"
+      "comparison",
+      "justification"
     ],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Compare hotel services with the local feel of a rental apartment.",
+    "lexicalReach": "everyday",
+    "sufficientAnswer": "Say whether you prefer hotels or rentals and give at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
@@ -4238,36 +4280,38 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss broadening horizons, tolerance, and learning different ways of life.",
+    "sufficientAnswer": "Explain why discovering new cultures matters, with at least two reasons.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.65
+    "inferenceConfidence": 0.8
   },
   "hol_39": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
-    "structures": [],
+    "structures": [
+      "justification"
+    ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about your interest in history, architecture, and landmarks.",
+    "sufficientAnswer": "Say whether you like visiting historic sites on holiday and give at least one reason.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hol_40": {
     "cognitiveDemand": "describe",
     "timeFrames": [
-      "present",
       "past"
     ],
     "structures": [
-      "comparison"
+      "perfect",
+      "imperfect"
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe work experiences during the holidays and what you learned.",
+    "sufficientAnswer": "Say whether you have had a summer job and describe it in the past tense, with at least two details.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hol_41": {
     "cognitiveDemand": "describe",
@@ -4277,49 +4321,47 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about walking, cycling, or public transport in a city environment.",
+    "sufficientAnswer": "Name your favourite way to explore a city and give at least one reason.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hol_42": {
-    "cognitiveDemand": "describe",
-    "timeFrames": [
-      "present"
-    ],
-    "structures": [],
-    "responseLoad": "extended",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss seasons (spring, summer, etc.) and the pros/cons of weather and crowds.",
-    "provenance": "inferred",
-    "inferenceConfidence": 0.7
-  },
-  "hol_43": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the impact of Instagram, TikTok, or travel blogs on your plans.",
+    "sufficientAnswer": "Say which season is best for travelling and give at least two reasons about weather or crowds.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
+  },
+  "hol_43": {
+    "cognitiveDemand": "explain",
+    "timeFrames": [
+      "present"
+    ],
+    "structures": [],
+    "responseLoad": "developed",
+    "lexicalReach": "everyday",
+    "sufficientAnswer": "Say whether social media influences where you go and explain how, with at least one example.",
+    "provenance": "inferred",
+    "inferenceConfidence": 0.8
   },
   "hol_44": {
     "cognitiveDemand": "describe",
     "timeFrames": [
-      "present",
       "conditional"
     ],
     "structures": [
-      "comparison",
       "conditional"
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about going to the World Cup, Olympics, or a big concert abroad.",
+    "sufficientAnswer": "Say whether you would travel for a big event, name one, and give at least one reason.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hol_45": {
     "cognitiveDemand": "describe",
@@ -4328,22 +4370,24 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     ],
     "structures": [],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Discuss safety measures like keeping passports safe and staying vigilant.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Describe at least two safety precautions you take when you travel.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hol_46": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "justify",
     "timeFrames": [
       "present"
     ],
-    "structures": [],
-    "responseLoad": "short",
+    "structures": [
+      "justification"
+    ],
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the benefits of local tourism (staycations) vs. international travel.",
+    "sufficientAnswer": "Say whether you need to go far away for a good holiday and give at least two reasons.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hom_01": {
     "cognitiveDemand": "describe",

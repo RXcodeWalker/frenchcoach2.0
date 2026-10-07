@@ -203,6 +203,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "hobbies",
     text: "Qu'est-ce que tu fais pendant ton temps libre ?",
     hint: "Describe 2-3 hobbies in detail — how often, who with, why you enjoy them.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Name two or three things you really do (sport, games, friends)", "Say how often and who with", "Give one reason you enjoy the main one"],
+      phrase: { fr: "Pendant mon temps libre, je… et j'aime ça parce que…", en: "In my free time I… and I like it because…" },
+    },
     difficulty: 1,
     followUps: [
       "Depuis combien de temps tu fais cette activité ?",
@@ -224,6 +229,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "hobbies",
     text: "Tu fais du sport ? Quel sport tu préfères et pourquoi ?",
     hint: "Talk about sports you play or watch. Include how often and where.",
+    subTopic: "sport-and-active",
+    coachHint: {
+      ideas: ["Name the sport you prefer", "Give a reason (fun, fitness, friends)", "Say how often and where you do it"],
+      phrase: { fr: "Mon sport préféré, c'est… parce que…", en: "My favourite sport is… because…" },
+    },
     difficulty: 1,
     followUps: [
       "Tu fais partie d'une équipe ?",
@@ -243,8 +253,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_03",
     topicKey: "hobbies",
-    text: "Est-ce que tu joues d'un instrument de musique ou tu chantes ?",
+    text: "Est-ce que tu joues d'un instrument de musique ou tu chantes ? Depuis quand ?",
     hint: "Discuss any musical activity — playing, singing, concerts, favourite music genres.",
+    subTopic: "music-books-film",
+    coachHint: {
+      ideas: ["Say what you play or whether you sing", "Say how long you have been doing it", "Name a music style you like"],
+      phrase: { fr: "Je joue de… depuis… et j'aime écouter…", en: "I play the… for… and I like listening to…" },
+    },
     difficulty: 1,
     followUps: [
       "Quel est ton genre de musique préféré ?",
@@ -266,6 +281,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "hobbies",
     text: "Tu lis beaucoup ? Qu'est-ce que tu aimes lire ?",
     hint: "Describe your reading habits, favourite genres, specific books or authors.",
+    subTopic: "music-books-film",
+    coachHint: {
+      ideas: ["Say how often you read", "Name a type of book or an author", "Say where you read (bed, bus)"],
+      phrase: { fr: "Je lis… et mon genre préféré, c'est…", en: "I read… and my favourite genre is…" },
+    },
     difficulty: 2,
     followUps: [
       "Tu préfères les livres électroniques ou les livres papier ?",
@@ -285,8 +305,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_05",
     topicKey: "hobbies",
-    text: "Est-ce que tu regardes beaucoup la télévision ou des vidéos en ligne ?",
+    text: "Est-ce que tu regardes beaucoup la télévision ou des vidéos en ligne ? Combien de temps par jour ?",
     hint: "Discuss screen time habits — TV shows, YouTube, streaming, how much time per day.",
+    subTopic: "screens-and-games",
+    coachHint: {
+      ideas: ["Say what you watch (TV, YouTube, series)", "Give the time per day", "Say whether you try to limit it"],
+      phrase: { fr: "Je regarde… environ… par jour.", en: "I watch… for about… a day." },
+    },
     difficulty: 2,
     followUps: [
       "Quelle est ton émission préférée en ce moment ?",
@@ -310,6 +335,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Décris ta famille.",
     hint: "Describe family members — their appearance, personality, job, and your relationship.",
+    subTopic: "family-members",
+    coachHint: {
+      ideas: ["Pick three people (parents, siblings, grandparents)", "For each, give one detail: looks, personality or job", "Say who you are closest to"],
+      phrase: { fr: "Dans ma famille, il y a… et mon père/ma mère est…", en: "In my family there are… and my father/mother is…" },
+    },
     difficulty: 1,
     followUps: [
       "Tu t'entends bien avec tes frères et sœurs ?",
@@ -331,6 +361,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Comment est ta relation avec tes parents ?",
     hint: "Explain how you get along — what you do together, any conflicts, how they support you.",
+    subTopic: "parents-and-rules",
+    coachHint: {
+      ideas: ["Say whether you get on well", "Give an example of something you do together", "Mention one disagreement and how you solve it"],
+      phrase: { fr: "Je m'entends bien avec mes parents parce que…", en: "I get on well with my parents because…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que tes parents sont stricts ?",
@@ -352,6 +387,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Décris ton meilleur ami ou ta meilleure amie.",
     hint: "Describe their appearance, personality, how you met, what you do together.",
+    subTopic: "friends",
+    coachHint: {
+      ideas: ["Give their name and how you met", "Describe their looks and personality", "Say what you do together"],
+      phrase: { fr: "Mon meilleur ami s'appelle… et il est…", en: "My best friend is called… and he is…" },
+    },
     difficulty: 1,
     followUps: [
       "Depuis combien de temps tu connais cette personne ?",
@@ -373,6 +413,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Qu'est-ce que tu fais avec tes amis le week-end ?",
     hint: "Talk about typical weekend activities with friends — where you go, what you do.",
+    subTopic: "friends",
+    coachHint: {
+      ideas: ["Name two activities (cinema, sport, shopping, games)", "Say where you go", "Say who comes along"],
+      phrase: { fr: "Le week-end, avec mes amis, on…", en: "At the weekend, with my friends, we…" },
+    },
     difficulty: 1,
     followUps: [
       "Tu préfères rester à la maison ou sortir avec des amis ?",
@@ -396,6 +441,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Où es-tu allé(e) pendant les dernières vacances ?",
     hint: "Describe a recent holiday — where, who with, what you did, how you felt.",
+    subTopic: "past-holidays",
+    coachHint: {
+      ideas: ["Say where you went and who with", "Give two or three things you did there", "Say how you felt about the trip"],
+      phrase: { fr: "L'été dernier, je suis allé(e) à… avec… et on a…", en: "Last summer I went to… with… and we…" },
+    },
     difficulty: 1,
     followUps: [
       "Comment tu as voyagé — en avion, en voiture ou en train ?",
@@ -417,6 +467,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Tu préfères les vacances à la mer ou à la montagne ? Pourquoi ?",
     hint: "Compare both types of holiday, give strong reasons for your preference.",
+    subTopic: "travel-preferences",
+    coachHint: {
+      ideas: ["Say which you prefer", "Give two reasons (activities, weather, rest)", "Mention one good point of the other"],
+      phrase: { fr: "Je préfère les vacances à… parce que…", en: "I prefer holidays at… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Qu'est-ce qu'on peut faire à la montagne en été ?",
@@ -438,6 +493,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Décris des vacances idéales.",
     hint: "Paint a picture of your dream holiday — use conditional tense (j'irais, je ferais).",
+    subTopic: "future-trips",
+    coachHint: {
+      ideas: ["Say where your dream holiday is and who with", "Name two activities", "Say how long and why it is perfect"],
+      phrase: { fr: "Mes vacances idéales, ce sont… avec…", en: "My ideal holiday is… with…" },
+    },
     difficulty: 3,
     followUps: [
       "Avec qui est-ce que tu voyagerais dans l'idéal ?",
@@ -459,6 +519,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Est-ce que tu voudrais voyager dans d'autres pays ? Lesquels ?",
     hint: "Name specific countries, explain what appeals to you about each one.",
+    subTopic: "destinations",
+    coachHint: {
+      ideas: ["Name two countries", "Say one thing that attracts you to each", "Say which one comes first"],
+      phrase: { fr: "Je veux visiter… parce que…", en: "I want to visit… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Pourquoi est-ce que voyager est important, selon toi ?",
@@ -827,6 +892,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "hobbies",
     text: "Qu'est-ce que tu as fait le week-end dernier pour te détendre ?",
     hint: "Describe your recent weekend activities using the past tense (passé composé).",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Name two things you did last weekend", "Say who you were with", "Say how it helped you relax"],
+      phrase: { fr: "Le week-end dernier, j'ai… et j'ai aussi…", en: "Last weekend I… and I also…" },
+    },
     difficulty: 2,
     followUps: [
       "Avec qui as-tu passé ton temps ?",
@@ -846,8 +916,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_07",
     topicKey: "hobbies",
-    text: "Est-ce qu'il y a une activité que tu aimerais essayer à l'avenir ?",
+    text: "Est-ce qu'il y a une activité que tu aimerais essayer à l'avenir ? Pourquoi ?",
     hint: "Talk about a new hobby or sport you want to try, explain why it interests you.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Name the new hobby or sport", "Say why it attracts you", "Say where or when you might start"],
+      phrase: { fr: "Un jour, je vais essayer… parce que…", en: "One day I am going to try… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Pourquoi est-ce que tu ne l'as pas encore fait ?",
@@ -869,6 +944,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "hobbies",
     text: "Tu préfères les sports individuels ou d'équipe ?",
     hint: "Compare individual and team sports, giving advantages and disadvantages of each.",
+    subTopic: "sport-and-active",
+    coachHint: {
+      ideas: ["Say which kind you prefer", "Give one advantage of it", "Say one drawback of the other kind"],
+      phrase: { fr: "Je préfère les sports… parce que… mais…", en: "I prefer… sports because… but…" },
+    },
     difficulty: 1,
     followUps: [
       "Quel sport d'équipe est le plus populaire dans ton pays ?",
@@ -888,8 +968,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_09",
     topicKey: "hobbies",
-    text: "Est-ce que tu penses que les jeunes passent trop de temps sur leurs écrans ?",
+    text: "Est-ce que tu penses que les jeunes passent trop de temps sur leurs écrans ? Pourquoi ?",
     hint: "Discuss the impact of technology and social media on young people's leisure time.",
+    subTopic: "screens-and-games",
+    coachHint: {
+      ideas: ["Say whether you agree", "Give one problem (sleep, health, homework)", "Give one advantage of screens"],
+      phrase: { fr: "Je pense que les jeunes… parce que…", en: "I think young people… because…" },
+    },
     difficulty: 3,
     followUps: [
       "Quels sont les dangers des réseaux sociaux ?",
@@ -913,6 +998,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Est-ce que tu as un animal domestique ? Décris-le.",
     hint: "Describe your pet (or one you would like), its name, appearance, and personality.",
+    subTopic: "family-members",
+    coachHint: {
+      ideas: ["Say yes or no, then give the animal and its name", "Describe how it looks", "Describe its character"],
+      phrase: { fr: "Chez moi, il y a un chien qui s'appelle… et il est…", en: "At home there is a dog called… and he is…" },
+    },
     difficulty: 1,
     followUps: [
       "Qui s'occupe de l'animal chez toi ?",
@@ -934,6 +1024,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Comment est-ce que tu aides tes parents à la maison ?",
     hint: "Talk about household chores you do to help your family.",
+    subTopic: "parents-and-rules",
+    coachHint: {
+      ideas: ["Name two jobs (dishes, shopping, tidying)", "Say how often you do them", "Say how you feel about them"],
+      phrase: { fr: "Pour aider mes parents, je… et je…", en: "To help my parents, I… and I…" },
+    },
     difficulty: 1,
     followUps: [
       "Est-ce que tu reçois de l'argent de poche pour ton aide ?",
@@ -955,6 +1050,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Qu'est-ce que tu as fait avec ta famille récemment ?",
     hint: "Describe a recent family outing or activity using the past tense.",
+    subTopic: "celebrations-and-traditions",
+    coachHint: {
+      ideas: ["Say what you did and where", "Say who was there", "Say whether you enjoyed it"],
+      phrase: { fr: "Récemment, avec ma famille, j'ai…", en: "Recently, with my family, I…" },
+    },
     difficulty: 2,
     followUps: [
       "C'était à quelle occasion ?",
@@ -974,8 +1074,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fam_08",
     topicKey: "family",
-    text: "Est-il plus important d'avoir beaucoup d'amis ou quelques amis proches ?",
+    text: "Est-il plus important d'avoir beaucoup d'amis ou quelques amis proches ? Pourquoi ?",
     hint: "Express and justify your opinion on friendship, quality vs quantity.",
+    subTopic: "friends",
+    coachHint: {
+      ideas: ["Say which you prefer", "Give one reason for your choice", "Say what a close friend gives you that a crowd cannot"],
+      phrase: { fr: "Je préfère avoir… amis parce que…", en: "I prefer having… friends because…" },
+    },
     difficulty: 3,
     followUps: [
       "Comment as-tu rencontré ton meilleur ami ?",
@@ -999,6 +1104,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Où vas-tu passer tes prochaines vacances ?",
     hint: "Use future tense to describe your upcoming holiday plans.",
+    subTopic: "future-trips",
+    coachHint: {
+      ideas: ["Say where you are going and with whom", "Say how long you will stay", "Name something you will do"],
+      phrase: { fr: "Cet été, je vais aller à… et on va…", en: "This summer I am going to… and we are going to…" },
+    },
     difficulty: 1,
     followUps: [
       "Avec qui vas-tu partir ?",
@@ -1020,6 +1130,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Tu préfères partir en vacances avec ta famille ou avec tes amis ? Pourquoi ?",
     hint: "Compare traveling with family vs. friends, mentioning pros and cons.",
+    subTopic: "travel-preferences",
+    coachHint: {
+      ideas: ["Say which you prefer", "Give one pro of your choice", "Give one con of the other"],
+      phrase: { fr: "Je préfère partir avec… parce que… mais…", en: "I prefer going with… because… but…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que tu as déjà voyagé sans tes parents ?",
@@ -1041,6 +1156,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Parle-moi d'une ville française que tu aimerais visiter.",
     hint: "Choose a French city (Paris, Nice, Lyon, etc.) and explain why you want to go there.",
+    subTopic: "destinations",
+    coachHint: {
+      ideas: ["Name the city", "Give two reasons (monuments, food, sea)", "Say what you want to do there"],
+      phrase: { fr: "La ville que je veux visiter, c'est… parce que…", en: "The city I want to visit is… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que tu connais déjà la France ?",
@@ -1062,6 +1182,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Quels sont les avantages et les inconvénients du tourisme ?",
     hint: "Discuss the impact of tourism on the economy and the environment.",
+    subTopic: "tourism-issues",
+    coachHint: {
+      ideas: ["Give two advantages (jobs, money, culture)", "Give two drawbacks (crowds, pollution)", "Say your overall view"],
+      phrase: { fr: "Le tourisme apporte… mais il cause aussi…", en: "Tourism brings… but it also causes…" },
+    },
     difficulty: 3,
     followUps: [
       "Est-ce que ta région est touristique ?",
@@ -1519,6 +1644,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "hobbies",
     text: "Quel est le dernier film que tu as vu ? C'était comment ?",
     hint: "Describe a recent movie experience — plot, opinion, and actors.",
+    subTopic: "music-books-film",
+    coachHint: {
+      ideas: ["Name the film and say when you saw it", "Give two details (story, actors)", "Say what you thought of it"],
+      phrase: { fr: "Le dernier film que j'ai vu, c'était… et c'était…", en: "The last film I saw was… and it was…" },
+    },
     difficulty: 1,
     followUps: [
       "Tu es allé au cinéma ou tu l'as regardé chez toi ?",
@@ -1540,6 +1670,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "hobbies",
     text: "Est-ce que tu joues aux jeux vidéo ? Pourquoi (pas) ?",
     hint: "Discuss your gaming habits or why you don't enjoy gaming.",
+    subTopic: "screens-and-games",
+    coachHint: {
+      ideas: ["Say yes or no", "Name a game you play or explain why not", "Say how often"],
+      phrase: { fr: "Je joue à… parce que… / Je ne joue pas parce que…", en: "I play… because… / I don't play because…" },
+    },
     difficulty: 2,
     followUps: [
       "Quel est ton jeu préféré ?",
@@ -1561,6 +1696,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "hobbies",
     text: "Tu préfères lire un livre ou regarder un film ? Pourquoi ?",
     hint: "Compare reading and watching films, giving your preference.",
+    subTopic: "music-books-film",
+    coachHint: {
+      ideas: ["Say which you prefer", "Give two reasons (imagination, time, company)", "Mention one good point of the other"],
+      phrase: { fr: "Je préfère… parce que…", en: "I prefer… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Quel est le dernier livre que tu as lu ?",
@@ -1582,6 +1722,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "hobbies",
     text: "Qu'est-ce que tu aimes faire le soir après l'école ?",
     hint: "Describe your evening routine and leisure activities after school.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Go through your evening in order", "Include homework and one leisure activity", "Say what time you go to bed"],
+      phrase: { fr: "Le soir, je commence par… et ensuite je…", en: "In the evening, I start with… and then I…" },
+    },
     difficulty: 1,
     followUps: [
       "À quelle heure manges-tu le dîner ?",
@@ -1605,6 +1750,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Qui est la personne la plus drôle dans ta famille ? Pourquoi ?",
     hint: "Describe a funny family member and give examples of their humor.",
+    subTopic: "family-members",
+    coachHint: {
+      ideas: ["Name the person", "Give an example of something funny they did", "Say how they make you feel"],
+      phrase: { fr: "La personne la plus drôle, c'est… parce que…", en: "The funniest person is… because…" },
+    },
     difficulty: 1,
     followUps: [
       "Est-ce qu'elle raconte des blagues ?",
@@ -1624,8 +1774,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fam_10",
     topicKey: "family",
-    text: "Est-ce que tu partages les mêmes intérêts que tes parents ?",
+    text: "Est-ce que tu partages les mêmes intérêts que tes parents ? Quelles activités faites-vous ensemble ?",
     hint: "Discuss common hobbies or differences between you and your parents.",
+    subTopic: "parents-and-rules",
+    coachHint: {
+      ideas: ["Name one interest you share", "Say what you do together", "Name one thing you do not share"],
+      phrase: { fr: "Avec mon père/ma mère, on partage…", en: "With my father/mother we share…" },
+    },
     difficulty: 2,
     followUps: [
       "Quelles activités fais-tu avec tes parents ?",
@@ -1645,8 +1800,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fam_11",
     topicKey: "family",
-    text: "Parle-moi d'une célébration familiale récente.",
+    text: "Qu'est-ce que tu as fait lors de ta dernière célébration familiale ?",
     hint: "Describe a family event like a birthday, wedding, or festival using the past tense.",
+    subTopic: "celebrations-and-traditions",
+    coachHint: {
+      ideas: ["Say which celebration it was", "Say who came and what you ate or did", "Say how it felt"],
+      phrase: { fr: "La dernière fois, on a fêté… et j'ai…", en: "Last time we celebrated… and I…" },
+    },
     difficulty: 2,
     followUps: [
       "Qu'est-ce que vous avez mangé ?",
@@ -1668,6 +1828,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Est-il important de passer du temps en famille ? Pourquoi ?",
     hint: "Explain the importance of family time for relationships and well-being.",
+    subTopic: "family-members",
+    coachHint: {
+      ideas: ["Say yes and give two reasons (closeness, support)", "Mention how much time you spend together", "Say what you like doing as a family"],
+      phrase: { fr: "Passer du temps en famille est important parce que…", en: "Spending time as a family is important because…" },
+    },
     difficulty: 3,
     followUps: [
       "Quels sont les dangers si on ne voit pas assez sa famille ?",
@@ -1691,6 +1856,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Tu préfères les vacances actives ou relaxantes ? Pourquoi ?",
     hint: "Contrast sightseeing/sports holidays with beach/rest holidays.",
+    subTopic: "travel-preferences",
+    coachHint: {
+      ideas: ["Say which you prefer", "Give two reasons (energy, rest, sights)", "Give an example holiday"],
+      phrase: { fr: "Je préfère les vacances… parce que…", en: "I prefer… holidays because…" },
+    },
     difficulty: 2,
     followUps: [
       "Qu'est-ce que tu fais pendant des vacances actives ?",
@@ -1712,6 +1882,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Où es-tu allé l'hiver dernier ?",
     hint: "Describe a winter trip or activity using the past tense.",
+    subTopic: "past-holidays",
+    coachHint: {
+      ideas: ["Say where you went last winter", "Say what you did", "Say who you were with"],
+      phrase: { fr: "L'hiver dernier, je suis allé(e) à… et j'ai…", en: "Last winter I went to… and I…" },
+    },
     difficulty: 1,
     followUps: [
       "Quel temps faisait-il ?",
@@ -1733,6 +1908,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Quel est le pays que tu as le plus aimé visiter ? Pourquoi ?",
     hint: "Discuss your favorite travel destination and what made it special.",
+    subTopic: "destinations",
+    coachHint: {
+      ideas: ["Name the country", "Give two reasons (food, people, places)", "Say what you did there"],
+      phrase: { fr: "Mon pays préféré, c'est… parce que…", en: "My favourite country is… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Qu'est-ce que tu as aimé là-bas ?",
@@ -1754,6 +1934,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Est-ce que tu as déjà fait du camping ? C'était comment ?",
     hint: "Describe a camping experience or your opinion on it.",
+    subTopic: "past-holidays",
+    coachHint: {
+      ideas: ["Say yes or no", "Say where and when", "Say what it was like"],
+      phrase: { fr: "Oui, j'ai fait du camping à… et c'était…", en: "Yes, I went camping at… and it was…" },
+    },
     difficulty: 1,
     followUps: [
       "Préfères-tu dormir sous une tente ou dans une caravane ?",
@@ -2190,6 +2375,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "hobbies",
     text: "Tu préfères faire du shopping en ligne ou dans des magasins ?",
     hint: "Compare online shopping with going to physical stores.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Say which you prefer", "Give one advantage of online shopping or shops", "Say what you buy most"],
+      phrase: { fr: "Je préfère acheter… parce que c'est…", en: "I prefer buying… because it is…" },
+    },
     difficulty: 2,
     followUps: [
       "Quels sont les avantages du shopping en ligne ?",
@@ -2211,6 +2401,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "hobbies",
     text: "Quelle personne célèbre aimerais-tu rencontrer un jour ?",
     hint: "Talk about an actor, singer, or athlete you admire.",
+    subTopic: "music-books-film",
+    coachHint: {
+      ideas: ["Name the person and what they do", "Say why you admire them", "Say one question you would ask"],
+      phrase: { fr: "J'aimerais rencontrer… parce que…", en: "I would like to meet… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Pourquoi admires-tu cette personne ?",
@@ -2230,8 +2425,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_16",
     topicKey: "hobbies",
-    text: "Est-ce que tu aimes aller aux musées ou aux galeries d'art ?",
+    text: "Est-ce que tu aimes aller aux musées ou aux galeries d'art ? Quel est le dernier que tu as visité ?",
     hint: "Discuss your interest in culture and exhibitions.",
+    subTopic: "music-books-film",
+    coachHint: {
+      ideas: ["Say whether you like museums", "Name the last one you visited", "Say what you saw and thought of it"],
+      phrase: { fr: "Le dernier musée que j'ai visité, c'était… et j'ai vu…", en: "The last museum I visited was… and I saw…" },
+    },
     difficulty: 2,
     followUps: [
       "Quel est le dernier musée que tu as visité ?",
@@ -2253,6 +2453,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "hobbies",
     text: "Pourquoi est-il important d'avoir des passe-temps pour la santé mentale ?",
     hint: "Discuss how hobbies help reduce stress and improve well-being.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Give two reasons (stress, friends, confidence)", "Add an example from your own life", "Say what happens without hobbies"],
+      phrase: { fr: "Les passe-temps sont importants parce que…", en: "Hobbies are important because…" },
+    },
     difficulty: 3,
     followUps: [
       "Quel passe-temps te relaxe le plus ?",
@@ -2274,6 +2479,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "hobbies",
     text: "Qu'est-ce que tu fais quand il pleut et que tu ne peux pas sortir ?",
     hint: "Talk about indoor activities like reading, watching movies, or games.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Name two things you do inside (read, games, film)", "Say who you do them with", "Say which one you prefer"],
+      phrase: { fr: "Quand il pleut, je reste à la maison et je…", en: "When it rains, I stay at home and I…" },
+    },
     difficulty: 1,
     followUps: [
       "Est-ce que tu aimes la pluie ?",
@@ -2297,6 +2507,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Est-ce que tu as beaucoup de cousins ? Tu les vois souvent ?",
     hint: "Talk about your extended family and your relationship with them.",
+    subTopic: "family-members",
+    coachHint: {
+      ideas: ["Say how many cousins you have", "Say how often and where you meet", "Say who you get on with best"],
+      phrase: { fr: "Je compte… cousins et je les vois…", en: "I count… cousins and I see them…" },
+    },
     difficulty: 1,
     followUps: [
       "Où habitent tes cousins ?",
@@ -2318,6 +2533,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "À qui est-ce que tu parles quand tu as un problème ?",
     hint: "Identify the family member or friend you trust most.",
+    subTopic: "friends",
+    coachHint: {
+      ideas: ["Name the person you trust", "Say why you trust them", "Give an example of a problem you shared"],
+      phrase: { fr: "En cas de problème, je parle à… parce que…", en: "If there is a problem, I talk to… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Pourquoi as-tu confiance en cette personne ?",
@@ -2337,8 +2557,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fam_15",
     topicKey: "family",
-    text: "Est-il préférable d'être enfant unique ou d'avoir des frères et sœurs ?",
+    text: "Est-il préférable d'être enfant unique ou d'avoir des frères et sœurs ? Pourquoi ?",
     hint: "Compare the two situations and give your opinion.",
+    subTopic: "family-members",
+    coachHint: {
+      ideas: ["Say which you think is better", "Give two reasons", "Say what you know from your own life"],
+      phrase: { fr: "Je pense qu'il est préférable d'être… parce que…", en: "I think it is better to be… because…" },
+    },
     difficulty: 3,
     followUps: [
       "Quels sont les avantages d'être enfant unique ?",
@@ -2360,6 +2585,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Décris un dimanche typique avec ta famille.",
     hint: "Walk through your family's Sunday routine — meals, activities, relaxation.",
+    subTopic: "celebrations-and-traditions",
+    coachHint: {
+      ideas: ["Go through the day in order", "Mention a meal and an activity", "Say how you feel by evening"],
+      phrase: { fr: "Le dimanche, on commence par… puis…", en: "On Sunday we start with… then…" },
+    },
     difficulty: 1,
     followUps: [
       "À quelle heure vous levez-vous ?",
@@ -2379,8 +2609,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fam_17",
     topicKey: "family",
-    text: "Penses-tu que les jeunes devraient écouter davantage leurs grands-parents ?",
+    text: "Penses-tu que les jeunes devraient écouter davantage leurs grands-parents ? Pourquoi ?",
     hint: "Discuss the value of elderly people's experience and wisdom.",
+    subTopic: "generations",
+    coachHint: {
+      ideas: ["Say whether you agree", "Give two reasons (experience, stories, respect)", "Give an example from your own family"],
+      phrase: { fr: "Je pense que les jeunes doivent… parce que…", en: "I think young people must… because…" },
+    },
     difficulty: 3,
     followUps: [
       "Vois-tu souvent tes grands-parents ?",
@@ -2404,6 +2639,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Tu préfères les vacances d'été ou d'hiver ? Pourquoi ?",
     hint: "Compare beach/sun holidays with skiing/snow holidays.",
+    subTopic: "travel-preferences",
+    coachHint: {
+      ideas: ["Say which you prefer", "Give two reasons (weather, activities, days)", "Mention one good point of the other"],
+      phrase: { fr: "Je préfère les vacances d'… parce que…", en: "I prefer… holidays because…" },
+    },
     difficulty: 2,
     followUps: [
       "Qu'est-ce que tu aimes faire en été ?",
@@ -2423,8 +2663,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hol_14",
     topicKey: "holidays",
-    text: "As-tu déjà eu une mauvaise expérience en vacances ?",
+    text: "As-tu déjà eu une mauvaise expérience en vacances ? Comment c'était ?",
     hint: "Describe a trip that went wrong — delays, weather, or illness (past tense).",
+    subTopic: "past-holidays",
+    coachHint: {
+      ideas: ["Say what went wrong", "Say when and where", "Say how you felt and what you did"],
+      phrase: { fr: "Une fois, nos bagages étaient perdus et j'étais…", en: "Once our luggage was lost and I was…" },
+    },
     difficulty: 2,
     followUps: [
       "Qu'est-ce qui s'est passé exactement ?",
@@ -2446,6 +2691,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Si tu gagnais à la loterie, où irais-tu en vacances ?",
     hint: "Use conditional to describe your ultimate luxury dream trip.",
+    subTopic: "future-trips",
+    coachHint: {
+      ideas: ["Say where you would go", "Say what you would do", "Say how long you would stay"],
+      phrase: { fr: "Si je gagnais à la loterie, j'irais à…", en: "If I won the lottery, I would go to…" },
+    },
     difficulty: 3,
     followUps: [
       "Avec qui partirais-tu ?",
@@ -2467,6 +2717,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Pourquoi est-il important de goûter la nourriture locale à l'étranger ?",
     hint: "Discuss the link between food, culture, and travel experience.",
+    subTopic: "tourism-issues",
+    coachHint: {
+      ideas: ["Give two reasons (culture, taste, meeting people)", "Give an example dish", "Say what you would try"],
+      phrase: { fr: "Goûter la cuisine locale est important parce que…", en: "Trying local food is important because…" },
+    },
     difficulty: 2,
     followUps: [
       "Quelle est la meilleure chose que tu as mangée à l'étranger ?",
@@ -2488,6 +2743,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Tu préfères voyager en avion ou en train ? Pourquoi ?",
     hint: "Compare the convenience, cost, and environmental impact of both.",
+    subTopic: "travel-preferences",
+    coachHint: {
+      ideas: ["Say which you prefer", "Give two reasons (speed, price, comfort, environment)", "Say when you choose the other"],
+      phrase: { fr: "Je préfère voyager en… parce que…", en: "I prefer travelling by… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Quel est l'avantage du train ?",
@@ -3069,8 +3329,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_19",
     topicKey: "hobbies",
-    text: "Est-ce que tu préfères les activités calmes ou dynamiques ?",
+    text: "Est-ce que tu préfères les activités calmes ou dynamiques ? Pourquoi ?",
     hint: "Compare hobbies like reading/drawing with sports/dancing.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Say which type you prefer", "Give two reasons (energy, relax, friends)", "Say when you like the other type"],
+      phrase: { fr: "Je préfère les activités… parce que…", en: "I prefer… activities because…" },
+    },
     difficulty: 1,
     followUps: [
       "Pourquoi préfères-tu ce type d'activité ?",
@@ -3090,8 +3355,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_20",
     topicKey: "hobbies",
-    text: "Est-ce que tu aimes collectionner des objets ?",
+    text: "Est-ce que tu aimes collectionner des objets ? Lesquels ?",
     hint: "Talk about any collections you have — stamps, coins, posters, digital items.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say yes or no", "Name what you collect now or used to collect", "Say why you like collecting"],
+      phrase: { fr: "Je collectionne… parce que…", en: "I collect… because…" },
+    },
     difficulty: 1,
     followUps: [
       "Qu'est-ce que tu collectionnes ?",
@@ -3113,6 +3383,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "hobbies",
     text: "Quel est ton genre de musique préféré et pourquoi ?",
     hint: "Discuss your musical tastes and how they make you feel.",
+    subTopic: "music-books-film",
+    coachHint: {
+      ideas: ["Name your favourite music style", "Give two reasons", "Say how it makes you feel"],
+      phrase: { fr: "Mon genre préféré, c'est… parce que ça me…", en: "My favourite genre is… because it makes me…" },
+    },
     difficulty: 2,
     followUps: [
       "Quel est ton chanteur ou groupe préféré ?",
@@ -3132,8 +3407,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_22",
     topicKey: "hobbies",
-    text: "Qu'est-ce que tu penses du bénévolat comme passe-temps ?",
+    text: "Que penses-tu du bénévolat comme passe-temps ?",
     hint: "Discuss the benefits of volunteering for others and for oneself.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Say whether volunteering is a good hobby", "Give one benefit for others", "Give one benefit for yourself"],
+      phrase: { fr: "Je pense que le bénévolat est… parce que…", en: "I think volunteering is… because…" },
+    },
     difficulty: 3,
     followUps: [
       "As-tu déjà fait du bénévolat ?",
@@ -3153,8 +3433,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_23",
     topicKey: "hobbies",
-    text: "Comment est-ce que tes loisirs ont changé depuis que tu es petit(e) ?",
+    text: "Quand tu étais petit(e), qu'est-ce que tu faisais pendant ton temps libre ? Comment tes loisirs ont-ils changé ?",
     hint: "Compare your childhood activities with your current hobbies.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Describe what you did as a child", "Say what you do now", "Say what changed and why"],
+      phrase: { fr: "Quand j'étais petit(e), je jouais… mais maintenant…", en: "When I was little I used to play… but now…" },
+    },
     difficulty: 2,
     followUps: [
       "Qu'est-ce que tu faisais avant et que tu ne fais plus ?",
@@ -3176,8 +3461,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fam_18",
     topicKey: "family",
-    text: "As-tu des traditions familiales spéciales pour les fêtes ?",
+    text: "As-tu des traditions familiales spéciales pour les fêtes ? Lesquelles ?",
     hint: "Describe what your family usually does for Christmas, Eid, or other celebrations.",
+    subTopic: "celebrations-and-traditions",
+    coachHint: {
+      ideas: ["Say yes and name a tradition", "Say what you eat or do", "Say which one you like best"],
+      phrase: { fr: "Pour Noël, dans ma famille, on…", en: "At Christmas, in my family, we…" },
+    },
     difficulty: 1,
     followUps: [
       "Qu'est-ce que vous mangez ?",
@@ -3197,8 +3487,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fam_19",
     topicKey: "family",
-    text: "Est-ce que tes parents sont stricts sur les horaires ?",
+    text: "Est-ce que tes parents sont stricts sur les horaires ? Comment réagissent-ils si tu rentres en retard ?",
     hint: "Talk about rules regarding bedtime or returning home in the evening.",
+    subTopic: "parents-and-rules",
+    coachHint: {
+      ideas: ["Say how strict they are", "Give one rule about times", "Say what happens if you are late"],
+      phrase: { fr: "Mes parents sont assez… et je dois rentrer à…", en: "My parents are quite… and I must be home by…" },
+    },
     difficulty: 2,
     followUps: [
       "À quelle heure dois-tu rentrer le week-end ?",
@@ -3220,6 +3515,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Décris un membre de ta famille que tu n'as pas vu depuis longtemps.",
     hint: "Describe a relative who lives far away or you haven't visited recently.",
+    subTopic: "family-members",
+    coachHint: {
+      ideas: ["Say who it is and where they live", "Describe what they look like", "Say when you would like to see them"],
+      phrase: { fr: "Mon oncle/ma tante habite à… et il/elle est…", en: "My uncle/aunt lives in… and he/she is…" },
+    },
     difficulty: 1,
     followUps: [
       "Où habite cette personne ?",
@@ -3239,8 +3539,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fam_21",
     topicKey: "family",
-    text: "Penses-tu que les parents et les adolescents peuvent être amis ?",
+    text: "Penses-tu que les parents et les adolescents peuvent être amis ? Pourquoi (pas) ?",
     hint: "Discuss the balance between authority and friendship in family relationships.",
+    subTopic: "generations",
+    coachHint: {
+      ideas: ["Say whether they can be friends", "Give two reasons", "Say what limits there should be"],
+      phrase: { fr: "Je pense que les parents et les ados peuvent être amis parce que…", en: "I think parents and teens can be friends because…" },
+    },
     difficulty: 3,
     followUps: [
       "Considères-tu tes parents comme des amis ?",
@@ -3262,6 +3567,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Quelles sont les qualités les plus importantes pour être un bon parent ?",
     hint: "Discuss traits like patience, support, honesty, and listening.",
+    subTopic: "parents-and-rules",
+    coachHint: {
+      ideas: ["Name three qualities (patience, honesty, listening)", "Explain why the most important one matters", "Give an example from your own parents"],
+      phrase: { fr: "Un bon parent doit être… et savoir…", en: "A good parent must be… and know how to…" },
+    },
     difficulty: 3,
     followUps: [
       "Tes parents possèdent-ils ces qualités ?",
@@ -3283,8 +3593,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hol_18",
     topicKey: "holidays",
-    text: "Préfères-tu les grandes villes ou les petits villages pour tes vacances ?",
+    text: "Préfères-tu les grandes villes ou les petits villages pour tes vacances ? Pourquoi ?",
     hint: "Compare the energy and activities of a city with the peace of a village.",
+    subTopic: "travel-preferences",
+    coachHint: {
+      ideas: ["Say which you prefer", "Give two reasons (museums, calm, nature)", "Say what you do there"],
+      phrase: { fr: "Je préfère les… parce que…", en: "I prefer… because…" },
+    },
     difficulty: 1,
     followUps: [
       "Qu'est-ce que tu aimes faire dans une ville ?",
@@ -3306,6 +3621,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Quel est l'objet le plus important dans ton sac de voyage ?",
     hint: "Talk about something essential you always take with you.",
+    subTopic: "travel-preferences",
+    coachHint: {
+      ideas: ["Name the item", "Say what you use it for", "Say why you never forget it"],
+      phrase: { fr: "Dans mon sac, l'objet le plus important, c'est…", en: "In my bag the most important item is…" },
+    },
     difficulty: 1,
     followUps: [
       "Est-ce que c'est ton téléphone ?",
@@ -3325,8 +3645,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hol_20",
     topicKey: "holidays",
-    text: "Penses-tu que voyager rend plus intelligent ?",
+    text: "Penses-tu que voyager rend plus intelligent ? Pourquoi ?",
     hint: "Discuss how exposure to new cultures and experiences helps us grow.",
+    subTopic: "tourism-issues",
+    coachHint: {
+      ideas: ["Say whether you agree", "Give two reasons (new ideas, languages, adapting)", "Give an example"],
+      phrase: { fr: "Je pense que voyager… parce que…", en: "I think travelling… because…" },
+    },
     difficulty: 3,
     followUps: [
       "Qu'as-tu appris lors de ton dernier voyage ?",
@@ -3348,6 +3673,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Quel est le meilleur moment pour partir en vacances selon toi ?",
     hint: "Discuss your preferred season or time of year for traveling.",
+    subTopic: "travel-preferences",
+    coachHint: {
+      ideas: ["Name a month or season", "Give two reasons (weather, prices, crowds)", "Say what you do then"],
+      phrase: { fr: "Pour moi, le meilleur moment, c'est… parce que…", en: "For me, the best time is… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Préfères-tu les vacances scolaires ou hors saison ?",
@@ -3367,8 +3697,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hol_22",
     topicKey: "holidays",
-    text: "As-tu déjà fait un voyage humanitaire ou aimerais-tu en faire un ?",
+    text: "As-tu déjà fait un voyage humanitaire ou aimerais-tu en faire un ? Pourquoi (pas) ?",
     hint: "Discuss combining travel with helping a community or environmental project.",
+    subTopic: "future-trips",
+    coachHint: {
+      ideas: ["Say yes or no", "Say what project you would join", "Say why it interests you"],
+      phrase: { fr: "Non, je n'ai jamais… mais j'aimerais… parce que…", en: "No, I have never… but I would like to… because…" },
+    },
     difficulty: 3,
     followUps: [
       "Quelle cause aimerais-tu aider ?",
@@ -3924,8 +4259,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_24",
     topicKey: "hobbies",
-    text: "Considères-tu les réseaux sociaux comme un passe-temps ?",
+    text: "Considères-tu les réseaux sociaux comme un passe-temps ? Pourquoi (pas) ?",
     hint: "Discuss your use of TikTok, Instagram, etc., as a leisure activity.",
+    subTopic: "screens-and-games",
+    coachHint: {
+      ideas: ["Say whether social media is a hobby for you", "Name an app you use", "Give one risk or one benefit"],
+      phrase: { fr: "Pour moi, les réseaux sociaux sont… parce que…", en: "For me, social media is… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Combien de temps passes-tu sur ton téléphone ?",
@@ -3945,8 +4285,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_25",
     topicKey: "hobbies",
-    text: "Aimes-tu bricoler ou faire du bricolage ?",
+    text: "Aimes-tu bricoler ou faire du bricolage ? Pourquoi (pas) ?",
     hint: "Talk about making things, crafts, or DIY projects.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say whether you like making things", "Name something you made or would make", "Say why it is rewarding or boring"],
+      phrase: { fr: "J'aime bricoler parce que… et je fabrique souvent…", en: "I like DIY because… and I often make…" },
+    },
     difficulty: 2,
     followUps: [
       "Qu'as-tu fabriqué récemment ?",
@@ -3966,8 +4311,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_26",
     topicKey: "hobbies",
-    text: "Aimerais-tu essayer un sport extrême un jour ?",
+    text: "Aimerais-tu essayer un sport extrême un jour ? Lequel et pourquoi ?",
     hint: "Discuss activities like skydiving, bungee jumping, or rock climbing.",
+    subTopic: "sport-and-active",
+    coachHint: {
+      ideas: ["Say yes or no", "Name the sport (climbing, skydiving, surfing)", "Say what attracts you or scares you"],
+      phrase: { fr: "Je serais tenté(e) par… parce que…", en: "I would be tempted by… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Quel sport extrême te tente le plus ?",
@@ -3989,6 +4339,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "hobbies",
     text: "Tu préfères regarder le sport à la télé ou le pratiquer ?",
     hint: "Contrast watching matches with participating in physical activities.",
+    subTopic: "sport-and-active",
+    coachHint: {
+      ideas: ["Say which you prefer", "Give one advantage", "Mention one drawback of the other"],
+      phrase: { fr: "Je préfère… parce que…", en: "I prefer… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Quel sport aimes-tu regarder ?",
@@ -4012,6 +4367,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Quelle place occupent les animaux domestiques dans ta famille ?",
     hint: "Talk about your pets and how they are treated like family members.",
+    subTopic: "family-members",
+    coachHint: {
+      ideas: ["Say what pets you have or would like", "Say who takes care of them", "Say how the family treats them"],
+      phrase: { fr: "Chez nous, le chien est…", en: "At home, the dog is…" },
+    },
     difficulty: 1,
     followUps: [
       "As-tu un chien ou un chat ?",
@@ -4033,6 +4393,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Comment sont les règles et la discipline chez toi ?",
     hint: "Discuss house rules, punishments, and how your parents maintain order.",
+    subTopic: "parents-and-rules",
+    coachHint: {
+      ideas: ["Name two rules at home", "Say what happens if you break them", "Say whether the rules are fair"],
+      phrase: { fr: "Chez moi, la règle principale, c'est…", en: "At home the main rule is…" },
+    },
     difficulty: 2,
     followUps: [
       "Quelles sont les règles les plus importantes ?",
@@ -4052,8 +4417,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fam_25",
     topicKey: "family",
-    text: "Penses-tu que ce sera difficile de quitter ta famille pour l'université ?",
+    text: "Penses-tu que ce sera difficile de quitter ta famille pour l'université plus tard ? Pourquoi ?",
     hint: "Discuss the emotional and practical aspects of moving away from home.",
+    subTopic: "generations",
+    coachHint: {
+      ideas: ["Say whether it will be hard", "Give one reason (missing home, cooking)", "Give one reason it will be exciting"],
+      phrase: { fr: "Je pense que je serai… parce que…", en: "I think I will be… because…" },
+    },
     difficulty: 3,
     followUps: [
       "Aimerais-tu étudier loin de chez toi ?",
@@ -4075,6 +4445,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Qu'est-ce que tu penses du fossé des générations ?",
     hint: "Discuss the differences in ideas and values between young people and older relatives.",
+    subTopic: "generations",
+    coachHint: {
+      ideas: ["Explain what the generation gap is", "Give one difference between young and old", "Say whether it is a problem"],
+      phrase: { fr: "À mon avis, la différence entre les générations, c'est…", en: "In my opinion the difference between generations is…" },
+    },
     difficulty: 3,
     followUps: [
       "Comprends-tu toujours tes grands-parents ?",
@@ -4098,6 +4473,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Tu préfères voyager seul(e) ou avec d'autres personnes ? Pourquoi ?",
     hint: "Contrast solo travel with group or family trips.",
+    subTopic: "travel-preferences",
+    coachHint: {
+      ideas: ["Say which you prefer", "Give two reasons (company, freedom, cost)", "Say what you did on your last trip"],
+      phrase: { fr: "Je préfère voyager… parce que…", en: "I prefer travelling… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Quels sont les avantages de voyager en groupe ?",
@@ -4119,6 +4499,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Comment est-ce que tu planifies tes vacances ?",
     hint: "Talk about booking, research, and organizing your trips.",
+    subTopic: "travel-preferences",
+    coachHint: {
+      ideas: ["Say where you look for ideas", "Say how you book", "Say what you prepare before leaving"],
+      phrase: { fr: "Pour planifier mes vacances, je…", en: "To plan my holidays I…" },
+    },
     difficulty: 2,
     followUps: [
       "Utilises-tu des sites internet ou des agences de voyage ?",
@@ -4138,8 +4523,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hol_25",
     topicKey: "holidays",
-    text: "Est-ce que tu achètes souvent des souvenirs quand tu es en vacances ?",
+    text: "Est-ce que tu achètes souvent des souvenirs quand tu es en vacances ? Lesquels ?",
     hint: "Discuss what items you bring back and why they are important.",
+    subTopic: "travel-preferences",
+    coachHint: {
+      ideas: ["Say yes or no", "Name two souvenirs", "Say who they are for"],
+      phrase: { fr: "En vacances, j'achète souvent…", en: "On holiday I often buy…" },
+    },
     difficulty: 1,
     followUps: [
       "Quel est ton souvenir préféré ?",
@@ -4159,8 +4549,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hol_26",
     topicKey: "holidays",
-    text: "Aimes-tu rendre visite à ta famille qui habite à l'étranger ?",
+    text: "Aimes-tu rendre visite à ta famille qui habite à l'étranger ? Pourquoi (pas) ?",
     hint: "Talk about trips to see relatives in other countries.",
+    subTopic: "destinations",
+    coachHint: {
+      ideas: ["Say whether you like it", "Say where they live", "Say what you do together"],
+      phrase: { fr: "J'aime rendre visite à… parce que…", en: "I like visiting… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Où habite ta famille à l'étranger ?",
@@ -5002,8 +5397,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_28",
     topicKey: "hobbies",
-    text: "Est-ce que tu t'intéresses à la photographie ?",
+    text: "Est-ce que tu t'intéresses à la photographie ? Quels sujets aimes-tu photographier ?",
     hint: "Talk about taking photos, your equipment, and what you like to capture.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say whether you like taking photos", "Say what you photograph and with what", "Say where you share them"],
+      phrase: { fr: "J'aime prendre en photo… avec mon…", en: "I like photographing… with my…" },
+    },
     difficulty: 1,
     followUps: [
       "Utilises-tu ton téléphone ou un véritable appareil photo ?",
@@ -5023,8 +5423,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_29",
     topicKey: "hobbies",
-    text: "Aimes-tu cuisiner ou faire de la pâtisserie pendant ton temps libre ?",
+    text: "Aimes-tu cuisiner ou faire de la pâtisserie pendant ton temps libre ? Quelle est ta spécialité ?",
     hint: "Discuss cooking as a hobby, your favorite recipes, and who you cook for.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say whether you like cooking or baking", "Name one dish you make", "Say who you cook for"],
+      phrase: { fr: "Ma spécialité, c'est… et je la prépare pour…", en: "My speciality is… and I make it for…" },
+    },
     difficulty: 2,
     followUps: [
       "Quelle est ta spécialité en cuisine ?",
@@ -5046,6 +5451,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "hobbies",
     text: "Y a-t-il un centre de jeunesse dans ta ville ? Qu'est-ce qu'on peut y faire ?",
     hint: "Describe local youth facilities and the activities they offer.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Say yes or no", "Name two activities (sport, games, clubs)", "Say whether you go there"],
+      phrase: { fr: "Dans ma ville, il y a un centre où on peut…", en: "In my town there is a centre where you can…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que tu y vas souvent ?",
@@ -5065,8 +5475,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_31",
     topicKey: "hobbies",
-    text: "Est-ce que tu es doué(e) pour le dessin ou la peinture ?",
+    text: "Est-ce que tu es doué(e) pour le dessin ou la peinture ? Où trouves-tu ton inspiration ?",
     hint: "Talk about your creative arts hobbies and your favorite style.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say how good you are", "Say what you draw or paint", "Say where your ideas come from"],
+      phrase: { fr: "Je dessine surtout… et mon inspiration vient de…", en: "I mostly draw… and my inspiration comes from…" },
+    },
     difficulty: 1,
     followUps: [
       "Préfères-tu dessiner au crayon ou peindre avec des couleurs ?",
@@ -5088,6 +5503,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "hobbies",
     text: "Aimes-tu la danse ? Quel style préfères-tu ?",
     hint: "Discuss dancing as a hobby, whether you take lessons or dance for fun.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say whether you dance", "Name your favourite style", "Say whether you take lessons"],
+      phrase: { fr: "Mon style préféré, c'est… parce que…", en: "My favourite style is… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Prends-tu des cours de danse ?",
@@ -5107,8 +5527,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_33",
     topicKey: "hobbies",
-    text: "Est-ce que tu aides tes parents avec le jardinage ?",
+    text: "Est-ce que tu aides tes parents avec le jardinage ? Comment est-ce que tu les aides ?",
     hint: "Talk about gardening, plants, or spending time in the garden.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Say whether you help", "Name two jobs (watering, mowing, planting)", "Say what you grow"],
+      phrase: { fr: "J'aide mes parents à… dans le jardin.", en: "I help my parents to… in the garden." },
+    },
     difficulty: 1,
     followUps: [
       "As-tu des fleurs ou des légumes dans ton jardin ?",
@@ -5130,6 +5555,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "hobbies",
     text: "Quelles sont les responsabilités liées au fait d'avoir un animal de compagnie ?",
     hint: "Discuss looking after pets as a daily commitment and hobby.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Name two jobs (food, walks, vet)", "Say how much time it takes", "Say whether you would like a pet"],
+      phrase: { fr: "Un animal demande de… et de…", en: "A pet needs… and…" },
+    },
     difficulty: 2,
     followUps: [
       "As-tu un animal à la maison ?",
@@ -5151,6 +5581,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "hobbies",
     text: "Pourquoi est-il important d'avoir des loisirs pour réduire le stress ?",
     hint: "Discuss the mental health benefits of having hobbies outside of school.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Give two reasons (relax, forget homework, friends)", "Add an example", "Say what you do to unwind"],
+      phrase: { fr: "Les loisirs aident à réduire le stress parce que…", en: "Hobbies help reduce stress because…" },
+    },
     difficulty: 3,
     followUps: [
       "Quel loisir te détend le plus ?",
@@ -5170,8 +5605,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_36",
     topicKey: "hobbies",
-    text: "Est-ce que tu t'intéresses au théâtre ou à l'art dramatique ?",
+    text: "Est-ce que tu t'intéresses au théâtre ou à l'art dramatique ? Pourquoi (pas) ?",
     hint: "Talk about acting, watching plays, or participating in drama workshops.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say whether you like theatre", "Give a reason (characters, confidence, friends)", "Say if you act or watch"],
+      phrase: { fr: "Je m'intéresse au théâtre parce que…", en: "I am interested in theatre because…" },
+    },
     difficulty: 2,
     followUps: [
       "Préfères-tu être sur scène ou dans le public ?",
@@ -5191,8 +5631,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_37",
     topicKey: "hobbies",
-    text: "As-tu déjà essayé le yoga ou la méditation ?",
+    text: "As-tu déjà essayé le yoga ou la méditation ? Comment c'était ?",
     hint: "Discuss wellness activities and how they affect your physical/mental state.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Say yes or no", "Say when or where you tried it", "Say how it felt"],
+      phrase: { fr: "Oui, j'ai essayé… et c'était… / Non, jamais.", en: "Yes, I tried… and it was… / No, never." },
+    },
     difficulty: 2,
     followUps: [
       "Penses-tu que c'est ennuyeux ou relaxant ?",
@@ -5212,8 +5657,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_38",
     topicKey: "hobbies",
-    text: "Est-ce que tu t'intéresses au codage informatique ou à la robotique ?",
+    text: "Est-ce que tu t'intéresses au codage informatique ou à la robotique ? Pourquoi (pas) ?",
     hint: "Talk about technology-based hobbies and creating software or machines.",
+    subTopic: "screens-and-games",
+    coachHint: {
+      ideas: ["Say whether coding interests you", "Name something you made or want to make", "Say why it is useful"],
+      phrase: { fr: "Le codage m'intéresse parce que…", en: "Coding interests me because…" },
+    },
     difficulty: 3,
     followUps: [
       "Sais-tu créer un site web ou une application ?",
@@ -5233,8 +5683,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_39",
     topicKey: "hobbies",
-    text: "Est-ce que la mode et la création de vêtements t'intéressent ?",
+    text: "Est-ce que la mode et la création de vêtements t'intéressent ? Pourquoi (pas) ?",
     hint: "Discuss fashion as a creative outlet, sewing, or following trends.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say whether fashion interests you", "Say whether you design or sew", "Give a reason"],
+      phrase: { fr: "La mode m'intéresse parce que…", en: "Fashion interests me because…" },
+    },
     difficulty: 1,
     followUps: [
       "Aimes-tu faire du shopping pour trouver des vêtements originaux ?",
@@ -5254,8 +5709,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_40",
     topicKey: "hobbies",
-    text: "Aimes-tu observer les étoiles ou t'intéresses-tu à l'astronomie ?",
+    text: "Aimes-tu observer les étoiles ou t'intéresses-tu à l'astronomie ? Pourquoi (pas) ?",
     hint: "Talk about space, planets, and using a telescope.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Say whether you like the stars", "Say what you can see or want to see", "Give a reason"],
+      phrase: { fr: "J'aime observer le ciel parce que…", en: "I like looking at the sky because…" },
+    },
     difficulty: 2,
     followUps: [
       "As-tu un télescope chez toi ?",
@@ -5275,8 +5735,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_41",
     topicKey: "hobbies",
-    text: "Fais-tu du bénévolat dans ta communauté locale ?",
+    text: "Fais-tu du bénévolat dans ta communauté locale ? Pourquoi (pas) ?",
     hint: "Talk about helping others, charity work, or local community events.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Say yes or no", "Name the cause or place", "Say why it matters to you"],
+      phrase: { fr: "Je fais du bénévolat dans… parce que…", en: "I volunteer at… because…" },
+    },
     difficulty: 3,
     followUps: [
       "Pour quelle organisation travailles-tu ?",
@@ -5296,8 +5761,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_42",
     topicKey: "hobbies",
-    text: "Aimes-tu visiter des sites historiques ou des monuments ?",
+    text: "Aimes-tu visiter des sites historiques ou des monuments ? Quel est le dernier que tu as visité ?",
     hint: "Talk about cultural trips, museums, and historical interests.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Say whether you like old places", "Name the last site you visited", "Say what you saw"],
+      phrase: { fr: "Le dernier site que j'ai visité, c'était…", en: "The last site I visited was…" },
+    },
     difficulty: 2,
     followUps: [
       "Quel est le monument le plus intéressant que tu as visité ?",
@@ -5319,6 +5789,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "hobbies",
     text: "Préfères-tu les jeux de société simples ou les jeux de stratégie complexes ?",
     hint: "Discuss board games, rules, and playing with family or friends.",
+    subTopic: "screens-and-games",
+    coachHint: {
+      ideas: ["Say which type of game you prefer", "Give one reason", "Say who you play with"],
+      phrase: { fr: "Je préfère les jeux… parce que…", en: "I prefer… games because…" },
+    },
     difficulty: 2,
     followUps: [
       "Quel est ton jeu de société préféré ?",
@@ -5338,8 +5813,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_44",
     topicKey: "hobbies",
-    text: "Aimes-tu regarder des matchs de sport au stade ?",
+    text: "Aimes-tu regarder des matchs de sport au stade ? Pourquoi (pas) ?",
     hint: "Discuss the atmosphere of live sports vs. watching on TV.",
+    subTopic: "sport-and-active",
+    coachHint: {
+      ideas: ["Say whether you like going", "Describe the atmosphere", "Compare it with watching on TV"],
+      phrase: { fr: "J'aime aller au stade parce que l'ambiance est…", en: "I like going to the stadium because the atmosphere is…" },
+    },
     difficulty: 1,
     followUps: [
       "Quel est le dernier match que tu as vu en direct ?",
@@ -5359,8 +5839,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_45",
     topicKey: "hobbies",
-    text: "Sais-tu faire des tours de magie ou as-tu un talent particulier ?",
+    text: "Sais-tu faire des tours de magie ou as-tu un talent particulier ? Lequel ?",
     hint: "Talk about learning unique skills or talents for entertainment.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say whether you have a talent", "Name it (cards, juggling, singing)", "Say how you learned it"],
+      phrase: { fr: "Mon talent particulier, c'est…", en: "My special talent is…" },
+    },
     difficulty: 2,
     followUps: [
       "Comment as-tu appris ce talent ?",
@@ -5380,8 +5865,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_46",
     topicKey: "hobbies",
-    text: "Aimes-tu faire de la randonnée ou des marches en forêt ?",
+    text: "Aimes-tu faire de la randonnée ou des marches en forêt ? Où vas-tu et avec qui ?",
     hint: "Discuss walking in nature, equipment, and how it makes you feel.",
+    subTopic: "sport-and-active",
+    coachHint: {
+      ideas: ["Say whether you like walking in nature", "Say where you go and with whom", "Say what you take with you"],
+      phrase: { fr: "Je fais de la randonnée à… avec…", en: "I go hiking in… with…" },
+    },
     difficulty: 1,
     followUps: [
       "Quel est ton endroit préféré pour marcher ?",
@@ -5401,8 +5891,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_47",
     topicKey: "hobbies",
-    text: "Écoutes-tu souvent des podcasts ou des livres audio pendant tes loisirs ?",
+    text: "Écoutes-tu souvent des podcasts ou des livres audio pendant tes loisirs ? Lesquels ?",
     hint: "Discuss modern ways of consuming stories or information.",
+    subTopic: "music-books-film",
+    coachHint: {
+      ideas: ["Say whether you listen", "Name one podcast or subject", "Say when you listen"],
+      phrase: { fr: "J'écoute des podcasts sur… quand je…", en: "I listen to podcasts about… when I…" },
+    },
     difficulty: 2,
     followUps: [
       "Quel est ton sujet de podcast préféré ?",
@@ -5422,8 +5917,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_48",
     topicKey: "hobbies",
-    text: "Aimes-tu le bricolage ou créer des choses de tes propres mains ?",
+    text: "Aimes-tu le bricolage ou créer des choses de tes propres mains ? Quel est ton projet préféré ?",
     hint: "Talk about DIY projects, making things at home, or fixing things.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say whether you like making things", "Describe your favourite project", "Say what you need to be good at it"],
+      phrase: { fr: "Mon projet préféré, c'est…", en: "My favourite project is…" },
+    },
     difficulty: 2,
     followUps: [
       "Quel est ton dernier projet de bricolage ?",
@@ -5443,8 +5943,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_49",
     topicKey: "hobbies",
-    text: "T'intéresses-tu au jardinage pendant ton temps libre ?",
+    text: "T'intéresses-tu au jardinage pendant ton temps libre ? Quelles plantes ou quels légumes aimes-tu ?",
     hint: "Discuss growing plants, flowers, or vegetables in a garden or on a balcony.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Say whether gardening interests you", "Name plants or vegetables you like", "Say who helps you"],
+      phrase: { fr: "Dans le jardin, j'aime planter…", en: "In the garden I like planting…" },
+    },
     difficulty: 2,
     followUps: [
       "As-tu un jardin chez toi ?",
@@ -5464,8 +5969,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_50",
     topicKey: "hobbies",
-    text: "Fais-tu de la programmation ou du codage comme loisir ?",
+    text: "Fais-tu de la programmation ou du codage comme loisir ? Pourquoi (pas) ?",
     hint: "Talk about coding, making websites, or game development as a hobby.",
+    subTopic: "screens-and-games",
+    coachHint: {
+      ideas: ["Say whether you code", "Name what you create or want to create", "Give a reason"],
+      phrase: { fr: "Je fais de la programmation parce que… / Je ne fais pas de codage parce que…", en: "I code because… / I don't code because…" },
+    },
     difficulty: 3,
     followUps: [
       "Quels langages de programmation connais-tu ?",
@@ -5485,8 +5995,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_51",
     topicKey: "hobbies",
-    text: "Aimes-tu faire de la pâtisserie le week-end ?",
+    text: "Aimes-tu faire de la pâtisserie le week-end ? Quel gâteau fais-tu le plus souvent ?",
     hint: "Discuss baking cakes, cookies, or bread.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say whether you like baking", "Name what you bake most", "Say who eats it"],
+      phrase: { fr: "Je prépare surtout des… pour…", en: "I mostly bake… for…" },
+    },
     difficulty: 1,
     followUps: [
       "Quel est ton dessert préféré à préparer ?",
@@ -5506,8 +6021,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_52",
     topicKey: "hobbies",
-    text: "Écris-tu des histoires ou des poèmes pendant ton temps libre ?",
+    text: "Écris-tu des histoires ou des poèmes pendant ton temps libre ? Pourquoi (pas) ?",
     hint: "Talk about creative writing, journaling, or writing poems.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say whether you write", "Say what (stories, poems, diary)", "Give a reason"],
+      phrase: { fr: "J'écris… parce que… / Je n'écris pas parce que…", en: "I write… because… / I don't write because…" },
+    },
     difficulty: 2,
     followUps: [
       "Quel genre d'histoires aimes-tu écrire ?",
@@ -5527,8 +6047,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_53",
     topicKey: "hobbies",
-    text: "As-tu déjà essayé la poterie ou la céramique ?",
+    text: "As-tu déjà essayé la poterie ou la céramique ? Comment c'était ?",
     hint: "Discuss making pottery, working with clay, or taking art classes.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say yes or no", "Say what you made", "Say how it felt"],
+      phrase: { fr: "Oui, j'ai essayé… et c'était… / Non, jamais.", en: "Yes, I tried… and it was… / No, never." },
+    },
     difficulty: 2,
     followUps: [
       "Qu'est-ce que tu as fabriqué en poterie ?",
@@ -5548,8 +6073,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_54",
     topicKey: "hobbies",
-    text: "Pratiques-tu le yoga ou la méditation pour te détendre ?",
+    text: "Pratiques-tu le yoga ou la méditation pour te détendre ? Comment te détends-tu ?",
     hint: "Talk about yoga, stretching, mindfulness, or meditation practices.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Say whether you do yoga or meditation", "Say what else helps you relax", "Say when you do it"],
+      phrase: { fr: "Pour me détendre, je fais…", en: "To relax, I do…" },
+    },
     difficulty: 2,
     followUps: [
       "À quelle fréquence fais-tu du yoga ?",
@@ -5569,8 +6099,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_55",
     topicKey: "hobbies",
-    text: "Aimes-tu jouer aux jeux de société avec tes amis ou ta famille ?",
+    text: "Aimes-tu jouer aux jeux de société avec tes amis ou ta famille ? Quel est ton jeu préféré ?",
     hint: "Discuss board games, strategy games, or family game nights.",
+    subTopic: "screens-and-games",
+    coachHint: {
+      ideas: ["Say whether you like board games", "Name your favourite", "Say who you play with"],
+      phrase: { fr: "Mon jeu préféré, c'est… et je joue avec…", en: "My favourite game is… and I play with…" },
+    },
     difficulty: 1,
     followUps: [
       "Quel est ton jeu de société préféré ?",
@@ -5590,8 +6125,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_56",
     topicKey: "hobbies",
-    text: "As-tu déjà fait un jeu d'évasion (escape room) ?",
+    text: "As-tu déjà fait un jeu d'évasion (escape room) ? Comment c'était ?",
     hint: "Talk about escape rooms, solving puzzles, and teamwork.",
+    subTopic: "screens-and-games",
+    coachHint: {
+      ideas: ["Say yes or no", "Say who you went with", "Say how it felt"],
+      phrase: { fr: "Oui, j'ai fait… avec… et c'était… / Non, jamais.", en: "Yes, I did… with… and it was… / No, never." },
+    },
     difficulty: 2,
     followUps: [
       "Avec qui es-tu allé(e) faire ce jeu d'évasion ?",
@@ -5611,8 +6151,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_57",
     topicKey: "hobbies",
-    text: "T'intéresses-tu aux tours de magie ou à l'illusionnisme ?",
+    text: "T'intéresses-tu aux tours de magie ou à l'illusionnisme ? Pourquoi (pas) ?",
     hint: "Discuss learning magic tricks, card tricks, and entertaining others.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say whether magic interests you", "Give a reason", "Say whether you know a trick"],
+      phrase: { fr: "La magie m'intéresse parce que…", en: "Magic interests me because…" },
+    },
     difficulty: 3,
     followUps: [
       "Quel est ton tour de magie préféré ?",
@@ -5632,8 +6177,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_58",
     topicKey: "hobbies",
-    text: "Fais-tu de l'astronomie en observant les étoiles ?",
+    text: "Fais-tu de l'astronomie en observant les étoiles ? Pourquoi (pas) ?",
     hint: "Talk about stargazing, telescopes, and learning about space.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Say whether you look at the stars", "Give a reason", "Say what you would like to see"],
+      phrase: { fr: "J'aime observer les étoiles parce que…", en: "I like watching the stars because…" },
+    },
     difficulty: 3,
     followUps: [
       "As-tu un télescope chez toi ?",
@@ -5653,8 +6203,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_59",
     topicKey: "hobbies",
-    text: "Aimes-tu faire voler un drone pendant ton temps libre ?",
+    text: "Aimes-tu faire voler un drone pendant ton temps libre ? Pourquoi (pas) ?",
     hint: "Discuss flying drones, taking aerial photos, or racing drones.",
+    subTopic: "screens-and-games",
+    coachHint: {
+      ideas: ["Say whether you like drones", "Say what you do with one", "Give a reason"],
+      phrase: { fr: "Je trouve les drones… parce que…", en: "I find drones… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Depuis combien de temps as-tu un drone ?",
@@ -5674,8 +6229,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_60",
     topicKey: "hobbies",
-    text: "Fais-tu du skate (planche à roulettes) ?",
+    text: "Fais-tu du skate (planche à roulettes) ? Où vas-tu et avec qui ?",
     hint: "Talk about skateboarding, skateparks, learning tricks, and skate culture.",
+    subTopic: "sport-and-active",
+    coachHint: {
+      ideas: ["Say whether you skate", "Say where you go", "Say who you go with"],
+      phrase: { fr: "On se retrouve au skatepark de…", en: "We meet at the skatepark in…" },
+    },
     difficulty: 2,
     followUps: [
       "Vas-tu souvent au skatepark de ta ville ?",
@@ -5695,8 +6255,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_61",
     topicKey: "hobbies",
-    text: "Aimes-tu la couture ou fabriquer tes propres vêtements ?",
+    text: "Aimes-tu la couture ou fabriquer tes propres vêtements ? Pourquoi (pas) ?",
     hint: "Discuss sewing, making clothes, fashion, or upcycling fabrics.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say whether you like sewing", "Say what you make or would like to make", "Give a reason"],
+      phrase: { fr: "Je m'intéresse à la couture parce que…", en: "I am interested in sewing because…" },
+    },
     difficulty: 2,
     followUps: [
       "As-tu une machine à coudre ?",
@@ -5716,8 +6281,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_62",
     topicKey: "hobbies",
-    text: "Joues-tu à des jeux de rôle sur table (comme Donjons et Dragons) ?",
+    text: "Joues-tu à des jeux de rôle sur table (comme Donjons et Dragons) ? Pourquoi (pas) ?",
     hint: "Talk about tabletop RPGs, creating characters, and storytelling.",
+    subTopic: "screens-and-games",
+    coachHint: {
+      ideas: ["Say whether you play", "Say what the game involves", "Give a reason"],
+      phrase: { fr: "Je joue à… parce que… / Je ne joue pas parce que…", en: "I play… because… / I don't play because…" },
+    },
     difficulty: 3,
     followUps: [
       "Es-tu plutôt joueur ou maître du jeu ?",
@@ -5737,8 +6307,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_63",
     topicKey: "hobbies",
-    text: "Fais-tu du bénévolat ou aides-tu des associations pendant ton temps libre ?",
+    text: "Fais-tu du bénévolat ou aides-tu des associations pendant ton temps libre ? Lesquelles ?",
     hint: "Discuss volunteering, helping charities, or community service.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Say whether you help", "Name an organisation or activity", "Say why you do or don't"],
+      phrase: { fr: "J'aide l'association… parce que…", en: "I help the… charity because…" },
+    },
     difficulty: 2,
     followUps: [
       "Pour quelle association fais-tu du bénévolat ?",
@@ -5758,8 +6333,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_64",
     topicKey: "hobbies",
-    text: "Apprends-tu une autre langue étrangère comme passe-temps (à part le français) ?",
+    text: "Apprends-tu une autre langue étrangère comme passe-temps (à part le français) ? Laquelle et comment ?",
     hint: "Talk about language learning apps, motivation, and which languages you study.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Say whether you learn another language", "Name the language you study", "Say how you learn (app, videos, class)"],
+      phrase: { fr: "J'apprends… avec…", en: "I am learning… with…" },
+    },
     difficulty: 2,
     followUps: [
       "Quelle autre langue apprends-tu ?",
@@ -5779,8 +6359,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_65",
     topicKey: "hobbies",
-    text: "Fais-tu du théâtre ou de la comédie ?",
+    text: "Fais-tu du théâtre ou de la comédie ? Pourquoi (pas) ?",
     hint: "Discuss acting, drama club, stage fright, and performances.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say whether you do drama", "Give a reason", "Say how you feel on stage"],
+      phrase: { fr: "Je fais du théâtre parce que…", en: "I do drama because…" },
+    },
     difficulty: 2,
     followUps: [
       "As-tu déjà joué dans une pièce de théâtre ?",
@@ -5800,8 +6385,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_66",
     topicKey: "hobbies",
-    text: "Aimes-tu le recyclage créatif (upcycling) ou redonner vie à de vieux objets ?",
+    text: "Aimes-tu le recyclage créatif (upcycling) ou redonner vie à de vieux objets ? Pourquoi (pas) ?",
     hint: "Talk about DIY upcycling, restoring old furniture, or transforming clothes.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say whether you like giving objects a new life", "Give an example", "Say why it is a good idea"],
+      phrase: { fr: "J'aime transformer… parce que…", en: "I like transforming… because…" },
+    },
     difficulty: 3,
     followUps: [
       "Où trouves-tu les objets que tu transformes ?",
@@ -5821,8 +6411,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_67",
     topicKey: "hobbies",
-    text: "Sais-tu jongler ou pratiques-tu les arts du cirque ?",
+    text: "Sais-tu jongler ou pratiques-tu les arts du cirque ? Pourquoi (pas) ?",
     hint: "Discuss juggling, circus skills, acrobatics, and coordination.",
+    subTopic: "sport-and-active",
+    coachHint: {
+      ideas: ["Say whether you can juggle", "Give a reason why or why not", "Say whether you would like to learn"],
+      phrase: { fr: "Je sais jongler parce que… / Je ne sais pas jongler parce que…", en: "I can juggle because… / I can't juggle because…" },
+    },
     difficulty: 3,
     followUps: [
       "Avec combien de balles sais-tu jongler ?",
@@ -5842,8 +6437,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_68",
     topicKey: "hobbies",
-    text: "Pratiques-tu des arts martiaux (judo, karaté, taekwondo) ?",
+    text: "Pratiques-tu des arts martiaux (judo, karaté, taekwondo) ? Lequel ?",
     hint: "Talk about martial arts, belts, discipline, and physical fitness.",
+    subTopic: "sport-and-active",
+    coachHint: {
+      ideas: ["Say whether you do martial arts", "Name which one", "Say how often you train"],
+      phrase: { fr: "Je fais du… depuis… et je m'entraîne…", en: "I do… since… and I train…" },
+    },
     difficulty: 1,
     followUps: [
       "Quel art martial pratiques-tu et depuis quand ?",
@@ -5863,8 +6463,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_69",
     topicKey: "hobbies",
-    text: "Aimes-tu faire de la peinture ou du dessin créatif ?",
+    text: "Aimes-tu faire de la peinture ou du dessin créatif ? Pourquoi (pas) ?",
     hint: "Discuss painting, drawing, watercolors, and artistic expression.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say whether you like painting", "Say what you paint or draw", "Give a reason"],
+      phrase: { fr: "J'aime peindre parce que…", en: "I like painting because…" },
+    },
     difficulty: 2,
     followUps: [
       "Préfères-tu la peinture à l'huile, l'aquarelle ou le dessin au crayon ?",
@@ -5884,8 +6489,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_70",
     topicKey: "hobbies",
-    text: "Est-ce que tu collectionnes quelque chose (timbres, pièces, cartes) ?",
+    text: "Est-ce que tu collectionnes quelque chose (timbres, pièces, cartes) ? Pourquoi (pas) ?",
     hint: "Talk about collecting items, finding rare pieces, and organizing the collection.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say whether you collect", "Name what you collect", "Give a reason"],
+      phrase: { fr: "Je collectionne… parce que…", en: "I collect… because…" },
+    },
     difficulty: 1,
     followUps: [
       "Que collectionnes-tu exactement ?",
@@ -5905,8 +6515,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_71",
     topicKey: "hobbies",
-    text: "T'intéresses-tu à l'ornithologie (l'observation des oiseaux) ?",
+    text: "T'intéresses-tu à l'ornithologie (l'observation des oiseaux) ? Pourquoi (pas) ?",
     hint: "Discuss bird watching, nature walks, binoculars, and identifying species.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Say whether birds interest you", "Say where you could watch them", "Give a reason"],
+      phrase: { fr: "Je m'intéresse aux oiseaux parce que…", en: "I am interested in birds because…" },
+    },
     difficulty: 3,
     followUps: [
       "As-tu des jumelles pour observer les oiseaux ?",
@@ -5926,8 +6541,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_72",
     topicKey: "hobbies",
-    text: "Participes-tu à des tournois d'e-sport (compétitions de jeux vidéo) ?",
+    text: "Participes-tu à des tournois d'e-sport (compétitions de jeux vidéo) ? Pourquoi (pas) ?",
     hint: "Talk about competitive gaming, e-sports, team communication, and practice.",
+    subTopic: "screens-and-games",
+    coachHint: {
+      ideas: ["Say whether you play in tournaments", "Name a game", "Give a reason"],
+      phrase: { fr: "Je participe à des tournois de… parce que…", en: "I take part in… tournaments because…" },
+    },
     difficulty: 2,
     followUps: [
       "À quel jeu joues-tu en compétition ?",
@@ -5947,8 +6567,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_73",
     topicKey: "hobbies",
-    text: "As-tu déjà fait du géocaching (chasse au trésor par GPS) ?",
+    text: "As-tu déjà fait du géocaching (chasse au trésor par GPS) ? Comment c'était ?",
     hint: "Discuss geocaching, outdoor treasure hunts, using a phone GPS, and hiding small items.",
+    subTopic: "sport-and-active",
+    coachHint: {
+      ideas: ["Say yes or no", "Say where it was and who with", "Say how it felt"],
+      phrase: { fr: "Oui, j'ai fait… avec… et c'était… / Non, jamais.", en: "Yes, I did… with… and it was… / No, never." },
+    },
     difficulty: 3,
     followUps: [
       "Où cherches-tu des 'caches' en général ?",
@@ -5968,8 +6593,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_74",
     topicKey: "hobbies",
-    text: "Pratiques-tu la calligraphie ou le lettrage artistique ?",
+    text: "Pratiques-tu la calligraphie ou le lettrage artistique ? Pourquoi (pas) ?",
     hint: "Talk about beautiful handwriting, calligraphy pens, ink, and artistic writing.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say whether you like fancy writing", "Say what you write", "Give a reason"],
+      phrase: { fr: "La calligraphie me plaît parce que…", en: "Calligraphy appeals to me because…" },
+    },
     difficulty: 3,
     followUps: [
       "Quels outils utilises-tu pour la calligraphie ?",
@@ -5989,8 +6619,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_75",
     topicKey: "hobbies",
-    text: "Aimes-tu le scrapbooking pour conserver tes souvenirs ?",
+    text: "Aimes-tu le scrapbooking pour conserver tes souvenirs ? Pourquoi (pas) ?",
     hint: "Discuss making memory albums, photos, decorating pages, and crafting.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say whether you make memory books", "Say what you put in them", "Give a reason"],
+      phrase: { fr: "J'aime le scrapbooking parce que…", en: "I like scrapbooking because…" },
+    },
     difficulty: 2,
     followUps: [
       "Quels types de souvenirs mets-tu dans ton scrapbook ?",
@@ -6010,8 +6645,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_76",
     topicKey: "hobbies",
-    text: "Fais-tu du surf ou des sports nautiques pendant les vacances ?",
+    text: "Fais-tu du surf ou des sports nautiques pendant les vacances ? Où et quand ?",
     hint: "Talk about surfing, beach holidays, water sports, and waves.",
+    subTopic: "sport-and-active",
+    coachHint: {
+      ideas: ["Say whether you surf", "Say where and when", "Say who with"],
+      phrase: { fr: "En vacances, je fais du surf à…", en: "On holiday I surf at…" },
+    },
     difficulty: 1,
     followUps: [
       "Où vas-tu habituellement pour faire du surf ?",
@@ -6031,8 +6671,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_77",
     topicKey: "hobbies",
-    text: "Fais-tu de l'origami (l'art de plier le papier) ?",
+    text: "Fais-tu de l'origami (l'art de plier le papier) ? Pourquoi (pas) ?",
     hint: "Discuss origami, paper folding, patience, and Japanese culture.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say whether you do origami", "Give a reason", "Say what you can fold"],
+      phrase: { fr: "J'aime l'origami parce que…", en: "I like origami because…" },
+    },
     difficulty: 3,
     followUps: [
       "Quelle est la figure la plus difficile que tu as réalisée ?",
@@ -6052,8 +6697,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fam_27",
     topicKey: "family",
-    text: "Penses-tu que les réseaux sociaux nuisent à la vie de famille ?",
+    text: "Penses-tu que les réseaux sociaux nuisent à la vie de famille ? Pourquoi ?",
     hint: "Discuss the impact of social media on family interactions and quality time.",
+    subTopic: "family-members",
+    coachHint: {
+      ideas: ["Say whether you agree", "Give one problem (phones at meals)", "Give one good point (staying in touch)"],
+      phrase: { fr: "Je pense que les réseaux sociaux… parce que…", en: "I think social media… because…" },
+    },
     difficulty: 3,
     followUps: [
       "Est-ce que vous utilisez vos téléphones à table ?",
@@ -6073,8 +6723,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fam_28",
     topicKey: "family",
-    text: "Parle-moi d'un souvenir d'enfance précieux avec ta famille.",
+    text: "Quand tu étais petit(e), quel est ton plus beau souvenir avec ta famille ?",
     hint: "Describe a happy memory from when you were younger involving your family members.",
+    subTopic: "celebrations-and-traditions",
+    coachHint: {
+      ideas: ["Set the scene: when and where", "Say who was there and what you did", "Say why you remember it"],
+      phrase: { fr: "Quand j'étais petit(e), on allait… et c'était…", en: "When I was little we used to go… and it was…" },
+    },
     difficulty: 2,
     followUps: [
       "Quel âge avais-tu ?",
@@ -6094,8 +6749,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fam_29",
     topicKey: "family",
-    text: "Est-il important d'avoir des frères et sœurs selon toi ?",
+    text: "Est-il important d'avoir des frères et sœurs selon toi ? Pourquoi ?",
     hint: "Discuss the advantages and disadvantages of having siblings versus being an only child.",
+    subTopic: "family-members",
+    coachHint: {
+      ideas: ["Say whether siblings matter", "Give two reasons (company, sharing, arguments)", "Say what you know from experience"],
+      phrase: { fr: "Pour moi, avoir des frères et sœurs est… parce que…", en: "For me, having siblings is… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Quels sont les avantages d'être l'aîné(e) ou le/la cadet(te) ?",
@@ -6115,8 +6775,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fam_30",
     topicKey: "family",
-    text: "Y a-t-il un membre de ta famille qui est un modèle pour toi ?",
+    text: "Y a-t-il un membre de ta famille qui est un modèle pour toi ? Pourquoi ?",
     hint: "Describe a family member you look up to and explain why they inspire you.",
+    subTopic: "family-members",
+    coachHint: {
+      ideas: ["Name the person", "Say two qualities you admire", "Say how they inspire you"],
+      phrase: { fr: "Mon modèle, c'est… parce qu'il/elle est…", en: "My role model is… because he/she is…" },
+    },
     difficulty: 2,
     followUps: [
       "Quelles qualités possèdes-tu en commun avec cette personne ?",
@@ -6138,6 +6803,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Quels sont les avantages de vivre avec ses grands-parents ?",
     hint: "Discuss multigenerational living and what younger people can learn from older generations.",
+    subTopic: "generations",
+    coachHint: {
+      ideas: ["Name two advantages (help, stories, company)", "Add one drawback", "Say whether you would like it"],
+      phrase: { fr: "Vivre avec ses grands-parents, c'est bien parce que…", en: "Living with your grandparents is good because…" },
+    },
     difficulty: 3,
     followUps: [
       "Vois-tu tes grands-parents souvent ?",
@@ -6159,6 +6829,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Vers qui te tournes-tu quand tu as besoin de conseils ?",
     hint: "Explain who in your family gives the best advice and why you trust them.",
+    subTopic: "friends",
+    coachHint: {
+      ideas: ["Name the person you ask", "Say why you trust them", "Give an example of advice they gave"],
+      phrase: { fr: "Pour avoir des conseils, je me tourne vers… parce que…", en: "For advice I turn to… because…" },
+    },
     difficulty: 1,
     followUps: [
       "Préfères-tu les conseils de tes parents ou de tes amis ?",
@@ -6178,8 +6853,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fam_33",
     topicKey: "family",
-    text: "Y a-t-il une recette spéciale que ta famille prépare souvent ?",
+    text: "Y a-t-il une recette spéciale que ta famille prépare souvent ? Laquelle ?",
     hint: "Talk about a traditional family dish and its significance to you.",
+    subTopic: "celebrations-and-traditions",
+    coachHint: {
+      ideas: ["Say yes and name the dish", "Say who makes it and when", "Say what makes it special"],
+      phrase: { fr: "Chez nous, on prépare souvent…", en: "At home we often make…" },
+    },
     difficulty: 1,
     followUps: [
       "Qui cuisine le mieux chez toi ?",
@@ -6201,6 +6881,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Comment ta famille a-t-elle changé au cours des cinq dernières années ?",
     hint: "Reflect on how your family dynamics or situation has evolved recently.",
+    subTopic: "family-members",
+    coachHint: {
+      ideas: ["Name two changes (someone moved, a new pet, you grew up)", "Use the past tense", "Say how you feel about them"],
+      phrase: { fr: "Avant, c'était… mais maintenant, j'ai…", en: "Before, it was… but now I have…" },
+    },
     difficulty: 2,
     followUps: [
       "Y a-t-il eu de nouveaux membres dans la famille ?",
@@ -6220,8 +6905,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fam_35",
     topicKey: "family",
-    text: "Est-ce que tu aimerais élever ta propre famille à l'étranger plus tard ?",
+    text: "Est-ce que tu aimerais élever ta propre famille à l'étranger plus tard ? Pourquoi (pas) ?",
     hint: "Consider the pros and cons of raising a family in another country.",
+    subTopic: "generations",
+    coachHint: {
+      ideas: ["Say whether you would like it", "Give one advantage (languages, culture)", "Give one drawback (distance)"],
+      phrase: { fr: "Plus tard, je vais peut-être élever mes enfants…", en: "Later, I may raise my children…" },
+    },
     difficulty: 3,
     followUps: [
       "Quelles langues parlerais-tu à tes enfants ?",
@@ -6243,6 +6933,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Qu'est-ce qui définit une 'famille heureuse' selon toi ?",
     hint: "Give your opinion on the most important values for a happy family life.",
+    subTopic: "family-members",
+    coachHint: {
+      ideas: ["Name two values (love, respect, listening)", "Explain why each matters", "Give an example"],
+      phrase: { fr: "Pour moi, une famille heureuse, c'est une famille où…", en: "For me, a happy family is one where…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que l'argent est nécessaire pour être heureux en famille ?",
@@ -6264,6 +6959,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Quelle influence tes frères et sœurs ont-ils sur ton propre caractère ?",
     hint: "Discuss how siblings shape your personality — being responsible, funny, or competitive.",
+    subTopic: "family-members",
+    coachHint: {
+      ideas: ["Name a sibling", "Say how they influence you (responsible, funny, competitive)", "Give an example"],
+      phrase: { fr: "Mon frère/ma sœur m'a rendu(e)…", en: "My brother/sister has made me…" },
+    },
     difficulty: 3,
     followUps: [
       "Qui est le plus sérieux entre vous ?",
@@ -6285,6 +6985,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Quels sont les sujets de dispute les plus fréquents dans ta famille ?",
     hint: "Talk about common sources of conflict — chores, screen time, or sharing things.",
+    subTopic: "parents-and-rules",
+    coachHint: {
+      ideas: ["Name two causes (chores, screens, sharing)", "Say how often it happens", "Say how it is solved"],
+      phrase: { fr: "Chez nous, on se dispute souvent à cause de…", en: "At home we often argue about…" },
+    },
     difficulty: 2,
     followUps: [
       "Avec qui te disputes-tu le plus souvent ?",
@@ -6306,6 +7011,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Quelles activités fais-tu spécifiquement avec tes parents pour vous amuser ?",
     hint: "Describe shared fun activities like hobbies, sports, or games.",
+    subTopic: "parents-and-rules",
+    coachHint: {
+      ideas: ["Name two activities (sport, games, cooking)", "Say how often", "Say what you enjoy most"],
+      phrase: { fr: "Avec mes parents, on aime…", en: "With my parents we like to…" },
+    },
     difficulty: 1,
     followUps: [
       "Est-ce que vous sortez souvent au restaurant ensemble ?",
@@ -6327,6 +7037,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Pourquoi est-il important de prendre les repas en famille tous les soirs ?",
     hint: "Discuss the social and emotional benefits of shared family meals.",
+    subTopic: "family-members",
+    coachHint: {
+      ideas: ["Give two reasons (talking, closeness, health)", "Say what happens at your table", "Say whether it is possible every day"],
+      phrase: { fr: "Manger en famille est important parce que…", en: "Eating as a family is important because…" },
+    },
     difficulty: 2,
     followUps: [
       "De quoi parlez-vous d'habitude à table ?",
@@ -6346,8 +7061,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fam_41",
     topicKey: "family",
-    text: "Est-ce que tu aimerais fonder ta propre famille plus tard ?",
+    text: "Est-ce que tu aimerais fonder ta propre famille plus tard ? Pourquoi (pas) ?",
     hint: "Talk about your future family aspirations — marriage, children, lifestyle.",
+    subTopic: "generations",
+    coachHint: {
+      ideas: ["Say yes or no", "Give two reasons (children, love, stability)", "Say what kind of parent you want to be"],
+      phrase: { fr: "Plus tard, j'aurai… parce que…", en: "Later I will have… because…" },
+    },
     difficulty: 3,
     followUps: [
       "Combien d'enfants voudrais-tu avoir dans l'idéal ?",
@@ -6369,6 +7089,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Quels sont les avantages de vivre dans une famille nombreuse ?",
     hint: "Discuss the pros (company, support) and cons (noise, lack of space) of a big family.",
+    subTopic: "family-members",
+    coachHint: {
+      ideas: ["Name two advantages (company, help)", "Add one drawback (noise, space)", "Say whether you would like one"],
+      phrase: { fr: "Dans une famille nombreuse, il y a toujours… mais…", en: "In a big family there is always… but…" },
+    },
     difficulty: 1,
     followUps: [
       "Est-ce que c'est souvent bruyant chez toi ?",
@@ -6388,8 +7113,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fam_43",
     topicKey: "family",
-    text: "Est-il important de connaître l'histoire et les origines de sa famille ?",
+    text: "Est-il important de connaître l'histoire et les origines de sa famille ? Pourquoi ?",
     hint: "Discuss the importance of heritage, ancestry, and family stories.",
+    subTopic: "generations",
+    coachHint: {
+      ideas: ["Say whether it is important", "Give two reasons (roots, identity, stories)", "Say what you know about your own origins"],
+      phrase: { fr: "Il est important de connaître ses origines parce que…", en: "It is important to know your origins because…" },
+    },
     difficulty: 3,
     followUps: [
       "As-tu déjà fait des recherches sur tes ancêtres ?",
@@ -6411,6 +7141,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Comment ta famille influence-t-elle tes choix pour l'avenir professionnel ?",
     hint: "Talk about family expectations, support, or pressure regarding your career.",
+    subTopic: "parents-and-rules",
+    coachHint: {
+      ideas: ["Say whether your family has expectations", "Give an example of support or pressure", "Say whether you agree with them"],
+      phrase: { fr: "Ma famille m'encourage à… et…", en: "My family encourages me to… and…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que tes parents veulent que tu fasses le même métier qu'eux ?",
@@ -6432,6 +7167,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Quel est le rôle des grands-parents dans la société actuelle selon toi ?",
     hint: "Discuss the evolution of grandparents' roles — childcare, wisdom, or modern connection.",
+    subTopic: "generations",
+    coachHint: {
+      ideas: ["Say what grandparents do today", "Give two examples (childcare, stories)", "Say how they link generations"],
+      phrase: { fr: "Aujourd'hui, les grands-parents jouent un rôle…", en: "Today grandparents play a role…" },
+    },
     difficulty: 3,
     followUps: [
       "Est-ce que tes grands-parents s'occupent souvent de toi ?",
@@ -6453,6 +7193,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Comment restes-tu en contact avec les membres de ta famille qui habitent loin ?",
     hint: "Discuss technology, visits, or letters to stay close with distant relatives.",
+    subTopic: "family-members",
+    coachHint: {
+      ideas: ["Name two ways (calls, messages, visits)", "Say how often", "Say which you prefer"],
+      phrase: { fr: "Pour rester en contact, on se téléphone…", en: "To stay in touch we phone each other…" },
+    },
     difficulty: 1,
     followUps: [
       "Utilises-tu souvent les appels vidéo pour leur parler ?",
@@ -6472,8 +7217,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hol_27",
     topicKey: "holidays",
-    text: "Est-il important de parler la langue locale quand on voyage ?",
+    text: "Est-il important de parler la langue locale quand on voyage ? Pourquoi ?",
     hint: "Discuss the benefits of knowing the local language for cultural immersion and practical reasons.",
+    subTopic: "tourism-issues",
+    coachHint: {
+      ideas: ["Say yes and give two reasons (respect, help, friends)", "Give an example phrase", "Say what you do if you do not speak it"],
+      phrase: { fr: "Il est important de parler la langue parce que…", en: "It is important to speak the language because…" },
+    },
     difficulty: 2,
     followUps: [
       "As-tu déjà utilisé ton français en vacances ?",
@@ -6495,6 +7245,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Que penses-tu du tourisme durable et de son impact sur l'environnement ?",
     hint: "Discuss eco-friendly travel options and how to reduce your carbon footprint while on holiday.",
+    subTopic: "tourism-issues",
+    coachHint: {
+      ideas: ["Say what sustainable tourism is", "Give two examples (train, local shops, less waste)", "Say whether you do it"],
+      phrase: { fr: "Pour voyager de façon durable, on peut…", en: "To travel sustainably, you can…" },
+    },
     difficulty: 3,
     followUps: [
       "Préfères-tu prendre le train ou l'avion pour protéger la planète ?",
@@ -6514,8 +7269,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hol_29",
     topicKey: "holidays",
-    text: "Préfères-tu les vacances dans ton propre pays ou à l'étranger ?",
+    text: "Préfères-tu les vacances dans ton propre pays ou à l'étranger ? Pourquoi ?",
     hint: "Compare 'staycations' (holidays at home) with traveling abroad.",
+    subTopic: "destinations",
+    coachHint: {
+      ideas: ["Say which you prefer", "Give two reasons", "Give an example place"],
+      phrase: { fr: "Je préfère les vacances… parce que…", en: "I prefer holidays… because…" },
+    },
     difficulty: 1,
     followUps: [
       "Quels sont les avantages de rester près de chez soi ?",
@@ -6535,8 +7295,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hol_30",
     topicKey: "holidays",
-    text: "Y a-t-il un festival ou un événement culturel que tu voudrais voir à l'étranger ?",
+    text: "Y a-t-il un festival ou un événement culturel que tu voudrais voir à l'étranger ? Lequel et pourquoi ?",
     hint: "Talk about a specific event like Carnival in Rio, Bastille Day in France, or Holi in India.",
+    subTopic: "future-trips",
+    coachHint: {
+      ideas: ["Name the event and the country", "Say what happens there", "Say why it interests you"],
+      phrase: { fr: "L'événement que je veux voir, c'est… parce que…", en: "The event I want to see is… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Pourquoi cet événement t'intéresse-t-il ?",
@@ -6558,6 +7323,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Qu'est-ce qu'il y a d'absolument essentiel dans ta valise ?",
     hint: "List the items you cannot travel without and explain why.",
+    subTopic: "travel-preferences",
+    coachHint: {
+      ideas: ["Name three items", "Say why one is essential", "Say what you never pack"],
+      phrase: { fr: "Dans ma valise, il y a toujours…", en: "In my suitcase there is always…" },
+    },
     difficulty: 1,
     followUps: [
       "Est-ce que tu emportes trop de vêtements d'habitude ?",
@@ -6577,8 +7347,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hol_32",
     topicKey: "holidays",
-    text: "Aimerais-tu faire un voyage spécial pour pratiquer un sport ?",
+    text: "Aimerais-tu faire un voyage spécial pour pratiquer un sport ? Lequel ?",
     hint: "Discuss holidays focused on activities like skiing, surfing, or hiking.",
+    subTopic: "future-trips",
+    coachHint: {
+      ideas: ["Say whether you would go", "Name the sport and place", "Say why it appeals"],
+      phrase: { fr: "J'aimerais faire un voyage de… à…", en: "I would like to take a… trip to…" },
+    },
     difficulty: 2,
     followUps: [
       "Quel sport choisirais-tu ?",
@@ -6600,6 +7375,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Quelle est la meilleure façon d'explorer une nouvelle ville, selon toi ?",
     hint: "Compare walking, bus tours, cycling, or using public transport to see a city.",
+    subTopic: "destinations",
+    coachHint: {
+      ideas: ["Name the way (walking, bike, bus)", "Give two reasons", "Say what you see that way"],
+      phrase: { fr: "La meilleure façon, c'est… parce que…", en: "The best way is… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Préfères-tu utiliser une carte papier ou une application sur ton téléphone ?",
@@ -6621,6 +7401,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Comment la technologie a-t-elle changé ta façon de voyager ?",
     hint: "Discuss the use of apps for maps, translation, booking, and social media on holiday.",
+    subTopic: "tourism-issues",
+    coachHint: {
+      ideas: ["Name two apps or tools", "Say what each does for you", "Say whether it changes the trip"],
+      phrase: { fr: "La technologie m'aide à… avec…", en: "Technology helps me to… with…" },
+    },
     difficulty: 3,
     followUps: [
       "Utilises-tu Google Maps pour t'orienter ?",
@@ -6640,8 +7425,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hol_35",
     topicKey: "holidays",
-    text: "Préfères-tu les vacances de luxe ou les vacances à petit budget ?",
+    text: "Préfères-tu les vacances de luxe ou les vacances à petit budget ? Pourquoi ?",
     hint: "Contrast high-end hotels and dining with hostels, camping, and budget travel.",
+    subTopic: "travel-preferences",
+    coachHint: {
+      ideas: ["Say which you prefer", "Give two reasons", "Say what you would not give up"],
+      phrase: { fr: "Je préfère les vacances… parce que…", en: "I prefer… holidays because…" },
+    },
     difficulty: 2,
     followUps: [
       "Quels sont les inconvénients des hôtels bon marché ?",
@@ -6663,6 +7453,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Pourquoi est-il important de prendre des photos pendant ses vacances ?",
     hint: "Discuss the role of photography in preserving memories and sharing experiences.",
+    subTopic: "tourism-issues",
+    coachHint: {
+      ideas: ["Give two reasons (memories, sharing, proof)", "Say what you photograph", "Say where you keep them"],
+      phrase: { fr: "Prendre des photos est important parce que…", en: "Taking photos is important because…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que tu partages tes photos sur Instagram ou Facebook ?",
@@ -6682,8 +7477,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hol_37",
     topicKey: "holidays",
-    text: "Préfères-tu loger dans un hôtel ou dans une location comme Airbnb en vacances ?",
+    text: "Préfères-tu loger dans un hôtel ou dans une location comme Airbnb en vacances ? Pourquoi ?",
     hint: "Compare hotel services with the local feel of a rental apartment.",
+    subTopic: "travel-preferences",
+    coachHint: {
+      ideas: ["Say which you prefer", "Give two reasons (space, services, local feel)", "Say what you check before booking"],
+      phrase: { fr: "Je préfère loger dans… parce que…", en: "I prefer staying in… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Quel est l'avantage principal de l'hôtel selon toi ?",
@@ -6705,6 +7505,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Pourquoi est-il important de découvrir de nouvelles cultures en voyageant ?",
     hint: "Discuss broadening horizons, tolerance, and learning different ways of life.",
+    subTopic: "tourism-issues",
+    coachHint: {
+      ideas: ["Give two reasons (tolerance, open mind, learning)", "Add an example", "Say which culture interests you"],
+      phrase: { fr: "Découvrir d'autres cultures est important parce que…", en: "Discovering other cultures is important because…" },
+    },
     difficulty: 3,
     followUps: [
       "Qu'est-ce que tu as appris de nouveau lors d'un voyage récent ?",
@@ -6724,8 +7529,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hol_39",
     topicKey: "holidays",
-    text: "Est-ce que tu aimes visiter des monuments historiques en vacances ?",
+    text: "Est-ce que tu aimes visiter des monuments historiques en vacances ? Pourquoi (pas) ?",
     hint: "Talk about your interest in history, architecture, and landmarks.",
+    subTopic: "destinations",
+    coachHint: {
+      ideas: ["Say whether you like it", "Name a place you visited", "Say why you like or dislike it"],
+      phrase: { fr: "J'aime visiter les monuments parce que…", en: "I like visiting monuments because…" },
+    },
     difficulty: 1,
     followUps: [
       "Quel est le monument le plus impressionnant que tu as vu ?",
@@ -6745,8 +7555,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hol_40",
     topicKey: "holidays",
-    text: "As-tu déjà eu un petit boulot ou un job d'été pendant les vacances ?",
+    text: "As-tu déjà eu un petit boulot ou un job d'été pendant les vacances ? Comment c'était ?",
     hint: "Describe work experiences during the holidays and what you learned.",
+    subTopic: "past-holidays",
+    coachHint: {
+      ideas: ["Say yes or no", "Say what the job was", "Say what you learned"],
+      phrase: { fr: "Oui, l'été dernier, j'ai travaillé comme… et c'était…", en: "Yes, last summer I worked as a… and it was…" },
+    },
     difficulty: 1,
     followUps: [
       "Qu'est-ce que tu as fait exactement comme travail ?",
@@ -6768,6 +7583,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Quel est ton moyen de transport préféré pour explorer une nouvelle ville ?",
     hint: "Talk about walking, cycling, or public transport in a city environment.",
+    subTopic: "destinations",
+    coachHint: {
+      ideas: ["Name the way", "Give one reason", "Say what you see that way"],
+      phrase: { fr: "Je préfère me déplacer en… parce que…", en: "I prefer getting around by… because…" },
+    },
     difficulty: 1,
     followUps: [
       "Est-ce que tu aimes beaucoup marcher en vacances ?",
@@ -6789,6 +7609,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Quelle est, selon toi, la meilleure saison pour partir en voyage ?",
     hint: "Discuss seasons (spring, summer, etc.) and the pros/cons of weather and crowds.",
+    subTopic: "travel-preferences",
+    coachHint: {
+      ideas: ["Name the season", "Give two reasons (weather, crowds, prices)", "Say what you do then"],
+      phrase: { fr: "À mon avis, la meilleure saison, c'est… parce que…", en: "In my opinion the best season is… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Aimes-tu voyager quand il fait très chaud ?",
@@ -6808,8 +7633,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hol_43",
     topicKey: "holidays",
-    text: "Est-ce que les réseaux sociaux influencent tes choix de destinations ?",
+    text: "Est-ce que les réseaux sociaux influencent tes choix de destinations ? Comment ?",
     hint: "Discuss the impact of Instagram, TikTok, or travel blogs on your plans.",
+    subTopic: "tourism-issues",
+    coachHint: {
+      ideas: ["Say yes or no", "Name an app (Instagram, TikTok)", "Give an example of a place you chose"],
+      phrase: { fr: "Les réseaux sociaux m'influencent parce que…", en: "Social media influences me because…" },
+    },
     difficulty: 3,
     followUps: [
       "Regardes-tu des photos sur Instagram avant de choisir où partir ?",
@@ -6829,8 +7659,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hol_44",
     topicKey: "holidays",
-    text: "Aimerais-tu voyager pour assister à un grand événement sportif ou musical ?",
+    text: "Aimerais-tu voyager pour assister à un grand événement sportif ou musical ? Lequel et pourquoi ?",
     hint: "Talk about going to the World Cup, Olympics, or a big concert abroad.",
+    subTopic: "future-trips",
+    coachHint: {
+      ideas: ["Say whether you would go", "Name the event and the country", "Say why it is special"],
+      phrase: { fr: "J'aimerais voyager pour voir… parce que…", en: "I would like to travel to see… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Quel événement t'intéresserait le plus ?",
@@ -6852,6 +7687,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Quelles précautions prends-tu pour rester en sécurité quand tu voyages ?",
     hint: "Discuss safety measures like keeping passports safe and staying vigilant.",
+    subTopic: "tourism-issues",
+    coachHint: {
+      ideas: ["Name two precautions (copies of documents, bag, insurance)", "Say how you keep your money safe", "Say who knows where you are"],
+      phrase: { fr: "Quand je voyage, je fais attention à…", en: "When I travel I am careful about…" },
+    },
     difficulty: 3,
     followUps: [
       "Est-ce que tu gardes toujours ton passeport avec toi ?",
@@ -6871,8 +7711,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hol_46",
     topicKey: "holidays",
-    text: "Est-il nécessaire de partir loin de chez soi pour passer de bonnes vacances ?",
+    text: "Est-il nécessaire de partir loin de chez soi pour passer de bonnes vacances ? Pourquoi (pas) ?",
     hint: "Discuss the benefits of local tourism (staycations) vs. international travel.",
+    subTopic: "destinations",
+    coachHint: {
+      ideas: ["Say no or yes and give two reasons (cost, time, local discoveries)", "Give an example of a good local holiday", "Say what you would do"],
+      phrase: { fr: "On peut passer de bonnes vacances près de chez soi parce que…", en: "You can have a good holiday near home because…" },
+    },
     difficulty: 1,
     followUps: [
       "Connais-tu bien ta propre région ?",
