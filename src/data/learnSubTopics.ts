@@ -46,15 +46,13 @@ export const LEARN_SUB_TOPICS: Readonly<Record<string, readonly LearnSubTopic[]>
     { key: 'tourism-issues', label: 'Tourism' },
   ],
   home: [
-    { key: 'my-home', label: 'My home' },
-    { key: 'my-room', label: 'My room' },
+    { key: 'my-home', label: 'My home & room' },
     { key: 'town-and-region', label: 'Town & region' },
     { key: 'things-to-do', label: 'Things to do' },
-    { key: 'chores-and-garden', label: 'Chores & garden' },
   ],
   future: [
     { key: 'work-and-careers', label: 'Work & careers' },
-    { key: 'further-study', label: 'Further study' },
+    { key: 'further-study', label: 'Study & skills' },
     { key: 'personal-life-plans', label: 'Personal life plans' },
     { key: 'future-world', label: 'The world ahead' },
   ],

@@ -5,7 +5,7 @@
  */
 import type { QuestionDemands } from '../../domain/learn/demand/types';
 
-export const demandsVersion = "25cdbba03f296bb071ed7c207c3107532099579ee06c49d5d961618f08c186e3";
+export const demandsVersion = "fb658477e6f9fc358d210158aceb3cf192de9693f0f7258ccbaa0dfb9f0c6913";
 
 export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
   "art_01": {
@@ -2162,34 +2162,33 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
   "fut_01": {
     "cognitiveDemand": "describe",
     "timeFrames": [
-      "present"
+      "future"
     ],
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss future career or study plans. Use future tense and conditional.",
+    "sufficientAnswer": "Say what you want to do in the future, with at least two details about your career or study plans.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "fut_02": {
     "cognitiveDemand": "justify",
     "timeFrames": [
-      "present"
+      "conditional"
     ],
     "structures": [
-      "justification",
-      "comparison"
+      "conditional",
+      "justification"
     ],
-    "responseLoad": "extended",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Give a clear opinion on university with pros/cons and alternatives.",
+    "responseLoad": "developed",
+    "lexicalReach": "everyday",
+    "sufficientAnswer": "Say whether you would like to go to university and give at least two reasons.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.75
+    "inferenceConfidence": 0.8
   },
   "fut_03": {
     "cognitiveDemand": "describe",
     "timeFrames": [
-      "present",
       "future",
       "conditional"
     ],
@@ -2198,34 +2197,38 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe your dream job, why it appeals, what skills are needed.",
+    "sufficientAnswer": "Name the job you would like to do later and give at least two reasons or skills it needs.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "fut_04": {
     "cognitiveDemand": "describe",
     "timeFrames": [
-      "present",
       "future"
     ],
-    "structures": [],
+    "structures": [
+      "near-future"
+    ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about your immediate post-exam plans — holidays, summer job, next year's studies.",
+    "sufficientAnswer": "Say what you are going to do after your exams next year, with at least two plans.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "fut_05": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
-      "present"
+      "conditional"
     ],
-    "structures": [],
+    "structures": [
+      "conditional",
+      "justification"
+    ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the pros and cons of working in another country, mention a specific place if you have one in mind.",
+    "sufficientAnswer": "Say whether you would like to work abroad one day and give at least one reason, naming a place if you can.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "fut_06": {
     "cognitiveDemand": "justify",
@@ -2235,24 +2238,25 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [
       "justification"
     ],
-    "responseLoad": "extended",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe your ideal job, what you'd do daily, and why it's your dream.",
-    "provenance": "inferred",
-    "inferenceConfidence": 0.75
-  },
-  "fut_07": {
-    "cognitiveDemand": "describe",
-    "timeFrames": [
-      "present",
-      "future"
-    ],
-    "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the pros and cons of being an entrepreneur vs. an employee.",
+    "sufficientAnswer": "Name your dream job and give at least two reasons, such as what you would do each day.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
+  },
+  "fut_07": {
+    "cognitiveDemand": "explain",
+    "timeFrames": [
+      "future"
+    ],
+    "structures": [
+      "justification"
+    ],
+    "responseLoad": "developed",
+    "lexicalReach": "everyday",
+    "sufficientAnswer": "Say whether you want your own business later and give at least one advantage and one drawback.",
+    "provenance": "inferred",
+    "inferenceConfidence": 0.8
   },
   "fut_08": {
     "cognitiveDemand": "justify",
@@ -2260,143 +2264,154 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [
-      "justification",
-      "negation"
+      "justification"
     ],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Identify a job you dislike and explain the reasons (stress, boredom, danger).",
+    "sufficientAnswer": "Name a job you would never do and give at least two reasons, such as stress, boredom or danger.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.75
+    "inferenceConfidence": 0.8
   },
   "fut_09": {
     "cognitiveDemand": "explain",
     "timeFrames": [
-      "present",
       "future"
     ],
-    "structures": [],
+    "structures": [
+      "simple-future"
+    ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Use future tense to describe your personal and professional situation in 10 years.",
+    "sufficientAnswer": "Describe your life in ten years using the future tense, with at least two details such as job, home or family.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.55
+    "inferenceConfidence": 0.8
   },
   "fut_10": {
     "cognitiveDemand": "describe",
     "timeFrames": [
-      "present"
+      "conditional"
     ],
-    "structures": [],
+    "structures": [
+      "conditional"
+    ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about your creative ambitions and what you'd write about.",
+    "sufficientAnswer": "Say whether you would like to write a book one day and what it would be about.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "fut_11": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "compare",
     "timeFrames": [
       "present"
     ],
     "structures": [
-      "comparison"
+      "comparison",
+      "justification"
     ],
-    "responseLoad": "short",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "A complete answer should: Discuss your priorities for your future career.",
+    "responseLoad": "developed",
+    "lexicalReach": "everyday",
+    "sufficientAnswer": "Say whether job satisfaction or money matters more to you and give at least two reasons.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "fut_12": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
-      "present",
       "future"
     ],
-    "structures": [],
-    "responseLoad": "short",
+    "structures": [
+      "justification"
+    ],
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about your family plans for the future.",
+    "sufficientAnswer": "Say whether you want children later and give at least one reason.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "fut_13": {
     "cognitiveDemand": "describe",
     "timeFrames": [
-      "present",
       "future"
     ],
-    "structures": [],
-    "responseLoad": "short",
+    "structures": [
+      "simple-future"
+    ],
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe your ideal living situation in the distant future.",
+    "sufficientAnswer": "Say where you see yourself living in twenty years, with at least two details about your home or surroundings.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "fut_14": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
-      "present"
+      "future"
     ],
-    "structures": [],
+    "structures": [
+      "simple-future"
+    ],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Discuss the role of AI and automation in your chosen field.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Explain how artificial intelligence may affect your future career, with at least two points.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "fut_15": {
     "cognitiveDemand": "justify",
     "timeFrames": [
-      "present",
       "future"
     ],
     "structures": [
-      "opinion"
+      "opinion",
+      "justification",
+      "simple-future"
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the role of automation in our daily home lives.",
+    "sufficientAnswer": "Say whether robots will do all the housework in the future and give at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
   "fut_16": {
     "cognitiveDemand": "explain",
     "timeFrames": [
-      "present"
+      "future"
     ],
-    "structures": [],
+    "structures": [
+      "simple-future"
+    ],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Think about faster transport, virtual reality, or space travel.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Explain how technology will change the way we travel, with at least two examples.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.55
+    "inferenceConfidence": 0.8
   },
   "fut_17": {
     "cognitiveDemand": "describe",
     "timeFrames": [
-      "present"
+      "future"
     ],
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about a personal goal or obstacle you want to overcome.",
+    "sufficientAnswer": "Name your biggest challenge for the future and say how you plan to face it.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "fut_18": {
     "cognitiveDemand": "justify",
     "timeFrames": [
-      "present",
       "future"
     ],
     "structures": [
-      "opinion"
+      "opinion",
+      "justification",
+      "simple-future"
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Mention at least two of: Discuss environmental, social, and technological progress.",
+    "sufficientAnswer": "Say whether the world will be better in fifty years and give at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
@@ -2424,49 +2439,55 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [
       "opinion"
     ],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss your views on traditional marriage vs. other forms of commitment.",
+    "sufficientAnswer": "Give your opinion on marriage and say whether it matters to you, with at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
   "fut_21": {
     "cognitiveDemand": "justify",
     "timeFrames": [
-      "present"
+      "future"
     ],
     "structures": [
-      "opinion"
+      "opinion",
+      "justification",
+      "simple-future"
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss space colonization and living on Mars or the Moon.",
+    "sufficientAnswer": "Say whether humans will live on other planets in fifty years and give at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
   "fut_22": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "justify",
     "timeFrames": [
-      "present"
+      "future"
     ],
-    "structures": [],
-    "responseLoad": "short",
+    "structures": [
+      "justification"
+    ],
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the modern idea of career mobility vs. having one job for life.",
+    "sufficientAnswer": "Say whether you expect to change careers several times and give at least two reasons.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "fut_23": {
     "cognitiveDemand": "explain",
     "timeFrames": [
-      "present"
+      "future"
     ],
-    "structures": [],
+    "structures": [
+      "simple-future"
+    ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about your plans for your late years (travel, relaxation, hobbies).",
+    "sufficientAnswer": "Describe how you imagine your retirement, with at least two things you will do.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.55
+    "inferenceConfidence": 0.8
   },
   "fut_24": {
     "cognitiveDemand": "explain",
@@ -2478,259 +2499,284 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Mention at least two of: International travel, communication, competitive advantage.",
+    "sufficientAnswer": "Explain why learning languages matters for your future career, with at least two reasons.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.65
+    "inferenceConfidence": 0.8
   },
   "fut_25": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "compare",
     "timeFrames": [
-      "present",
       "future"
     ],
     "structures": [
-      "comparison"
+      "comparison",
+      "justification"
     ],
-    "responseLoad": "extended",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Mention at least two of: Pros and cons: flexibility, socialization, distraction, concentration.",
-    "provenance": "inferred",
-    "inferenceConfidence": 0.4
-  },
-  "fut_26": {
-    "cognitiveDemand": "describe",
-    "timeFrames": [
-      "present"
-    ],
-    "structures": [],
-    "responseLoad": "extended",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Mention at least two of: Traveling, volunteering, working, maturing.",
-    "provenance": "inferred",
-    "inferenceConfidence": 0.7
-  },
-  "fut_27": {
-    "cognitiveDemand": "describe",
-    "timeFrames": [
-      "present",
-      "future"
-    ],
-    "structures": [
-      "comparison"
-    ],
-    "responseLoad": "extended",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Helping others, causes you care about (environment, animals, poverty).",
-    "provenance": "inferred",
-    "inferenceConfidence": 0.7
-  },
-  "fut_28": {
-    "cognitiveDemand": "describe",
-    "timeFrames": [
-      "present"
-    ],
-    "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "New careers, digital marketing, the importance of online presence.",
+    "sufficientAnswer": "Say whether you would prefer to work from home or in an office and give at least one pro and one con of each.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
+  },
+  "fut_26": {
+    "cognitiveDemand": "justify",
+    "timeFrames": [
+      "conditional"
+    ],
+    "structures": [
+      "conditional",
+      "justification"
+    ],
+    "responseLoad": "developed",
+    "lexicalReach": "everyday",
+    "sufficientAnswer": "Say whether you would take a gap year before university and give at least two reasons.",
+    "provenance": "inferred",
+    "inferenceConfidence": 0.8
+  },
+  "fut_27": {
+    "cognitiveDemand": "explain",
+    "timeFrames": [
+      "future"
+    ],
+    "structures": [
+      "justification"
+    ],
+    "responseLoad": "developed",
+    "lexicalReach": "everyday",
+    "sufficientAnswer": "Say whether you plan to do charity or volunteer work later and give at least one reason.",
+    "provenance": "inferred",
+    "inferenceConfidence": 0.8
+  },
+  "fut_28": {
+    "cognitiveDemand": "explain",
+    "timeFrames": [
+      "future"
+    ],
+    "structures": [
+      "simple-future"
+    ],
+    "responseLoad": "developed",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Explain how social media will affect future jobs, with at least two examples.",
+    "provenance": "inferred",
+    "inferenceConfidence": 0.8
   },
   "fut_29": {
     "cognitiveDemand": "justify",
     "timeFrames": [
-      "present"
+      "future"
     ],
     "structures": [
-      "opinion"
+      "opinion",
+      "simple-future"
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Environmental impact of food, synthetic products, local consumption.",
+    "sufficientAnswer": "Say how you think we will eat in fifty years and give at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
   "fut_30": {
     "cognitiveDemand": "describe",
     "timeFrames": [
-      "present",
       "future"
     ],
     "structures": [],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Mention at least two of: Adaptability, creativity, technical skills, languages.",
+    "sufficientAnswer": "Name at least three skills that will matter for success in the future and say why one matters.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "fut_31": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
-      "present",
-      "future",
-      "conditional"
+      "conditional",
+      "future"
     ],
     "structures": [
-      "conditional"
+      "conditional",
+      "justification"
     ],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Mention at least two of: Automation, energy saving, security, privacy.",
+    "sufficientAnswer": "Say whether you would like to live in a smart home in the future and give at least two reasons.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "fut_32": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "justify",
     "timeFrames": [
-      "present"
+      "future"
     ],
-    "structures": [],
+    "structures": [
+      "justification",
+      "simple-future"
+    ],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Mention at least two of: Sustainable energy, ecology, social responsibility.",
+    "lexicalReach": "everyday",
+    "sufficientAnswer": "Say whether the environment will influence your career choice and give at least two reasons.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "fut_33": {
     "cognitiveDemand": "explain",
     "timeFrames": [
-      "present",
       "future"
     ],
-    "structures": [],
+    "structures": [
+      "simple-future"
+    ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Mention at least two of: Working hours, leisure time, priorities.",
+    "sufficientAnswer": "Explain how you imagine balancing work and family later, with at least two priorities.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.55
+    "inferenceConfidence": 0.8
   },
   "fut_34": {
     "cognitiveDemand": "justify",
     "timeFrames": [
-      "present"
+      "future"
     ],
     "structures": [
-      "opinion"
+      "opinion",
+      "simple-future"
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss future transportation methods — flying cars, high-speed trains, electric planes.",
+    "sufficientAnswer": "Say how you think we will travel in twenty years and give at least two examples.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
   "fut_35": {
     "cognitiveDemand": "describe",
     "timeFrames": [
-      "present"
+      "future"
     ],
-    "structures": [],
+    "structures": [
+      "simple-future"
+    ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Imagine future classrooms — technology, subjects, or if schools will even exist physically.",
+    "sufficientAnswer": "Describe what school will look like in fifty years, with at least two changes.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "fut_36": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
-      "present",
       "conditional"
     ],
     "structures": [
-      "conditional"
+      "conditional",
+      "justification"
     ],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Discuss the possibility of visiting the Moon or Mars as a tourist.",
+    "lexicalReach": "everyday",
+    "sufficientAnswer": "Say whether you would like space tourism one day and give at least one reason.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "fut_37": {
     "cognitiveDemand": "justify",
     "timeFrames": [
-      "present"
+      "future"
     ],
     "structures": [
-      "opinion"
+      "opinion",
+      "justification",
+      "simple-future"
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Compare digital reading with traditional books and predict which will survive.",
+    "sufficientAnswer": "Say whether paper books will disappear in fifty years and give at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
   "fut_38": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
-      "present"
+      "conditional"
     ],
-    "structures": [],
+    "structures": [
+      "conditional",
+      "justification"
+    ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about robots helping with daily life or providing company.",
+    "sufficientAnswer": "Say whether you would like a robot companion at home and give at least two reasons.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "fut_39": {
     "cognitiveDemand": "describe",
     "timeFrames": [
       "future"
     ],
-    "structures": [],
+    "structures": [
+      "simple-future"
+    ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Predict future hobbies — eSports, virtual reality games, or new sports.",
+    "sufficientAnswer": "Predict at least two hobbies young people will have in 50 years.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "fut_40": {
     "cognitiveDemand": "explain",
     "timeFrames": [
-      "present",
       "future"
     ],
-    "structures": [],
+    "structures": [
+      "simple-future"
+    ],
     "responseLoad": "developed",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss medical advances — living longer, curing diseases, nanotechnology.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Explain how medicine will change our lives, with at least two advances.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.55
+    "inferenceConfidence": 0.8
   },
   "fut_41": {
     "cognitiveDemand": "describe",
     "timeFrames": [
-      "present"
+      "future"
     ],
-    "structures": [],
+    "structures": [
+      "simple-future"
+    ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Imagine smart clothing — self-cleaning, temperature-controlled, or eco-friendly materials.",
+    "sufficientAnswer": "Describe how clothes will look in fifty years, with at least two features.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "fut_42": {
     "cognitiveDemand": "explain",
     "timeFrames": [
-      "present"
+      "future"
     ],
-    "structures": [],
+    "structures": [
+      "simple-future"
+    ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the future of shopping — drones, no physical stores, virtual fitting rooms.",
+    "sufficientAnswer": "Explain how we will shop in twenty years, with at least two changes.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.55
+    "inferenceConfidence": 0.8
   },
   "fut_43": {
     "cognitiveDemand": "describe",
     "timeFrames": [
-      "present"
+      "future"
     ],
-    "structures": [],
+    "structures": [
+      "simple-future"
+    ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss AI-generated art, virtual concerts, and if human creativity will still be valued.",
+    "sufficientAnswer": "Describe the role of art and music in fifty years, with at least two predictions.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hob_01": {
     "cognitiveDemand": "describe",
@@ -4395,25 +4441,23 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe rooms, size, location, what you like or dislike about it.",
+    "sufficientAnswer": "Describe your home with at least three details, such as the rooms, its size, where it is and what you like about it.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.9
+    "inferenceConfidence": 0.8
   },
   "hom_02": {
-    "cognitiveDemand": "explain",
+    "cognitiveDemand": "describe",
     "timeFrames": [
       "present"
     ],
-    "structures": [
-      "comparison"
-    ],
-    "responseLoad": "extended",
+    "structures": [],
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe your area — facilities, atmosphere, pros and cons for young people.",
+    "sufficientAnswer": "Describe your town or village with at least three details, such as facilities, atmosphere or pros and cons for young people.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.55
+    "inferenceConfidence": 0.8
   },
   "hom_03": {
     "cognitiveDemand": "describe",
@@ -4423,50 +4467,50 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about leisure options — what's available, what's missing, what you'd add.",
+    "sufficientAnswer": "Name at least two things young people can do in your area and say what is missing.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hom_04": {
-    "cognitiveDemand": "explain",
+    "cognitiveDemand": "describe",
     "timeFrames": [
       "present"
     ],
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Use conditional tense to describe your dream bedroom — furniture, colors, technology.",
+    "sufficientAnswer": "Describe your ideal bedroom with at least three details, such as furniture, colours or technology.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.55
+    "inferenceConfidence": 0.8
   },
   "hom_05": {
     "cognitiveDemand": "describe",
     "timeFrames": [
-      "present",
       "future",
       "conditional"
     ],
     "structures": [
       "conditional"
     ],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about your future home location — city, countryside, abroad — and give reasons.",
+    "sufficientAnswer": "Say where you would like to live later and give at least one reason.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hom_06": {
     "cognitiveDemand": "describe",
     "timeFrames": [
-      "present",
       "past"
     ],
-    "structures": [],
-    "responseLoad": "short",
+    "structures": [
+      "perfect"
+    ],
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe your recent activities in your local area using the past tense.",
+    "sufficientAnswer": "Describe at least two things you did in your town last weekend, using the past tense.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hom_07": {
     "cognitiveDemand": "compare",
@@ -4474,12 +4518,12 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [
-      "justification",
-      "comparison"
+      "comparison",
+      "justification"
     ],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Compare houses and apartments, giving your preference and reasons.",
+    "sufficientAnswer": "Say whether you prefer a house or an apartment and give at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
@@ -4491,21 +4535,21 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe local tourist attractions and why they are worth visiting.",
+    "sufficientAnswer": "Name at least two attractions for tourists in your town and say why each is worth visiting.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hom_09": {
-    "cognitiveDemand": "explain",
+    "cognitiveDemand": "describe",
     "timeFrames": [
       "present"
     ],
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe the colors, furniture, and personal touches in your room.",
+    "sufficientAnswer": "Describe your bedroom and how you decorated it, with at least three details such as colours, furniture or posters.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.55
+    "inferenceConfidence": 0.8
   },
   "hom_10": {
     "cognitiveDemand": "hypothesize",
@@ -4527,11 +4571,11 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe local green spaces and how you use them.",
+    "sufficientAnswer": "Say whether there is a park near you and how often you go, with at least one thing you do there.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hom_12": {
     "cognitiveDemand": "describe",
@@ -4541,9 +4585,9 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Mention at least two of: Discuss improvements like transport, facilities, or environment.",
+    "sufficientAnswer": "Name at least two things you would change in your town, such as transport, facilities or the environment.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hom_13": {
     "cognitiveDemand": "describe",
@@ -4553,9 +4597,9 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about the people living next door and your relationship with them.",
+    "sufficientAnswer": "Say how well you know your neighbours and describe them, with at least two details.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hom_14": {
     "cognitiveDemand": "describe",
@@ -4565,9 +4609,9 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe the kitchen's look and its role in family life.",
+    "sufficientAnswer": "Describe your kitchen and say whether it is an important place at home, with at least one reason.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.9
+    "inferenceConfidence": 0.8
   },
   "hom_15": {
     "cognitiveDemand": "compare",
@@ -4577,22 +4621,24 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "A complete answer should: Compare country life with city life.",
+    "sufficientAnswer": "Give at least two advantages of village life compared with city life.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
   "hom_16": {
     "cognitiveDemand": "explain",
     "timeFrames": [
-      "present",
-      "past"
+      "past",
+      "present"
     ],
-    "structures": [],
+    "structures": [
+      "imperfect"
+    ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about new buildings, shops, or changes in transport.",
+    "sufficientAnswer": "Explain how your town has changed in recent years, with at least two changes.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.55
+    "inferenceConfidence": 0.8
   },
   "hom_17": {
     "cognitiveDemand": "describe",
@@ -4602,33 +4648,35 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe a specific street, mall, or market you like.",
+    "sufficientAnswer": "Say where your favourite place to shop is and describe it, with at least two details.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hom_18": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
-    "structures": [],
+    "structures": [
+      "justification"
+    ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the safety and security of your area at night.",
+    "sufficientAnswer": "Say whether your town is safe in the evening and give at least two reasons.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hom_19": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "justify",
     "timeFrames": [
       "present"
     ],
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Compare old and new styles of buildings in your area.",
+    "sufficientAnswer": "Give your opinion on your town's architecture, with at least one example of an old and a new building.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hom_20": {
     "cognitiveDemand": "describe",
@@ -4636,11 +4684,11 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss cinemas, theatres, festivals, and other cultural events.",
+    "sufficientAnswer": "Say whether there are enough cultural activities and name at least two, such as cinemas, theatres or festivals.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hom_21": {
     "cognitiveDemand": "explain",
@@ -4648,11 +4696,11 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss who does the cooking, cleaning, laundry, etc.",
+    "sufficientAnswer": "Explain how housework is shared at home, with at least two tasks and who does them.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.55
+    "inferenceConfidence": 0.8
   },
   "hom_22": {
     "cognitiveDemand": "describe",
@@ -4660,11 +4708,11 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "short",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Use the conditional to talk about your dream home.",
+    "sufficientAnswer": "Describe your ideal house with at least three details, such as location, size, rooms or garden.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.9
+    "inferenceConfidence": 0.8
   },
   "hom_23": {
     "cognitiveDemand": "compare",
@@ -4672,11 +4720,12 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [
-      "comparison"
+      "comparison",
+      "justification"
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Contrast living in a flat/apartment with a detached/semi-detached house.",
+    "sufficientAnswer": "Say whether you prefer a flat or a house and give at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
@@ -4688,9 +4737,9 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about open-air markets and what they sell.",
+    "sufficientAnswer": "Say whether there are local markets, when they are held and what they sell.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hom_25": {
     "cognitiveDemand": "describe",
@@ -4698,11 +4747,11 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about parks, forests, lakes, or mountains nearby.",
+    "sufficientAnswer": "Name at least two interesting places for nature lovers in your region and say what you can do there.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hom_26": {
     "cognitiveDemand": "describe",
@@ -4710,25 +4759,23 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "What can you see? Buildings, trees, people, the street?",
+    "sufficientAnswer": "Describe the view from your bedroom window with at least three details.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.9
+    "inferenceConfidence": 0.8
   },
   "hom_27": {
     "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
-    "structures": [
-      "comparison"
-    ],
+    "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Specific chores like watering plants, mowing the lawn, or cleaning.",
+    "sufficientAnswer": "Explain how you help look after the house or garden, naming at least two jobs.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.55
+    "inferenceConfidence": 0.8
   },
   "hom_28": {
     "cognitiveDemand": "describe",
@@ -4736,23 +4783,23 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Mention at least two of: Air quality, noise, litter, or water pollution.",
+    "responseLoad": "developed",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Name at least two pollution problems in your town, such as air, noise or litter, and say what causes them.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hom_29": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "compare",
     "timeFrames": [
       "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Mention at least two of: Space, noise, safety, cost, access to shops.",
+    "sufficientAnswer": "Give at least two advantages of living in the suburbs compared with the city centre.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hom_30": {
     "cognitiveDemand": "describe",
@@ -4760,35 +4807,37 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Mention at least two of: Carnival, music festival, market, or fair.",
+    "sufficientAnswer": "Describe a local festival or event with at least three details, such as when, what happens and who goes.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.9
+    "inferenceConfidence": 0.8
   },
   "hom_31": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Mention at least two of: Better lighting, more parks, slower cars, security.",
+    "sufficientAnswer": "Name at least two changes that would make your area safer for children and say why each helps.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hom_32": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
-    "structures": [],
-    "responseLoad": "extended",
+    "structures": [
+      "justification"
+    ],
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Industries, local businesses, unemployment, opportunities for young people.",
+    "sufficientAnswer": "Say whether it is easy to find a job in your town and give at least two reasons.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hom_33": {
     "cognitiveDemand": "describe",
@@ -4796,24 +4845,23 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Mention at least two of: Narrow/wide, busy/quiet, trees, neighbors, shops.",
+    "sufficientAnswer": "Describe your street with at least three details, such as busy or quiet, trees, neighbours or shops.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.9
+    "inferenceConfidence": 0.8
   },
   "hom_34": {
     "cognitiveDemand": "describe",
     "timeFrames": [
-      "present",
-      "future"
+      "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "A quiet park, library, café, or a bench somewhere.",
+    "sufficientAnswer": "Say where you go to be alone in your town and say what you like about it.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hom_35": {
     "cognitiveDemand": "describe",
@@ -4823,23 +4871,21 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about your relationship with neighbors — do you say hello, help each other, or are they strangers?",
+    "sufficientAnswer": "Say how well you know your neighbours and say when you talk or help each other.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hom_36": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
-    "structures": [
-      "comparison"
-    ],
-    "responseLoad": "extended",
+    "structures": [],
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe the noise levels in your area — traffic, nature, people — and how it affects you.",
+    "sufficientAnswer": "Say whether your area is noisy or quiet and explain how it affects you.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hom_37": {
     "cognitiveDemand": "describe",
@@ -4847,25 +4893,23 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about parks, forests, or gardens nearby and what you do there.",
+    "sufficientAnswer": "Name at least two green spaces near you and say what you do there.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hom_38": {
     "cognitiveDemand": "describe",
     "timeFrames": [
       "present"
     ],
-    "structures": [
-      "comparison"
-    ],
+    "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss any historical facts, old buildings, or how the area has changed over time.",
+    "sufficientAnswer": "Say whether you know your area's history and give at least two facts, such as old buildings or past events.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hom_39": {
     "cognitiveDemand": "describe",
@@ -4873,23 +4917,23 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Identify a local shop (bakery, pharmacy, etc.) and explain why it's important for residents.",
+    "sufficientAnswer": "Name the most useful shop in your area and say why it matters to local people.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hom_40": {
-    "cognitiveDemand": "explain",
+    "cognitiveDemand": "describe",
     "timeFrames": [
       "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe how your town looks in winter vs. summer (flowers, snow, lights, atmosphere).",
+    "sufficientAnswer": "Describe how your town looks in at least two seasons, such as in winter and in summer.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.55
+    "inferenceConfidence": 0.8
   },
   "hom_41": {
     "cognitiveDemand": "describe",
@@ -4897,11 +4941,11 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about wildlife (birds, foxes, squirrels) or domestic pets you see around.",
+    "sufficientAnswer": "Name at least two animals you can see in your area and say where.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "hom_42": {
     "cognitiveDemand": "describe",
@@ -4909,11 +4953,11 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe a possession that means a lot to you (an heirloom, a gift, a device) and explain why.",
+    "sufficientAnswer": "Name the most precious object in your home and explain why it matters to you.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hom_43": {
     "cognitiveDemand": "describe",
@@ -4921,23 +4965,25 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss what people do at night — restaurants, cinemas, clubs, or quiet walks.",
+    "sufficientAnswer": "Name at least two evening activities in your town and say which one you prefer.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "hom_44": {
     "cognitiveDemand": "describe",
     "timeFrames": [
-      "present"
+      "past"
     ],
-    "structures": [],
+    "structures": [
+      "imperfect"
+    ],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Reflect on activities or events that happened at home when you were younger.",
+    "lexicalReach": "everyday",
+    "sufficientAnswer": "Describe at least two childhood memories linked to your home, using the imperfect or past tense.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "life_01": {
     "cognitiveDemand": "explain",
