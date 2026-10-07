@@ -3410,3 +3410,38 @@ Gate at commit: `npm run typecheck` clean · `npm run typecheck:server` clean ·
 are errors, unchanged) · `authoring:check` 0/0 · `authoring:parity` 10/10. Not run: backend
 pytest (no backend change); Playwright end-to-end (Batch 1 has no UI flow the plan's §5 e2e list
 can check until Batch 2's setup screen).
+
+## 2026-10-07 — Learn overhaul Batch 2 (frontend): one-screen setup, learner filters
+
+Scope: `src/` only; no backend change, no demands/content change (corpus hash untouched, so no
+L2-off window). Failing tests were written before each slice and the filter tests were
+mutation-checked (stubbing out the review predicate / the pool filter fails 1 and 5 tests).
+
+- **Filters through one pool** (`domain/learn/selection/filters.ts`, docs §8.5). `topicPool` feeds
+  slotting, the review slot (`getEligibleReviewQuestion`'s new `accept`) and `midSessionAdjust`;
+  follow-ups off under a grammar filter; fewer-than-requested never padded; an empty build never
+  starts. `filters.test.ts`, `sessionBuilder.filters.test.ts`.
+- **Setup screen** (`SessionStartScreen`, `features/learn/sessionSetup.ts`): Focus chips (only
+  where ≥ 5 questions match), Questions 1/5/10/20 with disable + clamp + zero-match "Clear X
+  filter", Difficulty Easier · Right for me · Harder + a read-only dry-run preview, Feedback
+  style. Removed `ModelSelectorCard`, `EngineIndicatorPill`, `ReEvaluateBar`, `useEngineHealth`
+  and the engine/re-evaluate state in `Learn.tsx` (the lint warning that state caused is gone).
+  `SessionStartScreen.test.tsx`, `sessionSetup.test.ts`.
+- **Topic grid** hides the eight one-question topics; Random Question draws from visible topics.
+  `TopicGrid.test.tsx` now fixes its own topic list (the real advanced topics are all hidden).
+- **Browser smoke test** (throwaway Playwright script against `vite dev`, dark theme only; light mode is Batch 5 —
+  16 topics shown; Holidays → Past → Harder → 5 showed "6 questions match", 10/20
+  disabled, "Pitched at Stretch (B1).", and the session started; no page errors (only the
+  expected refused backend calls).
+- **Observation, not a regression:** a session is routinely shorter than the length tapped
+  (5 → 3, 10 → 7, 20 → 14 with no review item due) because unfilled review slots are not
+  backfilled (§8.3). Identical before and after this batch. Left for the owner (docs amendment).
+- **Deviations from the plan:** no sub-topic chips (`Question.subTopic` doesn't exist until
+  Batch 3); the in-question Coach/Examiner toggle was removed in favour of the setup choice; the
+  plan's e2e example "School → Past" can't show a *Past* chip (school tags only 2 past
+  questions; use Holidays, Hobbies or Food).
+
+Gate at commit: `npm run typecheck` clean · `typecheck:server` clean · `npm run lint` 0 errors
+(21 warnings, all pre-existing) · `npm test` **306 files / 3042 tests passed** (with `backend/`
+linked, as CI does) · `learn:check -- --draft` 0 errors (63 warnings) · `authoring:check` 0/0 ·
+`authoring:parity` 10/10. Not run: backend pytest (no backend change).

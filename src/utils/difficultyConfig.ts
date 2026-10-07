@@ -13,19 +13,19 @@ export interface AimConfig {
 export const AIM_CONFIG: Record<Aim, AimConfig> = {
   comfortable: {
     aim: 'comfortable',
-    label: 'Comfortable',
+    label: 'Easier',
     description: 'Mostly easier questions, to build confidence.',
     icon: '🌱',
   },
   balanced: {
     aim: 'balanced',
-    label: 'Balanced',
+    label: 'Right for me',
     description: "Mostly at your level, with a question or two that stretch you.",
     icon: '🎯',
   },
   push: {
     aim: 'push',
-    label: 'Push',
+    label: 'Harder',
     description: 'More questions that challenge you above your level.',
     icon: '🔥',
   },

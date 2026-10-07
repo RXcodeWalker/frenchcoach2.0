@@ -140,9 +140,15 @@ function intervalDaysFor(existing: ReviewPoolItem | undefined): number {
  * not already in `seenIds` this session, gated on `Date.now() >=
  * nextEligibleAt`. Returns null when the flag is off, the pool is empty, or
  * nothing qualifies — degrading to "empty pool" is always the fallback,
- * never a throw.
+ * never a throw. `accept` (Learn overhaul Batch 2) lets the caller hold the
+ * review slot to the learner's filters: a due item that fails it is skipped,
+ * so a filtered session simply has no review slot (docs §8.3).
  */
-export function getEligibleReviewQuestion(topicKey: string, seenIds: Set<string>): Question | null {
+export function getEligibleReviewQuestion(
+  topicKey: string,
+  seenIds: Set<string>,
+  accept?: (question: Question) => boolean,
+): Question | null {
   if (resolveFeatureStatus('learnSpacedReview') !== 'live') return null;
 
   const state = readState();
@@ -158,7 +164,7 @@ export function getEligibleReviewQuestion(topicKey: string, seenIds: Set<string>
 
   for (const candidate of candidates) {
     const question = getQuestionById(candidate.questionId);
-    if (question) return question;
+    if (question && (!accept || accept(question))) return question;
   }
 
   return null;

@@ -12,6 +12,7 @@ import { deriveAbility, coldStart, type AbilityResult } from '../domain/learn/ab
 import { computeSessionTarget, type Aim } from '../domain/learn/selection/sessionTarget';
 import { planSlots, bandFor } from '../domain/learn/selection/planSlots';
 import { selectQuestions } from '../domain/learn/selection/selectQuestions';
+import { filterPool, matchesFilters, NO_FILTERS, type LearnFilters } from '../domain/learn/selection/filters';
 import type { DemandBand, SelectionReason, SlotType } from '../domain/learn/selection/types';
 import type { CognitiveDemand } from '../domain/learn/demand/types';
 import { getActiveProblem } from '../services/coach/interventionService';
@@ -135,6 +136,21 @@ export interface SessionSelectionOptions {
   aim?: Aim;
   /** docs §6.4 — seeds coldStart() only; absent -> the 4.5 default seed. */
   migratedTier?: DifficultyTier;
+  /**
+   * Learn overhaul Batch 2 (docs §8.5) — the learner's setup filters. Applied
+   * to the pool before slotting and to the review candidate. Adaptive path
+   * only: the legacy path ignores them (the setup screen hides them there).
+   */
+  filters?: LearnFilters;
+}
+
+/**
+ * docs §8.5 — the ONE filtered pool for a topic. buildSessionQuestions slots
+ * from it and Learn hands the same result to midSessionAdjust, so a filtered
+ * session can't pick up a non-matching replacement mid-way.
+ */
+export function topicPool(topicKey: string | null, filters: LearnFilters = NO_FILTERS): Question[] {
+  return filterPool(topicKey ? getTopicQuestions(topicKey) : [...QUESTIONS], filters);
 }
 
 /**
@@ -182,7 +198,10 @@ function buildSessionQuestionsAdaptive(
   sessionBlend: SessionBlend | null,
   options: SessionSelectionOptions,
 ): BuiltSessionQuestions {
-  const pool = topicKey ? getTopicQuestions(topicKey) : [...QUESTIONS];
+  const filters = options.filters ?? NO_FILTERS;
+  // docs §8.5 — the one filtered pool. Slotting, the escalation ladder and the
+  // review slot all draw from it; nothing below reaches the unfiltered topic.
+  const pool = topicPool(topicKey, filters);
   const seen = new Set<string>(topicMastery?.uniqueQuestionsAnswered ?? []);
 
   const snapshot = getBeliefSnapshot();
@@ -190,8 +209,11 @@ function buildSessionQuestionsAdaptive(
   const aim: Aim = options.aim ?? 'balanced';
   const sessionTarget = computeSessionTarget(ability.abilityScore, aim);
 
+  // Unseen *within the (possibly filtered) pool*: `seen` can name questions the
+  // filter excluded, so `pool.length - seen.size` would undercount.
+  const unseenCount = pool.filter((q) => !seen.has(q.id)).length;
   const target = mode === 'full_topic'
-    ? (pool.length > seen.size ? pool.length - seen.size : pool.length)
+    ? (unseenCount > 0 ? unseenCount : pool.length)
     : SESSION_TARGET[mode];
 
   const blend: SessionBlend = sessionBlend ?? {
@@ -219,7 +241,7 @@ function buildSessionQuestionsAdaptive(
       // meant spaced review never fired (Learn overhaul Batch 1b).
       getReviewQuestion: (chosenIds) => {
         if (!topicKey) return null;
-        return getEligibleReviewQuestion(topicKey, new Set(chosenIds));
+        return getEligibleReviewQuestion(topicKey, new Set(chosenIds), (q) => matchesFilters(q, filters));
       },
     },
     { beliefSnapshot: snapshot },

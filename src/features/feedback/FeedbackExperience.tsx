@@ -25,9 +25,8 @@ import { MinimalResponseCard } from './components/MinimalResponseCard';
 import { OfflineLimitationsBanner } from '../../screens/learn/OfflineLimitationsBanner';
 import { SIGNED_OUT_FEEDBACK_REASON } from '../../services/api/apiClient';
 import { FailoverBadge } from '../../screens/learn/FailoverBadge';
-import { ReEvaluateBar } from '../../screens/learn/ReEvaluateBar';
 import { selectCardPlan } from './state/selectors';
-import type { FeedbackV2, AIEngine, EngineResult } from '../../types';
+import type { FeedbackV2 } from '../../types';
 import type { PronunciationAssessment } from '../../domain/pronunciation/types';
 
 function CardSkeleton() {
@@ -87,14 +86,8 @@ interface Props {
   streamPhase?: 'transcribing' | 'generating' | 'complete' | null;
   transcript?: string;
   modelAnswer?: string;
-  engineResults: Map<AIEngine, EngineResult>;
-  activeEngine: AIEngine | null;
-  isReEvaluating: boolean;
-  reEvaluatingEngine: AIEngine | null;
   onRetry: () => void;
   onComplete: () => void;
-  onReEvaluate: (engine: AIEngine) => void;
-  onSwitchEngine: (engine: AIEngine) => void;
   /** Azure pronunciation (Learn-only). When present/pending, suppresses the legacy 0-10 card. */
   pronunciationResult?: PronunciationAssessment | null;
   /**
@@ -111,8 +104,7 @@ export type PronunciationStatus = 'idle' | 'pending' | 'done' | 'failed' | 'sign
 
 function FeedbackContent({
   feedback, transcript, modelAnswer, onRetry, onComplete,
-  engineResults, activeEngine, isReEvaluating, reEvaluatingEngine,
-  onReEvaluate, onSwitchEngine, pronunciationResult, pronunciationStatus,
+  pronunciationResult, pronunciationStatus,
 }: Omit<Props, 'isLoading' | 'feedback'> & { feedback: FeedbackV2 }) {
   const { state, majorIssues, polishIssues, openCardFromIssue } = useFeedbackState(feedback);
   const cardPlan = selectCardPlan(feedback);
@@ -276,15 +268,6 @@ function FeedbackContent({
         <PronunciationCard feedback={feedback} />
       )}
 
-      <ReEvaluateBar
-        engineResults={engineResults}
-        activeEngine={activeEngine}
-        isReEvaluating={isReEvaluating}
-        reEvaluatingEngine={reEvaluatingEngine}
-        onSwitchEngine={onSwitchEngine}
-        onReEvaluate={onReEvaluate}
-      />
-
       <FeedbackFooter
         onRetry={onRetry}
         onComplete={onComplete}
@@ -296,8 +279,7 @@ function FeedbackContent({
 
 export function FeedbackExperience({
   feedback, isLoading, partialFeedback, streamPhase, transcript, modelAnswer, onRetry, onComplete,
-  engineResults, activeEngine, isReEvaluating, reEvaluatingEngine,
-  onReEvaluate, onSwitchEngine, pronunciationResult, pronunciationStatus,
+  pronunciationResult, pronunciationStatus,
 }: Props) {
   const p = partialFeedback;
   const isStreaming = !feedback && p != null;
@@ -356,12 +338,6 @@ export function FeedbackExperience({
           modelAnswer={modelAnswer}
           onRetry={onRetry}
           onComplete={onComplete}
-          engineResults={engineResults}
-          activeEngine={activeEngine}
-          isReEvaluating={isReEvaluating}
-          reEvaluatingEngine={reEvaluatingEngine}
-          onReEvaluate={onReEvaluate}
-          onSwitchEngine={onSwitchEngine}
           pronunciationResult={pronunciationResult}
           pronunciationStatus={pronunciationStatus}
         />

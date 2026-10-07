@@ -33,8 +33,11 @@ import { SessionProgressBar } from './learn/SessionProgressBar';
 import { SessionSummary } from './learn/SessionSummary';
 import { MidSessionToast } from './learn/MidSessionToast';
 import { StreakToast } from './learn/StreakToast';
-import { buildSessionQuestions, makeSessionQuestion, sessionAbility, SESSION_TARGET } from '../utils/sessionBuilder';
+import { buildSessionQuestions, makeSessionQuestion, sessionAbility, topicPool, SESSION_TARGET } from '../utils/sessionBuilder';
 import { midSessionAdjust } from '../domain/learn/selection/midSessionAdjust';
+import { NO_FILTERS, hasActiveFilters, visibleGrammarFoci, type LearnFilters } from '../domain/learn/selection/filters';
+import { computeSessionTarget, type Aim } from '../domain/learn/selection/sessionTarget';
+import { summarisePreview, type SessionPreview } from '../features/learn/sessionSetup';
 import { getReviewItemFirstRecordedScore } from '../services/coach/reviewPool';
 import { useExtraTurnBudget } from './learn/useExtraTurnBudget';
 import { track } from '../services/telemetry/telemetryService';
@@ -47,7 +50,7 @@ import { nextTopicMastery } from '../features/learn/topicAverage';
 import { resolveFeatureStatus } from '../config/featureFlags';
 import { SayItAgainCard } from '../features/feedback/components/SayItAgainCard';
 import { incrementCounter } from '../services/telemetry/localCounters';
-import type { Topic, Session, FeedbackV2, ActiveSession, SessionMode, SessionQuestion, AIEngine, EngineResult, FeedbackMode } from '../types/index';
+import type { Topic, Session, FeedbackV2, ActiveSession, SessionMode, SessionQuestion, AIEngine, FeedbackMode } from '../types/index';
 
 type LearnState = 'topics' | 'session_start' | 'question' | 'recording' | 'confirm' | 'feedback' | 'session_summary';
 
@@ -88,15 +91,15 @@ export function Learn() {
   const [hasAdjustedDifficulty, setHasAdjustedDifficulty] = useState(false);
   const [difficultyToastDirection, setDifficultyToastDirection] = useState<'ease' | 'raise' | null>(null);
 
-  // Engine selection state
-  const [selectedEngine, setSelectedEngine] = useState<AIEngine>(preferredEngine);
+  // Learn overhaul Batch 2 — the learner no longer picks an engine: the stored
+  // preference (Groq by default, falling back to Gemini, then offline) is used.
+  const selectedEngine: AIEngine = preferredEngine;
   // Coach voice (free-form scores) vs examiner voice (Cambridge descriptor language, no marks).
+  // Chosen on the setup screen ("Feedback style"); setup state, not persisted.
   const [feedbackMode, setFeedbackMode] = useState<FeedbackMode>('coach');
-  // Per-question evaluation cache: Map<AIEngine, EngineResult>
-  const [engineResults, setEngineResults] = useState<Map<AIEngine, EngineResult>>(new Map());
-  const [activeResultEngine, setActiveResultEngine] = useState<AIEngine | null>(null);
-  const [isReEvaluating, setIsReEvaluating] = useState(false);
-  const [reEvaluatingEngine, setReEvaluatingEngine] = useState<AIEngine | null>(null);
+  // docs §8.5 — the learner's setup filters. Setup state like feedbackMode: not
+  // persisted, and reset whenever a new topic is chosen (chips differ per topic).
+  const [filters, setFilters] = useState<LearnFilters>(NO_FILTERS);
   // E1: honest error state when feedback could not be produced at all — never a fabricated score.
   const [feedbackErrorMessage, setFeedbackErrorMessage] = useState<string | null>(null);
   // 2.4: transcript confirmation step between stop() and evaluation, behind
@@ -166,17 +169,11 @@ export function Learn() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isReviewQuestion, baseQuestion?.id]);
 
-  // ── Engine preference change ──────────────────────────────────────────────────
-
-  const handleEngineChange = (engine: AIEngine) => {
-    setSelectedEngine(engine);
-    dispatch({ type: 'SET_AI_ENGINE', engine });
-  };
-
   // ── Topic selection ───────────────────────────────────────────────────────────
 
   const selectTopic = (topic: Topic) => {
     setSelectedTopic(topic);
+    setFilters(NO_FILTERS);
     setLearnState('session_start');
   };
 
@@ -204,9 +201,10 @@ export function Learn() {
     setFocusTokenActive(true);
   }, []);
 
-  const startSession = useCallback((mode: SessionMode) => {
-    if (!selectedTopic) return;
-
+  // What the coach loop feeds selection: the daily plan's blend and the skill to
+  // focus. Read-only (no dispatch, no recommendation status change), so the
+  // setup screen's preview dry-runs exactly what startSession will build.
+  const resolveSelectionInputs = useCallback(() => {
     let dailyPlan = getDailyPlan();
     if (focusTokenActive && dailyPlan) {
       dailyPlan = applyFocusTokenOverride(dailyPlan, getBeliefSnapshot());
@@ -221,10 +219,13 @@ export function Learn() {
     const focusedSkillId = focusTokenActive
       ? dailyPlan?.topAction.targetSkillIds[0] ?? null
       : recommendation?.targetSkillIds?.[0] ?? null;
-    if (focusedSkillId && !focusTokenActive) {
-      dispatch({ type: 'SET_FOCUSED_SKILL', skillId: focusedSkillId });
-      setRecommendationStatus('accepted');
-    }
+    return { sessionBlend, focusedSkillId };
+  }, [focusTokenActive]);
+
+  const startSession = useCallback((mode: SessionMode) => {
+    if (!selectedTopic) return;
+
+    const { sessionBlend, focusedSkillId } = resolveSelectionInputs();
 
     const { questions, reviewQuestionId, slots: builtSlots } = buildSessionQuestions(
       selectedTopic.key,
@@ -234,8 +235,16 @@ export function Learn() {
       selectedDifficulty,
       focusedSkillId,
       sessionBlend,
-      { aim, migratedTier: selectedDifficulty },
+      { aim, migratedTier: selectedDifficulty, filters },
     );
+    // Filters that match nothing build an empty session; the setup screen
+    // disables Start in that case, so this is only a backstop.
+    if (questions.length === 0) return;
+
+    if (focusedSkillId && !focusTokenActive) {
+      dispatch({ type: 'SET_FOCUSED_SKILL', skillId: focusedSkillId });
+      setRecommendationStatus('accepted');
+    }
 
     const target = mode === 'full_topic' ? questions.length : SESSION_TARGET[mode];
     const slotByQuestionId = new Map((builtSlots ?? []).map(s => [s.questionId, s]));
@@ -266,19 +275,37 @@ export function Learn() {
     setShowHint(false);
     setFeedback(null);
     setIsRetry(false);
-    // Clear evaluation cache for the new session
-    setEngineResults(new Map());
-    setActiveResultEngine(null);
     resetSessionScopedState();
     setLearnState('question');
-  }, [selectedTopic, skillProfile, topicMastery, selectedDifficulty, aim, dispatch, resetSessionScopedState, focusTokenActive, adaptiveDifficultyLive]);
-
-  const startSingleQuestion = () => startSession('single');
+  }, [selectedTopic, skillProfile, topicMastery, selectedDifficulty, aim, filters, dispatch, resetSessionScopedState, resolveSelectionInputs, focusTokenActive, adaptiveDifficultyLive]);
 
   // docs §14 UX #1 — the same read sessionBuilder.ts's adaptive path selects
   // from (belief snapshot + AppState's tier as the cold-start seed), so the
   // level shown here always matches what selection actually used.
   const sessionStartAbility = (): AbilityResult => sessionAbility(selectedDifficulty);
+
+  // The setup screen's data: how many of this topic's questions match the
+  // filters, which focus chips are worth offering, and a dry run of the session
+  // the current choices would build (same builder, same inputs as startSession).
+  const setupMatchCount = selectedTopic ? topicPool(selectedTopic.key, filters).length : 0;
+  const setupFocusOptions = selectedTopic && adaptiveDifficultyLive
+    ? visibleGrammarFoci(getTopicQuestions(selectedTopic.key))
+    : undefined;
+  const getSetupPreview = (mode: SessionMode, previewAim: Aim): SessionPreview | null => {
+    if (!selectedTopic) return null;
+    const { sessionBlend, focusedSkillId } = resolveSelectionInputs();
+    const { slots } = buildSessionQuestions(
+      selectedTopic.key,
+      mode,
+      skillProfile,
+      topicMastery[selectedTopic.key] ?? null,
+      selectedDifficulty,
+      focusedSkillId,
+      sessionBlend,
+      { aim: previewAim, migratedTier: selectedDifficulty, filters },
+    );
+    return summarisePreview(slots, computeSessionTarget(sessionStartAbility().abilityScore, previewAim));
+  };
 
   // ── Recording + evaluation ────────────────────────────────────────────────────
 
@@ -304,17 +331,6 @@ export function Learn() {
       fb = { ...fb, skillContextUsed: true };
     }
 
-    const meta = fb.engineMeta;
-    const actualEngine = meta?.actualEngine ?? selectedEngine;
-    const result: EngineResult = { engine: actualEngine, feedback: fb, meta: meta ?? {
-      requestedEngine: selectedEngine,
-      actualEngine,
-      fallbackUsed: false,
-      latencyMs: 0,
-      evaluatedAt: new Date().toISOString(),
-    }};
-    setEngineResults(new Map([[actualEngine, result]]));
-    setActiveResultEngine(actualEngine);
 
     // The discriminant for "was this attempt actually graded" is feedback.unscored,
     // never scores.overall's numeric value (Phase 4b) — a real graded 0 is a
@@ -476,8 +492,6 @@ export function Learn() {
     setIsLoadingFeedback(true);
     setPartialFeedback(null);
     setStreamPhase(null);
-    setEngineResults(new Map());
-    setActiveResultEngine(null);
     setPronunciationStatus('idle');
     setPronunciationResult(null);
     setExaminerStatus('idle');
@@ -717,59 +731,6 @@ export function Learn() {
     setLearnState('question');
   };
 
-  // ── Re-evaluate with a different engine (reuses saved transcript) ─────────────
-
-  const handleReEvaluate = useCallback(async (engine: AIEngine) => {
-    if (!currentQuestion) return;
-
-    // Cache hit — instant switch, no API call
-    const cached = engineResults.get(engine);
-    if (cached) {
-      setFeedback(cached.feedback);
-      setActiveResultEngine(engine);
-      return;
-    }
-
-    // Block duplicate in-flight requests
-    if (isReEvaluating) return;
-
-    const transcript = recording.transcript;
-    if (!transcript) return;
-
-    setIsReEvaluating(true);
-    setReEvaluatingEngine(engine);
-
-    try {
-      const skillContext = buildSkillContext();
-      const fb = await getAIFeedback(transcript, currentQuestion, skillContext, undefined, engine, selectedDifficulty);
-
-      const meta = fb.engineMeta ?? {
-        requestedEngine: engine,
-        actualEngine: engine,
-        fallbackUsed: false,
-        latencyMs: 0,
-        evaluatedAt: new Date().toISOString(),
-      };
-      const actualEngine = meta.actualEngine;
-      const result: EngineResult = { engine: actualEngine, feedback: fb, meta };
-
-      setEngineResults(prev => new Map(prev).set(actualEngine, result));
-      setActiveResultEngine(actualEngine);
-      setFeedback(fb);
-    } finally {
-      setIsReEvaluating(false);
-      setReEvaluatingEngine(null);
-    }
-  }, [currentQuestion, engineResults, isReEvaluating, recording.transcript, selectedDifficulty]);
-
-  const handleSwitchEngine = useCallback((engine: AIEngine) => {
-    const cached = engineResults.get(engine);
-    if (cached) {
-      setFeedback(cached.feedback);
-      setActiveResultEngine(engine);
-    }
-  }, [engineResults]);
-
   // ── Recovery drill (intervention loop) ────────────────────────────────────────
 
   const openDrill = () => {
@@ -839,7 +800,8 @@ export function Learn() {
       const seenIds = new Set(topicMastery[selectedTopic.key]?.uniqueQuestionsAnswered ?? []);
       const adjustResult = midSessionAdjust({
         session: updatedSession,
-        pool: getTopicQuestions(selectedTopic.key),
+        // docs §8.5 — the same filtered pool the session was slotted from.
+        pool: topicPool(selectedTopic.key, filters),
         seenIds,
         focusSkillIds: [],
         activeDemandProblem: null,
@@ -863,9 +825,6 @@ export function Learn() {
     setShowDrillModal(false);
     setShowHint(false);
     setIsRetry(false);
-    // Clear evaluation cache for the next question
-    setEngineResults(new Map());
-    setActiveResultEngine(null);
     setExaminerStatus('idle');
     setExaminerFeedbackResult(null);
     setShowPracticeStep(false);
@@ -918,6 +877,9 @@ export function Learn() {
   // keeps this auditable.
   const followUpEligible =
     followUpLive &&
+    // docs §8.5 — a follow-up's wording isn't tagged, so it can't be shown to
+    // match a grammar filter: none are offered while one is on.
+    !hasActiveFilters(filters) &&
     !followUpTurn &&
     (currentQuestion?.followUps.length ?? 0) > 0 &&
     (feedback?.responseTier ?? 3) >= 2 &&
@@ -988,8 +950,6 @@ export function Learn() {
     setDrillInterventionId(null);
     setShowDrillModal(false);
     setShowHint(false);
-    setEngineResults(new Map());
-    setActiveResultEngine(null);
     setExaminerStatus('idle');
     setExaminerFeedbackResult(null);
     setShowPracticeStep(false);
@@ -1125,10 +1085,7 @@ export function Learn() {
               <SessionStartScreen
                 topic={selectedTopic}
                 topicMastery={topicMastery[selectedTopic.key] ?? null}
-                selectedEngine={selectedEngine}
-                onEngineChange={handleEngineChange}
                 onStart={startSession}
-                onSingleQuestion={startSingleQuestion}
                 onBack={() => { setSelectedTopic(null); setLearnState('topics'); }}
                 coachRecommendation={getActiveRecommendation()}
                 focusTokenQty={profile.inventory['focus_token'] ?? 0}
@@ -1137,6 +1094,13 @@ export function Learn() {
                 ability={adaptiveDifficultyLive ? sessionStartAbility() : null}
                 aim={adaptiveDifficultyLive ? aim : undefined}
                 onAimChange={adaptiveDifficultyLive ? (nextAim) => dispatch({ type: 'SET_AIM', aim: nextAim }) : undefined}
+                filters={filters}
+                onFiltersChange={setFilters}
+                focusOptions={setupFocusOptions}
+                matchCount={setupMatchCount}
+                getPreview={adaptiveDifficultyLive ? getSetupPreview : undefined}
+                feedbackMode={feedbackMode}
+                onFeedbackModeChange={setFeedbackMode}
               />
             </motion.div>
           )}
@@ -1155,9 +1119,6 @@ export function Learn() {
                   session={activeSession}
                   topicLabel={topicData.label}
                   topicIcon={topicData.icon}
-                  selectedEngine={selectedEngine}
-                  isEvaluating={isLoadingFeedback || isReEvaluating}
-                  onEngineSwitch={handleEngineChange}
                   onEndSession={handleEndSessionEarly}
                 />
               )}
@@ -1170,33 +1131,6 @@ export function Learn() {
                   isReview={isReviewQuestion}
                   selectionReason={currentSessionQuestion?.selectionReason}
                 />
-              )}
-
-              {(learnState === 'question' || learnState === 'recording') && (
-                <div className="flex items-center justify-center gap-1.5 -mb-1">
-                  {(['coach', 'examiner'] as const).map((mode) => {
-                    const disabled = isLoadingFeedback || recording.isRecording;
-                    const active = feedbackMode === mode;
-                    return (
-                      <button
-                        key={mode}
-                        type="button"
-                        disabled={disabled}
-                        onClick={() => !disabled && setFeedbackMode(mode)}
-                        title={mode === 'examiner' ? 'Cambridge examiner-style commentary — no marks' : 'Free-form coaching feedback'}
-                        className={`px-3 py-1.5 rounded-full text-[10px] font-bold border transition-colors ${
-                          active
-                            ? mode === 'examiner'
-                              ? 'border-amber-400/50 text-amber-300 bg-amber-400/10'
-                              : 'border-violet-400/50 text-violet-300 bg-violet-400/10'
-                            : 'border-transparent text-ink-muted hover:text-ink-muted'
-                        } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-                      >
-                        {mode === 'examiner' ? 'Examiner voice' : 'Coach voice'}
-                      </button>
-                    );
-                  })}
-                </div>
               )}
 
               <SpeakingConsentGate>
@@ -1303,14 +1237,8 @@ export function Learn() {
                   streamPhase={streamPhase}
                   transcript={recording.transcript}
                   modelAnswer={currentQuestion?.modelAnswer}
-                  engineResults={engineResults}
-                  activeEngine={activeResultEngine}
-                  isReEvaluating={isReEvaluating}
-                  reEvaluatingEngine={reEvaluatingEngine}
                   onRetry={handleRetry}
                   onComplete={handleFeedbackComplete}
-                  onReEvaluate={handleReEvaluate}
-                  onSwitchEngine={handleSwitchEngine}
                   pronunciationResult={pronunciationResult}
                   pronunciationStatus={pronunciationStatus}
                 />

@@ -3,6 +3,7 @@ import { ChevronRight, Lock } from 'lucide-react';
 import { TOPICS } from '../../data/gameData';
 import { LEARN_TOPIC_DEPENDENCIES } from '../../data/learnTopicDependencies';
 import { isLearnTopicUnlocked } from '../../features/learn/topicProgress';
+import { isTopicVisible } from '../../features/learn/sessionSetup';
 import type { Topic, DifficultyTier } from '../../types/index';
 
 interface Props {
@@ -23,6 +24,9 @@ function lockReason(topic: Topic): string {
 }
 
 export function TopicGrid({ onSelect, title = "Learn", subtitle = "Choose a topic and start practicing" }: Props) {
+  // Topics too small to practise as a session stay out of the grid (docs §13.4).
+  const visibleTopics = TOPICS.filter(isTopicVisible);
+
   const handleTopicClick = (topic: Topic, unlocked: boolean) => {
     if (!unlocked) return;
     onSelect(topic);
@@ -42,7 +46,7 @@ export function TopicGrid({ onSelect, title = "Learn", subtitle = "Choose a topi
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {TOPICS.map((topic, idx) => {
+          {visibleTopics.map((topic, idx) => {
             const unlocked = !topic.isAdvanced || isLearnTopicUnlocked(LEARN_TOPIC_DEPENDENCIES[topic.key] ?? []);
             return (
               <motion.button
@@ -96,7 +100,7 @@ export function TopicGrid({ onSelect, title = "Learn", subtitle = "Choose a topi
         </div>
 
         <motion.button
-          onClick={() => onSelect(TOPICS[Math.floor(Math.random() * TOPICS.length)])}
+          onClick={() => onSelect(visibleTopics[Math.floor(Math.random() * visibleTopics.length)])}
           className="w-full group relative overflow-hidden rounded-xl surface-recessed border-dashed border-white/8 p-4 text-left hover:bg-white/[0.02] transition-all duration-300"
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.98 }}

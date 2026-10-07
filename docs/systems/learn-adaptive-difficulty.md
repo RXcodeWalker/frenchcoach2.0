@@ -540,6 +540,39 @@ the suppressed one is dropped rather than queued (a stale "halfway" message help
 > ⬇️ *Easing off — the next few questions sit right at your level.*
 > ⬆️ *Stepping up — adding a question that pushes you a bit.*
 
+### 8.5 Learner filters (added 2026-10-07, Learn overhaul Batch 2)
+
+The setup screen lets the learner narrow a session to a **grammar focus** — *Present*, *Past*,
+*Future & conditional*, *Opinions & reasons* — derived from the demand tags already on a question
+(`demands.timeFrames` / `demands.structures`; `domain/learn/selection/filters.ts`). There is no
+sub-topic tag yet. One predicate, **one filtered pool**:
+
+- **Slotting and the ladder.** `buildSessionQuestions` slots from `topicPool(topicKey, filters)`.
+  The §8.3 escalation ladder only ever sees that pool, so rung 4 (questions without `demands`)
+  cannot bring a non-matching question in. An untagged question never matches a grammar filter —
+  it cannot be shown to match — so topics with no tags offer no focus chips.
+- **The review slot.** `getEligibleReviewQuestion(topicKey, chosenIds, accept)` skips a due item
+  that fails the filter; no match → the slot is simply not filled (§8.3).
+- **Mid-session adjust.** Learn passes `midSessionAdjust` the *same* `topicPool(…, filters)`
+  (never the unfiltered topic), so an ease/raise replacement is a match too.
+- **Follow-up turns.** A follow-up's wording is authored per question and untagged, so none is
+  offered while a grammar filter is on.
+- **Fewer matches than requested.** The screen shows "N questions match". A length above N is
+  disabled; a larger earlier choice is clamped to the largest length that fits, with a message;
+  at N = 0, Start is disabled and one tap clears the filter. A session is **never padded with
+  non-matching questions** — it returns fewer (§8.3 rung 5), and an empty build never starts.
+- **Which chips.** A chip is offered only where at least `MIN_FOCUS_MATCHES` (5) questions in the
+  topic match it. Today only the eight tagged topics qualify, and *Past* only in hobbies,
+  holidays and food (school, family, home and environment tag 2 past questions each).
+- **Scope.** Filters are setup state in `Learn.tsx` — not persisted, reset when a topic is
+  chosen. Legacy path (flag off): the builder ignores them and the screen hides them.
+
+The **preview line** under Aim is a dry run of the very session `startSession` would build (same
+builder, same inputs, read-only): the exam-relative label of today's target and how many of the
+selected questions are still `stretch` after §8.1's downgrade — e.g. *"Pitched at Stretch (B1),
+with 2 of 7 a step above."* The denominator is the session actually built (see the Batch 2
+amendment on unfilled review slots), not the length the learner tapped.
+
 ---
 
 ## 9. AI grading integration
@@ -1229,3 +1262,28 @@ spaced review excluded every due item (§8.3); a downgraded stretch kept the str
 fabricated topic average of 0 (`features/learn/topicAverage.ts`, read-time repair only, no
 migration). Learn's avoidance checks use one fixed `IGCSE_EXPECTATIONS` set instead of the hidden
 tier, and the tier grid is gone — Aim is the one difficulty control.
+
+## Amendment: Learn overhaul Batch 2 (2026-10-07)
+
+**One-screen setup.** `SessionStartScreen` is now Topic → Focus (optional) → Questions (1 / 5 / 10 / 20)
+→ Difficulty (Easier · Right for me · Harder, with the §14 #1 level read-out and a live preview)
+→ Feedback style (Coach / Examiner, "no score") → Start. Removed: the AI-engine picker
+(`ModelSelectorCard`), the mid-session engine pill, the re-evaluate bar and `useEngineHealth` —
+the stored preference (Groq by default, falling back to Gemini, then offline) is used, and
+`AppContext` still holds it; the "Just one question" button (now the "1" length); the weakness
+bars; and the separate Focus Token row (folded into one "Coach's pick" line). The in-question
+Coach/Examiner toggle moved to the setup screen (an examiner failure still offers "switch to coach
+mode"). The Aim labels in §14 #1's mock were renamed Comfortable / Balanced / Push →
+Easier / Right for me / Harder (`AIM_CONFIG`; the `Aim` ids are unchanged).
+
+**§13.4 realised.** The topic grid hides every topic holding fewer than 5 questions
+(`isTopicVisible`) — today exactly the eight one-question advanced topics. The Random Question
+button draws only from visible topics.
+
+**Known, unchanged, now more visible: a session is often shorter than the length tapped.**
+`planSlots` reserves review slots (30% of the blend, at least one in a session of 5+) and §8.3
+leaves an unfilled review slot empty rather than backfilling it. With no spaced-review item due —
+the usual case — a new learner's "5" builds 3, "10" builds 7 and "20" builds 14 (measured on the
+Batch 1 code and again after Batch 2; identical for all three aims). This is the spec'd
+behaviour, not a Batch 2 regression, and was left alone; whether unfilled review slots should be
+backfilled with `target` slots is a §8.1/§8.3 decision for the owner.
