@@ -52,6 +52,11 @@ import { SayItAgainCard } from '../features/feedback/components/SayItAgainCard';
 import { incrementCounter } from '../services/telemetry/localCounters';
 import type { Topic, Session, FeedbackV2, ActiveSession, SessionMode, SessionQuestion, AIEngine, FeedbackMode } from '../types/index';
 
+// Learn answers are Web Speech text, so the coach filters treat them as spoken
+// (sound-alike errors dropped) — the same call the examiner voice makes
+// (apiClient.ts's LEARN_EXAMINER_CONTEXT).
+const LEARN_INPUT_MODE = 'speech' as const;
+
 type LearnState = 'topics' | 'session_start' | 'question' | 'recording' | 'confirm' | 'feedback' | 'session_summary';
 
 export function Learn() {
@@ -594,7 +599,7 @@ export function Learn() {
       setIsLoadingFeedback(true);
       setPartialFeedback(null);
       try {
-        const fb = await getAIFeedback(transcript, currentQuestion, skillContext, undefined, selectedEngine, selectedDifficulty);
+        const fb = await getAIFeedback(transcript, currentQuestion, skillContext, undefined, selectedEngine, selectedDifficulty, LEARN_INPUT_MODE);
         _finalizeAnswer(myAttemptId, fb, transcript, elapsed, avoidanceSignals, skillContext);
       } catch (fallbackErr) {
         console.warn('[Learn] offline feedback unavailable:', fallbackErr);
@@ -628,7 +633,7 @@ export function Learn() {
       setIsLoadingFeedback(true);
       setPartialFeedback(null);
       try {
-        const fb = await getAIFeedback(transcript, currentQuestion, skillContext, undefined, selectedEngine, selectedDifficulty);
+        const fb = await getAIFeedback(transcript, currentQuestion, skillContext, undefined, selectedEngine, selectedDifficulty, LEARN_INPUT_MODE);
         _finalizeAnswer(myAttemptId, fb, transcript, elapsed, avoidanceSignals, skillContext);
       } catch (fallbackErr) {
         // E1: total failure — no real feedback exists. Show an honest error and let the
@@ -695,6 +700,7 @@ export function Learn() {
             void fallBackToNonStreaming(msg);
           },
         },
+        LEARN_INPUT_MODE,
       );
     } catch (err) {
       if ((err as Error).name === 'AbortError') return;

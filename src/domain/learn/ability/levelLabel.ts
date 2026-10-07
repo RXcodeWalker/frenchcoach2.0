@@ -25,6 +25,18 @@ export function levelLabel(level: DemandLevel): string {
 }
 
 /**
+ * The same wording for a free CEFR code, e.g. the coach model's `cefrLevel`
+ * (Batch 4): the wire contract keeps its A1–B2 enum, the display clamps it —
+ * B2, C1 and C2 all read "Stretch (B1+)". Null for anything unrecognised.
+ */
+export function cefrLevelLabel(code: string | null | undefined): string | null {
+  const c = (code ?? '').trim().toUpperCase();
+  if (c === 'A1' || c === 'A2' || c === 'B1' || c === 'B2') return LEVEL_LABEL[c];
+  if (c === 'C1' || c === 'C2') return LEVEL_LABEL.B2;
+  return null;
+}
+
+/**
  * docs §6.3 — confidence-gated level string; never asserts a band it hasn't
  * earned. Below the gate it names the starting point selection is using
  * (docs §6.4 lets the seed shape selection) instead of an open-ended "getting

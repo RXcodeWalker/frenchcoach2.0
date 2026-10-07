@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { ChevronRight, XCircle, CheckCircle, RotateCcw, Loader2 } from 'lucide-react';
 import { scoreColor, isUnscored, coachScoreGrid } from '../../domain/scoring';
+import { cefrLevelLabel } from '../../domain/learn/ability/levelLabel';
 import type { FeedbackV2 } from '../../types';
 
 interface Props {
@@ -34,7 +35,7 @@ export function FeedbackPanel({ feedback, isLoading, onRetry, onComplete }: Prop
       <div className="rounded-xl surface-raised p-5">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-bold text-white text-sm">Results</h3>
-          <span className="text-[9px] text-ink-subtle">{feedback.wordCount} words{feedback.cefrLevel ? ` / ${feedback.cefrLevel}` : ''}</span>
+          <span className="text-[9px] text-ink-subtle">{feedback.wordCount} words{cefrLevelLabel(feedback.cefrLevel) ? ` / ${cefrLevelLabel(feedback.cefrLevel)}` : ''}</span>
         </div>
         {isUnscored(feedback) ? (
           <div>

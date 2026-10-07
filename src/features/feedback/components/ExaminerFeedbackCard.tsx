@@ -1,5 +1,4 @@
-import type { ReactNode } from 'react';
-import { Check, GraduationCap, Loader2, X } from 'lucide-react';
+import { GraduationCap, Loader2 } from 'lucide-react';
 import {
   findExaminerDescriptor,
   isExaminerFeedbackEmpty,
@@ -9,6 +8,7 @@ import {
   type ExaminerFeedback,
 } from '../../../services/coaching/examinerFeedback';
 import { ERROR_CATEGORY_LABELS } from '../../../domain/examFeedback/shared/errorCategories';
+import { FeedbackPointList, type FeedbackPoint, type FeedbackPointGroup } from './FeedbackPointList';
 
 interface Props {
   /**
@@ -33,145 +33,48 @@ interface Props {
   highlightedQuote?: string | null;
 }
 
-type Tone = 'good' | 'bad';
-
-const QUOTE_CLASS = 'exam-quote text-amber-700 dark:text-amber-300/80 italic';
-
-const TONE_CLASS: Record<Tone, string> = {
-  good: 'fb-good bg-emerald-500/15 border-emerald-600/40',
-  bad: 'fb-bad bg-rose-500/10 border-rose-500/35',
-};
-const TONE_HEADING: Record<Tone, string> = {
-  good: 'text-emerald-700 dark:text-emerald-300',
-  bad: 'text-rose-700 dark:text-rose-300',
-};
-
-function Section({ heading, tone, compact, children }: { heading: string; tone: Tone; compact: boolean; children: ReactNode }) {
-  return (
-    <div className={`rounded-xl border ${compact ? 'p-3 space-y-2' : 'p-4 space-y-2.5'} ${TONE_CLASS[tone]}`}>
-      <p className={`fb-heading flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider ${TONE_HEADING[tone]}`}>
-        {tone === 'good' ? <Check size={11} aria-hidden="true" /> : <X size={11} aria-hidden="true" />}
-        {heading}
-      </p>
-      {children}
-    </div>
-  );
+function claim(item: ExaminerCitedClaim): FeedbackPoint {
+  return { kind: 'claim', claim: item.claim, quote: item.quote };
 }
 
-/** A quote-anchored row: carries the quote so a transcript click can find and highlight it. */
-function Anchor({ quote, active, children }: { quote?: string | null; active: boolean; children: ReactNode }) {
-  return (
-    <div
-      data-quote={quote ?? undefined}
-      className={`space-y-1 rounded-lg transition-shadow duration-state ease-smooth ${
-        active ? 'ring-2 ring-action bg-white/50 p-1.5 -m-1.5' : ''
-      }`}
-    >
-      {children}
-    </div>
-  );
+function fix(item: ExaminerErrorItem): FeedbackPoint {
+  return { kind: 'fix', quote: item.quote, correction: item.correction, tag: ERROR_CATEGORY_LABELS[item.category] };
 }
 
-function CitedClaim({ item, compact, hl }: { item: ExaminerCitedClaim; compact: boolean; hl?: string | null }) {
-  return (
-    <Anchor quote={item.quote} active={!!hl && hl === item.quote}>
-      <p className={compact ? 'text-[11px] text-ink leading-relaxed' : 'text-xs text-ink leading-relaxed'}>{item.claim}</p>
-      <p className={compact ? `text-[10px] ${QUOTE_CLASS}` : `text-[11px] ${QUOTE_CLASS}`}>« {item.quote} »</p>
-    </Anchor>
-  );
-}
-
-function ErrorRow({ item, compact, hl }: { item: ExaminerErrorItem; compact: boolean; hl?: string | null }) {
-  return (
-    <Anchor quote={item.quote} active={!!hl && hl === item.quote}>
-      <p className={compact ? 'text-[11px] leading-relaxed' : 'text-xs leading-relaxed'}>
-        <span className={`${QUOTE_CLASS} line-through decoration-rose-400/70`}>« {item.quote} »</span>
-        <span className="text-ink-muted mx-1.5" aria-hidden="true">
-          →
-        </span>
-        <span className="text-ink font-semibold">{item.correction}</span>
-      </p>
-      <span className="inline-block rounded-full surface-recessed px-2 py-0.5 text-[9px] font-bold text-ink-muted">
-        {ERROR_CATEGORY_LABELS[item.category]}
-      </span>
-    </Anchor>
-  );
-}
-
-function FeedbackSections({ result, compact, hl }: { result: ExaminerFeedback; compact: boolean; hl?: string | null }) {
+/** Maps each examiner reply profile to the shared point list's groups, in display order. */
+function examinerGroups(result: ExaminerFeedback, compact: boolean): FeedbackPointGroup[] {
   if (result.profile === 'learn') {
     const descriptor = result.nextStep ? findExaminerDescriptor(result.nextStep.descriptorId) : undefined;
-    return (
-      <>
-        {result.strengths.length > 0 && (
-          <Section heading="What worked" tone="good" compact={compact}>
-            {result.strengths.map((s, i) => (
-              <CitedClaim key={i} item={s} compact={compact} hl={hl} />
-            ))}
-          </Section>
-        )}
-        {result.errors.length > 0 && (
-          <Section heading="Mistakes to fix" tone="bad" compact={compact}>
-            {result.errors.map((e, i) => (
-              <ErrorRow key={i} item={e} compact={compact} hl={hl} />
-            ))}
-          </Section>
-        )}
-        {result.nextStep && (
-          <Section heading="Your next step" tone="good" compact={compact}>
-            <Anchor quote={result.nextStep.quote} active={!!hl && hl === result.nextStep.quote}>
-              <p className={compact ? 'text-[11px] text-ink leading-relaxed' : 'text-xs text-ink leading-relaxed'}>
-                {result.nextStep.claim}
-              </p>
-              {result.nextStep.quote && (
-                <p className={compact ? `text-[10px] ${QUOTE_CLASS}` : `text-[11px] ${QUOTE_CLASS}`}>
-                  « {result.nextStep.quote} »
-                </p>
-              )}
-              {!compact && descriptor && (
-                <p className="text-[10px] text-ink-muted">
-                  Descriptor to aim for: “{descriptor.text}” (Teacher/Examiner Notes p.{descriptor.page})
-                </p>
-              )}
-            </Anchor>
-          </Section>
-        )}
-      </>
-    );
+    const note =
+      !compact && descriptor
+        ? `Descriptor to aim for: “${descriptor.text}” (Teacher/Examiner Notes p.${descriptor.page})`
+        : undefined;
+    return [
+      { heading: 'What worked', tone: 'good', points: result.strengths.map(claim) },
+      { heading: 'Mistakes to fix', tone: 'bad', points: result.errors.map(fix) },
+      {
+        heading: 'Your next step',
+        tone: 'good',
+        points: result.nextStep
+          ? [{ kind: 'claim', claim: result.nextStep.claim, quote: result.nextStep.quote, ...(note ? { note } : {}) }]
+          : [],
+      },
+    ];
   }
 
   if (result.turnKind === 'topic') {
-    if (result.errors.length > 0) {
-      return (
-        <Section heading="Mistakes to fix" tone="bad" compact={compact}>
-          {result.errors.map((e, i) => (
-            <ErrorRow key={i} item={e} compact={compact} hl={hl} />
-          ))}
-        </Section>
-      );
-    }
-    return result.strength ? (
-      <Section heading="What you did well" tone="good" compact={compact}>
-        <CitedClaim item={result.strength} compact={compact} hl={hl} />
-      </Section>
-    ) : null;
+    if (result.errors.length > 0) return [{ heading: 'Mistakes to fix', tone: 'bad', points: result.errors.map(fix) }];
+    return [{ heading: 'What you did well', tone: 'good', points: result.strength ? [claim(result.strength)] : [] }];
   }
 
-  return (
-    <>
-      {(result.task || result.clarity) && (
-        <Section heading="No problem — correct" tone="good" compact={compact}>
-          {result.task && <CitedClaim item={result.task} compact={compact} hl={hl} />}
-          {result.clarity && <CitedClaim item={result.clarity} compact={compact} hl={hl} />}
-        </Section>
-      )}
-      {result.error && (
-        <Section heading="Mistakes to fix" tone="bad" compact={compact}>
-          <ErrorRow item={result.error} compact={compact} hl={hl} />
-        </Section>
-      )}
-    </>
-  );
+  return [
+    {
+      heading: 'No problem — correct',
+      tone: 'good',
+      points: [result.task, result.clarity].filter((c): c is ExaminerCitedClaim => !!c).map(claim),
+    },
+    { heading: 'Mistakes to fix', tone: 'bad', points: result.error ? [fix(result.error)] : [] },
+  ];
 }
 
 /**
@@ -274,7 +177,7 @@ export function ExaminerFeedbackCard({
         </div>
       )}
 
-      <FeedbackSections result={result} compact={compact} hl={highlightedQuote} />
+      <FeedbackPointList groups={examinerGroups(result, compact)} compact={compact} highlightedQuote={highlightedQuote} />
 
       {isEmpty && <p className="text-xs text-ink-muted text-center py-4">{emptyMessage}</p>}
     </div>

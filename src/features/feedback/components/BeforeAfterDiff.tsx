@@ -11,6 +11,8 @@ interface Props {
   changes?: import('../../../types').FeedbackV2['changes'];
   /** Fallback when there is no complete improved_answer (docs Stage 4 invariant #11). */
   issues?: CoachingIssue[];
+  /** Card heading; the coach view calls it "Say it better" (Learn Batch 4). */
+  title?: string;
 }
 
 function DiffChip({ op }: { op: AnnotatedDiffOp }) {
@@ -67,7 +69,7 @@ function SafeCorrectionsList({ issues }: { issues: CoachingIssue[] }) {
   );
 }
 
-export function BeforeAfterDiff({ transcript, improvedAnswer, changes, issues = [] }: Props) {
+export function BeforeAfterDiff({ transcript, improvedAnswer, changes, issues = [], title = 'Before → After' }: Props) {
   // No complete improved_answer -> no diff, ever (docs Stage 4 invariant #11,
   // Stage 5: "it falls back to the Safe corrections individual-correction
   // presentation. A diff implies an authoritative corrected answer exists;
@@ -89,7 +91,7 @@ export function BeforeAfterDiff({ transcript, improvedAnswer, changes, issues = 
 
   return (
     <motion.div variants={fadeUp} initial="hidden" animate="show" className="rounded-xl surface p-4">
-      <p className="text-[9px] font-bold text-ink-subtle uppercase tracking-wider mb-2.5">Before → After</p>
+      <p className="text-[9px] font-bold text-ink-subtle uppercase tracking-wider mb-2.5">{title}</p>
       <div className="space-y-2">
         <div className="p-3 rounded-lg bg-slate-700/30 border border-slate-600/20">
           <p className="text-[8px] font-bold text-ink-subtle uppercase tracking-wider mb-1.5">Your answer</p>

@@ -1,6 +1,6 @@
 // ── Learn overhaul Batch 1e — exam-relative level wording ───────────────────
 import { describe, it, expect } from 'vitest';
-import { levelLabel, measuredLevelDisplay } from '../levelLabel';
+import { cefrLevelLabel, levelLabel, measuredLevelDisplay } from '../levelLabel';
 import type { AbilityResult } from '../deriveAbility';
 
 function ability(overrides: Partial<AbilityResult>): AbilityResult {
@@ -13,6 +13,22 @@ describe('levelLabel', () => {
     expect(levelLabel('A2')).toBe('Exam level (A2)');
     expect(levelLabel('B1')).toBe('Stretch (B1)');
     expect(levelLabel('B2')).toBe('Stretch (B1+)');
+  });
+});
+
+describe('cefrLevelLabel (Batch 4: the coach model\'s cefrLevel)', () => {
+  it('clamps everything above B1 to Stretch (B1+), never showing B2 or C1', () => {
+    expect(cefrLevelLabel('A2')).toBe('Exam level (A2)');
+    expect(cefrLevelLabel('b1')).toBe('Stretch (B1)');
+    for (const code of ['B2', 'C1', 'C2']) {
+      expect(cefrLevelLabel(code)).toBe('Stretch (B1+)');
+      expect(cefrLevelLabel(code)).not.toMatch(/B2|C1|C2/);
+    }
+  });
+
+  it('returns null for an unknown or missing code', () => {
+    expect(cefrLevelLabel(undefined)).toBeNull();
+    expect(cefrLevelLabel('Core-Secure')).toBeNull();
   });
 });
 

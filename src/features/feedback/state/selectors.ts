@@ -45,44 +45,30 @@ export function selectShowExaminerNotebook(feedback: FeedbackV2): boolean {
  */
 export interface CardPlan {
   showExpansionIdeas: boolean;
-  showAdvancedAnswer: boolean;
   lessonsDefaultOpen: boolean;
 }
 
 export function selectCardPlan(feedback: FeedbackV2): CardPlan {
   const depth = feedback.effectiveDepth;
   const hasExpansionIdeas = (feedback.expansion_ideas?.length ?? 0) > 0;
-  const hasAdvancedAnswer = !!feedback.advanced_answer;
 
   if (!depth) {
     // No signal — render whatever data arrived, expand nothing extra.
-    return {
-      showExpansionIdeas: hasExpansionIdeas,
-      showAdvancedAnswer: hasAdvancedAnswer,
-      lessonsDefaultOpen: false,
-    };
+    return { showExpansionIdeas: hasExpansionIdeas, lessonsDefaultOpen: false };
   }
 
   if (depth === 'brief') {
-    // A long, clean answer earned brevity — the ladder/advanced-answer
-    // cards would be more content than the response justified.
-    return { showExpansionIdeas: false, showAdvancedAnswer: false, lessonsDefaultOpen: false };
+    // A long, clean answer earned brevity — extension cards would be more
+    // content than the response justified.
+    return { showExpansionIdeas: false, lessonsDefaultOpen: false };
   }
 
   if (depth === 'deep') {
     // Short-with-errors or a missed demand earned depth — surface every
     // available extension and open lessons by default rather than making
     // the learner hunt for them.
-    return {
-      showExpansionIdeas: hasExpansionIdeas,
-      showAdvancedAnswer: hasAdvancedAnswer,
-      lessonsDefaultOpen: true,
-    };
+    return { showExpansionIdeas: hasExpansionIdeas, lessonsDefaultOpen: true };
   }
 
-  return {
-    showExpansionIdeas: hasExpansionIdeas,
-    showAdvancedAnswer: hasAdvancedAnswer,
-    lessonsDefaultOpen: false,
-  };
+  return { showExpansionIdeas: hasExpansionIdeas, lessonsDefaultOpen: false };
 }

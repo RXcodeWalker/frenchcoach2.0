@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { RotateCcw, ChevronRight, BookMarked } from 'lucide-react';
+import { RotateCcw, ChevronRight } from 'lucide-react';
 
 interface Props {
   onRetry: () => void;
@@ -25,15 +25,7 @@ export function FeedbackFooter({ onRetry, onComplete, modelAnswer }: Props) {
           className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl surface-recessed text-white font-semibold text-xs"
           whileTap={{ scale: 0.97 }}
         >
-          <RotateCcw size={12} /> Retry
-        </motion.button>
-
-        <motion.button
-          disabled
-          title="Coming soon"
-          className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl surface-recessed text-ink-subtle font-semibold text-xs cursor-not-allowed"
-        >
-          <BookMarked size={12} />
+          <RotateCcw size={12} /> Try again
         </motion.button>
 
         <motion.button
@@ -42,7 +34,7 @@ export function FeedbackFooter({ onRetry, onComplete, modelAnswer }: Props) {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.97 }}
         >
-          Next Question <ChevronRight size={13} />
+          Next question <ChevronRight size={13} />
         </motion.button>
       </div>
     </div>

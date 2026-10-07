@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { ChevronRight, RotateCcw } from 'lucide-react';
 import { scoreColor } from '../../domain/scoring';
+import { cefrLevelLabel } from '../../domain/learn/ability/levelLabel';
 import type { FeedbackScore } from '../../types/index';
 
 interface Props {
@@ -52,7 +53,7 @@ export function SessionComplete({ scores, unscored, wordCount, xpEarned, cefrLev
               {[
                 { value: `+${xpEarned ?? 25}`, label: 'XP', color: 'text-emerald-400' },
                 { value: String(wordCount ?? '—'), label: 'Words', color: 'text-violet-400' },
-                { value: cefrLevel ?? '—', label: 'CEFR', color: 'text-amber-400' },
+                { value: cefrLevelLabel(cefrLevel) ?? '—', label: 'Level', color: 'text-amber-400' },
               ].map(stat => (
                 <div key={stat.label} className="p-2.5 rounded-xl surface-recessed">
                   <p className={`text-lg font-black ${stat.color}`}>{stat.value}</p>

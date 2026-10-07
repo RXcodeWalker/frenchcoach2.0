@@ -18,6 +18,7 @@ import { wordCount as demandWordCount } from '../../domain/learn/demand/textCues
 import { demandsVersion as LEARN_DEMANDS_VERSION } from '../../data/learn/demandsManifest';
 import { evaluateDemandSatisfaction } from '../../domain/learn/demand/satisfaction';
 import { computeDepth, type FeedbackDepth } from '../../domain/learn/feedback/computeDepth';
+import { filterCoachFeedback, type CoachInputMode } from '../../domain/learn/feedback/filterCoachFeedback';
 import { classifyTier, buildTier0Result, buildTier1LocalResult } from '../coaching/responseTier';
 import { applyQualityGate } from '../coaching/qualityGate';
 import { validateBackendFeedback, SchemaValidationError } from './feedbackSchema';
@@ -360,7 +361,12 @@ export function mapBackendFeedback(raw: BackendFeedback): FeedbackV2 {
  * Returns null on schema failure — callers fall back to the next engine,
  * exactly as a network error would.
  */
-function normalizeBackendFeedback(raw: BackendFeedbackV2, source: string): FeedbackV2 | null {
+function normalizeBackendFeedback(
+  raw: BackendFeedbackV2,
+  source: string,
+  transcript: string,
+  inputMode: CoachInputMode | undefined,
+): FeedbackV2 | null {
   let parsed: BackendFeedbackV2;
   try {
     // BackendFeedbackSchema is .passthrough(), so fields it doesn't declare
@@ -375,7 +381,15 @@ function normalizeBackendFeedback(raw: BackendFeedbackV2, source: string): Feedb
     }
     throw validationErr;
   }
-  return mergeV2Fields(mapBackendFeedback(parsed), parsed);
+  // Learn Batch 4 (D9): the coach filters run here, once, so the cards and
+  // belief evidence see the same errors. Grounded against the transcript the
+  // backend actually graded (it echoes it; audio requests are transcribed
+  // server-side), else the one this client sent.
+  const echoed = (parsed as { transcript?: unknown }).transcript;
+  const graded = typeof echoed === 'string' && echoed.trim() ? echoed : transcript;
+  const { feedback, dropped } = filterCoachFeedback(mergeV2Fields(mapBackendFeedback(parsed), parsed), graded, inputMode);
+  if (dropped.length > 0) console.log(`[AI Feedback] ${source}: dropped ${dropped.length} claim(s) — ${dropped.join(', ')}`);
+  return feedback;
 }
 
 // A free-text label like "Avoir vs Être" doesn't fit the closed IssueCategory
@@ -543,6 +557,7 @@ async function tryNetworkFeedback(
   audioBlob: Blob | undefined,
   engine: AIEngine,
   startTime: number,
+  inputMode: CoachInputMode | undefined,
 ): Promise<{ result: FeedbackV2; actualEngine: AIEngine } | null> {
   const coldStart = getWarmupPhase() === 'warming';
   const timeoutMs = ENGINE_TIMEOUT_MS[engine] + (coldStart ? COLD_START_GRACE_MS : 0);
@@ -574,7 +589,7 @@ async function tryNetworkFeedback(
     logProviderAttempts(raw, 'v3');
     // Validate the response shape before trusting it — schema failures fall
     // through to the next engine in the chain just like network errors do.
-    const result = normalizeBackendFeedback(raw, `${engine}/v3`);
+    const result = normalizeBackendFeedback(raw, `${engine}/v3`, String(requestBody.transcript ?? ''), inputMode);
     if (result === null) return null;
     result.provider = raw.provider;
     result.providerAttempts = raw.providerAttempts;
@@ -721,6 +736,8 @@ export async function getAIFeedback(
   audioBlob?: Blob,
   enginePreference: AIEngine = 'groq',
   difficulty: DifficultyTier = DEFAULT_DIFFICULTY,
+  /** 'speech' turns on the sound-alike filter (filterCoachFeedback); unknown keeps every error. */
+  inputMode?: CoachInputMode,
 ): Promise<FeedbackV2> {
   const startTime = Date.now();
   const tier = classifyTier(transcript);
@@ -817,7 +834,7 @@ export async function getAIFeedback(
 
   for (let i = 0; i < fallbackChain.length; i++) {
     const engine = fallbackChain[i];
-    const attempt = await tryNetworkFeedback(requestBody, audioBlob, engine, startTime);
+    const attempt = await tryNetworkFeedback(requestBody, audioBlob, engine, startTime, inputMode);
     if (attempt) {
       if (fallbackUsed && attempt.result.engineMeta) {
         attempt.result.engineMeta.fallbackUsed = true;
@@ -1031,6 +1048,8 @@ export async function streamFeedback(
   difficulty: import('../../types').DifficultyTier,
   signal: AbortSignal,
   callbacks: StreamFeedbackCallbacks,
+  /** See getAIFeedback's inputMode. */
+  inputMode?: CoachInputMode,
 ): Promise<void> {
   const ctx = skillContext ?? buildSkillContext();
 
@@ -1121,7 +1140,7 @@ export async function streamFeedback(
         // Validate + map + merge through the same seam the non-streaming
         // path uses — the streaming complete payload was previously cast
         // straight to BackendFeedbackV2 with no validation at all.
-        const base = normalizeBackendFeedback(raw, 'stream');
+        const base = normalizeBackendFeedback(raw, 'stream', transcript, inputMode);
         if (base === null) {
           callbacks.onError?.('Backend response failed validation');
           continue;

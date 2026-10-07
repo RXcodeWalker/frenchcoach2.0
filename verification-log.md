@@ -3553,3 +3553,85 @@ advanced topics; 2 `structure-not-elicited` on the `reviewed` `fam_09` and `foo_
 `scripts/stt/__tests__/supabaseTranscriptStore.test.ts` — files this batch did not touch; none in
 `scripts/authoring/`. Not run: Playwright end-to-end (no UI code changed in 3b); a browser check of
 the new `coachHint` text in light mode (Batch 5 owns visual polish).
+
+## 2026-10-07 — Learn overhaul Batch 4: coach feedback (prompt v5, filters at normalisation, fewer cards)
+
+**Evidence step (before choosing filter rules).** The only recorded coach responses in either repo
+are the 4 `feedback-contract` fixtures (`src/services/api/__fixtures__/feedback-contract/`, byte
+copies in the backend): 4 corrections, 0 grammar items, 4 `best_moment`s (3 with a « » quote). They
+were written to test span resolution, so the sample is small and synthetic; the backend test files
+hold no further quote → correction pairs. Drop counts per shared rule:
+grounding 0/4 · identical correction 0/4 · sound-alike (speech) 0/4 · `meetsErrorQuoteMinimum`
+**4/4** (every one a real one-word fix: « Paris », « allé » → « je suis allé ») · strength overlaps a
+fix 0/3 · `meetsClaimQuoteMinimum` **2/3** (« beaucoup », « ma soeur »). Decision, as the plan
+expected: keep grounding, identical-correction, sound-alike on speech and strength-overlaps-fix;
+skip both quote minimums for the coach voice. The three kept rules dropped nothing here, so their
+real drop rate is unmeasured until there are recorded production replies.
+
+**Backend (`french-coach-backend` d350c27, deploy first).** `learn-prompt-v5`: at most 2 fixes in
+total (grammar critical + polish together; `corrections[]` restates them), each quote → full
+corrected French phrase → one-sentence why, pitched at A2 with elements of B1 (TN p.11, or the
+lower `TARGET LEVEL`, never above B1); one quoted strength that never praises a reported error;
+`improved_answer` ("say it better") at the same level; `advanced_answer` no longer requested (both
+system prompts) but still shipped as "" by `enrich_feedback`; depth ranges no longer ask for
+2-3 / 5-8 grammar items or mark bands; `_GENERIC_PHRASES` + "great job", "good job", "keep it up",
+"keep practising/practicing", "great answer", "nice answer" ("good answer" and "be more specific"
+left out: a match drops the whole card and both can open a specific comment). `cefrLevel` and every
+key unchanged; `FEEDBACK_CONTRACT_VERSION` stays 2. User-prompt hash updated in
+`tests/test_learn_demands.py`; new `tests/test_learn_prompt_v5.py` also pins the `SYSTEM_PROMPT`
+hash (it was unpinned). pytest 461 passed.
+
+**Frontend.**
+- **Filters at normalisation** (`src/domain/learn/feedback/filterCoachFeedback.ts`, called inside
+  `apiClient.ts`'s `normalizeBackendFeedback`, i.e. both `/v3` and the stream's `complete`). Applied
+  to `issues[]` and `grammar.critical/polish`; dropped issues' transcript spans and a dropped
+  `topPriorityIssueId` go too; `best_moment` is dropped if a phrase it quotes is ungrounded or
+  overlaps a kept error. Grounded against the transcript the backend echoes (what it graded), else
+  the one sent. Sound-alike only when the caller says `speech`: Learn does (`LEARN_INPUT_MODE`,
+  same call as the examiner voice); Story, Roleplay, Scenario Architect, Daily News and the
+  placement diagnostic pass nothing, so their spelling-only errors are kept. **This is a
+  belief-input change:** a dropped error no longer reaches `buildEvidence`'s language event
+  (`issueIds`, `issueCount`). Tests: `filterCoachFeedback.test.ts` (each rule; one-word
+  corrections survive), `coachFilterNormalisation.test.ts` (real `getAIFeedback` path → evidence),
+  mutation-checked (stubbing out the filter fails 2 tests; grounding on the sent transcript instead
+  of the graded one fails 1).
+- **Fewer cards** (`FeedbackExperience.tsx`): score line (`SnapshotCard variant="line"`) → What
+  worked → Fix these (≤ 2, `coachPoints.ts`) → Say it better (`BeforeAfterDiff`, replacing
+  `ImprovedAnswerCard` + the coach-view diff + `MarkedUpScript`) → pronunciation block (same JSX,
+  same props) → Try again / Next question. The one-focus line, every correction with its lesson,
+  vocabulary and expansion ideas are in Full report. `FeedbackPointList` is extracted from
+  `ExaminerFeedbackCard` and used by both voices (examiner markup unchanged, its 20 tests green).
+  `cefrLevelLabel` clamps the model's `cefrLevel` at display (B2/C1/C2 → "Stretch (B1+)") in
+  `SnapshotCard`, `FeedbackPanel` (Daily News) and the importer-less `SessionComplete`; the band
+  pill is gone (D3). `FeedbackExperience.test.tsx`, `coachPoints.test.ts`, `levelLabel.test.ts`.
+
+**Deviations and judgement calls.**
+1. "At most 2" is enforced by the prompt and by the coach view, not by truncating the reply: the
+   server's depth caps are unchanged and every valid error the model returns still reaches
+   evidence (a display limit is not a filter).
+2. The prompt is shared by every coach-endpoint caller, so Story, Roleplay, Scenario Architect,
+   Daily News and placement also get ≤ 2 fixes and no advanced answer. Daily News sends audio and
+   uses `MULTIMODAL_SYSTEM_PROMPT`, which only lost the `advanced_answer` line (no 2-fix rule).
+   Fewer reported errors per answer is also fewer error ids in evidence for all of them.
+3. `biggest_opportunity` is not in the plan's coach-view list, so it moved to Full report.
+4. Removed with no importer left: `ImprovedAnswerCard.tsx`, `AdvancedAnswerCard.tsx`, the card
+   plan's `showAdvancedAnswer`, and the footer's disabled "Coming soon" bookmark button.
+5. Not filtered: the streaming partial sections (transient; the `complete` result replaces them).
+   The older `applyQualityGate` still drops an issue whose quote is not a substring of the
+   *client* transcript — unchanged.
+6. Observation for the owner, pre-existing: backend corrections map to `category: 'grammar'`
+   (deliberately unmapped in `nodeMap.ts`) and backend grammar items carry `themeLabel`, not
+   `theme`, so LLM coach errors produce no per-node failure observation — they reach beliefs only
+   as counts on the language event.
+
+**Deploy and rollback.** Backend first, then frontend; the contract does not move, so each side
+works with the other's previous version (an old frontend gets `advanced_answer: ""` and hides that
+card; a new frontend with the v4 backend shows ≤ 2 of however many fixes arrive). Either commit can
+be reverted alone. Not deployed from this session.
+
+Gate at commit: `npm run typecheck` clean · `typecheck:server` clean · `npm run lint` 0 errors (21
+pre-existing warnings) · `npm test` **315 files / 3107 tests passed** (with `backend/` linked) ·
+`learn:check -- --draft` 0 errors (71 warnings, unchanged) · `authoring:check` 0/0 ·
+`authoring:parity` 10/10 · `examiner:parity` matches · backend `pytest tests` 461 passed. Not run:
+Playwright end-to-end (a Learn answer needs speech input; the feedback screen is covered by the
+jsdom render test, light-mode visuals are Batch 5).

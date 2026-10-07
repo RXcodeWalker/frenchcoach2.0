@@ -8,16 +8,10 @@ import { stagger } from '../../components/motion/variants';
 import { FeedbackProvider, useFeedbackContext } from './state/feedbackContext';
 import { useFeedbackState } from './hooks/useFeedbackState';
 import { SnapshotCard } from './components/SnapshotCard';
-import { MarkedUpScript } from './components/MarkedUpScript';
 import { BeforeAfterDiff } from './components/BeforeAfterDiff';
 import { ReportView } from './components/ReportView';
-import { StrongestMomentCard } from './components/StrongestMomentCard';
-import { BiggestOpportunityCard } from './components/BiggestOpportunityCard';
-import { ImprovedAnswerCard } from './components/ImprovedAnswerCard';
-import { CorrectionsCard } from './components/CorrectionsCard';
-import { ExpansionIdeasCard } from './components/ExpansionIdeasCard';
-import { AdvancedAnswerCard } from './components/AdvancedAnswerCard';
-import { VocabularyCard } from './components/VocabularyCard';
+import { FeedbackPointList } from './components/FeedbackPointList';
+import { coachPointGroups, whatWorkedGroup } from './coachPoints';
 import { PronunciationCard } from './components/PronunciationCard';
 import { AzurePronunciationCard } from './components/AzurePronunciationCard';
 import { FeedbackFooter } from './components/FeedbackFooter';
@@ -25,7 +19,6 @@ import { MinimalResponseCard } from './components/MinimalResponseCard';
 import { OfflineLimitationsBanner } from '../../screens/learn/OfflineLimitationsBanner';
 import { SIGNED_OUT_FEEDBACK_REASON } from '../../services/api/apiClient';
 import { FailoverBadge } from '../../screens/learn/FailoverBadge';
-import { selectCardPlan } from './state/selectors';
 import type { FeedbackV2 } from '../../types';
 import type { PronunciationAssessment } from '../../domain/pronunciation/types';
 
@@ -107,7 +100,6 @@ function FeedbackContent({
   pronunciationResult, pronunciationStatus,
 }: Omit<Props, 'isLoading' | 'feedback'> & { feedback: FeedbackV2 }) {
   const { state, majorIssues, polishIssues, openCardFromIssue } = useFeedbackState(feedback);
-  const cardPlan = selectCardPlan(feedback);
 
   if (feedback.responseTier === 0 || feedback.responseTier === 1) {
     return (
@@ -153,63 +145,21 @@ function FeedbackContent({
       <FailoverBadge engineMeta={feedback.engineMeta} />
       <ViewModeToggle />
 
-      {/* Scores near the top — quick orientation before coaching content */}
-      <SnapshotCard feedback={feedback} />
+      {/* Learn Batch 4 — one short stack: score line → what worked → fix these
+          (≤ 2) → say it better. Lessons, vocabulary, expansion ideas and the
+          one-focus line live in the Full report. */}
+      <SnapshotCard feedback={feedback} variant="line" />
 
-      {/* Coaching priority 1: what went well */}
-      <StrongestMomentCard feedback={feedback} transcript={transcript} />
+      <FeedbackPointList groups={coachPointGroups(feedback)} />
 
-      {/* Coaching priority 2: single most important improvement */}
-      <BiggestOpportunityCard opportunity={feedback.biggest_opportunity} />
-
-      {/* Coaching priority 3: before → after comparison */}
-      <ImprovedAnswerCard
-        originalTranscript={transcript ?? ''}
-        improvedAnswer={feedback.improved_answer}
-        rephrase={feedback.rephrase}
-        formattedTranscript={feedback.formatted_transcript}
-      />
-
-      {/* Marked-up transcript — clickable error highlighting */}
-      {transcript && (
-        <MarkedUpScript
-          transcript={transcript}
-          feedback={feedback}
-          onIssueClick={openCardFromIssue}
-        />
-      )}
-
-      {/* Deterministic word-level diff, falling back to a "Safe corrections"
-          list when there's no complete improved_answer to diff against. */}
       {transcript && (
         <BeforeAfterDiff
           transcript={transcript}
           improvedAnswer={feedback.improved_answer}
           changes={feedback.changes}
-          issues={majorIssues}
+          title="Say it better"
         />
       )}
-
-      {/* Corrections: critical (open) + polish/next-level (collapsed) */}
-      <CorrectionsCard
-        issues={majorIssues}
-        polishIssues={polishIssues}
-        feedback={feedback}
-        lessonsDefaultOpen={cardPlan.lessonsDefaultOpen}
-      />
-
-      {/* How to extend — expansion ideas, adaptive to depth */}
-      {cardPlan.showExpansionIdeas && (
-        <ExpansionIdeasCard ideas={feedback.expansion_ideas} defaultOpen={cardPlan.lessonsDefaultOpen} />
-      )}
-
-      {/* Advanced version, adaptive to depth */}
-      {cardPlan.showAdvancedAnswer && (
-        <AdvancedAnswerCard advancedAnswer={feedback.advanced_answer} defaultOpen={cardPlan.lessonsDefaultOpen} />
-      )}
-
-      {/* Vocabulary upgrades */}
-      <VocabularyCard feedback={feedback} />
 
       {/* Pronunciation — Azure (0-100, real acoustic analysis) supersedes the legacy
           0-10 Gemini-prompt field whenever a Learn attempt has an audio blob. Never
@@ -314,13 +264,10 @@ export function FeedbackExperience({
           className="space-y-3"
         >
           <SectionGate ready={!!p.scores}>
-            <SnapshotCard feedback={p as FeedbackV2} />
+            <SnapshotCard feedback={p as FeedbackV2} variant="line" />
           </SectionGate>
           <SectionGate ready={p.best_moment != null}>
-            <StrongestMomentCard feedback={p as FeedbackV2} transcript={transcript} />
-          </SectionGate>
-          <SectionGate ready={p.biggest_opportunity != null}>
-            <BiggestOpportunityCard opportunity={p.biggest_opportunity} />
+            <FeedbackPointList groups={[whatWorkedGroup(p)]} />
           </SectionGate>
           <CardSkeleton />
           <CardSkeleton />
