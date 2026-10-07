@@ -56,12 +56,44 @@ contract implements.
 | `time-frame-not-cued` | warn | a tagged frame has no cue word in the question text |
 | `structure-not-elicited` | warn | structure tagged but no matching pattern in the question text |
 | `topic-demand-monotony` | warn | a topic file covers < 3 distinct `cognitiveDemand` values |
-| `corpus-hash-drift` | error | reserved for Stage 8 (`src/data/learn/` vs `backend/data/learn/` parity) — not implemented until then |
+| `corpus-hash-drift` | error | `src/data/learn/demands/` and `backend/data/learn/` hash differently (skipped when `backend/data/learn/` is absent) |
 
 `time-frame-not-cued` and `structure-not-elicited` are skipped (never warn)
 when the checker cannot resolve the question's French text — this happens
 only if the referenced `questionId` isn't found in `QUESTIONS`, which
 `unknown-question-id` already flags as an error.
+
+### 2a. Question-bank lint (also run by `learn:check`)
+
+`src/data/learnBankLint.ts` checks the Learn-only fields on `Question` and the
+wording of the question itself. It is a content gate, never a runtime filter.
+
+| Rule | Severity | Fires when |
+| --- | --- | --- |
+| `sub-topic-not-in-topic` | error | `subTopic` is not in `LEARN_SUB_TOPICS[topicKey]` (`src/data/learnSubTopics.ts`; only the 16 core topics have a list) |
+| `coach-hint-shape` | error | `coachHint` has not 2–3 ideas, an idea under 3 words or over 120 characters, or an empty `phrase.fr`/`phrase.en` |
+| `coach-hint-restates-question` | warn | an idea copies the legacy `hint`, or `phrase.fr` mostly repeats the question's own words |
+| `coach-hint-tense-mismatch` | warn | the question is tagged past/future/conditional and `phrase.fr` shows none of those cues, or it is tagged present-only and the phrase cues another tense (skipped without a demands tag) |
+| `bare-yes-no-question` | warn | a one-`?` question that opens as a yes/no and has no open word — the same predicate as the exam bank's `patternLint.ts` |
+| `loaded-negative` | warn | the question leads the answer ("Ne penses-tu pas…") — same predicate as `patternLint.ts` |
+
+`subTopic` and `coachHint` live on the question in `src/data/questions.ts`, not
+in the demands files, so editing them never changes `demandsVersion`. **`hint`
+is not display-only** — `infer.ts` (response load, sufficient answer) and
+`diagnosticEngine.ts` (avoidance) read it — so write the learner-facing help
+in `coachHint` and leave `hint` alone. Changing a question's *text* changes
+inference: re-tag and re-review that entry in the same commit.
+
+### 2b. Parity tests (run by `npm test`)
+
+`src/data/learn/__tests__/demandsParity.test.ts` fails when the manifest is stale
+(`demandsVersion` or `byQuestionId` differs from the JSON; fix with
+`npm run learn:build-manifest`) and, when `backend/` is present, when
+`backend/data/learn/` is not a byte copy (fix with `npm run learn:sync-backend`).
+A hash mismatch is silent at runtime: the backend sets `demandsResolved: false`
+and L2 evidence switches off. Ship each demands change as one frontend commit
+(JSON + regenerated manifest) and one backend commit (byte copy), deployed back
+to back, and note the short L2-off window in `verification-log.md`.
 
 ## 3. Scripts
 

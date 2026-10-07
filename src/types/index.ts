@@ -84,6 +84,19 @@ export interface Topic {
   isAdvanced?: boolean;
 }
 
+/**
+ * Learner-facing hint, shown by QuestionCard in place of `hint` when present.
+ * Display-only: `hint` (a string) stays untouched because inference
+ * (`infer.ts`) and avoidance detection (`diagnosticEngine.ts`) read it, and
+ * Supabase/admin rows carry it. Never read this from the demands layer.
+ */
+export interface CoachHint {
+  /** 2–3 short English ideas, specific to this question. */
+  ideas: string[];
+  /** One French sentence frame the learner can borrow, with its English gloss. */
+  phrase: { fr: string; en: string };
+}
+
 export interface Question {
   id: string;
   topicKey: string;
@@ -97,6 +110,13 @@ export interface Question {
   year?: number;
   paperCode?: string;
   demands?: QuestionDemands;
+  /**
+   * Learn-only focus chip, one of `LEARN_SUB_TOPICS[topicKey]` (src/data/learnSubTopics.ts).
+   * Deliberately not part of `QuestionDemands`, so it never touches the demands
+   * hash or the backend. Absent means "unfiltered": Learn reads the static bank.
+   */
+  subTopic?: string;
+  coachHint?: CoachHint;
 }
 
 export interface RebuildQuestion {

@@ -3445,3 +3445,29 @@ Gate at commit: `npm run typecheck` clean · `typecheck:server` clean · `npm ru
 (21 warnings, all pre-existing) · `npm test` **306 files / 3042 tests passed** (with `backend/`
 linked, as CI does) · `learn:check -- --draft` 0 errors (63 warnings) · `authoring:check` 0/0 ·
 `authoring:parity` 10/10. Not run: backend pytest (no backend change).
+
+## 2026-10-07 — Learn overhaul Batch 3a: guardrails (parity tests, `subTopic`, `coachHint`, bank lint)
+
+**Changed:** no demands file, manifest or backend byte changed, so there is no L2-off window. Added
+`scripts/authoring/learnCorpusHash.ts` (the corpus hash, extracted so tests can import it:
+`buildDemandsManifest.ts` runs `main()` on import, which meant `learn:check` rewrote the manifest
+as a side effect), `src/data/learn/__tests__/demandsParity.test.ts`, `Question.subTopic` /
+`Question.coachHint` (types only, nothing assigned yet), `src/data/learnSubTopics.ts` (closed lists
+for the 16 core topics, 3–5 each), `src/data/learnBankLint.ts` wired into `learn:check`, and the
+`coachHint` display in `QuestionCard` with a fallback to `hint`. `hint` is untouched.
+
+**Verified:** each parity test fails when one byte is appended to a demands file (reproduced, then
+restored), and passes on the real corpus with `backend/` symlinked to the sibling clone. `npm test`
+2984 passed, `typecheck`, `typecheck:server` and `lint` (0 errors) clean, `authoring:check` and
+`authoring:parity` clean, `learn:check` has 0 errors other than the existing 420 `not-approved`.
+`typecheck:scripts` reports 3 errors in `scripts/scoring` and `scripts/stt` tests, identical with
+these changes stashed.
+
+**Deviation from the plan text:** the plan estimated 182 bare yes/no questions. Reusing
+`patternLint.ts`'s `opensAsYesNo`/`isOpenQuestion` as specified flags 236 of 668 (warnings, listed
+by `learn:check`); Batch 3b should work from that list. Lint severities: shape and closed-list
+rules are errors, the heuristic text rules are warnings, so the current bank stays green.
+
+**Not verified:** the tense-cue regexes for French phrase frames are narrow heuristics and have only
+synthetic test cases, no real `coachHint` yet. The plan's Batch 1 and 2 are not present in this
+repository's history, so nothing here was exercised against them.
