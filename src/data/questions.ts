@@ -45,6 +45,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Parle-moi de ton école.",
     hint: "Talk about your school — size, subjects, teachers, uniform, facilities.",
+    subTopic: "school-day",
+    coachHint: {
+      ideas: ["Say roughly how big your school is and where it is", "Name two or three subjects or facilities you like", "Mention your teachers or the uniform"],
+      phrase: { fr: "Mon école s'appelle… et il y a environ… élèves.", en: "My school is called… and there are about… pupils." },
+    },
     difficulty: 1,
     followUps: [
       "Quel est ton professeur préféré et pourquoi ?",
@@ -66,6 +71,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Quelles sont tes matières préférées et pourquoi ?",
     hint: "Describe 2-3 favourite subjects, give reasons, compare with subjects you dislike.",
+    subTopic: "subjects",
+    coachHint: {
+      ideas: ["Pick two subjects you really like", "Give one reason for each (useful, interesting, good teacher)", "Say how you feel about a subject you like less"],
+      phrase: { fr: "Ma matière préférée, c'est… parce que…", en: "My favourite subject is… because…" },
+    },
     difficulty: 1,
     followUps: [
       "À quelle heure commencent tes cours ?",
@@ -87,6 +97,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Comment tu vas à l'école chaque matin ?",
     hint: "Explain your journey to school — transport, how long it takes, who you go with.",
+    subTopic: "school-day",
+    coachHint: {
+      ideas: ["Say which transport you use (bus, car, walking, bike)", "Give the journey time", "Say who you travel with, if anyone"],
+      phrase: { fr: "Pour aller à l'école, je prends… et le trajet dure…", en: "To get to school I take… and the journey lasts…" },
+    },
     difficulty: 1,
     followUps: [
       "À quelle heure tu pars de chez toi ?",
@@ -108,6 +123,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Est-ce que tu aimes ton école ? Pourquoi ou pourquoi pas ?",
     hint: "Give a balanced opinion with both positives and negatives, plus reasons.",
+    subTopic: "school-day",
+    coachHint: {
+      ideas: ["Start with your overall feeling about the school", "Give one good thing and one thing you would improve", "Add a reason for each"],
+      phrase: { fr: "Dans l'ensemble, j'aime mon école parce que… mais…", en: "Overall I like my school because… but…" },
+    },
     difficulty: 2,
     followUps: [
       "Qu'est-ce que tu changerais dans ton école si tu pouvais ?",
@@ -129,6 +149,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Qu'est-ce que tu as fait à l'école la semaine dernière ?",
     hint: "Use passé composé to describe specific events — a lesson, a test, a school trip.",
+    subTopic: "school-day",
+    coachHint: {
+      ideas: ["Pick two real events from last week (a test, a trip, a lesson)", "Say what happened in each, in the past tense", "Add how you felt about one of them"],
+      phrase: { fr: "La semaine dernière, j'ai… et on a…", en: "Last week I… and we…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que tu as eu des examens récemment ?",
@@ -150,6 +175,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Décris ta journée scolaire typique.",
     hint: "Walk through your day from morning to end of school using time phrases.",
+    subTopic: "school-day",
+    coachHint: {
+      ideas: ["Go through the day in order, from the morning to the end of school", "Include at least three times or lesson names", "Say what you do at lunch or break"],
+      phrase: { fr: "Ma journée commence à… et ensuite, je…", en: "My day starts at… and then I…" },
+    },
     difficulty: 1,
     followUps: [
       "Tu manges à la cantine ou tu apportes ton repas ?",
@@ -691,6 +721,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Quelle est ta matière la moins préférée et pourquoi ?",
     hint: "Identify your least favorite subject, explain why (boring, difficult, teacher), and compare it to others.",
+    subTopic: "subjects",
+    coachHint: {
+      ideas: ["Name the subject you like least", "Give two reasons (boring, hard, the teacher)", "Say what you do to cope with it"],
+      phrase: { fr: "Ma matière la moins préférée, c'est… parce que…", en: "My least favourite subject is… because…" },
+    },
     difficulty: 1,
     followUps: [
       "Est-ce que tu penses que c'est une matière importante ?",
@@ -712,6 +747,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Décris un professeur que tu admires.",
     hint: "Describe a teacher you admire — their subject, personality, and why they are a good teacher.",
+    subTopic: "teachers-and-classmates",
+    coachHint: {
+      ideas: ["Say which teacher you admire and what they teach", "Give two personality traits (patient, funny, fair)", "Explain why their lessons are good"],
+      phrase: { fr: "J'admire… parce qu'il/elle est… et que…", en: "I admire… because he/she is… and…" },
+    },
     difficulty: 2,
     followUps: [
       "Quelles sont les qualités d'un bon professeur selon toi ?",
@@ -733,6 +773,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Que penses-tu du règlement scolaire ?",
     hint: "Discuss school rules — uniform, phone usage, punctuality — and give your opinion on whether they are fair.",
+    subTopic: "rules-and-uniform",
+    coachHint: {
+      ideas: ["Name one or two rules you know (uniform, phones, being on time)", "Say whether each one is fair", "Give a reason for your opinion"],
+      phrase: { fr: "À mon avis, la règle sur… est… parce que…", en: "In my opinion, the rule about… is… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Quelle règle est la plus difficile à suivre ?",
@@ -754,6 +799,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Si tu étais le proviseur, qu'est-ce que tu changerais ?",
     hint: "Use conditional tense to describe changes you would make to school life, facilities, or schedule.",
+    subTopic: "rules-and-uniform",
+    coachHint: {
+      ideas: ["Think about one thing in school life you would change", "Say why it would help students", "Add a second change if you can"],
+      phrase: { fr: "Si j'étais le proviseur, je changerais… parce que…", en: "If I were the head, I would change… because…" },
+    },
     difficulty: 3,
     followUps: [
       "Est-ce que tu changerais les horaires scolaires ?",
@@ -1337,6 +1387,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Tu préfères travailler seul ou en groupe ? Pourquoi ?",
     hint: "Discuss the pros and cons of individual vs. group work in school.",
+    subTopic: "exams-and-homework",
+    coachHint: {
+      ideas: ["Say which you prefer: alone or in a group", "Give one advantage of your choice", "Mention one drawback of the other way"],
+      phrase: { fr: "Je préfère travailler… parce que… mais…", en: "I prefer working… because… but…" },
+    },
     difficulty: 2,
     followUps: [
       "Quels sont les avantages du travail en équipe ?",
@@ -1358,6 +1413,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Parle-moi de ton uniforme scolaire. Est-ce une bonne idée ?",
     hint: "Describe your uniform and give your opinion on whether it should be mandatory.",
+    subTopic: "rules-and-uniform",
+    coachHint: {
+      ideas: ["Describe what the uniform looks like (colours, items)", "Say if you think it is a good idea", "Give a reason (cost, fairness, comfort)"],
+      phrase: { fr: "Notre uniforme, c'est… et je pense que c'est une bonne idée parce que…", en: "Our uniform is… and I think it is a good idea because…" },
+    },
     difficulty: 1,
     followUps: [
       "Qu'est-ce que tu portes exactement ?",
@@ -1379,6 +1439,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Qu'est-ce que tu penses des devoirs ? Est-ce qu'ils sont utiles ?",
     hint: "Give a balanced view on the necessity and amount of homework.",
+    subTopic: "exams-and-homework",
+    coachHint: {
+      ideas: ["Say whether homework is useful overall", "Give a reason or example", "Say how much you get and how you feel about it"],
+      phrase: { fr: "Je pense que les devoirs sont… parce que…", en: "I think homework is… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Combien de temps passes-tu sur tes devoirs chaque soir ?",
@@ -1400,6 +1465,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Décris une journée scolaire idéale.",
     hint: "Imagine your perfect school day — subjects, breaks, food, and duration.",
+    subTopic: "school-day",
+    coachHint: {
+      ideas: ["Say when it would start and finish", "Choose the subjects and breaks you would keep", "Add one detail about food or activities"],
+      phrase: { fr: "Ma journée idéale commence à… et il y a…", en: "My ideal day starts at… and there is…" },
+    },
     difficulty: 2,
     followUps: [
       "À quelle heure commencerait l'école ?",
@@ -1419,8 +1489,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "sch_15",
     topicKey: "school",
-    text: "Est-ce que tu participes à des clubs après l'école ?",
+    text: "Est-ce que tu participes à des clubs après l'école ? Lesquels et pourquoi ?",
     hint: "Talk about extracurricular activities and their benefits.",
+    subTopic: "school-day",
+    coachHint: {
+      ideas: ["Say yes or no, then name a club or team", "Say when it meets", "Give one reason you enjoy it, or why you do not join"],
+      phrase: { fr: "Je fais partie du club de… et j'adore ça parce que…", en: "I belong to the… club and I love it because…" },
+    },
     difficulty: 1,
     followUps: [
       "Quel club préfères-tu ?",
@@ -1983,6 +2058,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Comment est-ce que tu utilises la technologie à l'école ?",
     hint: "Talk about laptops, tablets, and the internet in your lessons.",
+    subTopic: "subjects",
+    coachHint: {
+      ideas: ["Name the devices used in your lessons", "Give one example of what you do with them", "Say if they help you learn"],
+      phrase: { fr: "En cours, on utilise… pour… et c'est…", en: "In lessons we use… to… and it is…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que tu préfères les livres papier ou numériques ?",
@@ -2004,6 +2084,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Où aimerais-tu aller pour ton prochain voyage scolaire ?",
     hint: "Describe your dream school trip and what you would do there.",
+    subTopic: "school-day",
+    coachHint: {
+      ideas: ["Name a place or country you would like to visit", "Say what you would do or see there", "Give a reason why it suits a class trip"],
+      phrase: { fr: "J'aimerais aller à… parce que je pourrais…", en: "I would like to go to… because I could…" },
+    },
     difficulty: 2,
     followUps: [
       "Pourquoi as-tu choisi cette destination ?",
@@ -2025,6 +2110,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Pourquoi est-il important d'apprendre des langues étrangères ?",
     hint: "Discuss the benefits of bilingualism for travel, work, and culture.",
+    subTopic: "subjects",
+    coachHint: {
+      ideas: ["Give two reasons (travel, work, culture, friends)", "Add one example from your own life", "Say which language you would like to learn next"],
+      phrase: { fr: "Apprendre des langues est important parce que…", en: "Learning languages is important because…" },
+    },
     difficulty: 3,
     followUps: [
       "Quelles langues apprends-tu à l'école ?",
@@ -2046,6 +2136,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Comment sont les relations entre les élèves dans ton école ?",
     hint: "Talk about friendships, atmosphere, and how students get along.",
+    subTopic: "teachers-and-classmates",
+    coachHint: {
+      ideas: ["Say whether the atmosphere is friendly or tense", "Give an example of how people help each other", "Mention any problems briefly"],
+      phrase: { fr: "Dans mon école, les élèves s'entendent… et…", en: "In my school students get along… and…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que tu as beaucoup d'amis à l'école ?",
@@ -2065,8 +2160,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "sch_20",
     topicKey: "school",
-    text: "Quelles sont les différences entre ton école primaire et ton lycée ?",
+    text: "Quand tu étais à l'école primaire, comment c'était ? Quelles sont les différences avec ton lycée ?",
     hint: "Compare your current school with your previous one (past vs present).",
+    subTopic: "school-day",
+    coachHint: {
+      ideas: ["Describe your primary school first (size, teachers, rules)", "Then say what is different now", "Use the imperfect for the past, the present for now"],
+      phrase: { fr: "À l'école primaire, c'était… mais maintenant…", en: "At primary school it was… but now…" },
+    },
     difficulty: 2,
     followUps: [
       "Laquelle préférais-tu et pourquoi ?",
@@ -2839,6 +2939,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Qu'est-ce que tu penses de la mixité à l'école ?",
     hint: "Discuss the pros and cons of mixed-gender schools vs. single-sex schools.",
+    subTopic: "rules-and-uniform",
+    coachHint: {
+      ideas: ["Say whether you are for or against mixed schools", "Give one advantage", "Mention one possible drawback"],
+      phrase: { fr: "Je suis pour la mixité parce que…", en: "I am in favour of mixed schools because…" },
+    },
     difficulty: 3,
     followUps: [
       "Préfères-tu les écoles mixtes ou non-mixtes ?",
@@ -2860,6 +2965,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Quels sont les avantages d'avoir une bibliothèque dans ton école ?",
     hint: "Talk about the resources, quiet space, and benefits for students.",
+    subTopic: "school-day",
+    coachHint: {
+      ideas: ["Name two advantages (quiet, books, computers)", "Say how you personally use the library", "Say what you would add to it"],
+      phrase: { fr: "La bibliothèque est utile parce qu'on peut…", en: "The library is useful because you can…" },
+    },
     difficulty: 1,
     followUps: [
       "Vas-tu souvent à la bibliothèque ?",
@@ -2881,6 +2991,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Comment est-ce que tu gères ton stress pendant les examens ?",
     hint: "Share your tips for staying calm and organized during test periods.",
+    subTopic: "exams-and-homework",
+    coachHint: {
+      ideas: ["Name two things you do to stay calm", "Say when you start revising", "Add advice for a friend"],
+      phrase: { fr: "Pour gérer mon stress, je…", en: "To manage my stress, I…" },
+    },
     difficulty: 2,
     followUps: [
       "Es-tu une personne stressée d'habitude ?",
@@ -2902,6 +3017,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Si tu pouvais créer une nouvelle matière scolaire, laquelle serait-ce ?",
     hint: "Think about something practical or fun that isn't currently taught.",
+    subTopic: "subjects",
+    coachHint: {
+      ideas: ["Name the new subject", "Say two things students would learn", "Explain why it would be useful"],
+      phrase: { fr: "Si je pouvais, je créerais une matière sur… parce que…", en: "If I could, I would create a subject about… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Pourquoi cette matière serait-elle utile ?",
@@ -2923,6 +3043,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Quel est l'impact des sorties scolaires sur ton apprentissage ?",
     hint: "Discuss the benefits of learning outside the traditional classroom setting.",
+    subTopic: "school-day",
+    coachHint: {
+      ideas: ["Describe one school trip you did", "Say what you learned from it", "Compare it with a normal lesson"],
+      phrase: { fr: "Les sorties scolaires m'aident parce que…", en: "School trips help me because…" },
+    },
     difficulty: 3,
     followUps: [
       "Quelle a été ta meilleure sortie scolaire ?",
@@ -3695,6 +3820,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Quelles sont les qualités d'un bon professeur selon toi ?",
     hint: "Discuss the traits that make a teacher effective and inspiring.",
+    subTopic: "teachers-and-classmates",
+    coachHint: {
+      ideas: ["Name three qualities (patient, clear, fair)", "Explain why one of them matters most", "Give an example of a teacher who has it"],
+      phrase: { fr: "Un bon professeur doit être… et savoir…", en: "A good teacher must be… and know how to…" },
+    },
     difficulty: 2,
     followUps: [
       "As-tu un professeur préféré ? Pourquoi ?",
@@ -3716,6 +3846,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Que penses-tu de la triche aux examens ?",
     hint: "Discuss the ethics of cheating and its consequences.",
+    subTopic: "exams-and-homework",
+    coachHint: {
+      ideas: ["Say whether cheating is serious", "Give two reasons (unfair, risky, no learning)", "Say what a school should do about it"],
+      phrase: { fr: "Pour moi, la triche est… parce que…", en: "For me, cheating is… because…" },
+    },
     difficulty: 3,
     followUps: [
       "Pourquoi certains élèves trichent-ils ?",
@@ -3735,8 +3870,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "sch_28",
     topicKey: "school",
-    text: "Est-ce que les compétitions sportives sont importantes à l'école ?",
+    text: "Est-ce que les compétitions sportives sont importantes à l'école ? Pourquoi ?",
     hint: "Talk about school sports days and their impact on students.",
+    subTopic: "school-day",
+    coachHint: {
+      ideas: ["Say yes or no", "Give two reasons (teamwork, health, fun)", "Mention students who are not sporty"],
+      phrase: { fr: "Je pense que les compétitions sont… parce que…", en: "I think competitions are… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Participes-tu aux journées sportives de ton école ?",
@@ -3756,8 +3896,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "sch_29",
     topicKey: "school",
-    text: "L'école devrait-elle commencer plus tard le matin ?",
+    text: "Penses-tu que l'école devrait commencer plus tard le matin ? Pourquoi ?",
     hint: "Discuss the benefits and drawbacks of a later start time for students.",
+    subTopic: "school-day",
+    coachHint: {
+      ideas: ["Say whether you agree with a later start", "Give one advantage (sleep, energy)", "Give one drawback (finishing later)"],
+      phrase: { fr: "Je pense que l'école doit commencer… parce que…", en: "I think school should start… because…" },
+    },
     difficulty: 2,
     followUps: [
       "À quelle heure commences-tu d'habitude ?",
@@ -4337,8 +4482,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "sch_30",
     topicKey: "school",
-    text: "Préfères-tu être interne ou externe à l'école ?",
+    text: "Préfères-tu être interne ou externe à l'école ? Pourquoi ?",
     hint: "Discuss the pros and cons of being a boarding student vs. a day student.",
+    subTopic: "rules-and-uniform",
+    coachHint: {
+      ideas: ["Choose boarding or day student", "Give two reasons (family, friends, freedom, study)", "Mention one good point about the other option"],
+      phrase: { fr: "Je préfère être… parce que…", en: "I prefer to be… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Quels sont les avantages de vivre à l'école ?",
@@ -4360,6 +4510,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Pourquoi est-il important d'apprendre des langues étrangères à l'école ?",
     hint: "Explain the benefits of language learning for travel, career, and culture.",
+    subTopic: "subjects",
+    coachHint: {
+      ideas: ["Give two reasons (travel, jobs, cultures)", "Add a personal example", "Say how languages are taught at your school"],
+      phrase: { fr: "Il est important d'apprendre des langues parce que…", en: "It is important to learn languages because…" },
+    },
     difficulty: 1,
     followUps: [
       "Quelle autre langue aimerais-tu apprendre ?",
@@ -4381,6 +4536,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Que penses-tu de l'utilisation des tablettes et ordinateurs en classe ?",
     hint: "Discuss how technology helps or hinders learning in the classroom.",
+    subTopic: "subjects",
+    coachHint: {
+      ideas: ["Say whether tablets and computers help", "Give one advantage (speed, resources)", "Give one problem (distraction)"],
+      phrase: { fr: "À mon avis, les tablettes sont… parce que…", en: "In my opinion, tablets are… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Utilises-tu souvent une tablette pour faire tes devoirs ?",
@@ -4400,8 +4560,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "sch_33",
     topicKey: "school",
-    text: "As-tu déjà participé à un échange scolaire à l'étranger ?",
+    text: "As-tu déjà participé à un échange scolaire à l'étranger ? Sinon, aimerais-tu en faire un, et pourquoi ?",
     hint: "Talk about a school exchange trip or your desire to participate in one.",
+    subTopic: "school-day",
+    coachHint: {
+      ideas: ["Say whether you have done an exchange", "If yes, say where and what it was like", "If not, say where you would go and why"],
+      phrase: { fr: "Oui, j'ai participé à… / Non, mais j'aimerais… parce que…", en: "Yes, I took part in… / No, but I would like… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Dans quel pays aimerais-tu faire un échange ?",
@@ -4421,8 +4586,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "sch_34",
     topicKey: "school",
-    text: "Est-ce que tu ressens beaucoup de pression à cause des notes ?",
+    text: "Est-ce que tu ressens beaucoup de pression à cause des notes ? Comment est-ce que tu la gères ?",
     hint: "Discuss academic pressure, competition, and how you cope with it.",
+    subTopic: "exams-and-homework",
+    coachHint: {
+      ideas: ["Say how much pressure you feel and when", "Name one thing that causes it", "Give one way you cope (sport, planning, friends)"],
+      phrase: { fr: "Je ressens… avant les examens, mais je gère ça en…", en: "I feel… before exams, but I manage it by…" },
+    },
     difficulty: 3,
     followUps: [
       "Tes parents sont-ils exigeants avec tes résultats ?",
@@ -4444,6 +4614,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Comment sont tes relations avec tes camarades de classe ?",
     hint: "Describe your social life at school and how you get along with others.",
+    subTopic: "teachers-and-classmates",
+    coachHint: {
+      ideas: ["Say whether you get on well with your class", "Give an example of helping each other", "Mention one person or group you are close to"],
+      phrase: { fr: "Je m'entends bien avec mes camarades parce que…", en: "I get on well with my classmates because…" },
+    },
     difficulty: 1,
     followUps: [
       "As-tu un grand groupe d'amis à l'école ?",
@@ -4463,8 +4638,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "sch_36",
     topicKey: "school",
-    text: "Est-ce que tu ton école t'aide pour ton orientation professionnelle ?",
+    text: "Est-ce que ton école t'aide pour ton orientation professionnelle ? Comment ?",
     hint: "Talk about career advice, internships, or guidance you receive at school.",
+    subTopic: "school-day",
+    coachHint: {
+      ideas: ["Say yes or no", "Give an example (careers fair, adviser, work experience)", "Say whether it is useful for you"],
+      phrase: { fr: "Mon école nous aide avec… et c'est…", en: "My school helps us with… and it is…" },
+    },
     difficulty: 2,
     followUps: [
       "As-tu déjà rencontré un conseiller d'orientation ?",
@@ -4484,8 +4664,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "sch_37",
     topicKey: "school",
-    text: "Penses-tu que le bénévolat devrait être obligatoire à l'école ?",
+    text: "Penses-tu que le bénévolat devrait être obligatoire à l'école ? Pourquoi (pas) ?",
     hint: "Discuss the value of community service and volunteering for students.",
+    subTopic: "rules-and-uniform",
+    coachHint: {
+      ideas: ["Say whether it should be compulsory", "Give two reasons", "Say whether you do any volunteering yourself"],
+      phrase: { fr: "Je pense que le bénévolat devrait être… parce que…", en: "I think volunteering should be… because…" },
+    },
     difficulty: 3,
     followUps: [
       "As-tu déjà fait du bénévolat dans ton école ?",
@@ -4507,6 +4692,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Qu'est-ce que tu penses des prix et des récompenses scolaires ?",
     hint: "Discuss if rewards for good grades or behavior are a good motivation.",
+    subTopic: "exams-and-homework",
+    coachHint: {
+      ideas: ["Say whether rewards motivate you", "Give one reason for or against", "Say what kind of reward works best"],
+      phrase: { fr: "À mon avis, les récompenses sont… parce que…", en: "In my opinion, rewards are… because…" },
+    },
     difficulty: 2,
     followUps: [
       "As-tu déjà reçu un prix à l'école ?",
@@ -4528,6 +4718,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Comment sont les infrastructures sportives de ton école ?",
     hint: "Describe the sports facilities like gym, fields, or pool at your school.",
+    subTopic: "school-day",
+    coachHint: {
+      ideas: ["Name the main facilities (gym, pitch, pool)", "Say what condition they are in", "Say which one you use most"],
+      phrase: { fr: "Mon école possède… et il y a aussi…", en: "My school has… and there is also…" },
+    },
     difficulty: 1,
     followUps: [
       "Est-ce qu'il y a une piscine dans ton école ?",
@@ -4549,6 +4744,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Comment ton école lutte-t-elle contre le harcèlement ?",
     hint: "Discuss school safety and policies regarding bullying.",
+    subTopic: "teachers-and-classmates",
+    coachHint: {
+      ideas: ["Name two things the school does (talks, posters, a teacher to tell)", "Say whether they work", "Say what else could be done"],
+      phrase: { fr: "Mon école lutte contre le harcèlement avec…", en: "My school fights bullying with…" },
+    },
     difficulty: 3,
     followUps: [
       "Est-ce que tu te sens en sécurité dans ton école ?",
@@ -4568,8 +4768,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "sch_41",
     topicKey: "school",
-    text: "Es-tu satisfait(e) de la qualité des repas à la cantine ?",
+    text: "Es-tu satisfait(e) de la qualité des repas à la cantine ? Pourquoi ?",
     hint: "Review the school food — taste, variety, and healthiness.",
+    subTopic: "school-day",
+    coachHint: {
+      ideas: ["Say whether you are happy with the food", "Mention taste, variety or health", "Give one idea to improve it"],
+      phrase: { fr: "Je trouve que les repas sont… parce que…", en: "I find the meals are… because…" },
+    },
     difficulty: 1,
     followUps: [
       "Quel est ton plat préféré à la cantine ?",
@@ -4589,8 +4794,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "sch_42",
     topicKey: "school",
-    text: "Devrait-on apprendre plus de compétences pratiques à l'école ?",
+    text: "Penses-tu qu'on devrait apprendre plus de compétences pratiques à l'école ? Lesquelles et pourquoi ?",
     hint: "Discuss learning life skills like cooking, DIY, or personal finance at school.",
+    subTopic: "subjects",
+    coachHint: {
+      ideas: ["Say yes or no", "Name two skills (cooking, money, first aid)", "Explain why they are useful"],
+      phrase: { fr: "Je pense qu'il faut apprendre à… parce que c'est…", en: "I think we need to learn to… because it is…" },
+    },
     difficulty: 2,
     followUps: [
       "Sais-tu cuisiner ou réparer quelque chose ?",
@@ -4610,8 +4820,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "sch_43",
     topicKey: "school",
-    text: "Aimerais-tu participer à un club de débat dans ton école ?",
+    text: "Aimerais-tu participer à un club de débat dans ton école ? Pourquoi (pas) ?",
     hint: "Discuss the benefits of public speaking and debating clubs.",
+    subTopic: "school-day",
+    coachHint: {
+      ideas: ["Say whether the club appeals to you", "Give two reasons (speaking, confidence, ideas)", "Name a topic you would debate"],
+      phrase: { fr: "J'aimerais essayer le club de débat parce que…", en: "I would like to try the debating club because…" },
+    },
     difficulty: 2,
     followUps: [
       "Es-tu à l'aise pour parler en public ?",
@@ -4631,8 +4846,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "sch_44",
     topicKey: "school",
-    text: "Quels sont tes meilleurs souvenirs de l'école primaire ?",
+    text: "Quand tu étais à l'école primaire, quels sont tes meilleurs souvenirs ?",
     hint: "Reflect on your early education and how it differs from secondary school.",
+    subTopic: "school-day",
+    coachHint: {
+      ideas: ["Think of one or two happy moments", "Say what you used to do and with whom", "Add how school felt then"],
+      phrase: { fr: "Quand j'étais petit(e), on jouait… et c'était…", en: "When I was small, we used to play… and it was…" },
+    },
     difficulty: 1,
     followUps: [
       "Quelle était ta matière préférée quand tu étais petit(e) ?",
@@ -4654,6 +4874,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Que penses-tu des cours de soutien scolaire ?",
     hint: "Discuss the role of extra tutoring or catch-up classes for students.",
+    subTopic: "exams-and-homework",
+    coachHint: {
+      ideas: ["Say whether tutoring helps", "Give two reasons (more help, confidence, cost)", "Say who it is best for"],
+      phrase: { fr: "Je pense que les cours de soutien sont… parce que…", en: "I think tutoring classes are… because…" },
+    },
     difficulty: 2,
     followUps: [
       "As-tu déjà pris des cours particuliers ?",
@@ -4673,8 +4898,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "sch_46",
     topicKey: "school",
-    text: "Est-ce que ton école organise des spectacles ou des fêtes ?",
+    text: "Est-ce que ton école organise des spectacles ou des fêtes ? Lesquels, et pourquoi les aimes-tu ?",
     hint: "Describe school events like plays, concerts, or end-of-year parties.",
+    subTopic: "school-day",
+    coachHint: {
+      ideas: ["Say yes, then name an event (concert, play, party)", "Say when it happens", "Give one reason you like it"],
+      phrase: { fr: "Chaque année, mon école organise… et j'adore ça parce que…", en: "Every year my school organises… and I love it because…" },
+    },
     difficulty: 1,
     followUps: [
       "As-tu déjà joué dans une pièce de théâtre à l'école ?",
@@ -4696,6 +4926,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Quel est le rôle des délégués de classe dans ton école ?",
     hint: "Discuss student representation and how students can voice their opinions.",
+    subTopic: "teachers-and-classmates",
+    coachHint: {
+      ideas: ["Say what class representatives are", "Give two things they do", "Say whether you would want the job"],
+      phrase: { fr: "Les délégués de classe représentent… et ils…", en: "Class representatives represent… and they…" },
+    },
     difficulty: 2,
     followUps: [
       "Aimerais-tu être délégué(e) de classe ?",
@@ -4715,8 +4950,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "sch_48",
     topicKey: "school",
-    text: "Comment imagines-tu l'école du futur ?",
+    text: "Comment imagines-tu l'école dans vingt ans ?",
     hint: "Use the future tense to describe changes in technology, subjects, or school life.",
+    subTopic: "school-day",
+    coachHint: {
+      ideas: ["Name two changes (technology, subjects, buildings)", "Use the future tense", "Say whether you think it will be better"],
+      phrase: { fr: "Dans vingt ans, ils utiliseront… et on aura…", en: "In twenty years they will use… and we will have…" },
+    },
     difficulty: 3,
     followUps: [
       "Y aura-t-il encore des professeurs humains ou des robots ?",
@@ -4738,6 +4978,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Que penses-tu de l'importance de l'éducation physique à l'école ?",
     hint: "Discuss the balance between academic subjects and physical education.",
+    subTopic: "subjects",
+    coachHint: {
+      ideas: ["Say how important PE is compared with maths or languages", "Give two reasons (health, stress, teamwork)", "Say how much PE you do"],
+      phrase: { fr: "Je pense que l'éducation physique est… parce que…", en: "I think PE is… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Combien d'heures d'EPS as-tu par semaine ?",

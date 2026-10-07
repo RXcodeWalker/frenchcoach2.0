@@ -5,7 +5,7 @@
  */
 import type { QuestionDemands } from '../../domain/learn/demand/types';
 
-export const demandsVersion = "a2585e308c3cc05d9052806d3aaed40b0cdd46c6cedcd5fa6ae2fc0fc65a90bc";
+export const demandsVersion = "1e0fcf6f1bc58fc75d06fd838315a94ce8ac8af933ffec03e7c3f1de19f6994f";
 
 export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
   "art_01": {
@@ -4937,11 +4937,11 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about your school — size, subjects, teachers, uniform, facilities.",
+    "sufficientAnswer": "Describe your school with at least three details, such as its size, subjects, teachers, uniform or facilities.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.9
+    "inferenceConfidence": 0.8
   },
   "sch_02": {
     "cognitiveDemand": "justify",
@@ -4951,11 +4951,11 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [
       "justification"
     ],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe 2-3 favourite subjects, give reasons, compare with subjects you dislike.",
+    "sufficientAnswer": "Name at least two favourite subjects and give a reason for each one.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.75
+    "inferenceConfidence": 0.8
   },
   "sch_03": {
     "cognitiveDemand": "explain",
@@ -4965,51 +4965,11 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Explain your journey to school — transport, how long it takes, who you go with.",
+    "sufficientAnswer": "Say how you get to school and give at least two details, such as the transport, how long it takes or who you go with.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.55
+    "inferenceConfidence": 0.8
   },
   "sch_04": {
-    "cognitiveDemand": "justify",
-    "timeFrames": [
-      "present"
-    ],
-    "structures": [
-      "justification",
-      "comparison"
-    ],
-    "responseLoad": "extended",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Give a balanced opinion with both positives and negatives, plus reasons.",
-    "provenance": "inferred",
-    "inferenceConfidence": 0.75
-  },
-  "sch_05": {
-    "cognitiveDemand": "describe",
-    "timeFrames": [
-      "present",
-      "past"
-    ],
-    "structures": [],
-    "responseLoad": "developed",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Use passé composé to describe specific events — a lesson, a test, a school trip.",
-    "provenance": "inferred",
-    "inferenceConfidence": 0.7
-  },
-  "sch_06": {
-    "cognitiveDemand": "describe",
-    "timeFrames": [
-      "present"
-    ],
-    "structures": [],
-    "responseLoad": "short",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Walk through your day from morning to end of school using time phrases.",
-    "provenance": "inferred",
-    "inferenceConfidence": 0.9
-  },
-  "sch_07": {
     "cognitiveDemand": "justify",
     "timeFrames": [
       "present"
@@ -5019,9 +4979,49 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     ],
     "responseLoad": "extended",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Identify your least favorite subject, explain why (boring, difficult, teacher), and compare it to others.",
+    "sufficientAnswer": "Say whether you like your school and give at least one positive and one negative reason.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.75
+    "inferenceConfidence": 0.8
+  },
+  "sch_05": {
+    "cognitiveDemand": "describe",
+    "timeFrames": [
+      "past"
+    ],
+    "structures": [
+      "perfect"
+    ],
+    "responseLoad": "developed",
+    "lexicalReach": "everyday",
+    "sufficientAnswer": "Describe at least two things you did at school last week, using past-tense verbs.",
+    "provenance": "inferred",
+    "inferenceConfidence": 0.8
+  },
+  "sch_06": {
+    "cognitiveDemand": "describe",
+    "timeFrames": [
+      "present"
+    ],
+    "structures": [],
+    "responseLoad": "developed",
+    "lexicalReach": "everyday",
+    "sufficientAnswer": "Describe your school day in order, with at least three times or routines.",
+    "provenance": "inferred",
+    "inferenceConfidence": 0.8
+  },
+  "sch_07": {
+    "cognitiveDemand": "justify",
+    "timeFrames": [
+      "present"
+    ],
+    "structures": [
+      "justification"
+    ],
+    "responseLoad": "developed",
+    "lexicalReach": "everyday",
+    "sufficientAnswer": "Name your least favourite subject and give at least two reasons why you like it less.",
+    "provenance": "inferred",
+    "inferenceConfidence": 0.8
   },
   "sch_08": {
     "cognitiveDemand": "describe",
@@ -5031,9 +5031,9 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe a teacher you admire — their subject, personality, and why they are a good teacher.",
+    "sufficientAnswer": "Describe one teacher you admire: give their subject, at least two personality traits and a reason they teach well.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.9
+    "inferenceConfidence": 0.8
   },
   "sch_09": {
     "cognitiveDemand": "justify",
@@ -5043,9 +5043,9 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [
       "opinion"
     ],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss school rules — uniform, phone usage, punctuality — and give your opinion on whether they are fair.",
+    "sufficientAnswer": "Give your opinion of the school rules, mention at least one rule and say why it is fair or unfair.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
@@ -5069,12 +5069,12 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [
-      "justification",
-      "comparison"
+      "comparison",
+      "justification"
     ],
     "responseLoad": "extended",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the pros and cons of individual vs. group work in school.",
+    "sufficientAnswer": "Say whether you prefer working alone or in a group, with one advantage of your choice and one drawback of the other.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
@@ -5086,21 +5086,21 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe your uniform and give your opinion on whether it should be mandatory.",
+    "sufficientAnswer": "Describe your school uniform and say whether it is a good idea, with at least one reason.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.9
+    "inferenceConfidence": 0.8
   },
   "sch_13": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "justify",
     "timeFrames": [
       "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Give a balanced view on the necessity and amount of homework.",
+    "sufficientAnswer": "Give your opinion on homework: say whether it is useful, with at least two reasons or examples.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "sch_14": {
     "cognitiveDemand": "describe",
@@ -5108,11 +5108,11 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [],
-    "responseLoad": "extended",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Imagine your perfect school day — subjects, breaks, food, and duration.",
+    "sufficientAnswer": "Describe your ideal school day with at least three details, such as start time, subjects, breaks or food.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.9
+    "inferenceConfidence": 0.8
   },
   "sch_15": {
     "cognitiveDemand": "describe",
@@ -5122,9 +5122,9 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Mention at least two of: Talk about extracurricular activities and their benefits.",
+    "sufficientAnswer": "Say whether you take part in after-school clubs, name at least one and say why you enjoy it.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "sch_16": {
     "cognitiveDemand": "explain",
@@ -5133,15 +5133,14 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     ],
     "structures": [],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Talk about laptops, tablets, and the internet in your lessons.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Explain how technology is used in your lessons, giving at least two examples such as tablets, laptops or the internet.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.55
+    "inferenceConfidence": 0.8
   },
   "sch_17": {
     "cognitiveDemand": "describe",
     "timeFrames": [
-      "present",
       "conditional"
     ],
     "structures": [
@@ -5149,9 +5148,9 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe your dream school trip and what you would do there.",
+    "sufficientAnswer": "Say where you would like to go on your next school trip and give at least one activity you would do there.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "sch_18": {
     "cognitiveDemand": "explain",
@@ -5163,9 +5162,9 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the benefits of bilingualism for travel, work, and culture.",
+    "sufficientAnswer": "Give at least two reasons why learning foreign languages is important, for example travel, work or culture.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.65
+    "inferenceConfidence": 0.8
   },
   "sch_19": {
     "cognitiveDemand": "explain",
@@ -5175,33 +5174,36 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about friendships, atmosphere, and how students get along.",
+    "sufficientAnswer": "Describe how students get along at your school, with at least two details about friendships or the atmosphere.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.55
+    "inferenceConfidence": 0.8
   },
   "sch_20": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "compare",
     "timeFrames": [
+      "past",
       "present"
     ],
-    "structures": [],
-    "responseLoad": "short",
+    "structures": [
+      "imperfect"
+    ],
+    "responseLoad": "extended",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Compare your current school with your previous one (past vs present).",
+    "sufficientAnswer": "Compare your primary school with your current school, giving at least two differences and using the imperfect for the past.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "sch_21": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "justify",
     "timeFrames": [
       "present"
     ],
     "structures": [],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Discuss the pros and cons of mixed-gender schools vs. single-sex schools.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Give your opinion on mixed-gender schools, with at least two advantages or drawbacks.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "sch_22": {
     "cognitiveDemand": "describe",
@@ -5211,9 +5213,9 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about the resources, quiet space, and benefits for students.",
+    "sufficientAnswer": "Give at least two advantages of having a library at school, such as quiet space, resources or help with homework.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "sch_23": {
     "cognitiveDemand": "explain",
@@ -5223,9 +5225,9 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Share your tips for staying calm and organized during test periods.",
+    "sufficientAnswer": "Explain how you cope with exam stress, giving at least two strategies.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.55
+    "inferenceConfidence": 0.8
   },
   "sch_24": {
     "cognitiveDemand": "hypothesize",
@@ -5237,21 +5239,21 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Think about something practical or fun that isn't currently taught.",
+    "sufficientAnswer": "Say what new school subject you would create and give at least two things students would learn in it.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.85
+    "inferenceConfidence": 0.8
   },
   "sch_25": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
     "structures": [],
-    "responseLoad": "short",
+    "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the benefits of learning outside the traditional classroom setting.",
+    "sufficientAnswer": "Explain how school trips affect your learning, with at least one concrete example.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "sch_26": {
     "cognitiveDemand": "describe",
@@ -5261,9 +5263,9 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the traits that make a teacher effective and inspiring.",
+    "sufficientAnswer": "Name at least three qualities of a good teacher and give a reason for one of them.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "sch_27": {
     "cognitiveDemand": "justify",
@@ -5274,34 +5276,39 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "opinion"
     ],
     "responseLoad": "developed",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the ethics of cheating and its consequences.",
+    "lexicalReach": "abstract",
+    "sufficientAnswer": "Give your opinion on cheating in exams, with at least two reasons or consequences.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
   "sch_28": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "justify",
     "timeFrames": [
       "present"
     ],
-    "structures": [],
+    "structures": [
+      "justification"
+    ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about school sports days and their impact on students.",
+    "sufficientAnswer": "Say whether school sports competitions are important and give at least two reasons.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "sch_29": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "justify",
     "timeFrames": [
-      "future"
+      "present"
     ],
-    "structures": [],
+    "structures": [
+      "opinion",
+      "justification"
+    ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the benefits and drawbacks of a later start time for students.",
+    "sufficientAnswer": "Say whether school should start later, giving at least one advantage and one drawback.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "sch_30": {
     "cognitiveDemand": "compare",
@@ -5309,11 +5316,12 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [
-      "comparison"
+      "comparison",
+      "justification"
     ],
-    "responseLoad": "developed",
+    "responseLoad": "extended",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the pros and cons of being a boarding student vs. a day student.",
+    "sufficientAnswer": "Say whether you prefer to be a boarder or a day student and give at least two reasons or one advantage and one drawback.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
@@ -5327,9 +5335,9 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Explain the benefits of language learning for travel, career, and culture.",
+    "sufficientAnswer": "Explain why learning languages at school matters, with at least two reasons such as travel, career or culture.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.65
+    "inferenceConfidence": 0.8
   },
   "sch_32": {
     "cognitiveDemand": "justify",
@@ -5340,35 +5348,39 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "opinion"
     ],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Discuss how technology helps or hinders learning in the classroom.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Give your opinion on tablets and computers in class, with at least one advantage and one disadvantage.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
   "sch_33": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "justify",
     "timeFrames": [
-      "present",
-      "past"
+      "past",
+      "conditional"
     ],
-    "structures": [],
+    "structures": [
+      "perfect",
+      "conditional",
+      "justification"
+    ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Talk about a school exchange trip or your desire to participate in one.",
+    "sufficientAnswer": "Say whether you have been on a school exchange; if not, say why you would like to take part in one.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "sch_34": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss academic pressure, competition, and how you cope with it.",
+    "sufficientAnswer": "Say whether you feel pressure about your grades and explain how you cope with it, with at least one strategy.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "sch_35": {
     "cognitiveDemand": "explain",
@@ -5378,21 +5390,21 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe your social life at school and how you get along with others.",
+    "sufficientAnswer": "Describe your relationships with classmates, with at least two details about how you get along.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.55
+    "inferenceConfidence": 0.8
   },
   "sch_36": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
     "structures": [],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Talk about career advice, internships, or guidance you receive at school.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Say whether your school helps with career guidance and give at least one example, such as a careers fair, an adviser or work experience.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "sch_37": {
     "cognitiveDemand": "justify",
@@ -5400,15 +5412,28 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "present"
     ],
     "structures": [
-      "opinion"
+      "opinion",
+      "justification"
     ],
     "responseLoad": "developed",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the value of community service and volunteering for students.",
+    "lexicalReach": "abstract",
+    "sufficientAnswer": "Give your opinion on compulsory volunteering at school and give at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
   "sch_38": {
+    "cognitiveDemand": "justify",
+    "timeFrames": [
+      "present"
+    ],
+    "structures": [],
+    "responseLoad": "developed",
+    "lexicalReach": "everyday",
+    "sufficientAnswer": "Say whether school prizes and rewards motivate students, giving at least two reasons.",
+    "provenance": "inferred",
+    "inferenceConfidence": 0.8
+  },
+  "sch_39": {
     "cognitiveDemand": "describe",
     "timeFrames": [
       "present"
@@ -5416,21 +5441,9 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss if rewards for good grades or behavior are a good motivation.",
+    "sufficientAnswer": "Describe the sports facilities at your school with at least three details, such as the gym, fields, pool or equipment.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
-  },
-  "sch_39": {
-    "cognitiveDemand": "explain",
-    "timeFrames": [
-      "present"
-    ],
-    "structures": [],
-    "responseLoad": "developed",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe the sports facilities like gym, fields, or pool at your school.",
-    "provenance": "inferred",
-    "inferenceConfidence": 0.55
+    "inferenceConfidence": 0.8
   },
   "sch_40": {
     "cognitiveDemand": "explain",
@@ -5439,61 +5452,68 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     ],
     "structures": [],
     "responseLoad": "developed",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Mention at least two of: Discuss school safety and policies regarding bullying.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Explain at least two things your school does to prevent bullying, such as posters, talks or a way to report it.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.55
+    "inferenceConfidence": 0.8
   },
   "sch_41": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "justify",
     "timeFrames": [
       "present"
     ],
-    "structures": [],
-    "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Review the school food — taste, variety, and healthiness.",
-    "provenance": "inferred",
-    "inferenceConfidence": 0.4
-  },
-  "sch_42": {
-    "cognitiveDemand": "describe",
-    "timeFrames": [
-      "present"
+    "structures": [
+      "justification"
     ],
-    "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss learning life skills like cooking, DIY, or personal finance at school.",
+    "sufficientAnswer": "Say whether you are satisfied with canteen meals and give at least two reasons about taste, variety or health.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
+  },
+  "sch_42": {
+    "cognitiveDemand": "justify",
+    "timeFrames": [
+      "present"
+    ],
+    "structures": [
+      "opinion",
+      "justification"
+    ],
+    "responseLoad": "developed",
+    "lexicalReach": "everyday",
+    "sufficientAnswer": "Say whether schools should teach more practical skills and name at least two skills with a reason.",
+    "provenance": "inferred",
+    "inferenceConfidence": 0.8
   },
   "sch_43": {
-    "cognitiveDemand": "describe",
+    "cognitiveDemand": "justify",
     "timeFrames": [
-      "present",
       "conditional"
     ],
     "structures": [
-      "conditional"
+      "conditional",
+      "justification"
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the benefits of public speaking and debating clubs.",
+    "sufficientAnswer": "Say whether you would like to join a debating club and give at least two reasons.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.4
+    "inferenceConfidence": 0.8
   },
   "sch_44": {
     "cognitiveDemand": "describe",
     "timeFrames": [
-      "present"
+      "past"
     ],
-    "structures": [],
+    "structures": [
+      "imperfect"
+    ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Reflect on your early education and how it differs from secondary school.",
+    "sufficientAnswer": "Describe at least two good memories of primary school, using the imperfect or the past tense.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
   "sch_45": {
     "cognitiveDemand": "justify",
@@ -5505,7 +5525,7 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     ],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss the role of extra tutoring or catch-up classes for students.",
+    "sufficientAnswer": "Give your opinion on extra tutoring classes, with at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
@@ -5514,38 +5534,38 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
     "timeFrames": [
       "present"
     ],
-    "structures": [
-      "comparison"
-    ],
-    "responseLoad": "developed",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Describe school events like plays, concerts, or end-of-year parties.",
-    "provenance": "inferred",
-    "inferenceConfidence": 0.4
-  },
-  "sch_47": {
-    "cognitiveDemand": "describe",
-    "timeFrames": [
-      "present"
-    ],
     "structures": [],
     "responseLoad": "developed",
     "lexicalReach": "everyday",
-    "sufficientAnswer": "Discuss student representation and how students can voice their opinions.",
+    "sufficientAnswer": "Say whether your school holds shows or parties, name at least one and say why you like it.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.7
+    "inferenceConfidence": 0.8
   },
-  "sch_48": {
+  "sch_47": {
     "cognitiveDemand": "explain",
     "timeFrames": [
       "present"
     ],
     "structures": [],
     "responseLoad": "developed",
-    "lexicalReach": "everyday",
-    "sufficientAnswer": "Use the future tense to describe changes in technology, subjects, or school life.",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Explain the role of class representatives, with at least two things they do for students.",
     "provenance": "inferred",
-    "inferenceConfidence": 0.55
+    "inferenceConfidence": 0.8
+  },
+  "sch_48": {
+    "cognitiveDemand": "explain",
+    "timeFrames": [
+      "future"
+    ],
+    "structures": [
+      "simple-future"
+    ],
+    "responseLoad": "developed",
+    "lexicalReach": "topical",
+    "sufficientAnswer": "Describe at least two ways school will change in the future, using the future tense.",
+    "provenance": "inferred",
+    "inferenceConfidence": 0.8
   },
   "sch_49": {
     "cognitiveDemand": "justify",
@@ -5556,8 +5576,8 @@ export const byQuestionId: Readonly<Record<string, QuestionDemands>> = {
       "opinion"
     ],
     "responseLoad": "developed",
-    "lexicalReach": "abstract",
-    "sufficientAnswer": "Discuss the balance between academic subjects and physical education.",
+    "lexicalReach": "everyday",
+    "sufficientAnswer": "Say how important PE is compared with other subjects and give at least two reasons.",
     "provenance": "inferred",
     "inferenceConfidence": 0.8
   },
