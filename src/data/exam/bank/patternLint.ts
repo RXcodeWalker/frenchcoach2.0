@@ -104,7 +104,7 @@ function hasAny(text: string, markers: Set<string>): string | undefined {
   return tokens(text).find((t) => markers.has(t));
 }
 
-function isOpenQuestion(text: string): boolean {
+export function isOpenQuestion(text: string): boolean {
   const toks = tokens(text);
   if (toks.length === 0) return false;
   if (toks[0] === 'que' || toks[0] === "qu'") return true;
@@ -114,7 +114,7 @@ function isOpenQuestion(text: string): boolean {
 }
 
 /** A bare inversion ("Aimes-tu… ?", "Y a-t-il… ?") or an "Est-ce que…" opener. */
-function opensAsYesNo(text: string): boolean {
+export function opensAsYesNo(text: string): boolean {
   const c = canonicalizeForMatch(text);
   if (/^est-ce qu/u.test(c)) return true;
   if (/^y a-t-il\b/u.test(c)) return true;
@@ -123,7 +123,7 @@ function opensAsYesNo(text: string): boolean {
 }
 
 /** "Ne penses-tu pas… ?", "N'as-tu pas… ?", "Est-ce que tu ne… pas ?", "Tu ne trouves pas… ?" (audit #14). */
-function isLoadedNegative(text: string): boolean {
+export function isLoadedNegative(text: string): boolean {
   const c = canonicalizeForMatch(text);
   if (/^(ne |n')[\p{L}]+(-t)?-(tu|vous|il|elle|on)\b/u.test(c)) return true;
   if (/^est-ce que (tu|vous) (ne |n')/u.test(c)) return true;

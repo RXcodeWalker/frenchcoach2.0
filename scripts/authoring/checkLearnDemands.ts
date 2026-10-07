@@ -1,7 +1,8 @@
 /**
  * Pre-review gate for src/data/learn/demands/*.json — validates every topic
  * file against the question bank (unknown-question-id) and reports each
- * file's errors/warnings. corpus-hash-drift (docs §12, §9.1) compares this
+ * file's errors/warnings, then lints the bank's Learn-only fields
+ * (subTopic, coachHint) and question wording. corpus-hash-drift (docs §12, §9.1) compares this
  * corpus's hash against backend/data/learn/'s copy — the same check CI runs
  * (Stage 8).
  *
@@ -13,8 +14,9 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { validateLearnDemandsFile } from '../../src/domain/learn/demand/validate';
+import { lintLearnBank } from '../../src/data/learnBankLint';
 import { QUESTIONS } from '../../src/data/questions';
-import { hashCorpus } from './buildDemandsManifest';
+import { hashCorpus, loadRawCorpus } from './learnCorpusHash';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DEFAULT_DATA_DIR = join(__dirname, '..', '..', 'src', 'data', 'learn', 'demands');
@@ -35,11 +37,6 @@ function loadFiles(dataDir: string): { filename: string; raw: unknown }[] {
   }));
 }
 
-function loadRawTextFiles(dir: string): { filename: string; raw: string }[] {
-  const filenames = readdirSync(dir).filter((f) => f.endsWith('.json')).sort();
-  return filenames.map((filename) => ({ filename, raw: readFileSync(join(dir, filename), 'utf-8') }));
-}
-
 /** §12 corpus-hash-drift — src/data/learn/ and backend/data/learn/ must hash identically (§9.1). */
 function checkCorpusHashDrift(sourceDataDir: string): { errors: number } {
   console.log('-- corpus-hash-drift --');
@@ -49,8 +46,8 @@ function checkCorpusHashDrift(sourceDataDir: string): { errors: number } {
     return { errors: 0 };
   }
 
-  const sourceFiles = loadRawTextFiles(sourceDataDir);
-  const backendFiles = loadRawTextFiles(BACKEND_DATA_DIR);
+  const sourceFiles = loadRawCorpus(sourceDataDir);
+  const backendFiles = loadRawCorpus(BACKEND_DATA_DIR);
 
   const sourceHash = hashCorpus(sourceFiles);
   const backendHash = hashCorpus(backendFiles);
@@ -65,6 +62,21 @@ function checkCorpusHashDrift(sourceDataDir: string): { errors: number } {
   console.log('  clean — hashes match');
   console.log('');
   return { errors: 0 };
+}
+
+/** Learn-only bank fields and wording (src/data/learnBankLint.ts). Errors fail; warnings are grouped per rule. */
+function checkLearnBank(): { errors: number; warnings: number } {
+  console.log('-- question bank (subTopic, coachHint, wording) --');
+  const issues = lintLearnBank(QUESTIONS);
+  const errors = issues.filter((i) => i.severity === 'error');
+  const warnings = issues.filter((i) => i.severity === 'warning');
+  for (const e of errors) console.log(`  ERROR [${e.code}] ${e.message}`);
+  const byCode = new Map<string, string[]>();
+  for (const w of warnings) byCode.set(w.code, [...(byCode.get(w.code) ?? []), w.questionId]);
+  for (const [code, ids] of byCode) console.log(`  WARN  [${code}] ${ids.length}: ${ids.join(', ')}`);
+  if (issues.length === 0) console.log('  clean');
+  console.log('');
+  return { errors: errors.length, warnings: warnings.length };
 }
 
 function main(): void {
@@ -116,6 +128,10 @@ function main(): void {
     totalWarnings += report.warnings.length;
     console.log('');
   }
+
+  const bank = checkLearnBank();
+  totalErrors += bank.errors;
+  totalWarnings += bank.warnings;
 
   const { errors: hashDriftErrors } = checkCorpusHashDrift(dataDir);
   totalErrors += hashDriftErrors;

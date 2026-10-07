@@ -147,7 +147,21 @@ export function QuestionCard({ question, showHint, onToggleHint, isReview, selec
                 animate={{ opacity: 1, height: 'auto', y: 0 }}
                 exit={{ opacity: 0, height: 0, y: -10 }}
               >
-                "{question.hint}"
+                {question.coachHint ? (
+                  <div className="not-italic space-y-2" data-testid="coach-hint">
+                    <ul className="list-disc pl-4 space-y-1">
+                      {question.coachHint.ideas.map((idea) => (
+                        <li key={idea}>{idea}</li>
+                      ))}
+                    </ul>
+                    <p className="italic">
+                      « {question.coachHint.phrase.fr} »
+                      <span className="not-italic"> — {question.coachHint.phrase.en}</span>
+                    </p>
+                  </div>
+                ) : (
+                  <>"{question.hint}"</>
+                )}
               </motion.div>
             )}
           </AnimatePresence>
