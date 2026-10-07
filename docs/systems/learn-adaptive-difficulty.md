@@ -1287,3 +1287,45 @@ the usual case — a new learner's "5" builds 3, "10" builds 7 and "20" builds 1
 Batch 1 code and again after Batch 2; identical for all three aims). This is the spec'd
 behaviour, not a Batch 2 regression, and was left alone; whether unfilled review slots should be
 backfilled with `target` slots is a §8.1/§8.3 decision for the owner.
+
+## Amendment: Learn overhaul Batch 3b — the bank re-read (2026-10-07)
+
+**What changed.** Every core-topic question (660) was re-read against its own wording and its
+demands tag corrected where the two disagreed; the 240 questions in clothes, animals, transport,
+jobs, sports, emotions, arts and shopping, which had no demands at all, were tagged for the first
+time. All 668 questions now carry demands (`questions.demands.test` 428 → 668). Typical
+corrections: a "pourquoi/penses-tu" question tagged `describe`; `present` tags on questions that
+ask about the past or future (the wording now carries a cue the checker can see, e.g. *l'année
+dernière*, *dans cinquante ans*); `structures` pruned to what the text cues; `sufficientAnswer` rewritten with countable
+requirements (it was a copy of the hint, and in 38 entries carried a broken "Mention at least two
+of: …" / "A complete answer should: …" prefix). **`responseLoad` moved from `extended` on 106 of
+428 questions to `extended` on 7 of 668** (the rest are `developed`). This is a judgement the owner
+should confirm: `responseLoad` sets the L1 word floor for "met" (~15 / ~40 / ~70 words,
+`satisfaction.ts`), so those questions now need ~40 words instead of ~70, and an everyday
+comparison question no longer scores as B2 (compare 6.5 + extended 0.75 + comparison 0.25 = 7.5).
+Scenario M below already assumes `developed`. The demand mix moved from ~63%
+`describe` to describe 35% · explain 30% · justify 25% · compare 8% · hypothesize 2.4%.
+
+**Provenance is unchanged on purpose.** These tags are still `inferred` at confidence 0.8 with a
+`review.notes` marker; a model cannot vouch for itself, so §12's `reviewed` flip remains the
+owner's (`docs/guides/learn-demands.md` §2c). The eight tags already `reviewed` were not touched,
+and their wording (including their bare yes/no questions) was left for the owner.
+
+**Questions and fields.** Second parts were added to every bare yes/no question (plan D8); five
+questions beyond A2–B1 (`emo_18`, `emo_29`, `arv_25`, `sho_19`, `foo_47`) were replaced by
+everyday ones, with `hint`, follow-ups, model answer, vocabulary and `difficulty` rewritten
+together. `subTopic` is set on every core question and `coachHint` on every question of the eight
+priority topics (D7); the sub-topic lists were adjusted where a key would have held fewer than the
+5 questions a Focus chip needs (home, future, jobs).
+
+**§6.3 evidence — still not reliably reachable.** `adaptiveSimulation.test.ts` scenario M repeats
+Batch 1e's check on the new mix (4 sessions a week for 3 weeks, seeds 11–13). As shipped
+(`inferred` 0.8): `overallConfidence` 0.098 / 0.122 / 0.090, only 11–14 of ~60 answers staying
+above `MIN_RELIABLE_WEIGHT` after the 14-day decay. After the owner's `reviewed` flip: 0.222 /
+0.256 / 0.262 (it was 0.18–0.21 on the old mix) — the 0.25 gate is reached on two seeds of three.
+
+**Proposal, not a decision (§6.3, display only).** Show the "Around …" band from
+`overallConfidence ≥ 0.20` instead of 0.25 (all three reviewed-state seeds clear it; the shipped
+state still does not), keep the starting-point wording below it, and change nothing in selection,
+weights or `deriveAbility`. The cost is a band resting on fewer measured answers. The gate and the
+weights are unchanged in this batch.

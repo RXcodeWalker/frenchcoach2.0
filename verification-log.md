@@ -3471,3 +3471,85 @@ rules are errors, the heuristic text rules are warnings, so the current bank sta
 **Not verified:** the tense-cue regexes for French phrase frames are narrow heuristics and have only
 synthetic test cases, no real `coachHint` yet. The plan's Batch 1 and 2 are not present in this
 repository's history, so nothing here was exercised against them.
+
+## 2026-10-07 — Learn overhaul Batch 3b: the bank re-read (tags, sub-topics, hints, wording)
+
+**Changed.** All 660 core-topic questions were re-read against their wording and their demands
+corrected (`src/data/learn/demands/*.json`, manifest regenerated); the 240 questions in clothes,
+animals, transport, jobs, sports, emotions, arts and shopping got demands for the first time, so
+all 668 questions carry them (`questions.demands.test` 428 → 668). `subTopic` is set on every core
+question, `coachHint` on every question of the eight priority topics (D7), a second part was added
+to every bare yes/no question (D8), and five beyond-level questions (`emo_18`, `emo_29`, `arv_25`,
+`sho_19`, `foo_47`) were replaced by everyday ones (text, hint, follow-ups, model answer, vocab and
+`difficulty` together, re-tagged in the same commit). `hint` was otherwise left untouched.
+Mechanics: a throwaway patch pipeline (outside the repo) applied each topic's spec to
+`questions.ts` and the JSON, then pruned structure tags the question text does not cue
+(`hasStructureCue`); every entry it wrote carries `review.notes` and `learn:infer` now refuses to
+overwrite such entries (`scripts/authoring/inferLearnDemands.ts`).
+
+**Not done, on purpose.** No entry was flipped to `reviewed`/`approved`: `provenance: 'reviewed'`
+with `reviewedBy` is a human attestation (`docs/guides/learn-demands.md` §1 rule 7, §4), and the plan
+puts the owner's per-topic review between this batch and merge. The tags are `inferred`, confidence
+0.8, `review.status: 'draft'`, `review.notes` set; the promotion procedure is `learn-demands.md`
+§2c. The eight already-`reviewed` entries (`sch_10 fam_09 hol_15 hom_10 fut_19 foo_64 env_18 hob_43`)
+were not touched, so `hob_43` and `foo_64` keep their bare yes/no wording for the owner. The eight
+one-question advanced topics were not touched (hidden, out of scope). Without `--draft`,
+`learn:check` still reports one `not-approved` error per unreviewed entry — expected until review.
+
+**Judgement calls the owner should confirm.**
+1. `responseLoad`: `extended` went from 106 of 428 to 7 of 668 questions (the rest `developed`).
+   `responseLoad` sets the L1 "met" word floor (~15 / ~40 / ~70 words, `satisfaction.ts`), so ~100
+   questions now need ~40 words rather than ~70 — and everyday preference questions no longer score
+   as B2 (compare 6.5 + extended 0.75 + comparison 0.25 = 7.5).
+2. Confidence 0.8 on the re-read tags (the old inferrer used 0.4–0.9). Shipped state: only 11–14 of
+   ~60 answers stay above `MIN_RELIABLE_WEIGHT` over 3 weeks (below).
+3. Sub-topic lists changed where a key would hold fewer than the 5 questions a Focus chip needs:
+   home → My home & room / Town & region / Things to do; future "Further study" → "Study & skills";
+   jobs → "Jobs around me" + "Work experience" merged into "Jobs & experience".
+4. Questions replaced rather than edited (the five above) also had `difficulty` 3 → 2.
+5. Wording fixes beyond the plan: `env_40` ("Savais-tu qu'est-ce que c'est la 'fast fashion' ?" →
+   "Sais-tu ce qu'est la 'fast fashion' ?"), `sho_21` (no subjunctive), `sch_36` typo, `foo_29` "j'adorer" → "j'adorais",
+   `hob_37` stray English "and", `clo_10` model answer's date to match its new cue.
+6. Left as they are: duplicate or near-duplicate questions (`fut_03`=`job_01` is word-for-word;
+   `sch_18`/`sch_31`, `hom_07`/`hom_23`, `hob_25`/`hob_48`, `hob_33`/`hob_49`, `hob_40`/`hob_58` are
+   close) — IDs carry SM-2 history, so removing one is a separate decision.
+
+**Simulation (the Batch 1e hand-off).** `adaptiveSimulation.test.ts` scenario M, same method as L
+on the new mix (describe 35% · explain 30% · justify 25% · compare 8% · hypothesize 2.4%), seeds
+11–13: shipped (`inferred` 0.8) `overallConfidence` 0.098 / 0.122 / 0.090; after owner review
+0.222 / 0.256 / 0.262 (it was 0.18–0.21 on the old mix) against the 0.25 gate, so "Around A2" is
+borderline even after review. **Proposal, not implemented:** a §6.3 display-only gate of 0.20
+(`docs/systems/learn-adaptive-difficulty.md`, Batch 3b amendment). No gate, weight or engine change.
+
+**Tests.** New `learnBank.coverage.test.ts` (sub-topic on every core question, every list key ≥ 5
+questions, `coachHint` on the eight priority topics, no bare yes/no outside `reviewed` entries,
+no lint error). `sessionBuilder.filters.test.ts` assumed hobbies had ≤ 6 past questions (it has 9 now;
+a 'standard' session returns at most 7 with no review due), so its two "fewer matches" cases now
+pick their focus from the bank. Backend `tests/test_learn_demands.py` read `fam_01` live as a
+"known TS fixture"; re-tagging it broke the derive-score and prompt-hash tests with no template
+change, so the original entry is pinned in the test (the original hash passes, so
+`LEARN_PROMPT_VERSION` is *not* bumped) and the corpus-size pin is 668.
+
+**L2-off window.** Nothing is deployed: both repos are on `claude/magical-hamilton-xi116g`
+(`demandsVersion` changed with every slice; frontend commit and backend byte copy are separate
+commits, backend pushed first each time). When merged to `main`, deploy the two back to back;
+either order leaves a short window where the backend reports `demandsResolved: false` and L2
+evidence is off.
+
+**Process note.** Batches 1, 2 and 3a were not on this branch when the session started: they lived
+on `claude/happy-shannon-9yukm5` (1–2) and `claude/hopeful-volta-pl0fm3` (3a, forked from the
+pre-Learn commit and without 1–2). The first was fast-forwarded onto this branch, the second merged
+(one conflict, `verification-log.md`: both sides appended; both kept).
+
+Gate at commit: `npm run typecheck` clean · `typecheck:server` clean · `npm run lint` 0 errors (21
+pre-existing warnings) · `npm test` **311 files / 3079 tests passed** (with `backend/` linked, as CI
+does) · `learn:check -- --draft` 0 errors (71 warnings: 56 `time-frame-not-cued` — 45 `present`
+tags, 9 `past` and 2 `conditional` where the natural wording uses a construction the cue list does
+not know; 8 `topic-demand-monotony` and 2 `level-not-carried-by-vocabulary` on the hidden
+advanced topics; 2 `structure-not-elicited` on the `reviewed` `fam_09` and `foo_64`; 1
+`bare-yes-no-question` listing the `reviewed` `hob_43` and `foo_64` plus the hidden `slang_01`)
+· `authoring:check` 0/0 · `authoring:parity` 10/10 · backend `pytest tests` 449 passed.
+`typecheck:scripts` reports 3 errors in `scripts/scoring/__tests__/supabaseEnvelopeStore.test.ts` and
+`scripts/stt/__tests__/supabaseTranscriptStore.test.ts` — files this batch did not touch; none in
+`scripts/authoring/`. Not run: Playwright end-to-end (no UI code changed in 3b); a browser check of
+the new `coachHint` text in light mode (Batch 5 owns visual polish).
