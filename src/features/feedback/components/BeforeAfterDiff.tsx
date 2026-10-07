@@ -22,18 +22,18 @@ function DiffChip({ op }: { op: AnnotatedDiffOp }) {
   return (
     <span className="inline">
       {op.type === 'delete' || op.type === 'replace' ? (
-        <span className="line-through decoration-red-400/70 decoration-2 text-ink-muted">{op.beforeText}</span>
+        <span className="line-through decoration-correction-text decoration-2 text-ink-muted">{op.beforeText}</span>
       ) : null}
       {op.type === 'insert' || op.type === 'replace' ? (
         hasExplanation ? (
           <button
             onClick={() => setOpen(o => !o)}
-            className="text-emerald-300 font-medium underline decoration-emerald-400/50 decoration-dotted underline-offset-2 cursor-pointer hover:opacity-80"
+            className="text-progress-text font-medium underline decoration-progress-text decoration-dotted underline-offset-2 cursor-pointer hover:opacity-80"
           >
             {op.afterText}
           </button>
         ) : (
-          <span className="text-emerald-300 font-medium">{op.afterText}</span>
+          <span className="text-progress-text font-medium">{op.afterText}</span>
         )
       ) : null}
       {hasExplanation && open && (
@@ -42,7 +42,7 @@ function DiffChip({ op }: { op: AnnotatedDiffOp }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="block mt-1 mb-1 text-[9px] text-violet-300 bg-violet-500/8 border border-violet-500/15 rounded-md px-2 py-1"
+            className="block mt-1 mb-1 text-[9px] text-action-text bg-action-soft border border-hairline rounded-md px-2 py-1"
           >
             {op.annotation!.explanation}
           </motion.span>
@@ -57,11 +57,11 @@ function SafeCorrectionsList({ issues }: { issues: CoachingIssue[] }) {
   return (
     <div className="space-y-1.5">
       {issues.map(issue => (
-        <div key={issue.id} className="flex items-start gap-1.5 text-[10px] p-2 rounded-lg bg-slate-800/40 border border-slate-700/30">
-          <CheckCircle size={10} className="text-emerald-400 flex-shrink-0 mt-0.5" />
+        <div key={issue.id} className="flex items-start gap-1.5 text-[10px] p-2 rounded-lg surface-recessed">
+          <CheckCircle size={10} className="text-progress-text flex-shrink-0 mt-0.5" />
           <div>
             {issue.quote && <span className="font-mono text-ink-muted line-through mr-1">{issue.quote}</span>}
-            <span className="text-emerald-300 font-medium">{issue.correction}</span>
+            <span className="text-progress-text font-medium">{issue.correction}</span>
           </div>
         </div>
       ))}
@@ -78,7 +78,7 @@ export function BeforeAfterDiff({ transcript, improvedAnswer, changes, issues = 
     if (issues.length === 0) return null;
     return (
       <motion.div variants={fadeUp} initial="hidden" animate="show" className="rounded-xl surface p-4">
-        <p className="text-[9px] font-bold text-ink-subtle uppercase tracking-wider mb-2.5">Safe Corrections</p>
+        <p className="text-eyebrow text-ink-subtle uppercase mb-2.5">Safe Corrections</p>
         <SafeCorrectionsList issues={issues} />
       </motion.div>
     );
@@ -91,18 +91,18 @@ export function BeforeAfterDiff({ transcript, improvedAnswer, changes, issues = 
 
   return (
     <motion.div variants={fadeUp} initial="hidden" animate="show" className="rounded-xl surface p-4">
-      <p className="text-[9px] font-bold text-ink-subtle uppercase tracking-wider mb-2.5">{title}</p>
+      <p className="text-eyebrow text-ink-subtle uppercase mb-2.5">{title}</p>
       <div className="space-y-2">
-        <div className="p-3 rounded-lg bg-slate-700/30 border border-slate-600/20">
-          <p className="text-[8px] font-bold text-ink-subtle uppercase tracking-wider mb-1.5">Your answer</p>
+        <div className="p-3 rounded-lg surface-recessed">
+          <p className="text-eyebrow text-ink-subtle uppercase mb-1.5">Your answer</p>
           <p className="text-[10px] text-ink-muted leading-relaxed italic">{transcript}</p>
         </div>
         <div className="flex justify-center">
-          <ArrowDown size={14} className="text-sky-500/60" />
+          <ArrowDown size={14} className="text-info-text" />
         </div>
-        <div className="p-3 rounded-lg bg-sky-500/8 border border-sky-500/20">
-          <p className="text-[8px] font-bold text-sky-500/70 uppercase tracking-wider mb-1.5">What changed</p>
-          <p className="text-[11px] text-slate-200 leading-relaxed">
+        <div className="p-3 rounded-lg bg-info-soft border border-hairline">
+          <p className="text-eyebrow text-info-text uppercase mb-1.5">What changed</p>
+          <p className="text-[11px] text-ink leading-relaxed">
             {annotated.map((op, i) => op.type === 'equal'
               ? <span key={i}>{op.afterText}</span>
               : <DiffChip key={i} op={op} />

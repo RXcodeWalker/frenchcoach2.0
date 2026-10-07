@@ -1,7 +1,7 @@
 import { CheckCircle, ChevronRight, RotateCcw, Lightbulb } from 'lucide-react';
 import type { CoachingIssue } from '../../../types';
 import { SeverityBadge } from '../../../components/ui/SeverityBadge';
-import { SEVERITY_BG, SEVERITY_COLOR } from '../theme/severity';
+import { SEVERITY_BG, SEVERITY_SOFT, SEVERITY_TEXT } from '../theme/severity';
 import { TeachMeLesson } from './TeachMeLesson';
 
 interface Props {
@@ -31,13 +31,13 @@ export function IssueRow({ issue, isSelected, lessonDefaultOpen, lessonForceOpen
             {Array.from({ length: 3 }, (_, i) => (
               <span
                 key={i}
-                className={`w-1 h-1 rounded-full ${i < issue.marksImpact ? 'bg-slate-500' : 'bg-slate-800'}`}
+                className={`w-1 h-1 rounded-full ${i < issue.marksImpact ? 'bg-ink-muted' : 'bg-track'}`}
               />
             ))}
           </span>
         )}
         {issue.isRecurring && (
-          <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-[8px] font-bold text-amber-400 uppercase tracking-wide">
+          <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-reward-soft border border-hairline text-eyebrow text-reward-text uppercase">
             <RotateCcw size={8} />
             Recurring
           </span>
@@ -46,8 +46,7 @@ export function IssueRow({ issue, isSelected, lessonDefaultOpen, lessonForceOpen
 
       {issue.quote && (
         <p
-          className="text-[10px] font-mono mb-1.5 px-1.5 py-0.5 rounded inline-block"
-          style={{ color: SEVERITY_COLOR[issue.severity], background: `${SEVERITY_COLOR[issue.severity]}12` }}
+          className={`text-[10px] font-mono mb-1.5 px-1.5 py-0.5 rounded inline-block ${SEVERITY_TEXT[issue.severity]} ${SEVERITY_SOFT[issue.severity]}`}
         >
           "{issue.quote}"
         </p>
@@ -56,26 +55,26 @@ export function IssueRow({ issue, isSelected, lessonDefaultOpen, lessonForceOpen
       <p className="text-[10px] text-ink-muted mb-1.5">{issue.diagnostic}</p>
 
       {issue.isRecurring && issue.recurrenceNote && (
-        <p className="text-[9px] text-amber-500/80 italic mb-1.5">{issue.recurrenceNote}</p>
+        <p className="text-[9px] text-reward-text italic mb-1.5">{issue.recurrenceNote}</p>
       )}
 
       <div className="flex items-start gap-1.5 text-[10px] mb-1">
-        <CheckCircle size={10} className="text-emerald-400 flex-shrink-0 mt-0.5" />
-        <span className="text-emerald-300 font-medium">{issue.correction}</span>
+        <CheckCircle size={10} className="text-progress-text flex-shrink-0 mt-0.5" />
+        <span className="text-progress-text font-medium">{issue.correction}</span>
       </div>
 
       {issue.stronger && (
         <div className="flex items-start gap-1.5 text-[10px] mb-1">
-          <ChevronRight size={10} className="text-violet-400 flex-shrink-0 mt-0.5" />
-          <span className="text-violet-300">{issue.stronger}</span>
+          <ChevronRight size={10} className="text-action-text flex-shrink-0 mt-0.5" />
+          <span className="text-action-text">{issue.stronger}</span>
         </div>
       )}
 
       {/* masterTip — single highest-leverage fix from backend */}
       {issue.masterTip && (
-        <div className="flex items-start gap-1.5 mt-1.5 p-2 rounded-md bg-amber-500/8 border border-amber-500/15">
-          <Lightbulb size={9} className="text-amber-400 flex-shrink-0 mt-0.5" />
-          <p className="text-[9px] text-amber-300">{issue.masterTip}</p>
+        <div className="flex items-start gap-1.5 mt-1.5 p-2 rounded-md bg-reward-soft border border-hairline">
+          <Lightbulb size={9} className="text-reward-text flex-shrink-0 mt-0.5" />
+          <p className="text-[9px] text-reward-text">{issue.masterTip}</p>
         </div>
       )}
 

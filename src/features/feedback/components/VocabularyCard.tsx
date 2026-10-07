@@ -3,12 +3,12 @@ import { CollapsibleCard } from '../../../components/ui/CollapsibleCard';
 import type { FeedbackV2, VocabularyEntry } from '../../../types';
 
 const TIER_CONFIG: Record<VocabularyEntry['tier'], { label: string; color: string }> = {
-  weak:       { label: 'Weak',       color: 'text-red-300' },
-  decent:     { label: 'Decent',     color: 'text-amber-300' },
-  advanced:   { label: 'Advanced',   color: 'text-emerald-300' },
-  idiomatic:  { label: 'Idiomatic',  color: 'text-violet-300' },
-  repetitive: { label: 'Repetitive', color: 'text-amber-400' },
-  anglicism:  { label: 'Anglicism',  color: 'text-violet-400' },
+  weak:       { label: 'Weak',       color: 'text-correction-text' },
+  decent:     { label: 'Decent',     color: 'text-reward-text' },
+  advanced:   { label: 'Advanced',   color: 'text-progress-text' },
+  idiomatic:  { label: 'Idiomatic',  color: 'text-action-text' },
+  repetitive: { label: 'Repetitive', color: 'text-reward-text' },
+  anglicism:  { label: 'Anglicism',  color: 'text-action-text' },
 };
 
 interface Props {
@@ -25,7 +25,7 @@ export function VocabularyCard({ feedback }: Props) {
   return (
     <CollapsibleCard
       title="Vocabulary"
-      icon={<TrendingUp size={13} className="text-amber-400" />}
+      icon={<TrendingUp size={13} className="text-reward-text" />}
       badgeCount={v2vocab.length || legacyVocab.length}
       defaultOpen={false}
     >
@@ -43,7 +43,7 @@ export function VocabularyCard({ feedback }: Props) {
                   {entry.upgrades.map((up, j) => (
                     <div key={j} className="flex items-start gap-1.5 text-[10px]">
                       <ChevronRight size={9} className="text-ink-subtle flex-shrink-0 mt-0.5" />
-                      <span className="text-emerald-300 font-medium">{up.phrase}</span>
+                      <span className="text-progress-text font-medium">{up.phrase}</span>
                       <span className="text-[9px] text-ink-subtle ml-auto">{up.level}</span>
                     </div>
                   ))}
@@ -61,7 +61,7 @@ export function VocabularyCard({ feedback }: Props) {
             <div key={i} className="flex items-center gap-2 p-2 rounded-lg surface-recessed">
               <span className="text-[10px] text-ink-subtle line-through">{v.basic}</span>
               <ChevronRight size={9} className="text-ink-subtle" />
-              <span className="text-[10px] text-emerald-400 font-medium">{v.upgrade}</span>
+              <span className="text-[10px] text-progress-text font-medium">{v.upgrade}</span>
             </div>
           ))}
         </div>

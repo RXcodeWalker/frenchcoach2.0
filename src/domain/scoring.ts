@@ -52,6 +52,15 @@ export const scoreColor = (val: number): string =>
   val >= 8 ? '#10B981' : val >= 6 ? '#F59E0B' : '#EF4444';
 
 /**
+ * Same 8 / 6 thresholds as `scoreColor`, but resolved through the theme-aware
+ * role tokens (progress / reward / correction `-text`), so a score reads at AA
+ * contrast in light and dark. Learn + feedback surfaces use this; `scoreColor`
+ * stays for SVG strokes that need a literal colour (PronunciationCard).
+ */
+export const scoreTone = (val: number): string =>
+  val >= 8 ? 'var(--progress-text)' : val >= 6 ? 'var(--reward-text)' : 'var(--correction-text)';
+
+/**
  * The single discriminant for "was this attempt actually graded": any
  * ungraded result carries a reason under `unscored` alongside placeholder
  * zero scores (Phase 4a, widened A4). Never infer "unscored" from

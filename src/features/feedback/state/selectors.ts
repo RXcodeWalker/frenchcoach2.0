@@ -25,11 +25,6 @@ export function selectVocabByTier(feedback: FeedbackV2): Record<string, Vocabula
   return grouped;
 }
 
-export function selectShowExaminerNotebook(feedback: FeedbackV2): boolean {
-  const level = feedback.cefrLevel ?? 'A2';
-  return ['B1', 'B2', 'C1', 'C2'].includes(level);
-}
-
 /**
  * Adaptive card plan (docs Stage 5) — which optional cards render, and
  * whether the corrections lesson content should default open, given the

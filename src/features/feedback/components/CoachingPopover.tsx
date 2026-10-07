@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronRight, CheckCircle } from 'lucide-react';
 import type { CoachingIssue } from '../../../types';
-import { SEVERITY_COLOR } from '../theme/severity';
+import { SEVERITY_SOFT, SEVERITY_TEXT } from '../theme/severity';
 import { SeverityBadge } from '../../../components/ui/SeverityBadge';
 
 interface Props {
@@ -30,12 +30,11 @@ export function CoachingPopover({ issue, onClose }: Props) {
 
         <div className="flex items-center gap-2 mb-2">
           <SeverityBadge level={issue.severity} />
-          <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wide">{issue.category}</span>
+          <span className="text-eyebrow text-ink-muted uppercase">{issue.category}</span>
         </div>
 
         <p
-          className="text-[11px] font-mono px-2 py-1 rounded mb-2"
-          style={{ color: SEVERITY_COLOR[issue.severity], background: `${SEVERITY_COLOR[issue.severity]}15` }}
+          className={`text-[11px] font-mono px-2 py-1 rounded mb-2 ${SEVERITY_TEXT[issue.severity]} ${SEVERITY_SOFT[issue.severity]}`}
         >
           "{issue.quote}"
         </p>
@@ -43,14 +42,14 @@ export function CoachingPopover({ issue, onClose }: Props) {
         <p className="text-[10px] text-ink-muted mb-2">{issue.diagnostic}</p>
 
         <div className="flex items-center gap-1.5 text-[10px]">
-          <CheckCircle size={10} className="text-emerald-400 flex-shrink-0" />
-          <span className="text-emerald-300 font-medium">{issue.correction}</span>
+          <CheckCircle size={10} className="text-progress-text flex-shrink-0" />
+          <span className="text-progress-text font-medium">{issue.correction}</span>
         </div>
 
         {issue.stronger && (
           <div className="flex items-center gap-1.5 text-[10px] mt-1">
-            <ChevronRight size={10} className="text-violet-400 flex-shrink-0" />
-            <span className="text-violet-300">{issue.stronger}</span>
+            <ChevronRight size={10} className="text-action-text flex-shrink-0" />
+            <span className="text-action-text">{issue.stronger}</span>
           </div>
         )}
       </motion.div>

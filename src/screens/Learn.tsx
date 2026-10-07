@@ -1018,7 +1018,7 @@ export function Learn() {
     <div className="flex flex-col min-h-screen">
       <TopContextBar
         title={learnState === 'topics' ? 'Learning Hub' : (selectedTopic?.label ?? 'Practice')}
-        subtitle={learnState === 'topics' ? 'Choose a topic to begin' : 'Active Session'}
+        subtitle={learnState === 'topics' ? 'Choose a topic to begin' : selectedTopic?.labelEn}
         showBack={learnState !== 'topics'}
         onBack={handleBack}
       />
@@ -1062,7 +1062,7 @@ export function Learn() {
             <div className="rounded-2xl surface-raised border border-red-400/20 p-4 shadow-xl">
               <div className="flex items-start gap-3">
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-red-300">Feedback unavailable</p>
+                  <p className="text-xs font-bold text-correction-text">Feedback unavailable</p>
                   <p className="text-[11px] text-ink-muted mt-0.5 leading-relaxed">{feedbackErrorMessage}</p>
                 </div>
                 <button
@@ -1154,7 +1154,7 @@ export function Learn() {
                   className="rounded-xl surface-raised p-5 space-y-4"
                 >
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-ink-muted mb-1.5">
+                    <p className="text-eyebrow uppercase text-ink-muted mb-1.5">
                       We heard
                     </p>
                     {pendingTranscript.trim() ? (
@@ -1174,7 +1174,7 @@ export function Learn() {
                     <button
                       type="button"
                       onClick={handleConfirmTranscript}
-                      className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-br from-violet-electric to-indigo-500 text-white shadow-[0_0_16px_rgba(124,58,237,0.3)]"
+                      className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-br from-violet-electric to-indigo-500 text-action-ink shadow-[0_0_16px_rgba(124,58,237,0.3)]"
                     >
                       Use this
                     </button>
@@ -1199,7 +1199,7 @@ export function Learn() {
                   <button
                     type="button"
                     onClick={openDrill}
-                    className="w-full py-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 font-bold text-sm hover:bg-rose-500/25 transition-colors"
+                    className="w-full py-3 rounded-xl bg-correction-soft border border-hairline text-correction-text font-bold text-sm hover:bg-rose-500/25 transition-colors"
                   >
                     Start recovery drill
                   </button>
@@ -1219,7 +1219,7 @@ export function Learn() {
                     <button
                       type="button"
                       onClick={advanceQuestion}
-                      className="w-full py-3 rounded-xl bg-violet-500/15 border border-violet-500/30 text-violet-300 font-bold text-sm hover:bg-violet-500/25 transition-colors"
+                      className="w-full py-3 rounded-xl bg-action-soft border border-hairline text-action-text font-bold text-sm hover:bg-violet-500/25 transition-colors"
                     >
                       Continue
                     </button>
@@ -1276,7 +1276,6 @@ export function Learn() {
             onContinueTopic={handleContinueTopic}
             onNewTopic={handleNewTopic}
             onHome={handleHome}
-            currentDemands={adaptiveDifficultyLive ? getBeliefSnapshot()?.demands ?? null : null}
           />
         )}
       </AnimatePresence>

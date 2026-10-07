@@ -101,7 +101,7 @@ export function ExaminerFeedbackCard({
   if (status === 'pending') {
     return (
       <div className={`${compact ? 'rounded-xl surface-raised p-4' : 'rounded-xl surface-raised p-8'} flex flex-col items-center gap-3`}>
-        <Loader2 size={compact ? 18 : 24} className="text-amber-400 animate-spin" />
+        <Loader2 size={compact ? 18 : 24} className="text-reward-text animate-spin" />
         <p className="text-sm text-ink-muted">Preparing examiner commentary…</p>
       </div>
     );
@@ -151,7 +151,7 @@ export function ExaminerFeedbackCard({
             <button
               type="button"
               onClick={onSwitchToCoach}
-              className="px-4 py-2 rounded-xl bg-violet-500/15 border border-violet-500/30 text-violet-300 text-xs font-bold hover:bg-violet-500/25 transition-colors"
+              className="px-4 py-2 rounded-xl bg-action-soft border border-hairline text-action-text text-xs font-bold hover:bg-violet-500/25 transition-colors"
             >
               Switch to coach mode
             </button>
@@ -171,7 +171,7 @@ export function ExaminerFeedbackCard({
     <div className={compact ? 'space-y-2' : 'space-y-3'}>
       {!compact && (
         <div className="flex items-center gap-2 px-1">
-          <GraduationCap size={14} className="text-amber-400" />
+          <GraduationCap size={14} className="text-reward-text" />
           <p className="text-[11px] font-bold text-ink-muted">Examiner commentary</p>
           <span className="text-[9px] text-ink-muted ml-auto">Practice feedback — not a grade prediction</span>
         </div>

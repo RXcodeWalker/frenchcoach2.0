@@ -50,7 +50,7 @@ const TONE_HEADING: Record<PointTone, string> = {
 function Section({ heading, tone, compact, children }: { heading: string; tone: PointTone; compact: boolean; children: ReactNode }) {
   return (
     <div className={`rounded-xl border ${compact ? 'p-3 space-y-2' : 'p-4 space-y-2.5'} ${TONE_CLASS[tone]}`}>
-      <p className={`fb-heading flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider ${TONE_HEADING[tone]}`}>
+      <p className={`fb-heading flex items-center gap-1 text-eyebrow uppercase ${TONE_HEADING[tone]}`}>
         {tone === 'good' ? <Check size={11} aria-hidden="true" /> : <X size={11} aria-hidden="true" />}
         {heading}
       </p>
@@ -89,7 +89,7 @@ function FixRow({ point, compact, hl }: { point: Extract<FeedbackPoint, { kind: 
   return (
     <Anchor quote={point.quote} active={!!hl && hl === point.quote}>
       <p className={compact ? 'text-[11px] leading-relaxed' : 'text-xs leading-relaxed'}>
-        <span className={`${QUOTE_CLASS} line-through decoration-rose-400/70`}>« {point.quote} »</span>
+        <span className={`${QUOTE_CLASS} line-through decoration-correction-text`}>« {point.quote} »</span>
         <span className="text-ink-muted mx-1.5" aria-hidden="true">
           →
         </span>

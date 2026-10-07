@@ -171,7 +171,7 @@ export function SayItAgainCard({ targetSentence, questionId, onDone }: Props) {
       className="rounded-xl surface-raised p-5 space-y-4 border border-violet-500/15"
     >
       <div>
-        <p className="text-[10px] font-bold uppercase tracking-widest text-violet-400 mb-1.5">
+        <p className="text-eyebrow uppercase text-action-text mb-1.5">
           Say it again
         </p>
         <div className="flex items-center gap-2">
@@ -179,7 +179,7 @@ export function SayItAgainCard({ targetSentence, questionId, onDone }: Props) {
           <button
             type="button"
             onClick={() => TTS.speak(targetSentence)}
-            className="shrink-0 text-violet-400 hover:text-violet-300"
+            className="shrink-0 text-action-text hover:text-action-text"
             aria-label="Hear the target sentence"
           >
             <Volume2 size={14} />
@@ -187,11 +187,11 @@ export function SayItAgainCard({ targetSentence, questionId, onDone }: Props) {
         </div>
         {attempt > 1 && retryHintWord && !outcome && (
           <p className="text-[11px] text-ink-muted mt-1.5 flex items-center gap-1.5">
-            Focus on: <span className="text-violet-300 font-semibold">{retryHintWord}</span>
+            Focus on: <span className="text-action-text font-semibold">{retryHintWord}</span>
             <button
               type="button"
               onClick={() => TTS.speak(retryHintWord)}
-              className="text-violet-400 hover:text-violet-300"
+              className="text-action-text hover:text-action-text"
               aria-label={`Hear "${retryHintWord}"`}
             >
               <Volume2 size={11} />
@@ -215,7 +215,7 @@ export function SayItAgainCard({ targetSentence, questionId, onDone }: Props) {
               whileHover={{ scale: isAnalyzing ? 1 : 1.1 }}
               whileTap={{ scale: isAnalyzing ? 1 : 0.9 }}
             >
-              {isRecording ? <MicOff size={20} className="text-white" /> : <Mic size={20} className="text-white" />}
+              {isRecording ? <MicOff size={20} className="text-action-ink" /> : <Mic size={20} className="text-action-ink" />}
             </motion.button>
           </div>
           <p className="text-center text-[10px] text-ink-subtle">
@@ -225,9 +225,9 @@ export function SayItAgainCard({ targetSentence, questionId, onDone }: Props) {
       )}
 
       {outcome === 'pass' && result && (
-        <div className="flex items-center gap-2.5 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/25">
-          <CheckCircle2 size={16} className="text-emerald-400 shrink-0" />
-          <p className="text-[11px] text-emerald-300">Nice — that landed. Score: {result.score !== null ? Math.round(result.score) : '—'}</p>
+        <div className="flex items-center gap-2.5 p-3 rounded-lg bg-progress-soft border border-hairline">
+          <CheckCircle2 size={16} className="text-progress-text shrink-0" />
+          <p className="text-[11px] text-progress-text">Nice — that landed. Score: {result.score !== null ? Math.round(result.score) : '—'}</p>
         </div>
       )}
 
@@ -235,14 +235,14 @@ export function SayItAgainCard({ targetSentence, questionId, onDone }: Props) {
         <button
           type="button"
           onClick={handleRetry}
-          className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-300 font-bold text-xs"
+          className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-reward-soft border border-hairline text-reward-text font-bold text-xs"
         >
           <RotateCcw size={12} /> Try once more
         </button>
       )}
 
       {outcome === 'advance-no-verdict' && (
-        <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700/40">
+        <div className="p-3 rounded-lg surface-recessed">
           <p className="text-[11px] text-ink-muted">
             {result && result.provider === 'azure'
               ? 'Good effort — moving on.'

@@ -25,11 +25,11 @@ import type { PronunciationAssessment } from '../../domain/pronunciation/types';
 function CardSkeleton() {
   return (
     <div className="rounded-xl surface-raised p-5 animate-pulse">
-      <div className="h-3 bg-slate-700/60 rounded w-1/3 mb-3" />
+      <div className="h-3 bg-track rounded w-1/3 mb-3" />
       <div className="space-y-2">
-        <div className="h-2.5 bg-slate-700/40 rounded w-full" />
-        <div className="h-2.5 bg-slate-700/40 rounded w-4/5" />
-        <div className="h-2.5 bg-slate-700/40 rounded w-3/5" />
+        <div className="h-2.5 bg-track rounded w-full" />
+        <div className="h-2.5 bg-track rounded w-4/5" />
+        <div className="h-2.5 bg-track rounded w-3/5" />
       </div>
     </div>
   );
@@ -44,15 +44,15 @@ function SectionGate({ ready, children }: { ready: boolean; children: React.Reac
 function ViewModeToggle() {
   const { state, dispatch } = useFeedbackContext();
   return (
-    <div className="flex p-0.5 rounded-lg bg-slate-800/60 border border-slate-700/40 w-fit">
+    <div className="flex p-0.5 rounded-lg surface-recessed w-fit">
       {(['coach', 'report'] as const).map(mode => (
         <button
           key={mode}
           onClick={() => dispatch({ type: 'SET_VIEW_MODE', mode })}
           aria-pressed={state.viewMode === mode}
-          className={`px-3 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-colors ${
+          className={`px-3 py-1.5 rounded-md text-eyebrow uppercase transition-colors ${
             state.viewMode === mode
-              ? 'bg-violet-500/20 text-violet-300'
+              ? 'bg-violet-500/20 text-action-text'
               : 'text-ink-muted hover:text-ink-muted'
           }`}
         >
@@ -62,15 +62,6 @@ function ViewModeToggle() {
     </div>
   );
 }
-
-// Deprecated components — kept as files, no longer rendered in the main flow.
-// To re-enable any of them, import and add back to FeedbackContent.
-// - PersonalizedContextBanner (replaced by backend coaching voice in cards)
-// - AvoidanceCard (replaced by BiggestOpportunityCard)
-// - TopPriorityCard (merged into CorrectionsCard's critical section)
-// - StyleStructureCard (replaced by CorrectionsCard's polish section)
-// - ExaminerNotebookCard (framing moved to tutor-voice cards)
-// - DeepAnalysisToggle + DeepAnalysisCard (backend owns this now)
 
 interface Props {
   feedback: FeedbackV2 | null;
@@ -161,6 +152,7 @@ function FeedbackContent({
         />
       )}
 
+      {/* lint:pronunciation-start — pronunciation branch is out of Batch 5 scope; block untouched */}
       {/* Pronunciation — Azure (0-100, real acoustic analysis) supersedes the legacy
           0-10 Gemini-prompt field whenever a Learn attempt has an audio blob. Never
           rendered together: mixing scales on one screen would mislead the learner. */}
@@ -217,6 +209,7 @@ function FeedbackContent({
       ) : (
         <PronunciationCard feedback={feedback} />
       )}
+      {/* lint:pronunciation-end */}
 
       <FeedbackFooter
         onRetry={onRetry}
@@ -247,7 +240,7 @@ export function FeedbackExperience({
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <Loader2 size={24} className="text-violet-400 animate-spin" />
+        <Loader2 size={24} className="text-action-text animate-spin" />
         <p className="text-sm text-ink-muted">{phaseLabel}</p>
       </motion.div>
     );

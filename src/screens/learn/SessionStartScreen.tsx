@@ -108,20 +108,20 @@ export function SessionStartScreen({
         <div className="flex gap-3">
           <div className="flex-1 p-3 rounded-xl surface-recessed text-center">
             <p className="text-lg font-black text-white">{questionsAnswered}</p>
-            <p className="text-[10px] text-ink-muted uppercase tracking-wide">Questions done</p>
+            <p className="text-eyebrow text-ink-muted uppercase">Questions done</p>
           </div>
           {/* Batch 1c — "—" until a scored session exists; never a fabricated 0.0. */}
           <div className="flex-1 p-3 rounded-xl surface-recessed text-center">
             <p className="text-lg font-black text-white">{avgScore != null ? avgScore.toFixed(1) : '—'}</p>
-            <p className="text-[10px] text-ink-muted uppercase tracking-wide">Avg score</p>
+            <p className="text-eyebrow text-ink-muted uppercase">Avg score</p>
             {avgScore == null && (
               <p className="text-[10px] text-ink-muted mt-1">No scored answers yet. Examiner style isn&apos;t scored.</p>
             )}
           </div>
           {topicMastery?.mastered && (
             <div className="flex-1 p-3 rounded-xl surface-recessed text-center bg-amber-500/5 border-amber-500/20">
-              <p className="text-lg font-black text-amber-400">🏆</p>
-              <p className="text-[10px] text-amber-500 uppercase tracking-wide">Mastered</p>
+              <p className="text-lg font-black text-reward-text">🏆</p>
+              <p className="text-eyebrow text-reward-text uppercase">Mastered</p>
             </div>
           )}
         </div>
@@ -131,8 +131,8 @@ export function SessionStartScreen({
       {showCoachLine && (
         <div className="p-4 rounded-2xl surface-recessed border-violet-electric/15 space-y-2">
           <div className="flex items-center gap-2">
-            <Target size={14} className="text-violet-400" />
-            <p className="text-xs font-bold text-violet-400 uppercase tracking-wide">Coach&apos;s pick</p>
+            <Target size={14} className="text-action-text" />
+            <p className="text-xs font-bold text-action-text uppercase tracking-wide">Coach&apos;s pick</p>
           </div>
           {coachPick && <p className="text-sm text-white font-medium leading-snug">{coachPick}</p>}
           {focusTokenQty > 0 && (
@@ -145,9 +145,9 @@ export function SessionStartScreen({
               <motion.button
                 onClick={onUseFocusToken}
                 disabled={focusTokenActive}
-                className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest flex-shrink-0 transition-colors ${
+                className={`px-3 py-1.5 rounded-lg text-eyebrow uppercase flex-shrink-0 transition-colors ${
                   focusTokenActive
-                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                    ? 'bg-emerald-500/20 text-progress-text border border-emerald-500/30'
                     : 'bg-white/5 text-ink-muted hover:bg-white/10 border border-white/10'
                 }`}
                 whileTap={{ scale: 0.97 }}

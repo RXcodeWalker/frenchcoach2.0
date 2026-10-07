@@ -62,12 +62,12 @@ export function ReportView({ feedback, transcript, majorIssues, polishIssues, on
       {allIssues.length > 0 && (
         <div className="rounded-xl surface p-4">
           <div className="flex items-center justify-between mb-2.5">
-            <p className="text-[9px] font-bold text-ink-subtle uppercase tracking-wider">
+            <p className="text-eyebrow text-ink-subtle uppercase">
               Corrections ({allIssues.length})
             </p>
             <button
               onClick={() => dispatch({ type: 'SET_EXPAND_ALL_LESSONS', value: !expandAll })}
-              className="flex items-center gap-1 text-[9px] font-medium text-violet-400 hover:text-violet-300 transition-colors"
+              className="flex items-center gap-1 text-[9px] font-medium text-action-text hover:text-action-text transition-colors"
             >
               {expandAll ? <ChevronsDownUp size={11} /> : <ChevronsUpDown size={11} />}
               {expandAll ? 'Collapse all' : 'Expand all'}

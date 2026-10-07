@@ -81,11 +81,6 @@ export function TopicGrid({ onSelect, title = "Learn", subtitle = "Choose a topi
                   </div>
                   <div className="flex items-center gap-1.5 mb-0.5">
                     <h3 className="font-bold text-white text-sm">{topic.label}</h3>
-                    {topic.isAdvanced && (
-                      <span className="text-[8px] bg-amber-500/20 text-amber-400 px-1 rounded-sm uppercase tracking-wider font-bold border border-amber-500/20">
-                        ADV
-                      </span>
-                    )}
                   </div>
                   <p className="text-[10px] text-ink-subtle">{topic.labelEn}</p>
                   {unlocked ? (

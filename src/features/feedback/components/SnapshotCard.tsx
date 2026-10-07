@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { scoreColor, isUnscored, coachScoreGrid } from '../../../domain/scoring';
+import { scoreTone, isUnscored, coachScoreGrid } from '../../../domain/scoring';
 import { fadeUp } from '../../../components/motion/variants';
 import { cefrLevelLabel } from '../../../domain/learn/ability/levelLabel';
 import type { FeedbackV2 } from '../../../types';
@@ -52,8 +52,8 @@ export function SnapshotCard({ feedback, variant = 'full' }: Props) {
         animate="show"
         className="rounded-xl surface-raised px-5 py-3 flex items-baseline gap-2"
       >
-        <span className="text-2xl font-black" style={{ color: scoreColor(scores.overall) }}>{scores.overall.toFixed(1)}</span>
-        <span className="text-[10px] text-ink-subtle uppercase tracking-wide">Overall</span>
+        <span className="text-2xl font-black" style={{ color: scoreTone(scores.overall) }}>{scores.overall.toFixed(1)}</span>
+        <span className="text-eyebrow text-ink-subtle uppercase">Overall</span>
         <span className="text-[10px] text-ink-subtle ml-auto">{meta}</span>
       </motion.div>
     );
@@ -79,8 +79,8 @@ export function SnapshotCard({ feedback, variant = 'full' }: Props) {
       </div>
 
       <div className="flex items-baseline gap-2 mb-3">
-        <span className="text-3xl font-black" style={{ color: scoreColor(scores.overall) }}>{scores.overall.toFixed(1)}</span>
-        <span className="text-[10px] text-ink-subtle uppercase tracking-wide">Overall</span>
+        <span className="text-3xl font-black" style={{ color: scoreTone(scores.overall) }}>{scores.overall.toFixed(1)}</span>
+        <span className="text-eyebrow text-ink-subtle uppercase">Overall</span>
       </div>
 
       <div className="grid grid-cols-4 gap-3 max-[380px]:grid-cols-2">
@@ -88,7 +88,7 @@ export function SnapshotCard({ feedback, variant = 'full' }: Props) {
           <div key={label} className="text-center">
             <motion.div
               className="text-xl font-black mb-1"
-              style={{ color: scoreColor(val) }}
+              style={{ color: scoreTone(val) }}
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.15 + i * 0.05, type: 'spring', stiffness: 200 }}
@@ -96,10 +96,10 @@ export function SnapshotCard({ feedback, variant = 'full' }: Props) {
               {val.toFixed(1)}
             </motion.div>
             <div className="text-[9px] text-ink-subtle">{label}</div>
-            <div className="mt-1.5 h-1 bg-slate-800 rounded-full overflow-hidden">
+            <div className="mt-1.5 h-1 bg-track rounded-full overflow-hidden">
               <motion.div
                 className="h-full rounded-full"
-                style={{ background: scoreColor(val) }}
+                style={{ background: scoreTone(val) }}
                 initial={{ width: 0 }}
                 animate={{ width: `${(val / 10) * 100}%` }}
                 transition={{ delay: 0.25 + i * 0.05, duration: 0.6 }}

@@ -25,7 +25,7 @@ export function StrongestMomentCard({ feedback, transcript }: Props) {
   return (
     <CollapsibleCard
       title="Strongest Moment"
-      icon={<Star size={13} className="text-emerald-400" />}
+      icon={<Star size={13} className="text-progress-text" />}
       defaultOpen={true}
       className="border border-emerald-500/10"
     >
@@ -34,8 +34,8 @@ export function StrongestMomentCard({ feedback, transcript }: Props) {
         <p className="text-[11px] text-ink-muted leading-relaxed">{bestMoment}</p>
       ) : spanText ? (
         // Legacy: span-derived quote + explanation
-        <div className="p-3 rounded-lg bg-emerald-500/8 border border-emerald-500/15">
-          <p className="text-[10px] text-emerald-300 font-medium italic">"{spanText}"</p>
+        <div className="p-3 rounded-lg bg-progress-soft border border-hairline">
+          <p className="text-[10px] text-progress-text font-medium italic">"{spanText}"</p>
           {legacyExplanation && (
             <p className="text-[10px] text-ink-muted mt-1">{legacyExplanation}</p>
           )}

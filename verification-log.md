@@ -3635,3 +3635,52 @@ pre-existing warnings) · `npm test` **315 files / 3107 tests passed** (with `ba
 `authoring:parity` 10/10 · `examiner:parity` matches · backend `pytest tests` 461 passed. Not run:
 Playwright end-to-end (a Learn answer needs speech input; the feedback screen is covered by the
 jsdom render test, light-mode visuals are Batch 5).
+
+## 2026-10-07 — Learn overhaul Batch 5: light mode and visual polish
+
+**What changed (UI only; no scoring, evidence, selection or contract change).**
+
+1. **Tokens.** `--info-text` / `--info-soft` added in both themes (the cyan "review" chips stayed, so
+   the pair was needed); light `--progress-text` darkened `#047857` → `#065F46` because it measured
+   4.41:1 on its own soft fill over `surface-recessed` (< AA). `tailwind.config.js` gains `info`.
+2. **Sweep.** Every raw 100–500 Tailwind text/decoration colour in Learn and feedback was mapped by
+   role (text/icon/decoration → `-text` token; slate 100–200 → `ink`, 300–500 → `ink-muted`;
+   soft tinted pairs → `bg-*-soft border-hairline`; dark `bg-slate-*` panels → `surface-recessed`,
+   tracks/skeletons → `bg-track`). Violet-button text and the two mic icons use `text-action-ink`.
+   `severity.ts` is token-based (hex removed; wavy underlines use `decoration-correction` etc.);
+   `domain/scoring.ts` gains `scoreTone` (same 8/6 thresholds) for Learn text — `scoreColor` is
+   unchanged because `PronunciationCard` (out of bounds) uses it as an SVG stroke.
+3. **Deleted** (no importers): `PersonalizedContextBanner`, `AvoidanceCard`, `TopPriorityCard`,
+   `StyleStructureCard`, `ExaminerNotebookCard`, `DeepAnalysisToggle`, `DeepAnalysisCard`, plus
+   `selectShowExaminerNotebook` and the hook's `showExaminerNotebook`.
+4. **Clutter cuts.** ADV badge removed from the topic grid; "Active Session" subtitle → the topic's
+   English name; 49 nine/ten-px uppercase eyebrows → `text-eyebrow`; the summary's demand-mastery
+   "+n%" bars → "You practised giving reasons 3×" (`features/learn/sessionRecap.ts`, tested);
+   confetti only for a session average ≥ 7.
+5. **Carry-over fix from Batch 1/4.** The question chip still printed the raw derived band
+   ("B2") — now `levelLabel(...)` ("Stretch (B1+)"); test `QuestionCard.chip.test.tsx`.
+
+**Guards (written first, failing, then green).** `lightContrast.test.ts` (7 rules, named
+pronunciation allowlist, fenced block in `FeedbackExperience.tsx`) and `tokenContrast.test.ts`
+(32 cases, both themes, AA 4.5:1 text / 3:1 strokes).
+
+**Deviations from the plan, for the owner.**
+- *Personal-best confetti:* no per-topic best-session score is persisted, and adding one is a new
+  store (out of scope); confetti is average ≥ 7 only.
+- *Locked topics:* the lock itself is live, tested gating (CLAUDE.md), so only the ADV badge was cut.
+- *Emoji tier icons:* already gone with Batch 2's tier grid; nothing left to remove.
+- *Pronunciation block:* `FeedbackExperience.tsx`'s inline pronunciation status block keeps its raw
+  cyan classes untouched (fenced), as do the three pronunciation cards.
+- *Playwright screenshots* were taken ad hoc (setup and question screens, light and dark,
+  430px); the feedback screen needs a live speech/LLM round trip and was not captured — it is covered
+  by the jsdom `FeedbackExperience` test and the lint guards. Not committed as an e2e spec.
+- *Branch base:* this branch lacked Batches 1–4 (they sat on `claude/peaceful-euler-6mk3y1`); both
+  repos were fast-forwarded to it before starting, no history rewritten.
+
+**Rollback.** Pure presentation: reverting the Batch 5 commit restores the previous classes; the two
+new tokens are additive.
+
+Gate at commit: `typecheck` clean · `typecheck:server` clean · `lint` 0 errors (21 pre-existing
+warnings) · `npm test` **319 files / 3152 tests passed** (with `backend/` linked at the Batch 4
+backend head) · `learn:check -- --draft` unchanged. Not run: Playwright e2e, backend pytest (no
+backend change).

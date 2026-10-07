@@ -34,7 +34,7 @@ export function StreakToast({ streak, show, onDismiss }: Props) {
             <span className="text-xl">{isOnFire ? '🔥🔥' : '🔥'}</span>
             <div>
               <p className="text-sm font-black text-white">{isOnFire ? 'On Fire!' : 'Hot streak!'}</p>
-              <p className="text-[10px] text-orange-400">{streak} correct in a row</p>
+              <p className="text-[10px] text-streak-text">{streak} correct in a row</p>
             </div>
           </div>
         </motion.div>
