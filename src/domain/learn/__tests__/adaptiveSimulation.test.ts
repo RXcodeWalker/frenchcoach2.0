@@ -644,6 +644,40 @@ describe('adaptive simulation — K: corpus-only inferred provenance', () => {
   });
 });
 
+/** 4 sessions a week for 3 weeks, 5 questions each; shared by scenarios L and M. */
+function simulateThreeWeeks(pool: Question[], seed: number) {
+  const rng = mulberry32(seed);
+  const events: EvidenceEvent[] = [];
+  const seen = new Set<string>();
+  const SESSIONS = 12; // 4 a week for 3 weeks
+  const PER_SESSION = 5;
+  const DAY = 86_400_000;
+  const trueAbility: Record<CognitiveDemand, number> = { describe: 5, explain: 4.5, justify: 4, compare: 3.5, hypothesize: 3 };
+  for (let s = 0; s < SESSIONS; s++) {
+    const occurredAt = new Date(Date.now() - (21 - (21 * s) / (SESSIONS - 1)) * DAY).toISOString();
+    const before = snapshotFrom(events);
+    const ability = deriveAbility(before).abilityScore;
+    const slots = planSlots({ sessionBlend: DEFAULT_BLEND, sessionTarget: computeSessionTarget(ability, 'balanced'), count: PER_SESSION });
+    const { selected } = selectQuestions(
+      { pool, slots, chosenIds: new Set(), seenIds: seen, focusSkillIds: [], activeDemandProblem: null, getReviewQuestion: () => null, targetLevel: computeSessionTarget(ability, 'balanced') },
+      { beliefSnapshot: before },
+    );
+    for (const sel of selected) {
+      seen.add(sel.question.id);
+      const outcome = simulateAttempt({
+        question: sel.question,
+        trueAbility: trueAbility[sel.question.demands!.cognitiveDemand],
+        rng,
+        unknownRate: 0.3,
+        sessionId: `sim-l-${s}`,
+        occurredAt,
+      });
+      events.push(...outcome.events);
+    }
+  }
+  return deriveAbility(snapshotFrom(events));
+}
+
 // ── Learn overhaul Batch 1e — simulation check (no engine change) ───────────
 // Is "Around A2" (docs §6.3: overallConfidence >= CONFIDENCE_BAND_HIDDEN_BELOW)
 // reachable for a realistic learner once the bank is reviewed? A learner at
@@ -670,39 +704,7 @@ describe('adaptive simulation — L: realistic reviewed-bank learner over 3 week
     return pool;
   }
 
-  function run3Weeks(seed: number) {
-    const pool = reviewedPool();
-    const rng = mulberry32(seed);
-    const events: EvidenceEvent[] = [];
-    const seen = new Set<string>();
-    const SESSIONS = 12; // 4 a week for 3 weeks
-    const PER_SESSION = 5;
-    const DAY = 86_400_000;
-    const trueAbility: Record<CognitiveDemand, number> = { describe: 5, explain: 4.5, justify: 4, compare: 3.5, hypothesize: 3 };
-    for (let s = 0; s < SESSIONS; s++) {
-      const occurredAt = new Date(Date.now() - (21 - (21 * s) / (SESSIONS - 1)) * DAY).toISOString();
-      const before = snapshotFrom(events);
-      const ability = deriveAbility(before).abilityScore;
-      const slots = planSlots({ sessionBlend: DEFAULT_BLEND, sessionTarget: computeSessionTarget(ability, 'balanced'), count: PER_SESSION });
-      const { selected } = selectQuestions(
-        { pool, slots, chosenIds: new Set(), seenIds: seen, focusSkillIds: [], activeDemandProblem: null, getReviewQuestion: () => null, targetLevel: computeSessionTarget(ability, 'balanced') },
-        { beliefSnapshot: before },
-      );
-      for (const sel of selected) {
-        seen.add(sel.question.id);
-        const outcome = simulateAttempt({
-          question: sel.question,
-          trueAbility: trueAbility[sel.question.demands!.cognitiveDemand],
-          rng,
-          unknownRate: 0.3,
-          sessionId: `sim-l-${s}`,
-          occurredAt,
-        });
-        events.push(...outcome.events);
-      }
-    }
-    return deriveAbility(snapshotFrom(events));
-  }
+  const run3Weeks = (seed: number) => simulateThreeWeeks(reviewedPool(), seed);
 
   it('records whether the "Around A2" confidence gate is reachable after 3 weeks', () => {
     const results = [11, 12, 13].map(run3Weeks);
@@ -718,5 +720,52 @@ describe('adaptive simulation — L: realistic reviewed-bank learner over 3 week
       // change makes the gate reachable, flip this assertion deliberately.
       expect(r.overallConfidence).toBeLessThan(CONFIDENCE_BAND_HIDDEN_BELOW);
     }
+  });
+});
+
+// ── Learn overhaul Batch 3b — the same check on the re-tagged bank ──────────
+// Batch 3b re-read every core-topic question against its wording, and the demand
+// mix moved: of the 660 core questions, describe 229 · explain 197 · justify 165 ·
+// compare 53 · hypothesize 16 (it was ~63% describe when inferred from hints).
+// Two provenance states are measured: what ships now (still 'inferred',
+// confidence 0.8, awaiting the owner's sign-off) and what the owner's
+// 'reviewed' flip will produce.
+describe('adaptive simulation — M: re-tagged bank, 3 weeks (Batch 3b)', () => {
+  const MIX_3B: [CognitiveDemand, number, ResponseLoad][] = [
+    ['describe', 23, 'developed'],
+    ['explain', 20, 'developed'],
+    ['justify', 17, 'developed'],
+    ['compare', 5, 'developed'],
+    ['hypothesize', 2, 'developed'],
+  ];
+
+  function poolFor(provenance: DemandProvenance): Question[] {
+    const pool: Question[] = [];
+    for (const [demand, n, responseLoad] of MIX_3B) {
+      for (let i = 0; i < n; i++) {
+        pool.push(
+          makeQuestion(demand, { responseLoad, ...(provenance === 'inferred' ? { inferenceConfidence: 0.8 } : {}) }, provenance),
+        );
+      }
+    }
+    return pool;
+  }
+
+  it('records overallConfidence after 3 weeks for the shipped (inferred 0.8) and the reviewed state', () => {
+    const shipped = [11, 12, 13].map((seed) => simulateThreeWeeks(poolFor('inferred'), seed));
+    const reviewed = [11, 12, 13].map((seed) => simulateThreeWeeks(poolFor('reviewed'), seed));
+    for (const r of [...shipped, ...reviewed]) expect(r.measuredAnswers).toBeGreaterThan(0);
+    // FINDING (Batch 3b, 2026-10-07), seeds 11–13:
+    //   shipped  (inferred 0.8): overallConfidence 0.098 / 0.122 / 0.090 — far below the gate;
+    //            only 11–14 of ~60 answers stay above MIN_RELIABLE_WEIGHT after the 14-day decay.
+    //   reviewed (owner sign-off): 0.222 / 0.256 / 0.262 (was 0.18–0.21 on the old mix) —
+    //            borderline: the 0.25 gate is reached on 2 of 3 seeds, not reliably.
+    // This is the evidence for the §6.3 display-only gate proposal (verification-log.md,
+    // "Learn overhaul Batch 3b"). If the gate or the weights change, update these on purpose.
+    for (const r of shipped) expect(r.overallConfidence).toBeLessThan(CONFIDENCE_BAND_HIDDEN_BELOW);
+    for (let i = 0; i < shipped.length; i++) expect(reviewed[i].overallConfidence).toBeGreaterThan(shipped[i].overallConfidence);
+    const meanReviewed = reviewed.reduce((a, r) => a + r.overallConfidence, 0) / reviewed.length;
+    expect(meanReviewed).toBeGreaterThan(0.2);
+    expect(meanReviewed).toBeLessThan(0.3);
   });
 });

@@ -91,8 +91,7 @@ export const LEARN_SUB_TOPICS: Readonly<Record<string, readonly LearnSubTopic[]>
   ],
   jobs: [
     { key: 'dream-job', label: 'My dream job' },
-    { key: 'jobs-around-me', label: 'Jobs around me' },
-    { key: 'work-experience', label: 'Work experience' },
+    { key: 'work-experience', label: 'Jobs & experience' },
     { key: 'skills-and-study', label: 'Skills & study' },
     { key: 'working-world', label: 'The working world' },
   ],

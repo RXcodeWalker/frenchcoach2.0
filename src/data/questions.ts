@@ -10281,6 +10281,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "clothes",
     text: "Qu'est-ce que tu portes aujourd'hui ?",
     hint: "Describe what you're wearing right now — items, colours, materials.",
+    subTopic: "what-i-wear",
     difficulty: 1,
     followUps: [
       "Tu aimes cette tenue ?",
@@ -10302,6 +10303,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "clothes",
     text: "Décris ton vêtement préféré.",
     hint: "Pick one item, describe its appearance and why you like wearing it.",
+    subTopic: "what-i-wear",
     difficulty: 1,
     followUps: [
       "Depuis quand as-tu ce vêtement ?",
@@ -10323,6 +10325,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "clothes",
     text: "Qu'est-ce que tu portes pour aller à l'école ?",
     hint: "Talk about your uniform or everyday school clothes.",
+    subTopic: "what-i-wear",
     difficulty: 1,
     followUps: [
       "Est-ce que tu aimes ton uniforme ?",
@@ -10344,6 +10347,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "clothes",
     text: "Tu préfères porter des vêtements décontractés ou élégants ?",
     hint: "Compare casual vs smart clothing and when you wear each.",
+    subTopic: "what-i-wear",
     difficulty: 1,
     followUps: [
       "Quand portes-tu des vêtements élégants ?",
@@ -10365,6 +10369,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "clothes",
     text: "Où fais-tu du shopping pour acheter des vêtements ?",
     hint: "Name shops, in-store vs online, and why you choose them.",
+    subTopic: "buying-clothes",
     difficulty: 1,
     followUps: [
       "Tu préfères acheter en ligne ou en magasin ?",
@@ -10386,6 +10391,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "clothes",
     text: "Décris les vêtements que porte une personne de ta famille.",
     hint: "Describe someone's typical style — colours, items, occasions.",
+    subTopic: "what-i-wear",
     difficulty: 1,
     followUps: [
       "Est-ce que son style te plaît ?",
@@ -10407,6 +10413,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "clothes",
     text: "Quels vêtements portes-tu quand il fait froid ?",
     hint: "Describe cold-weather clothing layers.",
+    subTopic: "what-i-wear",
     difficulty: 1,
     followUps: [
       "Et quand il fait chaud, qu'est-ce que tu portes ?",
@@ -10426,8 +10433,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "clo_08",
     topicKey: "clothes",
-    text: "Est-ce que tu suis les tendances de la mode ?",
+    text: "Est-ce que tu suis les tendances de la mode ? Où trouves-tu ton inspiration ?",
     hint: "Say whether you follow trends and give an example.",
+    subTopic: "fashion-and-trends",
     difficulty: 2,
     followUps: [
       "Où trouves-tu de l'inspiration pour t'habiller ?",
@@ -10447,8 +10455,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "clo_09",
     topicKey: "clothes",
-    text: "Est-ce que la mode est importante pour toi ?",
+    text: "Est-ce que la mode est importante pour toi ? Pourquoi (pas) ?",
     hint: "Give a balanced opinion on how much fashion matters to you.",
+    subTopic: "fashion-and-trends",
     difficulty: 2,
     followUps: [
       "Est-ce que tu dépenses beaucoup d'argent en vêtements ?",
@@ -10468,15 +10477,16 @@ export const QUESTIONS: Question[] = [
   {
     id: "clo_10",
     topicKey: "clothes",
-    text: "Décris une tenue que tu as portée pour une occasion spéciale.",
+    text: "Décris une tenue que tu as portée l'année dernière pour une occasion spéciale.",
     hint: "Use passé composé to describe an outfit worn to an event.",
+    subTopic: "what-i-wear",
     difficulty: 2,
     followUps: [
       "Pour quelle occasion c'était ?",
       "Comment t'es-tu senti(e) dans cette tenue ?",
       "As-tu reçu des compliments ?",
     ],
-    modelAnswer: "Le mois dernier, je suis allé(e) à l'anniversaire de ma cousine et j'ai porté une chemise bleue avec un pantalon noir élégant. J'ai aussi mis des chaussures en cuir que j'avais achetées spécialement pour l'occasion. Je me suis senti(e) très bien habillé(e) et confiant(e). Plusieurs personnes m'ont fait des compliments sur ma tenue, ce qui m'a fait plaisir.",
+    modelAnswer: "L'année dernière, je suis allé(e) à l'anniversaire de ma cousine et j'ai porté une chemise bleue avec un pantalon noir élégant. J'ai aussi mis des chaussures en cuir que j'avais achetées spécialement pour l'occasion. Je me suis senti(e) très bien habillé(e) et confiant(e). Plusieurs personnes m'ont fait des compliments sur ma tenue, ce qui m'a fait plaisir.",
     keyVocab: [
       { fr: "le cuir", en: "leather" },
       { fr: "spécialement", en: "specially" },
@@ -10491,6 +10501,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "clothes",
     text: "Qu'est-ce que tu penses de la mode rapide (fast fashion) ?",
     hint: "Discuss pros and cons of cheap, fast-changing fashion.",
+    subTopic: "buying-clothes",
     difficulty: 2,
     followUps: [
       "Est-ce que tu achètes souvent des vêtements bon marché ?",
@@ -10512,6 +10523,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "clothes",
     text: "Comment choisis-tu tes vêtements le matin ?",
     hint: "Describe your morning routine for picking an outfit.",
+    subTopic: "what-i-wear",
     difficulty: 1,
     followUps: [
       "Est-ce que la météo influence ton choix ?",
@@ -10531,8 +10543,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "clo_13",
     topicKey: "clothes",
-    text: "Est-ce que tu as déjà acheté un vêtement que tu as regretté ?",
+    text: "Est-ce que tu as déjà acheté un vêtement que tu as regretté ? Pourquoi ?",
     hint: "Use passé composé — describe a clothing purchase mistake.",
+    subTopic: "buying-clothes",
     difficulty: 2,
     followUps: [
       "Pourquoi l'as-tu regretté ?",
@@ -10552,8 +10565,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "clo_14",
     topicKey: "clothes",
-    text: "Penses-tu que les écoles devraient obliger le port de l'uniforme ?",
+    text: "Penses-tu que les écoles devraient obliger le port de l'uniforme ? Pourquoi (pas) ?",
     hint: "Discuss both sides of the school uniform debate.",
+    subTopic: "fashion-and-society",
     difficulty: 2,
     followUps: [
       "Quels sont les avantages de l'uniforme ?",
@@ -10573,8 +10587,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "clo_15",
     topicKey: "clothes",
-    text: "Est-ce que tu achètes des vêtements d'occasion ?",
+    text: "Est-ce que tu achètes des vêtements d'occasion ? Pourquoi (pas) ?",
     hint: "Discuss second-hand clothing — thrifting, vintage shops.",
+    subTopic: "buying-clothes",
     difficulty: 2,
     followUps: [
       "Pourquoi est-ce que les vêtements d'occasion deviennent populaires ?",
@@ -10596,6 +10611,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "clothes",
     text: "Comment penses-tu que la mode va changer dans le futur ?",
     hint: "Speculate using the future tense about fashion trends.",
+    subTopic: "fashion-and-trends",
     difficulty: 3,
     followUps: [
       "Est-ce que la technologie va jouer un rôle dans la mode ?",
@@ -10617,6 +10633,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "clothes",
     text: "Dans quelle mesure les vêtements reflètent-ils notre identité ?",
     hint: "Discuss how clothing choices express personality and identity.",
+    subTopic: "fashion-and-society",
     difficulty: 3,
     followUps: [
       "Est-ce que tu changes de style selon ton humeur ?",
@@ -10638,6 +10655,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "clothes",
     text: "Quel est l'impact environnemental de l'industrie de la mode ?",
     hint: "Discuss pollution, waste, and water use in fashion production.",
+    subTopic: "fashion-and-society",
     difficulty: 3,
     followUps: [
       "Quelles solutions existent pour réduire cet impact ?",
@@ -10659,6 +10677,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "clothes",
     text: "Si tu pouvais créer ta propre ligne de vêtements, à quoi ressemblerait-elle ?",
     hint: "Use conditional to describe a hypothetical fashion line.",
+    subTopic: "fashion-and-trends",
     difficulty: 3,
     followUps: [
       "Quel serait le style de ta marque ?",
@@ -10678,8 +10697,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "clo_20",
     topicKey: "clothes",
-    text: "Penses-tu que les publicités de mode donnent une image irréaliste du corps ?",
+    text: "Penses-tu que les publicités de mode donnent une image irréaliste du corps ? Pourquoi ?",
     hint: "Discuss body image and fashion advertising critically.",
+    subTopic: "fashion-and-society",
     difficulty: 3,
     followUps: [
       "Comment cela affecte-t-il les jeunes ?",
@@ -10701,6 +10721,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "clothes",
     text: "Quels vêtements portes-tu pour faire du sport ?",
     hint: "Describe sportswear items and materials.",
+    subTopic: "what-i-wear",
     difficulty: 1,
     followUps: [
       "As-tu des chaussures de sport spéciales ?",
@@ -10720,8 +10741,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "clo_22",
     topicKey: "clothes",
-    text: "Est-ce que tu prêtes tes vêtements à d'autres personnes ?",
+    text: "Est-ce que tu prêtes tes vêtements à d'autres personnes ? À qui, et pourquoi ?",
     hint: "Talk about sharing/lending clothes with friends or siblings.",
+    subTopic: "what-i-wear",
     difficulty: 2,
     followUps: [
       "À qui prêtes-tu tes vêtements ?",
@@ -10743,6 +10765,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "clothes",
     text: "Quelle est la différence entre le style vestimentaire des jeunes et celui des adultes ?",
     hint: "Compare generational fashion differences.",
+    subTopic: "fashion-and-trends",
     difficulty: 2,
     followUps: [
       "Pourquoi penses-tu qu'il y a cette différence ?",
@@ -10762,8 +10785,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "clo_24",
     topicKey: "clothes",
-    text: "As-tu déjà offert des vêtements en cadeau ?",
+    text: "As-tu déjà offert des vêtements en cadeau ? À qui et quand ?",
     hint: "Use passé composé to describe giving clothing as a gift.",
+    subTopic: "buying-clothes",
     difficulty: 2,
     followUps: [
       "À qui as-tu offert ce cadeau ?",
@@ -10785,6 +10809,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "clothes",
     text: "Comment les vêtements traditionnels sont-ils différents des vêtements modernes ?",
     hint: "Compare traditional cultural dress with modern fashion.",
+    subTopic: "fashion-and-society",
     difficulty: 3,
     followUps: [
       "Y a-t-il des vêtements traditionnels dans ta culture ?",
@@ -10804,8 +10829,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "clo_26",
     topicKey: "clothes",
-    text: "Penses-tu que les hommes et les femmes devraient pouvoir porter les mêmes vêtements ?",
+    text: "Penses-tu que les hommes et les femmes devraient pouvoir porter les mêmes vêtements ? Pourquoi (pas) ?",
     hint: "Discuss gender-neutral fashion and changing norms.",
+    subTopic: "fashion-and-society",
     difficulty: 3,
     followUps: [
       "Est-ce que cette idée est acceptée dans ta société ?",
@@ -10825,8 +10851,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "clo_27",
     topicKey: "clothes",
-    text: "As-tu déjà participé ou assisté à un défilé de mode ?",
+    text: "As-tu déjà participé ou assisté à un défilé de mode ? Comment c'était ?",
     hint: "Describe an experience with a fashion show, real or hypothetical.",
+    subTopic: "fashion-and-trends",
     difficulty: 2,
     followUps: [
       "Comment était l'ambiance ?",
@@ -10848,6 +10875,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "clothes",
     text: "Quel rôle jouent les célébrités dans les tendances de la mode ?",
     hint: "Discuss celebrity influence on fashion choices.",
+    subTopic: "fashion-and-trends",
     difficulty: 3,
     followUps: [
       "Y a-t-il une célébrité dont tu admires le style ?",
@@ -10869,6 +10897,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "clothes",
     text: "Si tu devais choisir seulement cinq vêtements pour toute une année, lesquels choisirais-tu ?",
     hint: "Use conditional to justify a minimalist wardrobe.",
+    subTopic: "what-i-wear",
     difficulty: 3,
     followUps: [
       "Pourquoi as-tu choisi ces vêtements précisément ?",
@@ -10890,6 +10919,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "clothes",
     text: "Comment la mode a-t-elle changé au cours des dernières décennies ?",
     hint: "Discuss how fashion has evolved historically.",
+    subTopic: "fashion-and-trends",
     difficulty: 3,
     followUps: [
       "Quelle époque de la mode préfères-tu ?",
@@ -10911,8 +10941,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "ani_01",
     topicKey: "animals",
-    text: "As-tu un animal de compagnie ?",
+    text: "As-tu un animal de compagnie ? Comment est-il ?",
     hint: "Describe a pet you have or would like — type, name, appearance.",
+    subTopic: "pets",
     difficulty: 1,
     followUps: [
       "Comment s'appelle ton animal ?",
@@ -10934,6 +10965,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "animals",
     text: "Quel est ton animal préféré et pourquoi ?",
     hint: "Name a favourite animal and give reasons for liking it.",
+    subTopic: "pets",
     difficulty: 1,
     followUps: [
       "Est-ce que tu l'as déjà vu en vrai ?",
@@ -10955,6 +10987,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "animals",
     text: "Préfères-tu les chats ou les chiens ? Pourquoi ?",
     hint: "Compare cats and dogs and give a preference.",
+    subTopic: "pets",
     difficulty: 1,
     followUps: [
       "As-tu déjà eu les deux ?",
@@ -10976,6 +11009,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "animals",
     text: "Quels animaux peut-on voir dans un zoo ?",
     hint: "List animals typically found at a zoo, describe one.",
+    subTopic: "wild-animals-and-zoos",
     difficulty: 1,
     followUps: [
       "Aimes-tu aller au zoo ?",
@@ -10995,8 +11029,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "ani_05",
     topicKey: "animals",
-    text: "Décris un animal que tu as vu récemment.",
+    text: "Décris le dernier animal que tu as vu.",
     hint: "Use passé composé to describe a recent animal sighting.",
+    subTopic: "wild-animals-and-zoos",
     difficulty: 1,
     followUps: [
       "Où l'as-tu vu ?",
@@ -11016,8 +11051,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "ani_06",
     topicKey: "animals",
-    text: "Aimerais-tu avoir un animal de compagnie exotique ?",
+    text: "Aimerais-tu avoir un animal de compagnie exotique ? Pourquoi (pas) ?",
     hint: "Discuss exotic pets and whether you'd want one.",
+    subTopic: "pets",
     difficulty: 2,
     followUps: [
       "Quel animal exotique choisirais-tu ?",
@@ -11039,6 +11075,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "animals",
     text: "Pourquoi est-il important de protéger les espèces en voie de disparition ?",
     hint: "Discuss endangered species conservation.",
+    subTopic: "protecting-wildlife",
     difficulty: 2,
     followUps: [
       "Connais-tu une espèce en voie de disparition ?",
@@ -11058,8 +11095,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "ani_08",
     topicKey: "animals",
-    text: "As-tu déjà adopté un animal dans un refuge ?",
+    text: "As-tu déjà adopté un animal dans un refuge ? Pourquoi (pas) ?",
     hint: "Discuss adopting animals from shelters, real or hypothetical.",
+    subTopic: "pets",
     difficulty: 2,
     followUps: [
       "Pourquoi est-ce important d'adopter plutôt que d'acheter ?",
@@ -11081,6 +11119,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "animals",
     text: "Quelle est la différence entre un animal domestique et un animal sauvage ?",
     hint: "Compare domesticated and wild animals.",
+    subTopic: "wild-animals-and-zoos",
     difficulty: 2,
     followUps: [
       "Peut-on apprivoiser un animal sauvage ?",
@@ -11100,8 +11139,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "ani_10",
     topicKey: "animals",
-    text: "As-tu peur de certains animaux ?",
+    text: "As-tu peur de certains animaux ? Lesquels ?",
     hint: "Discuss animal phobias or fears.",
+    subTopic: "animals-and-people",
     difficulty: 1,
     followUps: [
       "Depuis quand as-tu cette peur ?",
@@ -11123,6 +11163,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "animals",
     text: "Comment les animaux nous aident-ils dans la vie quotidienne ?",
     hint: "Discuss working/service animals and their roles.",
+    subTopic: "animals-and-people",
     difficulty: 2,
     followUps: [
       "Connais-tu un exemple de chien guide ?",
@@ -11144,6 +11185,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "animals",
     text: "Qu'est-ce que tu ferais si tu trouvais un animal blessé dans la rue ?",
     hint: "Use conditional to describe hypothetical actions helping an injured animal.",
+    subTopic: "animals-and-people",
     difficulty: 2,
     followUps: [
       "As-tu déjà vécu cette situation ?",
@@ -11163,8 +11205,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "ani_13",
     topicKey: "animals",
-    text: "Penses-tu que les gens devraient manger moins de viande pour protéger les animaux ?",
+    text: "Penses-tu que les gens devraient manger moins de viande pour protéger les animaux ? Pourquoi (pas) ?",
     hint: "Discuss diet, animal welfare, and ethical eating.",
+    subTopic: "animals-and-people",
     difficulty: 3,
     followUps: [
       "Es-tu végétarien(ne) ou végan(e) ?",
@@ -11186,6 +11229,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "animals",
     text: "Quel est l'impact du changement climatique sur les animaux sauvages ?",
     hint: "Discuss climate change effects on wildlife and habitats.",
+    subTopic: "protecting-wildlife",
     difficulty: 3,
     followUps: [
       "Quels animaux sont les plus touchés ?",
@@ -11207,6 +11251,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "animals",
     text: "As-tu déjà visité une ferme ? Décris cette expérience.",
     hint: "Use passé composé to describe a farm visit.",
+    subTopic: "animals-and-people",
     difficulty: 2,
     followUps: [
       "Quels animaux as-tu vus ?",
@@ -11226,8 +11271,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "ani_16",
     topicKey: "animals",
-    text: "Penses-tu que les cirques devraient utiliser des animaux dans leurs spectacles ?",
+    text: "Penses-tu que les cirques devraient utiliser des animaux dans leurs spectacles ? Pourquoi (pas) ?",
     hint: "Debate the ethics of animals in circuses.",
+    subTopic: "animals-and-people",
     difficulty: 3,
     followUps: [
       "As-tu déjà vu un spectacle avec des animaux ?",
@@ -11249,6 +11295,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "animals",
     text: "Quel rôle jouent les abeilles dans notre écosystème ?",
     hint: "Discuss the importance of bees and pollinators.",
+    subTopic: "protecting-wildlife",
     difficulty: 3,
     followUps: [
       "Pourquoi le nombre d'abeilles diminue-t-il ?",
@@ -11270,6 +11317,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "animals",
     text: "Si tu pouvais te transformer en animal pendant une journée, lequel choisirais-tu ?",
     hint: "Use conditional for a hypothetical/imaginative answer.",
+    subTopic: "animals-and-people",
     difficulty: 2,
     followUps: [
       "Pourquoi as-tu choisi cet animal ?",
@@ -11291,6 +11339,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "animals",
     text: "Quels animaux trouve-t-on typiquement dans la nature près de chez toi ?",
     hint: "Describe local wildlife in your area/region.",
+    subTopic: "wild-animals-and-zoos",
     difficulty: 1,
     followUps: [
       "Les as-tu déjà vus toi-même ?",
@@ -11312,6 +11361,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "animals",
     text: "Comment les animaux communiquent-ils entre eux ?",
     hint: "Discuss animal communication methods.",
+    subTopic: "wild-animals-and-zoos",
     difficulty: 2,
     followUps: [
       "Connais-tu un exemple intéressant de communication animale ?",
@@ -11331,8 +11381,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "ani_21",
     topicKey: "animals",
-    text: "Est-ce que tu es allergique à des animaux ?",
+    text: "Est-ce que tu es allergique à des animaux ? Lesquels ?",
     hint: "Discuss pet allergies.",
+    subTopic: "pets",
     difficulty: 1,
     followUps: [
       "Comment as-tu découvert cette allergie ?",
@@ -11352,8 +11403,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "ani_22",
     topicKey: "animals",
-    text: "Penses-tu que les tests sur les animaux devraient être interdits ?",
+    text: "Penses-tu que les tests sur les animaux devraient être interdits ? Pourquoi (pas) ?",
     hint: "Debate animal testing ethics, especially in cosmetics/science.",
+    subTopic: "animals-and-people",
     difficulty: 3,
     followUps: [
       "Y a-t-il des alternatives aux tests sur les animaux ?",
@@ -11373,8 +11425,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "ani_23",
     topicKey: "animals",
-    text: "Quel animal représenterait le mieux ta personnalité ?",
+    text: "Quel animal représenterait le mieux ta personnalité ? Pourquoi ?",
     hint: "Compare your personality traits to an animal's characteristics.",
+    subTopic: "animals-and-people",
     difficulty: 2,
     followUps: [
       "Pourquoi as-tu choisi cet animal ?",
@@ -11396,6 +11449,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "animals",
     text: "Comment la déforestation affecte-t-elle les animaux qui vivent dans la forêt ?",
     hint: "Discuss habitat loss due to deforestation.",
+    subTopic: "protecting-wildlife",
     difficulty: 3,
     followUps: [
       "Quels animaux sont les plus touchés par la déforestation ?",
@@ -11415,8 +11469,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "ani_25",
     topicKey: "animals",
-    text: "As-tu déjà fait du bénévolat pour aider des animaux ?",
+    text: "As-tu déjà fait du bénévolat pour aider des animaux ? Comment c'était ?",
     hint: "Discuss volunteering with animals, real or hypothetical.",
+    subTopic: "protecting-wildlife",
     difficulty: 2,
     followUps: [
       "Qu'est-ce que tu as fait exactement ?",
@@ -11438,6 +11493,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "animals",
     text: "Quels sont les avantages et les inconvénients d'avoir un animal de compagnie ?",
     hint: "Give a balanced view of pet ownership pros and cons.",
+    subTopic: "pets",
     difficulty: 2,
     followUps: [
       "Qu'est-ce qui coûte le plus cher dans l'entretien d'un animal ?",
@@ -11457,8 +11513,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "ani_27",
     topicKey: "animals",
-    text: "Penses-tu que les zoos modernes ont un rôle utile dans la conservation ?",
+    text: "Penses-tu que les zoos modernes ont un rôle utile dans la conservation ? Pourquoi (pas) ?",
     hint: "Discuss the role of zoos in conservation vs entertainment.",
+    subTopic: "wild-animals-and-zoos",
     difficulty: 3,
     followUps: [
       "Les zoos aident-ils vraiment les espèces menacées ?",
@@ -11480,6 +11537,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "animals",
     text: "Comment penses-tu que la relation entre les humains et les animaux va évoluer à l'avenir ?",
     hint: "Speculate about future human-animal relationships using the future tense.",
+    subTopic: "animals-and-people",
     difficulty: 3,
     followUps: [
       "La technologie va-t-elle changer cette relation ?",
@@ -11501,6 +11559,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "animals",
     text: "Quel est le rôle des animaux dans la culture et les traditions de ton pays ?",
     hint: "Discuss animals in cultural symbolism, folklore, or festivals.",
+    subTopic: "animals-and-people",
     difficulty: 3,
     followUps: [
       "Y a-t-il un animal symbolique dans ta culture ?",
@@ -11522,6 +11581,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "animals",
     text: "Dans quelle mesure sommes-nous responsables de la protection de la faune mondiale ?",
     hint: "Discuss global responsibility for wildlife protection.",
+    subTopic: "protecting-wildlife",
     difficulty: 3,
     followUps: [
       "Quels pays font le plus d'efforts, selon toi ?",
@@ -11545,6 +11605,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "transport",
     text: "Comment te déplaces-tu d'habitude ?",
     hint: "Describe your usual mode of transport for daily journeys.",
+    subTopic: "everyday-journeys",
     difficulty: 1,
     followUps: [
       "Est-ce que tu aimes ce moyen de transport ?",
@@ -11566,6 +11627,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "transport",
     text: "Quel est ton moyen de transport préféré ?",
     hint: "Name a favourite transport type and explain why.",
+    subTopic: "everyday-journeys",
     difficulty: 1,
     followUps: [
       "L'utilises-tu souvent ?",
@@ -11587,6 +11649,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "transport",
     text: "Comment vas-tu à l'école chaque jour ?",
     hint: "Describe your daily commute to school.",
+    subTopic: "everyday-journeys",
     difficulty: 1,
     followUps: [
       "Combien de temps dure le trajet ?",
@@ -11606,8 +11669,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "tra_04",
     topicKey: "transport",
-    text: "As-tu déjà voyagé en train ?",
+    text: "As-tu déjà voyagé en train ? Comment c'était ?",
     hint: "Use passé composé to describe a train journey experience.",
+    subTopic: "long-distance-travel",
     difficulty: 1,
     followUps: [
       "Où allais-tu ?",
@@ -11627,8 +11691,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "tra_05",
     topicKey: "transport",
-    text: "Sais-tu conduire ou apprends-tu à conduire ?",
+    text: "Sais-tu conduire ou apprends-tu à conduire ? Sinon, quand vas-tu commencer ?",
     hint: "Discuss driving lessons or plans to learn.",
+    subTopic: "cars-and-traffic",
     difficulty: 1,
     followUps: [
       "Depuis quand prends-tu des leçons ?",
@@ -11650,6 +11715,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "transport",
     text: "Quels sont les avantages des transports en commun ?",
     hint: "Discuss benefits of public transport.",
+    subTopic: "public-transport",
     difficulty: 2,
     followUps: [
       "Utilises-tu souvent les transports en commun ?",
@@ -11669,8 +11735,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "tra_07",
     topicKey: "transport",
-    text: "Penses-tu que la voiture individuelle est un problème pour l'environnement ?",
+    text: "Penses-tu que la voiture individuelle est un problème pour l'environnement ? Pourquoi (pas) ?",
     hint: "Discuss cars and their environmental impact.",
+    subTopic: "cars-and-traffic",
     difficulty: 2,
     followUps: [
       "Quelles alternatives existent à la voiture ?",
@@ -11692,6 +11759,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "transport",
     text: "As-tu déjà pris l'avion ? Raconte ton expérience.",
     hint: "Use passé composé to describe a flying experience.",
+    subTopic: "long-distance-travel",
     difficulty: 2,
     followUps: [
       "Où allais-tu ?",
@@ -11713,6 +11781,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "transport",
     text: "Qu'est-ce que tu ferais pour améliorer les transports dans ta ville ?",
     hint: "Use conditional to suggest improvements to local transport.",
+    subTopic: "public-transport",
     difficulty: 2,
     followUps: [
       "Quel est le plus gros problème actuellement ?",
@@ -11732,8 +11801,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "tra_10",
     topicKey: "transport",
-    text: "Décris un voyage en voiture mémorable que tu as fait.",
+    text: "Décris le dernier voyage en voiture mémorable que tu as fait.",
     hint: "Use passé composé to narrate a memorable car journey.",
+    subTopic: "long-distance-travel",
     difficulty: 2,
     followUps: [
       "Où allais-tu et avec qui ?",
@@ -11753,8 +11823,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "tra_11",
     topicKey: "transport",
-    text: "Penses-tu que les vélos électriques sont une bonne solution pour les villes ?",
+    text: "Penses-tu que les vélos électriques sont une bonne solution pour les villes ? Pourquoi (pas) ?",
     hint: "Discuss e-bikes as urban transport solutions.",
+    subTopic: "future-of-transport",
     difficulty: 2,
     followUps: [
       "As-tu déjà essayé un vélo électrique ?",
@@ -11776,6 +11847,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "transport",
     text: "Comment les gens se déplaçaient-ils avant l'invention de la voiture ?",
     hint: "Discuss historical transport methods using the imperfect tense.",
+    subTopic: "everyday-journeys",
     difficulty: 2,
     followUps: [
       "Quels étaient les inconvénients de ces moyens de transport ?",
@@ -11797,6 +11869,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "transport",
     text: "Quels sont les problèmes liés à la circulation dans les grandes villes ?",
     hint: "Discuss traffic congestion problems in cities.",
+    subTopic: "cars-and-traffic",
     difficulty: 2,
     followUps: [
       "Comment la circulation affecte-t-elle la qualité de l'air ?",
@@ -11818,6 +11891,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "transport",
     text: "Comment penses-tu que nous voyagerons dans cinquante ans ?",
     hint: "Speculate about future transport using the future tense.",
+    subTopic: "future-of-transport",
     difficulty: 3,
     followUps: [
       "Y aura-t-il encore des voitures individuelles ?",
@@ -11837,8 +11911,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "tra_15",
     topicKey: "transport",
-    text: "Penses-tu que les voitures autonomes sont sûres ?",
+    text: "Penses-tu que les voitures autonomes sont sûres ? Pourquoi (pas) ?",
     hint: "Discuss the safety and ethics of self-driving cars.",
+    subTopic: "future-of-transport",
     difficulty: 3,
     followUps: [
       "Ferais-tu confiance à une voiture autonome ?",
@@ -11860,6 +11935,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "transport",
     text: "Quel est l'impact du tourisme aérien sur l'environnement ?",
     hint: "Discuss air travel's environmental footprint and flight shame.",
+    subTopic: "long-distance-travel",
     difficulty: 3,
     followUps: [
       "As-tu déjà entendu parler de la 'honte de prendre l'avion' ?",
@@ -11879,8 +11955,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "tra_17",
     topicKey: "transport",
-    text: "Penses-tu que les gouvernements devraient investir davantage dans les trains à grande vitesse ?",
+    text: "Penses-tu que les gouvernements devraient investir davantage dans les trains à grande vitesse ? Pourquoi (pas) ?",
     hint: "Discuss high-speed rail investment.",
+    subTopic: "public-transport",
     difficulty: 3,
     followUps: [
       "Quels sont les avantages du TGV par rapport à l'avion ?",
@@ -11902,6 +11979,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "transport",
     text: "As-tu déjà été bloqué(e) dans les embouteillages ? Décris cette expérience.",
     hint: "Use passé composé to narrate a traffic jam experience.",
+    subTopic: "cars-and-traffic",
     difficulty: 2,
     followUps: [
       "Combien de temps es-tu resté(e) bloqué(e) ?",
@@ -11923,6 +12001,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "transport",
     text: "Quels sont les défis des transports dans les zones rurales ?",
     hint: "Discuss transport challenges in rural areas.",
+    subTopic: "public-transport",
     difficulty: 3,
     followUps: [
       "Comment les gens se déplacent-ils à la campagne ?",
@@ -11944,6 +12023,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "transport",
     text: "Si tu pouvais inventer un nouveau moyen de transport, comment serait-il ?",
     hint: "Use conditional to imagine a new form of transport.",
+    subTopic: "future-of-transport",
     difficulty: 2,
     followUps: [
       "Quel problème résoudrait-il ?",
@@ -11965,6 +12045,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "transport",
     text: "Comment choisis-tu ton moyen de transport selon la distance à parcourir ?",
     hint: "Discuss how you decide transport methods based on distance.",
+    subTopic: "everyday-journeys",
     difficulty: 2,
     followUps: [
       "À partir de quelle distance prends-tu la voiture plutôt que de marcher ?",
@@ -11986,6 +12067,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "transport",
     text: "As-tu déjà raté un bus ou un train ? Que s'est-il passé ?",
     hint: "Use passé composé to narrate a missed transport experience.",
+    subTopic: "public-transport",
     difficulty: 2,
     followUps: [
       "Pourquoi l'as-tu raté ?",
@@ -12005,8 +12087,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "tra_23",
     topicKey: "transport",
-    text: "Est-ce que le coût des transports est un problème pour les jeunes ?",
+    text: "Est-ce que le coût des transports est un problème pour les jeunes ? Pourquoi (pas) ?",
     hint: "Discuss the cost of transport for young people.",
+    subTopic: "public-transport",
     difficulty: 2,
     followUps: [
       "Existe-t-il des réductions pour les étudiants ?",
@@ -12028,6 +12111,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "transport",
     text: "Comment les transports ont-ils changé la façon dont les gens voyagent ?",
     hint: "Discuss how modern transport has transformed travel habits.",
+    subTopic: "long-distance-travel",
     difficulty: 3,
     followUps: [
       "Est-ce que voyager est devenu trop facile ?",
@@ -12049,6 +12133,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "transport",
     text: "Quel rôle la technologie joue-t-elle dans les transports modernes ?",
     hint: "Discuss apps, GPS, and tech innovations in transport.",
+    subTopic: "future-of-transport",
     difficulty: 3,
     followUps: [
       "Utilises-tu des applications pour planifier tes trajets ?",
@@ -12068,8 +12153,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "tra_26",
     topicKey: "transport",
-    text: "Penses-tu que les scooters électriques en libre-service sont une bonne idée pour les villes ?",
+    text: "Penses-tu que les scooters électriques en libre-service sont une bonne idée pour les villes ? Pourquoi (pas) ?",
     hint: "Discuss shared e-scooters and urban micro-mobility.",
+    subTopic: "future-of-transport",
     difficulty: 3,
     followUps: [
       "As-tu déjà utilisé un scooter électrique en libre-service ?",
@@ -12089,8 +12175,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "tra_27",
     topicKey: "transport",
-    text: "Est-ce que le prix de l'essence influence la façon dont les gens se déplacent ?",
+    text: "Est-ce que le prix de l'essence influence la façon dont les gens se déplacent ? Comment ?",
     hint: "Discuss fuel prices and their effect on transport habits.",
+    subTopic: "cars-and-traffic",
     difficulty: 3,
     followUps: [
       "Est-ce que ta famille fait attention au prix de l'essence ?",
@@ -12112,6 +12199,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "transport",
     text: "Comment les transports affectent-ils l'égalité des chances entre les gens ?",
     hint: "Discuss transport access and social equality.",
+    subTopic: "public-transport",
     difficulty: 3,
     followUps: [
       "Est-ce que tout le monde a un accès égal aux transports ?",
@@ -12133,6 +12221,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "transport",
     text: "Dans quelle mesure les transports sont-ils liés au développement économique d'un pays ?",
     hint: "Discuss the link between transport infrastructure and economic growth.",
+    subTopic: "cars-and-traffic",
     difficulty: 3,
     followUps: [
       "Quel exemple de pays illustre bien ce lien ?",
@@ -12154,6 +12243,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "transport",
     text: "Si tu devais voyager sans jamais utiliser d'énergie fossile, comment t'organiserais-tu ?",
     hint: "Use conditional to plan a fossil-fuel-free lifestyle around transport.",
+    subTopic: "future-of-transport",
     difficulty: 3,
     followUps: [
       "Quels moyens de transport utiliserais-tu le plus ?",
@@ -12177,6 +12267,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "jobs",
     text: "Quel métier voudrais-tu faire plus tard ?",
     hint: "Name a future career goal and give a simple reason.",
+    subTopic: "dream-job",
     difficulty: 1,
     followUps: [
       "Depuis quand veux-tu faire ce métier ?",
@@ -12198,6 +12289,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "jobs",
     text: "Quel est le métier de tes parents ?",
     hint: "Describe your parents' jobs and what they do daily.",
+    subTopic: "work-experience",
     difficulty: 1,
     followUps: [
       "Est-ce qu'ils aiment leur travail ?",
@@ -12219,6 +12311,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "jobs",
     text: "Quels métiers t'intéressent le plus ?",
     hint: "List a few careers of interest and briefly say why.",
+    subTopic: "work-experience",
     difficulty: 1,
     followUps: [
       "As-tu déjà parlé à quelqu'un qui fait ce métier ?",
@@ -12238,8 +12331,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "job_04",
     topicKey: "jobs",
-    text: "Est-ce que tu as déjà eu un petit boulot ?",
+    text: "Est-ce que tu as déjà eu un petit boulot ? Comment c'était ?",
     hint: "Use passé composé to describe a part-time job or babysitting, real or hypothetical.",
+    subTopic: "work-experience",
     difficulty: 1,
     followUps: [
       "Qu'est-ce que tu as appris de cette expérience ?",
@@ -12261,6 +12355,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "jobs",
     text: "Quelles qualités sont importantes pour réussir dans un métier ?",
     hint: "Discuss general workplace qualities and skills.",
+    subTopic: "skills-and-study",
     difficulty: 2,
     followUps: [
       "As-tu déjà ces qualités ?",
@@ -12280,8 +12375,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "job_06",
     topicKey: "jobs",
-    text: "Préfères-tu travailler seul(e) ou en équipe ?",
+    text: "Préfères-tu travailler seul(e) ou en équipe ? Pourquoi ?",
     hint: "Discuss preference for solo vs team work.",
+    subTopic: "working-world",
     difficulty: 1,
     followUps: [
       "Pourquoi préfères-tu ce style de travail ?",
@@ -12303,6 +12399,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "jobs",
     text: "Quels sont les avantages et les inconvénients de travailler à domicile ?",
     hint: "Discuss pros and cons of remote/home working.",
+    subTopic: "working-world",
     difficulty: 2,
     followUps: [
       "Est-ce que quelqu'un dans ta famille travaille à domicile ?",
@@ -12322,8 +12419,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "job_08",
     topicKey: "jobs",
-    text: "As-tu déjà fait un stage ou une observation en entreprise ?",
+    text: "As-tu déjà fait un stage ou une observation en entreprise ? Comment c'était ?",
     hint: "Use passé composé to describe a work experience placement.",
+    subTopic: "work-experience",
     difficulty: 2,
     followUps: [
       "Où as-tu fait ce stage ?",
@@ -12343,8 +12441,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "job_09",
     topicKey: "jobs",
-    text: "Penses-tu que le salaire est le facteur le plus important pour choisir un métier ?",
+    text: "Penses-tu que le salaire est le facteur le plus important pour choisir un métier ? Pourquoi (pas) ?",
     hint: "Discuss what matters most in job choice: salary vs passion/other factors.",
+    subTopic: "working-world",
     difficulty: 2,
     followUps: [
       "Quels autres facteurs sont importants selon toi ?",
@@ -12366,6 +12465,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "jobs",
     text: "Décris une journée typique dans le métier de tes rêves.",
     hint: "Describe a typical day in your dream job.",
+    subTopic: "dream-job",
     difficulty: 2,
     followUps: [
       "À quelle heure commencerait ta journée de travail ?",
@@ -12385,8 +12485,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "job_11",
     topicKey: "jobs",
-    text: "Penses-tu que l'intelligence artificielle va remplacer certains métiers ?",
+    text: "Penses-tu que l'intelligence artificielle va remplacer certains métiers ? Pourquoi (pas) ?",
     hint: "Discuss AI's impact on jobs and the future job market.",
+    subTopic: "working-world",
     difficulty: 3,
     followUps: [
       "Quels métiers sont les plus menacés selon toi ?",
@@ -12406,8 +12507,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "job_12",
     topicKey: "jobs",
-    text: "Est-ce que les hommes et les femmes ont les mêmes opportunités professionnelles ?",
+    text: "Est-ce que les hommes et les femmes ont les mêmes opportunités professionnelles ? Pourquoi (pas) ?",
     hint: "Discuss gender equality in the workplace.",
+    subTopic: "working-world",
     difficulty: 3,
     followUps: [
       "Connais-tu des exemples d'inégalités professionnelles ?",
@@ -12429,6 +12531,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "jobs",
     text: "Quelles études faut-il faire pour devenir professeur ?",
     hint: "Discuss the education path for becoming a teacher.",
+    subTopic: "skills-and-study",
     difficulty: 2,
     followUps: [
       "Penses-tu que c'est un métier difficile ?",
@@ -12450,6 +12553,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "jobs",
     text: "Quel métier trouves-tu le plus dangereux et pourquoi ?",
     hint: "Discuss dangerous professions like firefighters, pilots, miners.",
+    subTopic: "work-experience",
     difficulty: 2,
     followUps: [
       "Connais-tu quelqu'un qui fait un métier dangereux ?",
@@ -12469,8 +12573,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "job_15",
     topicKey: "jobs",
-    text: "Aimerais-tu créer ta propre entreprise un jour ?",
+    text: "Aimerais-tu créer ta propre entreprise un jour ? Pourquoi (pas) ?",
     hint: "Discuss entrepreneurship and starting a business.",
+    subTopic: "dream-job",
     difficulty: 2,
     followUps: [
       "Quel type d'entreprise créerais-tu ?",
@@ -12492,6 +12597,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "jobs",
     text: "Comment le monde du travail a-t-il changé depuis la génération de tes parents ?",
     hint: "Compare the modern job market to previous generations.",
+    subTopic: "working-world",
     difficulty: 3,
     followUps: [
       "Est-ce plus facile ou plus difficile de trouver un emploi aujourd'hui ?",
@@ -12511,8 +12617,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "job_17",
     topicKey: "jobs",
-    text: "Penses-tu que tout le monde devrait aller à l'université ?",
+    text: "Penses-tu que tout le monde devrait aller à l'université ? Pourquoi (pas) ?",
     hint: "Discuss university vs vocational training pathways.",
+    subTopic: "skills-and-study",
     difficulty: 3,
     followUps: [
       "Quelles sont les alternatives à l'université ?",
@@ -12534,6 +12641,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "jobs",
     text: "Quel impact le chômage a-t-il sur les individus et la société ?",
     hint: "Discuss unemployment's effects on individuals and society.",
+    subTopic: "working-world",
     difficulty: 3,
     followUps: [
       "Quelles sont les causes principales du chômage ?",
@@ -12555,6 +12663,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "jobs",
     text: "Comment imagines-tu le monde du travail dans vingt ans ?",
     hint: "Speculate about the future job market using the future tense.",
+    subTopic: "working-world",
     difficulty: 3,
     followUps: [
       "Est-ce que les gens travailleront moins d'heures ?",
@@ -12574,8 +12683,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "job_20",
     topicKey: "jobs",
-    text: "Est-ce que la passion est plus importante que la stabilité dans le choix d'une carrière ?",
+    text: "Est-ce que la passion est plus importante que la stabilité dans le choix d'une carrière ? Pourquoi ?",
     hint: "Debate passion vs job security when choosing a career.",
+    subTopic: "dream-job",
     difficulty: 3,
     followUps: [
       "Connais-tu quelqu'un qui a suivi sa passion malgré les risques ?",
@@ -12595,8 +12705,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "job_21",
     topicKey: "jobs",
-    text: "Quel métier penses-tu que tu ne pourrais jamais faire ?",
+    text: "Quel métier penses-tu que tu ne pourrais jamais faire ? Pourquoi ?",
     hint: "Discuss a career you would never choose and why.",
+    subTopic: "dream-job",
     difficulty: 1,
     followUps: [
       "Pourquoi ne pourrais-tu pas faire ce métier ?",
@@ -12618,6 +12729,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "jobs",
     text: "Comment te prépares-tu pour ton futur métier ?",
     hint: "Discuss steps taken toward career preparation.",
+    subTopic: "skills-and-study",
     difficulty: 2,
     followUps: [
       "Quelles matières scolaires t'aident le plus ?",
@@ -12637,8 +12749,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "job_23",
     topicKey: "jobs",
-    text: "Penses-tu que les jeunes d'aujourd'hui ont plus de pression pour réussir professionnellement ?",
+    text: "Penses-tu que les jeunes d'aujourd'hui ont plus de pression pour réussir professionnellement ? Pourquoi (pas) ?",
     hint: "Discuss pressure on young people regarding career success.",
+    subTopic: "working-world",
     difficulty: 3,
     followUps: [
       "D'où vient cette pression selon toi ?",
@@ -12658,8 +12771,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "job_24",
     topicKey: "jobs",
-    text: "Est-ce qu'il est acceptable de changer complètement de carrière plus tard dans la vie ?",
+    text: "Est-ce qu'il est acceptable de changer complètement de carrière plus tard dans la vie ? Pourquoi (pas) ?",
     hint: "Discuss career changes later in life.",
+    subTopic: "working-world",
     difficulty: 2,
     followUps: [
       "Connais-tu quelqu'un qui a changé de carrière ?",
@@ -12681,6 +12795,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "jobs",
     text: "Quel rôle jouent les réseaux professionnels dans la recherche d'emploi ?",
     hint: "Discuss professional networking and job searching.",
+    subTopic: "working-world",
     difficulty: 3,
     followUps: [
       "Connais-tu des plateformes comme LinkedIn ?",
@@ -12700,8 +12815,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "job_26",
     topicKey: "jobs",
-    text: "Aimerais-tu travailler à l'étranger un jour ?",
+    text: "Aimerais-tu travailler à l'étranger un jour ? Pourquoi (pas) ?",
     hint: "Discuss working abroad — desire, challenges, opportunities.",
+    subTopic: "dream-job",
     difficulty: 2,
     followUps: [
       "Dans quel pays voudrais-tu travailler ?",
@@ -12723,6 +12839,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "jobs",
     text: "Comment la robotisation affecte-t-elle les métiers de l'industrie ?",
     hint: "Discuss automation's effect on manufacturing jobs.",
+    subTopic: "working-world",
     difficulty: 3,
     followUps: [
       "Connais-tu des exemples d'usines automatisées ?",
@@ -12742,8 +12859,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "job_28",
     topicKey: "jobs",
-    text: "Penses-tu que les vacances et les congés payés sont suffisants dans le monde du travail actuel ?",
+    text: "Penses-tu que les vacances et les congés payés sont suffisants dans le monde du travail actuel ? Pourquoi (pas) ?",
     hint: "Discuss work-life balance, holidays, and paid leave.",
+    subTopic: "working-world",
     difficulty: 3,
     followUps: [
       "Combien de jours de congé penses-tu être raisonnable ?",
@@ -12765,6 +12883,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "jobs",
     text: "Si tu étais responsable d'une entreprise, comment traiterais-tu tes employés ?",
     hint: "Use conditional to describe hypothetical management style.",
+    subTopic: "working-world",
     difficulty: 3,
     followUps: [
       "Quelles règles mettrais-tu en place ?",
@@ -12786,6 +12905,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "jobs",
     text: "Dans quelle mesure l'éducation détermine-t-elle le succès professionnel d'une personne ?",
     hint: "Discuss the relationship between education and career success.",
+    subTopic: "skills-and-study",
     difficulty: 3,
     followUps: [
       "Connais-tu des exemples de succès sans diplôme universitaire ?",
@@ -12809,6 +12929,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "sports",
     text: "Quel est ton sport préféré ?",
     hint: "Name your favourite sport and say why you like it.",
+    subTopic: "playing-sport",
     difficulty: 1,
     followUps: [
       "Depuis quand pratiques-tu ce sport ?",
@@ -12828,8 +12949,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "spo_02",
     topicKey: "sports",
-    text: "Est-ce que tu fais du sport régulièrement ?",
+    text: "Est-ce que tu fais du sport régulièrement ? Lequel ?",
     hint: "Describe how often you exercise and what you do.",
+    subTopic: "playing-sport",
     difficulty: 1,
     followUps: [
       "Combien de fois par semaine fais-tu du sport ?",
@@ -12849,8 +12971,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "spo_03",
     topicKey: "sports",
-    text: "Fais-tu partie d'une équipe ou d'un club de sport ?",
+    text: "Fais-tu partie d'une équipe ou d'un club de sport ? Lequel ?",
     hint: "Talk about club membership, training schedule, teammates.",
+    subTopic: "teams-and-clubs",
     difficulty: 1,
     followUps: [
       "Depuis combien de temps es-tu membre de ce club ?",
@@ -12872,6 +12995,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "sports",
     text: "Quel sport n'aimes-tu pas et pourquoi ?",
     hint: "Give a sport you dislike with reasons.",
+    subTopic: "playing-sport",
     difficulty: 1,
     followUps: [
       "As-tu déjà essayé ce sport ?",
@@ -12891,8 +13015,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "spo_05",
     topicKey: "sports",
-    text: "Décris la dernière fois que tu as fait du sport.",
+    text: "Qu'est-ce que tu as fait comme sport hier ?",
     hint: "Use passé composé to describe a recent sporting activity.",
+    subTopic: "playing-sport",
     difficulty: 1,
     followUps: [
       "Avec qui as-tu fait du sport ?",
@@ -12912,8 +13037,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "spo_06",
     topicKey: "sports",
-    text: "Regardes-tu souvent des matchs à la télévision ?",
+    text: "Regardes-tu souvent des matchs à la télévision ? Lesquels ?",
     hint: "Talk about watching sport on TV — which sports, with whom.",
+    subTopic: "watching-sport",
     difficulty: 1,
     followUps: [
       "Quelle équipe soutiens-tu ?",
@@ -12935,6 +13061,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "sports",
     text: "Pourquoi est-il important de faire du sport ?",
     hint: "Discuss health and social benefits of exercise.",
+    subTopic: "sport-and-society",
     difficulty: 2,
     followUps: [
       "Quels sont les bienfaits du sport sur la santé mentale ?",
@@ -12954,8 +13081,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "spo_08",
     topicKey: "sports",
-    text: "Préfères-tu les sports individuels ou les sports d'équipe ?",
+    text: "Préfères-tu les sports individuels ou les sports d'équipe ? Pourquoi ?",
     hint: "Compare individual vs team sports with your preference.",
+    subTopic: "teams-and-clubs",
     difficulty: 2,
     followUps: [
       "Quels sont les avantages du sport individuel ?",
@@ -12977,6 +13105,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "sports",
     text: "Que penses-tu des salaires extrêmement élevés des sportifs professionnels ?",
     hint: "Give a balanced opinion on professional athletes' high salaries.",
+    subTopic: "watching-sport",
     difficulty: 2,
     followUps: [
       "Penses-tu que ces salaires sont justifiés ?",
@@ -12998,6 +13127,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "sports",
     text: "Comment le sport peut-il rassembler les gens et les cultures ?",
     hint: "Discuss sport as a unifying social/cultural force.",
+    subTopic: "sport-and-society",
     difficulty: 2,
     followUps: [
       "Peux-tu donner un exemple d'événement sportif international ?",
@@ -13017,8 +13147,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "spo_11",
     topicKey: "sports",
-    text: "As-tu déjà participé à une compétition sportive ?",
+    text: "As-tu déjà participé à une compétition sportive ? Comment c'était ?",
     hint: "Recount a past competition experience using passé composé.",
+    subTopic: "teams-and-clubs",
     difficulty: 2,
     followUps: [
       "Comment t'es-tu préparé(e) ?",
@@ -13040,6 +13171,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "sports",
     text: "Quel est ton meilleur souvenir lié au sport ?",
     hint: "Describe a memorable sporting moment.",
+    subTopic: "teams-and-clubs",
     difficulty: 2,
     followUps: [
       "Pourquoi ce souvenir est-il si spécial ?",
@@ -13061,6 +13193,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "sports",
     text: "Comment vois-tu ta relation avec le sport dans dix ans ?",
     hint: "Use future tense to speculate about future sporting habits.",
+    subTopic: "playing-sport",
     difficulty: 2,
     followUps: [
       "Continueras-tu à pratiquer le même sport ?",
@@ -13080,8 +13213,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "spo_14",
     topicKey: "sports",
-    text: "Le sport à l'école devrait-il être obligatoire ?",
+    text: "Le sport à l'école devrait-il être obligatoire ? Pourquoi (pas) ?",
     hint: "Argue for or against compulsory school sport.",
+    subTopic: "sport-and-society",
     difficulty: 2,
     followUps: [
       "Quels sports devraient être proposés ?",
@@ -13103,6 +13237,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "sports",
     text: "Quels sont les dangers du sport de haut niveau pour les jeunes athlètes ?",
     hint: "Discuss risks of intensive training for young athletes.",
+    subTopic: "sport-and-society",
     difficulty: 2,
     followUps: [
       "Le sport professionnel peut-il nuire aux études ?",
@@ -13122,8 +13257,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "spo_16",
     topicKey: "sports",
-    text: "Le dopage est-il un problème majeur dans le sport moderne ?",
+    text: "Le dopage est-il un problème majeur dans le sport moderne ? Pourquoi ?",
     hint: "Discuss doping in professional sport.",
+    subTopic: "watching-sport",
     difficulty: 3,
     followUps: [
       "Comment le dopage affecte-t-il l'équité des compétitions ?",
@@ -13145,6 +13281,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "sports",
     text: "Dans quelle mesure les grands événements sportifs profitent-ils réellement aux villes hôtes ?",
     hint: "Evaluate economic/social impact of hosting major sporting events.",
+    subTopic: "watching-sport",
     difficulty: 3,
     followUps: [
       "Quels sont les coûts cachés de l'organisation d'un événement sportif ?",
@@ -13166,6 +13303,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "sports",
     text: "Comment la technologie a-t-elle transformé la façon dont on pratique et regarde le sport ?",
     hint: "Discuss technology's impact on sport (VAR, wearables, streaming).",
+    subTopic: "watching-sport",
     difficulty: 3,
     followUps: [
       "La technologie rend-elle les décisions arbitrales plus justes ?",
@@ -13185,8 +13323,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "spo_19",
     topicKey: "sports",
-    text: "Le sport professionnel accorde-t-il assez d'importance à la santé mentale des athlètes ?",
+    text: "Le sport professionnel accorde-t-il assez d'importance à la santé mentale des athlètes ? Pourquoi (pas) ?",
     hint: "Discuss mental health awareness in professional sport.",
+    subTopic: "sport-and-society",
     difficulty: 3,
     followUps: [
       "Connais-tu des exemples d'athlètes qui ont parlé de leur santé mentale ?",
@@ -13206,8 +13345,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "spo_20",
     topicKey: "sports",
-    text: "Faut-il plus d'égalité entre le sport masculin et le sport féminin ?",
+    text: "Faut-il plus d'égalité entre le sport masculin et le sport féminin ? Pourquoi ?",
     hint: "Discuss gender equality in sport (pay, media coverage).",
+    subTopic: "sport-and-society",
     difficulty: 3,
     followUps: [
       "Quelles inégalités persistent aujourd'hui ?",
@@ -13229,6 +13369,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "sports",
     text: "Quel rôle jouent les entraîneurs dans la réussite d'un athlète ?",
     hint: "Discuss the influence of coaches on athletic success.",
+    subTopic: "teams-and-clubs",
     difficulty: 2,
     followUps: [
       "As-tu déjà eu un entraîneur qui t'a beaucoup marqué(e) ?",
@@ -13250,6 +13391,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "sports",
     text: "Comment gères-tu la déception après une défaite sportive ?",
     hint: "Discuss coping strategies after losing a game/competition.",
+    subTopic: "teams-and-clubs",
     difficulty: 2,
     followUps: [
       "As-tu déjà vécu une défaite difficile à accepter ?",
@@ -13271,6 +13413,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "sports",
     text: "Quel sport aimerais-tu essayer si tu en avais l'occasion ?",
     hint: "Use conditional to describe a sport you'd like to try.",
+    subTopic: "playing-sport",
     difficulty: 1,
     followUps: [
       "Pourquoi ce sport t'intéresse-t-il ?",
@@ -13292,6 +13435,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "sports",
     text: "Comment le sport peut-il aider les personnes en situation de handicap ?",
     hint: "Discuss adaptive/Paralympic sport and inclusion.",
+    subTopic: "sport-and-society",
     difficulty: 3,
     followUps: [
       "Connais-tu les Jeux Paralympiques ?",
@@ -13311,8 +13455,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "spo_25",
     topicKey: "sports",
-    text: "Penses-tu que les jeunes d'aujourd'hui font assez de sport ?",
+    text: "Penses-tu que les jeunes d'aujourd'hui font assez de sport ? Pourquoi (pas) ?",
     hint: "Discuss youth physical activity levels vs screen time.",
+    subTopic: "sport-and-society",
     difficulty: 2,
     followUps: [
       "Quel rôle jouent les écrans dans ce problème ?",
@@ -13334,6 +13479,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "sports",
     text: "Comment te sens-tu avant une compétition importante ?",
     hint: "Describe pre-competition emotions and how you manage them.",
+    subTopic: "teams-and-clubs",
     difficulty: 2,
     followUps: [
       "As-tu des rituels avant de commencer ?",
@@ -13353,8 +13499,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "spo_27",
     topicKey: "sports",
-    text: "Le sport scolaire prépare-t-il bien les jeunes à une vie active ?",
+    text: "Le sport scolaire prépare-t-il bien les jeunes à une vie active ? Pourquoi (pas) ?",
     hint: "Evaluate whether school sport builds lifelong healthy habits.",
+    subTopic: "sport-and-society",
     difficulty: 3,
     followUps: [
       "Le sport scolaire est-il varié dans ton pays ?",
@@ -13376,6 +13523,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "sports",
     text: "Si tu devais créer une nouvelle compétition sportive, à quoi ressemblerait-elle ?",
     hint: "Use conditional to invent a new sporting competition.",
+    subTopic: "teams-and-clubs",
     difficulty: 3,
     followUps: [
       "Quelles règles aurait cette compétition ?",
@@ -13395,8 +13543,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "spo_29",
     topicKey: "sports",
-    text: "Le succès dans le sport dépend-il davantage du talent ou du travail ?",
+    text: "Le succès dans le sport dépend-il davantage du talent ou du travail ? Pourquoi ?",
     hint: "Debate natural talent vs hard work in sporting success.",
+    subTopic: "playing-sport",
     difficulty: 3,
     followUps: [
       "Peux-tu citer un exemple d'athlète connu pour son travail acharné ?",
@@ -13418,6 +13567,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "sports",
     text: "Dans quelle mesure le sport reflète-t-il les valeurs d'une société ?",
     hint: "Discuss sport as a mirror of societal values.",
+    subTopic: "sport-and-society",
     difficulty: 3,
     followUps: [
       "Le sport peut-il révéler des inégalités sociales ?",
@@ -13441,6 +13591,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "emotions",
     text: "Comment te sens-tu aujourd'hui ?",
     hint: "Describe your current mood and give a simple reason.",
+    subTopic: "feelings-today",
     difficulty: 1,
     followUps: [
       "Qu'est-ce qui t'a mis(e) de cette humeur ?",
@@ -13462,6 +13613,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "emotions",
     text: "Qu'est-ce qui te rend heureux/heureuse ?",
     hint: "Describe what makes you happy — people, activities, moments.",
+    subTopic: "feelings-today",
     difficulty: 1,
     followUps: [
       "Passes-tu beaucoup de temps avec ces personnes ?",
@@ -13483,6 +13635,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "emotions",
     text: "Qu'est-ce qui te met en colère ?",
     hint: "Describe what makes you angry and how you react.",
+    subTopic: "feelings-today",
     difficulty: 1,
     followUps: [
       "Comment réagis-tu quand tu es en colère ?",
@@ -13502,8 +13655,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "emo_04",
     topicKey: "emotions",
-    text: "As-tu déjà eu peur de quelque chose récemment ?",
+    text: "As-tu déjà eu peur de quelque chose récemment ? Comment as-tu réagi ?",
     hint: "Use passé composé to describe a recent frightening experience.",
+    subTopic: "feelings-today",
     difficulty: 1,
     followUps: [
       "Qu'est-ce qui t'a fait peur exactement ?",
@@ -13525,6 +13679,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "emotions",
     text: "Comment exprimes-tu tes sentiments à tes amis ?",
     hint: "Describe how you communicate feelings to friends.",
+    subTopic: "friends-and-support",
     difficulty: 1,
     followUps: [
       "Est-il facile pour toi de parler de tes émotions ?",
@@ -13544,8 +13699,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "emo_06",
     topicKey: "emotions",
-    text: "Te sens-tu parfois stressé(e) à cause de l'école ?",
+    text: "Te sens-tu parfois stressé(e) à cause de l'école ? Comment gères-tu ça ?",
     hint: "Discuss school-related stress and coping mechanisms.",
+    subTopic: "stress-and-coping",
     difficulty: 1,
     followUps: [
       "Qu'est-ce qui te stresse le plus à l'école ?",
@@ -13567,6 +13723,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "emotions",
     text: "Comment gères-tu le stress au quotidien ?",
     hint: "Explain strategies for managing everyday stress.",
+    subTopic: "stress-and-coping",
     difficulty: 2,
     followUps: [
       "Est-ce que le sport t'aide à te détendre ?",
@@ -13586,8 +13743,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "emo_08",
     topicKey: "emotions",
-    text: "Penses-tu qu'il est important de parler de ses émotions ?",
+    text: "Penses-tu qu'il est important de parler de ses émotions ? Pourquoi ?",
     hint: "Give an opinion on the importance of expressing emotions openly.",
+    subTopic: "emotions-and-society",
     difficulty: 2,
     followUps: [
       "Pourquoi certaines personnes trouvent-elles cela difficile ?",
@@ -13609,6 +13767,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "emotions",
     text: "Décris un moment où tu as ressenti une grande joie.",
     hint: "Use passé composé to describe a moment of great joy.",
+    subTopic: "feelings-today",
     difficulty: 2,
     followUps: [
       "Qui était avec toi à ce moment-là ?",
@@ -13630,6 +13789,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "emotions",
     text: "Comment réconfortes-tu un ami qui est triste ?",
     hint: "Explain how you comfort a sad friend.",
+    subTopic: "friends-and-support",
     difficulty: 2,
     followUps: [
       "Qu'est-ce qu'il ne faut surtout pas dire à quelqu'un de triste ?",
@@ -13649,8 +13809,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "emo_11",
     topicKey: "emotions",
-    text: "Les réseaux sociaux influencent-ils tes émotions ?",
+    text: "Les réseaux sociaux influencent-ils tes émotions ? Comment ?",
     hint: "Discuss the impact of social media on emotional wellbeing.",
+    subTopic: "emotions-and-society",
     difficulty: 2,
     followUps: [
       "Te sens-tu parfois jaloux/jalouse en regardant les autres en ligne ?",
@@ -13672,6 +13833,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "emotions",
     text: "Comment as-tu changé émotionnellement en grandissant ?",
     hint: "Reflect on emotional growth over time.",
+    subTopic: "feelings-today",
     difficulty: 2,
     followUps: [
       "Étais-tu plus timide quand tu étais petit(e) ?",
@@ -13691,8 +13853,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "emo_13",
     topicKey: "emotions",
-    text: "Penses-tu que les garçons et les filles expriment leurs émotions différemment ?",
+    text: "Penses-tu que les garçons et les filles expriment leurs émotions différemment ? Pourquoi (pas) ?",
     hint: "Discuss gender and emotional expression, with nuance.",
+    subTopic: "emotions-and-society",
     difficulty: 3,
     followUps: [
       "D'où viennent ces différences, selon toi ?",
@@ -13714,6 +13877,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "emotions",
     text: "Quel est le lien entre les émotions et la santé physique ?",
     hint: "Discuss the mind-body connection.",
+    subTopic: "emotions-and-society",
     difficulty: 3,
     followUps: [
       "Le stress chronique peut-il rendre malade ?",
@@ -13733,8 +13897,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "emo_15",
     topicKey: "emotions",
-    text: "Faut-il apprendre l'intelligence émotionnelle à l'école ?",
+    text: "Faut-il apprendre l'intelligence émotionnelle à l'école ? Pourquoi (pas) ?",
     hint: "Argue for/against teaching emotional intelligence in schools.",
+    subTopic: "emotions-and-society",
     difficulty: 3,
     followUps: [
       "Qu'est-ce que l'intelligence émotionnelle exactement ?",
@@ -13756,6 +13921,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "emotions",
     text: "As-tu déjà ressenti de la nostalgie ? Décris cette expérience.",
     hint: "Describe an experience of nostalgia.",
+    subTopic: "feelings-today",
     difficulty: 2,
     followUps: [
       "Qu'est-ce qui déclenche généralement ta nostalgie ?",
@@ -13777,6 +13943,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "emotions",
     text: "Comment fais-tu face à la déception ?",
     hint: "Explain how you cope with disappointment.",
+    subTopic: "stress-and-coping",
     difficulty: 2,
     followUps: [
       "Peux-tu donner un exemple de déception récente ?",
@@ -13796,22 +13963,23 @@ export const QUESTIONS: Question[] = [
   {
     id: "emo_18",
     topicKey: "emotions",
-    text: "Penses-tu que la société actuelle valorise trop le bonheur constant ?",
-    hint: "Discuss the pressure of constant happiness in modern culture.",
-    difficulty: 3,
+    text: "Est-ce que tu penses qu'on doit toujours sourire et être de bonne humeur ? Pourquoi (pas) ?",
+    hint: "Say whether people should always smile and look happy, give reasons, and mention a day when you were not in a good mood.",
+    subTopic: "emotions-and-society",
+    difficulty: 2,
     followUps: [
-      "Est-il sain de ressentir de la tristesse parfois ?",
-      "Les réseaux sociaux jouent-ils un rôle dans cette pression ?",
-      "Comment définirais-tu une vie émotionnellement équilibrée ?",
+      "Que fais-tu quand tu n'as pas envie de sourire ?",
+      "Est-ce que tes amis voient quand tu es de mauvaise humeur ?",
+      "Penses-tu que c'est mauvais de cacher ses émotions ?"
     ],
-    modelAnswer: "Je pense que oui, notre société valorise excessivement l'idée d'être heureux en permanence, ce qui crée une pression supplémentaire sur les gens qui traversent des moments difficiles. Les réseaux sociaux amplifient ce phénomène en montrant uniquement des vies apparemment parfaites. Pourtant, ressentir de la tristesse ou de la colère fait partie intégrante de l'expérience humaine, et une vie équilibrée accepte toute la gamme des émotions, pas seulement les positives.",
+    modelAnswer: "Je pense qu'on n'a pas besoin de toujours sourire. Tout le monde a des jours difficiles, et c'est normal d'être triste ou fatigué(e) de temps en temps. Quand je cache mes émotions, je me sens encore plus mal, alors j'essaie d'en parler avec mes amis. Bien sûr, il faut rester poli(e) avec les autres, mais on n'est pas obligé d'être heureux tout le temps.",
     keyVocab: [
-      { fr: "valoriser", en: "to value/prize" },
-      { fr: "en permanence", en: "constantly" },
-      { fr: "amplifier", en: "to amplify" },
-      { fr: "apparemment", en: "apparently" },
-      { fr: "faire partie intégrante de", en: "to be an integral part of" },
-      { fr: "la gamme", en: "the range" },
+      { fr: "de bonne humeur", en: "in a good mood" },
+      { fr: "de mauvaise humeur", en: "in a bad mood" },
+      { fr: "sourire", en: "to smile" },
+      { fr: "cacher", en: "to hide" },
+      { fr: "être obligé(e)", en: "to have to" },
+      { fr: "fatigué(e)", en: "tired" }
     ],
   },
   {
@@ -13819,6 +13987,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "emotions",
     text: "Comment l'empathie influence-t-elle nos relations avec les autres ?",
     hint: "Discuss the role of empathy in relationships.",
+    subTopic: "friends-and-support",
     difficulty: 3,
     followUps: [
       "Penses-tu que l'empathie peut s'apprendre ?",
@@ -13840,6 +14009,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "emotions",
     text: "Dans quelle mesure nos émotions influencent-elles nos décisions importantes ?",
     hint: "Discuss the interplay between emotion and rational decision-making.",
+    subTopic: "emotions-and-society",
     difficulty: 3,
     followUps: [
       "Peux-tu donner un exemple de décision influencée par tes émotions ?",
@@ -13861,6 +14031,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "emotions",
     text: "Qu'est-ce qui te rend anxieux/anxieuse ?",
     hint: "Describe what causes you anxiety.",
+    subTopic: "stress-and-coping",
     difficulty: 2,
     followUps: [
       "Comment se manifeste ton anxiété physiquement ?",
@@ -13882,6 +14053,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "emotions",
     text: "Comment sais-tu quand quelqu'un d'autre est triste sans qu'il te le dise ?",
     hint: "Discuss reading non-verbal emotional cues in others.",
+    subTopic: "friends-and-support",
     difficulty: 2,
     followUps: [
       "Quels signes physiques remarques-tu ?",
@@ -13901,8 +14073,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "emo_23",
     topicKey: "emotions",
-    text: "Es-tu plutôt quelqu'un d'optimiste ou de pessimiste ?",
+    text: "Es-tu plutôt quelqu'un d'optimiste ou de pessimiste ? Pourquoi ?",
     hint: "Describe your general outlook — optimistic or pessimistic.",
+    subTopic: "feelings-today",
     difficulty: 1,
     followUps: [
       "Peux-tu donner un exemple de situation récente ?",
@@ -13924,6 +14097,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "emotions",
     text: "Comment gères-tu la jalousie ?",
     hint: "Discuss how you handle feelings of jealousy.",
+    subTopic: "stress-and-coping",
     difficulty: 2,
     followUps: [
       "Dans quelles situations ressens-tu de la jalousie ?",
@@ -13945,6 +14119,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "emotions",
     text: "Qu'est-ce que la gratitude signifie pour toi ?",
     hint: "Discuss the meaning and practice of gratitude.",
+    subTopic: "feelings-today",
     difficulty: 2,
     followUps: [
       "Tiens-tu un journal de gratitude ?",
@@ -13964,8 +14139,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "emo_26",
     topicKey: "emotions",
-    text: "Est-ce que tu pleures facilement ?",
+    text: "Est-ce que tu pleures facilement ? Quand est-ce que ça t'arrive ?",
     hint: "Discuss crying and emotional expression, honestly and without stereotype.",
+    subTopic: "feelings-today",
     difficulty: 1,
     followUps: [
       "Dans quelles situations pleures-tu ?",
@@ -13987,6 +14163,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "emotions",
     text: "Quel rôle joue la musique dans la gestion de tes émotions ?",
     hint: "Discuss how music affects your mood.",
+    subTopic: "stress-and-coping",
     difficulty: 2,
     followUps: [
       "Quel genre de musique écoutes-tu quand tu es triste ?",
@@ -14008,6 +14185,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "emotions",
     text: "Comment fais-tu la paix avec quelqu'un après une dispute ?",
     hint: "Describe how you resolve conflict and reconcile after an argument.",
+    subTopic: "friends-and-support",
     difficulty: 2,
     followUps: [
       "Est-ce que tu t'excuses facilement ?",
@@ -14027,22 +14205,23 @@ export const QUESTIONS: Question[] = [
   {
     id: "emo_29",
     topicKey: "emotions",
-    text: "L'intelligence artificielle pourra-t-elle un jour comprendre réellement les émotions humaines ?",
-    hint: "Speculate on AI's ability to understand human emotion.",
-    difficulty: 3,
+    text: "Est-ce que tu préfères parler de tes émotions en face à face ou par message ? Pourquoi ?",
+    hint: "Compare talking about feelings in person with texting, give your preference and reasons.",
+    subTopic: "friends-and-support",
+    difficulty: 2,
     followUps: [
-      "Quelle est la différence entre reconnaître et ressentir une émotion ?",
-      "Les chatbots peuvent-ils vraiment offrir du soutien émotionnel ?",
-      "Cela pose-t-il des questions éthiques ?",
+      "À qui envoies-tu des messages quand tu es content(e) ?",
+      "Y a-t-il des sujets dont tu parles seulement en face à face ?",
+      "Penses-tu qu'un message peut remplacer une conversation ?"
     ],
-    modelAnswer: "Je doute que l'intelligence artificielle puisse un jour véritablement ressentir des émotions, même si elle peut déjà les reconnaître grâce à l'analyse du ton de voix ou des expressions faciales. Il y a une différence fondamentale entre reconnaître un schéma et éprouver réellement un sentiment. Cela dit, je pense que les chatbots peuvent offrir un certain soutien émotionnel de base, mais cela soulève des questions éthiques sur la dépendance émotionnelle envers des machines.",
+    modelAnswer: "Je préfère parler en face à face parce qu'on peut voir le visage de l'autre et sentir qu'il nous écoute vraiment. Par message, c'est plus facile de se cacher et on peut mal comprendre le ton. Cependant, quand je suis timide ou que le sujet est difficile, j'écris d'abord un message à ma meilleure amie, puis on en parle ensemble. Pour moi, rien ne remplace une vraie conversation.",
     keyVocab: [
-      { fr: "l'intelligence artificielle", en: "artificial intelligence" },
-      { fr: "un schéma", en: "a pattern" },
-      { fr: "éprouver", en: "to experience (a feeling)" },
-      { fr: "soulever une question", en: "to raise a question" },
-      { fr: "éthique", en: "ethical" },
-      { fr: "la dépendance", en: "dependency" },
+      { fr: "en face à face", en: "face to face" },
+      { fr: "un message", en: "a text message" },
+      { fr: "écouter", en: "to listen" },
+      { fr: "comprendre le ton", en: "to understand the tone" },
+      { fr: "timide", en: "shy" },
+      { fr: "remplacer", en: "to replace" }
     ],
   },
   {
@@ -14050,6 +14229,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "emotions",
     text: "Dans quelle mesure devrions-nous laisser nos émotions guider nos actions ?",
     hint: "Debate the balance between emotional impulse and self-control.",
+    subTopic: "emotions-and-society",
     difficulty: 3,
     followUps: [
       "Peux-tu donner un exemple où suivre ses émotions était une bonne idée ?",
@@ -14073,6 +14253,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "arts",
     text: "Quel genre de musique préfères-tu ?",
     hint: "Describe your favourite music genre and why you like it.",
+    subTopic: "music",
     difficulty: 1,
     followUps: [
       "Quel est ton chanteur ou groupe préféré ?",
@@ -14092,8 +14273,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "arv_02",
     topicKey: "arts",
-    text: "Aimes-tu aller au cinéma ?",
+    text: "Aimes-tu aller au cinéma ? Quel genre de films préfères-tu ?",
     hint: "Discuss cinema-going habits and favourite film types.",
+    subTopic: "film-and-tv",
     difficulty: 1,
     followUps: [
       "Quel genre de film préfères-tu ?",
@@ -14113,8 +14295,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "arv_03",
     topicKey: "arts",
-    text: "Est-ce que tu lis beaucoup de livres ?",
+    text: "Est-ce que tu lis beaucoup de livres ? Quel genre préfères-tu ?",
     hint: "Discuss your reading habits and preferred genres.",
+    subTopic: "books-and-writing",
     difficulty: 1,
     followUps: [
       "Quel est ton livre préféré ?",
@@ -14134,8 +14317,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "arv_04",
     topicKey: "arts",
-    text: "Sais-tu dessiner ou peindre ?",
+    text: "Sais-tu dessiner ou peindre ? Quand le fais-tu ?",
     hint: "Discuss your drawing/painting skills or interest in visual art.",
+    subTopic: "visual-arts",
     difficulty: 1,
     followUps: [
       "Depuis quand fais-tu du dessin ou de la peinture ?",
@@ -14155,8 +14339,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "arv_05",
     topicKey: "arts",
-    text: "As-tu déjà visité un musée d'art ?",
+    text: "As-tu déjà visité un musée d'art ? Comment c'était ?",
     hint: "Describe a museum visit using passé composé.",
+    subTopic: "visual-arts",
     difficulty: 1,
     followUps: [
       "Quelles œuvres t'ont le plus marqué(e) ?",
@@ -14178,6 +14363,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "arts",
     text: "Quel est ton film préféré et pourquoi ?",
     hint: "Describe your favourite film with reasons.",
+    subTopic: "film-and-tv",
     difficulty: 1,
     followUps: [
       "Qui sont les acteurs principaux ?",
@@ -14197,8 +14383,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "arv_07",
     topicKey: "arts",
-    text: "Penses-tu que l'art est important pour la société ?",
+    text: "Penses-tu que l'art est important pour la société ? Pourquoi ?",
     hint: "Give an opinion on why art matters to society.",
+    subTopic: "art-and-society",
     difficulty: 2,
     followUps: [
       "L'art peut-il changer la façon dont on voit le monde ?",
@@ -14218,8 +14405,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "arv_08",
     topicKey: "arts",
-    text: "Préfères-tu la musique en direct ou enregistrée ?",
+    text: "Préfères-tu la musique en direct ou enregistrée ? Pourquoi ?",
     hint: "Compare live music with recorded music.",
+    subTopic: "music",
     difficulty: 2,
     followUps: [
       "As-tu déjà assisté à un concert ?",
@@ -14239,8 +14427,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "arv_09",
     topicKey: "arts",
-    text: "Le streaming a-t-il changé la manière dont les gens consomment la musique et les films ?",
+    text: "Le streaming a-t-il changé la manière dont les gens consomment la musique et les films ? Comment ?",
     hint: "Discuss streaming's impact on media consumption.",
+    subTopic: "film-and-tv",
     difficulty: 2,
     followUps: [
       "Est-ce une bonne chose pour les artistes ?",
@@ -14262,6 +14451,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "arts",
     text: "Quel livre t'a le plus marqué(e) et pourquoi ?",
     hint: "Describe an impactful book and its influence on you.",
+    subTopic: "books-and-writing",
     difficulty: 2,
     followUps: [
       "Qu'as-tu appris de ce livre ?",
@@ -14281,8 +14471,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "arv_11",
     topicKey: "arts",
-    text: "Les jeux vidéo peuvent-ils être considérés comme une forme d'art ?",
+    text: "Les jeux vidéo peuvent-ils être considérés comme une forme d'art ? Pourquoi (pas) ?",
     hint: "Debate whether video games count as art.",
+    subTopic: "film-and-tv",
     difficulty: 3,
     followUps: [
       "Quels éléments d'un jeu vidéo pourraient être artistiques ?",
@@ -14304,6 +14495,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "arts",
     text: "Que penses-tu de la censure dans l'art ?",
     hint: "Discuss the debate around censorship in artistic works.",
+    subTopic: "art-and-society",
     difficulty: 3,
     followUps: [
       "L'art doit-il toujours respecter certaines limites morales ?",
@@ -14325,6 +14517,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "arts",
     text: "Comment la technologie a-t-elle transformé la création artistique ?",
     hint: "Discuss digital tools and AI's impact on art creation.",
+    subTopic: "visual-arts",
     difficulty: 3,
     followUps: [
       "L'intelligence artificielle peut-elle créer de véritables œuvres d'art ?",
@@ -14346,6 +14539,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "arts",
     text: "Dans quelle mesure la musique reflète-t-elle les préoccupations d'une génération ?",
     hint: "Discuss how music reflects generational concerns and culture.",
+    subTopic: "music",
     difficulty: 3,
     followUps: [
       "Peux-tu citer une chanson qui aborde un problème social ?",
@@ -14365,8 +14559,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "arv_15",
     topicKey: "arts",
-    text: "Faut-il préserver l'art traditionnel face à la culture numérique moderne ?",
+    text: "Faut-il préserver l'art traditionnel face à la culture numérique moderne ? Pourquoi ?",
     hint: "Discuss preserving traditional art forms in a digital age.",
+    subTopic: "art-and-society",
     difficulty: 3,
     followUps: [
       "Quels arts traditionnels risquent de disparaître ?",
@@ -14386,8 +14581,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "arv_16",
     topicKey: "arts",
-    text: "As-tu déjà écrit une histoire ou un poème ?",
+    text: "As-tu déjà écrit une histoire ou un poème ? Comment c'était ?",
     hint: "Describe a creative writing experience.",
+    subTopic: "books-and-writing",
     difficulty: 1,
     followUps: [
       "De quoi parlait ton histoire ou ton poème ?",
@@ -14407,8 +14603,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "arv_17",
     topicKey: "arts",
-    text: "Quel type de spectacle préfères-tu : le théâtre, la danse ou l'opéra ?",
+    text: "Quel type de spectacle préfères-tu : le théâtre, la danse ou l'opéra ? Pourquoi ?",
     hint: "Compare types of live performance art.",
+    subTopic: "music",
     difficulty: 2,
     followUps: [
       "As-tu déjà assisté à ce type de spectacle ?",
@@ -14430,6 +14627,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "arts",
     text: "Comment le cinéma peut-il sensibiliser les gens à des problèmes sociaux ?",
     hint: "Discuss film as a tool for social awareness.",
+    subTopic: "film-and-tv",
     difficulty: 3,
     followUps: [
       "Peux-tu citer un film qui traite d'un sujet social important ?",
@@ -14449,8 +14647,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "arv_19",
     topicKey: "arts",
-    text: "Penses-tu que l'accès à l'art et à la culture est égal pour tout le monde ?",
+    text: "Penses-tu que l'accès à l'art et à la culture est égal pour tout le monde ? Pourquoi (pas) ?",
     hint: "Discuss inequality of access to arts and culture.",
+    subTopic: "art-and-society",
     difficulty: 3,
     followUps: [
       "Quels obstacles empêchent certaines personnes d'accéder à la culture ?",
@@ -14472,6 +14671,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "arts",
     text: "Si tu pouvais rencontrer un artiste, peintre ou écrivain célèbre, qui choisirais-tu ?",
     hint: "Use conditional to describe meeting a famous artist.",
+    subTopic: "books-and-writing",
     difficulty: 2,
     followUps: [
       "Qu'aimerais-tu lui demander ?",
@@ -14493,6 +14693,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "arts",
     text: "Quel rôle la musique joue-t-elle dans ta vie quotidienne ?",
     hint: "Describe music's role in your daily routine.",
+    subTopic: "music",
     difficulty: 1,
     followUps: [
       "Écoutes-tu de la musique en travaillant ?",
@@ -14512,8 +14713,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "arv_22",
     topicKey: "arts",
-    text: "Penses-tu que les célébrités ont une responsabilité artistique envers leur public ?",
+    text: "Penses-tu que les célébrités ont une responsabilité artistique envers leur public ? Pourquoi (pas) ?",
     hint: "Discuss whether celebrities/artists owe responsibility to their audience.",
+    subTopic: "art-and-society",
     difficulty: 3,
     followUps: [
       "Les artistes doivent-ils toujours véhiculer des messages positifs ?",
@@ -14535,6 +14737,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "arts",
     text: "Comment décrirais-tu ton style personnel en matière d'art ou de design ?",
     hint: "Describe your personal taste in art, design, or aesthetics.",
+    subTopic: "visual-arts",
     difficulty: 2,
     followUps: [
       "Où trouves-tu de l'inspiration pour ton style ?",
@@ -14554,8 +14757,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "arv_24",
     topicKey: "arts",
-    text: "L'art abstrait a-t-il autant de valeur que l'art figuratif ?",
+    text: "L'art abstrait a-t-il autant de valeur que l'art figuratif ? Pourquoi ?",
     hint: "Debate the value of abstract art versus figurative/realistic art.",
+    subTopic: "visual-arts",
     difficulty: 3,
     followUps: [
       "Pourquoi certaines personnes trouvent-elles l'art abstrait difficile à comprendre ?",
@@ -14575,29 +14779,31 @@ export const QUESTIONS: Question[] = [
   {
     id: "arv_25",
     topicKey: "arts",
-    text: "Comment le street art a-t-il changé la perception de l'art urbain ?",
-    hint: "Discuss the evolution and perception of street art/graffiti.",
-    difficulty: 3,
+    text: "Est-ce que tu aimes le street art (les graffitis et les peintures sur les murs) dans ta ville ? Pourquoi (pas) ?",
+    hint: "Say whether you like street art in your town, describe one you have seen, and say whether you think it is art or vandalism.",
+    subTopic: "visual-arts",
+    difficulty: 2,
     followUps: [
-      "Le graffiti devrait-il être considéré comme du vandalisme ou de l'art ?",
-      "Connais-tu un artiste de street art célèbre ?",
-      "Comment les villes pourraient-elles mieux soutenir cette forme d'art ?",
+      "As-tu déjà vu une belle peinture sur un mur ?",
+      "Est-ce que le graffiti, pour toi, c'est de l'art ou du vandalisme ?",
+      "Aimerais-tu peindre un mur dans ton quartier ?"
     ],
-    modelAnswer: "Le street art a considérablement changé la perception de l'art urbain, passant d'une pratique souvent considérée comme du vandalisme à une forme d'expression artistique reconnue et même exposée dans des galeries. Des artistes ont réussi à transformer des murs abandonnés en véritables œuvres qui attirent des touristes du monde entier. Je pense que les villes devraient créer davantage d'espaces légaux pour cet art, afin d'encourager la créativité tout en respectant la propriété privée.",
+    modelAnswer: "Oui, j'aime beaucoup le street art parce qu'il rend les rues plus colorées et plus vivantes. Dans ma ville, il y a une grande fresque sur le mur d'une école qui représente des animaux, et je la trouve magnifique. Pour moi, c'est de l'art quand l'artiste a la permission de peindre, mais c'est du vandalisme quand on abîme la propriété des autres. Je pense que les villes devraient donner plus de murs aux artistes.",
     keyVocab: [
       { fr: "le street art", en: "street art" },
-      { fr: "le vandalisme", en: "vandalism" },
-      { fr: "reconnu(e)", en: "recognised" },
-      { fr: "une galerie", en: "a gallery" },
-      { fr: "abandonné(e)", en: "abandoned" },
-      { fr: "la propriété privée", en: "private property" },
+      { fr: "un mur", en: "a wall" },
+      { fr: "une fresque", en: "a mural" },
+      { fr: "abîmer", en: "to damage" },
+      { fr: "la permission", en: "permission" },
+      { fr: "le vandalisme", en: "vandalism" }
     ],
   },
   {
     id: "arv_26",
     topicKey: "arts",
-    text: "Est-ce important d'apprendre l'histoire de l'art à l'école ?",
+    text: "Est-ce important d'apprendre l'histoire de l'art à l'école ? Pourquoi (pas) ?",
     hint: "Discuss the value of art history education.",
+    subTopic: "art-and-society",
     difficulty: 2,
     followUps: [
       "Qu'as-tu appris en cours d'histoire de l'art, si tu en as suivi ?",
@@ -14617,8 +14823,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "arv_27",
     topicKey: "arts",
-    text: "Les adaptations de livres au cinéma sont-elles généralement réussies ?",
+    text: "Les adaptations de livres au cinéma sont-elles généralement réussies ? Pourquoi (pas) ?",
     hint: "Discuss book-to-film adaptations and their success/failure.",
+    subTopic: "books-and-writing",
     difficulty: 2,
     followUps: [
       "Peux-tu donner un exemple d'adaptation réussie ou ratée ?",
@@ -14640,6 +14847,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "arts",
     text: "Comment l'art peut-il aider à guérir ou à faire face à un traumatisme ?",
     hint: "Discuss art therapy and healing through creative expression.",
+    subTopic: "art-and-society",
     difficulty: 3,
     followUps: [
       "Connais-tu des exemples d'art-thérapie ?",
@@ -14661,6 +14869,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "arts",
     text: "Le marché de l'art contemporain reflète-t-il vraiment la valeur artistique des œuvres ?",
     hint: "Discuss the relationship between art market prices and artistic merit.",
+    subTopic: "art-and-society",
     difficulty: 3,
     followUps: [
       "Pourquoi certaines œuvres se vendent-elles à des prix extraordinaires ?",
@@ -14682,6 +14891,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "arts",
     text: "Dans quelle mesure l'art peut-il provoquer un changement social durable ?",
     hint: "Discuss art's power to create lasting social change.",
+    subTopic: "art-and-society",
     difficulty: 3,
     followUps: [
       "Peux-tu citer un mouvement artistique lié à un changement social ?",
@@ -14703,8 +14913,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "sho_01",
     topicKey: "shopping",
-    text: "Aimes-tu faire du shopping ?",
+    text: "Aimes-tu faire du shopping ? Pourquoi (pas) ?",
     hint: "Describe your general attitude toward shopping.",
+    subTopic: "shopping-habits",
     difficulty: 1,
     followUps: [
       "Qu'est-ce que tu aimes acheter le plus ?",
@@ -14724,8 +14935,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "sho_02",
     topicKey: "shopping",
-    text: "Préfères-tu acheter en ligne ou dans les magasins ?",
+    text: "Préfères-tu acheter en ligne ou dans les magasins ? Pourquoi ?",
     hint: "Compare online shopping vs shopping in physical stores.",
+    subTopic: "online-shopping",
     difficulty: 1,
     followUps: [
       "Quels sont les avantages du shopping en ligne ?",
@@ -14747,6 +14959,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "shopping",
     text: "Comment gères-tu ton argent de poche ?",
     hint: "Discuss how you manage pocket money/allowance.",
+    subTopic: "money-and-saving",
     difficulty: 1,
     followUps: [
       "Reçois-tu de l'argent de poche régulièrement ?",
@@ -14766,8 +14979,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "sho_04",
     topicKey: "shopping",
-    text: "Décris ton dernier achat important.",
+    text: "Décris le dernier achat important que tu as fait.",
     hint: "Use passé composé to describe a recent significant purchase.",
+    subTopic: "shopping-habits",
     difficulty: 1,
     followUps: [
       "Pourquoi as-tu décidé d'acheter cela ?",
@@ -14789,6 +15003,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "shopping",
     text: "Où aimes-tu faire tes courses en général ?",
     hint: "Describe your preferred shopping locations.",
+    subTopic: "shopping-habits",
     difficulty: 1,
     followUps: [
       "Y a-t-il un centre commercial près de chez toi ?",
@@ -14808,8 +15023,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "sho_06",
     topicKey: "shopping",
-    text: "As-tu déjà profité des soldes ?",
+    text: "As-tu déjà profité des soldes ? Comment c'était ?",
     hint: "Discuss experience with sales/discounts.",
+    subTopic: "money-and-saving",
     difficulty: 1,
     followUps: [
       "Qu'as-tu acheté pendant les soldes ?",
@@ -14829,8 +15045,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "sho_07",
     topicKey: "shopping",
-    text: "Penses-tu que la publicité influence trop nos habitudes d'achat ?",
+    text: "Penses-tu que la publicité influence trop nos habitudes d'achat ? Pourquoi (pas) ?",
     hint: "Discuss the influence of advertising on consumer habits.",
+    subTopic: "advertising-and-consumerism",
     difficulty: 2,
     followUps: [
       "As-tu déjà acheté quelque chose à cause d'une publicité ?",
@@ -14850,8 +15067,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "sho_08",
     topicKey: "shopping",
-    text: "Le shopping en ligne est-il bon ou mauvais pour l'environnement ?",
+    text: "Le shopping en ligne est-il bon ou mauvais pour l'environnement ? Pourquoi ?",
     hint: "Discuss the environmental impact of e-commerce.",
+    subTopic: "online-shopping",
     difficulty: 2,
     followUps: [
       "Quels sont les problèmes liés aux livraisons rapides ?",
@@ -14873,6 +15091,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "shopping",
     text: "Que penses-tu de la fast fashion ?",
     hint: "Discuss the ethics and impact of fast fashion.",
+    subTopic: "advertising-and-consumerism",
     difficulty: 2,
     followUps: [
       "Achètes-tu souvent des vêtements de fast fashion ?",
@@ -14894,6 +15113,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "shopping",
     text: "Comment décides-tu si un achat en vaut vraiment la peine ?",
     hint: "Discuss your decision-making process for purchases.",
+    subTopic: "money-and-saving",
     difficulty: 2,
     followUps: [
       "Compares-tu toujours les prix avant d'acheter ?",
@@ -14913,8 +15133,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "sho_11",
     topicKey: "shopping",
-    text: "Le consumérisme est-il devenu un problème dans la société actuelle ?",
+    text: "Le consumérisme est-il devenu un problème dans la société actuelle ? Pourquoi (pas) ?",
     hint: "Discuss consumerism as a broader societal issue.",
+    subTopic: "advertising-and-consumerism",
     difficulty: 3,
     followUps: [
       "Quelles sont les causes de la surconsommation ?",
@@ -14934,8 +15155,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "sho_12",
     topicKey: "shopping",
-    text: "Les petits commerces peuvent-ils survivre face à la concurrence des grandes chaînes ?",
+    text: "Les petits commerces peuvent-ils survivre face à la concurrence des grandes chaînes ? Pourquoi (pas) ?",
     hint: "Discuss small businesses vs large retail chains.",
+    subTopic: "shopping-habits",
     difficulty: 3,
     followUps: [
       "Quels sont les avantages des petits commerces ?",
@@ -14957,6 +15179,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "shopping",
     text: "Comment les entreprises utilisent-elles les données des clients pour influencer leurs achats ?",
     hint: "Discuss data-driven marketing and personalisation.",
+    subTopic: "online-shopping",
     difficulty: 3,
     followUps: [
       "Est-ce éthique d'utiliser les données personnelles de cette façon ?",
@@ -14976,8 +15199,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "sho_14",
     topicKey: "shopping",
-    text: "Faut-il enseigner l'éducation financière aux jeunes dès l'école ?",
+    text: "Faut-il enseigner l'éducation financière aux jeunes dès l'école ? Pourquoi (pas) ?",
     hint: "Argue for/against teaching financial literacy in schools.",
+    subTopic: "money-and-saving",
     difficulty: 3,
     followUps: [
       "Que devrait inclure un tel programme ?",
@@ -14999,6 +15223,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "shopping",
     text: "Dans quelle mesure notre identité est-elle liée à ce que nous achetons ?",
     hint: "Discuss the relationship between consumption and identity.",
+    subTopic: "advertising-and-consumerism",
     difficulty: 3,
     followUps: [
       "Les marques que l'on porte définissent-elles qui l'on est ?",
@@ -15018,8 +15243,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "sho_16",
     topicKey: "shopping",
-    text: "As-tu déjà vendu ou échangé des objets d'occasion ?",
+    text: "As-tu déjà vendu ou échangé des objets d'occasion ? Comment c'était ?",
     hint: "Describe experience buying/selling second-hand goods.",
+    subTopic: "shopping-habits",
     difficulty: 1,
     followUps: [
       "Quels objets as-tu vendus ou achetés d'occasion ?",
@@ -15041,6 +15267,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "shopping",
     text: "Comment choisis-tu un cadeau pour quelqu'un ?",
     hint: "Describe how you choose gifts for others.",
+    subTopic: "shopping-habits",
     difficulty: 1,
     followUps: [
       "Préfères-tu offrir un cadeau matériel ou une expérience ?",
@@ -15060,8 +15287,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "sho_18",
     topicKey: "shopping",
-    text: "Les réductions et les promotions te poussent-elles à acheter des choses inutiles ?",
+    text: "Les réductions et les promotions te poussent-elles à acheter des choses inutiles ? Pourquoi (pas) ?",
     hint: "Discuss the psychological pull of discounts and promotions.",
+    subTopic: "money-and-saving",
     difficulty: 2,
     followUps: [
       "Comment résistes-tu à ces tentations ?",
@@ -15081,22 +15309,23 @@ export const QUESTIONS: Question[] = [
   {
     id: "sho_19",
     topicKey: "shopping",
-    text: "Penses-tu que l'on devrait boycotter certaines entreprises pour des raisons éthiques ?",
-    hint: "Discuss consumer boycotts as ethical action.",
-    difficulty: 3,
+    text: "Est-ce que tu fais attention à l'origine des produits que tu achètes, par exemple les vêtements ou la nourriture ? Pourquoi (pas) ?",
+    hint: "Say whether you care where products come from, give reasons, and say whether you ever avoid a brand.",
+    subTopic: "shopping-habits",
+    difficulty: 2,
     followUps: [
-      "Peux-tu donner un exemple de boycott efficace ?",
-      "Le boycott individuel a-t-il vraiment un impact ?",
-      "Est-il difficile de savoir quelles entreprises sont éthiques ?",
+      "Est-ce que tu regardes les étiquettes ?",
+      "Y a-t-il une marque que tu n'achètes plus ?",
+      "Qui fait les achats chez toi ?"
     ],
-    modelAnswer: "Je pense que boycotter des entreprises pour des raisons éthiques peut être un moyen puissant de faire pression sur les grandes marques, surtout quand suffisamment de consommateurs se mobilisent ensemble. Cependant, un boycott individuel a souvent un impact limité, et il peut être très difficile de savoir avec certitude si une entreprise agit de manière éthique, car les chaînes d'approvisionnement sont souvent complexes et opaques. Je pense qu'il est important de faire des recherches avant de prendre position.",
+    modelAnswer: "Oui, je fais un peu attention, surtout pour la nourriture. Je regarde souvent si les produits viennent de France ou de mon pays parce que je pense que c'est meilleur pour l'environnement. Pour les vêtements, c'est plus difficile parce que les marques éthiques sont souvent chères. Il y a une marque que je n'achète plus parce que j'ai lu que ses employés sont mal payés. Je trouve que c'est important de savoir d'où viennent les choses.",
     keyVocab: [
-      { fr: "boycotter", en: "to boycott" },
-      { fr: "faire pression", en: "to put pressure" },
-      { fr: "se mobiliser", en: "to mobilise" },
-      { fr: "une chaîne d'approvisionnement", en: "a supply chain" },
-      { fr: "opaque", en: "opaque" },
-      { fr: "prendre position", en: "to take a stand" },
+      { fr: "l'origine", en: "origin" },
+      { fr: "une étiquette", en: "a label" },
+      { fr: "une marque", en: "a brand" },
+      { fr: "mal payé(e)", en: "badly paid" },
+      { fr: "cher/chère", en: "expensive" },
+      { fr: "l'environnement", en: "the environment" }
     ],
   },
   {
@@ -15104,6 +15333,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "shopping",
     text: "Comment vois-tu l'évolution du shopping dans dix ans ?",
     hint: "Use future tense to speculate about the future of shopping.",
+    subTopic: "online-shopping",
     difficulty: 3,
     followUps: [
       "La réalité virtuelle changera-t-elle notre façon de faire du shopping ?",
@@ -15123,8 +15353,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "sho_21",
     topicKey: "shopping",
-    text: "Quel est le pire achat que tu aies jamais fait ?",
+    text: "Quel est le pire achat que tu as déjà fait ?",
     hint: "Describe a regretted purchase using passé composé.",
+    subTopic: "money-and-saving",
     difficulty: 2,
     followUps: [
       "Pourquoi cet achat n'était-il pas une bonne idée ?",
@@ -15146,6 +15377,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "shopping",
     text: "Quelle est la différence entre un besoin et une envie quand on fait du shopping ?",
     hint: "Distinguish between needs and wants in consumption.",
+    subTopic: "money-and-saving",
     difficulty: 2,
     followUps: [
       "Comment fais-tu la différence entre les deux ?",
@@ -15167,6 +15399,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "shopping",
     text: "Comment les magasins essaient-ils de te faire acheter plus que prévu ?",
     hint: "Discuss retail tactics that encourage extra spending.",
+    subTopic: "advertising-and-consumerism",
     difficulty: 2,
     followUps: [
       "As-tu déjà remarqué la disposition des produits dans un magasin ?",
@@ -15186,8 +15419,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "sho_24",
     topicKey: "shopping",
-    text: "Le prix d'un produit reflète-t-il toujours sa qualité ?",
+    text: "Le prix d'un produit reflète-t-il toujours sa qualité ? Pourquoi (pas) ?",
     hint: "Discuss the relationship between price and quality.",
+    subTopic: "money-and-saving",
     difficulty: 2,
     followUps: [
       "As-tu déjà acheté un produit cher qui s'est avéré décevant ?",
@@ -15209,6 +15443,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "shopping",
     text: "Que penses-tu des influenceurs qui font la promotion de produits sur les réseaux sociaux ?",
     hint: "Discuss the phenomenon of social media influencer marketing.",
+    subTopic: "online-shopping",
     difficulty: 3,
     followUps: [
       "Fais-tu confiance aux recommandations des influenceurs ?",
@@ -15230,6 +15465,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "shopping",
     text: "Comment le pouvoir d'achat des familles a-t-il évolué ces dernières années ?",
     hint: "Discuss changes in purchasing power and cost of living.",
+    subTopic: "money-and-saving",
     difficulty: 3,
     followUps: [
       "Quels produits ont le plus augmenté de prix ?",
@@ -15249,8 +15485,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "sho_27",
     topicKey: "shopping",
-    text: "Est-il possible de faire du shopping de manière éthique dans le monde actuel ?",
+    text: "Est-il possible de faire du shopping de manière éthique dans le monde actuel ? Pourquoi (pas) ?",
     hint: "Discuss the feasibility of fully ethical consumption today.",
+    subTopic: "advertising-and-consumerism",
     difficulty: 3,
     followUps: [
       "Quelles démarches peuvent aider à consommer plus éthiquement ?",
@@ -15272,6 +15509,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "shopping",
     text: "Comment les jeunes générations consomment-elles différemment de leurs parents ?",
     hint: "Compare generational shopping/consumption habits.",
+    subTopic: "shopping-habits",
     difficulty: 3,
     followUps: [
       "Les jeunes se soucient-ils plus de l'éthique de leurs achats ?",
@@ -15291,8 +15529,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "sho_29",
     topicKey: "shopping",
-    text: "Le marketing basé sur la rareté ('offre limitée', 'stock presque épuisé') est-il manipulateur ?",
+    text: "Le marketing basé sur la rareté ('offre limitée', 'stock presque épuisé') est-il manipulateur ? Pourquoi (pas) ?",
     hint: "Discuss scarcity marketing tactics and their ethics.",
+    subTopic: "advertising-and-consumerism",
     difficulty: 3,
     followUps: [
       "As-tu déjà été influencé(e) par ce genre de message ?",
@@ -15314,6 +15553,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "shopping",
     text: "Dans quelle mesure le shopping est-il devenu une forme de divertissement plutôt qu'une simple nécessité ?",
     hint: "Discuss shopping as entertainment/leisure rather than necessity.",
+    subTopic: "advertising-and-consumerism",
     difficulty: 3,
     followUps: [
       "Pourquoi les gens font-ils du shopping même sans rien acheter ?",
@@ -15492,7 +15732,7 @@ export const QUESTIONS: Question[] = [
       ideas: ["Say yes or no", "Give two reasons (speed, price, taste)", "Say whether you think they are healthy"],
       phrase: { fr: "J'achète des plats préparés parce que… / Je n'en achète pas parce que…", en: "I buy ready meals because… / I don't buy them because…" },
     },
-    difficulty: 3,
+    difficulty: 2,
     followUps: [
       "Qu'est-ce que tu prépares quand tu es seul(e) à la maison ?",
       "Penses-tu que les plats préparés sont chers ?",

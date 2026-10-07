@@ -8,7 +8,7 @@
  * Unlike learnSkeleton.ts (one topic, TODO placeholders), this writes every
  * topic file in one run and OVERWRITES existing files — it is meant to be
  * run once, early, before any human review has flipped provenance away from
- * 'inferred'. Refuses to run if it would clobber reviewed/authored work.
+ * 'inferred'. Refuses to run if it would clobber reviewed/authored work, or entries carrying `review.notes` (re-read in Batch 3b).
  *
  *   npm run learn:infer
  */
@@ -37,7 +37,11 @@ function hasNonInferredWork(path: string): boolean {
   if (!existsSync(path)) return false;
   try {
     const existing = JSON.parse(readFileSync(path, 'utf-8')) as LearnDemandsFile;
-    return existing.entries.some((e) => e.demands.provenance !== 'inferred' || e.review.status === 'approved');
+    // `review.notes` marks entries a later pass re-read (Learn Batch 3b): still 'inferred', but
+    // overwriting them would silently discard that work, so they are protected like reviewed ones.
+    return existing.entries.some(
+      (e) => e.demands.provenance !== 'inferred' || e.review.status === 'approved' || e.review.notes !== undefined,
+    );
   } catch {
     // Unreadable/malformed — treat as unsafe to overwrite.
     return true;
