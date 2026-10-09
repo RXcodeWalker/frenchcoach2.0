@@ -25,7 +25,7 @@ export function FeedbackFooter({ onRetry, onComplete, modelAnswer }: Props) {
           className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl surface-recessed text-white font-semibold text-xs"
           whileTap={{ scale: 0.97 }}
         >
-          <RotateCcw size={12} /> Try again
+          <RotateCcw size={12} /> Get new feedback
         </motion.button>
 
         <motion.button

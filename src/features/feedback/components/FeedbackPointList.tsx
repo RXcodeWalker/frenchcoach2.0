@@ -47,7 +47,7 @@ const TONE_HEADING: Record<PointTone, string> = {
   bad: 'text-rose-700 dark:text-rose-300',
 };
 
-function Section({ heading, tone, compact, children }: { heading: string; tone: PointTone; compact: boolean; children: ReactNode }) {
+export function PointSection({ heading, tone, compact, children }: { heading: string; tone: PointTone; compact: boolean; children: ReactNode }) {
   return (
     <div className={`rounded-xl border ${compact ? 'p-3 space-y-2' : 'p-4 space-y-2.5'} ${TONE_CLASS[tone]}`}>
       <p className={`fb-heading flex items-center gap-1 text-eyebrow uppercase ${TONE_HEADING[tone]}`}>
@@ -73,7 +73,7 @@ function Anchor({ quote, active, children }: { quote?: string | null; active: bo
   );
 }
 
-function ClaimRow({ point, compact, hl }: { point: Extract<FeedbackPoint, { kind: 'claim' }>; compact: boolean; hl?: string | null }) {
+export function ClaimRow({ point, compact, hl }: { point: Extract<FeedbackPoint, { kind: 'claim' }>; compact: boolean; hl?: string | null }) {
   return (
     <Anchor quote={point.quote} active={!!hl && hl === point.quote}>
       <p className={compact ? 'text-[11px] text-ink leading-relaxed' : 'text-xs text-ink leading-relaxed'}>{point.claim}</p>
@@ -85,7 +85,18 @@ function ClaimRow({ point, compact, hl }: { point: Extract<FeedbackPoint, { kind
   );
 }
 
-function FixRow({ point, compact, hl }: { point: Extract<FeedbackPoint, { kind: 'fix' }>; compact: boolean; hl?: string | null }) {
+export function FixRow({
+  point,
+  compact,
+  hl,
+  action,
+}: {
+  point: Extract<FeedbackPoint, { kind: 'fix' }>;
+  compact: boolean;
+  hl?: string | null;
+  /** Sits at the end of the correction line — the teacher's "hear it" button. */
+  action?: ReactNode;
+}) {
   return (
     <Anchor quote={point.quote} active={!!hl && hl === point.quote}>
       <p className={compact ? 'text-[11px] leading-relaxed' : 'text-xs leading-relaxed'}>
@@ -94,6 +105,7 @@ function FixRow({ point, compact, hl }: { point: Extract<FeedbackPoint, { kind: 
           →
         </span>
         <span className="text-ink font-semibold">{point.correction}</span>
+        {action && <span className="ml-1.5 align-middle">{action}</span>}
       </p>
       {point.why && <p className={compact ? 'text-[10px] text-ink-muted' : 'text-[11px] text-ink-muted'}>{point.why}</p>}
       {point.tag && (
@@ -120,7 +132,7 @@ export function FeedbackPointList({
       {groups
         .filter((g) => g.points.length > 0)
         .map((g) => (
-          <Section key={g.heading} heading={g.heading} tone={g.tone} compact={compact}>
+          <PointSection key={g.heading} heading={g.heading} tone={g.tone} compact={compact}>
             {g.points.map((p, i) =>
               p.kind === 'claim' ? (
                 <ClaimRow key={i} point={p} compact={compact} hl={highlightedQuote} />
@@ -128,7 +140,7 @@ export function FeedbackPointList({
                 <FixRow key={i} point={p} compact={compact} hl={highlightedQuote} />
               ),
             )}
-          </Section>
+          </PointSection>
         ))}
     </>
   );

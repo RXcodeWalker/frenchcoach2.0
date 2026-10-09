@@ -1329,3 +1329,45 @@ above `MIN_RELIABLE_WEIGHT` after the 14-day decay. After the owner's `reviewed`
 state still does not), keep the starting-point wording below it, and change nothing in selection,
 weights or `deriveAbility`. The cost is a band resting on fewer measured answers. The gate and the
 weights are unchanged in this batch.
+
+## Amendment: Learn feedback Batch 6b-0 — the French marker detectors (2026-10-09)
+
+**What was wrong.** The closed-list detectors in `services/coaching/diagnosticEngine.ts` that §9.3's
+L1 evaluator reads (`hasJustification`, `hasOpinion`, `hasPerspective`, `hasSubjunctive`,
+`hasConnectors`, `hasConditional`) and the one Learn sends to the model as a signal (`hasPastOrFuture`,
+`apiClient.ts`) used JS `\b`, which is ASCII-only: it never fires next to an accented letter. So
+« à mon avis », « d'un côté », « à condition que », « étant donné », « grâce à » and « c'était » were
+never found, and `hasPastOrFuture` never matched a passé composé at all (`\w+é\b`), only the exact
+words *ira / irai / ferai / serai* and four imparfait forms. It also matched mid-word
+(« a consi**dé**rablement », « ont **ré**ellement »). `hasConditional` went the other way: after
+Stage 4b it accepted any word ending *-ais / -ait / -aient / -ions / -iez*, so nouns (« solutions »,
+« informations », « anglais ») and the imparfait (« j'adorais ») counted as conditionals.
+
+**What changed (§3.8 / §9.3 detector contract, not the evaluator).** Every marker is now built with
+the Unicode-boundary `cue()` helper from `domain/learn/demand/textCues.ts` (which gained an optional
+`flags` argument) and shares one implementation, `findMarker(text, kind)`, which also returns the
+matched span so a caller can quote it. The boolean `hasX` functions keep their signatures and are
+wrappers over it. The word lists themselves are unchanged, except:
+- `hasPastOrFuture` now finds the passé composé (avoir; être with a closed list of verbs, and
+  reflexives), the imparfait of être/avoir, the simple future behind a subject, and the near future
+  (*aller* + an infinitive). Adjectives in *-é* (« je suis fatigué ») are deliberately not a past.
+- `hasConditional` requires a verb stem (infinitive, *-dr- / -rr- / -ettr- / -aîtr- / -evr-*, or *aur- / saur-*).
+- « parce qu'il » (elided) counts as « parce que », and « car » does not count after a determiner
+  (« le car » is the bus).
+
+**Still presence-reliable, absence-unreliable.** A new detector returns a hit only where a false hit
+would be unlikely; ambiguous endings are left undetected (« nous respirons » vs « nous finirons »),
+so a miss still never means "not done". Nothing here changes the evaluator's asymmetry rule.
+
+**Belief-input effect (measured, 668 bank model answers).** Answers matched, old → new:
+`hasPastOrFuture` 58 → 216 (+160 gained, 2 lost, both of the 2 old mid-word false positives) ·
+`hasJustification` 295 → 339 · `hasPerspective` 120 → 130 · `hasOpinion`, `hasSubjunctive`,
+`hasConnectors` unchanged · **`hasConditional` 373 → 214** (56% → 32%). Checked word by word, the old detector's
+122 distinct dropped words are nouns in *-ions* (« motions », « traditions », « options »), « frais »,
+« anglais », « mauvais », « trait », « avions », and imparfait / present forms (« avais », « pouvais »,
+« faisait », « essaient »); the one real conditional it dropped, « permettrait », led to adding the
+*-ettr- / -aîtr-* stems. The visible consequence: `hypothesize` and the *conditional*
+structure no longer resolve to `met` on ordinary answers, so L1 `demand:hypothesize` evidence gets
+sparser and more honest, and the model now receives a correct past/future signal. The
+`adaptiveSimulation` scenarios are bit-for-bit unchanged (their synthetic transcripts only use
+markers that were never broken), so they do not measure this effect; the corpus comparison above does.

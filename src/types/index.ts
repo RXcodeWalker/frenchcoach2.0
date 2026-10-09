@@ -583,6 +583,8 @@ export interface FeedbackV2 extends Feedback {
   improved_answer?: string;
   rephrase?: string;
   advanced_answer?: string;
+  /** The model's French follow-up to THIS answer, kept only after `cleanFollowUpQuestion`; Learn's follow-up turn can ask it. */
+  followUpQuestion?: string;
   expansion_ideas?: string[];
   /**
    * Annotations over the client-computed diff between the transcript and
