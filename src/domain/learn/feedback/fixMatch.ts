@@ -89,3 +89,61 @@ export function fixMatch(
 
   return 'unsure';
 }
+
+/**
+ * Second take (Learn feedback Batch 6c): was the correction said somewhere in
+ * a whole re-answer? The retake is spoken and free to restructure, so this is
+ * stricter than `fixMatch` where it must be and never a verdict:
+ *  1. the whole correction appears as a run of whole words; or
+ *  2. the retake sounds like the correction (spoken, so isSoundAlike applies); or
+ *  3. every edit the correction makes appears as a run — the changed words
+ *     plus the unchanged word on each side — so a lone « suis » elsewhere in a
+ *     long answer is not enough.
+ * Pure; a `false` means "not heard", never "wrong".
+ */
+export function fixHeard(retake: string, quote: string, correction: string): boolean {
+  const keepAccents = differOnlyByAccents(quote, correction);
+  const got = words(retake, keepAccents);
+  const want = words(correction, keepAccents);
+  if (got.length === 0 || want.length === 0) return false;
+  if (containsRun(got, want)) return true;
+  if (isSoundAlike(retake, correction)) return true;
+
+  const before = words(quote, keepAccents);
+  if (before.length === 0) return false;
+  const changed: boolean[] = [];
+  for (const op of diffWords(before.join(' '), want.join(' '))) {
+    const isChange = op.type !== 'equal';
+    changed.push(...words(op.afterText, keepAccents).map(() => isChange));
+  }
+  if (changed.length !== want.length || !changed.includes(true)) return false;
+
+  for (let i = 0; i < changed.length; ) {
+    if (!changed[i]) {
+      i++;
+      continue;
+    }
+    let end = i;
+    while (end < changed.length && changed[end]) end++;
+    if (!containsRun(got, want.slice(Math.max(0, i - 1), Math.min(want.length, end + 1)))) return false;
+    i = end;
+  }
+  return true;
+}
+
+/** The learner's exact error words appear, as whole words, in the retake. */
+export function quoteHeard(retake: string, quote: string, correction: string): boolean {
+  const keepAccents = differOnlyByAccents(quote, correction);
+  return containsRun(words(retake, keepAccents), words(quote, keepAccents));
+}
+
+/** The error quote is itself part of the correction (« allé » inside « je suis allé »), so hearing it proves nothing. */
+export function quoteInsideCorrection(quote: string, correction: string): boolean {
+  const keepAccents = differOnlyByAccents(quote, correction);
+  return containsRun(words(correction, keepAccents), words(quote, keepAccents));
+}
+
+/** A strength's quote appears, as whole words, in the retake. */
+export function phraseHeard(retake: string, phrase: string): boolean {
+  return containsRun(words(retake, false), words(phrase, false));
+}

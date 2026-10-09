@@ -4,6 +4,7 @@ import type { FeedbackV2 } from '../../../types';
 import { coachPointGroups, hasGoFurther, selectCoachFixes } from '../coachPoints';
 import type { FeedbackPointGroup } from '../components/FeedbackPointList';
 import { addressName, type TeacherRegister } from './persona';
+import type { FirstId } from './firsts';
 import type { CalibrationLine } from './predictionQuestions';
 
 /**
@@ -14,13 +15,16 @@ import type { CalibrationLine } from './predictionQuestions';
  *  1. the learner's answer, as their own bubble;
  *  2. the opening — the model's own line when it survived the filters, else a
  *     data-driven template;
- *  3. what the Predict checks found (at most one line per answered check);
+ *  3. what the Predict checks found (at most one line per answered check), then
+ *     any milestone "first" Learn has proven (Batch 6c) — one honest line each;
  *  4. what they did well;
  *  5. a connective chosen by how many fixes there are (it never praises: it
  *     states a count);
  *  6. the fixes, then "Also worth fixing", "Say it better" and "Go further";
  *  7. a memory line for a repeated mistake, from the existing recurring-problem
- *     detection (interventionService) — no new store.
+ *     detection (interventionService) — no new store;
+ *  8. the invitation to a Second take, only when there is at least one fix;
+ *  9. the examiner's next question, only when Learn will really ask it next.
  *
  * The learner's name is said at most once. Nothing here is a mark, band or
  * grade (ADR 0005) — every framing string is tested against the shared
@@ -30,10 +34,13 @@ import type { CalibrationLine } from './predictionQuestions';
 
 export type TeacherLine =
   | { id: string; kind: 'learner'; text: string }
-  | { id: string; kind: 'talk'; role: 'opening' | 'calibration' | 'connective' | 'memory'; text: string }
+  | { id: string; kind: 'talk'; role: 'opening' | 'calibration' | 'connective' | 'memory' | 'secondTake' | 'nextQuestion' | 'first'; text: string }
   | { id: string; kind: 'points'; group: FeedbackPointGroup }
   /** A block the existing cards render (the diff, vocabulary and ideas); the script only places it. */
-  | { id: string; kind: 'section'; section: 'say-it-better' | 'go-further'; heading: string };
+  | { id: string; kind: 'section'; section: TeacherSection; heading: string };
+
+/** `second-take` is the retake control (Batch 6c): the conversation renders it itself, from the fixes in the script. */
+export type TeacherSection = 'say-it-better' | 'go-further' | 'second-take';
 
 /** A repeated mistake, resolved to a phrase from THIS answer. */
 export interface RecurringMistake {
@@ -60,6 +67,15 @@ export interface TeacherScriptInput {
   recurring?: RecurringMistake | null;
   /** `calibrationLines(...)` for the Predict checks the learner answered; each carries a quote the markers found. */
   calibration?: CalibrationLine[];
+  /** Offer the Second take (Batch 6c). Ignored when there is no fix to retake. */
+  secondTake?: boolean;
+  /**
+   * The follow-up Learn will ask when the learner taps Next (Batch 6c), framed as
+   * exam training. Pass it only when that turn is actually going to happen.
+   */
+  nextQuestion?: string | null;
+  /** Milestones `detectFirsts` proved are firsts for this learner (Batch 6c). */
+  firsts?: readonly FirstId[];
 }
 
 /** Every static framing string, by register — exported so tests can hold them to the mark/band filter. */
@@ -77,6 +93,15 @@ export const TEACHER_FRAMING = {
       } this week. Let's lock it in.`,
     sayItBetter: 'Say it better',
     goFurther: 'Go further',
+    secondTake: 'Now say it again, and use the fixes.',
+    firsts: {
+      'long-answer': 'First answer over 40 words.',
+      'two-reasons': 'First time you gave two reasons.',
+      past: 'First time you talked about the past.',
+      future: 'First time you talked about the future.',
+    } satisfies Record<FirstId, string>,
+    nextQuestion: (question: string) =>
+      `If an examiner heard that, they'd ask: « ${question} » Tap Next question to answer it.`,
   },
   examiner: {
     opening: (name: string | null) => (name ? `Let us go through your answer, ${name}.` : 'Let us go through your answer.'),
@@ -93,6 +118,14 @@ export const TEACHER_FRAMING = {
       } in your recent answers. Please pay particular attention to it.`,
     sayItBetter: 'Say it better',
     goFurther: 'Go further',
+    secondTake: 'Now answer once more, applying the corrections.',
+    firsts: {
+      'long-answer': 'This is your first answer of more than 40 words.',
+      'two-reasons': 'This is the first time you have given two reasons.',
+      past: 'This is the first time you have spoken about the past.',
+      future: 'This is the first time you have spoken about the future.',
+    } satisfies Record<FirstId, string>,
+    nextQuestion: (question: string) => `An examiner would ask you next: « ${question} » Continue to answer it.`,
   },
 } as const;
 
@@ -119,6 +152,10 @@ export function buildTeacherScript(input: TeacherScriptInput): TeacherLine[] {
 
   (input.calibration ?? []).forEach((line) => {
     lines.push({ id: `calibration:${line.id}`, kind: 'talk', role: 'calibration', text: line.text });
+  });
+
+  (input.firsts ?? []).forEach((id) => {
+    lines.push({ id: `first:${id}`, kind: 'talk', role: 'first', text: framing.firsts[id] });
   });
 
   const fixes = countFixes(input.groups);
@@ -150,6 +187,14 @@ export function buildTeacherScript(input: TeacherScriptInput): TeacherLine[] {
   if (input.recurring?.quote.trim() && input.recurring.label.trim()) {
     lines.push({ id: 'memory', kind: 'talk', role: 'memory', text: framing.memory(input.recurring) });
   }
+
+  if (input.secondTake && fixes > 0) {
+    lines.push({ id: 'secondTake', kind: 'talk', role: 'secondTake', text: framing.secondTake });
+    lines.push({ id: 'section:second-take', kind: 'section', section: 'second-take', heading: 'Second take' });
+  }
+
+  const next = input.nextQuestion?.trim();
+  if (next) lines.push({ id: 'nextQuestion', kind: 'talk', role: 'nextQuestion', text: framing.nextQuestion(next) });
 
   return lines;
 }
@@ -185,6 +230,12 @@ export interface CoachScriptContext {
   recurring?: { nodeId: string; label: string; times: number | null } | null;
   /** Predict calibration lines for this answer (see predictionQuestions.ts). */
   calibration?: CalibrationLine[];
+  /** Offer the Second take. */
+  secondTake?: boolean;
+  /** The follow-up Learn will ask next, when it will. */
+  nextQuestion?: string | null;
+  /** Proven milestone firsts for this answer. */
+  firsts?: readonly FirstId[];
 }
 
 /** The coach-voice script for filtered Learn feedback. */
@@ -200,5 +251,8 @@ export function buildCoachTeacherScript(feedback: FeedbackV2, ctx: CoachScriptCo
     hasGoFurther: hasGoFurther(feedback),
     recurring: ctx.recurring && quote ? { label: ctx.recurring.label, times: ctx.recurring.times, quote } : null,
     calibration: ctx.calibration,
+    secondTake: ctx.secondTake,
+    nextQuestion: ctx.nextQuestion,
+    firsts: ctx.firsts,
   });
 }

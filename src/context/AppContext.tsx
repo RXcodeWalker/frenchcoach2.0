@@ -42,6 +42,8 @@ interface AppState {
   skillProfile: SkillProfile;
   focusedSkillId: string | null;
   masteredDrills: string[];
+  /** Milestone ids the teacher has already said (Learn feedback Batch 6c); never said twice. */
+  firstsSeen: string[];
   lastUnlockedAchievement: Achievement | null;
   newLevelReached: string | null;
   activeSession: ActiveSession | null;
@@ -90,6 +92,7 @@ type Action =
   | { type: 'UPDATE_SKILL_PROFILE'; skillProfile: SkillProfile }
   | { type: 'SET_FOCUSED_SKILL'; skillId: string | null }
   | { type: 'MARK_DRILL_MASTERED'; drillId: string }
+  | { type: 'MARK_FIRSTS_SEEN'; ids: string[] }
   | { type: 'START_SESSION'; session: ActiveSession }
   | { type: 'UPDATE_ACTIVE_SESSION'; session: ActiveSession }
   | { type: 'END_SESSION' }
@@ -107,6 +110,8 @@ function buildInitialState(): AppState {
   const unlockedIds = new Set(progression.achievements);
 
   const masteredDrills = storageGet<string[]>(STORAGE_KEYS.masteredDrills, []);
+  const storedFirsts = storageGet<unknown>(STORAGE_KEYS.firstsSeen, []);
+  const firstsSeen = Array.isArray(storedFirsts) ? storedFirsts.filter((id): id is string => typeof id === 'string') : [];
 
   const profile: UserProfile = {
     id: 'local-user',
@@ -175,6 +180,7 @@ function buildInitialState(): AppState {
     skillProfile,
     focusedSkillId: null,
     masteredDrills,
+    firstsSeen,
     lastUnlockedAchievement: null,
     newLevelReached: null,
     activeSession: null,
@@ -195,6 +201,13 @@ export function reducer(state: AppState, action: Action): AppState {
       const next = [...state.masteredDrills, action.drillId];
       storageSet(STORAGE_KEYS.masteredDrills, next);
       return { ...state, masteredDrills: next };
+    }
+    case 'MARK_FIRSTS_SEEN': {
+      const fresh = action.ids.filter((id) => !state.firstsSeen.includes(id));
+      if (fresh.length === 0) return state;
+      const next = [...state.firstsSeen, ...fresh];
+      storageSet(STORAGE_KEYS.firstsSeen, next);
+      return { ...state, firstsSeen: next };
     }
     case 'ADD_XP': {
       const { totalXP, totalGems, gemGain, activeBoosters } = action;

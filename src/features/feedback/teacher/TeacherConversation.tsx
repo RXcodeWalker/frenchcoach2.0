@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { ClaimRow, FixRow, PointSection, type FeedbackPoint } from '../components/FeedbackPointList';
 import type { TeacherLine } from './buildTeacherScript';
+import { SecondTake } from './SecondTake';
 import { markQuotes } from './markQuotes';
 import { TEACHER_NAME, teacherInitials } from './persona';
 import { SpeakButton } from './SpeakButton';
@@ -25,7 +26,9 @@ import { useTypedReveal } from './useTypedReveal';
  *    nudge has been tried or shown — it contains the corrected phrases, so
  *    showing it first would answer them. (The Full report is one tap away and
  *    shows everything; this only protects the offer to have a go.)
- *  - Nothing outside this block waits on it: Next / Try again are not inside it.
+ *  - The Second take (Batch 6c) is placed by the script and rendered here, so
+ *    it shares the one-microphone rule with the nudges.
+ *  - Nothing outside this block waits on it: Next / Get new feedback are not inside it.
  */
 
 type Fix = Extract<FeedbackPoint, { kind: 'fix' }>;
@@ -42,6 +45,8 @@ interface Props {
 }
 
 const INTERACTIVE = 'button, input, textarea, select, a, label';
+/** The microphone owner key of the Second take (fix nudges use their quote). */
+const SECOND_TAKE_MIC = '\u0000second-take';
 
 function Avatar() {
   return (
@@ -106,6 +111,11 @@ export function TeacherConversation({ lines, revealKey, tryFirstHeading, renderS
   );
   const [announced, setAnnounced] = useState('');
   useEffect(() => setAnnounced(talkText), [talkText]);
+
+  const pointGroups = useMemo(
+    () => lines.flatMap((l) => (l.kind === 'points' ? [l.group] : [])),
+    [lines],
+  );
 
   const visibleLines = lines.slice(0, reveal.visible);
   // The fixes the teacher has reached so far, underlined in the learner's own words.
@@ -183,6 +193,17 @@ export function TeacherConversation({ lines, revealKey, tryFirstHeading, renderS
           }
 
           case 'section':
+            if (line.section === 'second-take') {
+              return (
+                <div key={line.id} className="pl-9">
+                  <SecondTake
+                    groups={pointGroups}
+                    micLocked={micOwner !== null && micOwner !== SECOND_TAKE_MIC}
+                    onMicActive={(active) => setMicOwner(active ? SECOND_TAKE_MIC : null)}
+                  />
+                </div>
+              );
+            }
             return (
               <div key={line.id} className="pl-9">
                 {line.section === 'say-it-better' && holdSayItBetter ? (

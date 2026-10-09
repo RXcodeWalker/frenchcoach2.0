@@ -5,6 +5,8 @@ export const STORAGE_KEYS = {
   diagnosticSDE:  'frenchCoach_sde',
   topicMastery:   'frenchCoach_topicMastery',
   masteredDrills: 'frenchCoach_masteredDrills',
+  // Learn feedback Batch 6c — the milestone "firsts" the teacher has already said (ids only; per account on this device).
+  firstsSeen:     'frenchCoach_firstsSeen',
   darkMode:       'frenchCoach_darkMode',
   aiEngine:       'frenchCoach_aiEngine',
   difficulty:     'frenchCoach_difficulty',

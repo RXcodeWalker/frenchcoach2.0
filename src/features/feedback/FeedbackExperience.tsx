@@ -24,6 +24,7 @@ import type { FeedbackV2 } from '../../types';
 import type { PronunciationAssessment } from '../../domain/pronunciation/types';
 import type { QuestionDemands } from '../../domain/learn/demand/types';
 import { buildCoachTeacherScript } from './teacher/buildTeacherScript';
+import type { FirstId } from './teacher/firsts';
 import { PredictCard } from './teacher/PredictCard';
 import {
   calibrationLines,
@@ -88,14 +89,18 @@ interface Props {
   learnerName?: string | null;
   /** The active repeated-mistake problem (only when `isRecurring`), for the teacher's memory line. */
   recurring?: { nodeId: string; label: string; times: number | null } | null;
+  /** The follow-up Learn will ask when "Next question" is tapped, only when it will (Batch 6c). */
+  nextQuestion?: string | null;
+  /** Milestones Learn has proven are firsts for this answer (Batch 6c). */
+  firsts?: readonly FirstId[];
 }
 
 export type PronunciationStatus = 'idle' | 'pending' | 'done' | 'failed' | 'signed-out' | 'consent-required';
 
 function FeedbackContent({
   feedback, transcript, modelAnswer, onRetry, onComplete,
-  pronunciationResult, pronunciationStatus, learnerName, recurring, checks, answers,
-}: Pick<Props, 'transcript' | 'modelAnswer' | 'onRetry' | 'onComplete' | 'pronunciationResult' | 'pronunciationStatus' | 'learnerName' | 'recurring'> & {
+  pronunciationResult, pronunciationStatus, learnerName, recurring, nextQuestion, firsts, checks, answers,
+}: Pick<Props, 'transcript' | 'modelAnswer' | 'onRetry' | 'onComplete' | 'pronunciationResult' | 'pronunciationStatus' | 'learnerName' | 'recurring' | 'nextQuestion' | 'firsts'> & {
   feedback: FeedbackV2;
   checks: readonly PredictionCheck[];
   answers: Partial<Record<PredictionCheckId, PredictionAnswer>>;
@@ -110,8 +115,11 @@ function FeedbackContent({
         name: learnerName,
         recurring,
         calibration: calibrationLines(checks, answers, transcript ?? ''),
+        secondTake: true,
+        nextQuestion,
+        firsts,
       }),
-    [feedback, transcript, learnerName, recurring, checks, answers],
+    [feedback, transcript, learnerName, recurring, nextQuestion, firsts, checks, answers],
   );
 
   const renderSection = (section: 'say-it-better' | 'go-further'): ReactNode =>
@@ -260,7 +268,7 @@ function FeedbackContent({
 
 export function FeedbackExperience({
   feedback, streamPhase, transcript, modelAnswer, onRetry, onComplete,
-  pronunciationResult, pronunciationStatus, demands, learnerName, recurring,
+  pronunciationResult, pronunciationStatus, demands, learnerName, recurring, nextQuestion, firsts,
 }: Props) {
   const checks = useMemo(() => predictionChecks(demands), [demands]);
   const [answers, setAnswers] = useState<Partial<Record<PredictionCheckId, PredictionAnswer>>>({});
@@ -302,6 +310,8 @@ export function FeedbackExperience({
           pronunciationStatus={pronunciationStatus}
           learnerName={learnerName}
           recurring={recurring}
+          nextQuestion={nextQuestion}
+          firsts={firsts}
           checks={checks}
           answers={answers}
         />

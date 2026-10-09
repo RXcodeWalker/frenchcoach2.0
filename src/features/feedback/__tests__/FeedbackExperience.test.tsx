@@ -5,7 +5,7 @@
 // opening → what you did well (every strength) → fix these first (2, as "Try it
 // first" nudges) → also worth fixing (every other fix) → say it better → go
 // further, then the score line under the talk, pronunciation (unchanged props)
-// and Next / Try again. No engine bar, no band pill, no raw B2/C1, and no
+// and Next / Get new feedback. No engine bar, no band pill, no raw B2/C1, and no
 // unfiltered streamed strength. Most tests run under reduced motion (instant);
 // the typing tests turn it off.
 import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest';
@@ -110,8 +110,8 @@ describe('FeedbackExperience coach view (Batch 6a + 6b)', () => {
     showMe();
     const text = container.textContent ?? '';
     const order = [
-      'What you did well', 'Fix these first', 'Also worth fixing', 'Say it better', 'Go further', '6.5', 'Try again', 'Next question',
-    ].map((t) => text.indexOf(t));
+      'What you did well', 'Fix these first', 'Also worth fixing', 'Say it better', 'Go further', 'Now say it again, and use the fixes.', '6.5', 'Get new feedback', 'Next question',
+    ].map((t) => text.lastIndexOf(t)); // the live region at the top repeats the talk, so take the visible one
     expect(order.every((i) => i >= 0)).toBe(true);
     expect([...order].sort((a, b) => a - b)).toEqual(order);
   });
@@ -249,13 +249,13 @@ describe('FeedbackExperience typed reveal (Batch 6b)', () => {
     expect(screen.queryByRole('button', { name: 'Show all' })).toBeNull();
   });
 
-  it('never blocks Next or Try again while it types', () => {
+  it('never blocks Next or Get new feedback while it types', () => {
     vi.useFakeTimers();
     const onRetry = vi.fn();
     const onComplete = vi.fn();
     renderFeedback({ onRetry, onComplete });
     const next = screen.getByRole('button', { name: /Next question/ });
-    const retry = screen.getByRole('button', { name: /Try again/ });
+    const retry = screen.getByRole('button', { name: /Get new feedback/ });
     expect((next as HTMLButtonElement).disabled).toBe(false);
     expect((retry as HTMLButtonElement).disabled).toBe(false);
     fireEvent.click(next);
@@ -361,5 +361,15 @@ describe('FeedbackExperience while the feedback is generated (Batch 6b)', () => 
     );
     expect(view.container.textContent).not.toContain('You thought');
     expect(view.container.textContent).not.toContain('You gave a reason');
+  });
+
+  it("says the examiner's next question last, only when Learn says it is next", () => {
+    const withNext = renderFeedback({ nextQuestion: 'Avec qui es-tu allé ?' });
+    expect(withNext.container.querySelector('[data-role="nextQuestion"]')?.textContent).toBe(
+      "If an examiner heard that, they'd ask: « Avec qui es-tu allé ? » Tap Next question to answer it.",
+    );
+    withNext.unmount();
+    const without = renderFeedback();
+    expect(without.container.querySelector('[data-role="nextQuestion"]')).toBeNull();
   });
 });

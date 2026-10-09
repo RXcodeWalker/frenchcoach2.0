@@ -4,6 +4,7 @@ import { isExaminerFeedbackEmpty, type ExaminerFailureKind, type ExaminerFeedbac
 import { ExaminerFeedbackCard } from '../components/ExaminerFeedbackCard';
 import { examinerGroups } from '../components/examinerGroups';
 import { buildTeacherScript } from './buildTeacherScript';
+import type { FirstId } from './firsts';
 import { PredictCard } from './PredictCard';
 import {
   calibrationLines,
@@ -36,6 +37,10 @@ interface Props {
   transcript: string;
   name?: string | null;
   demands?: Pick<QuestionDemands, 'cognitiveDemand' | 'timeFrames'> | null;
+  /** The question's authored follow-up, when Learn will ask it on Continue (Batch 6c). */
+  nextQuestion?: string | null;
+  /** Milestones Learn has proven are firsts for this answer (Batch 6c). */
+  firsts?: readonly FirstId[];
 }
 
 export function LearnExaminerFeedback({
@@ -47,6 +52,8 @@ export function LearnExaminerFeedback({
   transcript,
   name,
   demands,
+  nextQuestion,
+  firsts,
 }: Props) {
   const checks = useMemo(() => predictionChecks(demands), [demands]);
   const [answers, setAnswers] = useState<Partial<Record<PredictionCheckId, PredictionAnswer>>>({});
@@ -66,8 +73,11 @@ export function LearnExaminerFeedback({
       name,
       groups: examinerGroups(result, false),
       calibration: calibrationLines(checks, answers, transcript),
+      secondTake: true,
+      nextQuestion,
+      firsts,
     });
-  }, [status, result, transcript, name, checks, answers]);
+  }, [status, result, transcript, name, checks, answers, nextQuestion, firsts]);
 
   if (pending) {
     return (

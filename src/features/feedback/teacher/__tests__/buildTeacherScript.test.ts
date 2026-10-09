@@ -277,3 +277,74 @@ describe('persona', () => {
     expect(teacherInitials('')).toBe('');
   });
 });
+
+describe('buildTeacherScript — Second take (Batch 6c)', () => {
+  const base = { register: 'coach' as const, transcript: TRANSCRIPT };
+
+  it('invites a second take after the last line, only when there is at least one fix', () => {
+    const withFix = buildTeacherScript({ ...base, groups: [strengths, fixGroup(1)], secondTake: true, recurring: { label: 'Être vs Avoir', times: 3, quote: 'q0' } });
+    expect(ids(withFix).slice(-3)).toEqual(['memory', 'secondTake', 'section:second-take']);
+    expect(talk(withFix).find((l) => l.role === 'secondTake')?.text).toBe('Now say it again, and use the fixes.');
+
+    const noFix = buildTeacherScript({ ...base, groups: [strengths], secondTake: true });
+    expect(ids(noFix)).not.toContain('secondTake');
+    expect(ids(noFix)).not.toContain('section:second-take');
+  });
+
+  it('is off unless asked for', () => {
+    expect(ids(buildTeacherScript({ ...base, groups: [strengths, fixGroup(2)] }))).not.toContain('secondTake');
+  });
+
+  it('has its own formal wording for the examiner, and neither register speaks a mark', () => {
+    const lines = buildTeacherScript({ register: 'examiner', transcript: TRANSCRIPT, groups: [fixGroup(1)], secondTake: true });
+    expect(talk(lines).find((l) => l.role === 'secondTake')?.text).toBe('Now answer once more, applying the corrections.');
+    expect(claimMentionsMarkOrBand(TEACHER_FRAMING.coach.secondTake)).toBe(false);
+    expect(claimMentionsMarkOrBand(TEACHER_FRAMING.examiner.secondTake)).toBe(false);
+  });
+});
+
+describe('buildTeacherScript — the examiner’s next question (Batch 6c)', () => {
+  const base = { transcript: TRANSCRIPT, groups: [strengths, fixGroup(1)], secondTake: true };
+
+  it('comes last, framed as exam training, with the question as one quote', () => {
+    const lines = buildTeacherScript({ register: 'coach', ...base, nextQuestion: 'Avec qui ?' });
+    expect(ids(lines).slice(-3)).toEqual(['secondTake', 'section:second-take', 'nextQuestion']);
+    expect(talk(lines).find((l) => l.role === 'nextQuestion')?.text).toBe(
+      "If an examiner heard that, they'd ask: « Avec qui ? » Tap Next question to answer it.",
+    );
+  });
+
+  it('is formal for the examiner register', () => {
+    const lines = buildTeacherScript({ register: 'examiner', ...base, nextQuestion: 'Avec qui ?' });
+    expect(talk(lines).find((l) => l.role === 'nextQuestion')?.text).toBe('An examiner would ask you next: « Avec qui ? » Continue to answer it.');
+  });
+
+  it('is absent unless Learn says the follow-up will really be asked', () => {
+    for (const nextQuestion of [undefined, null, '', '   ']) {
+      expect(ids(buildTeacherScript({ register: 'coach', ...base, nextQuestion }))).not.toContain('nextQuestion');
+    }
+  });
+
+  it('never speaks a mark or band', () => {
+    expect(claimMentionsMarkOrBand(TEACHER_FRAMING.coach.nextQuestion('Avec qui ?'))).toBe(false);
+    expect(claimMentionsMarkOrBand(TEACHER_FRAMING.examiner.nextQuestion('Avec qui ?'))).toBe(false);
+  });
+});
+
+describe('buildTeacherScript — firsts (Batch 6c)', () => {
+  it('says each proven first as its own honest line, right after the opening, in the register’s voice', () => {
+    const coach = buildTeacherScript({ register: 'coach', transcript: TRANSCRIPT, groups: [strengths], firsts: ['past', 'two-reasons'] });
+    expect(ids(coach).slice(0, 4)).toEqual(['learner', 'opening', 'first:past', 'first:two-reasons']);
+    expect(talk(coach).filter((l) => l.role === 'first').map((l) => l.text)).toEqual([
+      'First time you talked about the past.',
+      'First time you gave two reasons.',
+    ]);
+    const examiner = buildTeacherScript({ register: 'examiner', transcript: TRANSCRIPT, groups: [strengths], firsts: ['long-answer'] });
+    expect(talk(examiner).find((l) => l.role === 'first')?.text).toBe('This is your first answer of more than 40 words.');
+  });
+
+  it('says nothing about firsts unless Learn proved one', () => {
+    expect(ids(buildTeacherScript({ register: 'coach', transcript: TRANSCRIPT, groups: [strengths] })).some((i) => i.startsWith('first:'))).toBe(false);
+    expect(ids(buildTeacherScript({ register: 'coach', transcript: TRANSCRIPT, groups: [strengths], firsts: [] })).some((i) => i.startsWith('first:'))).toBe(false);
+  });
+});

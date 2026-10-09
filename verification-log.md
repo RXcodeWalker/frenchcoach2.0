@@ -3888,3 +3888,78 @@ Gate: `typecheck` · `typecheck:server` · `lint` 0 errors (21 pre-existing warn
 **330 files / 3308 tests passed** · `learn:check -- --draft` 0 errors · `authoring:check` 0/0 ·
 `authoring:parity` 10/10 · `examiner:parity` matches. `typecheck:scripts` still has the 3
 pre-existing errors in `scripts/scoring` and `scripts/stt` tests.
+
+## 2026-10-09 — Learn feedback Batch 6c: Second take, the examiner's next question, firsts
+
+Frontend only; no backend, prompt, contract or scoring change (`examiner-v3` and `learn-prompt-v6`
+unchanged). Builds on 6b UI (`4cf3d5c`). Nothing here reaches a belief input: the Second take
+and firsts write nothing to evidence, and the one new write is the list of milestone ids said.
+
+**What shipped.**
+- *Second take.* `domain/learn/feedback/compareRetake.ts` (+ `fixHeard`, `quoteHeard`,
+  `quoteInsideCorrection`, `phraseHeard` in `fixMatch.ts`) and `teacher/SecondTake.tsx` +
+  `retakeTargets.ts`. After the feedback the teacher says "Now say it again, and use the fixes." and
+  the learner re-answers aloud (`useRecording` inside `SpeakingConsentGate`, one mic at a time
+  with the nudges). Per fix: `heard` (the correction, or every edit it makes with the unchanged
+  word on each side, or a sound-alike re-say) → "I heard « … » ✓"; `still` (the exact error words
+  came back, the correction did not, and the error is not part of the correction) → "Still there:
+  « … »"; otherwise `absent` → "« … » — not in this take" (neutral). Strengths: "Kept « … » ✓" or
+  silent. An empty take is not a verdict. Offered only with at least one fix, in both voices. No AI
+  call, score, guest attempt, `extraTurnBudget` use, evidence, `Session`, XP, mastery, review or
+  analytics write (tests: component imports and storage/analytics/network spies). Footer
+  "Try again" → "Get new feedback" (that one still re-runs the AI and counts as an attempt).
+- *The examiner's next question.* `domain/learn/feedback/followUpQuestion.ts`:
+  `cleanFollowUpQuestion` (short, one line, plain letters, a French-looking question, no mark/band
+  language) is applied where `apiClient.ts` maps the reply, onto the new `FeedbackV2.followUpQuestion`
+  (the field was already on the wire, previously dropped). `pickFollowUpPrompt` prefers the model's
+  question, else the authored `followUps[0]`. Learn's existing follow-up turn asks it (still off
+  while a grammar filter is on, still capped by the shared budget). The teacher announces it as
+  "If an examiner heard that, they'd ask: « … » Tap Next question to answer it." only when tapping
+  Next will really ask it (Say It Again takes precedence, as before). Examiner voice: same line
+  with the authored follow-up, and its Continue button now goes through `handleFeedbackComplete`.
+- *Firsts.* `teacher/firsts.ts` `detectFirsts(attempt, priorTranscripts, firstsSeen)`: long answer
+  (> 40 words), two reasons (two justification markers), first past, first future — reliable
+  signals only; the conditional is left out. A first fires only if this answer does it, no stored
+  earlier answer (`getSessionHistory()`, which already holds the synced sessions of the last 90
+  days, capped at 500) does, and it is not in `firstsSeen`. No history at all → nothing fires.
+  `firstsSeen` is `STORAGE_KEYS.firstsSeen` (per account on this device, not `DEVICE_SCOPED`),
+  `MARK_FIRSTS_SEEN` in the reducer like `MARK_DRILL_MASTERED`. Learn proves them before it records
+  the answer (so an answer is never its own history) and only for a full-answer conversation.
+
+**Deviations from the plan (all small).**
+- *`followUpQuestion` was not on `FeedbackV2`* (the wire has it, the client dropped it), so it is
+  mapped and cleaned at normalisation; the plan said "the model's followUpQuestion" without that.
+- *The model's question is preferred over the authored one when both exist,* and questions with no
+  authored follow-up now get one. The existing eligibility rules, budget and filter gate stand.
+- *An examiner-voice follow-up answer records no demand evidence:* its wording is untagged and the
+  follow-up inherits the parent's demands (pre-existing for the coach voice, not touched).
+- *`fixHeard` is stricter than `fixMatch` rule 3:* on a whole retake a lone added word elsewhere is
+  not a match, so each edit must appear with its neighbouring word.
+- *Strengths for "kept" come from the first (good) group only* — not the examiner's "next step".
+- *`practiceStepEligible` now requires the coach voice* (the examiner voice has no feedback to
+  practise from, and Continue now runs through the same handler).
+- *Second take wording of "not in this take" quotes the error words, not the correction,* so a
+  learner who has not tried the nudges is not shown the answer.
+
+**Not built / still open.** 6d (notebook). Try-it-first still resets if the learner flips to the
+Full report and back (only the typing is remembered). A coach follow-up still inherits the parent
+question's demands (pre-existing, flagged in 6b).
+
+**Verification.** New tests: `compareRetake` (heard / still / absent, paraphrase never still,
+quote inside correction, accent-only fix, sound-alike, kept strength, empty take), `SecondTake`
+(per-state rows, neutral wording, offered only with a fix, no recorder where STT is missing or the
+account is pending, one mic, no storage/analytics/network call, no forbidden import),
+`TeacherConversation.secondTake` (control placed by the script; mic exclusivity both ways),
+`followUpQuestion` (clean / injection / English / over-long / mark language), apiClient
+normalisation, `firsts` (existing user → no line, new fires once, no history → nothing, "anglais"
+never a tense), script lines per register against the mark/band filter, and the reducer. Playwright
+screenshots (light and dark, coach and examiner) from a throwaway harness that was not committed;
+the full-app Learn e2e was not run (none exists).
+
+**Rollback.** Revert the commit. To switch off only the Second take, drop `secondTake` where the
+two components build the script; only the next question, drop `nextQuestion` (Learn then keeps its
+old authored follow-up); only firsts, stop calling `proveFirsts` in `Learn.tsx`.
+
+Gate: `typecheck` · `typecheck:server` · `lint` 0 errors (21 pre-existing warnings) · `npm test`
+**335 files / 3380 tests passed** · `learn:check -- --draft` 0 errors · `authoring:check` 0/0 ·
+`authoring:parity` 10/10 · `examiner:parity` matches.

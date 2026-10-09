@@ -85,4 +85,21 @@ describe('LearnExaminerFeedback', () => {
     expect(empty.container.textContent).toContain('No examiner commentary for this answer.');
     expect(empty.container.textContent).not.toContain('Madame Laurent');
   });
+
+  it('offers the Second take in the formal register when there is something to fix', () => {
+    const { container } = render(<LearnExaminerFeedback {...base} status="done" result={RESULT} />);
+    expect(container.querySelector('[data-role="secondTake"]')?.textContent).toBe('Now answer once more, applying the corrections.');
+    expect(container.querySelector('[data-testid="second-take"]')).toBeTruthy();
+  });
+
+  it('announces the authored next question only when Learn passes one', () => {
+    const none = render(<LearnExaminerFeedback {...base} status="done" result={RESULT} />);
+    expect(none.container.querySelector('[data-role="nextQuestion"]')).toBeNull();
+    none.unmount();
+    const { container } = render(<LearnExaminerFeedback {...base} status="done" result={RESULT} nextQuestion="Et pourquoi ?" />);
+    expect(container.querySelector('[data-role="nextQuestion"]')?.textContent).toBe(
+      'An examiner would ask you next: « Et pourquoi ? » Continue to answer it.',
+    );
+    expect(claimMentionsMarkOrBand(container.querySelector('[data-role="nextQuestion"]')!.textContent!)).toBe(false);
+  });
 });

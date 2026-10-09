@@ -1,7 +1,8 @@
+// @vitest-environment jsdom
 // ── AppContext reducer — pure unit tests ────────────────────────────────────
 // reducer is a pure function of (state, action); no storage/React needed.
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { reducer } from '../AppContext';
 import type { UserProfile } from '../../types/index';
 
@@ -40,6 +41,7 @@ function baseState(overrides: { profile?: Partial<UserProfile> } = {}) {
     skillProfile: {} as never,
     focusedSkillId: null,
     masteredDrills: [],
+    firstsSeen: [],
     lastUnlockedAchievement: null,
     newLevelReached: null,
     activeSession: null,
@@ -91,5 +93,23 @@ describe('ADD_XP reducer — level-down does not trigger a celebration (reliabil
       activeBoosters: [],
     });
     expect(next.newLevelReached).toBe('Intermediate');
+  });
+});
+
+describe('MARK_FIRSTS_SEEN reducer (Learn feedback Batch 6c)', () => {
+  it('adds only the ids not already seen, and persists them', () => {
+    const setItem = vi.spyOn(Storage.prototype, 'setItem');
+    const next = reducer({ ...baseState(), firstsSeen: ['past'] }, { type: 'MARK_FIRSTS_SEEN', ids: ['past', 'future'] });
+    expect(next.firstsSeen).toEqual(['past', 'future']);
+    expect(setItem.mock.calls.some(([key]) => String(key).includes('frenchCoach_firstsSeen'))).toBe(true);
+    setItem.mockRestore();
+  });
+
+  it('is a no-op (same state, no write) when everything was already said', () => {
+    const setItem = vi.spyOn(Storage.prototype, 'setItem');
+    const state = { ...baseState(), firstsSeen: ['past'] };
+    expect(reducer(state, { type: 'MARK_FIRSTS_SEEN', ids: ['past'] })).toBe(state);
+    expect(setItem).not.toHaveBeenCalled();
+    setItem.mockRestore();
   });
 });
