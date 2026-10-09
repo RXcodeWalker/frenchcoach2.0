@@ -4,6 +4,7 @@ import type { FeedbackV2 } from '../../../types';
 import { coachPointGroups, hasGoFurther, selectCoachFixes } from '../coachPoints';
 import type { FeedbackPointGroup } from '../components/FeedbackPointList';
 import { addressName, type TeacherRegister } from './persona';
+import type { CalibrationLine } from './predictionQuestions';
 
 /**
  * The teacher's script (Learn feedback Batch 6b): the already-filtered feedback
@@ -13,11 +14,12 @@ import { addressName, type TeacherRegister } from './persona';
  *  1. the learner's answer, as their own bubble;
  *  2. the opening — the model's own line when it survived the filters, else a
  *     data-driven template;
- *  3. what they did well;
- *  4. a connective chosen by how many fixes there are (it never praises: it
+ *  3. what the Predict checks found (at most one line per answered check);
+ *  4. what they did well;
+ *  5. a connective chosen by how many fixes there are (it never praises: it
  *     states a count);
- *  5. the fixes, then "Also worth fixing", "Say it better" and "Go further";
- *  6. a memory line for a repeated mistake, from the existing recurring-problem
+ *  6. the fixes, then "Also worth fixing", "Say it better" and "Go further";
+ *  7. a memory line for a repeated mistake, from the existing recurring-problem
  *     detection (interventionService) — no new store.
  *
  * The learner's name is said at most once. Nothing here is a mark, band or
@@ -28,7 +30,7 @@ import { addressName, type TeacherRegister } from './persona';
 
 export type TeacherLine =
   | { id: string; kind: 'learner'; text: string }
-  | { id: string; kind: 'talk'; role: 'opening' | 'connective' | 'memory'; text: string }
+  | { id: string; kind: 'talk'; role: 'opening' | 'calibration' | 'connective' | 'memory'; text: string }
   | { id: string; kind: 'points'; group: FeedbackPointGroup }
   /** A block the existing cards render (the diff, vocabulary and ideas); the script only places it. */
   | { id: string; kind: 'section'; section: 'say-it-better' | 'go-further'; heading: string };
@@ -56,6 +58,8 @@ export interface TeacherScriptInput {
   hasSayItBetter?: boolean;
   hasGoFurther?: boolean;
   recurring?: RecurringMistake | null;
+  /** `calibrationLines(...)` for the Predict checks the learner answered; each carries a quote the markers found. */
+  calibration?: CalibrationLine[];
 }
 
 /** Every static framing string, by register — exported so tests can hold them to the mark/band filter. */
@@ -112,6 +116,10 @@ export function buildTeacherScript(input: TeacherScriptInput): TeacherLine[] {
     lines.push({ id: 'opening', kind: 'talk', role: 'opening', text: framing.opening(name) });
   }
   const connectiveName = modelOpening ? name : null;
+
+  (input.calibration ?? []).forEach((line) => {
+    lines.push({ id: `calibration:${line.id}`, kind: 'talk', role: 'calibration', text: line.text });
+  });
 
   const fixes = countFixes(input.groups);
   const connective = {
@@ -175,6 +183,8 @@ export interface CoachScriptContext {
   name?: string | null;
   /** The active problem, only when `isRecurring`; `label` is the skill's display name. */
   recurring?: { nodeId: string; label: string; times: number | null } | null;
+  /** Predict calibration lines for this answer (see predictionQuestions.ts). */
+  calibration?: CalibrationLine[];
 }
 
 /** The coach-voice script for filtered Learn feedback. */
@@ -189,5 +199,6 @@ export function buildCoachTeacherScript(feedback: FeedbackV2, ctx: CoachScriptCo
     hasSayItBetter: !!feedback.improved_answer,
     hasGoFurther: hasGoFurther(feedback),
     recurring: ctx.recurring && quote ? { label: ctx.recurring.label, times: ctx.recurring.times, quote } : null,
+    calibration: ctx.calibration,
   });
 }

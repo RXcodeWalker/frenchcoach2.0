@@ -1,4 +1,4 @@
-import React from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Loader2, Mic2 } from 'lucide-react';
@@ -10,8 +10,7 @@ import { useFeedbackState } from './hooks/useFeedbackState';
 import { SnapshotCard } from './components/SnapshotCard';
 import { BeforeAfterDiff } from './components/BeforeAfterDiff';
 import { ReportView } from './components/ReportView';
-import { FeedbackPointList } from './components/FeedbackPointList';
-import { coachPointGroups, hasGoFurther } from './coachPoints';
+import { FIX_FIRST_HEADING } from './coachPoints';
 import { VocabularyCard } from './components/VocabularyCard';
 import { ExpansionIdeasCard } from './components/ExpansionIdeasCard';
 import { PronunciationCard } from './components/PronunciationCard';
@@ -23,24 +22,18 @@ import { SIGNED_OUT_FEEDBACK_REASON } from '../../services/api/apiClient';
 import { FailoverBadge } from '../../screens/learn/FailoverBadge';
 import type { FeedbackV2 } from '../../types';
 import type { PronunciationAssessment } from '../../domain/pronunciation/types';
-
-function CardSkeleton() {
-  return (
-    <div className="rounded-xl surface-raised p-5 animate-pulse">
-      <div className="h-3 bg-track rounded w-1/3 mb-3" />
-      <div className="space-y-2">
-        <div className="h-2.5 bg-track rounded w-full" />
-        <div className="h-2.5 bg-track rounded w-4/5" />
-        <div className="h-2.5 bg-track rounded w-3/5" />
-      </div>
-    </div>
-  );
-}
-
-function SectionGate({ ready, children }: { ready: boolean; children: React.ReactNode }) {
-  if (ready) return <>{children}</>;
-  return <CardSkeleton />;
-}
+import type { QuestionDemands } from '../../domain/learn/demand/types';
+import { buildCoachTeacherScript } from './teacher/buildTeacherScript';
+import { PredictCard } from './teacher/PredictCard';
+import {
+  calibrationLines,
+  predictionChecks,
+  type PredictionAnswer,
+  type PredictionCheck,
+  type PredictionCheckId,
+} from './teacher/predictionQuestions';
+import { TeacherConversation } from './teacher/TeacherConversation';
+import { useElapsedMs } from './teacher/useElapsedMs';
 
 /** Docs Stage 6 — segmented control at the top of the feedback stack. Same FeedbackV2, no new route. */
 function ViewModeToggle() {
@@ -68,6 +61,11 @@ function ViewModeToggle() {
 interface Props {
   feedback: FeedbackV2 | null;
   isLoading?: boolean;
+  /**
+   * The streamed sections. Not rendered since Batch 6b: they have not been
+   * through filterCoachFeedback, so nothing in them is shown until the final,
+   * filtered feedback arrives.
+   */
   partialFeedback?: Partial<FeedbackV2> | null;
   streamPhase?: 'transcribing' | 'generating' | 'complete' | null;
   transcript?: string;
@@ -84,15 +82,55 @@ interface Props {
    * `pending` under-13 account) — guardian copy, never a retry.
    */
   pronunciationStatus?: PronunciationStatus;
+  /** The question's demands (`Question.demands`) — they choose the Predict checks. */
+  demands?: Pick<QuestionDemands, 'cognitiveDemand' | 'timeFrames'> | null;
+  /** `state.profile.username`; the teacher says it at most once, and only if it reads as a name. */
+  learnerName?: string | null;
+  /** The active repeated-mistake problem (only when `isRecurring`), for the teacher's memory line. */
+  recurring?: { nodeId: string; label: string; times: number | null } | null;
 }
 
 export type PronunciationStatus = 'idle' | 'pending' | 'done' | 'failed' | 'signed-out' | 'consent-required';
 
 function FeedbackContent({
   feedback, transcript, modelAnswer, onRetry, onComplete,
-  pronunciationResult, pronunciationStatus,
-}: Omit<Props, 'isLoading' | 'feedback'> & { feedback: FeedbackV2 }) {
+  pronunciationResult, pronunciationStatus, learnerName, recurring, checks, answers,
+}: Pick<Props, 'transcript' | 'modelAnswer' | 'onRetry' | 'onComplete' | 'pronunciationResult' | 'pronunciationStatus' | 'learnerName' | 'recurring'> & {
+  feedback: FeedbackV2;
+  checks: readonly PredictionCheck[];
+  answers: Partial<Record<PredictionCheckId, PredictionAnswer>>;
+}) {
   const { state, majorIssues, polishIssues, openCardFromIssue } = useFeedbackState(feedback);
+
+  // The teacher's script is built from the feedback that already passed the filters.
+  const lines = useMemo(
+    () =>
+      buildCoachTeacherScript(feedback, {
+        transcript: transcript ?? '',
+        name: learnerName,
+        recurring,
+        calibration: calibrationLines(checks, answers, transcript ?? ''),
+      }),
+    [feedback, transcript, learnerName, recurring, checks, answers],
+  );
+
+  const renderSection = (section: 'say-it-better' | 'go-further'): ReactNode =>
+    section === 'say-it-better' ? (
+      transcript ? (
+        <BeforeAfterDiff
+          transcript={transcript}
+          improvedAnswer={feedback.improved_answer}
+          changes={feedback.changes}
+          title="Say it better"
+        />
+      ) : null
+    ) : (
+      <section aria-label="Go further" className="space-y-2">
+        <p className="text-eyebrow uppercase text-ink-muted">Go further</p>
+        <VocabularyCard feedback={feedback} />
+        <ExpansionIdeasCard ideas={feedback.expansion_ideas} />
+      </section>
+    );
 
   if (feedback.responseTier === 0 || feedback.responseTier === 1) {
     return (
@@ -138,30 +176,19 @@ function FeedbackContent({
       <FailoverBadge engineMeta={feedback.engineMeta} />
       <ViewModeToggle />
 
-      {/* Learn Batch 6a — score line → what you did well (every strength) →
-          fix these first (2) → also worth fixing (every other fix) → say it
-          better → go further (vocabulary, expansion ideas). Lessons and the
-          one-focus line live in the Full report. */}
+      {/* Learn Batch 6b — the teacher's conversation: your answer → opening →
+          what you did well → fix these first (as "Try it first" nudges) → also
+          worth fixing → say it better → go further → a repeated mistake. The
+          score line moves under the talk. Lessons and the one-focus line live
+          in the Full report. */}
+      <TeacherConversation
+        lines={lines}
+        revealKey={feedback}
+        tryFirstHeading={FIX_FIRST_HEADING}
+        renderSection={renderSection}
+      />
+
       <SnapshotCard feedback={feedback} variant="line" />
-
-      <FeedbackPointList groups={coachPointGroups(feedback)} />
-
-      {transcript && (
-        <BeforeAfterDiff
-          transcript={transcript}
-          improvedAnswer={feedback.improved_answer}
-          changes={feedback.changes}
-          title="Say it better"
-        />
-      )}
-
-      {hasGoFurther(feedback) && (
-        <section aria-label="Go further" className="space-y-2">
-          <p className="text-eyebrow uppercase text-ink-muted">Go further</p>
-          <VocabularyCard feedback={feedback} />
-          <ExpansionIdeasCard ideas={feedback.expansion_ideas} />
-        </section>
-      )}
 
       {/* lint:pronunciation-start — pronunciation branch is out of Batch 5 scope; block untouched */}
       {/* Pronunciation — Azure (0-100, real acoustic analysis) supersedes the legacy
@@ -232,50 +259,33 @@ function FeedbackContent({
 }
 
 export function FeedbackExperience({
-  feedback, isLoading, partialFeedback, streamPhase, transcript, modelAnswer, onRetry, onComplete,
-  pronunciationResult, pronunciationStatus,
+  feedback, streamPhase, transcript, modelAnswer, onRetry, onComplete,
+  pronunciationResult, pronunciationStatus, demands, learnerName, recurring,
 }: Props) {
-  const p = partialFeedback;
-  const isStreaming = !feedback && p != null;
+  const checks = useMemo(() => predictionChecks(demands), [demands]);
+  const [answers, setAnswers] = useState<Partial<Record<PredictionCheckId, PredictionAnswer>>>({});
+  const waiting = !feedback;
+  const elapsedMs = useElapsedMs(waiting);
 
-  // Full spinner: no partial data yet
-  if ((isLoading && !isStreaming) || (!feedback && !isStreaming)) {
-    const phaseLabel = streamPhase === 'transcribing'
-      ? 'Transcribing your recording…'
-      : streamPhase === 'generating'
-      ? 'Generating feedback…'
-      : 'Analysing your response…';
+  // Predictions are session state for one attempt: a new wait starts with none.
+  useEffect(() => {
+    if (waiting) setAnswers({});
+  }, [waiting]);
+
+  // Nothing streamed is shown: the partial sections have not been through
+  // filterCoachFeedback, so the wait is spent on the Predict card instead.
+  if (!feedback) {
     return (
-      <motion.div
-        className="rounded-xl surface-raised p-8 flex flex-col items-center gap-3"
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        <Loader2 size={24} className="text-action-text animate-spin" />
-        <p className="text-sm text-ink-muted">{phaseLabel}</p>
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
+        <PredictCard
+          checks={checks}
+          answers={answers}
+          onAnswer={(id, answer) => setAnswers((a) => ({ ...a, [id]: answer }))}
+          phase={streamPhase}
+          elapsedMs={elapsedMs}
+          register="coach"
+        />
       </motion.div>
-    );
-  }
-
-  // Progressive reveal: partial data streaming in. Only the score line — the
-  // streamed sections have not been through filterCoachFeedback yet, so a
-  // strength shown here could be one the filter later drops (Batch 6a).
-  if (isStreaming && p) {
-    return (
-      <AnimatePresence>
-        <motion.div
-          variants={stagger}
-          initial="hidden"
-          animate="show"
-          className="space-y-3"
-        >
-          <SectionGate ready={!!p.scores}>
-            <SnapshotCard feedback={p as FeedbackV2} variant="line" />
-          </SectionGate>
-          <CardSkeleton />
-          <CardSkeleton />
-        </motion.div>
-      </AnimatePresence>
     );
   }
 
@@ -283,13 +293,17 @@ export function FeedbackExperience({
     <AnimatePresence>
       <FeedbackProvider>
         <FeedbackContent
-          feedback={feedback!}
+          feedback={feedback}
           transcript={transcript}
           modelAnswer={modelAnswer}
           onRetry={onRetry}
           onComplete={onComplete}
           pronunciationResult={pronunciationResult}
           pronunciationStatus={pronunciationStatus}
+          learnerName={learnerName}
+          recurring={recurring}
+          checks={checks}
+          answers={answers}
         />
       </FeedbackProvider>
     </AnimatePresence>

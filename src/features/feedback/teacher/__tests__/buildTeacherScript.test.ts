@@ -178,6 +178,27 @@ describe('buildTeacherScript — examiner groups keep their own order', () => {
   });
 });
 
+describe('buildTeacherScript — Predict calibration lines', () => {
+  const calibration = [
+    { id: 'reason' as const, answer: 'no' as const, text: "You thought you didn't give a reason, but you did: « parce que c'est drôle ».", quote: "parce que c'est drôle" },
+    { id: 'length' as const, answer: 'yes' as const, text: 'You said 41 words.' },
+  ];
+
+  it('sit between the opening and what went well, one talk line each', () => {
+    const lines = buildTeacherScript({ register: 'coach', transcript: TRANSCRIPT, groups: [strengths, fixGroup(1)], calibration });
+    expect(ids(lines)).toEqual([
+      'learner', 'opening', 'calibration:reason', 'calibration:length', 'points:What you did well', 'connective', 'points:Fix these first',
+    ]);
+    expect(talk(lines).filter((l) => l.role === 'calibration').map((l) => l.text)).toEqual(calibration.map((c) => c.text));
+  });
+
+  it('add nothing when no check earned a line', () => {
+    const none = ids(buildTeacherScript({ register: 'coach', transcript: TRANSCRIPT, groups: [strengths], calibration: [] }));
+    const absent = ids(buildTeacherScript({ register: 'coach', transcript: TRANSCRIPT, groups: [strengths] }));
+    expect(none).toEqual(absent);
+  });
+});
+
 describe('buildTeacherScript — the memory line', () => {
   const recurring: RecurringMistake = { label: 'Être vs Avoir', times: 3, quote: "j'ai allé" };
   const memory = (r: RecurringMistake | null | undefined, register: 'coach' | 'examiner' = 'coach') =>

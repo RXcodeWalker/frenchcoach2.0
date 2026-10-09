@@ -3823,3 +3823,68 @@ warnings) · `npm test` **324 files / 3251 tests passed** (with `backend/` linke
 `authoring:parity` 10/10 · `examiner:parity` matches. `typecheck:scripts` reports 3 errors in
 `scripts/scoring/__tests__/` and `scripts/stt/__tests__/`; identical on a clean `HEAD`, so
 pre-existing and not touched here. Backend: no change in this slice. Not run: Playwright (no UI).
+
+
+## 2026-10-09 — Learn feedback Batch 6b UI: the teacher's conversation
+
+Frontend only; no backend, prompt, contract or scoring change (`examiner-v3` and `learn-prompt-v6`
+unchanged). Builds on the 6b logic half (`a406bca`).
+
+**What shipped (all under `src/features/feedback/teacher/` unless noted).**
+- `typing.ts` (pure schedule: a « quote » is one unit; speed adapts so the whole conversation
+  finishes in about 5 s, floor 45 units/s) + `useTypedReveal.ts` (timer around it; skip; reduced
+  motion → instant; played once per feedback object).
+- `TeacherConversation.tsx` (bubbles from one named teacher, tap / Space / "Show all", aria-hidden
+  typed text + one polite live region, the learner's own words underlined as each fix is reached),
+  `markQuotes.ts`, `TryItFirst.tsx` (+ `tryItHint.ts`), `SpeakButton.tsx` (fr-FR via `TTS`, gated on
+  a real French voice), `PredictCard.tsx` + `useElapsedMs.ts`, `LearnExaminerFeedback.tsx`.
+- `FeedbackExperience.tsx`: the wait is the Predict card + the status line; the coach view is the
+  conversation, then the score line, pronunciation (untouched), Next / Try again. `Learn.tsx` passes
+  `demands`, the username and the repeated-mistake problem, and uses `LearnExaminerFeedback`.
+- `FeedbackPointList.tsx` exports its rows (`PointSection`, `ClaimRow`, `FixRow` + an `action` slot);
+  `components/examinerGroups.ts` is the old private `examinerGroups`, moved out so the card file
+  stays components-only. `buildTeacherScript` gained `calibration` lines (talk role `calibration`,
+  after the opening).
+
+**Deviations from the plan, for the owner.**
+- *"Say it better" waits for the nudges.* It contains the corrected phrases, so showing it under
+  "Fix these first" would answer the nudges before anyone tried. It appears once each nudge has been
+  tried or shown ("Just show me"); a muted line says where it went. The Full report is one tap away
+  and always shows everything. Remove by dropping `holdSayItBetter` in `TeacherConversation.tsx`.
+- *Username lives at `state.profile.username`* (the plan said `state.username`, which does not exist).
+- *Typed reveal is keyed by the feedback object*, not an attempt id Learn does not pass: one object
+  per attempt, a retry is a new object, flipping to the Full report and back keeps the old one.
+- *Underlining uses quote search* (`markQuotes`), not `buildSegments`: server annotations cover only
+  `issues[]` and the examiner voice has none; every quote shown already passed the grounding filters.
+- *The hint says "something's off here (Être vs Avoir)"*, not "with the verb": a fix carries no
+  error category (every Learn fix is `grammar`), only its free-text tag.
+- *Examiner style:* no Try-it-first (its groups have no first/also split) and no memory line (it
+  resolves a fix to a skill via the coach feedback's grammar themes, which examiner errors lack).
+  The Predict card and calibration lines do apply. Follow-up turns pass no demands (length check).
+- *Streamed sections are no longer shown at all* (the plan said the partial view keeps the score
+  line "until 6b replaces it"; this is the replacement). `partialFeedback` is still a prop, unused.
+- *One microphone at a time:* a second nudge's "Say it" is disabled while another is recording.
+
+**Not built / still open.** 6c (Second take, examiner's next question, firsts) and 6d (notebook).
+Observed, not changed: the count badges on the Vocabulary / How-to-extend cards render as dark
+circles in light mode (`CollapsibleCard.tsx` `bg-slate-700`, outside the contrast scan).
+
+**Verification.** New tests: `typing`, `useTypedReveal`, `TryItFirst` (match / unsure / "Just show
+me", no "wrong"/"close" copy in any state, no storage or analytics write, spoken path, one mic),
+`SpeakButton` (absent without synthesis, silent without a French voice), `TeacherConversation`
+(live region, Space on a control does not skip, ≤ 5 s, reduced motion, rewrite held), and
+`LearnExaminerFeedback` (formal register, no mark/band, calibration, pass-through states);
+`FeedbackExperience.test.tsx` rewritten for the conversation (order, every fix, nudges, typing,
+no unfiltered streamed content, status line per phase, calibration, memory line). Playwright
+screenshots (390–430 px, light and dark; waiting, typing, nudges, revealed) taken from a throwaway
+harness page that was not committed; the full-app e2e for Learn was not run (no Learn e2e exists).
+
+**Rollback.** Revert the commit: `FeedbackExperience`/`Learn` go back to the 6a coach view and
+`ExaminerFeedbackCard`, and the helpers stay unwired. To switch off only the nudges, pass no
+`tryFirstHeading` to `TeacherConversation`; to switch off only the typing, return early in
+`startElapsed` (`useTypedReveal.ts`).
+
+Gate: `typecheck` · `typecheck:server` · `lint` 0 errors (21 pre-existing warnings) · `npm test`
+**330 files / 3308 tests passed** · `learn:check -- --draft` 0 errors · `authoring:check` 0/0 ·
+`authoring:parity` 10/10 · `examiner:parity` matches. `typecheck:scripts` still has the 3
+pre-existing errors in `scripts/scoring` and `scripts/stt` tests.

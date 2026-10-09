@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { TOPICS, getTopicQuestions } from '../data/gameData';
@@ -7,7 +7,7 @@ import { isAuthRequiredError } from '../lib/authToken';
 import { isConsentRequiredError } from '../lib/consentRequired';
 import { assessPronunciation } from '../services/pronunciation/pronunciationClient';
 import type { PronunciationAssessment } from '../domain/pronunciation/types';
-import { ExaminerFeedbackCard } from '../features/feedback/components/ExaminerFeedbackCard';
+import { LearnExaminerFeedback } from '../features/feedback/teacher/LearnExaminerFeedback';
 import { examinerFailureKind, type ExaminerFailureKind, type ExaminerFeedback } from '../services/coaching/examinerFeedback';
 import { getSkillProfile, buildSkillContext, detectAvoidance } from '../services/coaching/diagnosticEngine';
 import { orchestrateAttempt, recordDemandOnlyAttempt } from '../services/coach/sessionOrchestrator';
@@ -163,6 +163,21 @@ export function Learn() {
     ? { ...baseQuestion, id: `${baseQuestion.id}::followup`, text: followUpTurn.promptText }
     : baseQuestion;
   const isReviewQuestion = !!currentSessionQuestion?.isReview;
+
+  // The teacher's memory line: a repeated mistake, from the existing recurring-
+  // problem detection (interventionService) — no new store. The count is only
+  // spoken when the problem itself states one (3 or more this week).
+  const repeatedMistake = useMemo(
+    () =>
+      activeProblem?.isRecurring
+        ? {
+            nodeId: activeProblem.nodeId,
+            label: getSkillLabel(activeProblem.nodeId),
+            times: activeProblem.evidenceIds.length >= 3 ? activeProblem.evidenceIds.length : null,
+          }
+        : null,
+    [activeProblem],
+  );
 
   // review_item_shown fires once per review question's presentation — keyed
   // on the question id so it doesn't refire on unrelated re-renders.
@@ -1208,12 +1223,15 @@ export function Learn() {
 
               {learnState === 'feedback' && feedbackMode === 'examiner' && (
                 <div className="space-y-3">
-                  <ExaminerFeedbackCard
+                  <LearnExaminerFeedback
                     status={examinerStatus === 'idle' ? 'pending' : examinerStatus}
                     result={examinerFeedbackResult}
                     failureKind={examinerFailure}
                     onSwitchToCoach={handleSwitchToCoachMode}
                     onRetry={handleRetry}
+                    transcript={recording.transcript}
+                    name={state.profile.username}
+                    demands={followUpTurn ? null : currentQuestion?.demands}
                   />
                   {(examinerStatus === 'done' || examinerStatus === 'quota-exhausted') && (
                     <button
@@ -1247,6 +1265,9 @@ export function Learn() {
                   onComplete={handleFeedbackComplete}
                   pronunciationResult={pronunciationResult}
                   pronunciationStatus={pronunciationStatus}
+                  demands={followUpTurn ? null : currentQuestion?.demands}
+                  learnerName={state.profile.username}
+                  recurring={repeatedMistake}
                 />
               )}
             </motion.div>
