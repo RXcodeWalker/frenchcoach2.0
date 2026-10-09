@@ -34,6 +34,22 @@ jobs:
   call-rpc:
     runs-on: ubuntu-latest
     steps:
+      # Fail fast (before the ~1 min npm ci) and name the missing secrets in the
+      # run's annotations, rather than a generic error deep in the job log. An
+      # unset repo secret reaches the job as an empty string, not an error.
+      - name: Check required secrets
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          missing=()
+          for name in SUPABASE_URL SUPABASE_SERVICE_KEY; do
+            [ -n "${!name}" ] || missing+=("$name")
+          done
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "::error title=Missing repo secrets::Not set: ${missing[*]}. Add them under Settings -> Secrets and variables -> Actions (see docs/systems/topology.md)."
+            exit 1
+          fi
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
