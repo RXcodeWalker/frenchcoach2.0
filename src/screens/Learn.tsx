@@ -10,6 +10,7 @@ import type { PronunciationAssessment } from '../domain/pronunciation/types';
 import { LearnExaminerFeedback } from '../features/feedback/teacher/LearnExaminerFeedback';
 import { pickFollowUpPrompt } from '../domain/learn/feedback/followUpQuestion';
 import { detectFirsts, type FirstId } from '../features/feedback/teacher/firsts';
+import type { NotebookDraft } from '../domain/learn/notebook/notebook';
 import { getSessionHistory } from '../services/analytics/analyticsService';
 import { examinerFailureKind, isExaminerFeedbackEmpty, type ExaminerFailureKind, type ExaminerFeedback } from '../services/coaching/examinerFeedback';
 import { getSkillProfile, buildSkillContext, detectAvoidance } from '../services/coaching/diagnosticEngine';
@@ -146,7 +147,7 @@ export function Learn() {
   // ADD_SESSION twice for one spoken answer would double-count it.
   const finalizedAttemptIdRef = useRef(0);
 
-  const { consentStatus } = useAuth();
+  const { consentStatus, user: authUser } = useAuth();
   const recording = useRecording(consentStatus === 'pending');
 
   // Abort stream + pronunciation call on unmount
@@ -943,6 +944,23 @@ export function Learn() {
   // really asks it: Say It Again comes first when it is on offer.
   const nextQuestionPreview = followUpEligible && !practiceStepEligible ? followUpPrompt : null;
 
+  // Batch 6d — "Save to notebook". Not offered on a follow-up turn (it has no
+  // stable question of its own). The only write is the learner's tap on Save.
+  const notebookOffer =
+    currentQuestion && !followUpTurn
+      ? {
+          question: {
+            questionId: currentQuestion.id,
+            question: currentQuestion.text,
+            topicKey: currentQuestion.topicKey,
+            ...(currentQuestion.subTopic ? { subTopic: currentQuestion.subTopic } : {}),
+          },
+          signedIn: authUser !== null,
+          savedAnswer: state.notebook.find((e) => e.questionId === currentQuestion.id)?.answer ?? null,
+          onSave: (draft: NotebookDraft) => dispatch({ type: 'SAVE_NOTEBOOK_ENTRY', draft, now: new Date().toISOString() }),
+        }
+      : null;
+
   const handleFeedbackComplete = () => {
     if (followUpTurn) {
       // Just finished the follow-up's own feedback — always advance, never chain a third turn.
@@ -1134,7 +1152,7 @@ export function Learn() {
 
           {learnState === 'topics' && (
             <motion.div key="topics" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-              <TopicGrid onSelect={selectTopic} selectedDifficulty={selectedDifficulty} />
+              <TopicGrid onSelect={selectTopic} selectedDifficulty={selectedDifficulty} showNotebookLink />
             </motion.div>
           )}
 
@@ -1309,6 +1327,7 @@ export function Learn() {
                   recurring={repeatedMistake}
                   nextQuestion={nextQuestionPreview}
                   firsts={firsts}
+                  notebook={notebookOffer}
                 />
               )}
             </motion.div>

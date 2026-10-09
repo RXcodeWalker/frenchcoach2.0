@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
-import { ChevronRight, Lock } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { BookMarked, ChevronRight, Lock } from 'lucide-react';
 import { TOPICS } from '../../data/gameData';
 import { LEARN_TOPIC_DEPENDENCIES } from '../../data/learnTopicDependencies';
 import { isLearnTopicUnlocked } from '../../features/learn/topicProgress';
@@ -11,6 +12,8 @@ interface Props {
   title?: string;
   subtitle?: string;
   selectedDifficulty?: DifficultyTier;
+  /** Show the way into the exam notebook (Learn only; Listening Mode shares this grid). */
+  showNotebookLink?: boolean;
 }
 
 function topicLabel(key: string): string {
@@ -23,7 +26,7 @@ function lockReason(topic: Topic): string {
   return `Complete 5 sessions in ${depLabels} averaging 7+/10 to unlock.`;
 }
 
-export function TopicGrid({ onSelect, title = "Learn", subtitle = "Choose a topic and start practicing" }: Props) {
+export function TopicGrid({ onSelect, title = "Learn", subtitle = "Choose a topic and start practicing", showNotebookLink = false }: Props) {
   // Topics too small to practise as a session stay out of the grid (docs §13.4).
   const visibleTopics = TOPICS.filter(isTopicVisible);
 
@@ -111,6 +114,21 @@ export function TopicGrid({ onSelect, title = "Learn", subtitle = "Choose a topi
             <ChevronRight size={14} className="text-ink-subtle group-hover:text-white group-hover:translate-x-1 transition-all" />
           </div>
         </motion.button>
+
+        {showNotebookLink && (
+          <Link
+            to="/notebook"
+            className="flex items-center gap-3 rounded-xl surface-recessed p-4 text-left"
+            data-testid="notebook-link"
+          >
+            <BookMarked size={16} className="text-action-text" aria-hidden="true" />
+            <span className="flex-1">
+              <span className="block text-sm font-bold text-ink">Your exam notebook</span>
+              <span className="block text-[10px] text-ink-muted">The answers you chose to keep, to listen to and practise from memory</span>
+            </span>
+            <ChevronRight size={14} className="text-ink-muted" aria-hidden="true" />
+          </Link>
+        )}
       </motion.div>
     </div>
   );

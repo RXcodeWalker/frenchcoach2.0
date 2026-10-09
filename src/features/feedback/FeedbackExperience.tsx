@@ -25,6 +25,8 @@ import type { PronunciationAssessment } from '../../domain/pronunciation/types';
 import type { QuestionDemands } from '../../domain/learn/demand/types';
 import { buildCoachTeacherScript } from './teacher/buildTeacherScript';
 import type { FirstId } from './teacher/firsts';
+import { SaveToNotebook } from './teacher/SaveToNotebook';
+import type { NotebookDraft, NotebookQuestionRef } from '../../domain/learn/notebook/notebook';
 import { PredictCard } from './teacher/PredictCard';
 import {
   calibrationLines,
@@ -93,19 +95,36 @@ interface Props {
   nextQuestion?: string | null;
   /** Milestones Learn has proven are firsts for this answer (Batch 6c). */
   firsts?: readonly FirstId[];
+  /**
+   * Keep-this-answer for the learner's exam notebook (Batch 6d). Absent for a
+   * follow-up turn, which has no stable question of its own. `onSave` is the only
+   * write, and Learn only calls the reducer when the learner taps Save.
+   */
+  notebook?: {
+    question: NotebookQuestionRef;
+    signedIn: boolean;
+    /** The answer already saved for this question, if any. */
+    savedAnswer: string | null;
+    onSave: (draft: NotebookDraft) => void;
+  } | null;
 }
+
+/** An answer at or above this overall score is offered to the notebook (the same line as `scoreTone`'s "good"). */
+const NOTEBOOK_HIGH_SCORE = 8;
 
 export type PronunciationStatus = 'idle' | 'pending' | 'done' | 'failed' | 'signed-out' | 'consent-required';
 
 function FeedbackContent({
   feedback, transcript, modelAnswer, onRetry, onComplete,
-  pronunciationResult, pronunciationStatus, learnerName, recurring, nextQuestion, firsts, checks, answers,
-}: Pick<Props, 'transcript' | 'modelAnswer' | 'onRetry' | 'onComplete' | 'pronunciationResult' | 'pronunciationStatus' | 'learnerName' | 'recurring' | 'nextQuestion' | 'firsts'> & {
+  pronunciationResult, pronunciationStatus, learnerName, recurring, nextQuestion, firsts, notebook, checks, answers,
+}: Pick<Props, 'transcript' | 'modelAnswer' | 'onRetry' | 'onComplete' | 'pronunciationResult' | 'pronunciationStatus' | 'learnerName' | 'recurring' | 'nextQuestion' | 'firsts' | 'notebook'> & {
   feedback: FeedbackV2;
   checks: readonly PredictionCheck[];
   answers: Partial<Record<PredictionCheckId, PredictionAnswer>>;
 }) {
   const { state, majorIssues, polishIssues, openCardFromIssue } = useFeedbackState(feedback);
+  // The notebook offer appears after a Second take or a high-scoring answer.
+  const [tookSecondTake, setTookSecondTake] = useState(false);
 
   // The teacher's script is built from the feedback that already passed the filters.
   const lines = useMemo(
@@ -194,6 +213,19 @@ function FeedbackContent({
         revealKey={feedback}
         tryFirstHeading={FIX_FIRST_HEADING}
         renderSection={renderSection}
+        onSecondTake={() => setTookSecondTake(true)}
+        after={
+          notebook ? (
+            <SaveToNotebook
+              feedback={feedback}
+              question={notebook.question}
+              signedIn={notebook.signedIn}
+              offered={tookSecondTake || (feedback.scores?.overall ?? 0) >= NOTEBOOK_HIGH_SCORE}
+              savedAnswer={notebook.savedAnswer}
+              onSave={notebook.onSave}
+            />
+          ) : null
+        }
       />
 
       <SnapshotCard feedback={feedback} variant="line" />
@@ -268,7 +300,7 @@ function FeedbackContent({
 
 export function FeedbackExperience({
   feedback, streamPhase, transcript, modelAnswer, onRetry, onComplete,
-  pronunciationResult, pronunciationStatus, demands, learnerName, recurring, nextQuestion, firsts,
+  pronunciationResult, pronunciationStatus, demands, learnerName, recurring, nextQuestion, firsts, notebook,
 }: Props) {
   const checks = useMemo(() => predictionChecks(demands), [demands]);
   const [answers, setAnswers] = useState<Partial<Record<PredictionCheckId, PredictionAnswer>>>({});
@@ -312,6 +344,7 @@ export function FeedbackExperience({
           recurring={recurring}
           nextQuestion={nextQuestion}
           firsts={firsts}
+          notebook={notebook}
           checks={checks}
           answers={answers}
         />

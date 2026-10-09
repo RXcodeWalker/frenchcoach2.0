@@ -3963,3 +3963,76 @@ old authored follow-up); only firsts, stop calling `proveFirsts` in `Learn.tsx`.
 Gate: `typecheck` · `typecheck:server` · `lint` 0 errors (21 pre-existing warnings) · `npm test`
 **335 files / 3380 tests passed** · `learn:check -- --draft` 0 errors · `authoring:check` 0/0 ·
 `authoring:parity` 10/10 · `examiner:parity` matches.
+
+## 2026-10-09 — Learn feedback Batch 6d: your exam notebook
+
+Frontend only; no backend, prompt, contract or scoring change (`backend/` untouched).
+
+**What shipped.** A Coach-voice **Save to notebook** on the feedback screen (`SaveToNotebook`,
+rendered through `TeacherConversation`'s new `after` slot, so it only appears once the whole
+conversation is revealed and the "Say it better" rewrite is no longer held back behind Try it
+first). After a Second take that had something in it, or an overall score ≥ 8, it asks once —
+"Keep this version for your exam notes?" — with "Not now"; otherwise only a quiet Save button.
+Nothing is written without a tap. One entry per question (`upsertEntry`): a different answer
+replaces it and files the old one under `history` (capped at 5); the same answer again is a no-op.
+An entry holds the question, topic / sub-topic, the improved answer and the key phrases — the
+learner's own strengths that are still in that answer word for word (`keyPhrases`).
+A **Notebook screen** (`/notebook`, linked from Learn's topic grid) groups entries by topic then
+sub-topic; each can be heard in French (`SpeakButton`) and practised in **Recall mode**
+(`RecallMode`: key phrases blanked, the learner says the answer through `TakeRecorder` — the
+Second take's consent-gated recorder — and `recallCheck` → `compareRetake` reports which phrases
+were heard; the rest is "not in this take", never a verdict). Framed as material to adapt, never
+a script to memorise.
+
+**Storage and privacy (review #5).** `STORAGE_KEYS.notebook` (account-scoped, not
+`DEVICE_SCOPED`), `AppState.notebook`, reducer `SAVE_NOTEBOOK_ENTRY` / `SET_NOTEBOOK`, the key
+added to the cross-tab handler. Signed-in only: the UI shows a guest only a sign-in note, and the
+reducer refuses a `guest`/unset scope (`isAccountScope`), so the guest-to-account copy has nothing
+to leave behind on a shared device. `deleteMyAccount()` removes the key after the cloud erase
+succeeds (before the caller's `signOut`). `notebookPrivacy.test.ts` guards that no `src/services`
+module except the storage registry and `accountService` names it, that the sync modules and
+skill-context builders never mention a notebook, that the API client never names its key, type or
+state, and that notebook code never logs or tracks. `child-safety-consent.md` records that
+guardian revocation cannot erase device data (same as local transcripts). The notebook is in the
+learner's own data export (`dumpScopedLocalStorage`), which is a download to themselves, not sync.
+
+**Deviations from the plan (all small).**
+- *Account deletion is wired inside `deleteMyAccount()`, not `Profile.handleDeleteAccount`.* The
+  handler awaits it and then signs out, so the key is still removed before `signOut`; putting it
+  there makes it testable without rendering the Profile screen and covers any other caller.
+- *Not offered on a follow-up turn.* A follow-up's question id is `<id>::followup` with the prompt
+  text varying per turn, so it has no stable one-entry-per-question key; Learn passes no notebook
+  then.
+- *Coach voice only.* Examiner-voice feedback has no `improved_answer`, so there is nothing to keep.
+- *"High-scoring" is overall ≥ 8*, the same line `scoreTone` uses for "good".
+- *`TakeRecorder` is the Second take's recorder, exported and given an optional `stop` label*,
+  rather than a fourth copy of the record button.
+- *`TopicGrid` takes `showNotebookLink`* (Learn only), because Listening Mode shares that grid.
+- *`/notebook` added to `src/config/routes.ts`* (the route-parity test requires it; one more static shell).
+- *`lightContrast.test.ts` now also covers `features/notebook` and `screens/Notebook.tsx`.*
+
+**Not built / still open.** There is no way to delete a single entry (not in the plan; an account
+deletion removes them all). Cloud sync of the notebook stays a separate owner decision. Try-it-first
+still resets on a Full report flip, and a coach follow-up still inherits the parent's demands (both
+pre-existing, see 6b/6c). No Learn e2e exists, so `Learn.tsx` wiring is covered by typecheck, the
+`FeedbackExperience.notebook` integration test and the reducer tests only; the microphone path was
+not exercised in a real browser.
+
+**Verification.** New tests: `notebook` (upsert new / replace-with-history / same answer no-op /
+history cap, key phrases whole-word and apostrophe-safe, blanking rebuilds the answer, recall
+heard / not-heard / empty / paraphrase, defensive parse, grouping), the reducer (save, replace,
+no-op writes nothing, guest cannot save and writes nothing under any key, `SET_NOTEBOOK` mirrors
+without a write), `accountService` (deletion removes the key; a failed erase leaves it),
+`SaveToNotebook` (no write until Save, offered once, saved state, replace, guest, source guard),
+`FeedbackExperience.notebook` (offer held until the rewrite shows, Second take triggers it, an empty
+take does not, guest, no prop), `RecallMode`, `NotebookEntryCard`, the `Notebook` screen, the
+`TopicGrid` link, and the privacy guard. Playwright light and dark screenshots of the offer, the
+guest note, an entry and Recall mode from a throwaway harness that was not committed.
+
+**Rollback.** Revert the commit. To switch off only the offer, stop passing `notebook` to
+`FeedbackExperience` in `Learn.tsx`; the screen then shows whatever was already saved. A stored
+`frenchCoach_notebook::<user>` key left behind by a revert is inert (nothing reads it).
+
+Gate: `typecheck` · `typecheck:server` · `lint` 0 errors (21 pre-existing warnings) · `npm test`
+**342 files / 3442 tests** · `learn:check -- --draft` 0 errors ·
+`authoring:check` 0/0 · `authoring:parity` 10/10 · `examiner:parity` matches · `build` ok (54 shells).

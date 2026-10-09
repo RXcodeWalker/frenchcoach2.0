@@ -30,16 +30,25 @@ interface Props {
   /** Another control is recording — only one microphone at a time. */
   micLocked?: boolean;
   onMicActive?: (active: boolean) => void;
+  /** Called when a take had something in it (never with the result: the parent learns only that a take happened). */
+  onTaken?: () => void;
 }
 
-function Recorder({
+/**
+ * The record / stop control shared by the Second take and the notebook's Recall
+ * mode: one press starts, the next stops and hands the transcript up. Hidden
+ * where the browser has no speech recognition. Wrap it in `SpeakingConsentGate`.
+ */
+export function TakeRecorder({
   locked,
   label,
+  stopLabel = 'Stop and check my second take',
   onActive,
   onHeard,
 }: {
   locked: boolean;
   label: string;
+  stopLabel?: string;
   onActive: (active: boolean) => void;
   onHeard: (text: string) => void;
 }) {
@@ -62,7 +71,7 @@ function Recorder({
       type="button"
       onClick={toggle}
       disabled={locked && !recording.isRecording}
-      aria-label={recording.isRecording ? 'Stop and check my second take' : label}
+      aria-label={recording.isRecording ? stopLabel : label}
       className="inline-flex items-center gap-1.5 rounded-lg bg-action px-3 py-1.5 text-[11px] font-bold text-action-ink disabled:opacity-40"
     >
       {recording.isRecording ? <Square size={11} aria-hidden="true" /> : <Mic size={11} aria-hidden="true" />}
@@ -105,7 +114,7 @@ function Result({ result }: { result: RetakeResult }) {
   );
 }
 
-export function SecondTake({ groups, micLocked = false, onMicActive }: Props) {
+export function SecondTake({ groups, micLocked = false, onMicActive, onTaken }: Props) {
   const { fixes, strengths } = retakeTargets(groups);
   const [result, setResult] = useState<RetakeResult | null>(null);
 
@@ -115,11 +124,15 @@ export function SecondTake({ groups, micLocked = false, onMicActive }: Props) {
   return (
     <div className="space-y-2.5 rounded-xl surface-recessed p-3" data-testid="second-take">
       <SpeakingConsentGate>
-        <Recorder
+        <TakeRecorder
           locked={micLocked}
           label={result ? 'Record another take' : 'Record my second take'}
           onActive={(active) => onMicActive?.(active)}
-          onHeard={(text) => setResult(compareRetake(fixes, strengths, text))}
+          onHeard={(text) => {
+            const next = compareRetake(fixes, strengths, text);
+            setResult(next);
+            if (!next.empty) onTaken?.();
+          }}
         />
       </SpeakingConsentGate>
       {result && (

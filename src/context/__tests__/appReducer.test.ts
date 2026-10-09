@@ -2,8 +2,10 @@
 // ── AppContext reducer — pure unit tests ────────────────────────────────────
 // reducer is a pure function of (state, action); no storage/React needed.
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { reducer } from '../AppContext';
+import { setStorageScope, getStorageScope } from '../../services/persistence/storage';
+import type { NotebookEntry } from '../../domain/learn/notebook/notebook';
 import type { UserProfile } from '../../types/index';
 
 function baseProfile(overrides: Partial<UserProfile> = {}): UserProfile {
@@ -42,6 +44,7 @@ function baseState(overrides: { profile?: Partial<UserProfile> } = {}) {
     focusedSkillId: null,
     masteredDrills: [],
     firstsSeen: [],
+    notebook: [] as NotebookEntry[],
     lastUnlockedAchievement: null,
     newLevelReached: null,
     activeSession: null,
@@ -111,5 +114,73 @@ describe('MARK_FIRSTS_SEEN reducer (Learn feedback Batch 6c)', () => {
     expect(reducer(state, { type: 'MARK_FIRSTS_SEEN', ids: ['past'] })).toBe(state);
     expect(setItem).not.toHaveBeenCalled();
     setItem.mockRestore();
+  });
+});
+
+describe('SAVE_NOTEBOOK_ENTRY reducer (Learn feedback Batch 6d)', () => {
+  const draft = {
+    questionId: 'q1',
+    question: 'Que fais-tu le week-end ?',
+    topicKey: 'hobbies',
+    subTopic: 'weekends',
+    answer: 'Je suis allé au cinéma.',
+    phrases: ['je suis allé'],
+  };
+  let priorScope: string | null;
+
+  beforeEach(() => {
+    priorScope = getStorageScope();
+    localStorage.clear();
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    if (priorScope) setStorageScope(priorScope);
+  });
+
+  it('saves for a signed-in account and persists under the account-scoped key', () => {
+    setStorageScope('user-1');
+    const next = reducer(baseState(), { type: 'SAVE_NOTEBOOK_ENTRY', draft, now: '2026-10-09T10:00:00Z' });
+    expect(next.notebook).toHaveLength(1);
+    expect(next.notebook[0]).toMatchObject({ questionId: 'q1', answer: 'Je suis allé au cinéma.', savedAt: '2026-10-09T10:00:00Z', history: [] });
+    expect(JSON.parse(localStorage.getItem('frenchCoach_notebook::user-1') ?? 'null')).toHaveLength(1);
+    expect(localStorage.getItem('frenchCoach_notebook')).toBeNull();
+  });
+
+  it('replaces the same question and keeps the old answer as history', () => {
+    setStorageScope('user-1');
+    const a = reducer(baseState(), { type: 'SAVE_NOTEBOOK_ENTRY', draft, now: '1' });
+    const b = reducer(a, { type: 'SAVE_NOTEBOOK_ENTRY', draft: { ...draft, answer: 'Le samedi, je vais au cinéma.', phrases: [] }, now: '2' });
+    expect(b.notebook).toHaveLength(1);
+    expect(b.notebook[0].answer).toBe('Le samedi, je vais au cinéma.');
+    expect(b.notebook[0].history.map((h) => h.answer)).toEqual(['Je suis allé au cinéma.']);
+  });
+
+  it('saving the same answer again is a no-op (same state, no write)', () => {
+    setStorageScope('user-1');
+    const a = reducer(baseState(), { type: 'SAVE_NOTEBOOK_ENTRY', draft, now: '1' });
+    const setItem = vi.spyOn(Storage.prototype, 'setItem');
+    expect(reducer(a, { type: 'SAVE_NOTEBOOK_ENTRY', draft, now: '2' })).toBe(a);
+    expect(setItem).not.toHaveBeenCalled();
+  });
+
+  it('a guest cannot save: no state change and nothing written under any key', () => {
+    setStorageScope('guest');
+    const state = baseState();
+    const setItem = vi.spyOn(Storage.prototype, 'setItem');
+    expect(reducer(state, { type: 'SAVE_NOTEBOOK_ENTRY', draft, now: '1' })).toBe(state);
+    expect(setItem).not.toHaveBeenCalled();
+    expect(Object.keys(localStorage).filter((k) => k.includes('notebook'))).toEqual([]);
+  });
+
+  it('SET_NOTEBOOK mirrors another tab without writing, and is ignored for a guest', () => {
+    setStorageScope('user-1');
+    const setItem = vi.spyOn(Storage.prototype, 'setItem');
+    const entries = reducer(baseState(), { type: 'SAVE_NOTEBOOK_ENTRY', draft, now: '1' }).notebook;
+    setItem.mockClear();
+    expect(reducer(baseState(), { type: 'SET_NOTEBOOK', entries }).notebook).toBe(entries);
+    expect(setItem).not.toHaveBeenCalled();
+    setStorageScope('guest');
+    const state = baseState();
+    expect(reducer(state, { type: 'SET_NOTEBOOK', entries })).toBe(state);
   });
 });

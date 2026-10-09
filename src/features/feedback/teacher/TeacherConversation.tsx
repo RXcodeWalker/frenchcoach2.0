@@ -42,6 +42,14 @@ interface Props {
   /** The existing cards the script places: the Say-it-better diff and Go further. */
   renderSection?: (section: 'say-it-better' | 'go-further') => ReactNode;
   highlightedQuote?: string | null;
+  /** Called once a Second take has produced a result (the learner said something). */
+  onSecondTake?: () => void;
+  /**
+   * Rendered at the end of the conversation, only once everything has been
+   * revealed and the "Say it better" rewrite is no longer held back — so an offer
+   * to keep that rewrite never appears before the learner can see it.
+   */
+  after?: ReactNode;
 }
 
 const INTERACTIVE = 'button, input, textarea, select, a, label';
@@ -78,7 +86,7 @@ function LearnerBubble({ text, quotes }: { text: string; quotes: string[] }) {
   );
 }
 
-export function TeacherConversation({ lines, revealKey, tryFirstHeading, renderSection, highlightedQuote }: Props) {
+export function TeacherConversation({ lines, revealKey, tryFirstHeading, renderSection, highlightedQuote, onSecondTake, after }: Props) {
   const unitCounts = useMemo(() => lines.map((l) => (l.kind === 'talk' ? typingUnits(l.text).length : 0)), [lines]);
   const reveal = useTypedReveal(revealKey, unitCounts);
   const { skip, done } = reveal;
@@ -200,6 +208,7 @@ export function TeacherConversation({ lines, revealKey, tryFirstHeading, renderS
                     groups={pointGroups}
                     micLocked={micOwner !== null && micOwner !== SECOND_TAKE_MIC}
                     onMicActive={(active) => setMicOwner(active ? SECOND_TAKE_MIC : null)}
+                    onTaken={onSecondTake}
                   />
                 </div>
               );
@@ -217,6 +226,8 @@ export function TeacherConversation({ lines, revealKey, tryFirstHeading, renderS
             );
         }
       })}
+
+      {done && !holdSayItBetter && after ? <div className="pl-9">{after}</div> : null}
 
       {!done && (
         <div className="flex justify-end">

@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it, vi, afterEach } from 'vitest';
 import { render, cleanup, fireEvent, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import type { Topic } from '../../../types';
 import { TopicGrid } from '../TopicGrid';
 
@@ -97,5 +98,23 @@ describe('TopicGrid — one-question topics are hidden (docs §13.4)', () => {
     fireEvent.click(random);
     expect(onSelect.mock.calls[0][0].key).toBe('pro');
     expect(onSelect.mock.calls[0][0].questionsCount).toBeGreaterThan(1);
+  });
+});
+
+describe('TopicGrid notebook link (Learn feedback Batch 6d)', () => {
+  it('is shown only where asked (Learn), and points at /notebook', () => {
+    isLearnTopicUnlockedMock.mockReturnValue(true);
+    render(
+      <MemoryRouter>
+        <TopicGrid onSelect={vi.fn()} showNotebookLink />
+      </MemoryRouter>,
+    );
+    expect(screen.getByTestId('notebook-link').getAttribute('href')).toBe('/notebook');
+  });
+
+  it('is absent by default (Listening Mode shares this grid)', () => {
+    isLearnTopicUnlockedMock.mockReturnValue(true);
+    render(<TopicGrid onSelect={vi.fn()} />);
+    expect(screen.queryByTestId('notebook-link')).toBeNull();
   });
 });
