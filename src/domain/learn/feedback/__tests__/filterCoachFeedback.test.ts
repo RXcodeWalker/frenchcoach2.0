@@ -102,3 +102,62 @@ describe('filterCoachFeedback', () => {
     expect(filterCoachFeedback(fb, TRANSCRIPT, 'speech').dropped).toEqual([]);
   });
 });
+
+describe('filterCoachFeedback — strengths[] and the opening line (Batch 6a)', () => {
+  const GOOD = { quote: 'avec mes amis', why: 'You said who you were with.' };
+
+  it('keeps grounded strengths and a grounded opening line untouched', () => {
+    const fb = feedback({
+      issues: [issue('a', 'Mon mère', 'Ma mère')],
+      strengths: [GOOD, { quote: 'je suis allé au cinéma', why: 'You used être with « je suis allé ».' }],
+      encouragement: 'You did really well with « avec mes amis » — here’s where you could improve.',
+    });
+    const out = filterCoachFeedback(fb, TRANSCRIPT, 'speech');
+    expect(out.dropped).toEqual([]);
+    expect(out.feedback).toBe(fb);
+  });
+
+  it('drops a strength quoting a reported error, and one whose why quotes it', () => {
+    const fb = feedback({
+      issues: [issue('a', 'Mon mère', 'Ma mère')],
+      strengths: [
+        GOOD,
+        { quote: 'Mon mère aime le film', why: 'You gave a full sentence.' },
+        { quote: 'aime le film', why: 'You said « Mon mère » likes it.' },
+      ],
+    });
+    const out = filterCoachFeedback(fb, TRANSCRIPT, 'speech');
+    expect(out.dropped).toEqual(['strength', 'strength']);
+    expect(out.feedback.strengths).toEqual([GOOD]);
+    expect(out.feedback.issues).toHaveLength(1);
+  });
+
+  it('drops a strength whose quote is not in the transcript or is empty', () => {
+    const fb = feedback({
+      strengths: [GOOD, { quote: 'parce que j’adore', why: 'You gave a reason.' }, { quote: '  ', why: 'You linked ideas.' }],
+    });
+    const out = filterCoachFeedback(fb, TRANSCRIPT, 'speech');
+    expect(out.dropped).toEqual(['strength', 'strength']);
+    expect(out.feedback.strengths).toEqual([GOOD]);
+  });
+
+  it('drops an ungrounded opening line', () => {
+    const fb = feedback({ encouragement: 'You did really well with « parce que j’adore » — let’s look closer.' });
+    const out = filterCoachFeedback(fb, TRANSCRIPT, 'speech');
+    expect(out.dropped).toEqual(['opening']);
+    expect(out.feedback.encouragement).toBeUndefined();
+  });
+
+  it('drops an opening line that quotes nothing, or praises a reported error', () => {
+    expect(filterCoachFeedback(feedback({ encouragement: 'You worked hard on this one.' }), TRANSCRIPT, 'speech').dropped)
+      .toEqual(['opening']);
+    const praisesError = feedback({
+      issues: [issue('a', 'Mon mère', 'Ma mère')],
+      encouragement: 'I loved « Mon mère aime le film ».',
+    });
+    const out = filterCoachFeedback(praisesError, TRANSCRIPT, 'speech');
+    expect(out.dropped).toEqual(['opening']);
+    expect(out.feedback.encouragement).toBeUndefined();
+    expect(out.feedback.issues).toHaveLength(1);
+  });
+});

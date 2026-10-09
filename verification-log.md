@@ -3684,3 +3684,56 @@ Gate at commit: `typecheck` clean · `typecheck:server` clean · `lint` 0 errors
 warnings) · `npm test` **319 files / 3152 tests passed** (with `backend/` linked at the Batch 4
 backend head) · `learn:check -- --draft` unchanged. Not run: Playwright e2e, backend pytest (no
 backend change).
+
+## 2026-10-09 — Learn feedback Batch 6a: detailed feedback restored (prompt v6, strengths[], contract v3)
+
+**What changed.**
+
+1. **Backend (`french-coach-backend` `72e6bdb`, `learn-prompt-v6`).** "AT MOST 2 FIXES" → every real
+   error, most important first (quote → full corrected French at A2 with elements of B1 → one-sentence
+   why → tip; "never invent errors" kept; the server ceiling `FEEDBACK_DEPTH_ITEM_CAPS` unchanged, so
+   standard still delivers ≤ 5 and deep ≤ 8). "ONE STRENGTH" → new optional `strengths: [{quote, why}]`
+   (2–4, each quoting the learner, never praising a reported error); `best_moment` stays as the
+   strongest. Teacher voice: second person, `encouragement` is the opening line and must quote the
+   learner; no persona name in the prompt. `_apply_coaching_quality_gate` clears a generic
+   `encouragement` and drops strengths with no quote or a banned phrase; `_apply_depth_item_caps`
+   caps `strengths` at 4; `enrich_feedback` defaults it to `[]`. `FEEDBACK_CONTRACT_VERSION` 2 → 3,
+   per its own rule (new top-level field). New fixture `strengths-v3.json`, synced with
+   `npm run feedback:sync-fixtures`.
+2. **Frontend.** `feedbackSchema.ts` accepts `strengths` (array-level `.catch([])`, like
+   `corrections`); `mergeV2Fields` maps `strengths` and `encouragement` (the latter was never mapped
+   before). `filterCoachFeedback` drops a `strengths[]` item whose quote (or a phrase its `why`
+   quotes) is ungrounded or overlaps a reported error, and drops an opening line that quotes nothing
+   or fails the same rule (new drop rule `opening`). `coachPoints.ts`: What you did well (every
+   strength, else `best_moment`) → Fix these first (`FIRST_FIXES` = 2, the existing sort) → Also
+   worth fixing (every other fix, visible), deduplicated by quote across `issues[]` and grammar items
+   (the existing sort now runs over both). The coach view shows Go further again (`VocabularyCard` +
+   `ExpansionIdeasCard`). **Leak fixed:** the streaming preview no longer renders the unfiltered
+   streamed `best_moment` — only the score line until the filtered feedback lands.
+
+**Belief-input note.** None: the same errors reach `buildEvidence` as before (the filter rules for
+errors are unchanged); strengths and the opening line are display-only. More errors may now arrive
+per answer because the prompt no longer caps them at 2 — that is the model's output, still bounded by
+the server ceiling, and each one still passes the same grounding/sound-alike filters.
+
+**Deviations from the plan, for the owner.**
+- *Multimodal (Gemini audio) prompt* is unchanged: it never had the 2-fix cap, and it does not ask
+  for `strengths[]`, so those responses show `best_moment` (the planned fallback).
+- *Backend gate on the opening line* checks banned phrases only; the "must quote the learner" rule
+  is enforced by the frontend filter, which has the transcript-grounding helpers.
+- *A strength with an empty `why`* is not rendered (a quote with no explanation says nothing);
+  it is still kept on the feedback object.
+- *Branch base:* both repos were fast-forwarded from `main` to `claude/serene-heisenberg-v0vxk3`
+  (`0dcc415` / `d350c27`) before starting, as the plan's merge order requires; no history rewritten.
+
+**Deploy and rollback.** Backend first. An old frontend accepts schemaVersion ≥ 2, ignores
+`strengths`, and shows ≤ 2 of the fixes; the new frontend with the v5 backend falls back to
+`best_moment` and shows whatever fixes arrive. Either commit can be reverted alone; the contract
+change is additive. Not deployed from this session.
+
+Gate at commit: `typecheck` clean · `typecheck:server` clean · `lint` 0 errors (21 pre-existing
+warnings) · `npm test` **319 files / 3164 tests passed** (with `backend/` linked at `72e6bdb`) ·
+`learn:check -- --draft` 0 errors (71 warnings, unchanged) · `authoring:check` 0/0 ·
+`authoring:parity` 10/10 · `examiner:parity` matches · backend `pytest tests/` **470 passed**.
+Not run: Playwright e2e (a Learn answer needs a live speech/LLM round trip; the feedback screen is
+covered by the jsdom `FeedbackExperience` test).

@@ -17,7 +17,12 @@
  *    only in spelling the learner cannot have said (Learn transcripts are Web
  *    Speech text). Unknown input mode keeps the error;
  *  - strength: best_moment is dropped when a phrase it quotes is not in the
- *    transcript, or overlaps an error this same feedback reports.
+ *    transcript, or overlaps an error this same feedback reports. Each
+ *    strengths[] item (learn-prompt-v6) gets the same rule over its quote and
+ *    any phrase its why quotes, and is dropped when it has no quote at all;
+ *  - opening (Batch 6a): the encouragement opening line must quote the
+ *    learner — it is dropped when it quotes nothing, or when a phrase it
+ *    quotes fails the strength rule.
  * Rules NOT used for the coach voice: the examiner minimum quote lengths
  * (meetsErrorQuoteMinimum / meetsClaimQuoteMinimum). On the recorded fixtures
  * they would drop 4 of 4 corrections and 2 of 3 strengths — real one-word
@@ -29,7 +34,7 @@ import type { FeedbackV2 } from '../../../types';
 
 export type CoachInputMode = 'speech' | 'text';
 
-export type CoachDropRule = 'grounding' | 'identical' | 'sound-alike' | 'strength';
+export type CoachDropRule = 'grounding' | 'identical' | 'sound-alike' | 'strength' | 'opening';
 
 export interface CoachFilterResult {
   feedback: FeedbackV2;
@@ -87,15 +92,28 @@ export function filterCoachFeedback(
     ...[...grammar.critical, ...grammar.polish].map((g: GrammarItem) => g.quote ?? ''),
   ].filter((q) => q.trim() !== '');
 
+  /** A quoted phrase that is in the transcript and praises nothing reported as an error. */
+  const praisable = (q: string) =>
+    isGroundedQuote(q, transcript) && !errorQuotes.some((e) => quotesOverlap(q, e, transcript));
+
   let bestMoment = feedback.best_moment;
-  if (bestMoment) {
-    const quotes = strengthQuotes(bestMoment);
-    const bad = quotes.some(
-      (q) => !isGroundedQuote(q, transcript) || errorQuotes.some((e) => quotesOverlap(q, e, transcript)),
-    );
-    if (bad) {
-      dropped.push('strength');
-      bestMoment = undefined;
+  if (bestMoment && !strengthQuotes(bestMoment).every(praisable)) {
+    dropped.push('strength');
+    bestMoment = undefined;
+  }
+
+  const strengths = feedback.strengths?.filter((s) => {
+    const keep = praisable(s.quote.trim()) && strengthQuotes(s.why).every(praisable);
+    if (!keep) dropped.push('strength');
+    return keep;
+  });
+
+  let encouragement = feedback.encouragement;
+  if (encouragement?.trim()) {
+    const quotes = strengthQuotes(encouragement);
+    if (quotes.length === 0 || !quotes.every(praisable)) {
+      dropped.push('opening');
+      encouragement = undefined;
     }
   }
 
@@ -118,6 +136,8 @@ export function filterCoachFeedback(
         ? { topPriorityIssueId: undefined }
         : {}),
       best_moment: bestMoment,
+      ...(feedback.strengths ? { strengths } : {}),
+      ...(feedback.encouragement !== undefined ? { encouragement } : {}),
     },
   };
 }

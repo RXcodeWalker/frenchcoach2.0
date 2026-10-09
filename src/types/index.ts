@@ -563,12 +563,22 @@ export interface DeepAnalysis {
   pushToTopMarks: string[];
 }
 
+/** One quoted strength (learn-prompt-v6 strengths[]): the learner's own words and what they show. */
+export interface CoachStrength {
+  quote: string;
+  why: string;
+}
+
 export interface FeedbackV2 extends Feedback {
   examiner?: ExaminerVerdict;
   topPriorityIssueId?: string;
   strongestMomentSpan?: TranscriptSpan;
   strongestMomentExplanation?: string;
   best_moment?: string;
+  /** 2–4 quoted strengths, strongest first (contract v3); absent on an older backend → best_moment. Filtered at normalisation. */
+  strengths?: CoachStrength[];
+  /** The teacher's opening line; it must quote the learner. Filtered at normalisation (dropped when ungrounded). */
+  encouragement?: string;
   biggest_opportunity?: string;
   improved_answer?: string;
   rephrase?: string;

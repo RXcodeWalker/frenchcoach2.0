@@ -12,6 +12,7 @@ vi.mock('../../../lib/supabase', () => ({
 }));
 
 import { supabase } from '../../../lib/supabase';
+import strengthsV3 from '../__fixtures__/feedback-contract/strengths-v3.json';
 import { getAIFeedback } from '../apiClient';
 import { buildEvidence } from '../../coach/evidenceProjection';
 import type { Question } from '../../../types';
@@ -102,5 +103,16 @@ describe('coach filters at normalisation', () => {
     mockBackend(reply);
     const fb = await getAIFeedback(TRANSCRIPT, QUESTION, undefined, undefined, 'groq', 'intermediate', 'speech');
     expect(fb.grammar.critical).toHaveLength(1);
+  });
+
+  it('contract v3 (strengths-v3.json): maps strengths[] and the opening line, and drops the strength that praises an error', async () => {
+    mockBackend(strengthsV3);
+    const fb = await getAIFeedback(strengthsV3.transcript, QUESTION, undefined, undefined, 'groq', 'intermediate', 'speech');
+    expect(fb.engineMeta?.actualEngine).not.toBe('offline');
+    expect(fb.schemaVersion).toBe(3);
+    expect(fb.issues?.map((i) => i.quote)).toEqual(['un glace']);
+    expect(fb.strengths?.map((s) => s.quote)).toEqual(['parce que c\'est drôle', 'Je suis allé au parc']);
+    expect(fb.encouragement).toBe(strengthsV3.encouragement);
+    expect(fb.best_moment).toBe(strengthsV3.best_moment);
   });
 });

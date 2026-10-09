@@ -11,7 +11,9 @@ import { SnapshotCard } from './components/SnapshotCard';
 import { BeforeAfterDiff } from './components/BeforeAfterDiff';
 import { ReportView } from './components/ReportView';
 import { FeedbackPointList } from './components/FeedbackPointList';
-import { coachPointGroups, whatWorkedGroup } from './coachPoints';
+import { coachPointGroups } from './coachPoints';
+import { VocabularyCard } from './components/VocabularyCard';
+import { ExpansionIdeasCard } from './components/ExpansionIdeasCard';
 import { PronunciationCard } from './components/PronunciationCard';
 import { AzurePronunciationCard } from './components/AzurePronunciationCard';
 import { FeedbackFooter } from './components/FeedbackFooter';
@@ -86,6 +88,15 @@ interface Props {
 
 export type PronunciationStatus = 'idle' | 'pending' | 'done' | 'failed' | 'signed-out' | 'consent-required';
 
+/** Vocabulary upgrades or expansion ideas to show under "Go further". */
+function hasGoFurther(feedback: FeedbackV2): boolean {
+  return (
+    (feedback.vocabularyV2?.length ?? 0) > 0 ||
+    (feedback.vocabulary?.length ?? 0) > 0 ||
+    (feedback.expansion_ideas?.length ?? 0) > 0
+  );
+}
+
 function FeedbackContent({
   feedback, transcript, modelAnswer, onRetry, onComplete,
   pronunciationResult, pronunciationStatus,
@@ -136,8 +147,9 @@ function FeedbackContent({
       <FailoverBadge engineMeta={feedback.engineMeta} />
       <ViewModeToggle />
 
-      {/* Learn Batch 4 — one short stack: score line → what worked → fix these
-          (≤ 2) → say it better. Lessons, vocabulary, expansion ideas and the
+      {/* Learn Batch 6a — score line → what you did well (every strength) →
+          fix these first (2) → also worth fixing (every other fix) → say it
+          better → go further (vocabulary, expansion ideas). Lessons and the
           one-focus line live in the Full report. */}
       <SnapshotCard feedback={feedback} variant="line" />
 
@@ -150,6 +162,14 @@ function FeedbackContent({
           changes={feedback.changes}
           title="Say it better"
         />
+      )}
+
+      {hasGoFurther(feedback) && (
+        <section aria-label="Go further" className="space-y-2">
+          <p className="text-eyebrow uppercase text-ink-muted">Go further</p>
+          <VocabularyCard feedback={feedback} />
+          <ExpansionIdeasCard ideas={feedback.expansion_ideas} />
+        </section>
       )}
 
       {/* lint:pronunciation-start — pronunciation branch is out of Batch 5 scope; block untouched */}
@@ -246,7 +266,9 @@ export function FeedbackExperience({
     );
   }
 
-  // Progressive reveal: partial data streaming in
+  // Progressive reveal: partial data streaming in. Only the score line — the
+  // streamed sections have not been through filterCoachFeedback yet, so a
+  // strength shown here could be one the filter later drops (Batch 6a).
   if (isStreaming && p) {
     return (
       <AnimatePresence>
@@ -258,9 +280,6 @@ export function FeedbackExperience({
         >
           <SectionGate ready={!!p.scores}>
             <SnapshotCard feedback={p as FeedbackV2} variant="line" />
-          </SectionGate>
-          <SectionGate ready={p.best_moment != null}>
-            <FeedbackPointList groups={[whatWorkedGroup(p)]} />
           </SectionGate>
           <CardSkeleton />
           <CardSkeleton />

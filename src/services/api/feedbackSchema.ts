@@ -85,6 +85,15 @@ const CorrectionSchema = z.object({
   lesson:        MiniLessonSchema,
 });
 
+// learn-prompt-v6 strengths[] (contract v3) — optional; best_moment stays as
+// the strongest one for older clients. Same array-level .catch([]) as
+// CorrectionSchema. Grounding/overlap filtering happens later, in
+// filterCoachFeedback.ts, never here.
+const StrengthSchema = z.object({
+  quote: z.string(),
+  why:   nullishStringWithFallback(''),
+});
+
 const QuoteSpanSchema = z.object({
   correctionId: z.string(),
   start:        z.number(),
@@ -124,6 +133,7 @@ export const BackendFeedbackSchema = z.object({
 
   // Coaching text — optional, string only (not arrays or objects)
   best_moment:          z.string().optional(),
+  strengths:            z.array(StrengthSchema).catch([]).optional(),
   biggest_opportunity:  z.string().optional(),
   improved_answer:      z.string().optional(),
   advanced_answer:      z.string().optional(),

@@ -492,6 +492,8 @@ function mergeV2Fields(base: FeedbackV2, raw: BackendFeedbackV2): FeedbackV2 {
       strongestMomentExplanation: raw.strongestMomentExplanation,
       // New coaching fields from redesigned backend
       best_moment: raw.best_moment,
+      strengths: raw.strengths,
+      encouragement: raw.encouragement,
       biggest_opportunity: raw.biggest_opportunity,
       improved_answer: raw.improved_answer,
       rephrase: raw.rephrase,

@@ -1,8 +1,10 @@
 // @vitest-environment jsdom
 //
-// Learn overhaul Batch 4 — the coach view is one short stack: score line →
-// what worked → fix these (≤ 2) → say it better → pronunciation (unchanged
-// props) → Next / Try again. No engine bar, no band pill, no raw B2/C1.
+// Learn overhaul Batch 4, detail restored in Batch 6a — the coach view is:
+// score line → what you did well (every strength) → fix these first (2) →
+// also worth fixing (every other fix) → say it better → go further →
+// pronunciation (unchanged props) → Next / Try again. No engine bar, no band
+// pill, no raw B2/C1, and no unfiltered streamed strength.
 import { afterEach, describe, it, expect, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
@@ -52,6 +54,21 @@ const FEEDBACK = {
   ],
 } as unknown as FeedbackV2;
 
+const FIVE_FIXES = {
+  ...FEEDBACK,
+  issues: [
+    issue('gender', 'Mon mère', 'Ma mère', 3),
+    issue('plural', 'des pizza', 'des pizzas', 2),
+    issue('third', 'je suis allé', 'je suis allé(e)', 1),
+    issue('fourth', 'était contente', 'était très contente', 1),
+    issue('fifth', 'Samedi je', 'Samedi, je', 0),
+  ],
+  strengths: [
+    { quote: 'avec mes amis', why: 'You said who you were with.' },
+    { quote: 'nous avons mangé', why: 'You used the passé composé with avoir.' },
+  ],
+} as unknown as FeedbackV2;
+
 const PRONUNCIATION = { overallScore: 80, words: [] } as unknown as PronunciationAssessment;
 
 function renderFeedback(props: Partial<Parameters<typeof FeedbackExperience>[0]> = {}) {
@@ -68,21 +85,42 @@ function renderFeedback(props: Partial<Parameters<typeof FeedbackExperience>[0]>
   );
 }
 
-describe('FeedbackExperience coach view (Batch 4)', () => {
-  it('renders the stack in order: score line, what worked, fix these, say it better, footer', () => {
+describe('FeedbackExperience coach view (Batch 6a)', () => {
+  it('renders the stack in order: score line, what you did well, fixes, say it better, go further, footer', () => {
     const { container } = renderFeedback();
     const text = container.textContent ?? '';
-    const order = ['6.5', 'What worked', 'Fix these', 'Say it better', 'Try again', 'Next question'].map((t) => text.indexOf(t));
+    const order = [
+      '6.5', 'What you did well', 'Fix these first', 'Also worth fixing', 'Say it better', 'Go further', 'Try again', 'Next question',
+    ].map((t) => text.indexOf(t));
     expect(order.every((i) => i >= 0)).toBe(true);
     expect([...order].sort((a, b) => a - b)).toEqual(order);
   });
 
-  it('shows at most two fixes, each quote → full correction with its why', () => {
-    renderFeedback();
+  it('shows every fix: two first, the third under Also worth fixing', () => {
+    const { container } = renderFeedback();
     expect(screen.getByText('Ma mère')).toBeTruthy();
     expect(screen.getByText('Why gender.')).toBeTruthy();
     expect(screen.getByText('Why plural.')).toBeTruthy();
-    expect(screen.queryByText('Why third.')).toBeNull();
+    expect(screen.getByText('Why third.')).toBeTruthy();
+    const text = container.textContent ?? '';
+    expect(text.indexOf('Also worth fixing')).toBeLessThan(text.indexOf('Why third.'));
+    expect(text.indexOf('Why plural.')).toBeLessThan(text.indexOf('Also worth fixing'));
+  });
+
+  it('renders all five fixes when the feedback has five', () => {
+    renderFeedback({ feedback: FIVE_FIXES });
+    for (const id of ['gender', 'plural', 'third', 'fourth', 'fifth']) {
+      expect(screen.getByText(`Why ${id}.`)).toBeTruthy();
+    }
+  });
+
+  it('shows every quoted strength under What you did well', () => {
+    renderFeedback({ feedback: FIVE_FIXES });
+    expect(screen.getByText('You said who you were with.')).toBeTruthy();
+    expect(screen.getByText('You used the passé composé with avoir.')).toBeTruthy();
+    expect(screen.getByText('« nous avons mangé »')).toBeTruthy();
+    // best_moment is the fallback only, so it is not repeated next to strengths[].
+    expect(screen.queryByText(FEEDBACK.best_moment!)).toBeNull();
   });
 
   it('has no engine control, re-evaluate bar or band pill, and never shows B2/C1', () => {
@@ -95,12 +133,17 @@ describe('FeedbackExperience coach view (Batch 4)', () => {
     expect(text).toContain('Stretch (B1+)');
   });
 
-  it('keeps vocabulary, expansion ideas, the one focus and lessons out of the coach view', () => {
+  it('shows Go further (vocabulary and expansion ideas) but keeps the one focus in the Full report', () => {
     const { container } = renderFeedback();
-    const text = container.textContent ?? '';
-    expect(text).not.toContain('Add one sentence about what you will do next weekend.');
-    expect(text).not.toContain('Say which film you saw.');
-    expect(text).not.toContain('ravi');
+    const goFurther = screen.getByRole('region', { name: 'Go further' });
+    expect(goFurther.textContent).toContain('Vocabulary');
+    expect(goFurther.textContent).toContain('How To Extend Your Answer');
+    expect(container.textContent).not.toContain('Add one sentence about what you will do next weekend.');
+  });
+
+  it('has no Go further section when there is nothing to add', () => {
+    renderFeedback({ feedback: { ...FEEDBACK, vocabulary: [], expansion_ideas: [] } as FeedbackV2 });
+    expect(screen.queryByRole('region', { name: 'Go further' })).toBeNull();
   });
 
   it('the Full report holds the one focus and the third correction', () => {
@@ -116,13 +159,14 @@ describe('FeedbackExperience coach view (Batch 4)', () => {
     expect(azureProps).toHaveBeenCalledWith({ result: PRONUNCIATION, correctedSentence: FEEDBACK.improved_answer });
   });
 
-  it('the streaming preview uses the score line and What worked', () => {
+  it('the streaming preview shows only the score line, never the unfiltered streamed best_moment', () => {
     const { container } = renderFeedback({
       feedback: null,
       partialFeedback: { scores: FEEDBACK.scores, wordCount: 19, cefrLevel: 'A2', best_moment: FEEDBACK.best_moment },
     });
     const text = container.textContent ?? '';
-    expect(text).toContain('What worked');
     expect(text).toContain('Exam level (A2)');
+    expect(text).not.toContain('avec mes amis');
+    expect(text).not.toContain('What you did well');
   });
 });
