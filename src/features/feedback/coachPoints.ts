@@ -121,3 +121,12 @@ export function coachPointGroups(feedback: FeedbackV2): FeedbackPointGroup[] {
     { heading: 'Also worth fixing', tone: 'bad', points: fixes.slice(FIRST_FIXES) },
   ];
 }
+
+/** Vocabulary upgrades or expansion ideas exist to show under "Go further". */
+export function hasGoFurther(feedback: FeedbackV2): boolean {
+  return (
+    (feedback.vocabularyV2?.length ?? 0) > 0 ||
+    (feedback.vocabulary?.length ?? 0) > 0 ||
+    (feedback.expansion_ideas?.length ?? 0) > 0
+  );
+}

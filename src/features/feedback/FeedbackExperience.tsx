@@ -11,7 +11,7 @@ import { SnapshotCard } from './components/SnapshotCard';
 import { BeforeAfterDiff } from './components/BeforeAfterDiff';
 import { ReportView } from './components/ReportView';
 import { FeedbackPointList } from './components/FeedbackPointList';
-import { coachPointGroups } from './coachPoints';
+import { coachPointGroups, hasGoFurther } from './coachPoints';
 import { VocabularyCard } from './components/VocabularyCard';
 import { ExpansionIdeasCard } from './components/ExpansionIdeasCard';
 import { PronunciationCard } from './components/PronunciationCard';
@@ -87,15 +87,6 @@ interface Props {
 }
 
 export type PronunciationStatus = 'idle' | 'pending' | 'done' | 'failed' | 'signed-out' | 'consent-required';
-
-/** Vocabulary upgrades or expansion ideas to show under "Go further". */
-function hasGoFurther(feedback: FeedbackV2): boolean {
-  return (
-    (feedback.vocabularyV2?.length ?? 0) > 0 ||
-    (feedback.vocabulary?.length ?? 0) > 0 ||
-    (feedback.expansion_ideas?.length ?? 0) > 0
-  );
-}
 
 function FeedbackContent({
   feedback, transcript, modelAnswer, onRetry, onComplete,

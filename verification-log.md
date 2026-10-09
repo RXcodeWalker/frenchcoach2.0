@@ -3737,3 +3737,89 @@ warnings) · `npm test` **319 files / 3164 tests passed** (with `backend/` linke
 `authoring:parity` 10/10 · `examiner:parity` matches · backend `pytest tests/` **470 passed**.
 Not run: Playwright e2e (a Learn answer needs a live speech/LLM round trip; the feedback screen is
 covered by the jsdom `FeedbackExperience` test).
+
+## 2026-10-09 — Learn feedback Batch 6b-0 + 6b logic half: marker detectors and the teacher's pure helpers
+
+**What changed.**
+
+1. **6b-0 — the French marker detectors (`services/coaching/diagnosticEngine.ts`).** Every marker
+   (`hasJustification`, `hasOpinion`, `hasConnectors`, `hasPerspective`, `hasSubjunctive`,
+   `hasConditional`, `hasPastOrFuture`) is now built with the Unicode-boundary `cue()` helper
+   (`domain/learn/demand/textCues.ts`, which gained an optional `flags` argument) and shares one
+   implementation, `findMarker(text, kind) → { quote } | null`; the boolean functions keep their
+   signatures. The old ASCII `\b` never fired next to an accented letter, so « à mon avis », « d'un
+   côté », « à condition que », « grâce à », « étant donné », « c'était » and every passé composé were
+   never found. `hasPastOrFuture` now finds passé composé (avoir; être with a closed verb list;
+   reflexive), imparfait of être/avoir, the simple future behind a subject, and the near future
+   (*aller* + infinitive). `hasConditional` requires a verb stem instead of any -ais/-ait/-ions word.
+   Spec amendment appended to `docs/systems/learn-adaptive-difficulty.md`.
+2. **6b logic half (all pure, no UI yet).**
+   - `domain/learn/feedback/fixMatch.ts` — `fixMatch(attempt, quote, correction, inputMode)` →
+     `'match' | 'unsure'`, never "wrong" (whole correction as whole words; spoken sound-alike; every
+     word the correction adds and none it removes, needing ≥ 1 added word; accents folded unless the
+     fix is accent-only).
+   - `features/feedback/teacher/persona.ts` (name, initials, `addressName`), `preparingLines.ts`
+     (real stream phase; slow line after 12 s; own examiner wording), `predictionQuestions.ts`
+     (≤ 2 checks from `Question.demands`; at most one calibration line per answered check, only when
+     a marker was found), `buildTeacherScript.ts` (ordered lines: answer → opening → strengths →
+     connective by fix count → fixes / also worth fixing → say it better → go further → memory line;
+     name said at most once; works for both registers).
+   - `hasGoFurther` moved from `FeedbackExperience.tsx` into `coachPoints.ts` (one definition, shared
+     with the script); no behaviour change.
+
+**Belief-input note (this is the one that moves numbers).** L1 demand verdicts and the model's
+past/future signal read these markers. Measured on the 668 real model answers in the question bank,
+answers matched, old → new: `hasPastOrFuture` 58 → 216 (2 lost, both old mid-word false positives:
+« a considé… », « ont ré… ») · `hasJustification` 295 → 339 · `hasPerspective` 120 → 130 ·
+`hasOpinion` / `hasSubjunctive` / `hasConnectors` unchanged · **`hasConditional` 373 → 214**. The old
+conditional fired on 56% of answers because it accepted nouns in -ions (« motions », « traditions »,
+« options »), « frais », « anglais », « mauvais », and the imparfait (« avais », « pouvais »); the new
+one drops all of those. Checked word by word over the 122 distinct words the old detector matched and
+the new one does not, the only genuine conditional among them was « permettrait », which led to adding
+the -ettr- / -aîtr- stems. Consequence: `hypothesize` and the *conditional*
+structure resolve to `met` less often (more honestly), so L1 `demand:hypothesize` evidence gets
+sparser; the AI now receives a correct "uses past/future" signal (`apiClient.ts`), where before it
+was told "no past/future" for nearly every answer.
+`adaptiveSimulation` scenarios re-run: **bit-for-bit unchanged** (L: 0.18 / 0.208 / 0.192 over
+39 / 43 / 40 measured answers; M shipped 0.098 / 0.122 / 0.09 over 12 / 14 / 11, M reviewed 0.222 /
+0.256 / 0.262 over 31 / 38 / 35). That is expected and is not evidence the change is harmless: the
+simulation's synthetic transcripts only use markers that were never broken. The corpus comparison
+above is the measurement.
+
+**Deviations from the plan, for the owner.**
+- *Memory line wording.* The plan's example (« j'ai allé » seen three times this week) assumes a
+  per-phrase count. `LearningProblem` holds only a skill node, `isRecurring` and an evidence count, so
+  the line quotes the fix from THIS answer that belongs to the problem's skill and states the
+  skill-level count: « j'ai allé » is a slip I've seen before: Être vs Avoir has come up 3 times this
+  week. With fewer than 3 it says "more than once" rather than inventing a count. It needs a pure
+  resolver, `recurringFixQuote`, because a fix point only carries its human label while the problem's
+  node comes from the raw grammar `theme`. No fix from this answer in that skill → no memory line.
+- *"Every calibration line carries a grounded quote".* True of the reason and tense lines (tested
+  verbatim against the answer). The length line has no quote to give; it states the exact word count
+  instead and speaks only at ≥ 30 words (UNVALIDATED app heuristic, `LONG_ANSWER_WORDS`).
+- *Detector scope.* The plan called 6b-0 "a fix to existing logic, not new detection" but also named
+  forms the old regexes never had (*je suis allé*, *je vais aller*, *je mangerai*), so closed lists
+  were added for them. Ambiguity resolves to "not detected": « -irons / -irez » (present of
+  *respirer* vs future of *finir*) only counts as bare « irons »; -vr- counts for singular and
+  3rd-person plural only (« vous ouvrez »). « parce qu' » counts, and « car » does not after a
+  determiner (« le car » is the bus). These are my additions, tested, not in the plan's text.
+- *`addressName`.* The plan says to use `state.username`; that is a public handle, so anything that
+  does not read as a name (an email, symbols, > 24 characters) is left unsaid.
+- *`cue()` gained an optional `flags` argument* (backward compatible) — needed for case-insensitive
+  markers; the plan said to reuse `cue()` as is.
+
+**Not built (the UI half of 6b, next).** `useTypedReveal`, `TeacherConversation`, `PredictCard`,
+`TryItFirst`, the speaker button / TTS, the `FeedbackExperience` and Learn wiring, the examiner
+branch, and the Playwright screenshots. Nothing above is reachable from the UI yet except the
+detectors, so a learner sees no change other than the corrected detector inputs.
+
+**Rollback.** The helpers are additive and unwired; reverting the commit removes them. To roll back
+only the detector behaviour, revert `diagnosticEngine.ts` and `textCues.ts` (the boolean signatures
+are unchanged, so no caller needs touching).
+
+Gate at commit: `typecheck` clean · `typecheck:server` clean · `lint` 0 errors (21 pre-existing
+warnings) · `npm test` **324 files / 3251 tests passed** (with `backend/` linked at `72e6bdb`) ·
+`learn:check -- --draft` 0 errors (71 warnings, unchanged) · `authoring:check` 0/0 ·
+`authoring:parity` 10/10 · `examiner:parity` matches. `typecheck:scripts` reports 3 errors in
+`scripts/scoring/__tests__/` and `scripts/stt/__tests__/`; identical on a clean `HEAD`, so
+pre-existing and not touched here. Backend: no change in this slice. Not run: Playwright (no UI).
