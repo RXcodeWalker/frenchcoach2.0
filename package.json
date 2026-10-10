@@ -32,6 +32,8 @@
     "feedback:sync-fixtures": "tsx scripts/authoring/syncFeedbackContractFixtures.ts",
     "examiner:generate": "tsx scripts/feedback/generateExaminerPrompts.ts generate",
     "examiner:parity": "tsx scripts/feedback/generateExaminerPrompts.ts parity",
+    "transcribe:eval-run": "tsx scripts/transcription-eval/run.ts",
+    "transcribe:eval-score": "tsx scripts/transcription-eval/score.ts",
     "stt:ingest": "tsx scripts/stt/ingestSession.ts",
     "score:batch": "tsx scripts/scoring/batchScore.ts",
     "score:golden": "tsx scripts/scoring/goldenRegression.ts",

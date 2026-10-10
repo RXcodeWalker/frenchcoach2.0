@@ -21,3 +21,6 @@ data/reports/
 test-results/
 playwright-report/
 blob-report/
+
+# Transcription eval: personal voice recordings + results — never committed.
+data/transcription-eval/

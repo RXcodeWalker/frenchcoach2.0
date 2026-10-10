@@ -39,7 +39,8 @@ npm run learn:check                      # validate src/data/learn/demands/*.jso
 
 Other CLIs exist under `scripts/scoring/` (`score:batch`, `score:inspect`, `score:review`) and
 `scripts/stt/` (`stt:ingest`) for validation work outside the everyday loop — read each script's
-own header comment before using it.
+own header comment before using it. `scripts/transcription-eval/` (`transcribe:eval-run`, `transcribe:eval-score`) is the offline
+Learn-transcript benchmark (Whisper vs Chrome text); its README has the protocol, and it touches neither the scorer nor the app.
 
 ```bash
 npm run judge:check                      # real-judge harness (0520 Phase 1 Batch 2) — see below

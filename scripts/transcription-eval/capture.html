@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Transcription eval capture</title>
+<style>
+  body { font: 15px/1.4 system-ui, sans-serif; max-width: 760px; margin: 24px auto; padding: 0 16px; }
+  label { display: block; margin-top: 10px; font-weight: 600; }
+  textarea, input, select { width: 100%; box-sizing: border-box; font: inherit; padding: 6px; }
+  button { font: inherit; padding: 8px 14px; margin: 10px 8px 0 0; }
+  .live { color: #555; min-height: 1.4em; }
+  table { border-collapse: collapse; width: 100%; margin-top: 16px; }
+  td, th { border-bottom: 1px solid #ddd; padding: 4px 6px; text-align: left; }
+</style>
+</head>
+<body>
+<h1>Transcription eval capture</h1>
+<p>Use Chrome (same engine as Learn). Record a clip: the audio and Chrome's final text are captured together.
+Type the reference(s) after speaking. Aim for ~15 clips incl. 3 adversarial (silence, off-topic, deliberate grammar error)
+and 5 with both references. Nothing leaves this page until you press Export.</p>
+
+<label>Clip kind
+  <select id="kind">
+    <option value="normal">normal</option>
+    <option value="silence">silence (near-silence, say nothing)</option>
+    <option value="offtopic">offtopic (answer unrelated to the vocab hint)</option>
+    <option value="grammar-error">grammar-error (say a deliberate mistake)</option>
+  </select>
+</label>
+<label><input type="checkbox" id="accent" style="width:auto"> Accent clip (counts toward the large-v3 margin rule)</label>
+<label>Vocab hint (Whisper prompt for the "+prompt" configs; e.g. the question's expected topic words)
+  <input id="hint" placeholder="musique, guitare, concert, j'aime, mon groupe préféré">
+</label>
+
+<button id="rec">Record</button><button id="stop" disabled>Stop</button>
+<div class="live" id="live">Idle.</div>
+
+<label>Reference — verbatim (exactly what you said, fillers and false starts included)
+  <textarea id="ref" rows="2"></textarea>
+</label>
+<label>Reference — intended clean (only for the ~5 dual-reference clips; leave empty otherwise)
+  <textarea id="refClean" rows="2"></textarea>
+</label>
+<button id="save" disabled>Save clip</button>
+
+<table id="list"><thead><tr><th>id</th><th>kind</th><th>Chrome text</th><th></th></tr></thead><tbody></tbody></table>
+<button id="export" disabled>Export (pick data/transcription-eval)</button>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const clips = []; // { meta, blob }
+let recorder, recognition, stream, chunks = [], finalText = '', pending = null, startedAt = 0;
+
+if (!SR) $('live').textContent = 'SpeechRecognition unavailable: use Chrome. Chrome text will be empty.';
+
+$('rec').onclick = async () => {
+  stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  chunks = []; finalText = ''; pending = null;
+  recorder = new MediaRecorder(stream);
+  recorder.ondataavailable = (e) => e.data.size && chunks.push(e.data);
+  recorder.onstop = () => {
+    pending = new Blob(chunks, { type: recorder.mimeType || 'audio/webm' });
+    stream.getTracks().forEach((t) => t.stop());
+    $('live').textContent = 'Captured. Chrome text: ' + (finalText.trim() || '(empty)');
+    $('save').disabled = false;
+  };
+  if (SR) {
+    // Same settings Learn uses (useRecording.ts): French, continuous, final results kept.
+    recognition = new SR();
+    recognition.lang = 'fr-FR';
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.onresult = (e) => {
+      let interim = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const r = e.results[i];
+        if (r.isFinal) finalText += r[0].transcript + ' ';
+        else interim += r[0].transcript;
+      }
+      $('live').textContent = (finalText + interim).trim();
+    };
+    recognition.onerror = () => {};
+    recognition.start();
+  }
+  startedAt = performance.now();
+  recorder.start();
+  $('rec').disabled = true; $('stop').disabled = false; $('save').disabled = true;
+};
+
+$('stop').onclick = () => {
+  recorder.stop();
+  if (recognition) { try { recognition.stop(); } catch {} }
+  $('rec').disabled = false; $('stop').disabled = true;
+};
+
+$('save').onclick = () => {
+  const n = clips.length + 1;
+  const id = 'clip' + String(n).padStart(2, '0');
+  const ext = (pending.type.includes('mp4') ? 'mp4' : 'webm');
+  const meta = {
+    id,
+    kind: $('kind').value,
+    file: id + '.' + ext,
+    chromeText: finalText.trim(),
+    reference: $('kind').value === 'silence' ? '' : $('ref').value.trim(),
+    ...($('refClean').value.trim() ? { referenceClean: $('refClean').value.trim() } : {}),
+    ...($('hint').value.trim() ? { promptHint: $('hint').value.trim() } : {}),
+    ...($('accent').checked ? { accent: true } : {}),
+  };
+  clips.push({ meta, blob: pending });
+  pending = null;
+  $('ref').value = ''; $('refClean').value = ''; $('save').disabled = true;
+  $('export').disabled = false;
+  const tr = document.createElement('tr');
+  for (const v of [id, meta.kind, meta.chromeText || '(empty)']) {
+    const td = document.createElement('td'); td.textContent = v; tr.appendChild(td);
+  }
+  tr.appendChild(document.createElement('td'));
+  $('list').tBodies[0].appendChild(tr);
+  $('live').textContent = 'Saved ' + id + '. ' + clips.length + ' clip(s) in memory.';
+};
+
+function download(name, blob) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+$('export').onclick = async () => {
+  const manifest = JSON.stringify({ clips: clips.map((c) => c.meta) }, null, 2);
+  if (window.showDirectoryPicker) {
+    const dir = await window.showDirectoryPicker({ mode: 'readwrite' });
+    for (const c of clips) {
+      const w = await (await dir.getFileHandle(c.meta.file, { create: true })).createWritable();
+      await w.write(c.blob); await w.close();
+    }
+    const m = await (await dir.getFileHandle('manifest.json', { create: true })).createWritable();
+    await m.write(manifest); await m.close();
+    $('live').textContent = 'Exported to the chosen folder.';
+  } else {
+    for (const c of clips) download(c.meta.file, c.blob);
+    download('manifest.json', new Blob([manifest], { type: 'application/json' }));
+    $('live').textContent = 'Downloaded; move the files into data/transcription-eval/.';
+  }
+};
+</script>
+</body>
+</html>
