@@ -22,6 +22,8 @@ const SCAN_ROOTS = [
   'src/screens/learn',
   'src/features/feedback',
   'src/features/learn',
+  'src/features/notebook',
+  'src/screens/Notebook.tsx',
   'src/screens/Learn.tsx',
   'src/components/ui/MicroDrillModal.tsx',
 ];

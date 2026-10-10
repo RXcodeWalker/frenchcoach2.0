@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { TOPICS, getTopicQuestions } from '../data/gameData';
@@ -7,8 +7,12 @@ import { isAuthRequiredError } from '../lib/authToken';
 import { isConsentRequiredError } from '../lib/consentRequired';
 import { assessPronunciation } from '../services/pronunciation/pronunciationClient';
 import type { PronunciationAssessment } from '../domain/pronunciation/types';
-import { ExaminerFeedbackCard } from '../features/feedback/components/ExaminerFeedbackCard';
-import { examinerFailureKind, type ExaminerFailureKind, type ExaminerFeedback } from '../services/coaching/examinerFeedback';
+import { LearnExaminerFeedback } from '../features/feedback/teacher/LearnExaminerFeedback';
+import { pickFollowUpPrompt } from '../domain/learn/feedback/followUpQuestion';
+import { detectFirsts, type FirstId } from '../features/feedback/teacher/firsts';
+import type { NotebookDraft } from '../domain/learn/notebook/notebook';
+import { getSessionHistory } from '../services/analytics/analyticsService';
+import { examinerFailureKind, isExaminerFeedbackEmpty, type ExaminerFailureKind, type ExaminerFeedback } from '../services/coaching/examinerFeedback';
 import { getSkillProfile, buildSkillContext, detectAvoidance } from '../services/coaching/diagnosticEngine';
 import { orchestrateAttempt, recordDemandOnlyAttempt } from '../services/coach/sessionOrchestrator';
 import { getActiveRecommendation, setRecommendationStatus, generateRecommendation } from '../services/coach/recommendationEngine';
@@ -86,6 +90,8 @@ export function Learn() {
   const [focusTokenActive, setFocusTokenActive] = useState(false);
   const [showHint, setShowHint] = useState(false);
   const [feedback, setFeedback] = useState<FeedbackV2 | null>(null);
+  // Batch 6c — milestone firsts the teacher proved for THIS answer (see firsts.ts).
+  const [firsts, setFirsts] = useState<FirstId[]>([]);
   const [isLoadingFeedback, setIsLoadingFeedback] = useState(false);
   const [isRetry, setIsRetry] = useState(false);
   const [showMidToast, setShowMidToast] = useState(false);
@@ -141,7 +147,7 @@ export function Learn() {
   // ADD_SESSION twice for one spoken answer would double-count it.
   const finalizedAttemptIdRef = useRef(0);
 
-  const { consentStatus } = useAuth();
+  const { consentStatus, user: authUser } = useAuth();
   const recording = useRecording(consentStatus === 'pending');
 
   // Abort stream + pronunciation call on unmount
@@ -163,6 +169,21 @@ export function Learn() {
     ? { ...baseQuestion, id: `${baseQuestion.id}::followup`, text: followUpTurn.promptText }
     : baseQuestion;
   const isReviewQuestion = !!currentSessionQuestion?.isReview;
+
+  // The teacher's memory line: a repeated mistake, from the existing recurring-
+  // problem detection (interventionService) — no new store. The count is only
+  // spoken when the problem itself states one (3 or more this week).
+  const repeatedMistake = useMemo(
+    () =>
+      activeProblem?.isRecurring
+        ? {
+            nodeId: activeProblem.nodeId,
+            label: getSkillLabel(activeProblem.nodeId),
+            times: activeProblem.evidenceIds.length >= 3 ? activeProblem.evidenceIds.length : null,
+          }
+        : null,
+    [activeProblem],
+  );
 
   // review_item_shown fires once per review question's presentation — keyed
   // on the question id so it doesn't refire on unrelated re-renders.
@@ -314,6 +335,15 @@ export function Learn() {
 
   // ── Recording + evaluation ────────────────────────────────────────────────────
 
+  // Batch 6c — a "first" is only said when this device's stored history proves it
+  // (firsts.ts). Called BEFORE the answer is recorded, so the answer is never its
+  // own history, and the ids are marked seen as they are spoken (said once, ever).
+  const proveFirsts = (transcript: string): FirstId[] => {
+    const ids = detectFirsts(transcript, getSessionHistory().map((s) => s.transcript), state.firstsSeen);
+    if (ids.length > 0) dispatch({ type: 'MARK_FIRSTS_SEEN', ids });
+    return ids;
+  };
+
   // Not memoized — called only from handleStopRecording
   const _finalizeAnswer = (
     attemptId: number,
@@ -361,6 +391,9 @@ export function Learn() {
       feedback: fb,
       createdAt: new Date().toISOString(),
     };
+
+    // Only a conversation is shown for a full answer; a minimal one has no place to say it.
+    setFirsts((fb.responseTier ?? 3) >= 2 ? proveFirsts(transcript) : []);
 
     const orchestration = orchestrateAttempt({
       session,
@@ -494,6 +527,7 @@ export function Learn() {
     const myAttemptId = ++attemptIdRef.current;
 
     setLearnState('feedback');
+    setFirsts([]);
     setIsLoadingFeedback(true);
     setPartialFeedback(null);
     setStreamPhase(null);
@@ -560,11 +594,16 @@ export function Learn() {
         if (myAttemptId !== attemptIdRef.current) return;
         setExaminerFeedbackResult(result);
         setExaminerStatus('done');
+        // An examiner answer is not recorded as a session, so it is not in the history yet;
+        // only a finished, non-empty commentary has a conversation to say it in.
+        if (!isExaminerFeedbackEmpty(result)) setFirsts(proveFirsts(transcript));
         // Batch 1f / docs §9.4 — the answer still tells us which demand the
         // learner met: L1 demand evidence only, recorded once per answered
         // attempt (a failed call can be retried with the same transcript).
         // No Session, XP, topic mastery or review write; nothing numeric shown.
-        if (activeSession) {
+        // A follow-up's wording isn't tagged with demands, so its answer writes no
+        // demand evidence (Batch 6c: the examiner voice now offers follow-ups).
+        if (activeSession && !followUpTurn) {
           recordDemandOnlyAttempt({
             sessionId: activeSession.id,
             question: currentQuestion,
@@ -871,6 +910,8 @@ export function Learn() {
   const practiceTargetSentence = feedback?.improved_answer || feedback?.rephrase || '';
   const practiceStepEligible =
     practiceStepLive &&
+    // Say It Again is a coach-voice step; the examiner voice has no `feedback` to practise from.
+    feedbackMode === 'coach' &&
     !!practiceTargetSentence.trim() &&
     (feedback?.responseTier ?? 3) >= 2 &&
     extraTurnBudget.canOfferPractice(activeSession?.currentIndex ?? null) &&
@@ -881,15 +922,44 @@ export function Learn() {
   // picks the first authored follow-up deterministically — nothing in the
   // codebase's Say-It-Again precedent randomizes either, and a fixed pick
   // keeps this auditable.
+  //
+  // Batch 6c: the coach voice asks the model's own question (it continues THIS
+  // conversation); otherwise, and for the examiner voice, the question's
+  // authored first follow-up.
+  const followUpPrompt = pickFollowUpPrompt(
+    feedbackMode === 'coach' ? feedback?.followUpQuestion : undefined,
+    currentQuestion?.followUps,
+  );
   const followUpEligible =
     followUpLive &&
     // docs §8.5 — a follow-up's wording isn't tagged, so it can't be shown to
     // match a grammar filter: none are offered while one is on.
     !hasActiveFilters(filters) &&
     !followUpTurn &&
-    (currentQuestion?.followUps.length ?? 0) > 0 &&
+    followUpPrompt !== null &&
     (feedback?.responseTier ?? 3) >= 2 &&
     extraTurnBudget.canOfferFollowUp(activeSession?.currentIndex ?? null);
+
+  // The teacher announces the examiner's next question only when tapping Next
+  // really asks it: Say It Again comes first when it is on offer.
+  const nextQuestionPreview = followUpEligible && !practiceStepEligible ? followUpPrompt : null;
+
+  // Batch 6d — "Save to notebook". Not offered on a follow-up turn (it has no
+  // stable question of its own). The only write is the learner's tap on Save.
+  const notebookOffer =
+    currentQuestion && !followUpTurn
+      ? {
+          question: {
+            questionId: currentQuestion.id,
+            question: currentQuestion.text,
+            topicKey: currentQuestion.topicKey,
+            ...(currentQuestion.subTopic ? { subTopic: currentQuestion.subTopic } : {}),
+          },
+          signedIn: authUser !== null,
+          savedAnswer: state.notebook.find((e) => e.questionId === currentQuestion.id)?.answer ?? null,
+          onSave: (draft: NotebookDraft) => dispatch({ type: 'SAVE_NOTEBOOK_ENTRY', draft, now: new Date().toISOString() }),
+        }
+      : null;
 
   const handleFeedbackComplete = () => {
     if (followUpTurn) {
@@ -907,9 +977,9 @@ export function Learn() {
       }
       return;
     }
-    if (followUpEligible && currentQuestion) {
+    if (followUpEligible && followUpPrompt) {
       extraTurnBudget.consumeFollowUp(activeSession?.currentIndex ?? null);
-      setFollowUpTurn({ promptText: currentQuestion.followUps[0] });
+      setFollowUpTurn({ promptText: followUpPrompt });
       setLearnState('question');
       return;
     }
@@ -1082,7 +1152,7 @@ export function Learn() {
 
           {learnState === 'topics' && (
             <motion.div key="topics" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-              <TopicGrid onSelect={selectTopic} selectedDifficulty={selectedDifficulty} />
+              <TopicGrid onSelect={selectTopic} selectedDifficulty={selectedDifficulty} showNotebookLink />
             </motion.div>
           )}
 
@@ -1208,17 +1278,22 @@ export function Learn() {
 
               {learnState === 'feedback' && feedbackMode === 'examiner' && (
                 <div className="space-y-3">
-                  <ExaminerFeedbackCard
+                  <LearnExaminerFeedback
                     status={examinerStatus === 'idle' ? 'pending' : examinerStatus}
                     result={examinerFeedbackResult}
                     failureKind={examinerFailure}
                     onSwitchToCoach={handleSwitchToCoachMode}
                     onRetry={handleRetry}
+                    transcript={recording.transcript}
+                    name={state.profile.username}
+                    demands={followUpTurn ? null : currentQuestion?.demands}
+                    nextQuestion={examinerStatus === 'done' ? nextQuestionPreview : null}
+                    firsts={firsts}
                   />
                   {(examinerStatus === 'done' || examinerStatus === 'quota-exhausted') && (
                     <button
                       type="button"
-                      onClick={advanceQuestion}
+                      onClick={examinerStatus === 'done' ? handleFeedbackComplete : advanceQuestion}
                       className="w-full py-3 rounded-xl bg-action-soft border border-hairline text-action-text font-bold text-sm hover:bg-violet-500/25 transition-colors"
                     >
                       Continue
@@ -1247,6 +1322,12 @@ export function Learn() {
                   onComplete={handleFeedbackComplete}
                   pronunciationResult={pronunciationResult}
                   pronunciationStatus={pronunciationStatus}
+                  demands={followUpTurn ? null : currentQuestion?.demands}
+                  learnerName={state.profile.username}
+                  recurring={repeatedMistake}
+                  nextQuestion={nextQuestionPreview}
+                  firsts={firsts}
+                  notebook={notebookOffer}
                 />
               )}
             </motion.div>

@@ -14,6 +14,9 @@ import type { CoachingIssue, FeedbackV2 } from '../../types';
 /** How many fixes lead, under "Fix these first"; every other fix is still shown, under "Also worth fixing". */
 export const FIRST_FIXES = 2;
 
+/** The heading of the group the teacher turns into "Try it first" nudges. */
+export const FIX_FIRST_HEADING = 'Fix these first';
+
 const SEVERITY_RANK: Record<string, number> = { major: 0, minor: 1, anglicism: 2, polish: 3 };
 
 type GrammarItem = FeedbackV2['grammar']['critical'][number] & { quote?: string; themeLabel?: string };
@@ -117,7 +120,16 @@ export function coachPointGroups(feedback: FeedbackV2): FeedbackPointGroup[] {
   const fixes = selectCoachFixes(feedback);
   return [
     whatWorkedGroup(feedback),
-    { heading: 'Fix these first', tone: 'bad', points: fixes.slice(0, FIRST_FIXES) },
+    { heading: FIX_FIRST_HEADING, tone: 'bad', points: fixes.slice(0, FIRST_FIXES) },
     { heading: 'Also worth fixing', tone: 'bad', points: fixes.slice(FIRST_FIXES) },
   ];
+}
+
+/** Vocabulary upgrades or expansion ideas exist to show under "Go further". */
+export function hasGoFurther(feedback: FeedbackV2): boolean {
+  return (
+    (feedback.vocabularyV2?.length ?? 0) > 0 ||
+    (feedback.vocabulary?.length ?? 0) > 0 ||
+    (feedback.expansion_ideas?.length ?? 0) > 0
+  );
 }

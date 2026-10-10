@@ -12,7 +12,8 @@ import { getStats } from '../services/analytics/analyticsService';
 import { getProgressionState, awardGemsForXP, levelFor, setProgressionData, reconcileTotalFromLedger } from '../services/progression/progressionService';
 import { getMyAllTimeXp } from '../services/social/leaderboardService';
 import { getSkillProfile } from '../services/coaching/diagnosticEngine';
-import { STORAGE_KEYS, storageGet, storageSet, storageSetRaw, scopedKey, matchesScopedKey, hasNoScopedDataYet, copyGuestScopeToIdentity } from '../services/persistence/storage';
+import { STORAGE_KEYS, storageGet, storageSet, storageSetRaw, scopedKey, matchesScopedKey, hasNoScopedDataYet, copyGuestScopeToIdentity, isAccountScope } from '../services/persistence/storage';
+import { parseNotebook, upsertEntry, type NotebookDraft, type NotebookEntry } from '../domain/learn/notebook/notebook';
 import { useAuth } from './AuthContext';
 import { pushProgressionToCloud, pullProgressionFromCloud, mergeProgressionData, cloudDiffersFromMerged, markNeedsSync } from '../services/sync/progressionSync';
 import { hydrateSessionsFromCloud, pushSessionToCloud, backfillSessionsToCloud, flushPendingQueue } from '../services/sync/sessionSync';
@@ -42,6 +43,14 @@ interface AppState {
   skillProfile: SkillProfile;
   focusedSkillId: string | null;
   masteredDrills: string[];
+  /** Milestone ids the teacher has already said (Learn feedback Batch 6c); never said twice. */
+  firstsSeen: string[];
+  /**
+   * The learner's exam notebook (Learn feedback Batch 6d). Local only and
+   * signed-in only: a guest's slice is always empty, and no sync module, request
+   * body or log may read it.
+   */
+  notebook: NotebookEntry[];
   lastUnlockedAchievement: Achievement | null;
   newLevelReached: string | null;
   activeSession: ActiveSession | null;
@@ -90,6 +99,10 @@ type Action =
   | { type: 'UPDATE_SKILL_PROFILE'; skillProfile: SkillProfile }
   | { type: 'SET_FOCUSED_SKILL'; skillId: string | null }
   | { type: 'MARK_DRILL_MASTERED'; drillId: string }
+  | { type: 'MARK_FIRSTS_SEEN'; ids: string[] }
+  | { type: 'SAVE_NOTEBOOK_ENTRY'; draft: NotebookDraft; now: string }
+  /** Cross-tab: another tab already wrote the key, so this only mirrors it (no write). */
+  | { type: 'SET_NOTEBOOK'; entries: NotebookEntry[] }
   | { type: 'START_SESSION'; session: ActiveSession }
   | { type: 'UPDATE_ACTIVE_SESSION'; session: ActiveSession }
   | { type: 'END_SESSION' }
@@ -107,6 +120,11 @@ function buildInitialState(): AppState {
   const unlockedIds = new Set(progression.achievements);
 
   const masteredDrills = storageGet<string[]>(STORAGE_KEYS.masteredDrills, []);
+  const storedFirsts = storageGet<unknown>(STORAGE_KEYS.firstsSeen, []);
+  const firstsSeen = Array.isArray(storedFirsts) ? storedFirsts.filter((id): id is string => typeof id === 'string') : [];
+
+  // Guests never hold a notebook (it would be left behind for the next guest on a shared device).
+  const notebook = isAccountScope() ? parseNotebook(storageGet<unknown>(STORAGE_KEYS.notebook, [])) : [];
 
   const profile: UserProfile = {
     id: 'local-user',
@@ -175,6 +193,8 @@ function buildInitialState(): AppState {
     skillProfile,
     focusedSkillId: null,
     masteredDrills,
+    firstsSeen,
+    notebook,
     lastUnlockedAchievement: null,
     newLevelReached: null,
     activeSession: null,
@@ -196,6 +216,24 @@ export function reducer(state: AppState, action: Action): AppState {
       storageSet(STORAGE_KEYS.masteredDrills, next);
       return { ...state, masteredDrills: next };
     }
+    case 'MARK_FIRSTS_SEEN': {
+      const fresh = action.ids.filter((id) => !state.firstsSeen.includes(id));
+      if (fresh.length === 0) return state;
+      const next = [...state.firstsSeen, ...fresh];
+      storageSet(STORAGE_KEYS.firstsSeen, next);
+      return { ...state, firstsSeen: next };
+    }
+    case 'SAVE_NOTEBOOK_ENTRY': {
+      // A guest cannot save: the guest-to-account copy would otherwise leave a
+      // `::guest` copy behind for the next guest on a shared device.
+      if (!isAccountScope()) return state;
+      const next = upsertEntry(state.notebook, action.draft, action.now);
+      if (next === state.notebook) return state;
+      storageSet(STORAGE_KEYS.notebook, next);
+      return { ...state, notebook: next };
+    }
+    case 'SET_NOTEBOOK':
+      return isAccountScope() ? { ...state, notebook: action.entries } : state;
     case 'ADD_XP': {
       const { totalXP, totalGems, gemGain, activeBoosters } = action;
       const animId = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
@@ -678,6 +716,17 @@ export function AppProvider({ identity, children }: { identity: string; children
       }
       if (matchesScopedKey(e.key, STORAGE_KEYS.aim) && e.newValue) {
         dispatch({ type: 'SET_AIM', aim: e.newValue as Aim });
+        return;
+      }
+      if (matchesScopedKey(e.key, STORAGE_KEYS.notebook)) {
+        // Another tab saved (or the account's notes were removed): mirror it, parsed defensively.
+        let entries: NotebookEntry[] = [];
+        try {
+          entries = e.newValue ? parseNotebook(JSON.parse(e.newValue)) : [];
+        } catch {
+          entries = [];
+        }
+        dispatch({ type: 'SET_NOTEBOOK', entries });
         return;
       }
       if (matchesScopedKey(e.key, STORAGE_KEYS.progression) || matchesScopedKey(e.key, STORAGE_KEYS.analytics)) {

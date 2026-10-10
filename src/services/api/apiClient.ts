@@ -19,6 +19,7 @@ import { demandsVersion as LEARN_DEMANDS_VERSION } from '../../data/learn/demand
 import { evaluateDemandSatisfaction } from '../../domain/learn/demand/satisfaction';
 import { computeDepth, type FeedbackDepth } from '../../domain/learn/feedback/computeDepth';
 import { filterCoachFeedback, type CoachInputMode } from '../../domain/learn/feedback/filterCoachFeedback';
+import { cleanFollowUpQuestion } from '../../domain/learn/feedback/followUpQuestion';
 import { classifyTier, buildTier0Result, buildTier1LocalResult } from '../coaching/responseTier';
 import { applyQualityGate } from '../coaching/qualityGate';
 import { validateBackendFeedback, SchemaValidationError } from './feedbackSchema';
@@ -498,6 +499,7 @@ function mergeV2Fields(base: FeedbackV2, raw: BackendFeedbackV2): FeedbackV2 {
       improved_answer: raw.improved_answer,
       rephrase: raw.rephrase,
       advanced_answer: raw.advanced_answer,
+      followUpQuestion: cleanFollowUpQuestion(raw.followUpQuestion),
       expansion_ideas: raw.expansion_ideas,
       formatted_transcript: raw.formatted_transcript,
       issues: adapted?.issues ?? raw.issues,

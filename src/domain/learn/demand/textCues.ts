@@ -28,9 +28,13 @@ export function wordCount(input: string): number {
  */
 const B = '(?:(?<![\\p{L}\\p{N}])|(?![\\p{L}\\p{N}]))';
 
-/** Build a Unicode-boundary-safe RegExp from a source string written with `\b`. */
-export function cue(source: string): RegExp {
-  return new RegExp(source.split('\\b').join(B), 'u');
+/**
+ * Build a Unicode-boundary-safe RegExp from a source string written with `\b`.
+ * `flags` are added to the always-on `u` (e.g. `'i'` for a case-insensitive
+ * marker, `'gi'` to walk every match with `matchAll`).
+ */
+export function cue(source: string, flags = ''): RegExp {
+  return new RegExp(source.split('\\b').join(B), `u${flags}`);
 }
 
 const TIME_FRAME_CUES: Record<'present' | 'past' | 'future' | 'conditional', RegExp[]> = {
