@@ -3408,3 +3408,30 @@ with ≥1 assessed clip; "accent-only" means a report not listed in the clip's h
   reservation fails and falls back to unmetered (logged), it does not crash.
 - Open risk recorded in the spec: freeform assessment probably cannot see a cleanly pronounced swap,
   so set 3 may fail for a reason no threshold fixes.
+
+## 2026-10-10 — Exam-pronunciation Batch 7: calibration sets 1 and interim 2 recorded — clean; gate still closed
+
+**Sources.** Common Voice Scripted Speech 26.0 "French of France" and "Canadian French" (Mozilla Data
+Collective, CC0, terms accepted by the owner; downloaded into the session scratchpad only, never
+committed). The owner's Azure subscription had lapsed (401 on every call); a new Speech resource
+(Free F0, `centralindia`) was created and its key set here and on Render before recording.
+
+**Recorded** (backend `0bf708c`, `tests/fixtures/exam_pronunciation_calibration/`, Azure JSON only, no
+audio; unmetered — no Supabase service key in this environment):
+- set 1 *clear*: 20 clips, 20 speakers, mainland French accents (overseas and multi-language labels
+  excluded), 85 s trimmed.
+- set 2 *accented*, **interim**: 20 clips — 1 self-described anglophone learner, 9 overseas French
+  (La Réunion, Martinique, New Caledonia…), 10 Canadian/Québécois. The 26.0 segments hold only two
+  learner speakers; the learner-accent set needs Common Voice 27.0 French (terms not yet accepted).
+
+**Result** (`npm run pronunciation:calibration:report`, fairness `exam-pronunciation-fairness-v1`,
+floors 45/30): **INCOMPLETE** — clear **pass** (20 assessed, 0 reported), accented **pass** (20
+assessed, 0 reported), unclear **no clips**. Azure marked 4 of 428 words `mispronounced`; all 4 were
+suppressed. Thinnest margin: an accented word at accuracy 46 against the 45 floor (also suppressed as
+a proper noun). Recogniser disagreement on ~10% of words (44/428), using the read sentence as the exam
+transcript. Backend replay test 81 passed; frontend gate tests 12 passed.
+
+**Not done — `EXAM_PRONUNCIATION_ACCESS` must stay `off`/`admin`.** Set 3 (owner's recording) and the
+learner-accent set 2 are missing; this small sample says Azure rarely flags words at all, so it shows
+the rules don't over-report, not that they catch real errors — only set 3 can show that. Release
+condition 2 (migration `20261003113100` in production) is still unverified.

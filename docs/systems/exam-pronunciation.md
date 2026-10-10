@@ -6,8 +6,8 @@ way, and the rules it must keep: `docs/decisions/0010-pronunciation-evidence-is-
 tests are the current behavior.
 
 **Release status: closed.** The feature is built and dark for learners. Every threshold is
-`UNVALIDATED`, and the calibration that would validate them (below) has **not been run** (its tooling
-exists; no audio has been recorded through it). Until it
+`UNVALIDATED`, and the calibration that would validate them (below) has **not passed**: sets 1 and an
+interim set 2 are recorded and clean, set 3 and the learner-accent set 2 are not. Until it
 has, `EXAM_PRONUNCIATION_ACCESS` stays `off` or `admin`.
 
 ## What the candidate sees
@@ -133,7 +133,7 @@ for a `pending` account.
 If calibration moves a threshold, bump `EXAM_PRONUNCIATION_VERSION` (and
 `EXAM_PRONUNCIATION_ASSESSOR_VERSION` if the backend logic changed) and re-run it.
 
-### Calibration (tooling built, not yet run)
+### Calibration (partly run: sets 1 and interim 2)
 
 Three fixed audio sets: (1) clear French, (2) a strong but understandable accent, (3) genuinely
 unclear words (minimal-pair swaps). Rules: no under-13 voices, everyone recorded consents, no
