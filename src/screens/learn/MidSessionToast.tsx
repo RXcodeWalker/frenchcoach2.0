@@ -48,7 +48,7 @@ export function MidSessionToast({ show, variant = 'progress', questionsCompleted
           {variant === 'progress' ? (
             <div className="surface-raised border-violet-electric/25 p-4 rounded-2xl shadow-xl space-y-1">
               <div className="flex items-center gap-2">
-                <Zap size={14} className="text-violet-400" />
+                <Zap size={14} className="text-action-text" />
                 <p className="text-sm font-black text-white">Halfway there!</p>
               </div>
               <p className="text-xs text-ink-muted leading-snug">
@@ -56,16 +56,16 @@ export function MidSessionToast({ show, variant = 'progress', questionsCompleted
                 {avgScore !== null && ` · Avg ${avgScore.toFixed(1)}`}
               </p>
               {isAboveAvg && (
-                <p className="text-[10px] text-emerald-400 font-bold">Above your personal average ↑</p>
+                <p className="text-[10px] text-progress-text font-bold">Above your personal average ↑</p>
               )}
             </div>
           ) : (
             <div className="surface-raised border-violet-electric/25 p-4 rounded-2xl shadow-xl space-y-1">
               <div className="flex items-center gap-2">
                 {variant === 'difficulty-down' ? (
-                  <ArrowDown size={14} className="text-violet-400" />
+                  <ArrowDown size={14} className="text-action-text" />
                 ) : (
-                  <ArrowUp size={14} className="text-violet-400" />
+                  <ArrowUp size={14} className="text-action-text" />
                 )}
                 <p className="text-sm font-black text-white">{DIFFICULTY_COPY[variant].title}</p>
               </div>

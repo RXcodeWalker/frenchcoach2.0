@@ -5,6 +5,11 @@ export const STORAGE_KEYS = {
   diagnosticSDE:  'frenchCoach_sde',
   topicMastery:   'frenchCoach_topicMastery',
   masteredDrills: 'frenchCoach_masteredDrills',
+  // Learn feedback Batch 6c — the milestone "firsts" the teacher has already said (ids only; per account on this device).
+  firstsSeen:     'frenchCoach_firstsSeen',
+  // Learn feedback Batch 6d — the learner's exam notebook (their own improved answers). LOCAL ONLY, signed-in only:
+  // never synced, never logged, never sent to a request body (see domain/learn/notebook/__tests__/notebookPrivacy.test.ts).
+  notebook:       'frenchCoach_notebook',
   darkMode:       'frenchCoach_darkMode',
   aiEngine:       'frenchCoach_aiEngine',
   difficulty:     'frenchCoach_difficulty',
@@ -139,6 +144,15 @@ export function setStorageScope(identity: string): void {
 /** The identity the active scope is namespaced to, or null pre-scope-set. */
 export function getStorageScope(): string | null {
   return activeScope;
+}
+
+/**
+ * True only for a real signed-in account's scope — not `guest`, and not an
+ * unset scope. Data that must never be left behind for the next guest on a
+ * shared device (the notebook) is written only when this holds.
+ */
+export function isAccountScope(): boolean {
+  return activeScope !== null && activeScope !== 'guest';
 }
 
 /**

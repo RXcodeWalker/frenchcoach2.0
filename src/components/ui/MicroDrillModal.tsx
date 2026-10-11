@@ -117,12 +117,12 @@ export const MicroDrillModal: React.FC<MicroDrillModalProps> = ({ skillId, onClo
         {/* Header */}
         <div className="bg-white/5 p-6 flex items-center justify-between border-b border-white/5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-500 border border-rose-500/20">
+            <div className="w-10 h-10 rounded-xl bg-rose-500/10 flex items-center justify-center text-correction-text border border-rose-500/20">
               <Target size={20} />
             </div>
             <div>
               <h2 className="text-lg font-black text-white italic tracking-tighter uppercase">Recovery Drill</h2>
-              <p className="text-[10px] font-bold text-ink-muted uppercase tracking-widest flex items-center gap-1.5">
+              <p className="text-eyebrow text-ink-muted uppercase flex items-center gap-1.5">
                 Targeting: {skillDef?.name || skillId}
               </p>
             </div>
@@ -160,10 +160,10 @@ export const MicroDrillModal: React.FC<MicroDrillModalProps> = ({ skillId, onClo
                 className="text-center py-8"
               >
                 <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-6 border-2 border-emerald-500/30">
-                  <CheckCircle2 size={40} className="text-emerald-400" />
+                  <CheckCircle2 size={40} className="text-progress-text" />
                 </div>
                 <h3 className="text-2xl font-black text-white italic uppercase tracking-tighter mb-2">Drill Complete!</h3>
-                <p className="text-ink-muted text-sm mb-8">You've successfully addressed your weak point and earned <span className="text-violet-400 font-bold">{score} XP</span>.</p>
+                <p className="text-ink-muted text-sm mb-8">You've successfully addressed your weak point and earned <span className="text-action-text font-bold">{score} XP</span>.</p>
                 <button 
                   onClick={onClose}
                   className="w-full py-4 bg-white text-slate-950 font-black rounded-2xl shadow-xl hover:scale-105 transition-all uppercase italic tracking-wider"
@@ -175,7 +175,7 @@ export const MicroDrillModal: React.FC<MicroDrillModalProps> = ({ skillId, onClo
               <motion.div key={currentIndex} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                 {/* Question Info */}
                 <div className="text-center mb-8">
-                  <p className="text-[10px] font-bold text-ink-subtle uppercase tracking-widest mb-2">Question {currentIndex + 1} of {questions.length}</p>
+                  <p className="text-eyebrow text-ink-subtle uppercase mb-2">Question {currentIndex + 1} of {questions.length}</p>
                   <h3 className="text-xl font-bold text-white leading-tight">
                     {currentQuestion.english}
                   </h3>
@@ -191,7 +191,7 @@ export const MicroDrillModal: React.FC<MicroDrillModalProps> = ({ skillId, onClo
                       layoutId={`drill-frag-${frag}-${i}`}
                       key={`${frag}-${i}`}
                       onClick={() => handleTargetClick(i)}
-                      className="px-4 py-2 rounded-xl bg-violet-600 text-white font-bold text-sm shadow-lg"
+                      className="px-4 py-2 rounded-xl bg-action text-action-ink font-bold text-sm shadow-lg"
                     >
                       {frag}
                     </motion.button>
@@ -205,7 +205,7 @@ export const MicroDrillModal: React.FC<MicroDrillModalProps> = ({ skillId, onClo
                       layoutId={`drill-pool-${frag.text}`}
                       key={frag.id}
                       onClick={() => handlePoolClick(frag)}
-                      className="px-4 py-2 rounded-xl bg-slate-900 border border-white/10 text-white font-bold text-sm hover:border-violet-500/50 hover:bg-slate-800 transition-colors"
+                      className="px-4 py-2 rounded-xl surface-recessed text-ink font-bold text-sm hover:border-action transition-colors"
                     >
                       {frag.text}
                     </motion.button>
@@ -216,7 +216,7 @@ export const MicroDrillModal: React.FC<MicroDrillModalProps> = ({ skillId, onClo
                 <div className="flex flex-col items-center gap-4">
                   {feedback === 'correct' ? (
                     <div className="flex flex-col items-center gap-4 w-full">
-                      <div className="text-xl font-black italic uppercase text-emerald-400 flex items-center gap-2">
+                      <div className="text-xl font-black italic uppercase text-progress-text flex items-center gap-2">
                         <CheckCircle2 size={24} /> Perfect !
                       </div>
                       <button 
@@ -229,7 +229,7 @@ export const MicroDrillModal: React.FC<MicroDrillModalProps> = ({ skillId, onClo
                     </div>
                   ) : feedback === 'incorrect' ? (
                     <div className="flex flex-col items-center gap-4 w-full">
-                      <div className="text-xl font-black italic uppercase text-rose-400 flex items-center gap-2">
+                      <div className="text-xl font-black italic uppercase text-correction-text flex items-center gap-2">
                         <XCircle size={24} /> Try again...
                       </div>
                       <div className="flex gap-2 w-full">
@@ -253,7 +253,7 @@ export const MicroDrillModal: React.FC<MicroDrillModalProps> = ({ skillId, onClo
                   
                   {feedback && currentQuestion.explanation && (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-4 p-4 rounded-xl bg-white/5 border border-white/5 flex gap-3">
-                      <Lightbulb size={18} className="text-amber-500 shrink-0 mt-0.5" />
+                      <Lightbulb size={18} className="text-reward-text shrink-0 mt-0.5" />
                       <p className="text-xs text-ink-muted leading-relaxed">{currentQuestion.explanation}</p>
                     </motion.div>
                   )}

@@ -13,19 +13,19 @@ export interface AimConfig {
 export const AIM_CONFIG: Record<Aim, AimConfig> = {
   comfortable: {
     aim: 'comfortable',
-    label: 'Comfortable',
+    label: 'Easier',
     description: 'Mostly easier questions, to build confidence.',
     icon: '🌱',
   },
   balanced: {
     aim: 'balanced',
-    label: 'Balanced',
+    label: 'Right for me',
     description: "Mostly at your level, with a question or two that stretch you.",
     icon: '🎯',
   },
   push: {
     aim: 'push',
-    label: 'Push',
+    label: 'Harder',
     description: 'More questions that challenge you above your level.',
     icon: '🔥',
   },
@@ -114,6 +114,22 @@ export const DIFFICULTY_CONFIG: Record<DifficultyTier, DifficultyConfig> = {
 };
 
 export const DEFAULT_DIFFICULTY: DifficultyTier = 'intermediate';
+
+/**
+ * Learn overhaul Batch 1e — the one expectation set Learn's avoidance checks
+ * use, replacing the hidden tier (the tier grid is gone; a stored 'expert'
+ * used to demand the subjunctive). 0520 speaking targets "A2 with elements of
+ * B1" (Teacher's Notes p.11): A2 word counts, plus the two B1 elements that
+ * every Learn question can invite — linking ideas and giving reasons. Tense
+ * variety is left to each question's own time frames (a present-tense
+ * question shouldn't be nagged for a past tense); the subjunctive and
+ * multiple perspectives are above the target and never required.
+ */
+export const IGCSE_EXPECTATIONS: DifficultyConfig['expectations'] = {
+  ...DIFFICULTY_CONFIG.intermediate.expectations,
+  requireConnectors: true,
+  requireDetailedJustification: true,
+};
 
 export function preferredFirst(questions: Question[], difficulty: DifficultyTier): Question[] {
   const preferred = DIFFICULTY_CONFIG[difficulty].preferredQuestionDifficulty;

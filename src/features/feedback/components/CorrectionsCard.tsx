@@ -44,7 +44,7 @@ export function CorrectionsCard({ issues, polishIssues = [], feedback, lessonsDe
       {totalCritical > 0 && (
         <CollapsibleCard
           title="Fix These First"
-          icon={<XCircle size={13} className="text-red-400" />}
+          icon={<XCircle size={13} className="text-correction-text" />}
           badgeCount={totalCritical}
           defaultOpen={true}
           forceOpen={state.openCardIds.has('corrections') ? true : undefined}
@@ -56,10 +56,10 @@ export function CorrectionsCard({ issues, polishIssues = [], feedback, lessonsDe
                 <IssueRow key={issue.id} issue={issue} isSelected={state.selectedIssueId === issue.id} lessonDefaultOpen={lessonsDefaultOpen} lessonForceOpen={lessonsForceOpen} />
               ))
             : legacyCritical.map((err, i) => (
-                <div key={i} className="p-2.5 rounded-lg bg-red-500/5 border border-red-500/10 mb-1.5">
-                  <p className="text-[10px] font-semibold text-red-300">{err.theme}</p>
+                <div key={i} className="p-2.5 rounded-lg bg-correction-soft border border-hairline mb-1.5">
+                  <p className="text-[10px] font-semibold text-correction-text">{err.theme}</p>
                   <p className="text-[10px] text-ink-muted mt-0.5">{err.diagnostic}</p>
-                  <p className="text-[10px] text-emerald-400 mt-0.5">{err.correction}</p>
+                  <p className="text-[10px] text-progress-text mt-0.5">{err.correction}</p>
                 </div>
               ))
           }
@@ -70,7 +70,7 @@ export function CorrectionsCard({ issues, polishIssues = [], feedback, lessonsDe
       {totalPolish > 0 && (
         <CollapsibleCard
           title="Next Level"
-          icon={<Sparkles size={13} className="text-violet-400" />}
+          icon={<Sparkles size={13} className="text-action-text" />}
           badgeCount={totalPolish}
           defaultOpen={false}
           className="border border-violet-500/10"
@@ -80,10 +80,10 @@ export function CorrectionsCard({ issues, polishIssues = [], feedback, lessonsDe
                 <IssueRow key={issue.id} issue={issue} isSelected={state.selectedIssueId === issue.id} lessonForceOpen={lessonsForceOpen} />
               ))
             : legacyPolish.map((err, i) => (
-                <div key={i} className="p-2.5 rounded-lg bg-violet-500/5 border border-violet-500/10 mb-1.5">
-                  <p className="text-[10px] font-semibold text-violet-300">{err.theme}</p>
+                <div key={i} className="p-2.5 rounded-lg bg-action-soft border border-hairline mb-1.5">
+                  <p className="text-[10px] font-semibold text-action-text">{err.theme}</p>
                   <p className="text-[10px] text-ink-muted mt-0.5">{err.diagnostic}</p>
-                  <p className="text-[10px] text-emerald-400 mt-0.5">{err.correction}</p>
+                  <p className="text-[10px] text-progress-text mt-0.5">{err.correction}</p>
                 </div>
               ))
           }

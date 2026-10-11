@@ -3,6 +3,7 @@ import { DEFAULT_DIFFICULTY, DIFFICULTY_CONFIG } from '../../utils/difficultyCon
 import { STORAGE_KEYS, storageGet, storageSet } from '../persistence/storage';
 import { nodeForGrammarTheme } from '../../domain/igcse/evidence/framework/nodeMap';
 import { LANGUAGE_SUCCESS_SCORE } from '../../domain/scoring';
+import { cue } from '../../domain/learn/demand/textCues';
 
 const STORAGE_KEY = STORAGE_KEYS.diagnosticSDE;
 const HALF_LIFE_DAYS = 14;
@@ -227,56 +228,227 @@ export function invitesHypothetical(questionText: string): boolean {
   return /\bsi\b|\bimagine\b|\ben rêve\b|\bidéal(e|ement)?\b/i.test(questionText);
 }
 
+// ── French marker detectors ─────────────────────────────────────────────────
+// Every marker below is built with `cue()` (domain/learn/demand/textCues.ts),
+// whose Unicode-aware boundary replaces JS's ASCII-only `\b`. `\b` never fires
+// next to an accented letter, so the old regexes silently missed any marker
+// that starts or ends in one — « à mon avis », « d'un côté », « grâce à »,
+// « étant donné », « c'était », and every passé composé (`\w+é\b`).
+// Still "reliable presence, unreliable absence" (satisfaction.ts): a hit is
+// trustworthy, a miss never proves the learner did not do it.
+//
+// `findMarker` is the primary API and also returns the matched span, so a
+// caller can quote what was heard; the boolean `hasX` functions are thin
+// wrappers over it and keep their old signatures.
+
+/** Straight or typographic apostrophe — typed answers carry both. */
+const AP = "['’]";
+
+/** A phrase list as one alternation: spaces become `\s+`, `'` accepts both apostrophes. */
+function alt(phrases: readonly string[]): string {
+  return phrases.map((p) => p.replace(/ /g, '\\s+').replace(/'/g, AP)).join('|');
+}
+
+const SUBJECT = '(?:je|tu|il|elle|on|nous|vous|ils|elles)';
 /**
- * Words ending in a conditional-mood suffix (ais/ait/aient/ions/iez) that are
- * not conditional forms at all — present tense (`vais`, `fais`, `sais`) or
- * common adverbs/nouns (`mais`, `jamais`, `palais`). Excluded so the fixed
- * detector below stays presence-reliable rather than firing on ordinary
- * present-tense speech.
+ * Object / reflexive / negation clitics that can sit between the subject and the
+ * verb. « en » is left out on purpose: « je vais en mer » must not read as a
+ * near future.
  */
-const CONDITIONAL_FALSE_POSITIVES = new Set([
-  'vais', 'fais', 'sais', 'plait', 'plaît', 'fait', 'mais', 'jamais', 'palais',
+const CLITIC = `(?:(?:n|m|t|s|l)${AP}|(?:ne|me|te|se|le|la|les|lui|leur|y|nous|vous)\\s+)`;
+const ADVERB =
+  '(?:(?:pas|jamais|plus|déjà|bien|toujours|souvent|beaucoup|vraiment|aussi|encore|enfin|tous|toutes)\\s+){0,2}';
+
+/** Avoir-verb participles that do not end in « é ». A closed list: this is presence detection, not a verb parser. */
+const IRREGULAR_PARTICIPLES = alt([
+  'fait', 'pris', 'vu', 'eu', 'dit', 'mis', 'bu', 'lu', 'écrit', 'appris', 'compris', 'voulu', 'pu', 'dû', 'su',
+  'reçu', 'connu', 'vécu', 'perdu', 'entendu', 'attendu', 'ouvert', 'offert', 'découvert', 'fini', 'choisi',
+  'réussi', 'dormi', 'obtenu', 'tenu', 'couru', 'vendu', 'répondu', 'rendu', 'suivi', 'conduit', 'construit',
+  'ri', 'souri', 'cru', 'plu',
+]);
+/** Participles taking être. « fatigué »-style adjectives are deliberately absent, so « je suis fatigué » is not a past tense. */
+const ETRE_PARTICIPLES = alt([
+  'allé', 'venu', 'parti', 'arrivé', 'resté', 'rentré', 'retourné', 'entré', 'sorti', 'monté', 'descendu',
+  'tombé', 'né', 'mort', 'devenu', 'passé', 'déménagé',
 ]);
 
 /**
- * Conditional mood markers. Fixed in Stage 4b (docs §9.3/§3.8): the previous
- * `\b` before `ais` never matched after a vowel (e.g. `j'irais`), so the
- * regex never fired at all. Now matches any 2+ letter stem ending in a
- * conditional suffix, minus the small set of common non-conditional words
- * that end the same way — catching irregular stems like `irais` (aller),
- * `ferions` (faire), `serait` (être) that the old anchor missed.
+ * The stem of a conditional or simple-future verb is the infinitive (-er / -ir
+ * / -dr- / -rr- / -ettr- / -aîtr-) or one of the irregular stems that do not end that way (aur-,
+ * saur-, and -vr- as in devr-). Requiring it is what keeps « anglais », « mais »,
+ * « jamais », « français », « informations » and the imparfait (« j'adorais »,
+ * « je rentrais ») out, which a bare "-ais/-ions" suffix match could not.
+ *
+ * Two ambiguities are resolved toward "not detected", because a false hit
+ * would be quoted back to the learner:
+ *  - « -irons / -irez / -irions / -iriez » is both the future / conditional of
+ *    an -ir verb (« nous finirons ») and the present / imparfait of an -irer
+ *    verb (« nous respirons »). Only the bare « irons » (aller) is accepted;
+ *  - « -vrons / -vrez / -vrions » is the present or imparfait of ouvrir / livrer
+ *    (« vous ouvrez », « nous ouvrions »), so -vr- is accepted for the
+ *    singular and third-person plural endings only; the plural endings take
+ *    just -evr- (« nous devrions », « vous recevriez »), which no such verb has.
+ */
+const INFINITIVE_STEM = '\\p{L}*(?:er|dr|rr|ettr|aîtr)';
+const IRREGULAR_STEM = 'aur|saur';
+const CONDITIONAL_SOURCE =
+  `(?:${INFINITIVE_STEM}|\\p{L}*ir|\\p{L}+vr|${IRREGULAR_STEM})(?:ais|ait|aient)` +
+  `|(?:${INFINITIVE_STEM}|ir|\\p{L}+evr|${IRREGULAR_STEM})(?:ions|iez)`;
+const SIMPLE_FUTURE_SOURCE =
+  `(?:${INFINITIVE_STEM}|\\p{L}*ir|\\p{L}+vr|${IRREGULAR_STEM})(?:ai|as|a|ont)` +
+  `|(?:${INFINITIVE_STEM}|ir|${IRREGULAR_STEM})(?:ons|ez)`;
+
+interface MarkerSpec {
+  /** Global, case-insensitive; walked with matchAll, so no shared lastIndex state. */
+  patterns: RegExp[];
+  /** Words after the marker to include in the quote (a reason is quoted with what follows « parce que »). */
+  extendWords?: number;
+}
+
+const MARKERS = {
+  justification: {
+    patterns: [
+      cue(
+        `\\b(?:${alt(["parce que", "parce qu'", "puisque", "puisqu'", 'étant donné', 'vu que', 'grâce à', 'en raison de', "c'est pourquoi"])}` +
+          // « car » is also the coach/bus (« je prends le car »): not a reason after a determiner.
+          `|(?<!(?:^|[^\\p{L}\\p{N}])(?:${alt(['le', 'un', 'ce', 'du', 'au', 'en', 'mon', 'ton', 'son', 'notre', 'votre', 'leur'])})\\s+)car)\\b`,
+        'gi',
+      ),
+    ],
+    extendWords: 5,
+  },
+  opinion: {
+    patterns: [cue(`\\b(?:${alt(['pense', 'crois', 'avis', 'trouve', 'semble', 'estime', 'selon moi', 'à mon avis', 'il me semble'])})\\b`, 'gi')],
+  },
+  connectors: {
+    patterns: [
+      cue(
+        `\\b(?:${alt(['cependant', 'néanmoins', 'toutefois', 'par contre', 'en revanche', "d'ailleurs", 'en outre', 'ainsi', 'de plus', 'pourtant', 'en effet', "c'est pourquoi"])})\\b`,
+        'gi',
+      ),
+    ],
+  },
+  perspective: {
+    patterns: [
+      cue(
+        `\\b(?:${alt(["d'un côté", "d'autre part", 'certes', 'en revanche', 'il est vrai que', 'certains pensent', "d'autres estiment", 'cependant', 'toutefois'])})\\b`,
+        'gi',
+      ),
+    ],
+  },
+  subjunctive: {
+    patterns: [
+      cue(`\\b(?:${alt(['fasse', 'soit', 'puisse', 'sache', 'aille', 'veuille', 'vaille', 'il faut que', 'pour que', 'bien que', 'à condition que'])})\\b`, 'gi'),
+    ],
+  },
+  conditional: {
+    patterns: [cue(`\\b(?:${CONDITIONAL_SOURCE})\\b`, 'gi')],
+  },
+  past: {
+    patterns: [
+      // passé composé with avoir: « j'ai mangé », « il a fait », « je n'ai pas vu »
+      cue(
+        `\\b(?:j${AP}|${SUBJECT}\\s+)?${CLITIC}*(?:ai|as|a|avons|avez|ont)\\s+${ADVERB}(?:\\p{L}+é(?:e|s|es)?|${IRREGULAR_PARTICIPLES})\\b`,
+        'gi',
+      ),
+      // passé composé with être: « je suis allé », « elles sont parties » (not « c'est parti »)
+      cue(
+        `\\b(?:${SUBJECT}\\s+)?${CLITIC}*(?<![cC]${AP})(?:suis|es|est|sommes|êtes|sont)\\s+${ADVERB}(?:${ETRE_PARTICIPLES})(?:e|s|es)?\\b`,
+        'gi',
+      ),
+      // reflexive passé composé: « je me suis levé », « ça s'est bien passé »
+      cue(
+        `\\b(?:${SUBJECT}\\s+)?(?:(?:me|te|se|nous|vous)\\s+|[mts]${AP})(?:suis|es|est|sommes|êtes|sont)\\s+${ADVERB}\\p{L}+é(?:e|s|es)?\\b`,
+        'gi',
+      ),
+      // imparfait of être / avoir: « c'était », « j'étais », « il y avait ». avions/aviez are left out: « les avions ».
+      cue(`\\b(?:(?:${SUBJECT}|y)\\s+){0,2}(?:[cjlmnqst]${AP})?(?:étais|était|étions|étiez|étaient|avais|avait|avaient)\\b`, 'gi'),
+    ],
+  },
+  future: {
+    patterns: [
+      // simple future, behind a subject so « vrai » / « opéra » / « vous entrez » never match
+      cue(
+        `\\b(?:j${AP}|(?:${SUBJECT}|ça|cela|ce|qui)\\s+)${CLITIC}*(?:${SIMPLE_FUTURE_SOURCE})\\b`,
+        'gi',
+      ),
+      // near future: « je vais aller », « on va manger », « ça va être »
+      cue(
+        `\\b(?:${SUBJECT}|ça|cela|ce|qui)\\s+${CLITIC}*(?:vais|vas|va|allons|allez|vont)\\s+(?:(?:pas|bientôt|toujours|aussi|bien|enfin|vraiment|jamais|plus)\\s+)?${CLITIC}*\\p{L}+(?:er|ir|re|oir)\\b`,
+        'gi',
+      ),
+    ],
+  },
+} satisfies Record<string, MarkerSpec>;
+
+export type MarkerKind = keyof typeof MARKERS;
+
+/** What a marker found: `quote` is a verbatim slice of the transcript. */
+export interface MarkerHit {
+  quote: string;
+}
+
+/**
+ * The first place `kind` appears in `text`, or null. The quote is the matched
+ * span exactly as written (subject and clitics included — « j'ai mangé », not
+ * « ai mangé »); a justification also carries up to five words after the
+ * marker, stopping at punctuation (« parce que c'est drôle »).
+ *
+ * null means "not detected", never "not done" (see the section header).
+ */
+export function findMarker(text: string, kind: MarkerKind): MarkerHit | null {
+  const spec: MarkerSpec = MARKERS[kind];
+  let best: { start: number; end: number } | null = null;
+  for (const re of spec.patterns) {
+    for (const m of text.matchAll(re)) {
+      const start = m.index ?? 0;
+      if (best === null || start < best.start) best = { start, end: start + m[0].length };
+      break;
+    }
+  }
+  if (best === null) return null;
+  let end = best.end;
+  if (spec.extendWords) {
+    // A marker that ends in an apostrophe (« parce qu' ») runs straight into its next word.
+    const tail = new RegExp(`^(?:\\p{L}[^\\s.,;:!?…]*)?(?:\\s+[^\\s.,;:!?…]+){0,${spec.extendWords}}`, 'u').exec(text.slice(end));
+    if (tail) end += tail[0].length;
+  }
+  return { quote: text.slice(best.start, end).trim() };
+}
+
+/**
+ * Conditional mood. Stage 4b fixed the old regex, which never fired after a
+ * vowel (`j'irais`); 6b-0 tightens it from "any word ending -ais/-ait/-ions"
+ * to a verb whose stem ends -er/-ir/-dr/-rr (or aur-/saur-), so « anglais »,
+ * « informations » and the imparfait (« j'adorais ») no longer count.
  */
 export function hasConditional(transcript: string): boolean {
-  const re = /\b(\w{2,}(?:ais|ait|aient|ions|iez))\b/gi;
-  let match: RegExpExecArray | null;
-  while ((match = re.exec(transcript)) !== null) {
-    if (!CONDITIONAL_FALSE_POSITIVES.has(match[1].toLowerCase())) return true;
-  }
-  return false;
+  return findMarker(transcript, 'conditional') !== null;
 }
 
 export function hasSubjunctive(transcript: string): boolean {
-  return /\b(fasse|soit|puisse|sache|aille|veuille|vaille|il faut que|pour que|bien que|à condition que)\b/i.test(transcript);
+  return findMarker(transcript, 'subjunctive') !== null;
 }
 
 export function hasConnectors(transcript: string): boolean {
-  return /\b(cependant|néanmoins|toutefois|par contre|en revanche|d'ailleurs|en outre|ainsi|de plus|pourtant|en effet|c'est pourquoi)\b/i.test(transcript);
+  return findMarker(transcript, 'connectors') !== null;
 }
 
+/** A past tense (passé composé, imparfait of être/avoir) or a future (simple or near). */
 export function hasPastOrFuture(transcript: string): boolean {
-  return /\b(ai|as|a|avons|avez|ont)\s+\w+é\b|\b(étais|était|avais|avait)\b|\b(ira|irai|ferai|serai|pourrai|voudrai)\b/i.test(transcript);
+  return findMarker(transcript, 'past') !== null || findMarker(transcript, 'future') !== null;
 }
 
 export function hasPerspective(transcript: string): boolean {
-  return /\b(d'un côté|d'autre part|certes|en revanche|il est vrai que|certains pensent|d'autres estiment|cependant|toutefois)\b/i.test(transcript);
+  return findMarker(transcript, 'perspective') !== null;
 }
 
 export function hasJustification(transcript: string): boolean {
-  return /\b(parce que|car|puisque|étant donné|vu que|grâce à|en raison de|c'est pourquoi)\b/i.test(transcript);
+  return findMarker(transcript, 'justification') !== null;
 }
 
 export function hasOpinion(transcript: string): boolean {
-  return /\b(pense|crois|avis|trouve|semble|estime|selon moi|à mon avis|il me semble)\b/i.test(transcript);
+  return findMarker(transcript, 'opinion') !== null;
 }
 
 /** Word count by whitespace-split, matching `detectAvoidance`'s own counting. */

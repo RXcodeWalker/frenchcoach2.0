@@ -16,14 +16,18 @@ vi.mock('../../analytics/analyticsService', () => ({
   exportData: () => JSON.stringify({ sessions: [] }),
 }));
 
+const storageRemoveMock = vi.fn();
 vi.mock('../../persistence/storage', () => ({
   getStorageScope: () => null,
+  STORAGE_KEYS: { notebook: 'frenchCoach_notebook' },
+  storageRemove: (...args: unknown[]) => storageRemoveMock(...args),
 }));
 
 import { exportMyData, deleteMyAccount, AccountError } from '../accountService';
 
 beforeEach(() => {
   rpcMock.mockReset();
+  storageRemoveMock.mockReset();
   // jsdom doesn't implement these — stub so exportMyData's download step doesn't throw.
   vi.stubGlobal('URL', { createObjectURL: vi.fn(() => 'blob:mock'), revokeObjectURL: vi.fn() });
 });
@@ -52,6 +56,18 @@ describe('deleteMyAccount', () => {
     rpcMock.mockResolvedValueOnce({ data: { ok: true }, error: null });
     await expect(deleteMyAccount()).resolves.toBeUndefined();
     expect(rpcMock).toHaveBeenCalledWith('delete_my_account');
+  });
+
+  it("removes this account's exam notebook from the device once the cloud erase succeeded", async () => {
+    rpcMock.mockResolvedValueOnce({ data: { ok: true }, error: null });
+    await deleteMyAccount();
+    expect(storageRemoveMock).toHaveBeenCalledWith('frenchCoach_notebook');
+  });
+
+  it('leaves the notebook alone when the cloud erase failed', async () => {
+    rpcMock.mockResolvedValueOnce({ data: null, error: { message: 'boom' } });
+    await deleteMyAccount().catch(() => undefined);
+    expect(storageRemoveMock).not.toHaveBeenCalled();
   });
 
   it('maps an RPC error to a typed AccountError', async () => {

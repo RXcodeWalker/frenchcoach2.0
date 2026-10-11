@@ -8,11 +8,11 @@ import { getBeliefSnapshot } from '../services/coach/coachStorage';
 import { getEligibleReviewQuestion } from '../services/coach/reviewPool';
 import type { SessionBlend } from '../types/coach';
 import { resolveFeatureStatus } from '../config/featureFlags';
-import { STORAGE_KEYS, storageGet } from '../services/persistence/storage';
-import { deriveAbility, coldStart } from '../domain/learn/ability/deriveAbility';
-import { aimFromMigratedTier, computeSessionTarget } from '../domain/learn/selection/sessionTarget';
+import { deriveAbility, coldStart, type AbilityResult } from '../domain/learn/ability/deriveAbility';
+import { computeSessionTarget, type Aim } from '../domain/learn/selection/sessionTarget';
 import { planSlots, bandFor } from '../domain/learn/selection/planSlots';
 import { selectQuestions } from '../domain/learn/selection/selectQuestions';
+import { filterPool, matchesFilters, NO_FILTERS, type LearnFilters } from '../domain/learn/selection/filters';
 import type { DemandBand, SelectionReason, SlotType } from '../domain/learn/selection/types';
 import type { CognitiveDemand } from '../domain/learn/demand/types';
 import { getActiveProblem } from '../services/coach/interventionService';
@@ -114,7 +114,7 @@ export interface BuiltSessionQuestionSlot {
   questionId: string;
   slotType: SlotType;
   slotBand: DemandBand | null;
-  /** docs §14 UX #2 "why this question" — present on the initial adaptive-path build; absent after a midSessionAdjust replacement (§8.4 doesn't thread a reason). */
+  /** docs §14 UX #2 "why this question" — present on the adaptive path; midSessionAdjust replacements carry their own (Batch 1d). */
   selectionReason?: SelectionReason;
 }
 
@@ -127,11 +127,47 @@ export interface BuiltSessionQuestions {
 }
 
 /**
- * docs (Learn adaptive difficulty) §16 Stage 6 — flag-gated dispatcher. The
- * signature is unchanged from the legacy function so Learn.tsx's call site
- * needs no changes; `learnAdaptiveDifficulty` stays 'coming-soon' until
- * Stage 10 wires the UI (Aim picker, measured-level display) that makes the
- * adaptive path's output meaningful to show a learner.
+ * Learn overhaul Batch 1a — the learner's Today's aim and stored tier, taken
+ * from AppState by the caller. The builder never reads them from storage: the
+ * old `storageGet(difficulty)` JSON-parsed a value SET_DIFFICULTY writes raw,
+ * so it always came back null and every learner got 'balanced' + the 4.5 seed.
+ */
+export interface SessionSelectionOptions {
+  aim?: Aim;
+  /** docs §6.4 — seeds coldStart() only; absent -> the 4.5 default seed. */
+  migratedTier?: DifficultyTier;
+  /**
+   * Learn overhaul Batch 2 (docs §8.5) — the learner's setup filters. Applied
+   * to the pool before slotting and to the review candidate. Adaptive path
+   * only: the legacy path ignores them (the setup screen hides them there).
+   */
+  filters?: LearnFilters;
+}
+
+/**
+ * docs §8.5 — the ONE filtered pool for a topic. buildSessionQuestions slots
+ * from it and Learn hands the same result to midSessionAdjust, so a filtered
+ * session can't pick up a non-matching replacement mid-way.
+ */
+export function topicPool(topicKey: string | null, filters: LearnFilters = NO_FILTERS): Question[] {
+  return filterPool(topicKey ? getTopicQuestions(topicKey) : [...QUESTIONS], filters);
+}
+
+/**
+ * docs §6.2/§6.4 — the ability read selection uses. Exported so the setup
+ * screen shows exactly the read the adaptive path selects from.
+ */
+export function sessionAbility(migratedTier?: DifficultyTier): AbilityResult {
+  const snapshot = getBeliefSnapshot();
+  // No snapshot at all yet (brand-new learner, no evidence log) -> the same
+  // coldStart() path deriveAbility itself falls back to when totalWeight is 0.
+  return snapshot ? deriveAbility(snapshot, migratedTier) : coldStart(migratedTier);
+}
+
+/**
+ * docs (Learn adaptive difficulty) §16 Stage 6 — flag-gated dispatcher.
+ * `options` carries AppState's aim and tier into the adaptive path; the
+ * legacy path keeps reading `difficulty` as before.
  */
 export function buildSessionQuestions(
   topicKey: string | null,
@@ -141,40 +177,43 @@ export function buildSessionQuestions(
   difficulty: DifficultyTier = DEFAULT_DIFFICULTY,
   focusedSkillId: string | null = null,
   sessionBlend: SessionBlend | null = null,
+  options: SessionSelectionOptions = {},
 ): BuiltSessionQuestions {
   if (resolveFeatureStatus('learnAdaptiveDifficulty') !== 'live') {
     return buildSessionQuestionsLegacy(topicKey, mode, skillProfile, topicMastery, difficulty, focusedSkillId, sessionBlend);
   }
-  return buildSessionQuestionsAdaptive(topicKey, mode, topicMastery, sessionBlend);
+  return buildSessionQuestionsAdaptive(topicKey, mode, topicMastery, sessionBlend, options);
 }
 
 /**
  * docs §8 — slot-based selector path. Reads ability from the belief snapshot
  * directly (same source buildSessionQuestionsLegacy already reads at the
- * prerequisite gate below) rather than taking it as a parameter, exactly as
- * the legacy function reads getBeliefSnapshot() itself. Aim resolves from the
- * one-time migrated `frenchCoach_difficulty` read (docs §6.4) — no SET_AIM
- * reducer action exists yet; that lands in Stage 10.
+ * prerequisite gate below). Aim and the cold-start tier come from the caller
+ * (AppState), never from storage.
  */
 function buildSessionQuestionsAdaptive(
   topicKey: string | null,
   mode: SessionMode,
   topicMastery: TopicMasteryEntry | null,
   sessionBlend: SessionBlend | null,
+  options: SessionSelectionOptions,
 ): BuiltSessionQuestions {
-  const pool = topicKey ? getTopicQuestions(topicKey) : [...QUESTIONS];
+  const filters = options.filters ?? NO_FILTERS;
+  // docs §8.5 — the one filtered pool. Slotting, the escalation ladder and the
+  // review slot all draw from it; nothing below reaches the unfiltered topic.
+  const pool = topicPool(topicKey, filters);
   const seen = new Set<string>(topicMastery?.uniqueQuestionsAnswered ?? []);
 
   const snapshot = getBeliefSnapshot();
-  const migratedTier = storageGet<DifficultyTier | null>(STORAGE_KEYS.difficulty, null);
-  // No snapshot at all yet (brand-new learner, no evidence log) -> the same
-  // coldStart() path deriveAbility itself falls back to when totalWeight is 0.
-  const ability = snapshot ? deriveAbility(snapshot, migratedTier ?? undefined) : coldStart(migratedTier ?? undefined);
-  const aim = aimFromMigratedTier(migratedTier);
+  const ability = sessionAbility(options.migratedTier);
+  const aim: Aim = options.aim ?? 'balanced';
   const sessionTarget = computeSessionTarget(ability.abilityScore, aim);
 
+  // Unseen *within the (possibly filtered) pool*: `seen` can name questions the
+  // filter excluded, so `pool.length - seen.size` would undercount.
+  const unseenCount = pool.filter((q) => !seen.has(q.id)).length;
   const target = mode === 'full_topic'
-    ? (pool.length > seen.size ? pool.length - seen.size : pool.length)
+    ? (unseenCount > 0 ? unseenCount : pool.length)
     : SESSION_TARGET[mode];
 
   const blend: SessionBlend = sessionBlend ?? {
@@ -196,10 +235,13 @@ function buildSessionQuestionsAdaptive(
       seenIds: seen,
       focusSkillIds: blend.focusSkillIds,
       activeDemandProblem: activeDemandProblemCognitiveDemand(),
+      targetLevel: sessionTarget,
+      // docs §8.3 — exclude only this session's picks. Every review item was
+      // answered before (so it is always in `seen`); excluding `seen` here
+      // meant spaced review never fired (Learn overhaul Batch 1b).
       getReviewQuestion: (chosenIds) => {
         if (!topicKey) return null;
-        const alreadyInSession = new Set([...seen, ...chosenIds]);
-        return getEligibleReviewQuestion(topicKey, alreadyInSession);
+        return getEligibleReviewQuestion(topicKey, new Set(chosenIds), (q) => matchesFilters(q, filters));
       },
     },
     { beliefSnapshot: snapshot },
@@ -301,10 +343,11 @@ function buildSessionQuestionsLegacy(
   // last valid index is always used, never an out-of-range one.
   let reviewQuestionId: string | null = null;
   if (topicKey && target >= 4) {
-    // Exclude questions already in this session's selection, not just the
-    // learner's historical `seen` set — otherwise a question the difficulty
-    // distribution already picked could be spliced in a second time.
-    const alreadyInSession = new Set([...seen, ...selected.map(q => q.id)]);
+    // Exclude only questions already in this session's selection, so a
+    // question the difficulty distribution already picked is never spliced in
+    // a second time. Never the historical `seen` set: every review item was
+    // answered before, so excluding it meant review never fired (Batch 1b).
+    const alreadyInSession = new Set(selected.map(q => q.id));
     const reviewCandidate = getEligibleReviewQuestion(topicKey, alreadyInSession);
     if (reviewCandidate && selected.length === target) {
       selected[target - 1] = reviewCandidate;

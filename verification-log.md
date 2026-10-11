@@ -3365,6 +3365,678 @@ consent doc still says it must be applied in the SQL editor); this session canno
 Cost/capacity is not computed (no real exam traffic through the ledger yet). The Batch 1 `azure_budget`
 Supabase test and the Batch 4 migrations remain unapplied to production per their own entries.
 
+## 2026-10-06 — Learn overhaul Batch 1 (frontend): aim, review pool, average, "Why this question?", hidden tier, examiner evidence
+
+Scope: `src/` only; no backend change, no demands/content change (corpus hash untouched, so no
+L2-off window). Each bug was reproduced by a failing test before its fix; the test is named in
+each slice's commit.
+
+- **1a Aim honoured.** `buildSessionQuestions(…, { aim, migratedTier })` from `AppState`; the
+  builder no longer reads `storageGet(difficulty)` (always null: `SET_DIFFICULTY` writes raw).
+  `sessionBuilder.adaptiveFlag.test.ts` "honours aim and the stored tier".
+- **1b Review pool reaches learners.** Review candidates exclude this session's picks only, on
+  both paths. `sessionBuilder.reviewExclusion.test.ts` (realistic `topicMastery`).
+- **1c Average.** `features/learn/topicAverage.ts` (`nextTopicMastery`,
+  `normalizeTopicMastery` at `AppContext` initial state); `averageScore: number | null`. Read-time
+  repair only: `averageScore === 0 && !(scoredSessionsCompleted > 0)` → no average. Already
+  deflated non-zero legacy averages are not repairable deterministically and are left as they are.
+  `topicAverage.test.ts`.
+- **1d "Why this question?"** Rung returned by `selectQuestions`; a downgraded stretch uses
+  `bandFor('target')`; `explainSelection`; `midSessionAdjust` replacements carry a reason (a raise
+  that came back downgraded is labelled `target`, so label and reason agree).
+  `selectionReason.test.ts`.
+- **1e Hidden tier gone + level wording.** `IGCSE_EXPECTATIONS` = intermediate (A2) word counts +
+  `requireConnectors` + `requireDetailedJustification` (the B1 elements, TN p.11);
+  `requirePastTense` left off so a present-tense question isn't nagged for tense variety — an
+  implementer's reading of "A2+B1 set", open to the owner's review. This changes which avoidance
+  signals Learn emits (connectors on >30-word answers, reasons on >15-word answers) and therefore
+  avoidance evidence. Tier grid and `TIER_COLORS` deleted. `levelLabel` + starting-point copy.
+  `igcseExpectations.test.ts`, `levelLabel.test.ts`.
+  **Simulation check (no engine change)**, `adaptiveSimulation.test.ts` scenario L: realistic A2
+  learner, 12 sessions × 5 over 21 days, fully *reviewed* bank-shaped pool (describe 63%), L1
+  unknown rate 0.3 filled by L2 → `overallConfidence` 0.180 / 0.208 / 0.192 (seeds 11–13), below
+  the 0.25 gate; `abilityScore` 1.76 / 2.05 / 1.76. Reviewing the bank alone does not make
+  "Around A2" reachable in 3 weeks; evidence for a §6.3 display-only proposal after Batch 3.
+- **1f Examiner voice → L1 demand evidence only.** `buildDemandOnlyEvidence` +
+  `recordDemandOnlyAttempt`, called once the examiner reply succeeds. **D4b decided: no XP** —
+  `awardParticipationXP` writes the `xp_events` ledger behind `all_time_leaderboard` and mints
+  gems, and the examiner path has no Tier 0/1 gate, so criterion (2) "can't be farmed" is not met.
+  `demandOnlyEvidence.test.ts`; `scoredPipelineBoundary.test.ts` and `examinerFeedback.test.ts`
+  still green.
+
+Gate at commit: `npm run typecheck` clean · `npm run typecheck:server` clean · `npm run lint`
+0 errors (22 pre-existing warnings) · `npm test` **302 files / 2998 tests passed** ·
+`npm run learn:check -- --draft` 0 errors (63 warnings; without `--draft` the 420 inferred tags
+are errors, unchanged) · `authoring:check` 0/0 · `authoring:parity` 10/10. Not run: backend
+pytest (no backend change); Playwright end-to-end (Batch 1 has no UI flow the plan's §5 e2e list
+can check until Batch 2's setup screen).
+
+## 2026-10-07 — Learn overhaul Batch 2 (frontend): one-screen setup, learner filters
+
+Scope: `src/` only; no backend change, no demands/content change (corpus hash untouched, so no
+L2-off window). Failing tests were written before each slice and the filter tests were
+mutation-checked (stubbing out the review predicate / the pool filter fails 1 and 5 tests).
+
+- **Filters through one pool** (`domain/learn/selection/filters.ts`, docs §8.5). `topicPool` feeds
+  slotting, the review slot (`getEligibleReviewQuestion`'s new `accept`) and `midSessionAdjust`;
+  follow-ups off under a grammar filter; fewer-than-requested never padded; an empty build never
+  starts. `filters.test.ts`, `sessionBuilder.filters.test.ts`.
+- **Setup screen** (`SessionStartScreen`, `features/learn/sessionSetup.ts`): Focus chips (only
+  where ≥ 5 questions match), Questions 1/5/10/20 with disable + clamp + zero-match "Clear X
+  filter", Difficulty Easier · Right for me · Harder + a read-only dry-run preview, Feedback
+  style. Removed `ModelSelectorCard`, `EngineIndicatorPill`, `ReEvaluateBar`, `useEngineHealth`
+  and the engine/re-evaluate state in `Learn.tsx` (the lint warning that state caused is gone).
+  `SessionStartScreen.test.tsx`, `sessionSetup.test.ts`.
+- **Topic grid** hides the eight one-question topics; Random Question draws from visible topics.
+  `TopicGrid.test.tsx` now fixes its own topic list (the real advanced topics are all hidden).
+- **Browser smoke test** (throwaway Playwright script against `vite dev`, dark theme only; light mode is Batch 5 —
+  16 topics shown; Holidays → Past → Harder → 5 showed "6 questions match", 10/20
+  disabled, "Pitched at Stretch (B1).", and the session started; no page errors (only the
+  expected refused backend calls).
+- **Observation, not a regression:** a session is routinely shorter than the length tapped
+  (5 → 3, 10 → 7, 20 → 14 with no review item due) because unfilled review slots are not
+  backfilled (§8.3). Identical before and after this batch. Left for the owner (docs amendment).
+- **Deviations from the plan:** no sub-topic chips (`Question.subTopic` doesn't exist until
+  Batch 3); the in-question Coach/Examiner toggle was removed in favour of the setup choice; the
+  plan's e2e example "School → Past" can't show a *Past* chip (school tags only 2 past
+  questions; use Holidays, Hobbies or Food).
+
+Gate at commit: `npm run typecheck` clean · `typecheck:server` clean · `npm run lint` 0 errors
+(21 warnings, all pre-existing) · `npm test` **306 files / 3042 tests passed** (with `backend/`
+linked, as CI does) · `learn:check -- --draft` 0 errors (63 warnings) · `authoring:check` 0/0 ·
+`authoring:parity` 10/10. Not run: backend pytest (no backend change).
+
+## 2026-10-07 — Learn overhaul Batch 3a: guardrails (parity tests, `subTopic`, `coachHint`, bank lint)
+
+**Changed:** no demands file, manifest or backend byte changed, so there is no L2-off window. Added
+`scripts/authoring/learnCorpusHash.ts` (the corpus hash, extracted so tests can import it:
+`buildDemandsManifest.ts` runs `main()` on import, which meant `learn:check` rewrote the manifest
+as a side effect), `src/data/learn/__tests__/demandsParity.test.ts`, `Question.subTopic` /
+`Question.coachHint` (types only, nothing assigned yet), `src/data/learnSubTopics.ts` (closed lists
+for the 16 core topics, 3–5 each), `src/data/learnBankLint.ts` wired into `learn:check`, and the
+`coachHint` display in `QuestionCard` with a fallback to `hint`. `hint` is untouched.
+
+**Verified:** each parity test fails when one byte is appended to a demands file (reproduced, then
+restored), and passes on the real corpus with `backend/` symlinked to the sibling clone. `npm test`
+2984 passed, `typecheck`, `typecheck:server` and `lint` (0 errors) clean, `authoring:check` and
+`authoring:parity` clean, `learn:check` has 0 errors other than the existing 420 `not-approved`.
+`typecheck:scripts` reports 3 errors in `scripts/scoring` and `scripts/stt` tests, identical with
+these changes stashed.
+
+**Deviation from the plan text:** the plan estimated 182 bare yes/no questions. Reusing
+`patternLint.ts`'s `opensAsYesNo`/`isOpenQuestion` as specified flags 236 of 668 (warnings, listed
+by `learn:check`); Batch 3b should work from that list. Lint severities: shape and closed-list
+rules are errors, the heuristic text rules are warnings, so the current bank stays green.
+
+**Not verified:** the tense-cue regexes for French phrase frames are narrow heuristics and have only
+synthetic test cases, no real `coachHint` yet. The plan's Batch 1 and 2 are not present in this
+repository's history, so nothing here was exercised against them.
+
+## 2026-10-07 — Learn overhaul Batch 3b: the bank re-read (tags, sub-topics, hints, wording)
+
+**Changed.** All 660 core-topic questions were re-read against their wording and their demands
+corrected (`src/data/learn/demands/*.json`, manifest regenerated); the 240 questions in clothes,
+animals, transport, jobs, sports, emotions, arts and shopping got demands for the first time, so
+all 668 questions carry them (`questions.demands.test` 428 → 668). `subTopic` is set on every core
+question, `coachHint` on every question of the eight priority topics (D7), a second part was added
+to every bare yes/no question (D8), and five beyond-level questions (`emo_18`, `emo_29`, `arv_25`,
+`sho_19`, `foo_47`) were replaced by everyday ones (text, hint, follow-ups, model answer, vocab and
+`difficulty` together, re-tagged in the same commit). `hint` was otherwise left untouched.
+Mechanics: a throwaway patch pipeline (outside the repo) applied each topic's spec to
+`questions.ts` and the JSON, then pruned structure tags the question text does not cue
+(`hasStructureCue`); every entry it wrote carries `review.notes` and `learn:infer` now refuses to
+overwrite such entries (`scripts/authoring/inferLearnDemands.ts`).
+
+**Not done, on purpose.** No entry was flipped to `reviewed`/`approved`: `provenance: 'reviewed'`
+with `reviewedBy` is a human attestation (`docs/guides/learn-demands.md` §1 rule 7, §4), and the plan
+puts the owner's per-topic review between this batch and merge. The tags are `inferred`, confidence
+0.8, `review.status: 'draft'`, `review.notes` set; the promotion procedure is `learn-demands.md`
+§2c. The eight already-`reviewed` entries (`sch_10 fam_09 hol_15 hom_10 fut_19 foo_64 env_18 hob_43`)
+were not touched, so `hob_43` and `foo_64` keep their bare yes/no wording for the owner. The eight
+one-question advanced topics were not touched (hidden, out of scope). Without `--draft`,
+`learn:check` still reports one `not-approved` error per unreviewed entry — expected until review.
+
+**Judgement calls the owner should confirm.**
+1. `responseLoad`: `extended` went from 106 of 428 to 7 of 668 questions (the rest `developed`).
+   `responseLoad` sets the L1 "met" word floor (~15 / ~40 / ~70 words, `satisfaction.ts`), so ~100
+   questions now need ~40 words rather than ~70 — and everyday preference questions no longer score
+   as B2 (compare 6.5 + extended 0.75 + comparison 0.25 = 7.5).
+2. Confidence 0.8 on the re-read tags (the old inferrer used 0.4–0.9). Shipped state: only 11–14 of
+   ~60 answers stay above `MIN_RELIABLE_WEIGHT` over 3 weeks (below).
+3. Sub-topic lists changed where a key would hold fewer than the 5 questions a Focus chip needs:
+   home → My home & room / Town & region / Things to do; future "Further study" → "Study & skills";
+   jobs → "Jobs around me" + "Work experience" merged into "Jobs & experience".
+4. Questions replaced rather than edited (the five above) also had `difficulty` 3 → 2.
+5. Wording fixes beyond the plan: `env_40` ("Savais-tu qu'est-ce que c'est la 'fast fashion' ?" →
+   "Sais-tu ce qu'est la 'fast fashion' ?"), `sho_21` (no subjunctive), `sch_36` typo, `foo_29` "j'adorer" → "j'adorais",
+   `hob_37` stray English "and", `clo_10` model answer's date to match its new cue.
+6. Left as they are: duplicate or near-duplicate questions (`fut_03`=`job_01` is word-for-word;
+   `sch_18`/`sch_31`, `hom_07`/`hom_23`, `hob_25`/`hob_48`, `hob_33`/`hob_49`, `hob_40`/`hob_58` are
+   close) — IDs carry SM-2 history, so removing one is a separate decision.
+
+**Simulation (the Batch 1e hand-off).** `adaptiveSimulation.test.ts` scenario M, same method as L
+on the new mix (describe 35% · explain 30% · justify 25% · compare 8% · hypothesize 2.4%), seeds
+11–13: shipped (`inferred` 0.8) `overallConfidence` 0.098 / 0.122 / 0.090; after owner review
+0.222 / 0.256 / 0.262 (it was 0.18–0.21 on the old mix) against the 0.25 gate, so "Around A2" is
+borderline even after review. **Proposal, not implemented:** a §6.3 display-only gate of 0.20
+(`docs/systems/learn-adaptive-difficulty.md`, Batch 3b amendment). No gate, weight or engine change.
+
+**Tests.** New `learnBank.coverage.test.ts` (sub-topic on every core question, every list key ≥ 5
+questions, `coachHint` on the eight priority topics, no bare yes/no outside `reviewed` entries,
+no lint error). `sessionBuilder.filters.test.ts` assumed hobbies had ≤ 6 past questions (it has 9 now;
+a 'standard' session returns at most 7 with no review due), so its two "fewer matches" cases now
+pick their focus from the bank. Backend `tests/test_learn_demands.py` read `fam_01` live as a
+"known TS fixture"; re-tagging it broke the derive-score and prompt-hash tests with no template
+change, so the original entry is pinned in the test (the original hash passes, so
+`LEARN_PROMPT_VERSION` is *not* bumped) and the corpus-size pin is 668.
+
+**L2-off window.** Nothing is deployed: both repos are on `claude/magical-hamilton-xi116g`
+(`demandsVersion` changed with every slice; frontend commit and backend byte copy are separate
+commits, backend pushed first each time). When merged to `main`, deploy the two back to back;
+either order leaves a short window where the backend reports `demandsResolved: false` and L2
+evidence is off.
+
+**Process note.** Batches 1, 2 and 3a were not on this branch when the session started: they lived
+on `claude/happy-shannon-9yukm5` (1–2) and `claude/hopeful-volta-pl0fm3` (3a, forked from the
+pre-Learn commit and without 1–2). The first was fast-forwarded onto this branch, the second merged
+(one conflict, `verification-log.md`: both sides appended; both kept).
+
+Gate at commit: `npm run typecheck` clean · `typecheck:server` clean · `npm run lint` 0 errors (21
+pre-existing warnings) · `npm test` **311 files / 3079 tests passed** (with `backend/` linked, as CI
+does) · `learn:check -- --draft` 0 errors (71 warnings: 56 `time-frame-not-cued` — 45 `present`
+tags, 9 `past` and 2 `conditional` where the natural wording uses a construction the cue list does
+not know; 8 `topic-demand-monotony` and 2 `level-not-carried-by-vocabulary` on the hidden
+advanced topics; 2 `structure-not-elicited` on the `reviewed` `fam_09` and `foo_64`; 1
+`bare-yes-no-question` listing the `reviewed` `hob_43` and `foo_64` plus the hidden `slang_01`)
+· `authoring:check` 0/0 · `authoring:parity` 10/10 · backend `pytest tests` 449 passed.
+`typecheck:scripts` reports 3 errors in `scripts/scoring/__tests__/supabaseEnvelopeStore.test.ts` and
+`scripts/stt/__tests__/supabaseTranscriptStore.test.ts` — files this batch did not touch; none in
+`scripts/authoring/`. Not run: Playwright end-to-end (no UI code changed in 3b); a browser check of
+the new `coachHint` text in light mode (Batch 5 owns visual polish).
+
+## 2026-10-07 — Learn overhaul Batch 4: coach feedback (prompt v5, filters at normalisation, fewer cards)
+
+**Evidence step (before choosing filter rules).** The only recorded coach responses in either repo
+are the 4 `feedback-contract` fixtures (`src/services/api/__fixtures__/feedback-contract/`, byte
+copies in the backend): 4 corrections, 0 grammar items, 4 `best_moment`s (3 with a « » quote). They
+were written to test span resolution, so the sample is small and synthetic; the backend test files
+hold no further quote → correction pairs. Drop counts per shared rule:
+grounding 0/4 · identical correction 0/4 · sound-alike (speech) 0/4 · `meetsErrorQuoteMinimum`
+**4/4** (every one a real one-word fix: « Paris », « allé » → « je suis allé ») · strength overlaps a
+fix 0/3 · `meetsClaimQuoteMinimum` **2/3** (« beaucoup », « ma soeur »). Decision, as the plan
+expected: keep grounding, identical-correction, sound-alike on speech and strength-overlaps-fix;
+skip both quote minimums for the coach voice. The three kept rules dropped nothing here, so their
+real drop rate is unmeasured until there are recorded production replies.
+
+**Backend (`french-coach-backend` d350c27, deploy first).** `learn-prompt-v5`: at most 2 fixes in
+total (grammar critical + polish together; `corrections[]` restates them), each quote → full
+corrected French phrase → one-sentence why, pitched at A2 with elements of B1 (TN p.11, or the
+lower `TARGET LEVEL`, never above B1); one quoted strength that never praises a reported error;
+`improved_answer` ("say it better") at the same level; `advanced_answer` no longer requested (both
+system prompts) but still shipped as "" by `enrich_feedback`; depth ranges no longer ask for
+2-3 / 5-8 grammar items or mark bands; `_GENERIC_PHRASES` + "great job", "good job", "keep it up",
+"keep practising/practicing", "great answer", "nice answer" ("good answer" and "be more specific"
+left out: a match drops the whole card and both can open a specific comment). `cefrLevel` and every
+key unchanged; `FEEDBACK_CONTRACT_VERSION` stays 2. User-prompt hash updated in
+`tests/test_learn_demands.py`; new `tests/test_learn_prompt_v5.py` also pins the `SYSTEM_PROMPT`
+hash (it was unpinned). pytest 461 passed.
+
+**Frontend.**
+- **Filters at normalisation** (`src/domain/learn/feedback/filterCoachFeedback.ts`, called inside
+  `apiClient.ts`'s `normalizeBackendFeedback`, i.e. both `/v3` and the stream's `complete`). Applied
+  to `issues[]` and `grammar.critical/polish`; dropped issues' transcript spans and a dropped
+  `topPriorityIssueId` go too; `best_moment` is dropped if a phrase it quotes is ungrounded or
+  overlaps a kept error. Grounded against the transcript the backend echoes (what it graded), else
+  the one sent. Sound-alike only when the caller says `speech`: Learn does (`LEARN_INPUT_MODE`,
+  same call as the examiner voice); Story, Roleplay, Scenario Architect, Daily News and the
+  placement diagnostic pass nothing, so their spelling-only errors are kept. **This is a
+  belief-input change:** a dropped error no longer reaches `buildEvidence`'s language event
+  (`issueIds`, `issueCount`). Tests: `filterCoachFeedback.test.ts` (each rule; one-word
+  corrections survive), `coachFilterNormalisation.test.ts` (real `getAIFeedback` path → evidence),
+  mutation-checked (stubbing out the filter fails 2 tests; grounding on the sent transcript instead
+  of the graded one fails 1).
+- **Fewer cards** (`FeedbackExperience.tsx`): score line (`SnapshotCard variant="line"`) → What
+  worked → Fix these (≤ 2, `coachPoints.ts`) → Say it better (`BeforeAfterDiff`, replacing
+  `ImprovedAnswerCard` + the coach-view diff + `MarkedUpScript`) → pronunciation block (same JSX,
+  same props) → Try again / Next question. The one-focus line, every correction with its lesson,
+  vocabulary and expansion ideas are in Full report. `FeedbackPointList` is extracted from
+  `ExaminerFeedbackCard` and used by both voices (examiner markup unchanged, its 20 tests green).
+  `cefrLevelLabel` clamps the model's `cefrLevel` at display (B2/C1/C2 → "Stretch (B1+)") in
+  `SnapshotCard`, `FeedbackPanel` (Daily News) and the importer-less `SessionComplete`; the band
+  pill is gone (D3). `FeedbackExperience.test.tsx`, `coachPoints.test.ts`, `levelLabel.test.ts`.
+
+**Deviations and judgement calls.**
+1. "At most 2" is enforced by the prompt and by the coach view, not by truncating the reply: the
+   server's depth caps are unchanged and every valid error the model returns still reaches
+   evidence (a display limit is not a filter).
+2. The prompt is shared by every coach-endpoint caller, so Story, Roleplay, Scenario Architect,
+   Daily News and placement also get ≤ 2 fixes and no advanced answer. Daily News sends audio and
+   uses `MULTIMODAL_SYSTEM_PROMPT`, which only lost the `advanced_answer` line (no 2-fix rule).
+   Fewer reported errors per answer is also fewer error ids in evidence for all of them.
+3. `biggest_opportunity` is not in the plan's coach-view list, so it moved to Full report.
+4. Removed with no importer left: `ImprovedAnswerCard.tsx`, `AdvancedAnswerCard.tsx`, the card
+   plan's `showAdvancedAnswer`, and the footer's disabled "Coming soon" bookmark button.
+5. Not filtered: the streaming partial sections (transient; the `complete` result replaces them).
+   The older `applyQualityGate` still drops an issue whose quote is not a substring of the
+   *client* transcript — unchanged.
+6. Observation for the owner, pre-existing: backend corrections map to `category: 'grammar'`
+   (deliberately unmapped in `nodeMap.ts`) and backend grammar items carry `themeLabel`, not
+   `theme`, so LLM coach errors produce no per-node failure observation — they reach beliefs only
+   as counts on the language event.
+
+**Deploy and rollback.** Backend first, then frontend; the contract does not move, so each side
+works with the other's previous version (an old frontend gets `advanced_answer: ""` and hides that
+card; a new frontend with the v4 backend shows ≤ 2 of however many fixes arrive). Either commit can
+be reverted alone. Not deployed from this session.
+
+Gate at commit: `npm run typecheck` clean · `typecheck:server` clean · `npm run lint` 0 errors (21
+pre-existing warnings) · `npm test` **315 files / 3107 tests passed** (with `backend/` linked) ·
+`learn:check -- --draft` 0 errors (71 warnings, unchanged) · `authoring:check` 0/0 ·
+`authoring:parity` 10/10 · `examiner:parity` matches · backend `pytest tests` 461 passed. Not run:
+Playwright end-to-end (a Learn answer needs speech input; the feedback screen is covered by the
+jsdom render test, light-mode visuals are Batch 5).
+
+## 2026-10-07 — Learn overhaul Batch 5: light mode and visual polish
+
+**What changed (UI only; no scoring, evidence, selection or contract change).**
+
+1. **Tokens.** `--info-text` / `--info-soft` added in both themes (the cyan "review" chips stayed, so
+   the pair was needed); light `--progress-text` darkened `#047857` → `#065F46` because it measured
+   4.41:1 on its own soft fill over `surface-recessed` (< AA). `tailwind.config.js` gains `info`.
+2. **Sweep.** Every raw 100–500 Tailwind text/decoration colour in Learn and feedback was mapped by
+   role (text/icon/decoration → `-text` token; slate 100–200 → `ink`, 300–500 → `ink-muted`;
+   soft tinted pairs → `bg-*-soft border-hairline`; dark `bg-slate-*` panels → `surface-recessed`,
+   tracks/skeletons → `bg-track`). Violet-button text and the two mic icons use `text-action-ink`.
+   `severity.ts` is token-based (hex removed; wavy underlines use `decoration-correction` etc.);
+   `domain/scoring.ts` gains `scoreTone` (same 8/6 thresholds) for Learn text — `scoreColor` is
+   unchanged because `PronunciationCard` (out of bounds) uses it as an SVG stroke.
+3. **Deleted** (no importers): `PersonalizedContextBanner`, `AvoidanceCard`, `TopPriorityCard`,
+   `StyleStructureCard`, `ExaminerNotebookCard`, `DeepAnalysisToggle`, `DeepAnalysisCard`, plus
+   `selectShowExaminerNotebook` and the hook's `showExaminerNotebook`.
+4. **Clutter cuts.** ADV badge removed from the topic grid; "Active Session" subtitle → the topic's
+   English name; 49 nine/ten-px uppercase eyebrows → `text-eyebrow`; the summary's demand-mastery
+   "+n%" bars → "You practised giving reasons 3×" (`features/learn/sessionRecap.ts`, tested);
+   confetti only for a session average ≥ 7.
+5. **Carry-over fix from Batch 1/4.** The question chip still printed the raw derived band
+   ("B2") — now `levelLabel(...)` ("Stretch (B1+)"); test `QuestionCard.chip.test.tsx`.
+
+**Guards (written first, failing, then green).** `lightContrast.test.ts` (7 rules, named
+pronunciation allowlist, fenced block in `FeedbackExperience.tsx`) and `tokenContrast.test.ts`
+(32 cases, both themes, AA 4.5:1 text / 3:1 strokes).
+
+**Deviations from the plan, for the owner.**
+- *Personal-best confetti:* no per-topic best-session score is persisted, and adding one is a new
+  store (out of scope); confetti is average ≥ 7 only.
+- *Locked topics:* the lock itself is live, tested gating (CLAUDE.md), so only the ADV badge was cut.
+- *Emoji tier icons:* already gone with Batch 2's tier grid; nothing left to remove.
+- *Pronunciation block:* `FeedbackExperience.tsx`'s inline pronunciation status block keeps its raw
+  cyan classes untouched (fenced), as do the three pronunciation cards.
+- *Playwright screenshots* were taken ad hoc (setup and question screens, light and dark,
+  430px); the feedback screen needs a live speech/LLM round trip and was not captured — it is covered
+  by the jsdom `FeedbackExperience` test and the lint guards. Not committed as an e2e spec.
+- *Branch base:* this branch lacked Batches 1–4 (they sat on `claude/peaceful-euler-6mk3y1`); both
+  repos were fast-forwarded to it before starting, no history rewritten.
+
+**Rollback.** Pure presentation: reverting the Batch 5 commit restores the previous classes; the two
+new tokens are additive.
+
+Gate at commit: `typecheck` clean · `typecheck:server` clean · `lint` 0 errors (21 pre-existing
+warnings) · `npm test` **319 files / 3152 tests passed** (with `backend/` linked at the Batch 4
+backend head) · `learn:check -- --draft` unchanged. Not run: Playwright e2e, backend pytest (no
+backend change).
+
+## 2026-10-09 — Learn feedback Batch 6a: detailed feedback restored (prompt v6, strengths[], contract v3)
+
+**What changed.**
+
+1. **Backend (`french-coach-backend` `72e6bdb`, `learn-prompt-v6`).** "AT MOST 2 FIXES" → every real
+   error, most important first (quote → full corrected French at A2 with elements of B1 → one-sentence
+   why → tip; "never invent errors" kept; the server ceiling `FEEDBACK_DEPTH_ITEM_CAPS` unchanged, so
+   standard still delivers ≤ 5 and deep ≤ 8). "ONE STRENGTH" → new optional `strengths: [{quote, why}]`
+   (2–4, each quoting the learner, never praising a reported error); `best_moment` stays as the
+   strongest. Teacher voice: second person, `encouragement` is the opening line and must quote the
+   learner; no persona name in the prompt. `_apply_coaching_quality_gate` clears a generic
+   `encouragement` and drops strengths with no quote or a banned phrase; `_apply_depth_item_caps`
+   caps `strengths` at 4; `enrich_feedback` defaults it to `[]`. `FEEDBACK_CONTRACT_VERSION` 2 → 3,
+   per its own rule (new top-level field). New fixture `strengths-v3.json`, synced with
+   `npm run feedback:sync-fixtures`.
+2. **Frontend.** `feedbackSchema.ts` accepts `strengths` (array-level `.catch([])`, like
+   `corrections`); `mergeV2Fields` maps `strengths` and `encouragement` (the latter was never mapped
+   before). `filterCoachFeedback` drops a `strengths[]` item whose quote (or a phrase its `why`
+   quotes) is ungrounded or overlaps a reported error, and drops an opening line that quotes nothing
+   or fails the same rule (new drop rule `opening`). `coachPoints.ts`: What you did well (every
+   strength, else `best_moment`) → Fix these first (`FIRST_FIXES` = 2, the existing sort) → Also
+   worth fixing (every other fix, visible), deduplicated by quote across `issues[]` and grammar items
+   (the existing sort now runs over both). The coach view shows Go further again (`VocabularyCard` +
+   `ExpansionIdeasCard`). **Leak fixed:** the streaming preview no longer renders the unfiltered
+   streamed `best_moment` — only the score line until the filtered feedback lands.
+
+**Belief-input note.** None: the same errors reach `buildEvidence` as before (the filter rules for
+errors are unchanged); strengths and the opening line are display-only. More errors may now arrive
+per answer because the prompt no longer caps them at 2 — that is the model's output, still bounded by
+the server ceiling, and each one still passes the same grounding/sound-alike filters.
+
+**Deviations from the plan, for the owner.**
+- *Multimodal (Gemini audio) prompt* is unchanged: it never had the 2-fix cap, and it does not ask
+  for `strengths[]`, so those responses show `best_moment` (the planned fallback).
+- *Backend gate on the opening line* checks banned phrases only; the "must quote the learner" rule
+  is enforced by the frontend filter, which has the transcript-grounding helpers.
+- *A strength with an empty `why`* is not rendered (a quote with no explanation says nothing);
+  it is still kept on the feedback object.
+- *Branch base:* both repos were fast-forwarded from `main` to `claude/serene-heisenberg-v0vxk3`
+  (`0dcc415` / `d350c27`) before starting, as the plan's merge order requires; no history rewritten.
+
+**Deploy and rollback.** Backend first. An old frontend accepts schemaVersion ≥ 2, ignores
+`strengths`, and shows ≤ 2 of the fixes; the new frontend with the v5 backend falls back to
+`best_moment` and shows whatever fixes arrive. Either commit can be reverted alone; the contract
+change is additive. Not deployed from this session.
+
+Gate at commit: `typecheck` clean · `typecheck:server` clean · `lint` 0 errors (21 pre-existing
+warnings) · `npm test` **319 files / 3164 tests passed** (with `backend/` linked at `72e6bdb`) ·
+`learn:check -- --draft` 0 errors (71 warnings, unchanged) · `authoring:check` 0/0 ·
+`authoring:parity` 10/10 · `examiner:parity` matches · backend `pytest tests/` **470 passed**.
+Not run: Playwright e2e (a Learn answer needs a live speech/LLM round trip; the feedback screen is
+covered by the jsdom `FeedbackExperience` test).
+
+## 2026-10-09 — Learn feedback Batch 6b-0 + 6b logic half: marker detectors and the teacher's pure helpers
+
+**What changed.**
+
+1. **6b-0 — the French marker detectors (`services/coaching/diagnosticEngine.ts`).** Every marker
+   (`hasJustification`, `hasOpinion`, `hasConnectors`, `hasPerspective`, `hasSubjunctive`,
+   `hasConditional`, `hasPastOrFuture`) is now built with the Unicode-boundary `cue()` helper
+   (`domain/learn/demand/textCues.ts`, which gained an optional `flags` argument) and shares one
+   implementation, `findMarker(text, kind) → { quote } | null`; the boolean functions keep their
+   signatures. The old ASCII `\b` never fired next to an accented letter, so « à mon avis », « d'un
+   côté », « à condition que », « grâce à », « étant donné », « c'était » and every passé composé were
+   never found. `hasPastOrFuture` now finds passé composé (avoir; être with a closed verb list;
+   reflexive), imparfait of être/avoir, the simple future behind a subject, and the near future
+   (*aller* + infinitive). `hasConditional` requires a verb stem instead of any -ais/-ait/-ions word.
+   Spec amendment appended to `docs/systems/learn-adaptive-difficulty.md`.
+2. **6b logic half (all pure, no UI yet).**
+   - `domain/learn/feedback/fixMatch.ts` — `fixMatch(attempt, quote, correction, inputMode)` →
+     `'match' | 'unsure'`, never "wrong" (whole correction as whole words; spoken sound-alike; every
+     word the correction adds and none it removes, needing ≥ 1 added word; accents folded unless the
+     fix is accent-only).
+   - `features/feedback/teacher/persona.ts` (name, initials, `addressName`), `preparingLines.ts`
+     (real stream phase; slow line after 12 s; own examiner wording), `predictionQuestions.ts`
+     (≤ 2 checks from `Question.demands`; at most one calibration line per answered check, only when
+     a marker was found), `buildTeacherScript.ts` (ordered lines: answer → opening → strengths →
+     connective by fix count → fixes / also worth fixing → say it better → go further → memory line;
+     name said at most once; works for both registers).
+   - `hasGoFurther` moved from `FeedbackExperience.tsx` into `coachPoints.ts` (one definition, shared
+     with the script); no behaviour change.
+
+**Belief-input note (this is the one that moves numbers).** L1 demand verdicts and the model's
+past/future signal read these markers. Measured on the 668 real model answers in the question bank,
+answers matched, old → new: `hasPastOrFuture` 58 → 216 (2 lost, both old mid-word false positives:
+« a considé… », « ont ré… ») · `hasJustification` 295 → 339 · `hasPerspective` 120 → 130 ·
+`hasOpinion` / `hasSubjunctive` / `hasConnectors` unchanged · **`hasConditional` 373 → 214**. The old
+conditional fired on 56% of answers because it accepted nouns in -ions (« motions », « traditions »,
+« options »), « frais », « anglais », « mauvais », and the imparfait (« avais », « pouvais »); the new
+one drops all of those. Checked word by word over the 122 distinct words the old detector matched and
+the new one does not, the only genuine conditional among them was « permettrait », which led to adding
+the -ettr- / -aîtr- stems. Consequence: `hypothesize` and the *conditional*
+structure resolve to `met` less often (more honestly), so L1 `demand:hypothesize` evidence gets
+sparser; the AI now receives a correct "uses past/future" signal (`apiClient.ts`), where before it
+was told "no past/future" for nearly every answer.
+`adaptiveSimulation` scenarios re-run: **bit-for-bit unchanged** (L: 0.18 / 0.208 / 0.192 over
+39 / 43 / 40 measured answers; M shipped 0.098 / 0.122 / 0.09 over 12 / 14 / 11, M reviewed 0.222 /
+0.256 / 0.262 over 31 / 38 / 35). That is expected and is not evidence the change is harmless: the
+simulation's synthetic transcripts only use markers that were never broken. The corpus comparison
+above is the measurement.
+
+**Deviations from the plan, for the owner.**
+- *Memory line wording.* The plan's example (« j'ai allé » seen three times this week) assumes a
+  per-phrase count. `LearningProblem` holds only a skill node, `isRecurring` and an evidence count, so
+  the line quotes the fix from THIS answer that belongs to the problem's skill and states the
+  skill-level count: « j'ai allé » is a slip I've seen before: Être vs Avoir has come up 3 times this
+  week. With fewer than 3 it says "more than once" rather than inventing a count. It needs a pure
+  resolver, `recurringFixQuote`, because a fix point only carries its human label while the problem's
+  node comes from the raw grammar `theme`. No fix from this answer in that skill → no memory line.
+- *"Every calibration line carries a grounded quote".* True of the reason and tense lines (tested
+  verbatim against the answer). The length line has no quote to give; it states the exact word count
+  instead and speaks only at ≥ 30 words (UNVALIDATED app heuristic, `LONG_ANSWER_WORDS`).
+- *Detector scope.* The plan called 6b-0 "a fix to existing logic, not new detection" but also named
+  forms the old regexes never had (*je suis allé*, *je vais aller*, *je mangerai*), so closed lists
+  were added for them. Ambiguity resolves to "not detected": « -irons / -irez » (present of
+  *respirer* vs future of *finir*) only counts as bare « irons »; -vr- counts for singular and
+  3rd-person plural only (« vous ouvrez »). « parce qu' » counts, and « car » does not after a
+  determiner (« le car » is the bus). These are my additions, tested, not in the plan's text.
+- *`addressName`.* The plan says to use `state.username`; that is a public handle, so anything that
+  does not read as a name (an email, symbols, > 24 characters) is left unsaid.
+- *`cue()` gained an optional `flags` argument* (backward compatible) — needed for case-insensitive
+  markers; the plan said to reuse `cue()` as is.
+
+**Not built (the UI half of 6b, next).** `useTypedReveal`, `TeacherConversation`, `PredictCard`,
+`TryItFirst`, the speaker button / TTS, the `FeedbackExperience` and Learn wiring, the examiner
+branch, and the Playwright screenshots. Nothing above is reachable from the UI yet except the
+detectors, so a learner sees no change other than the corrected detector inputs.
+
+**Rollback.** The helpers are additive and unwired; reverting the commit removes them. To roll back
+only the detector behaviour, revert `diagnosticEngine.ts` and `textCues.ts` (the boolean signatures
+are unchanged, so no caller needs touching).
+
+Gate at commit: `typecheck` clean · `typecheck:server` clean · `lint` 0 errors (21 pre-existing
+warnings) · `npm test` **324 files / 3251 tests passed** (with `backend/` linked at `72e6bdb`) ·
+`learn:check -- --draft` 0 errors (71 warnings, unchanged) · `authoring:check` 0/0 ·
+`authoring:parity` 10/10 · `examiner:parity` matches. `typecheck:scripts` reports 3 errors in
+`scripts/scoring/__tests__/` and `scripts/stt/__tests__/`; identical on a clean `HEAD`, so
+pre-existing and not touched here. Backend: no change in this slice. Not run: Playwright (no UI).
+
+
+## 2026-10-09 — Learn feedback Batch 6b UI: the teacher's conversation
+
+Frontend only; no backend, prompt, contract or scoring change (`examiner-v3` and `learn-prompt-v6`
+unchanged). Builds on the 6b logic half (`a406bca`).
+
+**What shipped (all under `src/features/feedback/teacher/` unless noted).**
+- `typing.ts` (pure schedule: a « quote » is one unit; speed adapts so the whole conversation
+  finishes in about 5 s, floor 45 units/s) + `useTypedReveal.ts` (timer around it; skip; reduced
+  motion → instant; played once per feedback object).
+- `TeacherConversation.tsx` (bubbles from one named teacher, tap / Space / "Show all", aria-hidden
+  typed text + one polite live region, the learner's own words underlined as each fix is reached),
+  `markQuotes.ts`, `TryItFirst.tsx` (+ `tryItHint.ts`), `SpeakButton.tsx` (fr-FR via `TTS`, gated on
+  a real French voice), `PredictCard.tsx` + `useElapsedMs.ts`, `LearnExaminerFeedback.tsx`.
+- `FeedbackExperience.tsx`: the wait is the Predict card + the status line; the coach view is the
+  conversation, then the score line, pronunciation (untouched), Next / Try again. `Learn.tsx` passes
+  `demands`, the username and the repeated-mistake problem, and uses `LearnExaminerFeedback`.
+- `FeedbackPointList.tsx` exports its rows (`PointSection`, `ClaimRow`, `FixRow` + an `action` slot);
+  `components/examinerGroups.ts` is the old private `examinerGroups`, moved out so the card file
+  stays components-only. `buildTeacherScript` gained `calibration` lines (talk role `calibration`,
+  after the opening).
+
+**Deviations from the plan, for the owner.**
+- *"Say it better" waits for the nudges.* It contains the corrected phrases, so showing it under
+  "Fix these first" would answer the nudges before anyone tried. It appears once each nudge has been
+  tried or shown ("Just show me"); a muted line says where it went. The Full report is one tap away
+  and always shows everything. Remove by dropping `holdSayItBetter` in `TeacherConversation.tsx`.
+- *Username lives at `state.profile.username`* (the plan said `state.username`, which does not exist).
+- *Typed reveal is keyed by the feedback object*, not an attempt id Learn does not pass: one object
+  per attempt, a retry is a new object, flipping to the Full report and back keeps the old one.
+- *Underlining uses quote search* (`markQuotes`), not `buildSegments`: server annotations cover only
+  `issues[]` and the examiner voice has none; every quote shown already passed the grounding filters.
+- *The hint says "something's off here (Être vs Avoir)"*, not "with the verb": a fix carries no
+  error category (every Learn fix is `grammar`), only its free-text tag.
+- *Examiner style:* no Try-it-first (its groups have no first/also split) and no memory line (it
+  resolves a fix to a skill via the coach feedback's grammar themes, which examiner errors lack).
+  The Predict card and calibration lines do apply. Follow-up turns pass no demands (length check).
+- *Streamed sections are no longer shown at all* (the plan said the partial view keeps the score
+  line "until 6b replaces it"; this is the replacement). `partialFeedback` is still a prop, unused.
+- *One microphone at a time:* a second nudge's "Say it" is disabled while another is recording.
+
+**Not built / still open.** 6c (Second take, examiner's next question, firsts) and 6d (notebook).
+Observed, not changed: the count badges on the Vocabulary / How-to-extend cards render as dark
+circles in light mode (`CollapsibleCard.tsx` `bg-slate-700`, outside the contrast scan).
+
+**Verification.** New tests: `typing`, `useTypedReveal`, `TryItFirst` (match / unsure / "Just show
+me", no "wrong"/"close" copy in any state, no storage or analytics write, spoken path, one mic),
+`SpeakButton` (absent without synthesis, silent without a French voice), `TeacherConversation`
+(live region, Space on a control does not skip, ≤ 5 s, reduced motion, rewrite held), and
+`LearnExaminerFeedback` (formal register, no mark/band, calibration, pass-through states);
+`FeedbackExperience.test.tsx` rewritten for the conversation (order, every fix, nudges, typing,
+no unfiltered streamed content, status line per phase, calibration, memory line). Playwright
+screenshots (390–430 px, light and dark; waiting, typing, nudges, revealed) taken from a throwaway
+harness page that was not committed; the full-app e2e for Learn was not run (no Learn e2e exists).
+
+**Rollback.** Revert the commit: `FeedbackExperience`/`Learn` go back to the 6a coach view and
+`ExaminerFeedbackCard`, and the helpers stay unwired. To switch off only the nudges, pass no
+`tryFirstHeading` to `TeacherConversation`; to switch off only the typing, return early in
+`startElapsed` (`useTypedReveal.ts`).
+
+Gate: `typecheck` · `typecheck:server` · `lint` 0 errors (21 pre-existing warnings) · `npm test`
+**330 files / 3308 tests passed** · `learn:check -- --draft` 0 errors · `authoring:check` 0/0 ·
+`authoring:parity` 10/10 · `examiner:parity` matches. `typecheck:scripts` still has the 3
+pre-existing errors in `scripts/scoring` and `scripts/stt` tests.
+
+## 2026-10-09 — Learn feedback Batch 6c: Second take, the examiner's next question, firsts
+
+Frontend only; no backend, prompt, contract or scoring change (`examiner-v3` and `learn-prompt-v6`
+unchanged). Builds on 6b UI (`4cf3d5c`). Nothing here reaches a belief input: the Second take
+and firsts write nothing to evidence, and the one new write is the list of milestone ids said.
+
+**What shipped.**
+- *Second take.* `domain/learn/feedback/compareRetake.ts` (+ `fixHeard`, `quoteHeard`,
+  `quoteInsideCorrection`, `phraseHeard` in `fixMatch.ts`) and `teacher/SecondTake.tsx` +
+  `retakeTargets.ts`. After the feedback the teacher says "Now say it again, and use the fixes." and
+  the learner re-answers aloud (`useRecording` inside `SpeakingConsentGate`, one mic at a time
+  with the nudges). Per fix: `heard` (the correction, or every edit it makes with the unchanged
+  word on each side, or a sound-alike re-say) → "I heard « … » ✓"; `still` (the exact error words
+  came back, the correction did not, and the error is not part of the correction) → "Still there:
+  « … »"; otherwise `absent` → "« … » — not in this take" (neutral). Strengths: "Kept « … » ✓" or
+  silent. An empty take is not a verdict. Offered only with at least one fix, in both voices. No AI
+  call, score, guest attempt, `extraTurnBudget` use, evidence, `Session`, XP, mastery, review or
+  analytics write (tests: component imports and storage/analytics/network spies). Footer
+  "Try again" → "Get new feedback" (that one still re-runs the AI and counts as an attempt).
+- *The examiner's next question.* `domain/learn/feedback/followUpQuestion.ts`:
+  `cleanFollowUpQuestion` (short, one line, plain letters, a French-looking question, no mark/band
+  language) is applied where `apiClient.ts` maps the reply, onto the new `FeedbackV2.followUpQuestion`
+  (the field was already on the wire, previously dropped). `pickFollowUpPrompt` prefers the model's
+  question, else the authored `followUps[0]`. Learn's existing follow-up turn asks it (still off
+  while a grammar filter is on, still capped by the shared budget). The teacher announces it as
+  "If an examiner heard that, they'd ask: « … » Tap Next question to answer it." only when tapping
+  Next will really ask it (Say It Again takes precedence, as before). Examiner voice: same line
+  with the authored follow-up, and its Continue button now goes through `handleFeedbackComplete`.
+- *Firsts.* `teacher/firsts.ts` `detectFirsts(attempt, priorTranscripts, firstsSeen)`: long answer
+  (> 40 words), two reasons (two justification markers), first past, first future — reliable
+  signals only; the conditional is left out. A first fires only if this answer does it, no stored
+  earlier answer (`getSessionHistory()`, which already holds the synced sessions of the last 90
+  days, capped at 500) does, and it is not in `firstsSeen`. No history at all → nothing fires.
+  `firstsSeen` is `STORAGE_KEYS.firstsSeen` (per account on this device, not `DEVICE_SCOPED`),
+  `MARK_FIRSTS_SEEN` in the reducer like `MARK_DRILL_MASTERED`. Learn proves them before it records
+  the answer (so an answer is never its own history) and only for a full-answer conversation.
+
+**Deviations from the plan (all small).**
+- *`followUpQuestion` was not on `FeedbackV2`* (the wire has it, the client dropped it), so it is
+  mapped and cleaned at normalisation; the plan said "the model's followUpQuestion" without that.
+- *The model's question is preferred over the authored one when both exist,* and questions with no
+  authored follow-up now get one. The existing eligibility rules, budget and filter gate stand.
+- *An examiner-voice follow-up answer records no demand evidence:* its wording is untagged and the
+  follow-up inherits the parent's demands (pre-existing for the coach voice, not touched).
+- *`fixHeard` is stricter than `fixMatch` rule 3:* on a whole retake a lone added word elsewhere is
+  not a match, so each edit must appear with its neighbouring word.
+- *Strengths for "kept" come from the first (good) group only* — not the examiner's "next step".
+- *`practiceStepEligible` now requires the coach voice* (the examiner voice has no feedback to
+  practise from, and Continue now runs through the same handler).
+- *Second take wording of "not in this take" quotes the error words, not the correction,* so a
+  learner who has not tried the nudges is not shown the answer.
+
+**Not built / still open.** 6d (notebook). Try-it-first still resets if the learner flips to the
+Full report and back (only the typing is remembered). A coach follow-up still inherits the parent
+question's demands (pre-existing, flagged in 6b).
+
+**Verification.** New tests: `compareRetake` (heard / still / absent, paraphrase never still,
+quote inside correction, accent-only fix, sound-alike, kept strength, empty take), `SecondTake`
+(per-state rows, neutral wording, offered only with a fix, no recorder where STT is missing or the
+account is pending, one mic, no storage/analytics/network call, no forbidden import),
+`TeacherConversation.secondTake` (control placed by the script; mic exclusivity both ways),
+`followUpQuestion` (clean / injection / English / over-long / mark language), apiClient
+normalisation, `firsts` (existing user → no line, new fires once, no history → nothing, "anglais"
+never a tense), script lines per register against the mark/band filter, and the reducer. Playwright
+screenshots (light and dark, coach and examiner) from a throwaway harness that was not committed;
+the full-app Learn e2e was not run (none exists).
+
+**Rollback.** Revert the commit. To switch off only the Second take, drop `secondTake` where the
+two components build the script; only the next question, drop `nextQuestion` (Learn then keeps its
+old authored follow-up); only firsts, stop calling `proveFirsts` in `Learn.tsx`.
+
+Gate: `typecheck` · `typecheck:server` · `lint` 0 errors (21 pre-existing warnings) · `npm test`
+**335 files / 3380 tests passed** · `learn:check -- --draft` 0 errors · `authoring:check` 0/0 ·
+`authoring:parity` 10/10 · `examiner:parity` matches.
+
+## 2026-10-09 — Learn feedback Batch 6d: your exam notebook
+
+Frontend only; no backend, prompt, contract or scoring change (`backend/` untouched).
+
+**What shipped.** A Coach-voice **Save to notebook** on the feedback screen (`SaveToNotebook`,
+rendered through `TeacherConversation`'s new `after` slot, so it only appears once the whole
+conversation is revealed and the "Say it better" rewrite is no longer held back behind Try it
+first). After a Second take that had something in it, or an overall score ≥ 8, it asks once —
+"Keep this version for your exam notes?" — with "Not now"; otherwise only a quiet Save button.
+Nothing is written without a tap. One entry per question (`upsertEntry`): a different answer
+replaces it and files the old one under `history` (capped at 5); the same answer again is a no-op.
+An entry holds the question, topic / sub-topic, the improved answer and the key phrases — the
+learner's own strengths that are still in that answer word for word (`keyPhrases`).
+A **Notebook screen** (`/notebook`, linked from Learn's topic grid) groups entries by topic then
+sub-topic; each can be heard in French (`SpeakButton`) and practised in **Recall mode**
+(`RecallMode`: key phrases blanked, the learner says the answer through `TakeRecorder` — the
+Second take's consent-gated recorder — and `recallCheck` → `compareRetake` reports which phrases
+were heard; the rest is "not in this take", never a verdict). Framed as material to adapt, never
+a script to memorise.
+
+**Storage and privacy (review #5).** `STORAGE_KEYS.notebook` (account-scoped, not
+`DEVICE_SCOPED`), `AppState.notebook`, reducer `SAVE_NOTEBOOK_ENTRY` / `SET_NOTEBOOK`, the key
+added to the cross-tab handler. Signed-in only: the UI shows a guest only a sign-in note, and the
+reducer refuses a `guest`/unset scope (`isAccountScope`), so the guest-to-account copy has nothing
+to leave behind on a shared device. `deleteMyAccount()` removes the key after the cloud erase
+succeeds (before the caller's `signOut`). `notebookPrivacy.test.ts` guards that no `src/services`
+module except the storage registry and `accountService` names it, that the sync modules and
+skill-context builders never mention a notebook, that the API client never names its key, type or
+state, and that notebook code never logs or tracks. `child-safety-consent.md` records that
+guardian revocation cannot erase device data (same as local transcripts). The notebook is in the
+learner's own data export (`dumpScopedLocalStorage`), which is a download to themselves, not sync.
+
+**Deviations from the plan (all small).**
+- *Account deletion is wired inside `deleteMyAccount()`, not `Profile.handleDeleteAccount`.* The
+  handler awaits it and then signs out, so the key is still removed before `signOut`; putting it
+  there makes it testable without rendering the Profile screen and covers any other caller.
+- *Not offered on a follow-up turn.* A follow-up's question id is `<id>::followup` with the prompt
+  text varying per turn, so it has no stable one-entry-per-question key; Learn passes no notebook
+  then.
+- *Coach voice only.* Examiner-voice feedback has no `improved_answer`, so there is nothing to keep.
+- *"High-scoring" is overall ≥ 8*, the same line `scoreTone` uses for "good".
+- *`TakeRecorder` is the Second take's recorder, exported and given an optional `stop` label*,
+  rather than a fourth copy of the record button.
+- *`TopicGrid` takes `showNotebookLink`* (Learn only), because Listening Mode shares that grid.
+- *`/notebook` added to `src/config/routes.ts`* (the route-parity test requires it; one more static shell).
+- *`lightContrast.test.ts` now also covers `features/notebook` and `screens/Notebook.tsx`.*
+
+**Not built / still open.** There is no way to delete a single entry (not in the plan; an account
+deletion removes them all). Cloud sync of the notebook stays a separate owner decision. Try-it-first
+still resets on a Full report flip, and a coach follow-up still inherits the parent's demands (both
+pre-existing, see 6b/6c). No Learn e2e exists, so `Learn.tsx` wiring is covered by typecheck, the
+`FeedbackExperience.notebook` integration test and the reducer tests only; the microphone path was
+not exercised in a real browser.
+
+**Verification.** New tests: `notebook` (upsert new / replace-with-history / same answer no-op /
+history cap, key phrases whole-word and apostrophe-safe, blanking rebuilds the answer, recall
+heard / not-heard / empty / paraphrase, defensive parse, grouping), the reducer (save, replace,
+no-op writes nothing, guest cannot save and writes nothing under any key, `SET_NOTEBOOK` mirrors
+without a write), `accountService` (deletion removes the key; a failed erase leaves it),
+`SaveToNotebook` (no write until Save, offered once, saved state, replace, guest, source guard),
+`FeedbackExperience.notebook` (offer held until the rewrite shows, Second take triggers it, an empty
+take does not, guest, no prop), `RecallMode`, `NotebookEntryCard`, the `Notebook` screen, the
+`TopicGrid` link, and the privacy guard. Playwright light and dark screenshots of the offer, the
+guest note, an entry and Recall mode from a throwaway harness that was not committed.
+
+**Rollback.** Revert the commit. To switch off only the offer, stop passing `notebook` to
+`FeedbackExperience` in `Learn.tsx`; the screen then shows whatever was already saved. A stored
+`frenchCoach_notebook::<user>` key left behind by a revert is inert (nothing reads it).
+
+Gate: `typecheck` · `typecheck:server` · `lint` 0 errors (21 pre-existing warnings) · `npm test`
+**342 files / 3442 tests** · `learn:check -- --draft` 0 errors ·
+`authoring:check` 0/0 · `authoring:parity` 10/10 · `examiner:parity` matches · `build` ok (54 shells).
+
 ## 2026-10-06 — Exam-pronunciation plan Batch 7 (calibration slice): tooling built, calibration NOT run, gate stays closed
 
 **Change.** Backend: migration `20261006090000_azure_speech_probe_source.sql` (adds `probe` to the

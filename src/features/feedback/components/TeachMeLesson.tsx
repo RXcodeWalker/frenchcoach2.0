@@ -23,7 +23,7 @@ export function TeachMeLesson({ teachMe, mini_lesson, defaultOpen = false, force
     <div className="mt-2">
       <button
         onClick={() => { if (forceOpen === undefined) setOpen(o => !o); }}
-        className="flex items-center gap-1.5 text-[10px] text-violet-400 hover:text-violet-300 transition-colors"
+        className="flex items-center gap-1.5 text-[10px] text-action-text hover:text-action-text transition-colors"
       >
         <BookOpen size={11} />
         {mini_lesson ? mini_lesson.title : 'Teach Me'}
@@ -57,32 +57,32 @@ export function TeachMeLesson({ teachMe, mini_lesson, defaultOpen = false, force
 function MiniLessonContent({ lesson }: { lesson: MiniLesson }) {
   return (
     <>
-      <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700/40">
-        <p className="text-[9px] font-bold text-ink-muted uppercase tracking-wide mb-1">Rule</p>
+      <div className="p-3 rounded-lg surface-recessed">
+        <p className="text-eyebrow text-ink-muted uppercase mb-1">Rule</p>
         <p className="text-[10px] text-ink-muted">{lesson.rule}</p>
       </div>
 
       {lesson.examples.length > 0 && (
-        <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700/40">
-          <p className="text-[9px] font-bold text-ink-muted uppercase tracking-wide mb-2">
+        <div className="p-3 rounded-lg surface-recessed">
+          <p className="text-eyebrow text-ink-muted uppercase mb-2">
             Examples
           </p>
           <div className="space-y-1.5">
             {lesson.examples.map((ex, i) => (
-              <p key={i} className="text-[10px] text-emerald-300">{ex}</p>
+              <p key={i} className="text-[10px] text-progress-text">{ex}</p>
             ))}
           </div>
         </div>
       )}
 
-      <div className="p-3 rounded-lg bg-amber-500/8 border border-amber-500/15">
-        <p className="text-[9px] font-bold text-amber-500 uppercase tracking-wide mb-1">Common mistake</p>
-        <p className="text-[10px] text-amber-300">{lesson.common_mistake}</p>
+      <div className="p-3 rounded-lg bg-reward-soft border border-hairline">
+        <p className="text-eyebrow text-reward-text uppercase mb-1">Common mistake</p>
+        <p className="text-[10px] text-reward-text">{lesson.common_mistake}</p>
       </div>
 
-      <div className="p-3 rounded-lg bg-violet-500/8 border border-violet-500/15">
-        <p className="text-[9px] font-bold text-violet-500 uppercase tracking-wide mb-1">Practice</p>
-        <p className="text-[10px] text-violet-300">{lesson.practice}</p>
+      <div className="p-3 rounded-lg bg-action-soft border border-hairline">
+        <p className="text-eyebrow text-action-text uppercase mb-1">Practice</p>
+        <p className="text-[10px] text-action-text">{lesson.practice}</p>
       </div>
     </>
   );
@@ -91,26 +91,26 @@ function MiniLessonContent({ lesson }: { lesson: MiniLesson }) {
 function TeachMeContent({ teachMe }: { teachMe: TeachMe }) {
   return (
     <>
-      <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700/40">
-        <p className="text-[9px] font-bold text-ink-muted uppercase tracking-wide mb-1">Rule</p>
+      <div className="p-3 rounded-lg surface-recessed">
+        <p className="text-eyebrow text-ink-muted uppercase mb-1">Rule</p>
         <p className="text-[10px] text-ink-muted">{teachMe.rule}</p>
       </div>
 
-      <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700/40">
-        <p className="text-[9px] font-bold text-ink-muted uppercase tracking-wide mb-1">Why you got it wrong</p>
+      <div className="p-3 rounded-lg surface-recessed">
+        <p className="text-eyebrow text-ink-muted uppercase mb-1">Why you got it wrong</p>
         <p className="text-[10px] text-ink-muted">{teachMe.why}</p>
       </div>
 
       {teachMe.mnemonic && (
-        <div className="p-3 rounded-lg bg-violet-500/8 border border-violet-500/15">
-          <p className="text-[9px] font-bold text-violet-500 uppercase tracking-wide mb-1">Memory trick</p>
-          <p className="text-[10px] text-violet-300">{teachMe.mnemonic}</p>
+        <div className="p-3 rounded-lg bg-action-soft border border-hairline">
+          <p className="text-eyebrow text-action-text uppercase mb-1">Memory trick</p>
+          <p className="text-[10px] text-action-text">{teachMe.mnemonic}</p>
         </div>
       )}
 
       {teachMe.examples.length > 0 && (
-        <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700/40">
-          <p className="text-[9px] font-bold text-ink-muted uppercase tracking-wide mb-2">
+        <div className="p-3 rounded-lg surface-recessed">
+          <p className="text-eyebrow text-ink-muted uppercase mb-2">
             Mini-drills ({teachMe.examples.length})
           </p>
           <div className="space-y-2">
@@ -120,7 +120,7 @@ function TeachMeContent({ teachMe }: { teachMe: TeachMe }) {
                   Drill {i + 1}
                 </span>
                 <div>
-                  <p className="text-[10px] text-emerald-300 font-medium">{ex.fr}</p>
+                  <p className="text-[10px] text-progress-text font-medium">{ex.fr}</p>
                   <p className="text-[10px] text-ink-muted">{ex.en}</p>
                 </div>
               </div>
@@ -130,16 +130,16 @@ function TeachMeContent({ teachMe }: { teachMe: TeachMe }) {
       )}
 
       {teachMe.advanced && (
-        <div className="p-3 rounded-lg bg-amber-500/8 border border-amber-500/15">
-          <p className="text-[9px] font-bold text-amber-500 uppercase tracking-wide mb-1">Advanced alternative</p>
-          <p className="text-[10px] text-amber-300">{teachMe.advanced}</p>
+        <div className="p-3 rounded-lg bg-reward-soft border border-hairline">
+          <p className="text-eyebrow text-reward-text uppercase mb-1">Advanced alternative</p>
+          <p className="text-[10px] text-reward-text">{teachMe.advanced}</p>
         </div>
       )}
 
       {teachMe.examinerNote && (
-        <div className="p-3 rounded-lg bg-red-500/8 border border-red-500/15">
-          <p className="text-[9px] font-bold text-red-500 uppercase tracking-wide mb-1">Examiner's note</p>
-          <p className="text-[10px] text-red-300 italic">{teachMe.examinerNote}</p>
+        <div className="p-3 rounded-lg bg-correction-soft border border-hairline">
+          <p className="text-eyebrow text-correction-text uppercase mb-1">Examiner's note</p>
+          <p className="text-[10px] text-correction-text italic">{teachMe.examinerNote}</p>
         </div>
       )}
     </>

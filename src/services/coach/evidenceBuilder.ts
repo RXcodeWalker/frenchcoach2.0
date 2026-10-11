@@ -6,4 +6,4 @@
 // existing imports (sessionOrchestrator.ts) don't need to change.
 
 export type { BuildEvidenceArgs } from './evidenceProjection';
-export { buildEvidence } from './evidenceProjection';
+export { buildEvidence, buildDemandOnlyEvidence } from './evidenceProjection';

@@ -1,24 +1,23 @@
 import { motion } from 'framer-motion';
-import { scoreColor, isUnscored, coachScoreGrid } from '../../../domain/scoring';
+import { scoreTone, isUnscored, coachScoreGrid } from '../../../domain/scoring';
 import { fadeUp } from '../../../components/motion/variants';
+import { cefrLevelLabel } from '../../../domain/learn/ability/levelLabel';
 import type { FeedbackV2 } from '../../../types';
-
-const BAND_LABEL: Record<string, string> = {
-  'Foundation-Developing': 'Foundation',
-  'Foundation-Secure': 'Foundation+',
-  'Core-Developing': 'Core',
-  'Core-Secure': 'Core+',
-  'Extended-Mid': 'Extended',
-  'Extended-High': 'Extended+',
-};
 
 interface Props {
   feedback: FeedbackV2;
+  /**
+   * 'line' (Batch 4, the coach view's first row): overall score, level and
+   * word count on one line. 'full' (the Full report): adds the sub-score grid.
+   */
+  variant?: 'line' | 'full';
 }
 
-export function SnapshotCard({ feedback }: Props) {
+// No "Core+/Extended" band pill (Batch 4, D3): 0520 speaking is not tiered, and
+// an unaudited band reads as a real result. The band stays in synced data.
+export function SnapshotCard({ feedback, variant = 'full' }: Props) {
   const { scores, wordCount, cefrLevel, examiner } = feedback;
-  const band = examiner?.predictedBand;
+  const level = cefrLevelLabel(cefrLevel);
   const unscored = isUnscored(feedback);
 
   const scoreEntries = coachScoreGrid(scores);
@@ -43,6 +42,23 @@ export function SnapshotCard({ feedback }: Props) {
     );
   }
 
+  const meta = `${wordCount != null ? `${wordCount}w` : '…'}${level ? ` · ${level}` : ''}`;
+
+  if (variant === 'line') {
+    return (
+      <motion.div
+        variants={fadeUp}
+        initial="hidden"
+        animate="show"
+        className="rounded-xl surface-raised px-5 py-3 flex items-baseline gap-2"
+      >
+        <span className="text-2xl font-black" style={{ color: scoreTone(scores.overall) }}>{scores.overall.toFixed(1)}</span>
+        <span className="text-eyebrow text-ink-subtle uppercase">Overall</span>
+        <span className="text-[10px] text-ink-subtle ml-auto">{meta}</span>
+      </motion.div>
+    );
+  }
+
   return (
     <motion.div
       variants={fadeUp}
@@ -59,22 +75,12 @@ export function SnapshotCard({ feedback }: Props) {
             </p>
           )}
         </div>
-        <div className="flex flex-col items-end gap-1">
-          {band && (
-            <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-violet-500/15 text-violet-300 border border-violet-500/20">
-              {BAND_LABEL[band] ?? band}
-            </span>
-          )}
-          <span className="text-[9px] text-ink-subtle">
-            {wordCount != null ? `${wordCount}w` : '…'}
-            {cefrLevel ? ` · ${cefrLevel}` : ''}
-          </span>
-        </div>
+        <span className="text-[9px] text-ink-subtle">{meta}</span>
       </div>
 
       <div className="flex items-baseline gap-2 mb-3">
-        <span className="text-3xl font-black" style={{ color: scoreColor(scores.overall) }}>{scores.overall.toFixed(1)}</span>
-        <span className="text-[10px] text-ink-subtle uppercase tracking-wide">Overall</span>
+        <span className="text-3xl font-black" style={{ color: scoreTone(scores.overall) }}>{scores.overall.toFixed(1)}</span>
+        <span className="text-eyebrow text-ink-subtle uppercase">Overall</span>
       </div>
 
       <div className="grid grid-cols-4 gap-3 max-[380px]:grid-cols-2">
@@ -82,7 +88,7 @@ export function SnapshotCard({ feedback }: Props) {
           <div key={label} className="text-center">
             <motion.div
               className="text-xl font-black mb-1"
-              style={{ color: scoreColor(val) }}
+              style={{ color: scoreTone(val) }}
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.15 + i * 0.05, type: 'spring', stiffness: 200 }}
@@ -90,10 +96,10 @@ export function SnapshotCard({ feedback }: Props) {
               {val.toFixed(1)}
             </motion.div>
             <div className="text-[9px] text-ink-subtle">{label}</div>
-            <div className="mt-1.5 h-1 bg-slate-800 rounded-full overflow-hidden">
+            <div className="mt-1.5 h-1 bg-track rounded-full overflow-hidden">
               <motion.div
                 className="h-full rounded-full"
-                style={{ background: scoreColor(val) }}
+                style={{ background: scoreTone(val) }}
                 initial={{ width: 0 }}
                 animate={{ width: `${(val / 10) * 100}%` }}
                 transition={{ delay: 0.25 + i * 0.05, duration: 0.6 }}

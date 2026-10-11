@@ -1,15 +1,11 @@
 import { X } from 'lucide-react';
-import { EngineIndicatorPill } from './EngineIndicatorPill';
 import { averageRealScores } from '../../domain/scoring';
-import type { ActiveSession, AIEngine } from '../../types';
+import type { ActiveSession } from '../../types';
 
 interface Props {
   session: ActiveSession;
   topicLabel: string;
   topicIcon: string;
-  selectedEngine: AIEngine;
-  isEvaluating: boolean;
-  onEngineSwitch: (engine: AIEngine) => void;
   onEndSession: () => void;
 }
 
@@ -20,7 +16,7 @@ interface Props {
  * or neutral --ink-subtle when every attempt on that question was unscored
  * (never a fabricated red/amber from a placeholder 0; see CLAUDE.md).
  */
-export function SessionProgressBar({ session, topicLabel, topicIcon, selectedEngine, isEvaluating, onEngineSwitch, onEndSession }: Props) {
+export function SessionProgressBar({ session, topicLabel, topicIcon, onEndSession }: Props) {
   const { currentIndex, targetCount, answerStreak, xpAccumulated } = session;
   const questionNumber = Math.min(currentIndex + 1, targetCount);
 
@@ -31,7 +27,7 @@ export function SessionProgressBar({ session, topicLabel, topicIcon, selectedEng
 
   return (
     <div className="w-full space-y-2">
-      {/* Top row: topic + question counter + engine pill + XP + end button */}
+      {/* Top row: topic + question counter + XP + end button */}
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2 flex-1 min-w-0">
           <span className="text-sm">{topicIcon}</span>
@@ -58,12 +54,6 @@ export function SessionProgressBar({ session, topicLabel, topicIcon, selectedEng
               +{xpAccumulated} XP
             </span>
           )}
-
-          <EngineIndicatorPill
-            engine={selectedEngine}
-            disabled={isEvaluating}
-            onSwitch={onEngineSwitch}
-          />
 
           <button
             onClick={onEndSession}

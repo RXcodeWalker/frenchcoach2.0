@@ -11,39 +11,23 @@
  *
  *   npm run learn:build-manifest
  *
+ * The hash itself lives in learnCorpusHash.ts (this file runs main() on import).
+ *
  * Run after any change to src/data/learn/demands/*.json, before syncing to
  * backend/data/learn/ (§9.1 step 3) or committing.
  */
-import { createHash } from 'node:crypto';
-import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { LearnDemandsFile, QuestionDemands } from '../../src/domain/learn/demand/types';
+import { hashCorpus, loadRawCorpus } from './learnCorpusHash';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = join(__dirname, '..', '..', 'src', 'data', 'learn', 'demands');
 const OUT_FILE = join(__dirname, '..', '..', 'src', 'data', 'learn', 'demandsManifest.ts');
 
-const SEP = String.fromCharCode(0x20);
-
 function loadSortedFiles(dir: string): { filename: string; raw: string; parsed: LearnDemandsFile }[] {
-  const filenames = readdirSync(dir).filter((f) => f.endsWith('.json')).sort();
-  return filenames.map((filename) => {
-    const raw = readFileSync(join(dir, filename), 'utf-8');
-    return { filename, raw, parsed: JSON.parse(raw) as LearnDemandsFile };
-  });
-}
-
-/** SHA-256 hex over sorted-filename-concatenated raw file bytes. */
-export function hashCorpus(files: { filename: string; raw: string }[]): string {
-  const hash = createHash('sha256');
-  for (const { filename, raw } of files) {
-    hash.update(filename);
-    hash.update(SEP);
-    hash.update(raw);
-    hash.update(SEP);
-  }
-  return hash.digest('hex');
+  return loadRawCorpus(dir).map((f) => ({ ...f, parsed: JSON.parse(f.raw) as LearnDemandsFile }));
 }
 
 function main(): void {

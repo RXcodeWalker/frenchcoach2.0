@@ -326,9 +326,16 @@ Display is **gated on `overallConfidence`** — the app never shows a precise ba
 
 | `overallConfidence` | UI |
 |---|---|
-| `< 0.25` | **No band.** *"Still getting to know your level."* |
-| `0.25 – 0.50` | *"Around B1"* + a low-confidence indicator |
-| `> 0.50` | *"B1"* plainly |
+| `< 0.25` | **No measured band.** *"Starting point: Exam level (A2) — we'll adjust as you answer"* (the level selection is using, labelled as a starting point, never as a measurement) |
+| `0.25 – 0.50` | *"Around Stretch (B1)"* + a low-confidence indicator |
+| `> 0.50` | *"Stretch (B1)"* plainly |
+
+**Display labels (Learn overhaul Batch 1, 2026-10-06).** The learner sees levels relative to
+the 0520 target ("A2 with elements of B1", TN p.11), CEFR code in brackets:
+`A1` → **Warm-up (A1)** · `A2` → **Exam level (A2)** · `B1` → **Stretch (B1)** · anything higher →
+**Stretch (B1+)**. B2 and C1 are never shown (`levelLabel()` in
+`src/domain/learn/ability/levelLabel.ts`). Display only — `demandScoreToLevel` and the gates
+above are unchanged.
 
 The supporting caption is **`measuredAnswers`**, which is directly available as
 `Σ rawEvidenceCount` over `demand:*` nodes. Rev 1's *"based on your last 12 answers"* was not
@@ -353,7 +360,10 @@ coldStart():
 - With `overallConfidence: 0` the UI shows **no band** (§6.3). The seed silently shapes question
   selection but is never presented as a measurement.
 - Old evidence **cannot** contribute to demand ability — it has no demand nodes. Stated in the
-  UI as *"still getting to know your level"*, not hidden.
+  UI as a *starting point* (§6.3), not hidden and not presented as a measurement.
+- The seed is AppState's `selectedDifficulty`, passed in by the caller (Batch 1a). Reading it
+  with `storageGet` never worked: `SET_DIFFICULTY` writes the tier raw, `storageGet` JSON-parses,
+  so every learner got the 4.5 default seed and aim `balanced` until 2026-10-06.
 - The seed decays out naturally: as soon as any demand node clears `MIN_DEMAND_CONFIDENCE`, the
   weighted mean takes over and the seed is no longer consulted.
 
@@ -431,7 +441,9 @@ stay valid and every current call site compiles unchanged.
 **Stretch rule (resolves the rev-1 contradiction).** Sessions of ≥5 questions **plan** at least
 one stretch slot. A stretch slot may only be filled by a question with
 `provenance !== 'inferred'`. **If no trusted candidate fits the stretch band, the slot is
-downgraded to `target`** and the session simply has no stretch that day. One unambiguous rule;
+downgraded to `target`** and the session simply has no stretch that day. The downgraded slot is
+filled under the **target band** (`T−0.5 … T+0.5`), never the stretch band relabelled as target
+(fixed in Batch 1d, 2026-10-06). One unambiguous rule;
 the quota never forces an inappropriate challenge, and the system never deliberately challenges
 a learner on a guessed label.
 
@@ -479,6 +491,10 @@ Candidate pool per slot: questions of **this topic only** (no cross-topic borrow
 break topic mastery and the learner's explicit choice), carrying `demands`, minus a `chosenIds`
 `Set<string>` threaded through the whole fill.
 
+The **review slot excludes only this session's picks** (`chosenIds`), never the historical `seen`
+set: every review item was answered before, so excluding `seen` meant review never fired (bug
+fixed in Batch 1b, 2026-10-06; both the adaptive and legacy paths).
+
 Escalation ladder when nothing scores above zero:
 
 1. Widen the band by ±1.0, retry.
@@ -523,6 +539,39 @@ the suppressed one is dropped rather than queued (a stale "halfway" message help
 
 > ⬇️ *Easing off — the next few questions sit right at your level.*
 > ⬆️ *Stepping up — adding a question that pushes you a bit.*
+
+### 8.5 Learner filters (added 2026-10-07, Learn overhaul Batch 2)
+
+The setup screen lets the learner narrow a session to a **grammar focus** — *Present*, *Past*,
+*Future & conditional*, *Opinions & reasons* — derived from the demand tags already on a question
+(`demands.timeFrames` / `demands.structures`; `domain/learn/selection/filters.ts`). There is no
+sub-topic tag yet. One predicate, **one filtered pool**:
+
+- **Slotting and the ladder.** `buildSessionQuestions` slots from `topicPool(topicKey, filters)`.
+  The §8.3 escalation ladder only ever sees that pool, so rung 4 (questions without `demands`)
+  cannot bring a non-matching question in. An untagged question never matches a grammar filter —
+  it cannot be shown to match — so topics with no tags offer no focus chips.
+- **The review slot.** `getEligibleReviewQuestion(topicKey, chosenIds, accept)` skips a due item
+  that fails the filter; no match → the slot is simply not filled (§8.3).
+- **Mid-session adjust.** Learn passes `midSessionAdjust` the *same* `topicPool(…, filters)`
+  (never the unfiltered topic), so an ease/raise replacement is a match too.
+- **Follow-up turns.** A follow-up's wording is authored per question and untagged, so none is
+  offered while a grammar filter is on.
+- **Fewer matches than requested.** The screen shows "N questions match". A length above N is
+  disabled; a larger earlier choice is clamped to the largest length that fits, with a message;
+  at N = 0, Start is disabled and one tap clears the filter. A session is **never padded with
+  non-matching questions** — it returns fewer (§8.3 rung 5), and an empty build never starts.
+- **Which chips.** A chip is offered only where at least `MIN_FOCUS_MATCHES` (5) questions in the
+  topic match it. Today only the eight tagged topics qualify, and *Past* only in hobbies,
+  holidays and food (school, family, home and environment tag 2 past questions each).
+- **Scope.** Filters are setup state in `Learn.tsx` — not persisted, reset when a topic is
+  chosen. Legacy path (flag off): the builder ignores them and the screen hides them.
+
+The **preview line** under Aim is a dry run of the very session `startSession` would build (same
+builder, same inputs, read-only): the exam-relative label of today's target and how many of the
+selected questions are still `stretch` after §8.1's downgrade — e.g. *"Pitched at Stretch (B1),
+with 2 of 7 a step above."* The denominator is the session actually built (see the Batch 2
+amendment on unfilled review slots), not the length the learner tapped.
 
 ---
 
@@ -637,6 +686,19 @@ never override an L1 `met`/`not_attempted`. Disagreements emit
 **Bug to fix explicitly and separately:** the `hasConditional` regex at
 `diagnosticEngine.ts:240` never matches. It currently feeds `detectAvoidance` — real evidence,
 so fixing it is a behaviour change and gets its own commit and test, not a silent ride-along.
+
+### 9.4 Examiner-voice attempts emit L1 demand evidence only (added 2026-10-06, Batch 1f)
+
+An Examiner-voice Learn answer has no score (ADR 0005), so it never goes through
+`orchestrateAttempt`: that would record a `Session` (counts, cloud sync, achievements) and a
+language event with no success signal that the reducer still adds to skill confidence. Once the
+examiner reply succeeds, `recordDemandOnlyAttempt` (`sessionOrchestrator.ts`) records
+`buildDemandOnlyEvidence(question, transcript)` (`evidenceProjection.ts`): the §9.3 L1 read only —
+one `demand:*` event (`met` → success, `not_attempted` → avoidance) or none. `demandsResolved` is
+absent, so the L2 gap-fill (the only path that can emit `success: false`) never runs. No Session,
+no XP (decision D4b: participation XP writes the `xp_events` ledger and mints gems, and an
+examiner answer can't yet be shown to be unfarmable), no topic mastery, no review-pool write,
+nothing numeric shown. `src/domain/igcse/` is untouched.
 
 ---
 
@@ -820,6 +882,12 @@ level"*, which is what every existing user sees on day one (§6.4).
 
 **2. "Why this question"** — a one-line tappable disclosure on `QuestionCard.tsx` from
 `SelectionReason.explanation`. Highest trust-per-pixel item in the plan.
+The text comes from **slot + ladder rung + the question's real level versus today's target**
+(`explainSelection`, Batch 1d), never from the slot type alone: rung 0 can still hit far off-band,
+so only an in-band, rung 0–1 target pick says *"Right at your level today"*; rung ≥ 2 never says
+"at your level". Review reads *"Due for a spaced review — coming back to a question after a gap
+helps it stick"* (the old "found tricky" has been wrong since SM-2, Phase 4.2). No raw demand ids.
+`midSessionAdjust` replacements carry their own reason.
 
 **3. Demand chip replaces the difficulty chip** (`QuestionCard.tsx:50-56`, currently just
 restating `difficulty` 1/2/3): **`Justify an opinion · present + past · B1`**.
@@ -1172,3 +1240,134 @@ for a future stage if pursued.
 
 **Corrected §16 Stage 8 file list:** `evidenceProjection.ts` should be treated as part of Stage
 8's scope going forward, not just Stage 5's.
+
+## Amendment: Learn overhaul Batch 1 (2026-10-06)
+
+**Stage 9 content gate shortfall.** §16 Stage 9's prerequisite (a first review batch producing
+non-inferred questions) was never met before the flag flip: 420 of 428 demand tags are
+`inferred`, 8 `reviewed`. Inferred L1 events weigh `inferenceConfidence × 0.6 × 0.9 × 0.6` —
+≈ 0.13 at confidence 0.4 (113 questions, below `MIN_RELIABLE_WEIGHT` 0.15, so dropped) and ≈ 0.23
+at 0.7. Consequences: almost no stretch slots (§8.1), and the level read-out never leaves the
+starting point. No engine weight was changed (the review batch is the designed fix). A seeded
+simulation (`adaptiveSimulation.test.ts` scenario L) shows that **even with every question
+reviewed**, a realistic A2 learner (4 sessions a week for 3 weeks, bank-shaped pool: describe 63%)
+reaches `overallConfidence` 0.18–0.21 — below the 0.25 gate — and `abilityScore` ≈ 1.8–2.1,
+because `overallConfidence` averages over all five demands and describe's anchor is 2.0. That
+test pins the shortfall as evidence for a §6.3 display-only proposal after Batch 3; it is not a
+decision.
+
+**Bugs fixed in Batch 1.** Today's aim and the stored tier never reached selection (§6.4);
+spaced review excluded every due item (§8.3); a downgraded stretch kept the stretch band (§8.1);
+"Why this question?" contradicted the level (§14 #2); a session with no real score saved a
+fabricated topic average of 0 (`features/learn/topicAverage.ts`, read-time repair only, no
+migration). Learn's avoidance checks use one fixed `IGCSE_EXPECTATIONS` set instead of the hidden
+tier, and the tier grid is gone — Aim is the one difficulty control.
+
+## Amendment: Learn overhaul Batch 2 (2026-10-07)
+
+**One-screen setup.** `SessionStartScreen` is now Topic → Focus (optional) → Questions (1 / 5 / 10 / 20)
+→ Difficulty (Easier · Right for me · Harder, with the §14 #1 level read-out and a live preview)
+→ Feedback style (Coach / Examiner, "no score") → Start. Removed: the AI-engine picker
+(`ModelSelectorCard`), the mid-session engine pill, the re-evaluate bar and `useEngineHealth` —
+the stored preference (Groq by default, falling back to Gemini, then offline) is used, and
+`AppContext` still holds it; the "Just one question" button (now the "1" length); the weakness
+bars; and the separate Focus Token row (folded into one "Coach's pick" line). The in-question
+Coach/Examiner toggle moved to the setup screen (an examiner failure still offers "switch to coach
+mode"). The Aim labels in §14 #1's mock were renamed Comfortable / Balanced / Push →
+Easier / Right for me / Harder (`AIM_CONFIG`; the `Aim` ids are unchanged).
+
+**§13.4 realised.** The topic grid hides every topic holding fewer than 5 questions
+(`isTopicVisible`) — today exactly the eight one-question advanced topics. The Random Question
+button draws only from visible topics.
+
+**Known, unchanged, now more visible: a session is often shorter than the length tapped.**
+`planSlots` reserves review slots (30% of the blend, at least one in a session of 5+) and §8.3
+leaves an unfilled review slot empty rather than backfilling it. With no spaced-review item due —
+the usual case — a new learner's "5" builds 3, "10" builds 7 and "20" builds 14 (measured on the
+Batch 1 code and again after Batch 2; identical for all three aims). This is the spec'd
+behaviour, not a Batch 2 regression, and was left alone; whether unfilled review slots should be
+backfilled with `target` slots is a §8.1/§8.3 decision for the owner.
+
+## Amendment: Learn overhaul Batch 3b — the bank re-read (2026-10-07)
+
+**What changed.** Every core-topic question (660) was re-read against its own wording and its
+demands tag corrected where the two disagreed; the 240 questions in clothes, animals, transport,
+jobs, sports, emotions, arts and shopping, which had no demands at all, were tagged for the first
+time. All 668 questions now carry demands (`questions.demands.test` 428 → 668). Typical
+corrections: a "pourquoi/penses-tu" question tagged `describe`; `present` tags on questions that
+ask about the past or future (the wording now carries a cue the checker can see, e.g. *l'année
+dernière*, *dans cinquante ans*); `structures` pruned to what the text cues; `sufficientAnswer` rewritten with countable
+requirements (it was a copy of the hint, and in 38 entries carried a broken "Mention at least two
+of: …" / "A complete answer should: …" prefix). **`responseLoad` moved from `extended` on 106 of
+428 questions to `extended` on 7 of 668** (the rest are `developed`). This is a judgement the owner
+should confirm: `responseLoad` sets the L1 word floor for "met" (~15 / ~40 / ~70 words,
+`satisfaction.ts`), so those questions now need ~40 words instead of ~70, and an everyday
+comparison question no longer scores as B2 (compare 6.5 + extended 0.75 + comparison 0.25 = 7.5).
+Scenario M below already assumes `developed`. The demand mix moved from ~63%
+`describe` to describe 35% · explain 30% · justify 25% · compare 8% · hypothesize 2.4%.
+
+**Provenance is unchanged on purpose.** These tags are still `inferred` at confidence 0.8 with a
+`review.notes` marker; a model cannot vouch for itself, so §12's `reviewed` flip remains the
+owner's (`docs/guides/learn-demands.md` §2c). The eight tags already `reviewed` were not touched,
+and their wording (including their bare yes/no questions) was left for the owner.
+
+**Questions and fields.** Second parts were added to every bare yes/no question (plan D8); five
+questions beyond A2–B1 (`emo_18`, `emo_29`, `arv_25`, `sho_19`, `foo_47`) were replaced by
+everyday ones, with `hint`, follow-ups, model answer, vocabulary and `difficulty` rewritten
+together. `subTopic` is set on every core question and `coachHint` on every question of the eight
+priority topics (D7); the sub-topic lists were adjusted where a key would have held fewer than the
+5 questions a Focus chip needs (home, future, jobs).
+
+**§6.3 evidence — still not reliably reachable.** `adaptiveSimulation.test.ts` scenario M repeats
+Batch 1e's check on the new mix (4 sessions a week for 3 weeks, seeds 11–13). As shipped
+(`inferred` 0.8): `overallConfidence` 0.098 / 0.122 / 0.090, only 11–14 of ~60 answers staying
+above `MIN_RELIABLE_WEIGHT` after the 14-day decay. After the owner's `reviewed` flip: 0.222 /
+0.256 / 0.262 (it was 0.18–0.21 on the old mix) — the 0.25 gate is reached on two seeds of three.
+
+**Proposal, not a decision (§6.3, display only).** Show the "Around …" band from
+`overallConfidence ≥ 0.20` instead of 0.25 (all three reviewed-state seeds clear it; the shipped
+state still does not), keep the starting-point wording below it, and change nothing in selection,
+weights or `deriveAbility`. The cost is a band resting on fewer measured answers. The gate and the
+weights are unchanged in this batch.
+
+## Amendment: Learn feedback Batch 6b-0 — the French marker detectors (2026-10-09)
+
+**What was wrong.** The closed-list detectors in `services/coaching/diagnosticEngine.ts` that §9.3's
+L1 evaluator reads (`hasJustification`, `hasOpinion`, `hasPerspective`, `hasSubjunctive`,
+`hasConnectors`, `hasConditional`) and the one Learn sends to the model as a signal (`hasPastOrFuture`,
+`apiClient.ts`) used JS `\b`, which is ASCII-only: it never fires next to an accented letter. So
+« à mon avis », « d'un côté », « à condition que », « étant donné », « grâce à » and « c'était » were
+never found, and `hasPastOrFuture` never matched a passé composé at all (`\w+é\b`), only the exact
+words *ira / irai / ferai / serai* and four imparfait forms. It also matched mid-word
+(« a consi**dé**rablement », « ont **ré**ellement »). `hasConditional` went the other way: after
+Stage 4b it accepted any word ending *-ais / -ait / -aient / -ions / -iez*, so nouns (« solutions »,
+« informations », « anglais ») and the imparfait (« j'adorais ») counted as conditionals.
+
+**What changed (§3.8 / §9.3 detector contract, not the evaluator).** Every marker is now built with
+the Unicode-boundary `cue()` helper from `domain/learn/demand/textCues.ts` (which gained an optional
+`flags` argument) and shares one implementation, `findMarker(text, kind)`, which also returns the
+matched span so a caller can quote it. The boolean `hasX` functions keep their signatures and are
+wrappers over it. The word lists themselves are unchanged, except:
+- `hasPastOrFuture` now finds the passé composé (avoir; être with a closed list of verbs, and
+  reflexives), the imparfait of être/avoir, the simple future behind a subject, and the near future
+  (*aller* + an infinitive). Adjectives in *-é* (« je suis fatigué ») are deliberately not a past.
+- `hasConditional` requires a verb stem (infinitive, *-dr- / -rr- / -ettr- / -aîtr- / -evr-*, or *aur- / saur-*).
+- « parce qu'il » (elided) counts as « parce que », and « car » does not count after a determiner
+  (« le car » is the bus).
+
+**Still presence-reliable, absence-unreliable.** A new detector returns a hit only where a false hit
+would be unlikely; ambiguous endings are left undetected (« nous respirons » vs « nous finirons »),
+so a miss still never means "not done". Nothing here changes the evaluator's asymmetry rule.
+
+**Belief-input effect (measured, 668 bank model answers).** Answers matched, old → new:
+`hasPastOrFuture` 58 → 216 (+160 gained, 2 lost, both of the 2 old mid-word false positives) ·
+`hasJustification` 295 → 339 · `hasPerspective` 120 → 130 · `hasOpinion`, `hasSubjunctive`,
+`hasConnectors` unchanged · **`hasConditional` 373 → 214** (56% → 32%). Checked word by word, the old detector's
+122 distinct dropped words are nouns in *-ions* (« motions », « traditions », « options »), « frais »,
+« anglais », « mauvais », « trait », « avions », and imparfait / present forms (« avais », « pouvais »,
+« faisait », « essaient »); the one real conditional it dropped, « permettrait », led to adding the
+*-ettr- / -aîtr-* stems. The visible consequence: `hypothesize` and the *conditional*
+structure no longer resolve to `met` on ordinary answers, so L1 `demand:hypothesize` evidence gets
+sparser and more honest, and the model now receives a correct past/future signal. The
+`adaptiveSimulation` scenarios are bit-for-bit unchanged (their synthetic transcripts only use
+markers that were never broken), so they do not measure this effect; the corpus comparison above does.

@@ -13,7 +13,7 @@
 
 import { supabase, supabaseConfigured } from '../../lib/supabase';
 import { exportData as exportLocalAnalytics } from '../analytics/analyticsService';
-import { getStorageScope } from '../persistence/storage';
+import { STORAGE_KEYS, getStorageScope, storageRemove } from '../persistence/storage';
 
 export type AccountErrorCode = 'not_authenticated' | 'network_error' | 'unknown';
 
@@ -101,9 +101,15 @@ export async function exportMyData(): Promise<ExportedAccountData> {
  * row) via delete_my_account(). Does NOT sign the caller out or remove the
  * auth.users row itself (see the migration's header) — callers must still
  * call signOut() and navigate away.
+ *
+ * Once the cloud erase has succeeded it also removes this account's exam
+ * notebook from the device (Learn feedback Batch 6d): sign-out and the guest
+ * copy leave per-user keys behind, so the learner's own notes are removed here,
+ * before the caller signs out. A failed erase leaves the notebook alone.
  */
 export async function deleteMyAccount(): Promise<void> {
   if (!supabaseConfigured) throw new AccountError('network_error', 'offline');
   const { error } = await supabase.rpc('delete_my_account');
   if (error) throw mapRpcError(error.message);
+  storageRemove(STORAGE_KEYS.notebook);
 }

@@ -126,6 +126,25 @@ All `SECURITY DEFINER`, pinned `search_path`, standard `REVOKE ... FROM PUBLIC` 
   collected and which subprocessors are involved, collects a stated
   relationship, calls `grant_guardian_consent`.
 
+## Data that stays on the device — what revocation cannot reach
+
+Guardian revocation (and `delete_my_account`) erases the child's cloud rows; it cannot reach a
+learner's browser. Everything kept locally under `base::identity` keys stays there — the existing
+local transcripts and analytics, and, since Learn feedback Batch 6d, the learner's **exam notebook**
+(`frenchCoach_notebook`: their own improved answers, saved only on their tap). That is a stated
+limit, not an oversight, and the notebook is held to the minimum that follows from it:
+
+- **Signed-in only.** A guest never holds a notebook (UI and reducer both refuse), so the
+  guest-to-account copy cannot leave one behind on a shared device.
+- **Local only.** No sync module, request body, skill context, log or analytics event reads it
+  (`src/domain/learn/notebook/__tests__/notebookPrivacy.test.ts`). It is included in the
+  learner's own data export, like every other `base::identity` key.
+- **Erased on account deletion.** `deleteMyAccount()` removes this account's notebook key once the
+  cloud erase has succeeded, before the caller signs out. Sign-out alone does not clear per-user
+  local keys (a pre-existing property of all of them).
+- **Recall mode records** through the same `SpeakingConsentGate` + `useRecording(blocked)` pair as the
+  rest of Learn, so a `pending` under-13 account cannot record into it.
+
 ## Server-side gate on audio routes
 
 The client gate above is a convenience, not a control: some audio screens (Say-It-Again, Accent

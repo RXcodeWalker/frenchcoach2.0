@@ -11,7 +11,7 @@ export function BiggestOpportunityCard({ opportunity }: Props) {
   return (
     <CollapsibleCard
       title="Your One Focus"
-      icon={<Target size={13} className="text-amber-400" />}
+      icon={<Target size={13} className="text-reward-text" />}
       defaultOpen={true}
       className="border border-amber-500/10"
     >

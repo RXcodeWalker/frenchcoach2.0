@@ -333,3 +333,16 @@ on them with `backend/supabase/ops/expire_open_duels_at_deploy.sql` (D11; run by
   `RESEND_API_KEY` (email fallback), alongside the existing `SUPABASE_URL` /
   `SUPABASE_SERVICE_KEY`. The client half (`src/services/notifications/pushService.ts`,
   `public/sw.js`) needs `VITE_VAPID_PUBLIC_KEY` set wherever the frontend is built (Vercel).
+
+**Known gap (2026-10-09): none of these repo secrets have ever been set.** Every run of all
+three scheduled jobs since they were added has failed with empty `SUPABASE_URL` /
+`SUPABASE_SERVICE_KEY`, and production shows the result: zero `daily_challenge_assignments`,
+zero `league_assignment_runs`, zero `push_subscriptions`, zero `notifications_log` rows.
+The code and RPC grants are fine; only the secrets are missing. Each job now runs a
+"Check required secrets" step before `npm ci` that names any missing secret in the run's
+annotations. Fix: add `SUPABASE_URL`, `SUPABASE_SERVICE_KEY` (service-role key, never the
+anon key), `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT` (e.g.
+`mailto:you@example.com`; generate the pair with `npx web-push generate-vapid-keys`) and,
+optionally, `RESEND_API_KEY` under GitHub → Settings → Secrets and variables → Actions; set
+`VITE_VAPID_PUBLIC_KEY` on Vercel to the same public key and redeploy; then run each
+workflow once via "Run workflow" to confirm it goes green.

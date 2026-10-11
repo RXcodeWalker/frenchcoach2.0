@@ -84,6 +84,19 @@ export interface Topic {
   isAdvanced?: boolean;
 }
 
+/**
+ * Learner-facing hint, shown by QuestionCard in place of `hint` when present.
+ * Display-only: `hint` (a string) stays untouched because inference
+ * (`infer.ts`) and avoidance detection (`diagnosticEngine.ts`) read it, and
+ * Supabase/admin rows carry it. Never read this from the demands layer.
+ */
+export interface CoachHint {
+  /** 2–3 short English ideas, specific to this question. */
+  ideas: string[];
+  /** One French sentence frame the learner can borrow, with its English gloss. */
+  phrase: { fr: string; en: string };
+}
+
 export interface Question {
   id: string;
   topicKey: string;
@@ -97,6 +110,13 @@ export interface Question {
   year?: number;
   paperCode?: string;
   demands?: QuestionDemands;
+  /**
+   * Learn-only focus chip, one of `LEARN_SUB_TOPICS[topicKey]` (src/data/learnSubTopics.ts).
+   * Deliberately not part of `QuestionDemands`, so it never touches the demands
+   * hash or the backend. Absent means "unfiltered": Learn reads the static bank.
+   */
+  subTopic?: string;
+  coachHint?: CoachHint;
 }
 
 export interface RebuildQuestion {
@@ -543,16 +563,28 @@ export interface DeepAnalysis {
   pushToTopMarks: string[];
 }
 
+/** One quoted strength (learn-prompt-v6 strengths[]): the learner's own words and what they show. */
+export interface CoachStrength {
+  quote: string;
+  why: string;
+}
+
 export interface FeedbackV2 extends Feedback {
   examiner?: ExaminerVerdict;
   topPriorityIssueId?: string;
   strongestMomentSpan?: TranscriptSpan;
   strongestMomentExplanation?: string;
   best_moment?: string;
+  /** 2–4 quoted strengths, strongest first (contract v3); absent on an older backend → best_moment. Filtered at normalisation. */
+  strengths?: CoachStrength[];
+  /** The teacher's opening line; it must quote the learner. Filtered at normalisation (dropped when ungrounded). */
+  encouragement?: string;
   biggest_opportunity?: string;
   improved_answer?: string;
   rephrase?: string;
   advanced_answer?: string;
+  /** The model's French follow-up to THIS answer, kept only after `cleanFollowUpQuestion`; Learn's follow-up turn can ask it. */
+  followUpQuestion?: string;
   expansion_ideas?: string[];
   /**
    * Annotations over the client-computed diff between the transcript and
@@ -695,7 +727,8 @@ export interface TopicMasteryEntry {
   /** Sessions that contributed a real score to averageScore — the correct weight for its running mean. Defaults to sessionsCompleted on read for entries written before this field existed. */
   scoredSessionsCompleted?: number;
   uniqueQuestionsAnswered: string[];
-  averageScore: number;
+  /** Mean of real scores only; null until a scored session exists (never a fabricated 0 — see features/learn/topicAverage.ts). */
+  averageScore: number | null;
   lastSessionAt: string;
   mastered: boolean;
   masteredAt?: string;

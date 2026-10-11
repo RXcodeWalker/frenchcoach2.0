@@ -15,7 +15,7 @@
 import type { ActiveSession, Question, SessionQuestion } from '../../../types';
 import type { CognitiveDemand } from '../demand/types';
 import { selectQuestions } from './selectQuestions';
-import type { SessionSlot } from './types';
+import type { SelectedQuestion, SessionSlot } from './types';
 import type { EvidenceBeliefSnapshot } from '../../../types/beliefs';
 
 const MIN_QUESTION_INDEX_FOR_ADJUST = 2; // "never before question 3" (1-indexed) == currentIndex >= 2
@@ -81,11 +81,16 @@ function eligibleIndices(session: ActiveSession): number[] {
     .map(({ i }) => i);
 }
 
+/** Centre of a target-shaped band (T−0.5 … T+0.5) — today's level for that slot. */
+function bandCentre(band: SessionSlot['band']): number | undefined {
+  return band ? (band.lo + band.hi) / 2 : undefined;
+}
+
 function fillSlot(
   slot: SessionSlot,
   chosenIds: Set<string>,
   args: MidSessionAdjustArgs,
-): Question | null {
+): SelectedQuestion | null {
   const { selected } = selectQuestions(
     {
       pool: args.pool,
@@ -95,22 +100,27 @@ function fillSlot(
       focusSkillIds: args.focusSkillIds,
       activeDemandProblem: args.activeDemandProblem,
       getReviewQuestion: () => null, // review slots are never eligible for mid-session replacement
+      // Both replacement shapes carry a target-shaped band (an eased target
+      // band, or the raised slot's own target band), so its centre is the
+      // level "Why this question?" compares against (Batch 1d).
+      targetLevel: bandCentre(slot.band),
     },
     { beliefSnapshot: args.beliefSnapshot },
   );
-  return selected.length > 0 ? selected[0].question : null;
+  return selected.length > 0 ? selected[0] : null;
 }
 
-function replacementSessionQuestion(question: Question, slotType: SessionQuestion['slotType'], slotBand: SessionQuestion['slotBand']): SessionQuestion {
+function replacementSessionQuestion(pick: SelectedQuestion, slotBand: SessionQuestion['slotBand']): SessionQuestion {
   return {
-    question,
+    question: pick.question,
     status: 'pending',
     attempts: [],
     bestScore: null,
     savedVocab: [],
     isReview: false,
-    slotType,
+    slotType: pick.slot,
     slotBand,
+    selectionReason: pick.reason,
   };
 }
 
@@ -181,15 +191,17 @@ export function midSessionAdjust(args: MidSessionAdjustArgs): MidSessionAdjustRe
       desiredSlot = { type: 'stretch', band: sq.slotBand ?? null };
     }
 
-    const replacement = fillSlot(desiredSlot, chosenIds, args);
-    if (!replacement || replacement.id === sq.question.id) {
+    const pick = fillSlot(desiredSlot, chosenIds, args);
+    if (!pick || pick.question.id === sq.question.id) {
       continue; // no candidate fits the adjusted band, or the pick is unchanged -> leave as-is (§8.4 fallback)
     }
 
     chosenIds.delete(sq.question.id);
-    chosenIds.add(replacement.id);
+    chosenIds.add(pick.question.id);
 
-    updatedQuestions[i] = replacementSessionQuestion(replacement, desiredSlot.type, desiredSlot.band);
+    // pick.slot, not desiredSlot.type: a raise with no trusted candidate comes
+    // back downgraded to target (docs §8.1), and its label and reason must agree.
+    updatedQuestions[i] = replacementSessionQuestion(pick, desiredSlot.band);
     changed = true;
   }
 

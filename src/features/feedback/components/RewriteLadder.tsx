@@ -3,9 +3,9 @@ import type { ExpansionLevel } from '../../../types';
 
 export function ExpansionLevelRow({ lvl, isLast }: { lvl: ExpansionLevel; isLast: boolean }) {
   const colors = {
-    1: { bg: 'bg-slate-700/60', text: 'text-ink-muted', num: 'bg-slate-600/80 text-ink-muted' },
-    2: { bg: 'bg-blue-500/8 border border-blue-500/15', text: 'text-blue-300', num: 'bg-blue-500/20 text-blue-400' },
-    3: { bg: 'bg-violet-500/8 border border-violet-500/15', text: 'text-violet-300', num: 'bg-violet-500/20 text-violet-400' },
+    1: { bg: 'bg-track', text: 'text-ink-muted', num: 'bg-track text-ink-muted' },
+    2: { bg: 'bg-info-soft border border-hairline', text: 'text-info-text', num: 'bg-blue-500/20 text-info-text' },
+    3: { bg: 'bg-action-soft border border-hairline', text: 'text-action-text', num: 'bg-violet-500/20 text-action-text' },
   }[lvl.level];
 
   return (
@@ -31,7 +31,7 @@ export function RewriteLadder({ levels, title }: Props) {
   if (levels.length === 0) return null;
   return (
     <div className="rounded-xl surface-raised p-4 space-y-2">
-      <p className="text-[9px] text-ink-muted uppercase tracking-wider font-bold mb-3">{title}</p>
+      <p className="text-eyebrow text-ink-muted uppercase mb-3">{title}</p>
       <div className="space-y-2">
         {levels.map((lvl, i) => (
           <ExpansionLevelRow key={lvl.level} lvl={lvl} isLast={i === levels.length - 1} />

@@ -25,7 +25,7 @@ const MODE_TO_XP_SOURCE: Record<OrchestratorInput['mode'], XpSource> = {
   'scenario-architect': 'roleplay',
   roleplay: 'roleplay',
 };
-import { buildEvidence } from './evidenceBuilder';
+import { buildEvidence, buildDemandOnlyEvidence } from './evidenceBuilder';
 import { updateFromFeedback } from './beliefProjectionService';
 import { generateRecommendation } from './recommendationEngine';
 import { appendEvidenceEvents, getRecentEvidence } from './coachStorage';
@@ -185,6 +185,32 @@ export interface ObserveAttemptResult {
   evidenceEvents: EvidenceEvent[];
   beliefSnapshot: EvidenceBeliefSnapshot;
   recommendation: CoachRecommendation;
+}
+
+/**
+ * Learn overhaul Batch 1f / docs §9.4 — an Examiner-voice Learn answer. Records
+ * the L1 demand read of the transcript and refreshes beliefs, nothing else: no
+ * Session, no XP (D4b: participation XP writes the xp_events ledger and mints
+ * gems, and an examiner answer can't yet be shown to be unfarmable), no
+ * achievements, no topic mastery, no review-pool write, no recommendation.
+ * Never routed through orchestrateAttempt — that records a Session and a
+ * language event with no success signal, which would inflate skill confidence.
+ */
+export function recordDemandOnlyAttempt(input: {
+  sessionId: string;
+  question: Question | null;
+  transcript: string;
+  topicKey?: string;
+}): EvidenceEvent[] {
+  const events = buildDemandOnlyEvidence(input.question, input.transcript, {
+    sessionId: input.sessionId,
+    topicKey: input.topicKey,
+  });
+  if (events.length === 0) return events;
+  // Evidence first, then beliefs (§2.3 write order).
+  appendEvidenceEvents(events);
+  updateFromFeedback();
+  return events;
 }
 
 /**

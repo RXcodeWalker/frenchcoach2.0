@@ -45,6 +45,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Parle-moi de ton école.",
     hint: "Talk about your school — size, subjects, teachers, uniform, facilities.",
+    subTopic: "school-day",
+    coachHint: {
+      ideas: ["Say roughly how big your school is and where it is", "Name two or three subjects or facilities you like", "Mention your teachers or the uniform"],
+      phrase: { fr: "Mon école s'appelle… et il y a environ… élèves.", en: "My school is called… and there are about… pupils." },
+    },
     difficulty: 1,
     followUps: [
       "Quel est ton professeur préféré et pourquoi ?",
@@ -66,6 +71,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Quelles sont tes matières préférées et pourquoi ?",
     hint: "Describe 2-3 favourite subjects, give reasons, compare with subjects you dislike.",
+    subTopic: "subjects",
+    coachHint: {
+      ideas: ["Pick two subjects you really like", "Give one reason for each (useful, interesting, good teacher)", "Say how you feel about a subject you like less"],
+      phrase: { fr: "Ma matière préférée, c'est… parce que…", en: "My favourite subject is… because…" },
+    },
     difficulty: 1,
     followUps: [
       "À quelle heure commencent tes cours ?",
@@ -87,6 +97,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Comment tu vas à l'école chaque matin ?",
     hint: "Explain your journey to school — transport, how long it takes, who you go with.",
+    subTopic: "school-day",
+    coachHint: {
+      ideas: ["Say which transport you use (bus, car, walking, bike)", "Give the journey time", "Say who you travel with, if anyone"],
+      phrase: { fr: "Pour aller à l'école, je prends… et le trajet dure…", en: "To get to school I take… and the journey lasts…" },
+    },
     difficulty: 1,
     followUps: [
       "À quelle heure tu pars de chez toi ?",
@@ -108,6 +123,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Est-ce que tu aimes ton école ? Pourquoi ou pourquoi pas ?",
     hint: "Give a balanced opinion with both positives and negatives, plus reasons.",
+    subTopic: "school-day",
+    coachHint: {
+      ideas: ["Start with your overall feeling about the school", "Give one good thing and one thing you would improve", "Add a reason for each"],
+      phrase: { fr: "Dans l'ensemble, j'aime mon école parce que… mais…", en: "Overall I like my school because… but…" },
+    },
     difficulty: 2,
     followUps: [
       "Qu'est-ce que tu changerais dans ton école si tu pouvais ?",
@@ -129,6 +149,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Qu'est-ce que tu as fait à l'école la semaine dernière ?",
     hint: "Use passé composé to describe specific events — a lesson, a test, a school trip.",
+    subTopic: "school-day",
+    coachHint: {
+      ideas: ["Pick two real events from last week (a test, a trip, a lesson)", "Say what happened in each, in the past tense", "Add how you felt about one of them"],
+      phrase: { fr: "La semaine dernière, j'ai… et on a…", en: "Last week I… and we…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que tu as eu des examens récemment ?",
@@ -150,6 +175,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Décris ta journée scolaire typique.",
     hint: "Walk through your day from morning to end of school using time phrases.",
+    subTopic: "school-day",
+    coachHint: {
+      ideas: ["Go through the day in order, from the morning to the end of school", "Include at least three times or lesson names", "Say what you do at lunch or break"],
+      phrase: { fr: "Ma journée commence à… et ensuite, je…", en: "My day starts at… and then I…" },
+    },
     difficulty: 1,
     followUps: [
       "Tu manges à la cantine ou tu apportes ton repas ?",
@@ -173,6 +203,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "hobbies",
     text: "Qu'est-ce que tu fais pendant ton temps libre ?",
     hint: "Describe 2-3 hobbies in detail — how often, who with, why you enjoy them.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Name two or three things you really do (sport, games, friends)", "Say how often and who with", "Give one reason you enjoy the main one"],
+      phrase: { fr: "Pendant mon temps libre, je… et j'aime ça parce que…", en: "In my free time I… and I like it because…" },
+    },
     difficulty: 1,
     followUps: [
       "Depuis combien de temps tu fais cette activité ?",
@@ -194,6 +229,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "hobbies",
     text: "Tu fais du sport ? Quel sport tu préfères et pourquoi ?",
     hint: "Talk about sports you play or watch. Include how often and where.",
+    subTopic: "sport-and-active",
+    coachHint: {
+      ideas: ["Name the sport you prefer", "Give a reason (fun, fitness, friends)", "Say how often and where you do it"],
+      phrase: { fr: "Mon sport préféré, c'est… parce que…", en: "My favourite sport is… because…" },
+    },
     difficulty: 1,
     followUps: [
       "Tu fais partie d'une équipe ?",
@@ -213,8 +253,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_03",
     topicKey: "hobbies",
-    text: "Est-ce que tu joues d'un instrument de musique ou tu chantes ?",
+    text: "Est-ce que tu joues d'un instrument de musique ou tu chantes ? Depuis quand ?",
     hint: "Discuss any musical activity — playing, singing, concerts, favourite music genres.",
+    subTopic: "music-books-film",
+    coachHint: {
+      ideas: ["Say what you play or whether you sing", "Say how long you have been doing it", "Name a music style you like"],
+      phrase: { fr: "Je joue de… depuis… et j'aime écouter…", en: "I play the… for… and I like listening to…" },
+    },
     difficulty: 1,
     followUps: [
       "Quel est ton genre de musique préféré ?",
@@ -236,6 +281,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "hobbies",
     text: "Tu lis beaucoup ? Qu'est-ce que tu aimes lire ?",
     hint: "Describe your reading habits, favourite genres, specific books or authors.",
+    subTopic: "music-books-film",
+    coachHint: {
+      ideas: ["Say how often you read", "Name a type of book or an author", "Say where you read (bed, bus)"],
+      phrase: { fr: "Je lis… et mon genre préféré, c'est…", en: "I read… and my favourite genre is…" },
+    },
     difficulty: 2,
     followUps: [
       "Tu préfères les livres électroniques ou les livres papier ?",
@@ -255,8 +305,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_05",
     topicKey: "hobbies",
-    text: "Est-ce que tu regardes beaucoup la télévision ou des vidéos en ligne ?",
+    text: "Est-ce que tu regardes beaucoup la télévision ou des vidéos en ligne ? Combien de temps par jour ?",
     hint: "Discuss screen time habits — TV shows, YouTube, streaming, how much time per day.",
+    subTopic: "screens-and-games",
+    coachHint: {
+      ideas: ["Say what you watch (TV, YouTube, series)", "Give the time per day", "Say whether you try to limit it"],
+      phrase: { fr: "Je regarde… environ… par jour.", en: "I watch… for about… a day." },
+    },
     difficulty: 2,
     followUps: [
       "Quelle est ton émission préférée en ce moment ?",
@@ -280,6 +335,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Décris ta famille.",
     hint: "Describe family members — their appearance, personality, job, and your relationship.",
+    subTopic: "family-members",
+    coachHint: {
+      ideas: ["Pick three people (parents, siblings, grandparents)", "For each, give one detail: looks, personality or job", "Say who you are closest to"],
+      phrase: { fr: "Dans ma famille, il y a… et mon père/ma mère est…", en: "In my family there are… and my father/mother is…" },
+    },
     difficulty: 1,
     followUps: [
       "Tu t'entends bien avec tes frères et sœurs ?",
@@ -301,6 +361,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Comment est ta relation avec tes parents ?",
     hint: "Explain how you get along — what you do together, any conflicts, how they support you.",
+    subTopic: "parents-and-rules",
+    coachHint: {
+      ideas: ["Say whether you get on well", "Give an example of something you do together", "Mention one disagreement and how you solve it"],
+      phrase: { fr: "Je m'entends bien avec mes parents parce que…", en: "I get on well with my parents because…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que tes parents sont stricts ?",
@@ -322,6 +387,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Décris ton meilleur ami ou ta meilleure amie.",
     hint: "Describe their appearance, personality, how you met, what you do together.",
+    subTopic: "friends",
+    coachHint: {
+      ideas: ["Give their name and how you met", "Describe their looks and personality", "Say what you do together"],
+      phrase: { fr: "Mon meilleur ami s'appelle… et il est…", en: "My best friend is called… and he is…" },
+    },
     difficulty: 1,
     followUps: [
       "Depuis combien de temps tu connais cette personne ?",
@@ -343,6 +413,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Qu'est-ce que tu fais avec tes amis le week-end ?",
     hint: "Talk about typical weekend activities with friends — where you go, what you do.",
+    subTopic: "friends",
+    coachHint: {
+      ideas: ["Name two activities (cinema, sport, shopping, games)", "Say where you go", "Say who comes along"],
+      phrase: { fr: "Le week-end, avec mes amis, on…", en: "At the weekend, with my friends, we…" },
+    },
     difficulty: 1,
     followUps: [
       "Tu préfères rester à la maison ou sortir avec des amis ?",
@@ -366,6 +441,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Où es-tu allé(e) pendant les dernières vacances ?",
     hint: "Describe a recent holiday — where, who with, what you did, how you felt.",
+    subTopic: "past-holidays",
+    coachHint: {
+      ideas: ["Say where you went and who with", "Give two or three things you did there", "Say how you felt about the trip"],
+      phrase: { fr: "L'été dernier, je suis allé(e) à… avec… et on a…", en: "Last summer I went to… with… and we…" },
+    },
     difficulty: 1,
     followUps: [
       "Comment tu as voyagé — en avion, en voiture ou en train ?",
@@ -387,6 +467,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Tu préfères les vacances à la mer ou à la montagne ? Pourquoi ?",
     hint: "Compare both types of holiday, give strong reasons for your preference.",
+    subTopic: "travel-preferences",
+    coachHint: {
+      ideas: ["Say which you prefer", "Give two reasons (activities, weather, rest)", "Mention one good point of the other"],
+      phrase: { fr: "Je préfère les vacances à… parce que…", en: "I prefer holidays at… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Qu'est-ce qu'on peut faire à la montagne en été ?",
@@ -408,6 +493,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Décris des vacances idéales.",
     hint: "Paint a picture of your dream holiday — use conditional tense (j'irais, je ferais).",
+    subTopic: "future-trips",
+    coachHint: {
+      ideas: ["Say where your dream holiday is and who with", "Name two activities", "Say how long and why it is perfect"],
+      phrase: { fr: "Mes vacances idéales, ce sont… avec…", en: "My ideal holiday is… with…" },
+    },
     difficulty: 3,
     followUps: [
       "Avec qui est-ce que tu voyagerais dans l'idéal ?",
@@ -429,6 +519,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Est-ce que tu voudrais voyager dans d'autres pays ? Lesquels ?",
     hint: "Name specific countries, explain what appeals to you about each one.",
+    subTopic: "destinations",
+    coachHint: {
+      ideas: ["Name two countries", "Say one thing that attracts you to each", "Say which one comes first"],
+      phrase: { fr: "Je veux visiter… parce que…", en: "I want to visit… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Pourquoi est-ce que voyager est important, selon toi ?",
@@ -452,6 +547,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "home",
     text: "Décris ta maison ou ton appartement.",
     hint: "Describe rooms, size, location, what you like or dislike about it.",
+    subTopic: "my-home",
+    coachHint: {
+      ideas: ["Say what kind of home it is and where", "Name the rooms and the garden", "Say what you like most about it"],
+      phrase: { fr: "J'habite dans… et il y a… pièces.", en: "I live in… and there are… rooms." },
+    },
     difficulty: 1,
     followUps: [
       "Ta chambre est comment ?",
@@ -473,6 +573,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "home",
     text: "Comment est la ville ou le village où tu habites ?",
     hint: "Describe your area — facilities, atmosphere, pros and cons for young people.",
+    subTopic: "town-and-region",
+    coachHint: {
+      ideas: ["Say how big the town is and where", "Name two facilities (shops, parks, transport)", "Say whether it suits young people"],
+      phrase: { fr: "Ma ville est… et il y a…", en: "My town is… and there is…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce qu'il y a des problèmes dans ta ville ?",
@@ -494,6 +599,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "home",
     text: "Qu'est-ce qu'il y a à faire pour les jeunes dans ta région ?",
     hint: "Talk about leisure options — what's available, what's missing, what you'd add.",
+    subTopic: "things-to-do",
+    coachHint: {
+      ideas: ["Name two activities (cinema, sport centre, cafés)", "Say how you get there", "Say what is missing"],
+      phrase: { fr: "Dans ma région, les jeunes peuvent…", en: "In my area young people can…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que tu penses que ta ville fait assez pour les jeunes ?",
@@ -515,8 +625,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fut_01",
     topicKey: "future",
-    text: "Qu'est-ce que tu veux faire dans l'avenir ?",
+    text: "Qu'est-ce que tu veux faire à l'avenir ?",
     hint: "Discuss future career or study plans. Use future tense and conditional.",
+    subTopic: "work-and-careers",
+    coachHint: {
+      ideas: ["Name a job or a study plan", "Say why it interests you", "Say one step you will take"],
+      phrase: { fr: "À l'avenir, je vais devenir… parce que…", en: "In the future I am going to become… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Pourquoi tu as choisi cette carrière ?",
@@ -536,8 +651,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fut_02",
     topicKey: "future",
-    text: "Tu voudrais aller à l'université ? Pourquoi ou pourquoi pas ?",
+    text: "Voudrais-tu aller à l'université ? Pourquoi (pas) ?",
     hint: "Give a clear opinion on university with pros/cons and alternatives.",
+    subTopic: "further-study",
+    coachHint: {
+      ideas: ["Say yes or no", "Give two reasons (job, subject, independence)", "Name an alternative like an apprenticeship"],
+      phrase: { fr: "J'aimerais aller à l'université parce que…", en: "I would like to go to university because…" },
+    },
     difficulty: 3,
     followUps: [
       "Qu'est-ce que tu voudrais étudier à l'université ?",
@@ -559,6 +679,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "future",
     text: "Quel métier voudrais-tu faire plus tard ?",
     hint: "Describe your dream job, why it appeals, what skills are needed.",
+    subTopic: "work-and-careers",
+    coachHint: {
+      ideas: ["Name the job", "Say why it appeals", "Name one skill you need"],
+      phrase: { fr: "Plus tard, je voudrais être… parce que…", en: "Later I would like to be… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Qu'est-ce qui t'a inspiré à vouloir ce métier ?",
@@ -582,6 +707,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Qu'est-ce que tu manges normalement au déjeuner ?",
     hint: "Describe your typical lunch — what, where, with whom. Include a past example.",
+    subTopic: "meals-and-habits",
+    coachHint: {
+      ideas: ["Say what you eat (a sandwich, a hot meal, school lunch)", "Say where you eat it", "Say who you eat with"],
+      phrase: { fr: "Au déjeuner, je mange normalement… à… avec…", en: "At lunch I normally eat… at… with…" },
+    },
     difficulty: 1,
     followUps: [
       "Tu apportes ton déjeuner de chez toi ou tu manges à la cantine ?",
@@ -601,8 +731,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_02",
     topicKey: "food",
-    text: "Est-ce que tu fais attention à ta santé ?",
+    text: "Est-ce que tu fais attention à ta santé ? Comment ?",
     hint: "Discuss healthy habits — diet, exercise, sleep, screen time. Be honest!",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Say yes or no", "Name two habits (diet, sport, sleep)", "Say one thing you could do better"],
+      phrase: { fr: "Je fais attention à ma santé en… et en…", en: "I look after my health by… and by…" },
+    },
     difficulty: 2,
     followUps: [
       "Tu fais de l'exercice régulièrement ?",
@@ -624,6 +759,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Quel est ton plat préféré ? Est-ce que tu sais le préparer ?",
     hint: "Describe your favourite dish, its ingredients, whether you can cook it.",
+    subTopic: "favourite-foods",
+    coachHint: {
+      ideas: ["Name the dish", "Name two ingredients", "Say whether you can cook it, or who does"],
+      phrase: { fr: "Mon plat préféré, c'est… avec…", en: "My favourite dish is… with…" },
+    },
     difficulty: 1,
     followUps: [
       "Tu aimes cuisiner ? Qu'est-ce que tu sais faire ?",
@@ -647,6 +787,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Qu'est-ce que tu fais pour protéger l'environnement ?",
     hint: "Discuss specific eco-friendly actions you take at home, school, or in your community.",
+    subTopic: "everyday-eco-habits",
+    coachHint: {
+      ideas: ["Name two actions (recycling, cycling, saving energy)", "Say where you do them (home, school)", "Say why you do them"],
+      phrase: { fr: "Pour protéger l'environnement, je recycle et je…", en: "To protect the environment I recycle and I…" },
+    },
     difficulty: 2,
     followUps: [
       "Penses-tu que les gouvernements font assez pour l'environnement ?",
@@ -666,8 +811,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "env_02",
     topicKey: "environment",
-    text: "Est-ce que la technologie joue un rôle important dans ta vie ?",
+    text: "Est-ce que la technologie joue un rôle important dans ta vie ? Comment ?",
     hint: "Discuss how technology affects your daily life — positives and negatives.",
+    subTopic: "technology",
+    coachHint: {
+      ideas: ["Say yes or no", "Name two uses (phone, homework, music)", "Mention one drawback"],
+      phrase: { fr: "La technologie est importante pour moi parce que…", en: "Technology is important for me because…" },
+    },
     difficulty: 2,
     followUps: [
       "Tu penses que les jeunes sont trop dépendants de la technologie ?",
@@ -691,6 +841,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Quelle est ta matière la moins préférée et pourquoi ?",
     hint: "Identify your least favorite subject, explain why (boring, difficult, teacher), and compare it to others.",
+    subTopic: "subjects",
+    coachHint: {
+      ideas: ["Name the subject you like least", "Give two reasons (boring, hard, the teacher)", "Say what you do to cope with it"],
+      phrase: { fr: "Ma matière la moins préférée, c'est… parce que…", en: "My least favourite subject is… because…" },
+    },
     difficulty: 1,
     followUps: [
       "Est-ce que tu penses que c'est une matière importante ?",
@@ -712,6 +867,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Décris un professeur que tu admires.",
     hint: "Describe a teacher you admire — their subject, personality, and why they are a good teacher.",
+    subTopic: "teachers-and-classmates",
+    coachHint: {
+      ideas: ["Say which teacher you admire and what they teach", "Give two personality traits (patient, funny, fair)", "Explain why their lessons are good"],
+      phrase: { fr: "J'admire… parce qu'il/elle est… et que…", en: "I admire… because he/she is… and…" },
+    },
     difficulty: 2,
     followUps: [
       "Quelles sont les qualités d'un bon professeur selon toi ?",
@@ -733,6 +893,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Que penses-tu du règlement scolaire ?",
     hint: "Discuss school rules — uniform, phone usage, punctuality — and give your opinion on whether they are fair.",
+    subTopic: "rules-and-uniform",
+    coachHint: {
+      ideas: ["Name one or two rules you know (uniform, phones, being on time)", "Say whether each one is fair", "Give a reason for your opinion"],
+      phrase: { fr: "À mon avis, la règle sur… est… parce que…", en: "In my opinion, the rule about… is… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Quelle règle est la plus difficile à suivre ?",
@@ -754,6 +919,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Si tu étais le proviseur, qu'est-ce que tu changerais ?",
     hint: "Use conditional tense to describe changes you would make to school life, facilities, or schedule.",
+    subTopic: "rules-and-uniform",
+    coachHint: {
+      ideas: ["Think about one thing in school life you would change", "Say why it would help students", "Add a second change if you can"],
+      phrase: { fr: "Si j'étais le proviseur, je changerais… parce que…", en: "If I were the head, I would change… because…" },
+    },
     difficulty: 3,
     followUps: [
       "Est-ce que tu changerais les horaires scolaires ?",
@@ -777,6 +947,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "hobbies",
     text: "Qu'est-ce que tu as fait le week-end dernier pour te détendre ?",
     hint: "Describe your recent weekend activities using the past tense (passé composé).",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Name two things you did last weekend", "Say who you were with", "Say how it helped you relax"],
+      phrase: { fr: "Le week-end dernier, j'ai… et j'ai aussi…", en: "Last weekend I… and I also…" },
+    },
     difficulty: 2,
     followUps: [
       "Avec qui as-tu passé ton temps ?",
@@ -796,8 +971,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_07",
     topicKey: "hobbies",
-    text: "Est-ce qu'il y a une activité que tu aimerais essayer à l'avenir ?",
+    text: "Est-ce qu'il y a une activité que tu aimerais essayer à l'avenir ? Pourquoi ?",
     hint: "Talk about a new hobby or sport you want to try, explain why it interests you.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Name the new hobby or sport", "Say why it attracts you", "Say where or when you might start"],
+      phrase: { fr: "Un jour, je vais essayer… parce que…", en: "One day I am going to try… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Pourquoi est-ce que tu ne l'as pas encore fait ?",
@@ -819,6 +999,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "hobbies",
     text: "Tu préfères les sports individuels ou d'équipe ?",
     hint: "Compare individual and team sports, giving advantages and disadvantages of each.",
+    subTopic: "sport-and-active",
+    coachHint: {
+      ideas: ["Say which kind you prefer", "Give one advantage of it", "Say one drawback of the other kind"],
+      phrase: { fr: "Je préfère les sports… parce que… mais…", en: "I prefer… sports because… but…" },
+    },
     difficulty: 1,
     followUps: [
       "Quel sport d'équipe est le plus populaire dans ton pays ?",
@@ -838,8 +1023,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_09",
     topicKey: "hobbies",
-    text: "Est-ce que tu penses que les jeunes passent trop de temps sur leurs écrans ?",
+    text: "Est-ce que tu penses que les jeunes passent trop de temps sur leurs écrans ? Pourquoi ?",
     hint: "Discuss the impact of technology and social media on young people's leisure time.",
+    subTopic: "screens-and-games",
+    coachHint: {
+      ideas: ["Say whether you agree", "Give one problem (sleep, health, homework)", "Give one advantage of screens"],
+      phrase: { fr: "Je pense que les jeunes… parce que…", en: "I think young people… because…" },
+    },
     difficulty: 3,
     followUps: [
       "Quels sont les dangers des réseaux sociaux ?",
@@ -863,6 +1053,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Est-ce que tu as un animal domestique ? Décris-le.",
     hint: "Describe your pet (or one you would like), its name, appearance, and personality.",
+    subTopic: "family-members",
+    coachHint: {
+      ideas: ["Say yes or no, then give the animal and its name", "Describe how it looks", "Describe its character"],
+      phrase: { fr: "Chez moi, il y a un chien qui s'appelle… et il est…", en: "At home there is a dog called… and he is…" },
+    },
     difficulty: 1,
     followUps: [
       "Qui s'occupe de l'animal chez toi ?",
@@ -884,6 +1079,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Comment est-ce que tu aides tes parents à la maison ?",
     hint: "Talk about household chores you do to help your family.",
+    subTopic: "parents-and-rules",
+    coachHint: {
+      ideas: ["Name two jobs (dishes, shopping, tidying)", "Say how often you do them", "Say how you feel about them"],
+      phrase: { fr: "Pour aider mes parents, je… et je…", en: "To help my parents, I… and I…" },
+    },
     difficulty: 1,
     followUps: [
       "Est-ce que tu reçois de l'argent de poche pour ton aide ?",
@@ -905,6 +1105,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Qu'est-ce que tu as fait avec ta famille récemment ?",
     hint: "Describe a recent family outing or activity using the past tense.",
+    subTopic: "celebrations-and-traditions",
+    coachHint: {
+      ideas: ["Say what you did and where", "Say who was there", "Say whether you enjoyed it"],
+      phrase: { fr: "Récemment, avec ma famille, j'ai…", en: "Recently, with my family, I…" },
+    },
     difficulty: 2,
     followUps: [
       "C'était à quelle occasion ?",
@@ -924,8 +1129,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fam_08",
     topicKey: "family",
-    text: "Est-il plus important d'avoir beaucoup d'amis ou quelques amis proches ?",
+    text: "Est-il plus important d'avoir beaucoup d'amis ou quelques amis proches ? Pourquoi ?",
     hint: "Express and justify your opinion on friendship, quality vs quantity.",
+    subTopic: "friends",
+    coachHint: {
+      ideas: ["Say which you prefer", "Give one reason for your choice", "Say what a close friend gives you that a crowd cannot"],
+      phrase: { fr: "Je préfère avoir… amis parce que…", en: "I prefer having… friends because…" },
+    },
     difficulty: 3,
     followUps: [
       "Comment as-tu rencontré ton meilleur ami ?",
@@ -949,6 +1159,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Où vas-tu passer tes prochaines vacances ?",
     hint: "Use future tense to describe your upcoming holiday plans.",
+    subTopic: "future-trips",
+    coachHint: {
+      ideas: ["Say where you are going and with whom", "Say how long you will stay", "Name something you will do"],
+      phrase: { fr: "Cet été, je vais aller à… et on va…", en: "This summer I am going to… and we are going to…" },
+    },
     difficulty: 1,
     followUps: [
       "Avec qui vas-tu partir ?",
@@ -970,6 +1185,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Tu préfères partir en vacances avec ta famille ou avec tes amis ? Pourquoi ?",
     hint: "Compare traveling with family vs. friends, mentioning pros and cons.",
+    subTopic: "travel-preferences",
+    coachHint: {
+      ideas: ["Say which you prefer", "Give one pro of your choice", "Give one con of the other"],
+      phrase: { fr: "Je préfère partir avec… parce que… mais…", en: "I prefer going with… because… but…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que tu as déjà voyagé sans tes parents ?",
@@ -991,6 +1211,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Parle-moi d'une ville française que tu aimerais visiter.",
     hint: "Choose a French city (Paris, Nice, Lyon, etc.) and explain why you want to go there.",
+    subTopic: "destinations",
+    coachHint: {
+      ideas: ["Name the city", "Give two reasons (monuments, food, sea)", "Say what you want to do there"],
+      phrase: { fr: "La ville que je veux visiter, c'est… parce que…", en: "The city I want to visit is… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que tu connais déjà la France ?",
@@ -1012,6 +1237,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Quels sont les avantages et les inconvénients du tourisme ?",
     hint: "Discuss the impact of tourism on the economy and the environment.",
+    subTopic: "tourism-issues",
+    coachHint: {
+      ideas: ["Give two advantages (jobs, money, culture)", "Give two drawbacks (crowds, pollution)", "Say your overall view"],
+      phrase: { fr: "Le tourisme apporte… mais il cause aussi…", en: "Tourism brings… but it also causes…" },
+    },
     difficulty: 3,
     followUps: [
       "Est-ce que ta région est touristique ?",
@@ -1035,6 +1265,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "home",
     text: "Comment est ta chambre idéale ?",
     hint: "Use conditional tense to describe your dream bedroom — furniture, colors, technology.",
+    subTopic: "my-home",
+    coachHint: {
+      ideas: ["Say how big and what colour the room is", "Name three things in it", "Add one piece of technology"],
+      phrase: { fr: "Dans ma chambre idéale, il y a… et les murs sont…", en: "In my ideal room there is… and the walls are…" },
+    },
     difficulty: 2,
     followUps: [
       "Quelle est ta couleur préférée pour une chambre ?",
@@ -1056,6 +1291,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "home",
     text: "Où voudrais-tu habiter plus tard ?",
     hint: "Talk about your future home location — city, countryside, abroad — and give reasons.",
+    subTopic: "my-home",
+    coachHint: {
+      ideas: ["Name the place (city, countryside, abroad)", "Give one reason", "Say who you would live with"],
+      phrase: { fr: "Plus tard, j'aimerais habiter à… parce que…", en: "Later I would like to live in… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Préférerais-tu habiter dans une maison moderne ou ancienne ?",
@@ -1077,6 +1317,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "home",
     text: "Qu'est-ce que tu as fait dans ta ville le week-end dernier ?",
     hint: "Describe your recent activities in your local area using the past tense.",
+    subTopic: "things-to-do",
+    coachHint: {
+      ideas: ["Say where you went", "Say what you did with whom", "Say whether you enjoyed it"],
+      phrase: { fr: "Le week-end dernier, je suis allé(e)… et on a…", en: "Last weekend I went… and we…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que tu es allé au centre commercial ?",
@@ -1098,6 +1343,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "home",
     text: "Préfères-tu vivre dans une maison ou dans un appartement ? Pourquoi ?",
     hint: "Compare houses and apartments, giving your preference and reasons.",
+    subTopic: "my-home",
+    coachHint: {
+      ideas: ["Say which you prefer", "Give two reasons (space, garden, price, neighbours)", "Mention a good point of the other"],
+      phrase: { fr: "Je préfère habiter dans… parce que…", en: "I prefer living in… because…" },
+    },
     difficulty: 1,
     followUps: [
       "Quels sont les avantages d'avoir un jardin ?",
@@ -1121,6 +1371,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "future",
     text: "Qu'est-ce que tu vas faire l'année prochaine après tes examens ?",
     hint: "Talk about your immediate post-exam plans — holidays, summer job, next year's studies.",
+    subTopic: "further-study",
+    coachHint: {
+      ideas: ["Name two plans (holiday, job, course)", "Say who with", "Say when it starts"],
+      phrase: { fr: "Après mes examens, je vais… et ensuite je vais…", en: "After my exams I am going to… and then I am going to…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que tu vas continuer à étudier les mêmes matières ?",
@@ -1140,8 +1395,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fut_05",
     topicKey: "future",
-    text: "Est-ce que tu voudrais travailler à l'étranger un jour ?",
+    text: "Voudrais-tu travailler à l'étranger un jour ? Pourquoi (pas) ?",
     hint: "Discuss the pros and cons of working in another country, mention a specific place if you have one in mind.",
+    subTopic: "work-and-careers",
+    coachHint: {
+      ideas: ["Say yes or no", "Name a country", "Give one advantage or one drawback"],
+      phrase: { fr: "Je voudrais travailler à… parce que…", en: "I would like to work in… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Dans quel pays aimerais-tu travailler ?",
@@ -1163,6 +1423,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "future",
     text: "Quel est l'emploi de tes rêves et pourquoi ?",
     hint: "Describe your ideal job, what you'd do daily, and why it's your dream.",
+    subTopic: "work-and-careers",
+    coachHint: {
+      ideas: ["Name the job", "Say what you would do each day", "Say why it is your dream"],
+      phrase: { fr: "L'emploi de mes rêves, c'est… parce que…", en: "My dream job is… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Quelles études dois-tu faire pour cet emploi ?",
@@ -1186,6 +1451,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Qu'est-ce que tu as mangé hier soir ?",
     hint: "Describe your dinner from last night using the past tense.",
+    subTopic: "meals-and-habits",
+    coachHint: {
+      ideas: ["Name what you ate last night", "Say who cooked it", "Say whether you liked it"],
+      phrase: { fr: "Hier soir, j'ai mangé… et on a…", en: "Last night I ate… and we…" },
+    },
     difficulty: 1,
     followUps: [
       "C'était bon ?",
@@ -1205,8 +1475,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_05",
     topicKey: "food",
-    text: "Est-ce que tu préfères manger à la maison ou au restaurant ?",
+    text: "Est-ce que tu préfères manger à la maison ou au restaurant ? Pourquoi ?",
     hint: "Compare eating at home and dining out, giving reasons for your preference.",
+    subTopic: "eating-out-and-shopping",
+    coachHint: {
+      ideas: ["Say which you prefer", "Give two reasons (price, atmosphere, taste)", "Say how often you eat out"],
+      phrase: { fr: "Je préfère manger… parce que…", en: "I prefer eating… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Quel est ton restaurant préféré ?",
@@ -1228,6 +1503,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Qu'est-ce que tu penses des fast-foods ?",
     hint: "Give your opinion on fast food — convenience vs. health concerns.",
+    subTopic: "eating-out-and-shopping",
+    coachHint: {
+      ideas: ["Say what you think of fast food", "Give one advantage (quick, cheap)", "Give one drawback (unhealthy)"],
+      phrase: { fr: "Je trouve que le fast-food est… mais…", en: "I find that fast food is… but…" },
+    },
     difficulty: 2,
     followUps: [
       "À quelle fréquence manges-tu du fast-food ?",
@@ -1247,8 +1527,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_07",
     topicKey: "food",
-    text: "Est-il important d'apprendre à cuisiner à l'école ?",
+    text: "Est-il important d'apprendre à cuisiner à l'école ? Pourquoi ?",
     hint: "Discuss whether cooking should be a mandatory subject in school.",
+    subTopic: "cooking",
+    coachHint: {
+      ideas: ["Say yes or no", "Give two reasons (independence, health, money)", "Say what dish you would teach"],
+      phrase: { fr: "Il est important d'apprendre à cuisiner parce que…", en: "It is important to learn to cook because…" },
+    },
     difficulty: 3,
     followUps: [
       "Est-ce que tu avez des cours de cuisine dans ton école ?",
@@ -1272,6 +1557,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Quels sont les plus grands problèmes environnementaux aujourd'hui ?",
     hint: "Identify and discuss major environmental issues like climate change, pollution, or deforestation.",
+    subTopic: "climate-and-energy",
+    coachHint: {
+      ideas: ["Name two problems (warming, pollution, forests)", "Say what causes each", "Say which worries you most"],
+      phrase: { fr: "Je pense au réchauffement, à… et à…", en: "I think of warming, of… and of…" },
+    },
     difficulty: 3,
     followUps: [
       "Lequel de ces problèmes t'inquiète le plus ?",
@@ -1293,6 +1583,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Est-ce que tu utilises souvent les transports en commun ? Pourquoi ?",
     hint: "Discuss your use of bus, train, or metro, and its environmental impact.",
+    subTopic: "everyday-eco-habits",
+    coachHint: {
+      ideas: ["Say how often you use it and for what", "Give one reason (cheap, practical, green)", "Say what you would use otherwise"],
+      phrase: { fr: "J'utilise les transports en commun parce que…", en: "I use public transport because…" },
+    },
     difficulty: 1,
     followUps: [
       "Quels transports en commun y a-t-il dans ta ville ?",
@@ -1314,6 +1609,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Que penses-tu du recyclage ?",
     hint: "Give your opinion on recycling, explain what you recycle and why it's important.",
+    subTopic: "waste-and-recycling",
+    coachHint: {
+      ideas: ["Say what you think", "Name what you recycle", "Say who does it at home"],
+      phrase: { fr: "Je pense que le recyclage est… parce que…", en: "I think recycling is… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que c'est facile de recycler dans ton quartier ?",
@@ -1337,6 +1637,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Tu préfères travailler seul ou en groupe ? Pourquoi ?",
     hint: "Discuss the pros and cons of individual vs. group work in school.",
+    subTopic: "exams-and-homework",
+    coachHint: {
+      ideas: ["Say which you prefer: alone or in a group", "Give one advantage of your choice", "Mention one drawback of the other way"],
+      phrase: { fr: "Je préfère travailler… parce que… mais…", en: "I prefer working… because… but…" },
+    },
     difficulty: 2,
     followUps: [
       "Quels sont les avantages du travail en équipe ?",
@@ -1358,6 +1663,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Parle-moi de ton uniforme scolaire. Est-ce une bonne idée ?",
     hint: "Describe your uniform and give your opinion on whether it should be mandatory.",
+    subTopic: "rules-and-uniform",
+    coachHint: {
+      ideas: ["Describe what the uniform looks like (colours, items)", "Say if you think it is a good idea", "Give a reason (cost, fairness, comfort)"],
+      phrase: { fr: "Notre uniforme, c'est… et je pense que c'est une bonne idée parce que…", en: "Our uniform is… and I think it is a good idea because…" },
+    },
     difficulty: 1,
     followUps: [
       "Qu'est-ce que tu portes exactement ?",
@@ -1379,6 +1689,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Qu'est-ce que tu penses des devoirs ? Est-ce qu'ils sont utiles ?",
     hint: "Give a balanced view on the necessity and amount of homework.",
+    subTopic: "exams-and-homework",
+    coachHint: {
+      ideas: ["Say whether homework is useful overall", "Give a reason or example", "Say how much you get and how you feel about it"],
+      phrase: { fr: "Je pense que les devoirs sont… parce que…", en: "I think homework is… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Combien de temps passes-tu sur tes devoirs chaque soir ?",
@@ -1400,6 +1715,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Décris une journée scolaire idéale.",
     hint: "Imagine your perfect school day — subjects, breaks, food, and duration.",
+    subTopic: "school-day",
+    coachHint: {
+      ideas: ["Say when it would start and finish", "Choose the subjects and breaks you would keep", "Add one detail about food or activities"],
+      phrase: { fr: "Ma journée idéale commence à… et il y a…", en: "My ideal day starts at… and there is…" },
+    },
     difficulty: 2,
     followUps: [
       "À quelle heure commencerait l'école ?",
@@ -1419,8 +1739,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "sch_15",
     topicKey: "school",
-    text: "Est-ce que tu participes à des clubs après l'école ?",
+    text: "Est-ce que tu participes à des clubs après l'école ? Lesquels et pourquoi ?",
     hint: "Talk about extracurricular activities and their benefits.",
+    subTopic: "school-day",
+    coachHint: {
+      ideas: ["Say yes or no, then name a club or team", "Say when it meets", "Give one reason you enjoy it, or why you do not join"],
+      phrase: { fr: "Je fais partie du club de… et j'adore ça parce que…", en: "I belong to the… club and I love it because…" },
+    },
     difficulty: 1,
     followUps: [
       "Quel club préfères-tu ?",
@@ -1444,6 +1769,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "hobbies",
     text: "Quel est le dernier film que tu as vu ? C'était comment ?",
     hint: "Describe a recent movie experience — plot, opinion, and actors.",
+    subTopic: "music-books-film",
+    coachHint: {
+      ideas: ["Name the film and say when you saw it", "Give two details (story, actors)", "Say what you thought of it"],
+      phrase: { fr: "Le dernier film que j'ai vu, c'était… et c'était…", en: "The last film I saw was… and it was…" },
+    },
     difficulty: 1,
     followUps: [
       "Tu es allé au cinéma ou tu l'as regardé chez toi ?",
@@ -1465,6 +1795,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "hobbies",
     text: "Est-ce que tu joues aux jeux vidéo ? Pourquoi (pas) ?",
     hint: "Discuss your gaming habits or why you don't enjoy gaming.",
+    subTopic: "screens-and-games",
+    coachHint: {
+      ideas: ["Say yes or no", "Name a game you play or explain why not", "Say how often"],
+      phrase: { fr: "Je joue à… parce que… / Je ne joue pas parce que…", en: "I play… because… / I don't play because…" },
+    },
     difficulty: 2,
     followUps: [
       "Quel est ton jeu préféré ?",
@@ -1486,6 +1821,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "hobbies",
     text: "Tu préfères lire un livre ou regarder un film ? Pourquoi ?",
     hint: "Compare reading and watching films, giving your preference.",
+    subTopic: "music-books-film",
+    coachHint: {
+      ideas: ["Say which you prefer", "Give two reasons (imagination, time, company)", "Mention one good point of the other"],
+      phrase: { fr: "Je préfère… parce que…", en: "I prefer… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Quel est le dernier livre que tu as lu ?",
@@ -1507,6 +1847,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "hobbies",
     text: "Qu'est-ce que tu aimes faire le soir après l'école ?",
     hint: "Describe your evening routine and leisure activities after school.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Go through your evening in order", "Include homework and one leisure activity", "Say what time you go to bed"],
+      phrase: { fr: "Le soir, je commence par… et ensuite je…", en: "In the evening, I start with… and then I…" },
+    },
     difficulty: 1,
     followUps: [
       "À quelle heure manges-tu le dîner ?",
@@ -1530,6 +1875,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Qui est la personne la plus drôle dans ta famille ? Pourquoi ?",
     hint: "Describe a funny family member and give examples of their humor.",
+    subTopic: "family-members",
+    coachHint: {
+      ideas: ["Name the person", "Give an example of something funny they did", "Say how they make you feel"],
+      phrase: { fr: "La personne la plus drôle, c'est… parce que…", en: "The funniest person is… because…" },
+    },
     difficulty: 1,
     followUps: [
       "Est-ce qu'elle raconte des blagues ?",
@@ -1549,8 +1899,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fam_10",
     topicKey: "family",
-    text: "Est-ce que tu partages les mêmes intérêts que tes parents ?",
+    text: "Est-ce que tu partages les mêmes intérêts que tes parents ? Quelles activités faites-vous ensemble ?",
     hint: "Discuss common hobbies or differences between you and your parents.",
+    subTopic: "parents-and-rules",
+    coachHint: {
+      ideas: ["Name one interest you share", "Say what you do together", "Name one thing you do not share"],
+      phrase: { fr: "Avec mon père/ma mère, on partage…", en: "With my father/mother we share…" },
+    },
     difficulty: 2,
     followUps: [
       "Quelles activités fais-tu avec tes parents ?",
@@ -1570,8 +1925,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fam_11",
     topicKey: "family",
-    text: "Parle-moi d'une célébration familiale récente.",
+    text: "Qu'est-ce que tu as fait lors de ta dernière célébration familiale ?",
     hint: "Describe a family event like a birthday, wedding, or festival using the past tense.",
+    subTopic: "celebrations-and-traditions",
+    coachHint: {
+      ideas: ["Say which celebration it was", "Say who came and what you ate or did", "Say how it felt"],
+      phrase: { fr: "La dernière fois, on a fêté… et j'ai…", en: "Last time we celebrated… and I…" },
+    },
     difficulty: 2,
     followUps: [
       "Qu'est-ce que vous avez mangé ?",
@@ -1593,6 +1953,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Est-il important de passer du temps en famille ? Pourquoi ?",
     hint: "Explain the importance of family time for relationships and well-being.",
+    subTopic: "family-members",
+    coachHint: {
+      ideas: ["Say yes and give two reasons (closeness, support)", "Mention how much time you spend together", "Say what you like doing as a family"],
+      phrase: { fr: "Passer du temps en famille est important parce que…", en: "Spending time as a family is important because…" },
+    },
     difficulty: 3,
     followUps: [
       "Quels sont les dangers si on ne voit pas assez sa famille ?",
@@ -1616,6 +1981,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Tu préfères les vacances actives ou relaxantes ? Pourquoi ?",
     hint: "Contrast sightseeing/sports holidays with beach/rest holidays.",
+    subTopic: "travel-preferences",
+    coachHint: {
+      ideas: ["Say which you prefer", "Give two reasons (energy, rest, sights)", "Give an example holiday"],
+      phrase: { fr: "Je préfère les vacances… parce que…", en: "I prefer… holidays because…" },
+    },
     difficulty: 2,
     followUps: [
       "Qu'est-ce que tu fais pendant des vacances actives ?",
@@ -1637,6 +2007,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Où es-tu allé l'hiver dernier ?",
     hint: "Describe a winter trip or activity using the past tense.",
+    subTopic: "past-holidays",
+    coachHint: {
+      ideas: ["Say where you went last winter", "Say what you did", "Say who you were with"],
+      phrase: { fr: "L'hiver dernier, je suis allé(e) à… et j'ai…", en: "Last winter I went to… and I…" },
+    },
     difficulty: 1,
     followUps: [
       "Quel temps faisait-il ?",
@@ -1658,6 +2033,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Quel est le pays que tu as le plus aimé visiter ? Pourquoi ?",
     hint: "Discuss your favorite travel destination and what made it special.",
+    subTopic: "destinations",
+    coachHint: {
+      ideas: ["Name the country", "Give two reasons (food, people, places)", "Say what you did there"],
+      phrase: { fr: "Mon pays préféré, c'est… parce que…", en: "My favourite country is… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Qu'est-ce que tu as aimé là-bas ?",
@@ -1679,6 +2059,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Est-ce que tu as déjà fait du camping ? C'était comment ?",
     hint: "Describe a camping experience or your opinion on it.",
+    subTopic: "past-holidays",
+    coachHint: {
+      ideas: ["Say yes or no", "Say where and when", "Say what it was like"],
+      phrase: { fr: "Oui, j'ai fait du camping à… et c'était…", en: "Yes, I went camping at… and it was…" },
+    },
     difficulty: 1,
     followUps: [
       "Préfères-tu dormir sous une tente ou dans une caravane ?",
@@ -1702,6 +2087,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "home",
     text: "Qu'est-ce qu'il y a pour les touristes dans ta ville ?",
     hint: "Describe local tourist attractions and why they are worth visiting.",
+    subTopic: "town-and-region",
+    coachHint: {
+      ideas: ["Name two attractions", "Say what visitors can do", "Say why you recommend them"],
+      phrase: { fr: "Pour les touristes, il y a… qui est…", en: "For tourists there is… which is…" },
+    },
     difficulty: 2,
     followUps: [
       "Quel est le monument le plus célèbre ?",
@@ -1721,8 +2111,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hom_09",
     topicKey: "home",
-    text: "Comment as-tu décoré ta chambre ?",
+    text: "Comment est ta chambre ? Comment l'as-tu décorée ?",
     hint: "Describe the colors, furniture, and personal touches in your room.",
+    subTopic: "my-home",
+    coachHint: {
+      ideas: ["Describe the colours and furniture", "Say what you put on the walls", "Say what you added yourself"],
+      phrase: { fr: "Ma chambre est… avec… sur les murs.", en: "My room is… with… on the walls." },
+    },
     difficulty: 1,
     followUps: [
       "Quelle est ta couleur préférée pour les murs ?",
@@ -1744,6 +2139,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "home",
     text: "Si tu pouvais déménager, où irais-tu ?",
     hint: "Use conditional to describe where you would move and why.",
+    subTopic: "my-home",
+    coachHint: {
+      ideas: ["Say where you would move", "Say why you would go there", "Say who would come with you"],
+      phrase: { fr: "Si je pouvais déménager, j'irais à…", en: "If I could move, I would go to…" },
+    },
     difficulty: 3,
     followUps: [
       "Préférerais-tu une ville ou la campagne ?",
@@ -1765,8 +2165,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fut_07",
     topicKey: "future",
-    text: "Est-ce que tu voudrais avoir ta propre entreprise plus tard ?",
+    text: "Est-ce que tu voudrais avoir ta propre entreprise plus tard ? Pourquoi (pas) ?",
     hint: "Discuss the pros and cons of being an entrepreneur vs. an employee.",
+    subTopic: "work-and-careers",
+    coachHint: {
+      ideas: ["Say yes or no", "Give one advantage of being your own boss", "Give one drawback (risk, long hours)"],
+      phrase: { fr: "Plus tard, je vais créer… parce que…", en: "Later I am going to set up… because…" },
+    },
     difficulty: 3,
     followUps: [
       "Quel type d'entreprise créerais-tu ?",
@@ -1788,6 +2193,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "future",
     text: "Quel est le métier que tu ne voudrais jamais faire ? Pourquoi ?",
     hint: "Identify a job you dislike and explain the reasons (stress, boredom, danger).",
+    subTopic: "work-and-careers",
+    coachHint: {
+      ideas: ["Name the job", "Give two reasons (stress, boredom, danger)", "Say what you prefer instead"],
+      phrase: { fr: "Le métier que je refuse, c'est… parce que…", en: "The job I refuse is… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que tu as peur du sang ou du danger ?",
@@ -1809,6 +2219,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "future",
     text: "Comment vois-tu ta vie dans dix ans ?",
     hint: "Use future tense to describe your personal and professional situation in 10 years.",
+    subTopic: "personal-life-plans",
+    coachHint: {
+      ideas: ["Describe your job and home", "Say who you will live with", "Use the future tense"],
+      phrase: { fr: "Dans dix ans, j'aurai… et j'habiterai…", en: "In ten years I will have… and I will live…" },
+    },
     difficulty: 3,
     followUps: [
       "Où habiteras-tu ?",
@@ -1832,6 +2247,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Qu'est-ce que tu n'aimes pas manger ? Pourquoi ?",
     hint: "Discuss foods you dislike — taste, texture, or health reasons.",
+    subTopic: "favourite-foods",
+    coachHint: {
+      ideas: ["Name a food you dislike", "Say why (taste, texture, health)", "Say whether you eat it anyway"],
+      phrase: { fr: "Je n'aime pas… parce que…", en: "I don't like… because…" },
+    },
     difficulty: 1,
     followUps: [
       "Y a-t-il un légume que tu détestes ?",
@@ -1851,8 +2271,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_09",
     topicKey: "food",
-    text: "Est-ce que tu manges souvent des produits bio ?",
+    text: "Est-ce que tu manges souvent des produits bio ? Pourquoi (pas) ?",
     hint: "Discuss organic food — health benefits, cost, and environment.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Say whether you buy organic", "Give a reason (health, price, nature)", "Say who decides at home"],
+      phrase: { fr: "Je mange des produits bio parce que… / parce que c'est cher.", en: "I eat organic food because… / because it is expensive." },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que c'est plus cher ?",
@@ -1874,6 +2299,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Quel est le dessert français que tu préfères ?",
     hint: "Talk about French pastries or desserts you enjoy.",
+    subTopic: "favourite-foods",
+    coachHint: {
+      ideas: ["Name the dessert", "Say what it contains or looks like", "Say when you eat it"],
+      phrase: { fr: "Mon dessert français préféré, c'est… parce que…", en: "My favourite French dessert is… because…" },
+    },
     difficulty: 1,
     followUps: [
       "Tu préfères les gâteaux ou les tartes ?",
@@ -1893,8 +2323,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_11",
     topicKey: "food",
-    text: "Parle-moi d'un repas spécial que tu as mangé récemment.",
+    text: "Qu'est-ce que tu as mangé lors de ton dernier repas spécial ?",
     hint: "Describe a special meal — celebration, restaurant, or home-cooked (past tense).",
+    subTopic: "meals-and-habits",
+    coachHint: {
+      ideas: ["Say what the occasion was and where", "Name two dishes", "Say who came and how it was"],
+      phrase: { fr: "La dernière fois, pour fêter…, j'ai mangé…", en: "Last time, to celebrate…, I ate…" },
+    },
     difficulty: 2,
     followUps: [
       "C'était pour quelle occasion ?",
@@ -1918,6 +2353,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Que penses-tu des voitures électriques ?",
     hint: "Discuss the pros and cons of electric vehicles for the environment.",
+    subTopic: "technology",
+    coachHint: {
+      ideas: ["Say what you think", "Give one advantage (no fumes, quiet)", "Give one drawback (price, charging)"],
+      phrase: { fr: "Les voitures électriques sont… mais…", en: "Electric cars are… but…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que tes parents ont une voiture électrique ?",
@@ -1937,8 +2377,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "env_07",
     topicKey: "environment",
-    text: "Est-ce que ton école est écologique ?",
+    text: "Est-ce que ton école est écologique ? Quelles actions fait-elle ?",
     hint: "Talk about environmental initiatives at your school.",
+    subTopic: "everyday-eco-habits",
+    coachHint: {
+      ideas: ["Say yes or no", "Name two things (bins, lights off, garden)", "Say what could be better"],
+      phrase: { fr: "Dans mon école, il y a des bacs pour…", en: "In my school there are bins for…" },
+    },
     difficulty: 2,
     followUps: [
       "Qu'est-ce que ton école fait pour recycler ?",
@@ -1960,6 +2405,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Qu'est-ce qu'on peut faire pour économiser l'eau à la maison ?",
     hint: "Suggest practical ways to reduce water consumption at home.",
+    subTopic: "everyday-eco-habits",
+    coachHint: {
+      ideas: ["Name two ways (short showers, taps off, rainwater)", "Say how much it saves", "Say what you do"],
+      phrase: { fr: "On peut prendre des douches courtes et…", en: "You can take short showers and…" },
+    },
     difficulty: 1,
     followUps: [
       "Prends-tu des douches ou des bains ?",
@@ -1983,6 +2433,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Comment est-ce que tu utilises la technologie à l'école ?",
     hint: "Talk about laptops, tablets, and the internet in your lessons.",
+    subTopic: "subjects",
+    coachHint: {
+      ideas: ["Name the devices used in your lessons", "Give one example of what you do with them", "Say if they help you learn"],
+      phrase: { fr: "En cours, on utilise… pour… et c'est…", en: "In lessons we use… to… and it is…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que tu préfères les livres papier ou numériques ?",
@@ -2004,6 +2459,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Où aimerais-tu aller pour ton prochain voyage scolaire ?",
     hint: "Describe your dream school trip and what you would do there.",
+    subTopic: "school-day",
+    coachHint: {
+      ideas: ["Name a place or country you would like to visit", "Say what you would do or see there", "Give a reason why it suits a class trip"],
+      phrase: { fr: "J'aimerais aller à… parce que je pourrais…", en: "I would like to go to… because I could…" },
+    },
     difficulty: 2,
     followUps: [
       "Pourquoi as-tu choisi cette destination ?",
@@ -2025,6 +2485,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Pourquoi est-il important d'apprendre des langues étrangères ?",
     hint: "Discuss the benefits of bilingualism for travel, work, and culture.",
+    subTopic: "subjects",
+    coachHint: {
+      ideas: ["Give two reasons (travel, work, culture, friends)", "Add one example from your own life", "Say which language you would like to learn next"],
+      phrase: { fr: "Apprendre des langues est important parce que…", en: "Learning languages is important because…" },
+    },
     difficulty: 3,
     followUps: [
       "Quelles langues apprends-tu à l'école ?",
@@ -2046,6 +2511,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Comment sont les relations entre les élèves dans ton école ?",
     hint: "Talk about friendships, atmosphere, and how students get along.",
+    subTopic: "teachers-and-classmates",
+    coachHint: {
+      ideas: ["Say whether the atmosphere is friendly or tense", "Give an example of how people help each other", "Mention any problems briefly"],
+      phrase: { fr: "Dans mon école, les élèves s'entendent… et…", en: "In my school students get along… and…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que tu as beaucoup d'amis à l'école ?",
@@ -2065,8 +2535,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "sch_20",
     topicKey: "school",
-    text: "Quelles sont les différences entre ton école primaire et ton lycée ?",
+    text: "Quand tu étais à l'école primaire, comment c'était ? Quelles sont les différences avec ton lycée ?",
     hint: "Compare your current school with your previous one (past vs present).",
+    subTopic: "school-day",
+    coachHint: {
+      ideas: ["Describe your primary school first (size, teachers, rules)", "Then say what is different now", "Use the imperfect for the past, the present for now"],
+      phrase: { fr: "À l'école primaire, c'était… mais maintenant…", en: "At primary school it was… but now…" },
+    },
     difficulty: 2,
     followUps: [
       "Laquelle préférais-tu et pourquoi ?",
@@ -2090,6 +2565,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "hobbies",
     text: "Tu préfères faire du shopping en ligne ou dans des magasins ?",
     hint: "Compare online shopping with going to physical stores.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Say which you prefer", "Give one advantage of online shopping or shops", "Say what you buy most"],
+      phrase: { fr: "Je préfère acheter… parce que c'est…", en: "I prefer buying… because it is…" },
+    },
     difficulty: 2,
     followUps: [
       "Quels sont les avantages du shopping en ligne ?",
@@ -2111,6 +2591,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "hobbies",
     text: "Quelle personne célèbre aimerais-tu rencontrer un jour ?",
     hint: "Talk about an actor, singer, or athlete you admire.",
+    subTopic: "music-books-film",
+    coachHint: {
+      ideas: ["Name the person and what they do", "Say why you admire them", "Say one question you would ask"],
+      phrase: { fr: "J'aimerais rencontrer… parce que…", en: "I would like to meet… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Pourquoi admires-tu cette personne ?",
@@ -2130,8 +2615,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_16",
     topicKey: "hobbies",
-    text: "Est-ce que tu aimes aller aux musées ou aux galeries d'art ?",
+    text: "Est-ce que tu aimes aller aux musées ou aux galeries d'art ? Quel est le dernier que tu as visité ?",
     hint: "Discuss your interest in culture and exhibitions.",
+    subTopic: "music-books-film",
+    coachHint: {
+      ideas: ["Say whether you like museums", "Name the last one you visited", "Say what you saw and thought of it"],
+      phrase: { fr: "Le dernier musée que j'ai visité, c'était… et j'ai vu…", en: "The last museum I visited was… and I saw…" },
+    },
     difficulty: 2,
     followUps: [
       "Quel est le dernier musée que tu as visité ?",
@@ -2153,6 +2643,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "hobbies",
     text: "Pourquoi est-il important d'avoir des passe-temps pour la santé mentale ?",
     hint: "Discuss how hobbies help reduce stress and improve well-being.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Give two reasons (stress, friends, confidence)", "Add an example from your own life", "Say what happens without hobbies"],
+      phrase: { fr: "Les passe-temps sont importants parce que…", en: "Hobbies are important because…" },
+    },
     difficulty: 3,
     followUps: [
       "Quel passe-temps te relaxe le plus ?",
@@ -2174,6 +2669,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "hobbies",
     text: "Qu'est-ce que tu fais quand il pleut et que tu ne peux pas sortir ?",
     hint: "Talk about indoor activities like reading, watching movies, or games.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Name two things you do inside (read, games, film)", "Say who you do them with", "Say which one you prefer"],
+      phrase: { fr: "Quand il pleut, je reste à la maison et je…", en: "When it rains, I stay at home and I…" },
+    },
     difficulty: 1,
     followUps: [
       "Est-ce que tu aimes la pluie ?",
@@ -2197,6 +2697,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Est-ce que tu as beaucoup de cousins ? Tu les vois souvent ?",
     hint: "Talk about your extended family and your relationship with them.",
+    subTopic: "family-members",
+    coachHint: {
+      ideas: ["Say how many cousins you have", "Say how often and where you meet", "Say who you get on with best"],
+      phrase: { fr: "Je compte… cousins et je les vois…", en: "I count… cousins and I see them…" },
+    },
     difficulty: 1,
     followUps: [
       "Où habitent tes cousins ?",
@@ -2218,6 +2723,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "À qui est-ce que tu parles quand tu as un problème ?",
     hint: "Identify the family member or friend you trust most.",
+    subTopic: "friends",
+    coachHint: {
+      ideas: ["Name the person you trust", "Say why you trust them", "Give an example of a problem you shared"],
+      phrase: { fr: "En cas de problème, je parle à… parce que…", en: "If there is a problem, I talk to… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Pourquoi as-tu confiance en cette personne ?",
@@ -2237,8 +2747,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fam_15",
     topicKey: "family",
-    text: "Est-il préférable d'être enfant unique ou d'avoir des frères et sœurs ?",
+    text: "Est-il préférable d'être enfant unique ou d'avoir des frères et sœurs ? Pourquoi ?",
     hint: "Compare the two situations and give your opinion.",
+    subTopic: "family-members",
+    coachHint: {
+      ideas: ["Say which you think is better", "Give two reasons", "Say what you know from your own life"],
+      phrase: { fr: "Je pense qu'il est préférable d'être… parce que…", en: "I think it is better to be… because…" },
+    },
     difficulty: 3,
     followUps: [
       "Quels sont les avantages d'être enfant unique ?",
@@ -2260,6 +2775,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Décris un dimanche typique avec ta famille.",
     hint: "Walk through your family's Sunday routine — meals, activities, relaxation.",
+    subTopic: "celebrations-and-traditions",
+    coachHint: {
+      ideas: ["Go through the day in order", "Mention a meal and an activity", "Say how you feel by evening"],
+      phrase: { fr: "Le dimanche, on commence par… puis…", en: "On Sunday we start with… then…" },
+    },
     difficulty: 1,
     followUps: [
       "À quelle heure vous levez-vous ?",
@@ -2279,8 +2799,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fam_17",
     topicKey: "family",
-    text: "Penses-tu que les jeunes devraient écouter davantage leurs grands-parents ?",
+    text: "Penses-tu que les jeunes devraient écouter davantage leurs grands-parents ? Pourquoi ?",
     hint: "Discuss the value of elderly people's experience and wisdom.",
+    subTopic: "generations",
+    coachHint: {
+      ideas: ["Say whether you agree", "Give two reasons (experience, stories, respect)", "Give an example from your own family"],
+      phrase: { fr: "Je pense que les jeunes doivent… parce que…", en: "I think young people must… because…" },
+    },
     difficulty: 3,
     followUps: [
       "Vois-tu souvent tes grands-parents ?",
@@ -2304,6 +2829,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Tu préfères les vacances d'été ou d'hiver ? Pourquoi ?",
     hint: "Compare beach/sun holidays with skiing/snow holidays.",
+    subTopic: "travel-preferences",
+    coachHint: {
+      ideas: ["Say which you prefer", "Give two reasons (weather, activities, days)", "Mention one good point of the other"],
+      phrase: { fr: "Je préfère les vacances d'… parce que…", en: "I prefer… holidays because…" },
+    },
     difficulty: 2,
     followUps: [
       "Qu'est-ce que tu aimes faire en été ?",
@@ -2323,8 +2853,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hol_14",
     topicKey: "holidays",
-    text: "As-tu déjà eu une mauvaise expérience en vacances ?",
+    text: "As-tu déjà eu une mauvaise expérience en vacances ? Comment c'était ?",
     hint: "Describe a trip that went wrong — delays, weather, or illness (past tense).",
+    subTopic: "past-holidays",
+    coachHint: {
+      ideas: ["Say what went wrong", "Say when and where", "Say how you felt and what you did"],
+      phrase: { fr: "Une fois, nos bagages étaient perdus et j'étais…", en: "Once our luggage was lost and I was…" },
+    },
     difficulty: 2,
     followUps: [
       "Qu'est-ce qui s'est passé exactement ?",
@@ -2346,6 +2881,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Si tu gagnais à la loterie, où irais-tu en vacances ?",
     hint: "Use conditional to describe your ultimate luxury dream trip.",
+    subTopic: "future-trips",
+    coachHint: {
+      ideas: ["Say where you would go", "Say what you would do", "Say how long you would stay"],
+      phrase: { fr: "Si je gagnais à la loterie, j'irais à…", en: "If I won the lottery, I would go to…" },
+    },
     difficulty: 3,
     followUps: [
       "Avec qui partirais-tu ?",
@@ -2367,6 +2907,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Pourquoi est-il important de goûter la nourriture locale à l'étranger ?",
     hint: "Discuss the link between food, culture, and travel experience.",
+    subTopic: "tourism-issues",
+    coachHint: {
+      ideas: ["Give two reasons (culture, taste, meeting people)", "Give an example dish", "Say what you would try"],
+      phrase: { fr: "Goûter la cuisine locale est important parce que…", en: "Trying local food is important because…" },
+    },
     difficulty: 2,
     followUps: [
       "Quelle est la meilleure chose que tu as mangée à l'étranger ?",
@@ -2388,6 +2933,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Tu préfères voyager en avion ou en train ? Pourquoi ?",
     hint: "Compare the convenience, cost, and environmental impact of both.",
+    subTopic: "travel-preferences",
+    coachHint: {
+      ideas: ["Say which you prefer", "Give two reasons (speed, price, comfort, environment)", "Say when you choose the other"],
+      phrase: { fr: "Je préfère voyager en… parce que…", en: "I prefer travelling by… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Quel est l'avantage du train ?",
@@ -2411,6 +2961,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "home",
     text: "Est-ce qu'il y a un parc près de chez toi ? Tu y vas souvent ?",
     hint: "Describe local green spaces and how you use them.",
+    subTopic: "things-to-do",
+    coachHint: {
+      ideas: ["Say yes or no", "Say how far it is", "Say what you do there"],
+      phrase: { fr: "Il y a un parc à… minutes de chez moi.", en: "There is a park… minutes from my home." },
+    },
     difficulty: 1,
     followUps: [
       "Qu'est-ce qu'on peut faire dans ce parc ?",
@@ -2432,6 +2987,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "home",
     text: "Qu'est-ce que tu aimerais changer dans ta ville ?",
     hint: "Discuss improvements like transport, facilities, or environment.",
+    subTopic: "town-and-region",
+    coachHint: {
+      ideas: ["Name two changes (transport, parks, shops)", "Say why each matters", "Say who benefits"],
+      phrase: { fr: "Dans ma ville, je veux changer… parce que…", en: "In my town I want to change… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Y a-t-il assez de pistes cyclables ?",
@@ -2451,8 +3011,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hom_13",
     topicKey: "home",
-    text: "Est-ce que tu connais bien tes voisins ?",
+    text: "Est-ce que tu connais bien tes voisins ? Comment sont-ils ?",
     hint: "Talk about the people living next door and your relationship with them.",
+    subTopic: "town-and-region",
+    coachHint: {
+      ideas: ["Say whether you know them", "Describe one neighbour", "Say whether you help each other"],
+      phrase: { fr: "Mes voisins sont… et on se dit bonjour…", en: "My neighbours are… and we say hello…" },
+    },
     difficulty: 1,
     followUps: [
       "Sont-ils sympathiques ?",
@@ -2474,6 +3039,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "home",
     text: "Décris ta cuisine. Est-ce un endroit important chez toi ?",
     hint: "Describe the kitchen's look and its role in family life.",
+    subTopic: "my-home",
+    coachHint: {
+      ideas: ["Describe the kitchen (size, equipment)", "Say who cooks there", "Say why it matters for the family"],
+      phrase: { fr: "Chez nous, la cuisine est… et c'est là que…", en: "At home the kitchen is… and it is where…" },
+    },
     difficulty: 1,
     followUps: [
       "Qui cuisine le plus à la maison ?",
@@ -2495,6 +3065,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "home",
     text: "Quels sont les avantages de vivre dans un village par rapport à une grande ville ?",
     hint: "Compare country life with city life.",
+    subTopic: "town-and-region",
+    coachHint: {
+      ideas: ["Name two advantages (calm, nature, safety)", "Compare with the city", "Say which you prefer"],
+      phrase: { fr: "Dans un village, il y a plus de… que en ville.", en: "In a village there is more… than in a city." },
+    },
     difficulty: 3,
     followUps: [
       "Où préférerais-tu vivre plus tard ?",
@@ -2516,8 +3091,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fut_10",
     topicKey: "future",
-    text: "Est-ce que tu aimerais écrire un livre un jour ?",
+    text: "Aimerais-tu écrire un livre un jour ? Sur quoi ?",
     hint: "Talk about your creative ambitions and what you'd write about.",
+    subTopic: "personal-life-plans",
+    coachHint: {
+      ideas: ["Say yes or no", "Say what kind of book", "Say who it would be for"],
+      phrase: { fr: "J'écrirais un roman sur…", en: "I would write a novel about…" },
+    },
     difficulty: 2,
     followUps: [
       "Quel serait le sujet de ton livre ?",
@@ -2537,8 +3117,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fut_11",
     topicKey: "future",
-    text: "Qu'est-ce qui est le plus important : la satisfaction au travail ou l'argent ?",
+    text: "Qu'est-ce qui est le plus important : la satisfaction au travail ou l'argent ? Pourquoi ?",
     hint: "Discuss your priorities for your future career.",
+    subTopic: "work-and-careers",
+    coachHint: {
+      ideas: ["Say which matters more", "Give two reasons", "Say what you would sacrifice"],
+      phrase: { fr: "Pour moi, le plus important, c'est… parce que…", en: "For me the most important thing is… because…" },
+    },
     difficulty: 3,
     followUps: [
       "Peut-on être heureux sans argent ?",
@@ -2558,8 +3143,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fut_12",
     topicKey: "future",
-    text: "Est-ce que tu voudrais avoir des enfants plus tard ?",
+    text: "Est-ce que tu voudrais avoir des enfants plus tard ? Pourquoi (pas) ?",
     hint: "Talk about your family plans for the future.",
+    subTopic: "personal-life-plans",
+    coachHint: {
+      ideas: ["Say yes or no", "Say how many and when", "Give a reason"],
+      phrase: { fr: "Plus tard, j'aurai… enfants parce que…", en: "Later I will have… children because…" },
+    },
     difficulty: 2,
     followUps: [
       "Combien d'enfants aimerais-tu avoir ?",
@@ -2581,6 +3171,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "future",
     text: "Où te vois-tu vivre dans vingt ans ?",
     hint: "Describe your ideal living situation in the distant future.",
+    subTopic: "personal-life-plans",
+    coachHint: {
+      ideas: ["Say where (country, city, countryside)", "Describe your home", "Say who you will live with"],
+      phrase: { fr: "Dans vingt ans, j'habiterai à… dans…", en: "In twenty years I will live in… in…" },
+    },
     difficulty: 3,
     followUps: [
       "Seras-tu toujours dans le même pays ?",
@@ -2600,8 +3195,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fut_14",
     topicKey: "future",
-    text: "Quel impact l'intelligence artificielle aura-t-elle sur ta future carrière ?",
+    text: "Quel impact l'intelligence artificielle aura-t-elle plus tard sur ta carrière ?",
     hint: "Discuss the role of AI and automation in your chosen field.",
+    subTopic: "work-and-careers",
+    coachHint: {
+      ideas: ["Say what AI could do in your field", "Say whether it helps or replaces people", "Say how you will prepare"],
+      phrase: { fr: "Dans mon métier, l'IA va… et je vais…", en: "In my job AI is going to… and I am going to…" },
+    },
     difficulty: 3,
     followUps: [
       "As-tu peur que l'IA remplace ton travail ?",
@@ -2623,8 +3223,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_12",
     topicKey: "food",
-    text: "Est-ce que tu bois assez d'eau chaque jour ?",
+    text: "Est-ce que tu bois assez d'eau chaque jour ? Pourquoi est-ce important ?",
     hint: "Discuss your hydration habits and why water is important.",
+    subTopic: "meals-and-habits",
+    coachHint: {
+      ideas: ["Say yes or no", "Give a reason water matters (health, energy)", "Say what else you drink"],
+      phrase: { fr: "Je bois… par jour parce que l'eau est importante pour…", en: "I drink… a day because water is important for…" },
+    },
     difficulty: 1,
     followUps: [
       "Combien de litres bois-tu environ ?",
@@ -2646,6 +3251,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Quel est ton petit-déjeuner préféré ?",
     hint: "Describe what you eat and drink in the morning.",
+    subTopic: "meals-and-habits",
+    coachHint: {
+      ideas: ["Name what you eat", "Name what you drink", "Say when and where"],
+      phrase: { fr: "Au petit-déjeuner, je mange… et je bois…", en: "For breakfast I eat… and I drink…" },
+    },
     difficulty: 1,
     followUps: [
       "Est-ce que tu manges salé ou sucré le matin ?",
@@ -2665,8 +3275,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_14",
     topicKey: "food",
-    text: "Penses-tu que les repas à la cantine sont équilibrés ?",
+    text: "Penses-tu que les repas à la cantine sont équilibrés ? Pourquoi (pas) ?",
     hint: "Evaluate the nutritional value of your school lunches.",
+    subTopic: "meals-and-habits",
+    coachHint: {
+      ideas: ["Say whether the meals are balanced", "Give one example (vegetables, chips)", "Say what you would change"],
+      phrase: { fr: "Je trouve les menus plutôt… parce que…", en: "I find the menus rather… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Qu'est-ce qu'on mange d'habitude ?",
@@ -2686,8 +3301,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_15",
     topicKey: "food",
-    text: "As-tu déjà essayé un régime végétarien ou végan ?",
+    text: "As-tu déjà essayé un régime végétarien ou végan ? Comment c'était ?",
     hint: "Talk about your experience or opinion on meat-free diets.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Say yes or no", "Say how long and why", "Say how it felt"],
+      phrase: { fr: "Oui, j'ai essayé… et c'était… / Non, jamais.", en: "Yes, I tried… and it was… / No, never." },
+    },
     difficulty: 2,
     followUps: [
       "Pourquoi les gens choisissent-ils d'être végétariens ?",
@@ -2709,6 +3329,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Parle-moi d'une recette que tu sais préparer tout(e) seul(e).",
     hint: "Explain the steps and ingredients of a dish you can cook.",
+    subTopic: "cooking",
+    coachHint: {
+      ideas: ["Name the dish", "List two ingredients", "Give two steps"],
+      phrase: { fr: "Pour faire…, il faut… et d'abord on…", en: "To make…, you need… and first you…" },
+    },
     difficulty: 2,
     followUps: [
       "C'est difficile à faire ?",
@@ -2730,8 +3355,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "env_09",
     topicKey: "environment",
-    text: "Est-ce qu'il y a beaucoup de déchets dans ta ville ?",
+    text: "Est-ce qu'il y a beaucoup de déchets dans ta ville ? Pourquoi, à ton avis ?",
     hint: "Talk about littering and cleanliness in your area.",
+    subTopic: "waste-and-recycling",
+    coachHint: {
+      ideas: ["Say whether there is a lot of litter", "Say where you see it", "Give a reason (people, few bins)"],
+      phrase: { fr: "Dans ma ville, il y a des déchets parce que…", en: "In my town there is litter because…" },
+    },
     difficulty: 1,
     followUps: [
       "Y a-t-il assez de poubelles publiques ?",
@@ -2751,8 +3381,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "env_10",
     topicKey: "environment",
-    text: "Penses-tu qu'on devrait interdire les sacs en plastique ?",
+    text: "Penses-tu qu'on devrait interdire les sacs en plastique ? Pourquoi (pas) ?",
     hint: "Discuss the impact of single-use plastics and possible alternatives.",
+    subTopic: "waste-and-recycling",
+    coachHint: {
+      ideas: ["Say whether you agree", "Give two reasons (oceans, animals, alternatives)", "Name an alternative"],
+      phrase: { fr: "Je pense qu'il faut interdire… parce que…", en: "I think we should ban… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Qu'est-ce qu'on peut utiliser à la place ?",
@@ -2774,6 +3409,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Que peut-on faire pour protéger les animaux en voie de disparition ?",
     hint: "Suggest ways to save species like pandas, polar bears, or bees.",
+    subTopic: "nature-and-wildlife",
+    coachHint: {
+      ideas: ["Name two ways (protect habitats, stop hunting, less pollution)", "Name an animal", "Say what individuals can do"],
+      phrase: { fr: "Pour protéger les animaux, il faut…", en: "To protect animals we must…" },
+    },
     difficulty: 3,
     followUps: [
       "Quel animal aimerais-tu sauver en priorité ?",
@@ -2793,8 +3433,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "env_12",
     topicKey: "environment",
-    text: "As-tu déjà participé à un projet écologique ?",
+    text: "As-tu déjà participé à un projet écologique ? Comment c'était ?",
     hint: "Describe any green activity like planting trees or a beach clean-up (past tense).",
+    subTopic: "everyday-eco-habits",
+    coachHint: {
+      ideas: ["Say what the project was", "Say what you did and who with", "Say how you felt"],
+      phrase: { fr: "L'année dernière, j'ai participé à… et on a…", en: "Last year I took part in… and we…" },
+    },
     difficulty: 2,
     followUps: [
       "C'était quoi exactement ?",
@@ -2814,8 +3459,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "env_13",
     topicKey: "environment",
-    text: "Penses-tu que le réchauffement climatique est la plus grande menace pour l'humanité ?",
+    text: "Penses-tu que le réchauffement climatique est la plus grande menace pour l'humanité ? Pourquoi (pas) ?",
     hint: "Give your opinion on the gravity of climate change.",
+    subTopic: "climate-and-energy",
+    coachHint: {
+      ideas: ["Say whether you agree", "Give two reasons (food, water, weather)", "Mention another big threat"],
+      phrase: { fr: "Je pense que le réchauffement est… parce que…", en: "I think global warming is… because…" },
+    },
     difficulty: 3,
     followUps: [
       "Pourquoi est-ce une menace ?",
@@ -2839,6 +3489,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Qu'est-ce que tu penses de la mixité à l'école ?",
     hint: "Discuss the pros and cons of mixed-gender schools vs. single-sex schools.",
+    subTopic: "rules-and-uniform",
+    coachHint: {
+      ideas: ["Say whether you are for or against mixed schools", "Give one advantage", "Mention one possible drawback"],
+      phrase: { fr: "Je suis pour la mixité parce que…", en: "I am in favour of mixed schools because…" },
+    },
     difficulty: 3,
     followUps: [
       "Préfères-tu les écoles mixtes ou non-mixtes ?",
@@ -2860,6 +3515,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Quels sont les avantages d'avoir une bibliothèque dans ton école ?",
     hint: "Talk about the resources, quiet space, and benefits for students.",
+    subTopic: "school-day",
+    coachHint: {
+      ideas: ["Name two advantages (quiet, books, computers)", "Say how you personally use the library", "Say what you would add to it"],
+      phrase: { fr: "La bibliothèque est utile parce qu'on peut…", en: "The library is useful because you can…" },
+    },
     difficulty: 1,
     followUps: [
       "Vas-tu souvent à la bibliothèque ?",
@@ -2881,6 +3541,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Comment est-ce que tu gères ton stress pendant les examens ?",
     hint: "Share your tips for staying calm and organized during test periods.",
+    subTopic: "exams-and-homework",
+    coachHint: {
+      ideas: ["Name two things you do to stay calm", "Say when you start revising", "Add advice for a friend"],
+      phrase: { fr: "Pour gérer mon stress, je…", en: "To manage my stress, I…" },
+    },
     difficulty: 2,
     followUps: [
       "Es-tu une personne stressée d'habitude ?",
@@ -2902,6 +3567,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Si tu pouvais créer une nouvelle matière scolaire, laquelle serait-ce ?",
     hint: "Think about something practical or fun that isn't currently taught.",
+    subTopic: "subjects",
+    coachHint: {
+      ideas: ["Name the new subject", "Say two things students would learn", "Explain why it would be useful"],
+      phrase: { fr: "Si je pouvais, je créerais une matière sur… parce que…", en: "If I could, I would create a subject about… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Pourquoi cette matière serait-elle utile ?",
@@ -2923,6 +3593,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Quel est l'impact des sorties scolaires sur ton apprentissage ?",
     hint: "Discuss the benefits of learning outside the traditional classroom setting.",
+    subTopic: "school-day",
+    coachHint: {
+      ideas: ["Describe one school trip you did", "Say what you learned from it", "Compare it with a normal lesson"],
+      phrase: { fr: "Les sorties scolaires m'aident parce que…", en: "School trips help me because…" },
+    },
     difficulty: 3,
     followUps: [
       "Quelle a été ta meilleure sortie scolaire ?",
@@ -2944,8 +3619,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_19",
     topicKey: "hobbies",
-    text: "Est-ce que tu préfères les activités calmes ou dynamiques ?",
+    text: "Est-ce que tu préfères les activités calmes ou dynamiques ? Pourquoi ?",
     hint: "Compare hobbies like reading/drawing with sports/dancing.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Say which type you prefer", "Give two reasons (energy, relax, friends)", "Say when you like the other type"],
+      phrase: { fr: "Je préfère les activités… parce que…", en: "I prefer… activities because…" },
+    },
     difficulty: 1,
     followUps: [
       "Pourquoi préfères-tu ce type d'activité ?",
@@ -2965,8 +3645,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_20",
     topicKey: "hobbies",
-    text: "Est-ce que tu aimes collectionner des objets ?",
+    text: "Est-ce que tu aimes collectionner des objets ? Lesquels ?",
     hint: "Talk about any collections you have — stamps, coins, posters, digital items.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say yes or no", "Name what you collect now or used to collect", "Say why you like collecting"],
+      phrase: { fr: "Je collectionne… parce que…", en: "I collect… because…" },
+    },
     difficulty: 1,
     followUps: [
       "Qu'est-ce que tu collectionnes ?",
@@ -2988,6 +3673,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "hobbies",
     text: "Quel est ton genre de musique préféré et pourquoi ?",
     hint: "Discuss your musical tastes and how they make you feel.",
+    subTopic: "music-books-film",
+    coachHint: {
+      ideas: ["Name your favourite music style", "Give two reasons", "Say how it makes you feel"],
+      phrase: { fr: "Mon genre préféré, c'est… parce que ça me…", en: "My favourite genre is… because it makes me…" },
+    },
     difficulty: 2,
     followUps: [
       "Quel est ton chanteur ou groupe préféré ?",
@@ -3007,8 +3697,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_22",
     topicKey: "hobbies",
-    text: "Qu'est-ce que tu penses du bénévolat comme passe-temps ?",
+    text: "Que penses-tu du bénévolat comme passe-temps ?",
     hint: "Discuss the benefits of volunteering for others and for oneself.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Say whether volunteering is a good hobby", "Give one benefit for others", "Give one benefit for yourself"],
+      phrase: { fr: "Je pense que le bénévolat est… parce que…", en: "I think volunteering is… because…" },
+    },
     difficulty: 3,
     followUps: [
       "As-tu déjà fait du bénévolat ?",
@@ -3028,8 +3723,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_23",
     topicKey: "hobbies",
-    text: "Comment est-ce que tes loisirs ont changé depuis que tu es petit(e) ?",
+    text: "Quand tu étais petit(e), qu'est-ce que tu faisais pendant ton temps libre ? Comment tes loisirs ont-ils changé ?",
     hint: "Compare your childhood activities with your current hobbies.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Describe what you did as a child", "Say what you do now", "Say what changed and why"],
+      phrase: { fr: "Quand j'étais petit(e), je jouais… mais maintenant…", en: "When I was little I used to play… but now…" },
+    },
     difficulty: 2,
     followUps: [
       "Qu'est-ce que tu faisais avant et que tu ne fais plus ?",
@@ -3051,8 +3751,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fam_18",
     topicKey: "family",
-    text: "As-tu des traditions familiales spéciales pour les fêtes ?",
+    text: "As-tu des traditions familiales spéciales pour les fêtes ? Lesquelles ?",
     hint: "Describe what your family usually does for Christmas, Eid, or other celebrations.",
+    subTopic: "celebrations-and-traditions",
+    coachHint: {
+      ideas: ["Say yes and name a tradition", "Say what you eat or do", "Say which one you like best"],
+      phrase: { fr: "Pour Noël, dans ma famille, on…", en: "At Christmas, in my family, we…" },
+    },
     difficulty: 1,
     followUps: [
       "Qu'est-ce que vous mangez ?",
@@ -3072,8 +3777,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fam_19",
     topicKey: "family",
-    text: "Est-ce que tes parents sont stricts sur les horaires ?",
+    text: "Est-ce que tes parents sont stricts sur les horaires ? Comment réagissent-ils si tu rentres en retard ?",
     hint: "Talk about rules regarding bedtime or returning home in the evening.",
+    subTopic: "parents-and-rules",
+    coachHint: {
+      ideas: ["Say how strict they are", "Give one rule about times", "Say what happens if you are late"],
+      phrase: { fr: "Mes parents sont assez… et je dois rentrer à…", en: "My parents are quite… and I must be home by…" },
+    },
     difficulty: 2,
     followUps: [
       "À quelle heure dois-tu rentrer le week-end ?",
@@ -3095,6 +3805,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Décris un membre de ta famille que tu n'as pas vu depuis longtemps.",
     hint: "Describe a relative who lives far away or you haven't visited recently.",
+    subTopic: "family-members",
+    coachHint: {
+      ideas: ["Say who it is and where they live", "Describe what they look like", "Say when you would like to see them"],
+      phrase: { fr: "Mon oncle/ma tante habite à… et il/elle est…", en: "My uncle/aunt lives in… and he/she is…" },
+    },
     difficulty: 1,
     followUps: [
       "Où habite cette personne ?",
@@ -3114,8 +3829,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fam_21",
     topicKey: "family",
-    text: "Penses-tu que les parents et les adolescents peuvent être amis ?",
+    text: "Penses-tu que les parents et les adolescents peuvent être amis ? Pourquoi (pas) ?",
     hint: "Discuss the balance between authority and friendship in family relationships.",
+    subTopic: "generations",
+    coachHint: {
+      ideas: ["Say whether they can be friends", "Give two reasons", "Say what limits there should be"],
+      phrase: { fr: "Je pense que les parents et les ados peuvent être amis parce que…", en: "I think parents and teens can be friends because…" },
+    },
     difficulty: 3,
     followUps: [
       "Considères-tu tes parents comme des amis ?",
@@ -3137,6 +3857,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Quelles sont les qualités les plus importantes pour être un bon parent ?",
     hint: "Discuss traits like patience, support, honesty, and listening.",
+    subTopic: "parents-and-rules",
+    coachHint: {
+      ideas: ["Name three qualities (patience, honesty, listening)", "Explain why the most important one matters", "Give an example from your own parents"],
+      phrase: { fr: "Un bon parent doit être… et savoir…", en: "A good parent must be… and know how to…" },
+    },
     difficulty: 3,
     followUps: [
       "Tes parents possèdent-ils ces qualités ?",
@@ -3158,8 +3883,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hol_18",
     topicKey: "holidays",
-    text: "Préfères-tu les grandes villes ou les petits villages pour tes vacances ?",
+    text: "Préfères-tu les grandes villes ou les petits villages pour tes vacances ? Pourquoi ?",
     hint: "Compare the energy and activities of a city with the peace of a village.",
+    subTopic: "travel-preferences",
+    coachHint: {
+      ideas: ["Say which you prefer", "Give two reasons (museums, calm, nature)", "Say what you do there"],
+      phrase: { fr: "Je préfère les… parce que…", en: "I prefer… because…" },
+    },
     difficulty: 1,
     followUps: [
       "Qu'est-ce que tu aimes faire dans une ville ?",
@@ -3181,6 +3911,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Quel est l'objet le plus important dans ton sac de voyage ?",
     hint: "Talk about something essential you always take with you.",
+    subTopic: "travel-preferences",
+    coachHint: {
+      ideas: ["Name the item", "Say what you use it for", "Say why you never forget it"],
+      phrase: { fr: "Dans mon sac, l'objet le plus important, c'est…", en: "In my bag the most important item is…" },
+    },
     difficulty: 1,
     followUps: [
       "Est-ce que c'est ton téléphone ?",
@@ -3200,8 +3935,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hol_20",
     topicKey: "holidays",
-    text: "Penses-tu que voyager rend plus intelligent ?",
+    text: "Penses-tu que voyager rend plus intelligent ? Pourquoi ?",
     hint: "Discuss how exposure to new cultures and experiences helps us grow.",
+    subTopic: "tourism-issues",
+    coachHint: {
+      ideas: ["Say whether you agree", "Give two reasons (new ideas, languages, adapting)", "Give an example"],
+      phrase: { fr: "Je pense que voyager… parce que…", en: "I think travelling… because…" },
+    },
     difficulty: 3,
     followUps: [
       "Qu'as-tu appris lors de ton dernier voyage ?",
@@ -3223,6 +3963,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Quel est le meilleur moment pour partir en vacances selon toi ?",
     hint: "Discuss your preferred season or time of year for traveling.",
+    subTopic: "travel-preferences",
+    coachHint: {
+      ideas: ["Name a month or season", "Give two reasons (weather, prices, crowds)", "Say what you do then"],
+      phrase: { fr: "Pour moi, le meilleur moment, c'est… parce que…", en: "For me, the best time is… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Préfères-tu les vacances scolaires ou hors saison ?",
@@ -3242,8 +3987,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hol_22",
     topicKey: "holidays",
-    text: "As-tu déjà fait un voyage humanitaire ou aimerais-tu en faire un ?",
+    text: "As-tu déjà fait un voyage humanitaire ou aimerais-tu en faire un ? Pourquoi (pas) ?",
     hint: "Discuss combining travel with helping a community or environmental project.",
+    subTopic: "future-trips",
+    coachHint: {
+      ideas: ["Say yes or no", "Say what project you would join", "Say why it interests you"],
+      phrase: { fr: "Non, je n'ai jamais… mais j'aimerais… parce que…", en: "No, I have never… but I would like to… because…" },
+    },
     difficulty: 3,
     followUps: [
       "Quelle cause aimerais-tu aider ?",
@@ -3267,6 +4017,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "home",
     text: "Comment est-ce que ta ville a changé ces dernières années ?",
     hint: "Talk about new buildings, shops, or changes in transport.",
+    subTopic: "town-and-region",
+    coachHint: {
+      ideas: ["Name a new building or change", "Say what it was like before", "Say whether it is better now"],
+      phrase: { fr: "Avant, c'était… mais maintenant…", en: "Before it was… but now…" },
+    },
     difficulty: 2,
     followUps: [
       "Y a-t-il plus de monde maintenant ?",
@@ -3288,6 +4043,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "home",
     text: "Où se trouve ton endroit préféré pour faire du shopping dans ta ville ?",
     hint: "Describe a specific street, mall, or market you like.",
+    subTopic: "things-to-do",
+    coachHint: {
+      ideas: ["Name the street or shopping centre", "Say what you can buy", "Say when you go"],
+      phrase: { fr: "Mon endroit préféré pour faire du shopping, c'est…", en: "My favourite place to shop is…" },
+    },
     difficulty: 1,
     followUps: [
       "Qu'est-ce que tu aimes acheter là-bas ?",
@@ -3307,8 +4067,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hom_18",
     topicKey: "home",
-    text: "Est-ce que ta ville est sûre le soir ?",
+    text: "Est-ce que ta ville est sûre le soir ? Pourquoi ?",
     hint: "Discuss the safety and security of your area at night.",
+    subTopic: "town-and-region",
+    coachHint: {
+      ideas: ["Say yes or no", "Give one reason (lights, people)", "Say whether you go out alone"],
+      phrase: { fr: "Ma ville est assez sûre parce que…", en: "My town is fairly safe because…" },
+    },
     difficulty: 2,
     followUps: [
       "As-tu peur de sortir seul(e) le soir ?",
@@ -3330,6 +4095,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "home",
     text: "Qu'est-ce que tu penses de l'architecture de ta ville ?",
     hint: "Compare old and new styles of buildings in your area.",
+    subTopic: "town-and-region",
+    coachHint: {
+      ideas: ["Say whether you like it", "Name one old and one modern building", "Give a reason"],
+      phrase: { fr: "J'aime l'architecture de ma ville parce que…", en: "I like my town's architecture because…" },
+    },
     difficulty: 3,
     followUps: [
       "Quel est le plus beau bâtiment ?",
@@ -3349,8 +4119,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hom_20",
     topicKey: "home",
-    text: "Est-ce qu'il y a assez d'activités culturelles dans ta ville ?",
+    text: "Est-ce qu'il y a assez d'activités culturelles dans ta ville ? Lesquelles ?",
     hint: "Discuss cinemas, theatres, festivals, and other cultural events.",
+    subTopic: "things-to-do",
+    coachHint: {
+      ideas: ["Say whether there are enough", "Name two (cinema, theatre, festival)", "Say what you would add"],
+      phrase: { fr: "Dans ma ville, il y a un cinéma et…", en: "In my town there is a cinema and…" },
+    },
     difficulty: 2,
     followUps: [
       "Quel est le dernier événement culturel auquel tu as assisté ?",
@@ -3372,8 +4147,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fut_15",
     topicKey: "future",
-    text: "Penses-tu que les robots feront tous les travaux ménagers à l'avenir ?",
+    text: "Penses-tu que les robots feront tous les travaux ménagers à l'avenir ? Pourquoi (pas) ?",
     hint: "Discuss the role of automation in our daily home lives.",
+    subTopic: "future-world",
+    coachHint: {
+      ideas: ["Say yes or no", "Give one reason", "Name a robot that already exists"],
+      phrase: { fr: "Je pense qu'ils feront… parce que…", en: "I think they will do… because…" },
+    },
     difficulty: 2,
     followUps: [
       "En as-tu déjà chez toi ?",
@@ -3393,8 +4173,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fut_16",
     topicKey: "future",
-    text: "Comment la technologie changera-t-elle notre façon de voyager ?",
+    text: "Comment la technologie changera-t-elle notre façon de voyager à l'avenir ?",
     hint: "Think about faster transport, virtual reality, or space travel.",
+    subTopic: "future-world",
+    coachHint: {
+      ideas: ["Name two changes (fast trains, VR, space)", "Say how they help", "Say which you would try"],
+      phrase: { fr: "Dans l'avenir, on voyagera en…", en: "In the future we will travel by…" },
+    },
     difficulty: 3,
     followUps: [
       "Aimerais-tu aller sur la Lune ?",
@@ -3414,8 +4199,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fut_17",
     topicKey: "future",
-    text: "Quel est ton plus grand défi pour l'avenir ?",
+    text: "Quel sera ton plus grand défi à l'avenir ?",
     hint: "Talk about a personal goal or obstacle you want to overcome.",
+    subTopic: "personal-life-plans",
+    coachHint: {
+      ideas: ["Name the challenge", "Say why it is hard", "Say how you will face it"],
+      phrase: { fr: "Je vais devoir… parce que…", en: "I am going to have to… because…" },
+    },
     difficulty: 3,
     followUps: [
       "Es-tu confiant(e) pour réussir ?",
@@ -3435,8 +4225,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fut_18",
     topicKey: "future",
-    text: "Penses-tu que le monde sera meilleur dans cinquante ans ?",
+    text: "Penses-tu que le monde sera meilleur dans cinquante ans ? Pourquoi (pas) ?",
     hint: "Discuss environmental, social, and technological progress.",
+    subTopic: "future-world",
+    coachHint: {
+      ideas: ["Say yes or no", "Give a reason about technology or nature", "Give a reason for doubt"],
+      phrase: { fr: "Je pense qu'on aura… parce que…", en: "I think we will have… because…" },
+    },
     difficulty: 3,
     followUps: [
       "Es-tu optimiste pour la planète ?",
@@ -3458,6 +4253,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "future",
     text: "Aimerais-tu être célèbre plus tard ? Pourquoi ?",
     hint: "Discuss the advantages and disadvantages of fame.",
+    subTopic: "personal-life-plans",
+    coachHint: {
+      ideas: ["Say yes or no", "Give one advantage of fame", "Give one disadvantage"],
+      phrase: { fr: "Je voudrais / je ne voudrais pas être célèbre parce que…", en: "I would / would not like to be famous because…" },
+    },
     difficulty: 2,
     followUps: [
       "Dans quel domaine serais-tu célèbre ?",
@@ -3479,8 +4279,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_17",
     topicKey: "food",
-    text: "Est-ce que tu manges beaucoup de collations entre les repas ?",
+    text: "Est-ce que tu manges beaucoup de collations entre les repas ? Lesquelles ?",
     hint: "Talk about your snacking habits and if they are healthy.",
+    subTopic: "meals-and-habits",
+    coachHint: {
+      ideas: ["Say yes or no", "Name two snacks", "Say whether they are healthy"],
+      phrase: { fr: "Entre les repas, je mange souvent…", en: "Between meals I often eat…" },
+    },
     difficulty: 1,
     followUps: [
       "Qu'est-ce que tu manges d'habitude ?",
@@ -3502,6 +4307,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Quel est le plat le plus étrange que tu as déjà goûté ?",
     hint: "Describe a food experience that was unusual or surprising (past tense).",
+    subTopic: "favourite-foods",
+    coachHint: {
+      ideas: ["Name the dish and where you tried it", "Say what it was like", "Say whether you would try it again"],
+      phrase: { fr: "Le plat le plus étrange que j'ai goûté, c'était…", en: "The strangest dish I tasted was…" },
+    },
     difficulty: 2,
     followUps: [
       "C'était où ?",
@@ -3523,6 +4333,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Pourquoi est-il important de manger en famille sans écrans ?",
     hint: "Discuss the benefits of conversation and social bonding during meals.",
+    subTopic: "meals-and-habits",
+    coachHint: {
+      ideas: ["Give two reasons (talking, closeness, attention)", "Say what happens at your table", "Say whether phones are allowed"],
+      phrase: { fr: "Manger sans écrans est important parce que…", en: "Eating without screens is important because…" },
+    },
     difficulty: 2,
     followUps: [
       "Manges-tu souvent devant la télé ?",
@@ -3542,8 +4357,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_20",
     topicKey: "food",
-    text: "Penses-tu que les émissions de cuisine à la télé sont utiles ?",
+    text: "Penses-tu que les émissions de cuisine à la télé sont utiles ? Pourquoi (pas) ?",
     hint: "Discuss if shows like Top Chef or Masterchef inspire people to cook.",
+    subTopic: "cooking",
+    coachHint: {
+      ideas: ["Say whether they are useful", "Give two reasons (ideas, motivation)", "Name a show you know"],
+      phrase: { fr: "Ces émissions donnent des idées parce que…", en: "These shows give ideas because…" },
+    },
     difficulty: 2,
     followUps: [
       "Regardes-tu ce genre d'émissions ?",
@@ -3565,6 +4385,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Comment peut-on réduire le gaspillage alimentaire au niveau mondial ?",
     hint: "Discuss solutions like better planning, donating leftovers, or buying 'ugly' fruit.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Name two ways (plan meals, freeze food, give away)", "Say who should act (families, shops)", "Say what you do at home"],
+      phrase: { fr: "On peut mieux planifier les repas et donner…", en: "You can plan meals better and give away…" },
+    },
     difficulty: 3,
     followUps: [
       "Est-ce que tu jettes beaucoup de nourriture ?",
@@ -3586,8 +4411,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "env_14",
     topicKey: "environment",
-    text: "Est-ce que tu penses que la mode éthique est importante ?",
+    text: "Est-ce que tu penses que la mode éthique est importante ? Pourquoi ?",
     hint: "Discuss the impact of fast fashion on the environment and workers.",
+    subTopic: "everyday-eco-habits",
+    coachHint: {
+      ideas: ["Say whether you agree", "Give two reasons (pollution, workers)", "Say what you do when you buy clothes"],
+      phrase: { fr: "Je trouve ça important car… et aussi…", en: "I find it important because… and also…" },
+    },
     difficulty: 2,
     followUps: [
       "Achètes-tu souvent des vêtements ?",
@@ -3609,6 +4439,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Quel est l'impact du tourisme sur l'environnement ?",
     hint: "Discuss flights, hotel waste, and the destruction of natural sites.",
+    subTopic: "climate-and-energy",
+    coachHint: {
+      ideas: ["Name two effects (flights, waste, damaged places)", "Give an example place", "Say what tourists can do"],
+      phrase: { fr: "Le tourisme pollue à cause de…", en: "Tourism pollutes because of…" },
+    },
     difficulty: 3,
     followUps: [
       "Peut-on voyager de façon écologique ?",
@@ -3628,8 +4463,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "env_16",
     topicKey: "environment",
-    text: "Penses-tu que les énergies renouvelables sont la solution ?",
+    text: "Penses-tu que les énergies renouvelables sont la solution ? Pourquoi (pas) ?",
     hint: "Discuss solar, wind, and hydraulic energy vs. fossil fuels.",
+    subTopic: "climate-and-energy",
+    coachHint: {
+      ideas: ["Say whether renewables are the answer", "Name two types (solar, wind)", "Give one limit"],
+      phrase: { fr: "Le solaire et l'éolien sont… parce que…", en: "Solar and wind power are… because…" },
+    },
     difficulty: 3,
     followUps: [
       "Y a-t-il des éoliennes dans ta région ?",
@@ -3651,6 +4491,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Comment peut-on encourager les gens à recycler davantage ?",
     hint: "Suggest ideas like better education, more bins, or financial incentives.",
+    subTopic: "waste-and-recycling",
+    coachHint: {
+      ideas: ["Name two ideas (education, more bins, rewards)", "Say who should act", "Say what worked for you"],
+      phrase: { fr: "Pour encourager le recyclage, on peut…", en: "To encourage recycling you can…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que tu recycles tout ce que tu peux ?",
@@ -3672,6 +4517,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Si tu étais ministre de l'Environnement, quelle serait ta première mesure ?",
     hint: "Use conditional to describe a bold environmental policy.",
+    subTopic: "climate-and-energy",
+    coachHint: {
+      ideas: ["Name one bold measure", "Say why it would help", "Say who would complain"],
+      phrase: { fr: "Si j'étais ministre, je ferais… pour…", en: "If I were minister I would do… to…" },
+    },
     difficulty: 3,
     followUps: [
       "Interdirais-tu les voitures en ville ?",
@@ -3695,6 +4545,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Quelles sont les qualités d'un bon professeur selon toi ?",
     hint: "Discuss the traits that make a teacher effective and inspiring.",
+    subTopic: "teachers-and-classmates",
+    coachHint: {
+      ideas: ["Name three qualities (patient, clear, fair)", "Explain why one of them matters most", "Give an example of a teacher who has it"],
+      phrase: { fr: "Un bon professeur doit être… et savoir…", en: "A good teacher must be… and know how to…" },
+    },
     difficulty: 2,
     followUps: [
       "As-tu un professeur préféré ? Pourquoi ?",
@@ -3716,6 +4571,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Que penses-tu de la triche aux examens ?",
     hint: "Discuss the ethics of cheating and its consequences.",
+    subTopic: "exams-and-homework",
+    coachHint: {
+      ideas: ["Say whether cheating is serious", "Give two reasons (unfair, risky, no learning)", "Say what a school should do about it"],
+      phrase: { fr: "Pour moi, la triche est… parce que…", en: "For me, cheating is… because…" },
+    },
     difficulty: 3,
     followUps: [
       "Pourquoi certains élèves trichent-ils ?",
@@ -3735,8 +4595,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "sch_28",
     topicKey: "school",
-    text: "Est-ce que les compétitions sportives sont importantes à l'école ?",
+    text: "Est-ce que les compétitions sportives sont importantes à l'école ? Pourquoi ?",
     hint: "Talk about school sports days and their impact on students.",
+    subTopic: "school-day",
+    coachHint: {
+      ideas: ["Say yes or no", "Give two reasons (teamwork, health, fun)", "Mention students who are not sporty"],
+      phrase: { fr: "Je pense que les compétitions sont… parce que…", en: "I think competitions are… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Participes-tu aux journées sportives de ton école ?",
@@ -3756,8 +4621,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "sch_29",
     topicKey: "school",
-    text: "L'école devrait-elle commencer plus tard le matin ?",
+    text: "Penses-tu que l'école devrait commencer plus tard le matin ? Pourquoi ?",
     hint: "Discuss the benefits and drawbacks of a later start time for students.",
+    subTopic: "school-day",
+    coachHint: {
+      ideas: ["Say whether you agree with a later start", "Give one advantage (sleep, energy)", "Give one drawback (finishing later)"],
+      phrase: { fr: "Je pense que l'école doit commencer… parce que…", en: "I think school should start… because…" },
+    },
     difficulty: 2,
     followUps: [
       "À quelle heure commences-tu d'habitude ?",
@@ -3779,8 +4649,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_24",
     topicKey: "hobbies",
-    text: "Considères-tu les réseaux sociaux comme un passe-temps ?",
+    text: "Considères-tu les réseaux sociaux comme un passe-temps ? Pourquoi (pas) ?",
     hint: "Discuss your use of TikTok, Instagram, etc., as a leisure activity.",
+    subTopic: "screens-and-games",
+    coachHint: {
+      ideas: ["Say whether social media is a hobby for you", "Name an app you use", "Give one risk or one benefit"],
+      phrase: { fr: "Pour moi, les réseaux sociaux sont… parce que…", en: "For me, social media is… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Combien de temps passes-tu sur ton téléphone ?",
@@ -3800,8 +4675,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_25",
     topicKey: "hobbies",
-    text: "Aimes-tu bricoler ou faire du bricolage ?",
+    text: "Aimes-tu bricoler ou faire du bricolage ? Pourquoi (pas) ?",
     hint: "Talk about making things, crafts, or DIY projects.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say whether you like making things", "Name something you made or would make", "Say why it is rewarding or boring"],
+      phrase: { fr: "J'aime bricoler parce que… et je fabrique souvent…", en: "I like DIY because… and I often make…" },
+    },
     difficulty: 2,
     followUps: [
       "Qu'as-tu fabriqué récemment ?",
@@ -3821,8 +4701,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_26",
     topicKey: "hobbies",
-    text: "Aimerais-tu essayer un sport extrême un jour ?",
+    text: "Aimerais-tu essayer un sport extrême un jour ? Lequel et pourquoi ?",
     hint: "Discuss activities like skydiving, bungee jumping, or rock climbing.",
+    subTopic: "sport-and-active",
+    coachHint: {
+      ideas: ["Say yes or no", "Name the sport (climbing, skydiving, surfing)", "Say what attracts you or scares you"],
+      phrase: { fr: "Je serais tenté(e) par… parce que…", en: "I would be tempted by… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Quel sport extrême te tente le plus ?",
@@ -3844,6 +4729,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "hobbies",
     text: "Tu préfères regarder le sport à la télé ou le pratiquer ?",
     hint: "Contrast watching matches with participating in physical activities.",
+    subTopic: "sport-and-active",
+    coachHint: {
+      ideas: ["Say which you prefer", "Give one advantage", "Mention one drawback of the other"],
+      phrase: { fr: "Je préfère… parce que…", en: "I prefer… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Quel sport aimes-tu regarder ?",
@@ -3867,6 +4757,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Quelle place occupent les animaux domestiques dans ta famille ?",
     hint: "Talk about your pets and how they are treated like family members.",
+    subTopic: "family-members",
+    coachHint: {
+      ideas: ["Say what pets you have or would like", "Say who takes care of them", "Say how the family treats them"],
+      phrase: { fr: "Chez nous, le chien est…", en: "At home, the dog is…" },
+    },
     difficulty: 1,
     followUps: [
       "As-tu un chien ou un chat ?",
@@ -3888,6 +4783,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Comment sont les règles et la discipline chez toi ?",
     hint: "Discuss house rules, punishments, and how your parents maintain order.",
+    subTopic: "parents-and-rules",
+    coachHint: {
+      ideas: ["Name two rules at home", "Say what happens if you break them", "Say whether the rules are fair"],
+      phrase: { fr: "Chez moi, la règle principale, c'est…", en: "At home the main rule is…" },
+    },
     difficulty: 2,
     followUps: [
       "Quelles sont les règles les plus importantes ?",
@@ -3907,8 +4807,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fam_25",
     topicKey: "family",
-    text: "Penses-tu que ce sera difficile de quitter ta famille pour l'université ?",
+    text: "Penses-tu que ce sera difficile de quitter ta famille pour l'université plus tard ? Pourquoi ?",
     hint: "Discuss the emotional and practical aspects of moving away from home.",
+    subTopic: "generations",
+    coachHint: {
+      ideas: ["Say whether it will be hard", "Give one reason (missing home, cooking)", "Give one reason it will be exciting"],
+      phrase: { fr: "Je pense que je serai… parce que…", en: "I think I will be… because…" },
+    },
     difficulty: 3,
     followUps: [
       "Aimerais-tu étudier loin de chez toi ?",
@@ -3930,6 +4835,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Qu'est-ce que tu penses du fossé des générations ?",
     hint: "Discuss the differences in ideas and values between young people and older relatives.",
+    subTopic: "generations",
+    coachHint: {
+      ideas: ["Explain what the generation gap is", "Give one difference between young and old", "Say whether it is a problem"],
+      phrase: { fr: "À mon avis, la différence entre les générations, c'est…", en: "In my opinion the difference between generations is…" },
+    },
     difficulty: 3,
     followUps: [
       "Comprends-tu toujours tes grands-parents ?",
@@ -3953,6 +4863,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Tu préfères voyager seul(e) ou avec d'autres personnes ? Pourquoi ?",
     hint: "Contrast solo travel with group or family trips.",
+    subTopic: "travel-preferences",
+    coachHint: {
+      ideas: ["Say which you prefer", "Give two reasons (company, freedom, cost)", "Say what you did on your last trip"],
+      phrase: { fr: "Je préfère voyager… parce que…", en: "I prefer travelling… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Quels sont les avantages de voyager en groupe ?",
@@ -3974,6 +4889,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Comment est-ce que tu planifies tes vacances ?",
     hint: "Talk about booking, research, and organizing your trips.",
+    subTopic: "travel-preferences",
+    coachHint: {
+      ideas: ["Say where you look for ideas", "Say how you book", "Say what you prepare before leaving"],
+      phrase: { fr: "Pour planifier mes vacances, je…", en: "To plan my holidays I…" },
+    },
     difficulty: 2,
     followUps: [
       "Utilises-tu des sites internet ou des agences de voyage ?",
@@ -3993,8 +4913,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hol_25",
     topicKey: "holidays",
-    text: "Est-ce que tu achètes souvent des souvenirs quand tu es en vacances ?",
+    text: "Est-ce que tu achètes souvent des souvenirs quand tu es en vacances ? Lesquels ?",
     hint: "Discuss what items you bring back and why they are important.",
+    subTopic: "travel-preferences",
+    coachHint: {
+      ideas: ["Say yes or no", "Name two souvenirs", "Say who they are for"],
+      phrase: { fr: "En vacances, j'achète souvent…", en: "On holiday I often buy…" },
+    },
     difficulty: 1,
     followUps: [
       "Quel est ton souvenir préféré ?",
@@ -4014,8 +4939,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hol_26",
     topicKey: "holidays",
-    text: "Aimes-tu rendre visite à ta famille qui habite à l'étranger ?",
+    text: "Aimes-tu rendre visite à ta famille qui habite à l'étranger ? Pourquoi (pas) ?",
     hint: "Talk about trips to see relatives in other countries.",
+    subTopic: "destinations",
+    coachHint: {
+      ideas: ["Say whether you like it", "Say where they live", "Say what you do together"],
+      phrase: { fr: "J'aime rendre visite à… parce que…", en: "I like visiting… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Où habite ta famille à l'étranger ?",
@@ -4039,6 +4969,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "home",
     text: "Comment sont réparties les tâches ménagères chez toi ?",
     hint: "Discuss who does the cooking, cleaning, laundry, etc.",
+    subTopic: "my-home",
+    coachHint: {
+      ideas: ["Name two tasks", "Say who does each", "Say whether it is fair"],
+      phrase: { fr: "Chez moi, ma mère fait… et moi, je…", en: "At home my mother does… and I…" },
+    },
     difficulty: 2,
     followUps: [
       "Quelles tâches fais-tu toi-même ?",
@@ -4060,6 +4995,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "home",
     text: "Décris ta maison idéale.",
     hint: "Use the conditional to talk about your dream home.",
+    subTopic: "my-home",
+    coachHint: {
+      ideas: ["Say where it is", "Name three features (garden, pool, big kitchen)", "Say who lives there"],
+      phrase: { fr: "Ma maison idéale est située… et elle a…", en: "My ideal house is located… and it has…" },
+    },
     difficulty: 2,
     followUps: [
       "Où se trouverait cette maison ?",
@@ -4079,8 +5019,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hom_23",
     topicKey: "home",
-    text: "Préfères-tu vivre dans un appartement ou dans une maison ?",
+    text: "Préfères-tu vivre dans un appartement ou dans une maison ? Pourquoi ?",
     hint: "Contrast living in a flat/apartment with a detached/semi-detached house.",
+    subTopic: "my-home",
+    coachHint: {
+      ideas: ["Say which you prefer", "Give two reasons", "Give one drawback of your choice"],
+      phrase: { fr: "Je préfère habiter dans… parce que…", en: "I prefer living in… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Quels sont les avantages d'un appartement ?",
@@ -4100,8 +5045,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hom_24",
     topicKey: "home",
-    text: "Y a-t-il des marchés locaux dans ton quartier ?",
+    text: "Y a-t-il des marchés locaux dans ton quartier ? Quand ont-ils lieu et qu'est-ce qu'on y trouve ?",
     hint: "Talk about open-air markets and what they sell.",
+    subTopic: "things-to-do",
+    coachHint: {
+      ideas: ["Say yes or no", "Say which days it is open", "Say what it sells"],
+      phrase: { fr: "Il y a un marché le… où on trouve…", en: "There is a market on… where you find…" },
+    },
     difficulty: 1,
     followUps: [
       "À quelle fréquence y vas-tu ?",
@@ -4125,6 +5075,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "future",
     text: "Que penses-tu du mariage ? Est-ce important pour toi ?",
     hint: "Discuss your views on traditional marriage vs. other forms of commitment.",
+    subTopic: "personal-life-plans",
+    coachHint: {
+      ideas: ["Say what marriage means to you", "Say whether it is important", "Mention another form of commitment"],
+      phrase: { fr: "Pour moi, le mariage est… parce que…", en: "For me, marriage is… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Veux-tu te marier un jour ?",
@@ -4144,8 +5099,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fut_21",
     topicKey: "future",
-    text: "Penses-tu que les humains habiteront sur d'autres planètes ?",
+    text: "Penses-tu que les humains habiteront sur d'autres planètes dans cinquante ans ? Pourquoi (pas) ?",
     hint: "Discuss space colonization and living on Mars or the Moon.",
+    subTopic: "future-world",
+    coachHint: {
+      ideas: ["Say yes or no", "Give a reason (technology, danger)", "Say when it might happen"],
+      phrase: { fr: "Je pense qu'ils habiteront… parce que…", en: "I think they will live… because…" },
+    },
     difficulty: 3,
     followUps: [
       "Aimerais-tu vivre sur Mars ?",
@@ -4165,8 +5125,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fut_22",
     topicKey: "future",
-    text: "Est-ce que tu penses changer de carrière plusieurs fois dans ta vie ?",
+    text: "Est-ce que tu penses changer de carrière plusieurs fois à l'avenir ? Pourquoi (pas) ?",
     hint: "Discuss the modern idea of career mobility vs. having one job for life.",
+    subTopic: "work-and-careers",
+    coachHint: {
+      ideas: ["Say yes or no", "Give one reason (change of interests, new jobs)", "Give one example"],
+      phrase: { fr: "Je pense que je changerai de… parce que…", en: "I think I will change… because…" },
+    },
     difficulty: 3,
     followUps: [
       "Est-ce que c'est stressant de changer de métier ?",
@@ -4186,8 +5151,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fut_23",
     topicKey: "future",
-    text: "Comment imagines-tu ta retraite ?",
+    text: "Comment te vois-tu à la retraite ?",
     hint: "Talk about your plans for your late years (travel, relaxation, hobbies).",
+    subTopic: "personal-life-plans",
+    coachHint: {
+      ideas: ["Say where you will live", "Name two things you will do", "Say who you will be with"],
+      phrase: { fr: "À la retraite, je voyagerai et je serai…", en: "In retirement I will travel and I will be…" },
+    },
     difficulty: 2,
     followUps: [
       "À quel âge aimerais-tu t'arrêter de travailler ?",
@@ -4209,8 +5179,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_22",
     topicKey: "food",
-    text: "Tu préfères le fast-food ou les repas faits maison ?",
+    text: "Tu préfères le fast-food ou les repas faits maison ? Pourquoi ?",
     hint: "Compare quick takeaway food with home-cooked meals.",
+    subTopic: "eating-out-and-shopping",
+    coachHint: {
+      ideas: ["Say which you prefer", "Give two reasons (taste, health, speed)", "Say how often you eat each"],
+      phrase: { fr: "Je préfère… parce que…", en: "I prefer… because…" },
+    },
     difficulty: 1,
     followUps: [
       "Pourquoi le fast-food est-il si populaire ?",
@@ -4232,6 +5207,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Quelle est l'importance du café et du thé dans ta culture ?",
     hint: "Discuss beverage culture and social habits around coffee/tea.",
+    subTopic: "meals-and-habits",
+    coachHint: {
+      ideas: ["Say which you drink (coffee, tea, mint tea)", "Say when and with whom", "Say what it means socially"],
+      phrase: { fr: "Dans ma culture, le thé est…", en: "In my culture tea is…" },
+    },
     difficulty: 2,
     followUps: [
       "Que bois-tu le matin ?",
@@ -4251,8 +5231,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_24",
     topicKey: "food",
-    text: "Comment est-ce que tes habitudes alimentaires ont changé ?",
+    text: "Qu'est-ce que tu mangeais quand tu étais petit(e) ? Comment tes habitudes alimentaires ont-elles changé ?",
     hint: "Compare what you ate as a child with your diet now.",
+    subTopic: "meals-and-habits",
+    coachHint: {
+      ideas: ["Say what you ate as a child", "Say what you eat now", "Say why it changed"],
+      phrase: { fr: "Quand j'étais petit(e), je mangeais… mais maintenant…", en: "When I was little I ate… but now…" },
+    },
     difficulty: 2,
     followUps: [
       "Mangeais-tu plus de bonbons avant ?",
@@ -4276,6 +5261,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Pourquoi est-il crucial de protéger les océans ?",
     hint: "Discuss plastic pollution, marine life, and the role of oceans in the climate.",
+    subTopic: "nature-and-wildlife",
+    coachHint: {
+      ideas: ["Give two reasons (oxygen, marine life, climate)", "Mention plastic pollution", "Say what we can do"],
+      phrase: { fr: "Il est crucial de protéger les océans parce que…", en: "It is crucial to protect the oceans because…" },
+    },
     difficulty: 3,
     followUps: [
       "Quelles sont les plus grandes menaces ?",
@@ -4297,6 +5287,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Que penses-tu du verdissement urbain ?",
     hint: "Discuss planting more trees and parks in cities.",
+    subTopic: "nature-and-wildlife",
+    coachHint: {
+      ideas: ["Say whether you like it", "Give two reasons (air, heat, well-being)", "Say where you would plant trees"],
+      phrase: { fr: "Les arbres en ville sont utiles parce que…", en: "Trees in cities are useful because…" },
+    },
     difficulty: 2,
     followUps: [
       "Y a-t-il assez de parcs dans ta ville ?",
@@ -4318,6 +5313,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Comment essaies-tu de réduire ton empreinte carbone ?",
     hint: "Talk about your personal actions like transport, diet, and consumption.",
+    subTopic: "everyday-eco-habits",
+    coachHint: {
+      ideas: ["Name two actions (transport, food, shopping)", "Say how often", "Say what is hardest"],
+      phrase: { fr: "Pour réduire mon empreinte carbone, je…", en: "To reduce my carbon footprint I…" },
+    },
     difficulty: 3,
     followUps: [
       "Utilises-tu moins la voiture ?",
@@ -4337,8 +5337,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "sch_30",
     topicKey: "school",
-    text: "Préfères-tu être interne ou externe à l'école ?",
+    text: "Préfères-tu être interne ou externe à l'école ? Pourquoi ?",
     hint: "Discuss the pros and cons of being a boarding student vs. a day student.",
+    subTopic: "rules-and-uniform",
+    coachHint: {
+      ideas: ["Choose boarding or day student", "Give two reasons (family, friends, freedom, study)", "Mention one good point about the other option"],
+      phrase: { fr: "Je préfère être… parce que…", en: "I prefer to be… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Quels sont les avantages de vivre à l'école ?",
@@ -4360,6 +5365,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Pourquoi est-il important d'apprendre des langues étrangères à l'école ?",
     hint: "Explain the benefits of language learning for travel, career, and culture.",
+    subTopic: "subjects",
+    coachHint: {
+      ideas: ["Give two reasons (travel, jobs, cultures)", "Add a personal example", "Say how languages are taught at your school"],
+      phrase: { fr: "Il est important d'apprendre des langues parce que…", en: "It is important to learn languages because…" },
+    },
     difficulty: 1,
     followUps: [
       "Quelle autre langue aimerais-tu apprendre ?",
@@ -4381,6 +5391,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Que penses-tu de l'utilisation des tablettes et ordinateurs en classe ?",
     hint: "Discuss how technology helps or hinders learning in the classroom.",
+    subTopic: "subjects",
+    coachHint: {
+      ideas: ["Say whether tablets and computers help", "Give one advantage (speed, resources)", "Give one problem (distraction)"],
+      phrase: { fr: "À mon avis, les tablettes sont… parce que…", en: "In my opinion, tablets are… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Utilises-tu souvent une tablette pour faire tes devoirs ?",
@@ -4400,8 +5415,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "sch_33",
     topicKey: "school",
-    text: "As-tu déjà participé à un échange scolaire à l'étranger ?",
+    text: "As-tu déjà participé à un échange scolaire à l'étranger ? Sinon, aimerais-tu en faire un, et pourquoi ?",
     hint: "Talk about a school exchange trip or your desire to participate in one.",
+    subTopic: "school-day",
+    coachHint: {
+      ideas: ["Say whether you have done an exchange", "If yes, say where and what it was like", "If not, say where you would go and why"],
+      phrase: { fr: "Oui, j'ai participé à… / Non, mais j'aimerais… parce que…", en: "Yes, I took part in… / No, but I would like… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Dans quel pays aimerais-tu faire un échange ?",
@@ -4421,8 +5441,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "sch_34",
     topicKey: "school",
-    text: "Est-ce que tu ressens beaucoup de pression à cause des notes ?",
+    text: "Est-ce que tu ressens beaucoup de pression à cause des notes ? Comment est-ce que tu la gères ?",
     hint: "Discuss academic pressure, competition, and how you cope with it.",
+    subTopic: "exams-and-homework",
+    coachHint: {
+      ideas: ["Say how much pressure you feel and when", "Name one thing that causes it", "Give one way you cope (sport, planning, friends)"],
+      phrase: { fr: "Je ressens… avant les examens, mais je gère ça en…", en: "I feel… before exams, but I manage it by…" },
+    },
     difficulty: 3,
     followUps: [
       "Tes parents sont-ils exigeants avec tes résultats ?",
@@ -4444,6 +5469,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Comment sont tes relations avec tes camarades de classe ?",
     hint: "Describe your social life at school and how you get along with others.",
+    subTopic: "teachers-and-classmates",
+    coachHint: {
+      ideas: ["Say whether you get on well with your class", "Give an example of helping each other", "Mention one person or group you are close to"],
+      phrase: { fr: "Je m'entends bien avec mes camarades parce que…", en: "I get on well with my classmates because…" },
+    },
     difficulty: 1,
     followUps: [
       "As-tu un grand groupe d'amis à l'école ?",
@@ -4463,8 +5493,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "sch_36",
     topicKey: "school",
-    text: "Est-ce que tu ton école t'aide pour ton orientation professionnelle ?",
+    text: "Est-ce que ton école t'aide pour ton orientation professionnelle ? Comment ?",
     hint: "Talk about career advice, internships, or guidance you receive at school.",
+    subTopic: "school-day",
+    coachHint: {
+      ideas: ["Say yes or no", "Give an example (careers fair, adviser, work experience)", "Say whether it is useful for you"],
+      phrase: { fr: "Mon école nous aide avec… et c'est…", en: "My school helps us with… and it is…" },
+    },
     difficulty: 2,
     followUps: [
       "As-tu déjà rencontré un conseiller d'orientation ?",
@@ -4484,8 +5519,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "sch_37",
     topicKey: "school",
-    text: "Penses-tu que le bénévolat devrait être obligatoire à l'école ?",
+    text: "Penses-tu que le bénévolat devrait être obligatoire à l'école ? Pourquoi (pas) ?",
     hint: "Discuss the value of community service and volunteering for students.",
+    subTopic: "rules-and-uniform",
+    coachHint: {
+      ideas: ["Say whether it should be compulsory", "Give two reasons", "Say whether you do any volunteering yourself"],
+      phrase: { fr: "Je pense que le bénévolat devrait être… parce que…", en: "I think volunteering should be… because…" },
+    },
     difficulty: 3,
     followUps: [
       "As-tu déjà fait du bénévolat dans ton école ?",
@@ -4507,6 +5547,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Qu'est-ce que tu penses des prix et des récompenses scolaires ?",
     hint: "Discuss if rewards for good grades or behavior are a good motivation.",
+    subTopic: "exams-and-homework",
+    coachHint: {
+      ideas: ["Say whether rewards motivate you", "Give one reason for or against", "Say what kind of reward works best"],
+      phrase: { fr: "À mon avis, les récompenses sont… parce que…", en: "In my opinion, rewards are… because…" },
+    },
     difficulty: 2,
     followUps: [
       "As-tu déjà reçu un prix à l'école ?",
@@ -4528,6 +5573,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Comment sont les infrastructures sportives de ton école ?",
     hint: "Describe the sports facilities like gym, fields, or pool at your school.",
+    subTopic: "school-day",
+    coachHint: {
+      ideas: ["Name the main facilities (gym, pitch, pool)", "Say what condition they are in", "Say which one you use most"],
+      phrase: { fr: "Mon école possède… et il y a aussi…", en: "My school has… and there is also…" },
+    },
     difficulty: 1,
     followUps: [
       "Est-ce qu'il y a une piscine dans ton école ?",
@@ -4549,6 +5599,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Comment ton école lutte-t-elle contre le harcèlement ?",
     hint: "Discuss school safety and policies regarding bullying.",
+    subTopic: "teachers-and-classmates",
+    coachHint: {
+      ideas: ["Name two things the school does (talks, posters, a teacher to tell)", "Say whether they work", "Say what else could be done"],
+      phrase: { fr: "Mon école lutte contre le harcèlement avec…", en: "My school fights bullying with…" },
+    },
     difficulty: 3,
     followUps: [
       "Est-ce que tu te sens en sécurité dans ton école ?",
@@ -4568,8 +5623,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "sch_41",
     topicKey: "school",
-    text: "Es-tu satisfait(e) de la qualité des repas à la cantine ?",
+    text: "Es-tu satisfait(e) de la qualité des repas à la cantine ? Pourquoi ?",
     hint: "Review the school food — taste, variety, and healthiness.",
+    subTopic: "school-day",
+    coachHint: {
+      ideas: ["Say whether you are happy with the food", "Mention taste, variety or health", "Give one idea to improve it"],
+      phrase: { fr: "Je trouve que les repas sont… parce que…", en: "I find the meals are… because…" },
+    },
     difficulty: 1,
     followUps: [
       "Quel est ton plat préféré à la cantine ?",
@@ -4589,8 +5649,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "sch_42",
     topicKey: "school",
-    text: "Devrait-on apprendre plus de compétences pratiques à l'école ?",
+    text: "Penses-tu qu'on devrait apprendre plus de compétences pratiques à l'école ? Lesquelles et pourquoi ?",
     hint: "Discuss learning life skills like cooking, DIY, or personal finance at school.",
+    subTopic: "subjects",
+    coachHint: {
+      ideas: ["Say yes or no", "Name two skills (cooking, money, first aid)", "Explain why they are useful"],
+      phrase: { fr: "Je pense qu'il faut apprendre à… parce que c'est…", en: "I think we need to learn to… because it is…" },
+    },
     difficulty: 2,
     followUps: [
       "Sais-tu cuisiner ou réparer quelque chose ?",
@@ -4610,8 +5675,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "sch_43",
     topicKey: "school",
-    text: "Aimerais-tu participer à un club de débat dans ton école ?",
+    text: "Aimerais-tu participer à un club de débat dans ton école ? Pourquoi (pas) ?",
     hint: "Discuss the benefits of public speaking and debating clubs.",
+    subTopic: "school-day",
+    coachHint: {
+      ideas: ["Say whether the club appeals to you", "Give two reasons (speaking, confidence, ideas)", "Name a topic you would debate"],
+      phrase: { fr: "J'aimerais essayer le club de débat parce que…", en: "I would like to try the debating club because…" },
+    },
     difficulty: 2,
     followUps: [
       "Es-tu à l'aise pour parler en public ?",
@@ -4631,8 +5701,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "sch_44",
     topicKey: "school",
-    text: "Quels sont tes meilleurs souvenirs de l'école primaire ?",
+    text: "Quand tu étais à l'école primaire, quels sont tes meilleurs souvenirs ?",
     hint: "Reflect on your early education and how it differs from secondary school.",
+    subTopic: "school-day",
+    coachHint: {
+      ideas: ["Think of one or two happy moments", "Say what you used to do and with whom", "Add how school felt then"],
+      phrase: { fr: "Quand j'étais petit(e), on jouait… et c'était…", en: "When I was small, we used to play… and it was…" },
+    },
     difficulty: 1,
     followUps: [
       "Quelle était ta matière préférée quand tu étais petit(e) ?",
@@ -4654,6 +5729,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Que penses-tu des cours de soutien scolaire ?",
     hint: "Discuss the role of extra tutoring or catch-up classes for students.",
+    subTopic: "exams-and-homework",
+    coachHint: {
+      ideas: ["Say whether tutoring helps", "Give two reasons (more help, confidence, cost)", "Say who it is best for"],
+      phrase: { fr: "Je pense que les cours de soutien sont… parce que…", en: "I think tutoring classes are… because…" },
+    },
     difficulty: 2,
     followUps: [
       "As-tu déjà pris des cours particuliers ?",
@@ -4673,8 +5753,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "sch_46",
     topicKey: "school",
-    text: "Est-ce que ton école organise des spectacles ou des fêtes ?",
+    text: "Est-ce que ton école organise des spectacles ou des fêtes ? Lesquels, et pourquoi les aimes-tu ?",
     hint: "Describe school events like plays, concerts, or end-of-year parties.",
+    subTopic: "school-day",
+    coachHint: {
+      ideas: ["Say yes, then name an event (concert, play, party)", "Say when it happens", "Give one reason you like it"],
+      phrase: { fr: "Chaque année, mon école organise… et j'adore ça parce que…", en: "Every year my school organises… and I love it because…" },
+    },
     difficulty: 1,
     followUps: [
       "As-tu déjà joué dans une pièce de théâtre à l'école ?",
@@ -4696,6 +5781,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Quel est le rôle des délégués de classe dans ton école ?",
     hint: "Discuss student representation and how students can voice their opinions.",
+    subTopic: "teachers-and-classmates",
+    coachHint: {
+      ideas: ["Say what class representatives are", "Give two things they do", "Say whether you would want the job"],
+      phrase: { fr: "Les délégués de classe représentent… et ils…", en: "Class representatives represent… and they…" },
+    },
     difficulty: 2,
     followUps: [
       "Aimerais-tu être délégué(e) de classe ?",
@@ -4715,8 +5805,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "sch_48",
     topicKey: "school",
-    text: "Comment imagines-tu l'école du futur ?",
+    text: "Comment imagines-tu l'école dans vingt ans ?",
     hint: "Use the future tense to describe changes in technology, subjects, or school life.",
+    subTopic: "school-day",
+    coachHint: {
+      ideas: ["Name two changes (technology, subjects, buildings)", "Use the future tense", "Say whether you think it will be better"],
+      phrase: { fr: "Dans vingt ans, ils utiliseront… et on aura…", en: "In twenty years they will use… and we will have…" },
+    },
     difficulty: 3,
     followUps: [
       "Y aura-t-il encore des professeurs humains ou des robots ?",
@@ -4738,6 +5833,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "school",
     text: "Que penses-tu de l'importance de l'éducation physique à l'école ?",
     hint: "Discuss the balance between academic subjects and physical education.",
+    subTopic: "subjects",
+    coachHint: {
+      ideas: ["Say how important PE is compared with maths or languages", "Give two reasons (health, stress, teamwork)", "Say how much PE you do"],
+      phrase: { fr: "Je pense que l'éducation physique est… parce que…", en: "I think PE is… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Combien d'heures d'EPS as-tu par semaine ?",
@@ -4757,8 +5857,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_28",
     topicKey: "hobbies",
-    text: "Est-ce que tu t'intéresses à la photographie ?",
+    text: "Est-ce que tu t'intéresses à la photographie ? Quels sujets aimes-tu photographier ?",
     hint: "Talk about taking photos, your equipment, and what you like to capture.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say whether you like taking photos", "Say what you photograph and with what", "Say where you share them"],
+      phrase: { fr: "J'aime prendre en photo… avec mon…", en: "I like photographing… with my…" },
+    },
     difficulty: 1,
     followUps: [
       "Utilises-tu ton téléphone ou un véritable appareil photo ?",
@@ -4778,8 +5883,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_29",
     topicKey: "hobbies",
-    text: "Aimes-tu cuisiner ou faire de la pâtisserie pendant ton temps libre ?",
+    text: "Aimes-tu cuisiner ou faire de la pâtisserie pendant ton temps libre ? Quelle est ta spécialité ?",
     hint: "Discuss cooking as a hobby, your favorite recipes, and who you cook for.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say whether you like cooking or baking", "Name one dish you make", "Say who you cook for"],
+      phrase: { fr: "Ma spécialité, c'est… et je la prépare pour…", en: "My speciality is… and I make it for…" },
+    },
     difficulty: 2,
     followUps: [
       "Quelle est ta spécialité en cuisine ?",
@@ -4801,6 +5911,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "hobbies",
     text: "Y a-t-il un centre de jeunesse dans ta ville ? Qu'est-ce qu'on peut y faire ?",
     hint: "Describe local youth facilities and the activities they offer.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Say yes or no", "Name two activities (sport, games, clubs)", "Say whether you go there"],
+      phrase: { fr: "Dans ma ville, il y a un centre où on peut…", en: "In my town there is a centre where you can…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que tu y vas souvent ?",
@@ -4820,8 +5935,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_31",
     topicKey: "hobbies",
-    text: "Est-ce que tu es doué(e) pour le dessin ou la peinture ?",
+    text: "Est-ce que tu es doué(e) pour le dessin ou la peinture ? Où trouves-tu ton inspiration ?",
     hint: "Talk about your creative arts hobbies and your favorite style.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say how good you are", "Say what you draw or paint", "Say where your ideas come from"],
+      phrase: { fr: "Je dessine surtout… et mon inspiration vient de…", en: "I mostly draw… and my inspiration comes from…" },
+    },
     difficulty: 1,
     followUps: [
       "Préfères-tu dessiner au crayon ou peindre avec des couleurs ?",
@@ -4843,6 +5963,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "hobbies",
     text: "Aimes-tu la danse ? Quel style préfères-tu ?",
     hint: "Discuss dancing as a hobby, whether you take lessons or dance for fun.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say whether you dance", "Name your favourite style", "Say whether you take lessons"],
+      phrase: { fr: "Mon style préféré, c'est… parce que…", en: "My favourite style is… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Prends-tu des cours de danse ?",
@@ -4862,8 +5987,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_33",
     topicKey: "hobbies",
-    text: "Est-ce que tu aides tes parents avec le jardinage ?",
+    text: "Est-ce que tu aides tes parents avec le jardinage ? Comment est-ce que tu les aides ?",
     hint: "Talk about gardening, plants, or spending time in the garden.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Say whether you help", "Name two jobs (watering, mowing, planting)", "Say what you grow"],
+      phrase: { fr: "J'aide mes parents à… dans le jardin.", en: "I help my parents to… in the garden." },
+    },
     difficulty: 1,
     followUps: [
       "As-tu des fleurs ou des légumes dans ton jardin ?",
@@ -4885,6 +6015,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "hobbies",
     text: "Quelles sont les responsabilités liées au fait d'avoir un animal de compagnie ?",
     hint: "Discuss looking after pets as a daily commitment and hobby.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Name two jobs (food, walks, vet)", "Say how much time it takes", "Say whether you would like a pet"],
+      phrase: { fr: "Un animal demande de… et de…", en: "A pet needs… and…" },
+    },
     difficulty: 2,
     followUps: [
       "As-tu un animal à la maison ?",
@@ -4906,6 +6041,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "hobbies",
     text: "Pourquoi est-il important d'avoir des loisirs pour réduire le stress ?",
     hint: "Discuss the mental health benefits of having hobbies outside of school.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Give two reasons (relax, forget homework, friends)", "Add an example", "Say what you do to unwind"],
+      phrase: { fr: "Les loisirs aident à réduire le stress parce que…", en: "Hobbies help reduce stress because…" },
+    },
     difficulty: 3,
     followUps: [
       "Quel loisir te détend le plus ?",
@@ -4925,8 +6065,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_36",
     topicKey: "hobbies",
-    text: "Est-ce que tu t'intéresses au théâtre ou à l'art dramatique ?",
+    text: "Est-ce que tu t'intéresses au théâtre ou à l'art dramatique ? Pourquoi (pas) ?",
     hint: "Talk about acting, watching plays, or participating in drama workshops.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say whether you like theatre", "Give a reason (characters, confidence, friends)", "Say if you act or watch"],
+      phrase: { fr: "Je m'intéresse au théâtre parce que…", en: "I am interested in theatre because…" },
+    },
     difficulty: 2,
     followUps: [
       "Préfères-tu être sur scène ou dans le public ?",
@@ -4946,15 +6091,20 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_37",
     topicKey: "hobbies",
-    text: "As-tu déjà essayé le yoga ou la méditation ?",
+    text: "As-tu déjà essayé le yoga ou la méditation ? Comment c'était ?",
     hint: "Discuss wellness activities and how they affect your physical/mental state.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Say yes or no", "Say when or where you tried it", "Say how it felt"],
+      phrase: { fr: "Oui, j'ai essayé… et c'était… / Non, jamais.", en: "Yes, I tried… and it was… / No, never." },
+    },
     difficulty: 2,
     followUps: [
       "Penses-tu que c'est ennuyeux ou relaxant ?",
       "Est-ce que tu le fais seul ou en groupe ?",
       "À quelle fréquence pratiques-tu ces activités ?"
     ],
-    modelAnswer: "J'ai commencé la méditation l'année dernière pour mieux dormir. Au début, je trouvais ça un peu difficile de rester immobile, mais maintenant je trouve ça très apaisant. Je pratique pendant dix minutes chaque matin avant d'aller à l'école. Cela m'aide à commencer la journée avec calme and concentration. Je pense que de plus en plus de jeunes devraient essayer car cela aide vraiment à gérer l'anxiété scolaire.",
+    modelAnswer: "J'ai commencé la méditation l'année dernière pour mieux dormir. Au début, je trouvais ça un peu difficile de rester immobile, mais maintenant je trouve ça très apaisant. Je pratique pendant dix minutes chaque matin avant d'aller à l'école. Cela m'aide à commencer la journée avec calme et concentration. Je pense que de plus en plus de jeunes devraient essayer car cela aide vraiment à gérer l'anxiété scolaire.",
     keyVocab: [
       { fr: "la méditation", en: "meditation" },
       { fr: "immobile", en: "still / motionless" },
@@ -4967,8 +6117,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_38",
     topicKey: "hobbies",
-    text: "Est-ce que tu t'intéresses au codage informatique ou à la robotique ?",
+    text: "Est-ce que tu t'intéresses au codage informatique ou à la robotique ? Pourquoi (pas) ?",
     hint: "Talk about technology-based hobbies and creating software or machines.",
+    subTopic: "screens-and-games",
+    coachHint: {
+      ideas: ["Say whether coding interests you", "Name something you made or want to make", "Say why it is useful"],
+      phrase: { fr: "Le codage m'intéresse parce que…", en: "Coding interests me because…" },
+    },
     difficulty: 3,
     followUps: [
       "Sais-tu créer un site web ou une application ?",
@@ -4988,8 +6143,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_39",
     topicKey: "hobbies",
-    text: "Est-ce que la mode et la création de vêtements t'intéressent ?",
+    text: "Est-ce que la mode et la création de vêtements t'intéressent ? Pourquoi (pas) ?",
     hint: "Discuss fashion as a creative outlet, sewing, or following trends.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say whether fashion interests you", "Say whether you design or sew", "Give a reason"],
+      phrase: { fr: "La mode m'intéresse parce que…", en: "Fashion interests me because…" },
+    },
     difficulty: 1,
     followUps: [
       "Aimes-tu faire du shopping pour trouver des vêtements originaux ?",
@@ -5009,8 +6169,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_40",
     topicKey: "hobbies",
-    text: "Aimes-tu observer les étoiles ou t'intéresses-tu à l'astronomie ?",
+    text: "Aimes-tu observer les étoiles ou t'intéresses-tu à l'astronomie ? Pourquoi (pas) ?",
     hint: "Talk about space, planets, and using a telescope.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Say whether you like the stars", "Say what you can see or want to see", "Give a reason"],
+      phrase: { fr: "J'aime observer le ciel parce que…", en: "I like looking at the sky because…" },
+    },
     difficulty: 2,
     followUps: [
       "As-tu un télescope chez toi ?",
@@ -5030,8 +6195,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_41",
     topicKey: "hobbies",
-    text: "Fais-tu du bénévolat dans ta communauté locale ?",
+    text: "Fais-tu du bénévolat dans ta communauté locale ? Pourquoi (pas) ?",
     hint: "Talk about helping others, charity work, or local community events.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Say yes or no", "Name the cause or place", "Say why it matters to you"],
+      phrase: { fr: "Je fais du bénévolat dans… parce que…", en: "I volunteer at… because…" },
+    },
     difficulty: 3,
     followUps: [
       "Pour quelle organisation travailles-tu ?",
@@ -5051,8 +6221,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_42",
     topicKey: "hobbies",
-    text: "Aimes-tu visiter des sites historiques ou des monuments ?",
+    text: "Aimes-tu visiter des sites historiques ou des monuments ? Quel est le dernier que tu as visité ?",
     hint: "Talk about cultural trips, museums, and historical interests.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Say whether you like old places", "Name the last site you visited", "Say what you saw"],
+      phrase: { fr: "Le dernier site que j'ai visité, c'était…", en: "The last site I visited was…" },
+    },
     difficulty: 2,
     followUps: [
       "Quel est le monument le plus intéressant que tu as visité ?",
@@ -5074,6 +6249,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "hobbies",
     text: "Préfères-tu les jeux de société simples ou les jeux de stratégie complexes ?",
     hint: "Discuss board games, rules, and playing with family or friends.",
+    subTopic: "screens-and-games",
+    coachHint: {
+      ideas: ["Say which type of game you prefer", "Give one reason", "Say who you play with"],
+      phrase: { fr: "Je préfère les jeux… parce que…", en: "I prefer… games because…" },
+    },
     difficulty: 2,
     followUps: [
       "Quel est ton jeu de société préféré ?",
@@ -5093,8 +6273,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_44",
     topicKey: "hobbies",
-    text: "Aimes-tu regarder des matchs de sport au stade ?",
+    text: "Aimes-tu regarder des matchs de sport au stade ? Pourquoi (pas) ?",
     hint: "Discuss the atmosphere of live sports vs. watching on TV.",
+    subTopic: "sport-and-active",
+    coachHint: {
+      ideas: ["Say whether you like going", "Describe the atmosphere", "Compare it with watching on TV"],
+      phrase: { fr: "J'aime aller au stade parce que l'ambiance est…", en: "I like going to the stadium because the atmosphere is…" },
+    },
     difficulty: 1,
     followUps: [
       "Quel est le dernier match que tu as vu en direct ?",
@@ -5114,8 +6299,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_45",
     topicKey: "hobbies",
-    text: "Sais-tu faire des tours de magie ou as-tu un talent particulier ?",
+    text: "Sais-tu faire des tours de magie ou as-tu un talent particulier ? Lequel ?",
     hint: "Talk about learning unique skills or talents for entertainment.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say whether you have a talent", "Name it (cards, juggling, singing)", "Say how you learned it"],
+      phrase: { fr: "Mon talent particulier, c'est…", en: "My special talent is…" },
+    },
     difficulty: 2,
     followUps: [
       "Comment as-tu appris ce talent ?",
@@ -5135,8 +6325,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_46",
     topicKey: "hobbies",
-    text: "Aimes-tu faire de la randonnée ou des marches en forêt ?",
+    text: "Aimes-tu faire de la randonnée ou des marches en forêt ? Où vas-tu et avec qui ?",
     hint: "Discuss walking in nature, equipment, and how it makes you feel.",
+    subTopic: "sport-and-active",
+    coachHint: {
+      ideas: ["Say whether you like walking in nature", "Say where you go and with whom", "Say what you take with you"],
+      phrase: { fr: "Je fais de la randonnée à… avec…", en: "I go hiking in… with…" },
+    },
     difficulty: 1,
     followUps: [
       "Quel est ton endroit préféré pour marcher ?",
@@ -5156,8 +6351,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_47",
     topicKey: "hobbies",
-    text: "Écoutes-tu souvent des podcasts ou des livres audio pendant tes loisirs ?",
+    text: "Écoutes-tu souvent des podcasts ou des livres audio pendant tes loisirs ? Lesquels ?",
     hint: "Discuss modern ways of consuming stories or information.",
+    subTopic: "music-books-film",
+    coachHint: {
+      ideas: ["Say whether you listen", "Name one podcast or subject", "Say when you listen"],
+      phrase: { fr: "J'écoute des podcasts sur… quand je…", en: "I listen to podcasts about… when I…" },
+    },
     difficulty: 2,
     followUps: [
       "Quel est ton sujet de podcast préféré ?",
@@ -5177,8 +6377,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_48",
     topicKey: "hobbies",
-    text: "Aimes-tu le bricolage ou créer des choses de tes propres mains ?",
+    text: "Aimes-tu le bricolage ou créer des choses de tes propres mains ? Quel est ton projet préféré ?",
     hint: "Talk about DIY projects, making things at home, or fixing things.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say whether you like making things", "Describe your favourite project", "Say what you need to be good at it"],
+      phrase: { fr: "Mon projet préféré, c'est…", en: "My favourite project is…" },
+    },
     difficulty: 2,
     followUps: [
       "Quel est ton dernier projet de bricolage ?",
@@ -5198,8 +6403,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_49",
     topicKey: "hobbies",
-    text: "T'intéresses-tu au jardinage pendant ton temps libre ?",
+    text: "T'intéresses-tu au jardinage pendant ton temps libre ? Quelles plantes ou quels légumes aimes-tu ?",
     hint: "Discuss growing plants, flowers, or vegetables in a garden or on a balcony.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Say whether gardening interests you", "Name plants or vegetables you like", "Say who helps you"],
+      phrase: { fr: "Dans le jardin, j'aime planter…", en: "In the garden I like planting…" },
+    },
     difficulty: 2,
     followUps: [
       "As-tu un jardin chez toi ?",
@@ -5219,8 +6429,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_50",
     topicKey: "hobbies",
-    text: "Fais-tu de la programmation ou du codage comme loisir ?",
+    text: "Fais-tu de la programmation ou du codage comme loisir ? Pourquoi (pas) ?",
     hint: "Talk about coding, making websites, or game development as a hobby.",
+    subTopic: "screens-and-games",
+    coachHint: {
+      ideas: ["Say whether you code", "Name what you create or want to create", "Give a reason"],
+      phrase: { fr: "Je fais de la programmation parce que… / Je ne fais pas de codage parce que…", en: "I code because… / I don't code because…" },
+    },
     difficulty: 3,
     followUps: [
       "Quels langages de programmation connais-tu ?",
@@ -5240,8 +6455,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_51",
     topicKey: "hobbies",
-    text: "Aimes-tu faire de la pâtisserie le week-end ?",
+    text: "Aimes-tu faire de la pâtisserie le week-end ? Quel gâteau fais-tu le plus souvent ?",
     hint: "Discuss baking cakes, cookies, or bread.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say whether you like baking", "Name what you bake most", "Say who eats it"],
+      phrase: { fr: "Je prépare surtout des… pour…", en: "I mostly bake… for…" },
+    },
     difficulty: 1,
     followUps: [
       "Quel est ton dessert préféré à préparer ?",
@@ -5261,8 +6481,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_52",
     topicKey: "hobbies",
-    text: "Écris-tu des histoires ou des poèmes pendant ton temps libre ?",
+    text: "Écris-tu des histoires ou des poèmes pendant ton temps libre ? Pourquoi (pas) ?",
     hint: "Talk about creative writing, journaling, or writing poems.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say whether you write", "Say what (stories, poems, diary)", "Give a reason"],
+      phrase: { fr: "J'écris… parce que… / Je n'écris pas parce que…", en: "I write… because… / I don't write because…" },
+    },
     difficulty: 2,
     followUps: [
       "Quel genre d'histoires aimes-tu écrire ?",
@@ -5282,8 +6507,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_53",
     topicKey: "hobbies",
-    text: "As-tu déjà essayé la poterie ou la céramique ?",
+    text: "As-tu déjà essayé la poterie ou la céramique ? Comment c'était ?",
     hint: "Discuss making pottery, working with clay, or taking art classes.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say yes or no", "Say what you made", "Say how it felt"],
+      phrase: { fr: "Oui, j'ai essayé… et c'était… / Non, jamais.", en: "Yes, I tried… and it was… / No, never." },
+    },
     difficulty: 2,
     followUps: [
       "Qu'est-ce que tu as fabriqué en poterie ?",
@@ -5303,8 +6533,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_54",
     topicKey: "hobbies",
-    text: "Pratiques-tu le yoga ou la méditation pour te détendre ?",
+    text: "Pratiques-tu le yoga ou la méditation pour te détendre ? Comment te détends-tu ?",
     hint: "Talk about yoga, stretching, mindfulness, or meditation practices.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Say whether you do yoga or meditation", "Say what else helps you relax", "Say when you do it"],
+      phrase: { fr: "Pour me détendre, je fais…", en: "To relax, I do…" },
+    },
     difficulty: 2,
     followUps: [
       "À quelle fréquence fais-tu du yoga ?",
@@ -5324,8 +6559,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_55",
     topicKey: "hobbies",
-    text: "Aimes-tu jouer aux jeux de société avec tes amis ou ta famille ?",
+    text: "Aimes-tu jouer aux jeux de société avec tes amis ou ta famille ? Quel est ton jeu préféré ?",
     hint: "Discuss board games, strategy games, or family game nights.",
+    subTopic: "screens-and-games",
+    coachHint: {
+      ideas: ["Say whether you like board games", "Name your favourite", "Say who you play with"],
+      phrase: { fr: "Mon jeu préféré, c'est… et je joue avec…", en: "My favourite game is… and I play with…" },
+    },
     difficulty: 1,
     followUps: [
       "Quel est ton jeu de société préféré ?",
@@ -5345,8 +6585,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_56",
     topicKey: "hobbies",
-    text: "As-tu déjà fait un jeu d'évasion (escape room) ?",
+    text: "As-tu déjà fait un jeu d'évasion (escape room) ? Comment c'était ?",
     hint: "Talk about escape rooms, solving puzzles, and teamwork.",
+    subTopic: "screens-and-games",
+    coachHint: {
+      ideas: ["Say yes or no", "Say who you went with", "Say how it felt"],
+      phrase: { fr: "Oui, j'ai fait… avec… et c'était… / Non, jamais.", en: "Yes, I did… with… and it was… / No, never." },
+    },
     difficulty: 2,
     followUps: [
       "Avec qui es-tu allé(e) faire ce jeu d'évasion ?",
@@ -5366,8 +6611,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_57",
     topicKey: "hobbies",
-    text: "T'intéresses-tu aux tours de magie ou à l'illusionnisme ?",
+    text: "T'intéresses-tu aux tours de magie ou à l'illusionnisme ? Pourquoi (pas) ?",
     hint: "Discuss learning magic tricks, card tricks, and entertaining others.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say whether magic interests you", "Give a reason", "Say whether you know a trick"],
+      phrase: { fr: "La magie m'intéresse parce que…", en: "Magic interests me because…" },
+    },
     difficulty: 3,
     followUps: [
       "Quel est ton tour de magie préféré ?",
@@ -5387,8 +6637,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_58",
     topicKey: "hobbies",
-    text: "Fais-tu de l'astronomie en observant les étoiles ?",
+    text: "Fais-tu de l'astronomie en observant les étoiles ? Pourquoi (pas) ?",
     hint: "Talk about stargazing, telescopes, and learning about space.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Say whether you look at the stars", "Give a reason", "Say what you would like to see"],
+      phrase: { fr: "J'aime observer les étoiles parce que…", en: "I like watching the stars because…" },
+    },
     difficulty: 3,
     followUps: [
       "As-tu un télescope chez toi ?",
@@ -5408,8 +6663,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_59",
     topicKey: "hobbies",
-    text: "Aimes-tu faire voler un drone pendant ton temps libre ?",
+    text: "Aimes-tu faire voler un drone pendant ton temps libre ? Pourquoi (pas) ?",
     hint: "Discuss flying drones, taking aerial photos, or racing drones.",
+    subTopic: "screens-and-games",
+    coachHint: {
+      ideas: ["Say whether you like drones", "Say what you do with one", "Give a reason"],
+      phrase: { fr: "Je trouve les drones… parce que…", en: "I find drones… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Depuis combien de temps as-tu un drone ?",
@@ -5429,8 +6689,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_60",
     topicKey: "hobbies",
-    text: "Fais-tu du skate (planche à roulettes) ?",
+    text: "Fais-tu du skate (planche à roulettes) ? Où vas-tu et avec qui ?",
     hint: "Talk about skateboarding, skateparks, learning tricks, and skate culture.",
+    subTopic: "sport-and-active",
+    coachHint: {
+      ideas: ["Say whether you skate", "Say where you go", "Say who you go with"],
+      phrase: { fr: "On se retrouve au skatepark de…", en: "We meet at the skatepark in…" },
+    },
     difficulty: 2,
     followUps: [
       "Vas-tu souvent au skatepark de ta ville ?",
@@ -5450,8 +6715,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_61",
     topicKey: "hobbies",
-    text: "Aimes-tu la couture ou fabriquer tes propres vêtements ?",
+    text: "Aimes-tu la couture ou fabriquer tes propres vêtements ? Pourquoi (pas) ?",
     hint: "Discuss sewing, making clothes, fashion, or upcycling fabrics.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say whether you like sewing", "Say what you make or would like to make", "Give a reason"],
+      phrase: { fr: "Je m'intéresse à la couture parce que…", en: "I am interested in sewing because…" },
+    },
     difficulty: 2,
     followUps: [
       "As-tu une machine à coudre ?",
@@ -5471,8 +6741,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_62",
     topicKey: "hobbies",
-    text: "Joues-tu à des jeux de rôle sur table (comme Donjons et Dragons) ?",
+    text: "Joues-tu à des jeux de rôle sur table (comme Donjons et Dragons) ? Pourquoi (pas) ?",
     hint: "Talk about tabletop RPGs, creating characters, and storytelling.",
+    subTopic: "screens-and-games",
+    coachHint: {
+      ideas: ["Say whether you play", "Say what the game involves", "Give a reason"],
+      phrase: { fr: "Je joue à… parce que… / Je ne joue pas parce que…", en: "I play… because… / I don't play because…" },
+    },
     difficulty: 3,
     followUps: [
       "Es-tu plutôt joueur ou maître du jeu ?",
@@ -5492,8 +6767,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_63",
     topicKey: "hobbies",
-    text: "Fais-tu du bénévolat ou aides-tu des associations pendant ton temps libre ?",
+    text: "Fais-tu du bénévolat ou aides-tu des associations pendant ton temps libre ? Lesquelles ?",
     hint: "Discuss volunteering, helping charities, or community service.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Say whether you help", "Name an organisation or activity", "Say why you do or don't"],
+      phrase: { fr: "J'aide l'association… parce que…", en: "I help the… charity because…" },
+    },
     difficulty: 2,
     followUps: [
       "Pour quelle association fais-tu du bénévolat ?",
@@ -5513,8 +6793,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_64",
     topicKey: "hobbies",
-    text: "Apprends-tu une autre langue étrangère comme passe-temps (à part le français) ?",
+    text: "Apprends-tu une autre langue étrangère comme passe-temps (à part le français) ? Laquelle et comment ?",
     hint: "Talk about language learning apps, motivation, and which languages you study.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Say whether you learn another language", "Name the language you study", "Say how you learn (app, videos, class)"],
+      phrase: { fr: "J'apprends… avec…", en: "I am learning… with…" },
+    },
     difficulty: 2,
     followUps: [
       "Quelle autre langue apprends-tu ?",
@@ -5534,8 +6819,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_65",
     topicKey: "hobbies",
-    text: "Fais-tu du théâtre ou de la comédie ?",
+    text: "Fais-tu du théâtre ou de la comédie ? Pourquoi (pas) ?",
     hint: "Discuss acting, drama club, stage fright, and performances.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say whether you do drama", "Give a reason", "Say how you feel on stage"],
+      phrase: { fr: "Je fais du théâtre parce que…", en: "I do drama because…" },
+    },
     difficulty: 2,
     followUps: [
       "As-tu déjà joué dans une pièce de théâtre ?",
@@ -5555,8 +6845,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_66",
     topicKey: "hobbies",
-    text: "Aimes-tu le recyclage créatif (upcycling) ou redonner vie à de vieux objets ?",
+    text: "Aimes-tu le recyclage créatif (upcycling) ou redonner vie à de vieux objets ? Pourquoi (pas) ?",
     hint: "Talk about DIY upcycling, restoring old furniture, or transforming clothes.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say whether you like giving objects a new life", "Give an example", "Say why it is a good idea"],
+      phrase: { fr: "J'aime transformer… parce que…", en: "I like transforming… because…" },
+    },
     difficulty: 3,
     followUps: [
       "Où trouves-tu les objets que tu transformes ?",
@@ -5576,8 +6871,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_67",
     topicKey: "hobbies",
-    text: "Sais-tu jongler ou pratiques-tu les arts du cirque ?",
+    text: "Sais-tu jongler ou pratiques-tu les arts du cirque ? Pourquoi (pas) ?",
     hint: "Discuss juggling, circus skills, acrobatics, and coordination.",
+    subTopic: "sport-and-active",
+    coachHint: {
+      ideas: ["Say whether you can juggle", "Give a reason why or why not", "Say whether you would like to learn"],
+      phrase: { fr: "Je sais jongler parce que… / Je ne sais pas jongler parce que…", en: "I can juggle because… / I can't juggle because…" },
+    },
     difficulty: 3,
     followUps: [
       "Avec combien de balles sais-tu jongler ?",
@@ -5597,8 +6897,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_68",
     topicKey: "hobbies",
-    text: "Pratiques-tu des arts martiaux (judo, karaté, taekwondo) ?",
+    text: "Pratiques-tu des arts martiaux (judo, karaté, taekwondo) ? Lequel ?",
     hint: "Talk about martial arts, belts, discipline, and physical fitness.",
+    subTopic: "sport-and-active",
+    coachHint: {
+      ideas: ["Say whether you do martial arts", "Name which one", "Say how often you train"],
+      phrase: { fr: "Je fais du… depuis… et je m'entraîne…", en: "I do… since… and I train…" },
+    },
     difficulty: 1,
     followUps: [
       "Quel art martial pratiques-tu et depuis quand ?",
@@ -5618,8 +6923,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_69",
     topicKey: "hobbies",
-    text: "Aimes-tu faire de la peinture ou du dessin créatif ?",
+    text: "Aimes-tu faire de la peinture ou du dessin créatif ? Pourquoi (pas) ?",
     hint: "Discuss painting, drawing, watercolors, and artistic expression.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say whether you like painting", "Say what you paint or draw", "Give a reason"],
+      phrase: { fr: "J'aime peindre parce que…", en: "I like painting because…" },
+    },
     difficulty: 2,
     followUps: [
       "Préfères-tu la peinture à l'huile, l'aquarelle ou le dessin au crayon ?",
@@ -5639,8 +6949,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_70",
     topicKey: "hobbies",
-    text: "Est-ce que tu collectionnes quelque chose (timbres, pièces, cartes) ?",
+    text: "Est-ce que tu collectionnes quelque chose (timbres, pièces, cartes) ? Pourquoi (pas) ?",
     hint: "Talk about collecting items, finding rare pieces, and organizing the collection.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say whether you collect", "Name what you collect", "Give a reason"],
+      phrase: { fr: "Je collectionne… parce que…", en: "I collect… because…" },
+    },
     difficulty: 1,
     followUps: [
       "Que collectionnes-tu exactement ?",
@@ -5660,8 +6975,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_71",
     topicKey: "hobbies",
-    text: "T'intéresses-tu à l'ornithologie (l'observation des oiseaux) ?",
+    text: "T'intéresses-tu à l'ornithologie (l'observation des oiseaux) ? Pourquoi (pas) ?",
     hint: "Discuss bird watching, nature walks, binoculars, and identifying species.",
+    subTopic: "free-time-routine",
+    coachHint: {
+      ideas: ["Say whether birds interest you", "Say where you could watch them", "Give a reason"],
+      phrase: { fr: "Je m'intéresse aux oiseaux parce que…", en: "I am interested in birds because…" },
+    },
     difficulty: 3,
     followUps: [
       "As-tu des jumelles pour observer les oiseaux ?",
@@ -5681,8 +7001,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_72",
     topicKey: "hobbies",
-    text: "Participes-tu à des tournois d'e-sport (compétitions de jeux vidéo) ?",
+    text: "Participes-tu à des tournois d'e-sport (compétitions de jeux vidéo) ? Pourquoi (pas) ?",
     hint: "Talk about competitive gaming, e-sports, team communication, and practice.",
+    subTopic: "screens-and-games",
+    coachHint: {
+      ideas: ["Say whether you play in tournaments", "Name a game", "Give a reason"],
+      phrase: { fr: "Je participe à des tournois de… parce que…", en: "I take part in… tournaments because…" },
+    },
     difficulty: 2,
     followUps: [
       "À quel jeu joues-tu en compétition ?",
@@ -5702,8 +7027,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_73",
     topicKey: "hobbies",
-    text: "As-tu déjà fait du géocaching (chasse au trésor par GPS) ?",
+    text: "As-tu déjà fait du géocaching (chasse au trésor par GPS) ? Comment c'était ?",
     hint: "Discuss geocaching, outdoor treasure hunts, using a phone GPS, and hiding small items.",
+    subTopic: "sport-and-active",
+    coachHint: {
+      ideas: ["Say yes or no", "Say where it was and who with", "Say how it felt"],
+      phrase: { fr: "Oui, j'ai fait… avec… et c'était… / Non, jamais.", en: "Yes, I did… with… and it was… / No, never." },
+    },
     difficulty: 3,
     followUps: [
       "Où cherches-tu des 'caches' en général ?",
@@ -5723,8 +7053,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_74",
     topicKey: "hobbies",
-    text: "Pratiques-tu la calligraphie ou le lettrage artistique ?",
+    text: "Pratiques-tu la calligraphie ou le lettrage artistique ? Pourquoi (pas) ?",
     hint: "Talk about beautiful handwriting, calligraphy pens, ink, and artistic writing.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say whether you like fancy writing", "Say what you write", "Give a reason"],
+      phrase: { fr: "La calligraphie me plaît parce que…", en: "Calligraphy appeals to me because…" },
+    },
     difficulty: 3,
     followUps: [
       "Quels outils utilises-tu pour la calligraphie ?",
@@ -5744,8 +7079,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_75",
     topicKey: "hobbies",
-    text: "Aimes-tu le scrapbooking pour conserver tes souvenirs ?",
+    text: "Aimes-tu le scrapbooking pour conserver tes souvenirs ? Pourquoi (pas) ?",
     hint: "Discuss making memory albums, photos, decorating pages, and crafting.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say whether you make memory books", "Say what you put in them", "Give a reason"],
+      phrase: { fr: "J'aime le scrapbooking parce que…", en: "I like scrapbooking because…" },
+    },
     difficulty: 2,
     followUps: [
       "Quels types de souvenirs mets-tu dans ton scrapbook ?",
@@ -5765,8 +7105,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_76",
     topicKey: "hobbies",
-    text: "Fais-tu du surf ou des sports nautiques pendant les vacances ?",
+    text: "Fais-tu du surf ou des sports nautiques pendant les vacances ? Où et quand ?",
     hint: "Talk about surfing, beach holidays, water sports, and waves.",
+    subTopic: "sport-and-active",
+    coachHint: {
+      ideas: ["Say whether you surf", "Say where and when", "Say who with"],
+      phrase: { fr: "En vacances, je fais du surf à…", en: "On holiday I surf at…" },
+    },
     difficulty: 1,
     followUps: [
       "Où vas-tu habituellement pour faire du surf ?",
@@ -5786,8 +7131,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hob_77",
     topicKey: "hobbies",
-    text: "Fais-tu de l'origami (l'art de plier le papier) ?",
+    text: "Fais-tu de l'origami (l'art de plier le papier) ? Pourquoi (pas) ?",
     hint: "Discuss origami, paper folding, patience, and Japanese culture.",
+    subTopic: "creative-hobbies",
+    coachHint: {
+      ideas: ["Say whether you do origami", "Give a reason", "Say what you can fold"],
+      phrase: { fr: "J'aime l'origami parce que…", en: "I like origami because…" },
+    },
     difficulty: 3,
     followUps: [
       "Quelle est la figure la plus difficile que tu as réalisée ?",
@@ -5807,8 +7157,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fam_27",
     topicKey: "family",
-    text: "Penses-tu que les réseaux sociaux nuisent à la vie de famille ?",
+    text: "Penses-tu que les réseaux sociaux nuisent à la vie de famille ? Pourquoi ?",
     hint: "Discuss the impact of social media on family interactions and quality time.",
+    subTopic: "family-members",
+    coachHint: {
+      ideas: ["Say whether you agree", "Give one problem (phones at meals)", "Give one good point (staying in touch)"],
+      phrase: { fr: "Je pense que les réseaux sociaux… parce que…", en: "I think social media… because…" },
+    },
     difficulty: 3,
     followUps: [
       "Est-ce que vous utilisez vos téléphones à table ?",
@@ -5828,8 +7183,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fam_28",
     topicKey: "family",
-    text: "Parle-moi d'un souvenir d'enfance précieux avec ta famille.",
+    text: "Quand tu étais petit(e), quel est ton plus beau souvenir avec ta famille ?",
     hint: "Describe a happy memory from when you were younger involving your family members.",
+    subTopic: "celebrations-and-traditions",
+    coachHint: {
+      ideas: ["Set the scene: when and where", "Say who was there and what you did", "Say why you remember it"],
+      phrase: { fr: "Quand j'étais petit(e), on allait… et c'était…", en: "When I was little we used to go… and it was…" },
+    },
     difficulty: 2,
     followUps: [
       "Quel âge avais-tu ?",
@@ -5849,8 +7209,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fam_29",
     topicKey: "family",
-    text: "Est-il important d'avoir des frères et sœurs selon toi ?",
+    text: "Est-il important d'avoir des frères et sœurs selon toi ? Pourquoi ?",
     hint: "Discuss the advantages and disadvantages of having siblings versus being an only child.",
+    subTopic: "family-members",
+    coachHint: {
+      ideas: ["Say whether siblings matter", "Give two reasons (company, sharing, arguments)", "Say what you know from experience"],
+      phrase: { fr: "Pour moi, avoir des frères et sœurs est… parce que…", en: "For me, having siblings is… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Quels sont les avantages d'être l'aîné(e) ou le/la cadet(te) ?",
@@ -5870,8 +7235,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fam_30",
     topicKey: "family",
-    text: "Y a-t-il un membre de ta famille qui est un modèle pour toi ?",
+    text: "Y a-t-il un membre de ta famille qui est un modèle pour toi ? Pourquoi ?",
     hint: "Describe a family member you look up to and explain why they inspire you.",
+    subTopic: "family-members",
+    coachHint: {
+      ideas: ["Name the person", "Say two qualities you admire", "Say how they inspire you"],
+      phrase: { fr: "Mon modèle, c'est… parce qu'il/elle est…", en: "My role model is… because he/she is…" },
+    },
     difficulty: 2,
     followUps: [
       "Quelles qualités possèdes-tu en commun avec cette personne ?",
@@ -5893,6 +7263,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Quels sont les avantages de vivre avec ses grands-parents ?",
     hint: "Discuss multigenerational living and what younger people can learn from older generations.",
+    subTopic: "generations",
+    coachHint: {
+      ideas: ["Name two advantages (help, stories, company)", "Add one drawback", "Say whether you would like it"],
+      phrase: { fr: "Vivre avec ses grands-parents, c'est bien parce que…", en: "Living with your grandparents is good because…" },
+    },
     difficulty: 3,
     followUps: [
       "Vois-tu tes grands-parents souvent ?",
@@ -5914,6 +7289,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Vers qui te tournes-tu quand tu as besoin de conseils ?",
     hint: "Explain who in your family gives the best advice and why you trust them.",
+    subTopic: "friends",
+    coachHint: {
+      ideas: ["Name the person you ask", "Say why you trust them", "Give an example of advice they gave"],
+      phrase: { fr: "Pour avoir des conseils, je me tourne vers… parce que…", en: "For advice I turn to… because…" },
+    },
     difficulty: 1,
     followUps: [
       "Préfères-tu les conseils de tes parents ou de tes amis ?",
@@ -5933,8 +7313,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fam_33",
     topicKey: "family",
-    text: "Y a-t-il une recette spéciale que ta famille prépare souvent ?",
+    text: "Y a-t-il une recette spéciale que ta famille prépare souvent ? Laquelle ?",
     hint: "Talk about a traditional family dish and its significance to you.",
+    subTopic: "celebrations-and-traditions",
+    coachHint: {
+      ideas: ["Say yes and name the dish", "Say who makes it and when", "Say what makes it special"],
+      phrase: { fr: "Chez nous, on prépare souvent…", en: "At home we often make…" },
+    },
     difficulty: 1,
     followUps: [
       "Qui cuisine le mieux chez toi ?",
@@ -5956,6 +7341,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Comment ta famille a-t-elle changé au cours des cinq dernières années ?",
     hint: "Reflect on how your family dynamics or situation has evolved recently.",
+    subTopic: "family-members",
+    coachHint: {
+      ideas: ["Name two changes (someone moved, a new pet, you grew up)", "Use the past tense", "Say how you feel about them"],
+      phrase: { fr: "Avant, c'était… mais maintenant, j'ai…", en: "Before, it was… but now I have…" },
+    },
     difficulty: 2,
     followUps: [
       "Y a-t-il eu de nouveaux membres dans la famille ?",
@@ -5975,8 +7365,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fam_35",
     topicKey: "family",
-    text: "Est-ce que tu aimerais élever ta propre famille à l'étranger plus tard ?",
+    text: "Est-ce que tu aimerais élever ta propre famille à l'étranger plus tard ? Pourquoi (pas) ?",
     hint: "Consider the pros and cons of raising a family in another country.",
+    subTopic: "generations",
+    coachHint: {
+      ideas: ["Say whether you would like it", "Give one advantage (languages, culture)", "Give one drawback (distance)"],
+      phrase: { fr: "Plus tard, je vais peut-être élever mes enfants…", en: "Later, I may raise my children…" },
+    },
     difficulty: 3,
     followUps: [
       "Quelles langues parlerais-tu à tes enfants ?",
@@ -5998,6 +7393,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Qu'est-ce qui définit une 'famille heureuse' selon toi ?",
     hint: "Give your opinion on the most important values for a happy family life.",
+    subTopic: "family-members",
+    coachHint: {
+      ideas: ["Name two values (love, respect, listening)", "Explain why each matters", "Give an example"],
+      phrase: { fr: "Pour moi, une famille heureuse, c'est une famille où…", en: "For me, a happy family is one where…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que l'argent est nécessaire pour être heureux en famille ?",
@@ -6019,6 +7419,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Quelle influence tes frères et sœurs ont-ils sur ton propre caractère ?",
     hint: "Discuss how siblings shape your personality — being responsible, funny, or competitive.",
+    subTopic: "family-members",
+    coachHint: {
+      ideas: ["Name a sibling", "Say how they influence you (responsible, funny, competitive)", "Give an example"],
+      phrase: { fr: "Mon frère/ma sœur m'a rendu(e)…", en: "My brother/sister has made me…" },
+    },
     difficulty: 3,
     followUps: [
       "Qui est le plus sérieux entre vous ?",
@@ -6040,6 +7445,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Quels sont les sujets de dispute les plus fréquents dans ta famille ?",
     hint: "Talk about common sources of conflict — chores, screen time, or sharing things.",
+    subTopic: "parents-and-rules",
+    coachHint: {
+      ideas: ["Name two causes (chores, screens, sharing)", "Say how often it happens", "Say how it is solved"],
+      phrase: { fr: "Chez nous, on se dispute souvent à cause de…", en: "At home we often argue about…" },
+    },
     difficulty: 2,
     followUps: [
       "Avec qui te disputes-tu le plus souvent ?",
@@ -6061,6 +7471,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Quelles activités fais-tu spécifiquement avec tes parents pour vous amuser ?",
     hint: "Describe shared fun activities like hobbies, sports, or games.",
+    subTopic: "parents-and-rules",
+    coachHint: {
+      ideas: ["Name two activities (sport, games, cooking)", "Say how often", "Say what you enjoy most"],
+      phrase: { fr: "Avec mes parents, on aime…", en: "With my parents we like to…" },
+    },
     difficulty: 1,
     followUps: [
       "Est-ce que vous sortez souvent au restaurant ensemble ?",
@@ -6082,6 +7497,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Pourquoi est-il important de prendre les repas en famille tous les soirs ?",
     hint: "Discuss the social and emotional benefits of shared family meals.",
+    subTopic: "family-members",
+    coachHint: {
+      ideas: ["Give two reasons (talking, closeness, health)", "Say what happens at your table", "Say whether it is possible every day"],
+      phrase: { fr: "Manger en famille est important parce que…", en: "Eating as a family is important because…" },
+    },
     difficulty: 2,
     followUps: [
       "De quoi parlez-vous d'habitude à table ?",
@@ -6101,8 +7521,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fam_41",
     topicKey: "family",
-    text: "Est-ce que tu aimerais fonder ta propre famille plus tard ?",
+    text: "Est-ce que tu aimerais fonder ta propre famille plus tard ? Pourquoi (pas) ?",
     hint: "Talk about your future family aspirations — marriage, children, lifestyle.",
+    subTopic: "generations",
+    coachHint: {
+      ideas: ["Say yes or no", "Give two reasons (children, love, stability)", "Say what kind of parent you want to be"],
+      phrase: { fr: "Plus tard, j'aurai… parce que…", en: "Later I will have… because…" },
+    },
     difficulty: 3,
     followUps: [
       "Combien d'enfants voudrais-tu avoir dans l'idéal ?",
@@ -6124,6 +7549,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Quels sont les avantages de vivre dans une famille nombreuse ?",
     hint: "Discuss the pros (company, support) and cons (noise, lack of space) of a big family.",
+    subTopic: "family-members",
+    coachHint: {
+      ideas: ["Name two advantages (company, help)", "Add one drawback (noise, space)", "Say whether you would like one"],
+      phrase: { fr: "Dans une famille nombreuse, il y a toujours… mais…", en: "In a big family there is always… but…" },
+    },
     difficulty: 1,
     followUps: [
       "Est-ce que c'est souvent bruyant chez toi ?",
@@ -6143,8 +7573,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fam_43",
     topicKey: "family",
-    text: "Est-il important de connaître l'histoire et les origines de sa famille ?",
+    text: "Est-il important de connaître l'histoire et les origines de sa famille ? Pourquoi ?",
     hint: "Discuss the importance of heritage, ancestry, and family stories.",
+    subTopic: "generations",
+    coachHint: {
+      ideas: ["Say whether it is important", "Give two reasons (roots, identity, stories)", "Say what you know about your own origins"],
+      phrase: { fr: "Il est important de connaître ses origines parce que…", en: "It is important to know your origins because…" },
+    },
     difficulty: 3,
     followUps: [
       "As-tu déjà fait des recherches sur tes ancêtres ?",
@@ -6166,6 +7601,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Comment ta famille influence-t-elle tes choix pour l'avenir professionnel ?",
     hint: "Talk about family expectations, support, or pressure regarding your career.",
+    subTopic: "parents-and-rules",
+    coachHint: {
+      ideas: ["Say whether your family has expectations", "Give an example of support or pressure", "Say whether you agree with them"],
+      phrase: { fr: "Ma famille m'encourage à… et…", en: "My family encourages me to… and…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que tes parents veulent que tu fasses le même métier qu'eux ?",
@@ -6187,6 +7627,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Quel est le rôle des grands-parents dans la société actuelle selon toi ?",
     hint: "Discuss the evolution of grandparents' roles — childcare, wisdom, or modern connection.",
+    subTopic: "generations",
+    coachHint: {
+      ideas: ["Say what grandparents do today", "Give two examples (childcare, stories)", "Say how they link generations"],
+      phrase: { fr: "Aujourd'hui, les grands-parents jouent un rôle…", en: "Today grandparents play a role…" },
+    },
     difficulty: 3,
     followUps: [
       "Est-ce que tes grands-parents s'occupent souvent de toi ?",
@@ -6208,6 +7653,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "family",
     text: "Comment restes-tu en contact avec les membres de ta famille qui habitent loin ?",
     hint: "Discuss technology, visits, or letters to stay close with distant relatives.",
+    subTopic: "family-members",
+    coachHint: {
+      ideas: ["Name two ways (calls, messages, visits)", "Say how often", "Say which you prefer"],
+      phrase: { fr: "Pour rester en contact, on se téléphone…", en: "To stay in touch we phone each other…" },
+    },
     difficulty: 1,
     followUps: [
       "Utilises-tu souvent les appels vidéo pour leur parler ?",
@@ -6227,8 +7677,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hol_27",
     topicKey: "holidays",
-    text: "Est-il important de parler la langue locale quand on voyage ?",
+    text: "Est-il important de parler la langue locale quand on voyage ? Pourquoi ?",
     hint: "Discuss the benefits of knowing the local language for cultural immersion and practical reasons.",
+    subTopic: "tourism-issues",
+    coachHint: {
+      ideas: ["Say yes and give two reasons (respect, help, friends)", "Give an example phrase", "Say what you do if you do not speak it"],
+      phrase: { fr: "Il est important de parler la langue parce que…", en: "It is important to speak the language because…" },
+    },
     difficulty: 2,
     followUps: [
       "As-tu déjà utilisé ton français en vacances ?",
@@ -6250,6 +7705,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Que penses-tu du tourisme durable et de son impact sur l'environnement ?",
     hint: "Discuss eco-friendly travel options and how to reduce your carbon footprint while on holiday.",
+    subTopic: "tourism-issues",
+    coachHint: {
+      ideas: ["Say what sustainable tourism is", "Give two examples (train, local shops, less waste)", "Say whether you do it"],
+      phrase: { fr: "Pour voyager de façon durable, on peut…", en: "To travel sustainably, you can…" },
+    },
     difficulty: 3,
     followUps: [
       "Préfères-tu prendre le train ou l'avion pour protéger la planète ?",
@@ -6269,8 +7729,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hol_29",
     topicKey: "holidays",
-    text: "Préfères-tu les vacances dans ton propre pays ou à l'étranger ?",
+    text: "Préfères-tu les vacances dans ton propre pays ou à l'étranger ? Pourquoi ?",
     hint: "Compare 'staycations' (holidays at home) with traveling abroad.",
+    subTopic: "destinations",
+    coachHint: {
+      ideas: ["Say which you prefer", "Give two reasons", "Give an example place"],
+      phrase: { fr: "Je préfère les vacances… parce que…", en: "I prefer holidays… because…" },
+    },
     difficulty: 1,
     followUps: [
       "Quels sont les avantages de rester près de chez soi ?",
@@ -6290,8 +7755,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hol_30",
     topicKey: "holidays",
-    text: "Y a-t-il un festival ou un événement culturel que tu voudrais voir à l'étranger ?",
+    text: "Y a-t-il un festival ou un événement culturel que tu voudrais voir à l'étranger ? Lequel et pourquoi ?",
     hint: "Talk about a specific event like Carnival in Rio, Bastille Day in France, or Holi in India.",
+    subTopic: "future-trips",
+    coachHint: {
+      ideas: ["Name the event and the country", "Say what happens there", "Say why it interests you"],
+      phrase: { fr: "L'événement que je veux voir, c'est… parce que…", en: "The event I want to see is… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Pourquoi cet événement t'intéresse-t-il ?",
@@ -6313,6 +7783,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Qu'est-ce qu'il y a d'absolument essentiel dans ta valise ?",
     hint: "List the items you cannot travel without and explain why.",
+    subTopic: "travel-preferences",
+    coachHint: {
+      ideas: ["Name three items", "Say why one is essential", "Say what you never pack"],
+      phrase: { fr: "Dans ma valise, il y a toujours…", en: "In my suitcase there is always…" },
+    },
     difficulty: 1,
     followUps: [
       "Est-ce que tu emportes trop de vêtements d'habitude ?",
@@ -6332,8 +7807,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hol_32",
     topicKey: "holidays",
-    text: "Aimerais-tu faire un voyage spécial pour pratiquer un sport ?",
+    text: "Aimerais-tu faire un voyage spécial pour pratiquer un sport ? Lequel ?",
     hint: "Discuss holidays focused on activities like skiing, surfing, or hiking.",
+    subTopic: "future-trips",
+    coachHint: {
+      ideas: ["Say whether you would go", "Name the sport and place", "Say why it appeals"],
+      phrase: { fr: "J'aimerais faire un voyage de… à…", en: "I would like to take a… trip to…" },
+    },
     difficulty: 2,
     followUps: [
       "Quel sport choisirais-tu ?",
@@ -6355,6 +7835,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Quelle est la meilleure façon d'explorer une nouvelle ville, selon toi ?",
     hint: "Compare walking, bus tours, cycling, or using public transport to see a city.",
+    subTopic: "destinations",
+    coachHint: {
+      ideas: ["Name the way (walking, bike, bus)", "Give two reasons", "Say what you see that way"],
+      phrase: { fr: "La meilleure façon, c'est… parce que…", en: "The best way is… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Préfères-tu utiliser une carte papier ou une application sur ton téléphone ?",
@@ -6376,6 +7861,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Comment la technologie a-t-elle changé ta façon de voyager ?",
     hint: "Discuss the use of apps for maps, translation, booking, and social media on holiday.",
+    subTopic: "tourism-issues",
+    coachHint: {
+      ideas: ["Name two apps or tools", "Say what each does for you", "Say whether it changes the trip"],
+      phrase: { fr: "La technologie m'aide à… avec…", en: "Technology helps me to… with…" },
+    },
     difficulty: 3,
     followUps: [
       "Utilises-tu Google Maps pour t'orienter ?",
@@ -6395,8 +7885,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hol_35",
     topicKey: "holidays",
-    text: "Préfères-tu les vacances de luxe ou les vacances à petit budget ?",
+    text: "Préfères-tu les vacances de luxe ou les vacances à petit budget ? Pourquoi ?",
     hint: "Contrast high-end hotels and dining with hostels, camping, and budget travel.",
+    subTopic: "travel-preferences",
+    coachHint: {
+      ideas: ["Say which you prefer", "Give two reasons", "Say what you would not give up"],
+      phrase: { fr: "Je préfère les vacances… parce que…", en: "I prefer… holidays because…" },
+    },
     difficulty: 2,
     followUps: [
       "Quels sont les inconvénients des hôtels bon marché ?",
@@ -6418,6 +7913,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Pourquoi est-il important de prendre des photos pendant ses vacances ?",
     hint: "Discuss the role of photography in preserving memories and sharing experiences.",
+    subTopic: "tourism-issues",
+    coachHint: {
+      ideas: ["Give two reasons (memories, sharing, proof)", "Say what you photograph", "Say where you keep them"],
+      phrase: { fr: "Prendre des photos est important parce que…", en: "Taking photos is important because…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que tu partages tes photos sur Instagram ou Facebook ?",
@@ -6437,8 +7937,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hol_37",
     topicKey: "holidays",
-    text: "Préfères-tu loger dans un hôtel ou dans une location comme Airbnb en vacances ?",
+    text: "Préfères-tu loger dans un hôtel ou dans une location comme Airbnb en vacances ? Pourquoi ?",
     hint: "Compare hotel services with the local feel of a rental apartment.",
+    subTopic: "travel-preferences",
+    coachHint: {
+      ideas: ["Say which you prefer", "Give two reasons (space, services, local feel)", "Say what you check before booking"],
+      phrase: { fr: "Je préfère loger dans… parce que…", en: "I prefer staying in… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Quel est l'avantage principal de l'hôtel selon toi ?",
@@ -6460,6 +7965,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Pourquoi est-il important de découvrir de nouvelles cultures en voyageant ?",
     hint: "Discuss broadening horizons, tolerance, and learning different ways of life.",
+    subTopic: "tourism-issues",
+    coachHint: {
+      ideas: ["Give two reasons (tolerance, open mind, learning)", "Add an example", "Say which culture interests you"],
+      phrase: { fr: "Découvrir d'autres cultures est important parce que…", en: "Discovering other cultures is important because…" },
+    },
     difficulty: 3,
     followUps: [
       "Qu'est-ce que tu as appris de nouveau lors d'un voyage récent ?",
@@ -6479,8 +7989,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hol_39",
     topicKey: "holidays",
-    text: "Est-ce que tu aimes visiter des monuments historiques en vacances ?",
+    text: "Est-ce que tu aimes visiter des monuments historiques en vacances ? Pourquoi (pas) ?",
     hint: "Talk about your interest in history, architecture, and landmarks.",
+    subTopic: "destinations",
+    coachHint: {
+      ideas: ["Say whether you like it", "Name a place you visited", "Say why you like or dislike it"],
+      phrase: { fr: "J'aime visiter les monuments parce que…", en: "I like visiting monuments because…" },
+    },
     difficulty: 1,
     followUps: [
       "Quel est le monument le plus impressionnant que tu as vu ?",
@@ -6500,8 +8015,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hol_40",
     topicKey: "holidays",
-    text: "As-tu déjà eu un petit boulot ou un job d'été pendant les vacances ?",
+    text: "As-tu déjà eu un petit boulot ou un job d'été pendant les vacances ? Comment c'était ?",
     hint: "Describe work experiences during the holidays and what you learned.",
+    subTopic: "past-holidays",
+    coachHint: {
+      ideas: ["Say yes or no", "Say what the job was", "Say what you learned"],
+      phrase: { fr: "Oui, l'été dernier, j'ai travaillé comme… et c'était…", en: "Yes, last summer I worked as a… and it was…" },
+    },
     difficulty: 1,
     followUps: [
       "Qu'est-ce que tu as fait exactement comme travail ?",
@@ -6523,6 +8043,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Quel est ton moyen de transport préféré pour explorer une nouvelle ville ?",
     hint: "Talk about walking, cycling, or public transport in a city environment.",
+    subTopic: "destinations",
+    coachHint: {
+      ideas: ["Name the way", "Give one reason", "Say what you see that way"],
+      phrase: { fr: "Je préfère me déplacer en… parce que…", en: "I prefer getting around by… because…" },
+    },
     difficulty: 1,
     followUps: [
       "Est-ce que tu aimes beaucoup marcher en vacances ?",
@@ -6544,6 +8069,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Quelle est, selon toi, la meilleure saison pour partir en voyage ?",
     hint: "Discuss seasons (spring, summer, etc.) and the pros/cons of weather and crowds.",
+    subTopic: "travel-preferences",
+    coachHint: {
+      ideas: ["Name the season", "Give two reasons (weather, crowds, prices)", "Say what you do then"],
+      phrase: { fr: "À mon avis, la meilleure saison, c'est… parce que…", en: "In my opinion the best season is… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Aimes-tu voyager quand il fait très chaud ?",
@@ -6563,8 +8093,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hol_43",
     topicKey: "holidays",
-    text: "Est-ce que les réseaux sociaux influencent tes choix de destinations ?",
+    text: "Est-ce que les réseaux sociaux influencent tes choix de destinations ? Comment ?",
     hint: "Discuss the impact of Instagram, TikTok, or travel blogs on your plans.",
+    subTopic: "tourism-issues",
+    coachHint: {
+      ideas: ["Say yes or no", "Name an app (Instagram, TikTok)", "Give an example of a place you chose"],
+      phrase: { fr: "Les réseaux sociaux m'influencent parce que…", en: "Social media influences me because…" },
+    },
     difficulty: 3,
     followUps: [
       "Regardes-tu des photos sur Instagram avant de choisir où partir ?",
@@ -6584,8 +8119,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hol_44",
     topicKey: "holidays",
-    text: "Aimerais-tu voyager pour assister à un grand événement sportif ou musical ?",
+    text: "Aimerais-tu voyager pour assister à un grand événement sportif ou musical ? Lequel et pourquoi ?",
     hint: "Talk about going to the World Cup, Olympics, or a big concert abroad.",
+    subTopic: "future-trips",
+    coachHint: {
+      ideas: ["Say whether you would go", "Name the event and the country", "Say why it is special"],
+      phrase: { fr: "J'aimerais voyager pour voir… parce que…", en: "I would like to travel to see… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Quel événement t'intéresserait le plus ?",
@@ -6607,6 +8147,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "holidays",
     text: "Quelles précautions prends-tu pour rester en sécurité quand tu voyages ?",
     hint: "Discuss safety measures like keeping passports safe and staying vigilant.",
+    subTopic: "tourism-issues",
+    coachHint: {
+      ideas: ["Name two precautions (copies of documents, bag, insurance)", "Say how you keep your money safe", "Say who knows where you are"],
+      phrase: { fr: "Quand je voyage, je fais attention à…", en: "When I travel I am careful about…" },
+    },
     difficulty: 3,
     followUps: [
       "Est-ce que tu gardes toujours ton passeport avec toi ?",
@@ -6626,8 +8171,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hol_46",
     topicKey: "holidays",
-    text: "Est-il nécessaire de partir loin de chez soi pour passer de bonnes vacances ?",
+    text: "Est-il nécessaire de partir loin de chez soi pour passer de bonnes vacances ? Pourquoi (pas) ?",
     hint: "Discuss the benefits of local tourism (staycations) vs. international travel.",
+    subTopic: "destinations",
+    coachHint: {
+      ideas: ["Say no or yes and give two reasons (cost, time, local discoveries)", "Give an example of a good local holiday", "Say what you would do"],
+      phrase: { fr: "On peut passer de bonnes vacances près de chez soi parce que…", en: "You can have a good holiday near home because…" },
+    },
     difficulty: 1,
     followUps: [
       "Connais-tu bien ta propre région ?",
@@ -6649,6 +8199,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "home",
     text: "Qu'est-ce qu'il y a de plus intéressant à voir dans ta région pour un amoureux de la nature ?",
     hint: "Talk about parks, forests, lakes, or mountains nearby.",
+    subTopic: "things-to-do",
+    coachHint: {
+      ideas: ["Name two places (forest, lake, hills)", "Say what you do there", "Say how far they are"],
+      phrase: { fr: "Dans ma région, on peut visiter… et…", en: "In my area you can visit… and…" },
+    },
     difficulty: 2,
     followUps: [
       "Tu préfères te promener en forêt ou au bord de l'eau ?",
@@ -6670,6 +8225,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "home",
     text: "Décris la vue depuis la fenêtre de ta chambre.",
     hint: "What can you see? Buildings, trees, people, the street?",
+    subTopic: "my-home",
+    coachHint: {
+      ideas: ["Say what you see close to the window", "Say what is in the distance", "Say how it changes with the weather"],
+      phrase: { fr: "Depuis ma fenêtre, je vois…", en: "From my window I see…" },
+    },
     difficulty: 1,
     followUps: [
       "Est-ce que tu aimes cette vue ?",
@@ -6691,6 +8251,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "home",
     text: "Comment est-ce que tu aides à entretenir le jardin ou la maison ?",
     hint: "Specific chores like watering plants, mowing the lawn, or cleaning.",
+    subTopic: "my-home",
+    coachHint: {
+      ideas: ["Name two jobs (watering, cleaning, tidying)", "Say how often", "Say who you help"],
+      phrase: { fr: "J'aide à… et je range…", en: "I help with… and I tidy…" },
+    },
     difficulty: 1,
     followUps: [
       "Est-ce que tu aimes le jardinage ?",
@@ -6712,6 +8277,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "home",
     text: "Quels sont les problèmes de pollution dans ta ville ?",
     hint: "Air quality, noise, litter, or water pollution.",
+    subTopic: "town-and-region",
+    coachHint: {
+      ideas: ["Name two problems (traffic, noise, litter)", "Say what causes them", "Say what could help"],
+      phrase: { fr: "Dans ma ville, il y a de la pollution à cause de…", en: "In my town there is pollution because of…" },
+    },
     difficulty: 3,
     followUps: [
       "Quelle est la cause principale de cette pollution ?",
@@ -6733,6 +8303,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "home",
     text: "Quels sont les avantages d'habiter en banlieue par rapport au centre-ville ?",
     hint: "Space, noise, safety, cost, access to shops.",
+    subTopic: "town-and-region",
+    coachHint: {
+      ideas: ["Name two advantages (space, calm, garden)", "Compare with the centre", "Say one drawback"],
+      phrase: { fr: "En banlieue, il y a plus de… qu'au centre-ville.", en: "In the suburbs there is more… than in the centre." },
+    },
     difficulty: 2,
     followUps: [
       "Où est-ce que tu préférerais habiter quand tu seras adulte ?",
@@ -6754,6 +8329,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "home",
     text: "Décris un festival ou un événement local dans ta ville.",
     hint: "Carnival, music festival, market, or fair.",
+    subTopic: "things-to-do",
+    coachHint: {
+      ideas: ["Name the event and when it takes place", "Say what happens", "Say whether you go"],
+      phrase: { fr: "Chaque année, il y a… où les gens…", en: "Every year there is… where people…" },
+    },
     difficulty: 2,
     followUps: [
       "À quelle période de l'année cela a-t-il lieu ?",
@@ -6775,6 +8355,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "home",
     text: "Qu'est-ce que tu changerais dans ton quartier pour le rendre plus sûr pour les enfants ?",
     hint: "Better lighting, more parks, slower cars, security.",
+    subTopic: "town-and-region",
+    coachHint: {
+      ideas: ["Name two changes (lights, crossings, slower cars)", "Say why each helps", "Say who would benefit"],
+      phrase: { fr: "Je veux installer… pour que les enfants…", en: "I want to install… so that children…" },
+    },
     difficulty: 3,
     followUps: [
       "Est-ce que tu penses que les enfants sont en sécurité actuellement ?",
@@ -6794,8 +8379,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hom_32",
     topicKey: "home",
-    text: "Est-ce qu'il est facile de trouver un emploi dans ta ville ?",
+    text: "Est-ce qu'il est facile de trouver un emploi dans ta ville ? Pourquoi (pas) ?",
     hint: "Industries, local businesses, unemployment, opportunities for young people.",
+    subTopic: "town-and-region",
+    coachHint: {
+      ideas: ["Say yes or no", "Name one kind of job available", "Give a reason for your answer"],
+      phrase: { fr: "Il est facile / difficile de trouver un emploi parce que…", en: "It is easy / hard to find a job because…" },
+    },
     difficulty: 3,
     followUps: [
       "Quels secteurs recrutent le plus ?",
@@ -6817,6 +8407,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "home",
     text: "Décris la rue où tu habites.",
     hint: "Narrow/wide, busy/quiet, trees, neighbors, shops.",
+    subTopic: "town-and-region",
+    coachHint: {
+      ideas: ["Say whether it is busy or quiet", "Name two things you see (trees, shops)", "Say who lives there"],
+      phrase: { fr: "Ma rue est… et il y a…", en: "My street is… and there is…" },
+    },
     difficulty: 1,
     followUps: [
       "Ta rue est-elle longue ?",
@@ -6838,6 +8433,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "home",
     text: "Où vas-tu d'habitude quand tu veux être seul(e) dans ta ville ?",
     hint: "A quiet park, library, café, or a bench somewhere.",
+    subTopic: "things-to-do",
+    coachHint: {
+      ideas: ["Name the place (park, library, bench)", "Say why you like it", "Say when you go"],
+      phrase: { fr: "Pour être seul(e), je me réfugie au parc.", en: "To be alone, I take refuge in the park." },
+    },
     difficulty: 2,
     followUps: [
       "Qu'est-ce que tu fais là-bas ?",
@@ -6857,8 +8457,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hom_35",
     topicKey: "home",
-    text: "Est-ce que tu connais bien tes voisins ?",
+    text: "Est-ce que tu connais bien tes voisins ? Quand est-ce que vous vous parlez ?",
     hint: "Talk about your relationship with neighbors — do you say hello, help each other, or are they strangers?",
+    subTopic: "town-and-region",
+    coachHint: {
+      ideas: ["Say whether you know them well", "Say when you speak", "Give one example of help"],
+      phrase: { fr: "Avec mes voisins, on se parle quand…", en: "With my neighbours we talk when…" },
+    },
     difficulty: 1,
     followUps: [
       "Est-ce que tes voisins sont sympathiques ?",
@@ -6878,8 +8483,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hom_36",
     topicKey: "home",
-    text: "Est-ce que ton quartier est bruyant ou calme ?",
+    text: "Est-ce que ton quartier est bruyant ou calme ? Comment est-ce que ça t'affecte ?",
     hint: "Describe the noise levels in your area — traffic, nature, people — and how it affects you.",
+    subTopic: "town-and-region",
+    coachHint: {
+      ideas: ["Say whether it is noisy or calm", "Name the sounds you hear", "Say how it affects you"],
+      phrase: { fr: "Mon quartier est… et j'entends…", en: "My area is… and I hear…" },
+    },
     difficulty: 2,
     followUps: [
       "Qu'est-ce qui cause le plus de bruit dans ta rue ?",
@@ -6901,6 +8511,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "home",
     text: "Quels sont les espaces verts près de chez toi ?",
     hint: "Talk about parks, forests, or gardens nearby and what you do there.",
+    subTopic: "things-to-do",
+    coachHint: {
+      ideas: ["Name two places (park, forest, garden)", "Say how far they are", "Say what you do there"],
+      phrase: { fr: "Près de chez moi, il y a un parc où je…", en: "Near my home there is a park where I…" },
+    },
     difficulty: 1,
     followUps: [
       "Est-ce que tu vas souvent au parc ?",
@@ -6920,8 +8535,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hom_38",
     topicKey: "home",
-    text: "Est-ce que tu connais l'histoire de ton quartier ou de ta ville ?",
+    text: "Est-ce que tu connais l'histoire de ton quartier ou de ta ville ? Quels événements ou bâtiments anciens connais-tu ?",
     hint: "Discuss any historical facts, old buildings, or how the area has changed over time.",
+    subTopic: "town-and-region",
+    coachHint: {
+      ideas: ["Say whether you know it", "Give one fact or building", "Say how the area has changed"],
+      phrase: { fr: "Dans ma ville, il y a un vieux… qui date de…", en: "In my town there is an old… which dates from…" },
+    },
     difficulty: 3,
     followUps: [
       "Y a-t-il des monuments historiques importants ?",
@@ -6943,6 +8563,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "home",
     text: "Quel est le commerce le plus utile dans ton quartier ?",
     hint: "Identify a local shop (bakery, pharmacy, etc.) and explain why it's important for residents.",
+    subTopic: "town-and-region",
+    coachHint: {
+      ideas: ["Name the shop", "Say why people need it", "Say how often you go"],
+      phrase: { fr: "Le commerce le plus utile, c'est… parce que…", en: "The most useful shop is… because…" },
+    },
     difficulty: 1,
     followUps: [
       "Est-ce que tu y vas souvent ?",
@@ -6964,6 +8589,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "home",
     text: "Comment est l'aspect de ta ville pendant les différentes saisons ?",
     hint: "Describe how your town looks in winter vs. summer (flowers, snow, lights, atmosphere).",
+    subTopic: "town-and-region",
+    coachHint: {
+      ideas: ["Describe summer and winter", "Mention colours, weather or lights", "Say which season you prefer"],
+      phrase: { fr: "En été, ma ville est… et en hiver…", en: "In summer my town is… and in winter…" },
+    },
     difficulty: 2,
     followUps: [
       "Quelle est ta saison préférée dans ta ville ?",
@@ -6985,6 +8615,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "home",
     text: "Quels animaux peut-on voir dans ton quartier ?",
     hint: "Talk about wildlife (birds, foxes, squirrels) or domestic pets you see around.",
+    subTopic: "town-and-region",
+    coachHint: {
+      ideas: ["Name two animals", "Say where you see them", "Say what time of day"],
+      phrase: { fr: "Dans mon quartier, on voit des…", en: "In my area you see…" },
+    },
     difficulty: 1,
     followUps: [
       "Est-ce que tu aimes les animaux sauvages ?",
@@ -7006,6 +8641,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "home",
     text: "Quel est l'objet le plus précieux dans ta maison ?",
     hint: "Describe a possession that means a lot to you (an heirloom, a gift, a device) and explain why.",
+    subTopic: "my-home",
+    coachHint: {
+      ideas: ["Name the object", "Say where it came from", "Say why it matters to you"],
+      phrase: { fr: "L'objet le plus précieux chez moi, c'est… parce que…", en: "The most precious object in my home is… because…" },
+    },
     difficulty: 3,
     followUps: [
       "Depuis combien de temps as-tu cet objet ?",
@@ -7027,6 +8667,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "home",
     text: "Quelles sont les activités possibles en soirée dans ta ville ?",
     hint: "Discuss what people do at night — restaurants, cinemas, clubs, or quiet walks.",
+    subTopic: "things-to-do",
+    coachHint: {
+      ideas: ["Name two things (cinema, restaurants, walks)", "Say which one you like", "Say who you go with"],
+      phrase: { fr: "Le soir, on peut aller… ou…", en: "In the evening you can go… or…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que la ville est animée le soir ?",
@@ -7046,8 +8691,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "hom_44",
     topicKey: "home",
-    text: "Quels sont tes meilleurs souvenirs d'enfance liés à ta maison ?",
+    text: "Quand tu étais petit(e), quels sont tes meilleurs souvenirs liés à ta maison ?",
     hint: "Reflect on activities or events that happened at home when you were younger.",
+    subTopic: "my-home",
+    coachHint: {
+      ideas: ["Describe one memory (birthday, garden, games)", "Say who was there", "Say why you remember it"],
+      phrase: { fr: "Quand j'étais petit(e), on fêtait… et c'était…", en: "When I was little we celebrated… and it was…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que tu habites dans la même maison depuis ta naissance ?",
@@ -7069,6 +8719,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "future",
     text: "Pourquoi est-il important d'apprendre des langues étrangères pour ta future carrière ?",
     hint: "International travel, communication, competitive advantage.",
+    subTopic: "further-study",
+    coachHint: {
+      ideas: ["Give two reasons (travel, jobs, competition)", "Name a language you want to use at work", "Give an example job"],
+      phrase: { fr: "Apprendre des langues est important parce que…", en: "Learning languages is important because…" },
+    },
     difficulty: 1,
     followUps: [
       "Quelles langues voudrais-tu maîtriser parfaitement ?",
@@ -7088,8 +8743,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fut_25",
     topicKey: "future",
-    text: "Préférerais-tu travailler à la maison ou dans un bureau à l'avenir ?",
+    text: "Préférerais-tu travailler à la maison ou dans un bureau à l'avenir ? Pourquoi ?",
     hint: "Pros and cons: flexibility, socialization, distraction, concentration.",
+    subTopic: "work-and-careers",
+    coachHint: {
+      ideas: ["Say which you would prefer", "Give one pro of your choice", "Give one con of the other"],
+      phrase: { fr: "Je vais travailler… parce que…", en: "I am going to work… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Quels sont les dangers du télétravail ?",
@@ -7109,8 +8769,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fut_26",
     topicKey: "future",
-    text: "Est-ce que tu aimerais prendre une année sabbatique avant d'aller à l'université ?",
+    text: "Aimerais-tu prendre une année sabbatique avant l'université ? Pourquoi (pas) ?",
     hint: "Traveling, volunteering, working, maturing.",
+    subTopic: "further-study",
+    coachHint: {
+      ideas: ["Say yes or no", "Name what you would do (travel, volunteer, work)", "Give a reason"],
+      phrase: { fr: "J'aimerais prendre une année sabbatique pour…", en: "I would like to take a gap year to…" },
+    },
     difficulty: 2,
     followUps: [
       "Que ferais-tu pendant cette année ?",
@@ -7130,8 +8795,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fut_27",
     topicKey: "future",
-    text: "Est-ce que tu prévois de faire du bénévolat ou du travail caritatif plus tard ?",
+    text: "Est-ce que tu prévois de faire du bénévolat ou du travail caritatif plus tard ? Pourquoi (pas) ?",
     hint: "Helping others, causes you care about (environment, animals, poverty).",
+    subTopic: "personal-life-plans",
+    coachHint: {
+      ideas: ["Say yes or no", "Name a cause (animals, environment)", "Say how you will help"],
+      phrase: { fr: "Plus tard, je vais aider…", en: "Later I am going to help…" },
+    },
     difficulty: 1,
     followUps: [
       "Quelle cause te tient le plus à cœur ?",
@@ -7151,8 +8821,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fut_28",
     topicKey: "future",
-    text: "Quel impact les réseaux sociaux auront-ils sur les métiers de demain ?",
+    text: "Quel impact les réseaux sociaux auront-ils sur les métiers dans vingt ans ?",
     hint: "New careers, digital marketing, the importance of online presence.",
+    subTopic: "work-and-careers",
+    coachHint: {
+      ideas: ["Name two new jobs (influencer, community manager)", "Say how they change older jobs", "Say whether it is good"],
+      phrase: { fr: "Dans vingt ans, ils créeront… et on verra…", en: "In twenty years they will create… and we will see…" },
+    },
     difficulty: 3,
     followUps: [
       "Aimerais-tu être influenceur ou créateur de contenu ?",
@@ -7172,8 +8847,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fut_29",
     topicKey: "future",
-    text: "Comment penses-tu que nous mangerons dans le futur ?",
+    text: "Comment penses-tu que nous mangerons dans cinquante ans ?",
     hint: "Environmental impact of food, synthetic products, local consumption.",
+    subTopic: "future-world",
+    coachHint: {
+      ideas: ["Name two changes (less meat, insects, local food)", "Say why it will change", "Say whether you would try it"],
+      phrase: { fr: "Dans cinquante ans, on mangera…", en: "In fifty years we will eat…" },
+    },
     difficulty: 3,
     followUps: [
       "Serais-tu prêt(e) à manger de la viande synthétique ou des insectes ?",
@@ -7195,6 +8875,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "future",
     text: "Selon toi, quelles sont les compétences les plus importantes pour réussir à l'avenir ?",
     hint: "Adaptability, creativity, technical skills, languages.",
+    subTopic: "further-study",
+    coachHint: {
+      ideas: ["Name three skills (adaptability, creativity, languages)", "Explain why one matters", "Say how you will build it"],
+      phrase: { fr: "À l'avenir, je serai… et je ferai…", en: "In the future I will be… and I will do…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que les diplômes sont plus importants que l'expérience ?",
@@ -7214,8 +8899,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fut_31",
     topicKey: "future",
-    text: "Aimerais-tu habiter dans une maison intelligente à l'avenir ?",
+    text: "Aimerais-tu habiter dans une maison intelligente à l'avenir ? Pourquoi (pas) ?",
     hint: "Automation, energy saving, security, privacy.",
+    subTopic: "future-world",
+    coachHint: {
+      ideas: ["Say yes or no", "Give two reasons (energy, comfort, privacy)", "Name a smart device"],
+      phrase: { fr: "J'aimerais habiter dans une maison connectée parce que…", en: "I would like to live in a smart home because…" },
+    },
     difficulty: 1,
     followUps: [
       "Quels seraient les avantages pour l'environnement ?",
@@ -7235,8 +8925,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fut_32",
     topicKey: "future",
-    text: "Est-ce que tu penses que l'environnement influencera ton choix de carrière ?",
+    text: "Est-ce que tu penses que l'environnement influencera ton choix de carrière plus tard ? Pourquoi (pas) ?",
     hint: "Sustainable energy, ecology, social responsibility.",
+    subTopic: "work-and-careers",
+    coachHint: {
+      ideas: ["Say yes or no", "Give one reason (green jobs, values)", "Give an example job"],
+      phrase: { fr: "Je serai attentif à l'environnement parce que…", en: "I will care about the environment because…" },
+    },
     difficulty: 3,
     followUps: [
       "Voudrais-tu travailler dans le secteur des énergies renouvelables ?",
@@ -7258,6 +8953,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "future",
     text: "Comment imagines-tu l'équilibre entre ton travail et ta vie de famille plus tard ?",
     hint: "Working hours, leisure time, priorities.",
+    subTopic: "personal-life-plans",
+    coachHint: {
+      ideas: ["Say how many hours you will work", "Say what comes first", "Say how you will share tasks"],
+      phrase: { fr: "Plus tard, je ferai attention à…", en: "Later I will pay attention to…" },
+    },
     difficulty: 3,
     followUps: [
       "Travailleras-tu autant que tes parents ?",
@@ -7277,8 +8977,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fut_34",
     topicKey: "future",
-    text: "Comment penses-tu que nous nous déplacerons dans le futur ?",
+    text: "Comment penses-tu que nous nous déplacerons dans vingt ans ?",
     hint: "Discuss future transportation methods — flying cars, high-speed trains, electric planes.",
+    subTopic: "future-world",
+    coachHint: {
+      ideas: ["Name two ways (fast trains, flying taxis, electric planes)", "Say why they will win", "Say which you would try"],
+      phrase: { fr: "Dans vingt ans, on prendra… et on ira…", en: "In twenty years we will take… and we will go…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que tu aimerais avoir une voiture volante ?",
@@ -7298,8 +9003,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fut_35",
     topicKey: "future",
-    text: "À quoi ressemblera l'école de l'avenir selon toi ?",
+    text: "À quoi ressemblera l'école dans cinquante ans, selon toi ?",
     hint: "Imagine future classrooms — technology, subjects, or if schools will even exist physically.",
+    subTopic: "further-study",
+    coachHint: {
+      ideas: ["Name two changes (screens, VR, subjects)", "Say whether there will still be teachers", "Say whether it will be better"],
+      phrase: { fr: "L'école de demain sera… et on utilisera…", en: "School in the future will be… and we will use…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que les professeurs seront remplacés par des robots ?",
@@ -7319,8 +9029,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fut_36",
     topicKey: "future",
-    text: "Aimerais-tu faire du tourisme spatial un jour ?",
+    text: "Aimerais-tu faire du tourisme spatial un jour ? Pourquoi (pas) ?",
     hint: "Discuss the possibility of visiting the Moon or Mars as a tourist.",
+    subTopic: "future-world",
+    coachHint: {
+      ideas: ["Say yes or no", "Say what attracts or scares you", "Say who you would go with"],
+      phrase: { fr: "J'aimerais faire du tourisme spatial parce que…", en: "I would like to do space tourism because…" },
+    },
     difficulty: 3,
     followUps: [
       "Penses-tu que ce sera abordable pour tout le monde ?",
@@ -7340,8 +9055,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fut_37",
     topicKey: "future",
-    text: "Penses-tu que les livres papier vont disparaître dans le futur ?",
+    text: "Penses-tu que les livres papier vont disparaître dans cinquante ans ? Pourquoi (pas) ?",
     hint: "Compare digital reading with traditional books and predict which will survive.",
+    subTopic: "future-world",
+    coachHint: {
+      ideas: ["Say yes or no", "Give one reason for books", "Give one reason for e-readers"],
+      phrase: { fr: "Je pense qu'ils disparaîtront parce que…", en: "I think they will disappear because…" },
+    },
     difficulty: 2,
     followUps: [
       "Préfères-tu lire sur une tablette ou un livre physique ?",
@@ -7361,8 +9081,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fut_38",
     topicKey: "future",
-    text: "Est-ce que tu aimerais avoir un robot comme compagnon à la maison ?",
+    text: "Aimerais-tu avoir un robot comme compagnon à la maison ? Pourquoi (pas) ?",
     hint: "Talk about robots helping with daily life or providing company.",
+    subTopic: "future-world",
+    coachHint: {
+      ideas: ["Say yes or no", "Say what the robot would do", "Say whether it could replace friends"],
+      phrase: { fr: "J'aimerais avoir un robot parce que…", en: "I would like to have a robot because…" },
+    },
     difficulty: 1,
     followUps: [
       "Quelles tâches est-ce que le robot pourrait faire pour toi ?",
@@ -7384,6 +9109,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "future",
     text: "Quels seront les nouveaux loisirs des jeunes dans 50 ans ?",
     hint: "Predict future hobbies — eSports, virtual reality games, or new sports.",
+    subTopic: "future-world",
+    coachHint: {
+      ideas: ["Name two hobbies (VR, e-sport, space sports)", "Say where people will play", "Say whether it is better"],
+      phrase: { fr: "Dans cinquante ans, ils joueront à…", en: "In fifty years they will play…" },
+    },
     difficulty: 1,
     followUps: [
       "Est-ce que les sports traditionnels comme le foot existeront encore ?",
@@ -7405,6 +9135,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "future",
     text: "Comment la médecine va-t-elle changer notre vie à l'avenir ?",
     hint: "Discuss medical advances — living longer, curing diseases, nanotechnology.",
+    subTopic: "future-world",
+    coachHint: {
+      ideas: ["Name two advances (new cures, longer life)", "Say who benefits", "Mention one risk"],
+      phrase: { fr: "On pourra… grâce à la médecine.", en: "We will be able to… thanks to medicine." },
+    },
     difficulty: 3,
     followUps: [
       "Est-ce que tu aimerais vivre jusqu'à 150 ans ?",
@@ -7424,8 +9159,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fut_41",
     topicKey: "future",
-    text: "À quoi ressembleront nos vêtements dans le futur ?",
+    text: "À quoi ressembleront nos vêtements dans cinquante ans ?",
     hint: "Imagine smart clothing — self-cleaning, temperature-controlled, or eco-friendly materials.",
+    subTopic: "future-world",
+    coachHint: {
+      ideas: ["Name two features (self-cleaning, warm, eco)", "Say who will wear them", "Say whether you would like them"],
+      phrase: { fr: "Dans cinquante ans, on portera… et ils seront…", en: "In fifty years we will wear… and they will be…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que les vêtements seront plus écologiques ?",
@@ -7445,8 +9185,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fut_42",
     topicKey: "future",
-    text: "Comment ferons-nous nos courses dans le futur ?",
+    text: "Comment ferons-nous nos courses dans vingt ans ?",
     hint: "Discuss the future of shopping — drones, no physical stores, virtual fitting rooms.",
+    subTopic: "future-world",
+    coachHint: {
+      ideas: ["Name two changes (drones, home delivery, no shops)", "Say whether it is better", "Say what you will miss"],
+      phrase: { fr: "Dans vingt ans, on fera les courses…", en: "In twenty years we will shop…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que les magasins physiques vont disparaître ?",
@@ -7466,8 +9211,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "fut_43",
     topicKey: "future",
-    text: "Quel sera le rôle de l'art et de la musique dans le futur ?",
+    text: "Quel sera le rôle de l'art et de la musique dans cinquante ans ?",
     hint: "Discuss AI-generated art, virtual concerts, and if human creativity will still be valued.",
+    subTopic: "future-world",
+    coachHint: {
+      ideas: ["Say whether people will still make art", "Name a change (AI art, virtual concerts)", "Say what will stay the same"],
+      phrase: { fr: "Dans cinquante ans, on écoutera… et on créera…", en: "In fifty years we will listen to… and we will create…" },
+    },
     difficulty: 3,
     followUps: [
       "Est-ce que l'intelligence artificielle peut être créative ?",
@@ -7489,6 +9239,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Où préfères-tu faire les courses alimentaires et pourquoi ?",
     hint: "Compare supermarkets and local markets for food shopping.",
+    subTopic: "eating-out-and-shopping",
+    coachHint: {
+      ideas: ["Say where you prefer (market, supermarket)", "Give two reasons", "Say who goes with you"],
+      phrase: { fr: "Je préfère acheter au… parce que…", en: "I prefer buying at the… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que les marchés sont plus chers que les supermarchés ?",
@@ -7510,6 +9265,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Quelle est ta boisson préférée et quand la bois-tu ?",
     hint: "Talk about your favorite non-alcoholic drink and when you enjoy it.",
+    subTopic: "favourite-foods",
+    coachHint: {
+      ideas: ["Name the drink", "Say when you drink it", "Say why you like it"],
+      phrase: { fr: "Ma boisson préférée, c'est… et je la bois…", en: "My favourite drink is… and I drink it…" },
+    },
     difficulty: 1,
     followUps: [
       "Est-ce que tu bois beaucoup de boissons sucrées ?",
@@ -7531,6 +9291,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Quels plats spéciaux prépares-tu pour les fêtes comme Noël ou l'Aïd ?",
     hint: "Discuss traditional or festive meals in your culture or family.",
+    subTopic: "cooking",
+    coachHint: {
+      ideas: ["Name two dishes", "Say who prepares them", "Say what is in them"],
+      phrase: { fr: "Pour Noël, on prépare…", en: "For Christmas we prepare…" },
+    },
     difficulty: 2,
     followUps: [
       "Quelle est ta fête préférée pour la nourriture ?",
@@ -7552,6 +9317,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Que penses-tu de la cuisine de rue (le street food) et des food trucks ?",
     hint: "Give your opinion on street food — variety, speed, and quality.",
+    subTopic: "eating-out-and-shopping",
+    coachHint: {
+      ideas: ["Say what you think", "Give one advantage (variety, speed)", "Give one drawback (hygiene, health)"],
+      phrase: { fr: "Je trouve que la cuisine de rue est… mais…", en: "I find street food is… but…" },
+    },
     difficulty: 2,
     followUps: [
       "As-tu déjà mangé dans un food truck ?",
@@ -7571,15 +9341,20 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_29",
     topicKey: "food",
-    text: "Y a-t-il un plat que tu adorais quand tu étais petit et que tu aimes toujours ?",
+    text: "Y a-t-il un plat que tu adorais quand tu étais petit et que tu aimes toujours ? Lequel ?",
     hint: "Talk about a childhood favorite dish that you still enjoy today.",
+    subTopic: "favourite-foods",
+    coachHint: {
+      ideas: ["Name the dish", "Say who made it", "Say why you still like it"],
+      phrase: { fr: "Quand j'étais petit(e), j'adorais… et j'aime toujours…", en: "When I was little I loved… and I still like…" },
+    },
     difficulty: 1,
     followUps: [
       "Qui cuisinait ce plat pour toi ?",
       "Est-ce que c'est un plat sucré ou salé ?",
       "Sais-tu le cuisiner toi-même maintenant ?"
     ],
-    modelAnswer: "Quand j'étais petit, j'adorer les pâtes à la sauce tomate que mon père préparait le mercredi. C'est un plat très simple mais il me rappelle de bons souvenirs d'enfance. Aujourd'hui, j'aime toujours autant ça, surtout avec beaucoup de fromage râpé. C'est ma nourriture de réconfort préférée quand je suis fatigué après l'école.",
+    modelAnswer: "Quand j'étais petit, j'adorais les pâtes à la sauce tomate que mon père préparait le mercredi. C'est un plat très simple mais il me rappelle de bons souvenirs d'enfance. Aujourd'hui, j'aime toujours autant ça, surtout avec beaucoup de fromage râpé. C'est ma nourriture de réconfort préférée quand je suis fatigué après l'école.",
     keyVocab: [
       { fr: "quand j'étais petit", en: "when I was little" },
       { fr: "un souvenir d'enfance", en: "a childhood memory" },
@@ -7594,6 +9369,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Quel est ton ingrédient ou ton épice préférée en cuisine ?",
     hint: "Identify one specific ingredient you love using when you cook.",
+    subTopic: "cooking",
+    coachHint: {
+      ideas: ["Name the ingredient", "Say what you cook with it", "Say why you like it"],
+      phrase: { fr: "Mon ingrédient préféré, c'est… que j'utilise pour…", en: "My favourite ingredient is… which I use for…" },
+    },
     difficulty: 1,
     followUps: [
       "Dans quels plats utilises-tu cet ingrédient ?",
@@ -7615,6 +9395,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Que penses-tu du futur de la nourriture, comme la viande cultivée en laboratoire ?",
     hint: "Discuss modern food technology and its ethical or environmental benefits.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Say what you think of lab-grown meat", "Give one benefit (animals, environment)", "Give one doubt"],
+      phrase: { fr: "Je pense que la viande cultivée est… parce que…", en: "I think lab-grown meat is… because…" },
+    },
     difficulty: 3,
     followUps: [
       "Serais-tu prêt à goûter de la viande de laboratoire ?",
@@ -7636,6 +9421,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Est-ce que tu aimes inviter des amis à dîner chez toi ? Qu'est-ce que tu prépares ?",
     hint: "Talk about hosting friends and what you like to cook for them.",
+    subTopic: "cooking",
+    coachHint: {
+      ideas: ["Say yes or no", "Name two dishes", "Say what you do while they eat"],
+      phrase: { fr: "Quand j'invite des amis, je prépare…", en: "When I invite friends I prepare…" },
+    },
     difficulty: 2,
     followUps: [
       "Préfères-tu cuisiner seul ou avec tes amis ?",
@@ -7657,6 +9447,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Pourquoi est-il important de manger des produits de saison ?",
     hint: "Discuss the benefits of eating fruits and vegetables that are currently in season.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Give two reasons (taste, price, environment)", "Name a fruit or vegetable of the season", "Say where you buy it"],
+      phrase: { fr: "Manger de saison est important parce que…", en: "Eating seasonally is important because…" },
+    },
     difficulty: 2,
     followUps: [
       "Quels sont tes fruits préférés en été et en hiver ?",
@@ -7676,8 +9471,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_34",
     topicKey: "food",
-    text: "Préfères-tu acheter des produits locaux ou des produits importés ?",
+    text: "Préfères-tu acheter des produits locaux ou des produits importés ? Pourquoi ?",
     hint: "Discuss your preference for local food vs. food from other countries.",
+    subTopic: "eating-out-and-shopping",
+    coachHint: {
+      ideas: ["Say which you prefer", "Give two reasons (taste, nature, price)", "Say what you buy locally"],
+      phrase: { fr: "Je préfère acheter des produits… parce que…", en: "I prefer buying… products because…" },
+    },
     difficulty: 3,
     followUps: [
       "Quels sont les avantages des produits locaux ?",
@@ -7699,6 +9499,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Que penses-tu des applications de livraison de nourriture comme UberEats ?",
     hint: "Discuss the convenience versus the cost and health impact of delivery apps.",
+    subTopic: "eating-out-and-shopping",
+    coachHint: {
+      ideas: ["Say whether you use them", "Give one advantage (speed, comfort)", "Give one drawback (cost, packaging)"],
+      phrase: { fr: "Les applications de livraison sont… mais…", en: "Delivery apps are… but…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que tu les utilises souvent ?",
@@ -7720,6 +9525,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Est-ce que tu aimes la nourriture épicée ? Pourquoi ?",
     hint: "Talk about your tolerance for spicy food and any specific dishes you like.",
+    subTopic: "favourite-foods",
+    coachHint: {
+      ideas: ["Say yes or no", "Name a spicy dish", "Say how you feel when you eat it"],
+      phrase: { fr: "J'aime la nourriture épicée parce que… / Je n'aime pas parce que…", en: "I like spicy food because… / I don't like it because…" },
+    },
     difficulty: 1,
     followUps: [
       "Quelle est la chose la plus épicée que tu as mangée ?",
@@ -7741,6 +9551,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Est-ce que tu aimes faire des pique-niques ? Où vas-tu d'habitude ?",
     hint: "Describe an outdoor eating experience, the food you take, and the location.",
+    subTopic: "meals-and-habits",
+    coachHint: {
+      ideas: ["Say yes or no", "Say where you go", "Say what you take"],
+      phrase: { fr: "Pour un pique-nique, on aime aller… et on prend…", en: "For a picnic we like to go… and we take…" },
+    },
     difficulty: 1,
     followUps: [
       "Qu'est-ce que tu mets dans ton panier de pique-nique ?",
@@ -7760,8 +9575,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_38",
     topicKey: "food",
-    text: "Est-ce que tu cuisines souvent avec tes parents ou tes grands-parents ?",
+    text: "Est-ce que tu cuisines souvent avec tes parents ou tes grands-parents ? Quels plats préparez-vous ensemble ?",
     hint: "Discuss learning to cook from family members and sharing traditional recipes.",
+    subTopic: "cooking",
+    coachHint: {
+      ideas: ["Say yes or no", "Name two dishes", "Say who teaches whom"],
+      phrase: { fr: "Avec ma grand-mère, on prépare…", en: "With my grandmother we make…" },
+    },
     difficulty: 2,
     followUps: [
       "Quelle recette t'ont-ils apprise ?",
@@ -7781,8 +9601,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_39",
     topicKey: "food",
-    text: "Penses-tu qu'il y a trop de sucre et de sel dans notre alimentation ?",
+    text: "Penses-tu qu'il y a trop de sucre et de sel dans notre alimentation ? Pourquoi (pas) ?",
     hint: "Discuss the health risks of processed foods and hidden additives.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Say whether you agree", "Give an example (sodas, crisps, ready meals)", "Say what could be done"],
+      phrase: { fr: "Je pense qu'il y a trop de… dans…", en: "I think there is too much… in…" },
+    },
     difficulty: 3,
     followUps: [
       "Quels sont les dangers pour la santé ?",
@@ -7804,6 +9629,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Connais-tu quelqu'un qui a des allergies alimentaires ? Comment font-ils ?",
     hint: "Talk about food intolerances or allergies and how they affect daily life.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Say whether you know someone", "Name the allergy", "Say how they avoid it"],
+      phrase: { fr: "Mon ami est allergique à… et il doit…", en: "My friend is allergic to… and has to…" },
+    },
     difficulty: 2,
     followUps: [
       "Es-tu allergique à quelque chose ?",
@@ -7825,6 +9655,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Aimes-tu les fruits exotiques ? Lesquels ?",
     hint: "Discuss fruits that aren't native to your area and their availability.",
+    subTopic: "favourite-foods",
+    coachHint: {
+      ideas: ["Say yes or no", "Name two fruits (mango, lychee, papaya)", "Say where you find them"],
+      phrase: { fr: "J'aime les fruits exotiques comme…", en: "I like exotic fruit such as…" },
+    },
     difficulty: 1,
     followUps: [
       "Quel est le fruit le plus bizarre que tu as goûté ?",
@@ -7846,6 +9681,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Décris un plat traditionnel de ton pays à un étranger.",
     hint: "Explain the ingredients and preparation of a culturally significant dish.",
+    subTopic: "cooking",
+    coachHint: {
+      ideas: ["Name the dish", "List two ingredients", "Say how it is prepared"],
+      phrase: { fr: "Un plat traditionnel de mon pays, c'est… avec…", en: "A traditional dish from my country is… with…" },
+    },
     difficulty: 2,
     followUps: [
       "À quelle occasion mange-t-on ce plat ?",
@@ -7867,6 +9707,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Qu'est-ce que tu mangerais pour un petit-déjeuner de fête ?",
     hint: "Describe a special morning meal for a birthday or holiday.",
+    subTopic: "meals-and-habits",
+    coachHint: {
+      ideas: ["Say what you would eat", "Say what you would drink", "Say who would be there"],
+      phrase: { fr: "Pour un petit-déjeuner de fête, je mange…", en: "For a festive breakfast I eat…" },
+    },
     difficulty: 1,
     followUps: [
       "Qui préparerait ce repas ?",
@@ -7886,8 +9731,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_44",
     topicKey: "food",
-    text: "Penses-tu que la sécurité dans la cuisine est importante ?",
+    text: "Penses-tu que la sécurité dans la cuisine est importante ? Pourquoi ?",
     hint: "Discuss hygiene and safety measures when preparing food.",
+    subTopic: "cooking",
+    coachHint: {
+      ideas: ["Say whether it matters", "Give two reasons (cuts, burns, hygiene)", "Give one safety rule"],
+      phrase: { fr: "La sécurité en cuisine est importante parce que…", en: "Kitchen safety is important because…" },
+    },
     difficulty: 2,
     followUps: [
       "Quelles sont les règles de base dans la cuisine ?",
@@ -7909,6 +9759,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Pourquoi les abeilles et les insectes sont-ils importants pour notre planète ?",
     hint: "Discuss the role of insects in pollination and the food chain.",
+    subTopic: "nature-and-wildlife",
+    coachHint: {
+      ideas: ["Say what bees do", "Give two reasons (food, biodiversity)", "Say what threatens them"],
+      phrase: { fr: "Les abeilles sont importantes parce que…", en: "Bees are important because…" },
+    },
     difficulty: 3,
     followUps: [
       "Qu'est-ce qui menace les abeilles aujourd'hui ?",
@@ -7930,6 +9785,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Que penses-tu de la pollution sonore et lumineuse dans les villes ?",
     hint: "Discuss how noise and too much light affect people and wildlife in cities.",
+    subTopic: "climate-and-energy",
+    coachHint: {
+      ideas: ["Say which is worse (noise or light)", "Give one effect on people", "Give one effect on animals"],
+      phrase: { fr: "La pollution sonore est… parce que…", en: "Noise pollution is… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que ton quartier est bruyant le soir ?",
@@ -7949,8 +9809,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "env_24",
     topicKey: "environment",
-    text: "As-tu déjà participé à une manifestation ou une campagne pour l'environnement ?",
+    text: "As-tu déjà participé à une manifestation ou une campagne pour l'environnement ? Comment c'était ?",
     hint: "Talk about environmental activism, protests, or school campaigns.",
+    subTopic: "everyday-eco-habits",
+    coachHint: {
+      ideas: ["Say what the campaign was", "Say what you did", "Say how you felt"],
+      phrase: { fr: "L'année dernière, j'ai participé à… avec…", en: "Last year I took part in… with…" },
+    },
     difficulty: 2,
     followUps: [
       "Quelles sont les causes qui te tiennent le plus à cœur ?",
@@ -7972,6 +9837,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Comment est la qualité de l'air dans ta ville ou ton village ?",
     hint: "Discuss air pollution levels where you live and what causes them.",
+    subTopic: "climate-and-energy",
+    coachHint: {
+      ideas: ["Say whether the air is clean or dirty", "Name a cause (traffic, factories)", "Say how it affects you"],
+      phrase: { fr: "Dans ma ville, l'air est… à cause de…", en: "In my town the air is… because of…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce qu'il y a beaucoup de smog ou de fumée ?",
@@ -7993,6 +9863,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Comment pouvons-nous réduire notre consommation de papier à l'ère numérique ?",
     hint: "Discuss ways to use less paper at home or school using technology.",
+    subTopic: "technology",
+    coachHint: {
+      ideas: ["Name two ways (tablets, emails, reading online)", "Say what you do", "Say what is still hard to replace"],
+      phrase: { fr: "Pour utiliser moins de papier, on peut…", en: "To use less paper you can…" },
+    },
     difficulty: 1,
     followUps: [
       "Utilises-tu des cahiers en papier ou une tablette à l'école ?",
@@ -8014,6 +9889,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "À quoi ressemblerait une maison écologique idéale selon toi ?",
     hint: "Describe the features of a sustainable house using the conditional.",
+    subTopic: "climate-and-energy",
+    coachHint: {
+      ideas: ["Name three features (solar panels, insulation, rainwater)", "Say what it is made of", "Say where it is"],
+      phrase: { fr: "Ma maison écologique a des panneaux solaires et…", en: "My eco-house has solar panels and…" },
+    },
     difficulty: 3,
     followUps: [
       "Quels matériaux utiliserais-tu ?",
@@ -8035,6 +9915,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Comment peux-tu encourager tes amis à être plus respectueux de l'environnement ?",
     hint: "Discuss how you can influence your peers to adopt greener habits.",
+    subTopic: "everyday-eco-habits",
+    coachHint: {
+      ideas: ["Name two ideas (set an example, share facts, reusable bottle)", "Say what works with your friends", "Say what to avoid"],
+      phrase: { fr: "Pour convaincre mes amis, je leur montre…", en: "To convince my friends I show them…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce difficile de changer les habitudes des autres ?",
@@ -8056,6 +9941,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Que penses-tu de l'économie de partage (comme Uber ou Airbnb) pour l'environnement ?",
     hint: "Discuss if sharing resources like cars or homes helps the planet.",
+    subTopic: "technology",
+    coachHint: {
+      ideas: ["Say what you think", "Give one benefit (fewer cars, shared homes)", "Give one doubt (travel, tourism)"],
+      phrase: { fr: "L'économie de partage est… parce que…", en: "The sharing economy is… because…" },
+    },
     difficulty: 2,
     followUps: [
       "As-tu déjà utilisé un service de partage ?",
@@ -8077,6 +9967,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Quelle est l'importance des parcs nationaux dans ton pays ?",
     hint: "Discuss the role of protected areas for nature and tourism.",
+    subTopic: "nature-and-wildlife",
+    coachHint: {
+      ideas: ["Say what a national park is", "Give two reasons (wildlife, tourism, calm)", "Name one in your country"],
+      phrase: { fr: "Les parcs nationaux sont importants parce que…", en: "National parks are important because…" },
+    },
     difficulty: 1,
     followUps: [
       "As-tu déjà visité un parc national ?",
@@ -8098,6 +9993,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Que penses-tu du concept de 'réparer au lieu de remplacer' ?",
     hint: "Discuss upcycling and fixing broken items instead of buying new ones.",
+    subTopic: "waste-and-recycling",
+    coachHint: {
+      ideas: ["Say what you think", "Give two reasons (waste, money)", "Give an example you repaired"],
+      phrase: { fr: "Je trouve que réparer est… parce que…", en: "I find that repairing is… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Sais-tu réparer tes vêtements ou tes appareils ?",
@@ -8119,6 +10019,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Que penses-tu du suremballage des produits dans les supermarchés ?",
     hint: "Discuss the excessive use of plastic packaging and its impact.",
+    subTopic: "waste-and-recycling",
+    coachHint: {
+      ideas: ["Say what you think", "Give an example (fruit in plastic)", "Say what you would do"],
+      phrase: { fr: "Le suremballage est… parce que…", en: "Excess packaging is… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que cela t'énerve quand tu fais les courses ?",
@@ -8138,8 +10043,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "env_33",
     topicKey: "environment",
-    text: "Est-ce que tu fais du compostage chez toi ?",
+    text: "Est-ce que tu fais du compostage chez toi ? Pourquoi (pas) ?",
     hint: "Explain what composting is and how it helps reduce landfill waste.",
+    subTopic: "waste-and-recycling",
+    coachHint: {
+      ideas: ["Say yes or no", "Say what goes in the compost", "Say why it helps"],
+      phrase: { fr: "Chez moi, on met… dans le compost.", en: "At home we put… in the compost." },
+    },
     difficulty: 1,
     followUps: [
       "Quels déchets peut-on mettre dans le compost ?",
@@ -8159,8 +10069,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "env_34",
     topicKey: "environment",
-    text: "Penses-tu qu'il est possible de vivre un mode de vie 'zéro déchet' ?",
+    text: "Penses-tu qu'il est possible de vivre un mode de vie 'zéro déchet' ? Pourquoi (pas) ?",
     hint: "Discuss the challenges and benefits of trying to eliminate waste completely.",
+    subTopic: "waste-and-recycling",
+    coachHint: {
+      ideas: ["Say yes or no", "Give one challenge (shops, time)", "Give one benefit (money, planet)"],
+      phrase: { fr: "Je pense qu'un mode de vie zéro déchet est… parce que…", en: "I think a zero-waste life is… because…" },
+    },
     difficulty: 3,
     followUps: [
       "Quels sont les plus gros obstacles ?",
@@ -8180,8 +10095,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "env_35",
     topicKey: "environment",
-    text: "Entends-tu souvent parler de 'l'éco-anxiété' chez les jeunes ?",
+    text: "Entends-tu souvent parler de 'l'éco-anxiété' chez les jeunes ? Comment l'expliques-tu ?",
     hint: "Talk about the mental health impact of climate change on the younger generation.",
+    subTopic: "climate-and-energy",
+    coachHint: {
+      ideas: ["Say whether you know the word", "Give two reasons (news, future, fear)", "Say what helps"],
+      phrase: { fr: "L'éco-anxiété existe parce que…", en: "Eco-anxiety exists because…" },
+    },
     difficulty: 3,
     followUps: [
       "Est-ce que tu t'inquiètes pour l'avenir de la planète ?",
@@ -8203,6 +10123,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Savais-tu qu'Internet a une empreinte carbone ? Qu'en penses-tu ?",
     hint: "Discuss digital pollution, such as energy used by data centers and streaming.",
+    subTopic: "technology",
+    coachHint: {
+      ideas: ["Say what surprises you", "Give an example (streaming, data centres)", "Say what you could change"],
+      phrase: { fr: "Internet consomme beaucoup d'énergie à cause de…", en: "The internet uses a lot of energy because of…" },
+    },
     difficulty: 3,
     followUps: [
       "Est-ce que tu supprimes tes vieux e-mails ?",
@@ -8224,6 +10149,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Pourquoi est-il important de protéger les forêts contre la déforestation ?",
     hint: "Discuss the role of trees in absorbing CO2 and protecting biodiversity.",
+    subTopic: "nature-and-wildlife",
+    coachHint: {
+      ideas: ["Give two reasons (CO2, habitats, rain)", "Name an animal that depends on forests", "Say what we can do"],
+      phrase: { fr: "Les forêts sont importantes parce qu'elles…", en: "Forests are important because they…" },
+    },
     difficulty: 2,
     followUps: [
       "Y a-t-il beaucoup de forêts dans ton pays ?",
@@ -8245,6 +10175,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Que penses-tu de l'usage des pesticides dans l'agriculture ?",
     hint: "Discuss the impact of chemicals on bees, biodiversity, and human health.",
+    subTopic: "nature-and-wildlife",
+    coachHint: {
+      ideas: ["Say what you think", "Give two effects (bees, soil, health)", "Say what alternative exists"],
+      phrase: { fr: "Les pesticides sont dangereux parce que…", en: "Pesticides are dangerous because…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que les produits bio sont une bonne solution ?",
@@ -8266,6 +10201,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "environment",
     text: "Que penses-tu des jardins verticaux et des fermes urbaines ?",
     hint: "Discuss the trend of growing food and plants in city centers or on buildings.",
+    subTopic: "nature-and-wildlife",
+    coachHint: {
+      ideas: ["Say whether you like the idea", "Give two reasons (fresh air, local food)", "Say where you could put one"],
+      phrase: { fr: "Les jardins verticaux sont une bonne idée parce que…", en: "Vertical gardens are a good idea because…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce qu'il y en a dans ta ville ?",
@@ -8285,8 +10225,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "env_40",
     topicKey: "environment",
-    text: "Savais-tu qu'est-ce que c'est la 'fast fashion' ? Quel est son impact sur l'environnement ?",
+    text: "Sais-tu ce qu'est la 'fast fashion' ? Quel est son impact sur l'environnement ?",
     hint: "Discuss the environmental cost of the mass production of cheap clothing.",
+    subTopic: "waste-and-recycling",
+    coachHint: {
+      ideas: ["Say what fast fashion is", "Give two effects (water, chemicals, waste)", "Say what you do to avoid it"],
+      phrase: { fr: "La fast fashion est… et elle cause…", en: "Fast fashion is… and it causes…" },
+    },
     difficulty: 2,
     followUps: [
       "Achètes-tu souvent de nouveaux vêtements ?",
@@ -8306,8 +10251,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "env_41",
     topicKey: "environment",
-    text: "Est-ce qu'il est facile d'installer de l'énergie renouvelable à la maison ?",
+    text: "Est-ce qu'il est facile d'installer de l'énergie renouvelable à la maison ? Pourquoi (pas) ?",
     hint: "Talk about solar panels, heat pumps, or insulation improvements.",
+    subTopic: "climate-and-energy",
+    coachHint: {
+      ideas: ["Say yes or no", "Give two reasons (cost, space, rules)", "Name a type (solar panels, heat pump)"],
+      phrase: { fr: "Installer des panneaux solaires est… parce que…", en: "Installing solar panels is… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que ta maison a des panneaux solaires ?",
@@ -8331,6 +10281,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "clothes",
     text: "Qu'est-ce que tu portes aujourd'hui ?",
     hint: "Describe what you're wearing right now — items, colours, materials.",
+    subTopic: "what-i-wear",
     difficulty: 1,
     followUps: [
       "Tu aimes cette tenue ?",
@@ -8352,6 +10303,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "clothes",
     text: "Décris ton vêtement préféré.",
     hint: "Pick one item, describe its appearance and why you like wearing it.",
+    subTopic: "what-i-wear",
     difficulty: 1,
     followUps: [
       "Depuis quand as-tu ce vêtement ?",
@@ -8373,6 +10325,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "clothes",
     text: "Qu'est-ce que tu portes pour aller à l'école ?",
     hint: "Talk about your uniform or everyday school clothes.",
+    subTopic: "what-i-wear",
     difficulty: 1,
     followUps: [
       "Est-ce que tu aimes ton uniforme ?",
@@ -8394,6 +10347,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "clothes",
     text: "Tu préfères porter des vêtements décontractés ou élégants ?",
     hint: "Compare casual vs smart clothing and when you wear each.",
+    subTopic: "what-i-wear",
     difficulty: 1,
     followUps: [
       "Quand portes-tu des vêtements élégants ?",
@@ -8415,6 +10369,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "clothes",
     text: "Où fais-tu du shopping pour acheter des vêtements ?",
     hint: "Name shops, in-store vs online, and why you choose them.",
+    subTopic: "buying-clothes",
     difficulty: 1,
     followUps: [
       "Tu préfères acheter en ligne ou en magasin ?",
@@ -8436,6 +10391,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "clothes",
     text: "Décris les vêtements que porte une personne de ta famille.",
     hint: "Describe someone's typical style — colours, items, occasions.",
+    subTopic: "what-i-wear",
     difficulty: 1,
     followUps: [
       "Est-ce que son style te plaît ?",
@@ -8457,6 +10413,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "clothes",
     text: "Quels vêtements portes-tu quand il fait froid ?",
     hint: "Describe cold-weather clothing layers.",
+    subTopic: "what-i-wear",
     difficulty: 1,
     followUps: [
       "Et quand il fait chaud, qu'est-ce que tu portes ?",
@@ -8476,8 +10433,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "clo_08",
     topicKey: "clothes",
-    text: "Est-ce que tu suis les tendances de la mode ?",
+    text: "Est-ce que tu suis les tendances de la mode ? Où trouves-tu ton inspiration ?",
     hint: "Say whether you follow trends and give an example.",
+    subTopic: "fashion-and-trends",
     difficulty: 2,
     followUps: [
       "Où trouves-tu de l'inspiration pour t'habiller ?",
@@ -8497,8 +10455,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "clo_09",
     topicKey: "clothes",
-    text: "Est-ce que la mode est importante pour toi ?",
+    text: "Est-ce que la mode est importante pour toi ? Pourquoi (pas) ?",
     hint: "Give a balanced opinion on how much fashion matters to you.",
+    subTopic: "fashion-and-trends",
     difficulty: 2,
     followUps: [
       "Est-ce que tu dépenses beaucoup d'argent en vêtements ?",
@@ -8518,15 +10477,16 @@ export const QUESTIONS: Question[] = [
   {
     id: "clo_10",
     topicKey: "clothes",
-    text: "Décris une tenue que tu as portée pour une occasion spéciale.",
+    text: "Décris une tenue que tu as portée l'année dernière pour une occasion spéciale.",
     hint: "Use passé composé to describe an outfit worn to an event.",
+    subTopic: "what-i-wear",
     difficulty: 2,
     followUps: [
       "Pour quelle occasion c'était ?",
       "Comment t'es-tu senti(e) dans cette tenue ?",
       "As-tu reçu des compliments ?",
     ],
-    modelAnswer: "Le mois dernier, je suis allé(e) à l'anniversaire de ma cousine et j'ai porté une chemise bleue avec un pantalon noir élégant. J'ai aussi mis des chaussures en cuir que j'avais achetées spécialement pour l'occasion. Je me suis senti(e) très bien habillé(e) et confiant(e). Plusieurs personnes m'ont fait des compliments sur ma tenue, ce qui m'a fait plaisir.",
+    modelAnswer: "L'année dernière, je suis allé(e) à l'anniversaire de ma cousine et j'ai porté une chemise bleue avec un pantalon noir élégant. J'ai aussi mis des chaussures en cuir que j'avais achetées spécialement pour l'occasion. Je me suis senti(e) très bien habillé(e) et confiant(e). Plusieurs personnes m'ont fait des compliments sur ma tenue, ce qui m'a fait plaisir.",
     keyVocab: [
       { fr: "le cuir", en: "leather" },
       { fr: "spécialement", en: "specially" },
@@ -8541,6 +10501,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "clothes",
     text: "Qu'est-ce que tu penses de la mode rapide (fast fashion) ?",
     hint: "Discuss pros and cons of cheap, fast-changing fashion.",
+    subTopic: "buying-clothes",
     difficulty: 2,
     followUps: [
       "Est-ce que tu achètes souvent des vêtements bon marché ?",
@@ -8562,6 +10523,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "clothes",
     text: "Comment choisis-tu tes vêtements le matin ?",
     hint: "Describe your morning routine for picking an outfit.",
+    subTopic: "what-i-wear",
     difficulty: 1,
     followUps: [
       "Est-ce que la météo influence ton choix ?",
@@ -8581,8 +10543,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "clo_13",
     topicKey: "clothes",
-    text: "Est-ce que tu as déjà acheté un vêtement que tu as regretté ?",
+    text: "Est-ce que tu as déjà acheté un vêtement que tu as regretté ? Pourquoi ?",
     hint: "Use passé composé — describe a clothing purchase mistake.",
+    subTopic: "buying-clothes",
     difficulty: 2,
     followUps: [
       "Pourquoi l'as-tu regretté ?",
@@ -8602,8 +10565,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "clo_14",
     topicKey: "clothes",
-    text: "Penses-tu que les écoles devraient obliger le port de l'uniforme ?",
+    text: "Penses-tu que les écoles devraient obliger le port de l'uniforme ? Pourquoi (pas) ?",
     hint: "Discuss both sides of the school uniform debate.",
+    subTopic: "fashion-and-society",
     difficulty: 2,
     followUps: [
       "Quels sont les avantages de l'uniforme ?",
@@ -8623,8 +10587,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "clo_15",
     topicKey: "clothes",
-    text: "Est-ce que tu achètes des vêtements d'occasion ?",
+    text: "Est-ce que tu achètes des vêtements d'occasion ? Pourquoi (pas) ?",
     hint: "Discuss second-hand clothing — thrifting, vintage shops.",
+    subTopic: "buying-clothes",
     difficulty: 2,
     followUps: [
       "Pourquoi est-ce que les vêtements d'occasion deviennent populaires ?",
@@ -8646,6 +10611,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "clothes",
     text: "Comment penses-tu que la mode va changer dans le futur ?",
     hint: "Speculate using the future tense about fashion trends.",
+    subTopic: "fashion-and-trends",
     difficulty: 3,
     followUps: [
       "Est-ce que la technologie va jouer un rôle dans la mode ?",
@@ -8667,6 +10633,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "clothes",
     text: "Dans quelle mesure les vêtements reflètent-ils notre identité ?",
     hint: "Discuss how clothing choices express personality and identity.",
+    subTopic: "fashion-and-society",
     difficulty: 3,
     followUps: [
       "Est-ce que tu changes de style selon ton humeur ?",
@@ -8688,6 +10655,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "clothes",
     text: "Quel est l'impact environnemental de l'industrie de la mode ?",
     hint: "Discuss pollution, waste, and water use in fashion production.",
+    subTopic: "fashion-and-society",
     difficulty: 3,
     followUps: [
       "Quelles solutions existent pour réduire cet impact ?",
@@ -8709,6 +10677,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "clothes",
     text: "Si tu pouvais créer ta propre ligne de vêtements, à quoi ressemblerait-elle ?",
     hint: "Use conditional to describe a hypothetical fashion line.",
+    subTopic: "fashion-and-trends",
     difficulty: 3,
     followUps: [
       "Quel serait le style de ta marque ?",
@@ -8728,8 +10697,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "clo_20",
     topicKey: "clothes",
-    text: "Penses-tu que les publicités de mode donnent une image irréaliste du corps ?",
+    text: "Penses-tu que les publicités de mode donnent une image irréaliste du corps ? Pourquoi ?",
     hint: "Discuss body image and fashion advertising critically.",
+    subTopic: "fashion-and-society",
     difficulty: 3,
     followUps: [
       "Comment cela affecte-t-il les jeunes ?",
@@ -8751,6 +10721,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "clothes",
     text: "Quels vêtements portes-tu pour faire du sport ?",
     hint: "Describe sportswear items and materials.",
+    subTopic: "what-i-wear",
     difficulty: 1,
     followUps: [
       "As-tu des chaussures de sport spéciales ?",
@@ -8770,8 +10741,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "clo_22",
     topicKey: "clothes",
-    text: "Est-ce que tu prêtes tes vêtements à d'autres personnes ?",
+    text: "Est-ce que tu prêtes tes vêtements à d'autres personnes ? À qui, et pourquoi ?",
     hint: "Talk about sharing/lending clothes with friends or siblings.",
+    subTopic: "what-i-wear",
     difficulty: 2,
     followUps: [
       "À qui prêtes-tu tes vêtements ?",
@@ -8793,6 +10765,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "clothes",
     text: "Quelle est la différence entre le style vestimentaire des jeunes et celui des adultes ?",
     hint: "Compare generational fashion differences.",
+    subTopic: "fashion-and-trends",
     difficulty: 2,
     followUps: [
       "Pourquoi penses-tu qu'il y a cette différence ?",
@@ -8812,8 +10785,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "clo_24",
     topicKey: "clothes",
-    text: "As-tu déjà offert des vêtements en cadeau ?",
+    text: "As-tu déjà offert des vêtements en cadeau ? À qui et quand ?",
     hint: "Use passé composé to describe giving clothing as a gift.",
+    subTopic: "buying-clothes",
     difficulty: 2,
     followUps: [
       "À qui as-tu offert ce cadeau ?",
@@ -8835,6 +10809,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "clothes",
     text: "Comment les vêtements traditionnels sont-ils différents des vêtements modernes ?",
     hint: "Compare traditional cultural dress with modern fashion.",
+    subTopic: "fashion-and-society",
     difficulty: 3,
     followUps: [
       "Y a-t-il des vêtements traditionnels dans ta culture ?",
@@ -8854,8 +10829,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "clo_26",
     topicKey: "clothes",
-    text: "Penses-tu que les hommes et les femmes devraient pouvoir porter les mêmes vêtements ?",
+    text: "Penses-tu que les hommes et les femmes devraient pouvoir porter les mêmes vêtements ? Pourquoi (pas) ?",
     hint: "Discuss gender-neutral fashion and changing norms.",
+    subTopic: "fashion-and-society",
     difficulty: 3,
     followUps: [
       "Est-ce que cette idée est acceptée dans ta société ?",
@@ -8875,8 +10851,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "clo_27",
     topicKey: "clothes",
-    text: "As-tu déjà participé ou assisté à un défilé de mode ?",
+    text: "As-tu déjà participé ou assisté à un défilé de mode ? Comment c'était ?",
     hint: "Describe an experience with a fashion show, real or hypothetical.",
+    subTopic: "fashion-and-trends",
     difficulty: 2,
     followUps: [
       "Comment était l'ambiance ?",
@@ -8898,6 +10875,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "clothes",
     text: "Quel rôle jouent les célébrités dans les tendances de la mode ?",
     hint: "Discuss celebrity influence on fashion choices.",
+    subTopic: "fashion-and-trends",
     difficulty: 3,
     followUps: [
       "Y a-t-il une célébrité dont tu admires le style ?",
@@ -8919,6 +10897,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "clothes",
     text: "Si tu devais choisir seulement cinq vêtements pour toute une année, lesquels choisirais-tu ?",
     hint: "Use conditional to justify a minimalist wardrobe.",
+    subTopic: "what-i-wear",
     difficulty: 3,
     followUps: [
       "Pourquoi as-tu choisi ces vêtements précisément ?",
@@ -8940,6 +10919,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "clothes",
     text: "Comment la mode a-t-elle changé au cours des dernières décennies ?",
     hint: "Discuss how fashion has evolved historically.",
+    subTopic: "fashion-and-trends",
     difficulty: 3,
     followUps: [
       "Quelle époque de la mode préfères-tu ?",
@@ -8961,8 +10941,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "ani_01",
     topicKey: "animals",
-    text: "As-tu un animal de compagnie ?",
+    text: "As-tu un animal de compagnie ? Comment est-il ?",
     hint: "Describe a pet you have or would like — type, name, appearance.",
+    subTopic: "pets",
     difficulty: 1,
     followUps: [
       "Comment s'appelle ton animal ?",
@@ -8984,6 +10965,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "animals",
     text: "Quel est ton animal préféré et pourquoi ?",
     hint: "Name a favourite animal and give reasons for liking it.",
+    subTopic: "pets",
     difficulty: 1,
     followUps: [
       "Est-ce que tu l'as déjà vu en vrai ?",
@@ -9005,6 +10987,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "animals",
     text: "Préfères-tu les chats ou les chiens ? Pourquoi ?",
     hint: "Compare cats and dogs and give a preference.",
+    subTopic: "pets",
     difficulty: 1,
     followUps: [
       "As-tu déjà eu les deux ?",
@@ -9026,6 +11009,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "animals",
     text: "Quels animaux peut-on voir dans un zoo ?",
     hint: "List animals typically found at a zoo, describe one.",
+    subTopic: "wild-animals-and-zoos",
     difficulty: 1,
     followUps: [
       "Aimes-tu aller au zoo ?",
@@ -9045,8 +11029,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "ani_05",
     topicKey: "animals",
-    text: "Décris un animal que tu as vu récemment.",
+    text: "Décris le dernier animal que tu as vu.",
     hint: "Use passé composé to describe a recent animal sighting.",
+    subTopic: "wild-animals-and-zoos",
     difficulty: 1,
     followUps: [
       "Où l'as-tu vu ?",
@@ -9066,8 +11051,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "ani_06",
     topicKey: "animals",
-    text: "Aimerais-tu avoir un animal de compagnie exotique ?",
+    text: "Aimerais-tu avoir un animal de compagnie exotique ? Pourquoi (pas) ?",
     hint: "Discuss exotic pets and whether you'd want one.",
+    subTopic: "pets",
     difficulty: 2,
     followUps: [
       "Quel animal exotique choisirais-tu ?",
@@ -9089,6 +11075,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "animals",
     text: "Pourquoi est-il important de protéger les espèces en voie de disparition ?",
     hint: "Discuss endangered species conservation.",
+    subTopic: "protecting-wildlife",
     difficulty: 2,
     followUps: [
       "Connais-tu une espèce en voie de disparition ?",
@@ -9108,8 +11095,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "ani_08",
     topicKey: "animals",
-    text: "As-tu déjà adopté un animal dans un refuge ?",
+    text: "As-tu déjà adopté un animal dans un refuge ? Pourquoi (pas) ?",
     hint: "Discuss adopting animals from shelters, real or hypothetical.",
+    subTopic: "pets",
     difficulty: 2,
     followUps: [
       "Pourquoi est-ce important d'adopter plutôt que d'acheter ?",
@@ -9131,6 +11119,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "animals",
     text: "Quelle est la différence entre un animal domestique et un animal sauvage ?",
     hint: "Compare domesticated and wild animals.",
+    subTopic: "wild-animals-and-zoos",
     difficulty: 2,
     followUps: [
       "Peut-on apprivoiser un animal sauvage ?",
@@ -9150,8 +11139,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "ani_10",
     topicKey: "animals",
-    text: "As-tu peur de certains animaux ?",
+    text: "As-tu peur de certains animaux ? Lesquels ?",
     hint: "Discuss animal phobias or fears.",
+    subTopic: "animals-and-people",
     difficulty: 1,
     followUps: [
       "Depuis quand as-tu cette peur ?",
@@ -9173,6 +11163,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "animals",
     text: "Comment les animaux nous aident-ils dans la vie quotidienne ?",
     hint: "Discuss working/service animals and their roles.",
+    subTopic: "animals-and-people",
     difficulty: 2,
     followUps: [
       "Connais-tu un exemple de chien guide ?",
@@ -9194,6 +11185,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "animals",
     text: "Qu'est-ce que tu ferais si tu trouvais un animal blessé dans la rue ?",
     hint: "Use conditional to describe hypothetical actions helping an injured animal.",
+    subTopic: "animals-and-people",
     difficulty: 2,
     followUps: [
       "As-tu déjà vécu cette situation ?",
@@ -9213,8 +11205,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "ani_13",
     topicKey: "animals",
-    text: "Penses-tu que les gens devraient manger moins de viande pour protéger les animaux ?",
+    text: "Penses-tu que les gens devraient manger moins de viande pour protéger les animaux ? Pourquoi (pas) ?",
     hint: "Discuss diet, animal welfare, and ethical eating.",
+    subTopic: "animals-and-people",
     difficulty: 3,
     followUps: [
       "Es-tu végétarien(ne) ou végan(e) ?",
@@ -9236,6 +11229,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "animals",
     text: "Quel est l'impact du changement climatique sur les animaux sauvages ?",
     hint: "Discuss climate change effects on wildlife and habitats.",
+    subTopic: "protecting-wildlife",
     difficulty: 3,
     followUps: [
       "Quels animaux sont les plus touchés ?",
@@ -9257,6 +11251,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "animals",
     text: "As-tu déjà visité une ferme ? Décris cette expérience.",
     hint: "Use passé composé to describe a farm visit.",
+    subTopic: "animals-and-people",
     difficulty: 2,
     followUps: [
       "Quels animaux as-tu vus ?",
@@ -9276,8 +11271,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "ani_16",
     topicKey: "animals",
-    text: "Penses-tu que les cirques devraient utiliser des animaux dans leurs spectacles ?",
+    text: "Penses-tu que les cirques devraient utiliser des animaux dans leurs spectacles ? Pourquoi (pas) ?",
     hint: "Debate the ethics of animals in circuses.",
+    subTopic: "animals-and-people",
     difficulty: 3,
     followUps: [
       "As-tu déjà vu un spectacle avec des animaux ?",
@@ -9299,6 +11295,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "animals",
     text: "Quel rôle jouent les abeilles dans notre écosystème ?",
     hint: "Discuss the importance of bees and pollinators.",
+    subTopic: "protecting-wildlife",
     difficulty: 3,
     followUps: [
       "Pourquoi le nombre d'abeilles diminue-t-il ?",
@@ -9320,6 +11317,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "animals",
     text: "Si tu pouvais te transformer en animal pendant une journée, lequel choisirais-tu ?",
     hint: "Use conditional for a hypothetical/imaginative answer.",
+    subTopic: "animals-and-people",
     difficulty: 2,
     followUps: [
       "Pourquoi as-tu choisi cet animal ?",
@@ -9341,6 +11339,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "animals",
     text: "Quels animaux trouve-t-on typiquement dans la nature près de chez toi ?",
     hint: "Describe local wildlife in your area/region.",
+    subTopic: "wild-animals-and-zoos",
     difficulty: 1,
     followUps: [
       "Les as-tu déjà vus toi-même ?",
@@ -9362,6 +11361,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "animals",
     text: "Comment les animaux communiquent-ils entre eux ?",
     hint: "Discuss animal communication methods.",
+    subTopic: "wild-animals-and-zoos",
     difficulty: 2,
     followUps: [
       "Connais-tu un exemple intéressant de communication animale ?",
@@ -9381,8 +11381,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "ani_21",
     topicKey: "animals",
-    text: "Est-ce que tu es allergique à des animaux ?",
+    text: "Est-ce que tu es allergique à des animaux ? Lesquels ?",
     hint: "Discuss pet allergies.",
+    subTopic: "pets",
     difficulty: 1,
     followUps: [
       "Comment as-tu découvert cette allergie ?",
@@ -9402,8 +11403,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "ani_22",
     topicKey: "animals",
-    text: "Penses-tu que les tests sur les animaux devraient être interdits ?",
+    text: "Penses-tu que les tests sur les animaux devraient être interdits ? Pourquoi (pas) ?",
     hint: "Debate animal testing ethics, especially in cosmetics/science.",
+    subTopic: "animals-and-people",
     difficulty: 3,
     followUps: [
       "Y a-t-il des alternatives aux tests sur les animaux ?",
@@ -9423,8 +11425,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "ani_23",
     topicKey: "animals",
-    text: "Quel animal représenterait le mieux ta personnalité ?",
+    text: "Quel animal représenterait le mieux ta personnalité ? Pourquoi ?",
     hint: "Compare your personality traits to an animal's characteristics.",
+    subTopic: "animals-and-people",
     difficulty: 2,
     followUps: [
       "Pourquoi as-tu choisi cet animal ?",
@@ -9446,6 +11449,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "animals",
     text: "Comment la déforestation affecte-t-elle les animaux qui vivent dans la forêt ?",
     hint: "Discuss habitat loss due to deforestation.",
+    subTopic: "protecting-wildlife",
     difficulty: 3,
     followUps: [
       "Quels animaux sont les plus touchés par la déforestation ?",
@@ -9465,8 +11469,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "ani_25",
     topicKey: "animals",
-    text: "As-tu déjà fait du bénévolat pour aider des animaux ?",
+    text: "As-tu déjà fait du bénévolat pour aider des animaux ? Comment c'était ?",
     hint: "Discuss volunteering with animals, real or hypothetical.",
+    subTopic: "protecting-wildlife",
     difficulty: 2,
     followUps: [
       "Qu'est-ce que tu as fait exactement ?",
@@ -9488,6 +11493,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "animals",
     text: "Quels sont les avantages et les inconvénients d'avoir un animal de compagnie ?",
     hint: "Give a balanced view of pet ownership pros and cons.",
+    subTopic: "pets",
     difficulty: 2,
     followUps: [
       "Qu'est-ce qui coûte le plus cher dans l'entretien d'un animal ?",
@@ -9507,8 +11513,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "ani_27",
     topicKey: "animals",
-    text: "Penses-tu que les zoos modernes ont un rôle utile dans la conservation ?",
+    text: "Penses-tu que les zoos modernes ont un rôle utile dans la conservation ? Pourquoi (pas) ?",
     hint: "Discuss the role of zoos in conservation vs entertainment.",
+    subTopic: "wild-animals-and-zoos",
     difficulty: 3,
     followUps: [
       "Les zoos aident-ils vraiment les espèces menacées ?",
@@ -9530,6 +11537,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "animals",
     text: "Comment penses-tu que la relation entre les humains et les animaux va évoluer à l'avenir ?",
     hint: "Speculate about future human-animal relationships using the future tense.",
+    subTopic: "animals-and-people",
     difficulty: 3,
     followUps: [
       "La technologie va-t-elle changer cette relation ?",
@@ -9551,6 +11559,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "animals",
     text: "Quel est le rôle des animaux dans la culture et les traditions de ton pays ?",
     hint: "Discuss animals in cultural symbolism, folklore, or festivals.",
+    subTopic: "animals-and-people",
     difficulty: 3,
     followUps: [
       "Y a-t-il un animal symbolique dans ta culture ?",
@@ -9572,6 +11581,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "animals",
     text: "Dans quelle mesure sommes-nous responsables de la protection de la faune mondiale ?",
     hint: "Discuss global responsibility for wildlife protection.",
+    subTopic: "protecting-wildlife",
     difficulty: 3,
     followUps: [
       "Quels pays font le plus d'efforts, selon toi ?",
@@ -9595,6 +11605,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "transport",
     text: "Comment te déplaces-tu d'habitude ?",
     hint: "Describe your usual mode of transport for daily journeys.",
+    subTopic: "everyday-journeys",
     difficulty: 1,
     followUps: [
       "Est-ce que tu aimes ce moyen de transport ?",
@@ -9616,6 +11627,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "transport",
     text: "Quel est ton moyen de transport préféré ?",
     hint: "Name a favourite transport type and explain why.",
+    subTopic: "everyday-journeys",
     difficulty: 1,
     followUps: [
       "L'utilises-tu souvent ?",
@@ -9637,6 +11649,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "transport",
     text: "Comment vas-tu à l'école chaque jour ?",
     hint: "Describe your daily commute to school.",
+    subTopic: "everyday-journeys",
     difficulty: 1,
     followUps: [
       "Combien de temps dure le trajet ?",
@@ -9656,8 +11669,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "tra_04",
     topicKey: "transport",
-    text: "As-tu déjà voyagé en train ?",
+    text: "As-tu déjà voyagé en train ? Comment c'était ?",
     hint: "Use passé composé to describe a train journey experience.",
+    subTopic: "long-distance-travel",
     difficulty: 1,
     followUps: [
       "Où allais-tu ?",
@@ -9677,8 +11691,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "tra_05",
     topicKey: "transport",
-    text: "Sais-tu conduire ou apprends-tu à conduire ?",
+    text: "Sais-tu conduire ou apprends-tu à conduire ? Sinon, quand vas-tu commencer ?",
     hint: "Discuss driving lessons or plans to learn.",
+    subTopic: "cars-and-traffic",
     difficulty: 1,
     followUps: [
       "Depuis quand prends-tu des leçons ?",
@@ -9700,6 +11715,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "transport",
     text: "Quels sont les avantages des transports en commun ?",
     hint: "Discuss benefits of public transport.",
+    subTopic: "public-transport",
     difficulty: 2,
     followUps: [
       "Utilises-tu souvent les transports en commun ?",
@@ -9719,8 +11735,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "tra_07",
     topicKey: "transport",
-    text: "Penses-tu que la voiture individuelle est un problème pour l'environnement ?",
+    text: "Penses-tu que la voiture individuelle est un problème pour l'environnement ? Pourquoi (pas) ?",
     hint: "Discuss cars and their environmental impact.",
+    subTopic: "cars-and-traffic",
     difficulty: 2,
     followUps: [
       "Quelles alternatives existent à la voiture ?",
@@ -9742,6 +11759,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "transport",
     text: "As-tu déjà pris l'avion ? Raconte ton expérience.",
     hint: "Use passé composé to describe a flying experience.",
+    subTopic: "long-distance-travel",
     difficulty: 2,
     followUps: [
       "Où allais-tu ?",
@@ -9763,6 +11781,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "transport",
     text: "Qu'est-ce que tu ferais pour améliorer les transports dans ta ville ?",
     hint: "Use conditional to suggest improvements to local transport.",
+    subTopic: "public-transport",
     difficulty: 2,
     followUps: [
       "Quel est le plus gros problème actuellement ?",
@@ -9782,8 +11801,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "tra_10",
     topicKey: "transport",
-    text: "Décris un voyage en voiture mémorable que tu as fait.",
+    text: "Décris le dernier voyage en voiture mémorable que tu as fait.",
     hint: "Use passé composé to narrate a memorable car journey.",
+    subTopic: "long-distance-travel",
     difficulty: 2,
     followUps: [
       "Où allais-tu et avec qui ?",
@@ -9803,8 +11823,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "tra_11",
     topicKey: "transport",
-    text: "Penses-tu que les vélos électriques sont une bonne solution pour les villes ?",
+    text: "Penses-tu que les vélos électriques sont une bonne solution pour les villes ? Pourquoi (pas) ?",
     hint: "Discuss e-bikes as urban transport solutions.",
+    subTopic: "future-of-transport",
     difficulty: 2,
     followUps: [
       "As-tu déjà essayé un vélo électrique ?",
@@ -9826,6 +11847,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "transport",
     text: "Comment les gens se déplaçaient-ils avant l'invention de la voiture ?",
     hint: "Discuss historical transport methods using the imperfect tense.",
+    subTopic: "everyday-journeys",
     difficulty: 2,
     followUps: [
       "Quels étaient les inconvénients de ces moyens de transport ?",
@@ -9847,6 +11869,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "transport",
     text: "Quels sont les problèmes liés à la circulation dans les grandes villes ?",
     hint: "Discuss traffic congestion problems in cities.",
+    subTopic: "cars-and-traffic",
     difficulty: 2,
     followUps: [
       "Comment la circulation affecte-t-elle la qualité de l'air ?",
@@ -9868,6 +11891,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "transport",
     text: "Comment penses-tu que nous voyagerons dans cinquante ans ?",
     hint: "Speculate about future transport using the future tense.",
+    subTopic: "future-of-transport",
     difficulty: 3,
     followUps: [
       "Y aura-t-il encore des voitures individuelles ?",
@@ -9887,8 +11911,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "tra_15",
     topicKey: "transport",
-    text: "Penses-tu que les voitures autonomes sont sûres ?",
+    text: "Penses-tu que les voitures autonomes sont sûres ? Pourquoi (pas) ?",
     hint: "Discuss the safety and ethics of self-driving cars.",
+    subTopic: "future-of-transport",
     difficulty: 3,
     followUps: [
       "Ferais-tu confiance à une voiture autonome ?",
@@ -9910,6 +11935,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "transport",
     text: "Quel est l'impact du tourisme aérien sur l'environnement ?",
     hint: "Discuss air travel's environmental footprint and flight shame.",
+    subTopic: "long-distance-travel",
     difficulty: 3,
     followUps: [
       "As-tu déjà entendu parler de la 'honte de prendre l'avion' ?",
@@ -9929,8 +11955,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "tra_17",
     topicKey: "transport",
-    text: "Penses-tu que les gouvernements devraient investir davantage dans les trains à grande vitesse ?",
+    text: "Penses-tu que les gouvernements devraient investir davantage dans les trains à grande vitesse ? Pourquoi (pas) ?",
     hint: "Discuss high-speed rail investment.",
+    subTopic: "public-transport",
     difficulty: 3,
     followUps: [
       "Quels sont les avantages du TGV par rapport à l'avion ?",
@@ -9952,6 +11979,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "transport",
     text: "As-tu déjà été bloqué(e) dans les embouteillages ? Décris cette expérience.",
     hint: "Use passé composé to narrate a traffic jam experience.",
+    subTopic: "cars-and-traffic",
     difficulty: 2,
     followUps: [
       "Combien de temps es-tu resté(e) bloqué(e) ?",
@@ -9973,6 +12001,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "transport",
     text: "Quels sont les défis des transports dans les zones rurales ?",
     hint: "Discuss transport challenges in rural areas.",
+    subTopic: "public-transport",
     difficulty: 3,
     followUps: [
       "Comment les gens se déplacent-ils à la campagne ?",
@@ -9994,6 +12023,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "transport",
     text: "Si tu pouvais inventer un nouveau moyen de transport, comment serait-il ?",
     hint: "Use conditional to imagine a new form of transport.",
+    subTopic: "future-of-transport",
     difficulty: 2,
     followUps: [
       "Quel problème résoudrait-il ?",
@@ -10015,6 +12045,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "transport",
     text: "Comment choisis-tu ton moyen de transport selon la distance à parcourir ?",
     hint: "Discuss how you decide transport methods based on distance.",
+    subTopic: "everyday-journeys",
     difficulty: 2,
     followUps: [
       "À partir de quelle distance prends-tu la voiture plutôt que de marcher ?",
@@ -10036,6 +12067,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "transport",
     text: "As-tu déjà raté un bus ou un train ? Que s'est-il passé ?",
     hint: "Use passé composé to narrate a missed transport experience.",
+    subTopic: "public-transport",
     difficulty: 2,
     followUps: [
       "Pourquoi l'as-tu raté ?",
@@ -10055,8 +12087,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "tra_23",
     topicKey: "transport",
-    text: "Est-ce que le coût des transports est un problème pour les jeunes ?",
+    text: "Est-ce que le coût des transports est un problème pour les jeunes ? Pourquoi (pas) ?",
     hint: "Discuss the cost of transport for young people.",
+    subTopic: "public-transport",
     difficulty: 2,
     followUps: [
       "Existe-t-il des réductions pour les étudiants ?",
@@ -10078,6 +12111,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "transport",
     text: "Comment les transports ont-ils changé la façon dont les gens voyagent ?",
     hint: "Discuss how modern transport has transformed travel habits.",
+    subTopic: "long-distance-travel",
     difficulty: 3,
     followUps: [
       "Est-ce que voyager est devenu trop facile ?",
@@ -10099,6 +12133,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "transport",
     text: "Quel rôle la technologie joue-t-elle dans les transports modernes ?",
     hint: "Discuss apps, GPS, and tech innovations in transport.",
+    subTopic: "future-of-transport",
     difficulty: 3,
     followUps: [
       "Utilises-tu des applications pour planifier tes trajets ?",
@@ -10118,8 +12153,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "tra_26",
     topicKey: "transport",
-    text: "Penses-tu que les scooters électriques en libre-service sont une bonne idée pour les villes ?",
+    text: "Penses-tu que les scooters électriques en libre-service sont une bonne idée pour les villes ? Pourquoi (pas) ?",
     hint: "Discuss shared e-scooters and urban micro-mobility.",
+    subTopic: "future-of-transport",
     difficulty: 3,
     followUps: [
       "As-tu déjà utilisé un scooter électrique en libre-service ?",
@@ -10139,8 +12175,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "tra_27",
     topicKey: "transport",
-    text: "Est-ce que le prix de l'essence influence la façon dont les gens se déplacent ?",
+    text: "Est-ce que le prix de l'essence influence la façon dont les gens se déplacent ? Comment ?",
     hint: "Discuss fuel prices and their effect on transport habits.",
+    subTopic: "cars-and-traffic",
     difficulty: 3,
     followUps: [
       "Est-ce que ta famille fait attention au prix de l'essence ?",
@@ -10162,6 +12199,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "transport",
     text: "Comment les transports affectent-ils l'égalité des chances entre les gens ?",
     hint: "Discuss transport access and social equality.",
+    subTopic: "public-transport",
     difficulty: 3,
     followUps: [
       "Est-ce que tout le monde a un accès égal aux transports ?",
@@ -10183,6 +12221,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "transport",
     text: "Dans quelle mesure les transports sont-ils liés au développement économique d'un pays ?",
     hint: "Discuss the link between transport infrastructure and economic growth.",
+    subTopic: "cars-and-traffic",
     difficulty: 3,
     followUps: [
       "Quel exemple de pays illustre bien ce lien ?",
@@ -10204,6 +12243,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "transport",
     text: "Si tu devais voyager sans jamais utiliser d'énergie fossile, comment t'organiserais-tu ?",
     hint: "Use conditional to plan a fossil-fuel-free lifestyle around transport.",
+    subTopic: "future-of-transport",
     difficulty: 3,
     followUps: [
       "Quels moyens de transport utiliserais-tu le plus ?",
@@ -10227,6 +12267,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "jobs",
     text: "Quel métier voudrais-tu faire plus tard ?",
     hint: "Name a future career goal and give a simple reason.",
+    subTopic: "dream-job",
     difficulty: 1,
     followUps: [
       "Depuis quand veux-tu faire ce métier ?",
@@ -10248,6 +12289,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "jobs",
     text: "Quel est le métier de tes parents ?",
     hint: "Describe your parents' jobs and what they do daily.",
+    subTopic: "work-experience",
     difficulty: 1,
     followUps: [
       "Est-ce qu'ils aiment leur travail ?",
@@ -10269,6 +12311,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "jobs",
     text: "Quels métiers t'intéressent le plus ?",
     hint: "List a few careers of interest and briefly say why.",
+    subTopic: "work-experience",
     difficulty: 1,
     followUps: [
       "As-tu déjà parlé à quelqu'un qui fait ce métier ?",
@@ -10288,8 +12331,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "job_04",
     topicKey: "jobs",
-    text: "Est-ce que tu as déjà eu un petit boulot ?",
+    text: "Est-ce que tu as déjà eu un petit boulot ? Comment c'était ?",
     hint: "Use passé composé to describe a part-time job or babysitting, real or hypothetical.",
+    subTopic: "work-experience",
     difficulty: 1,
     followUps: [
       "Qu'est-ce que tu as appris de cette expérience ?",
@@ -10311,6 +12355,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "jobs",
     text: "Quelles qualités sont importantes pour réussir dans un métier ?",
     hint: "Discuss general workplace qualities and skills.",
+    subTopic: "skills-and-study",
     difficulty: 2,
     followUps: [
       "As-tu déjà ces qualités ?",
@@ -10330,8 +12375,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "job_06",
     topicKey: "jobs",
-    text: "Préfères-tu travailler seul(e) ou en équipe ?",
+    text: "Préfères-tu travailler seul(e) ou en équipe ? Pourquoi ?",
     hint: "Discuss preference for solo vs team work.",
+    subTopic: "working-world",
     difficulty: 1,
     followUps: [
       "Pourquoi préfères-tu ce style de travail ?",
@@ -10353,6 +12399,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "jobs",
     text: "Quels sont les avantages et les inconvénients de travailler à domicile ?",
     hint: "Discuss pros and cons of remote/home working.",
+    subTopic: "working-world",
     difficulty: 2,
     followUps: [
       "Est-ce que quelqu'un dans ta famille travaille à domicile ?",
@@ -10372,8 +12419,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "job_08",
     topicKey: "jobs",
-    text: "As-tu déjà fait un stage ou une observation en entreprise ?",
+    text: "As-tu déjà fait un stage ou une observation en entreprise ? Comment c'était ?",
     hint: "Use passé composé to describe a work experience placement.",
+    subTopic: "work-experience",
     difficulty: 2,
     followUps: [
       "Où as-tu fait ce stage ?",
@@ -10393,8 +12441,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "job_09",
     topicKey: "jobs",
-    text: "Penses-tu que le salaire est le facteur le plus important pour choisir un métier ?",
+    text: "Penses-tu que le salaire est le facteur le plus important pour choisir un métier ? Pourquoi (pas) ?",
     hint: "Discuss what matters most in job choice: salary vs passion/other factors.",
+    subTopic: "working-world",
     difficulty: 2,
     followUps: [
       "Quels autres facteurs sont importants selon toi ?",
@@ -10416,6 +12465,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "jobs",
     text: "Décris une journée typique dans le métier de tes rêves.",
     hint: "Describe a typical day in your dream job.",
+    subTopic: "dream-job",
     difficulty: 2,
     followUps: [
       "À quelle heure commencerait ta journée de travail ?",
@@ -10435,8 +12485,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "job_11",
     topicKey: "jobs",
-    text: "Penses-tu que l'intelligence artificielle va remplacer certains métiers ?",
+    text: "Penses-tu que l'intelligence artificielle va remplacer certains métiers ? Pourquoi (pas) ?",
     hint: "Discuss AI's impact on jobs and the future job market.",
+    subTopic: "working-world",
     difficulty: 3,
     followUps: [
       "Quels métiers sont les plus menacés selon toi ?",
@@ -10456,8 +12507,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "job_12",
     topicKey: "jobs",
-    text: "Est-ce que les hommes et les femmes ont les mêmes opportunités professionnelles ?",
+    text: "Est-ce que les hommes et les femmes ont les mêmes opportunités professionnelles ? Pourquoi (pas) ?",
     hint: "Discuss gender equality in the workplace.",
+    subTopic: "working-world",
     difficulty: 3,
     followUps: [
       "Connais-tu des exemples d'inégalités professionnelles ?",
@@ -10479,6 +12531,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "jobs",
     text: "Quelles études faut-il faire pour devenir professeur ?",
     hint: "Discuss the education path for becoming a teacher.",
+    subTopic: "skills-and-study",
     difficulty: 2,
     followUps: [
       "Penses-tu que c'est un métier difficile ?",
@@ -10500,6 +12553,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "jobs",
     text: "Quel métier trouves-tu le plus dangereux et pourquoi ?",
     hint: "Discuss dangerous professions like firefighters, pilots, miners.",
+    subTopic: "work-experience",
     difficulty: 2,
     followUps: [
       "Connais-tu quelqu'un qui fait un métier dangereux ?",
@@ -10519,8 +12573,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "job_15",
     topicKey: "jobs",
-    text: "Aimerais-tu créer ta propre entreprise un jour ?",
+    text: "Aimerais-tu créer ta propre entreprise un jour ? Pourquoi (pas) ?",
     hint: "Discuss entrepreneurship and starting a business.",
+    subTopic: "dream-job",
     difficulty: 2,
     followUps: [
       "Quel type d'entreprise créerais-tu ?",
@@ -10542,6 +12597,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "jobs",
     text: "Comment le monde du travail a-t-il changé depuis la génération de tes parents ?",
     hint: "Compare the modern job market to previous generations.",
+    subTopic: "working-world",
     difficulty: 3,
     followUps: [
       "Est-ce plus facile ou plus difficile de trouver un emploi aujourd'hui ?",
@@ -10561,8 +12617,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "job_17",
     topicKey: "jobs",
-    text: "Penses-tu que tout le monde devrait aller à l'université ?",
+    text: "Penses-tu que tout le monde devrait aller à l'université ? Pourquoi (pas) ?",
     hint: "Discuss university vs vocational training pathways.",
+    subTopic: "skills-and-study",
     difficulty: 3,
     followUps: [
       "Quelles sont les alternatives à l'université ?",
@@ -10584,6 +12641,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "jobs",
     text: "Quel impact le chômage a-t-il sur les individus et la société ?",
     hint: "Discuss unemployment's effects on individuals and society.",
+    subTopic: "working-world",
     difficulty: 3,
     followUps: [
       "Quelles sont les causes principales du chômage ?",
@@ -10605,6 +12663,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "jobs",
     text: "Comment imagines-tu le monde du travail dans vingt ans ?",
     hint: "Speculate about the future job market using the future tense.",
+    subTopic: "working-world",
     difficulty: 3,
     followUps: [
       "Est-ce que les gens travailleront moins d'heures ?",
@@ -10624,8 +12683,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "job_20",
     topicKey: "jobs",
-    text: "Est-ce que la passion est plus importante que la stabilité dans le choix d'une carrière ?",
+    text: "Est-ce que la passion est plus importante que la stabilité dans le choix d'une carrière ? Pourquoi ?",
     hint: "Debate passion vs job security when choosing a career.",
+    subTopic: "dream-job",
     difficulty: 3,
     followUps: [
       "Connais-tu quelqu'un qui a suivi sa passion malgré les risques ?",
@@ -10645,8 +12705,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "job_21",
     topicKey: "jobs",
-    text: "Quel métier penses-tu que tu ne pourrais jamais faire ?",
+    text: "Quel métier penses-tu que tu ne pourrais jamais faire ? Pourquoi ?",
     hint: "Discuss a career you would never choose and why.",
+    subTopic: "dream-job",
     difficulty: 1,
     followUps: [
       "Pourquoi ne pourrais-tu pas faire ce métier ?",
@@ -10668,6 +12729,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "jobs",
     text: "Comment te prépares-tu pour ton futur métier ?",
     hint: "Discuss steps taken toward career preparation.",
+    subTopic: "skills-and-study",
     difficulty: 2,
     followUps: [
       "Quelles matières scolaires t'aident le plus ?",
@@ -10687,8 +12749,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "job_23",
     topicKey: "jobs",
-    text: "Penses-tu que les jeunes d'aujourd'hui ont plus de pression pour réussir professionnellement ?",
+    text: "Penses-tu que les jeunes d'aujourd'hui ont plus de pression pour réussir professionnellement ? Pourquoi (pas) ?",
     hint: "Discuss pressure on young people regarding career success.",
+    subTopic: "working-world",
     difficulty: 3,
     followUps: [
       "D'où vient cette pression selon toi ?",
@@ -10708,8 +12771,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "job_24",
     topicKey: "jobs",
-    text: "Est-ce qu'il est acceptable de changer complètement de carrière plus tard dans la vie ?",
+    text: "Est-ce qu'il est acceptable de changer complètement de carrière plus tard dans la vie ? Pourquoi (pas) ?",
     hint: "Discuss career changes later in life.",
+    subTopic: "working-world",
     difficulty: 2,
     followUps: [
       "Connais-tu quelqu'un qui a changé de carrière ?",
@@ -10731,6 +12795,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "jobs",
     text: "Quel rôle jouent les réseaux professionnels dans la recherche d'emploi ?",
     hint: "Discuss professional networking and job searching.",
+    subTopic: "working-world",
     difficulty: 3,
     followUps: [
       "Connais-tu des plateformes comme LinkedIn ?",
@@ -10750,8 +12815,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "job_26",
     topicKey: "jobs",
-    text: "Aimerais-tu travailler à l'étranger un jour ?",
+    text: "Aimerais-tu travailler à l'étranger un jour ? Pourquoi (pas) ?",
     hint: "Discuss working abroad — desire, challenges, opportunities.",
+    subTopic: "dream-job",
     difficulty: 2,
     followUps: [
       "Dans quel pays voudrais-tu travailler ?",
@@ -10773,6 +12839,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "jobs",
     text: "Comment la robotisation affecte-t-elle les métiers de l'industrie ?",
     hint: "Discuss automation's effect on manufacturing jobs.",
+    subTopic: "working-world",
     difficulty: 3,
     followUps: [
       "Connais-tu des exemples d'usines automatisées ?",
@@ -10792,8 +12859,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "job_28",
     topicKey: "jobs",
-    text: "Penses-tu que les vacances et les congés payés sont suffisants dans le monde du travail actuel ?",
+    text: "Penses-tu que les vacances et les congés payés sont suffisants dans le monde du travail actuel ? Pourquoi (pas) ?",
     hint: "Discuss work-life balance, holidays, and paid leave.",
+    subTopic: "working-world",
     difficulty: 3,
     followUps: [
       "Combien de jours de congé penses-tu être raisonnable ?",
@@ -10815,6 +12883,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "jobs",
     text: "Si tu étais responsable d'une entreprise, comment traiterais-tu tes employés ?",
     hint: "Use conditional to describe hypothetical management style.",
+    subTopic: "working-world",
     difficulty: 3,
     followUps: [
       "Quelles règles mettrais-tu en place ?",
@@ -10836,6 +12905,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "jobs",
     text: "Dans quelle mesure l'éducation détermine-t-elle le succès professionnel d'une personne ?",
     hint: "Discuss the relationship between education and career success.",
+    subTopic: "skills-and-study",
     difficulty: 3,
     followUps: [
       "Connais-tu des exemples de succès sans diplôme universitaire ?",
@@ -10859,6 +12929,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "sports",
     text: "Quel est ton sport préféré ?",
     hint: "Name your favourite sport and say why you like it.",
+    subTopic: "playing-sport",
     difficulty: 1,
     followUps: [
       "Depuis quand pratiques-tu ce sport ?",
@@ -10878,8 +12949,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "spo_02",
     topicKey: "sports",
-    text: "Est-ce que tu fais du sport régulièrement ?",
+    text: "Est-ce que tu fais du sport régulièrement ? Lequel ?",
     hint: "Describe how often you exercise and what you do.",
+    subTopic: "playing-sport",
     difficulty: 1,
     followUps: [
       "Combien de fois par semaine fais-tu du sport ?",
@@ -10899,8 +12971,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "spo_03",
     topicKey: "sports",
-    text: "Fais-tu partie d'une équipe ou d'un club de sport ?",
+    text: "Fais-tu partie d'une équipe ou d'un club de sport ? Lequel ?",
     hint: "Talk about club membership, training schedule, teammates.",
+    subTopic: "teams-and-clubs",
     difficulty: 1,
     followUps: [
       "Depuis combien de temps es-tu membre de ce club ?",
@@ -10922,6 +12995,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "sports",
     text: "Quel sport n'aimes-tu pas et pourquoi ?",
     hint: "Give a sport you dislike with reasons.",
+    subTopic: "playing-sport",
     difficulty: 1,
     followUps: [
       "As-tu déjà essayé ce sport ?",
@@ -10941,8 +13015,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "spo_05",
     topicKey: "sports",
-    text: "Décris la dernière fois que tu as fait du sport.",
+    text: "Qu'est-ce que tu as fait comme sport hier ?",
     hint: "Use passé composé to describe a recent sporting activity.",
+    subTopic: "playing-sport",
     difficulty: 1,
     followUps: [
       "Avec qui as-tu fait du sport ?",
@@ -10962,8 +13037,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "spo_06",
     topicKey: "sports",
-    text: "Regardes-tu souvent des matchs à la télévision ?",
+    text: "Regardes-tu souvent des matchs à la télévision ? Lesquels ?",
     hint: "Talk about watching sport on TV — which sports, with whom.",
+    subTopic: "watching-sport",
     difficulty: 1,
     followUps: [
       "Quelle équipe soutiens-tu ?",
@@ -10985,6 +13061,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "sports",
     text: "Pourquoi est-il important de faire du sport ?",
     hint: "Discuss health and social benefits of exercise.",
+    subTopic: "sport-and-society",
     difficulty: 2,
     followUps: [
       "Quels sont les bienfaits du sport sur la santé mentale ?",
@@ -11004,8 +13081,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "spo_08",
     topicKey: "sports",
-    text: "Préfères-tu les sports individuels ou les sports d'équipe ?",
+    text: "Préfères-tu les sports individuels ou les sports d'équipe ? Pourquoi ?",
     hint: "Compare individual vs team sports with your preference.",
+    subTopic: "teams-and-clubs",
     difficulty: 2,
     followUps: [
       "Quels sont les avantages du sport individuel ?",
@@ -11027,6 +13105,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "sports",
     text: "Que penses-tu des salaires extrêmement élevés des sportifs professionnels ?",
     hint: "Give a balanced opinion on professional athletes' high salaries.",
+    subTopic: "watching-sport",
     difficulty: 2,
     followUps: [
       "Penses-tu que ces salaires sont justifiés ?",
@@ -11048,6 +13127,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "sports",
     text: "Comment le sport peut-il rassembler les gens et les cultures ?",
     hint: "Discuss sport as a unifying social/cultural force.",
+    subTopic: "sport-and-society",
     difficulty: 2,
     followUps: [
       "Peux-tu donner un exemple d'événement sportif international ?",
@@ -11067,8 +13147,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "spo_11",
     topicKey: "sports",
-    text: "As-tu déjà participé à une compétition sportive ?",
+    text: "As-tu déjà participé à une compétition sportive ? Comment c'était ?",
     hint: "Recount a past competition experience using passé composé.",
+    subTopic: "teams-and-clubs",
     difficulty: 2,
     followUps: [
       "Comment t'es-tu préparé(e) ?",
@@ -11090,6 +13171,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "sports",
     text: "Quel est ton meilleur souvenir lié au sport ?",
     hint: "Describe a memorable sporting moment.",
+    subTopic: "teams-and-clubs",
     difficulty: 2,
     followUps: [
       "Pourquoi ce souvenir est-il si spécial ?",
@@ -11111,6 +13193,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "sports",
     text: "Comment vois-tu ta relation avec le sport dans dix ans ?",
     hint: "Use future tense to speculate about future sporting habits.",
+    subTopic: "playing-sport",
     difficulty: 2,
     followUps: [
       "Continueras-tu à pratiquer le même sport ?",
@@ -11130,8 +13213,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "spo_14",
     topicKey: "sports",
-    text: "Le sport à l'école devrait-il être obligatoire ?",
+    text: "Le sport à l'école devrait-il être obligatoire ? Pourquoi (pas) ?",
     hint: "Argue for or against compulsory school sport.",
+    subTopic: "sport-and-society",
     difficulty: 2,
     followUps: [
       "Quels sports devraient être proposés ?",
@@ -11153,6 +13237,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "sports",
     text: "Quels sont les dangers du sport de haut niveau pour les jeunes athlètes ?",
     hint: "Discuss risks of intensive training for young athletes.",
+    subTopic: "sport-and-society",
     difficulty: 2,
     followUps: [
       "Le sport professionnel peut-il nuire aux études ?",
@@ -11172,8 +13257,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "spo_16",
     topicKey: "sports",
-    text: "Le dopage est-il un problème majeur dans le sport moderne ?",
+    text: "Le dopage est-il un problème majeur dans le sport moderne ? Pourquoi ?",
     hint: "Discuss doping in professional sport.",
+    subTopic: "watching-sport",
     difficulty: 3,
     followUps: [
       "Comment le dopage affecte-t-il l'équité des compétitions ?",
@@ -11195,6 +13281,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "sports",
     text: "Dans quelle mesure les grands événements sportifs profitent-ils réellement aux villes hôtes ?",
     hint: "Evaluate economic/social impact of hosting major sporting events.",
+    subTopic: "watching-sport",
     difficulty: 3,
     followUps: [
       "Quels sont les coûts cachés de l'organisation d'un événement sportif ?",
@@ -11216,6 +13303,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "sports",
     text: "Comment la technologie a-t-elle transformé la façon dont on pratique et regarde le sport ?",
     hint: "Discuss technology's impact on sport (VAR, wearables, streaming).",
+    subTopic: "watching-sport",
     difficulty: 3,
     followUps: [
       "La technologie rend-elle les décisions arbitrales plus justes ?",
@@ -11235,8 +13323,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "spo_19",
     topicKey: "sports",
-    text: "Le sport professionnel accorde-t-il assez d'importance à la santé mentale des athlètes ?",
+    text: "Le sport professionnel accorde-t-il assez d'importance à la santé mentale des athlètes ? Pourquoi (pas) ?",
     hint: "Discuss mental health awareness in professional sport.",
+    subTopic: "sport-and-society",
     difficulty: 3,
     followUps: [
       "Connais-tu des exemples d'athlètes qui ont parlé de leur santé mentale ?",
@@ -11256,8 +13345,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "spo_20",
     topicKey: "sports",
-    text: "Faut-il plus d'égalité entre le sport masculin et le sport féminin ?",
+    text: "Faut-il plus d'égalité entre le sport masculin et le sport féminin ? Pourquoi ?",
     hint: "Discuss gender equality in sport (pay, media coverage).",
+    subTopic: "sport-and-society",
     difficulty: 3,
     followUps: [
       "Quelles inégalités persistent aujourd'hui ?",
@@ -11279,6 +13369,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "sports",
     text: "Quel rôle jouent les entraîneurs dans la réussite d'un athlète ?",
     hint: "Discuss the influence of coaches on athletic success.",
+    subTopic: "teams-and-clubs",
     difficulty: 2,
     followUps: [
       "As-tu déjà eu un entraîneur qui t'a beaucoup marqué(e) ?",
@@ -11300,6 +13391,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "sports",
     text: "Comment gères-tu la déception après une défaite sportive ?",
     hint: "Discuss coping strategies after losing a game/competition.",
+    subTopic: "teams-and-clubs",
     difficulty: 2,
     followUps: [
       "As-tu déjà vécu une défaite difficile à accepter ?",
@@ -11321,6 +13413,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "sports",
     text: "Quel sport aimerais-tu essayer si tu en avais l'occasion ?",
     hint: "Use conditional to describe a sport you'd like to try.",
+    subTopic: "playing-sport",
     difficulty: 1,
     followUps: [
       "Pourquoi ce sport t'intéresse-t-il ?",
@@ -11342,6 +13435,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "sports",
     text: "Comment le sport peut-il aider les personnes en situation de handicap ?",
     hint: "Discuss adaptive/Paralympic sport and inclusion.",
+    subTopic: "sport-and-society",
     difficulty: 3,
     followUps: [
       "Connais-tu les Jeux Paralympiques ?",
@@ -11361,8 +13455,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "spo_25",
     topicKey: "sports",
-    text: "Penses-tu que les jeunes d'aujourd'hui font assez de sport ?",
+    text: "Penses-tu que les jeunes d'aujourd'hui font assez de sport ? Pourquoi (pas) ?",
     hint: "Discuss youth physical activity levels vs screen time.",
+    subTopic: "sport-and-society",
     difficulty: 2,
     followUps: [
       "Quel rôle jouent les écrans dans ce problème ?",
@@ -11384,6 +13479,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "sports",
     text: "Comment te sens-tu avant une compétition importante ?",
     hint: "Describe pre-competition emotions and how you manage them.",
+    subTopic: "teams-and-clubs",
     difficulty: 2,
     followUps: [
       "As-tu des rituels avant de commencer ?",
@@ -11403,8 +13499,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "spo_27",
     topicKey: "sports",
-    text: "Le sport scolaire prépare-t-il bien les jeunes à une vie active ?",
+    text: "Le sport scolaire prépare-t-il bien les jeunes à une vie active ? Pourquoi (pas) ?",
     hint: "Evaluate whether school sport builds lifelong healthy habits.",
+    subTopic: "sport-and-society",
     difficulty: 3,
     followUps: [
       "Le sport scolaire est-il varié dans ton pays ?",
@@ -11426,6 +13523,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "sports",
     text: "Si tu devais créer une nouvelle compétition sportive, à quoi ressemblerait-elle ?",
     hint: "Use conditional to invent a new sporting competition.",
+    subTopic: "teams-and-clubs",
     difficulty: 3,
     followUps: [
       "Quelles règles aurait cette compétition ?",
@@ -11445,8 +13543,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "spo_29",
     topicKey: "sports",
-    text: "Le succès dans le sport dépend-il davantage du talent ou du travail ?",
+    text: "Le succès dans le sport dépend-il davantage du talent ou du travail ? Pourquoi ?",
     hint: "Debate natural talent vs hard work in sporting success.",
+    subTopic: "playing-sport",
     difficulty: 3,
     followUps: [
       "Peux-tu citer un exemple d'athlète connu pour son travail acharné ?",
@@ -11468,6 +13567,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "sports",
     text: "Dans quelle mesure le sport reflète-t-il les valeurs d'une société ?",
     hint: "Discuss sport as a mirror of societal values.",
+    subTopic: "sport-and-society",
     difficulty: 3,
     followUps: [
       "Le sport peut-il révéler des inégalités sociales ?",
@@ -11491,6 +13591,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "emotions",
     text: "Comment te sens-tu aujourd'hui ?",
     hint: "Describe your current mood and give a simple reason.",
+    subTopic: "feelings-today",
     difficulty: 1,
     followUps: [
       "Qu'est-ce qui t'a mis(e) de cette humeur ?",
@@ -11512,6 +13613,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "emotions",
     text: "Qu'est-ce qui te rend heureux/heureuse ?",
     hint: "Describe what makes you happy — people, activities, moments.",
+    subTopic: "feelings-today",
     difficulty: 1,
     followUps: [
       "Passes-tu beaucoup de temps avec ces personnes ?",
@@ -11533,6 +13635,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "emotions",
     text: "Qu'est-ce qui te met en colère ?",
     hint: "Describe what makes you angry and how you react.",
+    subTopic: "feelings-today",
     difficulty: 1,
     followUps: [
       "Comment réagis-tu quand tu es en colère ?",
@@ -11552,8 +13655,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "emo_04",
     topicKey: "emotions",
-    text: "As-tu déjà eu peur de quelque chose récemment ?",
+    text: "As-tu déjà eu peur de quelque chose récemment ? Comment as-tu réagi ?",
     hint: "Use passé composé to describe a recent frightening experience.",
+    subTopic: "feelings-today",
     difficulty: 1,
     followUps: [
       "Qu'est-ce qui t'a fait peur exactement ?",
@@ -11575,6 +13679,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "emotions",
     text: "Comment exprimes-tu tes sentiments à tes amis ?",
     hint: "Describe how you communicate feelings to friends.",
+    subTopic: "friends-and-support",
     difficulty: 1,
     followUps: [
       "Est-il facile pour toi de parler de tes émotions ?",
@@ -11594,8 +13699,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "emo_06",
     topicKey: "emotions",
-    text: "Te sens-tu parfois stressé(e) à cause de l'école ?",
+    text: "Te sens-tu parfois stressé(e) à cause de l'école ? Comment gères-tu ça ?",
     hint: "Discuss school-related stress and coping mechanisms.",
+    subTopic: "stress-and-coping",
     difficulty: 1,
     followUps: [
       "Qu'est-ce qui te stresse le plus à l'école ?",
@@ -11617,6 +13723,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "emotions",
     text: "Comment gères-tu le stress au quotidien ?",
     hint: "Explain strategies for managing everyday stress.",
+    subTopic: "stress-and-coping",
     difficulty: 2,
     followUps: [
       "Est-ce que le sport t'aide à te détendre ?",
@@ -11636,8 +13743,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "emo_08",
     topicKey: "emotions",
-    text: "Penses-tu qu'il est important de parler de ses émotions ?",
+    text: "Penses-tu qu'il est important de parler de ses émotions ? Pourquoi ?",
     hint: "Give an opinion on the importance of expressing emotions openly.",
+    subTopic: "emotions-and-society",
     difficulty: 2,
     followUps: [
       "Pourquoi certaines personnes trouvent-elles cela difficile ?",
@@ -11659,6 +13767,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "emotions",
     text: "Décris un moment où tu as ressenti une grande joie.",
     hint: "Use passé composé to describe a moment of great joy.",
+    subTopic: "feelings-today",
     difficulty: 2,
     followUps: [
       "Qui était avec toi à ce moment-là ?",
@@ -11680,6 +13789,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "emotions",
     text: "Comment réconfortes-tu un ami qui est triste ?",
     hint: "Explain how you comfort a sad friend.",
+    subTopic: "friends-and-support",
     difficulty: 2,
     followUps: [
       "Qu'est-ce qu'il ne faut surtout pas dire à quelqu'un de triste ?",
@@ -11699,8 +13809,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "emo_11",
     topicKey: "emotions",
-    text: "Les réseaux sociaux influencent-ils tes émotions ?",
+    text: "Les réseaux sociaux influencent-ils tes émotions ? Comment ?",
     hint: "Discuss the impact of social media on emotional wellbeing.",
+    subTopic: "emotions-and-society",
     difficulty: 2,
     followUps: [
       "Te sens-tu parfois jaloux/jalouse en regardant les autres en ligne ?",
@@ -11722,6 +13833,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "emotions",
     text: "Comment as-tu changé émotionnellement en grandissant ?",
     hint: "Reflect on emotional growth over time.",
+    subTopic: "feelings-today",
     difficulty: 2,
     followUps: [
       "Étais-tu plus timide quand tu étais petit(e) ?",
@@ -11741,8 +13853,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "emo_13",
     topicKey: "emotions",
-    text: "Penses-tu que les garçons et les filles expriment leurs émotions différemment ?",
+    text: "Penses-tu que les garçons et les filles expriment leurs émotions différemment ? Pourquoi (pas) ?",
     hint: "Discuss gender and emotional expression, with nuance.",
+    subTopic: "emotions-and-society",
     difficulty: 3,
     followUps: [
       "D'où viennent ces différences, selon toi ?",
@@ -11764,6 +13877,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "emotions",
     text: "Quel est le lien entre les émotions et la santé physique ?",
     hint: "Discuss the mind-body connection.",
+    subTopic: "emotions-and-society",
     difficulty: 3,
     followUps: [
       "Le stress chronique peut-il rendre malade ?",
@@ -11783,8 +13897,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "emo_15",
     topicKey: "emotions",
-    text: "Faut-il apprendre l'intelligence émotionnelle à l'école ?",
+    text: "Faut-il apprendre l'intelligence émotionnelle à l'école ? Pourquoi (pas) ?",
     hint: "Argue for/against teaching emotional intelligence in schools.",
+    subTopic: "emotions-and-society",
     difficulty: 3,
     followUps: [
       "Qu'est-ce que l'intelligence émotionnelle exactement ?",
@@ -11806,6 +13921,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "emotions",
     text: "As-tu déjà ressenti de la nostalgie ? Décris cette expérience.",
     hint: "Describe an experience of nostalgia.",
+    subTopic: "feelings-today",
     difficulty: 2,
     followUps: [
       "Qu'est-ce qui déclenche généralement ta nostalgie ?",
@@ -11827,6 +13943,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "emotions",
     text: "Comment fais-tu face à la déception ?",
     hint: "Explain how you cope with disappointment.",
+    subTopic: "stress-and-coping",
     difficulty: 2,
     followUps: [
       "Peux-tu donner un exemple de déception récente ?",
@@ -11846,22 +13963,23 @@ export const QUESTIONS: Question[] = [
   {
     id: "emo_18",
     topicKey: "emotions",
-    text: "Penses-tu que la société actuelle valorise trop le bonheur constant ?",
-    hint: "Discuss the pressure of constant happiness in modern culture.",
-    difficulty: 3,
+    text: "Est-ce que tu penses qu'on doit toujours sourire et être de bonne humeur ? Pourquoi (pas) ?",
+    hint: "Say whether people should always smile and look happy, give reasons, and mention a day when you were not in a good mood.",
+    subTopic: "emotions-and-society",
+    difficulty: 2,
     followUps: [
-      "Est-il sain de ressentir de la tristesse parfois ?",
-      "Les réseaux sociaux jouent-ils un rôle dans cette pression ?",
-      "Comment définirais-tu une vie émotionnellement équilibrée ?",
+      "Que fais-tu quand tu n'as pas envie de sourire ?",
+      "Est-ce que tes amis voient quand tu es de mauvaise humeur ?",
+      "Penses-tu que c'est mauvais de cacher ses émotions ?"
     ],
-    modelAnswer: "Je pense que oui, notre société valorise excessivement l'idée d'être heureux en permanence, ce qui crée une pression supplémentaire sur les gens qui traversent des moments difficiles. Les réseaux sociaux amplifient ce phénomène en montrant uniquement des vies apparemment parfaites. Pourtant, ressentir de la tristesse ou de la colère fait partie intégrante de l'expérience humaine, et une vie équilibrée accepte toute la gamme des émotions, pas seulement les positives.",
+    modelAnswer: "Je pense qu'on n'a pas besoin de toujours sourire. Tout le monde a des jours difficiles, et c'est normal d'être triste ou fatigué(e) de temps en temps. Quand je cache mes émotions, je me sens encore plus mal, alors j'essaie d'en parler avec mes amis. Bien sûr, il faut rester poli(e) avec les autres, mais on n'est pas obligé d'être heureux tout le temps.",
     keyVocab: [
-      { fr: "valoriser", en: "to value/prize" },
-      { fr: "en permanence", en: "constantly" },
-      { fr: "amplifier", en: "to amplify" },
-      { fr: "apparemment", en: "apparently" },
-      { fr: "faire partie intégrante de", en: "to be an integral part of" },
-      { fr: "la gamme", en: "the range" },
+      { fr: "de bonne humeur", en: "in a good mood" },
+      { fr: "de mauvaise humeur", en: "in a bad mood" },
+      { fr: "sourire", en: "to smile" },
+      { fr: "cacher", en: "to hide" },
+      { fr: "être obligé(e)", en: "to have to" },
+      { fr: "fatigué(e)", en: "tired" }
     ],
   },
   {
@@ -11869,6 +13987,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "emotions",
     text: "Comment l'empathie influence-t-elle nos relations avec les autres ?",
     hint: "Discuss the role of empathy in relationships.",
+    subTopic: "friends-and-support",
     difficulty: 3,
     followUps: [
       "Penses-tu que l'empathie peut s'apprendre ?",
@@ -11890,6 +14009,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "emotions",
     text: "Dans quelle mesure nos émotions influencent-elles nos décisions importantes ?",
     hint: "Discuss the interplay between emotion and rational decision-making.",
+    subTopic: "emotions-and-society",
     difficulty: 3,
     followUps: [
       "Peux-tu donner un exemple de décision influencée par tes émotions ?",
@@ -11911,6 +14031,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "emotions",
     text: "Qu'est-ce qui te rend anxieux/anxieuse ?",
     hint: "Describe what causes you anxiety.",
+    subTopic: "stress-and-coping",
     difficulty: 2,
     followUps: [
       "Comment se manifeste ton anxiété physiquement ?",
@@ -11932,6 +14053,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "emotions",
     text: "Comment sais-tu quand quelqu'un d'autre est triste sans qu'il te le dise ?",
     hint: "Discuss reading non-verbal emotional cues in others.",
+    subTopic: "friends-and-support",
     difficulty: 2,
     followUps: [
       "Quels signes physiques remarques-tu ?",
@@ -11951,8 +14073,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "emo_23",
     topicKey: "emotions",
-    text: "Es-tu plutôt quelqu'un d'optimiste ou de pessimiste ?",
+    text: "Es-tu plutôt quelqu'un d'optimiste ou de pessimiste ? Pourquoi ?",
     hint: "Describe your general outlook — optimistic or pessimistic.",
+    subTopic: "feelings-today",
     difficulty: 1,
     followUps: [
       "Peux-tu donner un exemple de situation récente ?",
@@ -11974,6 +14097,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "emotions",
     text: "Comment gères-tu la jalousie ?",
     hint: "Discuss how you handle feelings of jealousy.",
+    subTopic: "stress-and-coping",
     difficulty: 2,
     followUps: [
       "Dans quelles situations ressens-tu de la jalousie ?",
@@ -11995,6 +14119,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "emotions",
     text: "Qu'est-ce que la gratitude signifie pour toi ?",
     hint: "Discuss the meaning and practice of gratitude.",
+    subTopic: "feelings-today",
     difficulty: 2,
     followUps: [
       "Tiens-tu un journal de gratitude ?",
@@ -12014,8 +14139,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "emo_26",
     topicKey: "emotions",
-    text: "Est-ce que tu pleures facilement ?",
+    text: "Est-ce que tu pleures facilement ? Quand est-ce que ça t'arrive ?",
     hint: "Discuss crying and emotional expression, honestly and without stereotype.",
+    subTopic: "feelings-today",
     difficulty: 1,
     followUps: [
       "Dans quelles situations pleures-tu ?",
@@ -12037,6 +14163,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "emotions",
     text: "Quel rôle joue la musique dans la gestion de tes émotions ?",
     hint: "Discuss how music affects your mood.",
+    subTopic: "stress-and-coping",
     difficulty: 2,
     followUps: [
       "Quel genre de musique écoutes-tu quand tu es triste ?",
@@ -12058,6 +14185,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "emotions",
     text: "Comment fais-tu la paix avec quelqu'un après une dispute ?",
     hint: "Describe how you resolve conflict and reconcile after an argument.",
+    subTopic: "friends-and-support",
     difficulty: 2,
     followUps: [
       "Est-ce que tu t'excuses facilement ?",
@@ -12077,22 +14205,23 @@ export const QUESTIONS: Question[] = [
   {
     id: "emo_29",
     topicKey: "emotions",
-    text: "L'intelligence artificielle pourra-t-elle un jour comprendre réellement les émotions humaines ?",
-    hint: "Speculate on AI's ability to understand human emotion.",
-    difficulty: 3,
+    text: "Est-ce que tu préfères parler de tes émotions en face à face ou par message ? Pourquoi ?",
+    hint: "Compare talking about feelings in person with texting, give your preference and reasons.",
+    subTopic: "friends-and-support",
+    difficulty: 2,
     followUps: [
-      "Quelle est la différence entre reconnaître et ressentir une émotion ?",
-      "Les chatbots peuvent-ils vraiment offrir du soutien émotionnel ?",
-      "Cela pose-t-il des questions éthiques ?",
+      "À qui envoies-tu des messages quand tu es content(e) ?",
+      "Y a-t-il des sujets dont tu parles seulement en face à face ?",
+      "Penses-tu qu'un message peut remplacer une conversation ?"
     ],
-    modelAnswer: "Je doute que l'intelligence artificielle puisse un jour véritablement ressentir des émotions, même si elle peut déjà les reconnaître grâce à l'analyse du ton de voix ou des expressions faciales. Il y a une différence fondamentale entre reconnaître un schéma et éprouver réellement un sentiment. Cela dit, je pense que les chatbots peuvent offrir un certain soutien émotionnel de base, mais cela soulève des questions éthiques sur la dépendance émotionnelle envers des machines.",
+    modelAnswer: "Je préfère parler en face à face parce qu'on peut voir le visage de l'autre et sentir qu'il nous écoute vraiment. Par message, c'est plus facile de se cacher et on peut mal comprendre le ton. Cependant, quand je suis timide ou que le sujet est difficile, j'écris d'abord un message à ma meilleure amie, puis on en parle ensemble. Pour moi, rien ne remplace une vraie conversation.",
     keyVocab: [
-      { fr: "l'intelligence artificielle", en: "artificial intelligence" },
-      { fr: "un schéma", en: "a pattern" },
-      { fr: "éprouver", en: "to experience (a feeling)" },
-      { fr: "soulever une question", en: "to raise a question" },
-      { fr: "éthique", en: "ethical" },
-      { fr: "la dépendance", en: "dependency" },
+      { fr: "en face à face", en: "face to face" },
+      { fr: "un message", en: "a text message" },
+      { fr: "écouter", en: "to listen" },
+      { fr: "comprendre le ton", en: "to understand the tone" },
+      { fr: "timide", en: "shy" },
+      { fr: "remplacer", en: "to replace" }
     ],
   },
   {
@@ -12100,6 +14229,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "emotions",
     text: "Dans quelle mesure devrions-nous laisser nos émotions guider nos actions ?",
     hint: "Debate the balance between emotional impulse and self-control.",
+    subTopic: "emotions-and-society",
     difficulty: 3,
     followUps: [
       "Peux-tu donner un exemple où suivre ses émotions était une bonne idée ?",
@@ -12123,6 +14253,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "arts",
     text: "Quel genre de musique préfères-tu ?",
     hint: "Describe your favourite music genre and why you like it.",
+    subTopic: "music",
     difficulty: 1,
     followUps: [
       "Quel est ton chanteur ou groupe préféré ?",
@@ -12142,8 +14273,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "arv_02",
     topicKey: "arts",
-    text: "Aimes-tu aller au cinéma ?",
+    text: "Aimes-tu aller au cinéma ? Quel genre de films préfères-tu ?",
     hint: "Discuss cinema-going habits and favourite film types.",
+    subTopic: "film-and-tv",
     difficulty: 1,
     followUps: [
       "Quel genre de film préfères-tu ?",
@@ -12163,8 +14295,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "arv_03",
     topicKey: "arts",
-    text: "Est-ce que tu lis beaucoup de livres ?",
+    text: "Est-ce que tu lis beaucoup de livres ? Quel genre préfères-tu ?",
     hint: "Discuss your reading habits and preferred genres.",
+    subTopic: "books-and-writing",
     difficulty: 1,
     followUps: [
       "Quel est ton livre préféré ?",
@@ -12184,8 +14317,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "arv_04",
     topicKey: "arts",
-    text: "Sais-tu dessiner ou peindre ?",
+    text: "Sais-tu dessiner ou peindre ? Quand le fais-tu ?",
     hint: "Discuss your drawing/painting skills or interest in visual art.",
+    subTopic: "visual-arts",
     difficulty: 1,
     followUps: [
       "Depuis quand fais-tu du dessin ou de la peinture ?",
@@ -12205,8 +14339,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "arv_05",
     topicKey: "arts",
-    text: "As-tu déjà visité un musée d'art ?",
+    text: "As-tu déjà visité un musée d'art ? Comment c'était ?",
     hint: "Describe a museum visit using passé composé.",
+    subTopic: "visual-arts",
     difficulty: 1,
     followUps: [
       "Quelles œuvres t'ont le plus marqué(e) ?",
@@ -12228,6 +14363,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "arts",
     text: "Quel est ton film préféré et pourquoi ?",
     hint: "Describe your favourite film with reasons.",
+    subTopic: "film-and-tv",
     difficulty: 1,
     followUps: [
       "Qui sont les acteurs principaux ?",
@@ -12247,8 +14383,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "arv_07",
     topicKey: "arts",
-    text: "Penses-tu que l'art est important pour la société ?",
+    text: "Penses-tu que l'art est important pour la société ? Pourquoi ?",
     hint: "Give an opinion on why art matters to society.",
+    subTopic: "art-and-society",
     difficulty: 2,
     followUps: [
       "L'art peut-il changer la façon dont on voit le monde ?",
@@ -12268,8 +14405,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "arv_08",
     topicKey: "arts",
-    text: "Préfères-tu la musique en direct ou enregistrée ?",
+    text: "Préfères-tu la musique en direct ou enregistrée ? Pourquoi ?",
     hint: "Compare live music with recorded music.",
+    subTopic: "music",
     difficulty: 2,
     followUps: [
       "As-tu déjà assisté à un concert ?",
@@ -12289,8 +14427,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "arv_09",
     topicKey: "arts",
-    text: "Le streaming a-t-il changé la manière dont les gens consomment la musique et les films ?",
+    text: "Le streaming a-t-il changé la manière dont les gens consomment la musique et les films ? Comment ?",
     hint: "Discuss streaming's impact on media consumption.",
+    subTopic: "film-and-tv",
     difficulty: 2,
     followUps: [
       "Est-ce une bonne chose pour les artistes ?",
@@ -12312,6 +14451,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "arts",
     text: "Quel livre t'a le plus marqué(e) et pourquoi ?",
     hint: "Describe an impactful book and its influence on you.",
+    subTopic: "books-and-writing",
     difficulty: 2,
     followUps: [
       "Qu'as-tu appris de ce livre ?",
@@ -12331,8 +14471,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "arv_11",
     topicKey: "arts",
-    text: "Les jeux vidéo peuvent-ils être considérés comme une forme d'art ?",
+    text: "Les jeux vidéo peuvent-ils être considérés comme une forme d'art ? Pourquoi (pas) ?",
     hint: "Debate whether video games count as art.",
+    subTopic: "film-and-tv",
     difficulty: 3,
     followUps: [
       "Quels éléments d'un jeu vidéo pourraient être artistiques ?",
@@ -12354,6 +14495,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "arts",
     text: "Que penses-tu de la censure dans l'art ?",
     hint: "Discuss the debate around censorship in artistic works.",
+    subTopic: "art-and-society",
     difficulty: 3,
     followUps: [
       "L'art doit-il toujours respecter certaines limites morales ?",
@@ -12375,6 +14517,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "arts",
     text: "Comment la technologie a-t-elle transformé la création artistique ?",
     hint: "Discuss digital tools and AI's impact on art creation.",
+    subTopic: "visual-arts",
     difficulty: 3,
     followUps: [
       "L'intelligence artificielle peut-elle créer de véritables œuvres d'art ?",
@@ -12396,6 +14539,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "arts",
     text: "Dans quelle mesure la musique reflète-t-elle les préoccupations d'une génération ?",
     hint: "Discuss how music reflects generational concerns and culture.",
+    subTopic: "music",
     difficulty: 3,
     followUps: [
       "Peux-tu citer une chanson qui aborde un problème social ?",
@@ -12415,8 +14559,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "arv_15",
     topicKey: "arts",
-    text: "Faut-il préserver l'art traditionnel face à la culture numérique moderne ?",
+    text: "Faut-il préserver l'art traditionnel face à la culture numérique moderne ? Pourquoi ?",
     hint: "Discuss preserving traditional art forms in a digital age.",
+    subTopic: "art-and-society",
     difficulty: 3,
     followUps: [
       "Quels arts traditionnels risquent de disparaître ?",
@@ -12436,8 +14581,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "arv_16",
     topicKey: "arts",
-    text: "As-tu déjà écrit une histoire ou un poème ?",
+    text: "As-tu déjà écrit une histoire ou un poème ? Comment c'était ?",
     hint: "Describe a creative writing experience.",
+    subTopic: "books-and-writing",
     difficulty: 1,
     followUps: [
       "De quoi parlait ton histoire ou ton poème ?",
@@ -12457,8 +14603,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "arv_17",
     topicKey: "arts",
-    text: "Quel type de spectacle préfères-tu : le théâtre, la danse ou l'opéra ?",
+    text: "Quel type de spectacle préfères-tu : le théâtre, la danse ou l'opéra ? Pourquoi ?",
     hint: "Compare types of live performance art.",
+    subTopic: "music",
     difficulty: 2,
     followUps: [
       "As-tu déjà assisté à ce type de spectacle ?",
@@ -12480,6 +14627,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "arts",
     text: "Comment le cinéma peut-il sensibiliser les gens à des problèmes sociaux ?",
     hint: "Discuss film as a tool for social awareness.",
+    subTopic: "film-and-tv",
     difficulty: 3,
     followUps: [
       "Peux-tu citer un film qui traite d'un sujet social important ?",
@@ -12499,8 +14647,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "arv_19",
     topicKey: "arts",
-    text: "Penses-tu que l'accès à l'art et à la culture est égal pour tout le monde ?",
+    text: "Penses-tu que l'accès à l'art et à la culture est égal pour tout le monde ? Pourquoi (pas) ?",
     hint: "Discuss inequality of access to arts and culture.",
+    subTopic: "art-and-society",
     difficulty: 3,
     followUps: [
       "Quels obstacles empêchent certaines personnes d'accéder à la culture ?",
@@ -12522,6 +14671,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "arts",
     text: "Si tu pouvais rencontrer un artiste, peintre ou écrivain célèbre, qui choisirais-tu ?",
     hint: "Use conditional to describe meeting a famous artist.",
+    subTopic: "books-and-writing",
     difficulty: 2,
     followUps: [
       "Qu'aimerais-tu lui demander ?",
@@ -12543,6 +14693,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "arts",
     text: "Quel rôle la musique joue-t-elle dans ta vie quotidienne ?",
     hint: "Describe music's role in your daily routine.",
+    subTopic: "music",
     difficulty: 1,
     followUps: [
       "Écoutes-tu de la musique en travaillant ?",
@@ -12562,8 +14713,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "arv_22",
     topicKey: "arts",
-    text: "Penses-tu que les célébrités ont une responsabilité artistique envers leur public ?",
+    text: "Penses-tu que les célébrités ont une responsabilité artistique envers leur public ? Pourquoi (pas) ?",
     hint: "Discuss whether celebrities/artists owe responsibility to their audience.",
+    subTopic: "art-and-society",
     difficulty: 3,
     followUps: [
       "Les artistes doivent-ils toujours véhiculer des messages positifs ?",
@@ -12585,6 +14737,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "arts",
     text: "Comment décrirais-tu ton style personnel en matière d'art ou de design ?",
     hint: "Describe your personal taste in art, design, or aesthetics.",
+    subTopic: "visual-arts",
     difficulty: 2,
     followUps: [
       "Où trouves-tu de l'inspiration pour ton style ?",
@@ -12604,8 +14757,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "arv_24",
     topicKey: "arts",
-    text: "L'art abstrait a-t-il autant de valeur que l'art figuratif ?",
+    text: "L'art abstrait a-t-il autant de valeur que l'art figuratif ? Pourquoi ?",
     hint: "Debate the value of abstract art versus figurative/realistic art.",
+    subTopic: "visual-arts",
     difficulty: 3,
     followUps: [
       "Pourquoi certaines personnes trouvent-elles l'art abstrait difficile à comprendre ?",
@@ -12625,29 +14779,31 @@ export const QUESTIONS: Question[] = [
   {
     id: "arv_25",
     topicKey: "arts",
-    text: "Comment le street art a-t-il changé la perception de l'art urbain ?",
-    hint: "Discuss the evolution and perception of street art/graffiti.",
-    difficulty: 3,
+    text: "Est-ce que tu aimes le street art (les graffitis et les peintures sur les murs) dans ta ville ? Pourquoi (pas) ?",
+    hint: "Say whether you like street art in your town, describe one you have seen, and say whether you think it is art or vandalism.",
+    subTopic: "visual-arts",
+    difficulty: 2,
     followUps: [
-      "Le graffiti devrait-il être considéré comme du vandalisme ou de l'art ?",
-      "Connais-tu un artiste de street art célèbre ?",
-      "Comment les villes pourraient-elles mieux soutenir cette forme d'art ?",
+      "As-tu déjà vu une belle peinture sur un mur ?",
+      "Est-ce que le graffiti, pour toi, c'est de l'art ou du vandalisme ?",
+      "Aimerais-tu peindre un mur dans ton quartier ?"
     ],
-    modelAnswer: "Le street art a considérablement changé la perception de l'art urbain, passant d'une pratique souvent considérée comme du vandalisme à une forme d'expression artistique reconnue et même exposée dans des galeries. Des artistes ont réussi à transformer des murs abandonnés en véritables œuvres qui attirent des touristes du monde entier. Je pense que les villes devraient créer davantage d'espaces légaux pour cet art, afin d'encourager la créativité tout en respectant la propriété privée.",
+    modelAnswer: "Oui, j'aime beaucoup le street art parce qu'il rend les rues plus colorées et plus vivantes. Dans ma ville, il y a une grande fresque sur le mur d'une école qui représente des animaux, et je la trouve magnifique. Pour moi, c'est de l'art quand l'artiste a la permission de peindre, mais c'est du vandalisme quand on abîme la propriété des autres. Je pense que les villes devraient donner plus de murs aux artistes.",
     keyVocab: [
       { fr: "le street art", en: "street art" },
-      { fr: "le vandalisme", en: "vandalism" },
-      { fr: "reconnu(e)", en: "recognised" },
-      { fr: "une galerie", en: "a gallery" },
-      { fr: "abandonné(e)", en: "abandoned" },
-      { fr: "la propriété privée", en: "private property" },
+      { fr: "un mur", en: "a wall" },
+      { fr: "une fresque", en: "a mural" },
+      { fr: "abîmer", en: "to damage" },
+      { fr: "la permission", en: "permission" },
+      { fr: "le vandalisme", en: "vandalism" }
     ],
   },
   {
     id: "arv_26",
     topicKey: "arts",
-    text: "Est-ce important d'apprendre l'histoire de l'art à l'école ?",
+    text: "Est-ce important d'apprendre l'histoire de l'art à l'école ? Pourquoi (pas) ?",
     hint: "Discuss the value of art history education.",
+    subTopic: "art-and-society",
     difficulty: 2,
     followUps: [
       "Qu'as-tu appris en cours d'histoire de l'art, si tu en as suivi ?",
@@ -12667,8 +14823,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "arv_27",
     topicKey: "arts",
-    text: "Les adaptations de livres au cinéma sont-elles généralement réussies ?",
+    text: "Les adaptations de livres au cinéma sont-elles généralement réussies ? Pourquoi (pas) ?",
     hint: "Discuss book-to-film adaptations and their success/failure.",
+    subTopic: "books-and-writing",
     difficulty: 2,
     followUps: [
       "Peux-tu donner un exemple d'adaptation réussie ou ratée ?",
@@ -12690,6 +14847,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "arts",
     text: "Comment l'art peut-il aider à guérir ou à faire face à un traumatisme ?",
     hint: "Discuss art therapy and healing through creative expression.",
+    subTopic: "art-and-society",
     difficulty: 3,
     followUps: [
       "Connais-tu des exemples d'art-thérapie ?",
@@ -12711,6 +14869,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "arts",
     text: "Le marché de l'art contemporain reflète-t-il vraiment la valeur artistique des œuvres ?",
     hint: "Discuss the relationship between art market prices and artistic merit.",
+    subTopic: "art-and-society",
     difficulty: 3,
     followUps: [
       "Pourquoi certaines œuvres se vendent-elles à des prix extraordinaires ?",
@@ -12732,6 +14891,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "arts",
     text: "Dans quelle mesure l'art peut-il provoquer un changement social durable ?",
     hint: "Discuss art's power to create lasting social change.",
+    subTopic: "art-and-society",
     difficulty: 3,
     followUps: [
       "Peux-tu citer un mouvement artistique lié à un changement social ?",
@@ -12753,8 +14913,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "sho_01",
     topicKey: "shopping",
-    text: "Aimes-tu faire du shopping ?",
+    text: "Aimes-tu faire du shopping ? Pourquoi (pas) ?",
     hint: "Describe your general attitude toward shopping.",
+    subTopic: "shopping-habits",
     difficulty: 1,
     followUps: [
       "Qu'est-ce que tu aimes acheter le plus ?",
@@ -12774,8 +14935,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "sho_02",
     topicKey: "shopping",
-    text: "Préfères-tu acheter en ligne ou dans les magasins ?",
+    text: "Préfères-tu acheter en ligne ou dans les magasins ? Pourquoi ?",
     hint: "Compare online shopping vs shopping in physical stores.",
+    subTopic: "online-shopping",
     difficulty: 1,
     followUps: [
       "Quels sont les avantages du shopping en ligne ?",
@@ -12797,6 +14959,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "shopping",
     text: "Comment gères-tu ton argent de poche ?",
     hint: "Discuss how you manage pocket money/allowance.",
+    subTopic: "money-and-saving",
     difficulty: 1,
     followUps: [
       "Reçois-tu de l'argent de poche régulièrement ?",
@@ -12816,8 +14979,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "sho_04",
     topicKey: "shopping",
-    text: "Décris ton dernier achat important.",
+    text: "Décris le dernier achat important que tu as fait.",
     hint: "Use passé composé to describe a recent significant purchase.",
+    subTopic: "shopping-habits",
     difficulty: 1,
     followUps: [
       "Pourquoi as-tu décidé d'acheter cela ?",
@@ -12839,6 +15003,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "shopping",
     text: "Où aimes-tu faire tes courses en général ?",
     hint: "Describe your preferred shopping locations.",
+    subTopic: "shopping-habits",
     difficulty: 1,
     followUps: [
       "Y a-t-il un centre commercial près de chez toi ?",
@@ -12858,8 +15023,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "sho_06",
     topicKey: "shopping",
-    text: "As-tu déjà profité des soldes ?",
+    text: "As-tu déjà profité des soldes ? Comment c'était ?",
     hint: "Discuss experience with sales/discounts.",
+    subTopic: "money-and-saving",
     difficulty: 1,
     followUps: [
       "Qu'as-tu acheté pendant les soldes ?",
@@ -12879,8 +15045,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "sho_07",
     topicKey: "shopping",
-    text: "Penses-tu que la publicité influence trop nos habitudes d'achat ?",
+    text: "Penses-tu que la publicité influence trop nos habitudes d'achat ? Pourquoi (pas) ?",
     hint: "Discuss the influence of advertising on consumer habits.",
+    subTopic: "advertising-and-consumerism",
     difficulty: 2,
     followUps: [
       "As-tu déjà acheté quelque chose à cause d'une publicité ?",
@@ -12900,8 +15067,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "sho_08",
     topicKey: "shopping",
-    text: "Le shopping en ligne est-il bon ou mauvais pour l'environnement ?",
+    text: "Le shopping en ligne est-il bon ou mauvais pour l'environnement ? Pourquoi ?",
     hint: "Discuss the environmental impact of e-commerce.",
+    subTopic: "online-shopping",
     difficulty: 2,
     followUps: [
       "Quels sont les problèmes liés aux livraisons rapides ?",
@@ -12923,6 +15091,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "shopping",
     text: "Que penses-tu de la fast fashion ?",
     hint: "Discuss the ethics and impact of fast fashion.",
+    subTopic: "advertising-and-consumerism",
     difficulty: 2,
     followUps: [
       "Achètes-tu souvent des vêtements de fast fashion ?",
@@ -12944,6 +15113,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "shopping",
     text: "Comment décides-tu si un achat en vaut vraiment la peine ?",
     hint: "Discuss your decision-making process for purchases.",
+    subTopic: "money-and-saving",
     difficulty: 2,
     followUps: [
       "Compares-tu toujours les prix avant d'acheter ?",
@@ -12963,8 +15133,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "sho_11",
     topicKey: "shopping",
-    text: "Le consumérisme est-il devenu un problème dans la société actuelle ?",
+    text: "Le consumérisme est-il devenu un problème dans la société actuelle ? Pourquoi (pas) ?",
     hint: "Discuss consumerism as a broader societal issue.",
+    subTopic: "advertising-and-consumerism",
     difficulty: 3,
     followUps: [
       "Quelles sont les causes de la surconsommation ?",
@@ -12984,8 +15155,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "sho_12",
     topicKey: "shopping",
-    text: "Les petits commerces peuvent-ils survivre face à la concurrence des grandes chaînes ?",
+    text: "Les petits commerces peuvent-ils survivre face à la concurrence des grandes chaînes ? Pourquoi (pas) ?",
     hint: "Discuss small businesses vs large retail chains.",
+    subTopic: "shopping-habits",
     difficulty: 3,
     followUps: [
       "Quels sont les avantages des petits commerces ?",
@@ -13007,6 +15179,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "shopping",
     text: "Comment les entreprises utilisent-elles les données des clients pour influencer leurs achats ?",
     hint: "Discuss data-driven marketing and personalisation.",
+    subTopic: "online-shopping",
     difficulty: 3,
     followUps: [
       "Est-ce éthique d'utiliser les données personnelles de cette façon ?",
@@ -13026,8 +15199,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "sho_14",
     topicKey: "shopping",
-    text: "Faut-il enseigner l'éducation financière aux jeunes dès l'école ?",
+    text: "Faut-il enseigner l'éducation financière aux jeunes dès l'école ? Pourquoi (pas) ?",
     hint: "Argue for/against teaching financial literacy in schools.",
+    subTopic: "money-and-saving",
     difficulty: 3,
     followUps: [
       "Que devrait inclure un tel programme ?",
@@ -13049,6 +15223,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "shopping",
     text: "Dans quelle mesure notre identité est-elle liée à ce que nous achetons ?",
     hint: "Discuss the relationship between consumption and identity.",
+    subTopic: "advertising-and-consumerism",
     difficulty: 3,
     followUps: [
       "Les marques que l'on porte définissent-elles qui l'on est ?",
@@ -13068,8 +15243,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "sho_16",
     topicKey: "shopping",
-    text: "As-tu déjà vendu ou échangé des objets d'occasion ?",
+    text: "As-tu déjà vendu ou échangé des objets d'occasion ? Comment c'était ?",
     hint: "Describe experience buying/selling second-hand goods.",
+    subTopic: "shopping-habits",
     difficulty: 1,
     followUps: [
       "Quels objets as-tu vendus ou achetés d'occasion ?",
@@ -13091,6 +15267,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "shopping",
     text: "Comment choisis-tu un cadeau pour quelqu'un ?",
     hint: "Describe how you choose gifts for others.",
+    subTopic: "shopping-habits",
     difficulty: 1,
     followUps: [
       "Préfères-tu offrir un cadeau matériel ou une expérience ?",
@@ -13110,8 +15287,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "sho_18",
     topicKey: "shopping",
-    text: "Les réductions et les promotions te poussent-elles à acheter des choses inutiles ?",
+    text: "Les réductions et les promotions te poussent-elles à acheter des choses inutiles ? Pourquoi (pas) ?",
     hint: "Discuss the psychological pull of discounts and promotions.",
+    subTopic: "money-and-saving",
     difficulty: 2,
     followUps: [
       "Comment résistes-tu à ces tentations ?",
@@ -13131,22 +15309,23 @@ export const QUESTIONS: Question[] = [
   {
     id: "sho_19",
     topicKey: "shopping",
-    text: "Penses-tu que l'on devrait boycotter certaines entreprises pour des raisons éthiques ?",
-    hint: "Discuss consumer boycotts as ethical action.",
-    difficulty: 3,
+    text: "Est-ce que tu fais attention à l'origine des produits que tu achètes, par exemple les vêtements ou la nourriture ? Pourquoi (pas) ?",
+    hint: "Say whether you care where products come from, give reasons, and say whether you ever avoid a brand.",
+    subTopic: "shopping-habits",
+    difficulty: 2,
     followUps: [
-      "Peux-tu donner un exemple de boycott efficace ?",
-      "Le boycott individuel a-t-il vraiment un impact ?",
-      "Est-il difficile de savoir quelles entreprises sont éthiques ?",
+      "Est-ce que tu regardes les étiquettes ?",
+      "Y a-t-il une marque que tu n'achètes plus ?",
+      "Qui fait les achats chez toi ?"
     ],
-    modelAnswer: "Je pense que boycotter des entreprises pour des raisons éthiques peut être un moyen puissant de faire pression sur les grandes marques, surtout quand suffisamment de consommateurs se mobilisent ensemble. Cependant, un boycott individuel a souvent un impact limité, et il peut être très difficile de savoir avec certitude si une entreprise agit de manière éthique, car les chaînes d'approvisionnement sont souvent complexes et opaques. Je pense qu'il est important de faire des recherches avant de prendre position.",
+    modelAnswer: "Oui, je fais un peu attention, surtout pour la nourriture. Je regarde souvent si les produits viennent de France ou de mon pays parce que je pense que c'est meilleur pour l'environnement. Pour les vêtements, c'est plus difficile parce que les marques éthiques sont souvent chères. Il y a une marque que je n'achète plus parce que j'ai lu que ses employés sont mal payés. Je trouve que c'est important de savoir d'où viennent les choses.",
     keyVocab: [
-      { fr: "boycotter", en: "to boycott" },
-      { fr: "faire pression", en: "to put pressure" },
-      { fr: "se mobiliser", en: "to mobilise" },
-      { fr: "une chaîne d'approvisionnement", en: "a supply chain" },
-      { fr: "opaque", en: "opaque" },
-      { fr: "prendre position", en: "to take a stand" },
+      { fr: "l'origine", en: "origin" },
+      { fr: "une étiquette", en: "a label" },
+      { fr: "une marque", en: "a brand" },
+      { fr: "mal payé(e)", en: "badly paid" },
+      { fr: "cher/chère", en: "expensive" },
+      { fr: "l'environnement", en: "the environment" }
     ],
   },
   {
@@ -13154,6 +15333,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "shopping",
     text: "Comment vois-tu l'évolution du shopping dans dix ans ?",
     hint: "Use future tense to speculate about the future of shopping.",
+    subTopic: "online-shopping",
     difficulty: 3,
     followUps: [
       "La réalité virtuelle changera-t-elle notre façon de faire du shopping ?",
@@ -13173,8 +15353,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "sho_21",
     topicKey: "shopping",
-    text: "Quel est le pire achat que tu aies jamais fait ?",
+    text: "Quel est le pire achat que tu as déjà fait ?",
     hint: "Describe a regretted purchase using passé composé.",
+    subTopic: "money-and-saving",
     difficulty: 2,
     followUps: [
       "Pourquoi cet achat n'était-il pas une bonne idée ?",
@@ -13196,6 +15377,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "shopping",
     text: "Quelle est la différence entre un besoin et une envie quand on fait du shopping ?",
     hint: "Distinguish between needs and wants in consumption.",
+    subTopic: "money-and-saving",
     difficulty: 2,
     followUps: [
       "Comment fais-tu la différence entre les deux ?",
@@ -13217,6 +15399,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "shopping",
     text: "Comment les magasins essaient-ils de te faire acheter plus que prévu ?",
     hint: "Discuss retail tactics that encourage extra spending.",
+    subTopic: "advertising-and-consumerism",
     difficulty: 2,
     followUps: [
       "As-tu déjà remarqué la disposition des produits dans un magasin ?",
@@ -13236,8 +15419,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "sho_24",
     topicKey: "shopping",
-    text: "Le prix d'un produit reflète-t-il toujours sa qualité ?",
+    text: "Le prix d'un produit reflète-t-il toujours sa qualité ? Pourquoi (pas) ?",
     hint: "Discuss the relationship between price and quality.",
+    subTopic: "money-and-saving",
     difficulty: 2,
     followUps: [
       "As-tu déjà acheté un produit cher qui s'est avéré décevant ?",
@@ -13259,6 +15443,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "shopping",
     text: "Que penses-tu des influenceurs qui font la promotion de produits sur les réseaux sociaux ?",
     hint: "Discuss the phenomenon of social media influencer marketing.",
+    subTopic: "online-shopping",
     difficulty: 3,
     followUps: [
       "Fais-tu confiance aux recommandations des influenceurs ?",
@@ -13280,6 +15465,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "shopping",
     text: "Comment le pouvoir d'achat des familles a-t-il évolué ces dernières années ?",
     hint: "Discuss changes in purchasing power and cost of living.",
+    subTopic: "money-and-saving",
     difficulty: 3,
     followUps: [
       "Quels produits ont le plus augmenté de prix ?",
@@ -13299,8 +15485,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "sho_27",
     topicKey: "shopping",
-    text: "Est-il possible de faire du shopping de manière éthique dans le monde actuel ?",
+    text: "Est-il possible de faire du shopping de manière éthique dans le monde actuel ? Pourquoi (pas) ?",
     hint: "Discuss the feasibility of fully ethical consumption today.",
+    subTopic: "advertising-and-consumerism",
     difficulty: 3,
     followUps: [
       "Quelles démarches peuvent aider à consommer plus éthiquement ?",
@@ -13322,6 +15509,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "shopping",
     text: "Comment les jeunes générations consomment-elles différemment de leurs parents ?",
     hint: "Compare generational shopping/consumption habits.",
+    subTopic: "shopping-habits",
     difficulty: 3,
     followUps: [
       "Les jeunes se soucient-ils plus de l'éthique de leurs achats ?",
@@ -13341,8 +15529,9 @@ export const QUESTIONS: Question[] = [
   {
     id: "sho_29",
     topicKey: "shopping",
-    text: "Le marketing basé sur la rareté ('offre limitée', 'stock presque épuisé') est-il manipulateur ?",
+    text: "Le marketing basé sur la rareté ('offre limitée', 'stock presque épuisé') est-il manipulateur ? Pourquoi (pas) ?",
     hint: "Discuss scarcity marketing tactics and their ethics.",
+    subTopic: "advertising-and-consumerism",
     difficulty: 3,
     followUps: [
       "As-tu déjà été influencé(e) par ce genre de message ?",
@@ -13364,6 +15553,7 @@ export const QUESTIONS: Question[] = [
     topicKey: "shopping",
     text: "Dans quelle mesure le shopping est-il devenu une forme de divertissement plutôt qu'une simple nécessité ?",
     hint: "Discuss shopping as entertainment/leisure rather than necessity.",
+    subTopic: "advertising-and-consumerism",
     difficulty: 3,
     followUps: [
       "Pourquoi les gens font-ils du shopping même sans rien acheter ?",
@@ -13485,6 +15675,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Que penses-tu de l'influence des réseaux sociaux sur nos choix alimentaires ?",
     hint: "Discuss how Instagram or TikTok affect what and where people eat.",
+    subTopic: "eating-out-and-shopping",
+    coachHint: {
+      ideas: ["Say whether social media influences you", "Name an app", "Give an example of a dish or place"],
+      phrase: { fr: "Les réseaux sociaux influencent mes choix parce que…", en: "Social media influences my choices because…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que tu prends des photos de tes plats avant de manger ?",
@@ -13506,6 +15701,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Connais-tu la cuisine moléculaire ? Aimerais-tu la goûter ?",
     hint: "Discuss the fusion of science and cooking (foams, spheres, etc.).",
+    subTopic: "cooking",
+    coachHint: {
+      ideas: ["Say whether you know it", "Explain it in one sentence", "Say whether you would taste it and why"],
+      phrase: { fr: "J'aimerais goûter la cuisine moléculaire parce que…", en: "I would like to taste molecular cooking because…" },
+    },
     difficulty: 3,
     followUps: [
       "Penses-tu que c'est de l'art ou de la science ?",
@@ -13525,29 +15725,39 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_47",
     topicKey: "food",
-    text: "Que penses-tu de la nourriture imprimée en 3D ?",
-    hint: "Discuss the possibility of printing meals and its benefits.",
-    difficulty: 3,
+    text: "Est-ce que tu achètes des plats préparés au supermarché ? Pourquoi (pas) ?",
+    hint: "Say whether you buy ready meals, give reasons (speed, price, taste) and say whether you think they are healthy.",
+    subTopic: "eating-out-and-shopping",
+    coachHint: {
+      ideas: ["Say yes or no", "Give two reasons (speed, price, taste)", "Say whether you think they are healthy"],
+      phrase: { fr: "J'achète des plats préparés parce que… / Je n'en achète pas parce que…", en: "I buy ready meals because… / I don't buy them because…" },
+    },
+    difficulty: 2,
     followUps: [
-      "Serais-tu prêt à manger un steak imprimé en 3D ?",
-      "Quels sont les avantages pour l'environnement ?",
-      "Est-ce que cela va remplacer les chefs ?"
+      "Qu'est-ce que tu prépares quand tu es seul(e) à la maison ?",
+      "Penses-tu que les plats préparés sont chers ?",
+      "Qui fait les courses chez toi ?"
     ],
-    modelAnswer: "C'est une technologie incroyable qui pourrait aider à réduire le gaspillage en utilisant des ingrédients précis. On pourrait créer des formes impossibles à faire à la main. Cependant, je ne suis pas sûr que ce soit aussi savoureux que la cuisine faite par un humain. Pour l'environnement, cela pourrait réduire les émissions de carbone si on utilise des protéines végétales au lieu de viande.",
+    modelAnswer: "Oui, j'en achète de temps en temps quand mes parents n'ont pas le temps de cuisiner, par exemple des pizzas ou des lasagnes. C'est rapide et assez bon marché, mais je trouve que ce n'est pas très sain parce qu'il y a beaucoup de sel et de graisse. Je préfère les repas faits maison, surtout avec des légumes frais.",
     keyVocab: [
-      { fr: "imprimé en 3D", en: "3D printed" },
-      { fr: "le gaspillage", en: "waste" },
-      { fr: "précis(e)", en: "precise" },
-      { fr: "savoureux / savoureuse", en: "tasty / flavorful" },
-      { fr: "les émissions de carbone", en: "carbon emissions" },
-      { fr: "remplacer", en: "to replace" }
+      { fr: "un plat préparé", en: "ready meal" },
+      { fr: "bon marché", en: "cheap" },
+      { fr: "sain(e)", en: "healthy" },
+      { fr: "le sel", en: "salt" },
+      { fr: "la graisse", en: "fat" },
+      { fr: "fait(e) maison", en: "home-made" }
     ],
   },
   {
     id: "foo_48",
     topicKey: "food",
-    text: "Penses-tu que les repas scolaires sont meilleurs dans certains pays que dans d'autres ?",
+    text: "Penses-tu que les repas scolaires sont meilleurs dans certains pays que dans d'autres ? Pourquoi (pas) ?",
     hint: "Compare school lunches globally (e.g., France vs. USA vs. Japan).",
+    subTopic: "meals-and-habits",
+    coachHint: {
+      ideas: ["Say whether you think so", "Give an example country", "Give a reason (taste, price, variety)"],
+      phrase: { fr: "Je pense que les repas sont meilleurs en… parce que…", en: "I think meals are better in… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Qu'est-ce que tu sais des repas scolaires en France ?",
@@ -13569,6 +15779,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Que penses-tu de la consommation excessive de boissons énergisantes chez les jeunes ?",
     hint: "Discuss the health risks of caffeine and sugar for students.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Say what you think of energy drinks", "Give two risks (sugar, sleep, heart)", "Say whether they should be sold to teenagers"],
+      phrase: { fr: "Les boissons énergisantes sont dangereuses parce que…", en: "Energy drinks are dangerous because…" },
+    },
     difficulty: 2,
     followUps: [
       "En bois-tu pour réviser tes examens ?",
@@ -13588,8 +15803,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_50",
     topicKey: "food",
-    text: "Es-tu pour ou contre les OGM (organismes génétiquement modifiés) ?",
+    text: "Es-tu pour ou contre les OGM (organismes génétiquement modifiés) ? Pourquoi ?",
     hint: "Discuss the ethics and safety of genetically modified food.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Say for or against", "Give one benefit (food supply)", "Give one risk (health, nature)"],
+      phrase: { fr: "Je suis pour / contre les OGM parce que…", en: "I am for / against GMOs because…" },
+    },
     difficulty: 3,
     followUps: [
       "Peuvent-ils aider à résoudre la faim dans le monde ?",
@@ -13609,8 +15829,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_51",
     topicKey: "food",
-    text: "As-tu déjà entendu parler de la Fête de la Gastronomie en France ?",
+    text: "As-tu déjà entendu parler de la Fête de la Gastronomie en France ? Quelle fête de la nourriture existe dans ton pays ?",
     hint: "Discuss food festivals and their role in celebrating culture.",
+    subTopic: "eating-out-and-shopping",
+    coachHint: {
+      ideas: ["Say whether you know it", "Say what a food festival celebrates", "Describe one in your country"],
+      phrase: { fr: "Dans mon pays, il y a une fête de…", en: "In my country there is a festival of…" },
+    },
     difficulty: 2,
     followUps: [
       "Y a-t-il des festivals de nourriture dans ton pays ?",
@@ -13630,8 +15855,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_52",
     topicKey: "food",
-    text: "Penses-tu que cuisiner peut aider à réduire le stress ?",
+    text: "Penses-tu que cuisiner peut aider à réduire le stress ? Pourquoi (pas) ?",
     hint: "Discuss cooking as a creative and relaxing hobby.",
+    subTopic: "cooking",
+    coachHint: {
+      ideas: ["Say whether cooking relaxes you", "Give two reasons (focus, creativity, result)", "Say what you cook when stressed"],
+      phrase: { fr: "Cuisiner aide à réduire le stress parce que…", en: "Cooking helps reduce stress because…" },
+    },
     difficulty: 1,
     followUps: [
       "Cuisines-tu quand tu es stressé(e) ?",
@@ -13653,6 +15883,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Que penses-tu des publicités pour la nourriture s'adressant aux enfants ?",
     hint: "Discuss the ethics of marketing junk food to minors.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Say what you think", "Give two reasons (children trust adverts, unhealthy food)", "Say what should change"],
+      phrase: { fr: "Je pense que les publicités pour les enfants sont… parce que…", en: "I think adverts for children are… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Les publicités t'influencent-elles ?",
@@ -13672,8 +15907,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_54",
     topicKey: "food",
-    text: "As-tu déjà ramassé des fruits ou des champignons dans la nature ?",
+    text: "As-tu déjà ramassé des fruits ou des champignons dans la nature ? Où et avec qui ?",
     hint: "Discuss foraging for wild food and the risks/benefits.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Say yes or no", "Say what you picked and where", "Say who you were with"],
+      phrase: { fr: "Oui, j'ai ramassé des… avec…", en: "Yes, I picked… with…" },
+    },
     difficulty: 2,
     followUps: [
       "Sais-tu différencier les champignons comestibles des toxiques ?",
@@ -13693,8 +15933,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_55",
     topicKey: "food",
-    text: "Penses-tu qu'une taxe sur le sucre est une bonne idée ?",
+    text: "Penses-tu qu'une taxe sur le sucre est une bonne idée ? Pourquoi (pas) ?",
     hint: "Discuss government measures to reduce obesity.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Say whether it is a good idea", "Give two reasons (health, price, habits)", "Say what else could help"],
+      phrase: { fr: "Je suis pour cette mesure parce que… mais…", en: "I am for this measure because… but…" },
+    },
     difficulty: 3,
     followUps: [
       "Est-ce que cela décourage vraiment les gens d'acheter des sodas ?",
@@ -13714,8 +15959,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_56",
     topicKey: "food",
-    text: "Tu préfères apporter ton 'lunch box' ou manger à la cantine ?",
+    text: "Tu préfères apporter ton 'lunch box' ou manger à la cantine ? Pourquoi ?",
     hint: "Compare packed lunches from home with school-provided meals.",
+    subTopic: "meals-and-habits",
+    coachHint: {
+      ideas: ["Say which you prefer", "Give two reasons (price, choice, time)", "Say what is in your lunch box"],
+      phrase: { fr: "Je préfère… parce que…", en: "I prefer… because…" },
+    },
     difficulty: 1,
     followUps: [
       "Qu'est-ce qu'on met dans ton lunch box d'habitude ?",
@@ -13735,8 +15985,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_57",
     topicKey: "food",
-    text: "As-tu déjà entendu parler des 'super-aliments' comme le quinoa ou le chou kale ?",
+    text: "As-tu déjà entendu parler des 'super-aliments' comme le quinoa ou le chou kale ? Lesquels manges-tu ?",
     hint: "Discuss nutrient-dense foods and their popularity.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Say whether you know them", "Name one you eat", "Say whether you think they are a fashion"],
+      phrase: { fr: "Les super-aliments, comme le quinoa, sont…", en: "Superfoods, like quinoa, are…" },
+    },
     difficulty: 2,
     followUps: [
       "En manges-tu souvent ?",
@@ -13758,6 +16013,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Que penses-tu des aliments fermentés comme le yaourt ou le kimchi ?",
     hint: "Discuss foods with probiotics and their impact on digestion.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Say whether you like them", "Give one benefit (digestion)", "Name a food"],
+      phrase: { fr: "Je pense que les aliments fermentés sont… parce que…", en: "I think fermented foods are… because…" },
+    },
     difficulty: 2,
     followUps: [
       "Aimes-tu le goût acide de ces aliments ?",
@@ -13779,6 +16039,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Pourquoi les cafés (coffee shops) sont-ils si populaires pour travailler ou étudier ?",
     hint: "Discuss the 'third space' concept and working in public.",
+    subTopic: "eating-out-and-shopping",
+    coachHint: {
+      ideas: ["Give two reasons (wifi, atmosphere, coffee)", "Say whether you go there to work", "Say what you order"],
+      phrase: { fr: "Les cafés sont populaires parce que…", en: "Cafés are popular because…" },
+    },
     difficulty: 2,
     followUps: [
       "Préfères-tu réviser dans une bibliothèque ou dans un café ?",
@@ -13798,8 +16063,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_60",
     topicKey: "food",
-    text: "Voyagerais-tu dans un pays uniquement pour sa nourriture ?",
+    text: "Aimerais-tu voyager dans un pays uniquement pour sa nourriture ? Pourquoi (pas) ?",
     hint: "Discuss food tourism and the importance of gastronomy in travel.",
+    subTopic: "eating-out-and-shopping",
+    coachHint: {
+      ideas: ["Say yes or no", "Name the country and the food", "Give a reason (culture, taste)"],
+      phrase: { fr: "J'aimerais aller en… pour goûter…", en: "I would like to go to… to taste…" },
+    },
     difficulty: 2,
     followUps: [
       "Quel pays choisirais-tu pour un voyage gastronomique ?",
@@ -13821,6 +16091,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Qu'est-ce que tu penses des restaurants à volonté (les buffets) ?",
     hint: "Discuss the pros and cons of all-you-can-eat restaurants.",
+    subTopic: "eating-out-and-shopping",
+    coachHint: {
+      ideas: ["Say what you think", "Give one advantage (choice, price)", "Give one drawback (waste, eating too much)"],
+      phrase: { fr: "Les buffets à volonté sont… mais…", en: "All-you-can-eat buffets are… but…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que tu manges trop quand tu y vas ?",
@@ -13840,8 +16115,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_62",
     topicKey: "food",
-    text: "Connais-tu le rôle des banques alimentaires dans ta communauté ?",
+    text: "Connais-tu le rôle des banques alimentaires dans ta communauté ? Comment aident-elles les gens ?",
     hint: "Discuss food charity and helping people in need.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Say whether you know them", "Say who they help", "Say where food comes from"],
+      phrase: { fr: "Elles donnent des repas aux familles qui…", en: "They give meals to families who…" },
+    },
     difficulty: 2,
     followUps: [
       "As-tu déjà donné de la nourriture à une association ?",
@@ -13861,8 +16141,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_63",
     topicKey: "food",
-    text: "Aimes-tu regarder des concours de cuisine à la télé ?",
+    text: "Aimes-tu regarder des concours de cuisine à la télé ? Pourquoi (pas) ?",
     hint: "Discuss shows like MasterChef or Great British Bake Off.",
+    subTopic: "cooking",
+    coachHint: {
+      ideas: ["Say yes or no", "Name a show", "Give a reason"],
+      phrase: { fr: "J'aime regarder… parce que…", en: "I like watching… because…" },
+    },
     difficulty: 1,
     followUps: [
       "Qui est ton chef préféré ?",
@@ -13884,6 +16169,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Serais-tu prêt(e) à manger des insectes si c'était meilleur pour la planète ?",
     hint: "Discuss entomophagy as a sustainable protein source.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Say yes or no", "Give one reason (planet, protein)", "Say what would stop you"],
+      phrase: { fr: "Je serais prêt(e) à manger des insectes parce que…", en: "I would be ready to eat insects because…" },
+    },
     difficulty: 3,
     followUps: [
       "Penses-tu que c'est le futur de l'alimentation ?",
@@ -13905,6 +16195,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Pourquoi la baguette est-elle si emblématique de la France ?",
     hint: "Discuss the cultural history and importance of French bread.",
+    subTopic: "favourite-foods",
+    coachHint: {
+      ideas: ["Give two reasons (history, price, daily life)", "Say when people buy it", "Say what you eat it with"],
+      phrase: { fr: "La baguette est un symbole de la France parce que…", en: "The baguette is a symbol of France because…" },
+    },
     difficulty: 2,
     followUps: [
       "En manges-tu souvent ?",
@@ -13924,8 +16219,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_66",
     topicKey: "food",
-    text: "Est-ce que tu regardes le 'Nutri-Score' sur les emballages avant d'acheter ?",
+    text: "Est-ce que tu regardes le 'Nutri-Score' sur les emballages avant d'acheter ? Pourquoi (pas) ?",
     hint: "Discuss nutritional labeling and making healthy choices.",
+    subTopic: "eating-out-and-shopping",
+    coachHint: {
+      ideas: ["Say yes or no", "Say what it tells you", "Say whether it changes your choices"],
+      phrase: { fr: "Je regarde le Nutri-Score parce que… / je ne le regarde pas parce que…", en: "I look at the Nutri-Score because… / I don't look at it because…" },
+    },
     difficulty: 2,
     followUps: [
       "Est-ce que cela influence ton choix ?",
@@ -13947,6 +16247,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Que penses-tu des fermes verticales en plein centre-ville ?",
     hint: "Discuss urban agriculture and local production.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Say what you think", "Give two reasons (fresh food, space, cost)", "Say whether you would buy from one"],
+      phrase: { fr: "Les fermes verticales sont… parce que…", en: "Vertical farms are… because…" },
+    },
     difficulty: 3,
     followUps: [
       "Est-ce une solution contre la pollution des transports ?",
@@ -13966,8 +16271,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_68",
     topicKey: "food",
-    text: "Préfères-tu les collations faites maison ou celles achetées au magasin ?",
+    text: "Préfères-tu les collations faites maison ou celles achetées au magasin ? Pourquoi ?",
     hint: "Compare home-made snacks like cookies with store-bought ones.",
+    subTopic: "meals-and-habits",
+    coachHint: {
+      ideas: ["Say which you prefer", "Give two reasons (taste, price, health)", "Name your favourite snack"],
+      phrase: { fr: "Je préfère les collations… parce que…", en: "I prefer… snacks because…" },
+    },
     difficulty: 1,
     followUps: [
       "Quelle est ta collation préférée ?",
@@ -13989,6 +16299,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Que penses-tu de l'augmentation des laits végétaux (avoine, amande, soja) ?",
     hint: "Discuss alternatives to dairy and why people choose them.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Say what you think", "Give two reasons (allergies, animals, taste)", "Say which one you like"],
+      phrase: { fr: "Les laits végétaux sont… parce que…", en: "Plant milks are… because…" },
+    },
     difficulty: 2,
     followUps: [
       "En bois-tu à la place du lait de vache ?",
@@ -14010,6 +16325,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Pourquoi est-il important de choisir du poisson issu de la pêche durable ?",
     hint: "Discuss overfishing and ocean conservation.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Give two reasons (fish stocks, oceans, jobs)", "Say how you can choose", "Say whether you eat fish"],
+      phrase: { fr: "Il faut choisir du poisson durable parce que…", en: "We must choose sustainable fish because…" },
+    },
     difficulty: 3,
     followUps: [
       "Est-ce que tu manges souvent du poisson ?",
@@ -14029,8 +16349,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_71",
     topicKey: "food",
-    text: "As-tu déjà entendu parler du mouvement 'Slow Food' ?",
+    text: "As-tu déjà entendu parler du mouvement 'Slow Food' ? Comment décrirais-tu ce mouvement ?",
     hint: "Discuss the philosophy of eating slowly and valuing local traditions.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Say yes or no", "Give two ideas (slow, local, pleasure)", "Say how it differs from fast food"],
+      phrase: { fr: "Le mouvement Slow Food encourage les gens à…", en: "The Slow Food movement encourages people to…" },
+    },
     difficulty: 2,
     followUps: [
       "Prends-tu le temps de savourer tes repas ?",
@@ -14052,6 +16377,11 @@ export const QUESTIONS: Question[] = [
     topicKey: "food",
     text: "Comment le changement climatique affecte-t-il la production de chocolat et de café ?",
     hint: "Discuss how rising temperatures threaten certain crops.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Name two effects (hotter climate, drought, higher prices)", "Say who is affected", "Say what could be done"],
+      phrase: { fr: "Quand il fait trop chaud, les récoltes… et les prix…", en: "When it is too hot, harvests… and prices…" },
+    },
     difficulty: 3,
     followUps: [
       "Seras-tu triste si ces produits deviennent trop chers ?",
@@ -14071,8 +16401,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_73",
     topicKey: "food",
-    text: "Est-ce qu'une odeur ou un goût particulier te rappelle un souvenir d'enfance ?",
+    text: "Est-ce qu'une odeur ou un goût particulier te rappelle un souvenir d'enfance ? Lequel ?",
     hint: "Discuss the link between food and memory (like Proust's Madeleine).",
+    subTopic: "favourite-foods",
+    coachHint: {
+      ideas: ["Say yes or no", "Name the smell or taste", "Say what memory it brings back"],
+      phrase: { fr: "L'odeur de… me rappelle…", en: "The smell of… reminds me of…" },
+    },
     difficulty: 2,
     followUps: [
       "Quel est ce souvenir ?",
@@ -14092,8 +16427,13 @@ export const QUESTIONS: Question[] = [
   {
     id: "foo_74",
     topicKey: "food",
-    text: "Connais-tu le 'paradoxe français' concernant l'alimentation et la santé ?",
+    text: "Connais-tu le 'paradoxe français' concernant l'alimentation et la santé ? Comment l'expliques-tu ?",
     hint: "Discuss how the French stay healthy despite a rich diet.",
+    subTopic: "health-and-sustainability",
+    coachHint: {
+      ideas: ["Say whether you know it", "Give two possible reasons (small portions, slow meals)", "Say whether you agree"],
+      phrase: { fr: "On dit que les Français sont en bonne santé parce que…", en: "They say the French are healthy because…" },
+    },
     difficulty: 3,
     followUps: [
       "Penses-tu que c'est grâce au vin rouge ou aux petites portions ?",

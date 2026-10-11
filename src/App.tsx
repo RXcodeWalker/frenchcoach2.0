@@ -10,6 +10,7 @@ import { GemAnimations } from './components/GemAnimation';
 import { SideRail } from './components/Navigation';
 import { Home } from './screens/Home';
 import { Learn } from './screens/Learn';
+import { Notebook } from './screens/Notebook';
 import { ExamMode } from './screens/ExamMode';
 import { Explore } from './screens/Explore';
 import { Progress } from './screens/Progress';
@@ -223,6 +224,7 @@ function AppShell() {
         <Route element={<MainLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/learn" element={<Learn />} />
+          <Route path="/notebook" element={<Notebook />} />
           <Route path="/explore" element={<Explore />} />
           <Route path="/progress" element={<Progress />} />
           <Route path="/profile" element={<Profile />} />

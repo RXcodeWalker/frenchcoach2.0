@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useFeedbackContext } from '../state/feedbackContext';
-import { selectTopPriority, selectMajorIssues, selectPolishIssues, selectShowExaminerNotebook } from '../state/selectors';
+import { selectTopPriority, selectMajorIssues, selectPolishIssues } from '../state/selectors';
 import type { FeedbackV2 } from '../../../types';
 
 export function useFeedbackState(feedback: FeedbackV2) {
@@ -9,7 +9,6 @@ export function useFeedbackState(feedback: FeedbackV2) {
   const topPriority = useMemo(() => selectTopPriority(feedback), [feedback]);
   const majorIssues = useMemo(() => selectMajorIssues(feedback), [feedback]);
   const polishIssues = useMemo(() => selectPolishIssues(feedback), [feedback]);
-  const showExaminerNotebook = useMemo(() => selectShowExaminerNotebook(feedback), [feedback]);
 
   function isCardOpen(id: string) { return state.openCardIds.has(id); }
 
@@ -26,7 +25,7 @@ export function useFeedbackState(feedback: FeedbackV2) {
 
   return {
     state, dispatch,
-    topPriority, majorIssues, polishIssues, showExaminerNotebook,
+    topPriority, majorIssues, polishIssues,
     isCardOpen, openCardFromIssue,
   };
 }

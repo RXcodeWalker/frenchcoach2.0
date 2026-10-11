@@ -41,11 +41,11 @@ export function buildSegments(transcript: string, feedback: FeedbackV2): Segment
 }
 
 const MARGIN_DOT: Record<TranscriptSpan['severity'], string> = {
-  major: 'bg-red-400',
-  minor: 'bg-amber-400',
-  polish: 'bg-violet-400',
-  anglicism: 'bg-violet-300',
-  strong: 'bg-emerald-400',
+  major: 'bg-correction',
+  minor: 'bg-reward',
+  polish: 'bg-action',
+  anglicism: 'bg-action',
+  strong: 'bg-progress',
 };
 
 export function MarkedUpScript({ transcript, feedback, onIssueClick }: Props) {
@@ -59,7 +59,7 @@ export function MarkedUpScript({ transcript, feedback, onIssueClick }: Props) {
 
   return (
     <motion.div variants={fadeUp} initial="hidden" animate="show" className="rounded-xl surface p-4">
-      <p className="text-[9px] font-bold text-ink-subtle uppercase tracking-wider mb-2.5">Your Response — Marked Up</p>
+      <p className="text-eyebrow text-ink-subtle uppercase mb-2.5">Your Response — Marked Up</p>
 
       <div className="flex gap-2">
         {/* Margin markers — one dot per correction, aligned by document order */}

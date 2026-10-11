@@ -18,13 +18,13 @@ export function OfflineLimitationsBanner({ signedOut = false }: Props) {
 
   if (signedOut) {
     return (
-      <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-800/60 border border-slate-700/60">
+      <div className="flex items-start gap-3 p-3 rounded-xl surface-recessed">
         <span className="text-base leading-none flex-shrink-0 mt-0.5">🔒</span>
         <div className="flex-1 min-w-0">
           <p className="text-xs font-bold text-ink-muted">Basic analysis — sign in for AI feedback</p>
           <p className="text-[11px] text-ink-muted mt-0.5 leading-relaxed">
             AI coaching and pronunciation scoring run on your account, so as a guest you get offline
-            grammar checks only. <Link to="/login" className="font-semibold text-cyan-300 underline underline-offset-2">Sign in</Link> to get the full feedback on your next answer.
+            grammar checks only. <Link to="/login" className="font-semibold text-info-text underline underline-offset-2">Sign in</Link> to get the full feedback on your next answer.
           </p>
         </div>
         <button
@@ -38,7 +38,7 @@ export function OfflineLimitationsBanner({ signedOut = false }: Props) {
   }
 
   return (
-    <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-800/60 border border-slate-700/60">
+    <div className="flex items-start gap-3 p-3 rounded-xl surface-recessed">
       <span className="text-base leading-none flex-shrink-0 mt-0.5">📴</span>
       <div className="flex-1 min-w-0">
         <p className="text-xs font-bold text-ink-muted">Offline analysis — limited feedback</p>

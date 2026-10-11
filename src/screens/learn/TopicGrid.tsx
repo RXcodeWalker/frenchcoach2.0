@@ -1,8 +1,10 @@
 import { motion } from 'framer-motion';
-import { ChevronRight, Lock } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { BookMarked, ChevronRight, Lock } from 'lucide-react';
 import { TOPICS } from '../../data/gameData';
 import { LEARN_TOPIC_DEPENDENCIES } from '../../data/learnTopicDependencies';
 import { isLearnTopicUnlocked } from '../../features/learn/topicProgress';
+import { isTopicVisible } from '../../features/learn/sessionSetup';
 import type { Topic, DifficultyTier } from '../../types/index';
 
 interface Props {
@@ -10,6 +12,8 @@ interface Props {
   title?: string;
   subtitle?: string;
   selectedDifficulty?: DifficultyTier;
+  /** Show the way into the exam notebook (Learn only; Listening Mode shares this grid). */
+  showNotebookLink?: boolean;
 }
 
 function topicLabel(key: string): string {
@@ -22,7 +26,10 @@ function lockReason(topic: Topic): string {
   return `Complete 5 sessions in ${depLabels} averaging 7+/10 to unlock.`;
 }
 
-export function TopicGrid({ onSelect, title = "Learn", subtitle = "Choose a topic and start practicing" }: Props) {
+export function TopicGrid({ onSelect, title = "Learn", subtitle = "Choose a topic and start practicing", showNotebookLink = false }: Props) {
+  // Topics too small to practise as a session stay out of the grid (docs §13.4).
+  const visibleTopics = TOPICS.filter(isTopicVisible);
+
   const handleTopicClick = (topic: Topic, unlocked: boolean) => {
     if (!unlocked) return;
     onSelect(topic);
@@ -42,7 +49,7 @@ export function TopicGrid({ onSelect, title = "Learn", subtitle = "Choose a topi
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {TOPICS.map((topic, idx) => {
+          {visibleTopics.map((topic, idx) => {
             const unlocked = !topic.isAdvanced || isLearnTopicUnlocked(LEARN_TOPIC_DEPENDENCIES[topic.key] ?? []);
             return (
               <motion.button
@@ -77,11 +84,6 @@ export function TopicGrid({ onSelect, title = "Learn", subtitle = "Choose a topi
                   </div>
                   <div className="flex items-center gap-1.5 mb-0.5">
                     <h3 className="font-bold text-white text-sm">{topic.label}</h3>
-                    {topic.isAdvanced && (
-                      <span className="text-[8px] bg-amber-500/20 text-amber-400 px-1 rounded-sm uppercase tracking-wider font-bold border border-amber-500/20">
-                        ADV
-                      </span>
-                    )}
                   </div>
                   <p className="text-[10px] text-ink-subtle">{topic.labelEn}</p>
                   {unlocked ? (
@@ -96,7 +98,7 @@ export function TopicGrid({ onSelect, title = "Learn", subtitle = "Choose a topi
         </div>
 
         <motion.button
-          onClick={() => onSelect(TOPICS[Math.floor(Math.random() * TOPICS.length)])}
+          onClick={() => onSelect(visibleTopics[Math.floor(Math.random() * visibleTopics.length)])}
           className="w-full group relative overflow-hidden rounded-xl surface-recessed border-dashed border-white/8 p-4 text-left hover:bg-white/[0.02] transition-all duration-300"
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.98 }}
@@ -112,6 +114,21 @@ export function TopicGrid({ onSelect, title = "Learn", subtitle = "Choose a topi
             <ChevronRight size={14} className="text-ink-subtle group-hover:text-white group-hover:translate-x-1 transition-all" />
           </div>
         </motion.button>
+
+        {showNotebookLink && (
+          <Link
+            to="/notebook"
+            className="flex items-center gap-3 rounded-xl surface-recessed p-4 text-left"
+            data-testid="notebook-link"
+          >
+            <BookMarked size={16} className="text-action-text" aria-hidden="true" />
+            <span className="flex-1">
+              <span className="block text-sm font-bold text-ink">Your exam notebook</span>
+              <span className="block text-[10px] text-ink-muted">The answers you chose to keep, to listen to and practise from memory</span>
+            </span>
+            <ChevronRight size={14} className="text-ink-muted" aria-hidden="true" />
+          </Link>
+        )}
       </motion.div>
     </div>
   );

@@ -86,6 +86,10 @@ export default {
           text: 'var(--correction-text)',
           soft: 'var(--correction-soft)',
         },
+        info: {
+          text: 'var(--info-text)',
+          soft: 'var(--info-soft)',
+        },
         focus: 'var(--focus)',
         track: 'var(--track)',
 

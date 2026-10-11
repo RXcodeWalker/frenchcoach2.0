@@ -7,6 +7,11 @@ import { MarkedUpScript } from './MarkedUpScript';
 import { BeforeAfterDiff } from './BeforeAfterDiff';
 import { RewriteLadder } from './RewriteLadder';
 import { IssueRow } from './IssueRow';
+import { BiggestOpportunityCard } from './BiggestOpportunityCard';
+import { CorrectionsCard } from './CorrectionsCard';
+import { ExpansionIdeasCard } from './ExpansionIdeasCard';
+import { VocabularyCard } from './VocabularyCard';
+import { selectCardPlan } from '../state/selectors';
 import type { CoachingIssue, FeedbackV2 } from '../../../types';
 
 interface Props {
@@ -21,16 +26,21 @@ interface Props {
  * Docs Stage 6 — the "Full report" segment. Progressive disclosure, not a
  * wall: opens with summary, marked-up script, before/after diff and the
  * ladder; corrections are listed compactly with quote + fix, lessons stay
- * collapsed per-row unless "expand all" is on.
+ * collapsed per-row unless "expand all" is on. Since Learn Batch 4 it also
+ * holds what the coach view no longer shows: the one-focus line, every
+ * correction with its lesson, vocabulary upgrades and expansion ideas.
  */
 export function ReportView({ feedback, transcript, majorIssues, polishIssues, onIssueClick }: Props) {
   const { state, dispatch } = useFeedbackContext();
   const allIssues = [...majorIssues, ...polishIssues];
   const expandAll = state.expandAllLessons;
+  const cardPlan = selectCardPlan(feedback);
 
   return (
     <motion.div variants={fadeUp} initial="hidden" animate="show" className="space-y-3">
       <SnapshotCard feedback={feedback} />
+
+      <BiggestOpportunityCard opportunity={feedback.biggest_opportunity} />
 
       <MarkedUpScript
         transcript={transcript ?? ''}
@@ -52,12 +62,12 @@ export function ReportView({ feedback, transcript, majorIssues, polishIssues, on
       {allIssues.length > 0 && (
         <div className="rounded-xl surface p-4">
           <div className="flex items-center justify-between mb-2.5">
-            <p className="text-[9px] font-bold text-ink-subtle uppercase tracking-wider">
+            <p className="text-eyebrow text-ink-subtle uppercase">
               Corrections ({allIssues.length})
             </p>
             <button
               onClick={() => dispatch({ type: 'SET_EXPAND_ALL_LESSONS', value: !expandAll })}
-              className="flex items-center gap-1 text-[9px] font-medium text-violet-400 hover:text-violet-300 transition-colors"
+              className="flex items-center gap-1 text-[9px] font-medium text-action-text hover:text-action-text transition-colors"
             >
               {expandAll ? <ChevronsDownUp size={11} /> : <ChevronsUpDown size={11} />}
               {expandAll ? 'Collapse all' : 'Expand all'}
@@ -69,12 +79,24 @@ export function ReportView({ feedback, transcript, majorIssues, polishIssues, on
                 key={issue.id}
                 issue={issue}
                 isSelected={state.selectedIssueId === issue.id}
+                lessonDefaultOpen={cardPlan.lessonsDefaultOpen}
                 lessonForceOpen={expandAll ? true : undefined}
               />
             ))}
           </div>
         </div>
       )}
+
+      {/* No corrections[] (older backend, offline): the legacy grammar list. */}
+      {allIssues.length === 0 && (
+        <CorrectionsCard issues={[]} feedback={feedback} lessonsForceOpen={expandAll ? true : undefined} />
+      )}
+
+      {cardPlan.showExpansionIdeas && (
+        <ExpansionIdeasCard ideas={feedback.expansion_ideas} defaultOpen={cardPlan.lessonsDefaultOpen} />
+      )}
+
+      <VocabularyCard feedback={feedback} />
     </motion.div>
   );
 }

@@ -19,17 +19,17 @@ export function RecordingPanel({ isActive, recording, onStop }: Props) {
       animate={{ opacity: 1 }}
     >
       {!recording.sttSupported && (
-        <div className="flex items-start gap-2 mb-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/25">
-          <AlertTriangle size={14} className="text-amber-400 shrink-0 mt-0.5" />
-          <p className="text-[11px] text-amber-300 leading-snug">
+        <div className="flex items-start gap-2 mb-4 p-3 rounded-lg bg-reward-soft border border-hairline">
+          <AlertTriangle size={14} className="text-reward-text shrink-0 mt-0.5" />
+          <p className="text-[11px] text-reward-text leading-snug">
             This browser doesn't support live speech transcription. Try Chrome or Edge for the best experience.
           </p>
         </div>
       )}
       {recording.sttSupported && recording.sttError && (
-        <div className="flex items-start gap-2 mb-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/25">
-          <AlertTriangle size={14} className="text-amber-400 shrink-0 mt-0.5" />
-          <p className="text-[11px] text-amber-300 leading-snug">
+        <div className="flex items-start gap-2 mb-4 p-3 rounded-lg bg-reward-soft border border-hairline">
+          <AlertTriangle size={14} className="text-reward-text shrink-0 mt-0.5" />
+          <p className="text-[11px] text-reward-text leading-snug">
             Speech recognition error ({recording.sttError}). Your recording may not have been transcribed.
           </p>
         </div>
@@ -65,7 +65,7 @@ export function RecordingPanel({ isActive, recording, onStop }: Props) {
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
         >
-          {recording.isRecording ? <MicOff size={20} className="text-white" /> : <Mic size={20} className="text-white" />}
+          {recording.isRecording ? <MicOff size={20} className="text-action-ink" /> : <Mic size={20} className="text-action-ink" />}
           {recording.isRecording && <span className="absolute inset-0 rounded-full border-2 border-red-400 animate-ping opacity-20" />}
         </motion.button>
       </div>
