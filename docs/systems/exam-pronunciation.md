@@ -6,8 +6,9 @@ way, and the rules it must keep: `docs/decisions/0010-pronunciation-evidence-is-
 tests are the current behavior.
 
 **Release status: closed.** The feature is built and dark for learners. Every threshold is
-`UNVALIDATED`, and the calibration that would validate them (below) has **not passed**: sets 1 and an
-interim set 2 are recorded and clean, set 3 and the learner-accent set 2 are not. Until it
+`UNVALIDATED`, and the calibration that would validate them (below) **failed** (2026-10-11): it caught
+0 of 9 deliberate minimal-pair swaps and reported one understandable learner accent (see
+"Calibration result" below). Word-level flags must not be released in this design. Until it
 has, `EXAM_PRONUNCIATION_ACCESS` stays `off` or `admin`.
 
 ## What the candidate sees
@@ -133,7 +134,7 @@ for a `pending` account.
 If calibration moves a threshold, bump `EXAM_PRONUNCIATION_VERSION` (and
 `EXAM_PRONUNCIATION_ASSESSOR_VERSION` if the backend logic changed) and re-run it.
 
-### Calibration (partly run: sets 1 and interim 2)
+### Calibration (run 2026-10-11: FAILED)
 
 Three fixed audio sets: (1) clear French, (2) a strong but understandable accent, (3) genuinely
 unclear words (minimal-pair swaps). Rules: no under-13 voices, everyone recorded consents, no
@@ -191,6 +192,34 @@ check.
   scored as a good *tout*. Set 3 can only pass on swaps that stay ambiguous enough for Whisper to
   keep the intended word. If set 3 fails that way, the finding is "the feature does not catch clean
   swaps", not "lower the floor"; lowering it would trade accent fairness for it.
+
+### Calibration result (2026-10-11, fairness v1): FAIL
+
+78 clips recorded through the production Whisper and Azure calls. Passing sets are in the CI gate
+folder (`backend/tests/fixtures/exam_pronunciation_calibration/`); the failing ones are kept as
+evidence in `…/exam_pronunciation_calibration_failed_v1/` (with a README), which the gate does not
+read.
+
+- **Accent (no false flags):** 69 of 70 correct readings reported nothing — 20 clear, 20
+  regional/overseas native, 20 learner-accent (Common Voice 27.0: UK, US, German, Romanian, Dutch),
+  and the owner's 9 correct readings, including four Whisper misheard. One false positive: `existe`
+  (UK learner, accuracy 28, uncategorised, both recognisers agreed; the owner listened —
+  understandable, accented).
+- **Real errors (detection):** **0 of 9** deliberate swaps reported. Freeform assessment grades the
+  audio against Whisper's transcript *of the same audio*, so a cleanly substituted word (*vent* for
+  *vin*, *beau* for *bon*) is transcribed and scored as itself; only half-way sounds leave a trace
+  (*tout* 58, *douche* 43), not enough to report. No threshold fixes this: the system never sees the
+  intended word.
+- **Implications.** Word-level flags in free exam speech cannot meet the gate in this design. The
+  real users (the owner reports strong Indian-accented French with frequent genuine errors) are not
+  represented by any recorded set; for them false flags and real errors rise together, and Azure's
+  score separates neither. The agreement rule also leans the wrong way for comprehensibility: a word
+  both recognisers understood can be reported, a word nobody understood is suppressed. Fluency (pause
+  statistics) is measured in the browser and does not depend on Azure.
+- **Not changed:** no fairness rule or version. The proposed "report only meaning-carrying
+  categories" change was withdrawn once the owner described their users. A separate open question
+  for the *scorer*, not this feature: if the exam's own speech recognition mishears accented speech
+  the way Whisper misheard the owner's correct readings, marks could be affected.
 
 ## Structural guarantees
 

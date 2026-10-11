@@ -3435,3 +3435,33 @@ transcript. Backend replay test 81 passed; frontend gate tests 12 passed.
 learner-accent set 2 are missing; this small sample says Azure rarely flags words at all, so it shows
 the rules don't over-report, not that they catch real errors — only set 3 can show that. Release
 condition 2 (migration `20261003113100` in production) is still unverified.
+
+## 2026-10-11 — Exam-pronunciation Batch 7: calibration FAILED — release gate stays closed
+
+**Recorded** (production Whisper + Azure, `exam-pronunciation-v1` assessor, fairness
+`exam-pronunciation-fairness-v1`): set 2 learner accents — 20 Common Voice 27.0 clips, 20 adult
+speakers (8 UK, 5 US, 4 German, 1 each Romanian, Dutch, anglophone Canadian); set 3 — the owner's 18
+recordings (9 sentences from `set3Selection.json`, read correctly and with one deliberate swap).
+
+**Result:** FAIL on two counts.
+1. Accent false positive: `existe` in a UK learner's clip, accuracy 28 (five phonemes at 100, the final
+   /t/ at 23), uncategorised, both recognisers agreed. The owner listened: understandable, accented.
+2. Detection: 0 of 9 swaps reported. Whisper transcribed what was said (*beau film*, *du vent*,
+   *du pas*, *il s'enchaîne*, *douche*), so Azure scored the substituted word as itself; the closest
+   were *tout* (58, above the 45 floor) and *douche* (43, uncategorised and recogniser disagreement).
+   The 9 correct readings reported nothing, though Whisper misheard four of them.
+
+Combined with the earlier sets: 69 of 70 correct readings clean, 0 of 9 errors caught.
+
+**Decision:** `EXAM_PRONUNCIATION_ACCESS` stays `off`/`admin`; word-level flags are not releasable in
+this freeform design. No fairness rule or version changed. The proposed "report only
+meaning-carrying categories" change was withdrawn: the owner reports their users' French is far more
+heavily accented with frequent genuine errors, so both false flags and real errors would rise together
+and Azure's score separates neither. Recommended next step (a new plan, not started): reduce the
+feature to fluency + practice links, with no word flags and no Azure call.
+
+**Evidence:** passing fixtures stay in the CI gate folder; the 38 failing ones are committed to
+`backend/tests/fixtures/exam_pronunciation_calibration_failed_v1/` (README), which the gate does not
+read; all 38 replay exactly through the current assessor (checked by hand). Audio is not committed
+(Common Voice CC0 clips and the owner's recordings stayed in the session). Release condition 2
+(migration `20261003113100` in production) remains unverified.
