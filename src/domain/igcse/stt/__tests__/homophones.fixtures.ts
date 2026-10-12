@@ -34,7 +34,7 @@ export const RESPELLED: [string, string][] = [
   ['tu est allé', 'tu es allé'],
   ['il es allé', 'il est allé'],
   ["c'et super", "c'est super"],
-  ['est je pense que', 'et je pense que'],
+  ['Ma sœur ? Elle et gentille.', 'Ma sœur ? Elle est gentille.'],
   // 4. a / à / as.
   ['Je vais a la plage', 'Je vais à la plage'],
   ['Il à mangé', 'Il a mangé'],
@@ -56,8 +56,8 @@ export const RESPELLED: [string, string][] = [
   ['On peut mangé à la cantine', 'On peut manger à la cantine'],
   ['Les élèves doivent porté un uniforme', 'Les élèves doivent porter un uniforme'],
   ['Il faut recyclé', 'Il faut recycler'],
-  ["J'ai décidé d'acheté", "J'ai décidé d'acheter"],
-  ['je commence a travaillé', 'je commence à travailler'],
+  ["J'ai décidé d'achetais", "J'ai décidé d'acheter"],
+  ['je commence a travaillé', 'je commence à travaillé'],
   // 6. determiner ↔ plural.
   ["J'ai des ami et mes parent.", "J'ai des amis et mes parents."],
   ['mes cheveu', 'mes cheveux'],
@@ -93,6 +93,16 @@ export const UNCHANGED: string[] = [
   // Correct text.
   'Il a été', 'Ça a été super', 'Tu es allé', 'Où est ta sœur', 'est-ce que tu aimes',
   'La plage est belle et le soleil brille', 'Mes amis et moi, nous aimons',
+  // Review findings (Opus, stage 2): weak context must not fire.
+  'Cet été a été génial.', 'Mon téléphone a sonné', 'Le reste a été facile', 'Mon père a peu de temps',
+  'Ma mère… a quarante ans', 'Je joue avec elle à la plage', 'Je fais ça à la maison',
+  'qui, à mon avis, est', 'avec elle et mon frère', "J'aime ça et je veux",
+  'le 3 mai', 'Le 14 juillet',
+  "J'ai vu mes cousins. Il faisait beau.", "J'ai vu mes cousins. Il pleuvait.",
+  "J'ai vu mes cousins. Il me semble que", "J'ai vu mes cousins. Il y avait du monde.",
+  "quelqu'un d'organisé", 'quelque chose de cassé', "beaucoup d'invités", "pour l'invité",
+  'club de plongée', 'beaucoup de marchés', "J'ai mangé des œuf",
+  'Mon père les répare', 'Paul les aime', 'Mon frère est tu sais très sympa', 'est je pense que',
   // Unknown verbs are left alone.
   'ils mangeons', 'il blablate', 'ils blablatent',
   '',

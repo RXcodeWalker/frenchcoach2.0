@@ -61,7 +61,11 @@ const NOT_CATEGORY_A: [string, string][] = [
   // Real words a pattern would otherwise pair.
   ['comme', 'comment'], ['pare', 'parent'], ['conte', 'content'], ['cher', 'chez'],
   ['fil', 'fils'], ['eu', 'eux'], ['bu', 'but'], ['ma', 'mat'], ['di', 'dix'],
-  ['nez', 'né'], ['pie', 'pied'], ['fille', 'fil'],
+  ['nez', 'né'], ['pie', 'pied'], ['fille', 'fil'], ['rien', 'rient'], ['lien', 'lient'],
+  ['convient', 'convie'], ['ciment', 'cime'], ['net', 'nets'], ['index', 'inde'], ['max', 'ma'],
+  ['œuf', 'œufs'], ['bœuf', 'bœufs'],
+  // Pronoun "tous" ends in an audible [s] ("ils sont tous là").
+  ['tout', 'tous'],
   // Gender and article errors are audible.
   ['un', 'une'], ['le', 'la'], ['mon', 'ma'],
 ];

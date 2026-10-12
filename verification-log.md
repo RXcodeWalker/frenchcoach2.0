@@ -4137,3 +4137,40 @@ feature to fluency + practice links, with no word flags and no Azure call.
 read; all 38 replay exactly through the current assessor (checked by hand). Audio is not committed
 (Common Voice CC0 clips and the owner's recordings stayed in the session). Release condition 2
 (migration `20261003113100` in production) remains unverified.
+
+## 2026-10-12 — Transcription accuracy stage 2: sound-alike tables + context respeller (not wired)
+
+**Built** (pure code, `src/domain/igcse/stt/homophones/`, imported by nothing in the app yet):
+`classes.ts` (Category A: 27 closed function-word classes plus 5 silent-ending rules — present
+-e/-es/-ent, -é/-er/-ez/-ais/-ait, silent plural, silent agreement, silent final consonant — each with
+a liaison flag and a list of audible real-word collisions it must not pair), `nearPairs.ts`
+(Category B: the owner's un/en, ont/sont, le/les, du/de plus en/on, de/des, ce/ces, me/mes, te/tes,
+se/ses, je/j'ai, all pending owner review), `lexicon.ts` (closed verb and function-word lists),
+`respell.ts` (six context rules: subject number, subject↔verb ending, et/est, a/à, auxiliary↔
+participle/infinitive, determiner↔plural) and `version.ts` (`HOMOPHONE_TABLE_VERSION =
+homophone-table-v1`, pinned by a hash over the rendered tables and the respell output on the fixture
+corpus).
+
+**Guard:** one write path (`Respeller.swap`). A word may only become a spelling in the same Category A
+class as both its current spelling and the word as heard; liaison-sensitive classes only swap before a
+consonant or a pause; the token count, spacing, punctuation and capitalisation are unchanged. Tested as
+invariants over the whole fixture corpus (plus idempotence).
+
+**Review:** an adversarial review of the guard (separate Opus agent) found no way around it, but found
+context rules that fired on weak evidence and changed correct text: a/à after nouns and ellipses, à/et
+after stressed pronouns ("avec elle à"), dates pluralised ("le 3 mai"), an impersonal "il" made plural
+from the previous sentence, adjectives after de/d'/pour turned into infinitives ("quelqu'un
+d'organisé"), pronoun "les" after a noun subject, est→et before fillers. It also found false Category A
+pairs: œuf/œufs (audible), tout/tous, rien/rient, convient/convie, net/nets, index/inde. All fixed and
+added to the fixtures as must-not-change cases. est→et is no longer inferred at all, and tout/tous is
+no longer Category A. Because v1 had not been consumed, the version string stayed v1 and only the hash
+was updated.
+
+**Deviation from the plan:** the plan also rebuilds `examFeedback/shared/spellingOnly.ts` on these
+tables. That would change live Learn and examiner feedback filtering, and stage 2 is "nothing wired
+yet", so it is deferred to the stage that wires the tables in.
+
+**Verified:** `npm run typecheck`, `npm run typecheck:server`, `npm run lint` (0 errors), full
+`npm test` 4047 passed (with `backend/` present), `npm run score:golden` all 5 goldens match (no
+scoring change — nothing imports the new code). Owner review of the plain-English word lists is still
+outstanding.

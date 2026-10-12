@@ -14,7 +14,7 @@ import { respell } from '../homophones/respell';
 import { HOMOPHONE_TABLE_VERSION } from '../homophones/version';
 import { RESPELLED, UNCHANGED } from './homophones.fixtures';
 
-const HOMOPHONE_TABLE_HASH = 'c8fbe97fc02daf89ee870e3489cc77d344c39f620c21daca7c6336fe88a1a48f';
+const HOMOPHONE_TABLE_HASH = 'd7e29773a4b945abd9d02ee25ed7c41e27f7b9a53a2b8622c46ecd05415b1561';
 
 /** Word pairs whose classification is pinned (both directions are checked by the class tests). */
 const PROBE_PAIRS: [string, string][] = [

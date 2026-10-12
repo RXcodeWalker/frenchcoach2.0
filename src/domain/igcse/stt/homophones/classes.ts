@@ -78,8 +78,7 @@ export const CLOSED_CLASSES: readonly ClosedSoundClass[] = Object.freeze([
   closed('peu', ['peu', 'peut', 'peux'], false, 'peu / peut / peux'),
   closed('leur', ['leur', 'leurs'], true, 'leur / leurs'),
   closed('quel', ['quel', 'quels', 'quelle', 'quelles', "qu'elle", "qu'elles"], true, "quel / quels / quelle / quelles / qu'elle(s)"),
-  // "tous" as a pronoun ("ils sont tous là") ends in an audible [s]; as a determiner it does not.
-  closed('tout', ['tout', 'tous'], true, 'tout / tous (as in "tous les jours")'),
+  // tout / tous is NOT here: pronoun "tous" ("ils sont tous là") ends in an audible [s].
   closed('au', ['au', 'aux'], true, 'au / aux'),
   closed('cet', ['cet', 'cette'], false, 'cet / cette'),
   closed('sans', ['sans', "s'en", 'cent', 'sang'], true, "sans / s'en / cent / sang"),
@@ -96,7 +95,7 @@ export const NON_VERB_ENT: readonly string[] = Object.freeze([
   'comment', 'content', 'parent', 'président', 'résident', 'violent', 'excellent', 'couvent',
   'souvent', 'moment', 'accent', 'argent', 'client', 'patient', 'talent', 'absent', 'présent',
   'récent', 'différent', 'intelligent', 'évident', 'prudent', 'urgent', 'adolescent', 'innocent',
-  'équivalent', 'précédent', 'incident', 'accident', 'serpent', 'agent', 'sergent',
+  'équivalent', 'précédent', 'incident', 'accident', 'serpent', 'agent', 'sergent', 'ciment',
 ]);
 
 /** "-er" words pronounced [ɛʁ], not [e]. */
@@ -111,6 +110,8 @@ export const AUDIBLE_FINAL_S: readonly string[] = Object.freeze([
   'fils', 'bus', 'plus', 'tous', 'sens', 'os', 'ours', 'mars', 'tennis', 'virus', 'bonus',
   'campus', 'cactus', 'autobus', 'terminus', 'hélas', 'maïs', 'oasis', 'iris', 'atlas', 'express',
   'dix', 'six', 'eux', 'as', 'jadis', 'gratis', 'mœurs', 'sus', 'lys', 'tournevis', 'vis',
+  // œuf [œf] / œufs [ø], bœuf / bœufs: the plural sounds different.
+  'œufs', 'oeufs', 'bœufs', 'boeufs',
 ]);
 
 /** Two-letter bases that must not take a silent plural: le/les, de/des, … are audibly different (Category B). */
@@ -140,6 +141,8 @@ function stripEnding(word: string, endings: readonly string[]): { stem: string; 
 const PRESENT_E_ENDINGS = ['ent', 'es', 'e'] as const;
 function matchPresentE(a: string, b: string): boolean {
   if (NON_VERB_ENT_SET.has(a) || NON_VERB_ENT_SET.has(b)) return false;
+  // convient, tient, vient: the -ent is heard ([jɛ̃]), unlike étudient / oublient.
+  if (/[vt]ient$/.test(a) || /[vt]ient$/.test(b)) return false;
   const x = stripEnding(a, PRESENT_E_ENDINGS);
   const y = stripEnding(b, PRESENT_E_ENDINGS);
   return !!x && !!y && x.ending !== y.ending && x.stem === y.stem && x.stem.length >= 3;
@@ -167,11 +170,12 @@ function matchESound(a: string, b: string): boolean {
   return !!x && !!y && x.ending !== y.ending && x.stem === y.stem;
 }
 
-/** P3 — silent plural -s / -x: chat / chats, jeu / jeux, an / ans. */
+/** P3 — silent plural -s / -x (-x only after -u: jeux, bateaux, genoux): chat / chats, jeu / jeux, an / ans. */
 function matchSilentPlural(a: string, b: string): boolean {
   const [base, plural] = a.length < b.length ? [a, b] : [b, a];
-  if (plural !== `${base}s` && plural !== `${base}x`) return false;
+  if (plural !== `${base}s` && !(plural === `${base}x` && base.endsWith('u'))) return false;
   if (base.length < 2 || PLURAL_BASE_EXCLUDE_SET.has(base) || /[sxz]$/.test(base)) return false;
+  if (AUDIBLE_FINAL_T_SET.has(base)) return false;
   return !AUDIBLE_FINAL_S_SET.has(plural);
 }
 
@@ -211,6 +215,8 @@ function matchSilentConsonant(a: string, b: string): boolean {
   const y = consonantStem(b);
   if (x.ending === y.ending || (x.ending !== 't' && y.ending !== 't')) return false;
   if (x.stem !== y.stem || x.stem.length < 2) return false;
+  // rien / rient, lien / lient: a bare -ien word against a verb in -ient is audible.
+  if ((x.ending === '' || y.ending === '') && x.stem.endsWith('en')) return false;
   // The stem must end in a vowel (not a mute -e), an -r or an -n: sept, pied, huit-type words are out.
   return /(?:[aiouyéèêâôû]|[rn])$/.test(x.stem);
 }

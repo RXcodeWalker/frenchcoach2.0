@@ -147,7 +147,6 @@ export const AUX_ETRE: ReadonlySet<string> = new Set([
 
 /** Words directly followed by an infinitive (modal / liking verbs, prepositions). */
 export const INFINITIVE_TRIGGERS: ReadonlySet<string> = new Set([
-  'pour', 'de', 'à', 'sans',
   'vais', 'vas', 'va', 'allons', 'allez', 'vont', 'allais', 'allait', 'allaient',
   'veux', 'veut', 'voulons', 'voulez', 'veulent', 'voudrais', 'voudrait', 'voudrions', 'voudriez', 'voudraient',
   'peux', 'peut', 'pouvons', 'pouvez', 'peuvent', 'pourrais', 'pourrait', 'pourrions', 'pourriez', 'pourraient',
@@ -157,6 +156,9 @@ export const INFINITIVE_TRIGGERS: ReadonlySet<string> = new Set([
   'préfère', 'préfères', 'préfèrent', 'préférerais', 'préférerait',
   'espère', 'espères', 'espèrent', 'faut', 'sais', 'sait', 'savent', 'fais', 'fait', 'font',
 ]);
+
+/** Prepositions before an infinitive. After these only -ez / -ais / -ait is fixed: an -é form there is often an adjective. */
+export const INFINITIVE_PREPOSITIONS: ReadonlySet<string> = new Set(['pour', 'de', 'à', 'sans']);
 
 /** Adverbs / negation allowed between an auxiliary or trigger and the verb it governs. */
 export const VERB_ADVERBS: ReadonlySet<string> = new Set([
@@ -168,29 +170,31 @@ export const VERB_ADVERBS: ReadonlySet<string> = new Set([
 export const INFINITIVE_CLITICS: ReadonlySet<string> = new Set(['me', 'te', 'se', 'lui', 'y', 'nous', 'vous']);
 
 /** Nouns spelt like the participle of a listed verb: never turned into an infinitive. */
-export const PARTICIPLE_NOUNS: ReadonlySet<string> = new Set([
-  'marché', 'passé', 'arrivée', 'entrée', 'pensée', 'fumée', 'traversée', 'tournée', 'montée',
-  'durée', 'monté', 'parlé', 'reposé', 'rangée', 'levée', 'louée',
-]);
+const PARTICIPLE_NOUN_BASES = [
+  'marché', 'passé', 'arrivé', 'entré', 'pensé', 'fumé', 'traversé', 'tourné', 'monté', 'duré',
+  'parlé', 'reposé', 'rangé', 'levé', 'loué', 'invité', 'plongé', 'employé', 'retraité', 'copié',
+];
+export const PARTICIPLE_NOUNS: ReadonlySet<string> = new Set(
+  PARTICIPLE_NOUN_BASES.flatMap((b) => [b, `${b}e`, `${b}s`, `${b}es`]),
+);
 
-/** Prepositions / verbs after which "a" can only be the preposition "à". */
+/** Verb forms after which "a" can only be the preposition "à". Words that are also nouns (été, reste, aide, joue, téléphone) are left out: "Cet été a été génial". */
 export const A_GRAVE_AFTER: ReadonlySet<string> = new Set([
   'vais', 'vas', 'va', 'allons', 'allez', 'vont', 'aller', 'allé', 'allée', 'allés', 'allées',
   'allais', 'allait', 'allaient', 'irai', 'iras', 'ira', 'irons', 'irez', 'iront',
   'habite', 'habites', 'habitons', 'habitez', 'habitent', 'habiter', 'habité',
-  'suis', 'es', 'est', 'sommes', 'êtes', 'sont', 'étais', 'était', 'étaient', 'été',
-  'reste', 'restes', 'restent', 'rester', 'resté', 'arrive', 'arrives', 'arrivent', 'arriver', 'arrivé',
+  'suis', 'es', 'est', 'sommes', 'êtes', 'sont', 'étais', 'était', 'étaient',
+  'restent', 'rester', 'resté', 'arrive', 'arrives', 'arrivent', 'arriver', 'arrivé',
   'commence', 'commences', 'commencent', 'commencer', 'commencé',
-  'joue', 'joues', 'jouons', 'jouez', 'jouent', 'jouer', 'joué',
+  'jouons', 'jouez', 'jouent', 'jouer', 'joué',
   'pense', 'penses', 'pensent', 'penser', 'pensé', 'apprends', 'apprend', 'apprendre', 'appris',
-  'aide', 'aides', 'aident', 'aider', 'aidé', 'travaille', 'travailles', 'travaillent', 'travailler',
-  'téléphone', 'téléphoner', 'parle', 'parles', 'parlent', 'parler', 'parlé',
-  'jusqu', 'grâce', 'face', 'quant',
+  'aident', 'aider', 'aidé', 'travaille', 'travailles', 'travaillent', 'travailler',
+  'téléphoner', 'parle', 'parles', 'parlent', 'parler', 'parlé',
 ]);
 
 /** Words after which "a" + this word is the preposition: à côté, à cause, à pied … */
 export const A_GRAVE_BEFORE: ReadonlySet<string> = new Set([
-  'côté', 'cause', 'pied', 'vélo', 'partir', 'peu', 'bientôt', 'midi', 'minuit', 'demain', 'part',
+  'côté', 'cause', 'pied', 'vélo', 'partir', 'bientôt', 'midi', 'minuit',
 ]);
 
 export const POSSESSIVES: ReadonlySet<string> = new Set(['mon', 'ton', 'son', 'notre', 'votre', 'leur']);
@@ -238,4 +242,6 @@ export const NOT_PLURALISED: ReadonlySet<string> = new Set([
   'notre', 'votre', 'leur', 'chaque', 'tout', 'toute', 'toutes', 'tous', 'quel', 'quelle', 'ça',
   'cela', 'ceci', 'moi', 'toi', 'soi', 'eux', 'ici', 'là', 'oui', 'non', 'ne', 'n', 'personne',
   'gens', 'fois',
+  'janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre',
+  'novembre', 'décembre',
 ]);

@@ -39,6 +39,7 @@ import {
   CONSONANT_VERB_PAIRS,
   EU_S_PLURALS,
   INFINITIVE_CLITICS,
+  INFINITIVE_PREPOSITIONS,
   INFINITIVE_TRIGGERS,
   NOT_IMPERFECT,
   NOT_PLURALISED,
@@ -92,8 +93,24 @@ const PRONOUN_PERSON: Readonly<Record<string, Person>> = {
 /** Context words before "vous" that make it the subject ("et vous mangez", not "je vous parle"). */
 const VOUS_SUBJECT_AFTER = new Set(['et', 'mais', 'si', 'quand', 'que', 'ou', 'où', 'alors', 'puis', 'donc', 'comme']);
 
-/** "il et elle", "ça et moi": a real "and" — the "et" is not turned into "est". */
-const PRONOUN_AFTER_ET = new Set(['elle', 'elles', 'moi', 'toi', 'lui', 'eux', 'nous', 'vous', 'il', 'ils']);
+/** After "il et …": a pronoun, determiner or possessive means a real "and" ("il et elle", "ça et mon frère"). */
+const NOT_AFTER_EST = new Set([
+  'elle', 'elles', 'moi', 'toi', 'lui', 'eux', 'nous', 'vous', 'il', 'ils', 'je', 'tu', 'on',
+  'le', 'la', 'les', 'un', 'une', 'des', 'du', 'mon', 'ma', 'mes', 'ton', 'ta', 'tes', 'son', 'sa',
+  'ses', 'notre', 'nos', 'votre', 'vos', 'leur', 'leurs', 'ce', 'cet', 'cette', 'ces',
+]);
+
+/** Words after which a clause (and so a subject) can start. */
+const CLAUSE_STARTERS = new Set(['et', 'mais', 'ou', 'donc', 'car', 'que', "qu'", 'quand', 'si', 'alors', 'puis', 'parce']);
+const ALWAYS_SUBJECT = new Set(['il', 'on', 'y', 'tu', 'qui']);
+
+/** Verbs only used impersonally with "il": "il pleuvait" is always singular. */
+const IMPERSONAL_ONLY = new Set(['pleut', 'pleuvait', 'neige', 'neigeait', 'faut', 'fallait', 'agit', 'agissait']);
+/** Verbs often impersonal ("il faisait beau", "il me semble", "il reste du pain"): context says nothing about "il". */
+const OFTEN_IMPERSONAL = new Set([
+  'faisait', 'semble', 'semblait', 'reste', 'restait', 'passe', 'passait', 'manque', 'manquait',
+  'suffit', 'suffisait', 'vaut', 'valait', 'arrive', 'arrivait', 'paraît', 'parait',
+]);
 
 const MAX_CLITICS = 3;
 const MAX_ADVERBS = 3;
@@ -182,6 +199,31 @@ class Respeller {
     return null;
   }
 
+  /**
+   * Whether the word at `k` stands where a subject can: at the start of a
+   * clause, not after a preposition or a verb ("avec elle", "je fais ça").
+   * il / on / y are always subjects, so they are not checked here.
+   */
+  private atClauseStart(k: number): boolean {
+    const p = this.prev(k);
+    return !p || p.pauseAfter || CLAUSE_STARTERS.has(p.lower);
+  }
+
+  /** A real sentence start: the first word, or after . ! ? — not after an ellipsis, which is often a hesitation. */
+  private startsSentence(i: number): boolean {
+    if (i === 0) return true;
+    const trail = this.toks[i - 1].trail;
+    return /[.!?]/.test(trail) && !trail.includes('…') && !trail.includes('..');
+  }
+
+  /** A subject before "est" / "a": il / on / y / tu / qui anywhere (not across a pause); elle, ça, cela, ceci, ce only at a clause start. */
+  private subjectWordBefore(i: number, allowed: ReadonlySet<string>): string | undefined {
+    const p = this.prev(i);
+    if (!p || p.pauseAfter || (p.prefix !== '' && p.prefix !== "qu'") || !allowed.has(p.word)) return undefined;
+    if (ALWAYS_SUBJECT.has(p.word) || p.prefix === "qu'") return p.word;
+    return this.atClauseStart(i - 1) ? p.word : undefined;
+  }
+
   private isSubjectVous(i: number): boolean {
     const t = this.toks[i];
     if (t.lower !== 'vous') return false;
@@ -212,8 +254,12 @@ class Respeller {
       if (!['il', 'ils', 'elle', 'elles'].includes(t.word)) return;
       const base = t.word.startsWith('il') ? 'il' : 'elle';
       const v = this.verbAfter(i);
-      const n = v === null ? null : this.verbNumber(this.toks[v]);
-      const target = n === 'ambiguous' ? this.contextNumber(i, base, known) : n;
+      const verb = v === null ? null : this.toks[v];
+      let n = verb ? this.verbNumber(verb) : null;
+      if (base === 'il' && verb && IMPERSONAL_ONLY.has(verb.word)) n = 'sg';
+      // "il y avait", "il faisait beau": an impersonal "il" has no referent to agree with.
+      const impersonal = base === 'il' && verb && (OFTEN_IMPERSONAL.has(verb.word) || this.toks[i + 1]?.lower === 'y');
+      const target = n === 'ambiguous' ? (impersonal ? null : this.contextNumber(i, base, known)) : n;
       if (target) this.swap(i, target === 'sg' ? base : `${base}s`, 'subject-number');
       const now = this.toks[i];
       const next = this.toks[i + 1];
@@ -330,8 +376,6 @@ class Respeller {
 
   private etEst(): void {
     const estSubjects = new Set(['il', 'elle', 'on', 'ce', 'ça', 'cela', 'ceci', 'qui']);
-    const etBefore = new Set(['je', 'tu', 'nous', 'vous', 'ils', 'elles']);
-    const notEtAfter = new Set([...estSubjects, 'où', 'quand', 'comment', 'pourquoi', 'que', 'quel', 'quelle']);
     this.toks.forEach((t, i) => {
       if (!['et', 'est', 'es'].includes(t.word)) return;
       if (t.prefix === "c'") {
@@ -339,24 +383,24 @@ class Respeller {
         return;
       }
       if (t.prefix) return;
-      const p = this.prev(i);
-      const pw = p && (p.prefix === '' || p.prefix === "qu'") ? p.word : undefined;
-      const n = this.toks[i + 1];
-      if (pw === 'tu') {
+      const subject = this.subjectWordBefore(i, new Set([...estSubjects, 'tu']));
+      if (subject === 'tu') {
         // "tu et moi" is a (wrong) "and": only an existing verb form becomes "es".
         if (t.word === 'est') this.swap(i, 'es', 'et-est');
-      } else if (pw && estSubjects.has(pw) && t.word !== 'est') {
-        if (!(t.word === 'et' && n && PRONOUN_AFTER_ET.has(n.lower))) this.swap(i, 'est', 'et-est');
-      } else if (t.word === 'est' && !(pw && notEtAfter.has(pw))) {
-        if (n && !t.pauseAfter && (etBefore.has(n.lower) || n.prefix === "j'")) this.swap(i, 'et', 'et-est');
+      } else if (subject && t.word !== 'est') {
+        const n = this.toks[i + 1];
+        if (t.word === 'et' && (t.pauseAfter || !n || NOT_AFTER_EST.has(n.lower) || n.prefix === "j'")) return;
+        this.swap(i, 'est', 'et-est');
       }
+      // est → et is never inferred: "Mon frère est tu sais très sympa" would break, and a
+      // wrong "est" for "et" is a Category A difference the marker excuses anyway.
     });
   }
 
   // ── 4. a / à / as ────────────────────────────────────────────────────────
 
   private aGrave(): void {
-    const aSubjects = new Set(['il', 'elle', 'on', 'qui', 'ça', 'cela', 'y']);
+    const aSubjects = new Set(['il', 'elle', 'on', 'qui', 'ça', 'cela', 'y', 'tu']);
     this.toks.forEach((t, i) => {
       if (!['a', 'à', 'as'].includes(t.word)) return;
       if (t.prefix === "jusqu'") {
@@ -364,14 +408,14 @@ class Respeller {
         return;
       }
       if (t.prefix) return;
+      const subject = this.subjectWordBefore(i, aSubjects);
       const p = this.prev(i);
-      const pw = p && (p.prefix === '' || p.prefix === "qu'") ? p.word : undefined;
-      if (pw === 'tu') {
+      if (subject === 'tu') {
         this.swap(i, 'as', 'a-a');
-      } else if (pw && aSubjects.has(pw)) {
+      } else if (subject) {
         // "c'est toi qui as" is correct: after "qui" only "à" becomes "a".
-        if (t.word === 'à' || (t.word === 'as' && pw !== 'qui')) this.swap(i, 'a', 'a-a');
-      } else if (t.word === 'a' && !(pw && SUBJECT_PRONOUNS.has(pw))) {
+        if (t.word === 'à' || (t.word === 'as' && subject !== 'qui')) this.swap(i, 'a', 'a-a');
+      } else if (t.word === 'a' && !(p && !p.prefix && SUBJECT_PRONOUNS.has(p.word))) {
         const n1 = this.toks[i + 1];
         const n2 = this.toks[i + 2];
         const fixed =
@@ -379,7 +423,7 @@ class Respeller {
           !!n1 &&
           (A_GRAVE_BEFORE.has(n1.lower) || (POSSESSIVES.has(n1.lower) && !n1.pauseAfter && n2?.lower === 'avis'));
         const afterVerb = !!p && !p.pauseAfter && A_GRAVE_AFTER.has(p.word);
-        if (!p || afterVerb || fixed) this.swap(i, 'à', 'a-a');
+        if (this.startsSentence(i) || afterVerb || fixed) this.swap(i, 'à', 'a-a');
       }
     });
   }
@@ -387,7 +431,7 @@ class Respeller {
   // ── 5. auxiliary ↔ participle / infinitive ───────────────────────────────
 
   /** Walks back from a verb at `i` to its governing word, skipping adverbs (and, before an infinitive, object pronouns). */
-  private governor(i: number): { kind: 'avoir' | 'etre' | 'infinitive'; index: number } | null {
+  private governor(i: number): { kind: 'avoir' | 'etre' | 'infinitive' | 'preposition'; index: number } | null {
     let adverbs = 0;
     let sawClitic = false;
     for (let j = i - 1; j >= 0; j -= 1) {
@@ -403,7 +447,8 @@ class Respeller {
       }
       if (!sawClitic && AUX_AVOIR.has(p.word)) return { kind: 'avoir', index: j };
       if (!sawClitic && AUX_ETRE.has(p.word)) return { kind: 'etre', index: j };
-      if (INFINITIVE_TRIGGERS.has(p.word) && (p.prefix === '' || p.word === 'de')) return { kind: 'infinitive', index: j };
+      if (INFINITIVE_PREPOSITIONS.has(p.word) && p.prefix === '') return { kind: 'preposition', index: j };
+      if (INFINITIVE_TRIGGERS.has(p.word) && p.prefix === '') return { kind: 'infinitive', index: j };
       return null;
     }
     return null;
@@ -433,7 +478,7 @@ class Respeller {
       const isEtre = e.stem === 'ét';
       const verb = erVerbByInfStem(e.stem);
       if (!verb && !isEtre) return;
-      const g = t.prefix === "d'" ? { kind: 'infinitive' as const, index: i } : this.governor(i);
+      const g = t.prefix === "d'" ? { kind: 'preposition' as const, index: i } : this.governor(i);
       if (!g) return;
       const participle = isEtre ? 'été' : `${e.stem}é`;
       if (g.kind === 'avoir') {
@@ -443,7 +488,10 @@ class Respeller {
         if (isEtre || ['é', 'ée', 'és', 'ées'].includes(e.ending)) return;
         if (e.ending === 'er' && !this.etreTakesParticiple(g.index)) return;
         this.swap(i, participle, 'aux-participle');
-      } else if (verb && e.ending !== 'er' && !PARTICIPLE_NOUNS.has(t.word)) {
+      } else if (verb && e.ending !== 'er' && !PARTICIPLE_NOUNS.has(t.word) && t.prefix !== "l'") {
+        // After de / à / pour / sans an -é form is often an adjective or a noun
+        // ("quelqu'un d'organisé", "beaucoup d'invités"): only a verb ending is fixed there.
+        if (g.kind === 'preposition' && !['ez', 'ais', 'ait', 'aient'].includes(e.ending)) return;
         this.swap(i, `${verb.infStem}er`, 'aux-participle');
       }
     });
@@ -465,6 +513,8 @@ class Respeller {
     const p = this.prev(i);
     if (!p) return true;
     if (p.prefix === "n'" || ['ne', 'en'].includes(p.word)) return false;
+    // "Mon père les répare", "Paul les aime": a noun subject, so "les" is the object pronoun.
+    if (this.markerAt(i - 2) || p.core.charAt(0) !== p.core.charAt(0).toLowerCase()) return false;
     return !SUBJECT_PRONOUNS.has(p.word) && !CLITICS.has(p.word) && !INFINITIVE_TRIGGERS.has(p.word);
   }
 
@@ -492,6 +542,8 @@ class Respeller {
       const isLes = t.word === 'les';
       const isNumber = (/^\d+$/.test(t.word) && Number(t.word) >= 2) || PLURAL_NUMBERS.has(t.word);
       if (!isNumber && !PLURAL_DETERMINERS.has(t.word) && !(isLes && this.lesIsDeterminer(i))) return;
+      // "le 3 mai", "le 14 juillet": a date, not a plural.
+      if (isNumber && this.prev(i)?.lower === 'le') return;
       const first = this.toks[i + 1];
       if (!first) return;
       const mayBePronoun = isLes || isNumber;
