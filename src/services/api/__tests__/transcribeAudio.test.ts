@@ -13,7 +13,7 @@ vi.mock('../../../lib/supabase', () => ({
 
 import { supabase } from '../../../lib/supabase';
 import { ConsentRequiredError } from '../../../lib/consentRequired';
-import { TranscribeHttpError, TranscribeTimeoutError, transcribeAudio } from '../apiClient';
+import { ApiHttpError, TranscribeHttpError, TranscribeTimeoutError, transcribeAudio } from '../apiClient';
 
 const getSession = vi.mocked(supabase.auth.getSession);
 const BLOB = new Blob([new Uint8Array([1, 2, 3])], { type: 'audio/webm' });
@@ -134,5 +134,29 @@ describe('transcribeAudio', () => {
     const err = await aborted;
     expect(err).not.toBeInstanceOf(TranscribeTimeoutError);
     expect(err).toMatchObject({ name: 'AbortError' });
+  });
+
+  // Learn's confirm screen (stage 4) gives Whisper a shorter budget and reads a
+  // daily-cap 429 through the generic ApiHttpError.
+  it('gives up after a caller-supplied timeout', async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((_url: string, init: RequestInit) =>
+        new Promise((_resolve, reject) => {
+          init.signal?.addEventListener('abort', () => reject(Object.assign(new Error('aborted'), { name: 'AbortError' })));
+        }),
+      ),
+    );
+    const pending = transcribeAudio(BLOB, 'fr', { timeoutMs: 5000 }).catch((e) => e);
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(await pending).toBeInstanceOf(TranscribeTimeoutError);
+  });
+
+  it('a 429 is also an ApiHttpError', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 429, headers: new Headers(), json: async () => ({}) }));
+    const err = await transcribeAudio(BLOB).catch((e) => e);
+    expect(err).toBeInstanceOf(ApiHttpError);
+    expect(err).toMatchObject({ status: 429 });
   });
 });

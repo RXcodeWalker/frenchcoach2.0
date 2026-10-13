@@ -80,6 +80,10 @@ interface PracticeStepCompletedProps {
 
 interface TranscriptConfirmedProps {
   question_id: string;
+  /** The student swapped a word for the other recogniser's reading on the confirm screen. */
+  edited?: boolean;
+  /** Which recogniser the confirmed text came from: Whisper, or the live captions when Whisper wasn't usable. */
+  source?: 'whisper' | 'live-captions';
 }
 
 interface TranscriptRerecordedProps {

@@ -4178,6 +4178,39 @@ scoring change — nothing imports the new code).
 en/on, de/des, ce/ces, me/mes, te/tes and se/ses as near sound-alikes (benefit of the doubt), and
 mes/mais/met/mets as never-penalised. No list changed: comments only, so the hash is unchanged.
 
+## 2026-10-13 — Transcription accuracy stage 4: Learn "did we hear you right?" confirm screen + shared aligner
+
+**Built:** `src/domain/transcription/alignRecognisers.ts` (aligns two transcripts word by word on top of
+the stage-2 sound-alike tables: both texts respelled to the context-consistent spelling, Category A
+never a disagreement, Category B = `nearHomophone`, anything else = `different`; hyphenated words are
+compared part by part; `applyAlternatives`/`swappedWords` swap in the other reading), 
+`suspectTranscription.ts` (Whisper no-speech / looping / prompt-echo screen before its text replaces the
+live captions), `transcribeAudio` extended (`prompt`, `purpose`, `timeoutMs`; returns `model` and
+per-segment `avgLogprob`/`noSpeechProb`/`compressionRatio`; the consent-gate 403 is now a
+`ConsentRequiredError`, not "session expired"), `features/learn/answerTranscription.ts`,
+`screens/learn/TranscriptConfirmPanel.tsx`, and the wiring in `Learn.tsx` (`transcript_confirmed`
+telemetry gained `edited`/`source`). Nothing under `src/domain/igcse/`, `scripts/scoring/` or `server/`
+changed; the exam still marks from Chrome text until Phase 4.
+
+**Deviations from the plan (all behaviour-preserving):**
+- The double-check runs only while `learnTranscriptConfirm` is live, so flipping that flag is the
+  rollback to the old Chrome-only path (the plan defines a kill switch only for the exam).
+- Only spans where both recognisers heard something are underlined: a word only one side heard has
+  nothing to swap to, and Chrome routinely drops words. With live captions alone nothing is
+  underlined (the plan's "every Category B token on a single-recogniser turn" is the exam's judge
+  line, Phase 4, not the Learn screen — it would underline `le`/`de`/`je` everywhere).
+- Added `suspectTranscription` (not named in the plan) so a silent answer cannot become Whisper's
+  invented text; its thresholds are Whisper's own defaults, `UNVALIDATED` until the benchmark.
+- The `learn-adaptive-difficulty.md` "Learn never uploads audio" line was reworded as an amendment, not
+  rewritten, because that section is a dated snapshot of the code.
+
+**Verified:** `npm run typecheck`, `npm run lint` (0 errors), full `npm test` 4116 passed before the
+docs edits (with `backend/` present). New tests: aligner (24), suspect screen (8), transcribeAudio
+client contract (9), `answerTranscription` (15), confirm panel (13: underline, tap, swap/undo, no
+free text, fallback to live captions, nothing transcribed). **Not verified:** the live flow against a
+real Groq key in a browser (no keys in this session) — owner/manual run still owed, see the plan's
+"Manual (run skill)" step.
+
 ## 2026-10-13 — Transcription accuracy stage 5: exam answers transcribed in the background + transcript schema v2
 
 **Built** (ADR 0011, items 1–6; the marking rules are untouched):

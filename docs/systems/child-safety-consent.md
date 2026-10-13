@@ -176,6 +176,14 @@ child's `exam_pronunciation_evidence` through the `profiles` cascade.
 parties that process audio/text on our behalf (checked 2026-10-06 against exam-pronunciation, which
 adds no new provider).
 
+**Learn now uploads each answer's audio automatically.** With `learnTranscriptConfirm` live, stopping a
+recording sends it to `/api/transcribe` (`purpose: learn`) so Whisper can double-check the live
+captions (`src/features/learn/answerTranscription.ts`). The record control is already behind
+`SpeakingConsentGate`, so a `pending` account never gets as far as a recording; if one did, the
+server gate above answers 403 and the client falls back to the live captions without an error (the
+`consent` fallback reason). The prompt sent with the audio is the question text plus the learner's
+own earlier confirmed answers in that sitting — never a hint, model answer or vocabulary list.
+
 ## Email delivery
 
 `request_guardian_consent` only mints the row/token — it cannot send email

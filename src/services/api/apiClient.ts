@@ -622,7 +622,7 @@ async function tryNetworkFeedback(
 }
 
 /** A non-2xx response; the message is the same `API <path> → <status>` text callers already log. */
-class ApiHttpError extends Error {
+export class ApiHttpError extends Error {
   constructor(
     path: string,
     readonly status: number,
@@ -699,19 +699,21 @@ export interface TranscribeAudioOptions {
   purpose?: TranscribePurpose;
   /** Aborts the request; the caller's abort surfaces as an AbortError. */
   signal?: AbortSignal;
+  /** Overrides the 30 s default; a caller with a latency budget (Learn's confirm screen) gives up sooner. */
+  timeoutMs?: number;
 }
 
 /** Same ceiling as the backend's `prompt` form field. */
 const TRANSCRIBE_PROMPT_MAX_CHARS = 1200;
 
 /** A non-2xx answer from /api/transcribe other than the auth/consent ones. Same message as the generic error it replaces. */
-export class TranscribeHttpError extends Error {
+export class TranscribeHttpError extends ApiHttpError {
   constructor(
-    readonly status: number,
+    status: number,
     /** Retry-After in seconds when the server sent one (rate-limit 429s do; a daily-cap 429 does not). */
     readonly retryAfterS: number | null,
   ) {
-    super(`API /api/transcribe → ${status}`);
+    super('/api/transcribe', status);
     this.name = 'TranscribeHttpError';
   }
 }
@@ -769,7 +771,7 @@ export async function transcribeAudio(
 
   const controller = new AbortController();
   let timedOut = false;
-  const timer = setTimeout(() => { timedOut = true; controller.abort(); }, TRANSCRIBE_TIMEOUT_MS);
+  const timer = setTimeout(() => { timedOut = true; controller.abort(); }, options.timeoutMs ?? TRANSCRIBE_TIMEOUT_MS);
   const onCallerAbort = () => controller.abort();
   if (options.signal) {
     if (options.signal.aborted) controller.abort();
