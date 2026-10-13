@@ -672,12 +672,54 @@ async function postMultipartWithSignal<T>(path: string, formData: FormData, sign
  */
 const TRANSCRIBE_TIMEOUT_MS = 30000;
 
+/** One Whisper segment with its confidence signals (backend /api/transcribe). Confidence fields are null when the provider gave none. */
+export interface TranscribeSegment {
+  start: number | null;
+  end: number | null;
+  text: string;
+  avgLogprob: number | null;
+  noSpeechProb: number | null;
+  compressionRatio: number | null;
+}
+
 export interface TranscribeAudioResult {
   text: string;
   source: string;
+  /** The model that produced `text` (absent from an older backend). */
+  model?: string;
+  segments: TranscribeSegment[];
 }
 
-export async function transcribeAudio(audioBlob: Blob, language = 'fr'): Promise<TranscribeAudioResult> {
+export interface TranscribeAudioOptions {
+  /** Context only (the question on the first line, then earlier answers) — never the expected answer. The backend cuts it to Whisper's limit. */
+  prompt?: string;
+  /** Picks the daily quota the backend charges: `learn` and `exam_turn` have their own caps. */
+  purpose?: 'learn' | 'exam_turn';
+  /** Abort after this long (default TRANSCRIBE_TIMEOUT_MS). */
+  timeoutMs?: number;
+}
+
+const numberOrNull = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) ? v : null);
+
+function parseTranscribeSegments(raw: unknown): TranscribeSegment[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter((s): s is Record<string, unknown> => typeof s === 'object' && s !== null)
+    .map((s) => ({
+      start: numberOrNull(s.start),
+      end: numberOrNull(s.end),
+      text: typeof s.text === 'string' ? s.text : '',
+      avgLogprob: numberOrNull(s.avgLogprob),
+      noSpeechProb: numberOrNull(s.noSpeechProb),
+      compressionRatio: numberOrNull(s.compressionRatio),
+    }));
+}
+
+export async function transcribeAudio(
+  audioBlob: Blob,
+  language = 'fr',
+  options: TranscribeAudioOptions = {},
+): Promise<TranscribeAudioResult> {
   // Same Phase 3 gate as the feedback endpoints: no token, no point sending.
   const token = await getAccessToken();
   if (!token && !guestHasFreeAttempt()) throw new AuthRequiredError(guestAiEnabled() ? GUEST_LIMIT_MESSAGE : 'Sign in to use speech transcription.');
@@ -685,9 +727,11 @@ export async function transcribeAudio(audioBlob: Blob, language = 'fr'): Promise
   const formData = new FormData();
   formData.append('audio', audioBlob, audioFileNameFor(audioBlob));
   formData.append('language', language);
+  if (options.prompt?.trim()) formData.append('prompt', options.prompt);
+  if (options.purpose) formData.append('purpose', options.purpose);
 
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TRANSCRIBE_TIMEOUT_MS);
+  const timer = setTimeout(() => controller.abort(), options.timeoutMs ?? TRANSCRIBE_TIMEOUT_MS);
   try {
     const res = await fetch(`${API_BASE}/api/transcribe`, {
       method: 'POST',
@@ -699,8 +743,13 @@ export async function transcribeAudio(audioBlob: Blob, language = 'fr'): Promise
       assertNotAuthFailure('/api/transcribe', res.status);
       throw new Error(`API /api/transcribe → ${res.status}`);
     }
-    const body = (await res.json()) as { text?: string; source?: string };
-    return { text: body.text ?? '', source: body.source ?? 'unknown' };
+    const body = (await res.json()) as { text?: string; source?: string; model?: string; segments?: unknown };
+    return {
+      text: body.text ?? '',
+      source: body.source ?? 'unknown',
+      ...(typeof body.model === 'string' ? { model: body.model } : {}),
+      segments: parseTranscribeSegments(body.segments),
+    };
   } catch (err) {
     if ((err as Error).name === 'AbortError') {
       throw new Error('Transcription request timed out');

@@ -76,8 +76,11 @@ Learn.tsx:796 handleFeedbackComplete → :714 advanceQuestion → :826 endSessio
 Facts that constrain the design:
 
 - **The question list is fixed at session start** (`Learn.tsx:207-237`); nothing re-selects today.
-- **Transcription is browser Web Speech API only**; Learn passes `audioBlob: undefined`
-  everywhere, so server Whisper and the multimodal branch are dead for Learn.
+- **Learn's transcript is Whisper (primary) plus the browser's Web Speech text (second opinion and
+  fallback)**: the confirm step uploads the answer to `/api/transcribe` (`purpose=learn`,
+  `features/learn/recogniseAnswer.ts`), and the learner confirms or swaps disputed words
+  (`domain/transcription/`). The feedback endpoints still get `audioBlob: undefined`, so the
+  multimodal branch stays dead for Learn.
 - **The belief engine is good and stays untouched**: weighted Beta-Bernoulli, Laplace (1,1)
   prior, `mastery = α/(α+β)`, 14-day half-life,
   `weight = min(reliability × evaluatorCap, 0.80) × sourceWeight × recency`,

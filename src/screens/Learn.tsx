@@ -24,6 +24,9 @@ import { consumeItem } from '../services/progression/progressionService';
 import { MicroDrillModal } from '../components/ui/MicroDrillModal';
 import type { LearningProblem } from '../types/intervention';
 import { useRecording } from '../features/recording/useRecording';
+import { TranscriptConfirmPanel } from '../features/learn/TranscriptConfirmPanel';
+import { recogniseAnswer } from '../features/learn/recogniseAnswer';
+import { buildConfirmModel, type ConfirmModel, type Recognition } from '../domain/transcription/confirmView';
 import { useAuth } from '../context/AuthContext';
 import { SpeakingConsentGate } from '../components/SpeakingConsentGate';
 import { TopicGrid } from './learn/TopicGrid';
@@ -116,7 +119,23 @@ export function Learn() {
   // 2.4: transcript confirmation step between stop() and evaluation, behind
   // learnTranscriptConfirm. Holds the transcript awaiting the student's
   // Use this / Re-record choice; null whenever the confirm screen isn't showing.
-  const [pendingTranscript, setPendingTranscript] = useState<string | null>(null);
+  // Transcription-accuracy plan Phase 3: the screen now carries both recognisers'
+  // text (Whisper primary, Chrome second opinion). `pendingRecognition` is null
+  // while Whisper is still being asked (`confirmChecking`); `confirmAttemptRef`
+  // lets a Re-record discard a result that arrives late.
+  const [pendingRecognition, setPendingRecognition] = useState<Recognition | null>(null);
+  const [confirmChecking, setConfirmChecking] = useState(false);
+  const confirmAttemptRef = useRef(0);
+  // This session's confirmed answers, oldest first: context for Whisper's prompt, never the expected answer.
+  const confirmedAnswersRef = useRef<string[]>([]);
+  // The text the current feedback was produced from (what the learner confirmed, or Chrome's text without the confirm step).
+  const [answerText, setAnswerText] = useState('');
+  // A new session starts with no earlier answers to give Whisper as context.
+  const activeSessionId = activeSession?.id;
+  useEffect(() => {
+    confirmedAnswersRef.current = [];
+  }, [activeSessionId]);
+  const confirmModel = useMemo(() => (pendingRecognition ? buildConfirmModel(pendingRecognition) : null), [pendingRecognition]);
   // Examiner mode result — separate from FeedbackV2 (which always carries a numeric
   // score); examiner mode must never fabricate one. No session/XP finalization runs
   // for an examiner-mode attempt — there is no score to record.
@@ -210,7 +229,9 @@ export function Learn() {
   // leaks a previous session's state into the next one.
   const resetSessionScopedState = useCallback(() => {
     setFollowUpTurn(null);
-    setPendingTranscript(null);
+    confirmAttemptRef.current++;
+    setConfirmChecking(false);
+    setPendingRecognition(null);
     setPronunciationStatus('idle');
     setPronunciationResult(null);
     setPartialFeedback(null);
@@ -508,8 +529,21 @@ export function Learn() {
     }
 
     if (transcriptConfirmLive) {
-      setPendingTranscript(transcript);
+      const attempt = ++confirmAttemptRef.current;
+      setPendingRecognition(null);
+      setConfirmChecking(true);
       setLearnState('confirm');
+      const blob = await recording.audioBlobPromise().catch(() => null);
+      const recognition = await recogniseAnswer({
+        audioBlob: blob,
+        chromeText: transcript,
+        questionText: currentQuestion.text,
+        earlierAnswers: confirmedAnswersRef.current,
+      });
+      // Re-record (or a new attempt) while Whisper was working: drop this result.
+      if (attempt !== confirmAttemptRef.current) return;
+      setPendingRecognition(recognition);
+      setConfirmChecking(false);
       return;
     }
 
@@ -526,6 +560,7 @@ export function Learn() {
     streamAbortRef.current = controller;
     const myAttemptId = ++attemptIdRef.current;
 
+    setAnswerText(transcript);
     setLearnState('feedback');
     setFirsts([]);
     setIsLoadingFeedback(true);
@@ -624,9 +659,11 @@ export function Learn() {
     const skillContext = buildSkillContext();
     const avoidanceSignals = detectAvoidance(transcript, currentQuestion, IGCSE_EXPECTATIONS);
 
-    // The transcript above comes from the Web Speech API only. Audio is never
-    // sent to the feedback endpoints — it goes exclusively to /api/pronunciation
-    // via recording.audioBlobPromise() (see the IIFE above). recording.audioBlob
+    // The transcript above is what the learner confirmed (Whisper's text, or
+    // Chrome's live text when Whisper was unavailable; see recogniseAnswer).
+    // Audio is never sent to the feedback endpoints — it goes to /api/transcribe
+    // (confirm step) and /api/pronunciation only, via recording.audioBlobPromise()
+    // (see the IIFE above). recording.audioBlob
     // (React state) is always stale/null here regardless, since it's only set
     // inside MediaRecorder's onstop, which fires after this closure was created.
 
@@ -756,19 +793,23 @@ export function Learn() {
     }
   };
 
-  const handleConfirmTranscript = () => {
-    if (pendingTranscript === null) return;
-    const transcript = pendingTranscript;
-    setPendingTranscript(null);
+  const handleConfirmTranscript = (model: ConfirmModel, transcript: string, edited: boolean) => {
+    setPendingRecognition(null);
+    if (transcript.trim()) confirmedAnswersRef.current = [...confirmedAnswersRef.current, transcript];
     if (currentQuestion) {
-      track({ name: 'transcript_confirmed', props: { question_id: currentQuestion.id } });
+      track({
+        name: 'transcript_confirmed',
+        props: { question_id: currentQuestion.id, edited, source: model.source },
+      });
       incrementCounter('transcript_confirmed');
     }
     void evaluateTranscript(transcript);
   };
 
   const handleRerecordTranscript = () => {
-    setPendingTranscript(null);
+    confirmAttemptRef.current++;
+    setConfirmChecking(false);
+    setPendingRecognition(null);
     if (currentQuestion) {
       track({ name: 'transcript_rerecorded', props: { question_id: currentQuestion.id } });
       incrementCounter('transcript_rerecorded');
@@ -1062,7 +1103,9 @@ export function Learn() {
       setSelectedTopic(null);
       setLearnState('topics');
     } else if (learnState === 'question' || learnState === 'recording' || learnState === 'confirm') {
-      setPendingTranscript(null);
+      confirmAttemptRef.current++;
+      setConfirmChecking(false);
+      setPendingRecognition(null);
       if (activeSession && activeSession.questionsCompleted > 0) {
         handleEndSessionEarly();
       } else {
@@ -1217,39 +1260,13 @@ export function Learn() {
                 />
               </SpeakingConsentGate>
 
-              {learnState === 'confirm' && pendingTranscript !== null && (
-                <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="rounded-xl surface-raised p-5 space-y-4"
-                >
-                  <div>
-                    <p className="text-eyebrow uppercase text-ink-muted mb-1.5">
-                      We heard
-                    </p>
-                    {pendingTranscript.trim() ? (
-                      <p className="text-sm text-white leading-relaxed">{pendingTranscript}</p>
-                    ) : (
-                      <p className="text-sm text-ink-muted italic">Nothing was transcribed.</p>
-                    )}
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={handleRerecordTranscript}
-                      className="flex-1 py-2.5 rounded-xl text-xs font-bold border border-slate-700 text-ink-muted hover:bg-white/5 transition-colors"
-                    >
-                      Re-record
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleConfirmTranscript}
-                      className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-br from-violet-electric to-indigo-500 text-action-ink shadow-[0_0_16px_rgba(124,58,237,0.3)]"
-                    >
-                      Use this
-                    </button>
-                  </div>
-                </motion.div>
+              {learnState === 'confirm' && (confirmChecking || pendingRecognition !== null) && (
+                <TranscriptConfirmPanel
+                  key={confirmAttemptRef.current}
+                  model={pendingRecognition ? confirmModel : null}
+                  onUse={(text, edited) => confirmModel && handleConfirmTranscript(confirmModel, text, edited)}
+                  onRerecord={handleRerecordTranscript}
+                />
               )}
 
               {learnState === 'feedback' && drillSkillId && !showDrillModal && (
@@ -1284,7 +1301,7 @@ export function Learn() {
                     failureKind={examinerFailure}
                     onSwitchToCoach={handleSwitchToCoachMode}
                     onRetry={handleRetry}
-                    transcript={recording.transcript}
+                    transcript={answerText || recording.transcript}
                     name={state.profile.username}
                     demands={followUpTurn ? null : currentQuestion?.demands}
                     nextQuestion={examinerStatus === 'done' ? nextQuestionPreview : null}
@@ -1316,7 +1333,7 @@ export function Learn() {
                   isLoading={isLoadingFeedback}
                   partialFeedback={partialFeedback}
                   streamPhase={streamPhase}
-                  transcript={recording.transcript}
+                  transcript={answerText || recording.transcript}
                   modelAnswer={currentQuestion?.modelAnswer}
                   onRetry={handleRetry}
                   onComplete={handleFeedbackComplete}

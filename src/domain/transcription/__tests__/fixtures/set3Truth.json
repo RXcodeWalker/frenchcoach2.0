@@ -1,0 +1,168 @@
+{
+ "_comment": "TEXT ONLY. Truth for a \"correct\" clip is the sentence read normally; for a \"swap\" clip it is the sentence with the instructed substitution applied (the goal is verbatim transcription of what was said), written from the instruction without a listening check. Clips with nonword-truth-uncertain tags instruct a non-word, so their exact spelling is a convention. Owner-recorded set 3; audio is not stored in the repo.",
+ "model": "whisper-large-v3",
+ "clips": [
+  {
+   "clipId": "set3-01-correct",
+   "instruction": "read normally",
+   "truth": "Il a mangé tout le gâteau.",
+   "tags": [
+    "correct"
+   ]
+  },
+  {
+   "clipId": "set3-01-swap",
+   "instruction": "say “tout” as “tu”",
+   "truth": "Il a mangé tu le gâteau.",
+   "tags": [
+    "swap",
+    "word-swap"
+   ]
+  },
+  {
+   "clipId": "set3-02-correct",
+   "instruction": "read normally",
+   "truth": "Vous aimez le chocolat ?",
+   "tags": [
+    "correct"
+   ]
+  },
+  {
+   "clipId": "set3-02-swap",
+   "instruction": "say “vous” as “vu”",
+   "truth": "Vu aimez le chocolat ?",
+   "tags": [
+    "swap",
+    "word-swap"
+   ]
+  },
+  {
+   "clipId": "set3-03-correct",
+   "instruction": "read normally",
+   "truth": "C'est un bon film.",
+   "tags": [
+    "correct"
+   ]
+  },
+  {
+   "clipId": "set3-03-swap",
+   "instruction": "say “bon” as “beau”",
+   "truth": "C'est un beau film.",
+   "tags": [
+    "swap",
+    "word-swap"
+   ]
+  },
+  {
+   "clipId": "set3-04-correct",
+   "instruction": "read normally",
+   "truth": "Je mange du pain le matin.",
+   "tags": [
+    "correct"
+   ]
+  },
+  {
+   "clipId": "set3-04-swap",
+   "instruction": "say “pain” as “pè” (no nasal)",
+   "truth": "Je mange du pè le matin.",
+   "tags": [
+    "swap",
+    "word-swap",
+    "nonword-truth-uncertain"
+   ]
+  },
+  {
+   "clipId": "set3-05-correct",
+   "instruction": "read normally",
+   "truth": "Ils ont un chien.",
+   "tags": [
+    "correct",
+    "category-b"
+   ]
+  },
+  {
+   "clipId": "set3-05-swap",
+   "instruction": "say “ils ont” as “ils sont” (s, not z)",
+   "truth": "Ils sont un chien.",
+   "tags": [
+    "swap",
+    "word-swap",
+    "category-b"
+   ]
+  },
+  {
+   "clipId": "set3-06-correct",
+   "instruction": "read normally",
+   "truth": "Ils mangent à midi.",
+   "tags": [
+    "correct",
+    "category-a"
+   ]
+  },
+  {
+   "clipId": "set3-06-swap",
+   "instruction": "pronounce the ending: “man-jent”",
+   "truth": "Ils mangent à midi.",
+   "tags": [
+    "swap",
+    "ending-pronounced",
+    "category-a"
+   ]
+  },
+  {
+   "clipId": "set3-07-correct",
+   "instruction": "read normally",
+   "truth": "Elle a les clés.",
+   "tags": [
+    "correct",
+    "category-b"
+   ]
+  },
+  {
+   "clipId": "set3-07-swap",
+   "instruction": "say “les” as “le”",
+   "truth": "Elle a le clés.",
+   "tags": [
+    "swap",
+    "word-swap",
+    "category-b"
+   ]
+  },
+  {
+   "clipId": "set3-08-correct",
+   "instruction": "read normally",
+   "truth": "J'ai deux chats.",
+   "tags": [
+    "correct",
+    "category-a"
+   ]
+  },
+  {
+   "clipId": "set3-08-swap",
+   "instruction": "say “deux” as “doo”",
+   "truth": "J'ai doo chats.",
+   "tags": [
+    "swap",
+    "word-swap",
+    "nonword-truth-uncertain"
+   ]
+  },
+  {
+   "clipId": "set3-09-correct",
+   "instruction": "read normally",
+   "truth": "Il boit du vin blanc.",
+   "tags": [
+    "correct"
+   ]
+  },
+  {
+   "clipId": "set3-09-swap",
+   "instruction": "say “vin” as “vent”",
+   "truth": "Il boit du vent blanc.",
+   "tags": [
+    "swap",
+    "word-swap"
+   ]
+  }
+ ]
+}

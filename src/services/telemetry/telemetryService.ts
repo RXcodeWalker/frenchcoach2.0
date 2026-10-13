@@ -80,6 +80,10 @@ interface PracticeStepCompletedProps {
 
 interface TranscriptConfirmedProps {
   question_id: string;
+  /** Learn confirm step: a word was swapped for the other recogniser's. */
+  edited?: boolean;
+  /** Which recogniser's text was the primary one shown. */
+  source?: 'whisper' | 'chrome';
 }
 
 interface TranscriptRerecordedProps {

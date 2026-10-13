@@ -1,0 +1,149 @@
+{
+ "_comment": "TEXT ONLY. Recorded 2026-10-13 from the owner's set-3 clips through backend _groq_whisper (large-v3, language fr). `turboNoPrompt` is the old turbo/no-prompt text from backend/tests/fixtures/exam_pronunciation_calibration_failed_v1/unclear. `referenceText` is that fixture's examTranscript: it equals the intended sentence on all 18 clips, so it is NOT trusted as real Chrome output — tests that use it as a second opinion say \"synthetic secondary\". `question` is a question written for the prompt condition (the clips are read sentences, not answers). Nothing here measures Chrome.",
+ "clips": [
+  {
+   "clipId": "set3-01-correct",
+   "question": "Qu'est-ce que vous avez mangé hier ?",
+   "referenceText": "Il a mangé tout le gâteau.",
+   "turboNoPrompt": "Il a mangé tout le gâteau.",
+   "largeV3NoPrompt": "Il a mangé tout le gâteau.",
+   "largeV3QuestionPrompt": "Il a mangé tout le gâteau."
+  },
+  {
+   "clipId": "set3-01-swap",
+   "question": "Qu'est-ce que vous avez mangé hier ?",
+   "referenceText": "Il a mangé tout le gâteau.",
+   "turboNoPrompt": "Il a mangé tout le gâteau.",
+   "largeV3NoPrompt": "Il a mangé tout le gâteau.",
+   "largeV3QuestionPrompt": "Il a mangé tout le gâteau."
+  },
+  {
+   "clipId": "set3-02-correct",
+   "question": "Qu'est-ce que vous aimez comme dessert ?",
+   "referenceText": "Vous aimez le chocolat ?",
+   "turboNoPrompt": "Vous aimez le chocolat ?",
+   "largeV3NoPrompt": "vous aimez le chocolat",
+   "largeV3QuestionPrompt": "Vous aimez le chocolat ?"
+  },
+  {
+   "clipId": "set3-02-swap",
+   "question": "Qu'est-ce que vous aimez comme dessert ?",
+   "referenceText": "Vous aimez le chocolat ?",
+   "turboNoPrompt": "Vous aimez le chocolat ?",
+   "largeV3NoPrompt": "Vous aimez le chocolat?",
+   "largeV3QuestionPrompt": "Vous aimez le chocolat ?"
+  },
+  {
+   "clipId": "set3-03-correct",
+   "question": "Que pensez-vous du dernier film que vous avez vu ?",
+   "referenceText": "C'est un bon film.",
+   "turboNoPrompt": "c'est un bon film",
+   "largeV3NoPrompt": "C'est un bon film.",
+   "largeV3QuestionPrompt": "C'est un bon film."
+  },
+  {
+   "clipId": "set3-03-swap",
+   "question": "Que pensez-vous du dernier film que vous avez vu ?",
+   "referenceText": "C'est un bon film.",
+   "turboNoPrompt": "c'est un beau film",
+   "largeV3NoPrompt": "c'est un beau film",
+   "largeV3QuestionPrompt": "C'est un beau film."
+  },
+  {
+   "clipId": "set3-04-correct",
+   "question": "Que mangez-vous le matin ?",
+   "referenceText": "Je mange du pain le matin.",
+   "turboNoPrompt": "Je mange du pain le matin.",
+   "largeV3NoPrompt": "Je mange du pain le matin.",
+   "largeV3QuestionPrompt": "Je mange du pain le matin."
+  },
+  {
+   "clipId": "set3-04-swap",
+   "question": "Que mangez-vous le matin ?",
+   "referenceText": "Je mange du pain le matin.",
+   "turboNoPrompt": "Je m'ose du pas le matin.",
+   "largeV3NoPrompt": "Chemours du Pas le matin.",
+   "largeV3QuestionPrompt": "Je mange du pain le matin."
+  },
+  {
+   "clipId": "set3-05-correct",
+   "question": "Avez-vous des animaux à la maison ?",
+   "referenceText": "Ils ont un chien.",
+   "turboNoPrompt": "Ils sont en chien",
+   "largeV3NoPrompt": "Ils sont en chien.",
+   "largeV3QuestionPrompt": "Ils sont en chien."
+  },
+  {
+   "clipId": "set3-05-swap",
+   "question": "Avez-vous des animaux à la maison ?",
+   "referenceText": "Ils ont un chien.",
+   "turboNoPrompt": "il s'enchaîne",
+   "largeV3NoPrompt": "Il sort un chien.",
+   "largeV3QuestionPrompt": "Il sort un chien."
+  },
+  {
+   "clipId": "set3-06-correct",
+   "question": "À quelle heure déjeunent-ils ?",
+   "referenceText": "Ils mangent à midi.",
+   "turboNoPrompt": "Il monge a midi",
+   "largeV3NoPrompt": "Il m'ont jamais dit.",
+   "largeV3QuestionPrompt": "Il m'ont jamais dit."
+  },
+  {
+   "clipId": "set3-06-swap",
+   "question": "À quelle heure déjeunent-ils ?",
+   "referenceText": "Ils mangent à midi.",
+   "turboNoPrompt": "Ils mangeant à midi.",
+   "largeV3NoPrompt": "Ils mangent à midi.",
+   "largeV3QuestionPrompt": "Ils mangent à midi."
+  },
+  {
+   "clipId": "set3-07-correct",
+   "question": "Qu'est-ce qu'elle a apporté ?",
+   "referenceText": "Elle a les clés.",
+   "turboNoPrompt": "et la L'Eclair",
+   "largeV3NoPrompt": "Hello les clés !",
+   "largeV3QuestionPrompt": "Elle a les clés."
+  },
+  {
+   "clipId": "set3-07-swap",
+   "question": "Qu'est-ce qu'elle a apporté ?",
+   "referenceText": "Elle a les clés.",
+   "turboNoPrompt": "Elle a l'airc les",
+   "largeV3NoPrompt": "Elle a l'oeuvre clé.",
+   "largeV3QuestionPrompt": "Elle a l'oeuf clé."
+  },
+  {
+   "clipId": "set3-08-correct",
+   "question": "Qu'est-ce que vous avez à la maison comme animaux ?",
+   "referenceText": "J'ai deux chats.",
+   "turboNoPrompt": "j'ai deux ça",
+   "largeV3NoPrompt": "j'ai deux chats",
+   "largeV3QuestionPrompt": "J'ai deux chats"
+  },
+  {
+   "clipId": "set3-08-swap",
+   "question": "Qu'est-ce que vous avez à la maison comme animaux ?",
+   "referenceText": "J'ai deux chats.",
+   "turboNoPrompt": "J'ai douche.",
+   "largeV3NoPrompt": "J'ai douche.",
+   "largeV3QuestionPrompt": "J'ai doux chat"
+  },
+  {
+   "clipId": "set3-09-correct",
+   "question": "Qu'est-ce qu'il boit au dîner ?",
+   "referenceText": "Il boit du vin blanc.",
+   "turboNoPrompt": "Il boit du vin blanc.",
+   "largeV3NoPrompt": "Il boit du vin blanc.",
+   "largeV3QuestionPrompt": "Il boit du vin blanc."
+  },
+  {
+   "clipId": "set3-09-swap",
+   "question": "Qu'est-ce qu'il boit au dîner ?",
+   "referenceText": "Il boit du vin blanc.",
+   "turboNoPrompt": "Il doit du vent blanche",
+   "largeV3NoPrompt": "Il doit du vent blanc.",
+   "largeV3QuestionPrompt": "Il boit du vent blanc."
+  }
+ ]
+}
