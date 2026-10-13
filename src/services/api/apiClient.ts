@@ -34,6 +34,7 @@ import type { CandidateInputMode } from '../../domain/igcse/stt/types';
 import type { NewsSnippet } from '../../data/mocks/mockNews';
 import { getWarmupPhase, noteBackendReachable } from './backendWarmup';
 import { NoScoreInFeedbackError, computeOverall } from '../../domain/scoring';
+import { ConsentRequiredError, isConsentRequiredBody } from '../../lib/consentRequired';
 import { AuthRequiredError, GUEST_LIMIT_MESSAGE, checkGuestAttempt, guestAiEnabled, guestHasFreeAttempt, getAccessToken, isAuthRequiredError, requireAuthHeader } from '../../lib/authToken';
 
 /**
@@ -621,7 +622,7 @@ async function tryNetworkFeedback(
 }
 
 /** A non-2xx response; the message is the same `API <path> → <status>` text callers already log. */
-class ApiHttpError extends Error {
+export class ApiHttpError extends Error {
   constructor(
     path: string,
     readonly status: number,
@@ -672,12 +673,64 @@ async function postMultipartWithSignal<T>(path: string, formData: FormData, sign
  */
 const TRANSCRIBE_TIMEOUT_MS = 30000;
 
+/**
+ * One Whisper segment with its own confidence signals. Absent on providers
+ * that don't report them (the local faster-whisper fallback), and nothing may
+ * treat a missing value as "confident".
+ */
+export interface TranscribeSegment {
+  start: number | null;
+  end: number | null;
+  text: string;
+  avgLogprob: number | null;
+  noSpeechProb: number | null;
+  compressionRatio: number | null;
+}
+
 export interface TranscribeAudioResult {
   text: string;
   source: string;
+  /** Provider model ID (backend GROQ_WHISPER_MODEL); absent from older backends. */
+  model?: string;
+  segments: TranscribeSegment[];
 }
 
-export async function transcribeAudio(audioBlob: Blob, language = 'fr'): Promise<TranscribeAudioResult> {
+/**
+ * What the backend charges a transcription to (`/api/transcribe`'s `purpose`):
+ * `learn` and `exam_turn` have their own daily caps, the default keeps the
+ * original `transcribe` cap.
+ */
+export type TranscribePurpose = 'learn' | 'exam_turn';
+
+export interface TranscribeAudioOptions {
+  /** Context only — the question text first, then earlier answers. Never the expected answer or a vocabulary list. */
+  prompt?: string;
+  purpose?: TranscribePurpose;
+  /** Overrides the 30 s default; a caller with a latency budget gives up sooner. */
+  timeoutMs?: number;
+}
+
+const numberOrNull = (value: unknown): number | null => (typeof value === 'number' && Number.isFinite(value) ? value : null);
+
+function parseTranscribeSegments(raw: unknown): TranscribeSegment[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter((seg): seg is Record<string, unknown> => !!seg && typeof seg === 'object')
+    .map((seg) => ({
+      start: numberOrNull(seg.start),
+      end: numberOrNull(seg.end),
+      text: typeof seg.text === 'string' ? seg.text : '',
+      avgLogprob: numberOrNull(seg.avgLogprob),
+      noSpeechProb: numberOrNull(seg.noSpeechProb),
+      compressionRatio: numberOrNull(seg.compressionRatio),
+    }));
+}
+
+export async function transcribeAudio(
+  audioBlob: Blob,
+  language = 'fr',
+  options: TranscribeAudioOptions = {},
+): Promise<TranscribeAudioResult> {
   // Same Phase 3 gate as the feedback endpoints: no token, no point sending.
   const token = await getAccessToken();
   if (!token && !guestHasFreeAttempt()) throw new AuthRequiredError(guestAiEnabled() ? GUEST_LIMIT_MESSAGE : 'Sign in to use speech transcription.');
@@ -685,9 +738,11 @@ export async function transcribeAudio(audioBlob: Blob, language = 'fr'): Promise
   const formData = new FormData();
   formData.append('audio', audioBlob, audioFileNameFor(audioBlob));
   formData.append('language', language);
+  if (options.prompt?.trim()) formData.append('prompt', options.prompt);
+  if (options.purpose) formData.append('purpose', options.purpose);
 
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TRANSCRIBE_TIMEOUT_MS);
+  const timer = setTimeout(() => controller.abort(), options.timeoutMs ?? TRANSCRIBE_TIMEOUT_MS);
   try {
     const res = await fetch(`${API_BASE}/api/transcribe`, {
       method: 'POST',
@@ -696,11 +751,20 @@ export async function transcribeAudio(audioBlob: Blob, language = 'fr'): Promise
       ...(token ? { headers: { Authorization: `Bearer ${token}` } } : {}),
     });
     if (!res.ok) {
+      // The backend's consent gate also answers 403 — that is not an expired session.
+      if (res.status === 403 && isConsentRequiredBody(await res.json().catch(() => null))) {
+        throw new ConsentRequiredError();
+      }
       assertNotAuthFailure('/api/transcribe', res.status);
-      throw new Error(`API /api/transcribe → ${res.status}`);
+      throw new ApiHttpError('/api/transcribe', res.status);
     }
-    const body = (await res.json()) as { text?: string; source?: string };
-    return { text: body.text ?? '', source: body.source ?? 'unknown' };
+    const body = (await res.json()) as { text?: string; source?: string; model?: string; segments?: unknown };
+    return {
+      text: body.text ?? '',
+      source: body.source ?? 'unknown',
+      ...(typeof body.model === 'string' ? { model: body.model } : {}),
+      segments: parseTranscribeSegments(body.segments),
+    };
   } catch (err) {
     if ((err as Error).name === 'AbortError') {
       throw new Error('Transcription request timed out');

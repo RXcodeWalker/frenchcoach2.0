@@ -78,6 +78,11 @@ Facts that constrain the design:
 - **The question list is fixed at session start** (`Learn.tsx:207-237`); nothing re-selects today.
 - **Transcription is browser Web Speech API only**; Learn passes `audioBlob: undefined`
   everywhere, so server Whisper and the multimodal branch are dead for Learn.
+  *(Amended 2026-10-13: the feedback calls still never receive audio, but since the
+  transcription-accuracy work Learn's confirm step sends the recording to `/api/transcribe`
+  (`purpose: learn`) and shows Whisper's text as the primary transcript, with the live captions as
+  the second opinion — `src/features/learn/answerTranscription.ts`. Only when
+  `learnTranscriptConfirm` is live; the Web Speech text is used when Whisper is unavailable.)*
 - **The belief engine is good and stays untouched**: weighted Beta-Bernoulli, Laplace (1,1)
   prior, `mastery = α/(α+β)`, 14-day half-life,
   `weight = min(reliability × evaluatorCap, 0.80) × sourceWeight × recency`,
