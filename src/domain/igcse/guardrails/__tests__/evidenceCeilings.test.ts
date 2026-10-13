@@ -53,6 +53,7 @@ function profile(observations: Observation[]): EvidenceProfile {
     features: {},
     detectorRuns: [],
     detectorVersions: {},
+    ambiguousSpansByTurn: [],
     timeFrameAlignmentByQuestion: [],
     responseCountsByQuestion: [],
     fillerDensityByQuestion: [],

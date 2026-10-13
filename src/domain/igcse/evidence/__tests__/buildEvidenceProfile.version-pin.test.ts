@@ -13,7 +13,7 @@ import { buildEvidenceProfile } from '../buildEvidence';
 import { EVIDENCE_DETECTOR_VERSION } from '../version';
 import { EVIDENCE_GOLDEN_TRANSCRIPT } from './fixtures';
 
-const EVIDENCE_PROFILE_FIXTURE_HASH = '5e06e7991f410c1d64708295618e2498173bc512e83b9c601cb3a5171f754c23';
+const EVIDENCE_PROFILE_FIXTURE_HASH = 'aadd0df2ae28dbbe4e350429be2d00855ec39295eaa1b3c45f8dcebeb4179cf1';
 
 function sha256(value: unknown): string {
   return createHash('sha256').update(JSON.stringify(value)).digest('hex');

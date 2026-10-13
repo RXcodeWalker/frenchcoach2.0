@@ -10661,7 +10661,8 @@
         "candidateWordCount": 156,
         "typedTurnCount": 0
       }
-    ]
+    ],
+    "ambiguousSpansByTurn": []
   },
   "guardrailTriggers": [],
   "envelope": null

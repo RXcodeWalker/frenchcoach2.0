@@ -7893,7 +7893,8 @@
         "candidateWordCount": 97,
         "typedTurnCount": 0
       }
-    ]
+    ],
+    "ambiguousSpansByTurn": []
   },
   "guardrailTriggers": [],
   "envelope": null

@@ -4271,3 +4271,14 @@ hot reload reset the component — and passed on re-run). Not run: `npm run judg
 is unchanged) and backend pytest (no backend change in this stage; its stage-1 commit is already pushed).
 Not yet done, by design: the manual run against real keys — Whisper's actual reading of a real
 recording has not been seen; the e2e mocks `/api/transcribe`.
+
+## 2026-10-13 — Transcription accuracy stage 6: the marker applies the sound-alike rules (in progress)
+
+Branch `claude/busy-gauss-k0ihy9`, built on Stage 5 (`session-transcript-v2`) and Stage 4 (the shared
+`alignRecognisers`), both merged into this branch first (their branches were separate).
+
+**Intended golden shape changes, recorded before each `--update-goldens`:**
+1. Slice 1 (projection + evidence): every golden's `evidence` gains `ambiguousSpansByTurn: []` (the
+   synthetic transcripts are hand-authored, so no answer has spans), and each envelope's
+   `versions.evidenceDetectorVersion` moves `detectors-v0.6` → `detectors-v0.7`. No mark, trigger or
+   other evidence value changes.

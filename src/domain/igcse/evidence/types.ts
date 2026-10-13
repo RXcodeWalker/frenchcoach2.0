@@ -4,6 +4,7 @@
  */
 
 import type { DetectorRun, Observation } from './framework/observation';
+import type { AmbiguousSpan } from '../judgement/types';
 
 export type TimeFrame = 'past' | 'present' | 'future' | 'conditional';
 
@@ -80,6 +81,20 @@ export interface EvidenceProfileSubset {
  * allow-list (judgement/prompt.ts PROMPT_EVIDENCE_ALLOW_LIST), so no mark
  * moves as a result.
  */
+/**
+ * Stage 6 (transcription-accuracy plan, Phase 4): the uncertain stretches of
+ * one spoken answer, copied from the projected transcript (see
+ * judgement/types.ts AmbiguousSpan). Audit only: it is NOT on the prompt
+ * allow-list (judgement/prompt.ts) — the judge reads the same spans from the
+ * transcript's own "Uncertain words" lines.
+ */
+export interface TurnAmbiguousSpans {
+  source: 'rolePlay' | 'topic1' | 'topic2';
+  /** taskId for role play, turnId for a topic turn. */
+  turnId: string;
+  spans: AmbiguousSpan[];
+}
+
 export interface EvidenceProfile extends EvidenceProfileSubset {
   schemaVersion: 'evidence-profile-v1';
   /** Sourced from framework/observation.ts's OBSERVATION_SCHEMA_VERSION — versions the Observation shape itself. */
@@ -93,4 +108,6 @@ export interface EvidenceProfile extends EvidenceProfileSubset {
   /** One entry per registered detector (success/disabled/dependency_unavailable/version_mismatch/failed). */
   detectorRuns: DetectorRun[];
   detectorVersions: Record<string, string>;
+  /** Stage 6: every answer with at least one ambiguous span, in transcript order. [] for typed or hand-authored transcripts. */
+  ambiguousSpansByTurn: TurnAmbiguousSpans[];
 }

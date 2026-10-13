@@ -12,7 +12,7 @@ import { DetectorRegistry } from './framework/registry';
 import { runDetectors } from './framework/runner';
 import { rolePlayPartsByTask } from './parts';
 import { deriveExpectedTimeFrameFromCues, detectTimeFrameAlignment } from './timeFrame';
-import type { EvidenceProfile, EvidenceProfileSubset } from './types';
+import type { EvidenceProfile, EvidenceProfileSubset, TurnAmbiguousSpans } from './types';
 
 const LEGACY_REGISTRY = new DetectorRegistry(LEGACY_DETECTORS);
 /**
@@ -93,6 +93,21 @@ export function buildEvidenceSubset(transcript: SpeakingTranscript): EvidencePro
  * moves. `questionSet` is optional (null at every current call site except
  * where a caller passes one) — see DetectorContext.questionSet.
  */
+/** Stage 6: the projected transcript's ambiguous spans, per answer (audit copy — see TurnAmbiguousSpans). */
+function ambiguousSpansByTurn(transcript: SpeakingTranscript): TurnAmbiguousSpans[] {
+  const rows: TurnAmbiguousSpans[] = transcript.rolePlay.map((task) => ({
+    source: 'rolePlay' as const,
+    turnId: task.taskId,
+    spans: task.ambiguousSpans ?? [],
+  }));
+  for (const conv of transcript.topicConversations) {
+    for (const turn of conv.turns) {
+      rows.push({ source: conv.conversationId, turnId: turn.turnId, spans: turn.ambiguousSpans ?? [] });
+    }
+  }
+  return rows.filter((row) => row.spans.length > 0);
+}
+
 export function buildEvidenceProfile(
   transcript: SpeakingTranscript,
   questionSet: SessionQuestionSet | null = null,
@@ -112,5 +127,6 @@ export function buildEvidenceProfile(
     detectorRuns,
     detectorVersions,
     ...subset,
+    ambiguousSpansByTurn: ambiguousSpansByTurn(transcript),
   };
 }

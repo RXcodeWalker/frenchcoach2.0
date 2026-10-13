@@ -7893,7 +7893,8 @@
         "candidateWordCount": 97,
         "typedTurnCount": 0
       }
-    ]
+    ],
+    "ambiguousSpansByTurn": []
   },
   "guardrailTriggers": [],
   "envelope": {
@@ -7905,7 +7906,7 @@
       "envelopeSchemaVersion": "envelope-v0.4",
       "rubricVersion": "rubric-v0.1",
       "scoringEngineVersion": "golden-fixture",
-      "evidenceDetectorVersion": "detectors-v0.6",
+      "evidenceDetectorVersion": "detectors-v0.7",
       "scoringPromptVersion": "scoring-prompt-v0.6.1",
       "guardrailsVersion": "guardrails-v0.6",
       "calibrationVersion": "none",
@@ -15956,7 +15957,8 @@
           "candidateWordCount": 97,
           "typedTurnCount": 0
         }
-      ]
+      ],
+      "ambiguousSpansByTurn": []
     },
     "transcriptSnapshot": {
       "contentProvenance": "original-practice",

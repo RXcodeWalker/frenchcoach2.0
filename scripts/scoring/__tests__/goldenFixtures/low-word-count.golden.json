@@ -1653,7 +1653,8 @@
         "candidateWordCount": 5,
         "typedTurnCount": 0
       }
-    ]
+    ],
+    "ambiguousSpansByTurn": []
   },
   "guardrailTriggers": [],
   "envelope": null

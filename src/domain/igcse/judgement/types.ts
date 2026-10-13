@@ -13,6 +13,36 @@ import type { TimeFrame } from '../evidence/types';
  */
 export type ContentProvenance = 'original-practice' | 'confidential-internal';
 
+/**
+ * Stage 6 (transcription-accuracy plan, Phase 4): a stretch of a spoken answer
+ * the marker cannot be sure of, built by toSpeakingTranscript
+ * (stt/project/spokenText.ts). Token indexes are whitespace-separated words
+ * of the turn's `candidateResponse`.
+ *
+ *  - `nearHomophone`: a Category B word (un/en, ont/sont, le/les…, see
+ *    stt/homophones/nearPairs.ts). With two recognisers it is a place where
+ *    they disagreed on such a word; with one recogniser every such word is
+ *    listed, because nothing confirms it. The candidate gets the benefit of
+ *    the doubt there (judgement/homophoneErrors.ts).
+ *  - `different`: the recognisers heard clearly different words. Kept for
+ *    audit only — the primary recogniser's reading stands and an error in it
+ *    counts.
+ */
+export interface AmbiguousSpan {
+  kind: 'nearHomophone' | 'different';
+  /** 'disagreement': both recognisers read the answer and differ here. 'single-recogniser': only one reading exists. */
+  basis: 'disagreement' | 'single-recogniser';
+  /** Token range [start, end) in candidateResponse. start === end: only the second recogniser heard words here. */
+  start: number;
+  end: number;
+  /** candidateResponse's words for the range. */
+  heard: string;
+  /** What the other recogniser heard here (disagreement), or the word's Category B partners (single recogniser). */
+  alternatives: string[];
+  /** Category B pair ids (`nearHomophone` only). */
+  pairIds: string[];
+}
+
 /** Candidate-only transcript in Cambridge 0520 Paper 3 shape. */
 export interface SpeakingTranscript {
   contentProvenance: ContentProvenance;
@@ -40,6 +70,12 @@ export interface RolePlayTaskResponse {
    * examinerEvents. Absent when there is no session provenance.
    */
   repetitions?: number;
+  /**
+   * Stage 6: uncertain stretches of the spoken response — see AmbiguousSpan.
+   * Set by toSpeakingTranscript on spoken tasks (possibly empty); absent on
+   * typed answers and hand-authored transcripts.
+   */
+  ambiguousSpans?: AmbiguousSpan[];
 }
 
 /**
@@ -89,6 +125,8 @@ export interface ConversationTurn {
    * duration — see guardrails/insufficientEvidence.ts.
    */
   inputMode?: 'speech' | 'text';
+  /** Stage 6: uncertain stretches of the spoken response — see RolePlayTaskResponse.ambiguousSpans. */
+  ambiguousSpans?: AmbiguousSpan[];
   /**
    * Examiner support recorded for this turn — see ExaminerSupport. Absent for
    * hand-authored transcripts and for further-question turns (turnId

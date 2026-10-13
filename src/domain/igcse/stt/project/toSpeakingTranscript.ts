@@ -15,10 +15,17 @@
  * their answers would otherwise be dropped; here each null-questionId
  * candidate utterance is grouped under the examiner utterance just before it
  * in that part and emitted as turn 'further1' | 'further2' after Q5.
+ *
+ * Stage 6 (transcription-accuracy plan, Phase 4): a spoken candidate
+ * utterance reaches the judge in its context-consistent spelling (Category A
+ * respelled) and each spoken turn carries `ambiguousSpans` — see
+ * spokenText.ts. Typed utterances pass through verbatim.
  */
 
 import { canonicalizeForMatch } from '../../text/normalize';
+import { joinMarked, markUtterance, type MarkedText } from './spokenText';
 import type {
+  AmbiguousSpan,
   ExaminerSupport,
   RolePlayTaskResponse,
   SpeakingTranscript,
@@ -34,8 +41,30 @@ import type {
   Utterance,
 } from '../types';
 
-function joinCandidateText(utterances: Utterance[]): string {
-  return utterances.map((u) => u.text).join(' ');
+/** Marked text per candidate utterance, computed once per projection (see spokenText.ts). */
+type MarkedById = ReadonlyMap<string, MarkedText & { spoken: boolean }>;
+
+function markCandidateUtterances(session: SessionTranscript): MarkedById {
+  return new Map(
+    session.utterances.filter((u) => u.role === 'candidate').map((u) => [u.utteranceId, markUtterance(u)] as const),
+  );
+}
+
+/**
+ * One turn's candidate answer: the utterances' marked texts joined with a
+ * single space, plus — when any of them was spoken — the turn's ambiguous
+ * spans (possibly empty).
+ */
+function candidateAnswer(
+  marked: MarkedById,
+  utterances: Utterance[],
+): { candidateResponse: string; ambiguousSpans?: AmbiguousSpan[] } {
+  const parts = utterances.map((u) => marked.get(u.utteranceId) ?? { text: u.text, spans: [], spoken: false });
+  const joined = joinMarked(parts);
+  return {
+    candidateResponse: joined.text,
+    ...(parts.some((p) => p.spoken) ? { ambiguousSpans: joined.spans } : {}),
+  };
 }
 
 function sumCandidateDuration(utterances: Utterance[]): number {
@@ -116,6 +145,7 @@ function findQuestion(questionSet: SessionQuestionSet, questionId: string | null
 function buildRolePlayTasks(
   session: SessionTranscript,
   questionSet: SessionQuestionSet,
+  marked: MarkedById,
 ): RolePlayTaskResponse[] {
   const rolePlayQuestions = questionSet.questions.filter((q) => q.part === 'rolePlay');
 
@@ -123,13 +153,15 @@ function buildRolePlayTasks(
     const candidateUtterances = session.utterances.filter(
       (u) => u.role === 'candidate' && u.part === 'rolePlay' && u.questionId === question.questionId,
     );
+    const { candidateResponse, ambiguousSpans } = candidateAnswer(marked, candidateUtterances);
     return {
       taskId: question.questionId,
       taskPrompt: question.mainText,
-      candidateResponse: joinCandidateText(candidateUtterances),
+      candidateResponse,
       ...(question.partsExpected !== undefined ? { partsExpected: question.partsExpected } : {}),
       ...(question.secondPartText !== undefined ? { secondPartPrompt: question.secondPartText } : {}),
       repetitions: countRepetitions(session, 'rolePlay', question.questionId),
+      ...(ambiguousSpans !== undefined ? { ambiguousSpans } : {}),
     };
   });
 }
@@ -138,6 +170,7 @@ function buildTopicConversation(
   session: SessionTranscript,
   questionSet: SessionQuestionSet,
   conversationId: 'topic1' | 'topic2',
+  marked: MarkedById,
 ): TopicConversation {
   const topicQuestions = questionSet.questions.filter((q) => q.part === conversationId);
   const topicArea = topicQuestions.find((q) => q.topicArea !== undefined)?.topicArea;
@@ -147,10 +180,11 @@ function buildTopicConversation(
       (u) => u.role === 'candidate' && u.part === conversationId && u.questionId === question.questionId,
     );
     const inputMode = turnInputMode(candidateUtterances);
+    const { candidateResponse, ambiguousSpans } = candidateAnswer(marked, candidateUtterances);
     return {
       turnId: question.questionId,
       questionPrompt: question.mainText,
-      candidateResponse: joinCandidateText(candidateUtterances),
+      candidateResponse,
       ...(question.expectedTimeFrame !== undefined
         ? { expectedTimeFrame: question.expectedTimeFrame }
         : {}),
@@ -158,6 +192,7 @@ function buildTopicConversation(
         ? { candidateResponseDurationS: sumCandidateDuration(candidateUtterances) }
         : {}),
       ...(inputMode !== undefined ? { inputMode } : {}),
+      ...(ambiguousSpans !== undefined ? { ambiguousSpans } : {}),
       examinerSupport: examinerSupportFor(session, question),
     };
   });
@@ -165,7 +200,7 @@ function buildTopicConversation(
   return {
     conversationId,
     ...(topicArea !== undefined ? { topicArea } : {}),
-    turns: [...turns, ...buildFurtherTurns(session, conversationId)],
+    turns: [...turns, ...buildFurtherTurns(session, conversationId, marked)],
   };
 }
 
@@ -177,7 +212,11 @@ function buildTopicConversation(
  * of the further question just asked (session-engine-v4, exam-conduct §15)
  * continues that question's turn rather than opening a new one.
  */
-function buildFurtherTurns(session: SessionTranscript, conversationId: 'topic1' | 'topic2'): ConversationTurn[] {
+function buildFurtherTurns(
+  session: SessionTranscript,
+  conversationId: 'topic1' | 'topic2',
+  marked: MarkedById,
+): ConversationTurn[] {
   const groups: { prompt: string; utterances: Utterance[] }[] = [];
   let lastExaminer: Utterance | null = null;
   let lastGroupFor: Utterance | null = null;
@@ -204,12 +243,14 @@ function buildFurtherTurns(session: SessionTranscript, conversationId: 'topic1' 
 
   return groups.map((group, index) => {
     const inputMode = turnInputMode(group.utterances);
+    const { candidateResponse, ambiguousSpans } = candidateAnswer(marked, group.utterances);
     return {
       turnId: `further${index + 1}`,
       questionPrompt: group.prompt,
-      candidateResponse: joinCandidateText(group.utterances),
+      candidateResponse,
       candidateResponseDurationS: sumCandidateDuration(group.utterances),
       ...(inputMode !== undefined ? { inputMode } : {}),
+      ...(ambiguousSpans !== undefined ? { ambiguousSpans } : {}),
     };
   });
 }
@@ -218,12 +259,13 @@ export function toSpeakingTranscript(
   session: SessionTranscript,
   questionSet: SessionQuestionSet,
 ): SpeakingTranscript {
+  const marked = markCandidateUtterances(session);
   return {
     contentProvenance: session.contentProvenance,
-    rolePlay: buildRolePlayTasks(session, questionSet),
+    rolePlay: buildRolePlayTasks(session, questionSet, marked),
     topicConversations: [
-      buildTopicConversation(session, questionSet, 'topic1'),
-      buildTopicConversation(session, questionSet, 'topic2'),
+      buildTopicConversation(session, questionSet, 'topic1', marked),
+      buildTopicConversation(session, questionSet, 'topic2', marked),
     ],
   };
 }

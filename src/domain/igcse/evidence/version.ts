@@ -33,4 +33,15 @@
  * and EVIDENCE_PROFILE_FIXTURE_HASH move even though no mark-relevant number
  * does.
  */
-export const EVIDENCE_DETECTOR_VERSION = 'detectors-v0.6';
+/*
+ * Stage 6 (transcription-accuracy plan, Phase 4): EvidenceProfile gained
+ * `ambiguousSpansByTurn`, an audit copy of the projected transcript's
+ * ambiguous spans (Category B words the recognisers disagreed on, or every
+ * such word on a one-recogniser answer). It is not on the prompt allow-list.
+ * The detectors also now read spoken answers in their Category A respelling
+ * (toSpeakingTranscript), so a projected transcript's counts can differ from
+ * v0.6's even where no field changed. buildEvidenceSubset's output on
+ * EVIDENCE_GOLDEN_TRANSCRIPT is unchanged (EVIDENCE_DETECTOR_FIXTURE_HASH
+ * holds); only EVIDENCE_PROFILE_FIXTURE_HASH moves.
+ */
+export const EVIDENCE_DETECTOR_VERSION = 'detectors-v0.7';
