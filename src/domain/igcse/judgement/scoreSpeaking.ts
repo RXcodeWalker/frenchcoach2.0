@@ -15,6 +15,7 @@ import {
   parseRolePlayCommunicationOutput,
 } from './schema';
 import { buildQualityOfLanguagePrompt, buildRolePlayCommunicationPrompt } from './prompt';
+import type { QualityOfLanguagePromptOptions } from './prompt';
 import type {
   Judge,
   JudgeKind,
@@ -103,13 +104,18 @@ export async function scoreRolePlayAndCommunication(
   return parseRolePlayCommunicationOutput(parsed, transcript);
 }
 
-/** The 'qualityOfLanguage' L2 call — topic conversations only, no L1 counts. */
+/**
+ * The 'qualityOfLanguage' L2 call — topic conversations only, no L1 counts.
+ * Stage 6: `options.notErrors` makes it the one re-ask after the marker
+ * excused errors (judgement/homophoneErrors.ts); the reply is parsed the same way.
+ */
 export async function scoreQualityOfLanguage(
   transcript: SpeakingTranscript,
   judge: Judge,
+  options: QualityOfLanguagePromptOptions = {},
 ): Promise<QualityOfLanguageAssessment> {
   assertProvenance(transcript);
-  const parsed = await callJudge(judge, 'qualityOfLanguage', buildQualityOfLanguagePrompt(transcript));
+  const parsed = await callJudge(judge, 'qualityOfLanguage', buildQualityOfLanguagePrompt(transcript, options));
   return parseQualityOfLanguageOutput(parsed, transcript);
 }
 
@@ -126,9 +132,10 @@ export function combineAssessment(
 }
 
 /**
- * Convenience: both L2 calls concurrently against one judge, no retry. The
- * production path (scoreAttempt) calls the two functions above directly so it
- * can give each call its own fresh judge instance and its own retry.
+ * Convenience: both L2 calls concurrently against one judge, no retry and no
+ * stage-6 sound-alike step (judgement/homophoneErrors.ts). The production path
+ * (scoreAttempt) calls the two functions above directly so it can give each
+ * call its own fresh judge instance and its own retry, then applies that step.
  */
 export async function scoreSpeaking(
   transcript: SpeakingTranscript,

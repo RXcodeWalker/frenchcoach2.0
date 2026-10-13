@@ -116,3 +116,18 @@ export function logJudgeAttempts(
   if (!debugEnabled && judgeAttempts <= 1) return;
   process.stderr.write(JSON.stringify({ traceId, sessionId, stage: 'judgeAttempts', judgeKind, judgeAttempts }) + '\n');
 }
+
+/**
+ * Stage 6: the QoL homophone step. Written only when something was excused
+ * (always then, not gated on debug — a re-ask is an extra paid call, and a
+ * failed one leaves a mark the guardrail flags). Counts and marks only, never
+ * a quote: quotes are the candidate's own words.
+ */
+export function logHomophoneResolution(
+  traceId: string,
+  sessionId: string,
+  resolution: { reAsk: string; firstMark: number; finalMark: number; excused: number; excusedInReAsk: number; failure?: string },
+): void {
+  if (resolution.reAsk === 'not-needed') return;
+  process.stderr.write(JSON.stringify({ traceId, sessionId, stage: 'qolHomophones', ...resolution }) + '\n');
+}

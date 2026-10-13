@@ -8,6 +8,7 @@ import { createGenericFakeJudge } from './fixtures';
 import { JudgementValidationError } from '../../../src/domain/igcse/judgement/schema';
 import type { Judge, JudgeKind, JudgeRequest, JudgeResponse } from '../../../src/domain/igcse/judgement/types';
 import { enableScoringDebug } from '../observability/logger';
+import { QOL_7_9 } from '../../../src/domain/igcse/canonical';
 
 import structGolden from '../../../src/domain/igcse/stt/__tests__/fixtures/structurally-complete.golden.json';
 import structQuestions from '../../../src/domain/igcse/stt/__tests__/fixtures/structurally-complete-questions.json';
@@ -265,6 +266,81 @@ describe('scoreAttempt — two concurrent L2 calls (scoring-prompt-v0.6)', () =>
     expect(envelope.qualityOfLanguage.errors).toHaveLength(1);
     expect(envelope.qualityOfLanguage.errorFrequency).toBe('frequent errors');
     expect(envelope.qualityOfLanguageLlm?.model).toBe('fake-model');
+  });
+});
+
+describe('scoreAttempt — stage 6 sound-alike rules on the QoL error list', () => {
+  const speaking = () =>
+    toSpeakingTranscript(structGolden as unknown as SessionTranscript, structQuestions as SessionQuestionSet);
+
+  /** A QoL reply at `mark` (7-9 band) listing "ma" -> "m'a" (Category A: sounds the same) plus `extra`. */
+  function qolReply(mark: 7 | 8 | 9, withSoundAlike: boolean) {
+    const turn = speaking().topicConversations[0].turns[0];
+    const errors = withSoundAlike
+      ? [{ source: 'topic1' as const, turnId: turn.turnId, quote: 'ma réponse', kind: 'grammar' as const, correction: "m'a réponse" }]
+      : [];
+    return {
+      errors,
+      errorFrequency: errors.length ? ('occasional errors' as const) : ('no errors' as const),
+      mark,
+      band: { min: 7, max: 9, label: 'Satisfactory' as const },
+      bestFitPlacement: mark === 9 ? ('convincingly' as const) : mark === 8 ? ('adequately' as const) : ('just' as const),
+      descriptorsApplied: [QOL_7_9[0]],
+      justification: 'Satisfactory.',
+      evidenceSpans: [{ source: 'topic1' as const, quote: 'voilà' }],
+    };
+  }
+
+  const reply = (body: unknown): Promise<JudgeResponse> => Promise.resolve({ raw: JSON.stringify(body) });
+
+  it('an excused error triggers ONE re-ask that lists it as not an error, and the re-run mark is kept', async () => {
+    const prompts: string[] = [];
+    const { deps, judgeCalls } = makeKindAwareDeps(
+      (req, n) => {
+        if (req.kind !== 'qualityOfLanguage') return undefined;
+        prompts.push(req.prompt);
+        return n === 1 ? reply(qolReply(7, true)) : reply(qolReply(9, false));
+      },
+      (kind) => ({ provider: 'gemini', model: 'm', responseId: `resp-${kind}-${judgeCalls.filter((k) => k === kind).length}` }),
+    );
+
+    const envelope = await scoreAttempt(deps, { sessionId: SESSION_ID, questionSet: structQuestions as SessionQuestionSet });
+
+    expect(judgeCalls.filter((k) => k === 'qualityOfLanguage')).toHaveLength(2);
+    expect(prompts[0]).not.toContain('## Not errors');
+    expect(prompts[1]).toContain('"ma réponse" (listed correction: "m\'a réponse")');
+    expect(envelope.qualityOfLanguage.mark).toBe(9);
+    expect(envelope.qualityOfLanguage.errors).toEqual([]);
+    expect(envelope.total).toBe(envelope.rolePlayTasks.reduce((s, t) => s + t.mark, 0) + envelope.communication.mark + 9);
+    expect(envelope.qualityOfLanguageLlm?.responseId).toBe('resp-qualityOfLanguage-2');
+  });
+
+  it('nothing excused: no re-ask', async () => {
+    const { deps, judgeCalls } = makeKindAwareDeps((req) =>
+      req.kind === 'qualityOfLanguage' ? reply(qolReply(8, false)) : undefined,
+    );
+    const envelope = await scoreAttempt(deps, { sessionId: SESSION_ID, questionSet: structQuestions as SessionQuestionSet });
+    expect(judgeCalls.filter((k) => k === 'qualityOfLanguage')).toHaveLength(1);
+    expect(envelope.qualityOfLanguage.mark).toBe(8);
+  });
+
+  it('a failed re-ask keeps the first mark, drops the excused error from the list, and does not fail the attempt', async () => {
+    const stderr = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+    try {
+      const { deps } = makeKindAwareDeps((req, n) => {
+        if (req.kind !== 'qualityOfLanguage') return undefined;
+        if (n === 1) return reply(qolReply(7, true));
+        return Promise.reject(new Error('provider down'));
+      });
+      const envelope = await scoreAttempt(deps, { sessionId: SESSION_ID, questionSet: structQuestions as SessionQuestionSet });
+      expect(envelope.qualityOfLanguage.mark).toBe(7);
+      expect(envelope.qualityOfLanguage.errors).toEqual([]);
+      const logged = stderr.mock.calls.map((c) => String(c[0])).find((l) => l.includes('qolHomophones'));
+      expect(JSON.parse(logged!)).toMatchObject({ stage: 'qolHomophones', reAsk: 'failed', firstMark: 7, finalMark: 7, excused: 1, failure: 'Error' });
+      expect(logged).not.toContain('réponse');
+    } finally {
+      stderr.mockRestore();
+    }
   });
 });
 

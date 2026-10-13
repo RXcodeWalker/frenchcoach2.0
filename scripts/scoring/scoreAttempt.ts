@@ -20,6 +20,15 @@
  * failing here still gets re-POSTed by the client with backoff, so the two
  * retry layers compound, not substitute for each other.
  *
+ * Stage 6 (transcription-accuracy plan, Phase 4): after both calls, the QoL
+ * error list goes through the owner's sound-alike rules
+ * (judgement/homophoneErrors.ts). If any error is excused, the QoL call runs
+ * ONCE more with those errors listed as "not errors" (its own validation
+ * retries as usual) and the re-run's mark is kept; a re-ask that still fails
+ * keeps the first mark and is flagged by the homophone guardrail rather than
+ * failing the attempt. The re-ask is sequential after the QoL call, so it adds
+ * one call's latency, and only on attempts that need it.
+ *
  * createJudge is a factory dependency, called fresh once per judge call
  * (never memoized/shared) — see anthropicJudge.ts header for the race this
  * avoids; with two concurrent calls, sharing an instance would let one call's
@@ -39,6 +48,7 @@ import {
   scoreQualityOfLanguage,
   scoreRolePlayAndCommunication,
 } from '../../src/domain/igcse/judgement/scoreSpeaking';
+import { resolveQolHomophones } from '../../src/domain/igcse/judgement/homophoneErrors';
 import type { Judge, JudgeKind } from '../../src/domain/igcse/judgement/types';
 import { SCORING_PROMPT_VERSION } from '../../src/domain/igcse/judgement/version';
 import { RUBRIC_VERSION } from '../../src/domain/igcse/rubric';
@@ -48,7 +58,13 @@ import type { SessionQuestionSet } from '../../src/domain/igcse/stt/types';
 import type { TranscriptStore } from '../../src/domain/igcse/stt/ports';
 import { resolveScoringEngineVersion } from './engineVersion';
 import type { LlmProvenance, LlmProviderName } from '../../src/domain/igcse/envelope/types';
-import { logJudgeAttempts, logJudgeParseFailureDiagnostics, logJudgeValidationFailure, logStage } from './observability/logger';
+import {
+  logHomophoneResolution,
+  logJudgeAttempts,
+  logJudgeParseFailureDiagnostics,
+  logJudgeValidationFailure,
+  logStage,
+} from './observability/logger';
 
 /**
  * Judge calls per L2 call kind per scoring attempt: the first, plus up to two
@@ -128,7 +144,33 @@ export async function scoreAttempt(
     ),
     judgeCall('qualityOfLanguage', (judge) => scoreQualityOfLanguage(speakingTranscript, judge)),
   ]);
-  const assessment = combineAssessment(main.result, qol.result);
+
+  // Stage 6: excuse sound-alike errors; re-ask the QoL call once if any were.
+  let qolMetadata = qol.metadata;
+  let reAskFailure: string | undefined;
+  const homophones = await resolveQolHomophones(
+    qol.result,
+    speakingTranscript,
+    async (notErrors) => {
+      const rerun = await judgeCall('qualityOfLanguage', (judge) =>
+        scoreQualityOfLanguage(speakingTranscript, judge, { notErrors }),
+      );
+      qolMetadata = rerun.metadata;
+      return rerun.result;
+    },
+    (err) => {
+      reAskFailure = err instanceof Error ? err.name : 'unknown';
+    },
+  );
+  logHomophoneResolution(attemptId, input.sessionId, {
+    reAsk: homophones.reAsk,
+    firstMark: homophones.firstMark,
+    finalMark: homophones.qualityOfLanguage.mark,
+    excused: homophones.excusedErrors.length,
+    excusedInReAsk: homophones.excusedInReAsk,
+    ...(reAskFailure !== undefined ? { failure: reAskFailure } : {}),
+  });
+  const assessment = combineAssessment(main.result, homophones.qualityOfLanguage);
 
   const guardrailReport = await logStage(attemptId, 'runGuardrails', async () =>
     runGuardrails(assessment, evidenceProfile, speakingTranscript),
@@ -152,8 +194,9 @@ export async function scoreAttempt(
     questionSetHash: session.questionSetHash,
     llm: toLlmProvenance(main.metadata),
     // Recorded separately: after a Gemini→Groq fallback on one call only, the
-    // two calls can be served by different providers.
-    qualityOfLanguageLlm: toLlmProvenance(qol.metadata),
+    // two calls can be served by different providers. Stage 6: the call whose
+    // mark was kept — the re-ask's, when it was applied.
+    qualityOfLanguageLlm: toLlmProvenance(qolMetadata),
     versions: {
       rubricVersion: deps.versions?.rubricVersion ?? RUBRIC_VERSION,
       scoringEngineVersion: deps.versions?.scoringEngineVersion ?? resolveScoringEngineVersion(),

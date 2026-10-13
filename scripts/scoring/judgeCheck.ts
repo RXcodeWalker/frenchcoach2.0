@@ -8,7 +8,16 @@
  * passBar.ts for the offline-safe parts of this harness.
  *
  * Usage:
- *   npm run judge:check -- [--runs N] [--case <id>] [--provider gemini|groq] [--feedback]
+ *   npm run judge:check -- [--runs N] [--case <id>] [--provider gemini|groq] [--feedback] [--one-recogniser]
+ *
+ * Stage 6 (transcription-accuracy plan, Phase 4): each run also applies the
+ * QoL sound-alike step exactly as scoreAttempt does (resolveQolHomophones,
+ * one re-ask when an error is excused) and reports the re-ask rate and the
+ * first-reply vs kept QoL mark. The fixtures are hand-authored with no
+ * recogniser data, so by default only Category A ("sounds the same") errors
+ * can be excused. --one-recogniser marks every fixture answer as a spoken
+ * answer read by one recogniser (respelled, every Category B word uncertain)
+ * — how a live-captions-only exam is marked — to measure the most generous case.
  *
  * --feedback (Phase 3 Batch A): after each successful run, also generates the
  * post-marking exam report (src/domain/examFeedback) from that run's envelope
@@ -41,6 +50,9 @@ import { allExpectationsPassed, evaluateExpectation } from './judgeCheck/passBar
 import type { ExpectationResult } from './judgeCheck/passBar';
 import type { EvidenceProfile } from '../../src/domain/igcse/evidence/types';
 import { generateExamFeedback } from '../../src/domain/examFeedback/generate';
+import { resolveQolHomophones, type HomophoneReAskOutcome } from '../../src/domain/igcse/judgement/homophoneErrors';
+import type { ExcusedQolError, SpeakingTranscript } from '../../src/domain/igcse/judgement/types';
+import { markSpokenText } from '../../src/domain/igcse/stt/project/spokenText';
 import { buildCheckEnvelope, measureFeedback, type FeedbackMeasurement } from './judgeCheck/feedbackCheck';
 
 type Provider = 'gemini' | 'groq';
@@ -85,6 +97,7 @@ interface CliArgs {
   caseId?: string;
   provider: Provider;
   feedback: boolean;
+  oneRecogniser: boolean;
 }
 
 function parseArgs(argv: string[]): CliArgs {
@@ -92,6 +105,7 @@ function parseArgs(argv: string[]): CliArgs {
   let caseId: string | undefined;
   let provider: Provider = 'gemini';
   let feedback = false;
+  let oneRecogniser = false;
   for (let i = 0; i < argv.length; i += 1) {
     if (argv[i] === '--runs') {
       runs = Number(argv[++i]);
@@ -103,10 +117,12 @@ function parseArgs(argv: string[]): CliArgs {
       provider = v;
     } else if (argv[i] === '--feedback') {
       feedback = true;
+    } else if (argv[i] === '--one-recogniser') {
+      oneRecogniser = true;
     }
   }
   if (!Number.isInteger(runs) || runs < 1) throw new Error(`--runs must be a positive integer, got "${runs}"`);
-  return { runs, caseId, provider, feedback };
+  return { runs, caseId, provider, feedback, oneRecogniser };
 }
 
 interface CallMetadata {
@@ -176,6 +192,26 @@ async function runJudgeCallWithRetry<T>(
   }
 }
 
+/** --one-recogniser: every answer as a spoken answer with one reading (see the header). Typed turns are left alone. */
+function asOneRecogniser(transcript: SpeakingTranscript): SpeakingTranscript {
+  const mark = (text: string) => markSpokenText(text, null);
+  return {
+    ...transcript,
+    rolePlay: transcript.rolePlay.map((task) => {
+      const m = mark(task.candidateResponse);
+      return { ...task, candidateResponse: m.text, ambiguousSpans: m.spans };
+    }),
+    topicConversations: transcript.topicConversations.map((conv) => ({
+      ...conv,
+      turns: conv.turns.map((turn) => {
+        if (turn.inputMode === 'text') return turn;
+        const m = mark(turn.candidateResponse);
+        return { ...turn, candidateResponse: m.text, ambiguousSpans: m.spans };
+      }),
+    })) as SpeakingTranscript['topicConversations'],
+  };
+}
+
 interface SingleRunResult {
   rolePlay: number;
   communication: number;
@@ -187,6 +223,12 @@ interface SingleRunResult {
   qolJustification: string;
   mainAttempts: number;
   qolAttempts: number;
+  /** Stage 6: the first QoL reply's mark; `qualityOfLanguage` above is the mark kept. */
+  firstQualityOfLanguage: number;
+  reAsk: HomophoneReAskOutcome;
+  excusedErrors: ExcusedQolError[];
+  excusedInReAsk: number;
+  reAskAttempts?: number;
   validationErrors: string[];
   mainUsage?: { inputTokens: number; outputTokens: number };
   qolUsage?: { inputTokens: number; outputTokens: number };
@@ -222,21 +264,40 @@ function matchAuditErrors(auditErrors: JudgeCheckAuditError[], judgeErrors: QolE
 }
 
 async function runOnce(
-  fixture: JudgeCheckFixture,
   provider: Provider,
+  transcript: SpeakingTranscript,
 ): Promise<{ result: SingleRunResult; artifacts: RunArtifacts }> {
-  const evidence = buildEvidenceProfile(fixture.transcript);
+  const evidence = buildEvidenceProfile(transcript);
 
   const [main, qol] = await Promise.all([
     runJudgeCallWithRetry(provider, 'rolePlayCommunication', (judge) =>
-      scoreRolePlayAndCommunication(fixture.transcript, evidence, judge),
+      scoreRolePlayAndCommunication(transcript, evidence, judge),
     ),
-    runJudgeCallWithRetry(provider, 'qualityOfLanguage', (judge) => scoreQualityOfLanguage(fixture.transcript, judge)),
+    runJudgeCallWithRetry(provider, 'qualityOfLanguage', (judge) => scoreQualityOfLanguage(transcript, judge)),
   ]);
 
-  const assessment: SpeakingAssessment = combineAssessment(main.result, qol.result);
+  // Stage 6: the same sound-alike step as scoreAttempt, with the same one re-ask.
+  let reAskAttempts: number | undefined;
+  let reAskUsage: CallMetadata['usage'];
+  const reAskErrors: string[] = [];
+  const homophones = await resolveQolHomophones(
+    qol.result,
+    transcript,
+    async (notErrors) => {
+      const rerun = await runJudgeCallWithRetry(provider, 'qualityOfLanguage', (judge) =>
+        scoreQualityOfLanguage(transcript, judge, { notErrors }),
+      );
+      reAskAttempts = rerun.attempts;
+      reAskUsage = rerun.metadata.usage;
+      reAskErrors.push(...rerun.validationErrors);
+      return rerun.result;
+    },
+    (err) => reAskErrors.push(`[qualityOfLanguage re-ask] ${err instanceof Error ? err.message : String(err)}`),
+  );
+
+  const assessment: SpeakingAssessment = combineAssessment(main.result, homophones.qualityOfLanguage);
   // Real guardrails run, unused here beyond surfacing a broken fixture loudly.
-  runGuardrails(assessment, evidence, fixture.transcript);
+  runGuardrails(assessment, evidence, transcript);
 
   const result: SingleRunResult = {
     rolePlay: assessment.rolePlay.total,
@@ -249,9 +310,21 @@ async function runOnce(
     qolJustification: assessment.qualityOfLanguage.justification,
     mainAttempts: main.attempts,
     qolAttempts: qol.attempts,
-    validationErrors: [...main.validationErrors, ...qol.validationErrors],
+    firstQualityOfLanguage: homophones.firstMark,
+    reAsk: homophones.reAsk,
+    excusedErrors: homophones.excusedErrors,
+    excusedInReAsk: homophones.excusedInReAsk,
+    ...(reAskAttempts !== undefined ? { reAskAttempts } : {}),
+    validationErrors: [...main.validationErrors, ...qol.validationErrors, ...reAskErrors],
     ...(main.metadata.usage ? { mainUsage: main.metadata.usage } : {}),
-    ...(qol.metadata.usage ? { qolUsage: qol.metadata.usage } : {}),
+    ...(qol.metadata.usage || reAskUsage
+      ? {
+          qolUsage: {
+            inputTokens: (qol.metadata.usage?.inputTokens ?? 0) + (reAskUsage?.inputTokens ?? 0),
+            outputTokens: (qol.metadata.usage?.outputTokens ?? 0) + (reAskUsage?.outputTokens ?? 0),
+          },
+        }
+      : {}),
   };
   return { result, artifacts: { assessment, evidence } };
 }
@@ -266,8 +339,9 @@ async function runFeedback(
   fixture: JudgeCheckFixture,
   artifacts: RunArtifacts,
   provider: Provider,
+  transcript: SpeakingTranscript,
 ): Promise<NonNullable<SingleRunResult['feedback']>> {
-  const envelope = buildCheckEnvelope(fixture.id, fixture.transcript, artifacts.assessment, artifacts.evidence);
+  const envelope = buildCheckEnvelope(fixture.id, transcript, artifacts.assessment, artifacts.evidence);
   const usage = { inputTokens: 0, outputTokens: 0 };
   let calls = 0;
   const report = await generateExamFeedback(envelope, async (prompt) => {
@@ -353,7 +427,13 @@ async function main(): Promise<void> {
   const fixtures = ids.map(loadFixture);
 
   const allExpectations: ExpectationResult[] = [];
-  const report: Record<string, unknown> = { provider: args.provider, runs: args.runs, cases: {} };
+  const report: Record<string, unknown> = {
+    provider: args.provider,
+    runs: args.runs,
+    oneRecogniser: args.oneRecogniser,
+    cases: {},
+  };
+  const allRuns: SingleRunResult[] = [];
   let totalInputTokens = 0;
   let totalOutputTokens = 0;
   let feedbackInputTokens = 0;
@@ -363,6 +443,7 @@ async function main(): Promise<void> {
 
   for (const fixture of fixtures) {
     process.stdout.write(`\n=== ${fixture.id} ===\n${fixture.description}\n`);
+    const transcript = args.oneRecogniser ? asOneRecogniser(fixture.transcript) : fixture.transcript;
     if (fixture.baseline) process.stdout.write(`baseline: ${JSON.stringify(fixture.baseline)}\n`);
 
     const runs: SingleRunResult[] = [];
@@ -376,7 +457,7 @@ async function main(): Promise<void> {
       let result: SingleRunResult;
       let artifacts: RunArtifacts;
       try {
-        ({ result, artifacts } = await runOnce(fixture, args.provider));
+        ({ result, artifacts } = await runOnce(args.provider, transcript));
       } catch (err) {
         anyValidationErrors = true;
         failedRuns += 1;
@@ -389,6 +470,7 @@ async function main(): Promise<void> {
         continue;
       }
       runs.push(result);
+      allRuns.push(result);
       if (result.mainUsage) {
         totalInputTokens += result.mainUsage.inputTokens;
         totalOutputTokens += result.mainUsage.outputTokens;
@@ -407,6 +489,17 @@ async function main(): Promise<void> {
           `  attempts main=${result.mainAttempts} qol=${result.qolAttempts}\n`,
       );
       process.stdout.write(`    QoL justification: ${result.qolJustification}\n`);
+      if (result.reAsk !== 'not-needed') {
+        const byReason = (r: string) => result.excusedErrors.filter((e) => e.reason === r).length;
+        process.stdout.write(
+          `    sound-alike step: re-ask ${result.reAsk} — QoL first reply ${result.firstQualityOfLanguage} -> kept ${result.qualityOfLanguage};` +
+            ` excused ${result.excusedErrors.length} (inaudible ${byReason('inaudible')}, ambiguousNear ${byReason('ambiguousNear')});` +
+            ` re-run still listed ${result.excusedInReAsk}\n`,
+        );
+        for (const e of result.excusedErrors) {
+          process.stdout.write(`      - [${e.reason}] [${e.source} ${e.turnId}] "${e.quote}" -> ${e.correction}\n`);
+        }
+      }
       if (fixture.auditErrors && fixture.auditErrors.length > 0) {
         const recall = matchAuditErrors(fixture.auditErrors, result.errors);
         result.auditErrorsRecall = recall;
@@ -420,7 +513,7 @@ async function main(): Promise<void> {
       }
       if (args.feedback) {
         try {
-          result.feedback = await runFeedback(fixture, artifacts, args.provider);
+          result.feedback = await runFeedback(fixture, artifacts, args.provider, transcript);
           feedbackInputTokens += result.feedback.usage.inputTokens;
           feedbackOutputTokens += result.feedback.usage.outputTokens;
           printFeedback(fixture, result.feedback);
@@ -450,6 +543,23 @@ async function main(): Promise<void> {
 
     (report.cases as Record<string, unknown>)[fixture.id] = { baseline: fixture.baseline, runs, expectation, failedRuns };
   }
+
+  const reAsked = allRuns.filter((r) => r.reAsk !== 'not-needed');
+  const deltas = reAsked.map((r) => r.qualityOfLanguage - r.firstQualityOfLanguage);
+  process.stdout.write(
+    `\n--- Sound-alike step (stage 6) ---\n` +
+      `re-ask rate: ${reAsked.length}/${allRuns.length} run(s)` +
+      ` (applied ${reAsked.filter((r) => r.reAsk === 'applied').length}, failed ${reAsked.filter((r) => r.reAsk === 'failed').length});` +
+      ` QoL delta on re-asked runs (kept - first): ${deltas.length ? deltas.join(', ') : 'n/a'}` +
+      `; runs where the re-run still listed an excused error: ${allRuns.filter((r) => r.excusedInReAsk > 0).length}\n`,
+  );
+  report.soundAlike = {
+    reAskRuns: reAsked.length,
+    totalRuns: allRuns.length,
+    applied: reAsked.filter((r) => r.reAsk === 'applied').length,
+    failed: reAsked.filter((r) => r.reAsk === 'failed').length,
+    qolDeltas: deltas,
+  };
 
   const costUsd = estimateCostUsd(totalInputTokens, totalOutputTokens);
   process.stdout.write(

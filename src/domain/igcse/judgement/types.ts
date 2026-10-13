@@ -201,6 +201,24 @@ export interface QolError {
 }
 
 /**
+ * Stage 6: why the marker excused a QoL error the judge listed
+ * (judgement/homophoneErrors.ts) — owner sound-alike rules:
+ *  - 'inaudible': the quote and its correction sound the same where they
+ *    stand (Category A: il mange / ils mangent, et/est, a/à…). Never penalised.
+ *  - 'ambiguousNear': the difference is a Category B pair (un/en, ont/sont…)
+ *    at a word the recognisers could not confirm. Benefit of the doubt — but
+ *    the feedback still says "this might have been X; make sure you say it".
+ */
+export type ExcuseReason = 'inaudible' | 'ambiguousNear';
+
+/** A QoL error the marker took out of the counted list, with its reason. */
+export interface ExcusedQolError extends QolError {
+  reason: ExcuseReason;
+  /** The Category B pair ids behind an 'ambiguousNear' excuse; [] for 'inaudible'. */
+  nearPairIds: string[];
+}
+
+/**
  * The booklet's own frequency wordings (Table C, 0520/03/TN, p.12), plus
  * 'no errors'. Recorded as the judge's reading of its error list — never
  * mapped to a band or mark.
