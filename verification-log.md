@@ -4287,3 +4287,14 @@ Branch `claude/busy-gauss-k0ihy9`, built on Stage 5 (`session-transcript-v2`) an
    rendered prompts are byte-identical; the PRACTICE_TRANSCRIPT prompt pins did not move).
 3. Slice 4 (guardrail): the two goldens with an envelope move `versions.guardrailsVersion`
    `guardrails-v0.6` → `guardrails-v0.7`. No trigger changes: no golden has an excusable QoL error.
+4. Slice 5 (envelope v0.5): the two existing envelope goldens gain `excusedErrors: []`, a zero
+   `transcription` block (`primaryTurns 0, fallbackTurns 0, reasons {}, model null, promptVersion null`
+   — hand-authored transcripts carry no recognition records) and `versions.homophoneTableVersion:
+   homophone-table-v1`, and move `envelopeSchemaVersion` `envelope-v0.4` → `envelope-v0.5`. No mark,
+   error list or trigger changes (neither has an excusable QoL error). Five new goldens are created, one
+   per plan case: `sound-alike-inaudible-excused` (QoL 7 → 8 after the re-ask, `homophone_error_excused`),
+   `sound-alike-near-disagreement-excused` (ambiguousNear, pair `un~en`, 7 → 8), `sound-alike-near-
+   agreement-counted` (7, error counted, no trigger), `sound-alike-different-word-counted` (7, counted,
+   a `different` span in evidence only) and `sound-alike-fallback-turn` (ambiguousNear on a one-recogniser
+   answer, re-ask failed: 7 stands, `homophone_error_excused` + `homophone_penalty_unresolved`, transcription
+   `9 / 1 asr-timeout`).

@@ -64,7 +64,7 @@ describe('buildScoringEnvelope golden regression', () => {
       scoredAt: FIXED_SCORED_AT,
       contentProvenance: 'original-practice',
       versions: {
-        envelopeSchemaVersion: 'envelope-v0.4',
+        envelopeSchemaVersion: 'envelope-v0.5',
         rubricVersion: 'rubric-v0.1',
         scoringEngineVersion: 'engine-v0.1',
         evidenceDetectorVersion: 'detectors-v0.1',
@@ -143,6 +143,9 @@ describe('buildScoringEnvelope golden regression', () => {
       total: 25,
       criterionAdjustments: [],
       guardrailTriggers: [],
+      // v0.5: nothing excused, no recognition records — the builder's defaults.
+      excusedErrors: [],
+      transcription: { primaryTurns: 0, fallbackTurns: 0, reasons: {}, model: null, promptVersion: null },
       selfConsistencyOutcomes: { agreement: 'single_run', rerunsRequested: 0 },
       evidenceProfileSnapshot: buildEvidenceProfile(PRACTICE_TRANSCRIPT),
       transcriptSnapshot: PRACTICE_TRANSCRIPT,

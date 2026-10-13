@@ -14,6 +14,15 @@ import type { RecognitionSegment, UtteranceRecognition } from '../stt/types';
 import type { ConductLogEntry } from './types';
 
 /**
+ * What the batch recogniser's context prompt holds for an exam answer: the
+ * question the examiner had just asked (main, alternative, second part or
+ * further question), nothing else — never an expected answer or a word list.
+ * Recorded on each batch reading and in the envelope; bump it when the prompt
+ * starts carrying anything else.
+ */
+export const EXAM_ASR_PROMPT_VERSION = 'exam-asr-prompt-v1';
+
+/**
  * A candidate turn the batch recogniser should read: a spoken (not typed)
  * answer the engine treated as an answer. A repeat request, a clarification, an
  * English aside, "je ne sais pas" or an empty turn is not (those are either

@@ -13,6 +13,10 @@
  * judge's proposed mark stays in the audit trail (criterionAdjustments) —
  * §3.5's "L3 produces a ceiling and a confidence, not a replacement judgement".
  *
+ * Stage 6 (envelope-v0.5): also records the QoL errors the marker excused as
+ * sound-alikes and how the spoken answers were read — passed straight through,
+ * no decision is made here.
+ *
  * Still fills in the remaining S4 sentinels (calibrationVersion/
  * gradeBoundarySeries: 'none', anchorsUsedByCriterion: [], agreement:
  * 'single_run', confidence: 'unassessed').
@@ -20,14 +24,16 @@
 
 import type { EvidenceProfile } from '../evidence/types';
 import type { CeilingCriterion, CriterionAdjustment } from '../guardrails/types';
-import type { SpeakingAssessment, SpeakingTranscript } from '../judgement/types';
+import type { ExcusedQolError, SpeakingAssessment, SpeakingTranscript } from '../judgement/types';
 import { COMMUNICATION, QUALITY_OF_LANGUAGE } from '../rubric';
 import type { MarkBand } from '../rubric';
+import type { RecognitionSummary } from '../stt/quality/summariseRecognition';
 import type { SttMetadata, TranscriptQuality } from '../stt/types';
 import { ENVELOPE_SCHEMA_VERSION } from './types';
 import type {
   Criterion,
   EnvelopeBandCriterion,
+  EnvelopeTranscription,
   EnvelopeQualityOfLanguageCriterion,
   EnvelopeRolePlayTask,
   LlmProvenance,
@@ -57,6 +63,8 @@ export interface BuildScoringEnvelopeInput {
     evidenceDetectorVersion: string;
     scoringPromptVersion: string;
     guardrailsVersion: string;
+    /** v0.5: HOMOPHONE_TABLE_VERSION. Omitted by callers that ran no sound-alike step (tests, fixtures). */
+    homophoneTableVersion?: string;
   };
   /** S5 guardrail trigger ids from runGuardrails — see guardrails/. */
   guardrailTriggers: string[];
@@ -67,11 +75,37 @@ export interface BuildScoringEnvelopeInput {
    * consumer, and its absence is what let the clamp ship dead.
    */
   criterionAdjustments?: CriterionAdjustment[];
+  /** v0.5: QoL errors the sound-alike step excused (resolveQolHomophones). Omitted means none: []. */
+  excusedErrors?: ExcusedQolError[];
+  /**
+   * v0.5: how the spoken answers were read. Omitted means no answer carried a
+   * recognition record (a hand-authored or pre-v2 transcript): all zeros.
+   */
+  transcription?: EnvelopeTranscription;
   /** See ScoringEnvelope.questionSetId — omitted when the caller has no question set provenance. */
   questionSetId?: string;
   /** See ScoringEnvelope.questionSetHash. */
   questionSetHash?: string;
   regradedFrom?: string;
+}
+
+const NO_RECOGNITION: EnvelopeTranscription = {
+  primaryTurns: 0,
+  fallbackTurns: 0,
+  reasons: {},
+  model: null,
+  promptVersion: null,
+};
+
+/** v0.5: the envelope's `transcription` block from a session's recognition summary. */
+export function toEnvelopeTranscription(summary: RecognitionSummary): EnvelopeTranscription {
+  return {
+    primaryTurns: summary.fromBatch,
+    fallbackTurns: summary.fromLiveCaptions,
+    reasons: { ...summary.reasons },
+    model: summary.model,
+    promptVersion: summary.promptVersion,
+  };
 }
 
 const EMPTY_ANCHORS: Record<Criterion, string[]> = {
@@ -155,6 +189,9 @@ export function buildScoringEnvelope(input: BuildScoringEnvelopeInput): ScoringE
     evidenceDetectorVersion: input.versions.evidenceDetectorVersion,
     scoringPromptVersion: input.versions.scoringPromptVersion,
     guardrailsVersion: input.versions.guardrailsVersion,
+    ...(input.versions.homophoneTableVersion !== undefined
+      ? { homophoneTableVersion: input.versions.homophoneTableVersion }
+      : {}),
     calibrationVersion: 'none',
     gradeBoundarySeries: 'none',
   };
@@ -208,6 +245,8 @@ export function buildScoringEnvelope(input: BuildScoringEnvelopeInput): ScoringE
     total,
     criterionAdjustments,
     guardrailTriggers: input.guardrailTriggers,
+    excusedErrors: input.excusedErrors ?? [],
+    transcription: input.transcription ?? NO_RECOGNITION,
     selfConsistencyOutcomes: { agreement: 'single_run', rerunsRequested: 0 },
     evidenceProfileSnapshot: input.evidenceProfile,
     transcriptSnapshot: input.transcript,

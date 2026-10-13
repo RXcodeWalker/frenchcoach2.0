@@ -38,7 +38,7 @@
 import * as crypto from 'node:crypto';
 import { buildEvidenceProfile } from '../../src/domain/igcse/evidence/buildEvidence';
 import { EVIDENCE_DETECTOR_VERSION } from '../../src/domain/igcse/evidence/version';
-import { buildScoringEnvelope } from '../../src/domain/igcse/envelope/buildEnvelope';
+import { buildScoringEnvelope, toEnvelopeTranscription } from '../../src/domain/igcse/envelope/buildEnvelope';
 import type { ScoringEnvelope } from '../../src/domain/igcse/envelope/types';
 import { DEFAULT_DURATION_CONFIG } from '../../src/domain/igcse/guardrails/config';
 import { runGuardrails } from '../../src/domain/igcse/guardrails/runGuardrails';
@@ -55,6 +55,8 @@ import { SCORING_PROMPT_VERSION } from '../../src/domain/igcse/judgement/version
 import { RUBRIC_VERSION } from '../../src/domain/igcse/rubric';
 import { toSpeakingTranscript } from '../../src/domain/igcse/stt/project/toSpeakingTranscript';
 import { summariseQuality } from '../../src/domain/igcse/stt/quality/summariseQuality';
+import { summariseRecognition } from '../../src/domain/igcse/stt/quality/summariseRecognition';
+import { HOMOPHONE_TABLE_VERSION } from '../../src/domain/igcse/stt/homophones/version';
 import type { SessionQuestionSet } from '../../src/domain/igcse/stt/types';
 import type { TranscriptStore } from '../../src/domain/igcse/stt/ports';
 import { resolveScoringEngineVersion } from './engineVersion';
@@ -204,8 +206,11 @@ export async function scoreAttempt(
       evidenceDetectorVersion: deps.versions?.evidenceDetectorVersion ?? EVIDENCE_DETECTOR_VERSION,
       scoringPromptVersion: deps.versions?.scoringPromptVersion ?? SCORING_PROMPT_VERSION,
       guardrailsVersion: deps.versions?.guardrailsVersion ?? GUARDRAILS_VERSION,
+      homophoneTableVersion: HOMOPHONE_TABLE_VERSION,
     },
     guardrailTriggers: guardrailReport.triggers.map((t) => t.id),
+    excusedErrors: homophones.excusedErrors,
+    transcription: toEnvelopeTranscription(summariseRecognition(session)),
     // Workstream C: L3's clamps reach the envelope, where buildScoringEnvelope
     // applies them to the criterion mark/band and the total. Always [] until a
     // detector is promoted to `eligible` with a sourced ceiling.

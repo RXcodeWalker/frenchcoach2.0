@@ -200,6 +200,40 @@ describe('envelope schema forward migration (C0)', () => {
     expect(() => parseScoringEnvelope(raw)).toThrow(ScoringEnvelopeValidationError);
   });
 
+  it('migrates a v0.4 envelope to v0.5 without inventing excusedErrors, transcription or a homophone table version', () => {
+    const parsed = parseScoringEnvelope({ ...persistedEnvelope('envelope-v0.4'), criterionAdjustments: [] });
+    expect(parsed.versions.envelopeSchemaVersion).toBe('envelope-v0.5');
+    expect(parsed).not.toHaveProperty('excusedErrors');
+    expect(parsed).not.toHaveProperty('transcription');
+    expect(parsed.versions).not.toHaveProperty('homophoneTableVersion');
+  });
+
+  it('parses an envelope-v0.5 envelope with excused errors, a transcription block and the homophone table version', () => {
+    const base = persistedEnvelope('envelope-v0.5');
+    const raw = {
+      ...base,
+      versions: { ...(base.versions as Record<string, unknown>), homophoneTableVersion: 'homophone-table-v1' },
+      criterionAdjustments: [],
+      excusedErrors: [
+        { source: 'topic1', turnId: 'q1', quote: 'en chien', kind: 'grammar', correction: 'un chien', reason: 'ambiguousNear', nearPairIds: ['un~en'] },
+      ],
+      transcription: { primaryTurns: 9, fallbackTurns: 1, reasons: { 'asr-timeout': 1 }, model: 'whisper-large-v3', promptVersion: 'exam-asr-prompt-v1' },
+    };
+    const parsed = parseScoringEnvelope(raw);
+    expect(parsed.excusedErrors).toHaveLength(1);
+    expect(parsed.transcription?.reasons).toEqual({ 'asr-timeout': 1 });
+    expect(parsed.versions.homophoneTableVersion).toBe('homophone-table-v1');
+  });
+
+  it('rejects a v0.5 excused error with an unknown reason', () => {
+    const raw = {
+      ...persistedEnvelope('envelope-v0.5'),
+      criterionAdjustments: [],
+      excusedErrors: [{ source: 'topic1', turnId: 'q1', quote: 'x', kind: 'grammar', correction: 'y', reason: 'judge-said-so', nearPairIds: [] }],
+    };
+    expect(() => parseScoringEnvelope(raw)).toThrow(ScoringEnvelopeValidationError);
+  });
+
   it('throws on an entirely unknown envelopeSchemaVersion', () => {
     const raw = persistedEnvelope('envelope-v9.9');
     expect(() => parseScoringEnvelope(raw)).toThrow(ScoringEnvelopeValidationError);

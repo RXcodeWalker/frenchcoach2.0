@@ -18,16 +18,26 @@ export interface RecognitionSummary {
   reasons: Partial<Record<RecognitionFallbackReason, number>>;
   /** The batch model that read the answers, when any did. */
   model: string | null;
+  /** The context-prompt version of the first batch reading that recorded one (EXAM_ASR_PROMPT_VERSION). */
+  promptVersion: string | null;
 }
 
 export function summariseRecognition(session: Pick<SessionTranscript, 'utterances'>): RecognitionSummary {
-  const summary: RecognitionSummary = { recognisedAnswers: 0, fromBatch: 0, fromLiveCaptions: 0, reasons: {}, model: null };
+  const summary: RecognitionSummary = {
+    recognisedAnswers: 0,
+    fromBatch: 0,
+    fromLiveCaptions: 0,
+    reasons: {},
+    model: null,
+    promptVersion: null,
+  };
   for (const u of session.utterances) {
     if (u.role !== 'candidate' || !u.recognition) continue;
     summary.recognisedAnswers += 1;
     if (u.recognition.selected === 'primary') {
       summary.fromBatch += 1;
       summary.model ??= u.recognition.primary?.model ?? null;
+      summary.promptVersion ??= u.recognition.primary?.promptVersion ?? null;
     } else {
       summary.fromLiveCaptions += 1;
       const reason = u.recognition.fallbackReason;

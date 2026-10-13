@@ -8,8 +8,11 @@
  * Original practice fixtures — NOT UCLES copyright exam scripts.
  */
 
-import { PRACTICE_TRANSCRIPT, buildValidAssessment } from '../../judgement/__tests__/fixtures';
-import type { SpeakingAssessment, SpeakingTranscript } from '../../judgement/types';
+import { PRACTICE_TRANSCRIPT, buildValidAssessment, buildValidQolOutput } from '../../judgement/__tests__/fixtures';
+import type { QualityOfLanguageOutput } from '../../judgement/schema';
+import type { QolError, QualityOfLanguageAssessment, SpeakingAssessment, SpeakingTranscript } from '../../judgement/types';
+import type { EnvelopeTranscription } from '../../envelope/types';
+import { markSpokenText } from '../../stt/project/spokenText';
 
 /**
  * Clean, sufficiently long transcript: same role play as PRACTICE_TRANSCRIPT
@@ -235,4 +238,137 @@ export const MIXED_TYPED_SPEECH_TRANSCRIPT: SpeakingTranscript = {
       ],
     },
   ],
+};
+
+// ── Stage 6: sound-alike rules (transcription-accuracy plan, Phase 4) ─────────
+//
+// Each case is CLEAN_LONG_TRANSCRIPT with topic2 q2 replaced by a spoken answer
+// exactly as the projection hands it over (markSpokenText: Category A respelled,
+// ambiguous spans), plus a static first QoL reply and — where something is
+// excused — the static reply to the one re-ask. The role play, Communication
+// and the rest of QoL evidence ground exactly as in CLEAN_ASSESSMENT.
+
+/** Topic2 q2 as the projection would hand over this spoken answer. */
+function withSpokenTopic2Q2(primary: string, secondary: string | null): SpeakingTranscript {
+  const marked = markSpokenText(primary, secondary);
+  const [topic1, topic2] = CLEAN_LONG_TRANSCRIPT.topicConversations;
+  return {
+    ...CLEAN_LONG_TRANSCRIPT,
+    topicConversations: [
+      topic1,
+      {
+        ...topic2,
+        turns: [
+          topic2.turns[0],
+          { ...topic2.turns[1], candidateResponse: marked.text, inputMode: 'speech', ambiguousSpans: marked.spans },
+        ],
+      },
+    ],
+  };
+}
+
+function qolReply(mark: 7 | 8, errors: QolError[]): QualityOfLanguageOutput {
+  return buildValidQolOutput({
+    errors,
+    errorFrequency: errors.length > 0 ? 'some errors' : 'occasional errors',
+    mark,
+    bestFitPlacement: mark === 8 ? 'adequately' : 'just',
+  });
+}
+
+const t2q2Error = (quote: string, correction: string): QolError => ({
+  source: 'topic2',
+  turnId: 'q2',
+  quote,
+  kind: 'grammar',
+  correction,
+});
+
+export interface SoundAlikeCase {
+  transcript: SpeakingTranscript;
+  assessment: SpeakingAssessment;
+  qolReAsk?: QualityOfLanguageAssessment | 'failed';
+}
+
+function soundAlikeCase(
+  transcript: SpeakingTranscript,
+  first: QualityOfLanguageOutput,
+  reAsk?: QualityOfLanguageOutput | 'failed',
+): SoundAlikeCase {
+  return {
+    transcript,
+    assessment: buildValidAssessment(undefined, first, transcript),
+    ...(reAsk === undefined
+      ? {}
+      : { qolReAsk: reAsk === 'failed' ? 'failed' : buildValidAssessment(undefined, reAsk, transcript).qualityOfLanguage }),
+  };
+}
+
+/**
+ * Category A: "il zappent" — both recognisers agree, and the respeller leaves it
+ * (zapper is not in its verb list), so the judge lists it. It sounds exactly
+ * like "il zappe": excused as inaudible, the one re-ask drops it, its mark stands.
+ */
+const ZAPPENT = withSpokenTopic2Q2(
+  "Le samedi nous restons chez lui et mon frère il zappent toujours entre les chaînes quand nous regardons la télé, alors nous jouons aux cartes ou nous faisons du vélo dans la forêt quand il fait beau en été.",
+  "le samedi nous restons chez lui et mon frère il zappent toujours entre les chaînes quand nous regardons la télé alors nous jouons aux cartes ou nous faisons du vélo dans la forêt quand il fait beau en été",
+);
+export const SOUND_ALIKE_INAUDIBLE = soundAlikeCase(
+  ZAPPENT,
+  qolReply(7, [t2q2Error('il zappent', 'il zappe')]),
+  qolReply(8, []),
+);
+
+const EN_CHIEN_PRIMARY =
+  "Le dimanche nous regardons des films parce que j'ai en chien qui dort avec nous sur le canapé, alors nous restons à la maison quand il pleut et nous jouons aux jeux vidéo avec mes cousins pendant tout l'après-midi.";
+const EN_CHIEN_SECONDARY = EN_CHIEN_PRIMARY.replace("j'ai en chien", "j'ai un chien");
+
+/**
+ * Category B, recognisers disagree: Whisper heard "j'ai en chien", the live
+ * captions "j'ai un chien". Benefit of the doubt: excused as ambiguousNear
+ * (the envelope keeps it, with its pair, for the "make sure you say it" note).
+ */
+export const SOUND_ALIKE_NEAR_DISAGREEMENT = soundAlikeCase(
+  withSpokenTopic2Q2(EN_CHIEN_PRIMARY, EN_CHIEN_SECONDARY),
+  qolReply(7, [t2q2Error("j'ai en chien", "j'ai un chien")]),
+  qolReply(8, []),
+);
+
+/** Category B, both recognisers heard "en": the wrong word was clearly said, so it counts. No re-ask. */
+export const SOUND_ALIKE_NEAR_AGREEMENT = soundAlikeCase(
+  withSpokenTopic2Q2(EN_CHIEN_PRIMARY, EN_CHIEN_PRIMARY),
+  qolReply(7, [t2q2Error("j'ai en chien", "j'ai un chien")]),
+);
+
+/** A clearly different word (un / une is not a sound-alike pair): Whisper's reading wins and the error counts. */
+export const SOUND_ALIKE_DIFFERENT_WORD = soundAlikeCase(
+  withSpokenTopic2Q2(
+    "Le soir nous préparons le dîner ensemble et je mange un pomme avec du fromage, puis nous regardons un match de football à la télé avec ses parents dans le salon pendant une heure ou deux avant de faire nos devoirs pour le lendemain.",
+    "le soir nous préparons le dîner ensemble et je mange une pomme avec du fromage puis nous regardons un match de football à la télé avec ses parents dans le salon pendant une heure ou deux avant de faire nos devoirs pour le lendemain",
+  ),
+  qolReply(7, [t2q2Error('un pomme', 'une pomme')]),
+);
+
+/**
+ * A live-captions fallback (Whisper timed out): one recogniser, so every
+ * Category B word is uncertain and "de pain" -> "du pain" is excused. The
+ * re-ask then fails: the first mark stands, minus the excused error, and the
+ * guardrail flags that the mark may still carry its penalty.
+ */
+export const SOUND_ALIKE_FALLBACK_TURN = soundAlikeCase(
+  withSpokenTopic2Q2(
+    "Le week-end je mange de pain avec ma famille au petit déjeuner et après nous allons au marché ensemble pour acheter des fruits et des légumes pour toute la semaine, puis nous rentrons à pied et nous préparons un grand repas pour mes grands-parents.",
+    null,
+  ),
+  qolReply(7, [t2q2Error('je mange de pain', 'je mange du pain')]),
+  'failed',
+);
+
+/** The fallback case's transcription block: nine answers read by Whisper, this one from the live captions. */
+export const SOUND_ALIKE_FALLBACK_TRANSCRIPTION: EnvelopeTranscription = {
+  primaryTurns: 9,
+  fallbackTurns: 1,
+  reasons: { 'asr-timeout': 1 },
+  model: 'whisper-large-v3',
+  promptVersion: 'exam-asr-prompt-v1',
 };

@@ -4,7 +4,7 @@ import type { Utterance, UtteranceRecognition } from '../types';
 
 const live = (text: string) => ({ source: 'web-speech-live' as const, text });
 const batch: UtteranceRecognition = {
-  primary: { text: 'a', model: 'whisper-large-v3', promptHash: 'h', segments: [] },
+  primary: { text: 'a', model: 'whisper-large-v3', promptHash: 'h', promptVersion: 'exam-asr-prompt-v1', segments: [] },
   secondary: live('b'),
   selected: 'primary',
   fallbackReason: null,
@@ -25,7 +25,7 @@ function utt(role: 'candidate' | 'examiner', recognition?: UtteranceRecognition)
 describe('summariseRecognition', () => {
   it('is all zeros for a transcript with no recognition records', () => {
     expect(summariseRecognition({ utterances: [utt('candidate'), utt('examiner')] })).toEqual({
-      recognisedAnswers: 0, fromBatch: 0, fromLiveCaptions: 0, reasons: {}, model: null,
+      recognisedAnswers: 0, fromBatch: 0, fromLiveCaptions: 0, reasons: {}, model: null, promptVersion: null,
     });
   });
 
@@ -42,6 +42,7 @@ describe('summariseRecognition', () => {
     });
     expect(summary).toEqual({
       recognisedAnswers: 4, fromBatch: 1, fromLiveCaptions: 3, reasons: { 'asr-failed': 2, quota: 1 }, model: 'whisper-large-v3',
+      promptVersion: 'exam-asr-prompt-v1',
     });
   });
 });

@@ -68,6 +68,12 @@ export interface PrimaryRecognition {
   model: string;
   /** sha256 of the context prompt sent with the audio (the prompt itself is not stored). */
   promptHash: string;
+  /**
+   * What the context prompt was built from (session/recognition.ts
+   * EXAM_ASR_PROMPT_VERSION). Recorded into the envelope's `transcription`
+   * block; absent on readings made before it was recorded.
+   */
+  promptVersion?: string;
   segments: RecognitionSegment[];
 }
 

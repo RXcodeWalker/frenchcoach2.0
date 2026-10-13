@@ -40,6 +40,7 @@ const VersionStackSchema = z.object({
   evidenceDetectorVersion: z.string(),
   scoringPromptVersion: z.string(),
   guardrailsVersion: z.string(),
+  homophoneTableVersion: z.string().optional(),
   calibrationVersion: z.literal('none'),
   gradeBoundarySeries: z.literal('none'),
 });
@@ -71,26 +72,42 @@ const BandCriterionSchema = z.object({
   evidenceSpans: z.array(EvidenceSpanSchema),
 });
 
+const QolErrorSchema = z.object({
+  source: z.enum(['topic1', 'topic2']),
+  turnId: z.string(),
+  quote: z.string(),
+  kind: z.enum(['grammar', 'vocabulary']),
+  correction: z.string(),
+});
+
 // Loosely validated — these are audit snapshots (evidenceProfileSnapshot,
 // transcriptSnapshot) and stt, not re-derived contracts; ScoringEnvelope's own
 // TypeScript types are the source of truth for their exact shape.
 // v0.4: optional — pre-v0.4 envelopes have no error list, and the migration
 // leaves absent as absent rather than fabricating an empty (i.e. "no errors") list.
 const QualityOfLanguageCriterionSchema = BandCriterionSchema.extend({
-  errors: z
-    .array(
-      z.object({
-        source: z.enum(['topic1', 'topic2']),
-        turnId: z.string(),
-        quote: z.string(),
-        kind: z.enum(['grammar', 'vocabulary']),
-        correction: z.string(),
-      }),
-    )
-    .optional(),
+  errors: z.array(QolErrorSchema).optional(),
   errorFrequency: z
     .enum(['no errors', 'occasional errors', 'some errors', 'frequent errors', 'rarely accurate', 'almost always inaccurate'])
     .optional(),
+});
+
+// v0.5: optional — absent on older envelopes, never fabricated by the migration.
+const ExcusedErrorSchema = QolErrorSchema.extend({
+  reason: z.enum(['inaudible', 'ambiguousNear']),
+  nearPairIds: z.array(z.string()),
+});
+
+const TranscriptionSchema = z.object({
+  primaryTurns: z.number().int().min(0),
+  fallbackTurns: z.number().int().min(0),
+  // Partial: only the reasons that occurred are present (zod 4's z.record would require every key).
+  reasons: z.partialRecord(
+    z.enum(['no-audio', 'asr-failed', 'asr-timeout', 'asr-rejected', 'consent', 'quota']),
+    z.number().int().min(0),
+  ),
+  model: z.string().nullable(),
+  promptVersion: z.string().nullable(),
 });
 
 const ScoringEnvelopeSchema = z.object({
@@ -126,6 +143,8 @@ const ScoringEnvelopeSchema = z.object({
     }),
   ),
   guardrailTriggers: z.array(z.string()),
+  excusedErrors: z.array(ExcusedErrorSchema).optional(),
+  transcription: TranscriptionSchema.optional(),
   selfConsistencyOutcomes: z.object({
     agreement: z.literal('single_run'),
     rerunsRequested: z.literal(0),
@@ -146,6 +165,7 @@ export const KNOWN_ENVELOPE_SCHEMA_VERSIONS = [
   'envelope-v0.2',
   'envelope-v0.3',
   'envelope-v0.4',
+  'envelope-v0.5',
 ] as const;
 
 export type KnownEnvelopeSchemaVersion = (typeof KNOWN_ENVELOPE_SCHEMA_VERSIONS)[number];
@@ -185,6 +205,10 @@ function isNewerThanThisBuild(version: KnownEnvelopeSchemaVersion): boolean {
  *   qualityOfLanguageLlm added (QoL in its own judge call). Nothing to
  *   backfill: a pre-v0.4 attempt listed no errors and made no second call, so
  *   absent stays absent (as with v0.1 -> v0.2's questionSetId). Version stamp only.
+ * v0.4 -> v0.5: excusedErrors, transcription and versions.homophoneTableVersion
+ *   added (stage 6 sound-alike rules). Nothing to backfill: a pre-v0.5 attempt
+ *   excused nothing and recorded no recognition summary, and an empty list
+ *   would wrongly claim the rules ran. Absent stays absent. Version stamp only.
  */
 export function migrateEnvelope(raw: unknown, from: KnownEnvelopeSchemaVersion): unknown {
   if (typeof raw !== 'object' || raw === null) return raw;

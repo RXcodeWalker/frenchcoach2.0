@@ -16,10 +16,11 @@ import type {
   ContentProvenance,
   ErrorFrequency,
   EvidenceSpan,
+  ExcusedQolError,
   QolError,
   SpeakingTranscript,
 } from '../judgement/types';
-import type { SttMetadata } from '../stt/types';
+import type { RecognitionFallbackReason, SttMetadata } from '../stt/types';
 
 /**
  * v0.3 (Workstream C): added `criterionAdjustments`, the audit record of any L3
@@ -34,7 +35,20 @@ import type { SttMetadata } from '../stt/types';
  * pre-v0.4 envelope never had them and the migration does not fabricate them;
  * every v0.4 writer sets them.
  */
-export const ENVELOPE_SCHEMA_VERSION = 'envelope-v0.4';
+/*
+ * v0.5 (transcription-accuracy stage 6, the owner's sound-alike rules):
+ * - `excusedErrors`: the QoL errors the marker took out of the counted list
+ *   (judgement/homophoneErrors.ts), each with its reason ('inaudible' |
+ *   'ambiguousNear'). `qualityOfLanguage.errors` holds only counted errors.
+ *   The post-marking report's Category B notes are to come from here.
+ * - `transcription`: how the spoken answers were read — answers marked from
+ *   the batch recogniser vs the live captions, the fallback reasons, the batch
+ *   model and its context-prompt version.
+ * - `versions.homophoneTableVersion`: the sound-alike tables the marker used.
+ * All three are optional in the type because a pre-v0.5 envelope never had
+ * them and the migration does not fabricate them; every v0.5 writer sets them.
+ */
+export const ENVELOPE_SCHEMA_VERSION = 'envelope-v0.5';
 
 export interface VersionStack {
   /** Versions this envelope's own SHAPE — dispatched on like stt/schema.ts's schemaVersion. */
@@ -46,6 +60,8 @@ export interface VersionStack {
   scoringPromptVersion: string;
   /** S5: real guardrails version (e.g. 'guardrails-v0.1'). Was a literal 'none' sentinel pre-S5. */
   guardrailsVersion: string;
+  /** v0.5: HOMOPHONE_TABLE_VERSION — the sound-alike tables behind respelling and excused errors. Absent pre-v0.5. */
+  homophoneTableVersion?: string;
   /** Literal sentinel — S8/S9 calibration not built yet. */
   calibrationVersion: 'none';
   /** Literal sentinel — S12 grade boundaries not built yet. */
@@ -96,6 +112,22 @@ export interface EnvelopeQualityOfLanguageCriterion extends EnvelopeBandCriterio
   errors?: QolError[];
   /** Absent on pre-v0.4 envelopes. Recorded, never mapped to the mark. */
   errorFrequency?: ErrorFrequency;
+}
+
+/** v0.5: one QoL error the marker excused as a sound-alike — see judgement/types.ts ExcusedQolError. */
+export type EnvelopeExcusedError = ExcusedQolError;
+
+/** v0.5: how the candidate's spoken answers were read (stt/quality/summariseRecognition.ts). Counts only — never a mark input. */
+export interface EnvelopeTranscription {
+  /** Answers marked from the batch recogniser's reading. */
+  primaryTurns: number;
+  /** Answers marked from the live captions instead. */
+  fallbackTurns: number;
+  reasons: Partial<Record<RecognitionFallbackReason, number>>;
+  /** The batch model, when any answer was read by it. */
+  model: string | null;
+  /** The batch context-prompt version (EXAM_ASR_PROMPT_VERSION), when recorded. */
+  promptVersion: string | null;
 }
 
 export interface TranscriptVersion {
@@ -163,6 +195,10 @@ export interface ScoringEnvelope {
 
   /** S5: guardrail trigger ids from runGuardrails (advisory only — see guardrails/). */
   guardrailTriggers: string[];
+  /** v0.5: QoL errors excused as sound-alikes (not in `qualityOfLanguage.errors`). Absent pre-v0.5. */
+  excusedErrors?: EnvelopeExcusedError[];
+  /** v0.5: how the spoken answers were read. Absent pre-v0.5. */
+  transcription?: EnvelopeTranscription;
   selfConsistencyOutcomes: { agreement: 'single_run'; rerunsRequested: 0 };
 
   /** Audit/debug artifact only — never read back in as a scoring input. See replayEnvelope. */

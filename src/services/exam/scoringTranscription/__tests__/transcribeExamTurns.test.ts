@@ -118,6 +118,7 @@ describe('createExamTurnTranscriber', () => {
         text: 'Ils ont un chien',
         model: 'whisper-large-v3',
         promptHash: 'hash(Tu as des animaux ?)',
+        promptVersion: 'exam-asr-prompt-v1',
         segments: [seg({ text: '  Ils ont\n un chien ' })], // provider segments are kept as returned
       },
       secondary: { source: 'web-speech-live', text: 'Ils sont en chien' },

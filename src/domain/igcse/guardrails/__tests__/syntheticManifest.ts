@@ -19,8 +19,15 @@ import {
   FABRICATED_QUOTE_ASSESSMENT,
   LOW_DURATION_TRANSCRIPT,
   LOW_WORD_COUNT_TRANSCRIPT,
+  SOUND_ALIKE_DIFFERENT_WORD,
+  SOUND_ALIKE_FALLBACK_TRANSCRIPTION,
+  SOUND_ALIKE_FALLBACK_TURN,
+  SOUND_ALIKE_INAUDIBLE,
+  SOUND_ALIKE_NEAR_AGREEMENT,
+  SOUND_ALIKE_NEAR_DISAGREEMENT,
 } from './synthetic';
-import type { SpeakingAssessment, SpeakingTranscript } from '../../judgement/types';
+import type { QualityOfLanguageAssessment, SpeakingAssessment, SpeakingTranscript } from '../../judgement/types';
+import type { EnvelopeTranscription } from '../../envelope/types';
 import type { GuardrailId } from '../types';
 
 /**
@@ -39,6 +46,8 @@ export type FailureTaxonomyTag =
   | 'numberWithoutCurrency'
   | 'fabricatedEvidence'
   | 'insufficientEvidenceDuration'
+  /** Stage 6 — not an examiner-report item: the owner's sound-alike transcription rules. */
+  | 'soundAlikeTranscription'
   | 'clean';
 
 export interface SyntheticManifestEntry {
@@ -47,6 +56,14 @@ export interface SyntheticManifestEntry {
   transcript: SpeakingTranscript;
   /** Present only for fixtures that pair a static (non-LLM) assessment. */
   assessment?: SpeakingAssessment;
+  /**
+   * Stage 6: the static reply to the one QoL re-ask, or 'failed'. Required when
+   * the first QoL reply has an error the sound-alike step excuses
+   * (goldenRegression.ts throws otherwise), ignored when it has none.
+   */
+  qolReAsk?: QualityOfLanguageAssessment | 'failed';
+  /** Stage 6: the envelope's transcription block. Omitted: no recognition records. */
+  transcription?: EnvelopeTranscription;
   expectedGuardrails: GuardrailId[];
   note: string;
 }
@@ -97,6 +114,48 @@ export const SYNTHETIC_MANIFEST: SyntheticManifestEntry[] = [
     note:
       'Sufficient word count, zero timing data anywhere — must NOT trip ' +
       'insufficient_evidence_duration (absence of timing is not a penalty signal).',
+  },
+  {
+    id: 'sound-alike-inaudible-excused',
+    taxonomyTag: 'soundAlikeTranscription',
+    ...SOUND_ALIKE_INAUDIBLE,
+    expectedGuardrails: ['homophone_error_excused'],
+    note:
+      'Category A: "il zappent" (both recognisers; the respeller does not know zapper) is listed by the ' +
+      'judge, excused as inaudible, and the one re-ask (QoL 7 -> 8) drops it. Excused, resolved.',
+  },
+  {
+    id: 'sound-alike-near-disagreement-excused',
+    taxonomyTag: 'soundAlikeTranscription',
+    ...SOUND_ALIKE_NEAR_DISAGREEMENT,
+    expectedGuardrails: ['homophone_error_excused'],
+    note:
+      'Category B, recognisers disagree ("j\'ai en chien" vs "j\'ai un chien"): an "Uncertain words" span, ' +
+      'the error is excused as ambiguousNear (kept in excusedErrors with pair un~en for the feedback note), re-ask 7 -> 8.',
+  },
+  {
+    id: 'sound-alike-near-agreement-counted',
+    taxonomyTag: 'soundAlikeTranscription',
+    ...SOUND_ALIKE_NEAR_AGREEMENT,
+    expectedGuardrails: [],
+    note: 'Category B, both recognisers heard "en": no span, the error counts, no re-ask, QoL stays 7.',
+  },
+  {
+    id: 'sound-alike-different-word-counted',
+    taxonomyTag: 'soundAlikeTranscription',
+    ...SOUND_ALIKE_DIFFERENT_WORD,
+    expectedGuardrails: [],
+    note: 'Recognisers heard clearly different words (un / une): a `different` span, audit only — the error counts.',
+  },
+  {
+    id: 'sound-alike-fallback-turn',
+    taxonomyTag: 'soundAlikeTranscription',
+    ...SOUND_ALIKE_FALLBACK_TURN,
+    transcription: SOUND_ALIKE_FALLBACK_TRANSCRIPTION,
+    expectedGuardrails: ['homophone_error_excused', 'homophone_penalty_unresolved'],
+    note:
+      'A live-captions fallback answer (one recogniser): "de pain" -> "du pain" is excused as ambiguousNear; the ' +
+      're-ask fails, so the first mark (7) stands without the error and the penalty is flagged unresolved.',
   },
 ];
 

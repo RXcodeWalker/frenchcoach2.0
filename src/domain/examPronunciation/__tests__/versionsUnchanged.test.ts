@@ -35,7 +35,7 @@ describe('exam pronunciation leaves every scoring version unchanged', () => {
       SCORING_PROMPT_VERSION: 'scoring-prompt-v0.7',
       GUARDRAILS_VERSION: 'guardrails-v0.7',
       RUBRIC_VERSION: 'rubric-v0.1',
-      ENVELOPE_SCHEMA_VERSION: 'envelope-v0.4',
+      ENVELOPE_SCHEMA_VERSION: 'envelope-v0.5',
       EVIDENCE_DETECTOR_VERSION: 'detectors-v0.7',
       SESSION_ENGINE_VERSION: 'session-engine-v5',
       EXAM_FEEDBACK_VERSION: 'exam-feedback-v0.1',

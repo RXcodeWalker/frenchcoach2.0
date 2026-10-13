@@ -257,12 +257,12 @@ describe('scoreAttempt — two concurrent L2 calls (scoring-prompt-v0.6)', () =>
     });
   });
 
-  it('writes the QoL error list and frequency into the envelope (v0.4)', async () => {
+  it('writes the QoL error list and frequency into the envelope (v0.4, still in v0.5)', async () => {
     const envelope = await scoreAttempt(makeDeps(), {
       sessionId: SESSION_ID,
       questionSet: structQuestions as SessionQuestionSet,
     });
-    expect(envelope.versions.envelopeSchemaVersion).toBe('envelope-v0.4');
+    expect(envelope.versions.envelopeSchemaVersion).toBe('envelope-v0.5');
     expect(envelope.qualityOfLanguage.errors).toHaveLength(1);
     expect(envelope.qualityOfLanguage.errorFrequency).toBe('frequent errors');
     expect(envelope.qualityOfLanguageLlm?.model).toBe('fake-model');
@@ -315,6 +315,13 @@ describe('scoreAttempt — stage 6 sound-alike rules on the QoL error list', () 
     expect(envelope.qualityOfLanguageLlm?.responseId).toBe('resp-qualityOfLanguage-2');
     expect(envelope.guardrailTriggers).toContain('homophone_error_excused');
     expect(envelope.guardrailTriggers).not.toContain('homophone_penalty_unresolved');
+    // v0.5: the excused error is recorded with its reason, out of the counted list.
+    expect(envelope.excusedErrors).toEqual([
+      expect.objectContaining({ quote: 'ma réponse', correction: "m'a réponse", reason: 'inaudible', nearPairIds: [] }),
+    ]);
+    expect(envelope.versions.homophoneTableVersion).toBe('homophone-table-v1');
+    // An ASR-annotated recording carries no recognition records.
+    expect(envelope.transcription).toEqual({ primaryTurns: 0, fallbackTurns: 0, reasons: {}, model: null, promptVersion: null });
   });
 
   it('nothing excused: no re-ask', async () => {

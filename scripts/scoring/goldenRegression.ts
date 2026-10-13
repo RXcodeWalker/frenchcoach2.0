@@ -11,6 +11,11 @@
  * version bump will go stale across all goldens at once; --update-goldens
  * is the designed escape hatch, never silent.
  *
+ * Stage 6: an entry's static QoL reply goes through the same sound-alike step
+ * as scoreAttempt (settleQolHomophones), with the entry's static `qolReAsk`
+ * standing in for the one re-ask, so excused errors, the kept QoL mark, the
+ * homophone triggers and the envelope's transcription block are all goldened.
+ *
  * Usage:
  *   npm run score:golden -- [--update-goldens] [--case <id>]
  */
@@ -22,7 +27,11 @@ import { buildEvidenceProfile } from '../../src/domain/igcse/evidence/buildEvide
 import { EVIDENCE_DETECTOR_VERSION } from '../../src/domain/igcse/evidence/version';
 import { buildScoringEnvelope } from '../../src/domain/igcse/envelope/buildEnvelope';
 import type { ScoringEnvelope } from '../../src/domain/igcse/envelope/types';
+import { DEFAULT_DURATION_CONFIG } from '../../src/domain/igcse/guardrails/config';
 import { runGuardrails } from '../../src/domain/igcse/guardrails/runGuardrails';
+import { settleQolHomophones, splitQolErrors } from '../../src/domain/igcse/judgement/homophoneErrors';
+import { combineAssessment } from '../../src/domain/igcse/judgement/scoreSpeaking';
+import { HOMOPHONE_TABLE_VERSION } from '../../src/domain/igcse/stt/homophones/version';
 import { GUARDRAILS_VERSION } from '../../src/domain/igcse/guardrails/version';
 import { SCORING_PROMPT_VERSION } from '../../src/domain/igcse/judgement/version';
 import { RUBRIC_VERSION } from '../../src/domain/igcse/rubric';
@@ -59,20 +68,28 @@ export interface GoldenCaseResult {
 /** Pure — recomputes L1 evidence + L3 guardrails (+ full envelope if an assessment is paired). */
 export function computeGoldenCase(entry: (typeof SYNTHETIC_MANIFEST)[number]): GoldenCaseResult {
   const evidence = buildEvidenceProfile(entry.transcript);
+
+  // Stage 6: the QoL sound-alike step, with the entry's static re-ask reply.
+  const homophones = entry.assessment
+    ? settleQolHomophones(entry.assessment.qualityOfLanguage, entry.transcript, reAskFor(entry))
+    : undefined;
+  const assessment =
+    entry.assessment && homophones ? combineAssessment(entry.assessment, homophones.qualityOfLanguage) : undefined;
+
   const guardrailReport: { triggers: { id: GuardrailId; message: string }[]; adjustments: CriterionAdjustment[] } =
-    entry.assessment
-      ? runGuardrails(entry.assessment, evidence, entry.transcript)
+    assessment
+      ? runGuardrails(assessment, evidence, entry.transcript, DEFAULT_DURATION_CONFIG, homophones)
       : { triggers: [], adjustments: [] };
   const guardrailTriggers = guardrailReport.triggers.map((t) => t.id);
 
   let envelope: ScoringEnvelope | null = null;
-  if (entry.assessment) {
+  if (assessment && homophones) {
     envelope = buildScoringEnvelope({
       attemptId: `${FIXED_ATTEMPT_ID_PREFIX}${entry.id}`,
       sessionId: `golden-session-${entry.id}`,
       scoredAt: FIXED_SCORED_AT,
       transcript: entry.transcript,
-      assessment: entry.assessment,
+      assessment,
       evidenceProfile: evidence,
       stt: FIXED_STT,
       transcriptVersion: { schemaVersion: 'session-transcript-v1', assemblerVersion: 'stt-assembler-v1' },
@@ -86,13 +103,25 @@ export function computeGoldenCase(entry: (typeof SYNTHETIC_MANIFEST)[number]): G
         evidenceDetectorVersion: EVIDENCE_DETECTOR_VERSION,
         scoringPromptVersion: SCORING_PROMPT_VERSION,
         guardrailsVersion: GUARDRAILS_VERSION,
+        homophoneTableVersion: HOMOPHONE_TABLE_VERSION,
       },
       guardrailTriggers,
       criterionAdjustments: guardrailReport.adjustments,
+      excusedErrors: homophones.excusedErrors,
+      ...(entry.transcription !== undefined ? { transcription: entry.transcription } : {}),
     });
   }
 
   return { id: entry.id, evidence, guardrailTriggers, envelope };
+}
+
+/** The entry's static re-ask reply; an entry whose first QoL reply has an excusable error must declare one. */
+function reAskFor(entry: (typeof SYNTHETIC_MANIFEST)[number]) {
+  if (entry.qolReAsk !== undefined || !entry.assessment) return entry.qolReAsk ?? 'failed';
+  if (splitQolErrors(entry.assessment.qualityOfLanguage.errors, entry.transcript).excused.length > 0) {
+    throw new Error(`syntheticManifest "${entry.id}": its QoL reply has an excused error — declare qolReAsk (a reply or 'failed')`);
+  }
+  return 'failed';
 }
 
 function goldenPath(id: string): string {

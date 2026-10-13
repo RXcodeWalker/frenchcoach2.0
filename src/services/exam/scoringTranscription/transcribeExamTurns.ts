@@ -20,6 +20,7 @@
  */
 
 import { canonicalizeForMatch } from '../../../domain/igcse/text/normalize';
+import { EXAM_ASR_PROMPT_VERSION } from '../../../domain/igcse/session/recognition';
 import type {
   RecognitionFallbackReason,
   RecognitionSegment,
@@ -250,6 +251,7 @@ export function createExamTurnTranscriber(deps: ExamTurnTranscriberDeps = {}): E
             text: cleanReadingText(out.text),
             model: out.model ?? 'unknown',
             promptHash,
+            promptVersion: EXAM_ASR_PROMPT_VERSION,
             segments: out.segments,
           },
           secondary: { source: 'web-speech-live', text: job.liveText },

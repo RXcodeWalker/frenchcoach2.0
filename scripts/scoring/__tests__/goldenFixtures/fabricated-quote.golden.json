@@ -7905,12 +7905,13 @@
     "scoredAt": "2025-01-01T00:00:00.000Z",
     "contentProvenance": "original-practice",
     "versions": {
-      "envelopeSchemaVersion": "envelope-v0.4",
+      "envelopeSchemaVersion": "envelope-v0.5",
       "rubricVersion": "rubric-v0.1",
       "scoringEngineVersion": "golden-fixture",
       "evidenceDetectorVersion": "detectors-v0.7",
       "scoringPromptVersion": "scoring-prompt-v0.7",
       "guardrailsVersion": "guardrails-v0.7",
+      "homophoneTableVersion": "homophone-table-v1",
       "calibrationVersion": "none",
       "gradeBoundarySeries": "none"
     },
@@ -8060,6 +8061,14 @@
     "guardrailTriggers": [
       "quote_verification_failed"
     ],
+    "excusedErrors": [],
+    "transcription": {
+      "primaryTurns": 0,
+      "fallbackTurns": 0,
+      "reasons": {},
+      "model": null,
+      "promptVersion": null
+    },
     "selfConsistencyOutcomes": {
       "agreement": "single_run",
       "rerunsRequested": 0

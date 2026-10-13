@@ -62,6 +62,7 @@ const PrimaryRecognitionSchema = z.object({
   text: z.string(),
   model: z.string(),
   promptHash: z.string(),
+  promptVersion: z.string().optional(),
   segments: z.array(RecognitionSegmentSchema),
 });
 
