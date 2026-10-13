@@ -7909,7 +7909,7 @@
       "rubricVersion": "rubric-v0.1",
       "scoringEngineVersion": "golden-fixture",
       "evidenceDetectorVersion": "detectors-v0.7",
-      "scoringPromptVersion": "scoring-prompt-v0.6.1",
+      "scoringPromptVersion": "scoring-prompt-v0.7",
       "guardrailsVersion": "guardrails-v0.6",
       "calibrationVersion": "none",
       "gradeBoundarySeries": "none"

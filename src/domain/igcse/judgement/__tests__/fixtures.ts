@@ -80,6 +80,62 @@ export const PRACTICE_TRANSCRIPT: SpeakingTranscript = {
   ],
 };
 
+/**
+ * Stage 6: PRACTICE_TRANSCRIPT as the projection would hand it over for a
+ * spoken exam — the answer texts are unchanged (so every valid reply above
+ * still grounds), with hand-written ambiguous spans: a two-recogniser
+ * disagreement on "mes" (also heard "me"), one-recogniser Category B words in
+ * topic1 q2 and role-play t4, and an audit-only `different` span.
+ */
+export const PRACTICE_TRANSCRIPT_WITH_UNCERTAIN_WORDS: SpeakingTranscript = {
+  ...PRACTICE_TRANSCRIPT,
+  rolePlay: PRACTICE_TRANSCRIPT.rolePlay.map((task) =>
+    task.taskId === 't4'
+      ? {
+          ...task,
+          ambiguousSpans: [
+            { kind: 'nearHomophone', basis: 'single-recogniser', start: 0, end: 1, heard: 'Je', alternatives: ["j'ai"], pairIds: ["je~j'ai"] },
+          ],
+        }
+      : task,
+  ),
+  topicConversations: [
+    {
+      ...PRACTICE_TRANSCRIPT.topicConversations[0],
+      turns: [
+        {
+          ...PRACTICE_TRANSCRIPT.topicConversations[0].turns[0],
+          inputMode: 'speech',
+          ambiguousSpans: [
+            { kind: 'nearHomophone', basis: 'disagreement', start: 7, end: 8, heard: 'mes', alternatives: ['me'], pairIds: ['me~mes'] },
+          ],
+        },
+        {
+          ...PRACTICE_TRANSCRIPT.topicConversations[0].turns[1],
+          inputMode: 'speech',
+          ambiguousSpans: [
+            { kind: 'nearHomophone', basis: 'single-recogniser', start: 0, end: 1, heard: 'Je', alternatives: ["j'ai"], pairIds: ["je~j'ai"] },
+            { kind: 'nearHomophone', basis: 'single-recogniser', start: 2, end: 3, heard: 'le', alternatives: ['les'], pairIds: ['le~les'] },
+          ],
+        },
+      ],
+    },
+    {
+      ...PRACTICE_TRANSCRIPT.topicConversations[1],
+      turns: [
+        {
+          ...PRACTICE_TRANSCRIPT.topicConversations[1].turns[0],
+          inputMode: 'speech',
+          ambiguousSpans: [
+            { kind: 'different', basis: 'disagreement', start: 4, end: 5, heard: 'Thomas', alternatives: ['Tomas'], pairIds: [] },
+          ],
+        },
+        PRACTICE_TRANSCRIPT.topicConversations[1].turns[1],
+      ],
+    },
+  ],
+};
+
 /** Valid reply to the 'rolePlayCommunication' call for PRACTICE_TRANSCRIPT. */
 export function buildValidMainOutput(overrides?: Partial<RolePlayCommunicationOutput>): RolePlayCommunicationOutput {
   const base: RolePlayCommunicationOutput = {

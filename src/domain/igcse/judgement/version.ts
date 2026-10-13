@@ -75,4 +75,21 @@
  * per the task's one-attempt-only instruction — a genuine open finding,
  * left for a future session.
  */
-export const SCORING_PROMPT_VERSION = 'scoring-prompt-v0.6.1';
+/*
+ * v0.7 (transcription-accuracy stage 6, owner sound-alike rules):
+ * - toSpeakingTranscript now gives the judge each spoken answer in its
+ *   Category A context spelling ("J'ai un frère. Il mange…" even when the
+ *   recognisers wrote "ils mangent").
+ * - A spoken answer with Category B words the recognisers could not confirm
+ *   is followed by an "Uncertain words: 'un' — also heard as 'en'" line (or
+ *   "— could also be …" when only one recogniser read it), and both prompts
+ *   gain a benefit-of-the-doubt rule (main rule 12, QoL rule 14) — rendered
+ *   only when such a line exists, so a transcript without one renders exactly
+ *   as v0.6.1 (the PRACTICE_TRANSCRIPT pins did not move; new pins cover the
+ *   lines).
+ * - The QoL prompt takes `notErrors`: the one re-ask after the marker excused
+ *   errors (judgement/homophoneErrors.ts) lists them under "Not errors".
+ * Reading the reply is unchanged; the classification of its errors is a new
+ * step after parsing (homophoneErrors.ts), versioned with this bump.
+ */
+export const SCORING_PROMPT_VERSION = 'scoring-prompt-v0.7';

@@ -4282,3 +4282,6 @@ Branch `claude/busy-gauss-k0ihy9`, built on Stage 5 (`session-transcript-v2`) an
    synthetic transcripts are hand-authored, so no answer has spans), and each envelope's
    `versions.evidenceDetectorVersion` moves `detectors-v0.6` → `detectors-v0.7`. No mark, trigger or
    other evidence value changes.
+2. Slice 2 (judge prompt): the two goldens with an envelope move `versions.scoringPromptVersion`
+   `scoring-prompt-v0.6.1` → `scoring-prompt-v0.7`. Nothing else (their transcripts have no spans, so the
+   rendered prompts are byte-identical; the PRACTICE_TRANSCRIPT prompt pins did not move).

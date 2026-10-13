@@ -32,7 +32,7 @@ describe('exam pronunciation leaves every scoring version unchanged', () => {
       SESSION_ENGINE_VERSION,
       EXAM_FEEDBACK_VERSION,
     }).toEqual({
-      SCORING_PROMPT_VERSION: 'scoring-prompt-v0.6.1',
+      SCORING_PROMPT_VERSION: 'scoring-prompt-v0.7',
       GUARDRAILS_VERSION: 'guardrails-v0.6',
       RUBRIC_VERSION: 'rubric-v0.1',
       ENVELOPE_SCHEMA_VERSION: 'envelope-v0.4',

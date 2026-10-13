@@ -15,10 +15,14 @@ import {
   QOL_NO_QUANTITY_LINE,
   QOL_NOT_A_FORMULA_LINE,
   QOL_QUOTE_RULE_LINE,
+  QOL_UNCERTAIN_WORDS_LINE,
+  NOT_ERRORS_INTRO,
+  UNCERTAIN_WORDS_LINE,
+  formatUncertainWords,
   _PROMPT_EVIDENCE_ALLOW_LIST,
   _QOL_JSON_OUTPUT_CONTRACT,
 } from '../prompt';
-import { PRACTICE_TRANSCRIPT } from './fixtures';
+import { PRACTICE_TRANSCRIPT, PRACTICE_TRANSCRIPT_WITH_UNCERTAIN_WORDS, buildValidAssessment } from './fixtures';
 import type { SpeakingTranscript } from '../types';
 
 describe('buildRolePlayCommunicationPrompt', () => {
@@ -330,5 +334,56 @@ describe('buildQualityOfLanguagePrompt (scoring-prompt-v0.6)', () => {
 
   it('keeps positive marking', () => {
     expect(prompt).toMatch(/Mark positively/);
+  });
+});
+
+describe('stage 6: uncertain words and the re-ask (scoring-prompt-v0.7)', () => {
+  const T = PRACTICE_TRANSCRIPT_WITH_UNCERTAIN_WORDS;
+  const main = buildRolePlayCommunicationPrompt(T, buildEvidenceProfile(T));
+  const qol = buildQualityOfLanguagePrompt(T);
+
+  it('prints a disagreement as "also heard as" and a one-recogniser word as "could also be", once per word', () => {
+    expect(qol).toContain('Candidate response: Le samedi j’ai joué au football avec mes amis.\nUncertain words: "mes" — also heard as "me"');
+    expect(qol).toContain('Uncertain words: "je" — could also be "j\'ai"; "le" — could also be "les"');
+    expect(
+      formatUncertainWords([
+        { kind: 'nearHomophone', basis: 'single-recogniser', start: 0, end: 1, heard: 'le', alternatives: ['les'], pairIds: ['le~les'] },
+        { kind: 'nearHomophone', basis: 'single-recogniser', start: 5, end: 6, heard: 'Le,', alternatives: ['les'], pairIds: ['le~les'] },
+      ]),
+    ).toBe('Uncertain words: "le" — could also be "les"');
+  });
+
+  it('never prints a `different` span (the primary reading stands) and prints nothing for an answer with no Category B word', () => {
+    expect(main).not.toContain('Tomas');
+    expect(formatUncertainWords([{ kind: 'different', basis: 'disagreement', start: 0, end: 1, heard: 'chien', alternatives: ['chat'], pairIds: [] }])).toBeNull();
+    expect(formatUncertainWords(undefined)).toBeNull();
+  });
+
+  it('renders role-play uncertain words in the main call only, with the benefit-of-the-doubt rule', () => {
+    expect(main).toContain('Candidate response: Je paie par carte.\nUncertain words: "je" — could also be "j\'ai"');
+    expect(main).toContain(`12. ${UNCERTAIN_WORDS_LINE}`);
+    expect(qol).toContain(`14. ${QOL_UNCERTAIN_WORDS_LINE}`);
+    expect(qol).not.toContain('Je paie par carte');
+  });
+
+  it('adds no rule when no answer has an uncertain word', () => {
+    const plain = buildQualityOfLanguagePrompt(PRACTICE_TRANSCRIPT);
+    expect(plain).not.toContain('Uncertain words');
+    expect(buildRolePlayCommunicationPrompt(PRACTICE_TRANSCRIPT, buildEvidenceProfile(PRACTICE_TRANSCRIPT))).not.toContain(
+      'Uncertain words',
+    );
+  });
+
+  it('leaves the answer text untouched, so the replies that grounded before still ground', () => {
+    expect(() => buildValidAssessment(undefined, undefined, T)).not.toThrow();
+  });
+
+  it('the re-ask lists each excused error under "Not errors", before the output format', () => {
+    const reask = buildQualityOfLanguagePrompt(T, {
+      notErrors: [{ source: 'topic1', turnId: 'q2', quote: 'Je préfère le sport', kind: 'grammar', correction: 'Je préfère les sports' }],
+    });
+    expect(reask).toContain(`## Not errors\n\n${NOT_ERRORS_INTRO}\n\n- topic1 q2: "Je préfère le sport" (listed correction: "Je préfère les sports")`);
+    expect(reask.indexOf('## Not errors')).toBeLessThan(reask.indexOf('## Output format'));
+    expect(buildQualityOfLanguagePrompt(T, { notErrors: [] })).toBe(qol);
   });
 });

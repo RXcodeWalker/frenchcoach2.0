@@ -5,7 +5,8 @@
 import { IGCSE_0520_SPEAKING } from '../rubric';
 import type { MarkBand } from '../rubric';
 import type { EvidenceProfile } from '../evidence/types';
-import type { ConversationTurn, ExaminerSupport, SpeakingTranscript } from './types';
+import { canonicalizeForMatch } from '../text/normalize';
+import type { AmbiguousSpan, ConversationTurn, ExaminerSupport, QolError, SpeakingTranscript } from './types';
 
 interface BandCriterion {
   table: string;
@@ -136,6 +137,44 @@ function formatTurnLine(turn: ConversationTurn): string {
   return turn.examinerSupport ? `${asked} | ${formatSupport(turn.examinerSupport)}` : asked;
 }
 
+/**
+ * Stage 6 (transcription-accuracy plan, Phase 4): the line under a spoken
+ * answer naming its Category B words the recognisers could not confirm, or
+ * null when there are none. Only `nearHomophone` spans are rendered —
+ * `different` spans are audit only (the primary reading stands). The answer
+ * text itself is never changed, so quote grounding is unaffected.
+ */
+export function formatUncertainWords(spans: readonly AmbiguousSpan[] | undefined): string | null {
+  const items: string[] = [];
+  for (const span of spans ?? []) {
+    if (span.kind !== 'nearHomophone' || span.end <= span.start) continue;
+    const heard = canonicalizeForMatch(span.heard);
+    const others = span.alternatives.map((a) => canonicalizeForMatch(a)).filter((a) => a !== '' && a !== heard);
+    if (heard === '' || others.length === 0) continue;
+    const item =
+      span.basis === 'disagreement'
+        ? `"${heard}" — also heard as "${others.join('" or "')}"`
+        : `"${heard}" — could also be "${others.join('" or "')}"`;
+    if (!items.includes(item)) items.push(item);
+  }
+  return items.length > 0 ? `Uncertain words: ${items.join('; ')}` : null;
+}
+
+function pushResponse(lines: string[], response: string, spans: readonly AmbiguousSpan[] | undefined): void {
+  lines.push(`Candidate response: ${response}`);
+  const uncertain = formatUncertainWords(spans);
+  if (uncertain !== null) lines.push(uncertain);
+}
+
+/** Whether any answer the prompt renders carries an "Uncertain words" line (role play included or not). */
+function hasUncertainWords(transcript: SpeakingTranscript, includeRolePlay: boolean): boolean {
+  const answers = [
+    ...(includeRolePlay ? transcript.rolePlay.map((t) => t.ambiguousSpans) : []),
+    ...transcript.topicConversations.flatMap((c) => c.turns.map((t) => t.ambiguousSpans)),
+  ];
+  return answers.some((spans) => formatUncertainWords(spans) !== null);
+}
+
 function formatTranscript(transcript: SpeakingTranscript): string {
   const lines: string[] = ['## Candidate transcript (responses only)', ''];
 
@@ -143,7 +182,7 @@ function formatTranscript(transcript: SpeakingTranscript): string {
   for (const task of transcript.rolePlay) {
     lines.push(`Task ${task.taskId}`);
     lines.push(formatRolePlayTaskLine(task));
-    lines.push(`Candidate response: ${task.candidateResponse}`);
+    pushResponse(lines, task.candidateResponse, task.ambiguousSpans);
     lines.push('');
   }
 
@@ -159,7 +198,7 @@ function formatTranscript(transcript: SpeakingTranscript): string {
           : `Turn ${turn.turnId}`,
       );
       lines.push(formatTurnLine(turn));
-      lines.push(`Candidate response: ${turn.candidateResponse}`);
+      pushResponse(lines, turn.candidateResponse, turn.ambiguousSpans);
       lines.push('');
     }
   }
@@ -185,7 +224,7 @@ function formatTopicTranscript(transcript: SpeakingTranscript): string {
           : `Turn ${turn.turnId}`,
       );
       lines.push(`Asked: ${turn.questionPrompt}`);
-      lines.push(`Candidate response: ${turn.candidateResponse}`);
+      pushResponse(lines, turn.candidateResponse, turn.ambiguousSpans);
       lines.push('');
     }
   }
@@ -255,6 +294,34 @@ function formatEvidence(evidence: EvidenceProfile): string {
 const EXAMINER_ROLE = 'You are a Cambridge IGCSE French 0520 Paper 3 Speaking examiner.';
 
 /**
+ * Stage 6: rendered (as the main call's rule 12) only when some answer has an
+ * "Uncertain words" line, so a prompt without one is byte-identical to v0.6.1.
+ * Owner rule: benefit of the doubt on a Category B word the recognisers could
+ * not confirm. Exported for prompt.test.ts.
+ */
+export const UNCERTAIN_WORDS_LINE =
+  'Some responses are followed by an "Uncertain words:" line. Those words sound alike in a learner\'s accent or in fast speech, and the speech recognition could not confirm which one the candidate said. Give the benefit of the doubt: where the other word would be correct, treat the candidate as having said it. Quote evidence only from the candidate response itself, never from an "Uncertain words:" line.';
+
+/** Stage 6: the QoL call's version of UNCERTAIN_WORDS_LINE (its rule 14), rendered under the same condition. */
+export const QOL_UNCERTAIN_WORDS_LINE =
+  'Some answers are followed by an "Uncertain words:" line. Those words sound alike in a learner\'s accent or in fast speech, and the speech recognition could not confirm which one the candidate said. Give the benefit of the doubt: where the other word would be correct, treat the candidate as having said it and do not list it as an error. Quote errors only from the candidate response itself, never from an "Uncertain words:" line.';
+
+/** Stage 6: the re-ask's explanation of its "Not errors" list. Exported for prompt.test.ts. */
+export const NOT_ERRORS_INTRO =
+  'An earlier marking of this transcript listed the entries below as errors. They are not errors: each one either sounds exactly the same as the correct form, or is a word the speech recognition could not tell apart from the correct one. Do not list them again, and do not let them lower the mark. Mark everything else exactly as you otherwise would.';
+
+function formatNotErrors(notErrors: readonly QolError[]): string {
+  return [
+    '## Not errors',
+    '',
+    NOT_ERRORS_INTRO,
+    '',
+    ...notErrors.map((e) => `- ${e.source} ${e.turnId}: "${e.quote}" (listed correction: "${e.correction}")`),
+    '',
+  ].join('\n');
+}
+
+/**
  * scoring-prompt-v0.6 main L2 call ('rolePlayCommunication'): role play and
  * Communication, with the full transcript (examiner support included) and the
  * L1 counts allow-list. Quality of Language is NOT marked here — see
@@ -289,6 +356,7 @@ export function buildRolePlayCommunicationPrompt(
     "9. Judge the first Communication bullet (repetition / use of the alternative question) ONLY from the examiner support recorded on each turn's \"Asked:\" line (Repeated ×n, Alternative question used). Do not infer repetition or alternative-question use from the candidate's words. Where an alternative question was used, the candidate was answering that question, not the main one.",
     '10. The transcript is speech-recognition output. Ignore spelling-only differences that cannot be heard (-é/-er/-ez endings, silent agreement endings) and ignore all punctuation.',
     "11. Role play: quote each task's evidence ONLY from that task's own candidate response, never from another task. If a task has no creditable response, award 0 and give an empty evidenceSpans array for that task.",
+    ...(hasUncertainWords(transcript, true) ? [`12. ${UNCERTAIN_WORDS_LINE}`] : []),
     '',
     '## Output format',
     '',
@@ -327,7 +395,20 @@ export const QOL_QUOTE_RULE_LINE =
  * no examiner-support lines, no L1 word counts (they invite rewarding
  * quantity). The judge lists every error before it chooses a band.
  */
-export function buildQualityOfLanguagePrompt(transcript: SpeakingTranscript): string {
+export interface QualityOfLanguagePromptOptions {
+  /**
+   * Stage 6 re-ask: errors from the first QoL reply that the marker excused
+   * (judgement/homophoneErrors.ts). Rendered as a "Not errors" section, so
+   * the one re-run marks without them. Empty or absent: the ordinary prompt.
+   */
+  notErrors?: readonly QolError[];
+}
+
+export function buildQualityOfLanguagePrompt(
+  transcript: SpeakingTranscript,
+  options: QualityOfLanguagePromptOptions = {},
+): string {
+  const notErrors = options.notErrors ?? [];
   const sections = [
     EXAMINER_ROLE,
     '',
@@ -353,7 +434,9 @@ export function buildQualityOfLanguagePrompt(transcript: SpeakingTranscript): st
     '   - just meets the level → award the LOWEST mark in the band',
     '12. Cite the VERBATIM descriptor text you are applying (copy exactly from the mark scheme above).',
     '13. Quote specific spans from the candidate\'s topic-conversation answers as evidence (source "topic1" or "topic2" only). NEVER invent evidence not present in the transcript. If there is no creditable response, award 0.',
+    ...(hasUncertainWords(transcript, false) ? [`14. ${QOL_UNCERTAIN_WORDS_LINE}`] : []),
     '',
+    ...(notErrors.length > 0 ? [formatNotErrors(notErrors)] : []),
     '## Output format',
     '',
     'Return ONLY a JSON object (no markdown, no prose outside JSON) matching this shape, with "errors" first:',
