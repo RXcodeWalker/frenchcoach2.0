@@ -4272,7 +4272,7 @@ is unchanged) and backend pytest (no backend change in this stage; its stage-1 c
 Not yet done, by design: the manual run against real keys — Whisper's actual reading of a real
 recording has not been seen; the e2e mocks `/api/transcribe`.
 
-## 2026-10-13 — Transcription accuracy stage 6: the marker applies the sound-alike rules (in progress)
+## 2026-10-13 — Transcription accuracy stage 6: the marker applies the sound-alike rules
 
 Branch `claude/busy-gauss-k0ihy9`, built on Stage 5 (`session-transcript-v2`) and Stage 4 (the shared
 `alignRecognisers`), both merged into this branch first (their branches were separate).
@@ -4298,3 +4298,85 @@ Branch `claude/busy-gauss-k0ihy9`, built on Stage 5 (`session-transcript-v2`) an
    a `different` span in evidence only) and `sound-alike-fallback-turn` (ambiguousNear on a one-recogniser
    answer, re-ask failed: 7 stands, `homophone_error_excused` + `homophone_penalty_unresolved`, transcription
    `9 / 1 asr-timeout`).
+
+**Built** (ADR 0011 amendment, item 7):
+- `stt/project/spokenText.ts`: each spoken answer reaches the judge Category-A-respelled
+  (`homophones/respell.ts`) with `ambiguousSpans` — `alignRecognisers` spans when both recognisers read
+  it, every Category B word when only one did (live-captions fallback, pre-v2 transcript, recording).
+  Typed answers verbatim, no spans. `EvidenceProfile.ambiguousSpansByTurn` (audit; not on the allow-list).
+- `judgement/prompt.ts`: an "Uncertain words:" line under such answers and a benefit-of-the-doubt rule
+  in both prompts (only when a line exists); the QoL prompt's `notErrors` ("Not errors" section).
+- `judgement/homophoneErrors.ts`: `classifyQolError` (inaudible / ambiguousNear / counted; liaison
+  checked against the answer's next word; a quote and correction of different lengths are lined up with
+  the neighbouring words, at most 3 apart), `resolveQolHomophones` (one re-ask, re-run's mark kept; a
+  failed re-ask keeps the first mark minus the excused errors). Wired into `scoreAttempt` (+ a
+  `qolHomophones` log line with marks and counts only) and `judge:check` (re-ask rate, first vs kept QoL;
+  `--one-recogniser`).
+- `guardrails/homophoneErrors.ts`: `homophone_error_excused`, `homophone_penalty_unresolved`. Advisory.
+- `envelope-v0.5`: `excusedErrors`, `transcription`, `versions.homophoneTableVersion`; migration is a
+  stamp only.
+- Versions: `detectors-v0.7`, `scoring-prompt-v0.7`, `guardrails-v0.7`, `envelope-v0.5`; new pins for the
+  uncertain-words and re-ask prompts and the homophone triggers. `HOMOPHONE_TABLE_VERSION` unchanged
+  (`homophone-table-v1`, no list or rule changed). `EXAM_FEEDBACK_VERSION` unchanged.
+
+**Deviations from the plan:**
+1. Stage 4's and Stage 5's branches were never merged; both are merged into this branch (the marker
+   needs Stage 5's schema and Stage 4's single aligner). Their parallel `transcribeAudio` edits were
+   reconciled: Stage 5's version plus Stage 4's `timeoutMs`; `TranscribeHttpError` now extends
+   `ApiHttpError`.
+2. The envelope's `transcription.promptVersion` had no source, so the batch reading gained an optional
+   `promptVersion` (`EXAM_ASR_PROMPT_VERSION = exam-asr-prompt-v1`: the question just asked, nothing else),
+   set by `transcribeExamTurns`. Additive to the unreleased v2 schema; no schema version change.
+3. Added `versions.homophoneTableVersion` to the envelope (not in the plan's list): without it an
+   envelope cannot be traced to the tables that changed its mark.
+4. The plan does not say what happens when the re-ask fails: the first mark is kept (excused errors
+   removed) and `homophone_penalty_unresolved` fires, rather than failing the whole attempt.
+5. The "Uncertain words" line also renders under role-play answers (main call), and the line and its
+   rule render only when such a word exists, so every other transcript renders exactly as v0.6.1.
+6. Left for the feedback stage (the stage title is the marker): the report's Category B notes from
+   `excusedErrors`, `displayRespell.ts`, rebuilding `spellingOnly.ts` on the tables, and
+   `EXAM_FEEDBACK_VERSION`. **Until that stage ships, an excused Category B error is kept in the envelope
+   but no longer appears in the report** — the owner's "never silently excused" rule needs it.
+
+**Verified** (with `backend/` present): `npm run typecheck`, `typecheck:server` clean; `typecheck:scripts`
+11 errors, identical to the pre-change baseline; `npm run lint` 0 errors (21 warnings, baseline); full
+`npm test` 360 files / 4256 tests (baseline after the Stage 4/5 merge: 356 / 4192);
+`npm run score:golden` 10/10 (5 new); `authoring:check`, `authoring:parity`, `examiner:parity` clean.
+
+**Real judge** (`npm run judge:check -- --runs 3`, gemini-3.5-flash-lite, 16 fixtures, 46 completed runs,
+2 runs lost to Gemini 503 "high demand" — the harness has no Groq fallback): re-ask in 12/46 runs (9
+applied, 3 failed on a 503); kept − first QoL: 0 in 11, +1 in 1; 2 runs' re-run relisted an excused
+error. Every excused error was a genuine Category A artefact ("je fait"→"je fais", "chose"→"choses",
+"des série"→"des séries"). The fixtures render byte-identically to v0.6.1 (no spans), so marks are
+otherwise v0.6.1's. Pass bar FAIL only on the two pre-existing open findings (weak QoL 7 > 6 with no
+re-ask; split-a QoL 10–11 > 9 whose first replies were already 10–11). `--one-recogniser` (1 run each,
+weak / borderline / split-a / strong): 20, 35, 32, 40 — audible errors ("je faire", "on jouer",
+"je aime") still counted; only "chose(s)" excused.
+
+**Old vs new on Exam Sims.** The owner's account has no stored scored exam in production (the database
+holds 3, all under other accounts, not opened) and exam audio is never kept, so three Exam Sims were
+simulated on question set `original-practice-001`, using the owner's own Whisper readings from
+calibration set 3 (`exam_pronunciation_calibration_failed_v1/unclear`, turbo, no prompt) for the
+misheard answers. Old = `main` (live-caption text, v0.6.1, no re-ask); new = this branch (Stage 5 batch
+reading + Stage 6), real judge with the production Gemini→Groq fallback, totals /40:
+
+| Sim | Old | New |
+|---|---|---|
+| 1 solid; Whisper read all; "Ils ont un chien" heard "Ils sont en chien" | 40, 40 | 40, 40, 39 |
+| 2 middling; live captions only (artefacts "trois chambre", "j'ai jouer") | 34, 34 | 34, 35, 33 |
+| 3 Whisper heard clearly different words ("mangent"→"il monge", "deux chats"→"deux ça") | 40, 40 | 37, 38, 38 |
+
+Sim 1: the judge's FIRST QoL reply was 11 and 13 despite the "Uncertain words" line; the classifier +
+re-ask restored 15 both times — the re-ask, not the prompt line, protects the mark. Sim 2: the old
+pipeline counted three inaudible artefacts the new one respells away; one re-ask replaced an outlier
+first reply (QoL 4 → 10). Sim 3: "primary wins" on a clearly different word costs a real candidate 2–3
+marks when Whisper mishears (as the turbo model did on the owner's voice). Whether batch ASR should mark
+at all is the STT benchmark's decision (plan Phase 2, rule 1); `VITE_EXAM_BATCH_ASR=0` reverts to
+caption marking without a scorer redeploy.
+
+**Rollback:** fastest is `VITE_EXAM_BATCH_ASR=0` (stops batch readings; the sound-alike rules still
+apply, to caption text, as one-recogniser answers). A full revert is revert-and-redeploy of the scorer,
+but a v0.4 build refuses any v0.5 envelope already stored as newer than itself (the existing
+asymmetric-rollback rule in `envelope/schema.ts`), so those attempts would need re-scoring. The client
+reads only the server-built view, so no client deploy order applies.
+
