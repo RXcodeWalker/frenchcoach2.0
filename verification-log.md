@@ -4172,5 +4172,8 @@ yet", so it is deferred to the stage that wires the tables in.
 
 **Verified:** `npm run typecheck`, `npm run typecheck:server`, `npm run lint` (0 errors), full
 `npm test` 4047 passed (with `backend/` present), `npm run score:golden` all 5 goldens match (no
-scoring change — nothing imports the new code). Owner review of the plain-English word lists is still
-outstanding.
+scoring change — nothing imports the new code).
+
+**Owner review (2026-10-13):** approved the three additions to the owner's own lists: je/j'ai,
+en/on, de/des, ce/ces, me/mes, te/tes and se/ses as near sound-alikes (benefit of the doubt), and
+mes/mais/met/mets as never-penalised. No list changed: comments only, so the hash is unchanged.

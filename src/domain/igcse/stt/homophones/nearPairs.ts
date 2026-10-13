@@ -12,8 +12,8 @@
  *
  * The owner fixed un/en, ont/sont, le/les and du/de. The other entries are
  * the same vowel contrast (schwa vs [e]: le/les → de/des, ce/ces, me/mes,
- * te/tes, se/ses, je/j'ai; nasal [ɑ̃] vs [ɔ̃]: en/on) and are listed for the
- * owner's review. Any change here changes marks once wired: bump
+ * te/tes, se/ses, je/j'ai; nasal [ɑ̃] vs [ɔ̃]: en/on), approved by the owner
+ * on 2026-10-13. Any change here changes marks once wired: bump
  * HOMOPHONE_TABLE_VERSION (`version.ts`).
  */
 

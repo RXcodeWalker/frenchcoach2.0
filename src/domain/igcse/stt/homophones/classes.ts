@@ -74,6 +74,7 @@ export const CLOSED_CLASSES: readonly ClosedSoundClass[] = Object.freeze([
   closed('ton', ['ton', "t'ont"], true, "ton / t'ont"),
   closed('ma', ['ma', "m'a", "m'as"], false, "ma / m'a / m'as"),
   closed('ta', ['ta', "t'a", "t'as"], false, "ta / t'a / t'as"),
+  // Approved by the owner (2026-10-13): learners merge [e] and [ɛ], as in et / est.
   closed('mes-mais', ['mes', 'mais', 'met', 'mets', "m'est"], true, "mes / mais / met / mets / m'est"),
   closed('peu', ['peu', 'peut', 'peux'], false, 'peu / peut / peux'),
   closed('leur', ['leur', 'leurs'], true, 'leur / leurs'),
