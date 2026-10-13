@@ -9,7 +9,11 @@ export type GuardrailId =
   | 'quote_verification_failed'
   | 'insufficient_evidence_duration'
   /** Phase 5 (§10.6) — an `eligible` detector's evidence capped a criterion mark. */
-  | 'evidence_ceiling_applied';
+  | 'evidence_ceiling_applied'
+  /** Stage 6 — the QoL sound-alike step excused at least one error (guardrails/homophoneErrors.ts). */
+  | 'homophone_error_excused'
+  /** Stage 6 — the kept QoL mark may still carry a sound-alike penalty (advisory; never raises a mark). */
+  | 'homophone_penalty_unresolved';
 
 /** The two 0–15 band criteria a ceiling may cap. Role play (0/1/2 per task) is out of scope. */
 export type CeilingCriterion = 'communication' | 'qualityOfLanguage';

@@ -7,10 +7,14 @@
  * ledger + sourced ceiling registry, both empty today), so `adjustments` is
  * always `[]` and L3 remains advisory in practice: it does not clamp marks or
  * short-circuit to `unscored` until a validation phase promotes a detector.
+ *
+ * Stage 6: also composes the sound-alike guardrail (homophoneErrors.ts), fed
+ * the record of what scoreAttempt's QoL sound-alike step did. Advisory only.
  */
 
 import { DEFAULT_DURATION_CONFIG } from './config';
 import { applyEvidenceCeilings } from './evidenceCeilings';
+import { checkHomophoneErrors, type HomophoneStepRecord } from './homophoneErrors';
 import { checkInsufficientEvidence } from './insufficientEvidence';
 import { verifyQuotes } from './quoteVerification';
 import type { EvidenceProfile } from '../evidence/types';
@@ -22,6 +26,7 @@ export function runGuardrails(
   evidence: EvidenceProfile,
   transcript: SpeakingTranscript,
   durationConfig: InsufficientEvidenceDurationConfig = DEFAULT_DURATION_CONFIG,
+  homophones?: HomophoneStepRecord,
 ): GuardrailReport {
   const ceilings = applyEvidenceCeilings(assessment, evidence);
 
@@ -30,6 +35,7 @@ export function runGuardrails(
       ...verifyQuotes(assessment, transcript),
       ...checkInsufficientEvidence(evidence, durationConfig),
       ...ceilings.triggers,
+      ...checkHomophoneErrors(assessment, transcript, homophones),
     ],
     adjustments: ceilings.adjustments,
   };

@@ -33,7 +33,7 @@ describe('exam pronunciation leaves every scoring version unchanged', () => {
       EXAM_FEEDBACK_VERSION,
     }).toEqual({
       SCORING_PROMPT_VERSION: 'scoring-prompt-v0.7',
-      GUARDRAILS_VERSION: 'guardrails-v0.6',
+      GUARDRAILS_VERSION: 'guardrails-v0.7',
       RUBRIC_VERSION: 'rubric-v0.1',
       ENVELOPE_SCHEMA_VERSION: 'envelope-v0.4',
       EVIDENCE_DETECTOR_VERSION: 'detectors-v0.7',

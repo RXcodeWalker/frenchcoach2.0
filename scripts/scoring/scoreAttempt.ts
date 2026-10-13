@@ -40,6 +40,7 @@ import { buildEvidenceProfile } from '../../src/domain/igcse/evidence/buildEvide
 import { EVIDENCE_DETECTOR_VERSION } from '../../src/domain/igcse/evidence/version';
 import { buildScoringEnvelope } from '../../src/domain/igcse/envelope/buildEnvelope';
 import type { ScoringEnvelope } from '../../src/domain/igcse/envelope/types';
+import { DEFAULT_DURATION_CONFIG } from '../../src/domain/igcse/guardrails/config';
 import { runGuardrails } from '../../src/domain/igcse/guardrails/runGuardrails';
 import { GUARDRAILS_VERSION } from '../../src/domain/igcse/guardrails/version';
 import {
@@ -173,7 +174,7 @@ export async function scoreAttempt(
   const assessment = combineAssessment(main.result, homophones.qualityOfLanguage);
 
   const guardrailReport = await logStage(attemptId, 'runGuardrails', async () =>
-    runGuardrails(assessment, evidenceProfile, speakingTranscript),
+    runGuardrails(assessment, evidenceProfile, speakingTranscript, DEFAULT_DURATION_CONFIG, homophones),
   );
 
   const envelope = buildScoringEnvelope({

@@ -4285,3 +4285,5 @@ Branch `claude/busy-gauss-k0ihy9`, built on Stage 5 (`session-transcript-v2`) an
 2. Slice 2 (judge prompt): the two goldens with an envelope move `versions.scoringPromptVersion`
    `scoring-prompt-v0.6.1` → `scoring-prompt-v0.7`. Nothing else (their transcripts have no spans, so the
    rendered prompts are byte-identical; the PRACTICE_TRANSCRIPT prompt pins did not move).
+3. Slice 4 (guardrail): the two goldens with an envelope move `versions.guardrailsVersion`
+   `guardrails-v0.6` → `guardrails-v0.7`. No trigger changes: no golden has an excusable QoL error.

@@ -31,6 +31,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { buildEvidenceProfile } from '../../src/domain/igcse/evidence/buildEvidence';
+import { DEFAULT_DURATION_CONFIG } from '../../src/domain/igcse/guardrails/config';
 import { runGuardrails } from '../../src/domain/igcse/guardrails/runGuardrails';
 import {
   JudgementValidationError,
@@ -297,7 +298,7 @@ async function runOnce(
 
   const assessment: SpeakingAssessment = combineAssessment(main.result, homophones.qualityOfLanguage);
   // Real guardrails run, unused here beyond surfacing a broken fixture loudly.
-  runGuardrails(assessment, evidence, transcript);
+  runGuardrails(assessment, evidence, transcript, DEFAULT_DURATION_CONFIG, homophones);
 
   const result: SingleRunResult = {
     rolePlay: assessment.rolePlay.total,

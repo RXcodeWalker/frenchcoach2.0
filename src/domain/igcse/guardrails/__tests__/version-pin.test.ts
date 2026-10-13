@@ -20,6 +20,8 @@ import { DEFAULT_DURATION_CONFIG, EVIDENCE_CEILINGS } from '../config';
 import { runGuardrails } from '../runGuardrails';
 import { GUARDRAILS_VERSION } from '../version';
 import { CLEAN_ASSESSMENT, CLEAN_LONG_TRANSCRIPT } from './synthetic';
+import { checkHomophoneErrors } from '../homophoneErrors';
+import type { ExcusedQolError } from '../../judgement/types';
 import { buildScoringEnvelope } from '../../envelope/buildEnvelope';
 import type { BuildScoringEnvelopeInput } from '../../envelope/buildEnvelope';
 
@@ -29,7 +31,32 @@ import type { BuildScoringEnvelopeInput } from '../../envelope/buildEnvelope';
  * unchanged — verified by ceilingApplied.test.ts and the golden diff, which
  * show no mark moving on any unclamped path.
  */
-const GUARDRAILS_FIXTURE_HASH = '73b912eff5238a82f054dad1cb522bcd2b6a4554dd2b13f410309b840342743f';
+const GUARDRAILS_FIXTURE_HASH = '9d9025b617b949b3ea41ae6c66b8493dbc2c6c5d694074312b539c8b5e3e9266';
+
+/**
+ * Stage 6 (guardrails-v0.7): the sound-alike guardrail's output for fixed step
+ * records — excused and resolved, re-ask failed, re-run relisted — so a change
+ * to when either homophone trigger fires needs a GUARDRAILS_VERSION bump.
+ */
+const EXCUSED: ExcusedQolError = {
+  source: 'topic1',
+  turnId: 'q1',
+  quote: "j'ai joué au football",
+  kind: 'grammar',
+  correction: "j'ai jouer au football",
+  reason: 'inaudible',
+  nearPairIds: [],
+};
+function homophoneEffect() {
+  const run = (record: Parameters<typeof checkHomophoneErrors>[2]) =>
+    checkHomophoneErrors(CLEAN_ASSESSMENT, CLEAN_LONG_TRANSCRIPT, record);
+  return {
+    none: run(undefined),
+    resolved: run({ excusedErrors: [EXCUSED], reAsk: 'applied', excusedInReAsk: 0 }),
+    failed: run({ excusedErrors: [EXCUSED], reAsk: 'failed', excusedInReAsk: 0 }),
+    relisted: run({ excusedErrors: [EXCUSED], reAsk: 'applied', excusedInReAsk: 1 }),
+  };
+}
 
 function sha256(value: unknown): string {
   return createHash('sha256').update(JSON.stringify(value)).digest('hex');
@@ -109,6 +136,7 @@ describe('guardrails version pin', () => {
       clampEffectForced: clampEffect([
         { criterion: 'qualityOfLanguage', proposedMark: CLEAN_ASSESSMENT.qualityOfLanguage.mark, finalMark: 3 },
       ]),
+      homophoneEffect: homophoneEffect(),
     });
 
     expect(

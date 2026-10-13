@@ -41,4 +41,13 @@
  * an ungrounded or misattributed error quote now triggers
  * quote_verification_failed.
  */
-export const GUARDRAILS_VERSION = 'guardrails-v0.6';
+/*
+ * v0.7 (transcription-accuracy stage 6): runGuardrails composes the sound-
+ * alike guardrail (homophoneErrors.ts) — `homophone_error_excused` when the
+ * QoL step excused an error, `homophone_penalty_unresolved` when the kept
+ * mark may still carry a sound-alike penalty (re-ask failed, re-run relisted
+ * one, or an excusable error is still counted). Advisory: no mark moves. On
+ * every clean fixture both stay silent; the pin hash covers the new triggers
+ * through synthetic step records.
+ */
+export const GUARDRAILS_VERSION = 'guardrails-v0.7';

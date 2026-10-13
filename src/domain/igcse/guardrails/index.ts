@@ -13,3 +13,5 @@ export { GUARDRAILS_VERSION } from './version';
 export { verifyQuotes } from './quoteVerification';
 export { checkInsufficientEvidence } from './insufficientEvidence';
 export { runGuardrails } from './runGuardrails';
+export { checkHomophoneErrors } from './homophoneErrors';
+export type { HomophoneStepRecord } from './homophoneErrors';

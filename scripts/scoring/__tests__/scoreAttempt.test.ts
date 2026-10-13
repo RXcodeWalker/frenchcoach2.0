@@ -313,6 +313,8 @@ describe('scoreAttempt — stage 6 sound-alike rules on the QoL error list', () 
     expect(envelope.qualityOfLanguage.errors).toEqual([]);
     expect(envelope.total).toBe(envelope.rolePlayTasks.reduce((s, t) => s + t.mark, 0) + envelope.communication.mark + 9);
     expect(envelope.qualityOfLanguageLlm?.responseId).toBe('resp-qualityOfLanguage-2');
+    expect(envelope.guardrailTriggers).toContain('homophone_error_excused');
+    expect(envelope.guardrailTriggers).not.toContain('homophone_penalty_unresolved');
   });
 
   it('nothing excused: no re-ask', async () => {
@@ -335,6 +337,7 @@ describe('scoreAttempt — stage 6 sound-alike rules on the QoL error list', () 
       const envelope = await scoreAttempt(deps, { sessionId: SESSION_ID, questionSet: structQuestions as SessionQuestionSet });
       expect(envelope.qualityOfLanguage.mark).toBe(7);
       expect(envelope.qualityOfLanguage.errors).toEqual([]);
+      expect(envelope.guardrailTriggers).toEqual(expect.arrayContaining(['homophone_error_excused', 'homophone_penalty_unresolved']));
       const logged = stderr.mock.calls.map((c) => String(c[0])).find((l) => l.includes('qolHomophones'));
       expect(JSON.parse(logged!)).toMatchObject({ stage: 'qolHomophones', reAsk: 'failed', firstMark: 7, finalMark: 7, excused: 1, failure: 'Error' });
       expect(logged).not.toContain('réponse');
