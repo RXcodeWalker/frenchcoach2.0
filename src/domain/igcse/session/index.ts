@@ -17,3 +17,4 @@ export { buildSessionTranscript } from './buildSessionTranscript';
 export type { BuildSessionTranscriptMeta } from './buildSessionTranscript';
 export { classifyUtteranceIntent } from './utteranceIntents';
 export type { UtteranceIntent } from './utteranceIntents';
+export { isBatchAsrTurn, noAudioRecognition, selectedRecognitionText, wordConfidences } from './recognition';

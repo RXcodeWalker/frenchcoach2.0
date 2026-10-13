@@ -63,6 +63,7 @@ import { countsTowardProgress, resolveCoachedMode } from '../services/exam/attem
 import { transcribeAudio } from '../services/api/apiClient';
 import { clearExamAudio } from '../services/exam/pronunciation/examAudioStore';
 import { captureTurnAudio } from '../services/exam/pronunciation/captureTurnAudio';
+import { createExamTurnTranscriberFor, type ExamTurnTranscriber } from '../services/exam/scoringTranscription/transcribeExamTurns';
 import { measureExamAudio } from '../services/exam/pronunciation/measureExamAudio';
 import { examPronunciationUiEnabled } from '../features/exam/pronunciation/access';
 import { useExamPronunciation } from '../features/exam/pronunciation/useExamPronunciation';
@@ -207,6 +208,12 @@ export function ExamMode() {
   const turnBusyRef = useRef(false);
   /** Settles once the latest turn's recording is in the audio store; the end-of-exam measurement waits on it. */
   const pendingAudioCaptureRef = useRef<Promise<void>>(Promise.resolve());
+  /**
+   * Batch ASR (Whisper) for each spoken answer, in the background while the exam runs; finishSession
+   * collects the results into the SessionTranscript. null = switched off (VITE_EXAM_BATCH_ASR=0) —
+   * answers are then marked from the live captions exactly as before.
+   */
+  const turnTranscriberRef = useRef<ExamTurnTranscriber | null>(null);
   const startExamBusyRef = useRef(false);
   /** D3: true only when the candidate used the Exam Sim "Start now" escape hatch — makes the attempt practice-only. */
   const earlyStartRef = useRef(false);
@@ -262,7 +269,11 @@ export function ExamMode() {
   // (examAudioStore) and forgets it when the candidate leaves the exam screen.
   useEffect(() => {
     const sessionId = sessionIdRef; // read `.current` at unmount, not at mount
-    return () => clearExamAudio(sessionId.current);
+    const transcriber = turnTranscriberRef;
+    return () => {
+      clearExamAudio(sessionId.current);
+      transcriber.current?.cancel(); // no background uploads once the candidate has left the exam
+    };
   }, []);
 
   // Reliability plan §D: resume-on-reload. A reload during 'scoring' (or
@@ -337,6 +348,10 @@ export function ExamMode() {
         // D15: a mid-exam resume is allowed, but the notes require an
         // uninterrupted recording, so this attempt no longer counts.
         resumedRef.current = true;
+        // Turns answered before the reload have no recording left (browser memory) and are marked
+        // from their live captions ('no-audio'); turns from here on are transcribed as usual.
+        turnTranscriberRef.current?.cancel();
+        turnTranscriberRef.current = createExamTurnTranscriberFor({ webSpeechAvailable: recording.sttSupported });
         prevActionPartRef.current = snapshot.session.currentAction.part;
 
         const lastLoggedS = snapshot.session.entries.reduce(
@@ -527,6 +542,8 @@ export function ExamMode() {
         ? duelSessionId
         : `exam-sim-${crypto.randomUUID()}`;
     clearExamAudio(sessionIdRef.current);
+    turnTranscriberRef.current?.cancel();
+    turnTranscriberRef.current = createExamTurnTranscriberFor({ webSpeechAvailable: recording.sttSupported });
     pronunciation.reset();
     sessionIdRef.current = sessionId;
     clock.start();
@@ -585,6 +602,9 @@ export function ExamMode() {
 
     try {
       const responseDurationS = Math.max(clock.nowS() - turnStartRef.current, 0.1);
+      // What the examiner just asked (main, repeat, alternative or further question): the only
+      // context the batch recogniser gets. Read before submitTurn advances the session.
+      const questionText = session.action?.text ?? '';
       let transcriptText = await recording.stop();
       // Resolved by MediaRecorder's onstop; handed to the pronunciation audio
       // store once the turn is logged (below). Never awaited on the happy path.
@@ -600,7 +620,7 @@ export function ExamMode() {
           return;
         }
         try {
-          const transcribed = await transcribeAudio(audioBlob);
+          const transcribed = await transcribeAudio(audioBlob, 'fr', { prompt: questionText, purpose: 'exam_turn' });
           if (transcribed.source === 'transcription-unavailable') {
             // Explicit backend failure — never present this as "did you mean to submit nothing?".
             setPendingTranscriptionFailure(true);
@@ -629,10 +649,15 @@ export function ExamMode() {
       });
       // Fire-and-forget: keyed by the candidate entry's seq, which exists only
       // now that submitTurn has logged it. Adds no submit latency.
+      const transcriber = turnTranscriberRef.current;
       pendingAudioCaptureRef.current = captureTurnAudio(
         sessionIdRef.current,
         session.getConductLog().entries,
         turnAudioPromise,
+        // null without Web Speech (Firefox): the text above already IS Whisper's reading — nothing to compare.
+        transcriber
+          ? ({ turnKey, blob, liveText }) => transcriber.enqueue({ turnKey, blob, liveText, prompt: questionText })
+          : undefined,
       );
       setAction(nextAction);
       persistRunningSnapshot();
@@ -769,7 +794,13 @@ export function ExamMode() {
     // a real (or reviewable) transcript — clearPendingScoreSessionId (called
     // once scoring reaches Completed) is this same store's existing sibling.
     clearRunningSession();
-    const built = await session.buildTranscript();
+    // Collect the background Whisper readings (waiting up to ~45 s, then falling back to the live
+    // captions per answer) so what gets reviewed and marked is the best reading we have.
+    const transcriber = turnTranscriberRef.current;
+    const recognitionByTurnKey = transcriber
+      ? await transcriber.settle({ alsoWait: pendingAudioCaptureRef.current })
+      : undefined;
+    const built = await session.buildTranscript('original-practice', { recognitionByTurnKey });
     setTranscript(built);
     setExamState('review');
   };
@@ -1092,6 +1123,8 @@ export function ExamMode() {
         pronunciation={pronunciation}
         onRetake={() => {
           clearExamAudio(sessionIdRef.current);
+          turnTranscriberRef.current?.cancel();
+          turnTranscriberRef.current = null;
           pronunciation.reset();
           selectedQuestionSetIdRef.current = undefined;
           selectedAuthoredSetRef.current = undefined;

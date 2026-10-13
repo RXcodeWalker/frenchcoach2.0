@@ -123,7 +123,7 @@ describe('toSpeakingTranscript', () => {
 
     function sessionWith(utterances: Utterance[]): SessionTranscript {
       return {
-        schemaVersion: 'session-transcript-v1',
+        schemaVersion: 'session-transcript-v2',
         assemblerVersion: 'test',
         sessionId: 'input-mode-session',
         recordedAt: '2026-01-01T00:00:00.000Z',

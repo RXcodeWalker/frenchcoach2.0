@@ -66,6 +66,12 @@ These never call each other directly. The frontend is the only thing that talks 
   single-instance prerequisite in "FastAPI env" below.
 - **`VITE_EXAM_PRONUNCIATION_PUBLIC`** (frontend build; `1` shows the UI to non-admins). Convenience
   only — the backend access mode is authoritative.
+- **`VITE_EXAM_BATCH_ASR`** (frontend build; unset = on; `0`/`false`/`off` = off). Kill switch for
+  marking exam answers from batch ASR: off, the SessionTranscript carries no `recognition` and the
+  live captions are marked exactly as before. Needs a frontend redeploy, not a scorer redeploy.
+- **`GROQ_WHISPER_MODEL`** (FastAPI; default `whisper-large-v3`, read in `lib/model_config.py`). The
+  Whisper model `/api/transcribe` sends to Groq, and the one the exam batch ASR reports in each
+  answer's `recognition.primary.model`.
 - None of these is in `backend/.env.example` yet.
 
 **Deploy order for exam pronunciation.** Supabase migrations `20261005090000` (ledger, budget,

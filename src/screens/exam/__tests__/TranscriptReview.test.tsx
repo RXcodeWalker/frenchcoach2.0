@@ -24,7 +24,7 @@ function candidateUtterance(overrides: Partial<Utterance> = {}): Utterance {
 
 function baseTranscript(utterances: Utterance[]): SessionTranscript {
   return {
-    schemaVersion: 'session-transcript-v1',
+    schemaVersion: 'session-transcript-v2',
     assemblerVersion: 'session-engine-v2',
     sessionId: 'sess-1',
     recordedAt: '2026-01-01T00:00:00.000Z',
@@ -80,5 +80,72 @@ describe('TranscriptReview', () => {
 
     fireEvent.click(screen.getByText(/Submit for marking/));
     expect(onConfirm).toHaveBeenCalledWith(transcript);
+  });
+
+  describe('batch recognition', () => {
+    const whisperUtterance = candidateUtterance({
+      utteranceId: 'w1',
+      text: 'Ils ont un chien',
+      recognition: {
+        primary: { text: 'Ils ont un chien', model: 'whisper-large-v3', promptHash: 'h', segments: [] },
+        secondary: { source: 'web-speech-live', text: 'Ils sont en chien' },
+        selected: 'primary',
+        fallbackReason: null,
+      },
+    });
+    const liveUtterance = candidateUtterance({
+      utteranceId: 'l1',
+      text: 'Je mange',
+      recognition: {
+        secondary: { source: 'web-speech-live', text: 'Je mange' },
+        selected: 'secondary',
+        fallbackReason: 'asr-failed',
+      },
+    });
+
+    it('Exam Sim shows the batch reading (not the live captions) and no notice when nothing fell back', () => {
+      render(<TranscriptReview transcript={baseTranscript([whisperUtterance])} onConfirm={vi.fn()} onExit={vi.fn()} coached={false} />);
+      expect(screen.getByText('Ils ont un chien')).toBeTruthy();
+      expect(screen.queryByText('Ils sont en chien')).toBeNull();
+      expect(screen.queryByTestId('live-captions-notice')).toBeNull();
+    });
+
+    it('says how many answers will be marked from live captions, why, and tags them', () => {
+      render(
+        <TranscriptReview
+          transcript={baseTranscript([whisperUtterance, liveUtterance, { ...liveUtterance, utteranceId: 'l2' }])}
+          onConfirm={vi.fn()}
+          onExit={vi.fn()}
+          coached={false}
+        />,
+      );
+      const notice = screen.getByTestId('live-captions-notice');
+      expect(notice.textContent).toContain('2 answers will be marked from live captions.');
+      expect(notice.textContent).toContain('could not be reached');
+      expect(screen.getAllByTestId('live-captions-chip')).toHaveLength(2);
+    });
+
+    it('Exam Sim confirms the transcript untouched, recognition included', () => {
+      const transcript = baseTranscript([whisperUtterance]);
+      const onConfirm = vi.fn();
+      render(<TranscriptReview transcript={transcript} onConfirm={onConfirm} onExit={vi.fn()} coached={false} />);
+      fireEvent.click(screen.getByRole('button', { name: /submit for marking/i }));
+      expect(onConfirm).toHaveBeenCalledWith(transcript);
+    });
+
+    it('Coached: a typed edit drops that answer\'s recognition; an unedited answer keeps it', () => {
+      const transcript = baseTranscript([whisperUtterance, { ...whisperUtterance, utteranceId: 'w2' }]);
+      const onConfirm = vi.fn();
+      render(<TranscriptReview transcript={transcript} onConfirm={onConfirm} onExit={vi.fn()} coached={true} />);
+      const boxes = screen.getAllByRole('textbox');
+      fireEvent.change(boxes[0], { target: { value: 'Ils ont un chat' } });
+      fireEvent.click(screen.getByRole('button', { name: /confirm & finish/i }));
+
+      const confirmed = onConfirm.mock.calls[0][0] as SessionTranscript;
+      expect(confirmed.userCorrected).toBe(true);
+      expect(confirmed.utterances[0].text).toBe('Ils ont un chat');
+      expect(confirmed.utterances[0].recognition).toBeUndefined();
+      expect(confirmed.utterances[1].recognition?.selected).toBe('primary');
+    });
   });
 });

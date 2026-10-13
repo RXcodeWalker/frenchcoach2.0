@@ -3,7 +3,9 @@ import { motion } from 'framer-motion';
 import { Check, Pencil, ArrowLeft, Mic, Type } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import type { SessionTranscript } from '../../domain/igcse/stt/types';
+import { summariseRecognition } from '../../domain/igcse/stt/quality/summariseRecognition';
 import { ExitConfirmDialog } from './ExitConfirmDialog';
+import { RecognitionNotice } from './RecognitionNotice';
 
 interface Props {
   transcript: SessionTranscript;
@@ -27,6 +29,9 @@ export function TranscriptReview({ transcript, onConfirm, onExit, coached }: Pro
     Object.fromEntries(candidateUtterances.map((u) => [u.utteranceId, u.text])),
   );
 
+  // Counted from the unedited transcript: an answer the candidate rewrites by hand stops being "live captions" only on confirm.
+  const recognition = summariseRecognition(transcript);
+
   const changed = candidateUtterances.some((u) => edits[u.utteranceId] !== u.text);
 
   const handleConfirm = () => {
@@ -34,11 +39,14 @@ export function TranscriptReview({ transcript, onConfirm, onExit, coached }: Pro
       onConfirm(transcript);
       return;
     }
-    const utterances = transcript.utterances.map((u) =>
-      u.role === 'candidate' && edits[u.utteranceId] !== u.text
-        ? { ...u, text: edits[u.utteranceId] }
-        : u,
-    );
+    // A typed correction replaces what any recogniser heard: the recognition record is dropped so
+    // the text no longer claims to be a recogniser's reading.
+    const utterances = transcript.utterances.map((u) => {
+      if (u.role !== 'candidate' || edits[u.utteranceId] === u.text) return u;
+      const { recognition: _dropped, ...rest } = u;
+      void _dropped;
+      return { ...rest, text: edits[u.utteranceId] };
+    });
     onConfirm({ ...transcript, utterances, userCorrected: true });
   };
 
@@ -67,6 +75,8 @@ export function TranscriptReview({ transcript, onConfirm, onExit, coached }: Pro
             : 'In Exam Sim your answers are marked exactly as recorded, like the real exam.'}
         </p>
 
+        <RecognitionNotice summary={recognition} when="review" />
+
         <div className="space-y-3">
           {candidateUtterances.map((u, i) => (
             <div key={u.utteranceId} className="rounded-card surface p-4">
@@ -77,6 +87,7 @@ export function TranscriptReview({ transcript, onConfirm, onExit, coached }: Pro
                 <span className="flex items-center gap-1 text-eyebrow uppercase text-ink-subtle">
                   {u.inputMode === 'text' ? <Type size={11} /> : <Mic size={11} />}
                   {u.inputMode === 'text' ? 'Typed' : 'Spoken'}
+                  {u.recognition?.selected === 'secondary' && <span data-testid="live-captions-chip"> · Live captions</span>}
                 </span>
               </div>
               {coached ? (

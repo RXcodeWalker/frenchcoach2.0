@@ -15,11 +15,21 @@
  * keeps its real text — it's a substantive (if unhelpful) answer. `intent`
  * itself is still never serialized onto the output Utterance, same as the
  * other app-side fields above.
+ *
+ * session-transcript-v2: a candidate Utterance also carries `turnKey` (the log
+ * entry's `seq`) and, for a spoken answer when the caller supplies
+ * `recognitionByTurnKey`, a `recognition` record whose selected reading IS the
+ * utterance text — the batch recogniser's (Whisper) when it produced a usable
+ * result, the live captions otherwise (with a recorded reason). The ConductLog
+ * keeps the live captions untouched: they drove the examiner's turn-taking and
+ * stay the replay record. Omitting `recognitionByTurnKey` (the
+ * VITE_EXAM_BATCH_ASR kill switch) reproduces the live-captions behaviour.
  */
 
 import { STT_SCHEMA_VERSION } from '../stt/version';
 import { SESSION_ENGINE_VERSION } from './version';
 import { parseSessionTranscript } from '../stt/schema';
+import { isBatchAsrTurn, noAudioRecognition, selectedRecognitionText, wordConfidences } from './recognition';
 import type {
   AudioProvenance,
   ContentProvenance,
@@ -27,6 +37,7 @@ import type {
   ExaminerEventKind,
   SessionTranscript,
   Utterance,
+  UtteranceRecognition,
   Word,
 } from '../stt/types';
 import type { ConductLog, ConductLogCandidateEntry, ConductLogExaminerEntry, SessionQuestionSet } from './types';
@@ -45,8 +56,11 @@ const ACTION_TO_EVENT_KIND: Record<string, ExaminerEventKind | null> = {
   END: null,
 };
 
-/** Synthesizes evenly-spaced Word entries spanning [startS, endS] from whitespace-tokenized text, at confidence 1 (source is authoritative). */
-function synthesizeWords(text: string, startS: number, endS: number): Word[] {
+/**
+ * Synthesizes evenly-spaced Word entries spanning [startS, endS] from whitespace-tokenized text. Confidence is 1
+ * (source is authoritative) unless per-word confidences from a batch reading are supplied.
+ */
+function synthesizeWords(text: string, startS: number, endS: number, confidences?: readonly number[]): Word[] {
   const tokens = text.trim().length > 0 ? text.trim().split(/\s+/) : [];
   if (tokens.length === 0) return [];
 
@@ -57,7 +71,7 @@ function synthesizeWords(text: string, startS: number, endS: number): Word[] {
     text: token,
     startS: startS + i * step,
     endS: startS + (i + 1) * step,
-    confidence: 1,
+    confidence: confidences?.[i] ?? 1,
   }));
 }
 
@@ -81,9 +95,25 @@ function examinerEntryToUtterance(entry: ConductLogExaminerEntry, index: number)
 /** Candidate intents whose scored text/words are blanked — see module header. */
 const BLANKED_INTENTS = new Set(['repeat_request', 'clarification_request', 'non_french']);
 
-function candidateEntryToUtterance(entry: ConductLogCandidateEntry, index: number): Utterance {
+function candidateEntryToUtterance(
+  entry: ConductLogCandidateEntry,
+  index: number,
+  recognitionByTurnKey: ReadonlyMap<number, UtteranceRecognition> | undefined,
+): Utterance {
   const blank = entry.intent !== undefined && BLANKED_INTENTS.has(entry.intent);
-  const text = blank ? '' : entry.transcript;
+
+  // Batch recognition applies to spoken answers only, and only when the caller
+  // opted in. A spoken answer with no record never reached the batch recogniser.
+  let recognition: UtteranceRecognition | undefined;
+  if (recognitionByTurnKey !== undefined && isBatchAsrTurn(entry)) {
+    recognition = recognitionByTurnKey.get(entry.seq) ?? noAudioRecognition(entry.transcript);
+  }
+
+  const text = blank ? '' : recognition ? selectedRecognitionText(recognition) : entry.transcript;
+  const confidences =
+    recognition?.selected === 'primary' && recognition.primary
+      ? wordConfidences(text.trim().length > 0 ? text.trim().split(/\s+/).length : 0, recognition.primary.segments)
+      : undefined;
   return {
     utteranceId: `engine-candidate-${index}`,
     role: 'candidate',
@@ -93,8 +123,10 @@ function candidateEntryToUtterance(entry: ConductLogCandidateEntry, index: numbe
     startS: entry.startS,
     endS: entry.endS,
     text,
-    words: blank ? [] : synthesizeWords(entry.transcript, entry.startS, entry.endS),
+    words: blank ? [] : synthesizeWords(text, entry.startS, entry.endS, confidences),
     ...(entry.inputMode !== undefined ? { inputMode: entry.inputMode } : {}),
+    turnKey: entry.seq,
+    ...(recognition ? { recognition } : {}),
   };
 }
 
@@ -120,6 +152,14 @@ export interface BuildSessionTranscriptMeta {
   contentProvenance: ContentProvenance;
   audio: AudioProvenance;
   questionSetHash: string;
+  /**
+   * session-transcript-v2: the batch recogniser's result per spoken candidate
+   * turn, keyed by the candidate ConductLog entry's `seq`. Pass it (even empty)
+   * when batch ASR was attempted; a spoken turn missing from it is recorded as a
+   * 'no-audio' fallback. Leave undefined to mark from the live captions with no
+   * recognition record (batch ASR switched off).
+   */
+  recognitionByTurnKey?: ReadonlyMap<number, UtteranceRecognition>;
 }
 
 /**
@@ -147,7 +187,7 @@ export function buildSessionTranscript(
       if (event) examinerEvents.push(event);
       examinerIndex += 1;
     } else {
-      utterances.push(candidateEntryToUtterance(entry, candidateIndex));
+      utterances.push(candidateEntryToUtterance(entry, candidateIndex, meta.recognitionByTurnKey));
       candidateIndex += 1;
     }
   }

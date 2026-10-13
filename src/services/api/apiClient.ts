@@ -30,7 +30,8 @@ import {
   type ExaminerFeedbackProfile,
   type ExaminerTurnKind,
 } from '../coaching/examinerFeedback';
-import type { CandidateInputMode } from '../../domain/igcse/stt/types';
+import type { CandidateInputMode, RecognitionSegment } from '../../domain/igcse/stt/types';
+import { ConsentRequiredError, isConsentRequiredBody } from '../../lib/consentRequired';
 import type { NewsSnippet } from '../../data/mocks/mockNews';
 import { getWarmupPhase, noteBackendReachable } from './backendWarmup';
 import { NoScoreInFeedbackError, computeOverall } from '../../domain/scoring';
@@ -675,9 +676,86 @@ const TRANSCRIBE_TIMEOUT_MS = 30000;
 export interface TranscribeAudioResult {
   text: string;
   source: string;
+  /** The Whisper model ID the backend used (GROQ_WHISPER_MODEL); undefined from an older backend. */
+  model?: string;
+  /** Whisper segments with their confidence signals; empty when the provider gave none. */
+  segments: RecognitionSegment[];
 }
 
-export async function transcribeAudio(audioBlob: Blob, language = 'fr'): Promise<TranscribeAudioResult> {
+/**
+ * `purpose` picks which daily cap the backend charges (backend/main.py's
+ * _TRANSCRIBE_QUOTA_FEATURE): omitted = the shared `transcribe` cap, `exam_turn`
+ * = one answer of an Exam Sim / Coached exam, `learn` = one Learn answer.
+ */
+export type TranscribePurpose = 'learn' | 'exam_turn';
+
+export interface TranscribeAudioOptions {
+  /**
+   * Context only — the question text (first line), then earlier answers. Never
+   * the expected answer or a vocabulary list. The backend cuts it to Whisper's
+   * 224-token limit; it is capped here at the route's own 1200-character limit.
+   */
+  prompt?: string;
+  purpose?: TranscribePurpose;
+  /** Aborts the request; the caller's abort surfaces as an AbortError. */
+  signal?: AbortSignal;
+}
+
+/** Same ceiling as the backend's `prompt` form field. */
+const TRANSCRIBE_PROMPT_MAX_CHARS = 1200;
+
+/** A non-2xx answer from /api/transcribe other than the auth/consent ones. Same message as the generic error it replaces. */
+export class TranscribeHttpError extends Error {
+  constructor(
+    readonly status: number,
+    /** Retry-After in seconds when the server sent one (rate-limit 429s do; a daily-cap 429 does not). */
+    readonly retryAfterS: number | null,
+  ) {
+    super(`API /api/transcribe → ${status}`);
+    this.name = 'TranscribeHttpError';
+  }
+}
+
+export class TranscribeTimeoutError extends Error {
+  constructor() {
+    super('Transcription request timed out');
+    this.name = 'TranscribeTimeoutError';
+  }
+}
+
+function parseRetryAfter(header: string | null): number | null {
+  if (!header) return null;
+  const seconds = Number(header);
+  return Number.isFinite(seconds) && seconds >= 0 ? seconds : null;
+}
+
+function numberOrNull(value: unknown): number | null {
+  return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
+function normalizeSegments(raw: unknown): RecognitionSegment[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((seg) => {
+    const s = (seg ?? {}) as Record<string, unknown>;
+    return {
+      startS: Math.max(0, numberOrNull(s.start) ?? 0),
+      endS: Math.max(0, numberOrNull(s.end) ?? 0),
+      text: typeof s.text === 'string' ? s.text : '',
+      avgLogprob: numberOrNull(s.avgLogprob),
+      noSpeechProb: (() => {
+        const p = numberOrNull(s.noSpeechProb);
+        return p === null ? null : Math.min(1, Math.max(0, p));
+      })(),
+      compressionRatio: numberOrNull(s.compressionRatio),
+    };
+  });
+}
+
+export async function transcribeAudio(
+  audioBlob: Blob,
+  language = 'fr',
+  options: TranscribeAudioOptions = {},
+): Promise<TranscribeAudioResult> {
   // Same Phase 3 gate as the feedback endpoints: no token, no point sending.
   const token = await getAccessToken();
   if (!token && !guestHasFreeAttempt()) throw new AuthRequiredError(guestAiEnabled() ? GUEST_LIMIT_MESSAGE : 'Sign in to use speech transcription.');
@@ -685,9 +763,18 @@ export async function transcribeAudio(audioBlob: Blob, language = 'fr'): Promise
   const formData = new FormData();
   formData.append('audio', audioBlob, audioFileNameFor(audioBlob));
   formData.append('language', language);
+  const prompt = options.prompt?.trim();
+  if (prompt) formData.append('prompt', prompt.slice(0, TRANSCRIBE_PROMPT_MAX_CHARS));
+  if (options.purpose) formData.append('purpose', options.purpose);
 
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TRANSCRIBE_TIMEOUT_MS);
+  let timedOut = false;
+  const timer = setTimeout(() => { timedOut = true; controller.abort(); }, TRANSCRIBE_TIMEOUT_MS);
+  const onCallerAbort = () => controller.abort();
+  if (options.signal) {
+    if (options.signal.aborted) controller.abort();
+    else options.signal.addEventListener('abort', onCallerAbort, { once: true });
+  }
   try {
     const res = await fetch(`${API_BASE}/api/transcribe`, {
       method: 'POST',
@@ -696,18 +783,30 @@ export async function transcribeAudio(audioBlob: Blob, language = 'fr'): Promise
       ...(token ? { headers: { Authorization: `Bearer ${token}` } } : {}),
     });
     if (!res.ok) {
+      // The consent gate answers 403 {"detail":{"error":"consent_required"}} — not an expired session.
+      if (res.status === 403 && isConsentRequiredBody(await res.json().catch(() => null))) {
+        throw new ConsentRequiredError();
+      }
       assertNotAuthFailure('/api/transcribe', res.status);
-      throw new Error(`API /api/transcribe → ${res.status}`);
+      throw new TranscribeHttpError(res.status, parseRetryAfter(res.headers.get('Retry-After')));
     }
-    const body = (await res.json()) as { text?: string; source?: string };
-    return { text: body.text ?? '', source: body.source ?? 'unknown' };
+    const body = (await res.json()) as { text?: string; source?: string; model?: string; segments?: unknown };
+    return {
+      text: body.text ?? '',
+      source: body.source ?? 'unknown',
+      ...(typeof body.model === 'string' ? { model: body.model } : {}),
+      segments: normalizeSegments(body.segments),
+    };
   } catch (err) {
     if ((err as Error).name === 'AbortError') {
-      throw new Error('Transcription request timed out');
+      // The caller's own abort is not a timeout.
+      if (timedOut) throw new TranscribeTimeoutError();
+      throw err;
     }
     throw err;
   } finally {
     clearTimeout(timer);
+    options.signal?.removeEventListener('abort', onCallerAbort);
   }
 }
 

@@ -16,7 +16,11 @@
  * `turnKey` is the candidate ConductLog entry's `seq` — the corrections rail's
  * key — see src/domain/examPronunciation/segment.ts.
  *
- * Nothing here touches the network, the scored pipeline, or any mark.
+ * Nothing in THIS module touches the network, the scored pipeline, or any mark.
+ * (The same recordings also feed `scoringTranscription/transcribeExamTurns.ts`,
+ * which `captureTurnAudio` hands each blob to as it is stored; it uploads the
+ * answer to /api/transcribe so the answer can be marked from Whisper's reading
+ * — see ADR 0011. It changes neither what is stored here nor for how long.)
  */
 
 /** A session untouched for this long is dropped. */

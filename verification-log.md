@@ -4177,3 +4177,64 @@ scoring change — nothing imports the new code).
 **Owner review (2026-10-13):** approved the three additions to the owner's own lists: je/j'ai,
 en/on, de/des, ce/ces, me/mes, te/tes and se/ses as near sound-alikes (benefit of the doubt), and
 mes/mais/met/mets as never-penalised. No list changed: comments only, so the hash is unchanged.
+
+## 2026-10-13 — Transcription accuracy stage 5: exam answers transcribed in the background + transcript schema v2
+
+**Built** (ADR 0011, items 1–6; the marking rules are untouched):
+- `SessionTranscript` is `session-transcript-v2`: a candidate `Utterance` may carry `turnKey` (the
+  ConductLog `seq`) and a `recognition` record `{ primary?{text, model, promptHash, segments},
+  secondary{source:'web-speech-live', text}, selected, fallbackReason }`. The schema enforces
+  `selected:'primary'` ⇔ a primary reading and no reason, and that `Utterance.text` equals the selected
+  reading. `parseSessionTranscript` reads v1 and upcasts it (no fields invented). `buildSessionTranscript`
+  takes `recognitionByTurnKey`; omitted (the `VITE_EXAM_BATCH_ASR=0` kill switch) it behaves as before.
+- `services/exam/scoringTranscription/transcribeExamTurns.ts`: per-session background queue (2 in
+  flight, 429 `Retry-After` honoured and pausing the queue, 3 attempts, `settle()` with a ~45 s
+  deadline that falls the rest back as `asr-timeout` and aborts them). `captureTurnAudio` gained an
+  `onStored` hook so pronunciation and ASR see the same turns. `ExamMode` creates the transcriber per
+  attempt (and on resume), passes the question the examiner just asked as the Whisper prompt,
+  settles in `finishSession`, and cancels on retake/unmount.
+- `apiClient.transcribeAudio` takes `{ prompt, purpose, signal }`, returns `model` and normalised
+  `segments`, and throws typed `ConsentRequiredError` / `TranscribeHttpError` (with `retryAfterS`) /
+  `TranscribeTimeoutError`. Backward compatible with a backend that sends no segments.
+- UI: review and results screens say "N answers will be / were marked from live captions" with the
+  reasons, the review tags those answers, and a Coached typed edit drops that answer's `recognition`.
+- Versions: `STT_SCHEMA_VERSION` → v2, `STT_ASSEMBLER_VERSION` → `stt-assembler-v2` (new pin test
+  `assembler.version-pin.test.ts`), `SESSION_ENGINE_VERSION` → `session-engine-v5`. Evidence,
+  judgement, guardrails, rubric, envelope and feedback versions are unchanged. The five assembler
+  `*.golden.json` changed in exactly their two version strings.
+
+**Deviations from the plan** (all minor):
+1. The Firefox / no-Web-Speech path in `ExamMode` already transcribed the answer with Whisper as the
+   *only* reading; it now sends `purpose: 'exam_turn'` and the question as context too, so it draws on the
+   150/day exam row instead of the 30/day shared `transcribe` row. It gets no `recognition` record (one
+   recogniser, nothing to compare).
+2. Fallback `asr-rejected` also covers an *empty* Whisper reading while the live captions heard words
+   (otherwise the answer would be blanked from the scored transcript). Thresholds are `UNVALIDATED`.
+3. The envelope `transcription{…}` block and the `envelope-v0.5` bump are left to the marking-rules
+   stage (they bring `excusedErrors`); the "marked from live captions" notice reads the transcript.
+4. An `AuthRequiredError` (signed out, or the guest allowance used up) is recorded as
+   `asr-failed`, since the fixed reason list has no sign-in reason.
+5. `versionsUnchanged.test.ts` (ADR 0010's frozen-versions guard) now expects `session-engine-v5`; its
+   other pins still hold, which is what shows pronunciation work has not reached the scorer.
+
+**Observed (not changed):** the recording is handed to Whisper after `submitTurn` resolves, i.e. after the
+examiner has finished speaking the next line, so the last turn's transcription starts after the closing
+line. This follows the plan's trigger ("when `captureTurnAudio` stores the blob"); starting earlier would
+mean keying the job before the ConductLog `seq` exists. Headless Chromium has no speech synthesis, so
+in e2e that point arrives when the next recording starts.
+
+**Verified** (with `backend/` present): `npm run typecheck`, `npm run typecheck:server` clean;
+`npm run typecheck:scripts` 11 errors, identical to the pre-change baseline (`NodeListOf` iteration in
+unrelated feedback tests); `npm run lint` 0 errors, 21 warnings (same as baseline); full `npm test`
+352 files / 4130 tests passed (baseline 346 / 4047); `npm run score:golden` all 5 goldens match
+(unchanged); version-pin tests pass (assembler pin new, `versionsUnchanged` updated for
+`session-engine-v5`). Playwright: the new `e2e/examBatchAsr.spec.ts` passes both scenarios — online, the
+review screen shows Whisper's text, the request carries `purpose=exam_turn` and the question as prompt,
+and no live-captions notice appears; with the network dropped after the first answers, the later answers
+fall back, the review screen shows "N answers will be marked from live captions" with a per-answer tag,
+and after scoring the results page shows "N answers were marked from live captions". The existing
+`e2e/exam.spec.ts` passes (one spec failed once when source was edited while the run was in progress —
+hot reload reset the component — and passed on re-run). Not run: `npm run judge:check` (the judge prompt
+is unchanged) and backend pytest (no backend change in this stage; its stage-1 commit is already pushed).
+Not yet done, by design: the manual run against real keys — Whisper's actual reading of a real
+recording has not been seen; the e2e mocks `/api/transcribe`.

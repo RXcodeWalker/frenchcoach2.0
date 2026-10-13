@@ -9,7 +9,9 @@ import type { RailEntry } from '../../services/exam/turnFeedback';
 import { countsTowardProgress } from '../../services/exam/attemptStatus';
 import { requestExamFeedback, ScoringApiError } from '../../services/exam/scoringApiClient';
 import type { ExamFeedbackReport } from '../../domain/examFeedback/types';
+import { summariseRecognition } from '../../domain/igcse/stt/quality/summariseRecognition';
 import { ExamCriterionFeedback, MistakeList } from './ExamCriterionFeedback';
+import { RecognitionNotice } from './RecognitionNotice';
 import { ExamPronunciationSection } from '../../features/exam/pronunciation/ExamPronunciationSection';
 import type { UseExamPronunciation } from '../../features/exam/pronunciation/useExamPronunciation';
 
@@ -124,6 +126,7 @@ export function ExamResults({
   pronunciation,
 }: Props) {
   const candidateUtterances = transcript.utterances.filter((u) => u.role === 'candidate');
+  const recognition = summariseRecognition(transcript);
   const totalSpeakingS = candidateUtterances.reduce((sum, u) => sum + (u.endS - u.startS), 0);
   const [transcriptOpen, setTranscriptOpen] = useState(false);
 
@@ -234,6 +237,8 @@ export function ExamResults({
             ))}
           </div>
         )}
+
+        <RecognitionNotice summary={recognition} when="results" />
 
         {scoringError && (
           <div className="rounded-xl surface p-5 border border-red-500/20 space-y-3">

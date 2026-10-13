@@ -32,6 +32,67 @@ export interface Word {
   confidence: number;
 }
 
+/**
+ * Why an exam answer was marked from the live captions (Web Speech) instead of
+ * the batch recogniser. Recorded per answer so the results page can say so.
+ *  - no-audio:     a spoken answer whose recording was not kept
+ *  - asr-failed:   the batch call errored or the provider was unavailable
+ *  - asr-timeout:  the batch call did not finish in time
+ *  - asr-rejected: the batch result looked unusable (no speech detected,
+ *                  prompt echoed, or empty while the captions heard words)
+ *  - consent:      the account may not upload audio yet (guardian pending)
+ *  - quota:        the daily transcription allowance was used up
+ */
+export type RecognitionFallbackReason =
+  | 'no-audio'
+  | 'asr-failed'
+  | 'asr-timeout'
+  | 'asr-rejected'
+  | 'consent'
+  | 'quota';
+
+/** One Whisper segment with its own confidence signals (all null when the provider gave none). */
+export interface RecognitionSegment {
+  startS: number;
+  endS: number;
+  text: string;
+  avgLogprob: number | null;
+  noSpeechProb: number | null;
+  compressionRatio: number | null;
+}
+
+/** The batch recogniser's reading of one answer. */
+export interface PrimaryRecognition {
+  text: string;
+  /** The model ID the backend reported (GROQ_WHISPER_MODEL), for audit. */
+  model: string;
+  /** sha256 of the context prompt sent with the audio (the prompt itself is not stored). */
+  promptHash: string;
+  segments: RecognitionSegment[];
+}
+
+/** The live captions the examiner flow ran on. */
+export interface SecondaryRecognition {
+  source: 'web-speech-live';
+  text: string;
+}
+
+/**
+ * Both recognisers' readings of one spoken answer, and which one `Utterance.text`
+ * carries. Absent on typed answers, on answers from before batch recognition,
+ * and when the candidate edited the text (a typed edit drops it).
+ *
+ * Invariant (enforced by the schema): `selected === 'primary'` iff `primary` is
+ * present and `fallbackReason` is null; and `Utterance.text` is exactly the
+ * selected recogniser's text.
+ */
+export interface UtteranceRecognition {
+  primary?: PrimaryRecognition;
+  secondary: SecondaryRecognition;
+  selected: 'primary' | 'secondary';
+  fallbackReason: RecognitionFallbackReason | null;
+}
+
 export interface Utterance {
   utteranceId: string;
   role: SpeakerRole;
@@ -47,6 +108,14 @@ export interface Utterance {
   words: Word[];
   /** Candidate utterances only — undefined for examiner utterances and for any transcript predating dual input. */
   inputMode?: CandidateInputMode;
+  /**
+   * session-transcript-v2, engine-built candidate utterances only: the
+   * candidate ConductLog entry's `seq`, the key the exam audio store, the
+   * corrections rail and the batch recogniser all share.
+   */
+  turnKey?: number;
+  /** session-transcript-v2: both recognisers' readings of a spoken answer. See UtteranceRecognition. */
+  recognition?: UtteranceRecognition;
 }
 
 export type ExaminerEventKind =
@@ -101,7 +170,7 @@ export interface AudioProvenance {
 export type AnnotationSource = 'asr-annotation' | 'session-engine-log';
 
 export interface SessionTranscript {
-  schemaVersion: 'session-transcript-v1';
+  schemaVersion: 'session-transcript-v2';
   assemblerVersion: string;
   sessionId: string;
   recordedAt: string;

@@ -9,6 +9,9 @@ import { z } from 'zod';
 import { STT_SCHEMA_VERSION } from './version';
 import type { RawAsrResult, SessionTranscript } from './types';
 
+/** The one older schema still readable (re-scoring a stored transcript needs old versions to stay readable). */
+const STT_SCHEMA_VERSION_V1 = 'session-transcript-v1';
+
 export class SessionTranscriptValidationError extends Error {
   constructor(message: string) {
     super(message);
@@ -37,7 +40,54 @@ const WordSchema = z.object({
   confidence: z.number().min(0).max(1),
 });
 
-const UtteranceSchema = z.object({
+const RecognitionFallbackReasonSchema = z.enum([
+  'no-audio',
+  'asr-failed',
+  'asr-timeout',
+  'asr-rejected',
+  'consent',
+  'quota',
+]);
+
+const RecognitionSegmentSchema = z.object({
+  startS: z.number().min(0),
+  endS: z.number().min(0),
+  text: z.string(),
+  avgLogprob: z.number().nullable(),
+  noSpeechProb: z.number().min(0).max(1).nullable(),
+  compressionRatio: z.number().nullable(),
+});
+
+const PrimaryRecognitionSchema = z.object({
+  text: z.string(),
+  model: z.string(),
+  promptHash: z.string(),
+  segments: z.array(RecognitionSegmentSchema),
+});
+
+const SecondaryRecognitionSchema = z.object({
+  source: z.literal('web-speech-live'),
+  text: z.string(),
+});
+
+const UtteranceRecognitionSchema = z
+  .object({
+    primary: PrimaryRecognitionSchema.optional(),
+    secondary: SecondaryRecognitionSchema,
+    selected: z.enum(['primary', 'secondary']),
+    fallbackReason: RecognitionFallbackReasonSchema.nullable(),
+  })
+  .superRefine((r, ctx) => {
+    const primarySelected = r.selected === 'primary';
+    if (primarySelected && (r.primary === undefined || r.fallbackReason !== null)) {
+      ctx.addIssue({ code: 'custom', message: 'selected "primary" needs a primary reading and no fallbackReason' });
+    }
+    if (!primarySelected && r.fallbackReason === null) {
+      ctx.addIssue({ code: 'custom', message: 'selected "secondary" needs a fallbackReason' });
+    }
+  });
+
+const UtteranceBaseSchema = z.object({
   utteranceId: z.string(),
   role: SpeakerRoleSchema,
   speakerCluster: z.string(),
@@ -48,6 +98,22 @@ const UtteranceSchema = z.object({
   text: z.string(),
   words: z.array(WordSchema),
   inputMode: CandidateInputModeSchema.optional(),
+});
+
+/** v1 utterances: no turnKey, no recognition. */
+const UtteranceV1Schema = UtteranceBaseSchema;
+
+const UtteranceSchema = UtteranceBaseSchema.extend({
+  turnKey: z.number().int().min(0).optional(),
+  recognition: UtteranceRecognitionSchema.optional(),
+}).superRefine((u, ctx) => {
+  // What is marked must be exactly what a recogniser heard: the text is the selected reading.
+  if (u.recognition === undefined) return;
+  const selected =
+    u.recognition.selected === 'primary' ? u.recognition.primary?.text : u.recognition.secondary.text;
+  if (u.text !== selected) {
+    ctx.addIssue({ code: 'custom', message: 'utterance text must equal the selected recognition text', path: ['text'] });
+  }
 });
 
 const ExaminerEventSchema = z.object({
@@ -80,8 +146,8 @@ const AudioProvenanceSchema = z.object({
   channels: z.number().int().min(1),
 });
 
-const SessionTranscriptSchema = z.object({
-  schemaVersion: z.literal('session-transcript-v1'),
+const SessionTranscriptBaseSchema = z.object({
+  schemaVersion: z.string(),
   assemblerVersion: z.string(),
   sessionId: z.string(),
   recordedAt: z.string(),
@@ -94,8 +160,17 @@ const SessionTranscriptSchema = z.object({
   questionSetHash: z.string(),
   matchThreshold: z.number().min(0).max(1),
   roleLabelConfidence: z.number().min(0).max(1),
-  utterances: z.array(UtteranceSchema),
   examinerEvents: z.array(ExaminerEventSchema),
+});
+
+const SessionTranscriptSchema = SessionTranscriptBaseSchema.extend({
+  schemaVersion: z.literal(STT_SCHEMA_VERSION),
+  utterances: z.array(UtteranceSchema),
+});
+
+const SessionTranscriptV1Schema = SessionTranscriptBaseSchema.extend({
+  schemaVersion: z.literal(STT_SCHEMA_VERSION_V1),
+  utterances: z.array(UtteranceV1Schema),
 });
 
 const RawAsrWordSchema = z.object({
@@ -120,26 +195,39 @@ const RawAsrResultSchema = z.object({
   words: z.array(RawAsrWordSchema),
 });
 
+function describeIssues(error: z.ZodError): string {
+  return error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ');
+}
+
 /**
- * Parse + validate a SessionTranscript. Dispatches on schemaVersion: only
- * STT_SCHEMA_VERSION is currently known. A future bump adds a new arm here
- * (and, if the shape changed, an upcaster) — never a silent coercion.
+ * Parse + validate a SessionTranscript. Dispatches on schemaVersion: the current
+ * STT_SCHEMA_VERSION, plus v1, which is upcast (shape-identical; v2 only adds
+ * optional fields, so nothing is invented — the result simply carries no
+ * turnKey/recognition). Any other version is rejected loudly, never coerced.
  */
 export function parseSessionTranscript(raw: unknown): SessionTranscript {
   if (typeof raw !== 'object' || raw === null || !('schemaVersion' in raw)) {
     throw new SessionTranscriptValidationError('Missing schemaVersion');
   }
   const version = (raw as { schemaVersion: unknown }).schemaVersion;
+
+  if (version === STT_SCHEMA_VERSION_V1) {
+    const v1 = SessionTranscriptV1Schema.safeParse(raw);
+    if (!v1.success) {
+      throw new SessionTranscriptValidationError(`SessionTranscript failed validation: ${describeIssues(v1.error)}`);
+    }
+    return { ...v1.data, schemaVersion: STT_SCHEMA_VERSION } as SessionTranscript;
+  }
+
   if (version !== STT_SCHEMA_VERSION) {
     throw new SessionTranscriptValidationError(
-      `Unknown schemaVersion "${String(version)}"; expected "${STT_SCHEMA_VERSION}"`,
+      `Unknown schemaVersion "${String(version)}"; expected "${STT_SCHEMA_VERSION}" (or "${STT_SCHEMA_VERSION_V1}")`,
     );
   }
 
   const result = SessionTranscriptSchema.safeParse(raw);
   if (!result.success) {
-    const issues = result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ');
-    throw new SessionTranscriptValidationError(`SessionTranscript failed validation: ${issues}`);
+    throw new SessionTranscriptValidationError(`SessionTranscript failed validation: ${describeIssues(result.error)}`);
   }
   return result.data as SessionTranscript;
 }

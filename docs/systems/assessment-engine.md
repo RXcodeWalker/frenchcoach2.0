@@ -69,6 +69,14 @@ apart silently:
 | STT | `stt/version.ts` | `STT_SCHEMA_VERSION`, `STT_ASSEMBLER_VERSION` |
 | Session | `session/version.ts` | `SESSION_ENGINE_VERSION` |
 
+`STT_SCHEMA_VERSION` is `session-transcript-v2` (ADR 0011): a candidate `Utterance` may carry
+`turnKey` and a `recognition` record (the batch reading, the live captions, which one was selected,
+and the fallback reason). `Utterance.text` is exactly the selected reading, enforced by the schema.
+`parseSessionTranscript` still reads v1 and upcasts it. `session-engine-v5` is the first version that
+emits v2; `STT_ASSEMBLER_VERSION` moved to `stt-assembler-v2` with it and is pinned by
+`stt/__tests__/assembler.version-pin.test.ts`. The judge prompt, evidence, guardrails, rubric and
+envelope are unchanged by this: only *which text* is scored changed.
+
 **`envelope/` has no standalone `version.ts`** — its `ENVELOPE_SCHEMA_VERSION` lives directly in
 `envelope/types.ts`. Don't assume the pattern is uniform across all five stages when adding a new
 one.

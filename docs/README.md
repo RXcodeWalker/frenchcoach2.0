@@ -24,7 +24,7 @@ Depth 2. Four live categories, one archive.
 - `guides/corpus-matrix.md` — corpus coverage rules
 - `guides/learn-demands.md` — Learn demand-tagging rules
 - `guides/development.md` — commands, the three test suites, the Assessment-Engine change procedure
-- `decisions/0001-cambridge-0520-only.md` through `0010-pronunciation-evidence-is-post-hoc-mark-free-and-gated.md` — ADRs
+- `decisions/0001-cambridge-0520-only.md` through `0011-exam-marks-come-from-batch-asr.md` — ADRs
 - `archive/` — historical documents; see `archive/README.md`
 
 ## Authority model
