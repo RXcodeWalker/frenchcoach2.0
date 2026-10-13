@@ -28,7 +28,7 @@ import type {
   SessionQuestionSet,
 } from '../../domain/igcse/session/types';
 import type { SessionPart } from '../../domain/igcse/stt/types';
-import type { CandidateInputMode, ContentProvenance, SessionTranscript } from '../../domain/igcse/stt/types';
+import type { CandidateInputMode, ContentProvenance, SessionTranscript, UtteranceRecognition } from '../../domain/igcse/stt/types';
 import { speakExaminerText } from './examinerVoice';
 import { wait, INTER_ACTION_PAUSE_MS } from './examinerPacing';
 
@@ -271,7 +271,10 @@ export class SimulationSession {
   }
 
   /** Builds the SessionTranscript from the completed ConductLog. Throws if the session hasn't reached 'complete'. */
-  async buildTranscript(contentProvenance: ContentProvenance = 'original-practice'): Promise<SessionTranscript> {
+  async buildTranscript(
+    contentProvenance: ContentProvenance = 'original-practice',
+    options: { recognitionByTurnKey?: ReadonlyMap<number, UtteranceRecognition> } = {},
+  ): Promise<SessionTranscript> {
     if (!this.isComplete) {
       throw new Error('SimulationSession: buildTranscript called before session completed');
     }
@@ -285,6 +288,8 @@ export class SimulationSession {
       // Downstream scoring/audit consumers must not treat this as a real hash.
       audio: { sha256: '0'.repeat(64), durationS: this.getClockS(), sampleRateHz: 16000, channels: 1 },
       questionSetHash,
+      // Batch-ASR results per spoken turn (omitted = mark the live captions as before).
+      ...(options.recognitionByTurnKey ? { recognitionByTurnKey: options.recognitionByTurnKey } : {}),
     });
   }
 }

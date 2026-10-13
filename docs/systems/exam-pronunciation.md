@@ -109,7 +109,7 @@ documentation: the request uses the base REST endpoint with no `storeAudio`, so 
 
 | Data | Where | Kept |
 |---|---|---|
-| Recordings | browser memory only (`examAudioStore.ts`) | until leaving results, a new attempt, sign-out, tab close, or 60 min idle |
+| Recordings | browser memory only (`examAudioStore.ts`); each spoken answer is also uploaded automatically to `/api/transcribe` for marking (ADR 0011) — pronunciation analysis itself still sends nothing until the candidate taps Analyse | until leaving results, a new attempt, sign-out, tab close, or 60 min idle |
 | Uploaded WAV | backend memory/temp file; Azure and Groq in transit | the request only |
 | Evidence | `exam_pronunciation_evidence` | for life; cascades on profile delete; exported |
 | Usage ledger | `azure_speech_usage` (no content; `user_id` `ON DELETE SET NULL`) | until a purge policy is chosen (no pg_cron; an ops script) |

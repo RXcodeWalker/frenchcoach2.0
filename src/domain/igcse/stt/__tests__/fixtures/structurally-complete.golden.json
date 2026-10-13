@@ -1,6 +1,6 @@
 {
-  "schemaVersion": "session-transcript-v1",
-  "assemblerVersion": "stt-assembler-v1",
+  "schemaVersion": "session-transcript-v2",
+  "assemblerVersion": "stt-assembler-v2",
   "sessionId": "structurally-complete-001",
   "recordedAt": "2026-05-01T09:00:00.000Z",
   "contentProvenance": "confidential-internal",

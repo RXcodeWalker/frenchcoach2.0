@@ -160,6 +160,12 @@ the service key, right after authentication and before the upload is processed, 
 - Guests are not gated: they have no account or profile, and the client gate only blocks a
   signed-in `pending` account. (The exam-pronunciation route excludes guests outright.)
 
+Exam answers add a second, automatic caller of `/api/transcribe` (ADR 0011): as each spoken answer
+is stored, `transcribeExamTurns.ts` uploads it with `purpose=exam_turn`, so every spoken exam turn
+now reaches Groq without a separate tap. For a `pending` account the server refuses every one of those
+uploads before the audio is read; each refused answer is recorded with fallback reason `consent`
+and marked from its live captions, and the exam itself is unaffected.
+
 The client maps the 403 to `ConsentRequiredError` (`src/lib/consentRequired.ts`) and renders
 `GuardianConsentNotice` ("waiting for your parent/guardian"), never "sign in again". So a pending
 account can still *record* on the screens with no client gate, but the upload never reaches a

@@ -231,9 +231,36 @@ describe('ExamResults (W6)', () => {
     expect(screen.queryByText(/time frame:/)).toBeNull();
   });
 
+  it('says "N answers were marked from live captions" when some answers fell back, and not otherwise', async () => {
+    const { transcript, envelopeView } = await buildFixtures();
+    const live = (text: string, reason: 'asr-failed' | 'quota') => ({
+      secondary: { source: 'web-speech-live' as const, text },
+      selected: 'secondary' as const,
+      fallbackReason: reason,
+    });
+    const idx = transcript.utterances.flatMap((u, i) => (u.role === 'candidate' ? [i] : []));
+    const withFallbacks: SessionTranscript = {
+      ...transcript,
+      utterances: transcript.utterances.map((u, i) =>
+        i === idx[0] ? { ...u, recognition: live(u.text, 'asr-failed') } : i === idx[1] ? { ...u, recognition: live(u.text, 'quota') } : u,
+      ),
+    };
+    const props = {
+      envelopeView, scoringError: null, onRetryScoring: vi.fn(), onRetake: vi.fn(), onHome: vi.fn(), coached: false, railEntries: [],
+    };
+
+    const { rerender } = render(<ExamResults transcript={withFallbacks} {...props} />);
+    const notice = screen.getByTestId('live-captions-notice');
+    expect(notice.textContent).toContain('2 answers were marked from live captions.');
+    expect(notice.textContent).toContain("today's transcription allowance was used up");
+
+    rerender(<ExamResults transcript={transcript} {...props} />);
+    expect(screen.queryByTestId('live-captions-notice')).toBeNull();
+  });
+
   it('renders the scoring-failed state (no envelope yet) without throwing', () => {
     const transcript: SessionTranscript = {
-      schemaVersion: 'session-transcript-v1',
+      schemaVersion: 'session-transcript-v2',
       assemblerVersion: 'session-engine-v2',
       sessionId: SESSION_ID,
       recordedAt: '2026-01-01T00:00:00.000Z',

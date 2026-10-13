@@ -4,6 +4,7 @@ import { buildSessionTranscript } from '../buildSessionTranscript';
 import { annotateExaminer } from '../../stt/assemble/annotateExaminer';
 import { ORIGINAL_QUESTION_SET_1 } from '../../../../data/exam/originalQuestionSets';
 import type { CandidateTurnResult, ConductLog, ConductLogEntry } from '../types';
+import type { UtteranceRecognition } from '../../stt/types';
 
 const qs = ORIGINAL_QUESTION_SET_1;
 
@@ -64,7 +65,7 @@ describe('buildSessionTranscript', () => {
       questionSetHash: '1'.repeat(64),
     });
 
-    expect(transcript.schemaVersion).toBe('session-transcript-v1');
+    expect(transcript.schemaVersion).toBe('session-transcript-v2');
     expect(transcript.annotationSource).toBe('session-engine-log');
     expect(transcript.roleLabelConfidence).toBe(1);
     expect(transcript.utterances.length).toBeGreaterThan(0);
@@ -318,5 +319,128 @@ describe('buildSessionTranscript', () => {
     const second = buildSessionTranscript(log, qs, meta);
     expect(JSON.stringify(first)).toBe(JSON.stringify(second));
     expect(JSON.stringify(first)).not.toContain('"trigger"');
+  });
+
+  describe('batch ASR recognition (session-transcript-v2)', () => {
+    const META = {
+      sessionId: 'test-session-asr',
+      recordedAt: '2026-01-01T00:00:00.000Z',
+      contentProvenance: 'original-practice' as const,
+      audio: { sha256: '0'.repeat(64), durationS: 60, sampleRateHz: 16000, channels: 1 },
+      questionSetHash: '1'.repeat(64),
+    };
+
+    const turn = (transcript: string, extra: Partial<CandidateTurnResult> = {}): CandidateTurnResult => ({
+      didRespond: true,
+      relevant: true,
+      transcript,
+      wordCount: transcript.split(/\s+/).length,
+      responseDurationS: 4,
+      requestedRepeat: false,
+      ...extra,
+    });
+
+    /** seq 1 examiner, 2 spoken, 3 typed, 4 repeat request, 5 spoken. */
+    function mixedLog(): ConductLog {
+      const entries: ConductLogEntry[] = [
+        examinerActionToLogEntry(
+          { kind: 'READ_MAIN', part: 'rolePlay', questionId: 'rp1', variant: 'main', text: 'Bonjour.', trigger: 'scripted' },
+          1,
+          0,
+        ),
+        candidateTurnToLogEntry(turn('Ils sont en chien'), 2, 2, 'rolePlay', 'rp1', true, 'answer'),
+        candidateTurnToLogEntry(turn('Je tape ma réponse', { inputMode: 'text' }), 3, 8, 'rolePlay', 'rp1', true, 'answer'),
+        candidateTurnToLogEntry(turn('Peux-tu répéter ?', { requestedRepeat: true, didRespond: false }), 4, 14, 'rolePlay', 'rp1', false, 'repeat_request'),
+        candidateTurnToLogEntry(turn('Je ne sais pas'), 5, 20, 'rolePlay', 'rp1', false, 'dont_know'),
+        candidateTurnToLogEntry(turn('Le matin je mange'), 6, 26, 'rolePlay', 'rp1', true, 'answer'),
+      ];
+      return { sessionId: META.sessionId, questionSetId: qs.questionSetId, entries };
+    }
+
+    const whisper: UtteranceRecognition = {
+      primary: {
+        text: 'Ils ont un chien',
+        model: 'whisper-large-v3',
+        promptHash: 'a'.repeat(64),
+        segments: [{ startS: 0, endS: 3, text: 'Ils ont un chien', avgLogprob: -0.1, noSpeechProb: 0.01, compressionRatio: 1.2 }],
+      },
+      secondary: { source: 'web-speech-live', text: 'Ils sont en chien' },
+      selected: 'primary',
+      fallbackReason: null,
+    };
+
+    const candidates = (t: ReturnType<typeof buildSessionTranscript>) => t.utterances.filter((u) => u.role === 'candidate');
+
+    it('without recognitionByTurnKey (kill switch) marks the live captions and attaches no recognition', () => {
+      const t = buildSessionTranscript(mixedLog(), qs, META);
+      const cands = candidates(t);
+      expect(cands[0].text).toBe('Ils sont en chien');
+      expect(cands.every((u) => u.recognition === undefined)).toBe(true);
+      expect(cands.map((u) => u.turnKey)).toEqual([2, 3, 4, 5, 6]);
+    });
+
+    it("a batch reading replaces the live text for the spoken answer, keeps the live text as the second opinion", () => {
+      const t = buildSessionTranscript(mixedLog(), qs, { ...META, recognitionByTurnKey: new Map([[2, whisper]]) });
+      const first = candidates(t)[0];
+      expect(first.text).toBe('Ils ont un chien');
+      expect(first.recognition?.secondary.text).toBe('Ils sont en chien');
+      expect(first.words.map((w) => w.text)).toEqual(['Ils', 'ont', 'un', 'chien']);
+      // exp(-0.1) ≈ 0.905 — from Whisper's own segment signal, not a stub 1.
+      expect(first.words[0].confidence).toBeCloseTo(Math.exp(-0.1), 5);
+      expect(first.startS).toBe(candidates(buildSessionTranscript(mixedLog(), qs, META))[0].startS);
+    });
+
+    it('a fallback record keeps the live captions and the reason', () => {
+      const fb: UtteranceRecognition = {
+        secondary: { source: 'web-speech-live', text: 'Ils sont en chien' },
+        selected: 'secondary',
+        fallbackReason: 'asr-timeout',
+      };
+      const t = buildSessionTranscript(mixedLog(), qs, { ...META, recognitionByTurnKey: new Map([[2, fb]]) });
+      const first = candidates(t)[0];
+      expect(first.text).toBe('Ils sont en chien');
+      expect(first.recognition?.fallbackReason).toBe('asr-timeout');
+      expect(first.words.every((w) => w.confidence === 1)).toBe(true);
+    });
+
+    it("a spoken answer with no record is recorded as a 'no-audio' fallback", () => {
+      const t = buildSessionTranscript(mixedLog(), qs, { ...META, recognitionByTurnKey: new Map() });
+      const cands = candidates(t);
+      expect(cands[0].recognition).toEqual({
+        secondary: { source: 'web-speech-live', text: 'Ils sont en chien' },
+        selected: 'secondary',
+        fallbackReason: 'no-audio',
+      });
+      expect(cands[4].recognition?.fallbackReason).toBe('no-audio');
+    });
+
+    it('typed, repeat-request and dont_know turns never get a recognition record, even when the map has an entry', () => {
+      const t = buildSessionTranscript(mixedLog(), qs, {
+        ...META,
+        recognitionByTurnKey: new Map([[3, whisper], [4, whisper], [5, whisper]]),
+      });
+      const cands = candidates(t);
+      expect(cands[1].text).toBe('Je tape ma réponse');
+      expect(cands[1].recognition).toBeUndefined();
+      expect(cands[2].text).toBe('');
+      expect(cands[2].recognition).toBeUndefined();
+      expect(cands[3].text).toBe('Je ne sais pas');
+      expect(cands[3].recognition).toBeUndefined();
+    });
+
+    it('the ConductLog is never rewritten by the batch reading', () => {
+      const log = mixedLog();
+      const before = JSON.stringify(log);
+      buildSessionTranscript(log, qs, { ...META, recognitionByTurnKey: new Map([[2, whisper]]) });
+      expect(JSON.stringify(log)).toBe(before);
+    });
+
+    it('the projection the judge sees is the selected reading', async () => {
+      const { toSpeakingTranscript } = await import('../../stt/project/toSpeakingTranscript');
+      const t = buildSessionTranscript(mixedLog(), qs, { ...META, recognitionByTurnKey: new Map([[2, whisper]]) });
+      const speaking = toSpeakingTranscript(t, qs);
+      expect(speaking.rolePlay[0].candidateResponse).toContain('Ils ont un chien');
+      expect(speaking.rolePlay[0].candidateResponse).not.toContain('Ils sont en chien');
+    });
   });
 });

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { captureTurnAudio } from '../captureTurnAudio';
 import { getTurnAudio, getTurnAudioKeys, clearAllExamAudio } from '../examAudioStore';
 import type { ConductLogEntry } from '../../../../domain/igcse/session/types';
@@ -77,5 +77,27 @@ describe('captureTurnAudio', () => {
     release(blob());
     await done;
     expect(getTurnAudioKeys('s1')).toEqual([2]);
+  });
+
+  describe('onStored (hook for the exam batch ASR)', () => {
+    it('is called once with the turn key, the blob and the live captions after the blob is stored', async () => {
+      const b = blob();
+      const seen: Array<{ turnKey: number; blob: Blob; liveText: string }> = [];
+      await captureTurnAudio('s1', [examiner(1), candidate(2), examiner(3)], Promise.resolve(b), (t) => {
+        expect(getTurnAudio('s1', 2)).toBe(b); // already stored when the hook runs
+        seen.push(t);
+      });
+      expect(seen).toEqual([{ turnKey: 2, blob: b, liveText: 'Je joue au football' }]);
+    });
+
+    it('is not called for typed or non-answer turns, an empty blob, a null blob or a failed recording', async () => {
+      const hook = vi.fn();
+      await captureTurnAudio('s1', [candidate(2, { inputMode: 'text' })], Promise.resolve(blob()), hook);
+      await captureTurnAudio('s1', [candidate(4, { intent: 'dont_know' })], Promise.resolve(blob()), hook);
+      await captureTurnAudio('s1', [candidate(6)], Promise.resolve(new Blob([])), hook);
+      await captureTurnAudio('s1', [candidate(8)], Promise.resolve(null), hook);
+      await captureTurnAudio('s1', [candidate(10)], Promise.reject(new Error('mic gone')), hook);
+      expect(hook).not.toHaveBeenCalled();
+    });
   });
 });

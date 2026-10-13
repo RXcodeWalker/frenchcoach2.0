@@ -33,7 +33,7 @@ function mockSaveChain(existingOwner: string | null) {
 
 function buildSession(contentProvenance: SessionTranscript['contentProvenance']): SessionTranscript {
   return {
-    schemaVersion: 'session-transcript-v1',
+    schemaVersion: 'session-transcript-v2',
     assemblerVersion: 'stt-assembler-v1',
     sessionId: 's1',
     recordedAt: '2026-05-01T00:00:00.000Z',

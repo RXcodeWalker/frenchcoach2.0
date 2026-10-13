@@ -21,6 +21,8 @@ export type { TranscriptStore, TranscriptionProvider, TranscriptionInput } from 
 
 export { toSpeakingTranscript } from './project/toSpeakingTranscript';
 export { summariseQuality } from './quality/summariseQuality';
+export { summariseRecognition } from './quality/summariseRecognition';
+export type { RecognitionSummary } from './quality/summariseRecognition';
 
 export { assembleSession } from './assemble/assembleSession';
 export type { AssembleSessionMeta } from './assemble/assembleSession';
@@ -47,4 +49,9 @@ export type {
   ContentProvenance,
   AnnotationSource,
   AudioProvenance,
+  RecognitionFallbackReason,
+  RecognitionSegment,
+  PrimaryRecognition,
+  SecondaryRecognition,
+  UtteranceRecognition,
 } from './types';
