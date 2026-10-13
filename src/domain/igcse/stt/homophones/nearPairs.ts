@@ -3,7 +3,7 @@
  * plan Phase 4): AUDIBLY different words that a strong accent, fast speech or
  * a recogniser easily confuses. Unlike Category A they are never respelled.
  *
- * How marking will use them (later stages, not wired yet):
+ * How marking uses them (stage 6: stt/project/spokenText.ts, judgement/homophoneErrors.ts):
  *  - the two recognisers disagree on such a word, or only one recogniser
  *    heard the turn → benefit of the doubt, the error is not counted;
  *  - both recognisers clearly agree on the wrong word → it counts;
@@ -13,7 +13,7 @@
  * The owner fixed un/en, ont/sont, le/les and du/de. The other entries are
  * the same vowel contrast (schwa vs [e]: le/les → de/des, ce/ces, me/mes,
  * te/tes, se/ses, je/j'ai; nasal [ɑ̃] vs [ɔ̃]: en/on), approved by the owner
- * on 2026-10-13. Any change here changes marks once wired: bump
+ * on 2026-10-13. Any change here changes marks: bump
  * HOMOPHONE_TABLE_VERSION (`version.ts`).
  */
 

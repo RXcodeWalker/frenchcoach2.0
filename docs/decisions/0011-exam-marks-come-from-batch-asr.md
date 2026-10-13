@@ -1,8 +1,8 @@
 # 0011 — Exam marks are read from batch ASR, with the live captions as a recorded fallback
 
 Date: 2026-10-13
-Status: Accepted. Implemented in stages: items 1–6 are live; item 7 (homophone-aware benefit of the
-doubt) is decided here but not yet applied to any mark.
+Status: Accepted. Implemented in stages: items 1–6 (stage 5), item 7 (stage 6 — see the amendment
+at the end).
 
 ## Context
 
@@ -59,3 +59,26 @@ what the marker needs to see, so the transcript has to be as faithful as we can 
   (150/day, about six exams); Learn has its own `learn_transcribe` row.
 - A stored v1 transcript still parses (upcast to v2 with no `recognition`), so a regrade of an old
   attempt reads exactly what it read before.
+
+## Amendment — item 7 applied (transcription-accuracy stage 6, 2026-10-13)
+
+The scorer now consults `stt/homophones/` (`HOMOPHONE_TABLE_VERSION`, recorded in every envelope):
+
+- **Category A is respelled before the judge reads the answer** (`stt/project/spokenText.ts`), on
+  spoken answers only. A residual Category A "error" the judge still lists is excused as
+  `inaudible` (`judgement/homophoneErrors.ts`; liaison is checked against the answer's next word).
+- **Category B gets the benefit of the doubt only where nothing confirms the word**: where the two
+  recognisers disagreed on it, or on every such word of an answer only one recogniser read (a
+  live-captions fallback, a pre-v2 transcript, a recording). The judge sees an "Uncertain words"
+  line and a rule; an error it still lists on such a word is excused as `ambiguousNear`. Both
+  recognisers agreeing on the wrong word → it counts. Clearly different words → the batch reading
+  stands and the error can count.
+- **Excused errors leave the counted list, and the QoL call is re-asked once** with them listed as
+  "Not errors"; the re-run's mark is kept. Guardrails never raise a mark: a failed re-ask keeps the
+  first mark and raises `homophone_penalty_unresolved` instead. Excused errors are kept in the
+  envelope (`excusedErrors`, with reason and pair ids) so the feedback can still say "this might have
+  been *X*; make sure you say it" — never a silent excuse.
+- Versions: `detectors-v0.7`, `scoring-prompt-v0.7`, `guardrails-v0.7`, `envelope-v0.5`.
+
+Not in this amendment (later stage): the post-marking report's Category B notes, the respelled
+display text, and rebuilding `examFeedback/shared/spellingOnly.ts` on the same tables.

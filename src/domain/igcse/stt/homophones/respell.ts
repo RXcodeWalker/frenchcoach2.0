@@ -24,7 +24,8 @@
  *                       liking verb: -er (listed -er verbs only);
  *  6. determiner-plural — the silent -s/-x after a plural determiner.
  *
- * Pure and deterministic. Not wired into the app yet (stage 2).
+ * Pure and deterministic. Used by the marker (stage 6, stt/project/spokenText.ts)
+ * and by Learn's aligner (domain/transcription/alignRecognisers.ts).
  */
 
 import { categoryAClass, eSoundStem, soundsIdenticalInContext } from './classes';

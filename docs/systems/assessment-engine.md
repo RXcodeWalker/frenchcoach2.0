@@ -28,13 +28,28 @@ deterministic guardrails → persisted `ScoringEnvelope`.
     judge reasons from, not an input to a scoring formula. Each error's quote is grounded in that
     one turn's own candidate response (`buildTopicTurnCorpora`) — never the examiner's question,
     never a different turn, never role play.
+  - **The sound-alike step (stage 6, ADR 0011 item 7).** After both calls,
+    `judgement/homophoneErrors.ts` sorts the QoL error list: `inaudible` (Category A — the quote and
+    its correction sound the same where they stand, on a spoken answer), `ambiguousNear` (Category
+    B — the difference is an un/en, ont/sont… pair at a word the recognisers could not confirm) or
+    counted. Excused errors leave `qualityOfLanguage.errors`; if any were excused the QoL call runs
+    **once** more with them listed as "Not errors" and the re-run's mark is kept. A re-ask that
+    still fails keeps the first mark (excused errors removed) and is flagged, never fails the
+    attempt. This adds one sequential QoL call, only on attempts that need it.
   - `combineAssessment` merges the two calls' results into one `SpeakingAssessment` before
-    guardrails run. The persisted `ScoringEnvelope` is `ENVELOPE_SCHEMA_VERSION = 'envelope-v0.4'`.
+    guardrails run. The persisted `ScoringEnvelope` is `ENVELOPE_SCHEMA_VERSION = 'envelope-v0.5'`:
+    v0.5 adds `excusedErrors` (each with its reason and pair ids — the source the report's "this
+    might have been *X*; make sure you say it" note is to copy), `transcription` (answers marked
+    from the batch reading vs the live captions, fallback reasons, model, context-prompt version)
+    and `versions.homophoneTableVersion`.
   - `npm run judge:check` (`scripts/scoring/judgeCheck.ts`, see `docs/guides/development.md`) is
     the permanent real-judge harness for this stage — see `verification-log.md`'s Batch 2/Batch 3
     entries for what it found and measured.
 - **`guardrails/`** — `runGuardrails.ts` is a pure, deterministic composition entry point (no I/O)
-  that returns combined triggers, including an evidence-ceiling hook — the only path by which a
+  that returns combined triggers — including, since `guardrails-v0.7`, `homophone_error_excused`
+  and `homophone_penalty_unresolved` (the kept QoL mark may still carry a sound-alike penalty:
+  re-ask failed, re-run relisted one, or an excusable error is still counted), both advisory —
+  and an evidence-ceiling hook — the only path by which a
   Layer-1 signal may cap a Layer-2 mark. The ceiling is applied in `envelope/`, not by mutating
   the Layer-2 assessment, so the judge's original proposed mark stays in the audit trail as a
   `criterionAdjustment` rather than being overwritten.
@@ -74,8 +89,13 @@ apart silently:
 and the fallback reason). `Utterance.text` is exactly the selected reading, enforced by the schema.
 `parseSessionTranscript` still reads v1 and upcasts it. `session-engine-v5` is the first version that
 emits v2; `STT_ASSEMBLER_VERSION` moved to `stt-assembler-v2` with it and is pinned by
-`stt/__tests__/assembler.version-pin.test.ts`. The judge prompt, evidence, guardrails, rubric and
-envelope are unchanged by this: only *which text* is scored changed.
+`stt/__tests__/assembler.version-pin.test.ts`. That stage (5) changed only *which text* is scored.
+
+Stage 6 changed how it is marked, and bumped `EVIDENCE_DETECTOR_VERSION` (`detectors-v0.7`),
+`SCORING_PROMPT_VERSION` (`scoring-prompt-v0.7`), `GUARDRAILS_VERSION` (`guardrails-v0.7`) and
+`ENVELOPE_SCHEMA_VERSION` (`envelope-v0.5`). The sound-alike tables and respeller
+(`stt/homophones/`) carry their own `HOMOPHONE_TABLE_VERSION`, hash-pinned and recorded in each
+envelope's `versions`: any change to a list or rule there changes marks.
 
 **`envelope/` has no standalone `version.ts`** — its `ENVELOPE_SCHEMA_VERSION` lives directly in
 `envelope/types.ts`. Don't assume the pattern is uniform across all five stages when adding a new
@@ -111,6 +131,18 @@ so the judge can apply the first Communication-band bullet ("may occasionally ne
 "occasional use of the alternative question(s)") from the actual recorded support instead of
 guessing from the response text.
 
+Since stage 6 (`scoring-prompt-v0.7`) a **spoken** answer also reaches the judge in its Category A
+context spelling (`stt/project/spokenText.ts`: "J'ai un frère. Il mange…" even when both
+recognisers wrote "ils mangent"; the respeller only swaps within one sound class and never changes a
+word count), and may be followed by an **"Uncertain words:"** line naming its Category B words the
+recognisers could not confirm — where they disagreed (`"un" — also heard as "en"`), or every such
+word when only one recogniser read the answer (`"le" — could also be "les"`). Both prompts then add
+a benefit-of-the-doubt rule. The line and the rule render only when such a word exists, so other
+transcripts render as before. Words the recognisers heard clearly differently (`different` spans)
+are never rendered: the batch reading stands. The spans themselves are snapshotted as
+`EvidenceProfile.ambiguousSpansByTurn` for audit; that field is **not** on the allow-list. Typed
+answers are never respelled and carry no spans.
+
 ## Golden tests
 
 `npm run score:golden` runs `scripts/scoring/goldenRegression.ts` over
@@ -125,6 +157,13 @@ them, never a silent edit.
 Golden coverage also exists at `src/domain/igcse/evidence/__tests__/buildEvidence.golden.test.ts`,
 `buildEvidenceProfile.golden.test.ts`, `src/domain/igcse/envelope/__tests__/buildEnvelope.golden.test.ts`,
 and `src/domain/igcse/stt/__tests__/assembleSession.golden.test.ts`.
+
+Since stage 6 the runner also applies the QoL sound-alike step (`settleQolHomophones`), with a
+manifest entry's static `qolReAsk` reply (or `'failed'`) standing in for the re-ask, and five
+`sound-alike-*` entries cover: an inaudible error excused, a Category B disagreement excused, a
+Category B agreement counted, a different word counted, and a live-captions fallback whose re-ask
+fails. `goldenRegression.test.ts` also pins every assessed entry's triggers to its
+`expectedGuardrails`.
 
 If a golden test's output changes *shape* (not just a value inside the same shape), treat that as
 a signal you changed scoring behavior — investigate before updating the fixture, don't reflexively

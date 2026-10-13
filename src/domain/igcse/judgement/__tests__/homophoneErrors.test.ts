@@ -105,10 +105,33 @@ describe('classifyQolError — Category B (benefit of the doubt only where uncon
   });
 });
 
+describe('classifyQolError — quote and correction of different lengths (real judge replies)', () => {
+  const t = transcriptWith(
+    { turnId: 'q', questionPrompt: 'Q?', candidateResponse: 'Il y a beaucoup de voiture et de pollution.', inputMode: 'speech' },
+    spoken('b', "J'ai en chien noir", "J'ai un chien noir"),
+  );
+
+  it('a longer correction is lined up with the answer’s neighbouring words', () => {
+    expect(verdict(t, err('q', 'voiture', 'de voitures'))).toBe('inaudible');
+    expect(verdict(t, err('b', 'en', "j'ai un"))).toBe('ambiguousNear');
+  });
+
+  it('a longer quote lends its edge words to the correction', () => {
+    expect(verdict(t, err('q', 'beaucoup de voiture', 'voitures'))).toBe('inaudible');
+  });
+
+  it('padding never excuses a word the judge really changed', () => {
+    // "au" is missing: lined up either way, a real word differs.
+    const u = transcriptWith({ turnId: 'q', questionPrompt: 'Q?', candidateResponse: 'Hier je vais cinéma avec Paul.', inputMode: 'speech' });
+    expect(verdict(u, err('q', 'je vais cinéma', 'je vais au cinéma'))).toBe('counted');
+    expect(verdict(t, err('q', 'voiture', 'des voitures'))).toBe('counted');
+  });
+});
+
 describe('classifyQolError — always counted', () => {
   const t = transcriptWith(spoken('q', 'Je mange de pain', null));
 
-  it('a different number of words', () => {
+  it('a different number of words that does not line up', () => {
     expect(verdict(t, err('q', 'mange de pain', 'mange du bon pain'))).toBe('counted');
   });
 

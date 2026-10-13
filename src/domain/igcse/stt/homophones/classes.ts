@@ -25,8 +25,9 @@
  * Uncertain entries lean towards KEEPING the error (no class): an inaudible
  * error that is shown costs less than an audible one that is excused.
  *
- * Nothing here is wired into the app yet (stage 2). Any change to a list or a
- * rule changes marks once it is: bump HOMOPHONE_TABLE_VERSION (`version.ts`).
+ * Wired into marking since stage 6 (stt/project/spokenText.ts,
+ * judgement/homophoneErrors.ts) and into Learn's confirm screen (stage 4). Any
+ * change to a list or a rule changes marks: bump HOMOPHONE_TABLE_VERSION (`version.ts`).
  */
 
 import { normalizeWord, parseToken, splitElision, startsWithVowelSound, tokenize } from './text';

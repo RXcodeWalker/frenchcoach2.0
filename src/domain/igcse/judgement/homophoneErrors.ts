@@ -14,8 +14,11 @@
  *    recognisers disagreed on it, or only one recogniser read the answer.
  *    Benefit of the doubt; the feedback still names the word.
  *  - 'counted': anything else — a clearly different word, a Category B word
- *    both recognisers agreed on, a typed answer, a quote that cannot be placed
- *    in its answer, an error the judge listed with an identical correction.
+ *    both recognisers agreed on, a typed answer, a Category B word whose quote
+ *    cannot be placed in its answer, an error listed with an identical correction.
+ *
+ * A quote and its correction of different lengths ("voiture" -> "de
+ * voitures") are lined up with the words around them first (alignedPairs).
  *    When unsure, the error counts: lean against under-marking only where it
  *    is reasonably obvious what was meant.
  *
@@ -124,20 +127,57 @@ function verdictAt(
   return pairIds.length > 0 ? { verdict: 'ambiguousNear', nearPairIds: [...new Set(pairIds)] } : { verdict: 'inaudible', nearPairIds: [] };
 }
 
+/** How far a quote and its correction may differ in length and still be lined up (see alignedPairs). */
+const MAX_LENGTH_GAP = 3;
+
+/**
+ * The judge often quotes a shorter or longer stretch than its correction
+ * ("voiture" -> "de voitures"). Lines the two up word for word: a longer
+ * correction takes the answer's neighbouring words onto the quote; a longer
+ * quote lends its own edge words to the correction. Padding words must then
+ * match on both sides like any other word, so padding can never create an
+ * excuse — only the words the judge actually changed are judged.
+ */
+function alignedPairs(
+  answer: readonly Word[],
+  at: number | null,
+  quote: readonly Token[],
+  correction: readonly Token[],
+): { at: number | null; quote: readonly Token[]; correction: readonly Token[] }[] {
+  const gap = correction.length - quote.length;
+  if (gap === 0) return [{ at, quote, correction }];
+  if (Math.abs(gap) > MAX_LENGTH_GAP) return [];
+  const pairs: { at: number | null; quote: readonly Token[]; correction: readonly Token[] }[] = [];
+  for (let left = 0; left <= Math.abs(gap); left += 1) {
+    const right = Math.abs(gap) - left;
+    if (gap > 0) {
+      if (at === null || at - left < 0 || at + quote.length + right > answer.length) continue;
+      const padded = answer.slice(at - left, at + quote.length + right).map((w) => w.token);
+      pairs.push({ at: at - left, quote: padded, correction });
+    } else {
+      const padded = [...quote.slice(0, left), ...correction, ...quote.slice(quote.length - right)];
+      pairs.push({ at, quote, correction: padded });
+    }
+  }
+  return pairs;
+}
+
 /** Sorts one QoL error (see the module header). */
 export function classifyQolError(error: QolError, transcript: SpeakingTranscript): QolErrorClassification {
   const turn = findTurn(transcript, error);
   if (!turn || turn.inputMode === 'text') return COUNTED;
   const quote = tokenize(error.quote).filter((t) => t.lower !== '');
   const correction = tokenize(error.correction).filter((t) => t.lower !== '');
-  if (quote.length === 0 || quote.length !== correction.length) return COUNTED;
+  if (quote.length === 0 || correction.length === 0) return COUNTED;
 
   const answer = words(turn.candidateResponse);
-  const placements = occurrences(answer, quote);
-  const verdicts = placements.length > 0
-    ? placements.map((at) => verdictAt(turn, answer, at, quote, correction))
-    : [verdictAt(turn, answer, null, quote, correction)];
-  // The quote may occur more than once: any one placement that excuses it is enough.
+  const placements: (number | null)[] = occurrences(answer, quote);
+  if (placements.length === 0) placements.push(null);
+  // The quote may occur more than once, and may line up with its correction in
+  // more than one way: any one reading that excuses it is enough.
+  const verdicts = placements.flatMap((at) =>
+    alignedPairs(answer, at, quote, correction).map((p) => verdictAt(turn, answer, p.at, p.quote, p.correction)),
+  );
   return verdicts.find((v) => v.verdict === 'inaudible') ?? verdicts.find((v) => v.verdict === 'ambiguousNear') ?? COUNTED;
 }
 
