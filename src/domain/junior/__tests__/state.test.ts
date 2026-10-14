@@ -66,6 +66,19 @@ describe('turn recording', () => {
   });
 });
 
+describe('a two-frame turn moves both of its patterns', () => {
+  it('records every pattern step passed with the turn, once', () => {
+    const s0 = startMission(emptyJuniorState(), 'colors', T0);
+    const s1 = recordTurn(s0, { turnId: 'q1', outcome: 'got' }, [
+      { patternId: 'a', step: 'frame' },
+      { patternId: 'b', step: 'free' },
+    ]);
+    expect(s1.patternSteps).toEqual({ a: 'frame', b: 'free' });
+    // The same turn id again is ignored entirely, steps included.
+    expect(recordTurn(s1, { turnId: 'q1', outcome: 'none' }, { patternId: 'a', step: 'echo' })).toBe(s1);
+  });
+});
+
 describe('stickers reward finishing, never accuracy', () => {
   const run = (outcomes: Array<'got' | 'almost' | 'none'>) => {
     let s = startMission(emptyJuniorState(), 'colors', T0);

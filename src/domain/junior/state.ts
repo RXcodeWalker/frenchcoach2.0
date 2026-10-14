@@ -119,23 +119,32 @@ export function startMission(state: JuniorState, themeId: string, now: number): 
   return { ...state, activeMission: { themeId, startedAt: now, results: [] } };
 }
 
+export interface PatternStep {
+  patternId: string;
+  step: JuniorStep;
+}
+
 /**
  * Records one question turn (honestly: a "none" stays "none") and the scaffold
- * step the caller computed for that turn's pattern. No active mission → no-op.
+ * step(s) the caller computed for that turn's pattern(s) — a two-frame turn can
+ * move two patterns at once. No active mission → no-op.
  */
 export function recordTurn(
   state: JuniorState,
   turn: JuniorTurnResult,
-  patternStep?: { patternId: string; step: JuniorStep },
+  patternStep?: PatternStep | readonly PatternStep[],
 ): JuniorState {
   const mission = state.activeMission;
   if (!mission) return state;
   // A turn is recorded once; a repeat of the same turn id is ignored.
   if (mission.results.some((r) => r.turnId === turn.turnId)) return state;
+  const steps: readonly PatternStep[] = patternStep === undefined ? [] : Array.isArray(patternStep) ? patternStep : [patternStep as PatternStep];
+  const patternSteps = { ...state.patternSteps };
+  for (const s of steps) patternSteps[s.patternId] = s.step;
   return {
     ...state,
     activeMission: { ...mission, results: [...mission.results, turn] },
-    patternSteps: patternStep ? { ...state.patternSteps, [patternStep.patternId]: patternStep.step } : state.patternSteps,
+    patternSteps,
     outcomeTally: { ...state.outcomeTally, [turn.outcome]: state.outcomeTally[turn.outcome] + 1 },
   };
 }

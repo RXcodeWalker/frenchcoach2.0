@@ -6,10 +6,14 @@ below). Why it is separate from the Cambridge 0520 work:
 and its tests are the current behavior. It is **§-numbered and live — never renumber a section**
 (cite as `junior-track §N`).
 
-**Status: content bank (`src/data/junior/`) and pure logic (`src/domain/junior/`) built; no UI,
-state or route yet, so nothing is reachable in the app.** Implementation proceeds in batches
-(content bank → pure logic → UI → Whisper fallback → playtest gate → scale-up). Nothing here is
-shipped until its batch lands.
+**Status: content bank (`src/data/junior/`), pure logic (`src/domain/junior/`), Junior state in
+`AppContext` (3A), the screens (3B: `src/screens/junior/`, `src/features/junior/`, routes `/junior` and
+`/junior/:themeId`, the Exam/Junior switch in Onboarding and Profile) and Léo's voice wiring (3C) are
+built. Not built yet: the Whisper path (§2's second row degrades to the existing recorder path), the
+dev-only playtest read-out route, and any recorded audio file — `src/data/junior/audioManifest.ts` is
+empty, so until files are recorded a line has a 🔊 only where the browser has a French voice.**
+Implementation proceeds in batches (content bank → pure logic → UI → Whisper fallback → playtest gate →
+scale-up). Nothing here is shipped until its batch lands.
 
 ## Purpose
 
@@ -77,7 +81,7 @@ Because the learner chose the word, **the app knows the exact target sentence.**
 - **Kid silence timeout:** children pause mid-sentence. `useRecording` runs Web Speech in
   `continuous` mode and only stops when told to, so Junior adds its own end-of-speech rule on
   `useMicLevel`: stop after about 2.5 s of quiet once speech has started, with about a 12 s hard
-  limit per turn. These are constants in **one file** and are tuned at the playtest (see "Playtest gate" below); this page does not restate their final values.
+  limit per turn. These are constants in **one file** (`src/domain/junior/capture.ts`) and are tuned at the playtest (see "Playtest gate" below); this page does not restate their final values.
 - **One live capture at a time.** Repeated taps never start overlapping recordings;
   `useRecording`'s generation guard (see `CLAUDE.md`) covers this, and Junior adds its own test that
   rapid taps leave exactly one live capture.
@@ -100,6 +104,10 @@ learner:
   « J'aime… » !"), driven by a `levelledUp` event.
 - **Moving down is silent.** Two misses at a step quietly drop the learner one step; no event, no
   line.
+- **What is persisted.** `AppState.junior.patternSteps` stores only each pattern's *step*. The "got it"
+  and miss counters behind a move are held in memory for the mission, so they start again at zero on the
+  next mission: a pattern moves up when the counter is reached within one mission. A turn with two
+  frames moves each of its patterns (`RECORD_JUNIOR_TURN` takes one step per pattern).
 
 ## §6 Answer outcomes
 
@@ -142,6 +150,14 @@ Rules:
   it has a **French** voice. **An English voice never reads French.** Where neither recorded audio
   nor a French voice exists, the text simply has no 🔊. If no French browser voice exists and a line
   has no recorded file, the French text shows with a 🔊 that plays the recorded file.
+- **How a line is said** (`domain/junior/voice.ts`, `features/junior/leoVoice.ts`): a recorded file if
+  its id is in `audioManifest.ts`; else the browser voice, but only a real French one
+  (`TTS.hasFrenchVoice()`); else nothing, and the line has no 🔊. There is no branch that uses "whatever
+  voice the browser has" (`leoVoice.neverEnglish.test.ts`). `leoVoice.ts` is the only Junior file that may
+  touch speech synthesis. To add a recording: save `public/audio/junior/<audioId>.mp3` and add the id to
+  `JUNIOR_AUDIO_FILES`; `requiredAudioIds` is the checklist and `audioManifest.test.ts` fails if the
+  folder and the manifest disagree. Léo asks each turn aloud when it starts, and stops the moment the
+  mic is tapped, so the mic never hears him.
 - **"Et toi ?"** — the learner asks Léo; Léo's answer is funny or surprising ("Ma couleur préférée ?
   Le rose… à pois verts !"). This turn **always counts as complete**, even when the match was only
   "almost".
@@ -186,6 +202,15 @@ Postcard edge cases (each a `postcard.ts` test):
 - **Interruptions.** A learner who leaves mid-mission (bell, parent, battery) can **resume from the
   last finished turn for up to 24 h**. A started but unfinished mission earns no sticker and shows
   **no "you lost it" message**: after 24 h it is quietly dropped.
+- **Gold stickers are not stored separately.** `stickers[themeId]` keeps each earned sticker id once;
+  every finished mission beyond the set size was a gold one, so the gold count is
+  `missionsDone − stickers` (`domain/junior/earned.ts`). Resuming rebuilds the rest of the mission:
+  finished questions (stored as `{turnId = question id, outcome}`) are skipped, the demo is not repeated,
+  the warm-up is (`domain/junior/resumeMission.ts`). A Postcard after a resume shows only the turns played
+  in that sitting, since only the outcomes of the earlier ones are stored.
+- **What is recorded per turn.** One `RECORD_JUNIOR_TURN` per **question** turn only. The warm-up and
+  « Et toi ? » turns always complete and are not recorded, because the playtest thresholds are defined
+  over question turns (`MissionPlayer.test.tsx` asserts it).
 - Junior writes **no** `Session`, XP event, topic mastery, Learn evidence or IGCSE data. Its state
   lives in `AppContext`'s single reducer (Core Rule 4) under an account-scoped key, like `notebook`.
   The local `outcomeTally` (got/almost/none counts, plus silent tries counted separately) exists only for the playtest readout on a

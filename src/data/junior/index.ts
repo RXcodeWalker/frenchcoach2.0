@@ -17,4 +17,6 @@ export const JUNIOR_BANK: JuniorBank = {
 };
 
 export { JUNIOR_PATTERNS, JUNIOR_THEMES, PRAISE, TOGETHER, WARMUP_AWAKE, WARMUP_PROMPT };
+export { JUNIOR_AUDIO_FILES, JUNIOR_AUDIO_DIR, audioUrl } from './audioManifest';
+export { requiredAudioIds, allBankLines } from './audioIds';
 export * from './types';

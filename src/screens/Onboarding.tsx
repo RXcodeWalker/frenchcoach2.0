@@ -10,6 +10,7 @@ import {
 } from '../services/coach/coachProfileService';
 import { invalidateDailyPlan } from '../services/coach/decisionEngine';
 import { isSafeReturnTo } from '../utils/routeSafety';
+import { useApp } from '../context/AppContext';
 import type { CoachGoalType } from '../types/coach';
 
 type WizardStep = 1 | 2 | 3;
@@ -50,6 +51,7 @@ function goalTypeToWizard(type: CoachGoalType): { examBoard: ExamBoard; goalInte
 
 export function Onboarding() {
   const navigate = useNavigate();
+  const { dispatch } = useApp();
   const [searchParams] = useSearchParams();
   const isEditMode = searchParams.get('from') === 'profile';
   const rawReturnTo = searchParams.get('returnTo');
@@ -128,6 +130,15 @@ export function Onboarding() {
     }
     invalidateDailyPlan();
     navigate(destination, { replace: true });
+  }
+
+  // Junior (Grades 4–7): the exam-goal wizard does not apply, so this takes the
+  // same end state as skipping it, then switches the learner track.
+  function chooseJunior() {
+    setActiveGoal('general_speaking', undefined);
+    invalidateDailyPlan();
+    dispatch({ type: 'SET_LEARNER_TRACK', track: 'junior' });
+    navigate('/junior', { replace: true });
   }
 
   function handleComplete() {
@@ -224,6 +235,15 @@ export function Onboarding() {
                   className="mt-2 w-full py-2 rounded-xl font-semibold text-xs text-ink-muted hover:text-ink-muted transition-colors"
                 >
                   Skip for now
+                </button>
+              )}
+              {!isEditMode && (
+                <button
+                  onClick={chooseJunior}
+                  data-testid="onboarding-junior"
+                  className="mt-2 w-full py-3 rounded-xl font-semibold text-sm border border-hairline text-ink"
+                >
+                  🦊 I'm in Grades 4–7 (Junior)
                 </button>
               )}
             </motion.div>

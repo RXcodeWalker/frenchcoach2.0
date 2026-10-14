@@ -11,6 +11,7 @@ vi.mock('../../services/coach/coachProfileService', () => ({
   getActiveGoal: () => null,
   updateCoachProfile: vi.fn(),
 }));
+vi.mock('../../context/AppContext', () => ({ useApp: () => ({ state: {}, dispatch: vi.fn() }) }));
 vi.mock('../../services/coach/decisionEngine', () => ({
   invalidateDailyPlan: vi.fn(),
 }));

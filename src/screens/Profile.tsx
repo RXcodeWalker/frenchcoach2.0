@@ -29,6 +29,7 @@ import {
 } from '../services/notifications/notificationPreferences';
 import { requestAndSubscribe, unsubscribe, isPushSupported } from '../services/notifications/pushService';
 import { pushProfileSettingsToCloud } from '../services/sync/profileSettingsSync';
+import { TrackSwitch } from '../features/junior/TrackSwitch';
 
 const RENAME_REASON_COPY: Record<string, string> = {
   invalid_format: 'Start with a letter, 3–20 characters, letters/numbers/underscore only.',
@@ -417,6 +418,12 @@ export function Profile() {
           </div>
         </motion.div>
       )}
+
+      {/* Learner track */}
+      <motion.div variants={fadeUp} className="rounded-xl surface p-4">
+        <h3 className="font-bold text-ink-subtle text-[10px] uppercase tracking-wider mb-2.5">Learner Track</h3>
+        <TrackSwitch />
+      </motion.div>
 
       {/* Learning Goals */}
       <motion.div variants={fadeUp} className="rounded-xl surface p-4">

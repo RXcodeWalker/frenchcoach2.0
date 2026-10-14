@@ -9,6 +9,8 @@ import { XPAnimations } from './components/XPAnimation';
 import { GemAnimations } from './components/GemAnimation';
 import { SideRail } from './components/Navigation';
 import { Home } from './screens/Home';
+import { JuniorHome } from './screens/junior/JuniorHome';
+import { MissionPlayer } from './screens/junior/MissionPlayer';
 import { Learn } from './screens/Learn';
 import { Notebook } from './screens/Notebook';
 import { ExamMode } from './screens/ExamMode';
@@ -142,12 +144,21 @@ function XPToast() {
   );
 }
 
+/** `/` is the Junior home for an account on the Junior track, the exam Home otherwise. */
+function HomeRoute() {
+  const { state } = useApp();
+  return state.learnerTrack === 'junior' ? <JuniorHome /> : <Home />;
+}
+
 function MainLayout() {
   const location = useLocation();
+  const { state } = useApp();
+  // The exam side rail (IGCSE tools, rankings, leagues) is not part of the Junior track (junior-track §10).
+  const junior = state.learnerTrack === 'junior';
   return (
     <div className="min-h-screen dark:bg-navy bg-slate-100 dark:text-white text-slate-900 overflow-hidden">
-      <SideRail />
-      <main className="relative z-10 md:ml-[64px]">
+      {!junior && <SideRail />}
+      <main className={`relative z-10 ${junior ? '' : 'md:ml-[64px]'}`}>
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}
@@ -222,7 +233,9 @@ function AppShell() {
           <MigrationGate />
           <Routes location={location}>
         <Route element={<MainLayout />}>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<HomeRoute />} />
+          <Route path="/junior" element={<JuniorHome />} />
+          <Route path="/junior/:themeId" element={<MissionPlayer />} />
           <Route path="/learn" element={<Learn />} />
           <Route path="/notebook" element={<Notebook />} />
           <Route path="/explore" element={<Explore />} />
