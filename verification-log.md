@@ -4417,3 +4417,48 @@ records when it didn't.
 
 Verified: `typecheck`, `typecheck:server` clean; `typecheck:scripts` 11 (baseline); lint 0 errors;
 `npm test` 360 files / 4260 tests; `score:golden` 10/10.
+
+
+## 2026-10-14 — Transcription accuracy stage 7: report display + docs
+
+Branch `claude/admiring-goodall-2omy3g`, built on the Stage 3–6 branch (`claude/busy-gauss-k0ihy9`, fast-forward
+merged first). No scorer change: no scoring version, golden or envelope moved (`score:golden` 10/10 unchanged).
+
+**Built** (ADR 0011 amendment, "report and display"):
+- `examFeedback/schema.ts` `buildSoundAlikeNotes` → `qualityOfLanguage.soundAlikeNotes`: one note per
+  `envelope.excusedErrors` entry excused as `ambiguousNear` / `recognisersDisagree`, copied verbatim; none for
+  `inaudible` (Category A); identical corrections and duplicates dropped; a strength quoting a noted phrase is
+  dropped. The model neither writes nor sees them (prompt hash unchanged).
+- `EXAM_FEEDBACK_VERSION` `exam-feedback-v0.1` → `exam-feedback-v0.2` (output shape). `isExamFeedbackReport`
+  still accepts a stored v0.1 report (field optional).
+- `examFeedback/shared/displayRespell.ts` (= the marker's `markUtterance`): `TranscriptReview` and `ExamResults`
+  show a spoken answer as marked. Coached edit detection is now against the respelled text, so an untouched answer
+  is confirmed unchanged and keeps its `recognition` record. Typed answers verbatim; stored transcript unchanged.
+- `examFeedback/shared/spellingOnly.ts` rebuilt on `stt/homophones/` (`soundsIdenticalInContext`) plus the existing
+  accent fold and the old "apostrophe as space" reading ("c est" = "c'est"). Category B stays audible (kept).
+- `ExamCriterionFeedback` renders "Words to say clearly" from the notes. The "N answers were marked from live
+  captions" banner already existed (stage 5, `RecognitionNotice`).
+- Docs: ADR 0011 amendment, `CLAUDE.md` Known Traps, `docs/systems/assessment-engine.md`. Already current from earlier
+  stages and checked, not changed: `topology.md` (env vars), `child-safety-consent.md`, `exam-pronunciation.md`,
+  `examAudioStore.ts` header, `learn-adaptive-difficulty.md` (Learn audio), backend `CLAUDE.md` (`model_config`).
+
+**Deviations / behaviour changes (owner rule consequences):**
+1. On a spoken turn the report/rail/Learn coach filter no longer shows "il mange → ils mangent", "je fais → je fait"
+   or "allée → allé" (Category A, never penalised). `soundAlike.test.ts` moved those cases from KEPT to DROPPED;
+   `coachFilterNormalisation.test.ts`'s grounding case used "allée → allé" incidentally and now uses an audibly
+   different correction ("je suis partie"). Learn's filter shares `spellingOnly.ts`, so Learn follows the same rule.
+2. `examFeedback/shared/` may now import `igcse/stt/homophones/{classes,text}` and `igcse/stt/project/spokenText`
+   (boundary test + ESLint message updated). The scorer still never imports `examFeedback`.
+3. `ExamFeedbackReport` type test now allows `undefined` (an optional field); it still forbids any numeric field.
+4. The note wording does not say whether the error was counted (a failed re-ask can still carry its penalty).
+
+**Verified** (with `backend/` linked): `npm run typecheck`, `typecheck:server` clean; `typecheck:scripts` 11 errors
+(baseline); `npm run lint` 0 errors (21 warnings, baseline); full `npm test` 362 files / 4286 tests; `npm run
+score:golden` 10/10; `examiner:parity` clean. New tests: `displayRespell`, `soundAlikeNotes`, spellingOnly cases,
+TranscriptReview respelled display (Exam Sim, typed, Coached untouched), ExamResults notes rendering.
+**Not run:** `judge:check -- --feedback` and the manual Exam Sim/Learn run (need provider keys; the report prompt and
+scorer are unchanged, so the real-judge result is unaffected). The owner's `npm run stt:bench` is still outstanding.
+
+**Rollback:** revert the Stage 7 commit(s) and redeploy the scorer host (the report is generated after marking; no
+mark depends on it). Reports already stored as v0.2 keep their notes field, which an older client ignores. The
+client display change reverts with the frontend deploy; `VITE_EXAM_BATCH_ASR=0` is unaffected.

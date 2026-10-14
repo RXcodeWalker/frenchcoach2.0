@@ -41,7 +41,7 @@ deterministic guardrails → persisted `ScoringEnvelope`.
   - `combineAssessment` merges the two calls' results into one `SpeakingAssessment` before
     guardrails run. The persisted `ScoringEnvelope` is `ENVELOPE_SCHEMA_VERSION = 'envelope-v0.5'`:
     v0.5 adds `excusedErrors` (each with its reason and pair ids — the source the report's "this
-    might have been *X*; make sure you say it" note is to copy), `transcription` (answers marked
+    might have been *X*; make sure you say it" note is copied from, stage 7), `transcription` (answers marked
     from the batch reading vs the live captions, fallback reasons, model, context-prompt version)
     and `versions.homophoneTableVersion`.
   - `npm run judge:check` (`scripts/scoring/judgeCheck.ts`, see `docs/guides/development.md`) is
@@ -69,6 +69,14 @@ in `exam_feedback_reports`. It is deliberately outside `src/domain/igcse/`: the 
 graph never reaches it (`scoredPipelineBoundary.test.ts`), the judge prompts are untouched, and it
 carries its own `EXAM_FEEDBACK_VERSION` rather than bumping any stage pin below. The QoL errors it
 shows are the envelope's own (quote and correction copied; only the category is the model's).
+Since `exam-feedback-v0.2` (transcription-accuracy stage 7) the report also carries
+`qualityOfLanguage.soundAlikeNotes`: for each `envelope.excusedErrors` entry excused because a word
+was uncertain (`ambiguousNear` / `recognisersDisagree`, never the Category A `inaudible` ones) a
+"this might have been *X*; make sure you say it clearly" note, **copied from the envelope — the model
+never writes or sees them** (the prompt is unchanged). Its spelling filter (`shared/spellingOnly.ts`)
+decides "sounds the same" with the marker's own `stt/homophones/` tables, and the review/results
+screens show a spoken answer through `shared/displayRespell.ts` (the marker's `markUtterance`), so
+what is shown is what was marked.
 `npm run judge:check -- --feedback` measures its recall against `auditErrors` separately from the
 judge's. See ADR 0009 and its Batch A amendment.
 

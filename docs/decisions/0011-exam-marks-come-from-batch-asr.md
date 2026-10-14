@@ -1,8 +1,8 @@
 # 0011 — Exam marks are read from batch ASR, with the live captions as a recorded fallback
 
 Date: 2026-10-13
-Status: Accepted. Implemented in stages: items 1–6 (stage 5), item 7 (stage 6 — see the amendment
-at the end).
+Status: Accepted. Implemented in stages: items 1–6 (stage 5), item 7 (stage 6), the report and display
+half of item 7 (stage 7) — see the amendments at the end.
 
 ## Context
 
@@ -87,5 +87,35 @@ The scorer now consults `stt/homophones/` (`HOMOPHONE_TABLE_VERSION`, recorded i
   benchmark is a `SCORING_PROMPT_VERSION` bump.
 - Versions: `detectors-v0.7`, `scoring-prompt-v0.7`, `guardrails-v0.7`, `envelope-v0.5`.
 
-Not in this amendment (later stage): the post-marking report's Category B notes, the respelled
-display text, and rebuilding `examFeedback/shared/spellingOnly.ts` on the same tables.
+Not in this amendment (applied in the next one): the post-marking report's Category B notes, the
+respelled display text, and rebuilding `examFeedback/shared/spellingOnly.ts` on the same tables.
+
+## Amendment — report and display (transcription-accuracy stage 7, 2026-10-14)
+
+The owner's rule "never silently excused" is now met on the candidate's screen:
+
+- **The report says so.** `exam-feedback-v0.2` adds `qualityOfLanguage.soundAlikeNotes`: one note per
+  `envelope.excusedErrors` entry excused as `ambiguousNear` or `recognisersDisagree` — "the recording
+  was unclear here: “…” might have been *X*. Make sure you say it clearly." The notes are **copied
+  from the envelope** (`buildSoundAlikeNotes`); the model neither writes nor sees them (the report
+  prompt is unchanged, same pinned hash), so ADR 0009 holds: nothing here can change a mark, and the
+  note does not say whether the error was counted (a failed re-ask may still carry its penalty).
+  `inaudible` (Category A) excuses get no note: a spelling that sounds the same was never an error.
+  A strength that quotes a noted phrase is dropped, like one that praises a listed error. A stored
+  v0.1 report has no field and renders as before.
+- **What is shown is what was marked.** `examFeedback/shared/displayRespell.ts` returns the marker's own
+  `markUtterance(...).text`; `TranscriptReview` and `ExamResults` show a spoken answer through it. In
+  Coached, the box starts with the respelled text and an edit is a change from *that* (an untouched
+  answer is confirmed unchanged and keeps its `recognition` record). Typed answers are never respelled.
+  The stored transcript is not rewritten.
+- **One definition of "sounds the same".** `examFeedback/shared/spellingOnly.ts` (used by the exam
+  report, the Coached rail and Learn's coach filter) now decides it with `stt/homophones/` — Category A
+  classes with their liaison check — plus the existing accent fold (a word-final é/ée is still not
+  folded against a bare -e). Category B pairs are audible and are not dropped. Behaviour change, by the
+  owner rule: on a spoken turn a reported "il mange → ils mangent", "je fais → je fait" or
+  "allée → allé" is no longer shown. `examFeedback/shared/` may import the sound-alike tables and
+  `stt/project/spokenText` (import-boundary test and ESLint block updated); the scorer still never
+  imports `examFeedback` (`scoredPipelineBoundary.test.ts`).
+- Versions: `EXAM_FEEDBACK_VERSION` → `exam-feedback-v0.2`. No scoring version, golden or envelope
+  changes. Rollback is a revert-and-redeploy of the scorer host (the report is independent of marks);
+  a stored v0.2 report read by an older client simply lacks the notes' rendering.
