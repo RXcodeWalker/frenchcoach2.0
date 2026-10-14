@@ -229,6 +229,8 @@ it "babyish" (in their words). Thresholds, fixed **before** the playtest:
 - **none > 25 % of turns** → the recogniser or the warm-up/Whisper path needs work; fix that before
   adding content.
 - **almost > 40 % of turns** → the matcher is too strict or the sentences are too long.
+- **more than 1 silent try per question turn** (`tallyRates(...).silentPerTurn > 1`) → redesign the
+  mic cue (§4: the "Léo is listening" cue, the button and its pulse) before adding content.
 - **The 12-year-old says "babyish"** → revise the visual tone before scaling.
 
 The result is logged in `verification-log.md`; this page never claims the gate passed.
