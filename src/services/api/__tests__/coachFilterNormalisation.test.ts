@@ -91,12 +91,13 @@ describe('coach filters at normalisation', () => {
 
   it('grounds against the transcript the backend graded, not only the one sent', async () => {
     // Audio requests are transcribed server-side: the backend echoes what it graded.
+    // (The correction is audibly different: allée → allé is a silent-agreement pair and would be dropped on speech.)
     const serverTranscript = 'Samedi je suis allée au cinéma avec mes amis.';
     const reply = {
       ...backendReply(serverTranscript),
       corrections: [],
       grammar: {
-        critical: [{ id: 'agr', themeLabel: 'Agreement', msg: '« je suis allée »', correction: 'je suis allé', severity: 'major', quote: 'je suis allée' }],
+        critical: [{ id: 'agr', themeLabel: 'Agreement', msg: '« je suis allée »', correction: 'je suis partie', severity: 'major', quote: 'je suis allée' }],
         polish: [],
       },
     };

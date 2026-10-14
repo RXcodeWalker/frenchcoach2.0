@@ -172,8 +172,10 @@ export default tseslint.config(
     },
   },
   {
-    // The shared helpers are pure: they import only the text normalizer and
-    // isQuoteGrounded from the audited engine (and each other), and nothing
+    // The shared helpers are pure: they import only the text normalizer,
+    // isQuoteGrounded and the sound-alike tables / the marker's text projection
+    // (igcse/stt/homophones, igcse/stt/project/spokenText — stage 7) from the
+    // audited engine (and each other), and nothing
     // from the app layers or the rest of the scoring pipeline. The import-graph
     // test in shared/__tests__/sharedBoundary.test.ts checks the exact set.
     files: ['src/domain/examFeedback/shared/**/*.ts'],
@@ -197,7 +199,7 @@ export default tseslint.config(
                 '**/igcse/judgement/scoreSpeaking*',
               ],
               message:
-                'domain/examFeedback/shared/ is pure: only igcse/text/normalize and igcse/judgement/schema (isQuoteGrounded) may be imported (docs/decisions/0009-examiner-feedback-shared-helpers.md).',
+                'domain/examFeedback/shared/ is pure: only igcse/text/normalize, igcse/judgement/schema (isQuoteGrounded) and the igcse/stt sound-alike tables may be imported (docs/decisions/0009-examiner-feedback-shared-helpers.md).',
             },
           ],
         },

@@ -5,7 +5,7 @@
  * (src/domain/examFeedback) and never shows or computes a mark.
  */
 import { ERROR_CATEGORY_LABELS, type ErrorCategory } from '../../domain/examFeedback/shared/errorCategories';
-import type { ExamFeedbackClaim, ExamFeedbackNextStep } from '../../domain/examFeedback/types';
+import type { ExamFeedbackClaim, ExamFeedbackNextStep, ExamFeedbackSoundAlikeNote } from '../../domain/examFeedback/types';
 
 export interface CriterionMistake {
   quote: string;
@@ -19,6 +19,8 @@ interface Props {
   strengths: ExamFeedbackClaim[];
   /** Omit for a criterion that lists no mistakes (Communication). */
   mistakes?: CriterionMistake[];
+  /** Words the recording left uncertain, copied from the marker's excused errors (ADR 0011). */
+  soundAlikeNotes?: ExamFeedbackSoundAlikeNote[];
   nextStep: ExamFeedbackNextStep | null;
 }
 
@@ -52,7 +54,7 @@ export function MistakeList({ mistakes }: { mistakes: CriterionMistake[] }) {
   );
 }
 
-export function ExamCriterionFeedback({ title, strengths, mistakes, nextStep }: Props) {
+export function ExamCriterionFeedback({ title, strengths, mistakes, soundAlikeNotes, nextStep }: Props) {
   return (
     <div className="p-3 rounded-lg bg-white/[0.03] border border-white/5 space-y-3">
       <h4 className="text-[11px] font-bold text-white">{title}</h4>
@@ -72,6 +74,18 @@ export function ExamCriterionFeedback({ title, strengths, mistakes, nextStep }: 
         <div className="space-y-1">
           <p className="text-[10px] font-bold uppercase tracking-wider text-red-400">Mistakes</p>
           <MistakeList mistakes={mistakes} />
+        </div>
+      )}
+
+      {soundAlikeNotes && soundAlikeNotes.length > 0 && (
+        <div className="space-y-1" data-testid="sound-alike-notes">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-info-text">Words to say clearly</p>
+          {soundAlikeNotes.map((n, i) => (
+            <p key={i} className="text-[11px] text-ink-muted leading-relaxed">
+              The recording was unclear here: &ldquo;{n.quote}&rdquo; might have been{' '}
+              <em className="text-ink">{n.correction}</em>. Make sure you say it clearly.
+            </p>
+          ))}
         </div>
       )}
 

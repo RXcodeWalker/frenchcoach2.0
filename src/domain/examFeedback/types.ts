@@ -59,6 +59,21 @@ export interface ExamFeedbackQolError extends ExamFeedbackError {
   turnId: string;
 }
 
+/**
+ * A word the marker could not be sure of (a Category B pair the two recognisers
+ * disagreed on, or that only one recogniser heard) and so gave the benefit of
+ * the doubt (ADR 0011). Copied from `envelope.excusedErrors`, never written by
+ * the model: `quote` is what the marked text said, `correction` what it might
+ * have been. Never "silently excused" — the candidate is told to say it clearly.
+ */
+export interface ExamFeedbackSoundAlikeNote {
+  quote: string;
+  correction: string;
+  source: 'topic1' | 'topic2';
+  turnId: string;
+  reason: 'ambiguousNear' | 'recognisersDisagree';
+}
+
 export interface ExamFeedbackReport {
   feedbackVersion: string;
   rolePlay: {
@@ -73,6 +88,8 @@ export interface ExamFeedbackReport {
   qualityOfLanguage: {
     strengths: ExamFeedbackClaim[];
     errors: ExamFeedbackQolError[];
+    /** exam-feedback-v0.2: absent on a v0.1 report. */
+    soundAlikeNotes?: ExamFeedbackSoundAlikeNote[];
     nextStep: ExamFeedbackNextStep | null;
   };
 }

@@ -15,6 +15,8 @@
  *  - QoL errors are COPIED from the envelope (quote, correction, source,
  *    turnId); the model only classifies them. The display filters then drop
  *    an identical correction, and on a spoken turn a sound-alike one;
+ *  - the Category B notes ("this might have been …") are COPIED from the
+ *    envelope's `excusedErrors` (buildSoundAlikeNotes), never from the model;
  *  - a next step must name one of the target descriptors for its criterion.
  *
  * The envelope is only ever read.
@@ -43,6 +45,7 @@ import type {
   ExamFeedbackQolError,
   ExamFeedbackReport,
   ExamFeedbackRolePlayTask,
+  ExamFeedbackSoundAlikeNote,
 } from './types';
 import { EXAM_FEEDBACK_VERSION } from './version';
 
@@ -256,6 +259,23 @@ function parseQolErrors(raw: unknown, ctx: Context): ExamFeedbackQolError[] {
     }));
 }
 
+/**
+ * The Category B notes (ADR 0011): the envelope's excused errors that were
+ * excused because a word was uncertain, copied verbatim. The model has no say.
+ * `inaudible` (Category A) errors are not noted — a spelling that sounds the
+ * same was never an error. An identical correction is dropped, as for any error.
+ */
+export function buildSoundAlikeNotes(envelope: ScoringEnvelope): ExamFeedbackSoundAlikeNote[] {
+  const notes: ExamFeedbackSoundAlikeNote[] = [];
+  for (const e of envelope.excusedErrors ?? []) {
+    if (e.reason === 'inaudible') continue;
+    if (shouldDropSpellingOnlyError(e.quote, e.correction, undefined)) continue;
+    if (notes.some((n) => n.turnId === e.turnId && n.source === e.source && sameQuote(n.quote, e.quote) && sameQuote(n.correction, e.correction))) continue;
+    notes.push({ quote: e.quote, correction: e.correction, source: e.source, turnId: e.turnId, reason: e.reason });
+  }
+  return notes;
+}
+
 function stripJsonFence(raw: string): string {
   const m = /^\s*```(?:json)?\s*([\s\S]*?)\s*```\s*$/.exec(raw);
   return m ? m[1] : raw;
@@ -289,8 +309,10 @@ export function parseExamFeedback(rawText: string, envelope: ScoringEnvelope): E
   const taskErrors = new Map(tasks.filter((t) => t.error).map((t) => [t.taskId, [t.error!]]));
 
   const qolErrors = parseQolErrors(raw.qualityOfLanguage.errorCategories, ctx);
-  const qolErrorsByRef = new Map<string, ExamFeedbackQolError[]>();
-  for (const e of qolErrors) {
+  const soundAlikeNotes = buildSoundAlikeNotes(envelope);
+  // A phrase the report says "might have been" something else is not praised either.
+  const qolErrorsByRef = new Map<string, { quote: string }[]>();
+  for (const e of [...qolErrors, ...soundAlikeNotes]) {
     const ref = topicTurnKey(e.source, e.turnId);
     qolErrorsByRef.set(ref, [...(qolErrorsByRef.get(ref) ?? []), e]);
   }
@@ -309,6 +331,7 @@ export function parseExamFeedback(rawText: string, envelope: ScoringEnvelope): E
     qualityOfLanguage: {
       strengths: parseStrengths(raw.qualityOfLanguage.strengths, topicRefs, qolErrorsByRef, ctx),
       errors: qolErrors,
+      soundAlikeNotes,
       nextStep: parseNextStep(raw.qualityOfLanguage.nextStep, 'qualityOfLanguage', topicRefs, ctx),
     },
   };
@@ -326,6 +349,7 @@ export function isExamFeedbackReport(value: unknown): value is ExamFeedbackRepor
     Array.isArray(value.rolePlay.tasks) &&
     isRec(value.communication) &&
     isRec(value.qualityOfLanguage) &&
-    Array.isArray(value.qualityOfLanguage.errors)
+    Array.isArray(value.qualityOfLanguage.errors) &&
+    (value.qualityOfLanguage.soundAlikeNotes === undefined || Array.isArray(value.qualityOfLanguage.soundAlikeNotes))
   );
 }

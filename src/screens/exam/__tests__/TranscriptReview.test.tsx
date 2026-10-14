@@ -82,6 +82,30 @@ describe('TranscriptReview', () => {
     expect(onConfirm).toHaveBeenCalledWith(transcript);
   });
 
+  describe('respelled display (ADR 0011)', () => {
+    const silentEnding = candidateUtterance({ utteranceId: 's1', text: "J'ai un frère. Ils mange beaucoup." });
+
+    it('Exam Sim shows a spoken answer as the marker reads it (Category A respelled)', () => {
+      render(<TranscriptReview transcript={baseTranscript([silentEnding])} onConfirm={vi.fn()} onExit={vi.fn()} coached={false} />);
+      expect(screen.getByText("J'ai un frère. Il mange beaucoup.")).toBeTruthy();
+    });
+
+    it('a typed answer is shown exactly as typed', () => {
+      const typed = candidateUtterance({ utteranceId: 't1', inputMode: 'text', text: "J'ai un frère. Ils mange beaucoup." });
+      render(<TranscriptReview transcript={baseTranscript([typed])} onConfirm={vi.fn()} onExit={vi.fn()} coached={false} />);
+      expect(screen.getByText("J'ai un frère. Ils mange beaucoup.")).toBeTruthy();
+    });
+
+    it('Coached: the box holds the respelled text, and confirming WITHOUT an edit leaves the transcript untouched', () => {
+      const transcript = baseTranscript([silentEnding]);
+      const onConfirm = vi.fn();
+      render(<TranscriptReview transcript={transcript} onConfirm={onConfirm} onExit={vi.fn()} coached={true} />);
+      expect((screen.getByRole('textbox') as HTMLTextAreaElement).value).toBe("J'ai un frère. Il mange beaucoup.");
+      fireEvent.click(screen.getByRole('button', { name: /confirm & finish/i }));
+      expect(onConfirm).toHaveBeenCalledWith(transcript);
+    });
+  });
+
   describe('batch recognition', () => {
     const whisperUtterance = candidateUtterance({
       utteranceId: 'w1',

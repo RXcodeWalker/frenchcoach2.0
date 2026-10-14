@@ -13,8 +13,8 @@ import { buildFixtureEnvelope } from './envelopeFixture';
 const PROMPT_HASH = '996029595347abe488aa374c957644e3513b7a6dbe3063f78985f2eea99685b6';
 
 describe('exam feedback version pin', () => {
-  it('EXAM_FEEDBACK_VERSION is exam-feedback-v0.1', () => {
-    expect(EXAM_FEEDBACK_VERSION).toBe('exam-feedback-v0.1');
+  it('EXAM_FEEDBACK_VERSION is exam-feedback-v0.2', () => {
+    expect(EXAM_FEEDBACK_VERSION).toBe('exam-feedback-v0.2');
   });
 
   it('the rendered prompt for the fixture envelope matches the pinned hash', () => {

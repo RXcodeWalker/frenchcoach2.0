@@ -8,14 +8,20 @@ const DROPPED_WHEN_SPOKEN: [string, string][] = [
   ['au jeux', 'aux jeux'],
   ['ou', 'où'],
   ["j'ai mange", "j'ai mange"],
+  // Category A on the marker's tables (ADR 0011 amendment): silent endings cannot be heard.
+  ['il mange', 'ils mangent'],
+  ['je fais', 'je fait'],
+  ['ils mangent', 'il mange'],
+  ['est', 'et'],
+  ["c'est", 'ses'],
 ];
 
 const KEPT_WHEN_SPOKEN: [string, string][] = [
   ["j'ai mange", "j'ai mangé"],
   ['petit', 'petite'],
-  ['il mange', 'ils mangent'],
   ['le chat', 'les chats'],
-  ['je fais', 'je fait'],
+  ['ils ont', 'ils sont'],
+  ['un chien', 'en chien'],
   ['mange', 'mangée'],
   ['préféré', 'préfère'],
 ];

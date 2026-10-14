@@ -9,6 +9,7 @@ import type { RailEntry } from '../../services/exam/turnFeedback';
 import { countsTowardProgress } from '../../services/exam/attemptStatus';
 import { requestExamFeedback, ScoringApiError } from '../../services/exam/scoringApiClient';
 import type { ExamFeedbackReport } from '../../domain/examFeedback/types';
+import { displayRespell } from '../../domain/examFeedback/shared/displayRespell';
 import { summariseRecognition } from '../../domain/igcse/stt/quality/summariseRecognition';
 import { ExamCriterionFeedback, MistakeList } from './ExamCriterionFeedback';
 import { RecognitionNotice } from './RecognitionNotice';
@@ -377,6 +378,7 @@ export function ExamResults({
                   title="Quality of Language"
                   strengths={feedbackReport.qualityOfLanguage.strengths}
                   mistakes={feedbackReport.qualityOfLanguage.errors}
+                  soundAlikeNotes={feedbackReport.qualityOfLanguage.soundAlikeNotes}
                   nextStep={feedbackReport.qualityOfLanguage.nextStep}
                 />
               </div>
@@ -486,7 +488,7 @@ export function ExamResults({
                   {candidateUtterances.map((u, i) => (
                     <div key={u.utteranceId} className="p-2.5 rounded-lg bg-white/[0.03] border border-white/5">
                       <p className="text-[9px] text-ink-subtle uppercase tracking-wider mb-1">{u.part} &middot; Answer {i + 1}</p>
-                      <p className="text-[11px] text-ink-muted leading-relaxed">{u.text}</p>
+                      <p className="text-[11px] text-ink-muted leading-relaxed">{displayRespell(u)}</p>
                     </div>
                   ))}
                 </div>

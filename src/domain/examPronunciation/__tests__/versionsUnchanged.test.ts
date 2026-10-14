@@ -38,7 +38,7 @@ describe('exam pronunciation leaves every scoring version unchanged', () => {
       ENVELOPE_SCHEMA_VERSION: 'envelope-v0.5',
       EVIDENCE_DETECTOR_VERSION: 'detectors-v0.7',
       SESSION_ENGINE_VERSION: 'session-engine-v5',
-      EXAM_FEEDBACK_VERSION: 'exam-feedback-v0.1',
+      EXAM_FEEDBACK_VERSION: 'exam-feedback-v0.2',
     });
   });
 

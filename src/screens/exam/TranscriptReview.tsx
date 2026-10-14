@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Check, Pencil, ArrowLeft, Mic, Type } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
+import { displayRespell } from '../../domain/examFeedback/shared/displayRespell';
 import type { SessionTranscript } from '../../domain/igcse/stt/types';
 import { summariseRecognition } from '../../domain/igcse/stt/quality/summariseRecognition';
 import { ExitConfirmDialog } from './ExitConfirmDialog';
@@ -25,14 +26,14 @@ const PART_LABEL: Record<string, string> = {
 export function TranscriptReview({ transcript, onConfirm, onExit, coached }: Props) {
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const candidateUtterances = transcript.utterances.filter((u) => u.role === 'candidate');
-  const [edits, setEdits] = useState<Record<string, string>>(() =>
-    Object.fromEntries(candidateUtterances.map((u) => [u.utteranceId, u.text])),
-  );
+  // What is shown is what the marker will read (Category A respelled, ADR 0011); an edit is a change from that.
+  const shown = Object.fromEntries(candidateUtterances.map((u) => [u.utteranceId, displayRespell(u)]));
+  const [edits, setEdits] = useState<Record<string, string>>(() => shown);
 
   // Counted from the unedited transcript: an answer the candidate rewrites by hand stops being "live captions" only on confirm.
   const recognition = summariseRecognition(transcript);
 
-  const changed = candidateUtterances.some((u) => edits[u.utteranceId] !== u.text);
+  const changed = candidateUtterances.some((u) => edits[u.utteranceId] !== shown[u.utteranceId]);
 
   const handleConfirm = () => {
     if (!changed) {
@@ -42,7 +43,7 @@ export function TranscriptReview({ transcript, onConfirm, onExit, coached }: Pro
     // A typed correction replaces what any recogniser heard: the recognition record is dropped so
     // the text no longer claims to be a recogniser's reading.
     const utterances = transcript.utterances.map((u) => {
-      if (u.role !== 'candidate' || edits[u.utteranceId] === u.text) return u;
+      if (u.role !== 'candidate' || edits[u.utteranceId] === shown[u.utteranceId]) return u;
       const { recognition: _dropped, ...rest } = u;
       void _dropped;
       return { ...rest, text: edits[u.utteranceId] };
@@ -98,7 +99,7 @@ export function TranscriptReview({ transcript, onConfirm, onExit, coached }: Pro
                   rows={2}
                 />
               ) : (
-                <p className="text-body-base text-ink">{u.text}</p>
+                <p className="text-body-base text-ink">{shown[u.utteranceId]}</p>
               )}
             </div>
           ))}

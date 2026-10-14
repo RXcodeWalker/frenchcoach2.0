@@ -105,6 +105,29 @@ function renderResults(requestFeedback: (id: string) => Promise<ExamFeedbackRepo
   );
 }
 
+describe('ExamResults — sound-alike notes (transcription-accuracy stage 7)', () => {
+  it('shows each Category B note from the report, in the "might have been" wording, and none when absent', async () => {
+    const withNotes: ExamFeedbackReport = {
+      ...REPORT,
+      qualityOfLanguage: {
+        ...REPORT.qualityOfLanguage,
+        soundAlikeNotes: [
+          { quote: 'ils sont un chien', correction: 'ils ont un chien', source: 'topic1', turnId: 'q1', reason: 'ambiguousNear' },
+        ],
+      },
+    };
+    renderResults(vi.fn(async () => withNotes));
+    const notes = await screen.findByTestId('sound-alike-notes');
+    expect(notes.textContent).toContain('might have been');
+    expect(notes.textContent).toContain('ils ont un chien');
+    expect(notes.textContent).toContain('Make sure you say it clearly');
+    cleanup();
+    renderResults(vi.fn(async () => REPORT));
+    await screen.findByText('You asked for the ticket clearly and politely.');
+    expect(screen.queryByTestId('sound-alike-notes')).toBeNull();
+  });
+});
+
 describe('ExamResults — post-marking feedback (Phase 3 Batch A)', () => {
   it('pending: marks are visible while the report is still being written', () => {
     const request = vi.fn(() => new Promise<ExamFeedbackReport>(() => {}));

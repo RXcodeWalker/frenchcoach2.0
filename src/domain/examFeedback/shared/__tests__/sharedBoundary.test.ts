@@ -11,16 +11,25 @@ import { join } from 'node:path';
 const SHARED_DIR = join(__dirname, '..');
 const files = readdirSync(SHARED_DIR).filter((f) => f.endsWith('.ts'));
 
-const ALLOWED = new Set(['../../igcse/text/normalize', '../../igcse/judgement/schema']);
+const ALLOWED = new Set([
+  '../../igcse/text/normalize',
+  '../../igcse/judgement/schema',
+  // Transcription-accuracy stage 7: the sound-alike tables and the marker's own text projection.
+  '../../igcse/stt/homophones/classes',
+  '../../igcse/stt/homophones/text',
+  '../../igcse/stt/project/spokenText',
+  '../../igcse/stt/types',
+]);
 
 function importPaths(source: string): string[] {
   return [...source.matchAll(/(?:from|import)\s+['"]([^'"]+)['"]/g)].map((m) => m[1]);
 }
 
 describe('examFeedback/shared import boundary', () => {
-  it('finds the five helper modules', () => {
+  it('finds the six helper modules', () => {
     expect(files.sort()).toEqual([
       'descriptorCopyFilter.ts',
+      'displayRespell.ts',
       'errorCategories.ts',
       'markClaimFilter.ts',
       'quoteRules.ts',
@@ -29,7 +38,7 @@ describe('examFeedback/shared import boundary', () => {
   });
 
   for (const file of files) {
-    it(`${file} imports only the normalizer, isQuoteGrounded, or a sibling helper`, () => {
+    it(`${file} imports only the normalizer, isQuoteGrounded, the sound-alike tables, or a sibling helper`, () => {
       const paths = importPaths(readFileSync(join(SHARED_DIR, file), 'utf8'));
       for (const p of paths) {
         const ok = ALLOWED.has(p) || /^\.\/[A-Za-z]+$/.test(p);

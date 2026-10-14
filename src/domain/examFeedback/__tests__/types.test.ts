@@ -24,7 +24,7 @@ type WithoutErrorIndex<T> = T extends ExamFeedbackQolError
       : T;
 
 // Fails to compile if any report field other than errorIndex becomes numeric.
-const NO_NUMERIC_FIELDS: DeepContainsNumber<WithoutErrorIndex<ExamFeedbackReport>> extends false ? true : never = true;
+const NO_NUMERIC_FIELDS: DeepContainsNumber<WithoutErrorIndex<ExamFeedbackReport>> extends false | undefined ? true : never = true; // `undefined`: an optional field (soundAlikeNotes)
 
 describe('ExamFeedbackReport has no mark field', () => {
   it('type test compiled', () => {
@@ -32,7 +32,7 @@ describe('ExamFeedbackReport has no mark field', () => {
   });
 
   it('no key is named like a mark, band, grade, score or total', () => {
-    const keys = ['feedbackVersion', 'rolePlay', 'tasks', 'taskId', 'reason', 'quote', 'error', 'strengths', 'nextStep', 'communication', 'qualityOfLanguage', 'errors', 'errorIndex', 'source', 'turnId', 'correction', 'category', 'claim', 'ref', 'targetDescriptor', 'targetSource'];
+    const keys = ['feedbackVersion', 'rolePlay', 'tasks', 'taskId', 'reason', 'quote', 'error', 'strengths', 'nextStep', 'communication', 'qualityOfLanguage', 'errors', 'soundAlikeNotes', 'errorIndex', 'source', 'turnId', 'correction', 'category', 'claim', 'ref', 'targetDescriptor', 'targetSource'];
     for (const k of keys) expect(k).not.toMatch(/mark|band|grade|score|total/i);
   });
 });
