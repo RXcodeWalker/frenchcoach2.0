@@ -112,4 +112,6 @@ export async function deleteMyAccount(): Promise<void> {
   const { error } = await supabase.rpc('delete_my_account');
   if (error) throw mapRpcError(error.message);
   storageRemove(STORAGE_KEYS.notebook);
+  storageRemove(STORAGE_KEYS.learnerTrack);
+  storageRemove(STORAGE_KEYS.junior);
 }

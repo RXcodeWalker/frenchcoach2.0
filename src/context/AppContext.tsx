@@ -13,6 +13,10 @@ import { getProgressionState, awardGemsForXP, levelFor, setProgressionData, reco
 import { getMyAllTimeXp } from '../services/social/leaderboardService';
 import { getSkillProfile } from '../services/coaching/diagnosticEngine';
 import { STORAGE_KEYS, storageGet, storageSet, storageSetRaw, scopedKey, matchesScopedKey, hasNoScopedDataYet, copyGuestScopeToIdentity, isAccountScope } from '../services/persistence/storage';
+import {
+  DEFAULT_LEARNER_TRACK, parseLearnerTrack, parseJuniorState, startMission, recordTurn, finishMission, markDemoSeen,
+  type LearnerTrack, type JuniorState, type JuniorTurnResult, type JuniorStep,
+} from '../domain/junior/state';
 import { parseNotebook, upsertEntry, type NotebookDraft, type NotebookEntry } from '../domain/learn/notebook/notebook';
 import { useAuth } from './AuthContext';
 import { pushProgressionToCloud, pullProgressionFromCloud, mergeProgressionData, cloudDiffersFromMerged, markNeedsSync } from '../services/sync/progressionSync';
@@ -51,6 +55,14 @@ interface AppState {
    * body or log may read it.
    */
   notebook: NotebookEntry[];
+  /** Junior track (Batch 3A): which learner experience this account is on. */
+  learnerTrack: LearnerTrack;
+  /**
+   * Junior progress (scaffold steps, stickers, unlocks, the resumable mission, the
+   * playtest tally). Local only. Junior writes no Session, XP, mastery, Learn
+   * evidence or IGCSE data — nothing here may reach those.
+   */
+  junior: JuniorState;
   lastUnlockedAchievement: Achievement | null;
   newLevelReached: string | null;
   activeSession: ActiveSession | null;
@@ -103,6 +115,15 @@ type Action =
   | { type: 'SAVE_NOTEBOOK_ENTRY'; draft: NotebookDraft; now: string }
   /** Cross-tab: another tab already wrote the key, so this only mirrors it (no write). */
   | { type: 'SET_NOTEBOOK'; entries: NotebookEntry[] }
+  | { type: 'SET_LEARNER_TRACK'; track: LearnerTrack }
+  | { type: 'START_JUNIOR_MISSION'; themeId: string; now: number }
+  | { type: 'RECORD_JUNIOR_TURN'; turn: JuniorTurnResult; patternStep?: { patternId: string; step: JuniorStep } }
+  /** The sticker/unlock are chosen by rewards.ts from the theme alone — never from outcomes. */
+  | { type: 'FINISH_JUNIOR_MISSION'; themeId: string; stickerId: string; unlockId?: string }
+  | { type: 'MARK_JUNIOR_DEMO_SEEN' }
+  /** Cross-tab: another tab already wrote the key, so these only mirror it (no write). */
+  | { type: 'SET_JUNIOR_STATE'; junior: JuniorState }
+  | { type: 'MIRROR_LEARNER_TRACK'; track: LearnerTrack }
   | { type: 'START_SESSION'; session: ActiveSession }
   | { type: 'UPDATE_ACTIVE_SESSION'; session: ActiveSession }
   | { type: 'END_SESSION' }
@@ -125,6 +146,10 @@ function buildInitialState(): AppState {
 
   // Guests never hold a notebook (it would be left behind for the next guest on a shared device).
   const notebook = isAccountScope() ? parseNotebook(storageGet<unknown>(STORAGE_KEYS.notebook, [])) : [];
+
+  // An activeMission older than 24 h is dropped here, silently (parseJuniorState).
+  const learnerTrack = parseLearnerTrack(storageGet<unknown>(STORAGE_KEYS.learnerTrack, DEFAULT_LEARNER_TRACK));
+  const junior = parseJuniorState(storageGet<unknown>(STORAGE_KEYS.junior, null), Date.now());
 
   const profile: UserProfile = {
     id: 'local-user',
@@ -195,6 +220,8 @@ function buildInitialState(): AppState {
     masteredDrills,
     firstsSeen,
     notebook,
+    learnerTrack,
+    junior,
     lastUnlockedAchievement: null,
     newLevelReached: null,
     activeSession: null,
@@ -205,6 +232,13 @@ function buildInitialState(): AppState {
     aim,
     dailyGoal: readDailyGoal(),
   };
+}
+
+/** Persists Junior state only when a Junior transition actually changed it. */
+function commitJunior(state: AppState, next: JuniorState): AppState {
+  if (next === state.junior) return state;
+  storageSet(STORAGE_KEYS.junior, next);
+  return { ...state, junior: next };
 }
 
 /** Exported for reducer-level unit tests only — not part of the app's public surface. */
@@ -234,6 +268,23 @@ export function reducer(state: AppState, action: Action): AppState {
     }
     case 'SET_NOTEBOOK':
       return isAccountScope() ? { ...state, notebook: action.entries } : state;
+    case 'SET_LEARNER_TRACK': {
+      if (state.learnerTrack === action.track) return state;
+      storageSet(STORAGE_KEYS.learnerTrack, action.track);
+      return { ...state, learnerTrack: action.track };
+    }
+    case 'START_JUNIOR_MISSION':
+      return commitJunior(state, startMission(state.junior, action.themeId, action.now));
+    case 'RECORD_JUNIOR_TURN':
+      return commitJunior(state, recordTurn(state.junior, action.turn, action.patternStep));
+    case 'FINISH_JUNIOR_MISSION':
+      return commitJunior(state, finishMission(state.junior, action));
+    case 'MARK_JUNIOR_DEMO_SEEN':
+      return commitJunior(state, markDemoSeen(state.junior));
+    case 'SET_JUNIOR_STATE':
+      return { ...state, junior: action.junior };
+    case 'MIRROR_LEARNER_TRACK':
+      return { ...state, learnerTrack: action.track };
     case 'ADD_XP': {
       const { totalXP, totalGems, gemGain, activeBoosters } = action;
       const animId = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
@@ -727,6 +778,18 @@ export function AppProvider({ identity, children }: { identity: string; children
           entries = [];
         }
         dispatch({ type: 'SET_NOTEBOOK', entries });
+        return;
+      }
+      if (matchesScopedKey(e.key, STORAGE_KEYS.learnerTrack)) {
+        let raw: unknown = null;
+        try { raw = e.newValue ? JSON.parse(e.newValue) : null; } catch { raw = null; }
+        dispatch({ type: 'MIRROR_LEARNER_TRACK', track: parseLearnerTrack(raw) });
+        return;
+      }
+      if (matchesScopedKey(e.key, STORAGE_KEYS.junior)) {
+        let raw: unknown = null;
+        try { raw = e.newValue ? JSON.parse(e.newValue) : null; } catch { raw = null; }
+        dispatch({ type: 'SET_JUNIOR_STATE', junior: parseJuniorState(raw, Date.now()) });
         return;
       }
       if (matchesScopedKey(e.key, STORAGE_KEYS.progression) || matchesScopedKey(e.key, STORAGE_KEYS.analytics)) {
