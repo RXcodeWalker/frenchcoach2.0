@@ -1,7 +1,7 @@
 /**
  * Shared types for the Junior track's pure logic (plan Batch 2; spec
  * docs/systems/junior-track.md). Junior is mark-free: nothing here is a mark,
- * band, grade or score, and nothing here is read by src/domain/igcse/ (ADR 0011).
+ * band, grade or score, and nothing here is read by src/domain/igcse/ (ADR 0012).
  */
 
 /** What the matcher heard against the target sentence (junior-track §6). Never a verdict on the kid. */

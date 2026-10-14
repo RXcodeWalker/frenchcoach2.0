@@ -1,5 +1,5 @@
 /**
- * Mission rewards (junior-track §10; ADR 0011 rule 4).
+ * Mission rewards (junior-track §10; ADR 0012 rule 4).
  *
  * A sticker rewards FINISHING a mission, never accuracy. `nextReward` takes the
  * theme and the stickers already earned — and nothing else. It has no parameter
