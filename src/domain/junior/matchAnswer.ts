@@ -17,14 +17,15 @@
  * « j'aime » → « j' aime ») so « J'aime l'été » hears « été », and a recogniser
  * that drops the apostrophe (« j aime ») still hears « j'aime ».
  *
- * Whole-word matching reuses `phraseHeard` from Learn's fixMatch.ts (the same
- * "report what was heard, never a verdict" approach as compareRetake.ts). The
+ * Whole-word matching is words.ts, a copy of the word helpers in Learn's
+ * fixMatch.ts (copied, not imported, so Junior never reaches src/domain/igcse/;
+ * same "report what was heard, never a verdict" approach as compareRetake.ts). The
  * result lists the AUTHORED forms of the key words heard and missed (chips for
  * the Postcard), never the raw transcript.
  */
 import type { JuniorPattern, JuniorQuestion, JuniorSlotKind, JuniorSlotOption } from '../../data/junior/types';
-import { phraseHeard } from '../learn/feedback/fixMatch';
 import type { MatchOutcome } from './types';
+import { phraseHeard } from './words';
 
 /** One picture the kid may have said, with every form the matcher accepts for it. */
 export interface SlotAlternative {

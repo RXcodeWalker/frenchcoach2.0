@@ -48,3 +48,13 @@ export function decideWarmup({ peakMicLevel, transcript, attempt }: WarmupInput)
   if (peakMicLevel >= MIC_SOUND_LEVEL) return 'whisper';
   return attempt <= 1 ? 'checkMic' : 'webSpeech';
 }
+
+/**
+ * The kid said nothing: no usable transcript AND the mic level never reached
+ * MIC_SOUND_LEVEL. On a question or « Et toi ? » turn this is re-asked, not
+ * recorded (turnFlow.ts's `silentQuestion` / `silentEtToi`). Sound with no usable
+ * transcript is NOT silence: that is a recogniser miss and an ordinary `none`.
+ */
+export function isSilent({ peakMicLevel, transcript }: Pick<WarmupInput, 'peakMicLevel' | 'transcript'>): boolean {
+  return !transcriptUsable(transcript) && peakMicLevel < MIC_SOUND_LEVEL;
+}

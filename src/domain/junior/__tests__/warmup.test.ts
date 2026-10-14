@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MIC_SOUND_LEVEL, decideWarmup, transcriptUsable } from '../warmup';
+import { MIC_SOUND_LEVEL, decideWarmup, isSilent, transcriptUsable } from '../warmup';
 
 const loud = MIC_SOUND_LEVEL + 0.2;
 const silent = 0;
@@ -32,5 +32,18 @@ describe('decideWarmup (junior-track §2)', () => {
     expect(transcriptUsable('ok')).toBe(true);
     expect(transcriptUsable('')).toBe(false);
     expect(transcriptUsable(' ?! ')).toBe(false);
+  });
+});
+
+describe('isSilent', () => {
+  it('is silence only when there is no usable transcript AND no sound', () => {
+    expect(isSilent({ peakMicLevel: silent, transcript: '' })).toBe(true);
+    expect(isSilent({ peakMicLevel: silent, transcript: ' … ' })).toBe(true);
+  });
+  it('sound without a transcript is a recogniser miss, not silence', () => {
+    expect(isSilent({ peakMicLevel: loud, transcript: '' })).toBe(false);
+  });
+  it('a transcript is never silence, even under the level threshold', () => {
+    expect(isSilent({ peakMicLevel: silent, transcript: 'bleu' })).toBe(false);
   });
 });

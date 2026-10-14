@@ -14,6 +14,14 @@
  * modelling: a repeat after Léo said the sentence never changes it (an `almost`
  * stays `almost` even if the repeat is perfect).
  *
+ * Silence (no audio detected — warmup.ts's `isSilent`): the kid is asked again.
+ * A silent try is not an attempt: it is not recorded, never counts toward the
+ * two-"none" rule, and never reaches the scaffold or the tally. Léo asks again
+ * (« Encore ? », then the "Check your mic 🎙" hint). So a broken or blocked mic
+ * can never stall a mission, after MAX_SILENT_REPEATS silent tries in a row the
+ * next silence is treated as an ordinary `none` (question turns) or completes
+ * the turn (« Et toi ? »); any heard try resets the count.
+ *
  * Warm-up: always accepted (one `checkMic` retry at most, see warmup.ts).
  * « Et toi ? »: always complete, whatever was heard (§7).
  *
@@ -28,6 +36,9 @@ import type { WarmupDecision } from './warmup';
 
 /** After this many `none` results on one turn, the mission moves on (§6). */
 export const MAX_NONE_PER_TURN = 2;
+
+/** Silent tries in a row that are re-asked before a silence counts as `none`. UNVALIDATED: tune at the playtest. */
+export const MAX_SILENT_REPEATS = 3;
 
 /**
  * The one optional line Léo shows/says for a response. Resolved to text by the UI
@@ -57,6 +68,8 @@ export interface QuestionTurnState {
   decisive: MatchResult | null;
   /** The turn ended with « On le dit ensemble ! ». */
   together: boolean;
+  /** Silent tries in a row since the last heard one (never recorded as attempts). */
+  silences: number;
 }
 
 export interface WarmupTurnState {
@@ -71,6 +84,8 @@ export interface EtToiTurnState {
   kind: 'etToi';
   phase: 'answer' | 'done';
   outcome: 'complete' | null;
+  /** Silent tries in a row. */
+  silences: number;
 }
 
 export interface Step<S> {
@@ -89,12 +104,32 @@ const listen = (leo: LeoState, line: TurnLine | null, playModel = false): TurnRe
 // ── Question turns ───────────────────────────────────────────────────────────
 
 export function startQuestionTurn(): QuestionTurnState {
-  return { kind: 'question', phase: 'answer', attempts: [], outcome: null, decisive: null, together: false };
+  return { kind: 'question', phase: 'answer', attempts: [], outcome: null, decisive: null, together: false, silences: 0 };
+}
+
+const SILENT: MatchResult = { outcome: 'none', frames: [], heard: [] };
+
+/** The re-ask after a silent try: « Encore ? » the first time, then the mic hint. */
+const askAgain = (silences: number): TurnResponse => listen('listening', silences <= 1 ? 'encore' : 'checkMic');
+
+/**
+ * The kid said nothing (no audio detected): ask again without recording an
+ * attempt, up to MAX_SILENT_REPEATS times in a row; after that a silence is an
+ * ordinary `none`, so the two-"none" rule still guarantees the mission moves on.
+ */
+export function silentQuestion(state: QuestionTurnState): Step<QuestionTurnState> {
+  if (state.phase === 'done') return { state, response: moveOn('happy', null) };
+  if (state.silences < MAX_SILENT_REPEATS) {
+    const silences = state.silences + 1;
+    return { state: { ...state, silences }, response: askAgain(silences) };
+  }
+  return answerQuestion(state, SILENT);
 }
 
 export function answerQuestion(state: QuestionTurnState, match: MatchResult): Step<QuestionTurnState> {
   if (state.phase === 'done') return { state, response: moveOn('happy', null) };
   const attempts = [...state.attempts, match.outcome];
+  state = { ...state, silences: 0 };
   const done = (outcome: MatchOutcome, decisive: MatchResult | null, together = false): QuestionTurnState => ({
     ...state,
     phase: 'done',
@@ -147,12 +182,22 @@ export function answerWarmup(state: WarmupTurnState, decision: WarmupDecision): 
 // ── « Et toi ? » ─────────────────────────────────────────────────────────────
 
 export function startEtToiTurn(): EtToiTurnState {
-  return { kind: 'etToi', phase: 'answer', outcome: null };
+  return { kind: 'etToi', phase: 'answer', outcome: null, silences: 0 };
+}
+
+/** The kid said nothing: ask again, up to MAX_SILENT_REPEATS times; after that the turn completes anyway. */
+export function silentEtToi(state: EtToiTurnState): Step<EtToiTurnState> {
+  if (state.phase === 'done') return { state, response: moveOn('happy', null) };
+  if (state.silences < MAX_SILENT_REPEATS) {
+    const silences = state.silences + 1;
+    return { state: { ...state, silences }, response: askAgain(silences) };
+  }
+  return answerEtToi(state);
 }
 
 /** Whatever was heard — even nothing — the turn is complete and Léo gives his funny reply (§7). */
 export function answerEtToi(state: EtToiTurnState): Step<EtToiTurnState> {
-  return { state: { ...state, phase: 'done', outcome: 'complete' }, response: moveOn('happy', 'etToiReply') };
+  return { state: { ...state, phase: 'done', outcome: 'complete', silences: 0 }, response: moveOn('happy', 'etToiReply') };
 }
 
 // ── Level-up ─────────────────────────────────────────────────────────────────

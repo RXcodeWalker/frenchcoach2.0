@@ -12,7 +12,7 @@ rules that must not drift.
 1. **Junior never touches `src/domain/igcse/`, and never feeds IGCSE aggregates.** No file under
    `src/domain/igcse/`, `scripts/scoring/` or `server/` may import or name Junior modules
    (`src/domain/junior/`, `src/data/junior/`, `src/features/junior/`), and Junior imports nothing
-   from the scored pipeline. Junior writes no `Session`, XP event, topic mastery, Learn evidence or
+   from the scored pipeline, not even transitively (enforced by `src/domain/junior/__tests__/isolation.test.ts`). Junior writes no `Session`, XP event, topic mastery, Learn evidence or
    exam-derived aggregate.
 2. **It is not a generic rubric engine.** Junior has no rubric, bands or marks; it matches a
    learner's words against a closed, authored target sentence. ADR 0001 (Cambridge 0520 only, no

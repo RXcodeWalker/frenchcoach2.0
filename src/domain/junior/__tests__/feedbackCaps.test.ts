@@ -11,6 +11,9 @@ import {
   answerEtToi,
   answerQuestion,
   answerWarmup,
+  MAX_SILENT_REPEATS,
+  silentEtToi,
+  silentQuestion,
   startEtToiTurn,
   startQuestionTurn,
   startWarmupTurn,
@@ -29,11 +32,18 @@ const m = (outcome: MatchOutcome): MatchResult => ({ outcome, frames: [], heard:
 function allQuestionResponses(): TurnResponse[] {
   const out: TurnResponse[] = [];
   const walk = (state: QuestionTurnState, depth: number) => {
-    if (depth > 4) throw new Error('a question turn never ended');
+    if (depth > 6) throw new Error('a question turn never ended');
     for (const o of OUTCOMES) {
       const step = answerQuestion(state, m(o));
       out.push(step.response, withLevelUp(step.response, true));
       if (step.response.next === 'listen') walk(step.state, depth + 1);
+    }
+    // Silent tries (re-asked, then an ordinary none after the cap).
+    let silent = state;
+    for (let i = 0; i <= MAX_SILENT_REPEATS && silent.phase !== 'done'; i++) {
+      const step = silentQuestion(silent);
+      out.push(step.response);
+      silent = step.state;
     }
   };
   walk(startQuestionTurn(), 0);
@@ -54,7 +64,7 @@ function allWarmupResponses(): TurnResponse[] {
 const NO_NUMBERS_OR_VERDICTS = /\d|%|score|grade|band|mark|wrong|incorrect|✗|❌/i;
 
 describe('per-turn feedback: Léo\'s state + at most one line', () => {
-  const responses = [...allQuestionResponses(), ...allWarmupResponses(), answerEtToi(startEtToiTurn()).response];
+  const responses = [...allQuestionResponses(), ...allWarmupResponses(), answerEtToi(startEtToiTurn()).response, silentEtToi(startEtToiTurn()).response];
   const theme = JUNIOR_BANK.themes[0];
 
   it('every response carries a single line key or none', () => {

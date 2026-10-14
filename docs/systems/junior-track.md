@@ -6,8 +6,10 @@ below). Why it is separate from the Cambridge 0520 work:
 and its tests are the current behavior. It is **§-numbered and live — never renumber a section**
 (cite as `junior-track §N`).
 
-**Status: specified, not built.** Implementation proceeds in batches (content bank → pure logic →
-UI → Whisper fallback → playtest gate → scale-up). Nothing here is shipped until its batch lands.
+**Status: content bank (`src/data/junior/`) and pure logic (`src/domain/junior/`) built; no UI,
+state or route yet, so nothing is reachable in the app.** Implementation proceeds in batches
+(content bank → pure logic → UI → Whisper fallback → playtest gate → scale-up). Nothing here is
+shipped until its batch lands.
 
 ## Purpose
 
@@ -114,11 +116,20 @@ Rules:
 - **Guaranteed progress.** After **2 "none" results on the same turn** there is never a third ask.
   Léo says "On le dit ensemble !", plays the model sentence, and the mission moves on. The turn is
   **recorded honestly as "none"** and never upgraded to "got it".
+- **Silence is asked again, not counted.** When no audio is detected (no usable transcript *and* the
+  mic level never reached the sound threshold), the learner is asked again: « Encore ? » the first
+  time, then the "Check your mic 🎙" hint. A silent try is not an attempt: it is not recorded and
+  never counts toward the 2-"none" rule. So that a broken or blocked mic cannot stall a mission,
+  after 3 silent tries in a row (`MAX_SILENT_REPEATS`, tuned at the playtest) the next silence
+  counts as an ordinary "none"; on « Et toi ? » it completes the turn. Sound with no usable
+  transcript is a recogniser miss and is an ordinary "none" straight away.
 - **Free step.** An answer matching a pattern with **any** word from that theme's vocabulary counts
   as "got it".
 - **English look-alikes never count.** "blue" (or a recogniser spelling like "blou") is not "bleu".
   Matching uses the French form only; these cases are in the golden table.
-- Matching reuses `phraseHeard` / `quoteHeard` from `src/domain/learn/feedback/fixMatch.ts`.
+- Whole-word matching is `src/domain/junior/words.ts`, a copy of the word helpers in
+  `src/domain/learn/feedback/fixMatch.ts` (`phraseHeard`). It is copied, not imported, because
+  `fixMatch.ts` also pulls in the exam's sound-alike tables under `src/domain/igcse/` (ADR 0012).
   `compareRetake.ts` shows the same "report what was heard, never a verdict" approach.
 
 ## §7 Léo
