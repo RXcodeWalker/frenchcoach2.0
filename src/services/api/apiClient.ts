@@ -687,7 +687,7 @@ export interface TranscribeAudioResult {
  * _TRANSCRIBE_QUOTA_FEATURE): omitted = the shared `transcribe` cap, `exam_turn`
  * = one answer of an Exam Sim / Coached exam, `learn` = one Learn answer.
  */
-export type TranscribePurpose = 'learn' | 'exam_turn';
+export type TranscribePurpose = 'learn' | 'exam_turn' | 'junior';
 
 export interface TranscribeAudioOptions {
   /**

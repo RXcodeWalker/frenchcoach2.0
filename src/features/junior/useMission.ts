@@ -41,7 +41,9 @@ import {
   type EtToiTurnState, type QuestionTurnState, type TurnLineText, type TurnResponse, type WarmupTurnState,
 } from '../../domain/junior/turnFlow';
 import type { JuniorTurnResult as PostcardTurn, LeoState, Recogniser, ScaffoldStep } from '../../domain/junior/types';
+import { chooseTranscript, needsWhisper } from '../../domain/junior/recogniser';
 import { decideWarmup, isSilent } from '../../domain/junior/warmup';
+import { transcribeJuniorTurn } from './juniorTranscription';
 import { useLeoVoice, type LeoVoice, type SpeakableLine } from './leoVoice';
 import { WARMUP_PROMPT } from '../../data/junior';
 import { leoLook, type LeoLook } from './look';
@@ -236,7 +238,7 @@ export function useMission(themeId: string, bank: JuniorBank = JUNIOR_BANK): Use
         const ts = current.turnState as WarmupTurnState;
         const decision = decideWarmup({ peakMicLevel: r.peak, transcript: r.transcript, attempt: ts.phase === 'retry' ? 2 : 1 });
         const step = answerWarmup(ts, decision);
-        // 'whisper' arrives with the Whisper batch (junior-track §2); until then the existing recorder path carries on.
+        // 'whisper': the rest of this mission's question turns are read by Whisper (readTranscript below).
         if (step.state.recogniser) recogniserRef.current = step.state.recogniser;
         const line = step.response.line ? turnLineText(step.response.line, { turnIndex: current.index }) : null;
         speakResponse(step.response, line, []);
@@ -322,7 +324,16 @@ export function useMission(themeId: string, bank: JuniorBank = JUNIOR_BANK): Use
     [bank, themeId, dispatch],
   );
 
-  const capture = useJuniorCapture(blocked, handleResult);
+  // The Whisper path (junior-track §2): runs while the capture is still busy, before handleResult reads the turn.
+  const readTranscript = useCallback(async (r: CaptureResult): Promise<string> => {
+    const turn = runRef.current?.turn.kind;
+    if (!turn || !needsWhisper({
+      turn, recogniser: recogniserRef.current, webSpeechSupported: r.webSpeechSupported, transcript: r.transcript, peakMicLevel: r.peak,
+    })) return r.transcript;
+    return chooseTranscript(r.transcript, await transcribeJuniorTurn(r.blob));
+  }, []);
+
+  const capture = useJuniorCapture(blocked, handleResult, readTranscript);
 
   const complete = useCallback(() => {
     if (finishedRef.current || !theme) return;

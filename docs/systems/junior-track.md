@@ -8,9 +8,8 @@ and its tests are the current behavior. It is **§-numbered and live — never r
 
 **Status: content bank (`src/data/junior/`), pure logic (`src/domain/junior/`), Junior state in
 `AppContext` (3A), the screens (3B: `src/screens/junior/`, `src/features/junior/`, routes `/junior` and
-`/junior/:themeId`, the Exam/Junior switch in Onboarding and Profile) and Léo's voice wiring (3C) are
-built. Not built yet: the Whisper path (§2's second row degrades to the existing recorder path), the
-dev-only playtest read-out route, and any recorded audio file — `src/data/junior/audioManifest.ts` is
+`/junior/:themeId`, the Exam/Junior switch in Onboarding and Profile), Léo's voice wiring (3C) and the
+Whisper fallback (Batch 4, §2) are built. Not built yet: the dev-only playtest read-out route, and any recorded audio file — `src/data/junior/audioManifest.ts` is
 empty, so until files are recorded a line has a 🔊 only where the browser has a French voice.**
 Implementation proceeds in batches (content bank → pure logic → UI → Whisper fallback → playtest gate →
 scale-up). Nothing here is shipped until its batch lands.
@@ -55,8 +54,24 @@ mic button, checks the mic, and tests the recogniser on this device. It uses the
 
 Whisper is also used when Web Speech is missing (iPad Safari) or returns nothing for a turn. Whisper
 is **never biased with the expected sentence** — that would produce dishonest "got it"s. The
-Whisper path uses `/api/transcribe` with `purpose=junior` (its own quota feature); it arrives in a
-later batch, and until then the table's second row degrades to the existing recorder path.
+Whisper path uses `/api/transcribe` with `purpose=junior` (its own quota feature, `junior_transcribe`).
+
+How it is wired (Batch 4):
+
+- Only **question turns** go to Whisper (`domain/junior/recogniser.ts`'s `needsWhisper`). The warm-up
+  is always accepted and its own transcript is what tests the recogniser; « Et toi ? » always
+  completes, so its words change nothing.
+- A **silent** try (no words and no mic sound) is never sent: it is re-asked as before, and a silent
+  mic gives Whisper nothing to hear.
+- **No prompt is sent at all** — not the expected sentence, and not the question either (the kid built
+  the answer from the pictures on screen, so any context leans toward the target).
+- Whisper's text replaces Web Speech's only when it is usable. A failure, timeout
+  (`JUNIOR_TRANSCRIBE_TIMEOUT_MS`, UNVALIDATED, tuned at the playtest), quota or consent refusal, or a
+  suspect result (text invented on silence, looping — the shared `suspectTranscription` screen) keeps
+  Web Speech's transcript, so a recogniser problem never blocks a turn and a miss stays a miss.
+- The call runs while the capture is still busy (`useJuniorCapture`'s `readTranscript`), so taps stay
+  ignored and there is still exactly one live capture; leaving the turn while it is in flight drops
+  its result.
 
 ## §3 Pick, then Say
 

@@ -14,6 +14,7 @@ const rec = {
   level: { current: 0 },
   transcript: 'bonjour',
   stopDelay: 0,
+  sttSupported: true,
 };
 
 vi.mock('../../recording/useRecording', () => ({
@@ -32,21 +33,22 @@ vi.mock('../../recording/useRecording', () => ({
       return rec.transcript;
     },
     audioBlobPromise: async () => null,
+    get sttSupported() { return rec.sttSupported; },
   }),
 }));
 
-import { useJuniorCapture, type CaptureResult } from '../useJuniorCapture';
+import { useJuniorCapture, type CaptureResult, type ReadTranscript } from '../useJuniorCapture';
 
 beforeEach(() => {
   vi.useFakeTimers();
-  Object.assign(rec, { live: 0, maxLive: 0, starts: 0, stops: 0, transcript: 'bonjour', stopDelay: 0 });
+  Object.assign(rec, { live: 0, maxLive: 0, starts: 0, stops: 0, transcript: 'bonjour', stopDelay: 0, sttSupported: true });
   rec.level.current = 0;
 });
 afterEach(() => vi.useRealTimers());
 
-function setup(blocked = false) {
+function setup(blocked = false, read?: ReadTranscript) {
   const results: CaptureResult[] = [];
-  const hook = renderHook(() => useJuniorCapture(blocked, (r) => results.push(r)));
+  const hook = renderHook(() => useJuniorCapture(blocked, (r) => results.push(r), read));
   return { hook, results };
 }
 
@@ -118,5 +120,55 @@ describe('useJuniorCapture', () => {
     await act(async () => { hook.result.current.cancel(); await vi.advanceTimersByTimeAsync(0); });
     expect(rec.live).toBe(0);
     expect(results).toHaveLength(0);
+  });
+
+  describe('the Whisper read (junior-track §2, Batch 4)', () => {
+    it('hands the read step the capture and delivers its transcript, with Web Speech support reported', async () => {
+      rec.sttSupported = false;
+      rec.transcript = '';
+      const read = vi.fn<ReadTranscript>(async () => "j'aime le bleu");
+      const { hook, results } = setup(false, read);
+      act(() => hook.result.current.toggle());
+      await act(async () => { hook.result.current.toggle(); await vi.advanceTimersByTimeAsync(0); });
+      expect(read).toHaveBeenCalledTimes(1);
+      expect(read.mock.calls[0][0]).toMatchObject({ transcript: '', webSpeechSupported: false });
+      expect(results).toHaveLength(1);
+      expect(results[0]).toMatchObject({ transcript: "j'aime le bleu", webSpeechSupported: false });
+    });
+
+    it('stays busy while the read is in flight: taps are ignored, so there is still one live capture', async () => {
+      let release!: (t: string) => void;
+      const read = vi.fn<ReadTranscript>(() => new Promise<string>((r) => { release = r; }));
+      const { hook, results } = setup(false, read);
+      act(() => hook.result.current.toggle());
+      await act(async () => { hook.result.current.toggle(); await vi.advanceTimersByTimeAsync(0); });
+      expect(hook.result.current.busy).toBe(true);
+      await act(async () => {
+        for (let i = 0; i < 5; i++) hook.result.current.toggle();
+        await vi.advanceTimersByTimeAsync(100);
+      });
+      expect(rec.starts).toBe(1);
+      expect(rec.maxLive).toBe(1);
+      await act(async () => { release('bonjour'); await vi.advanceTimersByTimeAsync(0); });
+      expect(hook.result.current.busy).toBe(false);
+      expect(results).toHaveLength(1);
+    });
+
+    it('a failing read keeps the live transcript', async () => {
+      const { hook, results } = setup(false, async () => { throw new Error('boom'); });
+      act(() => hook.result.current.toggle());
+      await act(async () => { hook.result.current.toggle(); await vi.advanceTimersByTimeAsync(0); });
+      expect(results[0].transcript).toBe('bonjour');
+    });
+
+    it('cancel while the read is in flight drops the result (its turn is gone)', async () => {
+      let release!: (t: string) => void;
+      const { hook, results } = setup(false, () => new Promise<string>((r) => { release = r; }));
+      act(() => hook.result.current.toggle());
+      await act(async () => { hook.result.current.toggle(); await vi.advanceTimersByTimeAsync(0); });
+      await act(async () => { hook.result.current.cancel(); release('bonjour'); await vi.advanceTimersByTimeAsync(0); });
+      expect(results).toHaveLength(0);
+      expect(hook.result.current.busy).toBe(false);
+    });
   });
 });
