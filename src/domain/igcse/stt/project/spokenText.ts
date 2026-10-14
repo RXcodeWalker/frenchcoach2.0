@@ -12,8 +12,9 @@
  *    spans. With two recognisers that is where they disagreed on such a word
  *    (`domain/transcription/alignRecognisers.ts`, the one aligner Learn uses
  *    too); with only one recogniser it is every such word, because nothing
- *    confirms it. Clearly different words are `different` spans, kept for
- *    audit: the primary recogniser's reading stands.
+ *    confirms it. Clearly different words are `different` spans: the primary
+ *    reading stays the marked text, but until the STT benchmark they are
+ *    uncertain too (judgement/homophoneErrors.ts DIFFERENT_WORDS_ARE_UNCERTAIN).
  *
  * Typed text is never respelled and carries no spans: a typed spelling is what
  * the candidate wrote. Pure and deterministic.

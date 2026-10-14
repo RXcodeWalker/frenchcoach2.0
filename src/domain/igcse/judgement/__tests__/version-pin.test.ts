@@ -18,9 +18,9 @@ const QOL_PROMPT_FIXTURE_HASH = 'e9b7700da7304c59c68fc836117d3df0d55f29292c8432d
 // scoring-prompt-v0.7 (stage 6): the two pins above did not move (no answer
 // has an "Uncertain words" line); these pin the lines, the benefit-of-the-doubt
 // rules and the re-ask's "Not errors" section.
-const UNCERTAIN_MAIN_PROMPT_HASH = '759ca7aa86e462d15093ce67b78eb9ccd62606cfe233dbaded25cbdfcad6c113';
-const UNCERTAIN_QOL_PROMPT_HASH = 'ee5dc6a61e3c78773964c7c3cd8268294d2deee96c1716577b9423b7e0f1309f';
-const QOL_REASK_PROMPT_HASH = 'b2cb8037e687773302d522a028f945872cf2bc1cda588560cf7964d0e57222de';
+const UNCERTAIN_MAIN_PROMPT_HASH = '5437fb089760479d952feae2faafe9f3f4d6dd106f7e92d7dba59b5f4ce48154';
+const UNCERTAIN_QOL_PROMPT_HASH = '0d4736ea76184bff77c72d08f814824e33d93b6264022b58928feabf0cd4b46f';
+const QOL_REASK_PROMPT_HASH = '7b01352c88d026e73be718f578a8be070c231d16b192c165e9c103002a03274a';
 
 function sha256(value: string): string {
   return createHash('sha256').update(value).digest('hex');

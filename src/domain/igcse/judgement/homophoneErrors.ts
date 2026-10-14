@@ -13,9 +13,16 @@
  *    one of the answer's `nearHomophone` spans for that pair — the two
  *    recognisers disagreed on it, or only one recogniser read the answer.
  *    Benefit of the doubt; the feedback still names the word.
- *  - 'counted': anything else — a clearly different word, a Category B word
- *    both recognisers agreed on, a typed answer, a Category B word whose quote
- *    cannot be placed in its answer, an error listed with an identical correction.
+ *  - 'recognisersDisagree': the quote covers a stretch the two recognisers
+ *    heard as clearly different words, and the correction puts the other
+ *    recogniser's words there (the error is about the disputed word, even if
+ *    the judge also tidied the words around it). While
+ *    DIFFERENT_WORDS_ARE_UNCERTAIN is on (owner, 2026-10-14, until the STT
+ *    benchmark), a clearly different word gets the same benefit of the doubt
+ *    as a Category B disagreement.
+ *  - 'counted': anything else — a Category B or different word both
+ *    recognisers agreed on, a typed answer, a quote that cannot be placed in
+ *    its answer, an error listed with an identical correction.
  *
  * A quote and its correction of different lengths ("voiture" -> "de
  * voitures") are lined up with the words around them first (alignedPairs).
@@ -41,6 +48,16 @@ import type {
   QualityOfLanguageAssessment,
   SpeakingTranscript,
 } from './types';
+
+/**
+ * Owner decision (2026-10-14): a word the two recognisers heard as clearly
+ * different words is treated as a disagreement — uncertain, benefit of the
+ * doubt — until the STT benchmark (plan Phase 2) shows the batch recogniser
+ * can be trusted over the live captions. Read by this classifier and by the
+ * judge prompt's "Uncertain words" line (prompt.ts). Turning it off restores
+ * "the primary recogniser wins"; either change is a SCORING_PROMPT_VERSION bump.
+ */
+export const DIFFERENT_WORDS_ARE_UNCERTAIN = true;
 
 export type QolErrorClass = ExcuseReason | 'counted';
 
@@ -162,6 +179,79 @@ function alignedPairs(
   return pairs;
 }
 
+/** Every word equal, or sounding the same (Category A) — the quote reads as the correction. */
+function sameWords(a: readonly Token[], b: readonly Token[]): boolean {
+  return (
+    a.length === b.length &&
+    a.every((t, k) => {
+      if (t.lower === b[k].lower) return true;
+      const pause = t.pauseAfter || b[k].pauseAfter;
+      return (
+        soundsIdenticalInContext(t.lower, b[k].lower, a[k + 1]?.lower, pause) &&
+        soundsIdenticalInContext(t.lower, b[k].lower, b[k + 1]?.lower, pause)
+      );
+    })
+  );
+}
+
+/** Whether `needle` occurs as a run of words in `hay` (Category A spellings count as the same word). */
+function containsRun(hay: readonly Token[], needle: readonly Token[]): boolean {
+  if (needle.length === 0) return false;
+  for (let i = 0; i + needle.length <= hay.length; i += 1) {
+    if (sameWords(hay.slice(i, i + needle.length), needle)) return true;
+  }
+  return false;
+}
+
+/**
+ * 'recognisersDisagree' for the quote placed at `at`. The quote must cover a
+ * whole `different` disagreement span, and then either the quote read with the
+ * other recogniser's words lines up with the correction (padding as in
+ * alignedPairs), or the correction replaces the disputed words with the other
+ * recogniser's words ("Mes parents il monge" -> "Mes parents mangent", where
+ * the captions heard "ils mangent"): the judge's error is about the word the
+ * recognisers disputed.
+ */
+function otherReadingMatches(
+  turn: ConversationTurn,
+  answer: readonly Word[],
+  at: number,
+  quote: readonly Token[],
+  correction: readonly Token[],
+): boolean {
+  const first = answer[at].index;
+  const last = answer[at + quote.length - 1].index;
+  const spans = (turn.ambiguousSpans ?? []).filter(
+    (s) =>
+      s.kind === 'different' && s.basis === 'disagreement' && s.end > s.start && s.alternatives.length > 0 &&
+      s.start <= last && first < s.end,
+  );
+  if (spans.length === 0) return false;
+  const otherWords = (s: (typeof spans)[number]) => tokenize(s.alternatives[0]).filter((t) => t.lower !== '');
+  const heardWords = (s: (typeof spans)[number]) => answer.filter((w) => w.index >= s.start && w.index < s.end).map((w) => w.token);
+  const replacesDisputed = spans.every(
+    (s) =>
+      s.start >= first && s.end <= last + 1 &&
+      containsRun(correction, otherWords(s)) && !containsRun(correction, heardWords(s)),
+  );
+  if (replacesDisputed) return true;
+  const from = Math.min(first, ...spans.map((s) => s.start));
+  const to = Math.max(last + 1, ...spans.map((s) => s.end));
+  const other: Token[] = [];
+  for (let index = from; index < to; ) {
+    const span = spans.find((s) => s.start === index);
+    if (span) {
+      other.push(...tokenize(span.alternatives[0]).filter((t) => t.lower !== ''));
+      index = span.end;
+      continue;
+    }
+    const word = answer.find((w) => w.index === index);
+    if (word) other.push(word.token);
+    index += 1;
+  }
+  return alignedPairs([], null, other, correction).some((p) => sameWords(p.quote, p.correction));
+}
+
 /** Sorts one QoL error (see the module header). */
 export function classifyQolError(error: QolError, transcript: SpeakingTranscript): QolErrorClassification {
   const turn = findTurn(transcript, error);
@@ -178,7 +268,12 @@ export function classifyQolError(error: QolError, transcript: SpeakingTranscript
   const verdicts = placements.flatMap((at) =>
     alignedPairs(answer, at, quote, correction).map((p) => verdictAt(turn, answer, p.at, p.quote, p.correction)),
   );
-  return verdicts.find((v) => v.verdict === 'inaudible') ?? verdicts.find((v) => v.verdict === 'ambiguousNear') ?? COUNTED;
+  const excused = verdicts.find((v) => v.verdict === 'inaudible') ?? verdicts.find((v) => v.verdict === 'ambiguousNear');
+  if (excused) return excused;
+  if (DIFFERENT_WORDS_ARE_UNCERTAIN && placements.some((at) => at !== null && otherReadingMatches(turn, answer, at, quote, correction))) {
+    return { verdict: 'recognisersDisagree', nearPairIds: [] };
+  }
+  return COUNTED;
 }
 
 export interface QolErrorSplit {

@@ -78,6 +78,13 @@ The scorer now consults `stt/homophones/` (`HOMOPHONE_TABLE_VERSION`, recorded i
   first mark and raises `homophone_penalty_unresolved` instead. Excused errors are kept in the
   envelope (`excusedErrors`, with reason and pair ids) so the feedback can still say "this might have
   been *X*; make sure you say it" — never a silent excuse.
+- **Clearly different words (owner, 2026-10-14, until the STT benchmark):** where the two recognisers
+  heard clearly different words, the word is treated as a disagreement too — an "Uncertain words"
+  line, and an error whose correction is what the other recogniser heard is excused as
+  `recognisersDisagree`. This replaces "Whisper wins" for now: a simulated exam built on the owner's
+  own misheard recordings lost 2–3 marks under it. The batch reading is still the marked text. One
+  switch, `DIFFERENT_WORDS_ARE_UNCERTAIN` (`judgement/homophoneErrors.ts`); turning it off after the
+  benchmark is a `SCORING_PROMPT_VERSION` bump.
 - Versions: `detectors-v0.7`, `scoring-prompt-v0.7`, `guardrails-v0.7`, `envelope-v0.5`.
 
 Not in this amendment (later stage): the post-marking report's Category B notes, the respelled

@@ -31,7 +31,7 @@ import type { BuildScoringEnvelopeInput } from '../../envelope/buildEnvelope';
  * unchanged — verified by ceilingApplied.test.ts and the golden diff, which
  * show no mark moving on any unclamped path.
  */
-const GUARDRAILS_FIXTURE_HASH = '9d9025b617b949b3ea41ae6c66b8493dbc2c6c5d694074312b539c8b5e3e9266';
+const GUARDRAILS_FIXTURE_HASH = 'c9c581662c6597e9f068ada857f628c1367c74c8262f693e248badc2be67c626';
 
 /**
  * Stage 6 (guardrails-v0.7): the sound-alike guardrail's output for fixed step

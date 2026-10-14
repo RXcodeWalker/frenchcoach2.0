@@ -24,9 +24,10 @@ export type ContentProvenance = 'original-practice' | 'confidential-internal';
  *    they disagreed on such a word; with one recogniser every such word is
  *    listed, because nothing confirms it. The candidate gets the benefit of
  *    the doubt there (judgement/homophoneErrors.ts).
- *  - `different`: the recognisers heard clearly different words. Kept for
- *    audit only — the primary recogniser's reading stands and an error in it
- *    counts.
+ *  - `different`: the recognisers heard clearly different words. The primary
+ *    reading is still the marked text; until the STT benchmark, the word is
+ *    treated as uncertain like a Category B disagreement
+ *    (judgement/homophoneErrors.ts DIFFERENT_WORDS_ARE_UNCERTAIN).
  */
 export interface AmbiguousSpan {
   kind: 'nearHomophone' | 'different';
@@ -208,13 +209,18 @@ export interface QolError {
  *  - 'ambiguousNear': the difference is a Category B pair (un/en, ont/sont…)
  *    at a word the recognisers could not confirm. Benefit of the doubt — but
  *    the feedback still says "this might have been X; make sure you say it".
+ *  - 'recognisersDisagree': the two recognisers heard clearly different words
+ *    there and the correction is what the other one heard. Owner decision
+ *    (2026-10-14): benefit of the doubt until the STT benchmark shows the batch
+ *    recogniser can be trusted over the live captions
+ *    (judgement/homophoneErrors.ts DIFFERENT_WORDS_ARE_UNCERTAIN).
  */
-export type ExcuseReason = 'inaudible' | 'ambiguousNear';
+export type ExcuseReason = 'inaudible' | 'ambiguousNear' | 'recognisersDisagree';
 
 /** A QoL error the marker took out of the counted list, with its reason. */
 export interface ExcusedQolError extends QolError {
   reason: ExcuseReason;
-  /** The Category B pair ids behind an 'ambiguousNear' excuse; [] for 'inaudible'. */
+  /** The Category B pair ids behind an 'ambiguousNear' excuse; [] otherwise. */
   nearPairIds: string[];
 }
 

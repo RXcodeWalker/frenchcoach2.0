@@ -353,9 +353,13 @@ describe('stage 6: uncertain words and the re-ask (scoring-prompt-v0.7)', () => 
     ).toBe('Uncertain words: "le" — could also be "les"');
   });
 
-  it('never prints a `different` span (the primary reading stands) and prints nothing for an answer with no Category B word', () => {
-    expect(main).not.toContain('Tomas');
-    expect(formatUncertainWords([{ kind: 'different', basis: 'disagreement', start: 0, end: 1, heard: 'chien', alternatives: ['chat'], pairIds: [] }])).toBeNull();
+  it('prints a clearly different word as uncertain only when two recognisers disagreed (owner rule until the benchmark)', () => {
+    expect(qol).toContain('Uncertain words: "thomas" — also heard as "tomas"');
+    expect(formatUncertainWords([{ kind: 'different', basis: 'disagreement', start: 0, end: 1, heard: 'chien', alternatives: ['chat'], pairIds: [] }])).toBe(
+      'Uncertain words: "chien" — also heard as "chat"',
+    );
+    // Only the second recogniser heard something here: nothing to swap, nothing printed.
+    expect(formatUncertainWords([{ kind: 'different', basis: 'disagreement', start: 2, end: 2, heard: '', alternatives: ['euh'], pairIds: [] }])).toBeNull();
     expect(formatUncertainWords(undefined)).toBeNull();
   });
 

@@ -141,11 +141,13 @@ export const SYNTHETIC_MANIFEST: SyntheticManifestEntry[] = [
     note: 'Category B, both recognisers heard "en": no span, the error counts, no re-ask, QoL stays 7.',
   },
   {
-    id: 'sound-alike-different-word-counted',
+    id: 'sound-alike-different-word-excused',
     taxonomyTag: 'soundAlikeTranscription',
     ...SOUND_ALIKE_DIFFERENT_WORD,
-    expectedGuardrails: [],
-    note: 'Recognisers heard clearly different words (un / une): a `different` span, audit only — the error counts.',
+    expectedGuardrails: ['homophone_error_excused'],
+    note:
+      'Recognisers heard clearly different words (un / une): until the STT benchmark this is a disagreement — ' +
+      '"Uncertain words" line, the error matching the other reading is excused as recognisersDisagree, re-ask 7 -> 8.',
   },
   {
     id: 'sound-alike-fallback-turn',

@@ -42,7 +42,8 @@ describe('goldenRegression', () => {
     expect(qol('sound-alike-near-disagreement-excused')).toEqual({ mark: 8, counted: 0, excused: ['ambiguousNear'] });
     // Counted: no re-ask, the first mark (7) and its error stand.
     expect(qol('sound-alike-near-agreement-counted')).toEqual({ mark: 7, counted: 1, excused: [] });
-    expect(qol('sound-alike-different-word-counted')).toEqual({ mark: 7, counted: 1, excused: [] });
+    // Owner rule until the STT benchmark: a clearly different word the recognisers disagreed on is excused too.
+    expect(qol('sound-alike-different-word-excused')).toEqual({ mark: 8, counted: 0, excused: ['recognisersDisagree'] });
     // Excused but the re-ask failed: the first mark stands, never raised by a guardrail.
     expect(qol('sound-alike-fallback-turn')).toEqual({ mark: 7, counted: 0, excused: ['ambiguousNear'] });
   });

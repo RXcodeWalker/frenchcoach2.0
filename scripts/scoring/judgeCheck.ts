@@ -494,7 +494,8 @@ async function main(): Promise<void> {
         const byReason = (r: string) => result.excusedErrors.filter((e) => e.reason === r).length;
         process.stdout.write(
           `    sound-alike step: re-ask ${result.reAsk} — QoL first reply ${result.firstQualityOfLanguage} -> kept ${result.qualityOfLanguage};` +
-            ` excused ${result.excusedErrors.length} (inaudible ${byReason('inaudible')}, ambiguousNear ${byReason('ambiguousNear')});` +
+            ` excused ${result.excusedErrors.length} (inaudible ${byReason('inaudible')}, ambiguousNear ${byReason('ambiguousNear')},` +
+            ` recognisersDisagree ${byReason('recognisersDisagree')});` +
             ` re-run still listed ${result.excusedInReAsk}\n`,
         );
         for (const e of result.excusedErrors) {

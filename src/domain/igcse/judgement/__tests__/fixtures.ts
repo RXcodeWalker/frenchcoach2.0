@@ -85,7 +85,8 @@ export const PRACTICE_TRANSCRIPT: SpeakingTranscript = {
  * spoken exam — the answer texts are unchanged (so every valid reply above
  * still grounds), with hand-written ambiguous spans: a two-recogniser
  * disagreement on "mes" (also heard "me"), one-recogniser Category B words in
- * topic1 q2 and role-play t4, and an audit-only `different` span.
+ * topic1 q2 and role-play t4, and a `different` disagreement ("Thomas" vs
+ * "Tomas"), uncertain while DIFFERENT_WORDS_ARE_UNCERTAIN is on.
  */
 export const PRACTICE_TRANSCRIPT_WITH_UNCERTAIN_WORDS: SpeakingTranscript = {
   ...PRACTICE_TRANSCRIPT,

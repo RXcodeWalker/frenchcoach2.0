@@ -4380,3 +4380,40 @@ but a v0.4 build refuses any v0.5 envelope already stored as newer than itself (
 asymmetric-rollback rule in `envelope/schema.ts`), so those attempts would need re-scoring. The client
 reads only the server-built view, so no client deploy order applies.
 
+
+### 2026-10-14 — owner decision: clearly different words are a disagreement until the STT benchmark
+
+After the old-vs-new comparison (Sim 3 lost 2–3 marks to Whisper's "il monge" / "deux ça"), the owner
+ruled: a word the two recognisers heard as clearly different words is treated like a Category B
+disagreement until the benchmark. `judgement/homophoneErrors.ts` `DIFFERENT_WORDS_ARE_UNCERTAIN = true`
+(one switch, read by the classifier and the prompt): a `different` disagreement span now prints as
+"Uncertain words: "monge" — also heard as "mangent"", and a QoL error whose correction reads as the
+other recogniser's words (Category A allowed, same padding as before) is excused with the new reason
+`recognisersDisagree` (envelope schema enum widened; v0.5 is unreleased). One recogniser only, or both
+recognisers agreeing, still counts. The marked text stays the batch reading.
+
+Versions: `scoring-prompt-v0.7` and `guardrails-v0.7` were never released, so — as with
+`homophone-table-v1` in stage 2 — the strings stay and only the pins move (the three uncertain-words /
+re-ask prompt hashes; the guardrail hash, because `homophone_error_excused` now counts three reasons).
+The PRACTICE_TRANSCRIPT prompt pins did not move.
+
+**Intended golden change, recorded before `--update-goldens`:** `sound-alike-different-word-counted` is
+replaced by `sound-alike-different-word-excused` (same transcript and first reply; the error is now
+excused as `recognisersDisagree`, re-ask 7 → 8, `homophone_error_excused`). The other nine goldens do
+not change.
+
+Follow-up the same day: the first version of the rule required the whole correction to read as the
+other recogniser's words, and a real judge reply on the owner's recording ("Mes parents il monge" →
+"Mes parents mangent", captions "ils mangent") still counted. The rule now also excuses a quote that
+covers the whole disputed span when the correction puts the other recogniser's words there and drops
+the disputed ones; a correction to anything else, one that keeps the disputed word, or a quote that
+misses it still counts (unit tests). Goldens unchanged by this refinement.
+
+Real judge, Sim 3 (owner's misheard "il monge" / "deux ça"), new pipeline with the rule: 37 (first QoL 13;
+both errors excused as `recognisersDisagree`; the re-run listed "deux ça" again, so 13 stood and
+`homophone_penalty_unresolved` fired) and 40 (QoL 13 → 15 after the re-ask). Before the rule: 37, 38, 38;
+old pipeline (captions): 40, 40. One re-ask cannot always overrule a judge that insists; the trigger
+records when it didn't.
+
+Verified: `typecheck`, `typecheck:server` clean; `typecheck:scripts` 11 (baseline); lint 0 errors;
+`npm test` 360 files / 4260 tests; `score:golden` 10/10.

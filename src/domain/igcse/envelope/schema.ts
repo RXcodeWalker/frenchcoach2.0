@@ -94,7 +94,7 @@ const QualityOfLanguageCriterionSchema = BandCriterionSchema.extend({
 
 // v0.5: optional — absent on older envelopes, never fabricated by the migration.
 const ExcusedErrorSchema = QolErrorSchema.extend({
-  reason: z.enum(['inaudible', 'ambiguousNear']),
+  reason: z.enum(['inaudible', 'ambiguousNear', 'recognisersDisagree']),
   nearPairIds: z.array(z.string()),
 });
 

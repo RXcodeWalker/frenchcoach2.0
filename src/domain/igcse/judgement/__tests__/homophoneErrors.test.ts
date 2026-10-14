@@ -87,7 +87,7 @@ describe('classifyQolError — Category B (benefit of the doubt only where uncon
     expect(verdict(t, err('q', 'le chat', 'les chats'))).toBe('counted');
   });
 
-  it('a clearly different word (the primary recogniser wins) counts', () => {
+  it('a clearly different word counts when the correction is not what the other recogniser heard', () => {
     const t = transcriptWith(spoken('q', "J'ai un chat noir", "J'ai un chien noir"));
     expect(t.topicConversations[0].turns[0].ambiguousSpans?.[0].kind).toBe('different');
     expect(verdict(t, err('q', 'un chat noir', 'une chatte noire'))).toBe('counted');
@@ -125,6 +125,41 @@ describe('classifyQolError — quote and correction of different lengths (real j
     const u = transcriptWith({ turnId: 'q', questionPrompt: 'Q?', candidateResponse: 'Hier je vais cinéma avec Paul.', inputMode: 'speech' });
     expect(verdict(u, err('q', 'je vais cinéma', 'je vais au cinéma'))).toBe('counted');
     expect(verdict(t, err('q', 'voiture', 'des voitures'))).toBe('counted');
+  });
+});
+
+describe('classifyQolError — clearly different words (owner rule until the STT benchmark)', () => {
+  it('the recognisers disagree and the correction is what the other one heard: recognisersDisagree', () => {
+    const t = transcriptWith(spoken('q', "J'ai deux ça qui dorment", "J'ai deux chats qui dorment"));
+    expect(classifyQolError(err('q', 'deux ça', 'deux chats'), t)).toEqual({ verdict: 'recognisersDisagree', nearPairIds: [] });
+    // Quoted with more context, or with the correction only covering the word.
+    expect(verdict(t, err('q', "J'ai deux ça qui", "J'ai deux chats qui"))).toBe('recognisersDisagree');
+    expect(verdict(t, err('q', 'ça', 'chats'))).toBe('recognisersDisagree');
+  });
+
+  it('a correction that puts the other reading in place is excused, even if it also tidies the words around it', () => {
+    // Real judge reply on the owner's recording: Whisper "il monge", captions "ils mangent".
+    const t = transcriptWith(spoken('q', 'Mes parents il monge à midi', 'Mes parents ils mangent à midi'));
+    expect(verdict(t, err('q', 'il monge', 'ils mangent'))).toBe('recognisersDisagree');
+    expect(verdict(t, err('q', 'Mes parents il monge', 'Mes parents mangent'))).toBe('recognisersDisagree');
+  });
+
+  it('a correction that is not the other reading, or keeps the disputed word, counts', () => {
+    const t = transcriptWith(spoken('q', "J'ai deux ça qui dorment", "J'ai deux chats qui dorment"));
+    expect(verdict(t, err('q', 'deux ça', 'deux chiens'))).toBe('counted');
+    expect(verdict(t, err('q', 'deux ça qui dorment', 'deux ça qui dort'))).toBe('counted');
+    // The quote does not cover the disputed word.
+    expect(verdict(t, err('q', 'qui dorment', 'qui dort'))).toBe('counted');
+  });
+
+  it('both recognisers heard the same wrong word: it counts', () => {
+    const t = transcriptWith(spoken('q', "J'ai deux ça qui dorment", "j'ai deux ça qui dorment"));
+    expect(verdict(t, err('q', 'deux ça', 'deux chats'))).toBe('counted');
+  });
+
+  it('one recogniser only: a clearly different word cannot be doubted, it counts', () => {
+    const t = transcriptWith(spoken('q', "J'ai deux ça qui dorment", null));
+    expect(verdict(t, err('q', 'deux ça', 'deux chats'))).toBe('counted');
   });
 });
 

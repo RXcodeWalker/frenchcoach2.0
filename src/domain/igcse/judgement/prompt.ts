@@ -5,6 +5,7 @@
 import { IGCSE_0520_SPEAKING } from '../rubric';
 import type { MarkBand } from '../rubric';
 import type { EvidenceProfile } from '../evidence/types';
+import { DIFFERENT_WORDS_ARE_UNCERTAIN } from './homophoneErrors';
 import { canonicalizeForMatch } from '../text/normalize';
 import type { AmbiguousSpan, ConversationTurn, ExaminerSupport, QolError, SpeakingTranscript } from './types';
 
@@ -140,14 +141,16 @@ function formatTurnLine(turn: ConversationTurn): string {
 /**
  * Stage 6 (transcription-accuracy plan, Phase 4): the line under a spoken
  * answer naming its Category B words the recognisers could not confirm, or
- * null when there are none. Only `nearHomophone` spans are rendered —
- * `different` spans are audit only (the primary reading stands). The answer
- * text itself is never changed, so quote grounding is unaffected.
+ * null when there are none. `nearHomophone` spans are always rendered; a
+ * `different` span (the recognisers heard clearly different words) is rendered
+ * while DIFFERENT_WORDS_ARE_UNCERTAIN is on (owner, until the STT benchmark).
+ * The answer text itself is never changed, so quote grounding is unaffected.
  */
 export function formatUncertainWords(spans: readonly AmbiguousSpan[] | undefined): string | null {
   const items: string[] = [];
   for (const span of spans ?? []) {
-    if (span.kind !== 'nearHomophone' || span.end <= span.start) continue;
+    if (span.end <= span.start) continue;
+    if (span.kind === 'different' && !(DIFFERENT_WORDS_ARE_UNCERTAIN && span.basis === 'disagreement')) continue;
     const heard = canonicalizeForMatch(span.heard);
     const others = span.alternatives.map((a) => canonicalizeForMatch(a)).filter((a) => a !== '' && a !== heard);
     if (heard === '' || others.length === 0) continue;
@@ -300,15 +303,15 @@ const EXAMINER_ROLE = 'You are a Cambridge IGCSE French 0520 Paper 3 Speaking ex
  * not confirm. Exported for prompt.test.ts.
  */
 export const UNCERTAIN_WORDS_LINE =
-  'Some responses are followed by an "Uncertain words:" line. Those words sound alike in a learner\'s accent or in fast speech, and the speech recognition could not confirm which one the candidate said. Give the benefit of the doubt: where the other word would be correct, treat the candidate as having said it. Quote evidence only from the candidate response itself, never from an "Uncertain words:" line.';
+  'Some responses are followed by an "Uncertain words:" line. The speech recognition could not confirm which of those words the candidate said: they sound alike in a learner\'s accent or in fast speech, or two recognisers heard them differently. Give the benefit of the doubt: where the other word would be correct, treat the candidate as having said it. Quote evidence only from the candidate response itself, never from an "Uncertain words:" line.';
 
 /** Stage 6: the QoL call's version of UNCERTAIN_WORDS_LINE (its rule 14), rendered under the same condition. */
 export const QOL_UNCERTAIN_WORDS_LINE =
-  'Some answers are followed by an "Uncertain words:" line. Those words sound alike in a learner\'s accent or in fast speech, and the speech recognition could not confirm which one the candidate said. Give the benefit of the doubt: where the other word would be correct, treat the candidate as having said it and do not list it as an error. Quote errors only from the candidate response itself, never from an "Uncertain words:" line.';
+  'Some answers are followed by an "Uncertain words:" line. The speech recognition could not confirm which of those words the candidate said: they sound alike in a learner\'s accent or in fast speech, or two recognisers heard them differently. Give the benefit of the doubt: where the other word would be correct, treat the candidate as having said it and do not list it as an error. Quote errors only from the candidate response itself, never from an "Uncertain words:" line.';
 
 /** Stage 6: the re-ask's explanation of its "Not errors" list. Exported for prompt.test.ts. */
 export const NOT_ERRORS_INTRO =
-  'An earlier marking of this transcript listed the entries below as errors. They are not errors: each one either sounds exactly the same as the correct form, or is a word the speech recognition could not tell apart from the correct one. Do not list them again, and do not let them lower the mark. Mark everything else exactly as you otherwise would.';
+  'An earlier marking of this transcript listed the entries below as errors. They are not errors: each one either sounds exactly the same as the correct form, or is a word the speech recognition could not confirm. Do not list them again, and do not let them lower the mark. Mark everything else exactly as you otherwise would.';
 
 function formatNotErrors(notErrors: readonly QolError[]): string {
   return [

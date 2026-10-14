@@ -340,13 +340,19 @@ export const SOUND_ALIKE_NEAR_AGREEMENT = soundAlikeCase(
   qolReply(7, [t2q2Error("j'ai en chien", "j'ai un chien")]),
 );
 
-/** A clearly different word (un / une is not a sound-alike pair): Whisper's reading wins and the error counts. */
+/**
+ * Recognisers heard clearly different words (un / une is not a sound-alike
+ * pair). Owner rule until the STT benchmark: treated as a disagreement — the
+ * error, whose correction is what the live captions heard, is excused as
+ * recognisersDisagree and the re-ask (7 -> 8) stands.
+ */
 export const SOUND_ALIKE_DIFFERENT_WORD = soundAlikeCase(
   withSpokenTopic2Q2(
     "Le soir nous préparons le dîner ensemble et je mange un pomme avec du fromage, puis nous regardons un match de football à la télé avec ses parents dans le salon pendant une heure ou deux avant de faire nos devoirs pour le lendemain.",
     "le soir nous préparons le dîner ensemble et je mange une pomme avec du fromage puis nous regardons un match de football à la télé avec ses parents dans le salon pendant une heure ou deux avant de faire nos devoirs pour le lendemain",
   ),
   qolReply(7, [t2q2Error('un pomme', 'une pomme')]),
+  qolReply(8, []),
 );
 
 /**

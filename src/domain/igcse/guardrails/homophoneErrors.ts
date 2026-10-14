@@ -5,7 +5,8 @@
  *
  *  - `homophone_error_excused`: the marker took at least one QoL error out of
  *    the counted list (judgement/homophoneErrors.ts) — Category A
- *    ('inaudible') or an unconfirmed Category B word ('ambiguousNear').
+ *    ('inaudible'), an unconfirmed Category B word ('ambiguousNear') or a
+ *    word the recognisers heard as clearly different ('recognisersDisagree').
  *  - `homophone_penalty_unresolved`: the kept QoL mark may still carry a
  *    penalty for an excusable error — the re-ask failed (the first mark
  *    stands), the re-run listed an excusable error anyway, or (defence in
@@ -31,14 +32,19 @@ export function checkHomophoneErrors(
 ): GuardrailTrigger[] {
   const triggers: GuardrailTrigger[] = [];
   const excused = record?.excusedErrors ?? [];
-  const inaudible = excused.filter((e) => e.reason === 'inaudible').length;
-  const ambiguousNear = excused.length - inaudible;
+  const count = (reason: ExcusedQolError['reason']) => excused.filter((e) => e.reason === reason).length;
+  const inaudible = count('inaudible');
+  const ambiguousNear = count('ambiguousNear');
+  const recognisersDisagree = count('recognisersDisagree');
   if (excused.length > 0) {
     triggers.push({
       id: 'homophone_error_excused',
-      message: `qualityOfLanguage: ${excused.length} error(s) excused as sound-alikes (inaudible ${inaudible}, ambiguousNear ${ambiguousNear})`,
+      message:
+        `qualityOfLanguage: ${excused.length} error(s) excused (inaudible ${inaudible}, ambiguousNear ${ambiguousNear}, ` +
+        `recognisersDisagree ${recognisersDisagree})`,
       inaudible,
       ambiguousNear,
+      recognisersDisagree,
     });
   }
 

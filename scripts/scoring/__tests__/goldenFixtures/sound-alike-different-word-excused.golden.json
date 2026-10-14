@@ -1,5 +1,5 @@
 {
-  "id": "sound-alike-different-word-counted",
+  "id": "sound-alike-different-word-excused",
   "evidence": {
     "schemaVersion": "evidence-profile-v1",
     "observationSchemaVersion": "observation-v1",
@@ -7882,10 +7882,12 @@
       }
     ]
   },
-  "guardrailTriggers": [],
+  "guardrailTriggers": [
+    "homophone_error_excused"
+  ],
   "envelope": {
-    "attemptId": "golden-sound-alike-different-word-counted",
-    "sessionId": "golden-session-sound-alike-different-word-counted",
+    "attemptId": "golden-sound-alike-different-word-excused",
+    "sessionId": "golden-session-sound-alike-different-word-excused",
     "scoredAt": "2025-01-01T00:00:00.000Z",
     "contentProvenance": "original-practice",
     "versions": {
@@ -8019,7 +8021,7 @@
       ]
     },
     "qualityOfLanguage": {
-      "mark": 7,
+      "mark": 8,
       "band": {
         "min": 7,
         "max": 9,
@@ -8033,21 +8035,25 @@
           "quote": "Je préfère le sport"
         }
       ],
-      "errors": [
-        {
-          "source": "topic2",
-          "turnId": "q2",
-          "quote": "un pomme",
-          "kind": "grammar",
-          "correction": "une pomme"
-        }
-      ],
-      "errorFrequency": "some errors"
+      "errors": [],
+      "errorFrequency": "occasional errors"
     },
-    "total": 24,
+    "total": 25,
     "criterionAdjustments": [],
-    "guardrailTriggers": [],
-    "excusedErrors": [],
+    "guardrailTriggers": [
+      "homophone_error_excused"
+    ],
+    "excusedErrors": [
+      {
+        "source": "topic2",
+        "turnId": "q2",
+        "quote": "un pomme",
+        "kind": "grammar",
+        "correction": "une pomme",
+        "reason": "recognisersDisagree",
+        "nearPairIds": []
+      }
+    ],
     "transcription": {
       "primaryTurns": 0,
       "fallbackTurns": 0,

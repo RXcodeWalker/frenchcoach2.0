@@ -31,7 +31,9 @@ deterministic guardrails → persisted `ScoringEnvelope`.
   - **The sound-alike step (stage 6, ADR 0011 item 7).** After both calls,
     `judgement/homophoneErrors.ts` sorts the QoL error list: `inaudible` (Category A — the quote and
     its correction sound the same where they stand, on a spoken answer), `ambiguousNear` (Category
-    B — the difference is an un/en, ont/sont… pair at a word the recognisers could not confirm) or
+    B — the difference is an un/en, ont/sont… pair at a word the recognisers could not confirm),
+    `recognisersDisagree` (the recognisers heard clearly different words there and the correction is
+    the other one's reading — owner rule until the STT benchmark, `DIFFERENT_WORDS_ARE_UNCERTAIN`) or
     counted. Excused errors leave `qualityOfLanguage.errors`; if any were excused the QoL call runs
     **once** more with them listed as "Not errors" and the re-run's mark is kept. A re-ask that
     still fails keeps the first mark (excused errors removed) and is flagged, never fails the
@@ -138,8 +140,9 @@ word count), and may be followed by an **"Uncertain words:"** line naming its Ca
 recognisers could not confirm — where they disagreed (`"un" — also heard as "en"`), or every such
 word when only one recogniser read the answer (`"le" — could also be "les"`). Both prompts then add
 a benefit-of-the-doubt rule. The line and the rule render only when such a word exists, so other
-transcripts render as before. Words the recognisers heard clearly differently (`different` spans)
-are never rendered: the batch reading stands. The spans themselves are snapshotted as
+transcripts render as before. Words the two recognisers heard clearly differently (`different`
+spans) are rendered the same way while `DIFFERENT_WORDS_ARE_UNCERTAIN` is on (until the STT
+benchmark); the batch reading is still the marked text. The spans themselves are snapshotted as
 `EvidenceProfile.ambiguousSpansByTurn` for audit; that field is **not** on the allow-list. Typed
 answers are never respelled and carry no spans.
 
