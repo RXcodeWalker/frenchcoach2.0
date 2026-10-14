@@ -70,6 +70,8 @@ export interface QuestionTurnState {
   together: boolean;
   /** Silent tries in a row since the last heard one (never recorded as attempts). */
   silences: number;
+  /** Every silent try on this turn (never reset). Feeds the playtest tally only — never the outcome. */
+  silentTries: number;
 }
 
 export interface WarmupTurnState {
@@ -86,6 +88,8 @@ export interface EtToiTurnState {
   outcome: 'complete' | null;
   /** Silent tries in a row. */
   silences: number;
+  /** Every silent try on this turn (never reset). Feeds the playtest tally only — never the outcome. */
+  silentTries: number;
 }
 
 export interface Step<S> {
@@ -104,7 +108,7 @@ const listen = (leo: LeoState, line: TurnLine | null, playModel = false): TurnRe
 // ── Question turns ───────────────────────────────────────────────────────────
 
 export function startQuestionTurn(): QuestionTurnState {
-  return { kind: 'question', phase: 'answer', attempts: [], outcome: null, decisive: null, together: false, silences: 0 };
+  return { kind: 'question', phase: 'answer', attempts: [], outcome: null, decisive: null, together: false, silences: 0, silentTries: 0 };
 }
 
 const SILENT: MatchResult = { outcome: 'none', frames: [], heard: [] };
@@ -119,11 +123,12 @@ const askAgain = (silences: number): TurnResponse => listen('listening', silence
  */
 export function silentQuestion(state: QuestionTurnState): Step<QuestionTurnState> {
   if (state.phase === 'done') return { state, response: moveOn('happy', null) };
+  const counted = { ...state, silentTries: state.silentTries + 1 };
   if (state.silences < MAX_SILENT_REPEATS) {
     const silences = state.silences + 1;
-    return { state: { ...state, silences }, response: askAgain(silences) };
+    return { state: { ...counted, silences }, response: askAgain(silences) };
   }
-  return answerQuestion(state, SILENT);
+  return answerQuestion(counted, SILENT);
 }
 
 export function answerQuestion(state: QuestionTurnState, match: MatchResult): Step<QuestionTurnState> {
@@ -182,17 +187,18 @@ export function answerWarmup(state: WarmupTurnState, decision: WarmupDecision): 
 // ── « Et toi ? » ─────────────────────────────────────────────────────────────
 
 export function startEtToiTurn(): EtToiTurnState {
-  return { kind: 'etToi', phase: 'answer', outcome: null, silences: 0 };
+  return { kind: 'etToi', phase: 'answer', outcome: null, silences: 0, silentTries: 0 };
 }
 
 /** The kid said nothing: ask again, up to MAX_SILENT_REPEATS times; after that the turn completes anyway. */
 export function silentEtToi(state: EtToiTurnState): Step<EtToiTurnState> {
   if (state.phase === 'done') return { state, response: moveOn('happy', null) };
+  const counted = { ...state, silentTries: state.silentTries + 1 };
   if (state.silences < MAX_SILENT_REPEATS) {
     const silences = state.silences + 1;
-    return { state: { ...state, silences }, response: askAgain(silences) };
+    return { state: { ...counted, silences }, response: askAgain(silences) };
   }
-  return answerEtToi(state);
+  return answerEtToi(counted);
 }
 
 /** Whatever was heard — even nothing — the turn is complete and Léo gives his funny reply (§7). */

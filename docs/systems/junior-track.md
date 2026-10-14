@@ -188,7 +188,7 @@ Postcard edge cases (each a `postcard.ts` test):
   **no "you lost it" message**: after 24 h it is quietly dropped.
 - Junior writes **no** `Session`, XP event, topic mastery, Learn evidence or IGCSE data. Its state
   lives in `AppContext`'s single reducer (Core Rule 4) under an account-scoped key, like `notebook`.
-  The local `outcomeTally` (got/almost/none counts) exists only for the playtest readout on a
+  The local `outcomeTally` (got/almost/none counts, plus silent tries counted separately) exists only for the playtest readout on a
   dev-only route; there are no analytics events for Junior.
 
 ## §11 Content rules
@@ -220,8 +220,10 @@ Free step only, if the playtest shows the matcher is too narrow.
 ## Playtest gate
 
 Before content scale-up, 3–5 real children play the two pilot themes; the group must include at least
-one 9-year-old and one 12-year-old. Per child, record the none rate and almost rate (from
-`outcomeTally`), whether they finished missions without adult help, and whether the 12-year-old found
+one 9-year-old and one 12-year-old. Per child, record the none rate, the almost rate and the
+silent tries per turn (all from `outcomeTally`, `src/domain/junior/tally.ts`; silent tries — no
+audio detected, §6 — are counted separately and never folded into "none", so a recogniser problem
+and a child who froze or a mic that heard nothing read differently), whether they finished missions without adult help, and whether the 12-year-old found
 it "babyish" (in their words). Thresholds, fixed **before** the playtest:
 
 - **none > 25 % of turns** → the recogniser or the warm-up/Whisper path needs work; fix that before
