@@ -10,6 +10,10 @@ export const STORAGE_KEYS = {
   // Learn feedback Batch 6d — the learner's exam notebook (their own improved answers). LOCAL ONLY, signed-in only:
   // never synced, never logged, never sent to a request body (see domain/learn/notebook/__tests__/notebookPrivacy.test.ts).
   notebook:       'frenchCoach_notebook',
+  // Junior track (Batch 3A) — the learner's track and Junior progress. Account-scoped (not device-scoped), local only:
+  // never synced, never part of a Session/XP/mastery write (see domain/junior/__tests__/juniorIsolation.test.ts).
+  learnerTrack:   'frenchCoach_learnerTrack',
+  junior:         'frenchCoach_junior',
   darkMode:       'frenchCoach_darkMode',
   aiEngine:       'frenchCoach_aiEngine',
   difficulty:     'frenchCoach_difficulty',

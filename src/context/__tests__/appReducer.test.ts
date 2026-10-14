@@ -5,6 +5,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { reducer } from '../AppContext';
 import { setStorageScope, getStorageScope } from '../../services/persistence/storage';
+import { emptyJuniorState } from '../../domain/junior/state';
 import type { NotebookEntry } from '../../domain/learn/notebook/notebook';
 import type { UserProfile } from '../../types/index';
 
@@ -45,6 +46,8 @@ function baseState(overrides: { profile?: Partial<UserProfile> } = {}) {
     masteredDrills: [],
     firstsSeen: [],
     notebook: [] as NotebookEntry[],
+    learnerTrack: 'exam' as const,
+    junior: emptyJuniorState(),
     lastUnlockedAchievement: null,
     newLevelReached: null,
     activeSession: null,
@@ -182,5 +185,54 @@ describe('SAVE_NOTEBOOK_ENTRY reducer (Learn feedback Batch 6d)', () => {
     setStorageScope('guest');
     const state = baseState();
     expect(reducer(state, { type: 'SET_NOTEBOOK', entries })).toBe(state);
+  });
+});
+
+describe('Junior track reducer actions (Batch 3A)', () => {
+  const prevScope = getStorageScope();
+  beforeEach(() => { localStorage.clear(); setStorageScope('user-1'); });
+  afterEach(() => { if (prevScope) setStorageScope(prevScope); });
+
+  it('SET_LEARNER_TRACK persists under the account-scoped key', () => {
+    const next = reducer(baseState(), { type: 'SET_LEARNER_TRACK', track: 'junior' });
+    expect(next.learnerTrack).toBe('junior');
+    expect(JSON.parse(localStorage.getItem('frenchCoach_learnerTrack::user-1') ?? 'null')).toBe('junior');
+    expect(localStorage.getItem('frenchCoach_learnerTrack')).toBeNull();
+  });
+
+  it('plays a mission through: start, record turns, finish', () => {
+    let s = reducer(baseState(), { type: 'START_JUNIOR_MISSION', themeId: 'colors', now: 1000 });
+    s = reducer(s, { type: 'RECORD_JUNIOR_TURN', turn: { turnId: 't1', outcome: 'none' }, patternStep: { patternId: 'j-aime-le-X', step: 'echo' } });
+    s = reducer(s, { type: 'RECORD_JUNIOR_TURN', turn: { turnId: 't2', outcome: 'got' } });
+    expect(s.junior.activeMission?.results).toHaveLength(2);
+    expect(s.junior.outcomeTally).toEqual({ got: 1, almost: 0, none: 1 });
+    s = reducer(s, { type: 'FINISH_JUNIOR_MISSION', themeId: 'colors', stickerId: 'colors-1', unlockId: 'outfit-1' });
+    expect(s.junior.activeMission).toBeNull();
+    expect(s.junior.stickers).toEqual({ colors: ['colors-1'] });
+    expect(s.junior.unlocks).toEqual(['outfit-1']);
+    expect(s.junior.missionsDone).toEqual({ colors: 1 });
+    const stored = JSON.parse(localStorage.getItem('frenchCoach_junior::user-1') ?? 'null');
+    expect(stored.stickers).toEqual({ colors: ['colors-1'] });
+  });
+
+  it('a double FINISH does not award twice', () => {
+    let s = reducer(baseState(), { type: 'START_JUNIOR_MISSION', themeId: 'colors', now: 1 });
+    s = reducer(s, { type: 'FINISH_JUNIOR_MISSION', themeId: 'colors', stickerId: 'colors-1' });
+    const again = reducer(s, { type: 'FINISH_JUNIOR_MISSION', themeId: 'colors', stickerId: 'colors-2' });
+    expect(again).toBe(s);
+  });
+
+  it('never touches sessions, XP, mastery or any non-Junior storage key', () => {
+    const base = baseState();
+    let s = reducer(base, { type: 'SET_LEARNER_TRACK', track: 'junior' });
+    s = reducer(s, { type: 'MARK_JUNIOR_DEMO_SEEN' });
+    s = reducer(s, { type: 'START_JUNIOR_MISSION', themeId: 'colors', now: 1 });
+    s = reducer(s, { type: 'RECORD_JUNIOR_TURN', turn: { turnId: 't1', outcome: 'got' } });
+    s = reducer(s, { type: 'FINISH_JUNIOR_MISSION', themeId: 'colors', stickerId: 'colors-1' });
+    expect(s.profile).toBe(base.profile);
+    expect(s.recentSessions).toBe(base.recentSessions);
+    expect(s.topicMastery).toBe(base.topicMastery);
+    expect(s.activeSession).toBeNull();
+    expect(Object.keys(localStorage).sort()).toEqual(['frenchCoach_junior::user-1', 'frenchCoach_learnerTrack::user-1']);
   });
 });
