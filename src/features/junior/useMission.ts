@@ -313,7 +313,7 @@ export function useMission(themeId: string, bank: JuniorBank = JUNIOR_BANK): Use
         ];
         // One record per question turn, honestly: a "none" stays "none".
         const changed = [...new Set(q.frames.map((f) => f.patternId))].map((patternId) => ({ patternId, step: scaffold.progress[patternId].step }));
-        dispatch({ type: 'RECORD_JUNIOR_TURN', turn: { turnId: q.id, outcome }, patternStep: changed });
+        dispatch({ type: 'RECORD_JUNIOR_TURN', turn: { turnId: q.id, outcome, silentTries: step.state.silentTries }, patternStep: changed });
       }
 
       const line = response.line ? turnLineText(response.line, { turnIndex: current.index, pattern: patternForLine }) : null;

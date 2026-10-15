@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { EMPTY_TALLY, addTurnToTally, tallyRates } from '../tally';
+import { EMPTY_TALLY, addTurnToTally, gateReadout, tallyRates } from '../tally';
 import { MAX_SILENT_REPEATS, answerEtToi, answerQuestion, silentEtToi, silentQuestion, startEtToiTurn, startQuestionTurn } from '../turnFlow';
 import type { MatchOutcome } from '../types';
 
@@ -42,5 +42,15 @@ describe('playtest tally: silent tries counted separately', () => {
   it('rates are per question turn', () => {
     expect(tallyRates(EMPTY_TALLY)).toBeNull();
     expect(tallyRates({ got: 2, almost: 1, none: 1, silent: 6 })).toEqual({ none: 0.25, almost: 0.25, silentPerTurn: 1.5 });
+  });
+});
+
+describe('gateReadout', () => {
+  it('is null before any question turn', () => {
+    expect(gateReadout({ got: 0, almost: 0, none: 0 }, 5)).toBeNull();
+  });
+  it('flags only the thresholds that are strictly exceeded', () => {
+    expect(gateReadout({ got: 5, almost: 4, none: 1 }, 10)?.breaches).toEqual([]); // 40 % almost and 1.0 silent are at, not over
+    expect(gateReadout({ got: 2, almost: 5, none: 3 }, 11)?.breaches).toEqual(['none', 'almost', 'silentPerTurn']);
   });
 });

@@ -9,7 +9,7 @@ and its tests are the current behavior. It is **§-numbered and live — never r
 **Status: content bank (`src/data/junior/`), pure logic (`src/domain/junior/`), Junior state in
 `AppContext` (3A), the screens (3B: `src/screens/junior/`, `src/features/junior/`, routes `/junior` and
 `/junior/:themeId`, the Exam/Junior switch in Onboarding and Profile), Léo's voice wiring (3C) and the
-Whisper fallback (Batch 4, §2) are built. Not built yet: the dev-only playtest read-out route, and any recorded audio file — `src/data/junior/audioManifest.ts` is
+Whisper fallback (Batch 4, §2) are built. The dev-only playtest read-out (`/debug/junior-playtest`, `src/screens/JuniorPlaytest.tsx`) is built. Not built yet: any recorded audio file — `src/data/junior/audioManifest.ts` is
 empty, so until files are recorded a line has a 🔊 only where the browser has a French voice.**
 Implementation proceeds in batches (content bank → pure logic → UI → Whisper fallback → playtest gate →
 scale-up). Nothing here is shipped until its batch lands.
@@ -272,6 +272,12 @@ it "babyish" (in their words). Thresholds, fixed **before** the playtest:
 - **more than 1 silent try per question turn** (`tallyRates(...).silentPerTurn > 1`) → redesign the
   mic cue (§4: the "Léo is listening" cue, the button and its pulse) before adding content.
 - **The 12-year-old says "babyish"** → revise the visual tone before scaling.
+
+Read the tallies on the dev-only route `/debug/junior-playtest` (`npm run dev`); the stored tally counts
+question turns and their silent tries only (`silentTries`, kept apart from `none`). It is per device and per
+account: clear site data between children. The route compares against the thresholds above
+(`GATE_THRESHOLDS` in `tally.ts`, a mirror of this list — change both together) and cannot measure "finished
+without adult help" or "babyish".
 
 The result is logged in `verification-log.md`; this page never claims the gate passed.
 

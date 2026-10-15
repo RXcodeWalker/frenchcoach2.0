@@ -57,6 +57,7 @@ import { SpeakingArena } from './screens/SpeakingArena';
 import { Challenges } from './screens/Challenges';
 import { DailyNewsFlash } from './screens/DailyNewsFlash';
 import { CoachBeliefDebug } from './screens/CoachBeliefDebug';
+import { JuniorPlaytest } from './screens/JuniorPlaytest';
 import { NotFound } from './screens/NotFound';
 import { IgcseFrenchSpeaking } from './screens/IgcseFrenchSpeaking';
 import { FrenchRoleplayPractice } from './screens/FrenchRoleplayPractice';
@@ -358,7 +359,10 @@ function AppShell() {
           <Route path="/daily-news" element={<DailyNewsFlash />} />
           {/* DEV-ONLY: coach belief debug dashboard. Tree-shaken out of prod builds. */}
           {import.meta.env.DEV && (
-            <Route path="/debug/beliefs" element={<CoachBeliefDebug />} />
+            <>
+              <Route path="/debug/beliefs" element={<CoachBeliefDebug />} />
+              <Route path="/debug/junior-playtest" element={<JuniorPlaytest />} />
+            </>
           )}
           {/* Catch-all for signed-in/guest users hitting an unregistered app path.
               Client-side fallback only — vercel.json's rewrite is what makes a hard

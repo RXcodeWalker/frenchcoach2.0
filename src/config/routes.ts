@@ -75,6 +75,7 @@ export const ROUTES: RouteEntry[] = [
   { path: '/challenges', kind: 'app', indexable: false },
   { path: '/daily-news', kind: 'app', indexable: false },
   { path: '/debug/beliefs', kind: 'dev-only', indexable: false },
+  { path: '/debug/junior-playtest', kind: 'dev-only', indexable: false },
   { path: '/admin', kind: 'app', indexable: false },
   { path: '/admin/questions', kind: 'app', indexable: false },
   { path: '/admin/questions/new', kind: 'app', indexable: false },

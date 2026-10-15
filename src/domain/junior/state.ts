@@ -15,6 +15,11 @@ export interface JuniorTurnResult {
   outcome: JuniorOutcome;
 }
 
+/** What `recordTurn` accepts: the stored result plus the tries that heard nothing (playtest read-out only, never stored on the mission). */
+export interface JuniorTurnRecord extends JuniorTurnResult {
+  silentTries?: number;
+}
+
 export interface ActiveMission {
   themeId: string;
   /** Epoch ms the mission started; the 24 h resume window is measured from here. */
@@ -35,6 +40,8 @@ export interface JuniorState {
   activeMission: ActiveMission | null;
   /** Local got/almost/none counts for the playtest read-out. Never sent anywhere. */
   outcomeTally: Record<JuniorOutcome, number>;
+  /** Question-turn tries that heard no audio, kept apart from `none` (junior-track §6, Playtest gate). */
+  silentTries: number;
 }
 
 export const DEFAULT_LEARNER_TRACK: LearnerTrack = 'exam';
@@ -48,6 +55,7 @@ export function emptyJuniorState(): JuniorState {
     demoSeen: false,
     activeMission: null,
     outcomeTally: { got: 0, almost: 0, none: 0 },
+    silentTries: 0,
   };
 }
 
@@ -106,6 +114,7 @@ export function parseJuniorState(raw: unknown, now: number): JuniorState {
     demoSeen: raw.demoSeen === true,
     activeMission: parseMission(raw.activeMission, now),
     outcomeTally: { got: count(tally.got), almost: count(tally.almost), none: count(tally.none) },
+    silentTries: count(raw.silentTries),
   };
 }
 
@@ -131,7 +140,7 @@ export interface PatternStep {
  */
 export function recordTurn(
   state: JuniorState,
-  turn: JuniorTurnResult,
+  turn: JuniorTurnRecord,
   patternStep?: PatternStep | readonly PatternStep[],
 ): JuniorState {
   const mission = state.activeMission;
@@ -143,9 +152,10 @@ export function recordTurn(
   for (const s of steps) patternSteps[s.patternId] = s.step;
   return {
     ...state,
-    activeMission: { ...mission, results: [...mission.results, turn] },
+    activeMission: { ...mission, results: [...mission.results, { turnId: turn.turnId, outcome: turn.outcome }] },
     patternSteps,
     outcomeTally: { ...state.outcomeTally, [turn.outcome]: state.outcomeTally[turn.outcome] + 1 },
+    silentTries: state.silentTries + count(turn.silentTries),
   };
 }
 

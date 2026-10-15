@@ -36,3 +36,22 @@ export function tallyRates(t: OutcomeTally): { none: number; almost: number; sil
   if (turns === 0) return null;
   return { none: t.none / turns, almost: t.almost / turns, silentPerTurn: t.silent / turns };
 }
+
+/** The playtest gate thresholds, fixed before the playtest (junior-track "Playtest gate"). Changing one is a spec change. */
+export const GATE_THRESHOLDS = { none: 0.25, almost: 0.4, silentPerTurn: 1 } as const;
+
+export interface GateReadout {
+  turns: number;
+  rates: { none: number; almost: number; silentPerTurn: number };
+  /** Which documented thresholds this device's play breached; empty means none did (the babyish check is a human one). */
+  breaches: ('none' | 'almost' | 'silentPerTurn')[];
+}
+
+/** Turns the stored counts into the playtest read-out; null until one question turn has been played. */
+export function gateReadout(counts: { got: number; almost: number; none: number }, silentTries: number): GateReadout | null {
+  const tally: OutcomeTally = { ...counts, silent: silentTries };
+  const rates = tallyRates(tally);
+  if (!rates) return null;
+  const breaches = (Object.keys(GATE_THRESHOLDS) as (keyof typeof GATE_THRESHOLDS)[]).filter((k) => rates[k] > GATE_THRESHOLDS[k]);
+  return { turns: counts.got + counts.almost + counts.none, rates, breaches };
+}

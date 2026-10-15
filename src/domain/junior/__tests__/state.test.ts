@@ -44,6 +44,7 @@ describe('parse is defensive', () => {
     expect(s.missionsDone).toEqual({ colors: 2, me: 0 });
     expect(s.demoSeen).toBe(true);
     expect(s.outcomeTally).toEqual({ got: 2, almost: 0, none: 1 });
+    expect(s.silentTries).toBe(0);
   });
   it('track defaults to exam', () => {
     expect(parseLearnerTrack('junior')).toBe('junior');
@@ -59,6 +60,13 @@ describe('turn recording', () => {
     expect(recordTurn(s, { turnId: 't1', outcome: 'got' })).toBe(s);
     expect(s.activeMission?.results).toEqual([{ turnId: 't1', outcome: 'none' }]);
     expect(s.outcomeTally.none).toBe(1);
+  });
+  it('counts silent tries apart from outcomes and keeps them off the stored result', () => {
+    let s = startMission(emptyJuniorState(), 'colors', T0);
+    s = recordTurn(s, { turnId: 't1', outcome: 'none', silentTries: 2 });
+    expect(s.silentTries).toBe(2);
+    expect(s.outcomeTally).toEqual({ got: 0, almost: 0, none: 1 });
+    expect(s.activeMission?.results).toEqual([{ turnId: 't1', outcome: 'none' }]);
   });
   it('is a no-op with no active mission', () => {
     const s = emptyJuniorState();

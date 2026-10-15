@@ -15,7 +15,7 @@ import { getSkillProfile } from '../services/coaching/diagnosticEngine';
 import { STORAGE_KEYS, storageGet, storageSet, storageSetRaw, scopedKey, matchesScopedKey, hasNoScopedDataYet, copyGuestScopeToIdentity, isAccountScope } from '../services/persistence/storage';
 import {
   DEFAULT_LEARNER_TRACK, parseLearnerTrack, parseJuniorState, startMission, recordTurn, finishMission, markDemoSeen,
-  type LearnerTrack, type JuniorState, type JuniorTurnResult, type PatternStep,
+  type LearnerTrack, type JuniorState, type JuniorTurnRecord, type PatternStep,
 } from '../domain/junior/state';
 import { parseNotebook, upsertEntry, type NotebookDraft, type NotebookEntry } from '../domain/learn/notebook/notebook';
 import { useAuth } from './AuthContext';
@@ -117,7 +117,7 @@ type Action =
   | { type: 'SET_NOTEBOOK'; entries: NotebookEntry[] }
   | { type: 'SET_LEARNER_TRACK'; track: LearnerTrack }
   | { type: 'START_JUNIOR_MISSION'; themeId: string; now: number }
-  | { type: 'RECORD_JUNIOR_TURN'; turn: JuniorTurnResult; patternStep?: PatternStep | readonly PatternStep[] }
+  | { type: 'RECORD_JUNIOR_TURN'; turn: JuniorTurnRecord; patternStep?: PatternStep | readonly PatternStep[] }
   /** The sticker/unlock are chosen by rewards.ts from the theme alone — never from outcomes. */
   | { type: 'FINISH_JUNIOR_MISSION'; themeId: string; stickerId: string; unlockId?: string }
   | { type: 'MARK_JUNIOR_DEMO_SEEN' }
