@@ -9,7 +9,9 @@ the run; changing one after seeing results needs a commit that says why.
 ## Test set: 22 answers, pre-registered
 
 The set lives in the **backend** repo at `tests/fixtures/learn_marking_eval_v1/answers.json` and is
-**signed off by the owner before any tokens are spent**. This repo holds the rules for it.
+**signed off by the owner before any tokens are spent**. This repo holds the rules for it. The
+readings of the criteria that the expected verdicts rely on are listed in that file's
+`interpretations`, and its `README.md` explains sign-off.
 
 - **Questions:** fam_01, hol_01, sch_03, env_05, fut_19.
 - **Four answers per question:**
