@@ -30,6 +30,7 @@
     "learn:review": "tsx scripts/authoring/learnReview.ts",
     "learn:status": "tsx scripts/authoring/learnStatus.ts",
     "feedback:sync-fixtures": "tsx scripts/authoring/syncFeedbackContractFixtures.ts",
+    "learn:marking-inputs": "tsx scripts/learnMarking/clientInputs.ts",
     "examiner:generate": "tsx scripts/feedback/generateExaminerPrompts.ts generate",
     "examiner:parity": "tsx scripts/feedback/generateExaminerPrompts.ts parity",
     "stt:ingest": "tsx scripts/stt/ingestSession.ts",

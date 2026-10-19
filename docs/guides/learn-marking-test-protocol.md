@@ -53,11 +53,16 @@ per call; the daily limit is 200k tokens.
 `scripts/learn_marking_eval.py` (backend repo, committed):
 
 - sends `marking: ladder-v1` with `questionId` + `demandsVersion`, and asserts that demands resolve;
-- uses the depth the client would compute;
+- uses the depth the client would compute (and the client's DETERMINISTIC SIGNALS), read from the test
+  set's `client_inputs.json`, which `npm run learn:marking-inputs` builds from the real client code
+  (`src/services/api/feedbackRequestHints.ts`) — never a port;
 - one call at a time, with `AI_PROVIDER_TIMEOUT_SEC=120`;
 - honours `retry-after`, and stops cleanly at the daily limit;
 - writes resumable JSONL (raw output, usage, `finish_reason`, latency, model, versions, fixture SHA);
-- `--report` prints the gate table below.
+- `--report` prints the gate table below (G13 is printed for the owner to judge, never scored), the
+  run-1 scores per level and the five "needs for B1" lists.
+
+How to run each stage and resume: the test set's `README.md`.
 
 ## Pass gates (all must pass)
 
