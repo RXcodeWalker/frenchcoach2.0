@@ -7,9 +7,11 @@ feedback says what a B1 answer needs that this one lacks. Why it works this way:
 tests are the current behavior. It is **§-numbered and live — never renumber a section** (cite as
 `learn-marking §N`).
 
-**Status: specification only.** Nothing here is built yet. Production Learn stays on
-`learn-prompt-v6` until the gate in `docs/guides/learn-marking-test-protocol.md` passes. Every
-number below that is not stated by a source is `UNVALIDATED`.
+**Status: backend built, inert.** The scoring code (`backend/lib/learn_ladder.py`) and the backend
+wiring (`marking` field, kill switch, `learn-prompt-v8` ladder prompt, scoring before
+`enrich_feedback` on `/v3` and the stream) exist, but no client sends `marking` yet. Production Learn
+stays on `learn-prompt-v6` until the gate in `docs/guides/learn-marking-test-protocol.md` passes.
+Every number below that is not stated by a source is `UNVALIDATED`.
 
 **Labels used in this page.**
 
@@ -267,7 +269,9 @@ standard, the teacher voice, the filters).
 - **New, required: `levelCheck`.** For each applicable ladder: `["y"|"n"|null ×4]`, plus a `quote`
   for the highest "y" and a `next` example for the first "n".
 - **New, required: `demandCheck {met, quote}`.** It checks the question's own "A complete answer
-  must: …" line, for the demand-evidence fix (§9.2).
+  must: …" line, for the demand-evidence fix (§9.2). With no such line (unresolved demands) the
+  model returns `{"met": null, "quote": ""}`. Unlike a bad `levelCheck`, a missing or malformed
+  `demandCheck` does not fail the reply: it is relayed as `null` and logged (gate G11 counts it).
 - **The backend adds:**
   - `scores`, `fluency` and `cefrLevel` at Exam standard;
   - `levelCheck {scheme, ladderVersion, applies, reached, subScoresByLevel{A1,A2,exam,B1,B2}, needsByLevel}`;
@@ -280,6 +284,11 @@ standard, the teacher voice, the filters).
 
 - Only Learn opts in, through a request field `marking: "ladder-v1"`. Any other value is a 422. A
   backend kill switch (`LEARN_LADDER_ENABLED`) makes the field ignored, falling back to v6.
+- A request that also uploads audio stays on v6: its Gemini call uses the multimodal prompt, which
+  the ladder leaves untouched (Learn never uploads audio to feedback).
+- A reply without a usable `levelCheck` fails inside the provider call, so `/v3`'s Groq → Gemini
+  chain moves on. The stream has no second provider: it ends with an `error` event and Learn falls
+  back to `/v3` (same quota key, so no second charge).
 - The level the learner picked never leaves the device and is never in the request body
   (`buildDifficultyContext` is unchanged).
 - The backend always fills the existing `scores` at **Exam standard**, so **nothing that reads the
