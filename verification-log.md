@@ -4462,3 +4462,49 @@ scorer are unchanged, so the real-judge result is unaffected). The owner's `npm 
 **Rollback:** revert the Stage 7 commit(s) and redeploy the scorer host (the report is generated after marking; no
 mark depends on it). Reports already stored as v0.2 keep their notes field, which an older client ignores. The
 client display change reverts with the frontend deploy; `VITE_EXAM_BATCH_ASR=0` is unaffected.
+
+## 2026-10-19 — Learn marking ladder gate: Stages 1–2 (Groq, `learn-prompt-v8`) — NOT PASSED
+
+Harness: backend `scripts/learn_marking_eval.py` at 78a3b38 (plus the G8 rule fix in the same session); model
+`groq/openai/gpt-oss-120b`, reasoning effort low; test set `answers.json` at commit 3a1b7e9 (signed off);
+ladder `learn-ladder-v1-139f19a106d2`. Raw records and the report: backend
+`tests/fixtures/learn_marking_eval_v1/runs/` (`smoke_iter0_prompt_948efd85.jsonl`, `run_log.jsonl`,
+`report_stage2.md`). About 177k Groq tokens spent today; Stage 3 (stability) not run.
+
+**Stage 1 (smoke).** Iteration 0 stopped at 6,455 tokens and showed the model rewriting the student's words inside its
+quotes; the quote rule was tightened and the cost limits raised twice by the owner (now max 8,000, median 6,000 —
+see the protocol's "Cost limits changed"). Iteration 1 confirmed the quote fix.
+
+**Stage 2 (all 22, run 1): 21 valid, 1 contract error.**
+
+| Gate | Result | Note |
+|---|---|---|
+| G1 order | PASS | 21/21 |
+| G2 simple A1 gap | PASS | 5/5 |
+| G3 top of scale | PASS | 5/5 |
+| G4 typical A2 at A2 | **FAIL** | 3/5 fail: env_05 and fut_19 typical answers judged T-B1/R-B1 (B1 too close to A2); hol_01 typical lost R-A1 |
+| G5 Exam in between | PASS | 5/5 and 5/5 |
+| G6 mistakes at Exam | PASS | recall 18/20 (90%) |
+| G7 off-topic | PASS | ≤ 2.0 |
+| G8 verdicts | PASS | 365/409 (89%), deciding 179/195 (92%), lowest ladder O 83% — fut_19_b2 counted as all wrong |
+| G9 stability | not run | Stage 3 pending |
+| G10 evidence | PASS | 99/102 (97%) |
+| G11 contract/cost | **FAIL** | 24/25 valid (fut_19_b2 wrote the string "null"); 4 replies hit the output cap (`finish_reason: length`) |
+| G12 needs list | **FAIL** | fam_01_simple_a1: L-A1 judged "no" ("mon frère et moi") — 1 item at A1 |
+| G14 | PASS | hol_01 strong B1 ≥ B1 everywhere |
+
+**Main findings.**
+1. **Truncation is a production bug in the ladder budget.** The three weak answers hit exactly 3,060 completion tokens
+   (2,048 standard + 500 ladder + 512 reasoning reserve) and lost `rephrase`, `encouragement` and
+   `followUpQuestion`; Groq left the cut JSON well-formed, so it parsed. Scores were unaffected (`levelCheck` is first).
+   The UNVALIDATED +500 (`LADDER_EXTRA_ANSWER_TOKENS`) is too small for error-heavy answers.
+2. **Disagreements cluster in two rungs:** T-B1 (7 of 44 mismatches across the gate: the model counts an extra fact as
+   "development") and A-B2 (5: one or two basic errors still judged "occasional slips"). Both lift typical-A2 answers.
+3. L-A1 twice "no" on "et" joining two nouns (same on all three fam_01 runs).
+4. Cost: median 6,412 tokens per call; about 31 AI-marked Learn answers a day on the 200k tier.
+
+**Harness fix during the run:** G8 had failed outright when any answer was unscored; the protocol does not say so. It
+now counts an unscored answer's expected verdicts as all wrong (the strictest reading); G8 passes under it.
+
+**Next (owner's decision):** the protocol allows two wording iterations, each re-running Stages 2–3. Production is
+unaffected: no client sends `marking`.
