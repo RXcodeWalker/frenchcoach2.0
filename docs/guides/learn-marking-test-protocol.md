@@ -39,7 +39,7 @@ per call; the daily limit is 200k tokens.
 |---|---|---|
 | 0 | Unit/property tests; ladder prompt free of level text; prompt-size check | 0 |
 | 0b | Dry run: compute every score gate (G1–G7, G12) from the *expected* verdicts. If the expectations themselves fail a gate, fix the formula or the gate first | 0 |
-| 1 | Smoke test: 3 answers (fam_01 A1/B1/weak). **Stop** on invalid JSON, any truncation, or more than 6,000 tokens per call | 3 |
+| 1 | Smoke test: 3 answers (fam_01 A1/B1/weak). **Stop** on invalid JSON, any truncation, or more than 8,000 tokens per call (was 6,000; see "Cost limits changed") | 3 |
 | 2 | All 22 once | 22 |
 | 3 | Stability: 8 answers (one of each type, spread across questions) × 2 more runs | 16 |
 | 4 (optional, not a gate) | The same 22 on `GEMINI_MODEL` (Gemini quota): the "other model" comparison | 0 Groq |
@@ -64,6 +64,23 @@ per call; the daily limit is 200k tokens.
 
 How to run each stage and resume: the test set's `README.md`.
 
+### Cost limits changed (owner, 2026-10-19)
+
+Changed after the smoke runs, before Stage 2, by the owner's decision; both runs are kept in the
+backend's `tests/fixtures/learn_marking_eval_v1/runs/`.
+
+- **Smoke iteration 0** stopped at 6,455 tokens. The ladder prompt alone is about 4,100–4,250
+  tokens, because v6's coaching rules and schema stay unchanged by design; the 5,000-per-call
+  estimate above missed that. Limits → max 7,000, median 6,000. The same run showed the model
+  rewriting the student's words inside its quotes, so the prompt's quote rule was tightened
+  (copy one short span exactly, mistakes included).
+- **Smoke iteration 1** stopped at 7,204 tokens on a 4-error answer. 53% of that reply is v6
+  listing every error twice (`grammar` and `corrections`); the ladder's own keys were 9%. Max →
+  8,000; the median stays 6,000, so ladder bloat on ordinary answers still fails G11.
+- **Consequence:** about 6.2k tokens per AI-marked Learn answer, roughly 32 a day on the 200k tier
+  (about 40 before), and more for error-heavy answers. Cutting the duplicate error list is a
+  separate, cheaper option that changes what Learn receives.
+
 ## Pass gates (all must pass)
 
 | # | Gate | Threshold |
@@ -78,7 +95,7 @@ How to run each stage and resume: the test set's `README.md`.
 | G8 | Verdicts match expectations | ≥ 85% of all rung verdicts; ≥ 90% on deciding rungs (the answer's written level and the one above); every ladder ≥ 75% |
 | G9 | Stability (3 runs) | Rung flip rate ≤ 10%; score spread (max − min) ≤ 1.0 per answer per level; mean spread ≤ 0.5 |
 | G10 | Evidence is real | ≥ 95% of "y" quotes found in the transcript before the guardrail |
-| G11 | Contract and cost | ≥ 97.5% valid with every applicable ladder; `demandCheck` 100%; zero truncations; median ≤ 5,000 tokens per call, max ≤ 6,000 |
+| G11 | Contract and cost | ≥ 97.5% valid with every applicable ladder; `demandCheck` 100%; zero truncations; median ≤ 6,000 tokens per call, max ≤ 8,000 (was 5,000 / 6,000; see "Cost limits changed") |
 | G12 | Needs list | Simple-A1 answers: 0 items at A1, ≥ 2 at B1; never an item from a ladder that doesn't apply |
 | G13 | Owner read-through | For the 5 simple-A1 answers at B1: "is this what a B1 answer needs that mine doesn't have?" — yes for ≥ 4/5 |
 | G14 | Only what the question asks | No needs item, at any level, asks for a time frame, opinion or reason the question doesn't invite (unit-proven over all 668 questions, and checked live). The strong-B1 hol_01 answer, past tense only with feelings, reaches B1 on every applicable ladder |
