@@ -2,7 +2,8 @@
 //
 // 0520 speaking targets "A2 with elements of B1" (Teacher's Notes p.11), so the
 // learner sees levels relative to the exam, with the CEFR code in brackets.
-// Anything above B1 is shown as "Stretch (B1+)"; B2 and C1 are never shown.
+// B2 is shown as "Stretch (B2)" (the marking dial offers B2, so the label must
+// not hide it); C1/C2 are never shown and clamp to the same label.
 // Display only — the engine's DemandLevel bands (docs §6.3) are unchanged.
 
 import type { DemandLevel } from '../demand/types';
@@ -17,7 +18,7 @@ const LEVEL_LABEL: Record<DemandLevel, string> = {
   A1: 'Warm-up (A1)',
   A2: 'Exam level (A2)',
   B1: 'Stretch (B1)',
-  B2: 'Stretch (B1+)',
+  B2: 'Stretch (B2)',
 };
 
 export function levelLabel(level: DemandLevel): string {
@@ -27,7 +28,7 @@ export function levelLabel(level: DemandLevel): string {
 /**
  * The same wording for a free CEFR code, e.g. the coach model's `cefrLevel`
  * (Batch 4): the wire contract keeps its A1–B2 enum, the display clamps it —
- * B2, C1 and C2 all read "Stretch (B1+)". Null for anything unrecognised.
+ * B2, C1 and C2 all read "Stretch (B2)". Null for anything unrecognised.
  */
 export function cefrLevelLabel(code: string | null | undefined): string | null {
   const c = (code ?? '').trim().toUpperCase();

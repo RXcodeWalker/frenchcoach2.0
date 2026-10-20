@@ -337,8 +337,9 @@ Display is **gated on `overallConfidence`** — the app never shows a precise ba
 
 **Display labels (Learn overhaul Batch 1, 2026-10-06).** The learner sees levels relative to
 the 0520 target ("A2 with elements of B1", TN p.11), CEFR code in brackets:
-`A1` → **Warm-up (A1)** · `A2` → **Exam level (A2)** · `B1` → **Stretch (B1)** · anything higher →
-**Stretch (B1+)**. B2 and C1 are never shown (`levelLabel()` in
+`A1` → **Warm-up (A1)** · `A2` → **Exam level (A2)** · `B1` → **Stretch (B1)** · `B2` →
+**Stretch (B2)** (was "Stretch (B1+)" until the question-levels batch, 2026-10-20: the marking dial
+offers B2, so the label no longer hides it). C1 and C2 are never shown and clamp to it (`levelLabel()` in
 `src/domain/learn/ability/levelLabel.ts`). Display only — `demandScoreToLevel` and the gates
 above are unchanged.
 
@@ -418,6 +419,7 @@ base        describe 2.0 · explain 4.0 · justify 6.0 · compare 6.5 · hypothe
 +0.25 each  structures in {subjunctive, conditional, comparison}, cap +0.75
 +0.25       lexicalReach === 'abstract'    — capped; cannot alone lift a question above B1
 clamp 0–10
+floor 3.0   describe with 'past' or 'future' in timeFrames (question-levels batch; see its amendment)
 ```
 
 The lexical cap is the **false-difficulty guard**: obscure vocabulary can nudge within a band,
@@ -501,6 +503,10 @@ set: every review item was answered before, so excluding `seen` meant review nev
 fixed in Batch 1b, 2026-10-06; both the adaptive and legacy paths).
 
 Escalation ladder when nothing scores above zero:
+
+0. **Review backfill (question-levels batch).** A `review` slot with nothing due is not dropped:
+   once every planned slot has been filled, it is filled as a `target` slot under today's target band
+   (`selectQuestions`), from the same pool and through the same ladder below.
 
 1. Widen the band by ±1.0, retry.
 2. Drop the `bandFit` term; rank on the remaining terms.
@@ -1291,7 +1297,8 @@ leaves an unfilled review slot empty rather than backfilling it. With no spaced-
 the usual case — a new learner's "5" builds 3, "10" builds 7 and "20" builds 14 (measured on the
 Batch 1 code and again after Batch 2; identical for all three aims). This is the spec'd
 behaviour, not a Batch 2 regression, and was left alone; whether unfilled review slots should be
-backfilled with `target` slots is a §8.1/§8.3 decision for the owner.
+backfilled with `target` slots was left to the owner — **decided in the question-levels batch
+(2026-10-20): they are backfilled** (see that amendment; this paragraph describes the earlier state).
 
 ## Amendment: Learn overhaul Batch 3b — the bank re-read (2026-10-07)
 
@@ -1376,3 +1383,30 @@ structure no longer resolve to `met` on ordinary answers, so L1 `demand:hypothes
 sparser and more honest, and the model now receives a correct past/future signal. The
 `adaptiveSimulation` scenarios are bit-for-bit unchanged (their synthetic transcripts only use
 markers that were never broken), so they do not measure this effect; the corpus comparison above does.
+
+## Amendment: Question levels made accurate (2026-10-20)
+
+Batch 2 of the marking-levels plan (`learn-marking-levels.md`). It changes selection and the level
+labels, not marking: no prompt, backend file or score changes.
+
+- **Describe floor (§7).** A `describe` question with `past` or `future` in `timeFrames` derives to at
+  least **3.0** (A2), `DESCRIBE_PAST_FUTURE_FLOOR` in `deriveDemandLevel.ts`. The CEFR Companion Volume
+  (2020), Sustained monologue: describing experience, puts past activities and plans at A2, so the
+  A1 base (2.0) under-rated them. The number is UNVALIDATED (it is the A2 band's lower edge). It moves
+  64 of 668 questions A1 → A2 (e.g. `hol_01`), and nothing else: `npm run learn:levels` lists them.
+  The Python `derive_demand_score` in `backend/main.py` (used only for the v6 prompt's "Demand level"
+  line) is deliberately **not** changed here: that would change the v6 prompt text and hash. It gets
+  the same floor only inside the ladder scheme (Batch 1 follow-up), so until then the prompt line may
+  say A1 for a question the app labels A2 — display only, it moves no mark.
+- **B2 label (§6.3).** `B2` reads **Stretch (B2)**, no longer "Stretch (B1+)": the marking dial offers
+  B2, and a label that hid it would contradict the dial. C1/C2 are still never shown and clamp to it.
+- **Review backfill (§8.3 step 0).** Unfilled review slots are backfilled with `target` slots, so the
+  usual session (no review item due) is as long as the learner tapped. This supersedes the "known,
+  unchanged" paragraph in the Batch 2 amendment above and the "sessions are routinely shorter" note: a
+  session is now shorter only when the (filtered) pool runs out. Mid-session adjust is unaffected (it
+  never plans review slots).
+- **`npm run learn:levels`.** Read-only report: levels per topic, before/after the floor, the questions
+  the floor moved, and non-inferred B1+ questions per topic (what a `stretch` slot can use).
+
+**Rollback.** Each part reverts on its own: remove the `Math.max` in `deriveDemandScore`; restore the
+label string; delete the backfill block at the end of `selectQuestions`.

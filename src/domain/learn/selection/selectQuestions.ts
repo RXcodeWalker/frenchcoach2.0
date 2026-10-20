@@ -189,7 +189,7 @@ export interface SelectQuestionsExtraArgs {
 
 /**
  * docs §8.3. Fills slots in FILL_ORDER, never duplicating, never throwing,
- * never padding with a repeat. Returns fewer than requested (rung 5) rather
+ * never padding with a repeat. An unfilled review slot is backfilled with a target slot. Returns fewer than requested (rung 5) rather
  * than force a bad pick, and sets `targetCount` to the actual length reached.
  */
 export function selectQuestions(
@@ -201,6 +201,9 @@ export function selectQuestions(
   const chosenIds = new Set(args.chosenIds);
   const usedCognitiveDemands = new Set<string>();
   const selected: SelectedQuestion[] = [];
+  // docs §8.3 (question-levels batch): a review slot with nothing due is backfilled
+  // with a `target` slot, so the session is as long as the learner asked.
+  let unfilledReviewSlots = 0;
 
   const bySlotType = new Map<SlotType, SessionSlot[]>();
   for (const slot of slots) {
@@ -214,7 +217,10 @@ export function selectQuestions(
     for (const slot of slotsOfType) {
       if (slotType === 'review') {
         const reviewQuestion = getReviewQuestion(chosenIds);
-        if (!reviewQuestion) continue; // no eligible review question -> slot simply not filled (§8.3)
+        if (!reviewQuestion) {
+          unfilledReviewSlots += 1; // backfilled below, after every planned slot has had first pick
+          continue;
+        }
         chosenIds.add(reviewQuestion.id);
         if (reviewQuestion.demands) usedCognitiveDemands.add(reviewQuestion.demands.cognitiveDemand);
         selected.push({ question: reviewQuestion, slot: 'review', rung: 0, reason: reasonFor('review', reviewQuestion, 0, targetLevel) });
@@ -241,6 +247,26 @@ export function selectQuestions(
       chosenIds.add(question.id);
       if (question.demands) usedCognitiveDemands.add(question.demands.cognitiveDemand);
       selected.push({ question, slot: slotType, rung, reason: reasonFor(slotType, question, rung, targetLevel) });
+    }
+  }
+
+  // Backfill: each unfilled review slot becomes a `target` slot under today's target
+  // band (the same band a planned target slot has; none when the caller passed no
+  // target level and there is no planned target slot to borrow it from). It runs last,
+  // so a planned slot is never starved by it, and it draws from the same `pool` — a
+  // filtered session is never padded with non-matching questions. When the pool is
+  // exhausted the session is still shorter (rung 5).
+  if (unfilledReviewSlots > 0) {
+    const plannedTarget = slots.find((s) => s.type === 'target');
+    const band = targetLevel !== null ? bandFor('target', targetLevel) : (plannedTarget?.band ?? null);
+    for (let i = 0; i < unfilledReviewSlots; i++) {
+      const slot: SessionSlot = { type: 'target', band };
+      const hit = fillNonStretchSlot(pool, slot, { ...args, chosenIds }, usedCognitiveDemands, extra.beliefSnapshot);
+      if (!hit) break;
+      const { question, rung } = hit;
+      chosenIds.add(question.id);
+      if (question.demands) usedCognitiveDemands.add(question.demands.cognitiveDemand);
+      selected.push({ question, slot: 'target', rung, reason: reasonFor('target', question, rung, targetLevel) });
     }
   }
 

@@ -4508,3 +4508,17 @@ now counts an unscored answer's expected verdicts as all wrong (the strictest re
 
 **Next (owner's decision):** the protocol allows two wording iterations, each re-running Stages 2–3. Production is
 unaffected: no client sends `marking`.
+
+## 2026-10-20 — Learn question levels (marking-levels Batch 2)
+
+**What changed.** Describe floor (past/future `describe` ≥ 3.0 / A2) in `deriveDemandLevel.ts`; B2 label
+"Stretch (B2)" (was "Stretch (B1+)"); unfilled review slots backfilled with `target` slots in
+`selectQuestions`; `npm run learn:levels`. Frontend only; no backend, prompt or scoring change.
+
+**Verified.** `npm test` 393 files / 4616 tests pass (with `backend/` present); `typecheck`, `typecheck:server`,
+`lint` (0 errors), `authoring:check` clean; `learn:check` unchanged (660 `not-approved`, corpus hash clean).
+`learn:levels`: 668/668 carry demands; A1 225 → 161, A2 200 → 264, B1 222, B2 21 (64 moved, all A1 → A2).
+`typecheck:scripts` has 11 errors in four test files this batch does not touch (pre-existing).
+
+**Not verified.** No live session was run in a browser; the backfill is covered by unit tests and the
+existing session-builder tests only. The floor's 3.0 is UNVALIDATED.

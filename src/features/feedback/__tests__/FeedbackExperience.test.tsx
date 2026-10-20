@@ -184,14 +184,14 @@ describe('FeedbackExperience coach view (Batch 6a + 6b)', () => {
     expect(marked).toEqual(expect.arrayContaining(['Mon mère', 'des pizza', 'je suis allé']));
   });
 
-  it('has no engine control, re-evaluate bar or band pill, and never shows B2/C1', () => {
+  it('has no engine control, re-evaluate bar or band pill, and never shows C1/C2', () => {
     const { container } = renderFeedback();
     const text = container.textContent ?? '';
     expect(text).not.toMatch(/re-?evaluate/i);
     expect(text).not.toMatch(/groq|gemini/i);
     expect(text).not.toMatch(/Core\+|Extended|Foundation/);
-    expect(text).not.toMatch(/\bB2\b|\bC1\b/);
-    expect(text).toContain('Stretch (B1+)');
+    expect(text).not.toMatch(/\bC1\b|\bC2\b|B1\+/);
+    expect(text).toContain('Stretch (B2)');
   });
 
   it('shows Go further (vocabulary and expansion ideas) but keeps the one focus in the Full report', () => {

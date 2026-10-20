@@ -32,9 +32,9 @@ describe('QuestionCard demand chip', () => {
     expect(deriveDemandLevel(DEMANDS)).toBe('B2');
   });
 
-  it('shows the exam-relative level label, never a raw B2/C1 code', () => {
+  it('shows the exam-relative level label, uses the exam-relative wording, never a bare CEFR code', () => {
     render(<QuestionCard question={QUESTION} showHint={false} onToggleHint={() => {}} />);
-    expect(screen.getByText(/Stretch \(B1\+\)/)).toBeTruthy();
-    expect(document.body.textContent).not.toMatch(/\b(B2|C1|C2)\b/);
+    expect(screen.getByText(/Stretch \(B2\)/)).toBeTruthy();
+    expect(document.body.textContent).not.toMatch(/B1\+|\b(C1|C2)\b/);
   });
 });

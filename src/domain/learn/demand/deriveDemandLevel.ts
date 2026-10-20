@@ -14,10 +14,24 @@ const STRUCTURE_BONUS_SET: ReadonlySet<LearnStructure> = new Set([
   'comparison',
 ]);
 const STRUCTURE_BONUS_PER_MATCH = 0.25;
+/**
+ * A describe question set in the past or future is at least A2: the CEFR
+ * Companion Volume (2020), Sustained monologue: describing experience, puts
+ * "past activities and personal experiences" and "plans and arrangements" at
+ * A2, so describe's A1 base (2.0) under-rates them. UNVALIDATED as a number —
+ * 3.0 is the A2 band's lower edge (`demandScoreToLevel`). The Python port in
+ * backend/main.py carries the same rule only inside the ladder scheme
+ * (learn-marking-levels §6), so the v6 prompt stays untouched.
+ */
+export const DESCRIBE_PAST_FUTURE_FLOOR = 3.0;
 const STRUCTURE_BONUS_CAP = 0.75;
 
-/** Pure function: {@link QuestionDemands} -> demandScore 0-10. See docs §7. */
-export function deriveDemandScore(demands: QuestionDemands): number {
+/**
+ * The additive score before the describe floor. Exported only so `learn:levels`
+ * can report which questions the floor moved; everything else uses
+ * {@link deriveDemandScore}.
+ */
+export function deriveDemandScoreBeforeFloor(demands: QuestionDemands): number {
   let score = BASE_SCORE[demands.cognitiveDemand];
 
   if (demands.timeFrames.includes('conditional')) {
@@ -41,6 +55,18 @@ export function deriveDemandScore(demands: QuestionDemands): number {
   }
 
   return clamp(score, 0, 10);
+}
+
+/** Pure function: {@link QuestionDemands} -> demandScore 0-10. See docs §7. */
+export function deriveDemandScore(demands: QuestionDemands): number {
+  const score = deriveDemandScoreBeforeFloor(demands);
+  if (
+    demands.cognitiveDemand === 'describe' &&
+    (demands.timeFrames.includes('past') || demands.timeFrames.includes('future'))
+  ) {
+    return Math.max(score, DESCRIBE_PAST_FUTURE_FLOOR);
+  }
+  return score;
 }
 
 /** Pure function: demandScore -> displayed DemandLevel. See docs §6.3. */

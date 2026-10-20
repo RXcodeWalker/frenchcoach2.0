@@ -35,6 +35,7 @@ npm run authoring:parity                 # every fixture hashes identically to i
 npx tsx scripts/authoring/originalityCheck.ts <TN-text>   # local-only; the notes text must live outside both repos (ADR 0008)
 npm run roleplay:check                   # validate roleplay scenario registry (graph/meta/deck)
 npm run learn:check                      # validate src/data/learn/demands/*.json against the question bank
+npm run learn:levels                     # read-only: each Learn question's derived level per topic, and what the describe floor moved
 ```
 
 Other CLIs exist under `scripts/scoring/` (`score:batch`, `score:inspect`, `score:review`) and

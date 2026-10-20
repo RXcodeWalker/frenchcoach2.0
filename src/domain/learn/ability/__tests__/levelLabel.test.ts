@@ -8,21 +8,21 @@ function ability(overrides: Partial<AbilityResult>): AbilityResult {
 }
 
 describe('levelLabel', () => {
-  it('maps to Warm-up (A1) · Exam level (A2) · Stretch (B1) · Stretch (B1+)', () => {
+  it('maps to Warm-up (A1) · Exam level (A2) · Stretch (B1) · Stretch (B2)', () => {
     expect(levelLabel('A1')).toBe('Warm-up (A1)');
     expect(levelLabel('A2')).toBe('Exam level (A2)');
     expect(levelLabel('B1')).toBe('Stretch (B1)');
-    expect(levelLabel('B2')).toBe('Stretch (B1+)');
+    expect(levelLabel('B2')).toBe('Stretch (B2)');
   });
 });
 
 describe('cefrLevelLabel (Batch 4: the coach model\'s cefrLevel)', () => {
-  it('clamps everything above B1 to Stretch (B1+), never showing B2 or C1', () => {
+  it('shows B2 as Stretch (B2) and clamps C1/C2 to it, never showing C1 or C2', () => {
     expect(cefrLevelLabel('A2')).toBe('Exam level (A2)');
     expect(cefrLevelLabel('b1')).toBe('Stretch (B1)');
     for (const code of ['B2', 'C1', 'C2']) {
-      expect(cefrLevelLabel(code)).toBe('Stretch (B1+)');
-      expect(cefrLevelLabel(code)).not.toMatch(/B2|C1|C2/);
+      expect(cefrLevelLabel(code)).toBe('Stretch (B2)');
+      expect(cefrLevelLabel(code)).not.toMatch(/C1|C2/);
     }
   });
 
@@ -49,11 +49,11 @@ describe('measuredLevelDisplay (docs §6.3)', () => {
     expect(caption).toBe('from 7 answers we could measure');
   });
 
-  it('never shows B2 or C1, even for a high ability', () => {
+  it('never shows C1, even for a high ability', () => {
     for (const overallConfidence of [0, 0.3, 0.9]) {
       const { band, caption } = measuredLevelDisplay(ability({ abilityScore: 9.5, overallConfidence, measuredAnswers: 1 }));
-      expect(`${band} ${caption}`).not.toMatch(/B2|C1/);
-      expect(band).toContain('Stretch (B1+)');
+      expect(`${band} ${caption}`).not.toMatch(/C1|C2|B1\+/);
+      expect(band).toContain('Stretch (B2)');
     }
   });
 });

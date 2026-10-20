@@ -54,7 +54,7 @@ describe('session preview', () => {
   });
 
   it('never shows B2 or C1, even for a very high target', () => {
-    expect(summarisePreview([slot('target')], 9.5)?.targetLabel).toBe('Stretch (B1+)');
+    expect(summarisePreview([slot('target')], 9.5)?.targetLabel).toBe('Stretch (B2)');
   });
 
   it('words the line with and without a stretch share', () => {
@@ -64,8 +64,8 @@ describe('session preview', () => {
     );
   });
 
-  it('never prints a raw demand id, score or a bare CEFR band above B1', () => {
-    const text = previewText({ total: 10, stretch: 3, targetLabel: 'Stretch (B1+)' });
+  it('never prints a raw demand id, score or a bare CEFR band above the label', () => {
+    const text = previewText({ total: 10, stretch: 3, targetLabel: 'Stretch (B1)' });
     expect(text).not.toMatch(/hypothesize|compare|justify|\bB2\b|\bC1\b/);
   });
 });

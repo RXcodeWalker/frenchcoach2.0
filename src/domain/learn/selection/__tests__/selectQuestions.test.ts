@@ -168,11 +168,56 @@ describe('selectQuestions', () => {
     expect(selected[0].slot).toBe('review');
   });
 
-  it('a review slot with no eligible review question is simply skipped (no crash, no fallback fill)', () => {
+  it('a review slot with nothing due and an empty pool is skipped (no crash, no padding)', () => {
     const slots: SessionSlot[] = [{ type: 'review', band: null }];
     const { selected, targetCount } = selectQuestions(baseArgs({ pool: [], slots }));
     expect(selected).toHaveLength(0);
     expect(targetCount).toBe(0);
+  });
+
+  describe('review backfill (docs §8.3, question-levels batch)', () => {
+    const pool = ['a', 'b', 'c'].map((id) =>
+      makeQuestion(id, { demands: makeDemands({ cognitiveDemand: 'explain' }) }),
+    );
+
+    it('an unfilled review slot is backfilled with a target-slot question', () => {
+      const slots: SessionSlot[] = [{ type: 'review', band: null }, { type: 'target', band: { lo: 3.5, hi: 4.5 } }];
+      const { selected, targetCount } = selectQuestions(baseArgs({ pool, slots, targetLevel: 4.0 }));
+      expect(targetCount).toBe(2);
+      expect(selected.map((s) => s.slot)).toEqual(['target', 'target']);
+      expect(new Set(selected.map((s) => s.question.id)).size).toBe(2);
+    });
+
+    it('a filled review slot is not backfilled', () => {
+      const reviewQ = makeQuestion('reviewQ');
+      const slots: SessionSlot[] = [{ type: 'review', band: null }];
+      const { selected } = selectQuestions(baseArgs({ pool, slots, getReviewQuestion: () => reviewQ }));
+      expect(selected.map((s) => s.question.id)).toEqual(['reviewQ']);
+    });
+
+    it('planned slots get first pick: the backfill takes what is left', () => {
+      const slots: SessionSlot[] = [{ type: 'review', band: null }, { type: 'target', band: { lo: 3.5, hi: 4.5 } }];
+      const planned = selectQuestions(baseArgs({ pool, slots: [slots[1]], targetLevel: 4.0 })).selected[0].question.id;
+      const { selected } = selectQuestions(baseArgs({ pool, slots, targetLevel: 4.0 }));
+      expect(selected[0].question.id).toBe(planned);
+    });
+
+    it('never pads: a pool smaller than the slots still returns fewer', () => {
+      const slots: SessionSlot[] = [
+        { type: 'review', band: null },
+        { type: 'review', band: null },
+        { type: 'target', band: { lo: 3.5, hi: 4.5 } },
+      ];
+      const { selected, targetCount } = selectQuestions(baseArgs({ pool: pool.slice(0, 2), slots, targetLevel: 4.0 }));
+      expect(targetCount).toBe(2);
+      expect(selected).toHaveLength(2);
+    });
+
+    it('draws only from the given (already filtered) pool', () => {
+      const slots: SessionSlot[] = [{ type: 'review', band: null }];
+      const { selected } = selectQuestions(baseArgs({ pool: [pool[0]], slots, targetLevel: 4.0 }));
+      expect(selected.map((s) => s.question.id)).toEqual(['a']);
+    });
   });
 
   it('respects the fixed fill order (review, stretch, target, warmup, choice) for deterministic exhaustion', () => {

@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { deriveDemandScore, demandScoreToLevel, deriveDemandLevel } from '../deriveDemandLevel';
+import {
+  deriveDemandScore,
+  demandScoreToLevel,
+  deriveDemandLevel,
+  DESCRIBE_PAST_FUTURE_FLOOR,
+} from '../deriveDemandLevel';
 import type { QuestionDemands } from '../types';
 
 function demands(overrides: Partial<QuestionDemands>): QuestionDemands {
@@ -28,9 +33,9 @@ describe('deriveDemandScore', () => {
       3.0,
     ],
     [
-      '3 distinct time frames adds 0.5',
-      { cognitiveDemand: 'describe', timeFrames: ['present', 'past', 'future'] },
-      2.5,
+      '3 distinct time frames adds 0.5 (explain: a describe one is floored at 3.0)',
+      { cognitiveDemand: 'explain', timeFrames: ['present', 'past', 'future'] },
+      4.5,
     ],
     [
       'conditional time frame + 3 distinct time frames both apply',
@@ -119,6 +124,37 @@ describe('deriveDemandScore', () => {
       }),
     );
     expect(score).toBeLessThanOrEqual(10);
+  });
+});
+
+// The describe floor: the same cases the backend's Python port is tested against
+// (tests/test_difficulty_context.py, DESCRIBE_FLOOR_CASES on the v7 branch).
+describe('describe floor (past/future describe is at least A2)', () => {
+  it.each<[string, Partial<QuestionDemands>, number, string]>([
+    ['past, developed', { timeFrames: ['past'] }, 3.0, 'A2'],
+    ['future, short load', { timeFrames: ['future'], responseLoad: 'short' }, 3.0, 'A2'],
+    ['present + past, extended', { timeFrames: ['present', 'past'], responseLoad: 'extended' }, 3.0, 'A2'],
+    [
+      'three frames, extended, abstract keeps its own higher sum',
+      { timeFrames: ['present', 'past', 'future'], responseLoad: 'extended', lexicalReach: 'abstract' },
+      3.5,
+      'A2',
+    ],
+    ['present only, extended: no floor', { responseLoad: 'extended' }, 2.75, 'A1'],
+    ['present only, short: no floor', { responseLoad: 'short' }, 1.25, 'A1'],
+  ])('%s', (_label, overrides, score, level) => {
+    const d = demands(overrides);
+    expect(deriveDemandScore(d)).toBeCloseTo(score, 5);
+    expect(deriveDemandLevel(d)).toBe(level);
+  });
+
+  it('is exactly the A2 band edge', () => {
+    expect(demandScoreToLevel(DESCRIBE_PAST_FUTURE_FLOOR)).toBe('A2');
+  });
+
+  it('applies to describe only: explain/justify keep their own base and never drop', () => {
+    expect(deriveDemandScore(demands({ cognitiveDemand: 'explain', timeFrames: ['past'] }))).toBe(4.0);
+    expect(deriveDemandScore(demands({ cognitiveDemand: 'justify', timeFrames: ['future'] }))).toBe(6.0);
   });
 });
 
