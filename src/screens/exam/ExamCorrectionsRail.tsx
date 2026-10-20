@@ -6,6 +6,13 @@ import type { RailDisabledReason, RailEntry } from '../../services/exam/turnFeed
 import { ExamPronunciationPartCard } from '../../features/exam/pronunciation/ExamPronunciationPartCard';
 import type { UseExamPronunciation } from '../../features/exam/pronunciation/useExamPronunciation';
 
+/** Labels restart in each part, so the rail names the part too. */
+const PART_SHORT: Record<string, string> = {
+  rolePlay: 'Role play',
+  topic1: 'Topic 1',
+  topic2: 'Topic 2',
+};
+
 interface Props {
   coached: boolean;
   entries: RailEntry[];
@@ -14,7 +21,7 @@ interface Props {
   highlightedTurnKey: number | null;
   /** The specific quote clicked in the transcript, within the highlighted turn. */
   highlightedQuote?: string | null;
-  /** turnKey -> "Q3"/"A3" labels, matching the transcript. */
+  /** turnKey -> "Q3"/"A3b" labels, matching the transcript (numbered per part). */
   turnLabels?: Map<number, TurnLabel>;
   /**
    * Exam-pronunciation Batch 6: a card per finished part, Coached only. Omitted
@@ -103,9 +110,15 @@ function CorrectionsRailBody({ coached, entries, disabledReason, onRetry, highli
           >
             {turnLabels?.get(entry.turnKey) && (
               <p className="px-1 pb-1 text-eyebrow uppercase text-ink-subtle">
-                <span className="font-bold text-ink">Q{turnLabels.get(entry.turnKey)!.n}</span>
+                {PART_SHORT[turnLabels.get(entry.turnKey)!.part] && (
+                  <>
+                    <span>{PART_SHORT[turnLabels.get(entry.turnKey)!.part]}</span>
+                    <span aria-hidden="true"> · </span>
+                  </>
+                )}
+                <span className="font-bold text-ink">Q{turnLabels.get(entry.turnKey)!.ref}</span>
                 <span aria-hidden="true"> · </span>
-                <span className="font-bold text-ink">A{turnLabels.get(entry.turnKey)!.n}</span>
+                <span className="font-bold text-ink">A{turnLabels.get(entry.turnKey)!.ref}</span>
               </p>
             )}
             <ExaminerFeedbackCard

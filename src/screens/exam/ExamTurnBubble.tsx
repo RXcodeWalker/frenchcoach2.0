@@ -7,15 +7,15 @@ const ACTION_LABEL: Record<string, string> = {
   READ_MAIN: 'Examiner',
   REPEAT: 'Examiner (repeating)',
   READ_ALTERNATIVE: 'Examiner (alternative question)',
-  EXTENSION_PROMPT: 'Examiner',
-  FURTHER_QUESTION: 'Examiner',
+  EXTENSION_PROMPT: 'Examiner (asking for more)',
+  FURTHER_QUESTION: 'Examiner (further question)',
   TRANSITION: 'Examiner',
   END: 'Examiner',
 };
 
 interface Props {
   entry: ConductLogEntry;
-  /** "Q3" / "A3" — this turn's place in the conversation. */
+  /** "Q3" / "A3b" / "Q+1" — this turn's place in its part (see turnLabels.ts). */
   turnLabel?: string;
   voiceMuted: boolean;
   /** W3: this candidate turn's rail result, when the corrections rail has one (coached mode only). */
