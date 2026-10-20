@@ -7,10 +7,14 @@ feedback says what a B1 answer needs that this one lacks. Why it works this way:
 tests are the current behavior. It is **§-numbered and live — never renumber a section** (cite as
 `learn-marking §N`).
 
-**Status: backend built, inert.** The scoring code (`backend/lib/learn_ladder.py`) and the backend
-wiring (`marking` field, kill switch, `learn-prompt-v8` ladder prompt, scoring before
-`enrich_feedback` on `/v3` and the stream) exist, but no client sends `marking` yet. Production Learn
-stays on `learn-prompt-v6` until the gate in `docs/guides/learn-marking-test-protocol.md` passes.
+**Status: backend built, inert; frontend wired behind a flag.** The scoring code
+(`backend/lib/learn_ladder.py`) and the backend wiring (`marking` field, kill switch,
+`learn-prompt-v8` ladder prompt, scoring before `enrich_feedback` on `/v3` and the stream) exist. The
+frontend wiring (the marking dial, the `marking` field, the `levelCheck` schema, `markedScore`, the
+rewards gate and sync — see the Batch 3 amendment at the end) is built behind the frontend flag
+`learnMarkingLevels`, which stays `coming-soon`, so no client sends `marking` yet. Production Learn
+stays on `learn-prompt-v6` until the gate in `docs/guides/learn-marking-test-protocol.md` passes (the
+2026-10-19 Stage 2 run did not; see `verification-log.md`).
 Every number below that is not stated by a source is `UNVALIDATED`.
 
 **Labels used in this page.**
@@ -437,3 +441,44 @@ All UNVALIDATED, changeable by the owner: points 10/8/5/2.5/1; equal sub-score w
 - **Demand tags decide what applies**, and 660 of 668 are inferred. A lint flagging question text
   whose cues (*pourquoi, penses-tu, aimerais-tu*) disagree with its tags would catch mis-tags like
   `sch_03`; it is a candidate for the question-levels batch.
+
+## Amendment: Batch 3 — frontend wiring (2026-10-20)
+
+Built behind `learnMarkingLevels` (`src/config/featureFlags.ts`, default `coming-soon`; try it with
+`?ff_learnMarkingLevels=live`). With the flag off Learn is exactly the old path: no `marking` field,
+no dial, every score at Exam standard.
+
+- **The dial.** `AppState.markingLevel` (`A1 · A2 · exam · B1 · B2`, default `exam`), written by
+  `SET_MARKING_LEVEL` to the identity-scoped raw key `frenchCoach_markingLevel`, mirrored across tabs
+  like `aim`. Shown on Learn's setup screen in the Coach style only (the Examiner style shows no
+  score). It never leaves the device: it is in no request body, sync row or prompt. The existing Aim
+  control (Comfortable / Balanced / Push) is the question-level dial; it is unchanged (owner,
+  2026-10-20).
+- **The request.** Learn alone passes `marking: 'ladder-v1'` to `getAIFeedback`/`streamFeedback`
+  (the last argument); every other caller omits it. `buildDifficultyContext` is unchanged.
+- **The reply.** `feedbackSchema.ts` validates `levelCheck` (`.catch(undefined)`: a malformed one
+  degrades to "no level marking", never a failed reply; a malformed needs list empties only that
+  level) and `promptVersion`; `mergeV2Fields` copies both and stamps `markingVersion: 'ladder-v1'`,
+  which `sessionSync.ts`'s `stripFeedback` keeps. `levelCheck` itself is not synced.
+- **One helper.** `src/domain/learn/marking/markingLevel.ts`'s `resolveMarkedScore`/`markedScore`
+  (§8.2); Learn calls it once per answer through `features/learn/markingLevel.ts`'s
+  `scoreLearnAttempt`, which returns the Exam-standard bookkeeping score and the marked one.
+- **What reads the marked score:** the score line and the Full report (grid relabelled Answering /
+  Range / Accuracy / Linking on a ladder reply, at the chosen level); XP in both sites (Learn's
+  `Session.xpEarned` and the orchestrator's `awardXP`, via the new `reward` input); score
+  achievements; the answer streak; `bestMarkedScore` for the progress bar, the mid-session toast, the
+  session summary and its confetti. `Session.score`, `bestScore`, topic mastery, SM-2 review,
+  mid-session adjust, evidence and the notebook offer stay on the Exam score
+  (`markingLevelIndependence.test.ts` runs one reply through all five levels).
+- **Interpretations of §8.2, chosen here.** *No bonus XP or gems* below Exam standard means the
+  answer earns exactly participation XP and gems (`computeXPGain(…, { scoreCounts: false })` ==
+  `computeParticipationXPGain`): the score bonus and the +5 gem bonus go, the base gems stay, so a
+  lenient level never earns less than an ungraded answer. Below Exam standard the answer streak
+  *holds* (neither extends nor breaks), like an ungraded answer. `awardXP`'s own copy of the gem
+  bonus now goes through `scoreGemBonus`, the same rule.
+- **Fallback (§8.3).** Without a `levelCheck` (kill switch, offline, old backend) the score line says
+  "Level marking unavailable — marked at Exam standard" and rewards count as at Exam standard. The
+  rest of the copy (the needs card, "Checked against the B1 ladder") is Batch 4.
+
+**Rollback.** Keep the flag `coming-soon` (or set it back); the stored level is then ignored.
+

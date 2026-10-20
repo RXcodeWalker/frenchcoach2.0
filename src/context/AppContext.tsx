@@ -5,6 +5,7 @@ import type { XpSource } from '../types/social';
 import { DEFAULT_DIFFICULTY } from '../utils/difficultyConfig';
 import type { Aim } from '../domain/learn/selection/sessionTarget';
 import { aimFromMigratedTier } from '../domain/learn/selection/sessionTarget';
+import { DEFAULT_MARKING_LEVEL, isMarkingLevel, type MarkingLevel } from '../domain/learn/marking/markingLevel';
 import { normalizeTopicMasteryAll } from '../features/learn/topicAverage';
 import { ACHIEVEMENTS } from '../data/gameData';
 import { validateAchievementRegistry } from '../data/achievements';
@@ -72,6 +73,8 @@ interface AppState {
   selectedDifficulty: DifficultyTier;
   /** docs §6/§6.4/§16 Stage 10 — replaces DifficultyTier as the learner control on the adaptive path. */
   aim: Aim;
+  /** learn-marking §8 — the Learn marking level. Device-only: never sent, never synced. */
+  markingLevel: MarkingLevel;
   dailyGoal: number;
 }
 
@@ -88,6 +91,12 @@ function clampDailyGoal(value: number): number {
  * ("-5", "Infinity", "abc") must be validated before it reaches HeroMission's
  * ring math instead of producing nonsensical UI. */
 /** Exported for boot-time-read unit tests only — not part of the app's public surface. */
+/** learn-marking §8 — the stored marking level (raw string, identity-scoped); anything unknown reads as Exam standard. */
+export function readMarkingLevel(): MarkingLevel {
+  const stored = localStorage.getItem(scopedKey(STORAGE_KEYS.markingLevel));
+  return isMarkingLevel(stored) ? stored : DEFAULT_MARKING_LEVEL;
+}
+
 export function readDailyGoal(): number {
   const stored = localStorage.getItem(scopedKey(STORAGE_KEYS.dailyGoal));
   if (!stored) return DAILY_GOAL_DEFAULT;
@@ -132,6 +141,7 @@ type Action =
   | { type: 'SET_AI_ENGINE'; engine: AIEngine }
   | { type: 'SET_DIFFICULTY'; tier: DifficultyTier }
   | { type: 'SET_AIM'; aim: Aim }
+  | { type: 'SET_MARKING_LEVEL'; level: MarkingLevel }
   | { type: 'SET_DAILY_GOAL'; goal: number };
 
 function buildInitialState(): AppState {
@@ -230,6 +240,7 @@ function buildInitialState(): AppState {
     preferredEngine,
     selectedDifficulty,
     aim,
+    markingLevel: readMarkingLevel(),
     dailyGoal: readDailyGoal(),
   };
 }
@@ -419,6 +430,11 @@ export function reducer(state: AppState, action: Action): AppState {
     case 'SET_AIM': {
       storageSetRaw(STORAGE_KEYS.aim, action.aim);
       return { ...state, aim: action.aim };
+    }
+
+    case 'SET_MARKING_LEVEL': {
+      storageSetRaw(STORAGE_KEYS.markingLevel, action.level);
+      return { ...state, markingLevel: action.level };
     }
 
     case 'SET_DAILY_GOAL': {
@@ -767,6 +783,10 @@ export function AppProvider({ identity, children }: { identity: string; children
       }
       if (matchesScopedKey(e.key, STORAGE_KEYS.aim) && e.newValue) {
         dispatch({ type: 'SET_AIM', aim: e.newValue as Aim });
+        return;
+      }
+      if (matchesScopedKey(e.key, STORAGE_KEYS.markingLevel) && isMarkingLevel(e.newValue)) {
+        dispatch({ type: 'SET_MARKING_LEVEL', level: e.newValue });
         return;
       }
       if (matchesScopedKey(e.key, STORAGE_KEYS.notebook)) {

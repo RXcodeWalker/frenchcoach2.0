@@ -112,6 +112,49 @@ const ChangeAnnotationSchema = z.object({
   explanation:  nullishStringWithFallback(''),
 });
 
+// learn-marking §7 — the ladder result the backend adds to a Learn reply sent
+// with `marking: 'ladder-v1'`. Twin of src/domain/learn/marking/markingLevel.ts's
+// LevelCheck. The whole object degrades to undefined (`.catch(undefined)` at
+// the field below) when it is malformed, so a bad levelCheck never fails the
+// reply: the app then shows the Exam-standard score with the "Level marking
+// unavailable" note (§8.3). A malformed needs list degrades only that level's
+// list to empty.
+const LADDER_IDS = ['T', 'L', 'O', 'F', 'R', 'A'] as const;
+const RUNGS = ['A1', 'A2', 'B1', 'B2'] as const;
+
+const LadderSubScoresSchema = z.object({
+  comm:    z.number().min(0).max(10),
+  fluency: z.number().min(0).max(10),
+  know:    z.number().min(0).max(10),
+  acc:     z.number().min(0).max(10),
+});
+
+const LadderNeedSchema = z.object({
+  ladder:    z.enum(LADDER_IDS),
+  label:     z.string(),
+  nextRung:  z.enum(RUNGS),
+  text:      z.string(),
+  firstStep: z.boolean(),
+  example:   z.string().nullable(),
+});
+
+const LadderNeedsSchema = z.array(LadderNeedSchema).catch([]);
+
+const LevelCheckSchema = z.object({
+  scheme:        z.literal('ladder-v1'),
+  ladderVersion: z.string(),
+  applies:       z.array(z.enum(LADDER_IDS)),
+  reached:       z.partialRecord(z.enum(LADDER_IDS), z.enum([...RUNGS, 'none'])),
+  subScoresByLevel: z.object({
+    A1: LadderSubScoresSchema, A2: LadderSubScoresSchema, exam: LadderSubScoresSchema,
+    B1: LadderSubScoresSchema, B2: LadderSubScoresSchema,
+  }),
+  needsByLevel: z.object({
+    A1: LadderNeedsSchema, A2: LadderNeedsSchema, exam: LadderNeedsSchema,
+    B1: LadderNeedsSchema, B2: LadderNeedsSchema,
+  }),
+});
+
 // ── Critical fields — these must be present and valid ────────────────────────
 
 export const BackendFeedbackSchema = z.object({
@@ -187,6 +230,11 @@ export const BackendFeedbackSchema = z.object({
   difficulty_fit:        z.enum(['too easy', 'right level', 'too hard']).optional(),
   /** True only when the backend resolved question demands server-side (docs §9.1) — Stage 8b's L2 gap-fill gate. */
   demandsResolved:       z.boolean().optional(),
+
+  // learn-marking §7 — ladder scheme only. `scores`/`fluency`/`cefrLevel` above
+  // are already the Exam-standard result; levelCheck carries all five levels.
+  levelCheck:    LevelCheckSchema.optional().catch(undefined),
+  promptVersion: z.string().optional(),
 }).passthrough();
 
 export type BackendFeedbackParsed = z.infer<typeof BackendFeedbackSchema>;

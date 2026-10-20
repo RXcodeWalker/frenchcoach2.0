@@ -1,6 +1,6 @@
 // Copied verbatim from progression.js — strips DOM calls, keeps XP/level logic
 import { STORAGE_KEYS, storageGet, storageSet, storageSetRaw, storageRemove } from '../persistence/storage';
-import { computeXPGain, computeParticipationXPGain } from '../../domain/xp';
+import { computeXPGain, computeParticipationXPGain, scoreGemBonus, type XPGainOptions } from '../../domain/xp';
 import { evaluateAchievements, type AchievementContext } from '../../data/achievements';
 import { logXpEvent } from '../social/xpLedger';
 import { enqueueMint } from '../shop/mintQueue';
@@ -63,12 +63,12 @@ function _progressPct(xp: number) {
   return Math.min(100, Math.round(((xp - lvl.minXP) / (next.minXP - lvl.minXP)) * 100));
 }
 
-export function awardXP(score: number, streak = 0, source: XpSource = 'practice'): { gain: number; totalXP: number; gemsGain: number; totalGems: number; levelUp: boolean; activeBoosters: { id: string; expiresAt: string; multiplier: number }[] } {
+export function awardXP(score: number, streak = 0, source: XpSource = 'practice', options: XPGainOptions = {}): { gain: number; totalXP: number; gemsGain: number; totalGems: number; levelUp: boolean; activeBoosters: { id: string; expiresAt: string; multiplier: number }[] } {
   const data = _load();
   const prevXP = data.xp;
   const prevLevel = _levelFor(prevXP);
 
-  const base = computeXPGain(score, streak);
+  const base = computeXPGain(score, streak, options);
   let gain = base.gain;
 
   // Apply multipliers from active boosters
@@ -79,7 +79,7 @@ export function awardXP(score: number, streak = 0, source: XpSource = 'practice'
   });
   data.activeBoosters = validBoosters;
 
-  const gemsGain = Math.floor(gain / 10) + (score >= 8 ? 5 : 0);
+  const gemsGain = Math.floor(gain / 10) + scoreGemBonus(score, options.scoreCounts);
 
   data.xp      = prevXP + gain;
   data.totalXP = (data.totalXP || 0) + gain;

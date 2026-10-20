@@ -8,6 +8,7 @@ import { stagger } from '../../components/motion/variants';
 import { FeedbackProvider, useFeedbackContext } from './state/feedbackContext';
 import { useFeedbackState } from './hooks/useFeedbackState';
 import { SnapshotCard } from './components/SnapshotCard';
+import type { MarkingLevel } from '../../domain/learn/marking/markingLevel';
 import { BeforeAfterDiff } from './components/BeforeAfterDiff';
 import { ReportView } from './components/ReportView';
 import { FIX_FIRST_HEADING } from './coachPoints';
@@ -107,6 +108,12 @@ interface Props {
     savedAnswer: string | null;
     onSave: (draft: NotebookDraft) => void;
   } | null;
+  /**
+   * learn-marking §8.2 — the learner's marking level, passed only while the
+   * marking dial is live. Changes only the score shown; the notebook offer
+   * stays on the Exam-standard score (§8.1).
+   */
+  markingLevel?: MarkingLevel;
 }
 
 /** An answer at or above this overall score is offered to the notebook (the same line as `scoreTone`'s "good"). */
@@ -116,8 +123,8 @@ export type PronunciationStatus = 'idle' | 'pending' | 'done' | 'failed' | 'sign
 
 function FeedbackContent({
   feedback, transcript, modelAnswer, onRetry, onComplete,
-  pronunciationResult, pronunciationStatus, learnerName, recurring, nextQuestion, firsts, notebook, checks, answers,
-}: Pick<Props, 'transcript' | 'modelAnswer' | 'onRetry' | 'onComplete' | 'pronunciationResult' | 'pronunciationStatus' | 'learnerName' | 'recurring' | 'nextQuestion' | 'firsts' | 'notebook'> & {
+  pronunciationResult, pronunciationStatus, learnerName, recurring, nextQuestion, firsts, notebook, markingLevel, checks, answers,
+}: Pick<Props, 'transcript' | 'modelAnswer' | 'onRetry' | 'onComplete' | 'pronunciationResult' | 'pronunciationStatus' | 'learnerName' | 'recurring' | 'nextQuestion' | 'firsts' | 'notebook' | 'markingLevel'> & {
   feedback: FeedbackV2;
   checks: readonly PredictionCheck[];
   answers: Partial<Record<PredictionCheckId, PredictionAnswer>>;
@@ -186,6 +193,7 @@ function FeedbackContent({
           majorIssues={majorIssues}
           polishIssues={polishIssues}
           onIssueClick={openCardFromIssue}
+          markingLevel={markingLevel}
         />
         <FeedbackFooter onRetry={onRetry} onComplete={onComplete} modelAnswer={modelAnswer} />
       </motion.div>
@@ -228,7 +236,7 @@ function FeedbackContent({
         }
       />
 
-      <SnapshotCard feedback={feedback} variant="line" />
+      <SnapshotCard feedback={feedback} variant="line" markingLevel={markingLevel} />
 
       {/* lint:pronunciation-start — pronunciation branch is out of Batch 5 scope; block untouched */}
       {/* Pronunciation — Azure (0-100, real acoustic analysis) supersedes the legacy
@@ -300,7 +308,7 @@ function FeedbackContent({
 
 export function FeedbackExperience({
   feedback, streamPhase, transcript, modelAnswer, onRetry, onComplete,
-  pronunciationResult, pronunciationStatus, demands, learnerName, recurring, nextQuestion, firsts, notebook,
+  pronunciationResult, pronunciationStatus, demands, learnerName, recurring, nextQuestion, firsts, notebook, markingLevel,
 }: Props) {
   const checks = useMemo(() => predictionChecks(demands), [demands]);
   const [answers, setAnswers] = useState<Partial<Record<PredictionCheckId, PredictionAnswer>>>({});
@@ -343,6 +351,7 @@ export function FeedbackExperience({
           learnerName={learnerName}
           recurring={recurring}
           nextQuestion={nextQuestion}
+          markingLevel={markingLevel}
           firsts={firsts}
           notebook={notebook}
           checks={checks}

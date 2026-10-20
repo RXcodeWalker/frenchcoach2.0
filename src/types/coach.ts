@@ -185,6 +185,13 @@ export interface OrchestratorInput {
    * graded 0 is never conflated with "not graded."
    */
   finalScore: number;
+  /**
+   * learn-marking §8.2 — the score the learner sees and earns at their marking
+   * level, and whether it may earn bonus XP, gems and score achievements (false
+   * below Exam standard). Absent → `finalScore`, counted. `finalScore` stays the
+   * Exam-standard score that evidence, Session.score and SM-2 review read.
+   */
+  reward?: { score: number; scoreCounts: boolean };
   streakDays: number;
   totalSessionsBefore: number;
 }

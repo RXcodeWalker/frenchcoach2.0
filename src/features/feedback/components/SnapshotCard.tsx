@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { scoreTone, isUnscored, coachScoreGrid } from '../../../domain/scoring';
 import { fadeUp } from '../../../components/motion/variants';
 import { cefrLevelLabel } from '../../../domain/learn/ability/levelLabel';
+import { ladderScoreGrid, resolveMarkedScore, type MarkingLevel } from '../../../domain/learn/marking/markingLevel';
 import type { FeedbackV2 } from '../../../types';
 
 interface Props {
@@ -11,16 +12,30 @@ interface Props {
    * word count on one line. 'full' (the Full report): adds the sub-score grid.
    */
   variant?: 'line' | 'full';
+  /**
+   * learn-marking §8.2 — the learner's marking level; present only while the
+   * marking dial is live (Learn's Coach style). The overall and the grid are
+   * then read at that level; without a levelCheck they stay at Exam standard
+   * and say so (§8.3).
+   */
+  markingLevel?: MarkingLevel;
 }
+
+const LEVEL_MARKING_UNAVAILABLE = 'Level marking unavailable — marked at Exam standard';
 
 // No "Core+/Extended" band pill (Batch 4, D3): 0520 speaking is not tiered, and
 // an unaudited band reads as a real result. The band stays in synced data.
-export function SnapshotCard({ feedback, variant = 'full' }: Props) {
-  const { scores, wordCount, cefrLevel, examiner } = feedback;
+export function SnapshotCard({ feedback, variant = 'full', markingLevel }: Props) {
+  const { scores, wordCount, cefrLevel, examiner, levelCheck } = feedback;
   const level = cefrLevelLabel(cefrLevel);
   const unscored = isUnscored(feedback);
 
-  const scoreEntries = coachScoreGrid(scores);
+  const marked = resolveMarkedScore(feedback, markingLevel ?? 'exam');
+  const overall = marked.score ?? scores.overall;
+  const scoreEntries = levelCheck ? ladderScoreGrid(levelCheck.subScoresByLevel[marked.level]) : coachScoreGrid(scores);
+  const unavailableNote = markingLevel && !marked.levelMarked
+    ? <p className="text-[10px] text-ink-muted mt-1">{LEVEL_MARKING_UNAVAILABLE}</p>
+    : null;
 
   if (unscored) {
     return (
@@ -50,11 +65,14 @@ export function SnapshotCard({ feedback, variant = 'full' }: Props) {
         variants={fadeUp}
         initial="hidden"
         animate="show"
-        className="rounded-xl surface-raised px-5 py-3 flex items-baseline gap-2"
+        className="rounded-xl surface-raised px-5 py-3"
       >
-        <span className="text-2xl font-black" style={{ color: scoreTone(scores.overall) }}>{scores.overall.toFixed(1)}</span>
-        <span className="text-eyebrow text-ink-subtle uppercase">Overall</span>
-        <span className="text-[10px] text-ink-subtle ml-auto">{meta}</span>
+        <div className="flex items-baseline gap-2">
+          <span className="text-2xl font-black" style={{ color: scoreTone(overall) }}>{overall.toFixed(1)}</span>
+          <span className="text-eyebrow text-ink-subtle uppercase">Overall</span>
+          <span className="text-[10px] text-ink-subtle ml-auto">{meta}</span>
+        </div>
+        {unavailableNote}
       </motion.div>
     );
   }
@@ -79,9 +97,10 @@ export function SnapshotCard({ feedback, variant = 'full' }: Props) {
       </div>
 
       <div className="flex items-baseline gap-2 mb-3">
-        <span className="text-3xl font-black" style={{ color: scoreTone(scores.overall) }}>{scores.overall.toFixed(1)}</span>
+        <span className="text-3xl font-black" style={{ color: scoreTone(overall) }}>{overall.toFixed(1)}</span>
         <span className="text-eyebrow text-ink-subtle uppercase">Overall</span>
       </div>
+      {unavailableNote && <div className="-mt-2 mb-3">{unavailableNote}</div>}
 
       <div className="grid grid-cols-4 gap-3 max-[380px]:grid-cols-2">
         {scoreEntries.map(({ label, val }, i) => (

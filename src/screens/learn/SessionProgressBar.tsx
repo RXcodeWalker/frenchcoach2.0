@@ -1,5 +1,6 @@
 import { X } from 'lucide-react';
 import { averageRealScores } from '../../domain/scoring';
+import { shownBestScore } from '../../features/learn/markingLevel';
 import type { ActiveSession } from '../../types';
 
 interface Props {
@@ -22,7 +23,7 @@ export function SessionProgressBar({ session, topicLabel, topicIcon, onEndSessio
 
   const completedScores = session.questions
     .filter(q => q.status === 'completed')
-    .map(q => q.bestScore);
+    .map(shownBestScore);
   const avgScore = averageRealScores(completedScores);
 
   return (
@@ -71,7 +72,7 @@ export function SessionProgressBar({ session, topicLabel, topicIcon, onEndSessio
           const q = session.questions[i];
           const isCompleted = q?.status === 'completed';
           const isActive = i === currentIndex;
-          const score = q?.bestScore ?? null;
+          const score = q ? shownBestScore(q) : null;
 
           let segClass = 'bg-track';
           if (isCompleted) {

@@ -634,6 +634,17 @@ export interface FeedbackV2 extends Feedback {
   difficulty_fit?: 'too easy' | 'right level' | 'too hard';
   /** True only when the backend resolved question demands by questionId + demandsVersion (docs §9.1); absent/false -> buildDemandEvidence's L2 gap-fill must not run. */
   demandsResolved?: boolean;
+  /**
+   * learn-marking §7 — the ladder result: sub-scores at all five marking levels.
+   * Present only on a ladder-scheme reply (Learn sends `marking: 'ladder-v1'`).
+   * `scores` above is always its Exam-standard entry; only display and rewards
+   * read another level, through `markedScore` (§8.2).
+   */
+  levelCheck?: import('../domain/learn/marking/markingLevel').LevelCheck;
+  /** The backend's prompt version for this reply (e.g. `learn-prompt-v8`); set on ladder replies. */
+  promptVersion?: string;
+  /** §8.3 — the marking scheme this attempt was scored with; synced with the session so history stays comparable. */
+  markingVersion?: import('../domain/learn/marking/markingLevel').LearnMarkingScheme;
 }
 
 /**
@@ -675,6 +686,8 @@ export interface QuestionAttempt {
   transcript: string;
   /** null when this attempt was never graded (offline fallback) — never a fabricated placeholder. */
   score: number | null;
+  /** learn-marking §8.2 — the score at the learner's marking level (display/rewards only); absent → `score`. */
+  markedScore?: number | null;
   xpEarned: number;
   feedback: FeedbackV2;
   durationSec: number;
@@ -689,8 +702,10 @@ export interface SessionQuestion {
   question: Question;
   status: 'pending' | 'active' | 'completed' | 'skipped';
   attempts: QuestionAttempt[];
-  /** Best real score across attempts; null until a graded attempt exists. */
+  /** Best real score across attempts; null until a graded attempt exists. Always Exam standard (learn-marking §8.1). */
   bestScore: number | null;
+  /** learn-marking §8.2 — best score at the learner's marking level, for display only (progress bar, summary, confetti); absent → `bestScore`. */
+  bestMarkedScore?: number | null;
   savedVocab: string[];
   /** True when this question was spliced in as a spaced-review re-exposure of a previously-failed question. */
   isReview?: boolean;

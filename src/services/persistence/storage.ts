@@ -22,6 +22,9 @@ export const STORAGE_KEYS = {
   // left in place for one release (rollback safety) and is still read once by
   // aimFromMigratedTier() as the seed when no `aim` value exists yet.
   aim:            'frenchCoach_aim',
+  // learn-marking §8 — the learner's marking level (A1 · A2 · exam · B1 · B2),
+  // identity-scoped, raw string. Never sent to the backend.
+  markingLevel:   'frenchCoach_markingLevel',
   dailyGoal:      'frenchCoach_dailyGoal',
   roadmap:        'frenchCoach_roadmap',
   vault:          'frenchCoach_vault',

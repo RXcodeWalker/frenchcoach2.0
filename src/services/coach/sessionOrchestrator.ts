@@ -66,6 +66,7 @@ export function orchestrateAttempt(input: OrchestratorInput): OrchestratorResult
     avoidanceSignals,
     transcript,
     finalScore,
+    reward = { score: finalScore, scoreCounts: true },
     streakDays,
     totalSessionsBefore,
     mode,
@@ -94,10 +95,12 @@ export function orchestrateAttempt(input: OrchestratorInput): OrchestratorResult
 
   // 3. XP + level. The discriminant is feedback.unscored, never finalScore's
   // numeric value — a genuine graded 0 (a real bad answer) must still take the
-  // scored path, so branching on "score === 0" would be wrong here.
+  // scored path, so branching on "score === 0" would be wrong here. XP reads
+  // the marked score (learn-marking §8.2); below Exam standard it earns no
+  // score bonus XP or gems.
   const unscored = isUnscored(feedback);
   const xpSource = MODE_TO_XP_SOURCE[mode];
-  const xpResult = unscored ? awardParticipationXP(streakDays, xpSource) : awardXP(finalScore, streakDays, xpSource);
+  const xpResult = unscored ? awardParticipationXP(streakDays, xpSource) : awardXP(reward.score, streakDays, xpSource, { scoreCounts: reward.scoreCounts });
   const { level } = getProgressionState();
 
   // 4. Rebuild the evidence-driven belief snapshot from the full evidence
@@ -111,7 +114,8 @@ export function orchestrateAttempt(input: OrchestratorInput): OrchestratorResult
   //    predicate contexts (xp thresholds, skill mastery) reflect this session.
   const newUnlockedAchievementIds = checkAchievements(
     buildAchievementContext({
-      finalScore: unscored ? null : finalScore,
+      // Score achievements read the marked score, and none fire below Exam standard (§8.2).
+      finalScore: unscored || !reward.scoreCounts ? null : reward.score,
       streakDays,
       totalSessionsAfter: totalSessionsBefore + 1,
       topicsUsed,

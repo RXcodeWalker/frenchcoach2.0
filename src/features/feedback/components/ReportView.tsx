@@ -12,6 +12,7 @@ import { CorrectionsCard } from './CorrectionsCard';
 import { ExpansionIdeasCard } from './ExpansionIdeasCard';
 import { VocabularyCard } from './VocabularyCard';
 import { selectCardPlan } from '../state/selectors';
+import type { MarkingLevel } from '../../../domain/learn/marking/markingLevel';
 import type { CoachingIssue, FeedbackV2 } from '../../../types';
 
 interface Props {
@@ -20,6 +21,8 @@ interface Props {
   majorIssues: CoachingIssue[];
   polishIssues: CoachingIssue[];
   onIssueClick: (issueId: string) => void;
+  /** learn-marking §8.2 — see SnapshotCard. */
+  markingLevel?: MarkingLevel;
 }
 
 /**
@@ -30,7 +33,7 @@ interface Props {
  * holds what the coach view no longer shows: the one-focus line, every
  * correction with its lesson, vocabulary upgrades and expansion ideas.
  */
-export function ReportView({ feedback, transcript, majorIssues, polishIssues, onIssueClick }: Props) {
+export function ReportView({ feedback, transcript, majorIssues, polishIssues, onIssueClick, markingLevel }: Props) {
   const { state, dispatch } = useFeedbackContext();
   const allIssues = [...majorIssues, ...polishIssues];
   const expandAll = state.expandAllLessons;
@@ -38,7 +41,7 @@ export function ReportView({ feedback, transcript, majorIssues, polishIssues, on
 
   return (
     <motion.div variants={fadeUp} initial="hidden" animate="show" className="space-y-3">
-      <SnapshotCard feedback={feedback} />
+      <SnapshotCard feedback={feedback} markingLevel={markingLevel} />
 
       <BiggestOpportunityCard opportunity={feedback.biggest_opportunity} />
 

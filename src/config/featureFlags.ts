@@ -29,7 +29,10 @@ export const FEATURE_FLAGS = {
   learnSpacedReview: 'live',
   shadowingMode: 'live',
   learnAdaptiveDifficulty: 'live',
-} satisfies Record<string, FeatureStatus>;
+  // learn-marking §8 — the marking-level dial and the ladder scheme. Stays
+  // `coming-soon` until docs/guides/learn-marking-test-protocol.md passes.
+  learnMarkingLevels: 'coming-soon',
+}satisfies Record<string, FeatureStatus>;
 
 export type FeatureFlagKey = keyof typeof FEATURE_FLAGS;
 

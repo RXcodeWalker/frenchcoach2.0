@@ -1,0 +1,229 @@
+{
+  "source": "backend tests/fixtures/learn_marking_eval_v1/runs/run_log.jsonl, answerId fam_01_simple_a1, stage smoke, run 1 (backend commit 512c2f7): the reply after apply_learn_ladder + enrich_feedback, as /api/feedback/v3 would return it",
+  "request": {
+    "questionId": "fam_01",
+    "transcript": "Dans ma famille, il y a quatre personnes : mon père, ma mère, mon frère et moi. Mon père est grand. Ma mère est très gentille. Mon frère a dix ans.",
+    "marking": "ladder-v1"
+  },
+  "response": {
+    "levelCheck": {
+      "scheme": "ladder-v1",
+      "ladderVersion": "learn-ladder-v1-139f19a106d2",
+      "applies": [
+        "T",
+        "L",
+        "R",
+        "A"
+      ],
+      "reached": {
+        "T": "A2",
+        "L": "none",
+        "R": "A2",
+        "A": "B2"
+      },
+      "subScoresByLevel": {
+        "A1": {
+          "comm": 10.0,
+          "fluency": 5.0,
+          "know": 10.0,
+          "acc": 10.0
+        },
+        "A2": {
+          "comm": 8.0,
+          "fluency": 2.5,
+          "know": 8.0,
+          "acc": 10.0
+        },
+        "exam": {
+          "comm": 8.0,
+          "fluency": 1.0,
+          "know": 8.0,
+          "acc": 10.0
+        },
+        "B1": {
+          "comm": 5.0,
+          "fluency": 1.0,
+          "know": 5.0,
+          "acc": 10.0
+        },
+        "B2": {
+          "comm": 2.5,
+          "fluency": 1.0,
+          "know": 2.5,
+          "acc": 10.0
+        }
+      },
+      "needsByLevel": {
+        "A1": [
+          {
+            "ladder": "L",
+            "label": "Linking your ideas",
+            "nextRung": "A1",
+            "text": "Link your ideas with simple words like et or puis.",
+            "firstStep": false,
+            "example": "Mon père est grand et ma mère est très gentille."
+          }
+        ],
+        "A2": [
+          {
+            "ladder": "L",
+            "label": "Linking your ideas",
+            "nextRung": "A1",
+            "text": "Link your ideas with simple words like et or puis.",
+            "firstStep": true,
+            "example": "Mon père est grand et ma mère est très gentille."
+          }
+        ],
+        "exam": [
+          {
+            "ladder": "L",
+            "label": "Linking your ideas",
+            "nextRung": "A1",
+            "text": "Link your ideas with simple words like et or puis.",
+            "firstStep": true,
+            "example": "Mon père est grand et ma mère est très gentille."
+          }
+        ],
+        "B1": [
+          {
+            "ladder": "T",
+            "label": "Developing your answer",
+            "nextRung": "B1",
+            "text": "Put your points in a sequence and develop one of them with an extra detail or an example.",
+            "firstStep": false,
+            "example": "Mon père est grand, il travaille comme ingénieur."
+          },
+          {
+            "ladder": "L",
+            "label": "Linking your ideas",
+            "nextRung": "A1",
+            "text": "Link your ideas with simple words like et or puis.",
+            "firstStep": true,
+            "example": "Mon père est grand et ma mère est très gentille."
+          },
+          {
+            "ladder": "R",
+            "label": "Range of language",
+            "nextRung": "B1",
+            "text": "Add some sentences with a second clause (qui, que, quand, si, parce que) and use a wider range of topic words.",
+            "firstStep": false,
+            "example": "Mon frère, qui a dix ans, adore le football."
+          }
+        ],
+        "B2": [
+          {
+            "ladder": "T",
+            "label": "Developing your answer",
+            "nextRung": "B1",
+            "text": "Put your points in a sequence and develop one of them with an extra detail or an example.",
+            "firstStep": true,
+            "example": "Mon père est grand, il travaille comme ingénieur."
+          },
+          {
+            "ladder": "L",
+            "label": "Linking your ideas",
+            "nextRung": "A1",
+            "text": "Link your ideas with simple words like et or puis.",
+            "firstStep": true,
+            "example": "Mon père est grand et ma mère est très gentille."
+          },
+          {
+            "ladder": "R",
+            "label": "Range of language",
+            "nextRung": "B1",
+            "text": "Add some sentences with a second clause (qui, que, quand, si, parce que) and use a wider range of topic words.",
+            "firstStep": true,
+            "example": "Mon frère, qui a dix ans, adore le football."
+          }
+        ]
+      }
+    },
+    "demandCheck": {
+      "met": true,
+      "quote": "Mon père est grand. Ma mère est très gentille. Mon frère a dix ans."
+    },
+    "strengths": [
+      {
+        "quote": "Il y a quatre personnes : mon père, ma mère, mon frère et moi",
+        "why": "You listed four family members, satisfying the requirement to mention at least three."
+      },
+      {
+        "quote": "Mon père est grand",
+        "why": "You gave a clear physical detail about your father, showing you can describe appearance."
+      },
+      {
+        "quote": "Ma mère est très gentille",
+        "why": "You described a personality trait of your mother, demonstrating use of adjectives."
+      },
+      {
+        "quote": "Mon frère a dix ans",
+        "why": "You provided an age for your brother, adding a specific piece of information."
+      }
+    ],
+    "best_moment": "Your « Mon père est grand » gives a concrete description, showing you can use adjectives to talk about appearance.",
+    "biggest_opportunity": "You gave only one simple detail for each person; adding a second detail (like a job or a hobby) would develop your answer and meet higher rungs of the T ladder.",
+    "grammar": {
+      "critical": [],
+      "polish": []
+    },
+    "corrections": [],
+    "vocabulary": [
+      {
+        "basic": "gentille",
+        "upgrade": "sympathique",
+        "example": "Ma mère est très sympathique.",
+        "nuance": "Both mean kind, but \"sympathique\" is a bit more informal."
+      }
+    ],
+    "expansion_ideas": [
+      "Mention what your father does for work and a hobby of your brother to give more depth."
+    ],
+    "improved_answer": "Dans ma famille, il y a quatre personnes : mon père, ma mère, mon frère et moi. Mon père est grand et il travaille comme ingénieur. Ma mère est très gentille, elle est enseignante. Mon frère a dix ans, il adore le football.",
+    "changes": [
+      {
+        "quote": "grand",
+        "quoteContext": "Mon père est grand",
+        "category": "grammar",
+        "explanation": "Added a second detail after \"grand\" to develop the description."
+      },
+      {
+        "quote": "gentille",
+        "quoteContext": "Ma mère est très gentille",
+        "category": "grammar",
+        "explanation": "Added a profession after the adjective to give more information."
+      },
+      {
+        "quote": "dix ans",
+        "quoteContext": "Mon frère a dix ans",
+        "category": "grammar",
+        "explanation": "Added a hobby after the age to expand the description."
+      }
+    ],
+    "rephrase": "Dans ma famille, il y a quatre personnes : mon père, ma mère, mon frère et moi. Mon père est grand et il travaille comme ingénieur. Ma mère est très gentille, elle est enseignante. Mon frère a dix ans, il adore le football.",
+    "encouragement": "You gave a clear picture with « Mon père est grand » and « Ma mère est très gentille » — now let’s add a bit more detail to each person.",
+    "followUpQuestion": "Quel est le travail de ton père et quels loisirs aime faire ta mère ?",
+    "pronunciationTips": [],
+    "pronunciation": {
+      "score": null,
+      "issues": []
+    },
+    "providerStatus": "primary",
+    "scores": {
+      "comm": 8.0,
+      "know": 8.0,
+      "acc": 10.0
+    },
+    "fluency": 1.0,
+    "cefrLevel": "A1",
+    "answered_the_question": true,
+    "promptVersion": "learn-prompt-v8",
+    "wordCount": 31,
+    "transcriptHash": "68bb26f04be9ba58",
+    "schemaVersion": 3,
+    "advanced_answer": "",
+    "quoteSpans": [],
+    "words": [],
+    "source": "groq",
+    "effectiveDepth": "standard"
+  }
+}

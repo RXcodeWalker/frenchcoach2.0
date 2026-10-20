@@ -24,6 +24,7 @@ import { ConsentRequiredError, isConsentRequiredBody } from '../../lib/consentRe
 import type { NewsSnippet } from '../../data/mocks/mockNews';
 import { getWarmupPhase, noteBackendReachable } from './backendWarmup';
 import { NoScoreInFeedbackError, computeOverall } from '../../domain/scoring';
+import type { LearnMarkingScheme } from '../../domain/learn/marking/markingLevel';
 import { AuthRequiredError, GUEST_LIMIT_MESSAGE, checkGuestAttempt, guestAiEnabled, guestHasFreeAttempt, getAccessToken, isAuthRequiredError, requireAuthHeader } from '../../lib/authToken';
 
 /**
@@ -472,6 +473,11 @@ function mergeV2Fields(base: FeedbackV2, raw: BackendFeedbackV2): FeedbackV2 {
       demands_missed: raw.demands_missed,
       difficulty_fit: raw.difficulty_fit,
       demandsResolved: raw.demandsResolved,
+      // learn-marking §7/§8.3 — ladder scheme only; `scores` above is already
+      // the Exam-standard entry. markingVersion travels with the synced blob.
+      levelCheck: raw.levelCheck,
+      promptVersion: raw.promptVersion,
+      ...(raw.levelCheck ? { markingVersion: raw.levelCheck.scheme } : {}),
     };
   }
   return base;
@@ -794,6 +800,11 @@ export async function getAIFeedback(
   difficulty: DifficultyTier = DEFAULT_DIFFICULTY,
   /** 'speech' turns on the sound-alike filter (filterCoachFeedback); unknown keeps every error. */
   inputMode?: CoachInputMode,
+  /**
+   * learn-marking §8.1 — Learn alone opts into the ladder scheme. Only the
+   * scheme is sent, never the learner's marking level (ADR 0013 rule 2).
+   */
+  marking?: LearnMarkingScheme,
 ): Promise<FeedbackV2> {
   const startTime = Date.now();
   const tier = classifyTier(transcript);
@@ -856,6 +867,7 @@ export async function getAIFeedback(
     ...buildDemandIdentity(question),
     demandSignals: buildDemandSignals(transcript, question),
     depth: buildRequestDepth(transcript, question, tier),
+    ...(marking ? { marking } : {}),
   };
 
   // Signed out (guest mode) there is no token to send, and every endpoint in
@@ -1106,6 +1118,8 @@ export async function streamFeedback(
   callbacks: StreamFeedbackCallbacks,
   /** See getAIFeedback's inputMode. */
   inputMode?: CoachInputMode,
+  /** See getAIFeedback's marking. */
+  marking?: LearnMarkingScheme,
 ): Promise<void> {
   const ctx = skillContext ?? buildSkillContext();
 
@@ -1128,6 +1142,7 @@ export async function streamFeedback(
     ...buildDemandIdentity(question),
     demandSignals: buildDemandSignals(transcript, question),
     depth: buildRequestDepth(transcript, question, classifyTier(transcript)),
+    ...(marking ? { marking } : {}),
   };
 
   if ((await checkGuestAttempt(question.id, transcript)) === 'guest-limit') {

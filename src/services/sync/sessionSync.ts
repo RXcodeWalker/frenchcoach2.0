@@ -29,6 +29,8 @@ type FeedbackSummaryBlob = {
   examiner_oneLiner?: string;
   best_moment?: string;
   critical_count?: number;
+  /** learn-marking §8.3 — 'ladder-v1' on a ladder-scored attempt; absent on v6, so history stays comparable. */
+  markingVersion?: string;
 };
 
 export interface StoredSession {
@@ -119,6 +121,7 @@ function stripFeedback(feedback: unknown): FeedbackSummaryBlob | null {
   }
 
   if (typeof f.cefrLevel === 'string') blob.cefrLevel = f.cefrLevel;
+  if (typeof f.markingVersion === 'string') blob.markingVersion = f.markingVersion;
   if (typeof f.biggest_opportunity === 'string') blob.biggest_opportunity = f.biggest_opportunity;
   if (typeof f.best_moment === 'string') blob.best_moment = f.best_moment;
 

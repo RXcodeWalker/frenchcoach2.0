@@ -6,6 +6,7 @@ import type { Topic, SessionMode, TopicMasteryEntry, FeedbackMode } from '../../
 import { SESSION_DURATION } from '../../utils/sessionBuilder';
 import { AIM_CONFIG } from '../../utils/difficultyConfig';
 import type { Aim } from '../../domain/learn/selection/sessionTarget';
+import { MARKING_LEVELS, type MarkingLevel } from '../../domain/learn/marking/markingLevel';
 import { GRAMMAR_FOCI, type GrammarFocus, type LearnFilters } from '../../domain/learn/selection/filters';
 import { measuredLevelDisplay } from '../../domain/learn/ability/levelLabel';
 import type { AbilityResult } from '../../domain/learn/ability/deriveAbility';
@@ -43,6 +44,13 @@ interface Props {
   getPreview?: (mode: SessionMode, aim: Aim) => SessionPreview | null;
   feedbackMode: FeedbackMode;
   onFeedbackModeChange: (mode: FeedbackMode) => void;
+  /**
+   * learn-marking §8 — the marking dial; both present only while
+   * `learnMarkingLevels` is live. Stays on this device (AppContext); it only
+   * picks which precomputed score the learner sees and earns.
+   */
+  markingLevel?: MarkingLevel;
+  onMarkingLevelChange?: (level: MarkingLevel) => void;
 }
 
 const AIMS: Aim[] = ['comfortable', 'balanced', 'push'];
@@ -52,6 +60,8 @@ const FEEDBACK_STYLES: { mode: FeedbackMode; label: string; note: string }[] = [
   { mode: 'examiner', label: 'Examiner', note: 'Cambridge-style comments, no score' },
 ];
 
+const MARKING_LABELS: Record<MarkingLevel, string> = { A1: 'A1', A2: 'A2', exam: 'Exam', B1: 'B1', B2: 'B2' };
+
 const SECTION_LABEL = 'text-xs font-bold text-ink-muted uppercase tracking-wide px-1';
 
 export function SessionStartScreen({
@@ -60,6 +70,7 @@ export function SessionStartScreen({
   ability, aim, onAimChange,
   filters, onFiltersChange, focusOptions, matchCount, getPreview,
   feedbackMode, onFeedbackModeChange,
+  markingLevel, onMarkingLevelChange,
 }: Props) {
   // The learner's choice is kept as picked; what is used is that choice clamped
   // to the questions that match (so clearing a filter restores the pick).
@@ -313,6 +324,33 @@ export function SessionStartScreen({
           })}
         </div>
       </div>
+
+      {/* Marking level (learn-marking §8) — Coach style only: the Examiner style shows no score. */}
+      {markingLevel && onMarkingLevelChange && feedbackMode === 'coach' ? (
+        <div className="space-y-2">
+          <p className={SECTION_LABEL}>Marking level</p>
+          <div className="grid grid-cols-5 gap-2" role="group" aria-label="Marking level">
+            {MARKING_LEVELS.map((level) => {
+              const isSelected = markingLevel === level;
+              return (
+                <button
+                  key={level}
+                  type="button"
+                  aria-pressed={isSelected}
+                  onClick={() => onMarkingLevelChange(level)}
+                  className={`p-2.5 rounded-2xl border transition-all duration-200 text-center ${
+                    isSelected
+                      ? 'bg-violet-electric/10 border-violet-electric/40 ring-1 ring-violet-electric/30'
+                      : 'surface-recessed border-transparent hover:border-white/10'
+                  }`}
+                >
+                  <span className={`font-bold text-sm ${isSelected ? 'text-white' : 'text-ink-muted'}`}>{MARKING_LABELS[level]}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
 
       {/* Start */}
       <div className="pt-2">

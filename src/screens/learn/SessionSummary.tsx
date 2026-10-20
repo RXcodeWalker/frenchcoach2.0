@@ -4,6 +4,7 @@ import { Zap, MessageSquare, Flame, Gem, ArrowRight, RotateCcw, Home, TrendingUp
 import confetti from 'canvas-confetti';
 import { averageRealScores, scoreTone } from '../../domain/scoring';
 import { demandPracticeCounts, earnsConfetti, practisedLine } from '../../features/learn/sessionRecap';
+import { shownBestScore } from '../../features/learn/markingLevel';
 import type { ActiveSession, SkillProfile, TopicMasteryEntry } from '../../types';
 
 interface SkillDelta {
@@ -55,7 +56,8 @@ export function SessionSummary({
   const deltas = computeSkillDeltas(session, currentSkillProfile);
   const practised = demandPracticeCounts(session.questions);
   const completedQs = session.questions.filter(q => q.status === 'completed');
-  const avgScore = averageRealScores(completedQs.map(q => q.bestScore));
+  // learn-marking §8.2 — the average (and its confetti) is at the learner's marking level.
+  const avgScore = averageRealScores(completedQs.map(shownBestScore));
 
   const totalWords = session.questions.reduce((a, q) => {
     const mainAttempts = q.attempts.filter(at => at.kind !== 'followup');

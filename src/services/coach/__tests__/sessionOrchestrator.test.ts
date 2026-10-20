@@ -244,3 +244,42 @@ describe('orchestrateAttempt review-pool step 9 (Phase 4.2 — real SM-2)', () =
     expect(items[question.id]).toBeUndefined();
   });
 });
+
+// learn-marking §8.2 — XP, gems and score achievements read the marked score;
+// evidence, Session.score and SM-2 review keep reading the Exam-standard finalScore.
+describe('orchestrateAttempt reward (learn-marking §8.2)', () => {
+  function run(reward?: { score: number; scoreCounts: boolean }) {
+    const feedback = makeFeedback({ scores: { overall: 6, communication: 6, language: 6, fluency: 6 } });
+    const session = makeSession({ score: 6, feedback });
+    return orchestrateAttempt({
+      session, question: makeQuestion(), feedback, avoidanceSignals: [],
+      transcript: session.transcript!, durationSec: 30, mode: 'practice',
+      finalScore: 6, reward, streakDays: 2, totalSessionsBefore: 0,
+    });
+  }
+
+  it('awards XP on the marked score when it counts', () => {
+    expect(run({ score: 9.5, scoreCounts: true }).xpResult.gain).toBe(computeXPGain(9.5, 2).gain);
+  });
+
+  it('below Exam standard awards participation XP and gems, however high the marked score', () => {
+    const result = run({ score: 10, scoreCounts: false });
+    expect(result.xpResult.gain).toBe(computeParticipationXPGain(2).gain);
+    expect(result.xpResult.gemsGain).toBe(computeParticipationXPGain(2).gemsGain);
+  });
+
+  it('a 10 marked below Exam standard unlocks no score achievement; counted, it does', () => {
+    expect(run({ score: 10, scoreCounts: false }).newUnlockedAchievementIds).not.toContain('fluent');
+    localStorage.clear();
+    expect(run({ score: 10, scoreCounts: true }).newUnlockedAchievementIds).toContain('fluent');
+  });
+
+  it('the evidence and the review outcome do not depend on the reward', () => {
+    const strip = (r: ReturnType<typeof run>) => r.evidenceEvents.map((e) => ({ ...e, id: '', occurredAt: '' }));
+    const a = strip(run({ score: 10, scoreCounts: false }));
+    localStorage.clear();
+    const b = strip(run({ score: 3, scoreCounts: true }));
+    expect(a).toEqual(b);
+  });
+});
+

@@ -50,7 +50,8 @@ import { track } from '../services/telemetry/telemetryService';
 import { IGCSE_EXPECTATIONS } from '../utils/difficultyConfig';
 import type { AbilityResult } from '../domain/learn/ability/deriveAbility';
 import { updateTopicMastery } from '../services/analytics/analyticsService';
-import { computeXPGain, computeParticipationXPGain } from '../domain/xp';
+import { LEARN_MARKING_SCHEME } from '../domain/learn/marking/markingLevel';
+import { effectiveMarkingLevel, learnMarkingLevelsLive, scoreLearnAttempt, shownBestScore } from '../features/learn/markingLevel';
 import { isUnscored, averageRealScores } from '../domain/scoring';
 import { nextTopicMastery } from '../features/learn/topicAverage';
 import { resolveFeatureStatus } from '../config/featureFlags';
@@ -79,6 +80,11 @@ export function Learn() {
   // 3.4: follow-up turn — a second, graded attempt on the current SessionQuestion
   // (see types/index.ts QuestionAttempt.kind). Not persisted, resets every session.
   const [followUpLive] = useState(() => resolveFeatureStatus('learnFollowUp') === 'live');
+  // learn-marking §8 — the marking dial. Only the scheme is sent (never the
+  // level); the level only picks which precomputed score is shown and earned.
+  const [markingLive] = useState(learnMarkingLevelsLive);
+  const markingLevel = effectiveMarkingLevel(state.markingLevel, markingLive);
+  const markingScheme = markingLive ? LEARN_MARKING_SCHEME : undefined;
   const [followUpTurn, setFollowUpTurn] = useState<{ promptText: string } | null>(null);
   // Owns practiceStepsUsed/followUpsUsed/extraTurnOfferedForIndex — the
   // mutual-exclusion + per-session cap budget for Say-It-Again and follow-up
@@ -387,11 +393,13 @@ export function Learn() {
     // legitimate bad answer, while an offline placeholder 0 must never reach XP,
     // Session.score, or achievements as if it were a real mark.
     const unscored = isUnscored(fb);
+    // learn-marking §8: finalScore is always the Exam-standard score (Session.score,
+    // evidence, review, mastery, mid-session adjust); `marked` is what the learner
+    // sees and earns at their marking level.
     const finalScore = fb.scores.overall;
-
-    const { gain: xpGain, gemsGain: gemGain } = unscored
-      ? computeParticipationXPGain(profile.streak_days)
-      : computeXPGain(finalScore, profile.streak_days);
+    const scored = scoreLearnAttempt(fb, markingLevel, profile.streak_days);
+    const { gain: xpGain, gemsGain: gemGain } = scored.xp;
+    const markedScore = scored.marked.score;
 
     const session: Session = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -420,6 +428,7 @@ export function Learn() {
       mode: 'practice',
       topicsUsed: selectedTopic ? [selectedTopic.key] : undefined,
       finalScore,
+      reward: scored.reward,
       streakDays: profile.streak_days,
       totalSessionsBefore: profile.sessions_count,
     });
@@ -476,7 +485,7 @@ export function Learn() {
       const attemptIndex = isFollowUpAttempt ? 3 : isRetry ? 2 : 1;
       const attemptScore = unscored ? null : finalScore;
       const attempt = {
-        transcript, score: attemptScore, xpEarned: xpGain, feedback: fb, durationSec: elapsed, attemptIndex,
+        transcript, score: attemptScore, markedScore, xpEarned: xpGain, feedback: fb, durationSec: elapsed, attemptIndex,
         kind: isFollowUpAttempt ? 'followup' as const : 'main' as const,
         promptText: isFollowUpAttempt ? followUpTurn!.promptText : undefined,
       };
@@ -490,11 +499,17 @@ export function Learn() {
         sq.bestScore = attemptScore === null
           ? sq.bestScore
           : Math.max(sq.bestScore ?? attemptScore, attemptScore);
+        // learn-marking §8.2 — display only (progress bar, summary, confetti).
+        const bestMarked = sq.bestMarkedScore ?? null;
+        sq.bestMarkedScore = markedScore === null
+          ? bestMarked
+          : Math.max(bestMarked ?? markedScore, markedScore);
       }
       updatedQuestions[prev.currentIndex] = sq;
       // An unscored attempt neither extends nor breaks the correct-answer
-      // streak — there's no real score to judge it against.
-      const newStreak = unscored ? prev.answerStreak : (finalScore >= 7 ? prev.answerStreak + 1 : 0);
+      // streak — there's no real score to judge it against — and neither does
+      // one marked below Exam standard (learn-marking §8.2).
+      const newStreak = scored.streak === 'hold' ? prev.answerStreak : scored.streak === 'extend' ? prev.answerStreak + 1 : 0;
       const newBestStreak = Math.max(prev.bestStreak, newStreak);
       return {
         ...prev,
@@ -669,7 +684,7 @@ export function Learn() {
       setIsLoadingFeedback(true);
       setPartialFeedback(null);
       try {
-        const fb = await getAIFeedback(transcript, currentQuestion, skillContext, undefined, selectedEngine, selectedDifficulty, LEARN_INPUT_MODE);
+        const fb = await getAIFeedback(transcript, currentQuestion, skillContext, undefined, selectedEngine, selectedDifficulty, LEARN_INPUT_MODE, markingScheme);
         _finalizeAnswer(myAttemptId, fb, transcript, elapsed, avoidanceSignals, skillContext);
       } catch (fallbackErr) {
         console.warn('[Learn] offline feedback unavailable:', fallbackErr);
@@ -703,7 +718,7 @@ export function Learn() {
       setIsLoadingFeedback(true);
       setPartialFeedback(null);
       try {
-        const fb = await getAIFeedback(transcript, currentQuestion, skillContext, undefined, selectedEngine, selectedDifficulty, LEARN_INPUT_MODE);
+        const fb = await getAIFeedback(transcript, currentQuestion, skillContext, undefined, selectedEngine, selectedDifficulty, LEARN_INPUT_MODE, markingScheme);
         _finalizeAnswer(myAttemptId, fb, transcript, elapsed, avoidanceSignals, skillContext);
       } catch (fallbackErr) {
         // E1: total failure — no real feedback exists. Show an honest error and let the
@@ -771,6 +786,7 @@ export function Learn() {
           },
         },
         LEARN_INPUT_MODE,
+        markingScheme,
       );
     } catch (err) {
       if ((err as Error).name === 'AbortError') return;
@@ -1114,7 +1130,7 @@ export function Learn() {
     ? averageRealScores(
         activeSession.questions
           .filter(q => q.status === 'completed')
-          .map(q => q.bestScore),
+          .map(shownBestScore),
       )
     : null;
 
@@ -1211,6 +1227,8 @@ export function Learn() {
                 getPreview={adaptiveDifficultyLive ? getSetupPreview : undefined}
                 feedbackMode={feedbackMode}
                 onFeedbackModeChange={setFeedbackMode}
+                markingLevel={markingLive ? markingLevel : undefined}
+                onMarkingLevelChange={markingLive ? (level) => dispatch({ type: 'SET_MARKING_LEVEL', level }) : undefined}
               />
             </motion.div>
           )}
@@ -1336,6 +1354,7 @@ export function Learn() {
                   nextQuestion={nextQuestionPreview}
                   firsts={firsts}
                   notebook={notebookOffer}
+                  markingLevel={markingLive ? markingLevel : undefined}
                 />
               )}
             </motion.div>
