@@ -1,6 +1,7 @@
 # Recorded voices (Denise / Henri): implementation plan
 
-Status: **approved plan, not started.** Branch: `claude/eager-cray-y6f0f4` (frontend repo only).
+Status: **Stage 1 built** (key, catalogue, recording script, workflow; 2026-10-23); Stage 2 (owner setup) next.
+Plan written on `claude/eager-cray-y6f0f4`; Stage 1 on `claude/hopeful-wright-lcoe38` (frontend repo only).
 Owner decisions are final unless marked *open*.
 
 ## 1. Goal and scope
@@ -108,7 +109,8 @@ allowed exception with a comment.
 ### 4.5 `scripts/tts/recordVoices.ts`
 - Run as `npm run voices:record -- [--dry-run] [--limit N] [--voices denise,henri]`
   (add the script to `package.json` and make sure `tsconfig.scripts.json` covers it).
-- Env: `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`.
+- Env: `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION`, `SUPABASE_URL`, `SUPABASE_SERVICE_KEY` (the name the
+  repo's existing secrets use; `SUPABASE_SERVICE_ROLE_KEY` is accepted as an alias).
   Fail fast with a clear message if any is missing (not needed for `--dry-run`).
 - **Bucket:** if `tts-audio` is missing, create it as **public**, with `allowed_mime_types: ['audio/mpeg']`
   and `file_size_limit: 1048576`.
@@ -153,7 +155,8 @@ allowed exception with a comment.
 
 ## 5. Stage 2: owner setup (no code)
 1. GitHub → frenchcoach2.0 → Settings → Secrets and variables → Actions → add `AZURE_SPEECH_KEY`,
-   `AZURE_SPEECH_REGION` (and the Supabase ones if they're not there).
+   `AZURE_SPEECH_REGION` (and `SUPABASE_URL` / `SUPABASE_SERVICE_KEY` if they're not there; the
+   notifications workflow already uses those two).
 2. Actions → "Record voices" → Run with `dry_run=true`, then check the totals.
 3. Run with `dry_run=false`, `limit=5`. Open 2 file URLs from Supabase Storage and listen.
 4. Run with `dry_run=false` and no limit (~2 h). Expect `failed: 0`. Supabase storage should show ~60 MB.

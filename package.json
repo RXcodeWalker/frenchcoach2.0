@@ -39,6 +39,7 @@
     "score:golden": "tsx scripts/scoring/goldenRegression.ts",
     "score:inspect": "tsx scripts/scoring/inspectAttempt.ts",
     "score:review": "tsx scripts/scoring/reviewAttempt.ts",
+    "voices:record": "tsx scripts/tts/recordVoices.ts",
     "judge:check": "tsx --tsconfig tsconfig.scripts.json scripts/scoring/judgeCheck.ts",
     "test": "vitest run",
     "test:watch": "vitest",

@@ -75,7 +75,7 @@ import type { AuthoredQuestionSet, RolePlayScenario } from '../data/exam/bank/ty
 import { ExamGreeting } from './exam/ExamGreeting';
 import { ExamSelect } from './exam/ExamSelect';
 import { RolePlayCardPreview } from './exam/RolePlayCardPreview';
-import { ROLE_PLAY_FINISHED_TEXT, topicAnnouncementText } from './exam/examAnnouncements';
+import { GREETING_TEXT, ROLE_PLAY_FINISHED_TEXT, topicAnnouncementText } from './exam/examAnnouncements';
 import { ExitConfirmDialog } from './exam/ExitConfirmDialog';
 import { savePendingClaim, clearPendingClaim, submitDailyChallengeAttempt } from '../services/dailyChallenge/dailyChallengeService';
 import { savePendingDuelClaim, clearPendingDuelClaim, submitDuelAttempt } from '../services/duels/duelsService';
@@ -90,9 +90,6 @@ interface RolePlayMeta {
 
 /** A8: exam duration (10-15 min) only marginally exceeds Render free tier's ~15 min idle window — the keepalive is what guarantees warmth by the time scoring is needed. */
 const KEEPALIVE_INTERVAL_MS = 5 * 60 * 1000;
-
-export const GREETING_TEXT = 'Bonjour ! Comment ça va ? Es-tu prêt ? On va commencer.';
-
 
 /**
  * W5: maps every reachable `examState === 'scoring'` phase to real copy —
