@@ -11,7 +11,8 @@ tests are the current behavior. It is **§-numbered and live — never renumber 
 (`backend/lib/learn_ladder.py`) and the backend wiring (`marking` field, kill switch,
 `learn-prompt-v8` ladder prompt, scoring before `enrich_feedback` on `/v3` and the stream) exist. The
 frontend wiring (the marking dial, the `marking` field, the `levelCheck` schema, `markedScore`, the
-rewards gate and sync — see the Batch 3 amendment at the end) is built behind the frontend flag
+rewards gate and sync — see the Batch 3 amendment at the end) and its copy (the needs card, the
+"Checked against…" caption, the notes — see the Batch 4–5 amendment) are built behind the frontend flag
 `learnMarkingLevels`, which stays `coming-soon`, so no client sends `marking` yet. Production Learn
 stays on `learn-prompt-v6` until the gate in `docs/guides/learn-marking-test-protocol.md` passes (the
 2026-10-19 Stage 2 run did not; see `verification-log.md`).
@@ -481,4 +482,37 @@ no dial, every score at Exam standard.
   rest of the copy (the needs card, "Checked against the B1 ladder") is Batch 4.
 
 **Rollback.** Keep the flag `coming-soon` (or set it back); the stored level is then ignored.
+
+## Amendment: Batches 4–5 — copy and the needs card (2026-10-23)
+
+Same flag, same rollback: with `learnMarkingLevels` off nothing below renders, because every piece is
+gated on a `markingLevel` that Learn passes only while the flag is live.
+
+- **Where the words live.** `src/domain/learn/marking/markingCopy.ts` — pure, no prompt, request,
+  evidence or reward ever reads it. It holds the level names (the raw `exam` key is never shown), the
+  captions and notes below, and `buildLevelNeedsView`, the needs card's view model.
+- **The needs card (§6.1).** `features/feedback/components/LevelNeedsCard.tsx`, in the Coach
+  conversation directly under the score line: "What your answer needs for <level>", the backend's
+  unreached rungs at that level in the backend's order, at most `MAX_NEEDS_SHOWN` (3), each with its
+  learner sentence, a "First step" tag when `firstStep`, and the model's example. Nothing missing →
+  "This answer meets <level>". No `levelCheck` or an ungraded answer → the card renders nothing (the
+  score line carries the note). Model-written text is **drop-only**: a blank item is skipped and a blank
+  example is shown as none — never rewritten — and a list whose items were all dropped says nothing
+  rather than claiming a pass. The card is **Coach style only**: it is rendered by `FeedbackExperience`,
+  while the Examiner style goes through `LearnExaminerFeedback`, which is never given a marking level
+  (guarded by `markingCopy.test.ts`; ADR 0005).
+- **Captions.** The score line says "Checked against the B1 ladder" (or "…Exam standard"); with no
+  `levelCheck` it keeps "Level marking unavailable — marked at Exam standard" (§8.3); an ungraded
+  (offline) attempt says "Not graded, so your marking level was not applied." Exam standard is
+  explained in the card — "blends A2 and B1 … a practice score, not a Cambridge mark" (§1.4, §5) — and
+  that sentence is shown even when nothing is missing at Exam standard.
+- **Premium UI (Batch 5).** Scoped to the surfaces this feature added: the needs card (header tile,
+  an accent rail on "First step" items, quoted examples, a staggered reveal that only fades under
+  reduced motion) and the caption pill. Colour is role tokens only (`lightContrast`/`tokenContrast`
+  pass); checked in dark and light at 360 px and 900 px with no horizontal overflow. The setup-screen
+  dial was left as is: it already matches the Aim and Feedback-style controls beside it, and restyling
+  one of three siblings would make the screen inconsistent.
+
+**Gate status is unchanged.** The 2026-10-19 Stage 2 run did not pass (G4, G11, G12; Stage 3 not run —
+`verification-log.md`), so the flag stays `coming-soon`. Nothing in these batches changes that.
 

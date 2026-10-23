@@ -8,6 +8,7 @@ import { stagger } from '../../components/motion/variants';
 import { FeedbackProvider, useFeedbackContext } from './state/feedbackContext';
 import { useFeedbackState } from './hooks/useFeedbackState';
 import { SnapshotCard } from './components/SnapshotCard';
+import { LevelNeedsCard } from './components/LevelNeedsCard';
 import type { MarkingLevel } from '../../domain/learn/marking/markingLevel';
 import { BeforeAfterDiff } from './components/BeforeAfterDiff';
 import { ReportView } from './components/ReportView';
@@ -237,6 +238,8 @@ function FeedbackContent({
       />
 
       <SnapshotCard feedback={feedback} variant="line" markingLevel={markingLevel} />
+      {/* learn-marking §6.1 — Coach style only (the Examiner style never gets a marking level). */}
+      {markingLevel && <LevelNeedsCard feedback={feedback} markingLevel={markingLevel} />}
 
       {/* lint:pronunciation-start — pronunciation branch is out of Batch 5 scope; block untouched */}
       {/* Pronunciation — Azure (0-100, real acoustic analysis) supersedes the legacy

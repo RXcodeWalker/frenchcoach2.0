@@ -3,6 +3,11 @@ import { scoreTone, isUnscored, coachScoreGrid } from '../../../domain/scoring';
 import { fadeUp } from '../../../components/motion/variants';
 import { cefrLevelLabel } from '../../../domain/learn/ability/levelLabel';
 import { ladderScoreGrid, resolveMarkedScore, type MarkingLevel } from '../../../domain/learn/marking/markingLevel';
+import {
+  LEVEL_MARKING_NOT_GRADED,
+  LEVEL_MARKING_UNAVAILABLE,
+  checkedAgainstLine,
+} from '../../../domain/learn/marking/markingCopy';
 import type { FeedbackV2 } from '../../../types';
 
 interface Props {
@@ -21,8 +26,6 @@ interface Props {
   markingLevel?: MarkingLevel;
 }
 
-const LEVEL_MARKING_UNAVAILABLE = 'Level marking unavailable — marked at Exam standard';
-
 // No "Core+/Extended" band pill (Batch 4, D3): 0520 speaking is not tiered, and
 // an unaudited band reads as a real result. The band stays in synced data.
 export function SnapshotCard({ feedback, variant = 'full', markingLevel }: Props) {
@@ -33,9 +36,12 @@ export function SnapshotCard({ feedback, variant = 'full', markingLevel }: Props
   const marked = resolveMarkedScore(feedback, markingLevel ?? 'exam');
   const overall = marked.score ?? scores.overall;
   const scoreEntries = levelCheck ? ladderScoreGrid(levelCheck.subScoresByLevel[marked.level]) : coachScoreGrid(scores);
-  const unavailableNote = markingLevel && !marked.levelMarked
-    ? <p className="text-[10px] text-ink-muted mt-1">{LEVEL_MARKING_UNAVAILABLE}</p>
-    : null;
+  // §8.3 — say which ladder the score was read against, or that no level was applied.
+  const markingNote = !markingLevel ? null : (
+    <p className="inline-flex items-center rounded-full surface-recessed px-2.5 py-0.5 text-[11px] text-ink-muted mt-1.5">
+      {unscored ? LEVEL_MARKING_NOT_GRADED : marked.levelMarked ? checkedAgainstLine(marked.level) : LEVEL_MARKING_UNAVAILABLE}
+    </p>
+  );
 
   if (unscored) {
     return (
@@ -53,6 +59,7 @@ export function SnapshotCard({ feedback, variant = 'full', markingLevel }: Props
         <p className="text-[11px] text-ink-muted mt-1 leading-snug">
           No AI grader was reachable for this attempt, so no score was assigned. Your evidence and coaching tips below are still real.
         </p>
+        {markingNote}
       </motion.div>
     );
   }
@@ -72,7 +79,7 @@ export function SnapshotCard({ feedback, variant = 'full', markingLevel }: Props
           <span className="text-eyebrow text-ink-subtle uppercase">Overall</span>
           <span className="text-[10px] text-ink-subtle ml-auto">{meta}</span>
         </div>
-        {unavailableNote}
+        {markingNote}
       </motion.div>
     );
   }
@@ -100,7 +107,7 @@ export function SnapshotCard({ feedback, variant = 'full', markingLevel }: Props
         <span className="text-3xl font-black" style={{ color: scoreTone(overall) }}>{overall.toFixed(1)}</span>
         <span className="text-eyebrow text-ink-subtle uppercase">Overall</span>
       </div>
-      {unavailableNote && <div className="-mt-2 mb-3">{unavailableNote}</div>}
+      {markingNote && <div className="-mt-2 mb-3">{markingNote}</div>}
 
       <div className="grid grid-cols-4 gap-3 max-[380px]:grid-cols-2">
         {scoreEntries.map(({ label, val }, i) => (

@@ -44,4 +44,25 @@ describe('SnapshotCard marking level', () => {
     expect(screen.getByText('Fluency')).toBeTruthy();
     expect(screen.queryByText(UNAVAILABLE)).toBeNull();
   });
+
+  it('says which ladder the score was checked against (§8.3, Batch 4)', () => {
+    const { unmount } = render(<SnapshotCard feedback={LADDER} variant="line" markingLevel="B1" />);
+    expect(screen.getByText('Checked against the B1 ladder')).toBeTruthy();
+    unmount();
+    render(<SnapshotCard feedback={LADDER} variant="line" markingLevel="exam" />);
+    expect(screen.getByText('Checked against Exam standard')).toBeTruthy();
+  });
+
+  it('adds no caption with the flag off, and no "checked against" without a levelCheck', () => {
+    const { unmount } = render(<SnapshotCard feedback={LADDER} variant="line" />);
+    expect(screen.queryByText(/Checked against/)).toBeNull();
+    unmount();
+    render(<SnapshotCard feedback={BASE} variant="line" markingLevel="B1" />);
+    expect(screen.queryByText(/Checked against/)).toBeNull();
+  });
+
+  it('tells an ungraded (offline) attempt that no level was applied', () => {
+    render(<SnapshotCard feedback={{ ...LADDER, unscored: 'no_llm_offline' }} markingLevel="B1" />);
+    expect(screen.getByText('Not graded, so your marking level was not applied.')).toBeTruthy();
+  });
 });
