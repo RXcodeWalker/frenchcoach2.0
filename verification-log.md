@@ -4628,3 +4628,16 @@ fields. Raising it changes every Learn reply (and any screen on the same depth b
 
 **Not done.** Stage 2 and Stage 3 not run (the Stage 1 rule says fix first). No gate result exists for Design D.
 G11's per-call vs per-answer reading is the owner's to decide (protocol, "Design D: how the gate reads it").
+
+## 2026-10-23 — Learn marking Design D: owner decisions; smoke resumed, stopped at the daily limit
+
+**Owner decisions (2026-10-23).** (1) Learn's standard feedback budget 2,048 → 2,500 answer tokens (`max_tokens`
+2,560 → 3,012 with the reasoning reserve), because the v6 call truncated on a 4-error answer; this changes every
+Groq `/api/feedback` call in production once deployed, and only for replies that would otherwise have been cut off.
+(2) G11's median is per answer (both calls) and 7,500; the max stays 8,000 per call. Backend eca4e38; protocol
+updated. Backend pytest 930 passed.
+
+**Smoke after the raise:** fam_01_simple_a1 ok (6,915 tokens; feedback call 1,044 completion tokens, stop), then
+Groq's daily limit (196,524 of 200,000 used today). The other two smoke answers, Stage 2 and Stage 3 are not run;
+`python scripts/learn_marking_eval.py --stage smoke` resumes. Whether the raise fixes the fam_01_weak truncation is
+**not yet verified**. Not deployed.

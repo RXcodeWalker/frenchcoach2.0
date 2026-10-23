@@ -77,7 +77,12 @@ backend's `tests/fixtures/learn_marking_eval_v1/runs/`.
 - **Smoke iteration 1** stopped at 7,204 tokens on a 4-error answer. 53% of that reply is v6
   listing every error twice (`grammar` and `corrections`); the ladder's own keys were 9%. Max →
   8,000; the median stays 6,000, so ladder bloat on ordinary answers still fails G11.
-- **Consequence:** about 6.2k tokens per AI-marked Learn answer, roughly 32 a day on the 200k tier
+- **Changed again (owner, 2026-10-23), for Design D.** An answer is now two calls, so the median is read per
+  answer and set to 7,500 ("I'm fine with about 7,500 per answer"); the max stays 8,000 per call. The same day the
+  owner approved raising Learn's standard feedback budget from 2,048 to 2,500 answer tokens, after a Design D
+  smoke run cut a 4-error answer's v6 feedback off at 2,560 (with the reasoning reserve) — production's budget.
+  About 25 AI-marked Learn answers a day fit the 200k tier.
+- **Consequence (2026-10-19, one-call design):** about 6.2k tokens per AI-marked Learn answer, roughly 32 a day on the 200k tier
   (about 40 before), and more for error-heavy answers. Cutting the duplicate error list is a
   separate, cheaper option that changes what Learn receives.
 
@@ -95,7 +100,7 @@ backend's `tests/fixtures/learn_marking_eval_v1/runs/`.
 | G8 | Verdicts match expectations | ≥ 85% of all rung verdicts; ≥ 90% on deciding rungs (the answer's written level and the one above); every ladder ≥ 75% |
 | G9 | Stability (3 runs) | Rung flip rate ≤ 10%; score spread (max − min) ≤ 1.0 per answer per level; mean spread ≤ 0.5 |
 | G10 | Evidence is real | ≥ 95% of "y" quotes found in the transcript before the guardrail |
-| G11 | Contract and cost | ≥ 97.5% valid with every applicable ladder; `demandCheck` 100%; zero truncations; median ≤ 6,000 tokens per call, max ≤ 8,000 (was 5,000 / 6,000; see "Cost limits changed") |
+| G11 | Contract and cost | ≥ 97.5% valid with every applicable ladder; `demandCheck` 100%; zero truncations; median ≤ 7,500 tokens per answer (both Design D calls), max ≤ 8,000 per call (was 6,000 per call; see "Cost limits changed") |
 | G12 | Needs list | Simple-A1 answers: 0 items at A1, ≥ 2 at B1; never an item from a ladder that doesn't apply |
 | G13 | Owner read-through | For the 5 simple-A1 answers at B1: "is this what a B1 answer needs that mine doesn't have?" — yes for ≥ 4/5 |
 | G14 | Only what the question asks | No needs item, at any level, asks for a time frame, opinion or reason the question doesn't invite (unit-proven over all 668 questions, and checked live). The strong-B1 hol_01 answer, past tense only with feelings, reaches B1 on every applicable ladder |
@@ -130,10 +135,9 @@ which the one-call design exceeded on the six-ladder question. After it the owne
 
 - **The same gates, thresholds and test set.** The harness makes both production calls for each answer and keeps
   them in one record.
-- **Cost (G11).** The protocol words the token limits "per call", and the harness applies them per provider call;
-  the per-answer total (both calls) is printed beside them. A Design D answer costs ~6,800–8,800 tokens, so a
-  per-answer reading of "median ≤ 6,000" would fail. **Which reading the cost gate should hold is the owner's
-  decision**, not made here.
+- **Cost (G11).** Decided by the owner on 2026-10-23 (see "Cost limits changed"): the median is per answer, both
+  calls together, ≤ 7,500; the max stays 8,000 per call, which is also the most one Groq on_demand request may
+  ask for.
 - **Budget.** Stage 2 is ~22 × 7,500 ≈ 165k tokens, most of a day on the 200k tier; Stage 3 ~120k. The harness
   resumes after a daily-limit stop.
 
