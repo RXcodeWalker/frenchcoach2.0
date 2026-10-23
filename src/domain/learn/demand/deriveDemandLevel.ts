@@ -20,8 +20,9 @@ const STRUCTURE_BONUS_PER_MATCH = 0.25;
  * "past activities and personal experiences" and "plans and arrangements" at
  * A2, so describe's A1 base (2.0) under-rates them. UNVALIDATED as a number —
  * 3.0 is the A2 band's lower edge (`demandScoreToLevel`). The Python port in
- * backend/main.py carries the same rule only inside the ladder scheme
- * (learn-marking-levels §6), so the v6 prompt stays untouched.
+ * backend/main.py keeps the same rule, but no backend prompt renders it (the
+ * one-call ladder prompt that did was replaced by Design D's checklist), so
+ * the v6 prompt stays untouched.
  */
 export const DESCRIBE_PAST_FUTURE_FLOOR = 3.0;
 const STRUCTURE_BONUS_CAP = 0.75;

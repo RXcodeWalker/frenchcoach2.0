@@ -8,14 +8,15 @@ tests are the current behavior. It is **§-numbered and live — never renumber 
 `learn-marking §N`).
 
 **Status: backend built, inert; frontend wired behind a flag.** The scoring code
-(`backend/lib/learn_ladder.py`) and the backend wiring (`marking` field, kill switch,
-`learn-prompt-v8` ladder prompt, scoring before `enrich_feedback` on `/v3` and the stream) exist. The
+(`backend/lib/learn_ladder.py`) and the backend wiring (`marking` field, kill switch, the two-call
+Design D marking — v6 feedback, then the level checklist; see the Design D amendment at the end —
+scoring before `enrich_feedback` on `/v3` and the stream) exist. The
 frontend wiring (the marking dial, the `marking` field, the `levelCheck` schema, `markedScore`, the
 rewards gate and sync — see the Batch 3 amendment at the end) and its copy (the needs card, the
 "Checked against…" caption, the notes — see the Batch 4–5 amendment) are built behind the frontend flag
 `learnMarkingLevels`, which stays `coming-soon`, so no client sends `marking` yet. Production Learn
 stays on `learn-prompt-v6` until the gate in `docs/guides/learn-marking-test-protocol.md` passes (the
-2026-10-19 Stage 2 run did not; see `verification-log.md`).
+2026-10-19 and 2026-10-23 runs did not; see `verification-log.md`).
 Every number below that is not stated by a source is `UNVALIDATED`.
 
 **Labels used in this page.**
@@ -515,4 +516,32 @@ gated on a `markingLevel` that Learn passes only while the flag is live.
 
 **Gate status is unchanged.** The 2026-10-19 Stage 2 run did not pass (G4, G11, G12; Stage 3 not run —
 `verification-log.md`), so the flag stays `coming-soon`. Nothing in these batches changes that.
+
+## Amendment: Design D — two calls (2026-10-23)
+
+The one-call design failed the gate twice (`verification-log.md`, 2026-10-19 and 2026-10-23), mainly on cost and on
+the size of a single request. On the owner's decision the backend now marks a `ladder-v1` request with the protocol's
+fallback, Design D (ADR 0013 amendment). Nothing in §3–§6 (rungs, which ladders apply, Exam standard, points,
+ordering) changes; these sections change as follows.
+
+- **§1.2 "One model call produces all five scores"** becomes: two calls produce them — Learn's unchanged v6 feedback
+  call, then a level checklist at temperature 0. The level still never reaches either call.
+- **§1.4 "Each call is about 25% bigger than v6"** becomes: each answer costs about 6,800–8,800 tokens across the two
+  calls (2026-10-23 smoke runs), against ~5,000 for v6 alone.
+- **§7 What the model returns.** The feedback call returns v6's reply, unchanged; its own `scores`, `fluency` and
+  `cefrLevel` are overwritten as before. The checklist returns only `levelCheck` and `demandCheck`, in the shapes §7
+  describes. It sees the question, the transcript, the question's demands (no CEFR demand level, no session target,
+  no DETERMINISTIC SIGNALS), the rungs, and the errors the feedback call found (each quote once, only quotes found in
+  the transcript). Accuracy rungs 3–4 count that list (the interpretation A-B1-B2 in the test set: up to two errors
+  meet B1, up to one meets B2; a sound-alike spelling never counts); rungs 1–2 do not count errors. The reply's
+  `promptVersion` names both prompts (`learn-prompt-v6+ladder-check-v2`).
+- **§8.1 fallback.** A checklist with no usable `levelCheck` moves to the other provider, as before. When no provider
+  returns one, the reply is no longer a failure: the v6 feedback is served without `levelCheck` (§8.3's "Level
+  marking unavailable — marked at Exam standard") and is not cached. The stream sends its sections as v6 writes them,
+  hides v6's score snapshot, and runs the checklist before `complete`.
+- **Rung wording** (the judge's, not the learner's) was made more checkable in the 2026-10-23 iteration and carried
+  into the checklist: T-B1 says what counts as development; L-A1 counts any *et*/*puis*; R-B1 reads "some sentences"
+  as at least two sentences with a subordinate clause; O-B1 and F (future) B1 say what is not a reason or not detail.
+  None is meant to change a rung's meaning; R-B1's "at least two" is the nearest to the line and awaits the owner's
+  check.
 

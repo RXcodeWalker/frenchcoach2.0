@@ -120,9 +120,22 @@ owner with the data and one of two fallbacks:
 |---|---|---|---|---|
 | 0 (first run) | 2026-10-19 | `learn-prompt-v8` | NOT PASSED: G4, G11, G12 | `verification-log.md`; backend `runs/run_log.jsonl` |
 | 1 (wording) | 2026-10-23 | `learn-prompt-v9` | NOT PASSED: G3, G4, G11, G14; Stage 3 not run | `verification-log.md`; backend `runs/iter1_run_log.jsonl` |
+| Design D | 2026-10-23 | `learn-prompt-v6` + `ladder-check-v2` | Stage 1 STOPPED (a v6 call truncated); Stage 2 not run | `verification-log.md`; backend `runs/designD_*.jsonl` |
 
-One wording iteration remains. Iteration 1 also found that Groq's on_demand tier refuses any request whose prompt +
-`max_tokens` is over 8,000 (413), which the six-ladder question at standard depth now exceeds.
+Iteration 1 found that Groq's on_demand tier refuses any request whose prompt + `max_tokens` is over 8,000 (413),
+which the one-call design exceeded on the six-ladder question. After it the owner chose the fallback, **Design D**
+(v6 unchanged plus a separate checklist call; ADR 0013 amendment), rather than a second wording iteration.
+
+### Design D: how the gate reads it
+
+- **The same gates, thresholds and test set.** The harness makes both production calls for each answer and keeps
+  them in one record.
+- **Cost (G11).** The protocol words the token limits "per call", and the harness applies them per provider call;
+  the per-answer total (both calls) is printed beside them. A Design D answer costs ~6,800–8,800 tokens, so a
+  per-answer reading of "median ≤ 6,000" would fail. **Which reading the cost gate should hold is the owner's
+  decision**, not made here.
+- **Budget.** Stage 2 is ~22 × 7,500 ≈ 165k tokens, most of a day on the 200k tier; Stage 3 ~120k. The harness
+  resumes after a daily-limit stop.
 
 ## Where this gate sits in the rollout
 

@@ -69,3 +69,24 @@ error list disagree; the **fallback** if this design fails the gate twice.
   here only behind a separate, default-off backend switch, after its own simulation and owner sign-off.
 - Does not amend 0001, 0002 or 0005; it applies the three-layer pattern of 0002 to Learn and keeps the
   mark-free stance of 0005 for the Examiner style.
+
+## Amendment (2026-10-23): Design D replaces the one-call ladder prompt
+
+The one-call design above was tested twice (`learn-prompt-v8` on 2026-10-19, `learn-prompt-v9` on 2026-10-23) and failed
+the gate both times (`verification-log.md`). Its verdicts were close (95% agreement on the second run), but packing
+the ladder into v6's own call made each request too big: the cost gate could not be met without cutting v6's output,
+and the six-ladder question went over the 8,000 tokens a single Groq on_demand request may ask for (413). The owner
+chose the fallback named above, Design D:
+
+- **Two calls.** A `ladder-v1` request is first marked by Learn's v6 feedback call, unchanged. A second, small call at
+  temperature 0 (`ladder-check-v1`, later `-v2`) then answers only the rungs and the demand check. Code still turns the
+  verdicts into every score; the rungs, points and level-blindness are unchanged.
+- **The accuracy-disagreement risk named above is closed by construction.** The checklist is given the errors the
+  feedback call found (deduplicated, grounded in the transcript), and Accuracy rungs 3–4 count exactly that list.
+- **A failed checklist no longer fails the reply.** The feedback is served without `levelCheck`, which the app already
+  shows as "Level marking unavailable — marked at Exam standard" (spec §8.3), and it is not cached.
+- **Cost.** About 6,800–8,800 tokens per answer across the two calls (smoke runs, 2026-10-23), against ~6,700 for the
+  one-call design; each call is well under the per-request limit. Fewer answers a day fit the 200k free tier, which
+  was already too small for real users.
+- Everything in **Consequences** above still holds.
+

@@ -4595,3 +4595,36 @@ per-request limit with room. It changes what Learn receives, so it is the owner'
 **Not verified.** Stage 3 (G9) not run. G13 (owner read-through) not judged. No Gemini (Stage 4). One run per answer,
 so single-verdict failures (G3, G4, G14) may or may not repeat. Production unaffected: no client sends `marking`;
 `learnMarkingLevels` stays `coming-soon`.
+
+## 2026-10-23 — Learn marking ladder: Design D built; Stage 1 smoke — STOPPED (v6 truncation)
+
+After iteration 1 the owner chose the protocol's fallback, Design D, over a second wording iteration. Backend branch
+`claude/eager-pasteur-i1ht8j`: 5af72b7 (Design D), a2c4009 (checklist v2), 98a4b3f (smoke records). Spec and ADR
+0013 carry a Design D amendment. Frontend unchanged (the reply shape is the same); `learnMarkingLevels` stays
+`coming-soon`.
+
+**What it is.** A `ladder-v1` request is first marked by Learn's v6 feedback call, byte-for-byte unchanged (v6 pins
+untouched). A second call at temperature 0, the level checklist (`ladder-check-v2`), answers only `levelCheck` and
+`demandCheck`. It is given the question, the transcript, the question's demands (no CEFR level, tier or
+DETERMINISTIC SIGNALS), the rungs, and the errors the feedback call found (grounded, each quote once); Accuracy rungs
+3–4 count that list. A failed checklist serves the feedback without `levelCheck` (spec §8.3) and is never cached. Each
+request fits the Groq 8,000 per-request limit with room (checklist ~1,800 prompt + 1,712 max).
+
+**Free checks.** Backend pytest 929 passed. Dry run from the expected verdicts: every automatic gate passes. A new
+test-suite guard stops any test reaching a real provider: one local run before it spent a few real checklist calls
+through a path a test had not stubbed.
+
+**Stage 1 (smoke), 2 runs, ~47k Groq tokens** (on top of iteration 1's 170k today).
+
+| Run | Checklist | Verdicts vs expected | Tokens per answer | Stop rule |
+|---|---|---|---|---|
+| 1 | `ladder-check-v1` | fam_01_weak Accuracy all "n" (rungs 1–2 should be met); fam_01_strong_b1 T-B2 "y" (borderline) | 6,873 / 7,990 / 8,464 | none — fixed anyway: v1 told the ladder to "use the list" for every rung; v2 says only rungs 3–4 count it |
+| 2 | `ladder-check-v2` | all as expected except fam_01_strong_b1 T-B2 (borderline B2) | 6,825 / 8,058 / 8,851 | **STOP: truncation** |
+
+**The stop is v6's, not the checklist's.** fam_01_weak's v6 feedback call used all 2,560 completion tokens (standard
+depth 2,048 + 512 reasoning reserve) and lost `rephrase`, `encouragement` and `followUpQuestion`; the same call used
+2,401 in run 1. This is production Learn's budget today, so a learner's error-heavy answer can already lose those
+fields. Raising it changes every Learn reply (and any screen on the same depth budgets); left for the owner.
+
+**Not done.** Stage 2 and Stage 3 not run (the Stage 1 rule says fix first). No gate result exists for Design D.
+G11's per-call vs per-answer reading is the owner's to decide (protocol, "Design D: how the gate reads it").
