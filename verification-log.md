@@ -4522,3 +4522,76 @@ unaffected: no client sends `marking`.
 
 **Not verified.** No live session was run in a browser; the backfill is covered by unit tests and the
 existing session-builder tests only. The floor's 3.0 is UNVALIDATED.
+
+## 2026-10-23 — Learn marking ladder gate: iteration 1 (Groq, `learn-prompt-v9`) — NOT PASSED
+
+The first of the protocol's two allowed wording iterations. Backend branch `claude/eager-pasteur-i1ht8j`: wording
+6f91252, harness 413 handling d6b833a, run records and report 55c087a. Model `groq/openai/gpt-oss-120b`, reasoning
+effort low; `answers.json` at 3a1b7e9 (unchanged, no expectation edited); ladder `learn-ladder-v1-f183b9df8e84`.
+Records: backend `tests/fixtures/learn_marking_eval_v1/runs/iter1_run_log.jsonl` and `iter1_report_stage2.md`, kept
+apart from the 2026-10-19 records. **170,344 Groq tokens spent** (smoke 19.7k, Stage 2 150.6k). Stage 3 not run.
+
+**What changed (ladder prompt only; v6 text and its pinned hashes untouched; no threshold, pass logic or
+expectation changed).** Diagnosed from the 2026-10-19 raw records:
+- T-B1 over-credited a further separate fact (7 of the mismatches). Now: developed = more said about the *same*
+  point (why/how, an example, a consequence); a further separate fact or attribute, a time or number inside a fact,
+  or (when O applies) the reason for the opinion is not development.
+- A-B2 said "y" on all five typical answers although the model had listed both seeded errors in every one. Both
+  Accuracy rungs now follow the model's own grammar error count: 0–2 for rung 3, 0–1 for rung 4 (the pre-registered
+  A-B1-B2 reading, made countable).
+- R-A1 came back `null` (hol_01 typical, right after F's "no requirement" rung) and the string `"null"` (fut_19 B2,
+  the lost contract). Each ladder now states its verdict shape; "a rung is a minimum, doing more still meets it";
+  the parser reads the string `"null"` as JSON null (contract fix, unit-tested).
+- L-A1 "et" joining two nouns was judged "n"; the prompt also told the model "connectors: absent — do not
+  contradict", a signal that counts only advanced connectors. L-A1 now says any *et* counts; the signals line is
+  explained and never decides a rung; a more advanced connector meets L-A2.
+- The ladder prompt rendered the question's "Demand level": B1 on env_05, B2 on fut_19, exactly the two questions
+  whose typical answers were judged B1. Dropped; the ladder prompt now carries no CEFR level (new test).
+- O-B1: a reason is presented as why; a liking, habit or fact placed beside the opinion is not. F (future) B1:
+  detail is about the imagined future, not present-life facts. R-B1: "some sentences" = at least two sentences with
+  a subordinate clause.
+- No rung's meaning was changed, in my reading: each edit states a reading the spec or the pre-registered
+  `interpretations` already gives. The two nearest the line, for the owner: **R-B1's "at least two sentences"** and
+  **Accuracy following the error count**.
+
+**Stage 0/0b (free).** Backend pytest 901 passed. Prompt size (o200k): system 3,024 → 3,118; median system+user
+4,214 → 4,422 (+208). Dry run from the expected verdicts: every automatic gate passes.
+
+| Gate | 2026-10-19 (v8) | 2026-10-23 (v9) | Cause of the v9 result |
+|---|---|---|---|
+| G1 order | PASS | PASS | 22/22 |
+| G2 simple gap | PASS | PASS | 5/5 |
+| G3 top of scale | PASS | **FAIL** | sch_03_strong_b1 A2 8.1, B1 6.8: L-A1 "n" with an empty quote, though *et* joins two clauses |
+| G4 typical at A2 | FAIL (3/5) | **FAIL (1/5)** | hol_01_typical_a2 A2 6.6: the model listed « j'ai allé » twice (3 items for 2 errors), so the count rule failed A-B1, and the row came back incoherent (`n y n y`) |
+| G5 Exam between | PASS | PASS | typical 5/5, strong 4/5 |
+| G6 mistakes at Exam | PASS (90%) | PASS (90%) | |
+| G7 off-topic | PASS | PASS | |
+| G8 verdicts | PASS 89% | PASS 95% | deciding 94%; lowest ladder O 90% |
+| G9 stability | not run | not run | Stage 2 did not look passable |
+| G10 evidence | PASS 97% | PASS 97% | |
+| G11 contract/cost | FAIL | **FAIL** | valid 25/25 (was 24/25), truncations 0 (was 4); median 6,736 (was 6,412) > 6,000; max 8,011 > 8,000 (env_05_weak) |
+| G12 needs list | FAIL | PASS | fam_01 L-A1 now "y" |
+| G14 only what is asked | PASS | **FAIL** | hol_01_strong_b1 R-B1 "n" (has *où* and *quand* clauses); the raw output does not show why |
+
+**Remaining mismatches (19 of 409).** T-B1 still over-credited 4 times (the reason for an opinion counted as
+development twice, against the new rule); L-A1 "n" 3 times, every time on *et* joining two clauses — a regression
+from the new "(any et joining two words counts)", read literally; A-B1 "y" with three listed errors (sch_03_weak);
+borderline B2 rungs on env_05_strong (T, O, R) and fut_19_strong (T).
+
+**New finding: a hard per-request limit.** Groq's on_demand tier refuses (413) any request whose prompt + `max_tokens`
+is over its 8,000 tokens-per-minute limit. A six-ladder question (fut_19) at standard depth asks for ~8,150 (prompt
+~4,600 + 3,560 allowed). v8's ~4,400-token prompt would have fitted the raised allowance by about 50 tokens (it
+ran on 10-19 with the old +500); v9's +200 does not. Two of the five
+fut_19 calls were refused before a retry got through, so the limit is applied near its edge, not exactly. In
+production a refusal would fall through to Gemini. The 2026-10-19 allowance raise is confirmed necessary (largest
+reply 3,487 of 3,560) but leaves no room. The harness now records a 413 and goes on instead of crashing.
+
+**Cost.** The single-call design cannot reach G11's median as long as v6's output is unchanged: the prompt alone is
+~4,500 tokens and the median reply ~2,250 (~900 of it reasoning). Measured on the v8 replies, dropping v6's duplicate
+`corrections[]` (and `rephrase`, a copy of `improved_answer`) from the ladder reply only would save ~490 + ~85 tokens
+at the median (output and schema), i.e. ~6,200 with v9's prompt: still over 6,000, but back under the 8,000
+per-request limit with room. It changes what Learn receives, so it is the owner's call; not done.
+
+**Not verified.** Stage 3 (G9) not run. G13 (owner read-through) not judged. No Gemini (Stage 4). One run per answer,
+so single-verdict failures (G3, G4, G14) may or may not repeat. Production unaffected: no client sends `marking`;
+`learnMarkingLevels` stays `coming-soon`.

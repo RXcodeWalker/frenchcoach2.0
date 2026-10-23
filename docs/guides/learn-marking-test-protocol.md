@@ -114,6 +114,16 @@ owner with the data and one of two fallbacks:
 - **Design C** — a stronger model on the same prompt (an env switch, layered on the ladder later).
   It does not add the missing conversion and gives no ordering guarantee.
 
+### Iterations run
+
+| Iteration | Date | Prompt | Result | Record |
+|---|---|---|---|---|
+| 0 (first run) | 2026-10-19 | `learn-prompt-v8` | NOT PASSED: G4, G11, G12 | `verification-log.md`; backend `runs/run_log.jsonl` |
+| 1 (wording) | 2026-10-23 | `learn-prompt-v9` | NOT PASSED: G3, G4, G11, G14; Stage 3 not run | `verification-log.md`; backend `runs/iter1_run_log.jsonl` |
+
+One wording iteration remains. Iteration 1 also found that Groq's on_demand tier refuses any request whose prompt +
+`max_tokens` is over 8,000 (413), which the six-ladder question at standard depth now exceeds.
+
 ## Where this gate sits in the rollout
 
 Each step is reversed by its own switch.
