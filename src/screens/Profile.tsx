@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Volume2, Moon, Globe, Database, Shield, ShieldCheck, ChevronRight, Zap, Trophy, Flame, TrendingUp, BookOpen, LogOut, Target, SlidersHorizontal, AtSign, Loader2, Check, Copy, UserX, Users, Trash2, Minus, Plus, Bell } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { getStats } from '../services/analytics/analyticsService';
 import { useApp, DAILY_GOAL_MIN, DAILY_GOAL_MAX } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { getLevelInfo } from '../domain/levels';
@@ -44,6 +45,7 @@ const RENAME_REASON_COPY: Record<string, string> = {
 
 export function Profile() {
   const { state, dispatch } = useApp();
+  const avgScore = useMemo(() => getStats().avgScore, []);
   const { user, signOut, isAdmin, ageBand, consentStatus, refreshConsentStatus } = useAuth();
   const { isGuest, exitGuestMode } = useGuestMode();
   const navigate = useNavigate();
@@ -281,7 +283,7 @@ export function Profile() {
         {[
           { icon: <Flame size={13} className="text-orange-400" />, value: profile.streak_days, label: 'Streak' },
           { icon: <BookOpen size={13} className="text-violet-400" />, value: profile.sessions_count, label: 'Sessions' },
-          { icon: <TrendingUp size={13} className="text-emerald-400" />, value: '7.8', label: 'Avg' },
+          { icon: <TrendingUp size={13} className="text-emerald-400" />, value: avgScore != null ? avgScore.toFixed(1) : '—', label: 'Avg' },
           { icon: <Trophy size={13} className="text-amber-400" />, value: unlockedCount, label: 'Unlocked' },
         ].map(s => (
           <div key={s.label} className="rounded-lg surface p-2.5 text-center">
