@@ -12,9 +12,9 @@ vi.mock('../../../lib/supabase', () => ({
 
 import { supabase } from '../../../lib/supabase';
 import fixture from '../../../domain/learn/marking/__tests__/fixtures/ladderReply.fam_01_simple_a1.json';
-import { getAIFeedback } from '../apiClient';
+import { getAIFeedback, LADDER_CHECK_GRACE_MS } from '../apiClient';
 import { validateBackendFeedback } from '../feedbackSchema';
-import { LEARN_MARKING_SCHEME, MARKING_LEVELS, markedScore } from '../../../domain/learn/marking/markingLevel';
+import { LEARN_MARKING_SCHEME, MARKING_LEVELS, markedScore, resolveMarkedScore } from '../../../domain/learn/marking/markingLevel';
 import type { Question } from '../../../types';
 
 const QUESTION = {
@@ -58,6 +58,52 @@ describe('ladder reply (learn-marking §7)', () => {
     expect(fb.scores.overall).toBe(6.8);
     expect(markedScore(fb, 'exam')).toBe(fb.scores.overall);
     expect(MARKING_LEVELS.map((l) => markedScore(fb, l))).toEqual([8.8, 7.1, 6.8, 5.3, 4]);
+  });
+
+  it('reads a Design D reply (two backend calls) the same way', async () => {
+    mockBackend({
+      ...fixture.response,
+      promptVersion: 'learn-prompt-v6+ladder-check-v3',
+      ladderCheckMeta: { modelUsed: 'groq/openai/gpt-oss-120b', latencyMs: 3100 },
+    });
+    const fb = await getAIFeedback(TRANSCRIPT, QUESTION, undefined, undefined, 'groq', 'intermediate', 'speech', LEARN_MARKING_SCHEME);
+    expect(fb.engineMeta?.actualEngine).toBe('groq');
+    expect(fb.levelCheck?.scheme).toBe('ladder-v1');
+    expect(fb.promptVersion).toBe('learn-prompt-v6+ladder-check-v3');
+    expect(MARKING_LEVELS.map((l) => markedScore(fb, l))).toEqual([8.8, 7.1, 6.8, 5.3, 4]);
+  });
+
+  it('a failed level checklist still gives graded feedback, with no levelCheck', async () => {
+    // Backend Design D: when no provider returns the checklist, the v6 feedback is served without
+    // levelCheck and with ladderCheckError (learn-marking §8.3 "Level marking unavailable").
+    const { levelCheck: _dropped, ...rest } = fixture.response as Record<string, unknown>;
+    void _dropped;
+    mockBackend({ ...rest, promptVersion: 'learn-prompt-v6', ladderCheckError: 'groq timeout; gemini quota_exhausted' });
+    const fb = await getAIFeedback(TRANSCRIPT, QUESTION, undefined, undefined, 'groq', 'intermediate', 'speech', LEARN_MARKING_SCHEME);
+    expect(fb.engineMeta?.actualEngine).toBe('groq');
+    expect(fb.levelCheck).toBeUndefined();
+    expect(fb.scores.overall).toBe(6.8);
+    expect(resolveMarkedScore(fb, 'B1')).toMatchObject({ score: 6.8, level: 'exam', levelMarked: false });
+  });
+
+  it('gives a ladder request time for the second backend call before giving up on Groq', async () => {
+    vi.useFakeTimers();
+    try {
+      fetchMock.mockReset();
+      fetchMock.mockImplementation((_url: string, init: { signal: AbortSignal }) => new Promise((resolve, reject) => {
+        const timer = setTimeout(() => resolve({ ok: true, status: 200, json: async () => fixture.response }), 40000);
+        init.signal.addEventListener('abort', () => { clearTimeout(timer); reject(new DOMException('Aborted', 'AbortError')); });
+      }));
+      vi.stubGlobal('fetch', fetchMock);
+      const pending = getAIFeedback(TRANSCRIPT, QUESTION, undefined, undefined, 'groq', 'intermediate', 'speech', LEARN_MARKING_SCHEME);
+      await vi.advanceTimersByTimeAsync(41000);
+      const fb = await pending;
+      expect(fb.engineMeta?.actualEngine).toBe('groq'); // 15 s Groq budget + LADDER_CHECK_GRACE_MS
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(LADDER_CHECK_GRACE_MS).toBe(60000);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('sends marking: ladder-v1 and nothing that names a level', async () => {

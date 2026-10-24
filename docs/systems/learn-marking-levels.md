@@ -7,16 +7,18 @@ feedback says what a B1 answer needs that this one lacks. Why it works this way:
 tests are the current behavior. It is **§-numbered and live — never renumber a section** (cite as
 `learn-marking §N`).
 
-**Status: backend built, inert; frontend wired behind a flag.** The scoring code
+**Status: switched on by the owner on 2026-10-24 before the test gate passed** ("it can be inaccurate,
+as long as there is no bug"; see the 2026-10-24 amendment at the end and `verification-log.md`). The
+flag `learnMarkingLevels` is `live`; setting it back to `coming-soon` is the rollback. History: the scoring code
 (`backend/lib/learn_ladder.py`) and the backend wiring (`marking` field, kill switch, the two-call
 Design D marking — v6 feedback, then the level checklist; see the Design D amendment at the end —
 scoring before `enrich_feedback` on `/v3` and the stream) exist. The
 frontend wiring (the marking dial, the `marking` field, the `levelCheck` schema, `markedScore`, the
 rewards gate and sync — see the Batch 3 amendment at the end) and its copy (the needs card, the
 "Checked against…" caption, the notes — see the Batch 4–5 amendment) are built behind the frontend flag
-`learnMarkingLevels`, which stays `coming-soon`, so no client sends `marking` yet. Production Learn
-stays on `learn-prompt-v6` until the gate in `docs/guides/learn-marking-test-protocol.md` passes (the
-2026-10-19 and 2026-10-23 runs did not; see `verification-log.md`).
+`learnMarkingLevels`. The gate in `docs/guides/learn-marking-test-protocol.md` has not passed (runs on
+2026-10-19, 2026-10-23 and 2026-10-24 did not; see `verification-log.md`), so every score this page
+describes is a practice score whose accuracy is not yet measured.
 Every number below that is not stated by a source is `UNVALIDATED`.
 
 **Labels used in this page.**
@@ -544,4 +546,20 @@ ordering) changes; these sections change as follows.
   as at least two sentences with a subordinate clause; O-B1 and F (future) B1 say what is not a reason or not detail.
   None is meant to change a rung's meaning; R-B1's "at least two" is the nearest to the line and awaits the owner's
   check.
+
+## Amendment: switched on before the gate passed (2026-10-24)
+
+- **Owner decision.** The flag `learnMarkingLevels` is `live` although the gate has not passed: accuracy is
+  accepted as unmeasured, bugs are not. Rollback: `coming-soon`.
+- **Ladder T needs evidence (`ladder-check-v3`).** The checklist lists each place the answer says more about one of
+  its points (`developed`: point, more, how); code keeps a T-B1 "yes" only with at least one such pair found in the
+  transcript, and a T-B2 "yes" only with at least three (`T_B1_MIN_DEVELOPED`, `T_B2_MIN_DEVELOPED`; UNVALIDATED). This
+  is a reading of §3.1's B1 "at least one is developed" and B2 "main points are expanded", made countable; flagged
+  for the owner.
+- **No cut-off replies.** Checklist 1,800 answer tokens; brief feedback 2,000 (standard 2,500 since 2026-10-23).
+- **Timing.** The Groq checklist may wait up to 60 s for the per-minute token limit (`LADDER_CHECK_TIMEOUT_SEC`);
+  `/v3` gets the same 60 s on the client (`LADDER_CHECK_GRACE_MS`); the stream has no client timeout. When the
+  checklist still fails, §8.3's "Level marking unavailable" applies.
+- **Capacity (free tiers).** About 8,000 Groq tokens per AI-marked Learn answer, against ~5,000 without the ladder,
+  so about 25 marked answers a day on the 200k tier instead of ~40; Gemini's free fallback allows 20 requests a day.
 

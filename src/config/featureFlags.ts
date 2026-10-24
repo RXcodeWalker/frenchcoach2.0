@@ -29,9 +29,11 @@ export const FEATURE_FLAGS = {
   learnSpacedReview: 'live',
   shadowingMode: 'live',
   learnAdaptiveDifficulty: 'live',
-  // learn-marking §8 — the marking-level dial and the ladder scheme. Stays
-  // `coming-soon` until docs/guides/learn-marking-test-protocol.md passes.
-  learnMarkingLevels: 'coming-soon',
+  // learn-marking §8 — the marking-level dial and the ladder scheme. Switched
+  // on by the owner on 2026-10-24 before the test gate passed ("it can be
+  // inaccurate, as long as there is no bug"); see verification-log.md.
+  // Rollback: set back to 'coming-soon'.
+  learnMarkingLevels: 'live',
 }satisfies Record<string, FeatureStatus>;
 
 export type FeatureFlagKey = keyof typeof FEATURE_FLAGS;

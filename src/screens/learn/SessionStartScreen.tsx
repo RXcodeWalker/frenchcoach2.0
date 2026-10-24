@@ -87,7 +87,9 @@ export function SessionStartScreen({
 
   return (
     <motion.div
-      className="max-w-lg mx-auto px-4 py-6 space-y-6"
+      // pb-28 on phones: the fixed mobile nav dock (Navigation.tsx) otherwise covers the lower half
+      // of Start Session at the bottom of this screen, scrolled all the way down.
+      className="max-w-lg mx-auto px-4 pt-6 pb-28 md:pb-6 space-y-6"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}

@@ -58,6 +58,13 @@ const ENGINE_TIMEOUT_MS: Record<AIEngine, number> = {
 // genuinely dead backend still fails fast.
 const COLD_START_GRACE_MS = 45000;
 
+// learn-marking (Design D): a request that opts into the ladder scheme is two
+// backend calls — the feedback, then the level checklist, which may wait out
+// Groq's per-minute token limit (backend LADDER_CHECK_TIMEOUT_SEC, 60 s).
+// Without this, /v3 for a ladder request regularly outlived the 15 s Groq
+// budget and Learn fell through to the offline evaluator.
+export const LADDER_CHECK_GRACE_MS = 60000;
+
 /**
  * Reliability plan §2.5: previously a bare fetch with no timeout at all.
  * All 3 current callers (generateScenario, roleplayTurn, getRoleplayTurn) are
@@ -522,7 +529,8 @@ async function tryNetworkFeedback(
   inputMode: CoachInputMode | undefined,
 ): Promise<{ result: FeedbackV2; actualEngine: AIEngine } | null> {
   const coldStart = getWarmupPhase() === 'warming';
-  const timeoutMs = ENGINE_TIMEOUT_MS[engine] + (coldStart ? COLD_START_GRACE_MS : 0);
+  const timeoutMs = ENGINE_TIMEOUT_MS[engine] + (coldStart ? COLD_START_GRACE_MS : 0)
+    + (requestBody.marking ? LADDER_CHECK_GRACE_MS : 0);
   const engineParam = engine === 'offline' ? undefined : engine;
 
   const bodyWithEngine = engineParam ? { ...requestBody, enginePreference: engineParam } : requestBody;

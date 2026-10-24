@@ -153,7 +153,7 @@ Each step is reversed by its own switch.
 | 4 | Question levels made accurate | revert |
 | 5 | Frontend dials, wiring and copy, deployed with the flag `coming-soon` | flag `coming-soon` |
 | 6 | Owner tries it on their own device with `?ff_learnMarkingLevels=live` | — |
-| 7 | Flag default `live` | flag `coming-soon` |
+| 7 | Flag default `live` — **done 2026-10-24 by owner decision, before the gate passed** | flag `coming-soon` |
 | 8 | Demand-evidence fix (`LEARN_L2_DEMAND_VERDICTS`) | switch off |
 | 9 | Premium UI | revert |
 | 10 | CLAUDE.md Known Traps and spec amendments | revert |

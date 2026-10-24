@@ -4670,3 +4670,25 @@ facts as development — worse than the one-call prompt with the same rung wordi
 call reads T this way is not established from the raw outputs. Other ladders are close to iteration 1.
 
 **Not verified.** G9 (Stage 3), G13. Nothing deployed; flag stays `coming-soon`.
+
+## 2026-10-24 — Learn marking levels switched on before the gate passed (owner decision)
+
+**Decision.** The owner asked for the feature to be switched on "as long as there is no bug", accepting that its
+accuracy is unmeasured. The gate has **not** passed (runs on 2026-10-19, 2026-10-23, 2026-10-24); nothing here says
+it has. Frontend `learnMarkingLevels` → `live`; rollback `coming-soon`.
+
+**Changes since the Stage 2 run.** Backend 2a757ba and the timeout commit: `ladder-check-v3` (ladder T needs
+`developed` evidence: ≥ 1 pair for B1, ≥ 3 for B2, checked by code), checklist 1,800 and brief feedback 2,000 answer
+tokens, a 60 s Groq checklist attempt (`LADDER_CHECK_TIMEOUT_SEC`). Frontend: `/v3` gets 60 s more for a ladder request
+(`LADDER_CHECK_GRACE_MS`). Both branches merged with `origin/main` (public-launch sign-ups, launch scope, recorded
+voices).
+
+**Bug checks.** Backend pytest 943 passed. Frontend with the flag live: `typecheck`, `typecheck:server`, `lint`
+(0 errors), `vitest` 410 files / 4,766 tests, `authoring:check`, `authoring:parity`, `build` all pass. Live, against a
+local backend: `/v3` on Gemini (fam_01_weak: verdicts exactly as expected, all five mistakes, nothing cut off, 35 s);
+the stream on Groq (8.6 s, verdicts as expected); the cache; and a run where both checklist providers failed (Groq
+timeout under the per-minute limit, Gemini's free quota of 20 requests/day spent), which served the feedback without
+`levelCheck` as designed — that run is why the 60 s attempt was added.
+
+**Not verified.** No 22-answer run of `ladder-check-v3` (Groq's daily tokens were spent). Not clicked through in a
+browser. Capacity: ~8,000 Groq tokens per marked answer (~25 a day on the free tier, ~40 without the ladder).
