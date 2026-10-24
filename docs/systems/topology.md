@@ -108,6 +108,8 @@ One Sentry project per surface; each is off until its DSN is set.
   Errors only, no traces (the ESM bundle isn't started with `node --import`). `server/sentry.ts`.
 - **FastAPI (Render dashboard):** `SENTRY_DSN` (Python project DSN). Release = `RENDER_GIT_COMMIT`,
   traces 5%. `backend/lib/observability.py`. Single-worker config is unchanged.
+- **Wiring check for either backend:** set `SENTRY_TEST_EVENT=1` on the Render service; each boot
+  then sends one "Sentry test event" issue. Remove it afterwards.
 
 ### `VITE_SCORING_API_URL` — no fallback
 

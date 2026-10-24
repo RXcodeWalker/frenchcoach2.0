@@ -42,6 +42,11 @@ export function serverSentryOptions(env: Env): Sentry.NodeOptions {
 export function initServerSentry(env: Env = process.env): boolean {
   if (!env.SENTRY_DSN) return false;
   Sentry.init(serverSentryOptions(env));
+  // Set SENTRY_TEST_EVENT=1 on Render to confirm the wiring (one event per
+  // boot), then remove it.
+  if (env.SENTRY_TEST_EVENT === '1') {
+    Sentry.captureMessage('Sentry test event from the scoring service (SENTRY_TEST_EVENT=1)', 'error');
+  }
   return true;
 }
 
