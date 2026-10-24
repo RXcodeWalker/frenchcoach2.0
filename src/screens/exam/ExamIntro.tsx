@@ -4,6 +4,7 @@ import { ArrowLeft, VolumeX } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { isTtsAvailable, hasFrenchVoice, ensureVoiceReady } from '../../services/exam/examinerVoice';
 import { recordedVoicesEnabled } from '../../services/tts/recordedVoice';
+import { examinerSubtitle } from './examinerSubtitle';
 
 interface Props {
   /** W5: which mode ExamSelect's toggle chose — this screen states what it does/doesn't give before the candidate commits. */
@@ -55,7 +56,7 @@ export function ExamIntro({ coached, onStart, onBack }: Props) {
             </div>
             <div>
               <div className="exam-serif text-subtitle text-ink leading-tight">Henri</div>
-              <div className="text-body-s text-ink-subtle">your examiner tonight</div>
+              <div className="text-body-s text-ink-subtle">{examinerSubtitle()}</div>
             </div>
           </div>
           <span className="ml-auto font-numeral text-body-s text-ink-subtle tabular-nums">
