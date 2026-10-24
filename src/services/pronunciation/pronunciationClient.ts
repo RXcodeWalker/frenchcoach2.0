@@ -16,7 +16,7 @@
 import { createHttpPronunciationProvider } from '../../domain/pronunciation/providers/httpProvider';
 import type { PronunciationAssessment, PronunciationUsageSource } from '../../domain/pronunciation/types';
 import { getAccessToken } from '../../lib/authToken';
-import { track } from '../telemetry/telemetryService';
+import { captureError, track } from '../telemetry/telemetryService';
 
 // Prod: same-origin '/api/*' proxied to the backend by Vercel (see vercel.json).
 // Dev: call the backend directly.
@@ -126,6 +126,9 @@ export async function assessPronunciation({
       name: 'pronunciation_assessment_failed',
       props: { source, reason: err instanceof Error ? err.message : String(err) },
     });
+    // The caller cancelling (new recording, left the screen) also rejects with
+    // the timeout error above, so only report when it wasn't the caller.
+    if (!signal?.aborted) captureError(err, { area: 'pronunciation', stage: source });
     throw err;
   } finally {
     clearTimeout(timeoutId);

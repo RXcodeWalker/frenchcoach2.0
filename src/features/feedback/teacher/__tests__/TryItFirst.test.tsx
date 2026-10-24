@@ -11,7 +11,7 @@ const recorder = {
 vi.mock('../../../recording/useRecording', () => ({ useRecording: () => recorder }));
 vi.mock('../../../../context/AuthContext', () => ({ useAuth: () => ({ consentStatus: 'unknown' }) }));
 const track = vi.fn();
-vi.mock('../../../../services/telemetry/telemetryService', () => ({ track: (...a: unknown[]) => track(...a) }));
+vi.mock('../../../../services/telemetry/telemetryService', () => ({ track: (...a: unknown[]) => track(...a), captureError: () => {} }));
 vi.mock('../../../../services/tts/ttsService', () => ({
   TTS: { isSupported: () => false, stop: vi.fn(), speak: vi.fn(), ensureVoiceReady: vi.fn(), hasFrenchVoice: () => true },
 }));

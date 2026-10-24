@@ -1,6 +1,17 @@
 import * as Sentry from '@sentry/react';
 import type { AIEngine } from '../../types';
 import { setStorageErrorReporter } from '../persistence/storage';
+import {
+  DENY_URLS,
+  IGNORE_ERRORS,
+  errorStatus,
+  isExpectedFailure,
+  isNetworkError,
+  resolveSentryEnvironment,
+  stripBreadcrumbSecrets,
+  stripEventSecrets,
+  toReportableError,
+} from './sentryFilters';
 
 interface SessionCompletedProps {
   mode: 'practice' | 'exam' | 'story';
@@ -145,20 +156,82 @@ type TelemetryEvent =
   | { name: 'review_item_answered';    props: ReviewItemAnsweredProps }
   | { name: 'exam_pronunciation_audio_measured'; props: ExamPronunciationAudioMeasuredProps };
 
-export function initTelemetry(): void {
-  const dsn = import.meta.env.VITE_SENTRY_DSN as string | undefined;
-  Sentry.init({
+declare const __SENTRY_RELEASE__: string | undefined;
+declare const __SENTRY_ENVIRONMENT__: string | undefined;
+
+/** Product areas a captured failure is tagged with — filter on `area` in Sentry. */
+export type FailureArea =
+  | 'learn_feedback'
+  | 'learn_stream'
+  | 'examiner_feedback'
+  | 'transcription'
+  | 'exam_transcription'
+  | 'exam_scoring'
+  | 'exam_report'
+  | 'exam_session'
+  | 'pronunciation'
+  | 'auth'
+  | 'sync'
+  | 'storage';
+
+export interface ErrorContext {
+  /** Becomes a searchable Sentry tag. */
+  area?: FailureArea;
+  /** Becomes a tag too: which step inside the area failed. */
+  stage?: string;
+  /** HTTP status, when the failure was a response. Defaults to the error's own status. */
+  status?: number;
+  /** Anything else goes into the event's `extra`. */
+  [key: string]: unknown;
+}
+
+/** At most this many identical failures (same area/stage/message) are sent per page load — protects the free tier from a loop. */
+const MAX_SAME_FAILURE_PER_PAGE = 3;
+const sentCounts = new Map<string, number>();
+
+function sentryEnabled(): boolean {
+  // Prerender (scripts/seo/prerender.ts) and tests import this module under
+  // Node: never initialise a browser SDK there.
+  return typeof window !== 'undefined' && import.meta.env?.PROD === true && !!import.meta.env?.VITE_SENTRY_DSN;
+}
+
+/** The browser SDK options, exported so a test can run them against a recording transport. */
+export function sentryBrowserOptions(dsn: string, release: string | undefined, environment: string): Sentry.BrowserOptions {
+  return {
     dsn,
-    enabled: import.meta.env.PROD && !!dsn,
-    environment: import.meta.env.MODE,
-    tracesSampleRate: import.meta.env.PROD ? 0.1 : 1.0,
-  });
+    release: release || undefined,
+    environment,
+    // Free tier: every error, 10% of page-load/navigation traces, no replay, no profiling.
+    sampleRate: 1.0,
+    tracesSampleRate: 0.1,
+    // Traces only for our own same-origin API calls — keeps the sentry-trace
+    // header off third-party requests (Supabase, the scoring host, etc.).
+    tracePropagationTargets: [/^\/api\//, /^\/health/],
+    integrations: [Sentry.browserTracingIntegration()],
+    ignoreErrors: IGNORE_ERRORS,
+    denyUrls: DENY_URLS,
+    beforeSend: (event) => stripEventSecrets(event),
+    beforeBreadcrumb: (crumb) => stripBreadcrumbSecrets(crumb),
+  };
+}
+
+export function initTelemetry(): void {
+  if (sentryEnabled()) {
+    const env = import.meta.env;
+    Sentry.init(
+      sentryBrowserOptions(
+        env.VITE_SENTRY_DSN as string,
+        typeof __SENTRY_RELEASE__ === 'string' ? __SENTRY_RELEASE__ : undefined,
+        resolveSentryEnvironment(typeof __SENTRY_ENVIRONMENT__ === 'string' ? __SENTRY_ENVIRONMENT__ : undefined, env.MODE),
+      ),
+    );
+  }
 
   // Make silent localStorage-write failures (quota exceeded, storage
   // unavailable) visible — otherwise a full analytics blob just stops
   // persisting sessions/streak/XP with no signal (Phase 1.5).
   setStorageErrorReporter((err, context) => {
-    captureError(err, { store: context.key, op: context.op });
+    captureError(err, { area: 'storage', stage: context.op, store: context.key });
   });
 }
 
@@ -170,6 +243,39 @@ export function track(event: TelemetryEvent): void {
   Sentry.addBreadcrumb({ category: 'product', message: event.name, data: event.props });
 }
 
-export function captureError(err: unknown, context?: Record<string, unknown>): void {
-  Sentry.captureException(err, context ? { extra: context } : undefined);
+/**
+ * Reports a real failure to Sentry, tagged with its `area`/`stage`/`status`.
+ * Expected states (guest limit, sign-in needed, consent pending, quota 429,
+ * already_generated 409, 422, user cancelled, mic denied — see
+ * sentryFilters.ts) are left as a breadcrumb instead, as are network errors
+ * while the device is offline.
+ */
+export function captureError(err: unknown, context: ErrorContext = {}): void {
+  const { area, stage, status: explicitStatus, ...extra } = context;
+  const status = explicitStatus ?? errorStatus(err);
+  const offline = typeof navigator !== 'undefined' && navigator.onLine === false;
+  if (isExpectedFailure(err) || (offline && isNetworkError(err))) {
+    Sentry.addBreadcrumb({
+      category: 'expected-failure',
+      level: 'info',
+      message: `${area ?? 'unknown'}${stage ? `/${stage}` : ''}: ${err instanceof Error ? err.name : typeof err}`,
+      data: status !== undefined ? { status } : undefined,
+    });
+    return;
+  }
+
+  const error = toReportableError(err);
+  const fingerprintKey = `${area}|${stage}|${error.name}|${error.message}`;
+  const sent = sentCounts.get(fingerprintKey) ?? 0;
+  if (sent >= MAX_SAME_FAILURE_PER_PAGE) return;
+  sentCounts.set(fingerprintKey, sent + 1);
+
+  const tags: Record<string, string> = {};
+  if (area) tags.area = area;
+  if (stage) tags.stage = stage;
+  if (status !== undefined) tags.status = String(status);
+  Sentry.captureException(error, {
+    tags,
+    ...(Object.keys(extra).length > 0 ? { extra } : {}),
+  });
 }

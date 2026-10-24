@@ -373,7 +373,7 @@ export function ExamMode() {
         setAction(snapshot.session.currentAction);
         setExamState('running');
       } catch (err) {
-        captureError(err, { stage: 'resumeRunningSession', sessionId: snapshot.sessionId });
+        captureError(err, { area: 'exam_session', stage: 'resumeRunningSession', sessionId: snapshot.sessionId });
         clearRunningSession();
       }
     })();
@@ -624,8 +624,8 @@ export function ExamMode() {
             return;
           }
           transcriptText = transcribed.text;
-        } catch (err) {
-          captureError(err, { stage: 'transcribeAudio', sessionId: transcript?.sessionId });
+        } catch {
+          // transcribeAudio already reported a real failure to Sentry.
           setPendingTranscriptionFailure(true);
           return;
         }
@@ -842,7 +842,7 @@ export function ExamMode() {
             result = await submitForScoring(transcript);
           } catch (err) {
             if (cancelled) return;
-            captureError(err, { stage: 'submitForScoring', sessionId: transcript.sessionId });
+            captureError(err, { area: 'exam_scoring', stage: 'submitForScoring', sessionId: transcript.sessionId });
             if (err instanceof ScoringApiError && isTerminalScoringStatus(err.status)) {
               setScoringMachine((s) => transitionScoringMachine(s, { type: 'SUBMIT_TERMINAL_ERROR', reason: terminalScoringMessage(err) }));
             } else if (isDefinitiveServerFailure(err)) {
@@ -890,7 +890,7 @@ export function ExamMode() {
             result = await pollScoreStatus(transcript.sessionId);
           } catch (err) {
             if (cancelled) return;
-            captureError(err, { stage: 'pollScoreStatus', sessionId: transcript.sessionId });
+            captureError(err, { area: 'exam_scoring', stage: 'pollScoreStatus', sessionId: transcript.sessionId });
             const reason = err instanceof ScoringApiError ? terminalScoringMessage(err) : 'Scoring failed unexpectedly.';
             if (err instanceof ScoringApiError && isTerminalScoringStatus(err.status)) {
               setScoringMachine((s) => transitionScoringMachine(s, { type: 'POLL_TERMINAL_ERROR', reason }));
@@ -928,7 +928,7 @@ export function ExamMode() {
           .then((result) => {
             if (result.ok) clearPendingClaim();
           })
-          .catch((err) => captureError(err, { stage: 'submitDailyChallengeAttempt.inline', sessionId: transcript.sessionId }));
+          .catch((err) => captureError(err, { area: 'exam_session', stage: 'submitDailyChallengeAttempt.inline', sessionId: transcript.sessionId }));
       }
       // Friend Duels Phase 2: sibling of the Daily Challenge block above —
       // same durable-checkpoint-then-inline-attempt pattern. DuelDetail.tsx's
@@ -940,13 +940,13 @@ export function ExamMode() {
           .then((result) => {
             if (result.ok) clearPendingDuelClaim(duelId);
           })
-          .catch((err) => captureError(err, { stage: 'submitDuelAttempt.inline', sessionId: transcript.sessionId }));
+          .catch((err) => captureError(err, { area: 'exam_session', stage: 'submitDuelAttempt.inline', sessionId: transcript.sessionId }));
       }
       finishWithScore(transcript, envelopeView);
     }
 
     if (scoringMachine.phase === 'FailedTerminal') {
-      captureError(new Error(scoringMachine.reason), { stage: 'scoringFailedTerminal', sessionId: transcript.sessionId });
+      captureError(new Error(scoringMachine.reason), { area: 'exam_scoring', stage: 'scoringFailedTerminal', sessionId: transcript.sessionId });
       setEnvelopeView(null);
       setExamState('results');
     }
@@ -1023,7 +1023,7 @@ export function ExamMode() {
         confetti({ particleCount: 60, spread: 70, origin: { y: 0.5 } }); // lighter — completion only, no score claim
       }
     } catch (err) {
-      captureError(err, { stage: 'finishWithScore.sideEffects', sessionId: finalTranscript.sessionId });
+      captureError(err, { area: 'exam_session', stage: 'finishWithScore.sideEffects', sessionId: finalTranscript.sessionId });
     }
   };
 

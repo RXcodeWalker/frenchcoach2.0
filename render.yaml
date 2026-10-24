@@ -23,3 +23,6 @@ services:
         sync: false
       - key: SCORING_DEBUG
         value: '1'
+      # Sentry (Node project DSN); unset = error tracking off. server/sentry.ts
+      - key: SENTRY_DSN
+        sync: false

@@ -32,6 +32,10 @@
  * work; that is what makes A9's retry-is-idempotent story hold.
  */
 
+// Must stay the first import: Sentry has to be listening before anything else runs.
+import './instrument';
+import { Sentry, captureServerError } from './sentry';
+
 import cors from 'cors';
 import express from 'express';
 import type { Request, Response } from 'express';
@@ -199,6 +203,7 @@ app.post('/score', async (req: Request, res: Response) => {
     // unhandled (root cause #1 above: an Express 4 async handler whose
     // promise rejects here never sends a response at all).
     console.error(`[POST /score] quota check failed for session "${transcript.sessionId}":`, err);
+    captureServerError(err, { route: 'POST /score', stage: 'quota', status: 503, sessionId: transcript.sessionId, userId });
     res.status(503).json({ error: 'quota_service_unavailable' });
     return;
   }
@@ -239,7 +244,9 @@ app.post('/score', async (req: Request, res: Response) => {
     await markAttemptFailed(transcriptStoreOptions, transcript.sessionId);
     // `code` marks this 500 as a definitive failure the client may retry
     // with a fresh POST (see scoringFailure.ts).
-    res.status(500).json({ error: 'scoring failed', code: classifyScoringFailure(err) });
+    const code = classifyScoringFailure(err);
+    captureServerError(err, { route: 'POST /score', stage: 'scoring', status: 500, code, sessionId: transcript.sessionId, userId });
+    res.status(500).json({ error: 'scoring failed', code });
   }
 });
 
@@ -307,6 +314,11 @@ const feedbackHandlers = createFeedbackHandlers({
 });
 app.post('/feedback', feedbackHandlers.post);
 app.get('/feedback', feedbackHandlers.get);
+
+// Anything a handler throws without answering (Express 5 forwards async
+// rejections here) reaches Sentry, then Express's default 500. A no-op
+// without SENTRY_DSN. Registered after every route, as Express requires.
+Sentry.setupExpressErrorHandler(app);
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Scoring service listening on 0.0.0.0:${PORT}`);

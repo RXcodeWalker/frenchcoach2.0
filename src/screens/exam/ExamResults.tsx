@@ -8,6 +8,7 @@ import { ExaminerFeedbackCard } from '../../features/feedback/components/Examine
 import type { RailEntry } from '../../services/exam/turnFeedback';
 import { countsTowardProgress } from '../../services/exam/attemptStatus';
 import { requestExamFeedback, ScoringApiError } from '../../services/exam/scoringApiClient';
+import { captureError } from '../../services/telemetry/telemetryService';
 import type { ExamFeedbackReport } from '../../domain/examFeedback/types';
 import { displayRespell } from '../../domain/examFeedback/shared/displayRespell';
 import { summariseRecognition } from '../../domain/igcse/stt/quality/summariseRecognition';
@@ -153,6 +154,7 @@ export function ExamResults({
           if (isCurrent()) setFeedback({ status: 'ready', report });
         },
         (err: unknown) => {
+          captureError(err, { area: 'exam_report', stage: 'requestExamFeedback', sessionId });
           if (isCurrent()) {
             setFeedback({ status: 'failed', limitReached: err instanceof ScoringApiError && err.status === 429 });
           }

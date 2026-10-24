@@ -12,7 +12,7 @@ vi.mock('../../../lib/supabase', () => ({
   supabase: { auth: { getSession: () => Promise.resolve({ data: { session: null } }) } },
 }));
 
-vi.mock('../../telemetry/telemetryService', () => ({ track: () => {} }));
+vi.mock('../../telemetry/telemetryService', () => ({ track: () => {}, captureError: () => {} }));
 
 import { assessPronunciation, usageSourceFor } from '../pronunciationClient';
 import { PronunciationAssessmentSchema } from '../pronunciationSchema';

@@ -1,5 +1,6 @@
 import { supabase, supabaseConfigured } from '../../lib/supabase';
 import type { ProgressionData } from '../progression/progressionService';
+import { captureError } from '../telemetry/telemetryService';
 import { getProgressionState, clearNeedsSync, markNeedsSync, levelFor } from '../progression/progressionService';
 
 export type CloudProgressionRow = {
@@ -52,6 +53,7 @@ export async function pushProgressionToCloud(
 
     if (error) {
       console.warn('[progressionSync] push failed:', error.message);
+      captureError(error, { area: 'sync', stage: 'progressionSync.push' });
       return false;
     }
 
@@ -59,6 +61,7 @@ export async function pushProgressionToCloud(
     return true;
   } catch (err) {
     console.warn('[progressionSync] push error:', err);
+    captureError(err, { area: 'sync', stage: 'progressionSync.push' });
     return false;
   }
 }

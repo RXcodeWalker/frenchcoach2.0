@@ -14,7 +14,7 @@ vi.mock('../../../recording/useRecording', () => ({ useRecording: () => recorder
 const auth = { consentStatus: 'unknown' as 'unknown' | 'pending' };
 vi.mock('../../../../context/AuthContext', () => ({ useAuth: () => auth }));
 const track = vi.fn();
-vi.mock('../../../../services/telemetry/telemetryService', () => ({ track: (...a: unknown[]) => track(...a) }));
+vi.mock('../../../../services/telemetry/telemetryService', () => ({ track: (...a: unknown[]) => track(...a), captureError: () => {} }));
 
 import { SecondTake } from '../SecondTake';
 import type { FeedbackPointGroup } from '../../components/FeedbackPointList';

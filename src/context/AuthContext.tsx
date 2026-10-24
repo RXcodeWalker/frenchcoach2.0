@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase, supabaseConfigured } from '../lib/supabase';
+import { captureError } from '../services/telemetry/telemetryService';
 import { clearAllExamAudio } from '../services/exam/pronunciation/examAudioStore';
 
 // Phase 1.6 Part C. 'unknown' means "not fetched yet" (or offline/guest) —
@@ -56,6 +57,7 @@ function translateError(err: unknown): string {
     return 'Connection failed. Check your internet and try again.';
   }
   console.error('[AuthContext] Unexpected error:', err);
+  captureError(err, { area: 'auth', stage: 'sign_in_unexpected' });
   return 'Something went wrong. Please try again.';
 }
 
@@ -107,6 +109,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // A rejected getSession() must not leave loading stuck true forever
       // (reliability plan §2.5) — treat it as "no session" rather than hang.
       console.error(err);
+      captureError(err, { area: 'auth', stage: 'getSession' });
       setLoading(false);
     });
 

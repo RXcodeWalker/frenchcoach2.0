@@ -46,7 +46,7 @@ import { computeSessionTarget, type Aim } from '../domain/learn/selection/sessio
 import { summarisePreview, type SessionPreview } from '../features/learn/sessionSetup';
 import { getReviewItemFirstRecordedScore } from '../services/coach/reviewPool';
 import { useExtraTurnBudget } from './learn/useExtraTurnBudget';
-import { track } from '../services/telemetry/telemetryService';
+import { captureError, track } from '../services/telemetry/telemetryService';
 import { IGCSE_EXPECTATIONS } from '../utils/difficultyConfig';
 import type { AbilityResult } from '../domain/learn/ability/deriveAbility';
 import { updateTopicMastery } from '../services/analytics/analyticsService';
@@ -713,6 +713,11 @@ export function Learn() {
         console.log('[Stream] no session — using offline evaluation');
       } else {
         console.warn('[Stream] falling back to getAIFeedback:', reason);
+        // The server's `error` event arrives as a string; give Sentry a real Error.
+        captureError(reason instanceof Error ? reason : new Error(`Feedback stream error: ${String(reason)}`), {
+          area: 'learn_stream',
+          stage: 'fallback_to_non_streaming',
+        });
       }
       if (myAttemptId !== attemptIdRef.current) return;
       setIsLoadingFeedback(true);
@@ -725,6 +730,7 @@ export function Learn() {
         // candidate retry, rather than inventing a score that flows into XP/achievements/
         // the coach loop as if it were a real assessment.
         console.warn('[Learn] feedback unavailable:', fallbackErr);
+        captureError(fallbackErr, { area: 'learn_feedback', stage: 'total_failure' });
         if (myAttemptId !== attemptIdRef.current) return;
         setIsLoadingFeedback(false);
         setFeedbackErrorMessage('Could not get feedback for that answer. Check your connection and try again.');
