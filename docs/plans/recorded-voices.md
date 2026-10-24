@@ -19,6 +19,10 @@ and played from there. Azure is **never** called at play time.
 | Flashcards **only if** their text comes from a static source (check `FlashcardDeck.tsx`; skip if dynamic) | The 4 screens that bypass the voice service (Stage 6, optional) |
 
 Owner decisions:
+- **Update 2026-10-24 (supersedes the voice bullets below):** Henri only, no Denise and no voice
+  picker for now. Normal speaking rate (no `-5%`), with a 250 ms pause at sentence ends instead of
+  Azure's long default. `VOICE_KEY_VERSION` is `v2`; the `v1/` test files in the bucket are unused
+  and can be deleted. Stage 4 shrinks to the docs (nothing to pick with one voice).
 - Voices: **Denise** (`fr-FR-DeniseNeural`, default) and **Henri** (`fr-FR-HenriNeural`).
   The user picks in Profile → Settings, with a quick toggle on the exam start screen.
 - **Guests hear recordings too.** A play costs no Azure money, only Supabase egress.

@@ -6,7 +6,7 @@
  *
  *   npm run voices:record -- --dry-run
  *   AZURE_SPEECH_KEY=... AZURE_SPEECH_REGION=... SUPABASE_URL=... SUPABASE_SERVICE_KEY=... \
- *     npm run voices:record -- [--limit N] [--voices denise,henri] [--allow-over]
+ *     npm run voices:record -- [--limit N] [--voices henri] [--allow-over]
  *
  * - Paths come from `src/services/tts/voiceKey.ts`, the same module the app
  *   uses, so a recording is found by exactly the text that is spoken.
@@ -39,8 +39,12 @@ export const MIN_AUDIO_BYTES = 1024;
 const LIST_PAGE_SIZE = 1000;
 const PROGRESS_EVERY = 25;
 const REQUEST_TIMEOUT_MS = 30_000;
-/** Pacing choice, UNVALIDATED: a touch slower than Azure's default for learners. */
-const PROSODY_RATE = '-5%';
+/**
+ * Pause at each sentence end (Azure's default is long, so a line like the
+ * greeting, four short sentences, dragged). Owner choice after listening,
+ * 2026-10-24; speech itself is at Azure's normal rate.
+ */
+const SENTENCE_PAUSE = '250ms';
 
 export interface RecordOptions {
   dryRun: boolean;
@@ -85,7 +89,7 @@ class AbortRun extends Error {}
 // ── Arguments and environment ─────────────────────────────────────────────────
 
 export function parseArgs(argv: readonly string[]): RecordOptions {
-  const options: RecordOptions = { dryRun: false, limit: null, voices: ['denise', 'henri'], allowOver: false };
+  const options: RecordOptions = { dryRun: false, limit: null, voices: Object.keys(RECORDED_VOICES) as RecordedVoiceId[], allowOver: false };
   for (let i = 0; i < argv.length; i++) {
     const [flag, inline] = argv[i].split('=', 2) as [string, string | undefined];
     const value = () => {
@@ -159,8 +163,9 @@ export function xmlEscape(text: string): string {
 /** The original text goes to Azure, not the normalised key text. */
 export function buildSsml(text: string, voice: RecordedVoiceId): string {
   return (
-    '<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="fr-FR">' +
-    `<voice name="${RECORDED_VOICES[voice]}"><prosody rate="${PROSODY_RATE}">${xmlEscape(text)}</prosody></voice></speak>`
+    '<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="http://www.w3.org/2001/mstts" xml:lang="fr-FR">' +
+    `<voice name="${RECORDED_VOICES[voice]}"><mstts:silence type="Sentenceboundary" value="${SENTENCE_PAUSE}"/>` +
+    `${xmlEscape(text)}</voice></speak>`
   );
 }
 
@@ -257,7 +262,7 @@ async function ensureBucket(env: RecordEnv, deps: RecordDeps): Promise<void> {
   deps.log(`Created public bucket "${TTS_BUCKET}".`);
 }
 
-/** Every object path already stored under `v1/<voice>/`, paginating the list API. */
+/** Every object path already stored under `<version>/<voice>/`, paginating the list API. */
 async function listExisting(env: RecordEnv, deps: RecordDeps, prefix: string): Promise<Set<string>> {
   const existing = new Set<string>();
   for (let offset = 0; ; offset += LIST_PAGE_SIZE) {

@@ -22,7 +22,7 @@ const ENV: RecordEnv = {
   serviceKey: 'service-secret',
 };
 
-const OPTIONS: RecordOptions = { dryRun: false, limit: null, voices: ['denise'], allowOver: false };
+const OPTIONS: RecordOptions = { dryRun: false, limit: null, voices: ['henri'], allowOver: false };
 
 const MP3 = new Uint8Array(2048).fill(1);
 
@@ -97,7 +97,7 @@ const line = (text: string, source: CatalogueLine['source'] = 'exam'): Catalogue
 
 describe('recordVoices', () => {
   it('skips a line already in the bucket and records only the missing one', async () => {
-    const stored = await voiceObjectPath('Bonjour !', 'denise');
+    const stored = await voiceObjectPath('Bonjour !', 'henri');
     const { calls, fetchFn } = fakeNetwork({ existing: [stored] });
     const { d } = deps(fetchFn);
     const summary = await recordVoices([line('Bonjour !'), line('Au revoir.')], OPTIONS, ENV, d);
@@ -105,7 +105,7 @@ describe('recordVoices', () => {
     expect(summary).toMatchObject({ recorded: 1, skipped: 1, failed: [], aborted: null });
     expect(azureCalls(calls)).toHaveLength(1);
     expect(String(azureCalls(calls)[0].body)).toContain('Au revoir.');
-    const path = await voiceObjectPath('Au revoir.', 'denise');
+    const path = await voiceObjectPath('Au revoir.', 'henri');
     expect(uploads(calls).map((c) => c.url)).toEqual([`https://proj.supabase.co/storage/v1/object/tts-audio/${path}`]);
     expect(uploads(calls)[0].headers).toMatchObject({ 'Content-Type': 'audio/mpeg', 'x-upsert': 'false' });
   });
@@ -124,13 +124,16 @@ describe('recordVoices', () => {
       'User-Agent': 'french-coach-voices',
     });
     const body = String(azure.body);
-    expect(body).toContain('<voice name="fr-FR-DeniseNeural">');
+    expect(body).toContain('<voice name="fr-FR-HenriNeural">');
     expect(body).toContain('Dis &lt;voice&gt; &amp; &quot;l&apos;ami&quot;');
     expect(body).not.toContain('<voice> &');
   });
 
   it('sends Azure the original text, not the normalised key text', () => {
-    expect(buildSsml('Bonjour\u00A0!', 'henri')).toContain('<voice name="fr-FR-HenriNeural"><prosody rate="-5%">Bonjour\u00A0!</prosody>');
+    const ssml = buildSsml('Bonjour\u00A0!', 'henri');
+    expect(ssml).toContain('xmlns:mstts="http://www.w3.org/2001/mstts"');
+    expect(ssml).toContain('<voice name="fr-FR-HenriNeural"><mstts:silence type="Sentenceboundary" value="250ms"/>Bonjour\u00A0!</voice>');
+    expect(ssml).not.toContain('prosody');
     expect(xmlEscape(`<>&"'`)).toBe('&lt;&gt;&amp;&quot;&apos;');
   });
 
@@ -188,11 +191,11 @@ describe('recordVoices', () => {
   it('makes no network call on --dry-run and needs no env', async () => {
     const { fetchFn } = fakeNetwork();
     const { d, logs } = deps(fetchFn);
-    const summary = await recordVoices([line('Un.', 'learn'), line('Deux.', 'exam')], { ...OPTIONS, dryRun: true, voices: ['denise', 'henri'] }, null, d);
+    const summary = await recordVoices([line('Un.', 'learn'), line('Deux.', 'exam')], { ...OPTIONS, dryRun: true, voices: ['henri'] }, null, d);
 
     expect(fetchFn).not.toHaveBeenCalled();
     expect(summary).toMatchObject({ recorded: 0, skipped: 0, failed: [] });
-    expect(logs.join('\n')).toMatch(/total\s+4 items\s+16 chars/);
+    expect(logs.join('\n')).toMatch(/total\s+2 items\s+8 chars/);
   });
 
   it('spaces Azure requests at least 3.4 s apart', async () => {
@@ -216,7 +219,7 @@ describe('recordVoices', () => {
       expect.stringMatching(/not audio\/mpeg/),
     ]);
     expect(uploads(calls)).toHaveLength(0);
-    expect(formatSummary(summary)[1]).toContain('FAILED [exam, denise] "Un."');
+    expect(formatSummary(summary)[1]).toContain('FAILED [exam, henri] "Un."');
   });
 
   it('creates a missing bucket as public, MP3-only, ≤ 1 MB', async () => {
@@ -236,12 +239,12 @@ describe('recordVoices', () => {
     const { calls, fetchFn } = fakeNetwork();
     const summary = await recordVoices(
       [line('Un.'), line('Deux.'), line('Trois.')],
-      { ...OPTIONS, limit: 2, voices: ['denise', 'henri'] },
+      { ...OPTIONS, limit: 2, voices: ['henri'] },
       ENV,
       deps(fetchFn).d,
     );
-    expect(summary.recorded).toBe(4);
-    expect(uploads(calls).filter((c) => c.url.includes('/v1/henri/'))).toHaveLength(2);
+    expect(summary.recorded).toBe(2);
+    expect(uploads(calls).filter((c) => c.url.includes('/v2/henri/'))).toHaveLength(2);
   });
 });
 
@@ -253,9 +256,10 @@ describe('parseArgs / readEnv', () => {
       voices: ['henri'],
       allowOver: false,
     });
-    expect(parseArgs(['--limit=', '--allow-over'])).toMatchObject({ limit: null, allowOver: true, voices: ['denise', 'henri'] });
+    expect(parseArgs(['--limit=', '--allow-over'])).toMatchObject({ limit: null, allowOver: true, voices: ['henri'] });
     expect(() => parseArgs(['--limit', '0'])).toThrow(/positive integer/);
     expect(() => parseArgs(['--voices', 'bob'])).toThrow(/--voices/);
+    expect(() => parseArgs(['--voices', 'denise'])).toThrow(/--voices/);
     expect(() => parseArgs(['--nope'])).toThrow(/Unknown argument/);
   });
 

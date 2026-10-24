@@ -13,13 +13,17 @@
  */
 
 /** Part of every path and of the hashed input. Bump it ⇒ every line is re-recorded. */
-export const VOICE_KEY_VERSION = 'v1';
+export const VOICE_KEY_VERSION = 'v2';
 
-/** The two Azure Neural voices the owner chose; `denise` is the default. */
-export const RECORDED_VOICES = { denise: 'fr-FR-DeniseNeural', henri: 'fr-FR-HenriNeural' } as const;
+/**
+ * The Azure Neural voices that are recorded. Henri only, by owner decision
+ * (2026-10-24: Denise sounded slow and rough). Adding a voice here means a
+ * "Record voices" run before the app can play it.
+ */
+export const RECORDED_VOICES = { henri: 'fr-FR-HenriNeural' } as const;
 export type RecordedVoiceId = keyof typeof RECORDED_VOICES;
 
-/** Public Supabase Storage bucket holding `v1/<voice>/<hash>.mp3`. */
+/** Public Supabase Storage bucket holding `<VOICE_KEY_VERSION>/<voice>/<hash>.mp3`. */
 export const TTS_BUCKET = 'tts-audio';
 
 /**

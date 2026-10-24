@@ -35,33 +35,31 @@ describe('voiceObjectPath', () => {
     // PINNED. The recording script and the app must compute the same path from
     // the same text; changing this vector means every stored MP3 is unused.
     // Only change it together with a VOICE_KEY_VERSION bump (which re-records everything).
-    expect(VOICE_KEY_VERSION).toBe('v1');
-    expect(await voiceObjectPath('Bonjour ! Comment ça va ? Es-tu prêt ? On va commencer.', 'denise')).toBe(
-      'v1/denise/14a452e04f324b324ae489ea08ea04bd.mp3',
+    expect(VOICE_KEY_VERSION).toBe('v2');
+    expect(await voiceObjectPath('Bonjour ! Comment ça va ? Es-tu prêt ? On va commencer.', 'henri')).toBe(
+      'v2/henri/2363d401f53d9816d3b069c74953fd5a.mp3',
     );
   });
 
   it('keys the exam greeting with the pinned vector (its text has not drifted)', async () => {
-    expect(await voiceObjectPath(GREETING_TEXT, 'denise')).toBe('v1/denise/14a452e04f324b324ae489ea08ea04bd.mp3');
+    expect(await voiceObjectPath(GREETING_TEXT, 'henri')).toBe('v2/henri/2363d401f53d9816d3b069c74953fd5a.mp3');
   });
 
-  it('keys by normalised text, and separately per voice', async () => {
-    const a = await voiceObjectPath('Bonjour\u00A0!  ', 'denise');
-    expect(await voiceObjectPath('Bonjour !', 'denise')).toBe(a);
-    const henri = await voiceObjectPath('Bonjour !', 'henri');
-    expect(henri).not.toBe(a.replace('/denise/', '/henri/'));
-    expect(henri).toMatch(/^v1\/henri\/[0-9a-f]{32}\.mp3$/);
+  it('keys by normalised text', async () => {
+    const a = await voiceObjectPath('Bonjour\u00A0!  ', 'henri');
+    expect(await voiceObjectPath('Bonjour !', 'henri')).toBe(a);
+    expect(a).toMatch(/^v2\/henri\/[0-9a-f]{32}\.mp3$/);
   });
 
-  it('has one id per Azure voice', () => {
-    expect(RECORDED_VOICES).toEqual({ denise: 'fr-FR-DeniseNeural', henri: 'fr-FR-HenriNeural' });
+  it('records Henri only (owner decision)', () => {
+    expect(RECORDED_VOICES).toEqual({ henri: 'fr-FR-HenriNeural' });
   });
 });
 
 describe('recordedVoiceUrl', () => {
   it('builds the public object URL', () => {
-    expect(recordedVoiceUrl('https://abc.supabase.co', 'v1/denise/x.mp3')).toBe(
-      `https://abc.supabase.co/storage/v1/object/public/${TTS_BUCKET}/v1/denise/x.mp3`,
+    expect(recordedVoiceUrl('https://abc.supabase.co', 'v2/henri/x.mp3')).toBe(
+      `https://abc.supabase.co/storage/v1/object/public/${TTS_BUCKET}/v2/henri/x.mp3`,
     );
     expect(recordedVoiceUrl('https://abc.supabase.co/', 'p.mp3')).toBe(
       'https://abc.supabase.co/storage/v1/object/public/tts-audio/p.mp3',
