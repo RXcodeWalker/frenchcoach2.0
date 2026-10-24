@@ -51,10 +51,10 @@ export function ExamIntro({ coached, onStart, onBack }: Props) {
           </button>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-pill bg-action text-action-ink flex items-center justify-center exam-serif text-body-l">
-              C
+              H
             </div>
             <div>
-              <div className="exam-serif text-subtitle text-ink leading-tight">Claire</div>
+              <div className="exam-serif text-subtitle text-ink leading-tight">Henri</div>
               <div className="text-body-s text-ink-subtle">your examiner tonight</div>
             </div>
           </div>
@@ -90,7 +90,7 @@ export function ExamIntro({ coached, onStart, onBack }: Props) {
           <div className="rounded-card surface-recessed border border-amber-500/20 p-4 flex items-start gap-3">
             <VolumeX size={16} className="text-amber-400 flex-shrink-0 mt-0.5" />
             <p className="text-body-s text-ink-muted leading-relaxed">
-              No French voice was found on this device, so Claire&rsquo;s questions will be shown as text only,
+              No French voice was found on this device, so Henri&rsquo;s questions will be shown as text only,
               not spoken aloud. Everything else works the same.
             </p>
           </div>

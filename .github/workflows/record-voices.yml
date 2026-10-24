@@ -1,10 +1,11 @@
 name: Record voices
 
-# Records every catalogued French line in the Denise and Henri Azure Neural
-# voices and uploads the MP3s to the public Supabase bucket `tts-audio`
-# (docs/plans/recorded-voices.md §4.5–§4.6). Manual only. Re-running is safe:
-# lines already stored are skipped, so a stopped run resumes where it stopped.
-# A dry run prints the totals and needs no secrets.
+# Records every catalogued French line in the Henri Azure Neural voice (the
+# only recorded voice, src/services/tts/voiceKey.ts) and uploads the MP3s to
+# the public Supabase bucket `tts-audio` (docs/plans/recorded-voices.md
+# §4.5–§4.6). Manual only. Re-running is safe: lines already stored are
+# skipped, so a stopped run resumes where it stopped. A dry run prints the
+# totals and needs no secrets.
 
 on:
   workflow_dispatch:
