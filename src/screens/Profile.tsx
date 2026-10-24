@@ -30,6 +30,7 @@ import {
 import { requestAndSubscribe, unsubscribe, isPushSupported } from '../services/notifications/pushService';
 import { pushProfileSettingsToCloud } from '../services/sync/profileSettingsSync';
 import { TrackSwitch } from '../features/junior/TrackSwitch';
+import { CORE_ONLY, JUNIOR_TRACK_SELECTABLE } from '../config/launchScope';
 
 const RENAME_REASON_COPY: Record<string, string> = {
   invalid_format: 'Start with a letter, 3–20 characters, letters/numbers/underscore only.',
@@ -360,15 +361,15 @@ export function Profile() {
             <AtSign size={14} className="text-violet-400" />
             <div className="flex-1">
               <p className="text-[10px] font-semibold text-white">{profile.username ?? 'Claim a username'}</p>
-              <p className="text-[9px] text-ink-subtle">{profile.username ? 'Change your username' : 'Pick a name others will see on the leaderboard'}</p>
+              <p className="text-[9px] text-ink-subtle">{profile.username ? 'Change your username' : 'Pick your display name'}</p>
             </div>
             <ChevronRight size={12} className="text-ink-subtle" />
           </button>
         )}
       </motion.div>
 
-      {/* Social Privacy */}
-      {privacy && (
+      {/* Social Privacy — hidden with the social features (launch scope) */}
+      {privacy && !CORE_ONLY && (
         <motion.div variants={fadeUp} className="rounded-xl surface p-4">
           <h3 className="font-bold text-ink-subtle text-[10px] uppercase tracking-wider mb-2.5">Social Privacy</h3>
           <div className="space-y-0.5">
@@ -419,11 +420,13 @@ export function Profile() {
         </motion.div>
       )}
 
-      {/* Learner track */}
-      <motion.div variants={fadeUp} className="rounded-xl surface p-4">
-        <h3 className="font-bold text-ink-subtle text-[10px] uppercase tracking-wider mb-2.5">Learner Track</h3>
-        <TrackSwitch />
-      </motion.div>
+      {/* Learner track — shown only while Junior is selectable, or so a learner already on it can switch back */}
+      {(JUNIOR_TRACK_SELECTABLE || state.learnerTrack === 'junior') && (
+        <motion.div variants={fadeUp} className="rounded-xl surface p-4">
+          <h3 className="font-bold text-ink-subtle text-[10px] uppercase tracking-wider mb-2.5">Learner Track</h3>
+          <TrackSwitch />
+        </motion.div>
+      )}
 
       {/* Learning Goals */}
       <motion.div variants={fadeUp} className="rounded-xl surface p-4">

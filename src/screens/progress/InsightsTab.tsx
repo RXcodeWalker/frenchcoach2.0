@@ -74,7 +74,7 @@ export function InsightsTab() {
                         <motion.button
                           onClick={() => {
                             dispatch({ type: 'SET_FOCUSED_SKILL', skillId: w.id });
-                            navigate('/rapid-fire');
+                            navigate('/learn');
                           }}
                           className="flex items-center gap-2 px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg text-[10px] font-black transition-all border border-red-500/20"
                           whileHover={{ scale: 1.05 }}

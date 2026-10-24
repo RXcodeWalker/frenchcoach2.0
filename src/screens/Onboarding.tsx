@@ -11,6 +11,7 @@ import {
 import { invalidateDailyPlan } from '../services/coach/decisionEngine';
 import { isSafeReturnTo } from '../utils/routeSafety';
 import { useApp } from '../context/AppContext';
+import { JUNIOR_TRACK_SELECTABLE } from '../config/launchScope';
 import type { CoachGoalType } from '../types/coach';
 
 type WizardStep = 1 | 2 | 3;
@@ -237,7 +238,7 @@ export function Onboarding() {
                   Skip for now
                 </button>
               )}
-              {!isEditMode && (
+              {!isEditMode && JUNIOR_TRACK_SELECTABLE && (
                 <button
                   onClick={chooseJunior}
                   data-testid="onboarding-junior"

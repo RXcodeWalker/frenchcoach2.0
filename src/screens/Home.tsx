@@ -13,7 +13,6 @@ import { fadeUp } from '../components/motion/variants';
 import { WeeklyChart } from '../components/WeeklyChart';
 import { PageShell } from '../components/layout/PageShell';
 import { HeroMission } from './home/HeroMission';
-import { QuickAccess } from './home/QuickAccess';
 import { RecentActivity } from './home/RecentActivity';
 import { TopContextBar } from '../components/TopContextBar';
 
@@ -169,8 +168,6 @@ export function Home() {
                   </div>
                 ))}
               </motion.div>
-
-              <QuickAccess onNavigate={(screen) => navigate(screen === 'home' ? '/' : `/${screen}`)} />
             </div>
           </div>
         </div>
