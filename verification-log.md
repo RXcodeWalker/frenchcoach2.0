@@ -4641,3 +4641,32 @@ updated. Backend pytest 930 passed.
 Groq's daily limit (196,524 of 200,000 used today). The other two smoke answers, Stage 2 and Stage 3 are not run;
 `python scripts/learn_marking_eval.py --stage smoke` resumes. Whether the raise fixes the fam_01_weak truncation is
 **not yet verified**. Not deployed.
+
+## 2026-10-24 — Learn marking Design D: Stages 1–2 (Groq, `learn-prompt-v6+ladder-check-v2`) — NOT PASSED
+
+Backend `claude/eager-pasteur-i1ht8j` at bf4ad4d; records `runs/designD_run_log.jsonl`, report
+`runs/designD_report_stage2.md`. 195,219 Groq tokens today. Stage 3 not run.
+
+**Smoke (completed today):** stop rules passed; the feedback-budget raise fixed the truncation (fam_01_weak's v6 call
+2,425 of 3,012).
+
+| Gate | Iteration 1 (one call, v9) | Design D | Cause |
+|---|---|---|---|
+| G1 | PASS | PASS | |
+| G2 | PASS | **FAIL** | sch_03_simple_a1 B1 6.9 (T judged B2) |
+| G3 | FAIL | PASS | |
+| G4 | FAIL | **FAIL** | fut_19_typical_a2 unscored (checklist truncated) |
+| G5 | PASS | **FAIL** | typical 4/5 (the same unscored answer) |
+| G6 | PASS | PASS | recall 90% |
+| G7 | PASS | PASS | |
+| G8 | PASS 95% | **FAIL 89%** | deciding 86% (< 90%); T ladder 78% |
+| G10 | PASS | PASS | 97% |
+| G11 | FAIL | **FAIL** | 2 truncations (one checklist at its 1,712 cap; one brief-depth v6 call at 1,912); median 8,056 per answer > 7,500 |
+| G12 | PASS | PASS | |
+| G14 | FAIL | PASS | |
+
+**Main cause.** The checklist said "y" to T-B2 on 10 answers expected "n" and to T-B1 on 5, quoting plain listed
+facts as development — worse than the one-call prompt with the same rung wording (T-B1 4, T-B2 2). Why the separate
+call reads T this way is not established from the raw outputs. Other ladders are close to iteration 1.
+
+**Not verified.** G9 (Stage 3), G13. Nothing deployed; flag stays `coming-soon`.
