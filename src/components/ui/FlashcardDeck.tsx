@@ -30,7 +30,7 @@ export const FlashcardDeck: React.FC<FlashcardDeckProps> = ({ items }) => {
 
   const speak = (e: React.MouseEvent, text: string) => {
     e.stopPropagation();
-    TTS.speak(text);
+    TTS.speak(text, { recorded: true });
   };
 
   if (items.length === 0) return null;

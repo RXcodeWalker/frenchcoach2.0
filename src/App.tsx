@@ -77,6 +77,7 @@ import { LevelUpCelebration, AchievementUnlocked } from './components/Celebratio
 import { MigrationOverlay } from './components/MigrationOverlay';
 import { ComingSoonGate } from './components/ComingSoonGate';
 import { resolveFeatureStatus } from './config/featureFlags';
+import { isHiddenPath } from './config/launchScope';
 import { supabaseConfigured } from './lib/supabase';
 
 const pageVariants: Variants = {
@@ -156,6 +157,8 @@ function MainLayout() {
   const { state } = useApp();
   // The exam side rail (IGCSE tools, rankings, leagues) is not part of the Junior track (junior-track §10).
   const junior = state.learnerTrack === 'junior';
+  // Launch scope: hidden features redirect home instead of rendering.
+  if (isHiddenPath(location.pathname)) return <Navigate to="/" replace />;
   return (
     <div className="min-h-screen dark:bg-navy bg-slate-100 dark:text-white text-slate-900 overflow-hidden">
       {!junior && <SideRail />}

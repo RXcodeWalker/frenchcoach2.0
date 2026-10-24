@@ -75,7 +75,7 @@ import type { AuthoredQuestionSet, RolePlayScenario } from '../data/exam/bank/ty
 import { ExamGreeting } from './exam/ExamGreeting';
 import { ExamSelect } from './exam/ExamSelect';
 import { RolePlayCardPreview } from './exam/RolePlayCardPreview';
-import { ROLE_PLAY_FINISHED_TEXT, topicAnnouncementText } from './exam/examAnnouncements';
+import { GREETING_TEXT, ROLE_PLAY_FINISHED_TEXT, topicAnnouncementText } from './exam/examAnnouncements';
 import { ExitConfirmDialog } from './exam/ExitConfirmDialog';
 import { savePendingClaim, clearPendingClaim, submitDailyChallengeAttempt } from '../services/dailyChallenge/dailyChallengeService';
 import { savePendingDuelClaim, clearPendingDuelClaim, submitDuelAttempt } from '../services/duels/duelsService';
@@ -90,9 +90,6 @@ interface RolePlayMeta {
 
 /** A8: exam duration (10-15 min) only marginally exceeds Render free tier's ~15 min idle window — the keepalive is what guarantees warmth by the time scoring is needed. */
 const KEEPALIVE_INTERVAL_MS = 5 * 60 * 1000;
-
-export const GREETING_TEXT = 'Bonjour ! Comment ça va ? Es-tu prêt ? On va commencer.';
-
 
 /**
  * W5: maps every reachable `examState === 'scoring'` phase to real copy —
@@ -431,10 +428,10 @@ export function ExamMode() {
     // The part that just ended gets its Coached pronunciation card (a no-op in Exam Sim, where the rail shows none).
     pronunciation.markPartEnded(prevPart as SessionPart);
     if (prevPart === 'rolePlay' && action.part === 'topic1') {
-      await speakExaminerText(ROLE_PLAY_FINISHED_TEXT);
-      await speakExaminerText(topicAnnouncementText('topic1', topicTitlesRef.current.topic1));
+      await speakExaminerText(ROLE_PLAY_FINISHED_TEXT, undefined, { recorded: true });
+      await speakExaminerText(topicAnnouncementText('topic1', topicTitlesRef.current.topic1), undefined, { recorded: true });
     } else if (prevPart === 'topic1' && action.part === 'topic2') {
-      await speakExaminerText(topicAnnouncementText('topic2', topicTitlesRef.current.topic2));
+      await speakExaminerText(topicAnnouncementText('topic2', topicTitlesRef.current.topic2), undefined, { recorded: true });
     }
   };
 
@@ -449,7 +446,7 @@ export function ExamMode() {
     const gen = getExaminerVoiceGeneration();
     void (async () => {
       await wait(PRE_SPEECH_LEAD_MS);
-      await speakExaminerText(GREETING_TEXT, gen);
+      await speakExaminerText(GREETING_TEXT, gen, { recorded: true });
     })();
   };
 
@@ -578,7 +575,7 @@ export function ExamMode() {
     // rp1 — UI-spoken, never a conduct-engine action, so it stays outside the
     // ConductLog/hash/judge input (same as the part-boundary announcements).
     setRolePlayScenario(undefined);
-    if (scenario) await speakExaminerText(scenario.setup);
+    if (scenario) await speakExaminerText(scenario.setup, undefined, { recorded: true });
 
     const firstAction = await session.begin();
     setAction(firstAction);

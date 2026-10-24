@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { ChevronLeft, Flame, Zap, Gem, Bell, Menu } from 'lucide-react';
+import { ChevronLeft, Flame, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { CosmeticPreview } from './ui/CosmeticPreview';
@@ -44,9 +44,6 @@ export function TopContextBar({ title, subtitle, showBack, onBack, actions }: Pr
         <div className="flex items-center gap-3">
           {/* Stats — max three outlined pills, colour by role (Component Kit §04) */}
           <div className="hidden md:flex items-center gap-2">
-            <button type="button" onClick={() => navigate('/shop')}>
-              <Stat role="reward" icon={<Gem size={14} />}>{profile.gems.toLocaleString()}</Stat>
-            </button>
             <Stat role="streak" icon={<Flame size={14} />}>{profile.streak_days.toString()}</Stat>
             <Stat role="reward" icon={<Zap size={14} />}>{profile.total_xp.toLocaleString()}</Stat>
           </div>
@@ -55,14 +52,6 @@ export function TopContextBar({ title, subtitle, showBack, onBack, actions }: Pr
 
           {actions || (
             <div className="flex items-center gap-2">
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                className="w-10 h-10 rounded-xl surface border-white/10 flex items-center justify-center text-ink-muted hover:text-white transition-colors relative"
-              >
-                <Bell size={18} />
-                <div className="absolute top-2.5 right-2.5 w-2 h-2 bg-action rounded-full ring-2 ring-[var(--surface)]" />
-              </motion.button>
               <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
@@ -80,22 +69,11 @@ export function TopContextBar({ title, subtitle, showBack, onBack, actions }: Pr
             </div>
           )}
 
-          {/* Mobile Menu Toggle */}
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            className="md:hidden w-10 h-10 rounded-xl surface border-white/10 flex items-center justify-center text-ink-muted hover:text-white transition-colors"
-          >
-            <Menu size={18} />
-          </motion.button>
         </div>
       </div>
 
       {/* Mobile stats bar — just below the top bar */}
       <div className="flex md:hidden items-center justify-center gap-2 mt-2">
-        <button type="button" onClick={() => navigate('/shop')}>
-          <Stat role="reward" icon={<Gem size={12} />}>{profile.gems.toLocaleString()}</Stat>
-        </button>
         <Stat role="streak" icon={<Flame size={12} />}>{profile.streak_days.toString()}</Stat>
         <Stat role="reward" icon={<Zap size={12} />}>{profile.total_xp.toLocaleString()}</Stat>
       </div>

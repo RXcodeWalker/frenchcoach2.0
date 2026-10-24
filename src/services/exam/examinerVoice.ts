@@ -7,7 +7,14 @@
  * (prefer a local fr-FR voice, refresh on `voiceschanged`) and a slower 0.9
  * rate for exam-conduct clarity. UI/voice-quality heuristic only — never
  * logged or scored.
+ *
+ * Recorded voices (plan §6.3): a caller passing `{ recorded: true }` (static
+ * authored lines only) hears the pre-recorded voice when `VITE_RECORDED_VOICES`
+ * is on. Without a recording it falls back to the browser voice only when that
+ * voice is French; the non-recorded path below is unchanged.
  */
+
+import { playRecorded, primeRecordedAudio, recordedVoicesEnabled, stopRecorded } from '../tts/recordedVoice';
 
 const EXAMINER_VOICE_RATE = 0.9;
 
@@ -22,6 +29,14 @@ let primed = false;
  * speaking into whatever screen the candidate has since moved to.
  */
 let generation = 0;
+
+/**
+ * The recorded line playing or queued last. Recorded lines wait their turn,
+ * like `speechSynthesis.speak` queues utterances: a replay tapped mid-line
+ * plays after it instead of cutting it off, so the line's caller (and the
+ * turn-taking behind it) never resumes early.
+ */
+let recordedQueue: Promise<void> = Promise.resolve();
 
 export function isTtsAvailable(): boolean {
   return typeof window !== 'undefined' && 'speechSynthesis' in window;
@@ -123,6 +138,7 @@ export function getExaminerVoiceGeneration(): number {
  * paused by the long-standing Chrome pause bug. Safe to call repeatedly.
  */
 export function primeExaminerVoice(): void {
+  if (recordedVoicesEnabled()) primeRecordedAudio();
   if (!isTtsAvailable() || primed) return;
   primed = true;
   try {
@@ -143,17 +159,43 @@ export function primeExaminerVoice(): void {
  * muted/unavailable). Never rejects. Pass `issuedGeneration` (from
  * `getExaminerVoiceGeneration()`) for speech scheduled behind a delay, so a
  * `stopExaminerVoice()` in the meantime drops it rather than letting it play
- * on the next screen.
+ * on the next screen. `recorded: true` plays the line's recording (see above).
  */
-export async function speakExaminerText(text: string, issuedGeneration?: number): Promise<void> {
-  if (muted || !isTtsAvailable() || text.trim().length === 0) {
-    return Promise.resolve();
-  }
-  if (issuedGeneration !== undefined && issuedGeneration !== generation) {
-    return Promise.resolve();
-  }
+export async function speakExaminerText(
+  text: string,
+  issuedGeneration?: number,
+  opts: { recorded?: boolean } = {},
+): Promise<void> {
+  if (muted || text.trim().length === 0) return;
+  if (issuedGeneration !== undefined && issuedGeneration !== generation) return;
 
   const gen = issuedGeneration ?? generation;
+  if (opts.recorded && recordedVoicesEnabled()) {
+    const turn = recordedQueue.then(() => speakRecorded(text, gen)).catch(() => {});
+    recordedQueue = turn;
+    return turn;
+  }
+  if (!isTtsAvailable()) return;
+  return speakBrowser(text, gen);
+}
+
+async function speakRecorded(text: string, gen: number): Promise<void> {
+  if (gen !== generation || muted) return;
+  let result;
+  try {
+    result = await playRecorded(text);
+  } catch {
+    result = 'missing' as const;
+  }
+  // A stopped or stale line never falls back: only a missing file does, and only to a French voice.
+  if (gen !== generation || muted || result !== 'missing') return;
+  if (!isTtsAvailable()) return;
+  await ensureVoiceReady();
+  if (!hasFrenchVoice()) return;
+  return speakBrowser(text, gen);
+}
+
+async function speakBrowser(text: string, gen: number): Promise<void> {
   await ensureVoiceReady();
   if (gen !== generation || muted) return;
 
@@ -174,5 +216,6 @@ export async function speakExaminerText(text: string, issuedGeneration?: number)
 /** Cancels any in-flight speech and invalidates speech still queued behind a delay. */
 export function stopExaminerVoice(): void {
   generation += 1;
+  stopRecorded();
   if (isTtsAvailable()) window.speechSynthesis.cancel();
 }

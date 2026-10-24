@@ -1,12 +1,20 @@
 /**
  * ttsService.ts — Text-to-Speech wrapper (Web Speech Synthesis API)
+ *
+ * A caller that passes `recorded: true` (only static authored French — never
+ * AI-written text or English) hears the pre-recorded voice instead when
+ * `VITE_RECORDED_VOICES` is on; see `recordedVoice.ts`.
  */
+
+import { playRecorded, primeRecordedAudio, recordedVoicesEnabled, stopRecorded } from './recordedVoice';
 
 export const TTS = (() => {
   let _voice: SpeechSynthesisVoice | null = null;
   let _isSpeaking = false;
   let _onStartCb: (() => void) | null = null;
   let _onEndCb: (() => void) | null = null;
+  /** Bumped by every stop(): a recorded line whose fallback is still waiting knows it was cancelled. */
+  let _stopCount = 0;
 
   const CONFIG = {
     lang: "fr-FR",
@@ -87,7 +95,42 @@ export const TTS = (() => {
     return _voice !== null;
   }
 
-  function speak(text: string, options: { rate?: number; pitch?: number; volume?: number } = {}): Promise<void> {
+  /** True when French can be heard: a French browser voice, or (for a `recorded` caller) the recordings. */
+  function canSpeakFrench(recorded = false): boolean {
+    return hasFrenchVoice() || (recorded && recordedVoicesEnabled());
+  }
+
+  /**
+   * Plays the recording; when there is none, falls back to the browser voice
+   * only if it is French — an English voice never reads French here.
+   */
+  async function speakRecorded(text: string, options: { rate?: number; pitch?: number; volume?: number }): Promise<void> {
+    primeRecordedAudio();
+    stop();
+    const issued = _stopCount;
+    const result = await playRecorded(text, {
+      rate: options.rate,
+      onStart: () => {
+        _isSpeaking = true;
+        _onStartCb?.();
+      },
+      onEnd: () => {
+        _isSpeaking = false;
+        _onEndCb?.();
+      },
+    });
+    if (result !== 'missing') return;
+    await ensureVoiceReady();
+    if (issued !== _stopCount || !hasFrenchVoice()) return;
+    return speakBrowser(text, options);
+  }
+
+  function speak(text: string, options: { rate?: number; pitch?: number; volume?: number; recorded?: boolean } = {}): Promise<void> {
+    if (options.recorded && recordedVoicesEnabled()) return speakRecorded(text, options);
+    return speakBrowser(text, options);
+  }
+
+  function speakBrowser(text: string, options: { rate?: number; pitch?: number; volume?: number }): Promise<void> {
     return new Promise((resolve, reject) => {
       if (!isSupported()) {
         reject(new Error("Speech synthesis not supported"));
@@ -129,6 +172,8 @@ export const TTS = (() => {
   }
 
   function stop() {
+    _stopCount += 1;
+    stopRecorded();
     if (!isSupported()) return;
     if (speechSynthesis.speaking || speechSynthesis.pending) {
       speechSynthesis.cancel();
@@ -146,5 +191,5 @@ export const TTS = (() => {
     initVoice();
   }
 
-  return { speak, stop, onStateChange, isSupported, isSpeaking: () => _isSpeaking, ensureVoiceReady, hasFrenchVoice };
+  return { speak, stop, onStateChange, isSupported, isSpeaking: () => _isSpeaking, ensureVoiceReady, hasFrenchVoice, canSpeakFrench };
 })();

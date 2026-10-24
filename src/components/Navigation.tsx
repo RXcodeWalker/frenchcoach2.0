@@ -1,29 +1,16 @@
-import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useApp } from '../context/AppContext';
 import type { Screen } from '../types';
-import { Home, BookOpen, GraduationCap, BarChart3, User, Compass, Flame, Users, ShoppingBag, Trophy, Info, Cloud, CloudOff } from 'lucide-react';
-import { AuthModal } from './AuthModal';
+import { Home, BookOpen, GraduationCap, BarChart3, User } from 'lucide-react';
 
-// Four primary destinations, then the game layer below the divider (Component
-// Kit §03). No per-item colour — the rail has one active treatment.
-const PRIMARY_ITEMS: { id: Screen; label: string; icon: React.ReactNode }[] = [
+// Launch scope (src/config/launchScope.ts): the five core destinations only.
+// No per-item colour — the rail has one active treatment.
+const NAV_ITEMS: { id: Screen; label: string; icon: React.ReactNode }[] = [
   { id: 'home', label: 'Home', icon: <Home size={19} /> },
   { id: 'learn', label: 'Learn', icon: <BookOpen size={19} /> },
   { id: 'exam', label: 'Exam', icon: <GraduationCap size={19} /> },
   { id: 'progress', label: 'Progress', icon: <BarChart3 size={19} /> },
-];
-
-const GAME_ITEMS: { id: Screen; label: string; icon: React.ReactNode }[] = [
-  { id: 'explore', label: 'Explore', icon: <Compass size={19} /> },
-  { id: 'shop', label: 'Shop', icon: <ShoppingBag size={19} /> },
-  { id: 'rankings', label: 'Rankings', icon: <Trophy size={19} /> },
-  { id: 'study-groups', label: 'Groups', icon: <Users size={19} /> },
   { id: 'profile', label: 'Profile', icon: <User size={19} /> },
-  { id: 'about', label: 'About', icon: <Info size={19} /> },
 ];
-
-const MOBILE_ITEMS = [...PRIMARY_ITEMS, GAME_ITEMS[0]];
 
 const toPath = (id: Screen): string => id === 'home' ? '/' : `/${id}`;
 
@@ -47,10 +34,8 @@ function RailItem({ id, label, icon, active, onClick }: { id: Screen; label: str
 }
 
 export function SideRail() {
-  const { state, authUser } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
-  const [showAuth, setShowAuth] = useState(false);
 
   return (
     <>
@@ -61,7 +46,7 @@ export function SideRail() {
         </div>
 
         <div className="flex-1 flex flex-col items-stretch gap-0.5 w-full">
-          {PRIMARY_ITEMS.map(item => (
+          {NAV_ITEMS.map(item => (
             <RailItem
               key={item.id}
               {...item}
@@ -69,49 +54,20 @@ export function SideRail() {
               onClick={() => navigate(toPath(item.id))}
             />
           ))}
-
-          {/* Divider: work above, reward below */}
-          <div className="h-px bg-hairline my-2 mx-1.5" />
-
-          {GAME_ITEMS.map(item => (
-            <RailItem
-              key={item.id}
-              {...item}
-              active={location.pathname === toPath(item.id)}
-              onClick={() => navigate(toPath(item.id))}
-            />
-          ))}
-        </div>
-
-        {/* Cloud sync */}
-        <button
-          onClick={() => setShowAuth(true)}
-          className="w-9 h-9 rounded-control flex items-center justify-center mb-1 transition-colors duration-state ease-smooth text-ink-subtle hover:text-ink-muted"
-          title={authUser ? `Signed in: ${authUser.email}` : 'Sign in to sync'}
-        >
-          {authUser ? <Cloud size={16} className="text-progress-text" /> : <CloudOff size={16} />}
-        </button>
-
-        {/* Streak */}
-        <div className="flex flex-col items-center gap-1 mb-1">
-          <Flame size={16} className="text-streak-text" />
-          <span className="font-numeral text-[11px] text-streak-text tabular-nums">{state.profile.streak_days}</span>
         </div>
       </nav>
-
-      {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
 
       {/* Mobile Bottom Dock — the rail is replaced, not shrunk */}
       <nav className="nav-rail fixed bottom-0 left-0 right-0 z-50 md:hidden">
         <div className="mx-3 mb-3 px-1.5 py-1.5 surface-raised rounded-xl">
           <div className="flex items-center justify-around">
-            {MOBILE_ITEMS.map(item => {
+            {NAV_ITEMS.map(item => {
               const active = location.pathname === toPath(item.id);
               return (
                 <button
                   key={item.id}
                   onClick={() => navigate(toPath(item.id))}
-                  className={`relative flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-control min-h-[44px] justify-center
+                  className={`relative flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-control min-h-[44px] justify-center
                     transition-colors duration-state ease-smooth
                     ${active ? 'bg-action-soft text-action-text' : 'text-ink-subtle'}`}
                 >

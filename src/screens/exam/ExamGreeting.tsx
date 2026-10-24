@@ -12,7 +12,7 @@ interface Props {
  * Non-assessed French greeting (C5). The candidate's reply is never submitted
  * to the session and never logged — it exists only to warm up the mic/voice
  * before the assessed role play begins. Renders in either exam voice (the
- * warm-paper "Claire" framing, or the core token theme).
+ * warm-paper "Henri" framing, or the core token theme).
  */
 export function ExamGreeting({ recording, greetingText, onContinue }: Props) {
   const rec = recording.isRecording;
@@ -22,10 +22,10 @@ export function ExamGreeting({ recording, greetingText, onContinue }: Props) {
       <div className="flex-1 flex flex-col items-center justify-center px-5 py-6 max-w-2xl mx-auto w-full">
         <div className="mb-6 flex items-center gap-3 self-start">
           <div className="w-10 h-10 rounded-pill bg-action text-action-ink flex items-center justify-center exam-serif text-body-l">
-            C
+            H
           </div>
           <div>
-            <div className="exam-serif text-subtitle text-ink leading-tight">Claire</div>
+            <div className="exam-serif text-subtitle text-ink leading-tight">Henri</div>
             <div className="text-body-s text-ink-subtle">your examiner tonight</div>
           </div>
           <span className="ml-auto font-numeral text-body-s text-ink-subtle tabular-nums">

@@ -1,0 +1,72 @@
+name: Record voices
+
+# Records every catalogued French line in the Henri Azure Neural voice (the
+# only recorded voice, src/services/tts/voiceKey.ts) and uploads the MP3s to
+# the public Supabase bucket `tts-audio` (docs/plans/recorded-voices.md
+# §4.5–§4.6). Manual only. Re-running is safe: lines already stored are
+# skipped, so a stopped run resumes where it stopped. A dry run prints the
+# totals and needs no secrets.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run: print counts and characters, call nothing'
+        type: boolean
+        default: true
+      limit:
+        description: 'Record at most N missing lines per voice (empty = no limit)'
+        type: string
+        default: ''
+
+concurrency:
+  group: record-voices
+  cancel-in-progress: false
+
+jobs:
+  record:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      # Same fail-fast secret check as notifications-streak-and-goal.yml, skipped for a dry run.
+      - name: Check required secrets
+        if: ${{ !inputs.dry_run }}
+        env:
+          AZURE_SPEECH_KEY: ${{ secrets.AZURE_SPEECH_KEY }}
+          AZURE_SPEECH_REGION: ${{ secrets.AZURE_SPEECH_REGION }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          missing=()
+          for name in AZURE_SPEECH_KEY AZURE_SPEECH_REGION SUPABASE_URL SUPABASE_SERVICE_KEY; do
+            [ -n "${!name}" ] || missing+=("$name")
+          done
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "::error title=Missing repo secrets::Not set: ${missing[*]}. Add them under Settings -> Secrets and variables -> Actions (see docs/plans/recorded-voices.md §5)."
+            exit 1
+          fi
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - name: Record voices
+        env:
+          DRY_RUN: ${{ inputs.dry_run }}
+          LIMIT: ${{ inputs.limit }}
+          AZURE_SPEECH_KEY: ${{ secrets.AZURE_SPEECH_KEY }}
+          AZURE_SPEECH_REGION: ${{ secrets.AZURE_SPEECH_REGION }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        # Inputs reach the script through env, never interpolated into the shell.
+        run: |
+          args=()
+          if [ "$DRY_RUN" = "true" ]; then args+=(--dry-run); fi
+          if [ -n "$LIMIT" ]; then
+            if ! [[ "$LIMIT" =~ ^[1-9][0-9]*$ ]]; then
+              echo "::error title=Bad limit::limit must be a positive whole number, got '$LIMIT'"
+              exit 1
+            fi
+            args+=(--limit "$LIMIT")
+          fi
+          npm run voices:record -- "${args[@]}"

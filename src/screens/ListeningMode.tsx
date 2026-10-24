@@ -34,13 +34,13 @@ export function ListeningMode() {
   const startPlaying = async () => {
     if (!currentQuestion) return;
     setState('playing');
-    await TTS.speak(currentQuestion.audioText);
+    await TTS.speak(currentQuestion.audioText, { recorded: true });
     setState('answering');
   };
 
   const replayAudio = () => {
     if (!currentQuestion) return;
-    TTS.speak(currentQuestion.audioText);
+    TTS.speak(currentQuestion.audioText, { recorded: true });
   };
 
   const checkAnswer = (answer: string) => {

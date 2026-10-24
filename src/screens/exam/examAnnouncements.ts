@@ -1,4 +1,11 @@
 /**
+ * The examiner's opening line, spoken by the UI before the role-play setup
+ * (never a conduct-engine action). Kept here, outside `ExamMode.tsx`, so the
+ * recorded-voices script can import it without React.
+ */
+export const GREETING_TEXT = 'Bonjour ! Comment ça va ? Es-tu prêt ? On va commencer.';
+
+/**
  * exam-conduct §5/§9 (D13): original French lines the UI speaks at each part
  * boundary, never a conduct-engine action — they stay outside the ConductLog,
  * the hash, and the judge input, the same way `setup` does (Batch 3). Each

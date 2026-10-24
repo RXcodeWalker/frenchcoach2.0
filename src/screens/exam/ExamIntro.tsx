@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, VolumeX } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { isTtsAvailable, hasFrenchVoice, ensureVoiceReady } from '../../services/exam/examinerVoice';
+import { recordedVoicesEnabled } from '../../services/tts/recordedVoice';
 
 interface Props {
   /** W5: which mode ExamSelect's toggle chose — this screen states what it does/doesn't give before the candidate commits. */
@@ -26,10 +27,10 @@ export function ExamIntro({ coached, onStart, onBack }: Props) {
   // W5: surfaced here, before the mic is ever opened — not silently mid-exam.
   // Voice list can still be loading on mount (voiceschanged is async), so
   // re-check once it settles rather than trusting a synchronous read.
-  const [voiceUnavailable, setVoiceUnavailable] = useState(isTtsAvailable() && !hasFrenchVoice());
+  const [voiceUnavailable, setVoiceUnavailable] = useState(isTtsAvailable() && !hasFrenchVoice() && !recordedVoicesEnabled());
   useEffect(() => {
     if (!isTtsAvailable()) return;
-    void ensureVoiceReady().then(() => setVoiceUnavailable(!hasFrenchVoice()));
+    void ensureVoiceReady().then(() => setVoiceUnavailable(!hasFrenchVoice() && !recordedVoicesEnabled()));
   }, []);
   return (
     <div data-hatch="immersive" className="min-h-screen bg-bg pb-24 md:pb-8">
@@ -50,10 +51,10 @@ export function ExamIntro({ coached, onStart, onBack }: Props) {
           </button>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-pill bg-action text-action-ink flex items-center justify-center exam-serif text-body-l">
-              C
+              H
             </div>
             <div>
-              <div className="exam-serif text-subtitle text-ink leading-tight">Claire</div>
+              <div className="exam-serif text-subtitle text-ink leading-tight">Henri</div>
               <div className="text-body-s text-ink-subtle">your examiner tonight</div>
             </div>
           </div>
@@ -89,7 +90,7 @@ export function ExamIntro({ coached, onStart, onBack }: Props) {
           <div className="rounded-card surface-recessed border border-amber-500/20 p-4 flex items-start gap-3">
             <VolumeX size={16} className="text-amber-400 flex-shrink-0 mt-0.5" />
             <p className="text-body-s text-ink-muted leading-relaxed">
-              No French voice was found on this device, so Claire&rsquo;s questions will be shown as text only,
+              No French voice was found on this device, so Henri&rsquo;s questions will be shown as text only,
               not spoken aloud. Everything else works the same.
             </p>
           </div>

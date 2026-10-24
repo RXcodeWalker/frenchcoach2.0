@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { Onboarding } from '../Onboarding';
+import { JUNIOR_TRACK_SELECTABLE } from '../../config/launchScope';
 
 const dispatch = vi.fn();
 vi.mock('../../context/AppContext', () => ({ useApp: () => ({ state: {}, dispatch }) }));
@@ -38,13 +39,18 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe('Onboarding — Junior', () => {
-  it('"I\'m in Grades 4–7" completes onboarding like skipping, switches the track and lands on the Junior home', () => {
+  it.skipIf(!JUNIOR_TRACK_SELECTABLE)('"I\'m in Grades 4–7" completes onboarding like skipping, switches the track and lands on the Junior home', () => {
     view('?returnTo=%2Flearn');
     fireEvent.click(screen.getByTestId('onboarding-junior'));
     expect(setActiveGoal).toHaveBeenCalledWith('general_speaking', undefined);
     expect(dispatch).toHaveBeenCalledWith({ type: 'SET_LEARNER_TRACK', track: 'junior' });
     // Straight to Junior, not through the exam placement diagnostic, whatever the returnTo was.
     expect(screen.getByTestId('location').textContent).toBe('/junior');
+  });
+
+  it.skipIf(JUNIOR_TRACK_SELECTABLE)('is not offered while the launch scope hides the Junior track', () => {
+    view();
+    expect(screen.queryByTestId('onboarding-junior')).toBeNull();
   });
 
   it('is not offered when editing goals from Profile', () => {

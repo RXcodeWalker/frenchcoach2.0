@@ -80,6 +80,21 @@ applied in the SQL editor **first** — an unseeded quota feature 503s every cal
 ledger `reserve` fails open with a warning — then backend `main`, then the frontend. Until the
 migrations are applied the route cannot store evidence.
 
+### Recorded voices (2026-10-24; plan `docs/plans/recorded-voices.md`)
+
+- **Supabase Storage bucket `tts-audio`** (public, project "French Coach"). Holds one MP3 per
+  catalogued French line at `<VOICE_KEY_VERSION>/<voice>/<hash>.mp3`, the path
+  `src/services/tts/voiceKey.ts` computes (currently `v2/henri/…`). The app reads it anonymously
+  over HTTPS (`<VITE_SUPABASE_URL>/storage/v1/object/public/tts-audio/…`); no backend, no Azure
+  call and no auth at play time, so guests hear it too. Written only by the manual "Record
+  voices" workflow (see CI).
+- **`VITE_RECORDED_VOICES`** (frontend build; `1` = on, anything else or unset = off; also needs
+  `VITE_SUPABASE_URL`). On, the opted-in screens (exam examiner lines, Learn question text,
+  Listening, Shadowing, scenario flashcards) play the recording and fall back to the browser voice
+  only when it is French. Off is the rollback: every screen uses the browser voice exactly as
+  before. **Not set in Vercel yet** — the owner sets it in plan Stage 5/6. Needs a frontend
+  redeploy to change.
+
 ### `VITE_SCORING_API_URL` — no fallback
 
 `src/services/exam/scoringApiClient.ts` reads `VITE_SCORING_API_URL`. If it's unset:
@@ -318,6 +333,13 @@ branch, else `main`), then `npm run typecheck`, `typecheck:server`, `lint`, the 
 not run `typecheck:scripts` (3 known errors), `score:golden` or `e2e:exam`; those stay local.
 The backend repo has its own CI (`pytest tests/ -q`). The four workflows below are scheduled
 jobs, none of which run tests.
+
+`record-voices.yml` ("Record voices"; not one of the scheduled jobs below: manual `workflow_dispatch`
+only, inputs `dry_run`, `limit`) runs `npm run voices:record`: it records every line in `scripts/tts/collectLines.ts`'s catalogue
+not already in the `tts-audio` bucket with Azure text-to-speech (F0, throttled) and uploads it.
+Secrets: `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION`, `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`
+(a dry run needs none). Re-run it after editing any catalogued French text; until then the new
+line plays in the browser voice.
 
 **Deploy-time step, manual, not in CI:** when the rewritten 0520 sets go live, expire open duels
 on them with `backend/supabase/ops/expire_open_duels_at_deploy.sql` (D11; run by hand right after
