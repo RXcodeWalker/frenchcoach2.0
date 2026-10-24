@@ -45,7 +45,7 @@ export function QuestionCard({ question, showHint, onToggleHint, isReview, selec
 
     setIsSpeaking(true);
     try {
-      await TTS.speak(question.text);
+      await TTS.speak(question.text, { recorded: true });
     } catch (error) {
       console.error('TTS failed:', error);
     } finally {

@@ -135,7 +135,7 @@ export function ShadowingPanel() {
     (async () => {
       await TTS.ensureVoiceReady();
       if (cancelled || !isMountedRef.current) return;
-      setHasFrenchVoice(TTS.hasFrenchVoice());
+      setHasFrenchVoice(TTS.canSpeakFrench(true));
     })();
     return () => {
       cancelled = true;
@@ -172,7 +172,7 @@ export function ShadowingPanel() {
     if (!hasFrenchVoice) return;
     setScreenState('listening');
     try {
-      await TTS.speak(phrase.french, rate ? { rate } : undefined);
+      await TTS.speak(phrase.french, rate ? { rate, recorded: true } : { recorded: true });
     } finally {
       if (isMountedRef.current && screenState !== 'recording') setScreenState('idle');
     }

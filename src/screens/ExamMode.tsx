@@ -428,10 +428,10 @@ export function ExamMode() {
     // The part that just ended gets its Coached pronunciation card (a no-op in Exam Sim, where the rail shows none).
     pronunciation.markPartEnded(prevPart as SessionPart);
     if (prevPart === 'rolePlay' && action.part === 'topic1') {
-      await speakExaminerText(ROLE_PLAY_FINISHED_TEXT);
-      await speakExaminerText(topicAnnouncementText('topic1', topicTitlesRef.current.topic1));
+      await speakExaminerText(ROLE_PLAY_FINISHED_TEXT, undefined, { recorded: true });
+      await speakExaminerText(topicAnnouncementText('topic1', topicTitlesRef.current.topic1), undefined, { recorded: true });
     } else if (prevPart === 'topic1' && action.part === 'topic2') {
-      await speakExaminerText(topicAnnouncementText('topic2', topicTitlesRef.current.topic2));
+      await speakExaminerText(topicAnnouncementText('topic2', topicTitlesRef.current.topic2), undefined, { recorded: true });
     }
   };
 
@@ -446,7 +446,7 @@ export function ExamMode() {
     const gen = getExaminerVoiceGeneration();
     void (async () => {
       await wait(PRE_SPEECH_LEAD_MS);
-      await speakExaminerText(GREETING_TEXT, gen);
+      await speakExaminerText(GREETING_TEXT, gen, { recorded: true });
     })();
   };
 
@@ -575,7 +575,7 @@ export function ExamMode() {
     // rp1 — UI-spoken, never a conduct-engine action, so it stays outside the
     // ConductLog/hash/judge input (same as the part-boundary announcements).
     setRolePlayScenario(undefined);
-    if (scenario) await speakExaminerText(scenario.setup);
+    if (scenario) await speakExaminerText(scenario.setup, undefined, { recorded: true });
 
     const firstAction = await session.begin();
     setAction(firstAction);

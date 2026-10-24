@@ -174,7 +174,7 @@ export class SimulationSession {
       this.entries.push(examinerActionToLogEntry(action, this.seq, atS));
       this.seq += 1;
       this.callbacks.onExaminerAction?.(action);
-      if (action.text) await speakExaminerText(action.text);
+      if (action.text) await speakExaminerText(action.text, undefined, { recorded: true });
       if (i < actions.length - 1) await wait(INTER_ACTION_PAUSE_MS);
       last = action;
     }

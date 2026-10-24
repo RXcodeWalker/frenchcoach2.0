@@ -1,5 +1,6 @@
 import { Repeat } from 'lucide-react';
 import { speakExaminerText, getExaminerVoiceGeneration, hasFrenchVoice } from '../../services/exam/examinerVoice';
+import { recordedVoicesEnabled } from '../../services/tts/recordedVoice';
 import type { ConductLogEntry } from '../../domain/igcse/session/types';
 import { collectExaminerQuoteItems, type ExaminerFeedback } from '../../services/coaching/examinerFeedback';
 
@@ -77,7 +78,7 @@ export function ExamTurnBubble({ entry, turnLabel, voiceMuted, railResult, onIss
 
   if (isExaminer) {
     const label = ACTION_LABEL[entry.action] ?? 'Examiner';
-    const canReplay = hasFrenchVoice() && !voiceMuted;
+    const canReplay = (hasFrenchVoice() || recordedVoicesEnabled()) && !voiceMuted;
     return (
       <div className="flex justify-start">
         <div className="flex flex-col gap-1 max-w-[85%]">
@@ -89,7 +90,7 @@ export function ExamTurnBubble({ entry, turnLabel, voiceMuted, railResult, onIss
             <p className="exam-serif text-body-l text-ink leading-snug">{entry.text}</p>
             {canReplay && (
               <button
-                onClick={() => void speakExaminerText(entry.text, getExaminerVoiceGeneration())}
+                onClick={() => void speakExaminerText(entry.text, getExaminerVoiceGeneration(), { recorded: true })}
                 aria-label="Replay examiner's line"
                 className="absolute -bottom-3 right-3 flex items-center justify-center w-7 h-7 rounded-pill bg-action
                   text-action-ink shadow-sm hover:bg-action-hover transition-colors duration-state ease-smooth"
