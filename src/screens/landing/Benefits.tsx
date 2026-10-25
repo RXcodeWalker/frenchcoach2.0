@@ -3,6 +3,7 @@ import { Mic, Quote, ClipboardList, Gauge, Volume2, LineChart } from 'lucide-rea
 import { Section } from '../../components/marketing/Section';
 import { Reveal } from '../../components/marketing/Reveal';
 import { SectionHeading } from './SectionHeading';
+import { LIMITS_COPY } from './landingContent';
 
 // Each line maps to something the app does today:
 // - quoted corrections: Learn drops any feedback that doesn't quote the answer
@@ -13,8 +14,8 @@ import { SectionHeading } from './SectionHeading';
 const BENEFITS: { icon: ReactNode; title: string; body: string }[] = [
   {
     icon: <Mic size={18} />,
-    title: 'Way more speaking time',
-    body: 'In class you might get a couple of turns a lesson. Here you can answer as many questions as you like, whenever you like.',
+    title: 'A daily speaking habit',
+    body: `In class you might get a couple of turns a lesson. Here you get ${LIMITS_COPY}, whenever suits you.`,
   },
   {
     icon: <Quote size={18} />,

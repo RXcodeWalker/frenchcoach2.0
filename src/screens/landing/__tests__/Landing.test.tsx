@@ -4,6 +4,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { Landing } from '../../Landing';
 import { LANDING_FAQ, LANDING_SECTIONS } from '../landingContent';
 import { PAGE_SEO } from '../../../config/seo';
+import { LEARN_ANSWERS_PER_DAY } from '../../../features/learn/dailyAllowance';
 
 // Hidden or unbuilt features (src/config/launchScope.ts) must not be advertised.
 const BANNED_STRINGS = [
@@ -97,6 +98,11 @@ describe('Landing (static prerender output)', () => {
 
   it('describes marking as "against the criteria", never as equivalence', () => {
     expect(text).toContain('marked against the Cambridge 0520 speaking criteria');
+  });
+
+  it('states the launch limits instead of promising unlimited practice', () => {
+    expect(text).not.toMatch(/as many (questions|answers) as you (like|want)|unlimited/i);
+    expect(text).toContain(`${LEARN_ANSWERS_PER_DAY} marked answers a day`);
   });
 
   it('keeps the Cambridge non-affiliation statement', () => {

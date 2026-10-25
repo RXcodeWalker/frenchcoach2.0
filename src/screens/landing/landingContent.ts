@@ -10,6 +10,13 @@
  * Cambridge 0520 speaking criteria" is the strongest wording we use.
  */
 
+import { LEARN_ANSWERS_PER_DAY } from '../../features/learn/dailyAllowance';
+
+// Launch limits (CLAUDE.md "Launch usage limits"): LEARN_ANSWERS_PER_DAY marked
+// Learn answers a day, and one mock exam per rolling 7 days
+// (server/examAllowance.ts's EXAM_WINDOW_DAYS — server-only, so restated here).
+export const LIMITS_COPY = `${LEARN_ANSWERS_PER_DAY} marked answers a day and a full mock exam every week`;
+
 export const LANDING_SECTIONS = [
   { id: 'how-it-works', label: 'How it works' },
   { id: 'why', label: 'Why it works' },
@@ -28,7 +35,7 @@ export const LANDING_FAQ: FaqEntry[] = [
   {
     question: 'Is it free?',
     answer:
-      'You can start right now as a guest, with no account and no card. Create a free account when you want to keep your progress and carry on practising.',
+      `Yes. Start right now as a guest, with no account and no card. A free account gives you ${LIMITS_COPY}, and keeps your progress safe.`,
   },
   {
     question: 'Which exam is it for?',
