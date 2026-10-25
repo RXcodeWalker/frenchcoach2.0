@@ -50,6 +50,11 @@ export function hasFrenchVoice(): boolean {
   return selectedVoice !== null;
 }
 
+/** True when the examiner can be heard in French: a French browser voice, or (for a `recorded` caller) the recordings. */
+export function canSpeakFrench(recorded = false): boolean {
+  return hasFrenchVoice() || (recorded && recordedVoicesEnabled());
+}
+
 function selectVoice(): SpeechSynthesisVoice | null {
   if (!isTtsAvailable()) return null;
   const voices = window.speechSynthesis.getVoices();
@@ -216,6 +221,10 @@ async function speakBrowser(text: string, gen: number): Promise<void> {
 /** Cancels any in-flight speech and invalidates speech still queued behind a delay. */
 export function stopExaminerVoice(): void {
   generation += 1;
+  // Everything still queued is stale now; don't make the next line wait on it
+  // (a fallback utterance that never fires onend would otherwise block every
+  // later recorded line for the rest of the page's life).
+  recordedQueue = Promise.resolve();
   stopRecorded();
   if (isTtsAvailable()) window.speechSynthesis.cancel();
 }

@@ -25,7 +25,13 @@ import type {
   ExaminerActionKind,
   SessionQuestionSet,
 } from '../../../src/domain/igcse/session/types';
-import { GREETING_TEXT, ROLE_PLAY_FINISHED_TEXT, topicAnnouncementText } from '../../../src/screens/exam/examAnnouncements';
+import {
+  GREETING_TEXT,
+  ROLE_PLAY_FINISHED_TEXT,
+  TOPIC1_ANNOUNCEMENT_TEXT,
+  TOPIC2_ANNOUNCEMENT_TEXT,
+  topicAnnouncementText,
+} from '../../../src/screens/exam/examAnnouncements';
 import { QUESTIONS } from '../../../src/data/questions';
 import { LISTENING_QUESTIONS } from '../../../src/data/listeningQuestions';
 import { SHADOWING_PHRASES } from '../../../src/data/shadowingPhrases';
@@ -165,6 +171,12 @@ describe('recorded-voices catalogue coverage', () => {
   it('catalogues the greeting and the role-play-finished line', () => {
     expect(KEYS.has(normalizeSpokenText(GREETING_TEXT))).toBe(true);
     expect(KEYS.has(normalizeSpokenText(ROLE_PLAY_FINISHED_TEXT))).toBe(true);
+  });
+
+  it('catalogues the unnamed topic announcements (spoken when the set title is unknown, e.g. a resume)', () => {
+    for (const text of [TOPIC1_ANNOUNCEMENT_TEXT, TOPIC2_ANNOUNCEMENT_TEXT, topicAnnouncementText('topic1', undefined), topicAnnouncementText('topic2', undefined)]) {
+      expect(KEYS.has(normalizeSpokenText(text)), text).toBe(true);
+    }
   });
 
   it('catalogues every Learn question (the text QuestionCard speaks)', () => {

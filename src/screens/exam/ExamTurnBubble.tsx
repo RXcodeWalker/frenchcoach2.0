@@ -1,6 +1,5 @@
 import { Repeat } from 'lucide-react';
-import { speakExaminerText, getExaminerVoiceGeneration, hasFrenchVoice } from '../../services/exam/examinerVoice';
-import { recordedVoicesEnabled } from '../../services/tts/recordedVoice';
+import { speakExaminerText, getExaminerVoiceGeneration, canSpeakFrench } from '../../services/exam/examinerVoice';
 import type { ConductLogEntry } from '../../domain/igcse/session/types';
 import { collectExaminerQuoteItems, type ExaminerFeedback } from '../../services/coaching/examinerFeedback';
 
@@ -78,7 +77,7 @@ export function ExamTurnBubble({ entry, turnLabel, voiceMuted, railResult, onIss
 
   if (isExaminer) {
     const label = ACTION_LABEL[entry.action] ?? 'Examiner';
-    const canReplay = (hasFrenchVoice() || recordedVoicesEnabled()) && !voiceMuted;
+    const canReplay = canSpeakFrench(true) && !voiceMuted;
     return (
       <div className="flex justify-start">
         <div className="flex flex-col gap-1 max-w-[85%]">

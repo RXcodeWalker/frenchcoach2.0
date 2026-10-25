@@ -16,7 +16,13 @@ import {
   EXAM_CLOSING_TEXT,
   TRANSITION_MARKERS,
 } from '../../src/domain/igcse/session/conductEngine';
-import { GREETING_TEXT, ROLE_PLAY_FINISHED_TEXT, topicAnnouncementText } from '../../src/screens/exam/examAnnouncements';
+import {
+  GREETING_TEXT,
+  ROLE_PLAY_FINISHED_TEXT,
+  TOPIC1_ANNOUNCEMENT_TEXT,
+  TOPIC2_ANNOUNCEMENT_TEXT,
+  topicAnnouncementText,
+} from '../../src/screens/exam/examAnnouncements';
 import { QUESTIONS } from '../../src/data/questions';
 import { LISTENING_QUESTIONS } from '../../src/data/listeningQuestions';
 import { SHADOWING_PHRASES } from '../../src/data/shadowingPhrases';
@@ -66,6 +72,9 @@ export function examFixedLines(): string[] {
   return [
     GREETING_TEXT,
     ROLE_PLAY_FINISHED_TEXT,
+    // The unnamed announcements ExamMode speaks when the set's title can't be resolved (e.g. a resume whose set lookup failed).
+    TOPIC1_ANNOUNCEMENT_TEXT,
+    TOPIC2_ANNOUNCEMENT_TEXT,
     ...AUTHORIZED_EXTENSION_PROMPTS,
     ...TRANSITION_MARKERS,
     EXAM_CLOSING_TEXT,

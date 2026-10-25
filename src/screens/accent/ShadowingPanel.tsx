@@ -172,7 +172,7 @@ export function ShadowingPanel() {
     if (!hasFrenchVoice) return;
     setScreenState('listening');
     try {
-      await TTS.speak(phrase.french, rate ? { rate, recorded: true } : { recorded: true });
+      await TTS.speak(phrase.french, { rate, recorded: true });
     } finally {
       if (isMountedRef.current && screenState !== 'recording') setScreenState('idle');
     }

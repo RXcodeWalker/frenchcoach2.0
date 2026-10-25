@@ -28,11 +28,19 @@ export function recordedVoicesEnabled(): boolean {
   return import.meta.env.VITE_RECORDED_VOICES === '1' && Boolean(import.meta.env.VITE_SUPABASE_URL);
 }
 
+/** Built URLs, so a replay or repeat doesn't re-hash its line. */
+const urlCache = new Map<string, string>();
+
 /** The URL the app plays `text` from (null without a Supabase URL). */
 export async function recordedLineUrl(text: string, voice: RecordedVoiceId = DEFAULT_RECORDED_VOICE): Promise<string | null> {
   const base = import.meta.env.VITE_SUPABASE_URL as string | undefined;
   if (!base) return null;
-  return recordedVoiceUrl(base, await voiceObjectPath(text, voice));
+  const cacheKey = `${base}|${voice}|${text}`;
+  const cached = urlCache.get(cacheKey);
+  if (cached) return cached;
+  const url = recordedVoiceUrl(base, await voiceObjectPath(text, voice));
+  urlCache.set(cacheKey, url);
+  return url;
 }
 
 /** `audio.playbackRate` for a browser-voice `rate`: 0.6 (Shadowing's slow) ⇒ ≈0.67; never faster than the recording. */
@@ -165,7 +173,10 @@ export function primeRecordedAudio(): void {
     const el = sharedAudio();
     if (!el) return;
     el.src = SILENT_MP3;
-    Promise.resolve(el.play()).catch(() => {});
+    Promise.resolve(el.play()).catch((err: unknown) => {
+      // Refused (called outside a gesture): let the next gesture try again.
+      if ((err as { name?: string } | null)?.name === 'NotAllowedError') primed = false;
+    });
   } catch {
     // Priming is best-effort: never let it break a click.
   }

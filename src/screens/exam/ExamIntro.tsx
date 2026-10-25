@@ -2,8 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, VolumeX } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
-import { isTtsAvailable, hasFrenchVoice, ensureVoiceReady } from '../../services/exam/examinerVoice';
-import { recordedVoicesEnabled } from '../../services/tts/recordedVoice';
+import { isTtsAvailable, canSpeakFrench, ensureVoiceReady } from '../../services/exam/examinerVoice';
 import { examinerSubtitle } from './examinerSubtitle';
 
 interface Props {
@@ -28,10 +27,10 @@ export function ExamIntro({ coached, onStart, onBack }: Props) {
   // W5: surfaced here, before the mic is ever opened — not silently mid-exam.
   // Voice list can still be loading on mount (voiceschanged is async), so
   // re-check once it settles rather than trusting a synchronous read.
-  const [voiceUnavailable, setVoiceUnavailable] = useState(isTtsAvailable() && !hasFrenchVoice() && !recordedVoicesEnabled());
+  const [voiceUnavailable, setVoiceUnavailable] = useState(isTtsAvailable() && !canSpeakFrench(true));
   useEffect(() => {
     if (!isTtsAvailable()) return;
-    void ensureVoiceReady().then(() => setVoiceUnavailable(!hasFrenchVoice() && !recordedVoicesEnabled()));
+    void ensureVoiceReady().then(() => setVoiceUnavailable(!canSpeakFrench(true)));
   }, []);
   return (
     <div data-hatch="immersive" className="min-h-screen bg-bg pb-24 md:pb-8">
