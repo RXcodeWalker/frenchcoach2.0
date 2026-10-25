@@ -1,6 +1,7 @@
 import { ScrollingWaveform } from '../../features/recording/ScrollingWaveform';
 import { Button } from '../../components/ui/Button';
 import type { RecordingState } from '../../features/recording/useRecording';
+import { examinerSubtitle } from './examinerSubtitle';
 
 interface Props {
   recording: RecordingState;
@@ -26,7 +27,7 @@ export function ExamGreeting({ recording, greetingText, onContinue }: Props) {
           </div>
           <div>
             <div className="exam-serif text-subtitle text-ink leading-tight">Henri</div>
-            <div className="text-body-s text-ink-subtle">your examiner tonight</div>
+            <div className="text-body-s text-ink-subtle">{examinerSubtitle()}</div>
           </div>
           <span className="ml-auto font-numeral text-body-s text-ink-subtle tabular-nums">
             Not assessed

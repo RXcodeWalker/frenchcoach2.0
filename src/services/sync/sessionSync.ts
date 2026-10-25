@@ -2,6 +2,7 @@ import { supabase, supabaseConfigured } from '../../lib/supabase';
 import { STORAGE_KEYS, storageGet, storageSet } from '../persistence/storage';
 import { MAX_STORED_SESSIONS } from '../analytics/analyticsService';
 import type { Session } from '../../types';
+import { captureError } from '../telemetry/telemetryService';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -215,6 +216,7 @@ export async function pushSessionToCloud(userId: string, session: Session): Prom
 
     if (error) {
       console.warn('[sessionSync] push failed:', error.message);
+      captureError(error, { area: 'sync', stage: 'sessionSync.push' });
       addPendingId(session.id);
       return false;
     }
@@ -224,6 +226,8 @@ export async function pushSessionToCloud(userId: string, session: Session): Prom
     return true;
   } catch (err) {
     console.warn('[sessionSync] push error:', err);
+    // Offline network errors are dropped by captureError; the session is retried later anyway.
+    captureError(err, { area: 'sync', stage: 'sessionSync.push' });
     addPendingId(session.id);
     return false;
   }

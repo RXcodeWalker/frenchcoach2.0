@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import * as Sentry from '@sentry/react';
 import { initTelemetry } from './services/telemetry/telemetryService';
+import { AppErrorFallback } from './components/AppErrorFallback';
 import { startBackendWarmup } from './services/api/backendWarmup';
 import App from './App.tsx';
 import './index.css';
@@ -18,7 +19,7 @@ if ('serviceWorker' in navigator) {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <Sentry.ErrorBoundary fallback={<p>Something went wrong.</p>}>
+    <Sentry.ErrorBoundary fallback={<AppErrorFallback />}>
       <BrowserRouter>
         <App />
       </BrowserRouter>

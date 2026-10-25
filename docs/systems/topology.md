@@ -95,6 +95,22 @@ migrations are applied the route cannot store evidence.
   before. **Not set in Vercel yet** — the owner sets it in plan Stage 5/6. Needs a frontend
   redeploy to change.
 
+### Sentry error tracking (2026-10-24)
+
+One Sentry project per surface; each is off until its DSN is set.
+
+- **Frontend (Vercel build env):** `VITE_SENTRY_DSN` (React project DSN — errors only leave
+  production builds), plus `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT` so `vite.config.ts`
+  uploads source maps (then deletes them from `dist/`). Release = `VERCEL_GIT_COMMIT_SHA`,
+  environment = `VERCEL_ENV`. A bad token only warns; it never fails the build.
+  `src/services/telemetry/telemetryService.ts` (init, `captureError`) + `sentryFilters.ts`.
+- **`french-scoring` (Render):** `SENTRY_DSN` (Node project DSN). Release = `RENDER_GIT_COMMIT`.
+  Errors only, no traces (the ESM bundle isn't started with `node --import`). `server/sentry.ts`.
+- **FastAPI (Render dashboard):** `SENTRY_DSN` (Python project DSN). Release = `RENDER_GIT_COMMIT`,
+  traces 5%. `backend/lib/observability.py`. Single-worker config is unchanged.
+- **Wiring check for either backend:** set `SENTRY_TEST_EVENT=1` on the Render service; each boot
+  then sends one "Sentry test event" issue. Remove it afterwards.
+
 ### `VITE_SCORING_API_URL` — no fallback
 
 `src/services/exam/scoringApiClient.ts` reads `VITE_SCORING_API_URL`. If it's unset:

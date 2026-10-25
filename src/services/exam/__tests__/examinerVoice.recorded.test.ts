@@ -151,6 +151,23 @@ describe('examiner recorded voice', () => {
     expect(synthSpeak).not.toHaveBeenCalled();
   });
 
+  it('stopExaminerVoice() frees the queue: a fallback utterance that never ends cannot block later lines', async () => {
+    const v = await load([FR]);
+    // Chrome sometimes never fires onend (or onerror after cancel()).
+    synthSpeak.mockImplementation((u: { text: string }) => spoken.push(u.text));
+    const hung = track(v.speakExaminerText('Ligne absente.', undefined, { recorded: true }));
+    (await playingCount(1)).emit('error');
+    await until(() => spoken.length === 1, 'fallback utterance');
+    expect(hung.done).toBe(false);
+
+    v.stopExaminerVoice();
+    const next = track(v.speakExaminerText('Ligne suivante.', undefined, { recorded: true }));
+    const audio = await playingCount(2);
+    audio.emit('playing');
+    audio.emit('ended');
+    await until(() => next.done, 'next line');
+  });
+
   it('a replay tapped mid-line waits for the line instead of cutting it off', async () => {
     const v = await load([FR]);
     const line = track(v.speakExaminerText('Question.', undefined, { recorded: true }));

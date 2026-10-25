@@ -107,7 +107,7 @@ export function TimelineItem({ session, isExpanded, onToggle }: Props) {
           >
             {/* Metrics Grid with Staggered Slide-in */}
             <motion.div 
-              className="grid grid-cols-3 gap-4"
+              className="grid grid-cols-1 sm:grid-cols-3 gap-4"
               initial="hidden"
               animate="visible"
               variants={{
@@ -115,9 +115,8 @@ export function TimelineItem({ session, isExpanded, onToggle }: Props) {
               }}
             >
               {[
-                { label: 'Fluency', value: session.score == null ? '—' : session.score.toFixed(1), color: 'text-blue-400', progress: (session.score ?? 0) * 10 },
-                { label: 'Vocabulary', value: '7.8', color: 'text-violet-400', progress: 78 },
-                { label: 'Grammar', value: '8.2', color: 'text-emerald-400', progress: 82 },
+                // Sessions store one overall score — no per-skill breakdown to show.
+                { label: 'Score', value: session.score == null ? '—' : session.score.toFixed(1), color: 'text-blue-400', progress: (session.score ?? 0) * 10 },
               ].map((m, i) => (
                 <motion.div 
                   key={i}

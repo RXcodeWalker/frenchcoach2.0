@@ -34,6 +34,7 @@ import { generateExamFeedback, type ExamFeedbackGenerator } from '../src/domain/
 import type { ExamFeedbackReport } from '../src/domain/examFeedback/types';
 import type { FeedbackStore } from '../scripts/scoring/supabaseFeedbackStore';
 import { QuotaDeniedError } from './aiQuota';
+import { captureServerError } from './sentry';
 
 /** The quota feature and key the plan fixes for this route. */
 export const FEEDBACK_QUOTA_FEATURE = 'score';
@@ -77,6 +78,7 @@ export function createFeedbackHandlers(deps: FeedbackRouteDeps) {
       stored = envelope ? await store.loadByEnvelope(envelope.attemptId) : null;
     } catch (err) {
       console.error(`[POST /feedback] lookup failed for session "${sessionId}":`, err);
+      captureServerError(err, { route: 'POST /feedback', stage: 'lookup', status: 500, sessionId, userId });
       res.status(500).json({ error: 'feedback lookup failed' });
       return;
     }
@@ -98,6 +100,7 @@ export function createFeedbackHandlers(deps: FeedbackRouteDeps) {
         return;
       }
       console.error(`[POST /feedback] quota check failed for session "${sessionId}":`, err);
+      captureServerError(err, { route: 'POST /feedback', stage: 'quota', status: 503, sessionId, userId });
       res.status(503).json({ error: 'quota_service_unavailable' });
       return;
     }
@@ -110,6 +113,7 @@ export function createFeedbackHandlers(deps: FeedbackRouteDeps) {
         `[POST /feedback] generation failed for session "${sessionId}":`,
         err instanceof Error ? err.stack ?? err.message : err,
       );
+      captureServerError(err, { route: 'POST /feedback', stage: 'generation', status: 500, code: 'feedback_failed', sessionId, userId });
       await deps.releaseQuota(userId, FEEDBACK_QUOTA_FEATURE, key);
       res.status(500).json({ error: 'feedback failed', code: 'feedback_failed' });
       return;
@@ -122,6 +126,7 @@ export function createFeedbackHandlers(deps: FeedbackRouteDeps) {
       // The model call happened and was paid for; the grant stays charged. The
       // report is still returned so the candidate sees it; a later POST regenerates.
       console.error(`[POST /feedback] save failed for session "${sessionId}":`, err);
+      captureServerError(err, { route: 'POST /feedback', stage: 'save', sessionId, userId });
       res.status(200).json({ report });
     }
   }
@@ -147,6 +152,7 @@ export function createFeedbackHandlers(deps: FeedbackRouteDeps) {
       res.status(200).json({ report: stored });
     } catch (err) {
       console.error(`[GET /feedback] lookup failed for session "${sessionId}":`, err);
+      captureServerError(err, { route: 'GET /feedback', stage: 'lookup', status: 500, sessionId, userId });
       res.status(500).json({ error: 'feedback lookup failed' });
     }
   }

@@ -8,7 +8,7 @@ vi.mock('../../../../domain/pronunciation/audioNormalizer', async () => {
   return { normalizeToWav16kMono: normalize, AudioTooShortError, AudioTooLongError };
 });
 const track = vi.fn();
-vi.mock('../../../telemetry/telemetryService', () => ({ track }));
+vi.mock('../../../telemetry/telemetryService', () => ({ track, captureError: () => {} }));
 
 const { measureExamAudio, readWavPcm16Mono, EXAM_TURN_MAX_SECONDS } = await import('../measureExamAudio');
 const { putTurnAudio, getTurnAudio, clearAllExamAudio } = await import('../examAudioStore');

@@ -20,6 +20,7 @@ import { STORAGE_KEYS, storageGet, storageSet } from '../persistence/storage';
 import { getCoachProfile, getActiveGoal, daysUntilExam } from './coachProfileService';
 import { getBeliefSnapshot, getRecentEvidence } from './coachStorage';
 import { getSkillLabel, applyReadinessSubstitution } from './skillGraph';
+import { CORE_ONLY } from '../../config/launchScope';
 
 const EXAM_URGENCY_DAYS = 14;
 const OVERDUE_REVIEW_DAYS = 10;
@@ -181,15 +182,17 @@ function buildCandidates(
     });
   }
 
-  // --- Roleplay ---
-  const score2 = scoreCandidate('roleplay', [], snapshot, profile, urgency, evidence);
-  candidates.push({
-    type: 'roleplay',
-    score: score2,
-    targetSkillIds: [],
-    rationale: 'A scenario-based speaking exercise to build real-world fluency.',
-    suggestedMode: 'standard',
-  });
+  // --- Roleplay --- (not offered while scenarios are hidden by the launch scope)
+  if (!CORE_ONLY) {
+    const score2 = scoreCandidate('roleplay', [], snapshot, profile, urgency, evidence);
+    candidates.push({
+      type: 'roleplay',
+      score: score2,
+      targetSkillIds: [],
+      rationale: 'A scenario-based speaking exercise to build real-world fluency.',
+      suggestedMode: 'standard',
+    });
+  }
 
   // --- Confidence session (when confidence is low) ---
   if (profile.affect.confidenceScore < 0.5 || urgency === 'confidence_drop') {

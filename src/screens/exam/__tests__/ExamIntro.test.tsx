@@ -10,6 +10,7 @@ import { ExamIntro } from '../ExamIntro';
 vi.mock('../../../services/exam/examinerVoice', () => ({
   isTtsAvailable: () => false,
   hasFrenchVoice: () => true,
+  canSpeakFrench: () => true,
   ensureVoiceReady: () => Promise.resolve(),
 }));
 

@@ -9,7 +9,7 @@ const assessMock = vi.fn();
 vi.mock('../../../../services/pronunciation/pronunciationClient', () => ({
   assessPronunciation: (...args: unknown[]) => assessMock(...args),
 }));
-vi.mock('../../../../services/telemetry/telemetryService', () => ({ track: vi.fn() }));
+vi.mock('../../../../services/telemetry/telemetryService', () => ({ track: vi.fn(), captureError: vi.fn() }));
 vi.mock('../../../../services/telemetry/localCounters', () => ({ incrementCounter: vi.fn() }));
 vi.mock('../../../../services/tts/ttsService', () => ({ TTS: { speak: vi.fn() } }));
 vi.mock('../../../recording/Waveform', () => ({ Waveform: () => null }));

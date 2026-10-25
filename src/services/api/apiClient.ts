@@ -1,6 +1,6 @@
 import type { FeedbackV2, Question, SkillContext, GeneratedScenario, AIEngine, EngineMetadata, DifficultyTier, UnscoredReason, CoachingIssue, TranscriptSpan, MiniLesson, Severity, IssueCategory } from '../../types';
 import type { ChangeAnnotation } from '../../domain/learn/feedback/buildChanges';
-import { track } from '../telemetry/telemetryService';
+import { captureError, track } from '../telemetry/telemetryService';
 import { evaluate as offlineEvaluate } from '../coaching/coachService';
 import { DEFAULT_DIFFICULTY } from '../../utils/difficultyConfig';
 import { resolveFeatureStatus } from '../../config/featureFlags';
@@ -527,6 +527,8 @@ async function tryNetworkFeedback(
   engine: AIEngine,
   startTime: number,
   inputMode: CoachInputMode | undefined,
+  /** Receives why this engine failed, so the caller can report it once every engine has. */
+  onFailure?: (err: unknown) => void,
 ): Promise<{ result: FeedbackV2; actualEngine: AIEngine } | null> {
   const coldStart = getWarmupPhase() === 'warming';
   const timeoutMs = ENGINE_TIMEOUT_MS[engine] + (coldStart ? COLD_START_GRACE_MS : 0)
@@ -560,7 +562,10 @@ async function tryNetworkFeedback(
     // Validate the response shape before trusting it — schema failures fall
     // through to the next engine in the chain just like network errors do.
     const result = normalizeBackendFeedback(raw, `${engine}/v3`, String(requestBody.transcript ?? ''), inputMode);
-    if (result === null) return null;
+    if (result === null) {
+      onFailure?.(new SchemaValidationError(`${engine}/v3 feedback failed schema validation`));
+      return null;
+    }
     result.provider = raw.provider;
     result.providerAttempts = raw.providerAttempts;
     result.engineMeta = {
@@ -576,6 +581,7 @@ async function tryNetworkFeedback(
     // same token and would fail identically, so it propagates instead of being
     // swallowed into a silent engine-by-engine retry.
     if (isAuthRequiredError(err)) throw err;
+    onFailure?.(err);
     const msg = (err as Error).message;
     if (msg === 'Request timed out') {
       console.warn(`[AI Feedback] ${engine} timed out after ${timeoutMs}ms`);
@@ -764,12 +770,16 @@ export async function transcribeAudio(
       ...(typeof body.model === 'string' ? { model: body.model } : {}),
       segments: normalizeSegments(body.segments),
     };
-  } catch (err) {
-    if ((err as Error).name === 'AbortError') {
-      // The caller's own abort is not a timeout.
-      if (timedOut) throw new TranscribeTimeoutError();
-      throw err;
-    }
+  } catch (caught) {
+    // The caller's own abort is not a timeout, and not a failure.
+    if ((caught as Error).name === 'AbortError' && !timedOut) throw caught;
+    const err = (caught as Error).name === 'AbortError' ? new TranscribeTimeoutError() : caught;
+    // Reported here, once, for every caller (Learn, exam turns, Junior).
+    // Consent 403 / quota 429 / auth are filtered as expected states.
+    captureError(err, {
+      area: options.purpose === 'exam_turn' ? 'exam_transcription' : 'transcription',
+      stage: options.purpose ?? 'transcribe',
+    });
     throw err;
   } finally {
     clearTimeout(timer);
@@ -907,10 +917,11 @@ export async function getAIFeedback(
 
   let failoverReason: string | undefined;
   let fallbackUsed = false;
+  let lastFailure: unknown;
 
   for (let i = 0; i < fallbackChain.length; i++) {
     const engine = fallbackChain[i];
-    const attempt = await tryNetworkFeedback(requestBody, audioBlob, engine, startTime, inputMode);
+    const attempt = await tryNetworkFeedback(requestBody, audioBlob, engine, startTime, inputMode, (err) => { lastFailure = err; });
     if (attempt) {
       if (fallbackUsed && attempt.result.engineMeta) {
         attempt.result.engineMeta.fallbackUsed = true;
@@ -931,6 +942,14 @@ export async function getAIFeedback(
 
   // All network options exhausted → offline (already tier-aware and quality-gated in coachService)
   console.log('[AI Feedback] All network engines failed — using offline evaluation');
+  // The learner now gets offline feedback instead of AI feedback: that's the
+  // user-facing failure worth one Sentry issue (quota 429s etc. are filtered as expected).
+  captureError(lastFailure ?? new Error('All feedback engines failed'), {
+    area: 'learn_feedback',
+    stage: 'all_engines_failed',
+    engines: fallbackChain.join(','),
+    latency_ms: Date.now() - startTime,
+  });
   track({ name: 'ai_failover', props: { requested_engine: enginePreference, actual_engine: 'offline', reason: failoverReason ?? 'unknown', latency_ms: Date.now() - startTime } });
   const result = offlineEvaluate(transcript, question);
   result.engineMeta = {
@@ -1046,10 +1065,14 @@ export async function getExaminerFeedback(
     );
   } catch (err) {
     if ((err as Error).name === 'AbortError') throw err;
-    if (err instanceof Error && err.name === 'ExaminerGroundingFailedError') throw err;
+    if (err instanceof Error && err.name === 'ExaminerGroundingFailedError') {
+      captureError(err, { area: 'examiner_feedback', stage: 'grounding_failed', profile: context.profile });
+      throw err;
+    }
     // No usable session: the caller shows its signed-out state, not "failed".
     if (isAuthRequiredError(err)) throw err;
     if (err instanceof ApiHttpError && err.status === 429) throw new ExaminerQuotaExceededError();
+    captureError(err, { area: 'examiner_feedback', stage: 'request', profile: context.profile });
     // E1 parity: examiner mode has no offline fallback voice — a total
     // network failure must surface an honest error, never coach-voice
     // offline output silently substituted in.

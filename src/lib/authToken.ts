@@ -15,6 +15,7 @@
  * reads as a mystery 401. Hence the near-expiry refresh below.
  */
 import { supabase } from './supabase';
+import { captureError } from '../services/telemetry/telemetryService';
 
 /**
  * Temporary: guests may call the AI endpoints without a token (the backend
@@ -55,7 +56,9 @@ export async function getAccessToken(): Promise<string | null> {
     typeof expiresAt === 'number' && expiresAt - Date.now() / 1000 < REFRESH_SKEW_SEC;
   if (!nearExpiry) return session.access_token;
 
-  const { data: refreshed } = await supabase.auth.refreshSession();
+  const { data: refreshed, error } = await supabase.auth.refreshSession();
+  // A signed-in learner silently becoming "signed out" mid-session is worth knowing about.
+  if (error) captureError(error, { area: 'auth', stage: 'refreshSession' });
   return refreshed.session?.access_token ?? null;
 }
 
