@@ -117,7 +117,7 @@ function place(anchor: Rect | null, cardW: number, cardH: number): Placement {
  */
 export function GuidedTour({ steps, onEnd, ctaLabel }: Props) {
   const [index, setIndex] = useState(0);
-  const [anchor, setAnchor] = useState<Rect | null>(null);
+  const [anchor, setAnchor] = useState<Rect | null>(() => measureAnchors(steps[0].anchors));
   const [cardH, setCardH] = useState(220);
   const [vw, setVw] = useState(() => window.innerWidth);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -313,11 +313,11 @@ export function GuidedTour({ steps, onEnd, ctaLabel }: Props) {
       ) : (
         <div aria-hidden="true" className="fixed inset-0" style={{ background: 'var(--scrim)' }} />
       )}
-      {placement.kind === 'center' ? (
-        <div className="fixed inset-0 flex items-center justify-center p-4">{card}</div>
-      ) : (
-        card
-      )}
+      {/* One wrapper in both modes, so switching between a centred and an
+          anchored step never remounts the card (that would drop focus). */}
+      <div className={placement.kind === 'center' ? 'fixed inset-0 flex items-center justify-center p-4' : 'contents'}>
+        {card}
+      </div>
     </div>,
     document.body,
   );
