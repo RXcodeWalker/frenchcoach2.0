@@ -4692,3 +4692,23 @@ timeout under the per-minute limit, Gemini's free quota of 20 requests/day spent
 
 **Not verified.** No 22-answer run of `ladder-check-v3` (Groq's daily tokens were spent). Not clicked through in a
 browser. Capacity: ~8,000 Groq tokens per marked answer (~25 a day on the free tier, ~40 without the ladder).
+
+## 2026-10-25 — Launch usage limits: 3 Learn answers a day, one sample exam a week
+
+**Owner decision (2026-10-24).** 3 AI-marked Learn answers per account per day (follow-up answers count; the length
+picker is gone and a session has as many questions as answers left), and one sample exam per rolling 7 days (Exam Sim
+or Coached).
+
+**What enforces it.** Backend `learn_answer` quota (charged by Learn's `/api/feedback` and the examiner Learn profile's
+first attempt; refunded when no provider could mark the answer) and `GET /api/learn/allowance`; scoring service
+`server/examAllowance.ts` in `POST /score` (rolling 7 UTC days from `exam_attempt` grants, refunded on a failed scoring)
+and `GET /exam/allowance`. The app shows the answers left on Learn's setup screen, says "come back tomorrow" instead of
+marking offline, and shows "this week's sample exam is done" with the unlock date on the exam screen.
+
+**Database.** `ai_quota_limits` rows `learn_answer` (3) and `exam_attempt` (1), migration `20261025090000`, **applied to
+production** (project `French Coach`) on 2026-10-25 through the Supabase connector and read back. Noticed while there:
+`junior_transcribe` (migration `20261014090000`) is not in production; Junior is hidden by the launch scope.
+
+**Checks.** Backend pytest 963 passed. Frontend: typecheck, typecheck:server, lint (0 errors), vitest 417 files /
+4,817 tests, build, authoring:check, authoring:parity. Not checked: a real exam submission against the deployed
+scoring service, or a real fourth Learn answer against the deployed backend.

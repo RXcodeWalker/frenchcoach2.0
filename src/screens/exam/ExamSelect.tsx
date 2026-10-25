@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import { listPublishedQuestionSetsWithRetry, getOfflineAuthoredSets } from '../../data/exam/bank/loader';
 import type { AuthoredQuestionSet, Difficulty } from '../../data/exam/bank/types';
+import { getExamAllowance, weeklyExamLimitMessage, type ExamAllowance } from '../../services/exam/scoringApiClient';
 
 const TOPIC_AREA_LABEL: Record<string, string> = {
   A: 'Everyday Activities',
@@ -67,6 +68,19 @@ export function ExamSelect({ onSelect, onAutoFallback, notice, onDismissNotice }
   // mark that counts.
   const [mode, setMode] = useState<ExamModeChoice>('sim');
   const isSim = mode === 'sim';
+  // Launch limit: one sample exam per rolling 7 days (server GET /exam/allowance). Unknown
+  // (null) lets the learner start; POST /score enforces the same rule.
+  const [allowance, setAllowance] = useState<ExamAllowance | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    void getExamAllowance().then((a) => {
+      if (!cancelled) setAllowance(a);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  const weeklyLimitReached = allowance !== null && !allowance.allowed;
 
   // exam-conduct §4 (D4): Exam Sim never shows which sets exist before the
   // test starts — the candidate gets the existing uniform-random pick
@@ -127,6 +141,13 @@ export function ExamSelect({ onSelect, onAutoFallback, notice, onDismissNotice }
           </p>
         </div>
 
+        {weeklyLimitReached ? (
+          <div className="rounded-xl surface p-6 text-center space-y-1" role="status">
+            <p className="font-bold text-white text-sm">This week's sample exam is done</p>
+            <p className="text-[12px] text-ink-muted">{weeklyExamLimitMessage(allowance?.nextAvailableAt)}</p>
+          </div>
+        ) : (
+        <>
         <div className="rounded-xl surface-recessed p-1.5 flex gap-1.5">
           {(Object.keys(MODE_COPY) as ExamModeChoice[]).map((m) => (
             <button
@@ -246,6 +267,8 @@ export function ExamSelect({ onSelect, onAutoFallback, notice, onDismissNotice }
               </div>
             </motion.button>
           </>
+        )}
+        </>
         )}
       </motion.div>
     </div>

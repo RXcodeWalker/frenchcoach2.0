@@ -2,7 +2,8 @@ import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { TOPICS, getTopicQuestions } from '../data/gameData';
-import { getAIFeedback, streamFeedback, getExaminerFeedback, isExaminerQuotaExceededError } from '../services/api/apiClient';
+import { getAIFeedback, streamFeedback, getExaminerFeedback, isExaminerQuotaExceededError, getLearnAllowance, isLearnDailyLimitError } from '../services/api/apiClient';
+import { LEARN_DAILY_LIMIT_MESSAGE, dailySessionLength } from '../features/learn/dailyAllowance';
 import { isAuthRequiredError } from '../lib/authToken';
 import { isConsentRequiredError } from '../lib/consentRequired';
 import { assessPronunciation } from '../services/pronunciation/pronunciationClient';
@@ -121,6 +122,9 @@ export function Learn() {
   const [filters, setFilters] = useState<LearnFilters>(NO_FILTERS);
   // E1: honest error state when feedback could not be produced at all — never a fabricated score.
   const [feedbackErrorMessage, setFeedbackErrorMessage] = useState<string | null>(null);
+  // Launch limit: AI-marked answers left today (GET /api/learn/allowance), read each time
+  // the setup screen opens; null while unknown (the server still enforces the limit).
+  const [answersLeft, setAnswersLeft] = useState<number | null>(null);
   // 2.4: transcript confirmation step between stop() and evaluation, behind
   // learnTranscriptConfirm. Holds the transcription awaiting the student's
   // Use this / Re-record choice (Whisper primary, live captions second opinion —
@@ -293,7 +297,8 @@ export function Learn() {
       setRecommendationStatus('accepted');
     }
 
-    const target = mode === 'full_topic' ? questions.length : SESSION_TARGET[mode];
+    const target = dailySessionLength(answersLeft, mode === 'full_topic' ? questions.length : SESSION_TARGET[mode]);
+    if (target === 0) return; // no answers left today; the setup screen already says so
     const slotByQuestionId = new Map((builtSlots ?? []).map(s => [s.questionId, s]));
     const sessionQuestions: SessionQuestion[] = questions
       .slice(0, target)
@@ -324,7 +329,16 @@ export function Learn() {
     setIsRetry(false);
     resetSessionScopedState();
     setLearnState('question');
-  }, [selectedTopic, skillProfile, topicMastery, selectedDifficulty, aim, filters, dispatch, resetSessionScopedState, resolveSelectionInputs, focusTokenActive, adaptiveDifficultyLive]);
+  }, [selectedTopic, skillProfile, topicMastery, selectedDifficulty, aim, filters, dispatch, resetSessionScopedState, resolveSelectionInputs, focusTokenActive, adaptiveDifficultyLive, answersLeft]);
+
+  useEffect(() => {
+    if (learnState !== 'session_start') return;
+    let cancelled = false;
+    void getLearnAllowance().then((allowance) => {
+      if (!cancelled) setAnswersLeft(allowance ? allowance.remaining : null);
+    });
+    return () => { cancelled = true; };
+  }, [learnState]);
 
   // docs §14 UX #1 — the same read sessionBuilder.ts's adaptive path selects
   // from (belief snapshot + AppState's tier as the cold-start seed), so the
@@ -351,7 +365,9 @@ export function Learn() {
       sessionBlend,
       { aim: previewAim, migratedTier: selectedDifficulty, filters },
     );
-    return summarisePreview(slots, computeSessionTarget(sessionStartAbility().abilityScore, previewAim));
+    // Only the questions this session keeps (the answers left today), as startSession slices them.
+    const kept = (slots ?? []).slice(0, dailySessionLength(answersLeft, (slots ?? []).length));
+    return summarisePreview(kept, computeSessionTarget(sessionStartAbility().abilityScore, previewAim));
   };
 
   // ── Recording + evaluation ────────────────────────────────────────────────────
@@ -729,6 +745,15 @@ export function Learn() {
         // E1: total failure — no real feedback exists. Show an honest error and let the
         // candidate retry, rather than inventing a score that flows into XP/achievements/
         // the coach loop as if it were a real assessment.
+        if (isLearnDailyLimitError(fallbackErr)) {
+          // Today's AI-marked answers are used up: say so, never mark it offline instead.
+          if (myAttemptId !== attemptIdRef.current) return;
+          setAnswersLeft(0);
+          setIsLoadingFeedback(false);
+          setFeedbackErrorMessage(LEARN_DAILY_LIMIT_MESSAGE);
+          setLearnState('question');
+          return;
+        }
         console.warn('[Learn] feedback unavailable:', fallbackErr);
         captureError(fallbackErr, { area: 'learn_feedback', stage: 'total_failure' });
         if (myAttemptId !== attemptIdRef.current) return;
@@ -1235,6 +1260,7 @@ export function Learn() {
                 onFeedbackModeChange={setFeedbackMode}
                 markingLevel={markingLive ? markingLevel : undefined}
                 onMarkingLevelChange={markingLive ? (level) => dispatch({ type: 'SET_MARKING_LEVEL', level }) : undefined}
+                answersLeft={answersLeft}
               />
             </motion.div>
           )}

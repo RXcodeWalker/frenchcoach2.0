@@ -80,6 +80,10 @@ applied in the SQL editor **first** — an unseeded quota feature 503s every cal
 ledger `reserve` fails open with a warning — then backend `main`, then the frontend. Until the
 migrations are applied the route cannot store evidence.
 
+**Deploy order for the launch usage limits (2026-10-25).** Migration `20261025090000` (`learn_answer`,
+`exam_attempt` quota rows) first — applied to production on 2026-10-25 — then backend `main` and the scoring service
+(`french-scoring`), then the frontend. Without the rows every Learn answer and every exam submission 503s on the FK.
+
 ### Recorded voices (2026-10-24; plan `docs/plans/recorded-voices.md`)
 
 - **Supabase Storage bucket `tts-audio`** (public, project "French Coach"). Holds one MP3 per

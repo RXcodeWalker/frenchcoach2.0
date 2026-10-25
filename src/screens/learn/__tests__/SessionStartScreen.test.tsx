@@ -3,7 +3,7 @@
 import { describe, expect, it, vi, afterEach } from 'vitest';
 import { useState } from 'react';
 import { render, cleanup, fireEvent, screen, within } from '@testing-library/react';
-import { SessionStartScreen } from '../SessionStartScreen';
+import { DAILY_SESSION_MODE, SessionStartScreen } from '../SessionStartScreen';
 import type { Aim } from '../../../domain/learn/selection/sessionTarget';
 import { NO_FILTERS, type LearnFilters } from '../../../domain/learn/selection/filters';
 import type { SessionPreview } from '../../../features/learn/sessionSetup';
@@ -28,11 +28,12 @@ interface HarnessProps {
   onFeedbackModeChange?: (m: FeedbackMode) => void;
   getPreview?: (mode: SessionMode, aim: Aim) => SessionPreview | null;
   adaptive?: boolean;
+  answersLeft?: number | null;
 }
 
 function Harness({
   matchCount = 46, initialFilters = NO_FILTERS, focusOptions = ['present', 'past'], onStart = vi.fn(),
-  onFiltersChange, onFeedbackModeChange, getPreview, adaptive = true,
+  onFiltersChange, onFeedbackModeChange, getPreview, adaptive = true, answersLeft = null,
 }: HarnessProps) {
   const [aim, setAim] = useState<Aim>('balanced');
   const [filters, setFilters] = useState<LearnFilters>(initialFilters);
@@ -53,11 +54,10 @@ function Harness({
       getPreview={getPreview}
       feedbackMode={feedbackMode}
       onFeedbackModeChange={(m) => { setFeedbackMode(m); onFeedbackModeChange?.(m); }}
+      answersLeft={answersLeft}
     />
   );
 }
-
-const lengthButton = (n: number) => screen.getByRole('button', { name: new RegExp(`^${n}\\b`) });
 
 describe('SessionStartScreen — what is gone', () => {
   it('has no engine picker and no separate "just one question" button', () => {
@@ -69,30 +69,40 @@ describe('SessionStartScreen — what is gone', () => {
   });
 });
 
-describe('SessionStartScreen — questions (length)', () => {
-  it('offers 1, 5, 10 and 20, defaulting to 10', () => {
+describe('SessionStartScreen — today\'s answers (launch limit, no length picker)', () => {
+  it('has no length picker; Start builds a session with the daily mode', () => {
     const onStart = vi.fn();
     render(<Harness onStart={onStart} />);
-    for (const n of [1, 5, 10, 20]) expect(lengthButton(n)).toBeTruthy();
+    for (const n of [5, 10, 20]) expect(screen.queryByRole('button', { name: new RegExp(`^${n} questions`) })).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: /start session/i }));
-    expect(onStart).toHaveBeenCalledWith('standard');
+    expect(onStart).toHaveBeenCalledWith(DAILY_SESSION_MODE);
   });
 
-  it('shows how many questions match', () => {
-    render(<Harness matchCount={40} />);
-    expect(screen.getByText('40 questions match')).toBeTruthy();
+  it('says how many AI-marked answers are left and how long the session is', () => {
+    render(<Harness answersLeft={2} />);
+    expect(screen.getByText(/2 of 3 AI-marked answers left today\. This session has 2 questions\./)).toBeTruthy();
   });
 
-  it('disables lengths above the match count and clamps a larger choice with a message', () => {
+  it('while the allowance is unknown it states the daily number and offers 3 questions', () => {
+    render(<Harness answersLeft={null} />);
+    expect(screen.getByText(/3 AI-marked answers a day\. This session has 3 questions\./)).toBeTruthy();
+  });
+
+  it('with no answers left today Start is disabled and it says come back tomorrow', () => {
     const onStart = vi.fn();
-    render(<Harness matchCount={7} onStart={onStart} />);
-    expect((lengthButton(10) as HTMLButtonElement).disabled).toBe(true);
-    expect((lengthButton(20) as HTMLButtonElement).disabled).toBe(true);
-    expect((lengthButton(5) as HTMLButtonElement).disabled).toBe(false);
-    // The default (10) no longer fits, so the session is clamped to 5 — and says so.
-    expect(screen.getByText(/only 7 questions match/i)).toBeTruthy();
+    render(<Harness answersLeft={0} onStart={onStart} />);
+    expect(screen.getByText(/Come back tomorrow/)).toBeTruthy();
+    const start = screen.getByRole('button', { name: /start session/i }) as HTMLButtonElement;
+    expect(start.disabled).toBe(true);
+    fireEvent.click(start);
+    expect(onStart).not.toHaveBeenCalled();
+  });
+
+  it('a filter that matches fewer than 5 questions still builds a session', () => {
+    const onStart = vi.fn();
+    render(<Harness matchCount={2} onStart={onStart} />);
     fireEvent.click(screen.getByRole('button', { name: /start session/i }));
-    expect(onStart).toHaveBeenCalledWith('quick');
+    expect(onStart).toHaveBeenCalledWith('single');
   });
 
   it('with zero matches Start is disabled and one tap clears the filter', () => {
@@ -154,11 +164,10 @@ describe('SessionStartScreen — difficulty and preview', () => {
     expect(screen.getByText('Pitched at Exam level (A2).')).toBeTruthy();
   });
 
-  it('the preview follows the chosen length', () => {
+  it('the preview is asked for the daily session mode', () => {
     const spy = vi.fn(getPreview);
     render(<Harness getPreview={spy} />);
-    fireEvent.click(lengthButton(5));
-    expect(spy).toHaveBeenLastCalledWith('quick', 'balanced');
+    expect(spy).toHaveBeenLastCalledWith(DAILY_SESSION_MODE, 'balanced');
   });
 });
 

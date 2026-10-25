@@ -53,7 +53,8 @@ import { buildEnvelopeView } from '../src/domain/igcse/envelope/envelopeView';
 import { isScoringDebugEnabled } from '../scripts/scoring/observability/logger';
 import { resolveAndVerifyQuestionSet, QuestionSetNotFoundError, QuestionSetHashMismatchError } from './resolveQuestionSet';
 import { createTtlCache, probeGroq, probeGemini, type ProviderProbeStatus } from './healthProbe';
-import { consumeAiQuotaOr503, QuotaDeniedError, releaseAiQuotaGrant } from './aiQuota';
+import { consumeAiQuotaOr503, getQuotaClient, QuotaDeniedError, releaseAiQuotaGrant } from './aiQuota';
+import { EXAM_ATTEMPT_FEATURE, examAllowanceFrom, loadExamGrantDates } from './examAllowance';
 import { classifyScoringFailure } from './scoringFailure';
 import { createFeedbackHandlers } from './feedbackRoute';
 import { createSupabaseFeedbackStore } from '../scripts/scoring/supabaseFeedbackStore';
@@ -192,8 +193,33 @@ app.post('/score', async (req: Request, res: Response) => {
   // throughout this plan (phase-3-plan-tidy-widget.md §2 correction #6).
   // sessionId is a crypto.randomUUID() minted once per attempt and resent
   // verbatim on retry (ExamMode.tsx), so it doubles as the idempotency key.
+  // Launch limit: one sample exam per rolling 7 days (examAllowance.ts). Checked
+  // before anything is charged; a retry of this same attempt never counts against
+  // itself. A failed scoring gives the week back (catch below).
+  try {
+    const allowance = examAllowanceFrom(
+      await loadExamGrantDates(getQuotaClient(), userId, new Date(), transcript.sessionId),
+      new Date(),
+    );
+    if (!allowance.allowed) {
+      res.status(429).json({ error: 'weekly_exam_limit', nextAvailableAt: allowance.nextAvailableAt });
+      return;
+    }
+  } catch (err) {
+    console.error(`[POST /score] weekly exam check failed for session "${transcript.sessionId}":`, err);
+    res.status(503).json({ error: 'quota_service_unavailable' });
+    return;
+  }
+
   try {
     await consumeAiQuotaOr503(userId, 'score', transcript.sessionId);
+    try {
+      await consumeAiQuotaOr503(userId, EXAM_ATTEMPT_FEATURE, transcript.sessionId);
+    } catch (err) {
+      // Not charged for scoring it will not get.
+      await releaseAiQuotaGrant(userId, 'score', transcript.sessionId);
+      throw err;
+    }
   } catch (err) {
     if (err instanceof QuotaDeniedError) {
       res.status(err.statusCode).json({ error: err.reason, ...err.data });
@@ -242,11 +268,33 @@ app.post('/score', async (req: Request, res: Response) => {
     // GET /score answers 404 now rather than 202 for STALE_THRESHOLD_MS, and
     // the client's retry POST isn't turned away as an in-flight duplicate.
     await markAttemptFailed(transcriptStoreOptions, transcript.sessionId);
+    // A failed scoring does not use up the learner's exam for the week.
+    await releaseAiQuotaGrant(userId, EXAM_ATTEMPT_FEATURE, transcript.sessionId);
     // `code` marks this 500 as a definitive failure the client may retry
     // with a fresh POST (see scoringFailure.ts).
     const code = classifyScoringFailure(err);
     captureServerError(err, { route: 'POST /score', stage: 'scoring', status: 500, code, sessionId: transcript.sessionId, userId });
     res.status(500).json({ error: 'scoring failed', code });
+  }
+});
+
+/**
+ * Whether this account may sit a sample exam now (one per rolling 7 days), read without
+ * charging anything: { allowed, lastExamDate, nextAvailableAt }. The exam screen asks
+ * before the learner starts; POST /score enforces the same rule.
+ */
+app.get('/exam/allowance', async (req: Request, res: Response) => {
+  const userId = await authenticate(req);
+  if (!userId) {
+    res.status(401).json({ error: 'unauthorized' });
+    return;
+  }
+  try {
+    const now = new Date();
+    res.status(200).json(examAllowanceFrom(await loadExamGrantDates(getQuotaClient(), userId, now), now));
+  } catch (err) {
+    console.error('[GET /exam/allowance] lookup failed:', err);
+    res.status(503).json({ error: 'quota_service_unavailable' });
   }
 });
 

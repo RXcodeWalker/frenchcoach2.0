@@ -51,7 +51,8 @@ interface ConsumeAiQuotaData {
 
 let quotaClient: SupabaseClient | null = null;
 
-function getQuotaClient(): SupabaseClient {
+/** The service-role client the quota RPCs use (also read by examAllowance.ts). */
+export function getQuotaClient(): SupabaseClient {
   if (!quotaClient) {
     const url = process.env.SUPABASE_URL;
     const key = process.env.SUPABASE_SERVICE_KEY;

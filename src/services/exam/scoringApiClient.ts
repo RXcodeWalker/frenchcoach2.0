@@ -36,15 +36,57 @@ export class ScoringApiError extends Error {
    * server sent one (POST /score's 500 carries judge_invalid_output |
    * judge_unavailable | internal — see server/scoringFailure.ts).
    */
-  constructor(message: string, public status?: number, public code?: string) {
+  constructor(message: string, public status?: number, public code?: string, public nextAvailableAt?: string) {
     super(message);
     this.name = 'ScoringApiError';
   }
 }
 
-/** True for a status that will never succeed by repeating the same request unchanged. */
+/**
+ * True for a status that will never succeed by repeating the same request unchanged. A 429
+ * is a usage limit (one sample exam per 7 days, or the daily scoring cap): retrying within
+ * this attempt cannot change it.
+ */
 export function isTerminalScoringStatus(status: number | undefined): boolean {
-  return status === 400 || status === 401 || status === 403 || status === 409;
+  return status === 400 || status === 401 || status === 403 || status === 409 || status === 429;
+}
+
+/** "Saturday 1 November", in the learner's own time zone. */
+export function formatUnlockDate(iso: string | null | undefined): string | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' });
+}
+
+/** Launch limit (owner, 2026-10-24): one sample exam per rolling 7 days. */
+export function weeklyExamLimitMessage(nextAvailableAt: string | null | undefined): string {
+  const when = formatUnlockDate(nextAvailableAt);
+  return `You can take one sample exam a week, and you've had this week's.${when ? ` Your next one unlocks on ${when}.` : ''}`;
+}
+
+export interface ExamAllowance {
+  allowed: boolean;
+  lastExamDate: string | null;
+  nextAvailableAt: string | null;
+}
+
+/**
+ * Whether this account may sit a sample exam now (server/index.ts GET /exam/allowance),
+ * read without charging. null when it cannot be read (signed out, offline, not
+ * configured) — the caller lets the learner start, and POST /score still enforces it.
+ */
+export async function getExamAllowance(): Promise<ExamAllowance | null> {
+  if (!SCORING_API_BASE) return null;
+  try {
+    const res = await fetch(`${SCORING_API_BASE}/exam/allowance`, { headers: await authHeaders() });
+    if (!res.ok) return null;
+    const body = (await res.json()) as Partial<ExamAllowance>;
+    if (typeof body.allowed !== 'boolean') return null;
+    return { allowed: body.allowed, lastExamDate: body.lastExamDate ?? null, nextAvailableAt: body.nextAvailableAt ?? null };
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -60,6 +102,11 @@ export function isTerminalScoringStatus(status: number | undefined): boolean {
 export function terminalScoringMessage(err: ScoringApiError): string {
   if (err.status === 409) {
     return "This exam's questions were updated after you took it, so this attempt can't be marked. Please retake the exam.";
+  }
+  if (err.status === 429) {
+    return err.code === 'weekly_exam_limit'
+      ? weeklyExamLimitMessage(err.nextAvailableAt)
+      : "You've reached today's limit for exam marking. Please try again tomorrow.";
   }
   return err.message;
 }
@@ -181,14 +228,18 @@ async function parseEnvelopeResponse(res: Response): Promise<EnvelopeView> {
   if (!res.ok) {
     let message = `Scoring request failed (${res.status})`;
     let code: string | undefined;
+    let nextAvailableAt: string | undefined;
     try {
       const body = await res.json();
       if (body?.error) message = body.error;
       if (typeof body?.code === 'string') code = body.code;
+      // A usage-limit 429 names its limit in `error` (weekly_exam_limit, daily_quota_reached).
+      if (res.status === 429 && typeof body?.error === 'string') code = body.error;
+      if (typeof body?.nextAvailableAt === 'string') nextAvailableAt = body.nextAvailableAt;
     } catch {
       /* keep default message */
     }
-    throw new ScoringApiError(message, res.status, code);
+    throw new ScoringApiError(message, res.status, code, nextAvailableAt);
   }
   return res.json() as Promise<EnvelopeView>;
 }

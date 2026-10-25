@@ -1,9 +1,9 @@
-import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Target, Zap, ChevronRight, Clock } from 'lucide-react';
+import { Target, Zap, ChevronRight } from 'lucide-react';
 import type { CoachRecommendation } from '../../types/coach';
 import type { Topic, SessionMode, TopicMasteryEntry, FeedbackMode } from '../../types';
-import { SESSION_DURATION } from '../../utils/sessionBuilder';
+import { SESSION_TARGET } from '../../utils/sessionBuilder';
+import { LEARN_ANSWERS_PER_DAY, LEARN_DAILY_LIMIT_MESSAGE, dailySessionLength } from '../../features/learn/dailyAllowance';
 import { AIM_CONFIG } from '../../utils/difficultyConfig';
 import type { Aim } from '../../domain/learn/selection/sessionTarget';
 import { MARKING_LEVELS, type MarkingLevel } from '../../domain/learn/marking/markingLevel';
@@ -11,9 +11,7 @@ import { GRAMMAR_FOCI, type GrammarFocus, type LearnFilters } from '../../domain
 import { measuredLevelDisplay } from '../../domain/learn/ability/levelLabel';
 import type { AbilityResult } from '../../domain/learn/ability/deriveAbility';
 import {
-  SETUP_LENGTHS,
   clampLength,
-  isLengthAvailable,
   previewText,
   type SessionPreview,
 } from '../../features/learn/sessionSetup';
@@ -51,7 +49,12 @@ interface Props {
    */
   markingLevel?: MarkingLevel;
   onMarkingLevelChange?: (level: MarkingLevel) => void;
+  /** AI-marked Learn answers left today (GET /api/learn/allowance); null while unknown. 0 disables Start. */
+  answersLeft?: number | null;
 }
+
+/** The mode a session is built with; Learn then trims it to the answers left today. */
+export const DAILY_SESSION_MODE: SessionMode = 'quick';
 
 const AIMS: Aim[] = ['comfortable', 'balanced', 'push'];
 
@@ -71,11 +74,13 @@ export function SessionStartScreen({
   filters, onFiltersChange, focusOptions, matchCount, getPreview,
   feedbackMode, onFeedbackModeChange,
   markingLevel, onMarkingLevelChange,
+  answersLeft = null,
 }: Props) {
-  // The learner's choice is kept as picked; what is used is that choice clamped
-  // to the questions that match (so clearing a filter restores the pick).
-  const [chosen, setChosen] = useState<SessionMode>('standard');
-  const { mode: effectiveMode, clamped } = clampLength(chosen, matchCount);
+  // No length picker (launch limit): a session is built as 'quick' and Learn keeps as many
+  // questions as the learner has AI-marked answers left today (dailySessionLength).
+  const { mode: builtMode } = clampLength(DAILY_SESSION_MODE, matchCount);
+  const sessionLength = builtMode ? dailySessionLength(answersLeft, SESSION_TARGET[builtMode]) : 0;
+  const effectiveMode = builtMode && sessionLength > 0 ? builtMode : null;
   const questionsAnswered = topicMastery?.uniqueQuestionsAnswered.length ?? 0;
   const avgScore = topicMastery?.averageScore;
 
@@ -199,47 +204,21 @@ export function SessionStartScreen({
         </div>
       )}
 
-      {/* Questions (length) */}
+      {/* Today's AI-marked answers (launch limit: 3 a day) — replaces the length picker */}
       <div className="space-y-2">
-        <div className="flex items-baseline justify-between">
-          <p className={SECTION_LABEL}>Questions</p>
-          {focusOptions && (
-            <p className="text-[11px] text-ink-muted">{matchCount} {matchCount === 1 ? 'question matches' : 'questions match'}</p>
+        <p className={SECTION_LABEL}>Today</p>
+        <div className="p-3 rounded-2xl surface-recessed">
+          {answersLeft === 0 ? (
+            <p className="text-sm text-ink-muted">{LEARN_DAILY_LIMIT_MESSAGE}</p>
+          ) : (
+            <p className="text-sm text-ink-muted">
+              {answersLeft === null
+                ? `${LEARN_ANSWERS_PER_DAY} AI-marked answers a day.`
+                : `${answersLeft} of ${LEARN_ANSWERS_PER_DAY} AI-marked answers left today.`}
+              {' '}This session has {sessionLength} {sessionLength === 1 ? 'question' : 'questions'}.
+            </p>
           )}
         </div>
-        <div className="grid grid-cols-4 gap-2">
-          {SETUP_LENGTHS.map(({ mode, count }) => {
-            const available = isLengthAvailable(mode, matchCount);
-            const selected = effectiveMode === mode;
-            return (
-              <motion.button
-                key={mode}
-                type="button"
-                disabled={!available}
-                aria-pressed={selected}
-                aria-label={count === 1 ? '1 question' : `${count} questions`}
-                onClick={() => setChosen(mode)}
-                title={available ? undefined : `Only ${matchCount} ${matchCount === 1 ? 'question matches' : 'questions match'}`}
-                className={`flex flex-col items-center gap-0.5 py-3 rounded-2xl border transition-all duration-200 ${
-                  selected
-                    ? 'bg-violet-electric/10 border-violet-electric/40 ring-1 ring-violet-electric/30'
-                    : 'surface-recessed border-transparent hover:border-white/10'
-                } ${available ? '' : 'opacity-40 cursor-not-allowed'}`}
-                whileTap={available ? { scale: 0.97 } : undefined}
-              >
-                <span className={`text-lg font-black ${selected ? 'text-white' : 'text-ink-muted'}`}>{count}</span>
-                <span className="flex items-center gap-1 text-[10px] text-ink-subtle">
-                  <Clock size={9} />{SESSION_DURATION[mode].replace('~', '')}
-                </span>
-              </motion.button>
-            );
-          })}
-        </div>
-        {clamped && matchCount > 0 && (
-          <p className="text-[11px] text-ink-muted px-1">
-            Only {matchCount} {matchCount === 1 ? 'question matches' : 'questions match'}, so this session is set to {effectiveMode ? SETUP_LENGTHS.find((l) => l.mode === effectiveMode)?.count : 0}.
-          </p>
-        )}
         {matchCount === 0 && (
           <div className="flex items-center justify-between gap-3 p-3 rounded-xl surface-recessed">
             <p className="text-xs text-ink-muted">No questions match this focus yet.</p>

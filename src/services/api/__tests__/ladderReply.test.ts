@@ -12,7 +12,7 @@ vi.mock('../../../lib/supabase', () => ({
 
 import { supabase } from '../../../lib/supabase';
 import fixture from '../../../domain/learn/marking/__tests__/fixtures/ladderReply.fam_01_simple_a1.json';
-import { getAIFeedback, LADDER_CHECK_GRACE_MS } from '../apiClient';
+import { getAIFeedback, getLearnAllowance, isLearnDailyLimitError, LADDER_CHECK_GRACE_MS, type LearnDailyLimitError } from '../apiClient';
 import { validateBackendFeedback } from '../feedbackSchema';
 import { LEARN_MARKING_SCHEME, MARKING_LEVELS, markedScore, resolveMarkedScore } from '../../../domain/learn/marking/markingLevel';
 import type { Question } from '../../../types';
@@ -135,5 +135,46 @@ describe('ladder reply (learn-marking §7)', () => {
     const parsed = validateBackendFeedback(broken, 'test');
     expect(parsed.levelCheck?.needsByLevel.B1).toEqual([]);
     expect(parsed.levelCheck?.needsByLevel.A1).toHaveLength(1);
+  });
+});
+
+describe('Learn daily allowance (launch limit: 3 AI-marked answers a day)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+    vi.mocked(supabase.auth.getSession).mockResolvedValue({ data: { session: null }, error: null } as never);
+  });
+
+  it("a 429 for Learn's allowance is LearnDailyLimitError, not offline marking", async () => {
+    fetchMock.mockReset();
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 429,
+      text: async () => JSON.stringify({ detail: { ok: true, granted: false, used: 3, limit: 3, reason: 'daily_quota_reached', error: 'daily_quota_reached' } }),
+      json: async () => ({}),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const err = await getAIFeedback(TRANSCRIPT, QUESTION, undefined, undefined, 'groq', 'intermediate', 'speech', LEARN_MARKING_SCHEME).catch((e: unknown) => e);
+    expect(isLearnDailyLimitError(err)).toBe(true);
+    expect((err as LearnDailyLimitError).limit).toBe(3);
+    expect(fetchMock).toHaveBeenCalledTimes(1); // no second engine: they share the allowance
+  });
+
+  it('another 429 still falls through to the next engine as before', async () => {
+    fetchMock.mockReset();
+    fetchMock.mockResolvedValue({ ok: false, status: 429, text: async () => 'Too Many Requests', json: async () => ({}) });
+    vi.stubGlobal('fetch', fetchMock);
+    const fb = await getAIFeedback(TRANSCRIPT, QUESTION, undefined, undefined, 'groq', 'intermediate', 'speech', LEARN_MARKING_SCHEME);
+    expect(fb.engineMeta?.actualEngine).toBe('offline');
+  });
+
+  it('getLearnAllowance reads remaining answers, and is null when unreadable', async () => {
+    fetchMock.mockReset();
+    fetchMock.mockResolvedValueOnce({ ok: true, json: async () => ({ limit: 3, used: 1, remaining: 2, resetsAt: '2026-10-26T00:00:00+00:00' }) });
+    vi.stubGlobal('fetch', fetchMock);
+    expect(await getLearnAllowance()).toEqual({ limit: 3, used: 1, remaining: 2, resetsAt: '2026-10-26T00:00:00+00:00' });
+    expect(String(fetchMock.mock.calls[0][0])).toMatch(/\/api\/learn\/allowance$/);
+    fetchMock.mockResolvedValueOnce({ ok: false, status: 503, json: async () => ({}) });
+    expect(await getLearnAllowance()).toBeNull();
   });
 });

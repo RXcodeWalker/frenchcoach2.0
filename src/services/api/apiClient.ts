@@ -581,6 +581,9 @@ async function tryNetworkFeedback(
     // same token and would fail identically, so it propagates instead of being
     // swallowed into a silent engine-by-engine retry.
     if (isAuthRequiredError(err)) throw err;
+    // Same for Learn's daily allowance: the next engine shares it.
+    const dailyLimit = learnDailyLimitFrom(err, requestBody);
+    if (dailyLimit) throw dailyLimit;
     onFailure?.(err);
     const msg = (err as Error).message;
     if (msg === 'Request timed out') {
@@ -597,6 +600,8 @@ export class ApiHttpError extends Error {
   constructor(
     path: string,
     readonly status: number,
+    /** The response body as text, when it was read (a 429's reason lives here). */
+    readonly body?: string,
   ) {
     super(`API ${path} → ${status}`);
     this.name = 'ApiHttpError';
@@ -614,9 +619,62 @@ async function postWithSignal<T>(path: string, body: unknown, signal: AbortSigna
     const text = await res.text().catch(() => '');
     console.error(`[API] ${path} → ${res.status}`, text.slice(0, 300));
     assertNotAuthFailure(path, res.status);
-    throw new ApiHttpError(path, res.status);
+    throw new ApiHttpError(path, res.status, text);
   }
   return res.json() as Promise<T>;
+}
+
+/**
+ * Learn's daily allowance of AI-marked answers is used up (launch limit: 3 per account per
+ * day; backend `learn_answer`). Not "this engine is down": every engine shares the same
+ * allowance, so it propagates out of getAIFeedback and Learn says "come back tomorrow"
+ * instead of falling back to offline marking.
+ */
+export class LearnDailyLimitError extends Error {
+  constructor(readonly limit?: number) {
+    super('learn_daily_limit');
+    this.name = 'LearnDailyLimitError';
+  }
+}
+
+export function isLearnDailyLimitError(err: unknown): err is LearnDailyLimitError {
+  return err instanceof LearnDailyLimitError;
+}
+
+/** A 429 for Learn's own daily allowance, as opposed to a rate limit or another feature's cap. */
+function learnDailyLimitFrom(err: unknown, requestBody: Record<string, unknown>): LearnDailyLimitError | null {
+  if (!(err instanceof ApiHttpError) || err.status !== 429 || !requestBody.marking) return null;
+  try {
+    const body = JSON.parse(err.body ?? '') as { detail?: { error?: string; limit?: number } };
+    return body.detail?.error === 'daily_quota_reached' ? new LearnDailyLimitError(body.detail.limit) : null;
+  } catch {
+    return null;
+  }
+}
+
+export interface LearnAllowance {
+  limit: number;
+  used: number;
+  remaining: number;
+  /** ISO time the allowance resets (00:00 UTC). */
+  resetsAt: string;
+}
+
+/**
+ * How many AI-marked Learn answers this account has left today, read without charging
+ * (backend GET /api/learn/allowance). null when it could not be read — the caller then
+ * lets the learner start and the server's own limit still applies.
+ */
+export async function getLearnAllowance(): Promise<LearnAllowance | null> {
+  try {
+    const res = await fetch(`${API_BASE}/api/learn/allowance`, { headers: await optionalAuthHeader() });
+    if (!res.ok) return null;
+    const data = (await res.json()) as Partial<LearnAllowance>;
+    if (typeof data.limit !== 'number' || typeof data.remaining !== 'number') return null;
+    return { limit: data.limit, used: data.used ?? data.limit - data.remaining, remaining: data.remaining, resetsAt: String(data.resetsAt ?? '') };
+  } catch {
+    return null;
+  }
 }
 
 async function postMultipartWithSignal<T>(path: string, formData: FormData, signal: AbortSignal): Promise<T> {
