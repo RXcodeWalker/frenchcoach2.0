@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { Landing } from '../../Landing';
+import { LANDING_FAQ, LANDING_SECTIONS } from '../landingContent';
+import { PAGE_SEO } from '../../../config/seo';
 
+// Hidden or unbuilt features (src/config/launchScope.ts) must not be advertised.
 const BANNED_STRINGS = [
   'Whisper',
   'spaced repetition',
@@ -21,10 +24,27 @@ const BANNED_STRINGS = [
   'Challenges',
   'Listening Mode',
   'Sentence Rebuilder',
+  'scenario',
+];
+
+// The owner removed hedging copy from the landing page; it must not creep back.
+const HEDGING = [/illustrative/i, /unvalidated/i, /early preview/i, /in active development/i, /rough signal/i];
+
+// …and must not be replaced with claims we can't back up.
+const OVERCLAIMS = [
+  /predicts? your grade/i,
+  /exactly like (the )?cambridge/i,
+  /(?<!not an )official (cambridge )?(mark|grade|score)/i,
+  /same as (a |the )?real examiner/i,
+  /\b\d{2,}(,\d{3})*\+? (students|learners|users)\b/i,
+  /testimonial/i,
 ];
 
 describe('Landing (static prerender output)', () => {
   const markup = renderToStaticMarkup(createElement(Landing));
+  const text = markup.replace(/<[^>]+>/g, ' ');
+  // The page body only: the shared footer links to every marketing page.
+  const mainText = (markup.match(/<main[\s\S]*<\/main>/)?.[0] ?? '').replace(/<[^>]+>/g, ' ');
 
   it('renders exactly one <h1>', () => {
     const matches = markup.match(/<h1[\s>]/g) ?? [];
@@ -46,24 +66,51 @@ describe('Landing (static prerender output)', () => {
     expect(markup).not.toContain('opacity: 0');
   });
 
-  it('includes both primary CTAs', () => {
+  it('ships the finished demo, not an empty animation frame', () => {
+    expect(markup).toContain('Feedback ready');
+    expect(markup).toContain('What you did well');
+    expect(markup).toContain('Fix this first');
+    expect(markup).not.toContain('invisible');
+  });
+
+  it('includes the primary CTA, sign-in and section navigation', () => {
     expect(markup).toContain('Start practising free');
     expect(markup).toContain('See how it works');
+    expect(markup).toContain('href="/login"');
+    for (const section of LANDING_SECTIONS) {
+      expect(markup).toContain(`id="${section.id}"`);
+      expect(markup).toContain(`href="#${section.id}"`);
+    }
   });
 
   it('does not contain any banned/unbuilt-feature strings', () => {
     for (const banned of BANNED_STRINGS) {
-      expect(markup).not.toContain(banned);
+      expect(mainText).not.toContain(banned);
     }
   });
 
-  it('never claims a grade prediction — only the negation of one', () => {
-    expect(markup).not.toMatch(/\bwe predict your grade|grade prediction feature|calibrated prediction of your grade\b/i);
-    expect(markup).toContain('not a grade prediction');
+  it('carries no hedging copy and no unprovable claims', () => {
+    for (const re of [...HEDGING, ...OVERCLAIMS]) {
+      expect(text).not.toMatch(re);
+    }
   });
 
-  it('frames DELF as planned, never as currently supported', () => {
-    expect(markup).not.toContain('DELF preparation');
-    expect(markup).toMatch(/Planned:\s*DELF/);
+  it('describes marking as "against the criteria", never as equivalence', () => {
+    expect(text).toContain('marked against the Cambridge 0520 speaking criteria');
+  });
+
+  it('keeps the Cambridge non-affiliation statement', () => {
+    expect(text).toMatch(/not affiliated with or endorsed by\s+Cambridge Assessment International Education/);
+  });
+
+  it('shows every FAQ the structured data describes, and nothing else', () => {
+    for (const item of LANDING_FAQ) {
+      expect(markup).toContain(item.question);
+      expect(markup).toContain(item.answer);
+    }
+    const faqSchema = PAGE_SEO['/'].jsonLd?.find((b) => b['@type'] === 'FAQPage') as
+      | { mainEntity: { name: string }[] }
+      | undefined;
+    expect(faqSchema?.mainEntity.map((q) => q.name)).toEqual(LANDING_FAQ.map((q) => q.question));
   });
 });

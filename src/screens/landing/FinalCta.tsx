@@ -10,18 +10,23 @@ function startPractisingFree() {
 
 export function FinalCta() {
   return (
-    <Section className="text-center">
-      <Reveal className="flex flex-col items-center">
-        <h2 className="font-display text-3xl md:text-5xl leading-tight mb-8 max-w-2xl mx-auto">
-          Your French is already in there. It's time to start speaking it.
-        </h2>
-        <div className="flex flex-wrap items-center justify-center gap-4 mb-4">
-          <CtaButton onClick={startPractisingFree}>Start practising free</CtaButton>
-          <CtaButton href="/igcse-french-speaking" variant="secondary">Read the exam guide</CtaButton>
+    <Section>
+      <Reveal>
+        <div className="mk-card relative overflow-hidden rounded-[32px] px-6 py-14 md:px-12 md:py-20 text-center">
+          <div aria-hidden="true" className="mk-hero-glow absolute inset-0 pointer-events-none" />
+          <div className="relative flex flex-col items-center">
+            <h2 className="font-display text-3xl md:text-5xl leading-[1.1] mb-5 max-w-2xl">
+              Your French is already in there. Time to say it out loud.
+            </h2>
+            <p className="text-base md:text-lg mb-8 max-w-md" style={{ color: 'var(--mk-ink-muted)' }}>
+              Answer your first question in the next minute. No account needed to try.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center gap-3">
+              <CtaButton onClick={startPractisingFree}>Start practising free</CtaButton>
+              <CtaButton href="/login" variant="secondary">Sign in</CtaButton>
+            </div>
+          </div>
         </div>
-        <p className="text-xs" style={{ color: 'var(--mk-ink-faint)' }}>
-          No account, no card. Your first session takes twelve minutes.
-        </p>
       </Reveal>
     </Section>
   );

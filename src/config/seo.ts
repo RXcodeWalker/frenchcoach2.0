@@ -3,7 +3,9 @@ import {
   buildWebSiteSchema,
   buildSoftwareApplicationSchema,
   buildBreadcrumbListSchema,
+  buildFAQPageSchema,
 } from '../utils/structuredData';
+import { LANDING_FAQ } from '../screens/landing/landingContent';
 
 export interface PageSeo {
   title: string;
@@ -22,9 +24,9 @@ const SITE_NAME = 'Français AI';
 // an app route with no entry here falls back to noindex via SEO.tsx.
 export const PAGE_SEO: Record<string, PageSeo> = {
   '/': {
-    title: 'Français AI | IGCSE French Speaking Practice',
+    title: 'Français AI — Practise IGCSE French Speaking Out Loud',
     description:
-      'Français AI is a speaking-practice coach for IGCSE French learners: record spoken answers, get structured feedback, and track skill mastery over time.',
+      'Practise the IGCSE French speaking exam out loud. Get clear feedback on every answer and sit mock exams marked against the Cambridge 0520 speaking criteria.',
     canonicalPath: '/',
     robots: 'index, follow',
     // No SearchAction (no site search) and no `offers` (no pricing is
@@ -33,6 +35,8 @@ export const PAGE_SEO: Record<string, PageSeo> = {
       buildOrganizationSchema({ name: SITE_NAME }),
       buildWebSiteSchema({ name: SITE_NAME }),
       buildSoftwareApplicationSchema({ name: SITE_NAME }),
+      // Built from the same list the visible FAQ section renders.
+      buildFAQPageSchema(LANDING_FAQ),
     ],
   },
   '/about': {

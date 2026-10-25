@@ -4,7 +4,6 @@ import { Reveal } from '../../components/marketing/Reveal';
 const STATS = [
   { value: '97%', label: 'IGCSE French (A*)' },
   { value: 'A2 · B1', label: 'DELF, both with distinction' },
-  { value: '30', label: 'roleplay scenarios authored' },
 ];
 
 export function Founder() {
@@ -26,7 +25,7 @@ export function Founder() {
               same gap.
             </p>
             <p className="text-sm font-semibold mb-1">Om Jhamvar</p>
-            <a href="/story" className="mk-link text-sm underline">
+            <a href="/story" className="mk-link mk-focus text-sm underline inline-flex items-center min-h-[44px]">
               Read the story →
             </a>
           </div>
