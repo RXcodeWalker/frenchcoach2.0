@@ -256,6 +256,11 @@ hash changed anyway, and it follows the same convention.
    `teacher:<name>` if a 0520-familiar teacher has done the exam-realism pass — see the
    S11 plan's M1/M2 distinction), set `reviewedAt`.
 8. `npm run authoring:check` (no `--draft`) — the real pre-seed gate. Must be clean.
+9. After the set is published (and `npm run authoring:generate` has refreshed the fixtures), run
+   GitHub Actions → **Record voices** (dry run off, no limit). It records only the new lines in
+   Henri's voice. Until then the new set's lines play in the browser voice. The same applies to
+   any edit to Learn question text, Listening `audioText`, Shadowing phrases or scenario
+   flashcards — an edited line is a new recording (`docs/plans/recorded-voices.md`).
 
 ### The draft trap
 

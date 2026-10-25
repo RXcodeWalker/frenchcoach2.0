@@ -1,6 +1,6 @@
 # Recorded voices (Denise / Henri): implementation plan
 
-Status: **Stage 3 built** (playback core, behind `VITE_RECORDED_VOICES`, Henri only, no voice picker; 2026-10-24). Stages 1–2 done; the flag is not yet set in Vercel.
+Status: **Stages 1–5 done** (Henri only; review fixes in `cfd288e`; 2026-10-25). Stage 6 (flag on in Vercel + live test) is next.
 Plan written on `claude/eager-cray-y6f0f4`; Stage 1 on `claude/hopeful-wright-lcoe38` (frontend repo only).
 Owner decisions are final unless marked *open*.
 
