@@ -32,6 +32,7 @@ import { requestAndSubscribe, unsubscribe, isPushSupported } from '../services/n
 import { pushProfileSettingsToCloud } from '../services/sync/profileSettingsSync';
 import { TrackSwitch } from '../features/junior/TrackSwitch';
 import { CORE_ONLY, JUNIOR_TRACK_SELECTABLE } from '../config/launchScope';
+import { ReplayTourButton } from '../features/tour/ReplayTourButton';
 
 const RENAME_REASON_COPY: Record<string, string> = {
   invalid_format: 'Start with a letter, 3–20 characters, letters/numbers/underscore only.',
@@ -562,6 +563,7 @@ export function Profile() {
         <div className="space-y-0.5">
           <SettingToggle icon={<Volume2 size={14} />} label="Sound Effects" description="Play sounds for answers" enabled={state.soundEnabled} onToggle={() => dispatch({ type: 'TOGGLE_SOUND' })} />
           <SettingToggle icon={<Moon size={14} />} label="Dark Mode" description="Toggle dark or light theme" enabled={state.darkMode} onToggle={() => dispatch({ type: 'TOGGLE_DARK_MODE' })} />
+          {state.learnerTrack !== 'junior' && <ReplayTourButton />}
           <div className="flex items-center gap-3 p-2.5 rounded-lg">
             <Target size={14} className="text-violet-400" />
             <div className="flex-1">

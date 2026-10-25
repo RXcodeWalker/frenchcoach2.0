@@ -19,6 +19,7 @@ function RailItem({ id, label, icon, active, onClick }: { id: Screen; label: str
     <button
       key={id}
       onClick={onClick}
+      data-tour={`nav-${id}`}
       className={`group relative w-full rounded-control flex flex-col items-center gap-1 py-2
         transition-colors duration-state ease-smooth
         ${active ? 'bg-action-soft text-action-text' : 'text-ink-subtle hover:text-ink-muted'}`}
@@ -67,6 +68,7 @@ export function SideRail() {
                 <button
                   key={item.id}
                   onClick={() => navigate(toPath(item.id))}
+                  data-tour={`nav-${item.id}`}
                   className={`relative flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-control min-h-[44px] justify-center
                     transition-colors duration-state ease-smooth
                     ${active ? 'bg-action-soft text-action-text' : 'text-ink-subtle'}`}

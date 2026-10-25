@@ -78,6 +78,7 @@ import { MigrationOverlay } from './components/MigrationOverlay';
 import { ComingSoonGate } from './components/ComingSoonGate';
 import { resolveFeatureStatus } from './config/featureFlags';
 import { isHiddenPath } from './config/launchScope';
+import { TourHost } from './features/tour/TourHost';
 import { supabaseConfigured } from './lib/supabase';
 
 const pageVariants: Variants = {
@@ -179,6 +180,7 @@ function MainLayout() {
       <GemAnimations />
       <XPToast />
       <GlobalCelebrations />
+      <TourHost />
     </div>
   );
 }
