@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { TOPICS, getTopicQuestions } from '../data/gameData';
 import { getAIFeedback, streamFeedback, getExaminerFeedback, isExaminerQuotaExceededError, getLearnAllowance, isLearnDailyLimitError } from '../services/api/apiClient';
-import { LEARN_DAILY_LIMIT_MESSAGE, dailySessionLength } from '../features/learn/dailyAllowance';
+import { LEARN_ANSWERS_PER_DAY, LEARN_DAILY_LIMIT_MESSAGE, dailySessionLength } from '../features/learn/dailyAllowance';
 import { isAuthRequiredError } from '../lib/authToken';
 import { isConsentRequiredError } from '../lib/consentRequired';
 import { assessPronunciation } from '../services/pronunciation/pronunciationClient';
@@ -335,7 +335,9 @@ export function Learn() {
     if (learnState !== 'session_start') return;
     let cancelled = false;
     void getLearnAllowance().then((allowance) => {
-      if (!cancelled) setAnswersLeft(allowance ? allowance.remaining : null);
+      // Never more than the daily number: a guest's backend allowance is the looser
+      // per-IP guest cap (5), and a guest also has only 3 free attempts in all.
+      if (!cancelled) setAnswersLeft(allowance ? Math.min(allowance.remaining, LEARN_ANSWERS_PER_DAY) : null);
     });
     return () => { cancelled = true; };
   }, [learnState]);
