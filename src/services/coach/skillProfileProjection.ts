@@ -1,7 +1,7 @@
 // ── B2: evidence-derived skill-profile projection ─────────────────────────────
 // The legacy skill-profile store (frenchCoach_sde) lost its only writer when
 // Phase 2 removed the call to diagnosticEngine.runAfterSession. Everything that
-// reads it — SkillsTab (hasData), SkillTreeTab, buildSkillContext() (which
+// reads it — Progress's "Grammar to work on", buildSkillContext() (which
 // drives question selection in Learn), and projectEvidenceBeliefSnapshot's own
 // sparse-evidence fallback — has been frozen ever since, empty for any new user.
 //
