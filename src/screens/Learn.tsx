@@ -1,6 +1,8 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSearchParams } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import { LEARN_TOPIC_PARAM, topicFromDeepLink } from '../features/learn/topicDeepLink';
 import { TOPICS, getTopicQuestions } from '../data/gameData';
 import { getAIFeedback, streamFeedback, getExaminerFeedback, isExaminerQuotaExceededError, getLearnAllowance, isLearnDailyLimitError } from '../services/api/apiClient';
 import { LEARN_ANSWERS_PER_DAY, LEARN_DAILY_LIMIT_MESSAGE, dailySessionLength } from '../features/learn/dailyAllowance';
@@ -224,6 +226,21 @@ export function Learn() {
     setFilters(NO_FILTERS);
     setLearnState('session_start');
   };
+
+  // `/learn?topic=<key>` (Progress's next step) opens that topic's setup once; the param is then dropped.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const deepLinkTopicKey = searchParams.get(LEARN_TOPIC_PARAM);
+  useEffect(() => {
+    if (!deepLinkTopicKey) return;
+    const topic = topicFromDeepLink(deepLinkTopicKey);
+    if (topic) selectTopic(topic);
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.delete(LEARN_TOPIC_PARAM);
+      return next;
+    }, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deepLinkTopicKey]);
 
   // ── Session start ─────────────────────────────────────────────────────────────
 
