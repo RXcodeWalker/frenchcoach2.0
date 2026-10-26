@@ -171,6 +171,22 @@ export function getEligibleReviewQuestion(
 }
 
 /**
+ * Read-only: how many pooled questions per topic are due now (same gate and
+ * `nextEligibleAt` rule as getEligibleReviewQuestion). Empty when the flag is
+ * off. Never writes the pool.
+ */
+export function getDueReviewCounts(now: number = Date.now()): Record<string, number> {
+  if (resolveFeatureStatus('learnSpacedReview') !== 'live') return {};
+  const counts: Record<string, number> = {};
+  for (const item of Object.values(readState().items)) {
+    if (now >= new Date(item.nextEligibleAt).getTime() && getQuestionById(item.questionId)) {
+      counts[item.topicKey] = (counts[item.topicKey] ?? 0) + 1;
+    }
+  }
+  return counts;
+}
+
+/**
  * Looks up a pooled item's stored firstRecordedScore for the
  * review_item_answered telemetry event — kept separate from
  * getEligibleReviewQuestion so that function's return type (and its existing

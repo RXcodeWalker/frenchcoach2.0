@@ -9,6 +9,7 @@ import { getSkillProfile } from '../services/coaching/diagnosticEngine';
 import { checkAchievements, getProgressionState, awardParticipationXP } from '../services/progression/progressionService';
 import { recordSession as persistSession } from '../services/analytics/analyticsService';
 import { buildAchievementContext } from '../services/coach/achievementContextBuilder';
+import { examMarksFromView } from '../features/progress/examMarks';
 import type { Session } from '../types/index';
 import { useRecording } from '../features/recording/useRecording';
 import { useSessionClock } from '../features/recording/useSessionClock';
@@ -990,6 +991,8 @@ export function ExamMode() {
         durationSec: Math.round(totalSec),
         createdAt: new Date().toISOString(),
         practiceOnly: !attemptStatus.countsTowardProgress,
+        examMarks: view ? examMarksFromView(view) : undefined,
+        scoringSessionId: finalTranscript.sessionId,
       };
 
       persistSession(appSession);

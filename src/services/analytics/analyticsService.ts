@@ -1,5 +1,5 @@
 // Copied verbatim from analytics.js — minimal TS wrapper only
-import type { Session, FeedbackV2, TopicMasteryEntry } from '../../types';
+import type { Session, FeedbackV2, TopicMasteryEntry, ExamAreaMarks } from '../../types';
 
 import { hasStreakFreeze, consumeStreakFreeze, consumeItem } from '../progression/progressionService';
 import { STORAGE_KEYS, storageGet, storageSet, storageRemove } from '../persistence/storage';
@@ -29,6 +29,8 @@ export interface StoredSession {
   criticalIssueCount?: number;
   /** Step 5 / ADR-0007: a Coached Practice (or otherwise non-counting) exam attempt — see types/index.ts's Session.practiceOnly. */
   practiceOnly?: boolean;
+  examMarks?: ExamAreaMarks;
+  scoringSessionId?: string;
 }
 
 /** Options the coach orchestrator can pass to enrich the stored session. */
@@ -158,6 +160,8 @@ export function recordSession(session: Session, options?: RecordSessionOptions):
     cefrLevel:          feedback?.cefrLevel,
     criticalIssueCount: feedback?.grammar?.critical?.length,
     practiceOnly:       session.practiceOnly,
+    examMarks:          session.examMarks,
+    scoringSessionId:   session.scoringSessionId,
   };
   if (data.sessions.some(s => s.id === stored.id)) return stored;
   data.sessions.push(stored);

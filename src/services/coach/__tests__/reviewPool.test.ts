@@ -24,6 +24,7 @@ import {
   getEligibleReviewQuestion,
   recordReviewOutcome,
   getReviewItemFirstRecordedScore,
+  getDueReviewCounts,
 } from '../reviewPool';
 
 beforeEach(() => {
@@ -231,6 +232,24 @@ describe('backward-compatibility (direct change #3)', () => {
     }));
     expect(getEligibleReviewQuestion('school', new Set())).toBeNull();
     expect(getReviewItemFirstRecordedScore('q-school-1')).toBeNull();
+  });
+});
+
+describe('getDueReviewCounts', () => {
+  it('counts only due items, per topic, and never writes the pool', () => {
+    recordReviewOutcome({ questionId: 'q-school-1', topicKey: 'school', score: 4 });
+    recordReviewOutcome({ questionId: 'q-school-2', topicKey: 'school', score: 4 });
+    recordReviewOutcome({ questionId: 'q-hobbies-1', topicKey: 'hobbies', score: 4 });
+    expect(getDueReviewCounts()).toEqual({});
+
+    const before = localStorage.getItem(STORAGE_KEYS.reviewPool);
+    expect(getDueReviewCounts(Date.now() + 2 * ONE_DAY_MS)).toEqual({ school: 2, hobbies: 1 });
+    expect(localStorage.getItem(STORAGE_KEYS.reviewPool)).toBe(before);
+  });
+
+  it('skips a pooled question that no longer exists in the bank', () => {
+    recordReviewOutcome({ questionId: 'q-gone', topicKey: 'school', score: 4 });
+    expect(getDueReviewCounts(Date.now() + 2 * ONE_DAY_MS)).toEqual({});
   });
 });
 
