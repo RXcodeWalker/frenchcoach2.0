@@ -7,6 +7,8 @@ import {
   learnSummary,
   nextStep,
   pastAttempts,
+  learnAverage,
+  practiceDays,
   weakSkills,
   type LearnSummaryInput,
 } from '../progressSummary';
@@ -192,5 +194,28 @@ describe('pastAttempts', () => {
     expect(rows.map(r => r.id)).toEqual(['e1', 'l1']);
     expect(rows[0]).toMatchObject({ kind: 'exam', counted: false, total: 20, areas: [] });
     expect(rows[1]).toMatchObject({ kind: 'learn', topicLabel: 'SCHOOL', feedbackSummary: 'Use the past tense.' });
+  });
+});
+
+describe('learnAverage', () => {
+  it('averages scored Learn answers only, and is null with none — never 0', () => {
+    expect(learnAverage([])).toBeNull();
+    expect(learnAverage([session({ id: 'a', score: null }), session({ id: 'x', mode: 'exam', score: 9 })])).toBeNull();
+    expect(learnAverage([session({ id: 'a', score: 6 }), session({ id: 'b', score: 8 })])).toBe(7);
+  });
+});
+
+describe('practiceDays', () => {
+  it('returns the window oldest first, marks today and the days with a Learn or exam attempt', () => {
+    const now = Date.parse('2026-10-26T12:00:00Z');
+    const days = practiceDays([
+      session({ id: 'a', date: '2026-10-26T09:00:00Z' }),
+      session({ id: 'b', date: '2026-10-20T09:00:00Z', mode: 'exam' }),
+      session({ id: 'c', date: '2026-10-19T09:00:00Z', mode: 'story' }),
+    ], 14, now);
+    expect(days).toHaveLength(14);
+    expect(days[0].key).toBe('2026-10-13');
+    expect(days[13]).toEqual({ key: '2026-10-26', practised: true, today: true });
+    expect(days.filter(d => d.practised).map(d => d.key)).toEqual(['2026-10-20', '2026-10-26']);
   });
 });

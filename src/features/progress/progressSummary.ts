@@ -183,6 +183,30 @@ export function learnSummary(input: LearnSummaryInput): LearnSummary {
   };
 }
 
+/** Mean of every scored Learn answer (/10, Exam standard); null until one exists — never 0. */
+export function learnAverage(sessions: StoredSession[]): number | null {
+  const scores = sessions
+    .filter(s => s.mode === 'practice' && typeof s.score === 'number' && Number.isFinite(s.score))
+    .map(s => s.score as number);
+  return scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : null;
+}
+
+export interface PractiseDay {
+  /** YYYY-MM-DD, the same date key as `daysPractisedWithin`. */
+  key: string;
+  practised: boolean;
+  today: boolean;
+}
+
+/** The last `days` days, oldest first, each marked practised when a Learn answer or exam was recorded that day. */
+export function practiceDays(sessions: StoredSession[], days: number = CONSISTENCY_WINDOW_DAYS, now: number = Date.now()): PractiseDay[] {
+  const keys = new Set(sessions.filter(isLearnOrExam).map(s => s.date.slice(0, 10)));
+  return Array.from({ length: days }, (_, i) => {
+    const key = new Date(now - (days - 1 - i) * DAY_MS).toISOString().slice(0, 10);
+    return { key, practised: keys.has(key), today: i === days - 1 };
+  });
+}
+
 function lastPractised(topicMastery: Record<string, TopicMasteryEntry>, key: string): number {
   const t = new Date(topicMastery[key]?.lastSessionAt ?? 0).getTime();
   return Number.isFinite(t) ? t : 0;
@@ -289,6 +313,8 @@ export type PastAttempt =
       kind: 'learn';
       id: string;
       date: string;
+      /** Absent on rows built before the redesign's topic chips. */
+      topicKey?: string | null;
       topicLabel: string;
       /** /10, Exam standard. */
       score: number | null;
@@ -315,6 +341,7 @@ export function pastAttempts(sessions: StoredSession[], topics: Topic[]): PastAt
         kind: 'learn',
         id: s.id,
         date: s.date,
+        topicKey: s.topicKey,
         topicLabel: labelOf(s.topicKey),
         score: typeof s.score === 'number' && Number.isFinite(s.score) ? s.score : null,
         questionText: s.questionText,

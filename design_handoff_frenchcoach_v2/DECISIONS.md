@@ -158,3 +158,31 @@ handoff left a gap or clashed with the codebase. Newest phase last.
 - **Sticky top bar fix:** `MainLayout`'s root had `overflow-hidden`, which
   made it the sticky container, so the bar scrolled away. It is now
   `overflow-x-clip`.
+
+## Phase 5 — Progress
+
+- **No exam target.** The design's dashed "Target 32" line and "N more to
+  reach your target" need a target the app doesn't store (there is no
+  target field in the coach profile, onboarding or Supabase). Rather than
+  invent one, the chart has no target line and the insight sentence only
+  says how far the total has moved since the first counted Exam Sim. Adding a
+  target is a small product decision (where it's set, whether it syncs) —
+  flagged for the owner.
+- **Learn average** (at-a-glance) is the mean of every scored Learn answer
+  (`learnAverage` in `progressSummary.ts`) — `Session.score` is always Exam
+  standard, never the marked level, so "At Exam standard" is true. It is "—"
+  until a scored answer exists.
+- **Consistency grid** uses the same UTC date keys as the existing
+  `daysPractisedWithin` (`practiceDays` helper), so its count agrees with the
+  rest of the summary. "best N days" is left out: the app keeps no reliable
+  longest-streak value (`longest_streak` is set to the current streak).
+- **Past attempts:** each Learn row now carries its `topicKey` (added to the
+  `PastAttempt` read model) for the chip and French name. Exam rows are titled
+  "Exam Sim" and tagged "Counted in your Exam figures" / "Practice · not
+  counted"; the PastAttempts test was updated for the new tags and a filter
+  test added. Paging ("Show more") applies within the active filter.
+- **Next step** text comes from `nextStep()` unchanged, so topic names there
+  are the English labels it already produced.
+- The old `LearnProgress` card was split into **Consistency** and **Topics**
+  (it keeps `data-testid="progress-learn"` on Consistency); the "Topics
+  mastered" stat folded into a "Mastered" tag on topic rows.

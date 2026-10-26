@@ -23,10 +23,20 @@ function renderList(attempts: PastAttempt[]) {
 }
 
 describe('PastAttempts', () => {
-  it('tags a practiceOnly exam as not counted and a counting one as Exam Sim', () => {
+  it('tags a practiceOnly exam as not counted and a counting one as counted', () => {
     renderList([exam({ id: 'p', counted: false }), exam({ id: 'c' })]);
     expect(screen.getByText('Practice · not counted')).not.toBeNull();
-    expect(screen.getByText('Exam Sim')).not.toBeNull();
+    expect(screen.getByText('Counted in your Exam figures')).not.toBeNull();
+    expect(screen.getAllByText('Exam Sim')).toHaveLength(2);
+  });
+
+  it('filters by kind with the segmented control', () => {
+    renderList([exam({ id: 'e' }), learn('l1'), learn('l2')]);
+    expect(screen.getAllByTestId('progress-attempt')).toHaveLength(3);
+    fireEvent.click(screen.getByRole('button', { name: 'Exam' }));
+    expect(screen.getAllByTestId('progress-attempt')).toHaveLength(1);
+    fireEvent.click(screen.getByRole('button', { name: 'Learn' }));
+    expect(screen.getAllByTestId('progress-attempt')).toHaveLength(2);
   });
 
   it('shows exam totals out of 40 and expands to the saved area marks', () => {
