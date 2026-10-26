@@ -227,19 +227,14 @@ export function Learn() {
     setLearnState('session_start');
   };
 
-  // `/learn?topic=<key>` (Progress's next step) opens that topic's setup once; the param is then dropped.
-  const [searchParams, setSearchParams] = useSearchParams();
+  // `/learn?topic=<key>` (Progress's next step) opens that topic's setup on mount. The param is
+  // deliberately left in the URL: MainLayout's exit animation renders the incoming route inside the
+  // outgoing page first, so a Learn that consumed it there would leave the real one with nothing.
+  const [searchParams] = useSearchParams();
   const deepLinkTopicKey = searchParams.get(LEARN_TOPIC_PARAM);
   useEffect(() => {
-    if (!deepLinkTopicKey) return;
     const topic = topicFromDeepLink(deepLinkTopicKey);
     if (topic) selectTopic(topic);
-    setSearchParams(prev => {
-      const next = new URLSearchParams(prev);
-      next.delete(LEARN_TOPIC_PARAM);
-      return next;
-    }, { replace: true });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deepLinkTopicKey]);
 
   // ── Session start ─────────────────────────────────────────────────────────────
