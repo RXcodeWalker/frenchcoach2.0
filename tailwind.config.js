@@ -111,6 +111,7 @@ export default {
         },
         focus: 'var(--focus)',
         track: 'var(--track)',
+        scrim: 'var(--scrim)',
 
         /* legacy, colour-named — unchanged values, kept compiling until
            the sweep remaps them per README's alias table, then deleted. */

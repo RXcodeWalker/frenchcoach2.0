@@ -186,3 +186,41 @@ handoff left a gap or clashed with the codebase. Newest phase last.
 - The old `LearnProgress` card was split into **Consistency** and **Topics**
   (it keeps `data-testid="progress-learn"` on Consistency); the "Topics
   mastered" stat folded into a "Mastered" tag on topic rows.
+
+## Phase 6 — Profile
+
+- **AI feedback stays read-only.** The old Profile showed the three engines
+  as radios that did nothing (Offline always looked selected, while the app
+  actually used Groq). Learn overhaul Batch 2 decided the learner does not
+  pick an engine, so making the radios switch `preferredEngine` would be a
+  product change. The group now shows the engine really in use ("In use"
+  badge), the rows are `aria-disabled`, and a note says the app picks the
+  engine and falls back automatically. The prototype's "Recommended" badge on
+  Offline is not used — it would recommend the weakest engine. Wiring
+  `SET_AI_ENGINE` (it exists) is a one-line change if the owner wants the
+  choice back.
+- **Achievements use lucide icons** (`features/profile/achievementDisplay.ts`),
+  unlocked first, then locked ones closest to unlocking. Locked tiles are
+  recessed, never faded. Progress ("c/max") is shown only where the app keeps
+  an honest count — sessions, streak, XP, topics practised, first exam, an 8+
+  score; the rest say "Locked". Hidden achievements stay out of the grid until
+  unlocked (the count still says "of 20"). "Unlocked {date}" shows the date
+  only when one is stored; today's achievements carry no unlock date, so they
+  read "Unlocked".
+- **Learning goals** show only what exists: the exam board (from the active
+  goal's type), the exam date with a days-to-go pill, the goal and weekly
+  minutes if set. There is no "Exam Sim target" (see Phase 5); without any
+  goal a one-line empty state shows.
+- **Identity:** initials avatar unless a shop avatar/frame is equipped;
+  "learning since" is the coach profile's creation month; the nameplate
+  rarity colour is kept (shop is hidden at launch). The guest badge and the
+  "saved on this device only" line are kept.
+- **Age band and guardian flow** keep every step, restyled into the Account &
+  data group: the row shows the band and consent status, the action and the
+  email / sent / copy-link states sit under it.
+- **Delete dialog** is portalled to `<body>` (the route wrapper is a stacking
+  context, so it couldn't cover the rail), focuses Cancel, closes on Escape or
+  a scrim click, and uses the new `danger` button.
+- **Replay tour** is now a settings row (`ReplayTourButton`), and the Learner
+  track switch (Junior, behind its flag) is unchanged inside its own group —
+  it still carries its two emoji, as it lives in the Junior feature.
