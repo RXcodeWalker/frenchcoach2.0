@@ -1,92 +1,46 @@
-import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { getSessionHistory } from '../services/analytics/analyticsService';
-import { getLastWeeklyReview, markWeeklyReviewSeen } from '../services/coach/weeklyReviewService';
+import { getDueReviewCounts } from '../services/coach/reviewPool';
+import { TOPICS } from '../data/gameData';
+import { isTopicVisible } from '../features/learn/sessionSetup';
+import { examSummary, learnSummary, nextStep, pastAttempts } from '../features/progress/progressSummary';
 import { fadeUp } from '../components/motion/variants';
 import { PageShell } from '../components/layout/PageShell';
-import { OverviewTab } from './progress/OverviewTab';
-import { SkillsTab } from './progress/SkillsTab';
-import { SkillTreeTab } from './progress/SkillTreeTab';
-import { InsightsTab } from './progress/InsightsTab';
-import { HistoryTab } from './progress/HistoryTab';
-import { PerformanceTimeline } from './progress/PerformanceTimeline';
-import { WeeklyReviewCard } from './progress/WeeklyReviewCard';
-import type { Session } from '../types';
-import type { WeeklyReview } from '../types/coach';
-
-function storedToSession(s: ReturnType<typeof getSessionHistory>[number]): Session {
-  return {
-    id: s.id,
-    mode: s.mode as Session['mode'],
-    topicKey: s.topicKey ?? undefined,
-    questionText: s.questionText,
-    transcript: s.transcript,
-    wordCount: s.wordCount,
-    score: s.score,
-    xpEarned: 0,
-    durationSec: s.durationSec,
-    createdAt: s.date,
-    practiceOnly: s.practiceOnly,
-  };
-}
+import { NextStepCard } from './progress/NextStepCard';
+import { ExamProgress } from './progress/ExamProgress';
+import { LearnProgress } from './progress/LearnProgress';
+import { PastAttempts } from './progress/PastAttempts';
 
 export function Progress() {
   const { state } = useApp();
-  const [searchParams] = useSearchParams();
-  const initialTab = searchParams.get('tab') as 'overview' | 'skills' | 'timeline' | 'tree' | 'insights' | 'history' | 'review' | null;
+  const { topicMastery, skillProfile, profile } = state;
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'skills' | 'timeline' | 'tree' | 'insights' | 'history' | 'review'>(
-    initialTab && ['overview', 'skills', 'timeline', 'tree', 'insights', 'history', 'review'].includes(initialTab)
-      ? initialTab
-      : 'overview'
-  );
-
-  const [weeklyReview, setWeeklyReview] = useState<WeeklyReview | null>(null);
-
-  useEffect(() => {
-    setWeeklyReview(getLastWeeklyReview());
-  }, []);
-
-  useEffect(() => {
-    if (activeTab === 'review') {
-      markWeeklyReviewSeen();
-    }
-  }, [activeTab]);
-
-  const allSessions: Session[] = getSessionHistory().map(storedToSession);
+  const sessions = getSessionHistory();
+  const exam = examSummary(sessions);
+  const learn = learnSummary({
+    topics: TOPICS,
+    isTopicVisible,
+    topicMastery,
+    dueCounts: getDueReviewCounts(),
+    sessions,
+    streakDays: profile.streak_days,
+    skillProfile,
+  });
+  const step = nextStep({ sessions, exam, learn });
+  const attempts = pastAttempts(sessions, TOPICS);
 
   return (
     <PageShell>
-      <motion.div variants={fadeUp} className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-black text-white">Progress</h1>
-          <p className="text-sm text-ink-muted mt-1">Track your improvement</p>
-        </div>
-        <div className="flex gap-1 flex-wrap">
-          {(['overview', 'skills', 'timeline', 'tree', 'insights', 'history', 'review'] as const).map(tab => (
-            <motion.button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-3 py-1.5 rounded-lg text-[10px] font-bold capitalize transition-all duration-200 ${
-                activeTab === tab ? 'bg-violet-electric/10 text-violet-400 border border-violet-electric/20' : 'text-ink-subtle hover:text-white border border-transparent'
-              }`}
-              whileTap={{ scale: 0.95 }}
-            >
-              {tab === 'review' ? 'Weekly Review' : tab}
-            </motion.button>
-          ))}
-        </div>
+      <motion.div variants={fadeUp}>
+        <h1 className="text-2xl md:text-3xl font-black text-ink">Progress</h1>
+        <p className="text-sm text-ink-muted mt-1">Your exam marks, your Learn practice and what to do next.</p>
       </motion.div>
 
-      {activeTab === 'overview' && <OverviewTab profile={state.profile} />}
-      {activeTab === 'skills' && <SkillsTab />}
-      {activeTab === 'timeline' && <PerformanceTimeline sessions={allSessions} />}
-      {activeTab === 'tree' && <SkillTreeTab />}
-      {activeTab === 'insights' && <InsightsTab />}
-      {activeTab === 'history' && <HistoryTab sessions={allSessions} />}
-      {activeTab === 'review' && <WeeklyReviewCard review={weeklyReview} variant="full" />}
+      <NextStepCard step={step} />
+      <ExamProgress exam={exam} />
+      <LearnProgress learn={learn} />
+      <PastAttempts attempts={attempts} />
     </PageShell>
   );
 }

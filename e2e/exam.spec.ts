@@ -198,14 +198,14 @@ test.describe('Coached Practice (typed + edited)', () => {
     const withTurns = await bodyText(page);
     expect(withTurns).toMatch(/further1|further2/i);
 
-    // History tag: navigate to the Progress screen's History tab directly.
+    // History tag: the Progress screen's Past attempts list tags this attempt.
     // domcontentloaded, not the default 'load' — a lingering background poll
     // (e.g. the scoring keepalive) can keep the network idle/load event from
     // firing for a while after navigation, long after the SPA has rendered.
-    await page.goto('/progress?tab=history', { waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(1000);
-    const historyText = await bodyText(page);
-    expect(historyText.toLowerCase()).toContain('practice');
+    await page.goto('/progress', { waitUntil: 'domcontentloaded' });
+    await page.waitForSelector('[data-testid="progress-history"]', { timeout: 10000 });
+    const historyText = await page.locator('[data-testid="progress-history"]').innerText();
+    expect(historyText.toLowerCase()).toContain('not counted');
   });
 });
 

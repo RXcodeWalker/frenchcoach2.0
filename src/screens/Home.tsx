@@ -84,7 +84,6 @@ export function Home() {
           {showReviewBanner && weeklyReview && (
             <WeeklyReviewCard
               review={weeklyReview}
-              variant="banner"
               onDismiss={handleDismissReview}
             />
           )}
