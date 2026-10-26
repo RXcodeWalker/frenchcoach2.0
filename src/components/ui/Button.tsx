@@ -35,7 +35,7 @@ const variantClass: Record<Variant, string> = {
   quiet: 'text-ink-muted hover:bg-track hover:text-ink disabled:text-ink-subtle disabled:hover:bg-transparent',
   destructive:
     'border border-hairline-strong text-correction-text hover:border-correction hover:bg-correction-soft disabled:text-ink-subtle',
-  danger: 'bg-correction text-white disabled:bg-track disabled:text-ink-subtle',
+  danger: 'bg-correction text-action-ink disabled:bg-track disabled:text-ink-subtle',
 };
 
 export function Button({

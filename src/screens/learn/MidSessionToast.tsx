@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import { Zap, ArrowDown, ArrowUp } from 'lucide-react';
+import { SessionToast } from './SessionToast';
 
 export type MidSessionToastVariant = 'progress' | 'difficulty-up' | 'difficulty-down';
 
@@ -37,43 +38,29 @@ export function MidSessionToast({ show, variant = 'progress', questionsCompleted
 
   return (
     <AnimatePresence>
-      {show && (
-        <motion.div
-          className="fixed top-20 right-4 z-50 max-w-xs"
-          initial={{ opacity: 0, x: 50, scale: 0.9 }}
-          animate={{ opacity: 1, x: 0, scale: 1 }}
-          exit={{ opacity: 0, x: 50, scale: 0.9 }}
-          transition={{ type: 'spring', damping: 20, stiffness: 200 }}
-        >
-          {variant === 'progress' ? (
-            <div className="surface-raised border-violet-electric/25 p-4 rounded-2xl shadow-xl space-y-1">
-              <div className="flex items-center gap-2">
-                <Zap size={14} className="text-action-text" />
-                <p className="text-sm font-black text-white">Halfway there!</p>
-              </div>
-              <p className="text-xs text-ink-muted leading-snug">
-                {questionsCompleted}/{targetCount} done
-                {avgScore !== null && ` · Avg ${avgScore.toFixed(1)}`}
-              </p>
-              {isAboveAvg && (
-                <p className="text-[10px] text-progress-text font-bold">Above your personal average ↑</p>
-              )}
-            </div>
-          ) : (
-            <div className="surface-raised border-violet-electric/25 p-4 rounded-2xl shadow-xl space-y-1">
-              <div className="flex items-center gap-2">
-                {variant === 'difficulty-down' ? (
-                  <ArrowDown size={14} className="text-action-text" />
-                ) : (
-                  <ArrowUp size={14} className="text-action-text" />
-                )}
-                <p className="text-sm font-black text-white">{DIFFICULTY_COPY[variant].title}</p>
-              </div>
-              <p className="text-xs text-ink-muted leading-snug">{DIFFICULTY_COPY[variant].body}</p>
-            </div>
-          )}
-        </motion.div>
-      )}
+      {show && (variant === 'progress' ? (
+        <SessionToast
+          icon={<Zap size={16} />}
+          iconClass="bg-action-soft text-action-text"
+          title="Halfway there"
+          body={
+            <>
+              {questionsCompleted}/{targetCount} done
+              {avgScore !== null && ` · avg ${avgScore.toFixed(1)}`}
+              {isAboveAvg && <span className="font-medium text-progress-text"> · above your personal average</span>}
+            </>
+          }
+          onDismiss={onDismiss}
+        />
+      ) : (
+        <SessionToast
+          icon={variant === 'difficulty-down' ? <ArrowDown size={16} /> : <ArrowUp size={16} />}
+          iconClass="bg-action-soft text-action-text"
+          title={DIFFICULTY_COPY[variant].title}
+          body={DIFFICULTY_COPY[variant].body}
+          onDismiss={onDismiss}
+        />
+      ))}
     </AnimatePresence>
   );
 }

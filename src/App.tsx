@@ -3,7 +3,6 @@ import { Routes, Route, Outlet, useLocation, Navigate } from 'react-router-dom';
 import { AnimatePresence, MotionConfig, motion } from 'framer-motion';
 import { route } from './components/motion/variants';
 import { ShellChromeProvider } from './components/layout/ShellChromeProvider';
-import { Zap } from 'lucide-react';
 import { AppProvider, useApp } from './context/AppContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { PublicRoutes } from './PublicRoutes';
@@ -75,7 +74,7 @@ import { QuestionForm } from './screens/admin/questions/QuestionForm';
 import { ScenarioList } from './screens/admin/scenarios/ScenarioList';
 import { ScenarioForm } from './screens/admin/scenarios/ScenarioForm';
 import { VersionHistory } from './screens/admin/VersionHistory';
-import { LevelUpCelebration, AchievementUnlocked } from './components/CelebrationModals';
+import { LevelUpCelebration, AchievementUnlocked, XPEarnedToast } from './components/CelebrationModals';
 import { MigrationOverlay } from './components/MigrationOverlay';
 import { ComingSoonGate } from './components/ComingSoonGate';
 import { resolveFeatureStatus } from './config/featureFlags';
@@ -89,21 +88,22 @@ const pageVariants = route;
 
 function GlobalCelebrations() {
   const { state, dispatch } = useApp();
-  
+
   return (
     <AnimatePresence>
       {state.newLevelReached && (
-        <LevelUpCelebration 
-          newLevel={state.newLevelReached} 
-          onDismiss={() => dispatch({ type: 'DISMISS_CELEBRATIONS' })} 
+        <LevelUpCelebration
+          key="level"
+          newLevel={state.newLevelReached}
+          onDismiss={() => dispatch({ type: 'DISMISS_CELEBRATIONS' })}
         />
       )}
-      {state.lastUnlockedAchievement && (
-        <AchievementUnlocked 
+      {!state.newLevelReached && state.lastUnlockedAchievement && (
+        <AchievementUnlocked
+          key="achievement"
+          id={state.lastUnlockedAchievement.id}
           name={state.lastUnlockedAchievement.name}
-          icon={state.lastUnlockedAchievement.icon}
           description={state.lastUnlockedAchievement.description}
-          xpReward={250}
           onDismiss={() => dispatch({ type: 'DISMISS_CELEBRATIONS' })}
         />
       )}
@@ -118,26 +118,12 @@ function XPToast() {
     const id = setTimeout(() => dispatch({ type: 'DISMISS_XP_MODAL' }), 2500);
     return () => clearTimeout(id);
   }, [state.showXPModal, dispatch]);
+  // A level-up or achievement toast takes the slot; the top bar's XP pill still counts up.
+  const busy = !!state.newLevelReached || !!state.lastUnlockedAchievement;
   return (
     <AnimatePresence>
-      {state.showXPModal && (
-        <motion.div
-          className="fixed bottom-24 md:bottom-6 left-1/2 -translate-x-1/2 z-[100]"
-          initial={{ opacity: 0, y: 20, scale: 0.9 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 10 }}
-          transition={{ type: 'spring', stiffness: 100, damping: 20 }}
-        >
-          <div className="flex items-center gap-3 surface-raised border-emerald-500/20 rounded-xl px-4 py-2.5 shadow-2xl">
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-              <Zap size={14} className="text-emerald-400 fill-emerald-400/20" />
-            </div>
-            <div>
-              <p className="font-black text-emerald-400 text-xs">{state.lastXPGained >= 0 ? '+' : ''}{state.lastXPGained} XP</p>
-              <p className="text-[9px] text-ink-muted font-bold uppercase tracking-tighter">You're crushing it!</p>
-            </div>
-          </div>
-        </motion.div>
+      {state.showXPModal && !busy && (
+        <XPEarnedToast amount={state.lastXPGained} onDismiss={() => dispatch({ type: 'DISMISS_XP_MODAL' })} />
       )}
     </AnimatePresence>
   );

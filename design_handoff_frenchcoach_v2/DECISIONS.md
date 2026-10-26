@@ -224,3 +224,40 @@ handoff left a gap or clashed with the codebase. Newest phase last.
 - **Replay tour** is now a settings row (`ReplayTourButton`), and the Learner
   track switch (Junior, behind its flag) is unchanged inside its own group —
   it still carries its two emoji, as it lives in the Junior feature.
+
+## Phase 7 — polish
+
+- **Checked at 390 and 1280, light and dark,** on `/`, `/learn`, a topic
+  setup, `/progress` and `/profile` (Playwright, seeded local data): no
+  horizontal scroll, no visible text below 12px, no runtime errors. Clicked
+  through Home → Learn → topic → session (record, stop, confirm, feedback) →
+  Progress → Profile.
+- **Celebrations rebuilt** (`CelebrationModals.tsx`, `App.tsx`): the level-up
+  modal (confetti, glowing looping trophy, "+5% XP" and "Advanced Labs" perks
+  that don't exist), the achievement toast (emoji, confetti, a "+250 XP
+  reward" that is never awarded) and the XP toast (9px uppercase "You're
+  crushing it!") are now one v2 toast each, centred above the dock, with
+  honest copy. Only one shows at a time; the top bar's XP pill counts up
+  alongside.
+- **Session toasts** (halfway, difficulty change, answer streak) use the same
+  toast pattern (`SessionToast.tsx`), with a Flame icon instead of emoji.
+- The crash screen (`AppErrorFallback`) lost its croissant emoji.
+- `Button`'s `danger` label uses `text-action-ink` — `text-white` is still
+  patched to dark ink in light mode by a legacy rule.
+
+## Couldn't match (or chose not to)
+
+- **Difficulty labels** stay Easier / Right for me / Harder (live spec), not
+  Comfortable / Balanced / Push.
+- **Exam target** (Progress target line, "N more to reach your target",
+  Profile's "Exam Sim target" row) — no target exists in the data.
+- **"best N days"** on the streak line — no reliable longest-streak value.
+- **AI feedback radios** are read-only and show the engine really in use, not
+  a selectable "Recommended: Offline".
+- **Achievement unlock dates** — not stored; tiles say "Unlocked".
+- **Out of scope, still on the old style:** feedback (`FeedbackExperience`,
+  examiner feedback, Say-it-again, pronunciation cards and badges),
+  `SessionComplete`/`SessionSummary` (confetti, emoji), Exam mode screens
+  (warm-paper voice, untouched apart from the serif face), the Junior track,
+  and every hidden (launch-scope) screen. They pick up the new tokens and
+  font automatically but keep their own layouts and some legacy motion.
