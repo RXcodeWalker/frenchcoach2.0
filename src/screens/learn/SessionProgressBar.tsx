@@ -1,23 +1,28 @@
-import { X } from 'lucide-react';
-import { averageRealScores } from '../../domain/scoring';
+import { Flame, X } from 'lucide-react';
+import { averageRealScores, scoreFill } from '../../domain/scoring';
 import { shownBestScore } from '../../features/learn/markingLevel';
+import { TopicChip } from '../../components/ui/TopicChip';
 import type { ActiveSession } from '../../types';
 
 interface Props {
   session: ActiveSession;
   topicLabel: string;
-  topicIcon: string;
+  /** The topic key, for its icon chip. */
+  topicKey: string;
   onEndSession: () => void;
+  /** Mobile: the counter and segments share one row; no topic name. */
+  compact?: boolean;
 }
 
 /**
- * The session header + segmented position bar (Component Kit §06): one 4px
- * segment per question in --action, the current one outlined rather than
- * pulsing. Completed segments keep an honest score tint — a real band colour,
- * or neutral --ink-subtle when every attempt on that question was unscored
- * (never a fabricated red/amber from a placeholder 0; see CLAUDE.md).
+ * The session header (Design System v2): topic chip and name, "Q n/N", the
+ * running average and XP, an end-session button, and a 6px segmented bar —
+ * one segment per question. Completed segments take an honest score tint
+ * (progress/reward/correction, or --ink-subtle when every attempt on that
+ * question was unscored — never a fabricated colour from a placeholder 0);
+ * the current one is outlined in --action.
  */
-export function SessionProgressBar({ session, topicLabel, topicIcon, onEndSession }: Props) {
+export function SessionProgressBar({ session, topicLabel, topicKey, onEndSession, compact = false }: Props) {
   const { currentIndex, targetCount, answerStreak, xpAccumulated } = session;
   const questionNumber = Math.min(currentIndex + 1, targetCount);
 
@@ -26,78 +31,78 @@ export function SessionProgressBar({ session, topicLabel, topicIcon, onEndSessio
     .map(shownBestScore);
   const avgScore = averageRealScores(completedScores);
 
+  const segments = (
+    <div className="flex h-1.5 flex-1 gap-1" aria-hidden="true">
+      {Array.from({ length: targetCount }, (_, i) => {
+        const q = session.questions[i];
+        const isCompleted = q?.status === 'completed';
+        const isActive = i === currentIndex && !isCompleted;
+        const score = q ? shownBestScore(q) : null;
+        const background = isCompleted
+          ? score == null ? 'var(--ink-subtle)' : scoreFill(score)
+          : isActive ? 'transparent' : 'var(--track)';
+        return (
+          <span
+            key={i}
+            className="flex-1 rounded-pill transition-colors duration-state ease-smooth"
+            style={{ background, boxShadow: isActive ? 'inset 0 0 0 1.5px var(--action)' : 'none' }}
+          />
+        );
+      })}
+    </div>
+  );
+
+  const counter = (
+    <span className="whitespace-nowrap font-numeral text-[13px] text-ink" aria-label={`Question ${questionNumber} of ${targetCount}`}>
+      Q{questionNumber}/{targetCount}
+    </span>
+  );
+
+  const extras = (
+    <>
+      {avgScore !== null && !compact && (
+        <span className="whitespace-nowrap font-numeral text-caption text-ink-muted">avg {avgScore.toFixed(1)}</span>
+      )}
+      {answerStreak >= 3 && (
+        <span className="inline-flex items-center gap-1 whitespace-nowrap font-numeral text-caption text-streak-text">
+          <Flame size={14} aria-hidden="true" />{answerStreak}
+        </span>
+      )}
+      {xpAccumulated > 0 && (
+        <span className="whitespace-nowrap font-numeral text-caption text-reward-text">+{xpAccumulated} XP</span>
+      )}
+      <button
+        type="button"
+        onClick={onEndSession}
+        aria-label="End session early"
+        title="End session early"
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-control text-ink-subtle transition-colors duration-state ease-smooth hover:bg-track hover:text-ink"
+      >
+        <X size={16} />
+      </button>
+    </>
+  );
+
+  if (compact) {
+    return (
+      <div className="flex w-full items-center gap-3">
+        {counter}
+        {segments}
+        {extras}
+      </div>
+    );
+  }
+
   return (
-    <div className="w-full space-y-2">
-      {/* Top row: topic + question counter + XP + end button */}
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2 flex-1 min-w-0">
-          <span className="text-sm">{topicIcon}</span>
-          <span className="text-xs font-semibold text-ink-muted truncate">{topicLabel}</span>
-          <span className="text-ink-subtle">·</span>
-          <span className="font-numeral text-xs text-ink tabular-nums whitespace-nowrap">
-            Q{questionNumber}/{targetCount}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {avgScore !== null && (
-            <span className="font-numeral text-xs text-ink-muted tabular-nums whitespace-nowrap">
-              avg {avgScore.toFixed(1)}
-            </span>
-          )}
-          {answerStreak >= 3 && (
-            <span className="font-numeral text-xs text-streak-text tabular-nums whitespace-nowrap">
-              🔥 {answerStreak}
-            </span>
-          )}
-          {xpAccumulated > 0 && (
-            <span className="font-numeral text-[10px] text-reward-text tabular-nums whitespace-nowrap">
-              +{xpAccumulated} XP
-            </span>
-          )}
-
-          <button
-            onClick={onEndSession}
-            className="p-1.5 rounded-control surface-recessed text-ink-subtle hover:text-ink transition-colors duration-state ease-smooth"
-            title="End session early"
-          >
-            <X size={12} />
-          </button>
-        </div>
+    <div className="flex w-full flex-col gap-2">
+      <div className="flex items-center gap-2.5">
+        <TopicChip topicKey={topicKey} size={20} />
+        <span className="truncate text-[13px] font-semibold text-ink-muted">{topicLabel}</span>
+        {counter}
+        <span className="flex-1" />
+        {extras}
       </div>
-
-      {/* Segmented position bar — one 4px segment per question */}
-      <div className="flex gap-1 items-center h-1">
-        {Array.from({ length: targetCount }, (_, i) => {
-          const q = session.questions[i];
-          const isCompleted = q?.status === 'completed';
-          const isActive = i === currentIndex;
-          const score = q ? shownBestScore(q) : null;
-
-          let segClass = 'bg-track';
-          if (isCompleted) {
-            segClass =
-              score == null
-                ? 'bg-ink-subtle'
-                : score >= 8
-                  ? 'bg-progress'
-                  : score >= 6
-                    ? 'bg-reward'
-                    : 'bg-correction';
-          } else if (isActive) {
-            // outlined, not filled or pulsing
-            segClass = 'bg-transparent ring-1 ring-inset ring-action';
-          }
-
-          return (
-            <div
-              key={i}
-              className={`h-1 rounded-full transition-colors duration-state ease-smooth ${segClass}`}
-              style={{ flex: 1 }}
-            />
-          );
-        })}
-      </div>
+      <div className="flex">{segments}</div>
     </div>
   );
 }

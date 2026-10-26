@@ -1,11 +1,13 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { BookMarked, ChevronRight, Lock } from 'lucide-react';
+import { BookMarked, ChevronRight, Lock, Shuffle } from 'lucide-react';
 import { TOPICS } from '../../data/gameData';
 import { LEARN_TOPIC_DEPENDENCIES } from '../../data/learnTopicDependencies';
 import { isLearnTopicUnlocked } from '../../features/learn/topicProgress';
 import { isTopicVisible } from '../../features/learn/sessionSetup';
-import type { Topic, DifficultyTier } from '../../types/index';
+import { TopicChip } from '../../components/ui/TopicChip';
+import { fadeUp, fill, stagger } from '../../components/motion/variants';
+import type { Topic, DifficultyTier, TopicMasteryEntry } from '../../types/index';
 
 interface Props {
   onSelect: (topic: Topic) => void;
@@ -14,6 +16,10 @@ interface Props {
   selectedDifficulty?: DifficultyTier;
   /** Show the way into the exam notebook (Learn only; Listening Mode shares this grid). */
   showNotebookLink?: boolean;
+  /** Per-topic progress for the tiles' bars and averages; omitted, every tile reads "N questions". */
+  topicMastery?: Record<string, TopicMasteryEntry>;
+  /** The topic the coach recommends, badged "Coach’s pick". */
+  coachPickKey?: string | null;
 }
 
 function topicLabel(key: string): string {
@@ -26,7 +32,15 @@ function lockReason(topic: Topic): string {
   return `Complete 5 sessions in ${depLabels} averaging 7+/10 to unlock.`;
 }
 
-export function TopicGrid({ onSelect, title = "Learn", subtitle = "Choose a topic and start practicing", showNotebookLink = false }: Props) {
+/**
+ * Learn's topic grid (Design System v2): tiles with the topic's hue chip,
+ * French and English names, an answered-progress bar and the average. A
+ * locked advanced topic is recessed with a lock and its reason — never faded.
+ * Below: Random question and the exam notebook.
+ */
+export function TopicGrid({
+  onSelect, title = 'Learn', subtitle = 'Choose a topic and start practising', showNotebookLink = false, topicMastery = {}, coachPickKey = null,
+}: Props) {
   // Topics too small to practise as a session stay out of the grid (docs §13.4).
   const visibleTopics = TOPICS.filter(isTopicVisible);
 
@@ -36,100 +50,111 @@ export function TopicGrid({ onSelect, title = "Learn", subtitle = "Choose a topi
   };
 
   return (
-    <div className="min-h-screen pb-24 md:pb-8">
-      <motion.div
-        className="max-w-5xl mx-auto px-4 md:px-6 pt-6 md:pt-8 space-y-5"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.4 }}
-      >
-        <div>
-          <h1 className="text-2xl md:text-3xl font-black text-white">{title}</h1>
-          <p className="text-sm text-ink-muted mt-1">{subtitle}</p>
-        </div>
+    <motion.div className="flex flex-col gap-6" variants={stagger} initial="hidden" animate="show">
+      <motion.div variants={fadeUp} className="flex flex-col gap-2">
+        <h1 className="text-h1 text-ink">{title}</h1>
+        <p className="text-body-l text-ink-muted">{subtitle}</p>
+      </motion.div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {visibleTopics.map((topic, idx) => {
-            const unlocked = !topic.isAdvanced || isLearnTopicUnlocked(LEARN_TOPIC_DEPENDENCIES[topic.key] ?? []);
-            return (
-              <motion.button
-                key={topic.key}
-                onClick={() => handleTopicClick(topic, unlocked)}
-                aria-disabled={!unlocked}
-                aria-label={!unlocked ? `${topic.label} — locked. ${lockReason(topic)}` : undefined}
-                className={`group relative overflow-hidden rounded-xl surface p-5 text-left transition-all duration-300 perspective ${
-                  unlocked ? 'hover:border-white/10' : 'opacity-50 cursor-not-allowed'
-                }`}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: unlocked ? 1 : 0.5, y: 0 }}
-                transition={{ delay: idx * 0.05, duration: 0.4 }}
-                whileHover={unlocked ? { scale: 1.03, y: -3, rotateX: 5, rotateY: -5 } : undefined}
-                whileTap={unlocked ? { scale: 0.97 } : undefined}
-                style={{ transformStyle: 'preserve-3d' }}
-              >
-                <div
-                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  style={{ background: `radial-gradient(circle at top left, ${topic.color}12, transparent 70%)` }}
-                />
-                <div className="relative">
-                  <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl mb-3"
-                    style={{
-                      background: `linear-gradient(135deg, ${topic.color}18, ${topic.color}08)`,
-                      border: `1px solid ${topic.color}20`,
-                      boxShadow: `0 0 12px ${topic.color}10`,
-                    }}
-                  >
-                    {unlocked ? topic.icon : <Lock size={20} className="text-ink-subtle" />}
-                  </div>
-                  <div className="flex items-center gap-1.5 mb-0.5">
-                    <h3 className="font-bold text-white text-sm">{topic.label}</h3>
-                  </div>
-                  <p className="text-[10px] text-ink-subtle">{topic.labelEn}</p>
-                  {unlocked ? (
-                    <p className="text-[9px] text-ink-subtle mt-2">{topic.questionsCount} questions</p>
-                  ) : (
-                    <p className="text-[9px] text-ink-subtle mt-2">{lockReason(topic)}</p>
-                  )}
-                </div>
-              </motion.button>
-            );
-          })}
-        </div>
+      <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(max(150px,calc((100%-36px)/4)),1fr))]">
+        {visibleTopics.map(topic => {
+          const unlocked = !topic.isAdvanced || isLearnTopicUnlocked(LEARN_TOPIC_DEPENDENCIES[topic.key] ?? []);
+          const m = topicMastery[topic.key];
+          const answered = m?.uniqueQuestionsAnswered.length ?? 0;
+          const avg = m?.averageScore ?? null;
+          const pct = topic.questionsCount > 0 ? Math.min(100, (answered / topic.questionsCount) * 100) : 0;
+          const isCoach = unlocked && coachPickKey === topic.key;
+          return (
+            <motion.button
+              key={topic.key}
+              type="button"
+              variants={fadeUp}
+              onClick={() => handleTopicClick(topic, unlocked)}
+              aria-disabled={!unlocked}
+              aria-label={!unlocked ? `${topic.label} — locked. ${lockReason(topic)}` : undefined}
+              className={`flex min-w-0 flex-col gap-4 rounded-card border border-hairline p-5 text-left text-ink
+                transition-colors duration-state ease-smooth
+                ${unlocked ? 'bg-surface hover:border-hairline-strong active:bg-surface-recessed' : 'cursor-not-allowed bg-surface-recessed'}`}
+              data-testid={`topic-${topic.key}`}
+            >
+              <span className="flex items-start justify-between gap-2">
+                {unlocked ? (
+                  <TopicChip topicKey={topic.key} size={40} />
+                ) : (
+                  <span className="flex h-10 w-10 items-center justify-center rounded-control border border-hairline bg-surface text-ink-subtle" aria-hidden="true">
+                    <Lock size={18} />
+                  </span>
+                )}
+                {isCoach && (
+                  <span className="inline-flex h-6 items-center whitespace-nowrap rounded-pill bg-action-soft px-2 text-caption font-semibold text-action-text">
+                    Coach’s pick
+                  </span>
+                )}
+              </span>
+              <span className="flex min-w-0 flex-col gap-0.5">
+                <span className={`text-[16px] font-semibold leading-[1.3] ${unlocked ? 'text-ink' : 'text-ink-muted'}`}>{topic.label}</span>
+                <span className="text-[13px] leading-[1.4] text-ink-subtle">{topic.labelEn}</span>
+              </span>
+              {unlocked ? (
+                <span className="mt-auto flex flex-col gap-2">
+                  <span className="block h-1 overflow-hidden rounded-pill bg-track">
+                    <motion.span
+                      className="block h-full rounded-pill bg-progress"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${pct}%` }}
+                      transition={fill()}
+                    />
+                  </span>
+                  <span className="flex flex-wrap justify-between gap-x-2 gap-y-0.5 text-caption text-ink-subtle">
+                    <span className="font-numeral text-ink-muted">
+                      {answered > 0 ? `avg ${avg !== null ? avg.toFixed(1) : '—'}` : 'Not started'}
+                    </span>
+                    <span>{answered > 0 ? `${answered} of ${topic.questionsCount} answered` : `${topic.questionsCount} questions`}</span>
+                  </span>
+                </span>
+              ) : (
+                <span className="mt-auto text-caption text-ink-subtle">{lockReason(topic)}</span>
+              )}
+            </motion.button>
+          );
+        })}
+      </div>
 
-        <motion.button
+      <motion.div variants={fadeUp} className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr))]">
+        <button
+          type="button"
           onClick={() => onSelect(visibleTopics[Math.floor(Math.random() * visibleTopics.length)])}
-          className="w-full group relative overflow-hidden rounded-xl surface-recessed border-dashed border-white/8 p-4 text-left hover:bg-white/[0.02] transition-all duration-300"
-          whileHover={{ scale: 1.01 }}
-          whileTap={{ scale: 0.98 }}
+          className="flex items-center gap-3 rounded-card border border-hairline bg-surface-recessed p-4 text-left text-ink
+            transition-colors duration-state ease-smooth hover:border-hairline-strong"
         >
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-violet-electric/8 border border-violet-electric/15 flex items-center justify-center">
-              <span className="text-base">🎲</span>
-            </div>
-            <div className="flex-1">
-              <p className="font-bold text-white text-sm">Random Question</p>
-              <p className="text-[10px] text-ink-subtle">Get a random question from any topic</p>
-            </div>
-            <ChevronRight size={14} className="text-ink-subtle group-hover:text-white group-hover:translate-x-1 transition-all" />
-          </div>
-        </motion.button>
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-control border border-hairline bg-surface text-ink-muted" aria-hidden="true">
+            <Shuffle size={20} />
+          </span>
+          <span className="flex flex-1 flex-col">
+            <span className="text-[14px] font-semibold">Random question</span>
+            <span className="text-[13px] text-ink-subtle">A question from any topic</span>
+          </span>
+          <ChevronRight size={16} className="text-ink-subtle" aria-hidden="true" />
+        </button>
 
         {showNotebookLink && (
           <Link
             to="/notebook"
-            className="flex items-center gap-3 rounded-xl surface-recessed p-4 text-left"
+            className="flex items-center gap-3 rounded-card border border-hairline bg-surface-recessed p-4 text-left text-ink
+              transition-colors duration-state ease-smooth hover:border-hairline-strong"
             data-testid="notebook-link"
           >
-            <BookMarked size={16} className="text-action-text" aria-hidden="true" />
-            <span className="flex-1">
-              <span className="block text-sm font-bold text-ink">Your exam notebook</span>
-              <span className="block text-[10px] text-ink-muted">The answers you chose to keep, to listen to and practise from memory</span>
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-control border border-hairline bg-surface text-action-text" aria-hidden="true">
+              <BookMarked size={20} />
             </span>
-            <ChevronRight size={14} className="text-ink-muted" aria-hidden="true" />
+            <span className="flex flex-1 flex-col">
+              <span className="text-[14px] font-semibold">Your exam notebook</span>
+              <span className="text-[13px] text-ink-subtle">Answers you kept, to listen to and practise from memory</span>
+            </span>
+            <ChevronRight size={16} className="text-ink-subtle" aria-hidden="true" />
           </Link>
         )}
       </motion.div>
-    </div>
+    </motion.div>
   );
 }

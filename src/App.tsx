@@ -158,7 +158,7 @@ function MainLayout() {
   if (isHiddenPath(location.pathname)) return <Navigate to="/" replace />;
   return (
     <ShellChromeProvider>
-    <div className="min-h-screen bg-bg text-ink overflow-hidden">
+    <div className="min-h-screen bg-bg text-ink overflow-x-clip">
       {!junior && <SideRail />}
       <main className={`relative z-10 ${junior ? '' : 'md:ml-[88px]'}`}>
         <AnimatePresence mode="wait">

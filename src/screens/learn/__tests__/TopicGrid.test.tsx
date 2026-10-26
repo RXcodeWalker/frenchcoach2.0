@@ -91,7 +91,7 @@ describe('TopicGrid — one-question topics are hidden (docs §13.4)', () => {
     isLearnTopicUnlockedMock.mockReturnValue(true);
     const onSelect = vi.fn();
     render(<TopicGrid onSelect={onSelect} />);
-    const random = screen.getByText('Random Question').closest('button')!;
+    const random = screen.getByText('Random question').closest('button')!;
 
     // Math.random() just below 1 would pick the LAST topic of the full list ('art', hidden).
     vi.spyOn(Math, 'random').mockReturnValue(0.999);

@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { enter } from '../components/motion/variants';
 import { useSearchParams } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { LEARN_TOPIC_PARAM, topicFromDeepLink } from '../features/learn/topicDeepLink';
@@ -31,12 +32,16 @@ import { useAuth } from '../context/AuthContext';
 import { SpeakingConsentGate } from '../components/SpeakingConsentGate';
 import { TopicGrid } from './learn/TopicGrid';
 import { QuestionCard } from './learn/QuestionCard';
-import { RecordingPanel } from './learn/RecordingPanel';
+import { RecordingPanel, type ProcessingStep } from './learn/RecordingPanel';
 import { TranscriptConfirmPanel, type TranscriptConfirmation } from './learn/TranscriptConfirmPanel';
 import { transcribeLearnAnswer, type AnswerTranscription } from '../features/learn/answerTranscription';
 import { FeedbackExperience } from '../features/feedback';
 import type { PronunciationStatus } from '../features/feedback/FeedbackExperience';
 import { TopContextBar } from '../components/TopContextBar';
+import { Button } from '../components/ui/Button';
+import { useIsDesktop } from '../components/layout/useIsDesktop';
+import { useHideDock } from '../components/layout/shellChrome';
+import { X } from 'lucide-react';
 import { SessionStartScreen } from './learn/SessionStartScreen';
 import { SessionProgressBar } from './learn/SessionProgressBar';
 import { SessionSummary } from './learn/SessionSummary';
@@ -75,6 +80,7 @@ type LearnState = 'topics' | 'session_start' | 'question' | 'recording' | 'confi
 
 export function Learn() {
   const { state, dispatch } = useApp();
+  const desktop = useIsDesktop();
   const { profile, skillProfile, topicMastery, preferredEngine, selectedDifficulty, aim } = state;
   const adaptiveDifficultyLive = resolveFeatureStatus('learnAdaptiveDifficulty') === 'live';
 
@@ -1305,6 +1311,18 @@ export function Learn() {
   };
 
   const topicData = selectedTopic ? TOPICS.find(t => t.key === selectedTopic.key) ?? selectedTopic : null;
+  const inSession = learnState === 'question' || learnState === 'recording' || learnState === 'confirm' || learnState === 'feedback';
+
+  // The stepped status in the recorder while an answer is processed (Design System v2):
+  // Transcribing (the Whisper double-check, or the stream's first phase), Checking grammar
+  // (the model is generating), then Scoring once sections stream in. The examiner voice has
+  // no stream phases, so it shows Checking grammar until its comments arrive.
+  const processingStep: ProcessingStep | null =
+    learnState === 'confirm' && isCheckingTranscript ? 0
+    : learnState === 'feedback' && feedbackMode === 'coach' && !feedback && !showPracticeStep
+      ? (partialFeedback ? 2 : streamPhase === 'generating' ? 1 : 0)
+    : learnState === 'feedback' && feedbackMode === 'examiner' && (examinerStatus === 'idle' || examinerStatus === 'pending') ? 1
+    : null;
   const midAvg = activeSession && activeSession.questionsCompleted > 0
     ? averageRealScores(
         activeSession.questions
@@ -1312,13 +1330,24 @@ export function Learn() {
           .map(shownBestScore),
       )
     : null;
+  // The session takes the whole screen on mobile: the dock steps aside (frame 2a).
+  useHideDock(inSession);
+
+  const sessionLength = activeSession?.targetCount ?? 0;
+  const barTitle = learnState === 'topics' ? 'Learn' : (selectedTopic?.label ?? 'Practice');
+  const barSubtitle = learnState === 'topics'
+    ? 'Choose a topic to begin'
+    : learnState === 'session_start'
+      ? 'Set up your session'
+      : `Session · ${sessionLength} question${sessionLength === 1 ? '' : 's'}`;
 
   return (
     <div className="flex flex-col min-h-screen">
       <TopContextBar
-        title={learnState === 'topics' ? 'Learning Hub' : (selectedTopic?.label ?? 'Practice')}
-        subtitle={learnState === 'topics' ? 'Choose a topic to begin' : selectedTopic?.labelEn}
+        title={barTitle}
+        subtitle={barSubtitle}
         showBack={learnState !== 'topics'}
+        backLabel={learnState === 'session_start' ? 'Back to topics' : 'Leave session'}
         onBack={handleBack}
       />
 
@@ -1352,41 +1381,53 @@ export function Learn() {
       <AnimatePresence>
         {feedbackErrorMessage && (
           <motion.div
-            initial={{ opacity: 0, y: -16, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -16, scale: 0.96 }}
-            transition={{ duration: 0.2 }}
-            className="fixed top-16 right-4 z-50 max-w-xs w-full"
+            variants={enter}
+            initial="hidden"
+            animate="show"
+            exit={{ opacity: 0 }}
+            role="alert"
+            className="fixed left-0 right-0 top-20 z-50 flex justify-center px-4 md:left-[88px]"
           >
-            <div className="rounded-2xl surface-raised border border-red-400/20 p-4 shadow-xl">
-              <div className="flex items-start gap-3">
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-correction-text">Feedback unavailable</p>
-                  <p className="text-[11px] text-ink-muted mt-0.5 leading-relaxed">{feedbackErrorMessage}</p>
-                </div>
-                <button
-                  onClick={() => setFeedbackErrorMessage(null)}
-                  className="flex-shrink-0 p-1 rounded-lg hover:bg-white/5 text-ink-muted hover:text-white transition-colors"
-                >
-                  ✕
-                </button>
+            <div className="flex w-full max-w-[380px] items-start gap-3 rounded-card border border-hairline-strong bg-surface-raised py-2 pl-3.5 pr-2 shadow-overlay">
+              <div className="min-w-0 flex-1 py-1.5">
+                <p className="text-[14px] font-semibold text-correction-text">Feedback unavailable</p>
+                <p className="mt-0.5 text-[13px] text-ink-muted">{feedbackErrorMessage}</p>
               </div>
+              <button
+                type="button"
+                onClick={() => setFeedbackErrorMessage(null)}
+                aria-label="Dismiss"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-control text-ink-subtle transition-colors duration-state ease-smooth hover:bg-track hover:text-ink"
+              >
+                <X size={16} />
+              </button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <div className="flex-1 max-w-3xl mx-auto w-full px-4 md:px-6 py-6 md:py-8">
+      <div
+        className={`mx-auto flex w-full flex-1 flex-col px-[clamp(16px,3cqw,32px)] [container-type:inline-size]
+          ${learnState === 'topics' ? 'max-w-[1120px] pb-[136px] pt-[clamp(24px,4cqw,40px)] md:pb-12'
+            : inSession ? `max-w-[760px] ${desktop ? 'pb-12 pt-5' : 'pb-4 pt-4'}`
+            : 'max-w-[1120px] pb-[136px] pt-[clamp(24px,4cqw,40px)] md:pb-12'}`}
+      >
         <AnimatePresence mode="wait">
 
           {learnState === 'topics' && (
-            <motion.div key="topics" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-              <TopicGrid onSelect={selectTopic} selectedDifficulty={selectedDifficulty} showNotebookLink />
+            <motion.div key="topics" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.12 }}>
+              <TopicGrid
+                onSelect={selectTopic}
+                selectedDifficulty={selectedDifficulty}
+                showNotebookLink
+                topicMastery={topicMastery}
+                coachPickKey={getActiveRecommendation()?.targetTopicKey ?? null}
+              />
             </motion.div>
           )}
 
           {learnState === 'session_start' && selectedTopic && (
-            <motion.div key="session_start" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+            <motion.div key="session_start" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.12 }}>
               <SessionStartScreen
                 topic={selectedTopic}
                 topicMastery={topicMastery[selectedTopic.key] ?? null}
@@ -1409,6 +1450,7 @@ export function Learn() {
                 markingLevel={markingLive ? markingLevel : undefined}
                 onMarkingLevelChange={markingLive ? (level) => dispatch({ type: 'SET_MARKING_LEVEL', level }) : undefined}
                 answersLeft={answersLeft}
+                streakDays={profile.streak_days}
               />
             </motion.div>
           )}
@@ -1416,28 +1458,32 @@ export function Learn() {
           {(learnState === 'question' || learnState === 'recording' || learnState === 'confirm' || learnState === 'feedback') && activeSession && (
             <motion.div
               key="practice"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="space-y-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.12 }}
+              className={`flex flex-col gap-4 ${desktop ? '' : 'min-h-[calc(100dvh-88px)]'}`}
             >
               {/* Progress bar */}
               {activeSession.targetCount > 1 && topicData && (
                 <SessionProgressBar
                   session={activeSession}
                   topicLabel={topicData.label}
-                  topicIcon={topicData.icon}
+                  topicKey={topicData.key}
                   onEndSession={handleEndSessionEarly}
+                  compact={!desktop}
                 />
               )}
 
               {currentQuestion && (
                 <QuestionCard
+                  key={currentQuestion.id}
                   question={currentQuestion}
                   showHint={showHint}
                   onToggleHint={() => setShowHint(!showHint)}
                   isReview={isReviewQuestion}
                   selectionReason={currentSessionQuestion?.selectionReason}
+                  compact={!desktop}
                 />
               )}
 
@@ -1446,10 +1492,14 @@ export function Learn() {
                   isActive={learnState === 'question' || learnState === 'recording'}
                   recording={recording}
                   onStop={handleStopRecording}
+                  processing={processingStep}
+                  unscored={feedbackMode === 'examiner'}
+                  compact={!desktop}
                 />
               </SpeakingConsentGate>
 
-              {learnState === 'confirm' && (isCheckingTranscript || pendingAnswer !== null) && (
+              {/* While the recording is double-checked the recorder shows "Transcribing"; the panel waits for a result. */}
+              {learnState === 'confirm' && !isCheckingTranscript && pendingAnswer !== null && (
                 <TranscriptConfirmPanel
                   checking={isCheckingTranscript}
                   transcription={pendingAnswer}
@@ -1460,25 +1510,22 @@ export function Learn() {
 
               {learnState === 'feedback' && drillSkillId && !showDrillModal && (
                 <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="p-4 rounded-2xl surface-raised border-rose-500/25 space-y-3"
+                  variants={enter}
+                  initial="hidden"
+                  animate="show"
+                  className="flex flex-col gap-3 rounded-card border border-hairline bg-correction-soft p-5"
                 >
-                  <p className="text-sm text-white font-semibold leading-snug">
+                  <p className="text-[15px] font-semibold leading-snug text-ink">
                     {activeProblem?.isRecurring
                       ? `${getSkillLabel(drillSkillId)} keeps coming back — this is a pattern worth fixing now.`
                       : `You've struggled with ${getSkillLabel(drillSkillId)} a few times recently.`}
                   </p>
-                  <p className="text-xs text-ink-muted">
+                  <p className="text-body-s text-ink-muted">
                     A quick recovery drill can lock in the pattern before you move on.
                   </p>
-                  <button
-                    type="button"
-                    onClick={openDrill}
-                    className="w-full py-3 rounded-xl bg-correction-soft border border-hairline text-correction-text font-bold text-sm hover:bg-rose-500/25 transition-colors"
-                  >
+                  <Button variant="destructive" size="md" className="w-full" onClick={openDrill}>
                     Start recovery drill
-                  </button>
+                  </Button>
                 </motion.div>
               )}
 
@@ -1497,13 +1544,13 @@ export function Learn() {
                     firsts={firsts}
                   />
                   {(examinerStatus === 'done' || examinerStatus === 'quota-exhausted') && (
-                    <button
-                      type="button"
+                    <Button
+                      size="lg"
+                      className="w-full"
                       onClick={examinerStatus === 'done' ? handleFeedbackComplete : advanceQuestion}
-                      className="w-full py-3 rounded-xl bg-action-soft border border-hairline text-action-text font-bold text-sm hover:bg-violet-500/25 transition-colors"
                     >
                       Continue
-                    </button>
+                    </Button>
                   )}
                 </div>
               )}

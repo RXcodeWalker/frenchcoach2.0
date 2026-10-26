@@ -114,3 +114,47 @@ handoff left a gap or clashed with the codebase. Newest phase last.
 - The **weekly review** banner is kept (below the coach's pick) and restyled
   with tokens; Quick access and the stat tiles that the old Home carried are
   gone from Home (Profile and Progress hold those numbers now).
+
+## Phase 4 — Learn flow
+
+- **Difficulty labels stay "Easier / Right for me / Harder"**, not the
+  prototype's "Comfortable / Balanced / Push". The live spec
+  (`docs/systems/learn-adaptive-difficulty.md`, Batch 2 amendment) renamed
+  them on purpose and `SessionStartScreen.test.tsx` pins it; the design used
+  the older names. The control itself is the designed segmented control.
+- **The level read-out keeps the real wording** (`measuredLevelDisplay`, e.g.
+  "Starting point: Exam level (A2) · We'll adjust as you answer") instead of
+  the prototype's bare "A2".
+- **Setup summary**: questions = today's session length (the launch limit),
+  "about N min" at 4 minutes a question (the prototype's figure), and
+  "up to +N XP" from `computeXPGain` — participation XP only when the marking
+  level is below Exam standard, and hidden in the Examiner style (examiner
+  answers earn no XP).
+- **The in-screen back button is gone**; the top bar carries back ("Back to
+  topics" on setup, "Leave session" in a session), as in the prototype.
+  `onBack` stays on `SessionStartScreen`'s props for callers.
+- **Stepped processing is driven by real state**: *Transcribing* while the
+  Whisper double-check runs or before the stream reports a phase; *Checking
+  grammar* while the stream is `generating`; *Scoring* once sections stream
+  in. The Examiner style's third step reads *Writing comments* (it never
+  scores) and it shows *Checking grammar* until its comments arrive. The
+  transcript-confirm card now appears only once there is something to
+  confirm (its own "Double-checking…" state was the same information).
+- **Feedback is untouched** (`FeedbackExperience`, `LearnExaminerFeedback`,
+  the Predict card that fills the wait, `SayItAgainCard`), as are
+  `SessionComplete`/`SessionSummary`. The recovery-drill card, the examiner
+  Continue button and the "Feedback unavailable" toast sit in Learn.tsx, so
+  they were restyled with tokens.
+- **The live waveform is new** (`LevelBars` in `RecordingPanel.tsx`): 40 3px
+  bars following `micLevel.levelRef`, written to the DOM per frame. The exam's
+  `ScrollingWaveform` is unchanged.
+- **Mobile session** follows the compact frame: the question is a centred
+  stage, the recorder is a sticky dock at the bottom, and the app dock hides.
+- **Topic tiles** show real progress from `topicMastery` (answered of the
+  topic's question count, average or "Not started"); "Coach's pick" badges the
+  active recommendation's topic. Locked advanced topics are recessed with a
+  lock icon and their reason — no opacity. "Random Question" became "Random
+  question" (sentence case, as designed; the test was updated).
+- **Sticky top bar fix:** `MainLayout`'s root had `overflow-hidden`, which
+  made it the sticky container, so the bar scrolled away. It is now
+  `overflow-x-clip`.

@@ -1,5 +1,7 @@
 import { Fragment, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
+import { enter } from '../../components/motion/variants';
+import { Button } from '../../components/ui/Button';
 import { alignRecognisers, applyAlternatives, swappedWords } from '../../domain/transcription/alignRecognisers';
 import { tokenize } from '../../domain/igcse/stt/homophones/text';
 import type { AnswerTranscription } from '../../features/learn/answerTranscription';
@@ -20,7 +22,7 @@ interface Props {
   onRerecord: () => void;
 }
 
-const CARD = 'rounded-xl surface-raised p-5 space-y-4';
+const CARD = 'flex flex-col gap-4 rounded-card border border-hairline bg-surface p-5';
 
 /**
  * "Did we hear you right?" (transcription-accuracy plan, Phase 3). Shows the
@@ -39,8 +41,8 @@ export function TranscriptConfirmPanel({ checking, transcription, onConfirm, onR
 
   if (checking || !transcription || !alignment) {
     return (
-      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className={CARD}>
-        <p role="status" className="text-sm text-ink-muted">Double-checking what we heard…</p>
+      <motion.div variants={enter} initial="hidden" animate="show" className={CARD}>
+        <p role="status" className="text-body-s text-ink-muted">Double-checking what we heard…</p>
       </motion.div>
     );
   }
@@ -90,61 +92,50 @@ export function TranscriptConfirmPanel({ checking, transcription, onConfirm, onR
   const openSpan = open !== null ? alignment.spans[open] : null;
 
   return (
-    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className={CARD}>
+    <motion.div variants={enter} initial="hidden" animate="show" className={CARD}>
       <div>
-        <p className="text-eyebrow uppercase text-ink-muted mb-1.5">We heard</p>
+        <p className="mb-1.5 text-eyebrow uppercase text-ink-subtle">We heard</p>
         {hasText ? (
-          <p className="text-sm text-ink leading-relaxed" data-testid="heard-text">{body}</p>
+          <p lang="fr" className="text-body-base text-ink" data-testid="heard-text">{body}</p>
         ) : (
-          <p className="text-sm text-ink-muted italic">Nothing was transcribed.</p>
+          <p className="text-body-s italic text-ink-muted">Nothing was transcribed.</p>
         )}
       </div>
 
       {underlined.length > 0 && (
-        <p className="text-xs text-ink-muted">Underlined words are ones we weren’t sure about. Tap one to check it.</p>
+        <p className="text-[13px] text-ink-muted">Underlined words are ones we weren’t sure about. Tap one to check it.</p>
       )}
       {liveCaptionsOnly && (
-        <p className="text-xs text-ink-muted" data-testid="live-captions-note">
+        <p className="text-[13px] text-ink-muted" data-testid="live-captions-note">
           We couldn’t double-check this answer, so this is the live caption as it was.
         </p>
       )}
 
       {openSpan && open !== null && (
-        <div className="rounded-lg border border-hairline bg-reward-soft p-3 space-y-2" data-testid="word-choice">
-          <p className="text-xs text-ink">
+        <div className="flex flex-col gap-2 rounded-control bg-reward-soft p-3" data-testid="word-choice">
+          <p className="text-[13px] text-ink">
             {openSpan.kind === 'nearHomophone'
               ? 'These sound alike, so it could have been either. Say it clearly if you can.'
               : 'We heard this word two different ways.'}
           </p>
           <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => toggleChoice(open)}
-              className="flex-1 py-2 rounded-lg text-xs font-bold border border-hairline text-ink hover:bg-white/5 transition-colors"
-            >
+            <Button variant="secondary" size="sm" className="flex-1" onClick={() => toggleChoice(open)}>
               {chosen.has(open) ? `Use “${openSpan.primaryWords}”` : `Use “${openSpan.secondaryWords}”`}
-            </button>
-            <button
-              type="button"
-              onClick={onRerecord}
-              className="flex-1 py-2 rounded-lg text-xs font-bold border border-hairline text-ink-muted hover:bg-white/5 transition-colors"
-            >
+            </Button>
+            <Button variant="quiet" size="sm" className="flex-1" onClick={onRerecord}>
               Re-record
-            </button>
+            </Button>
           </div>
         </div>
       )}
 
-      <div className="flex gap-2">
-        <button
-          type="button"
-          onClick={onRerecord}
-          className="flex-1 py-2.5 rounded-xl text-xs font-bold border border-hairline text-ink-muted hover:bg-white/5 transition-colors"
-        >
+      <div className="flex gap-3">
+        <Button variant="secondary" size="lg" onClick={onRerecord}>
           Re-record
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
+          size="lg"
+          className="flex-1"
           onClick={() =>
             onConfirm({
               text: applyAlternatives(alignment, chosen),
@@ -152,10 +143,9 @@ export function TranscriptConfirmPanel({ checking, transcription, onConfirm, onR
               source: transcription.source,
             })
           }
-          className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-br from-violet-electric to-indigo-500 text-action-ink shadow-[0_0_16px_rgba(124,58,237,0.3)]"
         >
           Use this
-        </button>
+        </Button>
       </div>
     </motion.div>
   );

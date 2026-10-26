@@ -6,6 +6,7 @@ import type { Question } from '../../types/index';
 import { deriveDemandLevel } from '../../domain/learn/demand/deriveDemandLevel';
 import { levelLabel } from '../../domain/learn/ability/levelLabel';
 import type { SelectionReason } from '../../domain/learn/selection/types';
+import { enter, slide } from '../../components/motion/variants';
 
 interface Props {
   question: Question;
@@ -14,6 +15,8 @@ interface Props {
   isReview?: boolean;
   /** docs §14 UX #2/#3 — present only on the adaptive path (learnAdaptiveDifficulty live). */
   selectionReason?: SelectionReason | null;
+  /** Mobile: a centred stage instead of a card; Listen moves in with the other links. */
+  compact?: boolean;
 }
 
 const COGNITIVE_DEMAND_LABEL: Record<string, string> = {
@@ -31,7 +34,18 @@ const TIME_FRAME_LABEL: Record<string, string> = {
   conditional: 'conditional',
 };
 
-export function QuestionCard({ question, showHint, onToggleHint, isReview, selectionReason }: Props) {
+const DIFFICULTY_LABEL: Record<number, string> = { 1: 'Foundation', 2: 'Core', 3: 'Extended' };
+
+const CHIP = 'inline-flex h-6 items-center rounded-control px-2 text-caption font-semibold';
+const LINK = 'inline-flex h-11 items-center gap-1.5 text-[13px] font-semibold transition-colors duration-state ease-smooth';
+
+/**
+ * The question (Design System v2): demand and Review chips, Listen, the
+ * question at 30/600, tap-to-translate vocabulary chips, then the hint (ideas
+ * and a Libre Baskerville phrase frame, on reward-soft) and "Why this
+ * question" (recessed). Compact renders the same content as a centred stage.
+ */
+export function QuestionCard({ question, showHint, onToggleHint, isReview, selectionReason, compact = false }: Props) {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [revealedVocab, setRevealedVocab] = useState<string | null>(null);
   const [showWhy, setShowWhy] = useState(false);
@@ -53,135 +67,179 @@ export function QuestionCard({ question, showHint, onToggleHint, isReview, selec
     }
   };
 
-  return (
-    <AnimatePresence mode="wait">
+  const chips = (
+    <span className={`flex flex-wrap gap-2 ${compact ? 'justify-center' : ''}`}>
+      {question.demands ? (
+        <span className={`${CHIP} bg-action-soft text-action-text`}>
+          {COGNITIVE_DEMAND_LABEL[question.demands.cognitiveDemand] ?? question.demands.cognitiveDemand}
+          {' · '}
+          {question.demands.timeFrames.map(tf => TIME_FRAME_LABEL[tf] ?? tf).join(' + ')}
+          {' · '}
+          {levelLabel(deriveDemandLevel(question.demands))}
+        </span>
+      ) : (
+        <span className={`${CHIP} bg-action-soft text-action-text`}>{DIFFICULTY_LABEL[question.difficulty] ?? 'Core'}</span>
+      )}
+      {isReview && <span className={`${CHIP} bg-info-soft text-info-text`}>Review</span>}
+    </span>
+  );
+
+  const vocab = question.keyVocab.length > 0 && (
+    <div className={`flex flex-wrap gap-x-2 pt-5 ${compact ? 'justify-center' : ''}`}>
+      {question.keyVocab.map(word => {
+        const open = revealedVocab === word.fr;
+        return (
+          <button
+            key={word.fr}
+            type="button"
+            onClick={() => setRevealedVocab(open ? null : word.fr)}
+            aria-label={`${word.fr}: ${word.en}`}
+            aria-expanded={open}
+            className="flex h-11 items-center"
+          >
+            <span
+              lang="fr"
+              className={`relative inline-flex h-8 items-center rounded-control border px-3 text-[13px] font-medium transition-colors duration-state ease-smooth
+                ${open ? 'border-action bg-action-soft text-action-text' : 'border-hairline bg-surface-recessed text-ink hover:border-hairline-strong'}`}
+            >
+              {word.fr}
+              {open && (
+                <span
+                  lang="en"
+                  className="absolute bottom-[calc(100%+6px)] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-control bg-ink px-2 py-1 text-caption font-medium text-surface"
+                >
+                  {word.en}
+                </span>
+              )}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  const listenButton = compact ? (
+    <button type="button" onClick={handleSpeak} className={`${LINK} ${isSpeaking ? 'text-action-text' : 'text-ink-muted hover:text-ink'}`}>
+      {isSpeaking ? <VolumeX size={14} aria-hidden="true" /> : <Volume2 size={14} aria-hidden="true" />}
+      {isSpeaking ? 'Stop' : 'Listen'}
+    </button>
+  ) : (
+    <button
+      type="button"
+      onClick={handleSpeak}
+      aria-label={isSpeaking ? 'Stop listening' : 'Listen'}
+      className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-control border border-hairline-strong
+        transition-[background-color,color,transform] duration-state ease-smooth hover:bg-track active:scale-[.97]
+        ${isSpeaking ? 'text-action-text' : 'text-ink-muted hover:text-ink'}`}
+    >
+      {isSpeaking ? <VolumeX size={16} /> : <Volume2 size={16} />}
+    </button>
+  );
+
+  const toggles = (
+    <div className={`flex flex-wrap gap-x-5 gap-y-1 ${compact ? 'justify-center' : ''}`}>
+      {compact && listenButton}
+      <button type="button" onClick={onToggleHint} aria-expanded={showHint} className={`${LINK} text-reward-text`}>
+        <Lightbulb size={14} aria-hidden="true" />
+        {showHint ? 'Hide hint' : 'Get hint'}
+        {!compact && (
+          <motion.span className="inline-flex" animate={{ rotate: showHint ? 180 : 0 }} transition={slide}>
+            <ChevronDown size={14} aria-hidden="true" />
+          </motion.span>
+        )}
+      </button>
+      {selectionReason && (
+        <button type="button" onClick={() => setShowWhy(!showWhy)} aria-expanded={showWhy} className={`${LINK} text-ink-muted hover:text-ink`}>
+          <Info size={14} aria-hidden="true" />
+          Why this question
+          {!compact && (
+            <motion.span className="inline-flex" animate={{ rotate: showWhy ? 180 : 0 }} transition={slide}>
+              <ChevronDown size={14} aria-hidden="true" />
+            </motion.span>
+          )}
+        </button>
+      )}
+    </div>
+  );
+
+  const panels = (
+    <>
+      <AnimatePresence initial={false}>
+        {showHint && (
+          <motion.div
+            variants={enter}
+            initial="hidden"
+            animate="show"
+            exit={{ opacity: 0 }}
+            className={`flex flex-col gap-2.5 rounded-control bg-reward-soft px-5 py-4 text-left text-ink ${compact ? 'w-full max-w-[520px]' : ''}`}
+          >
+            {question.coachHint ? (
+              <div className="flex flex-col gap-2.5" data-testid="coach-hint">
+                <ul className="flex list-disc flex-col gap-1 pl-[18px] text-body-s">
+                  {question.coachHint.ideas.map((idea) => (
+                    <li key={idea}>{idea}</li>
+                  ))}
+                </ul>
+                <span lang="fr" className="font-exam text-[20px] italic leading-[1.35]">« {question.coachHint.phrase.fr} »</span>
+                <span className="text-[13px] text-ink-muted">{question.coachHint.phrase.en}</span>
+              </div>
+            ) : (
+              <p className="text-body-s">{question.hint}</p>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence initial={false}>
+        {showWhy && selectionReason && (
+          <motion.div
+            variants={enter}
+            initial="hidden"
+            animate="show"
+            exit={{ opacity: 0 }}
+            className={`rounded-control border border-hairline bg-surface-recessed px-4 py-3.5 text-left text-body-s text-ink-muted ${compact ? 'w-full max-w-[520px]' : ''}`}
+          >
+            {selectionReason.explanation}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+
+  if (compact) {
+    return (
       <motion.div
         key={question.id}
-        className="relative overflow-hidden rounded-2xl surface-raised p-6 md:p-8 border-white/5"
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -12 }}
-        transition={{ duration: 0.3 }}
+        variants={enter}
+        initial="hidden"
+        animate="show"
+        className="flex flex-1 flex-col items-center justify-center gap-4 py-[clamp(8px,4cqw,40px)] text-center"
       >
-        <div className="relative">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2 flex-wrap">
-              {question.demands ? (
-                <span className="text-eyebrow px-2.5 py-1 rounded-lg uppercase bg-violet-500/10 text-action-text border border-violet-500/15">
-                  {COGNITIVE_DEMAND_LABEL[question.demands.cognitiveDemand] ?? question.demands.cognitiveDemand}
-                  {' · '}
-                  {question.demands.timeFrames.map(tf => TIME_FRAME_LABEL[tf] ?? tf).join(' + ')}
-                  {' · '}
-                  {levelLabel(deriveDemandLevel(question.demands))}
-                </span>
-              ) : (
-                <span className={`text-eyebrow px-2.5 py-1 rounded-lg uppercase ${
-                  question.difficulty === 1 ? 'bg-emerald-500/10 text-progress-text border border-emerald-500/15' :
-                  question.difficulty === 2 ? 'bg-amber-500/10 text-reward-text border border-amber-500/15' :
-                  'bg-red-500/10 text-correction-text border border-red-500/15'
-                }`}>
-                  {question.difficulty === 1 ? 'Foundation' : question.difficulty === 2 ? 'Core' : 'Extended'}
-                </span>
-              )}
-              {isReview && (
-                <span className="text-eyebrow px-2.5 py-1 rounded-lg uppercase bg-cyan-500/10 text-info-text border border-cyan-500/15">
-                  Review
-                </span>
-              )}
-            </div>
-
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={handleSpeak}
-              className={`w-10 h-10 rounded-xl surface border-white/10 flex items-center justify-center transition-colors ${isSpeaking ? 'text-action-text border-violet-400/30' : 'text-ink-muted hover:text-white'}`}
-            >
-              {isSpeaking ? <VolumeX size={18} /> : <Volume2 size={18} />}
-            </motion.button>
-          </div>
-
-          <h2 className="text-xl md:text-2xl font-black text-white leading-tight mb-4">{question.text}</h2>
-
-          <div className="flex flex-wrap gap-2 mb-6">
-            {question.keyVocab.map(word => (
-              <motion.span
-                key={word.fr}
-                onClick={() => setRevealedVocab(revealedVocab === word.fr ? null : word.fr)}
-                className="text-eyebrow px-3 py-1 rounded-lg bg-violet-electric/10 text-action-text border border-violet-electric/20 uppercase cursor-help group relative"
-              >
-                {word.fr}
-                <div className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 rounded bg-navy-200 border border-white/10 text-white text-[9px] transition-opacity pointer-events-none whitespace-nowrap ${revealedVocab === word.fr ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
-                  {word.en}
-                </div>
-              </motion.span>
-            ))}
-          </div>
-
-          <div className="flex items-center gap-4">
-            <motion.button
-              onClick={onToggleHint}
-              className="flex items-center gap-2 text-eyebrow uppercase text-reward-text hover:text-reward-text transition-colors"
-              whileTap={{ scale: 0.95 }}
-            >
-              <Lightbulb size={14} />
-              {showHint ? 'Hide Hint' : 'Get Hint'}
-              <ChevronDown size={12} className={`transition-transform duration-300 ${showHint ? 'rotate-180' : ''}`} />
-            </motion.button>
-            {selectionReason && (
-              <motion.button
-                onClick={() => setShowWhy(!showWhy)}
-                className="flex items-center gap-2 text-eyebrow uppercase text-ink-muted hover:text-ink-muted transition-colors"
-                whileTap={{ scale: 0.95 }}
-              >
-                <Info size={14} />
-                Why this question
-                <ChevronDown size={12} className={`transition-transform duration-300 ${showWhy ? 'rotate-180' : ''}`} />
-              </motion.button>
-            )}
-          </div>
-
-          <AnimatePresence>
-            {showHint && (
-              <motion.div
-                className="mt-4 p-4 rounded-xl bg-reward-soft border border-hairline text-xs text-reward-text leading-relaxed italic"
-                initial={{ opacity: 0, height: 0, y: -10 }}
-                animate={{ opacity: 1, height: 'auto', y: 0 }}
-                exit={{ opacity: 0, height: 0, y: -10 }}
-              >
-                {question.coachHint ? (
-                  <div className="not-italic space-y-2" data-testid="coach-hint">
-                    <ul className="list-disc pl-4 space-y-1">
-                      {question.coachHint.ideas.map((idea) => (
-                        <li key={idea}>{idea}</li>
-                      ))}
-                    </ul>
-                    <p className="italic">
-                      « {question.coachHint.phrase.fr} »
-                      <span className="not-italic"> — {question.coachHint.phrase.en}</span>
-                    </p>
-                  </div>
-                ) : (
-                  <>"{question.hint}"</>
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <AnimatePresence>
-            {showWhy && selectionReason && (
-              <motion.div
-                className="mt-2 p-4 rounded-xl surface-recessed text-xs text-ink-muted leading-relaxed"
-                initial={{ opacity: 0, height: 0, y: -10 }}
-                animate={{ opacity: 1, height: 'auto', y: 0 }}
-                exit={{ opacity: 0, height: 0, y: -10 }}
-              >
-                {selectionReason.explanation}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+        {chips}
+        <h2 lang="fr" className="max-w-[600px] text-h2 text-ink [text-wrap:balance]">{question.text}</h2>
+        {vocab}
+        {toggles}
+        {panels}
       </motion.div>
-    </AnimatePresence>
+    );
+  }
+
+  return (
+    <motion.div
+      key={question.id}
+      variants={enter}
+      initial="hidden"
+      animate="show"
+      className="flex flex-col gap-4 rounded-card border border-hairline bg-surface p-[clamp(20px,4cqw,32px)]"
+    >
+      <div className="flex items-center justify-between gap-3">
+        {chips}
+        {listenButton}
+      </div>
+      <h2 lang="fr" className="text-h2 text-ink [text-wrap:pretty]">{question.text}</h2>
+      {vocab}
+      {toggles}
+      {panels}
+    </motion.div>
   );
 }
-
