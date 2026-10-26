@@ -185,9 +185,11 @@ function buildInitialState(): AppState {
     transcript: s.transcript,
     wordCount: s.wordCount,
     score: s.score,
-    xpEarned: 0,
+    xpEarned: s.xpEarned ?? 0,
     durationSec: s.durationSec,
     createdAt: s.date,
+    practiceOnly: s.practiceOnly,
+    examMarks: s.examMarks,
   }));
 
   const achievements = ACHIEVEMENTS.map(a => ({

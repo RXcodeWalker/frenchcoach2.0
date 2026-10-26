@@ -54,6 +54,29 @@ export function levelFor(xp: number) {
   return { ...LEVELS[0], index: 0 };
 }
 
+export interface LevelProgress {
+  /** 1-based level number (Beginner = 1). */
+  n: number;
+  name: string;
+  /** 0–1 through the current level; 1 at the top level. */
+  fraction: number;
+  /** XP still needed for the next level; null at the top level. */
+  toNext: number | null;
+}
+
+/** Where `xp` sits on the level ladder — the level bars on Home and Profile. */
+export function levelProgress(xp: number): LevelProgress {
+  const lvl = levelFor(xp);
+  const next = LEVELS[lvl.index + 1];
+  if (!next) return { n: lvl.index + 1, name: lvl.name, fraction: 1, toNext: null };
+  return {
+    n: lvl.index + 1,
+    name: lvl.name,
+    fraction: Math.max(0, Math.min(1, (xp - lvl.minXP) / (next.minXP - lvl.minXP))),
+    toNext: next.minXP - xp,
+  };
+}
+
 function _levelFor(xp: number) { return levelFor(xp); }
 
 function _progressPct(xp: number) {

@@ -60,6 +60,14 @@ export const scoreColor = (val: number): string =>
 export const scoreTone = (val: number): string =>
   val >= 8 ? 'var(--progress-text)' : val >= 6 ? 'var(--reward-text)' : 'var(--correction-text)';
 
+/** Same 8 / 6 thresholds as `scoreTone`, as the role's graphic colour (bars, cells). */
+export const scoreFill = (val: number): string =>
+  val >= 8 ? 'var(--progress)' : val >= 6 ? 'var(--reward)' : 'var(--correction)';
+
+/** Same 8 / 6 thresholds as `scoreTone`, as the role's soft ground (score pills, week cells). */
+export const scoreSoft = (val: number): string =>
+  val >= 8 ? 'var(--progress-soft)' : val >= 6 ? 'var(--reward-soft)' : 'var(--correction-soft)';
+
 /**
  * The single discriminant for "was this attempt actually graded": any
  * ungraded result carries a reason under `unscored` alongside placeholder

@@ -80,3 +80,37 @@ handoff left a gap or clashed with the codebase. Newest phase last.
   value.
 - **Count-ups render the settled number under Vitest** (`import.meta.env.MODE
   === 'test'`) so tests read real values, not a frame of the animation.
+
+## Phase 3 — Home
+
+- **Desktop vs compact is decided in JS** (`useIsDesktop`, the md/768px line
+  where the rail replaces the dock), because the two layouts differ in
+  content, not just size. Rendering both and hiding one with CSS would
+  duplicate every number for screen readers and tests.
+- **Greeting uses the username** ("Salut, lea_m.") — the app has no first
+  name. A guest or a learner without a username sees "Salut."
+- **Level bar** uses the real five-level ladder (`levelProgress` added to
+  `progressionService.ts`, next to `levelFor`): "Level N · X XP to Level N+1",
+  "Top level" at Beast Mode.
+- **"Up to +N XP"** is computed from the canonical formula:
+  `LEARN_ANSWERS_PER_DAY × computeXPGain(10, streak)` — the most a full
+  session can earn today (boosters not included). The prototype's "+90" was
+  sample data.
+- **Today's plan** comes from the coach's session blend: Warm up (at your
+  level) → Review (when spaced-review items are due, else "Build on it") →
+  Stretch (named after the coach's first focus skill when there is one).
+  There is no per-step data model behind it; it describes how a session is
+  built.
+- **Coach's pick** is the daily plan's topic when it names one ("Today's
+  focus"), else the weakest-scoring topic ("Weakest topic"), and opens that
+  topic's setup (`/learn?topic=`). On mobile it is the "Focus:" strip at the
+  bottom of the mission card, as in the compact frame.
+- **This week** reads `getDailyStats(7)`; a day with no scored session shows
+  the dashed baseline (bar) or "—" (cell), never 0.
+- **Recent activity** now shows real XP: `AppContext` was mapping every stored
+  session's XP to 0 on load, so the list read "+0 XP". It now carries
+  `xpEarned`, `practiceOnly` and `examMarks` through. Exam rows read "/40" and
+  use a graduation-cap chip.
+- The **weekly review** banner is kept (below the coach's pick) and restyled
+  with tokens; Quick access and the stat tiles that the old Home carried are
+  gone from Home (Profile and Progress hold those numbers now).

@@ -7,7 +7,7 @@ interface Props {
   /** home 920 · xl 1120 (default) · md 760 · sm 600 */
   maxWidth?: 'home' | 'xl' | 'md' | 'sm';
   /** Vertical gap between direct children, px. */
-  gap?: 16 | 24;
+  gap?: 12 | 16 | 24;
   className?: string;
 }
 

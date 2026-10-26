@@ -1,40 +1,70 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { Zap } from 'lucide-react';
 import { generateDailyPlan } from '../services/coach/decisionEngine';
 import { getActiveRecommendation } from '../services/coach/recommendationEngine';
 import { getSkillLabel } from '../services/coach/skillGraph';
+import { getDueReviewCounts } from '../services/coach/reviewPool';
 import { getLastWeeklyReview, hasSeenWeeklyReviewThisWeek, markWeeklyReviewSeen } from '../services/coach/weeklyReviewService';
 import type { CoachRecommendation, DailyPlan, WeeklyReview } from '../types/coach';
 import { WeeklyReviewCard } from './progress/WeeklyReviewCard';
 import { useApp } from '../context/AppContext';
 import { getDailyStats, getStats } from '../services/analytics/analyticsService';
-import { fadeUp } from '../components/motion/variants';
-import { WeeklyChart } from '../components/WeeklyChart';
+import { levelProgress } from '../services/progression/progressionService';
+import { computeXPGain } from '../domain/xp';
+import { LEARN_ANSWERS_PER_DAY } from '../features/learn/dailyAllowance';
+import { learnTopicPath } from '../features/progress/progressSummary';
+import { TOPICS } from '../data/gameData';
+import { fadeUp, fill } from '../components/motion/variants';
 import { PageShell } from '../components/layout/PageShell';
-import { HeroMission } from './home/HeroMission';
-import { RecentActivity } from './home/RecentActivity';
+import { useIsDesktop } from '../components/layout/useIsDesktop';
 import { TopContextBar } from '../components/TopContextBar';
+import { HeroMission, type PlanStep } from './home/HeroMission';
+import { CoachPick } from './home/CoachPick';
+import { ThisWeek, type WeekDay } from './home/ThisWeek';
+import { RecentActivity } from './home/RecentActivity';
 
+// The ring's count the last time Home rendered, so finishing a session and
+// landing back here fills the ring from the old count (the `fill` motion).
+let lastTodayCount: number | null = null;
+
+function todayLabel(): string {
+  return new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+}
+
+/**
+ * Home (Design System v2, frame 2a). Desktop: greeting + level, the mission
+ * card (the screen's only primary), coach's pick, then this week beside
+ * recent activity. Mobile: the same, compact — a 74px ring, plan tiles, a
+ * focus strip, a week strip and single-line activity rows.
+ */
 export function Home() {
   const { state } = useApp();
   const { profile } = state;
   const navigate = useNavigate();
+  const desktop = useIsDesktop();
   const [dailyPlan, setDailyPlan] = useState<DailyPlan | null>(null);
   const [recommendation, setRecommendation] = useState<CoachRecommendation | null>(null);
   const [weeklyReview, setWeeklyReview] = useState<WeeklyReview | null>(null);
   const [showReviewBanner, setShowReviewBanner] = useState(false);
 
   const stats = useMemo(() => getStats(), []);
-  const chartData = useMemo(() => getDailyStats(7), []);
+  const week: WeekDay[] = useMemo(
+    () => getDailyStats(7).map(d => ({ day: d.day, avg: d.scoredSessions > 0 ? d.score : null })),
+    [],
+  );
+  const dueTotal = useMemo(() => Object.values(getDueReviewCounts()).reduce((a, b) => a + b, 0), []);
 
   const today = new Date().toISOString().slice(0, 10);
   const todayCount = state.recentSessions.filter(s => s.createdAt?.startsWith(today)).length;
+  const ringFrom = useRef(lastTodayCount !== null && lastTodayCount < todayCount ? lastTodayCount : todayCount).current;
+  useEffect(() => { lastTodayCount = todayCount; }, [todayCount]);
 
   const weakestTopic = useMemo(() => {
     const entries = Object.entries(stats.byTopic);
     if (!entries.length) return null;
-    return entries.sort((a, b) => a[1].avg - b[1].avg)[0][0];
+    return entries.sort((a, b) => a[1].avg - b[1].avg)[0];
   }, [stats]);
 
   useEffect(() => {
@@ -62,114 +92,110 @@ export function Home() {
   const coachSkillIds = recommendation?.targetSkillIds?.length
     ? recommendation.targetSkillIds
     : dailyPlan?.topAction.targetSkillIds ?? [];
+  const skills = coachSkillIds.slice(0, 3).map(getSkillLabel);
+
+  // Coach's pick: the plan's topic when it names one, else the weakest-scoring topic.
+  const planTopic = dailyPlan?.topAction.targetTopicKey ?? recommendation?.targetTopicKey ?? null;
+  const pickKey = planTopic ?? weakestTopic?.[0] ?? null;
+  const pickTopic = TOPICS.find(t => t.key === pickKey) ?? null;
+  const pickBody = dailyPlan?.explanation
+    ?? (weakestTopic
+      ? `Your lowest average so far — ${weakestTopic[1].avg.toFixed(1)} across ${weakestTopic[1].count} answers. A session here lifts your overall score fastest.`
+      : 'Record a few answers and your coach will pick the topic to work on next.');
+  const pickShort = weakestTopic && !planTopic
+    ? `lowest average so far (${weakestTopic[1].avg.toFixed(1)}).`
+    : dailyPlan?.topAction.rationale ?? 'answer a few questions to get a focus.';
+  const openPick = () => navigate(pickKey ? learnTopicPath(pickKey) : '/learn');
+
+  const focusSkill = skills[0];
+  const plan: PlanStep[] = [
+    { title: 'Warm up', sub: 'A question at your level' },
+    dueTotal > 0
+      ? { title: 'Review', sub: `${dueTotal} answer${dueTotal === 1 ? '' : 's'} due for review` }
+      : { title: 'Build on it', sub: 'Same topic, one step on' },
+    { title: 'Stretch', sub: focusSkill ? `${focusSkill} · a step up` : 'A step above your level' },
+  ];
+
+  const coachPick = (compact: boolean) => (
+    <CoachPick
+      compact={compact}
+      topicKey={pickKey}
+      topicLabel={pickTopic?.label ?? null}
+      tag={planTopic ? 'Today’s focus' : weakestTopic ? 'Weakest topic' : null}
+      body={pickBody}
+      short={pickShort}
+      skills={skills}
+      onOpen={openPick}
+    />
+  );
+
+  const xpUpTo = LEARN_ANSWERS_PER_DAY * computeXPGain(10, profile.streak_days).gain;
+  const level = levelProgress(profile.total_xp);
+  const name = profile.username?.trim();
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <TopContextBar
-        title="Today"
-        subtitle={`Welcome back, ${profile.username ?? 'French Learner'}`}
-      />
+    <div className="flex min-h-screen flex-col">
+      <TopContextBar title="Today" subtitle={todayLabel()} />
 
-      <PageShell>
-        <div className="space-y-6 pb-24 md:pb-8">
-          {/* The one mission card — the only primary action on the screen */}
-          <HeroMission
-            todayCount={todayCount}
-            dailyGoal={state.dailyGoal}
-            dailyPlan={dailyPlan}
-            onLearn={() => navigate('/learn')}
-            onExam={() => navigate('/exam')}
-          />
-
-          {showReviewBanner && weeklyReview && (
-            <WeeklyReviewCard
-              review={weeklyReview}
-              onDismiss={handleDismissReview}
-            />
-          )}
-
-          {/* 2-up: continue topic / weak skill — --surface cards, no primary,
-              the whole card is the link (Component Kit §02) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <motion.button
-              type="button"
-              variants={fadeUp}
-              onClick={() => navigate('/learn')}
-              className="surface rounded-card p-5 text-left transition-colors duration-state ease-smooth
-                hover:border-hairline-strong hover:bg-[color-mix(in_srgb,var(--ink)_2%,transparent)]"
-            >
-              <div className="text-eyebrow uppercase text-action-text">Your coach picked this</div>
-              <h3 className="mt-2 text-subtitle text-ink">
-                {dailyPlan?.topAction.targetTopicKey ?? weakestTopic ?? 'Complete a session to get a personalised topic recommendation.'}
-              </h3>
-              <p className="mt-1.5 text-body-s text-ink-muted line-clamp-2">
-                {dailyPlan?.explanation ??
-                  'Three questions pitched just above what you managed last session.'}
-              </p>
-              {coachSkillIds.length > 0 && (
-                <div className="mt-3 flex flex-wrap gap-1.5">
-                  {coachSkillIds.slice(0, 3).map(id => (
-                    <span
-                      key={id}
-                      className="text-eyebrow uppercase rounded-pill border border-hairline-strong px-2 py-0.5 text-ink-subtle"
-                    >
-                      {getSkillLabel(id)}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </motion.button>
-
-            <motion.button
-              type="button"
-              variants={fadeUp}
-              onClick={() => navigate('/learn')}
-              className="surface rounded-card p-5 text-left transition-colors duration-state ease-smooth
-                hover:border-hairline-strong hover:bg-[color-mix(in_srgb,var(--ink)_2%,transparent)]"
-            >
-              <div className="text-eyebrow uppercase text-ink-subtle">Weakest topic</div>
-              <h3 className="mt-2 text-subtitle text-ink">{weakestTopic ?? 'General practice'}</h3>
-              <p className="mt-1.5 text-body-s text-ink-muted">
-                {weakestTopic
-                  ? 'Your lowest-scoring topic — target it to raise your overall score.'
-                  : 'Complete some sessions to unlock a personalised topic focus.'}
-              </p>
-            </motion.button>
+      <PageShell maxWidth="home" gap={desktop ? 24 : 12}>
+        <motion.div
+          variants={fadeUp}
+          className={`flex flex-wrap justify-between gap-x-8 gap-y-3 ${desktop ? 'mb-2 items-end' : 'items-center px-1 pb-2'}`}
+        >
+          <h1 className={desktop ? 'text-[clamp(40px,6cqw,60px)] font-semibold leading-none tracking-[-0.035em] text-ink' : 'text-h2 text-ink'}>
+            {name ? <>Salut, <span lang="fr">{name}</span>.</> : 'Salut.'}
+          </h1>
+          <div className="flex min-w-0 max-w-[320px] flex-[1_1_240px] flex-col gap-1.5" data-testid="home-level">
+            <span className="flex items-baseline justify-between gap-2">
+              <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-reward-text">
+                <Zap size={14} aria-hidden="true" />Level {level.n}
+              </span>
+              <span className="font-numeral text-[13px] text-ink-subtle">
+                {level.toNext === null ? 'Top level' : `${level.toNext.toLocaleString('en-GB')} XP to Level ${level.n + 1}`}
+              </span>
+            </span>
+            <span className={`block overflow-hidden rounded-pill bg-track ${desktop ? 'h-2' : 'h-1.5'}`}>
+              <motion.span
+                className="block h-full rounded-pill bg-reward"
+                initial={{ width: 0 }}
+                animate={{ width: `${level.fraction * 100}%` }}
+                transition={fill()}
+              />
+            </span>
           </div>
+        </motion.div>
 
-          {/* Stats & activity */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-6">
-              <motion.div variants={fadeUp} className="surface rounded-card p-5">
-                <div className="flex items-center justify-between mb-5">
-                  <h3 className="text-subtitle text-ink">This week</h3>
-                  <span className="font-numeral text-body-s text-ink-subtle tabular-nums">
-                    avg {stats.avgScore != null ? stats.avgScore.toFixed(1) : '—'}
-                  </span>
-                </div>
-                <WeeklyChart data={chartData} uid="home" />
-              </motion.div>
+        <HeroMission
+          todayCount={todayCount}
+          dailyGoal={state.dailyGoal}
+          dailyPlan={dailyPlan}
+          streakDays={profile.streak_days}
+          xpUpTo={xpUpTo}
+          plan={plan}
+          compact={!desktop}
+          ringFrom={ringFrom}
+          footer={desktop ? undefined : coachPick(true)}
+          onLearn={() => navigate('/learn')}
+          onExam={() => navigate('/exam')}
+        />
 
-              <RecentActivity sessions={state.recentSessions} />
-            </div>
+        {desktop && coachPick(false)}
 
-            <div className="space-y-6">
-              <motion.div variants={fadeUp} className="grid grid-cols-2 lg:grid-cols-1 gap-3">
-                {[
-                  { value: profile.streak_days, label: 'Day streak' },
-                  { value: profile.total_xp.toLocaleString(), label: 'Total XP' },
-                  { value: stats.avgScore != null ? stats.avgScore.toFixed(1) : '—', label: 'Avg score' },
-                  { value: state.achievements.filter(a => a.unlocked).length, label: 'Badges' },
-                ].map(stat => (
-                  <div key={stat.label} className="surface-recessed rounded-card p-4">
-                    <p className="font-numeral text-title text-ink tabular-nums">{stat.value}</p>
-                    <p className="text-eyebrow uppercase text-ink-subtle mt-1">{stat.label}</p>
-                  </div>
-                ))}
-              </motion.div>
-            </div>
+        {showReviewBanner && weeklyReview && (
+          <WeeklyReviewCard review={weeklyReview} onDismiss={handleDismissReview} />
+        )}
+
+        {desktop ? (
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,320px),1fr))] items-start gap-4">
+            <ThisWeek days={week} />
+            <RecentActivity sessions={state.recentSessions} />
           </div>
-        </div>
+        ) : (
+          <>
+            <ThisWeek days={week} compact />
+            <RecentActivity sessions={state.recentSessions} compact />
+          </>
+        )}
       </PageShell>
     </div>
   );

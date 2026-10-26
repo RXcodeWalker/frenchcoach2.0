@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { X, CalendarDays } from 'lucide-react';
+import { CalendarDays, X } from 'lucide-react';
 import { fadeUp } from '../../components/motion/variants';
 import type { WeeklyReview } from '../../types/coach';
 
@@ -8,18 +8,11 @@ interface WeeklyReviewCardProps {
   onDismiss?: () => void;
 }
 
-function trendColor(trend: WeeklyReview['confidenceTrend']) {
-  if (trend === 'rising') return 'border-l-emerald-500 bg-emerald-500/5';
-  if (trend === 'falling') return 'border-l-amber-500 bg-amber-500/5';
-  if (trend === 'stable') return 'border-l-blue-500 bg-blue-500/5';
-  return 'border-l-slate-500 bg-slate-500/5';
-}
-
 function trendChip(trend: WeeklyReview['confidenceTrend']) {
-  if (trend === 'rising') return { label: 'Rising ↑', className: 'bg-emerald-500/15 text-emerald-400' };
-  if (trend === 'falling') return { label: 'Falling ↓', className: 'bg-amber-500/15 text-amber-400' };
-  if (trend === 'stable') return { label: 'Stable →', className: 'bg-blue-500/15 text-blue-400' };
-  return { label: 'Unknown', className: 'bg-slate-500/15 text-ink-muted' };
+  if (trend === 'rising') return { label: 'Rising', className: 'bg-progress-soft text-progress-text' };
+  if (trend === 'falling') return { label: 'Falling', className: 'bg-reward-soft text-reward-text' };
+  if (trend === 'stable') return { label: 'Stable', className: 'bg-info-soft text-info-text' };
+  return { label: 'Not enough data', className: 'bg-surface-recessed text-ink-subtle' };
 }
 
 function formatDateRange(start: string, end: string) {
@@ -32,34 +25,27 @@ export function WeeklyReviewCard({ review, onDismiss }: WeeklyReviewCardProps) {
   if (!review) return null;
   const chip = trendChip(review.confidenceTrend);
   return (
-    <motion.div
-      variants={fadeUp}
-      className={`surface border-l-4 rounded-2xl p-4 ${trendColor(review.confidenceTrend)}`}
-    >
+    <motion.div variants={fadeUp} className="flex flex-col gap-3 rounded-card border border-hairline bg-surface p-5">
       <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-2 min-w-0">
-          <CalendarDays size={14} className="text-ink-muted shrink-0" />
-          <span className="text-[10px] font-black uppercase tracking-widest text-ink-muted">Weekly Review</span>
-          <span className="text-[9px] text-ink-subtle">{formatDateRange(review.periodStart, review.periodEnd)}</span>
+        <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+          <CalendarDays size={14} className="shrink-0 text-ink-subtle" aria-hidden="true" />
+          <span className="text-eyebrow uppercase text-ink-subtle">Weekly review</span>
+          <span className="font-numeral text-caption text-ink-subtle">{formatDateRange(review.periodStart, review.periodEnd)}</span>
         </div>
         <button
+          type="button"
           onClick={onDismiss}
-          className="shrink-0 w-6 h-6 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors text-ink-muted hover:text-white"
+          aria-label="Dismiss weekly review"
+          className="-m-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-control text-ink-subtle transition-colors duration-state ease-smooth hover:bg-track hover:text-ink"
         >
-          <X size={12} />
+          <X size={16} />
         </button>
       </div>
-
-      <p className="text-sm text-ink-muted mt-2 line-clamp-2">{review.tutorSummary}</p>
-
-      <div className="flex items-center gap-3 mt-3 flex-wrap">
-        <span className="text-[10px] text-ink-muted">
-          <span className="text-white font-bold">{review.sessionsCompleted}</span> sessions
-        </span>
-        <span className="text-[10px] text-ink-muted">
-          <span className="text-white font-bold">~{review.totalMinutes}</span> min
-        </span>
-        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${chip.className}`}>{chip.label}</span>
+      <p className="text-body-s text-ink-muted line-clamp-2">{review.tutorSummary}</p>
+      <div className="flex flex-wrap items-center gap-3 text-[13px] text-ink-muted">
+        <span><span className="font-numeral text-ink">{review.sessionsCompleted}</span> sessions</span>
+        <span><span className="font-numeral text-ink">~{review.totalMinutes}</span> min</span>
+        <span className={`inline-flex h-6 items-center rounded-pill px-2 text-caption font-semibold ${chip.className}`}>{chip.label}</span>
       </div>
     </motion.div>
   );
