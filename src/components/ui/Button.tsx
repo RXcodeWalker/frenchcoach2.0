@@ -1,13 +1,14 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 
 /**
- * The four button variants from the design system (Component Kit §01):
- * one primary per screen (solid --action), secondary (hairline border),
- * quiet (label only), destructive (correction border). Hover and press are
- * token colour steps — never scale(); the old gradient + glow .btn-primary
- * is not this component.
+ * Buttons (Design System v2). One primary per screen (solid --action);
+ * secondary is a hairline-strong outline, quiet is label only, destructive is
+ * a correction outline and danger is the correction-filled confirm (used only
+ * inside a confirmation dialog). Hover is a colour step, never scale; press
+ * compresses to .97 over 80ms. Disabled is shown with the track fill and
+ * --ink-subtle, never with opacity.
  */
-type Variant = 'primary' | 'secondary' | 'quiet' | 'destructive';
+type Variant = 'primary' | 'secondary' | 'quiet' | 'destructive' | 'danger';
 type Size = 'lg' | 'md' | 'sm';
 
 interface Props extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'className'> {
@@ -18,23 +19,23 @@ interface Props extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'className
   children: ReactNode;
 }
 
-// height / horizontal padding / label size — lg is the one mission CTA,
-// md the default, sm lives inside cards and rows. Mobile min is 44px, which
-// callers opt into by passing size="lg" on small screens.
+// lg 48px — the mission CTA and full-width starts; md 44px — the touch
+// minimum, used for most actions; sm 40px — compact secondaries inside cards.
 const sizeClass: Record<Size, string> = {
-  lg: 'h-12 px-[18px] text-[15px]',
-  md: 'h-10 px-4 text-[13px]',
-  sm: 'h-8 px-3 text-[13px]',
+  lg: 'h-12 px-5 text-[15px]',
+  md: 'h-11 px-4 text-[14px]',
+  sm: 'h-10 px-3.5 text-[13px]',
 };
 
 const variantClass: Record<Variant, string> = {
   primary:
-    'bg-action text-action-ink hover:bg-action-hover active:bg-action-press',
+    'bg-action text-action-ink hover:bg-action-hover active:bg-action-press disabled:bg-track disabled:text-ink-subtle',
   secondary:
-    'border border-hairline-strong text-ink hover:bg-[color-mix(in_srgb,var(--ink)_5%,transparent)]',
-  quiet: 'text-ink-muted hover:text-ink',
+    'border border-hairline-strong text-ink hover:bg-track disabled:text-ink-subtle disabled:hover:bg-transparent',
+  quiet: 'text-ink-muted hover:bg-track hover:text-ink disabled:text-ink-subtle disabled:hover:bg-transparent',
   destructive:
-    'border border-correction-soft text-correction-text hover:border-correction',
+    'border border-hairline-strong text-correction-text hover:border-correction hover:bg-correction-soft disabled:text-ink-subtle',
+  danger: 'bg-correction text-white disabled:bg-track disabled:text-ink-subtle',
 };
 
 export function Button({
@@ -52,8 +53,8 @@ export function Button({
       disabled={disabled || loading}
       aria-busy={loading || undefined}
       className={`inline-flex items-center justify-center gap-2 rounded-control font-semibold
-        transition-colors duration-state ease-smooth
-        disabled:opacity-40 disabled:cursor-default
+        transition-[background-color,border-color,color,transform] duration-state ease-smooth
+        active:scale-[.97] active:duration-press disabled:cursor-default disabled:active:scale-100
         ${sizeClass[size]} ${variantClass[variant]} ${className}`}
       {...rest}
     >

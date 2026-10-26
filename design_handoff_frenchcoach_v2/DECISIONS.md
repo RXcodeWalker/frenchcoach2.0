@@ -43,3 +43,40 @@ handoff left a gap or clashed with the codebase. Newest phase last.
 - **Legacy light-mode patches stay** (`html:not(.dark) .text-white` etc.). They
   only exist for hidden/legacy screens that still use colour-named classes;
   the redesigned screens use role tokens and never rely on them.
+
+## Phase 2 — shared UI
+
+- **Top bar stays per screen** (`<TopContextBar>` rendered by each screen, as
+  before) rather than moving into `MainLayout`: Learn needs to swap title,
+  subtitle and back button per state, and hidden screens already render their
+  own. Progress and Profile gain one in their phases. It is sticky over a
+  `bg-bg` strip so content never shows above the card, matching the
+  prototype's fixed bar.
+- **Avatar:** initials in a circle (`UserAvatar`). An equipped shop avatar or
+  frame still renders through `CosmeticPreview` (shop is hidden at launch, so
+  this is rare) — that keeps the existing behaviour, although the shop's
+  avatars are emoji.
+- **Celebrate / streak motions live in the top bar.** It remembers the XP and
+  streak it last showed (module scope); when they have grown on the next screen
+  that shows the bar, the XP counts up from the old total and the streak number
+  rolls with the flame wiggle. First paint after load never animates.
+- **Button sizes:** lg 48, md 44 (the touch minimum), sm 40. Disabled buttons
+  use the track fill and `--ink-subtle` instead of 40% opacity. A new `danger`
+  variant is the correction-filled confirm used by the delete dialog.
+- **Segmented control** is a new shared component (`ui/Segmented.tsx`) with the
+  sliding indicator; options are `aria-pressed` buttons in a labelled group,
+  as in the prototype.
+- **Topic icons/hues:** `src/features/topics/topicVisuals.ts` maps every topic
+  key to a lucide icon and an OKLCH hue (the design system's table for the 16
+  core topics; the 8 gated advanced topics got hues between them). `Topic.icon`
+  (emoji) stays in the data for screens outside the redesign. Chip colours are
+  computed in CSS from `--h` (`.topic-chip`), so they follow the theme without JS.
+  lucide-react is 0.344, so a few names differ from the prototype
+  (`Palmtree`, `Home`, `BarChart3`, `Loader2`).
+- **Mobile dock hides during a Learn session** via a small shell context
+  (`useHideDock`), as in the 2a mobile frame.
+- **Reduced motion:** `MotionConfig reducedMotion="user"` at the app root, so
+  `enter` becomes a fade and transforms are dropped; count-ups show the final
+  value.
+- **Count-ups render the settled number under Vitest** (`import.meta.env.MODE
+  === 'test'`) so tests read real values, not a frame of the animation.

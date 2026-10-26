@@ -111,6 +111,10 @@ html:not(.dark) {
   .btn-primary:active { background: var(--action-press); transform: scale(0.97); }
 }
 
+/* Topic icon chip — the only place a topic hue appears. --h is set inline. */
+.topic-chip { background: oklch(0.30 0.045 var(--h)); color: oklch(0.80 0.11 var(--h)); }
+html:not(.dark) .topic-chip { background: oklch(0.955 0.03 var(--h)); color: oklch(0.50 0.13 var(--h)); }
+
 /* ============================================================
    LIGHT MODE OVERRIDES
    ============================================================ */
@@ -122,15 +126,6 @@ html:not(.dark) {
    used as dark-on-light chip text, part of the later legacy-alias pass. */
 html:not(.dark) .text-white { color: #0f172a; }
 html:not(.dark) .text-slate-800 { color: #475569; }
-
-/* Nav sidebar — dark theme */
-.nav-rail { background: rgba(10, 12, 16, 0.92) !important; border-color: rgba(255,255,255,0.04) !important; }
-.nav-rail .text-white { color: white !important; }
-
-/* Nav sidebar — light theme */
-html:not(.dark) .nav-rail { background: rgba(255, 255, 255, 0.92) !important; border-color: rgba(0, 0, 0, 0.06) !important; }
-html:not(.dark) .nav-rail .text-white { color: #0f172a !important; }
-html:not(.dark) .nav-rail .border-white\/10 { border-color: rgba(0, 0, 0, 0.08) !important; }
 
 /* Navy background overrides for light mode */
 html:not(.dark) .bg-navy-300 { background-color: #e2e8f0; }

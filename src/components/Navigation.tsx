@@ -1,86 +1,110 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import type { Screen } from '../types';
-import { Home, BookOpen, GraduationCap, BarChart3, User } from 'lucide-react';
+import { BarChart3, BookOpen, GraduationCap, Home, User } from 'lucide-react';
+import { useShellChrome } from './layout/shellChrome';
 
 // Launch scope (src/config/launchScope.ts): the five core destinations only.
-// No per-item colour — the rail has one active treatment.
-const NAV_ITEMS: { id: Screen; label: string; icon: React.ReactNode }[] = [
-  { id: 'home', label: 'Home', icon: <Home size={19} /> },
-  { id: 'learn', label: 'Learn', icon: <BookOpen size={19} /> },
-  { id: 'exam', label: 'Exam', icon: <GraduationCap size={19} /> },
-  { id: 'progress', label: 'Progress', icon: <BarChart3 size={19} /> },
-  { id: 'profile', label: 'Profile', icon: <User size={19} /> },
+const NAV_ITEMS: { id: Screen; label: string; Icon: typeof Home }[] = [
+  { id: 'home', label: 'Home', Icon: Home },
+  { id: 'learn', label: 'Learn', Icon: BookOpen },
+  { id: 'exam', label: 'Exam', Icon: GraduationCap },
+  { id: 'progress', label: 'Progress', Icon: BarChart3 },
+  { id: 'profile', label: 'Profile', Icon: User },
 ];
 
 const toPath = (id: Screen): string => id === 'home' ? '/' : `/${id}`;
 
-function RailItem({ id, label, icon, active, onClick }: { id: Screen; label: string; icon: React.ReactNode; active: boolean; onClick: () => void }) {
-  return (
-    <button
-      key={id}
-      onClick={onClick}
-      data-tour={`nav-${id}`}
-      className={`group relative w-full rounded-control flex flex-col items-center gap-1 py-2
-        transition-colors duration-state ease-smooth
-        ${active ? 'bg-action-soft text-action-text' : 'text-ink-subtle hover:text-ink-muted'}`}
-    >
-      {/* 3px active tab, flush to the rail edge */}
-      {active && (
-        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-action" />
-      )}
-      <span className="relative z-10">{icon}</span>
-      <span className="relative z-10 text-[11px] font-semibold">{label}</span>
-    </button>
-  );
+/** Which item is active for a path: Home only on `/`, the rest by prefix (the notebook belongs to Learn). */
+function activeNavIndex(pathname: string): number {
+  if (pathname === '/') return 0;
+  if (pathname.startsWith('/notebook')) return 1;
+  return NAV_ITEMS.findIndex(item => item.id !== 'home' && pathname.startsWith(toPath(item.id)));
 }
 
+const RAIL_ITEM = 64;
+const RAIL_GAP = 4;
+
+/**
+ * Desktop: an 88px rail — logo, then five 64px items (20px icon over a 12/600
+ * label). Mobile: a bottom dock of the same five items at 56px. In both, one
+ * action-soft pill slides to the active item (the `slide` motion).
+ */
 export function SideRail() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { dockHidden } = useShellChrome();
+  const active = activeNavIndex(location.pathname);
+
+  const itemClass = (on: boolean) =>
+    `relative flex flex-col items-center justify-center gap-1 rounded-control text-[12px] font-semibold leading-tight
+     transition-colors duration-state ease-smooth ${on ? 'text-action-text' : 'text-ink-subtle hover:text-ink-muted'}`;
 
   return (
     <>
-      {/* Desktop Side Rail — 88px, one active treatment for every item */}
-      <nav className="nav-rail fixed left-0 top-0 bottom-0 w-[88px] surface border-r border-hairline z-50 hidden md:flex flex-col items-center py-5 px-2 gap-1">
-        <div className="w-9 h-9 rounded-control bg-action flex items-center justify-center mb-6">
-          <span className="text-sm font-semibold text-action-ink">F</span>
+      <nav
+        aria-label="Main"
+        className="fixed left-0 top-0 bottom-0 z-50 hidden w-[88px] flex-col items-center gap-6 border-r border-hairline bg-surface px-2 py-4 md:flex"
+      >
+        <div className="flex h-10 w-10 items-center justify-center rounded-control bg-action text-[22px] font-semibold leading-none text-action-ink">
+          F
         </div>
-
-        <div className="flex-1 flex flex-col items-stretch gap-0.5 w-full">
-          {NAV_ITEMS.map(item => (
-            <RailItem
-              key={item.id}
-              {...item}
-              active={location.pathname === toPath(item.id)}
-              onClick={() => navigate(toPath(item.id))}
-            />
+        <div className="relative flex w-full flex-col" style={{ gap: RAIL_GAP }}>
+          {active >= 0 && (
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-x-0 top-0 rounded-control bg-action-soft transition-transform duration-slide ease-slide"
+              style={{ height: RAIL_ITEM, transform: `translateY(${active * (RAIL_ITEM + RAIL_GAP)}px)` }}
+            >
+              <span className="absolute -left-2 top-[22px] h-5 w-[3px] rounded-r-[3px] bg-action" />
+            </span>
+          )}
+          {NAV_ITEMS.map(({ id, label, Icon }, i) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => navigate(toPath(id))}
+              data-tour={`nav-${id}`}
+              aria-current={i === active ? 'page' : undefined}
+              className={`${itemClass(i === active)} w-full`}
+              style={{ height: RAIL_ITEM }}
+            >
+              <Icon size={20} strokeWidth={1.75} aria-hidden="true" />
+              <span>{label}</span>
+            </button>
           ))}
         </div>
       </nav>
 
-      {/* Mobile Bottom Dock — the rail is replaced, not shrunk */}
-      <nav className="nav-rail fixed bottom-0 left-0 right-0 z-50 md:hidden">
-        <div className="mx-3 mb-3 px-1.5 py-1.5 surface-raised rounded-xl">
-          <div className="flex items-center justify-around">
-            {NAV_ITEMS.map(item => {
-              const active = location.pathname === toPath(item.id);
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => navigate(toPath(item.id))}
-                  data-tour={`nav-${item.id}`}
-                  className={`relative flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-control min-h-[44px] justify-center
-                    transition-colors duration-state ease-smooth
-                    ${active ? 'bg-action-soft text-action-text' : 'text-ink-subtle'}`}
-                >
-                  <span className="relative z-10">{item.icon}</span>
-                  <span className="text-[11px] font-semibold relative z-10">{item.label}</span>
-                </button>
-              );
-            })}
+      {!dockHidden && (
+        <nav
+          aria-label="Main"
+          className="fixed bottom-0 left-0 right-0 z-50 border-t border-hairline bg-surface px-2 pt-1.5 md:hidden"
+          style={{ paddingBottom: 'calc(12px + env(safe-area-inset-bottom, 0px))' }}
+        >
+          <div className="relative grid grid-cols-5 gap-1">
+            {active >= 0 && (
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute left-0 top-0 h-14 rounded-control bg-action-soft transition-transform duration-slide ease-slide"
+                style={{ width: 'calc((100% - 16px) / 5)', transform: `translateX(calc(${active * 100}% + ${active * 4}px))` }}
+              />
+            )}
+            {NAV_ITEMS.map(({ id, label, Icon }, i) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => navigate(toPath(id))}
+                data-tour={`nav-${id}`}
+                aria-current={i === active ? 'page' : undefined}
+                className={`${itemClass(i === active)} h-14`}
+              >
+                <Icon size={20} strokeWidth={1.75} aria-hidden="true" />
+                <span>{label}</span>
+              </button>
+            ))}
           </div>
-        </div>
-      </nav>
+        </nav>
+      )}
     </>
   );
 }

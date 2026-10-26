@@ -1,4 +1,4 @@
-import type { Transition, Variants } from 'framer-motion';
+import type { TargetAndTransition, Transition, Variants } from 'framer-motion';
 
 /**
  * The eight named motions of Design System v2 — the only motion the app uses.
@@ -84,11 +84,11 @@ export const celebrate: Variants = {
 
 // ── 6. streak ─────────────────────────────────────────────────────────────────
 /** The flame wiggle; pair with `streakRoll` on the number. */
-export const streakFlame = {
+export const streakFlame: TargetAndTransition = {
   scale: [1, 1.25, 1.1, 1],
   rotate: [0, -8, 6, 0],
   transition: { duration: 0.6, times: [0, 0.35, 0.65, 1], ease: 'easeOut', delay: 0.48 },
-} as const;
+};
 
 /** Rolls a two-line number stack up by one line (20px). */
 export const streakRoll: Transition = { duration: 0.52, ease: EASE_SPRING, delay: 0.58 };

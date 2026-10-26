@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 import { Routes, Route, Outlet, useLocation, Navigate } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, MotionConfig, motion } from 'framer-motion';
 import { route } from './components/motion/variants';
+import { ShellChromeProvider } from './components/layout/ShellChromeProvider';
 import { Zap } from 'lucide-react';
 import { AppProvider, useApp } from './context/AppContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -156,9 +157,10 @@ function MainLayout() {
   // Launch scope: hidden features redirect home instead of rendering.
   if (isHiddenPath(location.pathname)) return <Navigate to="/" replace />;
   return (
+    <ShellChromeProvider>
     <div className="min-h-screen bg-bg text-ink overflow-hidden">
       {!junior && <SideRail />}
-      <main className={`relative z-10 ${junior ? '' : 'md:ml-[64px]'}`}>
+      <main className={`relative z-10 ${junior ? '' : 'md:ml-[88px]'}`}>
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}
@@ -177,6 +179,7 @@ function MainLayout() {
       <GlobalCelebrations />
       <TourHost />
     </div>
+    </ShellChromeProvider>
   );
 }
 
@@ -413,10 +416,14 @@ function AppShell() {
 }
 
 export default function App() {
+  // reducedMotion="user": under the OS setting framer-motion drops transform
+  // motion and keeps the fade (Design System v2: enter becomes a fade).
   return (
-    <AuthProvider>
-      <AnalyticsTracker />
-      <AppShell />
-    </AuthProvider>
+    <MotionConfig reducedMotion="user">
+      <AuthProvider>
+        <AnalyticsTracker />
+        <AppShell />
+      </AuthProvider>
+    </MotionConfig>
   );
 }
