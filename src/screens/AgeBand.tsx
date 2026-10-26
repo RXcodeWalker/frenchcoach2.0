@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, ShieldCheck, ArrowLeft, Copy, Check } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { track } from '../services/telemetry/telemetryService';
 import {
   setAgeBand,
   requestGuardianConsent,
@@ -38,6 +39,7 @@ export function AgeBand() {
     setError(null);
     try {
       await setAgeBand('13_plus');
+      track({ name: 'age_band_set', props: { age_band: '13_plus' } });
       await refreshConsentStatus();
       navigate('/', { replace: true });
     } catch {
@@ -51,6 +53,7 @@ export function AgeBand() {
     setError(null);
     try {
       await setAgeBand('under_13');
+      track({ name: 'age_band_set', props: { age_band: 'under_13' } });
       await refreshConsentStatus();
       setStep('guardian-email');
     } catch {

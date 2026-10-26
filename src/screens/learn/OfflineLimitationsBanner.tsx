@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { TrackView } from '../../services/telemetry/TrackView';
 
 interface Props {
   /**
@@ -19,6 +20,7 @@ export function OfflineLimitationsBanner({ signedOut = false }: Props) {
   if (signedOut) {
     return (
       <div className="flex items-start gap-3 p-3 rounded-xl surface-recessed">
+        <TrackView event={{ name: 'auth_required_shown', props: { surface: 'learn_feedback' } }} />
         <span className="text-base leading-none flex-shrink-0 mt-0.5">🔒</span>
         <div className="flex-1 min-w-0">
           <p className="text-xs font-bold text-ink-muted">Basic analysis — sign in for AI feedback</p>

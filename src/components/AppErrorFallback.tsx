@@ -1,4 +1,5 @@
 import { Button } from './ui/Button';
+import { TrackView } from '../services/telemetry/TrackView';
 
 /**
  * What the learner sees when the app crashes (the root Sentry.ErrorBoundary in
@@ -9,6 +10,7 @@ import { Button } from './ui/Button';
 export function AppErrorFallback() {
   return (
     <div role="alert" className="min-h-screen flex items-center justify-center px-4 bg-bg">
+      <TrackView event={{ name: 'error_screen_shown', props: { area: 'app_root' } }} />
       <div className="surface w-full max-w-sm rounded-2xl border border-hairline p-8 flex flex-col items-center gap-5 text-center">
         <span aria-hidden="true" className="text-4xl">🥐</span>
         <div className="space-y-2">

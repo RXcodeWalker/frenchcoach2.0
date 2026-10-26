@@ -69,6 +69,8 @@ export const STORAGE_KEYS = {
   featureFlagOverrides: 'frenchCoach_featureFlagOverrides',
   // ── Tier-1 local-only product metrics (Phase 2 Slice 5) ────────────────────────
   localCounters: 'frenchCoach_localCounters',
+  // ── Product analytics bookkeeping: last-open day, firsts, identified user ──────
+  analyticsState: 'frenchCoach_analyticsState',
   // ── Phase 3 Slice E: spaced re-exposure review pool ─────────────────────────────
   reviewPool: 'frenchCoach_reviewPool',
   // ── Pronunciation history cloud sync (accent-analyzer plan §13, D3) ──────────────
@@ -121,6 +123,7 @@ const DEVICE_SCOPED = new Set<string>([
   STORAGE_KEYS.featureFlagOverrides,
   STORAGE_KEYS.featureInterest,
   STORAGE_KEYS.localCounters,
+  STORAGE_KEYS.analyticsState,
 ]);
 
 /**

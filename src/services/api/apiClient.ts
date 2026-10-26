@@ -1,6 +1,7 @@
 import type { FeedbackV2, Question, SkillContext, GeneratedScenario, AIEngine, EngineMetadata, DifficultyTier, UnscoredReason, CoachingIssue, TranscriptSpan, MiniLesson, Severity, IssueCategory } from '../../types';
 import type { ChangeAnnotation } from '../../domain/learn/feedback/buildChanges';
 import { captureError, track } from '../telemetry/telemetryService';
+import { quotaCodeFromBody, quotaFeatureForPath, trackQuotaHit } from '../telemetry/quotaHit';
 import { evaluate as offlineEvaluate } from '../coaching/coachService';
 import { DEFAULT_DIFFICULTY } from '../../utils/difficultyConfig';
 import { resolveFeatureStatus } from '../../config/featureFlags';
@@ -138,6 +139,7 @@ async function post<T>(path: string, body: unknown, requiresAuth = false): Promi
     clearTimeout(timer);
   }
   if (!res.ok) {
+    trackQuotaHit(res.status, quotaFeatureForPath(path));
     assertNotAuthFailure(path, res.status);
     throw new Error(`API ${path} → ${res.status}`);
   }
@@ -618,6 +620,7 @@ async function postWithSignal<T>(path: string, body: unknown, signal: AbortSigna
   if (!res.ok) {
     const text = await res.text().catch(() => '');
     console.error(`[API] ${path} → ${res.status}`, text.slice(0, 300));
+    trackQuotaHit(res.status, quotaFeatureForPath(path), quotaCodeFromBody(text));
     assertNotAuthFailure(path, res.status);
     throw new ApiHttpError(path, res.status, text);
   }
@@ -685,6 +688,7 @@ async function postMultipartWithSignal<T>(path: string, formData: FormData, sign
     headers: await authHeader(),
   });
   if (!res.ok) {
+    trackQuotaHit(res.status, quotaFeatureForPath(path));
     assertNotAuthFailure(path, res.status);
     throw new Error(`API ${path} → ${res.status}`);
   }
@@ -818,6 +822,7 @@ export async function transcribeAudio(
       if (res.status === 403 && isConsentRequiredBody(await res.json().catch(() => null))) {
         throw new ConsentRequiredError();
       }
+      trackQuotaHit(res.status, options.purpose === 'exam_turn' ? 'exam_transcribe' : 'transcribe');
       assertNotAuthFailure('/api/transcribe', res.status);
       throw new TranscribeHttpError(res.status, parseRetryAfter(res.headers.get('Retry-After')));
     }
@@ -1260,6 +1265,7 @@ export async function streamFeedback(
   }
 
   if (!res.ok) {
+    trackQuotaHit(res.status, 'feedback');
     assertNotAuthFailure('/api/feedback/stream', res.status);
     throw new Error(`API /api/feedback/stream → ${res.status}`);
   }

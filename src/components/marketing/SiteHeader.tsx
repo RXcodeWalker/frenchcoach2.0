@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Menu, X } from 'lucide-react';
-import { enterGuestMode } from '../../hooks/useGuestMode';
+import { startPractisingFree, trackSignInLink } from './startPractisingFree';
 
 export interface HeaderLink {
   label: string;
@@ -23,13 +23,6 @@ interface Props {
   /** Cross-page links, used when there are no in-page sections. */
   links: HeaderLink[];
   breadcrumb?: BreadcrumbItem[];
-}
-
-// Plain function, not a hook — safe to call from an onClick handler without
-// making this component stateful (this never runs during render).
-function startPractisingFree() {
-  enterGuestMode();
-  window.location.assign('/');
 }
 
 /**
@@ -125,12 +118,12 @@ export function SiteHeader({ sections, links, breadcrumb }: Props) {
         </nav>
 
         <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-          <a href="/login" className="mk-navlink mk-focus text-[13px] font-semibold px-2 sm:px-3 min-h-[44px] inline-flex items-center rounded-full">
+          <a href="/login" onClick={() => trackSignInLink('header_sign_in')} className="mk-navlink mk-focus text-[13px] font-semibold px-2 sm:px-3 min-h-[44px] inline-flex items-center rounded-full">
             Sign in
           </a>
           <button
             type="button"
-            onClick={startPractisingFree}
+            onClick={() => startPractisingFree('header_start')}
             className="mk-cta mk-focus px-3.5 sm:px-4 min-h-[44px] rounded-full text-[13px] font-semibold whitespace-nowrap"
           >
             {/* Shorter on phones so logo, Sign in, CTA and menu fit in 343px. */}

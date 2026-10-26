@@ -2,13 +2,8 @@ import { ArrowDown } from 'lucide-react';
 import { Eyebrow } from '../../components/marketing/Eyebrow';
 import { CtaButton } from '../../components/marketing/CtaButton';
 import { Reveal } from '../../components/marketing/Reveal';
-import { enterGuestMode } from '../../hooks/useGuestMode';
+import { startPractisingFree } from '../../components/marketing/startPractisingFree';
 import { LiveFeedbackDemo } from './LiveFeedbackDemo';
-
-function startPractisingFree() {
-  enterGuestMode();
-  window.location.assign('/');
-}
 
 export function Hero() {
   return (
@@ -26,7 +21,7 @@ export function Hero() {
             mock exams marked against the Cambridge 0520 speaking criteria.
           </p>
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 mb-4">
-            <CtaButton onClick={startPractisingFree}>Start practising free</CtaButton>
+            <CtaButton onClick={() => startPractisingFree('hero_start')}>Start practising free</CtaButton>
             <a href="#how-it-works" className="mk-link mk-focus inline-flex items-center gap-1.5 text-sm font-semibold min-h-[44px] rounded-full self-start sm:self-auto">
               See how it works
               <ArrowDown size={15} aria-hidden="true" />

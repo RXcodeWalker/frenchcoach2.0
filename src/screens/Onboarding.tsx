@@ -13,10 +13,13 @@ import { isSafeReturnTo } from '../utils/routeSafety';
 import { useApp } from '../context/AppContext';
 import { JUNIOR_TRACK_SELECTABLE } from '../config/launchScope';
 import type { CoachGoalType } from '../types/coach';
+import { track } from '../services/telemetry/telemetryService';
 
 type WizardStep = 1 | 2 | 3;
 type ExamBoard = 'igcse' | 'gcse' | 'a_level' | 'delf' | 'none';
 type GoalIntent = 'exam_prep' | 'conversational' | 'casual';
+
+const STEP_NAMES = { 1: 'exam_board', 2: 'exam_date', 3: 'goal_intent' } as const;
 
 const STEP_VARIANTS = {
   initial: { opacity: 0, x: 24 },
@@ -93,6 +96,11 @@ export function Onboarding() {
     }
   }, [isEditMode]);
 
+  // First-run onboarding only; editing goals from Profile is not onboarding.
+  useEffect(() => {
+    if (!isEditMode) track({ name: 'onboarding_step_viewed', props: { step: STEP_NAMES[step] } });
+  }, [step, isEditMode]);
+
   const today = new Date().toISOString().slice(0, 10);
 
   function advance() {
@@ -125,6 +133,7 @@ export function Onboarding() {
   // on steps 1 and 3 — a one-click shortcut through the already-supported
   // no-exam / casual path, not a new "no goal" state.
   function skipSurvey() {
+    track({ name: 'onboarding_completed', props: { skipped: true, goal_type: 'general_speaking', learner_track: 'exam' } });
     setActiveGoal('general_speaking', undefined);
     if (initialExamDate) {
       updateCoachProfile({ examDate: undefined });
@@ -136,6 +145,7 @@ export function Onboarding() {
   // Junior (Grades 4–7): the exam-goal wizard does not apply, so this takes the
   // same end state as skipping it, then switches the learner track.
   function chooseJunior() {
+    track({ name: 'onboarding_completed', props: { skipped: false, goal_type: 'general_speaking', learner_track: 'junior' } });
     setActiveGoal('general_speaking', undefined);
     invalidateDailyPlan();
     dispatch({ type: 'SET_LEARNER_TRACK', track: 'junior' });
@@ -153,6 +163,7 @@ export function Onboarding() {
       return;
     }
 
+    if (!isEditMode) track({ name: 'onboarding_completed', props: { skipped: false, goal_type: newGoalType, learner_track: 'exam' } });
     setActiveGoal(newGoalType, examDate ? { targetDate: examDate } : undefined);
 
     if (examDate) {

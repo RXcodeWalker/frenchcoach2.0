@@ -1,12 +1,7 @@
 import { Section } from '../../components/marketing/Section';
 import { CtaButton } from '../../components/marketing/CtaButton';
 import { Reveal } from '../../components/marketing/Reveal';
-import { enterGuestMode } from '../../hooks/useGuestMode';
-
-function startPractisingFree() {
-  enterGuestMode();
-  window.location.assign('/');
-}
+import { startPractisingFree, trackSignInLink } from '../../components/marketing/startPractisingFree';
 
 export function FinalCta() {
   return (
@@ -22,8 +17,8 @@ export function FinalCta() {
               Answer your first question in the next minute. No account needed to try.
             </p>
             <div className="flex flex-col sm:flex-row items-center gap-3">
-              <CtaButton onClick={startPractisingFree}>Start practising free</CtaButton>
-              <CtaButton href="/login" variant="secondary">Sign in</CtaButton>
+              <CtaButton onClick={() => startPractisingFree('final_start')}>Start practising free</CtaButton>
+              <CtaButton href="/login" variant="secondary" onClick={() => trackSignInLink('final_sign_in')}>Sign in</CtaButton>
             </div>
           </div>
         </div>

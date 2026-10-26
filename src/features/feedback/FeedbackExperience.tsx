@@ -21,6 +21,7 @@ import { FeedbackFooter } from './components/FeedbackFooter';
 import { MinimalResponseCard } from './components/MinimalResponseCard';
 import { OfflineLimitationsBanner } from '../../screens/learn/OfflineLimitationsBanner';
 import { SIGNED_OUT_FEEDBACK_REASON } from '../../services/api/apiClient';
+import { track } from '../../services/telemetry/telemetryService';
 import { FailoverBadge } from '../../screens/learn/FailoverBadge';
 import type { FeedbackV2 } from '../../types';
 import type { PronunciationAssessment } from '../../domain/pronunciation/types';
@@ -222,7 +223,11 @@ function FeedbackContent({
         revealKey={feedback}
         tryFirstHeading={FIX_FIRST_HEADING}
         renderSection={renderSection}
-        onSecondTake={() => setTookSecondTake(true)}
+        onSecondTake={() => {
+          setTookSecondTake(true);
+          // A count only: SecondTake itself stays analytics-free, and nothing about the take is sent.
+          track({ name: 'second_take_used', props: {} });
+        }}
         after={
           notebook ? (
             <SaveToNotebook

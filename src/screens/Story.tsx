@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { MarketingLayout } from '../components/layout/MarketingLayout';
 import { Reveal } from '../components/marketing/Reveal';
 import { CtaButton } from '../components/marketing/CtaButton';
-import { enterGuestMode } from '../hooks/useGuestMode';
+import { startPractisingFree } from '../components/marketing/startPractisingFree';
 
 // Long-form founder narrative, linked from landing/Founder.tsx and the footer.
 // Public marketing page — MarketingLayout gives it the `.marketing` editorial
@@ -11,11 +11,6 @@ import { enterGuestMode } from '../hooks/useGuestMode';
 // is the whole animation budget here, matching the rest of the marketing tree.
 // Reading measure is deliberately tighter than the landing page — 760px for
 // the framing sections, 640px for the article body.
-
-function startPractisingFree() {
-  enterGuestMode();
-  window.location.assign('/');
-}
 
 const BREADCRUMB = [
   { label: 'Home', href: '/' },
@@ -294,7 +289,7 @@ export function Story() {
             <span style={{ color: 'var(--mk-accent)' }}>It&rsquo;s a bridge to connect with people.</span>
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4 mb-4">
-            <CtaButton onClick={startPractisingFree}>Start practising free</CtaButton>
+            <CtaButton onClick={() => startPractisingFree('story_page_start')}>Start practising free</CtaButton>
             <CtaButton href="/" variant="secondary">
               Back to Français AI
             </CtaButton>

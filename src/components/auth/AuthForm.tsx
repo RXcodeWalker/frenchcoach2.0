@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { track } from '../../services/telemetry/telemetryService';
 
 interface Props {
   onAuthenticated: () => void;
@@ -32,6 +33,7 @@ export function AuthForm({ onAuthenticated, footer }: Props) {
       return;
     }
 
+    if (tab === 'signup') track({ name: 'signup_started', props: { method: 'email' } });
     setLoading(true);
     try {
       if (tab === 'login') {
@@ -54,6 +56,8 @@ export function AuthForm({ onAuthenticated, footer }: Props) {
 
   async function handleOAuth(provider: 'google' | 'azure') {
     setError(null);
+    // Sent now: the OAuth redirect unloads the page. signed_up / signed_in follow from AnalyticsTracker.
+    if (tab === 'signup') track({ name: 'signup_started', props: { method: provider } }, { beacon: true });
     try {
       await signInWithOAuth(provider);
     } catch (err) {

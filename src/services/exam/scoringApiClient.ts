@@ -12,6 +12,7 @@
  */
 
 import { supabase } from '../../lib/supabase';
+import { trackQuotaHit } from '../telemetry/quotaHit';
 import type { SessionTranscript } from '../../domain/igcse/stt/types';
 import type { EnvelopeView } from '../../domain/igcse/envelope/envelopeView';
 import type { ExamFeedbackReport } from '../../domain/examFeedback/types';
@@ -239,6 +240,7 @@ async function parseEnvelopeResponse(res: Response): Promise<EnvelopeView> {
     } catch {
       /* keep default message */
     }
+    trackQuotaHit(res.status, 'exam_score', code && /^[a-z0-9_]{1,48}$/.test(code) ? code : null);
     throw new ScoringApiError(message, res.status, code, nextAvailableAt);
   }
   return res.json() as Promise<EnvelopeView>;
@@ -290,6 +292,7 @@ export async function requestExamFeedback(sessionId: string): Promise<ExamFeedba
     } catch {
       /* keep default message */
     }
+    trackQuotaHit(res.status, 'exam_report', code && /^[a-z0-9_]{1,48}$/.test(code) ? code : null);
     throw new ScoringApiError(message, res.status, code);
   }
   const body = (await res.json()) as { report?: unknown };

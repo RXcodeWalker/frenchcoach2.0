@@ -12,6 +12,8 @@
  * the real request).
  */
 
+import { track } from '../telemetry/telemetryService';
+
 // Prod: same-origin '/health', proxied to the backend by Vercel (see
 // vercel.json) — same CORS-dodging convention as apiClient.ts's API_BASE.
 const API_BASE = import.meta.env.PROD
@@ -75,15 +77,26 @@ async function ping(): Promise<boolean> {
   }
 }
 
+/** A first answer slower than this (or needing a retry) is reported as backend_cold_start. */
+const COLD_START_REPORT_MS = 3000;
+
 /** Walk the wake ladder until a ping lands or the budget is spent. */
 async function runWakeLadder(): Promise<void> {
+  const startedAt = Date.now();
+  let attempts = 0;
   for (const delay of WAKE_ATTEMPT_DELAYS_MS) {
     if (delay > 0) await new Promise((r) => setTimeout(r, delay));
+    attempts++;
     if (await ping()) {
+      const latency = Date.now() - startedAt;
+      if (attempts > 1 || latency >= COLD_START_REPORT_MS) {
+        track({ name: 'backend_cold_start', props: { latency_ms: latency, attempts, reached: true } });
+      }
       settle('warm');
       return;
     }
   }
+  track({ name: 'backend_cold_start', props: { latency_ms: Date.now() - startedAt, attempts, reached: false } });
   settle('unreachable');
 }
 

@@ -12,7 +12,8 @@ interface ButtonProps extends BaseProps {
 
 interface AnchorProps extends BaseProps {
   href: string;
-  onClick?: undefined;
+  /** Runs before the link navigates (e.g. analytics); doesn't replace it. */
+  onClick?: () => void;
 }
 
 type Props = ButtonProps | AnchorProps;
@@ -27,7 +28,7 @@ export function CtaButton(props: Props) {
 
   if ('href' in props && props.href) {
     return (
-      <a href={props.href} className={`inline-flex items-center justify-center ${className}`}>
+      <a href={props.href} onClick={props.onClick} className={`inline-flex items-center justify-center ${className}`}>
         {props.children}
       </a>
     );

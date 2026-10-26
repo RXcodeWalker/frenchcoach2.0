@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { track, captureError } from '../services/telemetry/telemetryService';
+import { track, captureError, type ExamPartReached, type ExamStep } from '../services/telemetry/telemetryService';
+import { TrackView } from '../services/telemetry/TrackView';
 import confetti from 'canvas-confetti';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
@@ -136,6 +137,13 @@ interface DuelLocationState {
   sessionId?: string;
 }
 
+/** exam_scoring_failed's reason: the server's code, else the HTTP status — never the message text. */
+function scoringFailureOf(err: unknown): { reason: string; status: number | null } {
+  if (!(err instanceof ScoringApiError)) return { reason: 'network', status: null };
+  const reason = err.code && /^[a-z0-9_]{1,48}$/.test(err.code) ? err.code : err.status ? `http_${err.status}` : 'no_response';
+  return { reason, status: err.status ?? null };
+}
+
 export function ExamMode() {
   const { state, dispatch } = useApp();
   const navigate = useNavigate();
@@ -221,6 +229,15 @@ export function ExamMode() {
   const resumedRef = useRef(false);
   /** exam-conduct §5/§9: tracks the previous action's part so a part boundary is announced exactly once (Batch 3). */
   const prevActionPartRef = useRef<string | undefined>(undefined);
+  /**
+   * Product analytics: the attempt between the candidate tapping Start and
+   * submitting the transcript (null outside it), so leaving early is reported
+   * once as exam_abandoned; plus when it started (exam_completed's duration),
+   * and why scoring last failed (exam_scoring_failed's reason).
+   */
+  const examAnalyticsRef = useRef<{ startedAt: number; step: ExamStep } | null>(null);
+  const examStartedAtRef = useRef<number | null>(null);
+  const lastScoringFailureRef = useRef<{ reason: string; status: number | null } | null>(null);
 
   // W1's authoritative coached flag once a session exists; coachedMode (the
   // ExamSelect toggle's choice) is the pre-session fallback so ExamIntro can
@@ -262,6 +279,21 @@ export function ExamMode() {
   // Leaving exam mode (exit, navigation away) must never leave the examiner
   // talking over another screen.
   useEffect(() => stopExaminerVoice, []);
+
+  // exam_abandoned: leaving the exam screen, or closing the page, mid-attempt.
+  useEffect(() => {
+    const reportAbandoned = () => {
+      const open = examAnalyticsRef.current;
+      if (!open) return;
+      examAnalyticsRef.current = null;
+      track({ name: 'exam_abandoned', props: { last_part: open.step, elapsed_ms: Date.now() - open.startedAt } }, { beacon: true });
+    };
+    window.addEventListener('pagehide', reportAbandoned);
+    return () => {
+      window.removeEventListener('pagehide', reportAbandoned);
+      reportAbandoned();
+    };
+  }, []);
 
   // Pronunciation analysis keeps each turn's recording in browser memory only
   // (examAudioStore) and forgets it when the candidate leaves the exam screen.
@@ -426,6 +458,7 @@ export function ExamMode() {
     const prevPart = prevActionPartRef.current;
     prevActionPartRef.current = action.part;
     if (prevPart === undefined || prevPart === action.part) return;
+    noteExamPartReached(action.part);
     // The part that just ended gets its Coached pronunciation card (a no-op in Exam Sim, where the rail shows none).
     pronunciation.markPartEnded(prevPart as SessionPart);
     if (prevPart === 'rolePlay' && action.part === 'topic1') {
@@ -436,7 +469,21 @@ export function ExamMode() {
     }
   };
 
+  const noteExamPartReached = (part: string) => {
+    const reached: ExamPartReached | null = part === 'rolePlay' ? 'roleplay' : part === 'topic1' || part === 'topic2' ? part : null;
+    if (!reached) return;
+    if (examAnalyticsRef.current) examAnalyticsRef.current.step = reached;
+    track({ name: 'exam_part_reached', props: { part: reached } });
+  };
+
   const enterGreeting = () => {
+    const startedAt = Date.now();
+    examAnalyticsRef.current = { startedAt, step: 'greeting' };
+    examStartedAtRef.current = startedAt;
+    track({
+      name: 'exam_started',
+      props: { mode: coached ? 'coached' : 'sim', entry: isDailyChallengeRun ? 'daily_challenge' : isDuelRun ? 'duel' : 'free' },
+    });
     // Fresh attempt (first run, or a retake reusing this same mounted component) —
     // clear the startExam re-entrancy guard so the new attempt can actually start.
     startExamBusyRef.current = false;
@@ -477,6 +524,7 @@ export function ExamMode() {
     }
 
     setRolePlayScenario(scenario);
+    if (examAnalyticsRef.current) examAnalyticsRef.current.step = 'prep';
     setExamState('card');
   };
 
@@ -509,6 +557,7 @@ export function ExamMode() {
     if (startExamBusyRef.current) return;
     startExamBusyRef.current = true;
     earlyStartRef.current = earlyStart;
+    track({ name: 'exam_prep_finished', props: { early_start: earlyStart } });
     prevActionPartRef.current = undefined;
 
     const questionSetId = selectedQuestionSetIdRef.current;
@@ -579,6 +628,7 @@ export function ExamMode() {
     if (scenario) await speakExaminerText(scenario.setup, undefined, { recorded: true });
 
     const firstAction = await session.begin();
+    noteExamPartReached(firstAction.part);
     setAction(firstAction);
     persistRunningSnapshot();
     await wait(PRE_LISTEN_PAUSE_MS);
@@ -799,11 +849,13 @@ export function ExamMode() {
       ? await transcriber.settle({ alsoWait: pendingAudioCaptureRef.current })
       : undefined;
     const built = await session.buildTranscript('original-practice', { recognitionByTurnKey });
+    if (examAnalyticsRef.current) examAnalyticsRef.current.step = 'review';
     setTranscript(built);
     setExamState('review');
   };
 
   const handleReviewConfirm = (finalTranscript: SessionTranscript) => {
+    examAnalyticsRef.current = null; // submitted: no longer abandonable
     saveStoredTranscript(finalTranscript);
     setPendingScoreSessionId(finalTranscript.sessionId);
     setTranscript(finalTranscript);
@@ -844,6 +896,7 @@ export function ExamMode() {
           } catch (err) {
             if (cancelled) return;
             captureError(err, { area: 'exam_scoring', stage: 'submitForScoring', sessionId: transcript.sessionId });
+            lastScoringFailureRef.current = scoringFailureOf(err);
             if (err instanceof ScoringApiError && isTerminalScoringStatus(err.status)) {
               setScoringMachine((s) => transitionScoringMachine(s, { type: 'SUBMIT_TERMINAL_ERROR', reason: terminalScoringMessage(err) }));
             } else if (isDefinitiveServerFailure(err)) {
@@ -882,6 +935,7 @@ export function ExamMode() {
         // actual scheduled state-machine event, independent of whether the
         // next poll's network call would otherwise hang or resolve.
         if (recovering && Date.now() - recovering.enteredRecoveringAt >= RECOVERING_MAX_MS) {
+          lastScoringFailureRef.current = { reason: 'deadline_exceeded', status: null };
           if (!cancelled) setScoringMachine((s) => transitionScoringMachine(s, { type: 'RECOVERING_DEADLINE_EXCEEDED' }));
           return;
         }
@@ -892,6 +946,7 @@ export function ExamMode() {
           } catch (err) {
             if (cancelled) return;
             captureError(err, { area: 'exam_scoring', stage: 'pollScoreStatus', sessionId: transcript.sessionId });
+            lastScoringFailureRef.current = scoringFailureOf(err);
             const reason = err instanceof ScoringApiError ? terminalScoringMessage(err) : 'Scoring failed unexpectedly.';
             if (err instanceof ScoringApiError && isTerminalScoringStatus(err.status)) {
               setScoringMachine((s) => transitionScoringMachine(s, { type: 'POLL_TERMINAL_ERROR', reason }));
@@ -948,6 +1003,7 @@ export function ExamMode() {
 
     if (scoringMachine.phase === 'FailedTerminal') {
       captureError(new Error(scoringMachine.reason), { area: 'exam_scoring', stage: 'scoringFailedTerminal', sessionId: transcript.sessionId });
+      track({ name: 'exam_scoring_failed', props: lastScoringFailureRef.current ?? { reason: 'unknown', status: null } });
       setEnvelopeView(null);
       setExamState('results');
     }
@@ -980,6 +1036,17 @@ export function ExamMode() {
         transcript: finalTranscript,
         earlyStart: earlyStartRef.current,
         resumed: resumedRef.current,
+      });
+
+      track({
+        name: 'exam_completed',
+        props: {
+          mode: coached ? 'coached' : 'sim',
+          total_score: view ? view.total : null,
+          duration_ms: examStartedAtRef.current === null ? null : Date.now() - examStartedAtRef.current,
+          asr_fallback_count: candidateUtterances.filter((u) => u.recognition?.fallbackReason != null).length,
+          counts_toward_progress: attemptStatus.countsTowardProgress,
+        },
       });
 
       const appSession: Session = {
@@ -1111,6 +1178,8 @@ export function ExamMode() {
 
   if (examState === 'results' && transcript) {
     return (
+      <>
+      <TrackView event={{ name: 'exam_report_viewed', props: { has_score: envelopeView !== null } }} />
       <ExamResults
         transcript={transcript}
         envelopeView={envelopeView}
@@ -1136,6 +1205,7 @@ export function ExamMode() {
         }}
         onHome={() => navigate(isDailyChallengeRun ? '/daily-challenge' : isDuelRun && duelId ? `/duel/${duelId}` : '/')}
       />
+      </>
     );
   }
 

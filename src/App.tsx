@@ -80,6 +80,7 @@ import { resolveFeatureStatus } from './config/featureFlags';
 import { isHiddenPath } from './config/launchScope';
 import { TourHost } from './features/tour/TourHost';
 import { supabaseConfigured } from './lib/supabase';
+import { AnalyticsTracker, AnalyticsPersonSync } from './services/telemetry/AnalyticsTracker';
 
 const pageVariants: Variants = {
   initial: { opacity: 0, scale: 0.98 },
@@ -237,6 +238,7 @@ function AppShell() {
       <OnboardingCheck>
         <AppProvider identity={identity}>
           <MigrationGate />
+          <AnalyticsPersonSync />
           <Routes location={location}>
         <Route element={<MainLayout />}>
           <Route path="/" element={<HomeRoute />} />
@@ -419,6 +421,7 @@ function AppShell() {
 export default function App() {
   return (
     <AuthProvider>
+      <AnalyticsTracker />
       <AppShell />
     </AuthProvider>
   );

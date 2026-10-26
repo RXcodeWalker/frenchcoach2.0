@@ -15,7 +15,7 @@
  * reads as a mystery 401. Hence the near-expiry refresh below.
  */
 import { supabase } from './supabase';
-import { captureError } from '../services/telemetry/telemetryService';
+import { captureError, track } from '../services/telemetry/telemetryService';
 
 /**
  * Temporary: guests may call the AI endpoints without a token (the backend
@@ -79,6 +79,8 @@ export async function requireAuthHeader(): Promise<Record<string, string>> {
 export const FREE_GUEST_ATTEMPTS = 3;
 export const GUEST_LIMIT_MESSAGE = `You've used your ${FREE_GUEST_ATTEMPTS} free AI attempts. Sign in to keep going.`;
 const GUEST_ATTEMPTS_KEY = 'frenchCoach_guestAiAttempts';
+/** Answers already reported as guest_limit_hit in this page load. */
+const guestLimitReported = new Set<string>();
 
 function readGuestAttempts(): string[] {
   try {
@@ -118,7 +120,14 @@ export async function checkGuestAttempt(
   const key = attemptKey(questionKey, transcript);
   const seen = readGuestAttempts();
   if (seen.includes(key)) return 'guest-ok';
-  if (seen.length >= FREE_GUEST_ATTEMPTS) return 'guest-limit';
+  if (seen.length >= FREE_GUEST_ATTEMPTS) {
+    // Once per answer: the stream → non-stream fallback asks again for the same one.
+    if (!guestLimitReported.has(key)) {
+      guestLimitReported.add(key);
+      track({ name: 'guest_limit_hit', props: {} });
+    }
+    return 'guest-limit';
+  }
   try {
     localStorage.setItem(GUEST_ATTEMPTS_KEY, JSON.stringify([...seen, key]));
   } catch {

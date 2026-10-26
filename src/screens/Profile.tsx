@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Volume2, Moon, Globe, Database, Shield, ShieldCheck, ChevronRight, Zap, Trophy, Flame, TrendingUp, BookOpen, LogOut, Target, SlidersHorizontal, AtSign, Loader2, Check, Copy, UserX, Users, Trash2, Minus, Plus, Bell } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getStats } from '../services/analytics/analyticsService';
+import { track } from '../services/telemetry/telemetryService';
 import { useApp, DAILY_GOAL_MIN, DAILY_GOAL_MAX } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { getLevelInfo } from '../domain/levels';
@@ -46,6 +47,9 @@ const RENAME_REASON_COPY: Record<string, string> = {
 
 export function Profile() {
   const { state, dispatch } = useApp();
+  useEffect(() => {
+    track({ name: 'profile_viewed', props: {} });
+  }, []);
   const avgScore = useMemo(() => getStats().avgScore, []);
   const { user, signOut, isAdmin, ageBand, consentStatus, refreshConsentStatus } = useAuth();
   const { isGuest, exitGuestMode } = useGuestMode();

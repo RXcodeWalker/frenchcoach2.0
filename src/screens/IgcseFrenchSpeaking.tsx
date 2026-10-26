@@ -1,12 +1,7 @@
 import { MarketingLayout } from '../components/layout/MarketingLayout';
 import { Section } from '../components/marketing/Section';
 import { CtaButton } from '../components/marketing/CtaButton';
-import { enterGuestMode } from '../hooks/useGuestMode';
-
-function startPractisingFree() {
-  enterGuestMode();
-  window.location.assign('/');
-}
+import { startPractisingFree } from '../components/marketing/startPractisingFree';
 
 const BREADCRUMB = [
   { label: 'Home', href: '/' },
@@ -92,7 +87,7 @@ export function IgcseFrenchSpeaking() {
                   or start a timed mock straight away.
                 </p>
               </div>
-              <CtaButton onClick={startPractisingFree}>Start practising free</CtaButton>
+              <CtaButton onClick={() => startPractisingFree('igcse_page_start')}>Start practising free</CtaButton>
             </div>
           </div>
 

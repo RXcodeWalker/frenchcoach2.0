@@ -4,7 +4,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { LEARN_TOPIC_PARAM, topicFromDeepLink } from '../features/learn/topicDeepLink';
 import { TOPICS, getTopicQuestions } from '../data/gameData';
-import { getAIFeedback, streamFeedback, getExaminerFeedback, isExaminerQuotaExceededError, getLearnAllowance, isLearnDailyLimitError } from '../services/api/apiClient';
+import { getAIFeedback, streamFeedback, getExaminerFeedback, isExaminerQuotaExceededError, getLearnAllowance, isLearnDailyLimitError, SIGNED_OUT_FEEDBACK_REASON } from '../services/api/apiClient';
 import { LEARN_ANSWERS_PER_DAY, LEARN_DAILY_LIMIT_MESSAGE, dailySessionLength } from '../features/learn/dailyAllowance';
 import { isAuthRequiredError } from '../lib/authToken';
 import { isConsentRequiredError } from '../lib/consentRequired';
@@ -49,7 +49,11 @@ import { computeSessionTarget, type Aim } from '../domain/learn/selection/sessio
 import { summarisePreview, type SessionPreview } from '../features/learn/sessionSetup';
 import { getReviewItemFirstRecordedScore } from '../services/coach/reviewPool';
 import { useExtraTurnBudget } from './learn/useExtraTurnBudget';
-import { captureError, track } from '../services/telemetry/telemetryService';
+import { captureError, failureReason, track } from '../services/telemetry/telemetryService';
+import { errorStatus } from '../services/telemetry/sentryFilters';
+import { claimFirstTime } from '../services/telemetry/analyticsState';
+import { deriveDemandLevel } from '../domain/learn/demand/deriveDemandLevel';
+import { selectCoachFixes } from '../features/feedback/coachPoints';
 import { IGCSE_EXPECTATIONS } from '../utils/difficultyConfig';
 import type { AbilityResult } from '../domain/learn/ability/deriveAbility';
 import { updateTopicMastery } from '../services/analytics/analyticsService';
@@ -174,6 +178,40 @@ export function Learn() {
   const { consentStatus, user: authUser } = useAuth();
   const recording = useRecording(consentStatus === 'pending');
 
+  // Product analytics: the open session (so leaving mid-session can be
+  // reported as learn_session_abandoned), when this answer's feedback was
+  // asked for (feedback latency), and the latest screen state for the
+  // unmount / page-hide handlers, which outlive the render they were made in.
+  const analyticsSessionRef = useRef<{ topicKey: string; startedAt: number } | null>(null);
+  const feedbackRequestedAtRef = useRef(0);
+  const latestForAnalyticsRef = useRef<{ learnState: LearnState; /** Questions with at least one answer. */ questionsCompleted: number }>({ learnState: 'topics', questionsCompleted: 0 });
+  latestForAnalyticsRef.current = { learnState, questionsCompleted: activeSession?.questions.filter((q) => q.attempts.length > 0).length ?? 0 };
+
+  const reportAbandoned = useCallback(() => {
+    const open = analyticsSessionRef.current;
+    if (!open) return;
+    analyticsSessionRef.current = null;
+    const { learnState: step, questionsCompleted } = latestForAnalyticsRef.current;
+    track({
+      name: 'learn_session_abandoned',
+      props: {
+        topic_key: open.topicKey,
+        questions_answered: questionsCompleted,
+        last_step: step === 'recording' || step === 'confirm' || step === 'feedback' ? step : 'question',
+        elapsed_ms: Date.now() - open.startedAt,
+      },
+    }, { beacon: true });
+  }, []);
+
+  // Leaving Learn (another route) or closing the page mid-session.
+  useEffect(() => {
+    window.addEventListener('pagehide', reportAbandoned);
+    return () => {
+      window.removeEventListener('pagehide', reportAbandoned);
+      reportAbandoned();
+    };
+  }, [reportAbandoned]);
+
   // Abort stream + pronunciation call on unmount
   useEffect(() => {
     return () => {
@@ -218,6 +256,22 @@ export function Learn() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isReviewQuestion, baseQuestion?.id]);
+
+  // question_shown: once per question presented (a retry or follow-up turn is the same question).
+  useEffect(() => {
+    if (!activeSession || !currentSessionQuestion) return;
+    const q = currentSessionQuestion.question;
+    track({
+      name: 'question_shown',
+      props: {
+        topic_key: activeSession.topicKey,
+        level: q.demands ? deriveDemandLevel(q.demands) : null,
+        slot: currentSessionQuestion.slotType ?? (currentSessionQuestion.isReview ? 'review' : null),
+        position: activeSession.currentIndex + 1,
+      },
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSession?.id, activeSession?.currentIndex]);
 
   // ── Topic selection ───────────────────────────────────────────────────────────
 
@@ -336,12 +390,23 @@ export function Learn() {
 
     setActiveSession(session);
     dispatch({ type: 'START_SESSION', session });
+    analyticsSessionRef.current = { topicKey: selectedTopic.key, startedAt: Date.now() };
+    track({
+      name: 'learn_session_started',
+      props: {
+        topic_key: selectedTopic.key,
+        session_length: sessionQuestions.length,
+        filters_used: hasActiveFilters(filters),
+        first_time: claimFirstTime('learn_session'),
+        style: feedbackMode,
+      },
+    });
     setShowHint(false);
     setFeedback(null);
     setIsRetry(false);
     resetSessionScopedState();
     setLearnState('question');
-  }, [selectedTopic, skillProfile, topicMastery, selectedDifficulty, aim, filters, dispatch, resetSessionScopedState, resolveSelectionInputs, focusTokenActive, adaptiveDifficultyLive, answersLeft]);
+  }, [selectedTopic, skillProfile, topicMastery, selectedDifficulty, aim, filters, dispatch, resetSessionScopedState, resolveSelectionInputs, focusTokenActive, adaptiveDifficultyLive, answersLeft, feedbackMode]);
 
   useEffect(() => {
     if (learnState !== 'session_start') return;
@@ -479,6 +544,26 @@ export function Learn() {
       });
       incrementCounter('review_item_answered');
     }
+    const meta = fb.engineMeta;
+    const offline = meta?.actualEngine === 'offline';
+    track({
+      name: 'feedback_shown',
+      props: {
+        source: offline ? 'offline' : 'ai',
+        offline_reason: !offline
+          ? null
+          : meta?.failoverReason === SIGNED_OUT_FEEDBACK_REASON
+            ? 'signed_out'
+            : meta?.fallbackUsed
+              ? 'engine_failed'
+              : meta?.requestedEngine === 'offline' ? 'offline_mode' : 'too_short',
+        latency_ms: Date.now() - feedbackRequestedAtRef.current,
+        overall_score: unscored ? null : finalScore,
+        error_count: selectCoachFixes(fb).length,
+        style: 'coach',
+        first_time: claimFirstTime('feedback'),
+      },
+    });
     if (fb.engineMeta) {
       track({ name: 'feedback_received', props: { engine: fb.engineMeta.actualEngine, fallback_used: fb.engineMeta.fallbackUsed, score: unscored ? null : finalScore, latency_ms: fb.engineMeta.latencyMs, response_tier: fb.responseTier ?? 2 } });
     }
@@ -567,6 +652,8 @@ export function Learn() {
       return;
     }
 
+    track({ name: 'answer_recorded', props: { input: 'speech', duration_ms: recording.elapsedTime * 1000, first_time: claimFirstTime('answer') } });
+
     if (transcriptConfirmLive) {
       // Double-check the recording with Whisper (the question as context), then
       // let the student confirm. The live captions stand in if Whisper can't.
@@ -575,11 +662,20 @@ export function Learn() {
       setIsCheckingTranscript(true);
       setLearnState('confirm');
       const audio = await recording.audioBlobPromise();
+      const transcribeStartedAt = Date.now();
       const answer = await transcribeLearnAnswer({
         liveText: transcript,
         audio,
         questionText: currentQuestion.text,
         earlierAnswers: confirmedAnswersRef.current,
+      });
+      track({
+        name: 'transcript_result',
+        props: {
+          source: answer.source === 'whisper' ? 'whisper' : 'captions',
+          fallback_reason: answer.fallbackReason,
+          latency_ms: Date.now() - transcribeStartedAt,
+        },
       });
       if (myCheck !== transcribeAttemptRef.current) return;
       setPendingAnswer(answer);
@@ -599,6 +695,10 @@ export function Learn() {
     const controller = new AbortController();
     streamAbortRef.current = controller;
     const myAttemptId = ++attemptIdRef.current;
+
+    feedbackRequestedAtRef.current = Date.now();
+    track({ name: 'feedback_requested', props: { style: feedbackMode, is_followup: !!followUpTurn } });
+    if (followUpTurn) track({ name: 'followup_answered', props: { style: feedbackMode } });
 
     setLearnState('feedback');
     setFirsts([]);
@@ -668,6 +768,18 @@ export function Learn() {
         if (myAttemptId !== attemptIdRef.current) return;
         setExaminerFeedbackResult(result);
         setExaminerStatus('done');
+        track({
+          name: 'feedback_shown',
+          props: {
+            source: 'ai',
+            offline_reason: null,
+            latency_ms: Date.now() - feedbackRequestedAtRef.current,
+            overall_score: null,
+            error_count: null,
+            style: 'examiner',
+            first_time: claimFirstTime('feedback'),
+          },
+        });
         // An examiner answer is not recorded as a session, so it is not in the history yet;
         // only a finished, non-empty commentary has a conversation to say it in.
         if (!isExaminerFeedbackEmpty(result)) setFirsts(proveFirsts(transcript));
@@ -688,6 +800,7 @@ export function Learn() {
       } catch (err) {
         if ((err as Error).name === 'AbortError') return;
         if (myAttemptId !== attemptIdRef.current) return;
+        track({ name: 'feedback_failed', props: { reason: failureReason(err), status: errorStatus(err) ?? null, style: 'examiner' } });
         setExaminerFailure(examinerFailureKind(err));
         setExaminerStatus(isExaminerQuotaExceededError(err) ? 'quota-exhausted' : 'failed');
       }
@@ -719,6 +832,7 @@ export function Learn() {
       } catch (fallbackErr) {
         console.warn('[Learn] offline feedback unavailable:', fallbackErr);
         if (myAttemptId !== attemptIdRef.current) return;
+        track({ name: 'feedback_failed', props: { reason: failureReason(fallbackErr), status: errorStatus(fallbackErr) ?? null, style: 'coach' } });
         setIsLoadingFeedback(false);
         setFeedbackErrorMessage('Could not get feedback for that answer. Check your connection and try again.');
         setLearnState('question');
@@ -756,6 +870,9 @@ export function Learn() {
         const fb = await getAIFeedback(transcript, currentQuestion, skillContext, undefined, selectedEngine, selectedDifficulty, LEARN_INPUT_MODE, markingScheme);
         _finalizeAnswer(myAttemptId, fb, transcript, elapsed, avoidanceSignals, skillContext);
       } catch (fallbackErr) {
+        if (myAttemptId === attemptIdRef.current) {
+          track({ name: 'feedback_failed', props: { reason: failureReason(fallbackErr), status: errorStatus(fallbackErr) ?? null, style: 'coach' } });
+        }
         // E1: total failure — no real feedback exists. Show an honest error and let the
         // candidate retry, rather than inventing a score that flows into XP/achievements/
         // the coach loop as if it were a real assessment.
@@ -1050,7 +1167,11 @@ export function Learn() {
           },
           signedIn: authUser !== null,
           savedAnswer: state.notebook.find((e) => e.questionId === currentQuestion.id)?.answer ?? null,
-          onSave: (draft: NotebookDraft) => dispatch({ type: 'SAVE_NOTEBOOK_ENTRY', draft, now: new Date().toISOString() }),
+          onSave: (draft: NotebookDraft) => {
+            dispatch({ type: 'SAVE_NOTEBOOK_ENTRY', draft, now: new Date().toISOString() });
+            // Content-free: which topic, never the saved answer.
+            track({ name: 'notebook_saved', props: { topic_key: currentQuestion.topicKey } });
+          },
         }
       : null;
 
@@ -1090,6 +1211,17 @@ export function Learn() {
     dispatch({ type: 'END_SESSION' });
 
     const completedQs = session.questions.filter(q => q.status === 'completed');
+    analyticsSessionRef.current = null;
+    track({
+      name: 'learn_session_completed',
+      props: {
+        topic_key: selectedTopic.key,
+        questions_answered: completedQs.length,
+        avg_score: averageRealScores(completedQs.map(q => q.bestScore)),
+        duration_ms: Date.now() - Date.parse(session.startedAt),
+        ended_early: completedQs.length < session.targetCount,
+      },
+    });
     // Unscored questions (offline, Examiner voice, guests past the free tries)
     // contribute nothing to the average — never a fabricated 0 (Batch 1c).
     const { entry, justMastered: nowMastered } = nextTopicMastery(topicMastery[selectedTopic.key], {
@@ -1161,10 +1293,12 @@ export function Learn() {
       if (activeSession && activeSession.questionsCompleted > 0) {
         handleEndSessionEarly();
       } else {
+        reportAbandoned();
         setActiveSession(null);
         setLearnState('topics');
       }
     } else {
+      reportAbandoned(); // Back from a feedback screen leaves the session unfinished
       setActiveSession(null);
       setLearnState('topics');
     }

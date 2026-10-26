@@ -1,4 +1,6 @@
 import { Mic } from 'lucide-react';
+import { TrackView } from '../services/telemetry/TrackView';
+import { currentRoute } from '../services/telemetry/analyticsRoute';
 
 /**
  * The "waiting for your parent/guardian" message, in one place: rendered by
@@ -9,6 +11,7 @@ import { Mic } from 'lucide-react';
 export function GuardianConsentNotice() {
   return (
     <div className="rounded-xl surface p-6 flex flex-col items-center text-center gap-2" data-testid="guardian-consent-notice">
+      <TrackView event={{ name: 'consent_blocked', props: { surface: currentRoute() } }} />
       <div className="w-12 h-12 rounded-full bg-violet-500/10 flex items-center justify-center mb-1">
         <Mic size={20} className="text-violet-400/60" />
       </div>

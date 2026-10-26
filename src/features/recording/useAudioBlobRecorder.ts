@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useMicLevel, type MicLevelController } from './useMicLevel';
+import { micPermissionResult, trackMicPermission } from '../../services/telemetry/micPermission';
 
 const WAVE_BARS = 40;
 
@@ -46,7 +47,15 @@ export function useAudioBlobRecorder(): AudioBlobRecorderState {
       audioUrlRef.current = null;
     }
 
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    if (!navigator.mediaDevices?.getUserMedia) trackMicPermission('unsupported');
+    let stream: MediaStream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (err) {
+      trackMicPermission(micPermissionResult(err));
+      throw err;
+    }
+    trackMicPermission('granted');
     streamRef.current = stream;
     micLevel.attach(stream);
 

@@ -1,12 +1,7 @@
 import { MarketingLayout } from '../components/layout/MarketingLayout';
 import { CtaButton } from '../components/marketing/CtaButton';
-import { enterGuestMode } from '../hooks/useGuestMode';
+import { startPractisingFree } from '../components/marketing/startPractisingFree';
 import { getScenario, isAuthored, listScenarioIds } from '../data/scenarios/registry';
-
-function startPractisingFree() {
-  enterGuestMode();
-  window.location.assign('/');
-}
 
 const BREADCRUMB = [
   { label: 'Home', href: '/' },
@@ -164,7 +159,7 @@ export function FrenchRoleplayPractice() {
 
         <section className="rounded-2xl border mk-hairline p-8 text-center">
           <h2 className="font-display text-2xl mb-3">Ready to try a scenario?</h2>
-          <CtaButton onClick={startPractisingFree}>Start practising free</CtaButton>
+          <CtaButton onClick={() => startPractisingFree('roleplay_page_start')}>Start practising free</CtaButton>
         </section>
       </div>
     </MarketingLayout>

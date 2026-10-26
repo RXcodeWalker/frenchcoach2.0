@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mic } from 'lucide-react';
@@ -17,6 +17,7 @@ import { STORAGE_KEYS, storageSetRaw } from '../services/persistence/storage';
 import { isSafeReturnTo } from '../utils/routeSafety';
 import type { Aim } from '../domain/learn/selection/sessionTarget';
 import type { Question } from '../types';
+import { track } from '../services/telemetry/telemetryService';
 
 /** One question per CognitiveDemand, all in one well-covered base topic (docs
  * §4.4) — resolved by id, not hardcoded, so a future content edit that
@@ -65,14 +66,22 @@ export function OnboardingPlacement() {
   const currentQuestion = questions[questionIndex];
   const isLastQuestion = questionIndex === questions.length - 1;
 
+  // Questions answered and marked in this run, for placement_completed.
+  const answeredCountRef = useRef(0);
+  useEffect(() => {
+    track({ name: 'placement_started', props: {} });
+  }, []);
+
   const finishIncomplete = useCallback(() => {
     // Partial real evidence from completed questions is fine and desired —
     // just no final aim-seeding on an incomplete run (docs §4.4).
+    track({ name: 'placement_completed', props: { questions_answered: answeredCountRef.current, skipped: true } });
     navigate(destination, { replace: true });
   }, [navigate, destination]);
 
   const advanceOrFinish = useCallback(async (finalAbilitySnapshot?: Parameters<typeof deriveAbility>[0]) => {
     if (isLastQuestion) {
+      track({ name: 'placement_completed', props: { questions_answered: answeredCountRef.current, skipped: false } });
       if (finalAbilitySnapshot) {
         const result = deriveAbility(finalAbilitySnapshot);
         const aim = bucketAim(result.abilityScore);
@@ -170,6 +179,7 @@ export function OnboardingPlacement() {
     }
 
     setStatus('done');
+    answeredCountRef.current += 1;
     await advanceOrFinish(isLastQuestion ? beliefSnapshot : undefined);
   }, [
     recording, questionIndex, retryCount, currentQuestion, sessionId,

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useMicLevel, type MicLevelController } from './useMicLevel';
+import { micPermissionResult, trackMicPermission } from '../../services/telemetry/micPermission';
 
 const WAVE_BARS = 40;
 
@@ -163,7 +164,9 @@ export function useRecording(blocked = false): RecordingState {
     }, 1000);
 
     // Start MediaRecorder for audio blob (best-effort — ignore if permissions denied)
+    if (!navigator.mediaDevices?.getUserMedia) trackMicPermission('unsupported');
     navigator.mediaDevices?.getUserMedia({ audio: true }).then(stream => {
+      trackMicPermission('granted');
       if (myGeneration !== generationRef.current) {
         // A later start()/stop() has already superseded this recording —
         // don't attach a recorder or stream that nothing will ever stop.
@@ -181,7 +184,8 @@ export function useRecording(blocked = false): RecordingState {
         if (e.data.size > 0) chunksRef.current.push(e.data);
       };
       mr.start(250);
-    }).catch(() => {
+    }).catch((err: unknown) => {
+      trackMicPermission(micPermissionResult(err));
       // Pronunciation analysis won't be available — continue without audio blob
     });
 

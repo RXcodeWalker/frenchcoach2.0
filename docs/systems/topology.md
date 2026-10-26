@@ -115,6 +115,17 @@ One Sentry project per surface; each is off until its DSN is set.
 - **Wiring check for either backend:** set `SENTRY_TEST_EVENT=1` on the Render service; each boot
   then sends one "Sentry test event" issue. Remove it afterwards.
 
+### PostHog product analytics (2026-10-26)
+
+Frontend only, off until the key is set. **Vercel build env:** `VITE_POSTHOG_KEY` (the project API
+key, `phc_…`) and optionally `VITE_POSTHOG_HOST` (default `https://us.i.posthog.com`; set
+`https://eu.i.posthog.com` for an EU project). Build-time, so a redeploy is needed after setting it.
+Only production browser builds send anything; dev, tests and the prerender never load the SDK.
+`app_version` = `VERCEL_GIT_COMMIT_SHA` (the Sentry release). Code: `src/services/telemetry/`
+(`telemetryService.ts`'s `track()` and the event union, `posthogClient.ts` the transport,
+`AnalyticsTracker.tsx` identity/page views). No backend involvement. Ad blockers block the
+default host for some visitors; a Vercel rewrite proxy (`/ingest/*` → PostHog) would recover them.
+
 ### `VITE_SCORING_API_URL` — no fallback
 
 `src/services/exam/scoringApiClient.ts` reads `VITE_SCORING_API_URL`. If it's unset:

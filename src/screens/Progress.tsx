@@ -1,6 +1,8 @@
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { getSessionHistory } from '../services/analytics/analyticsService';
+import { track } from '../services/telemetry/telemetryService';
 import { getDueReviewCounts } from '../services/coach/reviewPool';
 import { TOPICS } from '../data/gameData';
 import { isTopicVisible } from '../features/learn/sessionSetup';
@@ -14,6 +16,9 @@ import { PastAttempts } from './progress/PastAttempts';
 
 export function Progress() {
   const { state } = useApp();
+  useEffect(() => {
+    track({ name: 'progress_viewed', props: {} });
+  }, []);
   const { topicMastery, skillProfile, profile } = state;
 
   const sessions = getSessionHistory();

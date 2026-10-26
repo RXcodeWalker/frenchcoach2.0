@@ -5,6 +5,7 @@ import type { TurnLabel } from './turnLabels';
 import type { RailDisabledReason, RailEntry } from '../../services/exam/turnFeedback';
 import { ExamPronunciationPartCard } from '../../features/exam/pronunciation/ExamPronunciationPartCard';
 import type { UseExamPronunciation } from '../../features/exam/pronunciation/useExamPronunciation';
+import { TrackView } from '../../services/telemetry/TrackView';
 
 interface Props {
   coached: boolean;
@@ -58,6 +59,7 @@ function CorrectionsRailBody({ coached, entries, disabledReason, onRetry, highli
       <div className="rounded-card surface p-4 text-center space-y-1.5">
         <p className="text-eyebrow uppercase text-ink-subtle">Live corrections</p>
         <p className="text-body-s text-ink-muted">Sign in to see examiner commentary as you go.</p>
+        <TrackView event={{ name: 'auth_required_shown', props: { surface: 'exam_rail' } }} />
       </div>
     );
   }
