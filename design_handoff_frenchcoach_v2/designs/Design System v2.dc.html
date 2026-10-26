@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap">
+<script src="./l-icon.js"></script>
+<style>
+html, body { margin: 0; padding: 0; }
+body { -webkit-font-smoothing: antialiased; }
+a { color: #6D28D9; text-decoration: none; }
+a:hover { color: #5B21B6; text-decoration: underline; }
+</style>
+</helmet>
+<div style="--bg:#F6F5F1; --surface:#FFFFFF; --surface-recessed:#F1F0EC; --surface-raised:#FFFFFF; --hairline:rgba(28,25,20,.09); --hairline-strong:rgba(28,25,20,.16); --ink:#1C1A17; --ink-muted:#56524B; --ink-subtle:#6E6A62; --action:#7C3AED; --action-hover:#6D28D9; --action-press:#5B21B6; --action-ink:#FFFFFF; --action-text:#6D28D9; --action-soft:rgba(124,58,237,.08); --progress:#12805A; --progress-text:#0C6646; --progress-soft:rgba(18,128,90,.09); --reward:#C27C0E; --reward-text:#8A5508; --reward-soft:rgba(194,124,14,.10); --streak:#D4561C; --streak-text:#B2430F; --correction:#D63241; --correction-text:#B3202F; --correction-soft:rgba(214,50,65,.07); --info-text:#0E6683; --info-soft:rgba(14,102,131,.08); --focus:#7C3AED; --track:rgba(28,25,20,.08); --scrim:rgba(28,25,20,.36); --shadow-card:0 1px 2px rgba(28,25,20,.05); --shadow-overlay:0 16px 40px -12px rgba(28,25,20,.22);">
+<div style="{{ themeVars }}">
+<div style="background: var(--bg); color: var(--ink); font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 300; font-size: 15px; line-height: 1.6; font-optical-sizing: auto; min-height: 100vh; transition: background-color 200ms cubic-bezier(.2,0,.2,1);">
+<div style="max-width: 1240px; margin: 0 auto; padding: 56px clamp(20px, 4vw, 56px) 120px; display: flex; flex-direction: column; gap: 96px;">
+
+<header style="display: flex; flex-direction: column; gap: 28px;">
+  <div style="display: flex; align-items: center; gap: 12px;">
+    <div style="width: 36px; height: 36px; border-radius: 8px; background: var(--action); color: var(--action-ink); display: flex; align-items: center; justify-content: center; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 22px; line-height: 1;">F</div>
+    <span style="font-size: 13px; font-weight: 600; letter-spacing: -0.005em;">Français AI</span>
+    <span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">Design System · v2 · Oct 2026</span>
+  </div>
+  <h1 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: clamp(44px, 6vw, 72px); line-height: 1; letter-spacing: -0.022em; max-width: 900px; text-wrap: balance;">Parle, et on t’écoute. <span style="color: var(--ink-subtle);">A system for speaking practice.</span></h1>
+  <p style="margin: 0; font-size: 17px; line-height: 1.6; color: var(--ink-muted); max-width: 680px; text-wrap: pretty;">One system for every screen of the speaking coach. Flat surfaces separated by hairlines, colour chosen by role, motion that confirms rather than decorates. Every value below maps 1:1 to the token names in <code style="font-family: ui-monospace, Menlo, monospace; font-size: 14px;">src/index.css</code>, so adopting it is a token swap.</p>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px;">
+    <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 6px;"><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">01</span><span style="font-size: 14px; font-weight: 600;">One primary per screen</span><span style="font-size: 14px; color: var(--ink-muted); line-height: 1.5;">Violet fill means “do this next”. Nothing else gets it.</span></div>
+    <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 6px;"><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">02</span><span style="font-size: 14px; font-weight: 600;">Colour by role, never variety</span><span style="font-size: 14px; color: var(--ink-muted); line-height: 1.5;">Progress, reward, streak, correction, info. Topics are the only decorative hue.</span></div>
+    <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 6px;"><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">03</span><span style="font-size: 14px; font-weight: 600;">Hierarchy from surface + hairline</span><span style="font-size: 14px; color: var(--ink-muted); line-height: 1.5;">No glow, no gradient, no blur. Shadows only on things that float.</span></div>
+    <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 6px;"><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">04</span><span style="font-size: 14px; font-weight: 600;">Reward is earned, once</span><span style="font-size: 14px; color: var(--ink-muted); line-height: 1.5;">Celebration plays on the event, then stops. Nothing loops or pulses.</span></div>
+  </div>
+  <nav style="display: flex; flex-wrap: wrap; gap: 8px;">
+    <a href="#colour" style="font-size: 13px; font-weight: 500; color: var(--ink-muted); border: 1px solid var(--hairline-strong); border-radius: 999px; padding: 5px 12px;">Colour</a>
+    <a href="#type" style="font-size: 13px; font-weight: 500; color: var(--ink-muted); border: 1px solid var(--hairline-strong); border-radius: 999px; padding: 5px 12px;">Type</a>
+    <a href="#space" style="font-size: 13px; font-weight: 500; color: var(--ink-muted); border: 1px solid var(--hairline-strong); border-radius: 999px; padding: 5px 12px;">Space &amp; surface</a>
+    <a href="#icons" style="font-size: 13px; font-weight: 500; color: var(--ink-muted); border: 1px solid var(--hairline-strong); border-radius: 999px; padding: 5px 12px;">Icons &amp; topics</a>
+    <a href="#motion" style="font-size: 13px; font-weight: 500; color: var(--ink-muted); border: 1px solid var(--hairline-strong); border-radius: 999px; padding: 5px 12px;">Motion</a>
+    <a href="#components" style="font-size: 13px; font-weight: 500; color: var(--ink-muted); border: 1px solid var(--hairline-strong); border-radius: 999px; padding: 5px 12px;">Components</a>
+    <a href="#rules" style="font-size: 13px; font-weight: 500; color: var(--ink-muted); border: 1px solid var(--hairline-strong); border-radius: 999px; padding: 5px 12px;">Do / don’t</a>
+  </nav>
+</header>
+
+<section id="colour" data-screen-label="01 Colour" style="display: flex; flex-direction: column; gap: 32px;">
+  <div style="display: flex; flex-direction: column; gap: 12px;">
+    <span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">01 — Colour</span>
+    <h2 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 40px; line-height: 1.05; letter-spacing: -0.02em;">A warm neutral ground, five roles, one action.</h2>
+    <p style="margin: 0; font-size: 16px; line-height: 1.6; color: var(--ink-muted); max-width: 720px; text-wrap: pretty;">Ratios are computed live from the values shown. Text tokens report their worst case across <code style="font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 400;">--surface</code>, <code style="font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 400;">--surface-recessed</code> and <code style="font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 400;">--bg</code>; fills report against <code style="font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 400;">--surface</code> at the 3:1 non-text threshold; soft tints report their paired text token on top.</p>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;">
+    <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 10px;">
+      <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--action-text);">Why violet stays</span>
+      <p style="margin: 0; font-size: 15px; line-height: 1.55; color: var(--ink-muted); text-wrap: pretty;">It is the only hue on the wheel not already claimed by a role: green is progress, amber is reward, orange is streak, red is correction, cyan is info. Violet can mean “act” without being confused for any of them. It is already the logo, the rail and every existing CTA, and it is unclaimed by the big language apps students already use. White on <code style="font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 400;">#7C3AED</code> is 5.7:1, so the fill holds AA at 13px.</p>
+    </div>
+    <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 10px;">
+      <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-subtle);">What changed</span>
+      <p style="margin: 0; font-size: 15px; line-height: 1.55; color: var(--ink-muted); text-wrap: pretty;">The cool slate body (<code style="font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 400;">#f1f5f9</code>) hard-coded in <code style="font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 400;">body</code> fought the warm token layer. The ground is now one warm neutral via <code style="font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 400;">--bg</code>. Light reward, streak and progress move one step darker so their text holds AA on recessed surfaces too. Dark hover now lightens instead of failing contrast.</p>
+    </div>
+  </div>
+
+  <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; overflow-x: auto;">
+    <div style="min-width: 860px;">
+      <div style="display: grid; grid-template-columns: minmax(170px, 1.1fr) minmax(200px, 1fr) minmax(200px, 1fr) minmax(200px, 1.3fr); gap: 16px; padding: 12px 20px; border-bottom: 1px solid var(--hairline); font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-subtle);">
+        <span>Token</span><span>Light</span><span>Dark</span><span>Use</span>
+      </div>
+      <sc-for list="{{ tokenGroups }}" as="g" hint-placeholder-count="4">
+        <div style="padding: 16px 20px 6px; font-size: 13px; font-weight: 600; color: var(--ink);">{{ g.name }}</div>
+        <sc-for list="{{ g.rows }}" as="r" hint-placeholder-count="3">
+          <div style="display: grid; grid-template-columns: minmax(170px, 1.1fr) minmax(200px, 1fr) minmax(200px, 1fr) minmax(200px, 1.3fr); gap: 16px; padding: 10px 20px; align-items: center; border-top: 1px solid var(--hairline);">
+            <code style="font-family: ui-monospace, Menlo, monospace; font-size: 13px; color: var(--ink); font-weight: 400;">{{ r.name }}</code>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="{{ r.swL }}"></span>
+              <span style="display: flex; flex-direction: column; gap: 1px; min-width: 0;">
+                <span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-muted);">{{ r.light }}</span>
+                <span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink);">{{ r.lRatio }} <span style="color: var(--ink-subtle);">{{ r.lPass }}</span></span>
+              </span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="{{ r.swD }}"></span>
+              <span style="display: flex; flex-direction: column; gap: 1px; min-width: 0;">
+                <span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-muted);">{{ r.dark }}</span>
+                <span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink);">{{ r.dRatio }} <span style="color: var(--ink-subtle);">{{ r.dPass }}</span></span>
+              </span>
+            </div>
+            <span style="font-size: 13px; line-height: 1.45; color: var(--ink-muted); font-weight: 400;">{{ r.use }}</span>
+          </div>
+        </sc-for>
+      </sc-for>
+    </div>
+  </div>
+</section>
+
+<section id="type" data-screen-label="02 Type" style="display: flex; flex-direction: column; gap: 32px;">
+  <div style="display: flex; flex-direction: column; gap: 12px;">
+    <span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">02 — Type</span>
+    <h2 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 40px; line-height: 1.05; letter-spacing: -0.025em;">Playful by default. Formal when it counts.</h2>
+    <p style="margin: 0; font-size: 17px; line-height: 1.6; font-weight: 300; color: var(--ink-muted); max-width: 720px; text-wrap: pretty;">Bricolage Grotesque carries the whole app. Its optical-size axis makes headlines chunky and friendly while body text stays open, so one family does the work of two. Body runs Light so screens breathe; weight is spent on things you read first or act on. Libre Baskerville appears only when the stakes are formal — Exam mode and quoted model answers — so the switch itself tells a student <em>this is the real thing</em>.</p>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px;">
+    <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 28px; display: flex; flex-direction: column; gap: 16px;">
+      <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-subtle);">Learn · Bricolage Grotesque</span>
+      <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 60px; line-height: 1; font-weight: 600; letter-spacing: -0.035em;">Salut, Léa.</span>
+      <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 30px; line-height: 1.12; font-weight: 600; letter-spacing: -0.015em; text-wrap: pretty;">Qu’est-ce que tu as fait le week-end dernier ?</span>
+      <span style="font-size: 16px; line-height: 1.6; font-weight: 300; color: var(--ink-muted); text-wrap: pretty;">You used the passé composé correctly in 4 of 6 answers. Watch the agreement after <em>être</em>: elle est allée, not elle est allé.</span>
+      <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: baseline;">
+        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 13px; color: var(--reward-text);">+40 XP</span><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 13px; color: var(--streak-text);">6 days</span><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 13px;">Q4/10</span><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 13px; color: var(--ink-muted);">0:42</span>
+      </div>
+    </div>
+    <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 28px; display: flex; flex-direction: column; gap: 16px;">
+      <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-subtle);">Weights · one family</span>
+      <div style="display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 4px 12px; align-items: baseline;"><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">200</span><span style="font-size: 24px; line-height: 1.2; font-weight: 200; letter-spacing: -0.01em;">Je parle français</span><span></span><span style="font-size: 12px; font-weight: 400; color: var(--ink-subtle);">ExtraLight · lead text 18px+ only</span></div>
+      <div style="display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 4px 12px; align-items: baseline;"><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">300</span><span style="font-size: 24px; line-height: 1.2; font-weight: 300; letter-spacing: -0.01em;">Je parle français</span><span></span><span style="font-size: 12px; font-weight: 400; color: var(--ink-subtle);">Light · all body copy 14px+</span></div>
+      <div style="display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 4px 12px; align-items: baseline;"><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">400</span><span style="font-size: 24px; line-height: 1.2; font-weight: 400; letter-spacing: -0.01em;">Je parle français</span><span></span><span style="font-size: 12px; font-weight: 400; color: var(--ink-subtle);">Regular · captions and meta under 14px</span></div>
+      <div style="display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 4px 12px; align-items: baseline;"><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">500</span><span style="font-size: 24px; line-height: 1.2; font-weight: 500; letter-spacing: -0.01em;">Je parle français</span><span></span><span style="font-size: 12px; font-weight: 400; color: var(--ink-subtle);">Medium · numbers, chips, vocab</span></div>
+      <div style="display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 4px 12px; align-items: baseline;"><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">600</span><span style="font-size: 24px; line-height: 1.2; font-weight: 600; letter-spacing: -0.01em;">Je parle français</span><span></span><span style="font-size: 12px; font-weight: 400; color: var(--ink-subtle);">SemiBold · labels, buttons, titles, display</span></div>
+    </div>
+    <div style="background: var(--surface); border: 1px solid var(--hairline-strong); border-radius: 12px; padding: 28px; display: flex; flex-direction: column; gap: 16px;">
+      <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-subtle);">Exam mode · Libre Baskerville</span>
+      <span style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--hairline);"><span style="font-size: 13px; font-weight: 600;">Paper 2 · Speaking · Role-play B</span><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 13px; color: var(--ink-muted);">09:42</span></span>
+      <span style="font-family: 'Libre Baskerville', Georgia, serif; font-size: 22px; line-height: 1.5; text-wrap: pretty;">Vous êtes dans un hôtel en France. Vous parlez avec le réceptionniste.</span>
+      <span style="font-family: 'Libre Baskerville', Georgia, serif; font-style: italic; font-size: 17px; line-height: 1.6; color: var(--ink-muted);">« Bonjour, j’ai réservé une chambre pour deux nuits. »</span>
+      <span style="display: flex; align-items: baseline; gap: 10px;"><span style="font-family: 'Libre Baskerville', Georgia, serif; font-weight: 700; font-size: 40px; line-height: 1;">Grade 7</span><span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle);">estimated</span></span>
+      <span style="font-size: 13px; line-height: 1.5; font-weight: 400; color: var(--ink-subtle);">Prompts and results only. Instructions, buttons and timers stay in Bricolage.</span>
+    </div>
+  </div>
+  <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; overflow-x: auto;">
+    <div style="min-width: 780px;">
+      <div style="display: grid; grid-template-columns: 130px 230px minmax(0, 1fr); gap: 20px; padding: 12px 20px; border-bottom: 1px solid var(--hairline); font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-subtle);"><span>Token</span><span>Spec</span><span>Sample</span></div>
+      <div style="display: grid; grid-template-columns: 130px 230px minmax(0, 1fr); gap: 20px; padding: 16px 20px; align-items: baseline; border-bottom: 1px solid var(--hairline);"><code style="font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 400;">display-xl</code><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-muted);">Bricolage 60 / 1.0 / 600 / −3.5%</span><span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 60px; line-height: 1; font-weight: 600; letter-spacing: -0.035em;">7.8</span></div>
+      <div style="display: grid; grid-template-columns: 130px 230px minmax(0, 1fr); gap: 20px; padding: 16px 20px; align-items: baseline; border-bottom: 1px solid var(--hairline);"><code style="font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 400;">display-l</code><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-muted);">Bricolage 40 / 1.05 / 600 / −2.5%</span><span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 40px; line-height: 1.05; font-weight: 600; letter-spacing: -0.025em;">L’environnement</span></div>
+      <div style="display: grid; grid-template-columns: 130px 230px minmax(0, 1fr); gap: 20px; padding: 16px 20px; align-items: baseline; border-bottom: 1px solid var(--hairline);"><code style="font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 400;">display-m</code><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-muted);">Bricolage 30 / 1.12 / 600 / −1.5%</span><span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 30px; line-height: 1.12; font-weight: 600; letter-spacing: -0.015em;">Décris ta maison idéale.</span></div>
+      <div style="display: grid; grid-template-columns: 130px 230px minmax(0, 1fr); gap: 20px; padding: 16px 20px; align-items: baseline; border-bottom: 1px solid var(--hairline);"><code style="font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 400;">title</code><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-muted);">Bricolage 22 / 1.25 / 600</span><span style="font-size: 22px; line-height: 1.25; font-weight: 600; letter-spacing: -0.01em;">Session complete</span></div>
+      <div style="display: grid; grid-template-columns: 130px 230px minmax(0, 1fr); gap: 20px; padding: 16px 20px; align-items: baseline; border-bottom: 1px solid var(--hairline);"><code style="font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 400;">subtitle</code><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-muted);">Bricolage 18 / 1.35 / 600</span><span style="font-size: 18px; line-height: 1.35; font-weight: 600;">Corrections</span></div>
+      <div style="display: grid; grid-template-columns: 130px 230px minmax(0, 1fr); gap: 20px; padding: 16px 20px; align-items: baseline; border-bottom: 1px solid var(--hairline);"><code style="font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 400;">body-l</code><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-muted);">Bricolage 17 / 1.6 / 300 (200 at 18+)</span><span style="font-size: 17px; line-height: 1.6; font-weight: 300;">Answer in three or four sentences and give one reason.</span></div>
+      <div style="display: grid; grid-template-columns: 130px 230px minmax(0, 1fr); gap: 20px; padding: 16px 20px; align-items: baseline; border-bottom: 1px solid var(--hairline);"><code style="font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 400;">body-base</code><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-muted);">Bricolage 15 / 1.6 / 300</span><span style="font-size: 15px; line-height: 1.6; font-weight: 300;">Use a time phrase to open: d’abord, ensuite, enfin.</span></div>
+      <div style="display: grid; grid-template-columns: 130px 230px minmax(0, 1fr); gap: 20px; padding: 16px 20px; align-items: baseline; border-bottom: 1px solid var(--hairline);"><code style="font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 400;">body-s</code><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-muted);">Bricolage 14 / 1.5 / 300</span><span style="font-size: 14px; line-height: 1.5; font-weight: 300; color: var(--ink-muted);">School &amp; Education · 49 questions</span></div>
+      <div style="display: grid; grid-template-columns: 130px 230px minmax(0, 1fr); gap: 20px; padding: 16px 20px; align-items: baseline; border-bottom: 1px solid var(--hairline);"><code style="font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 400;">label</code><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-muted);">Bricolage 13 / 1.4 / 600</span><span style="font-size: 13px; line-height: 1.4; font-weight: 600;">Start session</span></div>
+      <div style="display: grid; grid-template-columns: 130px 230px minmax(0, 1fr); gap: 20px; padding: 16px 20px; align-items: baseline; border-bottom: 1px solid var(--hairline);"><code style="font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 400;">eyebrow</code><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-muted);">Bricolage 12 / 1.2 / 600 / +6%</span><span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-subtle);">Today’s mission</span></div>
+      <div style="display: grid; grid-template-columns: 130px 230px minmax(0, 1fr); gap: 20px; padding: 16px 20px; align-items: baseline; border-bottom: 1px solid var(--hairline);"><code style="font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 400;">caption</code><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-muted);">Bricolage 12 / 1.45 / 400</span><span style="font-size: 12px; line-height: 1.45; font-weight: 400; color: var(--ink-subtle);">Complete 5 sessions in L’école averaging 7+/10 to unlock.</span></div>
+      <div style="display: grid; grid-template-columns: 130px 230px minmax(0, 1fr); gap: 20px; padding: 16px 20px; align-items: baseline; border-bottom: 1px solid var(--hairline);"><code style="font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 400;">numeral</code><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-muted);">Bricolage 13 / 1 / 500 tnum</span><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 13px;">1,240 XP · 0:42 · Q4/10</span></div>
+      <div style="display: grid; grid-template-columns: 130px 230px minmax(0, 1fr); gap: 20px; padding: 16px 20px; align-items: baseline; border-bottom: 1px solid var(--hairline);"><code style="font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 400;">exam-prompt <span style="color: var(--action-text);">new</span></code><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-muted);">Baskerville 22 / 1.5 / 400</span><span style="font-family: 'Libre Baskerville', Georgia, serif; font-size: 22px; line-height: 1.5;">Que faites-vous pendant les vacances ?</span></div>
+      <div style="display: grid; grid-template-columns: 130px 230px minmax(0, 1fr); gap: 20px; padding: 16px 20px; align-items: baseline;"><code style="font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 400;">exam-display <span style="color: var(--action-text);">new</span></code><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-muted);">Baskerville 40 / 1.1 / 700</span><span style="font-family: 'Libre Baskerville', Georgia, serif; font-size: 40px; line-height: 1.1; font-weight: 700;">Grade 7</span></div>
+
+    </div>
+  </div>
+  <p style="margin: 0; font-size: 13px; line-height: 1.5; font-weight: 400; color: var(--ink-subtle); max-width: 720px;">12px is the floor. Light 300 is never used under 14px and ExtraLight never under 18px — thin strokes at small sizes fall below readable contrast even when the colour passes.</p>
+</section>
+
+<section id="space" data-screen-label="03 Space & surface" style="display: flex; flex-direction: column; gap: 32px;">
+  <div style="display: flex; flex-direction: column; gap: 12px;">
+    <span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">03 — Spacing, radii, elevation, hairlines</span>
+    <h2 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 40px; line-height: 1.05; letter-spacing: -0.02em;">One scale each. No in-between values.</h2>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px;">
+    <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 14px;">
+      <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-subtle);">Spacing · 4px base</span>
+      <div style="display: grid; grid-template-columns: 40px 56px minmax(0, 1fr); gap: 8px 12px; align-items: center; font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-muted);">
+        <span>1</span><span>4px</span><span style="height: 8px; width: 4px; background: var(--action); border-radius: 2px;"></span>
+        <span>2</span><span>8px</span><span style="height: 8px; width: 8px; background: var(--action); border-radius: 2px;"></span>
+        <span>3</span><span>12px</span><span style="height: 8px; width: 12px; background: var(--action); border-radius: 2px;"></span>
+        <span>4</span><span>16px</span><span style="height: 8px; width: 16px; background: var(--action); border-radius: 2px;"></span>
+        <span>5</span><span>20px</span><span style="height: 8px; width: 20px; background: var(--action); border-radius: 2px;"></span>
+        <span>6</span><span>24px</span><span style="height: 8px; width: 24px; background: var(--action); border-radius: 2px;"></span>
+        <span>8</span><span>32px</span><span style="height: 8px; width: 32px; background: var(--action); border-radius: 2px;"></span>
+        <span>10</span><span>40px</span><span style="height: 8px; width: 40px; background: var(--action); border-radius: 2px;"></span>
+        <span>12</span><span>48px</span><span style="height: 8px; width: 48px; background: var(--action); border-radius: 2px;"></span>
+        <span>16</span><span>64px</span><span style="height: 8px; width: 64px; background: var(--action); border-radius: 2px;"></span>
+      </div>
+      <span style="font-size: 13px; line-height: 1.5; color: var(--ink-subtle); font-weight: 400;">Tailwind steps only. Inside a card: 4 between label and value, 12 between rows, 20–24 padding. Between cards: 12 in a grid, 32 between page sections. No arbitrary <code style="font-family: ui-monospace, Menlo, monospace;">[18px]</code>.</span>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 14px;">
+        <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-subtle);">Radii</span>
+        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+          <div style="display: flex; flex-direction: column; gap: 8px;"><div style="width: 72px; height: 44px; border: 1px solid var(--hairline-strong); border-radius: 8px; background: var(--surface-recessed);"></div><code style="font-family: ui-monospace, Menlo, monospace; font-size: 12px; font-weight: 400;">--radius-control</code><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">8 · buttons, chips, icon wells</span></div>
+          <div style="display: flex; flex-direction: column; gap: 8px;"><div style="width: 72px; height: 44px; border: 1px solid var(--hairline-strong); border-radius: 12px; background: var(--surface-recessed);"></div><code style="font-family: ui-monospace, Menlo, monospace; font-size: 12px; font-weight: 400;">--radius-card</code><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">12 · every card, bar, dock</span></div>
+          <div style="display: flex; flex-direction: column; gap: 8px;"><div style="width: 72px; height: 44px; border: 1px solid var(--hairline-strong); border-radius: 999px; background: var(--surface-recessed);"></div><code style="font-family: ui-monospace, Menlo, monospace; font-size: 12px; font-weight: 400;">--radius-pill</code><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">999 · stat pills, mic, ring</span></div>
+        </div>
+        <span style="font-size: 13px; line-height: 1.5; color: var(--ink-subtle); font-weight: 400;">rounded-xl and rounded-2xl are retired. Nested radius = outer − padding, floored at 8.</span>
+      </div>
+      <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 14px;">
+        <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-subtle);">Hairlines</span>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="display: flex; align-items: center; gap: 12px;"><span style="flex: 0 0 64px; height: 0; border-top: 1px solid var(--hairline);"></span><span style="font-size: 13px; color: var(--ink-muted); font-weight: 400;"><code style="font-family: ui-monospace, Menlo, monospace;">--hairline</code> 1px · card edges, dividers</span></div>
+          <div style="display: flex; align-items: center; gap: 12px;"><span style="flex: 0 0 64px; height: 0; border-top: 1px solid var(--hairline-strong);"></span><span style="font-size: 13px; color: var(--ink-muted); font-weight: 400;"><code style="font-family: ui-monospace, Menlo, monospace;">--hairline-strong</code> 1px · controls, hover edge</span></div>
+          <div style="display: flex; align-items: center; gap: 12px;"><span style="flex: 0 0 64px; height: 20px; border-radius: 8px; outline: 2px solid var(--focus); outline-offset: 2px; background: var(--surface-recessed);"></span><span style="font-size: 13px; color: var(--ink-muted); font-weight: 400;"><code style="font-family: ui-monospace, Menlo, monospace;">--focus</code> 2px, offset 2 · the only 2px line</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+    <div style="background: var(--surface-recessed); border: 1px solid var(--hairline); border-radius: 12px; padding: 20px; min-height: 140px; display: flex; flex-direction: column; justify-content: space-between; gap: 16px;"><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">Level −1</span><span style="display: flex; flex-direction: column; gap: 4px;"><span style="font-size: 14px; font-weight: 600;">Recessed</span><span style="font-size: 13px; color: var(--ink-muted); line-height: 1.45; font-weight: 400;">surface-recessed + hairline. Wells, hints, locked tiles.</span></span></div>
+    <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 20px; min-height: 140px; display: flex; flex-direction: column; justify-content: space-between; gap: 16px;"><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">Level 0</span><span style="display: flex; flex-direction: column; gap: 4px;"><span style="font-size: 14px; font-weight: 600;">Surface</span><span style="font-size: 13px; color: var(--ink-muted); line-height: 1.45; font-weight: 400;">surface + hairline, no shadow. 90% of the UI.</span></span></div>
+    <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 20px; min-height: 140px; box-shadow: var(--shadow-card); display: flex; flex-direction: column; justify-content: space-between; gap: 16px;"><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">Level 1</span><span style="display: flex; flex-direction: column; gap: 4px;"><span style="font-size: 14px; font-weight: 600;">Sticky</span><span style="font-size: 13px; color: var(--ink-muted); line-height: 1.45; font-weight: 400;">+ shadow-card. Top bar and dock, only while content scrolls beneath.</span></span></div>
+    <div style="background: var(--surface-raised); border: 1px solid var(--hairline-strong); border-radius: 12px; padding: 20px; min-height: 140px; box-shadow: var(--shadow-overlay); display: flex; flex-direction: column; justify-content: space-between; gap: 16px;"><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">Level 2</span><span style="display: flex; flex-direction: column; gap: 4px;"><span style="font-size: 14px; font-weight: 600;">Raised</span><span style="font-size: 13px; color: var(--ink-muted); line-height: 1.45; font-weight: 400;">surface-raised + hairline-strong + shadow-overlay. Toasts, menus, modals.</span></span></div>
+  </div>
+</section>
+
+<section id="icons" data-screen-label="04 Icons & topics" style="display: flex; flex-direction: column; gap: 32px;">
+  <div style="display: flex; flex-direction: column; gap: 12px;">
+    <span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">04 — Iconography</span>
+    <h2 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 40px; line-height: 1.05; letter-spacing: -0.02em;">Lucide, 1.75 stroke, four sizes.</h2>
+    <p style="margin: 0; font-size: 16px; line-height: 1.6; color: var(--ink-muted); max-width: 720px; text-wrap: pretty;">Set <code style="font-family: ui-monospace, Menlo, monospace; font-size: 14px;">strokeWidth={1.75}</code> once through a wrapper so no call site picks its own. Icons inherit <code style="font-family: ui-monospace, Menlo, monospace; font-size: 14px;">currentColor</code>; they never carry a colour the adjacent text doesn’t.</p>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+    <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 14px;"><div style="display: flex; gap: 12px; align-items: center; height: 24px; color: var(--ink);"><l-icon name="flame" size="14"></l-icon><l-icon name="zap" size="14"></l-icon><l-icon name="lightbulb" size="14"></l-icon><l-icon name="check" size="14"></l-icon></div><span style="display: flex; flex-direction: column; gap: 2px;"><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 13px;">14</span><span style="font-size: 13px; color: var(--ink-muted); font-weight: 400;">Inside pills, chips, inline with 12–13px text</span></span></div>
+    <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 14px;"><div style="display: flex; gap: 12px; align-items: center; height: 24px; color: var(--ink);"><l-icon name="chevron-right" size="16"></l-icon><l-icon name="rotate-ccw" size="16"></l-icon><l-icon name="volume-2" size="16"></l-icon><l-icon name="x" size="16"></l-icon></div><span style="display: flex; flex-direction: column; gap: 2px;"><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 13px;">16</span><span style="font-size: 13px; color: var(--ink-muted); font-weight: 400;">Buttons, rows, correction marks</span></span></div>
+    <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 14px;"><div style="display: flex; gap: 12px; align-items: center; height: 24px; color: var(--ink);"><l-icon name="house" size="20"></l-icon><l-icon name="book-open" size="20"></l-icon><l-icon name="graduation-cap" size="20"></l-icon><l-icon name="chart-column" size="20"></l-icon><l-icon name="user" size="20"></l-icon></div><span style="display: flex; flex-direction: column; gap: 2px;"><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 13px;">20</span><span style="font-size: 13px; color: var(--ink-muted); font-weight: 400;">Rail, dock, topic chips (was 19)</span></span></div>
+    <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 14px;"><div style="display: flex; gap: 12px; align-items: center; height: 24px; color: var(--ink);"><l-icon name="mic" size="24"></l-icon><l-icon name="square" size="24"></l-icon><l-icon name="inbox" size="24"></l-icon></div><span style="display: flex; flex-direction: column; gap: 2px;"><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 13px;">24</span><span style="font-size: 13px; color: var(--ink-muted); font-weight: 400;">Record button and empty states only</span></span></div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 12px;">
+    <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap;">
+      <h3 style="margin: 0; font-size: 18px; font-weight: 600; line-height: 1.35;">Topic colour system</h3>
+      <span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">fg oklch(0.50 0.13 h) on oklch(0.955 0.03 h) · dark oklch(0.80 0.11 h) on oklch(0.30 0.045 h)</span>
+    </div>
+    <p style="margin: 0; font-size: 15px; line-height: 1.55; color: var(--ink-muted); max-width: 760px; text-wrap: pretty;">Sixteen hues, 22.5° apart, at one lightness and chroma, so no topic shouts louder than another. The hue lives only in the 40px icon chip — never on titles, buttons, borders or progress. Mastery is always <code style="font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 400;">--progress</code>. Replaces <code style="font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 400;">topic.icon</code> (emoji) and <code style="font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 400;">topic.color</code>.</p>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px;">
+    <sc-for list="{{ topics }}" as="t" hint-placeholder-count="16">
+      <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px; display: flex; gap: 14px; align-items: center;">
+        <span style="{{ t.chip }}"><l-icon name="{{ t.icon }}" size="20"></l-icon></span>
+        <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+          <span style="font-size: 14px; font-weight: 600;">{{ t.fr }}</span>
+          <span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">{{ t.icon }} · {{ t.hue }}</span>
+          <span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-muted);">{{ t.fgL }} / {{ t.softL }} · {{ t.ratio }}</span>
+        </span>
+      </div>
+    </sc-for>
+  </div>
+  <span style="font-size: 13px; line-height: 1.5; color: var(--ink-subtle); font-weight: 400;">The first twelve match the current grid. La santé, Les fêtes, Les médias and La culture are placeholders for the remaining four — confirm against <code style="font-family: ui-monospace, Menlo, monospace;">TOPICS</code> in src/data/questions.ts.</span>
+</section>
+
+<section id="motion" data-screen-label="05 Motion" style="display: flex; flex-direction: column; gap: 32px;">
+  <div style="display: flex; flex-direction: column; gap: 12px;">
+    <span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">05 — Motion</span>
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; flex-wrap: wrap;">
+      <h2 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 40px; line-height: 1.05; letter-spacing: -0.025em;">Eight motions, choreographed.</h2>
+      <button onClick="{{ play.all }}" style="height: 40px; padding: 0 16px; border-radius: 8px; border: 1px solid var(--hairline-strong); background: transparent; color: var(--ink); font: 600 13px 'Bricolage Grotesque', sans-serif; display: inline-flex; align-items: center; gap: 8px; cursor: pointer;" style-hover="background: var(--track);"><l-icon name="play" size="16"></l-icon>Play all</button>
+    </div>
+    <p style="margin: 0; font-size: 17px; line-height: 1.6; font-weight: 300; color: var(--ink-muted); max-width: 720px; text-wrap: pretty;">Each motion has one job. Sequences run container → content → number, so the eye is led rather than distracted. Springs give the tactile moments weight; tweens keep data honest. Replaces <code style="font-family: ui-monospace, Menlo, monospace; font-size: 14px;">motion/variants.ts</code>. With <code style="font-family: ui-monospace, Menlo, monospace; font-size: 14px;">useReducedMotion()</code> every motion keeps its opacity and drops travel, scale and sparks.</p>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px;">
+    <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column;">
+      <div style="height: 180px; position: relative; background: var(--surface-recessed); border-bottom: 1px solid var(--hairline); display: flex; align-items: center; justify-content: center; padding: 0 28px; overflow: hidden;"><div style="width: 100%; display: flex; flex-direction: column; gap: 8px;"><div ref="{{ r.en0 }}" style="height: 36px; border-radius: 8px; background: var(--surface); border: 1px solid var(--hairline); display: flex; align-items: center; gap: 10px; padding: 0 10px;"><span style="width: 22px; height: 22px; border-radius: 6px; background: var(--action-soft); color: var(--action-text); display: flex; align-items: center; justify-content: center;"><l-icon name="school" size="14"></l-icon></span><span style="font-size: 13px; font-weight: 500; width: 84px;">L’école</span><span style="flex: 1; height: 4px; border-radius: 999px; background: var(--track); overflow: hidden;"><span ref="{{ r.enb0 }}" style="display: block; height: 100%; width: 64%; background: var(--progress); border-radius: 999px;"></span></span></div><div ref="{{ r.en1 }}" style="height: 36px; border-radius: 8px; background: var(--surface); border: 1px solid var(--hairline); display: flex; align-items: center; gap: 10px; padding: 0 10px;"><span style="width: 22px; height: 22px; border-radius: 6px; background: var(--reward-soft); color: var(--reward-text); display: flex; align-items: center; justify-content: center;"><l-icon name="bike" size="14"></l-icon></span><span style="font-size: 13px; font-weight: 500; width: 84px;">Les loisirs</span><span style="flex: 1; height: 4px; border-radius: 999px; background: var(--track); overflow: hidden;"><span ref="{{ r.enb1 }}" style="display: block; height: 100%; width: 38%; background: var(--progress); border-radius: 999px;"></span></span></div><div ref="{{ r.en2 }}" style="height: 36px; border-radius: 8px; background: var(--surface); border: 1px solid var(--hairline); display: flex; align-items: center; gap: 10px; padding: 0 10px;"><span style="width: 22px; height: 22px; border-radius: 6px; background: var(--progress-soft); color: var(--progress-text); display: flex; align-items: center; justify-content: center;"><l-icon name="users" size="14"></l-icon></span><span style="font-size: 13px; font-weight: 500; width: 84px;">La famille</span><span style="flex: 1; height: 4px; border-radius: 999px; background: var(--track); overflow: hidden;"><span ref="{{ r.enb2 }}" style="display: block; height: 100%; width: 82%; background: var(--progress); border-radius: 999px;"></span></span></div></div></div>
+      <div style="padding: 20px; display: flex; flex-direction: column; gap: 10px; flex: 1;">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;"><span style="font-size: 16px; font-weight: 600;">enter</span><button onClick="{{ play.enter }}" style="font: 600 13px 'Bricolage Grotesque', sans-serif; color: var(--ink-muted); background: transparent; border: none; cursor: pointer; padding: 4px 0; display: flex; align-items: center; gap: 6px;" style-hover="color: var(--ink);"><l-icon name="rotate-ccw" size="14"></l-icon>Replay</button></div>
+        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-muted);">240ms spring 420/34 · y 12→0, scale .98→1 · stagger 50ms · then contents fill</span>
+        <span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle); line-height: 1.45;">Screens, cards, lists on mount. Container first, content second — never on re-render.</span>
+        <pre style="margin: 0; padding: 12px; background: var(--surface-recessed); border-radius: 8px; font: 12px/1.55 ui-monospace, Menlo, monospace; color: var(--ink); overflow-x: auto; white-space: pre;">export const enter = {
+  hidden: { opacity: 0, y: 12, scale: 0.98 },
+  show: { opacity: 1, y: 0, scale: 1,
+    transition: { type: 'spring', stiffness: 420, damping: 34 } },
+};
+export const cascade = {
+  show: { transition: { staggerChildren: 0.05, delayChildren: 0.04 } },
+};</pre>
+      </div>
+    </div>
+    <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column;">
+      <div style="height: 180px; position: relative; background: var(--surface-recessed); border-bottom: 1px solid var(--hairline); display: flex; align-items: center; justify-content: center; padding: 0 28px; overflow: hidden;"><div style="position: relative; width: 300px; height: 40px; padding: 4px; border-radius: 10px; background: var(--surface); border: 1px solid var(--hairline); display: grid; grid-template-columns: repeat(3, 1fr);"><span ref="{{ r.segInd }}" style="position: absolute; top: 4px; left: 4px; width: calc((100% - 8px) / 3); height: 30px; border-radius: 7px; background: var(--action-soft); box-shadow: inset 0 0 0 1px var(--action);"></span><span ref="{{ r.seg0 }}" style="position: relative; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: var(--action-text);">Présent</span><span ref="{{ r.seg1 }}" style="position: relative; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: var(--ink-muted);">Passé</span><span ref="{{ r.seg2 }}" style="position: relative; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: var(--ink-muted);">Futur</span></div></div>
+      <div style="padding: 20px; display: flex; flex-direction: column; gap: 10px; flex: 1;">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;"><span style="font-size: 16px; font-weight: 600;">slide</span><button onClick="{{ play.slide }}" style="font: 600 13px 'Bricolage Grotesque', sans-serif; color: var(--ink-muted); background: transparent; border: none; cursor: pointer; padding: 4px 0; display: flex; align-items: center; gap: 6px;" style-hover="color: var(--ink);"><l-icon name="rotate-ccw" size="14"></l-icon>Replay</button></div>
+        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-muted);">320ms spring 500/38 · one shared indicator travels · labels cross-fade 120ms</span>
+        <span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle); line-height: 1.45;">Segmented controls, tabs, rail active tab. Replaces the instant colour swap for any “which one” state.</span>
+        <pre style="margin: 0; padding: 12px; background: var(--surface-recessed); border-radius: 8px; font: 12px/1.55 ui-monospace, Menlo, monospace; color: var(--ink); overflow-x: auto; white-space: pre;">// one indicator, shared by every option
+{active &amp;&amp; &lt;motion.span layout<span>Id</span>="seg-indicator"
+  transition={slide} /&gt;}
+export const slide = {
+  type: 'spring', stiffness: 500, damping: 38,
+};</pre>
+      </div>
+    </div>
+    <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column;">
+      <div style="height: 180px; position: relative; background: var(--surface-recessed); border-bottom: 1px solid var(--hairline); display: flex; align-items: center; justify-content: center; padding: 0 28px; overflow: hidden;"><button ref="{{ r.pr }}" onClick="{{ play.press }}" style="height: 48px; padding: 0 20px; border-radius: 8px; border: none; background: var(--action); color: var(--action-ink); font: 600 15px 'Bricolage Grotesque', sans-serif; display: inline-flex; align-items: center; gap: 8px; cursor: pointer;"><l-icon name="mic" size="16"></l-icon>Enregistrer ma réponse</button></div>
+      <div style="padding: 20px; display: flex; flex-direction: column; gap: 10px; flex: 1;">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;"><span style="font-size: 16px; font-weight: 600;">press</span><button onClick="{{ play.press }}" style="font: 600 13px 'Bricolage Grotesque', sans-serif; color: var(--ink-muted); background: transparent; border: none; cursor: pointer; padding: 4px 0; display: flex; align-items: center; gap: 6px;" style-hover="color: var(--ink);"><l-icon name="rotate-ccw" size="14"></l-icon>Replay</button></div>
+        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-muted);">80ms down to .97 + press colour · spring release 600/30, 1% overshoot</span>
+        <span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle); line-height: 1.45;">Every pressable. The only scale allowed on a control — never on hover.</span>
+        <pre style="margin: 0; padding: 12px; background: var(--surface-recessed); border-radius: 8px; font: 12px/1.55 ui-monospace, Menlo, monospace; color: var(--ink); overflow-x: auto; white-space: pre;">export const press = {
+  scale: 0.97,
+  transition: { type: 'spring', stiffness: 600, damping: 30 },
+};
+&lt;motion.button while<span>Tap</span>={press} /&gt;</pre>
+      </div>
+    </div>
+    <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column;">
+      <div style="height: 180px; position: relative; background: var(--surface-recessed); border-bottom: 1px solid var(--hairline); display: flex; align-items: center; justify-content: center; padding: 0 28px; overflow: hidden;"><div style="width: 100%; display: flex; align-items: center; gap: 28px;"><span style="position: relative; width: 84px; height: 84px; flex-shrink: 0;"><svg width="84" height="84" style="transform: rotate(-90deg);"><circle cx="42" cy="42" r="36" fill="none" stroke="var(--track)" stroke-width="8"></circle><circle ref="{{ r.fr }}" cx="42" cy="42" r="36" fill="none" stroke="var(--progress)" stroke-width="8" stroke-linecap="round" stroke-dasharray="226.19" stroke-dashoffset="63.33"></circle></svg><span ref="{{ r.fn }}" style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 17px;">72%</span></span><span style="flex: 1; display: flex; flex-direction: column; gap: 10px;"><span style="display: flex; flex-direction: column; gap: 4px;"><span style="font-size: 12px; font-weight: 400; color: var(--ink-muted);">Grammaire</span><span style="height: 4px; border-radius: 999px; background: var(--track); overflow: hidden;"><span ref="{{ r.fb0 }}" style="display: block; height: 100%; width: 86%; background: var(--progress); border-radius: 999px;"></span></span></span><span style="display: flex; flex-direction: column; gap: 4px;"><span style="font-size: 12px; font-weight: 400; color: var(--ink-muted);">Vocabulaire</span><span style="height: 4px; border-radius: 999px; background: var(--track); overflow: hidden;"><span ref="{{ r.fb1 }}" style="display: block; height: 100%; width: 72%; background: var(--reward); border-radius: 999px;"></span></span></span><span style="display: flex; flex-direction: column; gap: 4px;"><span style="font-size: 12px; font-weight: 400; color: var(--ink-muted);">Aisance</span><span style="height: 4px; border-radius: 999px; background: var(--track); overflow: hidden;"><span ref="{{ r.fb2 }}" style="display: block; height: 100%; width: 58%; background: var(--reward); border-radius: 999px;"></span></span></span></span></div></div>
+      <div style="padding: 20px; display: flex; flex-direction: column; gap: 10px; flex: 1;">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;"><span style="font-size: 16px; font-weight: 600;">fill</span><button onClick="{{ play.fill }}" style="font: 600 13px 'Bricolage Grotesque', sans-serif; color: var(--ink-muted); background: transparent; border: none; cursor: pointer; padding: 4px 0; display: flex; align-items: center; gap: 6px;" style-hover="color: var(--ink);"><l-icon name="rotate-ccw" size="14"></l-icon>Replay</button></div>
+        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-muted);">700ms --ease-out · number counts with the stroke · bars follow 80ms apart</span>
+        <span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle); line-height: 1.45;">Rings, bars, mastery — once, when the value changes. The count makes the gain felt.</span>
+        <pre style="margin: 0; padding: 12px; background: var(--surface-recessed); border-radius: 8px; font: 12px/1.55 ui-monospace, Menlo, monospace; color: var(--ink); overflow-x: auto; white-space: pre;">export const fill = { duration: 0.7, ease: [0.16, 1, 0.3, 1] };
+const v = useMotionValue(0);
+useEffect(() =&gt; animate(v, value, fill).stop, [value]);
+// render v in the label so number and stroke move together</pre>
+      </div>
+    </div>
+    <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column;">
+      <div style="height: 180px; position: relative; background: var(--surface-recessed); border-bottom: 1px solid var(--hairline); display: flex; align-items: center; justify-content: center; padding: 0 28px; overflow: hidden;"><div style="display: flex; flex-direction: column; align-items: center; gap: 10px;"><span ref="{{ r.cn }}" style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 56px; line-height: 1; font-weight: 600; letter-spacing: -0.035em; font-variant-numeric: tabular-nums;">7.8</span><span style="position: relative; display: inline-flex;"><span ref="{{ r.p0 }}" style="position: absolute; left: 50%; top: 50%; width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; border-radius: 999px; background: var(--reward); opacity: 0;"></span><span ref="{{ r.p1 }}" style="position: absolute; left: 50%; top: 50%; width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; border-radius: 999px; background: var(--progress); opacity: 0;"></span><span ref="{{ r.p2 }}" style="position: absolute; left: 50%; top: 50%; width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; border-radius: 999px; background: var(--action); opacity: 0;"></span><span ref="{{ r.p3 }}" style="position: absolute; left: 50%; top: 50%; width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; border-radius: 999px; background: var(--streak); opacity: 0;"></span><span ref="{{ r.p4 }}" style="position: absolute; left: 50%; top: 50%; width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; border-radius: 999px; background: var(--reward); opacity: 0;"></span><span ref="{{ r.p5 }}" style="position: absolute; left: 50%; top: 50%; width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; border-radius: 999px; background: var(--progress); opacity: 0;"></span><span ref="{{ r.p6 }}" style="position: absolute; left: 50%; top: 50%; width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; border-radius: 999px; background: var(--action); opacity: 0;"></span><span ref="{{ r.p7 }}" style="position: absolute; left: 50%; top: 50%; width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; border-radius: 999px; background: var(--streak); opacity: 0;"></span><span ref="{{ r.p8 }}" style="position: absolute; left: 50%; top: 50%; width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; border-radius: 999px; background: var(--reward); opacity: 0;"></span><span ref="{{ r.p9 }}" style="position: absolute; left: 50%; top: 50%; width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; border-radius: 999px; background: var(--progress); opacity: 0;"></span><span ref="{{ r.cx }}" style="position: relative; height: 28px; padding: 0 10px; border: 1px solid var(--reward); border-radius: 999px; background: var(--surface); color: var(--reward-text); font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;"><l-icon name="zap" size="14"></l-icon>+40 XP</span></span><span ref="{{ r.cl }}" style="font-size: 13px; font-weight: 500; color: var(--ink-muted);">Très bien — ta meilleure note cette semaine</span></div></div>
+      <div style="padding: 20px; display: flex; flex-direction: column; gap: 10px; flex: 1;">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;"><span style="font-size: 16px; font-weight: 600;">celebrate</span><button onClick="{{ play.celebrate }}" style="font: 600 13px 'Bricolage Grotesque', sans-serif; color: var(--ink-muted); background: transparent; border: none; cursor: pointer; padding: 4px 0; display: flex; align-items: center; gap: 6px;" style-hover="color: var(--ink);"><l-icon name="rotate-ccw" size="14"></l-icon>Replay</button></div>
+        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-muted);">900ms sequence · score counts up 600ms → XP pops on spring → 10 sparks, once</span>
+        <span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle); line-height: 1.45;">Score reveal, session complete, level up. One burst per event; nothing loops.</span>
+        <pre style="margin: 0; padding: 12px; background: var(--surface-recessed); border-radius: 8px; font: 12px/1.55 ui-monospace, Menlo, monospace; color: var(--ink); overflow-x: auto; white-space: pre;">export const pop = {
+  hidden: { opacity: 0, scale: 0.6 },
+  show: { opacity: 1, scale: 1, transition: {
+    type: 'spring', stiffness: 520, damping: 18, delay: 0.5 } },
+};
+// sparks: 10 dots, role colours, random angle,
+// 24–44px travel, 500ms ease-out, fire once</pre>
+      </div>
+    </div>
+    <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column;">
+      <div style="height: 180px; position: relative; background: var(--surface-recessed); border-bottom: 1px solid var(--hairline); display: flex; align-items: center; justify-content: center; padding: 0 28px; overflow: hidden;"><div style="display: flex; flex-direction: column; align-items: center; gap: 12px;"><span ref="{{ r.stPill }}" style="height: 40px; padding: 0 14px; border: 1px solid var(--streak); border-radius: 999px; color: var(--streak-text); display: inline-flex; align-items: center; gap: 8px;"><span ref="{{ r.stFlame }}" style="display: inline-flex;"><l-icon name="flame" size="20"></l-icon></span><span style="height: 22px; overflow: hidden; display: inline-block;"><span ref="{{ r.stNum }}" style="display: flex; flex-direction: column; transform: translateY(-22px); font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 18px; line-height: 22px;"><span>5</span><span>6</span></span></span><span style="font-size: 13px; font-weight: 500;">days</span></span><span ref="{{ r.stCap }}" style="font-size: 13px; font-weight: 400; color: var(--ink-muted);">+1 day · keep it going tomorrow</span></div></div>
+      <div style="padding: 20px; display: flex; flex-direction: column; gap: 10px; flex: 1;">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;"><span style="font-size: 16px; font-weight: 600;">streak</span><button onClick="{{ play.streak }}" style="font: 600 13px 'Bricolage Grotesque', sans-serif; color: var(--ink-muted); background: transparent; border: none; cursor: pointer; padding: 4px 0; display: flex; align-items: center; gap: 6px;" style-hover="color: var(--ink);"><l-icon name="rotate-ccw" size="14"></l-icon>Replay</button></div>
+        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-muted);">700ms · flame flicks (1→1.25, ±8°) · digit rolls up on spring · border warms</span>
+        <span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle); line-height: 1.45;">Streak increments only — first session of the day. A missed day resets without animation.</span>
+        <pre style="margin: 0; padding: 12px; background: var(--surface-recessed); border-radius: 8px; font: 12px/1.55 ui-monospace, Menlo, monospace; color: var(--ink); overflow-x: auto; white-space: pre;">export const roll = {
+  initial: { y: '100%' }, animate: { y: 0 }, exit: { y: '-100%' },
+  transition: { type: 'spring', stiffness: 400, damping: 30 },
+};
+&lt;AnimatePresence mode="popLayout" initial={false}&gt;
+  &lt;motion.span key={days} {...roll}&gt;{days}&lt;/motion.span&gt;
+&lt;/AnimatePresence&gt;</pre>
+      </div>
+    </div>
+    <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column;">
+      <div style="height: 180px; position: relative; background: var(--surface-recessed); border-bottom: 1px solid var(--hairline); display: flex; align-items: center; justify-content: center; padding: 0 28px; overflow: hidden;"><div style="width: 100%; display: flex; align-items: center; gap: 20px;"><span ref="{{ r.recBtn }}" style="position: relative; width: 56px; height: 56px; border-radius: 999px; background: var(--action); color: var(--action-ink); flex-shrink: 0;"><span ref="{{ r.recMic }}" style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;"><l-icon name="mic" size="24"></l-icon></span><span ref="{{ r.recStop }}" style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; opacity: 0;"><span style="width: 16px; height: 16px; border-radius: 4px; background: var(--surface);"></span></span></span><span style="flex: 1; display: flex; flex-direction: column; gap: 8px; min-width: 0;"><span ref="{{ r.recWave }}" style="height: 40px; display: flex; align-items: center; gap: 3px;"><span style="width: 3px; height: 4px; border-radius: 999px; background: var(--ink-muted);"></span><span style="width: 3px; height: 4px; border-radius: 999px; background: var(--ink-muted);"></span><span style="width: 3px; height: 4px; border-radius: 999px; background: var(--ink-muted);"></span><span style="width: 3px; height: 4px; border-radius: 999px; background: var(--ink-muted);"></span><span style="width: 3px; height: 4px; border-radius: 999px; background: var(--ink-muted);"></span><span style="width: 3px; height: 4px; border-radius: 999px; background: var(--ink-muted);"></span><span style="width: 3px; height: 4px; border-radius: 999px; background: var(--ink-muted);"></span><span style="width: 3px; height: 4px; border-radius: 999px; background: var(--ink-muted);"></span><span style="width: 3px; height: 4px; border-radius: 999px; background: var(--ink-muted);"></span><span style="width: 3px; height: 4px; border-radius: 999px; background: var(--ink-muted);"></span><span style="width: 3px; height: 4px; border-radius: 999px; background: var(--ink-muted);"></span><span style="width: 3px; height: 4px; border-radius: 999px; background: var(--ink-muted);"></span><span style="width: 3px; height: 4px; border-radius: 999px; background: var(--ink-muted);"></span><span style="width: 3px; height: 4px; border-radius: 999px; background: var(--ink-muted);"></span><span style="width: 3px; height: 4px; border-radius: 999px; background: var(--ink-muted);"></span><span style="width: 3px; height: 4px; border-radius: 999px; background: var(--ink-muted);"></span><span style="width: 3px; height: 4px; border-radius: 999px; background: var(--ink-muted);"></span><span style="width: 3px; height: 4px; border-radius: 999px; background: var(--ink-muted);"></span><span style="width: 3px; height: 4px; border-radius: 999px; background: var(--ink-muted);"></span><span style="width: 3px; height: 4px; border-radius: 999px; background: var(--ink-muted);"></span><span style="width: 3px; height: 4px; border-radius: 999px; background: var(--ink-muted);"></span><span style="width: 3px; height: 4px; border-radius: 999px; background: var(--ink-muted);"></span><span style="width: 3px; height: 4px; border-radius: 999px; background: var(--ink-muted);"></span><span style="width: 3px; height: 4px; border-radius: 999px; background: var(--ink-muted);"></span></span><span style="display: flex; gap: 10px; align-items: baseline;"><span ref="{{ r.recTime }}" style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 14px;">0:00</span><span ref="{{ r.recLbl }}" style="font-size: 13px; font-weight: 400; color: var(--ink-muted);">Tap to record</span></span></span></div></div>
+      <div style="padding: 20px; display: flex; flex-direction: column; gap: 10px; flex: 1;">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;"><span style="font-size: 16px; font-weight: 600;">record</span><button onClick="{{ play.record }}" style="font: 600 13px 'Bricolage Grotesque', sans-serif; color: var(--ink-muted); background: transparent; border: none; cursor: pointer; padding: 4px 0; display: flex; align-items: center; gap: 6px;" style-hover="color: var(--ink);"><l-icon name="rotate-ccw" size="14"></l-icon>Replay</button></div>
+        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-muted);">live · button morphs 200ms · bars track mic level each frame · collapse on stop</span>
+        <span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle); line-height: 1.45;">The one continuous motion, because it is real feedback: the student sees they are being heard.</span>
+        <pre style="margin: 0; padding: 12px; background: var(--surface-recessed); border-radius: 8px; font: 12px/1.55 ui-monospace, Menlo, monospace; color: var(--ink); overflow-x: auto; white-space: pre;">// bars read the real mic level — never a fake loop
+const h = useTransform(level, [0, 1], [4, 36]);
+const bar = { height: h };
+&lt;motion.span style={bar} /&gt;
+// idle → recording: fill action → ink, mic → stop</pre>
+      </div>
+    </div>
+    <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column;">
+      <div style="height: 180px; position: relative; background: var(--surface-recessed); border-bottom: 1px solid var(--hairline); display: flex; align-items: center; justify-content: center; padding: 0 28px; overflow: hidden;"><div style="display: flex; flex-direction: column; gap: 10px; align-items: flex-start;"><span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 26px; font-weight: 500; letter-spacing: -0.01em; line-height: 1.2;">J’<span ref="{{ r.crWrong }}" style="position: relative; display: inline-block;">ai<span ref="{{ r.crStrike }}" style="position: absolute; left: -2px; right: -2px; top: 55%; height: 2px; background: var(--correction); transform-origin: left; transform: scaleX(1);"></span></span> allé au cinéma.</span><span ref="{{ r.crRight }}" style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 26px; font-weight: 500; letter-spacing: -0.01em; line-height: 1.2;">Je <span style="position: relative; display: inline-block; color: var(--progress-text);">suis<span ref="{{ r.crUnder }}" style="position: absolute; left: 0; right: 0; bottom: -3px; height: 2px; border-radius: 2px; background: var(--progress); transform-origin: left;"></span></span> allé au cinéma.</span><span ref="{{ r.crNote }}" style="font-size: 13px; font-weight: 400; color: var(--ink-muted);"><em>Aller</em> takes <em>être</em> in the passé composé.</span></div></div>
+      <div style="padding: 20px; display: flex; flex-direction: column; gap: 10px; flex: 1;">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;"><span style="font-size: 16px; font-weight: 600;">correct</span><button onClick="{{ play.correct }}" style="font: 600 13px 'Bricolage Grotesque', sans-serif; color: var(--ink-muted); background: transparent; border: none; cursor: pointer; padding: 4px 0; display: flex; align-items: center; gap: 6px;" style-hover="color: var(--ink);"><l-icon name="rotate-ccw" size="14"></l-icon>Replay</button></div>
+        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-muted);">800ms sequence · strike draws 240ms → fix enters on spring → underline draws</span>
+        <span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle); line-height: 1.45;">Correction rows and vocab upgrades as they reveal. Teaches by showing the change, not just the answer.</span>
+        <pre style="margin: 0; padding: 12px; background: var(--surface-recessed); border-radius: 8px; font: 12px/1.55 ui-monospace, Menlo, monospace; color: var(--ink); overflow-x: auto; white-space: pre;">export const strike = {
+  hidden: { scaleX: 0 },
+  show: { scaleX: 1, transition: { duration: 0.24, ease: [0.2, 0, 0.2, 1] } },
+};
+// origin-left; the fix uses 'enter' at delay 0.28,
+// its underline reuses strike at delay 0.6</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="components" data-screen-label="06 Components" style="display: flex; flex-direction: column; gap: 32px;">
+  <div style="display: flex; flex-direction: column; gap: 12px;">
+    <span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">06 — Components</span>
+    <h2 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 40px; line-height: 1.05; letter-spacing: -0.02em;">Every part, every state.</h2>
+  </div>
+
+  <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 20px;">
+    <div style="display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: baseline;"><span style="font-size: 18px; font-weight: 600;">Button</span><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">ui/Button.tsx · lg 48 · md 40 · sm 32 · radius-control</span></div>
+    <div style="overflow-x: auto;">
+      <div style="display: grid; grid-template-columns: 110px repeat(3, minmax(150px, 1fr)); gap: 16px 20px; align-items: center; min-width: 620px;">
+        <span></span><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">lg · 15px</span><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">md · 13px</span><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">sm · 13px</span>
+        <span style="font-size: 13px; font-weight: 600;">Primary</span>
+        <div><button style="height: 48px; padding: 0 18px; border-radius: 8px; border: none; background: var(--action); color: var(--action-ink); font: 600 15px 'Bricolage Grotesque', sans-serif; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; transition: background-color 120ms;" style-hover="background: var(--action-hover);" style-active="background: var(--action-press);"><l-icon name="mic" size="16"></l-icon>Start session</button></div>
+        <div><button style="height: 40px; padding: 0 16px; border-radius: 8px; border: none; background: var(--action); color: var(--action-ink); font: 600 13px 'Bricolage Grotesque', sans-serif; cursor: pointer; transition: background-color 120ms;" style-hover="background: var(--action-hover);" style-active="background: var(--action-press);">Next question</button></div>
+        <div><button style="height: 32px; padding: 0 12px; border-radius: 8px; border: none; background: var(--action); color: var(--action-ink); font: 600 13px 'Bricolage Grotesque', sans-serif; cursor: pointer; transition: background-color 120ms;" style-hover="background: var(--action-hover);" style-active="background: var(--action-press);">Continue</button></div>
+        <span style="font-size: 13px; font-weight: 600;">Secondary</span>
+        <div><button style="height: 48px; padding: 0 18px; border-radius: 8px; border: 1px solid var(--hairline-strong); background: transparent; color: var(--ink); font: 600 15px 'Bricolage Grotesque', sans-serif; cursor: pointer; transition: background-color 120ms;" style-hover="background: var(--track);">Take a timed test</button></div>
+        <div><button style="height: 40px; padding: 0 16px; border-radius: 8px; border: 1px solid var(--hairline-strong); background: transparent; color: var(--ink); font: 600 13px 'Bricolage Grotesque', sans-serif; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; transition: background-color 120ms;" style-hover="background: var(--track);"><l-icon name="rotate-ccw" size="16"></l-icon>Retry</button></div>
+        <div><button style="height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--hairline-strong); background: transparent; color: var(--ink); font: 600 13px 'Bricolage Grotesque', sans-serif; cursor: pointer; transition: background-color 120ms;" style-hover="background: var(--track);">Listen</button></div>
+        <span style="font-size: 13px; font-weight: 600;">Quiet</span>
+        <div><button style="height: 48px; padding: 0 18px; border-radius: 8px; border: none; background: transparent; color: var(--ink-muted); font: 600 15px 'Bricolage Grotesque', sans-serif; cursor: pointer; transition: color 120ms;" style-hover="color: var(--ink);">Skip for now</button></div>
+        <div><button style="height: 40px; padding: 0 16px; border-radius: 8px; border: none; background: transparent; color: var(--ink-muted); font: 600 13px 'Bricolage Grotesque', sans-serif; cursor: pointer; transition: color 120ms;" style-hover="color: var(--ink);">See all topics</button></div>
+        <div><button style="height: 32px; padding: 0 12px; border-radius: 8px; border: none; background: transparent; color: var(--ink-muted); font: 600 13px 'Bricolage Grotesque', sans-serif; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; transition: color 120ms;" style-hover="color: var(--ink);"><l-icon name="lightbulb" size="14"></l-icon>Hint</button></div>
+        <span style="font-size: 13px; font-weight: 600;">Destructive</span>
+        <div><button style="height: 48px; padding: 0 18px; border-radius: 8px; border: 1px solid var(--hairline-strong); background: transparent; color: var(--correction-text); font: 600 15px 'Bricolage Grotesque', sans-serif; cursor: pointer; transition: border-color 120ms;" style-hover="border-color: var(--correction);">End session</button></div>
+        <div><button style="height: 40px; padding: 0 16px; border-radius: 8px; border: 1px solid var(--hairline-strong); background: transparent; color: var(--correction-text); font: 600 13px 'Bricolage Grotesque', sans-serif; cursor: pointer; transition: border-color 120ms;" style-hover="border-color: var(--correction);">Delete recording</button></div>
+        <div><button style="height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--hairline-strong); background: transparent; color: var(--correction-text); font: 600 13px 'Bricolage Grotesque', sans-serif; cursor: pointer; transition: border-color 120ms;" style-hover="border-color: var(--correction);">Discard</button></div>
+      </div>
+    </div>
+    <div style="border-top: 1px solid var(--hairline); padding-top: 20px; display: flex; flex-direction: column; gap: 12px;">
+      <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-subtle);">States · md</span>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 16px;">
+        <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-start;"><span style="height: 40px; padding: 0 16px; border-radius: 8px; background: var(--action); color: var(--action-ink); font-size: 13px; font-weight: 600; display: inline-flex; align-items: center;">Continue</span><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">default</span></div>
+        <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-start;"><span style="height: 40px; padding: 0 16px; border-radius: 8px; background: var(--action-hover); color: var(--action-ink); font-size: 13px; font-weight: 600; display: inline-flex; align-items: center;">Continue</span><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">hover</span></div>
+        <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-start;"><span style="height: 40px; padding: 0 16px; border-radius: 8px; background: var(--action-press); color: var(--action-ink); font-size: 13px; font-weight: 600; display: inline-flex; align-items: center;">Continue</span><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">pressed</span></div>
+        <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-start;"><span style="height: 40px; padding: 0 16px; border-radius: 8px; background: var(--action); color: var(--action-ink); font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; outline: 2px solid var(--focus); outline-offset: 2px;">Continue</span><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">focus-visible</span></div>
+        <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-start;"><span style="height: 40px; padding: 0 16px; border-radius: 8px; background: var(--track); color: var(--ink-subtle); font-size: 13px; font-weight: 600; display: inline-flex; align-items: center;">Continue</span><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">disabled</span></div>
+        <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-start;"><span style="height: 40px; width: 96px; border-radius: 8px; background: var(--action); color: var(--action-ink); display: inline-flex; align-items: center; justify-content: center;"><l-icon name="loader-circle" size="16"></l-icon></span><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">loading · width held</span></div>
+      </div>
+      <span style="font-size: 13px; line-height: 1.5; color: var(--ink-subtle); font-weight: 400;">Disabled uses track + ink-subtle instead of opacity 40%, which dropped labels to 2.3:1. Mobile: any button a thumb needs is lg (48px).</span>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px;">
+    <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 16px;">
+      <div style="display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: baseline;"><span style="font-size: 18px; font-weight: 600;">Stat pill</span><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">ui/Stat.tsx · 28 tall · max 3</span></div>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+        <span style="height: 28px; padding: 0 10px; border: 1px solid var(--streak); border-radius: 999px; color: var(--streak-text); display: inline-flex; align-items: center; gap: 6px; font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 13px;"><l-icon name="flame" size="14"></l-icon>6</span>
+        <span style="height: 28px; padding: 0 10px; border: 1px solid var(--reward); border-radius: 999px; color: var(--reward-text); display: inline-flex; align-items: center; gap: 6px; font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 13px;"><l-icon name="zap" size="14"></l-icon>1,240</span>
+        <span style="height: 28px; padding: 0 10px; border: 1px solid var(--progress); border-radius: 999px; color: var(--progress-text); display: inline-flex; align-items: center; gap: 6px; font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 13px;"><l-icon name="trending-up" size="14"></l-icon>+0.6</span>
+        <span style="height: 28px; padding: 0 10px; border: 1px solid var(--hairline-strong); border-radius: 999px; color: var(--ink-muted); display: inline-flex; align-items: center; gap: 6px; font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 13px;">B1</span>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+        <span style="height: 28px; padding: 0 10px; border: 1px solid var(--hairline-strong); border-radius: 999px; color: var(--ink-muted); display: inline-flex; align-items: center; gap: 6px; font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 13px;"><l-icon name="flame" size="14"></l-icon>0</span>
+        <span style="font-size: 13px; color: var(--ink-subtle); font-weight: 400;">Zero streak goes neutral. The screenshot’s orange “0” reads as an achievement.</span>
+      </div>
+      <span style="font-size: 13px; line-height: 1.5; color: var(--ink-subtle); font-weight: 400;">Height 26→28 so 13px mono sits on the 4px grid. Never filled, never pulses; an increase animates the number with <em>fill</em>.</span>
+    </div>
+
+    <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 16px;">
+      <div style="display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: baseline;"><span style="font-size: 18px; font-weight: 600;">Side rail item</span><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">Navigation.tsx · 88px rail · 20px icon</span></div>
+      <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
+        <div style="width: 88px; background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 8px; display: flex; flex-direction: column; gap: 2px;">
+          <div style="position: relative; border-radius: 8px; background: var(--action-soft); color: var(--action-text); display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 0;"><span style="position: absolute; left: -8px; top: 50%; transform: translateY(-50%); width: 3px; height: 20px; border-radius: 0 3px 3px 0; background: var(--action);"></span><l-icon name="house" size="20"></l-icon><span style="font-size: 12px; font-weight: 600;">Home</span></div>
+          <div style="border-radius: 8px; color: var(--ink-muted); display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 0; background: var(--track);"><l-icon name="book-open" size="20"></l-icon><span style="font-size: 12px; font-weight: 600;">Learn</span></div>
+          <div style="border-radius: 8px; color: var(--ink-subtle); display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 0;"><l-icon name="graduation-cap" size="20"></l-icon><span style="font-size: 12px; font-weight: 600;">Exam</span></div>
+          <div style="border-radius: 8px; color: var(--ink-subtle); display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 0; outline: 2px solid var(--focus); outline-offset: -2px;"><l-icon name="chart-column" size="20"></l-icon><span style="font-size: 12px; font-weight: 600;">Progress</span></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 16px; padding-top: 14px; flex: 1; min-width: 160px; font-size: 13px; color: var(--ink-muted); line-height: 1.45; font-weight: 400;">
+          <span><strong style="font-weight: 600; color: var(--ink);">Active</strong> · action-soft ground, action-text, 3px tab flush to rail edge</span>
+          <span><strong style="font-weight: 600; color: var(--ink);">Hover</strong> · track ground, ink-muted</span>
+          <span><strong style="font-weight: 600; color: var(--ink);">Default</strong> · ink-subtle, no ground</span>
+          <span><strong style="font-weight: 600; color: var(--ink);">Focus</strong> · inset 2px focus ring (the screenshot’s black outline is the browser default)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 16px;">
+    <div style="display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: baseline;"><span style="font-size: 18px; font-weight: 600;">Top bar</span><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">TopContextBar.tsx · 56 tall · surface + hairline, shadow-card only on scroll</span></div>
+    <div style="background: var(--bg); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+      <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; height: 56px; padding: 0 12px 0 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+        <span style="display: flex; flex-direction: column; min-width: 0;"><span style="font-size: 14px; font-weight: 600; line-height: 1.3;">Learn</span><span style="font-size: 13px; color: var(--ink-subtle); line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 400;">Choose a topic to begin</span></span>
+        <span style="display: flex; align-items: center; gap: 8px;">
+          <span style="height: 28px; padding: 0 10px; border: 1px solid var(--streak); border-radius: 999px; color: var(--streak-text); display: inline-flex; align-items: center; gap: 6px; font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 13px;"><l-icon name="flame" size="14"></l-icon>6</span>
+          <span style="height: 28px; padding: 0 10px; border: 1px solid var(--reward); border-radius: 999px; color: var(--reward-text); display: inline-flex; align-items: center; gap: 6px; font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 13px;"><l-icon name="zap" size="14"></l-icon>1,240</span>
+          <span style="width: 1px; height: 24px; background: var(--hairline); margin: 0 4px;"></span>
+          <span style="width: 32px; height: 32px; border-radius: 999px; background: var(--surface-recessed); border: 1px solid var(--hairline); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: var(--ink-muted);">LM</span>
+        </span>
+      </div>
+      <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; height: 56px; padding: 0 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; box-shadow: var(--shadow-card);">
+        <span style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+          <span style="width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--hairline-strong); color: var(--ink-muted); display: flex; align-items: center; justify-content: center;"><l-icon name="chevron-left" size="16"></l-icon></span>
+          <span style="display: flex; flex-direction: column; min-width: 0;"><span style="font-size: 14px; font-weight: 600; line-height: 1.3;">L’école</span><span style="font-size: 13px; color: var(--ink-subtle); line-height: 1.3; font-weight: 400;">Session · 10 questions</span></span>
+        </span>
+        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">with back · scrolled</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 12px;">
+    <div style="display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: baseline;"><span style="font-size: 18px; font-weight: 600;">Cards</span><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">.surface · .surface-recessed · interactive</span></div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px;">
+      <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 6px;">
+        <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-subtle);">Surface</span>
+        <span style="font-size: 16px; font-weight: 600;">Weakest topic</span>
+        <span style="font-size: 14px; color: var(--ink-muted); line-height: 1.5;">La famille — your lowest average this week. Static content; no hover.</span>
+      </div>
+      <div style="background: var(--surface-recessed); border: 1px solid var(--hairline); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 6px;">
+        <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-subtle);">Recessed</span>
+        <span style="font-size: 16px; font-weight: 600;">Why this question</span>
+        <span style="font-size: 14px; color: var(--ink-muted); line-height: 1.5;">Secondary detail nested in a surface. Never holds a primary action.</span>
+      </div>
+      <a href="#components" style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 20px; display: flex; gap: 12px; align-items: center; color: var(--ink); text-decoration: none; transition: border-color 120ms cubic-bezier(.2,0,.2,1), background-color 120ms;" style-hover="border-color: var(--hairline-strong); text-decoration: none; color: var(--ink);" style-active="background: var(--surface-recessed);">
+        <span style="flex: 1; display: flex; flex-direction: column; gap: 6px;">
+          <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-subtle);">Interactive</span>
+          <span style="font-size: 16px; font-weight: 600;">Your exam notebook</span>
+          <span style="font-size: 14px; color: var(--ink-muted); line-height: 1.5;">Hover: hairline-strong. Press: recessed. No lift, tilt or glow.</span>
+        </span>
+        <l-icon name="chevron-right" size="16"></l-icon>
+      </a>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px;">
+    <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 20px;">
+      <div style="display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: baseline;"><span style="font-size: 18px; font-weight: 600;">Progress ring</span><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">ProgressRing.tsx · 74 / 120</span></div>
+      <div style="display: flex; gap: 28px; align-items: center; flex-wrap: wrap;">
+        <span style="display: flex; flex-direction: column; gap: 8px; align-items: center;"><span style="position: relative; width: 74px; height: 74px;"><svg width="74" height="74" style="transform: rotate(-90deg);"><circle cx="37" cy="37" r="33" fill="none" stroke="var(--track)" stroke-width="8"></circle></svg><span style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;"><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 15px; line-height: 1;">0/3</span><span style="font-size: 12px; color: var(--ink-subtle); line-height: 1; font-weight: 400;">sessions</span></span></span><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">empty</span></span>
+        <span style="display: flex; flex-direction: column; gap: 8px; align-items: center;"><span style="position: relative; width: 74px; height: 74px;"><svg width="74" height="74" style="transform: rotate(-90deg);"><circle cx="37" cy="37" r="33" fill="none" stroke="var(--track)" stroke-width="8"></circle><circle cx="37" cy="37" r="33" fill="none" stroke="var(--progress)" stroke-width="8" stroke-linecap="round" stroke-dasharray="207.35" stroke-dashoffset="138.23"></circle></svg><span style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;"><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 15px; line-height: 1;">1/3</span><span style="font-size: 12px; color: var(--ink-subtle); line-height: 1; font-weight: 400;">sessions</span></span></span><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">partial</span></span>
+        <span style="display: flex; flex-direction: column; gap: 8px; align-items: center;"><span style="position: relative; width: 120px; height: 120px;"><svg width="120" height="120" style="transform: rotate(-90deg);"><circle cx="60" cy="60" r="54" fill="none" stroke="var(--track)" stroke-width="10"></circle><circle cx="60" cy="60" r="54" fill="none" stroke="var(--progress)" stroke-width="10" stroke-linecap="round" stroke-dasharray="339.29" stroke-dashoffset="0"></circle></svg><span style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;"><span style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 36px; line-height: 1;">3/3</span><span style="font-size: 12px; color: var(--ink-subtle); line-height: 1; font-weight: 400;">goal met</span></span></span><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">complete · 120</span></span>
+      </div>
+      <span style="font-size: 13px; line-height: 1.5; color: var(--ink-subtle); font-weight: 400;">Sublabel 10→12px. At 120 the value steps up to display weight — it’s an earned number.</span>
+    </div>
+
+    <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 20px;">
+      <div style="display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: baseline;"><span style="font-size: 18px; font-weight: 600;">Segmented session progress</span><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">SessionProgressBar.tsx</span></div>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="{{ tEcole.chipSm }}"><l-icon name="school" size="14"></l-icon></span>
+          <span style="font-size: 13px; font-weight: 600; color: var(--ink-muted);">L’école</span>
+          <span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 13px;">Q6/10</span>
+          <span style="flex: 1;"></span>
+          <span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-muted);">avg 7.4</span>
+          <span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--streak-text); display: inline-flex; align-items: center; gap: 4px;"><l-icon name="flame" size="14"></l-icon>3</span>
+          <span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--reward-text);">+60 XP</span>
+          <span style="width: 28px; height: 28px; border-radius: 8px; background: var(--surface-recessed); color: var(--ink-subtle); display: flex; align-items: center; justify-content: center;"><l-icon name="x" size="14"></l-icon></span>
+        </div>
+        <div style="display: flex; gap: 4px; height: 6px;">
+          <span style="flex: 1; border-radius: 999px; background: var(--progress);"></span>
+          <span style="flex: 1; border-radius: 999px; background: var(--reward);"></span>
+          <span style="flex: 1; border-radius: 999px; background: var(--progress);"></span>
+          <span style="flex: 1; border-radius: 999px; background: var(--ink-subtle);"></span>
+          <span style="flex: 1; border-radius: 999px; background: var(--correction);"></span>
+          <span style="flex: 1; border-radius: 999px; box-shadow: inset 0 0 0 1.5px var(--action);"></span>
+          <span style="flex: 1; border-radius: 999px; background: var(--track);"></span>
+          <span style="flex: 1; border-radius: 999px; background: var(--track);"></span>
+          <span style="flex: 1; border-radius: 999px; background: var(--track);"></span>
+          <span style="flex: 1; border-radius: 999px; background: var(--track);"></span>
+        </div>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 12px; color: var(--ink-muted); font-weight: 400;">
+        <span style="display: inline-flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 6px; border-radius: 999px; background: var(--progress);"></span>8+</span>
+        <span style="display: inline-flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 6px; border-radius: 999px; background: var(--reward);"></span>6–7.9</span>
+        <span style="display: inline-flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 6px; border-radius: 999px; background: var(--correction);"></span>under 6</span>
+        <span style="display: inline-flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 6px; border-radius: 999px; background: var(--ink-subtle);"></span>unscored</span>
+        <span style="display: inline-flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 6px; border-radius: 999px; box-shadow: inset 0 0 0 1.5px var(--action);"></span>current</span>
+      </div>
+      <span style="font-size: 13px; line-height: 1.5; color: var(--ink-subtle); font-weight: 400;">Segment 4→6px tall. The flame emoji becomes the 14px flame icon; XP 10→12px.</span>
+    </div>
+  </div>
+
+<div style="display: flex; flex-direction: column; gap: 12px;">
+    <div style="display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: baseline;"><span style="font-size: 18px; font-weight: 600;">Topic tile</span><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">TopicGrid.tsx · unlocked · locked · mastered</span></div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px;">
+      <a href="#components" style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 16px; color: var(--ink); text-decoration: none; transition: border-color 120ms, background-color 120ms;" style-hover="border-color: var(--hairline-strong); color: var(--ink); text-decoration: none;" style-active="background: var(--surface-recessed);">
+        <span style="{{ tEcole.chip }}"><l-icon name="school" size="20"></l-icon></span>
+        <span style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 16px; font-weight: 600;">L’école</span><span style="font-size: 13px; color: var(--ink-subtle); font-weight: 400;">School &amp; Education</span></span>
+        <span style="display: flex; flex-direction: column; gap: 8px; margin-top: auto;">
+          <span style="height: 4px; border-radius: 999px; background: var(--track); overflow: hidden;"><span style="display: block; height: 100%; width: 42%; background: var(--progress);"></span></span>
+          <span style="display: flex; justify-content: space-between; font-size: 12px; color: var(--ink-subtle); font-weight: 400;"><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; color: var(--ink-muted);">42%</span><span>49 questions</span></span>
+        </span>
+      </a>
+      <div aria-disabled="true" style="background: var(--surface-recessed); border: 1px solid var(--hairline); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 16px; cursor: not-allowed;">
+        <span style="width: 40px; height: 40px; border-radius: 8px; border: 1px dashed var(--hairline-strong); color: var(--ink-subtle); display: flex; align-items: center; justify-content: center;"><l-icon name="lock" size="20"></l-icon></span>
+        <span style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 16px; font-weight: 600; color: var(--ink-muted);">L’avenir</span><span style="font-size: 13px; color: var(--ink-subtle); font-weight: 400;">Future Plans</span></span>
+        <span style="font-size: 12px; line-height: 1.45; color: var(--ink-subtle); margin-top: auto; font-weight: 400;">Complete 5 sessions in L’école averaging 7+/10 to unlock.</span>
+      </div>
+      <a href="#components" style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 16px; color: var(--ink); text-decoration: none; transition: border-color 120ms, background-color 120ms;" style-hover="border-color: var(--hairline-strong); color: var(--ink); text-decoration: none;" style-active="background: var(--surface-recessed);">
+        <span style="display: flex; justify-content: space-between; align-items: flex-start;"><span style="{{ tFamille.chip }}"><l-icon name="users" size="20"></l-icon></span><span style="height: 24px; padding: 0 8px; border-radius: 999px; background: var(--progress-soft); color: var(--progress-text); font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;"><l-icon name="badge-check" size="14"></l-icon>Mastered</span></span>
+        <span style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 16px; font-weight: 600;">La famille</span><span style="font-size: 13px; color: var(--ink-subtle); font-weight: 400;">Family &amp; Friends</span></span>
+        <span style="display: flex; flex-direction: column; gap: 8px; margin-top: auto;">
+          <span style="height: 4px; border-radius: 999px; background: var(--progress);"></span>
+          <span style="display: flex; justify-content: space-between; font-size: 12px; color: var(--ink-subtle); font-weight: 400;"><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; color: var(--ink-muted);">avg 8.4</span><span>46 questions</span></span>
+        </span>
+      </a>
+    </div>
+    <span style="font-size: 13px; line-height: 1.5; color: var(--ink-subtle); font-weight: 400;">Locked drops opacity: 0.5 (which failed contrast) for a recessed ground, dashed chip and full-contrast caption. Hover is a border step — the 3D tilt and radial glow are removed.</span>
+  </div>
+
+  <div style="display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(300px, 1fr); gap: 16px; align-items: start;">
+    <div style="display: flex; flex-direction: column; gap: 12px; min-width: 0;">
+      <div style="display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: baseline;"><span style="font-size: 18px; font-weight: 600;">Question card</span><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">QuestionCard.tsx · hint open, one chip revealed</span></div>
+      <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: clamp(20px, 3vw, 32px); display: flex; flex-direction: column; gap: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+          <span style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <span style="height: 24px; padding: 0 8px; border-radius: 6px; background: var(--action-soft); color: var(--action-text); font-size: 12px; font-weight: 600; display: inline-flex; align-items: center;">Justify an opinion · present + past · B1</span>
+            <span style="height: 24px; padding: 0 8px; border-radius: 6px; background: var(--info-soft); color: var(--info-text); font-size: 12px; font-weight: 600; display: inline-flex; align-items: center;">Review</span>
+          </span>
+          <button aria-label="Listen" style="width: 40px; height: 40px; flex-shrink: 0; border-radius: 8px; border: 1px solid var(--hairline-strong); background: transparent; color: var(--ink-muted); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background-color 120ms, color 120ms;" style-hover="background: var(--track); color: var(--ink);"><l-icon name="volume-2" size="16"></l-icon></button>
+        </div>
+        <h3 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 30px; line-height: 1.12; letter-spacing: -0.012em; text-wrap: pretty;">Qu’est-ce que tu penses de ton collège ? Explique pourquoi.</h3>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; padding-top: 28px;">
+          <span style="height: 32px; padding: 0 12px; border-radius: 8px; background: var(--surface-recessed); border: 1px solid var(--hairline); font-size: 13px; font-weight: 500; display: inline-flex; align-items: center;">le collège</span>
+          <span style="position: relative; height: 32px; padding: 0 12px; border-radius: 8px; background: var(--action-soft); border: 1px solid var(--action); color: var(--action-text); font-size: 13px; font-weight: 500; display: inline-flex; align-items: center;">l’emploi du temps<span style="position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); white-space: nowrap; padding: 4px 8px; border-radius: 6px; background: var(--ink); color: var(--surface); font-size: 12px; font-weight: 500;">the timetable</span></span>
+          <span style="height: 32px; padding: 0 12px; border-radius: 8px; background: var(--surface-recessed); border: 1px solid var(--hairline); font-size: 13px; font-weight: 500; display: inline-flex; align-items: center;">les matières</span>
+          <span style="height: 32px; padding: 0 12px; border-radius: 8px; background: var(--surface-recessed); border: 1px solid var(--hairline); font-size: 13px; font-weight: 500; display: inline-flex; align-items: center;">à mon avis</span>
+          <span style="height: 32px; padding: 0 12px; border-radius: 8px; background: var(--surface-recessed); border: 1px solid var(--hairline); font-size: 13px; font-weight: 500; display: inline-flex; align-items: center;">ennuyeux</span>
+        </div>
+        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+          <button style="background: transparent; border: none; padding: 0; height: 32px; font: 600 13px 'Bricolage Grotesque', sans-serif; color: var(--reward-text); display: inline-flex; align-items: center; gap: 6px; cursor: pointer;"><l-icon name="lightbulb" size="14"></l-icon>Hide hint<l-icon name="chevron-up" size="14"></l-icon></button>
+          <button style="background: transparent; border: none; padding: 0; height: 32px; font: 600 13px 'Bricolage Grotesque', sans-serif; color: var(--ink-muted); display: inline-flex; align-items: center; gap: 6px; cursor: pointer;" style-hover="color: var(--ink);"><l-icon name="info" size="14"></l-icon>Why this question<l-icon name="chevron-down" size="14"></l-icon></button>
+        </div>
+        <div style="background: var(--reward-soft); border-radius: 8px; padding: 16px 20px; display: flex; flex-direction: column; gap: 10px;">
+          <ul style="margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; font-size: 14px; line-height: 1.5; color: var(--ink);">
+            <li>Give one thing you like and one you don’t</li>
+            <li>Use a past example: l’année dernière…</li>
+          </ul>
+          <span style="font-family: 'Libre Baskerville', Georgia, serif; font-style: italic; font-size: 20px; line-height: 1.35; color: var(--ink);">« Ce que j’aime le plus, c’est… »</span>
+          <span style="font-size: 13px; color: var(--ink-muted); font-weight: 400;">What I like most is…</span>
+        </div>
+      </div>
+      <span style="font-size: 13px; line-height: 1.5; color: var(--ink-subtle); font-weight: 400;">Prompt font-black 24px Inter → Bricolage 600 at 30. Vocab chips lose uppercase (it strips accents’ legibility) and grow 10px→13px; tooltip 9px→12px.</span>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: baseline;"><span style="font-size: 18px; font-weight: 600;">Record button</span><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">RecordingPanel.tsx · 64px</span></div>
+      <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; display: flex; flex-direction: column;">
+        <div style="padding: 24px; display: flex; align-items: center; gap: 20px; border-bottom: 1px solid var(--hairline);">
+          <span style="width: 64px; height: 64px; border-radius: 999px; background: var(--action); color: var(--action-ink); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><l-icon name="mic" size="24"></l-icon></span>
+          <span style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 14px; font-weight: 600;">Idle</span><span style="font-size: 13px; color: var(--ink-muted); font-weight: 400;">Tap to record · the screen’s one primary</span></span>
+        </div>
+        <div style="padding: 24px; display: flex; align-items: center; gap: 20px; border-bottom: 1px solid var(--hairline);">
+          <span style="width: 64px; height: 64px; border-radius: 999px; background: var(--ink); color: var(--surface); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 0 0 6px var(--surface), 0 0 0 7px var(--hairline-strong);"><span style="width: 18px; height: 18px; border-radius: 4px; background: var(--surface);"></span></span>
+          <span style="display: flex; flex-direction: column; gap: 4px;"><span style="display: flex; align-items: center; gap: 8px;"><span style="width: 8px; height: 8px; border-radius: 999px; background: var(--correction);"></span><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 15px;">0:14</span></span><span style="font-size: 13px; color: var(--ink-muted); font-weight: 400;">Recording · tap to stop</span></span>
+        </div>
+        <div style="padding: 24px; display: flex; align-items: center; gap: 20px;">
+          <span style="width: 64px; height: 64px; border-radius: 999px; background: var(--surface-recessed); border: 1px solid var(--hairline); color: var(--ink-muted); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><l-icon name="loader-circle" size="24"></l-icon></span>
+          <span style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 14px; font-weight: 600;">Processing</span><span style="font-size: 13px; color: var(--ink-muted); font-weight: 400;">Analysing your answer…</span></span>
+        </div>
+      </div>
+      <span style="font-size: 13px; line-height: 1.5; color: var(--ink-subtle); font-weight: 400;">Recording turns ink, not red: red is correction, and a student mid-answer shouldn’t see “wrong”. The 8px dot is the one live-indicator exception. No ping ring, no glow.</span>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; align-items: start;">
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: baseline;"><span style="font-size: 18px; font-weight: 600;">Score display</span><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">FeedbackPanel.tsx</span></div>
+      <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 16px;">
+          <span style="display: flex; flex-direction: column; gap: 6px;"><span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-subtle);">Overall</span><span style="display: flex; align-items: baseline; gap: 6px;"><span style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 72px; line-height: 0.9; letter-spacing: -0.025em;">7.8</span><span style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 28px; color: var(--ink-subtle);">/10</span></span></span>
+          <span style="display: flex; flex-direction: column; gap: 6px; align-items: flex-end;"><span style="height: 28px; padding: 0 10px; border: 1px solid var(--hairline-strong); border-radius: 999px; color: var(--ink-muted); display: inline-flex; align-items: center; font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 13px;">B1</span><span style="font-size: 12px; color: var(--ink-subtle); font-weight: 400;">64 words</span></span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 24px;">
+          <span style="display: flex; flex-direction: column; gap: 6px;"><span style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 400;"><span style="color: var(--ink-muted);">Grammar</span><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500;">8.6</span></span><span style="height: 4px; border-radius: 999px; background: var(--track); overflow: hidden;"><span style="display: block; height: 100%; width: 86%; background: var(--progress);"></span></span></span>
+          <span style="display: flex; flex-direction: column; gap: 6px;"><span style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 400;"><span style="color: var(--ink-muted);">Vocabulary</span><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500;">7.4</span></span><span style="height: 4px; border-radius: 999px; background: var(--track); overflow: hidden;"><span style="display: block; height: 100%; width: 74%; background: var(--reward);"></span></span></span>
+          <span style="display: flex; flex-direction: column; gap: 6px;"><span style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 400;"><span style="color: var(--ink-muted);">Fluency</span><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500;">6.2</span></span><span style="height: 4px; border-radius: 999px; background: var(--track); overflow: hidden;"><span style="display: block; height: 100%; width: 62%; background: var(--reward);"></span></span></span>
+          <span style="display: flex; flex-direction: column; gap: 6px;"><span style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 400;"><span style="color: var(--ink-muted);">Content</span><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500;">8.1</span></span><span style="height: 4px; border-radius: 999px; background: var(--track); overflow: hidden;"><span style="display: block; height: 100%; width: 81%; background: var(--progress);"></span></span></span>
+        </div>
+      </div>
+      <span style="font-size: 13px; line-height: 1.5; color: var(--ink-subtle); font-weight: 400;">Numbers stay ink; the band colour lives on the bar. Sub-score labels follow coachScoreGrid — names here are illustrative. Unscored attempts show “Not graded” in ink-muted, never a 0.</span>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: baseline;"><span style="font-size: 18px; font-weight: 600;">Correction row</span><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">grammar · vocabulary upgrade</span></div>
+      <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 8px;">
+        <div style="background: var(--correction-soft); border-radius: 8px; padding: 14px 16px; display: flex; gap: 12px;">
+          <span style="color: var(--correction-text); padding-top: 2px;"><l-icon name="circle-x" size="16"></l-icon></span>
+          <span style="display: flex; flex-direction: column; gap: 6px; min-width: 0;">
+            <span style="font-size: 13px; font-weight: 600;">Adjective agreement</span>
+            <span style="font-size: 15px; line-height: 1.5; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px;"><span style="color: var(--correction-text); text-decoration: line-through;">une maison grand</span><l-icon name="arrow-right" size="14"></l-icon><span style="color: var(--progress-text); font-weight: 500;">une grande maison</span></span>
+            <span style="font-size: 14px; line-height: 1.5; color: var(--ink-muted);">Grand is one of the BAGS adjectives: it goes before the noun and agrees with maison (feminine).</span>
+          </span>
+        </div>
+        <div style="background: var(--surface-recessed); border-radius: 8px; padding: 12px 16px; display: flex; gap: 12px; align-items: center;">
+          <span style="color: var(--progress-text);"><l-icon name="arrow-up-right" size="16"></l-icon></span>
+          <span style="font-size: 15px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px;"><span style="color: var(--ink-subtle); text-decoration: line-through;">c’est très bien</span><l-icon name="arrow-right" size="14"></l-icon><span style="color: var(--progress-text); font-weight: 500;">c’est vraiment enrichissant</span></span>
+        </div>
+      </div>
+      <span style="font-size: 13px; line-height: 1.5; color: var(--ink-subtle); font-weight: 400;">All text 10px → 13–15px. The French sits at body-base so the fix is readable at a glance.</span>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; align-items: start;">
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: baseline;"><span style="font-size: 18px; font-weight: 600;">Toast</span><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">raised · bottom centre · 3s</span></div>
+      <div style="background: var(--surface-recessed); border: 1px solid var(--hairline); border-radius: 12px; padding: 28px 20px; display: flex; flex-direction: column; gap: 12px; align-items: center;">
+        <div style="width: 100%; max-width: 380px; background: var(--surface-raised); border: 1px solid var(--hairline-strong); border-radius: 12px; box-shadow: var(--shadow-overlay); padding: 12px 12px 12px 14px; display: flex; align-items: center; gap: 12px;">
+          <span style="width: 32px; height: 32px; border-radius: 8px; background: var(--reward-soft); color: var(--reward-text); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><l-icon name="zap" size="16"></l-icon></span>
+          <span style="flex: 1; display: flex; flex-direction: column; min-width: 0;"><span style="font-size: 14px; font-weight: 600;">+40 XP</span><span style="font-size: 13px; color: var(--ink-muted); font-weight: 400;">Streak extended to 6 days</span></span>
+          <span style="color: var(--ink-subtle); padding: 6px;"><l-icon name="x" size="16"></l-icon></span>
+        </div>
+        <div style="width: 100%; max-width: 380px; background: var(--surface-raised); border: 1px solid var(--hairline-strong); border-radius: 12px; box-shadow: var(--shadow-overlay); padding: 12px 12px 12px 14px; display: flex; align-items: center; gap: 12px;">
+          <span style="width: 32px; height: 32px; border-radius: 8px; background: var(--surface-recessed); color: var(--ink-muted); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><l-icon name="wifi-off" size="16"></l-icon></span>
+          <span style="flex: 1; display: flex; flex-direction: column; min-width: 0;"><span style="font-size: 14px; font-weight: 600;">Practised offline</span><span style="font-size: 13px; color: var(--ink-muted); font-weight: 400;">No grader reachable — not scored</span></span>
+          <span style="font-size: 13px; font-weight: 600; color: var(--action-text); padding: 6px;">Retry</span>
+        </div>
+      </div>
+      <span style="font-size: 13px; line-height: 1.5; color: var(--ink-subtle); font-weight: 400;">Enters with <em>enter</em>, leaves with opacity only. One at a time; a new toast replaces the old one.</span>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: baseline;"><span style="font-size: 18px; font-weight: 600;">Empty state</span><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">WeeklyChart.tsx · no data</span></div>
+      <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline;"><span style="font-size: 16px; font-weight: 600;">This week</span><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 13px; color: var(--ink-subtle);">avg —</span></div>
+        <div style="position: relative; height: 140px; display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; align-items: end;">
+          <span style="height: 100%; border-bottom: 2px dashed var(--track);"></span><span style="height: 100%; border-bottom: 2px dashed var(--track);"></span><span style="height: 100%; border-bottom: 2px dashed var(--track);"></span><span style="height: 100%; border-bottom: 2px dashed var(--track);"></span><span style="height: 100%; border-bottom: 2px dashed var(--track);"></span><span style="height: 100%; border-bottom: 2px dashed var(--track);"></span><span style="height: 100%; border-bottom: 2px solid var(--action);"></span>
+          <span style="position: absolute; inset: 0 0 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-align: center; padding: 0 16px;">
+            <span style="font-size: 14px; font-weight: 600;">No sessions yet this week</span>
+            <span style="font-size: 13px; color: var(--ink-muted); max-width: 280px; line-height: 1.45; font-weight: 400;">Each day’s average score will plot here after you practise.</span>
+          </span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; font-size: 12px; color: var(--ink-subtle); text-align: center; font-weight: 400;"><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span><span style="color: var(--action-text); font-weight: 600;">Mon</span></div>
+      </div>
+      <span style="font-size: 13px; line-height: 1.5; color: var(--ink-subtle); font-weight: 400;">Says what will appear and why it’s empty; today is marked. No CTA here — Home’s mission card already owns the primary.</span>
+    </div>
+  </div>
+</section>
+
+<section id="rules" data-screen-label="07 Do / don't" style="display: flex; flex-direction: column; gap: 32px;">
+  <div style="display: flex; flex-direction: column; gap: 12px;">
+    <span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">07 — Do / don’t</span>
+    <h2 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 40px; line-height: 1.05; letter-spacing: -0.02em;">The rules that stop the drift.</h2>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px;">
+    <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 14px;">
+      <span style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--progress-text);"><l-icon name="check" size="14"></l-icon>Do</span>
+      <ol style="margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 10px; font-size: 15px; line-height: 1.5;">
+        <li>One primary button per screen. Everything else is secondary or quiet.</li>
+        <li>Pick colour by role: progress, reward, streak, correction, info. Topic hue only inside its icon chip.</li>
+        <li>Bricolage everywhere; body at Light 300, never below Regular under 14px. Libre Baskerville only in Exam mode and quoted model answers.</li>
+        <li>Use role tokens (<code style="font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 400;">text-ink-muted</code>, <code style="font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 400;">bg-surface</code>) so light and dark come from the same class.</li>
+        <li>Animate with the eight named motions and nothing else. Choreograph: container first, then content, then the number.</li>
+        <li>Design the empty and unscored states before the happy path.</li>
+      </ol>
+    </div>
+    <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 14px;">
+      <span style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--correction-text);"><l-icon name="x" size="14"></l-icon>Don’t</span>
+      <ol style="margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 10px; font-size: 15px; line-height: 1.5;">
+        <li>No emoji anywhere in the UI — topics, streaks, buttons, toasts, avatars.</li>
+        <li>No gradients, glows or blur on controls or cards. Delete <code style="font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 400;">.btn-primary</code> and <code style="font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 400;">pulseGlow</code>.</li>
+        <li>No scale on hover, no 3D tilt, no looping pulse or ping. Press may compress to 0.97; that is the only scale on a control.</li>
+        <li>No text under 12px, no weight above 700, no uppercase on French, no third typeface.</li>
+        <li>No <code style="font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 400;">text-white</code> patched in light mode, no raw <code style="font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 400;">violet-500/10</code>, no hex in components.</li>
+        <li>No opacity to signal disabled or locked — use the recessed and ink-subtle tokens.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 12px;">
+    <div style="display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: baseline;"><span style="font-size: 18px; font-weight: 600;">Drop-in for src/index.css</span><span style="font-family: 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">same names · replaces the two token blocks</span></div>
+    <pre style="margin: 0; padding: 20px; background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; font: 12px/1.6 ui-monospace, Menlo, monospace; color: var(--ink); overflow-x: auto; white-space: pre;">:root {
+  --bg:#0B0B0E; --surface:#141418; --surface-recessed:#0F0F12; --surface-raised:#1A1A1F;
+  --hairline:rgba(255,255,255,.08); --hairline-strong:rgba(255,255,255,.14);
+  --ink:#EDECEF; --ink-muted:#A3A1AA; --ink-subtle:#8A8892;
+  --action:#7C3AED; --action-hover:#8247EF; --action-press:#6D28D9;
+  --action-ink:#FFFFFF; --action-text:#A78BFA; --action-soft:rgba(139,92,246,.16);
+  --progress:#10B981; --progress-text:#34D399; --progress-soft:rgba(16,185,129,.12);
+  --reward:#F59E0B; --reward-text:#FBBF24; --reward-soft:rgba(245,158,11,.12);
+  --streak:#FB923C; --streak-text:#FDBA74;
+  --correction:#F43F5E; --correction-text:#FB7185; --correction-soft:rgba(244,63,94,.12);
+  --info-text:#5CCFE6; --info-soft:rgba(92,207,230,.10);
+  --focus:#A78BFA; --track:rgba(255,255,255,.08); --scrim:rgba(0,0,0,.60);
+  --shadow-card:0 1px 2px rgba(0,0,0,.4); --shadow-overlay:0 24px 60px -20px rgba(0,0,0,.75);
+  --radius-control:8px; --radius-card:12px; --radius-pill:999px;
+  --dur-state:120ms; --dur-enter:240ms; --dur-overlay:320ms; --dur-fill:700ms; --dur-celebrate:900ms;
+  --ease:cubic-bezier(.2,0,.2,1); --ease-out:cubic-bezier(.16,1,.3,1); --ease-spring:cubic-bezier(.34,1.56,.64,1);
+}
+html:not(.dark) {
+  --bg:#F6F5F1; --surface:#FFFFFF; --surface-recessed:#F1F0EC; --surface-raised:#FFFFFF;
+  --hairline:rgba(28,25,20,.09); --hairline-strong:rgba(28,25,20,.16);
+  --ink:#1C1A17; --ink-muted:#56524B; --ink-subtle:#6E6A62;
+  --action:#7C3AED; --action-hover:#6D28D9; --action-press:#5B21B6;
+  --action-ink:#FFFFFF; --action-text:#6D28D9; --action-soft:rgba(124,58,237,.08);
+  --progress:#12805A; --progress-text:#0C6646; --progress-soft:rgba(18,128,90,.09);
+  --reward:#C27C0E; --reward-text:#8A5508; --reward-soft:rgba(194,124,14,.10);
+  --streak:#D4561C; --streak-text:#B2430F;
+  --correction:#D63241; --correction-text:#B3202F; --correction-soft:rgba(214,50,65,.07);
+  --info-text:#0E6683; --info-soft:rgba(14,102,131,.08);
+  --focus:#7C3AED; --track:rgba(28,25,20,.08); --scrim:rgba(28,25,20,.36);
+  --shadow-card:0 1px 2px rgba(28,25,20,.05); --shadow-overlay:0 16px 40px -12px rgba(28,25,20,.22);
+}
+body { background: var(--bg); color: var(--ink); font-weight: 300; }  /* replaces #0D0D0F / #f1f5f9 */</pre>
+    <pre style="margin: 0; padding: 20px; background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; font: 12px/1.6 ui-monospace, Menlo, monospace; color: var(--ink); overflow-x: auto; white-space: pre;">// tailwind.config.js — fontFamily (numeral is retired: use font-sans tabular-nums)
+fontFamily: {
+  sans:    ['"Bricolage Grotesque"', 'system-ui', 'sans-serif'],
+  display: ['"Bricolage Grotesque"', 'system-ui', 'sans-serif'],
+  exam:    ['"Libre Baskerville"', 'Georgia', 'serif'],
+},
+// index.html
+// https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800
+//   &amp;family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&amp;display=swap</pre>
+    <pre style="margin: 0; padding: 20px; background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; font: 12px/1.6 ui-monospace, Menlo, monospace; color: var(--ink); overflow-x: auto; white-space: pre;">{{ topicCss }}</pre>
+  </div>
+</section>
+
+</div>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;'light' | 'dark'&quot;},&quot;autoplay&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  state = { stateOn: false };
+
+  static TOKENS = [
+    ['Surfaces', [
+      ['bg', '#F6F5F1', '#0B0B0E', 'surface', 'Page ground. Replaces the hard-coded body colour.'],
+      ['surface', '#FFFFFF', '#141418', 'surface', 'Default card and bar fill.'],
+      ['surface-recessed', '#F1F0EC', '#0F0F12', 'surface', 'Wells: inputs, hint panels, inactive tiles.'],
+      ['surface-raised', '#FFFFFF', '#1A1A1F', 'surface', 'Floating only: toast, menu, dock. Pairs with shadow-overlay.'],
+    ]],
+    ['Lines', [
+      ['hairline', 'rgba(28,25,20,.09)', 'rgba(255,255,255,.08)', 'line', 'Card edges, dividers. Always 1px.'],
+      ['hairline-strong', 'rgba(28,25,20,.16)', 'rgba(255,255,255,.14)', 'line', 'Control borders: secondary button, neutral pill, hover edge.'],
+      ['track', 'rgba(28,25,20,.08)', 'rgba(255,255,255,.08)', 'line', 'Unfilled ring, bar and segment.'],
+    ]],
+    ['Ink', [
+      ['ink', '#1C1A17', '#EDECEF', 'text', 'Headings, body, numbers.'],
+      ['ink-muted', '#56524B', '#A3A1AA', 'text', 'Secondary copy, descriptions.'],
+      ['ink-subtle', '#6E6A62', '#8A8892', 'text', 'Metadata, captions, placeholder. Still AA at 12px.'],
+    ]],
+    ['Action', [
+      ['action', '#7C3AED', '#7C3AED', 'fill', 'Primary fill, active rail tab, focus ring base.'],
+      ['action-hover', '#6D28D9', '#8247EF', 'fill', 'Hover step. Colour only, never scale.'],
+      ['action-press', '#5B21B6', '#6D28D9', 'fill', 'Pressed step.'],
+      ['action-ink', '#FFFFFF', '#FFFFFF', 'onaction', 'Label on any action fill.'],
+      ['action-text', '#6D28D9', '#A78BFA', 'text', 'Links, active rail label, selected chip text.'],
+      ['action-soft', 'rgba(124,58,237,.08)', 'rgba(139,92,246,.16)', 'soft:action-text', 'Active rail tab, selected chip.'],
+    ]],
+    ['Progress', [
+      ['progress', '#12805A', '#10B981', 'graphic', 'Ring and bar fill, scores 8+.'],
+      ['progress-text', '#0C6646', '#34D399', 'text', 'Corrected form, improvement copy.'],
+      ['progress-soft', 'rgba(18,128,90,.09)', 'rgba(16,185,129,.12)', 'soft:progress-text', 'Mastered badge ground.'],
+    ]],
+    ['Reward', [
+      ['reward', '#C27C0E', '#F59E0B', 'graphic', 'XP pill border, scores 6–7.9.'],
+      ['reward-text', '#8A5508', '#FBBF24', 'text', 'XP value, hint label.'],
+      ['reward-soft', 'rgba(194,124,14,.10)', 'rgba(245,158,11,.12)', 'soft:reward-text', 'Hint panel, XP toast icon well.'],
+    ]],
+    ['Streak', [
+      ['streak', '#D4561C', '#FB923C', 'graphic', 'Streak pill border. The habit, only the habit.'],
+      ['streak-text', '#B2430F', '#FDBA74', 'text', 'Streak count.'],
+    ]],
+    ['Correction', [
+      ['correction', '#D63241', '#F43F5E', 'graphic', 'Scores under 6, destructive hover edge, live REC dot.'],
+      ['correction-text', '#B3202F', '#FB7185', 'text', 'The wrong form in a correction row.'],
+      ['correction-soft', 'rgba(214,50,65,.07)', 'rgba(244,63,94,.12)', 'soft:correction-text', 'Correction row ground.'],
+    ]],
+    ['Info & utility', [
+      ['info-text', '#0E6683', '#5CCFE6', 'text', 'Review tag, neutral tips.'],
+      ['info-soft', 'rgba(14,102,131,.08)', 'rgba(92,207,230,.10)', 'soft:info-text', 'Review tag ground.'],
+      ['focus', '#7C3AED', '#A78BFA', 'graphic', '2px ring, 2px offset, every focusable.'],
+      ['scrim', 'rgba(28,25,20,.36)', 'rgba(0,0,0,.60)', 'none', 'Behind modals only.'],
+    ]],
+  ];
+
+  static TOPICS = [
+    ['ecole', "L'école", 'School & Education', 'school', 247],
+    ['loisirs', 'Les loisirs', 'Hobbies & Free Time', 'bike', 22],
+    ['famille', 'La famille', 'Family & Friends', 'users', 337],
+    ['vacances', 'Les vacances', 'Holidays & Travel', 'tree-palm', 202],
+    ['maison', 'La maison', 'Home & Town', 'sofa', 45],
+    ['avenir', "L'avenir", 'Future Plans', 'compass', 270],
+    ['nourriture', 'La nourriture', 'Food & Health', 'croissant', 67],
+    ['environnement', "L'environnement", 'Environment & Technology', 'leaf', 135],
+    ['vetements', 'Les vêtements', 'Clothing & Fashion', 'shirt', 315],
+    ['animaux', 'Les animaux', 'Animals & Nature', 'paw-print', 90],
+    ['transports', 'Les transports', 'Transport & Getting Around', 'train-front', 225],
+    ['metiers', 'Les métiers', 'Jobs & Professions', 'briefcase', 292],
+    ['sante', 'La santé', 'Health & Fitness', 'heart-pulse', 157],
+    ['fetes', 'Les fêtes', 'Festivals & Traditions', 'party-popper', 0],
+    ['medias', 'Les médias', 'Media & Social Networks', 'smartphone', 180],
+    ['culture', 'La culture', 'Arts & Culture', 'drama', 112],
+  ];
+
+  static DARK = {
+    '--bg': '#0B0B0E', '--surface': '#141418', '--surface-recessed': '#0F0F12', '--surface-raised': '#1A1A1F',
+    '--hairline': 'rgba(255,255,255,.08)', '--hairline-strong': 'rgba(255,255,255,.14)',
+    '--ink': '#EDECEF', '--ink-muted': '#A3A1AA', '--ink-subtle': '#8A8892',
+    '--action': '#7C3AED', '--action-hover': '#8247EF', '--action-press': '#6D28D9', '--action-ink': '#FFFFFF', '--action-text': '#A78BFA', '--action-soft': 'rgba(139,92,246,.16)',
+    '--progress': '#10B981', '--progress-text': '#34D399', '--progress-soft': 'rgba(16,185,129,.12)',
+    '--reward': '#F59E0B', '--reward-text': '#FBBF24', '--reward-soft': 'rgba(245,158,11,.12)',
+    '--streak': '#FB923C', '--streak-text': '#FDBA74',
+    '--correction': '#F43F5E', '--correction-text': '#FB7185', '--correction-soft': 'rgba(244,63,94,.12)',
+    '--info-text': '#5CCFE6', '--info-soft': 'rgba(92,207,230,.10)', '--focus': '#A78BFA',
+    '--track': 'rgba(255,255,255,.08)', '--scrim': 'rgba(0,0,0,.6)',
+    '--shadow-card': '0 1px 2px rgba(0,0,0,.4)', '--shadow-overlay': '0 24px 60px -20px rgba(0,0,0,.75)',
+  };
+
+  rgb(c, over) {
+    if (c[0] === '#') return [1, 3, 5].map(i => parseInt(c.substr(i, 2), 16));
+    const m = c.match(/[\d.]+/g).map(Number); const a = m[3] ?? 1; const o = over || [255, 255, 255];
+    return [0, 1, 2].map(i => Math.round(m[i] * a + o[i] * (1 - a)));
+  }
+  lum([r, g, b]) { const f = c => { c /= 255; return c <= .03928 ? c / 12.92 : Math.pow((c + .055) / 1.055, 2.4); }; return .2126 * f(r) + .7152 * f(g) + .0722 * f(b); }
+  ratio(a, b) { const A = this.lum(a), B = this.lum(b); return (Math.max(A, B) + .05) / (Math.min(A, B) + .05); }
+  oklch(L, C, h) {
+    const a = C * Math.cos(h * Math.PI / 180), b = C * Math.sin(h * Math.PI / 180);
+    const l = (L + .3963377774 * a + .2158037573 * b) ** 3, m = (L - .1055613458 * a - .0638541728 * b) ** 3, s = (L - .0894841775 * a - 1.291485548 * b) ** 3;
+    const lin = [4.0767416621 * l - 3.3077115913 * m + .2309699292 * s, -1.2684380046 * l + 2.6097574011 * m - .3413193965 * s, -.0041960863 * l - .7034186147 * m + 1.707614701 * s];
+    const f = x => { x = x <= .0031308 ? 12.92 * x : 1.055 * Math.pow(x, 1 / 2.4) - .055; return Math.round(Math.min(1, Math.max(0, x)) * 255); };
+    return '#' + lin.map(f).map(v => v.toString(16).padStart(2, '0')).join('').toUpperCase();
+  }
+
+  evalToken(test, val, map) {
+    const surf = this.rgb(map.surface), grounds = [map.surface, map['surface-recessed'], map.bg].map(c => this.rgb(c));
+    const fmt = r => r.toFixed(2) + ':1';
+    if (test === 'surface') { const r = this.ratio(this.rgb(map.ink), this.rgb(val)); return [fmt(r), 'ink on it']; }
+    if (test === 'line') { const r = this.ratio(this.rgb(val, surf), surf); return [fmt(r), 'decorative']; }
+    if (test === 'text') { const r = Math.min(...grounds.map(g => this.ratio(this.rgb(val, g), g))); return [fmt(r), r >= 7 ? 'AAA' : r >= 4.5 ? 'AA' : 'below AA']; }
+    if (test === 'graphic') { const r = this.ratio(this.rgb(val), surf); return [fmt(r), r >= 3 ? '3:1 UI' : 'below 3:1']; }
+    if (test === 'fill') { const r = this.ratio(this.rgb(map['action-ink']), this.rgb(val)); return [fmt(r), r >= 4.5 ? 'AA label' : 'below AA']; }
+    if (test === 'onaction') { const r = this.ratio(this.rgb(val), this.rgb(map.action)); return [fmt(r), 'on action']; }
+    if (test.startsWith('soft:')) { const g = this.rgb(val, surf); const r = this.ratio(this.rgb(map[test.slice(5)], g), g); return [fmt(r), test.slice(5)]; }
+    return ['—', 'overlay'];
+  }
+
+  tokenGroups() {
+    if (this._tg) return this._tg;
+    const L = {}, D = {};
+    Component.TOKENS.forEach(([, rows]) => rows.forEach(([n, l, d]) => { L[n] = l; D[n] = d; }));
+    const sw = (c) => ({ width: 28, height: 28, borderRadius: 6, background: c, boxShadow: 'inset 0 0 0 1px rgba(128,128,128,.25)', flexShrink: 0 });
+    this._tg = Component.TOKENS.map(([name, rows]) => ({
+      name, rows: rows.map(([n, l, d, test, use]) => {
+        const [lRatio, lPass] = this.evalToken(test, l, L); const [dRatio, dPass] = this.evalToken(test, d, D);
+        return { name: '--' + n, light: l, dark: d, lRatio, lPass, dRatio, dPass, use, swL: sw(l), swD: sw(d) };
+      }),
+    }));
+    return this._tg;
+  }
+
+  topics(dark) {
+    return Component.TOPICS.map(([key, fr, en, icon, h]) => {
+      const fgL = this.oklch(.5, .13, h), softL = this.oklch(.955, .03, h), fgD = this.oklch(.8, .11, h), softD = this.oklch(.3, .045, h);
+      const fg = dark ? fgD : fgL, soft = dark ? softD : softL;
+      return {
+        key, fr, en, icon, hue: 'h ' + h + '°', fgL, softL, fgD, softD,
+        token: '--topic-' + key,
+        ratio: this.ratio(this.rgb(fg), this.rgb(soft)).toFixed(1) + ':1',
+        chip: { width: 40, height: 40, borderRadius: 8, background: soft, color: fg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+        chipSm: { width: 20, height: 20, borderRadius: 5, background: soft, color: fg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+      };
+    });
+  }
+
+  static RK = ['en0','en1','en2','enb0','enb1','enb2','segInd','seg0','seg1','seg2','pr','fr','fn','fb0','fb1','fb2','cn','cx','cl','p0','p1','p2','p3','p4','p5','p6','p7','p8','p9','stPill','stFlame','stNum','stCap','recBtn','recMic','recStop','recWave','recTime','recLbl','crWrong','crStrike','crRight','crUnder','crNote'];
+  R = Object.fromEntries(Component.RK.map(k => [k, React.createRef()]));
+  el = (k) => this.R[k].current;
+  v = (n) => getComputedStyle(this.el('fn') || document.body).getPropertyValue(n).trim();
+  A = (k, kf, o) => { const el = typeof k === 'string' ? this.el(k) : k; return el ? el.animate(kf, { fill: 'both', ...o }) : null; };
+  reset = (...ks) => ks.forEach(k => this.el(k)?.getAnimations().forEach(a => a.cancel()));
+  count = (k, to, dur, dec, suffix = '', delay = 0) => {
+    const el = this.el(k); if (!el) return; const t0 = performance.now() + delay;
+    const step = (t) => { const p = Math.max(0, Math.min(1, (t - t0) / dur)); const e = 1 - Math.pow(1 - p, 4); el.textContent = (to * e).toFixed(dec) + suffix; if (p < 1) requestAnimationFrame(step); };
+    requestAnimationFrame(step);
+  };
+  SPRING = 'cubic-bezier(.34,1.56,.64,1)'; OUT = 'cubic-bezier(.16,1,.3,1)'; EASE = 'cubic-bezier(.2,0,.2,1)';
+
+  componentDidMount() {
+    this.reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    setTimeout(() => this.playAll(), 700);
+    this.timer = setInterval(() => { if ((this.props.autoplay ?? true) && !this.reduced) this.playAll(); }, 5600);
+  }
+  componentWillUnmount() { clearInterval(this.timer); cancelAnimationFrame(this._raf); }
+
+  playAll = () => { [this.playEnter, this.playSlide, this.playPress, this.playFill, this.playCelebrate, this.playStreak, this.playRecord, this.playCorrect].forEach((f, i) => setTimeout(f, i * 140)); };
+
+  playEnter = () => {
+    this.reset('en0', 'en1', 'en2', 'enb0', 'enb1', 'enb2');
+    [0, 1, 2].forEach(i => {
+      this.A('en' + i, [{ opacity: 0, transform: 'translateY(12px) scale(.98)' }, { opacity: 1, transform: 'none' }], { duration: 420, delay: i * 50, easing: this.SPRING });
+      const w = this.el('enb' + i)?.style.width;
+      this.A('enb' + i, [{ width: '0%' }, { width: w }], { duration: 700, delay: 220 + i * 60, easing: this.OUT });
+    });
+  };
+  playSlide = () => {
+    const ind = this.el('segInd'); if (!ind) return;
+    const from = this._seg || 0, to = (from + 1) % 3; this._seg = to;
+    ind.getAnimations().forEach(a => a.cancel());
+    ind.animate([{ transform: `translateX(${from * 100}%)` }, { transform: `translateX(${to * 100}%)` }], { duration: 380, easing: 'cubic-bezier(.34,1.35,.64,1)', fill: 'forwards' });
+    [0, 1, 2].forEach(i => { const el = this.el('seg' + i); if (el) { el.style.transition = 'color 120ms'; el.style.color = i === to ? 'var(--action-text)' : 'var(--ink-muted)'; } });
+  };
+  playPress = () => {
+    this.reset('pr');
+    this.A('pr', [{ transform: 'scale(1)', backgroundColor: this.v('--action') }, { transform: 'scale(.97)', backgroundColor: this.v('--action-press'), offset: .22 }, { transform: 'scale(1.01)', backgroundColor: this.v('--action'), offset: .6 }, { transform: 'scale(1)', backgroundColor: this.v('--action') }], { duration: 380, easing: 'ease-out', fill: 'none' });
+  };
+  playFill = () => {
+    this.reset('fr', 'fb0', 'fb1', 'fb2');
+    const C = 226.19;
+    this.A('fr', [{ strokeDashoffset: C }, { strokeDashoffset: C * .28 }], { duration: 700, easing: this.OUT });
+    this.count('fn', 72, 700, 0, '%');
+    [86, 72, 58].forEach((w, i) => this.A('fb' + i, [{ width: '0%' }, { width: w + '%' }], { duration: 700, delay: 120 + i * 80, easing: this.OUT }));
+  };
+  playCelebrate = () => {
+    this.reset('cn', 'cx', 'cl', ...Array.from({ length: 10 }, (_, i) => 'p' + i));
+    this.A('cn', [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'none' }], { duration: 420, easing: this.SPRING });
+    this.count('cn', 7.8, 600, 1);
+    this.A('cx', [{ opacity: 0, transform: 'scale(.6)' }, { opacity: 1, transform: 'scale(1)' }], { duration: 520, delay: 480, easing: this.SPRING });
+    for (let i = 0; i < 10; i++) {
+      const a = (i / 10) * Math.PI * 2 + Math.random() * .5, d = 34 + Math.random() * 26;
+      this.A('p' + i, [{ opacity: 0, transform: 'translate(0,0) scale(1)' }, { opacity: 1, offset: .15 }, { opacity: 0, transform: `translate(${Math.cos(a) * d * 1.6}px,${Math.sin(a) * d}px) scale(.4)` }], { duration: 620, delay: 540, easing: this.OUT });
+    }
+    this.A('cl', [{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 320, delay: 760, easing: this.OUT });
+  };
+  playStreak = () => {
+    this.reset('stPill', 'stFlame', 'stNum', 'stCap');
+    this.A('stPill', [{ borderColor: this.v('--hairline-strong') }, { borderColor: this.v('--streak') }], { duration: 400, easing: this.EASE });
+    this.A('stFlame', [{ transform: 'scale(1) rotate(0)' }, { transform: 'scale(1.25) rotate(-8deg)', offset: .35 }, { transform: 'scale(1.1) rotate(6deg)', offset: .65 }, { transform: 'scale(1) rotate(0)' }], { duration: 600, delay: 80, easing: 'ease-out' });
+    this.A('stNum', [{ transform: 'translateY(0)' }, { transform: 'translateY(-22px)' }], { duration: 520, delay: 180, easing: this.SPRING });
+    this.A('stCap', [{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 320, delay: 420, easing: this.OUT });
+  };
+  playRecord = () => {
+    if (this._recOn) return; this._recOn = true;
+    this.reset('recBtn', 'recMic', 'recStop');
+    const bars = [...(this.el('recWave')?.children || [])], time = this.el('recTime'), lbl = this.el('recLbl');
+    this.A('recBtn', [{ backgroundColor: this.v('--action') }, { backgroundColor: this.v('--ink') }], { duration: 200, easing: this.EASE });
+    this.A('recMic', [{ opacity: 1, transform: 'scale(1)' }, { opacity: 0, transform: 'scale(.6)' }], { duration: 200, easing: this.EASE });
+    this.A('recStop', [{ opacity: 0, transform: 'scale(.6)' }, { opacity: 1, transform: 'scale(1)' }], { duration: 260, delay: 60, easing: this.SPRING });
+    if (lbl) lbl.textContent = 'Recording';
+    const t0 = performance.now(), D = 2200;
+    const step = (t) => {
+      const el = t - t0, env = Math.min(1, el / 200) * Math.min(1, (D - el) / 200);
+      bars.forEach((b, i) => { const n = (Math.sin(el * .011 + i * .8) * .5 + .5) * (Math.sin(el * .027 + i * 2.1) * .5 + .5); b.style.height = (4 + 32 * Math.max(0, env) * (.25 + .75 * n)) + 'px'; b.style.background = 'var(--ink)'; });
+      if (time) time.textContent = '0:0' + Math.floor(el / 1000);
+      if (el < D) this._raf = requestAnimationFrame(step);
+      else {
+        bars.forEach(b => { b.style.height = '4px'; b.style.background = 'var(--ink-muted)'; });
+        if (lbl) lbl.textContent = 'Analysing…';
+        this.reset('recBtn', 'recMic', 'recStop');
+        this.A('recBtn', [{ backgroundColor: this.v('--ink') }, { backgroundColor: this.v('--action') }], { duration: 200, easing: this.EASE });
+        this.A('recStop', [{ opacity: 1 }, { opacity: 0 }], { duration: 160 });
+        this.A('recMic', [{ opacity: 0, transform: 'scale(.6)' }, { opacity: 1, transform: 'scale(1)' }], { duration: 300, delay: 80, easing: this.SPRING });
+        setTimeout(() => { if (lbl) lbl.textContent = 'Tap to record'; if (time) time.textContent = '0:00'; this._recOn = false; }, 900);
+      }
+    };
+    this._raf = requestAnimationFrame(step);
+  };
+  playCorrect = () => {
+    this.reset('crWrong', 'crStrike', 'crRight', 'crUnder', 'crNote');
+    this.A('crStrike', [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: 240, delay: 120, easing: this.EASE });
+    this.A('crWrong', [{ color: this.v('--ink') }, { color: this.v('--correction-text') }], { duration: 200, delay: 160, easing: this.EASE });
+    this.A('crRight', [{ opacity: 0, transform: 'translateY(-8px)' }, { opacity: 1, transform: 'none' }], { duration: 440, delay: 400, easing: this.SPRING });
+    this.A('crUnder', [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: 260, delay: 720, easing: this.EASE });
+    this.A('crNote', [{ opacity: 0 }, { opacity: 1 }], { duration: 300, delay: 860, easing: this.OUT });
+  };
+
+  renderVals() {
+    const dark = (this.props.theme ?? 'light') === 'dark';
+    const topics = this.topics(dark);
+    const byKey = Object.fromEntries(topics.map(t => [t.key, t]));
+    return {
+      themeVars: dark ? Component.DARK : {},
+      tokenGroups: this.tokenGroups(),
+      topics,
+      tEcole: byKey.ecole, tAvenir: byKey.avenir, tFamille: byKey.famille,
+      r: this.R,
+      play: { all: this.playAll, enter: this.playEnter, slide: this.playSlide, press: this.playPress, fill: this.playFill, celebrate: this.playCelebrate, streak: this.playStreak, record: this.playRecord, correct: this.playCorrect },
+      ringC: (2 * Math.PI * 33).toFixed(2),
+      topicCss: '/* topic chips — light in html:not(.dark), dark in :root */\n' + topics.map(t => `--topic-${t.key}:${t.fgL}; --topic-${t.key}-soft:${t.softL};`.padEnd(64) + `/* dark ${t.fgD} / ${t.softD} · ${t.icon} */`).join('\n'),
+    };
+  }
+}
+</script>
+</body>
+</html>

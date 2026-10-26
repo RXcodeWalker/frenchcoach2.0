@@ -4,22 +4,36 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
+      /* Design System v2: Bricolage Grotesque everywhere. `numeral` is
+         retired as a face — it maps to Bricolage, and index.css gives
+         .font-numeral its 500 weight + tabular figures. Libre Baskerville
+         (`exam`) is for Exam mode and quoted model answers only. */
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-        display: ['Instrument Serif', 'Georgia', 'serif'],
-        numeral: ['IBM Plex Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+        sans: ['"Bricolage Grotesque"', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['"Bricolage Grotesque"', 'system-ui', 'sans-serif'],
+        numeral: ['"Bricolage Grotesque"', 'system-ui', 'sans-serif'],
+        exam: ['"Libre Baskerville"', 'Georgia', 'serif'],
       },
+      /* Type scale (README "Type scale"). Nothing below 12px. */
       fontSize: {
-        'display-xl': ['54px', { lineHeight: '1', fontWeight: '400', letterSpacing: '-0.022em' }],
-        'display-l': ['40px', { lineHeight: '1.05', fontWeight: '400', letterSpacing: '-0.02em' }],
-        'display-m': ['30px', { lineHeight: '1.1', fontWeight: '400', letterSpacing: '-0.015em' }],
-        title: ['22px', { lineHeight: '1.25', fontWeight: '600', letterSpacing: '-0.012em' }],
+        display: ['60px', { lineHeight: '1', fontWeight: '600', letterSpacing: '-0.035em' }],
+        'display-xl': ['60px', { lineHeight: '1', fontWeight: '600', letterSpacing: '-0.035em' }],
+        'display-l': ['40px', { lineHeight: '1.05', fontWeight: '600', letterSpacing: '-0.025em' }],
+        h1: ['40px', { lineHeight: '1.05', fontWeight: '600', letterSpacing: '-0.025em' }],
+        'display-m': ['30px', { lineHeight: '1.12', fontWeight: '600', letterSpacing: '-0.015em' }],
+        h2: ['30px', { lineHeight: '1.12', fontWeight: '600', letterSpacing: '-0.015em' }],
+        title: ['22px', { lineHeight: '1.25', fontWeight: '600', letterSpacing: '-0.01em' }],
         subtitle: ['18px', { lineHeight: '1.35', fontWeight: '600' }],
+        section: ['16px', { lineHeight: '1.3', fontWeight: '600' }],
         'body-l': ['16px', { lineHeight: '1.6' }],
-        'body-base': ['15px', { lineHeight: '1.55' }],
+        'body-base': ['15px', { lineHeight: '1.6' }],
         'body-s': ['14px', { lineHeight: '1.5' }],
         label: ['13px', { lineHeight: '1.4', fontWeight: '600' }],
-        eyebrow: ['11px', { lineHeight: '1.2', fontWeight: '700', letterSpacing: '0.16em' }],
+        caption: ['12px', { lineHeight: '1.4', fontWeight: '400' }],
+        eyebrow: ['12px', { lineHeight: '1.2', fontWeight: '600', letterSpacing: '0.06em' }],
+        'num-xl': ['52px', { lineHeight: '1', fontWeight: '500', letterSpacing: '-0.02em' }],
+        'num-l': ['32px', { lineHeight: '1.15', fontWeight: '500', letterSpacing: '-0.01em' }],
+        'num-m': ['28px', { lineHeight: '1.15', fontWeight: '500' }],
       },
       borderRadius: {
         control: 'var(--radius-control)',
@@ -33,12 +47,17 @@ export default {
       transitionTimingFunction: {
         smooth: 'var(--ease)',
         'smooth-out': 'var(--ease-out)',
+        spring: 'var(--ease-spring)',
+        slide: 'var(--ease-slide)',
       },
       transitionDuration: {
         state: '120ms',
-        enter: '200ms',
+        press: '80ms',
+        enter: '240ms',
         overlay: '320ms',
-        celebrate: '600ms',
+        slide: '320ms',
+        fill: '700ms',
+        celebrate: '900ms',
       },
       colors: {
         /* role-named tokens — resolve to the CSS vars in index.css.
@@ -118,25 +137,16 @@ export default {
           achievement: '#F59E0B',
         },
       },
+      /* The 'enter' motion as a CSS animation, for places framer-motion
+         doesn't reach (Modal). See src/components/motion/variants.ts. */
       animation: {
-        'fade-in': 'fadeIn 0.4s ease-out forwards',
-        shake: 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
-        'wave-pulse': 'wavePulse 1.2s ease-in-out infinite',
+        'fade-in': 'enter 420ms var(--ease-spring) both',
+        enter: 'enter 420ms var(--ease-spring) both',
       },
       keyframes: {
-        fadeIn: {
-          from: { opacity: '0', transform: 'translateY(8px)' },
-          to: { opacity: '1', transform: 'translateY(0)' },
-        },
-        shake: {
-          '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
-          '20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
-          '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
-          '40%, 60%': { transform: 'translate3d(4px, 0, 0)' },
-        },
-        wavePulse: {
-          '0%, 100%': { transform: 'scaleY(0.3)' },
-          '50%': { transform: 'scaleY(1)' },
+        enter: {
+          from: { opacity: '0', transform: 'translateY(12px) scale(.98)' },
+          to: { opacity: '1', transform: 'none' },
         },
       },
       backdropBlur: {

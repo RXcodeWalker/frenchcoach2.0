@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&display=swap">
+<script src="./l-icon.js"></script>
+<style>
+html, body { margin: 0; padding: 0; background: #F1F0EC; }
+a { color: #6D28D9; text-decoration: none; }
+a:hover { color: #5B21B6; text-decoration: underline; }
+</style>
+</helmet>
+<div style="--ink:#1C1A17; --ink-muted:#56524B; --ink-subtle:#6E6A62; --hairline:rgba(28,25,20,.09); --hairline-strong:rgba(28,25,20,.16); --action:#7C3AED; --action-text:#6D28D9; --action-soft:rgba(124,58,237,.08); --track:rgba(28,25,20,.08); --shadow-overlay:0 16px 40px -12px rgba(28,25,20,.22); background: #F1F0EC; color: var(--ink); font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 300; font-size: 15px; line-height: 1.6; padding: 64px; min-height: 100vh; box-sizing: border-box; display: flex; flex-direction: column; gap: 64px;">
+
+<header style="display: flex; flex-direction: column; gap: 16px; max-width: 980px;">
+  <span style="display: flex; align-items: center; gap: 12px;"><span style="width: 32px; height: 32px; border-radius: 8px; background: var(--action); color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 18px;">F</span><span style="font-size: 13px; font-weight: 600;">Français AI · Home + Learn redesign</span><span style="font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">Design System v2 · Oct 2026</span></span>
+  <h1 style="margin: 0; font-size: 60px; line-height: 1; font-weight: 600; letter-spacing: -0.035em;">Three directions, one system.</h1>
+  <p style="margin: 0; font-size: 17px; color: var(--ink-muted); max-width: 760px; text-wrap: pretty;">Every frame is a working prototype. Start a session, record (your mic drives the waveform if you allow it), read the feedback, and finish — the ring, streak and XP then land on Home. Try Examiner style on the setup screen for the honest unscored path.</p>
+  <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+    <button onClick="{{ resetAll }}" style="height: 40px; padding: 0 16px; border-radius: 8px; border: 1px solid var(--hairline-strong); background: transparent; color: var(--ink); font-family: inherit; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer;" style-hover="background: var(--track);"><l-icon name="rotate-ccw" size="16"></l-icon>Restart all demos</button>
+    <span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle); align-self: center;">Jump to <a href="#3a">3a</a> · <a href="#3b">3b</a> · <a href="#2a">2a</a> · <a href="#1a">1a</a> · <a href="#1b">1b</a> · <a href="#1c">1c</a></span>
+  </div>
+</header>
+
+<section data-screen-label="Turn 3" style="display: flex; flex-direction: column; gap: 64px;">
+  <div id="3a" data-screen-label="3a" style="display: flex; flex-direction: column; gap: 20px;">
+    <div style="display: flex; align-items: flex-start; gap: 16px; max-width: 1200px;">
+      <span style="height: 32px; min-width: 40px; padding: 0 10px; border-radius: 8px; background: var(--action); color: #FFFFFF; font-variant-numeric: tabular-nums; font-weight: 600; font-size: 15px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;">3a</span>
+      <span style="display: flex; flex-direction: column; gap: 4px; flex: 1;">
+        <span style="font-size: 22px; font-weight: 600; line-height: 1.25;">Progress · next step first, then exam, consistency, topics, history</span>
+        <span style="font-size: 15px; color: var(--ink-muted); max-width: 900px; text-wrap: pretty;">One primary (the next step), four at-a-glance numbers that count up, an exam trend with your target line and the weakest area flagged, a 14-day consistency grid, topics sorted weakest first, and a filterable, expandable attempt history.</span>
+      </span>
+      <button onClick="{{ reset3 }}" style="height: 40px; padding: 0 14px; border-radius: 8px; border: 1px solid var(--hairline-strong); background: transparent; color: var(--ink-muted); font-family: inherit; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; flex-shrink: 0;" style-hover="background: var(--track); color: var(--ink);"><l-icon name="rotate-ccw" size="14"></l-icon>Restart</button>
+    </div>
+    <div style="display: flex; gap: 40px; align-items: flex-start;">
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <span style="font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">Desktop · 1280 × 800</span>
+        <div style="width: 1280px; height: 800px; border-radius: 12px; overflow: hidden; border: 1px solid var(--hairline-strong); box-shadow: var(--shadow-overlay);">
+          <dc-import name="FrancaisAppV2" direction="{{ deskDir }}" device="desktop" screen="progress" theme="{{ theme }}" demo-id="3a-d" hint-size="1280px,800px" style="display: block; width: 1280px; height: 800px;"></dc-import>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <span style="font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">Mobile · 390 × 844</span>
+        <div style="width: 390px; height: 844px; border-radius: 12px; overflow: hidden; border: 1px solid var(--hairline-strong); box-shadow: var(--shadow-overlay);">
+          <dc-import name="FrancaisAppV2" direction="c" device="mobile" screen="progress" theme="{{ theme }}" demo-id="3a-m" hint-size="390px,844px" style="display: block; width: 390px; height: 844px;"></dc-import>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="3b" data-screen-label="3b" style="display: flex; flex-direction: column; gap: 20px;">
+    <div style="display: flex; align-items: flex-start; gap: 16px; max-width: 1200px;">
+      <span style="height: 32px; min-width: 40px; padding: 0 10px; border-radius: 8px; background: var(--action); color: #FFFFFF; font-variant-numeric: tabular-nums; font-weight: 600; font-size: 15px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;">3b</span>
+      <span style="display: flex; flex-direction: column; gap: 4px; flex: 1;">
+        <span style="font-size: 22px; font-weight: 600; line-height: 1.25;">Profile · identity, stats and achievements beside grouped settings</span>
+        <span style="font-size: 15px; color: var(--ink-muted); max-width: 900px; text-wrap: pretty;">Level bar and inline username change; four stat tiles; achievements with a “next up” and progress on every locked badge; learning goals with a live daily-goal stepper (it drives the ring on Home). Settings are grouped rows with real toggles — Dark mode switches the whole app — and delete asks for confirmation.</span>
+      </span>
+      <button onClick="{{ reset3 }}" style="height: 40px; padding: 0 14px; border-radius: 8px; border: 1px solid var(--hairline-strong); background: transparent; color: var(--ink-muted); font-family: inherit; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; flex-shrink: 0;" style-hover="background: var(--track); color: var(--ink);"><l-icon name="rotate-ccw" size="14"></l-icon>Restart</button>
+    </div>
+    <div style="display: flex; gap: 40px; align-items: flex-start;">
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <span style="font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">Desktop · 1280 × 800</span>
+        <div style="width: 1280px; height: 800px; border-radius: 12px; overflow: hidden; border: 1px solid var(--hairline-strong); box-shadow: var(--shadow-overlay);">
+          <dc-import name="FrancaisAppV2" direction="{{ deskDir }}" device="desktop" screen="profile" theme="{{ theme }}" demo-id="3b-d" hint-size="1280px,800px" style="display: block; width: 1280px; height: 800px;"></dc-import>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <span style="font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">Mobile · 390 × 844</span>
+        <div style="width: 390px; height: 844px; border-radius: 12px; overflow: hidden; border: 1px solid var(--hairline-strong); box-shadow: var(--shadow-overlay);">
+          <dc-import name="FrancaisAppV2" direction="c" device="mobile" screen="profile" theme="{{ theme }}" demo-id="3b-m" hint-size="390px,844px" style="display: block; width: 390px; height: 844px;"></dc-import>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section data-screen-label="Turn 2" style="display: flex; flex-direction: column; gap: 20px;">
+  <div id="2a" data-screen-label="2a" style="display: flex; flex-direction: column; gap: 20px;">
+    <div style="display: flex; align-items: flex-start; gap: 16px; max-width: 1200px;">
+      <span style="height: 32px; min-width: 40px; padding: 0 10px; border-radius: 8px; background: var(--action); color: #FFFFFF; font-variant-numeric: tabular-nums; font-weight: 600; font-size: 15px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;">2a</span>
+      <span style="display: flex; flex-direction: column; gap: 4px; flex: 1;">
+        <span style="font-size: 22px; font-weight: 600; line-height: 1.25;">Final · mission stack on desktop, compact stage on mobile</span>
+        <span style="font-size: 15px; color: var(--ink-muted); max-width: 900px; text-wrap: pretty;">Flow runs up to feedback; the feedback itself is a placeholder slot for the separate design. Added: level progress, today’s plan, XP and streak stakes on the mission, a speaking-length meter while recording, and stepped processing.</span>
+      </span>
+      <button onClick="{{ reset2 }}" style="height: 40px; padding: 0 14px; border-radius: 8px; border: 1px solid var(--hairline-strong); background: transparent; color: var(--ink-muted); font-family: inherit; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; flex-shrink: 0;" style-hover="background: var(--track); color: var(--ink);"><l-icon name="rotate-ccw" size="14"></l-icon>Restart</button>
+    </div>
+    <div style="display: flex; gap: 40px; align-items: flex-start;">
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <span style="font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">Desktop · 1280 × 800</span>
+        <div style="width: 1280px; height: 800px; border-radius: 12px; overflow: hidden; border: 1px solid var(--hairline-strong); box-shadow: var(--shadow-overlay);">
+          <dc-import name="FrancaisAppV2" direction="{{ deskDir }}" device="desktop" theme="{{ theme }}" demo-id="2a-d" hint-size="1280px,800px" style="display: block; width: 1280px; height: 800px;"></dc-import>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <span style="font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">Mobile · 390 × 844</span>
+        <div style="width: 390px; height: 844px; border-radius: 12px; overflow: hidden; border: 1px solid var(--hairline-strong); box-shadow: var(--shadow-overlay);">
+          <dc-import name="FrancaisAppV2" direction="c" device="mobile" theme="{{ theme }}" demo-id="2a-m" hint-size="390px,844px" style="display: block; width: 390px; height: 844px;"></dc-import>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section data-screen-label="Turn 1" style="display: flex; flex-wrap: wrap; gap: 96px;">
+  <sc-for list="{{ options }}" as="o" hint-placeholder-count="3">
+    <div id="{{ o.id }}" data-screen-label="{{ o.id }}" style="display: flex; flex-direction: column; gap: 20px;">
+      <div style="display: flex; align-items: flex-start; gap: 16px; max-width: 1200px;">
+        <span style="height: 32px; min-width: 40px; padding: 0 10px; border-radius: 8px; background: var(--ink); color: #FFFFFF; font-variant-numeric: tabular-nums; font-weight: 600; font-size: 15px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;">{{ o.id }}</span>
+        <span style="display: flex; flex-direction: column; gap: 4px; flex: 1;">
+          <span style="font-size: 22px; font-weight: 600; line-height: 1.25;">{{ o.name }}</span>
+          <span style="font-size: 15px; color: var(--ink-muted); max-width: 900px; text-wrap: pretty;">{{ o.desc }}</span>
+        </span>
+        <button onClick="{{ o.reset }}" style="height: 40px; padding: 0 14px; border-radius: 8px; border: 1px solid var(--hairline-strong); background: transparent; color: var(--ink-muted); font-family: inherit; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; flex-shrink: 0;" style-hover="background: var(--track); color: var(--ink);"><l-icon name="rotate-ccw" size="14"></l-icon>Restart</button>
+      </div>
+      <div style="display: flex; gap: 40px; align-items: flex-start;">
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <span style="font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">Desktop · 1280 × 800</span>
+          <div style="width: 1280px; height: 800px; border-radius: 12px; overflow: hidden; border: 1px solid var(--hairline-strong); box-shadow: var(--shadow-overlay);">
+            <dc-import name="FrancaisApp" direction="{{ o.dir }}" device="desktop" theme="{{ theme }}" demo-id="{{ o.dId }}" hint-size="1280px,800px" style="display: block; width: 1280px; height: 800px;"></dc-import>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <span style="font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">Mobile · 390 × 844</span>
+          <div style="width: 390px; height: 844px; border-radius: 12px; overflow: hidden; border: 1px solid var(--hairline-strong); box-shadow: var(--shadow-overlay);">
+            <dc-import name="FrancaisApp" direction="{{ o.dir }}" device="mobile" theme="{{ theme }}" demo-id="{{ o.mId }}" hint-size="390px,844px" style="display: block; width: 390px; height: 844px;"></dc-import>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-for>
+</section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;desktopLayout&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;1a&quot;,&quot;1c&quot;],&quot;default&quot;:&quot;1a&quot;,&quot;tsType&quot;:&quot;'1a' | '1c'&quot;},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;'light' | 'dark'&quot;}}">
+class Component extends DCLogic {
+  reset = (id) => window.dispatchEvent(new CustomEvent('fa-reset', { detail: id }));
+  renderVals() {
+    const O = [
+      ['1a', 'a', 'Mission stack', 'Calm single column. The mission card owns the only primary; coach pick and weakest topic fold into one card under it; the week and recent activity share a row. In a session, question → recorder → feedback stack in reading order, with a big score and separate cards for corrections and upgrades.'],
+      ['1b', 'b', 'Split workspace', 'The mission names today’s topic and carries the coach’s reason, so Start goes straight to setup. Sessions split into two panes: the prompt stays put on the left while the recorder turns into tabbed feedback (Score · Corrections · Vocabulary) on the right.'],
+      ['1c', 'c', 'Compact stage', 'Dense and quick. A mission band with a one-line focus, a week strip that shows each day’s score, single-line activity rows and a topic list. Sessions centre the prompt on a stage with a sticky record dock; feedback is one ledger card.'],
+    ];
+    return {
+      theme: this.props.theme ?? 'light',
+      resetAll: () => this.reset('all'), reset2: () => this.reset('2a'), reset3: () => this.reset('3'), deskDir: this.props.desktopLayout === '1c' ? 'c' : 'a',
+      options: O.map(([id, dir, name, desc]) => ({ id, dir, name, desc, dId: id + '-d', mId: id + '-m', reset: () => this.reset(id) })),
+    };
+  }
+}
+</script>
+</body>
+</html>

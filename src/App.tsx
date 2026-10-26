@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Routes, Route, Outlet, useLocation, Navigate } from 'react-router-dom';
-import { AnimatePresence, motion, type Variants } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
+import { route } from './components/motion/variants';
 import { Zap } from 'lucide-react';
 import { AppProvider, useApp } from './context/AppContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -82,15 +83,8 @@ import { TourHost } from './features/tour/TourHost';
 import { supabaseConfigured } from './lib/supabase';
 import { AnalyticsTracker, AnalyticsPersonSync } from './services/telemetry/AnalyticsTracker';
 
-const pageVariants: Variants = {
-  initial: { opacity: 0, scale: 0.98 },
-  animate: {
-    opacity: 1,
-    scale: 1,
-    transition: { type: 'spring', stiffness: 100, damping: 20, mass: 0.5 },
-  },
-  exit: { opacity: 0, scale: 1.02, transition: { duration: 0.2 } },
-};
+// Route change: a plain fade (Design System v2 'enter' — the cards inside rise).
+const pageVariants = route;
 
 function GlobalCelebrations() {
   const { state, dispatch } = useApp();
@@ -162,7 +156,7 @@ function MainLayout() {
   // Launch scope: hidden features redirect home instead of rendering.
   if (isHiddenPath(location.pathname)) return <Navigate to="/" replace />;
   return (
-    <div className="min-h-screen dark:bg-navy bg-slate-100 dark:text-white text-slate-900 overflow-hidden">
+    <div className="min-h-screen bg-bg text-ink overflow-hidden">
       {!junior && <SideRail />}
       <main className={`relative z-10 ${junior ? '' : 'md:ml-[64px]'}`}>
         <AnimatePresence mode="wait">
@@ -214,7 +208,7 @@ function AppShell() {
 
   if (loading) {
     return (
-      <div className="min-h-screen dark:bg-slate-950 bg-slate-100 flex items-center justify-center">
+      <div className="min-h-screen bg-bg flex items-center justify-center">
         <div className="w-8 h-8 rounded-full border-2 border-violet-500/30 border-t-violet-500 animate-spin" />
       </div>
     );

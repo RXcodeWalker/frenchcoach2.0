@@ -6,82 +6,78 @@
 @tailwind utilities;
 
 /* ============================================================
-   FRENCH COACH v3 — Apple-Level Premium Design System
-   Deep Navy (#0A0C10) + Glassmorphism
+   FRANÇAIS AI — Design System v2
+   Bricolage Grotesque, role-named tokens, flat surfaces
    ============================================================ */
 
 @layer base {
   *, *::before, *::after { box-sizing: border-box; }
 
   html {
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    font-optical-sizing: auto;
   }
 
+  /* Design System v2: one ground per theme, from the tokens below.
+     Body text is Bricolage Grotesque Light (300). */
   body {
-    background: #0D0D0F;
-    color: #fff;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    transition: background 0.3s ease, color 0.3s ease;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Bricolage Grotesque', system-ui, -apple-system, sans-serif;
+    font-weight: 300;
+    transition: background-color 200ms var(--ease);
   }
 
-  html:not(.dark) body {
-    background: #f1f5f9;
-    color: #0f172a;
-  }
+  /* Numerals are Bricolage 500 with tabular figures (the old mono numeral
+     face is retired; `font-numeral` now means this). */
+  .font-numeral, .tabular-nums { font-variant-numeric: tabular-nums; }
+  .font-numeral { font-weight: 500; }
+
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.06); border-radius: 99px; }
-  ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.12); }
-  html:not(.dark) ::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.12); }
-  html:not(.dark) ::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.2); }
-  * { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.06) transparent; }
-  html:not(.dark) * { scrollbar-color: rgba(0,0,0,0.12) transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--hairline-strong); border-radius: 99px; }
+  * { scrollbar-width: thin; scrollbar-color: var(--hairline-strong) transparent; }
 }
 
 /* ============================================================
-   ROLE-NAMED TOKEN LAYER — design-system migration (additive)
-   Dark = :root · Light = html:not(.dark). Both values ARE the token;
-   never patch a colour in a light-mode override.
-   The .glass→.surface sweep is done; the legacy-alias remap
-   (bg-navy-*, violet-electric, text-slate-800/900/950) is still a
-   separate, reviewed pass. See README "Design tokens".
+   DESIGN SYSTEM v2 TOKENS — role-named, one class serves both
+   themes. Dark = :root · Light = html:not(.dark). Light is the
+   primary theme. Never patch a colour in a light-mode override.
    ============================================================ */
 :root {
-  --bg:#0A0C10; --surface:#12151C; --surface-recessed:#0E1116; --surface-raised:#161A23;
+  --bg:#0B0B0E; --surface:#141418; --surface-recessed:#0F0F12; --surface-raised:#1A1A1F;
   --hairline:rgba(255,255,255,.08); --hairline-strong:rgba(255,255,255,.14);
-  --ink:#EEF0F5; --ink-muted:#98A0AE; --ink-subtle:#7E8794;
-  --action:#7C3AED; --action-hover:#8B5CF6; --action-press:#6D28D9;
-  --action-ink:#FFFFFF; --action-text:#A78BFA; --action-soft:rgba(124,58,237,.14);
+  --ink:#EDECEF; --ink-muted:#A3A1AA; --ink-subtle:#8A8892;
+  --action:#7C3AED; --action-hover:#8247EF; --action-press:#6D28D9;
+  --action-ink:#FFFFFF; --action-text:#A78BFA; --action-soft:rgba(139,92,246,.16);
   --progress:#10B981; --progress-text:#34D399; --progress-soft:rgba(16,185,129,.12);
   --reward:#F59E0B; --reward-text:#FBBF24; --reward-soft:rgba(245,158,11,.12);
   --streak:#FB923C; --streak-text:#FDBA74;
-  --correction:#F43F5E; --correction-text:#FB7185; --correction-soft:rgba(244,63,94,.10);
-  --info-text:#22D3EE; --info-soft:rgba(6,182,212,.12);
-  --focus:#A78BFA;
-  --track:rgba(255,255,255,.07); --scrim:rgba(8,9,11,.72);
+  --correction:#F43F5E; --correction-text:#FB7185; --correction-soft:rgba(244,63,94,.12);
+  --info-text:#5CCFE6; --info-soft:rgba(92,207,230,.10);
+  --focus:#A78BFA; --track:rgba(255,255,255,.08); --scrim:rgba(0,0,0,.60);
   --shadow-card:0 1px 2px rgba(0,0,0,.4); --shadow-overlay:0 24px 60px -20px rgba(0,0,0,.75);
   --radius-control:8px; --radius-card:12px; --radius-pill:999px;
-  --dur-state:120ms; --dur-enter:200ms; --dur-overlay:320ms; --dur-celebrate:600ms;
-  --ease:cubic-bezier(.2,0,.2,1); --ease-out:cubic-bezier(.16,1,.3,1);
+  --dur-state:120ms; --dur-enter:240ms; --dur-overlay:320ms; --dur-fill:700ms; --dur-celebrate:900ms;
+  --ease:cubic-bezier(.2,0,.2,1); --ease-out:cubic-bezier(.16,1,.3,1); --ease-spring:cubic-bezier(.34,1.56,.64,1);
+  --ease-slide:cubic-bezier(.34,1.35,.64,1);
 }
-
 html:not(.dark) {
-  --bg:#FAFAF8; --surface:#FFFFFF; --surface-recessed:#F4F3F0; --surface-raised:#FFFFFF;
-  --hairline:rgba(26,26,24,.10); --hairline-strong:rgba(26,26,24,.18);
-  --ink:#1A1A18; --ink-muted:#55534C; --ink-subtle:#6E6B63;
+  --bg:#F6F5F1; --surface:#FFFFFF; --surface-recessed:#F1F0EC; --surface-raised:#FFFFFF;
+  --hairline:rgba(28,25,20,.09); --hairline-strong:rgba(28,25,20,.16);
+  --ink:#1C1A17; --ink-muted:#56524B; --ink-subtle:#6E6A62;
   --action:#7C3AED; --action-hover:#6D28D9; --action-press:#5B21B6;
   --action-ink:#FFFFFF; --action-text:#6D28D9; --action-soft:rgba(124,58,237,.08);
-  --progress:#059669; --progress-text:#065F46; --progress-soft:rgba(5,150,105,.10);
-  --reward:#B45309; --reward-text:#92400E; --reward-soft:rgba(180,83,9,.10);
-  --streak:#C2410C; --streak-text:#C2410C;
-  --correction:#DC2626; --correction-text:#B91C1C; --correction-soft:rgba(220,38,38,.07);
-  --info-text:#155E75; --info-soft:rgba(8,145,178,.08);
-  --focus:#7C3AED;
-  --track:rgba(26,26,24,.09); --scrim:rgba(26,26,24,.35);
-  --shadow-card:0 1px 2px rgba(26,26,24,.06); --shadow-overlay:0 24px 60px -20px rgba(26,26,24,.25);
+  --progress:#12805A; --progress-text:#0C6646; --progress-soft:rgba(18,128,90,.09);
+  --reward:#C27C0E; --reward-text:#8A5508; --reward-soft:rgba(194,124,14,.10);
+  --streak:#D4561C; --streak-text:#B2430F;
+  --correction:#D63241; --correction-text:#B3202F; --correction-soft:rgba(214,50,65,.07);
+  --info-text:#0E6683; --info-soft:rgba(14,102,131,.08);
+  --focus:#7C3AED; --track:rgba(28,25,20,.08); --scrim:rgba(28,25,20,.36);
+  --shadow-card:0 1px 2px rgba(28,25,20,.05); --shadow-overlay:0 16px 40px -12px rgba(28,25,20,.22);
 }
 
 @layer components {
@@ -101,25 +97,18 @@ html:not(.dark) {
     border: 1px solid var(--hairline);
   }
 
-  /* Primary Button */
+  /* Legacy class kept for screens outside this redesign (feedback, exam
+     results, duels): now the flat v2 primary — solid --action, colour-step
+     hover, press compresses to .97. No gradient, glow or hover scale. */
   .btn-primary {
     @apply flex items-center justify-center gap-2;
-    background: linear-gradient(135deg, #7C3AED, #6366F1);
-    color: white;
-    font-weight: 700;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 0 16px rgba(124, 58, 237, 0.25);
+    background: var(--action);
+    color: var(--action-ink);
+    font-weight: 600;
+    transition: background-color var(--dur-state) var(--ease), transform 80ms var(--ease);
   }
-
-  .btn-primary:hover {
-    background: linear-gradient(135deg, #8B5CF6, #818CF8);
-    box-shadow: 0 0 28px rgba(124, 58, 237, 0.45);
-    transform: scale(1.02);
-  }
-
-  .btn-primary:active {
-    transform: scale(0.98);
-  }
+  .btn-primary:hover { background: var(--action-hover); }
+  .btn-primary:active { background: var(--action-press); transform: scale(0.97); }
 }
 
 /* ============================================================
@@ -152,14 +141,17 @@ html:not(.dark) .border-white\/\[0\.04\] { border-color: rgba(0,0,0,0.06); }
 @layer utilities {
   .xp-float { animation: xpFloat 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
   .xp-toast { animation: toastIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards, toastOut 0.3s ease-in 2.5s forwards; }
-  .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
-  .animate-shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
-  .animate-slide-in { animation: slideIn 0.3s ease-out forwards; }
+  .animate-fade-in { animation: enter 420ms var(--ease-spring) both; }
   .perspective-1000 { perspective: 1000px; }
   .backface-hidden  { -webkit-backface-visibility: hidden; backface-visibility: hidden; }
 }
 
 /* Keyframes */
+
+@keyframes enter {
+  from { opacity: 0; transform: translateY(12px) scale(.98); }
+  to { opacity: 1; transform: none; }
+}
 
 @keyframes xpFloat {
   0% { opacity: 0; transform: translateY(0) scale(0.5); }
@@ -178,46 +170,7 @@ html:not(.dark) .border-white\/\[0\.04\] { border-color: rgba(0,0,0,0.06); }
   to { opacity: 0; transform: translateX(-50%) translateY(10px); }
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes shake {
-  10%, 90% { transform: translate3d(-1px, 0, 0); }
-  20%, 80% { transform: translate3d(2px, 0, 0); }
-  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-  40%, 60% { transform: translate3d(4px, 0, 0); }
-}
-
-@keyframes ping {
-  75%, 100% { transform: scale(2); opacity: 0; }
-}
-
-@keyframes slideIn {
-  from { opacity: 0; transform: translateY(-20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes levelUpBurst {
-  0% { opacity: 0; transform: scale(0.5) rotate(0deg); }
-  50% { opacity: 1; }
-  100% { opacity: 0; transform: scale(1.5) rotate(360deg); }
-}
-
-.celebration-modal { animation: modalIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-
-@keyframes modalIn {
-  from { opacity: 0; backdrop-filter: blur(0px); }
-  to { opacity: 1; backdrop-filter: blur(4px); }
-}
-
-@keyframes pulseGlow {
-  0%, 100% { box-shadow: 0 0 20px rgba(124, 58, 237, 0.4), 0 0 40px rgba(124, 58, 237, 0.2); }
-  50% { box-shadow: 0 0 30px rgba(124, 58, 237, 0.6), 0 0 60px rgba(124, 58, 237, 0.3); }
-}
-
-::selection { background: rgba(124, 58, 237, 0.3); color: white; }
+::selection { background: var(--action-soft); color: var(--ink); }
 
 /* Honour the OS "reduce motion" setting — collapse loop/enter animations
    and transitions to near-instant. framer-motion handles its own via

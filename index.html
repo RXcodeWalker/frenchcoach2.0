@@ -4,13 +4,13 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="manifest" href="/site.webmanifest" />
-    <meta name="theme-color" content="#0D0D0F" />
+    <meta name="theme-color" content="#F6F5F1" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Français AI — Practise IGCSE French Speaking Out Loud</title>
     <meta name="description" content="Practise the IGCSE French speaking exam out loud. Get clear feedback on every answer and sit mock exams marked against the Cambridge 0520 speaking criteria." />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Français AI" />
     <meta property="og:title" content="Français AI — Practise IGCSE French Speaking Out Loud" />
@@ -27,8 +27,9 @@
     <meta name="twitter:image:alt" content="Français AI: practise IGCSE French speaking out loud and get feedback on every answer." />
   <script>
     (function() {
+      // Light is the default theme (Design System v2); dark only when chosen.
       var dark = localStorage.getItem('frenchCoach_darkMode');
-      if (dark === null || dark === 'true') document.documentElement.classList.add('dark');
+      if (dark === 'true') document.documentElement.classList.add('dark');
     })();
   </script>
   </head>

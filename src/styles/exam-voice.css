@@ -87,15 +87,12 @@
 
 /* ---- serif voice ----
    `.exam-serif` is the exam screens' one serif slot. In the core token theme
-   it is Instrument Serif (the app's --font-display); the paper voice swaps it
-   for Newsreader to match the design screens. */
+   is Libre Baskerville — Design System v2 allows a serif only in Exam mode
+   and in quoted model answers. */
 .exam-serif {
-  font-family: 'Instrument Serif', Georgia, serif;
+  font-family: 'Libre Baskerville', Georgia, serif;
   font-weight: 400;
   letter-spacing: -0.01em;
-}
-.exam-voice .exam-serif {
-  font-family: 'Newsreader', Georgia, serif;
 }
 
 /* ---- scrim stays a dim ---- */

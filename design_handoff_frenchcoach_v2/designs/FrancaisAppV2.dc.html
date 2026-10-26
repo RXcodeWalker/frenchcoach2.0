@@ -1,0 +1,1402 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap">
+<script src="./l-icon.js"></script>
+<style>
+html, body { margin: 0; padding: 0; height: 100%; }
+a { color: #6D28D9; text-decoration: none; }
+a:hover { color: #5B21B6; text-decoration: underline; }
+</style>
+</helmet>
+<div ref="{{ rootRef }}" style="--bg:#F6F5F1; --surface:#FFFFFF; --surface-recessed:#F1F0EC; --surface-raised:#FFFFFF; --hairline:rgba(28,25,20,.09); --hairline-strong:rgba(28,25,20,.16); --ink:#1C1A17; --ink-muted:#56524B; --ink-subtle:#6E6A62; --action:#7C3AED; --action-hover:#6D28D9; --action-press:#5B21B6; --action-ink:#FFFFFF; --action-text:#6D28D9; --action-soft:rgba(124,58,237,.08); --progress:#12805A; --progress-text:#0C6646; --progress-soft:rgba(18,128,90,.09); --reward:#C27C0E; --reward-text:#8A5508; --reward-soft:rgba(194,124,14,.10); --streak:#D4561C; --streak-text:#B2430F; --correction:#D63241; --correction-text:#B3202F; --correction-soft:rgba(214,50,65,.07); --info-text:#0E6683; --info-soft:rgba(14,102,131,.08); --focus:#7C3AED; --track:rgba(28,25,20,.08); --scrim:rgba(28,25,20,.36); --shadow-card:0 1px 2px rgba(28,25,20,.05); --shadow-overlay:0 16px 40px -12px rgba(28,25,20,.22); width: 100%; height: 100%;">
+<div style="{{ themeVars }}">
+<div style="height: 100%; display: flex; background: var(--bg); color: var(--ink); font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 300; font-size: 15px; line-height: 1.6; font-optical-sizing: auto; -webkit-font-smoothing: antialiased; overflow: hidden; transition: background-color 200ms;">
+
+<sc-if value="{{ isDesktop }}" hint-placeholder-val="{{ true }}">
+<nav style="width: 88px; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--hairline); display: flex; flex-direction: column; align-items: center; padding: 16px 8px; gap: 24px; box-sizing: border-box;">
+  <div style="width: 40px; height: 40px; border-radius: 8px; background: var(--action); color: var(--action-ink); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 22px; line-height: 1;">F</div>
+  <div style="position: relative; width: 100%; display: flex; flex-direction: column; gap: 4px;">
+    <span style="{{ railInd }}"><span style="position: absolute; left: -8px; top: 22px; width: 3px; height: 20px; border-radius: 0 3px 3px 0; background: var(--action);"></span></span>
+    <sc-for list="{{ nav }}" as="n" hint-placeholder-count="5">
+      <button onClick="{{ n.go }}" aria-label="{{ n.label }}" style="{{ n.rail }}"><l-icon name="{{ n.icon }}" size="20"></l-icon><span>{{ n.label }}</span></button>
+    </sc-for>
+  </div>
+</nav>
+</sc-if>
+
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column;">
+  <div style="padding: 12px 12px 0;">
+    <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; height: 56px; padding: 0 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; box-sizing: border-box;">
+      <span style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+        <sc-if value="{{ bar.back }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ bar.onBack }}" aria-label="Back to topics" style="width: 44px; height: 44px; flex-shrink: 0; border-radius: 8px; border: 1px solid var(--hairline-strong); background: transparent; color: var(--ink-muted); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background-color 120ms, transform 80ms;" style-hover="background: var(--track); color: var(--ink);" style-active="transform: scale(0.97);"><l-icon name="chevron-left" size="16"></l-icon></button>
+        </sc-if>
+        <span style="display: flex; flex-direction: column; min-width: 0; padding-left: 8px;">
+          <span style="font-size: 14px; font-weight: 600; line-height: 1.3;">{{ bar.title }}</span>
+          <span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle); line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ bar.sub }}</span>
+        </span>
+      </span>
+      <span style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+        <sc-if value="{{ pill.zero }}" hint-placeholder-val="{{ true }}">
+          <span title="Day streak" style="height: 28px; padding: 0 10px; border: 1px solid var(--hairline-strong); border-radius: 999px; color: var(--ink-muted); display: inline-flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 13px; box-sizing: border-box;"><l-icon name="flame" size="14"></l-icon>0</span>
+        </sc-if>
+        <sc-if value="{{ pill.on }}" hint-placeholder-val="{{ false }}">
+          <span title="Day streak" style="height: 28px; padding: 0 10px; border: 1px solid var(--streak); border-radius: 999px; color: var(--streak-text); display: inline-flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 13px; box-sizing: border-box;"><l-icon name="flame" size="14"></l-icon>{{ pill.streak }}</span>
+        </sc-if>
+        <sc-if value="{{ pill.roll }}" hint-placeholder-val="{{ false }}">
+          <span data-warm="1" title="Day streak" style="height: 28px; padding: 0 10px; border: 1px solid var(--streak); border-radius: 999px; color: var(--streak-text); display: inline-flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 13px; box-sizing: border-box;"><span data-flame="1" style="display: inline-flex;"><l-icon name="flame" size="14"></l-icon></span><span style="height: 20px; overflow: hidden; display: inline-block;"><span data-roll="1" style="display: flex; flex-direction: column; line-height: 20px;"><span>{{ pill.prev }}</span><span>{{ pill.streak }}</span></span></span></span>
+        </sc-if>
+        <span title="Total XP" style="height: 28px; padding: 0 10px; border: 1px solid var(--reward); border-radius: 999px; color: var(--reward-text); display: inline-flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 13px; box-sizing: border-box;"><l-icon name="zap" size="14"></l-icon><span data-xp="1" data-count="{{ pill.xpNum }}" data-from="{{ pill.xpFrom }}" data-fmt="int">{{ pill.xp }}</span></span>
+        <sc-if value="{{ isDesktop }}" hint-placeholder-val="{{ true }}">
+          <span style="width: 1px; height: 24px; background: var(--hairline); margin: 0 4px;"></span>
+          <button onClick="{{ goProfile }}" aria-label="Profile" style="width: 36px; height: 36px; border-radius: 999px; background: var(--surface-recessed); border: 1px solid var(--hairline); display: flex; align-items: center; justify-content: center; font-family: inherit; font-size: 12px; font-weight: 600; color: var(--ink-muted); cursor: pointer; transition: border-color 120ms;" style-hover="border-color: var(--hairline-strong); color: var(--ink);">LM</button>
+        </sc-if>
+      </span>
+    </div>
+  </div>
+
+  <div style="flex: 1; min-height: 0; position: relative;">
+  <div ref="{{ scrollRef }}" style="position: absolute; inset: 0; overflow-y: auto; container-type: inline-size; scrollbar-width: thin; scrollbar-color: var(--hairline-strong) transparent;">
+
+<sc-if value="{{ is.home }}" hint-placeholder-val="{{ true }}">
+
+<sc-if value="{{ dir.a }}" hint-placeholder-val="{{ true }}">
+<div style="max-width: 920px; margin: 0 auto; padding: clamp(24px, 5cqw, 48px) clamp(16px, 4cqw, 40px) 48px; display: flex; flex-direction: column; gap: 24px;">
+  <div data-enter="1" style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 32px; margin-bottom: 8px;"><h1 style="margin: 0; font-size: clamp(40px, 6cqw, 60px); line-height: 1; font-weight: 600; letter-spacing: -0.035em;">Salut, Léa.</h1><div style="flex: 1 1 240px; max-width: 320px; min-width: 0; display: flex; flex-direction: column; gap: 6px;"><span style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px;"><span style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--reward-text);"><l-icon name="zap" size="14"></l-icon>Level {{ lvl.n }}</span><span style="font-variant-numeric: tabular-nums; font-weight: 500; font-size: 13px; color: var(--ink-subtle);">{{ lvl.toNext }}</span></span><span style="height: 8px; border-radius: 999px; background: var(--track); overflow: hidden; display: block;"><span data-fill="1" style="{{ lvl.bar }}"></span></span></div></div>
+  <section data-enter="1" style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; overflow: hidden;">
+  <div style="padding: clamp(20px, 4cqw, 32px); display: flex; flex-wrap: wrap; align-items: center; gap: 24px 32px;">
+    <span style="position: relative; width: 96px; height: 96px; flex-shrink: 0;">
+      <svg width="96" height="96" style="transform: rotate(-90deg); display: block;"><circle cx="48" cy="48" r="44" fill="none" stroke="var(--track)" stroke-width="8"></circle><sc-if value="{{ ring.has }}" hint-placeholder-val="{{ false }}"><circle data-ring="1" data-from="{{ ring.from96 }}" cx="48" cy="48" r="44" fill="none" stroke="var(--progress)" stroke-width="8" stroke-linecap="round" stroke-dasharray="276.46" stroke-dashoffset="{{ ring.off96 }}"></circle></sc-if></svg>
+      <span style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;"><span style="font-variant-numeric: tabular-nums; font-weight: 500; font-size: 18px; line-height: 1;">{{ ring.label }}</span><span style="font-size: 12px; font-weight: 400; color: var(--ink-subtle); line-height: 1;">{{ ring.sub }}</span></span>
+    </span>
+    <div style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 8px;">
+      <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--action-text);">Today’s mission</span>
+      <h2 style="margin: 0; font-size: 22px; line-height: 1.25; font-weight: 600; letter-spacing: -0.01em; text-wrap: pretty;">{{ mission.title }}</h2>
+      <p style="margin: 0; font-size: 14px; line-height: 1.5; color: var(--ink-muted);">{{ mission.meta }}</p>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px;"><span style="height: 28px; padding: 0 10px; border-radius: 999px; background: var(--reward-soft); color: var(--reward-text); display: inline-flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 13px; box-sizing: border-box;"><l-icon name="zap" size="14"></l-icon>{{ mission.xpUp }}</span><span style="height: 28px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--streak); color: var(--streak-text); display: inline-flex; align-items: center; gap: 6px; font-weight: 500; font-size: 13px; box-sizing: border-box;"><l-icon name="flame" size="14"></l-icon>{{ mission.streakLine }}</span></div>
+      <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px;">
+        <button onClick="{{ mission.start }}" style="height: 48px; padding: 0 20px; border-radius: 8px; border: none; background: var(--action); color: var(--action-ink); font-family: inherit; font-weight: 600; font-size: 15px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; transition: background-color 120ms, transform 80ms;" style-hover="background: var(--action-hover);" style-active="background: var(--action-press); transform: scale(0.97);"><l-icon name="mic" size="16"></l-icon>Start session</button>
+        <button style="height: 48px; padding: 0 18px; border-radius: 8px; border: 1px solid var(--hairline-strong); background: transparent; color: var(--ink); font-family: inherit; font-weight: 600; font-size: 15px; cursor: pointer; transition: background-color 120ms, transform 80ms;" style-hover="background: var(--track);" style-active="transform: scale(0.97);">Take a timed test</button>
+      </div>
+    </div>
+  </div>
+  <div style="border-top: 1px solid var(--hairline); background: var(--surface-recessed); padding: 16px clamp(20px, 4cqw, 32px) 20px; display: flex; flex-direction: column; gap: 12px;">
+    <span style="display: flex; justify-content: space-between; gap: 12px; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-subtle);"><span>Today’s plan</span><span style="text-transform: none; letter-spacing: 0; font-weight: 400;">{{ plan.note }}</span></span>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 8px;"><sc-for list="{{ plan.steps }}" as="p" hint-placeholder-count="3"><div data-enter="1" style="display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 8px; background: var(--surface); border: 1px solid var(--hairline); min-width: 0;"><span style="width: 32px; height: 32px; flex-shrink: 0; border-radius: 8px; background: var(--action-soft); color: var(--action-text); display: flex; align-items: center; justify-content: center; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 14px;">{{ p.n }}</span><span style="display: flex; flex-direction: column; min-width: 0;"><span style="font-size: 14px; font-weight: 600; line-height: 1.3;">{{ p.title }}</span><span style="font-size: 12px; font-weight: 400; color: var(--ink-subtle); line-height: 1.4;">{{ p.sub }}</span></span></div></sc-for></div>
+  </div>
+  </section>
+
+  <button data-enter="1" onClick="{{ openCoach }}" style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 20px; display: flex; align-items: center; gap: 16px; text-align: left; color: var(--ink); font-family: inherit; cursor: pointer; width: 100%; transition: border-color 120ms, background-color 120ms;" style-hover="border-color: var(--hairline-strong);" style-active="background: var(--surface-recessed);">
+    <span style="{{ coach.chip }}"><l-icon name="{{ coach.icon }}" size="20"></l-icon></span>
+    <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px;">
+      <span style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;"><span style="color: var(--action-text);">Coach’s pick</span><span style="color: var(--ink-subtle);">·</span><span style="color: var(--ink-subtle);">Weakest topic</span></span>
+      <span style="font-size: 16px; font-weight: 600; line-height: 1.35;">{{ coach.fr }}</span>
+      <span style="font-size: 14px; line-height: 1.5; color: var(--ink-muted); text-wrap: pretty;">{{ rec.body }}</span>
+      <span style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;"><sc-for list="{{ rec.skills }}" as="k" hint-placeholder-count="2"><span style="height: 24px; padding: 0 8px; border-radius: 999px; border: 1px solid var(--hairline-strong); color: var(--ink-muted); font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; box-sizing: border-box;">{{ k }}</span></sc-for></span>
+    </span>
+    <span style="color: var(--ink-subtle); display: flex;"><l-icon name="chevron-right" size="16"></l-icon></span>
+  </button>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 16px; align-items: start;">
+    <div data-enter="1" style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 16px;">
+      <div style="display: flex; justify-content: space-between; align-items: baseline;"><span style="font-size: 16px; font-weight: 600;">This week</span><span style="font-variant-numeric: tabular-nums; font-weight: 500; font-size: 13px; color: var(--ink-subtle);">avg {{ week.avg }}</span></div>
+      <div style="position: relative; height: 140px; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 12px;">
+        <sc-for list="{{ week.days }}" as="d" hint-placeholder-count="7">
+          <span style="height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 6px;">
+            <sc-if value="{{ d.has }}" hint-placeholder-val="{{ false }}"><span style="font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-muted);">{{ d.val }}</span><span data-fillh="1" style="{{ d.bar }}"></span></sc-if>
+            <sc-if value="{{ d.none }}" hint-placeholder-val="{{ true }}"><span style="{{ d.base }}"></span></sc-if>
+          </span>
+        </sc-for>
+        <sc-if value="{{ week.empty }}" hint-placeholder-val="{{ true }}">
+          <span style="position: absolute; inset: 0 0 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-align: center; padding: 0 16px;"><span style="font-size: 14px; font-weight: 600;">No sessions yet this week</span><span style="font-size: 13px; font-weight: 400; color: var(--ink-muted); max-width: 280px; line-height: 1.45;">Each day’s average score will plot here after you practise.</span></span>
+        </sc-if>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 12px;"><sc-for list="{{ week.days }}" as="d" hint-placeholder-count="7"><span style="{{ d.lbl }}">{{ d.day }}</span></sc-for></div>
+    </div>
+    <div data-enter="1" style="display: flex; flex-direction: column; gap: 8px;">
+      <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-subtle); padding: 0 4px;">Recent activity</span>
+      <div style="background: var(--surface-recessed); border: 1px solid var(--hairline); border-radius: 12px; overflow: hidden;">
+        <sc-for list="{{ recent }}" as="r" hint-placeholder-count="4">
+          <div style="{{ r.rowA }}">
+            <span style="{{ r.chip }}"><l-icon name="{{ r.icon }}" size="14"></l-icon></span>
+            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column;"><span style="font-size: 14px; font-weight: 400; line-height: 1.35;">{{ r.topic }}</span><span style="font-size: 12px; font-weight: 400; color: var(--ink-subtle); line-height: 1.35;">{{ r.meta }}</span></span>
+            <span style="{{ r.scoreStyle }}">{{ r.score }}</span>
+            <span style="width: 64px; text-align: right; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 13px; color: var(--reward-text);">{{ r.xp }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ dir.c }}" hint-placeholder-val="{{ false }}">
+<div style="max-width: 880px; margin: 0 auto; padding: 20px clamp(16px, 3cqw, 32px) 40px; display: flex; flex-direction: column; gap: 12px;">
+  <div data-enter="1" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; padding: 4px 4px 8px;"><h1 style="margin: 0; font-size: 30px; line-height: 1.1; font-weight: 600; letter-spacing: -0.02em;">Salut, Léa.</h1><div style="flex: 1 1 240px; max-width: 320px; min-width: 0; display: flex; flex-direction: column; gap: 6px;"><span style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px;"><span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--reward-text);"><l-icon name="zap" size="14"></l-icon>Level {{ lvl.n }}</span><span style="font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">{{ lvl.toNext }}</span></span><span style="height: 6px; border-radius: 999px; background: var(--track); overflow: hidden; display: block;"><span data-fill="1" style="{{ lvl.bar }}"></span></span></div></div>
+  <section data-enter="1" style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; overflow: hidden;">
+    <div style="padding: 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px 20px;">
+      <span style="position: relative; width: 74px; height: 74px; flex-shrink: 0;">
+        <svg width="74" height="74" style="transform: rotate(-90deg); display: block;"><circle cx="37" cy="37" r="33" fill="none" stroke="var(--track)" stroke-width="8"></circle><sc-if value="{{ ring.has }}" hint-placeholder-val="{{ false }}"><circle data-ring="1" data-from="{{ ring.from74 }}" cx="37" cy="37" r="33" fill="none" stroke="var(--progress)" stroke-width="8" stroke-linecap="round" stroke-dasharray="207.35" stroke-dashoffset="{{ ring.off74 }}"></circle></sc-if></svg>
+        <span style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;"><span style="font-variant-numeric: tabular-nums; font-weight: 500; font-size: 15px; line-height: 1;">{{ ring.label }}</span><span style="font-size: 12px; font-weight: 400; color: var(--ink-subtle); line-height: 1;">{{ ring.sub }}</span></span>
+      </span>
+      <div style="flex: 1 1 240px; min-width: 0; display: flex; flex-direction: column; gap: 4px;">
+        <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--action-text);">Today’s mission</span>
+        <span style="font-size: 18px; font-weight: 600; line-height: 1.35; text-wrap: pretty;">{{ mission.title }}</span>
+        <span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle);">{{ mission.meta }}</span>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px;"><span style="height: 28px; padding: 0 10px; border-radius: 999px; background: var(--reward-soft); color: var(--reward-text); display: inline-flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 13px; box-sizing: border-box;"><l-icon name="zap" size="14"></l-icon>{{ mission.xpUp }}</span><span style="height: 28px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--streak); color: var(--streak-text); display: inline-flex; align-items: center; gap: 6px; font-weight: 500; font-size: 13px; box-sizing: border-box;"><l-icon name="flame" size="14"></l-icon>{{ mission.streakLine }}</span></div>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 10px;"><sc-for list="{{ plan.steps }}" as="p" hint-placeholder-count="3"><span style="display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 8px 10px; border-radius: 8px; background: var(--surface-recessed); border: 1px solid var(--hairline); box-sizing: border-box;"><span style="font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--action-text);">{{ p.n }}</span><span style="font-size: 13px; font-weight: 600; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ p.title }}</span></span></sc-for></div>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+        <button onClick="{{ mission.start }}" style="height: 48px; padding: 0 20px; border-radius: 8px; border: none; background: var(--action); color: var(--action-ink); font-family: inherit; font-weight: 600; font-size: 15px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; transition: background-color 120ms, transform 80ms;" style-hover="background: var(--action-hover);" style-active="background: var(--action-press); transform: scale(0.97);"><l-icon name="mic" size="16"></l-icon>Start session</button>
+        <button style="height: 48px; padding: 0 16px; border-radius: 8px; border: 1px solid var(--hairline-strong); background: transparent; color: var(--ink); font-family: inherit; font-weight: 600; font-size: 15px; cursor: pointer; transition: background-color 120ms, transform 80ms;" style-hover="background: var(--track);" style-active="transform: scale(0.97);">Timed test</button>
+      </div>
+    </div>
+    <div style="border-top: 1px solid var(--hairline); background: var(--surface-recessed); padding: 12px 20px; display: flex; align-items: center; gap: 12px;">
+      <span style="{{ coach.chipSm }}"><l-icon name="{{ coach.icon }}" size="14"></l-icon></span>
+      <span style="flex: 1; min-width: 0; font-size: 14px; line-height: 1.45; color: var(--ink-muted);"><strong style="font-weight: 600; color: var(--ink);">Focus: {{ coach.fr }}</strong> — {{ rec.short }}</span>
+    </div>
+  </section>
+
+  <div data-enter="1" style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px;">
+    <div style="display: flex; justify-content: space-between; align-items: baseline;"><span style="font-size: 14px; font-weight: 600;">This week</span><span style="font-variant-numeric: tabular-nums; font-weight: 500; font-size: 13px; color: var(--ink-subtle);">avg {{ week.avg }}</span></div>
+    <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px;">
+      <sc-for list="{{ week.days }}" as="d" hint-placeholder-count="7">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0;"><span style="{{ d.lbl }}">{{ d.day }}</span><span data-enter="1" style="{{ d.cell }}">{{ d.cellText }}</span></div>
+      </sc-for>
+    </div>
+    <sc-if value="{{ week.empty }}" hint-placeholder-val="{{ true }}"><span style="font-size: 13px; font-weight: 400; color: var(--ink-muted);">No sessions yet this week. Each day’s average lands in its box after you practise.</span></sc-if>
+  </div>
+
+  <div data-enter="1" style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; overflow: hidden;">
+    <div style="padding: 12px 20px; font-size: 14px; font-weight: 600; border-bottom: 1px solid var(--hairline);">Recent activity</div>
+    <sc-for list="{{ recent }}" as="r" hint-placeholder-count="4">
+      <div style="{{ r.rowC }}">
+        <span style="{{ r.chipXs }}"><l-icon name="{{ r.icon }}" size="14"></l-icon></span>
+        <span style="flex: 1; min-width: 0; font-size: 14px; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ r.topic }} <span style="color: var(--ink-subtle); font-size: 13px;">· {{ r.date }}</span></span>
+        <span style="{{ r.scoreStyle }}">{{ r.score }}</span>
+        <span style="width: 56px; text-align: right; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 13px; color: var(--reward-text);">{{ r.xp }}</span>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</sc-if>
+</sc-if>
+
+<sc-if value="{{ is.learn }}" hint-placeholder-val="{{ false }}">
+<div style="max-width: 1120px; margin: 0 auto; padding: clamp(24px, 4cqw, 40px) clamp(16px, 3cqw, 32px) 48px; display: flex; flex-direction: column; gap: 24px;">
+  <div data-enter="1" style="display: flex; flex-direction: column; gap: 8px;">
+    <h1 style="margin: 0; font-size: 40px; line-height: 1.05; font-weight: 600; letter-spacing: -0.025em;">Learn</h1>
+    <p style="margin: 0; font-size: 16px; color: var(--ink-muted);">Choose a topic and start practising</p>
+  </div>
+  <sc-if value="{{ tilesGrid }}" hint-placeholder-val="{{ true }}">
+  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(max(150px, calc((100% - 36px) / 4)), 1fr)); gap: 12px;">
+    <sc-for list="{{ topics }}" as="t" hint-placeholder-count="16">
+      <button data-enter="1" onClick="{{ t.open }}" style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 16px; text-align: left; color: var(--ink); font-family: inherit; cursor: pointer; transition: border-color 120ms, background-color 120ms; min-width: 0;" style-hover="border-color: var(--hairline-strong);" style-active="background: var(--surface-recessed);">
+        <span style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;"><span style="{{ t.chip }}"><l-icon name="{{ t.icon }}" size="20"></l-icon></span><sc-if value="{{ t.isCoach }}" hint-placeholder-val="{{ false }}"><span style="height: 24px; padding: 0 8px; border-radius: 999px; background: var(--action-soft); color: var(--action-text); font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; white-space: nowrap;">Coach’s pick</span></sc-if></span>
+        <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0;"><span style="font-size: 16px; font-weight: 600; line-height: 1.3;">{{ t.fr }}</span><span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle); line-height: 1.4;">{{ t.en }}</span></span>
+        <span style="display: flex; flex-direction: column; gap: 8px; margin-top: auto;">
+          <span style="height: 4px; border-radius: 999px; background: var(--track); overflow: hidden; display: block;"><span data-fill="1" style="{{ t.bar }}"></span></span>
+          <span style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 2px 8px; font-size: 12px; font-weight: 400; color: var(--ink-subtle);"><span style="font-variant-numeric: tabular-nums; font-weight: 500; color: var(--ink-muted);">{{ t.left }}</span><span>{{ t.right }}</span></span>
+        </span>
+      </button>
+    </sc-for>
+  </div>
+  </sc-if>
+  <sc-if value="{{ tilesList }}" hint-placeholder-val="{{ false }}">
+  <div data-enter="1" style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; overflow: hidden;">
+    <sc-for list="{{ topics }}" as="t" hint-placeholder-count="16">
+      <button onClick="{{ t.open }}" style="{{ t.row }}" style-hover="background: var(--surface-recessed);">
+        <span style="{{ t.chip }}"><l-icon name="{{ t.icon }}" size="20"></l-icon></span>
+        <span style="flex: 1 1 150px; min-width: 0; display: flex; flex-direction: column;"><span style="font-size: 15px; font-weight: 600; line-height: 1.3; display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px;">{{ t.fr }}<sc-if value="{{ t.isCoach }}" hint-placeholder-val="{{ false }}"><span style="height: 22px; padding: 0 8px; border-radius: 999px; background: var(--action-soft); color: var(--action-text); font-size: 12px; font-weight: 600; display: inline-flex; align-items: center;">Coach’s pick</span></sc-if></span><span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle); line-height: 1.4;">{{ t.en }}</span></span>
+        <span style="flex: 0 1 150px; display: flex; flex-direction: column; gap: 6px; min-width: 96px;"><span style="height: 4px; border-radius: 999px; background: var(--track); overflow: hidden; display: block;"><span data-fill="1" style="{{ t.bar }}"></span></span><span style="font-size: 12px; font-weight: 400; color: var(--ink-subtle); white-space: nowrap;">{{ t.right }}</span></span>
+        <span style="width: 40px; text-align: right; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 13px; color: var(--ink-muted);">{{ t.avgShort }}</span>
+      </button>
+    </sc-for>
+  </div>
+  </sc-if>
+  <div data-enter="1" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 12px;">
+    <button onClick="{{ randomTopic }}" style="background: var(--surface-recessed); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px; display: flex; align-items: center; gap: 12px; text-align: left; color: var(--ink); font-family: inherit; cursor: pointer; transition: border-color 120ms;" style-hover="border-color: var(--hairline-strong);">
+      <span style="width: 40px; height: 40px; border-radius: 8px; background: var(--surface); border: 1px solid var(--hairline); color: var(--ink-muted); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-sizing: border-box;"><l-icon name="shuffle" size="20"></l-icon></span>
+      <span style="flex: 1; display: flex; flex-direction: column;"><span style="font-size: 14px; font-weight: 600;">Random question</span><span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle);">A question from any topic</span></span>
+      <span style="color: var(--ink-subtle); display: flex;"><l-icon name="chevron-right" size="16"></l-icon></span>
+    </button>
+    <button style="background: var(--surface-recessed); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px; display: flex; align-items: center; gap: 12px; text-align: left; color: var(--ink); font-family: inherit; cursor: pointer; transition: border-color 120ms;" style-hover="border-color: var(--hairline-strong);">
+      <span style="width: 40px; height: 40px; border-radius: 8px; background: var(--surface); border: 1px solid var(--hairline); color: var(--action-text); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-sizing: border-box;"><l-icon name="book-marked" size="20"></l-icon></span>
+      <span style="flex: 1; display: flex; flex-direction: column;"><span style="font-size: 14px; font-weight: 600;">Your exam notebook</span><span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle);">Answers you kept, to listen to and practise from memory</span></span>
+      <span style="color: var(--ink-subtle); display: flex;"><l-icon name="chevron-right" size="16"></l-icon></span>
+    </button>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.start }}" hint-placeholder-val="{{ false }}">
+<div style="max-width: 600px; margin: 0 auto; padding: clamp(24px, 4cqw, 40px) clamp(16px, 3cqw, 32px) 48px; display: flex; flex-direction: column; gap: 24px;">
+  <div data-enter="1" style="display: flex; align-items: center; gap: 16px;">
+    <span style="{{ cur.chip }}"><l-icon name="{{ cur.icon }}" size="20"></l-icon></span>
+    <span style="display: flex; flex-direction: column;"><h1 style="margin: 0; font-size: 30px; line-height: 1.12; font-weight: 600; letter-spacing: -0.015em;">{{ cur.fr }}</h1><span style="font-size: 14px; color: var(--ink-muted);">{{ cur.en }}</span></span>
+  </div>
+  <sc-if value="{{ st.started }}" hint-placeholder-val="{{ true }}">
+  <div data-enter="1" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;">
+    <div style="background: var(--surface-recessed); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 4px;"><span style="font-size: 12px; font-weight: 400; color: var(--ink-subtle);">Questions done</span><span style="font-variant-numeric: tabular-nums; font-weight: 500; font-size: 22px; line-height: 1.2;">{{ st.done }}</span></div>
+    <div style="background: var(--surface-recessed); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 4px;"><span style="font-size: 12px; font-weight: 400; color: var(--ink-subtle);">Avg score</span><span style="font-variant-numeric: tabular-nums; font-weight: 500; font-size: 22px; line-height: 1.2;">{{ st.avg }}</span><sc-if value="{{ st.noAvg }}" hint-placeholder-val="{{ false }}"><span style="font-size: 12px; font-weight: 400; color: var(--ink-subtle);">No scored answers yet. Examiner style isn’t scored.</span></sc-if></div>
+  </div>
+  </sc-if>
+  <sc-if value="{{ st.isCoach }}" hint-placeholder-val="{{ true }}">
+  <div data-enter="1" style="background: var(--surface-recessed); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 6px;">
+    <span style="display: flex; align-items: center; gap: 8px; color: var(--action-text); font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;"><l-icon name="target" size="14"></l-icon>Coach’s pick</span>
+    <span style="font-size: 14px; line-height: 1.5;">{{ rec.reason }}</span>
+  </div>
+  </sc-if>
+  <div data-enter="1" style="display: flex; flex-direction: column; gap: 8px;">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-subtle);">Focus <span style="text-transform: none; letter-spacing: 0; font-weight: 400;">(optional)</span></span>
+    <div style="display: flex; flex-wrap: wrap; gap: 8px;"><sc-for list="{{ st.focus }}" as="f" hint-placeholder-count="5"><button onClick="{{ f.pick }}" aria-pressed="{{ f.on }}" style="{{ f.style }}">{{ f.label }}</button></sc-for></div>
+  </div>
+  <div data-enter="1" style="display: flex; flex-direction: column; gap: 8px;">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-subtle);">Today</span>
+    <div style="background: var(--surface-recessed); border: 1px solid var(--hairline); border-radius: 12px; padding: 12px 16px; font-size: 14px; line-height: 1.5; color: var(--ink-muted);">{{ st.today }}</div>
+  </div>
+  <div data-enter="1" style="display: flex; flex-direction: column; gap: 8px;">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-subtle);">Difficulty</span>
+    <div style="display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; padding: 0 4px;"><span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle);">Your level</span><span style="font-size: 18px; font-weight: 600;">A2</span><span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle);">measured from your answers</span></div>
+    <div style="position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 4px; border-radius: 12px; background: var(--surface); border: 1px solid var(--hairline);">
+      <span style="{{ aimSeg.ind }}"></span>
+      <sc-for list="{{ aimSeg.opts }}" as="o" hint-placeholder-count="3"><button onClick="{{ o.pick }}" aria-pressed="{{ o.on }}" style="{{ o.style }}">{{ o.label }}</button></sc-for>
+    </div>
+    <span style="font-size: 13px; font-weight: 400; color: var(--ink-muted); padding: 0 4px;">{{ aimDesc }}</span>
+  </div>
+  <div data-enter="1" style="display: flex; flex-direction: column; gap: 8px;">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-subtle);">Feedback style</span>
+    <div style="position: relative; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 4px; border-radius: 12px; background: var(--surface); border: 1px solid var(--hairline);">
+      <span style="{{ fbSeg.ind }}"></span>
+      <sc-for list="{{ fbSeg.opts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.pick }}" aria-pressed="{{ o.on }}" style="{{ o.style }}"><span>{{ o.label }}</span><span style="font-size: 12px; font-weight: 400; color: var(--ink-subtle);">{{ o.note }}</span></button></sc-for>
+    </div>
+  </div>
+  <sc-if value="{{ showMarking }}" hint-placeholder-val="{{ true }}">
+  <div style="display: flex; flex-direction: column; gap: 8px;">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-subtle);">Marking level</span>
+    <div style="position: relative; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); padding: 4px; border-radius: 12px; background: var(--surface); border: 1px solid var(--hairline);">
+      <span style="{{ markSeg.ind }}"></span>
+      <sc-for list="{{ markSeg.opts }}" as="o" hint-placeholder-count="5"><button onClick="{{ o.pick }}" aria-pressed="{{ o.on }}" style="{{ o.style }}">{{ o.label }}</button></sc-for>
+    </div>
+  </div>
+  </sc-if>
+  <div data-enter="1" style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; font-size: 13px; font-weight: 400; color: var(--ink-muted);"><span style="display: inline-flex; align-items: center; gap: 6px;"><l-icon name="mic" size="14"></l-icon>{{ st.qLine }}</span><span style="display: inline-flex; align-items: center; gap: 6px;"><l-icon name="clock" size="14"></l-icon>about {{ st.mins }} min</span><span style="display: inline-flex; align-items: center; gap: 6px; color: var(--reward-text); font-weight: 500;"><l-icon name="zap" size="14"></l-icon>{{ st.xpUp }}</span></div>
+  <div data-enter="1" style="padding-top: 8px;">
+    <sc-if value="{{ st.canStart }}" hint-placeholder-val="{{ true }}">
+      <button onClick="{{ startSession }}" style="width: 100%; height: 48px; border-radius: 8px; border: none; background: var(--action); color: var(--action-ink); font-family: inherit; font-weight: 600; font-size: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: background-color 120ms, transform 80ms;" style-hover="background: var(--action-hover);" style-active="background: var(--action-press); transform: scale(0.97);"><l-icon name="mic" size="16"></l-icon>Start session</button>
+    </sc-if>
+    <sc-if value="{{ st.limit }}" hint-placeholder-val="{{ false }}">
+      <button aria-disabled="true" style="width: 100%; height: 48px; border-radius: 8px; border: none; background: var(--track); color: var(--ink-subtle); font-family: inherit; font-weight: 600; font-size: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: not-allowed;">Start session</button>
+    </sc-if>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.session }}" hint-placeholder-val="{{ false }}">
+
+<sc-if value="{{ dir.a }}" hint-placeholder-val="{{ true }}">
+<div style="max-width: 760px; margin: 0 auto; padding: 20px clamp(16px, 3cqw, 32px) 48px; display: flex; flex-direction: column; gap: 16px;">
+  <div data-enter="1" style="display: flex; flex-direction: column; gap: 8px;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <span style="{{ cur.chipSm }}"><l-icon name="{{ cur.icon }}" size="14"></l-icon></span>
+      <span style="font-size: 13px; font-weight: 600; color: var(--ink-muted);">{{ cur.fr }}</span>
+      <span style="font-variant-numeric: tabular-nums; font-weight: 500; font-size: 13px;">{{ prog.q }}</span>
+      <span style="flex: 1;"></span>
+      <sc-if value="{{ prog.hasAvg }}" hint-placeholder-val="{{ false }}"><span style="font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-muted);">avg {{ prog.avg }}</span></sc-if>
+      <sc-if value="{{ prog.hasXp }}" hint-placeholder-val="{{ false }}"><span style="font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--reward-text);">+{{ prog.xp }} XP</span></sc-if>
+      <button onClick="{{ endSession }}" aria-label="End session early" title="End session early" style="width: 44px; height: 44px; border-radius: 8px; border: none; background: transparent; color: var(--ink-subtle); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background-color 120ms;" style-hover="background: var(--track); color: var(--ink);"><l-icon name="x" size="16"></l-icon></button>
+    </div>
+    <div style="display: flex; gap: 4px; height: 6px;"><sc-for list="{{ prog.segs }}" as="g" hint-placeholder-count="3"><span style="{{ g }}"></span></sc-for></div>
+  </div>
+
+  <div data-enter="q" style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: clamp(20px, 4cqw, 32px); display: flex; flex-direction: column; gap: 16px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+      <span style="display: flex; gap: 8px; flex-wrap: wrap;"><span style="height: 24px; padding: 0 8px; border-radius: 8px; background: var(--action-soft); color: var(--action-text); font-size: 12px; font-weight: 600; display: inline-flex; align-items: center;">{{ q.demand }}</span><sc-if value="{{ q.review }}" hint-placeholder-val="{{ false }}"><span style="height: 24px; padding: 0 8px; border-radius: 8px; background: var(--info-soft); color: var(--info-text); font-size: 12px; font-weight: 600; display: inline-flex; align-items: center;">Review</span></sc-if></span>
+      <button onClick="{{ q.speak }}" aria-label="Listen" style="width: 44px; height: 44px; flex-shrink: 0; border-radius: 8px; border: 1px solid var(--hairline-strong); background: transparent; color: var(--ink-muted); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background-color 120ms, transform 80ms;" style-hover="background: var(--track); color: var(--ink);" style-active="transform: scale(0.97);"><l-icon name="volume-2" size="16"></l-icon></button>
+    </div>
+    <h2 style="margin: 0; font-size: 30px; line-height: 1.12; font-weight: 600; letter-spacing: -0.015em; text-wrap: pretty;">{{ q.text }}</h2>
+    <div style="display: flex; flex-wrap: wrap; gap: 0 8px; padding-top: 20px;"><sc-for list="{{ q.vocab }}" as="v" hint-placeholder-count="3"><button onClick="{{ v.toggle }}" aria-label="{{ v.aria }}" style="height: 44px; padding: 0; border: none; background: transparent; font-family: inherit; color: inherit; cursor: pointer; display: flex; align-items: center;"><span style="{{ v.style }}">{{ v.fr }}<sc-if value="{{ v.open }}" hint-placeholder-val="{{ false }}"><span style="position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); white-space: nowrap; padding: 4px 8px; border-radius: 8px; background: var(--ink); color: var(--surface); font-size: 12px; font-weight: 500; line-height: 1.4;">{{ v.en }}</span></sc-if></span></button></sc-for></div>
+    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+      <button onClick="{{ toggleHint }}" style="background: transparent; border: none; padding: 0; height: 44px; font-family: inherit; font-weight: 600; font-size: 13px; color: var(--reward-text); display: inline-flex; align-items: center; gap: 6px; cursor: pointer;"><l-icon name="lightbulb" size="14"></l-icon>{{ q.hintLabel }}<l-icon name="{{ q.hintIcon }}" size="14"></l-icon></button>
+      <button onClick="{{ toggleWhy }}" style="background: transparent; border: none; padding: 0; height: 44px; font-family: inherit; font-weight: 600; font-size: 13px; color: var(--ink-muted); display: inline-flex; align-items: center; gap: 6px; cursor: pointer;" style-hover="color: var(--ink);"><l-icon name="info" size="14"></l-icon>Why this question<l-icon name="{{ q.whyIcon }}" size="14"></l-icon></button>
+    </div>
+    <sc-if value="{{ hintOpen }}" hint-placeholder-val="{{ false }}">
+      <div data-enter="1" style="background: var(--reward-soft); border-radius: 8px; padding: 16px 20px; display: flex; flex-direction: column; gap: 10px;">
+        <ul style="margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; font-size: 14px; line-height: 1.5;"><sc-for list="{{ q.ideas }}" as="i" hint-placeholder-count="2"><li>{{ i }}</li></sc-for></ul>
+        <span style="font-family: 'Libre Baskerville', Georgia, serif; font-style: italic; font-size: 20px; line-height: 1.35;">« {{ q.phraseFr }} »</span>
+        <span style="font-size: 13px; font-weight: 400; color: var(--ink-muted);">{{ q.phraseEn }}</span>
+      </div>
+    </sc-if>
+    <sc-if value="{{ whyOpen }}" hint-placeholder-val="{{ false }}">
+      <div data-enter="1" style="background: var(--surface-recessed); border: 1px solid var(--hairline); border-radius: 8px; padding: 14px 16px; font-size: 14px; line-height: 1.5; color: var(--ink-muted);">{{ q.why }}</div>
+    </sc-if>
+  </div>
+
+  <sc-if value="{{ ph.live }}" hint-placeholder-val="{{ true }}">
+  <div data-enter="1" style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 28px 24px; display: flex; flex-direction: column; align-items: center; gap: 16px;">
+    <div ref="{{ waveRef }}" style="height: 40px; width: 100%; max-width: 360px; display: flex; align-items: center; justify-content: center; gap: 3px; overflow: hidden;"><sc-for list="{{ waveBars }}" as="b" hint-placeholder-count="40"><span style="width: 3px; height: 4px; border-radius: 999px; background: var(--ink-muted); flex-shrink: 0;"></span></sc-for></div>
+    <sc-if value="{{ ph.idle }}" hint-placeholder-val="{{ true }}"><button onClick="{{ startRec }}" aria-label="Record your answer" style="width: 64px; height: 64px; border-radius: 999px; border: none; background: var(--action); color: var(--action-ink); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background-color 120ms, transform 80ms;" style-hover="background: var(--action-hover);" style-active="background: var(--action-press); transform: scale(0.97);"><l-icon name="mic" size="24"></l-icon></button><span style="display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center;"><span style="font-size: 14px; font-weight: 600;">Tap to start recording</span><span style="font-size: 13px; font-weight: 400; color: var(--ink-muted);">Answer in French — three or four sentences</span></span></sc-if>
+    <sc-if value="{{ ph.rec }}" hint-placeholder-val="{{ false }}"><button onClick="{{ stopRec }}" aria-label="Stop recording" style="width: 64px; height: 64px; border-radius: 999px; border: none; background: var(--ink); color: var(--surface); display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 0 0 6px var(--surface), 0 0 0 7px var(--hairline-strong); transition: transform 80ms;" style-active="transform: scale(0.97);"><span style="width: 18px; height: 18px; border-radius: 4px; background: var(--surface);"></span></button><span style="display: flex; flex-direction: column; align-items: center; gap: 2px;"><span style="display: flex; align-items: center; gap: 8px;"><span style="width: 8px; height: 8px; border-radius: 999px; background: var(--correction);"></span><span style="font-variant-numeric: tabular-nums; font-weight: 500; font-size: 15px;">{{ timer }}</span></span><span style="font-size: 13px; font-weight: 400; color: var(--ink-muted);">Recording · tap to stop</span></span></sc-if>
+    <sc-if value="{{ ph.rec }}" hint-placeholder-val="{{ false }}"><div style="width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 6px;"><span style="height: 4px; border-radius: 999px; background: var(--track); overflow: hidden; display: block;"><span style="{{ lenBar.bar }}"></span></span><span style="display: flex; justify-content: space-between; gap: 8px; font-size: 12px; font-weight: 400; color: var(--ink-subtle);"><span style="{{ lenBar.msgStyle }}">{{ lenBar.msg }}</span><span style="font-variant-numeric: tabular-nums;">aim 30–60s</span></span></div></sc-if>
+    <sc-if value="{{ ph.proc }}" hint-placeholder-val="{{ false }}"><span style="width: 64px; height: 64px; border-radius: 999px; background: var(--surface-recessed); border: 1px solid var(--hairline); color: var(--ink-muted); display: flex; align-items: center; justify-content: center; box-sizing: border-box;"><span data-spin="1" style="display: flex;"><l-icon name="loader-circle" size="24"></l-icon></span></span><div style="display: flex; flex-direction: column; gap: 6px;"><sc-for list="{{ procSteps }}" as="p" hint-placeholder-count="3"><span style="{{ p.row }}"><span style="width: 16px; display: flex; justify-content: center;"><sc-if value="{{ p.done }}" hint-placeholder-val="{{ false }}"><span data-enter="1" style="display: flex; color: var(--progress-text);"><l-icon name="check" size="14"></l-icon></span></sc-if><sc-if value="{{ p.active }}" hint-placeholder-val="{{ false }}"><span style="width: 6px; height: 6px; border-radius: 999px; background: var(--action);"></span></sc-if><sc-if value="{{ p.wait }}" hint-placeholder-val="{{ true }}"><span style="width: 6px; height: 6px; border-radius: 999px; background: var(--track);"></span></sc-if></span>{{ p.label }}</span></sc-for></div></sc-if>
+    <sc-if value="{{ micSim }}" hint-placeholder-val="{{ false }}"><span style="font-size: 12px; font-weight: 400; color: var(--ink-subtle);">No microphone access here, so the level shown is simulated.</span></sc-if>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ ph.fb }}" hint-placeholder-val="{{ false }}">
+  <div data-enter="1" style="border: 1.5px dashed var(--hairline-strong); border-radius: 12px; padding: 48px 24px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; color: var(--ink-muted);"><l-icon name="message-square" size="20"></l-icon><span style="font-size: 14px; font-weight: 600; color: var(--ink);">Feedback goes here</span><span style="font-size: 13px; font-weight: 400; max-width: 340px; line-height: 1.45;">Designed separately. This slot hands over to the full feedback experience.</span></div>
+  <div data-enter="1" style="display: flex; gap: 12px;">
+    <button onClick="{{ retry }}" style="height: 48px; padding: 0 16px; border-radius: 8px; border: 1px solid var(--hairline-strong); background: transparent; color: var(--ink); font-family: inherit; font-weight: 600; font-size: 15px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; transition: background-color 120ms, transform 80ms;" style-hover="background: var(--track);" style-active="transform: scale(0.97);"><l-icon name="rotate-ccw" size="16"></l-icon>Retry</button>
+    <button onClick="{{ next }}" style="flex: 1; height: 48px; padding: 0 20px; border-radius: 8px; border: none; background: var(--action); color: var(--action-ink); font-family: inherit; font-weight: 600; font-size: 15px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: background-color 120ms, transform 80ms;" style-hover="background: var(--action-hover);" style-active="background: var(--action-press); transform: scale(0.97);">{{ fb.nextLabel }}<l-icon name="chevron-right" size="16"></l-icon></button>
+  </div>
+  </sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ dir.c }}" hint-placeholder-val="{{ false }}">
+<div style="max-width: 760px; min-height: 100%; box-sizing: border-box; margin: 0 auto; padding: 16px clamp(16px, 3cqw, 32px) 16px; display: flex; flex-direction: column; gap: 16px;">
+  <div data-enter="1" style="display: flex; align-items: center; gap: 12px;">
+    <span style="font-variant-numeric: tabular-nums; font-weight: 500; font-size: 13px; white-space: nowrap;">{{ prog.q }}</span>
+    <div style="flex: 1; display: flex; gap: 4px; height: 6px;"><sc-for list="{{ prog.segs }}" as="g" hint-placeholder-count="3"><span style="{{ g }}"></span></sc-for></div>
+    <sc-if value="{{ prog.hasXp }}" hint-placeholder-val="{{ false }}"><span style="font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--reward-text); white-space: nowrap;">+{{ prog.xp }} XP</span></sc-if>
+    <button onClick="{{ endSession }}" aria-label="End session early" title="End session early" style="width: 44px; height: 44px; border-radius: 8px; border: none; background: transparent; color: var(--ink-subtle); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background-color 120ms;" style-hover="background: var(--track); color: var(--ink);"><l-icon name="x" size="16"></l-icon></button>
+  </div>
+
+  <div data-enter="q" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 16px; padding: clamp(8px, 4cqw, 40px) 0;">
+    <span style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;"><span style="height: 24px; padding: 0 8px; border-radius: 8px; background: var(--action-soft); color: var(--action-text); font-size: 12px; font-weight: 600; display: inline-flex; align-items: center;">{{ q.demand }}</span><sc-if value="{{ q.review }}" hint-placeholder-val="{{ false }}"><span style="height: 24px; padding: 0 8px; border-radius: 8px; background: var(--info-soft); color: var(--info-text); font-size: 12px; font-weight: 600; display: inline-flex; align-items: center;">Review</span></sc-if></span>
+    <h2 style="margin: 0; font-size: 30px; line-height: 1.12; font-weight: 600; letter-spacing: -0.015em; text-wrap: balance; max-width: 600px;">{{ q.text }}</h2>
+    <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 0 8px; padding-top: 20px;"><sc-for list="{{ q.vocab }}" as="v" hint-placeholder-count="3"><button onClick="{{ v.toggle }}" aria-label="{{ v.aria }}" style="height: 44px; padding: 0; border: none; background: transparent; font-family: inherit; color: inherit; cursor: pointer; display: flex; align-items: center;"><span style="{{ v.style }}">{{ v.fr }}<sc-if value="{{ v.open }}" hint-placeholder-val="{{ false }}"><span style="position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); white-space: nowrap; padding: 4px 8px; border-radius: 8px; background: var(--ink); color: var(--surface); font-size: 12px; font-weight: 500; line-height: 1.4;">{{ v.en }}</span></sc-if></span></button></sc-for></div>
+    <div style="display: flex; gap: 4px 20px; flex-wrap: wrap; justify-content: center;">
+      <button onClick="{{ q.speak }}" style="background: transparent; border: none; padding: 0; height: 44px; font-family: inherit; font-weight: 600; font-size: 13px; color: var(--ink-muted); display: inline-flex; align-items: center; gap: 6px; cursor: pointer;" style-hover="color: var(--ink);"><l-icon name="volume-2" size="14"></l-icon>Listen</button>
+      <button onClick="{{ toggleHint }}" style="background: transparent; border: none; padding: 0; height: 44px; font-family: inherit; font-weight: 600; font-size: 13px; color: var(--reward-text); display: inline-flex; align-items: center; gap: 6px; cursor: pointer;"><l-icon name="lightbulb" size="14"></l-icon>{{ q.hintLabel }}</button>
+      <button onClick="{{ toggleWhy }}" style="background: transparent; border: none; padding: 0; height: 44px; font-family: inherit; font-weight: 600; font-size: 13px; color: var(--ink-muted); display: inline-flex; align-items: center; gap: 6px; cursor: pointer;" style-hover="color: var(--ink);"><l-icon name="info" size="14"></l-icon>Why this question</button>
+    </div>
+    <sc-if value="{{ hintOpen }}" hint-placeholder-val="{{ false }}">
+      <div data-enter="1" style="width: 100%; max-width: 520px; box-sizing: border-box; text-align: left; background: var(--reward-soft); border-radius: 8px; padding: 16px 20px; display: flex; flex-direction: column; gap: 10px;">
+        <ul style="margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; font-size: 14px; line-height: 1.5;"><sc-for list="{{ q.ideas }}" as="i" hint-placeholder-count="2"><li>{{ i }}</li></sc-for></ul>
+        <span style="font-family: 'Libre Baskerville', Georgia, serif; font-style: italic; font-size: 20px; line-height: 1.35;">« {{ q.phraseFr }} »</span>
+        <span style="font-size: 13px; font-weight: 400; color: var(--ink-muted);">{{ q.phraseEn }}</span>
+      </div>
+    </sc-if>
+    <sc-if value="{{ whyOpen }}" hint-placeholder-val="{{ false }}">
+      <div data-enter="1" style="width: 100%; max-width: 520px; box-sizing: border-box; text-align: left; background: var(--surface-recessed); border: 1px solid var(--hairline); border-radius: 8px; padding: 14px 16px; font-size: 14px; line-height: 1.5; color: var(--ink-muted);">{{ q.why }}</div>
+    </sc-if>
+  </div>
+
+  <sc-if value="{{ ph.live }}" hint-placeholder-val="{{ true }}">
+  <div data-enter="1" style="position: sticky; bottom: 0; background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; box-shadow: var(--shadow-card); padding: 16px; display: flex; align-items: center; gap: 16px;">
+    <sc-if value="{{ ph.idle }}" hint-placeholder-val="{{ true }}"><button onClick="{{ startRec }}" aria-label="Record your answer" style="width: 64px; height: 64px; flex-shrink: 0; border-radius: 999px; border: none; background: var(--action); color: var(--action-ink); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background-color 120ms, transform 80ms;" style-hover="background: var(--action-hover);" style-active="background: var(--action-press); transform: scale(0.97);"><l-icon name="mic" size="24"></l-icon></button></sc-if>
+    <sc-if value="{{ ph.rec }}" hint-placeholder-val="{{ false }}"><button onClick="{{ stopRec }}" aria-label="Stop recording" style="width: 64px; height: 64px; flex-shrink: 0; border-radius: 999px; border: none; background: var(--ink); color: var(--surface); display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 0 0 6px var(--surface), 0 0 0 7px var(--hairline-strong); transition: transform 80ms;" style-active="transform: scale(0.97);"><span style="width: 18px; height: 18px; border-radius: 4px; background: var(--surface);"></span></button></sc-if>
+    <sc-if value="{{ ph.proc }}" hint-placeholder-val="{{ false }}"><span style="width: 64px; height: 64px; flex-shrink: 0; border-radius: 999px; background: var(--surface-recessed); border: 1px solid var(--hairline); color: var(--ink-muted); display: flex; align-items: center; justify-content: center; box-sizing: border-box;"><span data-spin="1" style="display: flex;"><l-icon name="loader-circle" size="24"></l-icon></span></span></sc-if>
+    <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px;">
+      <sc-if value="{{ ph.idle }}" hint-placeholder-val="{{ true }}"><span style="font-size: 14px; font-weight: 600;">Tap to start recording</span></sc-if>
+      <sc-if value="{{ ph.rec }}" hint-placeholder-val="{{ false }}"><span style="display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600;"><span style="width: 8px; height: 8px; border-radius: 999px; background: var(--correction);"></span>Recording<span style="font-variant-numeric: tabular-nums; font-weight: 500; color: var(--ink-muted);">{{ timer }}</span></span></sc-if>
+      <sc-if value="{{ ph.proc }}" hint-placeholder-val="{{ false }}"><span style="display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600;">{{ procLabel }}<span style="font-variant-numeric: tabular-nums; font-weight: 500; color: var(--ink-subtle);">{{ procCount }}</span></span></sc-if>
+      <div ref="{{ waveRef }}" style="height: 40px; display: flex; align-items: center; gap: 3px; overflow: hidden;"><sc-for list="{{ waveBars }}" as="b" hint-placeholder-count="40"><span style="width: 3px; height: 4px; border-radius: 999px; background: var(--ink-muted); flex-shrink: 0;"></span></sc-for></div>
+      <sc-if value="{{ ph.rec }}" hint-placeholder-val="{{ false }}"><div style="width: 100%; max-width: none; display: flex; flex-direction: column; gap: 6px;"><span style="height: 4px; border-radius: 999px; background: var(--track); overflow: hidden; display: block;"><span style="{{ lenBar.bar }}"></span></span><span style="display: flex; justify-content: space-between; gap: 8px; font-size: 12px; font-weight: 400; color: var(--ink-subtle);"><span style="{{ lenBar.msgStyle }}">{{ lenBar.msg }}</span><span style="font-variant-numeric: tabular-nums;">aim 30–60s</span></span></div></sc-if>
+      <sc-if value="{{ micSim }}" hint-placeholder-val="{{ false }}"><span style="font-size: 12px; font-weight: 400; color: var(--ink-subtle);">No microphone access here — level is simulated.</span></sc-if>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ ph.fb }}" hint-placeholder-val="{{ false }}">
+  <div data-enter="1" style="border: 1.5px dashed var(--hairline-strong); border-radius: 12px; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; color: var(--ink-muted);"><l-icon name="message-square" size="20"></l-icon><span style="font-size: 14px; font-weight: 600; color: var(--ink);">Feedback goes here</span><span style="font-size: 13px; font-weight: 400; max-width: 340px; line-height: 1.45;">Designed separately. This slot hands over to the full feedback experience.</span></div>
+  <div data-enter="1" style="position: sticky; bottom: 0; display: flex; gap: 12px; padding: 12px; background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; box-shadow: var(--shadow-card);">
+    <button onClick="{{ retry }}" style="height: 48px; padding: 0 16px; border-radius: 8px; border: 1px solid var(--hairline-strong); background: transparent; color: var(--ink); font-family: inherit; font-weight: 600; font-size: 15px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; transition: background-color 120ms, transform 80ms;" style-hover="background: var(--track);" style-active="transform: scale(0.97);"><l-icon name="rotate-ccw" size="16"></l-icon>Retry</button>
+    <button onClick="{{ next }}" style="flex: 1; height: 48px; padding: 0 20px; border-radius: 8px; border: none; background: var(--action); color: var(--action-ink); font-family: inherit; font-weight: 600; font-size: 15px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: background-color 120ms, transform 80ms;" style-hover="background: var(--action-hover);" style-active="background: var(--action-press); transform: scale(0.97);">{{ fb.nextLabel }}<l-icon name="chevron-right" size="16"></l-icon></button>
+  </div>
+  </sc-if>
+</div>
+</sc-if>
+</sc-if>
+
+<sc-if value="{{ is.complete }}" hint-placeholder-val="{{ false }}">
+<div style="min-height: 100%; box-sizing: border-box; display: flex; align-items: center; justify-content: center; padding: 32px 16px;">
+  <div data-enter="1" style="width: 100%; max-width: 460px; background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: clamp(24px, 6cqw, 40px); box-sizing: border-box; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 24px;">
+    <span style="display: flex; align-items: center; gap: 8px;"><span style="{{ cur.chipSm }}"><l-icon name="{{ cur.icon }}" size="14"></l-icon></span><span style="font-size: 13px; font-weight: 600; color: var(--ink-muted);">{{ cur.fr }} · session complete</span></span>
+    <h2 style="margin: 0; font-size: 30px; line-height: 1.12; font-weight: 600; letter-spacing: -0.015em;">{{ comp.headline }}</h2>
+    <div style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 12px;">
+      <span data-spark="1" style="position: absolute; left: 50%; top: 36%; width: 0; height: 0;"><span style="position: absolute; width: 6px; height: 6px; margin: -3px; border-radius: 999px; background: var(--reward); opacity: 0;"></span><span style="position: absolute; width: 6px; height: 6px; margin: -3px; border-radius: 999px; background: var(--progress); opacity: 0;"></span><span style="position: absolute; width: 6px; height: 6px; margin: -3px; border-radius: 999px; background: var(--action); opacity: 0;"></span><span style="position: absolute; width: 6px; height: 6px; margin: -3px; border-radius: 999px; background: var(--streak); opacity: 0;"></span><span style="position: absolute; width: 6px; height: 6px; margin: -3px; border-radius: 999px; background: var(--reward); opacity: 0;"></span><span style="position: absolute; width: 6px; height: 6px; margin: -3px; border-radius: 999px; background: var(--progress); opacity: 0;"></span><span style="position: absolute; width: 6px; height: 6px; margin: -3px; border-radius: 999px; background: var(--action); opacity: 0;"></span><span style="position: absolute; width: 6px; height: 6px; margin: -3px; border-radius: 999px; background: var(--streak); opacity: 0;"></span><span style="position: absolute; width: 6px; height: 6px; margin: -3px; border-radius: 999px; background: var(--reward); opacity: 0;"></span><span style="position: absolute; width: 6px; height: 6px; margin: -3px; border-radius: 999px; background: var(--progress); opacity: 0;"></span></span>
+      <sc-if value="{{ comp.scored }}" hint-placeholder-val="{{ true }}">
+        <span style="display: flex; align-items: baseline; gap: 6px;"><span data-count="{{ comp.scoreNum }}" data-dec="1" style="font-size: 72px; line-height: 0.9; font-weight: 600; letter-spacing: -0.035em; font-variant-numeric: tabular-nums;">{{ comp.score }}</span><span style="font-size: 28px; font-weight: 600; color: var(--ink-subtle);">/10</span></span>
+        <span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle);">Session average</span>
+      </sc-if>
+      <sc-if value="{{ comp.unscored }}" hint-placeholder-val="{{ false }}">
+        <span style="font-size: 40px; line-height: 1.05; font-weight: 600; letter-spacing: -0.025em; color: var(--ink-muted);">Not scored</span>
+        <span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle);">Examiner style gives comments, not a score.</span>
+      </sc-if>
+      <span data-pop="1" style="height: 36px; padding: 0 14px; border: 1px solid var(--reward); border-radius: 999px; color: var(--reward-text); background: var(--reward-soft); display: inline-flex; align-items: center; gap: 8px; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 15px; box-sizing: border-box;"><l-icon name="zap" size="16"></l-icon>{{ comp.xp }}</span>
+    </div>
+    <div style="width: 100%; display: flex; flex-direction: column; gap: 8px;">
+      <div style="display: flex; gap: 4px;"><sc-for list="{{ comp.segs }}" as="g" hint-placeholder-count="3"><span style="{{ g }}"></span></sc-for></div>
+      <span style="font-size: 12px; font-weight: 400; color: var(--ink-subtle);">{{ comp.meta }}</span>
+    </div>
+    <div style="width: 100%; display: flex; flex-direction: column; gap: 8px;">
+      <button onClick="{{ continueHome }}" style="width: 100%; height: 48px; border-radius: 8px; border: none; background: var(--action); color: var(--action-ink); font-family: inherit; font-weight: 600; font-size: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: background-color 120ms, transform 80ms;" style-hover="background: var(--action-hover);" style-active="background: var(--action-press); transform: scale(0.97);">Continue<l-icon name="chevron-right" size="16"></l-icon></button>
+      <div style="display: flex; gap: 8px;">
+        <sc-if value="{{ comp.canRetry }}" hint-placeholder-val="{{ false }}"><button onClick="{{ retrySession }}" style="flex: 1; height: 48px; border-radius: 8px; border: 1px solid var(--hairline-strong); background: transparent; color: var(--ink); font-family: inherit; font-weight: 600; font-size: 15px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: background-color 120ms, transform 80ms;" style-hover="background: var(--track);" style-active="transform: scale(0.97);"><l-icon name="rotate-ccw" size="16"></l-icon>Retry</button></sc-if>
+        <button onClick="{{ backToTopics }}" style="flex: 1; height: 48px; border-radius: 8px; border: none; background: transparent; color: var(--ink-muted); font-family: inherit; font-weight: 600; font-size: 15px; cursor: pointer; transition: color 120ms;" style-hover="color: var(--ink);">Back to topics</button>
+      </div>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.progress }}" hint-placeholder-val="{{ false }}">
+<div style="max-width: 1120px; margin: 0 auto; padding: clamp(24px, 4cqw, 40px) clamp(16px, 3cqw, 32px) 48px; display: flex; flex-direction: column; gap: 24px;">
+  <div data-enter="1" style="display: flex; flex-direction: column; gap: 8px;">
+    <h1 style="margin: 0; font-size: clamp(30px, 5cqw, 40px); line-height: 1.05; font-weight: 600; letter-spacing: -0.025em;">Progress</h1>
+    <p style="margin: 0; font-size: 16px; color: var(--ink-muted); text-wrap: pretty;">Your exam marks, your Learn practice and what to do next.</p>
+  </div>
+
+  <section data-enter="1" style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: clamp(20px, 3cqw, 28px); display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px;">
+    <span style="width: 48px; height: 48px; border-radius: 8px; background: var(--action-soft); color: var(--action-text); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><l-icon name="rotate-ccw" size="20"></l-icon></span>
+    <div style="flex: 1 1 280px; min-width: 0; display: flex; flex-direction: column; gap: 4px;">
+      <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-subtle); color: var(--action-text);">Your next step</span>
+      <h2 style="margin: 0; font-size: 22px; line-height: 1.25; font-weight: 600; letter-spacing: -0.01em;">{{ pg.next.title }}</h2>
+      <p style="margin: 0; font-size: 14px; line-height: 1.5; color: var(--ink-muted); text-wrap: pretty;">{{ pg.next.detail }}</p>
+    </div>
+    <button onClick="{{ pg.next.go }}" style="height: 48px; padding: 0 20px; border-radius: 8px; border: none; background: var(--action); color: var(--action-ink); font-family: inherit; font-weight: 600; font-size: 15px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; flex: 0 1 auto; transition: background-color 120ms, transform 80ms;" style-hover="background: var(--action-hover);" style-active="background: var(--action-press); transform: scale(0.97);">{{ pg.next.cta }}<l-icon name="arrow-right" size="16"></l-icon></button>
+  </section>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr)); gap: 12px;">
+    <sc-for list="{{ pg.glance }}" as="g" hint-placeholder-count="4">
+      <div data-enter="1" style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px; min-width: 0;">
+        <span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle);">{{ g.label }}</span>
+        <span style="display: flex; align-items: baseline; gap: 4px;"><span data-count="{{ g.num }}" data-dec="{{ g.dec }}" style="font-variant-numeric: tabular-nums; font-weight: 500; font-size: 32px; line-height: 1.15; letter-spacing: -0.01em;">{{ g.value }}</span><span style="font-variant-numeric: tabular-nums; font-weight: 500; font-size: 14px; color: var(--ink-subtle);">{{ g.unit }}</span></span>
+        <span style="{{ g.noteStyle }}"><l-icon name="{{ g.noteIcon }}" size="14"></l-icon>{{ g.note }}</span>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: stretch;">
+    <section data-enter="1" style="flex: 1.5 1 440px; min-width: 0; background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: clamp(20px, 3cqw, 24px); display: flex; flex-direction: column; gap: 20px; box-sizing: border-box;">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap;"><span style="font-size: 16px; font-weight: 600; line-height: 1.3;">Exam</span><span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle);">Exam Sim marks /40</span></div>
+      <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 32px;">
+        <div style="display: flex; flex-direction: column; gap: 2px;">
+          <span style="display: flex; align-items: baseline; gap: 4px;"><span data-count="{{ pg.exam.latest }}" style="font-variant-numeric: tabular-nums; font-weight: 500; font-size: 52px; line-height: 1; letter-spacing: -0.02em;">{{ pg.exam.latest }}</span><span style="font-variant-numeric: tabular-nums; font-weight: 500; font-size: 18px; color: var(--ink-subtle);">/40</span></span>
+          <span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle);">Latest · {{ pg.exam.latestDate }}</span>
+        </div>
+        <p style="flex: 1 1 220px; margin: 0; font-size: 14px; line-height: 1.5; color: var(--ink-muted); text-wrap: pretty;">{{ pg.exam.insight }}</p>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div style="position: relative; height: 136px; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; border-bottom: 1px solid var(--hairline-strong);">
+          <span style="{{ pg.exam.targetLine }}"><span style="position: absolute; left: 0; bottom: 4px; padding-right: 6px; background: var(--surface); font-size: 12px; font-weight: 600; line-height: 1.2; color: var(--action-text);">Target {{ pg.exam.target }}</span></span>
+          <sc-for list="{{ pg.exam.trend }}" as="t" hint-placeholder-count="6">
+            <span title="{{ t.title }}" style="height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 4px; min-width: 0;"><span style="{{ t.valStyle }}">{{ t.total }}</span><span data-fillh="1" style="{{ t.bar }}"></span></span>
+          </sc-for>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px;"><sc-for list="{{ pg.exam.trend }}" as="t" hint-placeholder-count="6"><span style="{{ t.lbl }}">{{ t.date }}</span></sc-for></div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 14px; padding-top: 4px; border-top: 1px solid var(--hairline);">
+        <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-subtle); padding-top: 12px;">By scored area · {{ pg.exam.latestDate }}</span>
+        <sc-for list="{{ pg.exam.areas }}" as="a" hint-placeholder-count="3">
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <span style="display: flex; justify-content: space-between; align-items: center; gap: 8px;"><span style="display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 400;">{{ a.label }}<sc-if value="{{ a.weakest }}" hint-placeholder-val="{{ false }}"><span style="height: 22px; padding: 0 8px; border-radius: 999px; background: var(--correction-soft); color: var(--correction-text); font-size: 12px; font-weight: 600; display: inline-flex; align-items: center;">Weakest</span></sc-if></span><span style="font-variant-numeric: tabular-nums; font-weight: 500; font-size: 14px;">{{ a.mark }}<span style="color: var(--ink-subtle);">/{{ a.max }}</span></span></span>
+            <span style="height: 8px; border-radius: 999px; background: var(--track); overflow: hidden; display: block;"><span data-fill="1" style="{{ a.bar }}"></span></span>
+          </div>
+        </sc-for>
+        <span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle); text-wrap: pretty;">{{ pg.exam.practiceNote }}</span>
+      </div>
+    </section>
+
+    <section data-enter="1" style="flex: 1 1 300px; min-width: 0; background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: clamp(20px, 3cqw, 24px); display: flex; flex-direction: column; gap: 20px; box-sizing: border-box;">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px;"><span style="font-size: 16px; font-weight: 600; line-height: 1.3;">Consistency</span><span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle);">Last 14 days</span></div>
+      <div style="display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px;"><span style="display: flex; align-items: baseline; gap: 4px;"><span data-count="{{ pg.cons.n }}" style="font-variant-numeric: tabular-nums; font-weight: 500; font-size: 32px; line-height: 1.1;">{{ pg.cons.n }}</span><span style="font-variant-numeric: tabular-nums; font-weight: 500; font-size: 14px; color: var(--ink-subtle);">/14 days practised</span></span></div>
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px;"><sc-for list="{{ pg.cons.wk }}" as="w" hint-placeholder-count="7"><span style="font-size: 12px; font-weight: 400; color: var(--ink-subtle); text-align: center;">{{ w }}</span></sc-for></div>
+        <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px;"><sc-for list="{{ pg.cons.days }}" as="d" hint-placeholder-count="14"><span data-enter="1" title="{{ d.title }}" style="{{ d.style }}">{{ d.d }}</span></sc-for></div>
+      </div>
+      <span style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 400; color: var(--ink-muted);"><span style="color: var(--streak-text); display: flex;"><l-icon name="flame" size="14"></l-icon></span>{{ pg.cons.streak }}</span>
+      <div style="display: flex; flex-direction: column; gap: 12px; border-top: 1px solid var(--hairline); padding-top: 16px;">
+        <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-subtle);">Grammar to work on</span>
+        <sc-for list="{{ pg.skills }}" as="k" hint-placeholder-count="4">
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <span style="display: flex; justify-content: space-between; gap: 8px; font-size: 14px; font-weight: 400;"><span>{{ k.name }}</span><span style="font-variant-numeric: tabular-nums; font-weight: 500; color: var(--ink-muted);">{{ k.pct }}</span></span>
+            <span style="height: 6px; border-radius: 999px; background: var(--track); overflow: hidden; display: block;"><span data-fill="1" style="{{ k.bar }}"></span></span>
+          </div>
+        </sc-for>
+        <span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle);">Mastery from your corrections across every topic.</span>
+      </div>
+    </section>
+  </div>
+
+  <section data-enter="1" style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; overflow: hidden;">
+    <div style="padding: 16px clamp(16px, 3cqw, 24px); display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 4px 12px;"><span style="font-size: 16px; font-weight: 600; line-height: 1.3;">Topics</span><span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle);">Weakest first · scores at Exam standard /10</span></div>
+    <sc-for list="{{ pg.topics }}" as="t" hint-placeholder-count="4">
+      <button onClick="{{ t.open }}" style="{{ t.row }}" style-hover="background: var(--surface-recessed);">
+        <span style="{{ t.chip }}"><l-icon name="{{ t.icon }}" size="16"></l-icon></span>
+        <span style="flex: 1 1 150px; min-width: 0; display: flex; flex-direction: column;"><span style="font-size: 15px; font-weight: 600; line-height: 1.35;">{{ t.fr }}</span><span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle); line-height: 1.35;">{{ t.en }}</span></span>
+        <span style="flex: 1 1 200px; min-width: 0; display: flex; flex-direction: column; gap: 6px;"><span style="display: flex; justify-content: space-between; gap: 8px; font-size: 12px; font-weight: 400; color: var(--ink-subtle);"><span style="font-variant-numeric: tabular-nums;">{{ t.answeredLine }}</span><span style="color: var(--action-text); font-weight: 600;">{{ t.due }}</span></span><span style="height: 6px; border-radius: 999px; background: var(--track); overflow: hidden; display: block;"><span data-fill="1" style="{{ t.bar }}"></span></span></span>
+        <span style="{{ t.pill }}">{{ t.avg }}</span>
+        <span style="color: var(--ink-subtle); display: flex;"><l-icon name="chevron-right" size="16"></l-icon></span>
+      </button>
+    </sc-for>
+    <div style="border-top: 1px solid var(--hairline); background: var(--surface-recessed); padding: 12px clamp(16px, 3cqw, 24px); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px;">
+      <span style="font-size: 14px; font-weight: 400; color: var(--ink-muted);">{{ pg.notStarted }}</span>
+      <button onClick="{{ goLearn }}" style="height: 40px; padding: 0 14px; border-radius: 8px; border: 1px solid var(--hairline-strong); background: transparent; color: var(--ink); font-family: inherit; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; flex-shrink: 0; transition: background-color 120ms, transform 80ms;" style-hover="background: var(--track);" style-active="transform: scale(0.97);">Browse topics</button>
+    </div>
+  </section>
+
+  <section data-enter="1" style="display: flex; flex-direction: column; gap: 12px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px 16px; padding: 0 4px;">
+      <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-subtle);">Past attempts</span>
+      <div style="position: relative; width: 240px; max-width: 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 4px; border-radius: 12px; background: var(--surface); border: 1px solid var(--hairline); box-sizing: border-box;">
+        <span style="{{ pg.filter.ind }}"></span>
+        <sc-for list="{{ pg.filter.opts }}" as="o" hint-placeholder-count="3"><button onClick="{{ o.pick }}" aria-pressed="{{ o.on }}" style="{{ o.style }}">{{ o.label }}</button></sc-for>
+      </div>
+    </div>
+    <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; overflow: hidden;">
+      <sc-for list="{{ pg.attempts }}" as="a" hint-placeholder-count="5">
+        <div style="{{ a.wrap }}">
+          <button onClick="{{ a.toggle }}" aria-expanded="{{ a.open }}" style="width: 100%; min-height: 60px; padding: 10px clamp(16px, 3cqw, 20px); display: flex; align-items: center; gap: 12px; border: none; background: transparent; color: var(--ink); font-family: inherit; text-align: left; cursor: pointer; box-sizing: border-box; transition: background-color 120ms;" style-hover="background: var(--surface-recessed);">
+            <span style="width: 48px; flex-shrink: 0; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 13px; color: var(--ink-subtle);">{{ a.date }}</span>
+            <span style="{{ a.chip }}"><l-icon name="{{ a.icon }}" size="14"></l-icon></span>
+            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column;"><span style="font-size: 14px; font-weight: 600; line-height: 1.35; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ a.title }}</span><span style="{{ a.tagStyle }}">{{ a.tag }}</span></span>
+            <span style="{{ a.scoreStyle }}">{{ a.score }}</span>
+            <span style="{{ a.chev }}"><l-icon name="chevron-down" size="16"></l-icon></span>
+          </button>
+          <sc-if value="{{ a.open }}" hint-placeholder-val="{{ false }}">
+            <div data-enter="1" style="margin: 0 clamp(16px, 3cqw, 20px) 16px; padding: 14px 16px; border-radius: 8px; background: var(--surface-recessed); border: 1px solid var(--hairline); display: flex; flex-direction: column; gap: 8px; font-size: 14px; line-height: 1.5; color: var(--ink-muted);">
+              <sc-if value="{{ a.isLearn }}" hint-placeholder-val="{{ true }}">
+                <span style="font-weight: 600; color: var(--ink);">{{ a.q }}</span>
+                <sc-if value="{{ a.hasTr }}" hint-placeholder-val="{{ true }}"><span lang="fr" style="font-style: italic;">“{{ a.tr }}”</span></sc-if>
+                <span><span style="color: var(--ink-subtle);">Feedback · </span>{{ a.fb }}</span>
+              </sc-if>
+              <sc-if value="{{ a.isExam }}" hint-placeholder-val="{{ false }}">
+                <sc-for list="{{ a.areas }}" as="r" hint-placeholder-count="3"><span style="display: flex; justify-content: space-between; gap: 8px;"><span>{{ r.label }}</span><span style="font-variant-numeric: tabular-nums; font-weight: 500; color: var(--ink);">{{ r.mark }}/{{ r.max }}</span></span></sc-for>
+                <sc-if value="{{ a.practice }}" hint-placeholder-val="{{ false }}"><span style="color: var(--ink-subtle);">Coached practice, so it isn’t counted in your Exam figures.</span></sc-if>
+              </sc-if>
+            </div>
+          </sc-if>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.profile }}" hint-placeholder-val="{{ false }}">
+<div style="max-width: 1120px; margin: 0 auto; padding: clamp(24px, 4cqw, 40px) clamp(16px, 3cqw, 32px) 48px; display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start;">
+  <div style="flex: 1.45 1 460px; min-width: 0; display: flex; flex-direction: column; gap: 16px;">
+    <section data-enter="1" style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: clamp(20px, 4cqw, 28px); display: flex; flex-direction: column; gap: 20px;">
+      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px 20px;">
+        <span style="width: 72px; height: 72px; border-radius: 999px; background: var(--action-soft); color: var(--action-text); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 26px; flex-shrink: 0;">LM</span>
+        <div style="flex: 1 1 180px; min-width: 0; display: flex; flex-direction: column; gap: 2px;">
+          <h1 style="margin: 0; font-size: clamp(26px, 4cqw, 32px); line-height: 1.15; font-weight: 600; letter-spacing: -0.02em;">Léa Martin</h1>
+          <span style="font-size: 14px; font-weight: 400; color: var(--ink-subtle);">@{{ pf.username }} · learning since March 2026</span>
+        </div>
+        <sc-if value="{{ pf.notRenaming }}" hint-placeholder-val="{{ true }}"><button onClick="{{ pf.startRename }}" style="height: 40px; padding: 0 14px; border-radius: 8px; border: 1px solid var(--hairline-strong); background: transparent; color: var(--ink); font-family: inherit; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; flex-shrink: 0; transition: background-color 120ms, transform 80ms; height: 44px;" style-hover="background: var(--track);" style-active="transform: scale(0.97);"><l-icon name="at-sign" size="16"></l-icon>Change username</button></sc-if>
+      </div>
+      <sc-if value="{{ pf.renaming }}" hint-placeholder-val="{{ false }}">
+        <div data-enter="1" style="background: var(--surface-recessed); border: 1px solid var(--hairline); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 8px;">
+          <label for="fa-uname" style="font-size: 13px; font-weight: 600;">New username</label>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+            <input id="fa-uname" value="{{ pf.renameVal }}" onChange="{{ pf.onRenameInput }}" placeholder="{{ pf.username }}" autoComplete="off" style="flex: 1 1 200px; min-width: 0; height: 44px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--hairline-strong); background: var(--surface); color: var(--ink); font-family: inherit; font-size: 15px; font-weight: 400; box-sizing: border-box; outline: none;" style-focus="border-color: var(--focus); box-shadow: 0 0 0 3px var(--action-soft);">
+            <button onClick="{{ pf.saveRename }}" aria-disabled="{{ pf.renameInvalid }}" style="{{ pf.saveStyle }}">Save</button>
+            <button onClick="{{ pf.cancelRename }}" style="height: 44px; padding: 0 14px; border-radius: 8px; border: none; background: transparent; color: var(--ink-muted); font-family: inherit; font-weight: 600; font-size: 14px; cursor: pointer;" style-hover="background: var(--track); color: var(--ink);">Cancel</button>
+          </div>
+          <span style="{{ pf.renameHintStyle }}">{{ pf.renameHint }}</span>
+        </div>
+      </sc-if>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <span style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px;"><span style="display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; color: var(--reward-text);"><l-icon name="zap" size="16"></l-icon>Level {{ lvl.n }}</span><span style="font-variant-numeric: tabular-nums; font-weight: 500; font-size: 13px; color: var(--ink-subtle);">{{ lvl.toNext }}</span></span>
+        <span style="height: 10px; border-radius: 999px; background: var(--track); overflow: hidden; display: block;"><span data-fill="1" style="{{ lvl.bar }}"></span></span>
+      </div>
+    </section>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr)); gap: 12px;">
+      <sc-for list="{{ pf.stats }}" as="g" hint-placeholder-count="4">
+        <div data-enter="1" style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 4px; min-width: 0;">
+          <span style="{{ g.iconStyle }}"><l-icon name="{{ g.icon }}" size="16"></l-icon></span>
+          <span data-count="{{ g.num }}" data-dec="{{ g.dec }}" data-fmt="{{ g.fmt }}" style="font-variant-numeric: tabular-nums; font-weight: 500; font-size: 28px; line-height: 1.15; margin-top: 6px;">{{ g.value }}</span>
+          <span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle);">{{ g.label }}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <section data-enter="1" style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: clamp(20px, 3cqw, 24px); display: flex; flex-direction: column; gap: 16px;">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px;"><span style="font-size: 16px; font-weight: 600; line-height: 1.3;">Achievements</span><span style="font-variant-numeric: tabular-nums; font-weight: 500; font-size: 13px; color: var(--ink-subtle);">{{ pf.ach.count }}</span></div>
+      <span style="height: 6px; border-radius: 999px; background: var(--track); overflow: hidden; display: block;"><span data-fill="1" style="{{ pf.ach.bar }}"></span></span>
+      <div style="display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 8px; border: 1px solid var(--hairline-strong); background: var(--surface-recessed);">
+        <span style="width: 44px; height: 44px; border-radius: 8px; background: var(--reward-soft); color: var(--reward-text); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><l-icon name="{{ pf.ach.next.icon }}" size="20"></l-icon></span>
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px;">
+          <span style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px;"><span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-subtle); color: var(--reward-text);">Next up</span><span style="font-size: 15px; font-weight: 600;">{{ pf.ach.next.name }}</span></span>
+          <span style="font-size: 13px; font-weight: 400; color: var(--ink-muted);">{{ pf.ach.next.desc }}</span>
+          <span style="display: flex; align-items: center; gap: 10px;"><span style="flex: 1; height: 6px; border-radius: 999px; background: var(--track); overflow: hidden; display: block;"><span data-fill="1" style="{{ pf.ach.next.bar }}"></span></span><span style="font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-muted);">{{ pf.ach.next.prog }}</span></span>
+        </span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 140px), 1fr)); gap: 8px;">
+        <sc-for list="{{ pf.ach.list }}" as="b" hint-placeholder-count="8">
+          <div data-enter="1" title="{{ b.desc }}" style="{{ b.tile }}">
+            <span style="{{ b.chip }}"><l-icon name="{{ b.icon }}" size="18"></l-icon></span>
+            <span style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 14px; font-weight: 600; line-height: 1.3;">{{ b.name }}</span><span style="font-size: 12px; font-weight: 400; color: var(--ink-subtle); line-height: 1.4;">{{ b.desc }}</span></span>
+            <sc-if value="{{ b.unlocked }}" hint-placeholder-val="{{ true }}"><span style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; color: var(--progress-text);"><l-icon name="check" size="14"></l-icon>{{ b.when }}</span></sc-if>
+            <sc-if value="{{ b.locked }}" hint-placeholder-val="{{ false }}"><span style="display: flex; align-items: center; gap: 8px;"><span style="flex: 1; height: 4px; border-radius: 999px; background: var(--track); overflow: hidden; display: block;"><span data-fill="1" style="{{ b.bar }}"></span></span><span style="font-variant-numeric: tabular-nums; font-weight: 500; font-size: 12px; color: var(--ink-subtle);">{{ b.prog }}</span></span></sc-if>
+          </div>
+        </sc-for>
+      </div>
+      <button onClick="{{ pf.ach.toggle }}" style="align-self: flex-start; height: 40px; padding: 0 12px; margin-left: -12px; border-radius: 8px; border: none; background: transparent; color: var(--action-text); font-family: inherit; font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;" style-hover="background: var(--action-soft);">{{ pf.ach.toggleLabel }}<l-icon name="{{ pf.ach.toggleIcon }}" size="16"></l-icon></button>
+    </section>
+
+    <section data-enter="1" style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; overflow: hidden;">
+      <div style="padding: 16px clamp(16px, 3cqw, 24px); display: flex; justify-content: space-between; align-items: center; gap: 12px;"><span style="font-size: 16px; font-weight: 600; line-height: 1.3;">Learning goals</span><button onClick="{{ pf.updateGoals }}" style="height: 40px; padding: 0 14px; border-radius: 8px; border: 1px solid var(--hairline-strong); background: transparent; color: var(--ink); font-family: inherit; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; flex-shrink: 0; transition: background-color 120ms, transform 80ms;" style-hover="background: var(--track);" style-active="transform: scale(0.97);">Update goals</button></div>
+      <sc-for list="{{ pf.goals }}" as="r" hint-placeholder-count="4">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px 16px; padding: 12px clamp(16px, 3cqw, 24px); border-top: 1px solid var(--hairline);"><span style="font-size: 14px; font-weight: 400; color: var(--ink-muted);">{{ r.k }}</span><span style="display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; text-align: right;">{{ r.v }}<sc-if value="{{ r.hasTag }}" hint-placeholder-val="{{ false }}"><span style="height: 24px; padding: 0 8px; border-radius: 999px; background: var(--info-soft); color: var(--info-text); font-variant-numeric: tabular-nums; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center;">{{ r.tag }}</span></sc-if></span></div>
+      </sc-for>
+      <div style="display: flex; align-items: center; gap: 12px; padding: 12px clamp(16px, 3cqw, 24px); border-top: 1px solid var(--hairline); background: var(--surface-recessed);">
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column;"><span style="font-size: 14px; font-weight: 600;">Daily goal</span><span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle);">Sessions a day to keep your streak · drives the ring on Home</span></span>
+        <span style="display: flex; align-items: center; gap: 4px;">
+          <button onClick="{{ pf.goalDec }}" aria-label="Decrease daily goal" aria-disabled="{{ pf.goalMin }}" style="{{ pf.decStyle }}" style-active="transform: scale(0.97);"><l-icon name="minus" size="16"></l-icon></button>
+          <span style="width: 32px; text-align: center; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 18px;">{{ pf.dailyGoal }}</span>
+          <button onClick="{{ pf.goalInc }}" aria-label="Increase daily goal" aria-disabled="{{ pf.goalMax }}" style="{{ pf.incStyle }}" style-active="transform: scale(0.97);"><l-icon name="plus" size="16"></l-icon></button>
+        </span>
+      </div>
+    </section>
+  </div>
+
+  <div style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 20px;">
+    <div data-enter="1" style="display: flex; flex-direction: column; gap: 8px;">
+      <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-subtle); padding: 0 4px;">Preferences</span>
+      <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; overflow: hidden;">
+        <button role="switch" aria-checked="{{ pf.tg.sound.on }}" onClick="{{ pf.tg.sound.flip }}" style="width: 100%; min-height: 60px; padding: 10px 16px; display: flex; align-items: center; gap: 12px; border: none; background: transparent; color: var(--ink); font-family: inherit; text-align: left; cursor: pointer; box-sizing: border-box; transition: background-color 120ms;" style-hover="background: var(--surface-recessed);"><span style="width: 32px; height: 32px; border-radius: 8px; background: var(--surface-recessed); color: var(--ink-muted); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><l-icon name="volume-2" size="16"></l-icon></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column;"><span style="font-size: 14px; font-weight: 600; line-height: 1.35;">Sound effects</span><span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle); line-height: 1.4;">Play sounds for answers and rewards</span></span><span style="{{ pf.tg.sound.track }}"><span style="{{ pf.tg.sound.knob }}"></span></span></button>
+        <button role="switch" aria-checked="{{ pf.tg.dark.on }}" onClick="{{ pf.tg.dark.flip }}" style="width: 100%; min-height: 60px; padding: 10px 16px; display: flex; align-items: center; gap: 12px; border: none; background: transparent; color: var(--ink); font-family: inherit; text-align: left; cursor: pointer; box-sizing: border-box; transition: background-color 120ms; border-top: 1px solid var(--hairline);" style-hover="background: var(--surface-recessed);"><span style="width: 32px; height: 32px; border-radius: 8px; background: var(--surface-recessed); color: var(--ink-muted); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><l-icon name="moon" size="16"></l-icon></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column;"><span style="font-size: 14px; font-weight: 600; line-height: 1.35;">Dark mode</span><span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle); line-height: 1.4;">Same colours by role, darker surfaces</span></span><span style="{{ pf.tg.dark.track }}"><span style="{{ pf.tg.dark.knob }}"></span></span></button>
+        <button onClick="{{ pf.replayTour }}" style="width: 100%; min-height: 60px; padding: 10px 16px; display: flex; align-items: center; gap: 12px; border: none; background: transparent; color: var(--ink); font-family: inherit; text-align: left; cursor: pointer; box-sizing: border-box; transition: background-color 120ms; border-top: 1px solid var(--hairline);" style-hover="background: var(--surface-recessed);"><span style="width: 32px; height: 32px; border-radius: 8px; background: var(--surface-recessed); color: var(--ink-muted); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><l-icon name="map" size="16"></l-icon></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column;"><span style="font-size: 14px; font-weight: 600; line-height: 1.35;">Replay the app tour</span><span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle); line-height: 1.4;">A two-minute walkthrough of every screen</span></span><span style="color: var(--ink-subtle); display: flex;"><l-icon name="chevron-right" size="16"></l-icon></span></button>
+      </div>
+    </div>
+    <div data-enter="1" style="display: flex; flex-direction: column; gap: 8px;">
+      <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-subtle); padding: 0 4px;">Notifications</span>
+      <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; overflow: hidden;">
+        <button role="switch" aria-checked="{{ pf.tg.nStreak.on }}" onClick="{{ pf.tg.nStreak.flip }}" style="width: 100%; min-height: 60px; padding: 10px 16px; display: flex; align-items: center; gap: 12px; border: none; background: transparent; color: var(--ink); font-family: inherit; text-align: left; cursor: pointer; box-sizing: border-box; transition: background-color 120ms;" style-hover="background: var(--surface-recessed);"><span style="width: 32px; height: 32px; border-radius: 8px; background: var(--surface-recessed); color: var(--ink-muted); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><l-icon name="bell" size="16"></l-icon></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column;"><span style="font-size: 14px; font-weight: 600; line-height: 1.35;">Streak reminders</span><span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle); line-height: 1.4;">A nudge before your streak resets</span></span><span style="{{ pf.tg.nStreak.track }}"><span style="{{ pf.tg.nStreak.knob }}"></span></span></button>
+        <button role="switch" aria-checked="{{ pf.tg.nGoal.on }}" onClick="{{ pf.tg.nGoal.flip }}" style="width: 100%; min-height: 60px; padding: 10px 16px; display: flex; align-items: center; gap: 12px; border: none; background: transparent; color: var(--ink); font-family: inherit; text-align: left; cursor: pointer; box-sizing: border-box; transition: background-color 120ms; border-top: 1px solid var(--hairline);" style-hover="background: var(--surface-recessed);"><span style="width: 32px; height: 32px; border-radius: 8px; background: var(--surface-recessed); color: var(--ink-muted); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><l-icon name="bell-ring" size="16"></l-icon></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column;"><span style="font-size: 14px; font-weight: 600; line-height: 1.35;">Daily goal reminders</span><span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle); line-height: 1.4;">If you haven’t hit today’s goal by 6 pm</span></span><span style="{{ pf.tg.nGoal.track }}"><span style="{{ pf.tg.nGoal.knob }}"></span></span></button>
+      </div>
+    </div>
+    <div data-enter="1" style="display: flex; flex-direction: column; gap: 8px;">
+      <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-subtle); padding: 0 4px;">AI feedback</span>
+      <div role="radiogroup" style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; overflow: hidden;">
+        <sc-for list="{{ pf.ai }}" as="o" hint-placeholder-count="3">
+          <button role="radio" aria-checked="{{ o.on }}" onClick="{{ o.pick }}" style="{{ o.row }}" style-hover="background: var(--surface-recessed);">
+            <span style="{{ o.ring }}"><span style="{{ o.dot }}"></span></span>
+            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column;"><span style="display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; font-size: 14px; font-weight: 600; line-height: 1.35;">{{ o.label }}<sc-if value="{{ o.hasBadge }}" hint-placeholder-val="{{ false }}"><span style="height: 22px; padding: 0 8px; border-radius: 999px; background: var(--progress-soft); color: var(--progress-text); font-size: 12px; font-weight: 600; display: inline-flex; align-items: center;">{{ o.badge }}</span></sc-if></span><span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle); line-height: 1.4;">{{ o.desc }}</span></span>
+          </button>
+        </sc-for>
+        <div style="width: 100%; min-height: 60px; padding: 10px 16px; display: flex; align-items: center; gap: 12px; border: none; background: transparent; color: var(--ink); font-family: inherit; text-align: left; cursor: pointer; box-sizing: border-box; transition: background-color 120ms; border-top: 1px solid var(--hairline); cursor: default;"><span style="width: 32px; height: 32px; border-radius: 8px; background: var(--surface-recessed); color: var(--ink-muted); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><l-icon name="globe" size="16"></l-icon></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column;"><span style="font-size: 14px; font-weight: 600; line-height: 1.35;">Speech recognition</span><span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle); line-height: 1.4;">French · IGCSE standard</span></span><span style="height: 24px; padding: 0 8px; border-radius: 6px; background: var(--surface-recessed); border: 1px solid var(--hairline); font-variant-numeric: tabular-nums; font-size: 12px; font-weight: 500; color: var(--ink-muted); display: inline-flex; align-items: center;">fr-FR</span></div>
+      </div>
+    </div>
+    <div data-enter="1" style="display: flex; flex-direction: column; gap: 8px;">
+      <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-subtle); padding: 0 4px;">Account &amp; data</span>
+      <div style="background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; overflow: hidden;">
+        <div style="width: 100%; min-height: 60px; padding: 10px 16px; display: flex; align-items: center; gap: 12px; border: none; background: transparent; color: var(--ink); font-family: inherit; text-align: left; cursor: pointer; box-sizing: border-box; transition: background-color 120ms; cursor: default;"><span style="width: 32px; height: 32px; border-radius: 8px; background: var(--surface-recessed); color: var(--ink-muted); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><l-icon name="shield-check" size="16"></l-icon></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column;"><span style="font-size: 14px; font-weight: 600; line-height: 1.35;">Age band · 13 or older</span><span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle); line-height: 1.4;">No guardian confirmation required</span></span></div>
+        <button onClick="{{ pf.exportData }}" style="width: 100%; min-height: 60px; padding: 10px 16px; display: flex; align-items: center; gap: 12px; border: none; background: transparent; color: var(--ink); font-family: inherit; text-align: left; cursor: pointer; box-sizing: border-box; transition: background-color 120ms; border-top: 1px solid var(--hairline);" style-hover="background: var(--surface-recessed);"><span style="width: 32px; height: 32px; border-radius: 8px; background: var(--surface-recessed); color: var(--ink-muted); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><span style="{{ pf.exportIconWrap }}"><l-icon name="{{ pf.exportIcon }}" size="16"></l-icon></span></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column;"><span style="font-size: 14px; font-weight: 600; line-height: 1.35;">Export my data</span><span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle); line-height: 1.4;">{{ pf.exportDesc }}</span></span><span style="color: var(--ink-subtle); display: flex;"><l-icon name="chevron-right" size="16"></l-icon></span></button>
+        <button onClick="{{ pf.privacy }}" style="width: 100%; min-height: 60px; padding: 10px 16px; display: flex; align-items: center; gap: 12px; border: none; background: transparent; color: var(--ink); font-family: inherit; text-align: left; cursor: pointer; box-sizing: border-box; transition: background-color 120ms; border-top: 1px solid var(--hairline);" style-hover="background: var(--surface-recessed);"><span style="width: 32px; height: 32px; border-radius: 8px; background: var(--surface-recessed); color: var(--ink-muted); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><l-icon name="shield" size="16"></l-icon></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column;"><span style="font-size: 14px; font-weight: 600; line-height: 1.35;">Privacy policy</span><span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle); line-height: 1.4;">How we handle your recordings and data</span></span><span style="color: var(--ink-subtle); display: flex;"><l-icon name="chevron-right" size="16"></l-icon></span></button>
+        <button onClick="{{ pf.toggleBlocked }}" aria-expanded="{{ pf.blockedOpen }}" style="width: 100%; min-height: 60px; padding: 10px 16px; display: flex; align-items: center; gap: 12px; border: none; background: transparent; color: var(--ink); font-family: inherit; text-align: left; cursor: pointer; box-sizing: border-box; transition: background-color 120ms; border-top: 1px solid var(--hairline);" style-hover="background: var(--surface-recessed);"><span style="width: 32px; height: 32px; border-radius: 8px; background: var(--surface-recessed); color: var(--ink-muted); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><l-icon name="user-x" size="16"></l-icon></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column;"><span style="font-size: 14px; font-weight: 600; line-height: 1.35;">Blocked learners</span><span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle); line-height: 1.4;">Manage who can’t find or message you</span></span><span style="{{ pf.blockedChev }}"><l-icon name="chevron-down" size="16"></l-icon></span></button>
+        <sc-if value="{{ pf.blockedOpen }}" hint-placeholder-val="{{ false }}"><div data-enter="1" style="margin: 0 16px 12px 60px; font-size: 13px; font-weight: 400; color: var(--ink-subtle);">No one blocked. You can block a learner from their profile.</div></sc-if>
+        <button onClick="{{ pf.signOut }}" style="width: 100%; min-height: 60px; padding: 10px 16px; display: flex; align-items: center; gap: 12px; border: none; background: transparent; color: var(--ink); font-family: inherit; text-align: left; cursor: pointer; box-sizing: border-box; transition: background-color 120ms; border-top: 1px solid var(--hairline);" style-hover="background: var(--surface-recessed);"><span style="width: 32px; height: 32px; border-radius: 8px; background: var(--surface-recessed); color: var(--ink-muted); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><l-icon name="log-out" size="16"></l-icon></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column;"><span style="font-size: 14px; font-weight: 600; line-height: 1.35;">Sign out</span><span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle); line-height: 1.4;">Your progress on this device is kept</span></span></button>
+        <button onClick="{{ pf.askDelete }}" style="width: 100%; min-height: 60px; padding: 10px 16px; display: flex; align-items: center; gap: 12px; border: none; background: transparent; color: var(--ink); font-family: inherit; text-align: left; cursor: pointer; box-sizing: border-box; transition: background-color 120ms; border-top: 1px solid var(--hairline);" style-hover="background: var(--correction-soft);"><span style="width: 32px; height: 32px; border-radius: 8px; background: var(--surface-recessed); color: var(--ink-muted); display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: var(--correction-soft); color: var(--correction-text);"><l-icon name="trash-2" size="16"></l-icon></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column;"><span style="font-size: 14px; font-weight: 600; line-height: 1.35; color: var(--correction-text);">Delete my account</span><span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle); line-height: 1.4;">Permanently erase your account and data</span></span></button>
+      </div>
+    </div>
+    <span style="font-size: 12px; font-weight: 400; color: var(--ink-subtle); text-align: center;">Français AI · v3.0</span>
+  </div>
+</div>
+</sc-if>
+
+  </div>
+  <sc-if value="{{ toast.show }}" hint-placeholder-val="{{ false }}">
+  <div style="position: absolute; left: 0; right: 0; bottom: 16px; display: flex; justify-content: center; padding: 0 16px; pointer-events: none;">
+    <div data-enter="1" style="width: 100%; max-width: 380px; background: var(--surface-raised); border: 1px solid var(--hairline-strong); border-radius: 12px; box-shadow: var(--shadow-overlay); padding: 8px 8px 8px 14px; display: flex; align-items: center; gap: 12px; pointer-events: auto; box-sizing: border-box;">
+      <span style="width: 32px; height: 32px; border-radius: 8px; background: var(--reward-soft); color: var(--reward-text); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><l-icon name="zap" size="16"></l-icon></span>
+      <span style="flex: 1; display: flex; flex-direction: column; min-width: 0;"><span style="font-size: 14px; font-weight: 600;">{{ toast.title }}</span><span style="font-size: 13px; font-weight: 400; color: var(--ink-muted);">{{ toast.body }}</span></span>
+      <button onClick="{{ closeToast }}" aria-label="Dismiss" style="width: 44px; height: 44px; border: none; background: transparent; color: var(--ink-subtle); display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 8px;" style-hover="background: var(--track);"><l-icon name="x" size="16"></l-icon></button>
+    </div>
+  </div>
+  </sc-if>
+  <sc-if value="{{ pf.delOpen }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ pf.cancelDelete }}" style="position: absolute; inset: 0; background: var(--scrim); display: flex; align-items: center; justify-content: center; padding: 24px;">
+    <div data-enter="1" role="dialog" aria-modal="true" aria-labelledby="fa-del" onClick="{{ pf.stop }}" style="width: 100%; max-width: 400px; background: var(--surface-raised); border: 1px solid var(--hairline-strong); border-radius: 12px; box-shadow: var(--shadow-overlay); padding: 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px;">
+      <span style="width: 44px; height: 44px; border-radius: 8px; background: var(--correction-soft); color: var(--correction-text); display: flex; align-items: center; justify-content: center;"><l-icon name="trash-2" size="20"></l-icon></span>
+      <span style="display: flex; flex-direction: column; gap: 6px;"><span id="fa-del" style="font-size: 18px; font-weight: 600; line-height: 1.3;">Delete your account?</span><span style="font-size: 14px; line-height: 1.5; color: var(--ink-muted); text-wrap: pretty;">This permanently erases your sessions, recordings, scores, XP and progress. It can’t be undone.</span></span>
+      <div style="display: flex; gap: 8px;">
+        <button onClick="{{ pf.cancelDelete }}" style="flex: 1; height: 48px; border-radius: 8px; border: 1px solid var(--hairline-strong); background: transparent; color: var(--ink); font-family: inherit; font-weight: 600; font-size: 15px; cursor: pointer; transition: background-color 120ms, transform 80ms;" style-hover="background: var(--track);" style-active="transform: scale(0.97);">Cancel</button>
+        <button onClick="{{ pf.confirmDelete }}" style="flex: 1; height: 48px; border-radius: 8px; border: none; background: var(--correction); color: #FFFFFF; font-family: inherit; font-weight: 600; font-size: 15px; cursor: pointer; transition: transform 80ms;" style-active="transform: scale(0.97);">Delete permanently</button>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+  </div>
+
+  <sc-if value="{{ showDock }}" hint-placeholder-val="{{ false }}">
+  <nav style="flex-shrink: 0; background: var(--surface); border-top: 1px solid var(--hairline); padding: 6px 8px 12px;">
+    <div style="position: relative; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px;">
+      <span style="{{ dockInd }}"></span>
+      <sc-for list="{{ nav }}" as="n" hint-placeholder-count="5"><button onClick="{{ n.go }}" aria-label="{{ n.label }}" style="{{ n.dock }}"><l-icon name="{{ n.icon }}" size="20"></l-icon><span>{{ n.label }}</span></button></sc-for>
+    </div>
+  </nav>
+  </sc-if>
+</div>
+
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:800},&quot;direction&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;a&quot;,&quot;c&quot;],&quot;default&quot;:&quot;a&quot;,&quot;tsType&quot;:&quot;'a' | 'c'&quot;},&quot;device&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;desktop&quot;,&quot;mobile&quot;],&quot;default&quot;:&quot;desktop&quot;,&quot;tsType&quot;:&quot;'desktop' | 'mobile'&quot;},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;'light' | 'dark'&quot;},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;home&quot;,&quot;learn&quot;,&quot;progress&quot;,&quot;profile&quot;],&quot;default&quot;:&quot;home&quot;,&quot;tsType&quot;:&quot;'home' | 'learn' | 'progress' | 'profile'&quot;},&quot;demoId&quot;:{&quot;editor&quot;:null,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  static TOPICS = [
+    ['ecole', 'L’école', 'School & Education', 'school', 247, 49, 6, 4.4],
+    ['loisirs', 'Les loisirs', 'Hobbies & Free Time', 'bike', 22, 77, 4, 4.1],
+    ['famille', 'La famille', 'Family & Friends', 'users', 337, 46, 9, 3.2],
+    ['vacances', 'Les vacances', 'Holidays & Travel', 'tree-palm', 202, 46, 2, 4.6],
+    ['maison', 'La maison', 'Home & Town', 'sofa', 45, 44, 0, null],
+    ['avenir', 'L’avenir', 'Future Plans', 'compass', 270, 43, 0, null],
+    ['nourriture', 'La nourriture', 'Food & Health', 'croissant', 67, 74, 0, null],
+    ['environnement', 'L’environnement', 'Environment & Technology', 'leaf', 135, 41, 0, null],
+    ['vetements', 'Les vêtements', 'Clothing & Fashion', 'shirt', 315, 30, 0, null],
+    ['animaux', 'Les animaux', 'Animals & Nature', 'paw-print', 90, 30, 0, null],
+    ['transports', 'Les transports', 'Transport & Getting Around', 'train-front', 225, 30, 0, null],
+    ['metiers', 'Les métiers', 'Jobs & Professions', 'briefcase', 292, 30, 0, null],
+    ['sport', 'Le sport', 'Sport & Fitness', 'dumbbell', 157, 30, 0, null],
+    ['emotions', 'Les émotions', 'Feelings & Wellbeing', 'heart', 0, 30, 0, null],
+    ['arts', 'Les arts', 'Arts & Culture', 'palette', 112, 30, 0, null],
+    ['achats', 'Les achats', 'Shopping & Money', 'shopping-bag', 180, 30, 0, null],
+  ];
+  static SUB = {
+    ecole: ['Subjects', 'My school day', 'Rules & uniform', 'Teachers & classmates', 'Exams & homework'],
+    loisirs: ['Sport & active hobbies', 'Music, books & film', 'Screens & games', 'Creative hobbies', 'Free-time routine'],
+    famille: ['Family members', 'Friends', 'Parents & rules', 'Celebrations & traditions', 'Generations'],
+    vacances: ['Past holidays', 'Future trips', 'Destinations', 'Travel preferences', 'Tourism'],
+    maison: ['My home & room', 'Town & region', 'Things to do'],
+    avenir: ['Work & careers', 'Study & skills', 'Personal life plans', 'The world ahead'],
+    nourriture: ['Meals & habits', 'Favourite foods', 'Cooking', 'Eating out & food shopping', 'Health & sustainability'],
+    environnement: ['Everyday eco habits', 'Waste & recycling', 'Climate & energy', 'Nature & wildlife', 'Technology'],
+    vetements: ['What I wear', 'Buying clothes', 'Fashion & trends', 'Fashion & society'],
+    animaux: ['Pets', 'Wild animals & zoos', 'Protecting wildlife', 'Animals & people'],
+    transports: ['Everyday journeys', 'Public transport', 'Cars & traffic', 'Long-distance travel', 'Future of transport'],
+    metiers: ['My dream job', 'Jobs & experience', 'Skills & study', 'The working world'],
+    sport: ['Playing sport', 'Teams & clubs', 'Watching sport', 'Sport & society'],
+    emotions: ['How I feel', 'Stress & coping', 'Friends & support', 'Emotions & society'],
+    arts: ['Music', 'Film & TV', 'Books & writing', 'Visual arts', 'Art & society'],
+    achats: ['Shopping habits', 'Money & saving', 'Online shopping', 'Advertising & consumerism'],
+  };
+  static Q = {
+    famille: ['Décris ta famille. Avec qui est-ce que tu t’entends le mieux ?|D2|s’entendre avec=to get on with;le frère aîné=older brother;sympa=nice', 'Qu’est-ce que tu as fait avec ta famille le week-end dernier ?|P2|le week-end dernier=last weekend;on est allés=we went;ensemble=together', 'À ton avis, est-ce que les parents sont trop stricts ? Pourquoi ?|J3|à mon avis=in my opinion;les règles=the rules;avoir le droit de=to be allowed to'],
+    ecole: ['Qu’est-ce que tu penses de ton collège ? Explique pourquoi.|J3|le collège=school;l’emploi du temps=the timetable;les matières=subjects', 'Décris une journée typique au collège.|D2|d’abord=first;la récré=break time;ensuite=then', 'Qu’est-ce que tu vas faire après tes examens ?|F3|après=after;je vais=I’m going to;le lycée=sixth form'],
+    loisirs: ['Qu’est-ce que tu fais pendant ton temps libre ?|D2|le temps libre=free time;jouer à=to play;le week-end=at the weekend', 'Parle d’une activité que tu as essayée récemment.|P3|récemment=recently;j’ai essayé=I tried;génial=great', 'Est-ce que les jeunes passent trop de temps sur les écrans ?|J3|les écrans=screens;passer du temps=to spend time;trop de=too much'],
+    vacances: ['Où est-ce que tu es allé en vacances l’année dernière ?|P2|l’année dernière=last year;on a logé=we stayed;la plage=the beach', 'Décris tes vacances idéales.|H3|je voudrais=I would like;si j’avais=if I had;à l’étranger=abroad', 'Tu préfères partir en vacances avec ta famille ou avec tes amis ?|C3|je préfère=I prefer;plus … que=more … than;la liberté=freedom'],
+    maison: ['Décris ta maison ou ton appartement.|D2|la chambre=bedroom;au rez-de-chaussée=on the ground floor;il y a=there is', 'Qu’est-ce qu’on peut faire dans ta ville ?|D2|on peut=you can;le centre-ville=town centre;il n’y a pas de=there isn’t', 'Tu préfères habiter en ville ou à la campagne ? Pourquoi ?|C3|la campagne=the countryside;le bruit=noise;calme=quiet'],
+    avenir: ['Qu’est-ce que tu voudrais faire plus tard ?|H3|plus tard=later on;devenir=to become;l’université=university', 'Est-ce que tu voudrais habiter à l’étranger un jour ?|H3|un jour=one day;à l’étranger=abroad;une autre langue=another language', 'Quels sont tes projets pour l’été prochain ?|F2|l’été prochain=next summer;je vais=I’m going to;un petit boulot=a part-time job'],
+    nourriture: ['Qu’est-ce que tu manges d’habitude le matin ?|D2|d’habitude=usually;le petit-déjeuner=breakfast;des tartines=bread and butter', 'Décris un repas spécial que tu as mangé.|P3|un repas=a meal;c’était délicieux=it was delicious;on a fêté=we celebrated', 'Est-ce que tu manges sainement ? Explique.|J3|sain=healthy;les légumes=vegetables;éviter=to avoid'],
+    environnement: ['Qu’est-ce que tu fais pour protéger l’environnement ?|D2|recycler=to recycle;éteindre=to switch off;les déchets=waste', 'Quel est le plus grand problème pour la planète ?|J3|le réchauffement climatique=global warming;la pollution=pollution;il faut=we must', 'La technologie, c’est bon ou mauvais pour les jeunes ?|C3|les réseaux sociaux=social media;utile=useful;dangereux=dangerous'],
+    vetements: ['Qu’est-ce que tu portes le week-end ?|D2|porter=to wear;un jean=jeans;confortable=comfortable', 'Est-ce que la mode est importante pour toi ?|J3|la mode=fashion;les marques=brands;cher=expensive', 'Décris la dernière fois que tu as acheté des vêtements.|P3|la dernière fois=the last time;j’ai acheté=I bought;en solde=on sale'],
+    animaux: ['Est-ce que tu as un animal ? Décris-le.|D2|un chien=a dog;il s’appelle=he’s called;mignon=cute', 'Est-ce que les zoos sont une bonne idée ?|J3|en captivité=in captivity;protéger=to protect;les espèces=species', 'Quel animal est-ce que tu voudrais avoir, et pourquoi ?|H2|je voudrais=I would like;s’occuper de=to look after;affectueux=affectionate'],
+    transports: ['Comment est-ce que tu vas au collège ?|D2|à pied=on foot;en bus=by bus;ça prend=it takes', 'Parle d’un long voyage que tu as fait.|P3|le voyage=the journey;on a pris=we took;ça a duré=it lasted', 'Comment seront les transports à l’avenir ?|F3|à l’avenir=in the future;électrique=electric;il y aura=there will be'],
+    metiers: ['Quel est ton métier idéal ?|E2|le métier=job;travailler=to work;bien payé=well paid', 'Est-ce que tu as déjà eu un petit boulot ?|P3|un petit boulot=a part-time job;gagner=to earn;l’expérience=experience', 'Qu’est-ce qui est plus important : l’argent ou aimer son travail ?|C3|l’argent=money;le salaire=salary;épanouissant=fulfilling'],
+    sport: ['Quel sport est-ce que tu pratiques ?|D2|faire du=to do;une équipe=a team;s’entraîner=to train', 'Parle d’un match que tu as regardé.|P3|le match=the match;on a gagné=we won;l’ambiance=the atmosphere', 'Est-ce que le sport devrait être obligatoire à l’école ?|J3|obligatoire=compulsory;la santé=health;le choix=choice'],
+    emotions: ['Qu’est-ce qui te rend heureux ?|E2|heureux=happy;ça me rend=it makes me;se détendre=to relax', 'Comment est-ce que tu gères le stress des examens ?|E3|le stress=stress;gérer=to manage;se reposer=to rest', 'Parle d’un moment où tu étais fier de toi.|P3|fier=proud;j’ai réussi=I managed;un moment=a moment'],
+    arts: ['Quel genre de musique est-ce que tu écoutes ?|D2|écouter=to listen to;un chanteur=a singer;les paroles=lyrics', 'Parle d’un film que tu as vu récemment.|P3|j’ai vu=I saw;l’histoire=the story;les acteurs=the actors', 'Est-ce que l’art est important à l’école ?|J3|créatif=creative;exprimer=to express;une matière=a subject'],
+    achats: ['Tu aimes faire du shopping ? Pourquoi ?|J2|faire du shopping=to go shopping;le centre commercial=shopping centre;dépenser=to spend', 'Qu’est-ce que tu as acheté récemment ?|P2|j’ai acheté=I bought;ça coûtait=it cost;un cadeau=a present', 'Tu préfères acheter en ligne ou en magasin ?|C3|en ligne=online;la livraison=delivery;essayer=to try on'],
+  };
+  static DEM = { D: 'Describe · present', P: 'Describe · past', J: 'Justify an opinion · present', E: 'Explain · present', F: 'Explain · future', H: 'Hypothesize · conditional', C: 'Compare · present' };
+  static HG = { D: 'd', E: 'd', P: 'p', J: 'j', F: 'f', H: 'f', C: 'c' };
+  static HINT = {
+    d: [['Start with the basics, then add one detail', 'Link ideas with et, mais and aussi'], 'Ce que j’aime le plus, c’est…', 'What I like most is…'],
+    p: [['Say when: le week-end dernier, l’été dernier', 'Use the passé composé: je suis allé(e), j’ai fait'], 'C’était vraiment génial parce que…', 'It was really great because…'],
+    j: [['Give your opinion, then a reason', 'Add a contrast with cependant'], 'À mon avis, … parce que…', 'In my opinion, … because…'],
+    f: [['Use je vais + infinitive, or the conditional', 'Give a reason with parce que'], 'Plus tard, je voudrais…', 'Later on, I would like to…'],
+    c: [['Say which you prefer, then compare', 'Use plus … que or moins … que'], 'Je préfère … parce que c’est plus…', 'I prefer … because it’s more…'],
+  };
+  static FB = [
+    { overall: 6.4, sub: [['Comm', 7.0], ['Lang', 6.2], ['Accuracy', 5.6], ['Fluency', 6.8]], words: 52, level: 'A2', xp: 26,
+      corr: [['Passé composé with être', 'j’ai allé', 'je suis allé', 'Aller takes être in the passé composé, so it’s je suis, not j’ai.'], ['Adjective agreement', 'ils sont gentil', 'ils sont gentils', 'Gentil agrees with a plural subject, so it takes -s.']],
+      vocab: [['c’est bien', 'c’est vraiment enrichissant']],
+      tips: [['Develop', 'Add a reason with parce que, then a quick example from last year.']],
+      exam: [['Communication', 'You answered the question and gave one clear reason. Develop it with an example to reach the next band.'], ['Language', 'Mostly present tense. Bring in a past or future time frame for range.']] },
+    { overall: 8.2, sub: [['Comm', 8.6], ['Lang', 8.0], ['Accuracy', 7.8], ['Fluency', 8.4]], words: 71, level: 'B1', xp: 34,
+      corr: [['Elision', 'parce que il', 'parce qu’il', 'Que becomes qu’ before a vowel sound.']],
+      vocab: [['beaucoup de choses', 'plein de choses'], ['aussi', 'de plus']],
+      tips: [['Connect', 'Your linking was strong. Try cependant to add a contrast.']],
+      exam: [['Communication', 'Detailed and well developed, with opinions justified throughout.'], ['Language', 'A good range of tenses, with one slip in elision.']] },
+    { overall: 5.4, sub: [['Comm', 6.0], ['Lang', 5.0], ['Accuracy', 4.8], ['Fluency', 5.8]], words: 31, level: 'A2', xp: 18,
+      corr: [['Age with avoir', 'je suis quinze ans', 'j’ai quinze ans', 'French uses avoir for age.'], ['Agreement after c’est', 'c’est intéressante', 'c’est intéressant', 'After c’est the adjective stays masculine singular.']],
+      vocab: [['bon', 'génial']],
+      tips: [['Extend', 'Aim for three or four sentences: an opinion, a reason, an example.']],
+      exam: [['Communication', 'A short answer that addresses the question. It needs more development.'], ['Language', 'Simple structures, with some errors in basic verbs.']] },
+  ];
+  static AIMS = ['Questions at your level, to build confidence.', 'Mostly at your level, with some a step above.', 'A step above your level, to stretch you.'];
+  static DARK = {
+    '--bg': '#0B0B0E', '--surface': '#141418', '--surface-recessed': '#0F0F12', '--surface-raised': '#1A1A1F',
+    '--hairline': 'rgba(255,255,255,.08)', '--hairline-strong': 'rgba(255,255,255,.14)',
+    '--ink': '#EDECEF', '--ink-muted': '#A3A1AA', '--ink-subtle': '#8A8892',
+    '--action': '#7C3AED', '--action-hover': '#8247EF', '--action-press': '#6D28D9', '--action-ink': '#FFFFFF', '--action-text': '#A78BFA', '--action-soft': 'rgba(139,92,246,.16)',
+    '--progress': '#10B981', '--progress-text': '#34D399', '--progress-soft': 'rgba(16,185,129,.12)',
+    '--reward': '#F59E0B', '--reward-text': '#FBBF24', '--reward-soft': 'rgba(245,158,11,.12)',
+    '--streak': '#FB923C', '--streak-text': '#FDBA74',
+    '--correction': '#F43F5E', '--correction-text': '#FB7185', '--correction-soft': 'rgba(244,63,94,.12)',
+    '--info-text': '#5CCFE6', '--info-soft': 'rgba(92,207,230,.10)', '--focus': '#A78BFA',
+    '--track': 'rgba(255,255,255,.08)', '--scrim': 'rgba(0,0,0,.6)',
+    '--shadow-card': '0 1px 2px rgba(0,0,0,.4)', '--shadow-overlay': '0 24px 60px -20px rgba(0,0,0,.75)',
+  };
+  SPRING = 'cubic-bezier(.34,1.56,.64,1)'; OUT = 'cubic-bezier(.16,1,.3,1)'; EASE = 'cubic-bezier(.2,0,.2,1)';
+  WB = Array.from({ length: 40 }, (_, i) => i);
+  rootRef = React.createRef(); scrollRef = React.createRef(); waveRef = React.createRef();
+  force = [];
+  state = this.fresh(0);
+
+  fresh(navKey) {
+    const mastery = {};
+    Component.TOPICS.forEach(t => { mastery[t[0]] = { answered: t[6], avg: t[7] }; });
+    return {
+      screen: (this.props && this.props.screen) || 'home', topicKey: 'famille', qIndex: 0, phase: 'idle', results: [], hint: false, why: false, vocabOpen: null,
+      feedbackMode: 'coach', aim: 1, marking: 2, focus: null, fbTab: 0, sessionTotal: 3,
+      todayCount: 0, prevToday: 0, streak: 0, prevStreak: 0, xp: 791, prevXp: 791, answersLeft: 3, mastery,
+      recent: [{ k: 'famille', date: '16 Oct', score: 3.4, xp: 18 }, { k: 'ecole', date: '15 Oct', score: 4.8, xp: 22 }, { k: 'famille', date: '14 Oct', score: null, xp: 10 }, { k: 'loisirs', date: '12 Oct', score: 4.1, xp: 20 }],
+      week: [null, null, null, null, null, null, null], elapsed: 0, procStep: 0, celebrate: false, pendingCelebrate: false, toast: null, mic: null, last: null, navKey,
+      dailyGoal: 3, sound: true, nStreak: false, nGoal: true, ai: 'offline', username: 'lea_m', renaming: false, renameVal: '', blockedOpen: false, delOpen: false, achAll: false, themeOv: null, pgFilter: 0, openAttempt: null, exporting: false,
+    };
+  }
+
+  componentDidMount() {
+    this.reduced = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    this.onReset = (e) => {
+      const id = e.detail;
+      if (id === 'all' || (this.props.demoId && String(this.props.demoId).startsWith(id))) {
+        this.stopAll(); clearTimeout(this.celT); clearTimeout(this.toastT);
+        this.setState(this.fresh(this.state.navKey + 1));
+        const sc = this.scrollRef.current; if (sc) sc.scrollTop = 0;
+      }
+    };
+    window.addEventListener('fa-reset', this.onReset);
+    requestAnimationFrame(() => this.runMotions());
+  }
+  componentDidUpdate(pp, ps) { if (ps.navKey !== this.state.navKey) requestAnimationFrame(() => this.runMotions()); }
+  componentWillUnmount() { window.removeEventListener('fa-reset', this.onReset); this.stopAll(); clearTimeout(this.celT); clearTimeout(this.toastT); }
+
+  stopMic() {
+    if (this.stream) this.stream.getTracks().forEach(t => t.stop());
+    this.stream = null;
+    if (this.ac) { try { this.ac.close(); } catch (e) {} }
+    this.ac = null; this.an = null;
+  }
+  stopAll() { clearTimeout(this.ps1); clearTimeout(this.ps2); cancelAnimationFrame(this.raf); clearInterval(this.tick); clearTimeout(this.procT); clearTimeout(this.simT); this.stopMic(); }
+
+  cssVar(n) { const r = this.rootRef.current; return r ? getComputedStyle(r).getPropertyValue(n).trim() : ''; }
+
+  count(el, from, to, dec, delay, fmt) {
+    const tn = [...el.childNodes].find(n => n.nodeType === 3); if (!tn) return;
+    const f = v => fmt === 'int' ? Math.round(v).toLocaleString('en-GB') : v.toFixed(dec);
+    const t0 = performance.now() + delay, dur = 700;
+    tn.nodeValue = f(from);
+    const step = (t) => { const p = Math.max(0, Math.min(1, (t - t0) / dur)), e = 1 - Math.pow(1 - p, 4); tn.nodeValue = f(from + (to - from) * e); if (p < 1) requestAnimationFrame(step); };
+    requestAnimationFrame(step);
+  }
+
+  runMotions = () => {
+    const root = this.rootRef.current; if (!root) return;
+    this.force.forEach(sel => root.querySelectorAll(sel).forEach(el => { el.__in = false; el.querySelectorAll('[data-fill],[data-fillh],[data-enter]').forEach(x => { x.__in = false; }); }));
+    this.force = [];
+    const red = this.reduced;
+    const q = (sel) => [...root.querySelectorAll(sel)].filter(el => { if (el.__in) return false; el.__in = true; return true; });
+    q('[data-enter]').forEach((el, i) => el.animate(
+      red ? [{ opacity: 0 }, { opacity: 1 }] : [{ opacity: 0, transform: 'translateY(12px) scale(.98)' }, { opacity: 1, transform: 'none' }],
+      { duration: red ? 200 : 420, delay: Math.min(i, 10) * 50, easing: red ? 'linear' : this.SPRING, fill: 'backwards' }));
+    const fills = q('[data-fill]'), fillh = q('[data-fillh]'), rings = q('[data-ring]'), counts = q('[data-count]');
+    const corr = q('[data-correct]'), pops = q('[data-pop]'), sparks = q('[data-spark]'), spins = q('[data-spin]');
+    const rolls = q('[data-roll]'), flames = q('[data-flame]'), warms = q('[data-warm]');
+    if (red) return;
+    fills.forEach((el, i) => el.animate([{ width: '0%' }, { width: el.style.width }], { duration: 700, delay: 220 + i * 80, easing: this.OUT, fill: 'backwards' }));
+    fillh.forEach((el, i) => el.animate([{ height: '0px' }, { height: el.style.height }], { duration: 700, delay: 260 + i * 60, easing: this.OUT, fill: 'backwards' }));
+    rings.forEach(el => { const to = parseFloat(el.getAttribute('stroke-dashoffset')), from = parseFloat(el.dataset.from); if (from !== to) el.animate([{ strokeDashoffset: from }, { strokeDashoffset: to }], { duration: 700, delay: 260, easing: this.OUT, fill: 'backwards' }); });
+    counts.forEach(el => { const to = +el.dataset.count, from = el.dataset.from != null ? +el.dataset.from : 0; if (from !== to) this.count(el, from, to, +(el.dataset.dec || 0), 220, el.dataset.fmt); });
+    corr.forEach((row, i) => {
+      const d = 380 + i * 280, st = row.querySelector('[data-strike]'), fx = row.querySelector('[data-fix]'), un = row.querySelector('[data-under]');
+      if (st) st.animate([{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: 240, delay: d, easing: this.EASE, fill: 'backwards' });
+      if (fx) fx.animate([{ opacity: 0, transform: 'translateY(-6px)' }, { opacity: 1, transform: 'none' }], { duration: 440, delay: d + 280, easing: this.SPRING, fill: 'backwards' });
+      if (un) un.animate([{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: 260, delay: d + 600, easing: this.EASE, fill: 'backwards' });
+    });
+    pops.forEach(el => el.animate([{ opacity: 0, transform: 'scale(.6)' }, { opacity: 1, transform: 'scale(1)' }], { duration: 520, delay: 700, easing: this.SPRING, fill: 'backwards' }));
+    sparks.forEach(c => [...c.children].forEach((p, i) => {
+      const a = (i / 10) * Math.PI * 2 + Math.random() * 0.5, dist = 44 + Math.random() * 30;
+      p.animate([{ opacity: 0, transform: 'translate(0,0) scale(1)' }, { opacity: 1, offset: 0.15 }, { opacity: 0, transform: `translate(${Math.cos(a) * dist * 1.6}px, ${Math.sin(a) * dist}px) scale(.4)` }], { duration: 650, delay: 760, easing: this.OUT, fill: 'both' });
+    }));
+    spins.forEach(el => el.animate([{ transform: 'rotate(0deg)' }, { transform: 'rotate(360deg)' }], { duration: 900, iterations: Infinity, easing: 'linear' }));
+    const hs = this.cssVar('--hairline-strong'), sk = this.cssVar('--streak');
+    warms.forEach(el => el.animate([{ borderColor: hs, color: this.cssVar('--ink-muted') }, { borderColor: sk, color: this.cssVar('--streak-text') }], { duration: 400, delay: 420, easing: this.EASE, fill: 'backwards' }));
+    flames.forEach(el => el.animate([{ transform: 'scale(1) rotate(0)' }, { transform: 'scale(1.25) rotate(-8deg)', offset: 0.35 }, { transform: 'scale(1.1) rotate(6deg)', offset: 0.65 }, { transform: 'scale(1) rotate(0)' }], { duration: 600, delay: 480, easing: 'ease-out' }));
+    rolls.forEach(el => el.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-20px)' }], { duration: 520, delay: 580, easing: this.SPRING, fill: 'both' }));
+  };
+
+  tone(v) { return v >= 8 ? 'var(--progress)' : v >= 6 ? 'var(--reward)' : 'var(--correction)'; }
+  toneSoft(v) { return v >= 8 ? 'var(--progress-soft)' : v >= 6 ? 'var(--reward-soft)' : 'var(--correction-soft)'; }
+  toneText(v) { return v >= 8 ? 'var(--progress-text)' : v >= 6 ? 'var(--reward-text)' : 'var(--correction-text)'; }
+  fmt(n) { return Math.round(n).toLocaleString('en-GB'); }
+  fmtT(e) { return `${Math.floor(e / 60)}:${String(e % 60).padStart(2, '0')}`; }
+  chip(h, size, dark) {
+    return { width: size, height: size, borderRadius: size >= 28 ? 8 : 6, background: dark ? `oklch(0.30 0.045 ${h})` : `oklch(0.955 0.03 ${h})`, color: dark ? `oklch(0.80 0.11 ${h})` : `oklch(0.50 0.13 ${h})`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 };
+  }
+  seg(labels, idx, pick, h, notes) {
+    const n = labels.length;
+    return {
+      ind: { position: 'absolute', top: 4, left: 4, width: `calc((100% - 8px) / ${n})`, height: 'calc(100% - 8px)', borderRadius: 8, background: 'var(--action-soft)', boxShadow: 'inset 0 0 0 1px var(--action)', transform: `translateX(${idx * 100}%)`, transition: 'transform 320ms cubic-bezier(.34,1.35,.64,1)', pointerEvents: 'none' },
+      opts: labels.map((label, i) => ({ label, note: notes ? notes[i] : '', on: i === idx, pick: () => pick(i), style: { position: 'relative', height: h, border: 'none', background: 'transparent', fontFamily: 'inherit', fontSize: 13, fontWeight: 600, lineHeight: 1.3, color: i === idx ? 'var(--action-text)' : 'var(--ink-muted)', cursor: 'pointer', transition: 'color 120ms', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, padding: '0 8px', textAlign: 'center' } })),
+    };
+  }
+
+  topicList(dark) {
+    const s = this.state;
+    return Component.TOPICS.map(([key, fr, en, icon, h, count], i) => {
+      const m = s.mastery[key], pct = Math.min(100, (m.answered / count) * 100);
+      return {
+        key, fr, en, icon, h, count, isCoach: key === 'famille',
+        chip: this.chip(h, 40, dark), chipSm: this.chip(h, 20, dark),
+        bar: { display: 'block', height: '100%', width: pct + '%', background: 'var(--progress)', borderRadius: 999 },
+        left: m.answered ? `avg ${m.avg != null ? m.avg.toFixed(1) : '—'}` : 'Not started',
+        right: m.answered ? `${m.answered} of ${count} answered` : `${count} questions`,
+        avgShort: m.avg != null ? m.avg.toFixed(1) : '—',
+        row: { width: '100%', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px 16px', padding: '12px 20px', minHeight: 68, boxSizing: 'border-box', border: 'none', borderTop: i ? '1px solid var(--hairline)' : 'none', background: 'transparent', textAlign: 'left', color: 'var(--ink)', fontFamily: 'inherit', cursor: 'pointer', transition: 'background-color 120ms' },
+        open: () => this.openTopic(key),
+      };
+    });
+  }
+
+  questions(key) {
+    const started = this.state.mastery[key].answered > 0;
+    const WHY = ['New to you, and pitched just above what you managed last session.', started ? 'Review: you scored under 6 on a question like this, so it’s back for another go.' : 'Brings in a second time frame, the skill your coach flagged.', 'A step up: it asks for a developed answer, which lifts Communication.'];
+    return (Component.Q[key] || Component.Q.famille).map((str, i) => {
+      const [text, dm, voc] = str.split('|');
+      const H = Component.HINT[Component.HG[dm[0]]];
+      return { text, demand: `${Component.DEM[dm[0]]} · ${dm[1] === '3' ? 'B1' : 'A2'}`, vocab: voc.split(';').map(p => p.split('=')), hint: { ideas: H[0], fr: H[1], en: H[2] }, why: WHY[i], review: i === 1 && started };
+    });
+  }
+
+  go = (screen, extra = {}) => {
+    const s = this.state;
+    const celebrate = screen === 'home' && s.pendingCelebrate;
+    let toast = s.toast;
+    if (celebrate) {
+      const L = s.last;
+      const lvUp = Math.floor(s.prevXp / 200) !== Math.floor(s.xp / 200);
+      toast = { title: lvUp ? `+${L.xp} XP · Level ${Math.floor(s.xp / 200) + 1} reached` : `+${L.xp} XP`, body: s.prevStreak !== s.streak ? (s.prevStreak === 0 ? 'Streak started · 1 day' : `Streak extended to ${s.streak} days`) : `Daily goal ${s.todayCount}/3` };
+      this.force.push('[data-xp]');
+      clearTimeout(this.celT); this.celT = setTimeout(() => this.setState({ celebrate: false }), 2800);
+      clearTimeout(this.toastT); this.toastT = setTimeout(() => this.setState({ toast: null }), 4600);
+    }
+    this.setState({ screen, celebrate, toast, pendingCelebrate: false, navKey: s.navKey + 1, ...extra });
+    const sc = this.scrollRef.current; if (sc) sc.scrollTop = 0;
+  };
+  openTopic = (k) => this.go('start', { topicKey: k, focus: null });
+  startSession = () => {
+    const s = this.state; if (s.answersLeft <= 0) return;
+    this.go('session', { sessionTotal: Math.min(3, s.answersLeft), qIndex: 0, phase: 'idle', results: [], hint: false, why: false, vocabOpen: null, fbTab: 0, mic: null });
+  };
+  speak = (t) => { try { const u = new SpeechSynthesisUtterance(t); u.lang = 'fr-FR'; u.rate = 0.95; window.speechSynthesis.cancel(); window.speechSynthesis.speak(u); } catch (e) {} };
+
+  startRec = () => {
+    this.hist = new Array(40).fill(0);
+    this.t0 = performance.now();
+    this.setState({ phase: 'recording', elapsed: 0, mic: null });
+    this.tick = setInterval(() => this.setState({ elapsed: Math.floor((performance.now() - this.t0) / 1000) }), 250);
+    const md = navigator.mediaDevices;
+    if (md && md.getUserMedia) {
+      md.getUserMedia({ audio: true }).then(st => {
+        if (this.state.phase !== 'recording') { st.getTracks().forEach(t => t.stop()); return; }
+        this.stream = st;
+        const AC = window.AudioContext || window.webkitAudioContext;
+        this.ac = new AC(); this.an = this.ac.createAnalyser(); this.an.fftSize = 1024;
+        this.ac.createMediaStreamSource(st).connect(this.an);
+        this.buf = new Float32Array(this.an.fftSize);
+      }).catch(() => this.setState({ mic: 'sim' }));
+    } else this.setState({ mic: 'sim' });
+    clearTimeout(this.simT);
+    this.simT = setTimeout(() => { if (!this.an && this.state.phase === 'recording') this.setState({ mic: 'sim' }); }, 700);
+    let last = 0;
+    const loop = (t) => {
+      if (this.state.phase !== 'recording') return;
+      if (t - last > 60) {
+        last = t; let lv = 0;
+        if (this.an) { this.an.getFloatTimeDomainData(this.buf); let sum = 0; for (let i = 0; i < this.buf.length; i++) sum += this.buf[i] * this.buf[i]; lv = Math.min(1, Math.sqrt(sum / this.buf.length) * 7); }
+        else if (this.state.mic === 'sim') { const e = t - this.t0; lv = 0.12 + 0.62 * Math.abs(Math.sin(e * 0.0041)) * (0.5 + 0.5 * Math.sin(e * 0.0013 + 1)); }
+        this.hist.push(lv); this.hist.shift();
+        const w = this.waveRef.current;
+        if (w) [...w.children].forEach((b, i) => { b.style.height = (4 + 32 * this.hist[i]) + 'px'; b.style.background = 'var(--ink)'; });
+      }
+      this.raf = requestAnimationFrame(loop);
+    };
+    this.raf = requestAnimationFrame(loop);
+  };
+  stopRec = () => {
+    cancelAnimationFrame(this.raf); clearInterval(this.tick); clearTimeout(this.simT); this.stopMic();
+    const w = this.waveRef.current;
+    if (w) [...w.children].forEach(b => { const h = b.style.height || '4px'; b.style.height = '4px'; b.style.background = 'var(--ink-muted)'; if (!this.reduced) b.animate([{ height: h }, { height: '4px' }], { duration: 220, easing: this.EASE }); });
+    this.setState(x => ({ phase: 'processing', procStep: 0, navKey: x.navKey + 1 }));
+    clearTimeout(this.ps1); clearTimeout(this.ps2);
+    this.ps1 = setTimeout(() => this.setState(x => ({ procStep: 1, navKey: x.navKey + 1 })), 650);
+    this.ps2 = setTimeout(() => this.setState(x => ({ procStep: 2, navKey: x.navKey + 1 })), 1300);
+    this.procT = setTimeout(this.finishAnswer, 1950);
+  };
+  finishAnswer = () => {
+    const s = this.state, F = Component.FB[s.qIndex % 3];
+    const results = s.results.slice(0, s.qIndex);
+    results[s.qIndex] = { score: s.feedbackMode === 'coach' ? F.overall : null, xp: F.xp, fb: F };
+    this.setState({ phase: 'feedback', results, fbTab: 0, navKey: s.navKey + 1 });
+  };
+  retry = () => { const s = this.state; this.setState({ results: s.results.slice(0, s.qIndex), phase: 'idle', navKey: s.navKey + 1 }); };
+  next = () => {
+    const s = this.state;
+    if (s.qIndex + 1 >= s.sessionTotal) return this.finishSession();
+    this.force.push('[data-enter="q"]');
+    this.setState({ qIndex: s.qIndex + 1, phase: 'idle', hint: false, why: false, vocabOpen: null, fbTab: 0, navKey: s.navKey + 1 });
+    const sc = this.scrollRef.current; if (sc) sc.scrollTop = 0;
+  };
+  endSession = () => { this.stopAll(); if (this.state.results.some(Boolean)) this.finishSession(); else this.go('learn', { phase: 'idle' }); };
+  finishSession = () => {
+    this.stopAll();
+    const s = this.state, res = s.results.filter(Boolean);
+    if (!res.length) return this.go('learn');
+    const sc = res.filter(r => r.score != null).map(r => r.score), sum = sc.reduce((a, b) => a + b, 0);
+    const avg = sc.length ? sum / sc.length : null;
+    const xp = res.reduce((a, r) => a + r.xp, 0), words = res.reduce((a, r) => a + r.fb.words, 0);
+    const week = s.week.slice(); if (avg != null) week[6] = week[6] == null ? avg : (week[6] + avg) / 2;
+    const mastery = { ...s.mastery }, m = mastery[s.topicKey], count = Component.TOPICS.find(t => t[0] === s.topicKey)[5];
+    mastery[s.topicKey] = { answered: Math.min(count, m.answered + res.length), avg: sc.length ? (m.avg == null ? avg : (m.avg * m.answered + sum) / (m.answered + sc.length)) : m.avg };
+    this.go('complete', {
+      last: { avg, xp, words, level: res[res.length - 1].fb.level, n: res.length, scores: res.map(r => r.score) },
+      prevXp: s.xp, xp: s.xp + xp, prevStreak: s.streak, streak: s.todayCount === 0 ? s.streak + 1 : s.streak,
+      prevToday: s.todayCount, todayCount: s.todayCount + 1, answersLeft: Math.max(0, s.answersLeft - res.length),
+      week, mastery, recent: [{ k: s.topicKey, date: 'Today', score: avg, xp }, ...s.recent].slice(0, 4), pendingCelebrate: true, phase: 'idle',
+    });
+  };
+
+  static EXAMS = [['14 Sep', 19, 1, [5, 7, 7]], ['21 Sep', 21, 1, [6, 8, 7]], ['28 Sep', 20, 1, [6, 7, 7]], ['5 Oct', 23, 1, [7, 8, 8]], ['12 Oct', 22, 1, [6, 9, 7]], ['17 Oct', 24, 0, [7, 9, 8]], ['19 Oct', 25, 1, [7, 10, 8]]];
+  static AREAS = [['Role play', 10], ['Communication', 15], ['Quality of language', 15]];
+  static DUE = { famille: 2, ecole: 1 };
+  static LEARN_ATT = [
+    ['l4', '16 Oct', 'famille', 3.4, 'Décris les membres de ta famille.', 'Dans ma famille il y a quatre personnes. Mon père est grand et ma mère est gentil. J’ai un frère, il a douze ans.', 'Make the adjective agree: ma mère est gentille. Then add an opinion with parce que.'],
+    ['l3', '15 Oct', 'ecole', 4.8, 'Quelle est ta matière préférée ?', 'Ma matière préférée c’est l’histoire parce que le prof est sympa et c’est intéressant.', 'A clear reason. Bring in a past example: l’année dernière, on a étudié…'],
+    ['l2', '14 Oct', 'famille', null, 'Tu t’entends bien avec tes parents ?', 'Oui, je m’entends bien avec ma mère mais mon père est strict.', 'Examiner style, so no score. Develop it with an example of a family rule.'],
+    ['l1', '12 Oct', 'loisirs', 4.1, 'Qu’est-ce que tu fais le week-end ?', 'Le week-end je joue au foot et je regarde la télé. Samedi dernier j’ai allé au cinéma.', 'Aller takes être: je suis allé(e) au cinéma.'],
+  ];
+  static ACH = [
+    ['Premiers mots', 'Record your first answer', 'mic', 'one', 1, '2 Sep'], ['Curious mind', 'Try 3 different topics', 'compass', 'topics', 3, '15 Oct'],
+    ['Ten down', 'Finish 10 sessions', 'check-check', 'sessions', 10, '3 Oct'], ['Exam ready', 'Sit your first Exam Sim', 'graduation-cap', 'one', 1, '14 Sep'],
+    ['Thirty plus', 'Score 30/40 in an Exam Sim', 'target', 25, 30], ['Wordsmith', 'Speak 1,000 words of French', 'message-square', 760, 1000],
+    ['Grammar fixer', 'Clear 20 corrections', 'spell-check', 14, 20], ['Polyglotte', 'Practise 8 different topics', 'globe', 'topics', 8],
+    ['Marathon', 'Finish 50 sessions', 'trophy', 'sessions', 50], ['Perfect week', 'Hit your daily goal 7 days running', 'calendar-check', 2, 7],
+    ['On a roll', 'Keep a 7-day streak', 'flame', 'streak', 7], ['High scorer', 'Score 8 or more on one answer', 'star', 0, 1],
+  ];
+  note = (title, body) => { clearTimeout(this.toastT); this.setState(x => ({ toast: { title, body }, navKey: x.navKey + 1 })); this.toastT = setTimeout(() => this.setState({ toast: null }), 3200); };
+
+  learnStats(topics) {
+    const s = this.state, practised = topics.filter(t => s.mastery[t.key].answered > 0);
+    let n = 0, sum = 0; practised.forEach(t => { const m = s.mastery[t.key]; if (m.avg != null) { n += m.answered; sum += m.avg * m.answered; } });
+    return { practised, avg: n ? sum / n : null, due: practised.reduce((a, t) => a + (Component.DUE[t.key] || 0), 0) };
+  }
+
+  progressVals(topics, dark) {
+    const s = this.state, SL = 'transform 320ms cubic-bezier(.34,1.35,.64,1)';
+    const ex = Component.EXAMS.map(([date, total, c, areas]) => ({ date, total, counted: !!c, areas }));
+    const counted = ex.filter(e => e.counted), latest = counted[counted.length - 1], prev = counted[counted.length - 2], first = counted[0];
+    const TARGET = 32, H = 108, shown = counted.slice(-6);
+    const areas = Component.AREAS.map(([label, max], i) => ({ label, max, mark: latest.areas[i], pct: latest.areas[i] / max }));
+    const weakest = areas.reduce((a, b) => (b.pct < a.pct ? b : a));
+    areas.forEach(a => { a.weakest = a === weakest; a.bar = { display: 'block', height: '100%', width: a.pct * 100 + '%', background: a.weakest ? 'var(--correction)' : 'var(--progress)', borderRadius: 999 }; });
+    const trend = shown.map((e, i) => {
+      const last = i === shown.length - 1;
+      return { total: e.total, date: e.date, title: e.total + '/40 · ' + e.date,
+        bar: { display: 'block', width: '100%', maxWidth: 44, height: Math.max(8, (e.total / 40) * H), borderRadius: 6, background: last ? 'var(--progress)' : 'var(--progress-soft)', boxShadow: last ? 'none' : 'inset 0 0 0 1px var(--progress)', boxSizing: 'border-box' },
+        valStyle: { fontVariantNumeric: 'tabular-nums', fontWeight: 500, fontSize: 12, color: last ? 'var(--ink)' : 'var(--ink-subtle)' },
+        lbl: { fontSize: 12, fontWeight: last ? 600 : 400, color: last ? 'var(--ink)' : 'var(--ink-subtle)', textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } };
+    });
+    const L = this.learnStats(topics), fm = s.mastery.famille;
+    const nPractice = ex.filter(e => !e.counted).length;
+    const PD = new Set([14, 15, 16, 17, 19]); if (s.todayCount > 0) PD.add(26);
+    const days = Array.from({ length: 14 }, (_, i) => {
+      const d = 13 + i, on = PD.has(d), today = d === 26;
+      return { d: String(d), title: d + ' Oct' + (on ? ' · practised' : '') + (today ? ' · today' : ''), style: { height: 40, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontVariantNumeric: 'tabular-nums', fontWeight: 500, fontSize: 13, background: on ? 'var(--progress-soft)' : 'var(--surface-recessed)', color: on ? 'var(--progress-text)' : 'var(--ink-subtle)', boxShadow: today ? 'inset 0 0 0 1.5px var(--action)' : on ? 'inset 0 0 0 1px var(--progress)' : 'inset 0 0 0 1px var(--hairline)' } };
+    });
+    const skills = [['Passé composé with être', 32], ['Adjective agreement', 41], ['Elision', 48], ['Opinions & reasons', 64]].map(([name, p]) => ({ name, pct: p + '%', bar: { display: 'block', height: '100%', width: p + '%', background: this.tone(p / 10), borderRadius: 999 } }));
+    const tRows = L.practised.slice().sort((a, b) => (s.mastery[a.key].avg ?? 99) - (s.mastery[b.key].avg ?? 99)).map(t => {
+      const m = s.mastery[t.key], due = Component.DUE[t.key] || 0;
+      return { fr: t.fr, en: t.en, icon: t.icon, chip: this.chip(t.h, 36, dark), answeredLine: m.answered + ' of ' + t.count + ' answered', due: due ? due + ' due for review' : '',
+        bar: { display: 'block', height: '100%', width: Math.max(3, (m.answered / t.count) * 100) + '%', background: 'var(--progress)', borderRadius: 999 },
+        avg: m.avg != null ? m.avg.toFixed(1) : '—',
+        pill: { minWidth: 52, height: 32, padding: '0 10px', borderRadius: 8, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', fontVariantNumeric: 'tabular-nums', fontWeight: 500, fontSize: 14, background: m.avg != null ? this.toneSoft(m.avg) : 'var(--surface-recessed)', color: m.avg != null ? this.toneText(m.avg) : 'var(--ink-subtle)', flexShrink: 0 },
+        row: { width: '100%', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '10px 16px', padding: '14px clamp(16px, 3cqw, 24px)', border: 'none', borderTop: '1px solid var(--hairline)', background: 'transparent', color: 'var(--ink)', fontFamily: 'inherit', textAlign: 'left', cursor: 'pointer', transition: 'background-color 120ms', boxSizing: 'border-box' },
+        open: () => this.openTopic(t.key) };
+    });
+    const att = [];
+    if (s.last) att.push({ id: 'today', kind: 'learn', date: 'Today', k: s.topicKey, score: s.last.avg, q: this.questions(s.topicKey)[0].text, tr: '', fb: s.last.n + ' answer' + (s.last.n === 1 ? '' : 's') + ' · ' + s.last.words + ' words · ' + s.last.level + ' level.' });
+    att.push({ id: 'e7', kind: 'exam', date: '19 Oct', total: 25, counted: true, areas: [7, 10, 8] }, { id: 'e6', kind: 'exam', date: '17 Oct', total: 24, counted: false, areas: [7, 9, 8] });
+    Component.LEARN_ATT.forEach(([id, date, k, score, q, tr, fb]) => att.push({ id, kind: 'learn', date, k, score, q, tr, fb }));
+    const f = s.pgFilter;
+    const attempts = att.filter(a => f === 0 || (f === 1 ? a.kind === 'learn' : a.kind === 'exam')).map((a, i) => {
+      const open = s.openAttempt === a.id, isExam = a.kind === 'exam', t = !isExam && topics.find(x => x.key === a.k);
+      const scored = isExam || a.score != null;
+      return { open, isExam, isLearn: !isExam, date: a.date, title: isExam ? 'Exam Sim' : t.fr,
+        tag: isExam ? (a.counted ? 'Counted in your Exam figures' : 'Practice · not counted') : 'Learn answer',
+        tagStyle: { fontSize: 12, fontWeight: 400, lineHeight: 1.35, color: isExam && a.counted ? 'var(--progress-text)' : 'var(--ink-subtle)' },
+        icon: isExam ? 'graduation-cap' : t.icon, chip: isExam ? { width: 28, height: 28, borderRadius: 8, background: 'var(--action-soft)', color: 'var(--action-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 } : this.chip(t.h, 28, dark),
+        score: isExam ? a.total + '/40' : a.score == null ? 'Not scored' : a.score.toFixed(1) + '/10',
+        scoreStyle: { fontVariantNumeric: 'tabular-nums', fontWeight: scored ? 500 : 400, fontSize: scored ? 14 : 13, color: scored ? 'var(--ink)' : 'var(--ink-subtle)', whiteSpace: 'nowrap' },
+        chev: { display: 'flex', color: 'var(--ink-subtle)', transform: open ? 'rotate(180deg)' : 'none', transition: SL },
+        wrap: { borderTop: i ? '1px solid var(--hairline)' : 'none' },
+        toggle: () => this.setState(x => ({ openAttempt: open ? null : a.id, navKey: x.navKey + 1 })),
+        q: a.q || '', tr: a.tr || '', hasTr: !!a.tr, fb: a.fb || '', practice: isExam && !a.counted,
+        areas: isExam ? Component.AREAS.map(([label, max], j) => ({ label, max, mark: a.areas[j] })) : [] };
+    });
+    const nNot = topics.length - L.practised.length;
+    const nt = (icon, color, weight) => ({ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: weight, color, marginTop: 2 });
+    return {
+      next: { title: 'Review La famille', detail: (Component.DUE.famille) + ' answers are due for spaced review, and it’s your lowest average at ' + (fm.avg != null ? fm.avg.toFixed(1) : '—') + '. ' + weakest.label + ' was also your weakest exam area last time.', cta: 'Start review', go: () => this.openTopic('famille') },
+      glance: [
+        { label: 'Latest Exam Sim', value: String(latest.total), num: latest.total, dec: 0, unit: '/40', note: '+' + (latest.total - prev.total) + ' on your last', noteIcon: 'trending-up', noteStyle: nt(0, 'var(--progress-text)', 500) },
+        { label: 'Learn average', value: L.avg != null ? L.avg.toFixed(1) : '—', num: L.avg ?? 0, dec: 1, unit: '/10', note: 'At Exam standard', noteIcon: 'info', noteStyle: nt(0, 'var(--ink-subtle)', 400) },
+        { label: 'Topics practised', value: String(L.practised.length), num: L.practised.length, dec: 0, unit: '/' + topics.length, note: nNot + ' still to try', noteIcon: 'book-open', noteStyle: nt(0, 'var(--ink-subtle)', 400) },
+        { label: 'Due for review', value: String(L.due), num: L.due, dec: 0, unit: 'answers', note: 'Keeps them fresh', noteIcon: 'rotate-ccw', noteStyle: nt(0, 'var(--action-text)', 500) },
+      ],
+      exam: { latest: latest.total, latestDate: latest.date, target: TARGET, trend, areas,
+        insight: 'Up ' + (latest.total - first.total) + ' marks since your first Exam Sim on ' + first.date + '. ' + (TARGET - latest.total) + ' more to reach your target of ' + TARGET + '.',
+        targetLine: { position: 'absolute', left: 0, right: 0, bottom: (TARGET / 40) * H, borderTop: '1.5px dashed var(--action)', pointerEvents: 'none' },
+        practiceNote: nPractice + ' practice attempt' + (nPractice === 1 ? '' : 's') + ' (Coached, or not under exam conditions) ' + (nPractice === 1 ? 'isn’t' : 'aren’t') + ' counted here.' },
+      cons: { n: PD.size, wk: ['T', 'W', 'T', 'F', 'S', 'S', 'M'], days, streak: s.streak > 0 ? s.streak + '-day streak · best 5 days' : 'No streak yet today · best 5 days' },
+      skills, topics: tRows, notStarted: nNot + ' topics not started yet', attempts,
+      filter: this.seg(['All', 'Learn', 'Exam'], f, i => this.setState(x => ({ pgFilter: i, openAttempt: null, navKey: x.navKey + 1 })), 36),
+    };
+  }
+
+  profileVals(topics, dark, SL) {
+    const s = this.state, L = this.learnStats(topics), sessions = 23 + s.todayCount;
+    const tg = (on, flip) => ({ on, flip, track: { position: 'relative', width: 40, height: 24, borderRadius: 999, background: on ? 'var(--action)' : 'var(--hairline-strong)', flexShrink: 0, transition: 'background-color 120ms' }, knob: { position: 'absolute', top: 3, left: 3, width: 18, height: 18, borderRadius: 999, background: '#FFFFFF', boxShadow: '0 1px 2px rgba(0,0,0,.25)', transform: on ? 'translateX(16px)' : 'none', transition: SL } });
+    const live = { one: 1, topics: L.practised.length, sessions, streak: s.streak };
+    const ach = Component.ACH.map(([name, desc, icon, cur, max, when]) => {
+      const c = typeof cur === 'string' ? live[cur] : cur, unlocked = c >= max, pct = Math.min(1, c / max);
+      return { name, desc, icon, unlocked, locked: !unlocked, pct, when: 'Unlocked ' + (when || 'today'), prog: this.fmt(Math.min(c, max)) + '/' + this.fmt(max),
+        bar: { display: 'block', height: '100%', width: Math.max(2, pct * 100) + '%', background: 'var(--progress)', borderRadius: 999 },
+        chip: { width: 36, height: 36, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: unlocked ? 'var(--reward-soft)' : 'var(--surface-recessed)', color: unlocked ? 'var(--reward-text)' : 'var(--ink-subtle)', boxShadow: unlocked ? 'none' : 'inset 0 0 0 1px var(--hairline)' },
+        tile: { padding: 14, borderRadius: 8, border: '1px solid var(--hairline)', background: unlocked ? 'var(--surface)' : 'var(--surface-recessed)', display: 'flex', flexDirection: 'column', gap: 10, minWidth: 0 } };
+    });
+    const locked = ach.filter(a => a.locked).sort((a, b) => b.pct - a.pct), nUn = ach.length - locked.length;
+    const ordered = [...ach.filter(a => a.unlocked), ...locked];
+    const nx = locked[0] || ach[0];
+    const val = s.renameVal, valid = /^[A-Za-z][A-Za-z0-9_]{2,19}$/.test(val), bad = val.length > 0 && !valid;
+    const step = (dis) => ({ width: 44, height: 44, borderRadius: 8, border: '1px solid var(--hairline-strong)', background: 'var(--surface)', color: dis ? 'var(--ink-subtle)' : 'var(--ink)', opacity: dis ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: dis ? 'default' : 'pointer', transition: 'transform 80ms' });
+    const AI = [['offline', 'Offline · instant', 'Fast rule-based feedback, works without a connection', 'Recommended'], ['groq', 'Groq AI', 'Richer explanations from a language model', ''], ['gemini', 'Gemini Flash', 'Google’s model, similar depth to Groq', '']];
+    return {
+      username: s.username, renaming: s.renaming, notRenaming: !s.renaming, renameVal: val, renameInvalid: !valid,
+      startRename: () => this.setState(x => ({ renaming: true, renameVal: '', navKey: x.navKey + 1 })),
+      cancelRename: () => this.setState({ renaming: false, renameVal: '' }),
+      onRenameInput: (e) => this.setState({ renameVal: e.target.value.slice(0, 20) }),
+      saveRename: () => { if (!valid) return; this.setState({ username: val, renaming: false, renameVal: '' }); this.note('Username updated', 'You’re now @' + val + '. You can change it again in 30 days.'); },
+      saveStyle: { height: 44, padding: '0 18px', borderRadius: 8, border: 'none', background: valid ? 'var(--action)' : 'var(--track)', color: valid ? 'var(--action-ink)' : 'var(--ink-subtle)', fontFamily: 'inherit', fontWeight: 600, fontSize: 14, cursor: valid ? 'pointer' : 'default', transition: 'background-color 120ms' },
+      renameHint: bad ? 'Start with a letter, 3–20 characters, letters, numbers or underscore only.' : 'Usernames can be changed once every 30 days.',
+      renameHintStyle: { fontSize: 13, fontWeight: 400, color: bad ? 'var(--correction-text)' : 'var(--ink-subtle)' },
+      stats: [
+        { icon: 'flame', iconStyle: { color: 'var(--streak-text)', display: 'flex' }, value: String(s.streak), num: s.streak, dec: 0, fmt: '', label: 'Day streak · best 5' },
+        { icon: 'mic', iconStyle: { color: 'var(--ink-muted)', display: 'flex' }, value: String(sessions), num: sessions, dec: 0, fmt: '', label: 'Sessions' },
+        { icon: 'trending-up', iconStyle: { color: 'var(--progress-text)', display: 'flex' }, value: L.avg != null ? L.avg.toFixed(1) : '—', num: L.avg ?? 0, dec: 1, fmt: '', label: 'Average /10' },
+        { icon: 'zap', iconStyle: { color: 'var(--reward-text)', display: 'flex' }, value: this.fmt(s.xp), num: s.xp, dec: 0, fmt: 'int', label: 'Total XP' },
+      ],
+      ach: { count: nUn + ' of ' + ach.length + ' unlocked', bar: { display: 'block', height: '100%', width: (nUn / ach.length) * 100 + '%', background: 'var(--reward)', borderRadius: 999 },
+        next: { ...nx, bar: { ...nx.bar, background: 'var(--reward)' } }, list: s.achAll ? ordered : ordered.slice(0, 8),
+        toggle: () => this.setState(x => ({ achAll: !x.achAll, navKey: x.navKey + 1 })), toggleLabel: s.achAll ? 'Show fewer' : 'Show all ' + ach.length, toggleIcon: s.achAll ? 'chevron-up' : 'chevron-down' },
+      goals: [{ k: 'Exam', v: 'Cambridge IGCSE French · 0520' }, { k: 'Speaking exam', v: '4 May 2027', tag: '190 days to go', hasTag: true }, { k: 'Goal', v: 'Conversational fluency' }, { k: 'Exam Sim target', v: '32/40' }],
+      updateGoals: () => this.note('Learning goals', 'This opens onboarding to change exam board, date or goal.'),
+      dailyGoal: s.dailyGoal, goalMin: s.dailyGoal <= 1, goalMax: s.dailyGoal >= 5, decStyle: step(s.dailyGoal <= 1), incStyle: step(s.dailyGoal >= 5),
+      goalDec: () => this.setState(x => ({ dailyGoal: Math.max(1, x.dailyGoal - 1) })), goalInc: () => this.setState(x => ({ dailyGoal: Math.min(5, x.dailyGoal + 1) })),
+      tg: {
+        sound: tg(s.sound, () => this.setState(x => ({ sound: !x.sound }))),
+        dark: tg(dark, () => this.setState({ themeOv: dark ? 'light' : 'dark' })),
+        nStreak: tg(s.nStreak, () => this.setState(x => ({ nStreak: !x.nStreak }))),
+        nGoal: tg(s.nGoal, () => this.setState(x => ({ nGoal: !x.nGoal }))),
+      },
+      ai: AI.map(([id, label, desc, badge], i) => { const on = s.ai === id; return { label, desc, badge, hasBadge: !!badge, on, pick: () => this.setState({ ai: id }),
+        row: { width: '100%', minHeight: 60, padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 12, border: 'none', borderTop: i ? '1px solid var(--hairline)' : 'none', background: 'transparent', color: 'var(--ink)', fontFamily: 'inherit', textAlign: 'left', cursor: 'pointer', boxSizing: 'border-box', transition: 'background-color 120ms' },
+        ring: { width: 20, height: 20, margin: '0 6px', borderRadius: 999, border: on ? '2px solid var(--action)' : '2px solid var(--hairline-strong)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flexShrink: 0, transition: 'border-color 120ms' },
+        dot: { width: 8, height: 8, borderRadius: 999, background: 'var(--action)', transform: on ? 'scale(1)' : 'scale(0)', transition: SL } }; }),
+      replayTour: () => this.note('App tour', 'The walkthrough starts from Home.'),
+      exportIcon: s.exporting ? 'loader' : 'download', exportIconWrap: { display: 'flex', animation: 'none' }, exportDesc: s.exporting ? 'Preparing your file…' : 'Download sessions, transcripts and progress',
+      exportData: () => { if (s.exporting) return; this.setState({ exporting: true }); clearTimeout(this.expT); this.expT = setTimeout(() => { this.setState({ exporting: false }); this.note('Data exported', 'francais-ai-export.json is in your downloads.'); }, 1100); },
+      privacy: () => this.note('Privacy policy', 'Opens in a new tab.'),
+      blockedOpen: s.blockedOpen, toggleBlocked: () => this.setState(x => ({ blockedOpen: !x.blockedOpen, navKey: x.navKey + 1 })),
+      blockedChev: { display: 'flex', color: 'var(--ink-subtle)', transform: s.blockedOpen ? 'rotate(180deg)' : 'none', transition: SL },
+      signOut: () => this.note('Signed out', 'Demo only — your progress here is untouched.'),
+      delOpen: s.delOpen, askDelete: () => this.setState(x => ({ delOpen: true, navKey: x.navKey + 1 })),
+      cancelDelete: () => this.setState({ delOpen: false }), stop: (e) => e.stopPropagation(),
+      confirmDelete: () => { this.setState({ delOpen: false }); this.note('Nothing deleted', 'This is a prototype, so your account is safe.'); },
+    };
+  }
+
+  renderVals() {
+    const s = this.state, P = this.props;
+    const dark = s.themeOv ? s.themeOv === 'dark' : (P.theme ?? 'light') === 'dark';
+    const d = P.direction ?? 'a';
+    const desktop = (P.device ?? 'desktop') !== 'mobile';
+    const topics = this.topicList(dark);
+    const cur = topics.find(t => t.key === s.topicKey) || topics[2];
+    const coach = topics.find(t => t.key === 'famille');
+    const navIdx = ({ home: 0, progress: 3, profile: 4 })[s.screen] ?? 1;
+    const nav = [['house', 'Home', 'home'], ['book-open', 'Learn', 'learn'], ['graduation-cap', 'Exam', null], ['chart-column', 'Progress', 'progress'], ['user', 'Profile', 'profile']].map(([icon, label, to], i) => {
+      const base = { position: 'relative', border: 'none', background: 'transparent', borderRadius: 8, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, fontFamily: 'inherit', fontSize: 12, fontWeight: 600, lineHeight: 1.2, color: i === navIdx ? 'var(--action-text)' : 'var(--ink-subtle)', cursor: to ? 'pointer' : 'default', transition: 'color 120ms', padding: 0 };
+      return { icon, label, go: () => { if (to) this.go(to); }, rail: { ...base, height: 64, width: '100%' }, dock: { ...base, height: 56 } };
+    });
+    const SL = 'transform 320ms cubic-bezier(.34,1.35,.64,1)';
+    const len = s.sessionTotal;
+    const bars = {
+      home: { title: 'Today', sub: 'Monday 26 October' },
+      learn: { title: 'Learn', sub: 'Choose a topic to begin' },
+      start: { title: cur.fr, sub: 'Set up your session', back: true, onBack: () => this.go('learn') },
+      session: { title: cur.fr, sub: `Session · ${len} question${len === 1 ? '' : 's'}` },
+      complete: { title: 'Session complete', sub: cur.fr },
+      progress: { title: 'Progress', sub: 'Exam marks, practice and what’s next' },
+      profile: { title: 'Profile', sub: '@' + s.username },
+    };
+    const hold = s.pendingCelebrate, shownStreak = hold ? s.prevStreak : s.streak, shownXp = hold ? s.prevXp : s.xp;
+    const roll = s.celebrate && s.prevStreak !== s.streak;
+    const pill = { zero: !roll && shownStreak === 0, on: !roll && shownStreak > 0, roll, streak: s.streak, prev: s.prevStreak, xp: this.fmt(shownXp), xpNum: shownXp, xpFrom: s.celebrate ? s.prevXp : shownXp };
+
+    const goal = s.dailyGoal, today = s.todayCount, prevT = s.celebrate ? s.prevToday : today, fr = n => Math.min(1, n / goal);
+    const ring = { has: today > 0, off96: 276.46 * (1 - fr(today)), from96: 276.46 * (1 - fr(prevT)), off74: 207.35 * (1 - fr(today)), from74: 207.35 * (1 - fr(prevT)), label: `${today}/${goal}`, sub: today >= goal ? 'goal met' : 'sessions' };
+    const remaining = Math.max(goal - today, 0);
+    const mission = {
+      title: remaining === 0 ? 'Daily goal complete' : 'A well-rounded speaking session across all areas.',
+      meta: remaining === 0 ? `${today} sessions done today — practise more to build your streak.` : `${remaining} more session${remaining > 1 ? 's' : ''} to hit your daily goal · about 12 min`,
+      start: d === 'a' ? () => this.go('learn') : () => this.openTopic('famille'),
+    };
+    const lvN = Math.floor(shownXp / 200) + 1, lvInto = shownXp % 200;
+    const lvl = { n: lvN, toNext: `${200 - lvInto} XP to Level ${lvN + 1}`, bar: { display: 'block', height: '100%', width: (lvInto / 200 * 100) + '%', background: 'var(--reward)', borderRadius: 999 } };
+    mission.xpUp = 'Up to +90 XP';
+    mission.streakLine = s.streak === 0 ? 'Start a streak today' : today > 0 ? `${s.streak}-day streak · safe today` : `Keep your ${s.streak}-day streak`;
+    const plan = { note: today > 0 ? `${today} done today` : 'Pick any topic', steps: [['1', 'Describe', 'Present tense · warm-up'], ['2', 'Tell a story', 'Passé composé · review'], ['3', 'Give your opinion', 'Opinion + reason · a step up']].map(([n, title, sub]) => ({ n, title, sub })) };
+    const fm = s.mastery.famille, fAvg = fm.avg != null ? fm.avg.toFixed(1) : '—';
+    const rec = {
+      body: `Your lowest average so far — ${fAvg} across ${fm.answered} answers. A review session eases you back in and supports your Conversational Fluency goal.`,
+      short: `lowest average so far (${fAvg}), so today opens with a review.`,
+      reason: 'La famille is your lowest-scoring topic. Today’s review eases you back in and supports your Conversational Fluency goal.',
+      skills: ['Passé composé', 'Opinions & reasons'],
+    };
+    const DAYS = ['Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun', 'Mon'];
+    const wv = s.week.filter(v => v != null);
+    const week = {
+      avg: wv.length ? (wv.reduce((a, b) => a + b, 0) / wv.length).toFixed(1) : '—', empty: !wv.length,
+      days: s.week.map((v, i) => {
+        const isT = i === 6, has = v != null;
+        return {
+          day: DAYS[i], has, none: !has, val: has ? v.toFixed(1) : '',
+          bar: { display: 'block', width: '100%', maxWidth: 40, height: has ? Math.max(8, (v / 10) * 104) : 0, borderRadius: 8, background: has ? this.tone(v) : 'transparent' },
+          barS: { display: 'block', width: '100%', maxWidth: 32, height: has ? Math.max(8, (v / 10) * 84) : 0, borderRadius: 8, background: has ? this.tone(v) : 'transparent' },
+          base: { display: 'block', width: '100%', height: 0, borderBottom: isT ? '2px solid var(--action)' : '2px dashed var(--track)' },
+          lbl: { display: 'block', fontSize: 12, fontWeight: isT ? 600 : 400, color: isT ? 'var(--action-text)' : 'var(--ink-subtle)', textAlign: 'center' },
+          cell: { width: '100%', height: 44, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', fontVariantNumeric: 'tabular-nums', fontWeight: 500, fontSize: 13, background: has ? this.toneSoft(v) : 'var(--surface-recessed)', color: has ? this.toneText(v) : 'var(--ink-subtle)', boxShadow: isT ? 'inset 0 0 0 1.5px var(--action)' : 'inset 0 0 0 1px var(--hairline)' },
+          cellText: has ? v.toFixed(1) : '—',
+        };
+      }),
+    };
+    const recent = s.recent.map((r, i) => {
+      const t = topics.find(x => x.key === r.k), scored = r.score != null;
+      return {
+        topic: t.fr, icon: t.icon, chip: this.chip(t.h, 28, dark), chipXs: this.chip(t.h, 20, dark), date: r.date, meta: `Learn · ${r.date}`,
+        score: scored ? r.score.toFixed(1) : 'Not graded', xp: `+${r.xp} XP`,
+        scoreStyle: { fontVariantNumeric: 'tabular-nums', fontWeight: scored ? 500 : 400, fontSize: scored ? 14 : 13, color: scored ? 'var(--ink)' : 'var(--ink-muted)', whiteSpace: 'nowrap' },
+        rowA: { display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', minHeight: 56, boxSizing: 'border-box', borderTop: i ? '1px solid var(--hairline)' : 'none' },
+        rowC: { display: 'flex', alignItems: 'center', gap: 12, padding: '0 20px', height: 44, borderTop: i ? '1px solid var(--hairline)' : 'none' },
+      };
+    });
+
+    const cm = s.mastery[cur.key], left = s.answersLeft, slen = Math.min(3, left);
+    const st = {
+      started: cm.answered > 0, done: String(cm.answered), avg: cm.avg != null ? cm.avg.toFixed(1) : '—', noAvg: cm.avg == null, isCoach: cur.key === 'famille', canStart: left > 0, limit: left <= 0,
+      qLine: `${slen} question${slen === 1 ? '' : 's'}`, mins: slen * 4, xpUp: `up to +${slen * 30} XP`,
+      today: left <= 0 ? 'You’ve used today’s 3 AI-marked answers. Come back tomorrow for more.' : `${left} of 3 AI-marked answers left today. This session has ${slen} question${slen === 1 ? '' : 's'}.`,
+      focus: (Component.SUB[cur.key] || []).map(label => {
+        const on = s.focus === label;
+        return { label, on, pick: () => this.setState({ focus: on ? null : label }), style: { height: 44, padding: '0 14px', borderRadius: 8, border: on ? '1px solid var(--action)' : '1px solid var(--hairline-strong)', background: on ? 'var(--action-soft)' : 'transparent', color: on ? 'var(--action-text)' : 'var(--ink-muted)', fontFamily: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'background-color 120ms, color 120ms, border-color 120ms' } };
+      }),
+    };
+
+    const qq = this.questions(cur.key)[s.qIndex % 3];
+    const q = {
+      text: qq.text, demand: qq.demand, review: qq.review, speak: () => this.speak(qq.text), why: qq.why,
+      vocab: qq.vocab.map(([vf, ve]) => {
+        const open = s.vocabOpen === vf;
+        return { fr: vf, en: ve, open, aria: `${vf}: ${ve}`, toggle: () => this.setState({ vocabOpen: open ? null : vf }), style: { position: 'relative', height: 32, padding: '0 12px', borderRadius: 8, background: open ? 'var(--action-soft)' : 'var(--surface-recessed)', border: open ? '1px solid var(--action)' : '1px solid var(--hairline)', color: open ? 'var(--action-text)' : 'var(--ink)', fontSize: 13, fontWeight: 500, display: 'inline-flex', alignItems: 'center', boxSizing: 'border-box', transition: 'background-color 120ms, border-color 120ms' } };
+      }),
+      hintLabel: s.hint ? 'Hide hint' : 'Get hint', hintIcon: s.hint ? 'chevron-up' : 'chevron-down', whyIcon: s.why ? 'chevron-up' : 'chevron-down',
+      ideas: qq.hint.ideas, phraseFr: qq.hint.fr, phraseEn: qq.hint.en,
+    };
+    const res = s.results;
+    const segs = Array.from({ length: len }, (_, i) => {
+      const r = res[i], done = !!r && (i < s.qIndex || s.phase === 'feedback'), active = i === s.qIndex && !done;
+      return { flex: 1, borderRadius: 999, background: done ? (r.score == null ? 'var(--ink-subtle)' : this.tone(r.score)) : active ? 'transparent' : 'var(--track)', boxShadow: active ? 'inset 0 0 0 1.5px var(--action)' : 'none', transition: 'background-color 120ms' };
+    });
+    const scoredRes = res.filter(r => r && r.score != null);
+    const prog = { q: `Q${Math.min(s.qIndex + 1, len)}/${len}`, segs, hasAvg: scoredRes.length > 0, avg: scoredRes.length ? (scoredRes.reduce((a, r) => a + r.score, 0) / scoredRes.length).toFixed(1) : '', hasXp: res.some(Boolean), xp: res.reduce((a, r) => a + (r ? r.xp : 0), 0) };
+    const ph = { idle: s.phase === 'idle', rec: s.phase === 'recording', proc: s.phase === 'processing', fb: s.phase === 'feedback' };
+    ph.live = !ph.fb;
+    const el = s.elapsed, good = el >= 30;
+    const lenBar = { bar: { display: 'block', height: '100%', width: Math.min(100, el / 60 * 100) + '%', background: good ? 'var(--progress)' : 'var(--ink-subtle)', borderRadius: 999, transition: 'width 250ms linear, background-color 120ms' }, msg: el < 10 ? 'Warm up — say your opinion' : el < 30 ? 'Keep going — add a reason' : el <= 60 ? 'Good length' : 'Wrap up when ready', msgStyle: { color: good ? 'var(--progress-text)' : 'var(--ink-subtle)', fontWeight: good ? 500 : 400 } };
+    const PL = ['Transcribing', 'Checking grammar', 'Scoring'];
+    const procSteps = PL.map((label, i) => { const done = i < s.procStep, active = i === s.procStep; return { label, done, active, wait: !done && !active, row: { display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: active ? 600 : 400, color: done ? 'var(--ink-muted)' : active ? 'var(--ink)' : 'var(--ink-subtle)', transition: 'color 120ms' } }; });
+    const r = res[s.qIndex];
+    let fb = { scored: false, unscored: false, sub: [], exam: [], corr: [], vocab: [], tips: [] };
+    if (r) {
+      const F = r.fb;
+      fb = {
+        scored: r.score != null, unscored: r.score == null, overall: F.overall.toFixed(1), overallNum: F.overall, level: F.level, words: `${F.words} words`,
+        sub: F.sub.map(([label, v]) => ({ label, val: v.toFixed(1), bar: { display: 'block', height: '100%', width: v * 10 + '%', background: this.tone(v), borderRadius: 999 } })),
+        exam: F.exam.map(([label, text]) => ({ label, text })), corr: F.corr.map(([theme, wrong, right, note]) => ({ theme, wrong, right, note })),
+        vocab: F.vocab.map(([basic, upgrade]) => ({ basic, upgrade })), tips: F.tips.map(([label, text]) => ({ label, text })),
+        nCorr: F.corr.length, nVocab: F.vocab.length,
+      };
+    }
+    fb.nextLabel = s.qIndex + 1 >= len ? 'Finish session' : 'Next question';
+    const fbTabs = this.seg(['Score', `Corrections · ${fb.corr.length}`, `Vocabulary · ${fb.vocab.length}`], s.fbTab, i => this.setState(x => ({ fbTab: i, navKey: x.navKey + 1 })), 40);
+
+    const L = s.last || { scores: [] };
+    const comp = {
+      scored: L.avg != null, unscored: L.avg == null, score: L.avg != null ? L.avg.toFixed(1) : '', scoreNum: L.avg ?? 0,
+      xp: `+${L.xp || 0} XP`, meta: `${L.words || 0} words · ${L.level || '—'} · ${L.n || 0} answer${L.n === 1 ? '' : 's'}`,
+      headline: L.avg == null ? 'Bien joué !' : L.avg >= 8 ? 'Excellent travail !' : L.avg >= 6 ? 'Bien joué !' : 'Bon effort !',
+      segs: (L.scores || []).map(v => ({ flex: 1, height: 6, borderRadius: 999, background: v == null ? 'var(--ink-subtle)' : this.tone(v) })),
+      canRetry: s.answersLeft > 0,
+    };
+
+    return {
+      rootRef: this.rootRef, scrollRef: this.scrollRef, waveRef: this.waveRef,
+      themeVars: dark ? { height: '100%', ...Component.DARK } : { height: '100%' },
+      isDesktop: desktop, showDock: !desktop && s.screen !== 'session',
+      railInd: { position: 'absolute', left: 0, right: 0, top: 0, height: 64, borderRadius: 8, background: 'var(--action-soft)', transform: `translateY(${navIdx * 68}px)`, transition: SL },
+      dockInd: { position: 'absolute', top: 0, left: 0, height: 56, width: 'calc((100% - 16px) / 5)', borderRadius: 8, background: 'var(--action-soft)', transform: `translateX(calc(${navIdx * 100}% + ${navIdx * 4}px))`, transition: SL },
+      nav, bar: bars[s.screen], pill,
+      is: { home: s.screen === 'home', learn: s.screen === 'learn', start: s.screen === 'start', session: s.screen === 'session', complete: s.screen === 'complete', progress: s.screen === 'progress', profile: s.screen === 'profile' },
+      pg: this.progressVals(topics, dark), pf: this.profileVals(topics, dark, SL), goProfile: () => this.go('profile'), goLearn: () => this.go('learn'),
+      dir: { a: d === 'a', b: d === 'b', c: d === 'c' },
+      ring, mission, rec, week, lvl, plan, lenBar, procSteps, procLabel: PL[Math.min(2, s.procStep)] + '…', procCount: `${Math.min(3, s.procStep + 1)}/3`, recent, coach, cur, topics,
+      openCoach: () => this.openTopic('famille'),
+      tilesGrid: d !== 'c', tilesList: d === 'c',
+      randomTopic: () => this.openTopic(topics[Math.floor(Math.random() * topics.length)].key),
+      st, aimDesc: Component.AIMS[s.aim],
+      aimSeg: this.seg(['Comfortable', 'Balanced', 'Push'], s.aim, i => this.setState({ aim: i }), 44),
+      fbSeg: this.seg(['Coach', 'Examiner'], s.feedbackMode === 'coach' ? 0 : 1, i => this.setState({ feedbackMode: i ? 'examiner' : 'coach' }), 60, ['Tips and a score', 'Cambridge-style comments, no score']),
+      showMarking: s.feedbackMode === 'coach',
+      markSeg: this.seg(['A1', 'A2', 'Exam', 'B1', 'B2'], s.marking, i => this.setState({ marking: i }), 44),
+      startSession: this.startSession, prog, endSession: this.endSession, q,
+      toggleHint: () => this.setState(x => ({ hint: !x.hint, navKey: x.navKey + 1 })),
+      toggleWhy: () => this.setState(x => ({ why: !x.why, navKey: x.navKey + 1 })),
+      hintOpen: s.hint, whyOpen: s.why,
+      ph, waveBars: this.WB, startRec: this.startRec, stopRec: this.stopRec, timer: this.fmtT(s.elapsed), micSim: s.mic === 'sim' && ph.rec && !this.an,
+      fb, retry: this.retry, next: this.next, fbTabs, tab: { s0: s.fbTab === 0, s1: s.fbTab === 1, s2: s.fbTab === 2 },
+      comp, continueHome: () => this.go('home'), backToTopics: () => this.go('learn'), retrySession: () => this.openTopic(s.topicKey),
+      toast: { show: !!s.toast, title: s.toast ? s.toast.title : '', body: s.toast ? s.toast.body : '' },
+      closeToast: () => this.setState({ toast: null }),
+    };
+  }
+}
+</script>
+</body>
+</html>

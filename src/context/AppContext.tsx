@@ -201,7 +201,8 @@ function buildInitialState(): AppState {
   // the resolved key — a bare localStorage.getItem here was a read/write
   // mismatch that silently ignored a returning user's saved values.
   const savedDark = localStorage.getItem(scopedKey(STORAGE_KEYS.darkMode));
-  const darkMode = savedDark === null ? true : savedDark === 'true';
+  // Light is the default theme (Design System v2); dark only when chosen.
+  const darkMode = savedDark === 'true';
 
   const preferredEngine: AIEngine = (localStorage.getItem(scopedKey(STORAGE_KEYS.aiEngine)) as AIEngine | null) ?? 'groq';
   const selectedDifficulty: DifficultyTier = (localStorage.getItem(scopedKey(STORAGE_KEYS.difficulty)) as DifficultyTier | null) ?? DEFAULT_DIFFICULTY;
