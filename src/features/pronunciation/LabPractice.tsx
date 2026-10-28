@@ -21,6 +21,7 @@ import { playClip, stopClip } from './audio/clipPlayer';
 import { playNative, stopNative } from './audio/nativeVoice';
 import {
   DRILL_VERDICT_DISPLAY,
+  NATIVE_UNAVAILABLE,
   NOTICE_TEXT,
   STEP_LABELS,
   WORD_STATE_DISPLAY,
@@ -60,8 +61,8 @@ import {
 interface Props {
   /** The sentence to practise (Learn: the corrected answer). */
   targetSentence: string;
-  /** Where the Lab was opened from (analytics only). */
-  entry: 'learn_feedback';
+  /** Where the Lab was opened from (analytics only): Learn's practice step, or the "How it sounded" card. */
+  entry: 'learn_feedback' | 'how_it_sounded';
   /** Leaves the Lab (Learn: on to the next question). */
   onDone: () => void;
 }
@@ -625,7 +626,7 @@ export function LabPractice({ targetSentence, entry, onDone }: Props) {
         </p>
       )}
       {nativeUnavailable && (
-        <p className="text-caption text-ink-muted">Native audio isn’t available on this device.</p>
+        <p className="text-caption text-ink-muted">{NATIVE_UNAVAILABLE}</p>
       )}
 
       <Button variant={showCompare && !lead ? 'primary' : 'quiet'} className="w-full" onClick={finish}>

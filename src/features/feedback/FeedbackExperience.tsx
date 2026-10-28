@@ -17,6 +17,7 @@ import { VocabularyCard } from './components/VocabularyCard';
 import { ExpansionIdeasCard } from './components/ExpansionIdeasCard';
 import { PronunciationCard } from './components/PronunciationCard';
 import { AzurePronunciationCard } from './components/AzurePronunciationCard';
+import { HowItSounded } from '../pronunciation/HowItSounded';
 import { FeedbackFooter } from './components/FeedbackFooter';
 import { MinimalResponseCard } from './components/MinimalResponseCard';
 import { OfflineLimitationsBanner } from '../../screens/learn/OfflineLimitationsBanner';
@@ -116,6 +117,16 @@ interface Props {
    * stays on the Exam-standard score (§8.1).
    */
   markingLevel?: MarkingLevel;
+  /**
+   * pronunciation-lab Stage 3 — passed only while `pronunciationLab` is live:
+   * the "How it sounded" card replaces the Azure / legacy pronunciation cards,
+   * and the `pronunciationResult`/`pronunciationStatus` props are ignored
+   * (Learn no longer asks for a free-answer analysis, owner D1).
+   */
+  howItSounded?: {
+    answerBlob: Blob | null;
+    onPractiseOpened?: () => void;
+  };
 }
 
 /** An answer at or above this overall score is offered to the notebook (the same line as `scoreTone`'s "good"). */
@@ -125,8 +136,8 @@ export type PronunciationStatus = 'idle' | 'pending' | 'done' | 'failed' | 'sign
 
 function FeedbackContent({
   feedback, transcript, modelAnswer, onRetry, onComplete,
-  pronunciationResult, pronunciationStatus, learnerName, recurring, nextQuestion, firsts, notebook, markingLevel, checks, answers,
-}: Pick<Props, 'transcript' | 'modelAnswer' | 'onRetry' | 'onComplete' | 'pronunciationResult' | 'pronunciationStatus' | 'learnerName' | 'recurring' | 'nextQuestion' | 'firsts' | 'notebook' | 'markingLevel'> & {
+  pronunciationResult, pronunciationStatus, learnerName, recurring, nextQuestion, firsts, notebook, markingLevel, howItSounded, checks, answers,
+}: Pick<Props, 'transcript' | 'modelAnswer' | 'onRetry' | 'onComplete' | 'pronunciationResult' | 'pronunciationStatus' | 'learnerName' | 'recurring' | 'nextQuestion' | 'firsts' | 'notebook' | 'markingLevel' | 'howItSounded'> & {
   feedback: FeedbackV2;
   checks: readonly PredictionCheck[];
   answers: Partial<Record<PredictionCheckId, PredictionAnswer>>;
@@ -246,64 +257,74 @@ function FeedbackContent({
       {/* learn-marking §6.1 — Coach style only (the Examiner style never gets a marking level). */}
       {markingLevel && <LevelNeedsCard feedback={feedback} markingLevel={markingLevel} />}
 
-      {/* lint:pronunciation-start — pronunciation branch is out of Batch 5 scope; block untouched */}
-      {/* Pronunciation — Azure (0-100, real acoustic analysis) supersedes the legacy
-          0-10 Gemini-prompt field whenever a Learn attempt has an audio blob. Never
-          rendered together: mixing scales on one screen would mislead the learner. */}
-      {pronunciationStatus && pronunciationStatus !== 'idle' ? (
-        pronunciationResult ? (
-          <AzurePronunciationCard
-            result={pronunciationResult}
-            correctedSentence={feedback.improved_answer ?? feedback.rephrase}
-          />
-        ) : pronunciationStatus === 'pending' ? (
-          <div className="rounded-xl surface p-4 flex items-center gap-2.5">
-            <Loader2 size={14} className="text-cyan-400 animate-spin shrink-0" />
-            <p className="text-[10px] text-ink-muted">Analysing pronunciation…</p>
-          </div>
-        ) : pronunciationStatus === 'signed-out' ? (
-          <CollapsibleCard
-            title="Pronunciation Analysis"
-            icon={<Mic2 size={13} className="text-cyan-400" />}
-            defaultOpen={true}
-            className="border border-cyan-500/15"
-          >
-            <div className="px-1 py-2">
-              <p className="text-[10px] font-semibold text-ink-muted">Sign in for pronunciation analysis.</p>
-              <p className="text-[9px] text-ink-muted mt-1">
-                Pronunciation scoring runs on your account, so it's not available while you're practising as a guest.
-                Create a free account or sign in, and it'll run on your next answer.
-              </p>
-              <Link
-                to="/login"
-                className="inline-block mt-2 text-[9px] font-semibold text-cyan-300 underline underline-offset-2"
-              >
-                Sign in
-              </Link>
-            </div>
-          </CollapsibleCard>
-        ) : pronunciationStatus === 'consent-required' ? (
-          <GuardianConsentNotice />
-        ) : pronunciationStatus === 'failed' ? (
-          <CollapsibleCard
-            title="Pronunciation Analysis"
-            icon={<Mic2 size={13} className="text-cyan-400" />}
-            defaultOpen={true}
-            className="border border-cyan-500/15"
-          >
-            <div className="px-1 py-2">
-              <p className="text-[10px] font-semibold text-ink-muted">Pronunciation analysis isn't available right now.</p>
-              <p className="text-[9px] text-ink-muted mt-1">
-                Our pronunciation service didn't respond in time — this can happen when it's just waking up.
-                Your recording and the rest of your feedback are safe. Try your next answer and it should be back.
-              </p>
-            </div>
-          </CollapsibleCard>
-        ) : null
+      {howItSounded ? (
+        <HowItSounded
+          answerBlob={howItSounded.answerBlob}
+          sentence={feedback.improved_answer || feedback.rephrase || ''}
+          onPractiseOpened={howItSounded.onPractiseOpened}
+        />
       ) : (
-        <PronunciationCard feedback={feedback} />
+        <>
+          {/* lint:pronunciation-start — pronunciation branch is out of Batch 5 scope; block untouched */}
+          {/* Pronunciation — Azure (0-100, real acoustic analysis) supersedes the legacy
+              0-10 Gemini-prompt field whenever a Learn attempt has an audio blob. Never
+              rendered together: mixing scales on one screen would mislead the learner. */}
+          {pronunciationStatus && pronunciationStatus !== 'idle' ? (
+            pronunciationResult ? (
+              <AzurePronunciationCard
+                result={pronunciationResult}
+                correctedSentence={feedback.improved_answer ?? feedback.rephrase}
+              />
+            ) : pronunciationStatus === 'pending' ? (
+              <div className="rounded-xl surface p-4 flex items-center gap-2.5">
+                <Loader2 size={14} className="text-cyan-400 animate-spin shrink-0" />
+                <p className="text-[10px] text-ink-muted">Analysing pronunciation…</p>
+              </div>
+            ) : pronunciationStatus === 'signed-out' ? (
+              <CollapsibleCard
+                title="Pronunciation Analysis"
+                icon={<Mic2 size={13} className="text-cyan-400" />}
+                defaultOpen={true}
+                className="border border-cyan-500/15"
+              >
+                <div className="px-1 py-2">
+                  <p className="text-[10px] font-semibold text-ink-muted">Sign in for pronunciation analysis.</p>
+                  <p className="text-[9px] text-ink-muted mt-1">
+                    Pronunciation scoring runs on your account, so it's not available while you're practising as a guest.
+                    Create a free account or sign in, and it'll run on your next answer.
+                  </p>
+                  <Link
+                    to="/login"
+                    className="inline-block mt-2 text-[9px] font-semibold text-cyan-300 underline underline-offset-2"
+                  >
+                    Sign in
+                  </Link>
+                </div>
+              </CollapsibleCard>
+            ) : pronunciationStatus === 'consent-required' ? (
+              <GuardianConsentNotice />
+            ) : pronunciationStatus === 'failed' ? (
+              <CollapsibleCard
+                title="Pronunciation Analysis"
+                icon={<Mic2 size={13} className="text-cyan-400" />}
+                defaultOpen={true}
+                className="border border-cyan-500/15"
+              >
+                <div className="px-1 py-2">
+                  <p className="text-[10px] font-semibold text-ink-muted">Pronunciation analysis isn't available right now.</p>
+                  <p className="text-[9px] text-ink-muted mt-1">
+                    Our pronunciation service didn't respond in time — this can happen when it's just waking up.
+                    Your recording and the rest of your feedback are safe. Try your next answer and it should be back.
+                  </p>
+                </div>
+              </CollapsibleCard>
+            ) : null
+          ) : (
+            <PronunciationCard feedback={feedback} />
+          )}
+          {/* lint:pronunciation-end */}
+        </>
       )}
-      {/* lint:pronunciation-end */}
 
       <FeedbackFooter
         onRetry={onRetry}
@@ -316,7 +337,7 @@ function FeedbackContent({
 
 export function FeedbackExperience({
   feedback, streamPhase, transcript, modelAnswer, onRetry, onComplete,
-  pronunciationResult, pronunciationStatus, demands, learnerName, recurring, nextQuestion, firsts, notebook, markingLevel,
+  pronunciationResult, pronunciationStatus, demands, learnerName, recurring, nextQuestion, firsts, notebook, markingLevel, howItSounded,
 }: Props) {
   const checks = useMemo(() => predictionChecks(demands), [demands]);
   const [answers, setAnswers] = useState<Partial<Record<PredictionCheckId, PredictionAnswer>>>({});
@@ -360,6 +381,7 @@ export function FeedbackExperience({
           recurring={recurring}
           nextQuestion={nextQuestion}
           markingLevel={markingLevel}
+          howItSounded={howItSounded}
           firsts={firsts}
           notebook={notebook}
           checks={checks}

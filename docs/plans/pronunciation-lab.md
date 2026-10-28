@@ -1,6 +1,6 @@
 # Pronunciation Lab: implementation plan
 
-Status: **Stages 1–2 built** (2026-10-28); Stages 3–7 not started. Owner decisions (2026-10-28): D1 drop, D2 yes (Stage 4b), D4 no XP, D5 no 0–100 number. D3: 30 Lab takes per account per day; Azure monthly cap = the F0 free allowance.
+Status: **Stages 1–3 built** (2026-10-28); Stages 4–7 not started. Owner decisions (2026-10-28): D1 drop, D2 yes (Stage 4b), D4 no XP, D5 no 0–100 number. D3: 30 Lab takes per account per day; Azure monthly cap = the F0 free allowance.
 
 Stage 1 (frontend only; no backend change, no UI, nothing reads the flag yet):
 - `src/domain/pronunciation/lab/`: `wordStates.ts` (`buildLabTake` → per-word state on the target sentence, "N of M clear"
@@ -48,12 +48,40 @@ Stage 2 (frontend only; no backend change — `/api/pronunciation` already accep
 - `lightContrast.test.ts` now scans `src/features/pronunciation/` (no allowlist entry); `labDesignRules.test.ts` bans
   text under 12px, hover motion, pulses, gradients, glows.
 
+Stage 3 (frontend only; **no backend change** — D1 needs none: the freeform path in `routers/pronunciation.py` stays,
+it is simply no longer called by Learn while the flag is live):
+- `src/features/pronunciation/HowItSounded.tsx` — the §3.1 card. With `pronunciationLab` live, `FeedbackExperience`
+  (coach view) renders it in place of the fenced Azure / legacy block (`howItSounded` prop; Learn passes it only while the
+  flag is live, so flag off is exactly the old cards — the rollback). Sections: **Listen back** (▶ Your answer = the answer's
+  in-memory recording via `playClip`; ▶ Native = `improved_answer || rephrase` via `playNative`; one "Slow (0.75×)" toggle,
+  `aria-pressed`, applies to both), **Flow** (`labCopy.flowLine`: "Smooth — no long pauses." / "N pause(s) over 2 seconds —
+  try linking your ideas with et, mais, parce que."), **Watch out for** (`watchOutFor(sentence)`, ≤ 3 chips, each plays
+  its `playText` and names its family from `SOUND_TIPS`), **Practise it** (primary; opens `<LabPractice entry="how_it_sounded">`
+  in place of the card — the feedback screen stays mounted, Done returns to the card). No number, score, sub-score or
+  coloured word; no `/api/pronunciation` call.
+- **D1 applied:** `Learn.tsx`'s per-answer freeform `assessPronunciation` is skipped while the flag is live — the IIFE keeps the
+  blob in `answerBlob` state and returns before the request (pinned by `learnFreeformGate.test.ts`). Examiner-voice
+  answers get no card and no request either. Flag off still sends freeform exactly as before.
+- Opening the Lab from the card counts as the question's practice step when that step would have been offered
+  (`extraTurnBudget.consumePractice`), so Continue doesn't offer the same sentence again; otherwise the follow-up is untouched.
+- Flow is `features/pronunciation/audio/answerPauses.ts`'s `measureAnswerPauses(blob)`: `normalizeToWav16kMono`
+  (max 180 s) → `readWavPcm16Mono` → exam `trimSilence(...).pauses` (internal pauses only). Best effort: null (no line) on
+  no speech / too short / decode failure. `readWavPcm16Mono` moved from `services/exam/pronunciation/measureExamAudio.ts`
+  to `domain/pronunciation/audioNormalizer.ts` (re-exported from the old place; no exam hash involved).
+- `lab_opened.entry` is now `'learn_feedback' | 'how_it_sounded'`. `labCopy.NATIVE_UNAVAILABLE` is shared by both screens.
+- **Not done in Stage 3, by the plan's own rule:** the three old cards (`AzurePronunciationCard`, `PronunciationCard`,
+  `PronunciationHeatMap`), their lightContrast allowlist entries and the `lint:pronunciation-*` fence are deleted only **when
+  the flag is removed** (after the §7 gate). They are still the flag-off path. When removing the flag: delete them, the fence,
+  the allowlist names, Learn's freeform IIFE + `pronunciationResult`/`pronunciationStatus` state and props, and
+  `SayItAgainCard`; keep the backend freeform path (exam feature).
+- No real-device run: covered by jsdom tests with mocked audio (`HowItSounded.test.tsx`, `answerPauses.test.ts`,
+  `FeedbackExperience.test.tsx`).
+
 What the next stages need to know:
-- **Stage 3** ("How it sounded"): open the Lab on a sentence by rendering `<LabPractice targetSentence entry onDone />`;
-  add a new `entry` value to `LabOpenedProps` in `telemetryService.ts` (it is a closed enum). The old cards
-  (`AzurePronunciationCard`, `PronunciationCard`, `PronunciationHeatMap`), their lightContrast allowlist entries and
-  `FeedbackExperience`'s `lint:pronunciation-*` fence are still there; `SayItAgainCard` stays as the flag-off path
-  until the flag is removed.
+- **Stage 3** is built (above). Any new place that opens the Lab adds a value to `LabOpenedProps.entry` in
+  `telemetryService.ts` (closed enum) and to `LabPractice`'s `entry` prop type.
+- **Stage 4**: "How it sounded" asks ▶ Native for the corrected sentence as written (an AI sentence → Stage 4b's cached
+  endpoint is what will give it a recording) and for `watchOutFor`'s `playText` strings (already the lexicon's strings).
 - **Stage 5** (Lab home): `LabPractice` is self-contained (no Learn state), so the home's "Practise a sentence" can
   reuse it as is; take history for `labStore` should come from `takeObservations(take)` — add an `onTake` callback
   prop to `LabPractice` then (none exists yet, on purpose: Stage 2 stores nothing).

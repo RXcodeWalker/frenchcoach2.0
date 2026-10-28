@@ -273,8 +273,8 @@ interface NotebookSavedProps {
 // Pronunciation Lab (docs/plans/pronunciation-lab.md §8). Counts and enums
 // only — never the sentence, a word, a transcript or audio.
 interface LabOpenedProps {
-  /** Where the Lab was opened from. */
-  entry: 'learn_feedback';
+  /** Where the Lab was opened from: Learn's practice step, or a Learn answer's "How it sounded" card (Stage 3). */
+  entry: 'learn_feedback' | 'how_it_sounded';
 }
 
 interface LabTakeProps {

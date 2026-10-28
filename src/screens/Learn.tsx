@@ -175,6 +175,9 @@ export function Learn() {
   // never delays feedback, never blurs into FeedbackV2's legacy 0-10 field).
   const [pronunciationStatus, setPronunciationStatus] = useState<PronunciationStatus>('idle');
   const [pronunciationResult, setPronunciationResult] = useState<PronunciationAssessment | null>(null);
+  // pronunciation-lab Stage 3: with the Lab live, the answer's own recording is
+  // kept (in memory) for "How it sounded"'s listen-back and flow line instead.
+  const [answerBlob, setAnswerBlob] = useState<Blob | null>(null);
   const pronunciationAbortRef = useRef<AbortController | null>(null);
   // Single generation counter guarding both the feedback stream and the pronunciation
   // call — belt-and-braces alongside AbortController so a race can never write stale
@@ -314,6 +317,7 @@ export function Learn() {
     confirmedAnswersRef.current = [];
     setPronunciationStatus('idle');
     setPronunciationResult(null);
+    setAnswerBlob(null);
     setPartialFeedback(null);
     setStreamPhase(null);
     setFeedbackErrorMessage(null);
@@ -717,6 +721,7 @@ export function Learn() {
     setStreamPhase(null);
     setPronunciationStatus('idle');
     setPronunciationResult(null);
+    setAnswerBlob(null);
     setExaminerStatus('idle');
     setExaminerFeedbackResult(null);
 
@@ -727,6 +732,14 @@ export function Learn() {
     void (async () => {
       const blob = await recording.audioBlobPromise();
       if (!blob || myAttemptId !== attemptIdRef.current) return;
+
+      // Owner D1 (pronunciation-lab plan §1.1, §9): a free answer is never sent
+      // for word analysis while the Lab is live — freeform Azure can't see the
+      // word the learner meant. "How it sounded" uses the recording locally.
+      if (pronunciationLabLive) {
+        setAnswerBlob(blob);
+        return;
+      }
 
       const pronunciationController = new AbortController();
       pronunciationAbortRef.current = pronunciationController;
@@ -1084,6 +1097,7 @@ export function Learn() {
     dispatch({ type: 'UPDATE_ACTIVE_SESSION', session: updatedSession });
 
     setFeedback(null);
+    setAnswerBlob(null);
     setDrillSkillId(null);
     setActiveProblem(null);
     setDrillInterventionId(null);
@@ -1594,6 +1608,18 @@ export function Learn() {
                   firsts={firsts}
                   notebook={notebookOffer}
                   markingLevel={markingLive ? markingLevel : undefined}
+                  howItSounded={
+                    pronunciationLabLive
+                      ? {
+                          answerBlob,
+                          // Practising from the card is this question's practice step,
+                          // so Continue doesn't offer the same sentence again.
+                          onPractiseOpened: () => {
+                            if (practiceStepEligible) extraTurnBudget.consumePractice(activeSession?.currentIndex ?? null);
+                          },
+                        }
+                      : undefined
+                  }
                 />
               )}
             </motion.div>

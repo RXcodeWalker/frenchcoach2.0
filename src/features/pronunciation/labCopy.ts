@@ -13,6 +13,7 @@ import type { LabNotice } from './labPracticeState';
 import type { LabWordState } from '../../domain/pronunciation/lab/types';
 import type { DrillVerdict, LabTakeCounts } from '../../domain/pronunciation/lab/wordStates';
 import type { TakeComparison } from '../../domain/pronunciation/lab/takeCompare';
+import { TRIM_CONFIG, type PauseStats } from '../../domain/examPronunciation/trim';
 
 export interface WordStateDisplay {
   /** Shown before the word; aria-hidden (the label carries the meaning). */
@@ -87,3 +88,14 @@ export function focusLead(emphasis: 'none' | 'offer' | 'suggest', words: readonl
 
 /** The four stepper labels (plan §3.2). */
 export const STEP_LABELS = ['Listen', 'Say it', 'Compare', 'Focus'] as const;
+
+/** The "Flow" line on a Learn answer (plan §3.1 item 2): descriptive, never a level. Null when nothing was measured. */
+export function flowLine(pauses: Pick<PauseStats, 'pausesOver2s'> | null): string | null {
+  if (!pauses) return null;
+  if (pauses.pausesOver2s === 0) return 'Smooth — no long pauses.';
+  const n = pauses.pausesOver2s;
+  return `${n} ${plural(n, 'pause', 'pauses')} over ${TRIM_CONFIG.longPauseMs / 1000} seconds — try linking your ideas with et, mais, parce que.`;
+}
+
+/** Shown by the Lab and "How it sounded" when native audio can't play here (plan §4.2). */
+export const NATIVE_UNAVAILABLE = 'Native audio isn’t available on this device.';

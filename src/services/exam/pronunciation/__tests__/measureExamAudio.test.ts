@@ -2,10 +2,11 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import type { ConductLogEntry } from '../../../../domain/igcse/session/types';
 
 const normalize = vi.fn();
-vi.mock('../../../../domain/pronunciation/audioNormalizer', async () => {
+vi.mock('../../../../domain/pronunciation/audioNormalizer', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../../../domain/pronunciation/audioNormalizer')>();
   class AudioTooShortError extends Error {}
   class AudioTooLongError extends Error {}
-  return { normalizeToWav16kMono: normalize, AudioTooShortError, AudioTooLongError };
+  return { normalizeToWav16kMono: normalize, AudioTooShortError, AudioTooLongError, readWavPcm16Mono: actual.readWavPcm16Mono };
 });
 const track = vi.fn();
 vi.mock('../../../telemetry/telemetryService', () => ({ track, captureError: () => {} }));

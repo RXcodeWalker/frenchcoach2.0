@@ -20,6 +20,14 @@ vi.mock('../components/AzurePronunciationCard', () => ({
   },
 }));
 
+const howItSoundedProps = vi.fn();
+vi.mock('../../pronunciation/HowItSounded', () => ({
+  HowItSounded: (props: unknown) => {
+    howItSoundedProps(props);
+    return <div data-testid="how-it-sounded" />;
+  },
+}));
+
 vi.mock('../../../context/AuthContext', () => ({ useAuth: () => ({ consentStatus: 'unknown' }) }));
 
 import { FeedbackExperience } from '../FeedbackExperience';
@@ -218,6 +226,21 @@ describe('FeedbackExperience coach view (Batch 6a + 6b)', () => {
     renderFeedback({ pronunciationResult: PRONUNCIATION, pronunciationStatus: 'done' });
     expect(screen.getByTestId('azure-card')).toBeTruthy();
     expect(azureProps).toHaveBeenCalledWith({ result: PRONUNCIATION, correctedSentence: FEEDBACK.improved_answer });
+  });
+
+  it('with the Lab live, "How it sounded" replaces the pronunciation cards (pronunciation-lab Stage 3)', () => {
+    const blob = new Blob(['x']);
+    const onPractiseOpened = vi.fn();
+    renderFeedback({ pronunciationResult: PRONUNCIATION, pronunciationStatus: 'done', howItSounded: { answerBlob: blob, onPractiseOpened } });
+    expect(screen.getByTestId('how-it-sounded')).toBeTruthy();
+    expect(screen.queryByTestId('azure-card')).toBeNull();
+    expect(screen.queryByText(/Pronunciation/)).toBeNull();
+    expect(howItSoundedProps).toHaveBeenLastCalledWith({ answerBlob: blob, sentence: FEEDBACK.improved_answer, onPractiseOpened });
+  });
+
+  it('without the Lab, no "How it sounded" card', () => {
+    renderFeedback({ pronunciationResult: PRONUNCIATION, pronunciationStatus: 'done' });
+    expect(screen.queryByTestId('how-it-sounded')).toBeNull();
   });
 
   it('speaks a repeated mistake with a phrase from this very answer, and only then', () => {

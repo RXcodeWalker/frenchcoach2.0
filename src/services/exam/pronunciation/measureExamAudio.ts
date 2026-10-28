@@ -17,6 +17,7 @@ import {
   normalizeToWav16kMono,
   AudioTooShortError,
   AudioTooLongError,
+  readWavPcm16Mono,
 } from '../../../domain/pronunciation/audioNormalizer';
 import { segmentSpeechTurns, PRONUNCIATION_PARTS } from '../../../domain/examPronunciation/segment';
 import { trimSilence } from '../../../domain/examPronunciation/trim';
@@ -50,16 +51,8 @@ export interface TurnAudioMeasurement {
   trimmedS: number | null;
 }
 
-/** Reads the samples back out of the canonical 44-byte-header 16-bit mono WAV that `normalizeToWav16kMono` writes. */
-export async function readWavPcm16Mono(wav: Blob): Promise<{ samples: Float32Array; sampleRate: number }> {
-  const buffer = await wav.arrayBuffer();
-  const view = new DataView(buffer);
-  const sampleRate = view.getUint32(24, true);
-  const count = Math.floor((buffer.byteLength - 44) / 2);
-  const samples = new Float32Array(count);
-  for (let i = 0; i < count; i++) samples[i] = view.getInt16(44 + i * 2, true) / 0x8000;
-  return { samples, sampleRate };
-}
+/** Moved to the normaliser (its inverse lives there); re-exported for the exam's callers. */
+export { readWavPcm16Mono };
 
 const round1 = (n: number): number => Math.round(n * 10) / 10;
 

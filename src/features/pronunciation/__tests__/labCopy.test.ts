@@ -5,6 +5,7 @@ import {
   WORD_STATE_DISPLAY,
   clearHeadline,
   comparisonLine,
+  flowLine,
   focusLead,
   legendStates,
 } from '../labCopy';
@@ -15,6 +16,7 @@ const allCopy = [
   ...Object.values(NOTICE_TEXT),
   focusLead('suggest', ['enfants', 'jardin']) ?? '',
   focusLead('offer', ['enfants']) ?? '',
+  flowLine({ pausesOver2s: 0 }) ?? '',
 ];
 
 describe('Lab copy', () => {
@@ -62,5 +64,13 @@ describe('Lab copy', () => {
     expect(focusLead('offer', ['enfants'])).toBe('Nearly all clear. Want to practise « enfants »?');
     expect(focusLead('suggest', ['enfants', 'jardin'])).toBe('Two words worth practising: « enfants » and « jardin ».');
     expect(focusLead('suggest', ['enfants'])).toBe('One word worth practising: « enfants ».');
+  });
+
+  it('the flow line describes pauses, never a level (plan §3.1 item 2)', () => {
+    expect(flowLine(null)).toBeNull();
+    expect(flowLine({ pausesOver2s: 0 })).toBe('Smooth — no long pauses.');
+    expect(flowLine({ pausesOver2s: 1 })).toBe('1 pause over 2 seconds — try linking your ideas with et, mais, parce que.');
+    expect(flowLine({ pausesOver2s: 3 })).toBe('3 pauses over 2 seconds — try linking your ideas with et, mais, parce que.');
+    for (const n of [0, 1, 3]) expect(flowLine({ pausesOver2s: n })).not.toMatch(/fluent|level|band|grade|score|A1|A2|B1|B2/i);
   });
 });
