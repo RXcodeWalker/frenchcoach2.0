@@ -1,6 +1,6 @@
 # Pronunciation Lab: implementation plan
 
-Status: **Stages 1–4b built** (2026-10-28; Stage 4's recording run is a manual Actions step — see the Stage 4 notes; Stage 4b needs migration `20261028090000` applied before its backend deploys — see the Stage 4b notes); Stages 5–7 not started. Owner decisions (2026-10-28): D1 drop, D2 yes (Stage 4b), D4 no XP, D5 no 0–100 number. D3: 30 Lab takes per account per day; Azure monthly cap = the F0 free allowance.
+Status: **Stages 1–4b built** (2026-10-28; Stage 4's recording run is a manual Actions step — see the Stage 4 notes; Stage 4b migration `20261028090000` applied to production 2026-10-28); Stages 5–7 not started. Owner decisions (2026-10-28): D1 drop, D2 yes (Stage 4b), D4 no XP, D5 no 0–100 number. D3: 30 Lab takes per account per day; Azure monthly cap = the F0 free allowance.
 
 Stage 1 (frontend only; no backend change, no UI, nothing reads the flag yet):
 - `src/domain/pronunciation/lab/`: `wordStates.ts` (`buildLabTake` → per-word state on the target sentence, "N of M clear"
@@ -118,7 +118,7 @@ Stage 4b (backend + frontend — owner D2: a natural voice for AI-corrected sent
   Azure/Supabase not configured → 503 `native_voice_unavailable`, Azure/upload failure → 502 `native_voice_failed` (raised
   from the cause, so Sentry reports it once). Every failure after the charge releases the quota and the characters.
   Guests go through `verify_user_or_guest` (guest cap; characters metered with no user). Rate limit 20/min per IP.
-- **Migration `20261028090000_native_voice_tts.sql`** (not yet applied to production): quota row `('native_voice', 20)`,
+- **Migration `20261028090000_native_voice_tts.sql`** (applied to production 2026-10-28): quota row `('native_voice', 20)`,
   `azure_tts_usage` + `azure_tts_budget` (cap **50,000 characters a month**, a number chosen in this stage — F0's 500k a month
   is shared with the "Record voices" workflow, whose first full run takes ≈ 323k this month), service-role RPCs
   `reserve_azure_tts_characters` / `release_azure_tts_characters`. Change the cap with

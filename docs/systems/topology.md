@@ -112,7 +112,7 @@ migrations are applied the route cannot store evidence.
   against `azure_tts_budget.cap_characters` (ships at 50,000 a month — F0's 500k characters are
   shared with the "Record voices" workflow; change it with an `UPDATE`, no migration). Only reached
   while `VITE_RECORDED_VOICES=1` (the app never asks otherwise).
-  **Deploy order:** migration `20261028090000_native_voice_tts.sql` first (the quota row is an FK;
+  **Deploy order:** migration `20261028090000_native_voice_tts.sql` (applied to production 2026-10-28) first (the quota row is an FK;
   without it every request 503s — harmless, the app falls back), then backend, then frontend.
 
 ### Sentry error tracking (2026-10-24)
