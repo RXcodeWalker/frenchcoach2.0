@@ -40,6 +40,7 @@ vi.mock('../../recording/useAudioBlobRecorder', () => ({
 }));
 
 import { LabPractice } from '../LabPractice';
+import { loadLabHistory, resetLabStoreForTests } from '../labStore';
 import { ConsentRequiredError } from '../../../lib/consentRequired';
 import { AuthRequiredError } from '../../../lib/authToken';
 import { AudioTooShortError } from '../../../domain/pronunciation/audioNormalizer';
@@ -55,6 +56,8 @@ function sentenceResult(scores: number[], overrides = {}) {
 }
 
 beforeEach(() => {
+  localStorage.clear();
+  resetLabStoreForTests();
   rec.recording = false;
   rec.startFails = false;
   rec.stopReturnsNull = false;
@@ -244,5 +247,35 @@ describe('LabPractice', () => {
     unmount();
     expect(audio.stopClip).toHaveBeenCalled();
     expect(audio.stopNative).toHaveBeenCalled();
+  });
+});
+
+describe('LabPractice → Lab history (Stage 5)', () => {
+  it('a usable sentence take adds sound observations and "Practise this" words to the local history — never the sentence', async () => {
+    assessMock.mockResolvedValue(sentenceResult([95, 40, 95, 95, 95, 70]));
+    renderLab();
+    await recordTake(/Tap and say the sentence/);
+    const history = loadLabHistory();
+    expect(history.words.enfants?.status).toBe('watching');
+    expect(history.words.les).toBeUndefined();
+    expect(localStorage.getItem('frenchCoach_pronunciationLab') ?? '').not.toMatch(/jardin|jouent/);
+  });
+
+  it('a refused take (not word-checkable) adds nothing', async () => {
+    assessMock.mockResolvedValue(sentenceResult([95, 40, 95, 95, 95, 70], { couldNotAssess: true }));
+    renderLab();
+    await recordTake(/Tap and say the sentence/);
+    expect(localStorage.getItem('frenchCoach_pronunciationLab')).toBeNull();
+  });
+
+  it('a failed focus-word drill counts as a miss for that word', async () => {
+    assessMock.mockResolvedValueOnce(sentenceResult([95, 30, 95, 95, 95, 95]));
+    renderLab();
+    await recordTake(/Tap and say the sentence/);
+    await click(screen.getByRole('button', { name: 'Practise it' }));
+    assessMock.mockResolvedValueOnce(scripted([azureWord('enfants', 30)]));
+    await recordTake(/Tap and say the word/);
+    expect(loadLabHistory().words.enfants.practiseCount).toBe(2);
+    expect(loadLabHistory().words.enfants.status).toBe('tricky');
   });
 });

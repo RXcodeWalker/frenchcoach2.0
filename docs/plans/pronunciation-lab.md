@@ -1,6 +1,6 @@
 # Pronunciation Lab: implementation plan
 
-Status: **Stages 1–4b built** (2026-10-28; Stage 4's recording run is a manual Actions step — see the Stage 4 notes; Stage 4b migration `20261028090000` applied to production 2026-10-28); Stages 5–7 not started. Owner decisions (2026-10-28): D1 drop, D2 yes (Stage 4b), D4 no XP, D5 no 0–100 number. D3: 30 Lab takes per account per day; Azure monthly cap = the F0 free allowance.
+Status: **Stages 1–5 built** (2026-10-28; Stage 4's recording run is a manual Actions step — see the Stage 4 notes, and Stage 5 added 2 catalogue lines so a fresh "Record voices" run is due; Stage 4b migration `20261028090000` applied to production 2026-10-28; Stage 5 is frontend only: no migration, no backend change); Stages 6–7 not started. Owner decisions (2026-10-28): D1 drop, D2 yes (Stage 4b), D4 no XP, D5 no 0–100 number. D3: 30 Lab takes per account per day; Azure monthly cap = the F0 free allowance.
 
 Stage 1 (frontend only; no backend change, no UI, nothing reads the flag yet):
 - `src/domain/pronunciation/lab/`: `wordStates.ts` (`buildLabTake` → per-word state on the target sentence, "N of M clear"
@@ -106,7 +106,7 @@ Stage 4 (frontend + workflow only; **no backend change**, no UI change — nativ
   2026-10-24).
 
 Stage 4b (backend + frontend — owner D2: a natural voice for AI-corrected sentences):
-- **Backend** (`french-coach-backend`, branch `claude/nifty-edison-xhbf2a`): `POST /api/native-voice` (`routers/native_voice.py`),
+- **Backend** (`french-coach-backend`, branch `claude/nifty-edison-xhbf2a`, since merged): `POST /api/native-voice` (`routers/native_voice.py`),
   body `{ "text": "…" }`. It normalises the text (`lib/voice_key.py`, a port of `voiceKey.ts` with JavaScript's whitespace
   rules), refuses invalid/over-600-character text (422 `invalid_text`/`text_too_long`), and HEADs the public bucket file at
   the voiceKey path: present → `200 {status:'ready', path, cached:true}`, no charge, no Azure. Missing → charges quota
@@ -140,6 +140,63 @@ Stage 4b (backend + frontend — owner D2: a natural voice for AI-corrected sent
   tests only; the first real sentence will show whether F0's TTS endpoint accepts the region/key already used for speech.
 - No new analytics event (none was asked for by §8); no XP/Session/evidence write.
 
+Stage 5 (frontend only — **no backend change, no migration**; the Lab home, its screens and the Lab's local history):
+- **Route `/learn/sounds`** (`screens/LearnSounds.tsx`; `config/routes.ts` has the entry; not under any `HIDDEN_PATH_PREFIXES`, so no
+  launch-scope change). `App.tsx` gates it with `ComingSoonGate` on `pronunciationLab` (flag off = the "coming soon" screen, falling back
+  to `/learn`). Learn's topic grid (`TopicGrid`'s new `showSoundsLink`, passed by `Learn.tsx` only while the flag is live) links to it
+  ("Pronunciation Lab"); flag off, no link. The screen holds the one open view (home / guide / ear / tricky / practise / Lab), so the
+  top bar's Back steps out of a view before it leaves the Lab; it renders its own `TopContextBar`.
+- **Home** (`features/pronunciation/SoundsHome.tsx`): three action cards (Practise a sentence, Ear training, Tricky words — its
+  note says how many words are due) and **Your sounds**: the 10 scored families as tiles, each with an icon-and-word status
+  (`soundsCopy.ts` `FAMILY_STATUS_DISPLAY`: Clear / Getting there / Needs work / Not enough data yet) from `historyStatuses(history)`
+  (`familyStatuses`, Lab takes only). Liaison and elision are never given a status (§5.2): they are two chips under the grid that open
+  their guide. No monthly check yet (Stage 6).
+- **Sound guide** (`SoundGuide.tsx`): name, status (scored families only), the mouth tip (`SOUND_TIPS`), every example with **Hear**
+  (recorded; `useNativePlayer` never passes `synthesize`) and **Say it** (opens `LabPractice` on that word as a one-word target,
+  `entry: 'sound_guide'`), the minimal pair as two play buttons, "Ear training for this sound" (only for families with pairs) and
+  "Practise sentences with this sound".
+- **Ear training** (`EarTraining.tsx`; pure rounds in `domain/pronunciation/lab/earTraining.ts`): plays one word of a `MINIMAL_PAIRS`
+  pair, two shuffled buttons, "Yes — « tout »." / "That one was « tout ». Listen to both." (never "wrong"), both words replayable, a round
+  is `EAR_ROUND_SIZE` (6) questions (fewer pairs → each pair asked once before any repeats, then with the other word; never the same pair
+  twice running), optional sound filter. **Listen-only: no microphone, no request of any kind**; nothing is stored. One analytics event per
+  finished round: `ear_training_round {correct, total}` (counts only).
+- **Tricky words** (`TrickyWords.tsx` + `WordDrill.tsx`; rules in `domain/pronunciation/lab/trickyWords.ts`): a word joins the deck when it
+  has been "Practise this" **twice** (a sentence take, or a failed one-word drill) and leaves it after **two Clear days in a row on
+  different days**. Almost / Not heard / unknown are neutral; a cleared word needs two new misses to come back; a word seen once and never
+  again is forgotten after 30 days; at most 200 words kept. These are product rules (`TRICKY_RULES`), not measurement thresholds, so they are
+  *not* in `thresholds.ts` and need no `LAB_THRESHOLDS_VERSION` bump. Deck order: not-yet-practised-today first, then most missed. A card is the
+  same scripted one-word check as the focus-word drill (`MAX_WORD_TAKES` = 3 tries per word per sitting), shows a family tip (a silent last
+  letter never names a word when another sound does) and records each try. A word that has just left the deck stays on screen until the card
+  is closed, so the learner sees why. `lab_opened {entry: 'tricky_words'}` fires once when the first card opens.
+- **Practise a sentence** (`PracticePicker.tsx`; `domain/pronunciation/lab/practiceSentences.ts`): sources are Learn model answers (topic
+  select, "All topics") and, only when the learner has kept answers, "My notebook" (read from `state.notebook`, which is already empty for a
+  guest). Sentences come from `splitSentences` — the recording script's own splitter — then are kept to 3–20 words (`PRACTICE_SENTENCE`), so a
+  model-answer sentence always has a native recording and a notebook sentence is AI text that Stage 4b records on first play. An optional
+  sound filter keeps sentences whose spelling has that sound (`soundFeatures`, the same rules as "watch out for"). 8 are shown;
+  "Show different ones" re-draws. Picking one opens `LabPractice` with `entry: 'lab_home'`; Done returns to the picker.
+- **`labStore`** (`features/pronunciation/labStore.ts`; pure shape and updates in `domain/pronunciation/lab/labHistory.ts`): the Lab's own
+  local history, key `frenchCoach_pronunciationLab` (`STORAGE_KEYS.pronunciationLab`, **account-scoped**, not device-scoped, so
+  `copyGuestScopeToIdentity` carries a guest's history to their account). Shape `{version: 1, observations, words}`: `observations` are
+  `takeObservations` rows (`family`, `accuracy` 0–100 — internal, never shown, `basis`, local `day`), oldest first, at most 60 per family;
+  `words` is the tricky table. **No audio, no sentence text, no transcript, no Azure payload.** `LabPractice` writes it itself: every usable
+  sentence take (`recordLabTake`, so Learn's entries count too) and every focus-word drill (`recordLabDrill`); `WordDrill` writes its own tries.
+  A refused take (freeform, not Azure, couldn't assess) writes nothing. `useLabHistory()` is a `useSyncExternalStore` hook (re-renders on a
+  write here or in another tab). Why not `AppContext`: the Lab writes no Session/XP/mastery/review/evidence (plan §4), and this is new data,
+  not existing app state. **Local only** — `labStorePrivacy.test.ts` pins that no `src/services/` module (except the key registry and
+  `deleteMyAccount`, which now removes it), no sync module, API client or skill-context builder names it, that only the Lab files read the
+  store, and that no Lab analytics event carries a sentence, word or family.
+- Shared pieces moved out of `LabPractice.tsx`: `RecordControl.tsx` (the record/stop control) and `checkFailure.ts` (`failureOf`), used by `WordDrill`.
+  `LabPractice`'s `entry` is now the exported type `LabEntry` (`telemetryService.ts`): `'learn_feedback' | 'how_it_sounded' | 'lab_home' | 'sound_guide' | 'tricky_words'`.
+- `useNativePlayer.ts`: ▶ Native for the home's screens — recordings and the browser French voice only, **never `synthesize`**; it says
+  "Native audio isn't available on this device" once when nothing can play.
+- **Recorded-voice catalogue:** `guideTexts()` now also lists the words inside the guide's multi-word strings (`lexiconTexts` over them), because
+  "Say it" on `vous avez` plays `avez` on its own — the new `catalogueCoverage` checks (every offered model-answer sentence; every guide example and
+  each of its words) found that gap. Net +2 catalogue lines (11,183 items, ≈ 393k characters): a fresh "Record voices" run records them; until then
+  those two words use the browser voice.
+- Tests: domain (`trickyWords`, `labHistory`, `earTraining`, `practiceSentences`), `labStore`, `labStorePrivacy`, `soundsCopy`, and a component
+  test for each screen plus `LearnSounds` (routing, back behaviour); `LabPractice` and `TopicGrid` tests extended. Checked in headless Chromium
+  at 420 px (home, guide, ear training, picker render with no page errors) — not on a real device, and no live Azure.
+
 What the next stages need to know:
 - **Stage 3** is built (above). Any new place that opens the Lab adds a value to `LabOpenedProps.entry` in
   `telemetryService.ts` (closed enum) and to `LabPractice`'s `entry` prop type.
@@ -148,21 +205,23 @@ What the next stages need to know:
 - **Stage 4b** (built, above): a new screen that plays an AI-written *sentence* passes `synthesize: true` to `playNative`; a word
   never does. Model-answer sentences and guide/lexicon strings are recorded already, so the endpoint answers them `cached` for free.
   The daily `native_voice` cap (20) and the monthly character cap are separate from Stage 7's `pronunciation_lab` allowance.
-- **Stage 5** (Lab home): ear training plays `MINIMAL_PAIRS` (`minimalPairs.ts`); both words are recorded, nothing else is needed. A
-  model-answer practice sentence must come from `splitSentences(question.modelAnswer)` — any other splitter produces text with no
-  recording. The guide's example words are recorded exactly as `SOUND_TIPS` writes them. "Tricky words" re-plays words as
-  `wordPlayTexts` gives them. Adding an ear-training pair or a guide example means adding it to `minimalPairs.ts`/`tips.ts`, then
-  running "Record voices" again (the coverage test fails until the string is catalogued by those lists — it is, automatically).
+- **Stage 5** (built, above): a new string the home plays must be catalogued — an ear-training pair goes in `minimalPairs.ts`, a guide example in `tips.ts`, a
+  practice sentence must come from `splitSentences(...)` — then run "Record voices" (the coverage tests fail until the string is catalogued).
 - **Stage 6** (benchmark sentences): add the sentences to `labSentenceLines()` and their words to `labWordLines()`'s sources in
   `collectLines.ts` (and extend the coverage test to the new list), then run "Record voices" — the monthly check plays Native.
   Pick words that already appear in Learn's bank where you can; every new word is a new recording.
-- **Stage 5** (Lab home): `LabPractice` is self-contained (no Learn state), so the home's "Practise a sentence" can
-  reuse it as is; take history for `labStore` should come from `takeObservations(take)` — add an `onTake` callback
-  prop to `LabPractice` then (none exists yet, on purpose: Stage 2 stores nothing).
 - **Stage 4** (built): the strings ▶ Native asks for are the sentence as written, `wordPlayTexts` (normalised word / liaison
   group), the focus word's normalised text (slow), and `SOUND_TIPS` examples/minimal pairs as written.
+- **Stage 6** (also): the monthly check's takes should feed the same history — add a `checks` array to `LabHistory` in `labHistory.ts`, bump
+  `LAB_HISTORY_VERSION` (the parser treats another version as empty, so decide whether to migrate rather than drop), keep it free of sentence text
+  (the benchmark sentences are fixed, so store an id), and reuse `addTake` so a check's family observations count in "Your sounds". The Progress
+  card ("Your French sounds") reads `useLabHistory()` + `historyStatuses` + `trickyDeck`; it will need adding to the allow-list in
+  `labStorePrivacy.test.ts` ("only the Lab, its home and its storage module read the store"). Declare `monthly_check_done` in `TelemetryEvent` +
+  `DECLARED_PROPS` (counts only). A new entry point for `LabPractice` adds a value to `LabEntry`. The Lab home has a place for a "Monthly check" card
+  next to the three action cards in `SoundsHome.tsx`.
 - **Stage 7**: the Lab charges nothing beyond the existing `/api/pronunciation` metering today. When the allowance lands,
-  map its 429 to a new `LabNotice` (the flow must still never trap).
+  map its 429 to a new `LabNotice` (the flow must still never trap) — in both `LabPractice` and `WordDrill` (the tricky deck), which each map errors
+  through `checkFailure.ts`'s `failureOf`. A "N checks left today" counter belongs on the Lab home (`SoundsHome`) and in `WordDrill`/`LabPractice`.
 - No real-device run yet: the flow was exercised in headless Chromium with a fake microphone and a mocked
   `/api/pronunciation` (screenshots, not committed), not against live Azure. The §7 gate is still the owner's.
 - **fr-FR Azure returns phoneme accuracies but empty phoneme names** (all 1,799 phonemes in the calibration fixtures), so
@@ -181,7 +240,7 @@ What the next stages need to know:
 - `clipWindow` takes the upload's trim map when the Lab trims silence before upload (Say-It-Again doesn't today); without
   one, Azure offsets are used as recording time.
 - `focusWords` returns `emphasis: 'offer'` for one low word in an otherwise clear take — the UI should offer, not insist.
-Branch: `claude/nifty-edison-xhbf2a` (both repos).
+Branch: `claude/trusting-babbage-fnw9sa` (both repos; Stages 1–4b were developed on `claude/nifty-edison-xhbf2a`, since merged).
 
 ## 1. Why the current feature isn't useful (diagnosis, not taste)
 

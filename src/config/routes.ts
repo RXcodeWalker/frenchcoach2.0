@@ -37,6 +37,7 @@ export const ROUTES: RouteEntry[] = [
   { path: '/invite-code', kind: 'app', indexable: false },
 
   { path: '/learn', kind: 'app', indexable: false },
+  { path: '/learn/sounds', kind: 'app', indexable: false },
   { path: '/notebook', kind: 'app', indexable: false },
   { path: '/junior', kind: 'app', indexable: false },
   { path: '/junior/:themeId', kind: 'dynamic', indexable: false },

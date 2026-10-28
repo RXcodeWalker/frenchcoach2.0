@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { BookMarked, ChevronRight, Lock, Shuffle } from 'lucide-react';
+import { AudioLines, BookMarked, ChevronRight, Lock, Shuffle } from 'lucide-react';
 import { TOPICS } from '../../data/gameData';
 import { LEARN_TOPIC_DEPENDENCIES } from '../../data/learnTopicDependencies';
 import { isLearnTopicUnlocked } from '../../features/learn/topicProgress';
@@ -16,6 +16,8 @@ interface Props {
   selectedDifficulty?: DifficultyTier;
   /** Show the way into the exam notebook (Learn only; Listening Mode shares this grid). */
   showNotebookLink?: boolean;
+  /** Show the way into the Pronunciation Lab home (Learn only, while `pronunciationLab` is live). */
+  showSoundsLink?: boolean;
   /** Per-topic progress for the tiles' bars and averages; omitted, every tile reads "N questions". */
   topicMastery?: Record<string, TopicMasteryEntry>;
   /** The topic the coach recommends, badged "Coach’s pick". */
@@ -39,7 +41,7 @@ function lockReason(topic: Topic): string {
  * Below: Random question and the exam notebook.
  */
 export function TopicGrid({
-  onSelect, title = 'Learn', subtitle = 'Choose a topic and start practising', showNotebookLink = false, topicMastery = {}, coachPickKey = null,
+  onSelect, title = 'Learn', subtitle = 'Choose a topic and start practising', showNotebookLink = false, showSoundsLink = false, topicMastery = {}, coachPickKey = null,
 }: Props) {
   // Topics too small to practise as a session stay out of the grid (docs §13.4).
   const visibleTopics = TOPICS.filter(isTopicVisible);
@@ -136,6 +138,24 @@ export function TopicGrid({
           </span>
           <ChevronRight size={16} className="text-ink-subtle" aria-hidden="true" />
         </button>
+
+        {showSoundsLink && (
+          <Link
+            to="/learn/sounds"
+            className="flex items-center gap-3 rounded-card border border-hairline bg-surface-recessed p-4 text-left text-ink
+              transition-colors duration-state ease-smooth hover:border-hairline-strong"
+            data-testid="sounds-link"
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-control border border-hairline bg-surface text-action-text" aria-hidden="true">
+              <AudioLines size={20} />
+            </span>
+            <span className="flex flex-1 flex-col">
+              <span className="text-[14px] font-semibold">Pronunciation Lab</span>
+              <span className="text-[13px] text-ink-subtle">Your sounds, ear training and tricky words</span>
+            </span>
+            <ChevronRight size={16} className="text-ink-subtle" aria-hidden="true" />
+          </Link>
+        )}
 
         {showNotebookLink && (
           <Link

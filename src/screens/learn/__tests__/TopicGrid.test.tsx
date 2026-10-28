@@ -118,3 +118,13 @@ describe('TopicGrid notebook link (Learn feedback Batch 6d)', () => {
     expect(screen.queryByTestId('notebook-link')).toBeNull();
   });
 });
+
+describe('TopicGrid Pronunciation Lab link', () => {
+  it('shows the way into the Lab home only when asked (the flag is live), pointing at /learn/sounds', () => {
+    isLearnTopicUnlockedMock.mockReturnValue(true);
+    const { rerender } = render(<MemoryRouter><TopicGrid onSelect={vi.fn()} /></MemoryRouter>);
+    expect(screen.queryByTestId('sounds-link')).toBeNull();
+    rerender(<MemoryRouter><TopicGrid onSelect={vi.fn()} showSoundsLink /></MemoryRouter>);
+    expect(screen.getByTestId('sounds-link').getAttribute('href')).toBe('/learn/sounds');
+  });
+});

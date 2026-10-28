@@ -1440,6 +1440,7 @@ export function Learn() {
                 onSelect={selectTopic}
                 selectedDifficulty={selectedDifficulty}
                 showNotebookLink
+                showSoundsLink={pronunciationLabLive}
                 topicMastery={topicMastery}
                 coachPickKey={getActiveRecommendation()?.targetTopicKey ?? null}
               />

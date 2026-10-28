@@ -5,18 +5,16 @@ import { Button } from '../../components/ui/Button';
 import { GuardianConsentNotice } from '../../components/GuardianConsentNotice';
 import { SpeakingConsentGate } from '../../components/SpeakingConsentGate';
 import { correct, enter, enterReduced, fill } from '../../components/motion/variants';
-import { AudioTooShortError } from '../../domain/pronunciation/audioNormalizer';
 import { clipWindow } from '../../domain/pronunciation/lab/clipWindows';
 import { tokenizeSentence, watchOutFor, wordPlayTexts, type SentenceToken } from '../../domain/pronunciation/lab/textFeatures';
 import { SOUND_TIPS, tipFor } from '../../domain/pronunciation/lab/tips';
 import { buildLabTake, drillVerdict, takeWords, type LabTake, type LabWordItem } from '../../domain/pronunciation/lab/wordStates';
-import { AuthRequiredError } from '../../lib/authToken';
-import { isConsentRequiredError } from '../../lib/consentRequired';
 import { assessPronunciation } from '../../services/pronunciation/pronunciationClient';
-import { track } from '../../services/telemetry/telemetryService';
-import { LevelBars } from '../recording/LevelBars';
+import { track, type LabEntry } from '../../services/telemetry/telemetryService';
 import { useAudioBlobRecorder } from '../recording/useAudioBlobRecorder';
-import type { MicLevelController } from '../recording/useMicLevel';
+import { failureOf } from './checkFailure';
+import { recordLabDrill, recordLabTake } from './labStore';
+import { RecordControl } from './RecordControl';
 import { playClip, stopClip } from './audio/clipPlayer';
 import { playNative, stopNative } from './audio/nativeVoice';
 import {
@@ -38,7 +36,6 @@ import {
   initialLabPracticeState,
   labPracticeReducer,
   latestTake,
-  type CheckFailure,
   type LabStep,
   type LabTarget,
 } from './labPracticeState';
@@ -62,20 +59,13 @@ import {
 interface Props {
   /** The sentence to practise (Learn: the corrected answer). */
   targetSentence: string;
-  /** Where the Lab was opened from (analytics only): Learn's practice step, or the "How it sounded" card. */
-  entry: 'learn_feedback' | 'how_it_sounded';
+  /** Where the Lab was opened from (analytics only). */
+  entry: LabEntry;
   /** Leaves the Lab (Learn: on to the next question). */
   onDone: () => void;
 }
 
 const STEP_INDEX: Record<LabStep, number> = { listen: 0, say: 1, compare: 2, focus: 3 };
-
-function failureOf(err: unknown): CheckFailure {
-  if (isConsentRequiredError(err)) return 'consent';
-  if (err instanceof AuthRequiredError) return 'sign-in';
-  if (err instanceof AudioTooShortError) return 'too-short';
-  return 'failed';
-}
 
 function Stepper({ step, reduced }: { step: LabStep; reduced: boolean }) {
   const current = STEP_INDEX[step];
@@ -141,60 +131,6 @@ function ListenSentence({
         );
       })}
     </p>
-  );
-}
-
-/** The record / stop control (the `record` motion is the level bars). */
-function RecordControl({
-  recording,
-  checking,
-  disabled,
-  label,
-  onStart,
-  onStop,
-  level,
-  size = 'lg',
-}: {
-  recording: boolean;
-  checking: boolean;
-  disabled: boolean;
-  label: string;
-  onStart: () => void;
-  onStop: () => void;
-  level: MicLevelController;
-  size?: 'lg' | 'md';
-}) {
-  const dim = size === 'lg' ? 'h-16 w-16' : 'h-12 w-12';
-  return (
-    <div className="flex flex-col items-center gap-2">
-      {recording ? (
-        <button
-          type="button"
-          onClick={onStop}
-          aria-label="Stop and check"
-          className={`flex ${dim} items-center justify-center rounded-pill bg-ink shadow-[0_0_0_6px_var(--surface),0_0_0_7px_var(--hairline-strong)]
-            transition-transform duration-press active:scale-[.97]`}
-        >
-          <span className="h-[18px] w-[18px] rounded-[4px] bg-surface" />
-        </button>
-      ) : (
-        <button
-          type="button"
-          onClick={onStart}
-          disabled={disabled || checking}
-          aria-label={label}
-          className={`flex ${dim} items-center justify-center rounded-pill bg-action text-action-ink
-            transition-[background-color,transform] duration-state ease-smooth hover:bg-action-hover active:scale-[.97] active:bg-action-press
-            disabled:bg-track disabled:text-ink-subtle`}
-        >
-          <Mic size={size === 'lg' ? 24 : 20} aria-hidden="true" />
-        </button>
-      )}
-      <LevelBars active={recording} source={level} centred />
-      <p className="text-caption text-ink-muted" aria-live="polite">
-        {checking ? 'Checking…' : recording ? 'Listening… tap to stop' : label}
-      </p>
-    </div>
   );
 }
 
@@ -390,6 +326,7 @@ export function LabPractice({ targetSentence, entry, onDone }: Props) {
         const next = buildLabTake(targetSentence, assessment);
         takeBlobs.current[state.takes.length] = captured.blob;
         dispatch({ type: 'sentenceChecked', take: next });
+        recordLabTake(next);
         setSelected(null);
         if (next.refused === null) {
           track({
@@ -400,6 +337,7 @@ export function LabPractice({ targetSentence, entry, onDone }: Props) {
       } else {
         const verdict = drillVerdict(buildLabTake(text, assessment));
         dispatch({ type: 'wordChecked', verdict });
+        recordLabDrill(state.focus[target.index]?.text ?? text, verdict);
         if (!focusTracked.current.has(target.index)) {
           focusTracked.current.add(target.index);
           track({ name: 'lab_focus_word_used', props: { verdict } });

@@ -10,6 +10,10 @@ export const STORAGE_KEYS = {
   // Learn feedback Batch 6d — the learner's exam notebook (their own improved answers). LOCAL ONLY, signed-in only:
   // never synced, never logged, never sent to a request body (see domain/learn/notebook/__tests__/notebookPrivacy.test.ts).
   notebook:       'frenchCoach_notebook',
+  // Pronunciation Lab Stage 5 — the Lab's local history: sound-family observations and the tricky-words table (no audio,
+  // no sentence text). Account-scoped, LOCAL ONLY: never synced, never in a request body or an analytics property
+  // (see features/pronunciation/__tests__/labStorePrivacy.test.ts).
+  pronunciationLab: 'frenchCoach_pronunciationLab',
   // Junior track (Batch 3A) — the learner's track and Junior progress. Account-scoped (not device-scoped), local only:
   // never synced, never part of a Session/XP/mastery write (see domain/junior/__tests__/juniorIsolation.test.ts).
   learnerTrack:   'frenchCoach_learnerTrack',
