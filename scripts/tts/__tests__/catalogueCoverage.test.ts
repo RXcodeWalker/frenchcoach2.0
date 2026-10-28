@@ -36,6 +36,7 @@ import { QUESTIONS } from '../../../src/data/questions';
 import { LISTENING_QUESTIONS } from '../../../src/data/listeningQuestions';
 import { SHADOWING_PHRASES } from '../../../src/data/shadowingPhrases';
 import { normalizeSpokenText } from '../../../src/services/tts/voiceKey';
+import { BENCHMARK_SENTENCES } from '../../../src/domain/pronunciation/lab/benchmark';
 import { splitSentences } from '../../../src/domain/pronunciation/lab/sentences';
 import { guideTexts, isRecordableWord } from '../../../src/domain/pronunciation/lab/lexicon';
 import { MINIMAL_PAIRS } from '../../../src/domain/pronunciation/lab/minimalPairs';
@@ -227,6 +228,18 @@ describe('recorded-voices catalogue coverage', () => {
     expect([...missing]).toEqual([]);
     // wordPlayTexts re-reads the sentence for every word, so this walks ~4,000 sentences slowly.
   }, 60_000);
+
+  it('catalogues the monthly-check benchmark sentences and every word the check can play (Stage 6)', () => {
+    const missing = new Set<string>();
+    for (const sentence of BENCHMARK_SENTENCES) {
+      if (!has(sentence)) missing.add(sentence);
+      tokenizeSentence(sentence).forEach((_, i) => {
+        for (const text of wordPlayTexts(sentence, i)) if (isRecordableWord(text) && !has(text)) missing.add(text);
+      });
+      for (const f of watchOutFor(sentence)) if (isRecordableWord(f.playText) && !has(f.playText)) missing.add(f.playText);
+    }
+    expect([...missing]).toEqual([]);
+  });
 
   it('catalogues the sound guide: every example, guide minimal pair and ear-training word', () => {
     for (const tip of Object.values(SOUND_TIPS)) {

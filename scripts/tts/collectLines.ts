@@ -27,6 +27,7 @@ import { QUESTIONS } from '../../src/data/questions';
 import { LISTENING_QUESTIONS } from '../../src/data/listeningQuestions';
 import { SHADOWING_PHRASES } from '../../src/data/shadowingPhrases';
 import { listScenarios } from '../../src/data/scenarios/registry';
+import { BENCHMARK_SENTENCES } from '../../src/domain/pronunciation/lab/benchmark';
 import { splitSentences } from '../../src/domain/pronunciation/lab/sentences';
 import { guideTexts, lexiconTexts } from '../../src/domain/pronunciation/lab/lexicon';
 import { normalizeSpokenText } from '../../src/services/tts/voiceKey';
@@ -104,7 +105,9 @@ export function examFixedLines(): string[] {
  *   Lab's own splitter (`lab/sentences.ts`), because the Lab practises one
  *   sentence at a time and finds a recording by its exact text.
  *
- * Benchmark sentences (Stage 6) join `lab-sentences`/`lab-words` when they exist.
+ * The monthly check's five benchmark sentences (`lab/benchmark.ts`, Stage 6)
+ * are in `lab-sentences` exactly as written (the check plays and asks Azure
+ * about that text), and their words in `lab-words`.
  * Isolated words lose liaison and intonation; the sentence recording is the
  * source for those (plan §4.2).
  */
@@ -113,7 +116,7 @@ export function labGuideLines(): string[] {
 }
 
 export function labSentenceLines(): string[] {
-  return QUESTIONS.flatMap((q) => splitSentences(q.modelAnswer));
+  return [...QUESTIONS.flatMap((q) => splitSentences(q.modelAnswer)), ...BENCHMARK_SENTENCES];
 }
 
 /**
@@ -126,7 +129,10 @@ function vocabWords(fr: string): string[] {
 }
 
 export function labWordLines(): string[] {
-  const sources = QUESTIONS.flatMap((q) => [q.text, q.modelAnswer, ...q.keyVocab.flatMap((v) => vocabWords(v.fr))]);
+  const sources = [
+    ...QUESTIONS.flatMap((q) => [q.text, q.modelAnswer, ...q.keyVocab.flatMap((v) => vocabWords(v.fr))]),
+    ...BENCHMARK_SENTENCES,
+  ];
   return lexiconTexts(sources);
 }
 

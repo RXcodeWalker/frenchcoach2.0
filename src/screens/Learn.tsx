@@ -69,6 +69,7 @@ import { nextTopicMastery } from '../features/learn/topicAverage';
 import { resolveFeatureStatus } from '../config/featureFlags';
 import { SayItAgainCard } from '../features/feedback/components/SayItAgainCard';
 import { LabPractice } from '../features/pronunciation/LabPractice';
+import { recordLabTake } from '../services/pronunciation/labStore';
 import { incrementCounter } from '../services/telemetry/localCounters';
 import type { Topic, Session, FeedbackV2, ActiveSession, SessionMode, SessionQuestion, AIEngine, FeedbackMode } from '../types/index';
 
@@ -1581,6 +1582,7 @@ export function Learn() {
                     targetSentence={practiceTargetSentence}
                     entry="learn_feedback"
                     onDone={handlePracticeStepDone}
+                    onTake={recordLabTake}
                   />
                 ) : (
                   <SayItAgainCard

@@ -9,6 +9,8 @@
  *    drill says.
  */
 
+import type { CheckTrend } from '../../domain/pronunciation/lab/monthlyCheck';
+import type { CheckNotice } from './monthlyCheckState';
 import type { LabNotice } from './labPracticeState';
 import type { LabWordState } from '../../domain/pronunciation/lab/types';
 import type { DrillVerdict, LabTakeCounts } from '../../domain/pronunciation/lab/wordStates';
@@ -102,3 +104,57 @@ export const NATIVE_UNAVAILABLE = 'Native audio isn’t available on this device
 
 /** While a corrected sentence is being recorded for the first time (Stage 4b; a second or two). */
 export const NATIVE_PREPARING = 'Getting the native voice ready…';
+
+// ── The monthly check and "Your French sounds" (Stage 6, plan §3.3 / §3.4) ──────────────────────────────
+
+/** Notices on the monthly check; the first four are the Lab's own. */
+export const CHECK_NOTICE_TEXT: Readonly<Record<CheckNotice, string>> = {
+  ...NOTICE_TEXT,
+  'left-out': "I couldn't check the last sentence after a few tries, so it's left out of this month's check.",
+};
+
+export const CHECK_INTRO = {
+  title: 'Monthly sound check',
+  lead: 'Five short sentences — the same five every month.',
+  why: 'Comparing different sentences mostly tells you which ones were harder. The same five, once a month, is the one fair way to see your pronunciation change.',
+  how: 'Listen if you like, then say each sentence once. Your first checked take is the one that counts, so take a breath and say it all in one go.',
+  leaving: 'It takes about five minutes. If you leave before the end, nothing is saved.',
+} as const;
+
+/** "Sentence 2 of 5". */
+export function sentenceProgress(index: number, total: number): string {
+  return `Sentence ${index + 1} of ${total}`;
+}
+
+/** "2 Oct" — a stored YYYY-MM-DD day, written for a person. */
+export function dayLabel(day: string): string {
+  const date = new Date(`${day}T12:00:00Z`);
+  return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+}
+
+/** The month name of a stored YYYY-MM-DD day. */
+export function monthLabel(day: string): string {
+  return new Date(`${day}T12:00:00Z`).toLocaleDateString('en-GB', { month: 'long', timeZone: 'UTC' });
+}
+
+/**
+ * First check vs this one, over the sentences both measured. "Same 5 sentences" is said so the learner knows why the
+ * two counts can be set side by side; never a verdict, never a number besides "N of M words clear".
+ */
+export function trendLine(trend: CheckTrend): string {
+  const before = clearHeadline(trend.before);
+  const after = clearHeadline(trend.after);
+  return `${dayLabel(trend.fromDay)}: ${before}. ${dayLabel(trend.toDay)}: ${after}.`;
+}
+
+export const SOUNDS_CARD = {
+  title: 'Your French sounds',
+  strongest: 'Going well',
+  workOn: 'Worth working on',
+  empty: 'Practise a sentence in Learn and say it aloud — your sounds show up here after a few takes on a couple of days.',
+  gettingMore: 'Not enough takes yet to name your sounds. A few more, on another day, and they appear here.',
+  signedOut: 'Sign in to check how your words sound — your sounds show up here.',
+  checkDue: 'Take the monthly check',
+  checkDone: 'Monthly check done',
+  checkAgain: 'Do it again next month',
+} as const;

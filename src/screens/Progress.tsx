@@ -1,6 +1,12 @@
 import { useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
+import { resolveFeatureStatus } from '../config/featureFlags';
+import { localDay } from '../domain/pronunciation/lab/days';
+import { checkTrend, isCheckDue, latestCheck } from '../domain/pronunciation/lab/monthlyCheck';
+import { getLabHistory } from '../services/pronunciation/labStore';
+import { soundProgress } from '../domain/pronunciation/lab/soundProgress';
 import { getSessionHistory } from '../services/analytics/analyticsService';
 import { track } from '../services/telemetry/telemetryService';
 import { getDueReviewCounts } from '../services/coach/reviewPool';
@@ -16,6 +22,7 @@ import { ExamProgress } from './progress/ExamProgress';
 import { ConsistencyCard } from './progress/ConsistencyCard';
 import { TopicsCard } from './progress/TopicsCard';
 import { PastAttempts } from './progress/PastAttempts';
+import { SoundsCard } from './progress/SoundsCard';
 
 /**
  * Progress (Design System v2, frame 3a): the next step first (the screen's
@@ -43,6 +50,21 @@ export function Progress() {
   });
   const step = nextStep({ sessions, exam, learn });
   const attempts = pastAttempts(sessions, TOPICS);
+  const { user } = useAuth();
+  // "Your French sounds" (pronunciation-lab plan §3.4) only while the Lab is live.
+  const labLive = resolveFeatureStatus('pronunciationLab') === 'live';
+  const sounds = useMemo(() => {
+    if (!labLive) return null;
+    const history = getLabHistory();
+    const today = localDay(new Date());
+    return {
+      progress: soundProgress(history.observations),
+      latest: latestCheck(history.checks),
+      trend: checkTrend(history.checks),
+      checkDue: isCheckDue(history.checks, today),
+      today,
+    };
+  }, [labLive]);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -60,6 +82,7 @@ export function Progress() {
           <ConsistencyCard days={practiceDays(sessions)} streakDays={learn.streakDays} weakSkills={learn.weakSkills} />
         </div>
         <TopicsCard learn={learn} topics={TOPICS} />
+        {sounds && <SoundsCard {...sounds} signedIn={Boolean(user)} />}
         <PastAttempts attempts={attempts} />
       </PageShell>
     </div>

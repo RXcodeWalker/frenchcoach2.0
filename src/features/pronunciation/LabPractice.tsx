@@ -66,6 +66,11 @@ interface Props {
   entry: 'learn_feedback' | 'how_it_sounded';
   /** Leaves the Lab (Learn: on to the next question). */
   onDone: () => void;
+  /**
+   * Each whole-sentence take that could give word states, as it is checked (Stage 6: the Lab's local history,
+   * `labStore`, is what "Your French sounds" is built from). Nothing is stored here; the caller decides.
+   */
+  onTake?: (take: LabTake) => void;
 }
 
 const STEP_INDEX: Record<LabStep, number> = { listen: 0, say: 1, compare: 2, focus: 3 };
@@ -145,7 +150,7 @@ function ListenSentence({
 }
 
 /** The record / stop control (the `record` motion is the level bars). */
-function RecordControl({
+export function RecordControl({
   recording,
   checking,
   disabled,
@@ -198,7 +203,7 @@ function RecordControl({
   );
 }
 
-function Legend({ hasExtra }: { hasExtra: boolean }) {
+export function Legend({ hasExtra }: { hasExtra: boolean }) {
   return (
     <ul className="flex flex-wrap gap-x-3 gap-y-1" aria-label="What the marks mean">
       {legendStates(hasExtra).map((s) => (
@@ -214,7 +219,7 @@ function Legend({ hasExtra }: { hasExtra: boolean }) {
 }
 
 /** The checked sentence: one chip per word (icon + colour; the label is in the legend and the chip's name). */
-function CompareSentence({
+export function CompareSentence({
   take,
   newlyClear,
   selected,
@@ -267,7 +272,7 @@ function CompareSentence({
   );
 }
 
-export function LabPractice({ targetSentence, entry, onDone }: Props) {
+export function LabPractice({ targetSentence, entry, onDone, onTake }: Props) {
   const reduced = useReducedMotion() ?? false;
   const [state, dispatch] = useReducer(labPracticeReducer, initialLabPracticeState);
   const recorder = useAudioBlobRecorder();
@@ -392,6 +397,7 @@ export function LabPractice({ targetSentence, entry, onDone }: Props) {
         dispatch({ type: 'sentenceChecked', take: next });
         setSelected(null);
         if (next.refused === null) {
+          onTake?.(next);
           track({
             name: 'lab_take',
             props: { words_clear: next.counts.clear, words_total: next.counts.total, take_index: state.takes.length + 1 },

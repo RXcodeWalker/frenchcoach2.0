@@ -10,6 +10,7 @@ import { measureAnswerPauses } from './audio/answerPauses';
 import { playClip, stopClip } from './audio/clipPlayer';
 import { playNative, stopNative } from './audio/nativeVoice';
 import { NATIVE_PREPARING, NATIVE_UNAVAILABLE, flowLine } from './labCopy';
+import { recordLabTake } from '../../services/pronunciation/labStore';
 import { LabPractice } from './LabPractice';
 
 /**
@@ -81,7 +82,7 @@ export function HowItSounded({ answerBlob, sentence, onPractiseOpened }: Props) 
   }, [answerBlob]);
 
   if (practising) {
-    return <LabPractice targetSentence={target} entry="how_it_sounded" onDone={() => setPractising(false)} />;
+    return <LabPractice targetSentence={target} entry="how_it_sounded" onDone={() => setPractising(false)} onTake={recordLabTake} />;
   }
   if (!answerBlob && !target) return null;
 

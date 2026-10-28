@@ -38,6 +38,7 @@ export const ROUTES: RouteEntry[] = [
 
   { path: '/learn', kind: 'app', indexable: false },
   { path: '/notebook', kind: 'app', indexable: false },
+  { path: '/learn/sounds/check', kind: 'app', indexable: false },
   { path: '/junior', kind: 'app', indexable: false },
   { path: '/junior/:themeId', kind: 'dynamic', indexable: false },
   { path: '/exam', kind: 'app', indexable: false },

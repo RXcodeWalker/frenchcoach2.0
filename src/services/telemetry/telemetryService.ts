@@ -285,6 +285,16 @@ interface LabTakeProps {
   take_index: number;
 }
 
+interface MonthlyCheckDoneProps {
+  /** "N of M words clear" over every sentence that could be measured. */
+  words_clear: number;
+  words_total: number;
+  /** How many of the five benchmark sentences were measured. */
+  sentences_measured: number;
+  /** True for the learner's first saved check. */
+  first_check: boolean;
+}
+
 interface LabFocusWordUsedProps {
   /** The first drill result for this focus word. */
   verdict: 'clear' | 'almost' | 'tryAgain' | 'unknown';
@@ -413,6 +423,7 @@ export type TelemetryEvent =
   | { name: 'lab_opened';              props: LabOpenedProps }
   | { name: 'lab_take';                props: LabTakeProps }
   | { name: 'lab_focus_word_used';     props: LabFocusWordUsedProps }
+  | { name: 'monthly_check_done';      props: MonthlyCheckDoneProps }
   | { name: 'learn_session_completed'; props: LearnSessionCompletedProps }
   | { name: 'learn_session_abandoned'; props: LearnSessionAbandonedProps }
   | { name: 'exam_started';            props: ExamStartedProps }
@@ -482,6 +493,7 @@ const DECLARED_PROPS = {
   lab_opened: ['entry'],
   lab_take: ['words_clear', 'words_total', 'take_index'],
   lab_focus_word_used: ['verdict'],
+  monthly_check_done: ['words_clear', 'words_total', 'sentences_measured', 'first_check'],
   learn_session_completed: ['topic_key', 'questions_answered', 'avg_score', 'duration_ms', 'ended_early'],
   learn_session_abandoned: ['topic_key', 'questions_answered', 'last_step', 'elapsed_ms'],
   exam_started: ['mode', 'entry'],

@@ -14,6 +14,9 @@ export const STORAGE_KEYS = {
   // never synced, never part of a Session/XP/mastery write (see domain/junior/__tests__/juniorIsolation.test.ts).
   learnerTrack:   'frenchCoach_learnerTrack',
   junior:         'frenchCoach_junior',
+  // Pronunciation Lab (plan §3.3/§3.4) — per-take sound-family evidence and the monthly-check results. Account-scoped,
+  // local only: counts and families, never a word, sentence, transcript or audio. Never synced.
+  labHistory:     'frenchCoach_labHistory',
   darkMode:       'frenchCoach_darkMode',
   aiEngine:       'frenchCoach_aiEngine',
   difficulty:     'frenchCoach_difficulty',

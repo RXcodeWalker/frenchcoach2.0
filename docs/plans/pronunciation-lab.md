@@ -1,6 +1,6 @@
 # Pronunciation Lab: implementation plan
 
-Status: **Stages 1–4b built** (2026-10-28; Stage 4's recording run is a manual Actions step — see the Stage 4 notes; Stage 4b migration `20261028090000` applied to production 2026-10-28); Stages 5–7 not started. Owner decisions (2026-10-28): D1 drop, D2 yes (Stage 4b), D4 no XP, D5 no 0–100 number. D3: 30 Lab takes per account per day; Azure monthly cap = the F0 free allowance.
+Status: **Stages 1–4b and 6 built** (2026-10-28; Stage 4's recording run is a manual Actions step — see the Stage 4 notes, and Stage 6 added 6 more lines to it; Stage 4b migration `20261028090000` applied to production 2026-10-28); Stages 5 and 7 not started. Stage 6 was built before Stage 5, so it also created the minimal `labStore` Stage 5 needs — see the Stage 6 notes before building Stage 5. Owner decisions (2026-10-28): D1 drop, D2 yes (Stage 4b), D4 no XP, D5 no 0–100 number. D3: 30 Lab takes per account per day; Azure monthly cap = the F0 free allowance.
 
 Stage 1 (frontend only; no backend change, no UI, nothing reads the flag yet):
 - `src/domain/pronunciation/lab/`: `wordStates.ts` (`buildLabTake` → per-word state on the target sentence, "N of M clear"
@@ -140,6 +140,45 @@ Stage 4b (backend + frontend — owner D2: a natural voice for AI-corrected sent
   tests only; the first real sentence will show whether F0's TTS endpoint accepts the region/key already used for speech.
 - No new analytics event (none was asked for by §8); no XP/Session/evidence write.
 
+Stage 6 (frontend only; **no backend change**, no migration — benchmark sentences, the monthly check, the Progress card):
+- **Benchmark** `domain/pronunciation/lab/benchmark.ts`: `BENCHMARK_SENTENCES` (5, frozen), `BENCHMARK_VERSION = 'lab-benchmark-v1'`,
+  `BENCHMARK_HASH` (pinned by `__tests__/benchmark.test.ts`, which also fails if the five stop covering every scored sound family). A
+  change to any sentence is a version bump + new hash; a check taken under another version is never compared with this one. Straight
+  apostrophes, like Learn's bank.
+- **Catalogue**: the five sentences are in `labSentenceLines()` exactly as written (the check plays them and asks Azure about that text) and
+  their words in `labWordLines()` (`collectLines.ts`); `catalogueCoverage.test.ts` checks both. +6 items against Stage 4's 11,181
+  (11,187 items, ≈ 393k chars): **a "Record voices" run is still needed** before ▶ Listen in the check uses a recording (until then it uses
+  the browser French voice; nothing breaks). The check never passes `synthesize: true` (these are authored sentences, not AI-written).
+- **Pure domain** (`domain/pronunciation/lab/`): `monthlyCheck.ts` (`MonthlyCheckResult`, `sentenceResult`, `buildCheckResult`,
+  `isCheckDue`, `checkTrend`, `sanitizeCheck`), `labHistory.ts` (`LabHistory` = `{ v:1, observations, checks }`, `appendObservations`,
+  `appendCheck`, `sanitizeLabHistory`, per-family ring buffer `MAX_OBSERVATIONS_PER_FAMILY` = 80, `MAX_CHECKS` = 36), `soundProgress.ts`
+  (`soundProgress(observations)` → strongest ≤ 2 / workOn ≤ 2 / `statuses` from `familyStatuses`), `days.ts` (`localDay`, `isDay`).
+  Product constants (not thresholds): `MIN_COMPARABLE_SENTENCES` = 3, `MIN_SAVED_SENTENCES` = 3, `MAX_ATTEMPTS` = 3.
+- **What a check measures**: the first take of each sentence that could give word states counts ("N of M words clear", `buildLabTake`'s
+  counts); there is no retake for a better number. A take that couldn't be checked (failure, too short, not scripted-Azure) may be tried
+  again up to 3 times, then the sentence is **left out — never counted as zero**. `checkTrend` compares only the latest two checks, only
+  when both used the same `BENCHMARK_VERSION` and `LAB_THRESHOLDS_VERSION`, and only over sentences both measured with the same word
+  count (≥ 3 shared); otherwise no trend is shown. A check with < 3 measured sentences isn't saved. A check is "due" until one is finished
+  in the current calendar month; the learner can still do another any time.
+- **Local history** `services/pronunciation/labStore.ts` (`STORAGE_KEYS.labHistory`, account-scoped, local only, never synced): `getLabHistory`,
+  `recordLabTake(take)` (one counted whole-sentence take's `takeObservations` + the local day; a refused take writes nothing),
+  `saveMonthlyCheck`, `getSoundProgress`. Stores families, accuracies, days and counts — never a word, sentence, transcript or audio. It is
+  **not** removed by `deleteMyAccount` (counts only; add the key there if the owner wants the Lab wiped with an account).
+- **Feeding it**: `LabPractice` gained an optional `onTake(take)` prop (called for each usable sentence take; the component itself still
+  stores nothing). `Learn.tsx`'s practice step and `HowItSounded`'s in-place Lab pass `recordLabTake`; the monthly check calls it for each
+  counted take. Focus-word drills write nothing.
+- **UI**: `features/pronunciation/MonthlyCheck.tsx` (+ pure `monthlyCheckState.ts` reducer; intro → 5 × [sentence → result] → summary;
+  reuses `LabPractice`'s now-exported `RecordControl`, `CompareSentence`, `Legend`; consent/sign-in end it with Continue; Skip and Leave
+  are always on screen; saves once at the summary), page `screens/MonthlyCheckScreen.tsx`, route **`/learn/sounds/check`** in `App.tsx`
+  behind `ComingSoonGate` on `pronunciationLab` (also in `config/routes.ts`; not under any hidden prefix). `screens/progress/SoundsCard.tsx`
+  is the §3.4 card ("Going well" / "Worth working on" as glyph + word chips, then the monthly check: "N of M words clear · date", the trend
+  line only with two comparable checks, "Take the monthly check" when due, "Your next one is in <month>" when not); `Progress.tsx` renders
+  it only while the flag is live. Copy is in `labCopy.ts` (`CHECK_INTRO`, `CHECK_NOTICE_TEXT`, `SOUNDS_CARD`, `trendLine`, …).
+- **Analytics**: `monthly_check_done { words_clear, words_total, sentences_measured, first_check }` (declared in `TelemetryEvent` +
+  `DECLARED_PROPS`; once per saved check, goes to PostHog). The check does not fire `lab_opened` or `lab_take`.
+- No real-device run: jsdom tests with mocked audio/Azure (`MonthlyCheck.test.tsx`, `SoundsCard.test.tsx`, `labStore.test.ts`, the pure
+  domain tests). The §7 gate is still the owner's.
+
 What the next stages need to know:
 - **Stage 3** is built (above). Any new place that opens the Lab adds a value to `LabOpenedProps.entry` in
   `telemetryService.ts` (closed enum) and to `LabPractice`'s `entry` prop type.
@@ -153,16 +192,23 @@ What the next stages need to know:
   recording. The guide's example words are recorded exactly as `SOUND_TIPS` writes them. "Tricky words" re-plays words as
   `wordPlayTexts` gives them. Adding an ear-training pair or a guide example means adding it to `minimalPairs.ts`/`tips.ts`, then
   running "Record voices" again (the coverage test fails until the string is catalogued by those lists — it is, automatically).
-- **Stage 6** (benchmark sentences): add the sentences to `labSentenceLines()` and their words to `labWordLines()`'s sources in
-  `collectLines.ts` (and extend the coverage test to the new list), then run "Record voices" — the monthly check plays Native.
-  Pick words that already appear in Learn's bank where you can; every new word is a new recording.
+- **Stage 6** (built, above). Changing a benchmark sentence later = new `BENCHMARK_VERSION` + hash, add the new text to the catalogue
+  (the coverage test fails until you do), run "Record voices", and expect the Progress trend to restart (old checks are never compared).
 - **Stage 5** (Lab home): `LabPractice` is self-contained (no Learn state), so the home's "Practise a sentence" can
-  reuse it as is; take history for `labStore` should come from `takeObservations(take)` — add an `onTake` callback
-  prop to `LabPractice` then (none exists yet, on purpose: Stage 2 stores nothing).
+  reuse it as is — pass `onTake={recordLabTake}` (Stage 6 added the prop and the store; without it the practice isn't counted in
+  "Your sounds"). **`labStore` already exists** (Stage 6, above): the "Your sounds" grid is `soundProgress(getLabHistory().observations).statuses`
+  (4 states per scored family; liaison/elision are never in it), the monthly-check entry on `/learn/sounds` links to
+  **`/learn/sounds/check`** (already routed), and `SoundsCard`'s `MONTHLY_CHECK_PATH` is the one constant for that path. Build
+  `/learn/sounds` as its own route beside it; `SoundsCard` can then also link to `/learn/sounds` (it doesn't today because the route
+  doesn't exist). The tricky-words deck needs its own storage key and scheduler (nothing exists yet); don't widen `LabHistory` without
+  bumping its `v` and teaching `sanitizeLabHistory` the old shape.
 - **Stage 4** (built): the strings ▶ Native asks for are the sentence as written, `wordPlayTexts` (normalised word / liaison
   group), the focus word's normalised text (slow), and `SOUND_TIPS` examples/minimal pairs as written.
 - **Stage 7**: the Lab charges nothing beyond the existing `/api/pronunciation` metering today. When the allowance lands,
-  map its 429 to a new `LabNotice` (the flow must still never trap).
+  map its 429 to a new `LabNotice` (the flow must still never trap) **and a matching `CheckNotice`** in `monthlyCheckState.ts`/
+  `labCopy.ts`'s `CHECK_NOTICE_TEXT` — the monthly check calls the same scripted check and today treats any non-consent/sign-in
+  failure as "couldn't check that take" (up to 3 tries a sentence, so one check can spend up to 15 analyses; a quota refusal should
+  end the check with a clear message rather than burn the retries, and the daily allowance of 30 must be able to cover a check).
 - No real-device run yet: the flow was exercised in headless Chromium with a fake microphone and a mocked
   `/api/pronunciation` (screenshots, not committed), not against live Azure. The §7 gate is still the owner's.
 - **fr-FR Azure returns phoneme accuracies but empty phoneme names** (all 1,799 phonemes in the calibration fixtures), so
@@ -378,7 +424,7 @@ liaison `inferred`) — they appear in guides and "watch out for", never in "You
 
 ## 6. Stages
 
-Run order 1 → 2 → 3 → 4 → 4b → 5 → 6 → 7; Stage 7 may ship with Stage 2. Stage 4b (§9 D2): cached Azure TTS endpoint for AI-corrected sentences, BE + FE, size M.
+Run order 1 → 2 → 3 → 4 → 4b → 5 → 6 → 7 (Stage 6 was in fact built before 5; its pieces are independent of the Lab home except that it created `labStore`); Stage 7 may ship with Stage 2. Stage 4b (§9 D2): cached Azure TTS endpoint for AI-corrected sentences, BE + FE, size M.
 Each stage: typecheck, the touched tests, lint, then commit + push. Frontend stages also run the
 full `npm test` (backend present).
 

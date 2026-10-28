@@ -85,6 +85,19 @@ function renderLab(onDone = vi.fn()) {
 }
 
 describe('LabPractice', () => {
+  it('hands each usable whole-sentence take to onTake (Stage 6: the local history), and never a refused one', async () => {
+    const onTake = vi.fn();
+    render(<LabPractice targetSentence={SENTENCE} entry="learn_feedback" onDone={vi.fn()} onTake={onTake} />);
+    assessMock.mockResolvedValueOnce(scripted(WORDS.map((w) => azureWord(w, 90)), { couldNotAssess: true }));
+    await recordTake(/Tap and say the sentence/);
+    expect(onTake).not.toHaveBeenCalled();
+    assessMock.mockResolvedValueOnce(sentenceResult([95, 40, 95, 95, 95, 70]));
+    await click(screen.getByRole('button', { name: /Say it again/ }));
+    await recordTake(/Tap and say the sentence/);
+    expect(onTake).toHaveBeenCalledTimes(1);
+    expect(onTake.mock.calls[0][0]).toMatchObject({ refused: null, counts: { clear: 4, total: 6 } });
+  });
+
   it('Listen: the sentence, Listen / Slowly, and a record button; lab_opened is tracked', () => {
     renderLab();
     expect(trackMock).toHaveBeenCalledWith({ name: 'lab_opened', props: { entry: 'learn_feedback' } });
