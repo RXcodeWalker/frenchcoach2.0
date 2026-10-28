@@ -64,17 +64,23 @@ function allocateCounts(sessionBlend: SessionBlend, count: number): Record<SlotT
  * handle `full_topic` themselves (it has no UI entry point and stays on the
  * legacy path per docs §8.1).
  */
-export function planSlots({ sessionBlend, sessionTarget, count }: PlanSlotsArgs): SessionSlot[] {
+export function planSlots({ sessionBlend, sessionTarget, count, allowStretch = true }: PlanSlotsArgs): SessionSlot[] {
   if (count <= 1) {
     return [{ type: 'target', band: bandFor('target', sessionTarget) }];
   }
 
   const counts = allocateCounts(sessionBlend, count);
 
+  // "Easier" aim: no stretch at all — its share is planned as target instead.
+  if (!allowStretch) {
+    counts.target += counts.stretch;
+    counts.stretch = 0;
+  }
+
   // Stretch-plan rule: sessions of >=5 questions plan at least one stretch
   // slot, taken from whichever non-stretch slot has the most spare count
   // (deterministic: fixed priority order, ties broken by that order).
-  if (count >= 5 && counts.stretch === 0) {
+  if (allowStretch && count >= 5 && counts.stretch === 0) {
     const donorPriority: SlotType[] = ['choice', 'target', 'warmup', 'review'];
     const donor = donorPriority.find((type) => counts[type] > 0);
     if (donor) {

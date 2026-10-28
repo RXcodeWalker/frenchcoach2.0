@@ -24,6 +24,12 @@ export interface PlanSlotsArgs {
   sessionBlend: SessionBlend;
   sessionTarget: number;
   count: number;
+  /**
+   * false plans no `stretch` slot at all (the blend's stretch share goes to
+   * `target`, and the ≥5-question stretch rule is skipped) — the "Easier" aim,
+   * whose promise is no question above today's level. Default true.
+   */
+  allowStretch?: boolean;
 }
 
 /** docs §14.2 "why this question" — shown verbatim, never the raw score. */
@@ -74,18 +80,23 @@ export interface SelectQuestionsArgs {
    * plan bands themselves.
    */
   targetLevel?: number;
+  /**
+   * The "Easier" aim: every slot is held at or below today's level, `choice`
+   * included (docs §8.3 ceiling). Needs `targetLevel`. Default false.
+   */
+  holdToLevel?: boolean;
 }
 
 export interface SelectedQuestion {
   question: Question;
   slot: SlotType;
-  /** docs §8.3 ladder rung that produced the pick (0 band as planned … 4 no demands); 0 for review. */
+  /** docs §8.3 ladder rung that produced the pick (0 band as planned … 4 no demands, 5 easiest left above the ceiling); 0 for review. */
   rung: number;
   reason: SelectionReason;
 }
 
 export interface SelectQuestionsResult {
   selected: SelectedQuestion[];
-  /** Actual count, which may be < slots.length per the docs §8.3 rung-5 fallback. */
+  /** Actual count, which may be < slots.length per the docs §8.3 rung-6 fallback. */
   targetCount: number;
 }

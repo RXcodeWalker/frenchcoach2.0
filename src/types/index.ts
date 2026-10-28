@@ -747,6 +747,8 @@ export interface ActiveSession {
   skillSnapshot: SkillProfile;
   /** docs §14 UX #4 — demand:* beliefs at session start, for SessionSummary's demand-delta readout. Present only on the adaptive path (learnAdaptiveDifficulty live); absent on the legacy path. */
   demandSnapshot?: Record<string, DemandBelief>;
+  /** Today's aim the session was built with (adaptive path). "Easier" ('comfortable') sessions never get a mid-session raise. */
+  aim?: 'comfortable' | 'balanced' | 'push';
 }
 
 export interface TopicMasteryEntry {

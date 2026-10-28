@@ -184,6 +184,44 @@ describe('midSessionAdjust', () => {
     expect(stillTarget).toHaveLength(1);
   });
 
+  it('never raises an "Easier" session — that aim promises nothing above today\'s level', () => {
+    const q1 = makeQuestion('q1');
+    const q2 = makeQuestion('q2');
+    const q3 = makeQuestion('q3');
+    const targetA = makeQuestion('target-a');
+    const stretchFill = makeQuestion('stretch-fill', { demands: makeDemands({ cognitiveDemand: 'hypothesize', provenance: 'authored' }) });
+    const session: ActiveSession = {
+      ...makeSession(
+        [completed(q1, 8), completed(q2, 9), completed(q3, 8), pending(targetA, 'target', { lo: 7.5, hi: 8.5 })],
+        3,
+      ),
+      aim: 'comfortable',
+    };
+
+    const result = midSessionAdjust(baseArgs(session, [q1, q2, q3, targetA, stretchFill]));
+    expect(result.changed).toBe(false);
+    expect(result.session).toBe(session);
+  });
+
+  it('eases a stretch slot under the target band, never the stretch band relabelled', () => {
+    const q1 = makeQuestion('q1');
+    const q2 = makeQuestion('q2');
+    const q3 = makeQuestion('q3');
+    const stretchSlot = makeQuestion('stretch-slot', { demands: makeDemands({ cognitiveDemand: 'hypothesize' }) }); // 8.0
+    const atLevel = makeQuestion('at-level', { demands: makeDemands({ cognitiveDemand: 'explain' }) }); // 4.0
+    const aboveLevel = makeQuestion('above-level', { demands: makeDemands({ cognitiveDemand: 'justify' }) }); // 6.0
+    // T = 4: the stretch band is bandFor('stretch', 4) = 4.75 … 6.0.
+    const session = makeSession(
+      [completed(q1, 3), completed(q2, 2), pending(q3, 'target', { lo: 3.5, hi: 4.5 }), pending(stretchSlot, 'stretch', { lo: 4.75, hi: 6.0 })],
+      2,
+    );
+
+    const result = midSessionAdjust(baseArgs(session, [q1, q2, q3, stretchSlot, atLevel, aboveLevel]));
+    expect(result.direction).toBe('ease');
+    expect(result.session.questions[3].slotType).toBe('target');
+    expect(result.session.questions[3].question.id).toBe('at-level');
+  });
+
   it('never replaces an answered (completed) slot', () => {
     const q1 = makeQuestion('q1');
     const q2 = makeQuestion('q2');

@@ -94,13 +94,14 @@ describe('selectQuestions returns the ladder rung', () => {
     expect(noDemands.selected[0].reason.explanation.toLowerCase()).not.toContain('at your level');
   });
 
-  it('a far-off-band rung-0 pick is not called "at your level"', () => {
-    // Rung 0 still hits when nothing fits the band (the other score terms keep
-    // it above zero), so the text must compare the real level with the target.
+  it('a question above the ceiling only fills a slot as the easiest left, and says so', () => {
+    // Nothing at or below today's level: rung 5 takes the easiest question left,
+    // and the text never calls it "at your level".
     const slots: SessionSlot[] = [{ type: 'target', band: bandFor('target', 2) }];
     const { selected } = selectQuestions(baseArgs({ pool: [makeQuestion('hard', { demands: makeDemands({ cognitiveDemand: 'hypothesize' }) })], slots, targetLevel: 2 }));
+    expect(selected[0].rung).toBe(5);
     expect(selected[0].reason.explanation.toLowerCase()).not.toContain('at your level');
-    expect(selected[0].reason.explanation.toLowerCase()).toContain('harder');
+    expect(selected[0].reason.explanation.toLowerCase()).toContain('easiest');
   });
 });
 

@@ -17,7 +17,7 @@ import { describe, it, expect } from 'vitest';
 import { buildEvidence } from '../../../services/coach/evidenceProjection';
 import { reduceEvidenceToBeliefState, projectEvidenceBeliefSnapshot } from '../../../services/coach/beliefReducer';
 import { deriveAbility } from '../ability/deriveAbility';
-import { CONFIDENCE_BAND_HIDDEN_BELOW, DEMAND_ANCHORS, MASTERY_WEAK } from '../ability/thresholds';
+import { CONFIDENCE_BAND_HIDDEN_BELOW, DEMAND_ANCHORS, MASTERY_WEAK, RELIABLE_CONFIDENCE } from '../ability/thresholds';
 import { planSlots } from '../selection/planSlots';
 import { selectQuestions } from '../selection/selectQuestions';
 import { computeSessionTarget } from '../selection/sessionTarget';
@@ -374,7 +374,13 @@ describe('adaptive simulation — C: strong grammar-adjacent demand, weak justif
       perSession: 8,
       aim: 'balanced',
       seed: 3,
-      unknownRate: 0.05,
+      // A failed justify answer is mostly a full-length answer with no reason in
+      // it ('unknown' at L1, graded missed at L2), not a two-word one: two-word
+      // answers are avoidance, never a failure (docs §9.3), so at 0.05 justify
+      // never became a reliable weakness and the cap never applied — the test
+      // only passed because selection never let this learner reach compare or
+      // hypothesize questions (soft bands; fixed with the §8.3 ceiling).
+      unknownRate: 0.3,
     });
 
     const finalAbility = deriveAbility(result.finalSnapshot).abilityScore;
@@ -385,6 +391,8 @@ describe('adaptive simulation — C: strong grammar-adjacent demand, weak justif
     const justifyBelief = result.finalSnapshot.demands?.['demand:justify'];
     expect(justifyBelief).toBeDefined();
     expect(justifyBelief!.mastery).toBeLessThan(MASTERY_WEAK);
+    // The cap is what's under test, so the weakness must be reliable enough to apply it.
+    expect(justifyBelief!.confidence).toBeGreaterThanOrEqual(RELIABLE_CONFIDENCE);
   });
 });
 

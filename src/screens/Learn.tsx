@@ -366,7 +366,8 @@ export function Learn() {
       selectedDifficulty,
       focusedSkillId,
       sessionBlend,
-      { aim, migratedTier: selectedDifficulty, filters },
+      // Planned for the length it will really have (the answers left today).
+      { aim, migratedTier: selectedDifficulty, filters, count: dailySessionLength(answersLeft, SESSION_TARGET[mode]) },
     );
     // Filters that match nothing build an empty session; the setup screen
     // disables Start in that case, so this is only a backstop.
@@ -400,6 +401,7 @@ export function Learn() {
       startedAt: new Date().toISOString(),
       skillSnapshot: JSON.parse(JSON.stringify(skillProfile)),
       demandSnapshot: adaptiveDifficultyLive ? getBeliefSnapshot()?.demands ?? {} : undefined,
+      aim: adaptiveDifficultyLive ? aim : undefined,
     };
 
     setActiveSession(session);
@@ -456,7 +458,7 @@ export function Learn() {
       selectedDifficulty,
       focusedSkillId,
       sessionBlend,
-      { aim: previewAim, migratedTier: selectedDifficulty, filters },
+      { aim: previewAim, migratedTier: selectedDifficulty, filters, count: dailySessionLength(answersLeft, SESSION_TARGET[mode]) },
     );
     // Only the questions this session keeps (the answers left today), as startSession slices them.
     const kept = (slots ?? []).slice(0, dailySessionLength(answersLeft, (slots ?? []).length));
