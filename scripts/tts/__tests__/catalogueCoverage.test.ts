@@ -36,6 +36,11 @@ import { QUESTIONS } from '../../../src/data/questions';
 import { LISTENING_QUESTIONS } from '../../../src/data/listeningQuestions';
 import { SHADOWING_PHRASES } from '../../../src/data/shadowingPhrases';
 import { normalizeSpokenText } from '../../../src/services/tts/voiceKey';
+import { splitSentences } from '../../../src/domain/pronunciation/lab/sentences';
+import { guideTexts, isRecordableWord } from '../../../src/domain/pronunciation/lab/lexicon';
+import { MINIMAL_PAIRS } from '../../../src/domain/pronunciation/lab/minimalPairs';
+import { SOUND_TIPS } from '../../../src/domain/pronunciation/lab/tips';
+import { tokenizeSentence, watchOutFor, wordPlayTexts } from '../../../src/domain/pronunciation/lab/textFeatures';
 
 const CATALOGUE = collectLines();
 const KEYS = new Set(CATALOGUE.map((l) => normalizeSpokenText(l.text)));
@@ -191,6 +196,57 @@ describe('recorded-voices catalogue coverage', () => {
   it('catalogues every Listening audioText and Shadowing phrase', () => {
     for (const q of LISTENING_QUESTIONS) expect(KEYS.has(normalizeSpokenText(q.audioText)), q.audioText).toBe(true);
     for (const p of SHADOWING_PHRASES) expect(KEYS.has(normalizeSpokenText(p.french)), p.french).toBe(true);
+  });
+
+  // ── Pronunciation Lab native audio (pronunciation-lab plan §4.2, Stage 4) ──
+
+  const has = (text: string) => KEYS.has(normalizeSpokenText(text));
+
+  it('catalogues every Learn model answer, sentence by sentence (the Lab practises one sentence at a time)', () => {
+    let sentences = 0;
+    for (const q of QUESTIONS) {
+      for (const sentence of splitSentences(q.modelAnswer)) {
+        sentences += 1;
+        expect(has(sentence), `${q.id}: ${sentence}`).toBe(true);
+      }
+    }
+    expect(sentences).toBeGreaterThan(QUESTIONS.length);
+    expect(CATALOGUE.some((l) => l.source === 'lab-sentences')).toBe(true);
+  });
+
+  it('catalogues every word ▶ Native can ask for in a model answer or question: wordPlayTexts and "watch out for" chips', () => {
+    const missing = new Set<string>();
+    for (const q of QUESTIONS) {
+      for (const sentence of [...splitSentences(q.modelAnswer), q.text]) {
+        tokenizeSentence(sentence).forEach((_, i) => {
+          for (const text of wordPlayTexts(sentence, i)) if (isRecordableWord(text) && !has(text)) missing.add(text);
+        });
+        for (const f of watchOutFor(sentence)) if (isRecordableWord(f.playText) && !has(f.playText)) missing.add(f.playText);
+      }
+    }
+    expect([...missing]).toEqual([]);
+    // wordPlayTexts re-reads the sentence for every word, so this walks ~4,000 sentences slowly.
+  }, 60_000);
+
+  it('catalogues the sound guide: every example, guide minimal pair and ear-training word', () => {
+    for (const tip of Object.values(SOUND_TIPS)) {
+      for (const text of [...tip.examples, ...(tip.minimalPair ?? [])]) expect(has(text), text).toBe(true);
+    }
+    for (const pair of MINIMAL_PAIRS) for (const word of pair.words) expect(has(word), word).toBe(true);
+    for (const text of guideTexts()) expect(has(text), text).toBe(true);
+  });
+
+  it('lists the Lab strings in the words-before-sentences order, so a run cut short has spent its time where it helps most', () => {
+    const order = CATALOGUE.map((l) => l.source);
+    const lastWord = order.lastIndexOf('lab-words');
+    const firstSentence = order.indexOf('lab-sentences');
+    expect(lastWord).toBeGreaterThan(-1);
+    expect(firstSentence).toBeGreaterThan(lastWord);
+  });
+
+  it('keeps the recording budget inside Azure F0 (500k characters a month) with room for one more run', () => {
+    const chars = CATALOGUE.reduce((n, l) => n + l.text.length, 0);
+    expect(chars).toBeLessThan(450_000);
   });
 
   it('lists each line once and never an empty one', () => {

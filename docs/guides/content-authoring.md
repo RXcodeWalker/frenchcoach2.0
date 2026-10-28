@@ -259,8 +259,10 @@ hash changed anyway, and it follows the same convention.
 9. After the set is published (and `npm run authoring:generate` has refreshed the fixtures), run
    GitHub Actions → **Record voices** (dry run off, no limit). It records only the new lines in
    Henri's voice. Until then the new set's lines play in the browser voice. The same applies to
-   any edit to Learn question text, Listening `audioText`, Shadowing phrases or scenario
-   flashcards — an edited line is a new recording (`docs/plans/recorded-voices.md`).
+   any edit to Learn question text, a Learn **model answer** or its key vocabulary (the
+   Pronunciation Lab records the model answer sentence by sentence and every word of it), Listening
+   `audioText`, Shadowing phrases or scenario flashcards — an edited line is a new recording
+   (`docs/plans/recorded-voices.md`, `docs/plans/pronunciation-lab.md` Stage 4).
 
 ### The draft trap
 

@@ -26,7 +26,10 @@ concurrency:
 jobs:
   record:
     runs-on: ubuntu-latest
-    timeout-minutes: 300
+    # GitHub's hosted-runner ceiling is 360. The whole catalogue (with the Pronunciation Lab's
+    # words and sentences) is ~9–10 h at Azure F0's 20 requests/min, so the first full recording
+    # takes two runs; the second resumes where the first stopped.
+    timeout-minutes: 350
     steps:
       # Same fail-fast secret check as notifications-streak-and-goal.yml, skipped for a dry run.
       - name: Check required secrets

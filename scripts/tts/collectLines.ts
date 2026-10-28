@@ -27,9 +27,19 @@ import { QUESTIONS } from '../../src/data/questions';
 import { LISTENING_QUESTIONS } from '../../src/data/listeningQuestions';
 import { SHADOWING_PHRASES } from '../../src/data/shadowingPhrases';
 import { listScenarios } from '../../src/data/scenarios/registry';
+import { splitSentences } from '../../src/domain/pronunciation/lab/sentences';
+import { guideTexts, lexiconTexts } from '../../src/domain/pronunciation/lab/lexicon';
 import { normalizeSpokenText } from '../../src/services/tts/voiceKey';
 
-export type LineSource = 'exam' | 'learn' | 'listening' | 'shadowing' | 'flashcards';
+export type LineSource =
+  | 'exam'
+  | 'learn'
+  | 'listening'
+  | 'shadowing'
+  | 'flashcards'
+  | 'lab-guide'
+  | 'lab-words'
+  | 'lab-sentences';
 
 export interface CatalogueLine {
   /** The authored text, exactly as the app speaks it (and as Azure receives it). */
@@ -82,6 +92,45 @@ export function examFixedLines(): string[] {
 }
 
 /**
+ * The Pronunciation Lab's native audio (pronunciation-lab plan §4.2, Stage 4).
+ *
+ * - `lab-guide`: the sound guide's example words and groups and every
+ *   ear-training minimal-pair word (`lab/minimalPairs.ts`, `lab/tips.ts`).
+ * - `lab-words`: the word lexicon — every distinct word (and liaison group) of
+ *   Learn's question texts, model answers and key vocabulary, written as the
+ *   Lab plays a word (`lab/lexicon.ts`), so an AI-corrected sentence that has
+ *   no recording of its own is still covered word by word.
+ * - `lab-sentences`: every Learn model answer, one sentence at a time with the
+ *   Lab's own splitter (`lab/sentences.ts`), because the Lab practises one
+ *   sentence at a time and finds a recording by its exact text.
+ *
+ * Benchmark sentences (Stage 6) join `lab-sentences`/`lab-words` when they exist.
+ * Isolated words lose liaison and intonation; the sentence recording is the
+ * source for those (plan §4.2).
+ */
+export function labGuideLines(): string[] {
+  return guideTexts();
+}
+
+export function labSentenceLines(): string[] {
+  return QUESTIONS.flatMap((q) => splitSentences(q.modelAnswer));
+}
+
+/**
+ * Key vocabulary is written for a glossary, not to be said: "chargé(e)",
+ * "cadet/cadette", "un(e)". Drop the bracketed ending and split the slash so
+ * each alternative is a word on its own.
+ */
+function vocabWords(fr: string): string[] {
+  return fr.replace(/\([^)]*\)/g, '').split('/');
+}
+
+export function labWordLines(): string[] {
+  const sources = QUESTIONS.flatMap((q) => [q.text, q.modelAnswer, ...q.keyVocab.flatMap((v) => vocabWords(v.fr))]);
+  return lexiconTexts(sources);
+}
+
+/**
  * The whole catalogue, deduplicated by `normalizeSpokenText` (the key the
  * recording is stored under). Exam sets come from the bundled fixtures, which
  * `npm run authoring:parity` keeps identical to the backend's published bank.
@@ -94,6 +143,12 @@ export function collectLines(): CatalogueLine[] {
     ['shadowing', SHADOWING_PHRASES.map((p) => p.french)],
     // Scenario prep flashcards (FlashcardDeck speaks `fr`): authored decks, so static.
     ['flashcards', listScenarios().flatMap((s) => s.deck.entries.map((e) => e.fr))],
+    // The Pronunciation Lab. Words before sentences: a word covers every
+    // AI-corrected sentence, so a run cut short by the Actions time limit has
+    // spent its Azure time where it helps most (the script resumes).
+    ['lab-guide', labGuideLines()],
+    ['lab-words', labWordLines()],
+    ['lab-sentences', labSentenceLines()],
   ];
 
   const seen = new Set<string>();

@@ -370,7 +370,10 @@ only, inputs `dry_run`, `limit`) runs `npm run voices:record`: it records every 
 not already in the `tts-audio` bucket with Azure text-to-speech (F0, throttled) and uploads it.
 Secrets: `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION`, `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`
 (a dry run needs none). Re-run it after editing any catalogued French text; until then the new
-line plays in the browser voice.
+line plays in the browser voice. With the Pronunciation Lab's words and model-answer sentences
+(Stage 4) the catalogue is ≈ 11k lines / 393k characters: the first full recording is ≈ 9 h at
+Azure F0's 20 requests a minute, so it takes two runs (the job's limit is 350 min) and the second
+resumes; F0's 500k characters a month is the ceiling to watch.
 
 **Deploy-time step, manual, not in CI:** when the rewritten 0520 sets go live, expire open duels
 on them with `backend/supabase/ops/expire_open_duels_at_deploy.sql` (D11; run by hand right after

@@ -1,6 +1,6 @@
 # Pronunciation Lab: implementation plan
 
-Status: **Stages 1–3 built** (2026-10-28); Stages 4–7 not started. Owner decisions (2026-10-28): D1 drop, D2 yes (Stage 4b), D4 no XP, D5 no 0–100 number. D3: 30 Lab takes per account per day; Azure monthly cap = the F0 free allowance.
+Status: **Stages 1–4 built** (2026-10-28; Stage 4's code is merged to the branch, its recording run is a manual Actions step — see the Stage 4 notes); Stages 4b–7 not started. Owner decisions (2026-10-28): D1 drop, D2 yes (Stage 4b), D4 no XP, D5 no 0–100 number. D3: 30 Lab takes per account per day; Azure monthly cap = the F0 free allowance.
 
 Stage 1 (frontend only; no backend change, no UI, nothing reads the flag yet):
 - `src/domain/pronunciation/lab/`: `wordStates.ts` (`buildLabTake` → per-word state on the target sentence, "N of M clear"
@@ -77,15 +77,55 @@ it is simply no longer called by Learn while the flag is live):
 - No real-device run: covered by jsdom tests with mocked audio (`HowItSounded.test.tsx`, `answerPauses.test.ts`,
   `FeedbackExperience.test.tsx`).
 
+Stage 4 (frontend + workflow only; **no backend change**, no UI change — native-audio coverage so ▶ Native finds a recording):
+- `scripts/tts/collectLines.ts` gained three sources, listed words-before-sentences (a run cut short by the Actions time limit
+  has then spent its Azure time where it helps most):
+  - `lab-guide` (93 lines): `lexicon.ts`'s `guideTexts()` — every `SOUND_TIPS` example and minimal-pair word, plus every
+    ear-training word in the new `minimalPairs.ts`.
+  - `lab-words` (≈ 6,970 lines, ≈ 58k chars): the word lexicon — `lexiconTexts()` over every Learn question text, model answer
+    and key-vocabulary term (glossary punctuation stripped: `chargé(e)` → `chargé`, `cadet/cadette` → two words). Each word is
+    exactly what `wordPlayTexts` asks `playNative` for: `normalizeWord` output (lowercase, edge punctuation off, inner
+    apostrophe kept: `l'enfant`) and, for a word inside a liaison, the two-word group (`les enfants`). `voiceKey` hashes case, so
+    the strings are never re-cased. `isRecordableWord` leaves out what Azure would have to guess at (letter+digit tokens such as
+    `co2`/`3d`, stray symbols, and the bare `y`, which Azure spells as a letter) — those words stay on the browser voice.
+  - `lab-sentences` (2,685 lines, ≈ 264k chars): every Learn model answer, one sentence at a time, split by the new
+    `domain/pronunciation/lab/sentences.ts` `splitSentences` (`. ! ? …` + space). Whole paragraphs are not recorded.
+- New pure modules in `domain/pronunciation/lab/`: `sentences.ts`, `minimalPairs.ts` (`MINIMAL_PAIRS`: 28 authored pairs across the
+  families, a superset of the sound guide's pairs; `minimalPairTexts()`), `lexicon.ts`. Tests beside them.
+- `catalogueCoverage.test.ts` is extended: every model-answer sentence, every `wordPlayTexts` string and `watchOutFor` chip text of
+  every model-answer sentence and question, the whole sound guide and every ear-training word must be catalogued; words before
+  sentences; the catalogue stays under the 450k-character guard.
+- Catalogue size now: **11,181 items, ≈ 393k characters** (was 1,433 / 70k). Azure F0 allows 500k characters a month and the old
+  catalogue was recorded in October, so the new lines (≈ 323k) fit this month with ≈ 100k to spare — check the Azure usage page
+  before any other bulk run this month. At 3.4 s per request the 9,750 new lines take **≈ 9.2 h**: the workflow's timeout is now
+  350 min (GitHub's ceiling is 360), so **the first full recording takes two Actions runs; the second resumes where the first
+  stopped.** `npm run voices:record -- --dry-run` prints the estimate.
+- **The recording run is manual** (Actions → "Record voices", `dry_run` off, no limit; needs the four secrets already used for the
+  first recording). Until it has run, ▶ Native for these strings uses the browser French voice (the Stage 1–3 behaviour), and
+  nothing breaks. `VITE_RECORDED_VOICES=1` must also be set in Vercel for any recording to play (still not set — recorded-voices
+  plan §9).
+
 What the next stages need to know:
 - **Stage 3** is built (above). Any new place that opens the Lab adds a value to `LabOpenedProps.entry` in
   `telemetryService.ts` (closed enum) and to `LabPractice`'s `entry` prop type.
-- **Stage 4**: "How it sounded" asks ▶ Native for the corrected sentence as written (an AI sentence → Stage 4b's cached
+- **Stage 4** (built): "How it sounded" asks ▶ Native for the corrected sentence as written (an AI sentence → Stage 4b's cached
   endpoint is what will give it a recording) and for `watchOutFor`'s `playText` strings (already the lexicon's strings).
+- **Stage 4b**: an AI-corrected sentence is still not in the catalogue by design (only static authored French is). Its words are
+  covered by `lab-words` where they appear in Learn's bank; a word outside the bank's vocabulary has no recording until the
+  cached-TTS endpoint exists (or, for single words, until the bank grows and "Record voices" is run again). 4b's endpoint should key
+  its cache with `voiceKey.ts` so a sentence it caches and the script would record are the same file.
+- **Stage 5** (Lab home): ear training plays `MINIMAL_PAIRS` (`minimalPairs.ts`); both words are recorded, nothing else is needed. A
+  model-answer practice sentence must come from `splitSentences(question.modelAnswer)` — any other splitter produces text with no
+  recording. The guide's example words are recorded exactly as `SOUND_TIPS` writes them. "Tricky words" re-plays words as
+  `wordPlayTexts` gives them. Adding an ear-training pair or a guide example means adding it to `minimalPairs.ts`/`tips.ts`, then
+  running "Record voices" again (the coverage test fails until the string is catalogued by those lists — it is, automatically).
+- **Stage 6** (benchmark sentences): add the sentences to `labSentenceLines()` and their words to `labWordLines()`'s sources in
+  `collectLines.ts` (and extend the coverage test to the new list), then run "Record voices" — the monthly check plays Native.
+  Pick words that already appear in Learn's bank where you can; every new word is a new recording.
 - **Stage 5** (Lab home): `LabPractice` is self-contained (no Learn state), so the home's "Practise a sentence" can
   reuse it as is; take history for `labStore` should come from `takeObservations(take)` — add an `onTake` callback
   prop to `LabPractice` then (none exists yet, on purpose: Stage 2 stores nothing).
-- **Stage 4**: the strings ▶ Native asks for are the sentence as written, `wordPlayTexts` (normalised word / liaison
+- **Stage 4** (built): the strings ▶ Native asks for are the sentence as written, `wordPlayTexts` (normalised word / liaison
   group), the focus word's normalised text (slow), and `SOUND_TIPS` examples/minimal pairs as written.
 - **Stage 7**: the Lab charges nothing beyond the existing `/api/pronunciation` metering today. When the allowance lands,
   map its 429 to a new `LabNotice` (the flow must still never trap).

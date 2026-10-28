@@ -307,6 +307,8 @@ function printDryRun(items: Item[], options: RecordOptions, deps: RecordDeps): v
   const total = items.reduce((sum, i) => sum + i.line.text.length, 0);
   deps.log(`  ${'total'.padEnd(20)} ${String(items.length).padStart(5)} items  ${String(total).padStart(7)} chars`);
   if (options.limit !== null) deps.log(`  (--limit ${options.limit}: a real run records at most ${options.limit} missing lines per voice)`);
+  const hours = (items.length * AZURE_MIN_INTERVAL_MS) / 3_600_000;
+  deps.log(`  At one request per ${AZURE_MIN_INTERVAL_MS / 1000} s, recording all of it takes about ${hours.toFixed(1)} h (a run stopped by the Actions time limit resumes on the next run).`);
   if (total > BUDGET_LIMIT_CHARS) deps.log(`  Over the ${BUDGET_LIMIT_CHARS} character guard if nothing is stored yet.`);
 }
 
