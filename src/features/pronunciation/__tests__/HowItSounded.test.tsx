@@ -67,7 +67,7 @@ describe('How it sounded', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Your answer' }));
     expect(audio.playClip).toHaveBeenLastCalledWith(BLOB, null, { rate: 1 });
     fireEvent.click(screen.getByRole('button', { name: 'Native' }));
-    expect(audio.playNative).toHaveBeenLastCalledWith(SENTENCE, { speed: 1 });
+    expect(audio.playNative).toHaveBeenLastCalledWith(SENTENCE, expect.objectContaining({ speed: 1, synthesize: true }));
 
     const slow = screen.getByRole('button', { name: 'Slow (0.75×)' });
     expect(slow.getAttribute('aria-pressed')).toBe('false');
@@ -76,7 +76,20 @@ describe('How it sounded', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Your answer' }));
     expect(audio.playClip).toHaveBeenLastCalledWith(BLOB, null, { rate: 0.75 });
     fireEvent.click(screen.getByRole('button', { name: 'Native' }));
-    expect(audio.playNative).toHaveBeenLastCalledWith(SENTENCE, { speed: 0.75 });
+    expect(audio.playNative).toHaveBeenLastCalledWith(SENTENCE, expect.objectContaining({ speed: 0.75, synthesize: true }));
+  });
+
+  it('says the native voice is being prepared while a new corrected sentence is recorded (Stage 4b)', async () => {
+    let finish: (v: string) => void = () => {};
+    audio.playNative.mockImplementation(((_text: string, opts: { onPreparing?: () => void }) => {
+      opts.onPreparing?.();
+      return new Promise<string>((resolve) => { finish = resolve; });
+    }) as never);
+    await renderCard();
+    fireEvent.click(screen.getByRole('button', { name: 'Native' }));
+    expect(screen.getByText('Getting the native voice ready…')).toBeTruthy();
+    await act(async () => { finish('recorded'); });
+    expect(screen.queryByText('Getting the native voice ready…')).toBeNull();
   });
 
   it('says how the answer flowed, from pauses measured on the recording', async () => {
@@ -110,7 +123,7 @@ describe('How it sounded', () => {
     expect(chips.length).toBeLessThanOrEqual(3);
     const liaison = screen.getByRole('button', { name: 'Hear « les enfants » — Liaison' });
     fireEvent.click(liaison);
-    expect(audio.playNative).toHaveBeenLastCalledWith('les enfants', { speed: 1 });
+    expect(audio.playNative).toHaveBeenLastCalledWith('les enfants', expect.objectContaining({ speed: 1, synthesize: false }));
   });
 
   it('Practise it opens the Lab on the corrected sentence in place, and Done comes back', async () => {

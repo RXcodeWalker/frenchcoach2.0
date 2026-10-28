@@ -1,6 +1,6 @@
 # Pronunciation Lab: implementation plan
 
-Status: **Stages 1–4 built** (2026-10-28; Stage 4's code is merged to the branch, its recording run is a manual Actions step — see the Stage 4 notes); Stages 4b–7 not started. Owner decisions (2026-10-28): D1 drop, D2 yes (Stage 4b), D4 no XP, D5 no 0–100 number. D3: 30 Lab takes per account per day; Azure monthly cap = the F0 free allowance.
+Status: **Stages 1–4b built** (2026-10-28; Stage 4's recording run is a manual Actions step — see the Stage 4 notes; Stage 4b needs migration `20261028090000` applied before its backend deploys — see the Stage 4b notes); Stages 5–7 not started. Owner decisions (2026-10-28): D1 drop, D2 yes (Stage 4b), D4 no XP, D5 no 0–100 number. D3: 30 Lab takes per account per day; Azure monthly cap = the F0 free allowance.
 
 Stage 1 (frontend only; no backend change, no UI, nothing reads the flag yet):
 - `src/domain/pronunciation/lab/`: `wordStates.ts` (`buildLabTake` → per-word state on the target sentence, "N of M clear"
@@ -105,15 +105,49 @@ Stage 4 (frontend + workflow only; **no backend change**, no UI change — nativ
   nothing breaks. `VITE_RECORDED_VOICES=1` must also be set in Vercel for any recording to play (still not set — recorded-voices
   plan §9).
 
+Stage 4b (backend + frontend — owner D2: a natural voice for AI-corrected sentences):
+- **Backend** (`french-coach-backend`, branch `claude/nifty-edison-xhbf2a`): `POST /api/native-voice` (`routers/native_voice.py`),
+  body `{ "text": "…" }`. It normalises the text (`lib/voice_key.py`, a port of `voiceKey.ts` with JavaScript's whitespace
+  rules), refuses invalid/over-600-character text (422 `invalid_text`/`text_too_long`), and HEADs the public bucket file at
+  the voiceKey path: present → `200 {status:'ready', path, cached:true}`, no charge, no Azure. Missing → charges quota
+  `native_voice` (idempotency key `native_voice:<path>`), reserves the characters in the new `azure_tts_usage` ledger against
+  `azure_tts_budget.cap_characters`, synthesises with Azure TTS (Henri, the recording script's exact SSML and MP3 format, so a
+  cached sentence sounds like a recorded one), uploads with `x-upsert: false` (a 409 = someone stored it first = success),
+  answers `cached:false`. Refusals: quota 429/403 (from `consume_ai_quota_or_503`), monthly cap 429
+  `native_voice_budget_exhausted`, Azure's own 429 → 429 `native_voice_busy` + `Retry-After: 60`, ledger unreadable or
+  Azure/Supabase not configured → 503 `native_voice_unavailable`, Azure/upload failure → 502 `native_voice_failed` (raised
+  from the cause, so Sentry reports it once). Every failure after the charge releases the quota and the characters.
+  Guests go through `verify_user_or_guest` (guest cap; characters metered with no user). Rate limit 20/min per IP.
+- **Migration `20261028090000_native_voice_tts.sql`** (not yet applied to production): quota row `('native_voice', 20)`,
+  `azure_tts_usage` + `azure_tts_budget` (cap **50,000 characters a month**, a number chosen in this stage — F0's 500k a month
+  is shared with the "Record voices" workflow, whose first full run takes ≈ 323k this month), service-role RPCs
+  `reserve_azure_tts_characters` / `release_azure_tts_characters`. Change the cap with
+  `UPDATE public.azure_tts_budget SET cap_characters = …;` (NULL = unlimited, only on a paid tier). **Deploy order:** the
+  migration, then the backend, then the frontend. Without the migration the route 503s and the app falls back — nothing breaks.
+- **Key parity:** `backend/data/tts/voice_key_vectors.json` (9 vectors incl. NBSP, narrow NBSP, U+FEFF, NFD, `\x1f`) is checked
+  by the backend's `tests/test_native_voice.py` and by `src/services/tts/__tests__/voiceKey.test.ts` (skipped without `backend/`,
+  runs in CI). A `VOICE_KEY_VERSION` bump must change both repos and regenerate the vectors.
+- **Frontend:** `src/services/tts/sentenceVoice.ts` `requestSentenceRecording(text)` (optional auth header, 10 s timeout, one
+  in-flight request per text; a refused text isn't asked again this page load; quota/cap/503/403 stop all asks for the page
+  load; `native_voice_busy` and network errors only fail this ask). `recordedVoice.ts` gained `forgetMissingRecording(text)`.
+  `nativeVoice.ts`'s `playNative(text, { synthesize: true, onPreparing })`: when recorded voices are on and no candidate has a
+  file, it asks the backend for the first candidate, then plays the new file; otherwise the old fallback (French browser voice →
+  `'unavailable'`). Opted in only for whole AI sentences: How it sounded's ▶ Native and `LabPractice`'s ▶ Listen / ▶ Slowly /
+  ▶ Play both. Word chips, focus words and guide words never synthesise (they come from the recorded lexicon). Both screens show
+  `labCopy.NATIVE_PREPARING` ("Getting the native voice ready…") while the backend records.
+- **Still off in production until `VITE_RECORDED_VOICES=1` is set in Vercel** (recorded-voices plan §9): with it off, the app
+  never calls the endpoint. No real Azure/Supabase run was made from this session — the backend is covered by mocked-HTTP
+  tests only; the first real sentence will show whether F0's TTS endpoint accepts the region/key already used for speech.
+- No new analytics event (none was asked for by §8); no XP/Session/evidence write.
+
 What the next stages need to know:
 - **Stage 3** is built (above). Any new place that opens the Lab adds a value to `LabOpenedProps.entry` in
   `telemetryService.ts` (closed enum) and to `LabPractice`'s `entry` prop type.
 - **Stage 4** (built): "How it sounded" asks ▶ Native for the corrected sentence as written (an AI sentence → Stage 4b's cached
   endpoint is what will give it a recording) and for `watchOutFor`'s `playText` strings (already the lexicon's strings).
-- **Stage 4b**: an AI-corrected sentence is still not in the catalogue by design (only static authored French is). Its words are
-  covered by `lab-words` where they appear in Learn's bank; a word outside the bank's vocabulary has no recording until the
-  cached-TTS endpoint exists (or, for single words, until the bank grows and "Record voices" is run again). 4b's endpoint should key
-  its cache with `voiceKey.ts` so a sentence it caches and the script would record are the same file.
+- **Stage 4b** (built, above): a new screen that plays an AI-written *sentence* passes `synthesize: true` to `playNative`; a word
+  never does. Model-answer sentences and guide/lexicon strings are recorded already, so the endpoint answers them `cached` for free.
+  The daily `native_voice` cap (20) and the monthly character cap are separate from Stage 7's `pronunciation_lab` allowance.
 - **Stage 5** (Lab home): ear training plays `MINIMAL_PAIRS` (`minimalPairs.ts`); both words are recorded, nothing else is needed. A
   model-answer practice sentence must come from `splitSentences(question.modelAnswer)` — any other splitter produces text with no
   recording. The guide's example words are recorded exactly as `SOUND_TIPS` writes them. "Tricky words" re-plays words as

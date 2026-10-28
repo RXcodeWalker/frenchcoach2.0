@@ -99,3 +99,6 @@ export function flowLine(pauses: Pick<PauseStats, 'pausesOver2s'> | null): strin
 
 /** Shown by the Lab and "How it sounded" when native audio can't play here (plan §4.2). */
 export const NATIVE_UNAVAILABLE = 'Native audio isn’t available on this device.';
+
+/** While a corrected sentence is being recorded for the first time (Stage 4b; a second or two). */
+export const NATIVE_PREPARING = 'Getting the native voice ready…';

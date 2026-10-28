@@ -9,7 +9,7 @@ import { SOUND_TIPS } from '../../domain/pronunciation/lab/tips';
 import { measureAnswerPauses } from './audio/answerPauses';
 import { playClip, stopClip } from './audio/clipPlayer';
 import { playNative, stopNative } from './audio/nativeVoice';
-import { NATIVE_UNAVAILABLE, flowLine } from './labCopy';
+import { NATIVE_PREPARING, NATIVE_UNAVAILABLE, flowLine } from './labCopy';
 import { LabPractice } from './LabPractice';
 
 /**
@@ -22,15 +22,17 @@ import { LabPractice } from './LabPractice';
  * makes no pronunciation request at all. It offers:
  *
  *  1. Listen back — ▶ Your answer (the in-memory recording) and ▶ Native (the
- *     corrected sentence), with one Slow (0.75×) toggle for both.
+ *     corrected sentence; with no recording yet, the backend records it once
+ *     in Henri's voice — Stage 4b), with one Slow (0.75×) toggle for both.
  *  2. Flow — one descriptive line from pauses measured in the browser.
  *  3. Watch out for — up to 3 sound features of the corrected sentence, found
  *     by rules on its spelling (never a verdict on the learner); each plays.
  *  4. Practise it — opens the Lab on the corrected sentence, in place, where
  *     the target is known and word feedback is honest.
  *
- * No 0–100 ring, no sub-scores, no coloured words. Nothing is stored, synced
- * or sent; the recording stays a blob owned by Learn.
+ * No 0–100 ring, no sub-scores, no coloured words. The recording is never
+ * stored, synced or sent; it stays a blob owned by Learn. The only request is
+ * ▶ Native's, carrying the corrected sentence's text, never audio.
  */
 
 interface Props {
@@ -50,6 +52,9 @@ export function HowItSounded({ answerBlob, sentence, onPractiseOpened }: Props) 
   const [pauses, setPauses] = useState<PauseStats | null>(null);
   const [practising, setPractising] = useState(false);
   const [nativeUnavailable, setNativeUnavailable] = useState(false);
+  const [nativePreparing, setNativePreparing] = useState(false);
+  /** Only the latest Native play may clear the "preparing" line (an older one resolves 'stopped' later). */
+  const nativeCall = useRef(0);
   const alive = useRef(true);
   const target = sentence.trim();
   const features = useMemo(() => (target ? watchOutFor(target) : []), [target]);
@@ -81,10 +86,20 @@ export function HowItSounded({ answerBlob, sentence, onPractiseOpened }: Props) 
   if (!answerBlob && !target) return null;
 
   const speed = slow ? SLOW : 1;
-  const native = async (text: string, rate: number) => {
+  /** `sentence`: the corrected answer is AI-written, so it is recorded on demand when it has no file (Stage 4b). */
+  const native = async (text: string, rate: number, sentence = false) => {
     stopClip();
-    const result = await playNative(text, { speed: rate });
-    if (result === 'unavailable' && alive.current) setNativeUnavailable(true);
+    const call = ++nativeCall.current;
+    const result = await playNative(text, {
+      speed: rate,
+      synthesize: sentence,
+      onPreparing: () => {
+        if (alive.current && call === nativeCall.current) setNativePreparing(true);
+      },
+    });
+    if (!alive.current || call !== nativeCall.current) return;
+    setNativePreparing(false);
+    if (result === 'unavailable') setNativeUnavailable(true);
   };
   const playYours = () => {
     if (!answerBlob) return;
@@ -119,7 +134,7 @@ export function HowItSounded({ answerBlob, sentence, onPractiseOpened }: Props) 
             </Button>
           )}
           {target && (
-            <Button variant="secondary" size="sm" onClick={() => void native(target, speed)}>
+            <Button variant="secondary" size="sm" onClick={() => void native(target, speed, true)}>
               <Volume2 size={16} aria-hidden="true" /> Native
             </Button>
           )}
@@ -134,6 +149,11 @@ export function HowItSounded({ answerBlob, sentence, onPractiseOpened }: Props) 
             Slow (0.75×)
           </button>
         </div>
+        {nativePreparing && (
+          <p className="text-caption text-ink-muted" role="status">
+            {NATIVE_PREPARING}
+          </p>
+        )}
         {nativeUnavailable && <p className="text-caption text-ink-muted">{NATIVE_UNAVAILABLE}</p>}
       </div>
 

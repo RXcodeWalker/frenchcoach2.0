@@ -1,3 +1,6 @@
+import { existsSync, readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import {
   RECORDED_VOICES,
@@ -64,5 +67,24 @@ describe('recordedVoiceUrl', () => {
     expect(recordedVoiceUrl('https://abc.supabase.co/', 'p.mp3')).toBe(
       'https://abc.supabase.co/storage/v1/object/public/tts-audio/p.mp3',
     );
+  });
+});
+
+// The backend's port (`backend/lib/voice_key.py`, behind POST /api/native-voice)
+// writes AI-corrected sentences to the same paths; both repos check these vectors.
+const VECTORS = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..', 'backend', 'data', 'tts', 'voice_key_vectors.json');
+
+describe.skipIf(!existsSync(VECTORS))('voice key parity with the backend', () => {
+  it('computes every shared vector exactly', async () => {
+    const data = JSON.parse(readFileSync(VECTORS, 'utf-8')) as {
+      version: string;
+      vectors: { text: string; normalized: string; path: string }[];
+    };
+    expect(data.version).toBe(VOICE_KEY_VERSION);
+    expect(data.vectors.length).toBeGreaterThan(5);
+    for (const v of data.vectors) {
+      expect(normalizeSpokenText(v.text)).toBe(v.normalized);
+      expect(await voiceObjectPath(v.text, 'henri')).toBe(v.path);
+    }
   });
 });

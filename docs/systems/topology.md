@@ -98,6 +98,22 @@ migrations are applied the route cannot store evidence.
   only when it is French. Off is the rollback: every screen uses the browser voice exactly as
   before. **Not set in Vercel yet** — the owner sets it in plan Stage 5/6. Needs a frontend
   redeploy to change.
+- **`POST /api/native-voice`** (backend `routers/native_voice.py`; Pronunciation Lab Stage 4b,
+  owner D2) — the one exception to "Azure is never called at play time". When ▶ Native finds no
+  file for an AI-corrected sentence (How it sounded, the Lab's whole-sentence plays), the app sends
+  the sentence's text; the backend answers at once if the file exists, else synthesises it with
+  Azure TTS (Henri, the recording script's SSML and format) and uploads it to `tts-audio` at the
+  same `voiceKey` path (`backend/lib/voice_key.py`, a port pinned by
+  `backend/data/tts/voice_key_vectors.json`, which both repos' tests check). Then the app plays it
+  from the bucket as usual. Needs `AZURE_SPEECH_KEY`/`AZURE_SPEECH_REGION`, `SUPABASE_URL`,
+  `SUPABASE_SERVICE_KEY` on the FastAPI service (all already set); without them it 503s and the
+  app uses the browser voice. Metered twice: quota row `native_voice` (20 new sentences per account
+  per UTC day; guests use the in-process guest cap) and the character ledger `azure_tts_usage`
+  against `azure_tts_budget.cap_characters` (ships at 50,000 a month — F0's 500k characters are
+  shared with the "Record voices" workflow; change it with an `UPDATE`, no migration). Only reached
+  while `VITE_RECORDED_VOICES=1` (the app never asks otherwise).
+  **Deploy order:** migration `20261028090000_native_voice_tts.sql` first (the quota row is an FK;
+  without it every request 503s — harmless, the app falls back), then backend, then frontend.
 
 ### Sentry error tracking (2026-10-24)
 

@@ -51,6 +51,16 @@ export function recordedPlaybackRate(rate?: number): number {
 
 /** URLs that 404'd, errored or never started this session: later calls skip straight to `'missing'`. */
 const missing = new Set<string>();
+
+/**
+ * Lets `text`'s file be tried again after it was remembered as missing — for
+ * a line that has just been recorded on demand (`sentenceVoice.ts`).
+ */
+export async function forgetMissingRecording(text: string, voice: RecordedVoiceId = DEFAULT_RECORDED_VOICE): Promise<void> {
+  const url = await recordedLineUrl(text, voice).catch(() => null);
+  if (url) missing.delete(url);
+}
+
 let audio: HTMLAudioElement | null = null;
 let primed = false;
 /** Bumped by every new play and every stop, so a call still building its URL knows it was superseded. */

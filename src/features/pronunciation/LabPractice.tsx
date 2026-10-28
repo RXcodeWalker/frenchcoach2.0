@@ -21,6 +21,7 @@ import { playClip, stopClip } from './audio/clipPlayer';
 import { playNative, stopNative } from './audio/nativeVoice';
 import {
   DRILL_VERDICT_DISPLAY,
+  NATIVE_PREPARING,
   NATIVE_UNAVAILABLE,
   NOTICE_TEXT,
   STEP_LABELS,
@@ -288,6 +289,9 @@ export function LabPractice({ targetSentence, entry, onDone }: Props) {
   const focusTracked = useRef(new Set<number>());
   const [selected, setSelected] = useState<number | null>(null);
   const [nativeUnavailable, setNativeUnavailable] = useState(false);
+  const [nativePreparing, setNativePreparing] = useState(false);
+  /** Only the latest Native play may clear the "preparing" line (an older one resolves 'stopped' later). */
+  const nativeCall = useRef(0);
 
   useEffect(() => {
     track({ name: 'lab_opened', props: { entry } });
@@ -317,9 +321,19 @@ export function LabPractice({ targetSentence, entry, onDone }: Props) {
     return out;
   }, [state.takes]);
 
-  const native = async (text: string | readonly string[], speed = 1) => {
-    const result = await playNative(text, { speed });
-    if (result === 'unavailable' && alive.current) setNativeUnavailable(true);
+  /** `sentence`: the whole target sentence, which may be AI-written — recorded on demand when it has no file (Stage 4b). */
+  const native = async (text: string | readonly string[], speed = 1, sentence = false) => {
+    const call = ++nativeCall.current;
+    const result = await playNative(text, {
+      speed,
+      synthesize: sentence,
+      onPreparing: () => {
+        if (alive.current && call === nativeCall.current) setNativePreparing(true);
+      },
+    });
+    if (!alive.current || call !== nativeCall.current) return;
+    setNativePreparing(false);
+    if (result === 'unavailable') setNativeUnavailable(true);
   };
 
   const stopAudio = () => {
@@ -421,7 +435,7 @@ export function LabPractice({ targetSentence, entry, onDone }: Props) {
       await playClip(blob);
       if (seq !== playSeq.current || !alive.current) return;
     }
-    await native(targetSentence);
+    await native(targetSentence, 1, true);
   };
 
   const playYourWord = async (tokenIndex: number) => {
@@ -482,10 +496,10 @@ export function LabPractice({ targetSentence, entry, onDone }: Props) {
         <div className="space-y-4">
           <ListenSentence tokens={tokens} underlines={underlines} onWord={(i) => { stopAudio(); void native(wordPlayTexts(targetSentence, i)); }} />
           <div className="flex flex-wrap items-center gap-2">
-            <Button variant="secondary" size="sm" onClick={() => { stopAudio(); void native(targetSentence); }}>
+            <Button variant="secondary" size="sm" onClick={() => { stopAudio(); void native(targetSentence, 1, true); }}>
               <Volume2 size={16} aria-hidden="true" /> Listen
             </Button>
-            <Button variant="secondary" size="sm" onClick={() => { stopAudio(); void native(targetSentence, 0.75); }}>
+            <Button variant="secondary" size="sm" onClick={() => { stopAudio(); void native(targetSentence, 0.75, true); }}>
               <Volume2 size={16} aria-hidden="true" /> Slowly
             </Button>
           </div>
@@ -624,6 +638,9 @@ export function LabPractice({ targetSentence, entry, onDone }: Props) {
         <p className="rounded-control bg-reward-soft px-3 py-2.5 text-[13px] text-reward-text" role="status">
           {NOTICE_TEXT[state.notice]}
         </p>
+      )}
+      {nativePreparing && (
+        <p className="text-caption text-ink-muted" role="status">{NATIVE_PREPARING}</p>
       )}
       {nativeUnavailable && (
         <p className="text-caption text-ink-muted">{NATIVE_UNAVAILABLE}</p>

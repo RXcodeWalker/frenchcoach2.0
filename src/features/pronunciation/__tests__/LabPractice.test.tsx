@@ -97,7 +97,7 @@ describe('LabPractice', () => {
   it('Listen plays the sentence through the native voice, slow at 0.75', async () => {
     renderLab();
     await click(screen.getByRole('button', { name: /Slowly/ }));
-    expect(audio.playNative).toHaveBeenCalledWith(SENTENCE, { speed: 0.75 });
+    expect(audio.playNative).toHaveBeenCalledWith(SENTENCE, expect.objectContaining({ speed: 0.75, synthesize: true }));
   });
 
   it('a take is checked in scripted mode as the Lab, and shows "N of M words clear" with a legend — never a 0–100 number', async () => {
@@ -126,7 +126,7 @@ describe('LabPractice', () => {
     expect(audio.playClip).toHaveBeenCalledWith(BLOB, expect.objectContaining({ startS: expect.any(Number), endS: expect.any(Number) }));
     const clip = (audio.playClip.mock.calls[0] as unknown as [Blob, { startS: number; endS: number }])[1];
     expect(clip.startS).toBeCloseTo(0.7 - 0.12, 5);
-    expect(audio.playNative).toHaveBeenLastCalledWith(['les enfants', 'enfants'], { speed: 1 });
+    expect(audio.playNative).toHaveBeenLastCalledWith(['les enfants', 'enfants'], expect.objectContaining({ speed: 1, synthesize: false }));
   });
 
   it('Play both: your whole take, then the native sentence', async () => {
@@ -135,7 +135,7 @@ describe('LabPractice', () => {
     await recordTake(/Tap and say the sentence/);
     await click(screen.getByRole('button', { name: /Play both/ }));
     expect(audio.playClip).toHaveBeenCalledWith(BLOB);
-    expect(audio.playNative).toHaveBeenLastCalledWith(SENTENCE, { speed: 1 });
+    expect(audio.playNative).toHaveBeenLastCalledWith(SENTENCE, expect.objectContaining({ speed: 1, synthesize: true }));
   });
 
   it('focus drill: tip, hear it slowly, record the word alone, a verdict that never says wrong; then the sentence again, first vs best', async () => {
@@ -146,7 +146,7 @@ describe('LabPractice', () => {
 
     expect(screen.getByText('Word 1 of 2', { exact: false })).toBeTruthy();
     await click(screen.getByRole('button', { name: /Hear it slowly/ }));
-    expect(audio.playNative).toHaveBeenLastCalledWith('enfants', { speed: 0.75 });
+    expect(audio.playNative).toHaveBeenLastCalledWith('enfants', expect.objectContaining({ speed: 0.75, synthesize: false }));
 
     assessMock.mockResolvedValueOnce(scripted([azureWord('enfants', 45)]));
     await recordTake(/Tap and say the word/);

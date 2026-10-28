@@ -13,15 +13,27 @@
  * that is part of a liaison passes the two-word group first, then the word);
  * the browser voice reads the first candidate. Recordings exist only for
  * static authored French that the catalogue (`scripts/tts/collectLines.ts`)
- * lists — Stage 4 adds the Lab's lines; until then most text simply falls
- * through to the browser voice (a missing file is remembered, so it is asked
- * for once per session).
+ * lists (Stage 4 added the Lab's lines). A missing file is remembered, so it
+ * is asked for once per session.
+ *
+ * An AI-corrected sentence is never in that catalogue. A caller playing one
+ * passes `synthesize: true` (Stage 4b, owner D2): when no candidate has a
+ * file, the backend is asked once to record the first candidate into the same
+ * bucket (`services/tts/sentenceVoice.ts`, metered there), and the new file is
+ * played; any refusal or failure falls through to the browser voice as before.
+ * Words never opt in — they come from the recorded lexicon.
  *
  * One sound at a time: playing Native stops "▶ You" (`clipPlayer`) and any
  * other speech; `stopNative()` cuts Native off (its call resolves `'stopped'`).
  */
 
-import { primeRecordedAudio, playRecorded, recordedVoicesEnabled } from '../../../services/tts/recordedVoice';
+import {
+  forgetMissingRecording,
+  primeRecordedAudio,
+  playRecorded,
+  recordedVoicesEnabled,
+} from '../../../services/tts/recordedVoice';
+import { requestSentenceRecording } from '../../../services/tts/sentenceVoice';
 import { TTS } from '../../../services/tts/ttsService';
 import { stopClip } from './clipPlayer';
 
@@ -30,6 +42,10 @@ export type NativePlayResult = 'recorded' | 'browser' | 'unavailable' | 'stopped
 export interface PlayNativeOptions {
   /** 1 = normal, 0.75 = slow. Relative to the app's normal speaking rate. */
   speed?: number;
+  /** An AI-written sentence: with no recording, ask the backend to record it (Stage 4b). */
+  synthesize?: boolean;
+  /** Called when the backend is being asked to record it (the play is then a second or two late). */
+  onPreparing?: () => void;
 }
 
 /** `ttsService`'s normal browser rate; `recordedVoice` maps rates relative to it. */
@@ -64,6 +80,18 @@ export async function playNative(text: string | readonly string[], options: Play
       if (mine !== generation) return 'stopped';
       if (result === 'played') return 'recorded';
       if (result === 'stopped') return 'stopped';
+    }
+    if (options.synthesize) {
+      options.onPreparing?.();
+      const ready = await requestSentenceRecording(candidates[0]);
+      if (mine !== generation) return 'stopped';
+      if (ready) {
+        await forgetMissingRecording(candidates[0]);
+        const result = await playRecorded(candidates[0], { rate });
+        if (mine !== generation) return 'stopped';
+        if (result === 'played') return 'recorded';
+        if (result === 'stopped') return 'stopped';
+      }
     }
   }
 
