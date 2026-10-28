@@ -1,0 +1,1268 @@
+{
+ "source": "Phoneme counts per word from real Azure fr-FR pronunciation-assessment replies: french-coach-backend tests/fixtures/exam_pronunciation_calibration/{clear,accented} (Common Voice fr, CC0) and exam_pronunciation_calibration_failed_v1/unclear (the owner's recordings), extracted 2026-10-28. A word maps to every count Azure gave it. Phoneme names were empty in all 1,799 phonemes.",
+ "counts": {
+  "pilote": [
+   6
+  ],
+  "internationalement": [
+   14
+  ],
+  "reconnu": [
+   6
+  ],
+  "il": [
+   2
+  ],
+  "totalise": [
+   8
+  ],
+  "à": [
+   1
+  ],
+  "e4": [
+   6
+  ],
+  "près": [
+   3
+  ],
+  "de": [
+   2,
+   3
+  ],
+  "heure": [
+   3
+  ],
+  "vol": [
+   3
+  ],
+  "et": [
+   1,
+   2,
+   3
+  ],
+  "ils": [
+   2
+  ],
+  "seront": [
+   4
+  ],
+  "des": [
+   2
+  ],
+  "sentiments": [
+   6
+  ],
+  "joie": [
+   3
+  ],
+  "s'ils": [
+   3
+  ],
+  "sont": [
+   2
+  ],
+  "vitaux": [
+   4
+  ],
+  "elle": [
+   2,
+   3
+  ],
+  "s'opère": [
+   5
+  ],
+  "d'après": [
+   5
+  ],
+  "un": [
+   1,
+   2
+  ],
+  "ensemble": [
+   6
+  ],
+  "critères": [
+   6
+  ],
+  "objectifs": [
+   8
+  ],
+  "ou": [
+   1
+  ],
+  "subjectifs": [
+   9
+  ],
+  "a": [
+   1
+  ],
+  "ce": [
+   2
+  ],
+  "stade": [
+   5
+  ],
+  "gouttelettes": [
+   7
+  ],
+  "d'eau": [
+   2
+  ],
+  "liquide": [
+   6
+  ],
+  "se": [
+   2
+  ],
+  "forment": [
+   4
+  ],
+  "d'elle": [
+   3
+  ],
+  "aperçut": [
+   7
+  ],
+  "péqueux": [
+   4
+  ],
+  "mme": [
+   3
+  ],
+  "lebleu": [
+   5
+  ],
+  "qui": [
+   2
+  ],
+  "hochaient": [
+   4
+  ],
+  "également": [
+   6,
+   7
+  ],
+  "la": [
+   2,
+   3
+  ],
+  "tête": [
+   3
+  ],
+  "ces": [
+   2
+  ],
+  "pizzerias": [
+   9
+  ],
+  "pâtisseries": [
+   9
+  ],
+  "cafés": [
+   4
+  ],
+  "barbiers": [
+   6
+  ],
+  "évoquent": [
+   4
+  ],
+  "une": [
+   3
+  ],
+  "rue": [
+   2
+  ],
+  "turque": [
+   4
+  ],
+  "aujourd'hui": [
+   7
+  ],
+  "les": [
+   2
+  ],
+  "assemblées": [
+   7
+  ],
+  "dieu": [
+   3
+  ],
+  "plus": [
+   3,
+   4
+  ],
+  "grande": [
+   5
+  ],
+  "dénomination": [
+   11
+  ],
+  "pentecôtiste": [
+   9
+  ],
+  "dans": [
+   2
+  ],
+  "le": [
+   1,
+   2
+  ],
+  "monde": [
+   3
+  ],
+  "inventaire": [
+   7
+  ],
+  "trop": [
+   3
+  ],
+  "rempli": [
+   5
+  ],
+  "ralentit": [
+   6
+  ],
+  "joueur": [
+   4
+  ],
+  "d'abord": [
+   5
+  ],
+  "remplaçant": [
+   7
+  ],
+  "devient": [
+   5
+  ],
+  "titulaire": [
+   8
+  ],
+  "mi-saison": [
+   6
+  ],
+  "associations": [
+   10
+  ],
+  "lolita": [
+   6
+  ],
+  "créées": [
+   4
+  ],
+  "depuis": [
+   5
+  ],
+  "quelques": [
+   5
+  ],
+  "années": [
+   4
+  ],
+  "en": [
+   1,
+   2
+  ],
+  "france": [
+   4
+  ],
+  "on": [
+   1
+  ],
+  "suppose": [
+   6
+  ],
+  "l'alphabet": [
+   7
+  ],
+  "sous-jacent": [
+   7
+  ],
+  "totalement": [
+   7
+  ],
+  "ordonné": [
+   6
+  ],
+  "cependant": [
+   6
+  ],
+  "malgré": [
+   6
+  ],
+  "gissements": [
+   6
+  ],
+  "phosphate": [
+   6
+  ],
+  "population": [
+   9
+  ],
+  "locale": [
+   6
+  ],
+  "vit": [
+   2
+  ],
+  "extrême": [
+   8
+  ],
+  "pauvreté": [
+   7
+  ],
+  "groupe": [
+   5
+  ],
+  "publie": [
+   5
+  ],
+  "single": [
+   6
+  ],
+  "culmine": [
+   7
+  ],
+  "3ème": [
+   9
+  ],
+  "mainstream": [
+   7
+  ],
+  "rock": [
+   3
+  ],
+  "charts": [
+   5
+  ],
+  "préfixe": [
+   8
+  ],
+  "est": [
+   1
+  ],
+  "présent": [
+   5
+  ],
+  "d'autres": [
+   5
+  ],
+  "langues": [
+   3
+  ],
+  "quelques-uns": [
+   8
+  ],
+  "ses": [
+   2
+  ],
+  "actes": [
+   4
+  ],
+  "quelques-unes": [
+   9
+  ],
+  "aventures": [
+   7
+  ],
+  "fort": [
+   3
+  ],
+  "orage": [
+   4
+  ],
+  "menace": [
+   5
+  ],
+  "bateau": [
+   4
+  ],
+  "capitaine": [
+   8
+  ],
+  "perd": [
+   3
+  ],
+  "tout": [
+   2
+  ],
+  "espoir": [
+   6
+  ],
+  "son": [
+   2
+  ],
+  "principal": [
+   8
+  ],
+  "instrument": [
+   7
+  ],
+  "violon": [
+   5
+  ],
+  "mais": [
+   2
+  ],
+  "pratique": [
+   6
+  ],
+  "saxophone": [
+   9
+  ],
+  "alto": [
+   4
+  ],
+  "autant": [
+   3
+  ],
+  "barbares": [
+   6
+  ],
+  "danois": [
+   5
+  ],
+  "envahissent": [
+   5
+  ],
+  "grande-bretagne": [
+   11
+  ],
+  "croyances": [
+   7
+  ],
+  "énoncées": [
+   5
+  ],
+  "ci-après": [
+   7
+  ],
+  "exposent": [
+   6
+  ],
+  "manière": [
+   7
+  ],
+  "dont": [
+   2
+  ],
+  "l'église": [
+   7
+  ],
+  "conçoit": [
+   5
+  ],
+  "exprime": [
+   8
+  ],
+  "l'enseignement": [
+   8
+  ],
+  "biblique": [
+   6
+  ],
+  "siège": [
+   5
+  ],
+  "situé": [
+   5
+  ],
+  "roubaix": [
+   4
+  ],
+  "laetitia": [
+   7
+  ],
+  "roux": [
+   2
+  ],
+  "l'une": [
+   3
+  ],
+  "athlètes": [
+   6
+  ],
+  "titrées": [
+   6
+  ],
+  "au": [
+   1
+  ],
+  "sport": [
+   4
+  ],
+  "confondu": [
+   6
+  ],
+  "ballet": [
+   4
+  ],
+  "théâtral": [
+   7
+  ],
+  "créé": [
+   3
+  ],
+  "l'opéra": [
+   6
+  ],
+  "paris": [
+   4,
+   5
+  ],
+  "pour": [
+   3
+  ],
+  "trois": [
+   4
+  ],
+  "représentations": [
+   12
+  ],
+  "l'existence": [
+   9
+  ],
+  "budgets": [
+   5
+  ],
+  "annexes": [
+   5
+  ],
+  "porte": [
+   5
+  ],
+  "atteinte": [
+   4
+  ],
+  "l'intégrité": [
+   9
+  ],
+  "du": [
+   2,
+   3
+  ],
+  "principe": [
+   7
+  ],
+  "d'unité": [
+   6
+  ],
+  "budgétaire": [
+   8
+  ],
+  "ont": [
+   1,
+   2
+  ],
+  "objectif": [
+   8
+  ],
+  "d'améliorer": [
+   9
+  ],
+  "productivité": [
+   12
+  ],
+  "développement": [
+   10
+  ],
+  "produits": [
+   6
+  ],
+  "innovants": [
+   6
+  ],
+  "gagnants": [
+   4
+  ],
+  "demi-finale": [
+   10
+  ],
+  "contre": [
+   4
+  ],
+  "deux": [
+   2
+  ],
+  "premiers": [
+   6
+  ],
+  "saison": [
+   4
+  ],
+  "régulière": [
+   8
+  ],
+  "gardien": [
+   6
+  ],
+  "vaxjoe": [
+   6
+  ],
+  "lakers": [
+   6
+  ],
+  "l'élite": [
+   5
+  ],
+  "sérienne": [
+   6
+  ],
+  "autre": [
+   4
+  ],
+  "classe": [
+   5
+  ],
+  "mouilleurs": [
+   6
+  ],
+  "reprend": [
+   5
+  ],
+  "nom": [
+   2
+  ],
+  "station": [
+   6
+  ],
+  "entourée": [
+   5
+  ],
+  "d'une": [
+   3
+  ],
+  "cèdreille": [
+   6
+  ],
+  "s'entend": [
+   5
+  ],
+  "jusqu'à": [
+   5
+  ],
+  "province": [
+   6
+  ],
+  "kénifra": [
+   7
+  ],
+  "terminant": [
+   7
+  ],
+  "l'aide": [
+   3,
+   4
+  ],
+  "classement": [
+   7
+  ],
+  "descente": [
+   5
+  ],
+  "prend": [
+   3
+  ],
+  "général": [
+   7
+  ],
+  "barbara": [
+   7
+  ],
+  "fral": [
+   4
+  ],
+  "l'origine": [
+   8
+  ],
+  "découverte": [
+   9
+  ],
+  "parchemin": [
+   7
+  ],
+  "chinon": [
+   5
+  ],
+  "route": [
+   4
+  ],
+  "sera": [
+   4
+  ],
+  "bétonnée": [
+   6
+  ],
+  "semaine": [
+   4
+  ],
+  "prochaine": [
+   7
+  ],
+  "pendant": [
+   4
+  ],
+  "derniers": [
+   6
+  ],
+  "jours": [
+   3
+  ],
+  "mois": [
+   3
+  ],
+  "temps": [
+   2
+  ],
+  "fut": [
+   2
+  ],
+  "extrêmement": [
+   10
+  ],
+  "mauvais": [
+   4
+  ],
+  "retrouve": [
+   7
+  ],
+  "premier": [
+   6
+  ],
+  "mari": [
+   4
+  ],
+  "tué": [
+   3
+  ],
+  "guerre": [
+   3
+  ],
+  "nous": [
+   2
+  ],
+  "leur": [
+   3
+  ],
+  "avons": [
+   3
+  ],
+  "montré": [
+   5
+  ],
+  "chemin": [
+   4
+  ],
+  "moiré": [
+   5
+  ],
+  "polaire": [
+   5
+  ],
+  "nomme": [
+   4
+  ],
+  "arctic": [
+   5
+  ],
+  "woodlands": [
+   5
+  ],
+  "ringlet": [
+   6
+  ],
+  "anglais": [
+   5
+  ],
+  "rappelait": [
+   6
+  ],
+  "encore": [
+   4
+  ],
+  "héroïsmes": [
+   7
+  ],
+  "vieillard": [
+   6
+  ],
+  "fritillant": [
+   7
+  ],
+  "je": [
+   2
+  ],
+  "vous": [
+   2
+  ],
+  "laisse": [
+   4
+  ],
+  "calculer": [
+   7
+  ],
+  "que": [
+   2
+  ],
+  "cela": [
+   4
+  ],
+  "représente": [
+   8
+  ],
+  "c'est": [
+   2
+  ],
+  "astronomique": [
+   10
+  ],
+  "20": [
+   2,
+   3
+  ],
+  "docteur": [
+   6
+  ],
+  "boulet": [
+   4
+  ],
+  "61": [
+   9
+  ],
+  "290": [
+   15
+  ],
+  "longnit": [
+   4
+  ],
+  "aux": [
+   1
+  ],
+  "perches": [
+   4
+  ],
+  "successeur": [
+   8
+  ],
+  "bénédictin": [
+   9
+  ],
+  "urbain": [
+   4
+  ],
+  "v": [
+   2
+  ],
+  "maintient": [
+   5
+  ],
+  "l'excommunication": [
+   16
+  ],
+  "envoie": [
+   4
+  ],
+  "légat": [
+   4
+  ],
+  "corse": [
+   4
+  ],
+  "appareils": [
+   7
+  ],
+  "géniteux": [
+   7
+  ],
+  "diffèrent": [
+   5
+  ],
+  "notablement": [
+   9
+  ],
+  "comme": [
+   4
+  ],
+  "autres": [
+   4
+  ],
+  "espèces": [
+   6
+  ],
+  "vivantes": [
+   5
+  ],
+  "l'airc": [
+   4
+  ],
+  "mange": [
+   4
+  ],
+  "pain": [
+   2
+  ],
+  "matin": [
+   5
+  ],
+  "s'enchaîne": [
+   5
+  ],
+  "boit": [
+   3
+  ],
+  "vin": [
+   3
+  ],
+  "blanc": [
+   4
+  ],
+  "j'ai": [
+   2
+  ],
+  "douche": [
+   4
+  ],
+  "m'ose": [
+   3
+  ],
+  "pas": [
+   2
+  ],
+  "aimez": [
+   4
+  ],
+  "chocolat": [
+   6
+  ],
+  "l'eclair": [
+   5
+  ],
+  "mangeant": [
+   4
+  ],
+  "midi": [
+   4
+  ],
+  "doit": [
+   3
+  ],
+  "vent": [
+   2
+  ],
+  "blanche": [
+   4
+  ],
+  "beau": [
+   2
+  ],
+  "film": [
+   4
+  ],
+  "bon": [
+   3
+  ],
+  "chien": [
+   4
+  ],
+  "mangé": [
+   4
+  ],
+  "gâteau": [
+   4
+  ],
+  "ça": [
+   2
+  ],
+  "monge": [
+   3
+  ],
+  "possède": [
+   6
+  ],
+  "riche": [
+   4
+  ],
+  "mobilier": [
+   7
+  ],
+  "certains": [
+   5
+  ],
+  "éléments": [
+   6
+  ],
+  "l'œuvre": [
+   4
+  ],
+  "sculpteur": [
+   7
+  ],
+  "auguste": [
+   6
+  ],
+  "fauconnet": [
+   6
+  ],
+  "tablettes": [
+   6
+  ],
+  "aussi": [
+   3
+  ],
+  "été": [
+   3
+  ],
+  "retrouvées": [
+   7
+  ],
+  "décrivant": [
+   7
+  ],
+  "algorithmes": [
+   9
+  ],
+  "résoudre": [
+   6
+  ],
+  "problèmes": [
+   7
+  ],
+  "complexes": [
+   7
+  ],
+  "n'est": [
+   2
+  ],
+  "apparue": [
+   5
+  ],
+  "dessin": [
+   4
+  ],
+  "animé": [
+   5
+  ],
+  "toutefois": [
+   7
+  ],
+  "boulashia": [
+   7
+  ],
+  "ne": [
+   2
+  ],
+  "prêche": [
+   5
+  ],
+  "négation": [
+   7
+  ],
+  "complète": [
+   7
+  ],
+  "corps": [
+   3
+  ],
+  "sonne": [
+   4
+  ],
+  "lève": [
+   4
+  ],
+  "conduit": [
+   5
+  ],
+  "rédaction": [
+   8
+  ],
+  "d'un": [
+   2
+  ],
+  "rapport": [
+   5
+  ],
+  "pages": [
+   4
+  ],
+  "présenté": [
+   7
+  ],
+  "jury": [
+   4
+  ],
+  "sangle": [
+   5
+  ],
+  "apportant": [
+   6
+  ],
+  "même": [
+   3
+  ],
+  "existe": [
+   6
+  ],
+  "métiers": [
+   5
+  ],
+  "numéro": [
+   6
+  ],
+  "23": [
+   7
+  ],
+  "traduits": [
+   6
+  ],
+  "russe": [
+   3
+  ],
+  "slovaque": [
+   6
+  ],
+  "chenis": [
+   5
+  ],
+  "observé": [
+   7
+  ],
+  "méhaut": [
+   4
+  ],
+  "vais": [
+   2
+  ],
+  "manger": [
+   4
+  ],
+  "car": [
+   3
+  ],
+  "faim": [
+   2
+  ],
+  "viendra": [
+   6
+  ],
+  "probablement": [
+   10
+  ],
+  "tard": [
+   3
+  ],
+  "s'installe": [
+   6
+  ],
+  "ensuite": [
+   6
+  ],
+  "après": [
+   4
+  ],
+  "mariage": [
+   6
+  ],
+  "cracovit": [
+   7
+  ],
+  "champs": [
+   2
+  ],
+  "géothermiques": [
+   10
+  ],
+  "associés": [
+   7
+  ],
+  "avec": [
+   4
+  ],
+  "volcanisme": [
+   9
+  ],
+  "réolithique": [
+   8
+  ],
+  "jeune": [
+   4
+  ],
+  "actif": [
+   5
+  ],
+  "dès": [
+   2
+  ],
+  "sa": [
+   2
+  ],
+  "sortie": [
+   5
+  ],
+  "suscite": [
+   6
+  ],
+  "débat": [
+   4
+  ],
+  "beau-père": [
+   6
+  ],
+  "d'étienne": [
+   6
+  ],
+  "marcelle": [
+   6
+  ],
+  "prévôt": [
+   6
+  ],
+  "marchands": [
+   5
+  ],
+  "grandit": [
+   5
+  ],
+  "d'yobon": [
+   6
+  ],
+  "michigan": [
+   7
+  ],
+  "fait": [
+   2
+  ],
+  "face": [
+   4
+  ],
+  "l'île": [
+   4
+  ],
+  "sao-georges": [
+   7
+  ],
+  "envoyé": [
+   6
+  ],
+  "gallipoli": [
+   8
+  ],
+  "diriger": [
+   6
+  ],
+  "retraite": [
+   7
+  ],
+  "troupes": [
+   4
+  ],
+  "alliées": [
+   4
+  ],
+  "enterré": [
+   5
+  ],
+  "thion": [
+   4
+  ]
+ }
+}

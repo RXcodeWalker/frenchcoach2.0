@@ -1,6 +1,35 @@
 # Pronunciation Lab: implementation plan
 
-Status: **plan only** (2026-10-28). Nothing built. Owner decisions (2026-10-28): D1 drop, D2 yes (Stage 4b), D4 no XP, D5 no 0–100 number. D3: 30 Lab takes per account per day; Azure monthly cap = the F0 free allowance.
+Status: **Stage 1 built** (2026-10-28); Stages 2–7 not started. Owner decisions (2026-10-28): D1 drop, D2 yes (Stage 4b), D4 no XP, D5 no 0–100 number. D3: 30 Lab takes per account per day; Azure monthly cap = the F0 free allowance.
+
+Stage 1 (frontend only; no backend change, no UI, nothing reads the flag yet):
+- `src/domain/pronunciation/lab/`: `wordStates.ts` (`buildLabTake` → per-word state on the target sentence, "N of M clear"
+  counts, `drillVerdict`), `soundFamilies.ts` (12 families, `IPA_TO_FAMILY`, `wordFamilyObservations`, `familyStatuses`),
+  `graphemes.ts` (French spelling → expected phonemes), `textFeatures.ts` (`watchOutFor`, `tokenizeSentence`),
+  `focusWords.ts`, `takeFamilies.ts` (`takeObservations` — what `labStore` should keep per take), `takeCompare.ts`,
+  `clipWindows.ts`, `thresholds.ts` (`LAB_THRESHOLDS_VERSION`, hash-pinned), `types.ts`. Pure: ESLint block +
+  `labIsolation.test.ts`. `tips.ts` (§4) is **not** built — Stage 2's focus drill needs it.
+- `src/features/pronunciation/audio/clipPlayer.ts` (promoted `playClip.ts`; the exam imports it back; adds whole-recording
+  play and a 0.5–1.5 rate) and `nativeVoice.ts` (`playNative`: recording → French browser voice → `'unavailable'`).
+- Flag `pronunciationLab: 'coming-soon'`.
+
+What the next stages need to know:
+- **fr-FR Azure returns phoneme accuracies but empty phoneme names** (all 1,799 phonemes in the calibration fixtures), so
+  §4's "IPA phoneme → family" can't read Azure's names. `graphemes.ts` predicts each word's phonemes from its spelling and
+  `soundFamilies.ts` attributes a phoneme only when the counts match and every matching reading agrees on that position
+  (else one word-level observation if the word has exactly one family, else nothing). Agreement with real Azure counts is
+  0.94 (`__tests__/fixtures/azureFrPhonemeCounts.json`, floor 0.90 in the test). In the owner's recordings Azure sometimes
+  scores a nasal vowel as two segments with a low second one (a sounded n); that reading is allowed and counts for the nasal.
+- `buildLabTake` requires `assessment.mode === 'scripted'` on the response and `provider === 'azure'`; anything else is all
+  `unknown`. Stage 2 must send `mode: 'scripted'` and `usageSource: 'lab'`.
+- `playText` from `watchOutFor`/`soundFeatures` is the normalised lowercase word (or "les enfants"); `voiceKey` hashes case,
+  so Stage 4's lexicon must record exactly those strings.
+- `clipPlayer.playClip` now resolves when cut off by another clip or `stopClip()` (before, its promise never settled), so
+  "play You then Native" can be sequenced; `playNative` stops "▶ You" itself. Stage 2 should call `stopClip`/`stopNative`
+  on unmount.
+- `clipWindow` takes the upload's trim map when the Lab trims silence before upload (Say-It-Again doesn't today); without
+  one, Azure offsets are used as recording time.
+- `focusWords` returns `emphasis: 'offer'` for one low word in an otherwise clear take — the UI should offer, not insist.
 Branch: `claude/nifty-edison-xhbf2a` (both repos).
 
 ## 1. Why the current feature isn't useful (diagnosis, not taste)

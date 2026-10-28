@@ -34,6 +34,10 @@ export const FEATURE_FLAGS = {
   // inaccurate, as long as there is no bug"); see verification-log.md.
   // Rollback: set back to 'coming-soon'.
   learnMarkingLevels: 'live',
+  // docs/plans/pronunciation-lab.md — the Pronunciation Lab. Off = today's
+  // pronunciation cards (the rollback). Goes 'live' only after the plan's §7
+  // calibration gate passes.
+  pronunciationLab: 'coming-soon',
 }satisfies Record<string, FeatureStatus>;
 
 export type FeatureFlagKey = keyof typeof FEATURE_FLAGS;

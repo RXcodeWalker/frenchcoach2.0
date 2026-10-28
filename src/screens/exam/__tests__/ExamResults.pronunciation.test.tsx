@@ -36,7 +36,7 @@ vi.mock('../../../services/tts/ttsService', () => ({
 }));
 
 const clips = vi.hoisted(() => ({ canPlay: true, play: vi.fn(async () => true), stop: vi.fn() }));
-vi.mock('../../../features/exam/pronunciation/playClip', () => ({
+vi.mock('../../../features/pronunciation/audio/clipPlayer', () => ({
   canPlayClips: () => clips.canPlay,
   playClip: clips.play,
   stopClip: clips.stop,

@@ -234,7 +234,8 @@ for this feature, so no engine `version.ts` bump is due and `session-engine-v4` 
 
 - Intonation cannot be measured for fr-FR (prosody and phoneme names are en-US only in Azure), so
   nothing here claims to assess it; the report says nothing about it.
-- "You" playback (Web Audio) has no automated test of its own, and no one has yet heard a clip.
+- "You" playback (Web Audio, `src/features/pronunciation/audio/clipPlayer.ts` since Pronunciation Lab Stage 1)
+  is unit-tested against a fake `AudioContext` only, and no one has yet heard a clip.
 - The deployed Vercel proxy's timeout and body limits for external rewrites were not verified; the
   one-turn-per-request design avoids depending on them.
 - Several Azure facts are assumed, not verified (F0's monthly hours, behaviour at the limit, S0

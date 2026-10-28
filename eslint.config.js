@@ -172,6 +172,34 @@ export default tseslint.config(
     },
   },
   {
+    // The Pronunciation Lab's domain is pure (docs/plans/pronunciation-lab.md
+    // §4): no app layers, nothing from the Cambridge engine or exam feedback,
+    // and from exam pronunciation only the trim map and the word normaliser.
+    files: ['src/domain/pronunciation/lab/**/*.ts'],
+    ignores: ['**/__tests__/**'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['**/services/**', '**/screens/**', '**/features/**', '**/components/**', '**/lib/**', '**/context/**'],
+              message: 'domain/pronunciation/lab/ is pure: no app-layer imports (pronunciation-lab plan §4).',
+            },
+            {
+              group: ['**/igcse/**', '**/examFeedback/**'],
+              message: 'The Pronunciation Lab never touches marking: no Cambridge engine or exam-feedback imports (pronunciation-lab plan §2).',
+            },
+            {
+              group: ['**/examPronunciation/*', '!**/examPronunciation/trim', '!**/examPronunciation/fairness'],
+              message: 'domain/pronunciation/lab/ may import only trim (the trim map) and fairness (normalizeWord) from exam pronunciation.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     // The shared helpers are pure: they import only the text normalizer,
     // isQuoteGrounded and the sound-alike tables / the marker's text projection
     // (igcse/stt/homophones, igcse/stt/project/spokenText — stage 7) from the

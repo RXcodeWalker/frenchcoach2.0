@@ -15,7 +15,7 @@ import {
   PRONUNCIATION_STATE_MESSAGE,
   RETRY_BUTTON_LABEL,
 } from './messages';
-import { canPlayClips, playClip, stopClip } from './playClip';
+import { canPlayClips, playClip, stopClip } from '../../pronunciation/audio/clipPlayer';
 import type { UseExamPronunciation } from './useExamPronunciation';
 
 /**
@@ -73,7 +73,8 @@ function WordPanel({
     setPlaying('you');
     const ok = await playClip(recording, word.clip);
     if (!ok) setYouUnavailable(true);
-    setPlaying(null);
+    // A clip cut off by "▶ Model" resolves too: don't clear the model's indicator.
+    setPlaying((p) => (p === 'you' ? null : p));
   };
   const playModel = async () => {
     stopClip();
