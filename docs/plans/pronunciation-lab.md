@@ -198,19 +198,20 @@ liaison `inferred`) — they appear in guides and "watch out for", never in "You
 
 ## 6. Stages
 
+Run order 1 → 2 → 3 → 4 → 4b → 5 → 6 → 7; Stage 7 may ship with Stage 2. Stage 4b (§9 D2): cached Azure TTS endpoint for AI-corrected sentences, BE + FE, size M.
 Each stage: typecheck, the touched tests, lint, then commit + push. Frontend stages also run the
 full `npm test` (backend present).
 
-| Stage | Scope | Repo | Size |
-|---|---|---|---|
-| **1. Foundations** | `domain/pronunciation/lab/*` with tests (word states, families + IPA table, text rules, focus words, take compare, clip windows), `clipPlayer` promotion, `nativeVoice`, flag. No UI. | FE | M |
-| **2. Lab practice flow** | `LabPractice` replaces `SayItAgainCard` behind the flag; first/best take; focus-word drill; analytics (§8). | FE | L |
-| **3. "How it sounded"** | New Learn answer card; delete the three old cards + allowlist/fence when the flag is removed; D1 applied. | FE (+BE if D1 = drop) | M |
-| **4. Native audio coverage** | Catalogue model answers, lexicon, minimal pairs; `catalogueCoverage` test extended; one recording run. | FE + workflow | S |
-| **5. Lab home** | `/learn/sounds`: Your sounds, guide, ear training, tricky words, practise a sentence; `labStore`. Learn hub entry. | FE | L |
-| **6. Progress + monthly check** | Benchmark sentences, monthly check, Progress card. | FE | M |
-| **7. Allowance** | `pronunciation_lab` quota row + allowance endpoint + UI counter. Can ship with Stage 2 if usage is a worry. | BE + FE | S |
-| **Gate** | §7 calibration before the flag goes `live` for everyone. | owner + FE | — |
+| Stage | Scope | Repo | Size | Model, effort |
+|---|---|---|---|---|
+| **1. Foundations** | `domain/pronunciation/lab/*` with tests (word states, families + IPA table, text rules, focus words, take compare, clip windows), `clipPlayer` promotion, `nativeVoice`, flag. No UI. | FE | M | Opus 5.5, high |
+| **2. Lab practice flow** | `LabPractice` replaces `SayItAgainCard` behind the flag; first/best take; focus-word drill; analytics (§8). | FE | L | Opus 5.5, high |
+| **3. "How it sounded"** | New Learn answer card; delete the three old cards + allowlist/fence when the flag is removed; D1 applied. | FE (+BE if D1 = drop) | M | Opus 5.5, medium |
+| **4. Native audio coverage** | Catalogue model answers, lexicon, minimal pairs; `catalogueCoverage` test extended; one recording run. | FE + workflow | S | Sonnet 5.5, medium (4b endpoint: Opus 5.5, high) |
+| **5. Lab home** | `/learn/sounds`: Your sounds, guide, ear training, tricky words, practise a sentence; `labStore`. Learn hub entry. | FE | L | Opus 5.5, high |
+| **6. Progress + monthly check** | Benchmark sentences, monthly check, Progress card. | FE | M | Sonnet 5.5, high |
+| **7. Allowance** | `pronunciation_lab` quota row + allowance endpoint + UI counter. Can ship with Stage 2 if usage is a worry. | BE + FE | S | Sonnet 5.5, medium |
+| **Gate** | §7 calibration before the flag goes `live` for everyone. | owner + FE | — | Opus 5.5, high |
 
 Later, optional: intonation overlay (pitch contour of You vs Native, drawn only, no verdict);
 "practise the words from your exam" link from the exam report into the Lab.
