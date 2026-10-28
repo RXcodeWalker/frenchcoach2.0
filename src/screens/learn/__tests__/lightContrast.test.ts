@@ -23,6 +23,8 @@ const SCAN_ROOTS = [
   'src/features/feedback',
   'src/features/learn',
   'src/features/notebook',
+  // The Pronunciation Lab (pronunciation-lab plan §4): no allowlist entry, ever.
+  'src/features/pronunciation',
   'src/screens/Notebook.tsx',
   'src/screens/Learn.tsx',
   'src/components/ui/MicroDrillModal.tsx',

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { soundFeatures, tokenizeSentence, watchOutFor } from '../textFeatures';
+import { soundFeatures, tokenizeSentence, watchOutFor, wordPlayTexts } from '../textFeatures';
 
 function underlined(sentence: string, feature: ReturnType<typeof soundFeatures>[number]): string[] {
   const tokens = tokenizeSentence(sentence);
@@ -69,5 +69,21 @@ describe('watchOutFor', () => {
 
   it('is empty for a sentence with nothing to flag', () => {
     expect(watchOutFor('Papa a la pomme.')).toEqual([]);
+  });
+});
+
+describe('wordPlayTexts', () => {
+  it('plays the normalised word', () => {
+    expect(wordPlayTexts('Mon frère est grand.', 3)).toEqual(['grand']);
+  });
+
+  it('puts the liaison group first for both words of a liaison', () => {
+    expect(wordPlayTexts('Les enfants jouent.', 0)).toEqual(['les enfants', 'les']);
+    expect(wordPlayTexts('Les enfants jouent.', 1)).toEqual(['les enfants', 'enfants']);
+    expect(wordPlayTexts('Les enfants jouent.', 2)).toEqual(['jouent']);
+  });
+
+  it('gives nothing outside the sentence', () => {
+    expect(wordPlayTexts('Bonjour.', 4)).toEqual([]);
   });
 });

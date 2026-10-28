@@ -159,3 +159,19 @@ export function watchOutFor(sentence: string, max: number = LAB_THRESHOLDS.watch
   }
   return chosen.sort((a, b) => a.tokenIndex - b.tokenIndex);
 }
+
+/**
+ * What "▶ Native" plays for one word of the sentence (plan §4.2): the
+ * normalised word, preceded by its two-word liaison group when the word is
+ * part of a liaison (a word recorded alone loses the liaison). These are the
+ * same strings `soundFeatures` uses as `playText`, so one recorded lexicon
+ * (Stage 4) covers both. Empty for an index outside the sentence.
+ */
+export function wordPlayTexts(sentence: string, tokenIndex: number): string[] {
+  const token = tokenizeSentence(sentence)[tokenIndex];
+  if (!token) return [];
+  const liaison = soundFeatures(sentence).find(
+    (f) => f.family === 'liaison' && (f.tokenIndex === tokenIndex || f.endTokenIndex === tokenIndex),
+  );
+  return liaison ? [liaison.playText, token.norm] : [token.norm];
+}

@@ -36,13 +36,15 @@ const provider = createHttpPronunciationProvider(API_BASE, getAuthToken);
 /**
  * Telemetry `source` -> the backend's Azure usage-ledger source
  * (azure_speech_usage.source). Attribution only. Learn's Say-It-Again
- * practice step counts as Learn; an unknown screen sends nothing and the
- * backend infers it.
+ * practice step counts as Learn; the Pronunciation Lab (which replaces it
+ * behind the `pronunciationLab` flag) counts as the Lab; an unknown screen
+ * sends nothing and the backend infers it.
  */
 const USAGE_SOURCE: Record<string, PronunciationUsageSource> = {
   learn: 'learn',
   learn_practice: 'learn',
   accent_analyzer: 'lab',
+  pronunciation_lab: 'lab',
   shadowing: 'shadowing',
 };
 

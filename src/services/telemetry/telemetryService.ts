@@ -270,6 +270,26 @@ interface NotebookSavedProps {
   topic_key: string;
 }
 
+// Pronunciation Lab (docs/plans/pronunciation-lab.md §8). Counts and enums
+// only — never the sentence, a word, a transcript or audio.
+interface LabOpenedProps {
+  /** Where the Lab was opened from. */
+  entry: 'learn_feedback';
+}
+
+interface LabTakeProps {
+  /** "N of M words clear" for one whole-sentence take. */
+  words_clear: number;
+  words_total: number;
+  /** 1 = the first take of this sentence in this sitting. */
+  take_index: number;
+}
+
+interface LabFocusWordUsedProps {
+  /** The first drill result for this focus word. */
+  verdict: 'clear' | 'almost' | 'tryAgain' | 'unknown';
+}
+
 interface LearnSessionCompletedProps {
   topic_key: string;
   questions_answered: number;
@@ -390,6 +410,9 @@ export type TelemetryEvent =
   | { name: 'second_take_used';        props: NoProps }
   | { name: 'followup_answered';       props: FollowupAnsweredProps }
   | { name: 'notebook_saved';          props: NotebookSavedProps }
+  | { name: 'lab_opened';              props: LabOpenedProps }
+  | { name: 'lab_take';                props: LabTakeProps }
+  | { name: 'lab_focus_word_used';     props: LabFocusWordUsedProps }
   | { name: 'learn_session_completed'; props: LearnSessionCompletedProps }
   | { name: 'learn_session_abandoned'; props: LearnSessionAbandonedProps }
   | { name: 'exam_started';            props: ExamStartedProps }
@@ -456,6 +479,9 @@ const DECLARED_PROPS = {
   second_take_used: [],
   followup_answered: ['style'],
   notebook_saved: ['topic_key'],
+  lab_opened: ['entry'],
+  lab_take: ['words_clear', 'words_total', 'take_index'],
+  lab_focus_word_used: ['verdict'],
   learn_session_completed: ['topic_key', 'questions_answered', 'avg_score', 'duration_ms', 'ended_early'],
   learn_session_abandoned: ['topic_key', 'questions_answered', 'last_step', 'elapsed_ms'],
   exam_started: ['mode', 'entry'],
@@ -490,7 +516,8 @@ void _allPropsDeclared;
  * the rest repeat what a PostHog event already says: session_completed and
  * feedback_received (feedback_shown, learn_session_completed, exam_completed),
  * pronunciation_assessed (failures still go via pronunciation_assessment_failed),
- * exam_pronunciation_audio_measured (one per exam turn, admin-only feature).
+ * exam_pronunciation_audio_measured (one per exam turn, admin-only feature),
+ * lab_take (one per Pronunciation Lab take — up to four a sitting).
  * Remove a name here to send it again.
  */
 const BREADCRUMB_ONLY: ReadonlySet<TelemetryEventName> = new Set<TelemetryEventName>([
@@ -500,6 +527,7 @@ const BREADCRUMB_ONLY: ReadonlySet<TelemetryEventName> = new Set<TelemetryEventN
   'feedback_received',
   'pronunciation_assessed',
   'exam_pronunciation_audio_measured',
+  'lab_take',
 ]);
 
 /** A string property longer than this is dropped (a transcript or answer must never ride along). */

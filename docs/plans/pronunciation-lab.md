@@ -1,6 +1,6 @@
 # Pronunciation Lab: implementation plan
 
-Status: **Stage 1 built** (2026-10-28); Stages 2–7 not started. Owner decisions (2026-10-28): D1 drop, D2 yes (Stage 4b), D4 no XP, D5 no 0–100 number. D3: 30 Lab takes per account per day; Azure monthly cap = the F0 free allowance.
+Status: **Stages 1–2 built** (2026-10-28); Stages 3–7 not started. Owner decisions (2026-10-28): D1 drop, D2 yes (Stage 4b), D4 no XP, D5 no 0–100 number. D3: 30 Lab takes per account per day; Azure monthly cap = the F0 free allowance.
 
 Stage 1 (frontend only; no backend change, no UI, nothing reads the flag yet):
 - `src/domain/pronunciation/lab/`: `wordStates.ts` (`buildLabTake` → per-word state on the target sentence, "N of M clear"
@@ -8,12 +8,61 @@ Stage 1 (frontend only; no backend change, no UI, nothing reads the flag yet):
   `graphemes.ts` (French spelling → expected phonemes), `textFeatures.ts` (`watchOutFor`, `tokenizeSentence`),
   `focusWords.ts`, `takeFamilies.ts` (`takeObservations` — what `labStore` should keep per take), `takeCompare.ts`,
   `clipWindows.ts`, `thresholds.ts` (`LAB_THRESHOLDS_VERSION`, hash-pinned), `types.ts`. Pure: ESLint block +
-  `labIsolation.test.ts`. `tips.ts` (§4) is **not** built — Stage 2's focus drill needs it.
+  `labIsolation.test.ts`. `tips.ts` (§4) was built in Stage 2.
 - `src/features/pronunciation/audio/clipPlayer.ts` (promoted `playClip.ts`; the exam imports it back; adds whole-recording
   play and a 0.5–1.5 rate) and `nativeVoice.ts` (`playNative`: recording → French browser voice → `'unavailable'`).
 - Flag `pronunciationLab: 'coming-soon'`.
 
+Stage 2 (frontend only; no backend change — `/api/pronunciation` already accepts `source=lab`):
+- `src/features/pronunciation/LabPractice.tsx` — the §3.2 flow. With `pronunciationLab` live, Learn's practice step
+  (`Learn.tsx`, same eligibility and once-per-session budget as Say-It-Again) renders it instead of `SayItAgainCard`;
+  flag off is exactly the old card (the rollback). Try it on any device with `?ff_pronunciationLab=live` (persisted to
+  localStorage; `?ff_pronunciationLab=coming-soon` undoes it).
+  - **Listen:** the sentence (each word taps to play alone; `watchOutFor` letters dotted-underlined), ▶ Listen, ▶ Slowly (0.75).
+  - **Say it / Compare:** one take → `assessPronunciation({ mode: 'scripted', source: 'pronunciation_lab' })` →
+    `buildLabTake` → "N of M words clear", word chips (glyph + role-token tint; label in the chip's accessible name and
+    the always-visible legend), tap a word = ▶ You (that word's `clipWindow` of this take's in-memory blob) then ▶ Native
+    (`wordPlayTexts`: liaison group first), ▶ Play both (whole take, then the native sentence). A refused take (not Azure,
+    couldn't assess) shows the words plain, "Listen back", and a notice — never states.
+  - **Focus:** `chooseFocusWords` (≤ 2; `emphasis: 'offer'` → a secondary "Practise it" button, `'suggest'` → primary);
+    per word: family name + `tipFor`, ▶ Hear it slowly, ▶ Your take, record the word alone (scripted, target = the
+    normalised word) → `drillVerdict` → Clear / Almost / Try again; then "Say the whole sentence again" and first vs best
+    ("First take 4 → best 6 of 6 words clear").
+  - Caps per sitting (product decisions, not thresholds — `labPracticeState.ts`): `MAX_SENTENCE_TAKES` 4,
+    `MAX_WORD_TAKES` 3 per focus word. The D3 30-a-day account allowance is still Stage 7.
+  - Never a trap: Done is always on screen; mic unavailable / nothing captured / check failed / too short / no word check
+    are notices; consent (`ConsentRequiredError`) and sign-in (`AuthRequiredError`) end the flow with Continue. The record
+    controls are wrapped in `SpeakingConsentGate` (Say-It-Again's weren't).
+  - No XP, Session, mastery, review, evidence (`pron:*` bridge not used) or storage writes; recordings are blobs in a ref.
+- `labPracticeState.ts` (pure reducer: steps, caps, never-trap rules) and `labCopy.ts` (all wording: state labels,
+  legend, headline, first-vs-best, notices, drill verdicts, focus lead) — tested on their own.
+- `domain/pronunciation/lab/tips.ts` — `SOUND_TIPS` (all 12 families: name, mouth tip, 4–6 examples, minimal pair or
+  null) and `tipFor(family, word)` (U vs OU picks the half the word spells; null family → `GENERAL_TIP`). Tests check
+  every scored-family example really contains its family per `graphemes.ts`.
+- `domain/pronunciation/lab/textFeatures.ts` gained `wordPlayTexts(sentence, tokenIndex)`.
+- `features/recording/LevelBars.tsx` — the `record` motion, moved out of `screens/learn/RecordingPanel.tsx` (which imports it).
+- Analytics (§8): `lab_opened {entry: 'learn_feedback'}`, `lab_take {words_clear, words_total, take_index}`
+  (breadcrumb-only), `lab_focus_word_used {verdict}` (once per focus word, first drill result).
+  `ear_training_round` and `monthly_check_done` are declared by Stages 5–6. `practice_step_shown` still fires from
+  Learn; `practice_step_completed` does not fire from the Lab (its pass/no-verdict outcome is Say-It-Again's score rule).
+- `lightContrast.test.ts` now scans `src/features/pronunciation/` (no allowlist entry); `labDesignRules.test.ts` bans
+  text under 12px, hover motion, pulses, gradients, glows.
+
 What the next stages need to know:
+- **Stage 3** ("How it sounded"): open the Lab on a sentence by rendering `<LabPractice targetSentence entry onDone />`;
+  add a new `entry` value to `LabOpenedProps` in `telemetryService.ts` (it is a closed enum). The old cards
+  (`AzurePronunciationCard`, `PronunciationCard`, `PronunciationHeatMap`), their lightContrast allowlist entries and
+  `FeedbackExperience`'s `lint:pronunciation-*` fence are still there; `SayItAgainCard` stays as the flag-off path
+  until the flag is removed.
+- **Stage 5** (Lab home): `LabPractice` is self-contained (no Learn state), so the home's "Practise a sentence" can
+  reuse it as is; take history for `labStore` should come from `takeObservations(take)` — add an `onTake` callback
+  prop to `LabPractice` then (none exists yet, on purpose: Stage 2 stores nothing).
+- **Stage 4**: the strings ▶ Native asks for are the sentence as written, `wordPlayTexts` (normalised word / liaison
+  group), the focus word's normalised text (slow), and `SOUND_TIPS` examples/minimal pairs as written.
+- **Stage 7**: the Lab charges nothing beyond the existing `/api/pronunciation` metering today. When the allowance lands,
+  map its 429 to a new `LabNotice` (the flow must still never trap).
+- No real-device run yet: the flow was exercised in headless Chromium with a fake microphone and a mocked
+  `/api/pronunciation` (screenshots, not committed), not against live Azure. The §7 gate is still the owner's.
 - **fr-FR Azure returns phoneme accuracies but empty phoneme names** (all 1,799 phonemes in the calibration fixtures), so
   §4's "IPA phoneme → family" can't read Azure's names. `graphemes.ts` predicts each word's phonemes from its spelling and
   `soundFamilies.ts` attributes a phoneme only when the counts match and every matching reading agrees on that position

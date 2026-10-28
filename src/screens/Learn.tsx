@@ -68,6 +68,7 @@ import { isUnscored, averageRealScores } from '../domain/scoring';
 import { nextTopicMastery } from '../features/learn/topicAverage';
 import { resolveFeatureStatus } from '../config/featureFlags';
 import { SayItAgainCard } from '../features/feedback/components/SayItAgainCard';
+import { LabPractice } from '../features/pronunciation/LabPractice';
 import { incrementCounter } from '../services/telemetry/localCounters';
 import type { Topic, Session, FeedbackV2, ActiveSession, SessionMode, SessionQuestion, AIEngine, FeedbackMode } from '../types/index';
 
@@ -87,6 +88,9 @@ export function Learn() {
   const [learnState, setLearnState] = useState<LearnState>('topics');
   const [transcriptConfirmLive] = useState(() => resolveFeatureStatus('learnTranscriptConfirm') === 'live');
   const [practiceStepLive] = useState(() => resolveFeatureStatus('learnPracticeStep') === 'live');
+  // docs/plans/pronunciation-lab.md Stage 2: the Lab's practice flow replaces
+  // Say It Again; off = Say It Again (the rollback).
+  const [pronunciationLabLive] = useState(() => resolveFeatureStatus('pronunciationLab') === 'live');
   // 2.1: "Say It Again" — not persisted (Slice 4 decision, see plan §5): resets
   // every session, never written to EvidenceEvents/beliefs.
   const [showPracticeStep, setShowPracticeStep] = useState(false);
@@ -1556,11 +1560,19 @@ export function Learn() {
               )}
 
               {learnState === 'feedback' && feedbackMode === 'coach' && showPracticeStep && currentQuestion && (
-                <SayItAgainCard
-                  targetSentence={practiceTargetSentence}
-                  questionId={currentQuestion.id}
-                  onDone={handlePracticeStepDone}
-                />
+                pronunciationLabLive ? (
+                  <LabPractice
+                    targetSentence={practiceTargetSentence}
+                    entry="learn_feedback"
+                    onDone={handlePracticeStepDone}
+                  />
+                ) : (
+                  <SayItAgainCard
+                    targetSentence={practiceTargetSentence}
+                    questionId={currentQuestion.id}
+                    onDone={handlePracticeStepDone}
+                  />
+                )
               )}
 
               {learnState === 'feedback' && feedbackMode === 'coach' && !showPracticeStep && (
