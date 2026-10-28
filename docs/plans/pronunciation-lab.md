@@ -102,8 +102,8 @@ Stage 4 (frontend + workflow only; **no backend change**, no UI change — nativ
   stopped.** `npm run voices:record -- --dry-run` prints the estimate.
 - **The recording run is manual** (Actions → "Record voices", `dry_run` off, no limit; needs the four secrets already used for the
   first recording). Until it has run, ▶ Native for these strings uses the browser French voice (the Stage 1–3 behaviour), and
-  nothing breaks. `VITE_RECORDED_VOICES=1` must also be set in Vercel for any recording to play (still not set — recorded-voices
-  plan §9).
+  nothing breaks. `VITE_RECORDED_VOICES=1` must also be set in Vercel for any recording to play (set in Vercel production since
+  2026-10-24).
 
 Stage 4b (backend + frontend — owner D2: a natural voice for AI-corrected sentences):
 - **Backend** (`french-coach-backend`, branch `claude/nifty-edison-xhbf2a`): `POST /api/native-voice` (`routers/native_voice.py`),
@@ -135,7 +135,7 @@ Stage 4b (backend + frontend — owner D2: a natural voice for AI-corrected sent
   `'unavailable'`). Opted in only for whole AI sentences: How it sounded's ▶ Native and `LabPractice`'s ▶ Listen / ▶ Slowly /
   ▶ Play both. Word chips, focus words and guide words never synthesise (they come from the recorded lexicon). Both screens show
   `labCopy.NATIVE_PREPARING` ("Getting the native voice ready…") while the backend records.
-- **Still off in production until `VITE_RECORDED_VOICES=1` is set in Vercel** (recorded-voices plan §9): with it off, the app
+- **Live in production:** `VITE_RECORDED_VOICES=1` is set in Vercel (production only, since 2026-10-24); with it off the app
   never calls the endpoint. No real Azure/Supabase run was made from this session — the backend is covered by mocked-HTTP
   tests only; the first real sentence will show whether F0's TTS endpoint accepts the region/key already used for speech.
 - No new analytics event (none was asked for by §8); no XP/Session/evidence write.

@@ -96,7 +96,7 @@ migrations are applied the route cannot store evidence.
   `VITE_SUPABASE_URL`). On, the opted-in screens (exam examiner lines, Learn question text,
   Listening, Shadowing, scenario flashcards) play the recording and fall back to the browser voice
   only when it is French. Off is the rollback: every screen uses the browser voice exactly as
-  before. **Not set in Vercel yet** — the owner sets it in plan Stage 5/6. Needs a frontend
+  before. **Set to `1` in Vercel (production only) since 2026-10-24**; preview builds leave it off. Needs a frontend
   redeploy to change.
 - **`POST /api/native-voice`** (backend `routers/native_voice.py`; Pronunciation Lab Stage 4b,
   owner D2) — the one exception to "Azure is never called at play time". When ▶ Native finds no
