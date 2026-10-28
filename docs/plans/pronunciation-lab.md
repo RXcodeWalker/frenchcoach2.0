@@ -1,6 +1,6 @@
 # Pronunciation Lab: implementation plan
 
-Status: **plan only** (2026-10-28). Nothing built. Owner decisions (2026-10-28): D1 drop, D2 yes (Stage 4b), D4 no XP, D5 no 0–100 number. D3 (limits) still open.
+Status: **plan only** (2026-10-28). Nothing built. Owner decisions (2026-10-28): D1 drop, D2 yes (Stage 4b), D4 no XP, D5 no 0–100 number. D3: 30 Lab takes per account per day; Azure monthly cap = the F0 free allowance.
 Branch: `claude/nifty-edison-xhbf2a` (both repos).
 
 ## 1. Why the current feature isn't useful (diagnosis, not taste)
@@ -243,7 +243,7 @@ that is a hypothesis until measured. Reuse the existing calibration tooling with
 - Signed-out learners: listening, sound guide and ear training work; recording takes ask to sign in
   (same as today).
 
-## 9. Owner decisions (D1, D2, D4, D5 decided 2026-10-28 as recommended; D3 open)
+## 9. Owner decisions (D1, D2, D4, D5 decided 2026-10-28 as recommended; D3 = 30 takes/day, cap at F0 allowance)
 
 - **D1 — Free Learn answers: drop Azure word analysis?** *Recommended: yes.* It can't detect real
   errors (§1.1), confuses learners, and costs the most Azure time. Keep listen-back + flow + "watch
