@@ -87,4 +87,12 @@ describe('planSlots', () => {
       lastIdx = idx;
     }
   });
+
+  it('allowStretch: false (the "Easier" aim) plans no stretch, even for 5+ questions', () => {
+    for (const count of [2, 3, 5, 7, 12, 20]) {
+      const slots = planSlots({ sessionBlend: BLEND, sessionTarget: 3, count, allowStretch: false });
+      expect(slots).toHaveLength(count);
+      expect(slots.some((s) => s.type === 'stretch')).toBe(false);
+    }
+  });
 });

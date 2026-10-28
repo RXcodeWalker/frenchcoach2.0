@@ -461,6 +461,15 @@ for the flag flip (§16 Stage 9).
 Sessions of `single` (1 question) get a single `target` slot; `full_topic` has no UI entry point
 and is left on the legacy path.
 
+**Today's aim is a promise (amended 2026-10-28, after an "Easier" session went easy → harder).**
+- **"Easier" (`comfortable`) plans no stretch slot** (its share is planned as `target`; the ≥5
+  stretch rule is skipped), every slot — `choice` included — is held to the §8.3 ceiling, and
+  §8.4 never raises it (`ActiveSession.aim`).
+- A session is **planned for the length it will really have** (Learn passes the answers left today
+  as `count`), never planned long and cut down to whichever slots happened to fill first.
+- Questions are **asked easiest first**: warm-up → review → target → choice → stretch, easiest first
+  within a slot type (`presentationOrder`). Fill order (§8.3) is a priority, not the order asked.
+
 ### 8.2 Candidate scoring — every term defined
 
 ```
@@ -518,14 +527,32 @@ Escalation ladder when nothing scores above zero:
 
 Questions lacking `demands` never occupy a `stretch` slot (they cannot be shown to be a stretch).
 
+**Hard ceiling (amended 2026-10-28).** `bandFit` is a soft score term, so on its own any question in
+the topic could fill any slot — an "Easier" A1 session once got a B2 stretch and a B1 warm-up. Every
+rung of the ladder above therefore only sees demand-bearing questions under a ceiling:
+- `warmup`, `target` (and `choice` on "Easier"): **at or below today's level** — demandScore ≤ T+0.5
+  *and* a displayed level no higher than T's, so a "Pitched at A1" session never shows an A2 badge
+  outside a stretch;
+- `choice` (other aims): ≤ its own band top, T+1.5;
+- `stretch`: above today's level, inside the stretch band (rung 0) or that band widened by 1.0
+  (rung 1 — the bank has gaps, e.g. explain at 4.0 and justify at 6.0, and without it a learner at
+  A2 never meets a B1 question to climb with), and **at most one displayed level above T's**.
+
+A new **rung 5** sits before "return fewer": when nothing at or below the ceiling is left (e.g. the
+Future topic has no A1 question — every one is past/future, floored at A2), the slot takes the
+**easiest** question left, unseen first, and "Why this question?" says *"The easiest question left in
+this topic."* "Return fewer" is now rung 6.
+
 ### 8.4 Mid-session adjustment — bounded, safe, and announced
 
 `midSessionAdjust(session, history)` — pure, **at most one per session**, never before question 3.
 
 - **Ease** — 2 consecutive attempts with score < 5 *or* zero demands met → remaining `stretch`
-  slots become `target`; remaining `target` bands drop 1.0.
+  slots become `target` (under the target band, not the stretch band relabelled); remaining
+  `target` bands drop 1.0.
 - **Raise** — 3 consecutive attempts with score ≥ 8 *and* all measurable demands met → one
-  remaining `target` slot becomes `stretch` (subject to the §8.1 provenance rule).
+  remaining `target` slot becomes `stretch` (subject to the §8.1 provenance rule and the §8.3
+  ceiling). Never on an "Easier" session (§8.1 amendment).
 
 Verified constraints against the real state machine (`Learn.tsx:207-237`, `:366-403`, `:714`):
 

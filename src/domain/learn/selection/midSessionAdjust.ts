@@ -15,6 +15,7 @@
 import type { ActiveSession, Question, SessionQuestion } from '../../../types';
 import type { CognitiveDemand } from '../demand/types';
 import { selectQuestions } from './selectQuestions';
+import { bandFor } from './planSlots';
 import type { SelectedQuestion, SessionSlot } from './types';
 import type { EvidenceBeliefSnapshot } from '../../../types/beliefs';
 
@@ -66,6 +67,11 @@ function detectDirection(session: ActiveSession): MidSessionDirection | null {
   if (lastNConsecutive(scores, EASE_STREAK, (s) => s < EASE_SCORE_THRESHOLD)) return 'ease';
   if (lastNConsecutive(scores, RAISE_STREAK, (s) => s >= RAISE_SCORE_THRESHOLD)) return 'raise';
   return null;
+}
+
+/** A stretch slot's planned band is bandFor('stretch', T) = T+0.75 … T+2.0, so its target band is T−0.5 … T+0.5. */
+function targetBandFromStretch(band: SessionSlot['band']): SessionSlot['band'] {
+  return band ? bandFor('target', band.lo - 0.75) : band;
 }
 
 function easedBand(band: SessionSlot['band']): SessionSlot['band'] {
@@ -140,6 +146,9 @@ function replacementSessionQuestion(pick: SelectedQuestion, slotBand: SessionQue
  *   raise attempt that finds nothing trusted silently keeps the slot at
  *   'target' rather than forcing an inferred question into stretch).
  *
+ * An "Easier" session (`session.aim === 'comfortable'`) is never raised: that
+ * aim promises no question above today's level.
+ *
  * Slots without a tracked `slotType` (legacy-path sessions, or any question
  * predating this field) are left untouched — there's nothing to adjust.
  * If a slot's adjusted band yields no candidate, that slot is left as-is
@@ -155,7 +164,7 @@ export function midSessionAdjust(args: MidSessionAdjustArgs): MidSessionAdjustRe
   }
 
   const direction = detectDirection(session);
-  if (!direction) {
+  if (!direction || (direction === 'raise' && session.aim === 'comfortable')) {
     return { session, changed: false, direction: null };
   }
 
@@ -180,7 +189,8 @@ export function midSessionAdjust(args: MidSessionAdjustArgs): MidSessionAdjustRe
 
     if (direction === 'ease') {
       if (slotType === 'stretch') {
-        desiredSlot = { type: 'target', band: sq.slotBand ?? null };
+        // The target band, not the stretch band relabelled as target (docs §8.1).
+        desiredSlot = { type: 'target', band: targetBandFromStretch(sq.slotBand ?? null) };
       } else if (slotType === 'target') {
         desiredSlot = { type: 'target', band: easedBand(sq.slotBand ?? null) };
       } else {

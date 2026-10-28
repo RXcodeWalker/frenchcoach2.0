@@ -15,9 +15,12 @@ const AT_LEVEL_HALF_WIDTH = 0.5;
 /** Rung ≥ 2 means the band no longer shaped the pick (docs §8.3). */
 const BAND_DROPPED_RUNG = 2;
 
+/** Rung 5: nothing was left at or below today's level (docs §8.3). */
+const EASIEST_LEFT_RUNG = 5;
+
 export interface ExplainSelectionArgs {
   slot: SlotType;
-  /** docs §8.3 ladder rung: 0 band as planned · 1 widened · 2 band dropped · 3 seen allowed · 4 no demands. */
+  /** docs §8.3 ladder rung: 0 band as planned · 1 widened · 2 band dropped · 3 seen allowed · 4 no demands · 5 easiest left. */
   rung: number;
   /** deriveDemandScore(question.demands), or null when the question has no demands. */
   questionLevel: number | null;
@@ -37,6 +40,10 @@ function positionOf(questionLevel: number, targetLevel: number): Position {
 export function explainSelection({ slot, rung, questionLevel, targetLevel }: ExplainSelectionArgs): string {
   if (slot === 'review') {
     return 'Due for a spaced review — coming back to a question after a gap helps it stick.';
+  }
+  // Rung 5 is only ever above today's level (the ceiling ruled out everything else).
+  if (rung === EASIEST_LEFT_RUNG && questionLevel !== null) {
+    return 'The easiest question left in this topic.';
   }
   if (slot === 'choice') {
     return 'A change of pace to keep things varied.';

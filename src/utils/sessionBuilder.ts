@@ -11,7 +11,7 @@ import { resolveFeatureStatus } from '../config/featureFlags';
 import { deriveAbility, coldStart, type AbilityResult } from '../domain/learn/ability/deriveAbility';
 import { computeSessionTarget, type Aim } from '../domain/learn/selection/sessionTarget';
 import { planSlots, bandFor } from '../domain/learn/selection/planSlots';
-import { selectQuestions } from '../domain/learn/selection/selectQuestions';
+import { selectQuestions, presentationOrder } from '../domain/learn/selection/selectQuestions';
 import { filterPool, matchesFilters, NO_FILTERS, type LearnFilters } from '../domain/learn/selection/filters';
 import type { DemandBand, SelectionReason, SlotType } from '../domain/learn/selection/types';
 import type { CognitiveDemand } from '../domain/learn/demand/types';
@@ -116,6 +116,8 @@ export interface BuiltSessionQuestionSlot {
   slotBand: DemandBand | null;
   /** docs §14 UX #2 "why this question" — present on the adaptive path; midSessionAdjust replacements carry their own (Batch 1d). */
   selectionReason?: SelectionReason;
+  /** docs §8.3 ladder rung that filled the slot (5 = the easiest left, above today's level). Adaptive path only. */
+  rung?: number;
 }
 
 export interface BuiltSessionQuestions {
@@ -142,6 +144,13 @@ export interface SessionSelectionOptions {
    * only: the legacy path ignores them (the setup screen hides them there).
    */
   filters?: LearnFilters;
+  /**
+   * The length the session will really have (e.g. the answers left today), when
+   * shorter than the mode's. The plan is made for this many questions, so a
+   * session is never planned long and then cut down to whichever slots happened
+   * to fill first. Adaptive path only; ignored for `full_topic`.
+   */
+  count?: number;
 }
 
 /**
@@ -214,7 +223,7 @@ function buildSessionQuestionsAdaptive(
   const unseenCount = pool.filter((q) => !seen.has(q.id)).length;
   const target = mode === 'full_topic'
     ? (unseenCount > 0 ? unseenCount : pool.length)
-    : SESSION_TARGET[mode];
+    : Math.max(1, Math.min(options.count ?? SESSION_TARGET[mode], SESSION_TARGET[mode]));
 
   const blend: SessionBlend = sessionBlend ?? {
     warmupPct: 20,
@@ -225,9 +234,10 @@ function buildSessionQuestionsAdaptive(
     focusSkillIds: [],
   };
 
-  const slots = planSlots({ sessionBlend: blend, sessionTarget, count: target });
+  // "Easier" promises no question above today's level, so it plans no stretch.
+  const slots = planSlots({ sessionBlend: blend, sessionTarget, count: target, allowStretch: aim !== 'comfortable' });
 
-  const { selected } = selectQuestions(
+  const { selected: filled } = selectQuestions(
     {
       pool,
       slots,
@@ -236,6 +246,7 @@ function buildSessionQuestionsAdaptive(
       focusSkillIds: blend.focusSkillIds,
       activeDemandProblem: activeDemandProblemCognitiveDemand(),
       targetLevel: sessionTarget,
+      holdToLevel: aim === 'comfortable',
       // docs §8.3 — exclude only this session's picks. Every review item was
       // answered before (so it is always in `seen`); excluding `seen` here
       // meant spaced review never fired (Learn overhaul Batch 1b).
@@ -246,6 +257,8 @@ function buildSessionQuestionsAdaptive(
     },
     { beliefSnapshot: snapshot },
   );
+  // Asked easiest first: warm-up → review → target → choice → stretch.
+  const selected = presentationOrder(filled);
 
   const reviewPick = selected.find((s) => s.slot === 'review');
   return {
@@ -259,6 +272,7 @@ function buildSessionQuestionsAdaptive(
       slotType: s.slot,
       slotBand: bandFor(s.slot, sessionTarget),
       selectionReason: s.reason,
+      rung: s.rung,
     })),
   };
 }
