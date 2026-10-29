@@ -17,6 +17,7 @@ const EXPECTED_ERROR_NAMES = new Set([
   'AuthRequiredError', // signed out / guest limit / session expired → sign-in prompt
   'ConsentRequiredError', // under-13 account waiting for a guardian
   'ExaminerQuotaExceededError', // daily AI allowance used up
+  'LabAllowanceError', // the Pronunciation Lab's daily checks used up
   'AbortError', // the user (or a newer request) cancelled; our timeouts are rethrown as other errors
   'NotAllowedError', // mic permission denied
   'PermissionDeniedError', // older browsers' name for the same

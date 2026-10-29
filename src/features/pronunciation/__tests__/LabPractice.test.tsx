@@ -7,6 +7,8 @@ const assessMock = vi.fn();
 vi.mock('../../../services/pronunciation/pronunciationClient', () => ({
   assessPronunciation: (...args: unknown[]) => assessMock(...args),
 }));
+const allowanceMock = vi.hoisted(() => ({ fn: vi.fn(async (): Promise<unknown> => null) }));
+vi.mock('../../../services/pronunciation/labAllowance', () => ({ getLabAllowance: () => allowanceMock.fn() }));
 const trackMock = vi.fn();
 vi.mock('../../../services/telemetry/telemetryService', () => ({ track: (...a: unknown[]) => trackMock(...a), captureError: vi.fn() }));
 vi.mock('../../../components/SpeakingConsentGate', () => ({ SpeakingConsentGate: ({ children }: { children: unknown }) => children }));
@@ -64,6 +66,8 @@ afterEach(() => {
   cleanup();
   assessMock.mockReset();
   trackMock.mockReset();
+  allowanceMock.fn.mockReset();
+  allowanceMock.fn.mockResolvedValue(null);
   Object.values(audio).forEach((m) => m.mockClear());
 });
 
@@ -193,6 +197,56 @@ describe('LabPractice', () => {
     expect(screen.getByText(/couldn't check the words this time/)).toBeTruthy();
     expect(screen.getByRole('button', { name: /Play both/ })).toBeTruthy();
     expect(trackMock.mock.calls.some(([e]) => (e as { name: string }).name === 'lab_take')).toBe(false);
+  });
+
+  describe('daily allowance (Stage 7)', () => {
+    const allowance = (remaining: number) => ({ limit: 30, used: 30 - remaining, remaining, resetsAt: '2026-10-30T00:00:00+00:00' });
+
+    it('says how many checks are left, and nothing when the allowance cannot be read', async () => {
+      allowanceMock.fn.mockResolvedValue(allowance(12));
+      renderLab();
+      expect((await screen.findByTestId('lab-allowance')).textContent).toMatch(/12 checks left today/);
+      cleanup();
+      allowanceMock.fn.mockResolvedValue(null);
+      renderLab();
+      await act(async () => {});
+      expect(screen.queryByTestId('lab-allowance')).toBeNull();
+    });
+
+    it('with none left, recording waits for tomorrow but listening and Done still work', async () => {
+      allowanceMock.fn.mockResolvedValue(allowance(0));
+      const onDone = renderLab();
+      const record = await screen.findByRole('button', { name: 'No checks left today' });
+      expect((record as HTMLButtonElement).disabled).toBe(true);
+      expect(screen.getByTestId('lab-allowance').textContent).toMatch(/they come back tomorrow/);
+      await click(screen.getByRole('button', { name: /Listen/ }));
+      expect(audio.playNative).toHaveBeenCalled();
+      await click(screen.getByRole('button', { name: 'Done' }));
+      expect(onDone).toHaveBeenCalledOnce();
+    });
+
+    it("a take the server refuses for the allowance is a notice, not a retry: no more recording, nothing stops the flow", async () => {
+      allowanceMock.fn.mockResolvedValue(allowance(1));
+      const { LabAllowanceError } = await import('../../../lib/labAllowance');
+      assessMock.mockRejectedValueOnce(new LabAllowanceError(30));
+      const onDone = renderLab();
+      await screen.findByText(/1 check left today/);
+      await recordTake(/Tap and say the sentence/);
+      expect(screen.getByText(/used today's checks/)).toBeTruthy();
+      expect(assessMock).toHaveBeenCalledTimes(1);
+      expect((screen.getByRole('button', { name: 'No checks left today' }) as HTMLButtonElement).disabled).toBe(true);
+      await click(screen.getByRole('button', { name: 'Done' }));
+      expect(onDone).toHaveBeenCalledOnce();
+    });
+
+    it('re-reads the allowance after a checked take', async () => {
+      allowanceMock.fn.mockResolvedValueOnce(allowance(5)).mockResolvedValue(allowance(4));
+      assessMock.mockResolvedValueOnce(sentenceResult([95, 95, 95, 95, 95, 95]));
+      renderLab();
+      await screen.findByText(/5 checks left today/);
+      await recordTake(/Tap and say the sentence/);
+      expect(await screen.findByText(/4 checks left today/)).toBeTruthy();
+    });
   });
 
   describe('never a trap', () => {

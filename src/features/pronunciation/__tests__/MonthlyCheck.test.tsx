@@ -8,6 +8,8 @@ const assessMock = vi.fn();
 vi.mock('../../../services/pronunciation/pronunciationClient', () => ({
   assessPronunciation: (...args: unknown[]) => assessMock(...args),
 }));
+const allowanceMock = vi.hoisted(() => ({ fn: vi.fn(async (): Promise<unknown> => null) }));
+vi.mock('../../../services/pronunciation/labAllowance', () => ({ getLabAllowance: () => allowanceMock.fn() }));
 const trackMock = vi.fn();
 vi.mock('../../../services/telemetry/telemetryService', () => ({ track: (...a: unknown[]) => trackMock(...a), captureError: vi.fn() }));
 vi.mock('../../../components/SpeakingConsentGate', () => ({ SpeakingConsentGate: ({ children }: { children: unknown }) => children }));
@@ -77,6 +79,8 @@ afterEach(() => {
   cleanup();
   assessMock.mockReset();
   trackMock.mockReset();
+  allowanceMock.fn.mockReset();
+  allowanceMock.fn.mockResolvedValue(null);
   Object.values(audio).forEach((m) => m.mockClear());
 });
 
@@ -193,6 +197,57 @@ describe('MonthlyCheck', () => {
     await click(screen.getByRole('button', { name: 'Start the check' }));
     await sayIt();
     expect(document.body.textContent).toMatch(/parent\/guardian/);
+  });
+
+  describe('daily allowance (Stage 7)', () => {
+    const allowance = (remaining: number) => ({ limit: 30, used: 30 - remaining, remaining, resetsAt: '2026-10-30T00:00:00+00:00' });
+
+    it('shows the count on the intro, and warns when it will not cover the five sentences', async () => {
+      allowanceMock.fn.mockResolvedValue(allowance(3));
+      render(<MonthlyCheck onDone={vi.fn()} />);
+      expect((await screen.findByTestId('lab-allowance')).textContent).toMatch(/3 checks left today.*may not reach every sentence/);
+      expect((screen.getByRole('button', { name: 'Start the check' }) as HTMLButtonElement).disabled).toBe(false);
+    });
+
+    it('will not start a check that cannot be saved (fewer than 3 checks left), and says when to come back', async () => {
+      allowanceMock.fn.mockResolvedValue(allowance(2));
+      const onDone = vi.fn();
+      render(<MonthlyCheck onDone={onDone} />);
+      expect((await screen.findByTestId('lab-allowance')).textContent).toMatch(/needs at least 3.*tomorrow/);
+      expect((screen.getByRole('button', { name: 'Start the check' }) as HTMLButtonElement).disabled).toBe(true);
+      await click(screen.getByRole('button', { name: 'Not now' }));
+      expect(onDone).toHaveBeenCalled();
+    });
+
+    it('a refusal part-way ends the check at the summary and keeps the sentences already measured (when enough)', async () => {
+      const { LabAllowanceError } = await import('../../../lib/labAllowance');
+      allowanceMock.fn.mockResolvedValue(allowance(30));
+      assessMock.mockImplementation(async ({ targetText }: { targetText: string }) => answerFor(targetText, 95));
+      render(<MonthlyCheck onDone={vi.fn()} />);
+      await click(screen.getByRole('button', { name: 'Start the check' }));
+      for (let i = 0; i < 3; i++) {
+        await sayIt();
+        await click(screen.getByRole('button', { name: 'Next sentence' }));
+      }
+      assessMock.mockRejectedValueOnce(new LabAllowanceError(30));
+      await sayIt();
+      expect(screen.getByTestId('monthly-check-summary')).toBeTruthy();
+      expect(document.body.textContent).toMatch(/used today's checks/);
+      expect(getLabHistory().checks).toHaveLength(1);
+      expect(getLabHistory().checks[0].sentences).toHaveLength(3);
+      expect(screen.getByRole('button', { name: 'Done' })).toBeTruthy();
+    });
+
+    it('with none left mid-check the sentence cannot be recorded, only listened to or skipped', async () => {
+      allowanceMock.fn.mockResolvedValueOnce(allowance(5)).mockResolvedValue(allowance(0));
+      assessMock.mockImplementation(async ({ targetText }: { targetText: string }) => answerFor(targetText, 95));
+      render(<MonthlyCheck onDone={vi.fn()} />);
+      await click(screen.getByRole('button', { name: 'Start the check' }));
+      await sayIt();
+      await click(screen.getByRole('button', { name: 'Next sentence' }));
+      expect((screen.getByRole('button', { name: 'No checks left today' }) as HTMLButtonElement).disabled).toBe(true);
+      expect(screen.getByRole('button', { name: 'Skip this sentence' })).toBeTruthy();
+    });
   });
 
   it('Listen asks for the recorded sentence without on-demand synthesis', async () => {
