@@ -1144,5 +1144,1202 @@ export const EMOJI_QUESTIONS: EmojiQuestion[] = [
     options: ['Elle voyage en avion', 'Elle prend le train', 'Elle marche dans la rue', 'Elle nage dans la mer'],
     category: 'sentences',
     difficulty: 3
+  },
+  {
+    id: 'e085',
+    emojis: '🍐',
+    french: 'la poire',
+    english: 'the pear',
+    options: ['la pomme', 'la poire', 'la pêche', 'la prune'],
+    category: 'food',
+    difficulty: 1
+  },
+  {
+    id: 'e086',
+    emojis: '🥑',
+    french: 'l\'avocat',
+    english: 'the avocado',
+    options: ['la banane', 'le concombre', 'l\'avocat', 'le citron'],
+    category: 'food',
+    difficulty: 2
+  },
+  {
+    id: 'e087',
+    emojis: '🌽',
+    french: 'le maïs',
+    english: 'the corn',
+    options: ['le blé', 'la carotte', 'le riz', 'le maïs'],
+    category: 'food',
+    difficulty: 2
+  },
+  {
+    id: 'e088',
+    emojis: '🍚',
+    french: 'le riz',
+    english: 'the rice',
+    options: ['le riz', 'les pâtes', 'le pain', 'la soupe'],
+    category: 'food',
+    difficulty: 1
+  },
+  {
+    id: 'e089',
+    emojis: '🍲',
+    french: 'la soupe',
+    english: 'the soup',
+    options: ['la salade', 'la soupe', 'le gâteau', 'le riz'],
+    category: 'food',
+    difficulty: 1
+  },
+  {
+    id: 'e090',
+    emojis: '🥩',
+    french: 'la viande',
+    english: 'the meat',
+    options: ['le poisson', 'le fromage', 'la viande', 'l\'œuf'],
+    category: 'food',
+    difficulty: 2
+  },
+  {
+    id: 'e091',
+    emojis: '🌭',
+    french: 'le hot-dog',
+    english: 'the hot dog',
+    options: ['le hamburger', 'la pizza', 'les frites', 'le hot-dog'],
+    category: 'food',
+    difficulty: 2
+  },
+  {
+    id: 'e092',
+    emojis: '🥪',
+    french: 'le sandwich',
+    english: 'the sandwich',
+    options: ['le sandwich', 'la pizza', 'le gâteau', 'la salade'],
+    category: 'food',
+    difficulty: 1
+  },
+  {
+    id: 'e093',
+    emojis: '🍩',
+    french: 'le beignet',
+    english: 'the doughnut',
+    options: ['le gâteau', 'le beignet', 'la glace', 'le bonbon'],
+    category: 'food',
+    difficulty: 3
+  },
+  {
+    id: 'e094',
+    emojis: '🍬',
+    french: 'le bonbon',
+    english: 'the sweet',
+    options: ['le chocolat', 'le gâteau', 'le bonbon', 'la glace'],
+    category: 'food',
+    difficulty: 1
+  },
+  {
+    id: 'e095',
+    emojis: '🧈',
+    french: 'le beurre',
+    english: 'the butter',
+    options: ['le fromage', 'le lait', 'le miel', 'le beurre'],
+    category: 'food',
+    difficulty: 2
+  },
+  {
+    id: 'e096',
+    emojis: '🧂',
+    french: 'le sel',
+    english: 'the salt',
+    options: ['le sel', 'le sucre', 'le poivre', 'l\'huile'],
+    category: 'food',
+    difficulty: 2
+  },
+  {
+    id: 'e097',
+    emojis: '🥜',
+    french: 'la cacahuète',
+    english: 'the peanut',
+    options: ['la noix', 'la cacahuète', 'l\'amande', 'la noisette'],
+    category: 'food',
+    difficulty: 3
+  },
+  {
+    id: 'e098',
+    emojis: '🍷',
+    french: 'le vin',
+    english: 'the wine',
+    options: ['le jus', 'l\'eau', 'le vin', 'le lait'],
+    category: 'food',
+    difficulty: 2
+  },
+  {
+    id: 'e099',
+    emojis: '💧',
+    french: 'l\'eau',
+    english: 'the water',
+    options: ['le jus', 'le lait', 'le thé', 'l\'eau'],
+    category: 'food',
+    difficulty: 1
+  },
+  {
+    id: 'e100',
+    emojis: '🍵',
+    french: 'le thé',
+    english: 'the tea',
+    options: ['le thé', 'le café', 'l\'eau', 'le lait'],
+    category: 'food',
+    difficulty: 1
+  },
+  {
+    id: 'e101',
+    emojis: '🥒',
+    french: 'le concombre',
+    english: 'the cucumber',
+    options: ['la courgette', 'le concombre', 'l\'avocat', 'le chou'],
+    category: 'food',
+    difficulty: 3
+  },
+  {
+    id: 'e102',
+    emojis: '🧅',
+    french: 'l\'oignon',
+    english: 'the onion',
+    options: ['l\'ail', 'la tomate', 'l\'oignon', 'la carotte'],
+    category: 'food',
+    difficulty: 2
+  },
+  {
+    id: 'e103',
+    emojis: '🍆',
+    french: 'l\'aubergine',
+    english: 'the aubergine',
+    options: ['la courgette', 'la tomate', 'le poivron', 'l\'aubergine'],
+    category: 'food',
+    difficulty: 3
+  },
+  {
+    id: 'e104',
+    emojis: '🐯',
+    french: 'le tigre',
+    english: 'the tiger',
+    options: ['le tigre', 'le lion', 'le léopard', 'le chat'],
+    category: 'animals',
+    difficulty: 2
+  },
+  {
+    id: 'e105',
+    emojis: '🦒',
+    french: 'la girafe',
+    english: 'the giraffe',
+    options: ['l\'éléphant', 'la girafe', 'le zèbre', 'le chameau'],
+    category: 'animals',
+    difficulty: 2
+  },
+  {
+    id: 'e106',
+    emojis: '🦓',
+    french: 'le zèbre',
+    english: 'the zebra',
+    options: ['le cheval', 'la girafe', 'le zèbre', 'l\'âne'],
+    category: 'animals',
+    difficulty: 3
+  },
+  {
+    id: 'e107',
+    emojis: '🐊',
+    french: 'le crocodile',
+    english: 'the crocodile',
+    options: ['le serpent', 'le lézard', 'la tortue', 'le crocodile'],
+    category: 'animals',
+    difficulty: 3
+  },
+  {
+    id: 'e108',
+    emojis: '🐍',
+    french: 'le serpent',
+    english: 'the snake',
+    options: ['le serpent', 'le ver', 'le crocodile', 'le lézard'],
+    category: 'animals',
+    difficulty: 2
+  },
+  {
+    id: 'e109',
+    emojis: '🐙',
+    french: 'la pieuvre',
+    english: 'the octopus',
+    options: ['le poisson', 'la pieuvre', 'le crabe', 'la méduse'],
+    category: 'animals',
+    difficulty: 3
+  },
+  {
+    id: 'e110',
+    emojis: '🦀',
+    french: 'le crabe',
+    english: 'the crab',
+    options: ['la pieuvre', 'le homard', 'le crabe', 'la crevette'],
+    category: 'animals',
+    difficulty: 3
+  },
+  {
+    id: 'e111',
+    emojis: '🐬',
+    french: 'le dauphin',
+    english: 'the dolphin',
+    options: ['la baleine', 'le requin', 'le poisson', 'le dauphin'],
+    category: 'animals',
+    difficulty: 2
+  },
+  {
+    id: 'e112',
+    emojis: '🐳',
+    french: 'la baleine',
+    english: 'the whale',
+    options: ['la baleine', 'le dauphin', 'le requin', 'la pieuvre'],
+    category: 'animals',
+    difficulty: 2
+  },
+  {
+    id: 'e113',
+    emojis: '🦈',
+    french: 'le requin',
+    english: 'the shark',
+    options: ['le dauphin', 'le requin', 'la baleine', 'le poisson'],
+    category: 'animals',
+    difficulty: 2
+  },
+  {
+    id: 'e114',
+    emojis: '🐔',
+    french: 'la poule',
+    english: 'the hen',
+    options: ['le coq', 'le canard', 'la poule', 'l\'oiseau'],
+    category: 'animals',
+    difficulty: 2
+  },
+  {
+    id: 'e115',
+    emojis: '🦆',
+    french: 'le canard',
+    english: 'the duck',
+    options: ['la poule', 'le cygne', 'l\'oie', 'le canard'],
+    category: 'animals',
+    difficulty: 2
+  },
+  {
+    id: 'e116',
+    emojis: '🦅',
+    french: 'l\'aigle',
+    english: 'the eagle',
+    options: ['l\'aigle', 'le hibou', 'le pigeon', 'le corbeau'],
+    category: 'animals',
+    difficulty: 3
+  },
+  {
+    id: 'e117',
+    emojis: '🐭',
+    french: 'la souris',
+    english: 'the mouse',
+    options: ['le rat', 'la souris', 'le lapin', 'le chat'],
+    category: 'animals',
+    difficulty: 1
+  },
+  {
+    id: 'e118',
+    emojis: '🐹',
+    french: 'le hamster',
+    english: 'the hamster',
+    options: ['la souris', 'le lapin', 'le hamster', 'le cochon d\'Inde'],
+    category: 'animals',
+    difficulty: 3
+  },
+  {
+    id: 'e119',
+    emojis: '🐨',
+    french: 'le koala',
+    english: 'the koala',
+    options: ['l\'ours', 'le singe', 'le paresseux', 'le koala'],
+    category: 'animals',
+    difficulty: 3
+  },
+  {
+    id: 'e120',
+    emojis: '🐼',
+    french: 'le panda',
+    english: 'the panda',
+    options: ['le panda', 'l\'ours', 'le koala', 'le tigre'],
+    category: 'animals',
+    difficulty: 2
+  },
+  {
+    id: 'e121',
+    emojis: '🦘',
+    french: 'le kangourou',
+    english: 'the kangaroo',
+    options: ['le koala', 'le kangourou', 'le lapin', 'l\'autruche'],
+    category: 'animals',
+    difficulty: 3
+  },
+  {
+    id: 'e122',
+    emojis: '🐪',
+    french: 'le chameau',
+    english: 'the camel',
+    options: ['le cheval', 'le lama', 'le chameau', 'l\'âne'],
+    category: 'animals',
+    difficulty: 3
+  },
+  {
+    id: 'e123',
+    emojis: '🐜',
+    french: 'la fourmi',
+    english: 'the ant',
+    options: ['l\'abeille', 'la mouche', 'l\'araignée', 'la fourmi'],
+    category: 'animals',
+    difficulty: 3
+  },
+  {
+    id: 'e124',
+    emojis: '🐞',
+    french: 'la coccinelle',
+    english: 'the ladybird',
+    options: ['la coccinelle', 'le papillon', 'l\'abeille', 'la fourmi'],
+    category: 'animals',
+    difficulty: 3
+  },
+  {
+    id: 'e125',
+    emojis: '🦎',
+    french: 'le lézard',
+    english: 'the lizard',
+    options: ['le serpent', 'le lézard', 'la tortue', 'la grenouille'],
+    category: 'animals',
+    difficulty: 3
+  },
+  {
+    id: 'e126',
+    emojis: '📺',
+    french: 'la télévision',
+    english: 'the television',
+    options: ['la radio', 'l\'ordinateur', 'la télévision', 'le téléphone'],
+    category: 'objects',
+    difficulty: 2
+  },
+  {
+    id: 'e127',
+    emojis: '📻',
+    french: 'la radio',
+    english: 'the radio',
+    options: ['la télévision', 'le téléphone', 'l\'ordinateur', 'la radio'],
+    category: 'objects',
+    difficulty: 2
+  },
+  {
+    id: 'e128',
+    emojis: '💡',
+    french: 'l\'ampoule',
+    english: 'the light bulb',
+    options: ['l\'ampoule', 'la lampe', 'la bougie', 'la lune'],
+    category: 'objects',
+    difficulty: 3
+  },
+  {
+    id: 'e129',
+    emojis: '🕯️',
+    french: 'la bougie',
+    english: 'the candle',
+    options: ['la lampe', 'la bougie', 'l\'ampoule', 'le feu'],
+    category: 'objects',
+    difficulty: 3
+  },
+  {
+    id: 'e130',
+    emojis: '🥄',
+    french: 'la cuillère',
+    english: 'the spoon',
+    options: ['la fourchette', 'le couteau', 'la cuillère', 'l\'assiette'],
+    category: 'objects',
+    difficulty: 2
+  },
+  {
+    id: 'e131',
+    emojis: '🔪',
+    french: 'le couteau',
+    english: 'the knife',
+    options: ['la fourchette', 'la cuillère', 'les ciseaux', 'le couteau'],
+    category: 'objects',
+    difficulty: 2
+  },
+  {
+    id: 'e132',
+    emojis: '🍽️',
+    french: 'l\'assiette',
+    english: 'the plate',
+    options: ['l\'assiette', 'le verre', 'la tasse', 'le bol'],
+    category: 'objects',
+    difficulty: 2
+  },
+  {
+    id: 'e133',
+    emojis: '🥣',
+    french: 'le bol',
+    english: 'the bowl',
+    options: ['l\'assiette', 'le bol', 'la tasse', 'le verre'],
+    category: 'objects',
+    difficulty: 3
+  },
+  {
+    id: 'e134',
+    emojis: '⌚',
+    french: 'la montre',
+    english: 'the watch',
+    options: ['le réveil', 'l\'horloge', 'la montre', 'le bracelet'],
+    category: 'objects',
+    difficulty: 2
+  },
+  {
+    id: 'e135',
+    emojis: '💍',
+    french: 'la bague',
+    english: 'the ring',
+    options: ['le collier', 'le bracelet', 'la montre', 'la bague'],
+    category: 'objects',
+    difficulty: 3
+  },
+  {
+    id: 'e136',
+    emojis: '👑',
+    french: 'la couronne',
+    english: 'the crown',
+    options: ['la couronne', 'le chapeau', 'la bague', 'le casque'],
+    category: 'objects',
+    difficulty: 3
+  },
+  {
+    id: 'e137',
+    emojis: '🎩',
+    french: 'le chapeau',
+    english: 'the hat',
+    options: ['la casquette', 'le chapeau', 'la couronne', 'le bonnet'],
+    category: 'objects',
+    difficulty: 2
+  },
+  {
+    id: 'e138',
+    emojis: '🧦',
+    french: 'les chaussettes',
+    english: 'the socks',
+    options: ['les chaussures', 'les gants', 'les chaussettes', 'les lunettes'],
+    category: 'objects',
+    difficulty: 2
+  },
+  {
+    id: 'e139',
+    emojis: '🧤',
+    french: 'les gants',
+    english: 'the gloves',
+    options: ['les chaussettes', 'les bottes', 'les lunettes', 'les gants'],
+    category: 'objects',
+    difficulty: 2
+  },
+  {
+    id: 'e140',
+    emojis: '👗',
+    french: 'la robe',
+    english: 'the dress',
+    options: ['la robe', 'la jupe', 'le pantalon', 'la chemise'],
+    category: 'objects',
+    difficulty: 2
+  },
+  {
+    id: 'e141',
+    emojis: '🧥',
+    french: 'le manteau',
+    english: 'the coat',
+    options: ['le pull', 'le manteau', 'le chapeau', 'le sac'],
+    category: 'objects',
+    difficulty: 2
+  },
+  {
+    id: 'e142',
+    emojis: '👜',
+    french: 'le sac à main',
+    english: 'the handbag',
+    options: ['le sac à dos', 'la valise', 'le sac à main', 'le portefeuille'],
+    category: 'objects',
+    difficulty: 3
+  },
+  {
+    id: 'e143',
+    emojis: '💰',
+    french: 'l\'argent',
+    english: 'the money',
+    options: ['le cadeau', 'la carte', 'le sac', 'l\'argent'],
+    category: 'objects',
+    difficulty: 2
+  },
+  {
+    id: 'e144',
+    emojis: '✉️',
+    french: 'la lettre',
+    english: 'the letter',
+    options: ['la lettre', 'le livre', 'la carte', 'le colis'],
+    category: 'objects',
+    difficulty: 2
+  },
+  {
+    id: 'e145',
+    emojis: '📅',
+    french: 'le calendrier',
+    english: 'the calendar',
+    options: ['le livre', 'le calendrier', 'la lettre', 'l\'horloge'],
+    category: 'objects',
+    difficulty: 3
+  },
+  {
+    id: 'e146',
+    emojis: '📓',
+    french: 'le cahier',
+    english: 'the notebook',
+    options: ['le livre', 'le stylo', 'le cahier', 'le sac'],
+    category: 'objects',
+    difficulty: 1
+  },
+  {
+    id: 'e147',
+    emojis: '🖊️',
+    french: 'le stylo',
+    english: 'the pen',
+    options: ['le crayon', 'le cahier', 'la gomme', 'le stylo'],
+    category: 'objects',
+    difficulty: 1
+  },
+  {
+    id: 'e148',
+    emojis: '📏',
+    french: 'la règle',
+    english: 'the ruler',
+    options: ['la règle', 'le crayon', 'le stylo', 'les ciseaux'],
+    category: 'objects',
+    difficulty: 2
+  },
+  {
+    id: 'e149',
+    emojis: '🎻',
+    french: 'le violon',
+    english: 'the violin',
+    options: ['la guitare', 'le violon', 'le piano', 'la flûte'],
+    category: 'objects',
+    difficulty: 2
+  },
+  {
+    id: 'e150',
+    emojis: '🥁',
+    french: 'la batterie',
+    english: 'the drums',
+    options: ['la guitare', 'le piano', 'la batterie', 'la trompette'],
+    category: 'objects',
+    difficulty: 3
+  },
+  {
+    id: 'e151',
+    emojis: '🎺',
+    french: 'la trompette',
+    english: 'the trumpet',
+    options: ['le violon', 'la flûte', 'la guitare', 'la trompette'],
+    category: 'objects',
+    difficulty: 3
+  },
+  {
+    id: 'e152',
+    emojis: '🛋️',
+    french: 'le canapé',
+    english: 'the sofa',
+    options: ['le canapé', 'la chaise', 'le lit', 'la table'],
+    category: 'objects',
+    difficulty: 2
+  },
+  {
+    id: 'e153',
+    emojis: '🚿',
+    french: 'la douche',
+    english: 'the shower',
+    options: ['le bain', 'la douche', 'le lavabo', 'la piscine'],
+    category: 'objects',
+    difficulty: 2
+  },
+  {
+    id: 'e154',
+    emojis: '🛁',
+    french: 'la baignoire',
+    english: 'the bathtub',
+    options: ['la douche', 'le lavabo', 'la baignoire', 'la piscine'],
+    category: 'objects',
+    difficulty: 3
+  },
+  {
+    id: 'e155',
+    emojis: '🧹',
+    french: 'le balai',
+    english: 'the broom',
+    options: ['l\'aspirateur', 'la brosse', 'le seau', 'le balai'],
+    category: 'objects',
+    difficulty: 3
+  },
+  {
+    id: 'e156',
+    emojis: '🔨',
+    french: 'le marteau',
+    english: 'the hammer',
+    options: ['le marteau', 'le tournevis', 'la scie', 'la clé'],
+    category: 'objects',
+    difficulty: 3
+  },
+  {
+    id: 'e157',
+    emojis: '🌴',
+    french: 'le palmier',
+    english: 'the palm tree',
+    options: ['le cactus', 'le palmier', 'l\'arbre', 'la fleur'],
+    category: 'nature',
+    difficulty: 2
+  },
+  {
+    id: 'e158',
+    emojis: '🍂',
+    french: 'la feuille',
+    english: 'the leaf',
+    options: ['la fleur', 'l\'arbre', 'la feuille', 'l\'herbe'],
+    category: 'nature',
+    difficulty: 1
+  },
+  {
+    id: 'e159',
+    emojis: '🌹',
+    french: 'la rose',
+    english: 'the rose',
+    options: ['la fleur', 'la tulipe', 'la feuille', 'la rose'],
+    category: 'nature',
+    difficulty: 2
+  },
+  {
+    id: 'e160',
+    emojis: '🌻',
+    french: 'le tournesol',
+    english: 'the sunflower',
+    options: ['le tournesol', 'la rose', 'la fleur', 'le soleil'],
+    category: 'nature',
+    difficulty: 3
+  },
+  {
+    id: 'e161',
+    emojis: '🌲',
+    french: 'le sapin',
+    english: 'the fir tree',
+    options: ['l\'arbre', 'le sapin', 'la forêt', 'le palmier'],
+    category: 'nature',
+    difficulty: 2
+  },
+  {
+    id: 'e162',
+    emojis: '🌪️',
+    french: 'la tornade',
+    english: 'the tornado',
+    options: ['l\'orage', 'le vent', 'la tornade', 'la pluie'],
+    category: 'nature',
+    difficulty: 3
+  },
+  {
+    id: 'e163',
+    emojis: '🌬️',
+    french: 'le vent',
+    english: 'the wind',
+    options: ['la pluie', 'la neige', 'le nuage', 'le vent'],
+    category: 'nature',
+    difficulty: 2
+  },
+  {
+    id: 'e164',
+    emojis: '⛈️',
+    french: 'l\'orage',
+    english: 'the storm',
+    options: ['l\'orage', 'la pluie', 'la neige', 'le vent'],
+    category: 'nature',
+    difficulty: 2
+  },
+  {
+    id: 'e165',
+    emojis: '🌅',
+    french: 'le lever du soleil',
+    english: 'the sunrise',
+    options: ['le coucher du soleil', 'le lever du soleil', 'la lune', 'le matin'],
+    category: 'nature',
+    difficulty: 3
+  },
+  {
+    id: 'e166',
+    emojis: '☄️',
+    french: 'la comète',
+    english: 'the comet',
+    options: ['l\'étoile', 'la planète', 'la comète', 'la fusée'],
+    category: 'nature',
+    difficulty: 3
+  },
+  {
+    id: 'e167',
+    emojis: '🏜️',
+    french: 'le désert',
+    english: 'the desert',
+    options: ['la plage', 'la montagne', 'la forêt', 'le désert'],
+    category: 'nature',
+    difficulty: 2
+  },
+  {
+    id: 'e168',
+    emojis: '🌾',
+    french: 'le blé',
+    english: 'the wheat',
+    options: ['le blé', 'le maïs', 'l\'herbe', 'le riz'],
+    category: 'nature',
+    difficulty: 3
+  },
+  {
+    id: 'e169',
+    emojis: '🐚',
+    french: 'le coquillage',
+    english: 'the shell',
+    options: ['la plage', 'le coquillage', 'le crabe', 'la pierre'],
+    category: 'nature',
+    difficulty: 3
+  },
+  {
+    id: 'e170',
+    emojis: '🌱',
+    french: 'la plante',
+    english: 'the plant',
+    options: ['l\'arbre', 'la fleur', 'la plante', 'l\'herbe'],
+    category: 'nature',
+    difficulty: 2
+  },
+  {
+    id: 'e171',
+    emojis: '🍀',
+    french: 'le trèfle',
+    english: 'the clover',
+    options: ['la fleur', 'la feuille', 'l\'herbe', 'le trèfle'],
+    category: 'nature',
+    difficulty: 3
+  },
+  {
+    id: 'e172',
+    emojis: '🚁',
+    french: 'l\'hélicoptère',
+    english: 'the helicopter',
+    options: ['l\'hélicoptère', 'l\'avion', 'le bateau', 'la fusée'],
+    category: 'activities',
+    difficulty: 3
+  },
+  {
+    id: 'e173',
+    emojis: '⛵',
+    french: 'le bateau',
+    english: 'the boat',
+    options: ['l\'avion', 'le bateau', 'le train', 'le bus'],
+    category: 'activities',
+    difficulty: 1
+  },
+  {
+    id: 'e174',
+    emojis: '🚑',
+    french: 'l\'ambulance',
+    english: 'the ambulance',
+    options: ['la voiture', 'le bus', 'l\'ambulance', 'le camion'],
+    category: 'activities',
+    difficulty: 2
+  },
+  {
+    id: 'e175',
+    emojis: '🚒',
+    french: 'le camion de pompiers',
+    english: 'the fire engine',
+    options: ['l\'ambulance', 'le bus', 'la voiture', 'le camion de pompiers'],
+    category: 'activities',
+    difficulty: 3
+  },
+  {
+    id: 'e176',
+    emojis: '🚓',
+    french: 'la voiture de police',
+    english: 'the police car',
+    options: ['la voiture de police', 'l\'ambulance', 'le camion', 'le bus'],
+    category: 'activities',
+    difficulty: 3
+  },
+  {
+    id: 'e177',
+    emojis: '🚕',
+    french: 'le taxi',
+    english: 'the taxi',
+    options: ['le bus', 'le taxi', 'la voiture', 'le train'],
+    category: 'activities',
+    difficulty: 1
+  },
+  {
+    id: 'e178',
+    emojis: '🚜',
+    french: 'le tracteur',
+    english: 'the tractor',
+    options: ['le camion', 'la voiture', 'le tracteur', 'le bus'],
+    category: 'activities',
+    difficulty: 2
+  },
+  {
+    id: 'e179',
+    emojis: '🏍️',
+    french: 'la moto',
+    english: 'the motorbike',
+    options: ['le vélo', 'la voiture', 'le bus', 'la moto'],
+    category: 'activities',
+    difficulty: 1
+  },
+  {
+    id: 'e180',
+    emojis: '🛴',
+    french: 'la trottinette',
+    english: 'the scooter',
+    options: ['la trottinette', 'le vélo', 'la moto', 'le skateboard'],
+    category: 'activities',
+    difficulty: 3
+  },
+  {
+    id: 'e181',
+    emojis: '🏐',
+    french: 'le volley',
+    english: 'volleyball',
+    options: ['le basket', 'le volley', 'le football', 'le tennis'],
+    category: 'activities',
+    difficulty: 2
+  },
+  {
+    id: 'e182',
+    emojis: '🏓',
+    french: 'le ping-pong',
+    english: 'table tennis',
+    options: ['le tennis', 'le basket', 'le ping-pong', 'le badminton'],
+    category: 'activities',
+    difficulty: 3
+  },
+  {
+    id: 'e183',
+    emojis: '🥊',
+    french: 'la boxe',
+    english: 'boxing',
+    options: ['la lutte', 'le judo', 'le tennis', 'la boxe'],
+    category: 'activities',
+    difficulty: 3
+  },
+  {
+    id: 'e184',
+    emojis: '⛳',
+    french: 'le golf',
+    english: 'golf',
+    options: ['le golf', 'le tennis', 'le football', 'le ski'],
+    category: 'activities',
+    difficulty: 2
+  },
+  {
+    id: 'e185',
+    emojis: '🏇',
+    french: 'l\'équitation',
+    english: 'horse riding',
+    options: ['la natation', 'l\'équitation', 'la danse', 'le ski'],
+    category: 'activities',
+    difficulty: 3
+  },
+  {
+    id: 'e186',
+    emojis: '🚴',
+    french: 'le cyclisme',
+    english: 'cycling',
+    options: ['la course', 'la natation', 'le cyclisme', 'le ski'],
+    category: 'activities',
+    difficulty: 3
+  },
+  {
+    id: 'e187',
+    emojis: '🏃',
+    french: 'la course',
+    english: 'running',
+    options: ['la natation', 'la marche', 'le cyclisme', 'la course'],
+    category: 'activities',
+    difficulty: 2
+  },
+  {
+    id: 'e188',
+    emojis: '🧗',
+    french: 'l\'escalade',
+    english: 'climbing',
+    options: ['l\'escalade', 'la randonnée', 'la course', 'le ski'],
+    category: 'activities',
+    difficulty: 3
+  },
+  {
+    id: 'e189',
+    emojis: '⛺',
+    french: 'le camping',
+    english: 'camping',
+    options: ['l\'hôtel', 'le camping', 'la plage', 'la montagne'],
+    category: 'activities',
+    difficulty: 2
+  },
+  {
+    id: 'e190',
+    emojis: '🏨',
+    french: 'l\'hôtel',
+    english: 'the hotel',
+    options: ['la maison', 'l\'école', 'l\'hôtel', 'le camping'],
+    category: 'activities',
+    difficulty: 2
+  },
+  {
+    id: 'e191',
+    emojis: '🏫',
+    french: 'l\'école',
+    english: 'the school',
+    options: ['la maison', 'l\'hôpital', 'le cinéma', 'l\'école'],
+    category: 'activities',
+    difficulty: 1
+  },
+  {
+    id: 'e192',
+    emojis: '🏥',
+    french: 'l\'hôpital',
+    english: 'the hospital',
+    options: ['l\'hôpital', 'l\'école', 'la banque', 'le musée'],
+    category: 'activities',
+    difficulty: 2
+  },
+  {
+    id: 'e193',
+    emojis: '🏦',
+    french: 'la banque',
+    english: 'the bank',
+    options: ['l\'hôpital', 'la banque', 'le musée', 'la poste'],
+    category: 'activities',
+    difficulty: 2
+  },
+  {
+    id: 'e194',
+    emojis: '🏰',
+    french: 'le château',
+    english: 'the castle',
+    options: ['la maison', 'l\'église', 'le château', 'le musée'],
+    category: 'activities',
+    difficulty: 2
+  },
+  {
+    id: 'e195',
+    emojis: '⛪',
+    french: 'l\'église',
+    english: 'the church',
+    options: ['le château', 'l\'école', 'le musée', 'l\'église'],
+    category: 'activities',
+    difficulty: 2
+  },
+  {
+    id: 'e196',
+    emojis: '🗼',
+    french: 'la tour Eiffel',
+    english: 'the Eiffel Tower',
+    options: ['la tour Eiffel', 'l\'Arc de Triomphe', 'le château', 'la cathédrale'],
+    category: 'activities',
+    difficulty: 2
+  },
+  {
+    id: 'e197',
+    emojis: '🎢',
+    french: 'les montagnes russes',
+    english: 'the roller coaster',
+    options: ['le manège', 'les montagnes russes', 'le train', 'le cirque'],
+    category: 'activities',
+    difficulty: 3
+  },
+  {
+    id: 'e198',
+    emojis: '🎡',
+    french: 'la grande roue',
+    english: 'the big wheel',
+    options: ['le manège', 'les montagnes russes', 'la grande roue', 'le cirque'],
+    category: 'activities',
+    difficulty: 3
+  },
+  {
+    id: 'e199',
+    emojis: '🎪',
+    french: 'le cirque',
+    english: 'the circus',
+    options: ['le théâtre', 'le cinéma', 'le concert', 'le cirque'],
+    category: 'activities',
+    difficulty: 3
+  },
+  {
+    id: 'e200',
+    emojis: '🎃',
+    french: 'la citrouille',
+    english: 'the pumpkin',
+    options: ['la citrouille', 'la tomate', 'l\'orange', 'le melon'],
+    category: 'activities',
+    difficulty: 3
+  },
+  {
+    id: 'e201',
+    emojis: '🎆',
+    french: 'le feu d\'artifice',
+    english: 'the fireworks',
+    options: ['la fête', 'le feu d\'artifice', 'le feu', 'la lumière'],
+    category: 'activities',
+    difficulty: 3
+  },
+  {
+    id: 'e202',
+    emojis: '🌙😴🛏️',
+    french: 'Je dors dans mon lit la nuit',
+    english: 'I sleep in my bed at night',
+    options: ['Je mange à la maison', 'Je joue au parc', 'Je dors dans mon lit la nuit', 'Je lis un livre'],
+    category: 'sentences',
+    difficulty: 2
+  },
+  {
+    id: 'e203',
+    emojis: '☀️🌳🚶',
+    french: 'Je me promène dans le parc',
+    english: 'I am walking in the park',
+    options: ['Je dors dans mon lit', 'Je mange une glace', 'Il pleut beaucoup', 'Je me promène dans le parc'],
+    category: 'sentences',
+    difficulty: 3
+  },
+  {
+    id: 'e204',
+    emojis: '🍞🧈😋',
+    french: 'Je mange du pain avec du beurre',
+    english: 'I eat bread with butter',
+    options: ['Je mange du pain avec du beurre', 'Je bois du lait', 'Je mange une pizza', 'J\'aime le fromage'],
+    category: 'sentences',
+    difficulty: 2
+  },
+  {
+    id: 'e205',
+    emojis: '🚌🏫',
+    french: 'Je prends le bus pour aller à l\'école',
+    english: 'I take the bus to go to school',
+    options: ['Je vais à l\'école à pied', 'Je prends le bus pour aller à l\'école', 'Je prends le train pour Paris', 'Je rentre à la maison'],
+    category: 'sentences',
+    difficulty: 3
+  },
+  {
+    id: 'e206',
+    emojis: '🎸🎵🎤',
+    french: 'Elle chante et joue de la guitare',
+    english: 'She sings and plays the guitar',
+    options: ['Il joue au football', 'Elle écoute la radio', 'Elle chante et joue de la guitare', 'Nous dansons ensemble'],
+    category: 'sentences',
+    difficulty: 3
+  },
+  {
+    id: 'e207',
+    emojis: '🏊☀️🏖️',
+    french: 'Nous nageons à la plage',
+    english: 'We swim at the beach',
+    options: ['Nous mangeons au restaurant', 'Nous skions en montagne', 'Nous jouons au tennis', 'Nous nageons à la plage'],
+    category: 'sentences',
+    difficulty: 2
+  },
+  {
+    id: 'e208',
+    emojis: '📺🛋️🍿',
+    french: 'Nous regardons la télévision sur le canapé',
+    english: 'We watch television on the sofa',
+    options: ['Nous regardons la télévision sur le canapé', 'Nous mangeons au restaurant', 'Nous jouons au football', 'Nous allons au cinéma'],
+    category: 'sentences',
+    difficulty: 3
+  },
+  {
+    id: 'e209',
+    emojis: '❄️⛷️🏔️',
+    french: 'Il neige et nous faisons du ski',
+    english: 'It is snowing and we go skiing',
+    options: ['Il pleut et nous restons à la maison', 'Il neige et nous faisons du ski', 'Il fait chaud et nous nageons', 'Nous jouons dans le parc'],
+    category: 'sentences',
+    difficulty: 3
+  },
+  {
+    id: 'e210',
+    emojis: '🐶🦴😋',
+    french: 'Le chien mange un os',
+    english: 'The dog is eating a bone',
+    options: ['Le chat boit du lait', 'La souris mange du fromage', 'Le chien mange un os', 'Le lapin mange une carotte'],
+    category: 'sentences',
+    difficulty: 2
+  },
+  {
+    id: 'e211',
+    emojis: '🐱🥛',
+    french: 'Le chat boit du lait',
+    english: 'The cat is drinking milk',
+    options: ['Le chien mange un os', 'Le poisson nage', 'Le lapin dort', 'Le chat boit du lait'],
+    category: 'sentences',
+    difficulty: 2
+  },
+  {
+    id: 'e212',
+    emojis: '👧🎨🖌️',
+    french: 'La fille fait de la peinture',
+    english: 'The girl is painting',
+    options: ['La fille fait de la peinture', 'La fille lit un livre', 'Le garçon joue au football', 'La fille mange une pomme'],
+    category: 'sentences',
+    difficulty: 2
+  },
+  {
+    id: 'e213',
+    emojis: '👦🚲🌳',
+    french: 'Le garçon fait du vélo dans le parc',
+    english: 'The boy rides his bike in the park',
+    options: ['Le garçon joue au football', 'Le garçon fait du vélo dans le parc', 'La fille nage à la piscine', 'Le garçon lit à la maison'],
+    category: 'sentences',
+    difficulty: 3
+  },
+  {
+    id: 'e214',
+    emojis: '🍕🥤👪',
+    french: 'La famille mange une pizza',
+    english: 'The family is eating a pizza',
+    options: ['La famille va à la plage', 'Le chat dort sur le lit', 'La famille mange une pizza', 'Nous faisons les courses'],
+    category: 'sentences',
+    difficulty: 2
+  },
+  {
+    id: 'e215',
+    emojis: '📚✏️🏫',
+    french: 'Les élèves étudient à l\'école',
+    english: 'The pupils study at school',
+    options: ['Les élèves jouent au parc', 'Les enfants dorment', 'La prof mange une pomme', 'Les élèves étudient à l\'école'],
+    category: 'sentences',
+    difficulty: 3
+  },
+  {
+    id: 'e216',
+    emojis: '🛒🥕🍎',
+    french: 'Je fais les courses',
+    english: 'I am doing the shopping',
+    options: ['Je fais les courses', 'Je fais la cuisine', 'Je fais du sport', 'Je fais mes devoirs'],
+    category: 'sentences',
+    difficulty: 2
+  },
+  {
+    id: 'e217',
+    emojis: '✈️🧳🌴',
+    french: 'Nous partons en vacances',
+    english: 'We are going on holiday',
+    options: ['Nous rentrons à la maison', 'Nous partons en vacances', 'Nous allons à l\'école', 'Nous faisons les courses'],
+    category: 'sentences',
+    difficulty: 2
   }
 ];
