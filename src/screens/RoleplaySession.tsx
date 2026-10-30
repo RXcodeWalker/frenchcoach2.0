@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
-import { Card } from '../components/ui/Card';
+import { motion, useReducedMotion } from 'framer-motion';
+import { Check } from 'lucide-react';
+import { Button } from '../components/ui/Button';
+import { PageShell } from '../components/layout/PageShell';
+import { TopContextBar } from '../components/TopContextBar';
+import { enter, enterReduced, fill } from '../components/motion/variants';
 import { getScenario, isAuthored } from '../data/scenarios/registry';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
@@ -70,28 +74,25 @@ function RoleplaySessionView({ scenarioId, entry }: { scenarioId: string; entry:
     [meta.branches],
   );
 
+  const leave = () => navigate('/explore');
+  const preparing = phase === 'briefing' || phase === 'prep';
+
+  if (phase === 'play') {
+    return <PlayPhase scenarioId={scenarioId} entry={entry} session={session} recording={recording} onExit={leave} />;
+  }
+
   return (
-    <div className="max-w-3xl mx-auto px-4 pt-6 pb-24 md:pb-8">
-      <button
-        onClick={() => navigate('/explore')}
-        className="flex items-center gap-2 text-[10px] font-black text-ink-muted hover:text-white transition-colors uppercase tracking-widest mb-4"
-      >
-        <ArrowLeft size={14} /> Back to Explore
-      </button>
-
-      <Card variant="subtle" className="p-4 border-white/5 flex items-center gap-4 mb-6">
-        <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center border border-white/5 text-lg">
-          {meta.emoji}
-        </div>
-        <div>
-          <h1 className="text-sm font-black text-white italic tracking-tight">{meta.title}</h1>
-          <p className="text-[10px] text-ink-muted font-bold uppercase tracking-tighter">{meta.npc.nameFr} · {meta.npc.roleEn}</p>
-        </div>
-      </Card>
-
-      {(phase === 'briefing' || phase === 'prep') && (
-        <div className="h-[70vh]">
-          {consentStatus === 'pending' ? (
+    <>
+      <TopContextBar
+        title={meta.title}
+        subtitle={`${meta.npc.nameFr} · ${meta.npc.roleEn}`}
+        showBack
+        onBack={leave}
+        backLabel="Back to Explore"
+      />
+      <PageShell maxWidth="md" gap={24}>
+        {preparing &&
+          (consentStatus === 'pending' ? (
             <SpeakingConsentGate>
               {/* Never rendered while pending — SpeakingConsentGate shows the
                   waiting message instead. Present only so children is non-empty. */}
@@ -105,20 +106,13 @@ function RoleplaySessionView({ scenarioId, entry }: { scenarioId: string; entry:
               sttSupported={recording.sttSupported}
               hasFrenchVoice={hasFrenchVoice()}
               onReady={session.start}
-              onCancel={() => navigate('/explore')}
+              onCancel={leave}
             />
-          )}
-        </div>
-      )}
+          ))}
 
-      {phase === 'play' && (
-        <PlayPhase scenarioId={scenarioId} entry={entry} session={session} recording={recording} onExit={() => navigate('/explore')} />
-      )}
-
-      {phase === 'debrief' && (
-        <DebriefPhase session={session} onExit={() => navigate('/explore')} />
-      )}
-    </div>
+        {phase === 'debrief' && <DebriefPhase session={session} onExit={leave} />}
+      </PageShell>
+    </>
   );
 }
 
@@ -363,9 +357,12 @@ function PlayPhase({
 
   if (kind === 'passthrough') {
     return (
-      <Card className="p-6">
-        <p className="text-sm text-ink-muted">{npcLine}</p>
-      </Card>
+      <>
+        <TopContextBar title={entry.meta.title} subtitle={entry.meta.npc.nameFr} showBack onBack={onExit} backLabel="Leave role play" />
+        <PageShell maxWidth="md">
+          <p className="rounded-card surface p-5 text-body-base text-ink">{npcLine}</p>
+        </PageShell>
+      </>
     );
   }
 
@@ -404,33 +401,52 @@ function DebriefPhase({
 }) {
   const { status, ratio } = session;
   const percent = Math.round(ratio * 100);
+  const reduced = useReducedMotion();
+  const item = reduced ? enterReduced : enter;
 
   return (
-    <Card className="p-6">
-      <h2 className="text-lg font-black text-white italic tracking-tighter uppercase mb-1">Session Complete</h2>
-      <p className="text-[10px] font-bold text-ink-muted uppercase tracking-widest mb-6">Task Summary</p>
+    <motion.section variants={item} aria-labelledby="debrief-title" className="flex flex-col gap-5 rounded-card surface p-6">
+      <div>
+        <p className="text-eyebrow uppercase text-ink-subtle">Task summary</p>
+        <h2 id="debrief-title" className="mt-1 text-title text-ink">Role play complete</h2>
+      </div>
 
-      <div className="flex items-center gap-4 mb-4">
-        <div className="text-3xl font-black text-white italic">{percent}%</div>
-        <div className="text-xs text-ink-muted">
-          {status.completed.length} of {status.applicable} missions completed
+      <div className="flex flex-col gap-2">
+        <div className="flex items-baseline justify-between gap-3">
+          <span className="font-numeral text-num-l text-ink">{percent}%</span>
+          <span className="text-body-s text-ink-muted">
+            {status.completed.length} of {status.applicable} missions completed
+          </span>
         </div>
+        <div
+          role="progressbar"
+          aria-label="Missions completed"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={percent}
+          className="relative h-1.5 overflow-hidden rounded-pill bg-track"
+        >
+          <motion.span
+            className="absolute inset-y-0 left-0 rounded-pill bg-progress"
+            initial={{ width: reduced ? `${percent}%` : 0 }}
+            animate={{ width: `${percent}%` }}
+            transition={reduced ? { duration: 0 } : fill()}
+          />
+        </div>
+        {percent >= 100 && (
+          <p className="mt-1 inline-flex items-center gap-1.5 text-label text-progress-text">
+            <Check size={14} aria-hidden="true" /> Every mission done
+          </p>
+        )}
       </div>
 
       {status.skipped && (
-        <div className="flex items-start gap-2 mb-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/25">
-          <p className="text-[11px] text-amber-300 leading-snug">
-            Moving on — this session included at least one step that wasn't completed and was skipped automatically. It reached the end via recovery, not entirely under your own steam.
-          </p>
-        </div>
+        <p className="rounded-control bg-reward-soft px-4 py-3 text-body-s text-reward-text">
+          Moving on — this session included at least one step that wasn’t completed and was skipped automatically. It reached the end via recovery, not entirely under your own steam.
+        </p>
       )}
 
-      <button
-        onClick={onExit}
-        className="mt-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-widest transition-colors"
-      >
-        Back to Explore
-      </button>
-    </Card>
+      <Button size="lg" onClick={onExit} className="w-full sm:w-auto sm:self-start">Back to Explore</Button>
+    </motion.section>
   );
 }

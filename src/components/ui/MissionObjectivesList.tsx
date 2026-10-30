@@ -1,6 +1,7 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { CheckCircle2, Circle, Target } from 'lucide-react';
+import { motion, useReducedMotion } from 'framer-motion';
+import { Check } from 'lucide-react';
+import { fill } from '../motion/variants';
 
 export interface Objective {
   id: string;
@@ -12,45 +13,60 @@ interface MissionObjectivesListProps {
   objectives: Objective[];
 }
 
+/**
+ * The mission checklist (Design System v2): a card with a tick per
+ * objective and a progress bar that fills with the `fill` motion.
+ */
 export const MissionObjectivesList: React.FC<MissionObjectivesListProps> = ({ objectives }) => {
+  const reduced = useReducedMotion();
+  const done = objectives.filter((o) => o.isCompleted).length;
+  const percent = Math.round((done / (objectives.length || 1)) * 100);
+
   return (
-    <div className="surface-raised rounded-3xl p-6 border-violet-500/20 bg-navy/40 backdrop-blur-md">
-      <div className="flex items-center gap-2 mb-4">
-        <Target size={16} className="text-violet-400" />
-        <h3 className="text-[10px] font-black text-ink-muted uppercase tracking-[0.2em]">Mission Objectives</h3>
-      </div>
-      
-      <div className="space-y-3">
-        {objectives.map((obj) => (
-          <div key={obj.id} className="flex items-start gap-3 group">
-            <div className={`mt-0.5 shrink-0 transition-colors ${obj.isCompleted ? 'text-emerald-500' : 'text-ink-subtle'}`}>
-              {obj.isCompleted ? <CheckCircle2 size={16} /> : <Circle size={16} />}
-            </div>
-            <p className={`text-xs font-bold transition-colors ${
-              obj.isCompleted ? 'text-ink-muted line-through' : 'text-slate-200 group-hover:text-white'
-            }`}>
-              {obj.text}
-            </p>
-          </div>
-        ))}
+    <section aria-labelledby="mission-objectives" className="flex flex-col gap-4 rounded-card surface p-5">
+      <div className="flex items-baseline justify-between gap-3">
+        <h3 id="mission-objectives" className="text-section text-ink">Your mission</h3>
+        {objectives.length > 0 && <span className="font-numeral text-caption text-ink-subtle">{done} of {objectives.length}</span>}
       </div>
 
-      {/* Progress Bar */}
-      <div className="mt-6 pt-4 border-t border-white/5">
-        <div className="flex justify-between items-center mb-1.5">
-          <span className="text-[8px] font-black text-ink-muted uppercase tracking-widest">Completion</span>
-          <span className="text-[8px] font-black text-violet-400 uppercase tracking-widest">
-            {Math.round((objectives.filter(o => o.isCompleted).length / (objectives.length || 1)) * 100)}%
-          </span>
-        </div>
-        <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-          <motion.div 
-            className="h-full bg-gradient-to-r from-violet-600 to-indigo-500"
-            initial={{ width: 0 }}
-            animate={{ width: `${(objectives.filter(o => o.isCompleted).length / (objectives.length || 1)) * 100}%` }}
-          />
-        </div>
+      {objectives.length === 0 && <p className="text-body-s text-ink-subtle">Your missions appear once the conversation starts.</p>}
+
+      <ul className="flex flex-col gap-2.5">
+        {objectives.map((obj) => (
+          <li key={obj.id} className="flex items-start gap-3">
+            <span
+              aria-hidden="true"
+              className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-pill transition-colors duration-state ease-smooth ${
+                obj.isCompleted ? 'bg-progress text-action-ink' : 'border border-hairline-strong'
+              }`}
+            >
+              {obj.isCompleted && <Check size={12} strokeWidth={3} />}
+            </span>
+            <span className={`text-body-s ${obj.isCompleted ? 'text-ink-subtle line-through' : 'text-ink'}`}>
+              {obj.text}
+              {obj.isCompleted && <span className="sr-only"> (done)</span>}
+            </span>
+          </li>
+        ))}
+      </ul>
+
+      {objectives.length > 0 && (
+      <div
+        role="progressbar"
+        aria-label="Mission progress"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={percent}
+        className="relative h-1.5 overflow-hidden rounded-pill bg-track"
+      >
+        <motion.span
+          className="absolute inset-y-0 left-0 rounded-pill bg-progress"
+          initial={{ width: reduced ? `${percent}%` : 0 }}
+          animate={{ width: `${percent}%` }}
+          transition={reduced ? { duration: 0 } : fill(0)}
+        />
       </div>
-    </div>
+      )}
+    </section>
   );
 };

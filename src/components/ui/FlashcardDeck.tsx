@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Volume2 } from 'lucide-react';
 import { TTS } from '../../services/tts/ttsService';
 import type { VocabEntry } from '../../features/roleplay/types';
@@ -8,116 +7,69 @@ interface FlashcardDeckProps {
   items: VocabEntry[];
 }
 
+/**
+ * Flashcards (Design System v2): one flat card — the French word, and the
+ * English revealed under it on tap. No flip, gradient or 3D.
+ */
 export const FlashcardDeck: React.FC<FlashcardDeckProps> = ({ items }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isFlipped, setIsFlipped] = useState(false);
+  const [revealed, setRevealed] = useState(false);
 
   const currentItem = items[currentIndex];
+  if (items.length === 0 || !currentItem) return null;
 
-  const nextCard = () => {
-    setIsFlipped(false);
-    setTimeout(() => {
-      setCurrentIndex((prev) => (prev + 1) % items.length);
-    }, 150);
+  const go = (delta: number) => {
+    setRevealed(false);
+    setCurrentIndex((prev) => (prev + delta + items.length) % items.length);
   };
 
-  const prevCard = () => {
-    setIsFlipped(false);
-    setTimeout(() => {
-      setCurrentIndex((prev) => (prev - 1 + items.length) % items.length);
-    }, 150);
-  };
-
-  const speak = (e: React.MouseEvent, text: string) => {
-    e.stopPropagation();
-    TTS.speak(text, { recorded: true });
-  };
-
-  if (items.length === 0) return null;
+  const french = `${currentItem.pos === 'noun' && currentItem.article ? `${currentItem.article} ` : ''}${currentItem.fr}`;
+  const navBtn =
+    'flex h-11 w-11 items-center justify-center rounded-control border border-hairline-strong text-ink-muted transition-[background-color,color,transform] duration-state ease-smooth hover:bg-track hover:text-ink active:scale-[.97]';
 
   return (
-    <div className="flex flex-col items-center gap-8 py-4">
-      <div className="relative w-full max-w-[300px] h-[350px] perspective-1000">
-        <motion.div
-          className="w-full h-full relative cursor-pointer"
-          initial={false}
-          animate={{ rotateY: isFlipped ? 180 : 0 }}
-          transition={{ duration: 0.6, type: "spring", stiffness: 260, damping: 20 }}
-          onClick={() => setIsFlipped(!isFlipped)}
-          style={{ transformStyle: 'preserve-3d', WebkitTransformStyle: 'preserve-3d' } as React.CSSProperties}
+    <div className="mx-auto flex w-full max-w-[420px] flex-col gap-4">
+      <div className="flex min-h-[260px] flex-col items-center justify-center gap-3 rounded-card surface p-6 text-center">
+        <span className="text-eyebrow uppercase text-ink-subtle">French</span>
+        <h3 className="text-title text-ink">{french}</h3>
+        {currentItem.pos === 'noun' && currentItem.gender && (
+          <span className="rounded-pill bg-action-soft px-2.5 py-0.5 text-caption font-semibold text-action-text">{currentItem.gender}</span>
+        )}
+        <button
+          type="button"
+          onClick={() => TTS.speak(currentItem.fr, { recorded: true })}
+          aria-label={`Hear ${french}`}
+          className={navBtn}
         >
-          {/* Front Side */}
-          <div
-            className="absolute inset-0 bg-gradient-to-br from-violet-600 to-indigo-700 rounded-[2.5rem] flex flex-col items-center justify-center p-8 text-center shadow-2xl backface-hidden"
-            style={{ transform: 'rotateY(0deg)' }}
-          >
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-violet-200 mb-4 opacity-60">French</span>
-            <h2 className="text-3xl font-black text-white italic tracking-tighter mb-2">
-              {currentItem?.pos === 'noun' && currentItem?.article ? `${currentItem.article} ` : ''}
-              {currentItem?.fr}
-            </h2>
-            {currentItem?.pos === 'noun' && currentItem?.gender && (
-              <span className="text-[10px] font-black text-violet-100 bg-white/10 rounded-md px-2 py-0.5 uppercase mb-2">
-                {currentItem.gender}
-              </span>
-            )}
-            <button
-              onClick={(e) => speak(e, currentItem?.fr ?? '')}
-              className="p-3 bg-white/10 rounded-full text-white hover:bg-white/20 transition-all"
-            >
-              <Volume2 size={24} />
-            </button>
-            <p className="absolute bottom-8 text-[10px] font-bold text-violet-300 uppercase tracking-widest opacity-40">Click to reveal translation</p>
-          </div>
+          <Volume2 size={18} aria-hidden="true" />
+        </button>
 
-          {/* Back Side */}
-          <div
-            className="absolute inset-0 bg-slate-900 border-2 border-violet-500/30 rounded-[2.5rem] flex flex-col items-center justify-center p-8 text-center shadow-2xl backface-hidden"
-            style={{ transform: 'rotateY(180deg)' }}
-          >
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-ink-muted mb-4 opacity-60">English</span>
-            <h2 className="text-3xl font-black text-white italic tracking-tighter">{currentItem?.en}</h2>
-            {currentItem?.literalEn && (
-              <p className="text-xs text-ink-muted italic mt-2">lit. "{currentItem.literalEn}"</p>
-            )}
-            {(currentItem?.note || currentItem?.register) && (
-              <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
-                {currentItem?.register && (
-                  <span className="text-[9px] font-black text-ink-muted uppercase tracking-widest">{currentItem.register}</span>
-                )}
-              </div>
-            )}
-            {currentItem?.note && (
-              <p className="text-[10px] text-amber-300/80 mt-2 max-w-[220px]">{currentItem.note}</p>
-            )}
-            <p className="absolute bottom-8 text-[10px] font-bold text-ink-subtle uppercase tracking-widest opacity-40">Click to flip back</p>
+        {revealed ? (
+          <div className="mt-2 flex flex-col gap-1 border-t border-hairline pt-4" aria-live="polite">
+            <span className="text-eyebrow uppercase text-ink-subtle">English</span>
+            <p className="text-subtitle text-ink">{currentItem.en}</p>
+            {currentItem.literalEn && <p className="text-caption text-ink-subtle">lit. “{currentItem.literalEn}”</p>}
+            {currentItem.note && <p className="text-caption text-reward-text">{currentItem.note}</p>}
+            {currentItem.register && <p className="text-caption text-ink-subtle">{currentItem.register}</p>}
           </div>
-        </motion.div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setRevealed(true)}
+            className="mt-2 h-10 rounded-control border border-hairline-strong px-4 text-label text-ink transition-[background-color,transform] duration-state ease-smooth hover:bg-track active:scale-[.97]"
+          >
+            Show translation
+          </button>
+        )}
       </div>
 
-      <div className="flex items-center gap-6">
-        <button 
-          onClick={prevCard}
-          className="p-4 bg-white/5 rounded-2xl text-ink-muted hover:text-white hover:bg-white/10 transition-all border border-white/5"
-        >
-          <ChevronLeft size={24} />
+      <div className="flex items-center justify-between">
+        <button type="button" onClick={() => go(-1)} aria-label="Previous card" className={navBtn}>
+          <ChevronLeft size={18} aria-hidden="true" />
         </button>
-        <div className="text-center">
-          <p className="text-xs font-black text-white italic tracking-tight">{currentIndex + 1} / {items.length}</p>
-          <div className="flex gap-1 mt-1 justify-center">
-            {items.map((_, i) => (
-              <div 
-                key={i} 
-                className={`w-1 h-1 rounded-full transition-all ${i === currentIndex ? 'bg-violet-500 w-3' : 'bg-slate-700'}`}
-              />
-            ))}
-          </div>
-        </div>
-        <button 
-          onClick={nextCard}
-          className="p-4 bg-white/5 rounded-2xl text-ink-muted hover:text-white hover:bg-white/10 transition-all border border-white/5"
-        >
-          <ChevronRight size={24} />
+        <span className="font-numeral text-label text-ink-muted">{currentIndex + 1} / {items.length}</span>
+        <button type="button" onClick={() => go(1)} aria-label="Next card" className={navBtn}>
+          <ChevronRight size={18} aria-hidden="true" />
         </button>
       </div>
     </div>

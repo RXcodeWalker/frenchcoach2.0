@@ -261,3 +261,23 @@ handoff left a gap or clashed with the codebase. Newest phase last.
   (warm-paper voice, untouched apart from the serif face), the Junior track,
   and every hidden (launch-scope) screen. They pick up the new tokens and
   font automatically but keep their own layouts and some legacy motion.
+
+## Scenarios (role-play flow)
+
+- **Scope:** the screens a learner reaches from Explore → Scenarios — preparation
+  (`ScenarioPrepScreen`), play (`VisualNovelView`, shared with Story mode) and the
+  debrief in `RoleplaySession`. The Scenario Architect (AI Labs) is not redone.
+- **No immersive overlay.** Play used to be a `fixed inset-0` dark scene with a
+  gradient, floating emoji and bouncing dots. It is now a normal screen under
+  `MainLayout`: `TopContextBar` (back, mute toggle), the character, their line,
+  a "Your move" card and the recorder. Desktop puts the mission list and coaching
+  notes in a right column; mobile hides the dock (`useHideDock`), docks the
+  compact recorder at the bottom and opens the notes in a sheet.
+- **`ScenarioBackground` is deleted** (gradient, noise, looping emoji). The
+  character is a static portrait chip; their reaction is a one-line mood caption
+  instead of the scale/rotate expression motions, which are not among the eight
+  named motions. The `expression` prop is kept for Story mode.
+- **Prep uses `Segmented`** (Briefing / Study list / Flashcards) and one primary
+  "Start role play". Flashcards no longer flip in 3D: tap "Show translation".
+- **"You could have said"** in the live coaching panel is a model answer, so it
+  uses `font-exam`; everything else is Bricolage.

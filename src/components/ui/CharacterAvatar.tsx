@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 
 export type Expression = 'neutral' | 'happy' | 'thinking' | 'confused' | 'excited';
 
@@ -12,44 +11,42 @@ export interface CharacterNpc {
 interface CharacterAvatarProps {
   npc: CharacterNpc;
   expression?: Expression;
+  /** Second line under the name (the character's role). */
+  role?: string;
 }
 
-const EXPRESSION_VARIANTS = {
-  neutral: { scale: 1, rotate: 0 },
-  happy: { scale: 1.1, rotate: [0, 5, -5, 0] },
-  thinking: { scale: 0.95, rotate: -5, opacity: 0.8 },
-  confused: { scale: 1, x: [0, -2, 2, -2, 2, 0], rotate: 10 },
-  excited: { scale: 1.2, y: [0, -10, 0, -10, 0] },
+// The character reacts in words, not motion: one short mood line beside the
+// name once they have an opinion about the last answer.
+const MOOD: Record<Expression, string | null> = {
+  neutral: null,
+  happy: 'Pleased',
+  thinking: 'Thinking it over',
+  confused: 'Not quite following',
+  excited: 'Impressed',
 };
 
-export const CharacterAvatar: React.FC<CharacterAvatarProps> = ({ npc, expression = 'neutral' }) => {
-  const emoji = npc.emoji;
-
+/**
+ * The scenario character (Design System v2): a portrait chip with the
+ * character's emoji, their name and role. Static — no bounce, glow or scale.
+ */
+export const CharacterAvatar: React.FC<CharacterAvatarProps> = ({ npc, expression = 'neutral', role }) => {
+  const mood = MOOD[expression];
   return (
-    <div className="relative group">
-      {/* Glow Effect */}
-      <div className="absolute inset-0 bg-violet-500/20 blur-2xl rounded-full scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-      
-      <motion.div
-        variants={EXPRESSION_VARIANTS}
-        animate={expression}
-        transition={{ duration: 0.5, type: 'spring' }}
-        className="relative z-10 w-48 h-48 md:w-64 md:h-64 flex items-center justify-center text-[8rem] md:text-[10rem] drop-shadow-2xl filter saturate-[1.2]"
+    <div className="flex items-center gap-3">
+      <span
+        aria-hidden="true"
+        className="flex h-14 w-14 shrink-0 items-center justify-center rounded-pill border border-hairline bg-surface-recessed text-[28px] leading-none"
       >
-        {emoji}
-        
-        {/* Shadow */}
-        <div className="absolute bottom-4 w-32 h-4 bg-black/20 blur-md rounded-full -z-10" />
-      </motion.div>
-
-      {/* Role Label */}
-      <motion.div 
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="absolute -bottom-4 left-1/2 -translate-x-1/2 px-6 py-2 bg-white text-slate-950 font-black rounded-full shadow-xl uppercase italic tracking-wider text-xs whitespace-nowrap z-20"
-      >
-        {npc.nameFr}
-      </motion.div>
+        {npc.emoji}
+      </span>
+      <span className="flex min-w-0 flex-col">
+        <span className="truncate text-section text-ink">{npc.nameFr}</span>
+        <span className="truncate text-caption text-ink-subtle">
+          {role}
+          {role && mood ? ' · ' : ''}
+          {mood && <span aria-live="polite" className="text-ink-muted">{mood}</span>}
+        </span>
+      </span>
     </div>
   );
 };

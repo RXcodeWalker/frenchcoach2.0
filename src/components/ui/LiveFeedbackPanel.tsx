@@ -1,8 +1,10 @@
-import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, XCircle, CheckCircle, Loader2, RotateCcw, MessageCircleQuestion } from 'lucide-react';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { ChevronRight, Loader2, RotateCcw } from 'lucide-react';
+import type React from 'react';
 import { isUnscored } from '../../domain/scoring';
 import { StrongestMomentCard } from '../../features/feedback/components/StrongestMomentCard';
 import { BiggestOpportunityCard } from '../../features/feedback/components/BiggestOpportunityCard';
+import { enter, enterReduced } from '../motion/variants';
 import type { FeedbackV2 } from '../../types';
 
 export interface PanelEntry {
@@ -20,26 +22,21 @@ interface Props {
 }
 
 export function LiveFeedbackPanel({ entries, canRedo, redosLeft, onRedo }: Props) {
+  const reduced = useReducedMotion();
+
   if (entries.length === 0) {
     return (
-      <div className="surface-raised rounded-3xl p-6 border-white/5 bg-navy/40 backdrop-blur-md">
-        <p className="text-[10px] font-bold text-ink-subtle uppercase tracking-widest text-center">
-          Coaching notes will appear here after your first answer
-        </p>
+      <div className="rounded-card surface-recessed p-5">
+        <p className="text-body-s text-ink-subtle">Coaching notes will appear here after your first answer.</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4">
       <AnimatePresence initial={false}>
         {entries.map((entry) => (
-          <motion.div
-            key={entry.turnKey}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-          >
+          <motion.div key={entry.turnKey} variants={reduced ? enterReduced : enter} initial="hidden" animate="show" exit={{ opacity: 0 }}>
             <LiveFeedbackEntry
               entry={entry}
               canRedo={canRedo(entry.turnKey)}
@@ -50,6 +47,15 @@ export function LiveFeedbackPanel({ entries, canRedo, redosLeft, onRedo }: Props
         ))}
       </AnimatePresence>
     </div>
+  );
+}
+
+function Block({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="flex flex-col gap-2.5 rounded-card surface p-4">
+      <h4 className="text-eyebrow uppercase text-ink-subtle">{title}</h4>
+      {children}
+    </section>
   );
 }
 
@@ -66,9 +72,9 @@ function LiveFeedbackEntry({
 }) {
   if (entry.status === 'pending' || !entry.feedback) {
     return (
-      <div className="rounded-xl surface-raised p-5 flex items-center gap-3">
-        <Loader2 size={18} className="text-violet-400 animate-spin shrink-0" />
-        <p className="text-xs text-ink-muted">AI evaluating…</p>
+      <div role="status" className="flex items-center gap-3 rounded-card surface p-4">
+        <Loader2 size={18} className="shrink-0 animate-spin text-ink-subtle" aria-hidden="true" />
+        <p className="text-body-s text-ink-muted">Checking your answer…</p>
       </div>
     );
   }
@@ -77,10 +83,10 @@ function LiveFeedbackEntry({
 
   if (isUnscored(feedback)) {
     return (
-      <div className="space-y-3">
-        <div className="rounded-xl surface-raised p-5">
-          <p className="text-sm text-ink-muted font-semibold">Practiced offline — not graded</p>
-          <p className="text-[11px] text-ink-muted mt-1 leading-snug">
+      <div className="flex flex-col gap-3">
+        <div className="rounded-card surface p-4">
+          <p className="text-label text-ink">Practised offline — not graded</p>
+          <p className="mt-1 text-body-s text-ink-muted">
             No AI grader was reachable for this attempt, so no score was assigned.
           </p>
         </div>
@@ -92,58 +98,49 @@ function LiveFeedbackEntry({
   const suggestion = feedback.improved_answer ?? feedback.rephrase;
 
   return (
-    <div className="space-y-3">
+    <div className="flex flex-col gap-3">
       <StrongestMomentCard feedback={feedback} transcript={entry.transcript} />
       <BiggestOpportunityCard opportunity={feedback.biggest_opportunity} />
 
       {suggestion && (
-        <div className="rounded-xl surface p-4">
-          <p className="text-[9px] font-bold text-ink-subtle uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
-            <MessageCircleQuestion size={11} /> You could have said…
-          </p>
-          <p className="text-[11px] text-emerald-300 leading-relaxed italic">{suggestion}</p>
-        </div>
+        <Block title="You could have said">
+          <p className="font-exam text-body-s text-ink">{suggestion}</p>
+        </Block>
       )}
 
       {feedback.grammar.critical.length > 0 && (
-        <div className="rounded-xl surface p-4">
-          <p className="text-[9px] font-bold text-ink-subtle uppercase tracking-wider mb-2.5">Corrections</p>
+        <Block title="Corrections">
           {feedback.grammar.critical.map((err, i) => (
-            <div key={i} className="flex items-start gap-2 p-2.5 rounded-lg bg-red-500/5 border border-red-500/10 mb-1.5">
-              <XCircle size={12} className="text-red-400 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-[10px] font-semibold text-red-300">{err.theme}</p>
-                <p className="text-[10px] text-ink-muted mt-0.5">{err.diagnostic}</p>
-                <p className="text-[10px] text-emerald-400 mt-0.5"><CheckCircle size={9} className="inline mr-1" />{err.correction}</p>
-              </div>
+            <div key={i} className="flex flex-col gap-0.5 rounded-control bg-correction-soft p-3">
+              <p className="text-label text-correction-text">{err.theme}</p>
+              <p className="text-body-s text-ink-muted">{err.diagnostic}</p>
+              <p className="text-body-s text-progress-text">{err.correction}</p>
             </div>
           ))}
-        </div>
+        </Block>
       )}
 
       {feedback.vocabulary.length > 0 && (
-        <div className="rounded-xl surface p-4">
-          <p className="text-[9px] font-bold text-ink-subtle uppercase tracking-wider mb-2.5">Vocabulary Upgrades</p>
+        <Block title="Vocabulary upgrades">
           {feedback.vocabulary.map((v, i) => (
-            <div key={i} className="flex items-center gap-2 p-2 rounded-lg surface-recessed mb-1">
-              <span className="text-[10px] text-ink-subtle line-through">{v.basic}</span>
-              <ChevronRight size={9} className="text-ink-subtle" />
-              <span className="text-[10px] text-emerald-400 font-medium">{v.upgrade}</span>
+            <div key={i} className="flex items-center gap-2 rounded-control surface-recessed p-2.5 text-body-s">
+              <span className="text-ink-subtle line-through">{v.basic}</span>
+              <ChevronRight size={12} aria-hidden="true" className="text-ink-subtle" />
+              <span className="font-semibold text-progress-text">{v.upgrade}</span>
             </div>
           ))}
-        </div>
+        </Block>
       )}
 
       {feedback.style.length > 0 && (
-        <div className="rounded-xl surface p-4">
-          <p className="text-[9px] font-bold text-ink-subtle uppercase tracking-wider mb-2.5">Style Tips</p>
+        <Block title="Style tips">
           {feedback.style.map((s, i) => (
-            <div key={i} className="flex items-start gap-2 p-2.5 rounded-lg surface-recessed mb-1">
-              <span className="text-[10px] font-semibold text-violet-300">{s.label}</span>
-              <span className="text-[10px] text-ink-muted">{s.suggestion}</span>
+            <div key={i} className="flex flex-col gap-0.5 rounded-control surface-recessed p-2.5">
+              <span className="text-label text-action-text">{s.label}</span>
+              <span className="text-body-s text-ink-muted">{s.suggestion}</span>
             </div>
           ))}
-        </div>
+        </Block>
       )}
 
       {canRedo && <RedoButton onRedo={onRedo} redosLeft={redosLeft} />}
@@ -153,12 +150,13 @@ function LiveFeedbackEntry({
 
 function RedoButton({ onRedo, redosLeft }: { onRedo: () => void; redosLeft: number }) {
   return (
-    <motion.button
+    <button
+      type="button"
       onClick={onRedo}
-      className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl surface-recessed text-white font-semibold text-xs"
-      whileTap={{ scale: 0.97 }}
+      className="inline-flex h-11 items-center justify-center gap-2 self-start rounded-control border border-hairline-strong px-4 text-[14px] font-semibold text-ink
+        transition-[background-color,transform] duration-state ease-smooth hover:bg-track active:scale-[.97]"
     >
-      <RotateCcw size={12} /> Redo ({redosLeft} left)
-    </motion.button>
+      <RotateCcw size={14} aria-hidden="true" /> Redo ({redosLeft} left)
+    </button>
   );
 }
