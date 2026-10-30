@@ -45,7 +45,7 @@ vi.mock('../../recording/useAudioBlobRecorder', () => ({
 import { MonthlyCheck } from '../MonthlyCheck';
 import { AuthRequiredError } from '../../../lib/authToken';
 import { ConsentRequiredError } from '../../../lib/consentRequired';
-import { getLabHistory } from '../../../services/pronunciation/labStore';
+import { loadLabHistory } from '../labStore';
 import { STORAGE_KEYS, setStorageScope } from '../../../services/persistence/storage';
 import { BENCHMARK_VERSION } from '../../../domain/pronunciation/lab/benchmark';
 import { LAB_THRESHOLDS_VERSION } from '../../../domain/pronunciation/lab/thresholds';
@@ -113,7 +113,7 @@ describe('MonthlyCheck', () => {
     expect(summary.textContent).toContain(`${totalWords - 5} of ${totalWords} words clear`);
     expect(document.body.textContent).not.toMatch(/\bscore\b/i);
 
-    const history = getLabHistory();
+    const history = loadLabHistory();
     expect(history.checks).toHaveLength(1);
     expect(history.checks[0]).toMatchObject({ benchmarkVersion: BENCHMARK_VERSION, thresholdsVersion: LAB_THRESHOLDS_VERSION });
     expect(history.checks[0].sentences).toHaveLength(5);
@@ -147,7 +147,7 @@ describe('MonthlyCheck', () => {
     const text = screen.getByTestId('monthly-check-summary').textContent ?? '';
     // "<date>: <before>. <date>: <after>." over the same five sentences.
     expect(text).toMatch(/: 32 of 47 words clear\. .*: 47 of 47 words clear\./);
-    expect(getLabHistory().checks).toHaveLength(2);
+    expect(loadLabHistory().checks).toHaveLength(2);
   });
 
   it('a failed check is a notice and can be tried again; three failures leave the sentence out, never as zero', async () => {
@@ -167,8 +167,8 @@ describe('MonthlyCheck', () => {
     await click(screen.getByRole('button', { name: 'Start the check' }));
     for (let i = 0; i < 5; i++) await click(screen.getByRole('button', { name: 'Skip this sentence' }));
     expect(screen.getByText('Nothing could be checked this time.')).toBeTruthy();
-    expect(getLabHistory().checks).toEqual([]);
-    expect(localStorage.getItem(`${STORAGE_KEYS.labHistory}::test-user`)).toBeNull();
+    expect(loadLabHistory().checks).toEqual([]);
+    expect(localStorage.getItem(`${STORAGE_KEYS.pronunciationLab}::test-user`)).toBeNull();
     expect(trackMock.mock.calls.some(([e]) => e.name === 'monthly_check_done')).toBe(false);
   });
 
@@ -233,8 +233,8 @@ describe('MonthlyCheck', () => {
       await sayIt();
       expect(screen.getByTestId('monthly-check-summary')).toBeTruthy();
       expect(document.body.textContent).toMatch(/used today's checks/);
-      expect(getLabHistory().checks).toHaveLength(1);
-      expect(getLabHistory().checks[0].sentences).toHaveLength(3);
+      expect(loadLabHistory().checks).toHaveLength(1);
+      expect(loadLabHistory().checks[0].sentences).toHaveLength(3);
       expect(screen.getByRole('button', { name: 'Done' })).toBeTruthy();
     });
 

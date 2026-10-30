@@ -16,12 +16,13 @@ import { AuthRequiredError } from '../../lib/authToken';
 import { isConsentRequiredError } from '../../lib/consentRequired';
 import { isLabAllowanceError } from '../../lib/labAllowance';
 import { assessPronunciation } from '../../services/pronunciation/pronunciationClient';
-import { getLabHistory, recordLabTake, saveMonthlyCheck } from '../../services/pronunciation/labStore';
+import { loadLabHistory, recordLabTake, saveMonthlyCheck } from './labStore';
 import { track } from '../../services/telemetry/telemetryService';
 import { useAudioBlobRecorder } from '../recording/useAudioBlobRecorder';
 import { playClip, stopClip } from './audio/clipPlayer';
 import { playNative, stopNative } from './audio/nativeVoice';
-import { CompareSentence, Legend, RecordControl } from './LabPractice';
+import { CompareSentence, Legend } from './LabPractice';
+import { RecordControl } from './RecordControl';
 import { useLabAllowance } from './useLabAllowance';
 import {
   ALLOWANCE_RECORD_LABEL,
@@ -108,7 +109,7 @@ export function MonthlyCheck({ onDone }: Props) {
   const [selected, setSelected] = useState<number | null>(null);
   const [nativeUnavailable, setNativeUnavailable] = useState(false);
   const [outcome, setOutcome] = useState<{ result: MonthlyCheckResult | null; trend: CheckTrend | null } | null>(null);
-  const previous = useMemo(() => latestCheck(getLabHistory().checks), []);
+  const previous = useMemo(() => latestCheck(loadLabHistory().checks), []);
 
   useEffect(() => {
     alive.current = true;
@@ -133,14 +134,14 @@ export function MonthlyCheck({ onDone }: Props) {
       setOutcome({ result: null, trend: null });
       return;
     }
-    const before = getLabHistory().checks;
+    const before = loadLabHistory().checks;
     saveMonthlyCheck(result);
     const totals = checkTotals(state.results);
     track({
       name: 'monthly_check_done',
       props: { words_clear: totals.clear, words_total: totals.total, sentences_measured: totals.measured, first_check: before.length === 0 },
     });
-    setOutcome({ result, trend: checkTrend(getLabHistory().checks) });
+    setOutcome({ result, trend: checkTrend(loadLabHistory().checks) });
   }, [state.phase, state.results]);
 
   const stopAudio = () => {

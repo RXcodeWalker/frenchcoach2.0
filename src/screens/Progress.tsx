@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { resolveFeatureStatus } from '../config/featureFlags';
 import { localDay } from '../domain/pronunciation/lab/days';
 import { checkTrend, isCheckDue, latestCheck } from '../domain/pronunciation/lab/monthlyCheck';
-import { getLabHistory } from '../services/pronunciation/labStore';
+import { loadLabHistory } from '../features/pronunciation/labStore';
 import { soundProgress } from '../domain/pronunciation/lab/soundProgress';
 import { getSessionHistory } from '../services/analytics/analyticsService';
 import { track } from '../services/telemetry/telemetryService';
@@ -55,7 +55,7 @@ export function Progress() {
   const labLive = resolveFeatureStatus('pronunciationLab') === 'live';
   const sounds = useMemo(() => {
     if (!labLive) return null;
-    const history = getLabHistory();
+    const history = loadLabHistory();
     const today = localDay(new Date());
     return {
       progress: soundProgress(history.observations),

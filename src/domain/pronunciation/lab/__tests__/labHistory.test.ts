@@ -1,19 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { localDay } from '../days';
-import {
-  EMPTY_LAB_HISTORY,
-  MAX_CHECKS,
-  MAX_OBSERVATIONS_PER_FAMILY,
-  appendCheck,
-  appendObservations,
-  sanitizeLabHistory,
-  type LabHistory,
-} from '../labHistory';
+import { HISTORY_LIMITS, LAB_HISTORY_VERSION, addCheck, addDrill, addTake, emptyLabHistory, historyStatuses, parseLabHistory } from '../labHistory';
 import { BENCHMARK_VERSION } from '../benchmark';
 import { LAB_THRESHOLDS_VERSION } from '../thresholds';
 import type { MonthlyCheckResult } from '../monthlyCheck';
+import { buildLabTake } from '../wordStates';
+import { azureWord, scripted } from './labFixtures';
 
-const obs = (family: 'frenchR' | 'uOu', accuracy: number) => ({ family, accuracy, basis: 'phoneme' as const });
+const D1 = '2026-10-01';
+const D2 = '2026-10-02';
+
 const aCheck = (day: string): MonthlyCheckResult => ({
   day,
   benchmarkVersion: BENCHMARK_VERSION,
@@ -21,59 +16,114 @@ const aCheck = (day: string): MonthlyCheckResult => ({
   sentences: [{ index: 0, wordsClear: 3, wordsTotal: 6 }],
 });
 
-describe('localDay', () => {
-  it('is the local calendar day, zero-padded', () => {
-    expect(localDay(new Date(2026, 0, 5, 23, 59))).toBe('2026-01-05');
-    expect(localDay(new Date(2026, 10, 28, 0, 1))).toBe('2026-11-28');
-  });
-});
+function takeOf(scores: number[]) {
+  const words = ['Le', 'vin', 'rouge'];
+  return buildLabTake(
+    'Le vin rouge.',
+    scripted(words.map((w, i) => azureWord(w, scores[i], { phonemeScores: w === 'vin' ? [scores[i], scores[i]] : w === 'rouge' ? [scores[i], scores[i], scores[i]] : [scores[i], scores[i]] }))),
+  );
+}
 
-describe('appendObservations', () => {
-  it('stamps the day and rounds the accuracy', () => {
-    const h = appendObservations(EMPTY_LAB_HISTORY, [obs('frenchR', 71.6)], '2026-11-02');
-    expect(h.observations).toEqual([{ family: 'frenchR', accuracy: 72, basis: 'phoneme', day: '2026-11-02' }]);
-  });
-
-  it('a take with no evidence changes nothing', () => {
-    expect(appendObservations(EMPTY_LAB_HISTORY, [], '2026-11-02')).toBe(EMPTY_LAB_HISTORY);
+describe('labHistory', () => {
+  it('starts empty and versioned', () => {
+    expect(emptyLabHistory()).toEqual({ version: LAB_HISTORY_VERSION, observations: [], words: {}, checks: [] });
   });
 
-  it('keeps each family’s most recent observations, so a busy family never evicts a quiet one', () => {
-    let h: LabHistory = appendObservations(EMPTY_LAB_HISTORY, [obs('uOu', 50)], '2026-11-01');
-    for (let i = 0; i < MAX_OBSERVATIONS_PER_FAMILY + 10; i++) h = appendObservations(h, [obs('frenchR', i % 100)], '2026-11-02');
-    expect(h.observations.filter((o) => o.family === 'frenchR')).toHaveLength(MAX_OBSERVATIONS_PER_FAMILY);
-    expect(h.observations.filter((o) => o.family === 'uOu')).toHaveLength(1);
-    expect(h.observations[h.observations.length - 1].accuracy).toBe((MAX_OBSERVATIONS_PER_FAMILY + 9) % 100);
-  });
-});
-
-describe('appendCheck', () => {
-  it('ring-buffers the checks', () => {
-    let h: LabHistory = EMPTY_LAB_HISTORY;
-    for (let i = 0; i < MAX_CHECKS + 3; i++) h = appendCheck(h, aCheck(`2026-11-${String((i % 28) + 1).padStart(2, '0')}`));
-    expect(h.checks).toHaveLength(MAX_CHECKS);
-  });
-});
-
-describe('sanitizeLabHistory', () => {
-  it('survives anything in storage', () => {
-    expect(sanitizeLabHistory(null)).toEqual(EMPTY_LAB_HISTORY);
-    expect(sanitizeLabHistory('nope')).toEqual(EMPTY_LAB_HISTORY);
-    expect(sanitizeLabHistory({ observations: 3, checks: {} })).toEqual(EMPTY_LAB_HISTORY);
+  it('a take adds dated family observations and notes Practise / Clear words only', () => {
+    const h = addTake(emptyLabHistory(), takeOf([95, 30, 85]), D1);
+    expect(h.observations.length).toBeGreaterThan(0);
+    expect(h.observations.every((o) => o.day === D1)).toBe(true);
+    expect(Object.keys(h.words)).toEqual(['vin']);
+    expect(h.words.vin.status).toBe('watching');
   });
 
-  it('drops malformed rows and clamps accuracy, keeping the good ones', () => {
-    const h = sanitizeLabHistory({
-      v: 1,
-      observations: [
-        { family: 'frenchR', accuracy: 250, basis: 'word', day: '2026-11-02' },
-        { family: 'liaison', accuracy: 50, basis: 'word', day: '2026-11-02' },
-        { family: 'uOu', accuracy: 'x', basis: 'word', day: '2026-11-02' },
-        { family: 'uOu', accuracy: 50, basis: 'word', day: 'soon' },
-      ],
-      checks: [aCheck('2026-11-02'), { day: 'bad' }],
+  it('keeps no sentence, audio or transcript: the serialised history has only the declared fields', () => {
+    const h = addTake(emptyLabHistory(), takeOf([95, 30, 85]), D1);
+    const json = JSON.stringify(h);
+    expect(json).not.toMatch(/Le vin rouge/);
+    expect(Object.keys(h).sort()).toEqual(['checks', 'observations', 'version', 'words']);
+    expect(Object.keys(h.observations[0]).sort()).toEqual(['accuracy', 'basis', 'day', 'family']);
+  });
+
+  it('a refused take changes nothing', () => {
+    const refused = buildLabTake('Le vin rouge.', scripted([azureWord('le', 10)], { mode: 'freeform' }));
+    const h = emptyLabHistory();
+    expect(addTake(h, refused, D1)).toBe(h);
+  });
+
+  it('a drill moves a word: Try again is a miss, Clear a clear day, Almost nothing', () => {
+    let h = addDrill(emptyLabHistory(), 'Tout', 'tryAgain', D1);
+    h = addDrill(h, 'tout', 'tryAgain', D1);
+    expect(h.words.tout.status).toBe('tricky');
+    const same = addDrill(h, 'tout', 'almost', D2);
+    expect(same).toBe(h);
+    h = addDrill(h, 'tout', 'clear', D2);
+    expect(h.words.tout.clearRun).toBe(1);
+    expect(addDrill(h, 'tout', 'unknown', D2)).toBe(h);
+  });
+
+  it('keeps only the newest observations of each family, order preserved', () => {
+    let h = emptyLabHistory();
+    for (let i = 0; i < HISTORY_LIMITS.observationsPerFamily + 10; i++) h = addTake(h, takeOf([90, 90, 90]), `2026-10-${String((i % 28) + 1).padStart(2, '0')}`);
+    const byFamily = new Map<string, number>();
+    for (const o of h.observations) byFamily.set(o.family, (byFamily.get(o.family) ?? 0) + 1);
+    expect(Math.max(...byFamily.values())).toBe(HISTORY_LIMITS.observationsPerFamily);
+  });
+
+  it('"Your sounds" needs enough observations on enough days', () => {
+    let h = emptyLabHistory();
+    for (let i = 0; i < 4; i++) h = addTake(h, takeOf([90, 90, 90]), D1);
+    expect(historyStatuses(h).nasalIn).toBe('notEnoughData');
+    for (let i = 0; i < 4; i++) h = addTake(h, takeOf([90, 90, 90]), D2);
+    expect(historyStatuses(h).nasalIn).toBe('clear');
+  });
+
+  it('a take keeps the saved monthly checks', () => {
+    const withCheck = addCheck(emptyLabHistory(), aCheck(D1));
+    expect(addTake(withCheck, takeOf([95, 30, 85]), D2).checks).toEqual(withCheck.checks);
+  });
+
+  it('addCheck ring-buffers the checks', () => {
+    let h = emptyLabHistory();
+    for (let i = 0; i < HISTORY_LIMITS.checks + 3; i++) h = addCheck(h, aCheck(`2026-11-${String((i % 28) + 1).padStart(2, '0')}`));
+    expect(h.checks).toHaveLength(HISTORY_LIMITS.checks);
+  });
+
+  describe('parseLabHistory', () => {
+    it('keeps good checks and drops malformed ones; a history with no checks field reads as none', () => {
+      const parsed = parseLabHistory({ version: LAB_HISTORY_VERSION, observations: [], words: {}, checks: [aCheck(D1), { day: 'bad' }] });
+      expect(parsed.checks).toHaveLength(1);
+      expect(parseLabHistory({ version: LAB_HISTORY_VERSION, observations: [], words: {} }).checks).toEqual([]);
+      expect(parseLabHistory({ version: LAB_HISTORY_VERSION, checks: 3 }).checks).toEqual([]);
     });
-    expect(h.observations).toEqual([{ family: 'frenchR', accuracy: 100, basis: 'word', day: '2026-11-02' }]);
-    expect(h.checks).toHaveLength(1);
+  });
+
+  describe('parseLabHistory', () => {
+    it('round-trips', () => {
+      const h = addTake(emptyLabHistory(), takeOf([95, 30, 85]), D1);
+      expect(parseLabHistory(JSON.parse(JSON.stringify(h)))).toEqual(h);
+    });
+
+    it('treats the wrong shape or version as empty and drops malformed rows', () => {
+      expect(parseLabHistory(null)).toEqual(emptyLabHistory());
+      expect(parseLabHistory({ version: 99, observations: [{}] })).toEqual(emptyLabHistory());
+      const parsed = parseLabHistory({
+        version: LAB_HISTORY_VERSION,
+        observations: [
+          { family: 'uOu', accuracy: 70, basis: 'word', day: D1 },
+          { family: 'liaison', accuracy: 70, basis: 'word', day: D1 },
+          { family: 'uOu', accuracy: 170, basis: 'word', day: D1 },
+          { family: 'uOu', accuracy: 70, basis: 'word', day: 'yesterday' },
+          'junk',
+        ],
+        words: {
+          tout: { status: 'tricky', practiseCount: 2, clearRun: 0, lastDay: D1, lastClearDay: null },
+          bad: { status: 'nope' },
+          '': { status: 'tricky', practiseCount: 2, clearRun: 0, lastDay: D1, lastClearDay: null },
+        },
+      });
+      expect(parsed.observations).toHaveLength(1);
+      expect(Object.keys(parsed.words)).toEqual(['tout']);
+    });
   });
 });

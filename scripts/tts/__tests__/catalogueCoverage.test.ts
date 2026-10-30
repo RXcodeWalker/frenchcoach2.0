@@ -41,6 +41,7 @@ import { splitSentences } from '../../../src/domain/pronunciation/lab/sentences'
 import { guideTexts, isRecordableWord } from '../../../src/domain/pronunciation/lab/lexicon';
 import { MINIMAL_PAIRS } from '../../../src/domain/pronunciation/lab/minimalPairs';
 import { SOUND_TIPS } from '../../../src/domain/pronunciation/lab/tips';
+import { practiceSentencesOf } from '../../../src/domain/pronunciation/lab/practiceSentences';
 import { tokenizeSentence, watchOutFor, wordPlayTexts } from '../../../src/domain/pronunciation/lab/textFeatures';
 
 const CATALOGUE = collectLines();
@@ -247,6 +248,30 @@ describe('recorded-voices catalogue coverage', () => {
     }
     for (const pair of MINIMAL_PAIRS) for (const word of pair.words) expect(has(word), word).toBe(true);
     for (const text of guideTexts()) expect(has(text), text).toBe(true);
+  });
+
+  // ── Lab home (Stage 5): what its screens ask ▶ Native for ──
+
+  it('every sentence the Lab home offers from the model answers is a catalogued sentence (so ▶ Native for it is free)', () => {
+    let offered = 0;
+    for (const q of QUESTIONS) {
+      for (const sentence of practiceSentencesOf(q.modelAnswer)) {
+        offered += 1;
+        expect(has(sentence), `${q.id}: ${sentence}`).toBe(true);
+      }
+    }
+    expect(offered).toBeGreaterThan(QUESTIONS.length);
+  });
+
+  it('"Say it" on a guide example practises it as a one-word (or liaison-group) target: whole text and every word are catalogued', () => {
+    for (const tip of Object.values(SOUND_TIPS)) {
+      for (const example of tip.examples) {
+        expect(has(example), example).toBe(true);
+        tokenizeSentence(example).forEach((_, i) => {
+          for (const text of wordPlayTexts(example, i)) if (isRecordableWord(text)) expect(has(text), `${example} → ${text}`).toBe(true);
+        });
+      }
+    }
   });
 
   it('lists the Lab strings in the words-before-sentences order, so a run cut short has spent its time where it helps most', () => {

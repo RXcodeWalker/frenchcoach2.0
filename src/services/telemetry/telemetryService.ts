@@ -272,9 +272,11 @@ interface NotebookSavedProps {
 
 // Pronunciation Lab (docs/plans/pronunciation-lab.md §8). Counts and enums
 // only — never the sentence, a word, a transcript or audio.
+/** Where the Lab was opened from: Learn's practice step, a Learn answer's "How it sounded" card (Stage 3), or the Lab home's sentence picker, sound guide and tricky-words deck (Stage 5). */
+export type LabEntry = 'learn_feedback' | 'how_it_sounded' | 'lab_home' | 'sound_guide' | 'tricky_words';
+
 interface LabOpenedProps {
-  /** Where the Lab was opened from: Learn's practice step, or a Learn answer's "How it sounded" card (Stage 3). */
-  entry: 'learn_feedback' | 'how_it_sounded';
+  entry: LabEntry;
 }
 
 interface LabTakeProps {
@@ -293,6 +295,12 @@ interface MonthlyCheckDoneProps {
   sentences_measured: number;
   /** True for the learner's first saved check. */
   first_check: boolean;
+}
+
+interface EarTrainingRoundProps {
+  /** One finished round of the listen-only minimal-pair game (Stage 5). Counts only — never the words. */
+  correct: number;
+  total: number;
 }
 
 interface LabFocusWordUsedProps {
@@ -424,6 +432,7 @@ export type TelemetryEvent =
   | { name: 'lab_take';                props: LabTakeProps }
   | { name: 'lab_focus_word_used';     props: LabFocusWordUsedProps }
   | { name: 'monthly_check_done';      props: MonthlyCheckDoneProps }
+  | { name: 'ear_training_round';      props: EarTrainingRoundProps }
   | { name: 'learn_session_completed'; props: LearnSessionCompletedProps }
   | { name: 'learn_session_abandoned'; props: LearnSessionAbandonedProps }
   | { name: 'exam_started';            props: ExamStartedProps }
@@ -494,6 +503,7 @@ const DECLARED_PROPS = {
   lab_take: ['words_clear', 'words_total', 'take_index'],
   lab_focus_word_used: ['verdict'],
   monthly_check_done: ['words_clear', 'words_total', 'sentences_measured', 'first_check'],
+  ear_training_round: ['correct', 'total'],
   learn_session_completed: ['topic_key', 'questions_answered', 'avg_score', 'duration_ms', 'ended_early'],
   learn_session_abandoned: ['topic_key', 'questions_answered', 'last_step', 'elapsed_ms'],
   exam_started: ['mode', 'entry'],

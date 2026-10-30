@@ -103,15 +103,17 @@ export async function exportMyData(): Promise<ExportedAccountData> {
  * call signOut() and navigate away.
  *
  * Once the cloud erase has succeeded it also removes this account's exam
- * notebook from the device (Learn feedback Batch 6d): sign-out and the guest
- * copy leave per-user keys behind, so the learner's own notes are removed here,
- * before the caller signs out. A failed erase leaves the notebook alone.
+ * notebook (Learn feedback Batch 6d) and Pronunciation Lab history from the
+ * device: sign-out and the guest copy leave per-user keys behind, so the
+ * learner's own notes are removed here, before the caller signs out. A failed
+ * erase leaves them alone.
  */
 export async function deleteMyAccount(): Promise<void> {
   if (!supabaseConfigured) throw new AccountError('network_error', 'offline');
   const { error } = await supabase.rpc('delete_my_account');
   if (error) throw mapRpcError(error.message);
   storageRemove(STORAGE_KEYS.notebook);
+  storageRemove(STORAGE_KEYS.pronunciationLab);
   storageRemove(STORAGE_KEYS.learnerTrack);
   storageRemove(STORAGE_KEYS.junior);
 }

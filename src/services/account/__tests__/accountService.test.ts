@@ -19,7 +19,7 @@ vi.mock('../../analytics/analyticsService', () => ({
 const storageRemoveMock = vi.fn();
 vi.mock('../../persistence/storage', () => ({
   getStorageScope: () => null,
-  STORAGE_KEYS: { notebook: 'frenchCoach_notebook', learnerTrack: 'frenchCoach_learnerTrack', junior: 'frenchCoach_junior' },
+  STORAGE_KEYS: { notebook: 'frenchCoach_notebook', pronunciationLab: 'frenchCoach_pronunciationLab', learnerTrack: 'frenchCoach_learnerTrack', junior: 'frenchCoach_junior' },
   storageRemove: (...args: unknown[]) => storageRemoveMock(...args),
 }));
 
@@ -62,6 +62,7 @@ describe('deleteMyAccount', () => {
     rpcMock.mockResolvedValueOnce({ data: { ok: true }, error: null });
     await deleteMyAccount();
     expect(storageRemoveMock).toHaveBeenCalledWith('frenchCoach_notebook');
+    expect(storageRemoveMock).toHaveBeenCalledWith('frenchCoach_pronunciationLab');
     expect(storageRemoveMock).toHaveBeenCalledWith('frenchCoach_learnerTrack');
     expect(storageRemoveMock).toHaveBeenCalledWith('frenchCoach_junior');
   });

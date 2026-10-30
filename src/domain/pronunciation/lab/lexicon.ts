@@ -52,6 +52,9 @@ export function lexiconTexts(sentences: Iterable<string>): string[] {
 /**
  * The sound guide's own strings (plan §3.3): every example word or group, each
  * minimal pair a guide shows, and every ear-training word. Written as authored.
+ * Then the words inside those groups (Stage 5): "Say it" on a liaison example
+ * such as "vous avez" opens the Lab on it, whose word taps play "vous" and
+ * "avez" on their own.
  */
 export function guideTexts(): string[] {
   const texts = new Set<string>();
@@ -60,5 +63,6 @@ export function guideTexts(): string[] {
     for (const word of tip.minimalPair ?? []) texts.add(word);
   }
   for (const text of minimalPairTexts()) texts.add(text);
+  for (const word of lexiconTexts([...texts])) texts.add(word);
   return [...texts];
 }

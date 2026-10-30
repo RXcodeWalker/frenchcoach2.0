@@ -14,6 +14,7 @@ import { Home } from './screens/Home';
 import { JuniorHome } from './screens/junior/JuniorHome';
 import { MissionPlayer } from './screens/junior/MissionPlayer';
 import { Learn } from './screens/Learn';
+import { LearnSounds } from './screens/LearnSounds';
 import { Notebook } from './screens/Notebook';
 import { MonthlyCheckScreen } from './screens/MonthlyCheckScreen';
 import { ExamMode } from './screens/ExamMode';
@@ -236,6 +237,11 @@ function AppShell() {
           <Route path="/junior" element={<JuniorHome />} />
           <Route path="/junior/:themeId" element={<MissionPlayer />} />
           <Route path="/learn" element={<Learn />} />
+          <Route path="/learn/sounds" element={
+            <ComingSoonGate status={resolveFeatureStatus('pronunciationLab')} featureId="pronunciationLab" name="Pronunciation Lab" description="Listen, say it and hear yourself next to a native speaker." fallbackRoute="/learn" fallbackLabel="Back to Learn">
+              <LearnSounds />
+            </ComingSoonGate>
+          } />
           <Route path="/notebook" element={<Notebook />} />
           <Route path="/learn/sounds/check" element={
             <ComingSoonGate status={resolveFeatureStatus('pronunciationLab')} featureId="pronunciationLab" name="Monthly sound check" description="The same five sentences once a month — the fair way to see your pronunciation change." fallbackRoute="/progress" fallbackLabel="View Progress">
