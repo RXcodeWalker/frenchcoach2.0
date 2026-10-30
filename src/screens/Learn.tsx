@@ -40,6 +40,7 @@ import type { PronunciationStatus } from '../features/feedback/FeedbackExperienc
 import { TopContextBar } from '../components/TopContextBar';
 import { useBackHandler } from '../lib/useBackHandler';
 import { useLearnShortcuts } from './learn/useLearnShortcuts';
+import { LeaveSessionDialog } from './learn/LeaveSessionDialog';
 import { Button } from '../components/ui/Button';
 import { useIsDesktop } from '../components/layout/useIsDesktop';
 import { useHideDock } from '../components/layout/shellChrome';
@@ -116,6 +117,7 @@ export function Learn() {
   // this sitting only — not persisted, reset whenever a new topic is chosen.
   const [focusTokenActive, setFocusTokenActive] = useState(false);
   const [showHint, setShowHint] = useState(false);
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [feedback, setFeedback] = useState<FeedbackV2 | null>(null);
   // Batch 6c — milestone firsts the teacher proved for THIS answer (see firsts.ts).
   const [firsts, setFirsts] = useState<FirstId[]>([]);
@@ -1347,16 +1349,26 @@ export function Learn() {
     }
   };
 
-  // Escape goes back from a topic's setup to the topic grid. Anywhere else inside a
-  // session it is swallowed (a stray key must not abandon a recording or leave the
-  // session); on the topic grid it falls through to the app-wide "previous page".
+  // Escape goes back from a topic's setup to the topic grid. Inside a session it asks
+  // "Leave this session?" first (a stray key must not abandon a recording); on the topic
+  // grid it falls through to the app-wide "previous page".
   useBackHandler(() => {
     if (learnState === 'session_start') {
       handleBack();
       return true;
     }
+    if (learnState === 'question' || learnState === 'recording' || learnState === 'confirm' || learnState === 'feedback') {
+      setShowLeaveConfirm(true);
+      return true;
+    }
     return learnState !== 'topics';
   });
+
+  const confirmLeave = () => {
+    setShowLeaveConfirm(false);
+    if (recording.isRecording) void recording.stop();
+    handleBack();
+  };
 
   useLearnShortcuts({
     canAnswer: learnState === 'question' && !recording.isRecording && !showDrillModal,
@@ -1667,6 +1679,13 @@ export function Learn() {
 
         </AnimatePresence>
       </div>
+
+      <LeaveSessionDialog
+        open={showLeaveConfirm}
+        answered={activeSession?.questionsCompleted ?? 0}
+        onStay={() => setShowLeaveConfirm(false)}
+        onLeave={confirmLeave}
+      />
 
       <AnimatePresence>
         {showDrillModal && drillSkillId && (

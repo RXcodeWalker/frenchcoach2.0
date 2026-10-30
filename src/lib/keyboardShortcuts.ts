@@ -40,7 +40,7 @@ export const SHORTCUT_GROUPS: readonly ShortcutGroup[] = [
     items: [
       ...NAV_SHORTCUTS.map(s => ({ keys: [CHORD_PREFIX, s.key], label: s.label })),
       { keys: ['Shift', 'letter'], label: 'Same as g then the letter (Shift + L for Learn)', join: '+' as const },
-      { keys: ['Esc'], label: 'Go back (to the topics from a topic, otherwise the previous page)' },
+      { keys: ['Esc'], label: 'Go back (to the topics from a topic, otherwise the previous page; asks first mid-session)' },
     ],
   },
   {
