@@ -170,7 +170,7 @@ export function ExamMode() {
   const isDuelRun = Boolean(duelId && duelQuestionSetId && duelSessionId);
 
   const [examState, setExamState] = useState<ExamState>('select');
-  useShowNavRail(examState === 'select');
+  useShowNavRail(examState === 'select' || examState === 'results');
   const [action, setAction] = useState<ExaminerAction | null>(null);
   const [voiceMuted, setVoiceMuted] = useState(isExaminerVoiceMuted());
   const [transcript, setTranscript] = useState<SessionTranscript | null>(null);

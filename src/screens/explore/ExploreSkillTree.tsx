@@ -1,166 +1,124 @@
-import { motion } from 'framer-motion';
+import type { CSSProperties } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Lock, CheckCircle2, Star, Compass } from 'lucide-react';
-import { getExploreTree, TreeNode } from '../../data/exploreTree';
+import { Check, ChevronRight, Lock } from 'lucide-react';
+import { getExploreTree, type TreeNode } from '../../data/exploreTree';
 import { isPlayable } from '../../data/scenarios/registry';
+import { scenarioVisual } from '../../features/explore/featureVisuals';
+import { fill } from '../../components/motion/variants';
 
+const TIER_NAMES = ['Foundation', 'Daily life', 'Exploration', 'Deep dive', 'Mastery'];
+
+/**
+ * Explore's Scenarios view (Design System v2): one section per tier, each a
+ * grid of role-play cards. A playable scenario is a card you tap, with its
+ * mastery as a progress bar (the `fill` motion); an unlocked one not yet
+ * written says "Coming soon"; a locked one names what opens it.
+ */
 export function ExploreSkillTree() {
   const tree = getExploreTree();
+  const titles = new Map(Object.values(tree).flat().map(n => [n.id, n.title]));
 
   return (
-    <div className="py-12 space-y-24 flex flex-col items-center relative">
-      {/* Background path line */}
-      <div className="absolute top-0 bottom-0 left-1/2 w-0.5 bg-gradient-to-b from-transparent via-white/[0.03] to-transparent -translate-x-1/2" />
-
-      {Object.entries(tree).map(([tier, nodes], tierIdx) => (
-        <div key={tier} className="relative flex flex-col items-center w-full max-w-lg">
-          {/* Tier Label */}
-          <div className="mb-8 flex flex-col items-center">
-            <div className="px-4 py-1 rounded-full bg-navy-200 border border-white/5 mb-2">
-              <span className="text-[9px] font-black text-ink-muted uppercase tracking-[0.2em]">
-                Tier {tierIdx + 1}
-              </span>
+    <div className="flex flex-col gap-8">
+      {Object.entries(tree).map(([tier, nodes], i) => {
+        const ready = nodes.filter(n => isPlayable(n.id, n.unlocked)).length;
+        return (
+          <section key={tier} aria-labelledby={`tier-${tier}`} className="flex flex-col gap-3">
+            <div className="flex items-baseline justify-between gap-3">
+              <div>
+                <div className="text-eyebrow uppercase text-ink-subtle">Tier {i + 1}</div>
+                <h2 id={`tier-${tier}`} className="mt-1 text-section text-ink">{TIER_NAMES[i] ?? `Tier ${i + 1}`}</h2>
+              </div>
+              <span className="text-caption text-ink-subtle">{ready} of {nodes.length} ready</span>
             </div>
-            <h3 className="text-sm font-black text-white/60">
-              {tierIdx === 0 ? 'Foundation' : tierIdx === 1 ? 'Daily Life' : tierIdx === 2 ? 'Exploration' : tierIdx === 3 ? 'Deep Dive' : 'Mastery'}
-            </h3>
-          </div>
-
-          {/* Nodes Grid/Layout */}
-          <div className="grid grid-cols-2 md:grid-cols-2 gap-x-12 md:gap-x-24 gap-y-12 relative">
-             {/* Simple lines between nodes in the same tier */}
-             {nodes.length > 1 && (
-               <div className="absolute top-1/2 left-0 right-0 h-px bg-white/[0.02] -translate-y-1/2 -z-10" />
-             )}
-            
-            {nodes.map((node) => (
-              <SkillNode key={node.id} node={node} />
-            ))}
-          </div>
-
-          {/* Connector to next tier */}
-          {tierIdx < Object.keys(tree).length - 1 && (
-            <div className="mt-16 flex flex-col items-center gap-2">
-               <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
-               <div className="w-px h-12 bg-gradient-to-b from-white/10 to-transparent" />
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {nodes.map(node => (
+                <ScenarioCard
+                  key={node.id}
+                  node={node}
+                  needs={node.dependencies.map(d => titles.get(d) ?? d)}
+                />
+              ))}
             </div>
-          )}
-        </div>
-      ))}
-
-      {/* Final Boss Node */}
-      <div className="relative flex flex-col items-center">
-        <motion.div
-          className="w-24 h-24 rounded-3xl bg-gradient-to-br from-amber-500/20 to-orange-600/20 border-2 border-amber-500/30 flex items-center justify-center opacity-40"
-          whileHover={{ scale: 1.05 }}
-        >
-          <Compass size={40} className="text-amber-500/50" />
-        </motion.div>
-        <p className="mt-4 text-[10px] font-black text-ink-muted uppercase tracking-widest">Ultimate Mastery</p>
-      </div>
+          </section>
+        );
+      })}
     </div>
   );
 }
 
-function SkillNode({ node }: { node: TreeNode }) {
+function ScenarioCard({ node, needs }: { node: TreeNode; needs: string[] }) {
   const navigate = useNavigate();
+  const reduced = useReducedMotion();
   const playable = isPlayable(node.id, node.unlocked);
-  const colors = [
-    'from-violet-600 to-indigo-700',
-    'from-emerald-600 to-teal-700',
-    'from-cyan-600 to-blue-700',
-    'from-orange-600 to-red-700',
-    'from-pink-600 to-rose-700',
-  ];
-  const colorClass = colors[node.difficulty - 1] || colors[0];
+  const { Icon, hue } = scenarioVisual(node.category);
+  const mastered = playable && node.mastery >= 100;
+
+  const chip = playable ? (
+    <span
+      aria-hidden="true"
+      className="topic-chip flex h-10 w-10 shrink-0 items-center justify-center rounded-control"
+      style={{ '--h': hue } as CSSProperties}
+    >
+      <Icon size={20} strokeWidth={1.75} />
+    </span>
+  ) : (
+    <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-control bg-surface text-ink-subtle">
+      {node.unlocked ? <Icon size={20} strokeWidth={1.75} /> : <Lock size={18} strokeWidth={1.75} />}
+    </span>
+  );
+
+  const status = playable ? null : node.unlocked ? 'Coming soon' : `Needs ${needs.join(', ')}`;
+
+  const body = (
+    <>
+      <span className="flex items-start gap-3">
+        {chip}
+        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <span className={`truncate text-[15px] font-semibold leading-snug ${playable ? 'text-ink' : 'text-ink-muted'}`}>{node.title}</span>
+          <span className="text-caption text-ink-subtle">{node.category}</span>
+        </span>
+        {playable && <ChevronRight size={16} aria-hidden="true" className="mt-3 shrink-0 text-ink-subtle transition-colors duration-state group-hover:text-ink-muted" />}
+      </span>
+
+      {playable ? (
+        <span className="mt-3 flex items-center gap-2">
+          <span className="relative h-1.5 flex-1 overflow-hidden rounded-pill bg-track">
+            <motion.span
+              className="absolute inset-y-0 left-0 rounded-pill bg-progress"
+              initial={{ width: reduced ? `${node.mastery}%` : 0 }}
+              animate={{ width: `${node.mastery}%` }}
+              transition={reduced ? { duration: 0 } : fill()}
+            />
+          </span>
+          {mastered ? (
+            <span className="inline-flex items-center gap-1 text-caption font-semibold text-progress-text">
+              <Check size={14} aria-hidden="true" /> Mastered
+            </span>
+          ) : (
+            <span className="font-numeral text-caption text-ink-subtle">{Math.round(node.mastery)}%</span>
+          )}
+        </span>
+      ) : (
+        <span className="mt-3 block text-caption text-ink-subtle">{status}</span>
+      )}
+    </>
+  );
+
+  if (!playable) {
+    return <div className="flex flex-col rounded-card surface-recessed p-4">{body}</div>;
+  }
 
   return (
-    <div className="flex flex-col items-center group relative">
-       <motion.button
-        onClick={() => playable && navigate(`/scenario/${node.id}`)}
-        className={`relative w-24 h-24 md:w-28 md:h-28 rounded-full flex items-center justify-center transition-all duration-300 z-10 ${
-          playable
-            ? `bg-gradient-to-br ${colorClass} shadow-[0_0_30px_rgba(0,0,0,0.3)] border-4 border-white/10`
-            : 'bg-navy-300 border-4 border-white/5 opacity-40 cursor-not-allowed'
-        }`}
-        whileHover={playable ? { scale: 1.1, y: -5, rotate: 5 } : {}}
-        whileTap={playable ? { scale: 0.95 } : {}}
-       >
-         {/* Inner Glow */}
-         {playable && (
-           <div className="absolute inset-0 rounded-full bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-         )}
-
-         {playable ? (
-           <div className="flex flex-col items-center">
-             <span className="text-4xl md:text-5xl drop-shadow-lg">{node.icon}</span>
-           </div>
-         ) : (
-           <Lock size={28} className="text-ink-subtle" />
-         )}
-
-         {/* Progress Ring */}
-         {playable && (
-           <svg className="absolute -inset-1 -rotate-90 w-[calc(100%+8px)] h-[calc(100%+8px)] overflow-visible pointer-events-none">
-             <circle
-               cx="50%" cy="50%" r="48%"
-               fill="none"
-               stroke="currentColor"
-               strokeWidth="4"
-               strokeDasharray="100 100"
-               strokeDashoffset={100 - node.mastery}
-               className="text-white/30"
-               style={{ strokeDasharray: '280', strokeDashoffset: 280 - (280 * node.mastery / 100) }}
-             />
-           </svg>
-         )}
-
-         {/* Completed Badge */}
-         {playable && node.mastery === 100 && (
-           <motion.div 
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="absolute -top-1 -right-1 w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center border-4 border-navy shadow-lg z-20"
-           >
-             <CheckCircle2 size={16} className="text-white" />
-           </motion.div>
-         )}
-       </motion.button>
-
-       {/* Label */}
-       <div className="mt-4 text-center">
-         <h4 className={`text-xs font-black uppercase tracking-wider ${playable ? 'text-white' : 'text-ink-muted'}`}>
-           {node.title}
-         </h4>
-         <p className="text-[9px] text-ink-muted font-black mt-0.5">{node.category}</p>
-
-         {playable && (
-           <div className="flex gap-1 justify-center mt-2">
-             {[1, 2, 3].map(star => (
-               <Star
-                key={star}
-                size={10}
-                className={`${node.mastery >= (star * 33) ? 'text-yellow-400 fill-yellow-400' : 'text-slate-800'} transition-colors`}
-               />
-             ))}
-           </div>
-         )}
-       </div>
-
-       {/* Unlock Tooltip (if locked) */}
-       {!node.unlocked && node.dependencies.length > 0 && (
-         <div className="absolute top-0 -mt-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-navy-200 border border-white/10 px-2 py-1 rounded text-[8px] font-bold text-ink-muted whitespace-nowrap z-30">
-           REQUIRES: {node.dependencies.join(', ').toUpperCase()}
-         </div>
-       )}
-
-       {/* Coming Soon Tooltip (unlocked but not yet authored) */}
-       {node.unlocked && !playable && (
-         <div className="absolute top-0 -mt-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-navy-200 border border-white/10 px-2 py-1 rounded text-[8px] font-bold text-ink-muted whitespace-nowrap z-30">
-           COMING SOON
-         </div>
-       )}
-    </div>
+    <button
+      type="button"
+      onClick={() => navigate(`/scenario/${node.id}`)}
+      aria-label={`${node.title}, ${mastered ? 'mastered' : `${Math.round(node.mastery)}% mastered`}`}
+      className="group flex flex-col rounded-card surface p-4 text-left transition-[background-color,border-color,transform] duration-state ease-smooth
+        hover:border-hairline-strong hover:bg-[color-mix(in_srgb,var(--ink)_2%,transparent)] active:scale-[.97]"
+    >
+      {body}
+    </button>
   );
 }
-

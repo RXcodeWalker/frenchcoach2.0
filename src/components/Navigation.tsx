@@ -1,13 +1,15 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import type { Screen } from '../types';
-import { BarChart3, BookOpen, GraduationCap, Home, User } from 'lucide-react';
+import { BarChart3, BookOpen, Compass, GraduationCap, Home, Keyboard, User } from 'lucide-react';
+import { requestShortcutHelp } from '../lib/keyboardShortcuts';
 import { useShellChrome } from './layout/shellChrome';
 
-// Launch scope (src/config/launchScope.ts): the five core destinations only.
+// Launch scope (src/config/launchScope.ts): the five core destinations plus Explore, the hub for every other mode.
 const NAV_ITEMS: { id: Screen; label: string; Icon: typeof Home }[] = [
   { id: 'home', label: 'Home', Icon: Home },
   { id: 'learn', label: 'Learn', Icon: BookOpen },
   { id: 'exam', label: 'Exam', Icon: GraduationCap },
+  { id: 'explore', label: 'Explore', Icon: Compass },
   { id: 'progress', label: 'Progress', Icon: BarChart3 },
   { id: 'profile', label: 'Profile', Icon: User },
 ];
@@ -25,8 +27,8 @@ const RAIL_ITEM = 64;
 const RAIL_GAP = 4;
 
 /**
- * Desktop: an 88px rail — logo, then five 64px items (20px icon over a 12/600
- * label). Mobile: a bottom dock of the same five items at 56px. In both, one
+ * Desktop: an 88px rail — logo, then six 64px items (20px icon over a 12/600
+ * label). Mobile: a bottom dock of the same six items at 56px. In both, one
  * action-soft pill slides to the active item (the `slide` motion).
  */
 export function SideRail() {
@@ -73,6 +75,15 @@ export function SideRail() {
             </button>
           ))}
         </div>
+        <button
+          type="button"
+          onClick={requestShortcutHelp}
+          aria-label="Keyboard shortcuts"
+          title="Keyboard shortcuts (?)"
+          className="mt-auto flex h-10 w-10 items-center justify-center rounded-control text-ink-subtle transition-colors duration-state ease-smooth hover:text-ink-muted"
+        >
+          <Keyboard size={20} strokeWidth={1.75} aria-hidden="true" />
+        </button>
       </nav>
 
       {!dockHidden && (
@@ -81,12 +92,12 @@ export function SideRail() {
           className="fixed bottom-0 left-0 right-0 z-50 border-t border-hairline bg-surface px-2 pt-1.5 md:hidden"
           style={{ paddingBottom: 'calc(12px + env(safe-area-inset-bottom, 0px))' }}
         >
-          <div className="relative grid grid-cols-5 gap-1">
+          <div className="relative grid grid-cols-6 gap-1">
             {active >= 0 && (
               <span
                 aria-hidden="true"
                 className="pointer-events-none absolute left-0 top-0 h-14 rounded-control bg-action-soft transition-transform duration-slide ease-slide"
-                style={{ width: 'calc((100% - 16px) / 5)', transform: `translateX(calc(${active * 100}% + ${active * 4}px))` }}
+                style={{ width: `calc((100% - ${(NAV_ITEMS.length - 1) * 4}px) / ${NAV_ITEMS.length})`, transform: `translateX(calc(${active * 100}% + ${active * 4}px))` }}
               />
             )}
             {NAV_ITEMS.map(({ id, label, Icon }, i) => (
