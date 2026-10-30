@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, Volume2 } from 'lucide-react';
 import { TTS } from '../../services/tts/ttsService';
+import { frenchWithArticle } from '../../features/roleplay/vocabDisplay';
 import type { VocabEntry } from '../../features/roleplay/types';
 
 interface FlashcardDeckProps {
@@ -23,7 +24,7 @@ export const FlashcardDeck: React.FC<FlashcardDeckProps> = ({ items }) => {
     setCurrentIndex((prev) => (prev + delta + items.length) % items.length);
   };
 
-  const french = `${currentItem.pos === 'noun' && currentItem.article ? `${currentItem.article} ` : ''}${currentItem.fr}`;
+  const french = frenchWithArticle(currentItem);
   const navBtn =
     'flex h-11 w-11 items-center justify-center rounded-control border border-hairline-strong text-ink-muted transition-[background-color,color,transform] duration-state ease-smooth hover:bg-track hover:text-ink active:scale-[.97]';
 

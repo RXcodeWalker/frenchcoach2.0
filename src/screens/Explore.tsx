@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { CSSProperties } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ChevronRight, Lock } from 'lucide-react';
 import { FEATURES, CATEGORIES, type FeatureCard } from '../data/features';
 import { categoryHue, featureIcon } from '../features/explore/featureVisuals';
@@ -20,7 +20,11 @@ type View = 'modes' | 'scenarios';
  * one line. Locked tiles are static, never a hover.
  */
 export function Explore() {
-  const [view, setView] = useState<View>('modes');
+  // The view lives in the URL (`?view=scenarios`) so leaving a scenario can
+  // return to the list rather than to the Modes tab.
+  const [params, setParams] = useSearchParams();
+  const view: View = params.get('view') === 'scenarios' ? 'scenarios' : 'modes';
+  const setView = (next: View) => setParams(next === 'scenarios' ? { view: 'scenarios' } : {}, { replace: true });
   const [category, setCategory] = useState<string>('all');
   const reduced = useReducedMotion();
   const item = reduced ? enterReduced : enter;

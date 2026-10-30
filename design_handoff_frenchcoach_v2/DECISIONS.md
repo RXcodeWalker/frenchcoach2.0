@@ -281,3 +281,12 @@ handoff left a gap or clashed with the codebase. Newest phase last.
   "Start role play". Flashcards no longer flip in 3D: tap "Show translation".
 - **"You could have said"** in the live coaching panel is a model answer, so it
   uses `font-exam`; everything else is Bricolage.
+- **Back returns to the scenario list.** Explore's Modes/Scenarios switch is now
+  the `?view=scenarios` search param, so a scenario's back button (and its
+  debrief exit) lands on the Scenarios view, not Modes. The Scenario Architect's
+  session sends its scenario back to the architect page, which shows it again.
+- **Vocabulary articles** go through `features/roleplay/vocabDisplay.ts`: most
+  deck entries already write the noun with its article, a few don't, so the
+  article is added only when missing ("le pain", never "le le pain").
+- **Scenario Architect** (setup and session) is on the same v2 layout as the
+  scenarios: top bar with back, flat cards, the shared recorder, no bouncing dots.

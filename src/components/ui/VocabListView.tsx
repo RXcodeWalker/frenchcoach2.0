@@ -1,5 +1,6 @@
 import React from 'react';
 import { Volume2 } from 'lucide-react';
+import { frenchWithArticle } from '../../features/roleplay/vocabDisplay';
 import type { VocabEntry } from '../../features/roleplay/types';
 
 interface VocabListViewProps {
@@ -16,7 +17,7 @@ export const VocabListView: React.FC<VocabListViewProps> = ({ items }) => {
   return (
     <ul className="flex flex-col gap-2">
       {items.map((item, index) => {
-        const french = `${item.pos === 'noun' && item.article ? `${item.article} ` : ''}${item.fr}`;
+        const french = frenchWithArticle(item);
         return (
           <li key={index} className="flex items-center justify-between gap-3 rounded-card surface p-4">
             <div className="flex min-w-0 flex-col gap-0.5">

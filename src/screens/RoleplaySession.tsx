@@ -29,6 +29,9 @@ import type { Objective } from '../components/ui/MissionObjectivesList';
 import type { FeedbackV2, Question, Session } from '../types';
 import type { LanguageResult, Mission, ScenarioDeck, ScenarioGraph, ScenarioMeta } from '../features/roleplay/types';
 
+/** Explore's Scenarios view — where a scenario's back button returns to. */
+const SCENARIO_LIST_PATH = '/explore?view=scenarios';
+
 interface ScenarioEntry {
   meta: ScenarioMeta;
   graph: ScenarioGraph;
@@ -46,7 +49,7 @@ export function RoleplaySession() {
   // guard is permanent rather than belt-and-braces.
   useEffect(() => {
     if (!entry || !authored) {
-      navigate('/explore');
+      navigate(SCENARIO_LIST_PATH, { replace: true });
     }
   }, [entry, authored, navigate]);
 
@@ -74,7 +77,7 @@ function RoleplaySessionView({ scenarioId, entry }: { scenarioId: string; entry:
     [meta.branches],
   );
 
-  const leave = () => navigate('/explore');
+  const leave = () => navigate(SCENARIO_LIST_PATH);
   const preparing = phase === 'briefing' || phase === 'prep';
 
   if (phase === 'play') {
@@ -88,7 +91,7 @@ function RoleplaySessionView({ scenarioId, entry }: { scenarioId: string; entry:
         subtitle={`${meta.npc.nameFr} · ${meta.npc.roleEn}`}
         showBack
         onBack={leave}
-        backLabel="Back to Explore"
+        backLabel="Back to scenarios"
       />
       <PageShell maxWidth="md" gap={24}>
         {preparing &&
@@ -446,7 +449,7 @@ function DebriefPhase({
         </p>
       )}
 
-      <Button size="lg" onClick={onExit} className="w-full sm:w-auto sm:self-start">Back to Explore</Button>
+      <Button size="lg" onClick={onExit} className="w-full sm:w-auto sm:self-start">Back to scenarios</Button>
     </motion.section>
   );
 }

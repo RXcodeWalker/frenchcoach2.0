@@ -1,18 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
-import {
-  ArrowLeft,
-  User,
-  Bot,
-  Target,
-  Loader2,
-  Mic,
-  Square
-} from 'lucide-react';
-import { Card } from '../components/ui/Card';
+import { Check, Loader2 } from 'lucide-react';
 import { useRecording } from '../features/recording/useRecording';
-import { Waveform } from '../features/recording/Waveform';
+import { RecordingPanel } from './learn/RecordingPanel';
+import { PageShell } from '../components/layout/PageShell';
+import { TopContextBar } from '../components/TopContextBar';
+import { useHideDock } from '../components/layout/shellChrome';
+import { useIsDesktop } from '../components/layout/useIsDesktop';
+import { enter, enterReduced } from '../components/motion/variants';
 import { useApp, dispatchAddXP } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { SpeakingConsentGate } from '../components/SpeakingConsentGate';
@@ -34,9 +30,16 @@ export function ScenarioArchitectSession() {
   const { dispatch } = useApp();
   const { consentStatus } = useAuth();
   const recording = useRecording(consentStatus === 'pending');
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const endRef = useRef<HTMLDivElement>(null);
+  const desktop = useIsDesktop();
+  const reduced = useReducedMotion();
+  const item = reduced ? enterReduced : enter;
+  useHideDock(true);
 
   const customScenario = location.state?.customScenario as GeneratedScenario;
+  const description = location.state?.description as string | undefined;
+  // Back returns to the architect with this scenario still on screen.
+  const backToArchitect = () => navigate('/scenario-architect', { state: { customScenario, description } });
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
@@ -58,10 +61,8 @@ export function ScenarioArchitectSession() {
   }, [customScenario, navigate]);
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages, isTyping]);
+    endRef.current?.scrollIntoView?.({ block: 'end', behavior: reduced ? 'auto' : 'smooth' });
+  }, [messages, isTyping, reduced]);
 
   const addMessage = (text: string, sender: 'ai' | 'user') => {
     const newMessage: Message = {
@@ -144,163 +145,92 @@ export function ScenarioArchitectSession() {
 
   if (!customScenario) return null;
 
+  const busy = isTyping || isProcessing;
+
   return (
-    <div className="max-w-5xl mx-auto h-[calc(100vh-2rem)] flex flex-col pt-4 relative px-4">
-      {/* Header */}
-      <div className="flex-shrink-0 mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <button 
-            onClick={() => navigate('/scenario-architect')}
-            className="flex items-center gap-2 text-[10px] font-black text-ink-muted hover:text-white transition-colors uppercase tracking-widest"
-          >
-            <ArrowLeft size={14} /> ABORT SESSION
-          </button>
-          
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Live Interaction</span>
-            </div>
-          </div>
-        </div>
-
-        <Card variant="subtle" className="p-4 border-white/5 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center border border-white/5">
-              <User size={20} className="text-ink-muted" />
-            </div>
-            <div>
-              <h2 className="text-sm font-black text-white italic tracking-tight">{customScenario.npc_name}</h2>
-              <p className="text-[10px] text-ink-muted font-bold uppercase tracking-tighter">{customScenario.title}</p>
-            </div>
-          </div>
-          
-          <div className="hidden md:flex items-center gap-6">
-            <div className="flex flex-col items-end">
-              <span className="text-[8px] font-black text-ink-subtle uppercase tracking-widest mb-1">Objectives</span>
-              <div className="flex gap-1">
-                {customScenario.objectives.map((_, i) => (
-                  <div 
-                    key={i} 
-                    className={`w-4 h-1 rounded-full transition-all duration-500 ${
-                      completedObjectives.includes(i) ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]' : 'bg-slate-800'
-                    }`} 
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-        </Card>
-      </div>
-
-      {/* Chat Area */}
-      <div 
-        ref={scrollRef}
-        className="flex-1 overflow-y-auto space-y-6 mb-6 pr-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent"
-      >
-        <div className="max-w-2xl mx-auto space-y-6">
-          <AnimatePresence initial={false}>
-            {messages.map((msg) => (
-              <motion.div
-                key={msg.id}
-                initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                className={`flex ${msg.sender === 'ai' ? 'justify-start' : 'justify-end'}`}
-              >
-                <div className={`flex gap-3 max-w-[85%] ${msg.sender === 'user' ? 'flex-row-reverse' : ''}`}>
-                  <div className={`w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center border ${
-                    msg.sender === 'ai' ? 'bg-violet-500/10 border-violet-500/20 text-violet-400' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-                  }`}>
-                    {msg.sender === 'ai' ? <Bot size={16} /> : <User size={16} />}
-                  </div>
-                  <div className={`p-4 rounded-2xl text-sm md:text-base ${
-                    msg.sender === 'ai' 
-                      ? 'bg-white/5 border border-white/5 text-slate-200 rounded-tl-none' 
-                      : 'bg-emerald-600 text-white font-medium rounded-tr-none shadow-lg shadow-emerald-600/10'
-                  }`}>
-                    {msg.text}
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-            
-            {isTyping && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex justify-start"
-              >
-                <div className="flex gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400">
-                    <Bot size={16} />
-                  </div>
-                  <div className="p-4 rounded-2xl bg-white/5 border border-white/5 rounded-tl-none flex gap-1 items-center">
-                    <span className="w-1 h-1 bg-slate-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <span className="w-1 h-1 bg-slate-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <span className="w-1 h-1 bg-slate-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </div>
-
-      {/* Input Area */}
-      <div className="flex-shrink-0 pb-6">
-        <div className="max-w-2xl mx-auto">
-          {recording.isRecording ? (
-            <Card variant="elevated" className="p-6 border-emerald-500/30 bg-emerald-500/[0.02]">
-              <div className="flex flex-col items-center gap-6">
-                <div className="w-full h-12 flex items-center justify-center">
-                  <Waveform isRecording={true} />
-                </div>
-                <div className="flex items-center gap-4">
-                  <button
-                    onClick={handleStopRecording}
-                    disabled={isProcessing}
-                    className="w-16 h-16 rounded-full bg-red-500 flex items-center justify-center text-white shadow-xl shadow-red-500/20 hover:scale-105 active:scale-95 transition-all"
-                  >
-                    {isProcessing ? <Loader2 className="animate-spin" /> : <Square size={24} className="fill-white" />}
-                  </button>
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Listening...</span>
-                    <span className="text-xs text-ink-muted font-bold uppercase italic">Respond in French</span>
-                  </div>
-                </div>
-              </div>
-            </Card>
-          ) : (
-            <div className="flex items-center gap-4">
-              <SpeakingConsentGate>
-                <button
-                  onClick={() => recording.start()}
-                  disabled={isTyping || isProcessing}
-                  className="flex-1 flex items-center justify-center gap-3 py-4 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 disabled:text-ink-muted text-white font-black rounded-2xl shadow-xl shadow-emerald-600/20 transition-all uppercase italic tracking-widest group"
+    <>
+      <TopContextBar
+        title={customScenario.title}
+        subtitle={customScenario.npc_name}
+        showBack
+        onBack={backToArchitect}
+        backLabel="Back to Scenario Architect"
+      />
+      <PageShell maxWidth="xl" gap={16}>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="mx-auto flex min-h-[calc(100dvh-170px)] w-full max-w-[720px] flex-col gap-4 lg:min-h-0">
+            <ol aria-live="polite" aria-label="Conversation" className="flex flex-col gap-3">
+              {messages.map((msg) => (
+                <motion.li
+                  key={msg.id}
+                  variants={item}
+                  initial="hidden"
+                  animate="show"
+                  className={`flex flex-col gap-1 ${msg.sender === 'ai' ? 'items-start' : 'items-end'}`}
                 >
-                  <Mic size={20} className="group-hover:scale-110 transition-transform" />
-                  Tap to Speak
-                </button>
-              </SpeakingConsentGate>
+                  <span className="text-eyebrow uppercase text-ink-subtle">
+                    {msg.sender === 'ai' ? customScenario.npc_name : 'You'}
+                  </span>
+                  <p
+                    className={`max-w-[85%] rounded-card px-4 py-3 text-body-base ${
+                      msg.sender === 'ai' ? 'border border-hairline bg-surface text-ink' : 'bg-action-soft text-action-text'
+                    }`}
+                  >
+                    {msg.text}
+                  </p>
+                </motion.li>
+              ))}
+              {isTyping && (
+                <li className="text-body-s text-ink-subtle">{customScenario.npc_name} is replying…</li>
+              )}
+            </ol>
+            <div ref={endRef} />
 
-              <div className="p-4 rounded-2xl bg-white/5 border border-white/10 text-ink-muted hover:text-white transition-colors cursor-help group relative">
-                <Target size={20} />
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 w-64 p-4 bg-slate-900 border border-white/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-2xl">
-                  <span className="text-[10px] font-black text-violet-400 uppercase tracking-widest block mb-2">Objectives</span>
-                  <div className="space-y-2">
-                    {customScenario.objectives.map((obj, i) => (
-                      <div key={i} className="flex items-center gap-2">
-                        <div className={`w-1.5 h-1.5 rounded-full ${completedObjectives.includes(i) ? 'bg-emerald-500' : 'bg-slate-700'}`} />
-                        <span className={`text-[10px] font-bold ${completedObjectives.includes(i) ? 'text-slate-200 line-through' : 'text-ink-muted'}`}>{obj}</span>
-                      </div>
-                    ))}
-                  </div>
+            <div className="mt-auto">
+              {busy ? (
+                <div role="status" className="flex items-center gap-3 rounded-card surface p-4 text-body-s text-ink-muted">
+                  <Loader2 size={18} className="shrink-0 animate-spin" aria-hidden="true" />
+                  {isProcessing ? 'Listening back to your answer…' : 'Waiting for the reply…'}
                 </div>
-              </div>
+              ) : (
+                <SpeakingConsentGate>
+                  <RecordingPanel isActive recording={recording} onStop={handleStopRecording} compact={!desktop} />
+                </SpeakingConsentGate>
+              )}
             </div>
-          )}
+          </div>
+
+          <aside aria-label="Objectives" className="flex flex-col gap-3 self-start rounded-card surface p-5 max-lg:order-first">
+            <div className="flex items-baseline justify-between gap-3">
+              <h2 className="text-section text-ink">Objectives</h2>
+              <span className="font-numeral text-caption text-ink-subtle">
+                {completedObjectives.length} of {customScenario.objectives.length}
+              </span>
+            </div>
+            <ul className="flex flex-col gap-2.5">
+              {customScenario.objectives.map((obj, i) => {
+                const done = completedObjectives.includes(i);
+                return (
+                  <li key={i} className="flex items-start gap-3">
+                    <span
+                      aria-hidden="true"
+                      className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-pill ${
+                        done ? 'bg-progress text-action-ink' : 'border border-hairline-strong'
+                      }`}
+                    >
+                      {done && <Check size={12} strokeWidth={3} />}
+                    </span>
+                    <span className={`text-body-s ${done ? 'text-ink-subtle line-through' : 'text-ink'}`}>
+                      {obj}
+                      {done && <span className="sr-only"> (done)</span>}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </aside>
         </div>
-      </div>
-    </div>
+      </PageShell>
+    </>
   );
 }
