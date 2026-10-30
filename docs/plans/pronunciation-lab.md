@@ -1,6 +1,6 @@
 # Pronunciation Lab: implementation plan
 
-Status: **Stages 1–4b and 6 built** (2026-10-28; Stage 4's recording run is a manual Actions step — see the Stage 4 notes, and Stage 6 added 6 more lines to it; Stage 4b migration `20261028090000` applied to production 2026-10-28); Stages 5 and 7 not started. Stage 6 was built before Stage 5, so it also created the minimal `labStore` Stage 5 needs — see the Stage 6 notes before building Stage 5. Owner decisions (2026-10-28): D1 drop, D2 yes (Stage 4b), D4 no XP, D5 no 0–100 number. D3: 30 Lab takes per account per day; Azure monthly cap = the F0 free allowance.
+Status: **Stages 1–4b, 6 and 7 built** (Stage 4's recording run is a manual Actions step — see the Stage 4 notes, and Stage 6 added 6 more lines to it; Stage 4b migration `20261028090000` applied to production 2026-10-28; **Stage 7 migration `20261029090000` (the `pronunciation_lab` quota row) is NOT yet applied to production — apply it before the backend deploys, or every Lab take 503s on the FK**); Stage 5 (Lab home) not started. Stage 6 was built before Stage 5, so it also created the minimal `labStore` Stage 5 needs — see the Stage 6 notes before building Stage 5. Owner decisions (2026-10-28): D1 drop, D2 yes (Stage 4b), D4 no XP, D5 no 0–100 number. D3: 30 Lab takes per account per day; Azure monthly cap = the F0 free allowance.
 
 Stage 1 (frontend only; no backend change, no UI, nothing reads the flag yet):
 - `src/domain/pronunciation/lab/`: `wordStates.ts` (`buildLabTake` → per-word state on the target sentence, "N of M clear"
@@ -179,6 +179,36 @@ Stage 6 (frontend only; **no backend change**, no migration — benchmark senten
 - No real-device run: jsdom tests with mocked audio/Azure (`MonthlyCheck.test.tsx`, `SoundsCard.test.tsx`, `labStore.test.ts`, the pure
   domain tests). The §7 gate is still the owner's.
 
+Stage 7 (backend + frontend — owner D3: 30 Lab takes per account per day):
+- **Backend** (`french-coach-backend`, branch `claude/nifty-edison-xhbf2a`): migration `20261029090000_pronunciation_lab_quota.sql` seeds
+  `ai_quota_limits ('pronunciation_lab', 30)`. `POST /api/pronunciation` charges `pronunciation_lab` instead of `pronunciation` when the
+  client sends `source=lab` **and** `mode=scripted` (`_is_lab_take`); every other caller (Learn's `learn`, shadowing, inferred sources,
+  freeform) still charges `pronunciation`. Same rules as before: charged on a cache miss only (the idempotency key is the audio+text
+  hash, so a replay of the same recording is free), released when the assessment raises or nobody assessed it (`couldNotAssess` from a
+  non-Azure tier); an Azure `couldNotAssess` stays charged. The over-cap 429 is `detail.error = daily_quota_reached` (guests:
+  `guest_limit_reached`, via `lib/guest.py`, where `pronunciation_lab` joined `_AUDIO_FEATURES`). Read-only
+  `GET /api/pronunciation/allowance` (in `main.py` beside `/api/learn/allowance`) → `{limit, used, remaining, resetsAt}`, UTC day, 60/min.
+  Both the focus-word drills and the monthly check's takes are `source=lab` scripted, so they all spend the same 30.
+- **Frontend**: `lib/labAllowance.ts` (`LabAllowanceError`, raised by `httpProvider` for a 429 with those two codes **only when
+  `usageSource === 'lab'`**; a slowapi rate-limit 429 or another screen's 429 stays a generic failure). `services/pronunciation/labAllowance.ts`
+  (`getLabAllowance()`, null when unreadable) and `features/pronunciation/useLabAllowance.ts` (`{ remaining, limit, refresh, exhaust }`: read on
+  mount, re-read after each take because a replay is free, `exhaust()` on a refusal). The counter is `labCopy.allowanceLine` ("12 checks left
+  today · each recording you make uses one"); unknown → no line and nothing disabled (the server cap still applies).
+  - `LabPractice`: `CheckFailure` gained `'allowance'` → `LabNotice 'allowance-used'` + `LabPracticeState.allowanceUsed` (not a `stopped`
+    state: listening, tapping words and Done keep working; `canRecordSentence/Word` go false). With the counter at 0 the record buttons are
+    disabled and labelled "No checks left today".
+  - `MonthlyCheck`: intro shows `checkAllowanceLine`; **Start is disabled when fewer than `MIN_SAVED_SENTENCES` (3) checks are left** (the check
+    could never be saved); under 5 it warns some sentences may be missed. A refusal mid-check goes to the summary with `CheckNotice
+    'allowance-used'` (what was measured is kept — saved if ≥ 3 sentences), never a retry loop. A full check can use up to 15 checks
+    (3 tries × 5 sentences), so 30 covers one check plus ~15 practice takes.
+  - `quota_hit {feature: 'pronunciation', code}` (existing event, deduped) now fires for any `/api/pronunciation` 429; `LabAllowanceError`
+    is an expected failure (`sentryFilters.ts`) and reads as `quota` in `failureReason`.
+- No new analytics event, no XP/Session write. The Azure monthly cap (D3: = the F0 free allowance) is the existing `azure_speech_budget.cap_seconds`
+  and is **not set by this stage** — it is NULL (unlimited) until the owner sets it; the daily allowance is the only per-account limit the Lab has.
+- Tests: backend `tests/test_pronunciation.py` (charge routing, release, replay), `tests/test_pronunciation_lab_allowance.py`,
+  `tests/test_quota_features_seeded.py`; frontend `lib/__tests__/labAllowance.test.ts`, `services/pronunciation/__tests__/labAllowance.test.ts`,
+  `httpProvider.test.ts`, the two reducer tests, `LabPractice.test.tsx` and `MonthlyCheck.test.tsx` (both mock `services/pronunciation/labAllowance`).
+
 What the next stages need to know:
 - **Stage 3** is built (above). Any new place that opens the Lab adds a value to `LabOpenedProps.entry` in
   `telemetryService.ts` (closed enum) and to `LabPractice`'s `entry` prop type.
@@ -204,11 +234,11 @@ What the next stages need to know:
   bumping its `v` and teaching `sanitizeLabHistory` the old shape.
 - **Stage 4** (built): the strings ▶ Native asks for are the sentence as written, `wordPlayTexts` (normalised word / liaison
   group), the focus word's normalised text (slow), and `SOUND_TIPS` examples/minimal pairs as written.
-- **Stage 7**: the Lab charges nothing beyond the existing `/api/pronunciation` metering today. When the allowance lands,
-  map its 429 to a new `LabNotice` (the flow must still never trap) **and a matching `CheckNotice`** in `monthlyCheckState.ts`/
-  `labCopy.ts`'s `CHECK_NOTICE_TEXT` — the monthly check calls the same scripted check and today treats any non-consent/sign-in
-  failure as "couldn't check that take" (up to 3 tries a sentence, so one check can spend up to 15 analyses; a quota refusal should
-  end the check with a clear message rather than burn the retries, and the daily allowance of 30 must be able to cover a check).
+- **Stage 7** (built, above). Any new screen that records a Lab take must call `assessPronunciation({ source: 'pronunciation_lab', mode: 'scripted' })`
+  (that is what makes it a Lab take and charges `pronunciation_lab`), map `isLabAllowanceError(err)` to a notice (never a retry, never a trap),
+  call `useLabAllowance().exhaust()` on it and `.refresh()` after each take, and disable its record control when `remaining === 0`. Stage 5's
+  home reuses `LabPractice`, which already does all of this; its "Your sounds"/ear-training/guide screens make no Azure call and need nothing.
+  Ear training is listen-only and must stay free of `/api/pronunciation`.
 - No real-device run yet: the flow was exercised in headless Chromium with a fake microphone and a mocked
   `/api/pronunciation` (screenshots, not committed), not against live Azure. The §7 gate is still the owner's.
 - **fr-FR Azure returns phoneme accuracies but empty phoneme names** (all 1,799 phonemes in the calibration fixtures), so

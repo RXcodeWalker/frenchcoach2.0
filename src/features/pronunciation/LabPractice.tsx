@@ -12,6 +12,7 @@ import { SOUND_TIPS, tipFor } from '../../domain/pronunciation/lab/tips';
 import { buildLabTake, drillVerdict, takeWords, type LabTake, type LabWordItem } from '../../domain/pronunciation/lab/wordStates';
 import { AuthRequiredError } from '../../lib/authToken';
 import { isConsentRequiredError } from '../../lib/consentRequired';
+import { isLabAllowanceError } from '../../lib/labAllowance';
 import { assessPronunciation } from '../../services/pronunciation/pronunciationClient';
 import { track } from '../../services/telemetry/telemetryService';
 import { LevelBars } from '../recording/LevelBars';
@@ -19,13 +20,16 @@ import { useAudioBlobRecorder } from '../recording/useAudioBlobRecorder';
 import type { MicLevelController } from '../recording/useMicLevel';
 import { playClip, stopClip } from './audio/clipPlayer';
 import { playNative, stopNative } from './audio/nativeVoice';
+import { useLabAllowance } from './useLabAllowance';
 import {
+  ALLOWANCE_RECORD_LABEL,
   DRILL_VERDICT_DISPLAY,
   NATIVE_PREPARING,
   NATIVE_UNAVAILABLE,
   NOTICE_TEXT,
   STEP_LABELS,
   WORD_STATE_DISPLAY,
+  allowanceLine,
   clearHeadline,
   comparisonLine,
   focusLead,
@@ -76,6 +80,7 @@ interface Props {
 const STEP_INDEX: Record<LabStep, number> = { listen: 0, say: 1, compare: 2, focus: 3 };
 
 function failureOf(err: unknown): CheckFailure {
+  if (isLabAllowanceError(err)) return 'allowance';
   if (isConsentRequiredError(err)) return 'consent';
   if (err instanceof AuthRequiredError) return 'sign-in';
   if (err instanceof AudioTooShortError) return 'too-short';
@@ -276,6 +281,9 @@ export function LabPractice({ targetSentence, entry, onDone, onTake }: Props) {
   const reduced = useReducedMotion() ?? false;
   const [state, dispatch] = useReducer(labPracticeReducer, initialLabPracticeState);
   const recorder = useAudioBlobRecorder();
+  const allowance = useLabAllowance();
+  /** Today's checks are gone (the server said so, or the counter reads 0): record controls wait for tomorrow. */
+  const outOfChecks = state.allowanceUsed || allowance.remaining === 0;
   const tokens = useMemo(() => tokenizeSentence(targetSentence), [targetSentence]);
   const underlines = useMemo(() => {
     const map = new Map<number, Array<[number, number]>>();
@@ -355,7 +363,7 @@ export function LabPractice({ targetSentence, entry, onDone, onTake }: Props) {
   };
 
   const startRecording = async (target: LabTarget) => {
-    if (busy || starting.current) return;
+    if (busy || starting.current || outOfChecks) return;
     if (target.kind === 'sentence' ? !canRecordSentence(state) : !canRecordWord(state, target.index)) return;
     stopAudio();
     starting.current = true;
@@ -391,6 +399,7 @@ export function LabPractice({ targetSentence, entry, onDone, onTake }: Props) {
         signal: controller.signal,
       });
       if (!alive.current) return;
+      allowance.refresh();
       if (target.kind === 'sentence') {
         const next = buildLabTake(targetSentence, assessment);
         takeBlobs.current[state.takes.length] = captured.blob;
@@ -412,7 +421,11 @@ export function LabPractice({ targetSentence, entry, onDone, onTake }: Props) {
         }
       }
     } catch (err) {
-      if (alive.current) dispatch({ type: 'checkFailed', reason: failureOf(err) });
+      if (alive.current) {
+        if (isLabAllowanceError(err)) allowance.exhaust();
+        else allowance.refresh();
+        dispatch({ type: 'checkFailed', reason: failureOf(err) });
+      }
     } finally {
       if (abortRef.current === controller) abortRef.current = null;
     }
@@ -516,8 +529,8 @@ export function LabPractice({ targetSentence, entry, onDone, onTake }: Props) {
             <RecordControl
               recording={recordingTarget?.kind === 'sentence'}
               checking={checkingTarget?.kind === 'sentence'}
-              disabled={busy || !canRecordSentence(state)}
-              label={canRecordSentence(state) ? 'Tap and say the sentence' : 'That’s all the takes for this sentence'}
+              disabled={busy || outOfChecks || !canRecordSentence(state)}
+              label={outOfChecks ? ALLOWANCE_RECORD_LABEL : canRecordSentence(state) ? 'Tap and say the sentence' : 'That’s all the takes for this sentence'}
               onStart={() => void startRecording({ kind: 'sentence' })}
               onStop={() => void stopRecording()}
               level={recorder.micLevel}
@@ -595,8 +608,8 @@ export function LabPractice({ targetSentence, entry, onDone, onTake }: Props) {
               size="md"
               recording={recordingTarget?.kind === 'word'}
               checking={checkingTarget?.kind === 'word'}
-              disabled={busy || !canRecordWord(state, state.focusIndex)}
-              label={canRecordWord(state, state.focusIndex) ? 'Tap and say the word' : 'That’s all the tries for this word'}
+              disabled={busy || outOfChecks || !canRecordWord(state, state.focusIndex)}
+              label={outOfChecks ? ALLOWANCE_RECORD_LABEL : canRecordWord(state, state.focusIndex) ? 'Tap and say the word' : 'That’s all the tries for this word'}
               onStart={() => void startRecording({ kind: 'word', index: state.focusIndex })}
               onStop={() => void stopRecording()}
               level={recorder.micLevel}
@@ -627,11 +640,13 @@ export function LabPractice({ targetSentence, entry, onDone, onTake }: Props) {
       {focusDone && (
         <div className="space-y-3">
           <p className="text-body-s text-ink">
-            {canRecordSentence(state)
-              ? 'Now say the whole sentence again, with those words.'
-              : 'That’s all the takes for this sentence — nice work sticking with it.'}
+            {outOfChecks
+              ? 'That’s all the checks for today — nice work. Listen to the sentence again whenever you like.'
+              : canRecordSentence(state)
+                ? 'Now say the whole sentence again, with those words.'
+                : 'That’s all the takes for this sentence — nice work sticking with it.'}
           </p>
-          {canRecordSentence(state) && (
+          {canRecordSentence(state) && !outOfChecks && (
             <Button size="sm" onClick={() => dispatch({ type: 'sayAgain' })}>
               <Mic size={16} aria-hidden="true" /> Say the whole sentence again
             </Button>
@@ -640,6 +655,9 @@ export function LabPractice({ targetSentence, entry, onDone, onTake }: Props) {
         </div>
       )}
 
+      {allowanceLine(allowance.remaining) && (
+        <p className="text-caption text-ink-muted" data-testid="lab-allowance">{allowanceLine(allowance.remaining)}</p>
+      )}
       {state.notice && (
         <p className="rounded-control bg-reward-soft px-3 py-2.5 text-[13px] text-reward-text" role="status">
           {NOTICE_TEXT[state.notice]}

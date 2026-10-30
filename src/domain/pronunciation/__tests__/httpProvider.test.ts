@@ -414,6 +414,24 @@ describe('createHttpPronunciationProvider', () => {
     expect(init.headers.Authorization).toBe('Bearer jwt-123');
   });
 
+  it("raises LabAllowanceError for the Lab's daily cap, but only for a Lab take and only for the cap's own codes", async () => {
+    const capped = (body: unknown) => vi.fn(async () => ({
+      ok: false,
+      status: 429,
+      text: async () => JSON.stringify(body),
+    })) as unknown as typeof fetch;
+    const args = { audioBlob: new Blob([new Uint8Array(10)], { type: 'audio/webm;codecs=opus' }), targetText: 'bonjour', languageCode: 'fr-FR' as const };
+
+    vi.stubGlobal('fetch', capped({ detail: { error: 'daily_quota_reached', limit: 30 } }));
+    const assess = createHttpPronunciationProvider('http://api.test', async () => 'jwt');
+    await expect(assess({ ...args, usageSource: 'lab' })).rejects.toMatchObject({ name: 'LabAllowanceError', limit: 30 });
+    // Another screen's 429 keeps the generic error.
+    await expect(assess({ ...args, usageSource: 'learn' })).rejects.toThrow(/429/);
+    // A plain rate limit is not the allowance.
+    vi.stubGlobal('fetch', capped({ error: 'Rate limit exceeded: 20 per 1 minute' }));
+    await expect(assess({ ...args, usageSource: 'lab' })).rejects.toThrow(/429/);
+  });
+
   it('reports a 401 from the server as an auth failure, not a generic API error', async () => {
     const fetchMock = vi.fn(async () => ({ ok: false, status: 401 })) as unknown as typeof fetch;
     vi.stubGlobal('fetch', fetchMock);

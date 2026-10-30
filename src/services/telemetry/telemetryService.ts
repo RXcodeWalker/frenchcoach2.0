@@ -683,7 +683,7 @@ export function track(event: TelemetryEvent, options: TrackOptions = {}): void {
 export function failureReason(err: unknown): FailureReason {
   const name = err instanceof Error ? err.name : '';
   const status = errorStatus(err);
-  if (name === 'LearnDailyLimitError' || name === 'ExaminerQuotaExceededError' || status === 429) return 'quota';
+  if (name === 'LearnDailyLimitError' || name === 'ExaminerQuotaExceededError' || name === 'LabAllowanceError' || status === 429) return 'quota';
   if (name === 'ConsentRequiredError') return 'consent';
   if (name === 'AuthRequiredError' || status === 401 || status === 403) return 'auth';
   if (name === 'TranscribeTimeoutError' || name === 'TimeoutError' || (err instanceof Error && /timed out|timeout/i.test(err.message))) return 'timeout';

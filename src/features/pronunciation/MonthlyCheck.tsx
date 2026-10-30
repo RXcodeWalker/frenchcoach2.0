@@ -9,11 +9,12 @@ import { AudioTooShortError } from '../../domain/pronunciation/audioNormalizer';
 import { BENCHMARK_SENTENCES } from '../../domain/pronunciation/lab/benchmark';
 import { clipWindow } from '../../domain/pronunciation/lab/clipWindows';
 import { localDay } from '../../domain/pronunciation/lab/days';
-import { buildCheckResult, checkTrend, latestCheck, totals as sumSentences, type CheckTrend, type MonthlyCheckResult } from '../../domain/pronunciation/lab/monthlyCheck';
+import { MIN_SAVED_SENTENCES, buildCheckResult, checkTrend, latestCheck, totals as sumSentences, type CheckTrend, type MonthlyCheckResult } from '../../domain/pronunciation/lab/monthlyCheck';
 import { wordPlayTexts } from '../../domain/pronunciation/lab/textFeatures';
 import { buildLabTake, type LabWordItem } from '../../domain/pronunciation/lab/wordStates';
 import { AuthRequiredError } from '../../lib/authToken';
 import { isConsentRequiredError } from '../../lib/consentRequired';
+import { isLabAllowanceError } from '../../lib/labAllowance';
 import { assessPronunciation } from '../../services/pronunciation/pronunciationClient';
 import { getLabHistory, recordLabTake, saveMonthlyCheck } from '../../services/pronunciation/labStore';
 import { track } from '../../services/telemetry/telemetryService';
@@ -21,10 +22,14 @@ import { useAudioBlobRecorder } from '../recording/useAudioBlobRecorder';
 import { playClip, stopClip } from './audio/clipPlayer';
 import { playNative, stopNative } from './audio/nativeVoice';
 import { CompareSentence, Legend, RecordControl } from './LabPractice';
+import { useLabAllowance } from './useLabAllowance';
 import {
+  ALLOWANCE_RECORD_LABEL,
   CHECK_INTRO,
   CHECK_NOTICE_TEXT,
   NATIVE_UNAVAILABLE,
+  allowanceLine,
+  checkAllowanceLine,
   clearHeadline,
   dayLabel,
   monthLabel,
@@ -59,6 +64,7 @@ interface Props {
 }
 
 function failureOf(err: unknown): CheckFailure {
+  if (isLabAllowanceError(err)) return 'allowance';
   if (isConsentRequiredError(err)) return 'consent';
   if (err instanceof AuthRequiredError) return 'sign-in';
   if (err instanceof AudioTooShortError) return 'too-short';
@@ -89,6 +95,9 @@ export function MonthlyCheck({ onDone }: Props) {
   const reduced = useReducedMotion() ?? false;
   const [state, dispatch] = useReducer(monthlyCheckReducer, initialMonthlyCheckState);
   const recorder = useAudioBlobRecorder();
+  const allowance = useLabAllowance();
+  /** Today's checks are gone: the sentence can still be heard and skipped, but not recorded. */
+  const outOfChecks = allowance.remaining === 0;
   const alive = useRef(true);
   const starting = useRef(false);
   const abortRef = useRef<AbortController | null>(null);
@@ -147,7 +156,7 @@ export function MonthlyCheck({ onDone }: Props) {
   };
 
   const startRecording = async () => {
-    if (!canTry(state) || starting.current) return;
+    if (!canTry(state) || starting.current || outOfChecks) return;
     stopAudio();
     starting.current = true;
     try {
@@ -180,6 +189,7 @@ export function MonthlyCheck({ onDone }: Props) {
         signal: controller.signal,
       });
       if (!alive.current) return;
+      allowance.refresh();
       const take = buildLabTake(sentence, assessment);
       if (take.refused === null) {
         takeBlob.current = captured.blob;
@@ -188,7 +198,11 @@ export function MonthlyCheck({ onDone }: Props) {
       }
       dispatch({ type: 'checked', take });
     } catch (err) {
-      if (alive.current) dispatch({ type: 'checkFailed', reason: failureOf(err) });
+      if (alive.current) {
+        if (isLabAllowanceError(err)) allowance.exhaust();
+        else allowance.refresh();
+        dispatch({ type: 'checkFailed', reason: failureOf(err) });
+      }
     } finally {
       if (abortRef.current === controller) abortRef.current = null;
     }
@@ -263,7 +277,16 @@ export function MonthlyCheck({ onDone }: Props) {
               Last check ({dayLabel(previous.day)}): {clearHeadline(sumSentences(previous.sentences))}.
             </p>
           )}
-          <Button className="w-full" onClick={() => dispatch({ type: 'begin' })}>
+          {checkAllowanceLine(allowance.remaining, SENTENCE_COUNT, MIN_SAVED_SENTENCES) && (
+            <p className="text-body-s text-ink-muted" data-testid="lab-allowance">
+              {checkAllowanceLine(allowance.remaining, SENTENCE_COUNT, MIN_SAVED_SENTENCES)}
+            </p>
+          )}
+          <Button
+            className="w-full"
+            disabled={allowance.remaining !== null && allowance.remaining < MIN_SAVED_SENTENCES}
+            onClick={() => dispatch({ type: 'begin' })}
+          >
             Start the check
           </Button>
         </div>
@@ -292,8 +315,8 @@ export function MonthlyCheck({ onDone }: Props) {
             <RecordControl
               recording={state.activity.kind === 'recording'}
               checking={state.activity.kind === 'checking'}
-              disabled={busy || !canTry(state)}
-              label={canTry(state) ? 'Tap and say the sentence' : 'No more tries for this sentence'}
+              disabled={busy || outOfChecks || !canTry(state)}
+              label={outOfChecks ? ALLOWANCE_RECORD_LABEL : canTry(state) ? 'Tap and say the sentence' : 'No more tries for this sentence'}
               onStart={() => void startRecording()}
               onStop={() => void stopRecording()}
               level={recorder.micLevel}
@@ -356,6 +379,9 @@ export function MonthlyCheck({ onDone }: Props) {
         </div>
       )}
 
+      {state.phase === 'sentence' && allowanceLine(allowance.remaining) && (
+        <p className="text-caption text-ink-muted" data-testid="lab-allowance">{allowanceLine(allowance.remaining)}</p>
+      )}
       {state.notice && (
         <p className="rounded-control bg-reward-soft px-3 py-2.5 text-[13px] text-reward-text" role="status">
           {CHECK_NOTICE_TEXT[state.notice]}

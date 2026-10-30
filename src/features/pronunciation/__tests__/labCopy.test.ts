@@ -74,3 +74,22 @@ describe('Lab copy', () => {
     for (const n of [0, 1, 3]) expect(flowLine({ pausesOver2s: n })).not.toMatch(/fluent|level|band|grade|score|A1|A2|B1|B2/i);
   });
 });
+
+import { allowanceLine, checkAllowanceLine } from '../labCopy';
+
+describe('the daily allowance wording (Stage 7)', () => {
+  it('names the count, never "limit reached", and says what still works when none are left', () => {
+    expect(allowanceLine(null)).toBeNull();
+    expect(allowanceLine(1)).toMatch(/^1 check left today/);
+    expect(allowanceLine(12)).toMatch(/^12 checks left today/);
+    expect(allowanceLine(0)).toMatch(/still listen/);
+    expect(allowanceLine(0)).not.toMatch(/limit/i);
+  });
+
+  it('the monthly check explains when the allowance will not cover it', () => {
+    expect(checkAllowanceLine(null, 5, 3)).toBeNull();
+    expect(checkAllowanceLine(2, 5, 3)).toMatch(/needs at least 3/);
+    expect(checkAllowanceLine(4, 5, 3)).toMatch(/may not reach every sentence/);
+    expect(checkAllowanceLine(20, 5, 3)).toMatch(/20 checks left today/);
+  });
+});
