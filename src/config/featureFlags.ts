@@ -15,7 +15,7 @@ export const FEATURE_FLAGS = {
   rapidFire:         'live',
   speedSpeaking:     'coming-soon',
   wordDrop:          'live',
-  bossBattle:        'coming-soon',
+  bossBattle:        'live',
   emojiMaster:       'live',
   survivalMode:      'coming-soon',
   speakingArena:     'coming-soon',
