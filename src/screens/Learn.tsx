@@ -1349,6 +1349,8 @@ export function Learn() {
     }
   };
 
+  const inSession = learnState === 'question' || learnState === 'recording' || learnState === 'confirm' || learnState === 'feedback';
+
   // Escape goes back from a topic's setup to the topic grid. Inside a session it asks
   // "Leave this session?" first (a stray key must not abandon a recording); on the topic
   // grid it falls through to the app-wide "previous page".
@@ -1357,12 +1359,18 @@ export function Learn() {
       handleBack();
       return true;
     }
-    if (learnState === 'question' || learnState === 'recording' || learnState === 'confirm' || learnState === 'feedback') {
+    if (inSession) {
       setShowLeaveConfirm(true);
       return true;
     }
     return learnState !== 'topics';
   });
+
+  // The on-screen Back and Escape share one rule: mid-session they ask first.
+  const requestBack = () => {
+    if (inSession) setShowLeaveConfirm(true);
+    else handleBack();
+  };
 
   const confirmLeave = () => {
     setShowLeaveConfirm(false);
@@ -1378,7 +1386,6 @@ export function Learn() {
   });
 
   const topicData = selectedTopic ? TOPICS.find(t => t.key === selectedTopic.key) ?? selectedTopic : null;
-  const inSession = learnState === 'question' || learnState === 'recording' || learnState === 'confirm' || learnState === 'feedback';
 
   // The stepped status in the recorder while an answer is processed (Design System v2):
   // Transcribing (the Whisper double-check, or the stream's first phase), Checking grammar
@@ -1415,7 +1422,7 @@ export function Learn() {
         subtitle={barSubtitle}
         showBack={learnState !== 'topics'}
         backLabel={learnState === 'session_start' ? 'Back to topics' : 'Leave session'}
-        onBack={handleBack}
+        onBack={requestBack}
       />
 
       {/* Mid-session toasts — docs §8.4: a difficulty notice outranks progress
