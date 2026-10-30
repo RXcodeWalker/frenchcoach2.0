@@ -2,6 +2,7 @@ import minigameQuestions from '../../data/scenarios/minigameQuestions.json';
 import { EMOJI_QUESTIONS } from '../../data/emojiQuestions';
 import { QUESTIONS, TOPICS } from '../../data/questions';
 import { normalizeFrench } from '../minigames/utils/normalizeFrench';
+import { EXTRA_OBJECTS, EXTRA_PHRASES, SMALL_WORDS, TIME_WORDS, VERBS, type Card } from './extraWords';
 
 /**
  * Rapid Fire's word bank: what the learner is shown (English) and every French
@@ -25,7 +26,7 @@ export interface RapidFireWord {
   level: WordLevel;
 }
 
-export type WordSetKind = 'mixed' | 'phrases' | 'objects' | 'topic';
+export type WordSetKind = 'mixed' | 'phrases' | 'objects' | 'verbs' | 'time' | 'small' | 'topic';
 
 export interface WordSet {
   id: string;
@@ -199,6 +200,13 @@ function mergeWords(words: RapidFireWord[]): RapidFireWord[] {
 function buildBank(): WordSet[] {
   let n = 0;
   const nextId = (prefix: string) => `${prefix}-${n++}`;
+  const fromCards = (prefix: string, cards: readonly Card[]): RapidFireWord[] =>
+    cards.map(([english, french, level]) => ({
+      id: nextId(prefix),
+      prompt: capitalise(english.trim()),
+      answers: dedupe(Array.isArray(french) ? [...french] : [french as string]),
+      level,
+    }));
 
   const phrases: RapidFireWord[] = [];
   const objects: RapidFireWord[] = [];
@@ -221,6 +229,12 @@ function buildBank(): WordSet[] {
     (q.category === 'sentences' ? phrases : objects).push(word);
   }
 
+  phrases.push(...fromCards('p', EXTRA_PHRASES));
+  objects.push(...fromCards('o', EXTRA_OBJECTS));
+  const verbs = fromCards('b', VERBS);
+  const time = fromCards('t', TIME_WORDS);
+  const small = fromCards('s', SMALL_WORDS);
+
   for (const q of QUESTIONS) {
     for (const v of q.keyVocab ?? []) {
       for (const parsed of parseVocab(v.en, v.fr)) {
@@ -240,10 +254,13 @@ function buildBank(): WordSet[] {
     topicSets.push({ id: topic.key, kind: 'topic', label: topic.labelEn, topicKey: topic.key, words });
   }
 
-  const mixed = mergeWords([...phrases, ...objects, ...topicSets.flatMap(s => s.words)]);
+  const mixed = mergeWords([...phrases, ...objects, ...verbs, ...time, ...small, ...topicSets.flatMap(s => s.words)]);
   sets.push({ id: 'mixed', kind: 'mixed', label: 'Mixed', words: mixed });
   sets.push({ id: 'phrases', kind: 'phrases', label: 'Phrases', words: mergeWords(phrases) });
   sets.push({ id: 'objects', kind: 'objects', label: 'Everyday objects', words: mergeWords(objects) });
+  sets.push({ id: 'verbs', kind: 'verbs', label: 'Verbs', words: mergeWords(verbs) });
+  sets.push({ id: 'time', kind: 'time', label: 'Numbers & time', words: mergeWords(time) });
+  sets.push({ id: 'small', kind: 'small', label: 'Small words', words: mergeWords(small) });
   sets.push(...topicSets);
   return sets;
 }

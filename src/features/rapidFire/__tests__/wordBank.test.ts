@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { EXTRA_OBJECTS, EXTRA_PHRASES, SMALL_WORDS, TIME_WORDS, VERBS } from '../extraWords';
 import { getWordSet, getWordSets, parseVocab } from '../wordBank';
 
 describe('parseVocab', () => {
@@ -53,8 +54,8 @@ describe('parseVocab', () => {
 describe('word sets', () => {
   const sets = getWordSets();
 
-  it('offers Mixed, Phrases, Everyday objects and the sixteen core topics', () => {
-    expect(sets.slice(0, 3).map(s => s.id)).toEqual(['mixed', 'phrases', 'objects']);
+  it('offers the quick sets, then the sixteen core topics', () => {
+    expect(sets.slice(0, 6).map(s => s.id)).toEqual(['mixed', 'phrases', 'objects', 'verbs', 'time', 'small']);
     expect(sets.filter(s => s.kind === 'topic')).toHaveLength(16);
     expect(getWordSet('school')?.topicKey).toBe('school');
     expect(getWordSet('nope')).toBeUndefined();
@@ -102,5 +103,57 @@ describe('word sets', () => {
   it('has unique ids', () => {
     const mixed = getWordSet('mixed')!.words;
     expect(new Set(mixed.map(w => w.id)).size).toBe(mixed.length);
+  });
+});
+
+describe('authored extra cards', () => {
+  const lists = { EXTRA_PHRASES, EXTRA_OBJECTS, VERBS, TIME_WORDS, SMALL_WORDS };
+
+  it('has no repeated English prompt in a list (a repeat would silently merge)', () => {
+    for (const [name, cards] of Object.entries(lists)) {
+      const prompts = cards.map(c => c[0].trim().toLowerCase());
+      const repeats = prompts.filter((p, i) => prompts.indexOf(p) !== i);
+      expect(repeats, name).toEqual([]);
+    }
+  });
+
+  it('writes French without glossary notation or hard-to-type ligatures', () => {
+    for (const cards of Object.values(lists)) {
+      for (const [en, fr] of cards) {
+        for (const a of Array.isArray(fr) ? fr : [fr]) {
+          expect(a, en).not.toMatch(/[()/+]|\.\.\.|[œŒ]/);
+          expect(a, en).toBe(a.trim());
+        }
+      }
+    }
+  });
+
+  it('gives every noun in the objects list its article', () => {
+    for (const [en, fr] of EXTRA_OBJECTS) {
+      for (const a of Array.isArray(fr) ? fr : [fr]) {
+        expect(a, en).toMatch(/^(le |la |les |l')/i);
+      }
+    }
+  });
+
+  it('puts every verb in the infinitive-prompt form', () => {
+    for (const [en] of VERBS) expect(en, en).toMatch(/^to /);
+  });
+
+  it('is big enough to play and spans all three levels in each new set', () => {
+    for (const id of ['phrases', 'objects', 'verbs', 'time', 'small']) {
+      const set = getWordSet(id)!;
+      expect(set.words.length, id).toBeGreaterThanOrEqual(id === 'phrases' ? 100 : 70);
+      expect(new Set(set.words.map(w => w.level)).size, id).toBe(3);
+    }
+  });
+
+  it('shows the authored cards in the right sets', () => {
+    const find = (id: string, prompt: string) => getWordSet(id)!.words.find(w => w.prompt === prompt);
+    expect(find('verbs', 'To know (a fact)')?.answers).toEqual(['savoir']);
+    expect(find('time', 'Eighty')?.answers).toEqual(['quatre-vingts', 'quatre-vingt']);
+    expect(find('small', 'Although')?.answers).toEqual(['bien que']);
+    expect(find('objects', 'The key')?.answers).toEqual(['la clé', 'la clef']);
+    expect(find('phrases', 'Good morning')?.answers).toEqual(['Bonjour']);
   });
 });

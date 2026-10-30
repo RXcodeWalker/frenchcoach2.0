@@ -1,5 +1,5 @@
 import { motion, useReducedMotion } from 'framer-motion';
-import { Box, Check, Heart, MessageSquareQuote, Shuffle, Timer, Zap, type LucideIcon } from 'lucide-react';
+import { Box, CalendarDays, Check, Heart, Link2, MessageSquareQuote, Play, Shuffle, Timer, Zap, type LucideIcon } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { TopicChip } from '../../components/ui/TopicChip';
 import { PageShell } from '../../components/layout/PageShell';
@@ -19,6 +19,9 @@ const QUICK_ICON: Record<Exclude<WordSetKind, 'topic'>, LucideIcon> = {
   mixed: Shuffle,
   phrases: MessageSquareQuote,
   objects: Box,
+  verbs: Play,
+  time: CalendarDays,
+  small: Link2,
 };
 
 const RULES: Array<{ Icon: LucideIcon; title: string; text: string }> = [
