@@ -1,5 +1,5 @@
 import type { Rarity } from '../../services/shop/rarity';
-import { RARITY_COLOR } from '../../services/shop/rarity';
+import { RARITY_RING } from '../../services/shop/rarity';
 
 interface RarityRingProps {
   rarity: Rarity;
@@ -14,7 +14,7 @@ interface RarityRingProps {
  * `border`, which is reserved for the hairline token.
  */
 export function RarityRing({ rarity, size, children }: RarityRingProps) {
-  const color = RARITY_COLOR[rarity];
+  const color = RARITY_RING[rarity];
   return (
     <div
       className="relative rounded-full flex items-center justify-center"

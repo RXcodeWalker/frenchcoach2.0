@@ -4,6 +4,8 @@ import { SHOP_CATALOGUE } from '../../services/shop/shopCatalogue';
 interface TransactionListProps {
   events: GemEvent[];
   loading: boolean;
+  /** Signed out: there is no ledger to show. */
+  signedOut?: boolean;
 }
 
 const KIND_LABEL: Record<GemEvent['kind'], string> = {
@@ -26,30 +28,33 @@ function describe(event: GemEvent): string {
  * §14.8). Exposes only kind/delta/resolved item name/created_at; never the
  * metadata jsonb, idempotency key, or cap state. Replays are invisible by
  * construction — a replayed RPC call writes no new row, so there is nothing
- * here to filter.
+ * here to filter. Gains read in the progress role, spends in plain ink.
  */
-export function TransactionList({ events, loading }: TransactionListProps) {
+export function TransactionList({ events, loading, signedOut = false }: TransactionListProps) {
+  if (signedOut) {
+    return <p className="py-6 text-center text-body-s text-ink-muted">Sign in to see every gem you have earned and spent.</p>;
+  }
   if (loading) {
-    return <p className="text-xs text-ink-muted font-bold text-center py-6">Loading transactions…</p>;
+    return <p className="py-6 text-center text-body-s text-ink-muted">Loading transactions…</p>;
   }
   if (events.length === 0) {
-    return <p className="text-xs text-ink-muted font-bold text-center py-6">No transactions yet.</p>;
+    return <p className="py-6 text-center text-body-s text-ink-muted">No transactions yet. Gems you earn and spend will be listed here.</p>;
   }
   return (
-    <div className="divide-y divide-white/5">
+    <ul className="divide-y divide-hairline">
       {events.map(event => (
-        <div key={event.id} className="flex items-center justify-between py-2.5">
-          <div>
-            <p className="text-xs font-bold text-white">{describe(event)}</p>
-            <p className="text-[10px] text-ink-muted">
+        <li key={event.id} className="flex items-center justify-between gap-3 py-3">
+          <div className="min-w-0">
+            <p className="truncate text-body-s font-semibold text-ink">{describe(event)}</p>
+            <p className="text-caption text-ink-subtle">
               {new Date(event.occurredAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
             </p>
           </div>
-          <span className={`text-sm font-black ${event.delta > 0 ? 'text-emerald-400' : 'text-ink-muted'}`}>
-            {event.delta > 0 ? '+' : ''}{event.delta.toLocaleString()}
+          <span className={`font-numeral text-[15px] ${event.delta > 0 ? 'text-progress-text' : 'text-ink-muted'}`}>
+            {event.delta > 0 ? '+' : ''}{event.delta.toLocaleString('en-GB')}
           </span>
-        </div>
+        </li>
       ))}
-    </div>
+    </ul>
   );
 }

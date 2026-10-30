@@ -35,7 +35,7 @@ export const FEATURES: FeatureCard[] = [
   { id: 'challenges', title: 'Challenges', description: 'Weekly competitive events', icon: '⚔', category: 'Compete & Rewards', color: '#EF4444', locked: false, screen: 'challenges' },
   { id: 'friends', title: 'Friend Challenges', description: 'Challenge friends to duels', icon: '🤝', category: 'Compete & Rewards', color: '#7C3AED', locked: false, screen: 'friend-challenges' },
   { id: 'rankings', title: 'Rankings', description: 'See where you stand', icon: '🥇', category: 'Compete & Rewards', color: '#F59E0B', locked: false, screen: 'rankings' },
-  { id: 'xp_shop', title: 'XP Shop', description: 'Spend XP on themes and power-ups', icon: '🛍', category: 'Compete & Rewards', color: '#F59E0B', locked: false, screen: 'shop' },
+  { id: 'xp_shop', title: 'Shop', description: 'Spend gems on streak safety and your look', icon: '🛍', category: 'Compete & Rewards', color: '#F59E0B', locked: false, screen: 'shop' },
   { id: 'mystery_box', title: 'Mystery Box', description: 'Open a daily box for rewards', icon: '🎁', category: 'Compete & Rewards', color: '#EC4899', locked: false, screen: 'mystery-box' },
   { id: 'survival', title: 'Survival Mode', description: 'How long can you keep going?', icon: '🏝', category: 'Compete & Rewards', color: '#F97316', locked: false, screen: 'survival' },
   { id: 'missions', title: 'Daily Missions', description: 'Complete 3 challenges for bonus XP', icon: '🎯', category: 'Compete & Rewards', color: '#7C3AED', locked: true },

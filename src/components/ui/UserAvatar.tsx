@@ -1,4 +1,5 @@
 import { CosmeticPreview } from './CosmeticPreview';
+import { SHOP_CATALOGUE } from '../../services/shop/shopCatalogue';
 import type { ShopItem } from '../../types/shop';
 
 interface Props {
@@ -27,7 +28,7 @@ export function UserAvatar({ username, equipped, catalogue = [], size = 36, tone
   if (equipped && (equipped.avatar || equipped.frame)) {
     return (
       <CosmeticPreview
-        avatarEmoji={equipped.avatar}
+        avatarEmoji={equipped.avatar ? SHOP_CATALOGUE[equipped.avatar]?.icon ?? equipped.avatar : null}
         frameItemId={equipped.frame}
         nameplateItemId={null}
         catalogue={catalogue}

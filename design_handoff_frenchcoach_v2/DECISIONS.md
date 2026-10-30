@@ -368,3 +368,56 @@ handoff left a gap or clashed with the codebase. Newest phase last.
 - **Flag.** `wordDrop` is now `live` and the Explore tile was already there.
 - **Dropped from the old screen:** "Fun Mode" (random speed changes) and the
   BETA badge.
+
+
+## Shop
+
+- **Scope:** `/shop` (Explore → Shop) rebuilt on the v2 tokens: `TopContextBar`
+  (back to Explore), `PageShell`, `Card`, `Segmented`, `Button`, `Modal`,
+  `CountUp`. The screen is `screens/Shop.tsx`; its parts are in
+  `features/shop/` (`ShopHeader`, `ShopItemCard`, `ItemDetail`, `ItemTile`,
+  `RequirementBar`, `CollectionBar`, and the pure `itemState.ts`). The economy,
+  the RPCs and the catalogue are untouched — this is presentation and flow only.
+  `shopDesignRules.test.ts` bans raw palette colours, hex, gradients, glow/blur,
+  looping motion, hover/tap scale, `layoutId` flights and text under 12px there.
+- **A purchase is confirmed.** The old card bought on one tap. Now the card's
+  price button opens the item dialog (`Modal`: a centred dialog on desktop, a
+  bottom sheet under 640px, portalled to `<body>` so it covers the dock and
+  rail), which shows balance, price and "After buying", with one primary
+  button. A failed purchase keeps the dialog open with the plain reason; a
+  successful one closes it and says what happened in a status line. Short on
+  gems: the button reads "Not enough gems" and the dialog says how many
+  sessions away it is — never a top-up prompt. A guest sees a sign-in note and
+  cannot buy.
+- **Locked is recessed, never faded.** The old Locker dimmed unowned items to 50%
+  opacity; they are now `surface-recessed` cards at full contrast with a lock
+  badge, the requirement and a real progress bar (`progress` role, `fill`
+  motion, no gradient). A locked item's dialog links to the practice that
+  advances it (`practiceLinkFor`: Exam, Explore for role plays, else Learn),
+  as Shop plan §8 asks.
+- **Identity is grouped** into Avatars, Frames and Nameplates (it was one flat
+  grid). **Locker** shows "N of M collected", an All / Owned / Not yet filter
+  (compact `Segmented`), owned items first, and the gem ledger, which now says
+  "Sign in…" for a guest instead of "No transactions yet".
+- **Rarity uses role tokens.** `RARITY_COLOR` (text) and `RARITY_RING` (ring) are
+  CSS variables — common ink-muted/hairline, rare progress, epic action,
+  legendary reward — so Profile and Rankings nameplates follow the theme too.
+  Rarity is one word and a hairline ring, as the plan says.
+- **Motion:** the gem balance counts with `fill` (`GemBalance` → `CountUp`),
+  cards use `enter`, tabs use `Segmented`'s `slide`. Removed: the balance
+  shake, the `y: -2` hover lift, the shared-`layoutId` "equip flies home"
+  flight (not one of the eight motions; the header look simply updates) and the
+  popLayout reflow. A failure is an inline message, not a shake.
+- **Header look fixed.** The header rendered the default 👤 emoji and ignored the
+  equipped avatar (it passed `avatarEmoji={null}`). It now resolves the avatar's
+  icon from the catalogue, and with nothing equipped shows the initials avatar.
+  `UserAvatar` had the same latent bug (it passed the item id as the emoji) and
+  resolves the icon too; `CosmeticPreview` shows initials, not 👤, when there is
+  no avatar. The catalogue icons (emoji) stay: they are item artwork, like Emoji
+  Master's prompts, not interface chrome.
+- **Copy:** the Explore tile was "XP Shop — Spend XP on themes and power-ups";
+  the shop sells for gems and has no themes, so it is "Shop — Spend gems on
+  streak safety and your look".
+- **Not done:** drag-to-dismiss on the mobile sheet (Escape, the scrim and Cancel
+  close it), the "Now available" ribbon for newly unlocked items (needs a stored
+  "seen" set), and the TopContextBar gems pill from Shop plan §13.

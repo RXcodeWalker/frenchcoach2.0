@@ -1,71 +1,32 @@
-import { useEffect, useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState } from 'react';
 import { Gem } from 'lucide-react';
+import { CountUp } from '../motion/CountUp';
 
 interface GemBalanceProps {
   balance: number;
-  shake?: boolean;
 }
 
 /**
- * Shop plan §7 (new, minimal): "GemBalance (animated count)". §8: on
- * purchase "gem counter rolls down digit-by-digit" instead of confetti —
- * restraint reads as expensive (§12.3). Each digit is its own AnimatePresence
- * slot keyed by its value, sliding out/in vertically on change.
+ * The learner's gem balance (Shop plan §7). A change counts up or down from
+ * the old figure with the `fill` motion (Design System v2) — restraint reads as
+ * expensive (§12.3). Gems are a reward currency, so the figure takes the
+ * reward role colour.
  */
-export function GemBalance({ balance, shake }: GemBalanceProps) {
-  const [display, setDisplay] = useState(balance);
-  const prevBalance = useRef(balance);
-
-  useEffect(() => {
-    if (balance === prevBalance.current) return;
-    const from = prevBalance.current;
-    const to = balance;
-    prevBalance.current = balance;
-
-    const steps = Math.min(Math.abs(to - from), 20);
-    if (steps === 0) {
-      setDisplay(to);
-      return;
-    }
-    const direction = to > from ? 1 : -1;
-    let step = 0;
-    const interval = setInterval(() => {
-      step += 1;
-      const progress = step / steps;
-      const next = Math.round(from + direction * Math.abs(to - from) * progress);
-      setDisplay(step === steps ? to : next);
-      if (step >= steps) clearInterval(interval);
-    }, 30);
-    return () => clearInterval(interval);
-  }, [balance]);
-
-  const digits = display.toLocaleString().split('');
+export function GemBalance({ balance }: GemBalanceProps) {
+  // Remember where the count started so a re-render mid-count doesn't restart it from the end.
+  const [run, setRun] = useState({ from: balance, to: balance });
+  if (run.to !== balance) setRun({ from: run.to, to: balance });
 
   return (
-    <motion.div
-      animate={shake ? { x: [0, -6, 6, -4, 4, 0] } : {}}
-      className="flex items-center gap-2 px-4 py-2 rounded-xl surface border-emerald-500/20 bg-emerald-500/10"
-    >
-      <Gem size={16} className="text-emerald-400" />
-      <span className="text-lg font-black text-white flex overflow-hidden">
-        {digits.map((char, i) => (
-          <span key={`${i}-${digits.length}`} className="relative inline-block overflow-hidden h-[1.2em]">
-            <AnimatePresence mode="popLayout" initial={false}>
-              <motion.span
-                key={char}
-                initial={{ y: '100%' }}
-                animate={{ y: 0 }}
-                exit={{ y: '-100%' }}
-                transition={{ duration: 0.2 }}
-                className="block"
-              >
-                {char}
-              </motion.span>
-            </AnimatePresence>
-          </span>
-        ))}
-      </span>
-    </motion.div>
+    <div>
+      <p className="text-eyebrow uppercase text-ink-subtle">Gem balance</p>
+      <p className="mt-1 flex items-center gap-2 font-numeral text-num-l text-reward-text">
+        <Gem size={24} strokeWidth={1.75} aria-hidden="true" />
+        <span aria-hidden="true">
+          <CountUp value={run.to} from={run.from} delay={0} grouped data-testid="shop-balance" />
+        </span>
+        <span className="sr-only">{balance.toLocaleString('en-GB')} gems</span>
+      </p>
+    </div>
   );
 }

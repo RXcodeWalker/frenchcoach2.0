@@ -36,10 +36,10 @@ export function CosmeticPreview({
 
   const avatarNode = (
     <div
-      className="rounded-full bg-navy-300 flex items-center justify-center border-2 border-white/5"
+      className="rounded-pill bg-surface-recessed flex items-center justify-center border border-hairline"
       style={{ width: size, height: size, fontSize: size * 0.5 }}
     >
-      {avatarEmoji ?? '👤'}
+      {avatarEmoji ?? (username ? <span className="font-semibold text-ink-muted" style={{ fontSize: size * 0.36 }}>{username.slice(0, 2).toUpperCase()}</span> : null)}
     </div>
   );
 

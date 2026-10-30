@@ -17,9 +17,28 @@ export function rarityOf(item: Pick<ShopItem, 'priceGems' | 'requirement'>): Rar
   return 'legendary';
 }
 
+/**
+ * Rarity colours are Design System v2 role tokens (never hex), so they follow
+ * the theme: `RARITY_COLOR` is for text (the `-text` step, AA on a surface),
+ * `RARITY_RING` for a 1px ring or fill (the base step).
+ */
 export const RARITY_COLOR: Record<Rarity, string> = {
-  common: '#64748B',
-  rare: '#10B981',
-  epic: '#6366F1',
-  legendary: '#F59E0B',
+  common: 'var(--ink-muted)',
+  rare: 'var(--progress-text)',
+  epic: 'var(--action-text)',
+  legendary: 'var(--reward-text)',
+};
+
+export const RARITY_RING: Record<Rarity, string> = {
+  common: 'var(--hairline-strong)',
+  rare: 'var(--progress)',
+  epic: 'var(--action)',
+  legendary: 'var(--reward)',
+};
+
+export const RARITY_LABEL: Record<Rarity, string> = {
+  common: 'Common',
+  rare: 'Rare',
+  epic: 'Epic',
+  legendary: 'Legendary',
 };
