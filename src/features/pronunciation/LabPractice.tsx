@@ -4,6 +4,7 @@ import { Mic, Play, Volume2 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { GuardianConsentNotice } from '../../components/GuardianConsentNotice';
 import { SpeakingConsentGate } from '../../components/SpeakingConsentGate';
+import { useSpaceToRecord } from '../../lib/useSpaceToRecord';
 import { correct, enter, enterReduced, fill } from '../../components/motion/variants';
 import { clipWindow } from '../../domain/pronunciation/lab/clipWindows';
 import { tokenizeSentence, watchOutFor, wordPlayTexts, type SentenceToken } from '../../domain/pronunciation/lab/textFeatures';
@@ -401,6 +402,16 @@ export function LabPractice({ targetSentence, entry, onDone }: Props) {
     abortRef.current?.abort();
     onDone();
   };
+
+  // Space records the sentence (Listen / Say it) or the focus word (Focus); the start handler
+  // re-checks busy, allowance and the take limits, so a refused take never reaches the mic.
+  const spaceStep = state.step === 'listen' || state.step === 'say' ? 'sentence' : state.step === 'focus' && state.focusIndex < state.focus.length ? 'word' : null;
+  useSpaceToRecord({
+    enabled: !state.stopped && spaceStep !== null && (recordingTarget !== null || !busy),
+    isRecording: recordingTarget !== null,
+    onStart: () => void startRecording(spaceStep === 'word' ? { kind: 'word', index: state.focusIndex } : { kind: 'sentence' }),
+    onStop: () => void stopRecording(),
+  });
 
   if (state.stopped) {
     return (

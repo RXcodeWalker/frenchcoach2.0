@@ -1,6 +1,5 @@
-import { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { hasCommandModifier, isDialogOpen, isInteractiveTarget, isTypingTarget } from '../../lib/keyboardShortcuts';
+import { useSpaceToRecord } from '../../lib/useSpaceToRecord';
 import { AlertTriangle, Check, Loader2, Mic } from 'lucide-react';
 import { formatTime } from '../../domain/time';
 import type { RecordingState } from '../../features/recording/useRecording';
@@ -85,20 +84,8 @@ export function RecordingPanel({ isActive, recording, onStop, processing = null,
   const canToggle = isActive && !isProc;
   const { start } = recording;
 
-  // Space starts and stops the recorder. A focused button/link/field keeps its own
-  // Space, and a dialog (or a held key) never triggers a recording behind it.
-  useEffect(() => {
-    if (!canToggle) return;
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.code !== 'Space' || e.repeat || e.defaultPrevented || hasCommandModifier(e)) return;
-      if (isTypingTarget(e.target) || isInteractiveTarget(e.target) || isDialogOpen()) return;
-      e.preventDefault();
-      if (isRec) onStop();
-      else start();
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [canToggle, isRec, onStop, start]);
+  // Space starts and stops the recorder (shared rules: lib/useSpaceToRecord).
+  useSpaceToRecord({ enabled: canToggle, isRecording: isRec, onStart: () => void start(), onStop });
 
   if (!isActive && processing === null) return null;
 

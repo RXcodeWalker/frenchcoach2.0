@@ -4,6 +4,7 @@ import { Play, Volume2 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { GuardianConsentNotice } from '../../components/GuardianConsentNotice';
 import { SpeakingConsentGate } from '../../components/SpeakingConsentGate';
+import { useSpaceToRecord } from '../../lib/useSpaceToRecord';
 import { enter, enterReduced, fill } from '../../components/motion/variants';
 import { AudioTooShortError } from '../../domain/pronunciation/audioNormalizer';
 import { BENCHMARK_SENTENCES } from '../../domain/pronunciation/lab/benchmark';
@@ -155,6 +156,13 @@ export function MonthlyCheck({ onDone }: Props) {
     const result = await playNative(text, { speed });
     if (alive.current && result === 'unavailable') setNativeUnavailable(true);
   };
+
+  useSpaceToRecord({
+    enabled: state.phase === 'sentence' && (state.activity.kind === 'recording' || !busy),
+    isRecording: state.activity.kind === 'recording',
+    onStart: () => void startRecording(),
+    onStop: () => void stopRecording(),
+  });
 
   const startRecording = async () => {
     if (!canTry(state) || starting.current || outOfChecks) return;

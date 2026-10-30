@@ -11,6 +11,7 @@ import { useIsDesktop } from '../components/layout/useIsDesktop';
 import { enter, enterReduced } from '../components/motion/variants';
 import { useApp, dispatchAddXP } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
+import { useSpaceToRecord } from '../lib/useSpaceToRecord';
 import { SpeakingConsentGate } from '../components/SpeakingConsentGate';
 import { getRoleplayTurn, getAIFeedback } from '../services/api/apiClient';
 import { observeAttempt } from '../services/coach/sessionOrchestrator';
@@ -73,6 +74,13 @@ export function ScenarioArchitectSession() {
     };
     setMessages(prev => [...prev, newMessage]);
   };
+
+  useSpaceToRecord({
+    enabled: !isTyping && !isProcessing,
+    isRecording: recording.isRecording,
+    onStart: () => void recording.start(),
+    onStop: () => void handleStopRecording(),
+  });
 
   const handleStopRecording = async () => {
     if (!customScenario) return;

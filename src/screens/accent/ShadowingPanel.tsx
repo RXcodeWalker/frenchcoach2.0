@@ -32,6 +32,7 @@ import {
 } from 'lucide-react';
 import { useApp, dispatchAddXP } from '../../context/AppContext';
 import { useAudioBlobRecorder } from '../../features/recording/useAudioBlobRecorder';
+import { useSpaceToRecord } from '../../lib/useSpaceToRecord';
 import { LevelBars } from '../../features/recording/LevelBars';
 import { assessPronunciation } from '../../services/pronunciation/pronunciationClient';
 import { AudioTooShortError } from '../../domain/pronunciation/audioNormalizer';
@@ -329,6 +330,13 @@ export function ShadowingPanel() {
     setAttempts(0);
     reset();
   };
+
+  useSpaceToRecord({
+    enabled: screenState === 'idle' || screenState === 'listening' || screenState === 'recording',
+    isRecording: screenState === 'recording',
+    onStart: () => void handleStart(),
+    onStop: () => void handleStop(),
+  });
 
   const isSuccess = assessment != null && assessment.score != null && assessment.score >= PRACTICE_PASS_SCORE;
   const quotaReason = assessment?.coachingQuota?.granted === false ? assessment.coachingQuota.reason ?? null : null;

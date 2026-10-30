@@ -30,6 +30,7 @@ import { useApp, dispatchAddXP } from '../context/AppContext';
 import { resolveFeatureStatus } from '../config/featureFlags';
 import { ShadowingPanel } from './accent/ShadowingPanel';
 import { useAudioBlobRecorder } from '../features/recording/useAudioBlobRecorder';
+import { useSpaceToRecord } from '../lib/useSpaceToRecord';
 import { LevelBars } from '../features/recording/LevelBars';
 import { assessPronunciation } from '../services/pronunciation/pronunciationClient';
 import { AudioTooShortError } from '../domain/pronunciation/audioNormalizer';
@@ -245,6 +246,14 @@ export function AccentAnalyzer() {
     setAttempts(0);
     reset();
   };
+
+  // Space starts/stops the recording in Drills mode (the Shadowing panel registers its own).
+  useSpaceToRecord({
+    enabled: !(practiceMode === 'shadowing' && shadowingLive) && (screenState === 'idle' || screenState === 'recording'),
+    isRecording: screenState === 'recording',
+    onStart: () => void handleStart(),
+    onStop: () => void handleStop(),
+  });
 
   const isSuccess = assessment != null && assessment.score != null && assessment.score >= PRACTICE_PASS_SCORE;
 

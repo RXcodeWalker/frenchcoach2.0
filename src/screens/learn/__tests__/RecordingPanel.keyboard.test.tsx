@@ -40,7 +40,7 @@ describe('RecordingPanel Space shortcut', () => {
     expect(onStop).toHaveBeenCalledTimes(1);
   });
 
-  it('leaves Space to a focused button, a text field and an open dialog', () => {
+  it('records even when a button kept focus, but leaves a text field and an open dialog alone', () => {
     const recording = makeRecording(false);
     render(
       <>
@@ -48,7 +48,10 @@ describe('RecordingPanel Space shortcut', () => {
         <textarea aria-label="note" />
       </>,
     );
+    // A button that kept focus (Hint, Listen…) must not swallow Space: it still records, once.
     space(screen.getByRole('button', { name: 'Record your answer' }));
+    expect(recording.start).toHaveBeenCalledTimes(1);
+    vi.mocked(recording.start).mockClear();
     space(screen.getByLabelText('note'));
     const dialog = document.createElement('div');
     dialog.setAttribute('aria-modal', 'true');

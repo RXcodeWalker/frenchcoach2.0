@@ -14,6 +14,7 @@ import {
 } from '../../../domain/pronunciation/practiceThresholds';
 import { track } from '../../../services/telemetry/telemetryService';
 import { incrementCounter } from '../../../services/telemetry/localCounters';
+import { useSpaceToRecord } from '../../../lib/useSpaceToRecord';
 import type { PronunciationAssessment } from '../../../domain/pronunciation/types';
 
 interface Props {
@@ -84,6 +85,8 @@ export function SayItAgainCard({ targetSentence, questionId, onDone }: Props) {
       completedOutcome === 'pass' ? 'practice_step_completed_pass' : 'practice_step_completed_advance_no_verdict',
     );
   };
+
+  useSpaceToRecord({ enabled: !outcome && !isAnalyzing, isRecording, onStart: () => void handleRecordToggle(), onStop: () => void handleRecordToggle() });
 
   const handleRecordToggle = async () => {
     if (isRecording) {

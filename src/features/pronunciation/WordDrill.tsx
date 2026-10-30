@@ -4,6 +4,7 @@ import { Play, Volume2 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { GuardianConsentNotice } from '../../components/GuardianConsentNotice';
 import { SpeakingConsentGate } from '../../components/SpeakingConsentGate';
+import { useSpaceToRecord } from '../../lib/useSpaceToRecord';
 import { correct, enter, enterReduced } from '../../components/motion/variants';
 import { SCORED_FAMILIES, stableWordFamilies } from '../../domain/pronunciation/lab/soundFamilies';
 import { SOUND_TIPS, tipFor } from '../../domain/pronunciation/lab/tips';
@@ -81,6 +82,13 @@ export function WordDrill({ word, onClose }: Props) {
   /** Today's checks are gone (the server said so, or the counter reads 0): listening still works, recording waits for tomorrow. */
   const outOfChecks = allowanceUsed || allowance.remaining === 0;
   const canTry = verdicts.length < MAX_WORD_TAKES && !outOfChecks;
+  useSpaceToRecord({
+    enabled: activity !== 'checking',
+    isRecording: activity === 'recording',
+    onStart: () => void start(),
+    onStop: () => void stop(),
+  });
+
   const last = verdicts[verdicts.length - 1] ?? null;
 
   const start = async () => {

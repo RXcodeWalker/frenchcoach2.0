@@ -135,3 +135,20 @@ export function runBackHandlers(): boolean {
   }
   return false;
 }
+
+/**
+ * Whether a Space keydown should drive the recorder. Typing fields, open dialogs, held keys and
+ * Ctrl/Cmd/Alt chords are left alone. A focused *button* is deliberately NOT a reason to stand
+ * down: after the learner taps Hint, Listen or a setting the browser leaves focus on that button,
+ * and Space would otherwise re-press it instead of recording ("Space does nothing"). Links,
+ * <select>, <summary> and tab/menu/switch-style controls keep their own Space.
+ */
+const OWNS_SPACE = 'a[href],select,summary,[role="tab"],[role="menuitem"],[role="switch"],[role="checkbox"],[role="radio"],[role="link"],[role="slider"]';
+
+export function shouldRecordOnSpace(e: KeyboardEvent): boolean {
+  if (e.code !== 'Space' || e.repeat || e.defaultPrevented || hasCommandModifier(e)) return false;
+  if (isTypingTarget(e.target) || isDialogOpen()) return false;
+  const t = e.target;
+  if (t instanceof Element && t.closest(OWNS_SPACE) !== null) return false;
+  return true;
+}
