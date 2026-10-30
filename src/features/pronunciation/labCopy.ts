@@ -62,6 +62,7 @@ export const NOTICE_TEXT: Readonly<Record<LabNotice, string>> = {
   'check-failed': "I couldn't check that take. Try again, or carry on.",
   'too-short': "That was too short to check — say it all in one go.",
   'no-word-check': "I heard you, but I couldn't check the words this time. Listen back, or try again.",
+  'allowance-used': "You've used today's checks, so I can't check more takes until tomorrow. You can still listen to the sentence and to every word.",
 };
 
 export interface VerdictDisplay {
@@ -111,6 +112,7 @@ export const NATIVE_PREPARING = 'Getting the native voice ready…';
 export const CHECK_NOTICE_TEXT: Readonly<Record<CheckNotice, string>> = {
   ...NOTICE_TEXT,
   'left-out': "I couldn't check the last sentence after a few tries, so it's left out of this month's check.",
+  'allowance-used': "You've used today's checks, so the monthly check stops here. Come back tomorrow to finish it — the sentences you've done are kept if there are enough of them.",
 };
 
 export const CHECK_INTRO = {
@@ -158,3 +160,30 @@ export const SOUNDS_CARD = {
   checkDone: 'Monthly check done',
   checkAgain: 'Do it again next month',
 } as const;
+
+// ── The daily allowance (Stage 7, owner D3: 30 checked takes per account per day) ────────────────────────
+
+/**
+ * "12 checks left today" — a check is one recorded take sent to be checked. Null until the allowance is known.
+ * Out of checks says what still works and when it comes back, never "limit reached".
+ */
+export function allowanceLine(remaining: number | null): string | null {
+  if (remaining === null) return null;
+  if (remaining <= 0) return 'No checks left today. You can still listen — they come back tomorrow.';
+  return `${remaining} ${plural(remaining, 'check', 'checks')} left today · each recording you make uses one`;
+}
+
+/** Label under a record button that can't be used because today's checks are gone. */
+export const ALLOWANCE_RECORD_LABEL = 'No checks left today';
+
+/** The monthly check's intro line about the allowance; null when nothing needs saying. */
+export function checkAllowanceLine(remaining: number | null, sentences: number, minimum: number): string | null {
+  if (remaining === null) return null;
+  if (remaining < minimum) {
+    return `You have ${remaining} ${plural(remaining, 'check', 'checks')} left today, and the monthly check needs at least ${minimum} to be worth saving. Come back tomorrow — they reset overnight.`;
+  }
+  if (remaining < sentences) {
+    return `You have ${remaining} checks left today — enough to start, but you may not reach every sentence.`;
+  }
+  return `${remaining} checks left today (the check uses one for each sentence you say).`;
+}

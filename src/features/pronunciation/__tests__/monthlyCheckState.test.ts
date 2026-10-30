@@ -93,6 +93,15 @@ describe('monthlyCheckReducer', () => {
     }
   });
 
+  it('a used-up daily allowance ends the check at the summary and keeps what was measured', () => {
+    let s = reduce(initialMonthlyCheckState, { type: 'begin' });
+    s = run(s, { type: 'recordStarted' }, { type: 'checking' }, { type: 'checked', take: usable(0) }, { type: 'next' });
+    s = attempt(s, { type: 'checkFailed', reason: 'allowance' });
+    expect(s).toMatchObject({ phase: 'summary', notice: 'allowance-used', stopped: null });
+    expect(s.activity.kind).toBe('idle');
+    expect(checkTotals(s.results).measured).toBe(1);
+  });
+
   it('ignores a result when nothing was being checked', () => {
     const s = reduce(initialMonthlyCheckState, { type: 'begin' });
     expect(reduce(s, { type: 'checked', take: usable(0) })).toBe(s);

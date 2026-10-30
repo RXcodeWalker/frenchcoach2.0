@@ -34,6 +34,8 @@
 
 import { AuthRequiredError, guestAiEnabled } from '../../../lib/authToken';
 import { ConsentRequiredError, isConsentRequiredBody } from '../../../lib/consentRequired';
+import { labAllowanceFromBody } from '../../../lib/labAllowance';
+import { quotaCodeFromBody, trackQuotaHit } from '../../../services/telemetry/quotaHit';
 import { normalizeToWav16kMono, AudioTooShortError } from '../audioNormalizer';
 import { PronunciationAssessmentSchema } from '../../../services/pronunciation/pronunciationSchema';
 import type { PronunciationAssessor } from '../ports';
@@ -113,10 +115,29 @@ export function createHttpPronunciationProvider(
       signal,
     });
     if (!res.ok) {
+      // Only the two statuses with a body worth reading are read.
+      let body: unknown = null;
+      let text = '';
+      if (res.status === 429) {
+        text = await res.text().catch(() => '');
+        try {
+          body = JSON.parse(text);
+        } catch {
+          // not JSON (a proxy page, an empty body): no code to read
+        }
+        trackQuotaHit(429, 'pronunciation', quotaCodeFromBody(text));
+      } else if (res.status === 403) {
+        body = await res.json().catch(() => null);
+      }
       // The server-side consent gate: a signed-in `pending` account. Not a
       // session problem, so it must not read as "sign in again".
-      if (res.status === 403 && isConsentRequiredBody(await res.json().catch(() => null))) {
+      if (res.status === 403 && isConsentRequiredBody(body)) {
         throw new ConsentRequiredError();
+      }
+      // The Lab's own daily allowance (Stage 7): not a failure to retry.
+      if (res.status === 429 && usageSource === 'lab') {
+        const allowance = labAllowanceFromBody(body);
+        if (allowance) throw allowance;
       }
       if (res.status === 401 || res.status === 403) {
         throw new AuthRequiredError('Your session has expired. Sign in again for pronunciation feedback.');

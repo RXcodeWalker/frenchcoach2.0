@@ -45,12 +45,14 @@ export type LabNotice =
   /** The recording was too short to check. */
   | 'too-short'
   /** The result can't give word states (not Azure, or Azure couldn't assess it). */
-  | 'no-word-check';
+  | 'no-word-check'
+  /** Today's Lab checks are used up (Stage 7): listening still works, recording waits for tomorrow. */
+  | 'allowance-used';
 
 /** Ends the flow with the reason on screen and a Continue button. */
 export type LabStop = 'consent' | 'sign-in';
 
-export type CheckFailure = 'failed' | 'too-short' | 'consent' | 'sign-in';
+export type CheckFailure = 'failed' | 'too-short' | 'consent' | 'sign-in' | 'allowance';
 
 export interface LabPracticeState {
   step: LabStep;
@@ -65,6 +67,8 @@ export interface LabPracticeState {
   drills: DrillVerdict[][];
   notice: LabNotice | null;
   stopped: LabStop | null;
+  /** The server refused a take for today's allowance: nothing more is recorded this sitting. */
+  allowanceUsed: boolean;
 }
 
 export type LabAction =
@@ -89,14 +93,15 @@ export const initialLabPracticeState: LabPracticeState = {
   drills: [],
   notice: null,
   stopped: null,
+  allowanceUsed: false,
 };
 
 export function canRecordSentence(state: LabPracticeState): boolean {
-  return state.takes.length < MAX_SENTENCE_TAKES;
+  return !state.allowanceUsed && state.takes.length < MAX_SENTENCE_TAKES;
 }
 
 export function canRecordWord(state: LabPracticeState, index: number): boolean {
-  return index >= 0 && index < state.focus.length && (state.drills[index]?.length ?? 0) < MAX_WORD_TAKES;
+  return !state.allowanceUsed && index >= 0 && index < state.focus.length && (state.drills[index]?.length ?? 0) < MAX_WORD_TAKES;
 }
 
 /** The take Compare shows: the latest one. */
@@ -165,6 +170,9 @@ export function labPracticeReducer(state: LabPracticeState, action: LabAction): 
     case 'checkFailed': {
       if (action.reason === 'consent' || action.reason === 'sign-in') {
         return { ...state, activity: { kind: 'idle' }, stopped: action.reason };
+      }
+      if (action.reason === 'allowance') {
+        return { ...state, activity: { kind: 'idle' }, allowanceUsed: true, notice: 'allowance-used' };
       }
       return { ...state, activity: { kind: 'idle' }, notice: action.reason === 'too-short' ? 'too-short' : 'check-failed' };
     }

@@ -36,7 +36,9 @@ export type CheckNotice =
   | 'too-short'
   | 'no-word-check'
   /** The previous sentence ran out of tries and was left out of the check. */
-  | 'left-out';
+  | 'left-out'
+  /** Today's Lab checks ran out part-way: the check stops here (Stage 7). */
+  | 'allowance-used';
 
 export interface MonthlyCheckState {
   phase: CheckPhase;
@@ -136,6 +138,10 @@ export function monthlyCheckReducer(state: MonthlyCheckState, action: CheckActio
     case 'checkFailed': {
       if (action.reason === 'consent' || action.reason === 'sign-in') {
         return { ...state, activity: { kind: 'idle' }, stopped: action.reason };
+      }
+      if (action.reason === 'allowance') {
+        // Never a trap: what was measured so far is kept (the summary saves it when it is enough), the rest is left out.
+        return { ...state, activity: { kind: 'idle' }, phase: 'summary', take: null, notice: 'allowance-used' };
       }
       return noCount(state, action.reason === 'too-short' ? 'too-short' : 'check-failed');
     }

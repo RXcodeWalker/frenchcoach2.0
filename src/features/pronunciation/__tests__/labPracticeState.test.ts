@@ -153,6 +153,16 @@ describe('labPracticeReducer', () => {
       expect(short.notice).toBe('too-short');
     });
 
+    it('a used-up daily allowance is a notice: no more recording this sitting, listening and Done stay', () => {
+      const s = run({ type: 'recordStarted', target: sentence }, { type: 'checking' }, { type: 'checkFailed', reason: 'allowance' });
+      expect(s.notice).toBe('allowance-used');
+      expect(s.stopped).toBeNull();
+      expect(s.activity.kind).toBe('idle');
+      expect(s.allowanceUsed).toBe(true);
+      expect(canRecordSentence(s)).toBe(false);
+      expect(labPracticeReducer(s, { type: 'recordStarted', target: sentence })).toBe(s);
+    });
+
     it('consent and sign-in end the flow with the reason', () => {
       for (const reason of ['consent', 'sign-in'] as const) {
         const s = run({ type: 'recordStarted', target: sentence }, { type: 'checking' }, { type: 'checkFailed', reason });
