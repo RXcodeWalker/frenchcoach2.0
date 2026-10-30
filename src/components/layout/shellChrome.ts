@@ -24,3 +24,22 @@ export function useHideDock(hidden: boolean): void {
     return () => setDockHidden(false);
   }, [hidden, setDockHidden]);
 }
+
+/**
+ * `ExamLayout` is immersive (no nav) except on the exam chooser. The chooser
+ * calls `useShowNavRail(true)` to bring the side rail / dock back.
+ */
+export interface NavRailValue {
+  setShowNavRail: (show: boolean) => void;
+}
+
+export const NavRailContext = createContext<NavRailValue>({ setShowNavRail: () => {} });
+
+/** Show the nav rail while `show` is true; hides it again on unmount. */
+export function useShowNavRail(show: boolean): void {
+  const { setShowNavRail } = useContext(NavRailContext);
+  useEffect(() => {
+    setShowNavRail(show);
+    return () => setShowNavRail(false);
+  }, [show, setShowNavRail]);
+}

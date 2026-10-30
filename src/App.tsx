@@ -1,8 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Routes, Route, Outlet, useLocation, Navigate } from 'react-router-dom';
 import { AnimatePresence, MotionConfig, motion } from 'framer-motion';
 import { route } from './components/motion/variants';
 import { ShellChromeProvider } from './components/layout/ShellChromeProvider';
+import { NavRailContext } from './components/layout/shellChrome';
 import { AppProvider, useApp } from './context/AppContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { PublicRoutes } from './PublicRoutes';
@@ -172,10 +173,15 @@ function MainLayout() {
 
 function ExamLayout() {
   // The warm-paper exam voice is the only exam presentation, and it ignores the
-  // app's light/dark theme (see styles/exam-voice.css).
+  // app's light/dark theme (see styles/exam-voice.css). The nav rail shows only
+  // on the exam chooser (ExamMode opts in via useShowNavRail).
+  const [showNavRail, setShowNavRail] = useState(false);
+  const navRail = useMemo(() => ({ setShowNavRail }), []);
   return (
+    <NavRailContext.Provider value={navRail}>
     <div data-hatch="immersive" className="min-h-screen bg-bg text-ink overflow-hidden exam-voice">
-      <main className="relative z-10">
+      {showNavRail && <SideRail />}
+      <main className={`relative z-10 ${showNavRail ? 'md:ml-[88px]' : ''}`}>
         <Outlet />
       </main>
       <XPAnimations />
@@ -183,6 +189,7 @@ function ExamLayout() {
       <XPToast />
       <GlobalCelebrations />
     </div>
+    </NavRailContext.Provider>
   );
 }
 

@@ -76,6 +76,7 @@ import type { EnvelopeView } from '../domain/igcse/envelope/envelopeView';
 import type { AuthoredQuestionSet, RolePlayScenario } from '../data/exam/bank/types';
 import { ExamGreeting } from './exam/ExamGreeting';
 import { ExamSelect } from './exam/ExamSelect';
+import { useShowNavRail } from '../components/layout/shellChrome';
 import { RolePlayCardPreview } from './exam/RolePlayCardPreview';
 import { GREETING_TEXT, ROLE_PLAY_FINISHED_TEXT, topicAnnouncementText } from './exam/examAnnouncements';
 import { ExitConfirmDialog } from './exam/ExitConfirmDialog';
@@ -169,6 +170,7 @@ export function ExamMode() {
   const isDuelRun = Boolean(duelId && duelQuestionSetId && duelSessionId);
 
   const [examState, setExamState] = useState<ExamState>('select');
+  useShowNavRail(examState === 'select');
   const [action, setAction] = useState<ExaminerAction | null>(null);
   const [voiceMuted, setVoiceMuted] = useState(isExaminerVoiceMuted());
   const [transcript, setTranscript] = useState<SessionTranscript | null>(null);
