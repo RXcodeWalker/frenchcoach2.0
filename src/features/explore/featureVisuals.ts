@@ -43,12 +43,10 @@ const ICONS: Record<string, LucideIcon> = {
 };
 
 const CATEGORY_HUES: Record<string, number> = {
-  'Core Learning': 270,
-  'AI Tools': 202,
-  Gamification: 67,
-  Progression: 157,
-  'Fun Modes': 22,
-  Community: 337,
+  'Speak & Listen': 270,
+  'Words & Grammar': 22,
+  'Insights & Plan': 157,
+  'Compete & Rewards': 67,
 };
 
 export function featureIcon(id: string): LucideIcon {
