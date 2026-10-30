@@ -38,6 +38,8 @@ import { transcribeLearnAnswer, type AnswerTranscription } from '../features/lea
 import { FeedbackExperience } from '../features/feedback';
 import type { PronunciationStatus } from '../features/feedback/FeedbackExperience';
 import { TopContextBar } from '../components/TopContextBar';
+import { useBackHandler } from '../lib/useBackHandler';
+import { useLearnShortcuts } from './learn/useLearnShortcuts';
 import { Button } from '../components/ui/Button';
 import { useIsDesktop } from '../components/layout/useIsDesktop';
 import { useHideDock } from '../components/layout/shellChrome';
@@ -1044,16 +1046,17 @@ export function Learn() {
 
   // ── Advance to next question or end session ───────────────────────────────────
 
-  const advanceQuestion = () => {
+  /** `skipped`: moves on without an answer — not counted as completed, no difficulty adjustment or toast. */
+  const advanceQuestion = ({ skipped = false }: { skipped?: boolean } = {}) => {
     if (!activeSession) return;
 
     const updatedQuestions = [...activeSession.questions];
     updatedQuestions[activeSession.currentIndex] = {
       ...updatedQuestions[activeSession.currentIndex],
-      status: 'completed',
+      status: skipped ? 'skipped' : 'completed',
     };
 
-    const newCompleted = activeSession.questionsCompleted + 1;
+    const newCompleted = activeSession.questionsCompleted + (skipped ? 0 : 1);
     const newIndex = activeSession.currentIndex + 1;
     const isLast = newIndex >= activeSession.targetCount;
 
@@ -1074,6 +1077,7 @@ export function Learn() {
     if (
       resolveFeatureStatus('learnAdaptiveDifficulty') === 'live' &&
       !hasAdjustedDifficulty &&
+      !skipped &&
       selectedTopic &&
       !isLast
     ) {
@@ -1119,7 +1123,9 @@ export function Learn() {
     // progress (halfway) and streak; the outranked toast is dropped, not
     // queued, since a stale "halfway" message after a difficulty change
     // helps no one.
-    if (adjustDirection) {
+    if (skipped) {
+      // A skip earns no toast: nothing was answered.
+    } else if (adjustDirection) {
       setDifficultyToastDirection(adjustDirection);
     } else {
       const streak = updatedSession.answerStreak;
@@ -1132,11 +1138,22 @@ export function Learn() {
       }
     }
 
-    if (isLast) {
+    if (isLast && skipped && updatedSession.questionsCompleted === 0) {
+      // Skipped the only (or every) question: nothing to summarise, so leave like Back does.
+      reportAbandoned();
+      setActiveSession(null);
+      dispatch({ type: 'END_SESSION' });
+      setLearnState('topics');
+    } else if (isLast) {
       endSession(updatedSession);
     } else {
       setLearnState('question');
     }
+  };
+
+  const skipQuestion = () => {
+    if (recording.isRecording || !activeSession) return;
+    advanceQuestion({ skipped: true });
   };
 
   // 2.1: gates advanceQuestion behind an optional "Say It Again" practice
@@ -1330,6 +1347,24 @@ export function Learn() {
     }
   };
 
+  // Escape goes back from a topic's setup to the topic grid. Anywhere else inside a
+  // session it is swallowed (a stray key must not abandon a recording or leave the
+  // session); on the topic grid it falls through to the app-wide "previous page".
+  useBackHandler(() => {
+    if (learnState === 'session_start') {
+      handleBack();
+      return true;
+    }
+    return learnState !== 'topics';
+  });
+
+  useLearnShortcuts({
+    canAnswer: learnState === 'question' && !recording.isRecording && !showDrillModal,
+    inFeedback: learnState === 'feedback' && !showDrillModal,
+    onHint: () => setShowHint(h => !h),
+    onSkip: skipQuestion,
+  });
+
   const topicData = selectedTopic ? TOPICS.find(t => t.key === selectedTopic.key) ?? selectedTopic : null;
   const inSession = learnState === 'question' || learnState === 'recording' || learnState === 'confirm' || learnState === 'feedback';
 
@@ -1502,6 +1537,7 @@ export function Learn() {
                   question={currentQuestion}
                   showHint={showHint}
                   onToggleHint={() => setShowHint(!showHint)}
+                  onSkip={skipQuestion}
                   isReview={isReviewQuestion}
                   selectionReason={currentSessionQuestion?.selectionReason}
                   compact={!desktop}
@@ -1568,7 +1604,8 @@ export function Learn() {
                     <Button
                       size="lg"
                       className="w-full"
-                      onClick={examinerStatus === 'done' ? handleFeedbackComplete : advanceQuestion}
+                      onClick={examinerStatus === 'done' ? handleFeedbackComplete : () => advanceQuestion()}
+                      data-shortcut="continue"
                     >
                       Continue
                     </Button>

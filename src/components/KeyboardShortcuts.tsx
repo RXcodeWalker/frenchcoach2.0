@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Modal } from './ui/Modal';
 import {
   CHORD_PREFIX,
@@ -11,6 +11,8 @@ import {
   isInteractiveTarget,
   isTypingTarget,
   navShortcutFor,
+  runBackHandlers,
+  setChordPending,
 } from '../lib/keyboardShortcuts';
 
 function Kbd({ children }: { children: string }) {
@@ -29,12 +31,16 @@ function Kbd({ children }: { children: string }) {
  */
 export function KeyboardShortcuts() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const pathRef = useRef(location.pathname);
+  pathRef.current = location.pathname;
   const [helpOpen, setHelpOpen] = useState(false);
   const chordTimer = useRef<number | null>(null);
   const awaitingSecond = useRef(false);
 
   const clearChord = useCallback(() => {
     awaitingSecond.current = false;
+    setChordPending(false);
     if (chordTimer.current !== null) {
       window.clearTimeout(chordTimer.current);
       chordTimer.current = null;
@@ -59,6 +65,34 @@ export function KeyboardShortcuts() {
         return;
       }
 
+      if (e.key === 'Escape') {
+        clearChord();
+        if (runBackHandlers()) {
+          e.preventDefault();
+          return;
+        }
+        // react-router's history state counts entries in this tab: idx 0 is the first page.
+        const idx = (window.history.state as { idx?: number } | null)?.idx ?? 0;
+        if (idx > 0) {
+          e.preventDefault();
+          navigate(-1);
+        } else if (pathRef.current !== '/') {
+          e.preventDefault();
+          navigate('/');
+        }
+        return;
+      }
+
+      // Shift + letter is the one-press form of the g chord (typing is already excluded above).
+      if (e.shiftKey && !awaitingSecond.current && e.key.length === 1) {
+        const target = navShortcutFor(e.key);
+        if (target) {
+          e.preventDefault();
+          navigate(target.path);
+          return;
+        }
+      }
+
       if (awaitingSecond.current) {
         const target = navShortcutFor(e.key);
         clearChord();
@@ -71,6 +105,7 @@ export function KeyboardShortcuts() {
 
       if (e.key.toLowerCase() === CHORD_PREFIX && !e.shiftKey && !isInteractiveTarget(e.target)) {
         awaitingSecond.current = true;
+        setChordPending(true);
         chordTimer.current = window.setTimeout(clearChord, CHORD_TIMEOUT_MS);
       }
     };
@@ -100,7 +135,8 @@ export function KeyboardShortcuts() {
                   <span className="flex shrink-0 items-center gap-1">
                     {item.keys.map((k, i) => (
                       <span key={k} className="flex items-center gap-1">
-                        {i > 0 && <span className="text-[12px] text-ink-subtle">then</span>}
+                        {i > 0 && item.join !== '+' && <span className="text-[12px] text-ink-subtle">{item.join === 'or' ? 'or' : 'then'}</span>}
+                        {i > 0 && item.join === '+' && <span className="text-[12px] text-ink-subtle">+</span>}
                         <Kbd>{k}</Kbd>
                       </span>
                     ))}

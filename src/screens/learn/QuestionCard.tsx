@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Lightbulb, ChevronDown, Volume2, VolumeX, Info } from 'lucide-react';
+import { Lightbulb, ChevronDown, Volume2, VolumeX, Info, SkipForward } from 'lucide-react';
 import { TTS } from '../../services/tts/ttsService';
 import type { Question } from '../../types/index';
 import { deriveDemandLevel } from '../../domain/learn/demand/deriveDemandLevel';
@@ -12,6 +12,8 @@ interface Props {
   question: Question;
   showHint: boolean;
   onToggleHint: () => void;
+  /** Moves on without answering; absent → no Skip link. */
+  onSkip?: () => void;
   isReview?: boolean;
   /** docs §14 UX #2/#3 — present only on the adaptive path (learnAdaptiveDifficulty live). */
   selectionReason?: SelectionReason | null;
@@ -45,7 +47,7 @@ const LINK = 'inline-flex h-11 items-center gap-1.5 text-[13px] font-semibold tr
  * and a Libre Baskerville phrase frame, on reward-soft) and "Why this
  * question" (recessed). Compact renders the same content as a centred stage.
  */
-export function QuestionCard({ question, showHint, onToggleHint, isReview, selectionReason, compact = false }: Props) {
+export function QuestionCard({ question, showHint, onToggleHint, onSkip, isReview, selectionReason, compact = false }: Props) {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [revealedVocab, setRevealedVocab] = useState<string | null>(null);
   const [showWhy, setShowWhy] = useState(false);
@@ -139,7 +141,7 @@ export function QuestionCard({ question, showHint, onToggleHint, isReview, selec
   const toggles = (
     <div className={`flex flex-wrap gap-x-5 gap-y-1 ${compact ? 'justify-center' : ''}`}>
       {compact && listenButton}
-      <button type="button" onClick={onToggleHint} aria-expanded={showHint} className={`${LINK} text-reward-text`}>
+      <button type="button" onClick={onToggleHint} aria-expanded={showHint} aria-keyshortcuts="h" title="Hint (H)" className={`${LINK} text-reward-text`}>
         <Lightbulb size={14} aria-hidden="true" />
         {showHint ? 'Hide hint' : 'Get hint'}
         {!compact && (
@@ -148,6 +150,12 @@ export function QuestionCard({ question, showHint, onToggleHint, isReview, selec
           </motion.span>
         )}
       </button>
+      {onSkip && (
+        <button type="button" onClick={onSkip} aria-keyshortcuts="s" title="Skip (S)" className={`${LINK} text-ink-muted hover:text-ink`}>
+          <SkipForward size={14} aria-hidden="true" />
+          Skip
+        </button>
+      )}
       {selectionReason && (
         <button type="button" onClick={() => setShowWhy(!showWhy)} aria-expanded={showWhy} className={`${LINK} text-ink-muted hover:text-ink`}>
           <Info size={14} aria-hidden="true" />

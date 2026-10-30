@@ -30,18 +30,27 @@ export const CHORD_TIMEOUT_MS = 1200;
 
 export interface ShortcutGroup {
   title: string;
-  items: { keys: string[]; label: string }[];
+  items: { keys: string[]; label: string; /** How the keys combine: a sequence ("then", the default) or alternatives ("or"). */ join?: 'then' | 'or' | '+' }[];
 }
 
 /** What the `?` overlay lists. */
 export const SHORTCUT_GROUPS: readonly ShortcutGroup[] = [
   {
     title: 'Move around',
-    items: NAV_SHORTCUTS.map(s => ({ keys: [CHORD_PREFIX, s.key], label: s.label })),
+    items: [
+      ...NAV_SHORTCUTS.map(s => ({ keys: [CHORD_PREFIX, s.key], label: s.label })),
+      { keys: ['Shift', 'letter'], label: 'Same as g then the letter (Shift + L for Learn)', join: '+' as const },
+      { keys: ['Esc'], label: 'Go back (to the topics from a topic, otherwise the previous page)' },
+    ],
   },
   {
-    title: 'Speaking',
-    items: [{ keys: ['Space'], label: 'Start or stop recording your answer' }],
+    title: 'Learn',
+    items: [
+      { keys: ['Space'], label: 'Start or stop recording your answer' },
+      { keys: ['h'], label: 'Show or hide the hint' },
+      { keys: ['s'], label: 'Skip this question' },
+      { keys: ['n'], label: 'Next question, once you have your feedback' },
+    ],
   },
   {
     title: 'Anywhere',
@@ -89,4 +98,40 @@ export const SHORTCUT_HELP_EVENT = 'fc:shortcut-help';
 /** Opens the `?` overlay from a button (the rail), without importing the host. */
 export function requestShortcutHelp(): void {
   window.dispatchEvent(new Event(SHORTCUT_HELP_EVENT));
+}
+
+/**
+ * True between `g` and its second key. Single-letter shortcuts on a screen (Learn's
+ * h/s/n) stand down then, so `g` `h` goes Home instead of also toggling a hint.
+ */
+let chordPending = false;
+export const isChordPending = (): boolean => chordPending;
+export const setChordPending = (pending: boolean): void => {
+  chordPending = pending;
+};
+
+/**
+ * Escape-as-back. A screen with its own sense of "back" (Learn's topic setup → the
+ * topic grid) registers a handler; the newest one is asked first. Returning true
+ * means "handled — or deliberately blocked", so Escape never navigates out from
+ * under a screen that is mid-task. With no handler (or all returning false) the
+ * global handler goes back one page.
+ */
+type BackHandler = () => boolean;
+const backHandlers: BackHandler[] = [];
+
+export function registerBackHandler(handler: BackHandler): () => void {
+  backHandlers.push(handler);
+  return () => {
+    const i = backHandlers.lastIndexOf(handler);
+    if (i >= 0) backHandlers.splice(i, 1);
+  };
+}
+
+/** Runs the registered handlers, newest first; true when one claimed the key. */
+export function runBackHandlers(): boolean {
+  for (let i = backHandlers.length - 1; i >= 0; i--) {
+    if (backHandlers[i]()) return true;
+  }
+  return false;
 }
