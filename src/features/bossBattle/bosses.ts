@@ -4,7 +4,7 @@
  * ever appears inside the boss's chip) in `bossVisuals.ts`.
  */
 
-export type BossId = 'gender' | 'past_tense' | 'negation' | 'future' | 'subjunctive';
+export type BossId = 'gender' | 'past_tense' | 'negation' | 'pronouns' | 'future' | 'conditional' | 'subjunctive';
 
 export type Mechanic = 'fog' | 'stun' | 'timer' | 'poison' | 'lock';
 
@@ -106,6 +106,26 @@ export const BOSSES: readonly Boss[] = [
     },
   },
   {
+    id: 'pronouns',
+    name: 'Le Gardien des Pronoms',
+    title: 'The Pronoun Guardian',
+    difficulty: 'medium',
+    hp: 120,
+    focus: 'le, la, les, lui, leur, y, en and reflexive verbs',
+    blurb: 'He stands between every verb and its object, and he moves when you least expect it.',
+    mechanic: 'timer',
+    mechanicName: 'Snap Judgement',
+    mechanicRule: 'At half health every answer has a 15-second clock.',
+    lines: {
+      intro: 'Where does it go? Before the verb. Always before the verb.',
+      hurt: ['It landed in the right place.', 'Hm. Well placed.'],
+      gloat: ['Wrong pronoun. Wrong place.', 'Le, la, lui, leur… you are guessing.'],
+      enraged: 'No more time to think!',
+      beaten: 'I have been… replaced.',
+      wins: 'A pronoun is a small word. Losing to it is smaller.',
+    },
+  },
+  {
     id: 'future',
     name: 'Le Golem du Futur',
     title: 'The Golem of the Future',
@@ -123,6 +143,26 @@ export const BOSSES: readonly Boss[] = [
       enraged: 'The ground will shake. Brace yourself!',
       beaten: 'The future… was not written after all.',
       wins: 'It was always going to end this way.',
+    },
+  },
+  {
+    id: 'conditional',
+    name: 'Le Dragon du Conditionnel',
+    title: 'The Conditional Dragon',
+    difficulty: 'hard',
+    hp: 150,
+    focus: 'the conditional, and si + imparfait',
+    blurb: 'A dragon of what might be. Everything it says begins with “if”.',
+    mechanic: 'poison',
+    mechanicName: 'Dragonfire',
+    mechanicRule: 'A wrong answer sets you alight: 3 damage a round until you answer two in a row.',
+    lines: {
+      intro: 'If you were braver, you would have fled already.',
+      hurt: ['It would have hurt less had I dodged.', 'A scratch. I would have you know.'],
+      gloat: ['If you had studied, you would have won.', 'You would lose. You do lose.'],
+      enraged: 'If I were you, I would run.',
+      beaten: 'If only I had been faster…',
+      wins: 'I would say well fought. But no.',
     },
   },
   {

@@ -3,6 +3,8 @@ import { canonicalAnswer, isCorrectAnswer } from '../answer';
 import { BOSS_BANK } from '../bank';
 import { BOSSES } from '../bosses';
 
+const ID_FORMAT: Record<string, RegExp> = { gender: /^g\d+$/, past_tense: /^p\d+$/, negation: /^n\d+$/, pronouns: /^pr\d+$/, future: /^f\d+$/, conditional: /^c\d+$/, subjunctive: /^s\d+$/ };
+
 describe('the boss question bank', () => {
   it('has a bank for every boss and none extra', () => {
     expect(Object.keys(BOSS_BANK).sort()).toEqual(BOSSES.map((b) => b.id).sort());
@@ -15,7 +17,7 @@ describe('the boss question bank', () => {
       expect(q.english.trim(), q.id).not.toBe('');
       expect(q.french.length, q.id).toBeGreaterThan(0);
       expect(q.tip.trim().length, q.id).toBeGreaterThan(10);
-      expect(q.id.startsWith(id === 'past_tense' ? 'p' : id[0]), q.id).toBe(true);
+      expect(q.id, q.id).toMatch(ID_FORMAT[id]);
     }
   });
 

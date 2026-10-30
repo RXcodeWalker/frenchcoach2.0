@@ -59,19 +59,19 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe('Boss Battles — choose a boss', () => {
-  it('lists the five bosses, marks the first unbeaten one, and explains the moves', () => {
+  it('lists the seven bosses, marks the first unbeaten one, and explains the moves', () => {
     render(
       <MemoryRouter>
         <BossBattle />
       </MemoryRouter>,
     );
-    for (const id of ['gender', 'past_tense', 'negation', 'future', 'subjunctive']) {
+    for (const id of ['gender', 'past_tense', 'negation', 'pronouns', 'future', 'conditional', 'subjunctive']) {
       expect(screen.getByTestId(`boss-${id}`)).toBeTruthy();
     }
     expect(within(screen.getByTestId('boss-gender')).getByText('Next up')).toBeTruthy();
     expect(screen.getAllByText('Next up')).toHaveLength(1);
     expect(screen.getByText('How a fight works')).toBeTruthy();
-    expect(screen.getAllByText('Not fought yet')).toHaveLength(5);
+    expect(screen.getAllByText('Not fought yet')).toHaveLength(7);
   });
 
   it('promises no XP', () => {

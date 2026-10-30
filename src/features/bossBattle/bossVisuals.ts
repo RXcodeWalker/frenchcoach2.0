@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { Crown, Ghost, Heart, Hourglass, Mountain, Shield, Sword, Wand2, Zap } from 'lucide-react';
+import { Crown, Flame, Ghost, Heart, Hourglass, Mountain, Shield, Sword, Users, Wand2, Zap } from 'lucide-react';
 import type { BossDifficulty, BossId } from './bosses';
 import { MEND_AMOUNT, MEND_COST, POWER_COST, type Move } from './engine';
 
@@ -13,7 +13,9 @@ const BOSS_VISUALS: Record<BossId, { Icon: LucideIcon; hue: number }> = {
   gender: { Icon: Crown, hue: 350 },
   past_tense: { Icon: Hourglass, hue: 65 },
   negation: { Icon: Ghost, hue: 275 },
+  pronouns: { Icon: Users, hue: 165 },
   future: { Icon: Mountain, hue: 225 },
+  conditional: { Icon: Flame, hue: 30 },
   subjunctive: { Icon: Wand2, hue: 305 },
 };
 

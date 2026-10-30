@@ -1,7 +1,7 @@
 import type { BossId } from './bosses';
 
 /**
- * Boss Battle's own question bank: English sentences to put into French, 24 per
+ * Boss Battle's own question bank: English sentences to put into French, 24–36 per
  * boss, each with the accepted answers and the one-line rule shown after a miss.
  * It is authored here (not read from `data/scenarios/minigameQuestions.json`,
  * which has 5–11 per category and repeated within a single fight).
@@ -51,6 +51,18 @@ const GENDER: BossQuestion[] = [
   q('g22', 'I drink some water.', ['Je bois de l’eau.'], 'Before a vowel “some” is de l’: de l’eau.'),
   q('g23', 'We have a small flat.', ['Nous avons un petit appartement.'], 'Appartement is masculine, so un petit appartement.'),
   q('g24', 'I have a pretty skirt.', ['J’ai une jolie jupe.'], 'Jupe is feminine, so une jolie jupe.'),
+  q('g25', 'I have a yellow bag.', ['J’ai un sac jaune.'], 'Sac is masculine, and jaune keeps the same form for both genders.'),
+  q('g26', 'She has a red car.', ['Elle a une voiture rouge.'], 'Voiture is feminine: une voiture. Rouge keeps the same form for both genders.'),
+  q('g27', 'The apple is delicious.', ['La pomme est délicieuse.'], 'Pomme is feminine, so délicieux becomes délicieuse.'),
+  q('g28', 'The cake is delicious.', ['Le gâteau est délicieux.'], 'Gâteau is masculine, so délicieux stays as it is.'),
+  q('g29', 'My sister is Spanish.', ['Ma sœur est espagnole.'], 'A feminine person adds -e to the nationality: espagnole.'),
+  q('g30', 'My brother is Spanish.', ['Mon frère est espagnol.'], 'A masculine person takes the plain nationality: espagnol.'),
+  q('g31', 'I am going to the library.', ['Je vais à la bibliothèque.'], 'Bibliothèque is feminine, so it is à la bibliothèque.'),
+  q('g32', 'I am going to the cinema.', ['Je vais au cinéma.'], 'Cinéma is masculine, so à + le joins up as au cinéma.'),
+  q('g33', 'The teacher is nice.', ['La prof est gentille.', 'La professeure est gentille.'], 'A woman teacher takes la, and the adjective takes the feminine: gentille.'),
+  q('g34', 'We have a big family.', ['Nous avons une grande famille.'], 'Famille is feminine: une grande famille.'),
+  q('g35', 'It is a beautiful day.', ['C’est une belle journée.', 'C’est un beau jour.'], 'Journée is feminine, so beau becomes belle; jour is masculine, so beau.'),
+  q('g36', 'I like this song.', ['J’aime cette chanson.'], 'Chanson is feminine, so this is cette (ce is for masculine nouns).'),
 ];
 
 const PAST_TENSE: BossQuestion[] = [
@@ -78,6 +90,18 @@ const PAST_TENSE: BossQuestion[] = [
   q('p22', 'I took the bus.', ['J’ai pris le bus.', 'J’ai pris l’autobus.'], 'Prendre has an irregular participle: pris.'),
   q('p23', 'She fell.', ['Elle est tombée.'], 'Tomber takes être, and the participle agrees: tombée.'),
   q('p24', 'Every summer we went to the beach.', ['Chaque été, nous allions à la plage.', 'Chaque été, on allait à la plage.'], 'A repeated past action is the imparfait: nous allions.'),
+  q('p25', 'I played tennis yesterday.', ['J’ai joué au tennis hier.'], 'Jouer takes avoir: j’ai joué. Jouer à + le sport = au tennis.'),
+  q('p26', 'We went to the beach last summer.', ['Nous sommes allés à la plage l’été dernier.', 'Nous sommes allées à la plage l’été dernier.'], 'Aller takes être and agrees with the subject: allés.'),
+  q('p27', 'I lost my keys.', ['J’ai perdu mes clés.'], 'Perdre takes avoir: j’ai perdu.'),
+  q('p28', 'He came home at six.', ['Il est rentré à six heures.'], 'Rentrer takes être in the passé composé: il est rentré.'),
+  q('p29', 'She stayed in bed.', ['Elle est restée au lit.'], 'Rester takes être and agrees with elle: restée.'),
+  q('p30', 'I was playing when you called.', ['Je jouais quand tu as téléphoné.', 'Je jouais quand tu as appelé.', 'Je jouais quand vous avez téléphoné.', 'Je jouais quand vous avez appelé.'], 'The action in progress is imparfait; the interruption is passé composé.'),
+  q('p31', 'It was sunny and warm.', ['Il faisait beau et chaud.'], 'Weather description in the past uses the imparfait: il faisait.'),
+  q('p32', 'They were watching TV.', ['Ils regardaient la télé.', 'Ils regardaient la télévision.'], 'An action in progress in the past is the imparfait: ils regardaient.'),
+  q('p33', 'I wrote a letter.', ['J’ai écrit une lettre.'], 'Écrire has an irregular participle: écrit.'),
+  q('p34', 'She drank a coffee.', ['Elle a bu un café.'], 'Boire has an irregular participle: bu.'),
+  q('p35', 'We had a great time.', ['Nous nous sommes bien amusés.', 'Nous nous sommes bien amusées.'], 'Reflexive verbs take être and agree with the subject: amusés.'),
+  q('p36', 'I used to go to school by bus.', ['J’allais à l’école en bus.', 'J’allais à l’école en autobus.'], 'A habit in the past is the imparfait: j’allais.'),
 ];
 
 const NEGATION: BossQuestion[] = [
@@ -105,6 +129,18 @@ const NEGATION: BossQuestion[] = [
   q('n22', 'I do not have a car.', ['Je n’ai pas de voiture.'], 'After ne… pas, une becomes de: pas de voiture.'),
   q('n23', 'There is no milk.', ['Il n’y a pas de lait.'], 'Il y a becomes il n’y a pas, then de.'),
   q('n24', 'We never go out on Mondays.', ['Nous ne sortons jamais le lundi.', 'On ne sort jamais le lundi.'], 'Ne… jamais wraps the verb; le lundi means “on Mondays”.'),
+  q('n25', 'I do not understand.', ['Je ne comprends pas.'], 'Ne goes before the verb and pas after it.'),
+  q('n26', 'She does not like cheese.', ['Elle n’aime pas le fromage.'], 'Ne shortens to n’ before a vowel, and the article stays le after aimer.'),
+  q('n27', 'We have never been to Italy.', ['Nous ne sommes jamais allés en Italie.', 'Nous ne sommes jamais allées en Italie.'], 'Ne… jamais wraps the auxiliary: ne sommes jamais allés.'),
+  q('n28', 'He has not called me.', ['Il ne m’a pas appelé.', 'Il ne m’a pas appelée.'], 'The pronoun sits between ne and the auxiliary: ne m’a pas appelé.'),
+  q('n29', 'I have nothing to say.', ['Je n’ai rien à dire.'], 'Rien goes before the infinitive here: n’ai rien à dire.'),
+  q('n30', 'Nobody knows.', ['Personne ne sait.'], 'When personne is the subject it comes first: personne ne sait.'),
+  q('n31', 'I do not want any sugar.', ['Je ne veux pas de sucre.'], 'After ne… pas, du becomes de: pas de sucre.'),
+  q('n32', 'They do not have any children.', ['Ils n’ont pas d’enfants.'], 'After ne… pas, des becomes de, and de shortens to d’ before a vowel.'),
+  q('n33', 'Do not be late!', ['Ne sois pas en retard !', 'Ne soyez pas en retard !'], 'A negative command is ne + verb + pas; être becomes sois / soyez.'),
+  q('n34', 'I never watch television.', ['Je ne regarde jamais la télévision.', 'Je ne regarde jamais la télé.'], 'Ne… jamais wraps the verb: ne regarde jamais.'),
+  q('n35', 'She no longer works here.', ['Elle ne travaille plus ici.'], 'Ne… plus wraps the verb: ne travaille plus.'),
+  q('n36', 'There is nobody in the garden.', ['Il n’y a personne dans le jardin.'], 'Il y a becomes il n’y a, and personne follows the verb.'),
 ];
 
 const FUTURE: BossQuestion[] = [
@@ -132,6 +168,18 @@ const FUTURE: BossQuestion[] = [
   q('f22', 'We will not forget.', ['Nous n’oublierons pas.'], 'Negative future: ne… pas wraps the verb, and oublier keeps its stem.'),
   q('f23', 'In ten years I will be a doctor.', ['Dans dix ans, je serai médecin.', 'Dans dix ans, je serai docteur.'], 'Être has an irregular stem in the future: ser-. No article before a job.'),
   q('f24', 'I will go out if it does not rain.', ['Je sortirai s’il ne pleut pas.'], 'After si, the verb is in the present; the main clause is in the future.'),
+  q('f25', 'I will go to the cinema tonight.', ['J’irai au cinéma ce soir.'], 'Aller has an irregular stem in the future: ir-.'),
+  q('f26', 'We will have fun.', ['Nous nous amuserons.'], 'Reflexive verbs keep their pronoun in the future: nous nous amuserons.'),
+  q('f27', 'He will be a teacher.', ['Il sera professeur.', 'Il sera prof.'], 'Être has an irregular stem in the future: ser-. No article before a job.'),
+  q('f28', 'It will rain tomorrow.', ['Il pleuvra demain.'], 'Pleuvoir has an irregular stem in the future: pleuvr-.'),
+  q('f29', 'I will do the shopping.', ['Je ferai les courses.'], 'Faire has an irregular stem in the future: fer-.'),
+  q('f30', 'They will come with us.', ['Ils viendront avec nous.'], 'Venir has an irregular stem in the future: viendr-.'),
+  q('f31', 'We are going to eat at eight.', ['Nous allons manger à huit heures.'], 'The near future is aller + infinitive: nous allons manger.'),
+  q('f32', 'I am going to buy a new phone.', ['Je vais acheter un nouveau téléphone.', 'Je vais acheter un nouveau portable.'], 'The near future is aller + infinitive: je vais acheter.'),
+  q('f33', 'You will need a coat.', ['Tu auras besoin d’un manteau.', 'Vous aurez besoin d’un manteau.'], 'Avoir has an irregular stem in the future: aur-.'),
+  q('f34', 'She will see her friends.', ['Elle verra ses amis.'], 'Voir has an irregular stem in the future: verr-.'),
+  q('f35', 'I will wait for you.', ['Je t’attendrai.', 'Je vous attendrai.'], 'Attendre drops its e in the future: attendr-.'),
+  q('f36', 'We will be able to leave.', ['Nous pourrons partir.'], 'Pouvoir has an irregular stem in the future: pourr-.'),
 ];
 
 const SUBJUNCTIVE: BossQuestion[] = [
@@ -159,6 +207,72 @@ const SUBJUNCTIVE: BossQuestion[] = [
   q('s22', 'I want you to be happy.', ['Je veux que tu sois heureux.', 'Je veux que tu sois heureuse.', 'Je veux que vous soyez heureux.', 'Je veux que vous soyez heureuse.', 'Je veux que vous soyez heureuses.'], 'Vouloir que is followed by the subjunctive; être becomes sois / soyez.'),
   q('s23', 'I am going out so that you can rest.', ['Je sors pour que tu puisses te reposer.', 'Je sors pour que vous puissiez vous reposer.'], 'Pour que (so that) is followed by the subjunctive; pouvoir becomes puisses.'),
   q('s24', 'It is essential that she understands.', ['Il est essentiel qu’elle comprenne.'], 'Il est essentiel que is followed by the subjunctive: comprenne.'),
+  q('s25', 'I want you to listen.', ['Je veux que tu écoutes.', 'Je veux que vous écoutiez.'], 'Vouloir que is followed by the subjunctive: que tu écoutes.'),
+  q('s26', 'It is necessary that you eat.', ['Il faut que tu manges.', 'Il faut que vous mangiez.'], 'Il faut que is followed by the subjunctive: que tu manges.'),
+  q('s27', 'She is afraid that we are late.', ['Elle a peur que nous soyons en retard.'], 'A feeling of fear takes the subjunctive; être becomes soyons.'),
+  q('s28', 'It is important that he comes.', ['Il est important qu’il vienne.'], 'Il est important que is followed by the subjunctive; venir becomes vienne.'),
+  q('s29', 'I want to leave before it rains.', ['Je veux partir avant qu’il pleuve.'], 'Avant que is always followed by the subjunctive: qu’il pleuve.'),
+  q('s30', 'I doubt that she knows.', ['Je doute qu’elle sache.'], 'Doubt takes the subjunctive; savoir becomes sache.'),
+  q('s31', 'Although he is tired, he works.', ['Bien qu’il soit fatigué, il travaille.'], 'Bien que is always followed by the subjunctive; être becomes soit.'),
+  q('s32', 'I would like you to take the bus.', ['Je voudrais que tu prennes le bus.', 'Je voudrais que vous preniez le bus.'], 'Wishes take the subjunctive; prendre becomes prenne-.'),
+  q('s33', 'It is necessary that they go out.', ['Il faut qu’ils sortent.'], 'Il faut que needs the subjunctive: qu’ils sortent.'),
+  q('s34', 'I am surprised that she is leaving.', ['Je suis surpris qu’elle parte.', 'Je suis surprise qu’elle parte.'], 'A feeling of surprise takes the subjunctive: qu’elle parte.'),
+  q('s35', 'It is better that we wait.', ['Il vaut mieux que nous attendions.'], 'Il vaut mieux que is followed by the subjunctive: que nous attendions.'),
+  q('s36', 'I do not think that he is coming.', ['Je ne pense pas qu’il vienne.'], 'Ne pas penser que takes the subjunctive; venir becomes vienne.'),
+];
+
+const CONDITIONAL: BossQuestion[] = [
+  q('c01', 'I would like a coffee.', ['Je voudrais un café.'], 'Voudrais (conditional of vouloir) is the polite way to ask.'),
+  q('c02', 'I would go to France.', ['J’irais en France.'], 'The conditional is the future stem + imparfait endings: ir- + -ais.'),
+  q('c03', 'She would be happy.', ['Elle serait heureuse.'], 'Être has an irregular stem: ser- + -ait.'),
+  q('c04', 'We would have more time.', ['Nous aurions plus de temps.'], 'Avoir has an irregular stem: aur- + -ions.'),
+  q('c05', 'If I had money, I would travel.', ['Si j’avais de l’argent, je voyagerais.'], 'Si + imparfait is followed by the conditional: si j’avais… je voyagerais.'),
+  q('c06', 'If it rained, we would stay at home.', ['S’il pleuvait, nous resterions à la maison.'], 'Si + imparfait, then the conditional: nous resterions.'),
+  q('c07', 'If I were rich, I would buy a house.', ['Si j’étais riche, j’achèterais une maison.'], 'Si + imparfait, then the conditional; acheter changes to achèter-.'),
+  q('c08', 'Could you help me?', ['Pourriez-vous m’aider ?', 'Pourrais-tu m’aider ?'], 'Pouvoir has an irregular stem in the conditional: pourr-.'),
+  q('c09', 'I would do my homework.', ['Je ferais mes devoirs.'], 'Faire has an irregular stem: fer- + -ais.'),
+  q('c10', 'He would come with us.', ['Il viendrait avec nous.'], 'Venir has an irregular stem: viendr- + -ait.'),
+  q('c11', 'They would see the film.', ['Ils verraient le film.'], 'Voir has an irregular stem: verr- + -aient.'),
+  q('c12', 'You should rest.', ['Tu devrais te reposer.', 'Vous devriez vous reposer.'], '“Should” is the conditional of devoir: tu devrais.'),
+  q('c13', 'If I had time, I would read more.', ['Si j’avais le temps, je lirais plus.', 'Si j’avais le temps, je lirais davantage.'], 'Si + imparfait, then the conditional: je lirais.'),
+  q('c14', 'I would like to visit Paris.', ['Je voudrais visiter Paris.', 'J’aimerais visiter Paris.'], 'Voudrais and aimerais are the conditional used to say what you would like.'),
+  q('c15', 'If we won, we would celebrate.', ['Si nous gagnions, nous ferions la fête.'], 'Si + imparfait, then the conditional; faire becomes ferions.'),
+  q('c16', 'If you studied, you would pass.', ['Si tu étudiais, tu réussirais.', 'Si vous étudiiez, vous réussiriez.'], 'Si + imparfait, then the conditional: tu réussirais.'),
+  q('c17', 'I would not do that.', ['Je ne ferais pas ça.', 'Je ne ferais pas cela.'], 'Ne… pas wraps the conditional verb: ne ferais pas.'),
+  q('c18', 'She would know the answer.', ['Elle saurait la réponse.'], 'Savoir has an irregular stem: saur- + -ait.'),
+  q('c19', 'We would be able to leave.', ['Nous pourrions partir.'], 'Pouvoir has an irregular stem: pourr- + -ions.'),
+  q('c20', 'I would prefer tea.', ['Je préférerais du thé.', 'Je préférerais le thé.'], 'Préférer keeps its stem and takes -ais: je préférerais.'),
+  q('c21', 'If I were you, I would wait.', ['Si j’étais toi, j’attendrais.'], 'Si + imparfait, then the conditional: j’attendrais.'),
+  q('c22', 'He would want to stay.', ['Il voudrait rester.'], 'Vouloir has an irregular stem: voudr- + -ait.'),
+  q('c23', 'If she knew, she would tell us.', ['Si elle savait, elle nous le dirait.'], 'Si + imparfait, then the conditional: elle dirait.'),
+  q('c24', 'I would like to know.', ['Je voudrais savoir.'], 'Voudrais + infinitive: je voudrais savoir.'),
+];
+
+const PRONOUNS: BossQuestion[] = [
+  q('pr01', 'I see him.', ['Je le vois.'], 'A direct object pronoun goes before the verb: le for him.'),
+  q('pr02', 'I see her.', ['Je la vois.'], 'La replaces a feminine direct object and goes before the verb.'),
+  q('pr03', 'I give him the book.', ['Je lui donne le livre.'], 'Donner à quelqu’un takes the indirect pronoun lui.'),
+  q('pr04', 'I am talking to them.', ['Je leur parle.'], 'Parler à takes the indirect pronoun leur for “to them”.'),
+  q('pr05', 'I know them.', ['Je les connais.'], 'Les replaces a plural direct object.'),
+  q('pr06', 'I am going there.', ['J’y vais.'], 'Y replaces a place, and goes before the verb.'),
+  q('pr07', 'I have three of them.', ['J’en ai trois.'], 'En replaces “of them”, and the number stays after the verb.'),
+  q('pr08', 'She wants some bread.', ['Elle en veut.'], 'En replaces du / de la / des + a noun.'),
+  q('pr09', 'I get up at seven.', ['Je me lève à sept heures.'], 'A reflexive verb has its pronoun before it: je me lève.'),
+  q('pr10', 'She is called Marie.', ['Elle s’appelle Marie.'], 'S’appeler is reflexive: elle s’appelle.'),
+  q('pr11', 'We are enjoying ourselves.', ['Nous nous amusons.'], 'The reflexive pronoun for nous is nous.'),
+  q('pr12', 'I do not see him.', ['Je ne le vois pas.'], 'The pronoun sits between ne and the verb: ne le vois pas.'),
+  q('pr13', 'I have seen her.', ['Je l’ai vue.'], 'A direct object before avoir makes the participle agree: vue.'),
+  q('pr14', 'Give it to me.', ['Donne-le-moi.', 'Donne-le-moi !'], 'In a positive command the pronouns follow the verb: le before moi.'),
+  q('pr15', 'Do not tell him!', ['Ne lui dis pas !', 'Ne lui dites pas !'], 'In a negative command the pronoun stays before the verb.'),
+  q('pr16', 'I am going to see him tomorrow.', ['Je vais le voir demain.'], 'With aller + infinitive the pronoun goes before the infinitive.'),
+  q('pr17', 'I want to help you.', ['Je veux t’aider.', 'Je veux vous aider.'], 'The pronoun goes before the infinitive: t’aider.'),
+  q('pr18', 'She sent me a letter.', ['Elle m’a envoyé une lettre.'], 'The pronoun goes before the auxiliary: m’a envoyé.'),
+  q('pr19', 'He lent them the car.', ['Il leur a prêté la voiture.'], 'Prêter à takes the indirect pronoun leur, before the auxiliary.'),
+  q('pr20', 'I am thinking about it.', ['J’y pense.'], 'Penser à + thing is replaced by y: j’y pense.'),
+  q('pr21', 'Do you want some?', ['Tu en veux ?', 'Vous en voulez ?', 'En veux-tu ?', 'En voulez-vous ?'], 'En stands for “some” and goes before the verb.'),
+  q('pr22', 'We talk to each other.', ['Nous nous parlons.'], 'Reciprocal verbs use the reflexive pronoun: nous nous parlons.'),
+  q('pr23', 'I told you.', ['Je te l’ai dit.', 'Je vous l’ai dit.'], 'The pronouns go before the auxiliary: te (indirect) before l’ (direct).'),
+  q('pr24', 'She is not looking at us.', ['Elle ne nous regarde pas.'], 'The pronoun sits between ne and the verb: ne nous regarde pas.'),
 ];
 
 export const BOSS_BANK: Record<BossId, readonly BossQuestion[]> = {
@@ -167,4 +281,6 @@ export const BOSS_BANK: Record<BossId, readonly BossQuestion[]> = {
   negation: NEGATION,
   future: FUTURE,
   subjunctive: SUBJUNCTIVE,
+  conditional: CONDITIONAL,
+  pronouns: PRONOUNS,
 };
