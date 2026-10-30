@@ -1,6 +1,7 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import type { Screen } from '../types';
-import { BarChart3, BookOpen, GraduationCap, Home, User } from 'lucide-react';
+import { BarChart3, BookOpen, GraduationCap, Home, Keyboard, User } from 'lucide-react';
+import { requestShortcutHelp } from '../lib/keyboardShortcuts';
 import { useShellChrome } from './layout/shellChrome';
 
 // Launch scope (src/config/launchScope.ts): the five core destinations only.
@@ -73,6 +74,15 @@ export function SideRail() {
             </button>
           ))}
         </div>
+        <button
+          type="button"
+          onClick={requestShortcutHelp}
+          aria-label="Keyboard shortcuts"
+          title="Keyboard shortcuts (?)"
+          className="mt-auto flex h-10 w-10 items-center justify-center rounded-control text-ink-subtle transition-colors duration-state ease-smooth hover:text-ink-muted"
+        >
+          <Keyboard size={20} strokeWidth={1.75} aria-hidden="true" />
+        </button>
       </nav>
 
       {!dockHidden && (

@@ -10,6 +10,7 @@ import { PublicRoutes } from './PublicRoutes';
 import { XPAnimations } from './components/XPAnimation';
 import { GemAnimations } from './components/GemAnimation';
 import { SideRail } from './components/Navigation';
+import { KeyboardShortcuts } from './components/KeyboardShortcuts';
 import { Home } from './screens/Home';
 import { JuniorHome } from './screens/junior/JuniorHome';
 import { MissionPlayer } from './screens/junior/MissionPlayer';
@@ -166,6 +167,7 @@ function MainLayout() {
       <XPToast />
       <GlobalCelebrations />
       <TourHost />
+      {!junior && <KeyboardShortcuts />}
     </div>
     </ShellChromeProvider>
   );
