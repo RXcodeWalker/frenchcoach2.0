@@ -368,3 +368,59 @@ handoff left a gap or clashed with the codebase. Newest phase last.
 - **Flag.** `wordDrop` is now `live` and the Explore tile was already there.
 - **Dropped from the old screen:** "Fun Mode" (random speed changes) and the
   BETA badge.
+
+## Sentence Rebuilder
+
+- **Rebuilt as a v2 game, with no role in XP (owner, 2026-10-30).** The old
+  screen (`dispatchAddXP`, a made-up "Grammar 65→75" improvement, dark-theme
+  italics, a "Blind" mode that had nothing to check against) is replaced by
+  `screens/SentenceRebuilder.tsx` + `features/sentenceRebuilder/`. It never
+  imports progression, analytics, `AppContext`, the coach or sync, and never
+  calls `awardXP`, `ADD_SESSION` or `recordSession`;
+  `rebuilder.isolation.test.ts` pins it, and the points counter and a solve are
+  never styled in the reward (XP) colour. Its one write is local
+  (`sentenceRebuilder` key, `store.ts`): a best per mode and level, the last
+  setup, and clean-solve counts per sentence. If the owner later wants it to
+  pay XP, that is a new decision, not a re-wiring.
+- **Bank: 65 sentences, 24 new.** `rebuildQuestions.ts` keeps its ids, themes
+  and shape (Micro Drill and the coach's recurring-grammar check still read it)
+  and gains two optional fields: `distractors` (1–2 wrong-but-tempting words per
+  sentence, for Tricky) and `alternatives` (equally correct word orders: a
+  fronted time phrase, the "si" clause moved). `bank.test.ts` checks that every
+  fragment is one word, the fragments spell the sentence, each alternative is a
+  permutation of the same words, and no decoy is also a word of its sentence.
+  A decoy is a wrong form or a classic confusion, never a correct translation.
+- **Three modes, four levels.** Classic (8 sentences, 3 tries), Tricky (the
+  same with decoys in the bank), Speed (60 s; a clean solve adds 6 s, any other
+  solve 3 s, a miss or skip costs 3 s; capped at 90 s; the clock runs only
+  while a sentence is being built, so reading the answer is free). Levels are
+  Starter / Standard / Stretch (difficulty 1/2/3) and Mixed (3-3-2, easiest
+  first).
+- **Marking that teaches.** A wrong check marks each placed word right (progress)
+  or out of place (correction) and costs one try; the line can't be checked again
+  until a word moves, so a double tap costs nothing. After the last try the answer
+  is shown (the wrong attempt struck through, the right sentence dropping in:
+  the `correct` motion) with the grammar note. A hint keeps the words already
+  right, drops everything after the first slip and sets down the next right word.
+- **Tiles carry no clue.** The opening capital and the comma that ends a clause
+  are removed from the tile (`tileText`), decoys are lowercased too, and the
+  answer panel shows the sentence as it is properly written.
+- **The loop that teaches.** A missed or skipped sentence returns once at the end
+  (not in Speed); the results list what still got past with the French, the
+  English, the rule and a French voice (only a real French voice, never an
+  English one reading French), and a drill replays just those. A sentence solved
+  first time with no hint in two different rounds is "mastered", counts on the
+  setup screen, and stops being picked first.
+- **Points.** 100 / 150 / 200 by difficulty, ×0.6 on the second try, ×0.3 on the
+  third, −20 % per hint (floor 20 %), and ×1.5 / ×2 on a clean solve after three /
+  six clean solves in a row. These are game points, not XP.
+- **Motion.** A tapped word glides between the bank and the line (`slide`, a
+  `layoutId` move; none under reduced motion); everything else is `enter`,
+  `fill` (progress bar), `correct` (reveal) and `celebrate` (new best). No shake,
+  glow, confetti or hover scale (`designRules.test.ts`).
+- **Keyboard.** Enter checks, or moves on from the answer; Backspace takes the
+  last word back; Escape asks "Leave this round?" (and pauses Speed). Keyboard
+  taps hand focus to the next word so Tab-and-Enter play never drops the cursor.
+  Every handler stands down for typing targets, focused buttons and open dialogs.
+- **Flag.** `sentenceRebuilder` is now `live` (rollback: `coming-soon`). The
+  Explore tile was already there and gains the "New" badge.
