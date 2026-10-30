@@ -1,161 +1,156 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import type { CSSProperties } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, Lock, Sparkles, LayoutGrid, GitBranch } from 'lucide-react';
-import { FEATURES, CATEGORIES } from '../data/features';
+import { ChevronRight, Lock } from 'lucide-react';
+import { FEATURES, CATEGORIES, type FeatureCard } from '../data/features';
+import { categoryHue, featureIcon } from '../features/explore/featureVisuals';
+import { enter, enterReduced, stagger } from '../components/motion/variants';
+import { PageShell } from '../components/layout/PageShell';
+import { TopContextBar } from '../components/TopContextBar';
+import { Segmented } from '../components/ui/Segmented';
 import { ExploreSkillTree } from './explore/ExploreSkillTree';
 
-export function Explore() {
-  const navigate = useNavigate();
-  const [activeCategory, setActiveCategory] = useState<string>('all');
-  const [viewMode, setViewMode] = useState<'grid' | 'tree'>('grid');
+type View = 'modes' | 'scenarios';
 
-  const filtered = activeCategory === 'all' ? FEATURES : FEATURES.filter(f => f.category === activeCategory);
+/**
+ * Explore (Design System v2): the hub for every mode outside the five core
+ * screens. A Modes/Scenarios switch, a category filter, then each category's
+ * tiles — a lucide icon in a hued chip (`featureVisuals.ts`), the title and
+ * one line. Locked tiles are static, never a hover.
+ */
+export function Explore() {
+  const [view, setView] = useState<View>('modes');
+  const [category, setCategory] = useState<string>('all');
+  const reduced = useReducedMotion();
+  const item = reduced ? enterReduced : enter;
+
+  const shown = CATEGORIES.filter(c => category === 'all' || c === category);
 
   return (
-    <div className="min-h-screen pb-24 md:pb-8">
-      <motion.div
-        className="max-w-5xl mx-auto px-4 md:px-6 pt-6 md:pt-8 space-y-5"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.4 }}
-      >
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <Sparkles size={14} className="text-violet-400" />
-              <span className="text-[10px] font-bold text-violet-400 uppercase tracking-wider">Training Hub</span>
-            </div>
-            <h1 className="text-2xl md:text-3xl font-black text-white">Explore</h1>
-            <p className="text-sm text-ink-muted mt-1">Discover all learning modes, AI tools, and challenges</p>
-          </div>
+    <>
+      <TopContextBar title="Explore" subtitle="Every mode, tool and challenge" />
+      <PageShell maxWidth="xl" gap={24}>
+        <motion.div variants={item} className="w-full max-w-[360px]">
+          <Segmented<View>
+            label="Explore view"
+            value={view}
+            onChange={setView}
+            options={[
+              { id: 'modes', label: 'Modes' },
+              { id: 'scenarios', label: 'Scenarios' },
+            ]}
+          />
+        </motion.div>
 
-          <div className="flex bg-navy-200 p-1 rounded-xl border border-white/5 self-start">
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
-                viewMode === 'grid' ? 'bg-violet-electric/10 text-violet-400' : 'text-ink-muted hover:text-ink-muted'
-              }`}
-            >
-              <LayoutGrid size={12} /> FEATURES
-            </button>
-            <button
-              onClick={() => setViewMode('tree')}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
-                viewMode === 'tree' ? 'bg-violet-electric/10 text-violet-400' : 'text-ink-muted hover:text-ink-muted'
-              }`}
-            >
-              <GitBranch size={12} /> SCENARIOS
-            </button>
-          </div>
-        </div>
+        {view === 'modes' ? (
+          <>
+            <motion.div variants={item} role="group" aria-label="Filter by category" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 scrollbar-none md:mx-0 md:flex-wrap md:px-0">
+              {['all', ...CATEGORIES].map(c => (
+                <FilterChip key={c} on={category === c} onClick={() => setCategory(c)}>
+                  {c === 'all' ? 'All' : c}
+                </FilterChip>
+              ))}
+            </motion.div>
 
-        <AnimatePresence mode="wait">
-          {viewMode === 'grid' ? (
-            <motion.div
-              key="grid"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="space-y-6"
-            >
-              <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-none">
-                <motion.button
-                  onClick={() => setActiveCategory('all')}
-                  className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all duration-200 ${
-                    activeCategory === 'all' ? 'bg-violet-electric/10 text-violet-400 border border-violet-electric/20' : 'text-ink-subtle hover:text-white border border-white/[0.04]'
-                  }`}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  All
-                </motion.button>
-                {CATEGORIES.map(cat => (
-                  <motion.button
-                    key={cat}
-                    onClick={() => setActiveCategory(cat)}
-                    className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all duration-200 ${
-                      activeCategory === cat ? 'bg-violet-electric/10 text-violet-400 border border-violet-electric/20' : 'text-ink-subtle hover:text-white border border-white/[0.04]'
-                    }`}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    {cat}
-                  </motion.button>
-                ))}
-              </div>
-
-              {CATEGORIES.filter(c => activeCategory === 'all' || c === activeCategory).map(category => {
-                const categoryFeatures = filtered.filter(f => f.category === category);
-                if (categoryFeatures.length === 0) return null;
+            <motion.div key={category} className="flex flex-col gap-8" variants={stagger} initial="hidden" animate="show">
+              {shown.map(c => {
+                const features = FEATURES.filter(f => f.category === c);
+                if (features.length === 0) return null;
+                const open = features.filter(f => !f.locked).length;
                 return (
-                  <div key={category} className="space-y-2.5">
-                    <h2 className="text-[10px] font-bold text-ink-subtle uppercase tracking-wider">{category}</h2>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-                      {categoryFeatures.map(feature => (
-                        <motion.button
-                          key={feature.id}
-                          onClick={() => {
-                            if (feature.screen && !feature.locked) {
-                              const path = feature.screen === 'home' ? '/' : `/${feature.screen}`;
-                              const search = feature.tab ? `?tab=${feature.tab}` : '';
-                              navigate(path + search);
-                            }
-                          }}
-                          className={`group relative overflow-hidden rounded-xl surface p-4 text-left transition-all duration-300 ${
-                            feature.locked ? 'opacity-40 cursor-not-allowed' : 'hover:border-white/10 cursor-pointer'
-                          }`}
-                          whileHover={feature.locked ? {} : { scale: 1.02, y: -2 }}
-                          whileTap={feature.locked ? {} : { scale: 0.98 }}
-                        >
-                          {!feature.locked && (
-                            <div
-                              className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                              style={{ background: `radial-gradient(circle at top left, ${feature.color}08, transparent 70%)` }}
-                            />
-                          )}
-                          <div className="relative">
-                            <div className="flex items-start justify-between mb-2.5">
-                              <div
-                                className="w-9 h-9 rounded-lg flex items-center justify-center text-lg"
-                                style={{
-                                  background: feature.locked ? 'rgba(255,255,255,0.02)' : `linear-gradient(135deg, ${feature.color}15, ${feature.color}08)`,
-                                  border: `1px solid ${feature.locked ? 'rgba(255,255,255,0.03)' : `${feature.color}18`}`,
-                                  boxShadow: feature.locked ? 'none' : `0 0 8px ${feature.color}08`,
-                                }}
-                              >
-                                {feature.locked ? <Lock size={14} className="text-ink-muted" /> : feature.icon}
-                              </div>
-                              {feature.badge && !feature.locked && (
-                                <span className="text-[8px] font-bold px-1.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/15">{feature.badge}</span>
-                              )}
-                            </div>
-                            <h3 className={`font-bold text-xs mb-0.5 ${feature.locked ? 'text-ink-muted' : 'text-white'}`}>{feature.title}</h3>
-                            <p className={`text-[10px] leading-relaxed font-bold ${feature.locked ? 'text-ink-subtle' : 'text-ink-muted'}`}>{feature.description}</p>
-                            {!feature.locked && (
-                              <div className="mt-2 flex items-center gap-1 text-[9px] font-semibold" style={{ color: feature.color }}>
-                                <span>Open</span>
-                                <ChevronRight size={10} className="group-hover:translate-x-0.5 transition-transform" />
-                              </div>
-                            )}
-                          </div>
-                        </motion.button>
-                      ))}
+                  <motion.section key={c} variants={item} aria-labelledby={`explore-${c}`} className="flex flex-col gap-3">
+                    <div className="flex items-baseline justify-between gap-3">
+                      <h2 id={`explore-${c}`} className="text-section text-ink">{c}</h2>
+                      <span className="text-caption text-ink-subtle">{open} of {features.length} open</span>
                     </div>
-                  </div>
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                      {features.map(f => <FeatureTile key={f.id} feature={f} />)}
+                    </div>
+                  </motion.section>
                 );
               })}
             </motion.div>
-          ) : (
-            <motion.div
-              key="tree"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-            >
-              <ExploreSkillTree />
-            </motion.div>
+          </>
+        ) : (
+          <motion.div variants={item}>
+            <ExploreSkillTree />
+          </motion.div>
+        )}
+      </PageShell>
+    </>
+  );
+}
+
+function FilterChip({ on, onClick, children }: { on: boolean; onClick: () => void; children: string }) {
+  return (
+    <button
+      type="button"
+      aria-pressed={on}
+      onClick={onClick}
+      className={`h-9 shrink-0 rounded-pill border px-3.5 text-label transition-colors duration-state ease-smooth active:scale-[.97]
+        ${on ? 'border-action bg-action-soft text-action-text' : 'border-hairline bg-surface text-ink-muted hover:border-hairline-strong hover:text-ink'}`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function FeatureTile({ feature }: { feature: FeatureCard }) {
+  const navigate = useNavigate();
+  const Icon = featureIcon(feature.id);
+
+  const chip = feature.locked ? (
+    <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-control bg-surface-recessed text-ink-subtle">
+      <Lock size={18} strokeWidth={1.75} />
+    </span>
+  ) : (
+    <span
+      aria-hidden="true"
+      className="topic-chip flex h-10 w-10 shrink-0 items-center justify-center rounded-control"
+      style={{ '--h': categoryHue(feature.category) } as CSSProperties}
+    >
+      <Icon size={20} strokeWidth={1.75} />
+    </span>
+  );
+
+  const body = (
+    <>
+      {chip}
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="flex items-center gap-2">
+          <span className={`truncate text-[15px] font-semibold leading-snug ${feature.locked ? 'text-ink-muted' : 'text-ink'}`}>
+            {feature.title}
+          </span>
+          {feature.badge && !feature.locked && (
+            <span className="shrink-0 rounded-pill bg-action-soft px-2 py-0.5 text-caption font-semibold text-action-text">{feature.badge}</span>
           )}
-        </AnimatePresence>
-      </motion.div>
-    </div>
+        </span>
+        <span className="text-body-s text-ink-muted">{feature.description}</span>
+        {feature.locked && <span className="mt-1 text-caption text-ink-subtle">Coming soon</span>}
+      </span>
+    </>
+  );
+
+  if (feature.locked || !feature.screen) {
+    return <div className="flex items-start gap-3 rounded-card surface-recessed p-4">{body}</div>;
+  }
+
+  const go = () => {
+    const path = feature.screen === 'home' ? '/' : `/${feature.screen}`;
+    navigate(path + (feature.tab ? `?tab=${feature.tab}` : ''));
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={go}
+      data-testid={`explore-${feature.id}`}
+      className="group flex items-start gap-3 rounded-card surface p-4 text-left transition-[background-color,border-color,transform] duration-state ease-smooth
+        hover:border-hairline-strong hover:bg-[color-mix(in_srgb,var(--ink)_2%,transparent)] active:scale-[.97]"
+    >
+      {body}
+      <ChevronRight size={16} aria-hidden="true" className="mt-3 shrink-0 text-ink-subtle transition-colors duration-state group-hover:text-ink-muted" />
+    </button>
   );
 }
