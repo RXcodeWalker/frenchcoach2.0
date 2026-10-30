@@ -1,4 +1,4 @@
-import { BOSS_BANK, type BossQuestion } from './bank';
+import { banksFor, type BossQuestion } from './bank';
 import { isCorrectAnswer } from './answer';
 import { bossLine, type Boss } from './bosses';
 
@@ -137,9 +137,31 @@ function shuffle<T>(items: readonly T[], seed: number): [T[], number] {
   return [out, s];
 }
 
-/** A fresh shuffle of the boss's bank that does not open with the question just asked. */
+/**
+ * A fresh deal of the fight's questions that does not open with the question just asked. One bank is a plain
+ * shuffle. With several (the Gauntlet) each bank is shuffled and then dealt in rounds of one question per
+ * topic, each round in a random order, so the topics keep changing and no topic runs dry early.
+ */
 function freshDeck(boss: Boss, seed: number, avoidFirst?: string): [BossQuestion[], number] {
-  const [deck, next] = shuffle(BOSS_BANK[boss.id], seed);
+  const banks = banksFor(boss.id);
+  let deck: BossQuestion[];
+  let next = seed;
+  if (banks.length === 1) {
+    [deck, next] = shuffle(banks[0], seed);
+  } else {
+    const shuffled = banks.map((bank) => {
+      const [dealt, after] = shuffle(bank, next);
+      next = after;
+      return dealt;
+    });
+    deck = [];
+    const longest = Math.max(...shuffled.map((bank) => bank.length));
+    for (let i = 0; i < longest; i++) {
+      const [round, after] = shuffle(shuffled.filter((bank) => i < bank.length).map((bank) => bank[i]), next);
+      next = after;
+      deck.push(...round);
+    }
+  }
   if (avoidFirst && deck.length > 1 && deck[0].id === avoidFirst) [deck[0], deck[1]] = [deck[1], deck[0]];
   return [deck, next];
 }
@@ -218,7 +240,8 @@ export function veilPrompt(english: string): string {
 
 /** Seconds on this round's clock, or null when there is none. */
 export function roundSeconds(state: BattleState): number | null {
-  return state.boss.mechanic === 'timer' && state.phase === 2 ? TIMER_SECONDS : null;
+  if (state.boss.mechanic !== 'timer') return null;
+  return state.phase === 2 ? TIMER_SECONDS : (state.boss.openingClock ?? null);
 }
 
 /** Clearing the fog is allowed once a round, and breaks the combo. */

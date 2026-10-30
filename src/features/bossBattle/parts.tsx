@@ -2,12 +2,13 @@ import type { CSSProperties, ReactNode } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Star } from 'lucide-react';
 import { fill } from '../../components/motion/variants';
-import type { BossId } from './bosses';
+import { topicOf } from './bank';
+import { getBoss, type FightId } from './bosses';
 import { bossVisual } from './bossVisuals';
 import { FOCUS_MAX } from './engine';
 
 /** A boss's icon chip — the only place its hue appears. */
-export function BossChip({ id, size = 48, className = '' }: { id: BossId; size?: number; className?: string }) {
+export function BossChip({ id, size = 48, className = '' }: { id: FightId; size?: number; className?: string }) {
   const { Icon, hue } = bossVisual(id);
   return (
     <span
@@ -15,7 +16,20 @@ export function BossChip({ id, size = 48, className = '' }: { id: BossId; size?:
       className={`topic-chip flex shrink-0 items-center justify-center ${className}`}
       style={{ '--h': hue, width: size, height: size, borderRadius: size >= 40 ? 10 : 8 } as CSSProperties}
     >
-      <Icon size={size >= 48 ? 24 : 20} strokeWidth={1.75} />
+      <Icon size={size >= 48 ? 24 : size >= 32 ? 20 : 14} strokeWidth={1.75} />
+    </span>
+  );
+}
+
+/** Which grammar topic a question comes from — shown in the Gauntlet, where it changes every round. */
+export function TopicTag({ questionId, className = '' }: { questionId: string; className?: string }) {
+  const id = topicOf(questionId);
+  const boss = id ? getBoss(id) : undefined;
+  if (!boss) return null;
+  return (
+    <span data-testid="boss-topic" className={`inline-flex items-center gap-2 text-caption text-ink-muted ${className}`}>
+      <BossChip id={boss.id} size={24} />
+      {boss.topic}
     </span>
   );
 }

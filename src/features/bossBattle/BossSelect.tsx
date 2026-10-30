@@ -3,7 +3,7 @@ import { ChevronRight } from 'lucide-react';
 import { enter, enterReduced } from '../../components/motion/variants';
 import { PageShell } from '../../components/layout/PageShell';
 import { TopContextBar } from '../../components/TopContextBar';
-import { BOSSES, type Boss } from './bosses';
+import { BOSSES, GAUNTLET, type Boss } from './bosses';
 import type { BossRecordsV1 } from './bossStore';
 import { DIFFICULTY_STYLE, MOVE_VISUALS } from './bossVisuals';
 import { MOVES } from './engine';
@@ -56,7 +56,51 @@ export function BossSelect({ records, onPick, onBack }: Props) {
           </ul>
         </motion.section>
 
-        <motion.div variants={item} className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+        <motion.section variants={item} aria-labelledby="boss-mixed" className="flex flex-col gap-3">
+          <h2 id="boss-mixed" className="text-section text-ink">Mixed challenge</h2>
+          <button
+            type="button"
+            onClick={() => onPick(GAUNTLET)}
+            data-testid={`boss-${GAUNTLET.id}`}
+            className="group flex flex-col gap-3 rounded-card surface p-4 text-left transition-[background-color,border-color,transform] duration-state ease-smooth
+              hover:border-hairline-strong hover:bg-[color-mix(in_srgb,var(--ink)_2%,transparent)] active:scale-[.97] md:p-5"
+          >
+            <span className="flex items-start gap-3">
+              <BossChip id={GAUNTLET.id} size={48} />
+              <span className="flex min-w-0 flex-1 flex-col">
+                <span className="text-[16px] font-semibold leading-snug text-ink">The Gauntlet · {GAUNTLET.name}</span>
+                <span className="text-body-s text-ink-muted">{GAUNTLET.blurb}</span>
+              </span>
+              <ChevronRight size={16} aria-hidden="true" className="mt-1 shrink-0 text-ink-subtle transition-colors duration-state group-hover:text-ink-muted" />
+            </span>
+            <span className="flex flex-col gap-1 rounded-control surface-recessed p-3">
+              <span className="text-caption text-ink-subtle">Drills {GAUNTLET.focus}</span>
+              <span className="text-body-s text-ink">
+                <span className="font-semibold">{GAUNTLET.mechanicName}.</span> {GAUNTLET.mechanicRule}
+              </span>
+            </span>
+            <span className="flex flex-wrap items-center justify-between gap-3">
+              <span className="flex flex-wrap items-center gap-2">
+                <span className={`inline-flex h-6 items-center rounded-pill border px-2.5 text-caption font-semibold ${DIFFICULTY_STYLE[GAUNTLET.difficulty].className}`}>
+                  {DIFFICULTY_STYLE[GAUNTLET.difficulty].label}
+                </span>
+                <span className="text-caption text-ink-subtle">{GAUNTLET.hp} health</span>
+              </span>
+              <span className="flex items-center gap-3">
+                <Stars value={records.bosses[GAUNTLET.id]?.stars ?? 0} size={18} />
+                <span className="text-caption text-ink-subtle">
+                  {records.bosses[GAUNTLET.id]?.fights
+                    ? `Won ${records.bosses[GAUNTLET.id]?.wins} of ${records.bosses[GAUNTLET.id]?.fights} · best combo ×${records.bosses[GAUNTLET.id]?.bestCombo}`
+                    : 'Not fought yet'}
+                </span>
+              </span>
+            </span>
+          </button>
+        </motion.section>
+
+        <motion.section variants={item} aria-labelledby="boss-single" className="flex flex-col gap-3">
+          <h2 id="boss-single" className="text-section text-ink">One boss at a time</h2>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
           {BOSSES.map((boss) => {
             const record = records.bosses[boss.id];
             const difficulty = DIFFICULTY_STYLE[boss.difficulty];
@@ -106,7 +150,8 @@ export function BossSelect({ records, onPick, onBack }: Props) {
               </button>
             );
           })}
-        </motion.div>
+          </div>
+        </motion.section>
       </PageShell>
     </>
   );

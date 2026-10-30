@@ -8,7 +8,7 @@ import { Button } from '../../components/ui/Button';
 import type { Boss } from './bosses';
 import type { BossRecord } from './bossStore';
 import { PLAYER_MAX_HP, type BattleSummary } from './engine';
-import { Stars } from './parts';
+import { Stars, TopicTag } from './parts';
 
 interface Props {
   boss: Boss;
@@ -77,6 +77,7 @@ export function BattleResult({ boss, summary, speech, before, onRematch, onExit 
             <ul className="mt-3 flex flex-col divide-y divide-hairline">
               {summary.misses.map(({ question, typed, timedOut }) => (
                 <li key={question.id} className="flex flex-col gap-1 py-3 first:pt-0 last:pb-0" data-testid="boss-miss">
+                  {boss.id === 'gauntlet' && <TopicTag questionId={question.id} />}
                   <p className="text-body-s text-ink-muted">{question.english}</p>
                   {typed.trim() && !timedOut && (
                     <p className="text-body-s text-correction-text">
@@ -94,7 +95,7 @@ export function BattleResult({ boss, summary, speech, before, onRematch, onExit 
 
         <motion.div variants={item} className="flex flex-col gap-2 sm:flex-row">
           <Button size="lg" onClick={onRematch} className="sm:min-w-[180px]">{won ? 'Fight again' : 'Try again'}</Button>
-          <Button size="lg" variant="secondary" onClick={onExit}>Choose another boss</Button>
+          <Button size="lg" variant="secondary" onClick={onExit}>{boss.id === 'gauntlet' ? 'Back to the bosses' : 'Choose another boss'}</Button>
         </motion.div>
       </PageShell>
     </>

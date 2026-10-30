@@ -59,19 +59,20 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe('Boss Battles — choose a boss', () => {
-  it('lists the seven bosses, marks the first unbeaten one, and explains the moves', () => {
+  it('lists the ten bosses and the Gauntlet, marks the first unbeaten boss, and explains the moves', () => {
     render(
       <MemoryRouter>
         <BossBattle />
       </MemoryRouter>,
     );
-    for (const id of ['gender', 'past_tense', 'negation', 'pronouns', 'future', 'conditional', 'subjunctive']) {
+    for (const id of ['gender', 'quantity', 'past_tense', 'negation', 'pronouns', 'comparison', 'future', 'conditional', 'time', 'subjunctive', 'gauntlet']) {
       expect(screen.getByTestId(`boss-${id}`)).toBeTruthy();
     }
     expect(within(screen.getByTestId('boss-gender')).getByText('Next up')).toBeTruthy();
     expect(screen.getAllByText('Next up')).toHaveLength(1);
     expect(screen.getByText('How a fight works')).toBeTruthy();
-    expect(screen.getAllByText('Not fought yet')).toHaveLength(7);
+    expect(screen.getAllByText('Not fought yet')).toHaveLength(11);
+    expect(screen.getByText('Mixed challenge')).toBeTruthy();
   });
 
   it('promises no XP', () => {
@@ -210,7 +211,7 @@ describe('the end of a fight', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Choose another boss' }));
     expect(within(screen.getByTestId('boss-gender')).getByRole('img', { name: '3 of 3 stars' })).toBeTruthy();
     expect(within(screen.getByTestId('boss-gender')).getByText(/Won 1 of 1/)).toBeTruthy();
-    expect(within(screen.getByTestId('boss-past_tense')).getByText('Next up')).toBeTruthy();
+    expect(within(screen.getByTestId('boss-quantity')).getByText('Next up')).toBeTruthy();
   });
 
   it('defeat: lists every missed question with its answer and rule, then lets you go again', () => {
@@ -237,6 +238,48 @@ describe('the end of a fight', () => {
     expect(screen.getByText(/Round 1 · Say it in French/)).toBeTruthy();
     expect(screen.getByRole('progressbar', { name: 'Your health' }).getAttribute('aria-valuenow')).toBe('100');
     expect(dispatch).not.toHaveBeenCalled();
+  });
+});
+
+describe('the Gauntlet in the UI', () => {
+  it('starts on a 25-second clock and tags every question with its topic', () => {
+    openBoss('gauntlet');
+    expect(screen.getByRole('timer').getAttribute('aria-label')).toBe('25 seconds left');
+    const topics = new Set<string>();
+    // Six rounds is short of a win (180 health), and each of them comes from a different topic.
+    for (let i = 0; i < 6; i++) {
+      topics.add(screen.getByTestId('boss-topic').textContent ?? '');
+      answerRight();
+      next();
+    }
+    expect(topics.size).toBe(6);
+  });
+
+  it('a won Gauntlet is recorded under its own name and says how to get back', () => {
+    openBoss('gauntlet');
+    for (let i = 0; i < 60 && !screen.queryByRole('button', { name: 'See the result' }); i++) {
+      answerRight();
+      if (screen.queryByRole('button', { name: 'Next round' })) next();
+    }
+    next();
+    expect(screen.getByRole('heading', { name: /Le Maître du Défi is defeated/ })).toBeTruthy();
+    const saved = JSON.parse(localStorage.getItem(Object.keys(localStorage)[0])!);
+    expect(saved.bosses.gauntlet).toMatchObject({ fights: 1, wins: 1 });
+    expect(dispatch).not.toHaveBeenCalled();
+    const back = screen.getAllByRole('button', { name: 'Back to the bosses' });
+    fireEvent.click(back[back.length - 1]);
+    expect(within(screen.getByTestId('boss-gauntlet')).getByText(/Won 1 of 1/)).toBeTruthy();
+  });
+
+  it('a missed Gauntlet question shows its topic in the list', () => {
+    openBoss('gauntlet');
+    answerWrong();
+    for (let i = 0; i < 60 && !screen.queryByRole('button', { name: 'See the result' }); i++) {
+      if (screen.queryByRole('button', { name: 'Next round' })) next();
+      answerWrong();
+    }
+    next();
+    expect(within(screen.getAllByTestId('boss-miss')[0]).getByTestId('boss-topic')).toBeTruthy();
   });
 });
 

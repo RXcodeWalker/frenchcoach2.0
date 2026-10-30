@@ -47,6 +47,13 @@ describe('bossStore', () => {
     expect(Object.keys(records.bosses).sort()).toEqual(['gender', 'negation']);
   });
 
+  it('keeps the Gauntlet’s record beside the bosses’', () => {
+    recordFight('gender', win(2), at);
+    const records = recordFight('gauntlet', win(1, 12, 5), at);
+    expect(Object.keys(records.bosses).sort()).toEqual(['gauntlet', 'gender']);
+    expect(readBossRecords().bosses.gauntlet).toMatchObject({ fights: 1, wins: 1, stars: 1, fastestWin: 12 });
+  });
+
   it('writes under the identity scope like other per-account data', () => {
     recordFight('gender', win(1), at);
     expect(Object.keys(localStorage).every((k) => k.startsWith(STORAGE_KEYS.bossBattle))).toBe(true);

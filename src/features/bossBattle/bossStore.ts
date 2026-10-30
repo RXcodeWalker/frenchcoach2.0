@@ -1,5 +1,5 @@
 import { STORAGE_KEYS, storageGet, storageSet } from '../../services/persistence/storage';
-import type { BossId } from './bosses';
+import type { FightId } from './bosses';
 import type { BattleSummary, Stars } from './engine';
 
 /**
@@ -23,7 +23,7 @@ export interface BossRecord {
 
 export interface BossRecordsV1 {
   version: 1;
-  bosses: Partial<Record<BossId, BossRecord>>;
+  bosses: Partial<Record<FightId, BossRecord>>;
 }
 
 const EMPTY: BossRecordsV1 = { version: 1, bosses: {} };
@@ -47,14 +47,14 @@ export function readBossRecords(): BossRecordsV1 {
   if (!bosses || typeof bosses !== 'object') return EMPTY;
   const clean: BossRecordsV1['bosses'] = {};
   for (const [id, value] of Object.entries(bosses)) {
-    if (isRecord(value)) clean[id as BossId] = value;
+    if (isRecord(value)) clean[id as FightId] = value;
   }
   return { version: 1, bosses: clean };
 }
 
 /** Folds one finished fight into the learner's records and returns the new records. */
 export function recordFight(
-  bossId: BossId,
+  bossId: FightId,
   summary: Pick<BattleSummary, 'won' | 'stars' | 'rounds' | 'maxCombo'>,
   now: () => string = () => new Date().toISOString(),
 ): BossRecordsV1 {

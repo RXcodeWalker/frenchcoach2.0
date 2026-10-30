@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { BOSS_BANK } from '../bank';
-import { BOSSES, getBoss, type Boss } from '../bosses';
+import { BOSS_BANK, topicOf } from '../bank';
+import { BOSSES, GAUNTLET, getBoss, type Boss } from '../bosses';
 import {
   COUNTER_DAMAGE,
   FOCUS_MAX,
@@ -338,6 +338,67 @@ describe('Le Chevalier du Passé — Quickened Time', () => {
     expect(roundSeconds(createBattle(knight, 1))).toBeNull();
     expect(roundSeconds(withState(createBattle(knight, 1), { phase: 2 }))).toBe(15);
     expect(roundSeconds(withState(createBattle(boss('gender'), 1), { phase: 2 }))).toBeNull();
+  });
+});
+
+describe('Le Maître du Défi — the Gauntlet', () => {
+  const all = Object.values(BOSS_BANK).flat();
+
+  it('is not a grammar boss, but getBoss finds it', () => {
+    expect((BOSSES as readonly Boss[]).some((b) => b.id === 'gauntlet')).toBe(false);
+    expect(getBoss('gauntlet')).toBe(GAUNTLET);
+  });
+
+  it('deals every question of every boss exactly once', () => {
+    const deck = createBattle(GAUNTLET, 3).deck;
+    expect(deck).toHaveLength(all.length);
+    expect(deck.map((q) => q.id).sort()).toEqual(all.map((q) => q.id).sort());
+  });
+
+  it('keeps the topics changing: each run of ten questions holds ten different topics', () => {
+    const deck = createBattle(GAUNTLET, 9).deck;
+    for (let i = 0; i < 20; i += 10) {
+      const topics = deck.slice(i, i + 10).map((q) => topicOf(q.id));
+      expect(new Set(topics).size).toBe(BOSSES.length);
+    }
+  });
+
+  it('is deterministic for a seed and different across seeds', () => {
+    const ids = (seed: number) => createBattle(GAUNTLET, seed).deck.map((q) => q.id).join();
+    expect(ids(4)).toBe(ids(4));
+    expect(ids(4)).not.toBe(ids(5));
+  });
+
+  it('puts a 25-second clock on round one and a 15-second clock once enraged', () => {
+    expect(roundSeconds(createBattle(GAUNTLET, 1))).toBe(25);
+    expect(roundSeconds(withState(createBattle(GAUNTLET, 1), { phase: 2 }))).toBe(15);
+  });
+
+  it('a flawless player wins within sixteen rounds; answering everything wrong loses', () => {
+    let state = createBattle(GAUNTLET, 11);
+    let rounds = 0;
+    while (state.stage === 'answering' || state.stage === 'resolved') {
+      const guard = state.heavyIn === 1 && moveStatus(state, 'guard').usable;
+      const power = !guard && moveStatus(state, 'power').usable;
+      state = step(state, 'right', guard ? 'guard' : power ? 'power' : 'strike');
+      if (++rounds > 40) break;
+    }
+    expect(state.stage).toBe('won');
+    expect(rounds).toBeLessThanOrEqual(16);
+
+    let lost = createBattle(GAUNTLET, 11);
+    for (let i = 0; i < 40 && (lost.stage === 'answering' || lost.stage === 'resolved'); i++) lost = step(lost, 'wrong');
+    expect(lost.stage).toBe('lost');
+  });
+
+  it('mixed play (one miss in four) is winnable', () => {
+    let state = createBattle(GAUNTLET, 21);
+    for (let i = 0; i < 60 && (state.stage === 'answering' || state.stage === 'resolved'); i++) {
+      const guard = state.heavyIn === 1 && moveStatus(state, 'guard').usable;
+      const power = !guard && moveStatus(state, 'power').usable;
+      state = step(state, i % 4 === 3 ? 'wrong' : 'right', guard ? 'guard' : power ? 'power' : 'strike');
+    }
+    expect(state.stage).toBe('won');
   });
 });
 

@@ -24,7 +24,7 @@ import {
   type Move,
 } from './engine';
 import { describeEvent, eventTone, bossDamage, playerDelta } from './narration';
-import { BossChip, FocusPips, HpBar, StatusPill } from './parts';
+import { BossChip, FocusPips, HpBar, StatusPill, TopicTag } from './parts';
 import { useBattle } from './useBattle';
 import { useRoundClock } from './useRoundClock';
 import type { Boss } from './bosses';
@@ -200,6 +200,8 @@ export function BattleView({ boss, onExit, onRematch }: Props) {
             </p>
             {clock.secondsLeft !== null && answering && <ClockPill seconds={clock.secondsLeft} fraction={clock.fraction} />}
           </div>
+
+          {boss.id === 'gauntlet' && <TopicTag questionId={question.id} className="mt-3" />}
 
           <p className="mt-3 text-title text-ink md:text-display-m" data-testid="boss-prompt">
             {fog ? veilPrompt(question.english) : question.english}

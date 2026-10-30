@@ -1,8 +1,8 @@
-import type { BossId } from './bosses';
+import type { BossId, FightId } from './bosses';
 
 /**
  * Boss Battle's own question bank: English sentences to put into French, 24–36 per
- * boss, each with the accepted answers and the one-line rule shown after a miss.
+ * boss (ten bosses, 300 in all), each with the accepted answers and the one-line rule shown after a miss.
  * It is authored here (not read from `data/scenarios/minigameQuestions.json`,
  * which has 5–11 per category and repeated within a single fight).
  *
@@ -275,6 +275,87 @@ const PRONOUNS: BossQuestion[] = [
   q('pr24', 'She is not looking at us.', ['Elle ne nous regarde pas.'], 'The pronoun sits between ne and the verb: ne nous regarde pas.'),
 ];
 
+const QUANTITY: BossQuestion[] = [
+  q('q01', 'I would like some bread.', ['Je voudrais du pain.'], 'Pain is masculine, so “some” is du.'),
+  q('q02', 'I would like some soup.', ['Je voudrais de la soupe.'], 'Soupe is feminine, so “some” is de la.'),
+  q('q03', 'I would like some apples.', ['Je voudrais des pommes.'], 'With a plural noun “some” is des.'),
+  q('q04', 'He drinks some orange juice.', ['Il boit du jus d’orange.'], 'Jus is masculine, so “some” is du.'),
+  q('q05', 'She is eating some salad.', ['Elle mange de la salade.'], 'Salade is feminine, so “some” is de la.'),
+  q('q06', 'I do not eat meat.', ['Je ne mange pas de viande.'], 'After a negative, du / de la / des becomes de.'),
+  q('q07', 'I do not have any brothers.', ['Je n’ai pas de frères.'], 'After a negative, des becomes de: pas de frères.'),
+  q('q08', 'She does not drink any milk.', ['Elle ne boit pas de lait.'], 'After a negative, du becomes de: pas de lait.'),
+  q('q09', 'We do not have any time.', ['Nous n’avons pas de temps.'], 'After a negative, du becomes de: pas de temps.'),
+  q('q10', 'There is no more bread.', ['Il n’y a plus de pain.'], 'Plus works like pas: after it, du becomes de.'),
+  q('q11', 'I eat a lot of vegetables.', ['Je mange beaucoup de légumes.'], 'Beaucoup is followed by de, with no article.'),
+  q('q12', 'I have a lot of friends.', ['J’ai beaucoup d’amis.'], 'Before a vowel, de becomes d’: beaucoup d’amis.'),
+  q('q13', 'There are a lot of students.', ['Il y a beaucoup d’élèves.', 'Il y a beaucoup d’étudiants.'], 'Before a vowel, de becomes d’: beaucoup d’élèves.'),
+  q('q14', 'I drink a little water.', ['Je bois un peu d’eau.'], 'Un peu is followed by de, with no article; before a vowel it is d’eau.'),
+  q('q15', 'We have too much homework.', ['Nous avons trop de devoirs.'], 'Trop is followed by de, with no article.'),
+  q('q16', 'I have enough money.', ['J’ai assez d’argent.'], 'Assez is followed by de, with no article; before a vowel it is d’argent.'),
+  q('q17', 'A kilo of apples, please.', ['Un kilo de pommes, s’il vous plaît.', 'S’il vous plaît, un kilo de pommes.'], 'A weight or container is followed by de, with no article.'),
+  q('q18', 'A bottle of water, please.', ['Une bouteille d’eau, s’il vous plaît.', 'S’il vous plaît, une bouteille d’eau.'], 'Bouteille is followed by de; before a vowel it is d’eau.'),
+  q('q19', 'I would like a slice of cake.', ['Je voudrais une tranche de gâteau.'], 'Une tranche is followed by de, with no article.'),
+  q('q20', 'Most of my friends live here.', ['La plupart de mes amis habitent ici.'], 'La plupart de takes a plural verb: habitent.'),
+  q('q21', 'I like sugar.', ['J’aime le sucre.'], 'After aimer and other verbs of liking, use le / la / les, not du.'),
+  q('q22', 'She hates vegetables.', ['Elle déteste les légumes.'], 'After détester, use the article les, not des.'),
+  q('q23', 'We do not like the rain.', ['Nous n’aimons pas la pluie.'], 'After aimer the article stays le / la / les, even in the negative.'),
+  q('q24', 'I ate some soup.', ['J’ai mangé de la soupe.'], 'The partitive stays de la in the passé composé; it only becomes de after a negative.'),
+];
+
+const COMPARISON: BossQuestion[] = [
+  q('cm01', 'I am taller than my brother.', ['Je suis plus grand que mon frère.', 'Je suis plus grande que mon frère.'], 'Plus + adjective + que. Grand agrees with the speaker.'),
+  q('cm02', 'She is less tall than her sister.', ['Elle est moins grande que sa sœur.'], 'Moins + adjective + que, and the adjective agrees: grande.'),
+  q('cm03', 'He is as strong as his father.', ['Il est aussi fort que son père.'], 'Aussi + adjective + que means “as … as”.'),
+  q('cm04', 'This book is more interesting than the film.', ['Ce livre est plus intéressant que le film.'], 'Plus + adjective + que; livre and film are masculine.'),
+  q('cm05', 'Her French is better than mine.', ['Son français est meilleur que le mien.'], 'Bon becomes meilleur; “mine” is le mien, matching a masculine noun.'),
+  q('cm06', 'My bag is heavier than yours.', ['Mon sac est plus lourd que le tien.', 'Mon sac est plus lourd que le vôtre.'], '“Than yours” is que le tien (or le vôtre), matching sac.'),
+  q('cm07', 'He sings better than me.', ['Il chante mieux que moi.'], 'Mieux is the comparative of the adverb bien. After que use moi.'),
+  q('cm08', 'She cooks better than her mother.', ['Elle cuisine mieux que sa mère.'], 'Cooking is a verb, so use the adverb mieux, not meilleur.'),
+  q('cm09', 'This cake is better than that one.', ['Ce gâteau est meilleur que celui-là.', 'Ce gâteau est meilleur que l’autre.'], 'Gâteau is a noun, so use the adjective meilleur. “That one” is celui-là.'),
+  q('cm10', 'She is the best student in the class.', ['Elle est la meilleure élève de la classe.', 'Elle est la meilleure étudiante de la classe.'], 'La meilleure, because élève is feminine here. After a superlative “in” is de.'),
+  q('cm11', 'It is the best restaurant in town.', ['C’est le meilleur restaurant de la ville.'], 'Le meilleur + noun, and “in the town” is de la ville.'),
+  q('cm12', 'It is the biggest city in France.', ['C’est la plus grande ville de France.'], 'La plus + adjective, and “in France” after a superlative is de France.'),
+  q('cm13', 'He is the tallest boy in the school.', ['Il est le plus grand garçon de l’école.', 'C’est le plus grand garçon de l’école.'], 'Grand goes before the noun, so le plus grand garçon. “In” is de.'),
+  q('cm14', 'It is the least expensive hotel.', ['C’est l’hôtel le moins cher.'], 'Cher follows the noun, so le moins cher goes after hôtel.'),
+  q('cm15', 'She runs the fastest in the team.', ['Elle court le plus vite de l’équipe.'], 'With an adverb the superlative is le plus vite, and it never changes.'),
+  q('cm16', 'This exercise is less difficult than the other one.', ['Cet exercice est moins difficile que l’autre.'], 'Moins + adjective + que. Cet is ce before a vowel sound.'),
+  q('cm17', 'I have more books than you.', ['J’ai plus de livres que toi.', 'J’ai plus de livres que vous.'], 'With a noun it is plus de + noun + que.'),
+  q('cm18', 'She has fewer friends than me.', ['Elle a moins d’amis que moi.'], 'Moins de + noun + que; before a vowel de becomes d’.'),
+  q('cm19', 'He eats as much as his brother.', ['Il mange autant que son frère.'], 'With a verb, “as much as” is autant que.'),
+  q('cm20', 'I have as many cousins as you.', ['J’ai autant de cousins que toi.', 'J’ai autant de cousins que vous.'], 'Autant de + noun + que means “as many … as”.'),
+  q('cm21', 'It is colder than yesterday.', ['Il fait plus froid qu’hier.'], 'Que becomes qu’ before a vowel sound: qu’hier.'),
+  q('cm22', 'The weather is worse than last week.', ['Il fait plus mauvais que la semaine dernière.', 'Le temps est pire que la semaine dernière.'], 'For the weather say il fait plus mauvais, or le temps est pire.'),
+  q('cm23', 'It is more and more difficult.', ['C’est de plus en plus difficile.'], 'De plus en plus means “more and more”.'),
+  q('cm24', 'The more I read, the more I learn.', ['Plus je lis, plus j’apprends.'], 'Plus … plus … means “the more … the more …”.'),
+];
+
+const TIME: BossQuestion[] = [
+  q('t01', 'I have lived here for three years.', ['J’habite ici depuis trois ans.', 'Ça fait trois ans que j’habite ici.', 'Il y a trois ans que j’habite ici.'], 'Something still going on takes the present tense with depuis.'),
+  q('t02', 'She has been learning French since September.', ['Elle apprend le français depuis septembre.'], 'Depuis + a starting point, with the present tense.'),
+  q('t03', 'We have known each other for ten years.', ['Nous nous connaissons depuis dix ans.'], 'Still true now, so the present tense with depuis.'),
+  q('t04', 'It has been raining for an hour.', ['Il pleut depuis une heure.'], 'Still raining, so the present tense with depuis.'),
+  q('t05', 'She has been ill for a week.', ['Elle est malade depuis une semaine.'], 'Still ill, so the present tense with depuis.'),
+  q('t06', 'He has worked here since 2020.', ['Il travaille ici depuis 2020.'], 'Depuis + a date, with the present tense.'),
+  q('t07', 'I have been waiting for twenty minutes.', ['J’attends depuis vingt minutes.', 'Ça fait vingt minutes que j’attends.'], 'Still waiting, so the present tense with depuis.'),
+  q('t08', 'She has not eaten since this morning.', ['Elle n’a pas mangé depuis ce matin.'], 'With a negative verb, depuis goes with the passé composé.'),
+  q('t09', 'How long have you been learning French?', ['Depuis combien de temps apprends-tu le français ?', 'Depuis combien de temps apprenez-vous le français ?', 'Tu apprends le français depuis combien de temps ?'], 'Depuis combien de temps + the present tense.'),
+  q('t10', 'I lived in Paris for two years.', ['J’ai habité à Paris pendant deux ans.', 'J’ai vécu à Paris pendant deux ans.'], 'Finished, with a length of time: pendant and the passé composé.'),
+  q('t11', 'He watched television for three hours.', ['Il a regardé la télévision pendant trois heures.', 'Il a regardé la télé pendant trois heures.'], 'Finished, with a length of time: pendant and the passé composé.'),
+  q('t12', 'I waited for twenty minutes.', ['J’ai attendu pendant vingt minutes.', 'J’ai attendu vingt minutes.'], 'Finished, so the passé composé; pendant may be left out.'),
+  q('t13', 'He was ill for a month.', ['Il a été malade pendant un mois.'], 'A finished spell takes the passé composé with pendant.'),
+  q('t14', 'How long did you stay in London?', ['Combien de temps es-tu resté à Londres ?', 'Combien de temps es-tu restée à Londres ?', 'Combien de temps êtes-vous resté à Londres ?', 'Combien de temps êtes-vous restée à Londres ?'], 'Finished, so the passé composé; rester takes être.'),
+  q('t15', 'I went to Spain two years ago.', ['Je suis allé en Espagne il y a deux ans.', 'Je suis allée en Espagne il y a deux ans.', 'Il y a deux ans, je suis allé en Espagne.', 'Il y a deux ans, je suis allée en Espagne.'], 'Il y a + a length of time means “ago”.'),
+  q('t16', 'She arrived ten minutes ago.', ['Elle est arrivée il y a dix minutes.'], 'Il y a + a length of time means “ago”; arriver takes être.'),
+  q('t17', 'I saw him three days ago.', ['Je l’ai vu il y a trois jours.'], 'Il y a + a length of time means “ago”. The pronoun goes before the verb.'),
+  q('t18', 'The film starts in ten minutes.', ['Le film commence dans dix minutes.'], 'Dans + a length of time means “in” (when it will start).'),
+  q('t19', 'I will see you in two weeks.', ['Je te verrai dans deux semaines.', 'Je vous verrai dans deux semaines.'], 'Dans + a length of time, with the future tense.'),
+  q('t20', 'In a year I will be eighteen.', ['Dans un an, j’aurai dix-huit ans.', 'J’aurai dix-huit ans dans un an.'], 'Dans + a length of time for the future. French says “have” eighteen years.'),
+  q('t21', 'I finished my homework in an hour.', ['J’ai fini mes devoirs en une heure.', 'J’ai fini les devoirs en une heure.'], 'En + a length of time says how long the task took.'),
+  q('t22', 'He read the book in two days.', ['Il a lu le livre en deux jours.'], 'En + a length of time says how long the task took.'),
+  q('t23', 'I am going to Italy for two weeks.', ['Je vais en Italie pour deux semaines.', 'Je vais en Italie pendant deux semaines.'], 'Pour (or pendant) gives the planned length of a stay.'),
+  q('t24', 'We have been married for five years.', ['Nous sommes mariés depuis cinq ans.', 'Ça fait cinq ans que nous sommes mariés.'], 'Still married, so the present tense with depuis.'),
+];
+
 export const BOSS_BANK: Record<BossId, readonly BossQuestion[]> = {
   gender: GENDER,
   past_tense: PAST_TENSE,
@@ -283,4 +364,21 @@ export const BOSS_BANK: Record<BossId, readonly BossQuestion[]> = {
   subjunctive: SUBJUNCTIVE,
   conditional: CONDITIONAL,
   pronouns: PRONOUNS,
+  quantity: QUANTITY,
+  comparison: COMPARISON,
+  time: TIME,
 };
+
+/** Every question belongs to one boss; the Gauntlet uses this to label a question with its topic. */
+const TOPIC_OF = new Map<string, BossId>(
+  (Object.entries(BOSS_BANK) as Array<[BossId, readonly BossQuestion[]]>).flatMap(([id, bank]) => bank.map((question) => [question.id, id] as const)),
+);
+
+export function topicOf(questionId: string): BossId | undefined {
+  return TOPIC_OF.get(questionId);
+}
+
+/** The banks a fight draws from: one for a boss, all ten for the Gauntlet. */
+export function banksFor(id: FightId): readonly (readonly BossQuestion[])[] {
+  return id === 'gauntlet' ? Object.values(BOSS_BANK) : [BOSS_BANK[id]];
+}

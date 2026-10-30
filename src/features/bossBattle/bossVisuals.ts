@@ -1,6 +1,6 @@
 import type { LucideIcon } from 'lucide-react';
-import { Crown, Flame, Ghost, Heart, Hourglass, Mountain, Shield, Sword, Users, Wand2, Zap } from 'lucide-react';
-import type { BossDifficulty, BossId } from './bosses';
+import { Clock, Crown, Flame, Ghost, Heart, Hourglass, Mountain, Scale, Shield, ShoppingBasket, Sword, Swords, Users, Wand2, Zap } from 'lucide-react';
+import type { BossDifficulty, FightId } from './bosses';
 import { MEND_AMOUNT, MEND_COST, POWER_COST, type Move } from './engine';
 
 /**
@@ -9,17 +9,21 @@ import { MEND_AMOUNT, MEND_COST, POWER_COST, type Move } from './engine';
  * used only inside the boss's chip (`.topic-chip`), never for text, borders or
  * fills. Colour anywhere else comes from the role tokens.
  */
-const BOSS_VISUALS: Record<BossId, { Icon: LucideIcon; hue: number }> = {
+const BOSS_VISUALS: Record<FightId, { Icon: LucideIcon; hue: number }> = {
   gender: { Icon: Crown, hue: 350 },
+  quantity: { Icon: ShoppingBasket, hue: 110 },
   past_tense: { Icon: Hourglass, hue: 65 },
   negation: { Icon: Ghost, hue: 275 },
   pronouns: { Icon: Users, hue: 165 },
+  comparison: { Icon: Scale, hue: 195 },
   future: { Icon: Mountain, hue: 225 },
   conditional: { Icon: Flame, hue: 30 },
+  time: { Icon: Clock, hue: 330 },
   subjunctive: { Icon: Wand2, hue: 305 },
+  gauntlet: { Icon: Swords, hue: 85 },
 };
 
-export function bossVisual(id: BossId): { Icon: LucideIcon; hue: number } {
+export function bossVisual(id: FightId): { Icon: LucideIcon; hue: number } {
   return BOSS_VISUALS[id];
 }
 

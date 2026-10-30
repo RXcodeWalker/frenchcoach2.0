@@ -3,7 +3,10 @@ import { canonicalAnswer, isCorrectAnswer } from '../answer';
 import { BOSS_BANK } from '../bank';
 import { BOSSES } from '../bosses';
 
-const ID_FORMAT: Record<string, RegExp> = { gender: /^g\d+$/, past_tense: /^p\d+$/, negation: /^n\d+$/, pronouns: /^pr\d+$/, future: /^f\d+$/, conditional: /^c\d+$/, subjunctive: /^s\d+$/ };
+const ID_FORMAT: Record<string, RegExp> = {
+  gender: /^g\d+$/, quantity: /^q\d+$/, past_tense: /^p\d+$/, negation: /^n\d+$/, pronouns: /^pr\d+$/,
+  comparison: /^cm\d+$/, future: /^f\d+$/, conditional: /^c\d+$/, time: /^t\d+$/, subjunctive: /^s\d+$/,
+};
 
 describe('the boss question bank', () => {
   it('has a bank for every boss and none extra', () => {
