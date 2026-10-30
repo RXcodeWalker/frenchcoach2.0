@@ -4,9 +4,9 @@
  * AccentAnalyzer.tsx's practiceMode === 'shadowing' branch, never mounted
  * alongside the Drills grid.
  *
- * Reuses unchanged: useAudioBlobRecorder, Waveform, TTS, assessPronunciation,
+ * Reuses unchanged: useAudioBlobRecorder, TTS, assessPronunciation,
  * AudioTooShortError, PRACTICE_PASS_SCORE, PronunciationSourceBadge,
- * PronunciationHeatMap, pronunciation history + evidence + XP + mastery
+ * pronunciation history + evidence + XP + mastery
  * plumbing — same as AccentAnalyzer's own Drills flow.
  *
  * Lifecycle safety AccentAnalyzer's Drills flow lacks today: an
@@ -16,7 +16,7 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import {
   Mic,
   RotateCcw,
@@ -28,16 +28,21 @@ import {
   ShieldAlert,
   Sparkles,
   Lock,
+  Loader2,
 } from 'lucide-react';
 import { useApp, dispatchAddXP } from '../../context/AppContext';
 import { useAudioBlobRecorder } from '../../features/recording/useAudioBlobRecorder';
-import { Waveform } from '../../features/recording/Waveform';
+import { LevelBars } from '../../features/recording/LevelBars';
 import { assessPronunciation } from '../../services/pronunciation/pronunciationClient';
 import { AudioTooShortError } from '../../domain/pronunciation/audioNormalizer';
 import { isConsentRequiredError } from '../../lib/consentRequired';
 import { GuardianConsentNotice } from '../../components/GuardianConsentNotice';
 import { PronunciationSourceBadge } from '../learn/PronunciationSourceBadge';
-import { PronunciationHeatMap } from '../../features/feedback/components/PronunciationHeatMap';
+import { AccentWordMap } from './AccentWordMap';
+import { DifficultyPill, StateNotice, ScoreRing, SubScore } from './AccentParts';
+import { Toggle } from '../../components/ui/SettingToggle';
+import { Button } from '../../components/ui/Button';
+import { enter, enterReduced } from '../../components/motion/variants';
 import { PRACTICE_PASS_SCORE } from '../../domain/pronunciation/practiceThresholds';
 import { SHADOWING_PHRASES } from '../../data/shadowingPhrases';
 import { TTS } from '../../services/tts/ttsService';
@@ -95,8 +100,10 @@ const QUOTA_REASON_COPY: Record<string, string> = {
 
 export function ShadowingPanel() {
   const { dispatch, authUser } = useApp();
-  const { isRecording, start, stop, waveData, micLevel } = useAudioBlobRecorder();
+  const { isRecording, start, stop, micLevel } = useAudioBlobRecorder();
   const isMountedRef = useRef(true);
+  const reduced = useReducedMotion();
+  const item = reduced ? enterReduced : enter;
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [screenState, setScreenState] = useState<ScreenState>('idle');
@@ -327,324 +334,220 @@ export function ShadowingPanel() {
   const quotaReason = assessment?.coachingQuota?.granted === false ? assessment.coachingQuota.reason ?? null : null;
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       {/* Detailed feedback toggle */}
-      <div className="surface rounded-2xl p-4 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2 min-w-0">
-          <Sparkles size={16} className="text-cyan-400 flex-shrink-0" />
-          <div className="min-w-0">
-            <p className="text-xs font-bold text-white">Detailed feedback</p>
-            {!authUser ? (
-              <p className="text-[10px] text-ink-muted">Sign in to use detailed feedback</p>
-            ) : quota ? (
-              <p className="text-[10px] text-ink-muted">{quota.used} / {quota.limit} used today</p>
-            ) : null}
-          </div>
-        </div>
+      <motion.div variants={item} className="flex items-center gap-3 rounded-card border border-hairline bg-surface p-4">
+        <span aria-hidden="true" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-control bg-surface-recessed text-ink-muted">
+          <Sparkles size={16} />
+        </span>
+        <span className="flex min-w-0 flex-1 flex-col">
+          <span className="text-[14px] font-semibold text-ink">Detailed feedback</span>
+          {!authUser ? (
+            <span className="text-[13px] text-ink-subtle">Sign in to use detailed feedback</span>
+          ) : quota ? (
+            <span className="text-[13px] text-ink-subtle"><span className="font-numeral">{quota.used} / {quota.limit}</span> used today</span>
+          ) : null}
+        </span>
         <button
           type="button"
+          role="switch"
+          aria-checked={detailedOn}
+          aria-label="Detailed feedback"
           disabled={screenState === 'analyzing' || !authUser}
           onClick={toggleDetailed}
-          aria-pressed={detailedOn}
-          className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 disabled:opacity-40 ${
-            detailedOn ? 'bg-cyan-500' : 'bg-white/10'
-          }`}
+          className="flex h-11 w-12 shrink-0 items-center justify-center rounded-control disabled:cursor-default"
         >
-          <span
-            className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${
-              detailedOn ? 'translate-x-5' : ''
-            }`}
-          />
+          <span className={!authUser || screenState === 'analyzing' ? 'grayscale' : ''}><Toggle on={detailedOn} /></span>
         </button>
-      </div>
+      </motion.div>
 
-      <div className="surface rounded-3xl p-8 flex flex-col items-center text-center space-y-6 relative overflow-hidden">
-        <div className="space-y-2 relative w-full">
-          <div className="flex items-center justify-center gap-2">
-            <h3 className="text-ink-muted text-xs font-bold uppercase tracking-widest">{phrase.focus}</h3>
-            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md ${
-              phrase.difficulty === 'easy' ? 'bg-emerald-500/10 text-emerald-400' :
-              phrase.difficulty === 'medium' ? 'bg-amber-500/10 text-amber-400' :
-              'bg-rose-500/10 text-rose-400'
-            }`}>
-              {phrase.difficulty}
-            </span>
+      <motion.section variants={item} className="flex flex-col items-center gap-6 rounded-card border border-hairline bg-surface p-6 text-center md:p-8">
+        <div className="flex w-full flex-col items-center gap-2">
+          <div className="flex items-center gap-2">
+            <span className="text-eyebrow text-ink-subtle">{phrase.focus}</span>
+            <DifficultyPill difficulty={phrase.difficulty} />
           </div>
-          <p className="text-3xl font-black text-white leading-tight">{phrase.french}</p>
-          <p className="text-ink-muted text-sm">{phrase.english}</p>
+          <p lang="fr" className="text-[30px] font-semibold leading-tight tracking-[-0.01em] text-ink">{phrase.french}</p>
+          <p className="text-[14px] text-ink-muted">{phrase.english}</p>
 
           {!hasFrenchVoice && (
-            <div className="flex items-start gap-2 text-left bg-amber-500/10 rounded-xl p-3 border border-amber-500/20">
-              <AlertTriangle size={12} className="flex-shrink-0 text-amber-400 mt-0.5" />
-              <span className="text-[10px] text-amber-300">
-                No French voice is available in this browser. Shadowing needs one — try Chrome or Edge.
-              </span>
-            </div>
+            <p className="flex w-full max-w-[520px] items-start gap-2 rounded-control bg-reward-soft px-3 py-2.5 text-left text-[13px] text-reward-text">
+              <AlertTriangle size={14} className="mt-0.5 shrink-0" aria-hidden="true" />
+              No French voice is available in this browser. Shadowing needs one — try Chrome or Edge.
+            </p>
           )}
 
-          <div className="flex items-center justify-center gap-2">
-            <button
-              type="button"
-              disabled={!hasFrenchVoice}
-              onClick={() => speak()}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed text-ink-muted hover:text-white transition-all group"
-            >
-              <Volume2 size={16} className="group-hover:scale-110 transition-transform" />
-              <span className="text-[10px] font-bold">Listen</span>
-            </button>
-            <button
-              type="button"
-              disabled={!hasFrenchVoice}
-              onClick={() => speak(0.6)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed text-ink-muted hover:text-white transition-all group"
-            >
-              <Gauge size={16} className="group-hover:scale-110 transition-transform" />
-              <span className="text-[10px] font-bold">Listen slowly</span>
-            </button>
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <Button variant="secondary" size="sm" disabled={!hasFrenchVoice} onClick={() => speak()}>
+              <Volume2 size={16} aria-hidden="true" /> Listen
+            </Button>
+            <Button variant="secondary" size="sm" disabled={!hasFrenchVoice} onClick={() => speak(0.6)}>
+              <Gauge size={16} aria-hidden="true" /> Listen slowly
+            </Button>
           </div>
 
-          <div className="pt-2 flex items-start gap-2 text-left bg-slate-900/40 rounded-xl p-3 border border-white/5">
-            <Info size={12} className="flex-shrink-0 text-cyan-500 mt-0.5" />
-            <span className="text-[10px] text-ink-muted">{phrase.tip}</span>
-          </div>
+          <p className="mt-2 flex w-full max-w-[520px] items-start gap-2 rounded-control bg-info-soft px-3 py-2.5 text-left text-[13px] text-info-text">
+            <Info size={14} className="mt-0.5 shrink-0" aria-hidden="true" />
+            <span>{phrase.tip}</span>
+          </p>
         </div>
 
-        <div className="w-full max-w-sm py-4">
+        <div className="w-full max-w-[460px]" aria-live="polite">
           <AnimatePresence mode="wait">
             {screenState === 'permission-denied' ? (
-              <motion.div key="permission-denied" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center space-y-4 text-center">
-                <div className="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
-                  <ShieldAlert size={28} className="text-amber-400" />
-                </div>
-                <p className="text-amber-400 font-bold text-sm">Microphone access needed</p>
-                <p className="text-ink-muted text-xs max-w-xs">Allow microphone access in your browser to record your pronunciation.</p>
-                <button onClick={reset} className="px-6 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-bold flex items-center gap-2 transition-all">
-                  <RotateCcw size={14} /> Try Again
-                </button>
-              </motion.div>
+              <StateNotice key="permission-denied" icon={<ShieldAlert size={22} />} title="Microphone access needed" onRetry={reset}>
+                Allow microphone access in your browser to record your pronunciation.
+              </StateNotice>
             ) : screenState === 'too-short' ? (
-              <motion.div key="too-short" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center space-y-4 text-center">
-                <div className="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
-                  <AlertTriangle size={28} className="text-amber-400" />
-                </div>
-                <p className="text-amber-400 font-bold text-sm">Recording too short</p>
-                <p className="text-ink-muted text-xs max-w-xs">Hold the mic a little longer and say the full phrase.</p>
-                <button onClick={reset} className="px-6 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-bold flex items-center gap-2 transition-all">
-                  <RotateCcw size={14} /> Try Again
-                </button>
-              </motion.div>
+              <StateNotice key="too-short" icon={<AlertTriangle size={22} />} title="Recording too short" onRetry={reset}>
+                Hold the mic a little longer and say the full phrase.
+              </StateNotice>
             ) : screenState === 'too-long' ? (
-              <motion.div key="too-long" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center space-y-4 text-center">
-                <div className="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
-                  <AlertTriangle size={28} className="text-amber-400" />
-                </div>
-                <p className="text-amber-400 font-bold text-sm">Recording too long</p>
-                <p className="text-ink-muted text-xs max-w-xs">Shadowing phrases are short — try again and stop within 30 seconds.</p>
-                <button onClick={reset} className="px-6 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-bold flex items-center gap-2 transition-all">
-                  <RotateCcw size={14} /> Try Again
-                </button>
-              </motion.div>
+              <StateNotice key="too-long" icon={<AlertTriangle size={22} />} title="Recording too long" onRetry={reset}>
+                Shadowing phrases are short — try again and stop within 30 seconds.
+              </StateNotice>
             ) : screenState === 'could-not-assess' ? (
-              <motion.div key="could-not-assess" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center space-y-4 text-center">
-                <div className="w-16 h-16 rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center">
-                  <Info size={28} className="text-rose-400" />
-                </div>
-                <p className="text-rose-400 font-bold text-sm">Couldn't assess that recording</p>
-                <p className="text-ink-muted text-xs max-w-xs">
-                  {assessment?.couldNotAssessReason === 'silence' || assessment?.couldNotAssessReason === 'no_speech_recognized'
-                    ? "We didn't hear anything — try recording again in a quiet space."
-                    : 'We had trouble analyzing that clip. Please try again.'}
-                </p>
-                <button onClick={reset} className="px-6 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-bold flex items-center gap-2 transition-all">
-                  <RotateCcw size={14} /> Try Again
-                </button>
-              </motion.div>
+              <StateNotice key="could-not-assess" icon={<Info size={22} />} title="Couldn't assess that recording" onRetry={reset}>
+                {assessment?.couldNotAssessReason === 'silence' || assessment?.couldNotAssessReason === 'no_speech_recognized'
+                  ? "We didn't hear anything — try recording again in a quiet space."
+                  : 'We had trouble analyzing that clip. Please try again.'}
+              </StateNotice>
             ) : screenState === 'consent-required' ? (
               <motion.div key="consent-required" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                 <GuardianConsentNotice />
               </motion.div>
             ) : screenState === 'error' ? (
-              <motion.div key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center space-y-4 text-center">
-                <div className="w-16 h-16 rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center">
-                  <Info size={28} className="text-rose-400" />
-                </div>
-                <p className="text-rose-400 font-bold text-sm">Evaluation failed</p>
-                <p className="text-ink-muted text-xs max-w-xs">{errorMessage}</p>
-                <button onClick={reset} className="px-6 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-bold flex items-center gap-2 transition-all">
-                  <RotateCcw size={14} /> Try Again
-                </button>
-              </motion.div>
+              <StateNotice key="error" icon={<Info size={22} />} title="Evaluation failed" tone="error" onRetry={reset}>
+                {errorMessage}
+              </StateNotice>
             ) : screenState === 'idle' || screenState === 'listening' ? (
-              <motion.div key="idle" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="flex flex-col items-center space-y-6">
+              <motion.div key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-3">
                 <button
+                  type="button"
                   onClick={handleStart}
-                  className="w-24 h-24 rounded-full bg-cyan-500 flex items-center justify-center shadow-xl shadow-cyan-500/30 border-4 border-cyan-500/20 hover:scale-105 active:scale-95 transition-all group"
+                  aria-label="Start recording"
+                  className="flex h-16 w-16 items-center justify-center rounded-pill bg-action text-action-ink transition-[background-color,transform]
+                    duration-state ease-smooth hover:bg-action-hover active:scale-[.97] active:bg-action-press"
                 >
-                  <Mic size={32} className="text-white group-hover:rotate-12 transition-transform" />
+                  <Mic size={24} aria-hidden="true" />
                 </button>
-                <p className="text-ink-muted font-bold text-[10px] uppercase tracking-wider">
-                  {screenState === 'listening' ? 'Playing reference audio...' : 'Tap to start recording'}
-                </p>
+                <span className="text-[14px] font-semibold text-ink">
+                  {screenState === 'listening' ? 'Playing reference audio…' : 'Tap to record the phrase'}
+                </span>
+                <span className="text-[13px] text-ink-muted">Listen first, then say it right after the voice</span>
               </motion.div>
             ) : screenState === 'recording' ? (
-              <motion.div key="recording" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full space-y-6">
-                <div className="h-16 flex items-center justify-center">
-                  <Waveform data={waveData} isRecording={isRecording} source={micLevel} />
-                </div>
-                <p className="text-cyan-400 font-bold animate-pulse text-sm">
-                  {countdownMs > 0 ? `Recording... auto-stop in ${Math.ceil(countdownMs / 1000)}s` : 'Recording... Speak now'}
-                </p>
+              <motion.div key="recording" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-4">
+                <LevelBars active={isRecording} source={micLevel} centred />
                 <button
+                  type="button"
                   onClick={handleStop}
-                  className="w-20 h-20 rounded-full bg-rose-500 flex items-center justify-center shadow-lg shadow-rose-500/40 border-4 border-rose-500/20 group relative mx-auto"
+                  aria-label="Stop recording"
+                  className="flex h-16 w-16 items-center justify-center rounded-pill bg-ink shadow-[0_0_0_6px_var(--surface),0_0_0_7px_var(--hairline-strong)]
+                    transition-transform duration-state ease-smooth active:scale-[.97]"
                 >
-                  <div className="absolute inset-0 rounded-full animate-ping bg-rose-500/20" />
-                  <div className="w-6 h-6 bg-white rounded-sm" />
+                  <span className="h-[18px] w-[18px] rounded-[4px] bg-surface" />
                 </button>
+                <span className="flex items-center gap-2 text-[14px] font-semibold text-ink">
+                  <span className="h-2 w-2 rounded-pill bg-correction" aria-hidden="true" />
+                  {countdownMs > 0 ? `Recording · auto-stop in ${Math.ceil(countdownMs / 1000)}s` : 'Recording · tap to stop'}
+                </span>
               </motion.div>
             ) : screenState === 'analyzing' ? (
-              <motion.div key="analyzing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center space-y-4">
-                <div className="relative w-20 h-20">
-                  <div className="absolute inset-0 rounded-full border-4 border-cyan-500/10" />
-                  <motion.div
-                    className="absolute inset-0 rounded-full border-4 border-t-cyan-500"
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                  />
-                </div>
-                <p className="text-cyan-400 font-bold text-sm animate-pulse">Analyzing your pronunciation...</p>
+              <motion.div key="analyzing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-3">
+                <span className="flex h-16 w-16 items-center justify-center rounded-pill border border-hairline bg-surface-recessed text-ink-muted">
+                  <Loader2 size={24} className="animate-spin" aria-hidden="true" />
+                </span>
+                <span className="text-[14px] font-semibold text-ink">Analysing your pronunciation…</span>
               </motion.div>
             ) : (
               assessment && assessment.score !== null && (
-                <motion.div key="results" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full space-y-6">
+                <motion.div key="results" variants={item} initial="hidden" animate="show" className="flex w-full flex-col gap-5">
                   {screenState === 'low-confidence' && (
-                    <div className="flex items-start gap-2.5 px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-left">
-                      <AlertTriangle size={14} className="text-amber-400 flex-shrink-0 mt-0.5" />
-                      <p className="text-[10px] text-amber-300">We couldn't assess this reliably — try recording again in a quieter spot.</p>
-                    </div>
+                    <p className="flex items-start gap-2 rounded-control bg-reward-soft px-3 py-2.5 text-left text-[13px] text-reward-text">
+                      <AlertTriangle size={14} className="mt-0.5 shrink-0" aria-hidden="true" />
+                      We couldn't assess this reliably — try recording again in a quieter spot.
+                    </p>
                   )}
 
-                  <div className="flex justify-center">
-                    <div className="text-center space-y-1">
-                      <div className="relative w-24 h-24 flex items-center justify-center">
-                        <svg className="w-full h-full transform -rotate-90">
-                          <circle cx="48" cy="48" r="40" className="stroke-white/5 fill-none" strokeWidth="8" />
-                          <motion.circle
-                            cx="48" cy="48" r="40"
-                            className="stroke-cyan-500 fill-none"
-                            strokeWidth="8"
-                            strokeDasharray={251.2}
-                            initial={{ strokeDashoffset: 251.2 }}
-                            animate={{ strokeDashoffset: 251.2 - (251.2 * assessment.score) / 100 }}
-                            transition={{ duration: 1.5, ease: 'easeOut' }}
-                            strokeLinecap="round"
-                          />
-                        </svg>
-                        <div className="absolute inset-0 flex flex-col items-center justify-center">
-                          <span className="text-2xl font-black text-white">{Math.round(assessment.score)}</span>
-                          <span className="text-[8px] font-bold text-cyan-400 uppercase">Score</span>
-                        </div>
+                  <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-5">
+                    <ScoreRing score={assessment.score} reduced={!!reduced} />
+                    {assessment.subScores && (
+                      <div className="flex w-40 flex-col gap-4 text-left">
+                        <SubScore label="Accuracy" value={assessment.subScores.accuracy} reduced={!!reduced} />
+                        <SubScore label="Fluency" value={assessment.subScores.fluency} reduced={!!reduced} />
+                        {assessment.subScores.completeness !== null && (
+                          <SubScore label="Whole phrase" value={assessment.subScores.completeness} reduced={!!reduced} />
+                        )}
                       </div>
-                    </div>
+                    )}
                   </div>
-
-                  {assessment.subScores && (
-                    <div className="flex flex-col items-center space-y-3">
-                      {([
-                        ['Accuracy', assessment.subScores.accuracy, 'bg-emerald-500'],
-                        ['Fluency', assessment.subScores.fluency, 'bg-amber-500'],
-                      ] as const).map(([label, value, color]) => (
-                        <div key={label} className="space-y-1 w-40">
-                          <div className="flex justify-between items-center">
-                            <span className="text-[9px] font-bold text-ink-muted uppercase">{label}</span>
-                            <span className="text-[9px] font-bold text-white">{Math.round(value)}%</span>
-                          </div>
-                          <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
-                            <motion.div className={`h-full ${color}`} initial={{ width: 0 }} animate={{ width: `${value}%` }} transition={{ duration: 1, delay: 0.5 }} />
-                          </div>
-                        </div>
-                      ))}
-                      {assessment.subScores.completeness !== null && (
-                        <div className="space-y-1 w-40">
-                          <div className="flex justify-between items-center">
-                            <span className="text-[9px] font-bold text-ink-muted uppercase">Said the whole phrase</span>
-                            <span className="text-[9px] font-bold text-white">{Math.round(assessment.subScores.completeness)}%</span>
-                          </div>
-                          <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
-                            <motion.div className="h-full bg-violet-500" initial={{ width: 0 }} animate={{ width: `${assessment.subScores.completeness}%` }} transition={{ duration: 1, delay: 0.9 }} />
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
 
                   <PronunciationSourceBadge provider={assessment.provider} />
 
-                  <PronunciationHeatMap assessment={assessment} onSpeakWord={(w) => void TTS.speak(w)} />
+                  {assessment.provider === 'azure' && (
+                    <div className="flex flex-col gap-2 rounded-card bg-surface-recessed p-4">
+                      <h3 className="text-eyebrow text-left text-ink-subtle">Word by word</h3>
+                      <AccentWordMap assessment={assessment} onSpeakWord={(w) => void TTS.speak(w)} />
+                    </div>
+                  )}
 
                   {/* Rhythm block — Azure tier only (review item per plan §5) */}
                   {assessment.prosodyMetrics != null ? (
-                    <div className="space-y-2 text-left bg-white/5 rounded-xl p-3 border border-white/5">
+                    <div className="flex flex-col gap-3 rounded-card border border-hairline bg-surface p-4 text-left">
                       <div className="flex items-center justify-between">
-                        <h3 className="text-[10px] font-bold text-ink-muted uppercase tracking-widest">Rhythm</h3>
-                        <span className="text-[8px] font-bold px-1.5 py-0.5 rounded-md uppercase bg-cyan-500/10 text-cyan-400">derived</span>
+                        <h3 className="text-eyebrow text-ink-subtle">Rhythm</h3>
+                        <span className="rounded-pill bg-info-soft px-2 py-0.5 text-caption font-semibold text-info-text">Derived</span>
                       </div>
                       <div className="grid grid-cols-3 gap-2 text-center">
-                        <div>
-                          <p className="text-sm font-black text-white">{assessment.prosodyMetrics.speechRateWpm !== null ? Math.round(assessment.prosodyMetrics.speechRateWpm) : '—'}</p>
-                          <p className="text-[8px] text-ink-muted uppercase">Words/min</p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-black text-white">{assessment.prosodyMetrics.pauseCount ?? '—'}</p>
-                          <p className="text-[8px] text-ink-muted uppercase">Pauses</p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-black text-white">
-                            {assessment.prosodyMetrics.rhythmRegularity !== null ? Math.round(assessment.prosodyMetrics.rhythmRegularity * 100) : '—'}
-                          </p>
-                          <p className="text-[8px] text-ink-muted uppercase">Regularity</p>
-                        </div>
+                        <Metric value={assessment.prosodyMetrics.speechRateWpm !== null ? Math.round(assessment.prosodyMetrics.speechRateWpm) : '—'} label="Words/min" />
+                        <Metric value={assessment.prosodyMetrics.pauseCount ?? '—'} label="Pauses" />
+                        <Metric
+                          value={assessment.prosodyMetrics.rhythmRegularity !== null ? Math.round(assessment.prosodyMetrics.rhythmRegularity * 100) : '—'}
+                          label="Regularity"
+                        />
                       </div>
                       {bestForPhrase && bestForPhrase.score !== null && (
-                        <p className="text-[10px] text-ink-muted pt-1">
-                          Your best on this phrase so far: {Math.round(bestForPhrase.score)}
+                        <p className="text-[13px] text-ink-muted">
+                          Your best on this phrase so far: <span className="font-numeral text-ink">{Math.round(bestForPhrase.score)}</span>
                         </p>
                       )}
                     </div>
                   ) : (
-                    <p className="text-[10px] text-ink-muted text-left px-1">
+                    <p className="text-left text-[13px] text-ink-subtle">
                       Rhythm analysis needs the full analyzer — not available for this attempt.
                     </p>
                   )}
 
                   {assessment.coaching && (
-                    <div className="p-4 rounded-2xl bg-white/5 border border-white/5 text-left space-y-2">
-                      <p className="text-xs text-ink-muted leading-relaxed italic">"{assessment.coaching.summary}"</p>
-                      <p className="text-[11px] text-cyan-400 font-bold">Next: {assessment.coaching.topPriority}</p>
-                      {assessment.coaching.tips.map((tip, i) => (
-                        <p key={i} className="text-[10px] text-ink-muted">• {tip}</p>
-                      ))}
+                    <div className="flex flex-col gap-1.5 rounded-card bg-action-soft p-4 text-left">
+                      <p className="text-[14px] leading-relaxed text-ink">{assessment.coaching.summary}</p>
+                      <p className="text-[13px] font-semibold text-action-text">Next: {assessment.coaching.topPriority}</p>
+                      {assessment.coaching.tips.length > 0 && (
+                        <ul className="list-disc pl-5 text-[13px] text-ink-muted">
+                          {assessment.coaching.tips.map((tip, i) => (
+                            <li key={i}>{tip}</li>
+                          ))}
+                        </ul>
+                      )}
                     </div>
                   )}
 
                   {quotaReason && quotaReason !== 'could_not_assess' && (
-                    <div className="flex items-start gap-2 text-left px-3 py-2 rounded-lg bg-slate-900/40 border border-white/5">
-                      <Lock size={12} className="flex-shrink-0 text-ink-muted mt-0.5" />
-                      <p className="text-[10px] text-ink-muted">{QUOTA_REASON_COPY[quotaReason] ?? 'Detailed feedback is unavailable right now.'}</p>
-                    </div>
+                    <p className="flex items-start gap-2 rounded-control bg-surface-recessed px-3 py-2.5 text-left text-[13px] text-ink-muted">
+                      <Lock size={14} className="mt-0.5 shrink-0" aria-hidden="true" />
+                      {QUOTA_REASON_COPY[quotaReason] ?? 'Detailed feedback is unavailable right now.'}
+                    </p>
                   )}
 
-                  <div className="flex gap-3 justify-center">
-                    <button onClick={reset} className="px-6 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-bold flex items-center gap-2 transition-all">
-                      <RotateCcw size={14} /> Try Again
-                    </button>
+                  <div className="flex flex-wrap justify-center gap-3">
+                    <Button variant={isSuccess ? 'secondary' : 'primary'} onClick={reset}>
+                      <RotateCcw size={16} aria-hidden="true" /> Try again
+                    </Button>
                     {isSuccess && (
-                      <button
-                        onClick={nextPhrase}
-                        className="px-6 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-white text-xs font-bold flex items-center gap-2 transition-all shadow-lg shadow-cyan-500/20"
-                      >
-                        Next Phrase <ChevronRight size={14} />
-                      </button>
+                      <Button onClick={nextPhrase}>
+                        Next phrase <ChevronRight size={16} aria-hidden="true" />
+                      </Button>
                     )}
                   </div>
                 </motion.div>
@@ -652,7 +555,16 @@ export function ShadowingPanel() {
             )}
           </AnimatePresence>
         </div>
-      </div>
+      </motion.section>
+    </div>
+  );
+}
+
+function Metric({ value, label }: { value: string | number; label: string }) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <span className="font-numeral text-[22px] leading-none text-ink">{value}</span>
+      <span className="text-caption text-ink-subtle">{label}</span>
     </div>
   );
 }
