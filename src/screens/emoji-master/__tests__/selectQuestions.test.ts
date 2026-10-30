@@ -4,6 +4,7 @@ import {
   drawNextQuestion,
   ensureMinPool,
   selectQuestions,
+  selectRetryRun,
 } from '../selectQuestions';
 import { MIN_POOL_SIZE } from '../types';
 
@@ -93,5 +94,19 @@ describe('selectQuestions', () => {
     );
     // First items should prefer difficulty 2–3
     expect([2, 3]).toContain(deck[0].difficulty);
+  });
+});
+
+describe('selectRetryRun', () => {
+  const pool = ['a', 'b', 'c', 'd', 'e'].map((id) => q({ id, category: 'food', difficulty: 1 }));
+
+  it('returns exactly the words asked for, in a fresh order, without padding', () => {
+    const out = selectRetryRun(pool, ['b', 'd'], seqRng([0.1, 0.9]));
+    expect(out.map((x) => x.id).sort()).toEqual(['b', 'd']);
+  });
+
+  it('allows a one-word round and drops unknown ids', () => {
+    expect(selectRetryRun(pool, ['c', 'gone']).map((x) => x.id)).toEqual(['c']);
+    expect(selectRetryRun(pool, ['gone'])).toEqual([]);
   });
 });

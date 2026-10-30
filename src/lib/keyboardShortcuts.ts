@@ -53,6 +53,13 @@ export const SHORTCUT_GROUPS: readonly ShortcutGroup[] = [
     ],
   },
   {
+    title: 'Emoji Master',
+    items: [
+      { keys: ['1', '4'], label: 'Pick the matching answer in Classic and Reverse', join: 'or' as const },
+      { keys: ['Enter'], label: 'Submit a typed answer, or go on after a miss' },
+    ],
+  },
+  {
     title: 'Anywhere',
     items: [
       { keys: ['?'], label: 'Show or hide this list' },

@@ -1,19 +1,18 @@
-import { useEffect, useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Sparkles } from 'lucide-react';
-import {
-  GameFeedbackOverlay,
-  FloatingXPOverlay,
-  StreakBadge,
-  GameHUD,
-  matchTypedAnswer,
-  useFloatingXP,
-  shakeAnimation,
-  shakeTransition,
-  getOverdriveCardClasses,
-} from '../../../features/minigames';
+import { useState } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
+import { Sparkles, Swords } from 'lucide-react';
+import { enter, enterReduced, fill } from '../../../components/motion/variants';
+import { Stat } from '../../../components/ui/Stat';
+import { matchTypedAnswer } from '../../../features/minigames';
 import { FEEDBACK_DWELL_MS } from '../types';
 import type { UseEmojiMasterRunResult } from '../useEmojiMasterRun';
+import { acceptableAnswers } from '../answers';
+import { SPIRIT_BY_CATEGORY } from '../modes';
+import { useLater, useTypedRound } from '../useRoundHelpers';
+import { AnswerReveal } from '../ui/AnswerReveal';
+import { EmojiStage } from '../ui/EmojiStage';
+import { ComboChip, Hearts, HudRow, ScoreChip } from '../ui/Hud';
+import { TypedAnswer } from '../ui/TypedAnswer';
 import {
   applyBossDamage,
   applyHeartLoss,
@@ -25,290 +24,181 @@ import {
   PLAYER_HEARTS,
 } from './arenaCombat';
 
-const TAUNTS = [
+// What the spirit says when you land a hit, and when you miss. The French is
+// short and the meaning obvious from the moment.
+const HIT_LINES = ['Aïe ! (Ouch!)', 'Touché !', 'Bien joué ! (Well played!)', 'Ça fait mal ! (That hurt!)'];
+const MISS_LINES = [
   'Decode me if you can!',
-  'Your vocabulary is weak!',
   'Is that all you know?',
-  'French power!',
+  'Encore ! (Again!)',
   'Try harder, élève!',
 ];
 
-interface ArenaModeProps {
-  run: UseEmojiMasterRunResult;
-  onQuit: () => void;
-}
+const pick = <T,>(items: T[]): T => items[Math.floor(Math.random() * items.length)];
 
-interface DamageFloat {
-  id: number;
-  value: number;
-  x: number;
-}
-
-export function ArenaMode({ run, onQuit }: ArenaModeProps) {
+export function ArenaMode({ run }: { run: UseEmojiMasterRunResult }) {
   const [bossHp, setBossHp] = useState(BOSS_HP);
   const [hearts, setHearts] = useState(PLAYER_HEARTS);
-  const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
-  const [userInput, setUserInput] = useState('');
-  const [shaking, setShaking] = useState(false);
-  const [bossShake, setBossShake] = useState(false);
-  const [taunt, setTaunt] = useState<string | null>(null);
-  const [damageFloats, setDamageFloats] = useState<DamageFloat[]>([]);
-  const lockedRef = useRef(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const nextFloatId = useRef(0);
-  const { items: floatingXPs, add: addFloatingXP } = useFloatingXP();
+  const [lastHit, setLastHit] = useState<number | null>(null);
+  const [line, setLine] = useState<string | null>(null);
+  const reduced = useReducedMotion();
+  const later = useLater();
 
   const q = run.currentQuestion;
+  const { value, setValue, reveal, setReveal, lockedRef, inputRef } = useTypedRound(q?.id);
   const overdrive = isOverdriveActive(run.streak);
 
-  useEffect(() => {
-    lockedRef.current = false;
-    setFeedback(null);
-    setUserInput('');
-    setShaking(false);
-    const id = window.setTimeout(() => inputRef.current?.focus(), 50);
-    return () => clearTimeout(id);
-  }, [q?.id]);
-
-  function spawnDamage(value: number) {
-    const id = nextFloatId.current++;
-    const x = Math.random() * 60 - 30;
-    setDamageFloats((prev) => [...prev, { id, value, x }]);
-    window.setTimeout(() => {
-      setDamageFloats((prev) => prev.filter((d) => d.id !== id));
-    }, 900);
-  }
-
-  function showTaunt() {
-    const t = TAUNTS[Math.floor(Math.random() * TAUNTS.length)];
-    setTaunt(t);
-    window.setTimeout(() => setTaunt(null), 2200);
-  }
-
-  function afterHit(
-    nextBossHp: number,
-    nextHearts: number,
-    dwellMs: number
-  ) {
-    window.setTimeout(() => {
-      if (isArenaVictory(nextBossHp, nextHearts)) {
-        run.endRun('victory');
-        return;
-      }
-      if (isArenaDefeat(nextHearts)) {
-        run.endRun('defeat');
-        return;
-      }
+  /** Ends the fight if it's decided, otherwise draws the next word. */
+  function proceed(nextBossHp: number, nextHearts: number) {
+    if (isArenaVictory(nextBossHp, nextHearts)) {
+      run.endRun('victory');
+    } else if (isArenaDefeat(nextHearts)) {
+      run.endRun('defeat');
+    } else {
+      setLastHit(null);
       run.advanceQuestion({ bossHpRatio: nextBossHp / BOSS_HP });
-    }, dwellMs);
+    }
   }
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (lockedRef.current || !q || !userInput.trim()) return;
+  function submit() {
+    if (lockedRef.current || !q || !value.trim()) return;
     lockedRef.current = true;
 
-    const isCorrect = matchTypedAnswer(userInput, q.french);
-
-    if (isCorrect) {
-      const nextStreak = run.streak + 1;
-      const damage = computeArenaDamage(nextStreak, q.difficulty);
+    if (matchTypedAnswer(value, acceptableAnswers(q))) {
+      const damage = computeArenaDamage(run.streak + 1, q.difficulty);
       const nextBossHp = applyBossDamage(bossHp, damage);
-
       run.recordAnswer({
-        userAnswer: userInput,
+        userAnswer: value,
         correctAnswer: q.french,
         isCorrect: true,
         promptKind: 'emoji',
         scoreDelta: damage,
       });
-
       setBossHp(nextBossHp);
-      setFeedback('correct');
-      spawnDamage(damage);
-      setBossShake(true);
-      window.setTimeout(() => setBossShake(false), 400);
-      addFloatingXP({ amount: Math.min(damage, 40), x: Math.random() * 40 - 20 });
-      afterHit(nextBossHp, hearts, FEEDBACK_DWELL_MS.correct);
+      setLastHit(damage);
+      setLine(pick(HIT_LINES));
+      setReveal({ kind: 'correct' });
+      later(() => proceed(nextBossHp, hearts), FEEDBACK_DWELL_MS.correct);
     } else {
       const nextHearts = applyHeartLoss(hearts);
       run.recordAnswer({
-        userAnswer: userInput,
+        userAnswer: value,
         correctAnswer: q.french,
         isCorrect: false,
         promptKind: 'emoji',
         scoreDelta: 0,
       });
       setHearts(nextHearts);
-      setFeedback('incorrect');
-      setShaking(true);
-      window.setTimeout(() => setShaking(false), 500);
-      showTaunt();
-      afterHit(bossHp, nextHearts, FEEDBACK_DWELL_MS.incorrect);
+      setLine(pick(MISS_LINES));
+      setReveal({ kind: 'miss', userAnswer: value.trim() });
     }
   }
 
   if (!q) return null;
 
   const hpPct = (bossHp / BOSS_HP) * 100;
-  const spiritEmoji =
-    run.runConfig?.category === 'animals'
-      ? '🐯'
-      : run.runConfig?.category === 'food'
-        ? '🥐'
-        : run.runConfig?.category === 'nature'
-          ? '🌲'
-          : run.runConfig?.category === 'objects'
-            ? '📦'
-            : run.runConfig?.category === 'sentences'
-              ? '💬'
-              : '🎨';
+  const enraged = bossHp <= BOSS_HP * 0.5;
+  const fightOver = isArenaDefeat(hearts);
 
   return (
-    <div className="space-y-5">
-      <GameHUD
-        left={
-          <button
-            type="button"
-            onClick={onQuit}
-            className="text-xs font-bold text-ink-muted hover:text-white"
-          >
-            Quit
-          </button>
-        }
-        center={
-          <div className="flex items-center gap-1">
-            {Array.from({ length: PLAYER_HEARTS }).map((_, i) => (
-              <Heart
-                key={i}
-                size={18}
-                className={
-                  i < hearts
-                    ? 'text-red-500 fill-red-500'
-                    : 'text-ink-subtle fill-slate-800'
-                }
-              />
-            ))}
-          </div>
-        }
+    <div className="flex flex-col gap-4">
+      <HudRow
+        left={<Hearts left={hearts} total={PLAYER_HEARTS} />}
         right={
           <>
-            <StreakBadge streak={run.streak} isOverdrive={overdrive} />
-            <div className="surface-raised px-3 py-1.5 rounded-full text-sm font-black text-amber-300">
-              DMG {run.score}
-            </div>
+            <ComboChip streak={run.streak} />
+            <ScoreChip label="Damage" value={run.score} icon={<Swords size={14} aria-hidden="true" />} />
           </>
         }
       />
 
-      {/* Boss spirit */}
-      <div className="relative surface-raised p-5 rounded-3xl border border-yellow-500/20">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <span className="text-3xl">{spiritEmoji}</span>
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-yellow-500">
-                Emoji Spirit
-              </p>
-              <p className="text-sm font-bold text-white">
-                {bossHp <= BOSS_HP * 0.5 ? 'Enraged!' : 'Challenging you'}
-              </p>
-            </div>
+      <motion.section
+        aria-label="Your opponent"
+        variants={reduced ? enterReduced : enter}
+        initial="hidden"
+        animate="show"
+        className="flex flex-col gap-3 rounded-card border border-hairline bg-surface p-4 shadow-card"
+      >
+        <div className="flex items-center gap-3">
+          <div
+            aria-hidden="true"
+            className="flex h-14 w-14 shrink-0 items-center justify-center rounded-card border border-hairline bg-surface-recessed text-[32px] leading-none"
+          >
+            {SPIRIT_BY_CATEGORY[run.runConfig?.category ?? 'all']}
           </div>
-          <span className="font-mono text-sm font-bold text-ink-muted">
-            {bossHp}/{BOSS_HP}
-          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-eyebrow uppercase text-ink-subtle">Emoji Spirit</p>
+            <p className={`text-[15px] font-semibold ${enraged ? 'text-correction-text' : 'text-ink'}`}>
+              {enraged ? 'Enraged' : 'Ready to duel'}
+            </p>
+          </div>
+          <div className="flex flex-col items-end">
+            <p className="font-numeral text-num-m text-ink">
+              {bossHp}
+              <span className="text-body-s text-ink-subtle"> / {BOSS_HP}</span>
+            </p>
+            {lastHit !== null && (
+              <motion.p
+                key={`${run.questionIndex}-${lastHit}`}
+                variants={reduced ? enterReduced : enter}
+                initial="hidden"
+                animate="show"
+                className="font-numeral text-label text-action-text"
+              >
+                −{lastHit}
+              </motion.p>
+            )}
+          </div>
         </div>
-        <div className="h-3 rounded-full bg-white/5 overflow-hidden border border-white/10">
+        <div
+          role="progressbar"
+          aria-label="Spirit health"
+          aria-valuemin={0}
+          aria-valuemax={BOSS_HP}
+          aria-valuenow={bossHp}
+          className="h-2 overflow-hidden rounded-pill bg-track"
+        >
           <motion.div
-            className={`h-full ${
-              bossHp <= BOSS_HP * 0.5 ? 'bg-red-500' : 'bg-amber-400'
-            }`}
+            className="h-full rounded-pill bg-action"
+            initial={false}
             animate={{ width: `${hpPct}%` }}
-            transition={{ type: 'spring', stiffness: 120, damping: 18 }}
+            transition={reduced ? { duration: 0.2 } : fill(0)}
           />
         </div>
+        <p aria-live="polite" className="min-h-5 text-body-s text-ink-muted">
+          {line ?? 'Decode the emoji to strike.'}
+        </p>
+      </motion.section>
 
-        <AnimatePresence>
-          {taunt && (
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              className="absolute -bottom-3 left-1/2 -translate-x-1/2 px-4 py-2 rounded-xl bg-slate-900 border border-white/10 text-xs font-bold text-white whitespace-nowrap z-10"
-            >
-              {taunt}
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {damageFloats.map((d) => (
-            <motion.div
-              key={d.id}
-              initial={{ opacity: 1, y: 0 }}
-              animate={{ opacity: 0, y: -40 }}
-              exit={{ opacity: 0 }}
-              className="absolute top-4 right-10 text-2xl font-black text-amber-400 pointer-events-none"
-              style={{ marginLeft: d.x }}
-            >
-              -{d.value}
-            </motion.div>
-          ))}
-        </AnimatePresence>
-
-        <motion.div
-          animate={bossShake ? { x: [-6, 6, -4, 4, 0] } : { x: 0 }}
-          transition={{ duration: 0.35 }}
-          className="absolute inset-0 pointer-events-none rounded-3xl"
-        />
-      </div>
-
-      <motion.div
-        key={q.id}
-        initial={{ scale: 0.85, opacity: 0 }}
-        animate={
-          shaking
-            ? { ...shakeAnimation, scale: 1, opacity: 1 }
-            : { scale: 1, opacity: 1, x: 0 }
+      <EmojiStage
+        questionKey={`${run.questionIndex}-${q.id}`}
+        prompt={q.emojis}
+        promptKind="emoji"
+        small={q.category === 'sentences'}
+        caption="Strike with the French word"
+        outcome={!reveal ? null : reveal.kind === 'correct' ? 'correct' : 'incorrect'}
+        badge={
+          overdrive ? (
+            <Stat role="streak" title="Overdrive" icon={<Sparkles size={14} aria-hidden="true" />}>
+              Double damage
+            </Stat>
+          ) : undefined
         }
-        transition={shaking ? shakeTransition : { type: 'spring', damping: 14 }}
-        className={`surface-raised p-8 rounded-3xl text-center relative ${getOverdriveCardClasses(overdrive)}`}
-      >
-        <FloatingXPOverlay items={floatingXPs} />
-        {overdrive && (
-          <div className="absolute top-3 left-1/2 -translate-x-1/2 flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-amber-400">
-            <Sparkles size={12} /> Overdrive ×2
-          </div>
-        )}
-        <div className="text-8xl md:text-9xl leading-none">{q.emojis}</div>
-        <p className="mt-4 text-ink-muted font-bold">Strike with the French word!</p>
-        <GameFeedbackOverlay
-          feedback={feedback}
-          correctAnswer={q.french}
-          variant="card"
-        />
-      </motion.div>
+        reveal={reveal ? <AnswerReveal kind={reveal.kind} question={q} userAnswer={reveal.userAnswer} /> : undefined}
+      />
 
-      <form onSubmit={handleSubmit} className="space-y-3">
-        <input
-          ref={inputRef}
-          autoFocus
-          type="text"
-          value={userInput}
-          onChange={(e) => setUserInput(e.target.value)}
-          disabled={!!feedback}
-          placeholder="Type to attack..."
-          className="w-full bg-white/5 border-2 border-yellow-500/20 rounded-2xl p-5 text-2xl font-bold text-white text-center focus:border-yellow-400 outline-none transition-all disabled:opacity-50"
-        />
-        <button
-          type="submit"
-          disabled={!!feedback || !userInput.trim()}
-          className="w-full py-4 bg-yellow-400 text-slate-950 font-black rounded-xl hover:bg-yellow-300 transition-all disabled:opacity-50"
-        >
-          ATTACK
-        </button>
-      </form>
+      <TypedAnswer
+        value={value}
+        onChange={setValue}
+        onSubmit={submit}
+        inputRef={inputRef}
+        locked={!!reveal}
+        onNext={reveal && reveal.kind !== 'correct' ? () => proceed(bossHp, hearts) : undefined}
+        nextLabel={fightOver ? 'See results' : 'Next'}
+        submitLabel="Attack"
+        placeholder="Type to attack"
+        hint={q.category === 'sentences' ? undefined : "Include le, la, l' or les"}
+      />
     </div>
   );
 }

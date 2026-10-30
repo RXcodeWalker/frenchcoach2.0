@@ -1,190 +1,106 @@
-import { useEffect, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
-import {
-  GameFeedbackOverlay,
-  FloatingXPOverlay,
-  StreakBadge,
-  GameHUD,
-  GameTimerBar,
-  matchTypedAnswer,
-  useFloatingXP,
-  useGameTimer,
-  shakeAnimation,
-  shakeTransition,
-  getOverdriveCardClasses,
-} from '../../../features/minigames';
-import {
-  FEEDBACK_DWELL_MS,
-  HARDCORE_SECONDS_BY_DIFFICULTY,
-} from '../types';
+import { useEffect } from 'react';
+import { matchTypedAnswer, useGameTimer } from '../../../features/minigames';
+import { FEEDBACK_DWELL_MS, HARDCORE_SECONDS_BY_DIFFICULTY } from '../types';
 import type { UseEmojiMasterRunResult } from '../useEmojiMasterRun';
+import { acceptableAnswers } from '../answers';
+import { useLater, useTypedRound } from '../useRoundHelpers';
+import { AnswerReveal } from '../ui/AnswerReveal';
+import { EmojiStage } from '../ui/EmojiStage';
+import { ComboChip, HudRow, ProgressCells, ScoreChip, TimerBar } from '../ui/Hud';
+import { TypedAnswer } from '../ui/TypedAnswer';
 
-interface HardcoreModeProps {
-  run: UseEmojiMasterRunResult;
-  onQuit: () => void;
-}
-
-export function HardcoreMode({ run, onQuit }: HardcoreModeProps) {
-  const [feedback, setFeedback] = useState<'correct' | 'incorrect' | 'timeout' | null>(null);
-  const [userInput, setUserInput] = useState('');
-  const [shaking, setShaking] = useState(false);
-  const lockedRef = useRef(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const { items: floatingXPs, add: addFloatingXP } = useFloatingXP();
-
+export function HardcoreMode({ run }: { run: UseEmojiMasterRunResult }) {
   const q = run.currentQuestion;
-  const initialSeconds = q
-    ? HARDCORE_SECONDS_BY_DIFFICULTY[q.difficulty]
-    : 8;
+  const round = useTypedRound(q?.id);
+  const { value, setValue, reveal, setReveal, lockedRef, inputRef } = round;
+  const later = useLater();
 
   const timer = useGameTimer({
     mode: 'perQuestion',
-    initialSeconds,
-    active: run.phase === 'playing' && !feedback,
-    onExpire: () => handleMiss('timeout'),
+    initialSeconds: q ? HARDCORE_SECONDS_BY_DIFFICULTY[q.difficulty] : 8,
+    criticalThreshold: 3,
+    active: run.phase === 'playing' && !reveal,
+    onExpire: () => miss('timeout'),
   });
 
   useEffect(() => {
-    lockedRef.current = false;
-    setFeedback(null);
-    setUserInput('');
-    setShaking(false);
-    if (q) {
-      timer.reset(HARDCORE_SECONDS_BY_DIFFICULTY[q.difficulty]);
-    }
-    const id = window.setTimeout(() => inputRef.current?.focus(), 50);
-    return () => clearTimeout(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- reset only on question change
+    if (q) timer.reset(HARDCORE_SECONDS_BY_DIFFICULTY[q.difficulty]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reset only when the question changes
   }, [q?.id]);
 
-  function finishAfterFeedback(isCorrect: boolean) {
-    const dwell = isCorrect ? FEEDBACK_DWELL_MS.correct : FEEDBACK_DWELL_MS.incorrect;
-    window.setTimeout(() => {
-      const advanced = run.advanceQuestion();
-      if (!advanced) run.endRun('completed');
-    }, dwell);
-  }
+  const next = () => {
+    if (!run.advanceQuestion()) run.endRun('completed');
+  };
 
-  function handleMiss(kind: 'incorrect' | 'timeout') {
+  function miss(kind: 'miss' | 'timeout') {
     if (lockedRef.current || !q) return;
     lockedRef.current = true;
-    setFeedback(kind);
-    setShaking(true);
-    window.setTimeout(() => setShaking(false), 500);
+    const typed = value.trim();
+    setReveal({ kind, userAnswer: kind === 'miss' ? typed : undefined });
     run.recordAnswer({
-      userAnswer: userInput || '(timeout)',
+      userAnswer: typed || '(no answer)',
       correctAnswer: q.french,
       isCorrect: false,
       promptKind: 'emoji',
       scoreDelta: 0,
     });
-    finishAfterFeedback(false);
   }
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (lockedRef.current || !q || !userInput.trim()) return;
-    lockedRef.current = true;
-
-    const isCorrect = matchTypedAnswer(userInput, q.french);
-    run.recordAnswer({
-      userAnswer: userInput,
-      correctAnswer: q.french,
-      isCorrect,
-      promptKind: 'emoji',
-      scoreDelta: isCorrect ? 1 : 0,
-    });
-
-    if (isCorrect) {
-      setFeedback('correct');
-      addFloatingXP({ amount: 15, x: Math.random() * 40 - 20 });
-      finishAfterFeedback(true);
-    } else {
-      setFeedback('incorrect');
-      setShaking(true);
-      window.setTimeout(() => setShaking(false), 500);
-      finishAfterFeedback(false);
+  function submit() {
+    if (lockedRef.current || !q || !value.trim()) return;
+    if (!matchTypedAnswer(value, acceptableAnswers(q))) {
+      miss('miss');
+      return;
     }
+    lockedRef.current = true;
+    setReveal({ kind: 'correct' });
+    run.recordAnswer({
+      userAnswer: value,
+      correctAnswer: q.french,
+      isCorrect: true,
+      promptKind: 'emoji',
+      scoreDelta: 1,
+    });
+    later(next, FEEDBACK_DWELL_MS.correct);
   }
 
   if (!q) return null;
+  const isLast = run.questionIndex >= run.deckLength - 1;
 
   return (
-    <div className="space-y-6">
-      <GameHUD
-        left={
-          <button
-            type="button"
-            onClick={onQuit}
-            className="text-xs font-bold text-ink-muted hover:text-white"
-          >
-            Quit
-          </button>
-        }
-        center={
-          <span className="text-[10px] font-black uppercase tracking-widest text-purple-400">
-            {run.questionIndex + 1} / {run.deckLength} · Hardcore
-          </span>
-        }
+    <div className="flex flex-col gap-4">
+      <HudRow
+        left={<>Question {run.questionIndex + 1} of {run.deckLength}</>}
         right={
           <>
-            <StreakBadge streak={run.streak} isOverdrive={run.isOverdrive} />
-            <div className="surface-raised px-3 py-1.5 rounded-full text-sm font-black text-white">
-              {run.score}
-            </div>
+            <ComboChip streak={run.streak} />
+            <ScoreChip label="Score" value={run.score} />
           </>
         }
       />
-
-      <GameTimerBar
-        timeLeft={timer.timeLeft}
-        maxTime={timer.maxTime}
-        isCritical={timer.isCritical}
-        isOverdrive={run.isOverdrive}
-        accentColor="purple"
-        showLabel={false}
+      <ProgressCells total={run.deckLength} index={run.questionIndex} history={run.history} />
+      <TimerBar timeLeft={timer.timeLeft} maxTime={timer.maxTime} critical={timer.isCritical} />
+      <EmojiStage
+        questionKey={q.id}
+        prompt={q.emojis}
+        promptKind="emoji"
+        small={q.category === 'sentences'}
+        caption="Type the French word"
+        outcome={!reveal ? null : reveal.kind === 'correct' ? 'correct' : 'incorrect'}
+        reveal={reveal ? <AnswerReveal kind={reveal.kind} question={q} userAnswer={reveal.userAnswer} /> : undefined}
       />
-
-      <motion.div
-        key={q.id}
-        initial={{ scale: 0.85, opacity: 0 }}
-        animate={
-          shaking
-            ? { ...shakeAnimation, scale: 1, opacity: 1 }
-            : { scale: 1, opacity: 1, x: 0 }
-        }
-        transition={shaking ? shakeTransition : { type: 'spring', damping: 14 }}
-        className={`surface-raised p-8 rounded-3xl text-center relative ${getOverdriveCardClasses(run.isOverdrive)}`}
-      >
-        <FloatingXPOverlay items={floatingXPs} />
-        <div className="text-8xl md:text-9xl leading-none">{q.emojis}</div>
-        <p className="mt-4 text-ink-muted font-bold">Type the French word</p>
-        <GameFeedbackOverlay
-          feedback={feedback}
-          correctAnswer={q.french}
-          variant="card"
-        />
-      </motion.div>
-
-      <form onSubmit={handleSubmit} className="space-y-3">
-        <input
-          ref={inputRef}
-          autoFocus
-          type="text"
-          value={userInput}
-          onChange={(e) => setUserInput(e.target.value)}
-          disabled={!!feedback}
-          placeholder="Type your answer..."
-          className="w-full bg-white/5 border-2 border-white/10 rounded-2xl p-5 text-2xl font-bold text-white text-center focus:border-purple-500 outline-none transition-all disabled:opacity-50"
-        />
-        <button
-          type="submit"
-          disabled={!!feedback || !userInput.trim()}
-          className="w-full py-4 bg-purple-600 text-white font-black rounded-xl hover:bg-purple-500 transition-all disabled:opacity-50"
-        >
-          SUBMIT
-        </button>
-      </form>
+      <TypedAnswer
+        value={value}
+        onChange={setValue}
+        onSubmit={submit}
+        inputRef={inputRef}
+        locked={!!reveal}
+        onNext={reveal && reveal.kind !== 'correct' ? next : undefined}
+        nextLabel={isLast ? 'See results' : 'Next'}
+        submitLabel="Check"
+        placeholder="Type your answer"
+        hint={q.category === 'sentences' ? undefined : "Include le, la, l' or les"}
+      />
     </div>
   );
 }

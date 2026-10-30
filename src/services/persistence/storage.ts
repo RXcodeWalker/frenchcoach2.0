@@ -87,6 +87,8 @@ export const STORAGE_KEYS = {
   pendingSyncXpEventIds:   'frenchCoach_pendingSyncXpEventIds',
   // ── Emoji Master personal bests (versioned payload) ─────────────────────────────
   emojiMasterBests: 'frenchCoach_emojiMasterBests',
+  // ── Emoji Master word collection (versioned payload; local only, no XP) ──────────
+  emojiMasterWords: 'frenchCoach_emojiMasterWords',
   // ── Shop economy: mint queue + provisional balance cache (Shop plan §14.1, §14.7) ──
   pendingMintQueue:      'frenchCoach_pendingMintQueue',
   shopBalanceCache:      'frenchCoach_shopBalanceCache',

@@ -21,7 +21,7 @@ function makeCompletion(
     totalAnswered: 10,
     maxStreak: 4,
     history: [],
-    xpAwarded: 80,
+    isRetry: false,
     ...overrides,
   };
 }

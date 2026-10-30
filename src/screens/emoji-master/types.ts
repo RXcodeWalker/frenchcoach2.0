@@ -12,6 +12,11 @@ export type RunPhase = 'idle' | 'countdown' | 'playing' | 'finished';
 export interface RunConfig {
   mode: GameMode;
   category: EmojiCategory;
+  /**
+   * A retry round: ask only these words (fixed-length modes), in a fresh
+   * order. It still feeds the word collection but never a personal best.
+   */
+  questionIds?: string[];
 }
 
 export interface EmojiAnswerHistoryEntry {
@@ -34,7 +39,8 @@ export interface SessionCompletion {
   totalAnswered: number;
   maxStreak: number;
   history: EmojiAnswerHistoryEntry[];
-  xpAwarded: number;
+  /** True for a retry round (see `RunConfig.questionIds`). */
+  isRetry: boolean;
 }
 
 export interface ModeBestEntry {

@@ -9,8 +9,9 @@ import {
   buildEligiblePoolForRun,
   drawNextQuestion,
   selectQuestions,
+  selectRetryRun,
 } from './selectQuestions';
-import { buildSessionCompletion } from './scoring';
+import { buildSessionCompletion, isFixedLengthMode } from './scoring';
 import type {
   EmojiAnswerHistoryEntry,
   EndReason,
@@ -31,6 +32,8 @@ export interface RecordAnswerInput {
 export interface UseEmojiMasterRunResult {
   phase: RunPhase;
   runConfig: RunConfig | null;
+  /** True while a retry round (specific words, no personal best) is running. */
+  isRetry: boolean;
   currentQuestion: EmojiQuestion | null;
   questionIndex: number;
   deckLength: number;
@@ -137,11 +140,15 @@ export function useEmojiMasterRun(): UseEmojiMasterRunResult {
       );
       setEligiblePool(eligible);
 
-      if (
-        config.mode === 'classic' ||
-        config.mode === 'reverse' ||
-        config.mode === 'hardcore'
-      ) {
+      const retryDeck =
+        config.questionIds && isFixedLengthMode(config.mode)
+          ? selectRetryRun(EMOJI_QUESTIONS, config.questionIds)
+          : [];
+
+      if (retryDeck.length > 0) {
+        setDeck(retryDeck);
+        setRemaining([]);
+      } else if (isFixedLengthMode(config.mode)) {
         const selected = selectQuestions(EMOJI_QUESTIONS, {
           category: config.category,
           mode: config.mode,
@@ -241,11 +248,7 @@ export function useEmojiMasterRun(): UseEmojiMasterRunResult {
     (opts?: { bossHpRatio?: number }): boolean => {
       if (!runConfig) return false;
 
-      if (
-        runConfig.mode === 'classic' ||
-        runConfig.mode === 'reverse' ||
-        runConfig.mode === 'hardcore'
-      ) {
+      if (isFixedLengthMode(runConfig.mode)) {
         if (questionIndex >= deck.length - 1) {
           return false;
         }
@@ -283,12 +286,13 @@ export function useEmojiMasterRun(): UseEmojiMasterRunResult {
       totalAnswered: s.totalAnswered,
       maxStreak: Math.max(s.maxStreak, maxStreak),
       history: s.history,
+      isRetry: Boolean(runConfig?.questionIds),
     });
     setEndReason(reason);
     setCompletion(session);
     setPhase('finished');
     return session;
-  }, [completion, maxStreak]);
+  }, [completion, maxStreak, runConfig]);
 
   const resetToIdle = useCallback(() => {
     awardedRef.current = false;
@@ -324,6 +328,7 @@ export function useEmojiMasterRun(): UseEmojiMasterRunResult {
   return {
     phase,
     runConfig,
+    isRetry: Boolean(runConfig?.questionIds),
     currentQuestion,
     questionIndex,
     deckLength: deck.length,

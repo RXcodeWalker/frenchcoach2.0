@@ -1,57 +1,22 @@
 import { describe, it, expect } from 'vitest';
-import { buildSessionCompletion, computeXpAwarded } from '../scoring';
+import { buildSessionCompletion, isFixedLengthMode, missedQuestionIds } from '../scoring';
+import type { EmojiAnswerHistoryEntry } from '../types';
+
+function entry(questionId: string, isCorrect: boolean): EmojiAnswerHistoryEntry {
+  return {
+    questionId,
+    emojis: '🍎',
+    french: 'la pomme',
+    english: 'the apple',
+    promptKind: 'emoji',
+    userAnswer: 'x',
+    correctAnswer: 'la pomme',
+    isCorrect,
+  };
+}
 
 describe('scoring', () => {
-  it('returns 0 XP on quit', () => {
-    expect(
-      computeXpAwarded({
-        mode: 'classic',
-        endReason: 'quit',
-        correctAnswers: 10,
-        maxStreak: 10,
-      })
-    ).toBe(0);
-  });
-
-  it('applies mode multipliers and streak bonus', () => {
-    // classic: (5*10 + floor(5/5)*20) * 1 = 70
-    expect(
-      computeXpAwarded({
-        mode: 'classic',
-        endReason: 'completed',
-        correctAnswers: 5,
-        maxStreak: 5,
-      })
-    ).toBe(70);
-
-    // hardcore: 70 * 1.5 = 105
-    expect(
-      computeXpAwarded({
-        mode: 'hardcore',
-        endReason: 'completed',
-        correctAnswers: 5,
-        maxStreak: 5,
-      })
-    ).toBe(105);
-  });
-
-  it('adds victory bonus only for arena victory', () => {
-    const defeat = computeXpAwarded({
-      mode: 'arena',
-      endReason: 'defeat',
-      correctAnswers: 4,
-      maxStreak: 4,
-    });
-    const victory = computeXpAwarded({
-      mode: 'arena',
-      endReason: 'victory',
-      correctAnswers: 4,
-      maxStreak: 4,
-    });
-    expect(victory - defeat).toBe(50);
-  });
-
-  it('builds SessionCompletion with xpAwarded', () => {
+  it('builds a SessionCompletion that carries no XP', () => {
     const session = buildSessionCompletion({
       mode: 'blitz',
       endReason: 'timeout',
@@ -61,13 +26,33 @@ describe('scoring', () => {
       maxStreak: 6,
       history: [],
     });
-    expect(session.xpAwarded).toBe(
-      computeXpAwarded({
-        mode: 'blitz',
-        endReason: 'timeout',
-        correctAnswers: 12,
-        maxStreak: 6,
-      })
-    );
+    expect(session).toMatchObject({ mode: 'blitz', modeScore: 12, isRetry: false });
+    expect(Object.keys(session).filter((k) => /xp/i.test(k))).toEqual([]);
+  });
+
+  it('marks a retry round', () => {
+    const session = buildSessionCompletion({
+      mode: 'classic',
+      endReason: 'completed',
+      modeScore: 2,
+      correctAnswers: 2,
+      totalAnswered: 2,
+      maxStreak: 2,
+      history: [],
+      isRetry: true,
+    });
+    expect(session.isRetry).toBe(true);
+  });
+
+  it('lists each missed word once, in the order first missed', () => {
+    const history = [entry('a', false), entry('b', true), entry('c', false), entry('a', false)];
+    expect(missedQuestionIds(history)).toEqual(['a', 'c']);
+    expect(missedQuestionIds([entry('a', true)])).toEqual([]);
+  });
+
+  it('knows which modes have a fixed list of words', () => {
+    expect(['classic', 'reverse', 'hardcore'].every((m) => isFixedLengthMode(m as never))).toBe(true);
+    expect(isFixedLengthMode('blitz')).toBe(false);
+    expect(isFixedLengthMode('arena')).toBe(false);
   });
 });

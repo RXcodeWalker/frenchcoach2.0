@@ -109,6 +109,23 @@ export function selectFixedRun(
 }
 
 /**
+ * A retry round: exactly the words asked for (unknown ids are dropped), in a
+ * fresh order. It is deliberately not padded to MIN_POOL_SIZE — one missed
+ * word is a valid one-question round.
+ */
+export function selectRetryRun(
+  pool: EmojiQuestion[],
+  ids: readonly string[],
+  rng: Rng = Math.random
+): EmojiQuestion[] {
+  const wanted = new Set(ids);
+  return shuffleInPlace(
+    pool.filter((q) => wanted.has(q.id)),
+    rng
+  );
+}
+
+/**
  * Draw next question without replacement; on exhaustion reshuffle excluding
  * last 3 shown when pool size allows.
  */

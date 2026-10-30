@@ -1,34 +1,15 @@
 import type { EndReason, GameMode, SessionCompletion } from './types';
 import type { EmojiAnswerHistoryEntry } from './types';
 
-const MODE_MULT: Record<GameMode, number> = {
-  classic: 1,
-  reverse: 1,
-  hardcore: 1.5,
-  blitz: 1.25,
-  arena: 1.25,
-};
+/**
+ * Emoji Master awards no XP for now (owner, 2026-10-30): nothing here, in the
+ * run hook or on the results screen may call `completeMinigameSession`,
+ * `dispatchAddXP` or write a Session. `noXp.test.ts` holds the line.
+ */
 
-export interface ComputeXpInput {
-  mode: GameMode;
-  endReason: EndReason;
-  correctAnswers: number;
-  maxStreak: number;
-}
-
-export function computeXpAwarded({
-  mode,
-  endReason,
-  correctAnswers,
-  maxStreak,
-}: ComputeXpInput): number {
-  if (endReason === 'quit') return 0;
-
-  const base = correctAnswers * 10;
-  const streakBonus = Math.floor(maxStreak / 5) * 20;
-  const modeMult = MODE_MULT[mode];
-  const victoryBonus = endReason === 'victory' ? 50 : 0;
-  return Math.floor((base + streakBonus) * modeMult + victoryBonus);
+/** Modes whose deck is a fixed list of words (so a retry round makes sense). */
+export function isFixedLengthMode(mode: GameMode): boolean {
+  return mode === 'classic' || mode === 'reverse' || mode === 'hardcore';
 }
 
 export interface BuildSessionCompletionInput {
@@ -39,18 +20,20 @@ export interface BuildSessionCompletionInput {
   totalAnswered: number;
   maxStreak: number;
   history: EmojiAnswerHistoryEntry[];
+  isRetry?: boolean;
 }
 
 export function buildSessionCompletion(
   input: BuildSessionCompletionInput
 ): SessionCompletion {
-  return {
-    ...input,
-    xpAwarded: computeXpAwarded({
-      mode: input.mode,
-      endReason: input.endReason,
-      correctAnswers: input.correctAnswers,
-      maxStreak: input.maxStreak,
-    }),
-  };
+  return { ...input, isRetry: input.isRetry ?? false };
+}
+
+/** Distinct words missed in a run, in the order first missed. */
+export function missedQuestionIds(history: readonly EmojiAnswerHistoryEntry[]): string[] {
+  const ids: string[] = [];
+  for (const h of history) {
+    if (!h.isCorrect && !ids.includes(h.questionId)) ids.push(h.questionId);
+  }
+  return ids;
 }

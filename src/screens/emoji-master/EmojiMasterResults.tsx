@@ -1,32 +1,68 @@
-import { useEffect, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
-import { CheckCircle2, Eye, RefreshCw, XCircle } from 'lucide-react';
-import {
-  GameResultsCard,
-  gradeFromStats,
-  RUBRICS,
-  completeMinigameSession,
-} from '../../features/minigames';
-import { useApp } from '../../context/AppContext';
-import { updatePersonalBest } from './emojiMasterStorage';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
+import { Check, Crosshair, Flame, RefreshCw, Target, Trophy } from 'lucide-react';
+import { EMOJI_QUESTIONS } from '../../data/emojiQuestions';
+import { gradeFromStats, RUBRICS, type LetterGrade } from '../../features/minigames';
+import { celebrate, enter, enterReduced, fill } from '../../components/motion/variants';
+import { CountUp } from '../../components/motion/CountUp';
+import { PageShell } from '../../components/layout/PageShell';
+import { TopContextBar } from '../../components/TopContextBar';
+import { Button } from '../../components/ui/Button';
+import { Stat } from '../../components/ui/Stat';
+import { getModeBest, shouldUpdatePersonalBest, updatePersonalBest } from './emojiMasterStorage';
+import { MODE_META } from './modes';
+import { isFixedLengthMode, missedQuestionIds } from './scoring';
+import { recordRun, summarizeCollection, type CollectionSummary } from './wordCollection';
+import { HearButton } from './ui/HearButton';
 import type { SessionCompletion } from './types';
 
 interface EmojiMasterResultsProps {
   completion: SessionCompletion;
   onPlayAgain: () => void;
+  /** Starts a retry round with these words (fixed-length modes only). */
+  onRetryMisses: (questionIds: string[]) => void;
   onChangeMode: () => void;
   onBackToExplore: () => void;
+}
+
+const TITLES: Record<SessionCompletion['endReason'], string> = {
+  victory: 'Victory',
+  defeat: 'Defeated',
+  timeout: "Time's up",
+  quit: 'Run ended',
+  completed: 'Round complete',
+};
+
+const GRADE_NOTE: Record<LetterGrade, string> = {
+  S: 'Flawless decoding.',
+  A: 'A strong run.',
+  B: 'Solid. A few words to firm up.',
+  C: 'Getting there. The misses below are your next words.',
+  D: 'Every miss is a word you now know. Go again.',
+};
+
+function Tile({ icon, label, children }: { icon: ReactNode; label: string; children: ReactNode }) {
+  return (
+    <div className="flex min-w-0 flex-col gap-1 rounded-card border border-hairline bg-surface p-4">
+      <div className="flex text-ink-muted">{icon}</div>
+      <p className="mt-1.5 font-numeral text-num-m text-ink">{children}</p>
+      <p className="text-[13px] font-normal text-ink-subtle">{label}</p>
+    </div>
+  );
 }
 
 export function EmojiMasterResults({
   completion,
   onPlayAgain,
+  onRetryMisses,
   onChangeMode,
   onBackToExplore,
 }: EmojiMasterResultsProps) {
-  const { dispatch } = useApp();
-  const [showReview, setShowReview] = useState(false);
-  const awardedRef = useRef(false);
+  const reduced = useReducedMotion();
+  const item = reduced ? enterReduced : enter;
+  const doneRef = useRef(false);
+  const [newBest, setNewBest] = useState(false);
+  const [collection, setCollection] = useState<{ summary: CollectionSummary; newlyMastered: number } | null>(null);
 
   const graded = gradeFromStats(
     {
@@ -40,156 +76,153 @@ export function EmojiMasterResults({
     'emojiMaster'
   );
 
+  // Emoji Master earns no XP for now (see scoring.ts): this only saves the
+  // personal best and the word collection, both local to this feature.
   useEffect(() => {
-    if (awardedRef.current) return;
-    awardedRef.current = true;
-    completeMinigameSession({ dispatch, score: completion.xpAwarded });
-    if (completion.endReason !== 'quit') {
-      updatePersonalBest(completion, graded.grade);
+    if (doneRef.current) return;
+    doneRef.current = true;
+    const result = recordRun(completion.history);
+    setCollection({
+      summary: summarizeCollection(result.collection, EMOJI_QUESTIONS),
+      newlyMastered: result.newlyMastered.length,
+    });
+    if (completion.endReason !== 'quit' && !completion.isRetry) {
+      const beats = shouldUpdatePersonalBest(completion.endReason, completion.modeScore, getModeBest(completion.mode));
+      if (beats) {
+        updatePersonalBest(completion, graded.grade);
+        setNewBest(true);
+      }
     }
-  }, [completion, dispatch, graded.grade]);
+  }, [completion, graded.grade]);
 
-  const title =
-    completion.endReason === 'victory'
-      ? 'Victory!'
-      : completion.endReason === 'defeat'
-        ? 'Defeated'
-        : completion.endReason === 'timeout'
-          ? 'Time!'
-          : completion.endReason === 'quit'
-            ? 'Run Ended'
-            : 'Results!';
-
-  const mistakes = completion.history.filter((h) => !h.isCorrect);
-
-  if (showReview) {
-    const rows = mistakes.length > 0 ? mistakes : completion.history;
-    return (
-      <div className="max-w-2xl mx-auto px-4 py-12">
-        <div className="flex items-center justify-between mb-8">
-          <h2 className="text-2xl font-black text-white italic">
-            {mistakes.length > 0 ? 'MISTAKE REVIEW' : 'SESSION REVIEW'}
-          </h2>
-          <button
-            type="button"
-            onClick={() => setShowReview(false)}
-            className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-bold text-white hover:bg-white/10"
-          >
-            Back to Results
-          </button>
-        </div>
-        <div className="space-y-3">
-          {rows.map((item, idx) => (
-            <motion.div
-              key={`${item.questionId}-${idx}`}
-              initial={{ opacity: 0, x: -16 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: idx * 0.04 }}
-              className={`surface-raised p-4 rounded-xl border-l-4 ${
-                item.isCorrect ? 'border-l-emerald-500' : 'border-l-red-500'
-              }`}
-            >
-              <div className="flex justify-between items-start gap-4">
-                <div>
-                  <p className="text-3xl mb-1">
-                    {item.promptKind === 'french' ? item.french : item.emojis}
-                  </p>
-                  <p className="text-[10px] font-bold text-ink-muted uppercase tracking-widest mb-1">
-                    {item.english}
-                  </p>
-                  <p className="text-lg font-bold text-white">{item.correctAnswer}</p>
-                  {!item.isCorrect && (
-                    <p className="text-sm text-red-400 mt-2 font-medium">
-                      Your answer: {item.userAnswer}
-                    </p>
-                  )}
-                </div>
-                {item.isCorrect ? (
-                  <CheckCircle2 size={18} className="text-emerald-500 shrink-0" />
-                ) : (
-                  <XCircle size={18} className="text-red-500 shrink-0" />
-                )}
-              </div>
-            </motion.div>
-          ))}
-          {rows.length === 0 && (
-            <p className="text-center text-ink-muted py-8">No answers recorded.</p>
-          )}
-        </div>
-      </div>
-    );
-  }
+  const meta = MODE_META[completion.mode];
+  const missedIds = missedQuestionIds(completion.history);
+  const missed = missedIds
+    .map((id) => completion.history.find((h) => h.questionId === id && !h.isCorrect))
+    .filter((h): h is NonNullable<typeof h> => !!h);
+  const canRetry = missed.length > 0 && isFixedLengthMode(completion.mode);
 
   return (
-    <GameResultsCard
-      grade={graded.grade}
-      gradeColor={graded.gradeColor}
-      title={title}
-      subtitle={
-        graded.message ?? (
-          <>
-            <span className={`font-bold ${graded.gradeColor}`}>{graded.grade}</span> rank ·{' '}
-            {completion.endReason}
-          </>
-        )
-      }
-      stats={[
-        { label: 'Mode Score', value: completion.modeScore, valueClassName: 'text-3xl' },
-        {
-          label: 'Max Streak',
-          value: completion.maxStreak,
-          valueClassName: 'text-3xl text-orange-400',
-        },
-        {
-          label: 'Accuracy',
-          value: `${graded.accuracy}%`,
-          valueClassName: 'text-blue-400',
-        },
-        {
-          label: 'XP',
-          value: `+${completion.xpAwarded}`,
-          valueClassName: 'text-yellow-400',
-        },
-      ]}
-      borderClassName="border-yellow-500/20"
-      actions={
-        <>
-          <motion.button
-            type="button"
-            onClick={() => setShowReview(true)}
-            className="w-full py-3 bg-white/5 border border-white/10 text-white font-bold rounded-xl hover:bg-white/10 transition-all flex items-center justify-center gap-2"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+    <>
+      <TopContextBar title="Emoji Master" subtitle={`${meta.title} · results`} showBack onBack={onBackToExplore} backLabel="Back to Explore" />
+      <PageShell maxWidth="md" gap={16}>
+        <motion.section variants={item} className="flex flex-col items-center gap-3 rounded-card border border-hairline bg-surface p-6 text-center shadow-card">
+          <div
+            aria-label={`Rank ${graded.grade}`}
+            className="flex h-16 w-16 items-center justify-center rounded-card bg-action-soft font-numeral text-[36px] leading-none text-action-text"
           >
-            <Eye size={16} />
-            REVIEW
-          </motion.button>
-          <motion.button
-            type="button"
-            onClick={onPlayAgain}
-            className="w-full py-4 bg-white text-slate-950 font-black rounded-xl hover:bg-slate-200 transition-all flex items-center justify-center gap-2"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <RefreshCw size={18} />
-            PLAY AGAIN
-          </motion.button>
-          <button
-            type="button"
-            onClick={onChangeMode}
-            className="w-full py-3 bg-white/5 border border-white/10 text-white font-bold rounded-xl hover:bg-white/10"
-          >
-            CHANGE MODE
-          </button>
-          <button
-            type="button"
-            onClick={onBackToExplore}
-            className="text-xs font-bold text-ink-muted hover:text-white transition-colors py-2"
-          >
-            Back to Explore
-          </button>
-        </>
-      }
-    />
+            {graded.grade}
+          </div>
+          <div>
+            <h1 className="text-h2 text-ink">{TITLES[completion.endReason]}</h1>
+            <p className="mt-1 text-body-s text-ink-muted">
+              {completion.correctAnswers} of {completion.totalAnswered} right. {GRADE_NOTE[graded.grade]}
+            </p>
+          </div>
+          {newBest && (
+            <motion.div variants={reduced ? enterReduced : celebrate} initial="hidden" animate="show">
+              <Stat role="progress" soft icon={<Trophy size={14} aria-hidden="true" />}>
+                New personal best
+              </Stat>
+            </motion.div>
+          )}
+          {completion.isRetry && <p className="text-caption text-ink-subtle">Retry rounds don't change your personal best.</p>}
+        </motion.section>
+
+        <motion.div variants={item} className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <Tile icon={<Target size={18} aria-hidden="true" />} label={meta.scoreLabel}>
+            <CountUp value={completion.modeScore} />
+          </Tile>
+          <Tile icon={<Flame size={18} aria-hidden="true" className="text-streak-text" />} label="Best combo">
+            <CountUp value={completion.maxStreak} />
+          </Tile>
+          <Tile icon={<Crosshair size={18} aria-hidden="true" />} label="Accuracy">
+            <CountUp value={graded.accuracy} />%
+          </Tile>
+          <Tile icon={<Check size={18} aria-hidden="true" className="text-progress-text" />} label="Words right">
+            <CountUp value={completion.correctAnswers} />
+            <span className="text-body-s text-ink-subtle"> / {completion.totalAnswered}</span>
+          </Tile>
+        </motion.div>
+
+        {collection && (
+          <motion.section variants={item} aria-label="Your collection" className="flex flex-col gap-3 rounded-card border border-hairline bg-surface p-5 shadow-card">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <h2 className="text-section text-ink">Your collection</h2>
+              <p className="text-body-s text-ink-muted">
+                <span className="font-numeral">{collection.summary.mastered}</span> of {collection.summary.total} words mastered
+                {collection.newlyMastered > 0 && (
+                  <span className="ml-2 font-semibold text-progress-text">+{collection.newlyMastered} new</span>
+                )}
+              </p>
+            </div>
+            <div className="h-2 overflow-hidden rounded-pill bg-track">
+              <motion.div
+                className="h-full rounded-pill bg-progress"
+                initial={reduced ? false : { width: 0 }}
+                animate={{ width: `${(collection.summary.mastered / Math.max(1, collection.summary.total)) * 100}%` }}
+                transition={reduced ? { duration: 0.2 } : fill()}
+              />
+            </div>
+          </motion.section>
+        )}
+
+        <motion.section variants={item} aria-label="Words to revisit" className="flex flex-col gap-3 rounded-card border border-hairline bg-surface p-5 shadow-card">
+          <h2 className="text-section text-ink">Words to revisit</h2>
+          {missed.length === 0 ? (
+            <p className="flex items-center gap-2 text-body-s text-progress-text">
+              <Check size={16} aria-hidden="true" />
+              {completion.totalAnswered === 0 ? 'No answers this run.' : 'No misses. Every word decoded.'}
+            </p>
+          ) : (
+            <ul className="flex flex-col divide-y divide-hairline">
+              {missed.map((m) => (
+                <li key={m.questionId} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
+                  <span
+                    className={`flex h-12 min-w-12 shrink-0 items-center justify-center rounded-control bg-surface-recessed px-2 leading-none ${
+                      m.emojis.length > 6 ? 'text-[20px]' : 'text-[28px]'
+                    }`}
+                  >
+                    {m.emojis}
+                  </span>
+                  <span className="flex min-w-0 flex-1 flex-col">
+                    <span className="text-[15px] font-semibold text-ink" lang="fr">
+                      {m.french}
+                    </span>
+                    <span className="text-body-s text-ink-subtle">{m.english}</span>
+                    {m.userAnswer && m.userAnswer !== '(no answer)' && (
+                      <span className="text-caption text-correction-text line-through" lang={m.promptKind === 'french' ? undefined : 'fr'}>
+                        {m.userAnswer}
+                      </span>
+                    )}
+                  </span>
+                  <HearButton text={m.french} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </motion.section>
+
+        <motion.div variants={item} className="flex flex-col gap-2">
+          <Button size="lg" onClick={onPlayAgain} className="w-full">
+            <RefreshCw size={18} aria-hidden="true" />
+            Play again
+          </Button>
+          {canRetry && (
+            <Button size="lg" variant="secondary" onClick={() => onRetryMisses(missedIds)} className="w-full">
+              Retry the {missedIds.length} missed {missedIds.length === 1 ? 'word' : 'words'}
+            </Button>
+          )}
+          <div className="flex gap-2">
+            <Button variant="quiet" onClick={onChangeMode} className="flex-1">
+              Change mode
+            </Button>
+            <Button variant="quiet" onClick={onBackToExplore} className="flex-1">
+              Back to Explore
+            </Button>
+          </div>
+        </motion.div>
+      </PageShell>
+    </>
   );
 }
