@@ -200,7 +200,7 @@ export function reconcileTotalFromLedger(ledgerTotal: number): void {
 // (populated by purchase_shop_item) is the authority for whether a freeze is
 // owned. analyticsService.updateStreak runs synchronously inside
 // orchestrateAttempt — a contract explicitly documented as synchronous and
-// relied on by Learn.tsx/ExamMode.tsx/WordDrop.tsx/DailyNewsFlash.tsx and
+// relied on by Learn.tsx/ExamMode.tsx/DailyNewsFlash.tsx and
 // sessionOrchestrator.test.ts — so it cannot await the consume_item RPC.
 //
 // The exactly-once guarantee lives in consume_item itself (replay-guarded,

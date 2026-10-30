@@ -14,7 +14,7 @@ export const FEATURE_FLAGS = {
   fluencyHeatmap:    'coming-soon',
   rapidFire:         'live',
   speedSpeaking:     'coming-soon',
-  wordDrop:          'coming-soon',
+  wordDrop:          'live',
   bossBattle:        'coming-soon',
   emojiMaster:       'live',
   survivalMode:      'coming-soon',

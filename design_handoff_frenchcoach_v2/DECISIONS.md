@@ -332,3 +332,39 @@ handoff left a gap or clashed with the codebase. Newest phase last.
 - **Practise missed words** runs a drill: the words missed, skipped or
   near-missed come round again until each has been typed right once.
 - **Not done:** no sound effects, no analytics events, no leaderboard.
+
+## Word Drop
+
+- **Rebuilt as a v2 game, with no role in XP (owner, 2026-10-30).** The old
+  screen awarded XP, wrote a `Session` and ran dark-theme styling. The new one
+  (`screens/WordDrop.tsx` + `features/wordDrop/`) never imports progression,
+  analytics, `AppContext`, the coach or sync, and never calls `awardXP`,
+  `ADD_SESSION` or `recordSession`; `wordDrop.isolation.test.ts` pins it. So a
+  round also adds nothing to the streak, mastery, review or evidence. Its one
+  write is a personal best per direction and pace plus the last setup
+  (`bestStore.ts`, key `wordDropBests`, local only). If the owner later wants
+  Word Drop to pay XP, that is a new decision, not a re-wiring of this file.
+- **Real vocabulary, not a 33-word list.** The pool is every playable
+  `keyVocab` pair in the Learn bank (about 2,450 words over the 16 core topics).
+  `wordPool.ts` drops frames ("je trouve que…"), alternatives ("utile/inutile")
+  and long phrases, and turns a multi-sense gloss into every accepted answer.
+- **Both directions.** French→English, or English→French (accents optional,
+  articles optional, `fascinant(e)` takes either ending).
+- **Forgiving matching.** Live typing clears on an exact answer unless it could
+  still become a longer one; Enter also accepts a typo or two on longer words.
+  A wrong Enter costs nothing.
+- **The loop that teaches.** A missed word returns "Again" after five spawns;
+  the results list what still got past, with a French voice (`HearButton`, only
+  with a real French voice) and a drill of just those words.
+- **Pacing.** Waves every eight clears (faster, tighter, more words at once),
+  a multiplier every five in a row, a heart back every ten. A hint (first
+  letter and length) appears once a word is low. The round pauses when the tab
+  is hidden, with Escape, or from the top bar.
+- **Motion.** The fall is the game itself, driven per frame; everything else
+  uses the named motions: `correct` (a missed word is struck through and its
+  answer drops in), `streak`, `fill` (wave bar), `celebrate` (new best),
+  `enter`. No shake, glow, confetti or hover scale. Under reduced motion a card
+  steps down in rows instead of gliding.
+- **Flag.** `wordDrop` is now `live` and the Explore tile was already there.
+- **Dropped from the old screen:** "Fun Mode" (random speed changes) and the
+  BETA badge.
