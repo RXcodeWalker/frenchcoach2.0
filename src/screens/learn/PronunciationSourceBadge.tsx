@@ -1,3 +1,4 @@
+import { Mic } from 'lucide-react';
 import type { PronunciationProvider } from '../../domain/pronunciation/types';
 
 interface Props {
@@ -22,10 +23,10 @@ export function PronunciationSourceBadge({ provider }: Props) {
 
   return (
     <div className="flex items-start gap-2.5 px-3 py-2 rounded-lg surface-recessed">
-      <span className="text-xs leading-none flex-shrink-0 mt-0.5">🎙️</span>
+      <Mic size={14} className="mt-0.5 shrink-0 text-ink-muted" aria-hidden="true" />
       <div className="flex-1 min-w-0">
-        <p className="text-[11px] font-bold text-ink-muted">Estimated pronunciation score</p>
-        <p className="text-[10px] text-ink-muted mt-0.5 leading-relaxed">
+        <p className="text-[13px] font-semibold text-ink">Estimated pronunciation score</p>
+        <p className="text-[13px] text-ink-muted mt-0.5 leading-relaxed">
           Estimated from speech-recognition confidence — not full pronunciation analysis. Set up Azure Speech for detailed feedback.
         </p>
       </div>
