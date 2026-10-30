@@ -1,9 +1,9 @@
 import type { LucideIcon } from 'lucide-react';
 import {
-  AudioLines, BarChart3, Bot, Brain, Building2, CalendarDays, Dices, Ear, Flame, Gauge, GitBranch, Gift,
-  GraduationCap, Handshake, Map, Medal, MessagesSquare, Mic, Mountain, Newspaper, Palmtree, Puzzle, Radar,
-  Rocket, Search, ShoppingBag, Smile, Sparkles, Swords, Target, Thermometer, Timer, Trophy, Users, Wrench, Zap,
-  BookOpen, Briefcase, CloudRain, Plane, Shield, ShoppingBasket, Stethoscope, Ticket,
+  AudioLines, Bot, Brain, Building2, CalendarDays, Dices, Ear, Flame, Gift,
+  Handshake, Map, Medal, Mountain, Newspaper, Palmtree, Puzzle, 
+  Rocket, Search, ShoppingBag, Smile, Sparkles, Swords, Target, Thermometer, Timer, Users, Wrench, Zap,
+  Briefcase, CloudRain, Plane, Shield, ShoppingBasket, Stethoscope, Ticket,
 } from 'lucide-react';
 
 /**
@@ -13,10 +13,7 @@ import {
  * `.topic-chip` OKLCH ground/ink pair), never for text, borders or fills.
  */
 const ICONS: Record<string, LucideIcon> = {
-  practice: BookOpen,
   ai_chat: Bot,
-  exam_sim: GraduationCap,
-  pronunciation: Mic,
   listening: Ear,
   speaking: AudioLines,
   daily_news: Newspaper,
@@ -28,15 +25,10 @@ const ICONS: Record<string, LucideIcon> = {
   weakness: Search,
   missions: CalendarDays,
   xp_shop: ShoppingBag,
-  achievements: Trophy,
   challenges: Swords,
-  leaderboard: BarChart3,
   seasonal: Sparkles,
-  skill_tree: GitBranch,
   roadmap: Map,
   mastery: Rocket,
-  analytics: Radar,
-  timeline: Gauge,
   rapid_fire: Zap,
   boss_battle: Flame,
   story_mode: Brain,
@@ -48,7 +40,6 @@ const ICONS: Record<string, LucideIcon> = {
   friends: Handshake,
   groups: Users,
   rankings: Medal,
-  shared: MessagesSquare,
 };
 
 const CATEGORY_HUES: Record<string, number> = {
