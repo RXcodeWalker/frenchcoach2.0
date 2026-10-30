@@ -123,10 +123,22 @@ export interface RebuildQuestion {
   id: string;
   english: string;
   french: string;
+  /** The correct words in order. Single words (no spaces) so a tile is always one word. */
   fragments: string[];
   explanation: string;
   theme: string;
   difficulty: 1 | 2 | 3;
+  /**
+   * Wrong-but-tempting words for the Sentence Rebuilder's "Tricky" mode: a wrong
+   * form of a word in the sentence, or a classic confusion. Never one that would
+   * make a correct translation. Optional: absent means no decoys.
+   */
+  distractors?: string[];
+  /**
+   * Other word orders that are equally correct (a fronted time phrase, the "si"
+   * clause moved), as plain sentences. Each must use exactly the same words.
+   */
+  alternatives?: string[];
 }
 
 export interface FeedbackScore {

@@ -22,7 +22,7 @@ export const FEATURES: FeatureCard[] = [
   { id: 'accent', title: 'Accent Analyzer', description: 'AI-powered accent scoring', icon: '🎯', category: 'Speak & Listen', color: '#06B6D4', locked: false, screen: 'accent-analyzer' },
   { id: 'story_mode', title: 'Story Mode', description: 'Learn through interactive stories', icon: '📖', category: 'Speak & Listen', color: '#10B981', locked: false, screen: 'story-mode' },
   { id: 'ai_chat', title: 'AI Conversations', description: 'Chat with an AI tutor in French', icon: '🤖', category: 'Speak & Listen', color: '#06B6D4', locked: true, badge: 'New' },
-  { id: 'sentence_rebuild', title: 'Sentence Rebuilder', description: 'Reconstruct sentences from fragments', icon: '🧩', category: 'Words & Grammar', color: '#10B981', locked: false, screen: 'sentence-rebuilder' },
+  { id: 'sentence_rebuild', title: 'Sentence Rebuilder', description: 'Put scrambled French words back in order', icon: '🧩', category: 'Words & Grammar', color: '#10B981', locked: false, screen: 'sentence-rebuilder', badge: 'New' },
   { id: 'rapid_fire', title: 'Rapid Fire', description: 'Translate as fast as you can', icon: '⚡', category: 'Words & Grammar', color: '#F59E0B', locked: false, screen: 'rapid-fire' },
   { id: 'word_drop', title: 'Word Drop', description: 'Type translations before words hit the ground!', icon: '☄️', category: 'Words & Grammar', color: '#10B981', locked: false, screen: 'word-drop', badge: 'New' },
   { id: 'emoji_master', title: 'Emoji Master', description: 'Decode French from emojis — Arena, Blitz, and more', icon: '🎨', category: 'Words & Grammar', color: '#FACC15', locked: false, screen: 'emoji-master', badge: 'New' },
