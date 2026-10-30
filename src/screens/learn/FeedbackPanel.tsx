@@ -9,9 +9,11 @@ interface Props {
   isLoading?: boolean;
   onRetry: () => void;
   onComplete: () => void;
+  /** The caller supplies its own Retry / continue buttons. */
+  hideActions?: boolean;
 }
 
-export function FeedbackPanel({ feedback, isLoading, onRetry, onComplete }: Props) {
+export function FeedbackPanel({ feedback, isLoading, onRetry, onComplete, hideActions = false }: Props) {
   if (isLoading || !feedback) {
     return (
       <motion.div
@@ -120,7 +122,7 @@ export function FeedbackPanel({ feedback, isLoading, onRetry, onComplete }: Prop
         </div>
       )}
 
-      <div className="flex gap-2">
+      {!hideActions && <div className="flex gap-2">
         <motion.button
           onClick={onRetry}
           className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl surface-recessed text-white font-semibold text-xs"
@@ -136,7 +138,7 @@ export function FeedbackPanel({ feedback, isLoading, onRetry, onComplete }: Prop
         >
           Next Question <ChevronRight size={13} />
         </motion.button>
-      </div>
+      </div>}
     </motion.div>
   );
 }

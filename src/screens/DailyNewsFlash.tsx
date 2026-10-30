@@ -1,30 +1,22 @@
-import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect, type CSSProperties } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import {
-  Play,
-  Pause,
-  RotateCcw,
-  Mic,
-  Info,
-  CheckCircle2,
-  Radio,
-  Eye,
-  EyeOff,
-  Sparkles,
-  AlertCircle
-} from 'lucide-react';
+import { AlertCircle, Check, Eye, Mic, Newspaper, RotateCcw, Zap } from 'lucide-react';
 import { useApp, dispatchAddXP } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { SpeakingConsentGate } from '../components/SpeakingConsentGate';
 import { useRecording } from '../features/recording/useRecording';
-import { Waveform } from '../features/recording/Waveform';
-import { RecordingPanel } from './learn/RecordingPanel';
+import { RecordingPanel, type ProcessingStep } from './learn/RecordingPanel';
 import { FeedbackPanel } from './learn/FeedbackPanel';
 import { getAIFeedback, getDailyNews } from '../services/api/apiClient';
 import { MOCK_NEWS, NewsSnippet } from '../data/mocks/mockNews';
 import { PageShell } from '../components/layout/PageShell';
 import { TopContextBar } from '../components/TopContextBar';
+import { Button } from '../components/ui/Button';
+import { enter, enterReduced, fill, stagger } from '../components/motion/variants';
+import { categoryHue } from '../features/explore/featureVisuals';
+import { NewsPlayer } from '../features/news/NewsPlayer';
+import { evaluateNewsReport, keywordsHeard, newsReportXp, splitSentences } from '../features/news/newsReport';
 import type { FeedbackV2, Question, Session } from '../types';
 import { STORAGE_KEYS } from '../services/persistence/storage';
 import { awardXP, checkAchievements, getProgressionState } from '../services/progression/progressionService';
@@ -36,9 +28,57 @@ import { getSkillProfile } from '../services/coaching/diagnosticEngine';
 type Phase = 'listening' | 'recording' | 'feedback';
 
 const CACHE_KEY = STORAGE_KEYS.newsCache;
+const TRANSCRIPT_COST_XP = 5;
+
+const STEPS: Array<{ id: Phase; label: string }> = [
+  { id: 'listening', label: 'Listen' },
+  { id: 'recording', label: 'Report' },
+  { id: 'feedback', label: 'Review' },
+];
+
+interface Coverage {
+  found: string[];
+  missed: string[];
+  xp: number;
+}
+
+function formatEdition(date: string): string {
+  const d = new Date(date);
+  return Number.isNaN(d.getTime())
+    ? date
+    : d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+}
+
+/** Listen → Report → Review, as a quiet three-step track. */
+function StepTrack({ phase }: { phase: Phase }) {
+  const at = STEPS.findIndex(s => s.id === phase);
+  return (
+    <ol className="flex items-center gap-2" aria-label="Progress">
+      {STEPS.map((step, i) => {
+        const done = i < at;
+        const current = i === at;
+        return (
+          <li key={step.id} className="flex flex-1 items-center gap-2" aria-current={current ? 'step' : undefined}>
+            <span
+              className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-pill text-caption font-semibold font-numeral
+                transition-colors duration-state ease-smooth
+                ${done ? 'bg-progress-soft text-progress-text' : current ? 'bg-action text-action-ink' : 'bg-track text-ink-subtle'}`}
+            >
+              {done ? <Check size={12} aria-hidden="true" /> : i + 1}
+            </span>
+            <span className={`text-label ${current ? 'text-ink' : done ? 'text-ink-muted' : 'text-ink-subtle'}`}>{step.label}</span>
+            {i < STEPS.length - 1 && <span aria-hidden="true" className="h-px flex-1 bg-hairline" />}
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
 
 export function DailyNewsFlash() {
   const navigate = useNavigate();
+  const reduced = useReducedMotion();
+  const item = reduced ? enterReduced : enter;
   const { state, dispatch } = useApp();
   const { consentStatus } = useAuth();
   const recording = useRecording(consentStatus === 'pending');
@@ -48,12 +88,11 @@ export function DailyNewsFlash() {
   const [isLoadingNews, setIsLoadingNews] = useState(true);
   const [isLive, setIsLive] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
   const [showTranscript, setShowTranscript] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [processing, setProcessing] = useState<ProcessingStep | null>(null);
   const [feedback, setFeedback] = useState<FeedbackV2 | null>(null);
-  
-  const audioRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const [coverage, setCoverage] = useState<Coverage | null>(null);
+  const [stopSignal, setStopSignal] = useState(0);
 
   useEffect(() => {
     loadNews();
@@ -66,10 +105,10 @@ export function DailyNewsFlash() {
     setIsLoadingNews(true);
     setError(null);
     setIsLive(false);
-    
+
     const today = new Date().toISOString().split('T')[0];
     const cached = localStorage.getItem(CACHE_KEY);
-    
+
     if (cached) {
       try {
         const parsed = JSON.parse(cached);
@@ -91,44 +130,29 @@ export function DailyNewsFlash() {
       localStorage.setItem(CACHE_KEY, JSON.stringify(news));
     } catch (err) {
       console.error("Failed to load dynamic news, falling back to mock:", err);
-      // Fallback to first mock snippet if API fails
+      // Fallback to a mock snippet if the API fails
       const fallback = MOCK_NEWS[Math.floor(Math.random() * MOCK_NEWS.length)];
       setCurrentNews(fallback);
       setIsLive(false);
-      setError("News server unavailable. Loading archival broadcast.");
+      setError("Today’s news couldn’t be loaded, so here is an archive story.");
     } finally {
       setIsLoadingNews(false);
     }
   };
 
-  const togglePlay = () => {
-    if (!currentNews) return;
-    if (isPlaying) {
-      window.speechSynthesis.cancel();
-      setIsPlaying(false);
-    } else {
-      const utterance = new SpeechSynthesisUtterance(currentNews.transcript);
-      utterance.lang = 'fr-FR';
-      utterance.onend = () => setIsPlaying(false);
-      audioRef.current = utterance;
-      window.speechSynthesis.speak(utterance);
-      setIsPlaying(true);
-    }
-  };
-
   const handleStartRecording = () => {
-    window.speechSynthesis.cancel();
-    setIsPlaying(false);
+    setStopSignal(n => n + 1);
     setPhase('recording');
     recording.start();
   };
 
   const handleStopRecording = async () => {
     if (!currentNews) return;
-    setIsProcessing(true);
+    setProcessing(0);
     const userTranscript = await recording.stop();
+    setProcessing(1);
     const wordCount = userTranscript.split(/\s+/).filter(Boolean).length;
-    
+
     const question: Question = {
       id: currentNews.id,
       text: `Résumez cette nouvelle : "${currentNews.headline}"`,
@@ -141,54 +165,25 @@ export function DailyNewsFlash() {
     };
 
     try {
-      // Build a specialized News Evaluator
-      const evaluateNewsReport = (transcript: string, news: NewsSnippet) => {
-        const lowerTranscript = transcript.toLowerCase();
-        const foundKeywords = news.keywords.filter(kw => lowerTranscript.includes(kw.toLowerCase()));
-        const keywordScore = (foundKeywords.length / news.keywords.length) * 10;
-        
-        // Length score (target ~25-40 words for a good summary)
-        const lengthScore = wordCount > 40 ? 10 : wordCount > 20 ? 8 : wordCount > 10 ? 5 : 2;
-        
-        // Overall dynamic score (average of keyword relevance and detail length)
-        const overall = Math.min(10, (keywordScore * 0.6) + (lengthScore * 0.4));
-        
-        return {
-          overall: Math.round(overall * 10) / 10,
-          foundKeywords,
-          keywordScore
-        };
-      };
-
+      // Keyword coverage + length is the real relevance score for this mode and
+      // drives Session.score/XP independently below — but it says nothing about
+      // language/fluency, so the AI feedback's own scores and unscored flag are
+      // left untouched here. Overwriting them previously left language/fluency
+      // at their offline placeholder 0 while looking graded (A2).
       const newsStats = evaluateNewsReport(userTranscript, currentNews);
       const fb = await getAIFeedback(userTranscript, question, undefined, recording.audioBlob || undefined);
 
-      // newsStats.overall (keyword coverage + length) is the real relevance
-      // score for this mode and drives Session.score/XP independently below —
-      // but it says nothing about language/fluency, so the AI feedback's own
-      // scores and unscored flag are left untouched here. Overwriting them
-      // previously left language/fluency at their offline placeholder 0 while
-      // looking graded (A2).
-
-      // Add custom news feedback to the style section or vocabulary
-      if (newsStats.foundKeywords.length < currentNews.keywords.length) {
-        const missing = currentNews.keywords.filter(kw => !newsStats.foundKeywords.includes(kw));
+      if (newsStats.missedKeywords.length > 0) {
         fb.style.push({
           label: 'Coverage',
-          suggestion: `Try to include more key facts like: ${missing.slice(0, 2).join(', ')}.`
+          suggestion: `Try to include more key facts like: ${newsStats.missedKeywords.slice(0, 2).join(', ')}.`
         });
       }
 
-      // Dynamic XP based on our calculated score
-      let xpEarned = Math.round(newsStats.overall * 2.5);
-      
-      // Strictness: Penalty for extremely short or irrelevant responses
-      if (wordCount < 5 || newsStats.overall < 3) {
-        xpEarned = Math.min(xpEarned, 5);
-      }
+      const xpEarned = newsReportXp(newsStats.overall, wordCount);
 
       setFeedback(fb);
-      
+
       const session: Session = {
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
         mode: 'daily_news',
@@ -202,7 +197,7 @@ export function DailyNewsFlash() {
         feedback: fb,
         createdAt: new Date().toISOString()
       };
-      
+
       persistSession(session);
       const xpResult = awardXP(newsStats.overall, state.profile.streak_days, 'daily_news');
       const { level: newLevel } = getProgressionState();
@@ -228,6 +223,7 @@ export function DailyNewsFlash() {
         topicKey: 'news',
       });
       dispatch({ type: 'UPDATE_SKILL_PROFILE', skillProfile: getSkillProfile() });
+      setCoverage({ found: newsStats.foundKeywords, missed: newsStats.missedKeywords, xp: xpResult.gain });
       setPhase('feedback');
     } catch (error) {
       console.error("Failed to get feedback:", error);
@@ -241,282 +237,290 @@ export function DailyNewsFlash() {
         cefrLevel: 'A1'
       };
       setFeedback(fallbackFb);
+      const heard = keywordsHeard(userTranscript, currentNews.keywords);
+      setCoverage({ found: heard, missed: currentNews.keywords.filter(kw => !heard.includes(kw)), xp: 5 });
       dispatchAddXP(dispatch, 5, 'daily_news');
       setPhase('feedback');
     } finally {
-      setIsProcessing(false);
+      setProcessing(null);
     }
   };
 
   const handleRevealTranscript = () => {
     setShowTranscript(true);
-    dispatchAddXP(dispatch, -5, 'daily_news');
+    dispatchAddXP(dispatch, -TRANSCRIPT_COST_XP, 'daily_news');
   };
 
   const handleRetry = () => {
+    setStopSignal(n => n + 1);
     setPhase('listening');
     setFeedback(null);
+    setCoverage(null);
     setShowTranscript(false);
+  };
+
+  const backToListening = () => {
+    setStopSignal(n => n + 1);
+    setPhase('listening');
+  };
+
+  const handleReloadLive = async () => {
+    setStopSignal(n => n + 1);
+    await loadNews();
   };
 
   if (isLoadingNews) {
     return (
-      <div className="flex flex-col min-h-screen">
-        <TopContextBar title="Le Journal du Jour" subtitle="Connecting to News Desk..." onBack={() => navigate('/explore')} />
-        <PageShell>
-          <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-              className="w-16 h-16 rounded-full border-4 border-violet-500 border-t-transparent"
-            />
-            <h2 className="text-xl font-black text-white italic uppercase tracking-widest animate-pulse">Gathering Stories...</h2>
-            <p className="text-ink-muted text-sm">Our AI reporters are drafting today's broadcast.</p>
-          </div>
+      <>
+        <TopContextBar title="Le Journal du Jour" subtitle="Fetching today’s story" showBack backLabel="Back to Explore" onBack={() => navigate('/explore')} />
+        <PageShell maxWidth="md" gap={16}>
+          <section
+            className="rounded-card border border-hairline bg-surface p-5 md:p-8"
+            aria-busy="true"
+            aria-live="polite"
+            data-testid="news-loading"
+          >
+            <p className="text-eyebrow uppercase text-ink-subtle">Today’s edition</p>
+            <div className="mt-3 h-6 w-2/3 rounded-control bg-track" aria-hidden="true" />
+            <div className="mt-6 h-16 rounded-card bg-surface-recessed" aria-hidden="true" />
+            <p className="mt-4 text-body-s text-ink-muted">Getting today’s story ready…</p>
+          </section>
         </PageShell>
-      </div>
+      </>
     );
   }
 
   if (!currentNews) return null;
 
+  const keywordsInProgress = phase === 'recording' ? keywordsHeard(recording.transcript, currentNews.keywords) : [];
+  const transcriptLines = splitSentences(currentNews.transcript);
+  const busy = recording.isRecording || processing !== null;
+  const chipStyle = { '--h': categoryHue('Speak & Listen') } as CSSProperties;
+
   return (
-    <div className="flex flex-col min-h-screen">
-      <TopContextBar 
-        title="Le Journal du Jour" 
-        subtitle={currentNews.headline}
+    <>
+      <TopContextBar
+        title="Le Journal du Jour"
+        subtitle="Listen, then report back in French"
+        showBack
+        backLabel="Back to Explore"
         onBack={() => navigate('/explore')}
       />
 
-      <PageShell>
-        <div className="max-w-2xl mx-auto space-y-8 pb-24">
-          <div className="flex items-center justify-between">
-            <div className={`flex items-center gap-2 px-3 py-1 rounded-full border text-[10px] font-black uppercase tracking-widest ${
-              isLive 
-                ? 'bg-rose-500/10 border-rose-500/20 text-rose-500 animate-pulse' 
-                : 'bg-slate-500/10 border-white/10 text-ink-muted'
-            }`}>
-              <div className={`w-1.5 h-1.5 rounded-full ${isLive ? 'bg-rose-500' : 'bg-slate-500'}`} />
-              {isLive ? 'Live Satellite Feed' : 'Archival Recording'}
+      <PageShell maxWidth="md" gap={16}>
+        <motion.section variants={item} className="rounded-card border border-hairline bg-surface p-5 md:p-8" aria-labelledby="news-headline">
+          <div className="flex items-start gap-3">
+            <span
+              aria-hidden="true"
+              className="topic-chip flex h-10 w-10 shrink-0 items-center justify-center"
+              style={{ ...chipStyle, borderRadius: 8 }}
+            >
+              <Newspaper size={20} strokeWidth={1.75} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-eyebrow uppercase text-ink-subtle">
+                {isLive ? 'Today’s edition' : 'Archive edition'} · {formatEdition(currentNews.date)}
+              </p>
+              <h2 id="news-headline" className="mt-1 text-title text-ink">{currentNews.headline}</h2>
             </div>
-            {error && (
-              <div className="flex items-center gap-1.5 text-amber-500 text-[10px] font-bold">
-                <AlertCircle size={12} /> Offline Mode
-              </div>
-            )}
           </div>
+          <div className="mt-5">
+            <StepTrack phase={phase} />
+          </div>
+          {error && (
+            <div role="status" className="mt-5 flex flex-col gap-3 rounded-control bg-reward-soft px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
+              <p className="flex items-start gap-2 text-body-s text-reward-text">
+                <AlertCircle size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
+                {error}
+              </p>
+              <Button variant="secondary" size="sm" onClick={handleReloadLive} className="shrink-0">
+                Try again
+              </Button>
+            </div>
+          )}
+        </motion.section>
 
-          <AnimatePresence mode="wait">
-            {phase === 'listening' && (
-              <motion.div
-                key="listening"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="space-y-8"
-              >
-                <div className="surface-raised p-8 rounded-3xl text-center space-y-6 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 p-6 opacity-5">
-                    <Radio size={120} className="text-violet-400" />
-                  </div>
+        {phase === 'listening' && (
+          <motion.div key="listening" variants={stagger} initial="hidden" animate="show" className="flex flex-col gap-4">
+            <motion.section variants={item} className="rounded-card border border-hairline bg-surface p-5 md:p-8" aria-labelledby="news-listen">
+              <h2 id="news-listen" className="text-section text-ink">Listen to the story</h2>
+              <p className="mt-1 text-body-s text-ink-muted">
+                Play it as often as you need. Note the main facts: who, what, where, when.
+              </p>
+              <div className="mt-5">
+                <NewsPlayer text={currentNews.transcript} stopSignal={stopSignal} />
+              </div>
 
-                  <div className="w-20 h-20 bg-violet-500/10 rounded-2xl flex items-center justify-center mx-auto border border-violet-500/20 shadow-lg">
-                    <Radio size={40} className="text-violet-400" />
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-center gap-2 mb-1">
-                      <Sparkles size={14} className="text-violet-400" />
-                      <span className="text-[10px] font-bold text-violet-400 uppercase tracking-wider">Active Broadcast</span>
+              <div className="mt-6 border-t border-hairline pt-5">
+                {showTranscript ? (
+                  <div data-testid="news-transcript">
+                    <p className="text-eyebrow uppercase text-ink-subtle">Transcript</p>
+                    <div className="mt-2 flex flex-col gap-2 rounded-control bg-surface-recessed p-4">
+                      {transcriptLines.map((line, i) => (
+                        <p key={i} lang="fr" className="text-body-s text-ink">{line}</p>
+                      ))}
                     </div>
-                    <h2 className="text-2xl font-black text-white italic uppercase tracking-tight">Phase 1: Listening</h2>
-                    <p className="text-ink-muted text-sm">Listen to the news snippet and prepare your verbal report.</p>
                   </div>
-
-                  <div className="py-4">
-                    <button
-                      onClick={togglePlay}
-                      className={`w-24 h-24 rounded-full flex items-center justify-center transition-all duration-500 group ${
-                        isPlaying 
-                          ? 'bg-rose-500 shadow-lg shadow-rose-500/40' 
-                          : 'bg-violet-600 shadow-lg shadow-violet-600/40 hover:scale-105'
-                      }`}
-                    >
-                      {isPlaying ? (
-                        <Pause size={32} className="text-white fill-white" />
-                      ) : (
-                        <Play size={32} className="text-white fill-white ml-2 group-hover:scale-110 transition-transform" />
-                      )}
-                    </button>
+                ) : (
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="text-body-s text-ink-muted">Stuck? You can read it, but it costs {TRANSCRIPT_COST_XP} XP.</p>
+                    <Button variant="secondary" size="sm" onClick={handleRevealTranscript} className="shrink-0" data-testid="news-reveal">
+                      <Eye size={16} aria-hidden="true" /> Show transcript
+                    </Button>
                   </div>
+                )}
+              </div>
+            </motion.section>
 
-                  {isPlaying && (
-                    <div className="w-full h-12">
-                      <Waveform data={Array(40).fill(0).map(() => Math.random() * 30 + 5)} isRecording={true} />
-                    </div>
-                  )}
-
-                  <div className="pt-4">
-                    <button
-                      onClick={handleRevealTranscript}
-                      disabled={showTranscript}
-                      className={`flex items-center gap-2 mx-auto px-4 py-2 rounded-xl border text-[10px] font-bold uppercase tracking-widest transition-all ${
-                        showTranscript 
-                          ? 'border-white/10 text-ink-muted bg-white/5' 
-                          : 'border-violet-500/30 text-violet-400 hover:bg-violet-500/10 active:scale-95'
-                      }`}
-                    >
-                      {showTranscript ? <Eye size={14} /> : <EyeOff size={14} />}
-                      {showTranscript ? 'Transcript Revealed' : 'Reveal Transcript (-5 XP)'}
-                    </button>
-                  </div>
-
-                  <AnimatePresence>
-                    {showTranscript && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        className="bg-navy-300/50 rounded-2xl p-6 text-left border border-white/5"
-                      >
-                        <p className="text-sm text-ink-muted leading-relaxed italic">"{currentNews.transcript}"</p>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+            <motion.section variants={item} className="rounded-card border border-hairline bg-surface p-5 md:p-6">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-label text-ink">Ready to report?</p>
+                  <p className="text-body-s text-ink-muted">Retell the story in French in two or three sentences.</p>
                 </div>
-
                 <SpeakingConsentGate>
-                  <button
-                    onClick={handleStartRecording}
-                    className="w-full py-5 bg-white text-slate-950 font-black rounded-2xl hover:bg-slate-200 transition-all uppercase italic tracking-wider flex items-center justify-center gap-3 shadow-xl active:scale-95"
-                  >
-                    <Mic size={22} /> I'm Ready to Report
-                  </button>
+                  <Button size="lg" onClick={handleStartRecording} className="sm:min-w-48" data-testid="news-start">
+                    <Mic size={18} aria-hidden="true" /> Start my report
+                  </Button>
                 </SpeakingConsentGate>
-              </motion.div>
-            )}
+              </div>
+            </motion.section>
+          </motion.div>
+        )}
 
-            {phase === 'recording' && (
-              <motion.div
-                key="recording"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="space-y-6"
-              >
-                <div className="surface-raised p-8 rounded-3xl text-center space-y-6 relative overflow-hidden">
-                  <div className="space-y-2">
-                    <span className="text-[10px] font-black text-violet-400 uppercase tracking-[0.3em]">Phase 2: Reporting</span>
-                    <h2 className="text-2xl font-black text-white italic">Summarize the Broadcast</h2>
-                    <p className="text-ink-muted text-sm">Explain in French what you just heard. Be concise.</p>
-                  </div>
+        {phase === 'recording' && (
+          <motion.div key="recording" variants={stagger} initial="hidden" animate="show" className="flex flex-col gap-4">
+            <motion.section variants={item} className="rounded-card border border-hairline bg-surface p-5 md:p-8" aria-labelledby="news-report">
+              <h2 id="news-report" className="text-section text-ink">Retell the story in French</h2>
+              <p className="mt-1 text-body-s text-ink-muted">Aim for about 40 words. Work in these key words if you can.</p>
+              <ul className="mt-4 flex flex-wrap gap-2" aria-label="Key words">
+                {currentNews.keywords.map(kw => {
+                  const used = keywordsInProgress.includes(kw);
+                  return (
+                    <li
+                      key={kw}
+                      className={`inline-flex min-h-8 items-center gap-1.5 rounded-pill border px-3 text-label
+                        transition-colors duration-state ease-smooth
+                        ${used ? 'border-transparent bg-progress-soft text-progress-text' : 'border-hairline-strong text-ink-muted'}`}
+                    >
+                      {used && <Check size={14} aria-hidden="true" />}
+                      {kw}
+                      {used && <span className="sr-only"> (used)</span>}
+                    </li>
+                  );
+                })}
+              </ul>
+            </motion.section>
 
-                  <div className="bg-violet-500/10 border border-violet-500/20 rounded-2xl p-5 flex gap-4 items-start text-left">
-                    <div className="w-10 h-10 rounded-xl bg-violet-500/20 flex items-center justify-center shrink-0">
-                      <Info size={20} className="text-violet-400" />
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-bold text-violet-400 uppercase tracking-widest mb-1.5">Editorial Guidelines</p>
-                      <p className="text-xs text-ink-muted mb-3 leading-relaxed">Try to include these keywords in your report:</p>
-                      <div className="flex flex-wrap gap-2">
-                        {currentNews.keywords.map(kw => (
-                          <span key={kw} className="text-[10px] bg-white/5 border border-white/5 px-2 py-1 rounded-lg text-ink-muted font-bold uppercase tracking-tight">
-                            #{kw}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
+            <motion.div variants={item}>
+              <RecordingPanel isActive={true} recording={recording} onStop={handleStopRecording} processing={processing} />
+            </motion.div>
 
-                  <div className="relative pt-6">
-                    <AnimatePresence>
-                      {isProcessing && (
-                        <motion.div 
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          className="absolute inset-0 z-20 surface rounded-2xl flex flex-col items-center justify-center bg-navy/80 backdrop-blur-sm"
-                        >
-                          <div className="w-12 h-12 border-4 border-violet-500 border-t-transparent rounded-full animate-spin mb-4" />
-                          <p className="text-violet-400 font-black uppercase tracking-widest italic text-lg">Analyzing Report...</p>
-                          <p className="text-ink-muted text-xs mt-2 italic">Our editors are reviewing your summary.</p>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                    <RecordingPanel 
-                      isActive={true}
-                      recording={recording}
-                      onStop={handleStopRecording}
-                    />
+            <motion.div variants={item} className="flex justify-center">
+              <Button variant="quiet" size="md" onClick={backToListening} disabled={busy}>
+                Listen to the story again
+              </Button>
+            </motion.div>
+          </motion.div>
+        )}
+
+        {phase === 'feedback' && feedback && (
+          <motion.div key="feedback" variants={stagger} initial="hidden" animate="show" className="flex flex-col gap-4">
+            {coverage && (
+              <motion.section variants={item} className="rounded-card border border-hairline bg-surface p-5 md:p-8" aria-labelledby="news-cover">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-eyebrow uppercase text-ink-subtle">Your report</p>
+                    <h2 id="news-cover" className="mt-1 text-section text-ink">
+                      You used <span className="font-numeral">{coverage.found.length}</span> of{' '}
+                      <span className="font-numeral">{currentNews.keywords.length}</span> key words
+                    </h2>
                   </div>
+                  {coverage.xp > 0 && (
+                    <span className="inline-flex shrink-0 items-center gap-1 rounded-pill bg-reward-soft px-3 py-1 text-label text-reward-text">
+                      <Zap size={14} aria-hidden="true" />
+                      <span className="font-numeral">+{coverage.xp}</span> XP
+                    </span>
+                  )}
                 </div>
-
-                <button
-                  onClick={() => setPhase('listening')}
-                  className="w-full py-4 bg-white/5 border border-white/10 text-ink-muted font-bold rounded-2xl hover:bg-white/10 transition-all uppercase text-[10px] tracking-widest"
+                <div
+                  role="progressbar"
+                  aria-label="Key words used"
+                  aria-valuemin={0}
+                  aria-valuemax={currentNews.keywords.length}
+                  aria-valuenow={coverage.found.length}
+                  className="mt-4 h-1.5 overflow-hidden rounded-pill bg-track"
                 >
-                  Return to Broadcast
-                </button>
-              </motion.div>
+                  <motion.span
+                    className="block h-full rounded-pill bg-progress"
+                    initial={{ width: reduced ? `${(coverage.found.length / Math.max(1, currentNews.keywords.length)) * 100}%` : 0 }}
+                    animate={{ width: `${(coverage.found.length / Math.max(1, currentNews.keywords.length)) * 100}%` }}
+                    transition={reduced ? { duration: 0 } : fill()}
+                  />
+                </div>
+                <ul className="mt-4 flex flex-wrap gap-2" aria-label="Key words">
+                  {coverage.found.map(kw => (
+                    <li key={kw} className="inline-flex min-h-8 items-center gap-1.5 rounded-pill bg-progress-soft px-3 text-label text-progress-text">
+                      <Check size={14} aria-hidden="true" /> {kw}
+                      <span className="sr-only"> (used)</span>
+                    </li>
+                  ))}
+                  {coverage.missed.map(kw => (
+                    <li key={kw} className="inline-flex min-h-8 items-center rounded-pill border border-hairline-strong px-3 text-label text-ink-muted">
+                      {kw}
+                      <span className="sr-only"> (missed)</span>
+                    </li>
+                  ))}
+                </ul>
+              </motion.section>
             )}
 
-            {phase === 'feedback' && feedback && (
-              <motion.div
-                key="feedback"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-6"
-              >
-                <div className="surface-raised rounded-3xl overflow-hidden border border-violet-500/20">
-                  <div className="bg-violet-500/10 p-4 border-b border-violet-500/10 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Radio size={16} className="text-violet-400" />
-                      <span className="text-[10px] font-black text-violet-400 uppercase tracking-widest">Edition Review</span>
-                    </div>
-                    <span className="text-[10px] font-bold text-ink-muted uppercase tracking-widest">{currentNews.date}</span>
-                  </div>
-
-                  <div className="p-6 space-y-6">
-                    {/* Broadcast Review Section */}
-                    <div className="space-y-4">
-                      <div className="space-y-1">
-                        <p className="text-[10px] font-black text-ink-muted uppercase tracking-widest">Original Broadcast (French)</p>
-                        <p className="text-sm text-white leading-relaxed font-medium">{currentNews.transcript}</p>
-                      </div>
-                      <div className="space-y-1 p-4 bg-white/5 rounded-2xl border border-white/5">
-                        <p className="text-[10px] font-black text-violet-400/70 uppercase tracking-widest">English Translation</p>
-                        <p className="text-xs text-ink-muted leading-relaxed italic">{currentNews.translation}</p>
-                      </div>
-                    </div>
-
-                    <div className="h-px bg-white/5" />
-
-                    <FeedbackPanel 
-                      feedback={feedback}
-                      onComplete={() => navigate('/explore')}
-                      onRetry={handleRetry}
-                    />
+            <motion.section variants={item} className="rounded-card border border-hairline bg-surface p-5 md:p-8" aria-labelledby="news-review">
+              <h2 id="news-review" className="text-section text-ink">The story</h2>
+              <div className="mt-4 grid gap-3 md:grid-cols-2">
+                <div className="rounded-control bg-surface-recessed p-4">
+                  <p className="text-eyebrow uppercase text-ink-subtle">French</p>
+                  <div className="mt-2 flex flex-col gap-2">
+                    {transcriptLines.map((line, i) => (
+                      <p key={i} lang="fr" className="text-body-s text-ink">{line}</p>
+                    ))}
                   </div>
                 </div>
-
-                
-                <div className="flex gap-4">
-                  <button
-                    onClick={handleRetry}
-                    className="flex-1 py-4 bg-white/5 border border-white/10 text-white font-bold rounded-2xl hover:bg-white/10 transition-all flex items-center justify-center gap-2 active:scale-95"
-                  >
-                    <RotateCcw size={18} /> Retry
-                  </button>
-                  <button
-                    onClick={() => navigate('/explore')}
-                    className="flex-[2] py-4 bg-violet-600 text-white font-black rounded-2xl hover:bg-violet-500 transition-all flex items-center justify-center gap-2 shadow-lg shadow-violet-600/20 active:scale-95"
-                  >
-                    Submit Report <CheckCircle2 size={18} />
-                  </button>
+                <div className="rounded-control bg-surface-recessed p-4">
+                  <p className="text-eyebrow uppercase text-ink-subtle">English</p>
+                  <p className="mt-2 text-body-s text-ink-muted">{currentNews.translation}</p>
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+              </div>
+              {currentNews.summaryPoints.length > 0 && (
+                <div className="mt-5">
+                  <p className="text-eyebrow uppercase text-ink-subtle">Key facts</p>
+                  <ul className="mt-2 flex flex-col gap-1.5">
+                    {currentNews.summaryPoints.map(point => (
+                      <li key={point} className="flex items-start gap-2 text-body-s text-ink-muted">
+                        <span aria-hidden="true" className="mt-2 h-1.5 w-1.5 shrink-0 rounded-pill bg-action" />
+                        {point}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </motion.section>
+
+            <motion.div variants={item}>
+              <FeedbackPanel feedback={feedback} onComplete={() => navigate('/explore')} onRetry={handleRetry} hideActions />
+            </motion.div>
+
+            <motion.div variants={item} className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <Button variant="secondary" size="lg" onClick={handleRetry} data-testid="news-retry">
+                <RotateCcw size={16} aria-hidden="true" /> Try again
+              </Button>
+              <Button size="lg" onClick={() => navigate('/explore')} className="sm:min-w-40" data-testid="news-done">
+                Done
+              </Button>
+            </motion.div>
+          </motion.div>
+        )}
       </PageShell>
-    </div>
+    </>
   );
 }
