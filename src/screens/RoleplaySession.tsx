@@ -278,11 +278,12 @@ function PlayPhase({
       }
       const language: LanguageResult = isUnscored(fb) ? { kind: 'unscored', feedback: fb } : { kind: 'scored', feedback: fb };
 
+      if (!tracker.isCurrent(turnKey, attemptSeq)) return; // stale — a redo has since superseded this attempt
+      // The panel always shows the result; orchestration (XP, session) waits
+      // for the turn's lock, so resolve returns null until then.
+      upsertPanelEntry({ turnKey, transcript, status: 'resolved', feedback: fb });
       const record = tracker.resolve(turnKey, attemptSeq, language);
-      if (record === null) return; // stale — a redo has since superseded this attempt
-
-      upsertPanelEntry({ turnKey, transcript: record.transcript, status: 'resolved', feedback: fb });
-      runOrchestration(turnKey, record.transcript, record.question, record.language as LanguageResult);
+      if (record !== null) runOrchestration(turnKey, record.transcript, record.question, record.language as LanguageResult);
     })();
   };
 

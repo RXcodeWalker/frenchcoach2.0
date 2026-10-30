@@ -46,7 +46,16 @@ export class TurnAttemptTracker<TQuestion, TLanguage> {
     return !rec.locked && rec.retryCount < MAX_REDOS;
   }
 
-  /** null return = stale, caller must discard the result it was about to apply. */
+  /** False once a redo has superseded this attempt — its result must be discarded. */
+  isCurrent(turnKey: number, attemptSeq: number): boolean {
+    return this.records.get(turnKey)?.attemptSeq === attemptSeq;
+  }
+
+  /**
+   * Records the result. null return = not ready to orchestrate yet (not
+   * locked, or stale) — it does NOT mean "stale"; check `isCurrent` for that,
+   * or a first resolve (always before its lock) is wrongly thrown away.
+   */
   resolve(turnKey: number, attemptSeq: number, language: TLanguage): AttemptRecord<TQuestion, TLanguage> | null {
     const rec = this.records.get(turnKey);
     if (!rec || rec.attemptSeq !== attemptSeq) return null;

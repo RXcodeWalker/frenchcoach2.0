@@ -296,11 +296,12 @@ export function StoryMode() {
       }
       const language: StoryLanguageResult = isUnscored(fb) ? { kind: 'unscored', feedback: fb } : { kind: 'scored', feedback: fb };
 
+      if (!tracker.isCurrent(stepIndex, attemptSeq)) return; // stale — a redo has since superseded this attempt
+      // The panel always shows the result; orchestration (XP, session) waits
+      // for the turn's lock, so resolve returns null until then.
+      upsertPanelEntry({ turnKey: stepIndex, transcript, status: 'resolved', feedback: fb });
       const record = tracker.resolve(stepIndex, attemptSeq, language);
-      if (record === null) return; // stale — a redo has since superseded this attempt
-
-      upsertPanelEntry({ turnKey: stepIndex, transcript: record.transcript, status: 'resolved', feedback: fb });
-      runOrchestration(stepIndex, record.transcript, record.question, record.language as StoryLanguageResult);
+      if (record !== null) runOrchestration(stepIndex, record.transcript, record.question, record.language as StoryLanguageResult);
     })();
   };
 

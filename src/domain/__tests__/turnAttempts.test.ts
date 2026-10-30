@@ -110,4 +110,15 @@ describe('TurnAttemptTracker', () => {
     expect(resolved?.orchestrated).toBe(true);
     expect(resolved?.language).toEqual({ kind: 'unscored' });
   });
+
+  it('11. isCurrent: a first resolve is current even though it is not ready to orchestrate', () => {
+    const t = new TurnAttemptTracker<string, string>();
+    const seq1 = t.begin(1, 'first', 'q1', false);
+    expect(t.isCurrent(1, seq1)).toBe(true);
+    expect(t.resolve(1, seq1, 'lang-1')).toBeNull(); // not locked — callers must still show it
+    const seq2 = t.begin(1, 'second', 'q1', true);
+    expect(t.isCurrent(1, seq1)).toBe(false);
+    expect(t.isCurrent(1, seq2)).toBe(true);
+    expect(t.isCurrent(2, seq2)).toBe(false);
+  });
 });
