@@ -12,7 +12,7 @@ export const FEATURE_FLAGS = {
   roadmap:           'coming-soon',
   mastery:           'coming-soon',
   fluencyHeatmap:    'coming-soon',
-  rapidFire:         'coming-soon',
+  rapidFire:         'live',
   speedSpeaking:     'coming-soon',
   wordDrop:          'coming-soon',
   bossBattle:        'coming-soon',

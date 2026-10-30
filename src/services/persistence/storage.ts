@@ -89,6 +89,8 @@ export const STORAGE_KEYS = {
   emojiMasterBests: 'frenchCoach_emojiMasterBests',
   // ── Emoji Master word collection (versioned payload; local only, no XP) ──────────
   emojiMasterWords: 'frenchCoach_emojiMasterWords',
+  // ── Rapid Fire personal bests per word set (versioned payload; never XP, never synced) ──
+  rapidFireBests: 'frenchCoach_rapidFireBests',
   // ── Shop economy: mint queue + provisional balance cache (Shop plan §14.1, §14.7) ──
   pendingMintQueue:      'frenchCoach_pendingMintQueue',
   shopBalanceCache:      'frenchCoach_shopBalanceCache',

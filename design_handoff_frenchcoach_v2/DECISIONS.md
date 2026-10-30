@@ -290,3 +290,45 @@ handoff left a gap or clashed with the codebase. Newest phase last.
   article is added only when missing ("le pain", never "le le pain").
 - **Scenario Architect** (setup and session) is on the same v2 layout as the
   scenarios: top bar with back, flat cards, the shared recorder, no bouncing dots.
+
+
+## Rapid Fire
+
+- **Scope:** `/rapid-fire` (Explore → Words & Grammar) rebuilt on the v2 tokens:
+  `TopContextBar`, `PageShell`, `Button`, `Stat`, `TopicChip`, `CountUp`. Flag
+  `rapidFire` is now `live` (it was `coming-soon`); rollback is setting it back.
+- **No XP, no session, no streak (owner, 2026-10-30).** The old screen paid out
+  through `completeMinigameSession`. The new screen takes nothing from
+  `AppContext`; points are a game score only, labelled "Points", never styled as
+  XP (no reward colour). `features/rapidFire/__tests__/noXp.test.ts` fails if
+  the screen or its folder imports an XP, session or app-state API.
+- **Rules live in `features/rapidFire/run.ts`** (a pure reducer, the screen owns
+  the clock and the shuffle): 60 s, 3 hearts, a wrong answer or skip costs 2 s,
+  every 5 in a row adds 2 s (banked time capped at 75 s), every 10 wins a heart
+  back, combo multiplier from `DEFAULT_STREAK_TIERS` (up to ×5). Difficulty ramps
+  on correct answers, not on the streak, so one slip doesn't drop a strong
+  player back to easy words. The clock stops while a correction is showing or
+  the run is paused; Escape pauses (it never leaves mid-run); switching tabs
+  pauses.
+- **Marking (`judge.ts`):** accents, case, punctuation and hyphen-vs-space are
+  ignored (typing é on a phone is slow) but a missed accent is shown, not
+  penalised. The article must be right: "le pomme" is wrong, not a typo. One
+  typo (two on answers of 13+ letters; swapped neighbours count as one) is
+  "Almost": free, no points, the streak holds, the fix is shown.
+- **Word bank (`wordBank.ts`):** built from data the app already has (Learn
+  `keyVocab`, Emoji Master nouns, minigame phrases). Learn's glossary entries
+  aren't typable as written ("fascinant(e)", "le/la proviseur(e)",
+  "utile/inutile"), so `parseVocab` expands them into accepted spellings, splits
+  antonym pairs, and drops entries that can't be answered from the English
+  alone. The old Basics/Objects/School/Food pools became Mixed, Phrases,
+  Everyday objects and all sixteen core topics. Gated advanced topics are not
+  offered. Object words keep their article (the old screen stripped it).
+- **Correction uses the `correct` motion** (strike the typed form, drop in the
+  fix, underline); the combo chip uses `enter`, the personal-best pill
+  `celebrate`, the score `fill` (count-up). Removed: the shake, overdrive glow,
+  floating "+XP", pulsing timer, hover scale and gradients.
+- **Personal bests** per word set are kept locally (`rapidFireBests`, versioned,
+  like Emoji Master's). Drills and abandoned runs never touch them.
+- **Practise missed words** runs a drill: the words missed, skipped or
+  near-missed come round again until each has been typed right once.
+- **Not done:** no sound effects, no analytics events, no leaderboard.
