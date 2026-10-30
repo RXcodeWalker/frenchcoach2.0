@@ -37,6 +37,7 @@ npm run roleplay:check                   # validate roleplay scenario registry (
 npm run learn:check                      # validate src/data/learn/demands/*.json against the question bank
 npm run learn:levels                     # read-only: each Learn question's derived level per topic, and what the describe floor moved
 npm run voices:record -- --dry-run       # recorded-voices catalogue counts/characters, no network; a real run needs Azure + Supabase secrets (docs/plans/recorded-voices.md)
+npm run lab:calibration:sheet|prepare|report  # Pronunciation Lab §7 calibration: recording sheet, manifest, PASS/FAIL report (docs/plans/pronunciation-lab.md §7)
 ```
 
 Other CLIs exist under `scripts/scoring/` (`score:batch`, `score:inspect`, `score:review`) and

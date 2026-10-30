@@ -46,7 +46,10 @@
     "e2e:exam": "playwright test -c playwright.config.ts",
     "pronunciation:calibration:prepare": "tsx scripts/examPronunciation/prepareCalibration.ts",
     "pronunciation:calibration:report": "tsx scripts/examPronunciation/calibrationReport.ts",
-    "pronunciation:calibration:select-cv": "tsx scripts/examPronunciation/selectCommonVoice.ts"
+    "pronunciation:calibration:select-cv": "tsx scripts/examPronunciation/selectCommonVoice.ts",
+    "lab:calibration:sheet": "tsx scripts/labCalibration/sheet.ts",
+    "lab:calibration:prepare": "tsx scripts/labCalibration/prepare.ts",
+    "lab:calibration:report": "tsx scripts/labCalibration/report.ts"
   },
   "dependencies": {
     "@google/genai": "^2.11.0",

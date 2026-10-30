@@ -27,9 +27,18 @@ import type { LabWordState } from './types';
 
 export type LabRefusal = 'freeform' | 'not-azure' | 'could-not-assess';
 
-/** The state of one scripted Azure word, before it is placed in the sentence. */
-export function wordState(word: PronunciationWordResult): LabWordState {
-  const t = LAB_THRESHOLDS.word;
+/** The two cut-offs a word state needs (`LAB_THRESHOLDS.word`'s shape). */
+export interface WordThresholds {
+  readonly clearMin: number;
+  readonly almostMin: number;
+}
+
+/**
+ * The state of one scripted Azure word, before it is placed in the sentence.
+ * `t` is only ever overridden by the calibration report's what-if table
+ * (`scripts/labCalibration/`); the app always uses the pinned `LAB_THRESHOLDS`.
+ */
+export function wordState(word: PronunciationWordResult, t: WordThresholds = LAB_THRESHOLDS.word): LabWordState {
   if (word.errorType === 'extra') return 'extra';
   if (word.errorType === 'skipped') return 'missed';
   if (word.nearChunkBoundary) return 'unknown';
@@ -128,7 +137,11 @@ function countItems(items: readonly LabSentenceItem[], total: number): LabTakeCo
  * state of the Azure word(s) matching it in order; a word nothing matched is
  * `unknown`; Azure's extra words sit between target words, never on one.
  */
-export function buildLabTake(targetText: string, assessment: PronunciationAssessment): LabTake {
+export function buildLabTake(
+  targetText: string,
+  assessment: PronunciationAssessment,
+  thresholds: WordThresholds = LAB_THRESHOLDS.word,
+): LabTake {
   const tokens = tokenizeSentence(targetText);
   const refused = labRefusal(assessment);
   const unknownItem = (token: SentenceToken, tokenIndex: number): LabWordItem => ({
@@ -163,7 +176,7 @@ export function buildLabTake(targetText: string, assessment: PronunciationAssess
         joined += key(words[j].word);
         parts.push(words[j]);
         if (joined === target) {
-          const state = parts.map(wordState).reduce(worse);
+          const state = parts.map((p) => wordState(p, thresholds)).reduce(worse);
           const scored = parts.map((p) => p.accuracyScore).filter((a): a is number => a !== null && Number.isFinite(a));
           wordItems[t] = {
             kind: 'word',

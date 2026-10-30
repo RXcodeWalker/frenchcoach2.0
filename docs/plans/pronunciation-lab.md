@@ -542,6 +542,34 @@ that is a hypothesis until measured. Reuse the existing calibration tooling with
   `verification-log.md`. If it can't pass, the Lab ships with listening, ear training and
   first-vs-best only, and word states stay hidden.
 
+**Tooling (built 2026-10-30; `scripts/labCalibration/` + backend `scripts/probe_lab_calibration.py`):**
+1. `npm run lab:calibration:sheet` prints the recording sheet: 20 frozen sentences (`sentences.ts`, `lab-calibration-set-v1`), each with a
+   deliberate minimal-pair swap from `minimalPairs.ts`. The owner records every sentence twice (`s01_correct`, `s01_swap`), other accented
+   speakers record all 20 correctly (`fair_<speaker>_s01`), optional Common Voice clips (`cv_<id>` + a `.txt` with the sentence).
+2. `npm run lab:calibration:prepare -- --audio <folder> --out <folder>/manifest.json` names what it found and what is missing.
+3. Backend: `python scripts/probe_lab_calibration.py --manifest <folder>/manifest.json` (ffmpeg + Azure keys in `backend/.env`; metered as ledger
+   source `probe`) converts each file to the 16 kHz mono WAV the Lab uploads, makes the production **scripted** Azure request with the ORIGINAL
+   sentence as the target, and writes `backend/tests/fixtures/pronunciation_lab_calibration/<clipId>.json` (no audio). `--out-dir` keeps
+   practice runs out of that folder; `--dry-run` only checks the files.
+4. `npm run lab:calibration:report` runs the Lab's own `buildLabTake` with the CURRENT cut-offs over the fixtures and prints PASS / FAIL /
+   INCOMPLETE with the reasons (exit 0 / 1 / 2), the missed swaps, each false flag, and a what-if table of other cut-offs.
+- **Criteria as implemented** (`LAB_CALIBRATION_CRITERIA`, stricter than the letter, never looser): a swap Azure could not assess or scored
+  Clear/Almost/unknown is a miss and stays in the denominator; a correct reading's "Not heard" counts as a false flag like a false
+  "Practise" (the Practise-only figure is printed beside it); each speaker group needs ≥ 20 assessed sentences to be judged and the
+  verdict needs the owner's group plus ≥ 1 accented speaker who is not the owner, otherwise it is INCOMPLETE, never PASS.
+- **The what-if table is diagnostic only.** Picking cut-offs from the same recordings tunes them to those recordings: a change is a
+  `LAB_THRESHOLDS_VERSION` bump, a `verification-log.md` entry, and should be confirmed on recordings not used to choose it.
+- **Gate in CI:** `scripts/labCalibration/__tests__/gate.test.ts` — if `FEATURE_FLAGS.pronunciationLab` is ever `live` by default, the committed
+  fixtures must report PASS with the current cut-offs (no fixtures ⇒ INCOMPLETE ⇒ the test fails). Flag `coming-soon` ⇒ no-op.
+- **Smoke run, 2026-10-30 (NOT calibration evidence):** the full chain was run on 12 *synthetic* clips (Azure's own Henri voice reading 6
+  sentences correctly and swapped; six of the 20 sentences, scratch folder, nothing committed). Azure's scripted assessment caught 1 of 6
+  swaps: for the other five it returned the reference text as what it "heard", `ErrorType` correct, and word scores of 74–80 for the swapped
+  word (*tout→tu* 80, *vous→vu* 80, *beau→bon* 80, *vent→vin* 74, *deux→des* 79; only *dessus→dessous* scored 50). A synthetic voice and six
+  clips prove nothing about human speech, but it is the same leniency pattern as the failed exam calibration, so **expect the gate to be at
+  risk** and have the fallback ready (listening, ear training and first-vs-best only; word states hidden). No cut-off in the what-if table
+  rescues those five (their scores sit where ordinary words sit). If real recordings behave the same, the next idea is to compare a
+  Whisper transcript of the take against the target in scripted mode — it is a design change, not a threshold move, and is not built.
+
 ## 8. Analytics, cost and limits
 
 - Events (declared in `TelemetryEvent` + `DECLARED_PROPS`): `lab_opened {entry}`,
