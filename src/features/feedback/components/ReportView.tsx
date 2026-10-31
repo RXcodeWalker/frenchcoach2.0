@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronsDownUp, ChevronsUpDown } from 'lucide-react';
 import { fadeUp } from '../../../components/motion/variants';
@@ -11,6 +12,7 @@ import { BiggestOpportunityCard } from './BiggestOpportunityCard';
 import { CorrectionsCard } from './CorrectionsCard';
 import { ExpansionIdeasCard } from './ExpansionIdeasCard';
 import { VocabularyCard } from './VocabularyCard';
+import { SelfCorrectionCard } from './SelfCorrectionCard';
 import { selectCardPlan } from '../state/selectors';
 import type { MarkingLevel } from '../../../domain/learn/marking/markingLevel';
 import type { CoachingIssue, FeedbackV2 } from '../../../types';
@@ -23,6 +25,8 @@ interface Props {
   onIssueClick: (issueId: string) => void;
   /** learn-marking §8.2 — see SnapshotCard. */
   markingLevel?: MarkingLevel;
+  /** The Predict results card, when the learner answered any check. */
+  predictions?: ReactNode;
 }
 
 /**
@@ -33,7 +37,7 @@ interface Props {
  * holds what the coach view no longer shows: the one-focus line, every
  * correction with its lesson, vocabulary upgrades and expansion ideas.
  */
-export function ReportView({ feedback, transcript, majorIssues, polishIssues, onIssueClick, markingLevel }: Props) {
+export function ReportView({ feedback, transcript, majorIssues, polishIssues, onIssueClick, markingLevel, predictions }: Props) {
   const { state, dispatch } = useFeedbackContext();
   const allIssues = [...majorIssues, ...polishIssues];
   const expandAll = state.expandAllLessons;
@@ -42,6 +46,10 @@ export function ReportView({ feedback, transcript, majorIssues, polishIssues, on
   return (
     <motion.div variants={fadeUp} initial="hidden" animate="show" className="space-y-3">
       <SnapshotCard feedback={feedback} markingLevel={markingLevel} />
+
+      {predictions}
+
+      <SelfCorrectionCard selfCorrections={feedback.selfCorrections} />
 
       <BiggestOpportunityCard opportunity={feedback.biggest_opportunity} />
 

@@ -36,7 +36,7 @@ describe('LearnExaminerFeedback', () => {
   it('while pending, spends the wait on the Predict card with the examiner’s wording', () => {
     render(<LearnExaminerFeedback {...base} status="pending" result={null} demands={{ cognitiveDemand: 'justify', timeFrames: ['present'] }} />);
     expect(screen.getByTestId('predict-card')).toBeTruthy();
-    expect(screen.getByRole('group', { name: 'Did you give a reason?' })).toBeTruthy();
+    expect(screen.getByRole('group', { name: 'Did you explain why, with « parce que » or « car »?' })).toBeTruthy();
     expect(screen.getByRole('status').textContent).toBe('Reviewing your response…');
   });
 
@@ -69,7 +69,7 @@ describe('LearnExaminerFeedback', () => {
     view.rerender(
       <LearnExaminerFeedback {...base} status="done" result={RESULT} demands={{ cognitiveDemand: 'justify', timeFrames: ['present'] }} />,
     );
-    expect(view.container.textContent).toContain("You thought you didn't give a reason, but you did: « parce que j'aime le sport ».");
+    expect(view.container.textContent).toContain("You did better than you thought, here it is: « parce que j'aime le sport ».");
   });
 
   it('leaves failed, quota and empty states to the examiner card', () => {

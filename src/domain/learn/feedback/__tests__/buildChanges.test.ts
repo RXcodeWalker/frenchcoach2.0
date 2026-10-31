@@ -109,3 +109,22 @@ describe('attachChangeAnnotations — targeting resolves against diff operations
     expect(result.every((op) => !op.annotation)).toBe(true);
   });
 });
+
+describe('diffWords — ignoreCaseAndPunctuation (owner report 2026-10-31)', () => {
+  it('does not show capitals or punctuation as changes, and still round-trips', () => {
+    const before = 'selon moi il y a beaucoup de lectures';
+    const after = 'Selon moi, il y a beaucoup de lectures.';
+    const ops = diffWords(before, after, { ignoreCaseAndPunctuation: true });
+    expect(ops.every((op) => op.type === 'equal')).toBe(true);
+    expect(reconstructAfter(ops)).toBe(after);
+  });
+
+  it('still shows a real word change', () => {
+    const ops = diffWords('le 1er avantage', 'Le premier avantage', { ignoreCaseAndPunctuation: true });
+    expect(ops.filter((op) => op.type !== 'equal').map((op) => [op.beforeText, op.afterText])).toEqual([['1er', 'premier']]);
+  });
+
+  it('is exact by default', () => {
+    expect(diffWords('selon', 'Selon').some((op) => op.type === 'replace')).toBe(true);
+  });
+});

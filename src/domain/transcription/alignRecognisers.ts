@@ -25,6 +25,7 @@ import { soundsIdenticalInContext } from '../igcse/stt/homophones/classes';
 import { nearPairOf } from '../igcse/stt/homophones/nearPairs';
 import { respell, type RespellChange } from '../igcse/stt/homophones/respell';
 import { matchCase, tokenize, type Token } from '../igcse/stt/homophones/text';
+import { spokenNumberWords } from './spokenNumbers';
 
 export type SpanKind = 'nearHomophone' | 'different';
 
@@ -61,6 +62,19 @@ interface Unit {
   readonly token: number;
   /** The unit ends its token with written punctuation (no liaison across it). */
   readonly pauseAfter: boolean;
+  /** Other spellings of the same spoken word (a number read out: « 1 » is « un » or « une »). */
+  readonly alts?: readonly string[];
+}
+
+export interface AlignOptions {
+  /**
+   * Read numbers written in digits as the words they are spoken as, so « 1er »
+   * agrees with « premier » and « 15 » with « quinze » (spokenNumbers.ts).
+   * Learn's confirm screen sets it. The exam's marked text
+   * (stt/project/spokenText.ts) does not: there it would change which words
+   * the judge is told are uncertain, an Assessment-Engine change.
+   */
+  readonly spokenNumbers?: boolean;
 }
 
 type Op =
@@ -73,9 +87,16 @@ const COST_NEAR = 0.4;
 const COST_SUB = 1;
 const COST_GAP = 1;
 
-function toUnits(tokens: readonly Token[]): Unit[] {
+function toUnits(tokens: readonly Token[], options: AlignOptions = {}): Unit[] {
   const units: Unit[] = [];
   tokens.forEach((t, token) => {
+    const spoken = options.spokenNumbers ? spokenNumberWords(t.lower) : null;
+    if (spoken) {
+      spoken.forEach(([word, ...alts], i) =>
+        units.push({ word, alts, token, pauseAfter: t.pauseAfter && i === spoken.length - 1 }),
+      );
+      return;
+    }
     const parts = t.lower.split('-').filter(Boolean);
     parts.forEach((word, i) => units.push({ word, token, pauseAfter: t.pauseAfter && i === parts.length - 1 }));
   });
@@ -90,7 +111,7 @@ function respelledTokens(text: string): { tokens: Token[]; text: string; changes
 
 /** Whether two units are the same word, or sound the same where they stand (Category A). */
 function agree(a: Unit, b: Unit, nextA: Unit | undefined, nextB: Unit | undefined): boolean {
-  if (a.word === b.word) return true;
+  if (a.word === b.word || a.alts?.includes(b.word) || b.alts?.includes(a.word)) return true;
   const pause = a.pauseAfter || b.pauseAfter;
   return soundsIdenticalInContext(a.word, b.word, nextA?.word, pause) && soundsIdenticalInContext(a.word, b.word, nextB?.word, pause);
 }
@@ -207,14 +228,14 @@ function toTokenSpans(raw: readonly RawSpan[], pu: readonly Unit[], su: readonly
  * when the texts agree, and also when either text is blank (a single
  * recogniser has no second opinion to disagree with).
  */
-export function alignRecognisers(primary: string, secondary: string): RecogniserAlignment {
+export function alignRecognisers(primary: string, secondary: string, options: AlignOptions = {}): RecogniserAlignment {
   const p = respelledTokens(primary);
   const s = respelledTokens(secondary);
   const base = { primaryText: p.text, secondaryText: s.text, respelled: p.changes };
   if (p.tokens.length === 0 || s.tokens.length === 0) return { ...base, spans: [] };
 
-  const pu = toUnits(p.tokens);
-  const su = toUnits(s.tokens);
+  const pu = toUnits(p.tokens, options);
+  const su = toUnits(s.tokens, options);
   const raw = groupOps(alignUnits(pu, su), pu, su);
   const spans: AlignedSpan[] = toTokenSpans(raw, pu, su, p.tokens.length).map((t) => {
     const secondaryWords = t.sEnd > t.sStart ? s.tokens.slice(t.sStart, t.sEnd).map((x) => x.core).filter(Boolean).join(' ') : '';

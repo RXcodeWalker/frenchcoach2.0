@@ -8,6 +8,7 @@ import type { FirstId } from './firsts';
 import { PredictCard } from './PredictCard';
 import {
   calibrationLines,
+  fixesFromGroups,
   predictionChecks,
   type PredictionAnswer,
   type PredictionCheckId,
@@ -36,7 +37,7 @@ interface Props {
   /** The learner's answer. */
   transcript: string;
   name?: string | null;
-  demands?: Pick<QuestionDemands, 'cognitiveDemand' | 'timeFrames'> | null;
+  demands?: (Pick<QuestionDemands, 'cognitiveDemand' | 'timeFrames'> & Partial<Pick<QuestionDemands, 'structures'>>) | null;
   /** The question's authored follow-up, when Learn will ask it on Continue (Batch 6c). */
   nextQuestion?: string | null;
   /** Milestones Learn has proven are firsts for this answer (Batch 6c). */
@@ -67,12 +68,13 @@ export function LearnExaminerFeedback({
 
   const lines = useMemo(() => {
     if (status !== 'done' || !result || isExaminerFeedbackEmpty(result)) return null;
+    const groups = examinerGroups(result, false);
     return buildTeacherScript({
       register: 'examiner',
       transcript,
       name,
-      groups: examinerGroups(result, false),
-      calibration: calibrationLines(checks, answers, transcript),
+      groups,
+      calibration: calibrationLines(checks, answers, transcript, fixesFromGroups(groups)),
       secondTake: true,
       nextQuestion,
       firsts,

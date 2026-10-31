@@ -605,6 +605,19 @@ export interface FeedbackV2 extends Feedback {
   /** The teacher's opening line; it must quote the learner. Filtered at normalisation (dropped when ungrounded). */
   encouragement?: string;
   biggest_opportunity?: string;
+  /**
+   * Errors the learner fixed themselves straight away (« dans ton école,
+   * désolé, dans mon école »). Client-derived at normalisation by
+   * filterCoachFeedback: these are not in issues/grammar and never count as a
+   * mistake; the report and the coach credit them instead.
+   */
+  selfCorrections?: import('../domain/learn/feedback/selfCorrection').SelfCorrection[];
+  /**
+   * The transcript the backend graded (it echoes it), set at normalisation.
+   * transcriptAnnotations' offsets point into THIS string, so the marked-up
+   * script renders over it rather than the local copy.
+   */
+  gradedTranscript?: string;
   improved_answer?: string;
   rephrase?: string;
   advanced_answer?: string;

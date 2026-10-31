@@ -80,3 +80,19 @@ describe('buildSegments', () => {
     expect(annotated?.issue?.id).toBe('c1');
   });
 });
+
+describe('buildSegments — offsets from another transcript (owner report 2026-10-31)', () => {
+  const issue = { id: 'c1', category: 'grammar', severity: 'major', quote: 'dans ton école', diagnostic: 'd', correction: 'dans mon école', marksImpact: 2 } as const;
+
+  it('drops a span whose text is not its quote, instead of striking the wrong letters', () => {
+    // Offsets computed on the graded copy, shifted one letter against this one.
+    const fb = { issues: [issue], transcriptAnnotations: [{ start: 1, end: 15, severity: 'major', category: 'grammar', issueId: 'c1' }] } as unknown as FeedbackV2;
+    const segments = buildSegments('dans ton école désolé', fb);
+    expect(segments.filter((s) => s.span)).toEqual([]);
+  });
+
+  it('keeps a span that covers its quote (case and edge punctuation ignored)', () => {
+    const fb = { issues: [issue], transcriptAnnotations: [{ start: 0, end: 14, severity: 'major', category: 'grammar', issueId: 'c1' }] } as unknown as FeedbackV2;
+    expect(buildSegments('Dans ton école désolé', fb).filter((s) => s.span).map((s) => s.text)).toEqual(['Dans ton école']);
+  });
+});

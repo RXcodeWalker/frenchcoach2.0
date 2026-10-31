@@ -352,7 +352,7 @@ function normalizeBackendFeedback(
   const graded = typeof echoed === 'string' && echoed.trim() ? echoed : transcript;
   const { feedback, dropped } = filterCoachFeedback(mergeV2Fields(mapBackendFeedback(parsed), parsed), graded, inputMode);
   if (dropped.length > 0) console.log(`[AI Feedback] ${source}: dropped ${dropped.length} claim(s) — ${dropped.join(', ')}`);
-  return feedback;
+  return { ...feedback, gradedTranscript: graded };
 }
 
 // A free-text label like "Avoir vs Être" doesn't fit the closed IssueCategory

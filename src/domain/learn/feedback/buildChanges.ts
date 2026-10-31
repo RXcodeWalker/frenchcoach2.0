@@ -47,6 +47,25 @@ function isSpace(token: string): boolean {
   return /^\s+$/.test(token);
 }
 
+export interface DiffOptions {
+  /**
+   * Treat words that differ only in capitals or the punctuation around them
+   * as equal (« selon » / « Selon », « lectures » / « lectures. »). A spoken
+   * transcript has neither, so showing them as changes is noise (owner report
+   * 2026-10-31). An equal op then carries each side's own spelling, so
+   * reconstructAfter still round-trips.
+   */
+  readonly ignoreCaseAndPunctuation?: boolean;
+}
+
+const EDGE_PUNCTUATION = /^[\p{P}\p{S}]+|[\p{P}\p{S}]+$/gu;
+
+function tokenKey(token: string, loose: boolean): string {
+  if (!loose) return token;
+  if (isSpace(token)) return ' ';
+  return token.normalize('NFC').replace(/[‘’ʼ]/g, "'").toLowerCase().replace(EDGE_PUNCTUATION, '');
+}
+
 /**
  * Standard word-level LCS diff, word-tokenized (whitespace tokens ride along
  * with their neighbour so equal runs of whitespace never surface as their own
@@ -54,9 +73,12 @@ function isSpace(token: string): boolean {
  * a corrected word reads as one change rather than a delete immediately
  * followed by an insert.
  */
-export function diffWords(before: string, after: string): DiffOp[] {
+export function diffWords(before: string, after: string, options: DiffOptions = {}): DiffOp[] {
   const beforeTokens = tokenize(before);
   const afterTokens = tokenize(after);
+  const loose = options.ignoreCaseAndPunctuation === true;
+  const beforeKeys = beforeTokens.map((t) => tokenKey(t, loose));
+  const afterKeys = afterTokens.map((t) => tokenKey(t, loose));
   const m = beforeTokens.length;
   const n = afterTokens.length;
 
@@ -65,19 +87,19 @@ export function diffWords(before: string, after: string): DiffOp[] {
   const lcs: number[][] = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
   for (let i = m - 1; i >= 0; i--) {
     for (let j = n - 1; j >= 0; j--) {
-      lcs[i][j] = beforeTokens[i] === afterTokens[j]
+      lcs[i][j] = beforeKeys[i] === afterKeys[j]
         ? lcs[i + 1][j + 1] + 1
         : Math.max(lcs[i + 1][j], lcs[i][j + 1]);
     }
   }
 
-  type RawOp = { type: 'equal' | 'delete' | 'insert'; beforeIdx?: number; afterIdx?: number; token: string };
+  type RawOp = { type: 'equal' | 'delete' | 'insert'; beforeIdx?: number; afterIdx?: number; token: string; afterToken?: string };
   const raw: RawOp[] = [];
   let i = 0;
   let j = 0;
   while (i < m && j < n) {
-    if (beforeTokens[i] === afterTokens[j]) {
-      raw.push({ type: 'equal', beforeIdx: i, afterIdx: j, token: beforeTokens[i] });
+    if (beforeKeys[i] === afterKeys[j]) {
+      raw.push({ type: 'equal', beforeIdx: i, afterIdx: j, token: beforeTokens[i], afterToken: afterTokens[j] });
       i++;
       j++;
     } else if (lcs[i + 1][j] >= lcs[i][j + 1]) {
@@ -102,7 +124,7 @@ export function diffWords(before: string, after: string): DiffOp[] {
     if (op.type === 'equal') {
       const start = wordIndex;
       if (!isSpace(op.token)) wordIndex++;
-      ops.push({ type: 'equal', beforeText: op.token, afterText: op.token, beforeStart: start, beforeEnd: wordIndex });
+      ops.push({ type: 'equal', beforeText: op.token, afterText: op.afterToken ?? op.token, beforeStart: start, beforeEnd: wordIndex });
       k++;
       continue;
     }

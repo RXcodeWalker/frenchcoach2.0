@@ -1,124 +1,123 @@
 import { describe, it, expect } from 'vitest';
 import { claimMentionsMarkOrBand } from '../../../../domain/examFeedback/shared/markClaimFilter';
 import type { QuestionDemands } from '../../../../domain/learn/demand/types';
-import { LONG_ANSWER_WORDS, calibrationLines, predictionChecks } from '../predictionQuestions';
+import { calibrationLines, fixesFromGroups, predictionChecks, type PredictionCheck } from '../predictionQuestions';
 
-type Demands = Pick<QuestionDemands, 'cognitiveDemand' | 'timeFrames'>;
-const d = (cognitiveDemand: Demands['cognitiveDemand'], timeFrames: Demands['timeFrames']): Demands => ({ cognitiveDemand, timeFrames });
+type Demands = Pick<QuestionDemands, 'cognitiveDemand' | 'timeFrames' | 'structures'>;
+const d = (
+  cognitiveDemand: Demands['cognitiveDemand'],
+  timeFrames: Demands['timeFrames'],
+  structures: Demands['structures'] = [],
+): Demands => ({ cognitiveDemand, timeFrames, structures });
 const ids = (demands: Demands | undefined) => predictionChecks(demands).map((c) => c.id);
+const NO_FIXES = { quotes: [] };
 
-describe('predictionChecks — derived from the question’s own demands', () => {
-  it('asks for a reason when the question explains or justifies', () => {
-    expect(ids(d('explain', ['present']))).toEqual(['reason', 'length']);
-    expect(ids(d('justify', ['present']))).toEqual(['reason', 'length']);
-    expect(predictionChecks(d('justify', ['present']))[0].prompt).toBe('Did you give a reason?');
+// The owner's answer to sch_22 (« Quels sont les avantages d'avoir une bibliothèque… »), 2026-10-31.
+const LIBRARY_ANSWER =
+  "selon moi il y a beaucoup d'avantages d'avoir une bibliothèque dans mon école le premier avantage c'est qu'on peut lire facilement il y a aussi une imprimante finalement on peut faire beaucoup de recherches";
+
+describe('predictionChecks — drawn from the question, then mistakes', () => {
+  it('no longer offers the vague length check; a present-tense describe question gets a reason and linking', () => {
+    // sch_22's real demands: describe, present, no structures.
+    expect(ids(d('describe', ['present']))).toEqual(['reason', 'linking', 'mistakes']);
+    for (const check of predictionChecks(d('describe', ['present']))) expect(check.prompt).not.toMatch(/sentences/);
   });
 
-  it('asks about the tense only when the question looks at the past or future', () => {
-    expect(ids(d('describe', ['past']))).toEqual(['tense', 'length']);
-    expect(ids(d('describe', ['future']))).toEqual(['tense', 'length']);
-    expect(ids(d('describe', ['present']))).toEqual(['length']);
-    expect(ids(d('describe', ['conditional']))).toEqual(['length']);
-  });
-
-  it('names the frames the question asks about', () => {
+  it('asks about the time frame the question asks about, first', () => {
+    expect(ids(d('describe', ['past']))).toEqual(['tense', 'reason', 'mistakes']);
     expect(predictionChecks(d('describe', ['past']))[0]).toMatchObject({ prompt: 'Did you talk about the past?', frames: ['past'] });
-    expect(predictionChecks(d('describe', ['future']))[0].prompt).toBe('Did you talk about the future?');
-    expect(predictionChecks(d('describe', ['past', 'future']))[0]).toMatchObject({
-      prompt: 'Did you talk about the past or the future?',
-      frames: ['past', 'future'],
-    });
+    expect(predictionChecks(d('describe', ['past', 'future']))[0].prompt).toBe('Did you talk about the past or the future?');
+    expect(ids(d('hypothesize', ['conditional']))).toEqual(['conditional', 'reason', 'mistakes']);
   });
 
-  it('offers at most two, the more specific first; length is only the fallback', () => {
-    expect(ids(d('explain', ['past']))).toEqual(['reason', 'tense']);
-    expect(ids(d('hypothesize', ['present', 'future']))).toEqual(['tense', 'length']);
+  it('asks for a reason, a comparison or an opinion when the question does', () => {
+    expect(ids(d('justify', ['present']))).toEqual(['reason', 'linking', 'mistakes']);
+    expect(ids(d('compare', ['present']))).toEqual(['comparison', 'reason', 'mistakes']);
+    expect(ids(d('describe', ['present'], ['opinion']))).toEqual(['opinion', 'reason', 'mistakes']);
+    expect(ids(d('explain', ['past'], ['opinion']))).toEqual(['tense', 'reason', 'mistakes']);
   });
 
-  it('falls back to the length check for a question with no demands', () => {
-    expect(ids(undefined)).toEqual(['length']);
-    expect(predictionChecks(null)[0].prompt).toBe('Did you say more than 2 sentences?');
+  it('always ends with the mistakes check, and works with no demands', () => {
+    expect(ids(undefined)).toEqual(['reason', 'linking', 'mistakes']);
+  });
+
+  it('never phrases a check as a mark or band', () => {
+    for (const demands of [d('describe', ['present']), d('compare', ['past']), d('hypothesize', ['conditional'], ['opinion'])]) {
+      for (const check of predictionChecks(demands)) expect(claimMentionsMarkOrBand(check.prompt), check.prompt).toBe(false);
+    }
   });
 });
 
-describe('calibrationLines — only what was actually found', () => {
-  const reasonChecks = predictionChecks(d('justify', ['present']));
-  const tenseChecks = predictionChecks(d('describe', ['past', 'future']));
-  const lengthChecks = predictionChecks(d('describe', ['present']));
+describe('calibrationLines — every answered check gets a verdict', () => {
+  const checks = predictionChecks(d('describe', ['present']));
 
-  it('says no, but a reason is there → names the reason it found, quoted', () => {
-    const [line] = calibrationLines(reasonChecks, { reason: 'no' }, "J'aime le foot parce que c'est drôle, et je joue souvent.");
-    expect(line.text).toBe("You thought you didn't give a reason, but you did: « parce que c'est drôle ».");
-    expect(line.quote).toBe("parce que c'est drôle");
+  it('confirms with the words found, quoted verbatim', () => {
+    const lines = calibrationLines(checks, { linking: 'yes' }, LIBRARY_ANSWER, NO_FIXES);
+    expect(lines).toEqual([{ id: 'linking', answer: 'yes', verdict: 'right', quote: 'aussi', text: 'Right, here it is: « aussi ».' }]);
   });
 
-  it('says yes and a reason is there → a short confirmation with the quote', () => {
-    const [line] = calibrationLines(reasonChecks, { reason: 'yes' }, 'Je mange des pommes car elles sont bonnes.');
-    expect(line.text).toBe('You gave a reason: « car elles sont bonnes ».');
+  it('tells a learner who said no that they did it', () => {
+    const [line] = calibrationLines(checks, { reason: 'no' }, "J'aime le foot parce que c'est drôle.", NO_FIXES);
+    expect(line.verdict).toBe('wrong');
+    expect(line.text).toBe("You did better than you thought, here it is: « parce que c'est drôle ».");
   });
 
-  it('nothing found → no line, whichever way the learner answered (not detected ≠ absent)', () => {
-    const transcript = "J'aime le foot. Je joue souvent avec mes amis.";
-    expect(calibrationLines(reasonChecks, { reason: 'yes' }, transcript)).toEqual([]);
-    expect(calibrationLines(reasonChecks, { reason: 'no' }, transcript)).toEqual([]);
-    expect(calibrationLines(tenseChecks, { tense: 'yes' }, transcript)).toEqual([]);
-    expect(calibrationLines(tenseChecks, { tense: 'no' }, transcript)).toEqual([]);
+  it('says "couldn\'t spot" (never "you didn\'t") when nothing was found, with what to try', () => {
+    const [yes] = calibrationLines(checks, { reason: 'yes' }, LIBRARY_ANSWER, NO_FIXES);
+    expect(yes.verdict).toBe('unsure');
+    expect(yes.text).toContain("I couldn't spot a reason");
+    expect(yes.text).toContain('parce que');
+    const [no] = calibrationLines(checks, { reason: 'no' }, LIBRARY_ANSWER, NO_FIXES);
+    expect(no.verdict).toBe('right');
+    expect(no.text).toMatch(/^Agreed, I couldn't spot a reason either/);
   });
 
-  it('an unanswered check earns no line', () => {
-    expect(calibrationLines(reasonChecks, {}, "parce que c'est drôle")).toEqual([]);
+  it('judges the mistakes check against the fixes the feedback lists', () => {
+    const fixes = { quotes: ['des autres choses', 'mon mère'] };
+    expect(calibrationLines(checks, { mistakes: 'yes' }, LIBRARY_ANSWER, fixes)[0]).toMatchObject({
+      verdict: 'right',
+      text: "Good ear: there's 2 things to fix, starting with « des autres choses ».",
+    });
+    expect(calibrationLines(checks, { mistakes: 'no' }, LIBRARY_ANSWER, fixes)[0].verdict).toBe('wrong');
+    expect(calibrationLines(checks, { mistakes: 'no' }, LIBRARY_ANSWER, NO_FIXES)[0]).toMatchObject({ verdict: 'right' });
+    expect(calibrationLines(checks, { mistakes: 'yes' }, LIBRARY_ANSWER, NO_FIXES)[0].verdict).toBe('wrong');
   });
 
-  it('the tense check quotes the past or future it found', () => {
-    const [past] = calibrationLines(tenseChecks, { tense: 'no' }, "Hier, j'ai mangé une pizza.");
-    expect(past.text).toBe("You thought you didn't use the past, but you did: « j'ai mangé ».");
-    const [future] = calibrationLines(tenseChecks, { tense: 'yes' }, 'Demain je vais aller au parc.');
-    expect(future.text).toBe('You used the future: « je vais aller ».');
+  it('finds the time frame the question asked about', () => {
+    const tense = predictionChecks(d('describe', ['past', 'future']));
+    const [line] = calibrationLines(tense, { tense: 'yes' }, 'Demain je vais aller au parc.', NO_FIXES);
+    expect(line.text).toBe('Right, you talked about the future: « je vais aller ».');
+    const pastOnly: PredictionCheck[] = predictionChecks(d('describe', ['past']));
+    expect(calibrationLines(pastOnly, { tense: 'yes' }, 'Demain je vais aller au parc.', NO_FIXES)[0].verdict).toBe('unsure');
   });
 
-  it('only looks for the frames the question asked about', () => {
-    const pastOnly = predictionChecks(d('describe', ['past']));
-    expect(calibrationLines(pastOnly, { tense: 'no' }, 'Demain je vais aller au parc.')).toEqual([]);
+  it('finds a comparison', () => {
+    const compare = predictionChecks(d('compare', ['present']));
+    const [line] = calibrationLines(compare, { comparison: 'yes' }, 'La ville est plus bruyante que la campagne.', NO_FIXES);
+    expect(line.quote).toBe('plus bruyante que');
   });
 
-  it('every marker line carries a quote that is verbatim in the answer', () => {
-    const transcript = "Hier, j'ai mangé une pizza parce que c'était bon. Demain je vais aller au parc.";
-    const checks = [...predictionChecks(d('explain', ['past']))];
-    const lines = calibrationLines(checks, { reason: 'no', tense: 'no' }, transcript);
-    expect(lines).toHaveLength(2);
-    for (const line of lines) {
-      expect(line.quote).toBeTruthy();
-      expect(transcript.includes(line.quote!)).toBe(true);
-      expect(line.text).toContain(`« ${line.quote} »`);
+  it('keeps the order the checks were offered and skips unanswered ones', () => {
+    const lines = calibrationLines(checks, { mistakes: 'no', reason: 'yes' }, LIBRARY_ANSWER, NO_FIXES);
+    expect(lines.map((l) => l.id)).toEqual(['reason', 'mistakes']);
+    expect(calibrationLines(checks, {}, LIBRARY_ANSWER, NO_FIXES)).toEqual([]);
+  });
+
+  it('never phrases a verdict as a mark or band', () => {
+    const all = { reason: 'yes', linking: 'no', mistakes: 'no' } as const;
+    for (const line of calibrationLines(checks, all, LIBRARY_ANSWER, { quotes: ['x'] })) {
+      expect(claimMentionsMarkOrBand(line.text), line.text).toBe(false);
     }
   });
+});
 
-  it('gives at most one line per check', () => {
-    const lines = calibrationLines(reasonChecks, { reason: 'yes' }, 'parce que a, parce que b, car c');
-    expect(lines).toHaveLength(1);
-  });
-
-  it('the length check speaks only for a clearly long answer, and states the word count', () => {
-    const long = Array.from({ length: LONG_ANSWER_WORDS }, () => 'mot').join(' ');
-    const [no] = calibrationLines(lengthChecks, { length: 'no' }, long);
-    expect(no.text).toBe(`You thought it was two sentences or fewer, but you said ${LONG_ANSWER_WORDS} words.`);
-    expect(no.quote).toBeUndefined();
-    const [yes] = calibrationLines(lengthChecks, { length: 'yes' }, long);
-    expect(yes.text).toBe(`You said ${LONG_ANSWER_WORDS} words.`);
-    const short = Array.from({ length: LONG_ANSWER_WORDS - 1 }, () => 'mot').join(' ');
-    expect(calibrationLines(lengthChecks, { length: 'yes' }, short)).toEqual([]);
-    expect(calibrationLines(lengthChecks, { length: 'no' }, short)).toEqual([]);
-  });
-
-  it('never reads as a mark, band or grade', () => {
-    const transcript = `Hier, j'ai mangé une pizza parce que c'était bon. ${Array.from({ length: 40 }, () => 'mot').join(' ')}`;
-    const lines = calibrationLines(
-      [...predictionChecks(d('explain', ['past'])), ...lengthChecks],
-      { reason: 'no', tense: 'yes', length: 'no' },
-      transcript,
-    );
-    expect(lines.length).toBeGreaterThan(0);
-    for (const line of lines) expect(claimMentionsMarkOrBand(line.text), line.text).toBe(false);
-    for (const check of [...reasonChecks, ...tenseChecks, ...lengthChecks]) expect(claimMentionsMarkOrBand(check.prompt)).toBe(false);
+describe('fixesFromGroups', () => {
+  it('collects the fix quotes in display order', () => {
+    expect(
+      fixesFromGroups([
+        { heading: 'What you did well', tone: 'good', points: [{ kind: 'claim', text: 'good' }] },
+        { heading: 'Fix these first', tone: 'bad', points: [{ kind: 'fix', quote: 'mon mère', correction: 'ma mère' }] },
+      ] as never),
+    ).toEqual({ quotes: ['mon mère'] });
   });
 });

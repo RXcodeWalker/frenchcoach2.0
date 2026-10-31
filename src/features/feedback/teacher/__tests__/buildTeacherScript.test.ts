@@ -180,14 +180,14 @@ describe('buildTeacherScript — examiner groups keep their own order', () => {
 
 describe('buildTeacherScript — Predict calibration lines', () => {
   const calibration = [
-    { id: 'reason' as const, answer: 'no' as const, text: "You thought you didn't give a reason, but you did: « parce que c'est drôle ».", quote: "parce que c'est drôle" },
-    { id: 'length' as const, answer: 'yes' as const, text: 'You said 41 words.' },
+    { id: 'reason' as const, answer: 'no' as const, verdict: 'wrong' as const, text: "You did better than you thought, here it is: « parce que c'est drôle ».", quote: "parce que c'est drôle" },
+    { id: 'mistakes' as const, answer: 'yes' as const, verdict: 'right' as const, text: "Good ear: there's one thing to fix, starting with « mon mère »." },
   ];
 
   it('sit between the opening and what went well, one talk line each', () => {
     const lines = buildTeacherScript({ register: 'coach', transcript: TRANSCRIPT, groups: [strengths, fixGroup(1)], calibration });
     expect(ids(lines)).toEqual([
-      'learner', 'opening', 'calibration:reason', 'calibration:length', 'points:What you did well', 'connective', 'points:Fix these first',
+      'learner', 'opening', 'calibration:reason', 'calibration:mistakes', 'points:What you did well', 'connective', 'points:Fix these first',
     ]);
     expect(talk(lines).filter((l) => l.role === 'calibration').map((l) => l.text)).toEqual(calibration.map((c) => c.text));
   });
@@ -346,5 +346,29 @@ describe('buildTeacherScript — firsts (Batch 6c)', () => {
   it('says nothing about firsts unless Learn proved one', () => {
     expect(ids(buildTeacherScript({ register: 'coach', transcript: TRANSCRIPT, groups: [strengths] })).some((i) => i.startsWith('first:'))).toBe(false);
     expect(ids(buildTeacherScript({ register: 'coach', transcript: TRANSCRIPT, groups: [strengths], firsts: [] })).some((i) => i.startsWith('first:'))).toBe(false);
+  });
+});
+
+describe('buildTeacherScript — self-corrections (owner report 2026-10-31)', () => {
+  const fixed = { quote: 'dans ton école', correction: 'dans mon école', repair: 'dans mon école' };
+
+  it('credits a slip the learner fixed, before the fixes, and never as a mark', () => {
+    for (const register of ['coach', 'examiner'] as const) {
+      const lines = buildTeacherScript({ register, transcript: TRANSCRIPT, groups: [strengths, fixGroup(1)], selfCorrections: [fixed] });
+      const at = lines.findIndex((l) => l.id === 'selfCorrection:0');
+      expect(at).toBeGreaterThan(0);
+      expect(at).toBeLessThan(lines.findIndex((l) => l.id === 'connective'));
+      const line = lines[at] as Extract<TeacherLine, { kind: 'talk' }>;
+      expect(line.text).toContain('« dans ton école »');
+      expect(line.text).toContain('« dans mon école »');
+      expect(claimMentionsMarkOrBand(line.text), line.text).toBe(false);
+    }
+  });
+
+  it('reads them from the filtered feedback', () => {
+    const lines = buildCoachTeacherScript({ grammar: { critical: [], polish: [] }, selfCorrections: [fixed] } as unknown as FeedbackV2, {
+      transcript: TRANSCRIPT,
+    });
+    expect(lines.some((l) => l.id === 'selfCorrection:0')).toBe(true);
   });
 });

@@ -33,7 +33,7 @@ const CARD = 'flex flex-col gap-4 rounded-card border border-hairline bg-surface
  */
 export function TranscriptConfirmPanel({ checking, transcription, onConfirm, onRerecord }: Props) {
   const alignment = useMemo(
-    () => (transcription ? alignRecognisers(transcription.primaryText, transcription.secondaryText) : null),
+    () => (transcription ? alignRecognisers(transcription.primaryText, transcription.secondaryText, { spokenNumbers: true }) : null),
     [transcription],
   );
   const [chosen, setChosen] = useState<ReadonlySet<number>>(new Set());

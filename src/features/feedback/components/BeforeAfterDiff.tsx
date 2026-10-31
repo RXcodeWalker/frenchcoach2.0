@@ -22,8 +22,9 @@ function DiffChip({ op }: { op: AnnotatedDiffOp }) {
   return (
     <span className="inline">
       {op.type === 'delete' || op.type === 'replace' ? (
-        <span className="line-through decoration-correction-text decoration-2 text-ink-muted">{op.beforeText}</span>
+        <span className="line-through decoration-correction-text decoration-2 text-ink-muted">{op.beforeText.trim()}</span>
       ) : null}
+      {op.type === 'replace' ? ' ' : null}
       {op.type === 'insert' || op.type === 'replace' ? (
         hasExplanation ? (
           <button
@@ -84,7 +85,7 @@ export function BeforeAfterDiff({ transcript, improvedAnswer, changes, issues = 
     );
   }
 
-  const ops = diffWords(transcript, improvedAnswer);
+  const ops = diffWords(transcript, improvedAnswer, { ignoreCaseAndPunctuation: true });
   const annotated = attachChangeAnnotations(ops, changes ?? []);
   const hasChange = annotated.some(op => op.type !== 'equal');
   if (!hasChange) return null;
