@@ -17,22 +17,25 @@ interface Options {
   inFeedback: boolean;
   onHint: () => void;
   onSkip: () => void;
+  /** A skip can be undone (its toast is showing). */
+  canUndo?: boolean;
+  onUndo?: () => void;
 }
 
 /**
  * Learn's single-key shortcuts: h hint, s skip (while a question is showing),
- * n next question (while feedback is). Shift+letter is navigation and `g` + letter
+ * n next question (while feedback is), u undo a skip (while its toast is up). Shift+letter is navigation and `g` + letter
  * is a chord, so both are left alone, as are typing, dialogs and Ctrl/Cmd/Alt.
  */
-export function useLearnShortcuts({ canAnswer, inFeedback, onHint, onSkip }: Options): void {
-  const latest = useRef({ canAnswer, inFeedback, onHint, onSkip });
-  latest.current = { canAnswer, inFeedback, onHint, onSkip };
+export function useLearnShortcuts({ canAnswer, inFeedback, onHint, onSkip, canUndo = false, onUndo }: Options): void {
+  const latest = useRef({ canAnswer, inFeedback, onHint, onSkip, canUndo, onUndo });
+  latest.current = { canAnswer, inFeedback, onHint, onSkip, canUndo, onUndo };
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.defaultPrevented || e.repeat || e.shiftKey || hasCommandModifier(e)) return;
       if (isChordPending() || isTypingTarget(e.target) || isDialogOpen()) return;
-      const { canAnswer, inFeedback, onHint, onSkip } = latest.current;
+      const { canAnswer, inFeedback, onHint, onSkip, canUndo, onUndo } = latest.current;
       const key = e.key.toLowerCase();
 
       if (canAnswer && key === 'h') {
@@ -41,6 +44,9 @@ export function useLearnShortcuts({ canAnswer, inFeedback, onHint, onSkip }: Opt
       } else if (canAnswer && key === 's') {
         e.preventDefault();
         onSkip();
+      } else if (canUndo && key === 'u' && onUndo) {
+        e.preventDefault();
+        onUndo();
       } else if (inFeedback && key === 'n') {
         const next = document.querySelector<HTMLElement>(`[${CONTINUE_SHORTCUT_ATTR}="${CONTINUE_SHORTCUT_VALUE}"]`);
         if (next && !(next as HTMLButtonElement).disabled) {

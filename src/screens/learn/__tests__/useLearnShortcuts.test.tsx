@@ -72,3 +72,20 @@ describe('useLearnShortcuts', () => {
     expect(onSkip).not.toHaveBeenCalled();
   });
 });
+
+describe('useLearnShortcuts undo', () => {
+  function UndoHarness(props: { canUndo: boolean; onUndo: () => void }) {
+    useLearnShortcuts({ canAnswer: true, inFeedback: false, onHint: vi.fn(), onSkip: vi.fn(), ...props });
+    return null;
+  }
+
+  it('u undoes a skip only while it is on offer', () => {
+    const onUndo = vi.fn();
+    const { rerender } = render(<UndoHarness canUndo={false} onUndo={onUndo} />);
+    fireEvent.keyDown(document.body, { key: 'u' });
+    expect(onUndo).not.toHaveBeenCalled();
+    rerender(<UndoHarness canUndo onUndo={onUndo} />);
+    fireEvent.keyDown(document.body, { key: 'u' });
+    expect(onUndo).toHaveBeenCalledTimes(1);
+  });
+});

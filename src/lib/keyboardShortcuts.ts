@@ -49,6 +49,7 @@ export const SHORTCUT_GROUPS: readonly ShortcutGroup[] = [
       { keys: ['Space'], label: 'Start or stop recording your answer' },
       { keys: ['h'], label: 'Show or hide the hint' },
       { keys: ['s'], label: 'Skip this question' },
+      { keys: ['u'], label: 'Undo a skip (for a few seconds)' },
       { keys: ['n'], label: 'Next question, once you have your feedback' },
     ],
   },

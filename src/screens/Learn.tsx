@@ -41,6 +41,7 @@ import { TopContextBar } from '../components/TopContextBar';
 import { useBackHandler } from '../lib/useBackHandler';
 import { useLearnShortcuts } from './learn/useLearnShortcuts';
 import { LeaveSessionDialog } from './learn/LeaveSessionDialog';
+import { SkipUndoToast } from './learn/SkipUndoToast';
 import { Button } from '../components/ui/Button';
 import { useIsDesktop } from '../components/layout/useIsDesktop';
 import { useHideDock } from '../components/layout/shellChrome';
@@ -118,6 +119,8 @@ export function Learn() {
   const [focusTokenActive, setFocusTokenActive] = useState(false);
   const [showHint, setShowHint] = useState(false);
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+  /** The session as it was before the last skip, while Undo is on offer. */
+  const [skipUndo, setSkipUndo] = useState<ActiveSession | null>(null);
   const [feedback, setFeedback] = useState<FeedbackV2 | null>(null);
   // Batch 6c — milestone firsts the teacher proved for THIS answer (see firsts.ts).
   const [firsts, setFirsts] = useState<FirstId[]>([]);
@@ -1155,8 +1158,31 @@ export function Learn() {
 
   const skipQuestion = () => {
     if (recording.isRecording || !activeSession) return;
+    // Skipping the last question ends the session, which can't be taken back.
+    const willEnd = activeSession.currentIndex + 1 >= activeSession.targetCount;
+    setSkipUndo(willEnd ? null : activeSession);
     advanceQuestion({ skipped: true });
   };
+
+  const undoSkip = () => {
+    if (!skipUndo || learnState !== 'question') return;
+    setActiveSession(skipUndo);
+    dispatch({ type: 'UPDATE_ACTIVE_SESSION', session: skipUndo });
+    setShowHint(false);
+    setFollowUpTurn(null);
+    extraTurnBudget.resetForNewQuestion();
+    setSkipUndo(null);
+  };
+
+  // Undo is on offer for a few seconds, and only while the next question is untouched.
+  useEffect(() => {
+    if (!skipUndo) return;
+    const id = window.setTimeout(() => setSkipUndo(null), 7000);
+    return () => window.clearTimeout(id);
+  }, [skipUndo]);
+  useEffect(() => {
+    if (skipUndo && (learnState !== 'question' || recording.isRecording)) setSkipUndo(null);
+  }, [skipUndo, learnState, recording.isRecording]);
 
   // 2.1: gates advanceQuestion behind an optional "Say It Again" practice
   // step. Eligible only when: the flag is live, a target sentence exists,
@@ -1383,6 +1409,8 @@ export function Learn() {
     inFeedback: learnState === 'feedback' && !showDrillModal,
     onHint: () => setShowHint(h => !h),
     onSkip: skipQuestion,
+    canUndo: skipUndo !== null && learnState === 'question' && !recording.isRecording && !showDrillModal,
+    onUndo: undoSkip,
   });
 
   const topicData = selectedTopic ? TOPICS.find(t => t.key === selectedTopic.key) ?? selectedTopic : null;
@@ -1686,6 +1714,10 @@ export function Learn() {
 
         </AnimatePresence>
       </div>
+
+      {skipUndo && learnState === 'question' && (
+        <SkipUndoToast onUndo={undoSkip} onDismiss={() => setSkipUndo(null)} />
+      )}
 
       <LeaveSessionDialog
         open={showLeaveConfirm}
