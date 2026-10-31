@@ -14,6 +14,7 @@ vi.mock('../../components/TopContextBar', () => ({
 
 import { RapidFire } from '../RapidFire';
 import { getBest } from '../../features/rapidFire/bests';
+import { missedInSet, recordMissed } from '../../features/rapidFire/missed';
 import { getWordSet } from '../../features/rapidFire/wordBank';
 
 // Deterministic shuffles: Math.random() === 0 keeps a stable order.
@@ -194,6 +195,42 @@ describe('Rapid Fire screen', () => {
     await click(screen.getByRole('button', { name: 'End run' }));
     expect(screen.getByText('Run ended')).toBeTruthy();
     expect(screen.getByTestId('rf-clean').textContent).toContain('A clean run');
+    expect(getBest('phrases')).toBeUndefined();
+  });
+
+  it('collects misses, locks the missed sprint until there are enough, then plays it without touching the best', async () => {
+    renderScreen();
+    await click(screen.getByTestId('rf-set-phrases'));
+    expect(screen.getByTestId('rf-missed-count').textContent).toContain('Nothing missed yet');
+    expect((screen.getByTestId('rf-start-missed') as HTMLButtonElement).disabled).toBe(true);
+
+    await startRun();
+    for (let i = 0; i < 3; i++) { await type('faux'); await submit(); await submit(); }
+    await click(screen.getByRole('button', { name: 'Change word set' }));
+    expect(screen.getByTestId('rf-missed-count').textContent).toContain('3 missed so far');
+    expect((screen.getByTestId('rf-start-missed') as HTMLButtonElement).disabled).toBe(true);
+
+    // Seed enough more to unlock it.
+    const phrases = getWordSet('phrases')!;
+    const entries = phrases.words.slice(10, 14).map(word => ({ word, typed: '', kind: 'wrong' as const, expected: word.answers[0], accentsMissed: false }));
+    recordMissed(entries);
+    await click(screen.getByTestId('rf-set-mixed'));
+    await click(screen.getByTestId('rf-set-phrases'));
+    expect(missedInSet(phrases)).toHaveLength(7);
+    expect((screen.getByTestId('rf-start-missed') as HTMLButtonElement).disabled).toBe(false);
+
+    await click(screen.getByTestId('rf-start-missed'));
+    await tick(4000);
+    expect(screen.getByTestId('subtitle').textContent).toContain('Missed cards');
+    const prompt = screen.getByTestId('rf-prompt').textContent;
+    expect(missedInSet(phrases).some(w => w.prompt === prompt)).toBe(true);
+
+    await type(answerFor('phrases'));
+    await submit();
+    await click(screen.getByRole('button', { name: 'Pause run' }));
+    await click(screen.getByRole('button', { name: 'End run' }));
+    // The right answer cleared that card; the run never became the set's best.
+    expect(missedInSet(phrases)).toHaveLength(6);
     expect(getBest('phrases')).toBeUndefined();
   });
 });

@@ -91,6 +91,8 @@ export const STORAGE_KEYS = {
   emojiMasterWords: 'frenchCoach_emojiMasterWords',
   // ── Rapid Fire personal bests per word set (versioned payload; never XP, never synced) ──
   rapidFireBests: 'frenchCoach_rapidFireBests',
+  // ── Rapid Fire cards the learner missed, by English prompt (versioned payload; never XP, never synced) ──
+  rapidFireMissed: 'frenchCoach_rapidFireMissed',
   // ── Word Drop personal bests + last settings (a game for its own sake: no XP, no Session) ────
   wordDropBests: 'frenchCoach_wordDropBests',
   // ── Boss Battle personal records (versioned payload): stars and bests per boss. LOCAL ONLY — a fight writes no XP,

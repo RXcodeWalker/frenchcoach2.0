@@ -5,13 +5,17 @@ import { RapidFirePlay } from '../features/rapidFire/RapidFirePlay';
 import { RapidFireResults } from '../features/rapidFire/RapidFireResults';
 import { RapidFireSetup } from '../features/rapidFire/RapidFireSetup';
 import { recordRun, type BestUpdate } from '../features/rapidFire/bests';
+import { MIN_MISSED_FOR_SPRINT, missedInSet, recordMissed } from '../features/rapidFire/missed';
 import { RUN_SECONDS, missedWords, type RunMode, type RunSummary } from '../features/rapidFire/run';
 import { getWordSets, type RapidFireWord } from '../features/rapidFire/wordBank';
 
+/** `set`: the whole word set. `missed`: only the cards missed before (never touches the set's best). */
+type Pool = 'set' | 'missed';
+
 type View =
   | { name: 'setup' }
-  | { name: 'play'; runId: number; mode: RunMode; words: RapidFireWord[] }
-  | { name: 'results'; summary: RunSummary; bestUpdate: BestUpdate };
+  | { name: 'play'; runId: number; mode: RunMode; pool: Pool; words: RapidFireWord[] }
+  | { name: 'results'; summary: RunSummary; pool: Pool; bestUpdate: BestUpdate };
 
 /**
  * Rapid Fire: a 60-second typed-translation sprint (Design System v2).
@@ -29,13 +33,24 @@ export function RapidFire() {
   const [runCount, setRunCount] = useState(0);
   const set = sets.find(s => s.id === setId) ?? sets[0];
 
-  const begin = useCallback((mode: RunMode, words: RapidFireWord[]) => {
+  // Re-read whenever the screen changes view, so a finished run updates the count.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const missed = useMemo(() => missedInSet(set), [set, view.name]);
+
+  const begin = useCallback((mode: RunMode, words: RapidFireWord[], pool: Pool = 'set') => {
     setRunCount(n => n + 1);
-    setView({ name: 'play', runId: runCount + 1, mode, words });
+    setView({ name: 'play', runId: runCount + 1, mode, pool, words });
   }, [runCount]);
 
-  const finish = useCallback((summary: RunSummary) => {
-    setView({ name: 'results', summary, bestUpdate: recordRun(setId, summary) });
+  const beginPool = useCallback((pool: Pool) => {
+    begin('sprint', pool === 'missed' ? missedInSet(set) : set.words, pool);
+  }, [begin, set]);
+
+  const finish = useCallback((summary: RunSummary, pool: Pool) => {
+    recordMissed(summary.log);
+    // A missed-cards sprint is a different pool, so it can't set the word set's best.
+    const bestUpdate = pool === 'missed' ? { previous: undefined, isNewBest: false } : recordRun(setId, summary);
+    setView({ name: 'results', summary, pool, bestUpdate });
   }, [setId]);
 
   if (view.name === 'play') {
@@ -43,12 +58,12 @@ export function RapidFire() {
       <>
         <TopContextBar
           title="Rapid Fire"
-          subtitle={view.mode === 'drill' ? 'Missed words' : set.label}
+          subtitle={view.mode === 'drill' ? 'Missed words' : view.pool === 'missed' ? `Missed cards · ${set.label}` : set.label}
           showBack
           backLabel="Leave this run"
           onBack={() => setView({ name: 'setup' })}
         />
-        <RapidFirePlay key={view.runId} words={view.words} mode={view.mode} onFinish={finish} />
+        <RapidFirePlay key={view.runId} words={view.words} mode={view.mode} onFinish={summary => finish(summary, view.pool)} />
       </>
     );
   }
@@ -66,9 +81,9 @@ export function RapidFire() {
         />
         <RapidFireResults
           summary={summary}
-          setLabel={set.label}
+          setLabel={summary.mode === 'sprint' && view.pool === 'missed' ? `${set.label} (missed cards)` : set.label}
           bestUpdate={view.bestUpdate}
-          onPlayAgain={() => begin('sprint', set.words)}
+          onPlayAgain={() => beginPool(view.pool)}
           onDrill={() => begin('drill', missedWords(summary.log))}
           onChangeSet={() => setView({ name: 'setup' })}
           onExit={() => navigate('/explore')}
@@ -86,7 +101,15 @@ export function RapidFire() {
         backLabel="Back to Explore"
         onBack={() => navigate('/explore')}
       />
-      <RapidFireSetup sets={sets} selectedId={set.id} onSelect={setSetId} onStart={() => begin('sprint', set.words)} />
+      <RapidFireSetup
+        sets={sets}
+        selectedId={set.id}
+        onSelect={setSetId}
+        onStart={() => beginPool('set')}
+        missedCount={missed.length}
+        minMissed={MIN_MISSED_FOR_SPRINT}
+        onStartMissed={() => beginPool('missed')}
+      />
     </>
   );
 }

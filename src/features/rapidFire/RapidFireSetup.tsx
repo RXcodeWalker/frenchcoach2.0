@@ -13,6 +13,11 @@ interface Props {
   selectedId: string;
   onSelect: (id: string) => void;
   onStart: () => void;
+  /** Cards from the selected set the learner has missed before. */
+  missedCount: number;
+  /** Fewest missed cards that make a sprint. */
+  minMissed: number;
+  onStartMissed: () => void;
 }
 
 const QUICK_ICON: Record<Exclude<WordSetKind, 'topic'>, LucideIcon> = {
@@ -59,7 +64,7 @@ function SetButton({ set, on, onSelect }: { set: WordSet; on: boolean; onSelect:
 }
 
 /** Rapid Fire's start screen: the rules in three lines, a word set, and one primary Start. */
-export function RapidFireSetup({ sets, selectedId, onSelect, onStart }: Props) {
+export function RapidFireSetup({ sets, selectedId, onSelect, onStart, missedCount, minMissed, onStartMissed }: Props) {
   const reduced = useReducedMotion();
   const item = reduced ? enterReduced : enter;
   const selected = sets.find(s => s.id === selectedId) ?? sets[0];
@@ -122,6 +127,21 @@ export function RapidFireSetup({ sets, selectedId, onSelect, onStart }: Props) {
           </div>
           <Button size="lg" onClick={onStart} className="sm:min-w-40" data-testid="rf-start">
             Start
+          </Button>
+        </div>
+        <div className="mt-4 flex flex-col gap-3 border-t border-hairline pt-4 sm:flex-row sm:items-center sm:justify-between" data-testid="rf-missed">
+          <div>
+            <p className="text-label text-ink">Missed cards</p>
+            <p className="text-body-s text-ink-muted" data-testid="rf-missed-count">
+              {missedCount >= minMissed
+                ? <><span className="font-numeral text-ink">{missedCount}</span> cards from {selected.label} to win back. Get one right and it leaves the list.</>
+                : missedCount > 0
+                  ? `${missedCount} missed so far. Play a few more sprints and this unlocks at ${minMissed}.`
+                  : 'Nothing missed yet. Cards you get wrong or skip collect here.'}
+            </p>
+          </div>
+          <Button variant="secondary" size="lg" onClick={onStartMissed} disabled={missedCount < minMissed} className="sm:min-w-40" data-testid="rf-start-missed">
+            Practise missed
           </Button>
         </div>
       </motion.section>
