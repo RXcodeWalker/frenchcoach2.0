@@ -1,7 +1,7 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect, useMemo, useCallback, useRef, type CSSProperties } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Trophy, Users, Globe, Clock, Flame, Check, X as XIcon, UserMinus, Inbox, Search, UserPlus, Zap } from 'lucide-react';
+import { CalendarDays, Check, ChevronRight, Flame, Search, Trophy } from 'lucide-react';
 import { PageShell } from '../components/layout/PageShell';
 import { UsernameSetupModal } from '../components/ui/UsernameSetupModal';
 import { useApp } from '../context/AppContext';
@@ -14,7 +14,13 @@ import {
 import { searchUsernames, type SearchResult } from '../services/social/searchService';
 import { getWeekKey } from '../domain/weekKey';
 import { RankingUser } from '../types';
-import { CosmeticPreview } from '../components/ui/CosmeticPreview';
+import { TopContextBar } from '../components/TopContextBar';
+import { Button } from '../components/ui/Button';
+import { Segmented } from '../components/ui/Segmented';
+import { PersonRow } from '../features/rankings/PersonRow';
+import { weekResetsIn } from '../features/rankings/weekReset';
+import { enter, enterReduced } from '../components/motion/variants';
+import { useNavigate } from 'react-router-dom';
 import { useCatalogue } from '../services/shop/useCatalogue';
 import { rarityOf, RARITY_COLOR } from '../services/shop/rarity';
 import type { ShopItem } from '../types/shop';
@@ -29,20 +35,11 @@ function makeNameplateColorLookup(catalogue: ShopItem[]) {
   };
 }
 
-function nextWeekRolloverLabel(): string {
-  // Next UTC Monday 00:00 — the boundary the shared week-key util rolls over on.
-  const now = new Date();
-  const day = now.getUTCDay(); // Sunday=0..Saturday=6
-  const daysUntilMonday = day === 1 ? 7 : ((8 - day) % 7) || 7;
-  const nextMonday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + daysUntilMonday));
-  const ms = nextMonday.getTime() - now.getTime();
-  const days = Math.floor(ms / 86400000);
-  const hours = Math.floor((ms % 86400000) / 3600000);
-  const minutes = Math.floor((ms % 3600000) / 60000);
-  return `${days}d ${hours}h ${minutes}m`;
-}
-
 export function Rankings() {
+  const navigate = useNavigate();
+  const reduced = useReducedMotion();
+  const item = reduced ? enterReduced : enter;
+  const [confirmRemove, setConfirmRemove] = useState<string | null>(null);
   const { state } = useApp();
   const { profile } = state;
   // profile.id is the local placeholder 'local-user' (AppContext), not a uuid —
@@ -152,355 +149,310 @@ export function Rankings() {
   }
   async function handleRemove(userId: string) {
     const result = await removeFriend(userId);
+    setConfirmRemove(null);
     if (result.ok) void loadFriendships();
   }
 
+  const card = 'rounded-card border border-hairline bg-surface';
+  const incomingCount = incoming.length;
+
+  const emptyNote = (text: string) => <p className="px-4 py-10 text-center text-body-s text-ink-muted">{text}</p>;
+  const signInNote = (
+    <p className="px-4 py-10 text-center text-body-s text-ink-muted">
+      Sign in to add friends and see requests.{' '}
+      <Link to="/login" className="font-semibold text-action-text underline-offset-2 hover:underline">Sign in</Link>
+    </p>
+  );
+
+  const rankBadge = (rank: number | undefined) => (
+    <span
+      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-pill font-numeral text-label
+        ${rank === 1 ? 'bg-reward-soft text-reward-text' : 'bg-track text-ink-muted'}`}
+      aria-label={`Rank ${rank ?? 'unranked'}`}
+    >
+      {rank ?? '–'}
+    </span>
+  );
+
   return (
-    <PageShell>
-      {showUsernameModal && (
-        <UsernameSetupModal onClose={() => setShowUsernameModal(false)} />
-      )}
+    <>
+      <TopContextBar title="Rankings" subtitle="See where you stand" showBack backLabel="Back to Explore" onBack={() => navigate('/explore')} />
+      <PageShell maxWidth="md" gap={16}>
+        {showUsernameModal && <UsernameSetupModal onClose={() => setShowUsernameModal(false)} />}
 
-      {/* Header */}
-      <div>
-        <div className="flex items-center gap-2 mb-1">
-          <Trophy size={14} className="text-violet-400" />
-          <span className="text-[10px] font-bold text-violet-400 uppercase tracking-wider">Hall of Fame</span>
-        </div>
-        <h1 className="text-2xl md:text-3xl font-black text-white">Rankings</h1>
-        <p className="text-sm text-ink-muted mt-1">Compete with learners worldwide</p>
-      </div>
+        <motion.div variants={item}>
+          <Segmented<Tab>
+            label="Rankings view"
+            value={activeTab}
+            onChange={setActiveTab}
+            testIdPrefix="rank-tab"
+            options={[
+              { id: 'global', label: 'Leaderboard' },
+              { id: 'friends', label: 'Friends' },
+              {
+                id: 'requests',
+                label: (
+                  <span className="inline-flex items-center gap-1.5">
+                    Requests
+                    {incomingCount > 0 && (
+                      <span className="flex h-5 min-w-5 items-center justify-center rounded-pill bg-correction px-1 font-numeral text-caption text-action-ink">
+                        {incomingCount}
+                        <span className="sr-only"> new</span>
+                      </span>
+                    )}
+                  </span>
+                ),
+              },
+            ]}
+          />
+        </motion.div>
 
-      {/* Tabs */}
-      <div className="flex p-1 bg-navy-300/50 rounded-xl mb-6">
-        {(['global', 'friends', 'requests'] as Tab[]).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-bold transition-all ${
-              activeTab === tab
-                ? 'bg-violet-electric text-white shadow-lg'
-                : 'text-ink-muted hover:text-ink-muted'
-            }`}
-          >
-            {tab === 'global' && <Globe size={14} />}
-            {tab === 'friends' && <Users size={14} />}
-            {tab === 'requests' && <Inbox size={14} />}
-            <span className="capitalize">{tab}</span>
-            {tab === 'requests' && incoming.length > 0 && (
-              <span className="w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-black flex items-center justify-center">{incoming.length}</span>
-            )}
-          </button>
-        ))}
-      </div>
-
-      <div className="space-y-6">
         {activeTab === 'global' && (
           <>
-            {/* Daily Challenge comparison — links out to the shared once-a-day set */}
-            <Link to="/daily-challenge">
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                whileTap={{ scale: 0.98 }}
-                className="flex items-center gap-3 p-4 rounded-2xl border border-violet-electric/20 bg-violet-electric/5 hover:bg-violet-electric/10 transition-colors"
-              >
-                <div className="w-9 h-9 rounded-xl bg-violet-electric/15 flex items-center justify-center flex-shrink-0">
-                  <Zap size={16} className="text-violet-400" />
+            <motion.section variants={item} className={`${card} p-5 md:p-6`} aria-label="Your standing">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-control bg-surface-recessed p-4">
+                  <p className="text-eyebrow uppercase text-ink-subtle">Your rank</p>
+                  <p className="mt-1 flex items-center gap-2 font-numeral text-title text-ink" data-testid="rank-mine">
+                    <Trophy size={18} strokeWidth={1.75} aria-hidden="true" className="text-reward-text" />
+                    {myRank ? `#${myRank}` : 'Unranked'}
+                  </p>
                 </div>
-                <div className="flex-1">
-                  <p className="text-xs font-bold text-white">Daily Challenge</p>
-                  <p className="text-[10px] text-ink-muted">Same question, everyone, once a day — see today's leaderboard</p>
-                </div>
-              </motion.div>
-            </Link>
-
-            {/* League Power promo — weekly XP cohorts */}
-            <Link to="/league">
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                whileTap={{ scale: 0.98 }}
-                className="flex items-center gap-3 p-4 rounded-2xl border border-amber-400/20 bg-amber-400/5 hover:bg-amber-400/10 transition-colors"
-              >
-                <div className="w-9 h-9 rounded-xl bg-amber-400/15 flex items-center justify-center flex-shrink-0">
-                  <Trophy size={16} className="text-amber-400" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs font-bold text-white">League Power</p>
-                  <p className="text-[10px] text-ink-muted">Weekly cohorts — climb the ranks, don't get demoted</p>
-                </div>
-              </motion.div>
-            </Link>
-
-            {/* Week rollover card */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="relative overflow-hidden rounded-2xl p-6 border border-white/5"
-              style={{ background: 'linear-gradient(135deg, #7C3AED15 0%, transparent 100%)' }}
-            >
-              <div className="relative z-10 grid grid-cols-2 gap-3">
-                <div className="bg-white/5 rounded-xl p-3 border border-white/5">
-                  <p className="text-[10px] text-ink-muted uppercase font-bold mb-1">Week resets in</p>
-                  <div className="flex items-center gap-2">
-                    <Clock size={12} className="text-violet-400" />
-                    <p className="text-sm font-bold text-white">{nextWeekRolloverLabel()}</p>
-                  </div>
-                </div>
-                <div className="bg-white/5 rounded-xl p-3 border border-white/5">
-                  <p className="text-[10px] text-ink-muted uppercase font-bold mb-1">Your Rank</p>
-                  <div className="flex items-center gap-2">
-                    <Trophy size={12} className="text-amber-400" />
-                    <p className="text-sm font-bold text-white">{myRank ? `#${myRank}` : 'Unranked'}</p>
-                  </div>
+                <div className="rounded-control bg-surface-recessed p-4">
+                  <p className="text-eyebrow uppercase text-ink-subtle">Week resets in</p>
+                  <p className="mt-1 flex items-center gap-2 font-numeral text-title text-ink">
+                    <CalendarDays size={18} strokeWidth={1.75} aria-hidden="true" className="text-ink-muted" />
+                    {weekResetsIn()}
+                  </p>
                 </div>
               </div>
-            </motion.div>
-
-            {/* Timeframe toggle */}
-            <div className="flex items-center justify-between px-1">
-              <h3 className="text-sm font-bold text-white capitalize">Global Leaderboard</h3>
-              <div className="flex p-1 bg-navy-300/30 rounded-lg">
-                {(['weekly', 'all-time'] as Timeframe[]).map((t) => (
-                  <button
-                    key={t}
-                    onClick={() => setTimeframe(t)}
-                    className={`px-3 py-1 rounded-md text-[10px] font-bold transition-all ${
-                      timeframe === t
-                        ? 'bg-white/10 text-white'
-                        : 'text-ink-subtle hover:text-ink-muted'
-                    }`}
-                  >
-                    {t === 'weekly' ? 'Weekly' : 'All-Time'}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-2 pb-24">
-              {loading ? (
-                <div className="text-center py-12 text-ink-subtle text-sm">Loading…</div>
-              ) : users.length === 0 ? (
-                <div className="text-center py-12 text-ink-subtle text-sm">
-                  No one has ranked in {timeframe === 'weekly' ? `week ${weekKey}` : 'the all-time board'} yet.
-                </div>
-              ) : (
-                <AnimatePresence mode="popLayout">
-                  {users.map((user, index) => (
-                    <motion.div
-                      key={user.id}
-                      layout
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 10 }}
-                      transition={{ delay: index * 0.03 }}
-                      className={`group relative flex items-center gap-4 p-4 rounded-xl transition-all ${
-                        user.isCurrentUser
-                          ? 'bg-violet-electric/10 border border-violet-electric/30'
-                          : 'surface hover:bg-white/[0.04]'
-                      }`}
-                    >
-                      <div className="w-6 text-center">
-                        {user.rank === 1 ? (
-                          <span className="text-xl">🥇</span>
-                        ) : user.rank === 2 ? (
-                          <span className="text-xl">🥈</span>
-                        ) : user.rank === 3 ? (
-                          <span className="text-xl">🥉</span>
-                        ) : (
-                          <span className="text-sm font-black text-ink-subtle group-hover:text-ink-muted">
-                            {user.rank}
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="relative">
-                        <CosmeticPreview
-                          avatarEmoji={user.avatar ?? null}
-                          frameItemId={user.equippedFrame ?? null}
-                          nameplateItemId={null}
-                          catalogue={catalogue}
-                          size={40}
-                        />
-                        {user.streak > 50 && (
-                          <div className="absolute -top-1 -right-1 bg-orange-500 rounded-full p-0.5 border border-navy shadow-lg">
-                            <Flame size={8} className="text-white" />
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="flex-1">
-                        <p
-                          className={`text-sm font-bold ${user.isCurrentUser ? 'text-white' : 'text-slate-200'}`}
-                          style={nameplateColorOf(user.equippedNameplate)}
-                        >
-                          {user.username} {user.isCurrentUser && <span className="text-[10px] text-violet-400">(You)</span>}
-                        </p>
-                      </div>
-
-                      <div className="text-right">
-                        <p className="text-sm font-black text-white">
-                          {(timeframe === 'weekly' ? user.weeklyXP : user.totalXP).toLocaleString()}
-                          <span className="text-[10px] font-bold text-ink-subtle ml-1">XP</span>
-                        </p>
-                      </div>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
+              {!myRank && !loading && (
+                <p className="mt-3 text-body-s text-ink-muted">Earn XP this week to appear on the board.</p>
               )}
-            </div>
+            </motion.section>
+
+            <motion.section variants={item} className="grid gap-3 sm:grid-cols-2" aria-label="More ways to compete">
+              {[
+                { to: '/daily-challenge', Icon: Flame, title: 'Daily Challenge', text: 'Same question for everyone, once a day.' },
+                { to: '/league', Icon: Trophy, title: 'League Power', text: 'Weekly cohorts. Climb, don’t get demoted.' },
+              ].map(({ to, Icon, title, text }) => (
+                <Link
+                  key={to}
+                  to={to}
+                  className={`${card} flex items-center gap-3 p-4 transition-colors duration-state ease-smooth hover:border-hairline-strong hover:bg-track`}
+                >
+                  <span aria-hidden="true" className="topic-chip flex h-10 w-10 shrink-0 items-center justify-center" style={{ '--h': 67, borderRadius: 8 } as CSSProperties}>
+                    <Icon size={20} strokeWidth={1.75} />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-label text-ink">{title}</span>
+                    <span className="block text-caption text-ink-subtle">{text}</span>
+                  </span>
+                  <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-ink-subtle" />
+                </Link>
+              ))}
+            </motion.section>
+
+            <motion.section variants={item} className={card} aria-labelledby="rank-board">
+              <div className="flex items-center justify-between gap-3 border-b border-hairline px-4 py-3">
+                <h2 id="rank-board" className="text-section text-ink">Global leaderboard</h2>
+                <div role="group" aria-label="Time range" className="flex gap-1">
+                  {(['weekly', 'all-time'] as Timeframe[]).map(t => (
+                    <button
+                      key={t}
+                      type="button"
+                      aria-pressed={timeframe === t}
+                      onClick={() => setTimeframe(t)}
+                      className={`h-9 rounded-control px-3 text-label transition-colors duration-state ease-smooth
+                        ${timeframe === t ? 'bg-action-soft text-action-text' : 'text-ink-muted hover:bg-track hover:text-ink'}`}
+                    >
+                      {t === 'weekly' ? 'This week' : 'All time'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {loading ? (
+                <ul className="divide-y divide-hairline" aria-busy="true" data-testid="rank-loading">
+                  {[0, 1, 2, 3, 4].map(i => (
+                    <li key={i} className="flex min-h-16 items-center gap-3 px-4 py-3" aria-hidden="true">
+                      <span className="h-8 w-8 rounded-pill bg-track" />
+                      <span className="h-10 w-10 rounded-pill bg-track" />
+                      <span className="h-4 w-32 rounded-control bg-track" />
+                    </li>
+                  ))}
+                </ul>
+              ) : users.length === 0 ? (
+                emptyNote(`No one has ranked in ${timeframe === 'weekly' ? `week ${weekKey}` : 'the all-time board'} yet.`)
+              ) : (
+                <ul className="divide-y divide-hairline">
+                  {users.map(u => (
+                    <PersonRow
+                      key={u.id}
+                      username={u.username}
+                      avatar={u.avatar}
+                      frame={u.equippedFrame}
+                      catalogue={catalogue}
+                      nameStyle={nameplateColorOf(u.equippedNameplate)}
+                      isYou={u.isCurrentUser}
+                      lead={rankBadge(u.rank)}
+                      note={u.streak >= 7 ? (
+                        <span className="inline-flex items-center gap-1 text-streak-text">
+                          <Flame size={12} aria-hidden="true" /> <span className="font-numeral">{u.streak}</span> day streak
+                        </span>
+                      ) : undefined}
+                      trail={
+                        <p className="shrink-0 text-right text-label text-ink">
+                          <span className="font-numeral">{(timeframe === 'weekly' ? u.weeklyXP : u.totalXP).toLocaleString()}</span>
+                          <span className="ml-1 text-caption font-normal text-ink-subtle">XP</span>
+                        </p>
+                      }
+                    />
+                  ))}
+                </ul>
+              )}
+            </motion.section>
           </>
         )}
 
         {activeTab === 'friends' && (
-          <div className="space-y-4 pb-24">
-            <div className="relative">
-              <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-subtle" />
-              <input
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Search by username…"
-                className="w-full bg-navy-300/50 border border-white/10 rounded-xl pl-9 pr-4 py-2.5 text-xs text-white placeholder:text-ink-subtle focus:outline-none focus:border-violet-electric/50 transition-colors"
-              />
-            </div>
-
-            {searchResults.length > 0 && (
-              <div className="space-y-2">
-                <h3 className="text-[10px] font-bold text-ink-subtle uppercase tracking-wider px-1">Results</h3>
-                {searchResults.map(r => (
-                  <div key={r.userId} className="flex items-center gap-4 p-3 rounded-xl surface">
-                    <CosmeticPreview
-                      avatarEmoji={r.avatar ?? null}
-                      frameItemId={r.equippedFrame ?? null}
-                      nameplateItemId={null}
+          <>
+            <motion.section variants={item} className={`${card} p-4`} aria-label="Find friends">
+              <label htmlFor="rank-search" className="text-eyebrow uppercase text-ink-subtle">Find a friend</label>
+              <div className="relative mt-2">
+                <Search size={16} aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-subtle" />
+                <input
+                  id="rank-search"
+                  type="search"
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  placeholder="Search by username"
+                  autoComplete="off"
+                  disabled={!authUserId}
+                  className="h-11 w-full rounded-control border border-hairline-strong bg-surface pl-9 pr-3 text-body-s text-ink
+                    placeholder:text-ink-subtle disabled:text-ink-subtle"
+                />
+              </div>
+              {searchQuery.trim().length >= 2 && searchResults.length === 0 && (
+                <p className="mt-3 text-body-s text-ink-muted">No one found for “{searchQuery.trim()}”.</p>
+              )}
+              {searchResults.length > 0 && (
+                <ul className="mt-3 divide-y divide-hairline overflow-hidden rounded-control border border-hairline">
+                  {searchResults.map(r => (
+                    <PersonRow
+                      key={r.userId}
+                      username={r.username}
+                      avatar={r.avatar}
+                      frame={r.equippedFrame}
                       catalogue={catalogue}
-                      size={36}
+                      nameStyle={nameplateColorOf(r.equippedNameplate)}
+                      trail={
+                        sentTo.has(r.userId) ? (
+                          <span className="inline-flex shrink-0 items-center gap-1 text-label text-progress-text"><Check size={14} aria-hidden="true" /> Sent</span>
+                        ) : (
+                          <Button variant="secondary" size="sm" onClick={() => handleSendRequest(r.userId)} className="shrink-0">Add</Button>
+                        )
+                      }
                     />
-                    <div className="flex-1">
-                      <p className="text-sm font-bold text-slate-200" style={nameplateColorOf(r.equippedNameplate)}>{r.username}</p>
-                    </div>
-                    <button
-                      onClick={() => handleSendRequest(r.userId)}
-                      disabled={sentTo.has(r.userId)}
-                      className="p-2 rounded-lg text-violet-400 hover:bg-violet-500/10 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                      title={sentTo.has(r.userId) ? 'Request sent' : 'Send friend request'}
-                    >
-                      {sentTo.has(r.userId) ? <Check size={16} /> : <UserPlus size={16} />}
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </ul>
+              )}
+            </motion.section>
 
-            {friendsLoading ? (
-              <div className="text-center py-12 text-ink-subtle text-sm">Loading…</div>
-            ) : accepted.length === 0 ? (
-              <div className="text-center py-12 text-ink-subtle text-sm">
-                No friends yet. Accept a request from the Requests tab to get started.
-              </div>
-            ) : (
-              accepted.map(f => (
-                <div key={f.userId} className="flex items-center gap-4 p-4 rounded-xl surface">
-                  <CosmeticPreview
-                    avatarEmoji={f.avatar ?? null}
-                    frameItemId={f.equippedFrame ?? null}
-                    nameplateItemId={null}
-                    catalogue={catalogue}
-                    size={40}
-                  />
-                  <div className="flex-1">
-                    <p className="text-sm font-bold text-slate-200" style={nameplateColorOf(f.equippedNameplate)}>{f.username}</p>
-                  </div>
-                  <button
-                    onClick={() => handleRemove(f.userId)}
-                    className="p-2 rounded-lg text-ink-subtle hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
-                    title="Remove friend"
-                  >
-                    <UserMinus size={14} />
-                  </button>
-                </div>
-              ))
-            )}
-          </div>
+            <motion.section variants={item} className={card} aria-labelledby="rank-friends">
+              <h2 id="rank-friends" className="border-b border-hairline px-4 py-3 text-section text-ink">
+                Your friends{accepted.length > 0 && <span className="ml-2 font-numeral text-ink-subtle">{accepted.length}</span>}
+              </h2>
+              {!authUserId ? signInNote : friendsLoading ? (
+                <p className="px-4 py-10 text-center text-body-s text-ink-muted">Loading friends…</p>
+              ) : accepted.length === 0 ? (
+                emptyNote('No friends yet. Search for a username above, or accept a request.')
+              ) : (
+                <ul className="divide-y divide-hairline">
+                  {accepted.map(f => (
+                    <PersonRow
+                      key={f.userId}
+                      username={f.username}
+                      avatar={f.avatar}
+                      frame={f.equippedFrame}
+                      catalogue={catalogue}
+                      nameStyle={nameplateColorOf(f.equippedNameplate)}
+                      trail={
+                        confirmRemove === f.userId ? (
+                          <span className="flex shrink-0 items-center gap-1">
+                            <Button variant="destructive" size="sm" onClick={() => handleRemove(f.userId)}>Remove</Button>
+                            <Button variant="quiet" size="sm" onClick={() => setConfirmRemove(null)}>Keep</Button>
+                          </span>
+                        ) : (
+                          <Button variant="quiet" size="sm" onClick={() => setConfirmRemove(f.userId)} className="shrink-0" aria-label={`Remove ${f.username} from friends`}>
+                            Remove
+                          </Button>
+                        )
+                      }
+                    />
+                  ))}
+                </ul>
+              )}
+            </motion.section>
+          </>
         )}
 
         {activeTab === 'requests' && (
-          <div className="space-y-6 pb-24">
-            <div>
-              <h3 className="text-[10px] font-bold text-ink-subtle uppercase tracking-wider mb-2 px-1">Incoming</h3>
-              <div className="space-y-2">
-                {friendsLoading ? (
-                  <div className="text-center py-8 text-ink-subtle text-sm">Loading…</div>
-                ) : incoming.length === 0 ? (
-                  <div className="text-center py-8 text-ink-subtle text-sm">No incoming requests.</div>
-                ) : (
-                  incoming.map(f => (
-                    <div key={f.userId} className="flex items-center gap-4 p-4 rounded-xl surface">
-                      <CosmeticPreview
-                        avatarEmoji={f.avatar ?? null}
-                        frameItemId={f.equippedFrame ?? null}
-                        nameplateItemId={null}
-                        catalogue={catalogue}
-                        size={40}
-                      />
-                      <div className="flex-1">
-                        <p className="text-sm font-bold text-slate-200" style={nameplateColorOf(f.equippedNameplate)}>{f.username}</p>
-                      </div>
-                      <button
-                        onClick={() => handleAccept(f.userId)}
-                        className="p-2 rounded-lg text-emerald-400 hover:bg-emerald-500/10 transition-colors"
-                        title="Accept"
-                      >
-                        <Check size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleDecline(f.userId)}
-                        className="p-2 rounded-lg text-ink-subtle hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
-                        title="Decline"
-                      >
-                        <XIcon size={16} />
-                      </button>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
+          <>
+            <motion.section variants={item} className={card} aria-labelledby="rank-incoming">
+              <h2 id="rank-incoming" className="border-b border-hairline px-4 py-3 text-section text-ink">Incoming</h2>
+              {!authUserId ? signInNote : friendsLoading ? (
+                <p className="px-4 py-10 text-center text-body-s text-ink-muted">Loading requests…</p>
+              ) : incoming.length === 0 ? (
+                emptyNote('No incoming requests.')
+              ) : (
+                <ul className="divide-y divide-hairline">
+                  {incoming.map(f => (
+                    <PersonRow
+                      key={f.userId}
+                      username={f.username}
+                      avatar={f.avatar}
+                      frame={f.equippedFrame}
+                      catalogue={catalogue}
+                      nameStyle={nameplateColorOf(f.equippedNameplate)}
+                      trail={
+                        <span className="flex shrink-0 items-center gap-1">
+                          <Button size="sm" onClick={() => handleAccept(f.userId)}>Accept</Button>
+                          <Button variant="quiet" size="sm" onClick={() => handleDecline(f.userId)}>Decline</Button>
+                        </span>
+                      }
+                    />
+                  ))}
+                </ul>
+              )}
+            </motion.section>
 
-            <div>
-              <h3 className="text-[10px] font-bold text-ink-subtle uppercase tracking-wider mb-2 px-1">Sent</h3>
-              <div className="space-y-2">
-                {friendsLoading ? null : outgoing.length === 0 ? (
-                  <div className="text-center py-8 text-ink-subtle text-sm">No sent requests.</div>
+            {authUserId && !friendsLoading && (
+              <motion.section variants={item} className={card} aria-labelledby="rank-sent">
+                <h2 id="rank-sent" className="border-b border-hairline px-4 py-3 text-section text-ink">Sent</h2>
+                {outgoing.length === 0 ? (
+                  emptyNote('No sent requests.')
                 ) : (
-                  outgoing.map(f => (
-                    <div key={f.userId} className="flex items-center gap-4 p-4 rounded-xl surface">
-                      <CosmeticPreview
-                        avatarEmoji={f.avatar ?? null}
-                        frameItemId={f.equippedFrame ?? null}
-                        nameplateItemId={null}
+                  <ul className="divide-y divide-hairline">
+                    {outgoing.map(f => (
+                      <PersonRow
+                        key={f.userId}
+                        username={f.username}
+                        avatar={f.avatar}
+                        frame={f.equippedFrame}
                         catalogue={catalogue}
-                        size={40}
+                        nameStyle={nameplateColorOf(f.equippedNameplate)}
+                        note="Waiting for a reply"
+                        trail={<Button variant="quiet" size="sm" onClick={() => handleCancel(f.userId)} className="shrink-0">Cancel</Button>}
                       />
-                      <div className="flex-1">
-                        <p className="text-sm font-bold text-slate-200" style={nameplateColorOf(f.equippedNameplate)}>{f.username}</p>
-                        <p className="text-[9px] text-ink-subtle">Pending</p>
-                      </div>
-                      <button
-                        onClick={() => handleCancel(f.userId)}
-                        className="px-3 py-1.5 rounded-lg text-[10px] font-bold text-ink-muted hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  ))
+                    ))}
+                  </ul>
                 )}
-              </div>
-            </div>
-          </div>
+              </motion.section>
+            )}
+          </>
         )}
-      </div>
-    </PageShell>
+      </PageShell>
+    </>
   );
 }
 
