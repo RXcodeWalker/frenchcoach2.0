@@ -4712,3 +4712,31 @@ production** (project `French Coach`) on 2026-10-25 through the Supabase connect
 **Checks.** Backend pytest 963 passed. Frontend: typecheck, typecheck:server, lint (0 errors), vitest 417 files /
 4,817 tests, build, authoring:check, authoring:parity. Not checked: a real exam submission against the deployed
 scoring service, or a real fourth Learn answer against the deployed backend.
+
+## 2026-10-31 — Pronunciation Lab switched live before its calibration gate passed (owner decision)
+
+**Owner decision (2026-10-31).** `pronunciationLab` is `live` by default (it was `coming-soon`), for every learner:
+the "How it sounded" card instead of the Azure/legacy cards on a Learn answer, the Lab practice flow instead of
+Say-It-Again, the Lab home at `/learn/sounds`, the monthly check and the Progress "Your French sounds" card. Plan §7 says
+the flag goes live only after the calibration passes; the owner chose to go live first, as for `learnMarkingLevels`
+(2026-10-24). Rollback: set the flag back to `coming-soon` (every Lab surface falls back to today's cards).
+
+**What is NOT verified — the word marks (Clear / Almost / Practise this) are unvalidated.** No real calibration
+recordings exist yet (`backend/tests/fixtures/pronunciation_lab_calibration/` is empty; `npm run lab:calibration:report`
+says INCOMPLETE). A first smoke run on 12 *synthetic* clips (Azure's own Henri voice, six of the 20 sentences, scratch folder,
+nothing committed) caught only 1 of 6 deliberately swapped words — for the other five Azure's scripted assessment returned the
+reference text as what it heard, `ErrorType` correct, and word scores of 74–80 for the swapped word. That is not evidence about
+human speech, but it is the pattern that failed the exam calibration on 2026-10-11. Until real recordings are run, a learner
+can be told "Clear" for a word they got wrong. The un-gated parts (listening back, native audio, the flow line, ear training,
+tricky words, first-vs-best) do not depend on the marks.
+
+**What was checked before flipping.** The deployed backend (`french-coach-backend.onrender.com`) serves
+`GET /api/pronunciation/allowance` (200) and `POST /api/native-voice` (422 on an empty body, so the route exists); migrations
+`20261028090000` (native voice) and `20261029090000` (`pronunciation_lab` quota, 30/day) are applied to production; the
+voice catalogue is recorded (runs #5–#7). Full frontend suite and backend pytest green before the change. Not checked: a real
+Lab take against production Azure by a signed-in account, or the natural-voice route's Azure TTS in production.
+
+**CI guard.** `scripts/labCalibration/__tests__/gate.test.ts` now carries an explicit `OWNER_WAIVER`: with the flag live it accepts
+"not enough recordings yet" (INCOMPLETE) but still fails on a calibration that has been run and FAILED. Delete the waiver when
+the report says PASS.
+

@@ -1,6 +1,6 @@
 # Pronunciation Lab: implementation plan
 
-Status: **Stages 1–7 and 4b built** (2026-10-28 to 2026-10-29). Stage 4's recording run is a manual Actions step: runs #5 and #6 finished 2026-10-29 (#6 covered Stage 6's lines); Stage 5 added 2 more catalogue lines; the run that records them was started 2026-10-30. Stage 4b migration `20261028090000` applied to production 2026-10-28; Stage 7 migration `20261029090000` (the `pronunciation_lab` quota row) applied to production 2026-10-30. Stages 5 and 6 were built in parallel and each made its own local history store; they were merged into one (see "Merge of Stages 5 and 6" below). Owner decisions (2026-10-28): D1 drop, D2 yes (Stage 4b), D4 no XP, D5 no 0–100 number. D3: 30 Lab takes per account per day; Azure monthly cap = the F0 free allowance.
+Status: **Stages 1–7 and 4b built, and the flag `pronunciationLab` is `live` (owner decision 2026-10-31, before the §7 gate passed — see "Gate status" below and `verification-log.md`).**  (Built 2026-10-28 to 2026-10-29.) Stage 4's recording run is a manual Actions step: runs #5 and #6 finished 2026-10-29 (#6 covered Stage 6's lines); Stage 5 added 2 more catalogue lines; the run that records them was started 2026-10-30. Stage 4b migration `20261028090000` applied to production 2026-10-28; Stage 7 migration `20261029090000` (the `pronunciation_lab` quota row) applied to production 2026-10-30. Stages 5 and 6 were built in parallel and each made its own local history store; they were merged into one (see "Merge of Stages 5 and 6" below). Owner decisions (2026-10-28): D1 drop, D2 yes (Stage 4b), D4 no XP, D5 no 0–100 number. D3: 30 Lab takes per account per day; Azure monthly cap = the F0 free allowance.
 
 Stage 1 (frontend only; no backend change, no UI, nothing reads the flag yet):
 - `src/domain/pronunciation/lab/`: `wordStates.ts` (`buildLabTake` → per-word state on the target sentence, "N of M clear"
@@ -529,6 +529,12 @@ Later, optional: intonation overlay (pitch contour of You vs Native, drawn only,
 "practise the words from your exam" link from the exam report into the Lab.
 
 ## 7. Calibration gate (must pass before `live`)
+
+**Gate status (2026-10-31): NOT passed — the owner went live anyway.** No real recordings exist yet (report: INCOMPLETE); the only
+data is a 12-clip synthetic smoke run that caught 1 of 6 swaps. The word marks are therefore unvalidated in production. CI accepts the
+live flag through an explicit `OWNER_WAIVER` in `gate.test.ts` (it still fails on a calibration that was run and FAILED). Next steps:
+record the sets (`npm run lab:calibration:sheet`), run the probe and `npm run lab:calibration:report`; on PASS delete the waiver; on FAIL
+hide word states (flag back to `coming-soon`, or ship the Lab without them) as the last bullet below says.
 
 The exam calibration failed because freeform can't see the intended word. Scripted mode can — but
 that is a hypothesis until measured. Reuse the existing calibration tooling with `mode: scripted`:

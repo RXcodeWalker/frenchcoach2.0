@@ -35,9 +35,12 @@ export const FEATURE_FLAGS = {
   // Rollback: set back to 'coming-soon'.
   learnMarkingLevels: 'live',
   // docs/plans/pronunciation-lab.md — the Pronunciation Lab. Off = today's
-  // pronunciation cards (the rollback). Goes 'live' only after the plan's §7
-  // calibration gate passes.
-  pronunciationLab: 'coming-soon',
+  // pronunciation cards (the rollback). Switched 'live' by the owner on
+  // 2026-10-31 BEFORE the plan's §7 calibration gate passed (no real
+  // recordings yet; a synthetic smoke run caught 1 of 6 swapped words — the
+  // word marks may be unreliable); see verification-log.md and the waiver in
+  // scripts/labCalibration/__tests__/gate.test.ts. Rollback: 'coming-soon'.
+  pronunciationLab: 'live',
 }satisfies Record<string, FeatureStatus>;
 
 export type FeatureFlagKey = keyof typeof FEATURE_FLAGS;
