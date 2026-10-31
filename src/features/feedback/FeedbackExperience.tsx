@@ -12,7 +12,7 @@ import { LevelNeedsCard } from './components/LevelNeedsCard';
 import type { MarkingLevel } from '../../domain/learn/marking/markingLevel';
 import { BeforeAfterDiff } from './components/BeforeAfterDiff';
 import { ReportView } from './components/ReportView';
-import { FIX_FIRST_HEADING } from './coachPoints';
+import { FIX_FIRST_HEADING, coachPointGroups } from './coachPoints';
 import { VocabularyCard } from './components/VocabularyCard';
 import { ExpansionIdeasCard } from './components/ExpansionIdeasCard';
 import { PronunciationCard } from './components/PronunciationCard';
@@ -28,12 +28,14 @@ import type { FeedbackV2 } from '../../types';
 import type { PronunciationAssessment } from '../../domain/pronunciation/types';
 import type { QuestionDemands } from '../../domain/learn/demand/types';
 import { buildCoachTeacherScript } from './teacher/buildTeacherScript';
+import { PredictionResults } from './teacher/PredictionResults';
 import type { FirstId } from './teacher/firsts';
 import { SaveToNotebook } from './teacher/SaveToNotebook';
 import type { NotebookDraft, NotebookQuestionRef } from '../../domain/learn/notebook/notebook';
 import { PredictCard } from './teacher/PredictCard';
 import {
   calibrationLines,
+  fixesFromGroups,
   predictionChecks,
   type PredictionAnswer,
   type PredictionCheck,
@@ -90,7 +92,7 @@ interface Props {
    */
   pronunciationStatus?: PronunciationStatus;
   /** The question's demands (`Question.demands`) — they choose the Predict checks. */
-  demands?: Pick<QuestionDemands, 'cognitiveDemand' | 'timeFrames'> | null;
+  demands?: (Pick<QuestionDemands, 'cognitiveDemand' | 'timeFrames'> & Partial<Pick<QuestionDemands, 'structures'>>) | null;
   /** `state.profile.username`; the teacher says it at most once, and only if it reads as a name. */
   learnerName?: string | null;
   /** The active repeated-mistake problem (only when `isRecurring`), for the teacher's memory line. */
@@ -146,6 +148,12 @@ function FeedbackContent({
   // The notebook offer appears after a Second take or a high-scoring answer.
   const [tookSecondTake, setTookSecondTake] = useState(false);
 
+  // Each answered Predict check, judged against the answer and the filtered fixes.
+  const calibration = useMemo(
+    () => calibrationLines(checks, answers, transcript ?? '', fixesFromGroups(coachPointGroups(feedback))),
+    [checks, answers, transcript, feedback],
+  );
+
   // The teacher's script is built from the feedback that already passed the filters.
   const lines = useMemo(
     () =>
@@ -153,12 +161,12 @@ function FeedbackContent({
         transcript: transcript ?? '',
         name: learnerName,
         recurring,
-        calibration: calibrationLines(checks, answers, transcript ?? ''),
+        calibration,
         secondTake: true,
         nextQuestion,
         firsts,
       }),
-    [feedback, transcript, learnerName, recurring, nextQuestion, firsts, checks, answers],
+    [feedback, transcript, learnerName, recurring, nextQuestion, firsts, calibration],
   );
 
   const renderSection = (section: 'say-it-better' | 'go-further'): ReactNode =>
@@ -207,6 +215,7 @@ function FeedbackContent({
           polishIssues={polishIssues}
           onIssueClick={openCardFromIssue}
           markingLevel={markingLevel}
+          predictions={<PredictionResults lines={calibration} />}
         />
         <FeedbackFooter onRetry={onRetry} onComplete={onComplete} modelAnswer={modelAnswer} />
       </motion.div>

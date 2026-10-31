@@ -22,19 +22,25 @@
  *    any phrase its why quotes, and is dropped when it has no quote at all;
  *  - opening (Batch 6a): the encouragement opening line must quote the
  *    learner — it is dropped when it quotes nothing, or when a phrase it
- *    quotes fails the strength rule.
+ *    quotes fails the strength rule;
+ *  - self-corrected (owner report 2026-10-31): an error the learner fixed
+ *    straight away (« dans ton école, désolé, dans mon école ») is not a
+ *    mistake to fix. It is dropped and kept in `selfCorrections` for the
+ *    "You fixed this yourself" note (selfCorrection.ts), and a one-focus line
+ *    that quotes it is dropped too ('focus').
  * Rules NOT used for the coach voice: the examiner minimum quote lengths
  * (meetsErrorQuoteMinimum / meetsClaimQuoteMinimum). On the recorded fixtures
  * they would drop 4 of 4 corrections and 2 of 3 strengths — real one-word
  * fixes like « allé » → « je suis allé ».
  */
-import { isGroundedQuote, quotesOverlap } from '../../examFeedback/shared/quoteRules';
+import { isGroundedQuote, quotesOverlap, sameQuote } from '../../examFeedback/shared/quoteRules';
 import { isCorrectionIdentical, shouldDropSpellingOnlyError } from '../../examFeedback/shared/spellingOnly';
 import type { FeedbackV2 } from '../../../types';
+import { findSelfCorrection, type SelfCorrection } from './selfCorrection';
 
 export type CoachInputMode = 'speech' | 'text';
 
-export type CoachDropRule = 'grounding' | 'identical' | 'sound-alike' | 'strength' | 'opening';
+export type CoachDropRule = 'grounding' | 'identical' | 'sound-alike' | 'self-corrected' | 'strength' | 'opening' | 'focus';
 
 export interface CoachFilterResult {
   feedback: FeedbackV2;
@@ -74,10 +80,19 @@ export function filterCoachFeedback(
 ): CoachFilterResult {
   if (!transcript.trim()) return { feedback, dropped: [] };
   const dropped: CoachDropRule[] = [];
+  const selfCorrections: SelfCorrection[] = [];
   const keepError = (quote: string | undefined, correction: string | undefined): boolean => {
     const rule = coachErrorDropRule(quote, correction, transcript, inputMode);
-    if (rule) dropped.push(rule);
-    return rule === null;
+    if (rule) {
+      dropped.push(rule);
+      return false;
+    }
+    const fixed = findSelfCorrection(quote, correction, transcript);
+    if (!fixed) return true;
+    dropped.push('self-corrected');
+    // corrections[] restates the grammar items, so the same slip arrives twice.
+    if (!selfCorrections.some((s) => sameQuote(s.quote, fixed.quote))) selfCorrections.push(fixed);
+    return false;
   };
 
   const issues = feedback.issues?.filter((i) => keepError(i.quote, i.correction));
@@ -117,6 +132,17 @@ export function filterCoachFeedback(
     }
   }
 
+  // The one-focus line must not send the learner back to a slip they already fixed.
+  let biggestOpportunity = feedback.biggest_opportunity;
+  if (
+    biggestOpportunity &&
+    selfCorrections.length > 0 &&
+    strengthQuotes(biggestOpportunity).some((q) => selfCorrections.some((s) => quotesOverlap(q, s.quote, transcript)))
+  ) {
+    dropped.push('focus');
+    biggestOpportunity = undefined;
+  }
+
   if (dropped.length === 0) return { feedback, dropped };
 
   return {
@@ -136,6 +162,8 @@ export function filterCoachFeedback(
         ? { topPriorityIssueId: undefined }
         : {}),
       best_moment: bestMoment,
+      ...(feedback.biggest_opportunity !== undefined ? { biggest_opportunity: biggestOpportunity } : {}),
+      ...(selfCorrections.length > 0 ? { selfCorrections } : {}),
       ...(feedback.strengths ? { strengths } : {}),
       ...(feedback.encouragement !== undefined ? { encouragement } : {}),
     },

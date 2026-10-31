@@ -58,10 +58,15 @@ export function VocabularyCard({ feedback }: Props) {
       ) : (
         <div className="space-y-1.5">
           {legacyVocab.map((v, i) => (
-            <div key={i} className="flex items-center gap-2 p-2 rounded-lg surface-recessed">
-              <span className="text-[10px] text-ink-subtle line-through">{v.basic}</span>
-              <ChevronRight size={9} className="text-ink-subtle" />
-              <span className="text-[10px] text-progress-text font-medium">{v.upgrade}</span>
+            <div key={i} className="p-2.5 rounded-lg surface-recessed space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="text-[12px] text-ink-muted">{v.basic}</span>
+                <ChevronRight size={12} className="text-ink-subtle" aria-label="could be" />
+                <span className="text-[12px] text-progress-text font-medium">{v.upgrade}</span>
+              </div>
+              {/* How to say it — the backend sends an example sentence; showing it makes the word usable. */}
+              {v.example && <p className="text-[12px] text-ink-muted italic">« {v.example} »</p>}
+              {v.nuance && <p className="text-[12px] text-ink-subtle">{v.nuance}</p>}
             </div>
           ))}
         </div>

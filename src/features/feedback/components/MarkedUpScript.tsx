@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { fadeUp } from '../../../components/motion/variants';
 import { SEVERITY_COLOR } from '../theme/severity';
 import { CoachingPopover } from './CoachingPopover';
+import { canonicalizeForMatch } from '../../../domain/igcse/text/normalize';
 import type { FeedbackV2, CoachingIssue, TranscriptSpan } from '../../../types';
 
 interface Props {
@@ -21,6 +22,11 @@ interface Segment {
 // ordered spans (docs Stage 2), but this defends against that guarantee
 // anyway (finding E) — a span starting before `cursor` would otherwise
 // re-slice and re-emit text already rendered by a prior span.
+//
+// A span is dropped, never moved, when the text it covers is not its issue's
+// quote: its offsets were computed against a different transcript (finding
+// A0). Owner report 2026-10-31 — the strike-through landed a few letters late
+// (« d|ans ton école », « des |autres choses fin|alement »).
 export function buildSegments(transcript: string, feedback: FeedbackV2): Segment[] {
   const annotations = feedback.transcriptAnnotations ?? [];
   if (!annotations.length) return [{ text: transcript }];
@@ -31,8 +37,9 @@ export function buildSegments(transcript: string, feedback: FeedbackV2): Segment
 
   for (const span of sorted) {
     if (span.start < cursor) continue;
-    if (span.start > cursor) segments.push({ text: transcript.slice(cursor, span.start) });
     const issue = span.issueId ? feedback.issues?.find(i => i.id === span.issueId) : undefined;
+    if (issue?.quote && canonicalizeForMatch(transcript.slice(span.start, span.end)) !== canonicalizeForMatch(issue.quote)) continue;
+    if (span.start > cursor) segments.push({ text: transcript.slice(cursor, span.start) });
     segments.push({ text: transcript.slice(span.start, span.end), span, issue });
     cursor = span.end;
   }
@@ -40,41 +47,28 @@ export function buildSegments(transcript: string, feedback: FeedbackV2): Segment
   return segments;
 }
 
-const MARGIN_DOT: Record<TranscriptSpan['severity'], string> = {
-  major: 'bg-correction',
-  minor: 'bg-reward',
-  polish: 'bg-action',
-  anglicism: 'bg-action',
-  strong: 'bg-progress',
-};
+const LEGEND = [
+  { severity: 'major', label: 'Error', swatch: 'bg-correction' },
+  { severity: 'minor', label: 'Minor', swatch: 'bg-reward' },
+  { severity: 'strong', label: 'Strong', swatch: 'bg-progress' },
+] as const;
 
 export function MarkedUpScript({ transcript, feedback, onIssueClick }: Props) {
   const [activeIssue, setActiveIssue] = useState<CoachingIssue | null>(null);
-  const segments = buildSegments(transcript, feedback);
-
-  const hasAnnotations = (feedback.transcriptAnnotations?.length ?? 0) > 0;
-  if (!transcript && !hasAnnotations) return null;
+  // The annotation offsets point into the transcript the backend graded.
+  const text = feedback.gradedTranscript ?? transcript;
+  const segments = buildSegments(text, feedback);
 
   const markers = segments.filter(s => s.span);
+  if (!text && markers.length === 0) return null;
+  const legend = LEGEND.filter(l => markers.some(m => m.span!.severity === l.severity));
 
   return (
     <motion.div variants={fadeUp} initial="hidden" animate="show" className="rounded-xl surface p-4">
       <p className="text-eyebrow text-ink-subtle uppercase mb-2.5">Your Response — Marked Up</p>
 
-      <div className="flex gap-2">
-        {/* Margin markers — one dot per correction, aligned by document order */}
-        {markers.length > 0 && (
-          <div className="flex flex-col items-center gap-0 pt-0.5 shrink-0" aria-hidden="true">
-            {markers.map((seg, i) => (
-              <span
-                key={i}
-                className={`w-1.5 h-1.5 rounded-full mt-1 first:mt-0 ${MARGIN_DOT[seg.span!.severity]}`}
-              />
-            ))}
-          </div>
-        )}
-
-        <p className="text-[12px] text-ink-muted leading-relaxed flex-1">
+      <div>
+        <p className="text-[12px] text-ink-muted leading-relaxed">
           {segments.map((seg, i) => {
             if (!seg.span) return <span key={i}>{seg.text}</span>;
 
@@ -115,14 +109,12 @@ export function MarkedUpScript({ transcript, feedback, onIssueClick }: Props) {
         </div>
       )}
 
-      {hasAnnotations && (
-        <div className="flex items-center gap-3 mt-3 pt-3 border-t border-slate-800">
-          {(['major', 'minor', 'strong'] as const).map(s => (
-            <span key={s} className="flex items-center gap-1 text-[9px] text-ink-subtle">
-              <span className={`inline-block w-3 h-0.5 rounded ${
-                s === 'major' ? 'bg-red-400' : s === 'minor' ? 'bg-amber-400' : 'bg-emerald-400'
-              }`} />
-              {s === 'major' ? 'Error' : s === 'minor' ? 'Minor' : 'Strong'}
+      {legend.length > 0 && (
+        <div className="flex items-center gap-3 mt-3 pt-3 border-t border-hairline">
+          {legend.map(l => (
+            <span key={l.severity} className="flex items-center gap-1 text-[12px] text-ink-subtle">
+              <span className={`inline-block w-3 h-0.5 rounded ${l.swatch}`} />
+              {l.label}
             </span>
           ))}
         </div>

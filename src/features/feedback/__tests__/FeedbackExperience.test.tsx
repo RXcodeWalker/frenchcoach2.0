@@ -352,29 +352,45 @@ describe('FeedbackExperience while the feedback is generated (Batch 6b)', () => 
     expect(second.container.textContent).toContain('Reading what you said…');
   });
 
-  it('offers checks drawn from the question’s demands and a length check otherwise', () => {
+  it('offers checks drawn from the question’s demands, then the mistakes check — never the length check', () => {
     waiting({ demands: { cognitiveDemand: 'justify', timeFrames: ['past'] } });
-    expect(screen.getByRole('group', { name: 'Did you give a reason?' })).toBeTruthy();
     expect(screen.getByRole('group', { name: 'Did you talk about the past?' })).toBeTruthy();
+    expect(screen.getByRole('group', { name: 'Did you explain why, with « parce que » or « car »?' })).toBeTruthy();
+    expect(screen.getByRole('group', { name: 'Do you think you made a grammar mistake?' })).toBeTruthy();
     expect(screen.queryByRole('group', { name: 'Did you say more than 2 sentences?' })).toBeNull();
     cleanup();
     waiting();
-    expect(screen.getByRole('group', { name: 'Did you say more than 2 sentences?' })).toBeTruthy();
+    expect(screen.queryByRole('group', { name: 'Did you say more than 2 sentences?' })).toBeNull();
+    expect(screen.getByRole('group', { name: 'Did you link your ideas (« de plus », « ensuite », « aussi »)?' })).toBeTruthy();
   });
 
   it('answering a check is optional and a found marker earns a calibration line when the feedback lands', () => {
     const demands = { cognitiveDemand: 'justify' as const, timeFrames: ['past' as const] };
     const view = waiting({ demands });
-    fireEvent.click(within(screen.getByRole('group', { name: 'Did you give a reason?' })).getByRole('button', { name: 'No' }));
+    fireEvent.click(within(screen.getByRole('group', { name: 'Did you explain why, with « parce que » or « car »?' })).getByRole('button', { name: 'No' }));
     view.rerender(
       <MemoryRouter>
         <FeedbackExperience feedback={FEEDBACK} transcript="Hier j'ai mangé une pizza parce que c'est délicieux." demands={demands} onRetry={vi.fn()} onComplete={vi.fn()} />
       </MemoryRouter>,
     );
-    expect(view.container.textContent).toContain("You thought you didn't give a reason, but you did: « parce que c'est délicieux ».");
+    expect(view.container.textContent).toContain("You did better than you thought, here it is: « parce que c'est délicieux ».");
   });
 
-  it('an unanswered check, or nothing found, says nothing', () => {
+  it('shows the verdicts in the Full report too (owner report 2026-10-31)', () => {
+    const demands = { cognitiveDemand: 'justify' as const, timeFrames: ['present' as const] };
+    const view = waiting({ demands });
+    fireEvent.click(within(screen.getByRole('group', { name: 'Do you think you made a grammar mistake?' })).getByRole('button', { name: 'Yes' }));
+    view.rerender(
+      <MemoryRouter>
+        <FeedbackExperience feedback={FEEDBACK} transcript="Je joue au foot." demands={demands} onRetry={vi.fn()} onComplete={vi.fn()} />
+      </MemoryRouter>,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Full report' }));
+    const card = screen.getByRole('region', { name: 'Your predictions' });
+    expect(card.textContent).toMatch(/1 of 1 right|0 of 1 right/);
+  });
+
+  it('an unanswered check says nothing', () => {
     const demands = { cognitiveDemand: 'justify' as const, timeFrames: ['present' as const] };
     const view = waiting({ demands });
     view.rerender(

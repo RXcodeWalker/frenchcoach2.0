@@ -6,6 +6,7 @@ import type { FeedbackPointGroup } from '../components/FeedbackPointList';
 import { addressName, type TeacherRegister } from './persona';
 import type { FirstId } from './firsts';
 import type { CalibrationLine } from './predictionQuestions';
+import type { SelfCorrection } from '../../../domain/learn/feedback/selfCorrection';
 
 /**
  * The teacher's script (Learn feedback Batch 6b): the already-filtered feedback
@@ -16,7 +17,9 @@ import type { CalibrationLine } from './predictionQuestions';
  *  2. the opening — the model's own line when it survived the filters, else a
  *     data-driven template;
  *  3. what the Predict checks found (at most one line per answered check), then
- *     any milestone "first" Learn has proven (Batch 6c) — one honest line each;
+ *     any milestone "first" Learn has proven (Batch 6c) — one honest line each —
+ *     then any slip the learner fixed themselves (filterCoachFeedback's
+ *     `selfCorrections`), credited rather than listed as a fix;
  *  4. what they did well;
  *  5. a connective chosen by how many fixes there are (it never praises: it
  *     states a count);
@@ -34,7 +37,7 @@ import type { CalibrationLine } from './predictionQuestions';
 
 export type TeacherLine =
   | { id: string; kind: 'learner'; text: string }
-  | { id: string; kind: 'talk'; role: 'opening' | 'calibration' | 'connective' | 'memory' | 'secondTake' | 'nextQuestion' | 'first'; text: string }
+  | { id: string; kind: 'talk'; role: 'opening' | 'calibration' | 'connective' | 'memory' | 'secondTake' | 'nextQuestion' | 'first' | 'selfCorrection'; text: string }
   | { id: string; kind: 'points'; group: FeedbackPointGroup }
   /** A block the existing cards render (the diff, vocabulary and ideas); the script only places it. */
   | { id: string; kind: 'section'; section: TeacherSection; heading: string };
@@ -76,6 +79,8 @@ export interface TeacherScriptInput {
   nextQuestion?: string | null;
   /** Milestones `detectFirsts` proved are firsts for this learner (Batch 6c). */
   firsts?: readonly FirstId[];
+  /** Slips the learner repaired straight away (`feedback.selfCorrections`). */
+  selfCorrections?: readonly SelfCorrection[];
 }
 
 /** Every static framing string, by register — exported so tests can hold them to the mark/band filter. */
@@ -102,6 +107,8 @@ export const TEACHER_FRAMING = {
     } satisfies Record<FirstId, string>,
     nextQuestion: (question: string) =>
       `If an examiner heard that, they'd ask: « ${question} » Tap Next question to answer it.`,
+    selfCorrection: (s: SelfCorrection) =>
+      `You caught « ${s.quote} » yourself and fixed it straight away: « ${s.repair} ». An examiner doesn't hold a slip you fix at once against you, so it's not on your list. Next time, aim to say it right first time.`,
   },
   examiner: {
     opening: (name: string | null) => (name ? `Let us go through your answer, ${name}.` : 'Let us go through your answer.'),
@@ -126,6 +133,8 @@ export const TEACHER_FRAMING = {
       future: 'This is the first time you have spoken about the future.',
     } satisfies Record<FirstId, string>,
     nextQuestion: (question: string) => `An examiner would ask you next: « ${question} » Continue to answer it.`,
+    selfCorrection: (s: SelfCorrection) =>
+      `You corrected « ${s.quote} » to « ${s.repair} » yourself. A slip corrected at once is not held against you; aim to say it correctly the first time.`,
   },
 } as const;
 
@@ -156,6 +165,10 @@ export function buildTeacherScript(input: TeacherScriptInput): TeacherLine[] {
 
   (input.firsts ?? []).forEach((id) => {
     lines.push({ id: `first:${id}`, kind: 'talk', role: 'first', text: framing.firsts[id] });
+  });
+
+  (input.selfCorrections ?? []).forEach((fixed, i) => {
+    lines.push({ id: `selfCorrection:${i}`, kind: 'talk', role: 'selfCorrection', text: framing.selfCorrection(fixed) });
   });
 
   const fixes = countFixes(input.groups);
@@ -254,5 +267,6 @@ export function buildCoachTeacherScript(feedback: FeedbackV2, ctx: CoachScriptCo
     secondTake: ctx.secondTake,
     nextQuestion: ctx.nextQuestion,
     firsts: ctx.firsts,
+    selfCorrections: feedback.selfCorrections,
   });
 }
