@@ -95,6 +95,9 @@ npm run e2e:exam            # Playwright: drives the exam UI against a fake, no-
                              # server with a stub Supabase host + admin session, since that feature
                              # is admin-gated; /api/exam/pronunciation is stubbed with page.route).
                              # Shared drivers live in e2e/helpers/examFlow.ts.
+                             # The `exam` project also runs e2e/scenario.spec.ts: one spoken café
+                             # role-play turn (coach /api/feedback/v3 stubbed with page.route) must
+                             # show its feedback, not "Checking your answer…" forever.
 ```
 
 ## The three test suites
