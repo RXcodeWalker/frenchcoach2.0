@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cardinalWords, ordinalWords, spokenNumberWords } from '../spokenNumbers';
+import { cardinalWords, ordinalWords, spellOutNumbers, spokenNumberWords } from '../spokenNumbers';
 import { alignRecognisers } from '../alignRecognisers';
 
 describe('cardinalWords', () => {
@@ -51,5 +51,21 @@ describe('alignRecognisers with spokenNumbers', () => {
 
   it('is off by default, so the exam marked text is unchanged', () => {
     expect(alignRecognisers('le 1er avantage', 'le premier avantage').spans).toHaveLength(1);
+  });
+});
+
+describe('spellOutNumbers (owner, 2026-11-01: words by default)', () => {
+  it('writes numbers as words and keeps punctuation', () => {
+    expect(spellOutNumbers("le 1er avantage c'est 2.")).toBe("le premier avantage c'est deux.");
+    expect(spellOutNumbers("j'ai 15 ans, en 2026 à 8h30")).toBe("j'ai quinze ans, en deux-mille-vingt-six à huit heures trente");
+    expect(spellOutNumbers('la 1ère fois, 22 élèves')).toBe('la première fois, vingt-deux élèves');
+  });
+
+  it('leaves a bare « 1 » (un or une is the noun’s call) and non-numbers alone', () => {
+    expect(spellOutNumbers('1 sœur et 10% de 3,5')).toBe('1 sœur et 10% de 3,5');
+  });
+
+  it('leaves nothing for the confirm screen to ask about', () => {
+    expect(alignRecognisers(spellOutNumbers('le 1er avantage'), spellOutNumbers('le premier avantage')).spans).toEqual([]);
   });
 });
