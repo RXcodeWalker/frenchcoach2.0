@@ -103,3 +103,26 @@ function withAlternatives(words: string[]): string[][] {
     w === 'un' ? ['un', 'une'] : w === 'vingts' || w === 'cents' ? [w, w.slice(0, -1)] : w === 'vingt' || w === 'cent' ? [w, `${w}s`] : [w],
   );
 }
+
+/**
+ * Learn's transcripts read numbers as words (owner, 2026-11-01): « le 1er
+ * avantage » is shown and marked as « le premier avantage », so a digit never
+ * reaches the confirm screen or the feedback. Ordinals, clock times and every
+ * whole number except « 1 » are spelled out (1990 spelling: « vingt-deux »,
+ * « deux-cents »); a bare « 1 » stays, because « un » or « une » depends on the
+ * noun and guessing would invent a gender mistake. Punctuation is kept.
+ */
+export function spellOutNumbers(text: string): string {
+  return text.replace(/\S+/g, (token) => {
+    const m = /^([«“"'(]*)(.*?)([.,;:!?…»”"')]*)$/u.exec(token);
+    if (!m) return token;
+    const [, lead, core, trail] = m;
+    if (!/^\d/.test(core) || core === '1') return token;
+    const words = spokenNumberWords(core.toLowerCase());
+    if (!words) return token;
+    const spelled = TIME.test(core.toLowerCase())
+      ? words.map((w) => w[0]).join(' ')
+      : words.map((w) => w[0]).join('-');
+    return `${lead}${spelled}${trail}`;
+  });
+}
