@@ -183,7 +183,7 @@ function ExamLayout() {
   return (
     <NavRailContext.Provider value={navRail}>
     <div data-hatch="immersive" className="min-h-screen bg-bg text-ink overflow-hidden exam-voice">
-      {showNavRail && <SideRail />}
+      {showNavRail && <SideRail keyHint={false} />}
       <main className={`relative z-10 ${showNavRail ? 'md:ml-[88px]' : ''}`}>
         <Outlet />
       </main>
