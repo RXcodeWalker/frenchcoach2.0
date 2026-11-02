@@ -45,24 +45,99 @@ const MIN_OPENING_MS = 700;
 
 const TIERS = [50, 100, 250] as const;
 
+/* Owner exception (2026-11-02): Mystery Box alone may use confetti, glow, looping motion and
+ * hover scale. Everything below stays on role tokens and switches off under reduced motion. */
+
+const CONFETTI_TOKENS = ['--reward', '--action', '--progress', '--streak', '--info'] as const;
+
+/** Deterministic 0..1 from an index, so a render never calls Math.random. */
+const unit = (i: number, salt: number) => {
+  const x = Math.sin(i * 12.9898 + salt * 78.233) * 43758.5453;
+  return x - Math.floor(x);
+};
+
+/** Pieces for a reveal: a bigger prize throws more. */
+const confettiCount = (xp: number) => (xp >= 250 ? 56 : xp >= 100 ? 36 : 22);
+
+/** A one-shot burst from the box. Pieces fly out, fall under "gravity" and fade. */
+function Confetti({ count }: { count: number }) {
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true" data-testid="mb-confetti">
+      {Array.from({ length: count }, (_, i) => {
+        const angle = -Math.PI / 2 + (unit(i, 1) - 0.5) * Math.PI * 1.25;
+        const speed = 110 + unit(i, 2) * 170;
+        const x = Math.cos(angle) * speed;
+        const up = Math.sin(angle) * speed;
+        const size = 6 + Math.round(unit(i, 3) * 6);
+        const wide = unit(i, 4) > 0.5;
+        return (
+          <motion.span
+            key={i}
+            className="absolute left-1/2 top-[88px] block"
+            style={{
+              width: wide ? size * 1.6 : size,
+              height: size,
+              borderRadius: wide ? 2 : 999,
+              backgroundColor: `var(${CONFETTI_TOKENS[i % CONFETTI_TOKENS.length]})`,
+            }}
+            initial={{ x: 0, y: 0, opacity: 1, rotate: 0, scale: 0.6 }}
+            animate={{
+              x: [0, x * 0.7, x],
+              y: [0, up, up + 260 + unit(i, 5) * 120],
+              rotate: (unit(i, 6) - 0.5) * 900,
+              opacity: [1, 1, 0],
+              scale: 1,
+            }}
+            transition={{ duration: 1.5 + unit(i, 7) * 0.9, ease: 'easeOut', times: [0, 0.45, 1], delay: unit(i, 8) * 0.12 }}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
 /**
  * The box, drawn from tokens. Closed it sits still; opening wiggles once (the
  * `streak` wiggle), then the lid lifts on the `slide` easing and a star rises
- * out (`enter`). Nothing loops, glows or scales on hover.
+ * out (`enter`). Closed, it bobs and glows; hover lifts it.
  */
-function BoxArt({ phase, reduced }: { phase: 'closed' | 'opening' | 'open' | 'spent'; reduced: boolean }) {
+function BoxArt({ phase, reduced, onClick }: { phase: 'closed' | 'opening' | 'open' | 'spent'; reduced: boolean; onClick?: () => void }) {
   const open = phase === 'open';
   const spent = phase === 'spent';
   const body = spent ? 'border-hairline-strong bg-track' : 'border-reward bg-reward-soft';
   const band = spent ? 'bg-hairline-strong' : 'bg-reward';
+  const idle = phase === 'closed' && !reduced;
+  const lit = phase !== 'spent';
   return (
     <motion.div
-      className="relative mx-auto h-44 w-32"
+      className={`relative mx-auto h-44 w-32 ${onClick ? 'cursor-pointer' : ''}`}
       aria-hidden="true"
-      animate={phase === 'opening' && !reduced ? streakFlame : { rotate: 0, scale: 1 }}
+      onClick={onClick}
+      animate={
+        phase === 'opening' && !reduced
+          ? streakFlame
+          : idle
+            ? { y: [0, -7, 0], rotate: 0, scale: 1, transition: { duration: 2.4, repeat: Infinity, ease: 'easeInOut' } }
+            : { y: 0, rotate: 0, scale: 1 }
+      }
+      whileHover={onClick && !reduced ? { scale: 1.07 } : undefined}
       data-testid="mb-art"
       data-phase={phase}
     >
+      {lit && (
+        <motion.div
+          className="pointer-events-none absolute -inset-12 -z-0 rounded-full"
+          style={{ background: 'radial-gradient(closest-side, color-mix(in srgb, var(--reward) 38%, transparent), transparent)' }}
+          initial={false}
+          animate={
+            reduced
+              ? { opacity: open ? 0.9 : 0.5 }
+              : { opacity: open ? [0.7, 1, 0.7] : [0.35, 0.65, 0.35], scale: open ? [1, 1.12, 1] : [1, 1.06, 1] }
+          }
+          transition={{ duration: open ? 1.8 : 2.4, repeat: reduced ? 0 : Infinity, ease: 'easeInOut' }}
+          data-testid="mb-glow"
+        />
+      )}
       {open && (
         <motion.div
           className="absolute left-1/2 top-0 z-0 flex h-12 w-12 -translate-x-1/2 items-center justify-center rounded-pill bg-reward"
@@ -70,7 +145,13 @@ function BoxArt({ phase, reduced }: { phase: 'closed' | 'opening' | 'open' | 'sp
           animate={{ y: 0, opacity: 1, scale: 1 }}
           transition={{ ...slide, delay: 0.12 }}
         >
-          <Star size={24} className="text-action-ink" fill="currentColor" />
+          <motion.span
+            className="flex"
+            animate={reduced ? undefined : { rotate: [0, -12, 12, 0], scale: [1, 1.15, 1] }}
+            transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}
+          >
+            <Star size={24} className="text-action-ink" fill="currentColor" />
+          </motion.span>
         </motion.div>
       )}
       <div className={`absolute bottom-0 left-0 z-10 h-[68px] w-full rounded-control border ${body}`}>
@@ -123,8 +204,9 @@ function TierLadder({ won, reduced }: { won?: number; reduced: boolean }) {
 /**
  * Mystery Box: one free box a day. The reward is chosen and awarded by the
  * server (`claim_mystery_box`); this screen only asks and displays the result.
- * Design System v2: role tokens only, the named `enter` / `fill` / `celebrate`
- * motions, and no looping, glow or hover scale.
+ * Design System v2 colours (role tokens only). Unlike the rest of the app it may use
+ * confetti, a glow, looping motion and hover scale (owner exception, 2026-11-02);
+ * all of it is off under reduced motion.
  */
 export function MysteryBox() {
   const navigate = useNavigate();
@@ -179,12 +261,12 @@ export function MysteryBox() {
       <PageShell maxWidth="sm" gap={16}>
         <motion.section
           variants={item}
-          className="rounded-card border border-hairline bg-surface p-6 text-center md:p-8"
+          className="relative overflow-hidden rounded-card border border-hairline bg-surface p-6 text-center md:p-8"
           aria-labelledby="mb-heading"
         >
           {box.name === 'closed' && (
             <>
-              <BoxArt phase="closed" reduced={!!reduced} />
+              <BoxArt phase="closed" reduced={!!reduced} onClick={() => void openBox()} />
               <p className="mt-6 text-eyebrow uppercase text-ink-subtle">Daily surprise</p>
               <h2 id="mb-heading" className="mt-2 text-title text-ink">Your box is ready</h2>
               <p className="mt-2 text-body-s text-ink-muted">
@@ -215,6 +297,7 @@ export function MysteryBox() {
 
           {box.name === 'revealed' && (
             <div data-testid="mb-revealed">
+              {!reduced && <Confetti count={confettiCount(box.value)} />}
               <BoxArt phase="open" reduced={!!reduced} />
               <p className="mt-6 text-eyebrow uppercase text-ink-subtle">You found</p>
               <h2 id="mb-heading" className="mt-2 text-title text-ink">{box.title}</h2>
