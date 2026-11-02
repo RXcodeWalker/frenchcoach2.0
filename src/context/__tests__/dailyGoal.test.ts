@@ -16,7 +16,7 @@ function baseState(dailyGoal: number): Parameters<typeof reducer>[0] {
 
 describe('SET_DAILY_GOAL reducer', () => {
   it('clamps a value above the max on write', () => {
-    const next = reducer(baseState(3), { type: 'SET_DAILY_GOAL', goal: 99 });
+    const next = reducer(baseState(1), { type: 'SET_DAILY_GOAL', goal: 99 });
     expect(next.dailyGoal).toBe(DAILY_GOAL_MAX);
     expect(localStorage.getItem(STORAGE_KEYS.dailyGoal)).toBe(String(DAILY_GOAL_MAX));
   });
@@ -28,8 +28,8 @@ describe('SET_DAILY_GOAL reducer', () => {
   });
 
   it('accepts an in-range value unchanged', () => {
-    const next = reducer(baseState(3), { type: 'SET_DAILY_GOAL', goal: 7 });
-    expect(next.dailyGoal).toBe(7);
+    const next = reducer(baseState(3), { type: 'SET_DAILY_GOAL', goal: 2 });
+    expect(next.dailyGoal).toBe(2);
   });
 });
 

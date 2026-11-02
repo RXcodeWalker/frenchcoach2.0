@@ -79,7 +79,8 @@ interface AppState {
 }
 
 export const DAILY_GOAL_MIN = 1;
-export const DAILY_GOAL_MAX = 10;
+/** Free tier allows 3 AI-marked Learn answers per account per day (LEARN_ANSWERS_PER_DAY), so a higher goal is unreachable. */
+export const DAILY_GOAL_MAX = 3;
 const DAILY_GOAL_DEFAULT = 3;
 
 function clampDailyGoal(value: number): number {
