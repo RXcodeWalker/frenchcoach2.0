@@ -11,6 +11,7 @@ import { STORAGE_KEYS, storageSet } from '../../services/persistence/storage';
 import { midSessionAdjust } from '../../domain/learn/selection/midSessionAdjust';
 import { filterPool, matchesFilters, type GrammarFocus, type LearnFilters } from '../../domain/learn/selection/filters';
 import { getTopicQuestions } from '../../data/gameData';
+import { TOPICS } from '../../data/questions';
 import type { ActiveSession, Question, SkillProfile, TopicMasteryEntry } from '../../types';
 
 const EMPTY_SKILL_PROFILE = {} as SkillProfile;
@@ -19,19 +20,26 @@ const PAST: LearnFilters = { grammar: 'past' };
 const TOPIC = 'hobbies';
 // A 'standard' session plans 10 slots, 3 of them review; with nothing due those 3
 // stay empty, so at most 7 questions can come back. The "fewer matches than
-// requested" tests need a focus with 1–6 matches. Pick it from the bank so
-// ordinary content edits (which re-tag time frames) can't break them.
-const FEW_MATCHES: LearnFilters =
-  (['future', 'past', 'present', 'opinion'] as GrammarFocus[])
-    .map((grammar) => ({ grammar }))
-    .find((f) => {
-      const n = filterPool(getTopicQuestions(TOPIC), f).length;
-      return n >= 1 && n <= 6;
-    }) ?? PAST;
+// requested" tests need a core topic + focus with 1–6 matches, and the "zero
+// matches" test one with none. Pick both from the bank so ordinary content
+// edits (new questions, re-tagged time frames) can't break them.
+const CORE_TOPICS = TOPICS.filter((t) => !t.isAdvanced).map((t) => t.key);
+const FOCI: GrammarFocus[] = ['future', 'past', 'present', 'opinion'];
+function findTopicAndFilter(accept: (matches: number) => boolean): { topic: string; filters: LearnFilters } {
+  for (const topic of CORE_TOPICS) {
+    for (const grammar of FOCI) {
+      const filters: LearnFilters = { grammar };
+      if (accept(filterPool(getTopicQuestions(topic), filters).length)) return { topic, filters };
+    }
+  }
+  throw new Error('no core topic + focus in the bank fits this test');
+}
+const FEW = findTopicAndFilter((n) => n >= 1 && n <= 6);
+const NONE = findTopicAndFilter((n) => n === 0);
 
-function mastery(answered: string[]): TopicMasteryEntry {
+function mastery(answered: string[], topicKey: string = TOPIC): TopicMasteryEntry {
   return {
-    topicKey: TOPIC,
+    topicKey,
     sessionsCompleted: 3,
     scoredSessionsCompleted: 3,
     uniqueQuestionsAnswered: answered,
@@ -68,23 +76,22 @@ describe('filters narrow the pool before slotting', () => {
   });
 
   it('fewer matches than requested returns exactly the matches, never padded with non-matching questions', () => {
-    const matches = filterPool(getTopicQuestions(TOPIC), FEW_MATCHES).map((q) => q.id);
+    const matches = filterPool(getTopicQuestions(FEW.topic), FEW.filters).map((q) => q.id);
     expect(matches.length).toBeGreaterThan(0);
     expect(matches.length).toBeLessThan(7);
-    const { questions, slots } = buildSessionQuestions(TOPIC, 'standard', EMPTY_SKILL_PROFILE, null, undefined, null, null, { filters: FEW_MATCHES });
+    const { questions, slots } = buildSessionQuestions(FEW.topic, 'standard', EMPTY_SKILL_PROFILE, null, undefined, null, null, { filters: FEW.filters });
     expect(questions.map((q) => q.id).sort()).toEqual([...matches].sort());
     expect(slots).toHaveLength(questions.length);
   });
 
   it('seen matching questions are still reused (the ladder never reaches outside the filtered pool)', () => {
-    const matches = filterPool(getTopicQuestions(TOPIC), FEW_MATCHES).map((q) => q.id);
-    const { questions } = buildSessionQuestions(TOPIC, 'standard', EMPTY_SKILL_PROFILE, mastery(matches), undefined, null, null, { filters: FEW_MATCHES });
+    const matches = filterPool(getTopicQuestions(FEW.topic), FEW.filters).map((q) => q.id);
+    const { questions } = buildSessionQuestions(FEW.topic, 'standard', EMPTY_SKILL_PROFILE, mastery(matches, FEW.topic), undefined, null, null, { filters: FEW.filters });
     expect(questions.map((q) => q.id).sort()).toEqual([...matches].sort());
   });
 
   it('zero matches yields an empty session, not an unfiltered one', () => {
-    // 'future' (L'avenir) has no question tagged `past`.
-    const { questions } = buildSessionQuestions('future', 'quick', EMPTY_SKILL_PROFILE, null, undefined, null, null, { filters: PAST });
+    const { questions } = buildSessionQuestions(NONE.topic, 'quick', EMPTY_SKILL_PROFILE, null, undefined, null, null, { filters: NONE.filters });
     expect(questions).toHaveLength(0);
   });
 

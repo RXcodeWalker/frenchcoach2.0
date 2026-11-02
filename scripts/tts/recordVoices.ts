@@ -34,7 +34,7 @@ import {
 
 export const AZURE_MIN_INTERVAL_MS = 3400;
 export const RETRY_BACKOFF_MS = [5000, 15000, 45000] as const;
-export const BUDGET_LIMIT_CHARS = 450_000;
+export const BUDGET_LIMIT_CHARS = 480_000;
 export const MIN_AUDIO_BYTES = 1024;
 const LIST_PAGE_SIZE = 1000;
 const PROGRESS_EVERY = 25;

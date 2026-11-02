@@ -14,6 +14,7 @@
 
 import { describe, expect, it } from 'vitest';
 import { collectLines } from '../collectLines';
+import { BUDGET_LIMIT_CHARS } from '../recordVoices';
 import { OFFLINE_FIXTURES } from '../../../src/data/exam/bank/fixtures';
 import { toSessionQuestionSet } from '../../../src/data/exam/bank/adapter';
 import { initConductEngineState, startConduct, step } from '../../../src/domain/igcse/session/conductEngine';
@@ -282,9 +283,13 @@ describe('recorded-voices catalogue coverage', () => {
     expect(firstSentence).toBeGreaterThan(lastWord);
   });
 
-  it('keeps the recording budget inside Azure F0 (500k characters a month) with room for one more run', () => {
+  // Owner decision (2026-11-02, Learn Batch 4): the cap was 450k; 160 new Learn questions took the full
+  // catalogue to ~470k, and the owner chose to keep the full model answers and raise it to 480k. A full
+  // re-record (a VOICE_KEY_VERSION bump) still fits F0's 500k, but leaves no room that month for
+  // /api/native-voice's 50k share — the recorder resumes across runs, so it may spill into a second month.
+  it('keeps the recording budget inside Azure F0 (500k characters a month)', () => {
     const chars = CATALOGUE.reduce((n, l) => n + l.text.length, 0);
-    expect(chars).toBeLessThan(450_000);
+    expect(chars).toBeLessThan(BUDGET_LIMIT_CHARS);
   });
 
   it('lists each line once and never an empty one', () => {
