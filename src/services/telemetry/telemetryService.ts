@@ -190,6 +190,21 @@ interface OnboardingCompletedProps {
   learner_track: 'exam' | 'junior';
 }
 
+/** How a first-run tour opened: on its own for a new learner, or from Profile's "Replay the app tour". */
+type TourEntry = 'auto' | 'replay';
+
+interface TourStartedProps {
+  entry: TourEntry;
+}
+
+interface TourEndedProps {
+  entry: TourEntry;
+  reason: 'finished' | 'skipped' | 'cta';
+  /** The tour step id they ended on (a short constant, never copy) — where people drop off. */
+  last_step: string;
+  steps_seen: number;
+}
+
 interface PlacementCompletedProps {
   questions_answered: number;
   skipped: boolean;
@@ -295,6 +310,13 @@ interface MonthlyCheckDoneProps {
   sentences_measured: number;
   /** True for the learner's first saved check. */
   first_check: boolean;
+}
+
+interface MysteryBoxOpenedProps {
+  /** How the daily claim ended. */
+  outcome: 'revealed' | 'already_claimed' | 'error';
+  /** XP won; only on `revealed`. */
+  xp?: number;
 }
 
 interface EarTrainingRoundProps {
@@ -413,6 +435,8 @@ export type TelemetryEvent =
   | { name: 'signed_out';              props: NoProps }
   | { name: 'onboarding_step_viewed';  props: OnboardingStepViewedProps }
   | { name: 'onboarding_completed';    props: OnboardingCompletedProps }
+  | { name: 'tour_started';            props: TourStartedProps }
+  | { name: 'tour_ended';              props: TourEndedProps }
   | { name: 'placement_started';       props: NoProps }
   | { name: 'placement_completed';     props: PlacementCompletedProps }
   | { name: 'age_band_set';            props: AgeBandSetProps }
@@ -433,6 +457,7 @@ export type TelemetryEvent =
   | { name: 'lab_focus_word_used';     props: LabFocusWordUsedProps }
   | { name: 'monthly_check_done';      props: MonthlyCheckDoneProps }
   | { name: 'ear_training_round';      props: EarTrainingRoundProps }
+  | { name: 'mystery_box_opened';      props: MysteryBoxOpenedProps }
   | { name: 'learn_session_completed'; props: LearnSessionCompletedProps }
   | { name: 'learn_session_abandoned'; props: LearnSessionAbandonedProps }
   | { name: 'exam_started';            props: ExamStartedProps }
@@ -484,6 +509,8 @@ const DECLARED_PROPS = {
   signed_out: [],
   onboarding_step_viewed: ['step'],
   onboarding_completed: ['skipped', 'goal_type', 'learner_track'],
+  tour_started: ['entry'],
+  tour_ended: ['entry', 'reason', 'last_step', 'steps_seen'],
   placement_started: [],
   placement_completed: ['questions_answered', 'skipped'],
   age_band_set: ['age_band'],
@@ -504,6 +531,7 @@ const DECLARED_PROPS = {
   lab_focus_word_used: ['verdict'],
   monthly_check_done: ['words_clear', 'words_total', 'sentences_measured', 'first_check'],
   ear_training_round: ['correct', 'total'],
+  mystery_box_opened: ['outcome', 'xp'],
   learn_session_completed: ['topic_key', 'questions_answered', 'avg_score', 'duration_ms', 'ended_early'],
   learn_session_abandoned: ['topic_key', 'questions_answered', 'last_step', 'elapsed_ms'],
   exam_started: ['mode', 'entry'],

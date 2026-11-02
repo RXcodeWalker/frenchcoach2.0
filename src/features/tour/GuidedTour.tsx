@@ -4,12 +4,19 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { X } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import type { TourStep } from './tourSteps';
+import { TourVisual } from './TourVisuals';
 
 export type TourEndReason = 'finished' | 'skipped' | 'cta';
 
+/** How far the learner got: the step they ended on and how many they saw. Lets the host measure drop-off. */
+export interface TourEndInfo {
+  lastStep: string;
+  stepsSeen: number;
+}
+
 interface Props {
   steps: TourStep[];
-  onEnd: (reason: TourEndReason) => void;
+  onEnd: (reason: TourEndReason, info: TourEndInfo) => void;
   /** Label for the last step's primary button; it ends the tour with 'cta'. */
   ctaLabel: string;
 }
@@ -123,6 +130,7 @@ export function GuidedTour({ steps, onEnd, ctaLabel }: Props) {
   const panelRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<Element | null>(null);
   const reduceMotion = useReducedMotion() ?? false;
+  const furthestRef = useRef(0);
 
   const step = steps[index];
   const isFirst = index === 0;
@@ -161,17 +169,27 @@ export function GuidedTour({ steps, onEnd, ctaLabel }: Props) {
     panelRef.current?.querySelector<HTMLElement>('[data-tour-primary]')?.focus();
   }, [index]);
 
+  useEffect(() => {
+    furthestRef.current = Math.max(furthestRef.current, index);
+  }, [index]);
+
+  const stepId = step.id;
+  const end = useCallback(
+    (reason: TourEndReason) => onEnd(reason, { lastStep: stepId, stepsSeen: Math.max(furthestRef.current, index) + 1 }),
+    [onEnd, stepId, index],
+  );
+
   const next = useCallback(() => {
-    if (isLast) onEnd('finished');
+    if (isLast) end('finished');
     else setIndex((i) => i + 1);
-  }, [isLast, onEnd]);
+  }, [isLast, end]);
   const back = useCallback(() => setIndex((i) => Math.max(0, i - 1)), []);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault();
-        onEnd('skipped');
+        end('skipped');
         return;
       }
       if (e.key === 'ArrowRight' && !isLast) {
@@ -203,7 +221,7 @@ export function GuidedTour({ steps, onEnd, ctaLabel }: Props) {
     };
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [next, back, onEnd, isLast]);
+  }, [next, back, end, isLast]);
 
   const placement = place(anchor, cardW, cardH);
   const glide = reduceMotion ? 'none' : 'top 320ms var(--ease), left 320ms var(--ease), width 320ms var(--ease), height 320ms var(--ease)';
@@ -222,7 +240,7 @@ export function GuidedTour({ steps, onEnd, ctaLabel }: Props) {
       initial={reduceMotion ? false : { opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2, ease: 'easeOut' }}
-      className={`${placement.kind === 'side' ? 'fixed' : 'relative w-full'} rounded-card surface-raised shadow-overlay border border-hairline p-5 text-ink`}
+      className={`${placement.kind === 'side' ? 'fixed' : 'relative w-full'} rounded-card surface-raised shadow-overlay border border-hairline p-5 text-ink max-h-[calc(100dvh-32px)] overflow-y-auto`}
       style={placement.kind === 'side' ? placement.cardStyle : { maxWidth: cardW }}
     >
       {placement.kind === 'side' && (
@@ -251,7 +269,7 @@ export function GuidedTour({ steps, onEnd, ctaLabel }: Props) {
         </div>
         <button
           type="button"
-          onClick={() => onEnd('skipped')}
+          onClick={() => end('skipped')}
           className={`-mr-2 inline-flex items-center gap-1 min-h-[44px] px-2 rounded-control text-label text-ink-muted hover:text-ink transition-colors duration-state ${RING}`}
         >
           Skip tour
@@ -266,15 +284,16 @@ export function GuidedTour({ steps, onEnd, ctaLabel }: Props) {
         <p id={bodyId} className="mt-2 text-body-base text-ink-muted">
           {step.body}
         </p>
+        {step.visual && <TourVisual id={step.visual} />}
       </div>
 
       <div className="mt-5 flex items-center gap-2">
         {isLast ? (
           <>
-            <Button data-tour-primary size="lg" className={`flex-1 ${RING}`} onClick={() => onEnd('cta')}>
+            <Button data-tour-primary size="lg" className={`flex-1 ${RING}`} onClick={() => end('cta')}>
               {ctaLabel}
             </Button>
-            <Button variant="quiet" size="lg" className={RING} onClick={() => onEnd('finished')}>
+            <Button variant="quiet" size="lg" className={RING} onClick={() => end('finished')}>
               Maybe later
             </Button>
           </>
