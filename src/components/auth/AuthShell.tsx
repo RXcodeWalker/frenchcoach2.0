@@ -38,11 +38,13 @@ export function AuthShell({ title, subtitle, children, below }: Props) {
   );
 }
 
-export function BrandMark() {
+export function BrandMark({ small = false }: { small?: boolean }) {
   return (
     <span
       aria-hidden="true"
-      className="flex h-12 w-12 items-center justify-center rounded-card bg-action font-numeral text-[22px] text-action-ink"
+      className={`flex shrink-0 items-center justify-center bg-action font-numeral text-action-ink ${
+        small ? 'h-9 w-9 rounded-control text-[18px]' : 'h-12 w-12 rounded-card text-[22px]'
+      }`}
     >
       F
     </span>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Eye, EyeOff, AlertCircle, MailCheck } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { track } from '../../services/telemetry/telemetryService';
@@ -10,9 +11,12 @@ import { InlineAlert } from './InlineAlert';
 interface Props {
   onAuthenticated: () => void;
   footer?: React.ReactNode;
+  /** The full-page sign-in shows a heading that follows the tab and a terms line; the popup does not. */
+  page?: boolean;
 }
 
-export function AuthForm({ onAuthenticated, footer }: Props) {
+export function AuthForm({ onAuthenticated, footer, page = false }: Props) {
+  const reduced = useReducedMotion();
   const { signIn, signUp, resetPasswordForEmail, signInWithOAuth, configError } = useAuth();
 
   const [tab, setTab] = useState<'login' | 'signup'>('login');
@@ -172,9 +176,21 @@ export function AuthForm({ onAuthenticated, footer }: Props) {
       {showPassword ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
     </button>
   );
+  const fade = reduced
+    ? { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 }, transition: { duration: 0.2 } }
+    : { initial: { opacity: 0, height: 0 }, animate: { opacity: 1, height: 'auto' }, exit: { opacity: 0, height: 0 }, transition: { duration: 0.24, ease: [0.2, 0, 0.2, 1] as const } };
 
   return (
     <>
+      {page && (
+        <div className="mb-6">
+          <h1 className="text-title text-ink sm:text-h2">{isLogin ? 'Welcome back' : 'Create your account'}</h1>
+          <p className="mt-2 text-body-base text-ink-muted">
+            {isLogin ? 'Log in to pick up where you left off.' : 'Free to start. Your progress is saved to your account.'}
+          </p>
+        </div>
+      )}
+
       <Segmented
         label="Log in or sign up"
         value={tab}
@@ -183,69 +199,14 @@ export function AuthForm({ onAuthenticated, footer }: Props) {
           { id: 'login', label: 'Log In' },
           { id: 'signup', label: 'Sign Up' },
         ]}
-        height={36}
+        height={40}
         className="mb-5"
       />
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <TextField
-          label="Email address"
-          type="email"
-          autoComplete="email"
-          required
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-        />
-
-        <div>
-          <TextField
-            label="Password"
-            type={showPassword ? 'text' : 'password'}
-            autoComplete={isLogin ? 'current-password' : 'new-password'}
-            required
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            trailing={passwordToggle}
-          />
-          {isLogin && (
-            <button
-              type="button"
-              onClick={() => { setForgotPassword(true); setError(null); }}
-              className="mt-2 rounded-control text-label text-action-text underline underline-offset-2 hover:text-action-hover"
-            >
-              Forgot password?
-            </button>
-          )}
-        </div>
-
-        {!isLogin && (
-          <TextField
-            label="Confirm password"
-            type={showPassword ? 'text' : 'password'}
-            autoComplete="new-password"
-            required
-            value={confirmPassword}
-            onChange={e => setConfirmPassword(e.target.value)}
-            error={confirmPassword && confirmPassword !== password ? 'Passwords do not match.' : null}
-          />
-        )}
-
-        {error && <InlineAlert>{error}</InlineAlert>}
-
-        <Button type="submit" size="lg" className="w-full" loading={loading}>
-          {isLogin ? 'Log In' : 'Create Account'}
-        </Button>
-      </form>
-
-      <div className="my-5 flex items-center gap-3" role="separator" aria-label="or">
-        <div className="h-px flex-1 bg-hairline" />
-        <span className="text-caption text-ink-subtle">or</span>
-        <div className="h-px flex-1 bg-hairline" />
-      </div>
 
       <div className="space-y-2">
         <Button
           variant="secondary"
+          size="lg"
           className="w-full"
           onClick={() => handleOAuth('google')}
           aria-label="Continue with Google"
@@ -260,6 +221,7 @@ export function AuthForm({ onAuthenticated, footer }: Props) {
         </Button>
         <Button
           variant="secondary"
+          size="lg"
           className="w-full"
           onClick={() => handleOAuth('azure')}
           aria-label="Continue with Microsoft"
@@ -273,6 +235,84 @@ export function AuthForm({ onAuthenticated, footer }: Props) {
           Continue with Microsoft
         </Button>
       </div>
+
+      <div className="my-5 flex items-center gap-3" role="separator" aria-label="or use email">
+        <div className="h-px flex-1 bg-hairline" />
+        <span className="text-caption text-ink-subtle">or use email</span>
+        <div className="h-px flex-1 bg-hairline" />
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <TextField
+          label="Email address"
+          type="email"
+          autoComplete="email"
+          required
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          autoFocus={page && typeof window !== 'undefined' && window.matchMedia?.('(pointer: fine)').matches}
+        />
+
+        <div>
+          <TextField
+            label="Password"
+            type={showPassword ? 'text' : 'password'}
+            autoComplete={isLogin ? 'current-password' : 'new-password'}
+            required
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            trailing={passwordToggle}
+            hint={isLogin ? undefined : 'Use 8 or more characters.'}
+          />
+          {isLogin && (
+            <button
+              type="button"
+              onClick={() => { setForgotPassword(true); setError(null); }}
+              className="mt-2 rounded-control text-label text-action-text underline underline-offset-2 hover:text-action-hover"
+            >
+              Forgot password?
+            </button>
+          )}
+        </div>
+
+        <AnimatePresence initial={false}>
+          {!isLogin && (
+            <motion.div key="confirm" {...fade} style={{ overflow: 'hidden', marginTop: 0 }}>
+              <div className="pt-4">
+              <TextField
+                label="Confirm password"
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="new-password"
+                required
+                value={confirmPassword}
+                onChange={e => setConfirmPassword(e.target.value)}
+                error={confirmPassword && confirmPassword !== password ? 'Passwords do not match.' : null}
+              />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence initial={false}>
+          {error && (
+            <motion.div key="err" {...fade} style={{ overflow: 'hidden' }}>
+              <InlineAlert>{error}</InlineAlert>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <Button type="submit" size="lg" className="w-full" loading={loading}>
+          {isLogin ? 'Log In' : 'Create Account'}
+        </Button>
+
+        {page && !isLogin && (
+          <p className="text-center text-caption text-ink-subtle">
+            By creating an account you agree to the{' '}
+            <a href="/terms" className="text-action-text underline underline-offset-2">Terms</a> and{' '}
+            <a href="/privacy" className="text-action-text underline underline-offset-2">Privacy Policy</a>.
+          </p>
+        )}
+      </form>
 
       {footer}
     </>

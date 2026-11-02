@@ -2,7 +2,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { useGuestMode } from '../hooks/useGuestMode';
 import { AuthForm } from '../components/auth/AuthForm';
-import { AuthShell } from '../components/auth/AuthShell';
+import { AuthSplit } from '../components/auth/AuthSplit';
 import { Button } from '../components/ui/Button';
 
 export function Auth() {
@@ -27,9 +27,7 @@ export function Auth() {
   }
 
   return (
-    <AuthShell
-      title="Français AI"
-      subtitle="IGCSE & A-Level speaking practice with feedback you can use."
+    <AuthSplit
       below={
         !isGuestConversion && (
           <p className="text-caption text-ink-subtle">
@@ -45,6 +43,7 @@ export function Auth() {
       )}
 
       <AuthForm
+        page
         onAuthenticated={handleAuthenticated}
         footer={
           !isGuestConversion && (
@@ -54,6 +53,6 @@ export function Auth() {
           )
         }
       />
-    </AuthShell>
+    </AuthSplit>
   );
 }
