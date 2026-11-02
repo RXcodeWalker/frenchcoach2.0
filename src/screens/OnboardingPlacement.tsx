@@ -1,7 +1,8 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Mic } from 'lucide-react';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { Button } from '../components/ui/Button';
+import { EASE } from '../components/motion/variants';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { useRecording } from '../features/recording/useRecording';
@@ -186,31 +187,59 @@ export function OnboardingPlacement() {
     isLastQuestion, advanceOrFinish, skipQuestion, submittedIndexesRef,
   ]);
 
+  const reduced = useReducedMotion();
+  const total = questions.length;
+
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-8">
-      <div className="w-full max-w-sm">
-        <p className="text-center text-xs text-ink-muted mb-2">
-          Question {questionIndex + 1} of {questions.length}
-        </p>
-        <h1 className="text-xl font-black text-white mb-1 text-center">Quick placement check</h1>
-        <p className="text-sm text-ink-muted text-center mb-6">
-          Answer a few questions out loud so your coach can start you at the right level.
-        </p>
+    <div className="min-h-screen bg-bg px-4 pb-12 pt-6 sm:pt-10">
+      <div className="mx-auto w-full max-w-[520px]">
+        <header className="mb-8">
+          <p className="mb-3 text-eyebrow uppercase text-action-text">
+            Placement check · Question {questionIndex + 1} of {total}
+          </p>
+          <div
+            className="flex gap-1.5"
+            role="progressbar"
+            aria-label="Placement progress"
+            aria-valuemin={1}
+            aria-valuemax={total}
+            aria-valuenow={questionIndex + 1}
+          >
+            {questions.map((q, i) => (
+              <div
+                key={q.id}
+                className={`h-1.5 flex-1 rounded-pill transition-colors duration-slide ease-slide ${
+                  i <= questionIndex ? 'bg-action' : 'bg-track'
+                }`}
+              />
+            ))}
+          </div>
+        </header>
+
+        <div className="mb-6">
+          <h1 className="text-title text-ink sm:text-h2">Quick placement check</h1>
+          <p className="mt-2 text-body-base text-ink-muted">
+            Answer a few questions out loud so your coach can start you at the right level. There are no marks here.
+          </p>
+        </div>
 
         <AnimatePresence mode="wait">
           <motion.div
             key={questionIndex}
-            initial={{ opacity: 0, x: 24 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -24 }}
-            className="rounded-xl surface p-5 mb-4"
+            initial={reduced ? { opacity: 0 } : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0, transition: { duration: 0.24, ease: EASE } }}
+            exit={{ opacity: 0, transition: { duration: 0.12, ease: EASE } }}
+            className="surface mb-4 rounded-card p-5"
           >
-            <p className="text-white font-semibold text-center">{currentQuestion.text}</p>
+            <p className="text-eyebrow uppercase text-ink-subtle">Say it out loud</p>
+            <p className="mt-2 text-subtitle text-ink">{currentQuestion.text}</p>
           </motion.div>
         </AnimatePresence>
 
         {errorMessage && status === 'retry' && (
-          <p className="text-center text-xs text-amber-400 mb-3">{errorMessage}</p>
+          <p role="alert" className="mb-3 rounded-control border border-reward bg-reward-soft p-3 text-body-s text-reward-text">
+            {errorMessage}
+          </p>
         )}
 
         <SpeakingConsentGate>
@@ -218,21 +247,15 @@ export function OnboardingPlacement() {
             isActive={status === 'pending' || status === 'recording' || status === 'retry'}
             recording={recording}
             onStop={handleStop}
+            processing={status === 'submitting' ? 2 : null}
           />
         </SpeakingConsentGate>
 
-        {status === 'submitting' && (
-          <p className="text-center text-xs text-ink-muted mt-4 flex items-center justify-center gap-2">
-            <Mic size={12} className="animate-pulse" /> Scoring your answer…
-          </p>
-        )}
-
-        <button
-          onClick={finishIncomplete}
-          className="mt-6 w-full py-2 rounded-xl font-semibold text-xs text-ink-muted hover:text-ink-muted transition-colors"
-        >
-          Skip diagnostic
-        </button>
+        <div className="mt-6 flex justify-center">
+          <Button variant="quiet" onClick={finishIncomplete}>
+            Skip diagnostic
+          </Button>
+        </div>
       </div>
     </div>
   );
