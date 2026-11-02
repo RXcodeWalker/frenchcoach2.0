@@ -15,6 +15,7 @@ import { isFixedLengthMode, missedQuestionIds } from './scoring';
 import { recordRun, summarizeCollection, type CollectionSummary } from './wordCollection';
 import { HearButton } from './ui/HearButton';
 import type { SessionCompletion } from './types';
+import { useSfxOnChange } from '../../services/sound/useSfx';
 
 interface EmojiMasterResultsProps {
   completion: SessionCompletion;
@@ -58,6 +59,7 @@ export function EmojiMasterResults({
   onChangeMode,
   onBackToExplore,
 }: EmojiMasterResultsProps) {
+  useSfxOnChange('complete', true, 200);
   const reduced = useReducedMotion();
   const item = reduced ? enterReduced : enter;
   const doneRef = useRef(false);

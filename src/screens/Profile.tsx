@@ -45,6 +45,7 @@ import { TrackSwitch } from '../features/junior/TrackSwitch';
 import { CORE_ONLY, JUNIOR_TRACK_SELECTABLE } from '../config/launchScope';
 import { ReplayTourButton } from '../features/tour/ReplayTourButton';
 import type { AIEngine } from '../types';
+import { playSfx, setSfxEnabled } from '../services/sound/sfx';
 
 const RENAME_REASON_COPY: Record<string, string> = {
   invalid_format: 'Start with a letter, 3–20 characters, letters/numbers/underscore only.',
@@ -573,7 +574,15 @@ export function Profile() {
           <div className="flex min-w-0 flex-[1_1_320px] flex-col gap-5">
             <motion.div variants={fadeUp}>
               <SettingGroup title="Preferences">
-                <SettingToggle icon={<Volume2 size={16} />} label="Sound effects" description="Play sounds for answers and rewards" enabled={state.soundEnabled} onToggle={() => dispatch({ type: 'TOGGLE_SOUND' })} />
+                <SettingToggle icon={<Volume2 size={16} />} label="Sound effects" description="Short sounds for answers and rewards. Always off in exams" enabled={state.soundEnabled} onToggle={() => {
+                  // Turning sound on plays a sample, so the switch confirms itself. The service's flag is set
+                  // here too because SfxBridge only catches up after the next render.
+                  if (!state.soundEnabled) {
+                    setSfxEnabled(true);
+                    playSfx('correct');
+                  }
+                  dispatch({ type: 'TOGGLE_SOUND' });
+                }} />
                 <SettingToggle divided icon={<Moon size={16} />} label="Dark mode" description="Same colours by role, darker surfaces" enabled={state.darkMode} onToggle={() => dispatch({ type: 'TOGGLE_DARK_MODE' })} />
                 {state.learnerTrack !== 'junior' && <ReplayTourButton divided />}
               </SettingGroup>

@@ -10,6 +10,7 @@ import { celebrate, enter, enterReduced } from '../../components/motion/variants
 import type { GameState, Summary } from './engine';
 import type { Best } from './store';
 import { HearButton } from './HearButton';
+import { useSfxOnChange } from '../../services/sound/useSfx';
 
 interface Props {
   game: GameState;
@@ -39,6 +40,7 @@ function headline(game: GameState, summary: Summary): string {
  * behind it, plus a drill that replays only those.
  */
 export function ResultsView({ game, summary, missed, best, newBest, newlyMastered, onAgain, onDrill, onSetup, onExit }: Props) {
+  useSfxOnChange('complete', true, 200);
   const reduced = useReducedMotion();
   const item = reduced ? enterReduced : enter;
   const themes = [...new Set(missed.map(q => q.theme))];

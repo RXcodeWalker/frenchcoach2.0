@@ -19,6 +19,8 @@ export const STORAGE_KEYS = {
   learnerTrack:   'frenchCoach_learnerTrack',
   junior:         'frenchCoach_junior',
   darkMode:       'frenchCoach_darkMode',
+  // Sound effects on/off (Profile → Sound effects). A device preference like darkMode: raw 'true'/'false', default on.
+  soundEnabled:   'frenchCoach_soundEnabled',
   aiEngine:       'frenchCoach_aiEngine',
   difficulty:     'frenchCoach_difficulty',
   // docs (Learn adaptive difficulty) §6.4/§16 Stage 10 — replaces `difficulty`
@@ -131,6 +133,7 @@ export type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS];
 // uses this browser. Everything else defaults to `${base}::${identity}`.
 const DEVICE_SCOPED = new Set<string>([
   STORAGE_KEYS.darkMode,
+  STORAGE_KEYS.soundEnabled,
   STORAGE_KEYS.aiEngine,
   STORAGE_KEYS.contentCache,
   STORAGE_KEYS.newsCache,

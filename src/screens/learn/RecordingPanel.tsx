@@ -1,4 +1,6 @@
+import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
+import { playSfx } from '../../services/sound/sfx';
 import { useSpaceToRecord } from '../../lib/useSpaceToRecord';
 import { AlertTriangle, Check, Loader2, Mic } from 'lucide-react';
 import { formatTime } from '../../domain/time';
@@ -83,6 +85,13 @@ export function RecordingPanel({ isActive, recording, onStop, processing = null,
   const isProc = processing !== null && !isRec;
   const canToggle = isActive && !isProc;
   const { start } = recording;
+
+  // A soft "got it" once the recording ends. Delayed past the mic's silence tail, so it is never captured.
+  const wasRecording = useRef(false);
+  useEffect(() => {
+    if (wasRecording.current && !isRec) playSfx('stop', { delayMs: 260 });
+    wasRecording.current = isRec;
+  }, [isRec]);
 
   // Space starts and stops the recorder (shared rules: lib/useSpaceToRecord).
   useSpaceToRecord({ enabled: canToggle, isRecording: isRec, onStart: () => void start(), onStop });

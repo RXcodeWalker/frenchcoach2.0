@@ -6,6 +6,7 @@ import { averageRealScores, scoreTone } from '../../domain/scoring';
 import { demandPracticeCounts, earnsConfetti, practisedLine } from '../../features/learn/sessionRecap';
 import { shownBestScore } from '../../features/learn/markingLevel';
 import type { ActiveSession, SkillProfile, TopicMasteryEntry } from '../../types';
+import { useSfxOnChange } from '../../services/sound/useSfx';
 
 interface SkillDelta {
   skillId: string;
@@ -53,6 +54,8 @@ export function SessionSummary({
   onNewTopic,
   onHome,
 }: Props) {
+  // Neutral on purpose: the summary sounds the same however the session went.
+  useSfxOnChange('complete', true, 250);
   const deltas = computeSkillDeltas(session, currentSkillProfile);
   const practised = demandPracticeCounts(session.questions);
   const completedQs = session.questions.filter(q => q.status === 'completed');

@@ -3,6 +3,7 @@ import { Check, X } from 'lucide-react';
 import { correct } from '../../../components/motion/variants';
 import type { EmojiQuestion } from '../../../data/emojiQuestions';
 import { HearButton } from './HearButton';
+import { useSfxOnChange } from '../../../services/sound/useSfx';
 
 export type RevealKind = 'correct' | 'miss' | 'timeout';
 
@@ -58,6 +59,8 @@ function Fix({ children, reduced }: { children: string; reduced: boolean | null 
 export function AnswerReveal({ kind, question, userAnswer, showEmojiWithFix = false, compact = false }: Props) {
   const reduced = useReducedMotion();
   const ok = kind === 'correct';
+  // One reveal is mounted per answer in every mode, so mounting is the moment of the cue.
+  useSfxOnChange(ok ? 'correct' : 'wrong', true);
   const fix = showEmojiWithFix ? `${question.emojis} ${question.french}` : question.french;
   const heading = ok ? 'Correct' : kind === 'timeout' ? "Time's up" : 'Not quite';
   const struck = !ok && userAnswer && userAnswer.trim() ? userAnswer : null;

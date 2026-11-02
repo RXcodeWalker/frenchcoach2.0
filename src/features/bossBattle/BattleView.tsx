@@ -28,6 +28,7 @@ import { BossChip, FocusPips, HpBar, StatusPill, TopicTag } from './parts';
 import { useBattle } from './useBattle';
 import { useRoundClock } from './useRoundClock';
 import type { Boss } from './bosses';
+import { useSfxOnChange } from '../../services/sound/useSfx';
 
 interface Props {
   boss: Boss;
@@ -63,6 +64,10 @@ export function BattleView({ boss, onExit, onRematch }: Props) {
   const over = state.stage === 'won' || state.stage === 'lost';
   const answering = state.stage === 'answering';
   const question = currentQuestion(state);
+
+  // A hit or a miss per round, then the fight's end a beat later.
+  useSfxOnChange(state.last ? (state.last.correct ? 'correct' : 'wrong') : null, state.last);
+  useSfxOnChange(state.stage === 'won' ? 'victory' : state.stage === 'lost' ? 'defeat' : null, state.stage, 450);
 
   useHideDock(true);
 

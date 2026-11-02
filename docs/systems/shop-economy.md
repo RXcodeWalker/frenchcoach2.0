@@ -231,7 +231,7 @@ Reuse, don't invent. **Principles:** restraint = premium (rarity is a hairline r
 | Failure | Visible rollback with a plain reason. Never a silent no-op |
 | Return | Freshness from *your* progress: newly-unlocked items get a "Now available" ribbon. Nothing expires |
 
-Sound is out of scope — there is no audio system; `soundEnabled` currently controls nothing.
+Sound is not part of the shop (no purchasable sounds or packs). The app's own sound effects are separate and live in `src/services/sound/`; `soundEnabled` controls them (see `CLAUDE.md`, Known Traps).
 
 ---
 
