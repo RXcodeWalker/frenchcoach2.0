@@ -4740,3 +4740,34 @@ Lab take against production Azure by a signed-in account, or the natural-voice r
 "not enough recordings yet" (INCOMPLETE) but still fails on a calibration that has been run and FAILED. Delete the waiver when
 the report says PASS.
 
+
+## 2026-11-02 — Learn Batch 4: 160 new questions for the eight priority topics
+
+**Changed.** 20 new Learn questions in each of school, hobbies, family, holidays, home, future, food and
+environment (`sch_50–69`, `hob_78–97`, `fam_47–66`, `hol_47–66`, `hom_45–64`, `fut_44–63`, `foo_75–94`,
+`env_42–61`; bank 668 → 828). Each has `subTopic`, `coachHint`, follow-ups, model answer and key vocab, and a
+demands entry written from its wording (`provenance: 'inferred'`, 0.8, `review.status: 'draft'` with a note — a
+model cannot vouch for itself; only a human flips them to `reviewed`). Levels were chosen to fill each topic's thin
+bands (derived by `deriveDemandLevel`, never asserted): A1/A2/B1/B2 added — school 4/6/5/5, hobbies 2/4/9/5,
+family 3/5/7/5, holidays 3/6/6/5, home 1/7/8/4, future 3/6/7/4, food 4/6/5/5, environment 5/6/5/4 (B2 went from
+0–4 per topic to 5–9; future gained its first A1s; home is no longer mostly A1).
+
+**Checked.** `learn:check -- --draft`: output identical to before the change (0 errors, the same 71 pre-existing
+warnings — no new question raises any rule). `typecheck`, `lint` (0 errors), full `npm test` 519 files / 5886
+tests passed with `backend/` linked; backend pytest 1011 passed, 1 pre-existing failure (`test_gen.py`, fails
+on the unchanged code too). `typecheck:scripts` has 14 errors before and after (not touched).
+
+**Test changes.** Corpus-size pins 668 → 828 (`questions.demands.test.ts`, backend `test_learn_demands.py`,
+`test_learn_ladder.py`); `client_inputs.json` regenerated (`npm run learn:marking-inputs` — only `demandsVersion`
+changed); `sessionBuilder.filters.test.ts` assumed hobbies had a focus with 1–6 matches and that future had no
+past question — both false now, so it picks its topic + focus from the bank.
+
+**Owner decision — voice budget.** The recorded-voice catalogue grew 393k → 470k characters (new model-answer
+sentences for the Pronunciation Lab), over the 450k guard. Owner chose to keep full model answers and raise
+`BUDGET_LIMIT_CHARS` to 480k: a full re-record still fits F0's 500k but leaves no room that month for
+`/api/native-voice`. **Not done: a "Record voices" run** (~77k characters) — until then the new questions play the
+browser voice (the existing fallback).
+
+**L2-off window.** Frontend (JSON + manifest) and backend (byte copy) are separate commits on
+`claude/sleepy-cerf-pyau1k`; when merged, deploy back to back — between the two deploys the backend reports
+`demandsResolved: false` and L2 evidence is off.
