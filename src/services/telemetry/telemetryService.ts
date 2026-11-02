@@ -190,6 +190,21 @@ interface OnboardingCompletedProps {
   learner_track: 'exam' | 'junior';
 }
 
+/** How a first-run tour opened: on its own for a new learner, or from Profile's "Replay the app tour". */
+type TourEntry = 'auto' | 'replay';
+
+interface TourStartedProps {
+  entry: TourEntry;
+}
+
+interface TourEndedProps {
+  entry: TourEntry;
+  reason: 'finished' | 'skipped' | 'cta';
+  /** The tour step id they ended on (a short constant, never copy) — where people drop off. */
+  last_step: string;
+  steps_seen: number;
+}
+
 interface PlacementCompletedProps {
   questions_answered: number;
   skipped: boolean;
@@ -413,6 +428,8 @@ export type TelemetryEvent =
   | { name: 'signed_out';              props: NoProps }
   | { name: 'onboarding_step_viewed';  props: OnboardingStepViewedProps }
   | { name: 'onboarding_completed';    props: OnboardingCompletedProps }
+  | { name: 'tour_started';            props: TourStartedProps }
+  | { name: 'tour_ended';              props: TourEndedProps }
   | { name: 'placement_started';       props: NoProps }
   | { name: 'placement_completed';     props: PlacementCompletedProps }
   | { name: 'age_band_set';            props: AgeBandSetProps }
@@ -484,6 +501,8 @@ const DECLARED_PROPS = {
   signed_out: [],
   onboarding_step_viewed: ['step'],
   onboarding_completed: ['skipped', 'goal_type', 'learner_track'],
+  tour_started: ['entry'],
+  tour_ended: ['entry', 'reason', 'last_step', 'steps_seen'],
   placement_started: [],
   placement_completed: ['questions_answered', 'skipped'],
   age_band_set: ['age_band'],
