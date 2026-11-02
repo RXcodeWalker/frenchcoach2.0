@@ -61,9 +61,13 @@ export class FakeAudio {
   }
 }
 
-/** Waits (on real macrotasks) until `cond` holds: the key is hashed asynchronously before the element is touched. */
-export async function until(cond: () => boolean, what = 'condition'): Promise<void> {
-  for (let i = 0; i < 2000 && !cond(); i++) await new Promise((r) => setImmediate(r));
+/**
+ * Waits (on real macrotasks) until `cond` holds: the key is hashed asynchronously before the element is touched.
+ * Bounded by wall-clock time, not an iteration count — under a loaded CI runner the hash can outlast 2,000 ticks.
+ */
+export async function until(cond: () => boolean, what = 'condition', timeoutMs = 5000): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+  while (!cond() && Date.now() < deadline) await new Promise((r) => setImmediate(r));
   if (!cond()) throw new Error(`timed out waiting for ${what}`);
 }
 
