@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { CheckCircle2, XCircle } from 'lucide-react';
+import { useSfxOnChange } from '../../../services/sound/useSfx';
 
 export type GameFeedbackType = 'correct' | 'incorrect' | 'timeout';
 
@@ -22,6 +23,8 @@ export function GameFeedbackOverlay({
   variant = 'card',
   className = '',
 }: GameFeedbackOverlayProps) {
+  // Callers clear `feedback` between questions, so each answer is a change: a hit, or the soft thud for a miss or timeout.
+  useSfxOnChange(feedback ? (feedback === 'correct' ? 'correct' : 'wrong') : null, feedback);
   if (variant === 'toast') {
     return (
       <AnimatePresence>

@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { motion } from 'framer-motion';
 import { Trophy } from 'lucide-react';
 import type { LetterGrade } from '../utils/gradeFromStats';
+import { useSfxOnChange } from '../../../services/sound/useSfx';
 
 export interface GameResultsStat {
   label: string;
@@ -34,6 +35,8 @@ export function GameResultsCard({
   actions,
   className = '',
 }: GameResultsCardProps) {
+  // Neutral end-of-round cue. The speaking games keep their mic open until here, so they get no cue during play.
+  useSfxOnChange('complete', true, 200);
   return (
     <div className={`min-h-[80vh] flex flex-col items-center justify-center p-6 ${className}`}>
       <motion.div

@@ -13,6 +13,7 @@ import { REBUILD_QUESTIONS } from '../../data/rebuildQuestions';
 import { SKILL_DEFS } from '../../services/coaching/diagnosticEngine';
 import { SKILL_TO_THEME } from '../../domain/microDrill/skillThemes';
 import { useApp, dispatchAddXP } from '../../context/AppContext';
+import { useSfxOnChange } from '../../services/sound/useSfx';
 
 interface MicroDrillModalProps {
   skillId: string;
@@ -38,6 +39,10 @@ export const MicroDrillModal: React.FC<MicroDrillModalProps> = ({ skillId, onClo
   const [isFinished, setIsFinished] = useState(false);
   const [score, setScore] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
+  // One cue per Check — counted, because a second wrong check leaves `feedback` unchanged.
+  const [checks, setChecks] = useState(0);
+  useSfxOnChange(feedback === 'correct' ? 'correct' : feedback === 'incorrect' ? 'wrong' : null, checks);
+  useSfxOnChange(isFinished ? 'complete' : null, isFinished, 250);
 
   const currentQuestion = questions[currentIndex];
 
@@ -70,6 +75,7 @@ export const MicroDrillModal: React.FC<MicroDrillModalProps> = ({ skillId, onClo
   };
 
   const checkAnswer = () => {
+    setChecks(n => n + 1);
     const userAnswer = targetFragments.join(' ');
     const cleanUser = userAnswer.replace(/[.,!?]/g, '').toLowerCase();
     const cleanTarget = currentQuestion.french.replace(/[.,!?]/g, '').toLowerCase();

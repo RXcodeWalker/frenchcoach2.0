@@ -66,4 +66,22 @@ describe('sound effects wiring', () => {
     const summary = read(join(SRC, 'screens/learn/SessionSummary.tsx'));
     expect(summary).toMatch(/useSfxOnChange\('complete', true/);
   });
+
+  it('the shared minigame shell and Micro Drill carry the cues', () => {
+    for (const file of [
+      'features/minigames/components/GameFeedbackOverlay.tsx',
+      'features/minigames/components/GameResultsCard.tsx',
+      'components/ui/MicroDrillModal.tsx',
+    ]) {
+      expect(read(join(SRC, file)), file).toContain('useSfxOnChange(');
+    }
+  });
+
+  it('Speed Speaking and Speaking Arena keep the mic open all round, so they make no sound during play', () => {
+    // A cue from the speakers would reach the live recogniser and could be matched as an answer.
+    // They get one cue, at the end, from the shared results card (the mic is closed by then).
+    for (const file of ['screens/SpeedSpeaking.tsx', 'screens/SpeakingArena.tsx']) {
+      expect(read(join(SRC, file)), file).not.toMatch(/playSfx|useSfxOnChange|services\/sound/);
+    }
+  });
 });
