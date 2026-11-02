@@ -183,7 +183,7 @@ function ExamLayout() {
   return (
     <NavRailContext.Provider value={navRail}>
     <div data-hatch="immersive" className="min-h-screen bg-bg text-ink overflow-hidden exam-voice">
-      {showNavRail && <SideRail />}
+      {showNavRail && <SideRail keyHint={false} />}
       <main className={`relative z-10 ${showNavRail ? 'md:ml-[88px]' : ''}`}>
         <Outlet />
       </main>
@@ -191,6 +191,8 @@ function ExamLayout() {
       <GemAnimations />
       <XPToast />
       <GlobalCelebrations />
+      {/* Only the rail's keyboard button opens the list here; no key is bound, so a stray key can't leave an attempt. */}
+      {showNavRail && <KeyboardShortcuts helpOnly />}
     </div>
     </NavRailContext.Provider>
   );
