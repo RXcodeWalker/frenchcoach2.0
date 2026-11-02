@@ -6,6 +6,7 @@ import { Stat } from '../../components/ui/Stat';
 import { correct, fill, streakFlame } from '../../components/motion/variants';
 import { FLOOR_Y, HINT_Y, MAX_LIVES, WAVE_SIZE, hintText, multiplierFor, type FallingWord, type GameEvent, type GameState, type SubmitResult } from './engine';
 import { lockedTarget, normalizeAnswer, typedLanguage } from './matching';
+import { useSfxOnChange } from '../../services/sound/useSfx';
 
 interface Props {
   game: GameState;
@@ -43,6 +44,11 @@ export function PlayField({ game, onType, onPause, onResume, onEnd }: Props) {
 
   // Wave-ups and hearts won back get a short toast over the field.
   const event = game.event;
+  // A catch is a light tick (they come thick and fast); a landed word is the soft thud.
+  useSfxOnChange(
+    event?.kind === 'clear' ? 'xp' : event?.kind === 'miss' ? 'wrong' : event?.kind === 'wave' ? 'ready' : event?.kind === 'heal' ? 'gem' : null,
+    event?.seq,
+  );
   useEffect(() => {
     if (!event) return;
     const text = toastFor(event);

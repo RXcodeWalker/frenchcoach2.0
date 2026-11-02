@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { Gem } from 'lucide-react';
+import { useSfxOnChange } from '../services/sound/useSfx';
 
 export function GemAnimations() {
   const { state, dispatch } = useApp();
@@ -15,6 +16,8 @@ export function GemAnimations() {
 }
 
 function GemFloat({ anim, onDone }: { anim: { id: string; amount: number; x: number; y: number }; onDone: () => void }) {
+  // A beat after the XP tick, so the two never land on top of each other.
+  useSfxOnChange(anim.amount > 0 ? 'gem' : null, anim.id, 160);
   useEffect(() => {
     const t = setTimeout(onDone, 1800);
     return () => clearTimeout(t);

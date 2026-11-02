@@ -8,6 +8,8 @@ import { AppProvider, useApp } from './context/AppContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { PublicRoutes } from './PublicRoutes';
 import { XPAnimations } from './components/XPAnimation';
+import { SfxBridge } from './components/SfxBridge';
+import { useSfxSilence } from './services/sound/useSfx';
 import { GemAnimations } from './components/GemAnimation';
 import { SideRail } from './components/Navigation';
 import { KeyboardShortcuts } from './components/KeyboardShortcuts';
@@ -180,6 +182,8 @@ function ExamLayout() {
   // on the exam chooser (ExamMode opts in via useShowNavRail).
   const [showNavRail, setShowNavRail] = useState(false);
   const navRail = useMemo(() => ({ setShowNavRail }), []);
+  // Exam routes are silent: the examiner voice and the mic run throughout, and a chime must not hint at a mark.
+  useSfxSilence();
   return (
     <NavRailContext.Provider value={navRail}>
     <div data-hatch="immersive" className="min-h-screen bg-bg text-ink overflow-hidden exam-voice">
@@ -250,6 +254,7 @@ function AppShell() {
         <AppProvider identity={identity}>
           <MigrationGate />
           <AnalyticsPersonSync />
+          <SfxBridge />
           <Routes location={location}>
         <Route element={<MainLayout />}>
           <Route path="/" element={<HomeRoute />} />

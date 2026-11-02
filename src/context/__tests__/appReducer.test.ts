@@ -237,3 +237,19 @@ describe('Junior track reducer actions (Batch 3A)', () => {
     expect(Object.keys(localStorage).sort()).toEqual(['frenchCoach_junior::user-1', 'frenchCoach_learnerTrack::user-1']);
   });
 });
+
+describe('TOGGLE_SOUND reducer — the Sound effects setting persists', () => {
+  beforeEach(() => localStorage.clear());
+
+  it('writes the choice to the device-scoped key, so a reload keeps it', () => {
+    setStorageScope('user-1');
+    const off = reducer(baseState(), { type: 'TOGGLE_SOUND' });
+    expect(off.soundEnabled).toBe(false);
+    // Device-scoped like the theme: the bare key, never `::user-1`.
+    expect(localStorage.getItem('frenchCoach_soundEnabled')).toBe('false');
+    const on = reducer(off, { type: 'TOGGLE_SOUND' });
+    expect(on.soundEnabled).toBe(true);
+    expect(localStorage.getItem('frenchCoach_soundEnabled')).toBe('true');
+    expect(localStorage.getItem('frenchCoach_soundEnabled::user-1')).toBeNull();
+  });
+});

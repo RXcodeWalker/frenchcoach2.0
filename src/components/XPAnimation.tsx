@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useApp } from '../context/AppContext';
+import { useSfxOnChange } from '../services/sound/useSfx';
 
 export function XPAnimations() {
   const { state, dispatch } = useApp();
@@ -14,6 +15,7 @@ export function XPAnimations() {
 }
 
 function XPFloat({ anim, onDone }: { anim: { id: string; amount: number; x: number; y: number }; onDone: () => void }) {
+  useSfxOnChange(anim.amount > 0 ? 'xp' : null, anim.id);
   useEffect(() => {
     const t = setTimeout(onDone, 1600);
     return () => clearTimeout(t);

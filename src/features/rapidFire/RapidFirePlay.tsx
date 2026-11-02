@@ -9,6 +9,7 @@ import { enter, enterReduced } from '../../components/motion/variants';
 import { useBackHandler } from '../../lib/useBackHandler';
 import { useCountdown } from '../minigames/hooks/useCountdown';
 import { CorrectionReveal } from './CorrectionReveal';
+import { useSfxOnChange } from '../../services/sound/useSfx';
 import {
   BONUS_EVERY,
   BONUS_SECONDS,
@@ -113,6 +114,7 @@ export function RapidFirePlay({ words, mode, onFinish }: Props) {
 
   const running = started && state.phase === 'playing';
   const fb = state.feedback;
+  useSfxOnChange(fb ? (fb.kind === 'correct' ? 'correct' : fb.kind === 'almost' ? 'almost' : 'wrong') : null, fb);
 
   // The clock: one tick a second. The reducer ignores ticks while paused or while a correction is up.
   useEffect(() => {

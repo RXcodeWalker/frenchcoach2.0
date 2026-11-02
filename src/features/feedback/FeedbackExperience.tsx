@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { playSfx } from '../../services/sound/sfx';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Loader2, Mic2 } from 'lucide-react';
@@ -352,6 +353,14 @@ export function FeedbackExperience({
   const [answers, setAnswers] = useState<Partial<Record<PredictionCheckId, PredictionAnswer>>>({});
   const waiting = !feedback;
   const elapsedMs = useElapsedMs(waiting);
+
+  // "Your feedback is here" — only when it arrives while this screen is open, never when it is reopened.
+  // Neutral by design: the cue says nothing about how the answer went.
+  const wasWaiting = useRef(false);
+  useEffect(() => {
+    if (wasWaiting.current && !waiting) playSfx('ready');
+    wasWaiting.current = waiting;
+  }, [waiting]);
 
   // Predictions are session state for one attempt: a new wait starts with none.
   useEffect(() => {

@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useMicLevel, type MicLevelController } from './useMicLevel';
 import { micPermissionResult, trackMicPermission } from '../../services/telemetry/micPermission';
+import { useMicSilence } from '../../services/sound/useSfx';
 
 const WAVE_BARS = 40;
 
@@ -15,6 +16,8 @@ export interface AudioBlobRecorderState {
 
 export function useAudioBlobRecorder(): AudioBlobRecorderState {
   const [isRecording, setIsRecording] = useState(false);
+  // No sound effect may play into an open mic (it would reach the upload).
+  useMicSilence(isRecording);
   const [waveData, setWaveData] = useState<number[]>(Array(WAVE_BARS).fill(4));
   const micLevel = useMicLevel();
 

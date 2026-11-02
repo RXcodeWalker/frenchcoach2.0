@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Award, X, Zap } from 'lucide-react';
 import { celebrate, enter } from './motion/variants';
 import { achievementIcon } from '../features/profile/achievementDisplay';
+import { useSfxOnChange } from '../services/sound/useSfx';
 
 /**
  * Post-session celebrations (Design System v2 `celebrate`): a raised toast,
@@ -54,6 +55,8 @@ interface LevelUpProps {
 }
 
 export function LevelUpCelebration({ newLevel, onDismiss }: LevelUpProps) {
+  // Slightly after the XP tick that usually arrives with it.
+  useSfxOnChange('levelUp', newLevel, 220);
   useEffect(() => {
     const timer = setTimeout(onDismiss, 5000);
     return () => clearTimeout(timer);
@@ -79,6 +82,7 @@ interface AchievementProps {
 }
 
 export function AchievementUnlocked({ id, name, description, onDismiss }: AchievementProps) {
+  useSfxOnChange('achievement', id ?? name, 220);
   useEffect(() => {
     const timer = setTimeout(onDismiss, 5000);
     return () => clearTimeout(timer);

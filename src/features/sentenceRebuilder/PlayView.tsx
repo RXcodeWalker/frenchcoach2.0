@@ -9,6 +9,7 @@ import { AnswerPanel } from './AnswerPanel';
 import { MAX_ATTEMPTS, SPEED_CAP_MS, isFull, type GameState, type Mark } from './engine';
 import type { RebuilderRound } from './useRebuilderRound';
 import { EmptySlot, TileGhost, WordTile, type TileTone } from './WordTile';
+import { useSfxOnChange } from '../../services/sound/useSfx';
 
 interface Props {
   game: GameState;
@@ -40,6 +41,12 @@ const toneForMark = (mark: Mark | undefined): TileTone => (mark === 'right' ? 'r
  * gliding between the bank and the line (`slide`) and the named answer motions.
  */
 export function PlayView({ game, round, interrupted, onPause, onKeepPlaying, onLeave }: Props) {
+  // One cue per check: a solve is `correct`, a wrong line the soft thud. Editing the line afterwards makes none.
+  const line = game.current;
+  useSfxOnChange(
+    line.outcome === 'clean' || line.outcome === 'solved' ? 'correct' : line.marks ? 'wrong' : null,
+    `${line.question.id}:${line.attempts}:${line.outcome ?? ''}`,
+  );
   const reduced = useReducedMotion();
   const item = reduced ? enterReduced : enter;
   const lineRef = useRef<HTMLDivElement>(null);

@@ -206,6 +206,8 @@ function buildInitialState(): AppState {
   const savedDark = localStorage.getItem(scopedKey(STORAGE_KEYS.darkMode));
   // Light is the default theme (Design System v2); dark only when chosen.
   const darkMode = savedDark === 'true';
+  // Sound effects are on unless the learner turned them off (device-scoped, like the theme).
+  const soundEnabled = localStorage.getItem(scopedKey(STORAGE_KEYS.soundEnabled)) !== 'false';
 
   const preferredEngine: AIEngine = (localStorage.getItem(scopedKey(STORAGE_KEYS.aiEngine)) as AIEngine | null) ?? 'groq';
   const selectedDifficulty: DifficultyTier = (localStorage.getItem(scopedKey(STORAGE_KEYS.difficulty)) as DifficultyTier | null) ?? DEFAULT_DIFFICULTY;
@@ -227,7 +229,7 @@ function buildInitialState(): AppState {
     showXPModal: false,
     lastXPGained: 0,
     lastGemsGained: 0,
-    soundEnabled: true,
+    soundEnabled,
     darkMode,
     skillProfile,
     focusedSkillId: null,
@@ -388,8 +390,11 @@ export function reducer(state: AppState, action: Action): AppState {
       return { ...state, gemAnimations: state.gemAnimations.filter(a => a.id !== action.id) };
     case 'SET_PROFILE':
       return { ...state, profile: action.profile };
-    case 'TOGGLE_SOUND':
-      return { ...state, soundEnabled: !state.soundEnabled };
+    case 'TOGGLE_SOUND': {
+      const next = !state.soundEnabled;
+      storageSetRaw(STORAGE_KEYS.soundEnabled, String(next));
+      return { ...state, soundEnabled: next };
+    }
     case 'TOGGLE_DARK_MODE': {
       const next = !state.darkMode;
       storageSetRaw(STORAGE_KEYS.darkMode, String(next));

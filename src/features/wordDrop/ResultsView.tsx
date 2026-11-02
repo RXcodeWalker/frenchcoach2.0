@@ -8,6 +8,7 @@ import { celebrate, enter, enterReduced } from '../../components/motion/variants
 import { accuracy, type GameState } from './engine';
 import type { Best } from './bestStore';
 import { HearButton } from './HearButton';
+import { useSfxOnChange } from '../../services/sound/useSfx';
 
 interface Props {
   game: GameState;
@@ -29,6 +30,7 @@ const MIN_DRILL_WORDS = 3;
  * drill that plays only those.
  */
 export function ResultsView({ game, best, newBest, onAgain, onDrill, onSetup, onExit }: Props) {
+  useSfxOnChange('complete', true, 200);
   const reduced = useReducedMotion();
   const item = reduced ? enterReduced : enter;
   const review = game.review;

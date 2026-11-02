@@ -7,6 +7,7 @@ import { celebrate, enter, enterReduced } from '../../components/motion/variants
 import { TTS } from '../../services/tts/ttsService';
 import type { BestUpdate } from './bests';
 import { missedWords, type RunEntry, type RunSummary } from './run';
+import { useSfxOnChange } from '../../services/sound/useSfx';
 
 interface Props {
   summary: RunSummary;
@@ -72,6 +73,7 @@ function Row({ entry }: { entry: RunEntry }) {
 
 /** The end of a run: points, rank, the words to practise, and one primary Play again. */
 export function RapidFireResults({ summary, setLabel, bestUpdate, onPlayAgain, onDrill, onChangeSet, onExit }: Props) {
+  useSfxOnChange('complete', true, 200);
   const reduced = useReducedMotion();
   const item = reduced ? enterReduced : enter;
   const missed = missedWords(summary.log);
