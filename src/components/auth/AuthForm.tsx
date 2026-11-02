@@ -61,7 +61,7 @@ export function AuthForm({ onAuthenticated, footer, page = false }: Props) {
     }
   }
 
-  async function handleOAuth(provider: 'google' | 'azure') {
+  async function handleOAuth(provider: 'google') {
     setError(null);
     // Sent now: the OAuth redirect unloads the page. signed_up / signed_in follow from AnalyticsTracker.
     if (tab === 'signup') track({ name: 'signup_started', props: { method: provider } }, { beacon: true });
@@ -218,21 +218,6 @@ export function AuthForm({ onAuthenticated, footer, page = false }: Props) {
             <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
           </svg>
           Continue with Google
-        </Button>
-        <Button
-          variant="secondary"
-          size="lg"
-          className="w-full"
-          onClick={() => handleOAuth('azure')}
-          aria-label="Continue with Microsoft"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-            <path fill="#F25022" d="M1 1h10.5v10.5H1z" />
-            <path fill="#7FBA00" d="M12.5 1H23v10.5H12.5z" />
-            <path fill="#00A4EF" d="M1 12.5h10.5V23H1z" />
-            <path fill="#FFB900" d="M12.5 12.5H23V23H12.5z" />
-          </svg>
-          Continue with Microsoft
         </Button>
       </div>
 
