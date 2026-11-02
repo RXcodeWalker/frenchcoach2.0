@@ -32,8 +32,12 @@ These never call each other directly. The frontend is the only thing that talks 
   (`uvicorn main:app --host 0.0.0.0 --port $PORT`) as prose — that file is the only place this
   command exists in either repo.
 - **`vercel.json`** (repo root) proxies the frontend's `/api/*` and `/health` requests to the
-  FastAPI service's Render host, plus SPA-fallback rewrites for the admin routes. This is how the
-  browser reaches `backend/` same-origin, avoiding CORS.
+  FastAPI service's Render host. This is how the browser reaches `backend/` same-origin, avoiding
+  CORS. It also rewrites each `dynamic` route in `src/config/routes.ts` (`/scenario/:scenarioId`,
+  `/duel/:duelId`, `/junior/:themeId`, the admin `:id` pages) to the app shell, since those have no
+  prerendered page. There is deliberately no catch-all, so an unknown path gets a real 404, and with
+  `cleanUrls: true` a destination must be extensionless (`/`, `/admin`): a `/index.html` destination
+  404s in production — every dynamic route did until 2026-11-02. `vercelRewrites.test.ts` holds both.
 - The scoring service (`french-scoring`) is reached directly by the browser via
   `VITE_SCORING_API_URL` — it is not proxied through `vercel.json`.
 - **Deploy order for the exam report (Phase 3 Batch A):** backend migration
