@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import {
   GraduationCap, School, BookOpen, Globe, MessageCircle,
-  Target, MessageSquare, Sparkles, ChevronLeft,
+  Target, MessageSquare, Sparkles, ArrowLeft, ArrowRight, CalendarClock, AlertCircle, Check, Sprout,
 } from 'lucide-react';
+import { Button } from '../components/ui/Button';
+import { Modal } from '../components/ui/Modal';
+import { TextField } from '../components/auth/TextField';
+import { EASE } from '../components/motion/variants';
 import {
   getCoachProfile, setActiveGoal, setExamDate, getActiveGoal, updateCoachProfile,
 } from '../services/coach/coachProfileService';
@@ -21,10 +25,16 @@ type GoalIntent = 'exam_prep' | 'conversational' | 'casual';
 
 const STEP_NAMES = { 1: 'exam_board', 2: 'exam_date', 3: 'goal_intent' } as const;
 
+// The `enter` family at wizard scale: a short rise, a plain fade under reduced motion.
 const STEP_VARIANTS = {
-  initial: { opacity: 0, x: 24 },
-  animate: { opacity: 1, x: 0, transition: { duration: 0.2 } },
-  exit: { opacity: 0, x: -24, transition: { duration: 0.15 } },
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.24, ease: EASE } },
+  exit: { opacity: 0, transition: { duration: 0.12, ease: EASE } },
+};
+const STEP_VARIANTS_REDUCED = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1, transition: { duration: 0.2 } },
+  exit: { opacity: 0, transition: { duration: 0.1 } },
 };
 
 const BOARDS: { value: ExamBoard; label: string; sub: string; Icon: typeof GraduationCap }[] = [
@@ -182,210 +192,254 @@ export function Onboarding() {
   const canProceedStep1 = examBoard !== null;
   const canProceedStep3 = goalIntent !== null;
 
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-8 relative">
-      {/* Progress dots */}
-      <div className="flex gap-2 mb-10">
-        {([1, 2, 3] as WizardStep[]).map(s => {
-          const active = s === step;
-          const done = s < step || (step === 3 && examBoard === 'none' && s === 2);
-          return (
-            <div
-              key={s}
-              className={`h-1.5 rounded-full transition-all duration-300 ${
-                active ? 'w-6 bg-violet-500' : done ? 'w-3 bg-violet-500/50' : 'w-3 bg-slate-700'
-              }`}
-            />
-          );
-        })}
-      </div>
+  const reduced = useReducedMotion();
+  const stepProps = reduced ? STEP_VARIANTS_REDUCED : STEP_VARIANTS;
+  // "Just learning" has no exam, so it skips the date step.
+  const sequence: WizardStep[] = examBoard === 'none' ? [1, 3] : [1, 2, 3];
+  const position = Math.max(1, sequence.indexOf(step) + 1);
 
-      <div className="w-full max-w-sm relative">
+  const daysToExam = examDate
+    ? Math.round((new Date(`${examDate}T00:00:00`).getTime() - new Date(`${today}T00:00:00`).getTime()) / 86_400_000)
+    : null;
+
+  return (
+    <div className="min-h-screen bg-bg px-4 pb-12 pt-6 sm:pt-10">
+      <div className="mx-auto w-full max-w-[520px]">
+        <header className="mb-8">
+          <div className="mb-3 flex items-center justify-between">
+            <p className="text-eyebrow uppercase text-action-text">
+              {isEditMode ? 'Update goals' : 'Set up'} · Step {position} of {sequence.length}
+            </p>
+            {isEditMode && (
+              <Button variant="quiet" size="sm" className="-mr-2" onClick={() => navigate('/profile', { replace: true })}>
+                Cancel
+              </Button>
+            )}
+          </div>
+          <div
+            className="flex gap-1.5"
+            role="progressbar"
+            aria-label="Setup progress"
+            aria-valuemin={1}
+            aria-valuemax={sequence.length}
+            aria-valuenow={position}
+          >
+            {sequence.map((s, i) => (
+              <div
+                key={s}
+                className={`h-1.5 flex-1 rounded-pill transition-colors duration-slide ease-slide ${
+                  i < position ? 'bg-action' : 'bg-track'
+                }`}
+              />
+            ))}
+          </div>
+        </header>
+
         <AnimatePresence mode="wait">
           {step === 1 && (
-            <motion.div key="step1" variants={STEP_VARIANTS} initial="initial" animate="animate" exit="exit">
-              <h1 className="text-2xl font-black text-white mb-1 text-center">What are you studying for?</h1>
-              <p className="text-sm text-ink-muted text-center mb-6">Your coach will personalise every session around your goal.</p>
-              <div className="grid grid-cols-1 gap-2">
+            <motion.section key="step1" {...stepProps} aria-labelledby="ob-h1">
+              <StepHeading id="ob-h1" title="What are you studying for?" subtitle="Your coach will personalise every session around your goal." />
+              <div role="radiogroup" aria-labelledby="ob-h1" className="grid gap-2.5">
                 {BOARDS.map(({ value, label, sub, Icon }) => (
-                  <button
+                  <OptionCard
                     key={value}
-                    onClick={() => setExamBoard(value)}
-                    className={`flex items-center gap-3 p-3.5 rounded-xl border transition-all text-left ${
-                      examBoard === value
-                        ? 'border-violet-500 bg-violet-500/10'
-                        : 'border-slate-700/50 bg-white/[0.02] hover:border-slate-600'
-                    }`}
-                  >
-                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
-                      examBoard === value ? 'bg-violet-500/20' : 'bg-slate-800'
-                    }`}>
-                      <Icon size={16} className={examBoard === value ? 'text-violet-400' : 'text-ink-muted'} />
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-white">{label}</p>
-                      <p className="text-[10px] text-ink-subtle">{sub}</p>
-                    </div>
-                    {examBoard === value && (
-                      <div className="ml-auto w-4 h-4 rounded-full bg-violet-500 flex items-center justify-center">
-                        <div className="w-1.5 h-1.5 rounded-full bg-white" />
-                      </div>
-                    )}
-                  </button>
+                    selected={examBoard === value}
+                    onSelect={() => setExamBoard(value)}
+                    Icon={Icon}
+                    label={label}
+                    sub={sub}
+                  />
                 ))}
               </div>
-              <button
-                onClick={advance}
-                disabled={!canProceedStep1}
-                className="mt-5 w-full py-3 rounded-xl font-bold text-sm bg-violet-500 text-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-violet-600 transition-colors"
-              >
-                Next
-              </button>
-              {!isEditMode && (
-                <button
-                  onClick={skipSurvey}
-                  className="mt-2 w-full py-2 rounded-xl font-semibold text-xs text-ink-muted hover:text-ink-muted transition-colors"
-                >
-                  Skip for now
-                </button>
-              )}
+
               {!isEditMode && JUNIOR_TRACK_SELECTABLE && (
-                <button
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  className="mt-4 w-full"
                   onClick={chooseJunior}
                   data-testid="onboarding-junior"
-                  className="mt-2 w-full py-3 rounded-xl font-semibold text-sm border border-hairline text-ink"
                 >
-                  🦊 I'm in Grades 4–7 (Junior)
-                </button>
+                  <Sprout size={18} aria-hidden="true" /> I'm in Grades 4–7 (Junior)
+                </Button>
               )}
-            </motion.div>
+
+              <WizardFooter
+                left={
+                  !isEditMode && (
+                    <Button variant="quiet" onClick={skipSurvey}>
+                      Skip for now
+                    </Button>
+                  )
+                }
+              >
+                <Button size="lg" onClick={advance} disabled={!canProceedStep1} className="w-full sm:w-auto sm:min-w-[140px]">
+                  Next <ArrowRight size={18} aria-hidden="true" />
+                </Button>
+              </WizardFooter>
+            </motion.section>
           )}
 
           {step === 2 && (
-            <motion.div key="step2" variants={STEP_VARIANTS} initial="initial" animate="animate" exit="exit">
-              <button onClick={back} className="flex items-center gap-1 text-ink-muted text-xs mb-6 hover:text-ink-muted transition-colors">
-                <ChevronLeft size={14} /> Back
-              </button>
-              <h1 className="text-2xl font-black text-white mb-1 text-center">When is your exam?</h1>
-              <p className="text-sm text-ink-muted text-center mb-6">Your coach will ramp up intensity as the date approaches.</p>
+            <motion.section key="step2" {...stepProps} aria-labelledby="ob-h2">
+              <StepHeading id="ob-h2" title="When is your exam?" subtitle="Your coach will ramp up intensity as the date approaches." />
 
               {pastDateWarning && (
-                <div className="mb-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-400">
+                <div role="alert" className="mb-4 flex items-start gap-2.5 rounded-control border border-reward bg-reward-soft p-3 text-body-s text-reward-text">
+                  <AlertCircle size={16} aria-hidden="true" className="mt-0.5 shrink-0" />
                   Your previous exam date has passed — please choose a new date or skip.
                 </div>
               )}
 
-              <div className="rounded-xl border border-slate-700/50 bg-white/[0.02] p-4">
-                <label className="block text-[10px] font-semibold text-ink-muted uppercase tracking-wider mb-2">Exam date</label>
-                <input
+              <div className="surface rounded-card p-4">
+                <TextField
+                  label="Exam date"
                   type="date"
                   min={today}
                   value={examDate}
                   onChange={e => setExamDateLocal(e.target.value)}
-                  className="w-full bg-transparent text-white text-sm font-semibold focus:outline-none [color-scheme:dark]"
                 />
+                {daysToExam !== null && daysToExam >= 0 && (
+                  <p className="mt-3 inline-flex h-8 items-center gap-1.5 rounded-pill bg-info-soft px-3 text-label text-info-text">
+                    <CalendarClock size={16} aria-hidden="true" />
+                    {daysToExam === 0 ? 'Today' : daysToExam === 1 ? '1 day to go' : `${daysToExam} days to go`}
+                  </p>
+                )}
               </div>
 
-              <button
-                onClick={advance}
-                disabled={!examDate}
-                className="mt-4 w-full py-3 rounded-xl font-bold text-sm bg-violet-500 text-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-violet-600 transition-colors"
+              <WizardFooter
+                left={
+                  <Button variant="quiet" onClick={back}>
+                    <ArrowLeft size={18} aria-hidden="true" /> Back
+                  </Button>
+                }
               >
-                Next
-              </button>
-              <button
-                onClick={() => { setExamDateLocal(''); advance(); }}
-                className="mt-2 w-full py-2 rounded-xl font-semibold text-xs text-ink-muted hover:text-ink-muted transition-colors"
-              >
-                Skip — I'll add it later
-              </button>
-            </motion.div>
+                <Button variant="quiet" onClick={() => { setExamDateLocal(''); advance(); }}>
+                  Skip — I'll add it later
+                </Button>
+                <Button size="lg" onClick={advance} disabled={!examDate} className="w-full sm:w-auto sm:min-w-[140px]">
+                  Next <ArrowRight size={18} aria-hidden="true" />
+                </Button>
+              </WizardFooter>
+            </motion.section>
           )}
 
           {step === 3 && (
-            <motion.div key="step3" variants={STEP_VARIANTS} initial="initial" animate="animate" exit="exit">
-              <button onClick={back} className="flex items-center gap-1 text-ink-muted text-xs mb-6 hover:text-ink-muted transition-colors">
-                <ChevronLeft size={14} /> Back
-              </button>
-              <h1 className="text-2xl font-black text-white mb-1 text-center">What's your main goal?</h1>
-              <p className="text-sm text-ink-muted text-center mb-6">This shapes how your coach designs each session.</p>
-              <div className="grid grid-cols-1 gap-2">
+            <motion.section key="step3" {...stepProps} aria-labelledby="ob-h3">
+              <StepHeading id="ob-h3" title="What's your main goal?" subtitle="This shapes how your coach designs each session." />
+              <div role="radiogroup" aria-labelledby="ob-h3" className="grid gap-2.5">
                 {INTENTS.map(({ value, label, sub, Icon }) => (
-                  <button
+                  <OptionCard
                     key={value}
-                    onClick={() => setGoalIntent(value)}
-                    className={`flex items-center gap-3 p-4 rounded-xl border transition-all text-left ${
-                      goalIntent === value
-                        ? 'border-violet-500 bg-violet-500/10'
-                        : 'border-slate-700/50 bg-white/[0.02] hover:border-slate-600'
-                    }`}
-                  >
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
-                      goalIntent === value ? 'bg-violet-500/20' : 'bg-slate-800'
-                    }`}>
-                      <Icon size={18} className={goalIntent === value ? 'text-violet-400' : 'text-ink-muted'} />
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-white">{label}</p>
-                      <p className="text-[10px] text-ink-subtle">{sub}</p>
-                    </div>
-                    {goalIntent === value && (
-                      <div className="ml-auto w-4 h-4 rounded-full bg-violet-500 flex items-center justify-center">
-                        <div className="w-1.5 h-1.5 rounded-full bg-white" />
-                      </div>
-                    )}
-                  </button>
+                    selected={goalIntent === value}
+                    onSelect={() => setGoalIntent(value)}
+                    Icon={Icon}
+                    label={label}
+                    sub={sub}
+                  />
                 ))}
               </div>
-              <button
-                onClick={handleComplete}
-                disabled={!canProceedStep3}
-                className="mt-5 w-full py-3 rounded-xl font-bold text-sm bg-violet-500 text-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-violet-600 transition-colors"
+
+              <WizardFooter
+                left={
+                  <Button variant="quiet" onClick={back}>
+                    <ArrowLeft size={18} aria-hidden="true" /> Back
+                  </Button>
+                }
               >
-                {isEditMode ? 'Save changes' : 'Get Started'}
-              </button>
-            </motion.div>
+                <Button size="lg" onClick={handleComplete} disabled={!canProceedStep3} className="w-full sm:w-auto sm:min-w-[140px]">
+                  {isEditMode ? 'Save changes' : 'Get Started'}
+                </Button>
+              </WizardFooter>
+            </motion.section>
           )}
         </AnimatePresence>
       </div>
 
       {/* Confirmation dialog (edit mode only) */}
-      <AnimatePresence>
-        {showConfirm && (
-          <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm" onClick={() => setShowConfirm(false)} />
-            <motion.div
-              className="relative z-10 w-full max-w-xs rounded-2xl surface-raised border border-slate-700/50 p-5"
-              initial={{ opacity: 0, scale: 0.95, y: 8 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 8 }}
-              transition={{ duration: 0.18 }}
-            >
-              <h3 className="font-black text-white text-base mb-1.5">Update learning goals?</h3>
-              <p className="text-[11px] text-ink-muted mb-5">Your coach recommendations will be regenerated to reflect your changes.</p>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setShowConfirm(false)}
-                  className="flex-1 py-2.5 rounded-lg border border-slate-700 text-xs font-semibold text-ink-muted hover:bg-white/[0.03] transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleComplete}
-                  className="flex-1 py-2.5 rounded-lg bg-violet-500 text-xs font-bold text-white hover:bg-violet-600 transition-colors"
-                >
-                  Update goals
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <Modal
+        open={showConfirm}
+        onClose={() => setShowConfirm(false)}
+        title="Update learning goals?"
+        footer={
+          <>
+            <Button variant="secondary" className="flex-1" onClick={() => setShowConfirm(false)}>
+              Cancel
+            </Button>
+            <Button className="flex-1" onClick={handleComplete}>
+              Update goals
+            </Button>
+          </>
+        }
+      >
+        <p className="text-body-s text-ink-muted">Your coach recommendations will be regenerated to reflect your changes.</p>
+      </Modal>
     </div>
+  );
+}
+
+function StepHeading({ id, title, subtitle }: { id: string; title: string; subtitle: string }) {
+  return (
+    <div className="mb-6">
+      <h1 id={id} className="text-title text-ink sm:text-h2">{title}</h1>
+      <p className="mt-2 text-body-base text-ink-muted">{subtitle}</p>
+    </div>
+  );
+}
+
+/** Back / skip on the left, the one primary on the right; stacked with the primary first on a phone. */
+function WizardFooter({ left, children }: { left?: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex">{left}</div>
+      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center">{children}</div>
+    </div>
+  );
+}
+
+/** One choice in a radio group: a selected card is a 1px --action border on --action-soft, nothing thicker. */
+function OptionCard({
+  selected, onSelect, Icon, label, sub,
+}: {
+  selected: boolean;
+  onSelect: () => void;
+  Icon: typeof Target;
+  label: string;
+  sub: string;
+}) {
+  return (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={selected}
+      onClick={onSelect}
+      className={`flex w-full items-center gap-3.5 rounded-card border p-4 text-left
+        transition-[background-color,border-color,transform] duration-state ease-smooth
+        active:scale-[.97] active:duration-press ${
+          selected
+            ? 'border-action bg-action-soft'
+            : 'border-hairline bg-surface hover:border-hairline-strong'
+        }`}
+    >
+      <span
+        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-control transition-colors duration-state ease-smooth ${
+          selected ? 'bg-action text-action-ink' : 'bg-surface-recessed text-ink-muted'
+        }`}
+      >
+        <Icon size={20} aria-hidden="true" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-[15px] font-semibold text-ink">{label}</span>
+        <span className="block text-body-s text-ink-muted">{sub}</span>
+      </span>
+      <span
+        aria-hidden="true"
+        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-pill border transition-colors duration-state ease-smooth ${
+          selected ? 'border-action bg-action text-action-ink' : 'border-hairline-strong'
+        }`}
+      >
+        {selected && <Check size={12} strokeWidth={3} />}
+      </span>
+    </button>
   );
 }

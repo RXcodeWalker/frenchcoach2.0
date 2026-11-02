@@ -383,9 +383,12 @@ function AppShell() {
 
         <Route element={<ExamLayout />}>
           <Route path="/exam" element={<ExamMode />} />
-          <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/onboarding/placement" element={<OnboardingPlacement />} />
         </Route>
+
+        {/* The goal survey is Design System v2 (light, violet) — not inside ExamLayout,
+            whose warm-paper palette is for exam mode only. */}
+        <Route path="/onboarding" element={<Onboarding />} />
 
         {/* Marketing pages, reachable for signed-in/guest users via footer
             links on the other marketing pages. Each renders its own
