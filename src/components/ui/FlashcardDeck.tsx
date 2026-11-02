@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, Volume2 } from 'lucide-react';
 import { TTS } from '../../services/tts/ttsService';
+import { playSfx } from '../../services/sound/sfx';
 import { frenchWithArticle } from '../../features/roleplay/vocabDisplay';
 import type { VocabEntry } from '../../features/roleplay/types';
 
@@ -56,7 +57,11 @@ export const FlashcardDeck: React.FC<FlashcardDeckProps> = ({ items }) => {
         ) : (
           <button
             type="button"
-            onClick={() => setRevealed(true)}
+            // One quiet tick on reveal. Moving between cards stays silent: browsing is not an event, and the Hear button speaks.
+            onClick={() => {
+              setRevealed(true);
+              playSfx('stop');
+            }}
             className="mt-2 h-10 rounded-control border border-hairline-strong px-4 text-label text-ink transition-[background-color,transform] duration-state ease-smooth hover:bg-track active:scale-[.97]"
           >
             Show translation

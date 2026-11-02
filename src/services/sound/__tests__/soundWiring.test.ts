@@ -77,6 +77,12 @@ describe('sound effects wiring', () => {
     }
   });
 
+  it('flashcards tick once on reveal and are silent while browsing', () => {
+    const deck = read(join(SRC, 'components/ui/FlashcardDeck.tsx'));
+    expect(deck.match(/playSfx\(/g)).toHaveLength(1);
+    expect(deck).toContain("playSfx('stop')");
+  });
+
   it('Speed Speaking and Speaking Arena keep the mic open all round, so they make no sound during play', () => {
     // A cue from the speakers would reach the live recogniser and could be matched as an answer.
     // They get one cue, at the end, from the shared results card (the mic is closed by then).
