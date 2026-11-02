@@ -35,6 +35,7 @@ describe('MysteryBox', () => {
     expect(screen.getByText('Mega XP Boost')).toBeTruthy();
     expect(screen.getByTestId('mb-xp').textContent).toBe('100');
     expect(trackMock).toHaveBeenCalledWith({ name: 'mystery_box_opened', props: { outcome: 'revealed', xp: 100 } });
+    expect(screen.getByTestId('mb-confetti').children.length).toBe(36);
   });
 
   it('says so when the box was already opened today', async () => {
