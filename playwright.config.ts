@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { defineConfig } from '@playwright/test';
 
 /**
@@ -8,6 +9,14 @@ import { defineConfig } from '@playwright/test';
  * real client/server contract runs end-to-end without any provider or
  * Supabase credentials.
  */
+
+/**
+ * E2E_CHROMIUM_PATH wins; else the sandbox's pre-installed Chromium if it is
+ * there; else Playwright's own download (`npx playwright install chromium`,
+ * which is what GitHub Actions uses — .github/workflows/ci.yml, e2e-nightly.yml).
+ */
+const SANDBOX_CHROMIUM = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
+const CHROMIUM_PATH = process.env.E2E_CHROMIUM_PATH || (existsSync(SANDBOX_CHROMIUM) ? SANDBOX_CHROMIUM : undefined);
 
 const FAKE_SCORING_PORT = 4100;
 const APP_PORT = 5180;
@@ -44,7 +53,7 @@ export default defineConfig({
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     launchOptions: {
-      executablePath: process.env.E2E_CHROMIUM_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+      executablePath: CHROMIUM_PATH,
       args: ['--no-sandbox', '--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream'],
     },
   },

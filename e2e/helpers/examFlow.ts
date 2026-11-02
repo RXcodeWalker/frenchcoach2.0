@@ -103,7 +103,7 @@ export async function enterExam(page: Page, mode: 'sim' | 'coached') {
 
   if (mode === 'coached') {
     await page.getByRole('button', { name: /Coached Practice/ }).click({ force: true });
-    await page.locator('.grid button').first().click({ force: true });
+    await page.getByRole('main').locator('.grid button').first().click({ force: true });
   } else {
     await clickButton(page, 'Start Exam Sim');
   }

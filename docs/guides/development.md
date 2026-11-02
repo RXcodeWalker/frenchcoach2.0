@@ -98,6 +98,9 @@ npm run e2e:exam            # Playwright: drives the exam UI against a fake, no-
                              # The `exam` project also runs e2e/scenario.spec.ts: one spoken café
                              # role-play turn (coach /api/feedback/v3 stubbed with page.route) must
                              # show its feedback, not "Checking your answer…" forever.
+npm run e2e:quick           # Just that scenario test (<1 min). CI runs it on every push (ci.yml's
+                             # e2e-quick job); the full e2e:exam suite runs nightly at 02:47 UTC on
+                             # main (.github/workflows/e2e-nightly.yml, or "Run workflow" by hand).
 ```
 
 ## The three test suites
