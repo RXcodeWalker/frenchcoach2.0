@@ -187,7 +187,7 @@ function ExamLayout() {
   return (
     <NavRailContext.Provider value={navRail}>
     <div data-hatch="immersive" className="min-h-screen bg-bg text-ink overflow-hidden exam-voice">
-      {showNavRail && <SideRail />}
+      {showNavRail && <SideRail keyHint={false} />}
       <main className={`relative z-10 ${showNavRail ? 'md:ml-[88px]' : ''}`}>
         <Outlet />
       </main>
@@ -195,6 +195,8 @@ function ExamLayout() {
       <GemAnimations />
       <XPToast />
       <GlobalCelebrations />
+      {/* Only the rail's keyboard button opens the list here; no key is bound, so a stray key can't leave an attempt. */}
+      {showNavRail && <KeyboardShortcuts helpOnly />}
     </div>
     </NavRailContext.Provider>
   );
@@ -207,8 +209,16 @@ function MigrationGate() {
 
 function AppShell() {
   const { user, loading } = useAuth();
-  const { isGuest } = useGuestMode();
+  const { isGuest, exitGuestMode } = useGuestMode();
   const location = useLocation();
+
+  // A real account always wins over the guest flag. Only the in-form sign-in
+  // (Auth.tsx) used to clear it, so an OAuth / email-link / other-tab sign-in
+  // left a signed-in user looking like a guest (Profile showed "Log in / Create
+  // account", which then had nowhere to go).
+  useEffect(() => {
+    if (user && isGuest) exitGuestMode();
+  }, [user, isGuest, exitGuestMode]);
 
   if (loading) {
     return (
@@ -225,6 +235,13 @@ function AppShell() {
   // own <Auth /> route, preserving the same behavior as the old direct return.
   if (supabaseConfigured && !user && (!isGuest || location.pathname === '/login')) {
     return <PublicRoutes />;
+  }
+
+  // '/login' is only meaningful for logged-out visitors and guests converting.
+  // A signed-in user who lands on it (stale link, back button) goes home
+  // rather than hitting the 404 route.
+  if (user && location.pathname === '/login') {
+    return <Navigate to="/" replace />;
   }
 
   const identity = user?.id ?? 'guest';

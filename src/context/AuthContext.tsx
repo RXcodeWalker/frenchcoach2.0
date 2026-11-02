@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase, supabaseConfigured } from '../lib/supabase';
 import { captureError } from '../services/telemetry/telemetryService';
+import { isAdminUser } from '../lib/adminAccess';
 import { clearAllExamAudio } from '../services/exam/pronunciation/examAudioStore';
 
 // Phase 1.6 Part C. 'unknown' means "not fetched yet" (or offline/guest) —
@@ -181,8 +182,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw new Error(translateError(error));
   }
 
-  const isAdmin =
-    (user?.app_metadata as { role?: string } | undefined)?.role === 'admin';
+  const isAdmin = isAdminUser(user);
 
   return (
     <AuthContext.Provider value={{ user, session, isAdmin, loading, configError: false, ageBand, consentStatus, inviteStatus, refreshConsentStatus, refreshInviteStatus, signIn, signUp, signOut, resetPasswordForEmail, updateUserPassword, signInWithOAuth }}>

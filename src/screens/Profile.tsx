@@ -89,7 +89,8 @@ export function Profile() {
   const examsCompleted = useMemo(() => getSessionHistory().filter(s => s.mode === 'exam').length, []);
   const coachProfile = useMemo(() => getCoachProfile(), []);
   const { user, signOut, isAdmin, ageBand, consentStatus, refreshConsentStatus } = useAuth();
-  const { isGuest, exitGuestMode } = useGuestMode();
+  const { isGuest: guestFlag, exitGuestMode } = useGuestMode();
+  const isGuest = guestFlag && !user; // a signed-in account is never a guest, whatever the stored flag says
   const navigate = useNavigate();
   const { profile } = state;
   const level = levelProgress(profile.total_xp);

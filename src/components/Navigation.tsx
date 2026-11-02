@@ -31,7 +31,7 @@ const RAIL_GAP = 4;
  * label). Mobile: a bottom dock of the same six items at 56px. In both, one
  * action-soft pill slides to the active item (the `slide` motion).
  */
-export function SideRail() {
+export function SideRail({ keyHint = true }: { /** Show the `?` key in the keyboard button's tooltip (off where no key is bound: the exam chooser). */ keyHint?: boolean } = {}) {
   const navigate = useNavigate();
   const location = useLocation();
   const { dockHidden } = useShellChrome();
@@ -79,7 +79,7 @@ export function SideRail() {
           type="button"
           onClick={requestShortcutHelp}
           aria-label="Keyboard shortcuts"
-          title="Keyboard shortcuts (?)"
+          title={keyHint ? 'Keyboard shortcuts (?)' : 'Keyboard shortcuts'}
           className="mt-auto flex h-10 w-10 items-center justify-center rounded-control text-ink-subtle transition-colors duration-state ease-smooth hover:text-ink-muted"
         >
           <Keyboard size={20} strokeWidth={1.75} aria-hidden="true" />
