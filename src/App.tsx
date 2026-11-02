@@ -191,6 +191,8 @@ function ExamLayout() {
       <GemAnimations />
       <XPToast />
       <GlobalCelebrations />
+      {/* Only the rail's keyboard button opens the list here; no key is bound, so a stray key can't leave an attempt. */}
+      {showNavRail && <KeyboardShortcuts helpOnly />}
     </div>
     </NavRailContext.Provider>
   );

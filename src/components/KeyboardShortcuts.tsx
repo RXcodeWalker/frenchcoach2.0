@@ -29,7 +29,7 @@ function Kbd({ children }: { children: string }) {
  * `?` lists them. Everything stands down while the learner is typing, while a
  * dialog is open, and for Ctrl/Cmd/Alt chords.
  */
-export function KeyboardShortcuts() {
+export function KeyboardShortcuts({ helpOnly = false }: { /** Only the rail button opens the list; no key is bound (the exam chooser). */ helpOnly?: boolean } = {}) {
   const navigate = useNavigate();
   const location = useLocation();
   const pathRef = useRef(location.pathname);
@@ -111,26 +111,26 @@ export function KeyboardShortcuts() {
     };
     const onHelpRequest = () => setHelpOpen(true);
 
-    window.addEventListener('keydown', onKeyDown);
+    if (!helpOnly) window.addEventListener('keydown', onKeyDown);
     window.addEventListener(SHORTCUT_HELP_EVENT, onHelpRequest);
     return () => {
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener(SHORTCUT_HELP_EVENT, onHelpRequest);
       clearChord();
     };
-  }, [navigate, helpOpen, clearChord]);
+  }, [navigate, helpOpen, clearChord, helpOnly]);
 
   const close = useCallback(() => setHelpOpen(false), []);
 
   return (
     <Modal open={helpOpen} onClose={close} title="Keyboard shortcuts">
-      <div className="flex flex-col gap-5">
+      <div className="flex max-h-[min(70vh,520px)] flex-col gap-4 overflow-y-auto pr-1">
         {SHORTCUT_GROUPS.map(group => (
           <section key={group.title} aria-label={group.title}>
-            <h3 className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-ink-subtle">{group.title}</h3>
-            <ul className="flex flex-col gap-2">
+            <h3 className="mb-1.5 text-[12px] font-semibold uppercase tracking-wide text-ink-subtle">{group.title}</h3>
+            <ul className={group.title === 'Move around' ? 'grid grid-cols-1 gap-x-6 gap-y-1.5 sm:grid-cols-2' : 'flex flex-col gap-1.5'}>
               {group.items.map(item => (
-                <li key={item.label} className="flex items-center justify-between gap-4 text-[15px] text-ink">
+                <li key={item.label} className="flex items-center justify-between gap-3 text-[14px] text-ink">
                   <span>{item.label}</span>
                   <span className="flex shrink-0 items-center gap-1">
                     {item.keys.map((k, i) => (
