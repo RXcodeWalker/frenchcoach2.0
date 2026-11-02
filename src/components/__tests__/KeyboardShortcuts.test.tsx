@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { KeyboardShortcuts } from '../KeyboardShortcuts';
-import { registerBackHandler } from '../../lib/keyboardShortcuts';
+import { registerBackHandler, requestShortcutHelp } from '../../lib/keyboardShortcuts';
 
 function Where() {
   return <div data-testid="where">{useLocation().pathname}</div>;
@@ -126,6 +126,22 @@ describe('KeyboardShortcuts', () => {
     off();
     press('Escape');
     expect(where()).toBe('/learn');
+  });
+
+  it('helpOnly opens from the rail button but binds no key (exam chooser)', () => {
+    render(
+      <MemoryRouter initialEntries={['/exam']}>
+        <KeyboardShortcuts helpOnly />
+        <Routes><Route path="*" element={<Where />} /></Routes>
+      </MemoryRouter>,
+    );
+    press('?', document.body, { shiftKey: true });
+    press('g');
+    press('l');
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(where()).toBe('/exam');
+    act(() => { requestShortcutHelp(); });
+    expect(screen.getByRole('dialog')).toBeTruthy();
   });
 
   it('Escape leaves typing and open dialogs alone', () => {
