@@ -7,6 +7,7 @@ import { PageShell } from '../components/layout/PageShell';
 import { Button } from '../components/ui/Button';
 import { CountUp } from '../components/motion/CountUp';
 import { celebrate, enter, enterReduced, fill } from '../components/motion/variants';
+import { track } from '../services/telemetry/telemetryService';
 import { claimMysteryBox, type ClaimMysteryBoxResult } from '../services/mysteryBox/mysteryBoxService';
 
 type BoxState =
@@ -73,6 +74,15 @@ export function MysteryBox() {
     await new Promise(resolve => setTimeout(resolve, reduced ? 0 : wait));
     claiming.current = false;
     if (!alive.current) return;
+    // One per account per day at most (the server allows one box a day), so volume is tiny.
+    track({
+      name: 'mystery_box_opened',
+      props: !result.ok
+        ? { outcome: 'error' }
+        : result.alreadyClaimed
+          ? { outcome: 'already_claimed' }
+          : { outcome: 'revealed', xp: result.xpAwarded },
+    });
     if (!result.ok) setBox({ name: 'error', reason: result.reason });
     else if (result.alreadyClaimed) setBox({ name: 'already-claimed' });
     else setBox({ name: 'revealed', value: result.xpAwarded, title: REWARD_TITLES[result.xpAwarded] ?? 'XP Reward' });

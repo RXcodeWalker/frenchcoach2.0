@@ -6,6 +6,8 @@ import { MemoryRouter } from 'react-router-dom';
 vi.mock('../../components/TopContextBar', () => ({ TopContextBar: () => <header /> }));
 
 const claim = vi.fn();
+const trackMock = vi.fn();
+vi.mock('../../services/telemetry/telemetryService', () => ({ track: (e: unknown) => trackMock(e) }));
 vi.mock('../../services/mysteryBox/mysteryBoxService', () => ({ claimMysteryBox: () => claim() }));
 
 import { MysteryBox } from '../MysteryBox';
@@ -19,7 +21,10 @@ function setup() {
 }
 
 describe('MysteryBox', () => {
-  beforeEach(() => claim.mockReset());
+  beforeEach(() => {
+    claim.mockReset();
+    trackMock.mockReset();
+  });
   afterEach(() => cleanup());
 
   it('reveals the server-chosen reward', async () => {
@@ -29,6 +34,7 @@ describe('MysteryBox', () => {
     await waitFor(() => expect(screen.getByTestId('mb-revealed')).toBeTruthy(), { timeout: 3000 });
     expect(screen.getByText('Mega XP Boost')).toBeTruthy();
     expect(screen.getByTestId('mb-xp').textContent).toBe('100');
+    expect(trackMock).toHaveBeenCalledWith({ name: 'mystery_box_opened', props: { outcome: 'revealed', xp: 100 } });
   });
 
   it('says so when the box was already opened today', async () => {
