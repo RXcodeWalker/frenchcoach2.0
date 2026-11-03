@@ -180,6 +180,12 @@ export function getStreakCount(): number {
   return load().streak.count;
 }
 
+/** The streak and its day key (a UTC date, see dateKey) — what the retention snapshot mirrors to the server. */
+export function getStreakState(): { count: number; lastDate: string | null } {
+  const { count, lastDate } = load().streak;
+  return { count, lastDate };
+}
+
 const REPAIR_WINDOW_MS = 48 * 3600 * 1000;
 
 /** Streak Repair (Shop plan §14.4): true only while a broken streak is still within the 48h repair window. */

@@ -1,13 +1,19 @@
 name: Streak and Daily Goal Notifications
 
-# Departs from the scheduled-rpc.yml reusable-workflow pattern (a single RPC
-# call) because sendNotifications.ts must make external HTTP calls (Web Push,
-# Resend) the database can't make itself — see sendNotifications.ts's header
-# for the full claim-before-send / push-then-email-fallback design.
+# Retention loop (docs/systems/retention-notifications.md). Hourly, because
+# every learner is reached in their own timezone: daily_nudge sends at most one
+# specific push per learner per local day (at their usual practice hour);
+# weekly_report sends the Sunday-evening progress email (learner + optional
+# parent copy). Departs from the scheduled-rpc.yml pattern because
+# sendNotifications.ts makes external HTTP calls (Web Push, Resend) the
+# database can't make itself — see its header for the claim-before-send design.
+# Needs backend migration 20261104090000_retention_loop applied first.
 
 on:
   schedule:
-    - cron: '0 * * * *'
+    # Off the hour: GitHub delays and drops :00 schedules most (observed ~8 h
+    # between runs). The sender adapts to the real gap (notification_runs).
+    - cron: '17 * * * *'
   workflow_dispatch: {}
 
 jobs:
@@ -15,10 +21,11 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        notif-type: [streak_at_risk, daily_goal]
+        notif-type: [daily_nudge, weekly_report]
     steps:
       # Same fail-fast secret check as scheduled-rpc.yml. RESEND_API_KEY is
-      # optional (sendNotifications.ts skips the email fallback without it).
+      # optional (without it the email fallback and weekly_report are skipped).
+      # APP_URL (repo variable, optional) is the origin links point at.
       - name: Check required secrets
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -48,3 +55,5 @@ jobs:
           VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
           VAPID_SUBJECT: ${{ secrets.VAPID_SUBJECT }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          APP_URL: ${{ vars.APP_URL }}
+          NOTIFY_FROM_EMAIL: ${{ vars.NOTIFY_FROM_EMAIL }}

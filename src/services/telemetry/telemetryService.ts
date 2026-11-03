@@ -416,6 +416,13 @@ interface BackendColdStartProps {
   reached: boolean;
 }
 
+/** Retention loop: a nudge or weekly-email link was opened (its UTM tags; docs/systems/retention-notifications.md §5). */
+interface NotificationOpenedProps {
+  /** The nudge variant or email link, e.g. 'streak_at_risk', 'mistake_comeback', 'weekly_fix'. */
+  campaign: string;
+  channel: 'push' | 'email';
+}
+
 export type TelemetryEvent =
   | { name: 'session_completed';       props: SessionCompletedProps }
   | { name: 'feedback_received';       props: FeedbackReceivedProps }
@@ -482,7 +489,8 @@ export type TelemetryEvent =
   | { name: 'progress_viewed';         props: NoProps }
   | { name: 'profile_viewed';          props: NoProps }
   | { name: 'web_vitals';              props: WebVitalsProps }
-  | { name: 'backend_cold_start';      props: BackendColdStartProps };
+  | { name: 'backend_cold_start';      props: BackendColdStartProps }
+  | { name: 'notification_opened';     props: NotificationOpenedProps };
 
 export type TelemetryEventName = TelemetryEvent['name'];
 type PropsOf<N extends TelemetryEventName> = Extract<TelemetryEvent, { name: N }>['props'];
@@ -559,6 +567,7 @@ const DECLARED_PROPS = {
   profile_viewed: [],
   web_vitals: ['lcp_ms', 'inp_ms', 'cls'],
   backend_cold_start: ['latency_ms', 'attempts', 'reached'],
+  notification_opened: ['campaign', 'channel'],
 } as const satisfies { [N in TelemetryEventName]: readonly (keyof PropsOf<N> & string)[] };
 
 type UndeclaredProps = {

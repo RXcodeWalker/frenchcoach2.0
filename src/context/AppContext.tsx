@@ -32,6 +32,7 @@ import { flushMintQueue } from '../services/shop/mintQueue';
 import { getEvidenceEvents } from '../services/coach/coachStorage';
 import { isMigrationNeeded, markMigrationComplete, runMigration, type MigrationPhase, type MigrationRecord } from '../services/sync/migrationService';
 import { pushProfileSettingsToCloud } from '../services/sync/profileSettingsSync';
+import { pushLearnerSnapshot } from '../services/notifications/learnerSnapshot';
 import { getNotificationPreferences } from '../services/notifications/notificationPreferences';
 import * as Sentry from '@sentry/react';
 
@@ -700,6 +701,8 @@ export function AppProvider({ identity, children }: { identity: string; children
 
       // Step 5: open the gate for incremental pushes
       hydrationComplete.current = true;
+      // Retention loop: the streak was just recomputed from merged sessions.
+      void pushLearnerSnapshot(userId);
     }
 
     if (identity !== 'guest') {
@@ -750,6 +753,10 @@ export function AppProvider({ identity, children }: { identity: string; children
     if (!newest || !authUser || !hydrationComplete.current || sessionHydrationInProgress.current) return;
     void pushSessionToCloud(authUser.id, newest);
     void pushPendingEvidence(authUser.id);
+    // Retention loop: after the orchestrator's problem detection has settled.
+    const userId = authUser.id;
+    const timer = setTimeout(() => void pushLearnerSnapshot(userId), 3000);
+    return () => clearTimeout(timer);
   }, [newestSessionId, authUser?.id]);
 
   // Flush pending session queue when network comes back online
@@ -775,6 +782,8 @@ export function AppProvider({ identity, children }: { identity: string; children
     const handler = () => {
       if (document.visibilityState === 'visible' && hydrationComplete.current) {
         void refetchEconomy(userId);
+        // Keeps the timezone and focus fresh; a no-op when nothing changed.
+        void pushLearnerSnapshot(userId);
       }
     };
     document.addEventListener('visibilitychange', handler);
