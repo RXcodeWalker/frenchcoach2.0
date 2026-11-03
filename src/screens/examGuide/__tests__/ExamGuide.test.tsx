@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { CHAPTERS, QUIZ, ROLE_PLAY_EXAMPLES } from '../../../features/examGuide/guideContent';
 
 const trackMock = vi.hoisted(() => vi.fn());
@@ -25,8 +25,10 @@ vi.mock('../../../services/exam/examinerVoice', () => ({
 }));
 
 import { ExamGuide } from '../ExamGuide';
+import { hasSeenExamGuide } from '../../../features/examGuide/guideSeen';
 
 beforeEach(() => {
+  localStorage.clear();
   trackMock.mockReset();
   Object.defineProperty(window, 'matchMedia', {
     configurable: true, writable: true,
@@ -35,12 +37,17 @@ beforeEach(() => {
 });
 afterEach(cleanup);
 
-function renderGuide() {
+function ExamStub() {
+  const state = useLocation().state as { startSim?: boolean } | null;
+  return <p>{state?.startSim ? 'Exam Sim intro' : 'Exam chooser'}</p>;
+}
+
+function renderGuide(state?: unknown) {
   render(
-    <MemoryRouter initialEntries={['/exam/guide']}>
+    <MemoryRouter initialEntries={[{ pathname: '/exam/guide', state }]}>
       <Routes>
         <Route path="/exam/guide" element={<ExamGuide />} />
-        <Route path="/exam" element={<p>Exam chooser</p>} />
+        <Route path="/exam" element={<ExamStub />} />
         <Route path="/learn" element={<p>Learn screen</p>} />
       </Routes>
     </MemoryRouter>,
@@ -62,6 +69,27 @@ describe('ExamGuide', () => {
     }
     fireEvent.click(screen.getByTestId('guide-finish'));
     expect(screen.getByText('Exam chooser')).toBeTruthy();
+  });
+
+  it('marks the guide seen, and shows no first-exam banner when opened from the chooser', () => {
+    renderGuide();
+    expect(hasSeenExamGuide()).toBe(true);
+    expect(screen.queryByTestId('guide-first-sim')).toBeNull();
+  });
+
+  it('opened before a first Exam Sim: skipping goes straight to the Exam Sim intro', () => {
+    renderGuide({ thenSim: true });
+    expect(screen.getByTestId('guide-first-sim')).toBeTruthy();
+    fireEvent.click(screen.getByTestId('guide-skip-to-sim'));
+    expect(screen.getByText('Exam Sim intro')).toBeTruthy();
+  });
+
+  it('opened before a first Exam Sim: the last chapter starts it', () => {
+    renderGuide({ thenSim: true });
+    fireEvent.click(screen.getByTestId('guide-tab-check'));
+    expect(screen.getByTestId('guide-finish').textContent).toMatch('Start Exam Sim');
+    fireEvent.click(screen.getByTestId('guide-finish'));
+    expect(screen.getByText('Exam Sim intro')).toBeTruthy();
   });
 
   it('jumps straight to a chapter from the chapter list', () => {

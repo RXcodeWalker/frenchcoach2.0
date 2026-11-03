@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
 import { ArrowLeft, ArrowRight, BookOpen, Check, MessagesSquare, Mic, Sparkles } from 'lucide-react';
 import { PageShell } from '../../components/layout/PageShell';
@@ -8,6 +8,7 @@ import { Button } from '../../components/ui/Button';
 import { useShowNavRail } from '../../components/layout/shellChrome';
 import { enter, enterReduced, fill } from '../../components/motion/variants';
 import { track } from '../../services/telemetry/telemetryService';
+import { markExamGuideSeen, type ExamGuideLocationState, type StartSimLocationState } from '../../features/examGuide/guideSeen';
 import {
   CHAPTERS,
   COMMUNICATION,
@@ -45,6 +46,10 @@ import {
  */
 export function ExamGuide() {
   const navigate = useNavigate();
+  const location = useLocation();
+  /** Opened automatically before a first Exam Sim: the way out leads into that exam. */
+  const thenSim = (location.state as ExamGuideLocationState | null)?.thenSim === true;
+  const startSim = () => navigate('/exam', { state: { startSim: true } satisfies StartSimLocationState });
   const reduced = useReducedMotion();
   const item = reduced ? enterReduced : enter;
   const [index, setIndex] = useState(0);
@@ -55,6 +60,7 @@ export function ExamGuide() {
   useShowNavRail(true);
 
   useEffect(() => {
+    markExamGuideSeen();
     track({ name: 'exam_guide_opened', props: {} });
   }, []);
 
@@ -77,6 +83,17 @@ export function ExamGuide() {
             <span className="text-eyebrow uppercase text-ink-subtle">Cambridge IGCSE French 0520 · Paper 3 Speaking</span>
             <h1 className="exam-serif text-title text-ink">Know the exam before you sit it</h1>
           </div>
+          {thenSim && (
+            <div className="flex flex-col gap-3 rounded-card border border-action bg-action-soft p-4 sm:flex-row sm:items-center" data-testid="guide-first-sim">
+              <p className="flex-1 text-body-s text-ink">
+                Before your first Exam Sim: a few minutes here shows you how the exam runs and how it’s marked. You’ll only
+                see this once.
+              </p>
+              <Button variant="secondary" size="sm" onClick={startSim} className="shrink-0 self-start sm:self-center" data-testid="guide-skip-to-sim">
+                Skip to the exam
+              </Button>
+            </div>
+          )}
           <ChapterNav index={index} visited={visited} onPick={goTo} />
         </motion.div>
 
@@ -106,8 +123,8 @@ export function ExamGuide() {
             <span />
           )}
           {isLast ? (
-            <Button onClick={() => navigate('/exam')} data-testid="guide-finish">
-              Go to exams <ArrowRight size={16} aria-hidden="true" />
+            <Button onClick={thenSim ? startSim : () => navigate('/exam')} data-testid="guide-finish">
+              {thenSim ? 'Start Exam Sim' : 'Go to exams'} <ArrowRight size={16} aria-hidden="true" />
             </Button>
           ) : (
             <Button onClick={() => goTo(index + 1)} data-testid="guide-next">

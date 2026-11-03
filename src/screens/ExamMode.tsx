@@ -3,6 +3,7 @@ import { track, captureError, type ExamPartReached, type ExamStep } from '../ser
 import { TrackView } from '../services/telemetry/TrackView';
 import confetti from 'canvas-confetti';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { shouldOpenGuideBeforeSim, type ExamGuideLocationState, type StartSimLocationState } from '../features/examGuide/guideSeen';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { SpeakingConsentGate } from '../components/SpeakingConsentGate';
@@ -169,7 +170,14 @@ export function ExamMode() {
   const duelSessionId = duelState?.sessionId;
   const isDuelRun = Boolean(duelId && duelQuestionSetId && duelSessionId);
 
-  const [examState, setExamState] = useState<ExamState>('select');
+  // The exam guide's "Start Exam Sim" (after the first-time guide) lands straight on the Exam Sim intro.
+  const startSim = (location.state as StartSimLocationState | null)?.startSim === true;
+  const [examState, setExamState] = useState<ExamState>(startSim ? 'intro' : 'select');
+  // Used once: drop it from history so a reload (or Back to /exam) shows the chooser again.
+  useEffect(() => {
+    if (startSim) navigate(location.pathname, { replace: true, state: null });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once, on arrival
+  }, []);
   useShowNavRail(examState === 'select' || examState === 'results');
   const [action, setAction] = useState<ExaminerAction | null>(null);
   const [voiceMuted, setVoiceMuted] = useState(isExaminerVoiceMuted());
@@ -1119,6 +1127,11 @@ export function ExamMode() {
           setExamState('intro');
         }}
         onAutoFallback={(coached) => {
+          // A first Exam Sim opens the guide first, once (it can be skipped from there).
+          if (!coached && shouldOpenGuideBeforeSim()) {
+            navigate('/exam/guide', { state: { thenSim: true } satisfies ExamGuideLocationState });
+            return;
+          }
           selectedQuestionSetIdRef.current = undefined;
           selectedAuthoredSetRef.current = undefined;
           setCoachedMode(coached);
