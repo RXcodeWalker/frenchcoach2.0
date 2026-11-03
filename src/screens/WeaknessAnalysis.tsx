@@ -29,7 +29,7 @@ const SKILL_TO_MODE: Record<string, { label: string; route: string }> = {
   vocab_range: { label: 'Explore Mode', route: '/explore' },
   pronunciation: { label: 'Accent Analyzer', route: '/accent-analyzer' },
   fluency_score: { label: 'Speed Speaking', route: '/speed-speaking' },
-  word_count: { label: 'Story Mode', route: '/story-mode' },
+  word_count: { label: 'Role-play drill', route: '/exam/role-play' },
   opinion: { label: 'Speaking Arena', route: '/speaking-arena' },
   connectors: { label: 'Sentence Rebuilder', route: '/sentence-rebuilder' },
 };

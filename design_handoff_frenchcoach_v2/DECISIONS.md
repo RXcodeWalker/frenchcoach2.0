@@ -476,3 +476,9 @@ handoff left a gap or clashed with the codebase. Newest phase last.
   Every handler stands down for typing targets, focused buttons and open dialogs.
 - **Flag.** `sentenceRebuilder` is now `live` (rollback: `coming-soon`). The
   Explore tile was already there and gains the "New" badge.
+
+## 2026-11-03 — Exam voice is white paper
+
+Owner: the exam voice's ground changes from warm cream to plain white (`src/styles/exam-voice.css`); surfaces and
+hairlines become neutral greys. The dark-green accent and the exam serif stay. References above to the "warm-paper
+voice" describe the earlier palette.

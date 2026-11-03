@@ -48,7 +48,7 @@ import { SpeedSpeaking } from './screens/SpeedSpeaking';
 import { FriendChallenges } from './screens/FriendChallenges';
 import { FrenchRoadmap } from './screens/FrenchRoadmap';
 import { FluencyHeatmap } from './screens/FluencyHeatmap';
-import { StoryMode } from './screens/StoryMode';
+import { RolePlayDrill } from './screens/rolePlayDrill/RolePlayDrill';
 import { ScenarioArchitect } from './screens/ScenarioArchitect';
 import { ScenarioArchitectSession } from './screens/ScenarioArchitectSession';
 import { RoleplaySession } from './screens/RoleplaySession';
@@ -177,7 +177,7 @@ function MainLayout() {
 }
 
 function ExamLayout() {
-  // The warm-paper exam voice is the only exam presentation, and it ignores the
+  // The exam voice (white paper, dark-green accent) is the only exam presentation, and it ignores the
   // app's light/dark theme (see styles/exam-voice.css). The nav rail shows only
   // on the exam chooser (ExamMode opts in via useShowNavRail).
   const [showNavRail, setShowNavRail] = useState(false);
@@ -347,7 +347,8 @@ function AppShell() {
               <FluencyHeatmap />
             </ComingSoonGate>
           } />
-          <Route path="/story-mode" element={<StoryMode />} />
+          {/* Story Mode became Exam's Role-play drill (2026-11-03); old links land there. */}
+          <Route path="/story-mode" element={<Navigate to="/exam/role-play" replace />} />
           <Route path="/scenario/:scenarioId" element={<RoleplaySession />} />
           <Route path="/scenario-architect" element={<ScenarioArchitect />} />
           <Route path="/scenario-architect/session" element={<ScenarioArchitectSession />} />
@@ -405,10 +406,11 @@ function AppShell() {
 
         <Route element={<ExamLayout />}>
           <Route path="/exam" element={<ExamMode />} />
+          <Route path="/exam/role-play" element={<RolePlayDrill />} />
         </Route>
 
         {/* The goal survey is Design System v2 (light, violet), as is the placement check — not inside ExamLayout,
-            whose warm-paper palette is for exam mode only. */}
+            whose exam-voice palette is for exam mode only. */}
         <Route path="/onboarding" element={<Onboarding />} />
         <Route path="/onboarding/placement" element={<OnboardingPlacement />} />
 

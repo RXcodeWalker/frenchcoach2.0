@@ -39,6 +39,8 @@ export interface StoryTask {
 
 export interface StoryCard {
   id: string;
+  /** Short French title for the card list (roleplayCards' own `title`; written from the scenario for the igcse_master cards). */
+  title: string;
   scenario: string;
   /** Null for the 6 roleplayCards.ts cards, which carry no exam paper provenance. */
   paperId: string | null;
@@ -53,7 +55,7 @@ const NPC_BY_CARD_ID: Record<string, CharacterNpc> = {
   rp_restaurant_01: { nameFr: 'Le serveur/la serveuse', emoji: '🍽️' },
   rp_train_01: { nameFr: "L'agent de la gare", emoji: '🚆' },
   rp_camping_01: { nameFr: 'Le gérant du camping', emoji: '⛺' },
-  rp_lost_property_01: { nameFr: 'Objets trouvés', emoji: '🎒' },
+  rp_lost_property_01: { nameFr: "L'employé(e) des objets trouvés", emoji: '🎒' },
   // igcse_master role_play_cards — role stated in `scenario`'s final sentence.
   rpc_24_01: { nameFr: 'Le touriste', emoji: '🗺️' },
   rpc_24_02: { nameFr: 'Le/la réceptionniste', emoji: '🛎️' },
@@ -72,6 +74,25 @@ const NPC_BY_CARD_ID: Record<string, CharacterNpc> = {
   rpc_23_06: { nameFr: "L'agent de la gare", emoji: '🚆' },
 };
 
+/** Titles for the igcse_master cards, which carry only a prose `scenario`. Each restates that scenario's setting, nothing more. */
+const TITLE_BY_CARD_ID: Record<string, string> = {
+  rpc_24_01: "Vous travaillez à l'office de tourisme",
+  rpc_24_02: 'Un portable perdu au camping',
+  rpc_24_03: 'Louer un bateau',
+  rpc_24_04: 'Des billets de concert',
+  rpc_24_05: 'Un problème de réservation',
+  rpc_24_06: 'Un cadeau pour un(e) ami(e)',
+  rpc_24_07: 'Un match de football',
+  rpc_24_08: 'Au château',
+  rpc_24_09: "Un entretien d'embauche",
+  rpc_23_01: 'Des vacances au camping',
+  rpc_23_02: 'À la patinoire',
+  rpc_23_03: 'Louer un bateau en Martinique',
+  rpc_23_04: 'Au club de sport',
+  rpc_23_05: 'Au buffet de la gare',
+  rpc_23_06: 'Des billets pour Lyon',
+};
+
 const DEFAULT_NPC: CharacterNpc = { nameFr: "L'examinateur", emoji: '🎭' };
 
 // The only igcse_master card with real per-task English instructions
@@ -87,6 +108,7 @@ allQuestions.forEach((q) => {
 function fromRoleplayCards(): StoryCard[] {
   return ROLEPLAY_CARDS.map((card) => ({
     id: card.id,
+    title: card.title,
     scenario: card.setting,
     paperId: null,
     npc: NPC_BY_CARD_ID[card.id] ?? DEFAULT_NPC,
@@ -109,6 +131,7 @@ function fromIgcseMaster(): StoryCard[] {
   const cards = igcseMaster.role_play_cards as RawMasterCard[];
   return cards.map((card) => ({
     id: card.id,
+    title: TITLE_BY_CARD_ID[card.id] ?? card.scenario,
     scenario: card.scenario,
     paperId: card.paper_id,
     npc: NPC_BY_CARD_ID[card.id] ?? DEFAULT_NPC,
@@ -121,3 +144,8 @@ function fromIgcseMaster(): StoryCard[] {
 }
 
 export const STORY_CARDS: StoryCard[] = [...fromRoleplayCards(), ...fromIgcseMaster()];
+
+/** A card where every task has an authored English instruction — the drill's "with English help" group. */
+export function hasEnglishInstructions(card: StoryCard): boolean {
+  return card.tasks.length > 0 && card.tasks.every((t) => Boolean(t.promptEn));
+}

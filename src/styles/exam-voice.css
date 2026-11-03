@@ -1,6 +1,8 @@
 /* ============================================================
-   Exam voice — the warm-paper "different room" for exam mode and
-   the returned script (FrenchCoach Enhanced, screens 4/9/10).
+   Exam voice — the "different room" for exam mode and the returned
+   script (FrenchCoach Enhanced, screens 4/9/10): plain white paper
+   (owner, 2026-11-03 — was a warm cream), neutral greys, dark-green
+   accent and the exam serif.
    Scoped to `.exam-voice` (always applied by ExamLayout); forced regardless of the app's
    light/dark theme, because the switch itself is the signal that
    the learner is in an assessment, not practice.
@@ -12,16 +14,16 @@
    ============================================================ */
 
 .exam-voice {
-  --paper-bg: #F3EDE1;
-  --paper-surface: #EBE1CD;          /* the examiner speech bubble / cards */
-  --paper-recessed: #FFFFFF;         /* insets on paper */
-  --paper-ink: #201E1A;
-  --paper-ink-muted: #57503F;
-  --paper-ink-subtle: #6B6353;
-  --paper-hairline: #DED3BB;
-  --paper-hairline-strong: #C9BDA4;
+  --paper-bg: #FFFFFF;
+  --paper-surface: #F5F5F4;          /* the examiner speech bubble / cards */
+  --paper-recessed: #FFFFFF;         /* insets on a card */
+  --paper-ink: #1C1C1A;
+  --paper-ink-muted: #52524E;
+  --paper-ink-subtle: #686863;
+  --paper-hairline: #E4E4E1;
+  --paper-hairline-strong: #CBCBC6;
   --paper-accent: #1F4D3F;           /* dark green — the exam primary */
-  --paper-accent-ink: #F3EDE1;
+  --paper-accent-ink: #FFFFFF;
   --paper-accent-soft: rgba(31, 77, 63, 0.10);
 
   /* Pin the core tokens to the paper palette so nothing inside an exam screen
@@ -46,7 +48,7 @@
 .exam-voice .text-ink-muted { color: var(--paper-ink-muted) !important; }
 .exam-voice .text-ink-subtle { color: var(--paper-ink-subtle) !important; }
 
-/* ---- surfaces: all three collapse toward warm paper, hierarchy is
+/* ---- surfaces: all three collapse toward the paper, hierarchy is
         the 1px rule, not elevation ---- */
 .exam-voice .surface,
 .exam-voice .surface-raised,

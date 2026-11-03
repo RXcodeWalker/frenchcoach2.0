@@ -1,6 +1,6 @@
 import type { LucideIcon } from 'lucide-react';
 import {
-  AudioLines, Bot, Brain, Building2, CalendarDays, Dices, Ear, Flame, Gift,
+  AudioLines, Bot, Building2, CalendarDays, Dices, Ear, Flame, Gift,
   Handshake, Map, Medal, Mountain, Newspaper, Palmtree, Puzzle, 
   Rocket, Search, ShoppingBag, Smile, Sparkles, Swords, Target, Thermometer, Timer, Users, Wrench, Zap,
   Briefcase, CloudRain, Plane, Shield, ShoppingBasket, Stethoscope, Ticket,
@@ -31,7 +31,6 @@ const ICONS: Record<string, LucideIcon> = {
   mastery: Rocket,
   rapid_fire: Zap,
   boss_battle: Flame,
-  story_mode: Brain,
   emoji_master: Smile,
   mystery_box: Gift,
   survival: Palmtree,

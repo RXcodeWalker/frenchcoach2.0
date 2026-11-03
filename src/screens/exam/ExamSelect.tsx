@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { X } from 'lucide-react';
+import { ChevronRight, MessagesSquare, X } from 'lucide-react';
+import { STORY_CARDS } from '../../data/storyCards';
 import { listPublishedQuestionSetsWithRetry, getOfflineAuthoredSets } from '../../data/exam/bank/loader';
 import type { AuthoredQuestionSet, Difficulty } from '../../data/exam/bank/types';
 import { getExamAllowance, weeklyExamLimitMessage, type ExamAllowance } from '../../services/exam/scoringApiClient';
@@ -38,6 +39,8 @@ interface Props {
   /** Batch 3 resume guard: a one-line notice shown once (e.g. a discarded resume snapshot). */
   notice?: string | null;
   onDismissNotice?: () => void;
+  /** Opens the Role-play drill (`/exam/role-play`); the entry is hidden without it. */
+  onRolePlayDrill?: () => void;
 }
 
 type ExamModeChoice = 'coached' | 'sim';
@@ -56,7 +59,7 @@ type RemoteState =
   | { phase: 'ready'; sets: AuthoredQuestionSet[] }
   | { phase: 'offline-only' };
 
-export function ExamSelect({ onSelect, onAutoFallback, notice, onDismissNotice }: Props) {
+export function ExamSelect({ onSelect, onAutoFallback, notice, onDismissNotice, onRolePlayDrill }: Props) {
   // Available synchronously — no network — so a card is on screen from the first paint.
   const offlineSets = useMemo(() => getOfflineAuthoredSets(), []);
   const [remote, setRemote] = useState<RemoteState>({ phase: 'loading' });
@@ -270,7 +273,47 @@ export function ExamSelect({ onSelect, onAutoFallback, notice, onDismissNotice }
         )}
         </>
         )}
+
+        {onRolePlayDrill && <RolePlayDrillEntry onOpen={onRolePlayDrill} limitReached={weeklyLimitReached} />}
       </motion.div>
     </div>
+  );
+}
+
+/**
+ * The way into the Role-play drill (`/exam/role-play`): Part 1 on its own,
+ * practice only. Shown in both modes and when the weekly exam is used up —
+ * it is the thing to do in the meantime.
+ */
+function RolePlayDrillEntry({ onOpen, limitReached }: { onOpen: () => void; limitReached: boolean }) {
+  return (
+    <section aria-labelledby="exam-practise-part" className="flex flex-col gap-3 pt-2">
+      <div>
+        <h2 id="exam-practise-part" className="text-section text-ink">Practise one part</h2>
+        <p className="mt-1 text-body-s text-ink-muted">
+          {limitReached
+            ? 'Your weekly exam is used up, but you can still drill the role play in the meantime.'
+            : 'Warm up on Part 1 before a full exam. It doesn’t use your weekly exam.'}
+        </p>
+      </div>
+      <button
+        type="button"
+        onClick={onOpen}
+        data-testid="exam-role-play-drill"
+        className="flex w-full items-center gap-4 rounded-card surface p-5 text-left
+          transition-[border-color,transform] duration-state ease-smooth hover:border-hairline-strong active:scale-[.97]"
+      >
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-control bg-action-soft text-action-text" aria-hidden="true">
+          <MessagesSquare size={20} />
+        </span>
+        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <span className="text-section text-ink">Role-play drill</span>
+          <span className="text-body-s text-ink-muted">
+            {STORY_CARDS.length} role-play cards, five exchanges each, with coaching on every answer. Not marked out of 40.
+          </span>
+        </span>
+        <ChevronRight size={18} className="shrink-0 text-ink-subtle" aria-hidden="true" />
+      </button>
+    </section>
   );
 }
