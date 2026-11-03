@@ -20,7 +20,6 @@ export const FEATURES: FeatureCard[] = [
   { id: 'daily_news', title: 'Daily News Flash', description: 'Listen to news and report back', icon: '📻', category: 'Speak & Listen', color: '#7C3AED', locked: false, badge: 'New', screen: 'daily-news' },
   { id: 'listening', title: 'Listening Mode', description: 'Train your ear with native audio', icon: '🎧', category: 'Speak & Listen', color: '#EC4899', locked: false, screen: 'listening-mode' },
   { id: 'accent', title: 'Accent Analyzer', description: 'AI-powered accent scoring', icon: '🎯', category: 'Speak & Listen', color: '#06B6D4', locked: false, screen: 'accent-analyzer' },
-  { id: 'story_mode', title: 'Story Mode', description: 'Learn through interactive stories', icon: '📖', category: 'Speak & Listen', color: '#10B981', locked: false, screen: 'story-mode' },
   { id: 'ai_chat', title: 'AI Conversations', description: 'Chat with an AI tutor in French', icon: '🤖', category: 'Speak & Listen', color: '#06B6D4', locked: true, badge: 'New' },
   { id: 'sentence_rebuild', title: 'Sentence Rebuilder', description: 'Put scrambled French words back in order', icon: '🧩', category: 'Words & Grammar', color: '#10B981', locked: false, screen: 'sentence-rebuilder', badge: 'New' },
   { id: 'rapid_fire', title: 'Rapid Fire', description: 'Translate as fast as you can', icon: '⚡', category: 'Words & Grammar', color: '#F59E0B', locked: false, screen: 'rapid-fire' },

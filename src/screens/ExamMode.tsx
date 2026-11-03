@@ -1110,6 +1110,7 @@ export function ExamMode() {
       <ExamSelect
         notice={resumeDiscardedMessage}
         onDismissNotice={() => setResumeDiscardedMessage(null)}
+        onRolePlayDrill={() => navigate('/exam/role-play')}
         onSelect={(set, coached) => {
           selectedQuestionSetIdRef.current = set.questionSetId;
           selectedAuthoredSetRef.current = set;

@@ -108,11 +108,11 @@ All `SECURITY DEFINER`, pinned `search_path`, standard `REVOKE ... FROM PUBLIC` 
 - **`SpeakingConsentGate`** (`src/components/SpeakingConsentGate.tsx`) —
   wraps a record control; renders a "waiting for your parent/guardian"
   message instead of it whenever `consentStatus === 'pending'`. Wired into
-  Learn, ExamMode, RoleplaySession, StoryMode, ScenarioArchitectSession, and
+  Learn, ExamMode, RoleplaySession, the Role-play drill (formerly StoryMode), ScenarioArchitectSession, and
   DailyNewsFlash — either directly around the record button (Learn,
   ScenarioArchitectSession, DailyNewsFlash) or around the pre-recording prep
   screen that leads into a timed/auto-recording flow (ExamMode's `intro`
-  state, RoleplaySession's/StoryMode's prep screens).
+  state, RoleplaySession's/the Role-play drill's prep screens).
 - **`useRecording(blocked)`** — defence-in-depth behind the UI gate:
   `start()` is a no-op (no `getUserMedia`, no `SpeechRecognition`) when
   `blocked` is true. Every screen above passes

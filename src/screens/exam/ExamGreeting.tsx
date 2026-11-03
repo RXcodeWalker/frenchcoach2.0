@@ -13,7 +13,7 @@ interface Props {
  * Non-assessed French greeting (C5). The candidate's reply is never submitted
  * to the session and never logged — it exists only to warm up the mic/voice
  * before the assessed role play begins. Renders in either exam voice (the
- * warm-paper "Henri" framing, or the core token theme).
+ * white-paper "Henri" framing, or the core token theme).
  */
 export function ExamGreeting({ recording, greetingText, onContinue }: Props) {
   const rec = recording.isRecording;

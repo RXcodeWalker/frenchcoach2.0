@@ -8,7 +8,7 @@ interface Props {
 
 /**
  * Phase 1.6 Part C. Wraps a record control everywhere it appears (Learn,
- * ExamMode, RoleplaySession, StoryMode, ScenarioArchitectSession,
+ * ExamMode, RoleplaySession, the Role-play drill (formerly StoryMode), ScenarioArchitectSession,
  * DailyNewsFlash). When the signed-in user's consentStatus is 'pending'
  * (under-13, guardian hasn't confirmed yet), renders a "waiting for your
  * parent/guardian" message instead of the record control — no mic is armed,

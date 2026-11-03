@@ -21,6 +21,10 @@ interface Props {
   unscored?: boolean;
   /** Mobile: a sticky dock at the bottom of the session instead of a centred card. */
   compact?: boolean;
+  /** The idle line under "Tap to start recording". Learn's default asks for three or four sentences. */
+  hint?: string;
+  /** The 30–60 s length meter while recording. Learn's answers want it; a short role-play reply doesn't. */
+  lengthMeter?: boolean;
 }
 
 /** The length meter: fills over 60s, turns green at 30s, with a nudge for each stretch. */
@@ -80,7 +84,7 @@ function ProcessingSteps({ step, labels }: { step: ProcessingStep; labels: strin
  * dot, the speaking-length meter, and — after Stop — the stepped processing
  * status (Transcribing → Checking grammar → Scoring).
  */
-export function RecordingPanel({ isActive, recording, onStop, processing = null, unscored = false, compact = false }: Props) {
+export function RecordingPanel({ isActive, recording, onStop, processing = null, unscored = false, compact = false, hint = 'Answer in French — three or four sentences', lengthMeter = true }: Props) {
   const isRec = recording.isRecording;
   const isProc = processing !== null && !isRec;
   const canToggle = isActive && !isProc;
@@ -180,7 +184,7 @@ export function RecordingPanel({ isActive, recording, onStop, processing = null,
               <span className="text-[14px] font-semibold text-ink">Tap to start recording</span>
             )}
             <LevelBars active={isRec} source={recording.micLevel} centred={false} />
-            {isRec && <LengthMeter seconds={recording.elapsedTime} />}
+            {isRec && lengthMeter && <LengthMeter seconds={recording.elapsedTime} />}
           </div>
         </div>
       </motion.div>
@@ -205,12 +209,12 @@ export function RecordingPanel({ isActive, recording, onStop, processing = null,
             {timer}
             <span className="text-[13px] text-ink-muted">Recording · tap to stop</span>
           </span>
-          <div className="w-full max-w-[360px]"><LengthMeter seconds={recording.elapsedTime} /></div>
+          {lengthMeter && <div className="w-full max-w-[360px]"><LengthMeter seconds={recording.elapsedTime} /></div>}
         </>
       ) : (
         <span className="flex flex-col items-center gap-0.5 text-center">
           <span className="text-[14px] font-semibold text-ink">Tap to start recording</span>
-          <span className="text-[13px] text-ink-muted">Answer in French — three or four sentences</span>
+          <span className="text-[13px] text-ink-muted">{hint}</span>
         </span>
       )}
     </motion.div>
