@@ -1,5 +1,5 @@
-// The speaking log stays on this device, per account: nothing that syncs,
-// builds a request body or reports analytics may read it.
+// The speaking log is per account: only its own cloud sync (Supabase
+// speaking_samples) may send it anywhere — no AI request body, no analytics.
 import { describe, expect, it } from 'vitest';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
@@ -16,12 +16,14 @@ function walk(dir: string): string[] {
 
 const rel = (f: string) => f.slice(SRC.length + 1);
 const strip = (src: string) => src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1');
-const LOG_REF = /frenchCoach_speakingLog|STORAGE_KEYS\.speakingLog|fluency\/speakingLog|SpeakingSample|getSpeakingLog|appendSpeakingSample/;
+const LOG_REF = /frenchCoach_speakingLog|STORAGE_KEYS\.speakingLog|fluency\/speakingLog|speakingLogSync|speaking_samples|SpeakingSample|getSpeakingLog|appendSpeakingSample|mergeSpeakingSamples/;
 
-describe('the speaking log stays local', () => {
-  it('only its store, the storage registry, account deletion and Learn mention it', () => {
+describe('the speaking log reaches only its own table', () => {
+  it('only its store, its sync, the storage registry, account deletion, sign-in hydration and Learn mention it', () => {
     const allowed = new Set([
       'services/fluency/speakingLog.ts',
+      'services/sync/speakingLogSync.ts',
+      'context/AppContext.tsx',
       'services/persistence/storage.ts',
       'services/account/accountService.ts',
       'screens/Learn.tsx',
@@ -31,6 +33,13 @@ describe('the speaking log stays local', () => {
       .filter((f) => LOG_REF.test(strip(readFileSync(f, 'utf8'))))
       .map(rel);
     expect(offenders).toEqual([]);
+  });
+
+  it('the sync writes only to speaking_samples', () => {
+    const sync = strip(readFileSync(join(SRC, 'services/sync/speakingLogSync.ts'), 'utf8'));
+    const tables = [...sync.matchAll(/\.from\(([^)]+)\)/g)].map((m) => m[1]);
+    expect(new Set(tables)).toEqual(new Set(['TABLE']));
+    expect(sync).toMatch(/const TABLE = 'speaking_samples'/);
   });
 
   it('is account-scoped, not device-scoped', () => {

@@ -24,6 +24,7 @@ import { pushProgressionToCloud, pullProgressionFromCloud, mergeProgressionData,
 import { hydrateSessionsFromCloud, pushSessionToCloud, backfillSessionsToCloud, flushPendingQueue } from '../services/sync/sessionSync';
 import { hydrateCoachFromCloud, backfillEvidenceToCloud, pushPendingEvidence } from '../services/sync/coachSync';
 import { hydratePronunciationFromCloud, backfillPronunciationToCloud, flushPendingPronunciationQueue } from '../services/sync/pronunciationSync';
+import { syncSpeakingLog } from '../services/sync/speakingLogSync';
 import { hydrateXpEventsFromCloud, backfillXpEventsToCloud, flushPendingXpEventQueue } from '../services/social/xpLedger';
 import { getXpEventLog } from '../services/social/xpLedgerStorage';
 import { getEconomySnapshot } from '../services/shop/shopService';
@@ -588,6 +589,7 @@ export function AppProvider({ identity, children }: { identity: string; children
           sessionHydrationInProgress.current = false;
           void flushPendingQueue(userId);
           void hydratePronunciationFromCloud(userId);
+          void syncSpeakingLog(userId);
           void hydrateXpEventsFromCloud(userId).then(async ({ mergedEvents, cloudIds }) => {
             const ledgerTotal = await getMyAllTimeXp(userId);
             if (ledgerTotal !== null) reconcileTotalFromLedger(ledgerTotal);
@@ -648,6 +650,9 @@ export function AppProvider({ identity, children }: { identity: string; children
 
       // Step 2.6: pronunciation history — pull, merge, write localStorage
       const { mergedAttempts, cloudIds: cloudPronunciationIds } = await hydratePronunciationFromCloud(userId);
+
+      // Step 2.65: Learn speaking log — pull, merge, push what the cloud lacks (no reader depends on it, so not awaited)
+      void syncSpeakingLog(userId);
 
       // Step 2.7: XP ledger — pull, merge, write localStorage
       const { mergedEvents, cloudIds: cloudXpEventIds } = await hydrateXpEventsFromCloud(userId);

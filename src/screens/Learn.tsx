@@ -77,6 +77,7 @@ import { incrementCounter } from '../services/telemetry/localCounters';
 import { measureAnswerSpeech, type AnswerSpeech } from '../features/pronunciation/audio/answerSpeech';
 import { summarizeSpeech } from '../domain/fluency/speechMetrics';
 import { appendSpeakingSample, type SpeakingSample } from '../services/fluency/speakingLog';
+import { pushSpeakingSample } from '../services/sync/speakingLogSync';
 import type { Topic, Session, FeedbackV2, ActiveSession, SessionMode, SessionQuestion, AIEngine, FeedbackMode } from '../types/index';
 
 // Learn answers are Web Speech text, so the coach filters treat them as spoken
@@ -736,6 +737,7 @@ export function Learn() {
   ) => {
     const pending = speechMeasureRef.current;
     if (!pending || pending.attemptId !== attemptId || !currentQuestion) return;
+    const userId = authUser?.id ?? null;
     const context = {
       surface: 'learn' as const,
       topicKey: selectedTopic?.key ?? null,
@@ -748,13 +750,15 @@ export function Learn() {
       const metrics = summarizeSpeech(measured.speech, transcript);
       if (!metrics) return;
       loggedSpeechBlobsRef.current.add(measured.blob);
-      appendSpeakingSample({
+      const sample: SpeakingSample = {
         ...metrics,
         ...context,
         ...details,
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
         at: new Date().toISOString(),
-      });
+      };
+      appendSpeakingSample(sample);
+      if (userId) void pushSpeakingSample(userId, sample);
     }).catch(() => { /* local, best effort */ });
   };
 
