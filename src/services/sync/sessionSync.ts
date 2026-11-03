@@ -168,6 +168,24 @@ function sessionToRow(userId: string, session: Session): Omit<CloudSessionRow, '
   };
 }
 
+const TEACHER_COLUMNS = ['practice_only', 'exam_marks', 'scoring_session_id', 'assignment_id'] as const;
+
+/**
+ * Upsert one row. If the database does not have the teacher-dashboard columns yet (backend
+ * migration 20261103090000 not applied — PostgREST answers "Could not find the '<col>' column"),
+ * the row is sent again without them, so a frontend deployed first never stops sessions syncing.
+ */
+async function upsertSessionRow(row: ReturnType<typeof sessionToRow>): Promise<{ error: { message: string } | null }> {
+  const { error } = await supabase.from('sessions').upsert(row, { onConflict: 'id' });
+  if (!error) return { error: null };
+  const missingColumn = TEACHER_COLUMNS.some((c) => error.message?.includes(`'${c}'`));
+  if (!missingColumn) return { error };
+  const legacy: Record<string, unknown> = { ...row };
+  for (const c of TEACHER_COLUMNS) delete legacy[c];
+  const retry = await supabase.from('sessions').upsert(legacy, { onConflict: 'id' });
+  return { error: retry.error };
+}
+
 function rowToStoredSession(row: CloudSessionRow): StoredSession {
   const fb = row.feedback as FeedbackSummaryBlob | null;
   return {
@@ -222,7 +240,7 @@ export async function pushSessionToCloud(userId: string, session: Session): Prom
 
   try {
     const row = sessionToRow(userId, session);
-    const { error } = await supabase.from('sessions').upsert(row, { onConflict: 'id' });
+    const { error } = await upsertSessionRow(row);
 
     if (error) {
       console.warn('[sessionSync] push failed:', error.message);

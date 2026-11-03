@@ -1,7 +1,7 @@
 # Teacher dashboard — plan
 
-Status: **plan only, nothing built.** Written 2026-11-03 against the code as it stands on that date.
-Owner decisions needed before Stage 1 are in §9 (D1–D8), each with a recommendation.
+Status: **built 2026-11-03 (all stages, 0–5), with every D1–D8 taken as recommended.** The live
+specification is `docs/systems/teacher-dashboard.md`; this plan is kept for its reasoning only.
 
 ---
 

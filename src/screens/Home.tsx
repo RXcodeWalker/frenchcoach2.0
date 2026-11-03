@@ -23,6 +23,7 @@ import { TopContextBar } from '../components/TopContextBar';
 import { HeroMission, type PlanStep } from './home/HeroMission';
 import { CoachPick } from './home/CoachPick';
 import { ThisWeek, type WeekDay } from './home/ThisWeek';
+import { HomeworkCard } from '../features/homework/HomeworkCard';
 import { RecentActivity } from './home/RecentActivity';
 
 // The ring's count the last time Home rendered, so finishing a session and
@@ -178,6 +179,8 @@ export function Home() {
           onLearn={() => navigate('/learn')}
           onExam={() => navigate('/exam')}
         />
+
+        <HomeworkCard />
 
         {desktop && coachPick(false)}
 

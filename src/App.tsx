@@ -66,6 +66,12 @@ import { DailyNewsFlash } from './screens/DailyNewsFlash';
 import { CoachBeliefDebug } from './screens/CoachBeliefDebug';
 import { JuniorPlaytest } from './screens/JuniorPlaytest';
 import { NotFound } from './screens/NotFound';
+import { JoinClass } from './screens/JoinClass';
+import { TeachLayout } from './screens/teach/TeachLayout';
+import { TeachHome } from './screens/teach/TeachHome';
+import { TeachClass } from './screens/teach/TeachClass';
+import { TeachStudent } from './screens/teach/TeachStudent';
+import { TeachAttempt } from './screens/teach/TeachAttempt';
 import { IgcseFrenchSpeaking } from './screens/IgcseFrenchSpeaking';
 import { FrenchRoleplayPractice } from './screens/FrenchRoleplayPractice';
 import { Story } from './screens/Story';
@@ -391,6 +397,17 @@ function AppShell() {
             </ComingSoonGate>
           } />
           <Route path="/daily-news" element={<DailyNewsFlash />} />
+          {/* Teacher dashboard (docs/systems/teacher-dashboard.md): a learner joins a class. */}
+          <Route path="/join" element={
+            <ComingSoonGate status={resolveFeatureStatus('teacherDashboard')} featureId="teacherDashboard" name="Classes" description="Join your teacher's class to get speaking homework." fallbackRoute="/profile" fallbackLabel="Back to Profile">
+              <JoinClass />
+            </ComingSoonGate>
+          } />
+          <Route path="/join/:code" element={
+            <ComingSoonGate status={resolveFeatureStatus('teacherDashboard')} featureId="teacherDashboard" name="Classes" description="Join your teacher's class to get speaking homework." fallbackRoute="/profile" fallbackLabel="Back to Profile">
+              <JoinClass />
+            </ComingSoonGate>
+          } />
           {/* DEV-ONLY: coach belief debug dashboard. Tree-shaken out of prod builds. */}
           {import.meta.env.DEV && (
             <>
@@ -424,6 +441,19 @@ function AppShell() {
         <Route path="/terms" element={<TermsOfService />} />
         <Route path="/age-band" element={<AgeBand />} />
         <Route path="/invite-code" element={<InviteCode />} />
+
+        {/* Teacher dashboard: its own layout, outside the learner shell (no nav, no XP bar, no
+            sound) — and outside the learner onboarding survey (OnboardingCheck exempts /teach). */}
+        <Route element={
+          <ComingSoonGate status={resolveFeatureStatus('teacherDashboard')} featureId="teacherDashboard" name="Teacher dashboard" description="See who is practising, set speaking homework and check AI marks." fallbackRoute="/" fallbackLabel="Go Home">
+            <TeachLayout />
+          </ComingSoonGate>
+        }>
+          <Route path="/teach" element={<TeachHome />} />
+          <Route path="/teach/class/:classId" element={<TeachClass />} />
+          <Route path="/teach/class/:classId/student/:studentId" element={<TeachStudent />} />
+          <Route path="/teach/class/:classId/attempt/:attemptId" element={<TeachAttempt />} />
+        </Route>
 
         {/* Admin content management — gated on JWT app_metadata.role */}
         <Route element={<AdminRoute />}>

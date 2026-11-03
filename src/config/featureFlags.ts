@@ -41,6 +41,11 @@ export const FEATURE_FLAGS = {
   // word marks may be unreliable); see verification-log.md and the waiver in
   // scripts/labCalibration/__tests__/gate.test.ts. Rollback: 'coming-soon'.
   pronunciationLab: 'live',
+  // docs/systems/teacher-dashboard.md — classes, the teacher area (/teach), joining
+  // (/join), homework and teacher marks. Needs backend migration 20261103090000 applied;
+  // every learner surface hides itself if the class service can't be read.
+  // Rollback: 'coming-soon'.
+  teacherDashboard: 'live',
 }satisfies Record<string, FeatureStatus>;
 
 export type FeatureFlagKey = keyof typeof FEATURE_FLAGS;

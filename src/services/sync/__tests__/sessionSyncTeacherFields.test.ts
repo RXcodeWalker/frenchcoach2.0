@@ -45,4 +45,23 @@ describe('sessionToRow teacher fields', () => {
       expect(row).not.toHaveProperty(key);
     }
   });
+
+  it('resends without the new columns when the database does not have them yet', async () => {
+    upsertMock
+      .mockResolvedValueOnce({ error: { message: "Could not find the 'practice_only' column of 'sessions' in the schema cache" } })
+      .mockResolvedValueOnce({ error: null });
+    const ok = await pushSessionToCloud('user-1', { ...base, practiceOnly: true, scoringSessionId: 'exam-x' });
+    expect(ok).toBe(true);
+    expect(upsertMock).toHaveBeenCalledTimes(2);
+    const [retryRow] = upsertMock.mock.calls[1] as [Record<string, unknown>];
+    expect(retryRow).not.toHaveProperty('practice_only');
+    expect(retryRow).not.toHaveProperty('scoring_session_id');
+    expect(retryRow.id).toBe('s-1');
+  });
+
+  it('does not retry on an unrelated error', async () => {
+    upsertMock.mockResolvedValueOnce({ error: { message: 'permission denied' } });
+    expect(await pushSessionToCloud('user-1', { ...base, practiceOnly: true })).toBe(false);
+    expect(upsertMock).toHaveBeenCalledTimes(1);
+  });
 });

@@ -294,6 +294,29 @@ interface LabOpenedProps {
   entry: LabEntry;
 }
 
+// Teacher dashboard (docs/systems/teacher-dashboard.md §7): enums and counts only —
+// never a class name, student name, code, transcript or mark comment.
+interface ClassJoinedProps {
+  via: 'code' | 'link';
+  switched_class: boolean;
+}
+interface TeacherDashboardViewedProps {
+  tab: 'week' | 'insights' | 'homework' | 'students' | 'student' | 'attempt';
+  students: number;
+}
+interface AssignmentCreatedProps {
+  kind: 'learn_topic' | 'role_play' | 'mock_exam';
+  targeted: boolean;
+}
+interface TeacherMarkSavedProps {
+  agreed: boolean;
+  delta: number;
+  shared: boolean;
+}
+interface HomeworkOpenedProps {
+  kind: 'learn_topic' | 'role_play' | 'mock_exam';
+}
+
 interface LabTakeProps {
   /** "N of M words clear" for one whole-sentence take. */
   words_clear: number;
@@ -474,7 +497,15 @@ export type TelemetryEvent =
   | { name: 'progress_viewed';         props: NoProps }
   | { name: 'profile_viewed';          props: NoProps }
   | { name: 'web_vitals';              props: WebVitalsProps }
-  | { name: 'backend_cold_start';      props: BackendColdStartProps };
+  | { name: 'backend_cold_start';      props: BackendColdStartProps }
+  | { name: 'teacher_class_created';   props: NoProps }
+  | { name: 'class_joined';            props: ClassJoinedProps }
+  | { name: 'class_left';              props: NoProps }
+  | { name: 'teacher_dashboard_viewed'; props: TeacherDashboardViewedProps }
+  | { name: 'assignment_created';      props: AssignmentCreatedProps }
+  | { name: 'teacher_mark_saved';      props: TeacherMarkSavedProps }
+  | { name: 'class_exported';          props: NoProps }
+  | { name: 'homework_opened';         props: HomeworkOpenedProps };
 
 export type TelemetryEventName = TelemetryEvent['name'];
 type PropsOf<N extends TelemetryEventName> = Extract<TelemetryEvent, { name: N }>['props'];
@@ -549,6 +580,14 @@ const DECLARED_PROPS = {
   profile_viewed: [],
   web_vitals: ['lcp_ms', 'inp_ms', 'cls'],
   backend_cold_start: ['latency_ms', 'attempts', 'reached'],
+  teacher_class_created: [],
+  class_joined: ['via', 'switched_class'],
+  class_left: [],
+  teacher_dashboard_viewed: ['tab', 'students'],
+  assignment_created: ['kind', 'targeted'],
+  teacher_mark_saved: ['agreed', 'delta', 'shared'],
+  class_exported: [],
+  homework_opened: ['kind'],
 } as const satisfies { [N in TelemetryEventName]: readonly (keyof PropsOf<N> & string)[] };
 
 type UndeclaredProps = {

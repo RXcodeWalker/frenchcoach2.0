@@ -45,6 +45,7 @@ import { TrackSwitch } from '../features/junior/TrackSwitch';
 import { CORE_ONLY, JUNIOR_TRACK_SELECTABLE } from '../config/launchScope';
 import { ReplayTourButton } from '../features/tour/ReplayTourButton';
 import type { AIEngine } from '../types';
+import { ClassCard } from '../features/homework/ClassCard';
 import { playSfx, setSfxEnabled } from '../services/sound/sfx';
 
 const RENAME_REASON_COPY: Record<string, string> = {
@@ -705,6 +706,10 @@ export function Profile() {
                 </SettingGroup>
               </motion.div>
             )}
+
+            <motion.div variants={fadeUp}>
+              <ClassCard />
+            </motion.div>
 
             {/* Learner track — shown only while Junior is selectable, or so a learner already on it can switch back */}
             {(JUNIOR_TRACK_SELECTABLE || state.learnerTrack === 'junior') && (

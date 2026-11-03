@@ -130,7 +130,6 @@ export function RolePlayDrill() {
     if (!linked) return;
     linkedCardOpenedRef.current = true;
     openCard(linked);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- open once per link
   }, [linkedCardId]);
 
   const openCard = (next: StoryCard) => {

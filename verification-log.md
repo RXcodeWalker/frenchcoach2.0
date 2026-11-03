@@ -4771,3 +4771,30 @@ browser voice (the existing fallback).
 **L2-off window.** Frontend (JSON + manifest) and backend (byte copy) are separate commits on
 `claude/sleepy-cerf-pyau1k`; when merged, deploy back to back — between the two deploys the backend reports
 `demandsResolved: false` and L2 evidence is off.
+
+## 2026-11-03 — Teacher dashboard (all stages): classes, homework allowance, teacher marks
+
+**Changed (Assessment-Engine surface: `server/` only, no pipeline stage).** `POST /score` reads
+`?mode=examSim|coached&counts=1|0&assignment=<uuid>` (query params, never the transcript) and, after
+`saveOriginal`, writes `exam_attempt_meta` (best-effort, never fails the response) with the server's own
+"counts" verdict — the client claim lowered for Coached, `userCorrected` or any typed answer
+(`server/examAttemptMeta.ts`). A homework mock the `assignment_allowance` RPC accepts charges
+`assignment_exam` with key `asg:<id>:<sessionId>` and skips the weekly-exam check; a failure releases that
+grant. `GET /exam/allowance?assignment=` answers the same. `scoreAttempt()`, the transcript, the envelope,
+`evidence/`, `judgement/`, `guardrails/`, `envelope/` and `rubric.ts` are untouched; nothing under
+`src/domain/igcse/` or `scripts/scoring/` imports the teacher area (`teacherIsolation.test.ts`).
+`score:golden` was not re-run: no scoring code changed.
+
+**Backend (french-coach-backend).** Migration `20261103090000_teacher_dashboard.sql`; Learn feedback (JSON,
+stream and examiner routes) charges `assignment_learn_answer` for an accepted `X-Assignment-Id`
+(`lib/assignment_allowance.py`), else `learn_answer` as before. **Not applied to production** — the owner
+applies it (deploy order in `docs/systems/teacher-dashboard.md` §9).
+
+**Checked.** The migration applied to a plain local Postgres 16 with stubbed Supabase roles/auth and
+passed its behaviour spec (`supabase/tests/plain_pg/teacher_dashboard_test.sql`, `ALL PASSED`): invite
+redemption and reuse, own-class join refused, a second teacher reads nothing, the D7 join-date window,
+envelope/report/meta projection, unshared marks invisible to the student, assignment targeting, the
+homework caps and retry exclusion, `authenticated` cannot call `assignment_allowance`, leaving ends
+access, code rotation, direct table writes refused, archive. Backend pytest 1023 passed (+6 new). Frontend
+`typecheck`, `typecheck:server`, `lint` (0 errors) and the full `npm test` (536 files, 6034 tests) pass after fixing
+the 4 `vercel.json` rewrite tests the new dynamic routes raised. Not checked against the hosted project.
