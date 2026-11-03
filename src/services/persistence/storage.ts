@@ -126,6 +126,8 @@ export const STORAGE_KEYS = {
   notifyDailyGoal:               'frenchCoach_notifyDailyGoal',
   // ── Learn speaking log: per-answer flow measurements (local only) ───────────────
   speakingLog:                   'frenchCoach_speakingLog',
+  // ── Exam guide: opened once (auto-opens before the first Exam Sim until then) ───
+  examGuideSeen:                 'frenchCoach_examGuideSeen',
 } as const;
 
 export type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS];

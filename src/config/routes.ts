@@ -44,6 +44,7 @@ export const ROUTES: RouteEntry[] = [
   { path: '/junior/:themeId', kind: 'dynamic', indexable: false },
   { path: '/exam', kind: 'app', indexable: false },
   { path: '/exam/role-play', kind: 'app', indexable: false },
+  { path: '/exam/guide', kind: 'app', indexable: false },
   { path: '/explore', kind: 'app', indexable: false },
   { path: '/progress', kind: 'app', indexable: false },
   { path: '/profile', kind: 'app', indexable: false },

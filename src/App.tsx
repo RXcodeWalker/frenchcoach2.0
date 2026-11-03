@@ -49,6 +49,7 @@ import { FriendChallenges } from './screens/FriendChallenges';
 import { FrenchRoadmap } from './screens/FrenchRoadmap';
 import { FluencyHeatmap } from './screens/FluencyHeatmap';
 import { RolePlayDrill } from './screens/rolePlayDrill/RolePlayDrill';
+import { ExamGuide } from './screens/examGuide/ExamGuide';
 import { ScenarioArchitect } from './screens/ScenarioArchitect';
 import { ScenarioArchitectSession } from './screens/ScenarioArchitectSession';
 import { RoleplaySession } from './screens/RoleplaySession';
@@ -407,6 +408,7 @@ function AppShell() {
         <Route element={<ExamLayout />}>
           <Route path="/exam" element={<ExamMode />} />
           <Route path="/exam/role-play" element={<RolePlayDrill />} />
+          <Route path="/exam/guide" element={<ExamGuide />} />
         </Route>
 
         {/* The goal survey is Design System v2 (light, violet), as is the placement check — not inside ExamLayout,

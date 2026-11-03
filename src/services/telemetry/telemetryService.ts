@@ -325,6 +325,12 @@ interface EarTrainingRoundProps {
   total: number;
 }
 
+interface ExamGuideQuizDoneProps {
+  /** The exam guide's closing quiz (`/exam/guide`). Counts only. */
+  correct: number;
+  total: number;
+}
+
 interface LabFocusWordUsedProps {
   /** The first drill result for this focus word. */
   verdict: 'clear' | 'almost' | 'tryAgain' | 'unknown';
@@ -467,6 +473,8 @@ export type TelemetryEvent =
   | { name: 'exam_abandoned';          props: ExamAbandonedProps }
   | { name: 'exam_scoring_failed';     props: ExamScoringFailedProps }
   | { name: 'exam_report_viewed';      props: ExamReportViewedProps }
+  | { name: 'exam_guide_opened';       props: NoProps }
+  | { name: 'exam_guide_quiz_done';    props: ExamGuideQuizDoneProps }
   | { name: 'guest_limit_hit';         props: NoProps }
   | { name: 'quota_hit';               props: QuotaHitProps }
   | { name: 'auth_required_shown';     props: SurfaceProps }
@@ -541,6 +549,8 @@ const DECLARED_PROPS = {
   exam_abandoned: ['last_part', 'elapsed_ms'],
   exam_scoring_failed: ['reason', 'status'],
   exam_report_viewed: ['has_score'],
+  exam_guide_opened: [],
+  exam_guide_quiz_done: ['correct', 'total'],
   guest_limit_hit: [],
   quota_hit: ['feature', 'code'],
   auth_required_shown: ['surface'],

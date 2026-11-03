@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronRight, MessagesSquare, X } from 'lucide-react';
+import { BookOpen, ChevronRight, MessagesSquare, X } from 'lucide-react';
 import { STORY_CARDS } from '../../data/storyCards';
 import { listPublishedQuestionSetsWithRetry, getOfflineAuthoredSets } from '../../data/exam/bank/loader';
 import type { AuthoredQuestionSet, Difficulty } from '../../data/exam/bank/types';
@@ -41,6 +41,8 @@ interface Props {
   onDismissNotice?: () => void;
   /** Opens the Role-play drill (`/exam/role-play`); the entry is hidden without it. */
   onRolePlayDrill?: () => void;
+  /** Opens the exam guide (`/exam/guide`); the entry is hidden without it. */
+  onGuide?: () => void;
 }
 
 type ExamModeChoice = 'coached' | 'sim';
@@ -59,7 +61,7 @@ type RemoteState =
   | { phase: 'ready'; sets: AuthoredQuestionSet[] }
   | { phase: 'offline-only' };
 
-export function ExamSelect({ onSelect, onAutoFallback, notice, onDismissNotice, onRolePlayDrill }: Props) {
+export function ExamSelect({ onSelect, onAutoFallback, notice, onDismissNotice, onRolePlayDrill, onGuide }: Props) {
   // Available synchronously — no network — so a card is on screen from the first paint.
   const offlineSets = useMemo(() => getOfflineAuthoredSets(), []);
   const [remote, setRemote] = useState<RemoteState>({ phase: 'loading' });
@@ -143,6 +145,8 @@ export function ExamSelect({ onSelect, onAutoFallback, notice, onDismissNotice, 
               : 'Pick one of the Cambridge-style mock exams below'}
           </p>
         </div>
+
+        {onGuide && <ExamGuideEntry onOpen={onGuide} />}
 
         {weeklyLimitReached ? (
           <div className="rounded-xl surface p-6 text-center space-y-1" role="status">
@@ -277,6 +281,33 @@ export function ExamSelect({ onSelect, onAutoFallback, notice, onDismissNotice, 
         {onRolePlayDrill && <RolePlayDrillEntry onOpen={onRolePlayDrill} limitReached={weeklyLimitReached} />}
       </motion.div>
     </div>
+  );
+}
+
+/**
+ * The way into the exam guide (`/exam/guide`): how the test runs, how it is
+ * marked and how to answer, before a first attempt. Shown in both modes.
+ */
+function ExamGuideEntry({ onOpen }: { onOpen: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      data-testid="exam-guide-entry"
+      className="flex w-full items-center gap-4 rounded-card border border-hairline bg-action-soft p-4 text-left
+        transition-[border-color,transform] duration-state ease-smooth hover:border-hairline-strong active:scale-[.97]"
+    >
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-control bg-action text-action-ink" aria-hidden="true">
+        <BookOpen size={20} />
+      </span>
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="text-section text-ink">New to the speaking exam? Start here</span>
+        <span className="text-body-s text-ink-muted">
+          How the exam works, how it’s marked and how to answer each part, in six short chapters with a quick check at the end.
+        </span>
+      </span>
+      <ChevronRight size={18} className="shrink-0 text-ink-subtle" aria-hidden="true" />
+    </button>
   );
 }
 
