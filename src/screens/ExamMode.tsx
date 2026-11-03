@@ -1111,6 +1111,7 @@ export function ExamMode() {
         notice={resumeDiscardedMessage}
         onDismissNotice={() => setResumeDiscardedMessage(null)}
         onRolePlayDrill={() => navigate('/exam/role-play')}
+        onGuide={() => navigate('/exam/guide')}
         onSelect={(set, coached) => {
           selectedQuestionSetIdRef.current = set.questionSetId;
           selectedAuthoredSetRef.current = set;
