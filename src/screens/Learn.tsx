@@ -74,6 +74,9 @@ import { resolveFeatureStatus } from '../config/featureFlags';
 import { SayItAgainCard } from '../features/feedback/components/SayItAgainCard';
 import { LabPractice } from '../features/pronunciation/LabPractice';
 import { incrementCounter } from '../services/telemetry/localCounters';
+import { measureAnswerSpeech, type AnswerSpeech } from '../features/pronunciation/audio/answerSpeech';
+import { summarizeSpeech } from '../domain/fluency/speechMetrics';
+import { appendSpeakingSample, type SpeakingSample } from '../services/fluency/speakingLog';
 import type { Topic, Session, FeedbackV2, ActiveSession, SessionMode, SessionQuestion, AIEngine, FeedbackMode } from '../types/index';
 
 // Learn answers are Web Speech text, so the coach filters treat them as spoken
@@ -162,6 +165,12 @@ export function Learn() {
   // This session's earlier confirmed answers — context for the next answer's
   // transcription prompt (never the model answer or a hint).
   const confirmedAnswersRef = useRef<string[]>([]);
+  // Speaking log (local only): which recogniser the confirmed text came from, this
+  // attempt's audio measurement, and the recordings already logged (a "Get new
+  // feedback" re-run reuses the same audio and must not log it twice).
+  const transcriptSourceRef = useRef<SpeakingSample['transcriptSource']>('captions');
+  const speechMeasureRef = useRef<{ attemptId: number; promise: Promise<{ blob: Blob; speech: AnswerSpeech | null } | null> } | null>(null);
+  const loggedSpeechBlobsRef = useRef(new WeakSet<Blob>());
   // Examiner mode result — separate from FeedbackV2 (which always carries a numeric
   // score); examiner mode must never fabricate one. No session/XP finalization runs
   // for an examiner-mode attempt — there is no score to record.
@@ -533,6 +542,14 @@ export function Learn() {
       createdAt: new Date().toISOString(),
     };
 
+    logSpeakingSample(attemptId, transcript, {
+      style: 'coach',
+      sessionId: session.id,
+      score: session.score,
+      aiFluency: unscored ? null : fb.scores.fluency,
+      durationSec: elapsed,
+    });
+
     // Only a conversation is shown for a full answer; a minimal one has no place to say it.
     setFirsts((fb.responseTier ?? 3) >= 2 ? proveFirsts(transcript) : []);
 
@@ -706,7 +723,39 @@ export function Learn() {
       return;
     }
 
+    transcriptSourceRef.current = 'captions';
     await evaluateTranscript(transcript);
+  };
+
+  // Records this attempt's flow measurements in the local speaking log once its
+  // audio has been measured. Best effort: no audio, no speech or an error logs nothing.
+  const logSpeakingSample = (
+    attemptId: number,
+    transcript: string,
+    details: Pick<SpeakingSample, 'style' | 'sessionId' | 'score' | 'aiFluency' | 'durationSec'>,
+  ) => {
+    const pending = speechMeasureRef.current;
+    if (!pending || pending.attemptId !== attemptId || !currentQuestion) return;
+    const context = {
+      surface: 'learn' as const,
+      topicKey: selectedTopic?.key ?? null,
+      questionId: baseQuestion?.id ?? currentQuestion.id,
+      followUp: !!followUpTurn,
+      transcriptSource: transcriptSourceRef.current,
+    };
+    void pending.promise.then((measured) => {
+      if (!measured?.speech || loggedSpeechBlobsRef.current.has(measured.blob)) return;
+      const metrics = summarizeSpeech(measured.speech, transcript);
+      if (!metrics) return;
+      loggedSpeechBlobsRef.current.add(measured.blob);
+      appendSpeakingSample({
+        ...metrics,
+        ...context,
+        ...details,
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        at: new Date().toISOString(),
+      });
+    }).catch(() => { /* local, best effort */ });
   };
 
   const evaluateTranscript = async (transcript: string) => {
@@ -718,6 +767,10 @@ export function Learn() {
     const controller = new AbortController();
     streamAbortRef.current = controller;
     const myAttemptId = ++attemptIdRef.current;
+    speechMeasureRef.current = {
+      attemptId: myAttemptId,
+      promise: recording.audioBlobPromise().then(async (blob) => (blob ? { blob, speech: await measureAnswerSpeech(blob) } : null)),
+    };
 
     feedbackRequestedAtRef.current = Date.now();
     track({ name: 'feedback_requested', props: { style: feedbackMode, is_followup: !!followUpTurn } });
@@ -800,6 +853,9 @@ export function Learn() {
         if (myAttemptId !== attemptIdRef.current) return;
         setExaminerFeedbackResult(result);
         setExaminerStatus('done');
+        logSpeakingSample(myAttemptId, transcript, {
+          style: 'examiner', sessionId: null, score: null, aiFluency: null, durationSec: recording.elapsedTime,
+        });
         track({
           name: 'feedback_shown',
           props: {
@@ -999,6 +1055,7 @@ export function Learn() {
 
   const handleConfirmTranscript = ({ text, edited, source }: TranscriptConfirmation) => {
     setPendingAnswer(null);
+    transcriptSourceRef.current = source === 'whisper' ? 'whisper' : 'captions';
     if (text.trim()) confirmedAnswersRef.current.push(text);
     if (currentQuestion) {
       track({ name: 'transcript_confirmed', props: { question_id: currentQuestion.id, edited, source } });

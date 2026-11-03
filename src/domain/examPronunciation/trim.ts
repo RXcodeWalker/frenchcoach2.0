@@ -67,6 +67,16 @@ export interface TrimResult {
   /** Computed before trimming. */
   pauses: PauseStats;
   segments: TrimSegment[];
+  /**
+   * Every internal silent run, in seconds, in order (frame resolution), measured
+   * on the untrimmed audio — the raw material behind `pauses`. Empty without speech.
+   * Read by Learn's local speaking log (`domain/fluency/`), never sent anywhere.
+   */
+  internalPausesS: number[];
+  /** Silence before the first speech frame, in seconds (0 without speech). */
+  leadingSilenceS: number;
+  /** First speech frame to last speech frame, in seconds, pauses included (0 without speech). */
+  speechSpanS: number;
 }
 
 function frameRms(samples: Float32Array, start: number, end: number): number {
@@ -88,6 +98,7 @@ export function trimSilence(samples: Float32Array, sampleRate: number): TrimResu
   const noPauses: PauseStats = { pausesOver2s: 0, longestPauseS: 0 };
   const empty: TrimResult = {
     samples: new Float32Array(0), sampleRate, rawS, trimmedS: 0, hasSpeech: false, pauses: noPauses, segments: [],
+    internalPausesS: [], leadingSilenceS: 0, speechSpanS: 0,
   };
   if (frameCount === 0) return empty;
 
@@ -148,7 +159,12 @@ export function trimSilence(samples: Float32Array, sampleRate: number): TrimResu
     written += b - a;
   }
 
-  return { samples: trimmed, sampleRate, rawS, trimmedS: total / sampleRate, hasSpeech: true, pauses, segments };
+  return {
+    samples: trimmed, sampleRate, rawS, trimmedS: total / sampleRate, hasSpeech: true, pauses, segments,
+    internalPausesS: pauseDurations,
+    leadingSilenceS: firstSpeech * frameS,
+    speechSpanS: (lastSpeech + 1 - firstSpeech) * frameS,
+  };
 }
 
 /**

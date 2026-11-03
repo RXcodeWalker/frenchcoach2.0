@@ -124,6 +124,8 @@ export const STORAGE_KEYS = {
   // ── Phase 4.3: notification preferences (push-only mirror to profiles) ──────────
   notifyStreak:                  'frenchCoach_notifyStreak',
   notifyDailyGoal:               'frenchCoach_notifyDailyGoal',
+  // ── Learn speaking log: per-answer flow measurements (local only) ───────────────
+  speakingLog:                   'frenchCoach_speakingLog',
 } as const;
 
 export type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS];
