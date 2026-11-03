@@ -120,6 +120,7 @@ name, code, transcript or comment. All per teacher action — negligible volume.
 
 1. Apply backend migration `20261103090000_teacher_dashboard.sql` (tables, functions, the
    `assignment_exam` / `assignment_learn_answer` quota rows — FK targets, so **before** the backend).
+   **Done: applied to production 2026-11-03** (`verification-log.md`).
 2. Deploy the FastAPI backend (it names `assignment_learn_answer`).
 3. Deploy the scoring service (`server/`) and the frontend. `sessionSync` retries a row without the new
    `sessions` columns if the database lacks them, so a frontend deployed first never stops sync.

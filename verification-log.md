@@ -4798,3 +4798,15 @@ homework caps and retry exclusion, `authenticated` cannot call `assignment_allow
 access, code rotation, direct table writes refused, archive. Backend pytest 1023 passed (+6 new). Frontend
 `typecheck`, `typecheck:server`, `lint` (0 errors) and the full `npm test` (536 files, 6034 tests) pass after fixing
 the 4 `vercel.json` rewrite tests the new dynamic routes raised. Not checked against the hosted project.
+
+## 2026-11-03 — Teacher dashboard migration applied to production
+
+`20261103090000_teacher_dashboard.sql` applied to the production Supabase project ("French Coach") via the
+Supabase connector, at the owner's request. Pre-checks: every dependency present (`sessions`, `profiles.username`,
+`scoring_envelopes.regraded_from`, `exam_feedback_reports`, `ai_quota_limits`, `ai_usage_grants`, `is_admin()`), no
+new table already existed. Post-checks on production: 8 new tables, 24 functions, the four new `sessions` columns,
+quota rows `assignment_exam=2` and `assignment_learn_answer=20`; `anon` cannot execute `join_class`;
+`authenticated` cannot execute `assignment_allowance` (service_role can); `authenticated` can execute
+`teacher_class_roster` but cannot insert into `classes`; `anon` cannot select `teacher_marks`. The behavioural spec
+was not run against production (it writes test rows); it passed on local Postgres earlier today. Not yet deployed:
+the FastAPI backend, the scoring service and the frontend from branch `claude/upbeat-rubin-nsginj`.
