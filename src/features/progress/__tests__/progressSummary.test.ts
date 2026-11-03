@@ -219,3 +219,18 @@ describe('practiceDays', () => {
     expect(days.filter(d => d.practised).map(d => d.key)).toEqual(['2026-10-20', '2026-10-26']);
   });
 });
+
+describe('practiceDays — local calendar days', () => {
+  it('files an early-morning answer under the learner\'s own day, not the UTC one', () => {
+    const prev = process.env.TZ;
+    process.env.TZ = 'Asia/Singapore'; // UTC+8
+    try {
+      const now = Date.parse('2026-10-26T00:30:00Z'); // 08:30 on 26 Oct in Singapore
+      const days = practiceDays([session({ id: 'a', date: '2026-10-25T23:00:00Z' })], 14, now); // 07:00 on 26 Oct local
+      expect(days[13]).toEqual({ key: '2026-10-26', practised: true, today: true });
+      expect(days.filter(d => d.practised)).toHaveLength(1);
+    } finally {
+      process.env.TZ = prev;
+    }
+  });
+});

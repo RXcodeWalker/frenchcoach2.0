@@ -131,15 +131,9 @@ export interface LearnSummaryInput {
   now?: number;
 }
 
+/** Distinct local calendar days in the last `days` (today included) with a Learn answer or exam — the same days `practiceDays` marks. */
 export function daysPractisedWithin(sessions: StoredSession[], days: number, now: number = Date.now()): number {
-  const cutoff = now - days * DAY_MS;
-  const keys = new Set<string>();
-  for (const s of sessions) {
-    if (!isLearnOrExam(s)) continue;
-    const t = new Date(s.date).getTime();
-    if (t >= cutoff && t <= now) keys.add(s.date.slice(0, 10));
-  }
-  return keys.size;
+  return practiceDays(sessions, days, now).filter(d => d.practised).length;
 }
 
 /** Skills the evidence projection has seen at least twice and still rates below 75% — the same rule the old Insights tab used. */
@@ -192,19 +186,38 @@ export function learnAverage(sessions: StoredSession[]): number | null {
 }
 
 export interface PractiseDay {
-  /** YYYY-MM-DD, the same date key as `daysPractisedWithin`. */
+  /** YYYY-MM-DD, the learner's local calendar day. */
   key: string;
   practised: boolean;
   today: boolean;
 }
 
-/** The last `days` days, oldest first, each marked practised when a Learn answer or exam was recorded that day. */
+/**
+ * The last `days` local calendar days, oldest first, each marked practised
+ * when a Learn answer or exam was recorded that day. Days are the learner's
+ * own (a 7am answer in Singapore is "today", not the UTC "yesterday"), so
+ * today's ring and the date numbers match the learner's calendar.
+ */
 export function practiceDays(sessions: StoredSession[], days: number = CONSISTENCY_WINDOW_DAYS, now: number = Date.now()): PractiseDay[] {
-  const keys = new Set(sessions.filter(isLearnOrExam).map(s => s.date.slice(0, 10)));
+  const keys = new Set<string>();
+  for (const s of sessions) {
+    if (!isLearnOrExam(s)) continue;
+    const t = new Date(s.date);
+    if (Number.isFinite(t.getTime())) keys.add(localDayKey(t));
+  }
+  const today = new Date(now);
   return Array.from({ length: days }, (_, i) => {
-    const key = new Date(now - (days - 1 - i) * DAY_MS).toISOString().slice(0, 10);
+    const key = localDayKey(new Date(today.getFullYear(), today.getMonth(), today.getDate() - (days - 1 - i), 12));
     return { key, practised: keys.has(key), today: i === days - 1 };
   });
+}
+
+/** YYYY-MM-DD in the device's time zone. */
+export function localDayKey(date: Date): string {
+  const y = String(date.getFullYear()).padStart(4, '0');
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
 }
 
 function lastPractised(topicMastery: Record<string, TopicMasteryEntry>, key: string): number {

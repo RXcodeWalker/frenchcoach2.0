@@ -66,7 +66,7 @@ export function computeRequirementProgress(input: RequirementProgressInput): Req
     }
     case 'causeur': {
       const ratio = clampRatio(roleplayCount, 5);
-      return { ratio, label: `${Math.min(roleplayCount, 5)} / 5 roleplays` };
+      return { ratio, label: `${Math.min(roleplayCount, 5)} / 5 role plays` };
     }
     case 'grammaire_maitrisee': {
       const best = bestSkillMastery(beliefSnapshot);

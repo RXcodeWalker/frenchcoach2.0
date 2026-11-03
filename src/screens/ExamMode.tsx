@@ -1080,13 +1080,16 @@ export function ExamMode() {
       const { level: newLevel } = getProgressionState();
       const newUnlockedAchievementIds = checkAchievements(
         buildAchievementContext({
-          finalScore,
+          // Only an attempt that counts toward progress (ADR-0007) may unlock a
+          // score achievement or Grand Oral: Coached, typed, resumed and
+          // early-start attempts still unlock Examinateur ("any exam").
+          finalScore: attemptStatus.countsTowardProgress ? finalScore : null,
           streakDays: state.profile.streak_days,
           totalSessionsAfter: state.profile.sessions_count + 1,
           topicsUsed: [],
           beliefSnapshot: null,
           examCompleted: true,
-          examType: 'igcse',
+          examType: attemptStatus.countsTowardProgress ? 'igcse' : 'practice',
         }),
       );
 

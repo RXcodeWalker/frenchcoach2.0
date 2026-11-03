@@ -71,17 +71,17 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
   { id: 'semaine_parfaite',    name: 'Semaine Parfaite',      description: 'Maintain a 7-day streak',                  icon: '🔥',  xpReward: 200,  category: 'streak' },
   { id: 'fluent',              name: 'Fluent',                description: 'Score 8+ in a session',                    icon: '🌟',  xpReward: 100,  category: 'skill' },
   { id: 'perfectionniste',     name: 'Perfectionniste',       description: 'Score a perfect 10/10',                    icon: '💎',  xpReward: 300,  category: 'skill',   hidden: true },
-  { id: 'polyglotte',          name: 'Polyglotte',            description: 'Practice all 8 topics',                    icon: '🗺️',  xpReward: 200,  category: 'practice' },
+  { id: 'polyglotte',          name: 'Polyglotte',            description: 'Practise 8 different Learn topics',         icon: '🗺️',  xpReward: 200,  category: 'practice' },
   { id: 'examinateur',         name: 'Examinateur',           description: 'Complete your first exam',                 icon: '📝',  xpReward: 100,  category: 'exam' },
-  { id: 'grand_oral',          name: 'Grand Oral',            description: 'Complete your first IGCSE exam',           icon: '🎓',  xpReward: 150,  category: 'exam',    hidden: true },
+  { id: 'grand_oral',          name: 'Grand Oral',            description: 'Complete an Exam Sim under exam conditions', icon: '🎓',  xpReward: 150,  category: 'exam',    hidden: true },
   { id: 'expert',              name: 'Expert',                description: 'Reach Advanced level (1500 XP)',            icon: '🏆',  xpReward: 500,  category: 'skill' },
   { id: 'bete_de_mode',        name: 'Bête de Mode',          description: 'Reach Beast Mode (7000 XP)',               icon: '👹',  xpReward: 1000, category: 'skill',   hidden: true },
   { id: 'grammaire_maitrisee', name: 'Grammaire Maîtrisée',   description: 'Master a grammar skill (80% mastery)',     icon: '✅',  xpReward: 150,  category: 'skill' },
   { id: 'probleme_resolu',     name: 'Problème Résolu',       description: 'Resolve a recurring grammar problem',      icon: '🔧',  xpReward: 150,  category: 'skill' },
   { id: 'drill_master',        name: 'Drill Master',          description: 'Complete 5 grammar drills',                icon: '🎯',  xpReward: 125,  category: 'skill',   hidden: true },
-  { id: 'curieux',             name: 'Curieux',               description: 'Use Grammar Coach 10 times',               icon: '🔬',  xpReward: 75,   category: 'practice' },
-  { id: 'explorateur',         name: 'Explorateur',           description: 'Try your first roleplay',                  icon: '🧭',  xpReward: 50,   category: 'social' },
-  { id: 'causeur',             name: 'Causeur',               description: 'Complete 5 roleplay conversations',         icon: '💬',  xpReward: 125,  category: 'social' },
+  { id: 'curieux',             name: 'Curieux',               description: 'Use Grammar Coach 10 times',               icon: '🔬',  xpReward: 75,   category: 'practice', hidden: true },
+  { id: 'explorateur',         name: 'Explorateur',           description: 'Answer your first role play',              icon: '🧭',  xpReward: 50,   category: 'social' },
+  { id: 'causeur',             name: 'Causeur',               description: 'Practise 5 different role plays',          icon: '💬',  xpReward: 125,  category: 'social' },
   { id: 'niveau_b2',           name: 'Niveau B2',             description: 'Average skill mastery ≥ 60%',              icon: '🏅',  xpReward: 300,  category: 'skill',   hidden: true },
 ];
 
@@ -110,19 +110,27 @@ export const ACHIEVEMENT_RULES: AchievementRule[] = [
 ];
 
 /**
- * Pure: returns IDs of all rules whose prerequisites are met and whose
- * condition passes. No storage side effects.
+ * Pure: returns IDs of the not-yet-unlocked rules whose prerequisites are met
+ * (already, or earlier in this pass) and whose condition passes. No storage side effects.
  */
 export function evaluateAchievements(
   ctx: AchievementContext,
   alreadyUnlocked: ReadonlySet<string>,
 ): string[] {
-  return ACHIEVEMENT_RULES
-    .filter(r => {
-      if (r.requires && !r.requires.every(id => alreadyUnlocked.has(id))) return false;
-      return r.condition(ctx);
-    })
-    .map(r => r.id);
+  // Prerequisites may be met in the same pass (rules are ordered after the
+  // ones they require), so a first counted Exam Sim unlocks both Examinateur
+  // and Grand Oral, and a returning learner's backlog unlocks in one go
+  // instead of one tier per session.
+  const unlocked = new Set(alreadyUnlocked);
+  const fresh: string[] = [];
+  for (const r of ACHIEVEMENT_RULES) {
+    if (unlocked.has(r.id)) continue;
+    if (r.requires && !r.requires.every(id => unlocked.has(id))) continue;
+    if (!r.condition(ctx)) continue;
+    unlocked.add(r.id);
+    fresh.push(r.id);
+  }
+  return fresh;
 }
 
 /** Dev-time parity check — call once on app boot. No-op in prod if you strip console.warn. */

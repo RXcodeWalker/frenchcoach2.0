@@ -41,6 +41,7 @@ import { requestAndSubscribe, unsubscribe, isPushSupported } from '../services/n
 import { pushProfileSettingsToCloud } from '../services/sync/profileSettingsSync';
 import { getActiveGoal, getCoachProfile, daysUntilExam } from '../services/coach/coachProfileService';
 import { achievementTiles, type AchievementCounts } from '../features/profile/achievementDisplay';
+import { achievementHistoryCounts } from '../services/coach/achievementContextBuilder';
 import { TrackSwitch } from '../features/junior/TrackSwitch';
 import { CORE_ONLY, JUNIOR_TRACK_SELECTABLE } from '../config/launchScope';
 import { ReplayTourButton } from '../features/tour/ReplayTourButton';
@@ -86,7 +87,10 @@ export function Profile() {
     track({ name: 'profile_viewed', props: {} });
   }, []);
   const stats = useMemo(() => getStats(), []);
-  const examsCompleted = useMemo(() => getSessionHistory().filter(s => s.mode === 'exam').length, []);
+  const { examsCompleted, history } = useMemo(() => {
+    const sessions = getSessionHistory();
+    return { examsCompleted: sessions.filter(s => s.mode === 'exam').length, history: achievementHistoryCounts(sessions) };
+  }, []);
   const coachProfile = useMemo(() => getCoachProfile(), []);
   const { user, signOut, isAdmin, ageBand, consentStatus, refreshConsentStatus } = useAuth();
   const { isGuest: guestFlag, exitGuestMode } = useGuestMode();
@@ -286,7 +290,8 @@ export function Profile() {
     sessions: profile.sessions_count,
     streak: profile.streak_days,
     xp: profile.total_xp,
-    topicsPractised: Object.values(state.topicMastery).filter(m => m.sessionsCompleted > 0).length,
+    topicsPractised: history.topicKeys.length,
+    rolePlaysPractised: history.rolePlayKeys.length,
     bestScore: stats.bestScore,
     examsCompleted,
   };

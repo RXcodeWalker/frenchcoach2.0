@@ -42,11 +42,17 @@ export interface AchievementCounts {
   streak: number;
   xp: number;
   topicsPractised: number;
+  rolePlaysPractised: number;
   bestScore: number | null;
   examsCompleted: number;
 }
 
-/** current/max for achievements the app can measure; null when there is no honest number (mastery, drills, hidden features). */
+/**
+ * current/max for achievements the app can measure; null when there is no
+ * honest number (mastery, drills, hidden features, and Fluent: its unlock
+ * reads the marked score of a counted answer, which the stored best score
+ * does not reflect, so a 1/1 bar could sit on a locked tile).
+ */
 export function achievementProgress(id: string, c: AchievementCounts): { current: number; max: number } | null {
   const of = (current: number, max: number) => ({ current: Math.min(current, max), max });
   switch (id) {
@@ -56,9 +62,10 @@ export function achievementProgress(id: string, c: AchievementCounts): { current
     case 'marathonien': return of(c.sessions, 50);
     case 'triple_jour': return of(c.streak, 3);
     case 'semaine_parfaite': return of(c.streak, 7);
-    case 'fluent': return of(c.bestScore !== null && c.bestScore >= 8 ? 1 : 0, 1);
     case 'polyglotte': return of(c.topicsPractised, 8);
     case 'examinateur': return of(c.examsCompleted, 1);
+    case 'explorateur': return of(c.rolePlaysPractised, 1);
+    case 'causeur': return of(c.rolePlaysPractised, 5);
     case 'expert': return of(c.xp, 1500);
     default: return null;
   }
