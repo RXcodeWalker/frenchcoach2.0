@@ -77,10 +77,12 @@ export interface ExamAllowance {
  * read without charging. null when it cannot be read (signed out, offline, not
  * configured) — the caller lets the learner start, and POST /score still enforces it.
  */
-export async function getExamAllowance(): Promise<ExamAllowance | null> {
+export async function getExamAllowance(assignmentId?: string | null): Promise<ExamAllowance | null> {
   if (!SCORING_API_BASE) return null;
   try {
-    const res = await fetch(`${SCORING_API_BASE}/exam/allowance`, { headers: await authHeaders() });
+    // Homework a teacher set has its own allowance (server/examAttemptMeta.ts).
+    const query = assignmentId ? `?assignment=${encodeURIComponent(assignmentId)}` : '';
+    const res = await fetch(`${SCORING_API_BASE}/exam/allowance${query}`, { headers: await authHeaders() });
     if (!res.ok) return null;
     const body = (await res.json()) as Partial<ExamAllowance>;
     if (typeof body.allowed !== 'boolean') return null;
@@ -161,7 +163,29 @@ export function pingScoringServiceHealth(): void {
  * underway) is treated the same as an ambiguous outcome: the caller should
  * move to WaitingForScore/poll, not treat it as done or as an error.
  */
-export async function submitForScoring(transcript: SessionTranscript): Promise<ScoreStatus> {
+/**
+ * How the attempt was sat (teacher dashboard Stage 0, server/examAttemptMeta.ts). Sent as
+ * query params — never inside the transcript, so nothing about it can reach the marker.
+ * The server records it beside the envelope and can only lower `countsTowardProgress`.
+ */
+export interface AttemptConduct {
+  coached: boolean;
+  countsTowardProgress: boolean;
+  /** Homework a teacher set (a mock exam assignment), if this attempt answers one. */
+  assignmentId?: string | null;
+}
+
+export function attemptConductQuery(conduct: AttemptConduct | undefined): string {
+  if (!conduct) return '';
+  const params = new URLSearchParams({
+    mode: conduct.coached ? 'coached' : 'examSim',
+    counts: conduct.countsTowardProgress ? '1' : '0',
+  });
+  if (conduct.assignmentId) params.set('assignment', conduct.assignmentId);
+  return `?${params.toString()}`;
+}
+
+export async function submitForScoring(transcript: SessionTranscript, conduct?: AttemptConduct): Promise<ScoreStatus> {
   if (!SCORING_API_BASE) {
     throw new ScoringApiError('Scoring service is not configured (VITE_SCORING_API_URL unset)');
   }
@@ -170,7 +194,7 @@ export async function submitForScoring(transcript: SessionTranscript): Promise<S
   const timeoutId = setTimeout(() => controller.abort(), SCORE_TIMEOUT_MS);
 
   try {
-    const res = await fetch(`${SCORING_API_BASE}/score`, {
+    const res = await fetch(`${SCORING_API_BASE}/score${attemptConductQuery(conduct)}`, {
       method: 'POST',
       headers: await authHeaders(),
       body: JSON.stringify(transcript),

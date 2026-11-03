@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { useShowNavRail } from '../../components/layout/shellChrome';
 import { STORY_CARDS, type StoryCard } from '../../data/storyCards';
+import { ROLE_PLAY_CARD_PARAM, homeworkIdFromSearch } from '../../features/homework/homework';
+import { useMyHomework } from '../../features/homework/useMyHomework';
 import { useRecording } from '../../features/recording/useRecording';
 import { getAIFeedback } from '../../services/api/apiClient';
 import { getSessionHistory } from '../../services/analytics/analyticsService';
@@ -110,6 +112,27 @@ export function RolePlayDrill() {
 
   useEffect(() => () => stopExaminerVoice(), []);
 
+  // Homework (features/homework): `?card=<id>&assignment=<id>` opens the card a teacher
+  // set. The id counts only once my_assignments() confirms it is this learner's
+  // role-play homework on that card; each answer then carries `assignmentId`.
+  const location = useLocation();
+  const linkParams = new URLSearchParams(location.search);
+  const linkedCardId = linkParams.get(ROLE_PLAY_CARD_PARAM);
+  const requestedHomeworkId = homeworkIdFromSearch(location.search);
+  const { assignments: myHomework } = useMyHomework(requestedHomeworkId !== null);
+  const homework = requestedHomeworkId
+    ? myHomework?.find((a) => a.id === requestedHomeworkId && a.kind === 'role_play') ?? null
+    : null;
+  const linkedCardOpenedRef = useRef(false);
+  useEffect(() => {
+    if (linkedCardOpenedRef.current || !linkedCardId) return;
+    const linked = STORY_CARDS.find((c) => c.id === linkedCardId);
+    if (!linked) return;
+    linkedCardOpenedRef.current = true;
+    openCard(linked);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- open once per link
+  }, [linkedCardId]);
+
   const openCard = (next: StoryCard) => {
     stopExaminerVoice();
     setCard(next);
@@ -215,6 +238,7 @@ export function RolePlayDrill() {
       durationSec: recording.elapsedTime,
       feedback: fb,
       createdAt: new Date().toISOString(),
+      ...(homework && homework.rolePlayCardId === forCard.id ? { assignmentId: homework.id } : {}),
     };
 
     const orchestration = orchestrateAttempt({

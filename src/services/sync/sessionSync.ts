@@ -19,6 +19,12 @@ type CloudSessionRow = {
   duration_sec: number;
   feedback: Record<string, unknown> | null;
   created_at: string;
+  // Teacher dashboard Stage 0 (backend migration 20261103090000). Optional: sent
+  // only when set, so a row without them still syncs against an older schema.
+  practice_only?: boolean | null;
+  exam_marks?: Record<string, number> | null;
+  scoring_session_id?: string | null;
+  assignment_id?: string | null;
 };
 
 type FeedbackSummaryBlob = {
@@ -155,6 +161,10 @@ function sessionToRow(userId: string, session: Session): Omit<CloudSessionRow, '
     duration_sec: session.durationSec,
     feedback: stripFeedback(session.feedback) as Record<string, unknown> | null,
     created_at: session.createdAt,
+    ...(session.practiceOnly !== undefined ? { practice_only: session.practiceOnly } : {}),
+    ...(session.examMarks ? { exam_marks: { ...session.examMarks } } : {}),
+    ...(session.scoringSessionId ? { scoring_session_id: session.scoringSessionId } : {}),
+    ...(session.assignmentId ? { assignment_id: session.assignmentId } : {}),
   };
 }
 

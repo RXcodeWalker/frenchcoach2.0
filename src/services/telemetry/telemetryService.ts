@@ -627,6 +627,7 @@ export type FailureArea =
   | 'pronunciation'
   | 'auth'
   | 'sync'
+  | 'teacher'
   | 'storage';
 
 export interface ErrorContext {

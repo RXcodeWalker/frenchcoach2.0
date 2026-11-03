@@ -62,6 +62,8 @@ import {
 import { pingInterpretServiceHealth } from '../services/exam/interpretUtterance';
 import { useExamCorrectionsRail } from '../services/exam/turnFeedback';
 import { countsTowardProgress, resolveCoachedMode } from '../services/exam/attemptStatus';
+import { homeworkIdFromSearch } from '../features/homework/homework';
+import { useMyHomework } from '../features/homework/useMyHomework';
 import { transcribeAudio } from '../services/api/apiClient';
 import { clearExamAudio } from '../services/exam/pronunciation/examAudioStore';
 import { captureTurnAudio } from '../services/exam/pronunciation/captureTurnAudio';
@@ -169,6 +171,17 @@ export function ExamMode() {
   const duelSessionId = duelState?.sessionId;
   const isDuelRun = Boolean(duelId && duelQuestionSetId && duelSessionId);
 
+  // Homework (features/homework): `/exam?assignment=<id>` is a mock exam a teacher set.
+  // It counts only once the learner's own my_assignments() confirms it; it is always
+  // Exam Sim (like Daily Challenge / Duels) and has its own allowance on the server.
+  const requestedHomeworkId = homeworkIdFromSearch(location.search);
+  const { assignments: myHomework } = useMyHomework(Boolean(requestedHomeworkId));
+  const homework = requestedHomeworkId
+    ? myHomework?.find((a) => a.id === requestedHomeworkId && a.kind === 'mock_exam') ?? null
+    : null;
+  const homeworkId = homework?.id ?? null;
+  const isCompetitiveOrHomeworkRun = isDailyChallengeRun || isDuelRun || homeworkId !== null;
+
   const [examState, setExamState] = useState<ExamState>('select');
   useShowNavRail(examState === 'select' || examState === 'results');
   const [action, setAction] = useState<ExaminerAction | null>(null);
@@ -247,7 +260,7 @@ export function ExamMode() {
   // Daily Challenge / Duel runs are always Exam Sim, whatever the toggle says
   // — those flows skip ExamSelect entirely, so this is defence-in-depth, not
   // the only place it's enforced (see startExam()).
-  const coached = sessionRef.current?.coached ?? resolveCoachedMode(coachedMode, isDailyChallengeRun || isDuelRun);
+  const coached = sessionRef.current?.coached ?? resolveCoachedMode(coachedMode, isCompetitiveOrHomeworkRun);
 
   // W6: lifted out of ExamRunner (which used to own this hook itself) so the
   // accumulated rail entries survive past 'running' into the /40 report —
@@ -617,7 +630,7 @@ export function ExamMode() {
     const session = new SimulationSession(sessionId, questionSet, clock.nowS, {
       beforeExaminerAction: announceIfPartChanged,
       onExaminerAction: (a) => setAction(a),
-    }, resolveCoachedMode(coachedMode, isDailyChallengeRun || isDuelRun));
+    }, resolveCoachedMode(coachedMode, isCompetitiveOrHomeworkRun));
     sessionRef.current = session;
     setExamState('running');
 
@@ -894,7 +907,16 @@ export function ExamMode() {
         void (async () => {
           let result: Awaited<ReturnType<typeof submitForScoring>>;
           try {
-            result = await submitForScoring(transcript);
+            result = await submitForScoring(transcript, {
+              coached,
+              countsTowardProgress: countsTowardProgress({
+                coached,
+                transcript,
+                earlyStart: earlyStartRef.current,
+                resumed: resumedRef.current,
+              }).countsTowardProgress,
+              assignmentId: homeworkId,
+            });
           } catch (err) {
             if (cancelled) return;
             captureError(err, { area: 'exam_scoring', stage: 'submitForScoring', sessionId: transcript.sessionId });
@@ -1062,6 +1084,7 @@ export function ExamMode() {
         practiceOnly: !attemptStatus.countsTowardProgress,
         examMarks: view ? examMarksFromView(view) : undefined,
         scoringSessionId: finalTranscript.sessionId,
+        ...(homeworkId ? { assignmentId: homeworkId } : {}),
       };
 
       persistSession(appSession);
@@ -1111,6 +1134,7 @@ export function ExamMode() {
         notice={resumeDiscardedMessage}
         onDismissNotice={() => setResumeDiscardedMessage(null)}
         onRolePlayDrill={() => navigate('/exam/role-play')}
+        homework={homework ? { assignmentId: homework.id, title: homework.title, teacherName: homework.teacherName } : null}
         onSelect={(set, coached) => {
           selectedQuestionSetIdRef.current = set.questionSetId;
           selectedAuthoredSetRef.current = set;
