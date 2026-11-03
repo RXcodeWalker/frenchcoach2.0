@@ -25,7 +25,7 @@ describe('getExamAllowance', () => {
       json: async () => ({ allowed: false, lastExamDate: '2026-10-20', nextAvailableAt: '2026-10-27T00:00:00.000Z' }),
     }));
     vi.stubGlobal('fetch', fetchMock);
-    expect(await getExamAllowance()).toEqual({ allowed: false, lastExamDate: '2026-10-20', nextAvailableAt: '2026-10-27T00:00:00.000Z' });
+    expect(await getExamAllowance()).toEqual({ allowed: false, premium: false, lastExamDate: '2026-10-20', nextAvailableAt: '2026-10-27T00:00:00.000Z' });
     const [url, init] = fetchMock.mock.calls[0] as unknown as [string, { headers: Record<string, string> }];
     expect(url).toBe('https://scoring.example/exam/allowance');
     expect(init.headers.Authorization).toBe('Bearer test-token');

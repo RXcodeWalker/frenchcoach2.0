@@ -66,10 +66,22 @@ export function weeklyExamLimitMessage(nextAvailableAt: string | null | undefine
   return `You can take one sample exam a week, and you've had this week's.${when ? ` Your next one unlocks on ${when}.` : ''}`;
 }
 
+/** Premium (docs/systems/payments.md): no weekly window, a per-day limit instead. */
+export function dailyExamLimitMessage(): string {
+  return "You've had today's mock exams. Your next one unlocks tomorrow.";
+}
+
 export interface ExamAllowance {
   allowed: boolean;
+  /** True when the Premium rule (per day, no weekly window) applied. */
+  premium: boolean;
   lastExamDate: string | null;
   nextAvailableAt: string | null;
+}
+
+/** The "limit reached" line for this allowance, free or Premium. */
+export function examLimitMessage(allowance: Pick<ExamAllowance, 'premium' | 'nextAvailableAt'> | null): string {
+  return allowance?.premium ? dailyExamLimitMessage() : weeklyExamLimitMessage(allowance?.nextAvailableAt);
 }
 
 /**
@@ -84,7 +96,12 @@ export async function getExamAllowance(): Promise<ExamAllowance | null> {
     if (!res.ok) return null;
     const body = (await res.json()) as Partial<ExamAllowance>;
     if (typeof body.allowed !== 'boolean') return null;
-    return { allowed: body.allowed, lastExamDate: body.lastExamDate ?? null, nextAvailableAt: body.nextAvailableAt ?? null };
+    return {
+      allowed: body.allowed,
+      premium: body.premium === true,
+      lastExamDate: body.lastExamDate ?? null,
+      nextAvailableAt: body.nextAvailableAt ?? null,
+    };
   } catch {
     return null;
   }
@@ -105,9 +122,9 @@ export function terminalScoringMessage(err: ScoringApiError): string {
     return "This exam's questions were updated after you took it, so this attempt can't be marked. Please retake the exam.";
   }
   if (err.status === 429) {
-    return err.code === 'weekly_exam_limit'
-      ? weeklyExamLimitMessage(err.nextAvailableAt)
-      : "You've reached today's limit for exam marking. Please try again tomorrow.";
+    if (err.code === 'weekly_exam_limit') return weeklyExamLimitMessage(err.nextAvailableAt);
+    if (err.code === 'daily_exam_limit') return dailyExamLimitMessage();
+    return "You've reached today's limit for exam marking. Please try again tomorrow.";
   }
   return err.message;
 }
@@ -234,7 +251,7 @@ async function parseEnvelopeResponse(res: Response): Promise<EnvelopeView> {
       const body = await res.json();
       if (body?.error) message = body.error;
       if (typeof body?.code === 'string') code = body.code;
-      // A usage-limit 429 names its limit in `error` (weekly_exam_limit, daily_quota_reached).
+      // A usage-limit 429 names its limit in `error` (weekly_exam_limit, daily_exam_limit, daily_quota_reached).
       if (res.status === 429 && typeof body?.error === 'string') code = body.error;
       if (typeof body?.nextAvailableAt === 'string') nextAvailableAt = body.nextAvailableAt;
     } catch {

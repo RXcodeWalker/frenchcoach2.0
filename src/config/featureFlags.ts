@@ -41,6 +41,11 @@ export const FEATURE_FLAGS = {
   // word marks may be unreliable); see verification-log.md and the waiver in
   // scripts/labCalibration/__tests__/gate.test.ts. Rollback: 'coming-soon'.
   pronunciationLab: 'live',
+  // docs/systems/payments.md — Premium subscriptions (Stripe). Off until the owner
+  // has set the Stripe env vars on the backend and run a test-mode purchase;
+  // preview with ?ff_premium=live. Rollback: 'coming-soon' (billing keeps working
+  // for existing subscribers; only the page and its links hide).
+  premium: 'coming-soon',
 }satisfies Record<string, FeatureStatus>;
 
 export type FeatureFlagKey = keyof typeof FEATURE_FLAGS;

@@ -54,7 +54,7 @@ import { isScoringDebugEnabled } from '../scripts/scoring/observability/logger';
 import { resolveAndVerifyQuestionSet, QuestionSetNotFoundError, QuestionSetHashMismatchError } from './resolveQuestionSet';
 import { createTtlCache, probeGroq, probeGemini, type ProviderProbeStatus } from './healthProbe';
 import { consumeAiQuotaOr503, getQuotaClient, QuotaDeniedError, releaseAiQuotaGrant } from './aiQuota';
-import { EXAM_ATTEMPT_FEATURE, examAllowanceFrom, loadExamGrantDates } from './examAllowance';
+import { EXAM_ATTEMPT_FEATURE, examAllowanceFrom, loadExamGrantDates, loadExamPlan } from './examAllowance';
 import { classifyScoringFailure } from './scoringFailure';
 import { createFeedbackHandlers } from './feedbackRoute';
 import { createSupabaseFeedbackStore } from '../scripts/scoring/supabaseFeedbackStore';
@@ -193,16 +193,21 @@ app.post('/score', async (req: Request, res: Response) => {
   // throughout this plan (phase-3-plan-tidy-widget.md §2 correction #6).
   // sessionId is a crypto.randomUUID() minted once per attempt and resent
   // verbatim on retry (ExamMode.tsx), so it doubles as the idempotency key.
-  // Launch limit: one sample exam per rolling 7 days (examAllowance.ts). Checked
-  // before anything is charged; a retry of this same attempt never counts against
-  // itself. A failed scoring gives the week back (catch below).
+  // Launch limit: one sample exam per rolling 7 days (examAllowance.ts); Premium is
+  // per day instead. Checked before anything is charged; a retry of this same attempt
+  // never counts against itself. A failed scoring gives the exam back (catch below).
   try {
+    const now = new Date();
     const allowance = examAllowanceFrom(
-      await loadExamGrantDates(getQuotaClient(), userId, new Date(), transcript.sessionId),
-      new Date(),
+      await loadExamGrantDates(getQuotaClient(), userId, now, transcript.sessionId),
+      now,
+      await loadExamPlan(getQuotaClient(), userId),
     );
     if (!allowance.allowed) {
-      res.status(429).json({ error: 'weekly_exam_limit', nextAvailableAt: allowance.nextAvailableAt });
+      res.status(429).json({
+        error: allowance.premium ? 'daily_exam_limit' : 'weekly_exam_limit',
+        nextAvailableAt: allowance.nextAvailableAt,
+      });
       return;
     }
   } catch (err) {
@@ -279,8 +284,9 @@ app.post('/score', async (req: Request, res: Response) => {
 });
 
 /**
- * Whether this account may sit a sample exam now (one per rolling 7 days), read without
- * charging anything: { allowed, lastExamDate, nextAvailableAt }. The exam screen asks
+ * Whether this account may sit a sample exam now (one per rolling 7 days; Premium: the
+ * per-day Premium limit), read without charging anything:
+ * { allowed, premium, lastExamDate, nextAvailableAt }. The exam screen asks
  * before the learner starts; POST /score enforces the same rule.
  */
 app.get('/exam/allowance', async (req: Request, res: Response) => {
@@ -291,7 +297,8 @@ app.get('/exam/allowance', async (req: Request, res: Response) => {
   }
   try {
     const now = new Date();
-    res.status(200).json(examAllowanceFrom(await loadExamGrantDates(getQuotaClient(), userId, now), now));
+    const client = getQuotaClient();
+    res.status(200).json(examAllowanceFrom(await loadExamGrantDates(client, userId, now), now, await loadExamPlan(client, userId)));
   } catch (err) {
     console.error('[GET /exam/allowance] lookup failed:', err);
     res.status(503).json({ error: 'quota_service_unavailable' });

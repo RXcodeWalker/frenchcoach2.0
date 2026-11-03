@@ -49,6 +49,7 @@ export const ROUTES: RouteEntry[] = [
   { path: '/progress', kind: 'app', indexable: false },
   { path: '/profile', kind: 'app', indexable: false },
   { path: '/shop', kind: 'app', indexable: false },
+  { path: '/premium', kind: 'app', indexable: false },
   { path: '/rankings', kind: 'app', indexable: false },
   { path: '/daily-challenge', kind: 'app', indexable: false },
   { path: '/league', kind: 'app', indexable: false },

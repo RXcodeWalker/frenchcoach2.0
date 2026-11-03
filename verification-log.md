@@ -4771,3 +4771,21 @@ browser voice (the existing fallback).
 **L2-off window.** Frontend (JSON + manifest) and backend (byte copy) are separate commits on
 `claude/sleepy-cerf-pyau1k`; when merged, deploy back to back — between the two deploys the backend reports
 `demandsResolved: false` and L2 evidence is off.
+
+## 2026-11-03 — Premium subscriptions (Stripe): built, not yet switched on
+
+**What.** Stripe Premium subscription that raises the launch limits (ADR 0014, `docs/systems/payments.md`):
+backend `routers/billing.py` + migration `20261104090000`, `server/examAllowance.ts` Premium rule, `/premium`
+screen behind the `premium` flag (`coming-soon`). Billing stays off until the Stripe env vars are set.
+
+**Checked.** Migration applied to a throwaway Postgres 16 with stubbed Supabase roles/`auth.uid()`/profiles/quota
+tables and asserted: free stops at 3 / Premium at 30 on `learn_answer`, replay still granted, a feature without a
+Premium value keeps its limit, `past_due` keeps Premium, `canceled` and a period >3 days over drop it, deleting a
+profile with a live subscription raises `active_subscription` (allowed after cancel, rows cascade), clients cannot
+write `billing_*` or execute `has_premium`/`consume_ai_quota`, RLS shows a user only their own subscription. **Not
+run:** a `backend/supabase/tests/*.test.mjs` against a local Supabase stack (none written). Backend pytest 1049
+passed (31+ new billing tests: real HMAC webhook signature + 5-minute tolerance, forged/old events refused,
+subscription re-read from Stripe outranks the payload, duplicate events processed once, failed sync not marked
+seen). Frontend: typecheck, lint (0 errors), full `npm test`, `typecheck:server`; `/premium` rendered at 390px
+and 1280px with a mocked status. **Not done:** any call against real Stripe (no keys in this environment) — the
+owner's test-mode purchase in `payments.md` §3 step 7 is the first end-to-end check.

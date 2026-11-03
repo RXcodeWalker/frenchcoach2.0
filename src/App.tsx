@@ -19,6 +19,7 @@ import { MissionPlayer } from './screens/junior/MissionPlayer';
 import { Learn } from './screens/Learn';
 import { LearnSounds } from './screens/LearnSounds';
 import { Notebook } from './screens/Notebook';
+import { Premium } from './screens/Premium';
 import { MonthlyCheckScreen } from './screens/MonthlyCheckScreen';
 import { ExamMode } from './screens/ExamMode';
 import { Explore } from './screens/Explore';
@@ -276,6 +277,11 @@ function AppShell() {
           <Route path="/explore" element={<Explore />} />
           <Route path="/progress" element={<Progress />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/premium" element={
+            <ComingSoonGate status={resolveFeatureStatus('premium')} featureId="premium" name="Premium" description="More AI-marked answers and mock exams every day." fallbackRoute="/" fallbackLabel="Go Home">
+              <Premium />
+            </ComingSoonGate>
+          } />
           <Route path="/shop" element={
             <ComingSoonGate status={resolveFeatureStatus('shop')} featureId="shop" name="Shop" description="Unlock power-ups and cosmetics with your earned gems." fallbackRoute="/" fallbackLabel="Go Home">
               <Shop />

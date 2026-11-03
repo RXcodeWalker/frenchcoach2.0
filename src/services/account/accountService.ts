@@ -14,8 +14,10 @@
 import { supabase, supabaseConfigured } from '../../lib/supabase';
 import { exportData as exportLocalAnalytics } from '../analytics/analyticsService';
 import { STORAGE_KEYS, getStorageScope, storageRemove } from '../persistence/storage';
+import { cancelSubscriptionsForDeletion } from '../billing/billingClient';
 
-export type AccountErrorCode = 'not_authenticated' | 'network_error' | 'unknown';
+/** `active_subscription`: Premium could not be cancelled, so the database refused the delete. */
+export type AccountErrorCode = 'not_authenticated' | 'network_error' | 'active_subscription' | 'unknown';
 
 export class AccountError extends Error {
   code: AccountErrorCode;
@@ -29,6 +31,9 @@ export class AccountError extends Error {
 function mapRpcError(message: string): AccountError {
   if (message.includes('not_authenticated') || message.includes('28000')) {
     return new AccountError('not_authenticated', message);
+  }
+  if (message.includes('active_subscription')) {
+    return new AccountError('active_subscription', message);
   }
   return new AccountError('unknown', message);
 }
@@ -110,6 +115,15 @@ export async function exportMyData(): Promise<ExportedAccountData> {
  */
 export async function deleteMyAccount(): Promise<void> {
   if (!supabaseConfigured) throw new AccountError('network_error', 'offline');
+  // Stop Premium billing first: the database refuses to delete an account that is
+  // still being charged (migration 20261104090000). If this call fails, the RPC
+  // below is still tried — it succeeds when there was nothing to cancel, and
+  // answers active_subscription when there was.
+  try {
+    await cancelSubscriptionsForDeletion();
+  } catch {
+    // fall through to the database's own check
+  }
   const { error } = await supabase.rpc('delete_my_account');
   if (error) throw mapRpcError(error.message);
   storageRemove(STORAGE_KEYS.notebook);

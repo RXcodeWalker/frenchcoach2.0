@@ -59,6 +59,19 @@ These never call each other directly. The frontend is the only thing that talks 
   deployed environment has it set — check, and consider adding it to the example file as part of
   that change.
 
+### Premium billing variables (2026-11-03)
+
+- **FastAPI (Render dashboard):** `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_MONTHLY`,
+  `STRIPE_PRICE_YEARLY` (optional), `BILLING_APP_URL` (optional), `STRIPE_AUTOMATIC_TAX` (optional, `1`).
+  Unset `STRIPE_SECRET_KEY` or `STRIPE_PRICE_MONTHLY` = billing off (every billing route but `/status` 503s
+  `billing_not_configured`). Stripe's webhook points **directly** at the Render host
+  (`/api/billing/webhook`), not through the Vercel proxy. Nothing new on Vercel or `french-scoring`: the
+  scoring service reads Premium through the service-role `has_premium()` RPC. Full setup:
+  `docs/systems/payments.md` §3.
+- **Deploy order:** apply backend migration `20261104090000` to production before switching billing on.
+  Either service may deploy first: a missing `premium_daily_limit` column reads as the free limits
+  (`main.py`'s `_read_limit_row`, `examAllowance.ts`'s `loadExamPlan`), never as a 503.
+
 ### Exam-pronunciation variables (2026-10-06)
 
 - **`EXAM_PRONUNCIATION_ACCESS`** (FastAPI; `off` | `admin` | `all`; unset or anything else = `off`).

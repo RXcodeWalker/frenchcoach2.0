@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
 import {
-  AtSign, Bell, BellRing, Check, ChevronDown, ChevronRight, ChevronUp, Copy, Download, Flame, Globe, Loader2, LogIn, LogOut,
+  AtSign, Bell, BellRing, Check, ChevronDown, ChevronRight, ChevronUp, Copy, Download, Sparkles, Flame, Globe, Loader2, LogIn, LogOut,
   Mic, Minus, Moon, Plus, Shield, ShieldCheck, SlidersHorizontal, Trash2, TrendingUp, UserX, Users, Volume2, Zap,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -15,6 +15,7 @@ import { ACHIEVEMENT_DEFINITIONS } from '../data/gameData';
 import { enter, fadeUp, fill, slide } from '../components/motion/variants';
 import { PageShell } from '../components/layout/PageShell';
 import { TopContextBar } from '../components/TopContextBar';
+import { resolveFeatureStatus } from '../config/featureFlags';
 import { Button } from '../components/ui/Button';
 import { Segmented } from '../components/ui/Segmented';
 import { SettingGroup, SettingRow, SettingToggle, Toggle } from '../components/ui/SettingToggle';
@@ -257,8 +258,12 @@ export function Profile() {
       await deleteMyAccount();
       await signOut();
       navigate('/', { replace: true });
-    } catch {
-      setDeleteError('Deletion failed. Try again, or contact us if this keeps happening.');
+    } catch (err) {
+      setDeleteError(
+        err instanceof AccountError && err.code === 'active_subscription'
+          ? "We couldn't cancel your Premium subscription, so your account wasn't deleted. Cancel it under Premium → Manage, then try again."
+          : 'Deletion failed. Try again, or contact us if this keeps happening.',
+      );
       setDeleting(false);
     }
   }
@@ -798,8 +803,19 @@ export function Profile() {
                   </>
                 )}
 
+                {resolveFeatureStatus('premium') === 'live' && !isGuest && (
+                  <SettingRow
+                    divided={!!ageBand}
+                    icon={<Sparkles size={16} />}
+                    label="Premium"
+                    description="More marked answers and mock exams · manage your plan"
+                    onClick={() => navigate('/premium')}
+                    trailing={chevron}
+                    testId="profile-premium"
+                  />
+                )}
                 <SettingRow
-                  divided={!!ageBand}
+                  divided={!!ageBand || (resolveFeatureStatus('premium') === 'live' && !isGuest)}
                   icon={exportingData ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
                   label="Export my data"
                   description={exportingData ? 'Preparing your file…' : exportError ?? 'Download sessions, transcripts and progress'}

@@ -4,7 +4,8 @@ import { BookOpen, ChevronRight, MessagesSquare, X } from 'lucide-react';
 import { STORY_CARDS } from '../../data/storyCards';
 import { listPublishedQuestionSetsWithRetry, getOfflineAuthoredSets } from '../../data/exam/bank/loader';
 import type { AuthoredQuestionSet, Difficulty } from '../../data/exam/bank/types';
-import { getExamAllowance, weeklyExamLimitMessage, type ExamAllowance } from '../../services/exam/scoringApiClient';
+import { examLimitMessage, getExamAllowance, type ExamAllowance } from '../../services/exam/scoringApiClient';
+import { PremiumLink } from '../../features/premium/PremiumLink';
 
 const TOPIC_AREA_LABEL: Record<string, string> = {
   A: 'Everyday Activities',
@@ -150,8 +151,9 @@ export function ExamSelect({ onSelect, onAutoFallback, notice, onDismissNotice, 
 
         {weeklyLimitReached ? (
           <div className="rounded-xl surface p-6 text-center space-y-1" role="status">
-            <p className="font-bold text-white text-sm">This week's sample exam is done</p>
-            <p className="text-[12px] text-ink-muted">{weeklyExamLimitMessage(allowance?.nextAvailableAt)}</p>
+            <p className="font-bold text-white text-sm">{allowance?.premium ? "Today's mock exams are done" : "This week's sample exam is done"}</p>
+            <p className="text-[12px] text-ink-muted">{examLimitMessage(allowance)}</p>
+            {!allowance?.premium && <PremiumLink>Take a mock exam every day with Premium</PremiumLink>}
           </div>
         ) : (
         <>
