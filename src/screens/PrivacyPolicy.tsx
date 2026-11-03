@@ -101,11 +101,8 @@ export function PrivacyPolicy() {
 
         <Section title="Questions or requests">
           <p>
-            For anything about this policy or your data, reach out via the contact details on our{' '}
-            <a href="/about" className="mk-link">
-              About page
-            </a>
-            .
+            For anything about this policy or your data, use <strong>Send feedback</strong> in the app
+            (Profile → Help &amp; feedback) and leave an email address for the reply.
           </p>
         </Section>
       </div>

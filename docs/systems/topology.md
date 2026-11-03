@@ -415,6 +415,17 @@ on them with `backend/supabase/ops/expire_open_duels_at_deploy.sql` (D11; run by
   `RESEND_API_KEY` (email fallback), alongside the existing `SUPABASE_URL` /
   `SUPABASE_SERVICE_KEY`. The client half (`src/services/notifications/pushService.ts`,
   `public/sw.js`) needs `VITE_VAPID_PUBLIC_KEY` set wherever the frontend is built (Vercel).
+- `feedback-notify.yml` (2026-11-04) — hourly at :17, runs
+  `scripts/scheduledJobs/sendFeedbackDigest.ts`: emails every new in-app "Send feedback"
+  message (`public.user_feedback`, written only through the `submit_feedback` RPC — backend
+  migration `20261104090000`) to `FEEDBACK_NOTIFY_EMAIL` through Resend, one email per message
+  with Reply-To set to the sender's address when they left one. Claims a row (`notified_at`)
+  before sending and releases it if Resend fails. Secrets: `SUPABASE_URL` /
+  `SUPABASE_SERVICE_KEY` (required), `RESEND_API_KEY` + `FEEDBACK_NOTIFY_EMAIL` (without
+  them the run only warns and messages wait in the table), optional `FEEDBACK_FROM` (default
+  Resend's `onboarding@resend.dev`, which delivers only to the Resend account's own address).
+  The client half is `src/features/contact/` (desktop side rail, Profile → Help & feedback,
+  the crash screen); optional `VITE_CONTACT_EMAIL` shows a "prefer email?" address in it.
 
 **Known gap (2026-10-09): none of these repo secrets have ever been set.** Every run of all
 three scheduled jobs since they were added has failed with empty `SUPABASE_URL` /
