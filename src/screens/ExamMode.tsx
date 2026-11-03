@@ -82,6 +82,8 @@ import { GREETING_TEXT, ROLE_PLAY_FINISHED_TEXT, topicAnnouncementText } from '.
 import { ExitConfirmDialog } from './exam/ExitConfirmDialog';
 import { savePendingClaim, clearPendingClaim, submitDailyChallengeAttempt } from '../services/dailyChallenge/dailyChallengeService';
 import { savePendingDuelClaim, clearPendingDuelClaim, submitDuelAttempt } from '../services/duels/duelsService';
+import { useScreenWakeLock } from '../lib/useScreenWakeLock';
+import { useBackHandler } from '../lib/useBackHandler';
 
 type ExamState = 'select' | 'intro' | 'greeting' | 'card' | 'running' | 'review' | 'scoring' | 'results';
 
@@ -201,6 +203,16 @@ export function ExamMode() {
   // because it was saved under a since-changed question set or an older
   // engine version — surfaced once, on the 'select' screen.
   const [resumeDiscardedMessage, setResumeDiscardedMessage] = useState<string | null>(null);
+
+  // From the greeting to the marks, the screen stays on: the 10-minute preparation and the
+  // examiner's turns run without a touch, and a sleeping phone stops the mic.
+  useScreenWakeLock(examState !== 'select' && examState !== 'intro' && examState !== 'results');
+  // Back while marking asks before leaving (the runner and the review screen guard their own).
+  useBackHandler(() => {
+    if (examState !== 'scoring') return false;
+    setShowScoringExitConfirm(true);
+    return true;
+  }, examState === 'scoring');
 
   const { consentStatus, isAdmin } = useAuth();
   const recording = useRecording(consentStatus === 'pending');

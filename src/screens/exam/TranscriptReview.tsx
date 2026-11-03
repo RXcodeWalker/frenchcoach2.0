@@ -7,6 +7,7 @@ import type { SessionTranscript } from '../../domain/igcse/stt/types';
 import { summariseRecognition } from '../../domain/igcse/stt/quality/summariseRecognition';
 import { ExitConfirmDialog } from './ExitConfirmDialog';
 import { RecognitionNotice } from './RecognitionNotice';
+import { useBackHandler } from '../../lib/useBackHandler';
 
 interface Props {
   transcript: SessionTranscript;
@@ -25,6 +26,11 @@ const PART_LABEL: Record<string, string> = {
 /** 04 §6.1 transcript-review step: candidate sees the assembled transcript and may correct it; edits set userCorrected: true. */
 export function TranscriptReview({ transcript, onConfirm, onExit, coached }: Props) {
   const [showExitConfirm, setShowExitConfirm] = useState(false);
+  // Back before submitting asks first: leaving here throws away the whole attempt.
+  useBackHandler(() => {
+    setShowExitConfirm(true);
+    return true;
+  }, true);
   const candidateUtterances = transcript.utterances.filter((u) => u.role === 'candidate');
   // What is shown is what the marker will read (Category A respelled, ADR 0011); an edit is a change from that.
   const shown = Object.fromEntries(candidateUtterances.map((u) => [u.utteranceId, displayRespell(u)]));

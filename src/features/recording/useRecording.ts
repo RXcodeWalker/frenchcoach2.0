@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useMicLevel, type MicLevelController } from './useMicLevel';
 import { micPermissionResult, trackMicPermission } from '../../services/telemetry/micPermission';
 import { useMicSilence } from '../../services/sound/useSfx';
+import { useScreenWakeLock } from '../../lib/useScreenWakeLock';
 
 const WAVE_BARS = 40;
 
@@ -91,6 +92,8 @@ export function useRecording(blocked = false): RecordingState {
   const [isRecording, setIsRecording]   = useState(false);
   // No sound effect may play into an open mic (it would reach the transcript / the audio upload).
   useMicSilence(isRecording);
+  // A phone that sleeps mid-answer hides the page and stops the mic.
+  useScreenWakeLock(isRecording);
   const [elapsedTime, setElapsedTime]   = useState(0);
   const [waveData, setWaveData]         = useState<number[]>(Array(WAVE_BARS).fill(4));
   const [transcript, setTranscript]     = useState('');

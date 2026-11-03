@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && tsx --tsconfig tsconfig.scripts.json scripts/seo/prerender.ts && tsx --tsconfig tsconfig.scripts.json scripts/seo/sitemap.ts",
+    "build": "vite build && tsx --tsconfig tsconfig.scripts.json scripts/seo/prerender.ts && tsx --tsconfig tsconfig.scripts.json scripts/seo/sitemap.ts && tsx --tsconfig tsconfig.scripts.json scripts/android/writeAssetLinks.ts",
+    "android:icons": "tsx --tsconfig tsconfig.scripts.json scripts/android/generateIcons.ts",
     "lint": "eslint .",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.app.json",

@@ -10,6 +10,7 @@ import type { UseExamCorrectionsRail } from '../../services/exam/turnFeedback';
 import type { RecordingState } from '../../features/recording/useRecording';
 import type { ExaminerAction, ConductLogEntry } from '../../domain/igcse/session/types';
 import { ExitConfirmDialog } from './ExitConfirmDialog';
+import { useBackHandler } from '../../lib/useBackHandler';
 import type { UseExamPronunciation } from '../../features/exam/pronunciation/useExamPronunciation';
 
 // UI-only pacing heuristics (approximate VAD / pacing) — never logged or scored.
@@ -130,6 +131,13 @@ export function ExamRunner({
   const [showSilenceNudge, setShowSilenceNudge] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
+  // Android / browser Back mid-exam asks "leave the exam?" instead of dropping the attempt
+  // (closing the mobile rail sheet first). ExamLayout binds no Escape, so this is Back only.
+  useBackHandler(() => {
+    if (mobileSheetOpen) setMobileSheetOpen(false);
+    else setShowExitConfirm(true);
+    return true;
+  }, true);
   const [highlightedTurnKey, setHighlightedTurnKey] = useState<number | null>(null);
 
   const [highlightedQuote, setHighlightedQuote] = useState<string | null>(null);

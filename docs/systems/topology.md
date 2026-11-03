@@ -40,6 +40,14 @@ These never call each other directly. The frontend is the only thing that talks 
   404s in production — every dynamic route did until 2026-11-02. `vercelRewrites.test.ts` holds both.
 - The scoring service (`french-scoring`) is reached directly by the browser via
   `VITE_SCORING_API_URL` — it is not proxied through `vercel.json`.
+- **The Android app (`android/`, 2026-11-03) is not a fourth runtime.** It is a Trusted Web
+  Activity: a code-free shell (Google's `androidbrowserhelper`) that opens the live Vercel site
+  in the phone's Chrome, so it uses the same frontend, `/api` proxy, Web Push and auth as the
+  website and updates with every Vercel deploy. Its identity lives in `android/app-config.json`,
+  which `npm run build` also reads to write `dist/.well-known/assetlinks.json` (only when a
+  signing-key fingerprint is set there or in the Vercel env var
+  `ANDROID_SHA256_CERT_FINGERPRINTS`). Built by `.github/workflows/android.yml`; release steps in
+  `docs/guides/android-release.md`.
 - **Deploy order for the exam report (Phase 3 Batch A):** backend migration
   `20261003101119_exam_feedback_reports.sql` applied → `server/` (`french-scoring`) → frontend.
   Without the table, `POST /feedback` fails its stored-report lookup and answers 500 before any

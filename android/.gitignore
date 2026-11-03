@@ -1,0 +1,13 @@
+# Gradle / Android Studio output
+.gradle/
+build/
+app/build/
+local.properties
+.idea/
+*.iml
+captures/
+.cxx/
+# Signing keys and their passwords never go in git (they live in GitHub secrets).
+*.jks
+*.keystore
+keystore.properties

@@ -1447,7 +1447,7 @@ export function Learn() {
       return true;
     }
     return learnState !== 'topics';
-  });
+  }, learnState !== 'topics');
 
   // The on-screen Back and Escape share one rule: mid-session they ask first.
   const requestBack = () => {

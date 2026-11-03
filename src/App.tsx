@@ -88,6 +88,7 @@ import { isHiddenPath } from './config/launchScope';
 import { TourHost } from './features/tour/TourHost';
 import { supabaseConfigured } from './lib/supabase';
 import { AnalyticsTracker, AnalyticsPersonSync } from './services/telemetry/AnalyticsTracker';
+import { HistoryBackBridge } from './components/HistoryBackBridge';
 
 // Route change: a plain fade (Design System v2 'enter' — the cards inside rise).
 const pageVariants = route;
@@ -456,6 +457,7 @@ export default function App() {
     <MotionConfig reducedMotion="user">
       <AuthProvider>
         <AnalyticsTracker />
+        <HistoryBackBridge />
         <AppShell />
       </AuthProvider>
     </MotionConfig>

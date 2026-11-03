@@ -105,7 +105,7 @@ export function SentenceRebuilder() {
     if (interrupted || game.phase === 'paused') keepPlaying();
     else interrupt();
     return true;
-  });
+  }, view === 'play' && !!game);
 
   const leave = () => navigate('/explore');
   const missed = useMemo(() => {

@@ -1,15 +1,20 @@
 {
-  "name": "Français AI",
+  "id": "/",
+  "name": "Français AI — IGCSE French speaking practice",
   "short_name": "Français AI",
-  "icons": [
-    {
-      "src": "/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml"
-    }
-  ],
-  "theme_color": "#0D0D0F",
-  "background_color": "#0D0D0F",
+  "description": "Practise the IGCSE French speaking exam out loud and get clear feedback on every answer.",
+  "lang": "en-GB",
+  "dir": "ltr",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "start_url": "/"
+  "theme_color": "#F6F5F1",
+  "background_color": "#F6F5F1",
+  "categories": ["education"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
 }

@@ -78,7 +78,7 @@ export function WordDrop() {
     if (game.phase === 'playing') pause();
     else if (game.phase === 'paused') resume();
     return true;
-  });
+  }, view === 'play' && !!game);
 
   const leave = () => navigate('/explore');
   const backToSetup = () => {

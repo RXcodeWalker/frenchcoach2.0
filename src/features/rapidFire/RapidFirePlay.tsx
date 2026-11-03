@@ -158,7 +158,7 @@ export function RapidFirePlay({ words, mode, onFinish }: Props) {
   useBackHandler(() => {
     if (running) dispatch({ type: state.paused ? 'resume' : 'pause' });
     return true;
-  });
+  }, running);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();

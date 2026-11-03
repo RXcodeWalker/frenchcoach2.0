@@ -1,0 +1,16 @@
+{
+  "packageId": "me.beyondthebasics.french",
+  "host": "french.beyondthebasics.me",
+  "launchPath": "/?utm_source=android_app&utm_medium=twa",
+  "appName": "Français AI",
+  "launcherName": "Français AI",
+  "versionCode": 1,
+  "versionName": "1.0.0",
+  "colors": {
+    "light": { "statusBar": "#F6F5F1", "navigationBar": "#F6F5F1", "background": "#F6F5F1" },
+    "dark": { "statusBar": "#0B0B0E", "navigationBar": "#0B0B0E" },
+    "brandStart": "#7C3AED",
+    "brandEnd": "#6366F1"
+  },
+  "sha256CertFingerprints": []
+}

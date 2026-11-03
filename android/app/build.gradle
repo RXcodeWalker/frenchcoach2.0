@@ -1,0 +1,88 @@
+// The Android app is a Trusted Web Activity: a thin shell that opens the live website
+// (https://<host><launchPath>) full-screen in the user's Chrome. Everything it needs to
+// know comes from ../app-config.json — the same file the website build reads to publish
+// /.well-known/assetlinks.json — so the two can never disagree.
+import groovy.json.JsonSlurper
+
+plugins {
+    id 'com.android.application'
+}
+
+def cfg = new JsonSlurper().parse(file('../app-config.json'))
+def launchUrl = "https://${cfg.host}${cfg.launchPath}"
+def siteUrl = "https://${cfg.host}"
+
+// Release signing comes from environment variables (GitHub Actions secrets), never from
+// a file in git. Without them a release build is produced unsigned.
+def keystorePath = System.getenv('ANDROID_KEYSTORE_PATH')
+def hasReleaseKey = keystorePath != null && !keystorePath.isEmpty()
+
+android {
+    namespace 'me.beyondthebasics.twa' // code namespace only; the store identity is applicationId
+    compileSdk 36
+
+    defaultConfig {
+        applicationId cfg.packageId
+        minSdk 24
+        targetSdk 36
+        versionCode cfg.versionCode as Integer
+        versionName cfg.versionName
+
+        manifestPlaceholders = [
+            hostName : cfg.host,
+            launchUrl: launchUrl,
+        ]
+
+        resValue 'string', 'appName', cfg.appName
+        resValue 'string', 'launcherName', cfg.launcherName
+        resValue 'string', 'providerAuthority', "${cfg.packageId}.fileprovider"
+        resValue 'string', 'assetStatements',
+            "[{ \\\"relation\\\": [\\\"delegate_permission/common.handle_all_urls\\\"], \\\"target\\\": { \\\"namespace\\\": \\\"web\\\", \\\"site\\\": \\\"${siteUrl}\\\" } }]"
+
+        resValue 'color', 'statusBarColor', cfg.colors.light.statusBar
+        resValue 'color', 'statusBarColorDark', cfg.colors.dark.statusBar
+        resValue 'color', 'navigationBarColor', cfg.colors.light.navigationBar
+        resValue 'color', 'navigationBarColorDark', cfg.colors.dark.navigationBar
+        resValue 'color', 'backgroundColor', cfg.colors.light.background
+    }
+
+    signingConfigs {
+        if (hasReleaseKey) {
+            release {
+                storeFile file(keystorePath)
+                storePassword System.getenv('ANDROID_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('ANDROID_KEY_ALIAS')
+                keyPassword System.getenv('ANDROID_KEY_PASSWORD')
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (hasReleaseKey) signingConfig signingConfigs.release
+        }
+    }
+
+    buildFeatures {
+        resValues true
+        buildConfig false
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    lint {
+        // The shell has no code of its own; don't fail a release on SDK-update nags.
+        abortOnError true
+        disable 'GradleDependency', 'OldTargetApi', 'AndroidGradlePluginVersion'
+    }
+}
+
+dependencies {
+    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.7.4'
+}

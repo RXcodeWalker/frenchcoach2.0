@@ -91,7 +91,7 @@ export function BattleView({ boss, onExit, onRematch }: Props) {
     else if (!over) setLeaveOpen(true);
     else return false;
     return true;
-  });
+  }, reviewing || !over);
 
   const clock = useRoundClock({
     seconds: roundSeconds(state),

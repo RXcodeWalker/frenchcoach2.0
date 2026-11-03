@@ -1,0 +1,83 @@
+name: Android app
+
+# Builds the Android app (a Trusted Web Activity shell around the website — android/,
+# guide: docs/guides/android-release.md).
+#
+#   - Any push / PR that touches android/: a debug APK + lint, so a broken shell shows up.
+#   - "Run workflow" by hand: a SIGNED release bundle (.aab) for Play Console, plus a signed
+#     APK to install on a phone. Needs these repository secrets (Settings → Secrets → Actions):
+#       ANDROID_UPLOAD_KEYSTORE_BASE64   the upload keystore (.jks), base64-encoded
+#       ANDROID_KEYSTORE_PASSWORD        its password
+#       ANDROID_KEY_ALIAS                the key alias inside it (e.g. "upload")
+#       ANDROID_KEY_PASSWORD             the key's password
+#
+# Website changes never need this workflow: the app loads the live site.
+
+on:
+  push:
+    branches: [main]
+    paths: ['android/**', '.github/workflows/android.yml']
+  pull_request:
+    paths: ['android/**', '.github/workflows/android.yml']
+  workflow_dispatch:
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: android
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      # ubuntu-latest ships the Android SDK; Gradle fetches any missing platform itself.
+      - name: Debug build and lint
+        run: ./gradlew --no-daemon assembleDebug lintRelease
+
+      - name: Signed release build
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ] || [ -z "$ANDROID_KEYSTORE_PASSWORD" ] || [ -z "$ANDROID_KEY_ALIAS" ] || [ -z "$ANDROID_KEY_PASSWORD" ]; then
+            echo "::error::Missing signing secrets — see docs/guides/android-release.md, step 2."
+            exit 1
+          fi
+          export ANDROID_KEYSTORE_PATH="$RUNNER_TEMP/upload.jks"
+          echo "$KEYSTORE_BASE64" | base64 --decode > "$ANDROID_KEYSTORE_PATH"
+          ./gradlew --no-daemon bundleRelease assembleRelease
+          rm -f "$ANDROID_KEYSTORE_PATH"
+          # The fingerprint to give the website (android/app-config.json → sha256CertFingerprints).
+          keytool -printcert -jarfile app/build/outputs/apk/release/app-release.apk | grep -i 'SHA256:' || true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 14
+
+      - uses: actions/upload-artifact@v4
+        if: github.event_name == 'workflow_dispatch'
+        with:
+          name: android-release
+          path: |
+            android/app/build/outputs/bundle/release/app-release.aab
+            android/app/build/outputs/apk/release/app-release.apk
+          retention-days: 30

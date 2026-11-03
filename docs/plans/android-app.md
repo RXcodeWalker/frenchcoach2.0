@@ -1,6 +1,11 @@
 # Plan: French Coach on Android (Google Play)
 
-Status: **plan only, nothing built** (2026-11-03). Owner decisions are marked **D1…D6**.
+Status (2026-11-03): **Phases 1–3 built** — store-grade manifest/icons/offline page, the Back-button
+guard and screen wake lock, the `android/` TWA shell and its build workflow. Not done: everything
+that needs the owner (Phase 0, signing key, Play Console, device testing). Deliberately not done: §4.5's
+`interactive-widget=resizes-content` viewport change — it moves fixed-bottom UI on every Android
+browser and can't be checked without a real keyboard; decide it during device testing. How to release:
+`docs/guides/android-release.md`. Owner decisions are marked **D1…D6**.
 
 ## 1. The decision: a Trusted Web Activity, not a rewrite or a WebView wrapper
 
