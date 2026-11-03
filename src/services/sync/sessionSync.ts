@@ -1,7 +1,7 @@
 import { supabase, supabaseConfigured } from '../../lib/supabase';
 import { STORAGE_KEYS, storageGet, storageSet } from '../persistence/storage';
 import { MAX_STORED_SESSIONS } from '../analytics/analyticsService';
-import type { Session } from '../../types';
+import type { ExamAreaMarks, Session } from '../../types';
 import { captureError } from '../telemetry/telemetryService';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -32,6 +32,12 @@ type FeedbackSummaryBlob = {
   critical_count?: number;
   /** learn-marking §8.3 — 'ladder-v1' on a ladder-scored attempt; absent on v6, so history stays comparable. */
   markingVersion?: string;
+  /**
+   * Exam attempts only: whether it was a real Exam Sim attempt (ADR-0007) and its three area marks.
+   * Read by the parent view's get_parent_report (backend migration 20261104090000); a row pushed
+   * before this field existed has none, and the parent view says its conditions are unknown.
+   */
+  exam?: { practiceOnly: boolean; marks: ExamAreaMarks | null };
 };
 
 export interface StoredSession {
@@ -153,9 +159,15 @@ function sessionToRow(userId: string, session: Session): Omit<CloudSessionRow, '
     score: session.score,
     xp_earned: session.xpEarned,
     duration_sec: session.durationSec,
-    feedback: stripFeedback(session.feedback) as Record<string, unknown> | null,
+    feedback: withExamSummary(stripFeedback(session.feedback), session) as Record<string, unknown> | null,
     created_at: session.createdAt,
   };
+}
+
+/** Adds an exam attempt's condition and area marks to the cloud feedback blob (marks are copied, never recomputed). */
+export function withExamSummary(blob: FeedbackSummaryBlob | null, session: Session): FeedbackSummaryBlob | null {
+  if (session.mode !== 'exam') return blob;
+  return { ...(blob ?? {}), exam: { practiceOnly: session.practiceOnly === true, marks: session.examMarks ?? null } };
 }
 
 function rowToStoredSession(row: CloudSessionRow): StoredSession {
