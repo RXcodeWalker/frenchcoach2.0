@@ -1,6 +1,29 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { sentryVitePlugin } from '@sentry/vite-plugin';
+import type { Plugin } from 'vite';
+import { bundleServiceWorker } from './scripts/pwa/serviceWorkerBundle';
+
+// Dev only: serves /sw.js bundled from src/pwa/serviceWorker.ts with an empty
+// precache list — push works, nothing is ever cached (HMR stays untouched).
+// Production builds write dist/sw.js in scripts/pwa/buildServiceWorker.ts.
+function serviceWorkerDev(): Plugin {
+  return {
+    name: 'frenchcoach-service-worker-dev',
+    apply: 'serve',
+    configureServer(server) {
+      server.middlewares.use('/sw.js', (_req, res, next) => {
+        bundleServiceWorker({ precache: [], version: 'dev' })
+          .then((code) => {
+            res.setHeader('Content-Type', 'text/javascript; charset=utf-8');
+            res.setHeader('Cache-Control', 'no-cache');
+            res.end(code);
+          })
+          .catch(next);
+      });
+    },
+  };
+}
 
 // Sentry release = the commit Vercel is building (VERCEL_GIT_COMMIT_SHA), so
 // events, source maps and the dashboard all line up. Local builds have no
@@ -21,6 +44,7 @@ export default defineConfig({
   },
   plugins: [
     react(),
+    serviceWorkerDev(),
     ...(uploadSourceMaps
       ? [
           sentryVitePlugin({

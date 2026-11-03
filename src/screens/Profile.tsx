@@ -45,6 +45,7 @@ import { achievementHistoryCounts } from '../services/coach/achievementContextBu
 import { TrackSwitch } from '../features/junior/TrackSwitch';
 import { CORE_ONLY, JUNIOR_TRACK_SELECTABLE } from '../config/launchScope';
 import { ReplayTourButton } from '../features/tour/ReplayTourButton';
+import { InstallAppRow } from '../features/install/InstallAppRow';
 import type { AIEngine } from '../types';
 import { playSfx, setSfxEnabled } from '../services/sound/sfx';
 
@@ -591,6 +592,7 @@ export function Profile() {
                 }} />
                 <SettingToggle divided icon={<Moon size={16} />} label="Dark mode" description="Same colours by role, darker surfaces" enabled={state.darkMode} onToggle={() => dispatch({ type: 'TOGGLE_DARK_MODE' })} />
                 {state.learnerTrack !== 'junior' && <ReplayTourButton divided />}
+                <InstallAppRow divided />
               </SettingGroup>
             </motion.div>
 

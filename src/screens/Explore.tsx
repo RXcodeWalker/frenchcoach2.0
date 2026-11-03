@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { CSSProperties } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ChevronRight, Lock } from 'lucide-react';
+import { ChevronRight, Lock, WifiOff } from 'lucide-react';
 import { FEATURES, CATEGORIES, type FeatureCard } from '../data/features';
 import { categoryHue, featureIcon } from '../features/explore/featureVisuals';
 import { enter, enterReduced, stagger } from '../components/motion/variants';
@@ -10,6 +10,10 @@ import { PageShell } from '../components/layout/PageShell';
 import { TopContextBar } from '../components/TopContextBar';
 import { Segmented } from '../components/ui/Segmented';
 import { ExploreSkillTree } from './explore/ExploreSkillTree';
+import { useOnlineStatus } from '../pwa/useOnlineStatus';
+
+/** The "Works offline" filter, offered only while offline. */
+const OFFLINE_FILTER = 'offline';
 
 type View = 'modes' | 'scenarios';
 
@@ -28,8 +32,13 @@ export function Explore() {
   const [category, setCategory] = useState<string>('all');
   const reduced = useReducedMotion();
   const item = reduced ? enterReduced : enter;
+  const online = useOnlineStatus();
+  // Back online, the offline-only filter falls back to everything.
+  const activeCategory = online && category === OFFLINE_FILTER ? 'all' : category;
+  const offlineOnly = activeCategory === OFFLINE_FILTER;
 
-  const shown = CATEGORIES.filter(c => category === 'all' || c === category);
+  const shown = CATEGORIES.filter(c => activeCategory === 'all' || offlineOnly || c === activeCategory);
+  const offlineCount = FEATURES.filter(f => !f.locked && f.screen && !f.needsConnection).length;
 
   return (
     <>
@@ -50,16 +59,23 @@ export function Explore() {
         {view === 'modes' ? (
           <>
             <motion.div variants={item} role="group" aria-label="Filter by category" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 scrollbar-none md:mx-0 md:flex-wrap md:px-0">
-              {['all', ...CATEGORIES].map(c => (
-                <FilterChip key={c} on={category === c} onClick={() => setCategory(c)}>
-                  {c === 'all' ? 'All' : c}
+              {[...(online ? [] : [OFFLINE_FILTER]), 'all', ...CATEGORIES].map(c => (
+                <FilterChip key={c} on={activeCategory === c} onClick={() => setCategory(c)}>
+                  {c === 'all' ? 'All' : c === OFFLINE_FILTER ? 'Works offline' : c}
                 </FilterChip>
               ))}
             </motion.div>
 
-            <motion.div key={category} className="flex flex-col gap-8" variants={stagger} initial="hidden" animate="show">
+            {!online && (
+              <motion.p variants={item} role="status" className="flex items-start gap-2 text-body-s text-ink-muted">
+                <WifiOff size={16} aria-hidden="true" className="mt-0.5 shrink-0" />
+                You’re offline: {offlineCount} modes still work. The rest need a connection.
+              </motion.p>
+            )}
+
+            <motion.div key={activeCategory} className="flex flex-col gap-8" variants={stagger} initial="hidden" animate="show">
               {shown.map(c => {
-                const features = FEATURES.filter(f => f.category === c);
+                const features = FEATURES.filter(f => f.category === c && (!offlineOnly || (!f.locked && f.screen && !f.needsConnection)));
                 if (features.length === 0) return null;
                 const open = features.filter(f => !f.locked).length;
                 return (
@@ -69,7 +85,7 @@ export function Explore() {
                       <span className="text-caption text-ink-subtle">{open} of {features.length} open</span>
                     </div>
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                      {features.map(f => <FeatureTile key={f.id} feature={f} />)}
+                      {features.map(f => <FeatureTile key={f.id} feature={f} unavailable={!online && !!f.needsConnection} />)}
                     </div>
                   </motion.section>
                 );
@@ -100,13 +116,13 @@ function FilterChip({ on, onClick, children }: { on: boolean; onClick: () => voi
   );
 }
 
-function FeatureTile({ feature }: { feature: FeatureCard }) {
+function FeatureTile({ feature, unavailable = false }: { feature: FeatureCard; unavailable?: boolean }) {
   const navigate = useNavigate();
   const Icon = featureIcon(feature.id);
 
-  const chip = feature.locked ? (
+  const chip = feature.locked || unavailable ? (
     <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-control bg-surface-recessed text-ink-subtle">
-      <Lock size={18} strokeWidth={1.75} />
+      {unavailable && !feature.locked ? <WifiOff size={18} strokeWidth={1.75} /> : <Lock size={18} strokeWidth={1.75} />}
     </span>
   ) : (
     <span
@@ -123,7 +139,7 @@ function FeatureTile({ feature }: { feature: FeatureCard }) {
       {chip}
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="flex items-center gap-2">
-          <span className={`truncate text-[15px] font-semibold leading-snug ${feature.locked ? 'text-ink-muted' : 'text-ink'}`}>
+          <span className={`truncate text-[15px] font-semibold leading-snug ${feature.locked || unavailable ? 'text-ink-muted' : 'text-ink'}`}>
             {feature.title}
           </span>
           {feature.badge && !feature.locked && (
@@ -132,11 +148,12 @@ function FeatureTile({ feature }: { feature: FeatureCard }) {
         </span>
         <span className="text-body-s text-ink-muted">{feature.description}</span>
         {feature.locked && <span className="mt-1 text-caption text-ink-subtle">Coming soon</span>}
+        {unavailable && !feature.locked && <span className="mt-1 text-caption text-ink-subtle">Needs a connection</span>}
       </span>
     </>
   );
 
-  if (feature.locked || !feature.screen) {
+  if (feature.locked || !feature.screen || unavailable) {
     return <div className="flex items-start gap-3 rounded-card surface-recessed p-4">{body}</div>;
   }
 

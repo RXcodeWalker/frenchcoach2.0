@@ -1,10 +1,22 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { enter } from '../components/motion/variants';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { LEARN_TOPIC_PARAM, topicFromDeepLink } from '../features/learn/topicDeepLink';
-import { TOPICS, getTopicQuestions } from '../data/gameData';
+import { TOPICS, getTopicQuestions, getQuestionById } from '../data/gameData';
+import { isOnline } from '../pwa/useOnlineStatus';
+import { SAVED_ANSWER_PARAM } from '../features/learn/savedAnswers/savedAnswerLink';
+import { useSavedAnswers, useSavedAnswerScope } from '../features/learn/savedAnswers/useSavedAnswers';
+import {
+  deleteSavedAnswer,
+  getSavedAnswer,
+  saveAnswer,
+  savedAnswerBlob,
+  SavedAnswersFullError,
+  MAX_SAVED_ANSWERS,
+  type SavedAnswer,
+} from '../services/offline/savedAnswers';
 import { getAIFeedback, streamFeedback, getExaminerFeedback, isExaminerQuotaExceededError, getLearnAllowance, isLearnDailyLimitError, SIGNED_OUT_FEEDBACK_REASON } from '../services/api/apiClient';
 import { LEARN_ANSWERS_PER_DAY, LEARN_DAILY_LIMIT_MESSAGE, dailySessionLength } from '../features/learn/dailyAllowance';
 import { isAuthRequiredError } from '../lib/authToken';
@@ -45,7 +57,7 @@ import { SkipUndoToast } from './learn/SkipUndoToast';
 import { Button } from '../components/ui/Button';
 import { useIsDesktop } from '../components/layout/useIsDesktop';
 import { useHideDock } from '../components/layout/shellChrome';
-import { X } from 'lucide-react';
+import { UploadCloud, X } from 'lucide-react';
 import { SessionStartScreen } from './learn/SessionStartScreen';
 import { SessionProgressBar } from './learn/SessionProgressBar';
 import { SessionSummary } from './learn/SessionSummary';
@@ -208,6 +220,29 @@ export function Learn() {
   const { consentStatus, user: authUser } = useAuth();
   const recording = useRecording(consentStatus === 'pending');
 
+  // Offline support (`/learn/saved`): an answer recorded with no connection is
+  // kept on this device and the session moves on; back online it is opened
+  // here again (`?saved=<id>`) and marked through the normal path below.
+  const savedScope = useSavedAnswerScope();
+  const { items: savedAnswers } = useSavedAnswers();
+  const [savedOfflineNotice, setSavedOfflineNotice] = useState(false);
+  // While a saved answer is being marked, its recording stands in for the
+  // recorder's (pronunciation, "How it sounded", the speaking log). Cleared
+  // as soon as a new answer is recorded.
+  const replayRef = useRef<{ id: string; blob: Blob; durationSec: number } | null>(null);
+  // The feedback attempt that marks the saved answer; it is deleted once marked.
+  const replayAttemptRef = useRef<{ attemptId: number; savedId: string } | null>(null);
+  const answerAudio = (): Promise<Blob | null> =>
+    replayRef.current ? Promise.resolve(replayRef.current.blob) : recording.audioBlobPromise();
+  const answerDurationSec = (): number => replayRef.current?.durationSec ?? recording.elapsedTime;
+  /** A saved answer has been marked: its stored copy is no longer needed. */
+  const settleSavedAnswer = (attemptId: number) => {
+    const pending = replayAttemptRef.current;
+    if (!pending || pending.attemptId !== attemptId) return;
+    replayAttemptRef.current = null;
+    void deleteSavedAnswer(pending.savedId);
+  };
+
   // Product analytics: the open session (so leaving mid-session can be
   // reported as learn_session_abandoned), when this answer's feedback was
   // asked for (feedback latency), and the latest screen state for the
@@ -321,6 +356,21 @@ export function Learn() {
     if (topic) selectTopic(topic);
   }, [deepLinkTopicKey]);
 
+  // `/learn?saved=<id>` (Saved answers' "Get feedback") opens that answer once.
+  const savedAnswerParam = searchParams.get(SAVED_ANSWER_PARAM);
+  const openedSavedAnswerRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!savedAnswerParam || openedSavedAnswerRef.current === savedAnswerParam) return;
+    let cancelled = false;
+    void getSavedAnswer(savedAnswerParam, savedScope).then((item) => {
+      if (cancelled || !item || item.status !== 'ready') return;
+      openedSavedAnswerRef.current = savedAnswerParam;
+      openSavedAnswer(item);
+    });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [savedAnswerParam, savedScope]);
+
   // ── Session start ─────────────────────────────────────────────────────────────
 
   // Learn never unmounts between sessions in one visit (no `key` on the
@@ -341,6 +391,9 @@ export function Learn() {
     setFocusTokenActive(false);
     setHasAdjustedDifficulty(false);
     setDifficultyToastDirection(null);
+    setSavedOfflineNotice(false);
+    replayRef.current = null;
+    replayAttemptRef.current = null;
     extraTurnBudget.resetForNewSession();
   }, [extraTurnBudget]);
 
@@ -507,6 +560,8 @@ export function Learn() {
     // onComplete for the same attempt — finalize it exactly once.
     if (finalizedAttemptIdRef.current === attemptId) return;
     finalizedAttemptIdRef.current = attemptId;
+    // An offline (local heuristic) evaluation leaves a saved answer waiting for real feedback.
+    if (fb.engineMeta?.actualEngine !== 'offline') settleSavedAnswer(attemptId);
 
     // Apply avoidance signals
     if (avoidanceSignals.length > 0 && !fb.avoidanceReport?.length) {
@@ -682,6 +737,17 @@ export function Learn() {
     if (!activeSession || !currentQuestion) return;
 
     const transcript = await recording.stop();
+    // A new recording replaces a saved answer that was being marked.
+    replayRef.current = null;
+    replayAttemptRef.current = null;
+    setSavedOfflineNotice(false);
+
+    // Offline (or the live captions couldn't reach their server): nothing can be
+    // transcribed or marked now, so keep the recording for later and move on.
+    if ((!isOnline() || recording.sttError === 'network') && !followUpTurn) {
+      await saveAnswerForLater();
+      return;
+    }
 
     // 2.4: never report "your browser can't transcribe" as "you said nothing".
     // A genuinely silent student (STT supported, empty transcript) must still
@@ -728,6 +794,75 @@ export function Learn() {
     await evaluateTranscript(transcript);
   };
 
+  /** Offline support: keeps this answer's recording in Saved answers and goes on to the next question. */
+  const saveAnswerForLater = async () => {
+    if (!activeSession || !baseQuestion) return;
+    const audio = await recording.audioBlobPromise();
+    if (!audio || audio.size === 0) {
+      setFeedbackErrorMessage('You’re offline and no recording came through. Check your microphone and try again.');
+      setLearnState('question');
+      return;
+    }
+    try {
+      await saveAnswer({
+        scope: savedScope,
+        questionId: baseQuestion.id,
+        topicKey: activeSession.topicKey,
+        questionText: baseQuestion.text,
+        durationSec: recording.elapsedTime,
+        audio,
+      });
+    } catch (err) {
+      setFeedbackErrorMessage(err instanceof SavedAnswersFullError
+        ? `You’re offline and ${MAX_SAVED_ANSWERS} answers are already waiting. Get feedback on those once you’re back online, or delete some in Saved answers.`
+        : 'You’re offline and this answer couldn’t be saved on this device. Try again when you’re back online.');
+      setLearnState('question');
+      return;
+    }
+    setFeedbackErrorMessage(null);
+    setSavedOfflineNotice(true);
+    // Not marked yet, so it moves on like a skip: never counted as answered in this session.
+    advanceQuestion({ skipped: true });
+  };
+
+  /** `/learn?saved=<id>`: a one-question session for a saved answer, straight to "Did we hear you right?". */
+  const openSavedAnswer = (item: SavedAnswer) => {
+    const question = getQuestionById(item.questionId);
+    const topic = TOPICS.find((t) => t.key === item.topicKey);
+    if (!question || !topic || !item.transcript) return;
+    setSelectedTopic(topic);
+    setFilters(NO_FILTERS);
+    const session: ActiveSession = {
+      id: `sess-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      topicKey: topic.key,
+      mode: 'single',
+      targetCount: 1,
+      questions: [makeSessionQuestion(question, false, undefined)],
+      currentIndex: 0,
+      questionsCompleted: 0,
+      answerStreak: 0,
+      bestStreak: 0,
+      xpAccumulated: 0,
+      gemsAccumulated: 0,
+      totalWords: 0,
+      startedAt: new Date().toISOString(),
+      skillSnapshot: JSON.parse(JSON.stringify(skillProfile)),
+      demandSnapshot: adaptiveDifficultyLive ? getBeliefSnapshot()?.demands ?? {} : undefined,
+      aim: adaptiveDifficultyLive ? aim : undefined,
+    };
+    setActiveSession(session);
+    dispatch({ type: 'START_SESSION', session });
+    analyticsSessionRef.current = { topicKey: topic.key, startedAt: Date.now() };
+    setShowHint(false);
+    setFeedback(null);
+    setIsRetry(false);
+    resetSessionScopedState();
+    replayRef.current = { id: item.id, blob: savedAnswerBlob(item), durationSec: item.durationSec };
+    setPendingAnswer({ primaryText: item.transcript, secondaryText: '', source: 'whisper', fallbackReason: null });
+    setIsCheckingTranscript(false);
+    setLearnState('confirm');
+  };
+
   // Records this attempt's flow measurements in the local speaking log once its
   // audio has been measured. Best effort: no audio, no speech or an error logs nothing.
   const logSpeakingSample = (
@@ -771,9 +906,10 @@ export function Learn() {
     const controller = new AbortController();
     streamAbortRef.current = controller;
     const myAttemptId = ++attemptIdRef.current;
+    replayAttemptRef.current = replayRef.current ? { attemptId: myAttemptId, savedId: replayRef.current.id } : null;
     speechMeasureRef.current = {
       attemptId: myAttemptId,
-      promise: recording.audioBlobPromise().then(async (blob) => (blob ? { blob, speech: await measureAnswerSpeech(blob) } : null)),
+      promise: answerAudio().then(async (blob) => (blob ? { blob, speech: await measureAnswerSpeech(blob) } : null)),
     };
 
     feedbackRequestedAtRef.current = Date.now();
@@ -796,7 +932,7 @@ export function Learn() {
     // onstop, so audioBlobPromise() (not recording.audioBlob) is the only
     // reliable way to get it for THIS attempt.
     void (async () => {
-      const blob = await recording.audioBlobPromise();
+      const blob = await answerAudio();
       if (!blob || myAttemptId !== attemptIdRef.current) return;
 
       // Owner D1 (pronunciation-lab plan §1.1, §9): a free answer is never sent
@@ -857,8 +993,9 @@ export function Learn() {
         if (myAttemptId !== attemptIdRef.current) return;
         setExaminerFeedbackResult(result);
         setExaminerStatus('done');
+        settleSavedAnswer(myAttemptId);
         logSpeakingSample(myAttemptId, transcript, {
-          style: 'examiner', sessionId: null, score: null, aiFluency: null, durationSec: recording.elapsedTime,
+          style: 'examiner', sessionId: null, score: null, aiFluency: null, durationSec: answerDurationSec(),
         });
         track({
           name: 'feedback_shown',
@@ -899,7 +1036,7 @@ export function Learn() {
       return;
     }
 
-    const elapsed = recording.elapsedTime;
+    const elapsed = answerDurationSec();
     const skillContext = buildSkillContext();
     const avoidanceSignals = detectAvoidance(transcript, currentQuestion, IGCSE_EXPECTATIONS);
 
@@ -1586,6 +1723,7 @@ export function Learn() {
                 showSoundsLink={pronunciationLabLive}
                 topicMastery={topicMastery}
                 coachPickKey={getActiveRecommendation()?.targetTopicKey ?? null}
+                savedAnswers={{ total: savedAnswers.length, ready: savedAnswers.filter((a) => a.status === 'ready').length }}
               />
             </motion.div>
           )}
@@ -1637,6 +1775,17 @@ export function Learn() {
                   onEndSession={handleEndSessionEarly}
                   compact={!desktop}
                 />
+              )}
+
+              {savedOfflineNotice && learnState === 'question' && (
+                <div role="status" className="flex items-start gap-2.5 rounded-control border border-hairline bg-info-soft p-3 text-info-text" data-testid="saved-offline-notice">
+                  <UploadCloud size={16} aria-hidden="true" className="mt-0.5 shrink-0" />
+                  <p className="text-body-s">
+                    Your last answer is saved on this device. You’ll get feedback on it from{' '}
+                    <Link to="/learn/saved" className="font-semibold underline underline-offset-2">Saved answers</Link>{' '}
+                    when you’re back online.
+                  </p>
+                </div>
               )}
 
               {currentQuestion && (

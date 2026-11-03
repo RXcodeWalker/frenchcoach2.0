@@ -1,15 +1,25 @@
 {
-  "name": "Français AI",
+  "id": "/",
+  "name": "Français AI — IGCSE French speaking",
   "short_name": "Français AI",
-  "icons": [
-    {
-      "src": "/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml"
-    }
-  ],
-  "theme_color": "#0D0D0F",
-  "background_color": "#0D0D0F",
+  "description": "Practise the IGCSE French speaking exam out loud, with feedback on every answer. Games and saved answers work offline.",
+  "lang": "en-GB",
+  "start_url": "/?utm_source=pwa",
+  "scope": "/",
   "display": "standalone",
-  "start_url": "/"
+  "orientation": "any",
+  "theme_color": "#F6F5F1",
+  "background_color": "#F6F5F1",
+  "categories": ["education"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ],
+  "shortcuts": [
+    { "name": "Learn", "short_name": "Learn", "url": "/learn", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Saved answers", "short_name": "Saved", "url": "/learn/saved", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Explore games", "short_name": "Explore", "url": "/explore", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
+  ]
 }

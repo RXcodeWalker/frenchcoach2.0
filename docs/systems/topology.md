@@ -38,6 +38,23 @@ These never call each other directly. The frontend is the only thing that talks 
   prerendered page. There is deliberately no catch-all, so an unknown path gets a real 404, and with
   `cleanUrls: true` a destination must be extensionless (`/`, `/admin`): a `/index.html` destination
   404s in production — every dynamic route did until 2026-11-02. `vercelRewrites.test.ts` holds both.
+- **Offline support and install (2026-11-03).** `/sw.js` is *generated*, never a file in
+  `public/`: `src/pwa/serviceWorker.ts` (Web Push + caching) is bundled by esbuild — in production
+  by the last step of `npm run build` (`scripts/pwa/buildServiceWorker.ts`, which injects the
+  precache list: `/`, every `dist/assets/*` file except maps, the favicon, manifest and small
+  icons; ~4.7 MB, mostly the one app bundle), in dev by a Vite plugin with an empty list (push
+  only, nothing cached, so HMR and the e2e servers are untouched). What is cached is decided by
+  the pure `src/pwa/swRouting.ts`: page loads network-first with a 3.5 s timeout then the cached
+  shell; hashed assets cache-first; Google Fonts; recorded voices from the public `tts-audio`
+  bucket (cache-first, 500 newest, range requests answered from the cached file). Everything that
+  talks to a server about the learner — `/api/*`, `/health`, `/auth/*`, Supabase REST/auth/
+  realtime, the scoring host, PostHog, Sentry — is bypassed and fails offline exactly as before.
+  `vercel.json` serves `/sw.js` uncached, `/assets/*` as immutable and the manifest with its MIME
+  type. Opened offline with an expired token, `AuthContext` keeps the stored account
+  (`src/lib/offlineSession.ts`) until supabase-js refreshes it. Learn answers recorded offline
+  are kept in IndexedDB (`src/services/offline/savedAnswers.ts`), uploaded to `/api/transcribe`
+  (`purpose: 'learn'`) when the connection returns, and marked from `/learn/saved` through
+  Learn's normal path. Explore greys out modes marked `needsConnection` in `src/data/features.ts`.
 - The scoring service (`french-scoring`) is reached directly by the browser via
   `VITE_SCORING_API_URL` — it is not proxied through `vercel.json`.
 - **Deploy order for the exam report (Phase 3 Batch A):** backend migration
@@ -413,8 +430,8 @@ on them with `backend/supabase/ops/expire_open_duels_at_deploy.sql` (D11; run by
   repo secrets, not exposed to the client except `VITE_VAPID_PUBLIC_KEY`):
   `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT` (Web Push signing) and
   `RESEND_API_KEY` (email fallback), alongside the existing `SUPABASE_URL` /
-  `SUPABASE_SERVICE_KEY`. The client half (`src/services/notifications/pushService.ts`,
-  `public/sw.js`) needs `VITE_VAPID_PUBLIC_KEY` set wherever the frontend is built (Vercel).
+  `SUPABASE_SERVICE_KEY`. The client half (`src/services/notifications/pushService.ts`, the
+  service worker `src/pwa/serviceWorker.ts`) needs `VITE_VAPID_PUBLIC_KEY` set wherever the frontend is built (Vercel).
 
 **Known gap (2026-10-09): none of these repo secrets have ever been set.** Every run of all
 three scheduled jobs since they were added has failed with empty `SUPABASE_URL` /

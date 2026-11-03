@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { AudioLines, BookMarked, ChevronRight, Lock, Shuffle } from 'lucide-react';
+import { AudioLines, BookMarked, ChevronRight, UploadCloud, Lock, Shuffle } from 'lucide-react';
 import { TOPICS } from '../../data/gameData';
 import { LEARN_TOPIC_DEPENDENCIES } from '../../data/learnTopicDependencies';
 import { isLearnTopicUnlocked } from '../../features/learn/topicProgress';
@@ -22,6 +22,8 @@ interface Props {
   topicMastery?: Record<string, TopicMasteryEntry>;
   /** The topic the coach recommends, badged "Coach’s pick". */
   coachPickKey?: string | null;
+  /** Answers recorded offline (Learn only): shown as a way into `/learn/saved` while there are any. */
+  savedAnswers?: { total: number; ready: number };
 }
 
 function topicLabel(key: string): string {
@@ -41,7 +43,7 @@ function lockReason(topic: Topic): string {
  * Below: Random question and the exam notebook.
  */
 export function TopicGrid({
-  onSelect, title = 'Learn', subtitle = 'Choose a topic and start practising', showNotebookLink = false, showSoundsLink = false, topicMastery = {}, coachPickKey = null,
+  onSelect, title = 'Learn', subtitle = 'Choose a topic and start practising', showNotebookLink = false, showSoundsLink = false, topicMastery = {}, coachPickKey = null, savedAnswers,
 }: Props) {
   // Topics too small to practise as a session stay out of the grid (docs §13.4).
   const visibleTopics = TOPICS.filter(isTopicVisible);
@@ -138,6 +140,28 @@ export function TopicGrid({
           </span>
           <ChevronRight size={16} className="text-ink-subtle" aria-hidden="true" />
         </button>
+
+        {savedAnswers && savedAnswers.total > 0 && (
+          <Link
+            to="/learn/saved"
+            className="flex items-center gap-3 rounded-card border border-hairline bg-surface-recessed p-4 text-left text-ink
+              transition-colors duration-state ease-smooth hover:border-hairline-strong"
+            data-testid="saved-answers-link"
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-control border border-hairline bg-surface text-action-text" aria-hidden="true">
+              <UploadCloud size={20} />
+            </span>
+            <span className="flex flex-1 flex-col">
+              <span className="text-[14px] font-semibold">Saved answers ({savedAnswers.total})</span>
+              <span className="text-[13px] text-ink-subtle">
+                {savedAnswers.ready > 0
+                  ? `${savedAnswers.ready} ready for feedback`
+                  : 'Recorded offline — checked when you’re back online'}
+              </span>
+            </span>
+            <ChevronRight size={16} className="text-ink-subtle" aria-hidden="true" />
+          </Link>
+        )}
 
         {showSoundsLink && (
           <Link

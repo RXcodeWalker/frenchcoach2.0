@@ -13,6 +13,9 @@ import { useSfxSilence } from './services/sound/useSfx';
 import { GemAnimations } from './components/GemAnimation';
 import { SideRail } from './components/Navigation';
 import { KeyboardShortcuts } from './components/KeyboardShortcuts';
+import { ConnectionBanner } from './components/ConnectionBanner';
+import { useSavedAnswerUploader } from './features/learn/savedAnswers/useSavedAnswers';
+import { SavedAnswers } from './screens/learn/SavedAnswers';
 import { Home } from './screens/Home';
 import { JuniorHome } from './screens/junior/JuniorHome';
 import { MissionPlayer } from './screens/junior/MissionPlayer';
@@ -142,6 +145,12 @@ function HomeRoute() {
   return state.learnerTrack === 'junior' ? <JuniorHome /> : <Home />;
 }
 
+/** Uploads Learn answers saved offline once there's a connection (offline support). */
+function SavedAnswerUploader() {
+  useSavedAnswerUploader();
+  return null;
+}
+
 function MainLayout() {
   const location = useLocation();
   const { state } = useApp();
@@ -154,6 +163,7 @@ function MainLayout() {
     <div className="min-h-screen bg-bg text-ink overflow-x-clip">
       {!junior && <SideRail />}
       <main className={`relative z-10 ${junior ? '' : 'md:ml-[88px]'}`}>
+        {!junior && <ConnectionBanner />}
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}
@@ -172,6 +182,7 @@ function MainLayout() {
       <GlobalCelebrations />
       <TourHost />
       {!junior && <KeyboardShortcuts />}
+      {!junior && <SavedAnswerUploader />}
     </div>
     </ShellChromeProvider>
   );
@@ -190,6 +201,7 @@ function ExamLayout() {
     <div data-hatch="immersive" className="min-h-screen bg-bg text-ink overflow-hidden exam-voice">
       {showNavRail && <SideRail keyHint={false} />}
       <main className={`relative z-10 ${showNavRail ? 'md:ml-[88px]' : ''}`}>
+        <ConnectionBanner exam />
         <Outlet />
       </main>
       <XPAnimations />
@@ -262,6 +274,7 @@ function AppShell() {
           <Route path="/junior" element={<JuniorHome />} />
           <Route path="/junior/:themeId" element={<MissionPlayer />} />
           <Route path="/learn" element={<Learn />} />
+          <Route path="/learn/saved" element={<SavedAnswers />} />
           <Route path="/learn/sounds" element={
             <ComingSoonGate status={resolveFeatureStatus('pronunciationLab')} featureId="pronunciationLab" name="Pronunciation Lab" description="Listen, say it and hear yourself next to a native speaker." fallbackRoute="/learn" fallbackLabel="Back to Learn">
               <LearnSounds />

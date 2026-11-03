@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && tsx --tsconfig tsconfig.scripts.json scripts/seo/prerender.ts && tsx --tsconfig tsconfig.scripts.json scripts/seo/sitemap.ts",
+    "build": "vite build && tsx --tsconfig tsconfig.scripts.json scripts/seo/prerender.ts && tsx --tsconfig tsconfig.scripts.json scripts/seo/sitemap.ts && tsx --tsconfig tsconfig.scripts.json scripts/pwa/buildServiceWorker.ts",
     "lint": "eslint .",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.app.json",
