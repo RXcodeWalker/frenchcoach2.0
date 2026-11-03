@@ -36,6 +36,7 @@ interface AuthContextValue {
   resetPasswordForEmail: (email: string) => Promise<void>;
   updateUserPassword: (newPassword: string) => Promise<void>;
   signInWithOAuth: (provider: 'google' | 'azure') => Promise<void>;
+  signInWithGoogleIdToken: (idToken: string, nonce: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -182,10 +183,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw new Error(translateError(error));
   }
 
+  // Google Identity Services flow: the sign-in runs on our own domain, so Google's
+  // account picker names our site rather than the Supabase project URL.
+  async function signInWithGoogleIdToken(idToken: string, nonce: string) {
+    if (!supabaseConfigured) throw new Error('App is not configured.');
+    const { error } = await supabase.auth.signInWithIdToken({ provider: 'google', token: idToken, nonce });
+    if (error) throw new Error(translateError(error));
+  }
+
   const isAdmin = isAdminUser(user);
 
   return (
-    <AuthContext.Provider value={{ user, session, isAdmin, loading, configError: false, ageBand, consentStatus, inviteStatus, refreshConsentStatus, refreshInviteStatus, signIn, signUp, signOut, resetPasswordForEmail, updateUserPassword, signInWithOAuth }}>
+    <AuthContext.Provider value={{ user, session, isAdmin, loading, configError: false, ageBand, consentStatus, inviteStatus, refreshConsentStatus, refreshInviteStatus, signIn, signUp, signOut, resetPasswordForEmail, updateUserPassword, signInWithOAuth, signInWithGoogleIdToken }}>
       {children}
     </AuthContext.Provider>
   );
