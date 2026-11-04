@@ -1,8 +1,11 @@
+import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import type { Screen } from '../types';
-import { BarChart3, BookOpen, Compass, GraduationCap, Home, Keyboard, User } from 'lucide-react';
+import { BarChart3, BookOpen, Compass, GraduationCap, Home, Keyboard, MessageSquare, User } from 'lucide-react';
 import { requestShortcutHelp } from '../lib/keyboardShortcuts';
 import { useShellChrome } from './layout/shellChrome';
+import { useAuth } from '../context/AuthContext';
+import { ContactDialog } from '../features/contact/ContactDialog';
 
 // Launch scope (src/config/launchScope.ts): the five core destinations plus Explore, the hub for every other mode.
 const NAV_ITEMS: { id: Screen; label: string; Icon: typeof Home }[] = [
@@ -35,6 +38,8 @@ export function SideRail({ keyHint = true }: { /** Show the `?` key in the keybo
   const navigate = useNavigate();
   const location = useLocation();
   const { dockHidden } = useShellChrome();
+  const { user } = useAuth();
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const active = activeNavIndex(location.pathname);
 
   const itemClass = (on: boolean) =>
@@ -77,14 +82,30 @@ export function SideRail({ keyHint = true }: { /** Show the `?` key in the keybo
         </div>
         <button
           type="button"
+          onClick={() => setFeedbackOpen(true)}
+          aria-label="Send feedback"
+          title="Send feedback"
+          data-testid="rail-send-feedback"
+          className="mt-auto flex h-10 w-10 items-center justify-center rounded-control text-ink-subtle transition-colors duration-state ease-smooth hover:text-ink-muted"
+        >
+          <MessageSquare size={20} strokeWidth={1.75} aria-hidden="true" />
+        </button>
+        <button
+          type="button"
           onClick={requestShortcutHelp}
           aria-label="Keyboard shortcuts"
           title={keyHint ? 'Keyboard shortcuts (?)' : 'Keyboard shortcuts'}
-          className="mt-auto flex h-10 w-10 items-center justify-center rounded-control text-ink-subtle transition-colors duration-state ease-smooth hover:text-ink-muted"
+          className="-mt-4 flex h-10 w-10 items-center justify-center rounded-control text-ink-subtle transition-colors duration-state ease-smooth hover:text-ink-muted"
         >
           <Keyboard size={20} strokeWidth={1.75} aria-hidden="true" />
         </button>
       </nav>
+      <ContactDialog
+        open={feedbackOpen}
+        onClose={() => setFeedbackOpen(false)}
+        defaultEmail={user?.email}
+        route={location.pathname}
+      />
 
       {!dockHidden && (
         <nav

@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { RotateCcw } from 'lucide-react';
 import { Button } from './ui/Button';
 import { TrackView } from '../services/telemetry/TrackView';
+import { ContactDialog } from '../features/contact/ContactDialog';
 
 /**
  * What the learner sees when the app crashes (the root Sentry.ErrorBoundary in
@@ -9,6 +11,8 @@ import { TrackView } from '../services/telemetry/TrackView';
  * the error itself has already gone to Sentry.
  */
 export function AppErrorFallback() {
+  // Outside every provider, so no account email is prefilled; the dialog asks for one.
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   return (
     <div role="alert" className="min-h-screen flex items-center justify-center px-4 bg-bg">
       <TrackView event={{ name: 'error_screen_shown', props: { area: 'app_root' } }} />
@@ -29,8 +33,16 @@ export function AppErrorFallback() {
           <Button size="lg" variant="secondary" className="w-full" onClick={() => window.location.assign('/')}>
             Go home
           </Button>
+          <Button size="lg" variant="quiet" className="w-full" onClick={() => setFeedbackOpen(true)}>
+            Tell us what happened
+          </Button>
         </div>
       </div>
+      <ContactDialog
+        open={feedbackOpen}
+        onClose={() => setFeedbackOpen(false)}
+        route={window.location.pathname}
+      />
     </div>
   );
 }

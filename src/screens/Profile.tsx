@@ -46,6 +46,7 @@ import { achievementHistoryCounts } from '../services/coach/achievementContextBu
 import { TrackSwitch } from '../features/junior/TrackSwitch';
 import { CORE_ONLY, JUNIOR_TRACK_SELECTABLE } from '../config/launchScope';
 import { ReplayTourButton } from '../features/tour/ReplayTourButton';
+import { SendFeedbackRow } from '../features/contact/SendFeedbackRow';
 import type { AIEngine } from '../types';
 import { playSfx, setSfxEnabled } from '../services/sound/sfx';
 
@@ -724,6 +725,12 @@ export function Profile() {
                 </SettingGroup>
               </motion.div>
             )}
+
+            <motion.div variants={fadeUp}>
+              <SettingGroup title="Help & feedback" testId="profile-help">
+                <SendFeedbackRow />
+              </SettingGroup>
+            </motion.div>
 
             <motion.div variants={fadeUp}>
               <SettingGroup title="Account & data" testId="profile-account">
