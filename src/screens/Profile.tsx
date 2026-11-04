@@ -39,10 +39,13 @@ import {
 } from '../services/notifications/notificationPreferences';
 import { requestAndSubscribe, unsubscribe, isPushSupported } from '../services/notifications/pushService';
 import { pushProfileSettingsToCloud } from '../services/sync/profileSettingsSync';
+import { WeeklyEmailSettings } from '../features/notifications/WeeklyEmailSettings';
 import { getActiveGoal, getCoachProfile, daysUntilExam } from '../services/coach/coachProfileService';
 import { achievementTiles, type AchievementCounts } from '../features/profile/achievementDisplay';
 import { achievementHistoryCounts } from '../services/coach/achievementContextBuilder';
 import { TrackSwitch } from '../features/junior/TrackSwitch';
+import { ParentLinksCard } from '../features/parentView/ParentLinksCard';
+import { resolveFeatureStatus } from '../config/featureFlags';
 import { CORE_ONLY, JUNIOR_TRACK_SELECTABLE } from '../config/launchScope';
 import { ReplayTourButton } from '../features/tour/ReplayTourButton';
 import { SendFeedbackRow } from '../features/contact/SendFeedbackRow';
@@ -576,6 +579,8 @@ export function Profile() {
                 </span>
               </div>
             </motion.section>
+
+            {user && !isGuest && state.learnerTrack !== 'junior' && resolveFeatureStatus('parentView') === 'live' && <ParentLinksCard />}
           </div>
 
           {/* ── Right column: grouped settings ──────────────────────────── */}
@@ -600,8 +605,8 @@ export function Profile() {
               <motion.div variants={fadeUp}>
                 <SettingGroup title="Notifications">
                   {([
-                    { kind: 'streak' as const, on: notifyStreak, label: 'Streak reminders', description: 'A nudge before your streak resets', Icon: Bell },
-                    { kind: 'dailyGoal' as const, on: notifyDailyGoal, label: 'Daily goal reminders', description: "If you haven't hit today's goal", Icon: BellRing },
+                    { kind: 'streak' as const, on: notifyStreak, label: 'Streak reminders', description: 'A heads-up before your streak ends. One a day at most', Icon: Bell },
+                    { kind: 'dailyGoal' as const, on: notifyDailyGoal, label: 'Practice reminders', description: "Today's goal, and the mistake that keeps coming back", Icon: BellRing },
                   ]).map(({ kind, on, label, description, Icon }, i) => {
                     const blocked = on && notifPermission === 'denied';
                     const enabled = on && notifPermission === 'granted';
@@ -620,6 +625,12 @@ export function Profile() {
                     );
                   })}
                 </SettingGroup>
+              </motion.div>
+            )}
+
+            {user && state.learnerTrack !== 'junior' && (
+              <motion.div variants={fadeUp}>
+                <WeeklyEmailSettings userId={user.id} accountEmail={user.email ?? null} />
               </motion.div>
             )}
 

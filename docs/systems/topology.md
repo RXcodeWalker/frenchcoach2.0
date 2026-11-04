@@ -413,19 +413,24 @@ on them with `backend/supabase/ops/expire_open_duels_at_deploy.sql` (D11; run by
   which emails each class's teacher on Monday 07:00–08:59 in the class's time zone (Resend; claim-before-send
   on `teacher_digest_log`). Secrets `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, optional `RESEND_API_KEY`; repo
   variable `APP_BASE_URL` (default `https://frenchcoach.app`). `docs/systems/teacher-dashboard.md` §6.
-- `notifications-streak-and-goal.yml` (Phase 4.3) — hourly, runs
-  `scripts/scheduledJobs/sendNotifications.ts` once per notification type (`streak_at_risk`,
-  `daily_goal`). This is the first workflow that makes outbound HTTP calls the database can't
-  make itself: Web Push (via `web-push`, VAPID-signed) to each user's subscribed devices, and
-  Resend (email) as a fallback when every push attempt for a user fails. Reads candidates from
-  the `get_notification_candidates` Postgres RPC (service-role only) and claims a
-  once-per-user/type/day send attempt via a `notifications_log` upsert before sending — see the
-  script's own header for the full at-most-once-attempt design. New secrets (GitHub Actions
-  repo secrets, not exposed to the client except `VITE_VAPID_PUBLIC_KEY`):
-  `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT` (Web Push signing) and
-  `RESEND_API_KEY` (email fallback), alongside the existing `SUPABASE_URL` /
-  `SUPABASE_SERVICE_KEY`. The client half (`src/services/notifications/pushService.ts`,
-  `public/sw.js`) needs `VITE_VAPID_PUBLIC_KEY` set wherever the frontend is built (Vercel).
+- `notifications-streak-and-goal.yml` (Phase 4.3; retention loop 2026-11-03) — hourly, runs
+  `scripts/scheduledJobs/sendNotifications.ts` once per job (`daily_nudge`, `weekly_report`;
+  spec `docs/systems/retention-notifications.md`). This is the first workflow that makes outbound
+  HTTP calls the database can't make itself: Web Push (via `web-push`, VAPID-signed) to each
+  user's subscribed devices, and Resend (email) for the Sunday weekly progress email (learner +
+  optional parent copy) and as the nudge fallback when every push attempt fails. Reads
+  candidates from the `get_daily_nudge_candidates` / `get_weekly_report_candidates` RPCs
+  (service-role only, backend migration `20261104120000_retention_loop`, which must be applied
+  before this workflow runs) and claims an at-most-once send attempt via a `notifications_log`
+  upsert before sending — see the script's own header. Secrets (GitHub Actions repo secrets,
+  not exposed to the client except `VITE_VAPID_PUBLIC_KEY`): `VAPID_PUBLIC_KEY` /
+  `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT` (Web Push signing) and `RESEND_API_KEY` (email; without
+  it `weekly_report` is skipped), alongside `SUPABASE_URL` / `SUPABASE_SERVICE_KEY`. Optional
+  repo **variables**: `APP_URL` (origin the links point at, default
+  `https://french.beyondthebasics.me`) and `NOTIFY_FROM_EMAIL` (default
+  `FrenchCoach <notifications@frenchcoach.app>` — must be a Resend-verified domain). The client
+  half (`src/services/notifications/pushService.ts`, `learnerSnapshot.ts`, `public/sw.js`) needs
+  `VITE_VAPID_PUBLIC_KEY` set wherever the frontend is built (Vercel).
 - `feedback-notify.yml` (2026-11-04) — hourly at :17, runs
   `scripts/scheduledJobs/sendFeedbackDigest.ts`: emails every new in-app "Send feedback"
   message (`public.user_feedback`, written only through the `submit_feedback` RPC — backend

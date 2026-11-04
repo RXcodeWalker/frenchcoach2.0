@@ -27,11 +27,14 @@ export const ROUTES: RouteEntry[] = [
   { path: '/story', kind: 'public', indexable: true },
   { path: '/privacy', kind: 'public', indexable: false },
   { path: '/terms', kind: 'public', indexable: false },
+  { path: '/unsubscribe', kind: 'public', indexable: false },
 
   { path: '/login', kind: 'unregistered', indexable: false },
   { path: '/auth/callback', kind: 'unregistered', indexable: false },
   { path: '/reset-password', kind: 'unregistered', indexable: false },
   { path: '/guardian-consent', kind: 'unregistered', indexable: false },
+  // The parent view: rendered by AppShell before every gate, never a <Route>.
+  { path: '/parent', kind: 'unregistered', indexable: false },
 
   { path: '/age-band', kind: 'app', indexable: false },
   { path: '/invite-code', kind: 'app', indexable: false },
@@ -58,6 +61,7 @@ export const ROUTES: RouteEntry[] = [
   { path: '/listening-mode', kind: 'app', indexable: false },
   { path: '/study-groups', kind: 'app', indexable: false },
   { path: '/weakness-analysis', kind: 'app', indexable: false },
+  { path: '/fix/:skillId', kind: 'dynamic', indexable: false },
   { path: '/sentence-rebuilder', kind: 'app', indexable: false },
   { path: '/rapid-fire', kind: 'app', indexable: false },
   { path: '/speed-speaking', kind: 'app', indexable: false },
