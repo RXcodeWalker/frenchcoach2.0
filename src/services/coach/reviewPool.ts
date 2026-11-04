@@ -162,3 +162,52 @@ export function getReviewItemFirstRecordedScore(questionId: string): number | nu
   const state = readState();
   return state.items[questionId]?.firstRecordedScore ?? null;
 }
+
+// ── Cloud copy (services/sync/learnerStateSync.ts) ───────────────────────────
+// The schedule used to live only on this device, so a new phone restarted every
+// SM-2 item. The sync module reads the whole pool to push it and hands back the
+// cloud's copy on sign-in; the merge rule lives here, next to the shape.
+
+/** The pool as stored (a fresh empty pool when nothing valid is stored). */
+export function readReviewPoolForSync(): { version: number; items: Record<string, unknown> } {
+  return readState();
+}
+
+function isReviewPoolItem(value: unknown): value is ReviewPoolItem {
+  if (!value || typeof value !== 'object') return false;
+  const v = value as Record<string, unknown>;
+  return typeof v.questionId === 'string'
+    && typeof v.topicKey === 'string'
+    && typeof v.easeFactor === 'number'
+    && typeof v.intervalDays === 'number'
+    && typeof v.repetitions === 'number'
+    && typeof v.nextEligibleAt === 'string'
+    && typeof v.lastAnsweredAt === 'string'
+    && typeof v.lastQuality === 'number'
+    && (v.firstRecordedScore === null || typeof v.firstRecordedScore === 'number');
+}
+
+/**
+ * Merge a cloud copy into this device's pool: per question, the item answered
+ * most recently wins (an item only one side has is kept). A cloud copy of
+ * another pool version is ignored, like a stored one. Known limit: a question
+ * that graduated (was deleted) on one device can come back from another
+ * device's older copy and be reviewed once more. Returns whether anything changed.
+ */
+export function mergeReviewPoolFromCloud(cloud: unknown): boolean {
+  if (!cloud || typeof cloud !== 'object') return false;
+  const c = cloud as { version?: unknown; items?: unknown };
+  if (c.version !== REVIEW_POOL_VERSION || !c.items || typeof c.items !== 'object') return false;
+  const local = readState();
+  let changed = false;
+  for (const [id, item] of Object.entries(c.items as Record<string, unknown>)) {
+    if (!isReviewPoolItem(item) || item.questionId !== id) continue;
+    const mine = local.items[id];
+    if (!mine || item.lastAnsweredAt > mine.lastAnsweredAt) {
+      local.items[id] = item;
+      changed = true;
+    }
+  }
+  if (changed) writeState(local);
+  return changed;
+}

@@ -194,9 +194,9 @@ export interface Session {
   createdAt: string;
   /** True for an exam session run in Coached Practice (or otherwise not marked under real-exam conditions) — its /40 is shown but excluded from progress/averages. See ADR-0007. */
   practiceOnly?: boolean;
-  /** Exam sessions only: the envelope's marks by scored area. Local only (not synced); absent on attempts recorded before it existed and when scoring failed. */
+  /** Exam sessions only: the envelope's marks by scored area. Synced (sessions.exam_marks) and restored on sign-in; absent on attempts recorded before it existed and when scoring failed. */
   examMarks?: ExamAreaMarks;
-  /** Exam sessions only: the scoring session id (the transcript's `sessionId`), distinct from `id`. Local only. */
+  /** Exam sessions only: the scoring session id (the transcript's `sessionId`), distinct from `id`. Synced (sessions.scoring_session_id). */
   scoringSessionId?: string;
 }
 

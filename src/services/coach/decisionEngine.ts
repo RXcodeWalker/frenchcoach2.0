@@ -7,6 +7,7 @@
 //   • urgency banners
 
 import type { EvidenceBeliefSnapshot } from '../../types/beliefs';
+import { localDay, localDayOf } from '../../lib/localDay';
 import type {
   CoachProfile,
   DailyPlan,
@@ -295,11 +296,11 @@ export function generateDailyPlan(
     forceRegenerate?: boolean;
   },
 ): DailyPlan {
-  const todayKey = new Date().toISOString().slice(0, 10);
+  const todayKey = localDay();
   const cached = storageGet<DailyPlan | null>(STORAGE_KEYS.coachDailyPlan, null);
 
   // Return cached plan if it was generated today and not forced
-  if (!opts?.forceRegenerate && cached && cached.generatedAt.slice(0, 10) === todayKey) {
+  if (!opts?.forceRegenerate && cached && localDayOf(cached.generatedAt) === todayKey) {
     return cached;
   }
 

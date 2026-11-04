@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
+import { localDay, localDayOf } from '../lib/localDay';
 import { useNavigate } from 'react-router-dom';
 import { Zap } from 'lucide-react';
 import { generateDailyPlan } from '../services/coach/decisionEngine';
@@ -56,8 +57,8 @@ export function Home() {
   );
   const dueTotal = useMemo(() => Object.values(getDueReviewCounts()).reduce((a, b) => a + b, 0), []);
 
-  const today = new Date().toISOString().slice(0, 10);
-  const todayCount = state.recentSessions.filter(s => s.createdAt?.startsWith(today)).length;
+  const today = localDay();
+  const todayCount = state.recentSessions.filter(s => s.createdAt && localDayOf(s.createdAt) === today).length;
   const ringFrom = useRef(lastTodayCount !== null && lastTodayCount < todayCount ? lastTodayCount : todayCount).current;
   useEffect(() => { lastTodayCount = todayCount; }, [todayCount]);
 

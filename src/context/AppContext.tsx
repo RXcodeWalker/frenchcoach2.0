@@ -25,6 +25,7 @@ import { hydrateSessionsFromCloud, pushSessionToCloud, backfillSessionsToCloud, 
 import { hydrateCoachFromCloud, backfillEvidenceToCloud, pushPendingEvidence } from '../services/sync/coachSync';
 import { hydratePronunciationFromCloud, backfillPronunciationToCloud, flushPendingPronunciationQueue } from '../services/sync/pronunciationSync';
 import { syncSpeakingLog } from '../services/sync/speakingLogSync';
+import { hydrateLearnerState, pushLearnerState } from '../services/sync/learnerStateSync';
 import { hydrateXpEventsFromCloud, backfillXpEventsToCloud, flushPendingXpEventQueue } from '../services/social/xpLedger';
 import { getXpEventLog } from '../services/social/xpLedgerStorage';
 import { getEconomySnapshot } from '../services/shop/shopService';
@@ -192,6 +193,7 @@ function buildInitialState(): AppState {
     createdAt: s.date,
     practiceOnly: s.practiceOnly,
     examMarks: s.examMarks,
+    scoringSessionId: s.scoringSessionId,
   }));
 
   const achievements = ACHIEVEMENT_DEFINITIONS.map(a => ({
@@ -501,6 +503,20 @@ export function AppProvider({ identity, children }: { identity: string; children
 
   // Auth state subscription + cloud hydration
   useEffect(() => {
+    // Topic progress, the spaced-review schedule and Learn settings — merged
+    // from the cloud copy, then pushed back with whatever the cloud lacked.
+    async function hydrateLearnState(userId: string) {
+      const learn = await hydrateLearnerState(userId);
+      if (!learn) return;
+      for (const key of learn.changedTopics) {
+        dispatch({ type: 'UPDATE_TOPIC_MASTERY', entry: learn.topicMastery[key], justMastered: false });
+      }
+      if (learn.settings.aim) dispatch({ type: 'SET_AIM', aim: learn.settings.aim });
+      if (learn.settings.markingLevel) dispatch({ type: 'SET_MARKING_LEVEL', level: learn.settings.markingLevel });
+      if (learn.settings.dailyGoal) dispatch({ type: 'SET_DAILY_GOAL', goal: learn.settings.dailyGoal });
+      void pushLearnerState(userId);
+    }
+
     async function hydrateFromCloud(userId: string) {
       // Step 0: suppress incremental session pushes during hydration
       sessionHydrationInProgress.current = true;
@@ -590,6 +606,7 @@ export function AppProvider({ identity, children }: { identity: string; children
           void flushPendingQueue(userId);
           void hydratePronunciationFromCloud(userId);
           void syncSpeakingLog(userId);
+          void hydrateLearnState(userId);
           void hydrateXpEventsFromCloud(userId).then(async ({ mergedEvents, cloudIds }) => {
             const ledgerTotal = await getMyAllTimeXp(userId);
             if (ledgerTotal !== null) reconcileTotalFromLedger(ledgerTotal);
@@ -653,6 +670,9 @@ export function AppProvider({ identity, children }: { identity: string; children
 
       // Step 2.65: Learn speaking log — pull, merge, push what the cloud lacks (no reader depends on it, so not awaited)
       void syncSpeakingLog(userId);
+
+      // Step 2.66: topic progress, review schedule, Learn settings (learnerStateSync.ts)
+      void hydrateLearnState(userId);
 
       // Step 2.7: XP ledger — pull, merge, write localStorage
       const { mergedEvents, cloudIds: cloudXpEventIds } = await hydrateXpEventsFromCloud(userId);
@@ -742,6 +762,16 @@ export function AppProvider({ identity, children }: { identity: string; children
     }, 2000);
     return () => clearTimeout(timer);
   }, [state.dailyGoal, authUser?.id]);
+
+  // Debounced push of topic progress, the review schedule and Learn settings —
+  // pushLearnerState itself waits until this account's cloud copy was merged.
+  useEffect(() => {
+    if (!authUser || !hydrationComplete.current) return;
+    const userId = authUser.id;
+    const timer = setTimeout(() => { void pushLearnerState(userId); }, 3000);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.topicMastery, state.recentSessions[0]?.id, state.aim, state.markingLevel, state.dailyGoal, authUser?.id]);
 
   // Incremental session push — fires after each new session, gated on auth + hydration
   const newestSessionId = state.recentSessions[0]?.id;
