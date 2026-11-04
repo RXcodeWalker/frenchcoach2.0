@@ -6,6 +6,9 @@ import { generateDailyPlan } from '../services/coach/decisionEngine';
 import { getActiveRecommendation } from '../services/coach/recommendationEngine';
 import { getSkillLabel } from '../services/coach/skillGraph';
 import { getDueReviewCounts } from '../services/coach/reviewPool';
+import { getCoachBrief } from '../services/coach/coachBriefInput';
+import type { CoachMoveKind } from '../services/coach/coachBrain';
+import { getLearnAllowance } from '../services/api/apiClient';
 import { getLastWeeklyReview, hasSeenWeeklyReviewThisWeek, markWeeklyReviewSeen } from '../services/coach/weeklyReviewService';
 import type { CoachRecommendation, DailyPlan, WeeklyReview } from '../types/coach';
 import { WeeklyReviewCard } from './progress/WeeklyReviewCard';
@@ -29,6 +32,31 @@ import { RecentActivity } from './home/RecentActivity';
 // landing back here fills the ring from the old count (the `fill` motion).
 let lastTodayCount: number | null = null;
 
+/** The eyebrow on the coach's card: why this move, in two words. */
+const MOVE_TAG: Record<CoachMoveKind, string> = {
+  first_steps: 'Getting started',
+  fix_mistake: 'Recurring mistake',
+  exam_sim: 'Weekly Exam Sim',
+  role_play: 'Role play',
+  develop_answers: 'Weakest exam area',
+  weak_skill: 'Weakest skill',
+  review: 'Due for review',
+  new_topic: 'New topic',
+  keep_going: 'Keep going',
+};
+
+/** Where a move without a topic happens — the card's heading, so it doesn't repeat the mission title. */
+const MOVE_PLACE: Partial<Record<CoachMoveKind, string>> = {
+  first_steps: 'Learn',
+  exam_sim: 'Exam Sim · full 0520 speaking test',
+  role_play: 'Role-play drill',
+};
+
+function firstSentence(text: string): string {
+  const m = /^.+?[.!?](?=\s|$)/.exec(text);
+  return m ? m[0] : text;
+}
+
 function todayLabel(): string {
   return new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
 }
@@ -48,6 +76,8 @@ export function Home() {
   const [recommendation, setRecommendation] = useState<CoachRecommendation | null>(null);
   const [weeklyReview, setWeeklyReview] = useState<WeeklyReview | null>(null);
   const [showReviewBanner, setShowReviewBanner] = useState(false);
+  // Today's AI-marked Learn answers left (read-only lookup); null while unknown.
+  const [answersLeft, setAnswersLeft] = useState<number | null>(null);
 
   const stats = useMemo(() => getStats(), []);
   const week: WeekDay[] = useMemo(
@@ -84,6 +114,20 @@ export function Home() {
     }
   }, []);
 
+  useEffect(() => {
+    let live = true;
+    void getLearnAllowance().then(a => { if (live && a) setAnswersLeft(a.remaining); });
+    return () => { live = false; };
+  }, []);
+
+  // The coach's one decision (coachBrain.ts): what to do now, why, and where.
+  // Recomputed when a session lands or the allowance arrives; pure and cheap.
+  const brief = useMemo(
+    () => getCoachBrief({ learnAnswersLeft: answersLeft }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- recentSessions.length marks "a session landed"
+    [answersLeft, state.recentSessions.length],
+  );
+
   const handleDismissReview = () => {
     markWeeklyReviewSeen();
     setShowReviewBanner(false);
@@ -108,7 +152,7 @@ export function Home() {
   const openPick = () => navigate(pickKey ? learnTopicPath(pickKey) : '/learn');
 
   const focusSkill = skills[0];
-  const plan: PlanStep[] = [
+  const fallbackPlan: PlanStep[] = [
     { title: 'Warm up', sub: 'A question at your level' },
     dueTotal > 0
       ? { title: 'Review', sub: `${dueTotal} answer${dueTotal === 1 ? '' : 's'} due for review` }
@@ -116,7 +160,23 @@ export function Home() {
     { title: 'Stretch', sub: focusSkill ? `${focusSkill} · a step up` : 'A step above your level' },
   ];
 
-  const coachPick = (compact: boolean) => (
+  const move = brief?.move ?? null;
+  const moveTopic = move?.topicKey ? TOPICS.find(t => t.key === move.topicKey) ?? null : null;
+  const plan: PlanStep[] = brief?.steps ?? fallbackPlan;
+
+  const coachPick = (compact: boolean) => move ? (
+    <CoachPick
+      compact={compact}
+      topicKey={move.topicKey}
+      topicLabel={moveTopic?.label ?? null}
+      heading={MOVE_PLACE[move.kind] ?? move.title}
+      tag={MOVE_TAG[move.kind]}
+      body={move.why}
+      short={firstSentence(move.why)}
+      skills={brief?.signals ?? []}
+      onOpen={() => navigate(move.to)}
+    />
+  ) : (
     <CoachPick
       compact={compact}
       topicKey={pickKey}
@@ -127,6 +187,24 @@ export function Home() {
       skills={skills}
       onOpen={openPick}
     />
+  );
+
+  const alternatives = brief?.alternatives ?? [];
+  const otherOptions = alternatives.length > 0 && (
+    <motion.nav variants={fadeUp} aria-label="Other options" className="flex flex-wrap items-center gap-2 px-1" data-testid="home-coach-alternatives">
+      <span className="text-caption text-ink-subtle">Or:</span>
+      {alternatives.map(a => (
+        <button
+          key={a.kind}
+          type="button"
+          onClick={() => navigate(a.to)}
+          title={a.why}
+          className="inline-flex min-h-9 items-center rounded-pill border border-hairline-strong px-3 text-[13px] font-medium text-ink-muted transition-colors duration-state ease-smooth hover:bg-track"
+        >
+          {a.title}
+        </button>
+      ))}
+    </motion.nav>
   );
 
   const xpUpTo = LEARN_ANSWERS_PER_DAY * computeXPGain(10, profile.streak_days).gain;
@@ -177,9 +255,17 @@ export function Home() {
           footer={desktop ? undefined : coachPick(true)}
           onLearn={() => navigate('/learn')}
           onExam={() => navigate('/exam')}
+          title={move?.title}
+          note={brief?.headline}
+          primary={move ? { label: move.cta, onClick: () => navigate(move.to) } : undefined}
+          planNote={move ? moveTopic?.labelEn ?? MOVE_PLACE[move.kind] ?? null : null}
+          secondary={move?.kind === 'exam_sim'
+            ? { label: desktop ? 'Practise in Learn' : 'Learn', onClick: () => navigate('/learn') }
+            : undefined}
         />
 
         {desktop && coachPick(false)}
+        {otherOptions}
 
         {showReviewBanner && weeklyReview && (
           <WeeklyReviewCard review={weeklyReview} onDismiss={handleDismissReview} />

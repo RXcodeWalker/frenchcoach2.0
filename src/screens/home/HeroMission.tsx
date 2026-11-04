@@ -30,6 +30,16 @@ interface Props {
   ringFrom?: number;
   /** Compact only: a recessed strip along the bottom of the card (the coach's focus). */
   footer?: ReactNode;
+  /** The coach's move ("Fix Past tense"); replaces the daily plan's rationale as the title. */
+  title?: string;
+  /** The exam phase in one line, under the meta. */
+  note?: string | null;
+  /** The coach's primary action; defaults to "Start session" → onLearn. */
+  primary?: { label: string; onClick: () => void };
+  /** The secondary action; defaults to the timed test → onExam. */
+  secondary?: { label: string; onClick: () => void };
+  /** Right side of the plan header when nothing is done today (where the plan happens); defaults to "Pick any topic". */
+  planNote?: string | null;
 }
 
 function streakLine(streak: number, todayCount: number): string {
@@ -45,12 +55,15 @@ function streakLine(streak: number, todayCount: number): string {
  */
 export function HeroMission({
   todayCount, dailyGoal, dailyPlan, onLearn, onExam, streakDays = 0, xpUpTo, plan = [], compact = false, ringFrom, footer,
+  title: coachTitle, note, primary, secondary, planNote,
 }: Props) {
   const remaining = Math.max(dailyGoal - todayCount, 0);
   const goalComplete = remaining === 0;
   const title = goalComplete
     ? 'Daily goal complete'
-    : dailyPlan?.topAction.rationale ?? 'Complete a session to get your personalised focus for today.';
+    : coachTitle ?? dailyPlan?.topAction.rationale ?? 'Complete a session to get your personalised focus for today.';
+  const primaryAction = primary ?? { label: 'Start session', onClick: onLearn };
+  const secondaryAction = secondary ?? { label: compact ? 'Timed test' : 'Take a timed test', onClick: onExam };
   const meta = goalComplete
     ? `${todayCount} session${todayCount === 1 ? '' : 's'} done today — practise more to build your streak.`
     : `${remaining} more session${remaining > 1 ? 's' : ''} to hit your daily goal · about 12 min`;
@@ -87,6 +100,7 @@ export function HeroMission({
             <span className="text-eyebrow uppercase text-action-text">Today&rsquo;s mission</span>
             <h2 className="text-[18px] font-semibold leading-[1.35] text-ink">{title}</h2>
             <p className="text-[13px] text-ink-subtle">{meta}</p>
+            {note && <p className="text-[13px] text-ink-muted" data-testid="home-exam-phase">{note}</p>}
             <div className="mt-1.5">{stakes}</div>
             {plan.length > 0 && (
               <ol className="mt-2.5 grid grid-cols-3 gap-1.5">
@@ -100,10 +114,10 @@ export function HeroMission({
             )}
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant="primary" size="lg" onClick={onLearn}>
-              <Mic size={16} aria-hidden="true" />Start session
+            <Button variant="primary" size="lg" onClick={primaryAction.onClick}>
+              <Mic size={16} aria-hidden="true" />{primaryAction.label}
             </Button>
-            <Button variant="secondary" size="lg" onClick={onExam}>Timed test</Button>
+            <Button variant="secondary" size="lg" onClick={secondaryAction.onClick}>{secondaryAction.label}</Button>
           </div>
         </div>
         {footer != null && <div className="border-t border-hairline bg-surface-recessed">{footer}</div>}
@@ -119,12 +133,13 @@ export function HeroMission({
           <span className="text-eyebrow uppercase text-action-text">Today&rsquo;s mission</span>
           <h2 className="text-title text-ink [text-wrap:pretty]">{title}</h2>
           <p className="text-body-s text-ink-muted">{meta}</p>
+          {note && <p className="text-body-s text-ink-muted" data-testid="home-exam-phase">{note}</p>}
           <div className="mt-1">{stakes}</div>
           <div className="mt-3 flex flex-wrap gap-3">
-            <Button variant="primary" size="lg" onClick={onLearn}>
-              <Mic size={16} aria-hidden="true" />Start session
+            <Button variant="primary" size="lg" onClick={primaryAction.onClick}>
+              <Mic size={16} aria-hidden="true" />{primaryAction.label}
             </Button>
-            <Button variant="secondary" size="lg" onClick={onExam}>Take a timed test</Button>
+            <Button variant="secondary" size="lg" onClick={secondaryAction.onClick}>{secondaryAction.label}</Button>
           </div>
         </div>
       </div>
@@ -132,7 +147,7 @@ export function HeroMission({
         <div className="flex flex-col gap-3 border-t border-hairline bg-surface-recessed px-[clamp(20px,4cqw,32px)] pb-5 pt-4">
           <div className="flex justify-between gap-3 text-eyebrow uppercase text-ink-subtle">
             <span>Today&rsquo;s plan</span>
-            <span className="text-caption normal-case tracking-normal">{todayCount > 0 ? `${todayCount} done today` : 'Pick any topic'}</span>
+            <span className="text-caption normal-case tracking-normal">{todayCount > 0 ? `${todayCount} done today` : planNote ?? 'Pick any topic'}</span>
           </div>
           <ol className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,200px),1fr))] gap-2">
             {plan.map((p, i) => (
